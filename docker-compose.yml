@@ -1,0 +1,53 @@
+services:
+  clawdbot-gateway:
+    build: .
+    container_name: clawdbot-gateway
+    restart: unless-stopped
+
+    # Security: publish only to localhost on the Windows host
+    ports:
+      - "127.0.0.1:${CLAWDBOT_PORT:-18789}:18789"
+      - "127.0.0.1:${CLAWDBOT_BROWSER_PORT:-18791}:18791"
+
+    # Tokens / keys are provided via .env in this project directory
+    env_file:
+      - .env
+
+    # Persist config/sessions + workspace on the host
+    volumes:
+      - ./data/state:/home/node/.clawdbot
+      - ./data/workspace:/home/node/clawd
+
+      # (Optional) Mount your Obsidian vault read-only so the agent can read docs.
+      # 1) Put your vault path in OBSIDIAN_VAULT_PATH inside .env (Windows path is OK in Docker Desktop)
+      # 2) Uncomment the next line
+      # - ${OBSIDIAN_VAULT_PATH}:/home/node/vault:ro
+
+    # If you want the container to reach Ollama running on the Windows host:
+    # - On Docker Desktop, host.docker.internal should work.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+    command:
+      - clawdbot
+      - gateway
+      - --port
+      - "18789"
+      - --bind
+      - lan
+      - --auth
+      - token
+      - --token
+      - "${CLAWDBOT_GATEWAY_TOKEN}"
+      - --verbose
+
+  # Convenience service: run one-off CLI commands in the same environment
+  clawdbot-cli:
+    build: .
+    profiles: ["cli"]
+    env_file:
+      - .env
+    volumes:
+      - ./data/state:/home/node/.clawdbot
+      - ./data/workspace:/home/node/clawd
+    entrypoint: ["clawdbot"]

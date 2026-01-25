@@ -1,0 +1,7 @@
+.env
+data/workspace/**
+data/state/**
+
+# Keep the folders
+!data/workspace/.gitkeep
+!data/state/.gitkeep
