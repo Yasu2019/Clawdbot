@@ -1,6 +1,7 @@
 .env
 data/workspace/**
 data/state/**
+data/node_state/**
 
 # Keep the folders
 !data/workspace/.gitkeep
