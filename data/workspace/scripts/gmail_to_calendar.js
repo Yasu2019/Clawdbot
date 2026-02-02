@@ -148,7 +148,15 @@ async function main() {
             // Parse
             const analysis = await parseEmailWithGemini(subject, snippet);
 
+            // Safety Check: Prevent "Untitled Page" or empty summaries
             if (analysis && analysis.is_task) {
+                const safeSummary = (analysis.summary || '').trim();
+                if (!safeSummary || safeSummary.toLowerCase() === 'untitled page' || safeSummary.toLowerCase() === 'untitled') {
+                    console.log(`[Safety Block] Prevented insertion of invalid title: "${safeSummary}"`);
+                    logDetails += `- Blocked invalid title: ${safeSummary}\n`;
+                    continue;
+                }
+
                 // Construct Event Resource
                 const eventResource = {
                     summary: `[ClawdBot] ${analysis.summary}`,
