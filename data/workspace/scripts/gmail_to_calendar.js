@@ -88,9 +88,10 @@ async function parseEmailWithGemini(subject, body) {
     If yes, return JSON: {
         "is_task": true, 
         "summary": "Task/Meeting Summary", 
-        "start_datetime": "YYYY-MM-DDTHH:mm:00 (ISO format if time specified, else YYYY-MM-DD for all day)",
-        "end_datetime": "YYYY-MM-DDTHH:mm:00 (If unknown, +1 hour from start)",
-        "requester": "Name"
+        "start_datetime": "YYYY-MM-DDTHH:mm:00 (ISO format, Asia/Tokyo time. If time unknown, use T09:00:00)",
+        "end_datetime": "YYYY-MM-DDTHH:mm:00 (If unknown, +1 hour)",
+        "requester": "Name",
+        "reasoning": "Briefly explain why you chose this date/time (e.g. 'Email says tomorrow 2pm')"
     }
     If no, return JSON: {"is_task": false}
     Return ONLY JSON.
@@ -160,7 +161,7 @@ async function main() {
                 // Construct Event Resource
                 const eventResource = {
                     summary: `[ClawdBot] ${analysis.summary}`,
-                    description: `Requester: ${analysis.requester}\nSource: Gmail\nOriginal Subject: ${subject}`,
+                    description: `Requester: ${analysis.requester}\nSource: Gmail\nReasoning: ${analysis.reasoning || 'No details provided'}\nOriginal Subject: ${subject}`,
                 };
 
                 // Handle Date vs DateTime
