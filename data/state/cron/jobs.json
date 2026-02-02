@@ -1,0 +1,193 @@
+{
+  "version": 1,
+  "jobs": [
+    {
+      "id": "05797681-1363-4b88-ae31-fab7f434457a",
+      "agentId": "main",
+      "name": "mail_check_reminder_suzuki",
+      "enabled": false,
+      "createdAtMs": 1769508496973,
+      "updatedAtMs": 1769508496986,
+      "schedule": {
+        "kind": "at",
+        "atMs": 1739850983000
+      },
+      "sessionTarget": "main",
+      "wakeMode": "next-heartbeat",
+      "payload": {
+        "text": "鈴木さん、依頼から10分経過しました。メールの確認状況ですが、現時点ではまだ新しいメールの受信は確認できておりません。再度確認が必要な場合はお申し付けください。",
+        "kind": "systemEvent"
+      },
+      "state": {
+        "lastRunAtMs": 1769508496986,
+        "lastStatus": "ok",
+        "lastDurationMs": 3
+      }
+    },
+    {
+      "id": "billing-guard-daily-001",
+      "agentId": "main",
+      "name": "Daily_Billing_Guard_Check",
+      "enabled": true,
+      "createdAtMs": 1770050000000,
+      "updatedAtMs": 1770050000000,
+      "schedule": {
+        "kind": "cron",
+        "expr": "0 9 * * *"
+      },
+      "sessionTarget": "main",
+      "wakeMode": "next-heartbeat",
+      "payload": {
+        "kind": "systemEvent",
+        "text": "【自動セキュリティ】管理者モードで python3 /home/node/clawd/scripts/check_billing.py を実行して、Googleカレンダーに『🛡️ ClawdBot Security: Billing Check』というイベントを作成してください。成功したら『課金チェック完了』とログに残してください。"
+      },
+      "state": {
+        "lastStatus": "ok",
+        "nextRunAtMs": 1770109200000
+      }
+    },
+    {
+      "id": "13d70a86-da8c-4e97-ba42-77c348ce60c7",
+      "agentId": "main",
+      "name": "Test_Gemini_Cost_Report_10min",
+      "enabled": false,
+      "createdAtMs": 1769510634331,
+      "updatedAtMs": 1769510634344,
+      "schedule": {
+        "kind": "at",
+        "atMs": 1739854440000
+      },
+      "sessionTarget": "main",
+      "wakeMode": "next-heartbeat",
+      "payload": {
+        "text": "【テスト配信】鈴木さん、設定変更から10分経過しました。\n\n深夜1時の定期レポートは以下の内容で配信されます：\n\n---\n【Gemini API 利用状況】\nGoogle Cloud Consoleで最新の費用を確認してください：\nhttps://console.cloud.google.com/billing/019DB0-4336C8-FFE190/reports\n---\n\nこのメッセージが正しく届いていれば、本番の配信も問題ありません。",
+        "kind": "systemEvent"
+      },
+      "state": {
+        "lastRunAtMs": 1769510634344,
+        "lastStatus": "ok",
+        "lastDurationMs": 2
+      }
+    },
+    {
+      "id": "bd9a7fab-4877-4153-89e2-14a0e650e160",
+      "agentId": "main",
+      "name": "DailyBillingReport_FinalV1",
+      "enabled": true,
+      "createdAtMs": 1769910541992,
+      "updatedAtMs": 1770040800001,
+      "schedule": {
+        "kind": "cron",
+        "expr": "0 14 * * *"
+      },
+      "sessionTarget": "main",
+      "wakeMode": "next-heartbeat",
+      "payload": {
+        "kind": "systemEvent",
+        "text": "ミニPC(IATF-MiniPC)上の python D:\\\\IATF_QA\\\\gemini_cost_report.py を実行して。\\nこのスクリプトは y.suzuki.hk@gmail.com 宛てに最新の費用(約25円)をメール送信する設定になっている。\\nもし失敗したら、原因をログに残して私に報告して。"
+      },
+      "state": {
+        "nextRunAtMs": 1770127200000,
+        "lastRunAtMs": 1770040800001,
+        "lastStatus": "ok",
+        "lastDurationMs": 34
+      }
+    },
+    {
+      "id": "221ff5e9-bf3b-462b-8186-142b17984188",
+      "agentId": "main",
+      "name": "Daily_Mitsui_Email_Summary",
+      "enabled": true,
+      "createdAtMs": 1769910570202,
+      "updatedAtMs": 1770040800001,
+      "schedule": {
+        "expr": "0 14 * * *",
+        "kind": "cron"
+      },
+      "sessionTarget": "main",
+      "wakeMode": "next-heartbeat",
+      "payload": {
+        "kind": "systemEvent",
+        "text": "mitsui-s.com 関連のメール（前日分）をチェックして、重要なタスクや連絡事項を要約して鈴木さんに報告してください。"
+      },
+      "state": {
+        "nextRunAtMs": 1770127200000,
+        "lastRunAtMs": 1770040800043,
+        "lastStatus": "ok",
+        "lastDurationMs": 5
+      }
+    },
+    {
+      "id": "540ef62c-8f43-4ae0-b0c9-1539182ec201",
+      "agentId": "main",
+      "name": "Daily_Gemini_Cost_Report_A127",
+      "enabled": true,
+      "createdAtMs": 1769910589852,
+      "updatedAtMs": 1769961600000,
+      "schedule": {
+        "expr": "0 16 * * *",
+        "kind": "cron"
+      },
+      "sessionTarget": "main",
+      "wakeMode": "next-heartbeat",
+      "payload": {
+        "kind": "systemEvent",
+        "text": "鈴木さん、深夜1時の定期レポートです。\\n\\n【Gemini API 利用状況】\\nGoogle Cloud Consoleで最新の費用を確認してください：\\nhttps://console.cloud.google.com/billing/019DB0-4336C8-FFE190/reports\\n\\n※Clawdbotのシステムイベント経由で通知しています。\\n（現在、外部メール送信機能の接続を確認中のため、まずはこのチャットへ確実にお届けします）"
+      },
+      "state": {
+        "nextRunAtMs": 1770048000000,
+        "lastRunAtMs": 1769961600000,
+        "lastStatus": "ok",
+        "lastDurationMs": 52
+      }
+    },
+    {
+      "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "agentId": "main",
+      "name": "Daily_Promises_Report_2300",
+      "enabled": true,
+      "createdAtMs": 1769955752000,
+      "updatedAtMs": 1770040800001,
+      "schedule": {
+        "kind": "cron",
+        "expr": "0 14 * * *"
+      },
+      "sessionTarget": "main",
+      "wakeMode": "next-heartbeat",
+      "payload": {
+        "kind": "systemEvent",
+        "text": "【毎日23:00 約束事項レポート】\\n\\n鈴木さん、本日の約束事項一覧をお送りします。\\n\\n詳細は PROMISES.md ファイルを参照してください。\\n保存場所: data/workspace/PROMISES.md\\n\\nファイルの内容を読み取り、現在有効な約束事項を箇条書きで報告してください。GmailとTelegramの両方に送信してください。"
+      },
+      "state": {
+        "nextRunAtMs": 1770127200000,
+        "lastRunAtMs": 1770040800053,
+        "lastStatus": "ok",
+        "lastDurationMs": 5
+      }
+    },
+    {
+      "id": "b2c3d4e5-f6a7-8901-bcde-f23456789012",
+      "agentId": "main",
+      "name": "Hourly_API_Usage_Report",
+      "enabled": true,
+      "createdAtMs": 1769955752000,
+      "updatedAtMs": 1770040800001,
+      "schedule": {
+        "kind": "cron",
+        "expr": "0 * * * *"
+      },
+      "sessionTarget": "main",
+      "wakeMode": "next-heartbeat",
+      "payload": {
+        "kind": "systemEvent",
+        "text": "【毎時API使用量レポート】\\n\\n鈴木さん、過去1時間のAPI使用状況を報告します。\\n\\n以下の情報を収集してGmailとTelegramに送信してください：\\n1. 使用したアプリケーション名\\n2. 各アプリケーションのAPI呼び出し回数\\n3. 推定費用\\n\\nGoogle Cloud Console: https://console.cloud.google.com/billing/019DB0-4336C8-FFE190/reports"
+      },
+      "state": {
+        "nextRunAtMs": 1770044400000,
+        "lastRunAtMs": 1770040800066,
+        "lastStatus": "ok",
+        "lastDurationMs": 4
+      }
+    }
+  ]
+}
