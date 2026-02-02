@@ -12,22 +12,32 @@ services:
     # Tokens / keys are provided via .env in this project directory
     env_file:
       - .env
+    environment:
+      - GOOGLE_API_KEY=${GEMINI_API_KEY} # For Aider if it expects this name
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL}
+      - OLLAMA_API_KEY=ollama
 
     # Persist config/sessions + workspace on the host
     volumes:
       - ./data/state:/home/node/.clawdbot
       - ./data/workspace:/home/node/clawd
-
+      - "D:/Clawdbot_Docker_20260125/data/state/Obsidian Vault:/home/node/clawd/obsidian_vault"
+      - "D:/Clawdbot_Docker_20260125/data/state/IATF_documents:/home/node/clawd/iatf_documents"
+      - ./data/rclone:/home/node/.config/rclone
       # (Optional) Mount your Obsidian vault read-only so the agent can read docs.
       # 1) Put your vault path in OBSIDIAN_VAULT_PATH inside .env (Windows path is OK in Docker Desktop)
       # 2) Uncomment the next line
       # - ${OBSIDIAN_VAULT_PATH}:/home/node/vault:ro
 
-    # If you want the container to reach Ollama running on the Windows host:
-    # - On Docker Desktop, host.docker.internal should work.
+      # If you want the container to reach Ollama running on the Windows host:
+      # - On Docker Desktop, host.docker.internal should work.
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
+    entrypoint:
+      - /bin/bash
+      - /home/node/.clawdbot/entrypoint.sh
     command:
       - clawdbot
       - gateway
@@ -38,16 +48,16 @@ services:
       - --auth
       - token
       - --token
-      - "${CLAWDBOT_GATEWAY_TOKEN}"
+      - "yasu-fresh-token-2026-02-01"
       - --verbose
 
   # Convenience service: run one-off CLI commands in the same environment
   clawdbot-cli:
     build: .
-    profiles: ["cli"]
+    profiles: [ "cli" ]
     env_file:
       - .env
     volumes:
       - ./data/state:/home/node/.clawdbot
       - ./data/workspace:/home/node/clawd
-    entrypoint: ["clawdbot"]
+    entrypoint: [ "clawdbot" ]

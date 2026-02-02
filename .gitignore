@@ -6,3 +6,12 @@ data/node_state/**
 # Keep the folders
 !data/workspace/.gitkeep
 !data/state/.gitkeep
+
+# Exclude secrets and logs
+data/rclone/
+logs_*.txt
+*.log
+
+# Include specific workspace files
+!data/workspace/bin/
+!data/workspace/*.md
