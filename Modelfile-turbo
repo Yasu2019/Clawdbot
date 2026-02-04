@@ -1,0 +1,6 @@
+FROM qwen2.5:14b
+
+# Turbo Mode for i9-13900HK (14 Cores / 20 Threads)
+# Using all 20 threads as requested for 100% utilization.
+PARAMETER num_thread 16
+PARAMETER num_ctx 32768
