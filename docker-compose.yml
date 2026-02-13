@@ -9,29 +9,26 @@ services:
       - "127.0.0.1:${CLAWDBOT_PORT:-18789}:18789"
       - "127.0.0.1:${CLAWDBOT_BROWSER_PORT:-18791}:18791"
 
-    # Tokens / keys are provided via .env in this project directory
     env_file:
       - .env
     environment:
-      - GOOGLE_API_KEY=${GEMINI_API_KEY} # For Aider if it expects this name
+      - GOOGLE_API_KEY=${GEMINI_API_KEY}
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - OLLAMA_BASE_URL=${OLLAMA_BASE_URL}
       - OLLAMA_API_KEY=ollama
+      # Agentic Vision Mode
+      - TARGET_MODEL=gemini-3-flash-preview
 
-    # Persist config/sessions + workspace on the host
     volumes:
       - ./data/state:/home/node/.clawdbot
       - ./data/workspace:/home/node/clawd
-      - "D:/Clawdbot_Docker_20260125/data/state/Obsidian Vault:/home/node/clawd/obsidian_vault"
-      - "D:/Clawdbot_Docker_20260125/data/state/IATF_documents:/home/node/clawd/iatf_documents"
+      # 共有フォルダ設定
+      - ./consume/WIP:/home/node/clawd/consume/WIP
+      - "./data/state/Obsidian Vault:/home/node/clawd/obsidian_vault"
+      - "./data/state/IATF_documents:/home/node/clawd/iatf_documents"
       - ./data/rclone:/home/node/.config/rclone
-      # (Optional) Mount your Obsidian vault read-only so the agent can read docs.
-      # 1) Put your vault path in OBSIDIAN_VAULT_PATH inside .env (Windows path is OK in Docker Desktop)
-      # 2) Uncomment the next line
-      # - ${OBSIDIAN_VAULT_PATH}:/home/node/vault:ro
+      - /var/run/docker.sock:/var/run/docker.sock
 
-      # If you want the container to reach Ollama running on the Windows host:
-      # - On Docker Desktop, host.docker.internal should work.
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
@@ -51,13 +48,24 @@ services:
       - "yasu-fresh-token-2026-02-01"
       - --verbose
 
-  # Convenience service: run one-off CLI commands in the same environment
-  clawdbot-cli:
-    build: .
-    profiles: [ "cli" ]
-    env_file:
-      - .env
-    volumes:
-      - ./data/state:/home/node/.clawdbot
-      - ./data/workspace:/home/node/clawd
-    entrypoint: [ "clawdbot" ]
+  voicevox:
+    image: voicevox/voicevox_engine:cpu-ubuntu20.04-latest
+    container_name: voicevox-engine
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:50021:50021"
+    environment:
+      - VV_CPU_NUM_THREADS=4
+
+#  open-notebook:
+#    image: ghcr.io/lfnovo/open-notebook:latest
+#    container_name: open-notebook
+#    restart: unless-stopped
+#    ports:
+#      - "127.0.0.1:8501:8501"
+#    volumes:
+#      - ./data/open-notebook:/app/data
+#    environment:
+#      - OLLAMA_HOST=http://host.docker.internal:11434
+#    extra_hosts:
+#      - "host.docker.internal:host-gateway"
