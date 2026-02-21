@@ -6,6 +6,7 @@ const readline = require('readline');
 // Config
 const SCOPES = [
     'https://www.googleapis.com/auth/gmail.readonly',
+    'https://www.googleapis.com/auth/gmail.send',
     'https://www.googleapis.com/auth/calendar'
 ];
 const TOKEN_PATH = path.join(__dirname, '../token.json');
@@ -26,7 +27,7 @@ async function main() {
     const client = new google.auth.OAuth2(
         key.client_id,
         key.client_secret,
-        key.redirect_uris[0]
+        'http://localhost'
     );
 
     const authUrl = client.generateAuthUrl({

@@ -28,7 +28,7 @@ RUN git clone https://github.com/ningfei/u3d.git /tmp/u3d \
     && rm -rf /tmp/u3d
 
 # Python dependencies
-RUN pip install --no-cache-dir streamlit pandas numpy pypdf openpyxl python-docx python-pptx pymeshlab ezdxf trimesh gmsh scipy
+RUN pip install --no-cache-dir streamlit pandas numpy pypdf openpyxl python-docx python-pptx pymeshlab ezdxf trimesh gmsh scipy plotly streamlit-plotly-events
 
 WORKDIR /app
 COPY app.py /app/app.py

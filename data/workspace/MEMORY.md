@@ -29,5 +29,8 @@ It is distinct from `memory/YYYY-MM-DD.md` (which are raw daily logs).
 - **Gmail Automation:** Stable.
 - **Cost Monitoring:** Stable.
 - **Obsidian Vault:** Sync enabled (readonly for bot).
+- **OpenRadioss:** Simulation RUNNING (Log: `openradioss_run.log`). Monitor for "DT" or "ERR".
 
 _(Add new long-term learnings below this line)_
+
+- **Model Update:** `gemini-2.0` deprecated (End of Life: 2026-03-31). Standardized on `gemini-2.5-flash`.

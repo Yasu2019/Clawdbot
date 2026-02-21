@@ -3,40 +3,39 @@ services:
     build: .
     container_name: clawdbot-gateway
     restart: unless-stopped
-
-    # Security: publish only to localhost on the Windows host
     ports:
       - "127.0.0.1:${CLAWDBOT_PORT:-18789}:18789"
       - "127.0.0.1:${CLAWDBOT_BROWSER_PORT:-18791}:18791"
-
     env_file:
       - .env
     environment:
-      - GOOGLE_API_KEY=${GEMINI_API_KEY}
       - GEMINI_API_KEY=${GEMINI_API_KEY}
-      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL}
-      - OLLAMA_API_KEY=ollama
-      # Agentic Vision Mode
-      - TARGET_MODEL=gemini-3-flash-preview
-
+      # - OLLAMA_BASE_URL=${OLLAMA_BASE_URL}
+      # - OLLAMA_API_KEY=${OLLAMA_API_KEY:-ollama-local}
+      # - TARGET_MODEL=gemini-3-flash-preview # Kept as a memo for fallback purposes
+    networks:
+      - default
+      - clawstack_default
     volumes:
-      - ./data/state:/home/node/.clawdbot
+      - ./data/state:/home/node/.openclaw
       - ./data/workspace:/home/node/clawd
-      # 共有フォルダ設定
+      # --- Claude Codeの認証情報を永続化 (Pro枠の維持用) ---
+      - ./data/state/claude_config:/home/node/.config/claude-code
+      # --- OpenAI Codex (ChatGPT Plus) の認証情報をマウント ---
+      - ./data/state/codex:/home/node/.codex
+      # -------------------------------------------------
       - ./consume/WIP:/home/node/clawd/consume/WIP
       - "./data/state/Obsidian Vault:/home/node/clawd/obsidian_vault"
       - "./data/state/IATF_documents:/home/node/clawd/iatf_documents"
       - ./data/rclone:/home/node/.config/rclone
       - /var/run/docker.sock:/var/run/docker.sock
-
     extra_hosts:
       - "host.docker.internal:host-gateway"
-
     entrypoint:
       - /bin/bash
-      - /home/node/.clawdbot/entrypoint.sh
+      - /home/node/.openclaw/entrypoint.sh
     command:
-      - clawdbot
+      - openclaw
       - gateway
       - --port
       - "18789"
@@ -57,15 +56,6 @@ services:
     environment:
       - VV_CPU_NUM_THREADS=4
 
-#  open-notebook:
-#    image: ghcr.io/lfnovo/open-notebook:latest
-#    container_name: open-notebook
-#    restart: unless-stopped
-#    ports:
-#      - "127.0.0.1:8501:8501"
-#    volumes:
-#      - ./data/open-notebook:/app/data
-#    environment:
-#      - OLLAMA_HOST=http://host.docker.internal:11434
-#    extra_hosts:
-#      - "host.docker.internal:host-gateway"
+networks:
+  clawstack_default:
+    external: true

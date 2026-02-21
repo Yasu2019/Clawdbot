@@ -10,7 +10,7 @@
       "updatedAtMs": 1769508496986,
       "schedule": {
         "kind": "at",
-        "atMs": 1739850983000
+        "at": "2025-02-18T03:56:23.000Z"
       },
       "sessionTarget": "main",
       "wakeMode": "next-heartbeat",
@@ -28,9 +28,9 @@
       "id": "billing-guard-daily-001",
       "agentId": "main",
       "name": "Daily_Billing_Guard_Check",
-      "enabled": true,
+      "enabled": false,
       "createdAtMs": 1770050000000,
-      "updatedAtMs": 1770050000000,
+      "updatedAtMs": 1771578008862,
       "schedule": {
         "kind": "cron",
         "expr": "0 9 * * *"
@@ -43,7 +43,8 @@
       },
       "state": {
         "lastStatus": "ok",
-        "nextRunAtMs": 1770195600000
+        "lastRunAtMs": 1771578008862,
+        "lastDurationMs": 42
       }
     },
     {
@@ -55,7 +56,7 @@
       "updatedAtMs": 1769510634344,
       "schedule": {
         "kind": "at",
-        "atMs": 1739854440000
+        "at": "2025-02-18T04:54:00.000Z"
       },
       "sessionTarget": "main",
       "wakeMode": "next-heartbeat",
@@ -73,9 +74,9 @@
       "id": "bd9a7fab-4877-4153-89e2-14a0e650e160",
       "agentId": "main",
       "name": "DailyBillingReport_FinalV1",
-      "enabled": true,
+      "enabled": false,
       "createdAtMs": 1769910541992,
-      "updatedAtMs": 1770127200001,
+      "updatedAtMs": 1771596000240,
       "schedule": {
         "kind": "cron",
         "expr": "0 14 * * *"
@@ -87,19 +88,19 @@
         "text": "ミニPC(IATF-MiniPC)上の python D:\\\\IATF_QA\\\\gemini_cost_report.py を実行して。\\nこのスクリプトは y.suzuki.hk@gmail.com 宛てに最新の費用(約25円)をメール送信する設定になっている。\\nもし失敗したら、原因をログに残して私に報告して。"
       },
       "state": {
-        "nextRunAtMs": 1770213600000,
-        "lastRunAtMs": 1770127200001,
+        "lastRunAtMs": 1771596000187,
         "lastStatus": "ok",
-        "lastDurationMs": 41
+        "lastDurationMs": 53,
+        "consecutiveErrors": 0
       }
     },
     {
       "id": "221ff5e9-bf3b-462b-8186-142b17984188",
       "agentId": "main",
       "name": "Daily_Mitsui_Email_Summary",
-      "enabled": true,
+      "enabled": false,
       "createdAtMs": 1769910570202,
-      "updatedAtMs": 1770127200001,
+      "updatedAtMs": 1771596000243,
       "schedule": {
         "expr": "0 14 * * *",
         "kind": "cron"
@@ -111,19 +112,19 @@
         "text": "mitsui-s.com 関連のメール（前日分）をチェックして、重要なタスクや連絡事項を要約して鈴木さんに報告してください。"
       },
       "state": {
-        "nextRunAtMs": 1770213600000,
-        "lastRunAtMs": 1770127200045,
+        "lastRunAtMs": 1771596000240,
         "lastStatus": "ok",
-        "lastDurationMs": 3
+        "lastDurationMs": 3,
+        "consecutiveErrors": 0
       }
     },
     {
       "id": "540ef62c-8f43-4ae0-b0c9-1539182ec201",
       "agentId": "main",
       "name": "Daily_Gemini_Cost_Report_A127",
-      "enabled": true,
+      "enabled": false,
       "createdAtMs": 1769910589852,
-      "updatedAtMs": 1770048000001,
+      "updatedAtMs": 1771603200611,
       "schedule": {
         "expr": "0 16 * * *",
         "kind": "cron"
@@ -135,19 +136,19 @@
         "text": "鈴木さん、深夜1時の定期レポートです。\\n\\n【Gemini API 利用状況】\\nGoogle Cloud Consoleで最新の費用を確認してください：\\nhttps://console.cloud.google.com/billing/019DB0-4336C8-FFE190/reports\\n\\n※Clawdbotのシステムイベント経由で通知しています。\\n（現在、外部メール送信機能の接続を確認中のため、まずはこのチャットへ確実にお届けします）"
       },
       "state": {
-        "nextRunAtMs": 1770220800000,
-        "lastRunAtMs": 1770048000001,
+        "lastRunAtMs": 1771603200595,
         "lastStatus": "ok",
-        "lastDurationMs": 52
+        "lastDurationMs": 16,
+        "consecutiveErrors": 0
       }
     },
     {
       "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
       "agentId": "main",
       "name": "Daily_Promises_Report_2300",
-      "enabled": true,
+      "enabled": false,
       "createdAtMs": 1769955752000,
-      "updatedAtMs": 1770127200001,
+      "updatedAtMs": 1771596000246,
       "schedule": {
         "kind": "cron",
         "expr": "0 14 * * *"
@@ -159,34 +160,34 @@
         "text": "【毎日23:00 約束事項レポート】\\n\\n鈴木さん、本日の約束事項一覧をお送りします。\\n\\n詳細は PROMISES.md ファイルを参照してください。\\n保存場所: data/workspace/PROMISES.md\\n\\nファイルの内容を読み取り、現在有効な約束事項を箇条書きで報告してください。GmailとTelegramの両方に送信してください。"
       },
       "state": {
-        "nextRunAtMs": 1770213600000,
-        "lastRunAtMs": 1770127200050,
+        "lastRunAtMs": 1771596000243,
         "lastStatus": "ok",
-        "lastDurationMs": 3
+        "lastDurationMs": 3,
+        "consecutiveErrors": 0
       }
     },
     {
       "id": "b2c3d4e5-f6a7-8901-bcde-f23456789012",
       "agentId": "main",
-      "name": "Hourly_API_Usage_Report",
-      "enabled": true,
+      "name": "Half_Hourly_API_Usage_Report",
+      "enabled": false,
       "createdAtMs": 1769955752000,
-      "updatedAtMs": 1770188400001,
+      "updatedAtMs": 1771633800329,
       "schedule": {
         "kind": "cron",
-        "expr": "0 * * * *"
+        "expr": "*/30 * * * *"
       },
       "sessionTarget": "main",
       "wakeMode": "next-heartbeat",
       "payload": {
         "kind": "systemEvent",
-        "text": "【毎時API使用量レポート】\\n\\n鈴木さん、過去1時間のAPI使用状況を報告します。\\n\\n以下の情報を収集してGmailとTelegramに送信してください：\\n1. 使用したアプリケーション名\\n2. 各アプリケーションのAPI呼び出し回数\\n3. 推定費用\\n\\nGoogle Cloud Console: https://console.cloud.google.com/billing/019DB0-4336C8-FFE190/reports"
+        "text": "【30分毎API使用量レポート】\\n\\n鈴木さん、過去30分のAPI使用状況を報告します。\\n\\n以下の情報を収集してGmailとTelegramに送信してください：\\n1. 使用したアプリケーション名\\n2. 各アプリケーションのAPI呼び出し回数\\n3. 推定費用\\n\\nGoogle Cloud Console: https://console.cloud.google.com/billing/019DB0-4336C8-FFE190/reports"
       },
       "state": {
-        "nextRunAtMs": 1770192000000,
-        "lastRunAtMs": 1770188400001,
+        "lastRunAtMs": 1771633800310,
         "lastStatus": "ok",
-        "lastDurationMs": 47
+        "lastDurationMs": 19,
+        "consecutiveErrors": 0
       }
     }
   ]

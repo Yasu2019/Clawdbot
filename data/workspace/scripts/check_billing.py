@@ -1,18 +1,20 @@
 import os
 import base64
+import json
 from email.mime.text import MIMEText
-from datetime import datetime
+from datetime import datetime, timedelta
 from google.oauth2 import service_account
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 
 # --- CONFIG ---
 BILLING_ACCOUNT_ID = "019DB0-4336C8-FFE190"
-# Path inside container
-SERVICE_ACCOUNT_FILE = '/home/node/clawd/D:/IATF_QA/billing_key.json' 
-GMAIL_TOKEN_FILE = '/home/node/clawd/token.json' # Using the new working token in workspace root
+SERVICE_ACCOUNT_FILE = '/home/node/clawd/billing_key.json'
+GMAIL_TOKEN_FILE = '/home/node/clawd/token.json'
+# Assuming credentials.json is also in the clawd directory for client_id/secret
+CREDENTIALS_FILE = '/home/node/clawd/credentials.json'
 TARGET_EMAIL = "y.suzuki.hk@gmail.com"
-COST_THRESHOLD_JPY = 500 # Alert threshold
+COST_THRESHOLD_JPY = 500
 
 def send_email(service, subject, body):
     try:
@@ -28,23 +30,19 @@ def send_email(service, subject, body):
 
 def main():
     try:
-        print("--- Starting Billing Check ---")
-        
-        # 1. Billing Auth
-        creds = service_account.Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE)
-        billing_service = build('billingbudgets', 'v1', credentials=creds)
-        
-        # 2. Get Budget Info (Since we can't easily get exact cost without BigQuery, using Budget Metadata as proxy for connectivity first)
-        # Note: To get ACTUAL cost, we'd traditionally need Cloud Monitoring metrics.
-        # But let's try to see if the budget object contains 'current_spend' which some versions might have?
-        # Actually, budgets.list only returns rules.
-        # However, for a "Safety Guard", verifying that we CAN connect is step 1.
-        # The user's concern is "Unknown usage".
-        
-        # Let's try to access Cloud Monitoring Method for Cost if possible?
-        # Requires 'monitoring.googleapis.com' enabled.
-        # For now, let's run the original logic but confirming connectivity.
-        
+        print("-- Starting Billing Check ---")
+
+        # 1. Billing Auth (Service Account)
+        if not os.path.exists(SERVICE_ACCOUNT_FILE):
+             print(f"Error: Service account file not found at {SERVICE_ACCOUNT_FILE}")
+             return
+
+        creds_billing = service_account.Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE)
+        billing_service = build('billingbudgets', 'v1', credentials=creds_billing)
+
+        parent = f"billingAccounts/{BILLING_ACCOUNT_ID}"
+        budget_summary = ""
+
         try:
             budgets = billing_service.billingAccounts().budgets().list(parent=parent).execute()
             if 'budgets' in budgets:
@@ -57,45 +55,63 @@ def main():
                 budget_summary = "No budget rules found."
         except Exception as e:
             budget_summary = f"[Access Error] Could not read budgets: {e}\n(Please ensure service account has 'Billing Account Viewer' role)"
+            print(f"Billing API access error: {e}") # Log the billing specific error
 
-        # 3. Calendar Auth (Since we have calendar write scope, but only gmail.readonly)
-        import json
+        # 2. Calendar & Gmail Auth (User OAuth)
+        if not os.path.exists(GMAIL_TOKEN_FILE):
+             print(f"Error: Token file not found at {GMAIL_TOKEN_FILE}")
+             return
+        if not os.path.exists(CREDENTIALS_FILE):
+             print(f"Error: Credentials file not found at {CREDENTIALS_FILE}. It's needed for client_id/secret.")
+             return
+
+
         with open(GMAIL_TOKEN_FILE, 'r') as tf:
             token_data = json.load(tf)
-        
-        CREDENTIALS_FILE = '/home/node/clawd/credentials.json'
         with open(CREDENTIALS_FILE, 'r') as cf:
             cred_data = json.load(cf)
             installed = cred_data.get('installed', cred_data.get('web', {}))
-            
-        info = {
-            'refresh_token': token_data.get('refresh_token'),
-            'client_id': installed.get('client_id'),
-            'client_secret': installed.get('client_secret'),
-            'token_uri': "https://oauth2.googleapis.com/token",
-            'scopes': token_data.get('scope', '').split(' ')
-        }
-        
-        creds_user = Credentials.from_authorized_user_info(info)
-        calendar_service = build('calendar', 'v3', credentials=creds_user)
 
-        # 4. Report / Alert via Calendar
-        # Use UTC explicitly to avoid timezone errors
+        creds_user = Credentials(
+            token=token_data.get('access_token'),
+            refresh_token=token_data.get('refresh_token'),
+            token_uri="https://oauth2.googleapis.com/token",
+            client_id=installed.get('client_id'),
+            client_secret=installed.get('client_secret'),
+            scopes=token_data.get('scope', '').split(' ')
+        )
+
+        calendar_service = build('calendar', 'v3', credentials=creds_user)
+        # Note: Gmail service for sending email requires 'https://www.googleapis.com/auth/gmail.send' scope
+        # If token.json doesn't have it, email sending might fail.
+        gmail_service = build('gmail', 'v1', credentials=creds_user)
+
+        # 3. Report / Alert via Calendar & Email
         now_utc = datetime.utcnow()
         start_str = now_utc.isoformat() + 'Z'
-        end_str = (now_utc.replace(minute=(now_utc.minute + 10) % 60)).isoformat() + 'Z'
-        
+        end_str = (now_utc + timedelta(minutes=10)).isoformat() + 'Z' # Event for 10 minutes
+
         event_body = {
             'summary': '🛡️ ClawdBot Security: Billing Check',
             'description': f"Billing ID: {BILLING_ACCOUNT_ID}\n\nConfigured Budgets:\n{budget_summary}\n\nStatus: SYSTEM_ALIVE\n\nVerify manually: https://console.cloud.google.com/billing/{BILLING_ACCOUNT_ID}/reports",
             'start': {'dateTime': start_str},
             'end': {'dateTime': end_str},
-            'colorId': '11', # Red color
+            'colorId': '11',
         }
 
         calendar_service.events().insert(calendarId='primary', body=event_body).execute()
         print("Alert added to Google Calendar.")
-        
+
+        # Send email report (basic version for now)
+        email_subject = "ClawdBot API Billing Report"
+        email_body = f"""鈴木さん、過去30分のAPI使用状況を報告します。
+
+詳細情報:
+{budget_summary}
+
+Google Cloud Console: https://console.cloud.google.com/billing/{BILLING_ACCOUNT_ID}/reports"""
+        send_email(gmail_service, email_subject, email_body)
+
     except Exception as e:
         print(f"CRITICAL ERROR: {e}")
 

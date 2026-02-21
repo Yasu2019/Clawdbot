@@ -35,6 +35,7 @@
 - **毎日23:00 (JST)** に、ユーザーとの約束事項一覧をGmailとTelegramに送信する
 - 約束事項は `PROMISES.md` に記録・管理する
 - 送信時にはファイル名 `PROMISES.md` も記載する
+- **Action:** `node data/workspace/scripts/send_email.js "Daily Promises" "See PROMISES.md"` を実行する。
 
 ### 2. モデル名の表示
 
@@ -43,8 +44,9 @@
 
 ### 3. API使用量レポート
 
-- **1時間に1回**、API料金をアプリケーション別にGmailとTelegramに送信する
+- **30分に1回**、API料金をアプリケーション別にGmailとTelegramに送信する
 - どのアプリケーション使用時にどれだけ費やされたかを明記する
+- **Action:** `python3 data/workspace/scripts/check_billing.py` を実行する。
 
 ### 4. LLMの使い分け
 
@@ -92,3 +94,74 @@
 - フォーマット: `04_System_Records/Templates/WORK_LOG_TEMPLATE.md` を使用
 - 保存場所: `03_Logs/Work_Logs/YYYY-MM-DD_TaskName.md`
 - 目的: 成功・失敗・教訓を記録し、次回以降の精度向上（レベルアップ）に繋げる。
+
+### 9. 出力の自己検証（沈黙の禁止）
+
+- **ツール実行後は、必ず日本語で結果を報告する**
+- 生のデータ（英語のログやJSON）を表示しただけで終わらせてはならない。必ず「何を確認し、どうだったのか」を鈴木さんに日本語で伝えること。
+- 万が一、回答生成に失敗して無言（空欄）になってしまった場合は、直ちに「申し訳ありません、応答生成に失敗しましたがデータは取得済みです」と補足のコメントを行うこと。
+
+### 10. モデルエラー時の自己修復プロトコル
+
+- **「Model Not Found (404)」エラー発生時は、以下の手順を自動的に実行すること:**
+  1. `python3 data/workspace/scripts/list_google_models.py` を実行し、現在利用可能なモデル一覧を取得する。
+  2. 取得したリストと比較し、廃止されたモデルや新しいバージョン名（例: `-latest`, `-001`）を特定する。
+  3. 得られた知見（廃止事実や新バージョン）を直ちに `SYSTEM_FACTS.md` および `MEMORY.md` に追記・更新する。
+  4. ユーザーに「モデル情報の更新」と「設定の自動修正完了」を報告する。
+- **推測でモデル名を変更せず、必ずAPI経由の一次情報（Available Models）に基づいて判断すること。**
+
+### 11. OpenRadioss 安全運用規定
+
+- **チェックポイントの義務化:**
+  - Engineファイル（`.rad`）作成時は、必ず `/RFILE` コマンドを含めること。
+  - 推奨値: `5000` サイクル毎（または計算時間の1%間隔）。
+  - 目的: 万が一のクラッシュ時に、最初からではなく途中から再開可能にするため。
+- **メモリ確認:**
+  - 大規模計算開始前には、必ず `cat /proc/meminfo` で空きメモリを確認する。
+
+### 12. Autonomous Engineering Protocol (OAP-2026)
+
+- **Workflow:** OpenRadioss等のHPCタスクは `docs/OPENRADIOSS_AUTONOMY_PROTOCOL.md` に従う。
+- **Roles:**
+  - **Execution:** ClawdBot (Gemini) が担当。
+  - **Supervision:** Local LLM (DeepSeek) が事前監査と事後分析を担当する。
+- **Review:** `.rad` ファイル作成後は必ず Local LLM の「承認」を得てから実行すること。
+
+### 13. Temporary Override (2026-02-05)
+
+- **Status:** **Auto-Approval Active**
+- **Reason:** User absence (Work).
+- **Action:** Antigravity & Clawdbot are authorized to proceed from Simulation -> Visualization -> Reporting without manual user confirmation.
+
+### 14. Cost-Optimized Engineering Protocol (The "Brain & Brawn" Model)
+
+To minimize API costs while maximizing autonomy:
+
+1. **Brain (Antigravity/Gemini High):**
+    - Focuses solely on **Code Generation** (e.g., .sif, .rad, .py scripts).
+    - Writes generic, reusable scripts for visualization (e.g., ParaView Python scripts).
+    - **Cost:** High (used once per task).
+2. **Brawn (Clawdbot/Host Tools):**
+    - **Executes** the generated scripts locally using `docs/HOST_TOOLS_MANUAL.md`.
+    - **Visualizes** results using the generated scripts without calling the LLM.
+    - **Cost:** Zero (Local Compute).
+3. **Protocol:** Always prefer "Write Script -> Run Script" over "Ask LLM to Analyze Text Logs".
+    - **Reference:**
+        - `docs/HOST_TOOLS_MANUAL.md` (General Paths)
+        - `docs/OPENRADIOSS_AUTONOMY_PROTOCOL.md` (CAE Solver)
+        - `docs/THREEJS_AUTONOMY_PROTOCOL.md` (Web Viz)
+        - `docs/UNITY_AUTONOMY_PROTOCOL.md` (Game Engine Viz)
+        - `docs/BLENDER_AUTONOMY_PROTOCOL.md` (High-Quality Render)
+
+### 15. Dual-Agent Protocol (DAP-2026)
+
+- **Architecture:** Antigravity (Coder) + Clawdbot (Approver) の二重エージェント体制。
+- **Antigravity の役割:**
+  - コード生成 (.sif, .py, .geo, スクリプト)
+  - シミュレーション設定の作成
+  - デバッグ・修正
+- **Clawdbot の役割:**
+  - 生成コードのレビュー
+  - 実行承認/却下
+  - 品質管理・ユーザー報告
+- **Reference:** `docs/DUAL_AGENT_PROTOCOL.md`

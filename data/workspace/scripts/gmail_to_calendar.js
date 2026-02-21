@@ -6,6 +6,7 @@ const { authenticate } = require('@google-cloud/local-auth');
 // Configuration
 const SCOPES = [
     'https://www.googleapis.com/auth/gmail.readonly',
+    'https://www.googleapis.com/auth/gmail.send',
     'https://www.googleapis.com/auth/calendar'
 ];
 const TOKEN_PATH = path.join(__dirname, '../token.json');
@@ -76,10 +77,11 @@ async function saveCredentials(client) {
     await fs.writeFile(TOKEN_PATH, payload);
 }
 
-// Gemini Parse
-async function parseEmailWithGemini(subject, body) {
-    if (!GEMINI_API_KEY) return null;
+// DeepSeek-R1 Parse via Ollama (Local LLM)
+const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || 'http://host.docker.internal:11434';
+const DEEPSEEK_MODEL = 'deepseek-r1-turbo';
 
+async function parseEmailWithDeepSeek(subject, body) {
     const prompt = `
     Analyze this email. Is it a request/task/meeting for me?
     Subject: ${subject}
@@ -87,28 +89,48 @@ async function parseEmailWithGemini(subject, body) {
     
     If yes, return JSON: {
         "is_task": true, 
-        "summary": "Task/Meeting Summary", 
+        "summary": "Task/Meeting Summary (Japanese preferred)", 
         "start_datetime": "YYYY-MM-DDTHH:mm:00 (ISO format, Asia/Tokyo time. If time unknown, use T09:00:00)",
         "end_datetime": "YYYY-MM-DDTHH:mm:00 (If unknown, +1 hour)",
         "requester": "Name",
-        "reasoning": "Briefly explain why you chose this date/time (e.g. 'Email says tomorrow 2pm')"
+        "priority": "high/medium/low",
+        "reasoning": "Briefly explain why you chose this date/time and priority"
     }
     If no, return JSON: {"is_task": false}
-    Return ONLY JSON.
+    Return ONLY valid JSON, no markdown.
   `;
 
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-    });
-
-    const data = await response.json();
     try {
-        const text = data.candidates[0].content.parts[0].text;
-        const jsonStr = text.replace(/```json/g, '').replace(/```/g, '').trim();
-        return JSON.parse(jsonStr);
+        console.log(`[DeepSeek-R1] Analyzing email: ${subject.substring(0, 50)}...`);
+        const startTime = Date.now();
+
+        const response = await fetch(`${OLLAMA_BASE_URL}/api/generate`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                model: DEEPSEEK_MODEL,
+                prompt: prompt,
+                stream: false,
+                options: {
+                    temperature: 0.3,
+                    num_ctx: 4096
+                }
+            })
+        });
+
+        const data = await response.json();
+        const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+        console.log(`[DeepSeek-R1] Analysis completed in ${elapsed}s`);
+
+        const text = data.response || '';
+        // Extract JSON from response
+        const jsonMatch = text.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+            return JSON.parse(jsonMatch[0]);
+        }
+        return { is_task: false };
     } catch (e) {
+        console.error('[DeepSeek-R1] Error:', e.message);
         return { is_task: false };
     }
 }
@@ -146,8 +168,8 @@ async function main() {
             const subject = m.data.payload.headers.find(h => h.name === 'Subject')?.value;
             const snippet = m.data.snippet;
 
-            // Parse
-            const analysis = await parseEmailWithGemini(subject, snippet);
+            // Parse with DeepSeek-R1 (Local LLM)
+            const analysis = await parseEmailWithDeepSeek(subject, snippet);
 
             // Safety Check: Prevent "Untitled Page" or empty summaries
             if (analysis && analysis.is_task) {

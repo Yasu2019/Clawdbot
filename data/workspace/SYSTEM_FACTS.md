@@ -1,88 +1,153 @@
-# SYSTEM_FACTS.md - システム現状と確定事項
+# 📘 Clawstack V2 System Manual (SYSTEM_FACTS.md)
 
-> **目的:** このファイルは、ClawdBotおよびAntigravityが「現在のシステム状態」を正確に把握し、ユーザーに何度も同じ説明を求めないための「長期記憶」として機能します。
-> **ルール:** 何か回答する前や提案する前に、必ずこのファイルを確認し、**「すでに実装済みの機能」を「まだない」と誤認しないようにしてください。**
+**Version:** 2.0 (2026-02-08)
+**Target Audience:** Clawdbot (Autonomous Agent) & System Administrators
 
 ---
 
-## 🏗️ 実装済みシステム構成
+## 1. 🏗️ System Architecture
 
-### 1. ローカルLLM (Ollama)
+Clawstack V2 is a Docker-based autonomous engineering platform running on a high-spec Windows Host.
 
-- **ステータス:** ✅ 実装済み・稼働中
-- **ホスト:** Windowsホストマシン (`host.docker.internal:11434`)
+### 1.1 Hardware Context
+
+- **Host:** Windows 11 (WSL2 Backend)
+- **CPU:** Intel Core i9-13900HK
+- **RAM:** 48GB (DDR5)
+- **GPU:** Integrated (Iris Xe) - *LLMs run on CPU/RAM*
+
+### 1.2 Docker Service Mesh
+
+| Service | Internal DNS | Port | Role |
+|:---|:---|:---|:---|
+| **antigravity** | `antigravity` | 5678 | **Core Logic.** Python, R, FreeCAD, Blender, Physics. |
+| **ollama** | `ollama` | 11434 | **AI Engine.** Hosting Local LLMs. |
+| **postgres** | `postgres` | 5432 | **Long-Term Memory.** Structured Data. |
+| **redis** | `redis` | 6379 | **Short-Term Memory.** Job queues, Cache. |
+| **paperless** | `paperless` | 8000 | **Document Input.** OCR & Email ingestion. |
+| **nodered** | `nodered` | 1880 | **IoT Logic.** Visual automation flows. |
+| **mosquitto** | `mosquitto` | 1883 | **IoT Broker.** MQTT (Sensor Data). |
+| **quality_dashboard**| `quality_dashboard`| 8090 | **Visualization.** Streamlit UI. |
+
+---
+
+## 2. 🧠 Intelligence Strategy (Autonomous Delegation Architecture)
+
+To maximize performance and capabilities without exhausting API budgets, the system uses a 3-tier approach.
+
+### 2.1 Coordination & Chat (The "Coordinator")
+
+- **Model:** `Google Gemini 2.5 Flash` (Cloud via OpenClaw Gateway)
+- **Role:** Real-time conversational interface, task delegation, and progress reporting.
+- **Resource Usage:** Free Tier Cloud API (Rate Limit: 20/day).
+
+### 2.2 Internal Engineering Team (The "Specialist")
+
+- **Model:** `Qwen2.5-Coder:32B` & `DeepSeek-R1` (Local GPU via `/work/scripts/ask_specialist.py`)
+- **Role:** Heavy lifting, writing complex Python/R scripts, CAE protocol block generation, and processing local IP data.
+- **Resource Usage:** Local VRAM (up to 25GB) - **Unlimited & Free**.
+
+### 2.3 Edge Reasoning & Host Advisory (The "Consultants")
+
 - **Models:**
-  - `llama3:8b` (Default)
-  - `deepseek-r1:7b` / `32b`
-  - `qwen2.5:7b` / `1.5b`
-  - `gemma2:27b` / `gemma3:27b`
-  - `llama3.1` / `3.2` / `3.3`
-  - `phi3:mini` / `phi4`
-  - `gpt-oss:20b` / `120b-cloud`
-  - (その他: `ChatMusician`, `lfm2.5` 等)
-- **ClawdBotからの接続:** Dockerコンテナから環境変数 `OLLAMA_BASE_URL` 経由で接続済み。
-
-### 2. Gmail / Calendar 連携
-
-- **ステータス:** ✅ 実装済み・稼働中
-- **スクリプト:** `data/workspace/scripts/gmail_to_calendar.js`
-- **頻度:** 毎時 (Cron: `0 * * * *`)
-- **アクション:** 未読メール解析(Gemini) → カレンダー登録
-- **認証:** 完了 (App Published / No 7-day limit)
-- **※履歴:** 2026/02/02 Error 429発生 → ゾンビプロセス(curl)停止により解決。
-
-### 3. Google Drive 連携
-
-- **ステータス:** ✅ 実装済み
-- **同期ツール:** `rclone` (コンテナ内インストール済み)
-- **バックアップ対象:**
-  - API Logs (`ClawdBot_Logs/API_Usage_Log`)
-  - PROMISES.md (`ClawdBot_Logs/PROMISES.md`)
-  - Obsidian Vault 全体 (`ClawdBot_Vault_Backup`)
-- **自動化:** `sync_to_gdrive.sh` により実行可能
-
-### ✅ Network Isolation
-
-- **Gateway Port:** `127.0.0.1:18789` (Localhost access only)
-- **Effect:** 外部インターネットからの直接攻撃を遮断
-
-### 4. Work Log System (Long-term Memory)
-
-- **Status:** ✅ Implemented
-- **Format:** `04_System_Records/Templates/WORK_LOG_TEMPLATE.md`
-- **Location:** `03_Logs/Work_Logs/`
-- **Sync:** Auto-synced to Google Drive via `ClawdBot_Vault_Backup`
-
-## 🔒 セキュリティ対策状況 (2026-02-02実施)
-
-| リスク項目 | 対策状況 | 詳細 |
-|---|---|---|
-| **過剰な権限** | ✅ 対応済 | Dockerコンテナ内で隔離実行。ホストへの影響は限定的。 |
-| **外部への露出** | ✅ 対応済 | `127.0.0.1` 結合により外部アクセスを物理的に遮断。 |
-| **不正アクセス** | ✅ 対応済 | Telegram `allowFrom` でID指定制限済み。 |
-| **データ消失** | ✅ 対応済 | Google Driveへの全量バックアップ稼働中。 |
-| **機密情報** | ✅ 対応済 | `.env` で管理し、git/ログからは除外設定済み。 |
-
-### 3. 使用モデル設定 (ClawdBot Gateway)
-
-- **メインモデル:** `google/gemini-2.0-flash`
-  - ※ 以前 `1.5-flash` で不具合があったため `2.0-flash` に固定済み。
-- **Anthropic:** 使用していない（Google Providerを使用）。
+  - `Host Antigravity` (Gemini Advanced outside Docker) -> **Strategic Consultant** for human-to-AI planning.
+  - `ChatGPT Plus` (Codex CLI via Container) -> **Last Resort Fallback** for extreme physics simulation troubleshooting.
+- **Resource Usage:** Google Workspace & ChatGPT Plus quotas.
 
 ---
 
-## 📝 重要な運用ノウハウ
+## 3. 💾 Data & Memory
 
-### メモリ・コンテキスト維持
+### 3.1 File System
 
-- **「Ollamaは入っているか？」と疑わないこと。** すでに入っている。
-- **「Google Drive連携は必要か？」と聞かないこと。** すでに連携されている。
-- ユーザーの環境は **Docker Desktop on Windows** であり、ホスト連携が密に行われている。
+- **`/work`**: The **ONLY** workspace for temporary files, scripts, and simulation outputs.
+- **`/data/paperless/consume`**: Input folder for documents/emails.
+  - *Host Path:* `D:\Clawdbot_Docker_20260125\clawstack_v2\data\paperless\consume\email`
 
-### エラー対応履歴
+### 3.2 Database Schema (PostgreSQL)
 
-- **404 Model Not Found:** Geminiのモデル名変更時は `.env` ではなく `clawdbot.json` を確認・修正すること。
-- **400 Empty Prompt:** モデル設定が正しくない時に発生しやすい。
+*See `data/workspace/clawdbot_schema.sql` for details.*
+
+1. **`action_items`**: Tracks requests extracted from emails/chat.
+    - *Columns:* Requester, Assignee, Request, Due Date, Status (Open/Closed).
+2. **`quality_issues`**: Tracks QIF/PIF reports.
+    - *Columns:* Issue Type, Details, Issuer, Status.
+3. **`meeting_records`**: Summaries of meetings.
+    - *Columns:* Organizer, Decisions, Action Items.
 
 ---
-*最終更新: 2026-02-02*
+
+## 4. 🛠️ Operational Capabilities
+
+### 4.1 Engineering (CAD/CAE)
+
+- **FreeCAD (Headless):** Can generate 3D models and perform 3D tolerance analysis via Python scripts (`freecadcmd`).
+- **OpenRadioss:** Can run explicit dynamics simulations (Crash/Drop test).
+- **ElmerFEM:** Can run implicit FEA (Heat/Stress).
+- **OpenFOAM:** Can run CFD simulations (Fluid Dynamics).
+
+### 4.2 Quality Assurance (QA)
+
+- **Statistical Analysis:** R (`SixSigma`, `qcc`) for Control Charts, ANOVA, Capability Analysis (Cpk).
+- **FMEA:** Automated generation and risk scoring via Quality Dashboard.
+
+### 4.3 IoT & Automation
+
+- **Sensor Monitoring:** Node-RED flows capture MQTT data (Temp/Vibration) -> Store to DB -> Alert if OOC (Out of Control).
+- **Email Processing:** Paperless ingest -> LLM Parse -> DB Insert -> Daily Report.
+
+### 4.4 Knowledge Ingestion (RAG)
+
+- **IATF Standards:** Watches `/data/paperless/consume/IATF_documents`.
+- **Process:** Extracts text -> Embeds with `nomic-embed-text` -> Stores in **Qdrant** (`iatf_knowledge`).
+- **Usage:** Retrieve standard clauses during chat or FMEA analysis.
+
+### 4.5 Cost Monitoring
+
+- **Script:** `scripts/check_billing.py` (Python)
+- **Role:** Fetches daily API costs from Google Cloud via Service Account.
+- **Reporting:** Included in Nightly Report.
+- **Usage:** `docker exec -it clawstack-antigravity-1 python3 /work/scripts/check_billing.py`
+
+### 4.6 Search Knowledge (RAG CLI)
+
+- **Script:** `/work/scripts/query_iatf.py`
+- **Role:** Queries the Qdrant knowledge base (using `nomic-embed-text`) and answers via `qwen2.5-coder`.
+- **Usage:**
+
+  ```bash
+  docker exec -it clawstack-antigravity-1 python3 /work/scripts/query_iatf.py "MSA 1 person methodology?"
+  ```
+
+### 4.7 Sequential Press Mechanism (Progressive Die)
+
+- **Feed Method:** Sensor-based detection of punched edge -> Feed 1 pitch.
+- **Error Characteristics:**
+  - Theoretically reduces cumulative error compared to mechanical feed.
+  - However, sensor accuracy and gear backlash are unknown variables.
+  - **Tolerance Strategy:** Treat as "Cumulative Error" (Worst Case) until proven otherwise.
+
+### 4.8 Advanced Reasoning (Claude CLI)
+
+- **Command:** `claude` (Docker container: `clawstack-antigravity-1`)
+- **Version:** `2.1.42`
+- **Role:** Complex problem-solving, nuanced understanding, in-depth analysis (Tier 2).
+- **Usage Examples:**
+
+  ```bash
+  docker exec -it clawstack-antigravity-1 claude -p "Are you ready?"
+  docker exec -it clawstack-antigravity-1 claude -f /path/to/document.txt -p "Summarize this document and identify key risks."
+  ```
+
+---
+
+## 5. 📜 Protocols & Promises
+
+Ref: `clawdbot_protocol_v2.md` & `PROMISES.md`
+
+- **P004 (Local First):** Always maximize local compute before asking for Cloud API.
+- **P015 (Self-Correction):** Attempt 3 fixes before giving up.
+- **P016 (Email Report):** Generate the 3-part Email Summary Report daily.
+
+---
+*End of Manual*
