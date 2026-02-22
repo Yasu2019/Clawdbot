@@ -1,0 +1,115 @@
+{
+    "materials": [
+        {
+            "id": "pp_generic",
+            "name": "Polypropylene (PP)",
+            "type": "Semi-Crystalline",
+            "properties": {
+                "density_solid": 905,
+                "density_melt": 750,
+                "specific_heat": 2700,
+                "thermal_conductivity": 0.15,
+                "melt_temperature_range": [
+                    200,
+                    240
+                ],
+                "mold_temperature_range": [
+                    30,
+                    60
+                ],
+                "ejection_temperature": 100,
+                "viscosity_model": "Cross-WLF",
+                "cross_wlf": {
+                    "n": 0.28,
+                    "tau": 25000,
+                    "d1": 1e14,
+                    "d2": 263.15,
+                    "d3": 0,
+                    "a1": 30.5,
+                    "a2": 51.6
+                },
+                "pvT_model": "2-Domain Tait",
+                "shrinkage_estimate_percent": [
+                    1.2,
+                    1.8
+                ],
+                "elastic_modulus": 1300e6,
+                "poisson_ratio": 0.4
+            }
+        },
+        {
+            "id": "lcp_generic",
+            "name": "Liquid Crystal Polymer (LCP)",
+            "type": "Crystalline (Mesomorphic)",
+            "properties": {
+                "density_solid": 1600,
+                "density_melt": 1450,
+                "specific_heat": 1300,
+                "thermal_conductivity": 0.35,
+                "melt_temperature_range": [
+                    330,
+                    360
+                ],
+                "mold_temperature_range": [
+                    80,
+                    120
+                ],
+                "ejection_temperature": 250,
+                "viscosity_model": "Cross-WLF",
+                "cross_wlf": {
+                    "n": 0.4,
+                    "tau": 60000,
+                    "d1": 5e11,
+                    "d2": 330.15,
+                    "d3": 0,
+                    "a1": 25.0,
+                    "a2": 51.6
+                },
+                "pvT_model": "2-Domain Tait",
+                "shrinkage_estimate_percent": [
+                    0.1,
+                    0.5
+                ],
+                "elastic_modulus": 12000e6,
+                "poisson_ratio": 0.35
+            }
+        },
+        {
+            "id": "pa66_gf30",
+            "name": "Polyamide 66 + 30% Glass Fiber (PA66-GF30)",
+            "type": "Semi-Crystalline",
+            "properties": {
+                "density_solid": 1350,
+                "density_melt": 1180,
+                "specific_heat": 1550,
+                "thermal_conductivity": 0.28,
+                "melt_temperature_range": [
+                    280,
+                    300
+                ],
+                "mold_temperature_range": [
+                    80,
+                    100
+                ],
+                "ejection_temperature": 210,
+                "viscosity_model": "Cross-WLF",
+                "cross_wlf": {
+                    "n": 0.35,
+                    "tau": 45000,
+                    "d1": 1e12,
+                    "d2": 283.15,
+                    "d3": 0,
+                    "a1": 28.0,
+                    "a2": 51.6
+                },
+                "pvT_model": "2-Domain Tait",
+                "shrinkage_estimate_percent": [
+                    0.3,
+                    0.9
+                ],
+                "elastic_modulus": 9000e6,
+                "poisson_ratio": 0.38
+            }
+        }
+    ]
+}

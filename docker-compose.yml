@@ -27,6 +27,8 @@ services:
       - ./consume/WIP:/home/node/clawd/consume/WIP
       - "./data/state/Obsidian Vault:/home/node/clawd/obsidian_vault"
       - "./data/state/IATF_documents:/home/node/clawd/iatf_documents"
+      - ./iatf_system:/home/node/clawd/iatf_system_code
+      - ./clawstack_v2/data/paperless/consume:/home/node/clawd/paperless_consume
       - ./data/rclone:/home/node/.config/rclone
       - /var/run/docker.sock:/var/run/docker.sock
     extra_hosts:
@@ -41,10 +43,6 @@ services:
       - "18789"
       - --bind
       - lan
-      - --auth
-      - token
-      - --token
-      - "yasu-fresh-token-2026-02-01"
       - --verbose
 
   voicevox:

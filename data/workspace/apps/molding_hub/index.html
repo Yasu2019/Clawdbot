@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clawstack Injection Molding Hub</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Three.js and specific loaders -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/STLLoader.js"></script>
+    <!-- Chart.js for DOE results -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <header class="app-header">
+        <div class="logo-area">
+            <i class="fa-solid fa-fire-flame-curved"></i>
+            <h1>Clawstack Injection Molding Hub</h1>
+            <span class="badge badge-accent">VOF + ElmerFEM Coupled</span>
+        </div>
+        <div class="header-actions">
+            <button class="btn btn-secondary" onclick="window.location.href='../../portal.html'"><i
+                    class="fa-solid fa-arrow-left"></i> Portal</button>
+        </div>
+    </header>
+
+    <div class="app-container">
+        <!-- LEFT PANEL: 3D Workspace -->
+        <main class="workspace-panel">
+            <div class="toolbar">
+                <div class="tool-group">
+                    <button class="btn btn-icon" title="Upload Product (STL)"
+                        onclick="document.getElementById('upload-product').click()">
+                        <i class="fa-solid fa-box-open"></i> Product Model
+                    </button>
+                    <input type="file" id="upload-product" accept=".stl" style="display:none">
+
+                    <button class="btn btn-icon" title="Upload Cooling/Runner (STL)"
+                        onclick="document.getElementById('upload-cooling').click()">
+                        <i class="fa-solid fa-snowflake"></i> Cooling System
+                    </button>
+                    <input type="file" id="upload-cooling" accept=".stl" style="display:none">
+                    <button class="btn btn-tiny btn-accent" onclick="loadSampleModels()"
+                        style="margin-left:8px; padding: 6px 12px;"><i class="fa-solid fa-flask"></i> Load
+                        Sample</button>
+                </div>
+                <div class="tool-group">
+                    <button class="btn btn-icon active" id="btn-view" title="View/Rotate"><i
+                            class="fa-solid fa-arrows-up-down-left-right"></i></button>
+                    <button class="btn btn-icon" id="btn-gate" title="Add Gate (Click on Model)"><i
+                            class="fa-solid fa-crosshairs"></i> Add Gate</button>
+                    <button class="btn btn-icon" id="btn-clear-gates" title="Clear Gates"><i
+                            class="fa-solid fa-trash"></i></button>
+                </div>
+            </div>
+
+            <div id="canvas-container-3d" class="canvas-area">
+                <!-- Three.js Canvas INJECTED HERE -->
+                <div id="loading-overlay" class="hidden">
+                    <div class="spinner"></div>
+                    <p>Meshing & Solving with OpenFOAM/Elmer...</p>
+                </div>
+            </div>
+
+            <div class="view-controls">
+                <button class="btn btn-tiny" onclick="resetView('iso')">ISO</button>
+                <button class="btn btn-tiny" onclick="resetView('top')">TOP</button>
+                <button class="btn btn-tiny" onclick="resetView('front')">FRONT</button>
+            </div>
+        </main>
+
+        <!-- RIGHT PANEL: Inspector / Settings -->
+        <aside class="inspector-panel">
+            <!-- Setup Tab -->
+            <div class="inspector-section" id="section-setup">
+                <h3><i class="fa-solid fa-sliders"></i> Analysis Setup</h3>
+
+                <div class="control-group">
+                    <label>Resin Material</label>
+                    <select id="resin-select" class="form-control">
+                        <option value="pp_generic">Polypropylene (PP) - General</option>
+                        <option value="lcp_generic">Liquid Crystal Polymer (LCP) - High Flow</option>
+                        <option value="pa66_gf30">PA66 + 30% GF - High Warpage Risk</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label>Cooling System (Coolant Temp &deg;C)</label>
+                    <input type="number" id="coolant-temp" class="form-control" value="40" min="10" max="150">
+                </div>
+
+                <div class="control-group">
+                    <label>Injection Velocity (m/s)</label>
+                    <input type="number" id="injection-velocity" class="form-control" value="5.0" min="0.1" step="0.1">
+                </div>
+
+                <div class="control-group">
+                    <label>Gate List (<span id="gate-count">0</span>)</label>
+                    <ul id="gate-list" class="feature-list">
+                        <li class="empty-state">No gates defined. Use the crosshair tool to click on the model.</li>
+                    </ul>
+                </div>
+
+                <div class="action-card">
+                    <h4>Run Simulation</h4>
+                    <p class="text-xs text-muted mb-2">Coupled VOF Fluid Flow + FEA Structural Warpage (approx. 5-10m)
+                    </p>
+                    <button class="btn btn-primary btn-full" id="btn-run-sim"><i class="fa-solid fa-play"></i> Start
+                        OpenFOAM + Elmer</button>
+                </div>
+
+                <div class="action-card mt-3">
+                    <h4>Run R-DOE Optimization</h4>
+                    <p class="text-xs text-muted mb-2">Generate L9 matrix to optimize Wait time vs. Warpage.</p>
+                    <button class="btn btn-accent btn-full" id="btn-run-doe"><i class="fa-solid fa-robot"></i> Run R
+                        Language Optimizer</button>
+                </div>
+            </div>
+
+            <!-- Results Tab (Hidden initially) -->
+            <div class="inspector-section hidden" id="section-results">
+                <h3><i class="fa-solid fa-chart-line"></i> DOE Results</h3>
+                <div class="result-box">
+                    <div class="result-metric">
+                        <span class="metric-label">Min Warpage Found</span>
+                        <span class="metric-value text-success" id="res-warpage">0.052 mm</span>
+                    </div>
+                    <div class="result-metric">
+                        <span class="metric-label">Optimal Velocity</span>
+                        <span class="metric-value" id="res-velocity">2.0 m/s</span>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <canvas id="doeChart"></canvas>
+                </div>
+
+                <button class="btn btn-secondary btn-full mt-3" onclick="showSetup()"><i
+                        class="fa-solid fa-arrow-left"></i> Back to Setup</button>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Modals & Toasts -->
+    <div id="toast" class="toast">Action recorded</div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>

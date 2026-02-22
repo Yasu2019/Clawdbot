@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clawstack V2 Master Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --primary: #38bdf8;
+            --secondary: #818cf8;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --success: #10b981;
+            --warning: #f59e0b;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-image: radial-gradient(circle at 15% 50%, rgba(56, 189, 248, 0.08), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(129, 140, 248, 0.08), transparent 25%);
+        }
+
+        .header {
+            text-align: center;
+            padding: 60px 20px 40px;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            margin: 0 0 10px 0;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -1px;
+        }
+
+        .header p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            margin: 0;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            width: 100%;
+            max-width: 1200px;
+            padding: 0 40px 60px;
+            box-sizing: border-box;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(12px);
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.1), rgba(129, 140, 248, 0.1));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .card:hover::before {
+            opacity: 1;
+        }
+
+        .card-icon {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            display: inline-block;
+        }
+
+        .card-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin: 0 0 10px 0;
+            position: relative;
+        }
+
+        .card-desc {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            line-height: 1.5;
+            margin: 0 0 20px 0;
+            flex-grow: 1;
+            position: relative;
+        }
+
+        .card-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding-top: 20px;
+            position: relative;
+        }
+
+        .port-badge {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            color: var(--primary);
+            font-family: monospace;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            color: var(--success);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--success);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--success);
+        }
+
+        .status-pending .status-dot {
+            background-color: var(--warning);
+            box-shadow: 0 0 10px var(--warning);
+        }
+
+        .status-pending {
+            color: var(--warning);
+        }
+
+        /* Interactive Solver CSS */
+        .solver-list {
+            margin-top: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 15px;
+        }
+
+        .solver-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 10px 15px;
+            border-radius: 8px;
+            color: var(--text-main);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.2s;
+        }
+
+        .solver-btn:hover {
+            background: rgba(56, 189, 248, 0.15);
+            border-color: var(--primary);
+            transform: scale(1.02);
+        }
+
+        .solver-btn span {
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .solver-badge {
+            font-size: 0.75rem;
+            padding: 4px 8px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-muted);
+        }
+
+        .solver-badge.gui {
+            background: rgba(16, 185, 129, 0.2);
+            color: #34d399;
+        }
+
+        .solver-badge.cli {
+            background: rgba(245, 158, 11, 0.2);
+            color: #fbbf24;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="header">
+        <h1>Clawstack V2</h1>
+        <p>Autonomous Engineering Master Portal</p>
+    </div>
+
+    <div class="grid-container">
+
+        <!-- OpenClaw Chat -->
+        <a href="http://localhost:18789" class="card" target="_blank">
+            <span class="card-icon">🤖</span>
+            <h2 class="card-title">OpenClaw Chat (AI)</h2>
+            <p class="card-desc">Main conversational interface. Chat with your personal AGI agent, initiate tasks, and
+                monitor system progress.</p>
+            <div class="card-meta">
+                <span class="port-badge">Port: 18789</span>
+                <span class="status-indicator"><span class="status-dot"></span>Online</span>
+            </div>
+        </a>
+
+        <!-- N8N Automation -->
+        <a href="http://localhost:5679" class="card" target="_blank">
+            <span class="card-icon">⚡</span>
+            <h2 class="card-title">n8n Automation</h2>
+            <p class="card-desc">Visual workflow automation tool. Manage external API integrations, webhooks, and
+                complex scheduled tasks.</p>
+            <div class="card-meta">
+                <span class="port-badge">Port: 5679</span>
+                <span class="status-indicator"><span class="status-dot"></span>Online</span>
+            </div>
+        </a>
+
+        <!-- Node-RED IoT -->
+        <a href="http://localhost:1880" class="card" target="_blank">
+            <span class="card-icon">🔴</span>
+            <h2 class="card-title">Node-RED (IoT)</h2>
+            <p class="card-desc">Hardware and sensor automation flow editor. Processes MQTT data and industrial sensor
+                inputs in real-time.</p>
+            <div class="card-meta">
+                <span class="port-badge">Port: 1880</span>
+                <span class="status-indicator"><span class="status-dot"></span>Online</span>
+            </div>
+        </a>
+
+        <!-- Quality Dashboard -->
+        <a href="http://localhost:8090" class="card" target="_blank">
+            <span class="card-icon">📊</span>
+            <h2 class="card-title">Quality QA Dashboard</h2>
+            <p class="card-desc">Interactive Streamlit dashboard for Quality Assurance. View FMEA, statistical
+                distributions, and QIF tracking.</p>
+            <div class="card-meta">
+                <span class="port-badge">Port: 8090</span>
+                <span class="status-indicator"><span class="status-dot"></span>Online</span>
+            </div>
+        </a>
+
+        <!-- Universal Tolerance Center -->
+        <a href="apps/tolerance_hub/index.html" class="card" target="_blank" rel="noopener">
+            <span class="card-icon">📏</span>
+            <h2 class="card-title">Tolerance Center</h2>
+            <p class="card-desc">Interactive 2D/3D Gap Analysis Hub. Run automated Monte Carlo and RSS statistical
+                stack-ups on CAD assemblies.</p>
+            <div class="card-meta">
+                <span class="port-badge">Local App</span>
+                <span class="status-indicator"><span class="status-dot"></span>Ready</span>
+            </div>
+        </a>
+
+        <!-- Injection Molding Hub -->
+        <a href="apps/molding_hub/index.html" class="card" target="_blank" rel="noopener">
+            <span class="card-icon">🔥</span>
+            <h2 class="card-title">Injection Molding Hub</h2>
+            <p class="card-desc">Advanced OpenFOAM VOF + ElmerFEM Coupled Simulator. Features multi-gate Hot/Cold
+                runners and R-DOE optimization.</p>
+            <div class="card-meta">
+                <span class="port-badge">Local App</span>
+                <span class="status-indicator"><span class="status-dot"></span>Ready</span>
+            </div>
+        </a>
+
+        <!-- Ingestion Status -->
+        <a href="ingest_dashboard.html" class="card" target="_blank">
+            <span class="card-icon">📚</span>
+            <h2 class="card-title">Knowledge Ingestion</h2>
+            <p class="card-desc">Real-time status monitor for the VLM/LLM document parsing pipeline. Watch PDF and Email
+                extraction progress.</p>
+            <div class="card-meta">
+                <span class="port-badge">Local File</span>
+                <span class="status-indicator status-pending"><span class="status-dot"></span>Active</span>
+            </div>
+        </a>
+
+        <!-- Paperless NGX -->
+        <a href="http://localhost:8000" class="card" target="_blank">
+            <span class="card-icon">📄</span>
+            <h2 class="card-title">Paperless NGX</h2>
+            <p class="card-desc">Document Management System. Raw PDF/Scanning inbox and OCR engine for storing
+                unstructured files.</p>
+            <div class="card-meta">
+                <span class="port-badge">Port: 8000</span>
+                <span class="status-indicator"><span class="status-dot"></span>Online</span>
+            </div>
+        </a>
+
+        <!-- OpenNotebook Backup Repo -->
+        <a href="file:///D:/Clawdbot_Docker_20260125/data/state/OpenNotebook_Backup" class="card" target="_blank"
+            rel="noopener">
+            <span class="card-icon">📓</span>
+            <h2 class="card-title">OpenNotebook Backups</h2>
+            <p class="card-desc">Local directory storing the consolidated AI knowledge baselines (Markdown) generated
+                from PDF ingestion.</p>
+            <div class="card-meta">
+                <span class="port-badge">Local Directory</span>
+                <span class="status-indicator"><span class="status-dot"></span>Ready</span>
+            </div>
+        </a>
+
+        <!-- Open Notebook UI -->
+        <a href="http://localhost:8502" class="card" target="_blank" rel="noopener">
+            <span class="card-icon">🧠</span>
+            <h2 class="card-title">Open Notebook App</h2>
+            <p class="card-desc">Fully local NotebookLM clone powered by Ollama. Analyze documents and interact with
+                your knowledge base.</p>
+            <div class="card-meta">
+                <span class="port-badge">Port: 8502</span>
+                <span class="status-indicator"><span class="status-dot"></span>Online</span>
+            </div>
+        </a>
+
+        <!-- Obsidian App Launcher -->
+        <a href="obsidian://open?path=D:%5CClawdbot_Docker_20260125%5Cdata%5Cstate%5CObsidian%20Vault" class="card">
+            <span class="card-icon">🪨</span>
+            <h2 class="card-title">Obsidian Vault</h2>
+            <p class="card-desc">Personal Knowledge Base. Click here to launch the local Obsidian desktop application
+                directly.</p>
+            <div class="card-meta">
+                <span class="port-badge">Desktop App</span>
+                <span class="status-indicator"><span class="status-dot"></span>Installed</span>
+            </div>
+        </a>
+
+        <!-- IATF System (Ruby on Rails) -->
+        <a href="http://localhost:3000" class="card" target="_blank" rel="noopener">
+            <span class="card-icon">🛤️</span>
+            <h2 class="card-title">IATF System (Rails)</h2>
+            <p class="card-desc">Ruby on Rails core system for IATF 16949 compliance and quality document control.</p>
+            <div class="card-meta">
+                <span class="port-badge">Port: 3000</span>
+                <span class="status-indicator"><span class="status-dot"></span>Online</span>
+            </div>
+        </a>
+
+        <!-- FEM / CAE Interactive Card -->
+        <div class="card" style="cursor: default; grid-row: span 2;">
+            <span class="card-icon">🏗️</span>
+            <h2 class="card-title">FEM / CAE Simulation Hub</h2>
+            <p class="card-desc">Advanced engineering solvers and physical modeling tools. Click solvers to view GUI/CLI
+                launch protocols.</p>
+
+            <div class="solver-list">
+                <a href="#"
+                    onclick="alert('【OpenFOAM (CFD)】\n\nOpenFOAMは内部のAntigravityコンテナ内で稼働する「完全Headless (GUI無し)」の流体解析ソルバーです。\n通常はClawdbotがPython経由で自動計算するか、FreeCAD / Blenderの連携アドオンを通じてビジュアル操作を行います。'); return false;"
+                    class="solver-btn">
+                    <span>💨 OpenFOAM (CFD)</span>
+                    <span class="solver-badge cli">Headless / Script</span>
+                </a>
+                <a href="#"
+                    onclick="alert('【OpenRadioss (Crash)】\n\nOpenRadiossは衝突・落下解析用の陽解法ソルバーで、GUIを持っていません(Headless)。\nモデル作成はFreeCAD等で行い、結果のアニメーションは内部のParaViewやBlenderでレンダリングします。'); return false;"
+                    class="solver-btn">
+                    <span>💥 OpenRadioss (Crash)</span>
+                    <span class="solver-badge cli">Headless / Script</span>
+                </a>
+                <a href="#"
+                    onclick="alert('【Impact (Dynamics)】\n\nJavaベースの動的有限要素法ソルバーです。\n一部専用のシンプルなJava GUIを持ちますが、複雑なモデルは他のソフトで作成してCLIからバッチ処理するのが基本です。'); return false;"
+                    class="solver-btn">
+                    <span>🔨 Impact (Dynamics)</span>
+                    <span class="solver-badge cli">Java / Headless</span>
+                </a>
+                <a href="#"
+                    onclick="alert('【CalculiX (FEA)】\n\nCalculiX自体はCUIソルバーですが、FreeCADの「FEM Workbench」に標準統合されており、FreeCAD起動後に直感的なGUI操作で実行することが可能です。'); return false;"
+                    class="solver-btn">
+                    <span>🧮 CalculiX (FEA)</span>
+                    <span class="solver-badge gui">FreeCAD GUI</span>
+                </a>
+                <a href="#"
+                    onclick="alert('【PrePoMax】\n\nPrePoMaxはCalculiXに特化した、非常に使いやすいWindows専用のネイティブGUIソフトです。\nブラウザからは起動できないため、Windowsのスタートメニューから直接アプリを立ち上げてください！'); return false;"
+                    class="solver-btn">
+                    <span>📐 PrePoMax</span>
+                    <span class="solver-badge gui">Windows Native</span>
+                </a>
+            </div>
+        </div>
+
+    </div>
+
+</body>
+
+</html>

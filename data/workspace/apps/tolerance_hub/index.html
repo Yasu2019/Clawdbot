@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="utf-8">
+    <title>Clawstack Tolerance Center</title>
+    <!-- Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/dxf-parser@1.1.2/dist/dxf-parser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="header">
+        <div class="header-title">📐 Clawstack Tolerance Center (Universal Hub)</div>
+        <div class="header-nav">
+            <button class="nav-btn active" id="tab2d">2D DXF Mode</button>
+            <button class="nav-btn" id="tab3d">3D Assembly Mode</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- LEFT: Workspace (Canvas) -->
+        <div class="panel workspace-panel">
+
+            <!-- 2D View -->
+            <div id="view2d" class="view-content active">
+                <canvas id="dxfCanvas"></canvas>
+                <div class="overlay-guide">🖱️ スクロール:ズーム | 右ドラッグ:パン | 左クリック:要素選択</div>
+                <div class="controls-overlay" style="top:10px; right:10px;">
+                    <input type="file" id="fileInputDxf" accept=".dxf" style="display:none">
+                    <button class="btn btn-sm" onclick="document.getElementById('fileInputDxf').click()">📁
+                        DXFを開く</button>
+                    <button class="btn btn-sm" id="loadSampleDxfBtn">🔄 サンプル(2D)</button>
+                </div>
+            </div>
+
+            <!-- 3D View -->
+            <div id="view3d" class="view-content">
+                <div id="canvas3d"></div>
+
+                <div class="overlay-guide" style="bottom:20px;">🖱️ ドラッグ:回転 | スクロール:ズーム</div>
+
+                <!-- 3D Toolbar Overlay -->
+                <div class="controls-overlay"
+                    style="top:10px; left:50%; transform:translateX(-50%); display:flex; gap:10px;">
+                    <button class="view-btn active" data-view="iso">🔄 等角</button>
+                    <button class="view-btn" data-view="section">🔪 断面図</button>
+                    <button class="view-btn" data-view="top">⬆️ 真上</button>
+                    <button class="view-btn" data-view="front">➡️ 正面</button>
+                    <button class="view-btn btn-explode" id="btnExplode">💥 分解</button>
+                </div>
+
+                <div class="controls-overlay" style="top:10px; right:10px;">
+                    <!-- Future: fileInputStep here -->
+                    <button class="btn btn-sm" id="loadSample3dBtn">🔄 サンプル(3D)</button>
+                </div>
+
+                <div class="slider-container" id="explodeSliderContainer" style="display:none;">
+                    <span>展開量:</span>
+                    <input type="range" id="explodeSlider" min="0" max="100" value="0">
+                </div>
+            </div>
+
+        </div>
+
+        <!-- RIGHT: Inspector (Controls & Analysis) -->
+        <div class="panel inspector-panel">
+
+            <!-- Definition Area -->
+            <div class="inspector-section">
+                <h2>🎯 寸法・ギャップ定義</h2>
+
+                <div class="selection-info" id="entityInfo">
+                    ジオメトリを選択してください...
+                </div>
+
+                <div class="input-group">
+                    <input type="text" id="dimName" placeholder="寸法名 (例: Shaft 外径)" class="input-field" style="flex:2;">
+
+                    <select id="dirSelect" class="input-field" style="flex:1;">
+                        <option value="+">+ (加算)</option>
+                        <option value="-">- (減算)</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <input type="number" id="dimNominal" placeholder="公称値" step="0.01" class="input-field">
+                    <span style="color:#888; padding:5px;">±</span>
+                    <input type="number" id="dimTol" placeholder="公差" step="0.001" value="0.05" class="input-field">
+                    <button class="btn btn-add" id="btnAddChain">⛓️ 追加</button>
+                </div>
+
+                <!-- 3D Specific Quick Add Helpers -->
+                <div id="quickAdd3D"
+                    style="display:none; margin-top:10px; max-height: 150px; overflow-y:auto; border:1px solid #333; border-radius:4px; padding:5px;">
+                    <div style="font-size:11px; color:#888; margin-bottom:5px;">プリセットモデルから追加:</div>
+                    <div id="presetList3D"></div>
+                </div>
+            </div>
+
+            <!-- Chain Area -->
+            <div class="inspector-section chain-section">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                    <h2>⛓️ 公差チェーン (アセンブリグラフ)</h2>
+                    <button class="btn-icon" id="btnClearChain" title="クリア">🗑️</button>
+                </div>
+
+                <div id="chainList" class="chain-list">
+                    <!-- Chain items will be injected here -->
+                    <div style="color:#666; font-size:12px; text-align:center; padding:20px;">
+                        左のビューアから構成要素を追加するか、上記フォームから数値を入力してください。
+                    </div>
+                </div>
+
+                <button class="btn btn-analyze" id="btnAnalyze">📊 統計解析実行 (10万回パス)</button>
+            </div>
+
+            <!-- Results Area -->
+            <div class="inspector-section results-section" id="resultPanel" style="display:none;">
+                <h2>📊 解析結果</h2>
+
+                <div class="metrics-grid">
+                    <div class="metric-box">
+                        <div class="metric-val" id="resNominal">-</div>
+                        <div class="metric-lbl">公称値 (Nominal)</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="metric-val warning" id="resWC">-</div>
+                        <div class="metric-lbl">Worst Case (WC)</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="metric-val success" id="resRSS">-</div>
+                        <div class="metric-lbl">RSS (3σ)</div>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <div class="chart-header">📈 Monte Carlo 分布 (正規分布近似)</div>
+                    <canvas id="histogramChart" height="120"></canvas>
+                </div>
+
+                <div class="chart-container">
+                    <div class="chart-header">🎯 感度分析 (分散寄与率 %)</div>
+                    <canvas id="sensitivityChart" height="100"></canvas>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ES Modules for Three.js -->
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
+
+    <!-- App Logic -->
+    <script type="module" src="app.js"></script>
+
+</body>
+
+</html>

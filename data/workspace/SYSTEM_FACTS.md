@@ -51,8 +51,16 @@ To maximize performance and capabilities without exhausting API budgets, the sys
 
 - **Models:**
   - `Host Antigravity` (Gemini Advanced outside Docker) -> **Strategic Consultant** for human-to-AI planning.
-  - `ChatGPT Plus` (Codex CLI via Container) -> **Last Resort Fallback** for extreme physics simulation troubleshooting.
+- `ChatGPT Plus` (Codex CLI via Container) -> **Last Resort Fallback** for extreme physics simulation troubleshooting.
 - **Resource Usage:** Google Workspace & ChatGPT Plus quotas.
+
+### 2.4 Strategic Delegation (Hybrid Reasoning)
+
+Effective task execution follows a **"Top-Down Architecture"** flow:
+
+1. **Abstract Planning (The Brain):** Use High-end Cloud models (Consultant/Coordinator) to define the "Base Design," Architecture, and Safety Checks.
+2. **Concrete Implementation (The Hands):** Use Local Specialist models to execute "Detailed Design," Code Generation, and iterative debugging based on the Cloud-generated blueprint.
+3. **Cross-Verification:** Use the Coordinator to peer-review the output from the Specialist before reporting it to the User.
 
 ---
 
@@ -60,9 +68,9 @@ To maximize performance and capabilities without exhausting API budgets, the sys
 
 ### 3.1 File System
 
-- **`/work`**: The **ONLY** workspace for temporary files, scripts, and simulation outputs.
-- **`/data/paperless/consume`**: Input folder for documents/emails.
-  - *Host Path:* `D:\Clawdbot_Docker_20260125\clawstack_v2\data\paperless\consume\email`
+- **`/home/node/paperless/consume`**: Input folder for documents/emails (PDF, EML, etc.).
+  - *Host Path equivalent:* `D:\Clawdbot_Docker_20260125\clawstack_v2\data\paperless\consume`
+  - *Note for OpenClaw:* If the user asks about files in `D:\Clawdbot_Docker_20260125\clawstack_v2\data\paperless\consume\email`, you MUST look for them at `/home/node/paperless/consume/email` instead, as they are mounted there inside your container.
 
 ### 3.2 Database Schema (PostgreSQL)
 
