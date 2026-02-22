@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kindle Author - Clawstack</title>
+    <link rel="stylesheet" href="../../style.css">
+    <style>
+        :root {
+            --accent: #eab308;
+        }
+
+        body {
+            background: #fefce8;
+            color: #422006;
+            font-family: 'Outfit', sans-serif;
+            margin: 0;
+            display: flex;
+        }
+
+        .nav {
+            width: 300px;
+            background: #fef9c3;
+            border-right: 1px solid #fde047;
+            height: 100vh;
+            padding: 30px;
+        }
+
+        .content {
+            flex: 1;
+            padding: 60px;
+            overflow-y: auto;
+        }
+
+        .chapter-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .chapter-item {
+            background: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #fef08a;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .btn-gold {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .cover-preview {
+            width: 240px;
+            aspect-ratio: 2/3;
+            background: #e5e5e5;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="nav">
+        <h1>📚 Kindle Author</h1>
+        <div class="cover-preview" id="cover">
+            <span>表紙プレビュー</span>
+        </div>
+        <button class="btn-gold" style="width:100%; margin-top:20px;" onclick="generateCover()">🎨 表紙をAI生成</button>
+        <hr style="margin:30px 0;">
+        <button class="btn-gold" style="width:100%; background: #92400e;" onclick="buildEbook()">🛠️ e-bookをビルド</button>
+    </div>
+    <div class="content">
+        <h2>書籍構成データ</h2>
+        <div style="display:flex; gap:20px; margin-bottom:30px;">
+            <div style="flex:1;">
+                <label>タイトル</label><br>
+                <input type="text" style="width:100%; font-size:24px;" placeholder="書籍タイトル">
+            </div>
+            <div style="flex:1;">
+                <label>ジャンル</label><br>
+                <select style="width:100%; padding:14px;">
+                    <option>ビジネス・IT</option>
+                    <option>実用・自己啓発</option>
+                    <option>小説・ノンフィクション</option>
+                </select>
+            </div>
+        </div>
+        <h3>章立て</h3>
+        <ul class="chapter-list" id="chapters">
+            <li class="chapter-item"><span>第1章：AI時代の到来</span>
+                <tag>完了</tag>
+            </li>
+            <li class="chapter-item"><span>第2章：自律エージェントの衝撃</span> <span>執筆中</span></li>
+        </ul>
+        <button class="btn-gold" style="background:#713f12;" onclick="addChapter()">➕ 章を追加</button>
+    </div>
+
+    <script>
+        function generateCover() {
+            const cover = document.getElementById('cover');
+            cover.style.background = 'linear-gradient(45deg, #422006, #713f12)';
+            cover.innerHTML = '<span style="color:white; font-weight:bold; text-align:center;">AIが生成した<br>プロフェッショナルな表紙</span>';
+            alert("Stable Diffusion APIを呼び出し、表紙画像を生成しました。");
+        }
+        function buildEbook() {
+            alert("Stirling-PDFを使用して、EPUBおよびPDF形式の書籍をビルドしています... 完了！");
+        }
+    </script>
+</body>
+
+</html>

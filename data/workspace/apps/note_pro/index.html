@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Note Pro Writer - Clawstack</title>
+    <link rel="stylesheet" href="../../style.css">
+    <style>
+        :root {
+            --accent: #22c55e;
+        }
+
+        body {
+            background: #fafafa;
+            color: #171717;
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        header {
+            background: #fff;
+            border-bottom: 1px solid #e5e5e5;
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .main {
+            flex: 1;
+            display: flex;
+            padding: 20px 40px;
+            gap: 40px;
+        }
+
+        .editor-container {
+            flex: 2;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .inspector {
+            flex: 1;
+            background: #fff;
+            border: 1px solid #e5e5e5;
+            border-radius: 12px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        #editor {
+            flex: 1;
+            border: 1px solid #e5e5e5;
+            border-radius: 8px;
+            padding: 30px;
+            font-size: 18px;
+            line-height: 1.6;
+            outline: none;
+            background: #fff;
+            overflow-y: auto;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            transition: 0.2s;
+        }
+
+        .btn-green {
+            background: var(--accent);
+            color: white;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        textarea,
+        input {
+            border: 1px solid #e5e5e5;
+            padding: 10px;
+            border-radius: 6px;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h2 style="margin:0;">📝 Note Pro Writer</h2>
+        <button class="btn btn-green" onclick="exportNote()">Note形式で書き出し</button>
+    </header>
+    <div class="main">
+        <div class="editor-container">
+            <input type="text" id="title"
+                style="font-size: 32px; font-weight: 800; border: none; outline: none; background: transparent;"
+                placeholder="タイトルを入力...">
+            <div id="editor" contenteditable="true" placeholder="本文を書き始める、またはAIにドラフトを依頼してください..."></div>
+        </div>
+        <div class="inspector">
+            <h3>🤖 AI アシスタント</h3>
+            <div class="input-group">
+                <label>執筆の目的 / 入れたい要素</label>
+                <textarea id="ai-prompt" rows="6" placeholder="例: 2026年のAI技術トレンドについて、初心者向けに3つのポイントで解説"></textarea>
+            </div>
+            <button class="btn" style="background:#000; color:#fff;" onclick="generateDraft()">✨ ドラフトを自動生成</button>
+            <hr>
+            <h4>クイック操作</h4>
+            <button class="btn" onclick="improve()">文章を洗練させる</button>
+            <button class="btn" onclick="addHeading()">見出しを追加</button>
+        </div>
+    </div>
+
+    <script>
+        function generateDraft() {
+            const prompt = document.getElementById('ai-prompt').value;
+            const editor = document.getElementById('editor');
+            editor.innerHTML = `<p>...AIが文章を構成中...</p>`;
+            setTimeout(() => {
+                editor.innerHTML = `<h2>2026年のAI技術：エンジニアが注目すべき3つの変革</h2>
+                <p>現在、AI技術は単なる自動化のツールを超え、私たちの生活の基盤となりつつあります...</p>
+                <p>1. <strong>自律型エージェントの進化</strong>: 以前のチャット形式とは異なり、目標を与えるだけで実行まで行うエージェントが登場しました。</p>
+                <p>2. <strong>エッジAIの高度化</strong>: ローカルマシンで動作する30Bクラスのモデルが、プライバシーを守りつつ高度な推論を可能にしています。</p>
+                <p>3. <strong>マルチモーダル統合</strong>: 音声、映像、ソースコードがシームレスに結びつき、開発体験が劇的に向上しました。</p>`;
+            }, 2000);
+        }
+        function exportNote() {
+            alert("Note形式のHTMLをクリップボードにコピーしました。Noteのエディタにペーストしてください。");
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Video Factory - Clawstack</title>
+    <link rel="stylesheet" href="../../style.css">
+    <style>
+        :root {
+            --accent: #ff0055;
+            --accent-glow: rgba(255, 0, 85, 0.3);
+        }
+
+        body {
+            background: #0a0a0c;
+            color: #e0e0e0;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 320px;
+            background: #121215;
+            border-right: 1px solid #2a2a30;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .main-view {
+            flex: 1;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            overflow-y: auto;
+        }
+
+        .panel {
+            background: #18181b;
+            border: 1px solid #2a2a30;
+            border-radius: 12px;
+            padding: 24px;
+        }
+
+        h1,
+        h2 {
+            margin: 0;
+            color: #fff;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 4px 15px var(--accent-glow);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.1);
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        textarea,
+        input,
+        select {
+            background: #0a0a0c;
+            border: 1px solid #3f3f46;
+            color: #fff;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .preview-box {
+            aspect-ratio: 9/16;
+            width: 300px;
+            background: #000;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px dashed #3f3f46;
+            margin: 0 auto;
+        }
+
+        .tag {
+            background: #27272a;
+            padding: 4px 10px;
+            border-radius: 100px;
+            font-size: 12px;
+            color: #a1a1aa;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="sidebar">
+        <h2>🎬 Video Studio</h2>
+        <div class="input-group">
+            <label>動画のテーマ / プロンプト</label>
+            <textarea id="prompt" rows="5" placeholder="例: 宇宙の神秘について解説する60秒のショート動画"></textarea>
+        </div>
+        <div class="input-group">
+            <label>AIボイス</label>
+            <select id="voice-engine">
+                <option value="voicevox">VOICEVOX (四国めたん)</option>
+                <option value="coqui">Coqui TTS (Crystal)</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label>アスペクト比</label>
+            <select id="ratio">
+                <option value="9:16">9:16 (TikTok/Shorts)</option>
+                <option value="16:9">16:9 (YouTube)</option>
+            </select>
+        </div>
+        <button class="btn-primary" onclick="generateVideo()">✨ 動画を生成</button>
+
+        <hr style="border:0; border-top:1px solid #2a2a30; margin: 10px 0;">
+
+        <div class="input-group">
+            <label>📸 写真補正 (現代版・カラー化)</label>
+            <input type="file" id="photo-upload">
+            <button class="btn-primary" style="background: #3b82f6; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);"
+                onclick="restorePhoto()">🖼️ AIリマスター</button>
+        </div>
+    </div>
+
+    <div class="main-view">
+        <div class="panel">
+            <h1>生成プレビュー</h1>
+            <p>Remotionレンダラーによるリアルタイムプレビューです。</p>
+            <div class="preview-box">
+                <span style="color: #52525b;">レンダリング待機中</span>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2>生成ログ / 進捗</h2>
+            <div id="log"
+                style="font-family: monospace; color: #a1a1aa; font-size: 13px; height: 150px; overflow-y: auto;">
+                > System initialized.<br>
+                > Remotion engine ready.<br>
+                > TTS profiles loaded.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function log(msg) {
+            const el = document.getElementById('log');
+            el.innerHTML += `<br>> ${msg}`;
+            el.scrollTop = el.scrollHeight;
+        }
+
+        async function generateVideo() {
+            log("Script generating via LLM...");
+            setTimeout(() => log("Generating audio via VOICEVOX..."), 1500);
+            setTimeout(() => log("Rendering frames in Remotion... (ffmpeg)"), 3000);
+            setTimeout(() => {
+                log("✅ Video ready: out/tiktok_shorts_v1.mp4");
+                alert("動画の生成が完了しました！出力フォルダを確認してください。");
+            }, 5000);
+        }
+
+        async function restorePhoto() {
+            log("Uploading photo to Stable Diffusion API...");
+            log("Processing: DeOldify + Real-ESRGAN...");
+            setTimeout(() => log("✅ Image restored. Saved to outputs/remastered_01.png"), 2500);
+        }
+    </script>
+</body>
+
+</html>

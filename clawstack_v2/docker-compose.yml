@@ -1,0 +1,354 @@
+version: "3.9"
+name: clawstack
+
+services:
+  # -------------------------
+  # Core / Orchestration
+  # -------------------------
+  antigravity:
+    build: ./docker/antigravity
+    depends_on: [ postgres, redis, qdrant, ollama, minio ]
+    environment:
+      - POSTGRES_URL=postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/postgres
+      - REDIS_URL=redis://redis:6379/0
+      - QDRANT_URL=http://qdrant:6333
+      - OLLAMA_URL=http://ollama:11434
+      - S3_ENDPOINT=http://minio:9000
+      - S3_ACCESS_KEY=${MINIO_ROOT_USER}
+      - S3_SECRET_KEY=${MINIO_ROOT_PASSWORD}
+      - WORKDIR=/work
+    volumes:
+      - ./data/work:/work
+      - ./secrets:/secrets:ro
+      - ./data/paperless/consume:/home/node/paperless/consume
+    ports:
+      - "127.0.0.1:5678:5678"
+    command: [ "bash", "-lc", "sleep infinity" ]
+    restart: unless-stopped
+
+  ollama:
+    image: ollama/ollama:latest
+    volumes:
+      - ./data/ollama:/root/.ollama
+    ports:
+      - "127.0.0.1:11434:11434"
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16
+    environment:
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5432:5432"
+    restart: unless-stopped
+
+  redis:
+    image: redis:7
+    volumes:
+      - ./data/redis:/data
+    ports:
+      - "127.0.0.1:6379:6379"
+    restart: unless-stopped
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    volumes:
+      - ./data/qdrant:/qdrant/storage
+    ports:
+      - "127.0.0.1:6333:6333"
+    restart: unless-stopped
+
+  # object storage（MinIO：OSSで使える。127.0.0.1に閉じる）
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+    volumes:
+      - ./data/objectstore:/data
+    ports:
+      - "127.0.0.1:9000:9000"
+      - "127.0.0.1:9001:9001"
+    restart: unless-stopped
+
+  # -------------------------
+  # Google Worker (Gmail/Calendar/Drive)
+  # -------------------------
+  google_worker:
+    build: ./docker/google_worker
+    volumes:
+      - ./data/work:/work
+      - ./secrets:/secrets
+    environment:
+      - GOOGLE_SECRETS_DIR=/secrets
+      - WORKDIR=/work
+    working_dir: /work
+    command: [ "bash", "-lc", "sleep infinity" ]
+    profiles: [ "tools" ]
+
+  # -------------------------
+  # Diagram / Mindmap
+  # -------------------------
+  drawio:
+    image: jgraph/drawio:latest
+    ports:
+      - "127.0.0.1:8081:8080"
+    restart: unless-stopped
+    profiles: [ "tools" ]
+
+  diagram_cli:
+    build: ./docker/diagram_cli
+    volumes:
+      - ./data/work:/work
+    working_dir: /work
+    command: [ "bash", "-lc", "sleep infinity" ]
+    profiles: [ "tools" ]
+
+  n8n:
+    image: n8nio/n8n:latest
+    ports:
+      - "127.0.0.1:5679:5678"
+    environment:
+      - N8N_HOST=127.0.0.1
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - NODE_ENV=production
+      - WEBHOOK_URL=http://127.0.0.1:5679/
+      - GENERIC_TIMEZONE=Asia/Tokyo
+    volumes:
+      - ./data/n8n:/home/node/.n8n
+      - ./data/work:/work
+    restart: unless-stopped
+    profiles: [ "tools" ]
+
+  mosquitto:
+    image: eclipse-mosquitto:latest
+    ports:
+      - "127.0.0.1:1883:1883"
+      - "127.0.0.1:9001:9001"
+    volumes:
+      - ./data/mosquitto/config:/mosquitto/config
+      - ./data/mosquitto/data:/mosquitto/data
+      - ./data/mosquitto/log:/mosquitto/log
+    # Create simple config on startup to allow anonymous access (for local dev)
+    entrypoint: [ "sh", "-c", "echo 'listener 1883\\nallow_anonymous true\\nlistener 9001\\nprotocol websockets' > /mosquitto/config/mosquitto.conf && /usr/sbin/mosquitto -c /mosquitto/config/mosquitto.conf" ]
+    restart: unless-stopped
+    profiles: [ "tools" ]
+
+  nodered:
+    image: nodered/node-red:latest
+    ports:
+      - "127.0.0.1:1880:1880"
+    environment:
+      - TZ=Asia/Tokyo
+    volumes:
+      - ./data/nodered:/data
+      - ./data/work:/work
+    restart: unless-stopped
+    profiles: [ "tools" ]
+
+  # -------------------------
+  # Vision stack (無料OSS)
+  # -------------------------
+  cvat:
+    image: cvat/server:latest
+    ports:
+      - "127.0.0.1:8082:8080"
+    restart: unless-stopped
+    profiles: [ "vision" ]
+
+  label_studio:
+    image: heartexlabs/label-studio:latest
+    ports:
+      - "127.0.0.1:8083:8080"
+    volumes:
+      - ./data/labelstudio:/label-studio/data
+    restart: unless-stopped
+    profiles: [ "vision" ]
+
+  fiftyone:
+    image: voxel51/fiftyone:latest
+    ports:
+      - "127.0.0.1:5151:5151"
+    volumes:
+      - ./data/work:/work
+    restart: unless-stopped
+    profiles: [ "vision" ]
+
+  vision_worker:
+    build: ./docker/vision_worker
+    volumes:
+      - ./data/work:/work
+    working_dir: /work
+    ports:
+      - "127.0.0.1:7860:7860" # Gradio/Streamlit等のUI
+    command: [ "bash", "-lc", "sleep infinity" ]
+    profiles: [ "vision" ]
+
+  # -------------------------
+  # CAE (profiles=cae)
+  # -------------------------
+  openradioss:
+    build: ./docker/openradioss
+    volumes:
+      - ./data/work:/work
+    working_dir: /work
+    command: [ "bash", "-lc", "sleep infinity" ]
+    profiles: [ "cae" ]
+
+  voicevox:
+    image: voicevox/voicevox_engine:cpu-ubuntu20.04-latest
+    ports:
+      - "127.0.0.1:50021:50021"
+    restart: unless-stopped
+    profiles: [ "tools" ]
+
+  chrono:
+    image: uwsbel/projectchrono:latest
+    volumes:
+      - ./data/work:/work
+    working_dir: /work
+    command: [ "bash", "-lc", "sleep infinity" ]
+    profiles: [ "cae" ]
+
+  openfoam:
+    image: opencfd/openfoam-dev:latest
+    container_name: openfoam
+    volumes:
+      - ./data/work:/work
+      - ../data/workspace:/workspace
+    working_dir: /workspace
+    command: [ "bash", "-lc", "sleep infinity" ]
+    profiles: [ "cae" ]
+
+  # -------------------------
+  # Quality Assurance (profiles=quality/docs)
+  # -------------------------
+  quality_dashboard:
+    build: ./docker/quality_dashboard
+    ports:
+      - "127.0.0.1:8090:8090"
+    volumes:
+      - ./data/work:/work
+      - ./data/paperless/consume:/consume
+    restart: unless-stopped
+    profiles: [ "quality" ]
+
+  paperless:
+    image: ghcr.io/paperless-ngx/paperless-ngx:latest
+    restart: unless-stopped
+    depends_on: [ postgres, redis ]
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - ./data/paperless/data:/usr/src/paperless/data
+      - ./data/paperless/media:/usr/src/paperless/media
+      - ./data/paperless/export:/usr/src/paperless/export
+      - ./data/paperless/consume:/usr/src/paperless/consume
+    environment:
+      PAPERLESS_REDIS: redis://redis:6379
+      PAPERLESS_DBHOST: postgres
+      PAPERLESS_DBPORT: 5432
+      PAPERLESS_DBNAME: paperless
+      PAPERLESS_DBUSER: postgres
+      PAPERLESS_DBPASS: ${POSTGRES_PASSWORD}
+      # Initial setup
+      PAPERLESS_ADMIN_USER: admin
+      PAPERLESS_ADMIN_PASSWORD: admin
+      PAPERLESS_SECRET_KEY: ${POSTGRES_PASSWORD} # Reuse for simplicity or generate new
+      PAPERLESS_URL: http://127.0.0.1:8000
+      PAPERLESS_CONSUMER_RECURSIVE: "true"
+      PAPERLESS_CONSUMER_SUBDIRS_AS_TAGS: "true"
+    profiles: [ "docs" ]
+
+  # -------------------------
+  # Open Notebook (Local NotebookLM clone)
+  # -------------------------
+  open_notebook_db:
+    image: surrealdb/surrealdb:v2
+    command: start --log info --user root --pass root rocksdb:/mydata/mydatabase.db
+    user: root
+    ports:
+      - "127.0.0.1:8001:8000"
+    volumes:
+      - ./data/open_notebook/surreal_data:/mydata
+    environment:
+      - SURREAL_EXPERIMENTAL_GRAPHQL=true
+    restart: unless-stopped
+    profiles: [ "tools" ]
+
+  open_notebook:
+    image: lfnovo/open_notebook:v1-latest
+    ports:
+      - "127.0.0.1:8502:8502" # Web UI
+      - "127.0.0.1:5055:5055" # REST API
+    environment:
+      - OPEN_NOTEBOOK_ENCRYPTION_KEY=clawstack_secure_key_2026
+      - SURREAL_URL=ws://open_notebook_db:8000/rpc
+      - SURREAL_USER=root
+      - SURREAL_PASSWORD=root
+      - SURREAL_NAMESPACE=open_notebook
+      - SURREAL_DATABASE=open_notebook
+      - OLLAMA_BASE_URL=http://ollama:11434
+    volumes:
+      - ./data/open_notebook/notebook_data:/app/data
+    depends_on:
+      - open_notebook_db
+      - ollama
+    restart: unless-stopped
+    profiles: [ "tools" ]
+
+  # -------------------------
+  # Portal HTTP Server (For NightTab compatibility)
+  # -------------------------
+  portal_server:
+    image: nginx:alpine
+    ports:
+      - "127.0.0.1:8088:80"
+    volumes:
+      - ../data/workspace:/usr/share/nginx/html:ro
+    restart: unless-stopped
+    profiles: [ "tools" ]
+
+  # -------------------------
+  # NEW: AI Content Suite (OSS Apps)
+  # -------------------------
+  stirling_pdf:
+    image: froodleb/s-pdf:latest
+    ports:
+      - "127.0.0.1:8085:8080"
+    environment:
+      - DOCKER_ENABLE_SECURITY=false
+    volumes:
+      - ./data/stirling_pdf/trainingData:/usr/src/app/trainingData
+      - ./data/stirling_pdf/extraConfigs:/usr/src/app/configs
+    restart: unless-stopped
+    profiles: [ "content" ]
+
+  meilisearch:
+    image: getmeili/meilisearch:latest
+    ports:
+      - "127.0.0.1:7700:7700"
+    environment:
+      - MEILI_MASTER_KEY=clawstack_search_master_2026
+      - MEILI_ENV=development
+    volumes:
+      - ./data/meilisearch:/meili_data
+    restart: unless-stopped
+    profiles: [ "content" ]
+
+  stable_diffusion:
+    image: ghcr.io/linuxserver/stable-diffusion-webui:latest
+    ports:
+      - "127.0.0.1:7861:7860"
+    volumes:
+      - ./data/stable_diffusion/config:/config
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Asia/Tokyo
+    restart: unless-stopped
+    profiles: [ "content" ]
