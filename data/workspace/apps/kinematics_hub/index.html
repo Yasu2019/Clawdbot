@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kinematics Hub - Clawstack Engineering</title>
+    <link rel="stylesheet" href="../../style.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div id="loading-overlay">
+        <div class="loader"></div>
+        <p>Loading Kinematics Engine...</p>
+    </div>
+
+    <div id="hud"></div>
+    <div id="help">Space: Play/Pause | R: Reset | B: Cycle Blade</div>
+    <div id="info"></div>
+
+    <div id="toolbar">
+        <div class="tool-group">
+            <label class="btn-file">
+                📂 Load Tooling STL
+                <input type="file" id="stlInput" accept=".stl">
+            </label>
+            <span id="stlStatus">No STL Loaded</span>
+        </div>
+        <div class="tool-group">
+            <button id="btn-play" class="btn-icon">▶</button>
+            <button id="btn-reset" class="btn-icon">🔄</button>
+        </div>
+    </div>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module" src="app.js"></script>
+</body>
+
+</html>

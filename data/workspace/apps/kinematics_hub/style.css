@@ -1,0 +1,145 @@
+body {
+    margin: 0;
+    overflow: hidden;
+    background: #05070b;
+    color: #e8eefc;
+    font-family: 'Inter', ui-monospace, sans-serif;
+}
+
+#hud,
+#help,
+#info {
+    position: fixed;
+    z-index: 100;
+    pointer-events: none;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+#hud {
+    top: 20px;
+    left: 20px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #55aaff;
+}
+
+#help {
+    bottom: 20px;
+    left: 20px;
+    font-size: 13px;
+    opacity: 0.7;
+}
+
+#info {
+    top: 20px;
+    right: 20px;
+    background: rgba(10, 10, 15, 0.85);
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #2a2a35;
+    font-size: 12px;
+    line-height: 1.6;
+    min-width: 200px;
+}
+
+#toolbar {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    gap: 12px;
+    background: rgba(20, 20, 25, 0.9);
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid #3a3a45;
+    backdrop-filter: blur(10px);
+    z-index: 1000;
+}
+
+.tool-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 10px;
+    border-right: 1px solid #3a3a45;
+}
+
+.tool-group:last-child {
+    border-right: none;
+}
+
+.btn-file {
+    background: #446688;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: 0.2s;
+}
+
+.btn-file:hover {
+    background: #5588aa;
+}
+
+.btn-file input {
+    display: none;
+}
+
+.btn-icon {
+    background: #333;
+    border: 1px solid #444;
+    color: white;
+    width: 36px;
+    height: 36px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-icon:hover {
+    background: #444;
+}
+
+#loading-overlay {
+    position: fixed;
+    inset: 0;
+    background: #05070b;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    transition: opacity 0.5s;
+}
+
+.loader {
+    width: 48px;
+    height: 48px;
+    border: 5px solid #1a1a25;
+    border-bottom-color: #55aaff;
+    border-radius: 50%;
+    animation: rotation 1s linear infinite;
+    margin-bottom: 20px;
+}
+
+@keyframes rotation {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+#stlStatus {
+    font-size: 11px;
+    color: #8899aa;
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
