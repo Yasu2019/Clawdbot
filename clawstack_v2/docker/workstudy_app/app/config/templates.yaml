@@ -1,0 +1,70 @@
+templates:
+  press_visual_inspection:
+    label: "プレス部品 外観検査"
+    focus_kpi: [cycle_time, inspect_ratio, orientation_changes, hand_travel, recheck_loops]
+    expected_flow: [GET, POSITION, INSPECT, INSPECT, PUT, RECORD]
+    ergo_thresholds: { trunk_deg_gt: 40, shoulder_deg_gt: 60 }
+    waste_patterns:
+      - id: too_many_orient
+        description: "方向合わせ/反転が多い"
+        trigger: { metric: orientation_changes, op: ">", value: 6 }
+        suggestion: "置き姿勢の統一、トレイ形状の方向ガイド、治具で方向決め"
+      - id: search_loop
+        description: "探し/再観察ループが多い"
+        trigger: { metric: recheck_loops, op: ">", value: 3 }
+        suggestion: "照明角度固定、基準見本配置、判定順序の標準化"
+
+  resin_visual_inspection:
+    label: "樹脂成形部品 外観検査"
+    focus_kpi: [cycle_time, inspect_ratio, tilt_actions, hold_ratio, hand_travel]
+    expected_flow: [GET, POSITION, INSPECT, PUT, RECORD]
+    ergo_thresholds: { trunk_deg_gt: 35, shoulder_deg_gt: 60 }
+    waste_patterns:
+      - id: excessive_tilt
+        description: "反射角調整（傾け）が過剰"
+        trigger: { metric: tilt_actions, op: ">", value: 8 }
+        suggestion: "照明配置最適化、拡散板、観察方向の標準化"
+
+  press_floor_motion:
+    label: "プレス現場 動作"
+    focus_kpi: [walking_ratio, waiting_ratio, trunk_risk_ratio, roundtrip_count]
+    expected_flow: [MOVE, USE_TOOL, WAIT, MOVE]
+    ergo_thresholds: { trunk_deg_gt: 40, shoulder_deg_gt: 70 }
+    waste_patterns:
+      - id: too_much_walking
+        description: "歩行が多い"
+        trigger: { metric: walking_ratio, op: ">", value: 0.25 }
+        suggestion: "5S配置改善、工具定位置化、補給動線の統合"
+
+  inspection_room_motion:
+    label: "検査室 動作"
+    focus_kpi: [tool_switch_count, search_ratio, static_posture_ratio]
+    expected_flow: [GET, POSITION, INSPECT, USE_TOOL, RECORD, PUT]
+    ergo_thresholds: { trunk_deg_gt: 30, shoulder_deg_gt: 55 }
+    waste_patterns:
+      - id: input_fragment
+        description: "測定⇄入力の往復が多い"
+        trigger: { metric: tool_switch_count, op: ">", value: 10 }
+        suggestion: "入力バッチ化、フォーム改善、測定→入力の順序固定"
+
+  molding_floor_motion:
+    label: "成形現場 動作"
+    focus_kpi: [waiting_ratio, overlap_ratio, regrasp_count, trunk_risk_ratio]
+    expected_flow: [GET, USE_TOOL, INSPECT, PUT, WAIT]
+    ergo_thresholds: { trunk_deg_gt: 40, shoulder_deg_gt: 70 }
+    waste_patterns:
+      - id: regrasp
+        description: "持ち替え（再把持）が多い"
+        trigger: { metric: regrasp_count, op: ">", value: 4 }
+        suggestion: "取出し姿勢/持ち方標準化、トリム治具位置最適化"
+
+  surface_treatment_motion:
+    label: "表面処理 動作"
+    focus_kpi: [carry_count, walking_ratio, shoulder_risk_ratio, waiting_ratio]
+    expected_flow: [POSITION, USE_TOOL, WAIT, MOVE, INSPECT]
+    ergo_thresholds: { trunk_deg_gt: 35, shoulder_deg_gt: 70 }
+    waste_patterns:
+      - id: carry_overload
+        description: "搬送回数が多い"
+        trigger: { metric: carry_count, op: ">", value: 12 }
+        suggestion: "搬送単位見直し、台車化、置き場高さ最適化"

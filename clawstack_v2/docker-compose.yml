@@ -352,3 +352,20 @@ services:
       - TZ=Asia/Tokyo
     restart: unless-stopped
     profiles: [ "content" ]
+
+  # -------------------------
+  # WorkStudy AI (Therbligs + MOST Analysis)
+  # -------------------------
+  workstudy_app:
+    build:
+      context: ./docker/workstudy_app
+      dockerfile: Dockerfile
+    ports:
+      - "127.0.0.1:7870:7870"
+    volumes:
+      - ./data/workstudy/projects:/work/projects
+    environment:
+      - WORKSTUDY_PROJECTS=/work/projects
+      - TZ=Asia/Tokyo
+    restart: unless-stopped
+    profiles: [ "quality" ]
