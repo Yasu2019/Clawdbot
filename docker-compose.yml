@@ -1,29 +1,24 @@
+name: clawstack-unified
+
 services:
+  # ============================================================
+  # 1. CORE AGENT & ORCHESTRATION
+  # ============================================================
   clawdbot-gateway:
     build: .
-    container_name: clawdbot-gateway
     restart: unless-stopped
     ports:
       - "127.0.0.1:${CLAWDBOT_PORT:-18789}:18789"
       - "127.0.0.1:${CLAWDBOT_BROWSER_PORT:-18791}:18791"
-    env_file:
-      - .env
+    env_file: .env
     environment:
       - GEMINI_API_KEY=${GEMINI_API_KEY}
-      # - OLLAMA_BASE_URL=${OLLAMA_BASE_URL}
-      # - OLLAMA_API_KEY=${OLLAMA_API_KEY:-ollama-local}
-      # - TARGET_MODEL=gemini-3-flash-preview # Kept as a memo for fallback purposes
-    networks:
-      - default
-      - clawstack_default
+      - HOME=/home/node
     volumes:
       - ./data/state:/home/node/.openclaw
       - ./data/workspace:/home/node/clawd
-      # --- Claude Codeの認証情報を永続化 (Pro枠の維持用) ---
       - ./data/state/claude_config:/home/node/.config/claude-code
-      # --- OpenAI Codex (ChatGPT Plus) の認証情報をマウント ---
       - ./data/state/codex:/home/node/.codex
-      # -------------------------------------------------
       - ./consume/WIP:/home/node/clawd/consume/WIP
       - "./data/state/Obsidian Vault:/home/node/clawd/obsidian_vault"
       - "./data/state/IATF_documents:/home/node/clawd/iatf_documents"
@@ -33,27 +28,294 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     extra_hosts:
       - "host.docker.internal:host-gateway"
-    entrypoint:
-      - /bin/bash
-      - /home/node/.openclaw/entrypoint.sh
-    command:
-      - openclaw
-      - gateway
-      - --port
-      - "18789"
-      - --bind
-      - lan
-      - --verbose
+    user: root
+    entrypoint: [ /bin/bash, /home/node/.openclaw/entrypoint.sh ]
+    command: [ openclaw, gateway, --port, "18789", --bind, lan, --verbose, --allow-unconfigured ]
 
+  # ============================================================
+  # 2. SHARED INFRASTRUCTURE (From clawstack_v2)
+  # ============================================================
+  postgres:
+    image: postgres:16
+    environment:
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+      - ./clawstack_v2/data/postgres:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5432:5432"
+    restart: unless-stopped
+
+  redis:
+    image: redis:7
+    volumes:
+      - ./clawstack_v2/data/redis:/data
+    ports:
+      - "127.0.0.1:6379:6379"
+    restart: unless-stopped
+
+  ollama:
+    image: ollama/ollama:latest
+    volumes:
+      - ./clawstack_v2/data/ollama:/root/.ollama
+    ports:
+      - "127.0.0.1:11434:11434"
+    restart: unless-stopped
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    volumes:
+      - ./clawstack_v2/data/qdrant:/qdrant/storage
+    ports:
+      - "127.0.0.1:6333:6333"
+    restart: unless-stopped
+
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+    volumes:
+      - ./clawstack_v2/data/objectstore:/data
+    ports:
+      - "127.0.0.1:9000:9000"
+      - "127.0.0.1:9001:9001"
+    restart: unless-stopped
+
+  # ============================================================
+  # 3. AUTOMATION & TOOLS
+  # ============================================================
+  n8n:
+    image: n8nio/n8n:latest
+    ports:
+      - "127.0.0.1:5679:5678"
+    environment:
+      - N8N_HOST=127.0.0.1
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - NODE_ENV=production
+      - WEBHOOK_URL=http://127.0.0.1:5679/
+      - GENERIC_TIMEZONE=${TZ}
+    volumes:
+      - ./clawstack_v2/data/n8n:/home/node/.n8n
+      - ./clawstack_v2/data/work:/work
+    restart: unless-stopped
+
+  nodered:
+    image: nodered/node-red:latest
+    ports:
+      - "127.0.0.1:1880:1880"
+    environment:
+      - TZ=${TZ}
+    volumes:
+      - ./clawstack_v2/data/nodered:/data
+      - ./clawstack_v2/data/work:/work
+    restart: unless-stopped
+
+  # ============================================================
+  # 4. CONTENT & AI SUITE (TEMPORARILY DISABLED DUE TO REGISTRY ISSUES)
+  # ============================================================
+  # stirling_pdf:
+  #   image: froodleb/s-pdf:latest
+  #   ports:
+  #     - "127.0.0.1:8085:8080"
+  #   environment:
+  #     - DOCKER_ENABLE_SECURITY=false
+  #   volumes:
+  #     - ./clawstack_v2/data/stirling_pdf/trainingData:/usr/src/app/trainingData
+  #     - ./clawstack_v2/data/stirling_pdf/extraConfigs:/usr/src/app/configs
+  #   networks:
+  #     - clawstack_default
+  #   restart: unless-stopped
+
+  # stable_diffusion:
+  #   image: lscr.io/linuxserver/stable-diffusion-webui:latest
+  #   ports:
+  #     - "127.0.0.1:7861:7860"
+  #   volumes:
+  #     - ./clawstack_v2/data/stable_diffusion/config:/config
+  #     - ./clawstack_v2/data/stable_diffusion/models:/models
+  #   environment:
+  #     - PUID=1000
+  #     - PGID=1000
+  #     - TZ=${TZ}
+  #   networks:
+  #     - clawstack_default
+  #   restart: unless-stopped
+
+  # ============================================================
+  # 5. CAE & SIMULATION (From clawstack_v2)
+  # ============================================================
+  openradioss:
+    build: ./clawstack_v2/docker/openradioss
+    volumes:
+      - ./clawstack_v2/data/work:/work
+    working_dir: /work
+    command: [ "bash", "-lc", "sleep infinity" ]
+
+  chrono:
+    image: uwsbel/projectchrono:latest
+    volumes:
+      - ./clawstack_v2/data/work:/work
+    working_dir: /work
+    command: [ "bash", "-lc", "sleep infinity" ]
+
+  openfoam:
+    image: opencfd/openfoam-dev:latest
+    volumes:
+      - ./clawstack_v2/data/work:/work
+      - ./data/workspace:/workspace
+    working_dir: /workspace
+    command: [ "bash", "-lc", "sleep infinity" ]
+
+  # ============================================================
+  # 6. QUALITY & ANALYSIS (WorkStudy AI)
+  # ============================================================
+  workstudy_app:
+    build:
+      context: ./clawstack_v2/docker/workstudy_app
+      dockerfile: Dockerfile
+    ports:
+      - "127.0.0.1:7870:7870"
+    volumes:
+      - ./clawstack_v2/data/workstudy/projects:/work/projects
+    environment:
+      - WORKSTUDY_PROJECTS=/work/projects
+      - TZ=${TZ}
+    restart: unless-stopped
+
+  quality_dashboard:
+    build: ./clawstack_v2/docker/quality_dashboard
+    ports:
+      - "127.0.0.1:8090:8090"
+    volumes:
+      - ./clawstack_v2/data/work:/work
+      - ./clawstack_v2/data/paperless/consume:/consume
+    restart: unless-stopped
+
+  # ============================================================
+  # 7. KNOWLEDGE & DOCS
+  # ============================================================
+  paperless:
+    image: ghcr.io/paperless-ngx/paperless-ngx:latest
+    restart: unless-stopped
+    depends_on: [ postgres, redis ]
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - ./clawstack_v2/data/paperless/data:/usr/src/paperless/data
+      - ./clawstack_v2/data/paperless/media:/usr/src/paperless/media
+      - ./clawstack_v2/data/paperless/export:/usr/src/paperless/export
+      - ./clawstack_v2/data/paperless/consume:/usr/src/paperless/consume
+    environment:
+      PAPERLESS_REDIS: redis://redis:6379
+      PAPERLESS_DBHOST: postgres
+      PAPERLESS_DBPORT: 5432
+      PAPERLESS_DBNAME: postgres
+      PAPERLESS_DBUSER: postgres
+      PAPERLESS_DBPASS: ${POSTGRES_PASSWORD}
+      PAPERLESS_ADMIN_USER: admin
+      PAPERLESS_ADMIN_PASSWORD: admin
+      PAPERLESS_SECRET_KEY: ${PAPERLESS_SECRET_KEY:-change_me}
+      PAPERLESS_URL: http://localhost:8000
+      PAPERLESS_CONSUMER_RECURSIVE: "true"
+      PAPERLESS_CONSUMER_SUBDIRS_AS_TAGS: "true"
+
+  open_notebook_db:
+    image: surrealdb/surrealdb:v2
+    command: start --log info --user root --pass root rocksdb:/mydata/mydatabase.db
+    user: root
+    ports:
+      - "127.0.0.1:8001:8000"
+    volumes:
+      - ./clawstack_v2/data/open_notebook/surreal_data:/mydata
+    environment:
+      - SURREAL_EXPERIMENTAL_GRAPHQL=true
+    restart: unless-stopped
+
+  open_notebook:
+    image: lfnovo/open_notebook:v1-latest
+    ports:
+      - "127.0.0.1:8502:8502"
+      - "127.0.0.1:5055:5055"
+    environment:
+      - OPEN_NOTEBOOK_ENCRYPTION_KEY=clawstack_secure_key_2026
+      - SURREAL_URL=ws://open_notebook_db:8000/rpc
+      - SURREAL_USER=root
+      - SURREAL_PASSWORD=root
+      - SURREAL_NAMESPACE=open_notebook
+      - SURREAL_DATABASE=open_notebook
+      - OLLAMA_BASE_URL=http://ollama:11434
+    volumes:
+      - ./clawstack_v2/data/open_notebook/notebook_data:/app/data
+    depends_on:
+      - open_notebook_db
+      - ollama
+    restart: unless-stopped
+
+  portal_server:
+    image: nginx:alpine
+    ports:
+      - "127.0.0.1:8088:80"
+    volumes:
+      - ./data/workspace:/usr/share/nginx/html:ro
+    restart: unless-stopped
+
+  # ============================================================
+  # 8. MINIGAME FACTORY
+  # ============================================================
+  db_minigame:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: ${MINIGAME_DB_USER}
+      POSTGRES_PASSWORD: ${MINIGAME_DB_PASSWORD}
+      POSTGRES_DB: ${MINIGAME_DB_NAME}
+    volumes:
+      - minigame_db_data:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5442:5432"
+
+  redis_minigame:
+    image: redis:7
+    ports:
+      - "127.0.0.1:6389:6379"
+
+  minigame_api:
+    build: ./data/workspace/apps/minigame_factory/apps/api
+    environment:
+      DATABASE_URL: ${MINIGAME_DATABASE_URL}
+      REDIS_URL: ${MINIGAME_REDIS_URL}
+      PROJECTS_DIR: /workspace/projects
+      OUTPUT_DIR: /workspace/output
+      SCHEMA_PATH: /workspace/schemas/game_spec.schema.json
+    volumes:
+      - ./data/workspace/apps/minigame_factory/projects:/workspace/projects
+      - ./data/workspace/apps/minigame_factory/output:/workspace/output
+      - ./data/workspace/apps/minigame_factory/schemas:/workspace/schemas:ro
+    depends_on:
+      - db_minigame
+      - redis_minigame
+    ports:
+      - "127.0.0.1:8100:8000"
+
+  minigame_ui:
+    build: ./data/workspace/apps/minigame_factory/apps/ui
+    environment:
+      NEXT_PUBLIC_API_BASE_URL: http://localhost:8100
+    ports:
+      - "127.0.0.1:3100:3000"
+    depends_on:
+      - minigame_api
+
+  # ============================================================
+  # 8. VOICE & SIMULATION
+  # ============================================================
   voicevox:
     image: voicevox/voicevox_engine:cpu-ubuntu20.04-latest
-    container_name: voicevox-engine
     restart: unless-stopped
     ports:
       - "127.0.0.1:50021:50021"
     environment:
       - VV_CPU_NUM_THREADS=4
-
-networks:
-  clawstack_default:
-    external: true
+volumes:
+  minigame_db_data:

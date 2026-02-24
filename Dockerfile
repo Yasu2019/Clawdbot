@@ -114,17 +114,13 @@ RUN pip3 install --no-cache-dir --break-system-packages \
 # ============================================================
 # STAGE 2: Node Stack & Claude Code Integration
 # ============================================================
-# Claude Code & Codex (ChatGPT Plus fallback) を追加
+# Core engineering agent services
 RUN npm install -g @remotion/cli bun clawdbot openclaw @anthropic-ai/claude-code @openai/codex
 
-# Claude Code認証ディレクトリ作成と権限設定
+# Claude Code configuration
 RUN mkdir -p /home/node/.config/claude-code && chown -R node:node /home/node/.config
 
-# Clawdbotのバイパスタッチ (既存)
-RUN sed -i 's/const requirePairing = async (reason, _paired) => {/const requirePairing = async (reason, _paired) => { return true; }; const _unused_requirePairing = async (reason, _paired) => {/g' \
-    /usr/local/lib/node_modules/clawdbot/dist/gateway/server/ws-connection/message-handler.js
-
-# ElmerFEM 実行時ライブラリの修正
+# ElmerFEM Runtime Libraries Fix
 RUN wget -q "http://archive.ubuntu.com/ubuntu/pool/universe/m/mumps/libmumps-5.4_5.4.1-2_amd64.deb" -O /tmp/libmumps.deb && \
     wget -q "http://archive.ubuntu.com/ubuntu/pool/universe/h/hypre/libhypre-2.22.1_2.22.1-7_amd64.deb" -O /tmp/libhypre.deb && \
     mkdir -p /tmp/extracted /usr/lib/elmersolver && \
@@ -132,7 +128,10 @@ RUN wget -q "http://archive.ubuntu.com/ubuntu/pool/universe/m/mumps/libmumps-5.4
     find /tmp/extracted/usr/lib -name "*.so*" -exec cp -P {} /usr/lib/elmersolver/ \; && \
     rm -rf /tmp/*.deb /tmp/extracted
 
-ENV LD_LIBRARY_PATH=/usr/lib/elmersolver:$LD_LIBRARY_PATH
+# Sudo installation and configuration for entrypoint patches
+RUN apt-get update && apt-get install -y --no-install-recommends sudo && \
+    rm -rf /var/lib/apt/lists/* && \
+    echo "node ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 USER node
 WORKDIR /home/node
