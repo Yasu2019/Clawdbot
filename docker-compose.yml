@@ -8,12 +8,56 @@ services:
     build: .
     restart: unless-stopped
     ports:
-      - "127.0.0.1:${CLAWDBOT_PORT:-18789}:18789"
-      - "127.0.0.1:${CLAWDBOT_BROWSER_PORT:-18791}:18791"
+      - "127.0.0.1:${OPENCLAW_PORT:-18789}:18789"
+      - "127.0.0.1:${OPENCLAW_BROWSER_PORT:-18791}:18791"
     env_file: .env
     environment:
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - HOME=/home/node
+      - OPENCLAW_GATEWAY_TOKEN=yasu-fresh-token-2026-02-01
+      # Internal service URLs (Docker network — used by agent scripts/API calls)
+      - N8N_URL=http://n8n:5678
+      - N8N_API_URL=http://n8n:5678/api/v1
+      - NODERED_URL=http://nodered:1880
+      - PAPERLESS_URL=http://paperless:8000
+      - PAPERLESS_API_URL=http://paperless:8000/api
+      - PAPERLESS_USER=admin
+      - PAPERLESS_PASS=admin
+      - OPEN_NOTEBOOK_URL=http://open_notebook:8502
+      - OPEN_NOTEBOOK_API_URL=http://open_notebook:5055
+      - QUALITY_DASHBOARD_URL=http://quality_dashboard:8090
+      - WORKSTUDY_URL=http://workstudy_app:7870
+      - MINIGAME_UI_URL=http://minigame_ui:3000
+      - MINIGAME_API_URL=http://minigame_api:8000
+      - QDRANT_URL=http://qdrant:6333
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://ollama:11434}
+      - OLLAMA_URL=${OLLAMA_URL:-http://ollama:11434}
+      - OLLAMA_HOST=${OLLAMA_HOST:-ollama:11434}
+      - OLLAMA_API_KEY=${OLLAMA_API_KEY:-ollama-local}
+      - LITELLM_URL=http://litellm:4000
+      - INFINITY_URL=http://infinity:7997
+      - SEARXNG_URL=http://searxng:8080
+      - MINIO_URL=http://minio:9000
+      - MINIO_USER=minioadmin
+      - MINIO_PASS=${MINIO_ROOT_PASSWORD}
+      - POSTGRES_URL=postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/postgres
+      - REDIS_URL=redis://redis:6379/0
+      - N8N_MCP_URL=http://n8n:5678/mcp-server/http
+      - N8N_MCP_KEY=${N8N_MCP_KEY}
+      # Browser-facing URLs (host.docker.internal — used by openclaw browser)
+      - PORTAL_URL=http://host.docker.internal:8088/portal.html
+      - BROWSER_N8N_URL=http://host.docker.internal:5679
+      - BROWSER_NODERED_URL=http://host.docker.internal:1880
+      - BROWSER_PAPERLESS_URL=http://host.docker.internal:8000
+      - BROWSER_OPEN_NOTEBOOK_URL=http://host.docker.internal:8502
+      - BROWSER_QUALITY_DASHBOARD_URL=http://host.docker.internal:8090
+      - BROWSER_WORKSTUDY_URL=http://host.docker.internal:7870
+      - BROWSER_MINIGAME_URL=http://host.docker.internal:3100
+      - BROWSER_STIRLING_PDF_URL=http://host.docker.internal:8085
+      - BROWSER_STABLE_DIFFUSION_URL=http://host.docker.internal:7861
+      - BROWSER_IATF_URL=http://host.docker.internal:3000
+      - BROWSER_VOICEVOX_URL=http://host.docker.internal:50021
+      - CONTEXT_FILE=/home/node/clawd/PORTAL_APPS.md
     volumes:
       - ./data/state:/home/node/.openclaw
       - ./data/workspace:/home/node/clawd
@@ -25,6 +69,7 @@ services:
       - ./iatf_system:/home/node/clawd/iatf_system_code
       - ./clawstack_v2/data/paperless/consume:/home/node/clawd/paperless_consume
       - ./data/rclone:/home/node/.config/rclone
+      - ./data/state/claude.json:/home/node/.claude.json
       - /var/run/docker.sock:/var/run/docker.sock
     extra_hosts:
       - "host.docker.internal:host-gateway"
@@ -86,7 +131,9 @@ services:
   # 3. AUTOMATION & TOOLS
   # ============================================================
   n8n:
-    image: n8nio/n8n:latest
+    build:
+      context: ./clawstack_v2/docker/n8n
+      dockerfile: Dockerfile
     ports:
       - "127.0.0.1:5679:5678"
     environment:
@@ -96,9 +143,21 @@ services:
       - NODE_ENV=production
       - WEBHOOK_URL=http://127.0.0.1:5679/
       - GENERIC_TIMEZONE=${TZ}
+      # Execute Command ノード & Local File Trigger を有効化
+      # デフォルトでは ['n8n-nodes-base.executeCommand','n8n-nodes-base.localFileTrigger'] が除外される
+      - NODES_EXCLUDE=[]
+      # /work ディレクトリへのファイルアクセスを許可
+      - N8N_RESTRICT_FILE_ACCESS_TO=/work
+      # REST API / MCP アクセス用 API Key (OpenClaw-MCP)
+      - N8N_API_KEY=n8n_api_clawstack_f39c126b684f59ab50cc3fdedd82891086bfc633601067c9
+      # コミュニティノード有効化 (n8n-nodes-mcp 等)
+      - N8N_COMMUNITY_PACKAGES_ENABLED=true
+      # OpenClaw が MCP Client として接続するための公開 URL
+      - N8N_PUBLIC_API_DISABLED=false
     volumes:
       - ./clawstack_v2/data/n8n:/home/node/.n8n
       - ./clawstack_v2/data/work:/work
+      - /var/run/docker.sock:/var/run/docker.sock
     restart: unless-stopped
 
   nodered:
@@ -317,5 +376,62 @@ services:
       - "127.0.0.1:50021:50021"
     environment:
       - VV_CPU_NUM_THREADS=4
+
+  # ============================================================
+  # 9. LLM GATEWAY
+  # ============================================================
+  litellm:
+    image: ghcr.io/berriai/litellm:latest
+    platform: linux/amd64
+    ports:
+      - "127.0.0.1:4000:4000"
+    environment:
+      - LITELLM_MASTER_KEY=${LITELLM_MASTER_KEY:-local-dev-key}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      - redis
+      - ollama
+    restart: unless-stopped
+
+  # ============================================================
+  # 10. EMBEDDING / RERANK SERVER
+  # ============================================================
+  infinity:
+    image: michaelf34/infinity:latest
+    platform: linux/amd64
+    command: [ "v2", "--model-id", "mixedbread-ai/mxbai-embed-large-v1", "--port", "7997" ]
+    ports:
+      - "127.0.0.1:7997:7997"
+    restart: unless-stopped
+
+  # ============================================================
+  # 11. WEB SEARCH
+  # ============================================================
+  searxng:
+    image: searxng/searxng:latest
+    ports:
+      - "127.0.0.1:8086:8080"
+    environment:
+      - BASE_URL=http://localhost:8086/
+    restart: unless-stopped
+
+  # ============================================================
+  # 12. UI - Open WebUI
+  # ============================================================
+  open_webui:
+    image: ghcr.io/open-webui/open-webui:main
+    ports:
+      - "127.0.0.1:3002:8080"
+    environment:
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - ENABLE_RAG=true
+      - WEB_SEARCH_ENGINE=searxng
+      - SEARXNG_QUERY_URL=http://searxng:8080/search?q=<query>
+    depends_on:
+      - ollama
+      - searxng
+    restart: unless-stopped
+
 volumes:
   minigame_db_data:

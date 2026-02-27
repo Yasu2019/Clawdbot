@@ -92,7 +92,7 @@ RUN git clone https://github.com/ningfei/u3d.git /tmp/u3d && cd /tmp/u3d && CXXF
 RUN wget -q https://github.com/DanielSWolf/rhubarb-lip-sync/releases/download/v1.13.0/Rhubarb-Lip-Sync-1.13.0-Linux.zip -O /tmp/rhubarb.zip && \
     unzip /tmp/rhubarb.zip -d /opt/rhubarb && ln -s /opt/rhubarb/Rhubarb-Lip-Sync-1.13.0-Linux/rhubarb /usr/local/bin/rhubarb && rm /tmp/rhubarb.zip
 
-RUN apt-get update && apt-get install -y --no-install-recommends docker.io tesseract-ocr tesseract-ocr-jpn && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends docker.io tesseract-ocr tesseract-ocr-jpn chromium && rm -rf /var/lib/apt/lists/*
 
 # Python Stack (Unified)
 # Python Stack (Unified) - Step 1: Core Scientific & Data
@@ -114,7 +114,7 @@ RUN pip3 install --no-cache-dir --break-system-packages \
 # ============================================================
 # STAGE 2: Node Stack & Claude Code Integration
 # ============================================================
-# Core engineering agent services
+# Core engineering agent services (CACHE BUST 2026-02-24)
 RUN npm install -g @remotion/cli bun clawdbot openclaw @anthropic-ai/claude-code @openai/codex
 
 # Claude Code configuration

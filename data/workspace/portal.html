@@ -43,6 +43,7 @@
             margin: 0 0 10px 0;
             background: linear-gradient(135deg, var(--primary), var(--secondary));
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
             letter-spacing: -1px;
         }
@@ -104,6 +105,14 @@
             font-size: 2.5rem;
             margin-bottom: 20px;
             display: inline-block;
+        }
+
+        .card-icon-img {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 20px;
+            display: inline-block;
+            border-radius: 10px;
         }
 
         .card-title {
@@ -229,8 +238,11 @@
     <div class="grid-container">
 
         <!-- OpenClaw Chat -->
-        <a href="http://localhost:18789" class="card" target="_blank">
-            <span class="card-icon">🤖</span>
+        <a href="http://127.0.0.1:18789/overview?password=yasu-fresh-token-2026-02-01" class="card" target="_blank"
+            rel="noopener">
+            <img class="card-icon-img"
+                src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@main/png/openclaw.png"
+                onerror="this.outerHTML='<span class=card-icon>🤖</span>'" alt="OpenClaw">
             <h2 class="card-title">OpenClaw Chat (AI)</h2>
             <p class="card-desc">Main conversational interface. Chat with your personal AGI agent, initiate tasks, and
                 monitor system progress.</p>
@@ -242,7 +254,8 @@
 
         <!-- N8N Automation -->
         <a href="http://localhost:5679" class="card" target="_blank">
-            <span class="card-icon">⚡</span>
+            <img class="card-icon-img" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@main/png/n8n.png"
+                onerror="this.outerHTML='<span class=card-icon>⚡</span>'" alt="n8n">
             <h2 class="card-title">n8n Automation</h2>
             <p class="card-desc">Visual workflow automation tool. Manage external API integrations, webhooks, and
                 complex scheduled tasks.</p>
@@ -254,7 +267,9 @@
 
         <!-- Node-RED IoT -->
         <a href="http://localhost:1880" class="card" target="_blank">
-            <span class="card-icon">🔴</span>
+            <img class="card-icon-img"
+                src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@main/png/node-red.png"
+                onerror="this.outerHTML='<span class=card-icon>🔴</span>'" alt="Node-RED">
             <h2 class="card-title">Node-RED (IoT)</h2>
             <p class="card-desc">Hardware and sensor automation flow editor. Processes MQTT data and industrial sensor
                 inputs in real-time.</p>
@@ -266,7 +281,9 @@
 
         <!-- Quality Dashboard -->
         <a href="http://localhost:8090" class="card" target="_blank">
-            <span class="card-icon">📊</span>
+            <img class="card-icon-img"
+                src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@main/png/grafana.png"
+                onerror="this.outerHTML='<span class=card-icon>📊</span>'" alt="Quality Dashboard">
             <h2 class="card-title">Quality QA Dashboard</h2>
             <p class="card-desc">Interactive Streamlit dashboard for Quality Assurance. View FMEA, statistical
                 distributions, and QIF tracking.</p>
@@ -290,7 +307,9 @@
 
         <!-- Injection Molding Hub -->
         <a href="apps/molding_hub/index.html" class="card" target="_blank" rel="noopener">
-            <span class="card-icon">🔥</span>
+            <img class="card-icon-img"
+                src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@main/png/openfoam.png"
+                onerror="this.outerHTML='<span class=card-icon>🔥</span>'" alt="Injection Molding">
             <h2 class="card-title">Injection Molding Hub</h2>
             <p class="card-desc">Advanced OpenFOAM VOF + ElmerFEM Coupled Simulator. Features multi-gate Hot/Cold
                 runners and R-DOE optimization.</p>
@@ -338,7 +357,9 @@
 
         <!-- Stirling PDF -->
         <a href="http://localhost:8085" class="card" target="_blank" rel="noopener">
-            <span class="card-icon">📄</span>
+            <img class="card-icon-img"
+                src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@main/png/stirling-pdf.png"
+                onerror="this.outerHTML='<span class=card-icon>📄</span>'" alt="Stirling PDF">
             <h2 class="card-title">Stirling PDF</h2>
             <p class="card-desc">Advanced Multi-tool for PDF manipulation. Merge, Split, Convert, and OCR for
                 professional book formatting.</p>
@@ -362,13 +383,70 @@
 
         <!-- Stable Diffusion -->
         <a href="http://localhost:7861" class="card" target="_blank" rel="noopener">
-            <span class="card-icon">🎨</span>
+            <img class="card-icon-img"
+                src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@main/png/stable-diffusion.png"
+                onerror="this.outerHTML='<span class=card-icon>🎨</span>'" alt="Stable Diffusion">
             <h2 class="card-title">AI Art Studio</h2>
             <p class="card-desc">Stable Diffusion WebUI. AI image generation, photo restoration, and colorization of
                 historic imagery.</p>
             <div class="card-meta">
                 <span class="port-badge">Port 7861</span>
                 <span class="status-indicator"><span class="status-dot"></span>External</span>
+            </div>
+        </a>
+
+        <!-- Open WebUI -->
+        <a href="http://localhost:3002" class="card" target="_blank" rel="noopener">
+            <img class="card-icon-img"
+                src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@main/png/open-webui.png"
+                onerror="this.outerHTML='<span class=card-icon>💬</span>'" alt="Open WebUI">
+            <h2 class="card-title">Open WebUI (RAG)</h2>
+            <p class="card-desc">Premium chat interface with built-in RAG support and web search via SearXNG. Optimized
+                for collaborative engineering.</p>
+            <div class="card-meta">
+                <span class="port-badge">Port 3002</span>
+                <span class="status-indicator"><span class="status-dot"></span>Online</span>
+            </div>
+        </a>
+
+        <!-- SearXNG -->
+        <a href="http://localhost:8086" class="card" target="_blank" rel="noopener">
+            <img class="card-icon-img"
+                src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@main/png/searxng.png"
+                onerror="this.outerHTML='<span class=card-icon>🔍</span>'" alt="SearXNG">
+            <h2 class="card-title">SearXNG Search</h2>
+            <p class="card-desc">Privacy-respecting metasearch engine proxy. Powers the internet retrieval for your AI
+                agents.</p>
+            <div class="card-meta">
+                <span class="port-badge">Port 8086</span>
+                <span class="status-indicator"><span class="status-dot"></span>Online</span>
+            </div>
+        </a>
+
+        <!-- LiteLLM Gateway -->
+        <a href="http://localhost:4000" class="card" target="_blank" rel="noopener">
+            <img class="card-icon-img"
+                src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@main/png/litellm.png"
+                onerror="this.outerHTML='<span class=card-icon>🌉</span>'" alt="LiteLLM">
+            <h2 class="card-title">LiteLLM Gateway</h2>
+            <p class="card-desc">Unified LLM API management and caching layer. Bridges Ollama, Gemini, and other
+                providers.</p>
+            <div class="card-meta">
+                <span class="port-badge">Port 4000</span>
+                <span class="status-indicator"><span class="status-dot"></span>Active</span>
+            </div>
+        </a>
+
+        <!-- Figma Design Assets -->
+        <a href="D:/Clawdbot_Docker_20260125/docs/figma/" class="card" target="_blank" rel="noopener">
+            <img class="card-icon-img" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@main/png/figma.png"
+                onerror="this.outerHTML='<span class=card-icon>🎨</span>'" alt="Figma Docs">
+            <h2 class="card-title">Figma Design Specs</h2>
+            <p class="card-desc">Repository of design metadata, variables, and rules extracted via Figma MCP for
+                grounding implementations.</p>
+            <div class="card-meta">
+                <span class="port-badge">Local Docs</span>
+                <span class="status-indicator"><span class="status-dot"></span>Updated</span>
             </div>
         </a>
 
@@ -408,7 +486,9 @@
 
         <!-- Paperless NGX -->
         <a href="http://localhost:8000" class="card" target="_blank">
-            <span class="card-icon">📄</span>
+            <img class="card-icon-img"
+                src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@main/png/paperless-ngx.png"
+                onerror="this.outerHTML='<span class=card-icon>📄</span>'" alt="Paperless NGX">
             <h2 class="card-title">Paperless NGX</h2>
             <p class="card-desc">Document Management System. Raw PDF/Scanning inbox and OCR engine for storing
                 unstructured files.</p>
@@ -433,7 +513,9 @@
 
         <!-- Open Notebook UI -->
         <a href="http://localhost:8502" class="card" target="_blank" rel="noopener">
-            <span class="card-icon">🧠</span>
+            <img class="card-icon-img"
+                src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@main/png/notebookllm.png"
+                onerror="this.outerHTML='<span class=card-icon>🧠</span>'" alt="Open Notebook">
             <h2 class="card-title">Open Notebook App</h2>
             <p class="card-desc">Fully local NotebookLM clone powered by Ollama. Analyze documents and interact with
                 your knowledge base.</p>
@@ -445,7 +527,9 @@
 
         <!-- Obsidian App Launcher -->
         <a href="obsidian://open?path=D:%5CClawdbot_Docker_20260125%5Cdata%5Cstate%5CObsidian%20Vault" class="card">
-            <span class="card-icon">🪨</span>
+            <img class="card-icon-img"
+                src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@main/png/obsidian.png"
+                onerror="this.outerHTML='<span class=card-icon>🪨</span>'" alt="Obsidian">
             <h2 class="card-title">Obsidian Vault</h2>
             <p class="card-desc">Personal Knowledge Base. Click here to launch the local Obsidian desktop application
                 directly.</p>
@@ -457,7 +541,9 @@
 
         <!-- IATF System (Ruby on Rails) -->
         <a href="http://localhost:3000" class="card" target="_blank" rel="noopener">
-            <span class="card-icon">🛤️</span>
+            <img class="card-icon-img"
+                src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@main/png/ruby-on-rails.png"
+                onerror="this.outerHTML='<span class=card-icon>🛤️</span>'" alt="IATF Rails">
             <h2 class="card-title">IATF System (Rails)</h2>
             <p class="card-desc">Ruby on Rails core system for IATF 16949 compliance and quality document control.</p>
             <div class="card-meta">
@@ -465,50 +551,72 @@
                 <span class="status-indicator"><span class="status-dot"></span>Online</span>
             </div>
         </a>
-
-        <!-- FEM / CAE Interactive Card -->
-        <div class="card" style="cursor: default; grid-row: span 2;">
-            <span class="card-icon">🏗️</span>
-            <h2 class="card-title">FEM / CAE Simulation Hub</h2>
-            <p class="card-desc">Advanced engineering solvers and physical modeling tools. Click solvers to view GUI/CLI
-                launch protocols.</p>
-
-            <div class="solver-list">
-                <a href="#"
-                    onclick="alert('【OpenFOAM (CFD)】\n\nOpenFOAMは内部のAntigravityコンテナ内で稼働する「完全Headless (GUI無し)」の流体解析ソルバーです。\n通常はClawdbotがPython経由で自動計算するか、FreeCAD / Blenderの連携アドオンを通じてビジュアル操作を行います。'); return false;"
-                    class="solver-btn">
-                    <span>💨 OpenFOAM (CFD)</span>
-                    <span class="solver-badge cli">Headless / Script</span>
-                </a>
-                <a href="#"
-                    onclick="alert('【OpenRadioss (Crash)】\n\nOpenRadiossは衝突・落下解析用の陽解法ソルバーで、GUIを持っていません(Headless)。\nモデル作成はFreeCAD等で行い、結果のアニメーションは内部のParaViewやBlenderでレンダリングします。'); return false;"
-                    class="solver-btn">
-                    <span>💥 OpenRadioss (Crash)</span>
-                    <span class="solver-badge cli">Headless / Script</span>
-                </a>
-                <a href="#"
-                    onclick="alert('【Impact (Dynamics)】\n\nJavaベースの動的有限要素法ソルバーです。\n一部専用のシンプルなJava GUIを持ちますが、複雑なモデルは他のソフトで作成してCLIからバッチ処理するのが基本です。'); return false;"
-                    class="solver-btn">
-                    <span>🔨 Impact (Dynamics)</span>
-                    <span class="solver-badge cli">Java / Headless</span>
-                </a>
-                <a href="#"
-                    onclick="alert('【CalculiX (FEA)】\n\nCalculiX自体はCUIソルバーですが、FreeCADの「FEM Workbench」に標準統合されており、FreeCAD起動後に直感的なGUI操作で実行することが可能です。'); return false;"
-                    class="solver-btn">
-                    <span>🧮 CalculiX (FEA)</span>
-                    <span class="solver-badge gui">FreeCAD GUI</span>
-                </a>
-                <a href="#"
-                    onclick="alert('【PrePoMax】\n\nPrePoMaxはCalculiXに特化した、非常に使いやすいWindows専用のネイティブGUIソフトです。\nブラウザからは起動できないため、Windowsのスタートメニューから直接アプリを立ち上げてください！'); return false;"
-                    class="solver-btn">
-                    <span>📐 PrePoMax</span>
-                    <span class="solver-badge gui">Windows Native</span>
-                </a>
+        <!-- OpenRadioss (Crash) -->
+        <a href="apps/radioss_hub/index.html" class="card" target="_blank" rel="noopener">
+            <span class="card-icon">💥</span>
+            <h2 class="card-title">OpenRadioss (Crash)</h2>
+            <p class="card-desc">Advanced Web GUI for OpenRadioss explicit dynamics. Assembly setup, meshing, and result
+                visualization.</p>
+            <div class="card-meta">
+                <span class="port-badge">Web GUI</span>
+                <span class="status-indicator"><span class="status-dot"></span>Ready</span>
             </div>
-        </div>
+        </a>
 
+        <!-- OpenFOAM (CFD) -->
+        <a href="#" class="card"
+            onclick="alert('【OpenFOAM (CFD)】\n\nOpenFOAMは内部のAntigravityコンテナ内で稼働する「完全Headless (GUI無し)」の流体解析ソルバーです。\n通常はClawdbotがPython経由で自動計算するか、FreeCAD / Blenderの連携アドオンを通じてビジュアル操作を行います。'); return false;">
+            <span class="card-icon">💨</span>
+            <h2 class="card-title">OpenFOAM (CFD)</h2>
+            <p class="card-desc">Headless fluid dynamics solver. Integrated with Python scripts and FreeCAD/Blender
+                extensions.</p>
+            <div class="card-meta">
+                <span class="port-badge">CLI / Script</span>
+                <span class="status-indicator"><span class="status-dot"></span>Active</span>
+            </div>
+        </a>
+
+        <!-- Impact (Dynamics) -->
+        <a href="#" class="card"
+            onclick="alert('【Impact (Dynamics)】\n\nJavaベースの動的有限要素法ソルバーです。\n一部専用のシンプルなJava GUIを持ちますが、複雑なモデルは他のソフトで作成してCLIからバッチ処理するのが基本です。'); return false;">
+            <span class="card-icon">🔨</span>
+            <h2 class="card-title">Impact (Dynamics)</h2>
+            <p class="card-desc">Explicit finite element solver in Java. Optimized for batch processing of dynamic
+                impact models.</p>
+            <div class="card-meta">
+                <span class="port-badge">Java / Headless</span>
+                <span class="status-indicator"><span class="status-dot"></span>Ready</span>
+            </div>
+        </a>
+
+        <!-- CalculiX (FEA) -->
+        <a href="#" class="card"
+            onclick="alert('【CalculiX (FEA)】\n\nCalculiX自体はCUIソルバーですが、FreeCADの「FEM Workbench」に標準統合されており、FreeCAD起動後に直感的なGUI操作で実行することが可能です。'); return false;">
+            <span class="card-icon">🧮</span>
+            <h2 class="card-title">CalculiX (FEA)</h2>
+            <p class="card-desc">FEA solver integrated within FreeCAD. Perform structural analysis via the FEM Workbench
+                GUI.</p>
+            <div class="card-meta">
+                <span class="port-badge">FreeCAD GUI</span>
+                <span class="status-indicator"><span class="status-dot"></span>Installed</span>
+            </div>
+        </a>
+
+        <!-- PrePoMax -->
+        <a href="#" class="card"
+            onclick="alert('【PrePoMax】\n\nPrePoMaxはCalculiXに特化した、非常に使いやすいWindows専用のネイティブGUIソフトです。\nブラウザからは起動できないため、Windowsのスタートメニューから直接アプリを立ち上げてください！'); return false;">
+            <span class="card-icon">📐</span>
+            <h2 class="card-title">PrePoMax</h2>
+            <p class="card-desc">Windows-native GUI for CalculiX. User-friendly interface for advanced FEA
+                pre/post-processing.</p>
+            <div class="card-meta">
+                <span class="port-badge">Windows Native</span>
+                <span class="status-indicator"><span class="status-dot"></span>Ready</span>
+            </div>
+        </a>
     </div>
-
 </body>
+
+</html>
 
 </html>
