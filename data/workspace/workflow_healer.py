@@ -387,14 +387,74 @@ def heal():
     return messages
 
 
+def dry_run():
+    """
+    --dry-run: 実際の修復は行わず、現在の workflow 状態と修復対象を表示する。
+    """
+    print("\n=== Workflow Healer DRY RUN ===\n")
+    state    = load_state()
+    workflows = get_active_workflows()
+    print(f"  Active workflows: {len(workflows)}")
+    print(f"  Repair state entries: {len(state)}\n")
+
+    issues = []
+    for wf in workflows:
+        wf_id   = wf["id"]
+        wf_name = wf["name"]
+        if wf_id in EXCLUDE_WF_IDS:
+            print(f"  [SKIP]  {wf_name} (excluded)")
+            continue
+        execs = get_recent_executions(wf_id, limit=3)
+        if not execs:
+            print(f"  [OK]    {wf_name} (no executions)")
+            continue
+        latest = execs[0].get("status", "")
+        if latest in ("error", "crashed"):
+            ws = state.get(wf_id, {})
+            attempts = ws.get("attempts", 0)
+            err_info = get_execution_error(wf_id)
+            err_msg  = err_info.get("error_message", "?")[:80]
+            print(f"  [FAIL]  {wf_name}  attempts={attempts}  latest={latest}")
+            print(f"          error: {err_msg}")
+            if attempts >= MAX_TOTAL_ATTEMPTS:
+                print(f"          → DRY: escalate (手動対応要)")
+            elif attempts < MAX_SIMPLE_ATTEMPTS:
+                print(f"          → DRY: restart workflow")
+            else:
+                print(f"          → DRY: LLM repair (qwen2.5-coder:7b)")
+            issues.append(wf_name)
+        else:
+            print(f"  [OK]    {wf_name}  latest={latest}")
+
+    print()
+    if issues:
+        print(f"  修復対象: {len(issues)} 件 — {', '.join(issues)}")
+    else:
+        print("  全 workflow 正常 — 修復対象なし")
+    print()
+
+
 if __name__ == "__main__":
-    try:
-        msgs = heal()
-        if msgs:
-            print("HEALER_MSGS:" + " | ".join(
-                m.replace("<b>", "").replace("</b>", "").replace("<code>", "").replace("</code>", "")
-                for m in msgs))
-    except Exception as e:
-        log(f"FATAL: {e}")
-        send_telegram(f"🔥 workflow_healer.py クラッシュ: {e}")
+    import argparse
+    parser = argparse.ArgumentParser(description="n8n Workflow Self-Healer")
+    parser.add_argument("--dry-run", "-n", action="store_true",
+                        help="実際の修復は行わず、状態確認のみ")
+    args = parser.parse_args()
+
+    if args.dry_run:
+        try:
+            dry_run()
+        except Exception as e:
+            print(f"[ERROR] {e}")
+            sys.exit(1)
+    else:
+        try:
+            msgs = heal()
+            if msgs:
+                print("HEALER_MSGS:" + " | ".join(
+                    m.replace("<b>", "").replace("</b>", "").replace("<code>", "").replace("</code>", "")
+                    for m in msgs))
+        except Exception as e:
+            log(f"FATAL: {e}")
+            send_telegram(f"🔥 workflow_healer.py クラッシュ: {e}")
         sys.exit(1)

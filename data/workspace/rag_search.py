@@ -1,16 +1,23 @@
 #!/usr/bin/env python3
 """
 rag_search.py - Knowledge Base RAG Search for OpenClaw Agent
-Usage: python3 /home/node/clawd/rag_search.py "your question here" [--collection universal_knowledge|iatf_knowledge] [--top 5]
+Usage: python3 /home/node/clawd/rag_search.py "your question here" [--collection universal_knowledge|iatf_knowledge] [--top 5] [--translate]
 """
 import sys
 import argparse
 import requests
 
 # === Endpoint config (Docker internal network) ===
-INFINITY_URL   = "http://infinity:7997/embeddings"
-OLLAMA_EMBED_URL = "http://ollama:11434/api/embeddings"
-QDRANT_URL     = "http://qdrant:6333"
+INFINITY_URL      = "http://infinity:7997/embeddings"
+OLLAMA_EMBED_URL  = "http://ollama:11434/api/embeddings"
+OLLAMA_CHAT_URL   = "http://ollama:11434/api/chat"
+QDRANT_URL        = "http://qdrant:6333"
+TRANSLATE_MODEL   = "qwen2.5-coder:7b"
+TRANSLATE_SYSTEM  = (
+    "You are a technical translation assistant. Translate the Japanese query to English "
+    "for searching English-language engineering documents. Output ONLY the English "
+    "translation, no explanation. Keep technical terms (FMEA, CETOL, FEM, IATF) unchanged."
+)
 
 COLLECTIONS = {
     "universal_knowledge": {
@@ -40,6 +47,20 @@ def embed_ollama(text: str, model: str) -> list:
     return resp.json()["embedding"]
 
 
+def translate_to_english(query: str) -> str:
+    resp = requests.post(OLLAMA_CHAT_URL, json={
+        "model": TRANSLATE_MODEL,
+        "messages": [
+            {"role": "system", "content": TRANSLATE_SYSTEM},
+            {"role": "user",   "content": query},
+        ],
+        "stream": False,
+        "options": {"temperature": 0.1},
+    }, timeout=30)
+    resp.raise_for_status()
+    return resp.json()["message"]["content"].strip()
+
+
 def search_qdrant(collection: str, vector: list, top_k: int) -> list:
     url = f"{QDRANT_URL}/collections/{collection}/points/search"
     resp = requests.post(url, json={
@@ -58,26 +79,40 @@ def main():
                         choices=list(COLLECTIONS.keys()),
                         help="Qdrant collection to search")
     parser.add_argument("--top", "-n", type=int, default=5, help="Number of results")
+    parser.add_argument("--translate", "-T", action="store_true",
+                        help="日本語クエリを英語翻訳してから検索 (CETOL/FEM系に有効)")
     args = parser.parse_args()
 
     col_cfg = COLLECTIONS[args.collection]
+    query = args.query
+
+    # 日→英翻訳オプション
+    if args.translate:
+        try:
+            en_query = translate_to_english(query)
+            print(f"[RAG] 翻訳: {query}")
+            print(f"[RAG]   →  {en_query}")
+            query = en_query
+        except Exception as e:
+            print(f"[WARN] 翻訳失敗 ({e})、元のクエリで検索します", file=sys.stderr)
+
     print(f"[RAG] コレクション: {args.collection} ({col_cfg['desc']})")
-    print(f"[RAG] クエリ: {args.query}")
+    print(f"[RAG] クエリ: {query}")
     print()
 
     # 1. Embed query
     try:
         if col_cfg["embed_fn"] == "infinity":
-            vector = embed_infinity(args.query, col_cfg["model"])
+            vector = embed_infinity(query, col_cfg["model"])
         else:
-            vector = embed_ollama(args.query, col_cfg["model"])
+            vector = embed_ollama(query, col_cfg["model"])
     except Exception as e:
         print(f"[ERROR] 埋め込み失敗: {e}", file=sys.stderr)
         sys.exit(1)
 
     # 2. Search Qdrant
     try:
-        results = search_qdrant(args.collection, vector, args.top)
+        results = search_qdrant(args.collection, vector, args.top)  # type: ignore[arg-type]
     except Exception as e:
         print(f"[ERROR] Qdrant検索失敗: {e}", file=sys.stderr)
         sys.exit(1)
