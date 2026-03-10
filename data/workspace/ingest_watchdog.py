@@ -138,35 +138,53 @@ def download_pdf(doc_id):
         log(f"  Paperless download error (id={doc_id}): {e}", "WARN")
         return None
 
-# ── Docling PDF → Markdown (P4) ────────────────────────────────────────────────
+# ── Docling PDF → Markdown (v1 API) ───────────────────────────────────────────
 def extract_text_docling(doc_id: int) -> str | None:
     """
-    Paperless PDF を Docling で Markdown に変換して構造化テキストを取得。
-    失敗時は None を返し、既存の PyMuPDF パスへフォールバックする。
+    Paperless PDF を Docling v1 で Markdown に変換して構造化テキストを取得。
+    失敗時は None を返し、PyMuPDF パスへフォールバックする。
     優先度: Docling (最高品質) > PyMuPDF > VLM (最終手段)
+
+    Docling v1 API:
+      POST /v1/convert/source
+      body: {"sources": [{"kind": "http", "url": "...", "headers": {...}}],
+             "options": {"to_formats": ["md"]}}
+      response: {"output": [{"markdown": "..."}], ...}
     """
     pdf_url = f"{PAPERLESS_URL}/api/documents/{doc_id}/download/"
     try:
         resp = requests.post(
-            f"{DOCLING_URL}/v1alpha/convert/source",
+            f"{DOCLING_URL}/v1/convert/source",
             json={
-                "http_sources": [{"url": pdf_url, "headers": {"Authorization": f"Token {PAPERLESS_TOKEN}"}}],
-                "options": {"to_formats": ["md"]},
+                "sources": [{
+                    "kind": "http",
+                    "url": pdf_url,
+                    "headers": {"Authorization": f"Token {PAPERLESS_TOKEN}"},
+                }],
+                "options": {
+                    "to_formats": ["md"],
+                    "do_ocr": True,
+                    "force_ocr": False,
+                    "include_images": False,  # テキスト抽出のみ (速度優先)
+                },
             },
-            timeout=120,
+            timeout=300,  # 大きなPDFは時間がかかる
         )
         resp.raise_for_status()
         result = resp.json()
-        # Docling v1alpha レスポンス構造
+        # Docling v1 レスポンス: output[].markdown
+        for item in result.get("output", []):
+            md = item.get("markdown", "").strip()
+            if md:
+                return md
+        # フォールバック: document.export_results (旧形式)
         doc_result = result.get("document", {})
         for item in doc_result.get("export_results", []):
             if item.get("format") == "md":
                 content = item.get("content", "").strip()
                 if content:
                     return content
-        # 旧レスポンス形式フォールバック
-        content = result.get("markdown", "") or result.get("content", "")
-        return content.strip() if content else None
+        return None
     except Exception as e:
         log(f"  Docling failed (id={doc_id}): {e}", "WARN")
         return None
