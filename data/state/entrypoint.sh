@@ -1,0 +1,57 @@
+#!/bin/bash
+# Clean environment setup (root)
+
+# Ensure devices directory exists (do NOT wipe paired.json to preserve pairings across restarts)
+mkdir -p /home/node/.openclaw/devices
+[ -f /home/node/.openclaw/devices/paired.json ] || echo "{}" > /home/node/.openclaw/devices/paired.json
+# Always reset pending (incomplete pairings are stale after restart)
+echo "{}" > /home/node/.openclaw/devices/pending.json
+
+# Auto-update openclaw to latest version (ensures compatibility with current config)
+echo "[entrypoint] Updating openclaw to latest version..."
+npm install -g openclaw 2>&1 | tail -3
+echo "[entrypoint] openclaw version: $(openclaw --version 2>/dev/null || echo 'unknown')"
+
+# Install Chromium shared library dependencies if not already present
+# Required for Playwright Chromium (headless browser for agent)
+if ! ldconfig -p 2>/dev/null | grep -q libatk-bridge; then
+    echo "[entrypoint] Installing Chromium runtime dependencies..."
+    apt-get update -qq 2>/dev/null && \
+    apt-get install -y -qq --no-install-recommends \
+        libatk-bridge2.0-0 libgtk-3-0 libgbm1 libxss1 libasound2 libx11-xcb1 \
+        2>/dev/null && \
+    echo "[entrypoint] Chromium dependencies installed." || \
+    echo "[entrypoint] Warning: Could not install Chromium dependencies."
+else
+    echo "[entrypoint] Chromium dependencies already present."
+fi
+
+# Auto-approve pending device pairing requests from trusted IPs (Control UI reconnect)
+chmod +x /home/node/.openclaw/auto_approve.sh
+/home/node/.openclaw/auto_approve.sh &
+
+# Start ingest watchdog (Paperless API → Qdrant universal_knowledge)
+# n8n supervisor will restart it every 5 min if it dies; this starts it on container boot
+if python3 -c "import fitz, requests" 2>/dev/null; then
+    nohup python3 /home/node/clawd/ingest_watchdog.py >> /home/node/clawd/ingest_watchdog.log 2>&1 &
+    echo "[entrypoint] Ingest watchdog started (PID $!)"
+else
+    echo "[entrypoint] Warning: PyMuPDF or requests not available — ingest watchdog not started"
+fi
+
+# Start Clawstack MCP server (Qdrant RAG search + SearXNG web search tools)
+# Listens on 127.0.0.1:9876/mcp — registered in .claude.json as "clawstack-tools"
+if ! python3 -c "import mcp" 2>/dev/null; then
+    echo "[entrypoint] Installing mcp and langfuse Python packages..."
+    pip3 install --quiet --break-system-packages "mcp[cli]>=1.6.0" langfuse 2>&1 | tail -3
+fi
+if python3 -c "import mcp, requests" 2>/dev/null; then
+    nohup python3 /home/node/clawd/clawstack_mcp_server.py >> /home/node/clawd/clawstack_mcp.log 2>&1 &
+    echo "[entrypoint] Clawstack MCP server started (PID $!)"
+else
+    echo "[entrypoint] Warning: mcp or requests not available — clawstack MCP server not started"
+fi
+
+# Start the gateway with local proxy for Ollama (strips tools to fix 400 error)
+node /home/node/.openclaw/ollama_proxy.js &
+exec "$@"

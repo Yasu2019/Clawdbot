@@ -1,0 +1,156 @@
+<h1>詳細</h1>
+
+
+  <table class="border-separate border-spacing-x-1 border border-slate-400">
+    <thead>
+      <tr>
+      
+        <th class="border border-slate-300">図番</th>
+        <th class="border border-slate-300">材料コード</th>
+        <th class="border border-slate-300">文書名</th>
+        <th class="border border-slate-300">詳細</th>
+        <th class="border border-slate-300">カテゴリー</th>
+        <th class="border border-slate-300">APQPフェーズ</th>
+        <th class="border border-slate-300">項目</th>
+        <th class="border border-slate-300">登録日</th>
+        <th class="border border-slate-300">完成予定日</th>
+        <th class="border border-slate-300">完成日</th>    
+        <th class="border border-slate-300">達成度(%)</th>
+        <th class="border border-slate-300">ステイタス</th>       
+        <th>アイコン</th>
+      </tr>
+    </thead>
+
+    <tbody>
+       
+    
+      <tr>
+        <% if @product.partnumber=="" || @product.partnumber==nil %>
+            <td class="border border-slate-300"><%= "----" %></td>
+        <% else %>
+            <td class="border border-slate-300"><%= @product.partnumber %></td>
+        <% end %>
+
+        <% if @product.materialcode=="" || @product.materialcode==nil  %>
+            <td class="border border-slate-300"><%= "----" %></td>
+        <% else %>
+            <td class="border border-slate-300"><%= @product.materialcode %></td>
+        <% end %>
+ 
+        <% if @product.documentname=="" || @product.documentname==nil  %>
+            <td class="border border-slate-300"><%= "----" %></td>
+        <% else %>
+            <td class="border border-slate-300"><%= @product.documentname %></td>
+        <% end %>
+
+        <% if @product.description=="" || @product.description==nil  %>
+            <td class="border border-slate-300"><%= "----" %></td>
+        <% else %>
+            <td class="border border-slate-300"><%= @product.description %></td>
+        <% end %>
+        
+        <td class="border border-slate-300"><%= @dropdownlist[@product.category.to_i] %></td>
+        <td class="border border-slate-300"><%= @dropdownlist[@product.phase.to_i] %></td>
+        <td class="border border-slate-300"><%= @dropdownlist[@product.stage.to_i] %></td>
+
+        <!--【初心者向け・動画付き】Railsで日時をフォーマットするときはstrftimeよりも、lメソッドを使おう
+        https://qiita.com/jnchito/items/831654253fb8a958ec25
+        -->
+
+        <% if @product.start_time==nil %>
+              <td class="border border-slate-300"><%= "------"  %></td>
+        <% else %>
+              <td class="border border-slate-300"><%= @product.start_time.strftime('%y/%m/%d')  %></td>
+        <% end %>
+
+        <% if @product.deadline_at==nil %>
+              <td class="border border-slate-300"><%= "------"  %></td>
+        <% else %>
+              <td class="border border-slate-300"><%= @product.deadline_at.strftime('%y/%m/%d')  %></td>
+        <% end %>
+
+        <% if @product.end_at==nil %>
+              <td class="border border-slate-300"><%= "------"  %></td>
+        <% else %>
+              <td class="border border-slate-300"><%= @product.end_at.strftime('%y/%m/%d')  %></td>
+        <% end %>
+        
+
+        <td class="border border-slate-300"><%= @product.goal_attainment_level %></td>
+        <td class="border border-slate-300"><%= @product.status %></td>
+
+          <%= render partial: "attached_file", locals: { pro: @product }  %>      
+        </tr> 
+    </tbody>
+  </table>
+
+  <br>  
+  <br>
+
+    <p>
+    <strong>画像:</strong>
+     <% if @product.documents.attached? %>
+         <% @product.documents.each do |image| %>
+           <% fullfilename = rails_blob_path(image) %>
+           <% @ext = File.extname(fullfilename).downcase %>
+           
+           <% if @ext== ".jpg" ||  @ext== ".jpeg" ||  @ext== ".png" ||  @ext== ".gif" %> 
+                 <br>
+                 <%= image.blob.filename %> <br>
+                 <%= image_tag image,:size=>"100x100"  %>
+           <!--
+           <% elsif @ext== ".pdf" %>
+           -->
+           <% end %>
+         <% end %>  
+     <% end %>
+
+     <% @product.documents.each do |image| %>
+       
+         <% if image.representable? %>
+             <%= image_tag image.representation(resize_to_limit: [200, 200]) %>
+         <% end %>
+              
+     
+              
+     <% end %>
+      
+       
+ 
+           <!--
+           HTMLでPDFを表示する方法5選！PDFの埋め込みをするには？
+           https://aprico-media.com/posts/4051          
+           <iframe src="https://s3-ap-northeast-1.amazonaws.com/cdn.aprico-media.com/resources/sample.pdf" width="20%" height="20%"></iframe>
+           -->
+           <!--
+           https://stackoverflow.com/questions/56994871/pdf-not-previewable-with-rails-active-storage
+           https://stackoverflow.com/questions/56994871/pdf-not-previewable-with-rails-active-storage
+           https://schneems.com/2018/05/11/rails-52-active-storage-previews-poppler-and-solving-licensing-pitfalls/
+           -->
+          
+      
+    
+
+    <br><br>
+    <% if @product.documents.attached? %>
+         <% @product.documents.each do |image| %> 
+           <% fullfilename = rails_blob_path(image) %>
+           <% ext= File.extname(fullfilename).downcase %>
+         <% end %>
+    <% end %>
+      <strong>ダウンロード:</strong>
+      <br>
+
+    <% if @product.documents.attached? %>
+         <% @product.documents.each do |image| %> 
+           <%= link_to image.blob.filename  ,rails_blob_path(image)%> <br>
+         <% end %>
+
+    <% end %>
+    </p>
+
+      
+    
+
+  <%= link_to '戻る', products_path ,class:"btn btn-secondary"%>
+

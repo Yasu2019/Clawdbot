@@ -1,0 +1,20 @@
+{
+  "layers": {
+    "View": {
+      "entities": 8,
+      "thickness": 10,
+      "status": "done"
+    },
+    "ProjItem001": {
+      "entities": 8,
+      "thickness": 10,
+      "status": "done"
+    },
+    "ProjItem": {
+      "entities": 8,
+      "thickness": 10,
+      "status": "done"
+    }
+  },
+  "timestamp": "2026-02-28T05:59:45.075415"
+}

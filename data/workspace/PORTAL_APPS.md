@@ -7,12 +7,95 @@
 
 AIモデルは以下の優先順位でフォールバックします：
 
-1. **google/gemini-2.0-flash**（通常使用・最高品質）
-2. **google/gemini-2.0-flash-lite**（Gemini APIレート制限時・自動切り替え）
-3. **ollama/deepseek-r1:14b**（Gemini全体が制限中・ローカルLLM）
+1. **google/gemini-2.5-flash**（通常使用・最速・最高品質 / LiteLLM登録済み）
+2. **groq/llama-3.3-70b-versatile**（爆速・ツール呼び出し・Groq API）
+3. **groq/llama-3.1-8b-instant**（超高速・軽量タスク）
+4. **ollama/deepseek-r1:14b**（オフライン時・ローカル推論専用・ツール非対応）
+
+> **NEW**: 爆速プロバイダー **Groq** および **Cerebras** (プレースホルダー) を統合。
+> 速度が必要なタスク（メール要約・単純なコード生成等）には `groq/llama-3.3` を推奨します。
+
+> **注**: deepseek-r1:14b はOllamaのツール呼び出しテンプレートを持たないため、エージェントモードでは使用不可。
+> deepseek-r1はスタンドアロン推論タスク（直接API呼び出し）専用。
 
 **モデルが切り替わったことに気づいた場合（応答速度の変化、精度の変化など）は、返答の冒頭で必ず理由を一言添えてください。**
-例：「（注：Gemini APIのレート制限に達したため、現在ローカルモデル deepseek-r1 で動作中です）」
+例：「（注：Gemini APIのレート制限に達したため、現在ローカルモデル qwen2.5-coder:32b で動作中です）」
+
+---
+
+## ★ 知識検索（RAG）と Web 検索 — 最重要ツール
+
+**PD資料・技術ノウハウに関する質問は、回答前に必ずRAG検索を実行すること。**
+
+### MCPツール（推奨・最速）
+
+MCPツール `clawstack-tools` が利用可能な場合は、直接呼び出すこと（exec 不要）:
+
+```
+# Qdrant ナレッジ検索（MCP）
+mcp__clawstack-tools__rag_search(query="CETOL 6sigma tolerance stackup", collection="universal_knowledge", top_k=5)
+mcp__clawstack-tools__rag_search(query="内部監査 要求事項", collection="iatf_knowledge", top_k=5)
+
+# Web 検索（MCP）
+mcp__clawstack-tools__web_search(query="IATF 16949 2024 revision update", num_results=5)
+```
+
+**MCPが使えない場合のフォールバック（exec）:**
+
+> ⚠️ **重要**: `memory_search` ツールは OpenClaw の「会話メモリ」機能であり、RAG（Qdrant知識DB）とは別物です。
+> `memory_search` がエラーを返したり「APIキー無効」と表示されても、RAG検索（exec による `rag_search.py`）は独立して動作します。
+> **内部資料へのアクセスには必ず MCP または `exec` で `rag_search.py` を使うこと。`memory_search` を使ってはいけない。**
+
+Qdrant (`universal_knowledge` コレクション) に以下の知識が蓄積されています：
+
+- FMEA/FTA 設計・工程
+- 公差解析（Fischer, CETOL 6σ, Stackup）
+- FEM/CAE 知識
+- 5Why 分析
+- IATF 16949 / TS 16949
+- 各種技術書・マニュアル（日本語）
+
+### 使い方
+
+```bash
+# 汎用ナレッジ検索（universal_knowledge: PD・FMEA・公差・FEM等）
+python3 /home/node/clawd/rag_search.py "質問をここに"
+
+# 件数指定（デフォルト5件）
+python3 /home/node/clawd/rag_search.py "公差解析の手順" --top 8
+
+# IATF専用コレクションを検索
+python3 /home/node/clawd/rag_search.py "内部監査の要求事項" --collection iatf_knowledge
+```
+
+### ⚠️ 重要：クエリ言語の使い分け
+
+ナレッジベースには英語で取り込まれた文書が多い（CETOL6σ・FEM書籍など）。
+**日本語クエリだけでなく、必ず英語または混合クエリでも検索すること。**
+
+| トピック | 正しいクエリ例 | 避けるべき（日本語のみ） |
+|---|---|---|
+| 公差解析 | `"CETOL 6sigma tolerance stackup"` または `"公差解析 CETOL tolerance"` | ~~`"公差解析のポイント"`~~ |
+| FMEA | `"FMEA failure mode severity occurrence detection RPN"` | ~~`"FMEAの手順"`~~ |
+| FEM/CAE | `"finite element analysis stress strain mesh"` | ~~`"有限要素解析"`~~ |
+| 5Why | `"なぜなぜ分析 是正処置"` または `"5Why root cause analysis"` | （日本語OK） |
+
+**複数クエリ検索の例（公差解析の場合）：**
+
+```bash
+python3 /home/node/clawd/rag_search.py "CETOL 6sigma tolerance stackup worst case RSS" --top 5
+python3 /home/node/clawd/rag_search.py "公差解析 CETOL Fischer stackup" --top 5
+```
+
+両方の結果を統合して回答を組み立てること。
+
+### いつ使うか
+
+技術的な質問（FMEA手順・公差計算・FEM・品質手法・設計規則など）を受けたら、
+**先にRAG検索を走らせてから回答を組み立てる**こと。
+モデルの知識だけで回答しないこと。
+
+> **スコア目安**: 0.70以上 = 信頼できる関連文書。0.65未満 = クエリを変えて再検索すること。
 
 ---
 
@@ -213,7 +296,7 @@ openclaw browser type <ref> "入力テキスト"
 
 ---
 
-### 14. SearXNG (Web Search Proxy) — Port 8086
+### 14. SearXNG (Web Search Proxy) — Port 8081
 
 - **用途**: Web検索APIプロキシ。
 - **内部URL**: `$SEARXNG_URL` (<http://searxng:8080>)
@@ -221,7 +304,37 @@ openclaw browser type <ref> "入力テキスト"
 
 ---
 
-### 15. LiteLLM (LLM Gateway) — Port 4000
+### 15. Langfuse (LLM Observability) — Port 3001
+
+- **用途**: LLMトレーシング・可観測性・プロンプト管理。Clawdbot全LLM呼び出しのトレース収集。
+- **URL**: `http://localhost:3001`
+- **SDK keys**: public=`pk-lf-clawstack-2026`, secret=`sk-lf-clawstack-2026`
+- **操作**: ブラウザでサインアップ後ログイン。LiteLLMのCallbacks設定でトレース送信可能。
+- **可観測性Hub**: `http://localhost:8088/apps/observability_hub/` — RAGスコア・レイテンシ・コストをリアルタイム表示
+- **トレーシング統合**:
+  - LiteLLM: `success_callback: ["langfuse"]` 設定済み → 全LLM呼び出しを自動記録
+  - MCP tools (RAG/Web検索): `clawstack_tracing.py` 経由で span 記録
+  - RAG品質スコア: `rag_relevance` スコア名でコサイン類似度を記録
+- **ライブラリ**: `/home/node/clawd/clawstack_tracing.py` — `ClawTrace` クラスで trace/span/score 操作
+
+---
+
+### 16. Docling (Document Parser) — Port 8087
+
+- **用途**: PDF/DOCX/PPTXをMarkdownまたはJSONに変換。テキスト抽出後にRAG投入する前処理に使用。
+- **内部URL**: `http://docling:5001`
+- **外部URL**: `http://localhost:8087`
+- **API**: `POST /v1alpha/convert/source` — URLまたはファイルアップロードで変換
+- **使い方例**:
+  ```bash
+  curl -X POST http://localhost:8087/v1alpha/convert/source \
+    -H "Content-Type: application/json" \
+    -d '{"http_sources": [{"url": "https://..."}], "options": {"to_formats": ["md"]}}'
+  ```
+
+---
+
+### 16b. LiteLLM (LLM Gateway) — Port 4000
 
 - **用途**: 複数LLMプロバイダの統合管理、キャッシュ、APIキー管理。
 - **内部URL**: `$LITELLM_URL` (<http://litellm:4000>)
@@ -229,13 +342,21 @@ openclaw browser type <ref> "入力テキスト"
 
 ---
 
-### 16. Figma Design Specs & Protocol (Design-to-Code)
-
-- **用途**: Figma MCP経由で抽出したデザイン定義（JSON）および実装ルールの管理。
-- **保存パス**: `/home/node/clawd/docs/figma/`
 - **操作**:
   - `figma_mcp_protocol_v1_0.md` に基づき、Codexで仕様抽出・保存。
   - 保存された `variables.json` や `design_rules.md` を読み取り、OpenClawで実装。
+
+---
+
+### 17. DXF → STEP (Layer Split) — Port 8002
+
+- **用途**: 複雑な組立DXF（金型・板金）を、重複除去・スナップ結線等の前処理を行った上で、レイヤー別の3D STEPソリッドに変換。
+- **URL**: `http://localhost:8002/api/dxf2step/health`
+- **操作**:
+  - `POST /api/dxf2step/jobs` でDXFを投入。
+  - `GET /api/dxf2step/jobs/{id}` で進捗確認。
+  - `GET /api/dxf2step/jobs/{id}/outputs` で成果物（STEP/PDF）を取得。
+- **備考**: FreeCADCmdをバックエンドエンジンとして使用。
 
 ---
 
@@ -248,6 +369,7 @@ openclaw browser type <ref> "入力テキスト"
 - Kindle Author: `http://host.docker.internal:8088/apps/kindle_author/index.html`
 - Kinematics Hub: `http://host.docker.internal:8088/apps/kinematics_hub/index.html`
 - OpenRadioss Hub: `http://host.docker.internal:8088/apps/radioss_hub/index.html`
+- **Observability Hub**: `http://localhost:8088/apps/observability_hub/` — RAGスコア・サービス死活・LLMコスト一覧
 
 ---
 

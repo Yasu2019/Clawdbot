@@ -1,0 +1,23 @@
+{
+  "spec": {
+    "game_id": "demo-001",
+    "title": "Dungeon v2",
+    "genre": "dungeon",
+    "targets": { "android": true, "web_singlehtml": true },
+    "session": { "length_sec": 180, "difficulty": 2 },
+    "perspective": { "allow_toggle": true, "default": "fps", "modes": ["fps", "topdown"] },
+    "controls": {
+      "android": { "move": "virtual_joystick", "look": "swipe", "shoot": "tap", "toggle_view": "button" },
+      "desktop": { "move": "WASD", "look": "mouse", "shoot": "LMB", "toggle_view": "V" }
+    },
+    "build": {
+      "android": {
+        "package_name": "com.example.dungeonv2",
+        "version_name": "0.1.0",
+        "version_code": 1,
+        "export_format": ["apk_debug"]
+      },
+      "web": { "single_file": true }
+    }
+  }
+}

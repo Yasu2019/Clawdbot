@@ -1,0 +1,60 @@
+<head>
+<p id="notice"><%= notice %></p>
+
+
+<%= javascript_include_tag "https://www.gstatic.com/charts/loader.js" %>
+
+<h1>IATF APQP / PPAP カレンダー</h1>
+
+
+<div class="btn btn-primary"> <%= link_to "戻る", products_path %></div>
+
+
+      <tbody>
+          <br>
+            <div class="col-md-12">
+              <strong><%= month_calendar events: @products,attribute: :start_time, end_attribute: :deadline_at do |date, blogs| %></strong>
+                <%= date.day %>
+                <% blogs.each do |blog| %>
+                <div>
+                  <% if blog.deadline_at.strftime("%Y-%m-%d")==date.strftime("%Y-%m-%d") || blog.start_time.strftime("%Y-%m-%d")==date.strftime("%Y-%m-%d")%>
+
+                    <% if blog.start_time.strftime("%Y-%m-%d")==date.strftime("%Y-%m-%d") %>
+                      <b><font color="blue"><%= "<<登録日>>"%></font></b><br>
+                    <% end %>
+                   
+                    <% if blog.deadline_at.strftime("%Y-%m-%d")==date.strftime("%Y-%m-%d") %>
+                      <% if blog.deadline_at < Time.now && blog.status!="完了" %>
+                        <b><font color="red" size="3"> <%= "<<完了予定日超過>>" %></font></b><br>
+                      <% else %>
+                        <b><font color="brown"><%= "<<完了予定日>>"%></font></b><br>
+                      <% end %>
+                    <% end %>
+                    <% if blog.documenttype=="製品" %>
+                      <%= link_to blog.partnumber %><br>
+                      <%= @dropdownlist[blog.phase.to_i]%>
+                      <%= "("%>
+                      <%= @dropdownlist[blog.stage.to_i]  %>
+                      <%= ")--->"%>
+                    <% else %>
+                      <%= link_to blog.documentname, blog %><br>
+                      <%= @dropdownlist[blog.phase.to_i]%>
+                      <%= "--->"%>
+                      <%= @dropdownlist[blog.stage.to_i] %>
+                    <% end %>
+                    
+                    <%= blog.status%><br>
+                  <% end %>
+                </div>
+                <% end %>
+            <% end %>
+      </tbody>
+
+    
+
+ 
+
+
+
+
+

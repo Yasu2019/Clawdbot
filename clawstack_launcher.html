@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clawstack Command Center</title>
+    <style>
+        :root {
+            --bg-color: #0d1117;
+            --card-bg: rgba(22, 27, 34, 0.7);
+            --accent: #58a6ff;
+            --text-main: #c9d1d9;
+            --text-dim: #8b949e;
+            --border: rgba(48, 54, 61, 0.7);
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 20px;
+            flex-grow: 1;
+            height: 100%;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+        }
+
+        .card:hover {
+            border-color: var(--accent);
+            box-shadow: 0 0 15px rgba(88, 166, 255, 0.2);
+        }
+
+        .card-header {
+            padding: 10px 15px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            background: rgba(0, 0, 0, 0.2);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-header a {
+            color: var(--accent);
+            text-decoration: none;
+            font-family: monospace;
+            font-size: 0.8rem;
+        }
+
+        .card-header a:hover {
+            text-decoration: underline;
+        }
+
+        .iframe-container {
+            flex-grow: 1;
+            position: relative;
+            background: white;
+            display: flex;
+            /* For centering content if no iframe */
+            justify-content: center;
+            align-items: center;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+        }
+
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(13, 17, 23, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        .overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .btn {
+            background: var(--accent);
+            color: #0d1117;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            margin-top: 10px;
+            font-size: 1rem;
+            transition: opacity 0.2s;
+        }
+
+        .btn:hover {
+            opacity: 0.8;
+        }
+
+        .placeholder-content {
+            text-align: center;
+            color: #333;
+            padding: 20px;
+        }
+
+        #gateway-frame {
+            background: #000;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1>Clawstack Command Center</h1>
+        <div style="font-size: 0.8rem; color: var(--text-dim);">
+            <span id="clock">Loading...</span>
+        </div>
+    </header>
+
+    <div class="grid-container">
+
+        <!-- Zone 1: The Agent (Gateway / VNC) -->
+        <div class="card">
+            <div class="card-header">
+                <span>🤖 AGENT COCKPIT (Clawdbot)</span>
+                <a href="http://localhost:18789" target="_blank">Open New Tab ↗</a>
+            </div>
+            <div class="iframe-container">
+                <iframe src="http://localhost:18789/vnc.html?autoconnect=true&resize=scale" id="gateway-frame"></iframe>
+                <div class="overlay" id="overlay-gateway">
+                    <p>Connection Blocked or Offline</p>
+                    <a href="http://localhost:18789" target="_blank" class="btn">Launch VNC</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Zone 2: The Metrics (Quality Dashboard) -->
+        <div class="card">
+            <div class="card-header">
+                <span>📊 QUALITY DASHBOARD</span>
+                <a href="http://localhost:8090" target="_blank">Open New Tab ↗</a>
+            </div>
+            <div class="iframe-container">
+                <iframe src="http://localhost:8090"></iframe>
+            </div>
+        </div>
+
+        <!-- Zone 3: The Logic (Node-RED) -->
+        <div class="card">
+            <div class="card-header">
+                <span>⚡ AUTOMATION FLOWS (Node-RED)</span>
+                <a href="http://localhost:1880" target="_blank">Open New Tab ↗</a>
+            </div>
+            <div class="iframe-container">
+                <iframe src="http://localhost:1880"></iframe>
+            </div>
+        </div>
+
+        <!-- Zone 4: The Archive (Paperless) -->
+        <div class="card">
+            <div class="card-header">
+                <span>📚 KNOWLEDGE BASE (Paperless)</span>
+                <a href="http://localhost:8000" target="_blank">Open New Tab ↗</a>
+            </div>
+            <div class="iframe-container" style="background: var(--bg-color); flex-direction: column;">
+                <!-- Placeholder for Paperless due to X-Frame-Options -->
+                <div style="text-align: center; color: var(--text-main);">
+                    <div style="font-size: 3rem; margin-bottom: 20px;">📚</div>
+                    <p style="margin-bottom: 20px;">External Knowledge Base</p>
+                    <a href="http://localhost:8000" target="_blank" class="btn">Launch Paperless ↗</a>
+                    <p style="font-size: 0.8rem; color: var(--text-dim); margin-top: 20px;">
+                        (Direct embedding blocked by security policy)
+                    </p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('clock').textContent = now.toLocaleString();
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+    </script>
+
+</body>
+
+</html>

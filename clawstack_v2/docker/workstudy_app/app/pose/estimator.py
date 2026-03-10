@@ -1,21 +1,35 @@
 """
-Pose Estimator — MediaPipe Pose skeleton extraction
-Processes video frame-by-frame and outputs per-frame landmark data.
+Pose Estimator — MediaPipe PoseLandmarker (Tasks API, MediaPipe ≥ 0.10.14)
+
+The legacy mp.solutions.pose was removed in MediaPipe 0.10.14+.
+This module uses the new Tasks API (mp.tasks.vision.PoseLandmarker).
+
+Model: pose_landmarker_lite.task  (~7 MB, downloaded at Docker build time)
+Output: per-frame list of 33 landmark dicts {x, y, z, visibility}
+        — same schema as the old API, so all downstream code is unchanged.
 """
 import cv2
-import mediapipe as mp
 import numpy as np
+import mediapipe as mp
+from mediapipe.tasks import python as mp_python
+from mediapipe.tasks.python import vision as mp_vision
+
+# Path where Dockerfile downloads the model
+_MODEL_PATH = "/app/pose_landmarker_lite.task"
 
 
 class PoseEstimator:
     def __init__(self):
-        self.mp_pose = mp.solutions.pose
-        self.pose = self.mp_pose.Pose(
-            static_image_mode=False,
-            model_complexity=1,
-            min_detection_confidence=0.5,
+        base_options = mp_python.BaseOptions(model_asset_path=_MODEL_PATH)
+        options = mp_vision.PoseLandmarkerOptions(
+            base_options=base_options,
+            running_mode=mp_vision.RunningMode.VIDEO,
+            num_poses=1,
+            min_pose_detection_confidence=0.5,
+            min_pose_presence_confidence=0.5,
             min_tracking_confidence=0.5,
         )
+        self._landmarker = mp_vision.PoseLandmarker.create_from_options(options)
 
     def process(self, video_path: str) -> list[dict]:
         """Process video and return per-frame pose landmarks."""
@@ -29,32 +43,36 @@ class PoseEstimator:
             if not ret:
                 break
 
-            rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            result = self.pose.process(rgb)
+            rgb      = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb)
+            ts_ms    = int(frame_idx * 1000 / fps)  # monotonically increasing timestamp
 
+            result    = self._landmarker.detect_for_video(mp_image, ts_ms)
             landmarks = []
+
             if result.pose_landmarks:
-                for lm in result.pose_landmarks.landmark:
+                for lm in result.pose_landmarks[0]:
                     landmarks.append({
-                        "x": round(lm.x, 4),
-                        "y": round(lm.y, 4),
-                        "z": round(lm.z, 4),
-                        "visibility": round(lm.visibility, 3),
+                        "x":          round(lm.x, 4),
+                        "y":          round(lm.y, 4),
+                        "z":          round(lm.z, 4),
+                        "visibility": round(lm.visibility if lm.visibility is not None else 0.0, 3),
                     })
 
             frames.append({
-                "frame": frame_idx,
+                "frame":    frame_idx,
                 "time_sec": round(frame_idx / fps, 3),
-                "fps": fps,
+                "fps":      fps,
                 "landmarks": landmarks,
             })
             frame_idx += 1
 
         cap.release()
+        self._landmarker.close()
         return frames
 
     @staticmethod
-    def compute_angle(a, b, c) -> float:
+    def compute_angle(a: dict, b: dict, c: dict) -> float:
         """Compute angle at point b given 3 landmark dicts."""
         ba = np.array([a["x"] - b["x"], a["y"] - b["y"]])
         bc = np.array([c["x"] - b["x"], c["y"] - b["y"]])

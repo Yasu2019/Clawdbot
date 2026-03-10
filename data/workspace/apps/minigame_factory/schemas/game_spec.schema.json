@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/schemas/game_spec.schema.json",
+  "title": "GameSpec",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["game_id", "title", "genre", "targets", "session", "perspective", "controls", "build"],
+  "properties": {
+    "game_id": { "type": "string", "minLength": 8 },
+    "title": { "type": "string", "minLength": 1, "maxLength": 60 },
+    "genre": { "type": "string", "enum": ["dungeon", "tetris", "puzzle", "runner", "shooter", "other"] },
+    "targets": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["android", "web_singlehtml"],
+      "properties": {
+        "android": { "type": "boolean" },
+        "web_singlehtml": { "type": "boolean" }
+      }
+    },
+    "session": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["length_sec", "difficulty"],
+      "properties": {
+        "length_sec": { "type": "integer", "minimum": 30, "maximum": 600, "default": 180 },
+        "difficulty": { "type": "integer", "minimum": 1, "maximum": 5, "default": 2 }
+      }
+    },
+    "perspective": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["allow_toggle", "default", "modes"],
+      "properties": {
+        "allow_toggle": { "type": "boolean", "default": true },
+        "default": { "type": "string", "enum": ["fps", "topdown"], "default": "fps" },
+        "modes": {
+          "type": "array",
+          "items": { "type": "string", "enum": ["fps", "topdown"] },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      }
+    },
+    "controls": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["android", "desktop"],
+      "properties": {
+        "android": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["move", "look", "shoot", "toggle_view"],
+          "properties": {
+            "move": { "type": "string", "enum": ["virtual_joystick"] },
+            "look": { "type": "string", "enum": ["swipe"] },
+            "shoot": { "type": "string", "enum": ["tap", "button"] },
+            "toggle_view": { "type": "string", "enum": ["button"] }
+          }
+        },
+        "desktop": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["move", "look", "shoot", "toggle_view"],
+          "properties": {
+            "move": { "type": "string", "enum": ["WASD"] },
+            "look": { "type": "string", "enum": ["mouse"] },
+            "shoot": { "type": "string", "enum": ["LMB"] },
+            "toggle_view": { "type": "string", "enum": ["V"] }
+          }
+        }
+      }
+    },
+    "build": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["android", "web"],
+      "properties": {
+        "android": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["package_name", "version_name", "version_code", "export_format"],
+          "properties": {
+            "package_name": {
+              "type": "string",
+              "pattern": "^[a-zA-Z][a-zA-Z0-9_]*(\\.[a-zA-Z][a-zA-Z0-9_]*)+$"
+            },
+            "version_name": { "type": "string", "minLength": 1 },
+            "version_code": { "type": "integer", "minimum": 1 },
+            "export_format": {
+              "type": "array",
+              "items": { "type": "string", "enum": ["apk_debug", "aab_release"] },
+              "minItems": 1,
+              "uniqueItems": true
+            }
+          }
+        },
+        "web": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["single_file"],
+          "properties": {
+            "single_file": { "type": "boolean" }
+          }
+        }
+      }
+    }
+  }
+}

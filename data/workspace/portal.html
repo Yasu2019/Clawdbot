@@ -410,7 +410,7 @@
         </a>
 
         <!-- SearXNG -->
-        <a href="http://localhost:8086" class="card" target="_blank" rel="noopener">
+        <a href="http://localhost:8081" class="card" target="_blank" rel="noopener">
             <img class="card-icon-img"
                 src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@main/png/searxng.png"
                 onerror="this.outerHTML='<span class=card-icon>🔍</span>'" alt="SearXNG">
@@ -418,7 +418,7 @@
             <p class="card-desc">Privacy-respecting metasearch engine proxy. Powers the internet retrieval for your AI
                 agents.</p>
             <div class="card-meta">
-                <span class="port-badge">Port 8086</span>
+                <span class="port-badge">Port 8081</span>
                 <span class="status-indicator"><span class="status-dot"></span>Online</span>
             </div>
         </a>
@@ -437,6 +437,19 @@
             </div>
         </a>
 
+        <!-- Dify AI Workflow (V3) -->
+        <a href="http://localhost:80" class="card" target="_blank" rel="noopener">
+            <img class="card-icon-img" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@main/png/dify.png"
+                onerror="this.outerHTML='<span class=card-icon>🧩</span>'" alt="Dify">
+            <h2 class="card-title">Dify Workflow Engine</h2>
+            <p class="card-desc">Advanced RAG & AI workflow orchestration. Create complex agents with visual logic and
+                local model integration.</p>
+            <div class="card-meta">
+                <span class="port-badge">Port 80</span>
+                <span class="status-indicator"><span class="status-dot"></span>V3 Core</span>
+            </div>
+        </a>
+
         <!-- Figma Design Assets -->
         <a href="D:/Clawdbot_Docker_20260125/docs/figma/" class="card" target="_blank" rel="noopener">
             <img class="card-icon-img" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@main/png/figma.png"
@@ -447,6 +460,19 @@
             <div class="card-meta">
                 <span class="port-badge">Local Docs</span>
                 <span class="status-indicator"><span class="status-dot"></span>Updated</span>
+            </div>
+        </a>
+
+        <!-- DXF to 3D -->
+        <a href="http://localhost:8003/" class="card" target="_blank" rel="noopener">
+            <img class="card-icon-img"
+                src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@main/png/freecad.png"
+                onerror="this.outerHTML='<span class=card-icon>🧊</span>'" alt="DXF to 3D">
+            <h2 class="card-title">DXF → 3D Model</h2>
+            <p class="card-desc">2D DXFを3D STL/STEPに変換。100種+形状テストスイート（面数・体積・BBox・Watertight採点）内蔵。位相面数・精度を自動検証。APIゼロ・全ローカル処理。</p>
+            <div class="card-meta">
+                <span class="port-badge">Port 8003</span>
+                <span class="status-indicator"><span class="status-dot"></span>Running</span>
             </div>
         </a>
 
@@ -612,6 +638,46 @@
             <div class="card-meta">
                 <span class="port-badge">Windows Native</span>
                 <span class="status-indicator"><span class="status-dot"></span>Ready</span>
+            </div>
+        </a>
+
+        <!-- AI Harness Monitor -->
+        <a href="http://localhost:5679/workflow/hv84u6vWBn7NjPjx" class="card" target="_blank" rel="noopener">
+            <span class="card-icon">🛡️</span>
+            <h2 class="card-title">AI Harness Monitor</h2>
+            <p class="card-desc">Agent harness health monitoring. Checks OpenClaw Gateway, LiteLLM (AI Model), and
+                Qdrant (Memory) every 10 min. Telegram alert on failure. Harness Engineering — Guard &amp;
+                Observability layer.</p>
+            <div class="card-meta">
+                <span class="port-badge">n8n Workflow</span>
+                <span class="status-indicator"><span class="status-dot"></span>Active (10min)</span>
+            </div>
+        </a>
+
+        <!-- Wire Harness Viewer -->
+        <a href="harness/index.html" class="card" target="_blank" rel="noopener">
+            <span class="card-icon">📊</span>
+            <h2 class="card-title">Wire Harness Viewer</h2>
+            <p class="card-desc">View WireViz-generated harness diagrams in browser. Drag &amp; drop PNG output from
+                /work/harness/. Includes wire gauge calculator, voltage drop analysis, and FMEA failure mode
+                library (ISO 6722 / IATF).</p>
+            <div class="card-meta">
+                <span class="port-badge">Port 8088 / Static</span>
+                <span class="status-indicator"><span class="status-dot"></span>Ready</span>
+            </div>
+        </a>
+
+        <!-- Wire Harness Engineering -->
+        <a href="#" class="card"
+            onclick="alert('【Wire Harness Engineering】\n\nAntigravityコンテナ内に搭載された電気ハーネス設計・解析ツールセットです。\n\n主な機能:\n• WireViz: YAMLからハーネス図＋BOMを自動生成\n• Schemdraw: Pythonで電気回路図描画\n• PySpice: SPICEシミュレーション\n• harness_calc.py: 電線径選定・電圧降下・許容電流計算（ISO 6722準拠）\n• FMEAライブラリ: コネクタ/スプライス/被覆の標準故障モード\n\n使い方:\n① ClawdbotにAntigravityでハーネス計算を依頼\n② /work/harness/ に設計YAMLを作成\n③ wireviz sample.yml → PNG図面+BOM出力\n\nIoT開発・車載電装・産業設備の配線設計に活用できます。'); return false;">
+            <span class="card-icon">🔌</span>
+            <h2 class="card-title">Wire Harness Engineering</h2>
+            <p class="card-desc">Electrical wire harness design and analysis. WireViz diagram generation, SPICE
+                simulation, ISO 6722 wire sizing, voltage drop calc, and FMEA failure mode library. IoT &amp; automotive
+                wiring.</p>
+            <div class="card-meta">
+                <span class="port-badge">Antigravity (内部)</span>
+                <span class="status-indicator"><span class="status-dot"></span>Installed</span>
             </div>
         </a>
     </div>

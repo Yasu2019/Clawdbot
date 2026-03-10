@@ -1,0 +1,55 @@
+<% flash.each do |name, msg| %>
+  <div class="alert <%= bootstrap_class_for(name) %> p-4 mt-4">
+    <%= msg %>
+  </div>
+<% end %>
+
+
+
+
+<section class="text-gray-600 body-font overflow-hidden">
+  <div class="container px-5 py-24 mx-auto">
+    <div class="lg:w-4/5 mx-auto flex flex-wrap">
+    
+    <img 
+    alt="QR Code" 
+    class="lg:w-1/2 w-full lg:h-auto h-64 object-cover object-center rounded" 
+    src="<%= @qr_code %>"
+  >
+
+      <div class="lg:w-1/2 w-full lg:pl-10 lg:py-6 mt-6 lg:mt-0">
+        <h2 class="text-sm title-font text-gray-500 tracking-widest">BRAND NAME</h2>
+        <h1 class="text-gray-900 text-3xl title-font font-medium mb-1">2段階認証</h1>
+        <div class="flex mb-4">
+          <span class="flex items-center">
+            
+            
+          </span>
+          <span class="flex ml-3 pl-3 py-2 border-l-2 border-gray-200 space-x-2s">
+            
+          </span>
+        </div>
+        <p class="leading-relaxed">補足:2段階認証が成功したら、IATFシステム入室リンクと、ログアウトする迄有効なアプリ内添付ファイルのダウンロードパスワードがメール(mitsui.seimitsu.iatf16949@gmail.com)で届きます。</p>
+        <div class="flex mt-6 items-center pb-5 border-b-2 border-gray-100 mb-5">
+          
+          
+        </div>
+        <%= form_tag two_step_verifications_path, method: :post do %>
+        <div class="flex">
+          <span class="title-font font-medium text-2xl text-gray-900">
+          <%= text_field_tag :otp_attempt, '', placeholder: 'ワンタイムパスワード入力' %>          
+          </span>
+          <button class="flex ml-auto text-white bg-indigo-500 border-0 py-2 px-6 focus:outline-none hover:bg-indigo-600 rounded">認証</button>
+         
+        </div>
+        <% end %>
+
+        <br>
+
+        <%= link_to 'ログイン画面に戻る', new_user_session_path,class:"btn btn-sm" %>
+
+
+      </div>
+    </div>
+  </div>
+</section>

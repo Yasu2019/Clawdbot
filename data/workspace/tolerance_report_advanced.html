@@ -1,0 +1,93 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>高度公差解析レポート</title>
+    <style>
+        body { font-family: "Meiryo", sans-serif; background-color: #f4f6f9; color: #333; margin: 0; padding: 20px; }
+        .container { max-width: 1000px; margin: 0 auto; background: white; padding: 40px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-radius: 8px; }
+        h1 { border-bottom: 3px solid #ff5722; padding-bottom: 10px; color: #2c3e50; }
+        h2 { border-left: 5px solid #00bcd4; padding-left: 15px; margin-top: 40px; background: #e0f7fa; padding: 10px; }
+        .risk-alert { background-color: #ffebee; border: 2px solid #ef5350; color: #c62828; padding: 20px; border-radius: 8px; margin: 20px 0; font-weight: bold; }
+        .safe-box { background-color: #e8f5e9; border: 2px solid #66bb6a; color: #2e7d32; padding: 20px; border-radius: 8px; margin: 20px 0; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #37474f; color: white; }
+        .img-box { text-align: center; margin: 30px 0; background: #222; padding: 20px; border-radius: 8px; }
+        img { max-width: 100%; height: auto; }
+        .stat-value { font-size: 1.5em; font-weight: bold; }
+        .danger { color: #d32f2f; }
+        .safe { color: #388e3c; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>🚀 高度公差解析レポート: 干渉リスク検証</h1>
+    <p><strong>検証テーマ:</strong> 順送ピッチ累積およびガイドガタによる、パンチとフレームの干渉（金型破損）リスク</p>
+    
+    <div class="safe-box">
+        <h3>⚡ 総合判定結果: 安全 (SAFE)</h3>
+        <p>シミュレーションの結果、パンチがフレームに接触（干渉）する確率は <strong>0.17%</strong> です。</p>
+        <ul>
+            <li>X軸 (送り方向): <strong>0.13%</strong> の確率で干渉 (危険)</li>
+            <li>Y軸 (幅方向): <strong>0.03%</strong> の確率で干渉 (比較的安全)</li>
+        </ul>
+        <p>※クリアランス 0.15mm に対する判定</p>
+    </div>
+
+    <h2>1. 解析結果マップ (散布図)</h2>
+    <p>青い点がシミュレーション結果（1製品ごとのズレ）、黄色い枠が安全領域（クリアランス）です。<br>
+    黄色い枠の外にはみ出している青点は、<strong>「金型が破損するショット」</strong>を意味します。</p>
+    <div class="img-box">
+        <img src="report_assets/scatter_plot.png" alt="Scatter Plot">
+    </div>
+
+    <h2>2. 詳細統計データ</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>方向</th>
+                <th>累積条件</th>
+                <th>ばらつき (3σ)</th>
+                <th>不良率 (干渉確率)</th>
+                <th>判定</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>X軸 (送り)</strong></td>
+                <td>5ピッチ累積</td>
+                <td>±0.139 mm</td>
+                <td class="danger">0.132%</td>
+                <td>❌ 対策必須</td>
+            </tr>
+            <tr>
+                <td><strong>Y軸 (幅)</strong></td>
+                <td>ガイド/隙間</td>
+                <td>±0.126 mm</td>
+                <td class="safe">0.034%</td>
+                <td>✅ OK</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>3. ズレの要因 (なぜX軸が危険なのか？)</h2>
+    <p>X軸は「順送ピッチの誤差」が積み重なるため、後工程になればなるほどズレが大きくなります。</p>
+    <table>
+        <thead>
+            <tr><th>要因</th><th>公差設定</th><th>影響度</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>パンチ位置精度</td><td>±0.03</td><td>中</td></tr><tr><td>位置決めピン誤差</td><td>±0.02</td><td>中</td></tr><tr><td>順送送りの累積誤差</td><td>±0.1341640786499874</td><td>大</td></tr>
+        </tbody>
+    </table>
+    
+    <h2>4. 参照図面</h2>
+    <div class="img-box">
+        <img src="report_assets/dxf_view_dark.png" alt="DXF">
+    </div>
+
+</div>
+</body>
+</html>

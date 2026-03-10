@@ -1,12 +1,17 @@
 version: "3.9"
-name: clawstack
+name: clawstack-unified
 
 services:
   # -------------------------
   # Core / Orchestration
   # -------------------------
   antigravity:
-    build: ./docker/antigravity
+    build:
+      context: ./docker/antigravity
+      cache_from:
+        - type=local,src=./data/buildcache/antigravity
+      cache_to:
+        - type=local,dest=./data/buildcache/antigravity,mode=max
     depends_on: [ postgres, redis, qdrant, ollama, minio ]
     environment:
       - POSTGRES_URL=postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/postgres
@@ -109,6 +114,7 @@ services:
 
   n8n:
     image: n8nio/n8n:latest
+    user: root
     ports:
       - "127.0.0.1:5679:5678"
     environment:
@@ -118,11 +124,16 @@ services:
       - NODE_ENV=production
       - WEBHOOK_URL=http://127.0.0.1:5679/
       - GENERIC_TIMEZONE=Asia/Tokyo
+      - N8N_BLOCK_SVC_REGISTRATION_DISABLED=false
+      - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=false
+      - NODES_EXCLUDE=[]
+      - N8N_RESTRICT_FILE_ACCESS_TO=/work
     volumes:
-      - ./data/n8n:/home/node/.n8n
+      - ./data/n8n:/root/.n8n
       - ./data/work:/work
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./data/n8n_bin/docker:/usr/local/bin/docker:ro
     restart: unless-stopped
-    profiles: [ "tools" ]
 
   mosquitto:
     image: eclipse-mosquitto:latest
@@ -225,6 +236,17 @@ services:
     profiles: [ "cae" ]
 
   # -------------------------
+  # DXF to 3D Converter
+  # -------------------------
+  dxf3d_app:
+    build: ./docker/dxf3d_app
+    ports:
+      - "127.0.0.1:8003:8002"
+    volumes:
+      - ./data/work:/work
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+
   # Quality Assurance (profiles=quality/docs)
   # -------------------------
   quality_dashboard:
@@ -317,7 +339,7 @@ services:
   # NEW: AI Content Suite (OSS Apps)
   # -------------------------
   stirling_pdf:
-    image: froodleb/s-pdf:latest
+    image: stirlingtools/stirling-pdf:latest
     ports:
       - "127.0.0.1:8085:8080"
     environment:
@@ -341,17 +363,36 @@ services:
     profiles: [ "content" ]
 
   stable_diffusion:
-    image: ghcr.io/linuxserver/stable-diffusion-webui:latest
+    image: siutin/stable-diffusion-webui-docker:latest-cpu
     ports:
       - "127.0.0.1:7861:7860"
-    volumes:
-      - ./data/stable_diffusion/config:/config
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Asia/Tokyo
     restart: unless-stopped
     profiles: [ "content" ]
+
+  # -------------------------
+  # AI Efficiency & Caching (NEW)
+  # -------------------------
+  searxng:
+    image: searxng/searxng:latest
+    container_name: searxng
+    ports:
+      - "127.0.0.1:8081:8080"
+    volumes:
+      - ./data/searxng:/etc/searxng:rw
+    environment:
+      - SEARXNG_BASE_URL=http://localhost:8081/
+    restart: unless-stopped
+
+  redis-stack:
+    image: redis/redis-stack:latest
+    container_name: redis-stack
+    ports:
+      - "127.0.0.1:6380:6379" # Redis port
+      - "127.0.0.1:8001:8001" # RedisInsight UI
+    volumes:
+      - ./data/redis-stack:/data
+    restart: unless-stopped
+    profiles: [ "tools" ]
 
   # -------------------------
   # WorkStudy AI (Therbligs + MOST Analysis)
@@ -367,5 +408,297 @@ services:
     environment:
       - WORKSTUDY_PROJECTS=/work/projects
       - TZ=Asia/Tokyo
+      - GRADIO_MAX_FILE_SIZE=2000  # MB — allow up to 2GB uploads
+      - OLLAMA_BASE_URL=http://ollama:11434  # local LLM for report comments
+    deploy:
+      resources:
+        limits:
+          memory: 6g  # 1GB video + MediaPipe pose data fits in 6GB
     restart: unless-stopped
     profiles: [ "quality" ]
+
+  # -------------------------
+  # Dify AI Workflow Platform (NEW for V3)
+  # -------------------------
+  dify-db:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      PGDATA: /var/lib/postgresql/data
+      POSTGRES_DB: dify
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - ./data/dify/db:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5433:5432"
+
+  dify-redis:
+    image: redis:6-alpine
+    restart: always
+    volumes:
+      - ./data/dify/redis:/data
+    ports:
+      - "127.0.0.1:6381:6379"
+
+  dify-api:
+    image: langgenius/dify-api:latest
+    restart: always
+    ports:
+      - "127.0.0.1:5001:5001"
+    environment:
+      DB_USERNAME: postgres
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_HOST: dify-db
+      DB_PORT: 5432
+      DB_DATABASE: dify
+      REDIS_HOST: dify-redis
+      REDIS_PORT: 6379
+      REDIS_DB: 0
+      SECRET_KEY: clawstack_dify_secret_2026
+      DEPLOY_ENV: PRODUCTION
+      MIGRATION_ENABLED: "true"
+      CONSOLE_API_URL: http://localhost:5001
+      CONSOLE_WEB_URL: http://localhost:8092
+      SERVICE_API_URL: http://localhost:5001
+      APP_MAX_EXECUTION_TIME: 3600
+      OLLAMA_API_BASE_URL: http://ollama:11434
+      OPENDAL_FS_ROOT: /app/api/storage
+      PLUGIN_DAEMON_URL: http://dify-plugin-daemon:5002
+      PLUGIN_DAEMON_KEY: clawstack_plugin_key_2026
+    volumes:
+      - ./data/dify/storage:/app/api/storage
+    depends_on:
+      - dify-db
+      - dify-redis
+      - ollama
+      - dify-plugin-daemon
+
+  dify-worker:
+    image: langgenius/dify-api:latest
+    restart: always
+    command: /bin/sh -c "/app/api/entrypoint.sh worker"
+    environment:
+      DB_USERNAME: postgres
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_HOST: dify-db
+      DB_PORT: 5432
+      DB_DATABASE: dify
+      REDIS_HOST: dify-redis
+      REDIS_PORT: 6379
+      REDIS_DB: 0
+      SECRET_KEY: clawstack_dify_secret_2026
+      DEPLOY_ENV: PRODUCTION
+      OLLAMA_API_BASE_URL: http://ollama:11434
+      OPENDAL_FS_ROOT: /app/api/storage
+    volumes:
+      - ./data/dify/storage:/app/api/storage
+    depends_on:
+      - dify-api
+
+  dify-plugin-daemon:
+    image: langgenius/dify-plugin-daemon:0.5.3-local
+    restart: always
+    environment:
+      DB_HOST: dify-db
+      DB_PORT: 5432
+      DB_DATABASE: dify_plugin
+      DB_USERNAME: postgres
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      REDIS_HOST: dify-redis
+      REDIS_PORT: 6379
+      REDIS_DB: "0"
+      SERVER_PORT: "5002"
+      SERVER_KEY: clawstack_plugin_key_2026
+      DIFY_INNER_API_URL: http://dify-api:5001
+      DIFY_INNER_API_KEY: clawstack_dify_secret_2026
+      FORCE_VERIFYING_SIGNATURE: "false"
+      ENFORCE_LANGGENIUS_PLUGIN_SIGNATURES: "false"
+      MARKETPLACE_ENABLED: "false"
+      PLUGIN_REMOTE_INSTALLING_ENABLED: "false"
+      PLUGIN_STORAGE_TYPE: local
+      PLUGIN_STORAGE_LOCAL_ROOT: /app/storage
+      PLUGIN_WORKING_PATH: /app/storage/cwd
+      PLUGIN_INSTALLED_PATH: plugin
+      PLUGIN_PACKAGE_CACHE_PATH: plugin_packages
+      PLUGIN_MEDIA_CACHE_PATH: assets
+      PLUGIN_MAX_EXECUTION_TIMEOUT: "600"
+      PYTHON_ENV_INIT_TIMEOUT: "120"
+      MAX_PLUGIN_PACKAGE_SIZE: "52428800"
+      PPROF_ENABLED: "false"
+    volumes:
+      - ./data/dify/plugins:/app/storage
+    depends_on:
+      - dify-db
+      - dify-redis
+
+  dify-web:
+    image: langgenius/dify-web:latest
+    restart: always
+    ports:
+      - "127.0.0.1:8092:3000"
+    environment:
+      CONSOLE_API_URL: http://localhost:5001
+      CONSOLE_WEB_URL: http://localhost:8092
+      SERVICE_API_URL: http://localhost:5001
+      APP_API_URL: http://localhost:8092
+    depends_on:
+      - dify-api
+
+  # -------------------------
+  # llama.cpp Server (GGUF直接推論, OpenAI互換API)
+  # 使い方: ./data/llama_cpp/models/ に .gguf ファイルを置き
+  #         docker compose --profile llm up -d llama_cpp
+  # -------------------------
+  llama_cpp:
+    image: ghcr.io/ggerganov/llama.cpp:server
+    container_name: llama_cpp
+    ports:
+      - "127.0.0.1:8086:8086"
+    volumes:
+      - ./data/llama_cpp/models:/models:ro
+    environment:
+      - LLAMA_ARG_HOST=0.0.0.0
+      - LLAMA_ARG_PORT=8086
+      - LLAMA_ARG_MODEL=/models/model.gguf
+      - LLAMA_ARG_CTX_SIZE=8192
+      - LLAMA_ARG_N_PARALLEL=4
+      - LLAMA_ARG_FLASH_ATTN=1
+    restart: unless-stopped
+    profiles: ["llm"]
+
+  # -------------------------
+  # Docling Document Parser (PDF/DOCX/PPTX → Markdown/JSON)
+  # API: http://localhost:8087/v1alpha/convert/source
+  # -------------------------
+  docling:
+    image: quay.io/docling-project/docling-serve:latest
+    container_name: docling
+    ports:
+      - "127.0.0.1:8087:5001"
+    volumes:
+      - ./data/docling/scratch:/tmp/docling
+    environment:
+      - DOCLING_SERVE_NUM_WORKERS=2
+    restart: unless-stopped
+
+  # -------------------------
+  # Langfuse (LLM可観測性・トレーシング)
+  # UI: http://localhost:3001
+  # 初期ログイン: y.suzuki.hk@gmail.com / clawstack2026
+  # v3はClickHouseが必須
+  # -------------------------
+  clickhouse:
+    image: clickhouse/clickhouse-server:24.8
+    container_name: clickhouse
+    user: root
+    ports:
+      - "127.0.0.1:8123:8123"
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+    environment:
+      - CLICKHOUSE_DB=langfuse
+      - CLICKHOUSE_USER=langfuse
+      - CLICKHOUSE_PASSWORD=langfuse
+      - CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT=1
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+    restart: unless-stopped
+
+  langfuse-db-init:
+    image: postgres:16
+    command: >
+      sh -c "until pg_isready -h postgres -U postgres; do sleep 1; done;
+             psql -h postgres -U postgres -c 'CREATE DATABASE langfuse;' || true"
+    environment:
+      - PGPASSWORD=${POSTGRES_PASSWORD}
+    depends_on:
+      - postgres
+    restart: "no"
+
+  langfuse:
+    image: langfuse/langfuse:3.37.0
+    container_name: langfuse
+    ports:
+      - "127.0.0.1:3001:3000"
+    depends_on:
+      langfuse-db-init:
+        condition: service_completed_successfully
+      clickhouse:
+        condition: service_started
+      redis:
+        condition: service_started
+    environment:
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/langfuse
+      - CLICKHOUSE_URL=http://clickhouse:8123
+      - CLICKHOUSE_MIGRATION_URL=clickhouse://langfuse:langfuse@clickhouse:9000/langfuse
+      - CLICKHOUSE_USER=langfuse
+      - CLICKHOUSE_PASSWORD=langfuse
+      - CLICKHOUSE_CLUSTER_ENABLED=false
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - NEXTAUTH_SECRET=clawstack_langfuse_auth_2026
+      - NEXTAUTH_URL=http://localhost:3001
+      - ENCRYPTION_KEY=3f8a2b4c9e1d7f6a5c8b2e3d9f1a7c4b6e8d2f5a3c9b7e1d4f8a6c2b9e7d5f3a
+      - SALT=clawstack_langfuse_salt_2026
+      - TELEMETRY_ENABLED=false
+      - NEXT_PUBLIC_LANGFUSE_RUN_NEXT_INIT=false
+      - LANGFUSE_RUN_BACKGROUND_WORKER=true
+      - REDIS_AUTH=
+      - LANGFUSE_DEFAULT_TTL_DAYS=90
+      - LANGFUSE_S3_EVENT_UPLOAD_BUCKET=langfuse-events
+      - LANGFUSE_S3_EVENT_UPLOAD_ENDPOINT=http://minio:9000
+      - LANGFUSE_S3_EVENT_UPLOAD_ACCESS_KEY_ID=${MINIO_ROOT_USER}
+      - LANGFUSE_S3_EVENT_UPLOAD_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD}
+      - LANGFUSE_S3_EVENT_UPLOAD_REGION=us-east-1
+      - LANGFUSE_S3_EVENT_UPLOAD_FORCE_PATH_STYLE=true
+      - LANGFUSE_S3_MEDIA_UPLOAD_BUCKET=langfuse-events
+      - LANGFUSE_S3_MEDIA_UPLOAD_ENDPOINT=http://minio:9000
+      - LANGFUSE_S3_MEDIA_UPLOAD_ACCESS_KEY_ID=${MINIO_ROOT_USER}
+      - LANGFUSE_S3_MEDIA_UPLOAD_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD}
+      - LANGFUSE_S3_MEDIA_UPLOAD_REGION=us-east-1
+      - LANGFUSE_S3_MEDIA_UPLOAD_FORCE_PATH_STYLE=true
+    restart: unless-stopped
+
+  langfuse-worker:
+    image: langfuse/langfuse-worker:3.37.0
+    container_name: langfuse-worker
+    depends_on:
+      langfuse-db-init:
+        condition: service_completed_successfully
+      clickhouse:
+        condition: service_started
+      redis:
+        condition: service_started
+    environment:
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/langfuse
+      - CLICKHOUSE_URL=http://clickhouse:8123
+      - CLICKHOUSE_MIGRATION_URL=clickhouse://langfuse:langfuse@clickhouse:9000/langfuse
+      - CLICKHOUSE_USER=langfuse
+      - CLICKHOUSE_PASSWORD=langfuse
+      - CLICKHOUSE_CLUSTER_ENABLED=false
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_AUTH=
+      - LANGFUSE_DEFAULT_TTL_DAYS=90
+      - ENCRYPTION_KEY=3f8a2b4c9e1d7f6a5c8b2e3d9f1a7c4b6e8d2f5a3c9b7e1d4f8a6c2b9e7d5f3a
+      - SALT=clawstack_langfuse_salt_2026
+      - TELEMETRY_ENABLED=false
+      - LANGFUSE_S3_EVENT_UPLOAD_BUCKET=langfuse-events
+      - LANGFUSE_S3_EVENT_UPLOAD_ENDPOINT=http://minio:9000
+      - LANGFUSE_S3_EVENT_UPLOAD_ACCESS_KEY_ID=${MINIO_ROOT_USER}
+      - LANGFUSE_S3_EVENT_UPLOAD_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD}
+      - LANGFUSE_S3_EVENT_UPLOAD_REGION=us-east-1
+      - LANGFUSE_S3_EVENT_UPLOAD_FORCE_PATH_STYLE=true
+      - LANGFUSE_S3_MEDIA_UPLOAD_BUCKET=langfuse-events
+      - LANGFUSE_S3_MEDIA_UPLOAD_ENDPOINT=http://minio:9000
+      - LANGFUSE_S3_MEDIA_UPLOAD_ACCESS_KEY_ID=${MINIO_ROOT_USER}
+      - LANGFUSE_S3_MEDIA_UPLOAD_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD}
+      - LANGFUSE_S3_MEDIA_UPLOAD_REGION=us-east-1
+      - LANGFUSE_S3_MEDIA_UPLOAD_FORCE_PATH_STYLE=true
+    restart: unless-stopped
+
+volumes:
+  clickhouse_data:

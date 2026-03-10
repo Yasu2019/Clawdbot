@@ -1,0 +1,8 @@
+{
+    "id": "dxf2step",
+    "title": "DXF → STEP (Layer Split)",
+    "description": "組立/単一DXFから前処理（重複除去・スナップ結線）を行い、レイヤー毎に3D STEPを生成。任意で3D PDFも出力。",
+    "icon": "cube",
+    "route": "/apps/dxf2step",
+    "apiBase": "/api/dxf2step"
+}

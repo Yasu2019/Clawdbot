@@ -1,0 +1,82 @@
+
+
+
+<%= "Emailアドレス："%>
+<%= @user.email %> <br>
+<%= "名前　　　　 ："%>
+<%= @user.name %> <br>
+<%= "識別　　　　 ："%>
+<%= @user.role %> <br>
+
+<!--
+Railsのラジオボタン(f.radio_button)、セレクトボックス + enum(都道府県あり)の使い方
+https://qiita.com/dawn_628/items/944c79b06299a35b5225
+
+【開発メモ】Ruby on Railsのform_forでラジオボタンを設置する方法
+https://freesworder.net/rails-form_for-radio/
+
+-->
+
+
+
+  <div class="lg:flex inline-block ">
+    <table class="border-separate border-spacing-x-1 border border-slate-400">
+      <thead>
+        <tr>
+          <th class="border border-slate-300">ユーザー番号</th>        
+          <th class="border border-slate-300">箇条</th>
+          <th class="border border-slate-300">問題番号</th>
+          <th class="border border-slate-300">Rev</th>
+          <th class="border border-slate-300">問題</th>
+          <th class="border border-slate-300">選択選1</th>
+          <th class="border border-slate-300">選択選2</th>
+          <th class="border border-slate-300">選択選3</th>
+        </tr>
+      </thead>
+
+      <tbody>
+  <div class="field">
+    <%= form_with(url: root_path) do |form| %>
+      <% @touans.each_with_index do |test,i| %>
+        <tr> 
+          <td class="border border-slate-300"><%= test.user_id %></td>
+          <td class="border border-slate-300"><%= test.kajyou %></td>
+          <td class="border border-slate-300"><%= test.mondai_no %></td>
+          <td class="border border-slate-300"><%= test.rev %></td>
+          <td class="border border-slate-300"><%= test.mondai %></td>
+          <td class="border border-slate-300"><%= test.mondai_a %></td>
+          <td class="border border-slate-300"><%= test.mondai_b %></td>
+          <td class="border border-slate-300"><%= test.mondai_c  %></td>
+          <td class="border border-slate-300">
+            <%= form.select :kaito, [['選択肢1', "1"], ['選択肢2', "2"], ['選択肢3', "3"]], { include_blank: true, selected: 1 }  %>
+          </td>
+        </tr>
+      <% end %>
+      <td class="border border-slate-300">
+        <%= form.submit  class:"btn"  %>
+      </td>
+    <% end %>
+  </div>
+</tbody>
+
+      
+    </table>
+  <div>
+
+    <%= form_with(model: @touan, local: true) do |form| %>
+  <% @touans.each do |item| %>
+    <div class="field">
+      <%= form.label "Item #{item.id}" %>
+      <%= form.select "item_#{item.id}_selection", options_for_select([["Option 1", 1], ["Option 2", 2], ["Option 3", 3]], selected: 1) %>
+    </div>
+  <% end %>
+  <%= form.submit "Save" %>
+<% end %>
+  
+
+<br>
+
+
+
+<%= link_to '戻る', root_path, class: 'btn btn-accent' %>
+

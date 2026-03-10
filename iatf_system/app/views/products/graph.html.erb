@@ -1,0 +1,148 @@
+<head>
+    <p id="notice"><%= notice %></p>
+    <%= javascript_include_tag "https://www.gstatic.com/charts/loader.js" %>
+    <h1>IATF APQP / PPAP 製品・文書データ一覧</h1>
+</head>
+
+<div class="btn btn-primary"> <%= link_to "戻る", products_path %></div>
+
+
+<% tassei=[] %>
+<% tassei1=[] %>
+<% tassei2=[] %>
+<% @products.each do |pro| %>
+  <% if pro.status=="完了" && @dropdownlist[pro.category.to_i]=="製品" %>
+    <% tassei.push(pro.partnumber) %>
+  <% end %>
+<% end %>
+<% @jyufukunashi=Product.select(:partnumber).distinct.order(:partnumber) %>
+<% @jyufukunashi.each do |j| %>
+  <% if j.partnumber!=nil || j.partnumber!=""  %>
+    <% tassei1=[j.partnumber,tassei.count(j.partnumber)]%>
+    <% tassei2.push(tassei1)  %>
+  <% end %>
+<% end %>
+<% tassei=[] %>
+<% tassei1=[] %>
+<% d_tassei2=[] %>
+<% @products.each do |pro| %>
+  <% if pro.status=="完了" && @dropdownlist[pro.category.to_i]=="文書" %>
+    <% tassei.push(pro.documentname) %>
+  <% end %>
+<% end %>
+<% @jyufukunashi=Product.select(:documentname).distinct.order(:documentname) %>
+<% @jyufukunashi.each do |j| %>
+  <% if j.documentname!=nil  || j.documentname!="" %>
+    <% tassei1=[j.documentname,tassei.count(j.documentname)]%>
+    <% d_tassei2.push(tassei1)  %>
+  <% end %>
+<% end %>
+<% tassei=[] %>
+<% tassei1=[] %>
+<% tassei3=[] %>
+<% @products.each do |pro| %>
+  <% if pro.status=="仕掛中" && @dropdownlist[pro.category.to_i]=="製品" %>
+    <% tassei.push(pro.partnumber) %>
+  <% end %>
+<% end %>
+<% @jyufukunashi=Product.select(:partnumber).distinct.order(:partnumber) %>
+<% @jyufukunashi.each do |j| %>
+  <% if j.partnumber!=nil || j.partnumber!="" %>
+    
+    <% tassei1=[j.partnumber,tassei.count(j.partnumber)]%>
+    <% tassei3.push(tassei1)  %>
+  <% end %>
+<% end %>
+<% tassei=[] %>
+<% tassei1=[] %>
+<% d_tassei3=[] %>
+<% @products.each do |pro| %>
+  <% if pro.status=="仕掛中" && @dropdownlist[pro.category.to_i]=="文書" %>
+    <% tassei.push(pro.documentname) %>
+  <% end %>
+<% end %>
+<% @jyufukunashi=Product.select(:documentname).distinct.order(:documentname) %>
+<% @jyufukunashi.each do |j| %>
+  <% if j.documentname!=nil || j.documentname!="" %>
+    
+    <% tassei1=[j.documentname,tassei.count(j.documentname)]%>
+    <% d_tassei3.push(tassei1)  %>
+  <% end %>
+<% end %>
+
+<br>
+<br>
+
+<section>
+  
+  <div class="lg:flex">
+    <div class="flex-auto">
+      <strong><font color="black" size="4">APQP</font>
+              <font color="blue"  size="5">完成</font> 
+              <font color="black" size="4">件数(製品)</font></strong>
+      <%= bar_chart tassei2 ,label: "APQP完成件数" ,width: "500px", height: "400px"%>
+    </div>
+
+    <div class="flex-auto">
+      <strong><font color="black" size="4">APQP</font>
+              <font color="blue"  size="5">完成</font>
+              <font color="black" size="4">割合 by 製品</font></strong>
+      <%= pie_chart tassei2 , label: "APQP完成割合 by 製品" ,width: "500px", height: "400px"%>
+    </div>
+
+    <div class="flex-auto">
+      <strong><font color="black" size="4">APQP</font>
+              <font color="blue"  size="5">完成</font>
+              <font color="black" size="4">件数(文書カテゴリー)</font></strong>
+      <%= bar_chart d_tassei2, label: "APQP完成件数" ,width: "500px", height: "400px"%>
+    </div>
+
+    <div class="flex-auto">
+      <strong><font color="black" size="4">APQP</font>
+              <font color="blue"  size="5">完成</font>
+              <font color="black" size="4">割合 by 文書カテゴリー毎</font></strong>
+      <%= pie_chart d_tassei2 , label: "APQP完成割合 by 製品" ,width: "500px", height: "400px"%>
+    </div>
+
+  </div>
+
+
+<br>
+<br>
+
+
+  <div class="lg:flex">
+    <div class="flex-auto">
+      <strong><font color="black" size="4">APQP</font>
+              <font color="magenta" size="5">仕掛</font>
+              <font color="black" size="4">件数(製品)</font></strong>
+      <%= bar_chart tassei3 ,label: "APQP完成件数",width: "500px", height: "400px" %>
+    </div>
+
+    <div class="flex-auto">
+      <strong><font color="black"   size="4">APQP</font>
+              <font color="magenta" size="5">仕掛</font>
+              <font color="black"   size="4">割合 by 製品</font></strong>
+      <%= pie_chart tassei3 , label: "APQP完成割合 by 製品",width: "500px", height: "400px"%>
+    </div>
+
+    <div class="flex-auto">
+      <strong><font color="black"   size="4">APQP</font>
+              <font color="magenta" size="5">仕掛</font>
+              <font color="black"   size="4">件数(文書カテゴリー)</font></strong>
+      <%= bar_chart d_tassei3, label: "APQP完成件数",width: "500px", height: "400px" %>
+    </div>
+
+    <div class="flex-auto">
+      <strong><font color="black"   size="4">APQP</font>
+              <font color="magenta" size="5">仕掛</font>
+              <font color="black"   size="4">割合 by 文書カテゴリー毎</font></strong>
+      <%= pie_chart d_tassei3 , label: "APQP完成割合 by 製品",width: "500px", height: "400px"%>
+    </div>
+
+  </div>
+</section>
+
+<br>
+<br>
+

@@ -1,0 +1,9 @@
+ja:
+  devise:
+    sessions:
+      user:
+        signed_in: ''  # ログインメッセージを空にする
+        signed_out: ''  # ログアウトメッセージを空にする
+    failure:
+      already_authenticated: ''  # 既に認証済みのメッセージを空にする
+      unauthenticated: 'ログインしてください'  # 未認証時のメッセージを変更

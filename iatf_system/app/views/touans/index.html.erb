@@ -1,0 +1,455 @@
+<html>
+  <head>
+    <!-- 他の<head>内のコード -->
+  </head>
+  <body>
+  <header class="sticky top-0 bg-white z-10">
+  <div class="container mx-auto">
+
+      <ul class="flex space-x-4 items-center">
+
+            <li><div class="flex">
+                <div class="flex flex-col">
+                  <%= "Emailアドレス：" %>
+                  <%= @user.email %> <br>
+                  <%= "名前　　　　 ：" %>
+                  <%= @user.name %> <br>
+                  <%= "識別　　　　 ：" %>
+                  <%= @user.role %> <br>
+                  <%= "プロセス名　 ：" %>
+                  <%= @process_name %> <br>
+                </div>
+            </div></li>
+
+            <li><div>
+                <%= form_with(url: new_touan_path, method: :get, local: true) do|form| %>
+                <%= form.label :"IATFテストをしたい箇条を選択してください" %><br>
+                <% @tes=Testmondai.select(:kajyou).distinct.order(:kajyou) %>
+                <%= form.collection_select(:kajyou, @tes, :kajyou, :kajyou,{prompt: '選択してください',class:"hidden"})%>
+                <%= form.submit "IATFテスト(箇条リスト)",class:"btn btn-sm"%>
+                <% end %>
+            </div></li>
+
+            <div class="<%= @user.role == 'staff' ? 'block' : 'hidden' %>">
+
+              <ul class="flex space-x-4 items-center">
+
+                <li><div>
+                  <%= link_to "Excel出力", xlsx_touan_path(@touan, format: :xlsx),class:"btn btn-secondary btn-sm" %>
+                </div></li>
+
+                <li><div>
+                    <%= form_tag import_kaitou_touans_path, multipart: true do %>
+                      <label class="mt-2 sm:mt-0 py-2 w-500px sm:w-100px h-10 border border-primary-300 bg-gray-100 bg-opacity-50 text-primary-300 rounded-3px text-xs flex justify-center items-center">
+                        <span class="text-lg ml-5 mx-8" style="width: 200px;">CSVファイル選択</span>
+                        <%= file_field_tag :file , class: "hidden"%>
+                      </label>
+                      <%= submit_tag "インポート",class:"btn btn-secondary btn-sm"  %>
+                    <% end %>
+                </div></li>
+
+                <li><div>
+                  <%= form_with(url: testmondai_touan_path, method: :get, local: true) do|form| %>
+                  <%= form.submit "テスト問題一覧",class:"btn btn-secondary btn-sm" %>
+                  <% end %>
+                </div></li>
+
+                <li><div>
+                    <%= form_with(url: member_current_status_touan_path, method: :get, local: true) do|form| %>
+                    <%= form.submit "登録者進捗一覧",class:"btn btn-secondary btn-sm" %>
+                    <% end %>
+                </div></li>
+              </ul>
+            </div>
+        </ul>
+    </div>
+  </div>
+  </header>
+
+<div class="tab_wrap">
+	<input id="tab1" type="radio" name="tab_btn" checked>
+	<input id="tab2" type="radio" name="tab_btn">
+	<input id="tab3" type="radio" name="tab_btn">
+  <input id="tab4" type="radio" name="tab_btn">
+  <input id="tab5" type="radio" name="tab_btn">
+  <input id="tab6" type="radio" name="tab_btn">
+
+	<div class="tab_area">
+		<label class="tab1_label" for="tab1">テスト結果</label>
+        <label class="tab2_label" for="tab2"><%= @owner_select_jp %>が主管の箇条番号</label>
+        <label class="tab3_label" for="tab3"><%= @owner_select_jp %>が関係する箇条番号</label>
+        <label class="tab4_label" for="tab4">未使用</label>
+        <label class="tab5_label" for="tab5">未使用</label>
+        <label class="tab6_label" for="tab6">未使用</label>
+
+
+
+
+	</div>
+	  <div class="panel_area">
+
+      <div id="panel1" class="tab_panel">
+      <section class="container flex items-stretch justify-between">
+          <div class="sm:inline-block w-3/5 mx-4">
+              <% chart_kajyou = [] %>
+              <% chart_average_score = [] %>
+  
+              <% @tes = Testmondai.select(:kajyou).distinct.order(:kajyou) %>
+              <% @tes.each do |t| %>
+                  <% next unless t.kajyou %>
+                  <% chart_kajyou.push(t.kajyou) %>
+                  
+                  <% only_kajyou = @touans.where(kajyou: t.kajyou) %>
+                  <% correct_count = only_kajyou.select { |ave| ave.seikai == ave.kaito }.count %>
+                  <% total_count = only_kajyou.count %>
+  
+                  <% kari_average_score = total_count > 0 ? (correct_count.to_f / total_count * 100) : 0.0 %>
+                  <% chart_average_score.push(kari_average_score) %>
+              <% end %>
+  
+              <div class="overflow-hidden rounded-lg shadow-lg ml-4" style="width: 900px; height: 900px;">
+                  <div class="bg-neutral-50 py-3 px-5 dark:bg-neutral-700 dark:text-neutral-200">評価結果レーダーチャート</div>
+                  <canvas class="p-10" id="chartRadar"></canvas>
+              </div>
+  
+              <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1"></script>
+  
+              <script>
+              document.addEventListener("turbo:load", function() {
+                  createRadarChart("chartRadar", <%= raw chart_kajyou.to_json %>, <%= chart_average_score.map(&:to_f).to_json %>);
+              });
+  
+              document.addEventListener("turbo:before-cache", function () {
+                  if (window["chartRadar"] && window["chartRadar"] instanceof Chart) {
+                      window["chartRadar"].destroy();
+                      window["chartRadar"] = null;
+                  }
+              });
+              </script>
+  
+              <style>
+                  .chart-label {
+                      font-size: 20px;
+                  }
+              </style>
+          </div>
+  
+          <div class="sm:inline-block w-2/5">
+              <% @touan_dates = @touans.select("DISTINCT date_trunc('minute', created_at) as created_at").order("created_at") %>
+              <table class="sticky_table table-striped table-hover border-separate border-spacing-1 border-2 border-blue-900 bg-gray-100">
+                  <thead>
+                      <tr>
+                          <th class="border-2 border-blue-900">ユーザーネーム</th>
+                          <th class="border-2 border-blue-900">ユーザーID</th>
+                          <th class="border-2 border-blue-900">箇条</th>
+                          <th class="border-2 border-blue-900">テスト実施日</th>
+                          <th class="border-2 border-blue-900">正解率 %</th>
+                          <th colspan="3"></th>
+                      </tr>
+                  </thead>
+                  <tbody>
+                  <% 
+                  touan_data = []
+                  @touan_dates.each do |da|
+                      data = { correct_count: 0, total_count: 0, related_touans: [] }
+                      @touans.each do |test|
+                          if ((da.created_at-1.minute)..(da.created_at + 1.minute)).cover?(test.created_at)
+                              data[:correct_count] += 1 if test.seikai == test.kaito
+                              data[:total_count] += 1
+                              data[:user_id] = test.user_id
+                              data[:kajyou] = test.kajyou
+                              data[:test_created_at] = test.created_at
+                              data[:related_touans] << test
+                          end
+                      end
+                      touan_data << data
+                  end
+                  %>
+  
+                  <% touan_data.each do |data| %>
+                      <tr>
+                          <td class="border-2 border-blue-900"><%= @user.name %></td>
+                          <td class="border-2 border-blue-900"><%= data[:user_id] %></td>
+                          <td class="border-2 border-blue-900"><%= data[:kajyou] %></td>
+                          <td class="border-2 border-blue-900"><%= data[:test_created_at].strftime("%Y年%m月%d日%H時%M分") %></td>
+                          <td class="border-2 border-blue-900"><%= sprintf("%.2f", data[:correct_count].to_f / data[:total_count] * 100) %></td>
+  
+                          <% if data[:related_touans].any? %>
+                              <td><%= button_to '削除', delete_related_touans_path(target_date: data[:test_created_at]), method: :delete, data: { confirm: '本当に削除しますか？' }, class: 'btn btn-danger btn-sm'%></td>
+                              <td>
+                                  <%= form_with(url: kekka_touan_path, method: :get, local: true) do |form| %>
+                                      <%= form.hidden_field :created_at, value: data[:test_created_at] %>
+                                      <%= form.submit "テスト結果表示", class: "btn btn-sm" %>
+                                  <% end %>
+                              </td>
+                          <% end %>
+                      </tr>
+                  <% end %>
+                  </tbody>
+              </table>
+          </div>
+      </section>
+  </div>
+  
+   
+<!-- ----------------------------------Panel2-------------------------------------------- -->
+<div id="panel2" class="tab_panel">
+<section class="container flex flex-col items-stretch justify-between">
+        <div class="lg:inline-block w-full mx-4">
+            <% chart_kajyou_iatf_request_audit, chart_average_score_iatf_request_audit = calculate_chart_data(@iatf_data_audit, @touans) %>
+
+            <div class="overflow-hidden rounded-lg shadow-lg ml-4" style="width: 700px; height: 800px;">
+                <div class="bg-neutral-50 py-3 px-5 dark:bg-neutral-700 dark:text-neutral-200">
+                    評価結果レーダーチャート
+                </div>
+                <canvas class="p-10" id="chartRadar_iatf_request_audit"></canvas>
+            </div>
+
+            <!-- Required chart.js -->
+            <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1"></script>
+            
+            <!-- Use the common function for chart rendering -->
+            <script>
+                document.addEventListener("turbo:load", function() {
+                    createRadarChart(
+                        "chartRadar_iatf_request_audit", 
+                        <%= raw chart_kajyou_iatf_request_audit.to_json %>, 
+                        <%= chart_average_score_iatf_request_audit.map(&:to_f).to_json %>
+                    );
+                });
+                
+                document.addEventListener("turbo:before-cache", function () {
+                    if (window["chartRadar_iatf_request_audit"] && window["chartRadar_iatf_request_audit"] instanceof Chart) {
+                        window["chartRadar_iatf_request_audit"].destroy();
+                        window["chartRadar_iatf_request_audit"] = null;
+                    }
+                });
+            </script>
+            <style>
+                .chart-label {
+                    font-size: 20px;
+                }
+            </style>
+        </div>
+
+        <div class="lg:inline-block w-full mx-4">
+        <%= link_to '戻る', root_path, class: 'btn btn-accent btn-sm' %>
+            <!-- Your table code remains unchanged -->
+            <%= render partial: "table", locals: { 
+                headers: ["箇条", "タイトル", "平均得点", "IATF要求事項", "MEK様品質ガイドラインVer2", "添付ファイル"],
+                items: @iatf_data_audit,
+                columns: [:no, :name, "average_score", "IATF要求事項", "MEK様品質ガイドラインVer2", "添付ファイル"],
+                products: @products,
+                iatflists: @iatflists,
+                csrs: @csrs,
+                touans: @touans
+                } %>
+            
+        </div>
+    </section>
+   
+</div>
+<!-- -------------------------------Panel3----------------------------------------------- -->
+<div id="panel3" class="tab_panel">
+<section class="container flex flex-col items-stretch justify-between">
+        <div class="lg:inline-block w-full mx-4">
+            <% chart_kajyou_iatf_request_audit_sub, chart_average_score_iatf_request_audit_sub = calculate_chart_data(@iatf_data_audit_sub, @touans) %>
+
+            <div class="overflow-hidden rounded-lg shadow-lg ml-4" style="width: 700px; height: 800px;">
+                <div class="bg-neutral-50 py-3 px-5 dark:bg-neutral-700 dark:text-neutral-200">
+                    評価結果レーダーチャート
+                </div>
+                <canvas class="p-10" id="chartRadar_iatf_request_audit_sub"></canvas>
+            </div>
+
+            <!-- Required chart.js -->
+            <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1"></script>
+            
+            <!-- Use the common function for chart rendering -->
+            <script>
+                document.addEventListener("turbo:load", function() {
+                    createRadarChart(
+                        "chartRadar_iatf_request_audit_sub", 
+                        <%= raw chart_kajyou_iatf_request_audit_sub.to_json %>, 
+                        <%= chart_average_score_iatf_request_audit_sub.map(&:to_f).to_json %>
+                    );
+                });
+                
+                document.addEventListener("turbo:before-cache", function () {
+                    if (window["chartRadar_iatf_request_audit_sub"] && window["chartRadar_iatf_request_audit_sub"] instanceof Chart) {
+                        window["chartRadar_iatf_request_audit_sub"].destroy();
+                        window["chartRadar_iatf_request_audit_sub"] = null;
+                    }
+                });
+            </script>
+            <style>
+                .chart-label {
+                    font-size: 20px;
+                }
+            </style>
+        </div>
+
+        <div class="lg:inline-block w-full mx-4">
+        <%= link_to '戻る', root_path, class: 'btn btn-accent btn-sm' %>
+            <!-- Your table code remains unchanged -->
+            <%= render partial: "table", locals: { 
+                headers: ["箇条", "タイトル", "平均得点", "IATF要求事項", "MEK様品質ガイドラインVer2", "添付ファイル"],
+                items: @iatf_data_audit_sub,
+                columns: [:no, :name, "average_score", "IATF要求事項", "MEK様品質ガイドラインVer2", "添付ファイル"],
+                products: @products,
+                iatflists: @iatflists,
+                csrs: @csrs,
+                touans: @touans
+                } %>
+            
+        </div>
+    </section>
+   
+</div>
+
+
+<!-- ----------------------------------Panel4-------------------------------------------- -->
+
+<div id="panel4" class="tab_panel">
+
+<section class="container flex items-stretch justify-between">
+    
+</section>
+
+
+</div>
+
+<style>
+
+.vertical-align-top {
+    vertical-align: top;
+}
+
+</style>
+
+<!-- ------------------------Panel5------------------------------------------------------ -->
+<div id="panel5" class="tab_panel">
+</div>
+
+<!-- ------------------------------------------------------------------------------ -->
+<div id="panel6" class="tab_panel">
+</div>
+
+<!-- ------------------------------------------------------------------------------ -->
+
+
+    <%= link_to '戻る', root_path, class: 'btn btn-accent btn-sm' %>
+    <br>
+
+  </body>
+</html>
+
+
+
+
+<style>
+.tab_wrap{width:100%; margin:0;}
+input[type="radio"]{display:none;}
+.tab_area{font-size:0; margin:0;}
+.tab_area label{width:16%; margin:0; display:inline-block; padding:2px 0; color:#999; background:#ddd; text-align:center; font-size:20px; cursor:pointer; transition:ease 0.2s opacity;}
+.tab_area label:hover{opacity:0.5;}
+.panel_area{background:#fff;}
+.tab_panel{width:100%; padding:80px 0; display:none;}
+.tab_panel p{font-size:20px; letter-spacing:1px; text-align:center;}
+
+#tab1:checked ~ .tab_area .tab1_label{background:#fff; color:#000;}
+#tab1:checked ~ .panel_area #panel1{display:block;}
+#tab2:checked ~ .tab_area .tab2_label{background:#fff; color:#000;}
+#tab2:checked ~ .panel_area #panel2{display:block;}
+#tab3:checked ~ .tab_area .tab3_label{background:#fff; color:#000;}
+#tab3:checked ~ .panel_area #panel3{display:block;}
+
+#tab4:checked ~ .tab_area .tab4_label{background:#fff; color:#000;}
+#tab4:checked ~ .panel_area #panel4{display:block;}
+#tab5:checked ~ .tab_area .tab5_label{background:#fff; color:#000;}
+#tab5:checked ~ .panel_area #panel5{display:block;}
+#tab6:checked ~ .tab_area .tab6_label{background:#fff; color:#000;}
+#tab6:checked ~ .panel_area #panel6{display:block;}
+</style>
+
+
+
+
+
+
+
+
+<script>
+function createRadarChart(elementId, labels, data) {
+    const chartElement = document.getElementById(elementId);
+
+    if (!chartElement) {
+        return;
+    }
+
+    const chartData = {
+        labels: labels,
+        datasets: [
+            {
+                label: "テスト正解率(%)",
+                data: data,
+                fill: true,
+                backgroundColor: "rgba(133, 105, 241, 0.2)",
+                borderColor: "rgb(133, 105, 241)",
+                pointBackgroundColor: "rgb(133, 105, 241)",
+                pointBorderColor: "#fff",
+                pointHoverBackgroundColor: "#fff",
+                pointHoverBorderColor: "rgb(133, 105, 241)",
+            },
+        ],
+    };
+
+    const config = {
+        type: "radar",
+        data: chartData,
+        options: {
+            scales: {
+                r: {
+                    min: 0,
+                    max: 100,
+                    stepSize: 10,
+                    ticks: {
+                        font: {
+                            size: 20,
+                        },
+                    },
+                    pointLabels: {
+                        font: {
+                            size: 15,
+                        },
+                    },
+                },
+            },
+            plugins: {
+                legend: {
+                    labels: {
+                        font: {
+                            size: 20,
+                        },
+                    },
+                },
+                tooltip: {
+                    bodyFont: {
+                        size: 20,
+                    },
+                    titleFont: {
+                        size: 20,
+                    },
+                },
+            },
+        },
+    };
+
+    // 既存のチャートがあれば破棄する
+    if (window[elementId] && window[elementId] instanceof Chart) {
+        window[elementId].destroy();
+    }
+
+    window[elementId] = new Chart(chartElement, config);
+}
+</script>

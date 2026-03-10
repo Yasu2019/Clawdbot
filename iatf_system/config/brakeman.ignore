@@ -1,0 +1,48 @@
+{
+  "ignored_warnings": [
+    {
+      "warning_type": "Command Injection",
+      "warning_code": 14,
+      "fingerprint": "ad2f7c606ba15540eed31ea089ca5cf527484b93faa2d26477ffb6cf8e391e98",
+      "check_name": "Execute",
+      "message": "Possible command injection",
+      "file": "app/controllers/users/sessions_controller.rb",
+      "line": 115,
+      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
+      "code": "Open3.popen3(\"PGPASSWORD\" => Shellwords.escape(Rails.configuration.database_configuration[Rails.env][\"password\"]), *[\"pg_dump\", \"-U\", Shellwords.escape(Rails.configuration.database_configuration[Rails.env][\"username\"]), \"-h\", Shellwords.escape(Rails.configuration.database_configuration[Rails.env][\"host\"]), \"-F\", \"c\", \"-b\", \"-v\", \"-f\", File.join(Rails.root.join(\"db/backup\").to_s, \"backup_#{Time.zone.now.strftime(\"%Y%m%d%H%M%S\")}.sql\"), Rails.configuration.database_configuration[Rails.env][\"database\"]].map do\n Shellwords.escape(arg)\n end)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Users::SessionsController",
+        "method": "backup_postgresql"
+      },
+      "user_input": "Time.zone.now.strftime(\"%Y%m%d%H%M%S\")",
+      "confidence": "Medium",
+      "cwe_id": [
+        77
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Command Injection",
+      "warning_code": 14,
+      "fingerprint": "da63be53d11188d204926003fbb547a43906da9d9f64d0f9cd8fc1d8c985f8a8",
+      "check_name": "Execute",
+      "message": "Possible command injection",
+      "file": "config/initializers/scheduler.rb",
+      "line": 34,
+      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
+      "code": "Open3.popen3(\"PGPASSWORD\" => Rails.configuration.database_configuration[Rails.env][\"password\"], *[\"pg_dump\", \"-U\", Rails.configuration.database_configuration[Rails.env][\"username\"], \"-h\", Rails.configuration.database_configuration[Rails.env][\"host\"], \"-F\", \"c\", \"-b\", \"-v\", \"-f\", Rails.root.join(\"db/backup\").join(\"backup_#{Time.zone.now.strftime(\"%Y%m%d%H%M%S\")}.sql\").to_s, Rails.configuration.database_configuration[Rails.env][\"database\"]])",
+      "render_path": null,
+      "location": null,
+      "user_input": "Time.zone.now.strftime(\"%Y%m%d%H%M%S\")",
+      "confidence": "Medium",
+      "cwe_id": [
+        77
+      ],
+      "note": ""
+    }
+  ],
+  "updated": "2024-01-19 12:28:35 +0000",
+  "brakeman_version": "6.1.1"
+}

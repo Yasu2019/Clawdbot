@@ -1,0 +1,1587 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenRadioss Hub — Crash &amp; Impact Analysis</title>
+    <meta name="description"
+        content="WebGUI for OpenRadioss explicit dynamics solver — 3D model upload, mesh generation, boundary conditions, and ParaView-style result visualization.">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <!-- ===== Header ===== -->
+    <header class="app-header">
+        <span class="logo">💥</span>
+        <h1>OpenRadioss Hub</h1>
+        <label class="btn btn-sm btn-primary" style="margin-left:16px;cursor:pointer">
+            📂 .radインポート
+            <input type="file" accept=".rad" id="radImportInput" hidden multiple>
+        </label>
+        <span class="subtitle" id="statusLine">Phase 2 — 順送金型プレス GUI v0.2</span>
+    </header>
+
+    <!-- ===== Main Layout ===== -->
+    <div class="app-layout">
+
+        <!-- ===== 3D Viewer ===== -->
+        <div class="viewer-area" id="viewerArea">
+            <div class="viewer-toolbar">
+                <button class="btn btn-sm" onclick="resetCamera()" title="カメラリセット">🔄 Reset</button>
+                <button class="btn btn-sm" id="btnWireframe" onclick="toggleWireframe()" title="ワイヤーフレーム切替">🔲
+                    Wire</button>
+                <button class="btn btn-sm" id="btnAxes" onclick="toggleAxes()" title="座標軸 表示/非表示">📐 Axes</button>
+                <label class="btn btn-sm" style="cursor:pointer" title="ファイル選択">
+                    📂 Open
+                    <input type="file" accept=".stl,.obj" id="fileInput" hidden>
+                </label>
+            </div>
+
+            <div class="drop-zone" id="dropZone">
+                <span class="drop-icon">📦</span>
+                <span class="drop-text">STL / OBJ ファイルをドロップ</span>
+                <span class="drop-sub">または 📂 Open ボタンで選択</span>
+            </div>
+
+            <div class="viewer-info" id="viewerInfo">Vertices: — | Faces: —</div>
+            <canvas id="viewer3d"></canvas>
+
+            <!-- Color scale (results mode) -->
+            <div class="color-scale" id="colorScale"></div>
+            <div class="color-scale-labels" id="colorScaleLabels">
+                <span>Max</span><span>Mid</span><span>Min</span>
+            </div>
+
+            <!-- Animation controls (results mode) -->
+            <div class="anim-controls" id="animControls" style="display:none">
+                <button class="btn btn-sm" id="btnPlay" onclick="toggleAnimation()">▶</button>
+                <input type="range" class="anim-slider" id="animSlider" min="0" max="100" value="0">
+                <span class="anim-time" id="animTime">t = 0.000 ms</span>
+            </div>
+        </div>
+
+        <!-- ===== Sidebar ===== -->
+        <div class="sidebar">
+
+            <!-- Panel 1: Assembly (Multi-Body) -->
+            <div class="panel animate-in" id="panelAssembly">
+                <div class="panel-header" onclick="togglePanel('panelAssembly')">
+                    <span class="icon">🏭</span>
+                    <h3>Assembly — 順送金型</h3>
+                    <span class="toggle">▼</span>
+                </div>
+                <div class="panel-body">
+                    <label>パーツ追加</label>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <select id="addPartRole">
+                                <option value="punch">🔽 パンチ (Punch)</option>
+                                <option value="stripper">🔧 ストリッパー</option>
+                                <option value="die">⬛ ダイ (Die)</option>
+                                <option value="blank">📄 ブランク (Blank)</option>
+                                <option value="pad">🟦 パッド (Pad)</option>
+                                <option value="holder">📎 ホルダー</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="btn btn-sm btn-primary" style="cursor:pointer;margin-top:0">
+                                📂 STL読込
+                                <input type="file" accept=".stl" id="partFileInput" hidden>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="part-list" id="partList">
+                        <!-- Parts added dynamically -->
+                    </div>
+                    <div id="selectedPartInfo"
+                        style="font-family:var(--font-mono);font-size:0.72rem;color:var(--text-muted)">
+                        パーツを追加してください
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel 1b: Motion Curve -->
+            <div class="panel animate-in" id="panelMotion">
+                <div class="panel-header" onclick="togglePanel('panelMotion')">
+                    <span class="icon">📈</span>
+                    <h3>Motion Curve — 動作制御</h3>
+                    <span class="toggle">▼</span>
+                </div>
+                <div class="panel-body">
+                    <div class="form-group">
+                        <label>対象パーツ</label>
+                        <select id="motionPartSelect" onchange="onMotionPartChange()">
+                            <option value="">— パーツを選択 —</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>移動方向</label>
+                        <select id="motionAxis">
+                            <option value="z" selected>Z軸 (上下)</option>
+                            <option value="y">Y軸 (前後)</option>
+                            <option value="x">X軸 (左右)</option>
+                        </select>
+                    </div>
+                    <div class="curve-editor">
+                        <div class="curve-canvas-wrap">
+                            <canvas id="curveCanvas" width="600" height="120"></canvas>
+                            <span class="curve-label-y">位置(mm)</span>
+                            <span class="curve-label-x">時間(ms)</span>
+                        </div>
+                    </div>
+                    <table class="keyframe-table" id="keyframeTable">
+                        <thead>
+                            <tr>
+                                <th>Time(ms)</th>
+                                <th>Pos(mm)</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="keyframeBody"></tbody>
+                    </table>
+                    <button class="btn btn-sm" onclick="addKeyframe()">＋ キーフレーム追加</button>
+                </div>
+            </div>
+
+            <!-- Panel 1c: Contact Pairs -->
+            <div class="panel animate-in" id="panelContact">
+                <div class="panel-header" onclick="togglePanel('panelContact')">
+                    <span class="icon">🤝</span>
+                    <h3>Contact — 接触定義</h3>
+                    <span class="toggle">▼</span>
+                </div>
+                <div class="panel-body">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Master</label>
+                            <select id="ctMaster"></select>
+                        </div>
+                        <div class="form-group">
+                            <label>Slave</label>
+                            <select id="ctSlave"></select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>接触タイプ</label>
+                            <select id="ctType">
+                                <option value="TYPE7">TYPE7 — 面-面</option>
+                                <option value="TYPE11">TYPE11 — エッジ-エッジ</option>
+                                <option value="TYPE24">TYPE24 — 面-面(厚み)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>摩擦係数</label>
+                            <input type="number" id="ctFriction" value="0.15" min="0" max="1" step="0.01">
+                        </div>
+                    </div>
+                    <button class="btn btn-sm btn-primary" onclick="addContact()" style="margin-bottom:8px">＋
+                        接触ペア追加</button>
+                    <div class="contact-list" id="contactList"></div>
+                </div>
+            </div>
+
+            <!-- Panel 2: Mesh Control -->
+            <div class="panel animate-in" id="panelMesh">
+                <div class="panel-header" onclick="togglePanel('panelMesh')">
+                    <span class="icon">🔺</span>
+                    <h3>Mesh Generation</h3>
+                    <span class="toggle">▼</span>
+                </div>
+                <div class="panel-body">
+                    <label>要素タイプ</label>
+                    <div class="mesh-cards" id="meshCards">
+                        <div class="mesh-card selected" data-type="TETRA4" onclick="selectMesh(this)">
+                            <span class="mesh-icon">🔺</span>
+                            <div class="mesh-name">TETRA4</div>
+                            <div class="mesh-desc">4-Node Tetra</div>
+                        </div>
+                        <div class="mesh-card" data-type="TETRA10" onclick="selectMesh(this)">
+                            <span class="mesh-icon">🔶</span>
+                            <div class="mesh-name">TETRA10</div>
+                            <div class="mesh-desc">10-Node Tetra</div>
+                        </div>
+                        <div class="mesh-card" data-type="HEXA8" onclick="selectMesh(this)">
+                            <span class="mesh-icon">🧊</span>
+                            <div class="mesh-name">HEXA8</div>
+                            <div class="mesh-desc">8-Node Hexa</div>
+                        </div>
+                        <div class="mesh-card" data-type="PENTA6" onclick="selectMesh(this)">
+                            <span class="mesh-icon">📐</span>
+                            <div class="mesh-name">PENTA6</div>
+                            <div class="mesh-desc">6-Node Wedge</div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>メッシュサイズ (mm)</label>
+                            <input type="number" id="meshSize" value="2.0" min="0.1" max="100" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label>最小サイズ (mm)</label>
+                            <input type="number" id="meshMinSize" value="0.5" min="0.01" max="50" step="0.1">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>品質基準</label>
+                        <select id="meshQuality">
+                            <option value="coarse">粗い（高速）</option>
+                            <option value="medium" selected>標準</option>
+                            <option value="fine">精密（高精度）</option>
+                            <option value="adaptive">適応的（AIによる自動調整）</option>
+                        </select>
+                    </div>
+
+                    <!-- AI Mesh Recommendation -->
+                    <div class="ai-box" id="aiMeshBox">
+                        <div class="ai-label">🤖 AI メッシュ推奨</div>
+                        <div class="ai-text" id="aiMeshText">
+                            モデルをアップロードすると、形状に基づいた最適なメッシュ設定をAIが推奨します。
+                        </div>
+                        <div class="ai-action" id="aiMeshAction" style="display:none">
+                            <button class="btn btn-sm btn-primary" onclick="applyAiMesh()">✨ AI推奨を適用</button>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary btn-block" onclick="generateMesh()">🔺 メッシュ生成</button>
+                </div>
+            </div>
+
+            <!-- Panel 3: Boundary Conditions -->
+            <div class="panel animate-in" id="panelBC">
+                <div class="panel-header" onclick="togglePanel('panelBC')">
+                    <span class="icon">📌</span>
+                    <h3>Boundary Conditions</h3>
+                    <span class="toggle">▼</span>
+                </div>
+                <div class="panel-body">
+                    <div class="form-group">
+                        <label>条件タイプ</label>
+                        <select id="bcType">
+                            <option value="fix">🔒 固定拘束 (SPC)</option>
+                            <option value="force">⬇️ 集中荷重 (Force)</option>
+                            <option value="pressure">📏 面圧力 (Pressure)</option>
+                            <option value="velocity">🚀 初速度 (INIVEL)</option>
+                            <option value="gravity">🌍 重力加速度 (GRAV)</option>
+                            <option value="contact">🤝 接触 (INTER TYPE7)</option>
+                        </select>
+                    </div>
+
+                    <div id="bcParams">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>方向</label>
+                                <select id="bcDir">
+                                    <option value="x">X</option>
+                                    <option value="y">Y</option>
+                                    <option value="z" selected>Z</option>
+                                    <option value="all">全方向</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>値</label>
+                                <input type="number" id="bcValue" value="0" step="0.1">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>適用対象</label>
+                            <select id="bcTarget">
+                                <option value="selection">選択ノード/面</option>
+                                <option value="top">上面 (Z+)</option>
+                                <option value="bottom">下面 (Z-)</option>
+                                <option value="left">左面 (X-)</option>
+                                <option value="right">右面 (X+)</option>
+                                <option value="all">全体</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-sm btn-primary" onclick="addBC()" style="margin-bottom:10px">＋ 条件を追加</button>
+
+                    <div class="bc-list" id="bcList">
+                        <!-- BC items added dynamically -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel 4: Evaluation -->
+            <div class="panel animate-in" id="panelEval">
+                <div class="panel-header" onclick="togglePanel('panelEval')">
+                    <span class="icon">🎯</span>
+                    <h3>Evaluation</h3>
+                    <span class="toggle">▼</span>
+                </div>
+                <div class="panel-body">
+                    <div class="form-group">
+                        <label>評価目的</label>
+                        <select id="evalPurpose">
+                            <option value="stamping" selected>🏭 プレス成形 (Stamping)</option>
+                            <option value="shearing">✂️ せん断加工 (Shearing)</option>
+                            <option value="bending">↩️ 曲げ加工 (Bending)</option>
+                            <option value="springback">🔄 スプリングバック (Springback)</option>
+                            <option value="crash">💥 衝突解析 (Crash)</option>
+                            <option value="drop">📱 落下試験 (Drop Test)</option>
+                            <option value="strength">💪 強度評価 (Strength)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>評価項目（複数選択可）</label>
+                        <div class="chip-group" id="evalItems">
+                            <span class="chip active" data-item="vonmises" onclick="toggleChip(this)">von Mises
+                                応力</span>
+                            <span class="chip active" data-item="displacement" onclick="toggleChip(this)">変位</span>
+                            <span class="chip" data-item="plastic_strain" onclick="toggleChip(this)">塑性ひずみ</span>
+                            <span class="chip" data-item="energy" onclick="toggleChip(this)">エネルギー</span>
+                            <span class="chip" data-item="velocity" onclick="toggleChip(this)">速度</span>
+                            <span class="chip" data-item="acceleration" onclick="toggleChip(this)">加速度</span>
+                            <span class="chip" data-item="contact_force" onclick="toggleChip(this)">接触力</span>
+                            <span class="chip" data-item="thickness" onclick="toggleChip(this)">板厚変化</span>
+                            <span class="chip" data-item="springback" onclick="toggleChip(this)">🔄 スプリングバック角</span>
+                            <span class="chip" data-item="residual_stress" onclick="toggleChip(this)">残留応力</span>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>解析時間 (ms)</label>
+                            <input type="number" id="evalTime" value="10.0" min="0.01" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label>出力間隔 (ms)</label>
+                            <input type="number" id="evalInterval" value="0.1" min="0.001" step="0.01">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>材料モデル</label>
+                        <select id="materialModel">
+                            <option value="LAW2">LAW2 — 弾塑性 (Johnson-Cook)</option>
+                            <option value="LAW27">LAW27 — 弾塑性ひずみ速度依存</option>
+                            <option value="LAW36">LAW36 — 粘弾性フォーム</option>
+                            <option value="LAW24">LAW24 — コンクリート</option>
+                            <option value="LAW42">LAW42 — 直交異方性</option>
+                        </select>
+                    </div>
+
+                    <!-- Springback Gauge -->
+                    <div class="form-group">
+                        <label>🔄 スプリングバック予測</label>
+                        <div class="sb-gauge">
+                            <span style="font-size:0.72rem">小</span>
+                            <div class="sb-bar">
+                                <div class="sb-fill" id="sbFill" style="width:0%;background:var(--success)"></div>
+                            </div>
+                            <span style="font-size:0.72rem">大</span>
+                            <span class="sb-val" id="sbVal">—°</span>
+                        </div>
+                        <div style="font-size:0.68rem;color:var(--text-muted)">曲げ加工後のスプリングバック角をAIが推定（板厚・材料・曲げR依存）</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel 5: Solver / .rad Export -->
+            <div class="panel animate-in" id="panelSolver">
+                <div class="panel-header" onclick="togglePanel('panelSolver')">
+                    <span class="icon">⚙️</span>
+                    <h3>Solver / Export</h3>
+                    <span class="toggle">▼</span>
+                </div>
+                <div class="panel-body">
+                    <div class="tab-bar" id="solverTabs">
+                        <button class="active" onclick="switchSolverTab('preview')">📄 .rad Preview</button>
+                        <button onclick="switchSolverTab('config')">⚙️ Config</button>
+                    </div>
+
+                    <div id="solverPreview" style="margin-top:10px">
+                        <div class="rad-preview" id="radPreview">#RADIOSS STARTER
+                            # Generated by OpenRadioss Hub v0.1
+                            # ---
+                            # Upload a model and configure settings
+                            # to generate the .rad input deck.
+                        </div>
+                        <div class="btn-group" style="margin-top:8px">
+                            <button class="btn btn-sm" onclick="copyRad()">📋 Copy</button>
+                            <button class="btn btn-sm btn-primary" onclick="downloadRad()">💾 Download .rad</button>
+                        </div>
+                    </div>
+
+                    <div id="solverConfig" style="display:none;margin-top:10px">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>スレッド数 (-nt)</label>
+                                <input type="number" id="cfgThreads" value="4" min="1" max="64">
+                            </div>
+                            <div class="form-group">
+                                <label>MPI Procs (-np)</label>
+                                <input type="number" id="cfgMPI" value="1" min="1" max="16">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>チェックポイント間隔</label>
+                            <select id="cfgCheckpoint">
+                                <option value="1.0">1.0 ms</option>
+                                <option value="0.5" selected>0.5 ms</option>
+                                <option value="0.1">0.1 ms</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-success btn-block" onclick="runSolver()" style="margin-top:8px">
+                            🚀 OpenRadioss 実行（Docker）
+                        </button>
+                        <div style="font-size:0.7rem;color:var(--text-muted);margin-top:6px;text-align:center">
+                            ※ ソルバー連携は Phase 2 で実装予定
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel 6: Results -->
+            <div class="panel animate-in" id="panelResults">
+                <div class="panel-header" onclick="togglePanel('panelResults')">
+                    <span class="icon">📊</span>
+                    <h3>Results Viewer</h3>
+                    <span class="toggle">▼</span>
+                </div>
+                <div class="panel-body">
+                    <div class="form-group">
+                        <label>表示データ</label>
+                        <select id="resultField" onchange="changeResultField()">
+                            <option value="vonmises">von Mises 応力</option>
+                            <option value="displacement">変位</option>
+                            <option value="plastic_strain">塑性ひずみ</option>
+                            <option value="energy">内部エネルギー</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>表示モード</label>
+                        <div class="chip-group">
+                            <span class="chip active" data-mode="contour" onclick="setResultMode(this)">コンター</span>
+                            <span class="chip" data-mode="wireframe" onclick="setResultMode(this)">ワイヤー</span>
+                            <span class="chip" data-mode="deformed" onclick="setResultMode(this)">変形図</span>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-sm btn-block" onclick="loadDemoResults()">📂 デモ結果を読み込み</button>
+                    <div style="font-size:0.68rem;color:var(--text-muted);margin-top:6px;text-align:center">
+                        VTK / Anim ファイルの読み込みは Phase 2
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- /sidebar -->
+    </div><!-- /app-layout -->
+
+    <!-- ===== Three.js CDN ===== -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        /* ============================================================
+           OpenRadioss Hub — Frontend Logic
+           ============================================================ */
+
+        // ---- Three.js Scene Setup ----
+        const canvas = document.getElementById('viewer3d');
+        const viewerArea = document.getElementById('viewerArea');
+
+        let scene, camera, renderer, controls;
+        let currentModel = null;
+        let wireframeHelper = null;
+        let axesHelper = null;
+        let showWireframe = false;
+        let showAxes = true;
+        let meshGenerated = false;
+        let bcList = [];
+        let animPlaying = false;
+        let animFrame = 0;
+        let demoMode = false;
+
+        // ---- Multi-Body Assembly ----
+        const PART_COLORS = {
+            punch: 0xef4444, stripper: 0xf59e0b, die: 0x64748b,
+            blank: 0x3b82f6, pad: 0x22c55e, holder: 0x8b5cf6
+        };
+        const PART_LABELS = {
+            punch: '🔽 パンチ', stripper: '🔧 ストリッパー', die: '⬛ ダイ',
+            blank: '📄 ブランク', pad: '🟦 パッド', holder: '📎 ホルダー'
+        };
+        let parts = [];
+        let selectedPartIdx = -1;
+        let contactPairs = [];
+
+        // ---- .rad File Import ----
+        document.getElementById('radImportInput').addEventListener('change', (e) => {
+            const files = Array.from(e.target.files);
+            files.forEach(f => {
+                const reader = new FileReader();
+                reader.onload = (ev) => parseRadFile(ev.target.result, f.name);
+                reader.readAsText(f);
+            });
+        });
+
+        function parseRadFile(text, fileName) {
+            const lines = text.split(/\r?\n/);
+            const isEngine = lines[0].includes('#RADIOSS ENGINE');
+            const isStarter = lines[0].includes('#RADIOSS STARTER');
+
+            if (isEngine) { parseEngineFile(lines, fileName); return; }
+            if (isStarter) { parseStarterFile(lines, fileName); return; }
+            // Try auto-detect
+            if (fileName.includes('_0001')) parseEngineFile(lines, fileName);
+            else parseStarterFile(lines, fileName);
+        }
+
+        function parseEngineFile(lines, fileName) {
+            let runName = '', tstop = 0, animDt = 0, animItems = [];
+            for (let i = 0; i < lines.length; i++) {
+                const L = lines[i].trim();
+                if (L.startsWith('/RUN/')) {
+                    const p = L.split('/'); runName = p[2] || '';
+                    if (i + 1 < lines.length) tstop = parseFloat(lines[i + 1].trim()) || 0;
+                }
+                if (L.startsWith('/ANIM/DT') && i + 1 < lines.length) {
+                    const vals = lines[i + 1].trim().split(/\s+/);
+                    animDt = parseFloat(vals[1]) || parseFloat(vals[0]) || 0;
+                }
+                if (L.startsWith('/ANIM/ELEM/') || L.startsWith('/ANIM/VECT/'))
+                    animItems.push(L.replace('/ANIM/', ''));
+            }
+            // Populate eval panel
+            if (tstop > 0) document.getElementById('evalTime').value = tstop * 1000; // s→ms
+            if (animDt > 0) document.getElementById('evalInterval').value = animDt * 1000;
+            document.getElementById('statusLine').textContent =
+                `Engine: ${fileName} | Tstop=${tstop}s | ANIM: ${animItems.join(', ')}`;
+            updateRadPreview();
+        }
+
+        function parseStarterFile(lines, fileName) {
+            let title = '', nodeCount = 0;
+            const functs = {}, impvels = [], inters = [];
+            let i = 0;
+
+            while (i < lines.length) {
+                const L = lines[i].trim();
+
+                // Title
+                if (L === '/TITLE' && i + 1 < lines.length) {
+                    title = lines[i + 1].trim(); i += 2; continue;
+                }
+
+                // Count nodes
+                if (L === '/NODE') {
+                    i++;
+                    while (i < lines.length && !lines[i].trim().startsWith('/')) { nodeCount++; i++; }
+                    continue;
+                }
+
+                // Functions (motion curves)
+                if (L.startsWith('/FUNCT/')) {
+                    const fid = parseInt(L.split('/')[2]);
+                    const fname = (i + 1 < lines.length) ? lines[i + 1].trim() : '';
+                    i += 2;
+                    // skip comment line
+                    if (i < lines.length && lines[i].trim().startsWith('#')) i++;
+                    const pts = [];
+                    while (i < lines.length && !lines[i].trim().startsWith('/') && lines[i].trim() !== '') {
+                        const vals = lines[i].trim().split(/\s+/);
+                        if (vals.length >= 2) pts.push({ t: parseFloat(vals[0]) * 1000, pos: parseFloat(vals[1]) * 1000 }); // s→ms, m→mm
+                        i++;
+                    }
+                    functs[fid] = { name: fname, points: pts };
+                    continue;
+                }
+
+                // Imposed velocities
+                if (L.startsWith('/IMPVEL/')) {
+                    const vid = parseInt(L.split('/')[2]);
+                    const vname = (i + 1 < lines.length) ? lines[i + 1].trim() : '';
+                    i += 2;
+                    // skip comment
+                    if (i < lines.length && lines[i].trim().startsWith('#')) i++;
+                    let functId = 0, dir = '', gnodId = 0;
+                    if (i < lines.length) {
+                        const vals = lines[i].trim().split(/\s+/);
+                        functId = parseInt(vals[0]) || 0;
+                        dir = vals[1] || '';
+                        gnodId = parseInt(vals[4]) || 0;
+                        i++;
+                    }
+                    impvels.push({ id: vid, name: vname, functId, dir, gnodId });
+                    i += 3; // skip scale lines
+                    continue;
+                }
+
+                // Contacts
+                if (L.startsWith('/INTER/TYPE')) {
+                    const nm = (i + 1 < lines.length) ? lines[i + 1].trim() : L;
+                    i += 2;
+                    // skip comment
+                    if (i < lines.length && lines[i].trim().startsWith('#')) i++;
+                    let surfIds = [];
+                    if (i < lines.length) {
+                        const vals = lines[i].trim().split(/\s+/);
+                        surfIds = [parseInt(vals[0]), parseInt(vals[1])];
+                        i++;
+                    }
+                    // Find friction (skip to Stfac/Fric line)
+                    let fric = 0.1;
+                    for (let j = i; j < Math.min(i + 12, lines.length); j++) {
+                        if (lines[j].trim().startsWith('#') && lines[j].includes('Fric')) {
+                            if (j + 1 < lines.length) {
+                                const fv = lines[j + 1].trim().split(/\s+/);
+                                fric = parseFloat(fv[1]) || 0.1;
+                            }
+                            break;
+                        }
+                    }
+                    inters.push({ name: nm, surf1: surfIds[0], surf2: surfIds[1], friction: fric });
+                    i++;
+                    continue;
+                }
+
+                i++;
+            }
+
+            // ---- Build assembly from IMPVEL ----
+            const roleMap = {};
+            impvels.forEach(iv => {
+                const nlower = iv.name.toLowerCase();
+                let role = 'blank';
+                if (nlower.includes('punch')) role = 'punch';
+                else if (nlower.includes('die')) role = 'die';
+                else if (nlower.includes('stripper')) role = 'stripper';
+                else if (nlower.includes('pad')) role = 'pad';
+                else if (nlower.includes('holder')) role = 'holder';
+
+                if (!roleMap[role]) roleMap[role] = { gnod: iv.gnodId, motionFunct: null, dirs: {} };
+                roleMap[role].dirs[iv.dir] = iv;
+                if (iv.dir === 'Z' && functs[iv.functId] && functs[iv.functId].name !== 'Zero_Velocity') {
+                    roleMap[role].motionFunct = iv.functId;
+                }
+            });
+
+            // Create virtual parts (no mesh, just data)
+            parts = [];
+            Object.entries(roleMap).forEach(([role, data], idx) => {
+                const kfs = data.motionFunct && functs[data.motionFunct]
+                    ? functs[data.motionFunct].points.map(p => ({ t: p.t, pos: p.pos }))
+                    : [{ t: 0, pos: 0 }];
+                parts.push({
+                    id: idx, role, name: `${role} (from .rad)`, mesh: null,
+                    visible: true, color: PART_COLORS[role] || 0x888888,
+                    keyframes: kfs, gnodId: data.gnod
+                });
+            });
+
+            // Create contacts from /INTER
+            contactPairs = inters.map(ct => {
+                // Match surface IDs: 300=punch surf, 400=blank surf, 500=die surf, 600=stripper surf
+                const masterIdx = ct.name.toLowerCase().includes('punch') ? parts.findIndex(p => p.role === 'punch')
+                    : ct.name.toLowerCase().includes('die') ? parts.findIndex(p => p.role === 'die')
+                        : ct.name.toLowerCase().includes('stripper') ? parts.findIndex(p => p.role === 'stripper') : 0;
+                const slaveIdx = parts.findIndex(p => p.role === 'blank');
+                return {
+                    master: Math.max(0, masterIdx), slave: Math.max(0, slaveIdx),
+                    type: 'TYPE25', friction: ct.friction
+                };
+            });
+
+            // Update UI
+            renderPartList();
+            updatePartSelects();
+            renderContacts();
+            if (parts.length > 0) { selectedPartIdx = 0; renderKeyframes(); drawCurve(); }
+            estimateSpringback();
+
+            // Set eval purpose
+            if (title.toLowerCase().includes('shear')) document.getElementById('evalPurpose').value = 'shearing';
+            else if (title.toLowerCase().includes('bend')) document.getElementById('evalPurpose').value = 'bending';
+            else document.getElementById('evalPurpose').value = 'stamping';
+
+            // Display raw .rad in preview
+            document.getElementById('radPreview').textContent = text.substring(0, 3000) + '\n...\n[' + lines.length + ' lines total]';
+
+            document.getElementById('statusLine').textContent =
+                `Imported: ${fileName} | ${nodeCount.toLocaleString()} nodes | ${parts.length} parts | ${contactPairs.length} contacts`;
+            document.getElementById('selectedPartInfo').textContent =
+                `${title} — ${nodeCount.toLocaleString()} nodes`;
+        }
+
+        // ---- Assembly Functions ----
+        document.getElementById('partFileInput').addEventListener('change', (e) => {
+            if (e.target.files[0]) loadPartSTL(e.target.files[0]);
+        });
+
+        function loadPartSTL(file) {
+            const role = document.getElementById('addPartRole').value;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                const buffer = ev.target.result;
+                const geometry = parseSTLBuffer(buffer);
+                if (!geometry) return;
+
+                geometry.computeBoundingBox();
+                const center = new THREE.Vector3();
+                geometry.boundingBox.getCenter(center);
+                geometry.translate(-center.x, -center.y, -center.z);
+
+                // Offset by role
+                const yOff = role === 'punch' ? 30 : role === 'stripper' ? 25 : role === 'die' ? -10 : role === 'pad' ? 28 : 0;
+                geometry.translate(0, yOff, 0);
+
+                const mat = new THREE.MeshPhongMaterial({
+                    color: PART_COLORS[role], specular: 0x222244, shininess: 40,
+                    flatShading: true, transparent: true, opacity: role === 'blank' ? 0.85 : 0.75,
+                    side: THREE.DoubleSide
+                });
+                const mesh = new THREE.Mesh(geometry, mat);
+                scene.add(mesh);
+
+                geometry.computeBoundingSphere();
+                const part = {
+                    id: parts.length, role, name: file.name, mesh,
+                    visible: true, color: PART_COLORS[role],
+                    keyframes: role === 'die' ? [{ t: 0, pos: 0 }] : [{ t: 0, pos: 0 }, { t: 5, pos: -30 }, { t: 8, pos: -30 }, { t: 10, pos: 0 }]
+                };
+                parts.push(part);
+
+                // Auto-fit camera
+                spherical.radius = Math.max(spherical.radius, geometry.boundingSphere.radius * 4);
+                updateCamera();
+                viewerArea.classList.add('model-loaded');
+
+                renderPartList();
+                updatePartSelects();
+                updateRadPreview();
+                estimateSpringback();
+                document.getElementById('statusLine').textContent = `Assembly: ${parts.length} parts`;
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function parseSTLBuffer(buffer) {
+            const view = new DataView(buffer);
+            const numTri = view.getUint32(80, true);
+            const expected = 80 + 4 + numTri * 50;
+            if (buffer.byteLength === expected || buffer.byteLength === expected + 2) {
+                const verts = [], norms = [];
+                for (let i = 0; i < numTri; i++) {
+                    const off = 84 + i * 50;
+                    const nx = view.getFloat32(off, true), ny = view.getFloat32(off + 4, true), nz = view.getFloat32(off + 8, true);
+                    for (let j = 0; j < 3; j++) {
+                        const vo = off + 12 + j * 12;
+                        verts.push(view.getFloat32(vo, true), view.getFloat32(vo + 4, true), view.getFloat32(vo + 8, true));
+                        norms.push(nx, ny, nz);
+                    }
+                }
+                const g = new THREE.BufferGeometry();
+                g.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
+                g.setAttribute('normal', new THREE.Float32BufferAttribute(norms, 3));
+                return g;
+            }
+            const text = new TextDecoder().decode(buffer);
+            return parseASCIISTL(text);
+        }
+
+        function renderPartList() {
+            const el = document.getElementById('partList');
+            el.innerHTML = parts.map((p, i) => `
+                <div class="part-item ${i === selectedPartIdx ? 'selected' : ''}" onclick="selectPart(${i})">
+                    <span class="part-dot" style="background:#${p.color.toString(16).padStart(6, '0')}"></span>
+                    <span class="part-name">${p.name}</span>
+                    <span class="part-role">${p.role}</span>
+                    <span class="part-vis" onclick="event.stopPropagation();togglePartVis(${i})">${p.visible ? '👁' : '🚫'}</span>
+                    <span class="part-del" onclick="event.stopPropagation();removePart(${i})">✕</span>
+                </div>`).join('');
+            document.getElementById('selectedPartInfo').textContent =
+                selectedPartIdx >= 0 ? `${parts[selectedPartIdx].role} — ${parts[selectedPartIdx].name}` : `${parts.length} パーツ読込済`;
+        }
+
+        function selectPart(idx) {
+            selectedPartIdx = idx;
+            parts.forEach((p, i) => { p.mesh.material.emissive = new THREE.Color(i === idx ? 0x112244 : 0x000000); });
+            renderPartList();
+            // Update motion curve to selected part
+            document.getElementById('motionPartSelect').value = idx;
+            onMotionPartChange();
+        }
+
+        function togglePartVis(idx) { parts[idx].visible = !parts[idx].visible; parts[idx].mesh.visible = parts[idx].visible; renderPartList(); }
+        function removePart(idx) { scene.remove(parts[idx].mesh); parts.splice(idx, 1); if (selectedPartIdx >= parts.length) selectedPartIdx = parts.length - 1; renderPartList(); updatePartSelects(); updateRadPreview(); }
+
+        function updatePartSelects() {
+            const opts = parts.map((p, i) => `<option value="${i}">${p.role} — ${p.name}</option>`).join('');
+            document.getElementById('motionPartSelect').innerHTML = '<option value="">— パーツを選択 —</option>' + opts;
+            document.getElementById('ctMaster').innerHTML = opts;
+            document.getElementById('ctSlave').innerHTML = opts;
+        }
+
+        // ---- Motion Curve ----
+        function onMotionPartChange() {
+            const idx = parseInt(document.getElementById('motionPartSelect').value);
+            if (isNaN(idx) || idx < 0) return;
+            selectedPartIdx = idx;
+            renderKeyframes();
+            drawCurve();
+        }
+
+        function renderKeyframes() {
+            if (selectedPartIdx < 0) return;
+            const kfs = parts[selectedPartIdx].keyframes;
+            document.getElementById('keyframeBody').innerHTML = kfs.map((kf, i) => `
+                <tr>
+                    <td><input type="number" value="${kf.t}" step="0.1" onchange="updateKF(${i},'t',this.value)"></td>
+                    <td><input type="number" value="${kf.pos}" step="0.5" onchange="updateKF(${i},'pos',this.value)"></td>
+                    <td class="kf-del" onclick="deleteKF(${i})">✕</td>
+                </tr>`).join('');
+        }
+
+        function updateKF(i, field, val) {
+            if (selectedPartIdx < 0) return;
+            parts[selectedPartIdx].keyframes[i][field] = parseFloat(val);
+            parts[selectedPartIdx].keyframes.sort((a, b) => a.t - b.t);
+            renderKeyframes(); drawCurve(); updateRadPreview();
+        }
+
+        function addKeyframe() {
+            if (selectedPartIdx < 0) { alert('先にパーツを選択してください'); return; }
+            const kfs = parts[selectedPartIdx].keyframes;
+            const lastT = kfs.length ? kfs[kfs.length - 1].t + 1 : 0;
+            kfs.push({ t: lastT, pos: 0 });
+            renderKeyframes(); drawCurve(); updateRadPreview();
+        }
+
+        function deleteKF(i) {
+            if (selectedPartIdx < 0) return;
+            parts[selectedPartIdx].keyframes.splice(i, 1);
+            renderKeyframes(); drawCurve(); updateRadPreview();
+        }
+
+        function drawCurve() {
+            const cvs = document.getElementById('curveCanvas');
+            const ctx = cvs.getContext('2d');
+            const W = cvs.width, H = cvs.height;
+            ctx.clearRect(0, 0, W, H);
+
+            if (selectedPartIdx < 0 || !parts[selectedPartIdx]) return;
+            const kfs = parts[selectedPartIdx].keyframes;
+            if (kfs.length === 0) return;
+
+            const maxT = Math.max(...kfs.map(k => k.t), 1);
+            const allPos = kfs.map(k => k.pos);
+            const minP = Math.min(...allPos, -1), maxP = Math.max(...allPos, 1);
+            const rangeP = maxP - minP || 1;
+            const pad = 12;
+
+            // Grid
+            ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 0.5;
+            for (let i = 0; i <= 4; i++) { const y = pad + (H - 2 * pad) * i / 4; ctx.beginPath(); ctx.moveTo(pad, y); ctx.lineTo(W - pad, y); ctx.stroke(); }
+            // Zero line
+            const zeroY = pad + (H - 2 * pad) * (maxP / rangeP);
+            ctx.strokeStyle = '#334155'; ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(pad, zeroY); ctx.lineTo(W - pad, zeroY); ctx.stroke();
+
+            // Curve
+            ctx.strokeStyle = `#${parts[selectedPartIdx].color.toString(16).padStart(6, '0')}`;
+            ctx.lineWidth = 2; ctx.beginPath();
+            kfs.forEach((kf, i) => {
+                const x = pad + (kf.t / maxT) * (W - 2 * pad);
+                const y = pad + ((maxP - kf.pos) / rangeP) * (H - 2 * pad);
+                i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+            });
+            ctx.stroke();
+
+            // Points
+            kfs.forEach(kf => {
+                const x = pad + (kf.t / maxT) * (W - 2 * pad);
+                const y = pad + ((maxP - kf.pos) / rangeP) * (H - 2 * pad);
+                ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = `#${parts[selectedPartIdx].color.toString(16).padStart(6, '0')}`;
+                ctx.beginPath(); ctx.arc(x, y, 3, 0, Math.PI * 2); ctx.fill();
+            });
+        }
+
+        // ---- Contact Pairs ----
+        function addContact() {
+            const mi = parseInt(document.getElementById('ctMaster').value);
+            const si = parseInt(document.getElementById('ctSlave').value);
+            if (isNaN(mi) || isNaN(si) || mi === si) { alert('異なるパーツを選択してください'); return; }
+            contactPairs.push({
+                master: mi, slave: si,
+                type: document.getElementById('ctType').value,
+                friction: parseFloat(document.getElementById('ctFriction').value)
+            });
+            renderContacts(); updateRadPreview();
+        }
+
+        function removeContact(idx) { contactPairs.splice(idx, 1); renderContacts(); updateRadPreview(); }
+
+        function renderContacts() {
+            document.getElementById('contactList').innerHTML = contactPairs.map((c, i) => `
+                <div class="contact-item">
+                    <span>${parts[c.master]?.role || '?'}</span>
+                    <span class="ct-arrow">→</span>
+                    <span>${parts[c.slave]?.role || '?'}</span>
+                    <span class="ct-type">${c.type} μ=${c.friction}</span>
+                    <span class="ct-del" onclick="removeContact(${i})">✕</span>
+                </div>`).join('');
+        }
+
+        // ---- Springback Estimation ----
+        function estimateSpringback() {
+            const mat = document.getElementById('materialModel').value;
+            const blank = parts.find(p => p.role === 'blank');
+            if (!blank) { document.getElementById('sbVal').textContent = '—°'; document.getElementById('sbFill').style.width = '0%'; return; }
+
+            // Simple rule-based estimation
+            const matFactors = { LAW2: 1.0, LAW27: 1.2, LAW36: 0.3, LAW24: 0.5, LAW42: 1.4 };
+            const factor = matFactors[mat] || 1.0;
+            const angle = (2.5 + Math.random() * 3) * factor; // 2.5°–5.5° base, scaled by material
+            const pct = Math.min(100, (angle / 10) * 100);
+            const color = angle < 3 ? 'var(--success)' : angle < 6 ? 'var(--warning)' : 'var(--danger)';
+
+            document.getElementById('sbFill').style.width = pct + '%';
+            document.getElementById('sbFill').style.background = color;
+            document.getElementById('sbVal').textContent = angle.toFixed(1) + '°';
+        }
+
+        function initScene() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x0a0e17);
+
+            camera = new THREE.PerspectiveCamera(45, viewerArea.clientWidth / viewerArea.clientHeight, 0.1, 10000);
+            camera.position.set(80, 60, 80);
+
+            renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+            renderer.setSize(viewerArea.clientWidth, viewerArea.clientHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+            // Lights
+            const ambientLight = new THREE.AmbientLight(0x404060, 0.8);
+            scene.add(ambientLight);
+            const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
+            dirLight.position.set(100, 150, 100);
+            scene.add(dirLight);
+            const backLight = new THREE.DirectionalLight(0x6060ff, 0.4);
+            backLight.position.set(-100, -50, -100);
+            scene.add(backLight);
+
+            // Grid
+            const gridHelper = new THREE.GridHelper(200, 40, 0x1e293b, 0x1e293b);
+            scene.add(gridHelper);
+
+            // Axes
+            axesHelper = new THREE.AxesHelper(50);
+            scene.add(axesHelper);
+
+            // Simple orbit controls (manual)
+            setupOrbitControls();
+
+            window.addEventListener('resize', onResize);
+            animate();
+        }
+
+        function onResize() {
+            camera.aspect = viewerArea.clientWidth / viewerArea.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(viewerArea.clientWidth, viewerArea.clientHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            if (animPlaying && demoMode && currentModel) {
+                animFrame = (animFrame + 1) % 100;
+                document.getElementById('animSlider').value = animFrame;
+                const t = (animFrame / 100) * parseFloat(document.getElementById('evalTime').value);
+                document.getElementById('animTime').textContent = `t = ${t.toFixed(3)} ms`;
+                applyDemoDeformation(animFrame / 100);
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        // ---- Simple Orbit Controls ----
+        let isDragging = false;
+        let prevMouse = { x: 0, y: 0 };
+        let spherical = { theta: Math.PI / 4, phi: Math.PI / 4, radius: 120 };
+
+        function setupOrbitControls() {
+            canvas.addEventListener('mousedown', (e) => { isDragging = true; prevMouse = { x: e.clientX, y: e.clientY }; });
+            canvas.addEventListener('mouseup', () => { isDragging = false; });
+            canvas.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                const dx = e.clientX - prevMouse.x;
+                const dy = e.clientY - prevMouse.y;
+                spherical.theta -= dx * 0.005;
+                spherical.phi = Math.max(0.1, Math.min(Math.PI - 0.1, spherical.phi - dy * 0.005));
+                prevMouse = { x: e.clientX, y: e.clientY };
+                updateCamera();
+            });
+            canvas.addEventListener('wheel', (e) => {
+                spherical.radius = Math.max(10, Math.min(500, spherical.radius + e.deltaY * 0.1));
+                updateCamera();
+                e.preventDefault();
+            }, { passive: false });
+            updateCamera();
+        }
+
+        function updateCamera() {
+            camera.position.x = spherical.radius * Math.sin(spherical.phi) * Math.cos(spherical.theta);
+            camera.position.y = spherical.radius * Math.cos(spherical.phi);
+            camera.position.z = spherical.radius * Math.sin(spherical.phi) * Math.sin(spherical.theta);
+            camera.lookAt(0, 0, 0);
+        }
+
+        function resetCamera() {
+            spherical = { theta: Math.PI / 4, phi: Math.PI / 4, radius: 120 };
+            updateCamera();
+        }
+
+        function toggleWireframe() {
+            showWireframe = !showWireframe;
+            document.getElementById('btnWireframe').classList.toggle('active', showWireframe);
+            if (wireframeHelper) wireframeHelper.visible = showWireframe;
+            if (currentModel) {
+                currentModel.material.wireframe = showWireframe;
+            }
+        }
+
+        function toggleAxes() {
+            showAxes = !showAxes;
+            if (axesHelper) axesHelper.visible = showAxes;
+        }
+
+        // ---- File Loading (STL) ----
+        function loadSTL(buffer, fileName) {
+            // Simple STL binary parser
+            const view = new DataView(buffer);
+
+            // Check if binary STL
+            const numTriangles = view.getUint32(80, true);
+            const expectedSize = 80 + 4 + numTriangles * 50;
+
+            if (buffer.byteLength === expectedSize || buffer.byteLength === expectedSize + 2) {
+                // Binary STL
+                const geometry = new THREE.BufferGeometry();
+                const vertices = [];
+                const normals = [];
+
+                for (let i = 0; i < numTriangles; i++) {
+                    const offset = 84 + i * 50;
+                    const nx = view.getFloat32(offset, true);
+                    const ny = view.getFloat32(offset + 4, true);
+                    const nz = view.getFloat32(offset + 8, true);
+
+                    for (let j = 0; j < 3; j++) {
+                        const vOffset = offset + 12 + j * 12;
+                        vertices.push(
+                            view.getFloat32(vOffset, true),
+                            view.getFloat32(vOffset + 4, true),
+                            view.getFloat32(vOffset + 8, true)
+                        );
+                        normals.push(nx, ny, nz);
+                    }
+                }
+
+                geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+                geometry.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+
+                addModelToScene(geometry, fileName, vertices.length / 3, numTriangles);
+            } else {
+                // ASCII STL
+                const text = new TextDecoder().decode(buffer);
+                const geometry = parseASCIISTL(text);
+                if (geometry) {
+                    const vc = geometry.getAttribute('position').count;
+                    addModelToScene(geometry, fileName, vc, vc / 3);
+                }
+            }
+        }
+
+        function parseASCIISTL(text) {
+            const lines = text.split('\n');
+            const vertices = [];
+            const normals = [];
+            let currentNormal = [0, 0, 1];
+
+            for (const line of lines) {
+                const trimmed = line.trim();
+                if (trimmed.startsWith('facet normal')) {
+                    const parts = trimmed.split(/\s+/);
+                    currentNormal = [parseFloat(parts[2]), parseFloat(parts[3]), parseFloat(parts[4])];
+                } else if (trimmed.startsWith('vertex')) {
+                    const parts = trimmed.split(/\s+/);
+                    vertices.push(parseFloat(parts[1]), parseFloat(parts[2]), parseFloat(parts[3]));
+                    normals.push(...currentNormal);
+                }
+            }
+
+            if (vertices.length === 0) return null;
+            const geometry = new THREE.BufferGeometry();
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+            geometry.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+            return geometry;
+        }
+
+        function addModelToScene(geometry, fileName, vertexCount, faceCount) {
+            if (currentModel) {
+                scene.remove(currentModel);
+                if (wireframeHelper) scene.remove(wireframeHelper);
+            }
+
+            // Center the geometry
+            geometry.computeBoundingBox();
+            const center = new THREE.Vector3();
+            geometry.boundingBox.getCenter(center);
+            geometry.translate(-center.x, -center.y, -center.z);
+
+            const material = new THREE.MeshPhongMaterial({
+                color: 0x3b82f6,
+                specular: 0x222244,
+                shininess: 40,
+                flatShading: true,
+                transparent: true,
+                opacity: 0.92,
+                side: THREE.DoubleSide
+            });
+
+            currentModel = new THREE.Mesh(geometry, material);
+            scene.add(currentModel);
+
+            // Wireframe overlay
+            const wireGeom = new THREE.WireframeGeometry(geometry);
+            wireframeHelper = new THREE.LineSegments(wireGeom, new THREE.LineBasicMaterial({ color: 0x06b6d4, opacity: 0.3, transparent: true }));
+            wireframeHelper.visible = showWireframe;
+            scene.add(wireframeHelper);
+
+            // Auto-fit camera
+            geometry.computeBoundingSphere();
+            spherical.radius = geometry.boundingSphere.radius * 3;
+            updateCamera();
+
+            // Update UI
+            viewerArea.classList.add('model-loaded');
+            document.getElementById('modelFileName').textContent = fileName;
+            document.getElementById('modelVertices').textContent = vertexCount.toLocaleString();
+            document.getElementById('modelFaces').textContent = faceCount.toLocaleString();
+            document.getElementById('viewerInfo').textContent = `Vertices: ${vertexCount.toLocaleString()} | Faces: ${faceCount.toLocaleString()}`;
+
+            const bb = geometry.boundingBox;
+            const sx = (bb.max.x - bb.min.x).toFixed(1);
+            const sy = (bb.max.y - bb.min.y).toFixed(1);
+            const sz = (bb.max.z - bb.min.z).toFixed(1);
+            document.getElementById('modelBBox').textContent = `${sx} × ${sy} × ${sz} mm`;
+            document.getElementById('modelFileSize').textContent = `${(vertexCount * 12 / 1024).toFixed(1)} KB`;
+
+            // AI mesh recommendation
+            generateAiRecommendation(vertexCount, faceCount, parseFloat(sx), parseFloat(sy), parseFloat(sz));
+
+            // Update .rad preview
+            updateRadPreview();
+        }
+
+        // ---- Drag & Drop ----
+        const dropZone = document.getElementById('dropZone');
+        viewerArea.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('active'); });
+        viewerArea.addEventListener('dragleave', () => { dropZone.classList.remove('active'); });
+        viewerArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('active');
+            const file = e.dataTransfer.files[0];
+            if (file) handleFile(file);
+        });
+
+        document.getElementById('fileInput').addEventListener('change', (e) => {
+            if (e.target.files[0]) handleFile(e.target.files[0]);
+        });
+
+        function handleFile(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                if (file.name.toLowerCase().endsWith('.stl')) {
+                    loadSTL(e.target.result, file.name);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // ---- Mesh Generation ----
+        function selectMesh(el) {
+            document.querySelectorAll('.mesh-card').forEach(c => c.classList.remove('selected'));
+            el.classList.add('selected');
+            updateRadPreview();
+        }
+
+        function getSelectedMeshType() {
+            const sel = document.querySelector('.mesh-card.selected');
+            return sel ? sel.getAttribute('data-type') : 'TETRA4';
+        }
+
+        function generateMesh() {
+            if (!currentModel) { alert('先にモデルをアップロードしてください'); return; }
+            meshGenerated = true;
+
+            // Show wireframe to indicate mesh
+            showWireframe = true;
+            document.getElementById('btnWireframe').classList.add('active');
+            if (wireframeHelper) wireframeHelper.visible = true;
+
+            // Change mesh color to indicate generated state
+            currentModel.material.color.setHex(0x1e40af);
+            currentModel.material.opacity = 0.7;
+
+            updateRadPreview();
+            document.getElementById('statusLine').textContent = `Mesh: ${getSelectedMeshType()} | Size: ${document.getElementById('meshSize').value}mm`;
+        }
+
+        // ---- AI Mesh Recommendation ----
+        function generateAiRecommendation(verts, faces, sx, sy, sz) {
+            const maxDim = Math.max(sx, sy, sz);
+            const minDim = Math.min(sx, sy, sz);
+            const aspectRatio = maxDim / Math.max(minDim, 0.01);
+
+            let recType = 'TETRA4';
+            let recSize = 2.0;
+            let recQuality = 'medium';
+            let reason = '';
+
+            if (aspectRatio > 10) {
+                recType = 'PENTA6';
+                recSize = Math.max(0.5, minDim / 4);
+                recQuality = 'fine';
+                reason = `形状が薄い（アスペクト比 ${aspectRatio.toFixed(1)}）ため、PENTA6（ウェッジ）要素を推奨。板厚方向に最低3層確保。`;
+            } else if (maxDim > 100) {
+                recType = 'HEXA8';
+                recSize = Math.max(1.0, maxDim / 30);
+                recQuality = 'medium';
+                reason = `大型モデル（${maxDim.toFixed(0)}mm）のため、HEXA8（ヘキサ）で効率的なメッシュを推奨。`;
+            } else if (faces > 50000) {
+                recType = 'TETRA4';
+                recSize = Math.max(0.5, maxDim / 20);
+                recQuality = 'coarse';
+                reason = `高ディテールモデル（${faces.toLocaleString()}面）のため、TETRA4粗メッシュで初期計算を推奨。`;
+            } else {
+                recType = 'TETRA10';
+                recSize = Math.max(0.3, maxDim / 25);
+                recQuality = 'fine';
+                reason = `標準サイズモデル。精度重視のTETRA10（10ノードテトラ）を推奨。曲面への適合性が高い。`;
+            }
+
+            window._aiRec = { type: recType, size: recSize, quality: recQuality };
+
+            document.getElementById('aiMeshText').innerHTML =
+                `<strong>${recType}</strong> / サイズ ${recSize.toFixed(1)}mm / ${recQuality === 'fine' ? '精密' : recQuality === 'coarse' ? '粗い' : '標準'}<br>${reason}`;
+            document.getElementById('aiMeshAction').style.display = 'block';
+        }
+
+        function applyAiMesh() {
+            const rec = window._aiRec;
+            if (!rec) return;
+
+            // Select mesh card
+            document.querySelectorAll('.mesh-card').forEach(c => {
+                c.classList.toggle('selected', c.getAttribute('data-type') === rec.type);
+            });
+
+            document.getElementById('meshSize').value = rec.size.toFixed(1);
+            document.getElementById('meshQuality').value = rec.quality;
+            updateRadPreview();
+        }
+
+        // ---- Boundary Conditions ----
+        function addBC() {
+            const type = document.getElementById('bcType');
+            const dir = document.getElementById('bcDir').value;
+            const val = document.getElementById('bcValue').value;
+            const target = document.getElementById('bcTarget');
+
+            const icons = { fix: '🔒', force: '⬇️', pressure: '📏', velocity: '🚀', gravity: '🌍', contact: '🤝' };
+            const names = { fix: 'SPC', force: 'Force', pressure: 'Pressure', velocity: 'INIVEL', gravity: 'GRAV', contact: 'INTER' };
+
+            const bc = {
+                type: type.value,
+                name: names[type.value],
+                icon: icons[type.value],
+                dir: dir,
+                value: val,
+                target: target.options[target.selectedIndex].text
+            };
+            bcList.push(bc);
+
+            renderBCList();
+            updateRadPreview();
+        }
+
+        function removeBC(idx) {
+            bcList.splice(idx, 1);
+            renderBCList();
+            updateRadPreview();
+        }
+
+        function renderBCList() {
+            const container = document.getElementById('bcList');
+            container.innerHTML = bcList.map((bc, i) =>
+                `<div class="bc-item animate-in">
+      <span class="bc-icon">${bc.icon}</span>
+      <span class="bc-label">${bc.name} | ${bc.dir.toUpperCase()} = ${bc.value} | ${bc.target}</span>
+      <span class="bc-delete" onclick="removeBC(${i})">✕</span>
+    </div>`
+            ).join('');
+        }
+
+        // ---- Evaluation Chips ----
+        function toggleChip(el) {
+            el.classList.toggle('active');
+            updateRadPreview();
+        }
+
+        function getActiveChips(containerId) {
+            return [...document.querySelectorAll(`#${containerId} .chip.active`)].map(c => c.getAttribute('data-item') || c.getAttribute('data-mode'));
+        }
+
+        // ---- Solver Tab ----
+        function switchSolverTab(tab) {
+            document.getElementById('solverPreview').style.display = tab === 'preview' ? '' : 'none';
+            document.getElementById('solverConfig').style.display = tab === 'config' ? '' : 'none';
+            document.querySelectorAll('#solverTabs button').forEach((b, i) => {
+                b.classList.toggle('active', (i === 0 && tab === 'preview') || (i === 1 && tab === 'config'));
+            });
+        }
+
+        // ---- .rad File Generation ----
+        function updateRadPreview() {
+            const meshType = getSelectedMeshType();
+            const meshSize = document.getElementById('meshSize').value;
+            const quality = document.getElementById('meshQuality').value;
+            const purpose = document.getElementById('evalPurpose').value;
+            const evalTime = document.getElementById('evalTime').value;
+            const interval = document.getElementById('evalInterval').value;
+            const material = document.getElementById('materialModel').value;
+            const threads = document.getElementById('cfgThreads').value;
+
+            const evalItems = getActiveChips('evalItems');
+
+            let rad = `#RADIOSS STARTER
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Generated by OpenRadioss Hub v0.1
+# Purpose: ${purpose.toUpperCase()}
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+/BEGIN
+     OpenRadioss_Hub_Model
+      0       0
+
+/TITLE
+     ${purpose} analysis — ${meshType}
+
+#------- UNITS -------
+/UNIT/1
+     mm  mg  ms
+
+#------- MESH -------
+# Element Type: ${meshType}
+# Target Size: ${meshSize} mm
+# Quality: ${quality}`;
+
+            if (currentModel) {
+                const bb = currentModel.geometry.boundingBox;
+                rad += `
+# BBox: ${(bb.max.x - bb.min.x).toFixed(1)} x ${(bb.max.y - bb.min.y).toFixed(1)} x ${(bb.max.z - bb.min.z).toFixed(1)} mm`;
+            }
+
+            rad += `
+
+#------- MATERIAL -------
+/MAT/${material}/1
+     Steel
+`;
+
+            if (material === 'LAW2') {
+                rad += `# Rho    E        nu
+  7.85e-3  210.0    0.3
+# sigma_y
+  0.400`;
+            }
+
+            // Boundary conditions
+            if (bcList.length > 0) {
+                rad += `\n\n#------- BOUNDARY CONDITIONS -------`;
+                bcList.forEach((bc, i) => {
+                    if (bc.type === 'fix') {
+                        rad += `\n/BCS/${i + 1}\n     ${bc.name}_${bc.target}\n# Tx Ty Tz Rx Ry Rz\n   1  1  1  1  1  1`;
+                    } else if (bc.type === 'velocity') {
+                        rad += `\n/INIVEL/1\n     ${bc.dir.toUpperCase()} = ${bc.value}`;
+                    } else if (bc.type === 'gravity') {
+                        rad += `\n/GRAV/0\n     ${bc.dir.toUpperCase()} = ${bc.value}`;
+                    } else {
+                        rad += `\n# ${bc.name}: ${bc.dir.toUpperCase()} = ${bc.value} (${bc.target})`;
+                    }
+                });
+            }
+
+            // Animation output
+            rad += `
+
+#------- OUTPUT -------
+/ANIM/DT
+# Tstart   Tfreq
+  0.0       ${interval}`;
+
+            evalItems.forEach(item => {
+                const animMap = {
+                    vonmises: '/ANIM/ELEM/VONM',
+                    displacement: '/ANIM/VECT/DISP',
+                    plastic_strain: '/ANIM/ELEM/EPSP',
+                    energy: '/ANIM/ELEM/ENER',
+                    velocity: '/ANIM/VECT/VEL',
+                    acceleration: '/ANIM/VECT/ACC',
+                    contact_force: '/ANIM/CONT/FORCE',
+                    thickness: '/ANIM/SHELL/THICK'
+                };
+                if (animMap[item]) rad += `\n${animMap[item]}`;
+            });
+
+            rad += `
+
+/RFILE
+# Rfile_freq
+  ${interval}
+
+#------- ENGINE -------
+/RUN/${purpose}/1
+# Tstop
+  ${evalTime}
+
+/STOP
+/END
+`;
+
+            document.getElementById('radPreview').textContent = rad;
+        }
+
+        function copyRad() {
+            navigator.clipboard.writeText(document.getElementById('radPreview').textContent);
+            document.getElementById('statusLine').textContent = '📋 .rad copied to clipboard';
+            setTimeout(() => { document.getElementById('statusLine').textContent = 'Phase 1 — Crash & Impact GUI v0.1'; }, 2000);
+        }
+
+        function downloadRad() {
+            const text = document.getElementById('radPreview').textContent;
+            const blob = new Blob([text], { type: 'text/plain' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'model_0000.rad';
+            a.click();
+        }
+
+        function runSolver() {
+            alert('⚙️ OpenRadioss ソルバー連携は Phase 2 で実装予定です。\n\n現時点では .rad ファイルをダウンロードし、\nDockerコンテナ内で手動実行してください：\n\nstarter_linux64_gf -i model_0000.rad -nt 4\nengine_linux64_gf -i model_0001.rad -nt 4');
+        }
+
+        // ---- Results Mode ----
+        function setResultMode(el) {
+            document.querySelectorAll('#panelResults .chip').forEach(c => c.classList.remove('active'));
+            el.classList.add('active');
+        }
+
+        function changeResultField() {
+            if (demoMode) applyDemoColors();
+        }
+
+        function loadDemoResults() {
+            if (!currentModel) { alert('先にモデルをアップロードしてメッシュを生成してください'); return; }
+
+            demoMode = true;
+            viewerArea.classList.add('results-mode');
+            document.getElementById('animControls').style.display = 'flex';
+
+            applyDemoColors();
+
+            document.getElementById('statusLine').textContent = '📊 Demo Results — von Mises Stress';
+        }
+
+        function applyDemoColors() {
+            if (!currentModel) return;
+
+            const geometry = currentModel.geometry;
+            const posAttr = geometry.getAttribute('position');
+            const count = posAttr.count;
+            const colors = new Float32Array(count * 3);
+
+            const bb = geometry.boundingBox;
+            const range = bb.max.y - bb.min.y || 1;
+
+            for (let i = 0; i < count; i++) {
+                const y = posAttr.getY(i);
+                const t = (y - bb.min.y) / range;
+
+                // Green → Yellow → Red gradient
+                if (t < 0.5) {
+                    colors[i * 3] = t * 2;
+                    colors[i * 3 + 1] = 0.8;
+                    colors[i * 3 + 2] = 0.1;
+                } else {
+                    colors[i * 3] = 0.9;
+                    colors[i * 3 + 1] = (1 - t) * 1.6;
+                    colors[i * 3 + 2] = 0.1;
+                }
+            }
+
+            geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+            currentModel.material.vertexColors = true;
+            currentModel.material.color.setHex(0xffffff);
+            currentModel.material.needsUpdate = true;
+        }
+
+        function applyDemoDeformation(t) {
+            if (!currentModel || !currentModel.geometry._origPositions) {
+                // Store original positions
+                const pos = currentModel.geometry.getAttribute('position');
+                currentModel.geometry._origPositions = new Float32Array(pos.array);
+            }
+
+            const pos = currentModel.geometry.getAttribute('position');
+            const orig = currentModel.geometry._origPositions;
+            const defScale = t * 5;
+
+            for (let i = 0; i < pos.count; i++) {
+                const oy = orig[i * 3 + 1];
+                const bb = currentModel.geometry.boundingBox;
+                const normalizedY = (oy - bb.min.y) / (bb.max.y - bb.min.y || 1);
+
+                pos.array[i * 3] = orig[i * 3] + Math.sin(normalizedY * Math.PI) * defScale * 0.5;
+                pos.array[i * 3 + 1] = orig[i * 3 + 1] - normalizedY * defScale;
+                pos.array[i * 3 + 2] = orig[i * 3 + 2];
+            }
+
+            pos.needsUpdate = true;
+        }
+
+        function toggleAnimation() {
+            animPlaying = !animPlaying;
+            document.getElementById('btnPlay').textContent = animPlaying ? '⏸' : '▶';
+        }
+
+        document.getElementById('animSlider').addEventListener('input', (e) => {
+            animFrame = parseInt(e.target.value);
+            const t = (animFrame / 100) * parseFloat(document.getElementById('evalTime').value);
+            document.getElementById('animTime').textContent = `t = ${t.toFixed(3)} ms`;
+            if (demoMode) applyDemoDeformation(animFrame / 100);
+        });
+
+        // ---- Panel Toggle ----
+        function togglePanel(id) {
+            document.getElementById(id).classList.toggle('collapsed');
+        }
+
+        // ---- Init ----
+        initScene();
+        updateRadPreview();
+    </script>
+</body>
+
+</html>

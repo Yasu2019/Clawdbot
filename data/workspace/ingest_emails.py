@@ -8,79 +8,140 @@ from datetime import datetime
 from email import message_from_file
 import status_reporter
 
+try:
+    import google.generativeai as genai
+    HAS_GENAI = True
+except ImportError:
+    HAS_GENAI = False
+
 # ============================================================
-# Configuration
+# Configuration (Container-friendly paths)
 # ============================================================
-EMAIL_DIR = r"D:\Clawdbot_Docker_20260125\clawstack_v2\data\paperless\consume\email"
-REPORT_FILE = r"D:\Clawdbot_Docker_20260125\data\workspace\Email_Analysis_Report.md"
-TRACKER_FILE = r"D:\Clawdbot_Docker_20260125\data\workspace\processed_emails.json"
-COST_FILE = r"D:\Clawdbot_Docker_20260125\data\workspace\gemini_cost_tracker.json"
+BASE_WORKSPACE = "/workspace"
+EMAIL_DIR = os.path.join(BASE_WORKSPACE, "temp_eml")
+LOCAL_EMAIL_DIR = "/local_emails"
+REPORT_FILE = os.path.join(BASE_WORKSPACE, "Email_Analysis_Report.md")
+TRACKER_FILE = os.path.join(BASE_WORKSPACE, "processed_emails.json")
+DB_FILE = os.path.join(BASE_WORKSPACE, "email_analysis.db")
 
 # Ollama (local fallback)
-OLLAMA_URL = "http://127.0.0.1:11434/api/generate"
-OLLAMA_MODEL = "llava:latest"
+OLLAMA_URL = "http://ollama:11434/api/generate"
+OLLAMA_MODEL = "qwen2.5-coder:7b"
 
-# Gemini 2.0 Flash (primary)
+# Gemini 2.0 Flash (primary) — via official SDK
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 if not GEMINI_API_KEY:
-    # Load from .env file
-    env_path = r"D:\Clawdbot_Docker_20260125\.env"
+    env_path = "/workspace/.env" # Assuming .env is also here or passed
+    if not os.path.exists(env_path):
+        env_path = "/workspace/clawdbot-gateway/.env" # Fallback check
     if os.path.exists(env_path):
-        with open(env_path, "r") as f:
+        with open(env_path, "r", encoding="utf-8", errors="ignore") as f:
             for line in f:
                 if line.startswith("GEMINI_API_KEY="):
                     GEMINI_API_KEY = line.split("=", 1)[1].strip().strip('"')
 
-GEMINI_URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={GEMINI_API_KEY}"
+GEMINI_MODEL = None
+if HAS_GENAI and GEMINI_API_KEY:
+    genai.configure(api_key=GEMINI_API_KEY)
+    GEMINI_MODEL = genai.GenerativeModel("gemini-2.5-flash")
+    print("  ✅ Gemini 2.5 Flash SDK initialized")
+
+# Rate limiting: Gemini free tier = 15 RPM → 1 call per 6 seconds
+GEMINI_CALL_INTERVAL = 6.0  # seconds between API calls
+_last_gemini_call = 0.0
 
 # Budget control (JPY)
 BUDGET_LIMIT_JPY = 300
-USD_TO_JPY = 150  # approximate
+USD_TO_JPY = 150
 GEMINI_INPUT_COST_PER_M = 0.10   # $/1M input tokens
 GEMINI_OUTPUT_COST_PER_M = 0.40  # $/1M output tokens
-AVG_INPUT_TOKENS = 1200   # per email (prompt + body)
-AVG_OUTPUT_TOKENS = 300   # per email (JSON response)
+AVG_INPUT_TOKENS = 1200
+AVG_OUTPUT_TOKENS = 300
 
 # Target folders (all 6 process areas)
 TARGET_FOLDERS = ["品証", "製造", "お客様", "技術部", "IATF", "供給者"]
 
 
 # ============================================================
-# Cost Tracker
+# Database Management
 # ============================================================
-def load_cost():
-    if os.path.exists(COST_FILE):
-        try:
-            with open(COST_FILE, "r", encoding="utf-8") as f:
-                return json.load(f)
-        except:
-            pass
-    return {"total_input_tokens": 0, "total_output_tokens": 0,
-            "total_cost_usd": 0.0, "total_cost_jpy": 0.0,
-            "gemini_calls": 0, "ollama_calls": 0,
-            "switched_to_ollama_at": None}
+def init_db():
+    """Initialize SQLite database for tracking analysis results."""
+    import sqlite3
+    conn = sqlite3.connect(DB_FILE, timeout=30000)
+    c = conn.cursor()
+    c.execute("PRAGMA journal_mode=WAL;")
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS analyses (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            filepath TEXT UNIQUE,
+            email_date TEXT,
+            sender TEXT,
+            recipient TEXT,
+            subject TEXT,
+            request_item TEXT,
+            deadline TEXT,
+            response TEXT,
+            importance TEXT,
+            kaizen TEXT,
+            summary TEXT,
+            is_resolved INTEGER DEFAULT 0,
+            processed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    conn.commit()
+    conn.close()
 
+def save_to_db(email_data, analysis):
+    """Save analysis results to SQLite database."""
+    import sqlite3
+    conn = sqlite3.connect(DB_FILE, timeout=30000)
+    c = conn.cursor()
+    c.execute("PRAGMA journal_mode=WAL;")
+    
+    # Check resolution status
+    ans_text = str(analysis.get('回答', '-'))
+    is_resolved = 1 if ("完了" in ans_text or "解決" in ans_text or "済" in ans_text) else 0
+    
+    try:
+        c.execute("""
+            INSERT OR REPLACE INTO analyses 
+            (filepath, email_date, sender, recipient, subject, request_item, deadline, response, importance, kaizen, summary, is_resolved)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            email_data['path'],
+            email_data['date'],
+            email_data['from'],
+            email_data['to'],
+            email_data['subject'],
+            analysis.get('依頼事項', '-'),
+            analysis.get('納期', '-'),
+            analysis.get('回答', '-'),
+            analysis.get('重要度', '-'),
+            analysis.get('改善状況', '-'),
+            analysis.get('要約', '-'),
+            is_resolved
+        ))
+        conn.commit()
+    except Exception as e:
+        print(f"  ❌ DB Error: {e}")
+    conn.close()
 
-def save_cost(cost_data):
-    with open(COST_FILE, "w", encoding="utf-8") as f:
-        json.dump(cost_data, f, indent=2, ensure_ascii=False)
-
-
-def update_cost(cost_data, input_tokens, output_tokens):
-    cost_data["total_input_tokens"] += input_tokens
-    cost_data["total_output_tokens"] += output_tokens
-    cost_data["gemini_calls"] += 1
-    cost_usd = (input_tokens / 1_000_000 * GEMINI_INPUT_COST_PER_M +
-                output_tokens / 1_000_000 * GEMINI_OUTPUT_COST_PER_M)
-    cost_data["total_cost_usd"] += cost_usd
-    cost_data["total_cost_jpy"] = round(cost_data["total_cost_usd"] * USD_TO_JPY, 1)
-    save_cost(cost_data)
-    return cost_data
-
-
-def is_budget_exceeded(cost_data):
-    return cost_data["total_cost_jpy"] >= BUDGET_LIMIT_JPY
-
+def get_pending_tasks():
+    """Get all unresolved tasks from the database."""
+    import sqlite3
+    if not os.path.exists(DB_FILE): return []
+    try:
+        conn = sqlite3.connect(DB_FILE, timeout=30000)
+        conn.row_factory = sqlite3.Row
+        c = conn.cursor()
+        c.execute("PRAGMA journal_mode=WAL;")
+        c.execute("SELECT * FROM analyses WHERE is_resolved = 0 ORDER BY email_date DESC LIMIT 10")
+        rows = c.fetchall()
+        conn.close()
+        return rows
+    except:
+        return []
 
 # ============================================================
 # Email Tracker
@@ -151,67 +212,89 @@ def parse_eml(filepath):
 # LLM Analysis
 # ============================================================
 def build_prompt(email_data):
-    return f"""You are an expert industrial analyst. Analyze the following email and extract insights.
+    return f"""あなたは製造・営業支援の専門アナリストです。以下のメールを解析し、依頼事項とステータスを日本語で抽出してください。
 
-[Email Metadata]
-From: {email_data['from']}
-To: {email_data['to']}
-Date: {email_data['date']}
-Subject: {email_data['subject']}
-Attachments: {', '.join(email_data['attachments']) if email_data['attachments'] else 'None'}
+[Email情報]
+差出人: {email_data['from']}
+受取人: {email_data['to']}
+日付: {email_data['date']}
+件名: {email_data['subject']}
+添付: {', '.join(email_data['attachments']) if email_data['attachments'] else 'なし'}
 
-[Body]
+[本文]
 {email_data['body'][:4000]}
 
-Extract in JSON format:
-1. quality_and_delivery_issues: Defects, QIF/PIF, non-conformities, delivery problems (品質や納期の問題点).
-2. requests: Action/info requests between departments or customers (依頼事項).
-3. request_deadlines: Deadline for the requests (依頼に対する納期).
-4. response_details: WHEN, WHO, HOW requests were answered (いつ、だれが、どのように回答したか).
-5. improvement_status: KAIZEN, process optimization discussions (改善活動の状況).
-6. summary: 1-sentence summary.
+以下の JSON 形式でのみ出力してください（余計な説明は不要です）：
+1. 依頼事項 (何をすべきか具体的に)
+2. 納期 (いつまでか。不明なら不明)
+3. 回答 (どのような返答があったか。未回答なら「回答待ち」)
+4. 重要度 (高、中、低)
+5. 改善状況 (改善活動に関連するか)
+6. 要約 (1行で)
 
-Output JSON ONLY:
 {{
-    "quality_and_delivery_issues": "string or None",
-    "requests": "string or None",
-    "request_deadlines": "string or None",
-    "response_details": "string or None",
-    "improvement_status": "string or None",
-    "summary": "string"
+    "依頼事項": "string",
+    "納期": "string",
+    "回答": "string",
+    "重要度": "string",
+    "改善状況": "string",
+    "要約": "string"
 }}"""
 
 
 def analyze_with_gemini(email_data, cost_data):
-    """Analyze using Gemini 2.0 Flash API."""
+    """Analyze using Gemini 2.0 Flash via official SDK with rate limiting."""
+    global _last_gemini_call
+
+    if not GEMINI_MODEL:
+        return None
+
     prompt = build_prompt(email_data)
 
-    payload = {
-        "contents": [{"parts": [{"text": prompt}]}],
-        "generationConfig": {
-            "temperature": 0.1,
-            "responseMimeType": "application/json"
-        }
-    }
+    # Rate limiting: wait if called too recently
+    elapsed = time.time() - _last_gemini_call
+    if elapsed < GEMINI_CALL_INTERVAL:
+        time.sleep(GEMINI_CALL_INTERVAL - elapsed)
 
-    try:
-        resp = requests.post(GEMINI_URL, json=payload, timeout=30)
-        resp.raise_for_status()
-        data = resp.json()
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            _last_gemini_call = time.time()
+            response = GEMINI_MODEL.generate_content(
+                prompt,
+                generation_config=genai.types.GenerationConfig(
+                    temperature=0.1,
+                    response_mime_type="application/json",
+                ),
+            )
 
-        # Extract token usage
-        usage = data.get("usageMetadata", {})
-        input_tokens = usage.get("promptTokenCount", AVG_INPUT_TOKENS)
-        output_tokens = usage.get("candidatesTokenCount", AVG_OUTPUT_TOKENS)
-        update_cost(cost_data, input_tokens, output_tokens)
+            # Extract token usage from response metadata
+            usage = getattr(response, 'usage_metadata', None)
+            if usage:
+                input_tokens = getattr(usage, 'prompt_token_count', AVG_INPUT_TOKENS)
+                output_tokens = getattr(usage, 'candidates_token_count', AVG_OUTPUT_TOKENS)
+            else:
+                input_tokens = AVG_INPUT_TOKENS
+                output_tokens = AVG_OUTPUT_TOKENS
 
-        # Extract response text
-        text = data["candidates"][0]["content"]["parts"][0]["text"]
-        return json.loads(text)
+            update_cost(cost_data, input_tokens, output_tokens)
 
-    except Exception as e:
-        print(f"  ⚡ Gemini Error: {e}")
-        return None
+            text = response.text
+            return json.loads(text)
+
+        except Exception as e:
+            err_str = str(e)
+            if "429" in err_str or "quota" in err_str.lower() or "rate" in err_str.lower():
+                wait = (2 ** attempt) * 10  # 10s, 20s, 40s
+                print(f"  ⏳ Rate limited (attempt {attempt+1}/{max_retries}), waiting {wait}s...")
+                time.sleep(wait)
+                continue
+            else:
+                print(f"  ⚡ Gemini Error: {e}")
+                return None
+
+    print(f"  ⚡ Gemini: max retries exhausted")
+    return None
 
 
 def analyze_with_ollama(email_data, cost_data):
@@ -226,30 +309,54 @@ def analyze_with_ollama(email_data, cost_data):
     }
 
     try:
-        resp = requests.post(OLLAMA_URL, json=payload, timeout=300)
+        resp = requests.post(OLLAMA_URL, 
+                             json={'model': OLLAMA_MODEL, 'prompt': prompt, 'stream': False, 'format': 'json', 'options': {'num_ctx': 1024}}, 
+                             timeout=600)
         resp.raise_for_status()
-        cost_data["ollama_calls"] += 1
-        save_cost(cost_data)
         return json.loads(resp.json().get("response", "{}"))
     except Exception as e:
         print(f"  🐢 Ollama Error: {e}")
         return None
 
 
-def analyze_content(email_data, cost_data, use_gemini=True):
-    """Smart router: Gemini first, Ollama fallback."""
-    if use_gemini and GEMINI_API_KEY and not is_budget_exceeded(cost_data):
-        result = analyze_with_gemini(email_data, cost_data)
-        if result:
-            return result
-        # Gemini failed → try Ollama
-        print("  ⚠️ Gemini failed, falling back to Ollama...")
-
+def analyze_content(email_data, cost_data, use_gemini=False):
+    """Router: Forced to Ollama per user request for cost/stable processing."""
+    # Gemini is completely bypassed here
     return analyze_with_ollama(email_data, cost_data)
 
 
 # ============================================================
 # Main
+def generate_report(total_processed):
+    """Generate the Markdown report from current database state."""
+    pending = get_pending_tasks()
+    
+    with open(REPORT_FILE, "w", encoding="utf-8") as f:
+        f.write("# 📧 P016 Email分析レポート (統合版)\n\n")
+        
+        if pending:
+            f.write("### ⚠️ 回答待ち・未完了の案件リスト\n")
+            f.write("| 依頼日 | 差出人 | 依頼事項 | 納期 | 回答状況 | 重要度 |\n")
+            f.write("| --- | --- | --- | --- | --- | --- |\n")
+            for p in pending:
+                # Handle dictionary or Row object
+                sender = p['sender'] if hasattr(p, 'keys') and 'sender' in p.keys() else p[3]
+                item = p['request_item'] if hasattr(p, 'keys') and 'request_item' in p.keys() else p[6]
+                date = p['email_date'] if hasattr(p, 'keys') and 'email_date' in p.keys() else p[2]
+                deadline = p['deadline'] if hasattr(p, 'keys') and 'deadline' in p.keys() else p[7]
+                resp = p['response'] if hasattr(p, 'keys') and 'response' in p.keys() else p[8]
+                imp = p['importance'] if hasattr(p, 'keys') and 'importance' in p.keys() else p[9]
+                f.write(f"| {str(date)[:16]} | {str(sender)[:20]} | {str(item)} | {str(deadline)} | {str(resp)} | {str(imp)} |\n")
+            f.write("\n---\n\n")
+        
+        f.write("### 📬 本日の要約\n")
+        if total_processed > 0:
+             f.write(f"本日、合計 {total_processed} 通のメールを処理・更新しました。\n")
+        else:
+             f.write("新規のメールはありませんでした。\n")
+             
+    print(f"  📝 Report updated ({total_processed} processed).")
+
 # ============================================================
 def main():
     print("=" * 60)
@@ -257,34 +364,48 @@ def main():
     print(f"  Budget: ¥{BUDGET_LIMIT_JPY} (auto-switch to Ollama at limit)")
     print("=" * 60)
 
+    init_db()
     tracker = load_tracker()
-    cost_data = load_cost()
+    
+    cost_data = {"total_cost_jpy": 0, "gemini_calls": 0, "ollama_calls": 0}
 
-    print(f"\n  💰 Current spend: ¥{cost_data['total_cost_jpy']:.1f} / ¥{BUDGET_LIMIT_JPY}")
-    print(f"  📊 Gemini calls: {cost_data['gemini_calls']} | Ollama calls: {cost_data['ollama_calls']}")
+    CUTOFF_DATE = datetime(2025, 1, 1).timestamp()
 
-    # Collect all unprocessed EMLs from ALL target folders
     all_emls = []
-    for folder in TARGET_FOLDERS:
-        path = os.path.join(EMAIL_DIR, folder)
-        if os.path.exists(path):
-            files = glob.glob(os.path.join(path, "**/*.eml"), recursive=True)
-            for f in files:
+    
+    # 1. Scan Container New Emails (Gmail via n8n)
+    print(f"  📬 Scanning {EMAIL_DIR}...")
+    if os.path.exists(EMAIL_DIR):
+        files = glob.glob(os.path.join(EMAIL_DIR, "*.eml"))
+        for f in files:
+            if f not in tracker:
+                all_emls.append({"path": f, "mtime": os.path.getmtime(f)})
+
+    # 2. Scan Local Emails (Historical)
+    if os.path.exists(LOCAL_EMAIL_DIR):
+        print(f"  📬 Scanning {LOCAL_EMAIL_DIR} (recursive)...")
+        # Scan ALL files recursively in LOCAL_EMAIL_DIR
+        files = glob.glob(os.path.join(LOCAL_EMAIL_DIR, "**/*.eml"), recursive=True)
+        for f in files:
+            if f not in tracker:
                 mtime = os.path.getmtime(f)
-                if f in tracker and tracker[f] == mtime:
-                    continue
-                all_emls.append({"path": f, "mtime": mtime})
+                if mtime >= CUTOFF_DATE:
+                    all_emls.append({"path": f, "mtime": mtime})
 
     # Sort newest first
     all_emls.sort(key=lambda x: x['mtime'], reverse=True)
 
-    # NO LIMIT — process ALL unprocessed emails
     total = len(all_emls)
     if total == 0:
-        print("\n  ✅ No new emails to process.")
-        return
+        # Check if we should still send a report of existing pending tasks
+        pending = get_pending_tasks()
+        if pending:
+             print("\n  ✅ No new emails, but pending tasks found.")
+        else:
+             print("\n  ✅ No new emails to process.")
+             return
 
-    print(f"\n  📬 Found {total} unprocessed emails across {len(TARGET_FOLDERS)} folders")
+    print(f"\n  📬 Found {total} unprocessed emails.")
 
     # Initialize Report if needed
     if not os.path.exists(REPORT_FILE) or os.path.getsize(REPORT_FILE) < 100:
@@ -293,65 +414,36 @@ def main():
             f.write("| Date | From | Subject | Summary | Quality/Delivery | Requests | Deadlines | Response (Who/When/How) | KAIZEN Status |\n")
             f.write("| --- | --- | --- | --- | --- | --- | --- | --- | --- |\n")
 
-    switched_to_ollama = False
+    # Process emails...
     start_time = time.time()
 
     for i, item in enumerate(all_emls):
         filepath = item['path']
         basename = os.path.basename(filepath)
-
-        # Check budget before each call
-        use_gemini = not is_budget_exceeded(cost_data)
-        if not use_gemini and not switched_to_ollama:
-            switched_to_ollama = True
-            cost_data["switched_to_ollama_at"] = datetime.now().isoformat()
-            save_cost(cost_data)
-            print(f"\n  🔄 ¥{BUDGET_LIMIT_JPY} budget reached! Switching to Ollama...")
-            print(f"     Gemini processed: {cost_data['gemini_calls']} emails")
-            print(f"     Total cost: ¥{cost_data['total_cost_jpy']:.1f}\n")
-
-        engine = "⚡Gemini" if use_gemini else "🐢Ollama"
-        status_reporter.update_status("Email Ingestion", i + 1, total,
-                                      f"[{engine}] {basename}")
-        print(f"  [{i+1}/{total}] {engine} | ¥{cost_data['total_cost_jpy']:.1f} | {basename[:50]}")
+        print(f"  [{i+1}/{total}] 🐢Ollama | {basename[:50]}")
 
         email_data = parse_eml(filepath)
-        if not email_data:
-            continue
+        if not email_data: continue
+        email_data['path'] = filepath
 
-        analysis = analyze_content(email_data, cost_data, use_gemini=use_gemini)
-        if not analysis:
-            continue
+        analysis = analyze_content(email_data, cost_data)
+        if not analysis: continue
 
-        # Write to report
-        def clean(text):
-            if not text or text == "None" or text == "null":
-                return "-"
-            return str(text).replace("\n", " ").replace("|", "\\|")
-
-        with open(REPORT_FILE, "a", encoding="utf-8") as f:
-            f.write(f"| {clean(email_data['date'])} | {clean(email_data['from'])} | "
-                    f"{clean(email_data['subject'])} | {clean(analysis.get('summary'))} | "
-                    f"{clean(analysis.get('quality_and_delivery_issues'))} | "
-                    f"{clean(analysis.get('requests'))} | "
-                    f"{clean(analysis.get('request_deadlines'))} | "
-                    f"{clean(analysis.get('response_details'))} | "
-                    f"{clean(analysis.get('improvement_status'))} |\n")
+        # Save to SQLite
+        save_to_db(email_data, analysis)
 
         # Update tracker
         tracker[filepath] = item['mtime']
         save_tracker(tracker)
+        
+        # Periodic report update
+        if (i + 1) % 50 == 0:
+            generate_report(i + 1)
 
-    elapsed = time.time() - start_time
-    print(f"\n{'=' * 60}")
-    print(f"  ✅ Ingestion complete!")
-    print(f"  📊 Total processed: {total}")
-    print(f"  ⚡ Gemini calls: {cost_data['gemini_calls']}")
-    print(f"  🐢 Ollama calls: {cost_data['ollama_calls']}")
-    print(f"  💰 Total cost: ¥{cost_data['total_cost_jpy']:.1f}")
-    print(f"  ⏱  Elapsed: {elapsed/60:.1f} min")
-    print(f"  📁 Report: {REPORT_FILE}")
-    print(f"{'=' * 60}")
+    # FINAL REPORT GENERATION
+    generate_report(total)
+
+    print(f"\n  ✅ Processing complete. Report: {REPORT_FILE}")
 
 
 if __name__ == "__main__":

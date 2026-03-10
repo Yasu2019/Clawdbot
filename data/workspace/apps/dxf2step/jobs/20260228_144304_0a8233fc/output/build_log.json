@@ -1,0 +1,28 @@
+{
+  "layers": {
+    "View": {
+      "entities": 8,
+      "thickness": 10.0,
+      "status": "done",
+      "freecad_msg": "",
+      "png": "View_views.png"
+    },
+    "ProjItem001": {
+      "entities": 8,
+      "thickness": 10.0,
+      "status": "done",
+      "freecad_msg": "",
+      "png": "ProjItem001_views.png"
+    },
+    "ProjItem": {
+      "entities": 8,
+      "thickness": 10.0,
+      "status": "done",
+      "freecad_msg": "",
+      "png": "ProjItem_views.png"
+    }
+  },
+  "timestamp": "2026-02-28T14:43:04.774196",
+  "combined_step": "combined.step",
+  "combined_png": "combined_views.png"
+}

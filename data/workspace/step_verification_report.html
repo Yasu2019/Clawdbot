@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <title>3D Tolerance Analysis Verification: ASSY_Guide.step</title>
+    <style>
+        body {
+            font-family: "Segoe UI", sans-serif;
+            background-color: #f0f2f5;
+            color: #333;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .comparison-table th,
+        .comparison-table td {
+            padding: 12px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+
+        .comparison-table th {
+            background-color: #34495e;
+            color: white;
+        }
+
+        .match {
+            background-color: #d5f5e3;
+            color: #196f3d;
+            font-weight: bold;
+        }
+
+        .mismatch {
+            background-color: #fadbd8;
+            color: #943126;
+            font-weight: bold;
+        }
+
+        .note {
+            background-color: #fef9e7;
+            color: #b7950b;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>3Dモデル検証レポート: ASSY_Guide.step</h1>
+        <p>石井様ドキュメントに基づく2D理論値と、ご提供いただいたSTEPファイルの3D実測値を比較しました。</p>
+
+        <h2>1. 寸法照合結果 (Dimension Verification)</h2>
+        <table class="comparison-table">
+            <tr>
+                <th>パラメータ</th>
+                <th>2D理論値 (PDF)</th>
+                <th>3D実測値 (STEP)</th>
+                <th>判定</th>
+                <th>備考</th>
+            </tr>
+            <tr>
+                <td><strong>Fork Thickness (T)</strong></td>
+                <td>1.000 mm</td>
+                <td><strong>1.000 mm</strong></td>
+                <td class="match">一致 (MATCH)</td>
+                <td>Solid 4 (Terminal) の板厚/幅として確認</td>
+            </tr>
+            <tr>
+                <td><strong>Gap / Feature (G)</strong></td>
+                <td>0.200 mm</td>
+                <td><strong>0.200 mm</strong></td>
+                <td class="match">一致 (MATCH)</td>
+                <td>Solid 4 (Terminal) の一部厚みとして確認</td>
+            </tr>
+            <tr>
+                <td><strong>Housing Width (Wc)</strong></td>
+                <td>1.635 mm</td>
+                <td><strong>2.000 mm</strong> (Slot)</td>
+                <td class="mismatch">不一致 (Mismatch)</td>
+                <td>STEPモデルは「2.0mm」の単純スロット形状。<br>理論値(1.635mm)対比でクリアランスが大きく設定されています。</td>
+            </tr>
+            <tr>
+                <td><strong>Pin Position (P)</strong></td>
+                <td>0.495 mm</td>
+                <td>(未検出)</td>
+                <td class="note">N/A</td>
+                <td>幾何公差/位置度としての定義か、基準面からの距離。形状スキャンでは特定不可。</td>
+            </tr>
+        </table>
+
+        <h2>2. ギャップ解析の結果 (Gap Analysis)</h2>
+        <p>理論式: <code>Gap = 0.5*Wc - 0.5*T - 0.5*K*P + 0.5*K*G + 0.5*pt</code></p>
+        <ul>
+            <li><strong>2D理論ギャップ</strong>: 0.138 mm (公差 RSS ±0.049) -> <strong>干渉なし (Safe)</strong></li>
+            <li><strong>3D形状ギャップ (推定)</strong>: 約 0.320 mm (Wc=2.0の場合) -> <strong>余裕あり (Loose Fit)</strong></li>
+        </ul>
+
+        <h2>3. 結論</h2>
+        <p>STEPファイルは、公差計算用の「厳密な接触・有効幅モデル (1.635mm)」ではなく、<strong>「設計上の呼び寸法 (2.0mm)」</strong>
+            または試作・量産用の余裕を持たせたモデルである可能性が高いです。</p>
+        <p>公差解析を行う際は、STEP形状をそのまま使うのではなく、<strong>石井様ドキュメントの「1.635mm」を正として計算パラメータに採用すべき</strong>です。</p>
+    </div>
+</body>
+
+</html>

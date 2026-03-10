@@ -1,0 +1,205 @@
+<% num=0 %>
+
+<!--最初、idを変数化できず、諦めていたのだが、かきURLを見つけて、変数化できた
+https://teratail.com/questions/105974
+-->
+
+<% i=1 %>
+<% phasesjson=[]%>
+<% @phases_test.each do |p| %>
+    <input type="hidden" id="phases<%= i.to_s %>"  value="<%= p.to_json %>">
+      <% i=i +1  %>
+<% end %>
+
+
+<% if @product.start_time==nil %>
+  <% dateset_start_time=Time.current %>
+<% else %>
+  <% dateset_start_time=@product.start_time %>
+<% end %>
+
+<% if @product.deadline_at==nil %>
+  <% dateset_deadline_at=Time.current %>
+<% else %>
+  <% dateset_deadline_at=@product.deadline_at %>
+<% end %>
+
+<% if @product.end_at==nil %>
+  <% dateset_end_at=Time.current %>
+<% else %>
+  <% dateset_end_at=@product.end_at %>
+<% end %>
+
+  <!-- https://blog.to-ko-s.com/rails-file-field-design/
+  【Rails・Tailwind】file_field使用時にボタンのデザインを変えてみよう！
+  -->
+
+<%= form_with model: @product, local: true  do |form| %>
+
+  <!--
+  <%= form.text_area :partnumber %><br><br>
+  -->
+<div class="lg:flex">
+
+  <div class="my-5 mx-4 w-1/5 ">
+    <%= form.label :図番を入力してください %>
+    <%= form.text_field :partnumber, class: "shadow rounded-md border border-gray-200 outline-none px-3 py-2 mt-2 bg-gray-100 bg-opacity-50 " %>
+  </div>
+
+  <div class="my-5 w-1/5 ">
+    <%= form.label :材料コードを入力してください %>
+    <%= form.text_field :materialcode, class: "shadow rounded-md border border-gray-200 outline-none px-3 py-2 mt-2 bg-gray-100 bg-opacity-50 " %>
+  </div>
+
+  <div class="my-5 w-1/5 ">
+    <%= form.label :文書名を入力してください %>
+    <%= form.text_field :documentname, class: "shadow rounded-md border border-gray-200 outline-none px-3 py-2 mt-2 bg-gray-100 bg-opacity-50 " %>
+  </div>
+
+  <div class="my-5 w-1/5 ">
+    <%= form.label :箇条番号を入力してください %>
+    <%= form.text_field :documentnumber, class: "shadow rounded-md border border-gray-200 outline-none px-3 py-2 mt-2 bg-gray-100 bg-opacity-50 " %>
+  </div>
+
+  <div class="my-5 w-1/5 ">
+    <%= form.label :コメント %>
+    <%= form.text_field :description, class: "shadow rounded-md border border-gray-200 outline-none px-3 py-2 mt-2 bg-gray-100 bg-opacity-50 " %>
+  </div>
+
+</div>
+
+<label class="mt-2 sm:mt-0 py-2 w-[500px] sm:w-[212px] h-10 border border-primary-300 bg-gray-100 bg-opacity-50 text-primary-300 rounded-[3px] text-xs flex justify-center items-center">
+  
+<!--
+
+Flat Icon Design Sepia Vectors Collection
+https://www.svgrepo.com/collection/flat-icon-design-sepia-vectors/ 
+
+ICONSVG
+https://iconsvg.xyz/
+-->
+
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16c0 1.1.9 2 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/><path d="M14 3v5h5M16 13H8M16 17H8M10 9H8"/></svg>
+
+  <span class="text-lg ml-5 mx-4 ">添付資料を選択</span> 
+  <%= form.file_field :documents, multiple: true , class: "hidden"%>
+</label>
+
+<!--
+  Rails7で画像の保存にActiveStorage使ってみよう(導入からリサイズまで)
+  https://qiita.com/asasigure/items/311473d25fb3ec97f126
+
+  ActiveStorage で画像を複数枚削除する方法
+  https://h-piiice16.hatenablog.com/entry/2018/09/24/141510
+-->
+
+<% if @product.documents.attached? %>
+        <%= form.label :添付ファイルを削除する場合、ㇾチェックしてください %><br>
+            <% @product.documents.each do |image| %>
+              <%= form.check_box :detouch, {:multiple => true}, image.id, false  %> 
+              <%= image.blob.filename %> <br>
+              <%= image_tag image, :size=>"100x100" %> <br>
+            <% end %>
+<% end %>
+
+
+  <br>
+  <div class="lg:flex">
+      <div class="my-5 w-1/3">
+        <%= form.label :登録日 %>
+        <%= form.date_field :start_time, value: dateset_start_time.strftime("%Y-%m-%d"), class: "shadow rounded-md border border-gray-200 outline-none px-3 py-2 mt-2 bg-gray-100 bg-opacity-50" %>
+      </div>
+
+      <div class="my-5 w-1/3">
+        <%= form.label :完成予定日 %>
+        <%= form.date_field :deadline_at, value: dateset_deadline_at.strftime("%Y-%m-%d"), class: "shadow rounded-md border border-gray-200 outline-none px-3 py-2 mt-2 bg-gray-100 bg-opacity-50 " %>
+      </div>
+
+      <div class="my-5 w-1/3">
+        <%= form.label :完成日 %>
+        <%= form.date_field :end_at, value: dateset_end_at.strftime("%Y-%m-%d"), class: "shadow rounded-md border border-gray-200 outline-none px-3 py-2 mt-2 bg-gray-100 bg-opacity-50" %>
+      </div>
+  </div>
+
+  <% if @product.status=="完了" %>
+    <% num=100 %>
+  <% elsif @product.status==nil %>
+    <% num=50 %>
+  <% end %>
+
+  <!-- https://qiita.com/kawakami_shotaro/items/11a677bf34136cb7686d -->
+
+  <!--【JavaScript入門】onloadイベントの使い方とハマりやすい注意点とは -->
+  <!-- https://www.sejuku.net/blog/19754 -->
+  
+  <div data-controller="dropdown">  <!-- とりあえずここに挟んだ-->
+
+  <%= form.label :製品又は文書カテゴリーを選択してください %>
+
+	<%= form.collection_select  :category,  @phases, :id, :name,{ include_blank: '選択してください'}, { id: "phase", class:"shadow rounded-md border border-gray-200 outline-none px-3 py-2 mt-2 w-1/5 bg-gray-100 bg-opacity-50"} %>
+
+  <br>
+  <!--
+  【Ruby】f.collection_select　を使ってみた
+  https://qiita.com/ohnitakahiro/items/c536fe65e37980e1087e
+  -->
+
+  <%= form.label :APQPフェーズを選択してください %>
+
+  <!--本当は、編集時にデータがある場合は、前データを表示し、且つドロップダウンリストから選択できるよにしたいが、うまくできないため、一旦保留とする  
+  <% if @product.phase!=nil %>
+    <% phase_test=[[@product.phase,@product.phase]]%> 
+    <%= form.select :phase, [], { include_blank: @dropdownlist[@product.phase.to_i],selected:@dropdownlist[@product.phase.to_i] }, { id: "Child_JSON" } %>
+  <% else %>
+    <%= form.select :phase, [], { include_blank: '選択してください' }, { id: "Child_JSON", class:"shadow rounded-md border border-gray-200 outline-none px-3 py-2 mt-2 w-1/5 bg-gray-100 bg-opacity-50" } %>
+  <% end %>
+  -->
+
+  <% phase_test=[[@product.phase,@product.phase]]%> 
+  <%= form.select :phase, [], { include_blank: '選択してください' }, { id: "Child_JSON", class:"shadow rounded-md border border-gray-200 outline-none px-3 py-2 mt-2 w-1/5 bg-gray-100 bg-opacity-50" } %>
+  
+  <br>
+
+  <%= form.label :項目を選択してください %>
+
+  <!--本当は、編集時にデータがある場合は、前データを表示し、且つドロップダウンリストから選択できるよにしたいが、うまくできないため、一旦保留とする 
+  <% if @product.stage!=nil %>
+    <% stage_test=[[@product.stage,@product.stage]]%>
+    <%= form.select :stage, [], { include_blank: @dropdownlist[@product.stage.to_i],selected:@dropdownlist[@product.stage.to_i]}, { id: "Grand_Child_JSON" } %>
+  <% else %>
+    <%= form.select :stage, [], { include_blank: '選択してください'}, { id: "Grand_Child_JSON", class:"shadow rounded-md border border-gray-200 outline-none px-3 py-2 mt-2 w-1/5 bg-gray-100 bg-opacity-50" } %>
+  <% end %>
+  </div>
+  -->
+
+  <% stage_test=[[@product.stage,@product.stage]]%>
+  <%= form.select :stage, [], { include_blank: '選択してください'}, { id: "Grand_Child_JSON", class:"shadow rounded-md border border-gray-200 outline-none px-3 py-2 mt-2 w-1/5 bg-gray-100 bg-opacity-50" } %>
+
+  </div>  <!-- とりあえずここに挟んだ-->
+  
+  <span>
+  <br>
+  
+  <%= form.label :達成度を入力してください %> 
+ 
+  <%= form.number_field :goal_attainment_level, value: num ,class:"shadow rounded-md border border-gray-200 outline-none px-3 py-2 mt-2 w-1/5 bg-gray-100 bg-opacity-50"%>
+  </span>
+
+  <br>
+ 
+  <%= form.label :ステイタスを入力してください %> 
+  
+  <%= form.select :status, [['未完', '未完'],['仕掛中', '仕掛中'], ['完了', '完了']], { include_blank: '選択してください'}, { id: "status",required: true , class:"shadow rounded-md border border-gray-200 outline-none px-3 py-2 mt-2 w-1/5 bg-gray-100 bg-opacity-50"} %> <br>
+ 
+  <!--
+  #【Rails】日本語化のやり方
+  #https://qiita.com/mmaumtjgj/items/93ab3ef8cbcf9591fc30
+  config.i18n.default_locale = :ja  左を追加
+
+  Changing button value of a scaffold when in /new and /edit in rails
+  https://stackoverflow.com/questions/19016527/changing-button-value-of-a-scaffold-when-in-new-and-edit-in-rails
+  -->
+  <%= form.submit  class:"btn"   %>
+  <br>
+<% end %>
+

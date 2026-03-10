@@ -1,0 +1,77 @@
+<div id="<%= dom_id measurementequipment %>">
+  <p class="my-5">
+    <strong class="block font-medium mb-1">Categories:</strong>
+    <%= measurementequipment.categories %>
+  </p>
+
+  <p class="my-5">
+    <strong class="block font-medium mb-1">Scope of internal testing laboratories:</strong>
+    <%= measurementequipment.scope_of_internal_testing_laboratories %>
+  </p>
+
+  <p class="my-5">
+    <strong class="block font-medium mb-1">Product measurement item:</strong>
+    <%= measurementequipment.product_measurement_item %>
+  </p>
+
+  <p class="my-5">
+    <strong class="block font-medium mb-1">Measuring range:</strong>
+    <%= measurementequipment.measuring_range %>
+  </p>
+
+  <p class="my-5">
+    <strong class="block font-medium mb-1">Measuring instrument test equipment:</strong>
+    <%= measurementequipment.measuring_instrument_test_equipment %>
+  </p>
+
+  <p class="my-5">
+    <strong class="block font-medium mb-1">Manufacturer:</strong>
+    <%= measurementequipment.manufacturer %>
+  </p>
+
+  <p class="my-5">
+    <strong class="block font-medium mb-1">Model name:</strong>
+    <%= measurementequipment.equipment_model_name %>
+  </p>
+
+  <p class="my-5">
+    <strong class="block font-medium mb-1">Control no:</strong>
+    <%= measurementequipment.control_no %>
+  </p>
+
+  <p class="my-5">
+    <strong class="block font-medium mb-1">Measurement accuracy:</strong>
+    <%= measurementequipment.measurement_accuracy %>
+  </p>
+
+  <p class="my-5">
+    <strong class="block font-medium mb-1">Reference document no:</strong>
+    <%= measurementequipment.reference_document_no %>
+  </p>
+
+  <p class="my-5">
+    <strong class="block font-medium mb-1">Calibration in house external:</strong>
+    <%= measurementequipment.calibration_in_house_external %>
+  </p>
+
+  <p class="my-5">
+    <strong class="block font-medium mb-1">Laboratory environmental conditions:</strong>
+    <%= measurementequipment.laboratory_environmental_conditions %>
+  </p>
+
+  <p class="my-5">
+    <strong class="block font-medium mb-1">External calibration laboratory:</strong>
+    <%= measurementequipment.external_calibration_laboratory %>
+  </p>
+
+  <p class="my-5">
+    <strong class="block font-medium mb-1">Remarks:</strong>
+    <%= measurementequipment.remarks %>
+  </p>
+
+  <% if action_name != "show" %>
+    <%= link_to "Show this measurementequipment", measurementequipment, class: "rounded-lg py-3 px-5 bg-gray-100 inline-block font-medium" %>
+    <%= link_to 'Edit this measurementequipment', edit_measurementequipment_path(measurementequipment), class: "rounded-lg py-3 ml-2 px-5 bg-gray-100 inline-block font-medium" %>
+    <hr class="mt-6">
+  <% end %>
+</div>

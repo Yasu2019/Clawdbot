@@ -1,0 +1,181 @@
+              <section class="container flex items-stretch justify-between">
+                <div class="lg:inline-block w-1/2 mx-4">
+                        <% chart_kajyou_iatf_request_audit_sub = [] %>
+                            <% @iatf_data_audit_sub.each do |iatf| %>
+                              <% chart_kajyou_iatf_request_audit_sub.push(iatf.no) %>
+                            <% end %>
+                            <% chart_average_score_iatf_request_audit_sub = [] %>
+                            <% @iatf_data_audit_sub.each do |iatf| %>
+                              <% correct_count = 0 %>
+                              <% total_count = 0 %>
+                              <% kari_average_score = 0.0 %>
+                                <% if iatf.no != nil %>
+                                  <% only_kajyou = @touans.where(kajyou: iatf.no) %>
+                                  <% only_kajyou.each do |ave| %>
+                                    <% if ave.seikai == ave.kaito %>
+                                      <% correct_count += 1 %>
+                                    <% end %>
+                                    <% total_count += 1 %>
+                                  <% end %>
+
+                                  <% if total_count != 0 %>
+                                    <% kari_average_score = correct_count.to_f / total_count * 100 %>
+                                  <% else %>
+                                    <% kari_average_score = 0.0 %>
+                                  <% end %>
+
+                                  <% chart_average_score_iatf_request_audit_sub.push(kari_average_score) %>
+                                <% end %>
+                              <% end %>
+                            <div class="overflow-hidden rounded-lg shadow-lg ml-4" style="width: 900px; height: 900px;">
+                            <div class="bg-neutral-50 py-3 px-5 dark:bg-neutral-700 dark:text-neutral-200">
+                            評価結果レーダーチャート
+                            </div>
+                              <canvas class="p-10" id="chartRadar_iatf_request_audit_sub"></canvas>
+                            </div>
+
+                            <!-- Required chart.js 
+                            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+                            -->
+                                <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1"></script>
+                            <!-- Chart radar -->
+
+                        <script>
+                          function createRadarChart_iatf_request_audit_sub() {
+                            const chartElement_iatf_request_audit_sub = document.getElementById("chartRadar_iatf_request_audit_sub");
+
+                            if (!chartElement_iatf_request_audit_sub) {
+                              return;
+                            }
+
+                            const chart_kajyou_iatf_request_audit_sub = <%= raw chart_kajyou_iatf_request_audit_sub.to_json %>;
+
+                            const dataRadar_iatf_request_audit_sub = {
+                              labels: chart_kajyou_iatf_request_audit_sub,
+                              datasets: [
+                                {
+                                  label: "テスト正解率(%)",
+                                  data: <%= chart_average_score_iatf_request_audit_sub.map(&:to_f).to_json %>,
+                                  fill: true,
+                                  backgroundColor: "rgba(133, 105, 241, 0.2)",
+                                  borderColor: "rgb(133, 105, 241)",
+                                  pointBackgroundColor: "rgb(133, 105, 241)",
+                                  pointBorderColor: "#fff",
+                                  pointHoverBackgroundColor: "#fff",
+                                  pointHoverBorderColor: "rgb(133, 105, 241)",
+                                },
+                              ],
+                            };
+
+                            const configRadarChart_iatf_request_audit_sub = {
+                              type: "radar",
+                              data: dataRadar_iatf_request_audit_sub,
+                              options: {
+                                scales: {
+                                  r: {
+                                    min: 0,
+                                    max: 100,
+                                    stepSize: 10,
+                                    ticks: {
+                                      font: {
+                                        size: 20,
+                                      },
+                                    },
+                                    pointLabels: {
+                                      font: {
+                                        size: 20, // ここで文字サイズを変更してください
+                                      },
+                                    },
+                                  },
+                                },
+                                plugins: {
+                                  legend: {
+                                    labels: {
+                                      font: {
+                                        size: 20,
+                                      },
+                                    },
+                                  },
+                                  tooltip: {
+                                    bodyFont: {
+                                      size: 20,
+                                    },
+                                    titleFont: {
+                                      size: 20,
+                                    },
+                                  },
+                                },
+                              },
+                            };
+
+                            // 既存のチャートがあれば破棄する
+                            if (window.myRadarChart_iatf_request_audit_sub) {
+                              window.myRadarChart_iatf_request_audit_sub.destroy();
+                            }
+
+                            window.myRadarChart_iatf_request_audit_sub = new Chart(chartElement_iatf_request_audit_sub, configRadarChart_iatf_request_audit_sub);
+                          }
+
+                          document.addEventListener("turbo:load", createRadarChart_iatf_request_audit_sub);
+                          document.addEventListener("turbo:before-cache", function () {
+                            if (window.myRadarChart_iatf_request_audit_sub) {
+                              window.myRadarChart_iatf_request_audit_sub.destroy();
+                              window.myRadarChart_iatf_request_audit_sub = null;
+                            }
+                          });
+                        </script>
+
+
+                            <style>
+                              .chart-label {
+                                font-size: 20px;
+                              }
+                            </style>
+                </div>
+
+                <div class="lg:inline-block w-1/2">
+                    <table class="sticky_table table-striped table-hover border-separate border-spacing-1 border-2 border-blue-900 bg-gray-100">
+                          <thead>
+                            <tr>
+                              <th class="border-2 border-blue-900"><%= "箇条" %></th>
+                              <th class="border-2 border-blue-900"><%= "タイトル" %></th>
+                              <th class="border-2 border-blue-900"><%= "平均得点" %></th>
+                            </tr>
+                          </thead>
+                            <% chart_kajyou_iatf_request_audit_sub = [] %>
+                            <% @iatf_data_audit_sub.each do |iatf| %>
+                              <% chart_kajyou_iatf_request_audit_sub.push(iatf.no) %>
+                            <% end %>
+
+                            <% chart_average_score_iatf_request_audit_sub = [] %>
+                            <% @iatf_data_audit_sub.each do |iatf| %>
+                              <% correct_count = 0 %>
+                              <% total_count = 0 %>
+                              <% kari_average_score = 0.0 %>
+                              <% if iatf.no != nil %>
+                                <% only_kajyou = @touans.where(kajyou: iatf.no) %>
+                                <% only_kajyou.each do |ave| %>
+                                  <% if ave.seikai == ave.kaito %>
+                                    <% correct_count += 1 %>
+                                  <% end %>
+                                  <% total_count += 1 %>
+                                <% end %>
+
+                                <% if total_count != 0 %>
+                                  <% kari_average_score = correct_count.to_f / total_count * 100 %>
+                                <% else %>
+                                  <% kari_average_score = 0.0 %>
+                                <% end %>
+                                <% chart_average_score_iatf_request_audit_sub.push(kari_average_score) %>
+                              <% end %>
+
+                                  <tr>
+                                      <td class="border-2 border-blue-900"><%= iatf.no %></td>
+                                      <td class="border-2 border-blue-900"><%= iatf.name %></td>
+                                      <td class="border-2 border-blue-900"><%= kari_average_score %></td>
+
+                                    </tr>
+                                  <% end %>
+                    </table>
+                </div>
+              </section>

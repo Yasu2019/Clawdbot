@@ -1,0 +1,9 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  csr_number: MyString
+  csr_content: MyText
+
+two:
+  csr_number: MyString
+  csr_content: MyText

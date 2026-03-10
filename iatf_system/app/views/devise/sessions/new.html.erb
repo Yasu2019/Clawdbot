@@ -1,0 +1,102 @@
+
+<section class="text-gray-600 body-font">
+  
+  <%= form_for(resource, as: resource_name, url: session_path(resource_name), html: { "data-turbo" => "false" }) do |f| %>
+  
+    <div class="container px-5 py-24 mx-auto flex flex-wrap items-center">
+      <div class="lg:w-3/5 md:w-1/2 md:pr-16 lg:pr-0 pr-0">
+          <h1 class="title-font font-medium text-3xl text-gray-900">IATF16949：2016 & Factory Equipment Monitoring System</h1>
+          <p class="leading-relaxed mt-4">This website is an integrated management website for IATF management system updates, educational material database, and real-time in-plant IOT system.</p>
+      </div>
+
+             <div id="photo">
+               <%= image_tag '1.jpg' %>
+               <%= image_tag '2.jpg' %>
+               <%= image_tag '3.jpg' %>
+               <%= image_tag '4.jpg' %>
+               <%= image_tag '5.jpg' %>
+               <%= image_tag '6.jpg' %>
+               <%= image_tag '7.jpg' %>
+               <%= image_tag '8.jpg' %>
+               <%= image_tag '9.jpg' %>
+               <%= image_tag '10.jpg' %>
+               <%= image_tag '11.jpg' %>
+              
+             </div>
+             <div class="lg:w-2/6 md:w-1/2 bg-gray-100 rounded-lg p-8 flex flex-col md:ml-auto w-full mt-10 md:mt-0">
+               <h2 class="text-gray-900 text-lg font-medium title-font mb-5">Log in</h2>
+
+                 <label class="leading-7 text-sm text-gray-600">Email</label>
+                 <%= f.email_field :email, autofocus: true, autocomplete: "email" %>
+
+                 <label class="leading-7 text-sm text-gray-600">Password</label>
+                 <%= f.password_field :password, autocomplete: "current-password"  %>
+                 <br>
+
+                 <button class="actions text-white bg-indigo-500 border-0 py-2 px-8 focus:outline-none hover:bg-indigo-600 rounded text-lg">ログイン</button>
+                 <%= f.submit "Log in"  , class: "hidden" %>
+
+                 <% if devise_mapping.rememberable? %>
+                 <div class="field">
+                     <%= f.check_box :remember_me %>
+                     <%= f.label :remember_me %>
+                 </div>
+          <% end %>
+        <p class="text-xs text-gray-500 mt-3">We hope that this system can contribute to your system construction.</p>
+     </div>
+   </div>
+  <% end %>
+</section>
+
+<!--
+<%= render "devise/shared/links" %>
+-->
+
+<!--
+自動的に「ふわっ」と切り替わる画像を作る方法
+https://toretama.jp/automatic-animation-image-floaty.html
+-->
+
+<style type="text/css">
+#photo {
+    width: 700px;
+    height: 500px;
+    margin: 0 auto;
+    text-align: left;
+    overflow: hidden;
+    position: relative;
+}
+
+#photo img {
+    top: 0;
+    left: 0;
+    position: absolute;
+}
+</style>
+
+
+<!--
+画像が自動的に切り替わる「スライドショー」を表示する方法
+https://toretama.jp/automatic-slideshow-image.html
+-->
+
+<script type="text/javascript" src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+<script type="text/javascript">
+$(function(){
+    var setImg = '#photo';
+    var fadeSpeed = 1600;
+    var switchDelay = 5000;
+
+    $(setImg).children('img').css({opacity:'0'});
+    $(setImg + ' img:first').stop().animate({opacity:'1',zIndex:'20'},fadeSpeed);
+
+    setInterval(function(){
+        $(setImg + ' :first-child').animate({opacity:'0'},fadeSpeed).next('img').animate({opacity:'1'},fadeSpeed).end().appendTo(setImg);
+    },switchDelay);
+});
+</script>
+
+
+
+
+</div>

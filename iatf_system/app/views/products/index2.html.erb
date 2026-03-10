@@ -1,0 +1,120 @@
+<h1>IATF APQP / PPAP Chart</h1>
+
+
+<div class="tab_wrap">
+	<input id="tab1" type="radio" name="tab_btn" checked>
+	<input id="tab2" type="radio" name="tab_btn">
+	<input id="tab3" type="radio" name="tab_btn">
+  <input id="tab4" type="radio" name="tab_btn">
+  <input id="tab5" type="radio" name="tab_btn">
+  <input id="tab6" type="radio" name="tab_btn">
+  <input id="tab7" type="radio" name="tab_btn">
+
+	<div class="tab_area">
+		<label class="tab1_label" for="tab1">フェーズ1</label>
+		<label class="tab2_label" for="tab2">フェーズ2</label>
+		<label class="tab3_label" for="tab3">フェーズ3</label>
+    <label class="tab4_label" for="tab4">フェーズ4</label>
+    <label class="tab5_label" for="tab5">フェーズ5</label>
+    <label class="tab6_label" for="tab6">PPAP</label>
+    <label class="tab7_label" for="tab7">8.3製品の設計・開発</label>
+
+
+	</div>
+	<div class="panel_area">
+		<div id="panel1" class="tab_panel">
+      <% koumoku=["顧客インプット", "顧客の声", "設計目標", "製品保証計画書", "製品・製造工程の前提条件", "製品・製造工程のベンチマークデータ", "製品の信頼性調査", "経営者の支援", "特殊製品特性・特殊プロセス特性の暫定リスト", "暫定材料明細表", "暫定プロセスマップフロー図", "信頼性目標・品質目標", "事業計画・マーケティング戦略"] %>
+      <%= render partial: "form", locals: { products: @products, koumoku:koumoku,dropdownlist:@dropdownlist  } %>
+		</div>
+
+		<div id="panel2" class="tab_panel">
+      <% koumoku=["試作コントロールプラン", "設計検証", "設計故障モード影響解析（DFMEA）", "製造性・組立性を考慮した設計", "特殊製品特性・特殊プロセス特性", "材料仕様書", "技術仕様書", "実現可能性検討報告書および経営者の支援", "図面（数学的データを含む）", "図面・仕様書の変更", "デザインレビュー", "ゲージ・試験装置の要求事項"] %>
+      <%= render partial: "form", locals: { products: @products, koumoku:koumoku,dropdownlist:@dropdownlist  } %>
+		</div>
+
+		<div id="panel3" class="tab_panel">
+      <% koumoku=["製品・プロセスの品質システムのレビュー", "経営者の支援(Phase3)", "特性マトリクス", "測定システム解析計画書", "梱包規格・仕様書", "工程能力予備調査計画書", "先行生産（Pre-launch,量産試作）コントロールプラン", "プロセス故障モード影響解析（PFMEA）", "プロセス指示書", "プロセスフロー図(Phase3)", "フロアプランレイアウト"]  %>
+      <%= render partial: "form", locals: { products: @products, koumoku:koumoku,dropdownlist:@dropdownlist  } %>
+		</div>
+
+    <div id="panel4" class="tab_panel">
+      <% koumoku=["量産コントロールプラン", "量産の妥当性確認試験", "生産部品承認(PPAP)", "測定システム解析", "梱包評価", "工程能力予備調査", "実質的生産", "品質計画承認署名"] %>
+      <%= render partial: "form", locals: { products: @products, koumoku:koumoku,dropdownlist:@dropdownlist  } %>
+		</div>
+    
+    <div id="panel5" class="tab_panel">
+      <% koumoku=["顧客満足の向上", "引渡しおよびサービスの改善", "学んだ教訓・ベストプラクティスの効果的な利用", "変動の減少"] %>
+      <%= render partial: "form", locals: { products: @products, koumoku:koumoku,dropdownlist:@dropdownlist  } %>
+		</div>
+    
+    <div id="panel6" class="tab_panel">
+      <% koumoku=["顧客技術承認", "顧客固有要求事項適合記録", "部品提出保証書（PSW)", "設計FMEA", "製品設計文書", "製品サンプル", "測定システム解析（MSA)", "検査補助具", "材料・性能試験結果", "有資格試験所文書", "技術変更文書（顧客承認）", "寸法測定結果", "外観承認報告書（AAR)", "初期工程調査結果", "マスターサンプル", "プロセスフロー図", "プロセスFMEA", "バルク材料チェックリスト", "コントロールプラン"] %>
+      <%= render partial: "form", locals: { products: @products, koumoku:koumoku,dropdownlist:@dropdownlist  } %>
+		</div>
+
+    <div id="panel7" class="tab_panel">
+      <% koumoku= ["顧客要求事項検討会議事録_営業", "金型製造指示書_営業", "金型製作依頼票_金型設計", "進捗管理票_生産技術", "試作製造指示書_営業", "設計計画書_金型設計", "設計検証チェックリスト_金型設計", "設計変更会議議事録_金型設計", "妥当性確認記録_金型設計","初期流動検査記録", "レイアウト/歩留まり_営業", "DR構想検討会議議事録_生産技術", "DR会議議事録_金型設計"]%>
+      <%= render partial: "form", locals: { products: @products, koumoku:koumoku,dropdownlist:@dropdownlist  } %>
+		</div>
+
+
+
+	</div>
+</div>
+
+
+<style>
+.tab_wrap{width:1200px; margin:80px auto;}
+input[type="radio"]{display:none;}
+.tab_area{font-size:0; margin:0 10px;}
+.tab_area label{width:150px; margin:0 5px; display:inline-block; padding:12px 0; color:#999; background:#ddd; text-align:center; font-size:13px; cursor:pointer; transition:ease 0.2s opacity;}
+.tab_area label:hover{opacity:0.5;}
+.panel_area{background:#fff;}
+.tab_panel{width:100%; padding:80px 0; display:none;}
+.tab_panel p{font-size:14px; letter-spacing:1px; text-align:center;}
+
+#tab1:checked ~ .tab_area .tab1_label{background:#fff; color:#000;}
+#tab1:checked ~ .panel_area #panel1{display:block;}
+#tab2:checked ~ .tab_area .tab2_label{background:#fff; color:#000;}
+#tab2:checked ~ .panel_area #panel2{display:block;}
+#tab3:checked ~ .tab_area .tab3_label{background:#fff; color:#000;}
+#tab3:checked ~ .panel_area #panel3{display:block;}
+
+#tab4:checked ~ .tab_area .tab4_label{background:#fff; color:#000;}
+#tab4:checked ~ .panel_area #panel4{display:block;}
+#tab5:checked ~ .tab_area .tab5_label{background:#fff; color:#000;}
+#tab5:checked ~ .panel_area #panel5{display:block;}
+#tab6:checked ~ .tab_area .tab6_label{background:#fff; color:#000;}
+#tab6:checked ~ .panel_area #panel6{display:block;}
+#tab7:checked ~ .tab_area .tab7_label{background:#fff; color:#000;}
+#tab7:checked ~ .panel_area #panel7{display:block;}
+
+
+</style>
+
+
+
+
+
+
+
+
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

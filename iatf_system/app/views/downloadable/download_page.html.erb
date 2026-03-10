@@ -1,0 +1,11 @@
+app/views/downloadable/download_page.html.erb
+<p>認証が取れました。下記Download Fileリンクをクリックしてください:</p>
+<br>
+<% if @download_url.ends_with?('.pdf') %>
+  <%= link_to "Download File", @download_url, class: "text-white bg-indigo-500 border-0 py-2 px-8 focus:outline-none hover:bg-indigo-600 rounded text-lg", target: "_blank", data: { turbo: "false" } %> <!-- PDFの場合は新しいタブで開く -->
+<% else %>
+  <%= link_to "Download File", @download_url, class: "text-white bg-indigo-500 border-0 py-2 px-8 focus:outline-none hover:bg-indigo-600 rounded text-lg", data: { turbo: "false" } %> <!-- その他のファイルは通常通りダウンロード -->
+<% end %>
+<br>
+<br>
+<%= link_to '戻る', root_path, class: 'btn btn-accent' %>

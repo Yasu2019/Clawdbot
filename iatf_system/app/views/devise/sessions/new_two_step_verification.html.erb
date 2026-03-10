@@ -1,0 +1,12 @@
+<h2>2-Step Verification</h2>
+
+<%= form_tag users_two_step_verification_path, method: :post do %>
+  <div class='field'>
+    <%= label_tag :otp_attempt, 'Verify' %> <i>(enter a one-time password)</i><br />
+    <%= text_field_tag :otp_attempt %>
+  </div>
+
+  <div class='actions'>
+    <%= submit_tag 'Verify' %>
+  </div>
+<% end %>

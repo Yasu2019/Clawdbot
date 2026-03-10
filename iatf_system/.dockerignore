@@ -1,0 +1,4 @@
+# これは .dockerignore ファイルの例です
+
+# storage ディレクトリを無視
+storage/

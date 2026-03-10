@@ -35,7 +35,7 @@
 - **毎日23:00 (JST)** に、ユーザーとの約束事項一覧をGmailとTelegramに送信する
 - 約束事項は `PROMISES.md` に記録・管理する
 - 送信時にはファイル名 `PROMISES.md` も記載する
-- **Action:** `node data/workspace/scripts/send_email.js "Daily Promises" "See PROMISES.md"` を実行する。
+- **Action:** `node scripts/send_email.js "Daily Promises" "See PROMISES.md"` を実行する。
 
 ### 2. モデル名の表示
 
@@ -46,7 +46,7 @@
 
 - **30分に1回**、API料金をアプリケーション別にGmailとTelegramに送信する
 - どのアプリケーション使用時にどれだけ費やされたかを明記する
-- **Action:** `python3 data/workspace/scripts/check_billing.py` を実行する。
+- **Action:** `python3 scripts/check_billing.py` を実行する。
 
 ### 4. LLMの使い分け
 
@@ -165,3 +165,18 @@ To minimize API costs while maximizing autonomy:
   - 実行承認/却下
   - 品質管理・ユーザー報告
 - **Reference:** `docs/DUAL_AGENT_PROTOCOL.md`
+
+### 16. タスク進捗の状態報告 (Context Tracking)
+
+- **複数ステップのタスク実行中は、各ステップ完了後に現在地を1〜2行で報告すること。**
+  - 例: `[進捗 2/4] OCR完了 → 次: Embedding処理中`
+- これにより無限ループや無駄なやり直しを防ぎ、鈴木さんが途中介入しやすくする。
+- 長時間バックグラウンドタスク（インジェスト・ビルド等）は、開始時に推定完了時刻を伝えること。
+
+### 17. タスク結果の構造化報告 (Supervision)
+
+- **タスク完了・失敗時には以下の形式で報告すること:**
+  - `✅ 成功` または `❌ 失敗: [理由の分類]`
+  - 失敗理由の分類例: `要件漏れ` / `ツールエラー` / `タイムアウト` / `権限不足` / `依存関係エラー`
+  - 次に取るべきアクション（リトライ・エスカレート・スキップ等）
+- 生ログやJSONを貼るだけで終わらせず、必ず上記サマリーを付与すること（Rule 9 と連動）。

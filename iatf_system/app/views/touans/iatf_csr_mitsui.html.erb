@@ -1,0 +1,77 @@
+<div class="sm:inline-block w-full mx-4" style="width: 80%;">
+        <%= link_to '一覧をExcelへ出力', touans_export_to_excel_path, class: 'btn btn-accent btn-sm' %>
+        <table class="sticky_table table-striped table-hover border-separate border-spacing-1 border-2 border-blue-900 bg-gray-100">
+            <thead>
+            <tr>
+                <th class="border-2 border-blue-900"><%= "箇条" %></th>
+                <th class="border-2 border-blue-900"><%= "MEK様品質ガイドラインVer2" %></th>
+                <th class="border-2 border-blue-900"><%= "IATF規格要求事項" %></th>
+                <th class="border-2 border-blue-900"><%= "ミツイ精密 品質マニュアル" %></th>
+                <th class="border-2 border-blue-900"><%= "添付ファイル" %></th> <!-- 新しい列を追加 -->
+            </tr>
+            </thead>
+
+            <% 
+            number_all = []
+            csr_content_all = []
+            iatf_content_all = []
+            mitsui_content_all = []
+
+            # CSR
+            @csrs.each do |c|
+                number_all << c.csr_number
+                csr_content_all << c.csr_content
+
+                corresponding_iatf = @iatflists.find { |i| i.iatf_number == c.csr_number }
+                iatf_content_all << (corresponding_iatf ? corresponding_iatf.iatf_content : "")
+
+                corresponding_mitsui = @mitsuis.find { |m| m.mitsui_number == c.csr_number }
+                mitsui_content_all << (corresponding_mitsui ? corresponding_mitsui.mitsui_content : "")
+            end
+
+            # IATF
+            @iatflists.each do |i|
+                unless number_all.include?(i.iatf_number)
+                    number_all << i.iatf_number
+                    csr_content_all << ""
+                    iatf_content_all << i.iatf_content
+
+                    corresponding_mitsui = @mitsuis.find { |m| m.mitsui_number == i.iatf_number }
+                    mitsui_content_all << (corresponding_mitsui ? corresponding_mitsui.mitsui_content : "")
+                end
+            end
+
+            # Mitsui
+            @mitsuis.each do |m|
+                unless number_all.include?(m.mitsui_number)
+                    number_all << m.mitsui_number
+                    csr_content_all << ""
+                    iatf_content_all << ""
+                    mitsui_content_all << m.mitsui_content
+                end
+            end
+
+            sorted_indices = number_all.map.with_index.sort.map { |_, idx| idx }
+
+            sorted_indices.each do |idx|
+            %>
+                <tr>
+                <td class="vertical-align-top"><%= number_all[idx] %></td>
+                <td class="vertical-align-top"><%= safe_join(h(csr_content_all[idx]).split("*"), tag(:br)) %></td>
+                <td class="vertical-align-top"><%= safe_join(h(iatf_content_all[idx]).split("*"), tag(:br)) %></td>
+                <td class="vertical-align-top"><%= safe_join(h(mitsui_content_all[idx]).split("*"), tag(:br)) %></td>
+                <td class="vertical-align-top">
+                <% @products.each do |doc_check| %>
+                    <% if doc_check.documents.attached? && doc_check.documentnumber == number_all[idx] %>
+                        <% matching_product = doc_check %>
+                        <%= render partial: "attached_file_touan", locals: { matching_product: matching_product, fullfilename: rails_blob_path(matching_product.documents.first), ext: File.extname(rails_blob_path(matching_product.documents.first)).downcase, image: matching_product.documents.first } %>
+                    <% end %>
+                <% end %>
+            </td>
+                </tr>
+            <% end %>
+        </table>
+    </div>
+    <br>
+    <%= link_to '一覧をExcelへ出力', touans_export_to_excel_path, class: 'btn btn-accent btn-sm' %>
+    <%= link_to '戻る', root_path, class: 'btn btn-accent btn-sm' %>

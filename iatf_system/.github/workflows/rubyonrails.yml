@@ -1,0 +1,70 @@
+name: "Ruby on Rails CI"
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Install Ruby and gems
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.1.2
+          bundler-cache: true
+      - name: Setup database
+        run: |
+          # データベースのセットアップコマンドをここに記述
+      - name: Run tests
+        run: |
+          # テストを実行するコマンドをここに記述
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Install Ruby and gems
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.1.2
+          bundler-cache: true
+      - name: Install Poppler and GObject introspection data
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libpoppler-glib-dev gir1.2-poppler-0.18
+      - name: Set permissions for Rails scripts
+        run: chmod +x bin/rails
+      - name: Set permissions for Rake
+        run: chmod +x bin/rake
+      - name: Set permissions for RuboCop
+        run: chmod +x bin/rubocop
+      - name: Security audit dependencies
+        run: bundle exec bundler-audit update
+        continue-on-error: true
+      - name: Security audit application code
+        run: bundle exec brakeman -q -w2 --ignore-config brakeman.ignore
+        continue-on-error: true
+      # RuboCopのチェックを一時的にコメントアウト
+      # - name: Lint Ruby files
+      #   run: bin/rubocop --parallel
+      # - name: Auto-correct RuboCop offenses
+      #   run: bin/rubocop --auto-correct
+      # - name: Commit changes
+      #   if: ${{ github.ref == 'refs/heads/master' && github.event_name == 'push' }}
+      #   run: |
+      #     git config --global user.name 'rubocop-autocorrect'
+      #     git config --global user.email 'rubocop-autocorrect@example.com'
+      #     git add -A
+      #     git commit -m 'Auto-correct RuboCop offenses' || true
+      # - name: Push changes
+      #   if: ${{ github.ref == 'refs/heads/master' && github.event_name == 'push' }}
+      #   uses: ad-m/github-push-action@master
+      #   with:
+      #     github_token: ${{ secrets.GITHUB_TOKEN }}
+      #     branch: ${{ github.ref }}

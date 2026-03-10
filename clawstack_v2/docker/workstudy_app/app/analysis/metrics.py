@@ -3,6 +3,7 @@ Metrics Engine — Compute KPIs, waste patterns, and ergonomic risk.
 """
 import numpy as np
 from pose.estimator import PoseEstimator
+from analysis.most_calculator import MOSTCalculator
 
 
 class MetricsEngine:
@@ -54,6 +55,31 @@ class MetricsEngine:
         kpi["hold_ratio"] = kpi["static_posture_ratio"]
         kpi["overlap_ratio"] = 0.0  # Needs multi-worker (v0.2)
 
+        # Confidence KPIs
+        confidences = [lbl.get("confidence", 0.0) for lbl in labels]
+        if confidences:
+            kpi["avg_confidence"]        = round(float(np.mean(confidences)), 3)
+            kpi["min_confidence"]        = round(float(np.min(confidences)), 3)
+            kpi["low_confidence_ratio"]  = round(
+                sum(1 for c in confidences if c < 0.45) / len(confidences), 3
+            )
+            kpi["high_confidence_ratio"] = round(
+                sum(1 for c in confidences if c >= 0.75) / len(confidences), 3
+            )
+        else:
+            kpi["avg_confidence"]        = 0.0
+            kpi["min_confidence"]        = 0.0
+            kpi["low_confidence_ratio"]  = 1.0
+            kpi["high_confidence_ratio"] = 0.0
+
+        # MOST analysis
+        most_result = MOSTCalculator().analyze(labels)
+        kpi["most_total_tmu"]  = most_result["total_tmu"]
+        kpi["most_nva_tmu"]    = most_result["nva_tmu"]
+        kpi["most_efficiency"] = most_result["efficiency"]
+        kpi["most_avg_seq_tmu"] = most_result["avg_seq_tmu"]
+        kpi["most_sequences"]  = len(most_result["sequences"])
+
         # Ergonomic assessment
         ergo = self._compute_ergo(pose_data)
         kpi["trunk_risk_ratio"] = ergo.get("trunk_risk_ratio", 0)
@@ -91,6 +117,7 @@ class MetricsEngine:
             "label_distribution": label_times,
             "total_time_sec": total_time,
             "total_frames": total_frames,
+            "most": most_result,
         }
 
     def _compute_hand_travel(self, pose_data: list[dict]) -> float:
@@ -99,23 +126,38 @@ class MetricsEngine:
         for frame in pose_data:
             lms = frame.get("landmarks", [])
             if len(lms) > 16:
-                curr = (lms[16]["x"], lms[16]["y"])
-                if prev:
-                    total += np.sqrt((curr[0]-prev[0])**2 + (curr[1]-prev[1])**2)
+                curr = np.array([lms[16]["x"], lms[16]["y"]])
+                if prev is not None:
+                    total += np.linalg.norm(curr - prev)
                 prev = curr
         return total
 
     def _count_direction_changes(self, pose_data: list[dict]) -> int:
+        """Improved Search detection: Count direction changes in hand trajectory."""
         changes = 0
-        prev_dx = 0
+        if len(pose_data) < 5:
+            return 0
+        
+        # Smoothed direction tracking
+        velocities = []
         for i in range(1, len(pose_data)):
             lms_prev = pose_data[i-1].get("landmarks", [])
             lms_curr = pose_data[i].get("landmarks", [])
             if len(lms_prev) > 16 and len(lms_curr) > 16:
-                dx = lms_curr[16]["x"] - lms_prev[16]["x"]
-                if prev_dx * dx < 0:
+                v = np.array([lms_curr[16]["x"] - lms_prev[16]["x"], 
+                             lms_curr[16]["y"] - lms_prev[16]["y"]])
+                velocities.append(v)
+        
+        if len(velocities) < 2:
+            return 0
+            
+        for i in range(1, len(velocities)):
+            v1 = velocities[i-1]
+            v2 = velocities[i]
+            if np.linalg.norm(v1) > 0.005 and np.linalg.norm(v2) > 0.005:
+                cos_sim = np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2))
+                if cos_sim < 0: # Threshold for direction change (anti-parallel)
                     changes += 1
-                prev_dx = dx
         return changes
 
     def _count_recheck_loops(self, labels: list[dict]) -> int:
@@ -128,6 +170,7 @@ class MetricsEngine:
         return loops
 
     def _count_tilt_actions(self, pose_data: list[dict]) -> int:
+        """Count wrist orientation/tilt actions (proxy for reflection check)."""
         tilts = 0
         for i in range(1, len(pose_data)):
             lms = pose_data[i].get("landmarks", [])
@@ -137,7 +180,7 @@ class MetricsEngine:
                 if len(prev_lms) > 16:
                     if abs(wrist_y - prev_lms[16]["y"]) > 0.03:
                         tilts += 1
-        return tilts // 10  # Normalize
+        return tilts // 10  # Normalize to actions
 
     def _count_label_switches(self, labels: list[dict]) -> int:
         switches = 0

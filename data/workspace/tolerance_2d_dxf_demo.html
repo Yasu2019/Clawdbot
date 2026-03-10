@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="utf-8">
+    <title>2D DXF公差解析デモ</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        h1 {
+            color: #569cd6;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .container {
+            display: flex;
+            gap: 20px;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .panel {
+            background: #252526;
+            border-radius: 8px;
+            padding: 15px;
+            border: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-dxf {
+            flex: 2;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .panel-controls {
+            flex: 1;
+            min-width: 300px;
+            overflow-y: auto;
+        }
+
+        #dxfCanvas {
+            background: #111;
+            cursor: crosshair;
+            width: 100%;
+            height: 100%;
+        }
+
+        .control-group {
+            margin-bottom: 15px;
+        }
+
+        h2 {
+            color: #ce9178;
+            font-size: 16px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #444;
+            padding-bottom: 5px;
+        }
+
+        .btn {
+            background: #0e639c;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            margin: 5px 0;
+        }
+
+        .btn:hover {
+            background: #1177bb;
+        }
+
+        .btn-red {
+            background: #a12626;
+        }
+
+        .btn-red:hover {
+            background: #c63333;
+        }
+
+        .list-item {
+            padding: 8px;
+            border-bottom: 1px solid #333;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .list-item:hover {
+            background: #2a2d2e;
+        }
+
+        .list-item.selected {
+            background: #37373d;
+            border-left: 3px solid #569cd6;
+        }
+
+        .tag {
+            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: #444;
+        }
+
+        .result-box {
+            background: #1e1e1e;
+            padding: 10px;
+            border: 1px solid #3c3c3c;
+            margin-top: 10px;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+        }
+
+        .stat-val {
+            font-weight: bold;
+            color: #4ec9b0;
+        }
+
+        canvas#histogram,
+        canvas#sensitivityChart {
+            width: 100%;
+            margin-top: 10px;
+        }
+    </style>
+    <!-- Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/dxf-parser@1.1.2/dist/dxf-parser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+
+<body>
+
+    <h1>📐 2D DXF 組立図解析プロトタイプ</h1>
+
+    <div class="container">
+        <div class="panel panel-dxf">
+            <canvas id="dxfCanvas"></canvas>
+            <div
+                style="position:absolute; top:10px; left:10px; background:rgba(0,0,0,0.7); padding:5px; border-radius:4px; font-size:12px;">
+                🖱️ スクロール: ズーム<br>🖱️ 右ドラッグ: パン<br>🖱️ 左クリック: 要素選択
+            </div>
+        </div>
+
+        <div class="panel panel-controls">
+            <h2>📂 データ管理</h2>
+            <div class="control-group">
+                <input type="file" id="fileInput" accept=".dxf" style="display:none">
+                <button class="btn" onclick="document.getElementById('fileInput').click()">📁 DXFファイルを開く</button>
+                <button class="btn" onclick="loadSampleDXF()">🔄 サンプル図面をロード</button>
+            </div>
+
+            <h2>🏗️ 部品・寸法定義</h2>
+            <div class="control-group">
+                <div id="entityInfo" style="font-size:12px; color:#aaa; margin-bottom:10px;">要素を選択してください...</div>
+                <select id="partSelect"
+                    style="width:100%; padding:5px; background:#333; color:white; border:1px solid #555;">
+                    <option value="part1">部品A (青)</option>
+                    <option value="part2">部品B (赤)</option>
+                    <option value="part3">部品C (緑)</option>
+                </select>
+                <div style="display:flex; gap:5px; margin-top:5px;">
+                    <input type="number" id="tolVal" placeholder="公差 ±" value="0.05" step="0.01"
+                        style="width:70px; background:#333; color:white; border:1px solid #555;">
+                    <button class="btn" onclick="addDimension()" style="margin:0;">➕ 公差を追加</button>
+                </div>
+            </div>
+
+            <h2>⛓️ 公差チェーン</h2>
+            <div id="chainList"
+                style="min-height:100px; background:#1e1e1e; border:1px solid #333; margin-bottom:10px;"></div>
+            <button class="btn btn-red" onclick="runAnalysis()">📊 解析実行</button>
+
+            <div id="resultPanel" style="display:none;">
+                <h2>📊 解析結果</h2>
+                <div class="result-box">
+                    <div class="stat-row"><span>公称値 (単純和):</span> <span class="stat-val" id="resNom">-</span></div>
+                    <div class="stat-row"><span>Worst Case:</span> <span class="stat-val" id="resWC">-</span></div>
+                    <div class="stat-row"><span>RSS (3σ):</span> <span class="stat-val" id="resRSS">-</span></div>
+                </div>
+
+                <h3 style="color:#569cd6; font-size:14px; margin:10px 0 5px;">📈 Monte Carlo ヒストグラム (10,000サンプル)</h3>
+                <canvas id="histogram" height="150"></canvas>
+
+                <h3 style="color:#f857a6; font-size:14px; margin:15px 0 5px;">🎯 感度分析 (寄与率 %)</h3>
+                <canvas id="sensitivityChart" height="100"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Canvas & Interaction Setup ---
+        const canvas = document.getElementById('dxfCanvas');
+        const ctx = canvas.getContext('2d');
+        let parser = null; // Initialize later
+        let dxfData = null;
+        let entities = [];
+        let transforms = { scale: 20, offsetX: 400, offsetY: 300 }; // View state
+        let isDragging = false;
+        let lastMouse = { x: 0, y: 0 };
+        let selectedEntity = null;
+        let dimensions = []; // Defined dimensions for analysis
+        let chain = []; // Tolerance chain
+
+        // --- Analysis Logic ---
+        let analysisChain = [];
+        let histogramChart = null;
+        let sensitivityChart = null;
+
+        // Note: DXF format is sensitive to whitespace. No indent for codes.
+        const sampleDXF = `0
+SECTION
+2
+HEADER
+9
+$ACADVER
+1
+AC1009
+0
+ENDSEC
+0
+SECTION
+2
+ENTITIES
+0
+LINE
+8
+SHAFT
+10
+-50.0
+20
+-10.0
+11
+50.0
+21
+-10.0
+0
+LINE
+8
+SHAFT
+10
+50.0
+20
+-10.0
+11
+50.0
+21
+10.0
+0
+LINE
+8
+SHAFT
+10
+50.0
+20
+10.0
+11
+-50.0
+21
+10.0
+0
+LINE
+8
+SHAFT
+10
+-50.0
+20
+10.0
+11
+-50.0
+21
+-10.0
+0
+LINE
+8
+BUSH
+10
+-50.0
+20
+10.5
+11
+50.0
+21
+10.5
+0
+LINE
+8
+BUSH
+10
+50.0
+20
+10.5
+11
+50.0
+21
+11.5
+0
+LINE
+8
+BUSH
+10
+50.0
+20
+11.5
+11
+-50.0
+21
+11.5
+0
+LINE
+8
+BUSH
+10
+-50.0
+20
+11.5
+11
+-50.0
+21
+10.5
+0
+LINE
+8
+HOUSING
+10
+-50.0
+20
+12.0
+11
+50.0
+21
+12.0
+0
+LINE
+8
+HOUSING
+10
+50.0
+20
+12.0
+11
+50.0
+21
+30.0
+0
+LINE
+8
+HOUSING
+10
+50.0
+20
+30.0
+11
+-50.0
+21
+30.0
+0
+LINE
+8
+HOUSING
+10
+-50.0
+20
+30.0
+11
+-50.0
+21
+12.0
+0
+LINE
+8
+DIM_SHAFT
+10
+0.0
+20
+0.0
+11
+0.0
+21
+15.0
+0
+ENDSEC
+0
+EOF`;
+
+        // Initial resize
+        function resize() {
+            if (canvas.parentElement) {
+                canvas.width = canvas.parentElement.clientWidth;
+                canvas.height = canvas.parentElement.clientHeight;
+                draw();
+            }
+        }
+        window.addEventListener('resize', resize);
+
+        // Load sequence
+        window.addEventListener('load', function () {
+            setTimeout(resize, 100);
+            setTimeout(loadSampleDXF, 200); // Slight delay to ensure libs loaded
+        });
+
+        window.addDimension = function () {
+            if (!selectedEntity) { alert('要素を選択してください'); return; }
+
+            // Simulate getting feature size
+            let nominal = 0;
+            if (selectedEntity.type === 'LINE') {
+                // Vertical distance for housing gap check
+                nominal = Math.abs(selectedEntity.vertices[0].y - selectedEntity.vertices[1].y);
+                // Or horizontal
+                if (nominal < 0.1) nominal = Math.abs(selectedEntity.vertices[0].x - selectedEntity.vertices[1].x);
+            }
+
+            const tolInput = document.getElementById('tolVal').value;
+            const tol = parseFloat(tolInput);
+            const partSelect = document.getElementById('partSelect');
+            const part = partSelect.options[partSelect.selectedIndex].text;
+
+            analysisChain.push({ name: part + " (" + selectedEntity.layer + ")", nominal, tol });
+            updateChainUI();
+        };
+
+        function updateChainUI() {
+            const list = document.getElementById('chainList');
+            list.innerHTML = analysisChain.map((c, i) => `
+        <div class="list-item">
+            <span>${c.name}</span>
+            <span class="tag">${c.nominal.toFixed(2)} ±${c.tol}</span>
+        </div>
+    `).join('');
+        }
+
+        window.runAnalysis = function () {
+            if (analysisChain.length === 0) return;
+
+            // 1. Basic Stats
+            let sumNom = 0;
+            let sumTol = 0;
+            let sumVar = 0;
+
+            analysisChain.forEach(c => {
+                sumNom += c.nominal;
+                sumTol += c.tol;
+                sumVar += c.tol * c.tol;
+            });
+
+            const rss = Math.sqrt(sumVar);
+
+            // 2. Monte Carlo Simulation
+            let samples = 10000;
+            let results = [];
+
+            for (let i = 0; i < samples; i++) {
+                let val = 0;
+                analysisChain.forEach(c => {
+                    // Simple Normal Generator approximation
+                    const u1 = Math.random();
+                    const u2 = Math.random();
+                    const z = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
+                    const sigma = c.tol / 3.0;
+                    const sample = c.nominal + z * sigma;
+                    val += sample;
+                });
+                results.push(val);
+            }
+
+            const mean = results.reduce((a, b) => a + b) / samples;
+
+            document.getElementById('resNom').innerText = sumNom.toFixed(3);
+            document.getElementById('resWC').innerText = "±" + sumTol.toFixed(3);
+            document.getElementById('resRSS').innerText = "±" + rss.toFixed(3);
+            document.getElementById('resultPanel').style.display = 'block';
+
+            // 3. Histogram
+            const min = Math.min(...results);
+            const max = Math.max(...results);
+            const binCount = 30;
+            const binSize = (max - min) / binCount;
+            const bins = Array(binCount).fill(0);
+            const labels = [];
+
+            for (let r of results) {
+                let idx = Math.floor((r - min) / binSize);
+                if (idx >= binCount) idx = binCount - 1;
+                bins[idx]++;
+            }
+            for (let i = 0; i < binCount; i++) {
+                labels.push((min + binSize * (i + 0.5)).toFixed(3));
+            }
+
+            const ctxChart = document.getElementById('histogram');
+            if (histogramChart) histogramChart.destroy();
+
+            histogramChart = new Chart(ctxChart, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '頻度',
+                        data: bins,
+                        backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#333' } },
+                        x: { display: false }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+
+            // 4. Sensitivity Chart
+            const contributions = analysisChain.map(d => ({
+                name: d.name,
+                percent: (d.tol ** 2 / sumVar * 100).toFixed(1)
+            }));
+
+            const ctxSens = document.getElementById('sensitivityChart');
+            if (sensitivityChart) sensitivityChart.destroy();
+
+            const colors = ['#f857a6', '#ffc107', '#00bcd4', '#667eea', '#9c27b0', '#e91e63'];
+
+            sensitivityChart = new Chart(ctxSens, {
+                type: 'bar',
+                data: {
+                    labels: contributions.map(c => c.name),
+                    datasets: [{
+                        label: '寄与率 (%)',
+                        data: contributions.map(c => c.percent),
+                        backgroundColor: colors.slice(0, contributions.length),
+                        borderColor: colors.slice(0, contributions.length),
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    scales: {
+                        x: { max: 100, grid: { color: '#333' } },
+                        y: { grid: { display: false }, ticks: { color: '#ccc' } }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        };
+
+        function loadSampleDXF() {
+            try {
+                if (typeof DxfParser === 'undefined') {
+                    console.error('DxfParser not loaded yet');
+                    return;
+                }
+                if (!parser) parser = new DxfParser();
+                dxfData = parser.parseSync(sampleDXF);
+                processEntities();
+                draw();
+                console.log("Sample loaded", dxfData);
+            } catch (e) {
+                console.error(e);
+                alert('DXF Load Error:\n' + e.message);
+            }
+        }
+
+        function processEntities() {
+            if (!dxfData) return;
+
+            // Flatten entities (Decompose Polylines to Lines for easier selection/drawing)
+            entities = [];
+            if (dxfData.entities) {
+                dxfData.entities.forEach(ent => {
+                    if (ent.type === 'LINE' || ent.type === 'CIRCLE' || ent.type === 'ARC') {
+                        entities.push(ent);
+                    } else if (ent.type === 'POLYLINE' || ent.type === 'LWPOLYLINE') {
+                        if (ent.vertices && ent.vertices.length > 1) {
+                            for (let i = 0; i < ent.vertices.length - 1; i++) {
+                                entities.push({
+                                    type: 'LINE',
+                                    layer: ent.layer,
+                                    vertices: [ent.vertices[i], ent.vertices[i + 1]]
+                                });
+                            }
+                            // Close loop check
+                            if (ent.shape || (ent.type === 'LWPOLYLINE' && ent.closed)) {
+                                entities.push({
+                                    type: 'LINE',
+                                    layer: ent.layer,
+                                    vertices: [ent.vertices[ent.vertices.length - 1], ent.vertices[0]]
+                                });
+                            }
+                        }
+                    } else if (ent.type === 'TEXT' || ent.type === 'MTEXT') {
+                        entities.push(ent);
+                    }
+                });
+            }
+
+            // Auto-fit view
+            let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+            let hasGeo = false;
+
+            entities.forEach(ent => {
+                if (ent.type === 'LINE') {
+                    minX = Math.min(minX, ent.vertices[0].x, ent.vertices[1].x);
+                    maxX = Math.max(maxX, ent.vertices[0].x, ent.vertices[1].x);
+                    minY = Math.min(minY, ent.vertices[0].y, ent.vertices[1].y);
+                    maxY = Math.max(maxY, ent.vertices[0].y, ent.vertices[1].y);
+                    hasGeo = true;
+                } else if (ent.type === 'CIRCLE' || ent.type === 'ARC') {
+                    minX = Math.min(minX, ent.center.x - ent.radius);
+                    maxX = Math.max(maxX, ent.center.x + ent.radius);
+                    minY = Math.min(minY, ent.center.y - ent.radius);
+                    maxY = Math.max(maxY, ent.center.y + ent.radius);
+                    hasGeo = true;
+                } else if (ent.type === 'TEXT' || ent.type === 'MTEXT') {
+                    if (ent.position || ent.startPoint) {
+                        const p = ent.position || ent.startPoint;
+                        minX = Math.min(minX, p.x);
+                        maxX = Math.max(maxX, p.x);
+                        minY = Math.min(minY, p.y);
+                        maxY = Math.max(maxY, p.y);
+                        hasGeo = true;
+                    }
+                }
+            });
+
+            if (hasGeo && minX !== Infinity) {
+                const cx = (minX + maxX) / 2;
+                const cy = (minY + maxY) / 2;
+                const width = maxX - minX;
+                const height = maxY - minY;
+
+                // Canvas size
+                const cw = canvas.width;
+                const ch = canvas.height;
+
+                if (width > 0 && height > 0) {
+                    // Determine scale (add film margin)
+                    const scaleX = (cw * 0.9) / width;
+                    const scaleY = (ch * 0.9) / height;
+                    const newScale = Math.min(scaleX, scaleY);
+
+                    transforms.scale = newScale;
+                    transforms.offsetX = cw / 2 - cx * newScale;
+                    transforms.offsetY = ch / 2 + cy * newScale;
+                }
+            }
+        }
+
+        document.getElementById('fileInput').addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                if (!parser) parser = new DxfParser();
+                try {
+                    dxfData = parser.parseSync(e.target.result);
+                    processEntities(); // Will now auto-fit
+                    draw();
+                    // Optional: Clear selection
+                    selectedEntity = null;
+                    document.getElementById('entityInfo').innerText = "要素を選択してください...";
+                    alert('✅ 読み込み完了\n画面サイズに合わせて自動ズームしました。');
+                } catch (err) {
+                    console.error(err);
+                    alert('⚠️ 読み込みエラー:\n' + err.message);
+                }
+            };
+            reader.readAsText(file);
+            e.target.value = ''; // Allow re-selecting same file
+        });
+
+        // --- Drawing Logic ---
+        function draw() {
+            if (!ctx) return;
+            ctx.fillStyle = '#111';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            if (!entities) return;
+
+            ctx.save();
+            ctx.translate(transforms.offsetX, transforms.offsetY);
+            ctx.scale(transforms.scale, -transforms.scale); // DXF Y is up
+            ctx.lineWidth = 1 / transforms.scale;
+
+            entities.forEach(ent => {
+                ctx.beginPath();
+
+                // Color by Layer or Selection
+                if (ent === selectedEntity) {
+                    ctx.strokeStyle = '#f857a6'; // Highlight
+                    ctx.lineWidth = 3 / transforms.scale;
+                } else {
+                    ctx.strokeStyle = getLayerColor(ent.layer);
+                    ctx.lineWidth = 1 / transforms.scale;
+                }
+
+                if (ent.type === 'LINE') {
+                    ctx.moveTo(ent.vertices[0].x, ent.vertices[0].y);
+                    ctx.lineTo(ent.vertices[1].x, ent.vertices[1].y);
+                } else if (ent.type === 'CIRCLE') {
+                    ctx.arc(ent.center.x, ent.center.y, ent.radius, 0, Math.PI * 2);
+                } else if (ent.type === 'ARC') {
+                    ctx.arc(ent.center.x, ent.center.y, ent.radius, ent.startAngle, ent.endAngle);
+                } else if (ent.type === 'TEXT' || ent.type === 'MTEXT') {
+                    const p = ent.position || ent.startPoint;
+                    if (p) {
+                        ctx.save();
+                        ctx.translate(p.x, p.y);
+                        // dxparser returns text height in drawing units
+                        const h = ent.height || 10;
+                        ctx.scale(1, -1); // Unflip Y
+                        ctx.fillStyle = ctx.strokeStyle; // Use same color
+                        ctx.font = (h) + "px sans-serif";
+                        ctx.fillText(ent.text || ent.string || "", 0, 0);
+                        ctx.restore();
+                    }
+                }
+
+                ctx.stroke();
+            });
+
+            ctx.restore();
+        }
+
+        function getLayerColor(layer) {
+            if (layer === 'SHAFT') return '#4ec9b0'; // Blue-ish
+            if (layer === 'HOUSING') return '#569cd6'; // Blue
+            if (layer === 'BUSH') return '#d16969'; // Red-ish
+            return '#888';
+        }
+
+        // --- Interaction ---
+        if (canvas) {
+            canvas.addEventListener('mousedown', e => {
+                isDragging = e.button === 2; // Right click pan
+                lastMouse = { x: e.clientX, y: e.clientY };
+
+                if (e.button === 0) { // Left click select
+                    const rect = canvas.getBoundingClientRect();
+                    const mx = (e.clientX - rect.left - transforms.offsetX) / transforms.scale;
+                    const my = -(e.clientY - rect.top - transforms.offsetY) / transforms.scale;
+
+                    // Hit test (Screen space threshold)
+                    const hitThresholdPx = 10; // 10 pixels tolerance
+                    let minDist = hitThresholdPx / transforms.scale;
+                    let hit = null;
+
+                    entities.forEach(ent => {
+                        if (ent.type === 'LINE') {
+                            const p1 = ent.vertices[0];
+                            const p2 = ent.vertices[1];
+                            const dist = distToSegment({ x: mx, y: my }, p1, p2);
+                            if (dist < minDist) {
+                                minDist = dist;
+                                hit = ent;
+                            }
+                        }
+                    });
+
+                    selectedEntity = hit;
+
+                    // Logging for debug
+                    console.log("Click at:", mx, my, "Hit:", hit ? hit.layer : "None", "MinDist:", minDist);
+
+                    if (hit) {
+                        document.getElementById('entityInfo').innerHTML = `
+                    Type: ${hit.type}<br>
+                    Layer: ${hit.layer}<br>
+                    Len: ${getLength(hit).toFixed(2)}
+                `;
+                        // Auto-select part based on layer if possible
+                        const sel = document.getElementById('partSelect');
+                        if (hit.layer === 'SHAFT') sel.value = "part1";
+                        if (hit.layer === 'BUSH') sel.value = "part2";
+                        if (hit.layer === 'HOUSING') sel.value = "part3";
+
+                    } else {
+                        document.getElementById('entityInfo').innerText = "選択なし (線をクリックしてください)";
+                    }
+                    draw();
+                }
+            });
+
+            canvas.addEventListener('mousemove', e => {
+                if (isDragging) {
+                    transforms.offsetX += e.clientX - lastMouse.x;
+                    transforms.offsetY += e.clientY - lastMouse.y;
+                    lastMouse = { x: e.clientX, y: e.clientY };
+                    draw();
+                }
+            });
+
+            canvas.addEventListener('mouseup', () => isDragging = false);
+            canvas.addEventListener('wheel', e => {
+                e.preventDefault();
+                const zoom = e.deltaY > 0 ? 0.9 : 1.1;
+                transforms.scale *= zoom;
+                draw();
+            });
+        }
+
+        // Math Helpers
+        function distToSegment(p, v, w) {
+            const l2 = (v.x - w.x) ** 2 + (v.y - w.y) ** 2;
+            if (l2 == 0) return Math.hypot(p.x - v.x, p.y - v.y);
+            let t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2;
+            t = Math.max(0, Math.min(1, t));
+            return Math.hypot(p.x - (v.x + t * (w.x - v.x)), p.y - (v.y + t * (w.y - v.y)));
+        }
+
+        function getLength(ent) {
+            if (ent.type === 'LINE') {
+                return Math.hypot(ent.vertices[0].x - ent.vertices[1].x, ent.vertices[0].y - ent.vertices[1].y);
+            }
+            return 0;
+        }
+
+    </script>
+</body>
+
+</html>

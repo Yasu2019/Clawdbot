@@ -115,7 +115,7 @@ RUN pip3 install --no-cache-dir --break-system-packages \
 # STAGE 2: Node Stack & Claude Code Integration
 # ============================================================
 # Core engineering agent services (CACHE BUST 2026-02-24)
-RUN npm install -g @remotion/cli bun clawdbot openclaw @anthropic-ai/claude-code @openai/codex
+RUN npm install -g @remotion/cli bun clawdbot @anthropic-ai/claude-code @openai/codex
 
 # Claude Code configuration
 RUN mkdir -p /home/node/.config/claude-code && chown -R node:node /home/node/.config
@@ -132,6 +132,11 @@ RUN wget -q "http://archive.ubuntu.com/ubuntu/pool/universe/m/mumps/libmumps-5.4
 RUN apt-get update && apt-get install -y --no-install-recommends sudo && \
     rm -rf /var/lib/apt/lists/* && \
     echo "node ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+
+# OpenClaw gateway - update independently without rebuilding heavy layers
+# Usage: docker compose build --build-arg OPENCLAW_CACHE_BUST=$(date +%s) clawdbot-gateway
+ARG OPENCLAW_CACHE_BUST=1
+RUN npm install -g openclaw
 
 USER node
 WORKDIR /home/node

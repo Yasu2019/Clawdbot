@@ -1,0 +1,258 @@
+{
+  "round": 3,
+  "overall": 100.0,
+  "tests": {
+    "circle": {
+      "score": {
+        "step_generated": 30,
+        "volume": 30,
+        "faces": 20,
+        "bbox": 20,
+        "total": 100,
+        "notes": []
+      },
+      "geo": {
+        "volume": 28274.334,
+        "faces": 3,
+        "bbox_x": 60.0,
+        "bbox_y": 60.0,
+        "bbox_z": 10.0,
+        "is_valid": true,
+        "error": null
+      },
+      "state": "done",
+      "job_id": "20260305_063339_aad45cce"
+    },
+    "semicircle": {
+      "score": {
+        "step_generated": 30,
+        "volume": 30,
+        "faces": 20,
+        "bbox": 20,
+        "total": 100,
+        "notes": []
+      },
+      "geo": {
+        "volume": 14137.167,
+        "faces": 4,
+        "bbox_x": 60.0,
+        "bbox_y": 30.0,
+        "bbox_z": 10.0,
+        "is_valid": true,
+        "error": null
+      },
+      "state": "done",
+      "job_id": "20260305_063348_a761c0a6"
+    },
+    "right_triangle": {
+      "score": {
+        "step_generated": 30,
+        "volume": 30,
+        "faces": 20,
+        "bbox": 20,
+        "total": 100,
+        "notes": []
+      },
+      "geo": {
+        "volume": 9600.0,
+        "faces": 5,
+        "bbox_x": 60.0,
+        "bbox_y": 40.0,
+        "bbox_z": 8.0,
+        "is_valid": true,
+        "error": null
+      },
+      "state": "done",
+      "job_id": "20260305_063403_298245b6"
+    },
+    "rect_simple": {
+      "score": {
+        "step_generated": 30,
+        "volume": 30,
+        "faces": 20,
+        "bbox": 20,
+        "total": 100,
+        "notes": []
+      },
+      "geo": {
+        "volume": 48000.0,
+        "faces": 6,
+        "bbox_x": 100.0,
+        "bbox_y": 60.0,
+        "bbox_z": 8.0,
+        "is_valid": true,
+        "error": null
+      },
+      "state": "done",
+      "job_id": "20260305_063412_e1efd6f0"
+    },
+    "pentagon": {
+      "score": {
+        "step_generated": 30,
+        "volume": 30,
+        "faces": 20,
+        "bbox": 20,
+        "total": 100,
+        "notes": []
+      },
+      "geo": {
+        "volume": 30433.809,
+        "faces": 7,
+        "bbox_x": 72.361,
+        "bbox_y": 76.085,
+        "bbox_z": 8.0,
+        "is_valid": true,
+        "error": null
+      },
+      "state": "done",
+      "job_id": "20260305_063422_2d7915ec"
+    },
+    "hexagon": {
+      "score": {
+        "step_generated": 30,
+        "volume": 30,
+        "faces": 20,
+        "bbox": 20,
+        "total": 100,
+        "notes": []
+      },
+      "geo": {
+        "volume": 33255.376,
+        "faces": 8,
+        "bbox_x": 80.0,
+        "bbox_y": 69.282,
+        "bbox_z": 8.0,
+        "is_valid": true,
+        "error": null
+      },
+      "state": "done",
+      "job_id": "20260305_063432_18d74a7c"
+    },
+    "l_shape": {
+      "score": {
+        "step_generated": 30,
+        "volume": 30,
+        "faces": 20,
+        "bbox": 20,
+        "total": 100,
+        "notes": []
+      },
+      "geo": {
+        "volume": 28800.0,
+        "faces": 8,
+        "bbox_x": 80.0,
+        "bbox_y": 80.0,
+        "bbox_z": 6.0,
+        "is_valid": true,
+        "error": null
+      },
+      "state": "done",
+      "job_id": "20260305_063441_e839131a"
+    },
+    "u_shape": {
+      "score": {
+        "step_generated": 30,
+        "volume": 30,
+        "faces": 20,
+        "bbox": 20,
+        "total": 100,
+        "notes": []
+      },
+      "geo": {
+        "volume": 25000.0,
+        "faces": 10,
+        "bbox_x": 100.0,
+        "bbox_y": 80.0,
+        "bbox_z": 5.0,
+        "is_valid": true,
+        "error": null
+      },
+      "state": "done",
+      "job_id": "20260305_063451_2b723387"
+    },
+    "arc_rect": {
+      "score": {
+        "step_generated": 30,
+        "volume": 30,
+        "faces": 20,
+        "bbox": 20,
+        "total": 100,
+        "notes": []
+      },
+      "geo": {
+        "volume": 29570.796,
+        "faces": 10,
+        "bbox_x": 100.0,
+        "bbox_y": 60.0,
+        "bbox_z": 5.0,
+        "is_valid": true,
+        "error": null
+      },
+      "state": "done",
+      "job_id": "20260305_063501_063cf30d"
+    },
+    "t_shape": {
+      "score": {
+        "step_generated": 30,
+        "volume": 30,
+        "faces": 20,
+        "bbox": 20,
+        "total": 100,
+        "notes": []
+      },
+      "geo": {
+        "volume": 14000.0,
+        "faces": 14,
+        "bbox_x": 80.0,
+        "bbox_y": 80.0,
+        "bbox_z": 5.0,
+        "is_valid": true,
+        "error": null
+      },
+      "state": "done",
+      "job_id": "20260305_063511_57074332"
+    },
+    "multiview_cube": {
+      "score": {
+        "step_generated": 30,
+        "volume": 30,
+        "faces": 20,
+        "bbox": 20,
+        "total": 100,
+        "notes": []
+      },
+      "geo": {
+        "volume": 1000000.0,
+        "faces": 6,
+        "bbox_x": 100.0,
+        "bbox_y": 100.0,
+        "bbox_z": 100.0,
+        "is_valid": true,
+        "error": null
+      },
+      "state": "done",
+      "job_id": "20260305_063521_b5c08068"
+    },
+    "multiview_lbracket": {
+      "score": {
+        "step_generated": 30,
+        "volume": 30,
+        "faces": 20,
+        "bbox": 20,
+        "total": 100,
+        "notes": []
+      },
+      "geo": {
+        "volume": 288000.0,
+        "faces": 6,
+        "bbox_x": 80.0,
+        "bbox_y": 60.0,
+        "bbox_z": 60.0,
+        "is_valid": true,
+        "error": null
+      },
+      "state": "done",
+      "job_id": "20260305_063541_63cb0de1"
+    }
+  }
+}

@@ -1,0 +1,113 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-app}
+      POSTGRES_DB: ${POSTGRES_DB:-minigame}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5442:5432"
+
+  redis:
+    image: redis:7
+    ports:
+      - "127.0.0.1:6389:6379"
+
+  api:
+    build: ./apps/api
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      PROJECTS_DIR: /workspace/projects
+      OUTPUT_DIR: /workspace/output
+      SCHEMA_PATH: /workspace/schemas/game_spec.schema.json
+    volumes:
+      - ./projects:/workspace/projects
+      - ./output:/workspace/output
+      - ./schemas:/workspace/schemas:ro
+    depends_on:
+      - db
+      - redis
+    ports:
+      - "127.0.0.1:8100:8000"
+
+  worker:
+    build: ./services/worker
+    environment:
+      REDIS_URL: ${REDIS_URL}
+      PROJECTS_DIR: /workspace/projects
+      OUTPUT_DIR: /workspace/output
+      TEMPLATES_DIR: /workspace/templates
+      SCHEMA_PATH: /workspace/schemas/game_spec.schema.json
+      GODOT_BUILDER_URL: http://godot-builder:8080
+      NODE_BUILDER_URL: http://node-builder:8090
+      SECRETS_DIR: /workspace/secrets
+    volumes:
+      - ./projects:/workspace/projects
+      - ./output:/workspace/output
+      - ./templates:/workspace/templates:ro
+      - ./schemas:/workspace/schemas:ro
+      - ./secrets:/workspace/secrets
+    depends_on:
+      - redis
+      - api
+      - godot-builder
+      - node-builder
+
+  godot-builder:
+    build: ./services/builders/godot
+    environment:
+      PROJECTS_DIR: /workspace/projects
+      OUTPUT_DIR: /workspace/output
+      SECRETS_DIR: /workspace/secrets
+      ANDROID_HOME: /opt/android-sdk
+      ANDROID_SDK_ROOT: /opt/android-sdk
+      JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
+      KEYSTORE_PATH: /workspace/secrets/release.keystore
+      KEYSTORE_PASSWORD: ${KEYSTORE_PASSWORD:-}
+      KEY_ALIAS: ${KEY_ALIAS:-}
+      KEY_PASSWORD: ${KEY_PASSWORD:-}
+    volumes:
+      - ./projects:/workspace/projects
+      - ./output:/workspace/output
+      - ./secrets:/workspace/secrets
+    ports:
+      - "127.0.0.1:8180:8080"
+
+  node-builder:
+    build: ./services/builders/node
+    environment:
+      PROJECTS_DIR: /workspace/projects
+      OUTPUT_DIR: /workspace/output
+      TEMPLATES_DIR: /workspace/templates
+    volumes:
+      - ./projects:/workspace/projects
+      - ./output:/workspace/output
+      - ./templates:/workspace/templates:ro
+    ports:
+      - "127.0.0.1:8190:8090"
+
+  ui:
+    build: ./apps/ui
+    environment:
+      NEXT_PUBLIC_API_BASE_URL: http://localhost:8100
+    ports:
+      - "127.0.0.1:3100:3000"
+    depends_on:
+      - api
+
+  openclawd:
+    build: ./services/openclawd
+    environment:
+      SCHEMA_PATH: /workspace/schemas/game_spec.schema.json
+    volumes:
+      - ./schemas:/workspace/schemas:ro
+    ports:
+      - "127.0.0.1:8110:8010"
+
+volumes:
+  db_data:

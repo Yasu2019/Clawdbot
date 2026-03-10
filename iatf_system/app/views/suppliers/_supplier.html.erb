@@ -1,0 +1,103 @@
+<div id="<%= dom_id supplier %>">
+
+
+
+<ul class="flex space-x-4 items-center">
+  <li><div class="my-5">
+    <strong class="block font-medium mb-1">ID:</strong>
+    <%= supplier.no %>
+  </div></li>
+
+  <li><div class="my-5">
+    <strong class="block font-medium mb-1">供給者名:</strong>
+    <%= supplier.supplier_name %>
+  </div></li>
+
+
+
+  <li><div class="my-5">
+    <strong class="block font-medium mb-1">メーカー名:</strong>
+    <%= supplier.manufacturer_name %>
+  </div></li>
+
+  <li><div class="my-5">
+    <strong class="block font-medium mb-1">ISO有無:</strong>
+    <%= supplier.iso_existence %>
+  </div></li>
+
+  <li><div class="my-5">
+    <strong class="block font-medium mb-1">評価対象:</strong>
+    <%= supplier.target %>
+  </div></li>
+
+  <li><div class="my-5">
+    <strong class="block font-medium mb-1">QMS開発:</strong>
+    <%= supplier.qms %>
+  </div></li>
+
+  <li><div class="my-5">
+    <strong class="block font-medium mb-1">第２者監査:</strong>
+    <%= supplier.second_party_audit %>
+  </div></li>
+
+  <li><div class="my-5">
+    <strong class="block font-medium mb-1">供給者開発:</strong>
+    <%= supplier.supplier_development %>
+  </div></li>
+
+  <li><div class="my-5">
+    <strong class="block font-medium mb-1">車載関係:</strong>
+    <%= supplier.automotive_related %>
+  </div></li>
+
+  <li><div class="my-5">
+    <strong class="block font-medium mb-1">関係部署:</strong>
+    <%= supplier.departments %>
+  </div></li>
+
+  <li><div class="my-5">
+    <strong class="block font-medium mb-1">取引内容:</strong>
+    <%= supplier.transaction_details %>
+  </div></li>
+
+  <li><div class="my-5">
+    <strong class="block font-medium mb-1">住所①:</strong>
+    <%= supplier.address1 %>
+  </div></li>
+
+  <li><div class="my-5">
+    <strong class="block font-medium mb-1">住所②:</strong>
+    <%= supplier.address2 %>
+  </div></li>
+
+  <li><div class="my-5">
+    <strong class="block font-medium mb-1">郵便番号:</strong>
+    <%= supplier.postal_code %>
+  </div></li>
+
+  <li><div class="my-5">
+    <strong class="block font-medium mb-1">TEL:</strong>
+    <%= supplier.tel %>
+  </div></li>
+
+  <li><div class="my-5">
+    <strong class="block font-medium mb-1">FAX:</strong>
+    <%= supplier.fax %>
+  </div></li>
+
+
+  
+  <% if action_name != "show" %>
+  
+    <%= link_to "Show this supplier", supplier, class: "rounded-lg py-3 px-5 bg-gray-100 inline-block font-medium" %>
+    <%= link_to 'Edit this supplier', edit_supplier_path(supplier), class: "rounded-lg py-3 ml-2 px-5 bg-gray-100 inline-block font-medium" %>
+    <hr class="mt-6">
+    
+  <% end %>
+  
+
+</ul>
+
+</div>
+
+

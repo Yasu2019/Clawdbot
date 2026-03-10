@@ -13,6 +13,7 @@ services:
     env_file: .env
     environment:
       - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GROQ_API_KEY=${GROQ_API_KEY}
       - HOME=/home/node
       - OPENCLAW_GATEWAY_TOKEN=yasu-fresh-token-2026-02-01
       # Internal service URLs (Docker network — used by agent scripts/API calls)
@@ -30,10 +31,8 @@ services:
       - MINIGAME_UI_URL=http://minigame_ui:3000
       - MINIGAME_API_URL=http://minigame_api:8000
       - QDRANT_URL=http://qdrant:6333
-      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://ollama:11434}
-      - OLLAMA_URL=${OLLAMA_URL:-http://ollama:11434}
-      - OLLAMA_HOST=${OLLAMA_HOST:-ollama:11434}
-      - OLLAMA_API_KEY=${OLLAMA_API_KEY:-ollama-local}
+      - OPENAI_BASE_URL=http://litellm:4000/v1
+      - OPENAI_API_KEY=local-dev-key
       - LITELLM_URL=http://litellm:4000
       - INFINITY_URL=http://infinity:7997
       - SEARXNG_URL=http://searxng:8080
@@ -70,6 +69,7 @@ services:
       - ./clawstack_v2/data/paperless/consume:/home/node/clawd/paperless_consume
       - ./data/rclone:/home/node/.config/rclone
       - ./data/state/claude.json:/home/node/.claude.json
+      - ./data/state/playwright_cache/ms-playwright:/home/node/.cache/ms-playwright
       - /var/run/docker.sock:/var/run/docker.sock
     extra_hosts:
       - "host.docker.internal:host-gateway"
@@ -152,12 +152,19 @@ services:
       - N8N_API_KEY=n8n_api_clawstack_f39c126b684f59ab50cc3fdedd82891086bfc633601067c9
       # コミュニティノード有効化 (n8n-nodes-mcp 等)
       - N8N_COMMUNITY_PACKAGES_ENABLED=true
+      # JavaScript (Code) ノードから組み込みモジュール操作(fs, path等)を許可
+      - NODE_FUNCTION_ALLOW_BUILTIN=fs,path,crypto
+      # JavaScript (Code) ノードから外部モジュール操作を許可 (念のため)
+      - NODE_FUNCTION_ALLOW_EXTERNAL=crypto-js,lodash
       # OpenClaw が MCP Client として接続するための公開 URL
       - N8N_PUBLIC_API_DISABLED=false
     volumes:
-      - ./clawstack_v2/data/n8n:/home/node/.n8n
+      - ./clawstack_v2/data/n8n:/root/.n8n
       - ./clawstack_v2/data/work:/work
+      - ./data/workspace:/workspace
+      - ./clawstack_v2/data/paperless/consume/email:/local_emails:ro
       - /var/run/docker.sock:/var/run/docker.sock
+    user: root
     restart: unless-stopped
 
   nodered:
@@ -381,14 +388,20 @@ services:
   # 9. LLM GATEWAY
   # ============================================================
   litellm:
-    image: ghcr.io/berriai/litellm:latest
-    platform: linux/amd64
+    image: ghcr.io/berriai/litellm:main
+    entrypoint: [ "/bin/sh", "/app/litellm_entrypoint.sh" ]
     ports:
       - "127.0.0.1:4000:4000"
+    volumes:
+      - ./data/state/litellm_config.yaml:/app/proxy_server_config.yaml:ro
+      - ./data/state/litellm_entrypoint.sh:/app/litellm_entrypoint.sh:ro
     environment:
       - LITELLM_MASTER_KEY=${LITELLM_MASTER_KEY:-local-dev-key}
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - CEREBRAS_API_KEY=${CEREBRAS_API_KEY}
     depends_on:
       - redis
       - ollama
@@ -428,9 +441,13 @@ services:
       - ENABLE_RAG=true
       - WEB_SEARCH_ENGINE=searxng
       - SEARXNG_QUERY_URL=http://searxng:8080/search?q=<query>
+      # Qdrant をベクトルDBバックエンドに設定（Chroma の代替）
+      - VECTOR_DB=qdrant
+      - QDRANT_URI=http://qdrant:6333
     depends_on:
       - ollama
       - searxng
+      - qdrant
     restart: unless-stopped
 
 volumes:

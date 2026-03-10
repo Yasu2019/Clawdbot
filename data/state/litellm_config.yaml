@@ -1,0 +1,68 @@
+model_list:
+  - model_name: groq/llama-3.3-70b-versatile
+    litellm_params:
+      model: groq/llama-3.3-70b-versatile
+      api_key: os.environ/GROQ_API_KEY
+  # Gemini via OpenAI-compatible endpoint (works with LiteLLM v1.10.1)
+  - model_name: gemini/gemini-2.5-flash
+    litellm_params:
+      model: openai/gemini-2.5-flash
+      api_base: https://generativelanguage.googleapis.com/v1beta/openai
+      api_key: os.environ/GEMINI_API_KEY
+  # Also expose as google/ prefix since openclaw.json uses that prefix
+  - model_name: google/gemini-2.5-flash
+    litellm_params:
+      model: openai/gemini-2.5-flash
+      api_base: https://generativelanguage.googleapis.com/v1beta/openai
+      api_key: os.environ/GEMINI_API_KEY
+  - model_name: groq/llama-3.1-8b-instant
+    litellm_params:
+      model: groq/llama-3.1-8b-instant
+      api_key: os.environ/GROQ_API_KEY
+  - model_name: cerebras/llama3.1-70b
+    litellm_params:
+      model: cerebras/llama3.1-70b
+      api_base: https://api.cerebras.ai/v1
+      api_key: os.environ/CEREBRAS_API_KEY
+  - model_name: ollama/deepseek-r1:14b
+    litellm_params:
+      model: ollama/deepseek-r1:14b
+      api_base: http://ollama:11434
+  # Embedding models (LiteLLM v1.10.1: calls {api_base}/embeddings directly)
+  # Ollama: api_base must include /v1 → http://ollama:11434/v1/embeddings ✓
+  # Infinity: api_base without /v1 → http://infinity:7997/embeddings ✓
+  - model_name: text-embedding-ada-002
+    litellm_params:
+      model: openai/nomic-embed-text
+      api_base: http://ollama:11434/v1
+      api_key: none
+  - model_name: text-embedding-3-small
+    litellm_params:
+      model: openai/nomic-embed-text
+      api_base: http://ollama:11434/v1
+      api_key: none
+  - model_name: text-embedding-3-large
+    litellm_params:
+      model: openai/nomic-embed-text
+      api_base: http://ollama:11434/v1
+      api_key: none
+  - model_name: mixedbread-ai/mxbai-embed-large-v1
+    litellm_params:
+      model: openai/mixedbread-ai/mxbai-embed-large-v1
+      api_base: http://infinity:7997
+      api_key: local-dev-key
+  - model_name: nomic-embed-text
+    litellm_params:
+      model: ollama/nomic-embed-text
+      api_base: http://ollama:11434
+
+litellm_settings:
+  drop_params: true
+  set_timeout: 600
+  success_callback: ["langfuse"]
+  failure_callback: ["langfuse"]
+
+environment_variables:
+  LANGFUSE_PUBLIC_KEY: "pk-lf-07926c92-5480-4fb5-ae97-39e35a0a0ce5"
+  LANGFUSE_SECRET_KEY: "sk-lf-9b4e86b1-ec3b-4826-aca7-b20bd68b1bd8"
+  LANGFUSE_HOST: "http://langfuse:3000"

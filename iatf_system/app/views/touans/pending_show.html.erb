@@ -1,0 +1,22 @@
+<h1>Show</h1>
+
+  <% @touans.each do |test| %>
+  <table>
+  <tr> 
+          <td class="border border-slate-300"><%= test.user_id %></td>
+          <td class="border border-slate-300"><%= test.kajyou %></td>
+          <td class="border border-slate-300"><%= test.mondai_no %></td>
+          <td class="border border-slate-300"><%= test.rev %></td>
+          <td class="border border-slate-300"><%= test.mondai %></td>
+          <td class="border border-slate-300"><%= test.mondai_a %></td>
+          <td class="border border-slate-300"><%= test.mondai_b %></td>
+          <td class="border border-slate-300"><%= test.mondai_c %></td>
+          <td class="border border-slate-300"><%= test.kaito %></td>
+
+  </tr>
+  </table>
+
+  <% end %>
+
+
+<%= link_to '戻る', root_path, class: 'btn btn-accent' %>

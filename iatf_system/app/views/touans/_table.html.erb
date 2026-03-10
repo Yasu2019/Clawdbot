@@ -1,0 +1,51 @@
+<table class="sticky_table table-striped table-hover border-separate border-spacing-1 border-2 border-blue-900 bg-gray-100">
+    <thead>
+        <tr>
+            <% columns.each do |column| %>
+                <th class="border-2 border-blue-900"><%= column %></th>
+            <% end %>
+        </tr>
+    </thead>
+    <% items.each do |item| %>
+        <tr>
+            <% columns.each do |column| %>
+                <% case column %>
+                <% when "IATF要求事項" %>
+                    <td class="border-2 border-blue-900">
+                        <% matching_iatf = @iatflists.detect { |i| item.no == i.iatf_number } %>
+                        <% if matching_iatf %>
+                            <%= safe_join(h(matching_iatf.iatf_content).split("*"), tag(:br)) %>
+                        <% end %>
+                    </td>
+                <% when "MEK様品質ガイドラインVer2" %>
+                    <td class="border-2 border-blue-900">
+                        <% matching_csr = @csrs.detect { |c| item.no == c.csr_number } %>
+                        <% if matching_csr %>
+                            <%= safe_join(h(matching_csr.csr_content).split("*"), tag(:br)) %>
+                        <% end %>
+                    </td>
+                    <% when "添付ファイル" %>
+                    <td class="border-2 border-blue-900">
+                        <% @products.each do |doc_check| %>
+                            <% if doc_check.documents.attached? && doc_check.documentnumber == item.no %>
+                                <% matching_product = doc_check %>
+                                <%= render partial: "attached_file_touan", locals: { matching_product: matching_product, fullfilename: rails_blob_path(matching_product.documents.first), ext: File.extname(rails_blob_path(matching_product.documents.first)).downcase, image: matching_product.documents.first } %>
+
+                                <% end %>
+                        <% end %>
+                    </td>
+                    
+                <% when "average_score" %>
+                    <td class="border-2 border-blue-900">
+                        <% correct_touans = @touans.select { |touan| touan.seikai == touan.kaito && touan.kajyou == item.no } %>
+                        <% total_touans = @touans.select { |touan| touan.kajyou == item.no } %>
+                        <% average_score = total_touans.size > 0 ? (correct_touans.size.to_f / total_touans.size * 100).round(2) : 0 %>
+                        <%= average_score %>
+                    </td>
+                <% else %>
+                    <td class="border-2 border-blue-900"><%= item.send(column) %></td>
+                <% end %>
+            <% end %>
+        </tr>
+    <% end %>
+</table>

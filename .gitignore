@@ -1,17 +1,109 @@
+# ============================================================
+# SECRETS & API KEYS (絶対に除外)
+# ============================================================
 .env
-data/workspace/**
-data/state/**
-data/node_state/**
+clawstack_v2/secrets/
+data/state/credentials/
+data/state/devices/
+data/state/identity/
+data/state/delivery-queue/
+data/state/canvas/
+data/state/browser/
+data/state/completions/
+data/state/agents/
+data/state/codex/
+data/state/logs/
+data/state/paired.json
+data/state/openclaw.json
+data/state/claude.json
+data/state/claude_config/
+.claude/settings.local.json
 
-# Keep the folders
-!data/workspace/.gitkeep
-!data/state/.gitkeep
-
-# Exclude secrets and logs
+# ============================================================
+# RUNTIME DATA (大容量・動的データ、Git管理不要)
+# ============================================================
+clawstack_v2/data/
+clawstack_v2/open-notebook/
+data/work/
 data/rclone/
-logs_*.txt
-*.log
+data/node_state/**
+data/state/IATF_documents/
+data/state/Obsidian Vault/
 
-# Include specific workspace files
-!data/workspace/bin/
+# ============================================================
+# IATF SYSTEM: 業務文書 (大容量・機密)
+# ============================================================
+iatf_system/db/documents/
+iatf_system/db/latest_documents/
+iatf_system/db/record/
+iatf_system/storage/
+iatf_system/log/
+iatf_system/tmp/
+
+# ============================================================
+# ビルドキャッシュ・一時ファイル
+# ============================================================
+tmp/
+nul
+*.log
+logs_*.txt
+tmp_logs*.txt
+gemini_logs.txt
+harness_ollama.py
+transcript.json
+verify_tools.sh
+Clawstack_V3_OpenbookLM_Source.txt
+Dockerfile.fix_snippet
+Dockerfile.unified.temp
+clawstack_v2/dify_logs.txt
+clawstack_v2/gateway_logs.txt
+clawstack_v2/recent_logs.txt
+clawstack_v2/expanded_compose.yml
+tolerance_2d_dxf_demo.html
+tolerance_3d_demo.html
+docker_cleanup.ps1
+
+# 壊れたパス名ファイル (Windows アーティファクト)
+data/workspace/D*/
+"data/workspace/D*"
+
+# ============================================================
+# WORKSPACE: 全除外 → ソースファイルのみ再追加
+# ============================================================
+data/workspace/**
+
+# Markdown ドキュメント
 !data/workspace/*.md
+
+# Python スクリプト (エージェント・ツール)
+!data/workspace/*.py
+
+# HTML ファイル
+!data/workspace/*.html
+
+# Portal アプリ (apps/ 以下全体)
+!data/workspace/apps/
+!data/workspace/apps/**
+
+# ドキュメント・ベンチマーク (docs/ 以下)
+!data/workspace/docs/
+!data/workspace/docs/**
+
+# ============================================================
+# STATE: 全除外 → 非機密設定のみ再追加
+# ============================================================
+data/state/**
+
+# 起動スクリプト・設定ファイル
+!data/state/entrypoint.sh
+!data/state/litellm_config.yaml
+!data/state/litellm_entrypoint.sh
+!data/state/cron/
+!data/state/cron/jobs.json
+
+# ============================================================
+# .agent / .claude (一部のみ追加)
+# ============================================================
+.claude/settings.local.json
+
+# agent ワークフロー定義は含める

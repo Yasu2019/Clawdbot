@@ -1,0 +1,751 @@
+<!--
+CSSだけで動くハンバーガーメニューを作成する
+https://uedive.net/2021/5614/hamburger-menu-css/
+-->
+
+<!--
+https://tailwindcss.com/docs/responsive-design
+
+Breakpoint prefix	Minimum width	CSS
+sm	640px	@media (min-width: 640px) { ... }
+md	768px	@media (min-width: 768px) { ... }
+lg	1024px	@media (min-width: 1024px) { ... }
+xl	1280px	@media (min-width: 1280px) { ... }
+2xl	1536px	@media (min-width: 1536px) { ... }
+-->
+
+
+
+<div class="text-xs lg:hidden">
+    <div class="hamburger-menu">
+        <input type="checkbox" id="menu-btn-check">
+        <label for="menu-btn-check" class="menu-btn"><span></span></label>
+        <!--ここからメニュー-->
+        <div class="menu-content">
+            <ul class="flex flex-wrap gap-0 lg:flex-col lg:gap-0">
+                <li class="py-0 border-b-2">
+                    <a> <%= link_to '新規製品登録', new_product_path, class: "py-0 text-gray-700 hover:text-indigo-600 text-md" %></a>
+                </li>
+                <li class="py-0 border-b-2">
+                    <a><%= link_to '全アイテム進捗一覧表', index3_product_path, class: "py-0 text-gray-700 hover:text-indigo-600 text-md" %></a>
+                </li>
+
+                <li class="py-0 border-b-2">
+                    <a><%= link_to '全アイテム日程表', index9_product_path, class: "py-0 text-gray-700 hover:text-indigo-600 text-md" %></a>
+                </li>
+
+                <li class="py-0 border-b-2"><a>
+                        <%= form_with(url: index2_product_path, method: :get, local: true) do|form| %>
+                        <%= form.label :"図番選択" %> 
+                        <% @produc=Product.select(:partnumber).distinct.order(:partnumber) %>
+                        <%= form.collection_select(:partnumber, @produc, :partnumber, :partnumber,{prompt: '選択してください',class:"hidden"})%> 
+                        <%= form.submit "APQP・PPAP一覧表示 (図番毎)",class:"btn btn-sm"%>
+                        <% end %>
+                    </a></li>
+
+                <li class="py-0 border-b-2"><a>
+                        <%= form_with(url: index8_product_path, method: :get, local: true) do|form| %>
+                        <%= form.label :"図番選択" %>
+                        <% @produc=Product.select(:partnumber).distinct.order(:partnumber) %> 
+                        <%= form.collection_select(:partnumber, @produc, :partnumber, :partnumber,{prompt: '選択してください',class:"hidden"})%> 
+                        <%= form.submit "達成度 (図番毎)",class:"btn btn-sm"%>
+                        <% end %>
+                    </a></li>
+                    <!--
+                    #RailsでExcel出力しないといけなくなった時の対処法
+                    #https://www.timedia.co.jp/tech/railsexcel/
+                    -->
+
+                    <li class="py-0 "><a>
+                    <%= form_with(url: index4_product_path, method: :get, local: true) do|form| %>
+                    <%= form.submit "IATF要求事項説明",class:"btn btn-primary btn-sm" %>
+                    <% end %>
+                    </a></li>
+
+                    <li class="py-0 "><a>
+                    <%= form_with(url: graph_product_path, method: :get, local: true) do|form| %>
+                    <%= form.submit "IATF進捗グラフ",class:"btn btn-primary btn-sm" %>
+                    <% end %>
+                    </a></li>
+
+                    <li class="py-0 "><a>
+                    <%= form_with(url: calendar_product_path, method: :get, local: true) do|form| %>
+                    <%= form.submit "IATF進捗カレンダー",class:"btn btn-primary btn-sm" %>
+                    <% end %>
+                    </a></li>
+
+                    <li class="py-0 "><a>
+                    <%= form_with(url: training_product_path, method: :get, local: true) do|form| %>
+                    <%= form.submit "IATF教材",class:"btn btn-primary btn-sm" %>
+                    <% end %>
+                    </a></li>
+
+                    <li class="py-0 "><a>
+                    <%= link_to "Excel出力", xlsx_product_path(@product, format: :xlsx),class:"btn btn-primary btn-sm" %>
+                    </a></li>
+
+                    <li class="py-1 border-b-2"><a>
+                    <%= form_tag import_products_path, multipart: true do %>
+                    <label class="mt-2 sm:mt-0 py-2 w-[500px] sm:w-[100px] h-10 border border-primary-300 bg-gray-100 bg-opacity-50 text-primary-300 rounded-[3px] text-xs flex justify-center items-center">
+                    <span class="text-mg ml-5 mx-8"  style="width: 230px;">CSVファイル選択</span>
+                    <%= file_field_tag :file , class: "hidden"%>
+                    </label>
+
+                    <%= submit_tag "インポート",class:"btn btn-primary btn-sm"  %>
+                    <% end %>
+                    </a></li>
+
+                    <li class="py-0 border-b-2"><a>
+                    <%= form_with(url: iot_product_path, method: :get, local: true) do|form| %>
+                    <%= form.submit "IOTデータ",class:"btn btn-primary btn-sm" %>
+                    <% end %>
+                    </a></li>
+
+                    <li class="py-0 border-b-2"><a>
+                    <%= form_with(url: index_touan_path, method: :get, local: true) do|form| %>
+                    <%= form.submit "IATF評価テスト",class:"btn btn-primary btn-sm" %>
+                    <% end %>
+                    </a></li>
+
+            </ul>
+        </div>
+        <!--ここまでメニュー-->
+    </div>
+</div>
+
+<p id="notice"><%= notice %></p>
+
+<!-- Header -->
+<header class="sticky top-0 bg-white z-10">
+  <!-- navbar and menu -->
+  <nav class="shadow">
+
+  <!-- IATF,Emai,検索バーを等間隔に並べる為のDiv -->
+  <div class="flex flex-col items-end text-xs lg:flex lg:items-start lg:flex-row text-lg">
+
+    <div class="hidden lg:flex">
+        <h1 class="px-12 text-3xl font-bold bg-gradient-to-tr from-indigo-600 to-green-600 bg-clip-text text-transparent hover:cursor-pointer">IATF16949</h1>
+      </div>
+    
+      <!--
+      Devise 4.9をインストールしてRails 7.0 （Hotwire/Turbo）に対応する
+      https://qiita.com/jnchito/items/20fad64ab162b2c49bb9
+
+      Rails 7.0 + Ruby 3.1でゼロからアプリを作ってみたときにハマったところあれこれ
+      https://qiita.com/jnchito/items/5c41a7031404c313da1f
+
+      railsのdeviseでログアウトができず、Routing Errorになる
+      https://teratail.com/questions/240677
+
+      https://qiita.com/newburu/items/64f214d2f0fbc7a05d42
+      https://qiita.com/newburu/items/64f214d2f0fbc7a05d42
+
+      -->
+    
+        <div class="flex flex-col items-end text-xs lg:flex items-start lg:flex-row text-lg">
+            <div class="lg:mr-4 ">
+
+              <div class="hidden lg:block"><%= "Email："%>
+              <%= @user.email if @user %> <br>
+              </div>
+                                      <%= "名前 ："%>
+                                      <%= @user.name  if @user %> <br>
+              <div class="hidden lg:block"><%= "識別 ："%>
+                                  <%= @user.role  if @user %> <br>
+              </div>
+              <div>
+              <%= link_to 'サインアウト', destroy_user_session_path, method: :delete, data: { turbo_method: :delete } %>
+              </div>   
+            </div>
+        </div>
+
+        <div>
+    
+            <%= search_form_for @q do |f| %>
+
+              <ul class="flex space-x-4 items-center">
+
+                <li><div class="text-gray-700 hover:text-indigo-600 text-xs lg:text-gray-700 hover:text-indigo-600 text-lg ">
+                    <%= "図番" %> <br>
+                    <%= f.collection_select :partnumber_eq, Product.select(:partnumber).distinct.order(:partnumber), :partnumber, :partnumber, { include_blank: '指定なし' }, { class: 'form-control' } %>
+                </div></li>
+
+                <li><div class="text-gray-700 hover:text-indigo-600 text-xs lg:text-gray-700 hover:text-indigo-600 text-lg ">
+                    <%= "材料コード" %> <br>
+                    <%= f.collection_select :materialcode_eq, Product.select(:materialcode).distinct.order(:materialcode), :materialcode, :materialcode,  include_blank: '指定なし'  %>
+                </div></li>
+
+                <li><div class="text-gray-700 hover:text-indigo-600 text-xs lg:text-gray-700 hover:text-indigo-600 text-lg ">
+                    <%= "文書名" %> <br>
+                    <%= f.collection_select :documentname_eq, Product.select(:documentname).distinct.order(:documentname), :documentname, :documentname,  include_blank: '指定なし'  %>
+                </div></li>
+
+                <li><div class="text-gray-700 hover:text-indigo-600 text-xs lg:text-gray-700 hover:text-indigo-600 text-lg ">
+                    <%= "コメント" %> <br>
+                    <%= f.collection_select :description_eq, Product.select(:description).distinct.order(:description), :description, :description,  include_blank: '指定なし'  %>
+                </div></li>
+
+                <div class="hidden lg:block">
+                  <%= f.submit '検索',class:"text-text-gray-600  py-2 hover:cursor-pointer px-4 rounded text-white bg-gradient-to-tr from-indigo-600 to-green-600 hover:shadow-lg" %>
+                  <span><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor ">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg></span>
+                </div>
+
+              </ul>
+            <% end %>
+            
+        </div>
+    
+
+  </div>
+  </nav>
+</header>
+
+<main >
+  <!-- section hero 
+  -->
+  <section class="flex h-full">
+  
+    <!--
+    <div class="hidden lg:inline-block w-1/6 fixed top-0 left-0">
+    -->
+
+<div class="hidden lg:inline-block w-1/6">
+  
+  <div class="bg-white py-3 px-4 rounded-lg flex justify-around items-center">
+    <input type="text" id="searchInput" placeholder="search" class="bg-gray-100 rounded-md outline-none pl-2 ring-indigo-700 w-full mr-2 p-2">
+    <span id="searchTrigger">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path class="search-icon" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+      </svg>
+    </span>
+  </div>
+  
+
+
+<script>
+$(document).ready(function(){
+  const allProductColumns = [
+    "category", "partnumber", "materialcode", "phase", "stage", "description", 
+    "status", "documenttype", "documentname", "documentrev", "documentcategory", 
+    "documentnumber", "start_time", "deadline_at", "end_at", 
+    "goal_attainment_level", "tasseido", "object"
+  ];
+
+  function buildSearchQuery(searchValue) {
+  const queryParts = allProductColumns.map(column => {
+    if (column === "goal_attainment_level") {
+      return `q[goal_attainment_level_eq]=${encodeURIComponent(searchValue)}`;
+    } else {
+      return `q[${column}_cont]=${encodeURIComponent(searchValue)}`;
+    }
+  });
+  return `q[m]=or&${queryParts.join("&")}`;
+}
+
+  function performSearch() {
+    const searchValue = $('#searchInput').val();
+    const searchQuery = buildSearchQuery(searchValue);
+    console.log("Search Query:", searchQuery);
+    console.log("Search value:", searchValue);
+    console.log("Generated search query:", searchQuery);
+    window.location.href = `/products?${searchQuery}`;
+  }
+
+  $('#searchInput').on('keyup', function(e){
+    if (e.key === "Enter" || e.keyCode === 13) {
+      performSearch();
+    }
+  });
+
+  $('#searchTrigger').on('click', function(){
+    $('.search-icon').addClass('clicked');
+    performSearch();
+  });
+});
+</script>
+
+
+<style>
+
+.search-icon {
+    stroke: currentColor;
+}
+
+#searchTrigger:hover {
+    cursor: pointer; /* ホバー時に指アイコンになる */
+}
+
+.search-icon:hover {
+    stroke: blue;  /* ホバー時の色 */
+}
+
+.search-icon.clicked {
+    stroke: red;   /* クリック後の色 */
+}
+
+</style>
+
+      
+
+            <div class="bg-white  rounded-md ">
+              <h1 class="text-center font-bold text-text-gray-600  py-2 hover:cursor-pointer px-4 rounded text-white bg-gradient-to-tr from-indigo-600 to-green-600 hover:shadow-lg">Menu</h1>
+              <div class="bg-white rounded-md list-none  text-center ">
+    
+                    <li class="py-1 border-b-2"><a> 
+                    <%= link_to '新規製品登録', new_product_path, class: "py-2 text-gray-700 hover:text-indigo-600 text-md" %>
+                    </a></li>
+
+                    <li class="py-1 border-b-2"><a>
+                    <%= link_to '全アイテム進捗一覧表', index3_product_path, class: "py-2 text-gray-700 hover:text-indigo-600 text-md" %>
+                    </a></li>
+
+                    <li class="py-1 border-b-2"><a>
+                    <%= link_to '全アイテム日程表', index9_product_path, class: "py-2 text-gray-700 hover:text-indigo-600 text-md" %>
+                    </a></li>
+
+                    <li class="py-1 border-b-2"><a>
+                        <%= form_with(url: index2_product_path, method: :get, local: true) do|form| %>
+                        <%= form.label :"図番選択" %> 
+                        <% @produc=Product.select(:partnumber).distinct.order(:partnumber) %>
+                        <%= form.collection_select(:partnumber, @produc, :partnumber, :partnumber,{prompt: '選択してください',class:"hidden"})%> 
+                        <%= form.submit "APQP・PPAP一覧表示 (図番毎)",class:"btn btn-sm"%>
+                        <% end %>
+                    </a></li>
+
+                    <li class="py-1 border-b-2"><a>
+                        <%= form_with(url: index8_product_path, method: :get, local: true) do|form| %>
+                        <%= form.label :"図番選択" %> 
+                        <% @produc=Product.select(:partnumber).distinct.order(:partnumber) %> 
+                        <%= form.collection_select(:partnumber, @produc, :partnumber, :partnumber,{prompt: '選択してください',class:"hidden"})%> <br>
+                        <%= form.submit "達成度 (図番毎)",class:"btn btn-sm"%>
+                        <% end %>                    
+                    </a></li>
+                    <!--
+                    #RailsでExcel出力しないといけなくなった時の対処法
+                    #https://www.timedia.co.jp/tech/railsexcel/
+                    -->
+
+                    <li class="py-1 border-b-2"><a>
+                    <%= form_with(url: index4_product_path, method: :get, local: true) do|form| %>
+                    <%= form.submit "IATF要求事項説明",class:"btn btn-primary btn-sm" %>
+                    <% end %>
+                    </a></li>
+
+                    <li class="py-1 border-b-2"><a>
+                    <%= form_with(url: graph_product_path, method: :get, local: true) do|form| %>
+                    <%= form.submit "IATF進捗グラフ",class:"btn btn-primary btn-sm" %>
+                    <% end %>
+                    </a></li>
+
+                    <li class="py-1 border-b-2"><a>
+                    <%= form_with(url: calendar_product_path, method: :get, local: true) do|form| %>
+                    <%= form.submit "IATF進捗カレンダー",class:"btn btn-primary btn-sm" %>
+                    <% end %>
+                    </a></li>
+
+                    <li class="py-1 border-b-2"><a>
+                    <%= form_with(url: training_product_path, method: :get, local: true) do|form| %>
+                    <%= form.submit "IATF教材",class:"btn btn-primary btn-sm" %>
+                    <% end %>
+                    </a></li>
+
+
+                    <!--
+                    #Railsて゛Axlsxを使ってxlsxを生成
+                    #https://qiita.com/necojackarc/items/0dbd672b2888c30c5a38
+                    -->
+
+
+                    <li class="py-1 border-b-2">
+                    <%= link_to "Excel出力", xlsx_product_path(@product, format: :xlsx),class:"btn btn-primary btn-sm" %>
+                    </li>
+
+                    <!--
+                    【Ruby on Rails】CSVインポート
+                    https://qiita.com/seitarooodayo/items/c9d6955a12ca0b1fd1d4
+                    -->
+
+                    <li class="py-1 border-b-2">
+                    <%= form_tag import_products_path, multipart: true do %>
+                    <label class="mt-2 sm:mt-0 py-2 w-[500px] sm:w-[212px] h-10 border border-primary-300 bg-gray-100 bg-opacity-50 text-primary-300 rounded-[3px] text-xs flex justify-center items-center">
+                    <span class="text-mg ml-5 mx-8"  style="width: 200px;">CSVファイル選択</span>
+                    <%= file_field_tag :file , class: "hidden"%>
+                    </label>
+
+                    <%= submit_tag "インポート",class:"btn btn-primary btn-sm"  %>
+                    <% end %>
+                    </li>
+                    
+
+                    <li class="py-1 border-b-2">
+                    <%= form_with(url: iot_product_path, method: :get, local: true) do|form| %>
+                    <%= form.submit "IOTデータ",class:"btn btn-primary btn-sm" %>
+                    <% end %>
+                    </li>
+
+                    <li class="py-1 border-b-2">
+                    <%= form_with(url: index_touan_path,      method: :get, local: true) do|form| %>
+                        <%= form.select :owner_select, [
+                            ['営業プロセス', 'sales'],
+                            ['製造工程設計プロセス', 'process_design'],
+                            ['製造プロセス', 'production'],
+                            ['製品検査プロセス', 'inspection'],
+                            ['引渡しプロセス', 'release'],
+                            ['購買プロセス', 'procurement'],
+                            ['設備管理プロセス', 'equipment'],
+                            ['測定機器管理プロセス', 'measurement'],
+                            ['方針プロセス', 'policy'],
+                            ['顧客満足プロセス', 'satisfaction'],
+                            ['内部監査プロセス', 'audit'],
+                            ['改善プロセス', 'corrective_action']
+            
+                        ], {}, class: "form-control" %>
+
+                    <%= form.submit "IATF評価テスト",class:"btn btn-primary btn-sm" %>
+                    <% end %>
+                    </li>
+
+                    <li class="py-1 border-b-2">
+                    <%= form_with(url: iatf_csr_mitsui_touan_path, method: :get, local: true) do|form| %>
+                    <%= form.submit "IATF規格_CSR_ミツイ品質マニュアル比較",class:"btn btn-primary btn-sm" %>
+                    <% end %>
+                    </li>
+
+
+                    <li class="py-1 border-b-2">
+                    <%= form_with(url: index_suppliers_path, method: :get, local: true) do|form| %>
+                    <%= form.submit "供給者リスト",class:"btn btn-primary btn-sm" %>
+                    <% end %>
+                    </li>
+
+                    <li class="py-1 border-b-2">
+                    <%= form_with(url: index_measurementequipments_path, method: :get, local: true) do|form| %>
+                    <%= form.submit "測定機器リスト",class:"btn btn-primary btn-sm" %>
+                    <% end %>
+                    </li>
+
+                    <li class="py-1 border-b-2">
+                    <%= link_to "監査是正報告書", audit_correction_report_products_path, class: "btn btn-primary btn-sm" %>
+                    </li>
+
+                    <li class="py-1 border-b-2">
+                    <%= link_to "内部監査改善の機会一覧表", audit_improvement_opportunity_products_path, class: "btn btn-primary btn-sm" %>
+                    </li>
+
+                    <li class="py-1 border-b-2">
+                    <%= link_to "工程内不適合品管理票/是正・予防処置管理票", in_process_nonconforming_product_control_form_products_path, class: "btn btn-primary btn-sm" %>
+                    </li>
+                
+                    <%= form_with(url: rubyxl_product_path, method: :get, local: true, html: { id: 'product-form' }) do |form| %>
+                      <%= form.label :"図番選択" %>
+                      <%= form.collection_select(:partnumber, @produc, :partnumber, :partnumber)%> <br>
+                    <% end %>
+                    <%= button_to "製造工程設計計画／実績書", "#", id: "design_submit-button", class: "btn btn-primary" %>
+                    
+                    <%= form_with(url: rubyxl_apqp_plan_report_product_path, method: :get, local: true, html: { id: 'apqp_plan-form' }) do |form| %>
+                      <%= form.label :"図番選択" %>
+                      <%= form.collection_select(:partnumber, @produc, :partnumber, :partnumber)%> <br>
+                    <% end %>
+                    <%= button_to "APQP計画書", "#", id: "apqp_plan_submit-button", class: "btn btn-primary" %>
+                    
+                    <%= form_with(url: rubyxl_apqp_approved_report_product_path, method: :get, local: true, html: { id: 'apqp_approved-form' }) do |form| %>
+                      <%= form.label :"図番選択" %>
+                      <%= form.collection_select(:partnumber, @produc, :partnumber, :partnumber)%> <br>
+                    <% end %>
+                    <%= button_to "APQP総括・承認書", "#", id: "apqp_approved_submit-button", class: "btn btn-primary" %>
+
+　　　　　<br>
+
+<div class="bg-indigo-300 p-4 mt-4">
+  <% if @pdf_links.present? && @days_since_published.present? && @publish_dates.present? %>
+    <h2 class="text-lg font-bold underline mb-4 text-center">IATF SIs FQAs Links</h2>
+    <div class="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-8">
+      <div class="text-center">
+        <% if @pdf_links[0].present? && @pdf_links[0].include?('SIs') %>
+          <%= link_to 'SIs Link', @pdf_links[0], class: "btn btn-accent mb-2", target: "_blank" %>
+          <% if @publish_dates[0].present? %>
+            <p class="text-sm">発行日: <%= I18n.l(@publish_dates[0], format: :year_month) %></p>
+          <% else %>
+            <p class="text-sm">発行日: 不明</p>
+          <% end %>
+          <p class="text-sm">発行後<%= @days_since_published[0] %>日</p>
+        <% else %>
+          <p class="text-sm font-semibold">SIs PDFが見つかりません</p>
+        <% end %>
+      </div>
+      <div class="text-center">
+        <% if @pdf_links[1].present? && @pdf_links[1].include?('FAQs') %>
+          <%= link_to 'FAQs Link', @pdf_links[1], class: "btn btn-accent mb-2", target: "_blank" %>
+          <% if @publish_dates[1].present? %>
+            <p class="text-sm">発行日: <%= I18n.l(@publish_dates[1], format: :year_month) %></p>
+          <% else %>
+            <p class="text-sm">発行日: 不明</p>
+          <% end %>
+          <p class="text-sm">発行後<%= @days_since_published[1] %>日</p>
+        <% else %>
+          <p class="text-sm font-semibold">FAQs PDFが見つかりません</p>
+        <% end %>
+      </div>
+    </div>
+  <% else %>
+    <p class="text-center text-sm font-semibold">IATF SIs FQAs情報が利用できません</p>
+  <% end %>
+</div>
+        
+
+        
+
+                    
+                    <script>
+                    $(document).ready(function() {
+                        $("#design_submit-button").on("click", function(e) {
+                            e.preventDefault();
+                            $("#product-form").submit();
+                        });
+                    
+                        $("#apqp_plan_submit-button").on("click", function(e) {
+                            e.preventDefault();
+                            $("#apqp_plan-form").submit();
+                        });
+                    
+                        $("#apqp_approved_submit-button").on("click", function(e) {
+                            e.preventDefault();
+                            $("#apqp_approved-form").submit();
+                        });
+                    });
+                    </script>
+
+
+                  
+              </div>
+            </div> 
+    </div>
+ 
+    <!--
+    <div class="w-full lg:w-5/6 bg-blue-700 p-8 text-gray-600 rounded-lg ">
+    -->
+
+    <div class="w-full lg:w-5/6 lg:ml-1/6 bg-blue-700 p-8 text-gray-600 rounded-lg">
+
+      <!--
+      Border Spacing
+      https://tailwindcss.com/docs/border-spacing
+      -->
+
+
+      <%= paginate @products %>
+      <table  class="sticky_table table-striped table-hover border-separate border-spacing-1 border-2 border-blue-900 bg-gray-100">
+        <thead>
+              <tr>  
+                  <th class="border-2 border-blue-900"><%= sort_link(@q, :partnumber, "図番") %></th>
+                  <th class="border-2 border-blue-900"><%= sort_link(@q, :materialcode, "材料コード") %></th>
+                  <th class="border-2 border-blue-900"><%= sort_link(@q, :documentname, "文書名") %></th>
+                  <th class="border-2 border-blue-900"><%= sort_link(@q, :description, "詳細") %></th>
+                  <th class="border-2 border-blue-900"><%= sort_link(@q, :category , "カテゴリー") %></th>
+                  <th class="border-2 border-blue-900"><%= sort_link(@q, :phase, "フェーズ") %></th>
+                  <th class="border-2 border-blue-900"><%= sort_link(@q, :stage, "項目") %></th>      
+                  <th class="border-2 border-blue-900"><%= sort_link(@q, :start_time, "登録日") %></th>
+                  <th class="border-2 border-blue-900"><%= sort_link(@q, :deadline_at, "完了予定日") %></th>
+                  <th class="border-2 border-blue-900"><%= sort_link(@q, :end_at, "完了日") %></th>
+                  <th class="border-2 border-blue-900"><%= sort_link(@q, :goal_attainment_level, "達成度(%)") %></th>
+                  <th class="border-2 border-blue-900"><%= sort_link(@q, :status, "ステイタス") %></th>
+                  <th colspan="3"></th>
+                  <th>アイコン</th>
+              </tr>
+        </thead>
+  
+        <tbody>
+  <% if @products.any? %>
+    <% @products.each_with_index do |pro, index| %>
+      <% if index == 0 %>
+        <tr>
+          <td colspan="16">
+            <div style="font-size: 0.8em; color: #666; overflow-wrap: break-word; word-wrap: break-word;">
+            <!--  Debug: <%= pro.attributes.inspect %> -->
+            </div>
+          </td>
+        </tr>
+      <% end %>
+      <tr>
+        <% if pro.partnumber=="" || pro.partnumber==nil %>
+            <td class="border-2 border-blue-900 "><%= "----" %></td>
+        <% else %>
+            <td class="border-2 border-blue-900 "><%= pro.partnumber %></td>
+        <% end %>
+        
+        <% if pro.materialcode=="" || pro.materialcode==nil  %>
+            <td class="border-2 border-blue-900 "><%= "----" %></td>
+        <% else %>
+            <td class="border-2 border-blue-900 "><%= pro.materialcode %></td>
+        <% end %>
+
+        <% if pro.documentname=="" || pro.documentname==nil  %>
+            <td class="border-2 border-blue-900 "><%= "----" %></td>
+        <% else %>
+            <td class="border-2 border-blue-900 "><%= pro.documentname %></td>
+        <% end %>
+        <% if pro.description=="" || pro.description==nil  %>
+            <td class="border-2 border-blue-900 "><%= "----" %></td>
+        <% else %>
+            <td class="border-2 border-blue-900 "><div class="line-clamp-3"><%= pro.description %></div></td>
+        <% end %>
+
+        <td class="border-2 border-blue-900 "><%= @dropdownlist[pro.category.to_i] %></td>
+        <td class="border-2 border-blue-900 "><div class="line-clamp-3"><%= @dropdownlist[pro.phase.to_i] %></div></td>
+        <td class="border-2 border-blue-900 "><div class="line-clamp-3"> <%= @dropdownlist[pro.stage.to_i] %></div></td>
+
+        <% if pro.start_time==nil %>
+              <td class="border-2 border-blue-900 "><div class="vertical-rl lg:horizontal-tb"><%= "------"  %></div></td>
+        <% else %>
+              <td class="border-2 border-blue-900 "><div class="vertical-rl lg:horizontal-tb"><%= pro.start_time.strftime('%y/%m/%d')  %></div></td>
+        <% end %>
+        <% if pro.deadline_at==nil %>
+              <td class="border-2 border-blue-900 "><div class="vertical-rl lg:horizontal-tb"><%= "------"  %></div></td>
+        <% else %>
+              <td class="border-2 border-blue-900 "><div class="vertical-rl lg:horizontal-tb"><%= pro.deadline_at.strftime('%y/%m/%d')  %></div></td>
+        <% end %>
+        <% if pro.end_at==nil %>
+              <td class="border-2 border-blue-900 "><div class="vertical-rl lg:horizontal-tb"><%= "------"  %></div></td>
+        <% else %>
+              <td class="border-2 border-blue-900 "><div class="vertical-rl lg:horizontal-tb"><%= pro.end_at.strftime('%y/%m/%d')  %></div></td>
+        <% end %>
+        
+        <td class="border-2 border-blue-900 "><%= pro.goal_attainment_level %></td>
+        <td class="border-2 border-blue-900 "><%= pro.status %></td>
+        <td class="inline-block"><div class="btn btn-accent btn-sm"><%= button_to '詳細表示', product_path(pro), { method: :get, params: pro }  %></div></td>
+        <td class="inline-block"><div class="btn btn-primary btn-sm"><%= button_to '編集', edit_product_path(pro), { method: :get, params: pro } %><div></td>
+        <td class="inline-block"><div class="btn btn-secondary btn-sm"> <%= button_to '削除', pro, {method: :delete, data: { confirm: '本当に削除しますか？' } } %></div></td>
+        <td class="inline-block"><%= render partial: "attached_file", locals: { pro: pro }  %></td>
+      </tr>
+    <% end %>
+  <% else %>
+    <tr>
+      <td colspan="16">検索結果がありません</td>
+    </tr>
+  <% end %>
+  <br>
+</tbody>
+      </table>
+      <%= paginate @products %>
+      <br>
+      <br>
+      <br>
+    </div>
+
+</sectoin>
+
+</main>
+
+<style>
+
+.sticky {
+    position: sticky;
+}
+
+
+
+.menu-btn {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    display: flex;
+    height: 60px;
+    width: 60px;
+    justify-content: center;
+    align-items: center;
+    z-index: 90;
+    /*ボタンの背景色*/
+    /*background-color: #3584bb;*/
+}
+.menu-btn span,
+.menu-btn span:before,
+.menu-btn span:after {
+    content: '';
+    display: block;
+    height: 3px;
+    width: 25px;
+    border-radius: 3px;
+    /*ボタンの線の色*/
+    background-color: #222;
+    position: absolute;
+    transition: all 300ms 0s ease;
+}
+
+
+
+.menu-btn span:before {
+    bottom: 8px;
+}
+.menu-btn span:after {
+    top: 8px;
+}
+
+#menu-btn-check {
+    display: none;
+}
+#menu-btn-check:checked ~ .menu-btn span {
+    background-color: rgba(255, 255, 255, 0);/*メニューオープン時は真ん中の線を透明にする*/
+    transition: all 300ms 0s ease;
+}
+#menu-btn-check:checked ~ .menu-btn span::before {
+    bottom: 0;
+    transform: rotate(45deg);
+    background-color: #ccc;
+    transition: all 300ms 0s ease;
+}
+#menu-btn-check:checked ~ .menu-btn span::after {
+    top: 0;
+    transform: rotate(-45deg);
+    background-color: #ccc;
+    transition: all 300ms 0s ease;
+}
+
+.menu-content {
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    top: 0;
+    top: -200%;
+    z-index: 80;
+    background-color: white;
+    color: #222;
+    transition: all 500ms 0s ease;
+}
+
+#menu-btn-check:checked ~ .menu-content {
+    top: 0;/*メニューを画面内へ*/
+}
+
+.menu-content ul {
+    padding: 70px 10px 0;
+}
+.menu-content ul li {
+    border-bottom: solid 1px #ccc;
+    list-style: none;
+}
+.menu-content ul li a {
+    display: block;
+    width: 100%;
+    font-size: 15px;
+    box-sizing: border-box;
+    text-decoration: none;
+    padding: 9px 15px 10px 0;
+    position: relative;
+}
+.menu-content ul li a::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-top: solid 2px #ccc;
+    border-right: solid 2px #ccc;
+    transform: rotate(45deg);
+    position: absolute;
+    right: 11px;
+    top: 16px;
+}
+
+
+/*---------------------------*/
+

@@ -1,0 +1,8 @@
+# frozen_string_literal: true
+
+wb = xlsx_package.workbook
+wb.add_worksheet(name: 'hoge') do |sheet|
+  @products.each do |pro|
+    sheet.add_row ['hoge', pro.partnumber]
+  end
+end

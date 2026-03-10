@@ -1,0 +1,78 @@
+
+<% ext = File.extname(fullfilename).downcase %>
+<% icon = icon_for_extension(ext) %>
+
+<% if matching_product %>
+  <%= link_to product_verify_password_product_path(id: matching_product.id, blob_id: image.blob.id), 
+  class: 'infoicon', 
+  data: { toggle: 'tooltip' }, 
+  title: "#{image.blob.filename} (ID: #{matching_product.id})" do %>
+    <%= image_tag(icon) %>
+  <% end %>
+<% else %>
+  <%= image_tag(icon, class: 'infoicon', title: image.blob.filename) %>
+<% end %>
+
+
+
+<!--
+
+                <% if ext==".xls" || ext ==".xlsx" || ext ==".xlsm" %>
+                <td><%= link_to image_tag('excel.png'),rails_blob_path(image),class: 'infoicon', data: { toggle: 'tooltip' }, title: image.blob.filename  %> </td>
+                <% else %>
+                  <% if ext==".pdf" %>
+                    <td><%= link_to image_tag('pdf.png'),rails_blob_path(image),class: 'infoicon', data: { toggle: 'tooltip' }, title: image.blob.filename %></td>
+                  <% else %>
+                      <% if ext==".ppt"  || ext==".pptx" %>
+                        <td><%= link_to image_tag('ppt.png'),rails_blob_path(image),class: 'infoicon', data: { toggle: 'tooltip' }, title: image.blob.filename %> </td>
+                      <% else %>
+                        <% if ext==".jpg" %>
+                          <td><%= link_to image_tag('jpg.png'),rails_blob_path(image),class: 'infoicon', data: { toggle: 'tooltip' }, title: image.blob.filename %> </td>
+                        <% else %>
+                            <% if ext==".png" %>
+                            <td><%= link_to image_tag('png.png'),rails_blob_path(image),class: 'infoicon', data: { toggle: 'tooltip' }, title: image.blob.filename %> </td>
+                            <% else %>
+                              <% if ext==".dxf" %>
+                                <td><%= link_to image_tag('dxf.png'),rails_blob_path(image),class: 'infoicon', data: { toggle: 'tooltip' }, title: image.blob.filename %> </td>
+                              <% else %>
+                                <% if ext==".html" %>
+                                  <td><%= link_to image_tag('html.png'),rails_blob_path(image),class: 'infoicon', data: { toggle: 'tooltip' }, title: image.blob.filename %> </td>
+                                <% else %>
+                                  <% if ext==".accdb" %>
+                                    <td><%= link_to image_tag('access.png'),rails_blob_path(image),class: 'infoicon', data: { toggle: 'tooltip' }, title: image.blob.filename %> </td>
+                                  <% else %>
+                                    <% if ext==".doc"  || ext==".docx" %>
+                                      <td><%= link_to image_tag('word.png'),rails_blob_path(image),class: 'infoicon', data: { toggle: 'tooltip' }, title: image.blob.filename %> </td>
+                                    <% else %>
+                                      <% if ext==".zip"  %>
+                                        <td><%= link_to image_tag('zip.png'),rails_blob_path(image),class: 'infoicon', data: { toggle: 'tooltip' }, title: image.blob.filename %> </td>
+                                      <% else %>
+                                        <% if ext==".stp" || ext==".stl" || ext==".step" || ext==".igs" || ext==".iges"%>
+                                         <td><%= link_to image_tag('3dcad.png'),rails_blob_path(image),class: 'infoicon', data: { toggle: 'tooltip' }, title: image.blob.filename %> </td>
+                                        <% else %>
+                                            <% if ext==".dwg" %>
+                                               <td><%= link_to image_tag('dwg.png'),rails_blob_path(image),class: 'infoicon', data: { toggle: 'tooltip' }, title: image.blob.filename %> </td>
+                                              <% else %>
+                                                  <% if ext==".mp4" %>
+                                                   <td><%= link_to image_tag('mp4.png'),rails_blob_path(image),class: 'infoicon', data: { toggle: 'tooltip' }, title: image.blob.filename %> </td>
+                                                  <% else %>
+                                                   
+                                                  <td><%= "アイコン無し" %></td>
+                                                   
+
+
+                                                  <% end %>
+                                                <% end %>
+                                            <% end %>
+                                          <% end %>
+                                        <% end %>
+                                      <% end %>
+                                    <% end %>
+                                <% end %>
+                            <% end %>
+                          <% end %>
+                      <% end %>
+                    <% end %>
+                <% end %>
+
+-->

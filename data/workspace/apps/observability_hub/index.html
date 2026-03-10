@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clawstack 可観測性Hub</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --border: #30363d;
+    --text: #e6edf3;
+    --text-muted: #8b949e;
+    --accent: #58a6ff;
+    --green: #3fb950;
+    --yellow: #d29922;
+    --red: #f85149;
+    --purple: #a371f7;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', monospace;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 1.5rem;
+  }
+  h1 { font-size: 1.4rem; font-weight: 700; color: var(--accent); margin-bottom: 0.25rem; }
+  .subtitle { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.5rem; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+  }
+  .card .label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+  .card .value { font-size: 2rem; font-weight: 700; margin: 0.25rem 0; }
+  .card .unit  { font-size: 0.8rem; color: var(--text-muted); }
+  .green { color: var(--green); }
+  .yellow { color: var(--yellow); }
+  .red { color: var(--red); }
+  .purple { color: var(--purple); }
+  .blue { color: var(--accent); }
+
+  .section-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .services { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0.5rem; margin-bottom: 1.5rem; }
+  .svc {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.6rem 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .dot.ok { background: var(--green); box-shadow: 0 0 6px var(--green); }
+  .dot.warn { background: var(--yellow); box-shadow: 0 0 6px var(--yellow); }
+  .dot.err { background: var(--red); }
+  .dot.check { background: var(--text-muted); animation: pulse 1.2s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  .svc-name { font-size: 0.82rem; font-weight: 500; }
+  .svc-ms { font-size: 0.72rem; color: var(--text-muted); margin-left: auto; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  th { text-align: left; padding: 0.5rem 0.75rem; color: var(--text-muted); font-weight: 500; border-bottom: 1px solid var(--border); }
+  td { padding: 0.5rem 0.75rem; border-bottom: 1px solid #21262d; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #1c2128; }
+  .tag {
+    display: inline-block;
+    padding: 0.1rem 0.45rem;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 600;
+  }
+  .tag.rag { background: #1d3a5f; color: var(--accent); }
+  .tag.web { background: #1d3a2a; color: var(--green); }
+  .tag.n8n { background: #2a1d3a; color: var(--purple); }
+
+  .score-bar-wrap { display: flex; align-items: center; gap: 0.5rem; }
+  .score-bar { height: 6px; border-radius: 3px; background: var(--border); flex: 1; overflow: hidden; }
+  .score-fill { height: 100%; border-radius: 3px; transition: width 0.4s ease; }
+
+  .refresh-row { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; }
+  .btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 0.4rem 0.9rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.82rem;
+    transition: background 0.15s;
+  }
+  .btn:hover { background: #21262d; }
+  .btn.primary { border-color: var(--accent); color: var(--accent); }
+  .refresh-info { font-size: 0.78rem; color: var(--text-muted); }
+  #countdown { font-weight: 600; color: var(--accent); }
+
+  .langfuse-link {
+    display: inline-block;
+    color: var(--accent);
+    font-size: 0.82rem;
+    text-decoration: none;
+    border: 1px solid var(--accent);
+    border-radius: 6px;
+    padding: 0.35rem 0.8rem;
+    transition: background 0.15s;
+  }
+  .langfuse-link:hover { background: rgba(88,166,255,0.1); }
+
+  .empty { color: var(--text-muted); font-size: 0.82rem; text-align: center; padding: 1.5rem; }
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.25rem; margin-bottom: 1.5rem; }
+  .benchmark-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.75rem; margin-top: 0.75rem; }
+  .bench-item { background: #0d1117; border: 1px solid var(--border); border-radius: 6px; padding: 0.6rem 0.9rem; }
+  .bench-q { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.3rem; }
+  .bench-score { font-size: 1.1rem; font-weight: 700; }
+  .bench-target { font-size: 0.7rem; color: var(--text-muted); }
+</style>
+</head>
+<body>
+
+<h1>⚡ Clawstack 可観測性Hub</h1>
+<p class="subtitle">LLM・RAG・MCP・n8n のリアルタイム品質モニタリング</p>
+
+<div class="refresh-row">
+  <button class="btn primary" onclick="refreshAll()">↺ 今すぐ更新</button>
+  <a class="langfuse-link" href="http://localhost:3001" target="_blank">Langfuse UI →</a>
+  <span class="refresh-info">自動更新: <span id="countdown">30</span>秒後</span>
+</div>
+
+<!-- KPI カード -->
+<div class="grid" id="kpiGrid">
+  <div class="card">
+    <div class="label">RAG 関連性スコア (直近10件)</div>
+    <div class="value blue" id="kpiRagScore">--</div>
+    <div class="unit">平均コサイン類似度</div>
+  </div>
+  <div class="card">
+    <div class="label">LLM 応答レイテンシ</div>
+    <div class="value green" id="kpiLatency">--</div>
+    <div class="unit">秒 (直近10件平均)</div>
+  </div>
+  <div class="card">
+    <div class="label">本日の LLM コスト</div>
+    <div class="value yellow" id="kpiCost">--</div>
+    <div class="unit">USD (LiteLLM計測)</div>
+  </div>
+  <div class="card">
+    <div class="label">MCP ツール成功率</div>
+    <div class="value green" id="kpiSuccessRate">--</div>
+    <div class="unit">直近 20 呼び出し</div>
+  </div>
+  <div class="card">
+    <div class="label">Fallback率 (直近20件)</div>
+    <div class="value yellow" id="kpiFallbackRate">--</div>
+    <div class="unit">目標: 15%以下</div>
+  </div>
+  <div class="card">
+    <div class="label">ハーネス遮断 (本日)</div>
+    <div class="value purple" id="kpiHarnessBlock">--</div>
+    <div class="unit">0件が理想</div>
+  </div>
+  <div class="card">
+    <div class="label">Self-Heal 成功率</div>
+    <div class="value green" id="kpiSelfHeal">--</div>
+    <div class="unit">目標: 60%以上</div>
+  </div>
+  <div class="card">
+    <div class="label">今週の文書取り込み数</div>
+    <div class="value blue" id="kpiDocIngested">--</div>
+    <div class="unit">Paperless → Qdrant</div>
+  </div>
+</div>
+
+<!-- サービス死活 -->
+<div class="section-title">サービス死活監視</div>
+<div class="services" id="serviceGrid">
+  <!-- JS で生成 -->
+</div>
+
+<!-- Langfuse トレース一覧 -->
+<div class="panel">
+  <div class="section-title" style="border:none;margin-bottom:0.5rem">最新トレース (Langfuse)</div>
+  <table id="traceTable">
+    <thead>
+      <tr>
+        <th>種別</th>
+        <th>名前 / クエリ</th>
+        <th>スコア</th>
+        <th>時刻</th>
+        <th>レイテンシ</th>
+      </tr>
+    </thead>
+    <tbody id="traceBody">
+      <tr><td colspan="5" class="empty">Langfuse からトレースを取得中...</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ベンチマーク -->
+<div class="panel">
+  <div class="section-title" style="border:none;margin-bottom:0.25rem">RAG ベンチマーク (期待スコア)</div>
+  <div class="benchmark-grid" id="benchGrid">
+    <!-- JS で生成 -->
+  </div>
+</div>
+
+<script>
+// ============================================================
+// 設定
+// ============================================================
+const LANGFUSE_HOST   = 'http://localhost:3001';
+const LANGFUSE_PUB    = 'pk-lf-07926c92-5480-4fb5-ae97-39e35a0a0ce5';
+const LANGFUSE_SECRET = 'sk-lf-9b4e86b1-ec3b-4826-aca7-b20bd68b1bd8';
+const LITELLM_HOST    = 'http://localhost:4000';
+
+// ヘルスチェック対象
+const SERVICES = [
+  { name: 'LiteLLM',        url: 'http://localhost:4000/health/liveliness' },
+  { name: 'Langfuse',       url: 'http://localhost:3001/api/public/health' },
+  { name: 'Qdrant',         url: 'http://localhost:6333/healthz' },
+  { name: 'Infinity Embed', url: 'http://localhost:7997/health' },
+  { name: 'SearXNG',        url: 'http://localhost:8086/' },
+  { name: 'Paperless',      url: 'http://localhost:8000/api/' },
+  { name: 'n8n',            url: 'http://localhost:5679/healthz' },
+  { name: 'OpenClaw',       url: 'http://localhost:18789/status' },
+  { name: 'Open WebUI',     url: 'http://localhost:3000/' },
+  { name: 'Node-RED',       url: 'http://localhost:1880/' },
+];
+
+// ベンチマーク期待値
+const BENCHMARKS = [
+  { query: 'CETOL 6sigma tolerance stackup',   target: 0.65, collection: 'universal_knowledge' },
+  { query: 'FMEA failure mode analysis steps', target: 0.70, collection: 'universal_knowledge' },
+  { query: 'IATF 16949 clause 8.5',            target: 0.65, collection: 'iatf_knowledge' },
+  { query: '5 Why root cause analysis',        target: 0.68, collection: 'universal_knowledge' },
+];
+
+// ============================================================
+// ユーティリティ
+// ============================================================
+function scoreColor(v) {
+  if (v === null || v === undefined) return 'blue';
+  if (v >= 0.7) return 'green';
+  if (v >= 0.5) return 'yellow';
+  return 'red';
+}
+
+function el(id) { return document.getElementById(id); }
+
+function setKpi(id, value, unit='') {
+  const e = el(id);
+  if (!e) return;
+  e.textContent = value ?? '--';
+}
+
+// ============================================================
+// サービス死活
+// ============================================================
+async function checkService(svc) {
+  const t0 = performance.now();
+  try {
+    const r = await fetch(svc.url, { mode: 'no-cors', signal: AbortSignal.timeout(3000) });
+    const ms = Math.round(performance.now() - t0);
+    return { ok: true, ms };
+  } catch {
+    const ms = Math.round(performance.now() - t0);
+    return { ok: false, ms };
+  }
+}
+
+async function refreshServices() {
+  const grid = el('serviceGrid');
+  grid.innerHTML = SERVICES.map(s =>
+    `<div class="svc" id="svc_${s.name.replace(/\s/g,'_')}">
+       <div class="dot check"></div>
+       <span class="svc-name">${s.name}</span>
+       <span class="svc-ms"></span>
+     </div>`
+  ).join('');
+
+  await Promise.all(SERVICES.map(async svc => {
+    const r = await checkService(svc);
+    const key = svc.name.replace(/\s/g,'_');
+    const row = el(`svc_${key}`);
+    if (!row) return;
+    row.querySelector('.dot').className = `dot ${r.ok ? 'ok' : 'err'}`;
+    row.querySelector('.svc-ms').textContent = r.ok ? `${r.ms}ms` : 'error';
+  }));
+}
+
+// ============================================================
+// Langfuse API
+// ============================================================
+function lfHeaders() {
+  const token = btoa(`${LANGFUSE_PUB}:${LANGFUSE_SECRET}`);
+  return { 'Authorization': `Basic ${token}`, 'Content-Type': 'application/json' };
+}
+
+async function fetchLangfuseTraces(limit = 20) {
+  try {
+    const r = await fetch(`${LANGFUSE_HOST}/api/public/traces?limit=${limit}&orderBy=timestamp.desc`,
+      { headers: lfHeaders(), signal: AbortSignal.timeout(5000) }
+    );
+    if (!r.ok) return null;
+    return await r.json();
+  } catch { return null; }
+}
+
+async function fetchLangfuseScores(limit = 50) {
+  try {
+    const r = await fetch(`${LANGFUSE_HOST}/api/public/scores?limit=${limit}`,
+      { headers: lfHeaders(), signal: AbortSignal.timeout(5000) }
+    );
+    if (!r.ok) return null;
+    return await r.json();
+  } catch { return null; }
+}
+
+// ============================================================
+// KPI 計算
+// ============================================================
+async function refreshKPIs() {
+  // RAG スコア
+  const scores = await fetchLangfuseScores(50);
+  if (scores && scores.data) {
+    const ragScores = scores.data
+      .filter(s => s.name === 'rag_relevance')
+      .map(s => s.value)
+      .slice(0, 10);
+    if (ragScores.length > 0) {
+      const avg = ragScores.reduce((a,b) => a+b, 0) / ragScores.length;
+      el('kpiRagScore').textContent = avg.toFixed(3);
+      el('kpiRagScore').className = `value ${scoreColor(avg)}`;
+    } else {
+      el('kpiRagScore').textContent = 'N/A';
+    }
+  }
+
+  // Langfuse トレース (latency)
+  const traces = await fetchLangfuseTraces(20);
+  if (traces && traces.data) {
+    const withLatency = traces.data
+      .filter(t => t.latency != null)
+      .map(t => t.latency / 1000)
+      .slice(0, 10);
+    if (withLatency.length > 0) {
+      const avg = withLatency.reduce((a,b) => a+b, 0) / withLatency.length;
+      el('kpiLatency').textContent = avg.toFixed(2);
+    }
+
+    // 成功率
+    const total = traces.data.length;
+    const ok = traces.data.filter(t => !t.level || t.level !== 'ERROR').length;
+    el('kpiSuccessRate').textContent = total ? `${Math.round(ok/total*100)}%` : 'N/A';
+    el('kpiSuccessRate').className = `value ${(ok/total) >= 0.9 ? 'green' : (ok/total) >= 0.7 ? 'yellow' : 'red'}`;
+
+    // トレース表示
+    renderTraces(traces.data.slice(0, 15));
+  }
+
+  // LiteLLM コスト (spend endpoint)
+  try {
+    const r = await fetch(`${LITELLM_HOST}/spend/logs`, { signal: AbortSignal.timeout(3000) });
+    if (r.ok) {
+      const data = await r.json();
+      const today = new Date().toISOString().slice(0,10);
+      const todaySpend = (data || [])
+        .filter(l => l.startTime && l.startTime.startsWith(today))
+        .reduce((sum, l) => sum + (l.spend || 0), 0);
+      el('kpiCost').textContent = `$${todaySpend.toFixed(4)}`;
+    }
+  } catch { el('kpiCost').textContent = 'N/A'; }
+
+  // P6: 追加 KPI カード
+  await refreshExtendedKPIs();
+}
+
+async function refreshExtendedKPIs() {
+  // Fallback 率: Langfuse トレースの metadata.fallback=true の割合
+  const traces20 = await fetchLangfuseTraces(20);
+  if (traces20 && traces20.data) {
+    const total = traces20.data.length;
+    const fallbacks = traces20.data.filter(t =>
+      t.metadata && (t.metadata.fallback === true || t.metadata.fallback === 'true')
+    ).length;
+    if (total > 0) {
+      const pct = Math.round(fallbacks / total * 100);
+      el('kpiFallbackRate').textContent = `${pct}%`;
+      el('kpiFallbackRate').className = `value ${pct <= 15 ? 'green' : pct <= 30 ? 'yellow' : 'red'}`;
+    } else {
+      el('kpiFallbackRate').textContent = 'N/A';
+    }
+
+    // ハーネス遮断 (本日, metadata.harness_action=blocked)
+    const today = new Date().toISOString().slice(0, 10);
+    const blocked = traces20.data.filter(t =>
+      t.metadata && t.metadata.harness_action === 'blocked' &&
+      t.timestamp && t.timestamp.startsWith(today)
+    ).length;
+    el('kpiHarnessBlock').textContent = String(blocked);
+    el('kpiHarnessBlock').className = `value ${blocked === 0 ? 'green' : blocked <= 3 ? 'yellow' : 'red'}`;
+  }
+
+  // Self-Heal 成功率: Langfuse scores で name=self_heal_result
+  const allScores = await fetchLangfuseScores(100);
+  if (allScores && allScores.data) {
+    const healScores = allScores.data.filter(s => s.name === 'self_heal_result');
+    if (healScores.length > 0) {
+      const successCount = healScores.filter(s => s.value >= 1).length;
+      const pct = Math.round(successCount / healScores.length * 100);
+      el('kpiSelfHeal').textContent = `${pct}%`;
+      el('kpiSelfHeal').className = `value ${pct >= 60 ? 'green' : pct >= 40 ? 'yellow' : 'red'}`;
+    } else {
+      el('kpiSelfHeal').textContent = 'N/A';
+    }
+  }
+
+  // 今週の文書取り込み数: Langfuse トレースの name=ingest または metadata.source=paperless
+  try {
+    const r = await fetch(
+      `${LANGFUSE_HOST}/api/public/traces?limit=200&orderBy=timestamp.desc`,
+      { headers: lfHeaders(), signal: AbortSignal.timeout(5000) }
+    );
+    if (r.ok) {
+      const data = await r.json();
+      const weekAgo = new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString();
+      const ingested = (data.data || []).filter(t =>
+        (t.name && t.name.includes('ingest')) &&
+        t.timestamp && t.timestamp >= weekAgo
+      ).length;
+      el('kpiDocIngested').textContent = String(ingested);
+    } else {
+      el('kpiDocIngested').textContent = 'N/A';
+    }
+  } catch { el('kpiDocIngested').textContent = 'N/A'; }
+}
+
+// ============================================================
+// トレース一覧
+// ============================================================
+function traceKind(name) {
+  if (!name) return 'n8n';
+  if (name.includes('rag')) return 'rag';
+  if (name.includes('web')) return 'web';
+  return 'n8n';
+}
+
+function renderTraces(data) {
+  const tbody = el('traceBody');
+  if (!data || data.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" class="empty">トレースなし — MCP ツールを使うと記録されます</td></tr>';
+    return;
+  }
+  tbody.innerHTML = data.map(t => {
+    const kind = traceKind(t.name);
+    const score = t.scores && t.scores.length > 0 ? t.scores[0].value : null;
+    const scoreStr = score !== null ? score.toFixed(3) : '—';
+    const scoreCol = score !== null ? scoreColor(score) : 'blue';
+    const lat = t.latency ? `${(t.latency/1000).toFixed(2)}s` : '—';
+    const ts = t.timestamp ? new Date(t.timestamp).toLocaleTimeString('ja-JP') : '—';
+    const name = (t.input && t.input.query) ? t.input.query.slice(0,40) : (t.name || '—');
+    return `<tr>
+      <td><span class="tag ${kind}">${kind.toUpperCase()}</span></td>
+      <td title="${name}">${name.slice(0,40)}</td>
+      <td><span class="${scoreCol}">${scoreStr}</span></td>
+      <td>${ts}</td>
+      <td>${lat}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ============================================================
+// ベンチマーク
+// ============================================================
+function renderBenchmarks(scores) {
+  const grid = el('benchGrid');
+  const latestScores = {};
+  if (scores && scores.data) {
+    scores.data.forEach(s => {
+      if (s.name === 'rag_relevance' && s.comment) {
+        const m = s.comment.match(/query=(.+)/);
+        if (m) latestScores[m[1].slice(0,40)] = s.value;
+      }
+    });
+  }
+
+  grid.innerHTML = BENCHMARKS.map(b => {
+    const key = b.query.slice(0,40);
+    const actual = latestScores[key] ?? null;
+    const pct = actual !== null ? Math.round(actual * 100) : null;
+    const target_pct = Math.round(b.target * 100);
+    const col = actual !== null ? scoreColor(actual) : 'blue';
+    const fillW = actual !== null ? Math.min(pct, 100) : 0;
+    const targetFill = Math.min(target_pct, 100);
+    return `<div class="bench-item">
+      <div class="bench-q">${b.query.slice(0,35)}...</div>
+      <div class="bench-score ${col}">${pct !== null ? pct+'%' : '未計測'}</div>
+      <div class="bench-target">目標: ${target_pct}% | ${b.collection.replace('_knowledge','')}</div>
+      <div class="score-bar" style="margin-top:0.4rem">
+        <div class="score-fill" style="width:${fillW}%; background:${actual>=b.target?'var(--green)':'var(--red)'}"></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ============================================================
+// メインリフレッシュ
+// ============================================================
+async function refreshAll() {
+  await Promise.all([
+    refreshServices(),
+    refreshKPIs(),
+  ]);
+  const scores = await fetchLangfuseScores(50);
+  renderBenchmarks(scores);
+}
+
+// カウントダウン
+let countdown = 30;
+function tick() {
+  countdown--;
+  el('countdown').textContent = countdown;
+  if (countdown <= 0) {
+    countdown = 30;
+    refreshAll();
+  }
+}
+
+// 起動
+refreshAll();
+setInterval(tick, 1000);
+</script>
+</body>
+</html>

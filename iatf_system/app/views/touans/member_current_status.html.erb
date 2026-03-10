@@ -1,0 +1,101 @@
+<header class="sticky top-0 bg-white z-10">
+  <div class="flex flex-col">
+    <%= "Emailアドレス："%>
+    <%= @user.email %> <br>
+    <%= "名前　　　　 ："%>
+    <%= @user.name %> <br>
+    <%= "識別　　　　 ："%>
+    <%= @user.role %> <br>
+  </div>
+</header>
+
+<body>
+
+
+<div class="flex flex-wrap ">
+
+
+  <% @users.each do |member| %>
+  <% if member.owner!="-" %>
+    <% case member.owner
+      when 'sales' %>
+        <% @iatf_data = Iatf.where(sales: "2") %>
+      <% when 'process_design' %>
+        <% @iatf_data = Iatf.where(process_design: "2") %>
+      <% when 'production' %>
+        <% @iatf_data = Iatf.where(production: "2") %>
+      <% when 'inspection' %>
+        <% @iatf_data = Iatf.where(inspection: "2") %>
+      <% when 'release' %>
+        <% @iatf_data = Iatf.where(release: "2") %>
+      <% when 'procurement' %>
+        <% @iatf_data = Iatf.where(procurement: "2") %>
+      <% when 'equipment' %>
+        <% @iatf_data = Iatf.where(equipment: "2") %>
+      <% when 'measurement' %>
+        <% @iatf_data = Iatf.where(measurement: "2") %>
+      <% when 'policy' %>
+        <% @iatf_data = Iatf.where(policy: "2") %>
+      <% when 'satisfaction' %>
+        <% @iatf_data = Iatf.where(satisfaction: "2") %>
+      <% when 'audit' %>
+        <% @iatf_data = Iatf.where(audit: "2") %>
+      <% when 'corrective_action' %>
+        <% @iatf_data = Iatf.where(corrective_action: "2") %>
+      <% else %>
+        <% @iatf_data = [] %>
+    <% end %>
+
+    
+
+    <table class="sticky_table table-striped table-hover border-separate border-spacing-1 border-2 border-blue-900 bg-gray-100">
+      <thead>
+        <tr>
+          <th class="border-2 border-blue-900" colspan="3"><%= member.name %></th>
+        </tr>
+        <tr>
+          <th class="border-2 border-blue-900"><%= "箇条" %></th>
+          <th class="border-2 border-blue-900"><%= "タイトル" %></th>
+          <th class="border-2 border-blue-900"><%= "平均得点" %></th>
+        </tr>
+      </thead>
+
+      <% @iatf_data.each do |iatf| %>
+        <% correct_count = 0 %>
+        <% total_count = 0 %>
+        <% kari_average_score = 0.0 %>
+        <% if iatf.no != nil %>
+          <% only_kajyou = @touans.where(kajyou: iatf.no) %>
+          <% only_kajyou.each do |ave| %>
+            <% if ave.seikai == ave.kaito %>
+              <% correct_count += 1 %>
+            <% end %>
+                      <% total_count += 1 %>
+          <% end %>
+        <% end %>
+        <% if total_count != 0 %>
+          <% kari_average_score = correct_count.to_f / total_count * 100 %>
+        <% else %>
+          <% kari_average_score = 0.0 %>
+        <% end %>
+
+        <tr>
+          <td class="border-2 border-blue-900"><%= iatf.no %></td>
+          <td class="border-2 border-blue-900"><%= iatf.name %></td>
+          <td class="border-2 border-blue-900 <%= 'text-red-600 font-bold' if kari_average_score <= 80 %>"><%= kari_average_score %></td>
+        </tr>
+      <% end %>
+    </table>
+
+    
+
+
+  <% end %>
+  <% end %>
+
+  
+  </div>
+    
+
+  <%= link_to '戻る', touans_path, class: 'btn btn-accent btn-sm' %>
+</body>

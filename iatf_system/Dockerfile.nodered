@@ -1,0 +1,34 @@
+# Dockerfile.nodered
+FROM node:20.9.0
+
+# 作業ディレクトリを設定する
+WORKDIR /usr/src/nodered
+
+# npmを特定のバージョンにアップデートする
+RUN npm install -g npm@9.8.1
+
+# Node-REDをグローバルにインストールする（キャッシュとタイムアウトを使用）
+RUN --mount=type=cache,target=/root/.npm \
+    npm set cache /root/.npm && \
+    npm install -g --unsafe-perm node-red@3.0.2 --timeout=1000000
+
+# Vimをインストールする
+RUN apt-get update && apt-get install -y vim
+
+# bcryptjsとdotenvをインストールする
+RUN npm install bcryptjs dotenv
+
+# Set vim as the default editor
+ENV EDITOR=vim
+
+# .envファイルをコピーする
+COPY .env /usr/src/nodered/
+
+# Node-REDの設定ファイルを生成するスクリプトを追加する
+COPY generate-settings.js /usr/src/nodered/
+
+# Node-REDの設定ファイルを生成する
+RUN node generate-settings.js
+
+# Node-REDを起動する
+CMD ["node-red"]

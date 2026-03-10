@@ -68,3 +68,22 @@ templates:
         description: "搬送回数が多い"
         trigger: { metric: carry_count, op: ">", value: 12 }
         suggestion: "搬送単位見直し、台車化、置き場高さ最適化"
+
+  pc_operation:
+    label: "PC操作 画面録画分析"
+    _mode: screen                        # special flag — triggers screen analysis pipeline
+    focus_kpi: [total_clicks, clicks_per_min, avg_interval_sec, idle_ratio, unique_zones, double_clicks]
+    ergo_thresholds: {}
+    waste_patterns:
+      - id: high_idle
+        description: "アイドル時間が長い（操作の空白期間が多い）"
+        trigger: { metric: idle_ratio, op: ">", value: 0.25 }
+        suggestion: "手順書の整備、次工程準備の並列化、待ち時間の短縮"
+      - id: low_zone_diversity
+        description: "操作エリアが集中しすぎている（同一箇所への反復クリック）"
+        trigger: { metric: unique_zones, op: "<", value: 3 }
+        suggestion: "画面レイアウト見直し、よく使う機能のショートカット化"
+      - id: too_many_dblclicks
+        description: "ダブルクリックが多い（シングルクリックで済む操作を誤認）"
+        trigger: { metric: double_clicks, op: ">", value: 10 }
+        suggestion: "UIのクリック判定調整、作業者への操作指導"

@@ -1,0 +1,29 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  sales: MyString
+  process_design: MyString
+  production: MyString
+  inspection: MyString
+  release: MyString
+  procurement: MyString
+  equipment: MyString
+  measurement: MyString
+  policy: MyString
+  satisfaction: MyString
+  audit: MyString
+  corrective_action: MyString
+
+two:
+  sales: MyString
+  process_design: MyString
+  production: MyString
+  inspection: MyString
+  release: MyString
+  procurement: MyString
+  equipment: MyString
+  measurement: MyString
+  policy: MyString
+  satisfaction: MyString
+  audit: MyString
+  corrective_action: MyString

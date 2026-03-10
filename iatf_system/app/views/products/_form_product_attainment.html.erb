@@ -1,0 +1,27 @@
+
+<head>
+<%= javascript_include_tag "https://www.gstatic.com/charts/loader.js" %>
+</head>
+
+      <% timeline1=[] %>
+      <% timeline2=[] %>
+
+      <% koumoku.each do |koumo| %>
+        <% ti=0 %>
+          <% products.each do |pro| %>
+            <% if dropdownlist[pro.stage.to_i]==koumo %>
+              <% timeline1=[dropdownlist[pro.stage.to_i],pro.goal_attainment_level]%>
+              <% ti=1 %>
+            <% end %>
+          <% end %>
+          <% if ti==0 %>
+            <% timeline1=[koumo,0]%>
+          <% end %>
+          <% timeline2.push(timeline1) %>
+        
+        <% end %>
+  
+  <%= bar_chart timeline2,max:"100" ,width: "1200px", height: "500px",xtitle: "達成度(%)", ytitle: "項目",suffix: "%" %>
+
+<br>
+<%= link_to '戻る', products_path ,class:"btn btn-secondary"%>

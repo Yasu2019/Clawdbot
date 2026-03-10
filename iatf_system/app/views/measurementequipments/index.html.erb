@@ -1,0 +1,76 @@
+<div class="w-full">
+  <% if notice.present? %>
+    <p class="py-2 px-3 bg-green-50 mb-5 text-green-500 font-medium rounded-lg inline-block" id="notice"><%= notice %></p>
+  <% end %>
+
+  <div class="flex justify-between items-center">
+    <h1 class="font-bold text-4xl">Measurementequipments</h1>
+    <%= link_to 'New measurementequipment', new_measurementequipment_path, class: "rounded-lg py-3 px-5 bg-blue-600 text-white block font-medium" %>
+  </div>
+
+  <!--
+  <div id="measurementequipments" class="min-w-full">
+    <%= render @measurementequipments %>
+  </div>
+  -->
+
+  <table  class="sticky_table table-striped table-hover border-separate border-spacing-1 border-2 border-blue-900 bg-gray-100">
+            <thead>
+              <tr>  
+                <th class="border-2 border-blue-900"><%="カテゴリー"%></th>
+                <th class="border-2 border-blue-900"><%="内部試験所の範囲"%></th>
+                <th class="border-2 border-blue-900"><%="製品の測定項目"%></th>
+                <th class="border-2 border-blue-900"><%="測定範囲"%></th>
+                
+                <th class="border-2 border-blue-900"><%="測定器・試験装置"%></th>
+                <th class="border-2 border-blue-900"><%="メーカ"%></th>
+                <th class="border-2 border-blue-900"><%="形式名"%></th>
+                <th class="border-2 border-blue-900"><%="管理番号"%></th>
+                <th class="border-2 border-blue-900"><%="測定精度"%></th>
+                <th class="border-2 border-blue-900"><%="基準書番号"%></th>
+                <th class="border-2 border-blue-900"><%="校正　社内/外部"%></th>
+                <th class="border-2 border-blue-900"><%="試験所環境条件(温度、湿度、照度等)"%></th>
+                <th class="border-2 border-blue-900"><%="外部校正機関"%></th>
+                <th class="border-2 border-blue-900"><%="備考"%></th>
+              </tr>
+            </thead>
+
+            <tbody>
+                  <% @measurementequipments.each do |measurement| %>
+                    <tr>
+                      <td class="border-2 border-blue-900"><%= measurement.categories %></td>
+                      <td class="border-2 border-blue-900"><%= measurement.scope_of_internal_testing_laboratories %></td>
+                      <td class="border-2 border-blue-900"><%= measurement.product_measurement_item %></td>
+                      <td class="border-2 border-blue-900"><%= measurement.measuring_range %></td>
+                      <td class="border-2 border-blue-900"><%= measurement.measuring_instrument_test_equipment %></td>
+                      <td class="border-2 border-blue-900"><%= measurement.manufacturer %></td>
+                      <td class="border-2 border-blue-900"><%= measurement.equipment_model_name %></td>
+                      <td class="border-2 border-blue-900"><%= measurement.control_no %></td>
+                      <td class="border-2 border-blue-900"><%= measurement.measurement_accuracy %></td>
+                      <td class="border-2 border-blue-900"><%= measurement.reference_document_no %></td>
+                      <td class="border-2 border-blue-900"><%= measurement.calibration_in_house_external %></td>
+                      <td class="border-2 border-blue-900"><%= measurement.laboratory_environmental_conditions %></td>
+                      <td class="border-2 border-blue-900"><%= measurement.external_calibration_laboratory %></td>
+                      <td class="border-2 border-blue-900"><%= measurement.remarks %></td>
+                      
+
+                      <!-- 詳細ボタン -->
+                      <td><div class="btn btn-accent btn-sm"><%= link_to '詳細', measurementequipment_path(measurement) %></div></td>
+
+                      <!-- 編集ボタン -->
+                      <td><div class="btn btn-primary btn-sm"><%= link_to '編集', edit_measurementequipment_path(measurement) %></div></td>
+
+                      <!-- 削除ボタン -->
+                      <td><div class="btn btn-secondary btn-sm"><%= link_to '削除', measurementequipment_path(measurement), method: :delete, data: { confirm: 'Are you sure?' } %></div></td>
+
+
+
+
+                    <tr>
+                  <% end %>
+            </tbody>
+</table>
+
+<%= link_to '戻る', root_path, class: 'btn btn-accent btn-sm' %>
+
+</div>

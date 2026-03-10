@@ -1,0 +1,144 @@
+<h1>IATF APQP / PPAP 説明</h1>
+
+
+<div class="tab_wrap">
+	<input id="tab1" type="radio" name="tab_btn" checked>
+	<input id="tab2" type="radio" name="tab_btn">
+	<input id="tab3" type="radio" name="tab_btn">
+  <input id="tab4" type="radio" name="tab_btn">
+  <input id="tab5" type="radio" name="tab_btn">
+  <input id="tab6" type="radio" name="tab_btn">
+
+	<div class="tab_area">
+		<label class="tab1_label" for="tab1">プレス現場 室温・湿度</label>
+		<label class="tab2_label" for="tab2">Komatsu25トン3号機</label>
+		<label class="tab3_label" for="tab3">Dobby30トン4号機</label>
+    <label class="tab4_label" for="tab4">Amada80トン3号機</label>
+    <label class="tab5_label" for="tab5">予備</label>
+    <label class="tab6_label" for="tab6">予備</label>
+
+	</div>
+	  <div class="panel_area">
+	  	<div id="panel1" class="tab_panel">
+
+      <!--
+      CSVで取り込んだデータを綺麗なグラフで表示する
+      https://toranoana-lab.hatenablog.com/entry/2018/11/27/182518
+      -->
+
+      <%= line_chart @temp, discrete: true, curve: false, label: "プレス現場　温度", xtitle: "時間", ytitle: "温度",width: "2000px", height: "400px" %>
+
+      <%= line_chart @humi, discrete: true, curve: false, label: "プレス現場　湿度", xtitle: "時間", ytitle: "湿度",width: "2000px", height: "400px" %>  
+
+	  	</div>
+
+  		<div id="panel2" class="tab_panel">
+      
+      <%= line_chart @komatsu25t3_shot, discrete: true, curve: false, label: "Komatsu25トン3号機　ショット数", xtitle: "時間", ytitle: "ショット数",width: "1200px", height: "400px" %>
+
+      <%= line_chart @komatsu25t3_spm, discrete: true, curve: false, label: "Komatsu25トン3号機　SPM", xtitle: "時間", ytitle: "SPM",width: "1200px", height: "400px" %>
+
+      <%= line_chart @komatsu25t3_chokotei, discrete: true, curve: false, label: "Komatsu25トン3号機　チョコ停止回数", xtitle: "時間", ytitle: "チョコ停止回数",width: "1200px", height: "400px" %>  
+
+      <%= line_chart @komatsu25t3_jyotai, discrete: true, curve: false, label: "Komatsu25トン3号機　稼働状況", xtitle: "時間", ytitle: "稼働状況",width: "1200px", height: "400px" %>  
+
+
+	  	</div>
+ 
+  		<div id="panel3" class="tab_panel">
+  		
+
+      <%= line_chart @chokotei_dobby30t4, discrete: true, curve: false, label: "Dobby30トン4号機　チョコ停止回数", xtitle: "時間", ytitle: "チョコ停止回数",width: "1200px", height: "400px" %>  
+ 
+     <%= line_chart @jyotai_dobby30t4, discrete: true, curve: false, label: "Dobby30トン4号機　稼働状況", xtitle: "時間", ytitle: "稼働状況",width: "1200px", height: "400px" %>  
+
+      </div>
+
+
+
+	
+      <div id="panel4" class="tab_panel">
+
+      
+      <%= line_chart @Stamping_jyotai_amada80t3, discrete: true, curve: false, label: "Amada80トン3号機　稼働状態", xtitle: "時間", ytitle: "稼働状況",width: "1200px", height: "400px" %>  
+ 
+     <%= line_chart @stamping_chokotei_amada80t3, discrete: true, curve: false, label: "Amada80トン3号機　チョコ停止回数", xtitle: "時間", ytitle: "チョコ停止回数",width: "1200px", height: "400px" %>
+
+     <%= line_chart @spm_amada80t3, discrete: true, curve: false, label: "Amada80トン3号機　SPM", xtitle: "時間", ytitle: "SPM",width: "1200px", height: "400px" %>  
+ 
+     <%= line_chart @ShotAmada80t3, discrete: true, curve: false, label: "Amada80トン3号機　ショット数", xtitle: "時間", ytitle: "ショット数",width: "1200px", height: "400px" %>  
+
+
+	  	</div>
+   
+
+      <div id="panel5" class="tab_panel">
+  		</div>
+    
+      <div id="panel6" class="tab_panel">
+  		</div>
+
+	
+
+    <%= link_to '戻る', root_path, class: 'btn btn-accent' %>
+	  </div>
+
+
+
+</div>
+
+<style>
+.tab_wrap{width:2200px; margin:80px auto;}
+input[type="radio"]{display:none;}
+.tab_area{font-size:0; margin:0 10px;}
+.tab_area label{width:150px; margin:0 5px; display:inline-block; padding:12px 0; color:#999; background:#ddd; text-align:center; font-size:13px; cursor:pointer; transition:ease 0.2s opacity;}
+.tab_area label:hover{opacity:0.5;}
+.panel_area{background:#fff;}
+.tab_panel{width:100%; padding:80px 0; display:none;}
+.tab_panel p{font-size:14px; letter-spacing:1px; text-align:center;}
+
+#tab1:checked ~ .tab_area .tab1_label{background:#fff; color:#000;}
+#tab1:checked ~ .panel_area #panel1{display:block;}
+#tab2:checked ~ .tab_area .tab2_label{background:#fff; color:#000;}
+#tab2:checked ~ .panel_area #panel2{display:block;}
+#tab3:checked ~ .tab_area .tab3_label{background:#fff; color:#000;}
+#tab3:checked ~ .panel_area #panel3{display:block;}
+
+#tab4:checked ~ .tab_area .tab4_label{background:#fff; color:#000;}
+#tab4:checked ~ .panel_area #panel4{display:block;}
+#tab5:checked ~ .tab_area .tab5_label{background:#fff; color:#000;}
+#tab5:checked ~ .panel_area #panel5{display:block;}
+#tab6:checked ~ .tab_area .tab6_label{background:#fff; color:#000;}
+#tab6:checked ~ .panel_area #panel6{display:block;}
+
+
+</style>
+
+
+
+
+
+
+
+
+
+
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

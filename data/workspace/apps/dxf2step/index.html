@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DXF → STEP Converter Pro</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --text-light: #64748b;
+            --border: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        p.subtitle {
+            color: var(--text-light);
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .upload-area {
+            border: 2px dashed var(--border);
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        .upload-area:hover {
+            border-color: var(--primary);
+        }
+
+        #layerConfigs {
+            margin-top: 30px;
+            display: none;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background: #f1f5f9;
+            font-weight: 600;
+        }
+
+        input[type="number"],
+        input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            box-sizing: border-box;
+        }
+
+        button {
+            width: 100%;
+            margin-top: 24px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background: var(--primary-hover);
+        }
+
+        #manualModeUI {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .svg-container {
+            position: relative;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            background: #fff;
+            max-height: 500px;
+            overflow: auto;
+        }
+
+        #previewSvg {
+            cursor: crosshair;
+            display: block;
+        }
+
+        .selection-rect {
+            position: absolute;
+            border: 2px dashed var(--primary);
+            background: rgba(79, 70, 229, 0.1);
+            pointer-events: none;
+        }
+
+        .view-assignment {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .view-btn {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: #fff;
+            cursor: pointer;
+        }
+
+        .view-btn.active {
+            border-color: var(--primary);
+            background: #eef2ff;
+            color: var(--primary);
+        }
+
+        .assigned-views {
+            margin-top: 20px;
+            font-size: 14px;
+        }
+
+        .assigned-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px;
+            background: #f8fafc;
+            border-radius: 6px;
+            margin-bottom: 5px;
+        }
+
+        .alert {
+            padding: 12px;
+            background: #fef9c3;
+            border-left: 4px solid #eab308;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        #status {
+            margin-top: 30px;
+            display: none;
+        }
+
+        .job-card {
+            border: 1px solid var(--border);
+            padding: 15px;
+            border-radius: 12px;
+            margin-top: 10px;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--primary);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .file-list {
+            margin-top: 15px;
+            list-style: none;
+            padding: 0;
+        }
+
+        .file-list li {
+            padding: 8px 12px;
+            background: #f1f5f9;
+            margin-bottom: 5px;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .file-list a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>DXF → STEP Converter Pro</h1>
+
+        <div class="mode-toggle">
+            <button class="mode-btn active" id="modeAuto" onclick="switchMode('auto')">Auto (Extrude)</button>
+            <button class="mode-btn" id="modeManual" onclick="switchMode('manual')">Manual (3-View)</button>
+        </div>
+
+        <p class="subtitle" id="subtitleText">【組立対応】 レイヤー別に厚みを指定して一括変換</p>
+
+        <div class="alert">
+            <strong>Tips:</strong> レイヤー名に "5mm" や "T3.2" と入っていれば自動で厚みを抽出します。
+        </div>
+
+        <form id="uploadForm">
+            <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+                <div id="fileLabel">1. DXFファイルをアップロードして解析</div>
+                <input type="file" id="fileInput" name="file" accept=".dxf" style="display: none"
+                    onchange="scanLayers()">
+            </div>
+
+            <div id="layerConfigs">
+                <h3>2. レイヤー別設定 (厚み指定)</h3>
+                <div id="autoTable">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>レイヤー名</th>
+                                <th>厚み (mm)</th>
+                                <th>出力に含める</th>
+                            </tr>
+                        </thead>
+                        <tbody id="layerTableBody"></tbody>
+                    </table>
+                </div>
+
+                <div id="manualModeUI">
+                    <p>SVG上で矩形選択して、各ビュー（正面・側面・平面）を割り当ててください。</p>
+                    <div class="svg-container" id="svgViewport" onmousedown="onMouseDown(event)">
+                        <div id="svgContent"></div>
+                        <div id="selectionBox" class="selection-rect" style="display:none"></div>
+                    </div>
+                    <div class="view-assignment">
+                        <button type="button" class="view-btn" id="btnFront" onclick="assignView('front')">正面図
+                            (XY)</button>
+                        <button type="button" class="view-btn" id="btnSide" onclick="assignView('side')">側面図
+                            (YZ)</button>
+                        <button type="button" class="view-btn" id="btnTop" onclick="assignView('top')">平面図 (XZ)</button>
+                    </div>
+                    <div class="assigned-views" id="assignedViewsList">
+                        <!-- Assigned items will appear here -->
+                    </div>
+                </div>
+
+                <button type="submit" id="submitBtn">変換実行 (STEP生成)</button>
+            </div>
+        </form>
+
+        <div id="status">
+            <h3>3. ジョブ進行状況</h3>
+            <div class="job-card">
+                <div id="jobId" style="font-size: 12px; color: var(--text-light)">ID: -</div>
+                <div id="jobState" style="font-weight: bold; margin-top: 5px;">Pending...</div>
+                <div id="jobCurrent" style="font-size: 14px; margin-top: 5px; color: var(--text-light)">-</div>
+                <div class="progress-bar">
+                    <div id="progressFill" class="progress-fill"></div>
+                </div>
+                <div id="outputs" style="display: none;">
+                    <h4>生成された成果物</h4>
+                    <ul id="fileList" class="file-list"></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = "";
+        let currentMode = 'auto';
+        let currentJobId = null;
+        let startX, startY, isDragging = false;
+        let selections = [];
+        let currentRect = null;
+
+        function switchMode(mode) {
+            currentMode = mode;
+            document.getElementById('modeAuto').classList.toggle('active', mode === 'auto');
+            document.getElementById('modeManual').classList.toggle('active', mode === 'manual');
+            document.getElementById('subtitleText').textContent = mode === 'auto'
+                ? '【組立対応】 レイヤー別に厚みを指定して一括変換'
+                : '【三面図復元】 矩形選択したビューを位置合わせして3D化';
+            document.getElementById('autoTable').style.display = mode === 'auto' ? 'block' : 'none';
+            document.getElementById('manualModeUI').style.display = mode === 'manual' ? 'block' : 'none';
+        }
+
+        async function scanLayers() {
+            const fileInput = document.getElementById('fileInput');
+            if (fileInput.files.length === 0) return;
+
+            document.getElementById('fileLabel').textContent = `解析中...`;
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            try {
+                const res = await fetch(`${API_BASE}/api/dxf2step/scan-layers`, {
+                    method: 'POST',
+                    body: formData
+                });
+                const { layers } = await res.json();
+                renderLayerTable(layers);
+
+                // For manual mode, we create a temporary job to get the SVG
+                const jobRes = await fetch(`${API_BASE}/api/dxf2step/jobs`, {
+                    method: 'POST',
+                    body: formData
+                });
+                const { job_id } = await jobRes.json();
+                currentJobId = job_id;
+                loadSvgPreview(job_id);
+
+            } catch (err) {
+                alert("解析エラー: " + err);
+            }
+        }
+
+        async function loadSvgPreview(jobId) {
+            const res = await fetch(`${API_BASE}/api/dxf2step/preview-svg/${jobId}`);
+            const svg = await res.text();
+            document.getElementById('svgContent').innerHTML = svg;
+            const svgEl = document.querySelector('#svgContent svg');
+            if (svgEl) {
+                svgEl.id = "previewSvg";
+                svgEl.style.width = "100%";
+                svgEl.style.height = "auto";
+            }
+        }
+
+        function onMouseDown(e) {
+            if (currentMode !== 'manual') return;
+            const viewport = document.getElementById('svgViewport');
+            const rect = viewport.getBoundingClientRect();
+            startX = e.clientX - rect.left;
+            startY = e.clientY - rect.top;
+            isDragging = true;
+
+            const box = document.getElementById('selectionBox');
+            box.style.left = startX + 'px';
+            box.style.top = startY + 'px';
+            box.style.width = '0px';
+            box.style.height = '0px';
+            box.style.display = 'block';
+
+            const onMouseMove = (ev) => {
+                if (!isDragging) return;
+                const curX = ev.clientX - rect.left;
+                const curY = ev.clientY - rect.top;
+                const w = curX - startX;
+                const h = curY - startY;
+
+                box.style.width = Math.abs(w) + 'px';
+                box.style.height = Math.abs(h) + 'px';
+                box.style.left = (w > 0 ? startX : curX) + 'px';
+                box.style.top = (h > 0 ? startY : curY) + 'px';
+
+                currentRect = {
+                    x: parseFloat(box.style.left),
+                    y: parseFloat(box.style.top),
+                    w: parseFloat(box.style.width),
+                    h: parseFloat(box.style.height)
+                };
+            };
+
+            const onMouseUp = () => {
+                isDragging = false;
+                window.removeEventListener('mousemove', onMouseMove);
+                window.removeEventListener('mouseup', onMouseUp);
+            };
+
+            window.addEventListener('mousemove', onMouseMove);
+            window.addEventListener('mouseup', onMouseUp);
+        }
+
+        function assignView(type) {
+            if (!currentRect || currentRect.w < 5) {
+                alert("範囲をドラッグして選択してください");
+                return;
+            }
+            selections.push({ type, rect: { ...currentRect } });
+            renderSelections();
+            document.getElementById('selectionBox').style.display = 'none';
+            currentRect = null;
+        }
+
+        function renderSelections() {
+            const list = document.getElementById('assignedViewsList');
+            list.innerHTML = '<h4>割り当て済みビュー:</h4>';
+            selections.forEach((s, i) => {
+                const item = document.createElement('div');
+                item.className = 'assigned-item';
+                item.innerHTML = `
+                    <span>[${s.type.toUpperCase()}] X:${Math.round(s.rect.x)}, Y:${Math.round(s.rect.y)} (${Math.round(s.rect.w)}x${Math.round(s.rect.h)})</span>
+                    <button type="button" onclick="removeSelection(${i})" style="width: auto; margin:0; padding:2px 8px; font-size:12px; background:#ef4444">削除</button>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        function removeSelection(i) {
+            selections.splice(i, 1);
+            renderSelections();
+        }
+
+        function renderLayerTable(layers) {
+            const tbody = document.getElementById('layerTableBody');
+            tbody.innerHTML = '';
+            layers.forEach(layer => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${layer.name}</td>
+                    <td><input type="number" class="thickness-input" data-layer="${layer.name}" value="${layer.suggested_thickness}" step="0.1"></td>
+                    <td><input type="checkbox" class="include-check" data-layer="${layer.name}" checked></td>
+                `;
+                tbody.appendChild(tr);
+            });
+            document.getElementById('layerConfigs').style.display = 'block';
+            document.getElementById('fileLabel').textContent = `解析完了: ${document.getElementById('fileInput').files[0].name}`;
+        }
+
+        document.getElementById('uploadForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+
+            if (currentMode === 'manual' && selections.length === 0) {
+                alert("ビューをドラッグ選択して割り当ててください。");
+                btn.disabled = false;
+                return;
+            }
+
+            const file = document.getElementById('fileInput').files[0];
+            const formData = new FormData();
+            formData.append('file', file);
+
+            if (currentMode === 'auto') {
+                const configs = {};
+                document.querySelectorAll('.thickness-input').forEach(input => {
+                    configs[input.dataset.layer] = parseFloat(input.value);
+                });
+                formData.append('layer_configs', JSON.stringify(configs));
+            } else {
+                formData.append('manual_mode', 'true');
+                formData.append('view_assignments', JSON.stringify(selections));
+            }
+
+            try {
+                const res = await fetch(`${API_BASE}/api/dxf2step/jobs`, {
+                    method: 'POST',
+                    body: formData
+                });
+                const { job_id } = await res.json();
+                startPolling(job_id);
+            } catch (err) {
+                alert("送信エラー: " + err);
+                btn.disabled = false;
+            }
+        };
+
+        function startPolling(jobId) {
+            document.getElementById('status').style.display = 'block';
+            document.getElementById('jobId').textContent = `ID: ${jobId}`;
+
+            const interval = setInterval(async () => {
+                const res = await fetch(`${API_BASE}/api/dxf2step/jobs/${jobId}`);
+                const data = await res.json();
+
+                document.getElementById('jobState').textContent = data.state;
+                document.getElementById('jobCurrent').textContent = data.current;
+                document.getElementById('progressFill').style.width = `${data.progress * 100}%`;
+
+                if (data.state === 'done' || data.state === 'failed') {
+                    clearInterval(interval);
+                    document.getElementById('submitBtn').disabled = false;
+                    if (data.state === 'done') fetchOutputs(jobId);
+                }
+            }, 2000);
+        }
+
+        async function fetchOutputs(jobId) {
+            const res = await fetch(`${API_BASE}/api/dxf2step/jobs/${jobId}/outputs`);
+            const { outputs } = await res.json();
+            const list = document.getElementById('fileList');
+            list.innerHTML = '';
+            outputs.forEach(f => {
+                const li = document.createElement('li');
+                li.innerHTML = `<span>${f.name} (${f.type})</span> <a href="${f.url}" download>ダウンロード</a>`;
+                list.appendChild(li);
+            });
+            document.getElementById('outputs').style.display = 'block';
+        }
+    </script>
+</body>
+
+</html>

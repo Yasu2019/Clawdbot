@@ -1,0 +1,81 @@
+<div class="w-full">
+  <% if notice.present? %>
+    <p class="py-2 px-3 bg-green-50 mb-5 text-green-500 font-medium rounded-lg inline-block" id="notice"><%= notice %></p>
+  <% end %>
+
+  <div class="flex justify-between items-center  ">
+    <h1 class="font-bold text-4xl">供給者リスト</h1>
+    <%= link_to '新規供給者登録', new_supplier_path, class: "text-2xl rounded-lg py-3 px-5 bg-blue-600 text-white block font-medium" %>
+  </div>
+<!--
+  <div id="suppliers" class="min-w-full">
+    <%= render @suppliers %>
+  </div>
+  
+  
+   -->
+  <table  class="sticky_table table-striped table-hover border-separate border-spacing-1 border-2 border-blue-900 bg-gray-100">
+            <thead>
+              <tr>  
+                <th class="border-2 border-blue-900"><%="ID"%></th>
+                <th class="border-2 border-blue-900"><%="供給者名"%></th>
+                <th class="border-2 border-blue-900"><%="メーカー名"%></th>
+                <th class="border-2 border-blue-900"><%="ISO有無"%></th>
+                <th class="border-2 border-blue-900"><%="評価対象"%></th>
+                <th class="border-2 border-blue-900"><%="QMS開発"%></th>
+                <th class="border-2 border-blue-900"><%="第2者監査"%></th>
+                <th class="border-2 border-blue-900"><%="供給者開発"%></th>
+                <th class="border-2 border-blue-900"><%="車載関係"%></th>
+                <th class="border-2 border-blue-900"><%="関係部署"%></th>
+                <th class="border-2 border-blue-900"><%="取引内容"%></th>
+                <th class="border-2 border-blue-900"><%="住所①"%></th>
+                <th class="border-2 border-blue-900"><%="住所②"%></th>
+                <th class="border-2 border-blue-900"><%="郵便番号"%></th>
+                <th class="border-2 border-blue-900"><%="TEL"%></th>
+                <th class="border-2 border-blue-900"><%="FAX"%></th>
+              </tr>
+            </thead>
+
+            <tbody>
+                  <% @suppliers.each do |sup| %>
+                    <tr>
+                      <td class="border-2 border-blue-900"><%= sup.no %></td>
+                      <td class="border-2 border-blue-900"><%= sup.supplier_name %></td>
+                      <td class="border-2 border-blue-900"><%= sup.manufacturer_name %></td>
+                      <td class="border-2 border-blue-900"><%= sup.iso_existence %></td>
+                      <td class="border-2 border-blue-900"><%= sup.target %></td>
+                      <td class="border-2 border-blue-900"><%= sup.qms %></td>
+                      <td class="border-2 border-blue-900"><%= sup.second_party_audit %></td>
+                      <td class="border-2 border-blue-900"><%= sup.supplier_development %></td>
+                      <td class="border-2 border-blue-900"><%= sup.automotive_related %></td>
+                      <td class="border-2 border-blue-900"><%= sup.departments %></td>
+                      <td class="border-2 border-blue-900"><%= sup.transaction_details %></td>
+                      <td class="border-2 border-blue-900"><%= sup.address1 %></td>
+                      <td class="border-2 border-blue-900"><%= sup.address2 %></td>
+                      <td class="border-2 border-blue-900"><%= sup.postal_code %></td>
+                      <td class="border-2 border-blue-900"><%= sup.tel %></td>
+                      <td class="border-2 border-blue-900"><%= sup.fax %></td>
+
+                      <!-- 詳細ボタン -->
+                      <td><div class="btn btn-accent btn-sm"><%= link_to '詳細', supplier_path(sup) %></div></td>
+
+                      <!-- 編集ボタン -->
+                      <td><div class="btn btn-primary btn-sm"><%= link_to '編集', edit_supplier_path(sup) %></div></td>
+
+                      <!-- 削除ボタン -->
+                      <td><div class="btn btn-secondary btn-sm"><%= link_to '削除', supplier_path(sup), method: :delete, data: { confirm: 'Are you sure?' } %></div></td>
+
+                      <td class="inline-block"><%= render partial: "attached_file_suppliers", locals: { sup: sup }  %></td>
+
+                    <tr>
+                  <% end %>
+            </tbody>
+</table>
+</div>
+
+
+
+  <%= link_to '戻る', root_path, class: 'btn btn-accent btn-sm' %>
+
+</div>
+

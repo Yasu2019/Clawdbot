@@ -1,0 +1,190 @@
+<div class="flex flex-wrap" id="tabs-id">
+  <div class="w-full">
+    <ul class="flex mb-0 list-none flex-wrap pt-3 pb-4 flex-row">
+      <li class="-mb-px mr-2 last:mr-0 flex-auto text-center">
+        <a class="text-xs font-bold uppercase px-5 py-3 shadow-lg rounded block leading-normal text-white bg-lightBlue-600" onclick="changeAtiveTab(event,'tab-profile')">
+           ビデオ教材
+        </a>
+      </li>
+      <li class="-mb-px mr-2 last:mr-0 flex-auto text-center">
+        <a class="text-xs font-bold uppercase px-5 py-3 shadow-lg rounded block leading-normal text-lightBlue-600 bg-white" onclick="changeAtiveTab(event,'tab-settings')">
+           ドキュメント教材
+        </a>
+      </li>
+      <li class="-mb-px mr-2 last:mr-0 flex-auto text-center">
+        <a class="text-xs font-bold uppercase px-5 py-3 shadow-lg rounded block leading-normal text-lightBlue-600 bg-white" onclick="changeAtiveTab(event,'tab-options')">
+           その他
+        </a>
+      </li>
+    </ul>
+    <div class="relative flex flex-col min-w-0 break-words bg-white w-full mb-6 shadow-lg rounded">
+      <div class="px-4 py-5 flex-auto">
+        <div class="tab-content tab-space">
+          <div class="block" id="tab-profile">
+          <div class="btn btn-primary"> <%= link_to "戻る", products_path %></div>
+
+          <section class="text-gray-600 body-font">
+                <div class="container px-5 py-24 mx-auto">
+                  <div class="flex flex-wrap w-full mb-20">
+                    <div class="lg:w-1/2 w-full mb-6 lg:mb-0">
+                      <h1 class="sm:text-3xl text-2xl font-medium title-font mb-2 text-gray-900">IATF動画教材</h1>
+                      <div class="h-1 w-20 bg-indigo-500 rounded"></div>
+                    </div>
+                    <p class="lg:w-1/2 w-full leading-relaxed text-gray-500">IATFの英語版動画を日本語に翻訳した教材です。</p>
+                  </div>
+
+                  <!--
+                  【Rails】Railsで動画をアップロード（ActiveStorage）
+                   https://jpdebug.com/p/3250966
+
+                   https://tailblocks.cc/
+                  -->
+
+                  <div class="flex flex-wrap -m-4">
+                  
+                      <% @products.each do |pro| %>    
+                          <% if pro.documents.attached? %>
+                              <% pro.documents.each do |image| %>
+                                  <% fullfilename = rails_blob_path(image) %>
+                                  <% ext = File.extname(fullfilename).downcase %>
+                                      <% if ext==".mp4" %>
+                                          <div class="xl:w-1/3 md:w-1/2 p-4">
+                                            <div class="bg-gray-100 p-6 rounded-lg">
+                                              <!--publicフォルダの下にvideosフォルダをセットし、その下にmp4ファイルをおけば、データのやり取りは節約できそう
+                                              <video src="/videos/IATF_PFMEA_ControlPlan.mp4" controls></video>
+                                              -->
+
+                                              <video src="<%= rails_blob_path(image) %>" type="video/mp4" controls></video>
+                                              <h3 class="tracking-widest text-indigo-500 text-xs font-medium title-font">SUBTITLE</h3>
+                                              <h2 class="text-lg text-gray-900 font-medium title-font mb-4"><%= pro.documentname %></h2>
+                                              <p class="leading-relaxed text-base"><%= pro.description %></p>
+                                              <%= link_to image.blob.filename  ,rails_blob_path(image)%>
+                                              <!--
+                                              <% @products.each do |doc_check| %>
+                                                <% if doc_check.documents.attached?%>
+                                                  <% if doc_check.documentnumber==pro.documentnumber %>
+                                                    <% doc_check.documents.each do |image1| %> 
+                                                      <% fullfilename = rails_blob_path(image1) %>
+                                                      <% ext = File.extname(fullfilename).downcase %>
+                                                      <% if ext!=".mp4"  && doc_check.documentnumber==pro.documentnumber %>
+                                                        <br>
+                                                        <%= "関連資料" %>
+                                                        <br>
+                                                        <%= doc_check.documentnumber %>
+                                                        <%= pro.documentnumber %>
+                                                        <%= link_to image1.blob.filename  ,rails_blob_path(image1)%> <br>
+                                                      <% end %>
+                                                    <% end %>
+                                                  <% end %>
+                                                <% end %>
+                                              <% end %>
+                                              -->
+                                            </div>
+                                          </div>
+                                      <% end %>
+                              <% end %>
+                          <% end %>
+                      <% end %>
+                  
+                  </div>
+                </div>
+              </section>
+            
+
+
+
+
+
+          </div>
+          <div class="hidden" id="tab-settings">
+          <div class="btn btn-primary"> <%= link_to "戻る", products_path %></div>
+
+          <section class="text-gray-600 body-font">
+                <div class="container px-5 py-24 mx-auto">
+                  <div class="flex flex-wrap w-full mb-20">
+                    <div class="lg:w-1/2 w-full mb-6 lg:mb-0">
+                      <h1 class="sm:text-3xl text-2xl font-medium title-font mb-2 text-gray-900">IATFドキュメント教材</h1>
+                          <div class="h-1 w-20 bg-indigo-500 rounded"></div>
+                    </div>
+                    <p class="lg:w-1/2 w-full leading-relaxed text-gray-500">IATF/ISO9001関連のドキュメント資料です。</p>
+                    
+                  </div>
+                </div>
+                
+                <div class="flex flex-wrap -m-4">  
+                             
+                  <% @products.each do |pro| %>    
+                            <% if pro.documents.attached? && pro.category=="3" %>
+                                <% pro.documents.each do |image| %>
+                                    <% fullfilename = rails_blob_path(image) %>
+                                    <% ext = File.extname(fullfilename).downcase %>
+                                        <% if ext==".pdf"  %>
+                                          <div class="xl:w-1/4 md:w-1/2 p-4">
+                                              <div class="bg-gray-100 p-6 rounded-lg">   
+                                                  <%= image_tag image.representation(resize_to_limit: [200, 200]) %>  
+                                                  <h3 class="tracking-widest text-indigo-500 text-xs font-medium title-font">SUBTITLE</h3>
+                                                  <h2 class="text-lg text-gray-900 font-medium title-font mb-4"><%= pro.documentname %></h2>
+                                                  <p class="leading-relaxed text-base"><%= pro.description %></p>
+  
+                                                   <%= link_to image.blob.filename, product_verify_password_product_path(pro, blob_id: image.blob.id) %>
+                                                
+                                              </div>
+                                          </div>
+                                        <% end %>
+                                <% end %>
+                            <% end %> 
+                  <% end %>
+                
+                </div>
+             </section>
+         
+
+
+
+          </div>
+          <div class="hidden" id="tab-options">
+            <p>
+              Efficiently unleash cross-media information without
+              cross-media value. Quickly maximize timely deliverables for
+              real-time schemas.
+              <br />
+              <br />
+              Dramatically maintain clicks-and-mortar solutions
+              without functional solutions.
+            </p>
+            <div class="btn btn-primary"> <%= link_to "戻る", products_path %></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script type="text/javascript">
+  function changeAtiveTab(event,tabID){
+    let element = event.target;
+    while(element.nodeName !== "A"){
+      element = element.parentNode;
+    }
+    ulElement = element.parentNode.parentNode;
+    aElements = ulElement.querySelectorAll("li > a");
+    tabContents = document.getElementById("tabs-id").querySelectorAll(".tab-content > div");
+    for(let i = 0 ; i < aElements.length; i++){
+      aElements[i].classList.remove("text-white");
+      aElements[i].classList.remove("bg-lightBlue-600");
+      aElements[i].classList.add("text-lightBlue-600");
+      aElements[i].classList.add("bg-white");
+      tabContents[i].classList.add("hidden");
+      tabContents[i].classList.remove("block");
+    }
+    element.classList.remove("text-lightBlue-600");
+    element.classList.remove("bg-white");
+    element.classList.add("text-white");
+    element.classList.add("bg-lightBlue-600");
+    document.getElementById(tabID).classList.remove("hidden");
+    document.getElementById(tabID).classList.add("block");
+  }
+</script>
+
+
+
+

@@ -1,0 +1,48 @@
+{
+  "ignored_warnings": [
+    {
+      "warning_type": "Command Injection",
+      "warning_code": 14,
+      "fingerprint": "4ef9f6f162181e78eaf7aa6759363add67fe96854eb282fbb0f2d93adfc15597",
+      "check_name": "Execute",
+      "message": "Possible command injection",
+      "file": "config/initializers/scheduler.rb",
+      "line": 33,
+      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
+      "code": "Open3.popen3(\"PGPASSWORD\" => Rails.configuration.database_configuration[Rails.env][\"password\"], *[\"pg_dump\", \"-U\", Rails.configuration.database_configuration[Rails.env][\"username\"], \"-h\", Rails.configuration.database_configuration[Rails.env][\"host\"], \"-F\", \"c\", \"-b\", \"-v\", \"-f\", Rails.root.join(\"db\", \"backup\").join(\"backup_#{Time.now.strftime(\"%Y%m%d%H%M%S\")}.sql\").to_s, Rails.configuration.database_configuration[Rails.env][\"database\"]])",
+      "render_path": null,
+      "location": null,
+      "user_input": "Time.now.strftime(\"%Y%m%d%H%M%S\")",
+      "confidence": "Medium",
+      "cwe_id": [
+        77
+      ],
+      "note": "warning"
+    },
+    {
+      "warning_type": "Command Injection",
+      "warning_code": 14,
+      "fingerprint": "a6026503b9db91597ff8a82a837e3c1e79f475600d446a539859efca0a1a87b6",
+      "check_name": "Execute",
+      "message": "Possible command injection",
+      "file": "app/controllers/users/sessions_controller.rb",
+      "line": 116,
+      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
+      "code": "Open3.popen3(\"PGPASSWORD\" => Shellwords.escape(Rails.configuration.database_configuration[Rails.env][\"password\"]), *[\"pg_dump\", \"-U\", Shellwords.escape(Rails.configuration.database_configuration[Rails.env][\"username\"]), \"-h\", Shellwords.escape(Rails.configuration.database_configuration[Rails.env][\"host\"]), \"-F\", \"c\", \"-b\", \"-v\", \"-f\", File.join(Rails.root.join(\"db\", \"backup\").to_s, \"backup_#{Time.now.strftime(\"%Y%m%d%H%M%S\")}.sql\"), Rails.configuration.database_configuration[Rails.env][\"database\"]].map do\n Shellwords.escape(arg)\n end)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Users::SessionsController",
+        "method": "backup_postgresql"
+      },
+      "user_input": "Time.now.strftime(\"%Y%m%d%H%M%S\")",
+      "confidence": "Medium",
+      "cwe_id": [
+        77
+      ],
+      "note": "warning"
+    }
+  ],
+  "updated": "2024-01-18 21:27:55 +0000",
+  "brakeman_version": "6.1.1"
+}

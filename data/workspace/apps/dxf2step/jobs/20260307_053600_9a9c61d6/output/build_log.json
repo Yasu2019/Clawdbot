@@ -1,0 +1,21 @@
+{
+  "layers": {
+    "Front": {
+      "entities": 4,
+      "thickness": 100.0,
+      "status": "done",
+      "freecad_msg": "",
+      "png": "Front_views.png"
+    },
+    "Top": {
+      "entities": 4,
+      "thickness": 100.0,
+      "status": "done",
+      "freecad_msg": "",
+      "png": "Top_views.png"
+    }
+  },
+  "timestamp": "2026-03-07T05:36:01.216775",
+  "combined_step": "combined.step",
+  "combined_png": "combined_views.png"
+}

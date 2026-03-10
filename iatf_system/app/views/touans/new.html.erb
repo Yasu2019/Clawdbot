@@ -1,0 +1,188 @@
+
+<%= "Emailアドレス："%>
+    <%= @user.email %> <br>
+<%= "名前　　　　 ："%>
+    <%= @user.name %> <br>
+<%= "識別　　　　 ："%>
+    <%= @user.role %> <br>
+
+<div class="note-box">
+
+
+
+
+<%= form_with model: @touans, url: touans_path, local: true, html: { multipart: true } do |form| %>
+
+  <% i=1 %>
+  <% @touans.collection.each do |user|%>
+  
+  <!--
+  
+  
+ 
+  <div class="rounded-md border border-blue-800 outline-none px-3 py-2 mt-2 bg-blue-600 ">
+  -->
+
+      <%= fields_for 'touans[]', user do |field| %>
+
+     <div class="font-bold w-1/7 text-lg text-white rounded-md border border-blue-800 outline-none px-3 py-2 mt-2 bg-blue-600 ">
+            問題：<%= i %>
+            
+     </div>
+
+      <div class="w-auto field rounded-md border border-blue-800 outline-none px-3 py-2 mt-2 bg-blue-100 bg-opacity-100">
+            箇条：<%= user.kajyou %>
+            
+            <%= field.text_field :kajyou , class: "hidden" %>
+      </div>
+
+      <div class="w-auto field rounded-md border border-blue-800 outline-none px-3 py-2 mt-2 bg-blue-100 bg-opacity-100">
+            問題：<%= user.mondai %>
+            
+            <%= field.text_field :mondai , class: "hidden" %>
+      </div>
+
+
+      <!--
+      <div class="lg:flex">
+      <div class="w-auto field rounded-md border border-blue-800 outline-none px-3 py-2 mt-2 bg-blue-100 bg-opacity-100">
+            正解率：<%= user.seikairitsu %>
+      
+      </div>
+      <div class="w-auto field rounded-md border border-blue-800 outline-none px-3 py-2 mt-2 bg-blue-100 bg-opacity-100">
+            正解数：<%= user.correct_answers %>
+      </div>
+      <div class="w-auto field rounded-md border border-blue-800 outline-none px-3 py-2 mt-2 bg-blue-100 bg-opacity-100">
+            問題数：<%= user.total_answers %>
+      </div>
+      </div>
+      -->
+
+
+      <div class="lg:flex">
+      <div class="w-auto mx-4 w-1/3 field rounded-md border border-blue-800  px-3 py-2 mt-2 bg-blue-300 bg-opacity-100">
+            <%= user.mondai_a %>
+            <%= field.text_field :mondai_a , class: "hidden" %>
+      </div>
+
+      <div class="w-auto mx-4 w-1/3 field rounded-md border border-blue-800  px-3 py-2 mt-2 bg-blue-300 bg-opacity-100">
+            <%= user.mondai_b %>
+            <%= field.text_field :mondai_b , class: "hidden" %>
+      </div>
+
+      <div class="w-auto mx-4 w-1/3 field rounded-md border border-blue-800  px-3 py-2 mt-2 bg-blue-300 bg-opacity-100">
+
+            <%= user.mondai_c %>
+            <%= field.text_field :mondai_c , class: "hidden" %>
+      </div>
+      </div>
+
+      <div class="field ">      
+            <%= field.text_field :seikai , class: "hidden" %>
+      </div>
+
+      <div class="field">      
+            <%= field.text_field :kaisetsu , class: "hidden" %>
+      </div>
+
+      <div class="field">      
+            <%= field.text_field :mondai_no , class: "hidden" %>
+      </div>
+
+      <div class="field">      
+            <%= field.text_field :seikairitsu , class: "hidden" %>
+      </div>
+
+      <div class="field">      
+            <%= field.text_field :total_answers , class: "hidden" %>
+      </div>
+
+      <div class="field">      
+            <%= field.text_field :correct_answers , class: "hidden" %>
+      </div>
+
+      <div class="field">      
+            <%= field.text_field :rev , class: "hidden" %>
+      </div>
+
+
+
+
+      <!--
+      <div class="field">
+        <%= field.label :kaito %>
+        <%= field.text_field :kaito %>
+      </div>
+      -->
+      <div class="w-auto field rounded-md border border-blue-800 outline-none px-3 py-2 mt-2 bg-blue-100 bg-opacity-100">
+      <%= field.label :回答を選んでください %>
+      <%= field.select :kaito, options_for_select([["選択肢A", "a"], ["選択肢B", "b"], ["選択肢C", "c"]]) %>
+      </div>
+
+      <% i +=1 %>
+
+
+      <br>
+
+    <% end %>
+<!--
+</div>
+-->
+
+  <% end %>
+
+
+    <div class="actions">
+      <%= form.submit "提出する", class: "btn btn-sm" %>
+    </div>
+
+
+
+  </div>
+
+
+   
+<% end %>
+
+
+<%= link_to '戻る', touans_path, class: 'btn btn-accent btn-sm' %>
+
+
+<!--
+【CSSカスタマイズ】ルーズリーフ風（ノート風）ボックス
+https://sarubako.com/css-box-looseleaf/
+-->
+
+<style>
+/***　ルーズリーフ風ボックス　***/
+/*外枠の設定*/
+.note-box {
+   border: solid 2px #999; /*外枠の線*/
+   padding: 0 1em 0 2em; /*内側の余白*/
+   position: relative;
+   width: 70%; /* 追加：外枠の幅を半分に */
+   margin: 0 auto; /* 追加：左右の余白を自動調整してセンタリング */
+}
+
+/*文字、罫線の設定*/
+.note-box p {
+   border-bottom: dashed 1px #ccc; /*罫線*/
+   line-height: 1.5; /*行の高さ*/
+   padding: 0.5em 0 0.5em 0.5em; /*文字の位置*/
+   margin:0;
+}
+.note-box p:last-of-type {
+   border-bottom: none;
+}
+
+/*ドットの設定*/
+.note-box::before {
+   content: "";
+   position: absolute;
+   border-right: dotted 10px #ddd; /*ドットの大きさ、高さ*/
+   height:90%;
+   top:0.5em; /*位置*/
+   left:0.5em; /*位置*/
+}
+
+</style>

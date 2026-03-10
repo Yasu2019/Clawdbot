@@ -1,0 +1,33 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  categories: MyString
+  scope_of_internal_testing_laboratories: MyString
+  product_measurement_item: MyString
+  measuring_range: MyString
+  measuring_instrument_test_equipment: MyString
+  manufacturer: MyString
+  equipment_model_name: MyString
+  control_no: MyString
+  measurement_accuracy: MyString
+  reference_document_no: MyString
+  calibration_in_house_external: MyString
+  laboratory_environmental_conditions: MyString
+  external_calibration_laboratory: MyString
+  remarks: MyString
+
+two:
+  categories: MyString
+  scope_of_internal_testing_laboratories: MyString
+  product_measurement_item: MyString
+  measuring_range: MyString
+  measuring_instrument_test_equipment: MyString
+  manufacturer: MyString
+  equipment_model_name: MyString
+  control_no: MyString
+  measurement_accuracy: MyString
+  reference_document_no: MyString
+  calibration_in_house_external: MyString
+  laboratory_environmental_conditions: MyString
+  external_calibration_laboratory: MyString
+  remarks: MyString

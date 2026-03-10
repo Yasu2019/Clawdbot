@@ -1,0 +1,142 @@
+version: "3.7"
+services:
+  nodered:
+    build:
+      context: .
+      dockerfile: Dockerfile.nodered
+    volumes:
+      - shared_data:/myapp/db/record
+    ports:
+      - '127.0.0.1:1880:1880'
+    command: ["node-red"]
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+
+  db:
+    image: postgres:14.2
+    env_file: .env.production
+    ports:
+      - '127.0.0.1:5432:5432'
+    volumes:
+      - postgresql-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    shm_size: '2gb'
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+    tty: true
+    stdin_open: true
+    networks:
+      - app_network
+
+  redis:
+    image: redis:latest
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    networks:
+      - app_network
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.production.web
+    command: bash -c "rm -f tmp/pids/server.pid && bundle exec chmod +x bin/rails && npm run build:css && bundle exec rails s -p 3001 -b '0.0.0.0' -e production"
+    tty: true
+    stdin_open: true
+    env_file: .env.production
+    environment:
+      - KEY_DERIVATION_SALT=${KEY_DERIVATION_SALT}
+      - RAILS_SERVE_STATIC_FILES=true
+      - RAILS_LOG_TO_STDOUT=true
+      - RAILS_LOG_LEVEL=debug
+      - MINIPC=${MINIPC}
+      - PORT=3001
+    ports:
+      - "3001:3001"
+    volumes:
+      - .:/myapp:delegated
+      - shared_data:/myapp/db/record
+      - storage-data:/myapp/storage
+      - /myapp/node_modules
+      - /myapp/public/assets
+      - /myapp/tmp
+    networks:
+      - app_network
+    expose:
+      - '3001'
+    depends_on:
+      - db
+      - redis
+
+  sidekiq:
+    build:
+      context: .
+      dockerfile: Dockerfile.production.web
+    command: bundle exec sidekiq -e production
+    tty: true
+    stdin_open: true
+    env_file: .env.production
+    environment:
+      - KEY_DERIVATION_SALT=${KEY_DERIVATION_SALT}
+      - RAILS_LOG_TO_STDOUT=true
+    volumes:
+      - .:/myapp:delegated
+      - shared_data:/myapp/db/record
+      - storage-data:/myapp/storage
+      - /myapp/node_modules
+      - /myapp/public/assets
+      - /myapp/tmp
+    networks:
+      - app_network
+    depends_on:
+      - db
+      - redis
+
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - letsencrypt_data:/etc/letsencrypt:ro
+      - .:/myapp:ro
+    networks:
+      - app_network
+    depends_on:
+      - web
+
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - letsencrypt_data:/etc/letsencrypt
+      - ./nginx/conf.d:/config  # Nginx設定ファイルへのアクセス
+    depends_on:
+      - nginx
+    entrypoint: "/bin/sh -c 'trap exit TERM && while :; do sleep 12h & wait; certbot renew --nginx --non-interactive --agree-tos -d nys-web.net; nginx -s reload; done'"
+    networks:
+      - app_network
+
+volumes:
+  postgresql-data:
+  shared_data:
+  storage-data:
+  redis-data:
+  letsencrypt_data: # Certbot用ボリュームを追加
+
+networks:
+  app_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.21.0.0/16
+  default:
+    driver: bridge

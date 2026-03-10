@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>メモリ使用量の統計とデータベースバックアップの通知</title>
+  <style>
+    body {
+      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      padding: 20px;
+    }
+    .statistics {
+      margin-bottom: 20px;
+    }
+    .statistics h2 {
+      color: #333;
+    }
+    .statistics p {
+      color: #555;
+      line-height: 1.6;
+    }
+    .backup-message {
+      color: #008000; /* 緑色で表示 */
+      font-weight: bold;
+    }
+    .error-message {
+      color: #D8000C; /* 赤色で表示 */
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="cache-counts">
+    <h2>キャッシュ数の統計</h2>
+    <% @cache_counts.each do |model, count| %>
+      <p><%= model %>のキャッシュ数: <%= count %></p>
+    <% end %>
+  </div>
+  
+  <div class="statistics">
+    <h2>メモリ使用量の統計</h2>
+    <p>現在のメモリ使用量: <%= @current_memory %> MB</p>
+    <p>最大メモリ使用量: <%= @max_memory %> MB</p>
+    <p>最小メモリ使用量: <%= @min_memory %> MB</p>
+    <p>平均メモリ使用量: <%= @avg_memory %> MB</p>
+  </div>
+
+  <% if @backup_message.include?("成功") %>
+    <p class="backup-message"><%= @backup_message %></p>
+  <% else %>
+    <p class="error-message"><%= @backup_message %></p>
+  <% end %>
+
+  <div class="stackprof-results">
+    <h2>StackProfの結果</h2>
+    <pre><%= @stackprof_results %></pre>
+  </div>
+</body>
+</html>

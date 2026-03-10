@@ -1,0 +1,133 @@
+<!--
+Border Spacing
+https://tailwindcss.com/docs/border-spacing
+-->
+
+<table class="border-separate border-spacing-x-1 border border-slate-400">
+  <thead>
+      <% jyunban=[] %>
+      <% sta=[] %>
+      <% deaddate=[] %>
+      <% enddate=[] %>
+      <tr>
+          <td  class="border border-slate-300 rowspan='2'"><%="図番"%></td>
+          <% koumoku.each do |koumo| %>
+              <td class="border border-slate-300 " colspan="2"><font size="3"><center><%= koumo %></center></font></td>
+          <% end %>
+      </tr>
+      <tr>
+          <td class="border border-slate-300"><font size="3"><center>日程</center></font></td>
+          <% koumoku.each do |koumo| %>
+              <td class="border border-slate-300"><font size="3"><center>予定</center></font></td>
+              <td class="border border-slate-300"><font size="3"><center>完了</center></font></td>
+          <% end %>
+    </tr>
+  </thead>
+
+  <tbody>
+  <tr>
+  <% partnumber=""%>
+  <% products.each do |pro| %>
+      <% input_aru=0 %>
+      <% unless pro.partnumber==partnumber  %>
+
+          <!--
+          <%= koumoku.sort.reverse %>
+          新しくkoumokuを増やす場合は、index３の順番を、上記koumoku.sort.revrseと同じ順番になるように調整すること
+          -->
+          <% jyunban=jyunban.zip(sta,deaddate,enddate).sort! %>
+          <!-- sortの後に!をつけると、配列自体が変更される
+          jyunbanは、2次元配列に変換されている為、下でjyunとsで表現できる 
+          -->
+          <% koumoku.each do |koumo| %>
+              <% input_aru=0 %>
+              <% catch(:out) do %>
+                  <% jyunban.each do |jyun,s,d,e| %>
+                      <% if jyun==koumo && s=="完了" %>
+                          <% input_ari=1 %>
+                          <td class="border border-slate-300"> <center><font size="4" color="blue"> <%=  d.strftime('%y/%m/%d') %> </font></center></td>
+                          <td class="border border-slate-300"> <center><font size="4" color="blue"> <%=  e.strftime('%y/%m/%d')  %> </font></center></td>
+                          <% throw :out %>  
+                      <% end %>
+                    <% if jyun==koumo && s=="仕掛中" %>
+                         <% input_ari=1 %>
+                         <td class="border border-slate-300"> <center><font size="3" color="magenta"> <%=  d.strftime('%y/%m/%d')  %> </font></center></td>
+                         <td class="border border-slate-300"><strong><center><font size="4" color="red"> <%= "　━　" %> </font></center></strong></td>
+                         <% throw :out %>  
+                    <% end %>
+                  <% end %>
+                  <% if input_ari=0 && partnumber!="" %> 
+                      <td class="border border-slate-300"><strong><center><font size="4" color="red"> <%= "　━　" %> </font></center></strong></td>
+                      <td class="border border-slate-300"><strong><center><font size="4" color="red"> <%= "　━　" %> </font></center></strong></td>
+              <% end %>
+          <% end %>
+      <% end %>
+      <td class="border border-slate-300"><%= "" %></td></tr>
+      <td class="border border-slate-300"><%= pro.partnumber %></td> 
+      <% jyunban=[] %>
+      <% sta=[] %>
+      <% deaddate=[] %>
+      <% enddate=[] %>
+    <% end %>
+
+  <% partnumber=pro.partnumber%>
+      <% catch(:break_loop) do %>
+          <% koumoku.each do |koumo| %> 
+              <% if dropdownlist[pro.stage.to_i]==koumo && pro.status=="完了"  %>
+                  <% input_ari=1 %>
+                  <% sta.push(pro.status) %>
+                  <% jyunban.push(koumo)%>
+                  <% deaddate.push(pro.deadline_at)%>
+                  <% enddate.push(pro.end_at)%>
+                  <% throw :break_loop %>             
+              <% end %>
+              <% if dropdownlist[pro.stage.to_i]==koumo && pro.status=="仕掛中"  %>
+                  <% input_ari=1 %>
+                  <% sta.push(pro.status) %>
+                  <% jyunban.push(koumo)%>
+                  <% deaddate.push(pro.deadline_at)%>
+                  <% enddate.push(pro.end_at)%>
+                  <% throw :break_loop %>             
+              <% end %>
+          <% end %>
+      <% end %>
+  <% end %> 
+
+    <!--
+  <%jyunban=jyunban.zip(sta).sort.reverse%>
+  <%jyunban=jyunban.zip(sta).sort%>
+  -->
+ 
+  <% koumoku.each do |koumo| %>
+        <% input_aru=0 %>
+        <% catch(:out_break) do %>        
+            <% jyunban.zip(sta,deaddate,enddate).each do |jyun,s,d,e| %>
+                <% jyun=jyun[0] %>
+                <% s=s[0] %>
+                <% if jyun[0]==koumo && s[0]=="完" %>
+                    <% input_ari=1 %>
+                    <td class="border border-slate-300"> <center><font size="4" color="blue"> <%=  d.strftime('%y/%m/%d') %> </font></center></td>
+                    <td class="border border-slate-300"> <center><font size="4" color="blue"> <%=  e.strftime('%y/%m/%d') %> </font></center></td>
+                    <% throw :out_break %>  
+                <% end %>
+                <% if jyun[0]==koumo && s[0]=="仕" %>
+                    <% input_ari=1 %>
+                    <td class="border border-slate-300"> <center><font size="3" color="magenta"> <%=  d.strftime('%y/%m/%d')  %> </font></center></td>
+                    <td class="border border-slate-300"><strong><center><font size="4" color="red"> <%= "　━　" %> </font></center></strong></td>
+                    <% throw :out_break %>  
+                <% end %>
+            <% end %>
+                <% if input_ari=0 %> 
+                    <td class="border border-slate-300"><center><font size="4" color="red"> <%= "━" %> </font></center></td>
+                    <td class="border border-slate-300"><center><font size="4" color="red"> <%= "━" %> </font></center></td>
+                <% end %>
+        <% end %>
+  <% end %>
+  
+  
+  </tr>
+  </tbody>
+</table>
+ 
+<br>
+<%= link_to '戻る', products_path ,class:"btn btn-secondary"%>

@@ -1,0 +1,39 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  supplier_name: MyString
+  manufacturer_name: MyString
+  iso_existence: MyString
+  target: MyString
+  qms: MyString
+  development: MyString
+  second_party_audit: MyString
+  supplier_development: MyString
+  automotive_related: MyString
+  departments: MyString
+  department: MyString
+  transaction_details: MyString
+  address1: MyString
+  address2: MyString
+  postal_code: MyString
+  tel: MyString
+  fax: MyString
+
+two:
+  supplier_name: MyString
+  manufacturer_name: MyString
+  iso_existence: MyString
+  target: MyString
+  qms: MyString
+  development: MyString
+  second_party_audit: MyString
+  supplier_development: MyString
+  automotive_related: MyString
+  departments: MyString
+  department: MyString
+  transaction_details: MyString
+  address1: MyString
+  address2: MyString
+  postal_code: MyString
+  tel: MyString
+  fax: MyString

@@ -1,0 +1,79 @@
+
+<!--
+Border Spacing
+https://tailwindcss.com/docs/border-spacing
+-->
+
+<table class="border-separate border-spacing-x-1 border border-slate-400">
+
+  <thead>
+    <tr>
+      <th class="border border-slate-300">項目</th>
+      <th class="border border-slate-300">ID</th>
+      <th class="border border-slate-300">図番</th>
+      <th class="border border-slate-300">材料コード</th>
+      <th class="border border-slate-300">フェーズ</th>
+      <th class="border border-slate-300">項目</th>
+      <th class="border border-slate-300">コメント</th>
+      <th class="border border-slate-300">登録日</th>
+      <th class="border border-slate-300">完了予定日</th>
+      <th class="border border-slate-300">完了日</th>
+      <th class="border border-slate-300">達成度(%)</th>
+      <th class="border border-slate-300">ステイタス</th>
+      <th  class="border border-slate-300" colspan="3"></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% koumoku.each do |koumo| %>
+      <% sonzai= false %>
+      <tr>
+        <td class="border border-slate-300"><%= koumo %></td>
+      
+      
+        <% products.each do |pro| %>
+          <% if  dropdownlist[pro.stage.to_i]==koumo %>
+              <% if sonzai==true %>            
+                <td class="border border-slate-300"><%= koumo %></td>
+              <% end %>
+              <% sonzai=true %>
+                <td class="border border-slate-300"><%= pro.id %></td>
+                <td class="border border-slate-300"><%= pro.partnumber %></td>
+                <td class="border border-slate-300"><%= pro.materialcode %></td>
+                <td class="border border-slate-300"><%= @dropdownlist[pro.phase.to_i] %></td>
+                <td class="border border-slate-300"><%= @dropdownlist[pro.stage.to_i] %></td>
+                <td class="border border-slate-300"><%= pro.description %></td>
+                <td class="border border-slate-300"><%= pro.start_time.strftime('%Y/%m/%d')  %></td>
+                <td class="border border-slate-300"><%= pro.deadline_at.strftime('%Y/%m/%d')  %></td>
+                <% if pro.status=="完了" %>
+                  <td class="border border-slate-300"><%= l pro.end_at  %></td>
+                <% else %>
+                  <td class="border border-slate-300"><%= "------"  %></td>
+                <% end %>
+                <td class="border border-slate-300"><%= pro.goal_attainment_level %></td>
+                <td class="border border-slate-300"><%= pro.status %></td>
+                
+                <td><%= link_to '詳細', pro ,class:"btn btn-accent"%></td>
+                <td><%= link_to '編集', edit_product_path(pro) ,class:"btn btn-primary"%></td>
+                <!--
+                <td><%= link_to '削除', pro, method: :delete, data: { confirm: '本当に削除しますか?' },class:"btn btn-danger" %></td>
+                -->
+                <td><div class="btn btn-secondary"> <%= button_to '削除', pro, {method: :delete, data: { confirm: '本当に削除しますか？' } } %></div></td>
+                
+
+                <%= render partial: "attached_file", locals: { pro: pro }  %>
+
+
+          <% end %>
+         
+
+        <% end %>          
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<br>
+<%= link_to '戻る', products_path ,class:"btn btn-secondary"%>
+
+
