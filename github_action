@@ -1,0 +1,132 @@
+# Clawstack に GitHub Actions を最小導入するためのプロトコル
+
+あなたは、ローカルAI基盤・Docker・Python・GitHub Actions に強いシニア開発者です。  
+以下の前提に基づき、Clawstack リポジトリへ **最小構成の GitHub Actions** を導入してください。
+
+## 目的
+
+目的は、OpenClaw の実行基盤を GitHub Actions に置き換えることではありません。  
+目的は、**Clawstack の変更品質を守る CI を追加すること**です。
+
+特に次を実現したいです。
+
+1. push / pull_request 時に基本的な壊れを早期検知する
+2. Docker / Python / YAML / Markdown / workflow 定義の異常を自動検出する
+3. 秘密情報を workflow に直書きしない
+4. 破壊的変更や本番操作は行わない
+5. まずは GitHub-hosted runner だけで開始する
+6. self-hosted runner は今回は導入しない
+7. OpenClaw / Clawstack の既存構成を壊さない
+
+## 現在の前提
+
+- Windows 11 + Docker Desktop (WSL2)
+- GMKtec NucBox K10
+- Intel Core i9-13900HK
+- RAM 48GB
+- OpenClaw / LiteLLM / Langfuse / Qdrant / Infinity / Paperless / Docling / n8n / SearXNG を利用
+- ローカルファースト / プライバシー優先
+- GitHub Actions は未導入
+- まずは private repository 前提
+- 破壊的変更は禁止
+- 本番DB削除、秘密情報外部送信、危険な自動deployは禁止
+
+## 今回のスコープ
+
+今回は **Phase 1: 最小 CI 導入** だけを実施対象にする。  
+CD、本番デプロイ、自動 self-hosted runner 構築は含めない。
+
+## 作成してほしい workflow
+
+### 1. ci-fast.yml
+目的:
+- PR と push 時の高速チェック
+
+内容:
+- checkout
+- Python セットアップ
+- 必要に応じて Node セットアップ
+- Python 構文チェック
+- YAML 構文チェック
+- Markdown / docs の軽い検査
+- `.github/workflows/*.yml` の基本検査
+- リポジトリ内の主要 Python ファイルに対する import / compile チェック
+- 失敗時にどこが壊れたか分かりやすいログを出す
+
+### 2. docker-validate.yml
+目的:
+- Docker / Compose 周りの定義異常を検出
+
+内容:
+- docker compose config による検証
+- compose / env テンプレート / volume mount の整合確認
+- 破壊的な `docker compose up` はしない
+- build は必要最小限
+- `--no-cache` は使わない
+
+### 3. nightly-health-check.yml
+目的:
+- 毎日1回の静的・軽量ヘルスチェック
+
+内容:
+- schedule 実行
+- workflow / docs / scripts の整合確認
+- Python lint or syntax check
+- 依存関係の軽い確認
+- 重い統合テストや本番接続はしない
+
+## 作らないもの
+
+今回は以下は作らないこと。
+
+- 本番 deploy workflow
+- 自動 DB migration workflow
+- self-hosted runner 導入
+- OpenClaw を GitHub Actions 上で常時起動する仕組み
+- 危険な docker 操作
+- 秘密情報を使う統合テスト
+- 外部クラウドへ機密を送る処理
+
+## セキュリティ方針
+
+- `GITHUB_TOKEN` は最小権限にする
+- secrets は workflow に直書きしない
+- `.env` 実値は参照しない
+- private repo 前提で設計する
+- PR から危険なコードが走っても被害を広げないよう、権限は絞る
+- 可能な限り read-only チェック中心にする
+
+## 作業内容
+
+以下を順番に行ってください。
+
+1. リポジトリ構成を確認
+2. GitHub Actions 導入に必要な最小 workflow を設計
+3. `.github/workflows/` 以下に 3ファイル作成案を示す
+4. 必要なら補助スクリプトも提案
+5. workflow 内の権限 `permissions:` を明示
+6. どこまで GitHub-hosted runner で十分かを説明
+7. 将来 self-hosted runner を追加する場合の注意点を短く整理
+
+## 出力してほしいもの
+
+以下の順で出力してください。
+
+1. 現状認識
+2. GitHub Actions を導入すべき理由
+3. 今回のスコープ
+4. 作成する workflow 一覧
+5. 各 workflow の YAML 全文
+6. 必要なら補助ファイル全文
+7. secrets / permissions の注意点
+8. 実行確認手順
+9. ロールバック方法
+10. 将来の Phase 2 候補
+
+## 特に重視すること
+
+- まずは小さく始める
+- OpenClaw の実行基盤を置き換えない
+- GitHub Actions を「品質ゲート」として使う
+- Claude Code が一度にやる範囲を広げすぎない
+- 壊しにくく、理解しやすい構成にする

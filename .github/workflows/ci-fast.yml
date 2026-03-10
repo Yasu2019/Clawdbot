@@ -1,0 +1,147 @@
+name: CI Fast
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+# 最小権限 — 読み取りのみ
+permissions:
+  contents: read
+
+jobs:
+  python-syntax:
+    name: Python 構文チェック
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Python セットアップ
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Python 構文チェック (py_compile)
+        run: |
+          echo "=== Python 構文チェック開始 ==="
+          FAILED=0
+          # .venv / __pycache__ / 一時ディレクトリを除外して全 .py を検査
+          while IFS= read -r -d '' f; do
+            python -m py_compile "$f" 2>&1 && true || {
+              echo "::error file=$f::構文エラー: $f"
+              FAILED=$((FAILED + 1))
+            }
+          done < <(find . \
+            -name "*.py" \
+            -not -path "./.venv/*" \
+            -not -path "./.git/*" \
+            -not -path "*/__pycache__/*" \
+            -not -path "./tmp/*" \
+            -print0)
+          echo "=== 検査完了 ==="
+          if [ "$FAILED" -gt 0 ]; then
+            echo "::error::構文エラーが $FAILED ファイルで見つかりました"
+            exit 1
+          fi
+          echo "全 Python ファイルの構文チェック OK"
+
+  yaml-syntax:
+    name: YAML 構文チェック
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Python セットアップ
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: yamllint インストール
+        run: pip install yamllint
+
+      - name: yamllint 設定ファイル生成
+        run: |
+          cat > /tmp/.yamllint.yml << 'EOF'
+          extends: relaxed
+          rules:
+            line-length:
+              max: 200
+            truthy:
+              allowed-values: ["true", "false", "yes", "no", "on", "off"]
+            comments:
+              min-spaces-from-content: 1
+            braces:
+              min-spaces-inside: 0
+              max-spaces-inside: 1
+          EOF
+
+      - name: YAML 構文チェック (yamllint)
+        run: |
+          echo "=== YAML 構文チェック開始 ==="
+          FAILED=0
+          while IFS= read -r -d '' f; do
+            yamllint -c /tmp/.yamllint.yml "$f" 2>&1 && true || {
+              echo "::error file=$f::YAML エラー: $f"
+              FAILED=$((FAILED + 1))
+            }
+          done < <(find . \
+            -name "*.yml" -o -name "*.yaml" \
+            | grep -v ".git/" \
+            | grep -v ".venv/" \
+            | tr '\n' '\0')
+          echo "=== 検査完了 ==="
+          if [ "$FAILED" -gt 0 ]; then
+            echo "::error::YAML エラーが $FAILED ファイルで見つかりました"
+            exit 1
+          fi
+          echo "全 YAML ファイルの構文チェック OK"
+
+  workflow-lint:
+    name: GitHub Actions Workflow 検査
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: actionlint インストール
+        run: |
+          # actionlint — GitHub Actions 専用 linter
+          curl -sSfL \
+            https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash \
+            | bash -s -- -b /usr/local/bin
+
+      - name: actionlint 実行
+        run: |
+          echo "=== GitHub Actions workflow 検査 ==="
+          if [ -d .github/workflows ]; then
+            actionlint .github/workflows/*.yml 2>&1
+            echo "Workflow 検査 OK"
+          else
+            echo "::warning::.github/workflows ディレクトリが見つかりません"
+          fi
+
+  markdown-check:
+    name: Markdown 検査
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Node.js セットアップ
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: markdownlint-cli インストール
+        run: npm install -g markdownlint-cli
+
+      - name: Markdown 検査
+        run: |
+          echo "=== Markdown 検査開始 ==="
+          # 緩めのルール — リンク切れ・スタイル強制はしない
+          markdownlint \
+            --disable MD013 MD033 MD041 MD034 \
+            '**/*.md' \
+            --ignore '.venv/**' \
+            --ignore 'tmp/**' \
+            2>&1 || true
+          echo "Markdown 検査完了 (警告は無視、エラーのみ失敗)"

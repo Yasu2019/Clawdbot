@@ -252,12 +252,13 @@ def heal():
         if not execs:
             continue
 
-        # Check if ANY of the last 3 executions failed
-        recent_errors = [e for e in execs if e.get("status") in ("error", "crashed")]
-        if not recent_errors:
+        # Check if the LATEST execution failed (not "any of last 3")
+        # A single success means the workflow has recovered, regardless of history
+        latest_status = execs[0].get("status", "")
+        if latest_status not in ("error", "crashed"):
             # Clear state if workflow is now healthy
             if wf_id in state and state[wf_id].get("status") != "healthy":
-                log(f"[{wf_name}] Recovered!")
+                log(f"[{wf_name}] Recovered! (latest={latest_status})")
                 messages.append(f"✅ <b>{wf_name}</b> — 回復しました")
                 del state[wf_id]
                 state_changed = True

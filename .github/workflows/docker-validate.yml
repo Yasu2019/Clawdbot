@@ -1,0 +1,159 @@
+name: Docker Validate
+
+on:
+  push:
+    paths:
+      - "docker-compose.yml"
+      - "Dockerfile"
+      - "Dockerfile.*"
+      - "clawstack_v2/docker/**"
+      - ".github/ci/.env.ci"
+  pull_request:
+    paths:
+      - "docker-compose.yml"
+      - "Dockerfile"
+      - "Dockerfile.*"
+      - "clawstack_v2/docker/**"
+      - ".github/ci/.env.ci"
+  # 手動実行も可能
+  workflow_dispatch:
+
+# 読み取りのみ — 本番環境への影響ゼロ
+permissions:
+  contents: read
+
+jobs:
+  compose-config:
+    name: docker compose config 検証
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Docker / Compose バージョン確認
+        run: |
+          docker --version
+          docker compose version
+
+      - name: docker compose config 検証 (CI ダミー env 使用)
+        run: |
+          echo "=== docker compose config 検証 ==="
+          echo "注意: CI ダミー値を使用 — 実際の秘密情報は不使用"
+
+          # CI ダミー .env で compose 定義を検証
+          # --env-file でダミー値を注入し、構文・参照エラーを検出
+          docker compose \
+            --env-file .github/ci/.env.ci \
+            config \
+            --quiet \
+            2>&1
+
+          echo "docker compose config OK"
+
+      - name: Compose サービス一覧確認
+        run: |
+          echo "=== 定義済みサービス ==="
+          docker compose \
+            --env-file .github/ci/.env.ci \
+            config \
+            --services \
+            2>&1
+
+      - name: Compose ボリューム一覧確認
+        run: |
+          echo "=== 定義済みボリューム ==="
+          docker compose \
+            --env-file .github/ci/.env.ci \
+            config \
+            --volumes \
+            2>&1
+
+      - name: Dockerfile 構文チェック (hadolint)
+        run: |
+          echo "=== Dockerfile 構文チェック (hadolint) ==="
+          # hadolint インストール
+          curl -sSfL \
+            https://github.com/hadolint/hadolint/releases/latest/download/hadolint-Linux-x86_64 \
+            -o /usr/local/bin/hadolint
+          chmod +x /usr/local/bin/hadolint
+
+          FAILED=0
+          for df in Dockerfile Dockerfile.*; do
+            if [ -f "$df" ]; then
+              echo "--- $df ---"
+              # DL3008: apt に --no-install-recommends を強制 (ローカル事情で無視)
+              # DL3009: apt-get clean 強制 (ローカル事情で無視)
+              # DL3059: 複数 RUN 統合推奨 (可読性優先で無視)
+              hadolint \
+                --ignore DL3008 \
+                --ignore DL3009 \
+                --ignore DL3059 \
+                "$df" 2>&1 && true || {
+                echo "::warning file=$df::hadolint 警告: $df"
+                FAILED=$((FAILED + 1))
+              }
+            fi
+          done
+
+          # clawstack_v2 配下の Dockerfile も検査
+          while IFS= read -r -d '' df; do
+            echo "--- $df ---"
+            hadolint \
+              --ignore DL3008 \
+              --ignore DL3009 \
+              --ignore DL3059 \
+              "$df" 2>&1 && true || {
+              echo "::warning file=$df::hadolint 警告: $df"
+              FAILED=$((FAILED + 1))
+            }
+          done < <(find clawstack_v2/docker -name "Dockerfile*" -print0 2>/dev/null)
+
+          if [ "$FAILED" -gt 0 ]; then
+            echo "::warning::hadolint 警告が $FAILED ファイルで見つかりました (エラー扱いにしない)"
+          else
+            echo "Dockerfile 検査 OK"
+          fi
+
+  env-template-check:
+    name: .env テンプレート整合確認
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Python セットアップ
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: CI env と compose 参照変数の整合確認
+        run: |
+          echo "=== compose が参照する変数 vs CI .env.ci の整合確認 ==="
+          python3 - << 'EOF'
+          import re, sys
+
+          with open("docker-compose.yml") as f:
+              compose_text = f.read()
+
+          with open(".github/ci/.env.ci") as f:
+              ci_env_keys = set()
+              for line in f:
+                  line = line.strip()
+                  if line and not line.startswith("#") and "=" in line:
+                      ci_env_keys.add(line.split("=", 1)[0])
+
+          # compose 内で参照されている変数 (デフォルト値なしのもの)
+          refs_no_default = set(re.findall(r'\$\{([A-Z_]+)\}', compose_text))
+          # デフォルト値ありのもの
+          refs_with_default = set(re.findall(r'\$\{([A-Z_]+):-', compose_text))
+
+          missing = refs_no_default - ci_env_keys - refs_with_default
+          if missing:
+              print(f"::warning::CI .env.ci に未定義の変数: {sorted(missing)}")
+              print("  → docker compose config 時にこれらは空文字になります")
+          else:
+              print("OK: CI .env.ci に必要な変数が全て定義されています")
+
+          # 逆チェック: CI .env.ci に不要な変数がないか (警告のみ)
+          extra = ci_env_keys - refs_no_default - refs_with_default
+          if extra:
+              print(f"info: CI .env.ci に compose 未参照の変数があります (無害): {sorted(extra)}")
+          EOF

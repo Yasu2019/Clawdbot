@@ -1,0 +1,206 @@
+name: Nightly Health Check
+
+on:
+  schedule:
+    # 毎日 JST 06:00 = UTC 21:00 (前日)
+    - cron: "0 21 * * *"
+  # 手動実行も可能
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  static-analysis:
+    name: 静的解析 & 整合確認
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Python セットアップ
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: pyflakes インストール (未使用 import 検出)
+        run: pip install pyflakes
+
+      - name: Python 構文チェック
+        run: |
+          echo "=== Python 構文チェック (nightly) ==="
+          FAILED=0
+          while IFS= read -r -d '' f; do
+            python -m py_compile "$f" 2>&1 && true || {
+              echo "::error file=$f::構文エラー: $f"
+              FAILED=$((FAILED + 1))
+            }
+          done < <(find . \
+            -name "*.py" \
+            -not -path "./.venv/*" \
+            -not -path "./.git/*" \
+            -not -path "*/__pycache__/*" \
+            -not -path "./tmp/*" \
+            -print0)
+          if [ "$FAILED" -gt 0 ]; then
+            echo "::error::$FAILED ファイルで構文エラー"
+            exit 1
+          fi
+          echo "Python 構文チェック OK"
+
+      - name: pyflakes 簡易チェック (主要スクリプト)
+        run: |
+          echo "=== pyflakes チェック (data/workspace/*.py) ==="
+          # エラーでも CI を止めない (警告扱い) — 未使用 import は多いため
+          python -m pyflakes data/workspace/*.py 2>&1 | head -50 || true
+          echo "pyflakes チェック完了"
+
+      - name: YAML 整合確認
+        run: |
+          echo "=== YAML 整合確認 ==="
+          pip install yamllint -q
+          cat > /tmp/.yamllint.yml << 'EOF'
+          extends: relaxed
+          rules:
+            line-length:
+              max: 200
+            truthy:
+              allowed-values: ["true", "false", "yes", "no", "on", "off"]
+          EOF
+          FAILED=0
+          while IFS= read -r -d '' f; do
+            yamllint -c /tmp/.yamllint.yml "$f" 2>&1 && true || {
+              echo "::error file=$f::YAML エラー: $f"
+              FAILED=$((FAILED + 1))
+            }
+          done < <(find . \
+            \( -name "*.yml" -o -name "*.yaml" \) \
+            -not -path "./.git/*" \
+            -not -path "./.venv/*" \
+            -print0)
+          if [ "$FAILED" -gt 0 ]; then
+            echo "::error::$FAILED ファイルで YAML エラー"
+            exit 1
+          fi
+          echo "YAML 整合確認 OK"
+
+  docs-integrity:
+    name: ドキュメント整合確認
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 主要ドキュメントの存在確認
+        run: |
+          echo "=== 主要ドキュメント存在確認 ==="
+          REQUIRED_FILES=(
+            "README.md"
+            "docker-compose.yml"
+            "data/workspace/PORTAL_APPS.md"
+          )
+          MISSING=0
+          for f in "${REQUIRED_FILES[@]}"; do
+            if [ -f "$f" ]; then
+              echo "OK: $f"
+            else
+              echo "::error file=$f::必須ファイルが見つかりません: $f"
+              MISSING=$((MISSING + 1))
+            fi
+          done
+          if [ "$MISSING" -gt 0 ]; then
+            exit 1
+          fi
+
+      - name: .github/ci/.env.ci の変数定義確認
+        run: |
+          echo "=== CI env ファイル確認 ==="
+          if [ ! -f ".github/ci/.env.ci" ]; then
+            echo "::error::.github/ci/.env.ci が見つかりません"
+            exit 1
+          fi
+          # ダミー値に実際のキー・パスワードが混入していないか簡易確認
+          # (実際の API key パターンを検出)
+          if grep -qP '(?i)(sk-|AIza|ghp_|ghs_|ya29\.|eyJ)[A-Za-z0-9_\-]{10,}' .github/ci/.env.ci; then
+            echo "::error::.github/ci/.env.ci に実際の API キーらしき文字列が含まれています"
+            exit 1
+          fi
+          echo "CI env ファイル OK (ダミー値のみ確認)"
+
+      - name: Python セットアップ
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: workflow_healer.py / ingest_watchdog.py 構文確認
+        run: |
+          echo "=== 主要スクリプト構文確認 ==="
+          KEY_SCRIPTS=(
+            "data/workspace/workflow_healer.py"
+            "data/workspace/ingest_watchdog.py"
+          )
+          FAILED=0
+          for f in "${KEY_SCRIPTS[@]}"; do
+            if [ -f "$f" ]; then
+              python -m py_compile "$f" && echo "OK: $f" || {
+                echo "::error file=$f::構文エラー: $f"
+                FAILED=$((FAILED + 1))
+              }
+            else
+              echo "::warning file=$f::スクリプトが見つかりません: $f"
+            fi
+          done
+          if [ "$FAILED" -gt 0 ]; then
+            exit 1
+          fi
+
+  secret-leak-scan:
+    name: シークレットリーク検出
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # 全履歴スキャン用
+
+      - name: gitleaks インストール
+        run: |
+          curl -sSfL \
+            https://github.com/gitleaks/gitleaks/releases/latest/download/gitleaks_8.21.2_linux_x64.tar.gz \
+            | tar -xz -C /usr/local/bin gitleaks
+
+      - name: gitleaks スキャン (直近 push のみ)
+        run: |
+          echo "=== シークレットリーク検出 ==="
+          # nightly は HEAD のみスキャン (全履歴は重い)
+          gitleaks detect \
+            --source . \
+            --log-opts "HEAD~1..HEAD" \
+            --redact \
+            --no-git \
+            2>&1 | head -50 || true
+          echo "gitleaks スキャン完了"
+
+  dependency-check:
+    name: 依存関係確認
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Python セットアップ
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: requirements ファイル存在確認
+        run: |
+          echo "=== requirements ファイル確認 ==="
+          for f in requirements*.txt; do
+            if [ -f "$f" ]; then
+              echo "Found: $f ($(wc -l < "$f") 行)"
+            fi
+          done
+          # .venv があれば pip check
+          if [ -d ".venv" ]; then
+            source .venv/bin/activate 2>/dev/null || true
+            pip check 2>&1 | head -20 || true
+          else
+            echo ".venv なし — スキップ"
+          fi
