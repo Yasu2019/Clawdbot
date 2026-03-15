@@ -473,5 +473,109 @@ services:
       - qdrant
     restart: unless-stopped
 
+  # ============================================================
+  # 13. UPTIME KUMA — リアルタイム稼働監視
+  # ============================================================
+  uptime-kuma:
+    image: louislam/uptime-kuma:1
+    ports:
+      - "127.0.0.1:3010:3001"
+    volumes:
+      - ./clawstack_v2/data/uptime-kuma:/app/data
+    restart: unless-stopped
+
+  # ============================================================
+  # 14. CRAWL4AI — AI最適化Webスクレイピング
+  # ============================================================
+  crawl4ai:
+    image: unclecode/crawl4ai:latest
+    platform: linux/amd64
+    ports:
+      - "127.0.0.1:8094:11235"
+    environment:
+      - OPENAI_API_KEY=local-dev-key
+      - OPENAI_BASE_URL=http://litellm:4000/v1
+    shm_size: '1gb'
+    deploy:
+      resources:
+        limits:
+          cpus: "4"
+          memory: 2g
+    restart: unless-stopped
+
+  # ============================================================
+  # 15. PROMETHEUS — メトリクス収集
+  # ============================================================
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "127.0.0.1:9090:9090"
+    volumes:
+      - ./data/state/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./clawstack_v2/data/prometheus:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=30d'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    restart: unless-stopped
+
+  # ============================================================
+  # 16. GRAFANA — メトリクス可視化ダッシュボード
+  # ============================================================
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "127.0.0.1:3012:3000"
+    volumes:
+      - ./clawstack_v2/data/grafana:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=clawstack2026
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_ROOT_URL=http://localhost:3012
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+  # ============================================================
+  # 17. NOCODB — SQLite/DB UIビューア
+  # ============================================================
+  nocodb:
+    image: nocodb/nocodb:latest
+    ports:
+      - "127.0.0.1:8093:8080"
+    volumes:
+      - ./clawstack_v2/data/nocodb:/usr/app/data
+    environment:
+      - NC_AUTH_JWT_SECRET=clawstack-noco-2026
+      - NC_DISABLE_TELE=true
+    restart: unless-stopped
+
+  # ============================================================
+  # 18. MAILPIT — SMTP + Web UIメールテスト
+  # ============================================================
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - "127.0.0.1:8025:8025"   # Web UI
+      - "127.0.0.1:1025:1025"   # SMTP
+    environment:
+      - MP_MAX_MESSAGES=500
+      - MP_DATABASE=/data/mailpit.db
+    volumes:
+      - ./clawstack_v2/data/mailpit:/data
+    restart: unless-stopped
+
+  # ============================================================
+  # 19. EXCALIDRAW — ホワイトボード・計画可視化
+  # ============================================================
+  excalidraw:
+    image: excalidraw/excalidraw:latest
+    ports:
+      - "127.0.0.1:3013:80"
+    restart: unless-stopped
+
 volumes:
   minigame_db_data:

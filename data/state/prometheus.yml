@@ -1,0 +1,31 @@
+global:
+  scrape_interval: 30s
+  evaluation_interval: 30s
+
+scrape_configs:
+  # LiteLLM メトリクス
+  - job_name: 'litellm'
+    static_configs:
+      - targets: ['litellm:4000']
+    metrics_path: '/metrics'
+
+  # Qdrant メトリクス
+  - job_name: 'qdrant'
+    static_configs:
+      - targets: ['qdrant:6333']
+    metrics_path: '/metrics'
+
+  # Ollama (HTTPポーリング)
+  - job_name: 'ollama'
+    static_configs:
+      - targets: ['ollama:11434']
+    metrics_path: '/metrics'
+
+  # HTTPサービス死活監視 (blackbox exporter代替 - 簡易)
+  - job_name: 'services_health'
+    static_configs:
+      - targets:
+          - 'n8n:5678'
+          - 'paperless:8000'
+          - 'infinity:7997'
+    metrics_path: '/metrics'
