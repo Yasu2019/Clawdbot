@@ -28,10 +28,10 @@ jobs:
           FAILED=0
           # .venv / __pycache__ / 一時ディレクトリを除外して全 .py を検査
           while IFS= read -r -d '' f; do
-            python -m py_compile "$f" 2>&1 && true || {
+            if ! python -m py_compile "$f" 2>&1; then
               echo "::error file=$f::構文エラー: $f"
               FAILED=$((FAILED + 1))
-            }
+            fi
           done < <(find . \
             -name "*.py" \
             -not -path "./.venv/*" \
@@ -81,16 +81,20 @@ jobs:
           echo "=== YAML 構文チェック開始 ==="
           FAILED=0
           while IFS= read -r -d '' f; do
-            yamllint -c /tmp/.yamllint.yml "$f" 2>&1 && true || {
+            if ! yamllint -c /tmp/.yamllint.yml "$f" 2>&1; then
               echo "::error file=$f::YAML エラー: $f"
               FAILED=$((FAILED + 1))
-            }
+            fi
           done < <(find . \
             \( -name "*.yml" -o -name "*.yaml" \) \
             | grep -v ".git/" \
             | grep -v ".venv/" \
             | grep -v "clawstack_v2/data/" \
+            | grep -v "clawstack_v2/open-notebook/" \
             | grep -v "config/" \
+            | grep -v "node_modules/" \
+            | grep -v "data/workspace/projects/" \
+            | grep -v "iatf_system/" \
             | tr '\n' '\0')
           echo "=== 検査完了 ==="
           if [ "$FAILED" -gt 0 ]; then

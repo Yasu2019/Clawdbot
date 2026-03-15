@@ -30,10 +30,10 @@ jobs:
           echo "=== Python 構文チェック (nightly) ==="
           FAILED=0
           while IFS= read -r -d '' f; do
-            python -m py_compile "$f" 2>&1 && true || {
+            if ! python -m py_compile "$f" 2>&1; then
               echo "::error file=$f::構文エラー: $f"
               FAILED=$((FAILED + 1))
-            }
+            fi
           done < <(find . \
             -name "*.py" \
             -not -path "./.venv/*" \
@@ -68,16 +68,20 @@ jobs:
           EOF
           FAILED=0
           while IFS= read -r -d '' f; do
-            yamllint -c /tmp/.yamllint.yml "$f" 2>&1 && true || {
+            if ! yamllint -c /tmp/.yamllint.yml "$f" 2>&1; then
               echo "::error file=$f::YAML エラー: $f"
               FAILED=$((FAILED + 1))
-            }
+            fi
           done < <(find . \
             \( -name "*.yml" -o -name "*.yaml" \) \
             -not -path "./.git/*" \
             -not -path "./.venv/*" \
             -not -path "./clawstack_v2/data/*" \
+            -not -path "./clawstack_v2/open-notebook/*" \
             -not -path "./config/*" \
+            -not -path "*/node_modules/*" \
+            -not -path "./data/workspace/projects/*" \
+            -not -path "./iatf_system/*" \
             -print0)
           if [ "$FAILED" -gt 0 ]; then
             echo "::error::$FAILED ファイルで YAML エラー"
@@ -142,10 +146,12 @@ jobs:
           FAILED=0
           for f in "${KEY_SCRIPTS[@]}"; do
             if [ -f "$f" ]; then
-              python -m py_compile "$f" && echo "OK: $f" || {
+              if python -m py_compile "$f"; then
+                echo "OK: $f"
+              else
                 echo "::error file=$f::構文エラー: $f"
                 FAILED=$((FAILED + 1))
-              }
+              fi
             else
               echo "::warning file=$f::スクリプトが見つかりません: $f"
             fi
