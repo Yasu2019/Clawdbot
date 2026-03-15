@@ -17,7 +17,7 @@ from openpyxl.styles import Font, PatternFill, Alignment  # noqa: F401 (PatternF
 
 
 _OLLAMA_URL = os.getenv("OLLAMA_BASE_URL", "http://ollama:11434")
-_LLM_MODEL = "qwen2.5-coder:7b"  # fast local model; falls back gracefully
+_LLM_MODEL = os.getenv("OLLAMA_CODE_MODEL", "qwen2.5-coder:14b")
 
 
 def _ask_ollama(prompt: str, max_tokens: int = 400) -> str:

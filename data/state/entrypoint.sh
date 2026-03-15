@@ -30,6 +30,9 @@ fi
 chmod +x /home/node/.openclaw/auto_approve.sh
 /home/node/.openclaw/auto_approve.sh &
 
+# Install Python packages for email RAG pipeline (Phase 2 attachments)
+pip3 install --quiet --break-system-packages openpyxl xlrd python-docx 2>/dev/null || true
+
 # Start ingest watchdog (Paperless API → Qdrant universal_knowledge)
 # n8n supervisor will restart it every 5 min if it dies; this starts it on container boot
 if python3 -c "import fitz, requests" 2>/dev/null; then

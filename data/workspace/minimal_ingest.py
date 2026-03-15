@@ -8,7 +8,7 @@ from email import message_from_file
 DB_FILE = "/workspace/email_analysis.db"
 EMAIL_DIR = "/local_emails"
 OLLAMA_URL = "http://ollama:11434/api/generate"
-OLLAMA_MODEL = "qwen2.5-coder:7b"
+OLLAMA_MODEL = os.getenv("OLLAMA_GEN_MODEL", "qwen3:8b")
 
 def init_db():
     conn = sqlite3.connect(DB_FILE)

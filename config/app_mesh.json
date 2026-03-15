@@ -1,0 +1,112 @@
+{
+  "version": 1,
+  "ntfy": {
+    "baseUrl": "http://127.0.0.1:8091",
+    "topic": "clawstack-health"
+  },
+  "services": [
+    {
+      "name": "Dashy",
+      "group": "hub",
+      "url": "http://127.0.0.1:4001",
+      "method": "GET",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Paperless",
+      "group": "documents",
+      "url": "http://127.0.0.1:8000",
+      "method": "GET",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Stirling PDF",
+      "group": "documents",
+      "url": "http://127.0.0.1:8085/login",
+      "method": "GET",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Changedetection",
+      "group": "monitoring",
+      "url": "http://127.0.0.1:5081",
+      "method": "GET",
+      "expectedStatus": 200
+    },
+    {
+      "name": "ntfy",
+      "group": "monitoring",
+      "url": "http://127.0.0.1:8091",
+      "method": "GET",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Vikunja",
+      "group": "tasks",
+      "url": "http://127.0.0.1:3456",
+      "method": "GET",
+      "expectedStatus": 200
+    },
+    {
+      "name": "n8n",
+      "group": "automation",
+      "url": "http://127.0.0.1:5679",
+      "method": "GET",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Node-RED",
+      "group": "automation",
+      "url": "http://127.0.0.1:1880",
+      "method": "GET",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Open WebUI",
+      "group": "ai",
+      "url": "http://127.0.0.1:3002",
+      "method": "GET",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Langfuse",
+      "group": "ai",
+      "url": "http://127.0.0.1:3001",
+      "method": "GET",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Immich",
+      "group": "media",
+      "url": "http://127.0.0.1:2283",
+      "method": "GET",
+      "expectedStatus": 200
+    }
+  ],
+  "flows": [
+    {
+      "name": "Documents",
+      "chain": [
+        "Stirling PDF",
+        "Paperless",
+        "EML pipeline"
+      ]
+    },
+    {
+      "name": "Monitoring",
+      "chain": [
+        "Changedetection",
+        "ntfy",
+        "Vikunja",
+        "n8n"
+      ]
+    },
+    {
+      "name": "Media",
+      "chain": [
+        "Immich",
+        "ntfy"
+      ]
+    }
+  ]
+}

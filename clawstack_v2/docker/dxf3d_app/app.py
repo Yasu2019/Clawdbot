@@ -30,6 +30,8 @@ WORK_DIR.mkdir(parents=True, exist_ok=True)
 
 ANTIGRAVITY = "clawstack-unified-antigravity-1"
 DXF23D_PATH = "/work/scripts/dxf23d.py"
+OLLAMA_GEN_MODEL = os.getenv("OLLAMA_GEN_MODEL", "qwen3:14b")
+OLLAMA_CODE_MODEL = os.getenv("OLLAMA_CODE_MODEL", "qwen2.5-coder:14b")
 
 N_ARC = 48          # arc approximation segments per 360°
 TOL   = 1e-6
@@ -1490,7 +1492,7 @@ def _csg_ai_check(shape_id: str, desc: str, vol: float, faces: int,
                    watertight: bool,
                    ollama_url: str = "http://ollama:11434") -> str:
     """
-    qwen3:8b (Docker Ollama) に形状の妥当性チェックをリクエスト。
+    Qwen3 generative model (Docker Ollama) に形状の妥当性チェックをリクエスト。
     APIキー不要・完全ローカル。タイムアウト20秒。
     戻り値: AI判定コメント文字列。
     """
@@ -1505,7 +1507,7 @@ def _csg_ai_check(shape_id: str, desc: str, vol: float, faces: int,
     try:
         resp = requests.post(
             f"{ollama_url}/api/generate",
-            json={"model": "qwen3:8b", "prompt": prompt,
+            json={"model": OLLAMA_GEN_MODEL, "prompt": prompt,
                   "stream": False, "think": False,
                   "options": {"num_predict": 80, "temperature": 0}},
             timeout=30,
@@ -2835,7 +2837,7 @@ def run_mesh_checks(mesh, requested_height_mm: float, n_loops: int) -> list[dict
 
 def ai_mesh_check(checks: list[dict], mesh) -> str:
     """
-    Call local Ollama (qwen2.5-coder:7b → deepseek-r1:7b fallback) with a
+    Call local Ollama with the configured coding model and a general-model fallback.
     compact prompt. Returns AI comment string or error message.
     Token budget: ~120 tokens in, ~80 tokens out — very cheap.
     """
@@ -2852,14 +2854,7 @@ def ai_mesh_check(checks: list[dict], mesh) -> str:
         + f"\n面数={len(mesh.faces)}, 体積={mesh.volume:.1f}mm³"
     )
 
-    payload = _json.dumps({
-        "model": "qwen2.5-coder:7b",
-        "prompt": prompt,
-        "stream": False,
-        "options": {"num_predict": 120, "temperature": 0.2},
-    }).encode()
-
-    for model in ["qwen2.5-coder:7b", "deepseek-r1:7b"]:
+    for model in [OLLAMA_CODE_MODEL, OLLAMA_GEN_MODEL]:
         try:
             payload = _json.dumps({
                 "model": model,
@@ -2878,7 +2873,7 @@ def ai_mesh_check(checks: list[dict], mesh) -> str:
                 return result.get("response", "").strip()
         except Exception:
             continue
-    return "Ollamaへの接続に失敗しました (qwen2.5-coder:7b / deepseek-r1:7b が必要)"
+    return f"Ollamaへの接続に失敗しました ({OLLAMA_CODE_MODEL} / {OLLAMA_GEN_MODEL} が必要)"
 
 
 # ── STEP / IGES input via pythonocc-core ─────────────────────────────────────
@@ -3073,6 +3068,167 @@ def convert_step_via_freecad(dxf_bytes, layer, height_mm):
         pass
 
 
+# ── STEP export via gmsh OCC ─────────────────────────────────────────────────
+
+def loops_to_step_gmsh(loops: list, height_mm: float) -> bytes:
+    """
+    Convert 2D closed loops to STEP bytes via gmsh OpenCASCADE kernel.
+    Largest loop = outer solid body. Inner loops = holes (subtracted automatically
+    by addPlaneSurface with multiple curve loops).
+    Returns raw STEP file bytes.
+    """
+    import gmsh
+    import tempfile
+    import os as _os
+    from shapely.geometry import Polygon as _P
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        out_path = _os.path.join(tmpdir, "out.step")
+        try:
+            gmsh.initialize()
+            gmsh.option.setNumber("General.Verbosity", 0)
+            gmsh.model.add("model")
+
+            # Sort: largest area first (outer contour)
+            def _area(lp):
+                try:
+                    return abs(_P(lp).area) if len(lp) >= 3 else 0.0
+                except Exception:
+                    return 0.0
+
+            sorted_loops = sorted(loops, key=_area, reverse=True)
+
+            wire_tags = []
+            for lp in sorted_loops:
+                if len(lp) < 3:
+                    continue
+                pt_tags = [gmsh.model.occ.addPoint(float(x), float(y), 0.0)
+                           for x, y in lp]
+                n = len(pt_tags)
+                ln_tags = [gmsh.model.occ.addLine(pt_tags[i], pt_tags[(i + 1) % n])
+                           for i in range(n)]
+                cl = gmsh.model.occ.addCurveLoop(ln_tags)
+                wire_tags.append(cl)
+
+            if not wire_tags:
+                raise RuntimeError("有効な輪郭が見つかりませんでした。")
+
+            surf = gmsh.model.occ.addPlaneSurface(wire_tags)
+            gmsh.model.occ.extrude([(2, surf)], 0.0, 0.0, float(height_mm))
+            gmsh.model.occ.synchronize()
+            gmsh.write(out_path)
+
+        finally:
+            try:
+                gmsh.finalize()
+            except Exception:
+                pass
+
+        with open(out_path, "rb") as f:
+            return f.read()
+
+
+def multilayer_to_step_gmsh(layer_configs: list) -> bytes:
+    """
+    Multi-layer STEP export via gmsh OCC with boolean operations.
+
+    layer_configs: list of dicts:
+        {loops: list, height_mm: float, operation: 'solid'|'cutout', z_offset: float}
+
+    Solid layers are fused together; cutout layers are subtracted from the solid.
+    Returns raw STEP file bytes.
+    """
+    import gmsh
+    import tempfile
+    import os as _os
+    from shapely.geometry import Polygon as _P
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        out_path = _os.path.join(tmpdir, "out.step")
+        try:
+            gmsh.initialize()
+            gmsh.option.setNumber("General.Verbosity", 0)
+            gmsh.model.add("multilayer")
+
+            solid_ents: list = []
+            cut_ents:   list = []
+
+            def _area(lp):
+                try:
+                    return abs(_P(lp).area) if len(lp) >= 3 else 0.0
+                except Exception:
+                    return 0.0
+
+            for cfg in layer_configs:
+                loops_c = cfg["loops"]
+                h       = float(cfg["height_mm"])
+                z0      = float(cfg.get("z_offset", 0.0))
+                op      = cfg.get("operation", "solid")
+
+                sorted_lps = sorted(loops_c, key=_area, reverse=True)
+                wire_tags = []
+                for lp in sorted_lps:
+                    if len(lp) < 3:
+                        continue
+                    pt_tags = [
+                        gmsh.model.occ.addPoint(float(x), float(y), z0)
+                        for x, y in lp
+                    ]
+                    n = len(pt_tags)
+                    ln_tags = [
+                        gmsh.model.occ.addLine(pt_tags[i], pt_tags[(i + 1) % n])
+                        for i in range(n)
+                    ]
+                    cl = gmsh.model.occ.addCurveLoop(ln_tags)
+                    wire_tags.append(cl)
+
+                if not wire_tags:
+                    continue
+
+                surf     = gmsh.model.occ.addPlaneSurface(wire_tags)
+                extruded = gmsh.model.occ.extrude([(2, surf)], 0.0, 0.0, h)
+                vol_ents = [(d, t) for d, t in extruded if d == 3]
+
+                if op == "cutout":
+                    cut_ents.extend(vol_ents)
+                else:
+                    solid_ents.extend(vol_ents)
+
+            if not solid_ents:
+                raise RuntimeError("solid レイヤーが1つもありません。cutoutのみのモデルは生成できません。")
+
+            gmsh.model.occ.synchronize()
+
+            # Fuse all solid volumes into one
+            if len(solid_ents) > 1:
+                fused, _ = gmsh.model.occ.fuse(
+                    [solid_ents[0]], solid_ents[1:],
+                    removeObject=True, removeTool=True
+                )
+                solid_ents = fused
+                gmsh.model.occ.synchronize()
+
+            # Subtract cutout volumes
+            if cut_ents and solid_ents:
+                cut_result, _ = gmsh.model.occ.cut(
+                    solid_ents, cut_ents,
+                    removeObject=True, removeTool=True
+                )
+                solid_ents = cut_result
+                gmsh.model.occ.synchronize()
+
+            gmsh.write(out_path)
+
+        finally:
+            try:
+                gmsh.finalize()
+            except Exception:
+                pass
+
+        with open(out_path, "rb") as f:
+            return f.read()
+
+
 # ── Streamlit UI ─────────────────────────────────────────────────────────────
 
 st.set_page_config(
@@ -3175,9 +3331,11 @@ with st.sidebar:
     """)
 
 # ── Input mode tabs ───────────────────────────────────────────────────────────
-tab_dxf, tab_step = st.tabs(
-    ["📐 DXF → 3D (押し出し変換)", "🔩 STEP / IGES → 3D (直接読み込み)"]
-)
+tab_dxf, tab_multi, tab_step = st.tabs([
+    "📐 DXF → 3D (単一レイヤー)",
+    "📦 マルチレイヤー STEP",
+    "🔩 STEP / IGES → 3D",
+])
 
 # ═══════════════════════════════════════════════════════════════════
 # TAB 2: STEP / IGES 直接読み込み
@@ -3254,6 +3412,223 @@ with tab_step:
                 st.error(f"予期しないエラー: {exc}")
     else:
         st.info("STEP または IGES ファイルをアップロードしてください。")
+
+# ═══════════════════════════════════════════════════════════════════
+# TAB: マルチレイヤー STEP
+# ═══════════════════════════════════════════════════════════════════
+with tab_multi:
+    st.markdown(
+        "各レイヤーに **個別の厚み** と **演算種別**（積層 / 切り抜き）を設定して  \n"
+        "複合STEPモデルを生成します。  \n"
+        "**例**: 外形 10mm + ポケット穴 (cutout) + フランジ 5mm → 一体STEP"
+    )
+
+    uploaded_ml = st.file_uploader(
+        "DXFファイルをアップロード",
+        type=["dxf"],
+        key="uploader_ml",
+        help="AutoCAD DXF形式 (R12〜2018)。",
+    )
+
+    if uploaded_ml is not None:
+        dxf_bytes_ml = uploaded_ml.read()
+        doc_ml = None
+        try:
+            doc_ml = ezdxf.read(io.StringIO(dxf_bytes_ml.decode("utf-8")))
+        except UnicodeDecodeError:
+            try:
+                doc_ml = ezdxf.read(io.StringIO(dxf_bytes_ml.decode("cp932")))
+            except Exception as _e:
+                st.error(f"DXF 読み込みエラー (文字コード): {_e}")
+        except Exception as _e:
+            st.error(f"DXF 読み込みエラー: {_e}")
+
+        if doc_ml is not None:
+            layer_info_ml = analyze_layers(doc_ml)
+            geo_layers_ml = {k: v for k, v in layer_info_ml.items() if v["is_geo"]}
+
+            if not geo_layers_ml:
+                st.warning("幾何エンティティ（LINE / ARC / CIRCLE 等）を含むレイヤーが見つかりませんでした。")
+            else:
+                st.markdown(f"**{len(geo_layers_ml)} 個の幾何レイヤーを検出**")
+
+                # ── Per-layer configuration table ─────────────────────────────
+                hdr = st.columns([3, 1, 2, 2, 4])
+                hdr[0].markdown("**レイヤー名**")
+                hdr[1].markdown("**有効**")
+                hdr[2].markdown("**厚み mm**")
+                hdr[3].markdown("**演算**")
+                hdr[4].markdown("**エンティティ**")
+
+                ml_cfgs   = []
+                z_cursor_ = 0.0
+
+                for lname_ml, li_ml in sorted(
+                    geo_layers_ml.items(), key=lambda x: -x[1]["total"]
+                ):
+                    row = st.columns([3, 1, 2, 2, 4])
+                    row[0].markdown(
+                        f"`{lname_ml}`" + ("" if not li_ml["skip"] else " ⚠️")
+                    )
+                    en_ml = row[1].checkbox(
+                        "", value=not li_ml["skip"],
+                        key=f"ml_en_{lname_ml}"
+                    )
+                    th_ml = row[2].number_input(
+                        "", min_value=0.1, max_value=500.0, value=10.0,
+                        step=0.5, key=f"ml_th_{lname_ml}",
+                        label_visibility="collapsed",
+                    )
+                    op_ml = row[3].selectbox(
+                        "", ["solid", "cutout"],
+                        key=f"ml_op_{lname_ml}",
+                        label_visibility="collapsed",
+                    )
+                    types_ml = " ".join(
+                        f"{t}:{n}" for t, n in li_ml["types"].items() if n > 0
+                    )
+                    row[4].caption(types_ml)
+
+                    if en_ml:
+                        z0_ = z_cursor_ if op_ml == "solid" else 0.0
+                        ml_cfgs.append({
+                            "layer":     lname_ml,
+                            "height_mm": th_ml,
+                            "operation": op_ml,
+                            "z_offset":  z0_,
+                        })
+                        if op_ml == "solid":
+                            z_cursor_ += th_ml
+
+                st.divider()
+
+                if not ml_cfgs:
+                    st.info("有効なレイヤーを 1 つ以上チェックしてください。")
+                else:
+                    n_solid = sum(1 for c in ml_cfgs if c["operation"] == "solid")
+                    n_cut   = sum(1 for c in ml_cfgs if c["operation"] == "cutout")
+                    st.caption(
+                        f"選択: **{len(ml_cfgs)}** レイヤー  |  "
+                        f"solid: {n_solid}  |  cutout: {n_cut}  |  "
+                        f"積層総厚み: {z_cursor_:.1f} mm"
+                    )
+
+                    btn_stl_ml, btn_step_ml = st.columns(2)
+
+                    # ── STL (manifold3d) ───────────────────────────────────────
+                    if btn_stl_ml.button(
+                        "📦 STL を生成",
+                        type="primary",
+                        use_container_width=True,
+                        key="ml_gen_stl",
+                    ):
+                        combined_ml: list = []
+                        with st.spinner("各レイヤーのメッシュを生成中..."):
+                            for cfg_ in ml_cfgs:
+                                lps_ = extract_loops(
+                                    doc_ml, cfg_["layer"],
+                                    gap_tol=GAP_TOL_DEFAULT, auto_clean=True,
+                                )
+                                if not lps_:
+                                    st.warning(
+                                        f"レイヤー `{cfg_['layer']}`: 輪郭なし — スキップ"
+                                    )
+                                    continue
+                                m_, _ = loops_to_mesh(
+                                    lps_, cfg_["height_mm"], axis="Z"
+                                )
+                                if m_ is None:
+                                    st.warning(
+                                        f"レイヤー `{cfg_['layer']}`: メッシュ生成失敗 — スキップ"
+                                    )
+                                    continue
+                                m_ = m_.copy()
+                                m_.apply_translation([0.0, 0.0, cfg_["z_offset"]])
+                                combined_ml.append((cfg_["operation"], m_))
+
+                        if not combined_ml:
+                            st.error("有効なメッシュが1つも生成されませんでした。")
+                        else:
+                            import trimesh as _tm
+                            solids_ml = [m for op_, m in combined_ml if op_ == "solid"]
+                            if solids_ml:
+                                merged_ml = _tm.util.concatenate(solids_ml)
+                                dims_ml = merged_ml.bounds[1] - merged_ml.bounds[0]
+                                stl_buf_ml = io.BytesIO()
+                                merged_ml.export(stl_buf_ml, file_type="stl")
+                                st.success(
+                                    f"✅ STL生成完了: {len(merged_ml.faces):,} 面  |  "
+                                    f"{dims_ml[0]:.1f} × {dims_ml[1]:.1f} × {dims_ml[2]:.1f} mm  |  "
+                                    f"Watertight: {'✅' if merged_ml.is_watertight else '⚠️'}"
+                                )
+                                st.download_button(
+                                    "⬇️ マルチレイヤー STL をダウンロード",
+                                    data=stl_buf_ml.getvalue(),
+                                    file_name=(
+                                        uploaded_ml.name.replace(".dxf", "").replace(".DXF", "")
+                                        + "_multi.stl"
+                                    ),
+                                    mime="application/octet-stream",
+                                    use_container_width=True,
+                                )
+                                if any(op_ == "cutout" for op_, _ in combined_ml):
+                                    st.info(
+                                        "ℹ️ cutout レイヤーはSTLに未適用。"
+                                        "STEP版ではboolean演算で切り抜きが適用されます。"
+                                    )
+
+                    # ── STEP (gmsh OCC) ────────────────────────────────────────
+                    if btn_step_ml.button(
+                        "⚙️ STEP を生成 (gmsh OCC)",
+                        use_container_width=True,
+                        key="ml_gen_step",
+                    ):
+                        with st.spinner(
+                            "gmsh OpenCASCADE でSTEP生成中 (boolean演算含む)…"
+                        ):
+                            try:
+                                gmsh_cfgs_ = []
+                                for cfg_ in ml_cfgs:
+                                    lps_ = extract_loops(
+                                        doc_ml, cfg_["layer"],
+                                        gap_tol=GAP_TOL_DEFAULT, auto_clean=True,
+                                    )
+                                    if lps_:
+                                        gmsh_cfgs_.append({
+                                            "loops":     lps_,
+                                            "height_mm": cfg_["height_mm"],
+                                            "operation": cfg_["operation"],
+                                            "z_offset":  cfg_["z_offset"],
+                                        })
+
+                                if not gmsh_cfgs_:
+                                    st.error("有効な輪郭が1つもありません。")
+                                else:
+                                    step_bytes_ml = multilayer_to_step_gmsh(gmsh_cfgs_)
+                                    n_s = sum(1 for c in gmsh_cfgs_ if c["operation"] == "solid")
+                                    n_c = sum(1 for c in gmsh_cfgs_ if c["operation"] == "cutout")
+                                    st.success(
+                                        f"✅ STEP生成完了: {len(step_bytes_ml)/1024:.1f} KB  |  "
+                                        f"solid {n_s} 層 + cutout {n_c} 層"
+                                    )
+                                    st.download_button(
+                                        "⬇️ マルチレイヤー STEP をダウンロード",
+                                        data=step_bytes_ml,
+                                        file_name=(
+                                            uploaded_ml.name.replace(".dxf", "").replace(".DXF", "")
+                                            + "_multi.step"
+                                        ),
+                                        mime="application/octet-stream",
+                                        use_container_width=True,
+                                    )
+                            except Exception as _exc:
+                                st.error(f"STEP生成エラー:\n```\n{_exc}\n```")
+    else:
+        st.info(
+            "DXFファイルをアップロードしてください。  \n"
+            "各レイヤーに **厚み** と **演算種別**（solid / cutout）を設定し、  \n"
+            "複数パーツをひとつのSTEPファイルに結合します。"
+        )
 
 # ═══════════════════════════════════════════════════════════════════
 # TAB 1: DXF → 押し出し変換
@@ -3459,14 +3834,12 @@ with dl_col1:
     )
     st.caption(f"サイズ: {len(stl_bytes) / 1024:.1f} KB")
 
-# STEP (FreeCAD via Antigravity)
+# STEP (gmsh OCC — no FreeCAD dependency)
 with dl_col2:
     if want_step:
-        with st.spinner("FreeCAD (Antigravity) でSTEP変換中… 最大60秒"):
+        with st.spinner("gmsh OCC でSTEP変換中…"):
             try:
-                step_bytes = convert_step_via_freecad(
-                    dxf_bytes, active_layer, height_mm
-                )
+                step_bytes = loops_to_step_gmsh(loops, height_mm)
                 st.download_button(
                     label="⬇️ STEP をダウンロード",
                     data=step_bytes,
@@ -3477,7 +3850,6 @@ with dl_col2:
                 st.caption(f"サイズ: {len(step_bytes) / 1024:.1f} KB")
             except Exception as exc:
                 st.error(f"STEP変換エラー:\n```\n{exc}\n```")
-                st.info("AntigravityコンテナにFreeCADが必要です。STLはダウンロード可能です。")
     else:
         st.button(
             "STEP をダウンロード",

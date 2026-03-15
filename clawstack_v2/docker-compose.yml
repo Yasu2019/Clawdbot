@@ -579,7 +579,12 @@ services:
     volumes:
       - ./data/docling/scratch:/tmp/docling
     environment:
-      - DOCLING_SERVE_NUM_WORKERS=2
+      - DOCLING_SERVE_NUM_WORKERS=1   # インジェスト時のCPU競合防止（2→1）
+    deploy:
+      resources:
+        limits:
+          cpus: "4"
+          memory: 6g
     restart: unless-stopped
 
   # -------------------------
@@ -605,6 +610,11 @@ services:
       nofile:
         soft: 262144
         hard: 262144
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 2g
     restart: unless-stopped
 
   langfuse-db-init:

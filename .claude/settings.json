@@ -1,23 +1,12 @@
 {
   "permissions": {
     "allow": [
-      "Bash(python3 -c \":*)",
-      "Bash(python3 -c \"import sys,json; [print\\('' '',m[''name'']\\) for m in json.load\\(sys.stdin\\).get\\(''models'',[]\\)]\")",
-      "Bash(docker run --rm dxf3d_test python3 -c \":*)",
-      "Bash(docker build -t dxf3d_v2 clawstack_v2/docker/dxf3d_app/)",
-      "Bash(docker run --rm dxf3d_v2 python3 -c \":*)",
-      "Bash(docker run --rm dxf3d_v2 python3 -c \"import gmsh\")",
-      "Bash(docker run --rm dxf3d_v2 bash -c \":*)",
-      "Bash(docker run --rm dxf3d_v2 bash -c \"ldd /usr/local/lib/libgmsh.so.4.15 2>/dev/null | grep ''not found''\")",
-      "Bash(docker cp \"d:/Clawdbot_Docker_20260125/tmp/fix_p016.py\" clawstack-unified-clawdbot-gateway-1:/home/node/clawd/fix_p016.py)",
-      "Bash(docker cp \"d:/Clawdbot_Docker_20260125/data/workspace/workflow_healer.py\" clawstack-unified-clawdbot-gateway-1://home/node/clawd/workflow_healer.py)",
-      "Bash(docker cp \"d:/Clawdbot_Docker_20260125/tmp/create_healer_workflow.py\" clawstack-unified-clawdbot-gateway-1://home/node/clawd/create_healer_workflow.py)",
-      "Bash(python3 -c \"import json,sys; [print\\(m[''Source''],''→'',m[''Destination'']\\) for m in json.load\\(sys.stdin\\)]\")",
-      "Bash(echo \"exit: $?\")",
-      "Read(//d/Clawdbot_Docker_20260125/**)",
-      "Bash(python3 /tmp/update_healer_cmd.py)",
-      "Bash(docker restart searxng)",
-      "Bash(__NEW_LINE_53f753daf0197881__ echo \"\")"
+      "Bash(*)",
+      "Read",
+      "Edit",
+      "Write",
+      "WebFetch",
+      "WebSearch"
     ],
     "additionalDirectories": [
       "\\tmp"

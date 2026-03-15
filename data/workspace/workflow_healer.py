@@ -6,7 +6,7 @@ Runs every 15 minutes via n8n Schedule Trigger.
 
 Strategy per failing workflow:
   Attempt 1-2 : Simple restart (disable → enable)
-  Attempt 3-4 : LLM repair (Ollama qwen2.5-coder:7b fixes Code node JS)
+  Attempt 3-4 : LLM repair (local Ollama code model fixes Code node JS)
   Attempt 5+  : Escalate to user (Telegram), stop auto-repair
 
 All events are reported to Telegram.
@@ -26,7 +26,7 @@ from pathlib import Path
 N8N_BASE     = "http://n8n:5678/api/v1"
 N8N_API_KEY  = "n8n_api_clawstack_f39c126b684f59ab50cc3fdedd82891086bfc633601067c9"
 OLLAMA_BASE  = "http://ollama:11434"
-OLLAMA_MODEL = "qwen2.5-coder:7b"
+OLLAMA_MODEL = os.getenv("OLLAMA_CODE_MODEL", "qwen2.5-coder:14b")
 TELEGRAM_BOT = "8085717200:AAHzacN6Q3xSunrLyvUTuHnKEf7Cd5YFdt4"
 TELEGRAM_CID = "8173025084"
 REPAIR_STATE_FILE = Path("/home/node/clawd/repair_state.json")
@@ -181,7 +181,7 @@ def apply_code_fix(wf_id: str, node_name: str, new_code: str) -> bool:
 
 def llm_fix_js_code(node_name: str, current_code: str, error_msg: str) -> str | None:
     """
-    Ask Ollama qwen2.5-coder:7b to fix a broken n8n Code node JS snippet.
+    Ask the local Ollama code model to fix a broken n8n Code node JS snippet.
     Returns fixed code string, or None on failure.
     """
     prompt = f"""You are fixing a broken n8n Code node (JavaScript).
@@ -421,7 +421,7 @@ def dry_run():
             elif attempts < MAX_SIMPLE_ATTEMPTS:
                 print(f"          → DRY: restart workflow")
             else:
-                print(f"          → DRY: LLM repair (qwen2.5-coder:7b)")
+                print(f"          → DRY: LLM repair ({OLLAMA_MODEL})")
             issues.append(wf_name)
         else:
             print(f"  [OK]    {wf_name}  latest={latest}")

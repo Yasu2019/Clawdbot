@@ -18,6 +18,7 @@ data/state/openclaw.json
 data/state/claude.json
 data/state/claude_config/
 .claude/settings.local.json
+.brv/
 
 # ============================================================
 # RUNTIME DATA (大容量・動的データ、Git管理不要)

@@ -7,7 +7,7 @@ import time
 # Configuration
 PDF_PATH = r"D:\Clawdbot_Docker_20260125\clawstack_v2\data\paperless\consume\Tolerance Analysis\Mechanical Tolerance Stackup and Analysis, Second Edition   Bryan R． Fischer 508p_1439815720.pdf"
 OUTPUT_MD = r"C:\Users\yasu\.gemini\antigravity\brain\e25395bc-9419-4cc7-a191-c014047344f2\Mechanical_Tolerance_Stackup_Knowledge.md"
-MODEL = "deepseek-r1:14b"
+MODEL = os.getenv("OLLAMA_GEN_MODEL", "qwen3:14b")
 OLLAMA_API = "http://localhost:11434/api/generate"
 CHUNK_SIZE_PAGES = 5  # Number of pages to process at once
 

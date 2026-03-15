@@ -11,7 +11,7 @@ const SCOPES = [
 ];
 const TOKEN_PATH = path.join(__dirname, '../token.json');
 const CREDENTIALS_PATH = path.join(__dirname, '../credentials.json');
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const LOCAL_EMAIL_MODEL = process.env.OLLAMA_GEN_MODEL || 'qwen3:8b';
 
 // Logging Helper
 async function logWork(status, details) {
@@ -22,7 +22,7 @@ async function logWork(status, details) {
 
 ## 📅 Basic Info
 - **Time:** ${new Date().toISOString()}
-- **Model:** gemini-2.0-flash
+- **Model:** ${LOCAL_EMAIL_MODEL}
 - **Status:** ${status}
 
 ## 📝 Details
@@ -79,7 +79,7 @@ async function saveCredentials(client) {
 
 // DeepSeek-R1 Parse via Ollama (Local LLM)
 const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || 'http://host.docker.internal:11434';
-const DEEPSEEK_MODEL = 'deepseek-r1-turbo';
+const DEEPSEEK_MODEL = process.env.OLLAMA_GEN_MODEL || 'qwen3:8b';
 
 async function parseEmailWithDeepSeek(subject, body) {
     const prompt = `

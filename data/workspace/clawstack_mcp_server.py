@@ -30,6 +30,7 @@ INFINITY_URL  = os.getenv("INFINITY_URL",  "http://infinity:7997")
 QDRANT_URL    = os.getenv("QDRANT_URL",    "http://qdrant:6333")
 SEARXNG_URL   = os.getenv("SEARXNG_URL",   "http://searxng:8080")
 OLLAMA_URL    = os.getenv("OLLAMA_URL",    "http://ollama:11434")
+TRANSLATE_MODEL = os.getenv("OLLAMA_GEN_MODEL", "qwen3:8b")
 EMBED_MODEL   = "mxbai-embed-large-v1"
 DEFAULT_COLL  = "universal_knowledge"
 
@@ -52,7 +53,7 @@ def _translate_query(query: str, collection: str) -> str:
         resp = requests.post(
             f"{OLLAMA_URL}/api/generate",
             json={
-                "model": "qwen2.5-coder:7b",
+                "model": TRANSLATE_MODEL,
                 "prompt": (
                     "Translate this Japanese technical query to English. "
                     "Return only the translation, no explanation:\n" + query

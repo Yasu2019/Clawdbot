@@ -11,7 +11,7 @@ import docx
 import openpyxl
 
 # --- CONFIG ---
-OLLAMA_URL = "http://ollama:11434"
+OLLAMA_URL = os.getenv("OLLAMA_URL", "http://ollama:11434")
 QDRANT_URL = "http://qdrant:6333"
 WORK_DIR = "/work/qa_reports" # Reports
 CONSUME_DIR = "/consume" # Paperless Input
@@ -21,8 +21,8 @@ INGEST_DIR = os.path.join(CONSUME_DIR, "PFMEA_5WHY_FTA_etc")
 WIP_DIR = os.path.join(CONSUME_DIR, "WIP")
 KINDLE_DIR = os.path.join(CONSUME_DIR, "Kindle")
 
-GEN_MODEL = "deepseek-r1:14b"
-EMBED_MODEL = "nomic-embed-text" 
+GEN_MODEL = os.getenv("OLLAMA_GEN_MODEL", "qwen3:14b")
+EMBED_MODEL = os.getenv("OLLAMA_EMBED_MODEL", "nomic-embed-text")
 COLLECTION_NAME = "iatf_knowledge"
 
 for d in [WORK_DIR, INGEST_DIR, WIP_DIR, KINDLE_DIR]:

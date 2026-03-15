@@ -19,12 +19,13 @@ translate_query.py — 日→英クエリ翻訳 CLI (RAG品質向上)
 
 import argparse
 import json
+import os
 import sys
 import urllib.request
 import urllib.error
 
 OLLAMA_BASE = "http://ollama:11434"
-DEFAULT_MODEL = "qwen2.5-coder:7b"
+DEFAULT_MODEL = os.getenv("OLLAMA_GEN_MODEL", "qwen3:8b")
 
 SYSTEM_PROMPT = """\
 You are a technical translation assistant specialized in manufacturing engineering, \

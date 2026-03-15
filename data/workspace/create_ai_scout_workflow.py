@@ -3,6 +3,7 @@ n8n AI Scout Workflow Creator
 毎日、AI新モデル・ツールを検索してTelegramに通知するワークフローを作成する
 """
 import json
+import os
 import requests
 
 N8N_URL = "http://localhost:5679"
@@ -11,6 +12,7 @@ HEADERS = {"X-N8N-API-KEY": API_KEY, "Content-Type": "application/json"}
 
 TELEGRAM_BOT_TOKEN = "8085717200:AAHzacN6Q3xSunrLyvUTuHnKEf7Cd5YFdt4"
 TELEGRAM_CHAT_ID = "8173025084"
+SUMMARY_MODEL = os.getenv("AI_SCOUT_MODEL", "ollama/qwen3:8b")
 
 # Search queries for AI Scout
 SEARCH_QUERIES = [
@@ -218,10 +220,10 @@ return [{ json: { summary_input: results.slice(0, 20).join('\\n') } }];
 """
             }
         },
-        # 9. LiteLLM (Gemini) - AI Summary
+        # 9. LiteLLM (local Ollama) - AI Summary
         {
             "id": "node-llm",
-            "name": "Gemini Summary",
+            "name": "Local Summary",
             "type": "n8n-nodes-base.httpRequest",
             "typeVersion": 4.2,
             "position": [880, 40],
@@ -309,9 +311,9 @@ return [{
             "main": [[{"node": "Aggregate Results", "type": "main", "index": 0}]]
         },
         "Aggregate Results": {
-            "main": [[{"node": "Gemini Summary", "type": "main", "index": 0}]]
+            "main": [[{"node": "Local Summary", "type": "main", "index": 0}]]
         },
-        "Gemini Summary": {
+        "Local Summary": {
             "main": [[{"node": "Extract AI Report", "type": "main", "index": 0}]]
         },
         "Extract AI Report": {
@@ -319,6 +321,11 @@ return [{
         }
     }
 }
+
+for node in workflow["nodes"]:
+    if node.get("id") == "node-llm":
+        body = node["parameters"].get("body", "")
+        node["parameters"]["body"] = body.replace("google/gemini-2.5-flash", SUMMARY_MODEL)
 
 resp = requests.post(
     f"{N8N_URL}/api/v1/workflows",

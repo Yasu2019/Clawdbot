@@ -5,6 +5,7 @@ Usage: python3 /home/node/clawd/rag_search.py "your question here" [--collection
 """
 import sys
 import argparse
+import os
 import requests
 
 # === Endpoint config (Docker internal network) ===
@@ -12,7 +13,7 @@ INFINITY_URL      = "http://infinity:7997/embeddings"
 OLLAMA_EMBED_URL  = "http://ollama:11434/api/embeddings"
 OLLAMA_CHAT_URL   = "http://ollama:11434/api/chat"
 QDRANT_URL        = "http://qdrant:6333"
-TRANSLATE_MODEL   = "qwen2.5-coder:7b"
+TRANSLATE_MODEL   = os.getenv("OLLAMA_GEN_MODEL", "qwen3:8b")
 TRANSLATE_SYSTEM  = (
     "You are a technical translation assistant. Translate the Japanese query to English "
     "for searching English-language engineering documents. Output ONLY the English "

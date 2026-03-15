@@ -13,6 +13,7 @@ model_check.py — モデル疎通確認 CLI
 
 import argparse
 import json
+import os
 import sys
 import time
 import urllib.request
@@ -24,11 +25,13 @@ JST = timezone(timedelta(hours=9))
 LITELLM_BASE = "http://litellm:4000"
 OLLAMA_BASE  = "http://ollama:11434"
 INFINITY_URL = "http://infinity:7997"
+PRIMARY_MODEL = os.getenv("OLLAMA_GEN_MODEL", "qwen3:8b")
+CODE_MODEL = os.getenv("OLLAMA_CODE_MODEL", "qwen2.5-coder:14b")
 
 # LiteLLM 経由でテストするモデル (実際の短いプロンプト)
 LITELLM_TEST_MODELS = [
-    {"id": "google/gemini-2.5-flash",   "label": "Gemini 2.5 Flash (primary)"},
-    {"id": "ollama/qwen2.5-coder:7b",   "label": "qwen2.5-coder:7b (fallback)"},
+    {"id": f"ollama/{PRIMARY_MODEL}",   "label": f"{PRIMARY_MODEL} (primary)"},
+    {"id": f"ollama/{CODE_MODEL}",      "label": f"{CODE_MODEL} (code fallback)"},
 ]
 
 # Embedding モデルのテスト
