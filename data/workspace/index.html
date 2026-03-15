@@ -652,6 +652,90 @@
                 <span class="status-indicator"><span class="status-dot"></span>Ready</span>
             </div>
         </a>
+
+        <!-- Uptime Kuma -->
+        <a href="http://localhost:3010" class="card" target="_blank">
+            <img class="card-icon-img" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@main/png/uptime-kuma.png"
+                onerror="this.outerHTML='<span class=card-icon>📡</span>'" alt="Uptime Kuma">
+            <h2 class="card-title">Uptime Kuma</h2>
+            <p class="card-desc">全サービスの死活監視・応答時間グラフ・ダウン時アラート通知。初回アクセス時にアカウント作成。</p>
+            <div class="card-meta">
+                <span class="port-badge">Port 3010</span>
+                <span class="status-indicator"><span class="status-dot"></span>Running</span>
+            </div>
+        </a>
+
+        <!-- Grafana -->
+        <a href="http://localhost:3012" class="card" target="_blank">
+            <img class="card-icon-img" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@main/png/grafana.png"
+                onerror="this.outerHTML='<span class=card-icon>📈</span>'" alt="Grafana">
+            <h2 class="card-title">Grafana</h2>
+            <p class="card-desc">LiteLLM・Qdrant・Ollamaのメトリクスをリアルタイム可視化。ダッシュボードでLLMコスト・負荷を把握。(admin / clawstack2026)</p>
+            <div class="card-meta">
+                <span class="port-badge">Port 3012</span>
+                <span class="status-indicator"><span class="status-dot"></span>Running</span>
+            </div>
+        </a>
+
+        <!-- Prometheus -->
+        <a href="http://localhost:9090" class="card" target="_blank">
+            <img class="card-icon-img" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@main/png/prometheus.png"
+                onerror="this.outerHTML='<span class=card-icon>🔥</span>'" alt="Prometheus">
+            <h2 class="card-title">Prometheus</h2>
+            <p class="card-desc">メトリクス収集エンジン。LiteLLM・Qdrant・Ollamaのデータを30日間保持。Grafanaのデータソース。</p>
+            <div class="card-meta">
+                <span class="port-badge">Port 9090</span>
+                <span class="status-indicator"><span class="status-dot"></span>Running</span>
+            </div>
+        </a>
+
+        <!-- NocoDB -->
+        <a href="http://localhost:8093" class="card" target="_blank">
+            <img class="card-icon-img" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@main/png/nocodb.png"
+                onerror="this.outerHTML='<span class=card-icon>🗄️</span>'" alt="NocoDB">
+            <h2 class="card-title">NocoDB</h2>
+            <p class="card-desc">SQLite・PostgreSQLをスプレッドシート感覚で閲覧・編集。メール解析DBやシステムDBをGUI操作。</p>
+            <div class="card-meta">
+                <span class="port-badge">Port 8093</span>
+                <span class="status-indicator"><span class="status-dot"></span>Running</span>
+            </div>
+        </a>
+
+        <!-- Crawl4AI -->
+        <a href="http://localhost:8094" class="card" target="_blank">
+            <img class="card-icon-img" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@main/png/chromium.png"
+                onerror="this.outerHTML='<span class=card-icon>🕷️</span>'" alt="Crawl4AI">
+            <h2 class="card-title">Crawl4AI</h2>
+            <p class="card-desc">AI最適化Webスクレイピング。WebページをMarkdown変換してRAGデータ収集。エージェントが自律的に利用。</p>
+            <div class="card-meta">
+                <span class="port-badge">Port 8094</span>
+                <span class="status-indicator"><span class="status-dot"></span>Running</span>
+            </div>
+        </a>
+
+        <!-- Mailpit -->
+        <a href="http://localhost:8025" class="card" target="_blank">
+            <img class="card-icon-img" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@main/png/mailpit.png"
+                onerror="this.outerHTML='<span class=card-icon>📬</span>'" alt="Mailpit">
+            <h2 class="card-title">Mailpit</h2>
+            <p class="card-desc">SMTPメールテスト受信ボックス。n8nやアプリからの送信メールをキャプチャして確認。SMTP: localhost:1025</p>
+            <div class="card-meta">
+                <span class="port-badge">Port 8025</span>
+                <span class="status-indicator"><span class="status-dot"></span>Running</span>
+            </div>
+        </a>
+
+        <!-- Excalidraw -->
+        <a href="http://localhost:3013" class="card" target="_blank">
+            <img class="card-icon-img" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@main/png/excalidraw.png"
+                onerror="this.outerHTML='<span class=card-icon>✏️</span>'" alt="Excalidraw">
+            <h2 class="card-title">Excalidraw</h2>
+            <p class="card-desc">ブラウザで動くホワイトボード。システム構成図・フローチャート・手書きメモをオフラインで作成・共有。</p>
+            <div class="card-meta">
+                <span class="port-badge">Port 3013</span>
+                <span class="status-indicator"><span class="status-dot"></span>Running</span>
+            </div>
+        </a>
     </div>
 </body>
 
