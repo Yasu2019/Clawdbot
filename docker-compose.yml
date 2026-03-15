@@ -43,6 +43,19 @@ services:
       - REDIS_URL=redis://redis:6379/0
       - N8N_MCP_URL=http://n8n:5678/mcp-server/http
       - N8N_MCP_KEY=${N8N_MCP_KEY}
+      # Addon service URLs (Docker network)
+      - UPTIME_KUMA_URL=http://uptime-kuma:3001
+      - GRAFANA_URL=http://grafana:3000
+      - PROMETHEUS_URL=http://prometheus:9090
+      - NOCODB_URL=http://nocodb:8080
+      - MAILPIT_URL=http://mailpit:8025
+      - MAILPIT_SMTP=smtp://mailpit:1025
+      - CRAWL4AI_URL=http://crawl4ai:11235
+      - LIBRETRANSLATE_URL=http://libretranslate:5000
+      - OUTLINE_URL=http://outline:3000
+      - WHISHPER_URL=http://whishper:8080
+      - LANGFUSE_URL=http://langfuse:3000
+      - DOCLING_URL=http://docling:5001
       # Browser-facing URLs (host.docker.internal — used by openclaw browser)
       - PORTAL_URL=http://host.docker.internal:8088/portal.html
       - BROWSER_N8N_URL=http://host.docker.internal:5679

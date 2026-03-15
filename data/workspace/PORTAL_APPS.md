@@ -521,6 +521,82 @@ python3 /home/node/clawd/scripts/your_script.py
 
 ---
 
+## サービス連携マップ（相互強化）
+
+各サービスは単独ではなく、以下のパイプラインで最大効果を発揮します。
+
+### 📥 ドキュメント取込パイプライン
+```
+Paperless (スキャン受信)
+  → Docling (PDF→Markdown高精度変換)
+  → ingest_watchdog.py (自動インジェスト)
+  → Infinity (Embeddingベクトル化)
+  → Qdrant universal_knowledge (RAG検索DB)
+  → OpenClaw agent (知識活用)
+```
+
+### 🌐 Web情報収集パイプライン
+```
+Crawl4AI (Webページ→Markdown変換)
+  → LiteLLM (Gemini/Ollama で要約・構造化)
+  → Qdrant (RAG格納)
+  → OpenClaw (質問応答・レポート)
+```
+
+### 📧 メール処理パイプライン
+```
+メール受信 → ingest_eml_v2.py
+  → LibreTranslate (日英翻訳)
+  → LiteLLM/Gemini (感情分析・分類)
+  → PostgreSQL (email_analysis.db)
+  → Metabase (BIダッシュボード可視化)
+  → NocoDB (スプレッドシート閲覧・編集)
+```
+
+### 🎙️ 音声処理パイプライン
+```
+Whishper (音声ファイル → テキスト)
+  → LibreTranslate (自動日本語翻訳)
+  → Outline Wiki (議事録・ノウハウ格納)
+  → RAGインジェスト → Qdrant
+```
+
+### 📊 監視・可視化パイプライン
+```
+Prometheus (LiteLLM/Qdrant/Ollama メトリクス収集)
+  → Grafana (リアルタイムダッシュボード)
+  → Uptime Kuma (死活監視・アラート)
+  → Dozzle (コンテナログリアルタイム表示)
+  → Portainer (コンテナ管理UI)
+```
+
+### 🔧 自律修復パイプライン
+```
+P017 Workflow Self-Healer (n8n, 15分毎)
+  → workflow_healer.py (異常検知)
+  → qwen2.5-coder:7b via Ollama (LLM修復)
+  → Telegram通知 + Langfuse (修復ログ記録)
+```
+
+### サービス別 内部URL（エージェント用）
+
+| サービス | 内部URL | 主な連携先 |
+|---|---|---|
+| Docling | `http://docling:5001` | Paperless, RAGインジェスト |
+| Crawl4AI | `http://crawl4ai:11235` | LiteLLM, Qdrant |
+| LibreTranslate | `http://libretranslate:5000` | Whishper, メール解析 |
+| Mailpit SMTP | `smtp://mailpit:1025` | Outline認証, n8n通知 |
+| Prometheus | `http://prometheus:9090` | Grafana |
+| Grafana | `http://grafana:3000` | ダッシュボード (admin/clawstack2026) |
+| Uptime Kuma | `http://uptime-kuma:3001` | 全サービス死活監視 |
+| NocoDB | `http://nocodb:8080` | PostgreSQL, SQLite GUIビューア |
+| Metabase | `http://metabase:3000` | PostgreSQL, メール解析DB |
+| Langfuse | `http://langfuse:3000` | LLMトレース・コスト可視化 |
+| Outline | `http://outline:3000` | Mailpit SMTP, チームWiki |
+| Whishper | `http://whishper:8080` | LibreTranslate, 議事録変換 |
+
+---
+
 ## 操作の優先順位
 
 1. **REST API** が利用可能な場合は API 優先（高速・確実）

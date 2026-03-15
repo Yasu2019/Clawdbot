@@ -104,20 +104,43 @@ def check_system_health():
     # 2-A サービスエンドポイント稼働確認（HTTP）
     info("[サービスヘルス]")
     endpoints = [
+        # Core AI & Orchestration
         ("OpenClaw Gateway",  "http://clawdbot-gateway:18789"),
         ("LiteLLM",           "http://litellm:4000"),
         ("Ollama",            "http://ollama:11434"),
         ("Infinity",          "http://infinity:7997/health"),
         ("Qdrant",            "http://qdrant:6333"),
+        # Document & Search
         ("Paperless",         "http://paperless:8000"),
+        ("Docling",           "http://docling:5001/health"),
+        ("SearXNG",           "http://searxng:8080"),
+        # Automation & UI
         ("n8n",               "http://n8n:5678"),
         ("Node-RED",          "http://nodered:1880"),
-        ("SearXNG",           "http://searxng:8080"),
-        ("MinIO",             "http://minio:9000"),
-        ("Langfuse",          "http://langfuse:3000"),
-        ("Docling",           "http://docling:5001/health"),
-        ("Immich",            "http://immich_server:2283"),
         ("Open WebUI",        "http://open_webui:8080"),
+        # Storage & Infra
+        ("MinIO",             "http://minio:9000"),
+        ("Immich",            "http://immich_server:2283"),
+        # Observability
+        ("Langfuse",          "http://langfuse:3000"),
+        ("Prometheus",        "http://prometheus:9090"),
+        ("Grafana",           "http://grafana:3000"),
+        ("Uptime Kuma",       "http://uptime-kuma:3001"),
+        # Data & BI
+        ("NocoDB",            "http://nocodb:8080"),
+        ("Metabase",          "http://metabase:3000"),
+        # Dev Tools & Utilities
+        ("Mailpit",           "http://mailpit:8025"),
+        ("Excalidraw",        "http://excalidraw:80"),
+        ("Dozzle",            "http://dozzle:8080"),
+        ("Portainer",         "http://portainer:9000"),
+        ("IT-Tools",          "http://it-tools:80"),
+        # AI Enrichment
+        ("LibreTranslate",    "http://libretranslate:5000"),
+        ("Crawl4AI",          "http://crawl4ai:11235"),
+        ("Whishper",          "http://whishper:8080"),
+        # Knowledge
+        ("Outline",           "http://outline:3000"),
     ]
     down_services = []
     for name, url in endpoints:
