@@ -360,6 +360,54 @@ openclaw browser type <ref> "入力テキスト"
 
 ---
 
+### 18. Uptime Kuma (稼働監視) — Port 3010
+
+- **URL**: `http://localhost:3010`
+- **用途**: 全サービスの死活監視・応答時間グラフ・アラート通知
+- **初回設定**: ブラウザでアクセスしてアカウント作成
+
+### 19. Crawl4AI (AI Webスクレイピング) — Port 8094
+
+- **URL**: `http://localhost:8094`
+- **API**: `POST http://crawl4ai:11235/crawl`
+- **用途**: Webページを AI 最適化 Markdown に変換・RAG 用データ収集
+```bash
+curl -X POST http://localhost:8094/crawl \
+  -H "Content-Type: application/json" \
+  -d '{"urls":["https://example.com"],"priority":10}'
+```
+
+### 20. Prometheus (メトリクス収集) — Port 9090
+
+- **URL**: `http://localhost:9090`
+- **用途**: LiteLLM・Qdrant・Ollama のメトリクス収集・クエリ
+- **スクレイプ対象**: litellm:4000/metrics, qdrant:6333/metrics, ollama:11434/metrics
+
+### 21. Grafana (メトリクス可視化) — Port 3012
+
+- **URL**: `http://localhost:3012`
+- **認証**: admin / clawstack2026
+- **用途**: Prometheus データのダッシュボード表示・LLMコスト・Qdrant 負荷の可視化
+
+### 22. NocoDB (DB UIビューア) — Port 8093
+
+- **URL**: `http://localhost:8093`
+- **用途**: SQLite/PostgreSQL をスプレッドシート感覚で閲覧・編集
+- **接続可能DB**: email_analysis.db・PostgreSQL (clawstack)
+
+### 23. Mailpit (メールテスト) — Port 8025 / SMTP 1025
+
+- **URL**: `http://localhost:8025`
+- **SMTP**: `mailpit:1025` (Docker内部)
+- **用途**: n8n・アプリからのメール送信テスト・受信確認
+
+### 24. Excalidraw (ホワイトボード) — Port 3013
+
+- **URL**: `http://localhost:3013`
+- **用途**: システム構成図・フローチャート・手書きメモ作成（ブラウザのみ・オフライン動作）
+
+---
+
 ### 17. Local HTML Apps (ポータル内 apps/ ディレクトリ)
 
 - Tolerance Center: `http://host.docker.internal:8088/apps/tolerance_hub/index.html`
