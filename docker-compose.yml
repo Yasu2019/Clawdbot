@@ -687,7 +687,8 @@ services:
       - WATCHTOWER_SCHEDULE=0 0 3 * * *
       - WATCHTOWER_CLEANUP=true
       - WATCHTOWER_INCLUDE_STOPPED=false
-      - WATCHTOWER_NOTIFICATION_URL=ntfys://clawstack-ntfy@ntfy/watchtower
+      - WATCHTOWER_NO_STARTUP_MESSAGE=true
+      - DOCKER_API_VERSION=1.44
     restart: unless-stopped
 
   # ============================================================
@@ -706,6 +707,7 @@ services:
     volumes:
       - ./clawstack_v2/data/whishper/uploads:/app/uploads
       - ./clawstack_v2/data/whishper/models:/app/models
+      - ./clawstack_v2/data/whishper/logs:/var/log/whishper
     environment:
       - PUBLIC_INTERNAL_API_HOST=http://whishper:8080
       - PUBLIC_WHISHPER_MODEL=small
