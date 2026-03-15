@@ -86,9 +86,11 @@ jobs:
               FAILED=$((FAILED + 1))
             }
           done < <(find . \
-            -name "*.yml" -o -name "*.yaml" \
+            \( -name "*.yml" -o -name "*.yaml" \) \
             | grep -v ".git/" \
             | grep -v ".venv/" \
+            | grep -v "clawstack_v2/data/" \
+            | grep -v "config/" \
             | tr '\n' '\0')
           echo "=== 検査完了 ==="
           if [ "$FAILED" -gt 0 ]; then

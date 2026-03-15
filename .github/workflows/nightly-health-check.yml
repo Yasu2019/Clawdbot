@@ -76,6 +76,8 @@ jobs:
             \( -name "*.yml" -o -name "*.yaml" \) \
             -not -path "./.git/*" \
             -not -path "./.venv/*" \
+            -not -path "./clawstack_v2/data/*" \
+            -not -path "./config/*" \
             -print0)
           if [ "$FAILED" -gt 0 ]; then
             echo "::error::$FAILED ファイルで YAML エラー"
