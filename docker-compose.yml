@@ -1,5 +1,14 @@
 name: clawstack-unified
 
+# ── 共通ネットワーク（明示定義）───────────────────────────────────────────────
+# 全サービスがデフォルトでこのネットワークに参加する。
+# docker-compose.addons.yml は networks.clawstack.name でこのネットワークを external: true で参照していたが
+# 本ファイルに統合済みのため addons.yml は不要。
+networks:
+  default:
+    name: clawstack-unified
+    driver: bridge
+
 services:
   # ============================================================
   # 1. CORE AGENT & ORCHESTRATION
@@ -202,35 +211,19 @@ services:
     restart: unless-stopped
 
   # ============================================================
-  # 4. CONTENT & AI SUITE (TEMPORARILY DISABLED DUE TO REGISTRY ISSUES)
+  # 4. CONTENT TOOLS
   # ============================================================
-  # stirling_pdf:
-  #   image: froodleb/s-pdf:latest
-  #   ports:
-  #     - "127.0.0.1:8085:8080"
-  #   environment:
-  #     - DOCKER_ENABLE_SECURITY=false
-  #   volumes:
-  #     - ./clawstack_v2/data/stirling_pdf/trainingData:/usr/src/app/trainingData
-  #     - ./clawstack_v2/data/stirling_pdf/extraConfigs:/usr/src/app/configs
-  #   networks:
-  #     - clawstack_default
-  #   restart: unless-stopped
-
-  # stable_diffusion:
-  #   image: lscr.io/linuxserver/stable-diffusion-webui:latest
-  #   ports:
-  #     - "127.0.0.1:7861:7860"
-  #   volumes:
-  #     - ./clawstack_v2/data/stable_diffusion/config:/config
-  #     - ./clawstack_v2/data/stable_diffusion/models:/models
-  #   environment:
-  #     - PUID=1000
-  #     - PGID=1000
-  #     - TZ=${TZ}
-  #   networks:
-  #     - clawstack_default
-  #   restart: unless-stopped
+  stirling_pdf:
+    image: stirlingtools/stirling-pdf:latest
+    ports:
+      - "127.0.0.1:8085:8080"
+    environment:
+      - DOCKER_ENABLE_SECURITY=false
+      - LANGS=en_GB
+    volumes:
+      - ./clawstack_v2/data/stirling_pdf/trainingData:/usr/share/tessdata
+      - ./clawstack_v2/data/stirling_pdf/extraConfigs:/configs
+    restart: unless-stopped
 
   # ============================================================
   # 5. CAE & SIMULATION (From clawstack_v2)
@@ -370,11 +363,13 @@ services:
       - minigame_db_data:/var/lib/postgresql/data
     ports:
       - "127.0.0.1:5442:5432"
+    restart: unless-stopped
 
   redis_minigame:
     image: redis:7
     ports:
       - "127.0.0.1:6389:6379"
+    restart: unless-stopped
 
   minigame_api:
     build: ./data/workspace/apps/minigame_factory/apps/api
@@ -402,6 +397,7 @@ services:
       - "127.0.0.1:3100:3000"
     depends_on:
       - minigame_api
+    restart: unless-stopped
 
   # ============================================================
   # 8. VOICE & SIMULATION
@@ -545,7 +541,7 @@ services:
       - ./clawstack_v2/data/grafana:/var/lib/grafana
     environment:
       - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=clawstack2026
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-clawstack2026}
       - GF_USERS_ALLOW_SIGN_UP=false
       - GF_SERVER_ROOT_URL=http://localhost:3012
     depends_on:
@@ -668,7 +664,7 @@ services:
     environment:
       - SECRET_KEY=7187e1c1c316940dddc40623e7c650245ad6d6fd4b20ee9dbd0525240822360a
       - UTILS_SECRET=b761642cc171355ad373605f5202739169378f913f3468c055235d72b2600a9f
-      - DATABASE_URL=postgres://postgres:change_me@postgres:5432/outline
+      - DATABASE_URL=postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432/outline
       - REDIS_URL=redis://redis:6379
       - URL=http://localhost:3015
       - FORCE_HTTPS=false
@@ -734,5 +730,229 @@ services:
       - libretranslate
     restart: unless-stopped
 
+  # ============================================================
+  # 28. DXF → 3D CONVERTER (clawstack_v2 統合)
+  # ============================================================
+  dxf3d_app:
+    build: ./clawstack_v2/docker/dxf3d_app
+    ports:
+      - "127.0.0.1:8003:8002"
+    volumes:
+      - ./clawstack_v2/data/work:/work
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+
+  # ============================================================
+  # 29. DOCUMENT PARSER (clawstack_v2 統合)
+  # API: POST http://localhost:8087/v1/convert/source
+  # ============================================================
+  docling:
+    image: quay.io/docling-project/docling-serve:latest
+    ports:
+      - "127.0.0.1:8087:5001"
+    volumes:
+      - ./clawstack_v2/data/docling/scratch:/tmp/docling
+    environment:
+      - DOCLING_SERVE_NUM_WORKERS=1
+    deploy:
+      resources:
+        limits:
+          cpus: "4"
+          memory: 6g
+    restart: unless-stopped
+
+  # ============================================================
+  # 30. LANGFUSE — LLM可観測性・トレーシング (clawstack_v2 統合)
+  # UI: http://localhost:3001  Login: y.suzuki.hk@gmail.com / clawstack2026
+  # ============================================================
+  clickhouse:
+    image: clickhouse/clickhouse-server:24.8
+    user: root
+    ports:
+      - "127.0.0.1:8123:8123"
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+    environment:
+      - CLICKHOUSE_DB=langfuse
+      - CLICKHOUSE_USER=langfuse
+      - CLICKHOUSE_PASSWORD=langfuse
+      - CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT=1
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 2g
+    restart: unless-stopped
+
+  langfuse-db-init:
+    image: postgres:16
+    command: >
+      sh -c "until pg_isready -h postgres -U postgres; do sleep 1; done;
+             psql -h postgres -U postgres -c 'CREATE DATABASE langfuse;' || true"
+    environment:
+      - PGPASSWORD=${POSTGRES_PASSWORD}
+    depends_on:
+      - postgres
+    restart: "no"
+
+  langfuse:
+    image: langfuse/langfuse:3.37.0
+    ports:
+      - "127.0.0.1:3001:3000"
+    depends_on:
+      langfuse-db-init:
+        condition: service_completed_successfully
+      clickhouse:
+        condition: service_started
+      redis:
+        condition: service_started
+    environment:
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/langfuse
+      - CLICKHOUSE_URL=http://clickhouse:8123
+      - CLICKHOUSE_MIGRATION_URL=clickhouse://langfuse:langfuse@clickhouse:9000/langfuse
+      - CLICKHOUSE_USER=langfuse
+      - CLICKHOUSE_PASSWORD=langfuse
+      - CLICKHOUSE_CLUSTER_ENABLED=false
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - NEXTAUTH_SECRET=clawstack_langfuse_auth_2026
+      - NEXTAUTH_URL=http://localhost:3001
+      - ENCRYPTION_KEY=3f8a2b4c9e1d7f6a5c8b2e3d9f1a7c4b6e8d2f5a3c9b7e1d4f8a6c2b9e7d5f3a
+      - SALT=clawstack_langfuse_salt_2026
+      - TELEMETRY_ENABLED=false
+      - NEXT_PUBLIC_LANGFUSE_RUN_NEXT_INIT=false
+      - REDIS_AUTH=
+      - LANGFUSE_DEFAULT_TTL_DAYS=90
+      - LANGFUSE_S3_EVENT_UPLOAD_BUCKET=langfuse-events
+      - LANGFUSE_S3_EVENT_UPLOAD_ENDPOINT=http://minio:9000
+      - LANGFUSE_S3_EVENT_UPLOAD_ACCESS_KEY_ID=${MINIO_ROOT_USER}
+      - LANGFUSE_S3_EVENT_UPLOAD_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD}
+      - LANGFUSE_S3_EVENT_UPLOAD_REGION=us-east-1
+      - LANGFUSE_S3_EVENT_UPLOAD_FORCE_PATH_STYLE=true
+      - LANGFUSE_S3_MEDIA_UPLOAD_BUCKET=langfuse-events
+      - LANGFUSE_S3_MEDIA_UPLOAD_ENDPOINT=http://minio:9000
+      - LANGFUSE_S3_MEDIA_UPLOAD_ACCESS_KEY_ID=${MINIO_ROOT_USER}
+      - LANGFUSE_S3_MEDIA_UPLOAD_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD}
+      - LANGFUSE_S3_MEDIA_UPLOAD_REGION=us-east-1
+      - LANGFUSE_S3_MEDIA_UPLOAD_FORCE_PATH_STYLE=true
+    restart: unless-stopped
+
+  langfuse-worker:
+    image: langfuse/langfuse-worker:3.37.0
+    depends_on:
+      langfuse-db-init:
+        condition: service_completed_successfully
+      clickhouse:
+        condition: service_started
+      redis:
+        condition: service_started
+    environment:
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/langfuse
+      - CLICKHOUSE_URL=http://clickhouse:8123
+      - CLICKHOUSE_MIGRATION_URL=clickhouse://langfuse:langfuse@clickhouse:9000/langfuse
+      - CLICKHOUSE_USER=langfuse
+      - CLICKHOUSE_PASSWORD=langfuse
+      - CLICKHOUSE_CLUSTER_ENABLED=false
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_AUTH=
+      - LANGFUSE_DEFAULT_TTL_DAYS=90
+      - ENCRYPTION_KEY=3f8a2b4c9e1d7f6a5c8b2e3d9f1a7c4b6e8d2f5a3c9b7e1d4f8a6c2b9e7d5f3a
+      - SALT=clawstack_langfuse_salt_2026
+      - TELEMETRY_ENABLED=false
+      - LANGFUSE_S3_EVENT_UPLOAD_BUCKET=langfuse-events
+      - LANGFUSE_S3_EVENT_UPLOAD_ENDPOINT=http://minio:9000
+      - LANGFUSE_S3_EVENT_UPLOAD_ACCESS_KEY_ID=${MINIO_ROOT_USER}
+      - LANGFUSE_S3_EVENT_UPLOAD_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD}
+      - LANGFUSE_S3_EVENT_UPLOAD_REGION=us-east-1
+      - LANGFUSE_S3_EVENT_UPLOAD_FORCE_PATH_STYLE=true
+    restart: unless-stopped
+
+  # ============================================================
+  # 31. MEILISEARCH — 全文検索エンジン (addons 統合)
+  # メール解析・Paperless文書の高速キーワード検索
+  # ============================================================
+  meilisearch:
+    image: getmeili/meilisearch:v1.12
+    ports:
+      - "127.0.0.1:7700:7700"
+    environment:
+      - MEILI_MASTER_KEY=${MEILI_MASTER_KEY:-clawstack-meili-2026}
+      - MEILI_ENV=production
+      - MEILI_NO_ANALYTICS=true
+    volumes:
+      - ./clawstack_v2/data/meilisearch:/meili_data
+    restart: unless-stopped
+
+  # ============================================================
+  # 32. NTFY — プッシュ通知サーバー (addons 統合)
+  # Watchtower・n8n・エージェントからの通知配信
+  # ============================================================
+  ntfy:
+    image: binwiederhier/ntfy:latest
+    command: serve
+    ports:
+      - "127.0.0.1:8091:80"
+    environment:
+      - TZ=${TZ}
+    volumes:
+      - ./clawstack_v2/data/ntfy/cache:/var/cache/ntfy
+      - ./clawstack_v2/data/ntfy/config:/etc/ntfy
+    restart: unless-stopped
+
+  # ============================================================
+  # 33. IMMICH — 写真・動画管理 (addons 統合)
+  # UI: http://localhost:2283
+  # ============================================================
+  immich_server:
+    image: ghcr.io/immich-app/immich-server:${IMMICH_VERSION:-release}
+    ports:
+      - "127.0.0.1:2283:2283"
+    environment:
+      - TZ=${TZ}
+      - DB_HOSTNAME=immich_postgres
+      - DB_USERNAME=immich
+      - DB_PASSWORD=immich_local_password
+      - DB_DATABASE_NAME=immich
+      - REDIS_HOSTNAME=immich_redis
+    volumes:
+      - ./clawstack_v2/data/immich/library:/data
+      - /etc/localtime:/etc/localtime:ro
+    depends_on:
+      - immich_redis
+      - immich_postgres
+    restart: unless-stopped
+
+  immich_machine_learning:
+    image: ghcr.io/immich-app/immich-machine-learning:${IMMICH_VERSION:-release}
+    environment:
+      - TZ=${TZ}
+    volumes:
+      - immich_model_cache:/cache
+    restart: unless-stopped
+
+  immich_redis:
+    image: docker.io/valkey/valkey:9
+    restart: unless-stopped
+
+  immich_postgres:
+    image: ghcr.io/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0
+    environment:
+      - POSTGRES_USER=immich
+      - POSTGRES_PASSWORD=immich_local_password
+      - POSTGRES_DB=immich
+      - POSTGRES_INITDB_ARGS=--data-checksums
+    volumes:
+      - immich_pgdata:/var/lib/postgresql/data
+    shm_size: 128mb
+    restart: unless-stopped
+
 volumes:
   minigame_db_data:
+  clickhouse_data:
+  immich_model_cache:
+  immich_pgdata:

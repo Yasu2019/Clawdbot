@@ -1,0 +1,174 @@
+# ══════════════════════════════════════════════════════════════════════════════
+# ⚠️  DEPRECATED (2026-03-15) — このファイルは読み取り専用の参照用として残しています
+#
+# 統合済みサービス (docker-compose.yml に移行):
+#   - meilisearch (port 7700) → セクション31
+#   - stirling_pdf (port 8085) → セクション4
+#   - immich suite (port 2283) → セクション33
+#   - ntfy (port 8091) → セクション32
+#
+# 未統合サービス (必要時のみ手動起動):
+#   - changedetection + browserless (port 5081, 3003)
+#   - actual_budget (port 5006)
+#   - vikunja (port 3456)
+#   - dashy (port 4001)
+# ══════════════════════════════════════════════════════════════════════════════
+
+services:
+
+  # ── Phase 3: Meilisearch — email keyword search ──────────────────────────────
+  meilisearch:
+    image: getmeili/meilisearch:v1.12
+    container_name: clawstack-unified-meilisearch-1
+    ports:
+      - "127.0.0.1:7700:7700"
+    environment:
+      - MEILI_MASTER_KEY=clawstack-meili-2026
+      - MEILI_ENV=production
+      - MEILI_NO_ANALYTICS=true
+    volumes:
+      - ./clawstack_v2/data/meilisearch:/meili_data
+    networks:
+      clawstack:
+        aliases:
+          - meilisearch
+    restart: unless-stopped
+
+  stirling_pdf:
+    image: stirlingtools/stirling-pdf:latest
+    ports:
+      - "127.0.0.1:8085:8080"
+    environment:
+      - DOCKER_ENABLE_SECURITY=false
+      - LANGS=en_GB
+    volumes:
+      - ./clawstack_v2/data/stirling_pdf/trainingData:/usr/share/tessdata
+      - ./clawstack_v2/data/stirling_pdf/extraConfigs:/configs
+    restart: unless-stopped
+
+  changedetection:
+    image: dgtlmoon/changedetection.io@sha256:78a25eb5637f4842472f3e3f667e2f3e63c5a1cdf86aa2600884c54c6c0ea4b5
+    ports:
+      - "127.0.0.1:5081:5000"
+    environment:
+      - TZ=${TZ}
+      - BASE_URL=http://localhost:5001
+      - PLAYWRIGHT_DRIVER_URL=ws://browserless:3000?timeout=600000
+    volumes:
+      - ./clawstack_v2/data/changedetection:/datastore
+    depends_on:
+      - browserless
+    restart: unless-stopped
+
+  browserless:
+    image: browserless/chrome:latest
+    ports:
+      - "127.0.0.1:3003:3000"
+    environment:
+      - TIMEOUT=600000
+      - CONCURRENT=2
+      - TOKEN=local-browserless
+    restart: unless-stopped
+
+  actual_budget:
+    image: docker.io/actualbudget/actual-server:latest
+    ports:
+      - "127.0.0.1:5006:5006"
+    environment:
+      - ACTUAL_PORT=5006
+      - ACTUAL_UPLOAD_FILE_SYNC_SIZE_LIMIT_MB=200
+    volumes:
+      - ./clawstack_v2/data/actual_budget:/data
+    restart: unless-stopped
+
+  vikunja:
+    image: vikunja/vikunja:latest
+    ports:
+      - "127.0.0.1:3456:3456"
+    environment:
+      - VIKUNJA_SERVICE_PUBLICURL=http://localhost:3456/
+      - VIKUNJA_SERVICE_JWTSECRET=vikunja-local-secret-20260312
+      - VIKUNJA_DATABASE_TYPE=sqlite
+      - VIKUNJA_DATABASE_PATH=/db/vikunja.db
+    volumes:
+      - ./clawstack_v2/data/vikunja/files:/app/vikunja/files
+      - ./clawstack_v2/data/vikunja/db:/db
+    restart: unless-stopped
+
+  ntfy:
+    image: binwiederhier/ntfy:latest
+    command: serve
+    ports:
+      - "127.0.0.1:8091:80"
+    environment:
+      - TZ=${TZ}
+    volumes:
+      - ./clawstack_v2/data/ntfy/cache:/var/cache/ntfy
+      - ./clawstack_v2/data/ntfy/config:/etc/ntfy
+    restart: unless-stopped
+
+  dashy:
+    image: lissy93/dashy:latest
+    ports:
+      - "127.0.0.1:4001:8080"
+    environment:
+      - NODE_ENV=production
+    volumes:
+      - ./clawstack_v2/data/dashy/conf.yml:/app/user-data/conf.yml
+    restart: unless-stopped
+
+  immich_server:
+    container_name: immich_server
+    image: ghcr.io/immich-app/immich-server:${IMMICH_VERSION:-release}
+    ports:
+      - "127.0.0.1:2283:2283"
+    environment:
+      - TZ=${TZ}
+      - DB_HOSTNAME=immich_postgres
+      - DB_USERNAME=immich
+      - DB_PASSWORD=immich_local_password
+      - DB_DATABASE_NAME=immich
+      - REDIS_HOSTNAME=immich_redis
+    volumes:
+      - ./clawstack_v2/data/immich/library:/data
+      - /etc/localtime:/etc/localtime:ro
+    depends_on:
+      - immich_redis
+      - immich_postgres
+    restart: unless-stopped
+
+  immich_machine_learning:
+    container_name: immich_machine_learning
+    image: ghcr.io/immich-app/immich-machine-learning:${IMMICH_VERSION:-release}
+    environment:
+      - TZ=${TZ}
+    volumes:
+      - immich_model_cache:/cache
+    restart: unless-stopped
+
+  immich_redis:
+    container_name: immich_redis
+    image: docker.io/valkey/valkey:9@sha256:546304417feac0874c3dd576e0952c6bb8f06bb4093ea0c9ca303c73cf458f63
+    restart: unless-stopped
+
+  immich_postgres:
+    container_name: immich_postgres
+    image: ghcr.io/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0@sha256:bcf63357191b76a916ae5eb93464d65c07511da41e3bf7a8416db519b40b1c23
+    environment:
+      - POSTGRES_USER=immich
+      - POSTGRES_PASSWORD=immich_local_password
+      - POSTGRES_DB=immich
+      - POSTGRES_INITDB_ARGS=--data-checksums
+    volumes:
+      - immich_pgdata:/var/lib/postgresql/data
+    shm_size: 128mb
+    restart: unless-stopped
+
+volumes:
+  immich_model_cache:
+  immich_pgdata:
+
+networks:
+  clawstack:
+    name: clawstack-unified_default
+    external: true

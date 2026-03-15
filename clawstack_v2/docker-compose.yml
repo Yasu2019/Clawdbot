@@ -1,6 +1,18 @@
 version: "3.9"
 name: clawstack-unified
 
+# ══════════════════════════════════════════════════════════════════════════════
+# ⚠️  DEPRECATED (2026-03-15) — このファイルは読み取り専用の参照用として残しています
+#
+# すべてのサービスはプロジェクトルートの docker-compose.yml に統合されました。
+# 通常の起動コマンド: docker compose up -d (ルートから実行)
+#
+# CAE/Vision/Content プロファイルのサービスはプロファイル指定で起動:
+#   docker compose --profile cae up -d       # OpenFOAM/Chrono/Radioss
+#   docker compose --profile vision up -d    # CVAT/LabelStudio/FiftyOne
+#   docker compose --profile content up -d   # Stable Diffusion/Meilisearch
+# ══════════════════════════════════════════════════════════════════════════════
+
 services:
   # -------------------------
   # Core / Orchestration
