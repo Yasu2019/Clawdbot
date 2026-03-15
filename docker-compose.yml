@@ -577,5 +577,147 @@ services:
       - "127.0.0.1:3013:80"
     restart: unless-stopped
 
+  # ============================================================
+  # 20. DOZZLE — Docker ログビューア（リアルタイム）
+  # ============================================================
+  dozzle:
+    image: amir20/dozzle:latest
+    ports:
+      - "127.0.0.1:8096:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      - DOZZLE_LEVEL=info
+      - DOZZLE_TAILSIZE=300
+    restart: unless-stopped
+
+  # ============================================================
+  # 21. PORTAINER CE — Docker コンテナ管理UI
+  # ============================================================
+  portainer:
+    image: portainer/portainer-ce:latest
+    ports:
+      - "127.0.0.1:9002:9000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./clawstack_v2/data/portainer:/data
+    restart: unless-stopped
+
+  # ============================================================
+  # 22. METABASE — BIダッシュボード（DB可視化）
+  # ============================================================
+  metabase:
+    image: metabase/metabase:latest
+    ports:
+      - "127.0.0.1:3014:3000"
+    volumes:
+      - ./clawstack_v2/data/metabase:/metabase-data
+    environment:
+      - MB_DB_TYPE=h2
+      - MB_DB_FILE=/metabase-data/metabase.db
+      - MB_SITE_LOCALE=ja
+      - JAVA_TIMEZONE=Asia/Tokyo
+    restart: unless-stopped
+
+  # ============================================================
+  # 23. LIBRETRANSLATE — オフライン翻訳API（日英）
+  # ============================================================
+  libretranslate:
+    image: libretranslate/libretranslate:latest
+    ports:
+      - "127.0.0.1:5100:5000"
+    volumes:
+      - ./clawstack_v2/data/libretranslate:/home/libretranslate/.local/share
+    environment:
+      - LT_LOAD_ONLY=en,ja
+      - LT_DISABLE_WEB_BROWSER_UI=false
+      - LT_UPDATE_MODELS=true
+    restart: unless-stopped
+
+  # ============================================================
+  # 24. IT-TOOLS — 開発者向けユーティリティ集
+  # ============================================================
+  it-tools:
+    image: corentinth/it-tools:latest
+    ports:
+      - "127.0.0.1:8097:80"
+    restart: unless-stopped
+
+  # ============================================================
+  # 25. OUTLINE — チームWiki・ナレッジベース
+  # ============================================================
+  outline:
+    image: outlinewiki/outline:latest
+    ports:
+      - "127.0.0.1:3015:3000"
+    volumes:
+      - ./clawstack_v2/data/outline:/var/lib/outline/data
+    environment:
+      - SECRET_KEY=7187e1c1c316940dddc40623e7c650245ad6d6fd4b20ee9dbd0525240822360a
+      - UTILS_SECRET=b761642cc171355ad373605f5202739169378f913f3468c055235d72b2600a9f
+      - DATABASE_URL=postgres://postgres:change_me@postgres:5432/outline
+      - REDIS_URL=redis://redis:6379
+      - URL=http://localhost:3015
+      - FORCE_HTTPS=false
+      - PGSSLMODE=disable
+      - FILE_STORAGE=local
+      - FILE_STORAGE_LOCAL_ROOT_DIR=/var/lib/outline/data
+      - FILE_STORAGE_UPLOAD_MAX_SIZE=26214400
+      - SMTP_HOST=mailpit
+      - SMTP_PORT=1025
+      - SMTP_FROM_EMAIL=outline@clawstack.local
+      - SMTP_SECURE=false
+      - EMAIL_ENABLED=true
+      - DEFAULT_LANGUAGE=ja_JP
+    depends_on:
+      - postgres
+      - redis
+      - mailpit
+    restart: unless-stopped
+
+  # ============================================================
+  # 26. WATCHTOWER — Dockerイメージ更新通知
+  # ============================================================
+  watchtower:
+    image: containrrr/watchtower:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      - WATCHTOWER_MONITOR_ONLY=true
+      - WATCHTOWER_SCHEDULE=0 0 3 * * *
+      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_INCLUDE_STOPPED=false
+      - WATCHTOWER_NOTIFICATION_URL=ntfys://clawstack-ntfy@ntfy/watchtower
+    restart: unless-stopped
+
+  # ============================================================
+  # 27. WHISHPER — 音声→テキスト変換（Whisper UI）
+  # ============================================================
+  whishper-mongo:
+    image: mongo:6
+    volumes:
+      - ./clawstack_v2/data/whishper/mongo:/data/db
+    restart: unless-stopped
+
+  whishper:
+    image: pluja/whishper:latest
+    ports:
+      - "127.0.0.1:8098:8080"
+    volumes:
+      - ./clawstack_v2/data/whishper/uploads:/app/uploads
+      - ./clawstack_v2/data/whishper/models:/app/models
+    environment:
+      - PUBLIC_INTERNAL_API_HOST=http://whishper:8080
+      - PUBLIC_WHISHPER_MODEL=small
+      - WHISHPER_MODEL=small
+      - PUBLIC_TRANSLATE_SL=auto
+      - PUBLIC_TRANSLATE_TL=ja
+      - TRANSLATE_URL=http://libretranslate:5000
+      - MONGO_URL=mongodb://whishper-mongo:27017/whishper
+    depends_on:
+      - whishper-mongo
+      - libretranslate
+    restart: unless-stopped
+
 volumes:
   minigame_db_data:

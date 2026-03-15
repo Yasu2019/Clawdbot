@@ -408,6 +408,59 @@ curl -X POST http://localhost:8094/crawl \
 
 ---
 
+### 25. Dozzle (Dockerログビューア) — Port 8096
+
+- **URL**: `http://localhost:8096`
+- **用途**: 全コンテナのログをブラウザでリアルタイム確認。`docker logs` コマンド不要
+
+### 26. Portainer CE (Docker管理UI) — Port 9002
+
+- **URL**: `http://localhost:9002`
+- **用途**: コンテナの起動・停止・再起動・ログ確認をGUIで操作
+- **初回**: アクセス時に管理者パスワードを設定（5分以内）
+
+### 27. Metabase (BIダッシュボード) — Port 3014
+
+- **URL**: `http://localhost:3014`
+- **用途**: `email_analysis.db`・PostgreSQL・SQLiteをグラフ・集計で可視化
+- **接続可能DB**: PostgreSQL (localhost:5432)、email_analysis.db (SQLiteファイル指定)
+- **初回**: メールアドレス・パスワードでアカウント作成
+
+### 28. LibreTranslate (オフライン翻訳) — Port 5100
+
+- **URL**: `http://localhost:5100`
+- **API**: `POST http://libretranslate:5000/translate`
+- **用途**: 日本語↔英語をローカルで翻訳。メール解析・Paperless文書処理に活用
+```bash
+curl -X POST http://localhost:5100/translate \
+  -H "Content-Type: application/json" \
+  -d '{"q":"こんにちは","source":"ja","target":"en"}'
+```
+
+### 29. IT-Tools (開発ユーティリティ集) — Port 8097
+
+- **URL**: `http://localhost:8097`
+- **用途**: Base64・JWT・正規表現・色変換・YAML→JSON など40以上のツールをブラウザで即使用
+
+### 30. Outline (チームWiki) — Port 3015
+
+- **URL**: `http://localhost:3015`
+- **用途**: ナレッジベース・手順書・ノウハウの構造化管理
+- **認証**: メールアドレスで登録 → 確認メールが Mailpit (localhost:8025) に届く → リンクをクリック
+
+### 31. Watchtower (Docker更新通知)
+
+- **用途**: 毎朝3:00にDockerイメージの新バージョンを検知して ntfy に通知
+- **モード**: 監視のみ（自動更新はしない）
+
+### 32. Whishper (音声→テキスト変換) — Port 8098
+
+- **URL**: `http://localhost:8098`
+- **用途**: 音声ファイル・会議録音をアップロードしてテキスト化。LibreTranslate連携で日本語翻訳も可能
+- **モデル**: small（バランス型、初回起動時にダウンロード）
+
+---
+
 ### 17. Local HTML Apps (ポータル内 apps/ ディレクトリ)
 
 - Tolerance Center: `http://host.docker.internal:8088/apps/tolerance_hub/index.html`
