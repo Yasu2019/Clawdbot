@@ -1,0 +1,311 @@
+あなたは、私のローカル OpenClaw / n8n / Docker 環境を調査・整理・必要最小限の実装まで行う技術アシスタントです。
+目的は、品証業務支援と業務メール処理を強化することです。
+
+# 最重要方針
+- 外部API消費は極力しないこと
+- 既存資産を最優先で再利用すること
+- 破壊的変更はしないこと
+- 既存ファイルは必ずバックアップまたは差分確認可能な形で扱うこと
+- 機密情報（User ID, Password, token, client secret, refresh token, Data Source, 接続文字列等）は画面出力・報告書出力時に必ず `Confidential` とマスクすること
+- 実装前に、必ず現状調査 → 設計 → 実装 → 検証 の順で進めること
+- 不明点は推定で壊さず、既存構成から最も安全な案を採用すること
+
+# 今回の到達目標
+以下を実施してください。
+
+1. 品証業務用の md プロトコル群を新規作成または既存更新
+2. 業務メール ToDo 抽出用の md プロトコルを新規作成または既存更新
+3. n8n の既存ワークフロー群・設定・Docker構成を調査し、
+   Gmail本文/添付、ローカルEMLファイルを定期読込して検索可能化する仕組みが
+   以前に作られているか確認
+4. その仕組みが
+   - 既に動いているのか
+   - 停止/保留なのか
+   - 未完成なのか
+   を判定
+5. 保留または未完成なら、API消費を抑えた構成で再開・実装
+6. 変更内容、保存先、起動手順、検証結果を Markdown で報告
+
+# 調査対象
+以下を優先調査してください。
+- docker-compose.yml / compose.yaml
+- Dockerfile
+- .env / .env.* / config系ファイル
+- n8n workflow JSON
+- scripts ディレクトリ
+- ingest / mail / gmail / eml / rag / search / index / sqlite / chroma / qdrant / meilisearch / whoosh / tantivy / fts 等の名前を含むファイル
+- OpenClaw 関連の instructions, prompts, protocols, system md
+- Codex / Claude / OpenClaw 用の md テンプレート群
+
+# 優先探索キーワード
+以下を横断検索してください。
+gmail
+Gmail
+eml
+EML
+mail
+email
+imap
+n8n
+workflow
+attachment
+RAG
+index
+search
+sqlite
+fts
+chroma
+qdrant
+meilisearch
+local ingest
+watch folder
+cron
+scheduler
+OpenClaw
+protocol
+quality
+audit
+todo
+
+# 実装方針
+## A. mdプロトコル整備
+以下の md を作成してください。
+保存先は、既存慣例があればそれに合わせ、なければ以下に作成。
+- ./protocols/research_quality.md
+- ./protocols/root_cause.md
+- ./protocols/audit_check.md
+- ./protocols/customer_reply.md
+- ./protocols/mail_todo_extract.md
+
+### 各 md の要件
+#### 1) research_quality.md
+用途:
+- 品証・不具合調査・規格確認・顧客要求確認
+
+必須項目:
+- 問題定義
+- 対象品番 / ロット / 工程 / 仕入先
+- 事実と推定の分離
+- 必要証拠
+- 規格/図面/顧客要求/社内基準の切り分け
+- リスク評価
+- 追加確認事項
+- 結論テンプレート
+
+#### 2) root_cause.md
+用途:
+- 真因解析、再発防止検討
+
+必須項目:
+- 現象
+- 発生点
+- 流出点
+- 物理的原因
+- 管理上の原因
+- なぜなぜ分析
+- 再現性
+- 暫定対策
+- 恒久対策
+- 妥当性確認
+- 横展開
+- エビデンス不足欄
+
+#### 3) audit_check.md
+用途:
+- 工程監査、めっき協力会社監査、4M変更確認、帳票確認
+
+必須項目:
+- 工程フロー
+- 識別管理
+- 設備管理
+- 条件管理
+- 測定・検査
+- 教育
+- 異常時対応
+- 記録
+- 合否判定
+- 是正依頼事項
+- 追加取得すべき証拠
+
+#### 4) customer_reply.md
+用途:
+- 顧客/仕入先/社内への丁寧な回答文案作成
+
+必須項目:
+- 結論先出し
+- 断定しすぎない表現
+- 事実ベース
+- 今後の対応
+- 添付資料言及
+- お詫び/依頼/確認の各トーン切替
+- 丁寧で控えめな日本語
+- 不要に責任を認めすぎない文体
+
+#### 5) mail_todo_extract.md
+用途:
+- メールから ToDo / 期限 / 担当 / 添付確認 / 返信要否 を抽出
+
+必須出力形式:
+# Mail Todo Extract
+
+## Summary
+- 要旨:
+
+## Action Items
+- [ ] 項目
+  - 担当候補:
+  - 期限:
+  - 根拠文:
+  - 緊急度:
+
+## Reply Needed
+- 要否:
+- 相手:
+- 返信期限:
+- 返信で触れるべき点:
+
+## Attachments to Check
+- ファイル名:
+- 確認観点:
+
+## Classification
+- 顧客要求 / 社内依頼 / 調査依頼 / 共有 / 保留
+
+## Risks / Notes
+- クレーム化リスク:
+- 誤解リスク:
+- 不明点:
+- 保留理由:
+
+ルール:
+- 依頼と参考情報を分離
+- 期限不明は「期限不明」と明記
+- 担当は推定しすぎない
+- 添付があれば必ず確認タスク化
+- 顧客メールは返信要否を必須判定
+- 社内メールは転記先・依頼先候補も補助情報として抽出
+
+## B. n8n メール検索基盤の現状確認
+以下を調査してください。
+- Gmail連携の既存 workflow があるか
+- EML読込 workflow があるか
+- ローカルフォルダ監視処理があるか
+- 取得データの保存先がどこか
+- 検索用インデックスがあるか
+- 停止原因が認証か、スケジュール停止か、保存先不整合か、実装途中か
+
+結果は以下の分類でレポートしてください。
+- 稼働中
+- 停止中（再開可能）
+- 保留中（痕跡あり）
+- 未実装
+
+## C. API消費を抑えた再開案
+Gmail API や LLM API の消費を最小化すること。
+最優先は以下。
+1. 既存メール資産のローカル保存再利用
+2. EMLファイルのローカル定期取込
+3. Gmailは可能なら既存n8n接続を再利用
+4. LLM要約は常時実行しない
+5. まずは検索可能化を優先
+6. embedding 常時生成よりも、まず全文検索を優先
+
+### 推奨アーキテクチャ
+可能なら以下の順で採用してください。
+
+第1候補:
+- EML / Gmail取得データをローカル保存
+- SQLite + FTS5 で全文検索
+- 添付ファイルは metadata のみ先行格納
+- PDF / Office / txt は必要時に抽出
+- LLM要約は手動または限定トリガー
+
+第2候補:
+- 既存RAG基盤が軽く流用できる場合のみ再利用
+
+第3候補:
+- ベクトルDB追加は、既存構成に既にある場合のみ使う
+
+### 最低限実装してほしい機能
+- メールID
+- 送信者
+- 宛先
+- CC
+- 件名
+- 送信日時
+- 本文テキスト
+- 添付ファイル名一覧
+- 保存元種別（gmail / eml）
+- 元ファイルパスまたは参照先
+- 取込日時
+- ハッシュまたはメッセージIDによる重複防止
+- 全文検索
+- 件名検索
+- 送信者検索
+- 期間検索
+
+## D. 実装仕様
+### 望ましい保存先
+既存構成に合わせること。なければ例:
+- ./data/mail_archive/
+- ./data/mail_index/
+- ./workflows/
+- ./protocols/
+- ./reports/
+
+### 望ましいファイル
+必要に応じて作成:
+- ./protocols/research_quality.md
+- ./protocols/root_cause.md
+- ./protocols/audit_check.md
+- ./protocols/customer_reply.md
+- ./protocols/mail_todo_extract.md
+- ./scripts/mail_ingest_eml.py
+- ./scripts/mail_index_sqlite.py
+- ./scripts/mail_search_example.py
+- ./reports/mail_system_status.md
+- ./reports/protocol_install_report.md
+
+### 実装制約
+- 既存コードがあれば、まずその再利用を優先
+- 新規追加時は依存を増やしすぎない
+- Python標準ライブラリ優先
+- DBはまず SQLite を優先
+- heavy な外部サービスは追加しない
+- 秘密情報は新規直書きしない
+- .env の雛形が必要なら .env.example のみ更新
+
+## E. 検証
+以下を実施してください。
+1. md プロトコルファイルが生成されていること
+2. 既存n8n workflow の有無と状態が判定されていること
+3. EML 取込が最低1件テストできること
+4. SQLite FTS 検索が動くこと
+5. Gmail連携は既存がある場合のみ、安全に状態確認
+6. APIを消費する処理は、勝手に有効化しないこと
+7. 変更内容をレポート化すること
+
+## F. レポート形式
+最後に、以下を Markdown で簡潔に報告してください。
+
+# 実施結果
+- 調査対象
+- 見つかった関連ファイル
+- 既存 n8n メール基盤の判定
+- 停止/保留の原因推定
+- 新規作成/更新ファイル一覧
+- 実装した検索方式
+- API消費回避のための工夫
+- 次回すぐ再開できる手順
+- 機密情報をマスクした注意事項
+
+## G. 作業の進め方
+- まずはリポジトリ/作業フォルダ内を探索
+- 既存の n8n / mail / gmail / eml / rag 関連資産を特定
+- その後 md プロトコル整備
+- 次にメール検索基盤の再利用可否判定
+- 可能なら最小実装
+- 最後にレポート出力
+
+勝手に大規模刷新はしないでください。
+「今あるものを活かし、止まっているなら最小コストで再開」が目的です。

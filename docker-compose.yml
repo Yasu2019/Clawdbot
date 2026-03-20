@@ -79,6 +79,7 @@ services:
       - BROWSER_IATF_URL=http://host.docker.internal:3000
       - BROWSER_VOICEVOX_URL=http://host.docker.internal:50021
       - CONTEXT_FILE=/home/node/clawd/PORTAL_APPS.md
+      - OLLAMA_API_KEY=ollama-local
     volumes:
       - ./data/state:/home/node/.openclaw
       - ./data/workspace:/home/node/clawd

@@ -11,6 +11,7 @@ import io
 import json
 import math
 import os
+import re
 import subprocess
 import tempfile
 import uuid
@@ -30,6 +31,8 @@ WORK_DIR.mkdir(parents=True, exist_ok=True)
 
 ANTIGRAVITY = "clawstack-unified-antigravity-1"
 DXF23D_PATH = "/work/scripts/dxf23d.py"
+GATEWAY_CONTAINER = "clawstack-unified-clawdbot-gateway-1"
+PDF_RPCD_HELPER_PATH = "/work/scripts/rpcd_or_pdf_to_dxf.py"
 OLLAMA_GEN_MODEL = os.getenv("OLLAMA_GEN_MODEL", "qwen3:14b")
 OLLAMA_CODE_MODEL = os.getenv("OLLAMA_CODE_MODEL", "qwen2.5-coder:14b")
 
@@ -48,6 +51,7 @@ _SKIP_LAYER_KW = [
     "寸法", "引出", "注記", "文字", "注釈", "中心", "ハッチ",
     "タイトル", "枠", "隠線", "補助",
 ]
+_PREFER_LAYER_KW = ["contour", "profile", "part", "cut", "cutting", "shape", "data"]
 # DXF entity types that represent geometric contour candidates
 _GEO_TYPES = {"LINE", "ARC", "CIRCLE", "LWPOLYLINE", "POLYLINE", "SPLINE", "ELLIPSE"}
 
@@ -59,6 +63,577 @@ _SKIP_ENTITY_TYPES = {
     "VIEWPORT", "OLE2FRAME",              # viewport / OLE
     "POINT",                              # lone points
 }
+
+
+def _read_dxf_from_bytes(dxf_bytes: bytes):
+    with tempfile.NamedTemporaryFile(suffix=".dxf", delete=False) as tmp:
+        tmp.write(dxf_bytes)
+        tmp_path = tmp.name
+    try:
+        return ezdxf.readfile(tmp_path)
+    finally:
+        try:
+            os.unlink(tmp_path)
+        except OSError:
+            pass
+
+
+def _clean_dxf_text(text) -> str:
+    s = str(text or "")
+    s = s.replace("\\P", " ").replace("\\X", " ")
+    s = re.sub(r"\{\\.*?;?", "", s)
+    s = re.sub(r"%%[dpc]", " ", s, flags=re.I)
+    s = s.replace("{", " ").replace("}", " ")
+    return re.sub(r"\s+", " ", s).strip()
+
+
+def _clean_cad_text(text: str) -> str:
+    s = str(text or "")
+    s = s.replace("\\P", " ").replace("\\X", " ")
+    s = re.sub(r"\{\\.*?;?", "", s)
+    s = re.sub(r"%%[dpc]", " ", s, flags=re.I)
+    s = s.replace("{", " ").replace("}", " ")
+    return re.sub(r"\s+", " ", s).strip()
+
+
+def extract_text_entities(doc) -> list[dict]:
+    items = []
+    for e in doc.modelspace():
+        t = e.dxftype()
+        if t not in {"TEXT", "MTEXT", "ATTRIB", "ATTDEF"}:
+            continue
+        try:
+            raw = e.plain_text() if hasattr(e, "plain_text") else e.dxf.text
+        except Exception:
+            try:
+                raw = e.text
+            except Exception:
+                raw = ""
+        text = _clean_dxf_text(raw)
+        if not text:
+            continue
+        try:
+            layer = e.dxf.layer
+        except Exception:
+            layer = ""
+        items.append({"type": t, "layer": layer, "text": text})
+    return items
+
+
+def detect_thickness_candidates(doc) -> list[dict]:
+    patterns = [
+        (r"(?i)\b(?:t|thk|thickness)\s*[:=]?\s*([0-9]+(?:\.[0-9]+)?)\b", 5),
+        (r"(?:板厚|厚み|材厚)\s*[:=]?\s*([0-9]+(?:\.[0-9]+)?)", 5),
+        (r"(?i)\bPL[\s\-]*([0-9]+(?:\.[0-9]+)?)\b", 4),
+        (r"(?i)\bSP[A-Z0-9\-]*\s*t\s*([0-9]+(?:\.[0-9]+)?)\b", 4),
+    ]
+    hits = []
+    for item in extract_text_entities(doc):
+        text = item["text"]
+        for pat, score in patterns:
+            for m in re.finditer(pat, text):
+                try:
+                    value = float(m.group(1))
+                except Exception:
+                    continue
+                if not (0.05 <= value <= 500.0):
+                    continue
+                hits.append({
+                    "value": value,
+                    "score": score,
+                    "text": text[:120],
+                    "layer": item["layer"],
+                    "type": item["type"],
+                })
+    grouped = {}
+    for hit in hits:
+        key = round(hit["value"], 4)
+        cur = grouped.get(key)
+        if cur is None:
+            grouped[key] = {
+                "value": hit["value"],
+                "score": hit["score"],
+                "count": 1,
+                "samples": [hit["text"]],
+                "layer": hit["layer"],
+                "type": hit["type"],
+            }
+        else:
+            cur["score"] += hit["score"]
+            cur["count"] += 1
+            if len(cur["samples"]) < 3 and hit["text"] not in cur["samples"]:
+                cur["samples"].append(hit["text"])
+    return sorted(grouped.values(), key=lambda x: (-x["score"], -x["count"], x["value"]))
+
+
+def _extract_pdf_text_blocks(pdf_path: Path, max_pages: int = 2) -> list[str]:
+    try:
+        import fitz
+        from PIL import Image, ImageOps
+    except Exception:
+        return []
+
+    blocks = []
+    with fitz.open(str(pdf_path)) as pdf:
+        for page_index in range(min(len(pdf), max_pages)):
+            page = pdf[page_index]
+            text = _clean_cad_text(page.get_text("text"))
+            if text:
+                blocks.append(text)
+        if blocks:
+            return blocks
+
+        for page_index in range(min(len(pdf), max_pages)):
+            page = pdf[page_index]
+            with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp_png:
+                tmp_png_path = Path(tmp_png.name)
+            with tempfile.NamedTemporaryFile(suffix="_bw.png", delete=False) as tmp_bw:
+                tmp_bw_path = Path(tmp_bw.name)
+            try:
+                pix = page.get_pixmap(matrix=fitz.Matrix(4, 4), alpha=False)
+                pix.save(str(tmp_png_path))
+
+                # A binarized high-contrast variant tends to recover dimension numbers better.
+                img = Image.open(tmp_png_path).convert("L")
+                img = ImageOps.autocontrast(img)
+                img = img.point(lambda px: 255 if px > 180 else 0)
+                img.save(tmp_bw_path)
+
+                for candidate_path, psm in (
+                    (tmp_png_path, "11"),
+                    (tmp_bw_path, "11"),
+                    (tmp_bw_path, "6"),
+                ):
+                    proc = subprocess.run(
+                        [
+                            "tesseract",
+                            str(candidate_path),
+                            "stdout",
+                            "--psm",
+                            psm,
+                            "-c",
+                            "preserve_interword_spaces=1",
+                        ],
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.DEVNULL,
+                        text=True,
+                        timeout=60,
+                    )
+                    text = _clean_cad_text(proc.stdout)
+                    if text and text not in blocks:
+                        blocks.append(text)
+            except Exception:
+                continue
+            finally:
+                try:
+                    tmp_png_path.unlink()
+                except OSError:
+                    pass
+                try:
+                    tmp_bw_path.unlink()
+                except OSError:
+                    pass
+    return blocks
+
+
+def extract_pdf_dimension_candidates(pdf_path: Path) -> dict:
+    texts = _extract_pdf_text_blocks(pdf_path)
+    values = []
+    hole_values = []
+    radius_values = []
+    number_pat = re.compile(r"(?<![A-Za-z0-9])([0-9]+(?:\.[0-9]+)?)(?![A-Za-z0-9])")
+    hole_pat = re.compile(r"(?i)(?:φ|Φ|ø|Ø|dia(?:meter)?|穴径)\s*[:=]?\s*([0-9]+(?:\.[0-9]+)?)")
+    radius_pat = re.compile(r"(?i)\bR\s*([0-9]+(?:\.[0-9]+)?)")
+    for text in texts:
+        snippet = text[:160]
+        for match in number_pat.finditer(text):
+            value = float(match.group(1))
+            if 0.05 <= value <= 5000.0:
+                values.append({"value": value, "text": snippet, "score": 1, "source": "pdf"})
+        for match in hole_pat.finditer(text):
+            value = float(match.group(1))
+            if 0.05 <= value <= 5000.0:
+                hole_values.append({"value": value, "text": snippet, "score": 3, "source": "pdf"})
+        for match in radius_pat.finditer(text):
+            value = float(match.group(1))
+            if 0.05 <= value <= 5000.0:
+                radius_values.append({"value": value, "text": snippet, "score": 2, "source": "pdf"})
+    return {
+        "texts": texts[:8],
+        "values": values,
+        "hole_values": hole_values,
+        "radius_values": radius_values,
+    }
+
+
+def extract_pdf_dimension_candidates_from_bytes(pdf_bytes: bytes, pdf_name: str = "reference.pdf") -> dict:
+    with tempfile.NamedTemporaryFile(suffix=Path(pdf_name).suffix or ".pdf", delete=False) as tmp_pdf:
+        tmp_pdf.write(pdf_bytes)
+        tmp_path = Path(tmp_pdf.name)
+    try:
+        return extract_pdf_dimension_candidates(tmp_path)
+    finally:
+        try:
+            tmp_path.unlink()
+        except OSError:
+            pass
+
+
+def detect_pdf_thickness_candidates_from_bytes(pdf_bytes: bytes, pdf_name: str = "reference.pdf") -> list[dict]:
+    patterns = [
+        (r"(?i)\b(?:t|thk|thickness)\s*[:=]?\s*([0-9]+(?:\.[0-9]+)?)\b", 5),
+        (r"(?:板厚|厚み|材厚)\s*[:=]?\s*([0-9]+(?:\.[0-9]+)?)", 5),
+        (r"(?i)\bPL[\s\-]*([0-9]+(?:\.[0-9]+)?)\b", 4),
+        (r"(?i)\bSP[A-Z0-9\-]*\s*t\s*([0-9]+(?:\.[0-9]+)?)\b", 4),
+        (r"(?<![0-9])([0-9]+(?:\.[0-9]+)?)\s*[±\+]\s*[0-9]+(?:\.[0-9]+)?(?![0-9])", 2),
+    ]
+
+    with tempfile.NamedTemporaryFile(suffix=Path(pdf_name).suffix or ".pdf", delete=False) as tmp_pdf:
+        tmp_pdf.write(pdf_bytes)
+        tmp_path = Path(tmp_pdf.name)
+    try:
+        texts = _extract_pdf_text_blocks(tmp_path)
+    finally:
+        try:
+            tmp_path.unlink()
+        except OSError:
+            pass
+
+    hits = []
+    for text in texts:
+        snippet = _clean_cad_text(text)[:160]
+        if not snippet:
+            continue
+        for pat, score in patterns:
+            for match in re.finditer(pat, snippet):
+                try:
+                    value = float(match.group(1))
+                except Exception:
+                    continue
+                if not (0.05 <= value <= 20.0):
+                    continue
+                hits.append({
+                    "value": value,
+                    "score": score,
+                    "text": snippet,
+                    "source": "pdf",
+                })
+
+    grouped = {}
+    for hit in hits:
+        key = round(hit["value"], 4)
+        cur = grouped.get(key)
+        if cur is None:
+            grouped[key] = {
+                "value": hit["value"],
+                "score": hit["score"],
+                "count": 1,
+                "samples": [hit["text"]],
+                "source": hit["source"],
+            }
+        else:
+            cur["score"] += hit["score"]
+            cur["count"] += 1
+            if len(cur["samples"]) < 3 and hit["text"] not in cur["samples"]:
+                cur["samples"].append(hit["text"])
+    return sorted(grouped.values(), key=lambda x: (-x["score"], -x["count"], x["value"]))
+
+
+def detect_filename_thickness_candidates_from_name(input_name: str) -> list[dict]:
+    stem = Path(input_name).stem
+    candidates = []
+    patterns = [
+        (r"(?i)(?:^|[_\-\s])(?:t|thk|thickness|pl)\s*([0-9]+(?:\.[0-9]+)?)(?:mm)?(?:$|[_\-\s])", "filename"),
+        (r"(?i)(?:^|[_\-\s])([0-9]+(?:\.[0-9]+)?)\s*mm(?:$|[_\-\s])", "filename"),
+        (r"(?i)(?:^|[_\-\s])p([0-9]{2,3})(?:$|[_\-\s])", "filename_pcode"),
+    ]
+    for pattern, source in patterns:
+        for match in re.finditer(pattern, stem):
+            raw = match.group(1)
+            try:
+                value = float(int(raw)) / 10.0 if source == "filename_pcode" else float(raw)
+            except Exception:
+                continue
+            if not (0.05 <= value <= 500.0):
+                continue
+            candidates.append({
+                "value": value,
+                "score": 100 if source == "filename" else 90,
+                "count": 1,
+                "samples": [match.group(0).strip("_- ")],
+                "layer": "",
+                "type": source.upper(),
+                "source": "filename",
+            })
+    grouped = {}
+    for item in candidates:
+        key = round(float(item["value"]), 4)
+        if key not in grouped:
+            grouped[key] = item
+    return sorted(grouped.values(), key=lambda x: (-x["score"], x["value"]))
+
+
+def extract_dxf_dimension_candidates(doc) -> dict:
+    values = []
+    hole_values = []
+    radius_values = []
+
+    number_pat = re.compile(r"(?<![A-Za-z0-9])([0-9]+(?:\.[0-9]+)?)(?![A-Za-z0-9])")
+    hole_pat = re.compile(r"(?i)(?:φ|Φ|ø|Ø|dia(?:meter)?|穴径)\s*[:=]?\s*([0-9]+(?:\.[0-9]+)?)")
+    radius_pat = re.compile(r"(?i)\bR\s*([0-9]+(?:\.[0-9]+)?)")
+
+    for item in extract_text_entities(doc):
+        text = item["text"]
+        layer = str(item.get("layer") or "").lower()
+        score_boost = 2 if any(kw in layer for kw in ["dim", "寸法", "注記", "anno", "note"]) else 0
+        snippet = text[:160]
+        for match in number_pat.finditer(text):
+            value = float(match.group(1))
+            if 0.05 <= value <= 5000.0:
+                values.append({"value": value, "text": snippet, "score": 1 + score_boost, "source": "text"})
+        for match in hole_pat.finditer(text):
+            value = float(match.group(1))
+            if 0.05 <= value <= 5000.0:
+                hole_values.append({"value": value, "text": snippet, "score": 3 + score_boost, "source": "text"})
+        for match in radius_pat.finditer(text):
+            value = float(match.group(1))
+            if 0.05 <= value <= 5000.0:
+                radius_values.append({"value": value, "text": snippet, "score": 2 + score_boost, "source": "text"})
+
+    for entity in doc.modelspace():
+        if entity.dxftype() != "DIMENSION":
+            continue
+        measurement = None
+        for attr in ("actual_measurement", "text_midpoint"):
+            try:
+                measurement = getattr(entity.dxf, attr)
+                if isinstance(measurement, (int, float)):
+                    break
+            except Exception:
+                continue
+            measurement = None
+        if measurement is None:
+            try:
+                measurement = entity.get_measurement()
+            except Exception:
+                measurement = None
+        if not isinstance(measurement, (int, float)):
+            continue
+        value = float(measurement)
+        if not (0.05 <= value <= 5000.0):
+            continue
+        values.append({"value": value, "text": "DIMENSION entity", "score": 5, "source": "dimension"})
+
+    return {
+        "values": sorted(values, key=lambda item: (-item["score"], item["value"])),
+        "hole_values": sorted(hole_values, key=lambda item: (-item["score"], item["value"])),
+        "radius_values": sorted(radius_values, key=lambda item: (-item["score"], item["value"])),
+    }
+
+
+def analyze_loop_geometry_2d(loops: list) -> dict:
+    if not loops:
+        return {"width": 0.0, "height": 0.0, "bbox": [0.0, 0.0, 0.0, 0.0], "holes": []}
+    xs = [pt[0] for loop in loops for pt in loop]
+    ys = [pt[1] for loop in loops for pt in loop]
+    min_x, max_x = min(xs), max(xs)
+    min_y, max_y = min(ys), max(ys)
+    holes = []
+    for idx, loop in enumerate(loops):
+        x0, y0, x1, y1 = _loop_bbox(loop)
+        w = x1 - x0
+        h = y1 - y0
+        if max(w, h) <= 0.0:
+            continue
+        if len(loop) >= 12 and abs(w - h) / max(w, h) <= 0.08:
+            holes.append({
+                "loop_index": idx,
+                "diameter": (w + h) * 0.5,
+                "center_x": (x0 + x1) * 0.5,
+                "center_y": (y0 + y1) * 0.5,
+            })
+    holes.sort(key=lambda item: item["diameter"], reverse=True)
+    return {
+        "width": max_x - min_x,
+        "height": max_y - min_y,
+        "bbox": [min_x, min_y, max_x, max_y],
+        "holes": holes,
+    }
+
+
+def _pick_best_numeric(target: float, candidates: list[dict], tol: float) -> dict | None:
+    best = None
+    for item in candidates:
+        value = float(item["value"])
+        score = abs(value - target)
+        if score > tol:
+            continue
+        rank = (score, -float(item.get("score", 0)), -value)
+        if best is None or rank < best[0]:
+            best = (rank, item)
+    return best[1] if best else None
+
+
+def resolve_dxf_dimension_reference(doc, loops: list, reference_pdf_bytes: bytes | None = None, reference_pdf_name: str = "") -> dict:
+    geom = analyze_loop_geometry_2d(loops)
+    dims = extract_dxf_dimension_candidates(doc)
+    pdf_dims = extract_pdf_dimension_candidates_from_bytes(reference_pdf_bytes, reference_pdf_name) if reference_pdf_bytes else {
+        "texts": [], "values": [], "hole_values": [], "radius_values": []
+    }
+    generic = list(dims["values"]) + list(pdf_dims["values"])
+    hole_pool = list(dims["hole_values"]) + list(pdf_dims["hole_values"])
+    hole_pool.extend({
+        "value": float(item["value"]) * 2.0,
+        "text": item["text"],
+        "score": item.get("score", 0),
+        "source": item.get("source", "text"),
+    } for item in (dims["radius_values"] + pdf_dims["radius_values"]))
+
+    width_pick = _pick_best_numeric(geom["width"], generic, max(geom["width"] * 0.10, 3.0)) if geom["width"] > 0 else None
+    height_pick = _pick_best_numeric(geom["height"], generic, max(geom["height"] * 0.10, 3.0)) if geom["height"] > 0 else None
+
+    holes = []
+    for item in geom["holes"]:
+        pick = _pick_best_numeric(item["diameter"], hole_pool or generic, max(item["diameter"] * 0.15, 0.5))
+        holes.append({
+            "loop_index": item["loop_index"],
+            "actual_diameter": float(item["diameter"]),
+            "expected_diameter": float(pick["value"]) if pick else float(item["diameter"]),
+            "source": pick.get("source", "text") if pick else "geometry",
+            "evidence": pick["text"] if pick else f"loop#{item['loop_index']}",
+        })
+
+    return {
+        "width": {
+            "value": float(width_pick["value"]) if width_pick else float(geom["width"]),
+            "source": width_pick.get("source", "text") if width_pick else "geometry",
+            "evidence": width_pick["text"] if width_pick else "overall bbox",
+        },
+        "height": {
+            "value": float(height_pick["value"]) if height_pick else float(geom["height"]),
+            "source": height_pick.get("source", "text") if height_pick else "geometry",
+            "evidence": height_pick["text"] if height_pick else "overall bbox",
+        },
+        "holes": holes,
+        "candidate_counts": {
+            "generic": len(dims["values"]),
+            "holes": len(dims["hole_values"]),
+            "radius": len(dims["radius_values"]),
+            "pdf_generic": len(pdf_dims["values"]),
+            "pdf_holes": len(pdf_dims["hole_values"]),
+        },
+    }
+
+
+def run_drawing_dimension_checks(doc, loops: list, mesh, requested_height_mm: float, reference_pdf_bytes: bytes | None = None, reference_pdf_name: str = "", adopted_height_mm: float | None = None, thickness_source: str = "", thickness_evidence: str = "") -> list[dict]:
+    ref = resolve_dxf_dimension_reference(doc, loops, reference_pdf_bytes=reference_pdf_bytes, reference_pdf_name=reference_pdf_name)
+    checks = []
+    dims3d = mesh.bounds[1] - mesh.bounds[0]
+    height_axis = int(np.argmin(np.abs(dims3d - requested_height_mm)))
+    actual_height = float(dims3d[height_axis])
+    planar_actual = [float(dims3d[i]) for i in range(3) if i != height_axis]
+    planar_actual_sorted = sorted(planar_actual)
+
+    target_height = float(adopted_height_mm if adopted_height_mm is not None else requested_height_mm)
+    tol_h = max(target_height * 0.01, 0.05)
+    err_h = abs(actual_height - target_height)
+    height_detail = f"差分 {err_h:.3f} mm"
+    if thickness_source:
+        height_detail += f" | source: {thickness_source}"
+    if thickness_evidence:
+        height_detail += f" | 根拠: {thickness_evidence}"
+    checks.append({
+        "name": "板厚",
+        "ok": err_h <= tol_h,
+        "expected": f"{requested_height_mm:.3f} -> {target_height:.3f} mm",
+        "actual": f"{actual_height:.3f} mm",
+        "detail": height_detail,
+        "severity": "warn" if err_h > tol_h else "ok",
+    })
+
+    if ref["width"]["source"] != "geometry" and ref["height"]["source"] != "geometry":
+        expected_planar = sorted([ref["width"]["value"], ref["height"]["value"]])
+        tol_a = max(expected_planar[0] * 0.01, 0.3)
+        tol_b = max(expected_planar[1] * 0.01, 0.3)
+        err_a = abs(planar_actual_sorted[0] - expected_planar[0])
+        err_b = abs(planar_actual_sorted[1] - expected_planar[1])
+        checks.append({
+            "name": "外形寸法照合",
+            "ok": err_a <= tol_a and err_b <= tol_b,
+            "expected": f"{expected_planar[0]:.3f} / {expected_planar[1]:.3f} mm",
+            "actual": f"{planar_actual_sorted[0]:.3f} / {planar_actual_sorted[1]:.3f} mm",
+            "detail": f"差分 {err_a:.3f} / {err_b:.3f} mm | 根拠: {ref['width']['evidence']}",
+            "severity": "warn" if err_a > tol_a or err_b > tol_b else "ok",
+        })
+    else:
+        checks.append({
+            "name": "外形寸法照合",
+            "ok": False,
+            "expected": "図面寸法未読取",
+            "actual": f"{planar_actual_sorted[0]:.3f} / {planar_actual_sorted[1]:.3f} mm",
+            "detail": "DXF の DIMENSION/TEXT から外形寸法を十分に特定できませんでした。",
+            "severity": "warn",
+        })
+
+    explicit_holes = [item for item in ref["holes"] if item["source"] != "geometry"]
+    if explicit_holes:
+        for idx, item in enumerate(explicit_holes[:3], start=1):
+            tol = max(item["expected_diameter"] * 0.01, 0.2)
+            err = abs(item["actual_diameter"] - item["expected_diameter"])
+            checks.append({
+                "name": f"穴径照合 #{idx}",
+                "ok": err <= tol,
+                "expected": f"{item['expected_diameter']:.3f} mm",
+                "actual": f"{item['actual_diameter']:.3f} mm",
+                "detail": f"差分 {err:.3f} mm | 根拠: {item['evidence']}",
+                "severity": "warn" if err > tol else "ok",
+            })
+    else:
+        checks.append({
+            "name": "穴径照合",
+            "ok": False,
+            "expected": "図面寸法未読取",
+            "actual": "円孔候補なし",
+            "detail": "DXF の文字または寸法から穴径を十分に特定できませんでした。",
+            "severity": "warn",
+        })
+
+    return checks
+
+
+def render_drawing_dimension_checks(doc, loops: list, mesh, requested_height_mm: float, key_prefix: str = "main", reference_pdf_bytes: bytes | None = None, reference_pdf_name: str = "", adopted_height_mm: float | None = None, thickness_source: str = "", thickness_evidence: str = "") -> None:
+    st.markdown("")
+    st.subheader("図面寸法照合 / Drawing vs 3D")
+    checks = run_drawing_dimension_checks(
+        doc,
+        loops,
+        mesh,
+        requested_height_mm,
+        reference_pdf_bytes=reference_pdf_bytes,
+        reference_pdf_name=reference_pdf_name,
+        adopted_height_mm=adopted_height_mm,
+        thickness_source=thickness_source,
+        thickness_evidence=thickness_evidence,
+    )
+    n_ok = sum(1 for item in checks if item["ok"])
+    n_warn = len(checks) - n_ok
+    if n_warn:
+        st.warning(f"照合結果: {n_ok} 件一致 / {n_warn} 件要確認")
+    else:
+        st.success(f"照合結果: {n_ok}/{len(checks)} 件一致")
+
+    cols = st.columns([2, 2, 2, 4, 1])
+    cols[0].markdown("**項目**")
+    cols[1].markdown("**図面**")
+    cols[2].markdown("**3D**")
+    cols[3].markdown("**詳細**")
+    cols[4].markdown("**判定**")
+    for item in checks:
+        cols[0].markdown(item["name"])
+        cols[1].markdown(item["expected"])
+        cols[2].markdown(item["actual"])
+        cols[3].markdown(item["detail"])
+        cols[4].markdown("OK" if item["ok"] else "要確認")
 
 
 # ── DXF parsing ─────────────────────────────────────────────────────────────
@@ -107,7 +682,7 @@ def analyze_layers(doc) -> dict:
         if t in _GEO_TYPES:
             info[layer]["is_geo"] = True
         lname = layer.lower()
-        if any(kw in lname for kw in _SKIP_LAYER_KW) or t in _SKIP_ENTITY_TYPES:
+        if any(kw in lname for kw in _SKIP_LAYER_KW):
             info[layer]["skip"] = True
     return info
 
@@ -123,14 +698,61 @@ def suggest_contour_layer(layer_info: dict) -> str:
     # prefer non-skip layers
     candidates = {k: v for k, v in geo.items() if not v["skip"]} or geo
 
-    def score(v):
-        return sum(v["types"].get(t, 0)
-                   for t in ("LINE", "ARC", "CIRCLE", "LWPOLYLINE", "SPLINE", "ELLIPSE"))
-    return max(candidates, key=lambda k: score(candidates[k]))
+    def score(layer_name, v):
+        lname = layer_name.lower()
+        preferred = 1 if any(kw in lname for kw in _PREFER_LAYER_KW) else 0
+        geom_count = sum(v["types"].get(t, 0)
+                         for t in ("LINE", "ARC", "CIRCLE", "LWPOLYLINE", "POLYLINE", "SPLINE", "ELLIPSE"))
+        return preferred, geom_count
+    return max(candidates, key=lambda k: score(k, candidates[k]))
 
 
 def _dist2d(a, b):
     return math.sqrt((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2)
+
+
+def _loop_bbox(loop):
+    xs = [p[0] for p in loop]
+    ys = [p[1] for p in loop]
+    return min(xs), min(ys), max(xs), max(ys)
+
+
+def _filter_border_loops(loops):
+    if len(loops) < 2:
+        return loops
+
+    boxes = [_loop_bbox(loop) for loop in loops]
+    overall = (
+        min(b[0] for b in boxes),
+        min(b[1] for b in boxes),
+        max(b[2] for b in boxes),
+        max(b[3] for b in boxes),
+    )
+    overall_w = max(overall[2] - overall[0], 1e-9)
+    overall_h = max(overall[3] - overall[1], 1e-9)
+
+    ranked = []
+    for idx, box in enumerate(boxes):
+        x0, y0, x1, y1 = box
+        w = x1 - x0
+        h = y1 - y0
+        ranked.append({
+            "idx": idx,
+            "width_ratio": w / overall_w,
+            "height_ratio": h / overall_h,
+            "bbox_area": max(w, 0.0) * max(h, 0.0),
+        })
+
+    ranked.sort(key=lambda item: item["bbox_area"], reverse=True)
+    top = ranked[0]
+    second_bbox = ranked[1]["bbox_area"] if len(ranked) > 1 else 0.0
+    if (
+        top["width_ratio"] >= 0.95
+        and top["height_ratio"] >= 0.95
+        and top["bbox_area"] >= max(second_bbox * 1.5, 1.0)
+    ):
+        return [loop for i, loop in enumerate(loops) if i != top["idx"]]
+    return loops
 
 
 _SNAP = 1e-4  # grid resolution for duplicate detection (0.1 μm)
@@ -279,6 +901,16 @@ def extract_loops(doc, layer: str, gap_tol: float = GAP_TOL_DEFAULT,
         except Exception:
             return not layer
 
+    def _normalize_pts(pts):
+        clean = []
+        for x, y in pts:
+            pt = (float(x), float(y))
+            if not clean or _dist2d(clean[-1], pt) >= gap_tol:
+                clean.append(pt)
+        if len(clean) >= 2 and _dist2d(clean[0], clean[-1]) < gap_tol:
+            clean.pop()
+        return clean
+
     def _process(e):
         """Extract geometry from a single entity into loops/segments."""
         t = e.dxftype()
@@ -306,7 +938,9 @@ def extract_loops(doc, layer: str, gap_tol: float = GAP_TOL_DEFAULT,
                         pass
             if len(pts) < 2:
                 return
-            if e.closed or _dist2d(pts[0], pts[-1]) < gap_tol:
+            is_closed_like = e.closed or _dist2d(pts[0], pts[-1]) < gap_tol
+            pts = _normalize_pts(pts)
+            if is_closed_like:
                 if len(pts) >= 3:
                     loops.append(pts)
             else:
@@ -315,13 +949,16 @@ def extract_loops(doc, layer: str, gap_tol: float = GAP_TOL_DEFAULT,
         # ── POLYLINE ──────────────────────────────────────────────────
         elif t == "POLYLINE":
             try:
+                verts = e.vertices if isinstance(e.vertices, list) else list(e.vertices())
                 pts = [(v.dxf.location.x, v.dxf.location.y)
-                       for v in e.vertices()]
+                       for v in verts]
             except Exception:
                 return
             if len(pts) < 2:
                 return
-            if e.is_closed or _dist2d(pts[0], pts[-1]) < gap_tol:
+            is_closed_like = e.is_closed or _dist2d(pts[0], pts[-1]) < gap_tol
+            pts = _normalize_pts(pts)
+            if is_closed_like:
                 if len(pts) >= 3:
                     loops.append(pts)
             else:
@@ -460,7 +1097,7 @@ def extract_loops(doc, layer: str, gap_tol: float = GAP_TOL_DEFAULT,
     extract_loops._last_auto_gap    = _auto_gap
     extract_loops._last_gap_tol     = gap_tol
 
-    return loops
+    return _filter_border_loops(loops)
 
 
 # ── 3D mesh generation ───────────────────────────────────────────────────────
@@ -2802,7 +3439,15 @@ def run_mesh_checks(mesh, requested_height_mm: float, n_loops: int) -> list[dict
     })
 
     # 5. Degenerate faces (zero-area)
-    deg = mesh.triangles_area
+    deg = getattr(mesh, "area_faces", None)
+    if deg is None:
+        triangles = getattr(mesh, "triangles", None)
+        if triangles is not None and len(triangles):
+            v1 = triangles[:, 1] - triangles[:, 0]
+            v2 = triangles[:, 2] - triangles[:, 0]
+            deg = 0.5 * np.linalg.norm(np.cross(v1, v2), axis=1)
+        else:
+            deg = np.array([], dtype=float)
     n_degen = int((deg < 1e-10).sum())
     degen_ok = n_degen == 0
     checks.append({
@@ -3068,6 +3713,170 @@ def convert_step_via_freecad(dxf_bytes, layer, height_mm):
         pass
 
 
+def _safe_job_stem(name: str) -> str:
+    stem = Path(name).stem
+    stem = re.sub(r"[^0-9A-Za-z._-]+", "_", stem).strip("._")
+    return stem or "input"
+
+
+def convert_pdf_or_rpcd_to_dxf_via_gateway(file_bytes: bytes, file_name: str, add_text: bool = True):
+    job_id = uuid.uuid4().hex[:8]
+    job_dir = WORK_DIR / job_id
+    job_dir.mkdir(parents=True, exist_ok=True)
+
+    safe_name = _safe_job_stem(file_name) + Path(file_name).suffix.lower()
+    input_path = job_dir / safe_name
+    output_path = job_dir / f"{_safe_job_stem(file_name)}.dxf"
+    report_path = job_dir / f"{_safe_job_stem(file_name)}_report.json"
+    helper_local = Path(PDF_RPCD_HELPER_PATH)
+
+    input_path.write_bytes(file_bytes)
+    if not helper_local.exists():
+        raise FileNotFoundError(f"PDF / RPCD helper が見つかりません: {helper_local}")
+
+    cmd = [
+        "python",
+        str(helper_local),
+        str(input_path),
+        "-o",
+        str(output_path),
+        "--report-json",
+        str(report_path),
+    ]
+    if not add_text:
+        cmd.append("--no-text")
+    result = subprocess.run(cmd, capture_output=True, text=True, timeout=180)
+    if result.returncode != 0:
+        raise RuntimeError((result.stdout or "") + (result.stderr or ""))
+
+    report = json.loads(report_path.read_text(encoding="utf-8"))
+    return output_path.read_bytes(), report
+
+
+def render_compound_2d_input(
+    input_name: str,
+    dxf_bytes: bytes,
+    source_note: str = "",
+    key_prefix: str = "compound",
+    reference_pdf_bytes: bytes | None = None,
+    reference_pdf_name: str = "",
+):
+    try:
+        doc = _read_dxf_from_bytes(dxf_bytes)
+    except Exception as exc:
+        st.error(f"変換後DXFの読み込みエラー: {exc}")
+        return
+
+    filename_thickness_candidates = detect_filename_thickness_candidates_from_name(input_name)
+    thickness_candidates = detect_thickness_candidates(doc)
+    pdf_thickness_candidates = (
+        detect_pdf_thickness_candidates_from_bytes(reference_pdf_bytes, reference_pdf_name)
+        if reference_pdf_bytes else []
+    )
+    thickness_source = "filename"
+    if filename_thickness_candidates:
+        chosen_thickness = filename_thickness_candidates[0]
+    elif thickness_candidates:
+        chosen_thickness = thickness_candidates[0]
+    elif pdf_thickness_candidates:
+        chosen_thickness = pdf_thickness_candidates[0]
+        thickness_source = "pdf"
+    else:
+        chosen_thickness = None
+    if chosen_thickness and chosen_thickness.get("source") == "dxf":
+        thickness_source = "dxf"
+    detected_thickness = chosen_thickness["value"] if chosen_thickness else None
+    effective_height_mm = detected_thickness if (auto_detect_thickness and detected_thickness is not None) else height_mm
+    layer_info = analyze_layers(doc)
+    auto_layer = suggest_contour_layer(layer_info)
+    all_layers = sorted(layer_info.keys()) or ["0"]
+
+    st.caption(f"変換後DXF: `{input_name}` ({len(dxf_bytes)/1024:.1f} KB)")
+    if source_note:
+        st.caption(source_note)
+
+    col_a, col_b = st.columns([2, 3])
+    with col_a:
+        opts = ["(全レイヤー)"] + all_layers
+        idx = all_layers.index(auto_layer) + 1 if auto_layer in all_layers else 0
+        picked = st.selectbox("使用レイヤー", options=opts, index=idx, key=f"{key_prefix}_layer")
+        active_layer = "" if picked == "(全レイヤー)" else picked
+    with col_b:
+        if detected_thickness is not None:
+            sample = chosen_thickness["samples"][0] if chosen_thickness and chosen_thickness.get("samples") else ""
+            st.info(
+                f"????: **{detected_thickness:.3f} mm** (`{thickness_source}`)"
+                + (" ??????" if auto_detect_thickness else " ??????")
+                + (f"  \n??: `{sample}`" if sample else "")
+            )
+        else:
+            st.caption("DXF/PDF ??????????????????")
+
+    with st.spinner("変換後DXFを解析中..."):
+        loops = extract_loops(doc, active_layer, gap_tol=gap_tol, auto_clean=auto_clean, max_auto_gap=max_auto_gap)
+    if not loops:
+        st.error("変換後DXFから閉ループを抽出できませんでした。")
+        return
+
+    try:
+        mesh, n_bodies = loops_to_mesh(loops, effective_height_mm, axis="Z")
+    except Exception:
+        mesh, n_bodies = None, 0
+    if mesh is None:
+        st.error("3Dメッシュ化に失敗しました。")
+        return
+
+    dims = mesh.bounds[1] - mesh.bounds[0]
+    st.success(
+        f"{len(loops)} 個の閉ループ  |  {n_bodies} body  |  "
+        f"{dims[0]:.2f} × {dims[1]:.2f} × {dims[2]:.2f} mm  |  "
+        f"表面積 {mesh.area:.2f} mm²  |  体積 {mesh.volume:.2f} mm³"
+    )
+    fig = go.Figure(data=[mesh_to_plotly(mesh)])
+    fig.update_layout(
+        scene=dict(
+            xaxis_title="X (mm)", yaxis_title="Y (mm)", zaxis_title="Z (mm)",
+            bgcolor="#0f172a", aspectmode="data",
+            xaxis=dict(gridcolor="#334155", zerolinecolor="#334155"),
+            yaxis=dict(gridcolor="#334155", zerolinecolor="#334155"),
+            zaxis=dict(gridcolor="#334155", zerolinecolor="#334155"),
+        ),
+        paper_bgcolor="#0f172a",
+        margin=dict(l=0, r=0, t=20, b=0),
+        height=500,
+    )
+    st.plotly_chart(fig, use_container_width=True)
+    render_drawing_dimension_checks(
+        doc,
+        loops,
+        mesh,
+        height_mm,
+        key_prefix=key_prefix,
+        reference_pdf_bytes=reference_pdf_bytes,
+        reference_pdf_name=reference_pdf_name,
+        adopted_height_mm=effective_height_mm,
+        thickness_source=thickness_source,
+        thickness_evidence=(chosen_thickness["samples"][0] if chosen_thickness and chosen_thickness.get("samples") else ""),
+    )
+
+    col1, col2, col3 = st.columns(3)
+    stl_buf = io.BytesIO()
+    mesh.export(stl_buf, file_type="stl")
+    col1.download_button("STL をダウンロード", data=stl_buf.getvalue(), file_name=f"{Path(input_name).stem}_h{effective_height_mm:.0f}mm.stl", mime="application/octet-stream", use_container_width=True, key=f"{key_prefix}_stl")
+
+    try:
+        step_bytes = loops_to_step_gmsh(loops, effective_height_mm)
+        col2.download_button("STEP をダウンロード", data=step_bytes, file_name=f"{Path(input_name).stem}_h{effective_height_mm:.0f}mm.step", mime="application/octet-stream", use_container_width=True, key=f"{key_prefix}_step")
+    except Exception as exc:
+        col2.caption(f"STEP生成失敗: {exc}")
+
+    try:
+        fcstd_bytes = convert_fcstd_via_freecad(loops, effective_height_mm, stem=_safe_job_stem(input_name))
+        col3.download_button("FCStd をダウンロード", data=fcstd_bytes, file_name=f"{Path(input_name).stem}_h{effective_height_mm:.0f}mm.fcstd", mime="application/octet-stream", use_container_width=True, key=f"{key_prefix}_fcstd")
+    except Exception as exc:
+        col3.caption(f"FCStd生成失敗: {exc}")
+
+
 # ── STEP export via gmsh OCC ─────────────────────────────────────────────────
 
 def loops_to_step_gmsh(loops: list, height_mm: float) -> bytes:
@@ -3098,8 +3907,26 @@ def loops_to_step_gmsh(loops: list, height_mm: float) -> bytes:
 
             sorted_loops = sorted(loops, key=_area, reverse=True)
 
+            def _sanitize_loop(lp, tol=1e-6):
+                clean = []
+                for pt in lp:
+                    x, y = float(pt[0]), float(pt[1])
+                    if not clean:
+                        clean.append((x, y))
+                        continue
+                    px, py = clean[-1]
+                    if math.hypot(x - px, y - py) > tol:
+                        clean.append((x, y))
+                if len(clean) >= 2:
+                    fx, fy = clean[0]
+                    lx, ly = clean[-1]
+                    if math.hypot(fx - lx, fy - ly) <= tol:
+                        clean.pop()
+                return clean
+
             wire_tags = []
             for lp in sorted_loops:
+                lp = _sanitize_loop(lp)
                 if len(lp) < 3:
                     continue
                 pt_tags = [gmsh.model.occ.addPoint(float(x), float(y), 0.0)
@@ -3259,6 +4086,11 @@ with st.sidebar:
         "押し出し高さ / mm (DXFのみ)", min_value=0.1, max_value=5000.0,
         value=10.0, step=0.5,
     )
+    auto_detect_thickness = st.checkbox(
+        "図面注記から厚みを自動検出",
+        value=True,
+        help="TEXT / MTEXT の注記から t=1.6, 板厚2.0, PL-3.2 などを拾い、単一レイヤーDXFでは押し出し高さへ自動反映します。",
+    )
 
     output_fmt = st.radio(
         "出力フォーマット (DXF押し出し)",
@@ -3331,10 +4163,11 @@ with st.sidebar:
     """)
 
 # ── Input mode tabs ───────────────────────────────────────────────────────────
-tab_dxf, tab_multi, tab_step = st.tabs([
+tab_dxf, tab_multi, tab_step, tab_doc2d = st.tabs([
     "📐 DXF → 3D (単一レイヤー)",
     "📦 マルチレイヤー STEP",
     "🔩 STEP / IGES → 3D",
+    "PDF / RPCD -> 3D",
 ])
 
 # ═══════════════════════════════════════════════════════════════════
@@ -3416,6 +4249,54 @@ with tab_step:
 # ═══════════════════════════════════════════════════════════════════
 # TAB: マルチレイヤー STEP
 # ═══════════════════════════════════════════════════════════════════
+# PDF / RPCD -> DXF -> 3D
+with tab_doc2d:
+    st.markdown(
+        "PDF は **ベクタ線から DXF を再構成** して 3D 化します。RPCD は **companion PDF がある場合のみ** "
+        "PDF 経由で DXF 化します。RPCD のネイティブ幾何を直接解析する機能ではありません。"
+    )
+    uploaded_doc2d = st.file_uploader(
+        "PDF / RPCD ファイルをアップロード",
+        type=["pdf", "rpcd"],
+        key="uploader_doc2d",
+    )
+    add_text_doc2d = st.checkbox(
+        "PDFテキストも DXF に入れる",
+        value=True,
+        key="doc2d_add_text",
+    )
+    if uploaded_doc2d is not None:
+        raw_doc2d = uploaded_doc2d.read()
+        try:
+            with st.spinner("gateway で PDF / RPCD を DXF へ変換中..."):
+                dxf_bytes_doc2d, report_doc2d = convert_pdf_or_rpcd_to_dxf_via_gateway(
+                    raw_doc2d,
+                    uploaded_doc2d.name,
+                    add_text=add_text_doc2d,
+                )
+            st.success("PDF / RPCD 変換完了")
+            st.json(report_doc2d)
+            st.download_button(
+                "中間DXFをダウンロード",
+                data=dxf_bytes_doc2d,
+                file_name=f"{Path(uploaded_doc2d.name).stem}.dxf",
+                mime="application/octet-stream",
+                use_container_width=True,
+                key="doc2d_download_dxf",
+            )
+            render_compound_2d_input(
+                f"{Path(uploaded_doc2d.name).stem}.dxf",
+                dxf_bytes_doc2d,
+                source_note=f"入力: {uploaded_doc2d.name} / mode={report_doc2d.get('mode', '')}",
+                key_prefix="doc2d",
+                reference_pdf_bytes=(raw_doc2d if Path(uploaded_doc2d.name).suffix.lower() == ".pdf" else None),
+                reference_pdf_name=uploaded_doc2d.name,
+            )
+        except Exception as exc:
+            st.error(f"PDF / RPCD 変換エラー: {exc}")
+    else:
+        st.info("PDF または RPCD ファイルをアップロードしてください。")
+
 with tab_multi:
     st.markdown(
         "各レイヤーに **個別の厚み** と **演算種別**（積層 / 切り抜き）を設定して  \n"
@@ -3434,12 +4315,7 @@ with tab_multi:
         dxf_bytes_ml = uploaded_ml.read()
         doc_ml = None
         try:
-            doc_ml = ezdxf.read(io.StringIO(dxf_bytes_ml.decode("utf-8")))
-        except UnicodeDecodeError:
-            try:
-                doc_ml = ezdxf.read(io.StringIO(dxf_bytes_ml.decode("cp932")))
-            except Exception as _e:
-                st.error(f"DXF 読み込みエラー (文字コード): {_e}")
+            doc_ml = _read_dxf_from_bytes(dxf_bytes_ml)
         except Exception as _e:
             st.error(f"DXF 読み込みエラー: {_e}")
 
@@ -3643,6 +4519,13 @@ with tab_dxf:
         help="AutoCAD DXF形式 (R12〜2018)。SPLINE / ELLIPSE / HATCH / ブロック参照対応。",
     )
 
+    uploaded_ref_pdf = st.file_uploader(
+        "照合用 companion PDF (任意)",
+        type=["pdf"],
+        key="uploader_dxf_ref_pdf",
+        help="DXF 内の寸法が乏しい場合、PDF 図面の寸法文字も読み取り、生成後の 3D と照合します。",
+    )
+
     if uploaded is None:
         st.info(
             "DXFファイルをアップロードしてください。  \n"
@@ -3654,19 +4537,35 @@ with tab_dxf:
 
     # ── Parse DXF ───────────────────────────────────────────────────
     dxf_bytes = uploaded.read()
+    uploaded_ref_pdf_bytes = uploaded_ref_pdf.getvalue() if uploaded_ref_pdf is not None else None
     try:
-        doc = ezdxf.read(io.StringIO(dxf_bytes.decode("utf-8")))
-    except UnicodeDecodeError:
-        try:
-            doc = ezdxf.read(io.StringIO(dxf_bytes.decode("cp932")))
-        except Exception as e:
-            st.error(f"DXF 読み込みエラー (文字コード): {e}")
-            st.stop()
+        doc = _read_dxf_from_bytes(dxf_bytes)
     except Exception as e:
         st.error(f"DXF 読み込みエラー: {e}")
         st.stop()
 
     # ── Extrusion axis detection ──────────────────────────────────────
+    filename_thickness_candidates = detect_filename_thickness_candidates_from_name(uploaded.name)
+    thickness_candidates = detect_thickness_candidates(doc)
+    pdf_thickness_candidates = (
+        detect_pdf_thickness_candidates_from_bytes(uploaded_ref_pdf_bytes, uploaded_ref_pdf.name)
+        if uploaded_ref_pdf_bytes is not None and uploaded_ref_pdf is not None else []
+    )
+    thickness_source = "filename"
+    if filename_thickness_candidates:
+        chosen_thickness = filename_thickness_candidates[0]
+    elif thickness_candidates:
+        chosen_thickness = thickness_candidates[0]
+    elif pdf_thickness_candidates:
+        chosen_thickness = pdf_thickness_candidates[0]
+        thickness_source = "pdf"
+    else:
+        chosen_thickness = None
+    if chosen_thickness and chosen_thickness.get("source") == "dxf":
+        thickness_source = "dxf"
+    detected_thickness = chosen_thickness["value"] if chosen_thickness else None
+    effective_height_mm = detected_thickness if (auto_detect_thickness and detected_thickness is not None) else height_mm
+
     _auto_axis = detect_extrusion_axis(doc)
     _axis_map = {"Z軸 (XY平面)": "Z", "X軸 (YZ平面)": "X", "Y軸 (XZ平面)": "Y"}
     detected_axis = _axis_map.get(axis_override, _auto_axis)
@@ -3713,13 +4612,25 @@ with tab_dxf:
         if manual_layer:
             active_layer = manual_layer
         _axis_label = f"{detected_axis}軸" + ("(自動)" if axis_override == "自動検出" else "(手動)")
-        st.caption(f"使用レイヤー: `{active_layer or '全レイヤー'}`  |  ギャップ許容: `{gap_tol:.3f} mm`  |  押し出し軸: `{_axis_label}`")
+        st.caption(
+            f"使用レイヤー: `{active_layer or '全レイヤー'}`  |  ギャップ許容: `{gap_tol:.3f} mm`  |  "
+            f"押し出し軸: `{_axis_label}`  |  採用厚み: `{effective_height_mm:.3f} mm`"
+        )
 
     with col_r:
         st.caption(
             f"ファイル: `{uploaded.name}` ({len(dxf_bytes)/1024:.1f} KB)  |  "
             f"レイヤー数: {len(all_layers)}"
         )
+        if detected_thickness is not None:
+            src = chosen_thickness["samples"][0] if chosen_thickness and chosen_thickness.get("samples") else ""
+            st.info(
+                f"????: **{detected_thickness:.3f} mm** (`{thickness_source}`)"
+                + (" ??????" if auto_detect_thickness else " ??????")
+                + (f"  \n??: `{src}`" if src else "")
+            )
+        else:
+            st.caption("DXF/PDF ?????????????????????????????????????")
 
     st.divider()
 
@@ -3765,7 +4676,16 @@ st.success(
 
 # ── Generate 3D mesh ──────────────────────────────────────────────────────────
 with st.spinner("3Dメッシュを生成中..."):
-    mesh, n_bodies = loops_to_mesh(loops, height_mm, axis=detected_axis)
+    mesh, n_bodies = loops_to_mesh(loops, effective_height_mm, axis=detected_axis)
+precomputed_step_bytes = None
+if mesh is None:
+    try:
+        precomputed_step_bytes = loops_to_step_gmsh(loops, effective_height_mm)
+        mesh = load_step_to_mesh(precomputed_step_bytes, linear_deflection=0.2)
+        n_bodies = 1
+        st.info("STL用メッシュ生成は失敗しましたが、STEPからプレビュー用メッシュを再構成しました。")
+    except Exception:
+        pass
 
 if mesh is None:
     st.error(
@@ -3790,6 +4710,7 @@ st.markdown(
     f"{body_txt}"
     f"押し出し方向: `{detected_axis}軸`  |  "
     f"サイズ: `{dims[0]:.2f} × {dims[1]:.2f} × {dims[2]:.2f} mm`  |  "
+    f"表面積: `{mesh.area:.1f} mm²`  |  "
     f"体積: `{mesh.volume:.1f} mm³`  |  "
     f"Watertight: {wt_icon}"
 )
@@ -3828,7 +4749,7 @@ with dl_col1:
     st.download_button(
         label="⬇️ STL をダウンロード",
         data=stl_bytes,
-        file_name=f"{uploaded.name.replace('.dxf', '')}_h{height_mm:.0f}mm.stl",
+        file_name=f"{uploaded.name.replace('.dxf', '')}_h{effective_height_mm:.0f}mm.stl",
         mime="application/octet-stream",
         use_container_width=True,
     )
@@ -3839,11 +4760,11 @@ with dl_col2:
     if want_step:
         with st.spinner("gmsh OCC でSTEP変換中…"):
             try:
-                step_bytes = loops_to_step_gmsh(loops, height_mm)
+                step_bytes = precomputed_step_bytes or loops_to_step_gmsh(loops, effective_height_mm)
                 st.download_button(
                     label="⬇️ STEP をダウンロード",
                     data=step_bytes,
-                    file_name=f"{uploaded.name.replace('.dxf', '')}_h{height_mm:.0f}mm.step",
+                    file_name=f"{uploaded.name.replace('.dxf', '')}_h{effective_height_mm:.0f}mm.step",
                     mime="application/octet-stream",
                     use_container_width=True,
                 )
@@ -3874,11 +4795,11 @@ if st.button("⚙️ .fcstd を生成する (FreeCAD / Antigravity)", use_contai
              type="primary"):
     with st.spinner("FreeCAD (Antigravity) で .fcstd 生成中… 最大60秒"):
         try:
-            _fcstd_bytes = convert_fcstd_via_freecad(loops, height_mm, stem=_fcstd_stem)
+            _fcstd_bytes = convert_fcstd_via_freecad(loops, effective_height_mm, stem=_fcstd_stem)
             st.download_button(
-                label=f"⬇️ {_fcstd_stem}_h{height_mm:.0f}mm.fcstd をダウンロード",
+                label=f"⬇️ {_fcstd_stem}_h{effective_height_mm:.0f}mm.fcstd をダウンロード",
                 data=_fcstd_bytes,
-                file_name=f"{_fcstd_stem}_h{height_mm:.0f}mm.fcstd",
+                file_name=f"{_fcstd_stem}_h{effective_height_mm:.0f}mm.fcstd",
                 mime="application/octet-stream",
                 use_container_width=True,
             )
@@ -3897,7 +4818,7 @@ if st.button("⚙️ .fcstd を生成する (FreeCAD / Antigravity)", use_contai
 st.divider()
 st.subheader("自己チェック / Mesh Quality Check")
 
-checks = run_mesh_checks(mesh, height_mm, len(loops))
+checks = run_mesh_checks(mesh, effective_height_mm, len(loops))
 
 n_ok   = sum(1 for c in checks if c["ok"])
 n_err  = sum(1 for c in checks if not c["ok"] and c["severity"] == "error")
@@ -3922,6 +4843,19 @@ for c in checks:
     check_cols[0].markdown(c["name"])
     check_cols[1].markdown(icon)
     check_cols[2].markdown(c["detail"])
+
+render_drawing_dimension_checks(
+    doc,
+    loops,
+    mesh,
+    height_mm,
+    key_prefix="main",
+    reference_pdf_bytes=uploaded_ref_pdf_bytes,
+    reference_pdf_name=(uploaded_ref_pdf.name if uploaded_ref_pdf is not None else ""),
+    adopted_height_mm=effective_height_mm,
+    thickness_source=thickness_source,
+    thickness_evidence=(chosen_thickness["samples"][0] if chosen_thickness and chosen_thickness.get("samples") else ""),
+)
 
 # AI analysis button (local Ollama — no cloud API cost)
 st.markdown("")
@@ -4402,7 +5336,7 @@ with st.expander("技術詳細 / Conversion Details"):
     |------|-----|
     | 入力ファイル | `{uploaded.name}` ({len(dxf_bytes)/1024:.1f} KB) |
     | 対象レイヤー | `{active_layer or '全レイヤー'}` |
-    | 押し出し高さ | `{height_mm} mm` |
+    | 押し出し高さ | `{effective_height_mm} mm` |
     | 検出輪郭数 | `{len(loops)}` |
     | 頂点数 | `{len(mesh.vertices):,}` |
     | 面数 | `{len(mesh.faces):,}` |

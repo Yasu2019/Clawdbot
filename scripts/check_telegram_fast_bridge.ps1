@@ -6,9 +6,16 @@ $statusFile = Join-Path $stateDir "harness_status.json"
 $pidFile = Join-Path $stateDir "bridge.pid"
 
 Write-Output "Bridge process:"
-Get-CimInstance Win32_Process |
-  Where-Object { $_.CommandLine -like "*telegram_fast_bridge.ps1*" -or $_.CommandLine -like "*telegram_fast_bridge_v2.ps1*" -or $_.CommandLine -like "*telegram_fast_bridge_v3.ps1*" } |
-  Select-Object ProcessId, Name, CommandLine
+if (Test-Path $pidFile) {
+  try {
+    $pid = [int](Get-Content $pidFile -Raw)
+    Get-Process -Id $pid | Select-Object Id, ProcessName, StartTime
+  } catch {
+    Write-Output "missing or stale"
+  }
+} else {
+  Write-Output "missing"
+}
 
 Write-Output ""
 Write-Output "PID file:"

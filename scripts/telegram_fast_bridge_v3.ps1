@@ -1,4 +1,5 @@
 $ErrorActionPreference = "Stop"
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $stateDir = Join-Path $repoRoot "data\state\telegram_fast"
@@ -109,7 +110,7 @@ function Invoke-OllamaReply {
     model = $ollamaModel
     prompt = $prompt
     stream = $false
-    options = @{ temperature = 0.2; num_predict = 120; num_ctx = 2048 }
+    options = @{ temperature = 0.2; num_predict = 96; num_ctx = 1536 }
   } | ConvertTo-Json -Depth 6
   try {
     $response = Invoke-RestMethod -Method Post -Uri "$ollamaUrl/api/generate" -ContentType "application/json" -Body $payload -TimeoutSec 45
@@ -131,7 +132,17 @@ try {
   $offset = Load-Offset
   Write-Status -State "starting" -Extra @{ lastUpdateId = $offset }
   while ($true) {
-    $response = Get-TelegramUpdates -BotToken $botToken -Offset $offset
+    try {
+      $response = Get-TelegramUpdates -BotToken $botToken -Offset $offset
+    } catch {
+      $message = $_.Exception.Message
+      $state = if ($message -like "*(409)*") { "poll_conflict" } else { "poll_error" }
+      Write-Event -Kind "poll_error" -Data @{ lastUpdateId = $offset; lastError = $message }
+      Write-Status -State $state -Extra @{ lastUpdateId = $offset; lastError = $message }
+      Start-Sleep -Seconds 5
+      continue
+    }
+
     $updates = @($response.result)
     if ($updates.Count -eq 0) {
       Write-Status -State "idle" -Extra @{ lastUpdateId = $offset }
@@ -152,10 +163,15 @@ try {
       }
       $reply = Get-FastReply -Text $text -ModelName $ollamaModel
       if ($null -eq $reply) {
+        $ack = Get-AckReply -Text $text
+        Send-TelegramMessage -BotToken $botToken -ChatId $chatId -Text $ack -ReplyToMessageId $messageId
+        Write-Event -Kind "ack" -Data @{ lastUpdateId = $updateId; lastChatId = $chatId; lastMessage = $text; lastReply = $ack }
         Write-Status -State "generating" -Extra @{ lastUpdateId = $updateId; lastChatId = $chatId; lastMessage = $text }
         $reply = Invoke-OllamaReply -Text $text
+        Send-TelegramMessage -BotToken $botToken -ChatId $chatId -Text $reply -ReplyToMessageId $messageId
+      } else {
+        Send-TelegramMessage -BotToken $botToken -ChatId $chatId -Text $reply -ReplyToMessageId $messageId
       }
-      Send-TelegramMessage -BotToken $botToken -ChatId $chatId -Text $reply -ReplyToMessageId $messageId
       $offset = $updateId
       Save-Offset -UpdateId $offset
       Write-Event -Kind "reply" -Data @{ lastUpdateId = $offset; lastChatId = $chatId; lastMessage = $text; lastReply = $reply }

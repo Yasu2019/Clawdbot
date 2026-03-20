@@ -65,6 +65,31 @@ function Get-FastReply {
   }
 }
 
+function Get-AckReply {
+  param([string]$Text)
+
+  $trimmed = $Text.Trim()
+  if ([string]::IsNullOrWhiteSpace($trimmed)) {
+    return 'Received.'
+  }
+
+  $normalized = [regex]::Replace($trimmed, '\s+', '')
+  $hasNonAscii = $false
+  $jpAck = (-join ([char[]](0x53D7,0x3051,0x4ED8,0x3051,0x307E,0x3057,0x305F,0x3002,0x78BA,0x8A8D,0x3057,0x307E,0x3059,0x3002)))
+  foreach ($ch in $normalized.ToCharArray()) {
+    if ([int][char]$ch -gt 127) {
+      $hasNonAscii = $true
+      break
+    }
+  }
+
+  if ($hasNonAscii) {
+    return $jpAck
+  }
+
+  return 'Received. Checking now.'
+}
+
 function Sanitize-OllamaReply {
   param([string]$InputText, [string]$ReplyText)
 

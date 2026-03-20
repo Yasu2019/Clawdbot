@@ -225,6 +225,134 @@ def web_search(
     return result
 
 
+@mcp.tool()
+def email_search(
+    query: str,
+    limit: int = 5,
+) -> str:
+    """
+    Local email_search.db (EML + Gmail) を検索して関連メール文脈を返す。
+    """
+    import sqlite3
+
+    db_path = os.getenv("EMAIL_SEARCH_DB", "/home/node/clawd/email_search.db")
+    limit = min(max(int(limit), 1), 10)
+    con = None
+    try:
+        con = sqlite3.connect(db_path)
+        con.row_factory = sqlite3.Row
+        rows = []
+        try:
+            rows = con.execute(
+                """
+                SELECT
+                    e.source,
+                    e.subject,
+                    e.sender,
+                    e.email_date,
+                    e.snippet,
+                    bm25(emails_fts) AS score
+                FROM emails_fts
+                JOIN emails e ON e.rowid = emails_fts.rowid
+                WHERE emails_fts MATCH ?
+                ORDER BY score
+                LIMIT ?
+                """,
+                (query, limit),
+            ).fetchall()
+        except sqlite3.OperationalError:
+            terms = [t for t in query.split() if t] or [query]
+            clauses = []
+            params = []
+            for term in terms:
+                clauses.append("(subject LIKE ? OR sender LIKE ? OR body_text LIKE ?)")
+                needle = f"%{term}%"
+                params.extend([needle, needle, needle])
+            params.append(limit)
+            rows = con.execute(
+                f"""
+                SELECT
+                    source,
+                    subject,
+                    sender,
+                    email_date,
+                    snippet,
+                    0.0 AS score
+                FROM emails
+                WHERE {' AND '.join(clauses)}
+                ORDER BY internal_ts DESC, indexed_at DESC
+                LIMIT ?
+                """,
+                params,
+            ).fetchall()
+
+        if not rows:
+            rows = con.execute(
+                """
+                SELECT
+                    source,
+                    subject,
+                    sender,
+                    email_date,
+                    snippet,
+                    0.0 AS score
+                FROM emails
+                ORDER BY internal_ts DESC, indexed_at DESC
+                LIMIT ?
+                """,
+                (limit,),
+            ).fetchall()
+
+        lines = [f"## Email search: '{query}' ({len(rows)} results)\n"]
+        for idx, row in enumerate(rows, 1):
+            snippet = " ".join((row["snippet"] or "").split())
+            if len(snippet) > 220:
+                snippet = snippet[:217] + "..."
+            lines.append(
+                f"### [{idx}] {row['email_date']} | {row['source']} | from={row['sender']} | subject={row['subject']}\n{snippet}\n"
+            )
+        return "\n".join(lines)
+    except Exception as e:
+        return f"[ERROR] email_search failed: {e}"
+    finally:
+        if con is not None:
+            con.close()
+
+
+@mcp.tool()
+def email_tasks(
+    query: str,
+    limit: int = 5,
+) -> str:
+    """
+    Local email_search.db の tasks テーブルを検索して、期限・依頼事項・回答状況を返す。
+    """
+    import sqlite3
+    import subprocess
+
+    limit = min(max(int(limit), 1), 10)
+    db_path = os.getenv("EMAIL_SEARCH_DB", "/home/node/clawd/email_search.db")
+    script_path = os.getenv("EMAIL_SEARCH_QUERY", "/home/node/clawd/email_search_query.py")
+    try:
+        proc = subprocess.run(
+            ["python3", script_path, "--db", db_path, "tasks-context", query, "--limit", str(limit)],
+            capture_output=True,
+            text=True,
+            timeout=30,
+            check=True,
+        )
+        payload = json.loads(proc.stdout or "{}")
+        summary = payload.get("summary") or "該当する依頼事項は見つかりませんでした。"
+        context = payload.get("context") or ""
+        if context:
+            return f"{summary}\n\n{context}"
+        return summary
+    except subprocess.CalledProcessError as e:
+        return f"[ERROR] email_tasks failed: {e.stderr or e.stdout or e}"
+    except Exception as e:
+        return f"[ERROR] email_tasks failed: {e}"
+
+
 if __name__ == "__main__":
     port = int(os.getenv("MCP_PORT", "9876"))
     print(f"[clawstack-mcp] Starting streamable-http on 127.0.0.1:{port}", flush=True)

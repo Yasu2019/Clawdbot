@@ -17,6 +17,7 @@ $jpRoger = JpText @(0x4E86,0x89E3)
 $jpSpecifyCalendar = JpText @(0x4E88,0x5B9A,0x3092,0x78BA,0x8A8D,0x3059,0x308B,0x5BFE,0x8C61,0x3092,0x6307,0x5B9A,0x3057,0x3066,0x304F,0x3060,0x3055,0x3044,0x3002)
 $jpPeriod = JpText @(0x3002)
 $jpAccepted = JpText @(0x53D7,0x3051,0x4ED8,0x3051,0x307E,0x3057,0x305F,0x3002,0x7528,0x4EF6,0x3092,0x31,0x6587,0x3067,0x9001,0x3063,0x3066,0x304F,0x3060,0x3055,0x3044,0x3002)
+$jpAck = JpText @(0x53D7,0x3051,0x4ED8,0x3051,0x307E,0x3057,0x305F,0x3002,0x78BA,0x8A8D,0x3057,0x307E,0x3059,0x3002)
 
 $cases = @(
   @{ Name = "jp_evening"; Input = $jpEvening; Expected = $jpAccepted; Type = "fast" },
@@ -31,12 +32,16 @@ $cases = @(
   @{ Name = "ollama_echo_exact"; Input = $jpEvening; Reply = $jpEvening; Expected = "Send the task."; Type = "sanitize" },
   @{ Name = "ollama_echo_with_spaces"; Input = "$jpEvening    "; Reply = " $jpEvening "; Expected = "Send the task."; Type = "sanitize" },
   @{ Name = "ollama_echo_wrapped"; Input = $jpEvening; Reply = ($jpEvening + $jpPeriod + $jpEvening); Expected = "Send the task."; Type = "sanitize" },
-  @{ Name = "ollama_real_reply"; Input = $jpTomorrowSchedule; Reply = $jpSpecifyCalendar; Expected = $jpSpecifyCalendar; Type = "sanitize" }
+  @{ Name = "ollama_real_reply"; Input = $jpTomorrowSchedule; Reply = $jpSpecifyCalendar; Expected = $jpSpecifyCalendar; Type = "sanitize" },
+  @{ Name = "ack_jp"; Input = $jpTomorrowSchedule; Expected = $jpAck; Type = "ack" },
+  @{ Name = "ack_en"; Input = "Summarize yesterday's mail"; Expected = "Received. Checking now."; Type = "ack" }
 )
 
 $results = foreach ($case in $cases) {
   if ($case.Type -eq "fast") {
     $actual = Get-FastReply -Text $case.Input -ModelName "qwen3:8b"
+  } elseif ($case.Type -eq "ack") {
+    $actual = Get-AckReply -Text $case.Input
   } else {
     $actual = Sanitize-OllamaReply -InputText $case.Input -ReplyText $case.Reply
   }

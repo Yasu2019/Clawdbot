@@ -7,10 +7,22 @@ mkdir -p /home/node/.openclaw/devices
 # Always reset pending (incomplete pairings are stale after restart)
 echo "{}" > /home/node/.openclaw/devices/pending.json
 
-# Auto-update openclaw to latest version (ensures compatibility with current config)
-echo "[entrypoint] Updating openclaw to latest version..."
-npm install -g openclaw 2>&1 | tail -3
-echo "[entrypoint] openclaw version: $(openclaw --version 2>/dev/null || echo 'unknown')"
+# FORCING REINSTALLATION IF MISSING
+export PATH=$PATH:/usr/local/bin:/home/node/.npm-global/bin
+if ! command -v openclaw &> /dev/null; then
+    echo "[entrypoint] openclaw not found. Attempting installation..."
+    npm install -g openclaw
+fi
+
+# Wrapper function for openclaw to handle both binary and npx
+openclaw() {
+    if command -v openclaw &> /dev/null && [ "$(command -v openclaw)" != "openclaw" ]; then
+        command openclaw "$@"
+    else
+        npx -y openclaw "$@"
+    fi
+}
+export -f openclaw
 
 # Install Chromium shared library dependencies if not already present
 # Required for Playwright Chromium (headless browser for agent)
@@ -57,4 +69,16 @@ fi
 
 # Start the gateway with local proxy for Ollama (strips tools to fix 400 error)
 node /home/node/.openclaw/ollama_proxy.js &
+
+# Ensure we can run openclaw even if global install failed
+if [[ "$1" == "openclaw" ]]; then
+    shift
+    if command -v openclaw &> /dev/null; then
+        exec openclaw "$@"
+    else
+        echo "[entrypoint] WARNING: openclaw binary not found. Using npx fallback."
+        exec npx -y openclaw "$@"
+    fi
+fi
+
 exec "$@"

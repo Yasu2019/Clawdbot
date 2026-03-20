@@ -14,6 +14,8 @@ RUN apt-get update && apt-get install -y \
     libpng-dev \
     libjpeg-dev \
     git \
+    r-base \
+    r-base-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Locale for IDTFConverter
@@ -28,7 +30,14 @@ RUN git clone https://github.com/ningfei/u3d.git /tmp/u3d \
     && rm -rf /tmp/u3d
 
 # Python dependencies
-RUN pip install --no-cache-dir streamlit pandas numpy pypdf openpyxl python-docx python-pptx pymeshlab ezdxf trimesh gmsh scipy plotly streamlit-plotly-events
+RUN pip install --no-cache-dir \
+    streamlit pandas numpy pypdf openpyxl python-docx python-pptx \
+    pymeshlab ezdxf trimesh gmsh scipy plotly streamlit-plotly-events \
+    pycalphad "scikit-fem[all]" h5py netcdf4 pyvista meshio
+
+RUN Rscript -e "install.packages(c('AlgDesign','jsonlite'), repos='https://cloud.r-project.org')"
+
+ENV PYVISTA_OFF_SCREEN=true
 
 WORKDIR /app
 COPY app.py /app/app.py
