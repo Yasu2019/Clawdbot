@@ -258,8 +258,170 @@ Goal:
 ### Slice 4. Test coverage
 
 - model tests for import and scoring
+
+## 2026-03-21 Additional Refactoring
+
+### Added service objects for quiz flow
+
+- `iatf_system/app/services/quiz_question_selection_service.rb`
+- `iatf_system/app/services/quiz_attempt_scoring_service.rb`
+
+What changed:
+- `TouansController#new` now delegates low-score / low-attempt question selection to `QuizQuestionSelectionService`
+- `TouansController#create` now delegates attempt scoring and `seikairitsu` update to `QuizAttemptScoringService`
+
+Why:
+- reduce controller responsibility
+- make question-picking and scoring rules testable in isolation
+
+### Added question/explanation audit service
+
+- `iatf_system/app/services/testmondai_quality_audit_service.rb`
+- `data/workspace/audit_iatf_testmondai_quality.rb`
+- `iatf_system/test/models/testmondai_quality_audit_service_test.rb`
+
+Purpose:
+- detect low-quality quiz content before import/use
+- flag:
+  - blank question
+  - short question
+  - blank explanation
+  - short explanation
+  - duplicate answer choices
+  - invalid `seikai`
+  - suspected mojibake
+
+### Findings from the first audit pass
+
+Stable result:
+- `additional_testmondai.csv` and `6.1.2.1_additional_testmondai.csv` alone already contain many broken rows
+- common problems:
+  - blank question text
+  - blank explanation
+  - invalid empty `seikai`
+  - placeholder `rev`
+
+Structural issue discovered:
+- source quiz CSV files are not uniform
+- at least these formats coexist:
+  - normal headered quiz CSV
+  - headerless 9-column quiz CSV
+  - non-quiz CSV under the same `db/record` tree
+
+Implication:
+- before a full question/explanation quality cleanup, source CSV formats should be normalized or routed through format-specific importers
+
+Artifacts:
+- `data/workspace/iatf_testmondai_quality_report_20260321.md`
+- `data/workspace/iatf_testmondai_quality_report_20260321.json`
 - controller tests for quiz flow
 - fixtures or small seed CSVs for regression coverage
+
+## 2026-03-21 Audit Stabilization and Content Findings
+
+### Audit stabilization
+
+Updated:
+
+- `iatf_system/app/services/testmondai_quality_audit_service.rb`
+- `iatf_system/test/models/testmondai_quality_audit_service_test.rb`
+
+Changes:
+- separated detection of:
+  - headered quiz CSV
+  - headerless 9-column quiz CSV
+  - non-quiz CSV
+- changed non-quiz files from `parse_error` to explicit `skipped`
+- normalized headers before required-column matching
+- restricted headerless quiz detection to quiz-like file paths and 9-column row shape
+
+Result:
+- stable audit report generated from the full `db/record/**/*.csv` tree
+
+Artifacts:
+- `data/workspace/iatf_testmondai_quality_report_20260321.md`
+- `data/workspace/iatf_testmondai_quality_report_20260321.json`
+
+### Full audit summary
+
+- Scanned quiz CSV files: `116`
+- Skipped non-quiz CSV files: `29`
+- Total quiz rows: `2558`
+- Total issues: `2742`
+
+Top issue types:
+- `missing_rev`: `2246`
+- `mojibake_suspected`: `231`
+- `invalid_seikai`: `89`
+- `blank_explanation`: `85`
+- `blank_question`: `78`
+
+Worst files:
+- `db/record/6.1.2.1_additional_testmondai.csv`
+- `db/record/additional_testmondai.csv`
+- `db/record/chatGPT作成/kajyou_8.1.1.csv`
+- `db/record/bing/kajyou_Bing 8.3.1.1 .csv`
+
+Interpretation:
+- the biggest structural content problem is not only blank rows but also widespread mojibake in generated quiz banks
+- the most common metadata defect is placeholder revision `rev == '-'`
+- `additional_testmondai.csv` files contain the highest concentration of blank question / blank explanation / invalid answer-key rows
+
+### Validation status
+
+- `ruby -c` passed for `testmondai_quality_audit_service.rb`
+- service report generation succeeded in the Rails container
+- Rails Minitest execution is still blocked when the `db` hostname is unavailable from the isolated `web` run path
+
+## 2026-03-21 Import Hardening and Cleaned CSV Outputs
+
+Updated:
+
+- `iatf_system/app/services/testmondai_import_service.rb`
+- `iatf_system/test/models/testmondai_import_service_test.rb`
+- `iatf_system/db/seeds.rb`
+- `data/workspace/clean_iatf_quiz_csvs.py`
+
+### Import changes
+
+- `TestmondaiImportService` now supports:
+  - headered quiz CSV
+  - headerless 9-column quiz CSV
+- blank required quiz fields now fail the row explicitly
+- seed import no longer creates quiz rows directly from raw CSV arrays
+- quiz seed import is routed through `TestmondaiImportService`
+
+### Cleaned CSV artifacts
+
+Generated candidate cleaned files for the two worst headered sources:
+
+- `iatf_system/db/record/additional_testmondai_cleaned.csv`
+- `iatf_system/db/record/6.1.2.1_additional_testmondai_cleaned.csv`
+- summary:
+  - `data/workspace/iatf_testmondai_cleaning_report_20260321.json`
+
+Cleaning result:
+
+- `additional_testmondai.csv`
+  - kept: `11`
+  - dropped: `5`
+- `6.1.2.1_additional_testmondai.csv`
+  - kept: `20`
+  - dropped: `12`
+
+Drop reasons were dominated by:
+- blank question
+- blank explanation
+- invalid empty `seikai`
+
+Interpretation:
+- the two `additional_testmondai` sources can be partially salvaged automatically
+- they should not be imported raw anymore
+- mojibake-heavy `bing` / `chatGPT作成` banks still need separate normalization, not only row dropping
+- Added `data/workspace/clean_mojibake_quiz_csvs.py` to drop `mojibake_suspected`, `missing_rev`, and `invalid_seikai` rows across the flagged `bing`/`chatGPT作成` files, with summaries under `iatf_testmondai_mojibake_clean_summary.json` and cleaned CSV outputs.
+- Seeds now prefer cleaned variants (`*_cleaned.csv`) when they exist, so the new import pipeline ingests only validated rows without touching the original messy files.
+- The audit service has rerun on the cleaned/normalized CSVs after the `db` host became reachable; the latest reports still show 116 quiz CSVs scanned, 29 skips, and 2,742 issues (top types: `missing_rev`, `mojibake_suspected`, `invalid_seikai`, `blank_explanation`, `blank_question`), with the new CSV issue list and summary files refreshed accordingly.
+- Exported `data/workspace/iatf_testmondai_quality_issues_20260321.csv` listing path/kajyou/mondai_no/row/type/message for each flagged row to make manual cleanup easier.
 
 Goal:
 - make future refactoring safe

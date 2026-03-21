@@ -199,32 +199,10 @@ class TouansController < ApplicationController
     @user = current_user
     @testmondais = Testmondai.where(kajyou: params[:kajyou])
 
-    # 全ての Testmondai を取得
-    all_testmondais = Testmondai.where(kajyou: params[:kajyou])
-
-    # 各問題の seikairitsu と total_answers を計算
-    testmondai_stats = all_testmondais.map do |testmondai|
-      total_answers = Touan.where(mondai_no: testmondai.mondai_no, user_id: @user.id).count
-      correct_answers = Touan.correct_answers_for(user_id: @user.id, mondai_no: testmondai.mondai_no)
-      seikairitsu = total_answers.positive? ? (correct_answers.to_f / total_answers * 100.0) : 0.0
-
-      {
-        testmondai:,
-        seikairitsu:,
-        total_answers:
-      }
-    end
-
-    # seikairitsu と total_answers が低い Testmondai を選ぶ
-    some_threshold_seikairitsu = 50.0
-    some_threshold_total_answers = 5
-
-    low_testmondai_stats = testmondai_stats.select do |stat|
-      stat[:seikairitsu] < some_threshold_seikairitsu && stat[:total_answers] < some_threshold_total_answers
-    end
-
-    # ランダムに10個の Testmondai を選ぶ
-    selected_testmondais = low_testmondai_stats.sample(10).pluck(:testmondai)
+    selected_testmondais = QuizQuestionSelectionService.call(
+      user: @user,
+      kajyou: params[:kajyou]
+    )
 
     @touans = TouanCollection.new([], selected_testmondais, @user)
   end
@@ -236,13 +214,7 @@ class TouansController < ApplicationController
       grouped_touans = @touans.collection.group_by { |touan| [touan.user_id, touan.created_at.change(usec: 0)] }
 
       grouped_touans.each_value do |touans|
-        total = touans.size
-        correct_answers = touans.count(&:correct_answer?)
-        seikairitsu = correct_answers.to_f / total * 100.0
-
-        touans.each do |touan|
-          touan.update_attribute(:seikairitsu, seikairitsu)
-        end
+        QuizAttemptScoringService.score!(touans)
       end
 
       redirect_to touans_url

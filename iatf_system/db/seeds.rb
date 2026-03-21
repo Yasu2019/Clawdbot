@@ -185,18 +185,15 @@ CSV.foreach('db/record/iatf_kajyou_list.csv') do |row|
 end
 
 # テスト問題データの作成
-Dir.glob('db/record/bing/kajyou*.csv') do |file|
-  CSV.foreach(file) do |row|
-    Testmondai.create(
-      kajyou: row[0],
-      mondai_no: row[1],
-      rev: row[2],
-      mondai: row[3],
-      mondai_a: row[4],
-      mondai_b: row[5],
-      mondai_c: row[6],
-      seikai: row[7],
-      kaisetsu: row[8]
-    )
+Dir.glob(Rails.root.join('db/record/**/*.csv')).sort.each do |file|
+  next unless file.downcase.include?('kajyou') || file.downcase.include?('test_mondai')
+
+  cleaned = Pathname(file).sub_ext(file.extname).dirname.join("#{Pathname(file).basename(".#{file.extname}")}_cleaned#{file.extname}")
+  import_path = cleaned.exist? ? cleaned : file
+
+  File.open(import_path) do |quiz_file|
+    result = TestmondaiImportService.call(quiz_file)
+    Rails.logger.info "Imported quiz CSV #{Pathname(import_path).basename}: #{result.summary}"
+    result.errors.first(10).each { |message| Rails.logger.warn(message) }
   end
 end

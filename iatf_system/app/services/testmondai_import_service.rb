@@ -26,6 +26,7 @@ class TestmondaiImportService
   }.freeze
 
   REQUIRED_COLUMNS = %w[kajyou mondai_no mondai mondai_a mondai_b mondai_c seikai].freeze
+  HEADERLESS_COLUMNS = %w[kajyou mondai_no rev mondai mondai_a mondai_b mondai_c seikai kaisetsu].freeze
 
   def self.call(file)
     new(file).call
@@ -39,16 +40,18 @@ class TestmondaiImportService
   def call
     return missing_file_result unless file.present?
 
-    csv = CSV.read(file.path, headers: true, encoding: 'bom|utf-8')
-    normalized_headers = normalize_headers(csv.headers)
+    parsed = parse_rows
+    return result.error!("Unsupported quiz CSV format: #{File.basename(file.path)}") && result if parsed.nil?
+
+    normalized_headers = parsed[:headers]
     missing = REQUIRED_COLUMNS - normalized_headers.values.compact.uniq
     if missing.any?
       result.error!("Missing required columns: #{missing.join(', ')}")
       return result
     end
 
-    csv.each_with_index do |row, index|
-      import_row(row, normalized_headers, index + 2)
+    parsed[:rows].each_with_index do |row, index|
+      import_row(row, normalized_headers, parsed[:row_offset] + index)
     end
 
     result
@@ -73,11 +76,74 @@ class TestmondaiImportService
     end
   end
 
-  def import_row(row, normalized_headers, row_number)
-    attrs = normalized_headers.each_with_object({}) do |(header, normalized), memo|
-      next if normalized.blank?
+  def parse_rows
+    content = File.read(file.path, mode: 'rb')
+    decoded = decode_content(content)
+    raw_rows = CSV.parse(decoded, headers: false)
+    return nil if raw_rows.empty?
 
-      memo[normalized] = row[header].to_s.strip
+    header_map = normalize_headers(raw_rows.first)
+    if quiz_headers?(header_map)
+      return {
+        headers: header_map,
+        rows: raw_rows.drop(1),
+        row_offset: 2
+      }
+    end
+
+    if headerless_quiz_rows?(raw_rows)
+      return {
+        headers: HEADERLESS_COLUMNS.index_with { |column| column },
+        rows: raw_rows,
+        row_offset: 1
+      }
+    end
+
+    nil
+  end
+
+  def decode_content(content)
+    utf8 = content.dup.force_encoding('UTF-8')
+    return utf8 if utf8.valid_encoding?
+
+    content.encode('UTF-8', 'CP932', invalid: :replace, undef: :replace, replace: '')
+  rescue Encoding::UndefinedConversionError, Encoding::InvalidByteSequenceError
+    content.encode('UTF-8', invalid: :replace, undef: :replace, replace: '')
+  end
+
+  def quiz_headers?(header_map)
+    (header_map.values.compact.uniq & REQUIRED_COLUMNS).size >= 2
+  end
+
+  def headerless_quiz_rows?(rows)
+    samples = rows.first(5).map { |row| Array(row).map { |value| value.to_s.strip } }
+    return false if samples.empty?
+    return false unless samples.all? { |sample| sample.size == HEADERLESS_COLUMNS.size }
+    return false unless samples.count { |sample| sample[0].match?(/\A\d+(\.\d+)+\z/) } >= [samples.size, 2].min
+
+    answer_index = HEADERLESS_COLUMNS.index('seikai')
+    samples.count { |sample| sample[answer_index].downcase.match?(/\A[a-c]\z/) } >= [samples.size, 2].min
+  end
+
+  def import_row(row, normalized_headers, row_number)
+    attrs = {}
+    if row.is_a?(Array)
+      normalized_headers.each_with_index do |(_, normalized), index|
+        next if normalized.blank?
+
+        attrs[normalized] = row[index].to_s.strip
+      end
+    else
+      normalized_headers.each do |header, normalized|
+        next if normalized.blank?
+
+        attrs[normalized] = row[header].to_s.strip
+      end
+    end
+
+    if REQUIRED_COLUMNS.any? { |column| attrs[column].blank? }
+      result.error!("Row #{row_number}: required quiz fields are blank")
+      return
     end
 
     unless %w[a b c].include?(attrs['seikai'])
