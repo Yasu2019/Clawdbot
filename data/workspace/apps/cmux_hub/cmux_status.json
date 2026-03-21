@@ -1,0 +1,225 @@
+{
+  "generatedAt": "2026-03-21T17:25:46.117621+09:00",
+  "runtime": {
+    "mode": "local-first",
+    "roles": {
+      "coder": {
+        "primary": "gpt-5.4",
+        "fallback": [
+          "qwen2.5-coder:14b",
+          "qwen2.5-coder:7b"
+        ]
+      },
+      "reviewer": {
+        "primary": "claude-opus-class",
+        "fallback": [
+          "qwen3:14b",
+          "qwen3:8b"
+        ]
+      },
+      "tester": {
+        "primary": "local-tools",
+        "tools": [
+          "pytest",
+          "rspec",
+          "playwright",
+          "capybara"
+        ]
+      },
+      "security": {
+        "primary": "local-tools-plus-review",
+        "tools": [
+          "brakeman",
+          "bundler-audit",
+          "semgrep",
+          "bandit"
+        ]
+      },
+      "statistics": {
+        "primary": "r-container",
+        "packages": [
+          "DoE.base",
+          "FrF2",
+          "AlgDesign",
+          "rsm",
+          "ggplot2"
+        ]
+      },
+      "local_llm": {
+        "lightweight": "sam860/lfm2.5:1.2b",
+        "main": "qwen3:8b",
+        "high_accuracy": "qwen3:14b",
+        "code": "qwen2.5-coder:14b",
+        "vision": "minicpm-v:latest"
+      }
+    },
+    "task_routes": {
+      "code_implementation": {
+        "role": "coder",
+        "primary": "gpt-5.4",
+        "fallback": [
+          "qwen2.5-coder:14b",
+          "qwen2.5-coder:7b"
+        ],
+        "keywords": [
+          "implement",
+          "fix",
+          "refactor",
+          "script",
+          "code",
+          "patch",
+          "bug"
+        ]
+      },
+      "code_review": {
+        "role": "reviewer",
+        "primary": "claude-opus-class",
+        "fallback": [
+          "qwen3:14b",
+          "qwen3:8b"
+        ],
+        "keywords": [
+          "review",
+          "risk",
+          "regression",
+          "design review",
+          "code review"
+        ]
+      },
+      "testing_validation": {
+        "role": "tester",
+        "primary": "local-tools",
+        "fallback": [
+          "qwen3:8b"
+        ],
+        "keywords": [
+          "test",
+          "verify",
+          "playwright",
+          "pytest",
+          "rspec",
+          "validation"
+        ]
+      },
+      "security_scan": {
+        "role": "security",
+        "primary": "local-tools-plus-review",
+        "fallback": [
+          "qwen3:14b"
+        ],
+        "keywords": [
+          "security",
+          "vulnerability",
+          "audit",
+          "bandit",
+          "semgrep",
+          "brakeman"
+        ]
+      },
+      "statistics_doe": {
+        "role": "statistics",
+        "primary": "r-container",
+        "fallback": [
+          "gpt-5.4"
+        ],
+        "keywords": [
+          "doe",
+          "anova",
+          "statistics",
+          "rsm",
+          "d-optimal",
+          "design of experiments"
+        ]
+      },
+      "local_chat_fast": {
+        "role": "local_llm",
+        "primary": "sam860/lfm2.5:1.2b",
+        "fallback": [
+          "qwen3:8b"
+        ],
+        "keywords": [
+          "quick",
+          "fast",
+          "classify",
+          "router"
+        ]
+      },
+      "summary_orchestration": {
+        "role": "orchestrator",
+        "primary": "Antigravity",
+        "fallback": [
+          "qwen3:8b"
+        ],
+        "keywords": [
+          "summarize",
+          "orchestrate",
+          "plan",
+          "coordinate",
+          "cmux"
+        ]
+      }
+    }
+  },
+  "openclaw": {
+    "primary": "ollama/qwen3:8b",
+    "primary_installed": true,
+    "fallbacks": [
+      "google/gemini-2.5-flash"
+    ],
+    "registered_local_models": [
+      "sam860/lfm2.5:1.2b",
+      "qwen2.5-coder:7b",
+      "qwen2.5-coder:14b",
+      "qwen3:14b",
+      "qwen3:8b",
+      "llava:latest",
+      "minicpm-v:latest",
+      "nomic-embed-text:latest"
+    ]
+  },
+  "telegram": {
+    "reply_model": "qwen3:8b",
+    "reply_model_installed": true,
+    "state": "idle",
+    "pid": 24060,
+    "updatedAt": "2026-03-21T08:25:28.129Z",
+    "lastChatId": "8173025084"
+  },
+  "ollama": {
+    "models": [
+      "sam860/lfm2.5:1.2b",
+      "qwen2.5-coder:7b",
+      "qwen2.5-coder:14b",
+      "qwen3:14b",
+      "qwen3:8b",
+      "llava:latest",
+      "minicpm-v:latest",
+      "nomic-embed-text:latest"
+    ],
+    "count": 8
+  },
+  "recentActivity": {
+    "files_scanned": 8,
+    "ollama_errors": 27,
+    "fallback_provider_calls": 69,
+    "providers_seen": [
+      "google",
+      "ollama"
+    ],
+    "models_seen": [
+      "gemini-2.5-flash",
+      "qwen3:8b",
+      "qwen2.5-coder:7b"
+    ],
+    "latest_error": {
+      "provider": "ollama",
+      "model": "qwen3:8b",
+      "error": "This operation was aborted",
+      "session": "3fca5f02-7f9d-4af9-83fa-807d28938bbd.jsonl"
+    }
+  },
+  "statusSummary": {
+    "fallback_mode": "active",
+    "ollama_health": "degraded"
+  }
+}

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 email_search_query.py
 
@@ -12,6 +12,7 @@ import json
 import re
 import sqlite3
 import sys
+from functools import lru_cache
 from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Iterable, List, Optional
@@ -31,6 +32,92 @@ RELATIVE_TERMS = {
     "昨日", "今日", "明日", "本日", "先週", "先月", "今週", "今月",
     "recent", "yesterday", "today", "tomorrow", "lastweek", "lastmonth", "thisweek", "thismonth",
 }
+
+
+WORKSPACE = Path(__file__).resolve().parent
+MITSUI_GLOSSARY_PATHS = (
+    WORKSPACE / "mitsui_terms.md",
+    WORKSPACE / "mitsui_terms_auto.md",
+    WORKSPACE.parent.parent / "ミツイ精密専門用語",
+)
+
+
+@lru_cache(maxsize=1)
+def load_mitsui_glossary_terms() -> List[str]:
+    terms: set[str] = set()
+    for path in MITSUI_GLOSSARY_PATHS:
+        try:
+            if not path.exists():
+                continue
+            text = path.read_text(encoding="utf-8")
+        except Exception:
+            continue
+        for line in text.splitlines():
+            stripped = line.strip()
+            if not stripped or stripped.startswith("#") or stripped.startswith("<!--"):
+                continue
+            stripped = re.sub(r"^\d+\.\s*", "", stripped)
+            stripped = re.sub(r"^[\-*\u30fb]+\s*", "", stripped)
+            if ":" in stripped:
+                _, stripped = stripped.split(":", 1)
+            for part in re.split(r"[,、/\|]", stripped):
+                candidate = re.sub(r"\s+", " ", part).strip()
+                candidate = re.sub(r"^\d+\.\s*", "", candidate)
+                candidate = candidate.strip("()[]{}<>\"'")
+                if len(candidate) < 2:
+                    continue
+                if candidate.lower() in {"manual terms", "auto terms", "mitsui terms", "mitsui terms auto"}:
+                    continue
+                terms.add(candidate)
+    return sorted(terms, key=lambda item: (-len(item), item))
+
+
+def expand_with_mitsui_glossary(terms: List[str], max_expansions: int = 12) -> List[str]:
+    if not terms:
+        return terms
+    glossary = load_mitsui_glossary_terms()
+    if not glossary:
+        return terms
+
+    expanded: List[str] = []
+    seen: set[str] = set()
+
+    def add_term(value: str) -> None:
+        normalized = value.strip()
+        if not normalized:
+            return
+        key = normalized.casefold()
+        if key in seen:
+            return
+        seen.add(key)
+        expanded.append(normalized)
+
+    for term in terms:
+        add_term(term)
+
+    added = 0
+    for term in terms:
+        term_fold = term.casefold()
+        compact = re.sub(r"[\s\-_/]", "", term_fold)
+        for glossary_term in glossary:
+            glossary_fold = glossary_term.casefold()
+            glossary_compact = re.sub(r"[\s\-_/]", "", glossary_fold)
+            matched = (
+                term_fold == glossary_fold
+                or term_fold in glossary_fold
+                or glossary_fold in term_fold
+                or (compact and compact == glossary_compact)
+                or (compact and compact in glossary_compact and len(compact) >= 3)
+            )
+            if not matched:
+                continue
+            before_len = len(expanded)
+            add_term(glossary_term)
+            if len(expanded) > before_len:
+                added += 1
+                if added >= max_expansions:
+                    return expanded
+    return expanded
 
 
 def detect_db_path(explicit: str | None) -> Path:

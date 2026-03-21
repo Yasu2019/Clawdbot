@@ -1,4 +1,4 @@
-# frozen_string_literal: true
+﻿# frozen_string_literal: true
 
 class TouansController < ApplicationController
   def export_to_excel
@@ -71,14 +71,16 @@ class TouansController < ApplicationController
   end
 
   def import_test
-    # fileはtmpに自動で一時保存される
-    Testmondai.import_test(params[:file])
+    result = Testmondai.import_test(params[:file])
+    flash[:notice] = "問題CSVを処理しました: #{result.summary}"
+    flash[:alert] = result.errors.first(5).join(' | ') if result.error_count.positive?
     redirect_to testmondai_touan_path
   end
 
   def import_kaitou
-    # fileはtmpに自動で一時保存される
-    Touan.import_kaitou(params[:file])
+    result = Touan.import_kaitou(params[:file])
+    flash[:notice] = "解答CSVを処理しました: #{result.summary}"
+    flash[:alert] = result.errors.first(5).join(' | ') if result.error_count.positive?
     redirect_to touans_path
   end
 
@@ -203,18 +205,18 @@ class TouansController < ApplicationController
     # 各問題の seikairitsu と total_answers を計算
     testmondai_stats = all_testmondais.map do |testmondai|
       total_answers = Touan.where(mondai_no: testmondai.mondai_no, user_id: @user.id).count
-      correct_answers = Touan.where(mondai_no: testmondai.mondai_no, user_id: @user.id, seikai: true).count
-      seikairitsu = correct_answers.to_f / total_answers * 100 if total_answers.positive?
+      correct_answers = Touan.correct_answers_for(user_id: @user.id, mondai_no: testmondai.mondai_no)
+      seikairitsu = total_answers.positive? ? (correct_answers.to_f / total_answers * 100.0) : 0.0
 
       {
         testmondai:,
-        seikairitsu: seikairitsu || 0,
+        seikairitsu:,
         total_answers:
       }
     end
 
     # seikairitsu と total_answers が低い Testmondai を選ぶ
-    some_threshold_seikairitsu = 0.5
+    some_threshold_seikairitsu = 50.0
     some_threshold_total_answers = 5
 
     low_testmondai_stats = testmondai_stats.select do |stat|
@@ -224,7 +226,7 @@ class TouansController < ApplicationController
     # ランダムに10個の Testmondai を選ぶ
     selected_testmondais = low_testmondai_stats.sample(10).pluck(:testmondai)
 
-    @touans = TouanCollection.new(selected_testmondais, @testmondais, @user)
+    @touans = TouanCollection.new([], selected_testmondais, @user)
   end
 
   def create
@@ -235,8 +237,8 @@ class TouansController < ApplicationController
 
       grouped_touans.each_value do |touans|
         total = touans.size
-        correct_answers = touans.select { |touan| touan.kaito == touan.seikai }.size
-        seikairitsu = correct_answers.to_f / total
+        correct_answers = touans.count(&:correct_answer?)
+        seikairitsu = correct_answers.to_f / total * 100.0
 
         touans.each do |touan|
           touan.update_attribute(:seikairitsu, seikairitsu)
@@ -272,9 +274,12 @@ class TouansController < ApplicationController
     @touans.each do |touan|
       total_answers = Touan.where(kajyou: touan.kajyou,
                                   user_id: current_user.id).where(mondai_no: touan.mondai_no).count
-      correct_answers = Touan.where(kajyou: touan.kajyou, user_id: current_user.id).where(
-        'id <= ? AND mondai_no = ? AND seikai = kaito', touan.id, touan.mondai_no
-      ).count
+      correct_answers = Touan.correct_answers_for(
+        user_id: current_user.id,
+        kajyou: touan.kajyou,
+        mondai_no: touan.mondai_no,
+        up_to_id: touan.id
+      )
 
       touan.seikairitsu = correct_answers.to_f / total_answers * 100
       touan.total_answers = total_answers
@@ -315,3 +320,4 @@ class TouansController < ApplicationController
     end
   end
 end
+

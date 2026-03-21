@@ -7,20 +7,15 @@ class TouanCollection
   include ActiveModel::AttributeMethods
   include ActiveModel::Validations
 
-  attr_accessor :collection, :user # userを追加
+  attr_accessor :collection, :user
 
-  # def initialize(params, testmondais, user)  # userを引数に追加
-  # selected_testmondais を引数に追加
   def initialize(params, selected_testmondais, user)
-    self.user = user # userをセット
+    self.user = user
     self.collection = []
 
-    # ここに重複なくランダムに10件の問題を選択するコードを追加
-    # testmondais = testmondais.sample(10)
-
-    # binding.pry
     if params.present?
       self.collection = params.map do |value|
+        value = value.to_h if value.respond_to?(:to_h)
         Touan.new(
           kaito: value['kaito'],
           kajyou: value['kajyou'],
@@ -32,16 +27,15 @@ class TouanCollection
           seikai: value['seikai'],
           kaisetsu: value['kaisetsu'],
           rev: value['rev'],
-          user_id: user.id # 試験をするUserのidを登録しています
+          user_id: user.id
         )
       end
     end
-    # params が存在しない場合、selected_testmondais を使って @collection をセット
+
     return if collection.present?
 
-    #  testmondais.each do |test|
     selected_testmondais.each do |test|
-      touan = Touan.new(
+      collection << Touan.new(
         kajyou: test.kajyou,
         mondai: test.mondai,
         mondai_no: test.mondai_no,
@@ -51,9 +45,8 @@ class TouanCollection
         seikai: test.seikai,
         kaisetsu: test.kaisetsu,
         rev: test.rev,
-        user_id: user.id # 試験をするUserのidを登録するために、インスタンスを生成しています
+        user_id: user.id
       )
-      @collection << touan
     end
   end
 
@@ -62,6 +55,6 @@ class TouanCollection
   end
 
   def save
-    @collection.each(&:save)
+    collection.all?(&:save)
   end
 end

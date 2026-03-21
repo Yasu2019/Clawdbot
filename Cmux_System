@@ -1,0 +1,281 @@
+# 🧠 Cmux統合AI開発システム構築プロトコル（OpenClaw + Codex + Antigravity + Ollama + R）
+
+## 🎯 目的
+
+本プロトコルは、以下を実現することを目的とする：
+
+* AI役割分担（cmux思想）による開発効率最大化
+* API使用量の最小化（ローカル優先）
+* 品証・Rails・CAE・DOEまで統合
+* 自走型AI開発環境（Antigravity）構築
+* テスト・セキュリティ・統計を含む「開発工場化」
+
+---
+
+# 🧩 システム全体構成
+
+```
+[User]
+  ↓
+[OpenClaw Portal（UI）]
+  ↓
+[Antigravity（司令塔）]
+  ↓
+ ├─ Codex（コーダー）
+ ├─ Claude（レビュアー）
+ ├─ Tester（ローカル）
+ ├─ Security（ローカル＋Claude）
+ ├─ DOE/R（統計）
+ └─ Ollama（前処理・節約）
+```
+
+---
+
+# 🧠 役割定義（cmux思想）
+
+## ① コーダー（Coder）
+
+* 担当: Codex（gpt-5.4）
+* フォールバック: qwen2.5-coder:14b
+* 役割:
+
+  * Railsリファクタリング
+  * Python/JS実装
+  * Docker修正
+  * 差分生成
+
+---
+
+## ② レビュアー（Reviewer）
+
+* 担当: Claude Opus 4.6
+* フォールバック: Gemini 3.1 → qwen3:14b
+* 役割:
+
+  * 設計レビュー
+  * コードレビュー
+  * 品証観点チェック
+  * ドキュメント整形
+
+---
+
+## ③ テスター（Tester）
+
+* 担当: ローカル（最重要）
+* 役割:
+
+  * RSpec
+  * pytest
+  * Playwright
+  * ログ検証
+  * UI確認
+
+### 使用ツール
+
+* rspec
+* pytest
+* playwright
+* capybara
+
+---
+
+## ④ 脆弱性確認（Security）
+
+* 担当: ローカル + Claude
+* 役割:
+
+  * SQL injection
+  * XSS
+  * CSRF
+  * 権限チェック
+
+### 使用ツール
+
+* brakeman
+* bundler-audit
+* semgrep
+* bandit
+
+---
+
+## ⑤ 統計 / DOE（NEW）
+
+* 担当: Rコンテナ
+* 役割:
+
+  * 実験計画（DOE）
+  * D最適計画
+  * 回帰分析
+  * ANOVA
+
+### Rパッケージ
+
+* DoE.base
+* FrF2
+* AlgDesign
+* rsm
+* ggplot2
+
+---
+
+## ⑥ ローカルLLM（コスト削減）
+
+* 担当: Ollama
+
+### モデル割当
+
+* 軽量: sam860/lfm2.5:1.2b
+* 主力: qwen3:8b
+* 高精度: qwen3:14b
+* コード: qwen2.5-coder:14b
+* 視覚: minicpm-v
+
+---
+
+## ⑦ オーケストレーター
+
+* 担当: Antigravity
+
+役割:
+
+* タスク分配
+* 自走ループ
+* フォールバック制御
+* ログ管理
+
+---
+
+# 🔁 タスク実行フロー
+
+```
+1. ローカルLLMで前処理
+2. Antigravityが分類
+3. Codexで実装
+4. Testerで検証
+5. Securityでチェック
+6. Claudeでレビュー
+7. NGならループ
+```
+
+---
+
+# 🚨 フォールバック戦略（最重要）
+
+## Codex制限
+
+→ qwen2.5-coder → Claude
+
+## Claude制限
+
+→ Gemini → qwen3
+
+## Antigravity制限
+
+→ 手動実行モード
+
+## 全クラウド制限
+
+→ 完全ローカル運用
+
+---
+
+# 🧪 Railsリファクタリング専用フロー
+
+```
+1. 構造解析（ローカルLLM）
+2. 修正（Codex）
+3. テスト（RSpec）
+4. セキュリティ（Brakeman）
+5. レビュー（Claude）
+```
+
+---
+
+# 🧪 DOE実行フロー
+
+```
+1. ユーザー入力（因子・水準）
+2. AI整理
+3. Rコンテナ実行
+4. CSV/PNG生成
+5. AIが解説
+```
+
+---
+
+# 🧩 Docker構成（推奨）
+
+```
+core/
+ ├ openclaw
+ ├ antigravity
+ ├ codex
+
+ai/
+ ├ ollama
+
+analysis/
+ ├ python
+ ├ r-doe
+
+qa/
+ ├ tester
+ ├ security
+
+workflow/
+ ├ n8n
+
+data/
+ ├ postgres
+ ├ pgvector
+```
+
+---
+
+# 🔐 セキュリティルール
+
+* APIキーは.envのみ
+* ログに出さない
+* 外部送信は最小限
+* 個人情報はローカル処理
+
+---
+
+# 🚀 Antigravity自走設定
+
+```
+AUTO_EXECUTION=TRUE
+APPROVAL_MODE=DISABLED
+MAX_LOOP=10
+FALLBACK_ENABLED=TRUE
+LOCAL_PRIORITY=HIGH
+```
+
+---
+
+# 💡 最重要設計思想
+
+## ① APIを使うな、最後に使え
+
+## ② ローカルでできることは全部ローカル
+
+## ③ AIは役割分担させる
+
+## ④ テストをAIより信頼せよ
+
+## ⑤ セキュリティは最後ではなく途中
+
+---
+
+# 🎯 最終ゴール
+
+* AIが自走して開発
+* 品質保証付き
+* APIコスト最小
+* DOEまで統合
+
+👉 「AI開発工場」の完成
+
+---
+
+# 🔚

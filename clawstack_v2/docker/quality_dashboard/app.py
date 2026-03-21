@@ -398,11 +398,11 @@ def render_plating_quality_page():
 
 
 # --- SIDEBAR ---
-st.sidebar.title("QA Toolkit 虫")
+st.sidebar.title("QA Toolkit")
 
 # File Upload Section in Sidebar
 st.sidebar.markdown("---")
-st.sidebar.subheader("塘 Upload Knowledge")
+st.sidebar.subheader("Upload Knowledge")
 uploaded_file = st.sidebar.file_uploader("Add to Knowledge Base", type=["pdf", "xlsx", "docx", "pptx", "dxf", "txt"])
 if uploaded_file is not None:
     if st.sidebar.button("Upload & Ingest"):
@@ -425,15 +425,15 @@ page = st.sidebar.radio("Select Tool", [
     "Why-Why Analysis",
     "Work Study",
     "3D Converter",
-    "盗 蜈ｬ蟾ｮ隗｣譫・,
-    "譖ｸ邀榊次遞ｿ逕滓・",
-    "透 Email蝣ｱ蜻・(P016)"
+    "Tolerance Analysis",
+    "Kindle Manuscript",
+    "Email Daily Report (P016)"
 ])
 
 # --- PAGES ---
 
 if page == "Home":
-    st.title("孱・・Clawstack QA Portal")
+    st.title("Clawstack QA Portal")
     st.markdown(f"""
     **New Feature:**
     *   **統 Work Instruction Generator:** Upload Documents/Video/Audio to `/consume/WIP`. AI generates standard work steps.
@@ -449,12 +449,14 @@ if page == "Home":
         with card_col1:
             st.markdown(
                 """
-                **繧√▲縺阪・繝ｪ繝輔Ο繝ｼ隗｣譫・*
+                **Plating / Reflow Analysis**
 
-                繧√▲縺阪Λ繧､繝ｳ譚｡莉ｶ縲√Μ繝輔Ο繝ｼ譚｡莉ｶ縲∵ｸｩ蠎ｦ繝励Ο繝輔ぃ繧､繝ｫ縲∬ｦｳ蟇溽判蜒上・                霑台ｼｼ隗｣譫舌・邨先棡繧・Portal 蜀・〒縺ｾ縺ｨ繧√※謇ｱ縺医∪縺吶・                """
+                Enter plating line conditions, reflow conditions, thermal profile, and inspection assets.
+                The Portal stores case inputs, runs analysis, and keeps generated artifacts together.
+                """
             )
         with card_col2:
-            st.info("蟾ｦ縺ｮ繧ｵ繧､繝峨ヰ繝ｼ縺九ｉ `Plating Quality Analysis` 繧帝∈縺ｶ縺ｨ蜈･蜉帙→隗｣譫舌′縺ｧ縺阪∪縺吶・)
+            st.info("Use the left sidebar to open `Plating Quality Analysis` and run the analysis.")
 
 elif page == "Plating Quality Analysis":
     render_plating_quality_page()
@@ -571,15 +573,15 @@ elif page == "Work Study":
         if success: st.success(f"Video ready at {path}")
 
 elif page == "3D Converter":
-    st.header("肌 3D Converter")
+    st.header("3D Converter")
     st.markdown("""
-    **2D/3D 繝輔ぃ繧､繝ｫ螟画鋤繝・・繝ｫ**
+    **2D / 3D conversion tools**
     
-    | 螟画鋤 | 蜈･蜉・| 蜃ｺ蜉・| 逕ｨ騾・|
+    | Conversion | Input | Output | Usage |
     |------|------|------|------|
-    | **DXF 竊・STEP/STL** | 2D蝗ｳ髱｢(.dxf) | 3D繝｢繝・Ν | 謚ｼ縺怜・縺励〒3D蛹・|
-    | **Model 竊・HTML** | STEP/STL/OBJ | 繧､繝ｳ繧ｿ繝ｩ繧ｯ繝・ぅ繝蓬TML | 繝悶Λ繧ｦ繧ｶ縺ｧ蝗櫁ｻ｢繝ｻ諡｡螟ｧ |
-    | **Model 竊・PDF** | STEP/STL/OBJ | 3D PDF | Acrobat Reader逕ｨ |
+    | **DXF -> STEP/STL** | DXF | STEP or STL | Simple extrusion-based 3D generation |
+    | **Model -> 3D HTML** | STEP/STL/OBJ | Interactive HTML | Browser preview and sharing |
+    | **Model -> 3D PDF** | STEP/STL/OBJ | 3D PDF | Adobe Acrobat Reader compatible |
     
     ---
     """)
@@ -587,21 +589,21 @@ elif page == "3D Converter":
     col1, col2 = st.columns(2)
     
     with col1:
-        st.subheader("竭 繝輔ぃ繧､繝ｫ繧偵い繝・・繝ｭ繝ｼ繝・)
-        conv_type = st.radio("螟画鋤繧ｿ繧､繝・, ["DXF 竊・STEP/STL", "Model 竊・3D HTML", "Model 竊・3D PDF"])
+        st.subheader("Upload File")
+        conv_type = st.radio("Conversion Type", ["DXF -> STEP/STL", "Model -> 3D HTML", "Model -> 3D PDF"])
         
-        if conv_type == "DXF 竊・STEP/STL":
-            uploaded_3d = st.file_uploader("DXF繝輔ぃ繧､繝ｫ", type=["dxf"], key="dxf_upload")
-            height = st.number_input("謚ｼ縺怜・縺鈴ｫ倥＆ (mm)", min_value=0.1, value=10.0, step=0.5)
-            output_format = st.selectbox("蜃ｺ蜉帛ｽ｢蠑・, ["STEP", "STL"])
+        if conv_type == "DXF -> STEP/STL":
+            uploaded_3d = st.file_uploader("DXF file", type=["dxf"], key="dxf_upload")
+            height = st.number_input("Extrusion height (mm)", min_value=0.1, value=10.0, step=0.5)
+            output_format = st.selectbox("Output format", ["STEP", "STL"])
         else:
-            uploaded_3d = st.file_uploader("3D繝｢繝・Ν", type=["step", "stp", "stl", "obj"], key="model_upload")
+            uploaded_3d = st.file_uploader("3D model", type=["step", "stp", "stl", "obj"], key="model_upload")
     
     with col2:
-        st.subheader("竭｡ 螟画鋤螳溯｡・)
-        if st.button("噫 螟画鋤髢句ｧ・, use_container_width=True):
+        st.subheader("Run Conversion")
+        if st.button("Start Conversion", use_container_width=True):
             if uploaded_3d is None:
-                st.error("繝輔ぃ繧､繝ｫ繧偵い繝・・繝ｭ繝ｼ繝峨＠縺ｦ縺上□縺輔＞")
+                st.error("Please upload a file first.")
             else:
                 import subprocess
                 import tempfile
@@ -613,51 +615,51 @@ elif page == "3D Converter":
                         f.write(uploaded_3d.getbuffer())
                     
                     try:
-                        if conv_type == "DXF 竊・STEP/STL":
+                        if conv_type == "DXF -> STEP/STL":
                             ext = "step" if output_format == "STEP" else "stl"
                             output_path = os.path.join(td, f"output.{ext}")
                             cmd = ["python3", "/work/scripts/dxf23d.py", input_path, output_path, "--height", str(height)]
-                        elif conv_type == "Model 竊・3D HTML":
+                        elif conv_type == "Model -> 3D HTML":
                             output_path = os.path.join(td, "output.html")
                             cmd = ["python3", "/work/scripts/model2html.py", input_path, output_path]
                         else:  # 3D PDF
                             output_path = os.path.join(td, "output.pdf")
                             cmd = ["python3", "/work/scripts/model2pdf.py", input_path, output_path]
                         
-                        with st.spinner("螟画鋤荳ｭ..."):
+                        with st.spinner("Converting..."):
                             result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
                         
                         if result.returncode != 0:
-                            st.error(f"螟画鋤繧ｨ繝ｩ繝ｼ: {result.stderr or result.stdout}")
+                            st.error(f"Conversion failed: {result.stderr or result.stdout}")
                         elif os.path.exists(output_path):
-                            st.success("笨・螟画鋤螳御ｺ・")
+                            st.success("Conversion completed.")
                             with open(output_path, "rb") as f:
                                 st.download_button(
-                                    "踏 繝繧ｦ繝ｳ繝ｭ繝ｼ繝・,
+                                    "Download Output",
                                     f.read(),
                                     file_name=os.path.basename(output_path),
                                     use_container_width=True
                                 )
                         else:
-                            st.error("蜃ｺ蜉帙ヵ繧｡繧､繝ｫ縺檎函謌舌＆繧後∪縺帙ｓ縺ｧ縺励◆")
+                            st.error("Output file was not generated.")
                     except subprocess.TimeoutExpired:
-                        st.error("螟画鋤縺後ち繧､繝繧｢繧ｦ繝医＠縺ｾ縺励◆ (5蛻・ｶ・℃)")
+                        st.error("Conversion timed out after 5 minutes.")
                     except Exception as e:
-                        st.error(f"繧ｨ繝ｩ繝ｼ: {e}")
+                        st.error(f"Error: {e}")
     
     st.markdown("---")
     st.info("""
-    **豕ｨ諢丈ｺ矩・**
-    - **DXF 竊・STEP/STL:** 髢峨§縺溘・繝ｪ繝ｩ繧､繝ｳ縺ｮ縺ｿ3D蛹悶＆繧後∪縺吶ゅΞ繧､繝､繝ｼ "CONTOUR" 縺後ョ繝輔か繝ｫ繝医〒縺吶・
-    - **3D HTML:** Google model-viewer 繧剃ｽｿ逕ｨ縲ゅ☆縺ｹ縺ｦ縺ｮ繝悶Λ繧ｦ繧ｶ縺ｧ蜍穂ｽ懊＠縺ｾ縺吶・
-    - **3D PDF:** Adobe Acrobat Reader 縺ｧ縺ｮ縺ｿ3D謫堺ｽ懷庄閭ｽ縺ｧ縺呻ｼ医ヶ繝ｩ繧ｦ繧ｶPDF繝薙Η繝ｼ繧｢縺ｧ縺ｯ荳榊庄・峨・
+    **Notes**
+    - **DXF -> STEP/STL:** best for simple contour-based extrusion workflows.
+    - **3D HTML:** uses browser-friendly interactive preview output.
+    - **3D PDF:** creates Acrobat-compatible 3D PDF from STEP/STL/OBJ.
     """)
 
 # -------------------------
 # 蜈ｬ蟾ｮ隗｣譫舌・繝ｼ繧ｸ (Cetol6Sigma Style with 3D Viewer)
 # -------------------------
-elif page == "盗 蜈ｬ蟾ｮ隗｣譫・:
-    st.header("盗 蜈ｬ蟾ｮ隗｣譫舌ヤ繝ｼ繝ｫ (Cetol6Sigma Style)")
+elif page == "Tolerance Analysis":
+    st.header("Tolerance Analysis Tool (Cetol6Sigma Style)")
     
     # Initialize session state
     if 'tol_dimensions' not in st.session_state:
@@ -677,7 +679,7 @@ elif page == "盗 蜈ｬ蟾ｮ隗｣譫・:
         col_upload, col_3d = st.columns([1, 2])
         
         with col_upload:
-            st.subheader("刀 繝輔ぃ繧､繝ｫ繧｢繝・・繝ｭ繝ｼ繝・)
+            st.subheader("Upload CAD File")
             uploaded_cad = st.file_uploader("STEP/STL 繝輔ぃ繧､繝ｫ", type=["step", "stp", "stl"], key="tol_upload")
             
             if uploaded_cad:
@@ -713,7 +715,7 @@ elif page == "盗 蜈ｬ蟾ｮ隗｣譫・:
                                     {"id": "Y", "name": f"BBox Y", "nominal": round(float(size[1]), 4), "tolerance": default_tolerance, "label": "Y"},
                                     {"id": "Z", "name": f"BBox Z", "nominal": round(float(size[2]), 4), "tolerance": default_tolerance, "label": "Z"},
                                 ]
-                                st.success("笨・STL繝｡繝・す繝･隱ｭ縺ｿ霎ｼ縺ｿ螳御ｺ・)
+                                st.success("STL mesh extraction completed.")
                                 
                             else:
                                 # For STEP, use docker exec to antigravity with FreeCAD
@@ -741,7 +743,7 @@ elif page == "盗 蜈ｬ蟾ｮ隗｣譫・:
                                                 d["tolerance"] = default_tolerance
                                             st.success(f"笨・{len(st.session_state.extracted_dims)} 蟇ｸ豕輔ｒ謚ｽ蜃ｺ")
                                     else:
-                                        st.warning("笞・・STEP謚ｽ蜃ｺ螟ｱ謨励よ焔蜍募・蜉帙Δ繝ｼ繝峨ｒ菴ｿ逕ｨ縺励※縺上□縺輔＞縲・)
+                                        st.warning("STEP extraction failed. Falling back to external mesh mode.")
                                         st.session_state.mesh_data = None
                             
                         except Exception as e:
@@ -754,14 +756,14 @@ elif page == "盗 蜈ｬ蟾ｮ隗｣譫・:
             # Extracted dimensions list
             if st.session_state.extracted_dims:
                 st.markdown("---")
-                st.subheader("棟 謚ｽ蜃ｺ縺輔ｌ縺溷ｯｸ豕・)
+                st.subheader("Extracted Dimensions")
                 for i, dim in enumerate(st.session_state.extracted_dims[:10]):  # Show first 10
                     col_d1, col_d2 = st.columns([3, 1])
                     with col_d1:
                         label = dim.get("label", chr(65 + i))
                         st.write(f"**{label}**: {dim['name']} = {dim['nominal']:.3f} mm")
                     with col_d2:
-                        if st.button("筐・, key=f"add_dim_{i}", help="繝√ぉ繝ｼ繝ｳ縺ｫ霑ｽ蜉"):
+                        if st.button("Add", key=f"add_dim_{i}", help="Add this dimension to the chain"):
                             st.session_state.tol_dimensions.append({
                                 "name": dim['name'],
                                 "nominal": dim['nominal'],
@@ -796,7 +798,7 @@ elif page == "盗 蜈ｬ蟾ｮ隗｣譫・:
                         lighting=dict(ambient=0.5, diffuse=0.8, specular=0.3),
                         lightposition=dict(x=100, y=100, z=100),
                         hoverinfo='text',
-                        hovertext='繧ｯ繝ｪ繝・け縺ｧ髱｢繧帝∈謚・
+                        hovertext='Click mesh faces to inspect dimensions'
                     )
                 ])
                 
@@ -814,7 +816,7 @@ elif page == "盗 蜈ｬ蟾ｮ隗｣譫・:
                         line=dict(color='red', width=3),
                         text=['', f'X: {bbox["size"][0]:.2f}'],
                         textposition='top center',
-                        name='X蟇ｸ豕・
+                        name='X dimension'
                     ))
                 
                 fig.update_layout(
@@ -864,17 +866,17 @@ elif page == "盗 蜈ｬ蟾ｮ隗｣譫・:
                 
                 # Face selection UI
                 st.markdown("---")
-                st.subheader("識 髱｢驕ｸ謚・)
+                st.subheader("Face Selection")
                 if st.session_state.extracted_dims:
                     # Create face selector with colors
                     face_options = {f"{chr(65+i)}: {d['name']} ({d['nominal']:.2f}mm)": i 
                                    for i, d in enumerate(st.session_state.extracted_dims[:20])}
                     
-                    selected_face = st.selectbox("蟇ｸ豕輔ｒ驕ｸ謚・, list(face_options.keys()), key="face_select")
+                    selected_face = st.selectbox("Select dimension", list(face_options.keys()), key="face_select")
                     
                     col_sel1, col_sel2 = st.columns(2)
                     with col_sel1:
-                        direction = st.radio("譁ｹ蜷・, ["+", "-"], horizontal=True, key="dir_select")
+                        direction = st.radio("Direction", ["+", "-"], horizontal=True, key="dir_select")
                     with col_sel2:
                         if st.button("笵難ｸ・繝√ぉ繝ｼ繝ｳ縺ｫ霑ｽ蜉", type="primary", use_container_width=True):
                             idx = face_options[selected_face]
@@ -915,7 +917,7 @@ elif page == "盗 蜈ｬ蟾ｮ隗｣譫・:
                     paper_bgcolor='#1a1a2e',
                     margin=dict(l=0, r=0, t=30, b=0),
                     height=400,
-                    title="繝・Δ: 蜊倅ｽ咲ｫ区婿菴・
+                    title="Demo: placeholder model"
                 )
                 st.plotly_chart(fig, use_container_width=True)
     
@@ -930,8 +932,8 @@ elif page == "盗 蜈ｬ蟾ｮ隗｣譫・:
                 dim_name = st.text_input("蟇ｸ豕募錐", f"DIM_{len(st.session_state.tol_dimensions)+1}")
                 dim_nominal = st.number_input("蜈ｬ遘ｰ蛟､ (mm)", value=10.0, step=0.1)
                 dim_tol = st.number_input("蜈ｬ蟾ｮ (ﾂｱmm)", value=0.1, step=0.01, min_value=0.001)
-                dim_direction = st.radio("譁ｹ蜷・, ["+", "-"], horizontal=True, 
-                                        help="+ = 豁｣譁ｹ蜷代↓蟇・ｸ・ - = 雋譁ｹ蜷代↓蟇・ｸ・)
+                dim_direction = st.radio("Direction", ["+", "-"], horizontal=True,
+                                        help="+ = positive chain direction, - = negative chain direction")
                 
                 if st.form_submit_button("筐・繝√ぉ繝ｼ繝ｳ縺ｫ霑ｽ蜉", use_container_width=True):
                     st.session_state.tol_dimensions.append({
@@ -960,7 +962,7 @@ elif page == "盗 蜈ｬ蟾ｮ隗｣譫・:
                         "name": st.column_config.TextColumn("蟇ｸ豕募錐"),
                         "nominal": st.column_config.NumberColumn("蜈ｬ遘ｰ蛟､ (mm)", format="%.4f"),
                         "tolerance": st.column_config.NumberColumn("蜈ｬ蟾ｮ (ﾂｱmm)", format="%.4f"),
-                        "direction": st.column_config.SelectboxColumn("譁ｹ蜷・, options=["+", "-"])
+                        "direction": st.column_config.SelectboxColumn("Direction", options=["+", "-"])
                     }
                 )
                 st.session_state.tol_dimensions = edited_dims.to_dict('records')
@@ -977,7 +979,7 @@ elif page == "盗 蜈ｬ蟾ｮ隗｣譫・:
                 with col_m2:
                     st.metric("蟇ｸ豕墓焚", len(st.session_state.tol_dimensions))
                 
-                if st.button("投 隗｣譫仙ｮ溯｡・, use_container_width=True, type="primary"):
+                if st.button("Run Analysis", use_container_width=True, type="primary"):
                     import math
                     import random
                     
@@ -1034,14 +1036,14 @@ elif page == "盗 蜈ｬ蟾ｮ隗｣譫・:
             with col_r3:
                 st.metric("RSS (3ﾏ・", f"ﾂｱ{r['rss']:.4f} mm", delta_color="off")
             with col_r4:
-                st.metric("Monte Carlo ﾏ・, f"{r['mc_std']:.4f} mm", delta_color="off")
+                st.metric("Monte Carlo σ", f"{r['mc_std']:.4f} mm", delta_color="off")
             
             # Results comparison table
             st.markdown("---")
             results_df = pd.DataFrame([
-                {"謇区ｳ・: "Worst Case", "荳企剞": r['nominal'] + r['wc_upper'], "荳矩剞": r['nominal'] - r['wc_upper'], "遽・峇": r['wc_upper'] * 2},
-                {"謇区ｳ・: "RSS (3ﾏ・", "荳企剞": r['nominal'] + r['rss'], "荳矩剞": r['nominal'] - r['rss'], "遽・峇": r['rss'] * 2},
-                {"謇区ｳ・: "Monte Carlo (3ﾏ・", "荳企剞": r['mc_mean'] + 3*r['mc_std'], "荳矩剞": r['mc_mean'] - 3*r['mc_std'], "遽・峇": 6*r['mc_std']},
+                {"Method": "Worst Case", "Upper": r['nominal'] + r['wc_upper'], "Lower": r['nominal'] - r['wc_upper'], "Span": r['wc_upper'] * 2},
+                {"Method": "RSS (3σ)", "Upper": r['nominal'] + r['rss'], "Lower": r['nominal'] - r['rss'], "Span": r['rss'] * 2},
+                {"Method": "Monte Carlo (3σ)", "Upper": r['mc_mean'] + 3*r['mc_std'], "Lower": r['mc_mean'] - 3*r['mc_std'], "Span": 6*r['mc_std']},
             ])
             st.dataframe(results_df, use_container_width=True, hide_index=True)
             
@@ -1050,17 +1052,17 @@ elif page == "盗 蜈ｬ蟾ｮ隗｣譫・:
             
             with col_sens:
                 st.subheader("識 諢溷ｺｦ蛻・梵")
-                sens_df = pd.DataFrame([{"蟇ｸ豕・: k, "蟇・ｸ主ｺｦ": v} for k, v in r['sensitivities'].items()])
-                sens_df = sens_df.sort_values("蟇・ｸ主ｺｦ", ascending=True)
+                sens_df = pd.DataFrame([{"Dimension": k, "Sensitivity": v} for k, v in r['sensitivities'].items()])
+                sens_df = sens_df.sort_values("Sensitivity", ascending=True)
                 
                 import plotly.express as px
-                fig_sens = px.bar(sens_df, x="蟇・ｸ主ｺｦ", y="蟇ｸ豕・, orientation='h',
-                                 color="蟇・ｸ主ｺｦ", color_continuous_scale="Blues")
+                fig_sens = px.bar(sens_df, x="Sensitivity", y="Dimension", orientation='h',
+                                 color="Sensitivity", color_continuous_scale="Blues")
                 fig_sens.update_layout(height=300, showlegend=False)
                 st.plotly_chart(fig_sens, use_container_width=True)
             
             with col_hist:
-                st.subheader("嶋 Monte Carlo蛻・ｸ・)
+                st.subheader("Monte Carlo Histogram")
                 import plotly.express as px
                 
                 fig_hist = px.histogram(x=r['mc_histogram'], nbins=50)
@@ -1091,18 +1093,18 @@ th{{background:#667eea}}.metric{{background:#2d2d44;padding:15px;border-radius:8
 <h2>蟇ｸ豕穂ｸ隕ｧ</h2><table><tr><th>蜷咲ｧｰ</th><th>蜈ｬ遘ｰ蛟､</th><th>蜈ｬ蟾ｮ</th><th>譁ｹ蜷・/th><th>蟇・ｸ主ｺｦ</th></tr>
 {"".join(f'<tr><td>{d["name"]}</td><td>{d["nominal"]:.4f}</td><td>ﾂｱ{d["tolerance"]:.4f}</td><td>{d["direction"]}</td><td>{r["sensitivities"].get(d["name"],0):.1f}%</td></tr>' for d in st.session_state.tol_dimensions)}
 </table></body></html>"""
-                st.download_button("塘 HTML繝ｬ繝昴・繝・, report_html, "tolerance_report.html", "text/html", use_container_width=True)
+                st.download_button("Download HTML Report", report_html, "tolerance_report.html", "text/html", use_container_width=True)
             
             with col_exp2:
                 csv_data = "蜷咲ｧｰ,蜈ｬ遘ｰ蛟､,蜈ｬ蟾ｮ,譁ｹ蜷・蟇・ｸ主ｺｦ\n" + "\n".join(
                     f'{d["name"]},{d["nominal"]},{d["tolerance"]},{d["direction"]},{r["sensitivities"].get(d["name"],0):.1f}'
                     for d in st.session_state.tol_dimensions
                 )
-                st.download_button("投 CSV繧ｨ繧ｯ繧ｹ繝昴・繝・, csv_data, "tolerance_data.csv", "text/csv", use_container_width=True)
+                st.download_button("Download CSV", csv_data, "tolerance_data.csv", "text/csv", use_container_width=True)
         else:
-            st.info("盗 蜈ｬ蟾ｮ繝√ぉ繝ｼ繝ｳ繧ｿ繝悶〒蟇ｸ豕輔ｒ霑ｽ蜉縺励∬ｧ｣譫舌ｒ螳溯｡後＠縺ｦ縺上□縺輔＞")
+            st.info("Add dimensions in the tolerance table to run the analysis.")
 
-elif page == "譖ｸ邀榊次遞ｿ逕滓・":
+elif page == "Kindle Manuscript":
     st.header("答 譖ｸ邀榊次遞ｿ逕滓・ (Kindle Unlimited)")
     st.markdown("""
     **菴ｿ縺・婿:**
@@ -1120,9 +1122,9 @@ elif page == "譖ｸ邀榊次遞ｿ逕滓・":
         kindle_projects = [d for d in os.listdir(KINDLE_DIR) if os.path.isdir(os.path.join(KINDLE_DIR, d))]
     
     if not kindle_projects:
-        st.warning(f"Kindle繝励Ο繧ｸ繧ｧ繧ｯ繝医′隕九▽縺九ｊ縺ｾ縺帙ｓ縲Ａ{KINDLE_DIR}/` 縺ｫ繝輔か繝ｫ繝繧剃ｽ懈・縺励※縺上□縺輔＞縲・)
+        st.warning(f"No Kindle projects were found. Place project folders under `{KINDLE_DIR}/`.")
     else:
-        selected_project = st.selectbox("刀 繝励Ο繧ｸ繧ｧ繧ｯ繝磯∈謚・, kindle_projects)
+        selected_project = st.selectbox("Select project", kindle_projects)
         project_path = os.path.join(KINDLE_DIR, selected_project)
         images_dir = os.path.join(project_path, "images")
         os.makedirs(images_dir, exist_ok=True)
@@ -1152,7 +1154,7 @@ elif page == "譖ｸ邀榊次遞ｿ逕滓・":
         impact_col1, impact_col2, impact_col3 = st.columns(3)
         
         with impact_col1:
-            if st.button("噫 IMPACT襍ｷ蜍・, use_container_width=True):
+            if st.button("Start IMPACT", use_container_width=True):
                 import subprocess
                 try:
                     result = subprocess.run(
@@ -1168,8 +1170,8 @@ elif page == "譖ｸ邀榊次遞ｿ逕滓・":
                     st.error(f"襍ｷ蜍募､ｱ謨・ {e}")
         
         with impact_col2:
-            screenshot_name = st.text_input("繧ｹ繧ｯ繧ｷ繝ｧ蜷・, f"screen_{datetime.datetime.now().strftime('%H%M%S')}")
-            if st.button("胴 繧ｹ繧ｯ繝ｪ繝ｼ繝ｳ繧ｷ繝ｧ繝・ヨ蜿門ｾ・, use_container_width=True):
+            screenshot_name = st.text_input("Screenshot name", f"screen_{datetime.datetime.now().strftime('%H%M%S')}")
+            if st.button("Capture Screenshot", use_container_width=True):
                 import subprocess
                 screenshot_path = os.path.join(images_dir, f"{screenshot_name}.png")
                 try:
@@ -1190,7 +1192,7 @@ elif page == "譖ｸ邀榊次遞ｿ逕滓・":
                 import subprocess
                 try:
                     subprocess.run(["bash", "/work/scripts/impact_vnc.sh", "stop"], timeout=10)
-                    st.success("笨・IMPACT蛛懈ｭ｢螳御ｺ・)
+                    st.success("IMPACT stopped.")
                 except Exception as e:
                     st.warning(f"蛛懈ｭ｢荳ｭ縺ｫ繧ｨ繝ｩ繝ｼ: {e}")
         
@@ -1213,7 +1215,7 @@ elif page == "譖ｸ邀榊次遞ｿ逕滓・":
         in_files = [f for f in project_files if f.lower().endswith(".in")]
         
         if not in_files:
-            st.info("笞・・`.in` 繝輔ぃ繧､繝ｫ・亥・蜉帙ョ繝ｼ繧ｿ・峨′隕九▽縺九ｊ縺ｾ縺帙ｓ縲・)
+            st.info("No `.in` input file was found.")
         else:
             selected_in_file = st.selectbox("蟇ｾ雎｡縺ｮ蜈･蜉帙ヵ繧｡繧､繝ｫ (.in)", in_files)
             target_in_path = os.path.join(project_path, selected_in_file)
@@ -1254,7 +1256,7 @@ elif page == "譖ｸ邀榊次遞ｿ逕滓・":
                             stdout, stderr = process.communicate()
                             
                             if process.returncode == 0:
-                                st.success("笨・險育ｮ怜ｮ御ｺ・ｼ・)
+                                st.success("Simulation completed.")
                             else:
                                 st.error(f"笶・繧ｨ繝ｩ繝ｼ逋ｺ逕・(Exit Code: {process.returncode})")
                             
@@ -1300,7 +1302,7 @@ elif page == "譖ｸ邀榊次遞ｿ逕滓・":
         with col1:
             st.subheader("竭 雉・侭隱ｭ縺ｿ霎ｼ縺ｿ")
             include_code = st.checkbox("繧ｽ繝ｼ繧ｹ繧ｳ繝ｼ繝・.py, .java, .md遲・繧ょ性繧√ｋ", value=True)
-            if st.button("剥 雉・侭繧定ｧ｣譫・, use_container_width=True):
+            if st.button("Analyze Materials", use_container_width=True):
                 combined_text = ""
                 for f in project_files:
                     fpath = os.path.join(project_path, f)
@@ -1331,7 +1333,7 @@ elif page == "譖ｸ邀榊次遞ｿ逕滓・":
                 
                 st.session_state.kindle_content = combined_text
                 st.session_state.kindle_images = existing_images
-                st.success(f"笨・{len(combined_text)}譁・ｭ苓ｪｭ縺ｿ霎ｼ縺ｿ螳御ｺ・+ 逕ｻ蜒旬len(existing_images)}譫・)
+                st.success(f"Loaded {len(combined_text)} characters and {len(existing_images)} images.")
                 with st.expander("隱ｭ縺ｿ霎ｼ縺ｿ蜀・ｮｹ繝励Ξ繝薙Η繝ｼ"):
                     st.text(combined_text[:3000] + "..." if len(combined_text) > 3000 else combined_text)
         
@@ -1350,33 +1352,29 @@ elif page == "譖ｸ邀榊次遞ｿ逕滓・":
                         image_refs = "\n\n蛻ｩ逕ｨ蜿ｯ閭ｽ縺ｪ逕ｻ蜒・\n" + "\n".join([f"- {img}" for img in existing_images])
                     
                     prompt = f"""
-縺ゅ↑縺溘・繝励Ο縺ｮ謚陦捺嶌繝ｩ繧､繧ｿ繝ｼ縺ｧ縺吶ゆｻ･荳九・雉・侭・医た繝ｼ繧ｹ繧ｳ繝ｼ繝峨√ラ繧ｭ繝･繝｡繝ｳ繝医√せ繝ｩ繧､繝会ｼ峨ｒ蜈・↓縲・
-Kindle蜃ｺ迚育畑縺ｮ謚陦捺嶌縲鶏book_title}縲阪・蜴溽ｨｿ(Markdown蠖｢蠑・繧貞濤遲・＠縺ｦ縺上□縺輔＞縲・
+Create a Kindle-ready Markdown manuscript.
 
-# 隕∽ｻｶ
-- 繧ｿ繝ｼ繧ｲ繝・ヨ: 蛻晏ｭｦ閠・°繧我ｸｭ邏夊・
-- 譁・ｭ玲焚: {target_pages * 400}譁・ｭ礼ｨ句ｺｦ繧堤岼謖・☆
-- 讒区・:
-  1. 縺ｯ縺倥ａ縺ｫ・医・繝ｭ繧ｸ繧ｧ繧ｯ繝医・讎りｦ・ｼ・
-  2. **迺ｰ蠅・ｧ狗ｯ峨→襍ｷ蜍墓婿豕・*・医さ繝ｼ繝峨ｄ繧ｹ繧ｯ繝ｪ繝励ヨ縺九ｉ謗ｨ貂ｬ縺励∝・菴鍋噪縺ｪ繧ｳ繝槭Φ繝峨ｒ險倩ｼ峨☆繧九％縺ｨ・・
-  3. 荳ｻ隕∵ｩ溯・縺ｮ隗｣隱ｬ・医た繝ｼ繧ｹ繧ｳ繝ｼ繝峨・讒矩隗｣譫舌ｒ蜷ｫ繧縺薙→・・
-  4. 繝√Η繝ｼ繝医Μ繧｢繝ｫ・亥・菴鍋噪縺ｪ謫堺ｽ懈焔鬆・ｼ・
-  5. 縺ｾ縺ｨ繧・
-- 譁・ｽ・ 隕ｪ縺励∩繧・☆縺・後〒縺吶・縺ｾ縺吶崎ｪｿ
-- 逕ｻ蜒上・謖ｿ蜈･: 莉･荳九・逕ｻ蜒上ｒ驕ｩ蛻・↑蝣ｴ謇縺ｫ謖ｿ蜈･縺励※縺上□縺輔＞縲ょｽ｢蠑・ ![隱ｬ譏讃(images/繝輔ぃ繧､繝ｫ蜷・
-  (迚ｹ縺ｫGUI縺ｮ繧ｹ繧ｯ繝ｪ繝ｼ繝ｳ繧ｷ繝ｧ繝・ヨ繧・峙隗｣縺後≠繧句ｴ蜷医・遨肴･ｵ逧・↓菴ｿ縺・％縺ｨ)
+Title: {book_title}
+Target pages: {target_pages}
+Target length guideline: about {target_pages * 400} Japanese characters.
 
-# 逕ｻ蜒上Μ繧ｹ繝・
+Requirements:
+- Organize the material into a practical, readable book structure.
+- Use the supplied technical materials and screenshots as source material.
+- Explain engineering concepts clearly for readers.
+- Return Markdown only.
+
+Available images:
 {image_refs}
 
-# 雉・侭繝ｻ繧ｽ繝ｼ繧ｹ繧ｳ繝ｼ繝・
-{st.session_state.kindle_content[:150000]} 
+Source materials:
+{st.session_state.kindle_content[:150000]}
 """
                     with st.spinner("蜴溽ｨｿ逕滓・荳ｭ... (謨ｰ蛻・°縺九ｋ蝣ｴ蜷医′縺ゅｊ縺ｾ縺・"):
                         result = ask_ai(prompt)
                     
                     st.session_state.kindle_manuscript = result
-                    st.success("笨・蜴溽ｨｿ逕滓・螳御ｺ・")
+                    st.success("Manuscript generation completed.")
         
         # Display manuscript
         if "kindle_manuscript" in st.session_state and st.session_state.kindle_manuscript:
@@ -1386,7 +1384,7 @@ Kindle蜃ｺ迚育畑縺ｮ謚陦捺嶌縲鶏book_title}縲阪・蜴溽ｨｿ(
             
             # Save button
             fn = f"{selected_project}_蜴溽ｨｿ_{datetime.datetime.now().strftime('%Y%m%d_%H%M')}.md"
-            if st.download_button("踏 Markdown縺ｧ繝繧ｦ繝ｳ繝ｭ繝ｼ繝・, st.session_state.kindle_manuscript, file_name=fn):
+            if st.download_button("Download Markdown", st.session_state.kindle_manuscript, file_name=fn):
                 st.success(f"菫晏ｭ伜ｮ御ｺ・ {fn}")
 
         # Check for existing reports
@@ -1404,16 +1402,16 @@ Kindle蜃ｺ迚育畑縺ｮ謚陦捺嶌縲鶏book_title}縲阪・蜴溽ｨｿ(
                 with col_d1:
                     st.text(f"塘 {rf} ({os.path.getsize(rf_path)/1024:.1f} KB)")
                 with col_d2:
-                    st.download_button("踏 繝繧ｦ繝ｳ繝ｭ繝ｼ繝・, content, file_name=rf, key=f"dl_{rf}")
+                    st.download_button("Download", content, file_name=rf, key=f"dl_{rf}")
         else:
-            st.info("菫晏ｭ倥＆繧後◆蜴溽ｨｿ縺ｯ縺ゅｊ縺ｾ縺帙ｓ縲・)
+            st.info("No saved manuscript reports were found.")
 
 # -------------------------
 # P016: Email Reporting
 # -------------------------
-elif page == "透 Email蝣ｱ蜻・(P016)":
+elif page == "Email Daily Report (P016)":
     st.header("透 Email Daily Report (P016)")
-    st.info("P016: 萓晞ｼ繝ｻQIF繝ｻ莨夊ｭｰ縺ｮ3轤ｹ繧ｻ繝・ヨ繧呈ｯ取律縺ｾ縺ｨ繧∝ｱ蜻翫＠縺ｾ縺吶・)
+    st.info("P016 bundles requests, QIF items, and meeting notes into a daily report.")
 
     col1, col2 = st.columns([1, 2])
     
@@ -1423,7 +1421,7 @@ elif page == "透 Email蝣ｱ蜻・(P016)":
         start_date = st.date_input("髢句ｧ区律", today)
         end_date = st.date_input("邨ゆｺ・律", today)
         
-        if st.button("噫 繝ｬ繝昴・繝育函謌・, use_container_width=True):
+        if st.button("Generate Report", use_container_width=True):
             with st.spinner("繝｡繝ｼ繝ｫ隗｣譫蝉ｸｭ... (謨ｰ蛻・°縺九ｊ縺ｾ縺・"):
                 # Copy script if not present (safety check)
                 if not os.path.exists("/app/generate_email_report.py"):
@@ -1449,14 +1447,14 @@ elif page == "透 Email蝣ｱ蜻・(P016)":
 
     # List Reports
     st.markdown("---")
-    st.subheader("唐 驕主悉縺ｮ繝ｬ繝昴・繝・)
+    st.subheader("Available Reports")
     
     if os.path.exists(WORK_DIR):
         reports = [f for f in os.listdir(WORK_DIR) if f.startswith("Email_Report_") and f.endswith(".md")]
         reports.sort(reverse=True)
         
         if reports:
-            selected_report = st.selectbox("繝ｬ繝昴・繝医ｒ驕ｸ謚・, reports)
+            selected_report = st.selectbox("Select report", reports)
             
             if selected_report:
                 rpath = os.path.join(WORK_DIR, selected_report)
@@ -1464,7 +1462,7 @@ elif page == "透 Email蝣ｱ蜻・(P016)":
                     content = f.read()
                 
                 st.markdown(content)
-                st.download_button("踏 繝繧ｦ繝ｳ繝ｭ繝ｼ繝・, content, file_name=selected_report)
+                st.download_button("Download", content, file_name=selected_report)
         else:
-            st.info("繝ｬ繝昴・繝医・縺ｾ縺逕滓・縺輔ｌ縺ｦ縺・∪縺帙ｓ縲・)
+            st.info("No reports are available yet.")
 
