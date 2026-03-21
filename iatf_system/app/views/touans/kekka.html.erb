@@ -1,121 +1,92 @@
-
-<%= "Emailアドレス："%>
-    <%= @user.email %> <br>
-<%= "名前　　　　 ："%>
-    <%= @user.name %> <br>
-<%= "識別　　　　 ："%>
-    <%= @user.role %> <br>
-
-
-<div class="note-box">
-
+<%# ===== データ集計 (1パス) ===== %>
 <% correct_count = 0 %>
-<% total_count = 0 %>
-<% @touans.group_by { |touan| [touan.user_id, touan.created_at.change(usec: 0)] }.each do |(user_id, created_at), touans| %>
-    <% total_count += touans.length %>
-    <% i=1 %>
+<% total_count   = 0 %>
+<% question_list = [] %>
 
-    <% touans.each do |touan| %>
+<% @touans.group_by { |t| [t.user_id, t.created_at.change(usec: 0)] }.each do |(_, _), touans| %>
+  <% total_count += touans.length %>
+  <% touans.each_with_index do |touan, idx| %>
+    <% is_correct = touan.seikai == touan.kaito %>
+    <% correct_count += 1 if is_correct %>
+    <% question_list << { touan: touan, is_correct: is_correct, num: idx + 1 } %>
+  <% end %>
+<% end %>
 
-      <!--
-      <div class="rounded-md border border-gray-800 outline-none px-3 py-2 mt-2 bg-blue-600 bg-opacity-100">
-      -->
-     
-      <!--
-      <p class="rounded-md border border-gray-200 outline-none px-3 py-2 mt-2 bg-blue-100 bg-opacity-100 " >ID:     <%= touan.id %></p>
-      -->
-      <p class="font-bold w-1/7 text-lg text-white rounded-md border border-gray-200 outline-none px-3 py-2 mt-2 bg-blue-600" >問題:     <%= i %></p>
+<div class="max-w-2xl mx-auto px-4 py-6">
 
-      <p class="w-auto rounded-md border border-gray-200 outline-none px-3 py-2 mt-2 bg-blue-100 bg-opacity-100 " >箇条:     <%= touan.kajyou %></p>
-      <p class="w-auto rounded-md border border-gray-200 outline-none px-3 py-2 mt-2 bg-blue-100 bg-opacity-100" >問題:     <%= touan.mondai %></p>
-      
-      <div class="lg:flex space-x-4 ">
-      <p class="w-1/3 rounded-md border border-gray-200 outline-none px-3 py-2 mt-2 bg-blue-100" >問題ID:     <%= touan.mondai_no %></p>
-      <p class="w-1/3 rounded-md border border-gray-200 outline-none px-3 py-2 mt-2 bg-blue-100">出題回数: <%= touan.total_answers %></p>
-      <p class="w-1/3 rounded-md border border-gray-200 outline-none px-3 py-2 mt-2 bg-blue-100">正解数: <%= touan.correct_answers %></p>
+  <%# ユーザー情報バー %>
+  <div class="flex flex-wrap items-center gap-3 mb-5 p-3 bg-base-200 rounded-xl text-sm">
+    <div><span class="font-semibold">名前：</span><%= @user.name %></div>
+    <div><span class="font-semibold">識別：</span><%= @user.role %></div>
+    <div class="ml-auto text-xs text-base-content/50"><%= @user.email %></div>
+  </div>
+
+  <%# スコアカード %>
+  <% score_pct = total_count > 0 ? correct_count.to_f / total_count * 100 : 0.0 %>
+  <% score_color = score_pct >= 80 ? 'bg-success text-success-content' : score_pct >= 60 ? 'bg-warning text-warning-content' : 'bg-error text-error-content' %>
+  <div class="card <%= score_color %> shadow-xl mb-8">
+    <div class="card-body items-center text-center py-6">
+      <p class="text-lg font-semibold opacity-80 mb-1">テスト結果</p>
+      <h2 class="text-5xl font-bold mb-2"><%= sprintf("%.1f", score_pct) %>%</h2>
+      <p class="text-base opacity-80"><%= correct_count %> / <%= total_count %> 問正解</p>
+    </div>
+  </div>
+
+  <%# 問題別結果 %>
+  <% question_list.each do |q| %>
+    <% touan = q[:touan] %>
+    <% is_correct = q[:is_correct] %>
+
+    <div class="card shadow-sm border mb-4 <%= is_correct ? 'border-success/40 bg-success/5' : 'border-error/40 bg-error/5' %>">
+      <div class="card-body p-5">
+
+        <%# ヘッダー行 %>
+        <div class="flex items-center gap-2 mb-3">
+          <span class="badge badge-primary badge-md font-bold">問題 <%= q[:num] %></span>
+          <span class="badge badge-outline text-xs">箇条 <%= touan.kajyou %></span>
+          <span class="ml-auto badge <%= is_correct ? 'badge-success' : 'badge-error' %> font-bold">
+            <%= is_correct ? '✓ 正解' : '✗ 不正解' %>
+          </span>
+        </div>
+
+        <%# 問題文 %>
+        <p class="text-sm font-medium leading-relaxed mb-3"><%= touan.mondai %></p>
+
+        <%# 選択肢 (正解・不正解を色分け) %>
+        <div class="flex flex-col gap-1.5 mb-3">
+          <% [['a', touan.mondai_a], ['b', touan.mondai_b], ['c', touan.mondai_c]].each do |val, text| %>
+            <% is_seikai  = touan.seikai == val %>
+            <% is_kaito   = touan.kaito  == val %>
+            <% choice_class = if is_seikai
+                                 'bg-success/20 border-success/60 text-success-content font-semibold'
+                               elsif is_kaito && !is_seikai
+                                 'bg-error/20 border-error/60 text-error-content'
+                               else
+                                 'border-base-200 opacity-50'
+                               end %>
+            <div class="flex items-start gap-2 px-3 py-2 rounded-lg border text-sm <%= choice_class %>">
+              <span class="font-bold shrink-0 w-5"><%= val.upcase %>.</span>
+              <span class="flex-1 leading-relaxed"><%= text.to_s.sub(/^選択肢[a-cA-C][：:]\s*/, '') %></span>
+              <% if is_seikai %><span class="shrink-0 text-xs">← 正解</span><% end %>
+              <% if is_kaito && !is_seikai %><span class="shrink-0 text-xs">← あなたの回答</span><% end %>
+            </div>
+          <% end %>
+        </div>
+
+        <%# 解説 %>
+        <% if touan.kaisetsu.present? %>
+          <div class="bg-base-200 rounded-lg p-3">
+            <p class="text-xs font-semibold text-base-content/50 mb-1">解説</p>
+            <p class="text-sm leading-relaxed"><%= touan.kaisetsu %></p>
+          </div>
+        <% end %>
+
       </div>
+    </div>
+  <% end %>
 
-      <p class="w-auto rounded-md border border-gray-200 outline-none px-3 py-2 mt-2 bg-blue-100 bg-opacity-100" >正解率: <%= "#{touan.seikairitsu.round(2)}%" %></p>
-      
-      <% if touan.seikai=="a" %>
-          <p class="w-auto rounded-md border border-gray-200 outline-none px-3 py-2 mt-2 bg-blue-100 bg-opacity-100">正解:      <%= touan.mondai_a %></p>
-      <% elsif touan.seikai=="b" %>
-          <p class="w-auto rounded-md border border-gray-200 outline-none px-3 py-2 mt-2 bg-blue-100 bg-opacity-100">正解:      <%= touan.mondai_b %></p>
-      <% else %>
-          <p class="w-auto rounded-md border border-gray-200 outline-none px-3 py-2 mt-2 bg-blue-100 bg-opacity-100">正解:      <%= touan.mondai_c %></p>
-          
-      <% end %>
-
-
-      <% if touan.seikai == touan.kaito %>
-      <% correct_count += 1 %>
-      <% result="正解です" %>
-      <p class="w-auto rounded-md border border-gray-200 outline-none px-3 py-2 mt-2 bg-blue-300 bg-opacity-100"><%= @user.name %> さんの回答:      <%= touan.kaito %> でした。 <%= result %></p>
-
-      <% else %>
-      <% result="間違いです" %>
-      <p class="w-auto rounded-md border border-gray-200 outline-none text-red-900 px-3 py-2 mt-2 bg-red-100 bg-opacity-100"><%= @user.name %> さんの回答:      <%= touan.kaito %> でした。 <%= result %></p>
-      <% end %>
-      
-      <p class="w-auto rounded-md border border-gray-200 outline-none px-3 py-2 mt-2 bg-blue-100 bg-opacity-100">解説:      <%= touan.kaisetsu %></p>
-
-      <p class="w-auto rounded-md border border-gray-200 outline-none px-3 py-2 mt-2 bg-blue-100 bg-opacity-100">参考URL:      <%= touan.rev %></p>
-
-      
-      <!--
-      </div>
-      -->
-
-       <% i +=1 %>
-
-      <br>
-   
-    <% end %>
-
-<% end %>  
-
-     <p>得点:      <%= sprintf("%.2f", correct_count.to_f / total_count * 100) %></p>
+  <div class="mt-6 mb-8">
+    <%= link_to '← 戻る', index_touan_path, class: 'btn btn-ghost btn-sm' %>
+  </div>
 
 </div>
-
-
-<%= link_to '戻る', index_touan_path, class: 'btn btn-accent' %>
-
-<!--
-【CSSカスタマイズ】ルーズリーフ風（ノート風）ボックス
-https://sarubako.com/css-box-looseleaf/
--->
-
-<style>
-/***　ルーズリーフ風ボックス　***/
-/*外枠の設定*/
-.note-box {
-   border: solid 2px #999; /*外枠の線*/
-   padding: 0 1em 0 2em; /*内側の余白*/
-   position: relative;
-   width: 70%; /* 追加：外枠の幅を半分に */
-   margin: 0 auto; /* 追加：左右の余白を自動調整してセンタリング */
-}
-
-/*文字、罫線の設定*/
-.note-box p {
-   border-bottom: dashed 1px #ccc; /*罫線*/
-   line-height: 1.5; /*行の高さ*/
-   padding: 0.5em 0 0.5em 0.5em; /*文字の位置*/
-   margin:0;
-}
-.note-box p:last-of-type {
-   border-bottom: none;
-}
-
-/*ドットの設定*/
-.note-box::before {
-   content: "";
-   position: absolute;
-   border-right: dotted 10px #ddd; /*ドットの大きさ、高さ*/
-   height:90%;
-   top:0.5em; /*位置*/
-   left:0.5em; /*位置*/
-}
-
-</style>
