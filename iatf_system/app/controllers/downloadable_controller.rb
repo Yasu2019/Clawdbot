@@ -8,45 +8,18 @@ class DownloadableController < ApplicationController
     Rails.logger.info("Session download_password at downloadable_controller: #{session[:download_password]}")
     Rails.logger.debug { "minipc environment: #{ENV['minipc']}" }
     blob_id = params[:blob_id]
-    entered_password = params[:password]
 
-    # minipc環境変数がtrueの場合、パスワード確認をスキップ
     if ENV['minipc'] == 'true'
       Rails.logger.info("minipc environment detected, bypassing password verification")
-      @document = ActiveStorage::Attachment.find_by(blob_id:)
-
-      if @document
-        file = @document.blob
-        @download_url = rails_blob_url(file)
-        render :download_page
-      else
-        Rails.logger.warn("No attachment found for blob ID: #{blob_id}")
-        flash[:alert] = 'ファイルが見つかりませんでした。'
-        render :verify_password
-      end
+      render_document_download(blob_id)
       return
     end
 
-    if entered_password == session[:download_password]
-      @document = ActiveStorage::Attachment.find_by(blob_id:)
-
-      if @document
-        file = @document.blob
-        @download_url = rails_blob_url(file)
-        # ファイルのダウンロードURLを提供するページをレンダリング
-        render :download_page
-      else
-        Rails.logger.warn("No attachment found for blob ID: #{blob_id}")
-        flash[:alert] = 'ファイルが見つかりませんでした。'
-        render :verify_password
-      end
+    if params[:password] == session[:download_password]
+      render_document_download(blob_id)
     else
-      if current_user.email == "yasuhiro-suzuki@mitsui-s.com"
-        flash[:alert] = "無効なパスワードです。正しいパスワードは: #{session[:download_password]}"  # 正しいパスワードを表示
-      else
-        flash[:alert] = "無効なパスワードです。"  # 正しいパスワードを表示しない
-      end
-      render :verify_password and return  # returnを追加
+      set_invalid_password_flash
+      render :verify_password
     end
   end
 
@@ -66,75 +39,43 @@ class DownloadableController < ApplicationController
     Rails.logger.debug { "Session password: #{session[:download_password]}" }
     Rails.logger.debug { "minipc environment: #{ENV['minipc']}" }
 
-    # minipc環境変数がtrueの場合、パスワード確認をスキップ
     if ENV['minipc'] == 'true'
       Rails.logger.info("minipc environment detected, bypassing password verification")
-      @document = ActiveStorage::Attachment.find_by(blob_id: params[:blob_id])
-      
-      if @document
-        file = @document.blob
-        @download_url = rails_blob_url(file)
-        render :download_page and return
-      else
-        Rails.logger.warn("No attachment found for blob ID: #{params[:blob_id]}")
-        flash[:alert] = 'ファイルが見つかりませんでした。'
-        render :verify_password and return
-      end
+      render_document_download(params[:blob_id])
+      return
     end
-  
-    # セッションパスワードが設定されているか確認
+
     if session[:download_password].blank?
       Rails.logger.warn("セッションパスワードが設定されていません。")
-      
-      # volumeフォルダからパスワードを読み込む
       begin
         session[:download_password] = File.read(Rails.root.join('volume', 'pass_word.txt')).strip
         Rails.logger.info("セッションパスワードをファイルから読み込みました。")
       rescue Errno::ENOENT
         Rails.logger.error("pass_word.txtファイルが見つかりません。")
-        flash[:alert] = 'パスワードが設定されていません。'
-        render :verify_password and return  # returnを追加
       end
-      
       flash[:alert] = 'パスワードが設定されていません。'
-      render :verify_password and return  # returnを追加
+      render :verify_password
+      return
     end
-  
-    # パスワードが提供されていない場合、パスワード入力ページをレンダリング
+
     unless params[:password]
       @document = ActiveStorage::Attachment.find_by(blob_id: params[:blob_id])
-      render :verify_password and return  # returnを追加
+      render :verify_password
+      return
     end
-  
+
     if params[:blob_id].present?
       session[:download_blob_id] = params[:blob_id]
-      blob_id = session[:download_blob_id]
-      Rails.logger.debug { "Blob ID: #{blob_id}" }
+      Rails.logger.debug { "Blob ID: #{params[:blob_id]}" }
     else
       Rails.logger.warn("blob_id is missing in params.")
     end
-  
-    entered_password = params[:password]
-  
-    if entered_password == session[:download_password]
-      @document = ActiveStorage::Attachment.find_by(blob_id: params[:blob_id])
-  
-      if @document
-        file = @document.blob
-        @download_url = rails_blob_url(file)
-        render :download_page and return  # returnを追加
-      else
-        Rails.logger.warn("No attachment found for blob ID: #{blob_id}")
-        flash[:alert] = 'ファイルが見つかりませんでした。'
-        render :verify_password and return  # returnを追加
-      end
+
+    if params[:password] == session[:download_password]
+      render_document_download(params[:blob_id])
     else
-      if current_user.email == "yasuhiro-suzuki@mitsui-s.com"
-        flash[:alert] = "無効なパスワードです。正しいパスワードは: #{session[:download_password]}"  # 正しいパスワードを表示
-      else
-        flash[:alert] = "無効なパスワードです。"  # 正しいパスワードを表示しない
-      end
-      render :verify_password and return  # returnを追加
+      set_invalid_password_flash
+      render :verify_password
     end
   end
 
@@ -172,6 +113,26 @@ class DownloadableController < ApplicationController
   end
 
   private
+
+  def render_document_download(blob_id)
+    @document = ActiveStorage::Attachment.find_by(blob_id:)
+    if @document
+      @download_url = rails_blob_url(@document.blob)
+      render :download_page
+    else
+      Rails.logger.warn("No attachment found for blob ID: #{blob_id}")
+      flash[:alert] = 'ファイルが見つかりませんでした。'
+      render :verify_password
+    end
+  end
+
+  def set_invalid_password_flash
+    if current_user.email == 'yasuhiro-suzuki@mitsui-s.com'
+      flash[:alert] = "無効なパスワードです。正しいパスワードは: #{session[:download_password]}"
+    else
+      flash[:alert] = '無効なパスワードです。'
+    end
+  end
 
   def set_downloadable
     model = if request.path.include?('/products/')
