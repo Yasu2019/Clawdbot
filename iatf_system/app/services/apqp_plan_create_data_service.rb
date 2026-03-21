@@ -41,47 +41,11 @@ class ApqpPlanCreateDataService
 
       collect_qualified_lab_docs(pro, stage)
 
-
-
       collect_validation_record(pro, stage)
 
       collect_manufacturing_feasibility(pro, stage)
 
-
-
-
-
-
-      #if stage == 'プロセスフロー図' || stage == 'プロセスフロー図(Phase3)'
-      #  @processflow_yotei = pro.deadline_at.strftime('%y/%m/%d')
-      #  @processflow_kanryou = pro.end_at.strftime('%y/%m/%d')
-      #  if pro.documents.attached?
-      #    @processflow_check = '☑'
-      #    @processflow_filename = pro.documents.first.filename.to_s
-      #  else
-      #    #@processflow_check = '☐'
-      #  end
-      #end
-
-      
-
-
       collect_process_flow(pro, stage)
-
-      
-
-
-
-
-
-
-
-
-
-
-
-
-
 
       collect_msa_crosstab(pro, stage)
 
@@ -94,7 +58,6 @@ class ApqpPlanCreateDataService
       collect_characteristics_matrix(pro, stage)
 
       collect_process_flow_diagram(pro, stage)
-
 
       collect_floor_plan_layout(pro, stage)
 

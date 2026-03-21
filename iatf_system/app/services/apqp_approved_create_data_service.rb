@@ -635,7 +635,6 @@ class ApqpApprovedCreateDataService
     end
   end
 
-
   def apqp_approved_report_insert_rows_to_excel_template_msa
     if @apqp_approved_report_excel_template_initial == true # Excelテンプレートが初期値の場合
       workbook = RubyXL::Parser.parse('lib/excel_templates/apqp_approved_report.xlsx')
@@ -755,7 +754,6 @@ class ApqpApprovedCreateDataService
 
   # 【Rails】 strftimeの使い方と扱えるクラスについて
   # https://pikawaka.com/rails/strftime
-
 
   def cell_address_to_position(cell_address)
     col = cell_address.gsub(/\d/, '')

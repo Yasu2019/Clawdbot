@@ -57,18 +57,12 @@ class ProductCreateDataService
 
       collect_process_inspection_record(pro, stage)
 
-
-
       collect_visual_inspection_guideline(pro, stage)
 
       collect_inspection_procedures(pro, stage)
-      
-
-
 
       collect_manufacturing_feasibility(pro, stage)
 
-      
       collect_process_fmea(pro, stage)
 
       collect_dr_meeting_minutes(pro, stage)
@@ -958,7 +952,6 @@ class ProductCreateDataService
           @cpk_person_in_charge = worksheet.cell(50, 71)
           @cpk_manager = worksheet.cell(50, 76)
 
-
           satisfied = '工程能力は満足している'
           not_satisfied = '工程能力は不足している'
 
@@ -1263,7 +1256,6 @@ class ProductCreateDataService
     end
   end
 
-
   def insert_rows_to_excel_template_msa
     if @excel_template_initial == true # Excelテンプレートが初期値の場合
       workbook = RubyXL::Parser.parse('lib/excel_templates/process_design_plan_report.xlsx')
@@ -1562,7 +1554,6 @@ class ProductCreateDataService
     # 日付を文字列に変換
     date.strftime('%Y/%m/%d')
   end
-
 
   def cell_address_to_position(cell_address)
     col = cell_address.gsub(/\d/, '')
