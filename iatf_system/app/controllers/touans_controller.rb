@@ -1,6 +1,21 @@
-﻿# frozen_string_literal: true
+# frozen_string_literal: true
 
 class TouansController < ApplicationController
+  OWNER_MAPPING = {
+    'sales'            => %w[sales 営業プロセス],
+    'process_design'   => %w[process_design 製造工程設計プロセス],
+    'production'       => %w[production 製造プロセス],
+    'inspection'       => %w[inspection 製品検査プロセス],
+    'release'          => %w[release 引渡しプロセス],
+    'procurement'      => %w[procurement 購買プロセス],
+    'equipment'        => %w[equipment 設備管理プロセス],
+    'measurement'      => %w[measurement 測定機器管理プロセス],
+    'policy'           => %w[policy 方針プロセス],
+    'satisfaction'     => %w[satisfaction 顧客満足プロセス],
+    'audit'            => %w[audit 内部監査プロセス],
+    'corrective_action' => %w[corrective_action 改善プロセス]
+  }.freeze
+
   def export_to_excel
     @csrs = Csr.all
     @iatflists = Iatflist.all
@@ -12,10 +27,8 @@ class TouansController < ApplicationController
     wb.add_worksheet(name: 'Basic Worksheet') do |sheet|
       sheet.add_row ['箇条', 'MEK様品質ガイドラインVer2', 'IATF規格要求事項', 'ミツイ精密 品質マニュアル']
 
-      # Set the width of columns B, C, and D to 80
       sheet.column_widths 15, 40, 40, 40
 
-      # データ行を配列に保存
       rows = []
       [@csrs, @iatflists, @mitsuis].each do |records|
         records.each do |record|
@@ -39,13 +52,8 @@ class TouansController < ApplicationController
         end
       end
 
-      # 数字が低い順に並べ替え
-      sorted_rows = rows.sort_by { |row| row[0].split('.').map(&:to_i) }
+      unique_rows = rows.sort_by { |row| row[0].split('.').map(&:to_i) }.uniq
 
-      # 重複を削除
-      unique_rows = sorted_rows.uniq
-
-      # ソートされ、重複が削除された行をシートに追加
       unique_rows.each do |row|
         sheet.add_row row
       end
@@ -85,11 +93,10 @@ class TouansController < ApplicationController
   end
 
   def delete_testmondai
-    @testmondai = Testmondai.find(params[:testmondai_id]) # 変更
+    @testmondai = Testmondai.find(params[:testmondai_id])
     @testmondai.destroy
     respond_to do |format|
-      # format.html { redirect_to touans_url, notice: "Testmondai was successfully destroyed." }
-      format.html { redirect_to testmondai_touan_path, notice: 'Testmondai was successfully destroyed.' } # 変更
+      format.html { redirect_to testmondai_touan_path, notice: 'Testmondai was successfully destroyed.' }
       format.json { head :no_content }
     end
   end
@@ -104,7 +111,7 @@ class TouansController < ApplicationController
     Touan.where(user_id: current_user.id, created_at: (target_date - 1.minute)..(target_date + 1.minute)).destroy_all
 
     flash[:notice] = '関連するTouanレコードを削除しました。'
-    redirect_to touans_url # 削除後にリダイレクトするパスを指定
+    redirect_to touans_url
   end
 
   def index
@@ -116,80 +123,21 @@ class TouansController < ApplicationController
       @owner_select = session[:owner_select]
     end
 
-    # キャッシュからproductsを取得
-    if Rails.cache.exist?("products_#{current_user.id}")
-      @products = Rails.cache.read("products_#{current_user.id}")
-      Rails.logger.info("Loaded products from cache for user ID: #{@user.id}")
-    else
-      Rails.logger.warn("Cache for products not found for user ID: #{@user.id}. Loading from database.")
-      @products = Product.where.not(documentnumber: nil).includes(:documents_attachments)
-      Rails.logger.info("Loaded products from database for user ID: #{@user.id}")
-    end
-
-    # キャッシュからtouansを取得
-    if Rails.cache.exist?("touans_#{current_user.id}")
-      @touans = Rails.cache.read("touans_#{current_user.id}")
-      Rails.logger.info("Loaded touans from cache for user ID: #{@user.id}")
-    else
-      Rails.logger.warn("Cache for touans not found for user ID: #{@user.id}. Loading from database.")
-      @touans = Touan.where(user_id: current_user.id)
-      CacheDataJob.perform_async(@user.id) # キャッシュジョブを呼び出す
-      Rails.logger.info("Loaded touans from database for user ID: #{@user.id}")
+    @products = Rails.cache.fetch("products_#{current_user.id}") do
+      Product.where.not(documentnumber: nil).includes(:documents_attachments)
     end
 
     @touans = Touan.where(user_id: current_user.id)
-    # @touans = Touan.where(user_id: current_user.id).page(params[:page]).per(10)
 
     @auditor = current_user.auditor
-    # @iatf_data_audit = Iatf.where(audit: "2")
-    # @iatf_data_audit_sub = Iatf.where(audit: "1")
-
     @csrs = Csr.all
     @iatflists = Iatflist.all
-    # @mitsuis = Mitsui.all
 
-    owner_mapping = {
-      'sales' => %w[sales 営業プロセス],
-      'process_design' => %w[process_design 製造工程設計プロセス],
-      'production' => %w[production 製造プロセス],
-      'inspection' => %w[inspection 製品検査プロセス],
-      'release' => %w[release 引渡しプロセス],
-      'procurement' => %w[procurement 購買プロセス],
-      'equipment' => %w[equipment 設備管理プロセス],
-      'measurement' => %w[measurement 測定機器管理プロセス],
-      'policy' => %w[policy 方針プロセス],
-      'satisfaction' => %w[satisfaction 顧客満足プロセス],
-      'audit' => %w[audit 内部監査プロセス],
-      'corrective_action' => %w[corrective_action 改善プロセス]
-    }
+    @iatf_data, @iatf_data_sub = iatf_data_for(@user.owner)
+    @process_name = OWNER_MAPPING.dig(@user.owner, 1)
 
-    @iatf_data = []
-    @iatf_data_sub = []
-    if owner_mapping.key?(@user.owner)
-      key, process_name = owner_mapping[@user.owner]
-      @iatf_data = Iatf.where("#{key}": '2')
-      @iatf_data_sub = Iatf.where("#{key}": '1')
-      # @iatf_data = Iatf.where("#{key}": "2").page(params[:page]).per(10)
-      # @iatf_data_sub = Iatf.where("#{key}": "1").page(params[:page]).per(10)
-      @process_name = process_name
-    end
-
-    @iatf_data_audit = []
-    @iatf_data_audit_sub = []
-    if owner_mapping.key?(@owner_select)
-      key, = owner_mapping[@owner_select]
-      @iatf_data_audit = Iatf.where("#{key}": '2')
-      @iatf_data_audit_sub = Iatf.where("#{key}": '1')
-      # @iatf_data_audit = Iatf.where("#{key}": "2").page(params[:page]).per(10)
-      # @iatf_data_audit_sub = Iatf.where("#{key}": "1").page(params[:page]).per(10)
-
-      # @select_process_name = @owner_select
-    end
-
-    # @owner_selectの値に応じて@owner_select_jpに日本語のプロセス名を代入
-    return unless owner_mapping.key?(@owner_select)
-
-    @owner_select_jp = owner_mapping[@owner_select][1]
+    @iatf_data_audit, @iatf_data_audit_sub = iatf_data_for(@owner_select)
+    @owner_select_jp = OWNER_MAPPING.dig(@owner_select, 1)
   end
 
   def new
@@ -208,7 +156,7 @@ class TouansController < ApplicationController
   end
 
   def create
-    @user = current_user # 追加
+    @user = current_user
     @touans = TouanCollection.new(touans_params, [], @user)
     if @touans.save
       grouped_touans = @touans.collection.group_by { |touan| [touan.user_id, touan.created_at.change(usec: 0)] }
@@ -261,6 +209,13 @@ class TouansController < ApplicationController
 
   private
 
+  def iatf_data_for(owner_key)
+    key = OWNER_MAPPING.dig(owner_key, 0)
+    return [[], []] if key.nil?
+
+    [Iatf.where("#{key}": '2'), Iatf.where("#{key}": '1')]
+  end
+
   def touans_params
     params.require(:touans).map do |p|
       p.permit(:kajyou, :kaito, :mondai, :mondai_a, :mondai_b, :mondai_c, :user_id, :seikai, :kaisetsu, :mondai_no, :seikairitsu,
@@ -292,4 +247,3 @@ class TouansController < ApplicationController
     end
   end
 end
-
