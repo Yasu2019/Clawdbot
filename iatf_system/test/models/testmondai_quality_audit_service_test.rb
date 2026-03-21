@@ -24,7 +24,7 @@ class TestmondaiQualityAuditServiceTest < ActiveSupport::TestCase
   test 'detects mojibake like text patterns' do
     csv = Tempfile.new(['audit_mojibake', '.csv'])
     csv.write("kajyou,mondai_no,rev,mondai,mondai_a,mondai_b,mondai_c,seikai,kaisetsu\n")
-    csv.write("8.3,Q-2,REV1,險ｭ險井ｻ墓ｧ俶嶌,a,b,c,a,縺薙ｌ縺ｯ解説です\n")
+    csv.write("8.3,Q-2,REV1,邵ｺ郢ｧ陷ｿ問題テキスト,a,b,c,a,explanation text here\n")
     csv.rewind
 
     report = TestmondaiQualityAuditService.call([csv.path])

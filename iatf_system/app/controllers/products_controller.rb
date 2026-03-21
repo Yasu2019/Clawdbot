@@ -250,27 +250,6 @@ def get_row_data(source_worksheet, r, audit_types, audit_target)
   ]
 end
 
-def parse_date(cell_value)
-  case cell_value
-  when Date, Time
-    cell_value
-  when String
-    begin
-      Date.parse(cell_value)
-    rescue Date::Error
-      cell_value
-    end
-  when Numeric
-    begin
-      base_date = Date.new(1899, 12, 30)
-      base_date + cell_value.to_i
-    rescue Date::Error
-      cell_value
-    end
-  else
-    cell_value
-  end
-end
 
 def merge_cells(worksheet, start_row, end_row)
   if start_row < end_row
@@ -402,28 +381,6 @@ def get_correction_report_data(source_worksheet)
   ]
 end
 
-def parse_date(value)
-  case value
-  when Date, Time
-    value
-  when String
-    begin
-      Date.parse(value)
-    rescue Date::Error
-      value
-    end
-  when Numeric
-    begin
-      # Excelの日付は1900年1月1日からの経過日数
-      base_date = Date.new(1899, 12, 30)
-      base_date + value.to_i
-    rescue Date::Error
-      value
-    end
-  else
-    value
-  end
-end
 
 
 
@@ -3210,14 +3167,6 @@ end
             @cpk_person_in_charge = worksheet.cell(50, 71)
             @cpk_manager = worksheet.cell(50, 76)
 
-            def cell_address_to_position(cell_address)
-              col = cell_address.gsub(/\d/, '')
-              row = cell_address.gsub(/\D/, '').to_i
-
-              col_index = col.chars.map { |char| char.ord - 'A'.ord + 1 }.reduce(0) { |acc, val| (acc * 26) + val }
-              [row, col_index]
-            end
-
             satisfied = '工程能力は満足している'
             not_satisfied = '工程能力は不足している'
 
@@ -3893,14 +3842,6 @@ end
             # i4のセルの値を取得
             @cpk_person_in_charge = worksheet.cell(50, 71)
             @cpk_manager = worksheet.cell(50, 76)
-
-            def cell_address_to_position(cell_address)
-              col = cell_address.gsub(/\d/, '')
-              row = cell_address.gsub(/\D/, '').to_i
-
-              col_index = col.chars.map { |char| char.ord - 'A'.ord + 1 }.reduce(0) { |acc, val| (acc * 26) + val }
-              [row, col_index]
-            end
 
             satisfied = '工程能力は満足している'
             not_satisfied = '工程能力は不足している'
@@ -4636,14 +4577,14 @@ def get_row_data1(source_worksheet, audit_types, content_nature, cause)
   [
     find_value_in_column_e(source_worksheet, "発行部門"),   # 発行部門
     find_value_in_column_ab(source_worksheet, "品証受付番号"),  # 品証受付番号の1つ下の行の値
-    parse_date1(find_value_in_column_e(source_worksheet, "発行日")),  # 発行日
+    parse_date(find_value_in_column_e(source_worksheet, "発行日")),  # 発行日
     department_value,   # 当該部門
     find_value_in_column_e(source_worksheet, "品名/図番"),   # 品名/図番
     product_row ? source_worksheet.cell(product_row, 'P') : nil,   # ロット№
     product_row ? source_worksheet.cell(product_row, 'AA') : nil,  # 数量
     content_nature,  # 不適合の内容・性質
     cause,           # 原因（発生及び流出）
-    parse_date1(source_worksheet.cell(25, 'A')),  # 処置日
+    parse_date(source_worksheet.cell(25, 'A')),  # 処置日
     get_nonconforming_product_disposition(source_worksheet),  # 不適合品の処置
     source_worksheet.cell(24, 'M'),  # 処置者
     source_worksheet.cell(22, 'E'),  # 是正処置の必要性
@@ -4681,11 +4622,11 @@ Rails.logger.info "get_row_data2 メソッドが呼び出されました"
   data = [
     source_worksheet.cell(2, 'K'),   # 管理No.
     source_worksheet.cell(4, 'C'),   # 件名
-    parse_date1(source_worksheet.cell(5, 'H')),  # 発行日
+    parse_date(source_worksheet.cell(5, 'H')),  # 発行日
     source_worksheet.cell(5, 'K'),   # 起票者
     source_worksheet.cell(6, 'C'),   # 品番又はプロセス
     source_worksheet.cell(6, 'K'),   # 発生場所
-    parse_date1(source_worksheet.cell(9, 'C')),  # 発生日
+    parse_date(source_worksheet.cell(9, 'C')),  # 発生日
     source_worksheet.cell(8, 'G'),   # 責任部門
     source_worksheet.cell(8, 'N'),   # 他部門要請
     get_section_content(source_worksheet, '不適合内容', '顧客在庫への影響'),  # 不適合内容
@@ -4693,7 +4634,7 @@ Rails.logger.info "get_row_data2 メソッドが呼び出されました"
     source_worksheet.cell(18, 'B'),  # 顧客への影響
     get_section_content(source_worksheet, '現品処置', '処置結果'),  # 現品処置
     get_section_content(source_worksheet, '処置結果', '在庫品の処置'),  # 処置結果
-    parse_date1(source_worksheet.cell(28, 'H')),  # 実施日
+    parse_date(source_worksheet.cell(28, 'H')),  # 実施日
     source_worksheet.cell(26, 'O'),  # 承認
     source_worksheet.cell(28, 'O'),  # 担当
     get_section_content(source_worksheet, '在庫品の処置', '処置結果'),  # 在庫品の処置
@@ -4702,29 +4643,29 @@ Rails.logger.info "get_row_data2 メソッドが呼び出されました"
     source_worksheet.cell(40, 'M'),  # 5M1Eの変更点・変化点
     get_section_content(source_worksheet, '原因と対策', '発生対策', column: 'D'),  # 発生原因
     get_section_content(source_worksheet, '発生対策', '流出原因'),  # 発生対策
-    parse_date1(source_worksheet.cell(61, 'J')),  # 予定日
-    parse_date1(source_worksheet.cell(62, 'J')),  # 実施日
+    parse_date(source_worksheet.cell(61, 'J')),  # 予定日
+    parse_date(source_worksheet.cell(62, 'J')),  # 実施日
     source_worksheet.cell(61, 'O'),  # 実施者
     get_section_content(source_worksheet, '流出原因', '流出対策', column: 'D'),  # 流出原因
     get_section_content(source_worksheet, '流出対策', '他の製品及びプロセスへの影響の有無'),  # 流出対策
     source_worksheet.cell(77, 'F'),  # 他の製品及びプロセスへの影響の有無
-    parse_date1(source_worksheet.cell(76, 'J')),  # 予定日
-    parse_date1(source_worksheet.cell(77, 'J')),  # 実施日
+    parse_date(source_worksheet.cell(76, 'J')),  # 予定日
+    parse_date(source_worksheet.cell(77, 'J')),  # 実施日
     source_worksheet.cell(77, 'O'),  # 実施者
     get_section_content(source_worksheet, '効果の確認', '歯止め'),  # 効果の確認
-    parse_date1(source_worksheet.cell(83, 'J')),  # 確認日
+    parse_date(source_worksheet.cell(83, 'J')),  # 確認日
     source_worksheet.cell(81, 'O'),  # 承認
     source_worksheet.cell(82, 'O'),  # 担当
     get_section_content(source_worksheet, '歯止め', '水平展開'),  # 歯止め
-    parse_date1(source_worksheet.cell(88, 'F')),  # 予定日
-    parse_date1(source_worksheet.cell(88, 'J')),  # 実施日
+    parse_date(source_worksheet.cell(88, 'F')),  # 予定日
+    parse_date(source_worksheet.cell(88, 'J')),  # 実施日
     source_worksheet.cell(87, 'O'),  # 実施者
     get_section_content(source_worksheet, '水平展開', '必要性'),  # 水平展開
     source_worksheet.cell(92, 'E'),  # 水平展開（予防）の必要性
-    parse_date1(source_worksheet.cell(92, 'J')),  # 実施日
+    parse_date(source_worksheet.cell(92, 'J')),  # 実施日
     source_worksheet.cell(92, 'O'),  # 実施者
     get_section_content(source_worksheet, '処置活動のレビュー', nil, max_rows: 10),  # 処置活動のレビュー
-    parse_date1(source_worksheet.cell(96, 'I')),  # レビュー日
+    parse_date(source_worksheet.cell(96, 'I')),  # レビュー日
     source_worksheet.cell(95, 'O')   # 承認
   ]
 
@@ -4774,7 +4715,7 @@ def get_section_content(source_worksheet, start_text, end_text, column: 'B', min
   content.join("\n").strip
 end
 
-def parse_date1(cell_value)
+def parse_date(cell_value)
   case cell_value
   when Date, Time
     cell_value
