@@ -21,45 +21,31 @@ class TouansController < ApplicationController
     @iatflists = Iatflist.all
     @mitsuis = Mitsui.all
 
-    p = Axlsx::Package.new
-    wb = p.workbook
-
-    wb.add_worksheet(name: 'Basic Worksheet') do |sheet|
+    package = Axlsx::Package.new
+    package.workbook.add_worksheet(name: 'Basic Worksheet') do |sheet|
       sheet.add_row ['箇条', 'MEK様品質ガイドラインVer2', 'IATF規格要求事項', 'ミツイ精密 品質マニュアル']
-
       sheet.column_widths 15, 40, 40, 40
 
       rows = []
       [@csrs, @iatflists, @mitsuis].each do |records|
         records.each do |record|
-          number = if record.respond_to?(:csr_number)
-                     record.csr_number
-                   else
-                     record.respond_to?(:iatf_number) ? record.iatf_number : record.mitsui_number
-                   end
-          corresponding_csr = @csrs.find { |csr| csr.csr_number == number }
-          corresponding_iatflist = @iatflists.find { |i| i.iatf_number == number }
-          corresponding_mitsui = @mitsuis.find { |m| m.mitsui_number == number }
+          number = record_number(record)
+          csr      = @csrs.find { |c| c.csr_number == number }
+          iatflist = @iatflists.find { |i| i.iatf_number == number }
+          mitsui   = @mitsuis.find { |m| m.mitsui_number == number }
 
-          next unless corresponding_csr || corresponding_iatflist || corresponding_mitsui
+          next unless csr || iatflist || mitsui
 
-          rows << [
-            number,
-            corresponding_csr ? corresponding_csr.csr_content : '',
-            corresponding_iatflist ? corresponding_iatflist.iatf_content : '',
-            corresponding_mitsui ? corresponding_mitsui.mitsui_content : ''
-          ]
+          rows << [number, csr&.csr_content.to_s, iatflist&.iatf_content.to_s, mitsui&.mitsui_content.to_s]
         end
       end
 
-      unique_rows = rows.sort_by { |row| row[0].split('.').map(&:to_i) }.uniq
-
-      unique_rows.each do |row|
+      rows.sort_by { |row| row[0].split('.').map(&:to_i) }.uniq.each do |row|
         sheet.add_row row
       end
     end
 
-    send_data p.to_stream.read, filename: 'export.xlsx', type: 'application/xlsx'
+    send_data package.to_stream.read, filename: 'export.xlsx', type: 'application/xlsx'
   end
 
   def member_current_status
@@ -208,6 +194,13 @@ class TouansController < ApplicationController
   end
 
   private
+
+  def record_number(record)
+    if record.respond_to?(:csr_number)     then record.csr_number
+    elsif record.respond_to?(:iatf_number) then record.iatf_number
+    else                                        record.mitsui_number
+    end
+  end
 
   def iatf_data_for(owner_key)
     key = OWNER_MAPPING.dig(owner_key, 0)

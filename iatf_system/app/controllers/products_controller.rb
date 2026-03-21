@@ -36,40 +36,6 @@ class ProductsController < ApplicationController
   # https://qiita.com/m-kubo/items/6b5beaaf2a59c0d75bcc#:~:text=Rails%E3%81%A7%E6%97%A2%E5%AD%98%E3%81%AE%E3%82%A8%E3%82%AF%E3%82%BB%E3%83%AB%E3%83%95%E3%82%A1%E3%82%A4%E3%83%AB%E3%82%92%E3%83%86%E3%83%B3%E3%83%97%E3%83%AC%E3%83%BC%E3%83%88%E3%81%AB%E3%81%A7%E3%81%8D%E3%82%8B%E9%AD%94%E6%B3%95%E3%81%AE%E3%83%98%E3%83%AB%E3%83%91%E3%83%BC%201%20%E3%81%AF%E3%81%98%E3%82%81%E3%81%AB%20%E4%BB%8A%E5%9B%9E%E3%81%AE%E3%82%B3%E3%83%BC%E3%83%89%E3%81%AF%E3%80%81%E4%BB%A5%E4%B8%8B%E3%81%AE%E7%92%B0%E5%A2%83%E3%81%A7%E5%8B%95%E4%BD%9C%E7%A2%BA%E8%AA%8D%E3%81%97%E3%81%A6%E3%81%84%E3%81%BE%E3%81%99%E3%80%82%20...%202%201.%20rubyXL,7%206.%20%E3%81%8A%E3%81%BE%E3%81%91%20...%208%20%E7%B5%82%E3%82%8F%E3%82%8A%E3%81%AB%20%E4%BB%A5%E4%B8%8A%E3%80%81%E3%81%A9%E3%81%93%E3%81%8B%E3%81%AE%E6%A1%88%E4%BB%B6%E3%81%A7%E6%9B%B8%E3%81%84%E3%81%9F%E3%82%B3%E3%83%BC%E3%83%89%E3%81%AE%E7%B4%B9%E4%BB%8B%E3%81%A7%E3%81%97%E3%81%9F%E3%80%82%20
 
   
-  #def audit_correction_report
-  #  Rails.logger.info "======================================="
-  #  Rails.logger.info "audit_correction_report メソッドが呼び出されました"
-  #  Rails.logger.info "======================================="
-  
-    # 内部監査是正処置報告書を含む製品のみを取得
-  #  @products = Product.joins(documents_attachments: :blob)
-  #                     .where("active_storage_blobs.filename LIKE ?", "%内部監査是正処置報告書%")
-  #                     .distinct
-  
-   # Rails.logger.info "内部監査是正処置報告書を含む製品数: #{@products.count}"
- # 
-  #  @products.each do |pro|
-  #    Rails.logger.info "----------------------------------------"
-  #    Rails.logger.info "製品ID: #{pro.id}"
-  #    Rails.logger.info "パーツナンバー: #{pro.partnumber}"
-  #    Rails.logger.info "カテゴリ: #{pro.category}"
-  #    Rails.logger.info "ステージ: #{pro.stage}"
-  
-   #   pro.documents.each do |doc|
-   #     if doc.filename.to_s.include?('内部監査是正処置報告書')
-   #       Rails.logger.info "  ファイル名: #{doc.filename}"
-   #       Rails.logger.info "  コンテンツタイプ: #{doc.content_type}"
-   #       Rails.logger.info "  サイズ: #{doc.byte_size} bytes"
-   #     end
- #     end
- #   end
-  
- #   Rails.logger.info "======================================="
- #   Rails.logger.info "デバッグ情報の出力が完了しました"
- #   Rails.logger.info "======================================="
-  
- #   render plain: "デバッグ情報がログに出力されました。log/development.log を確認してください。"
- # end
 
 
  require 'date'  # 日付フォーマット用
@@ -4434,35 +4400,12 @@ end
     )
   end
 
- # def generate_xlsx
- #   workbook = Caxlsx::Workbook.new
- #   workbook.add_worksheet(name: '登録データ一覧') do |sheet|
- #     styles = workbook.styles
- #     title = styles.add_style(bg_color: 'c0c0c0', b: true)
- #     header = styles.add_style(bg_color: 'e0e0e0', b: true)
- # 
- #     sheet.add_row ['登録データ一覧'], style: title
- #     sheet.add_row %w[ID 図番 材料コード 文書名 詳細 カテゴリー フェーズ 項目 登録日 完了予定日 完了日 達成度 ステイタス], style: header
- #     sheet.add_row %w[id partnumber materialcode documentname description category phase stage start_time deadline_at end_at goal_attainment_level status],
- #                   style: header
- # 
- #     @products.each do |pro|
- #       sheet.add_row [pro.id, pro.partnumber, pro.materialcode, pro.documentname, pro.description,
- #                      @dropdownlist[pro.category.to_i], @dropdownlist[pro.phase.to_i], @dropdownlist[pro.stage.to_i], pro.start_time.strftime('%y/%m/%d'), pro.deadline_at.strftime('%y/%m/%d'), pro.end_at.strftime('%y/%m/%d'), pro.goal_attainment_level, pro.status]
- #     end
- #   end
- # 
- #   send_data(workbook.to_stream.read,
- #             type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
- #             filename: "登録データ一覧(#{Time.zone.now.strftime('%Y_%m_%d_%H_%M_%S')}).xlsx")
- # end
 
   def set_q
     @q = Product.ransack(params[:q] || {})
   end
 
   def set_product
-    #@product = Product.find(params[:id])
     @product = Product.find(params[:id])
     rescue ActiveRecord::RecordNotFound
     flash[:alert] = "Product not found.(set_product)"

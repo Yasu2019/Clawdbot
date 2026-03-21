@@ -1,13 +1,14 @@
 # frozen_string_literal: true
 
-# データベースのクリーンアップ
+require 'csv'
+require 'active_storage'
+
+Rails.logger = Logger.new(STDOUT)
+
 puts "Cleaning up database..."
 
-# ActiveStorageのアタッチメントを削除
 ActiveStorage::Attachment.destroy_all
 ActiveStorage::Blob.destroy_all
-
-# 各モデルのデータを削除
 Product.destroy_all
 Phase.destroy_all
 User.destroy_all
@@ -16,12 +17,6 @@ Supplier.destroy_all
 Mitsui.destroy_all
 
 puts "Database cleaned successfully!"
-
-require 'csv'
-require 'active_storage'
-
-# ロガーの設定
-Rails.logger = Logger.new(STDOUT)
 
 # 製品データの処理
 CSV.foreach(Rails.root.join('db/record/attachedfile.csv'), headers: true) do |row|
@@ -188,7 +183,7 @@ end
 Dir.glob(Rails.root.join('db/record/**/*.csv')).sort.each do |file|
   next unless file.downcase.include?('kajyou') || file.downcase.include?('test_mondai')
 
-  cleaned = Pathname(file).sub_ext(file.extname).dirname.join("#{Pathname(file).basename(".#{file.extname}")}_cleaned#{file.extname}")
+  cleaned = Pathname(file).sub_ext("_cleaned#{File.extname(file)}")
   import_path = cleaned.exist? ? cleaned : file
 
   File.open(import_path) do |quiz_file|
