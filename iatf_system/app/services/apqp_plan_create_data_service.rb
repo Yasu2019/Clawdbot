@@ -16,39 +16,13 @@ class ApqpPlanCreateDataService
 
   def call
     @datetime = Time.zone.now
-    @partnumber = params[:partnumber]
-
-    @apqp_plan_excel_template_initial = true # Excelテンプレートを初期値にする
-    @apqp_plan_insert_rows_to_excel_template = true # MSAクロスタブを初期値にする。これをしておかないと、ファイルの数だけ挿入サブルーチンに飛んでしまう。
-    @apqp_plan_insert_rows_to_excel_template_dr_setsubi = true # 初回のファイルのみ挿入サブルーチンに飛ぶ
-    @apqp_plan_insert_rows_to_excel_template_progress_management = true # 初回のファイルのみ挿入サブルーチンに飛ぶ
-
-    @datetime = Time.zone.now
+    @apqp_plan_excel_template_initial = true
+    @apqp_plan_insert_rows_to_excel_template = true
+    @apqp_plan_insert_rows_to_excel_template_dr_setsubi = true
+    @apqp_plan_insert_rows_to_excel_template_progress_management = true
     @name = 'm-kubo'
     @multi_lines_text = "Remember kids,\nthe magic is with in you.\nI'm princess m-kubo."
-    @cp_check = '☐'
-    @datou_check = '☐'
-    @scr_check = '☐'
-    @pfmea_check = '☐'
-    @dr_check = '☐'
-    @msa_check = '☐'
-    @msa_crosstab_check = '☐'
-    @msa_grr_check = '☐'
-    @cpk_check = '☐'
-    @shisaku_check = '☐'
-    @kanagata_check = '☐'
-    @dr_setsubi_check = '☐'
-    @grr_check = '☐'
-    @feasibility_check = '☐'
-    @kataken_check = '☐'
-    @psw_check = '☐'
-    @special_check = '☐'
-    @pf_check = '☐'
-    @process_layout_check = '☐'
-    @crosstab_check = '☐'
-    @kataken_check = '☐'
-    @inspection_fixtures_mold_check = '☐'
-    @inspection_fixtures_stamping_check = '☐'
+    initialize_checkboxes
 
     @products.each do |pro|
       @partnumber = pro.partnumber
@@ -124,17 +98,6 @@ class ApqpPlanCreateDataService
 
       collect_floor_plan_layout(pro, stage)
 
-      #if stage == 'プロセスFMEA'
-      #  @pfmea_yotei = pro.deadline_at.strftime('%y/%m/%d')
-      #  @pfmea_kanryou = pro.end_at.strftime('%y/%m/%d')
-      #  if pro.documents.attached?
-      #    @pfmea_check = '☑'
-      #    @pfmea_filename = pro.documents.first.filename.to_s
-      #  else
-      #    #@pfmea_check = '☐'
-      #  end
-      #end
-
       collect_psw_second(pro, stage)
 
       collect_dr_meeting_minutes(pro, stage)
@@ -156,6 +119,31 @@ class ApqpPlanCreateDataService
   end
 
   private
+
+  def initialize_checkboxes
+    @cp_check = '☐'
+    @datou_check = '☐'
+    @scr_check = '☐'
+    @pfmea_check = '☐'
+    @dr_check = '☐'
+    @msa_check = '☐'
+    @msa_crosstab_check = '☐'
+    @msa_grr_check = '☐'
+    @cpk_check = '☐'
+    @shisaku_check = '☐'
+    @kanagata_check = '☐'
+    @dr_setsubi_check = '☐'
+    @grr_check = '☐'
+    @feasibility_check = '☐'
+    @kataken_check = '☐'
+    @psw_check = '☐'
+    @special_check = '☐'
+    @pf_check = '☐'
+    @process_layout_check = '☐'
+    @crosstab_check = '☐'
+    @inspection_fixtures_mold_check = '☐'
+    @inspection_fixtures_stamping_check = '☐'
+  end
 
   def result_variables
     skip = %i[@products @all_products @dropdownlist]

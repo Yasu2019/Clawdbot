@@ -23,33 +23,7 @@ class ProductCreateDataService
     @datetime = Time.zone.now
     @name = 'm-kubo'
     @multi_lines_text = "Remember kids,\nthe magic is with in you.\nI'm princess m-kubo."
-    @cp_check = '☐'
-    @datou_check = '☐'
-    @scr_check = '☐'
-    @pfmea_check = '☐'
-    @dr_check = '☐'
-    @msa_check = '☐'
-    @msa_crosstab_check = '☐'
-    @msa_grr_check = '☐'
-    @cpk_check = '☐'
-    @shisaku_check = '☐'
-    @kanagata_check = '☐'
-    @dr_setsubi_check = '☐'
-    @grr_check = '☐'
-    @feasibility_check = '☐'
-    @kataken_check = '☐'
-    @visual_inspection_tejyunsho_check = '☐'
-    @visual_inspection_youryousho_check = '☐'
-    @stamping_instruction_check = '☐'
-    @process_inspection_record_check = '☐'
-    @drawing_check = '☐'
-    @specifications_check = '☐'
-    @parts_inspection_report_check = '☐'
-    @material_specification_check = '☐'
-    @shoki_check = '☐'
-    @controlplan_check = '☐'
-    @processflow_inspection_check = '☐'
-    @processflow_mold_check = '☐'
+    initialize_checkboxes
 
     @products.each do |pro|
       @partnumber = pro.partnumber
@@ -124,126 +98,43 @@ class ProductCreateDataService
       collect_process_instructions(pro, stage)
     end
 
-    # すぐに終了するためには、ループの外側でも終了する必要があります。
-    # Rubyでは、catchとthrowを使用して、複数のネストされたループからの脱出を行うことができます。
-    # 以下のようにコードを修正しました：
-    # catchブロックを最外部に追加します。
-    # @partnumberが見つかった場合、throw :foundでcatchブロックを終了させます。
-    # この修正により、@partnumberが見つかった時点で、すべてのループを終了します。
-
-    catch :found do
-      @all_products.each do |all|
-        stage = @dropdownlist[all.stage.to_i]
-        next unless stage == '金型製作記録'
-
-        Rails.logger.info '金型製作記録(添付資料確認前)'
-        next unless all.documents.attached?
-
-        pattern = '/myapp/db/documents/**/*.{xls,xlsx}'
-        Rails.logger.info "Path= #{pattern}"
-        # ディレクトリ内のExcelファイルを走査
-        Dir.glob(pattern) do |file|
-          # '金型製作記録'を含むファイルだけを対象に
-          next unless file.include?('金型製作記録')
-
-          Rails.logger.info '金型製作記録(添付資料確認後)'
-          # ファイル形式に応じて適切なRooクラスを使用
-          workbook = case File.extname(file)
-                     when '.xlsx'
-                       Roo::Excelx.new(file)
-                     when '.xls'
-                       Roo::Excel.new(file)
-                     end
-          workbook.sheets.each do |sheet|
-            worksheet = workbook.sheet(sheet)
-            # 最終行がnilの場合は、このシートの処理をスキップ
-            next if worksheet.last_row.nil?
-
-            # 各行を走査
-            (1..worksheet.last_row).each do |i|
-              row = worksheet.row(i)
-              # E列がpartnumberと一致する場合、L列の値を@dieset_personに代入
-              next unless row[4] == @partnumber
-
-              @dieset_person = row[11]
-              @kanagata_yotei        = row[9]
-              @kanagata_kanryou      = row[10]
-              @kanagata_katagouzou   = row[8]
-              @kanagata_remark       = row[12]
-              
-              # @partnumber が見つかったので、ループを終了
-              throw :found
-            end
-          end
-        end
-      end
-    end
-
-
-    #治具管理台帳の読み込み
-
-    @all_products ||= []
-    @dropdownlist ||= {}
-
-    catch :found do
-      @all_products.each do |all|
-        begin
-          stage = @dropdownlist[all.stage.to_i]
-          next unless stage.present? && stage == '台帳'
-
-          next unless all.documents&.attached?
-
-          pattern = '/myapp/db/documents/**/*.{xls,xlsx}'
-          Dir.glob(pattern) do |file|
-            next unless file.include?('治具管理台帳')
-
-            begin
-              workbook = case File.extname(file)
-                        when '.xlsx'
-                          Roo::Excelx.new(file)
-                        when '.xls'
-                          Roo::Excel.new(file)
-                        else
-                          next
-                        end
-
-              worksheet = workbook.sheet(0)
-              (6..100).each do |row_number|
-                cell_value = worksheet.cell(row_number, 9)
-                next unless cell_value.present?
-
-                values = cell_value.include?(',') ? cell_value.split(',') : [cell_value]
-                Rails.logger.info("Row #{row_number}: Processing values: #{values.inspect}")
-
-                values.each do |value|
-                  next unless value.strip == @partnumber
-
-                  @jigu_kanribangou = worksheet.cell(row_number, 1)
-                  @jigu_name = worksheet.cell(row_number, 2)
-                  @jigu_produced_date = worksheet.cell(row_number, 5)
-                  @jigu_seizou_dept = worksheet.cell(row_number, 6)
-                  @jigu_start_useage_date = worksheet.cell(row_number, 7)                  
-                  @jigu_tantou = worksheet.cell(row_number, 8)
-                  @jigu_approved = worksheet.cell(row_number, 11)
-                  throw :found
-                end
-              end
-            rescue StandardError => e
-              Rails.logger.error("Error processing file #{file}: #{e.message}")
-            end
-          end
-        rescue StandardError => e
-          Rails.logger.error("Error processing product #{all}: #{e.message}")
-        end
-      end
-    end
-
-
+    collect_kanagata_record
+    collect_jig_ledger
 
     result_variables
   end
 
   private
+
+  def initialize_checkboxes
+    @cp_check = '☐'
+    @datou_check = '☐'
+    @scr_check = '☐'
+    @pfmea_check = '☐'
+    @dr_check = '☐'
+    @msa_check = '☐'
+    @msa_crosstab_check = '☐'
+    @msa_grr_check = '☐'
+    @cpk_check = '☐'
+    @shisaku_check = '☐'
+    @kanagata_check = '☐'
+    @dr_setsubi_check = '☐'
+    @grr_check = '☐'
+    @feasibility_check = '☐'
+    @kataken_check = '☐'
+    @visual_inspection_tejyunsho_check = '☐'
+    @visual_inspection_youryousho_check = '☐'
+    @stamping_instruction_check = '☐'
+    @process_inspection_record_check = '☐'
+    @drawing_check = '☐'
+    @specifications_check = '☐'
+    @parts_inspection_report_check = '☐'
+    @material_specification_check = '☐'
+    @shoki_check = '☐'
+    @controlplan_check = '☐'
+    @processflow_inspection_check = '☐'
+    @processflow_mold_check = '☐'
+  end
 
   # 入力パラメータを除くインスタンス変数をハッシュで返す
   def result_variables
@@ -1678,6 +1569,98 @@ class ProductCreateDataService
     row = cell_address.gsub(/\D/, '').to_i
     col_index = col.chars.map { |char| char.ord - 'A'.ord + 1 }.reduce(0) { |acc, val| (acc * 26) + val }
     [row, col_index]
+  end
+
+  # 金型製作記録から担当者・日程情報を読み込む
+  def collect_kanagata_record
+    catch :found do
+      @all_products.each do |all|
+        stage = @dropdownlist[all.stage.to_i]
+        next unless stage == '金型製作記録'
+
+        Rails.logger.info '金型製作記録(添付資料確認前)'
+        next unless all.documents.attached?
+
+        pattern = '/myapp/db/documents/**/*.{xls,xlsx}'
+        Rails.logger.info "Path= #{pattern}"
+        Dir.glob(pattern) do |file|
+          next unless file.include?('金型製作記録')
+
+          Rails.logger.info '金型製作記録(添付資料確認後)'
+          workbook = case File.extname(file)
+                     when '.xlsx' then Roo::Excelx.new(file)
+                     when '.xls'  then Roo::Excel.new(file)
+                     end
+          workbook.sheets.each do |sheet|
+            worksheet = workbook.sheet(sheet)
+            next if worksheet.last_row.nil?
+
+            (1..worksheet.last_row).each do |i|
+              row = worksheet.row(i)
+              next unless row[4] == @partnumber
+
+              @dieset_person       = row[11]
+              @kanagata_yotei      = row[9]
+              @kanagata_kanryou    = row[10]
+              @kanagata_katagouzou = row[8]
+              @kanagata_remark     = row[12]
+              throw :found
+            end
+          end
+        end
+      end
+    end
+  end
+
+  # 治具管理台帳から治具情報を読み込む
+  def collect_jig_ledger
+    catch :found do
+      @all_products.each do |all|
+        begin
+          stage = @dropdownlist[all.stage.to_i]
+          next unless stage.present? && stage == '台帳'
+          next unless all.documents&.attached?
+
+          Dir.glob('/myapp/db/documents/**/*.{xls,xlsx}') do |file|
+            next unless file.include?('治具管理台帳')
+
+            begin
+              workbook = case File.extname(file)
+                         when '.xlsx' then Roo::Excelx.new(file)
+                         when '.xls'  then Roo::Excel.new(file)
+                         else next
+                         end
+
+              worksheet = workbook.sheet(0)
+              (6..100).each do |row_number|
+                cell_value = worksheet.cell(row_number, 9)
+                next unless cell_value.present?
+
+                values = cell_value.include?(',') ? cell_value.split(',') : [cell_value]
+                Rails.logger.info("Row #{row_number}: Processing values: #{values.inspect}")
+
+                values.each do |value|
+                  next unless value.strip == @partnumber
+
+                  @jigu_kanribangou      = worksheet.cell(row_number, 1)
+                  @jigu_name             = worksheet.cell(row_number, 2)
+                  @jigu_produced_date    = worksheet.cell(row_number, 5)
+                  @jigu_seizou_dept      = worksheet.cell(row_number, 6)
+                  @jigu_start_useage_date = worksheet.cell(row_number, 7)
+                  @jigu_tantou           = worksheet.cell(row_number, 8)
+                  @jigu_approved         = worksheet.cell(row_number, 11)
+                  throw :found
+                end
+              end
+            rescue StandardError => e
+              Rails.logger.error("Error processing file #{file}: #{e.message}")
+            end
+          end
+        rescue StandardError => e
+          Rails.logger.error("Error processing product #{all}: #{e.message}")
+        end
+      end
+    end
   end
 
 end
