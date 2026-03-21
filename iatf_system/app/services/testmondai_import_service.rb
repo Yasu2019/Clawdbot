@@ -104,9 +104,12 @@ class TestmondaiImportService
 
   def decode_content(content)
     utf8 = content.dup.force_encoding('UTF-8')
-    return utf8 if utf8.valid_encoding?
-
-    content.encode('UTF-8', 'CP932', invalid: :replace, undef: :replace, replace: '')
+    decoded = if utf8.valid_encoding?
+                utf8
+              else
+                content.encode('UTF-8', 'CP932', invalid: :replace, undef: :replace, replace: '')
+              end
+    decoded.sub("\xEF\xBB\xBF".b.force_encoding('UTF-8'), '')
   rescue Encoding::UndefinedConversionError, Encoding::InvalidByteSequenceError
     content.encode('UTF-8', invalid: :replace, undef: :replace, replace: '')
   end
