@@ -23,22 +23,7 @@ class ProductsController < ApplicationController
   # before_action :restrict_ip_address
   before_action :set_q, only: [:index] # これを追加
 
-  # 全てのIPからのアクセスを許可する場合
-  # ALLOWED_IPS = ['0.0.0.0/0']
-
-  # ミツイ精密社内IPアドレスのみアクセス許可
-  # ALLOWED_IPS = ['192.168.5.0/24', '8.8.8.8']
-  # ALLOWED_EMAILS = ['yasuhiro-suzuki@mitsui-s.com', 'n_komiya@mitsui-s.com']
-
   include ExcelTemplateHelper
-
-  # Railsで既存のエクセルファイルをテンプレートにできる魔法のヘルパー
-  # https://qiita.com/m-kubo/items/6b5beaaf2a59c0d75bcc#:~:text=Rails%E3%81%A7%E6%97%A2%E5%AD%98%E3%81%AE%E3%82%A8%E3%82%AF%E3%82%BB%E3%83%AB%E3%83%95%E3%82%A1%E3%82%A4%E3%83%AB%E3%82%92%E3%83%86%E3%83%B3%E3%83%97%E3%83%AC%E3%83%BC%E3%83%88%E3%81%AB%E3%81%A7%E3%81%8D%E3%82%8B%E9%AD%94%E6%B3%95%E3%81%AE%E3%83%98%E3%83%AB%E3%83%91%E3%83%BC%201%20%E3%81%AF%E3%81%98%E3%82%81%E3%81%AB%20%E4%BB%8A%E5%9B%9E%E3%81%AE%E3%82%B3%E3%83%BC%E3%83%89%E3%81%AF%E3%80%81%E4%BB%A5%E4%B8%8B%E3%81%AE%E7%92%B0%E5%A2%83%E3%81%A7%E5%8B%95%E4%BD%9C%E7%A2%BA%E8%AA%8D%E3%81%97%E3%81%A6%E3%81%84%E3%81%BE%E3%81%99%E3%80%82%20...%202%201.%20rubyXL,7%206.%20%E3%81%8A%E3%81%BE%E3%81%91%20...%208%20%E7%B5%82%E3%82%8F%E3%82%8A%E3%81%AB%20%E4%BB%A5%E4%B8%8A%E3%80%81%E3%81%A9%E3%81%93%E3%81%8B%E3%81%AE%E6%A1%88%E4%BB%B6%E3%81%A7%E6%9B%B8%E3%81%84%E3%81%9F%E3%82%B3%E3%83%BC%E3%83%89%E3%81%AE%E7%B4%B9%E4%BB%8B%E3%81%A7%E3%81%97%E3%81%9F%E3%80%82%20
-
-  
-
-
- require 'date'  # 日付フォーマット用
 
   def in_process_nonconforming_product_control_form
     send_data(
@@ -47,16 +32,6 @@ class ProductsController < ApplicationController
       type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
   end
-
-
-
-
-
-
-
-
-
-
 
 
   def audit_improvement_opportunity
@@ -359,43 +334,6 @@ class ProductsController < ApplicationController
     end
   end
 
-  #  def update
-  #    #Rails7で画像の保存にActiveStorage使ってみよう(導入からリサイズまで)
-  #    #https://qiita.com/asasigure/items/311473d25fb3ec97f126
-  #
-  #    #ActiveStorage で画像を複数枚削除する方法
-  #    #https://h-piiice16.hatenablog.com/entry/2018/09/24/141510#
-  #
-  #    #Active Storageを使用して添付ファイル(アップロード)を簡単に管理する
-  #    #https://www.petitmonte.com/ruby/rails_attachment.html
-  #
-  #    #@product = Product.find(params[:id])
-  #    #@product.update params.require(:product).permit(:partnumber, documents: []) # POINT
-  #    #redirect_to @product
-  #
-  #
-  #    product = Product.find(params[:id])
-  #    #if params[:product][:detouch]=='1'
-  #    if params[:product][:detouch]
-  #       params[:product][:detouch].each do |image_id|
-  #       #image = product.files.find(image_id)
-  #        image = @product.documents.find(image_id)
-  #        image.purge
-  #       end
-  #    end
-  #   #【rails】update_attributes→updateを使う
-  #   #update_attributesはrails6.1から削除されたそうです。
-  #   #https://qiita.com/yuka_nari/items/b04c872d4eb2e5347fdb
-  #
-  #   if product.update(product_params)
-  #     flash[:success] = "編集しました"
-  #    redirect_to @product
-  #   else
-  #    render :edit
-  #   end
-  #  end
-
-  # ChatGPT修正版
   def update
     @product = Product.find_by(id: params[:id])
 
@@ -431,21 +369,6 @@ class ProductsController < ApplicationController
 
   private
 
-  
-
-  # def restrict_ip_address
-  #   # 現在のユーザーが ALLOWED_EMAILS のいずれかでログインしている場合、制限をスキップ
-  #   return if current_user && ALLOWED_EMAILS.include?(current_user.email)
-
-  # 許可されていないIPアドレスからのアクセスを制限
-  #   unless ALLOWED_IPS.include? request.remote_ip
-  #     render text: 'Access forbidden', status: 403
-  #     return
-  #   end
-  # end
-
-  # Railsで既存のエクセルファイルをテンプレートにできる魔法のヘルパー
-  # https://qiita.com/m-kubo/items/6b5beaaf2a59c0d75bcc#:~:text=Rails%E3%81%A7%E6%97%A2%E5%AD%98%E3%81%AE%E3%82%A8%E3%82%AF%E3%82%BB%E3%83%AB%E3%83%95%E3%82%A1%E3%82%A4%E3%83%AB%E3%82%92%E3%83%86%E3%83%B3%E3%83%97%E3%83%AC%E3%83%BC%E3%83%88%E3%81%AB%E3%81%A7%E3%81%8D%E3%82%8B%E9%AD%94%E6%B3%95%E3%81%AE%E3%83%98%E3%83%AB%E3%83%91%E3%83%BC%201%20%E3%81%AF%E3%81%98%E3%82%81%E3%81%AB%20%E4%BB%8A%E5%9B%9E%E3%81%AE%E3%82%B3%E3%83%BC%E3%83%89%E3%81%AF%E3%80%81%E4%BB%A5%E4%B8%8B%E3%81%AE%E7%92%B0%E5%A2%83%E3%81%A7%E5%8B%95%E4%BD%9C%E7%A2%BA%E8%AA%8D%E3%81%97%E3%81%A6%E3%81%84%E3%81%BE%E3%81%99%E3%80%82%20...%202%201.%20rubyXL,7%206.%20%E3%81%8A%E3%81%BE%E3%81%91%20...%208%20%E7%B5%82%E3%82%8F%E3%82%8A%E3%81%AB%20%E4%BB%A5%E4%B8%8A%E3%80%81%E3%81%A9%E3%81%93%E3%81%8B%E3%81%AE%E6%A1%88%E4%BB%B6%E3%81%A7%E6%9B%B8%E3%81%84%E3%81%9F%E3%82%B3%E3%83%BC%E3%83%89%E3%81%AE%E7%B4%B9%E4%BB%8B%E3%81%A7%E3%81%97%E3%81%9F%E3%80%82%20
   def create_data
     ProductCreateDataService.call(
       products:     @products,
@@ -453,7 +376,7 @@ class ProductsController < ApplicationController
       dropdownlist: @dropdownlist
     ).each { |key, value| instance_variable_set("@\#{key}", value) }
   end
-  #-------------------------------------------------------------------------------------------------
+
   def create_data_apqp_plan_report
     ApqpPlanCreateDataService.call(
       products:     @products,
