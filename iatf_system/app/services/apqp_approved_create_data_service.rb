@@ -16,17 +16,37 @@ class ApqpApprovedCreateDataService
 
   def call
     @datetime = Time.zone.now
-    @partnumber = params[:partnumber]
-
-    @apqp_approved_report_excel_template_initial = true # Excelテンプレートを初期値にする
-    @apqp_approved_report_insert_rows_to_excel_template = true # MSAクロスタブを初期値にする。これをしておかないと、ファイルの数だけ挿入サブルーチンに飛んでしまう。
-    @apqp_approved_report_insert_rows_to_excel_template_msa = true # MSAクロスタブを初期値にする。これをしておかないと、ファイルの数だけ挿入サブルーチンに飛んでしまう。
-    @apqp_approved_report_insert_rows_to_excel_template_dr_setsubi = true # 初回のファイルのみ挿入サブルーチンに飛ぶ
-    @apqp_approved_report_insert_rows_to_excel_template_progress_management = true # 初回のファイルのみ挿入サブルーチンに飛ぶ
-
-    @datetime = Time.zone.now
+    @apqp_approved_report_excel_template_initial = true
+    @apqp_approved_report_insert_rows_to_excel_template = true
+    @apqp_approved_report_insert_rows_to_excel_template_msa = true
+    @apqp_approved_report_insert_rows_to_excel_template_dr_setsubi = true
+    @apqp_approved_report_insert_rows_to_excel_template_progress_management = true
     @name = 'm-kubo'
     @multi_lines_text = "Remember kids,\nthe magic is with in you.\nI'm princess m-kubo."
+    initialize_checkboxes
+
+    @products.each do |pro|
+      @partnumber = pro.partnumber
+      Rails.logger.info "@partnumber= \#{@partnumber}"
+      @materialcode = pro.materialcode
+      Rails.logger.info "@pro.stage= \#{@dropdownlist[pro.stage.to_i]}"
+      stage = @dropdownlist[pro.stage.to_i]
+      Rails.logger.info "pro.stage(number)= \#{pro.stage}"
+
+      collect_press_work_standard(pro, stage)
+      collect_process_flow(pro, stage)
+      collect_initial_process_survey(pro, stage)
+      collect_msa_grr(pro, stage)
+      collect_msa_crosstab(pro, stage)
+      collect_control_plan(pro, stage)
+      collect_design_plan(pro, stage)
+    end
+
+    result_variables
+  end
+  private
+
+  def initialize_checkboxes
     @cp_check = '☐'
     @datou_check = '☐'
     @scr_check = '☐'
@@ -59,80 +79,7 @@ class ApqpApprovedCreateDataService
     @processflow_inspection_check = '☐'
     @processflow_mold_check = '☐'
     @processflow_sales_check = '☐'
-    @processflow_design_check = '☐'
-    
-
-
-#    catch :found do
-#      @all_products.each do |all|
-#        stage = @dropdownlist[all.stage.to_i]
-#        Rails.logger.info "Stage: #{stage}, all.stage: #{all.stage.to_i},Documents attached: #{all.documents.attached?}"
-
-#        Rails.logger.info "Current stage: #{stage}"
-#        case stage
-#        when '営業プロセスフロー'
-#          Rails.logger.info 'Inside the condition for 営業プロセスフロー'
-#          @pf_sales_check = all.documents.attached? ? '☑' : '☐'
-#          Rails.logger.info "@pf_sales_check: #{@pf_sales_check}"
-#        when '製造工程設計プロセスフロー'
-#          @pf_process_design_check = all.documents.attached? ? '☑' : '☐'
-
-#        when '製造プロセスフロー'
-#          @pf_production_check = all.documents.attached? ? '☑' : '☐'
-
-#        when '製品検査プロセスフロー'
-#          @pf_inspectoin_check = all.documents.attached? ? '☑' : '☐'
-
-#        when '引渡しプロセスフロー'
-#          @pf_release_check = all.documents.attached? ? '☑' : '☐'
-
-#        end
-
-#        if @pf_sales_check && @pf_process_design_check && @pf_production_check && @pf_inspectoin_check && @pf_release_check
-#          Rails.logger.info 'All checks completed.'
-#          # throw :found
-#        end
-#      end
-#    end
-
-    @products.each do |pro|
-      @partnumber = pro.partnumber
-      Rails.logger.info "@partnumber= #{@partnumber}" # 追加
-      @materialcode = pro.materialcode
-      Rails.logger.info "@pro.stage= #{@dropdownlist[pro.stage.to_i]}"
-      stage = @dropdownlist[pro.stage.to_i]
-      Rails.logger.info "pro.stage(number)= #{pro.stage}"
-
-
-
-
-      collect_press_work_standard(pro, stage)
-
-
-
-      
-      collect_process_flow(pro, stage)
-
-
-
-
-
-
-      collect_initial_process_survey(pro, stage)
-
-      collect_msa_grr(pro, stage)
-
-      collect_msa_crosstab(pro, stage)
-
-      collect_control_plan(pro, stage)
-
-      collect_design_plan(pro, stage)
-    end
-
-    result_variables
   end
-
-  private
 
   def result_variables
     skip = %i[@products @all_products @dropdownlist]
