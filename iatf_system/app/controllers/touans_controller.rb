@@ -17,35 +17,11 @@ class TouansController < ApplicationController
   }.freeze
 
   def export_to_excel
-    @csrs = Csr.all
-    @iatflists = Iatflist.all
-    @mitsuis = Mitsui.all
-
-    package = Axlsx::Package.new
-    package.workbook.add_worksheet(name: 'Basic Worksheet') do |sheet|
-      sheet.add_row ['箇条', 'MEK様品質ガイドラインVer2', 'IATF規格要求事項', 'ミツイ精密 品質マニュアル']
-      sheet.column_widths 15, 40, 40, 40
-
-      rows = []
-      [@csrs, @iatflists, @mitsuis].each do |records|
-        records.each do |record|
-          number = record_number(record)
-          csr      = @csrs.find { |c| c.csr_number == number }
-          iatflist = @iatflists.find { |i| i.iatf_number == number }
-          mitsui   = @mitsuis.find { |m| m.mitsui_number == number }
-
-          next unless csr || iatflist || mitsui
-
-          rows << [number, csr&.csr_content.to_s, iatflist&.iatf_content.to_s, mitsui&.mitsui_content.to_s]
-        end
-      end
-
-      rows.sort_by { |row| row[0].split('.').map(&:to_i) }.uniq.each do |row|
-        sheet.add_row row
-      end
-    end
-
-    send_data package.to_stream.read, filename: 'export.xlsx', type: 'application/xlsx'
+    send_data(
+      ExportCsrIatfToExcelService.call(csrs: Csr.all, iatflists: Iatflist.all, mitsuis: Mitsui.all),
+      filename: 'export.xlsx',
+      type: 'application/xlsx'
+    )
   end
 
   def member_current_status
@@ -59,7 +35,11 @@ class TouansController < ApplicationController
     respond_to do |format|
       format.html
       format.xlsx do
-        generate_xlsx
+        send_data(
+          GenerateTouanXlsxService.call(touans: @touans),
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          filename: "登録答案一覧(#{Time.current.strftime('%Y_%m_%d_%H_%M_%S')}).xlsx"
+        )
       end
     end
   end
@@ -174,33 +154,12 @@ class TouansController < ApplicationController
   end
 
   def kekka
+    @user   = current_user
     @touans = Touan.where(created_at: Time.zone.parse(params[:created_at]) - 1.minute..Time.zone.parse(params[:created_at]) + 1.minute)
-    @user = current_user
-
-    @touans.each do |touan|
-      total_answers = Touan.where(kajyou: touan.kajyou,
-                                  user_id: current_user.id).where(mondai_no: touan.mondai_no).count
-      correct_answers = Touan.correct_answers_for(
-        user_id: current_user.id,
-        kajyou: touan.kajyou,
-        mondai_no: touan.mondai_no,
-        up_to_id: touan.id
-      )
-
-      touan.seikairitsu = correct_answers.to_f / total_answers * 100
-      touan.total_answers = total_answers
-      touan.correct_answers = correct_answers
-    end
+    @touans.each { |t| t.calculate_stats!(user_id: @user.id) }
   end
 
   private
-
-  def record_number(record)
-    if record.respond_to?(:csr_number)     then record.csr_number
-    elsif record.respond_to?(:iatf_number) then record.iatf_number
-    else                                        record.mitsui_number
-    end
-  end
 
   def iatf_data_for(owner_key)
     key = OWNER_MAPPING.dig(owner_key, 0)
@@ -216,27 +175,4 @@ class TouansController < ApplicationController
     end
   end
 
-  def generate_xlsx
-    Axlsx::Package.new(encoding: 'UTF-8') do |p|
-      p.workbook.add_worksheet(name: '登録答案一覧') do |sheet|
-        styles = p.workbook.styles
-        title = styles.add_style(bg_color: 'c0c0c0', b: true)
-        header = styles.add_style(bg_color: 'e0e0e0', b: true)
-
-        sheet.add_row ['登録答案一覧'], style: title
-        sheet.add_row %w[id 箇条 問題番号 参考URL 問題 選択肢a 選択肢b 選択肢c 正解 解説 ユーザーの回答 ユーザーID 回答数 正解数 正解率 作成日 更新日], style: header
-        sheet.add_row %w[id kajyou mondai_no rev mondai mondai_a mondai_b mondai_c seikai kaisetsu kaito user_id total_answers correct_answers seikairitsu created_at updated_at],
-                      style: header
-
-        @touans.each do |t|
-          sheet.add_row [t.id, t.kajyou, t.mondai_no, t.rev, t.mondai, t.mondai_a, t.mondai_b, t.mondai_c, t.seikai, t.kaisetsu,
-                         t.kaito, t.user_id, t.total_answers, t.correct_answers, t.seikairitsu, t.created_at, t.updated_at]
-        end
-      end
-
-      send_data(p.to_stream.read,
-                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                filename: "登録答案一覧(#{Time.current.strftime('%Y_%m_%d_%H_%M_%S')}).xlsx")
-    end
-  end
 end

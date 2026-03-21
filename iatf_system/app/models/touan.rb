@@ -18,6 +18,14 @@ class Touan < ApplicationRecord
     kaito.present? && seikai.present? && kaito == seikai
   end
 
+  def calculate_stats!(user_id:)
+    total   = Touan.where(kajyou: kajyou, user_id: user_id, mondai_no: mondai_no).count
+    correct = Touan.correct_answers_for(user_id: user_id, kajyou: kajyou, mondai_no: mondai_no, up_to_id: id)
+    self.total_answers   = total
+    self.correct_answers = correct
+    self.seikairitsu     = correct.to_f / total * 100
+  end
+
   def self.correct_answers_for(user_id:, mondai_no:, kajyou: nil, up_to_id: nil)
     scope = where(user_id:, mondai_no:)
     scope = scope.where(kajyou:) if kajyou.present?

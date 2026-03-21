@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require 'test_helper'
-require Rails.root.join('app/controllers/touan_collection')
+require Rails.root.join('app/models/touan_collection')
 
 class TouanCollectionTest < ActiveSupport::TestCase
   test 'builds collection from selected testmondai objects when params are empty' do
