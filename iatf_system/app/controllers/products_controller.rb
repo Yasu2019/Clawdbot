@@ -498,9 +498,7 @@ end
   def process_design_plan_report
     @products = Product.where(partnumber: params[:partnumber]) # link_to用
     @all_products = Product.all
-    Rails.logger.debug { "params: #{params.inspect}" } # 追加
-    # @products = Product.where(partnumber: params[:product][:partnumber]) #form_to用
-
+    Rails.logger.debug { "params: #{params.inspect}" }
     create_data
     send_data(
       excel_render('lib/excel_templates/process_design_plan_report_modified.xlsx').stream.string,
@@ -509,15 +507,10 @@ end
     )
   end
 
-
-  
-
   def apqp_plan_report
-    @products = Product.where(partnumber: params[:partnumber]) # link_to用
+    @products = Product.where(partnumber: params[:partnumber])
     @all_products = Product.all
-    Rails.logger.debug { "params: #{params.inspect}" } # 追加
-    # @products = Product.where(partnumber: params[:product][:partnumber]) #form_to用
-
+    Rails.logger.debug { "params: #{params.inspect}" }
     create_data_apqp_plan_report
     send_data(
       excel_render('lib/excel_templates/apqp_plan_report_modified.xlsx').stream.string,
@@ -527,11 +520,9 @@ end
   end
 
   def apqp_approved_report
-    @products = Product.where(partnumber: params[:partnumber]) # link_to用
+    @products = Product.where(partnumber: params[:partnumber])
     @all_products = Product.all
-    Rails.logger.debug { "params: #{params.inspect}" } # 追加
-    # @products = Product.where(partnumber: params[:product][:partnumber]) #form_to用
-
+    Rails.logger.debug { "params: #{params.inspect}" }
     create_data_apqp_approved_report
     send_data(
       excel_render('lib/excel_templates/apqp_approved_report_modified.xlsx').stream.string,
@@ -540,8 +531,7 @@ end
     )
   end
 
-  # kここにあった
-  
+
   def iot
     # 【Rails】Time.currentとTime.nowの違い
     # https://qiita.com/kodai_0122/items/111457104f83f1fb2259
@@ -679,48 +669,13 @@ end
     end
     @ShotAmada80t3 = data_ShotAmada80t3
 
-    # timetoday=Time.now.strftime("%Y_%m_%d")
-    # file = Dir.glob("C:/Users/mec21/20230213_iot_csv_training_tailwind_daisyui_ancestry_importmap/db/record/"+timetoday+"SHT31Humi.csv")
-    # file = Dir.glob("/myapp/db/record/iot/2023_02_18SHT31Temp.csv")
-    # IOTデータページ
-
-    # @iots=Iot.all
   end
 
   def import
-    # fileはtmpに自動で一時保存される
     Product.import(params[:file])
     redirect_to products_url
   end
 
-  # def iot_import
-  # fileはtmpに自動で一時保存される
-
-  # 【Rails】ファイルのフルパス、ファイル名を取得する
-  # https://opiyotan.hatenablog.com/entry/rails-glob
-
-  # time=Time.now.strftime("%Y_%m_%d")
-
-  # file = Dir.glob("C:/Users/mec21/20230213_iot_csv_training_tailwind_daisyui_ancestry_importmap/db/record/test.csv")
-
-  # file = params[:file]
-
-  # datas = []
-  # unless file.nil?
-  #  ActiveRecord::Base.transaction do
-  #    CSV.foreach(file.path, headers: true) do |row|
-  #      datas.append(Hash[row])
-  #    end
-  #  end
-  # end
-  # @chartkickgraph = {"1": 1000,"3": 20000,"5": 1500,"7": 18000}
-  # @chartkickgraph = datas[0]
-
-  # redirect_to products_url
-  # end
-
-  # RailsでAxlsxを使ってxlsxを生成
-  # https://qiita.com/necojackarc/items/0dbd672b2888c30c5a38
 
   def xlsx
     @products = Product.all
@@ -734,31 +689,19 @@ end
 
   def search
     @qd = Product.ransack(params[:qd])
-    # @products = @qd.result
     @products = @qd.result(distinct: true)
-    # @user = current_user
-    # binding.pry
   end
 
   def graph
-    # @products=Product.all.page(params[:page]).per(10)
     @products = Product.all
-    # @user = current_user
   end
 
   def calendar
-    # @products=Product.all.page(params[:page]).per(10)
     @products = Product.all
-    # @user = current_user
   end
 
   def training
-    # @products=Product.all.page(params[:page]).per(10)
-    # @products=Product.all
     @products = Product.includes(:documents_attachments).all
-    # @products = Product.includes(:documents_attachments).page(params[:page]).per(10)
-
-    # @user = current_user
   end
   
   def index
@@ -797,7 +740,6 @@ end
       end
     end
     
-    #@products = @q.result(distinct: true).includes(:documents_attachments).page(params[:page]).per(12)
     @products = @q.result(distinct: true)
                .includes(documents_attachments: :blob)
                .page(params[:page])
@@ -812,7 +754,6 @@ end
   
 
   def show
-    # @product = Product.find(params[:id])
     return unless @product.documents.attached?
 
     @product.documents.each do |image|
@@ -827,7 +768,6 @@ end
   end
 
   def index2
-    # @products = Product.where(partnumber:params[:partnumber])
     @products = Product.includes(:documents_attachments).where(partnumber: params[:partnumber])
   end
 
@@ -838,7 +778,6 @@ end
     @mark_complate = '完'
     @mark_WIP = '仕掛'
 
-    # @user = current_user
   end
 
   def index4
@@ -851,8 +790,6 @@ end
 
   def index9
     @products = Product.select('DISTINCT ON (partnumber,stage) *')
-
-    # @user = current_user
   end
 
   # RailsでExcel出力しないといけなくなった時の対処法
@@ -861,33 +798,12 @@ end
   def download
     response.headers['Content-Type'] = 'application/excel'
     response.headers['Content-Disposition'] = 'attachment; filename="製品データ.xls"'
-    # @date_from = Date.new(2014,3,1)
-    # @date_to = Date.new(2014,3,31)
-    # @product = Product.find(params[:id])
     @products = Product.all
-
-    # @stocks = ProductStock
-    #  .where(product_id: @product.id)
-    #  .where(date: @date_from..@date_to)
-    #  .order(:date)
     render 'data_download.xls.erb'
   end
 
   # RailsでExcel出力しないといけなくなった時の対処法
   # https://www.timedia.co.jp/tech/railsexcel/
-  # def process_design_download
-  #  response.headers["Content-Type"] = "application/excel"
-  #  response.headers["Content-Disposition"] = "attachment; filename=\"製造工程設計計画書／実績書.xls\""
-  #  @products = Product.where(partnumber:params[:partnumber])
-  #  render 'process_design_download.xls.erb'
-  # end
-
-  #  def process_design_download
-  #    response.headers["Content-Type"] = "application/excel"
-  #    response.headers["Content-Disposition"] = "attachment; filename=\"製造工程設計計画書／実績書.xls\""
-  #    @products = Product.where(partnumber: params[:partnumber])
-  #    render 'products/process_design_download', formats: [:xls]
-  #  end
 
   def process_design_download
     require 'axlsx'

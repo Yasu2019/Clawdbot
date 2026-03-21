@@ -22,7 +22,7 @@ class Touan < ApplicationRecord
     scope = where(user_id:, mondai_no:)
     scope = scope.where(kajyou:) if kajyou.present?
     scope = scope.where('id <= ?', up_to_id) if up_to_id.present?
-    scope.select(&:correct_answer?).count
+    scope.where('kaito = seikai').count
   end
 
   private
