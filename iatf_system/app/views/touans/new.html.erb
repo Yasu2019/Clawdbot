@@ -34,8 +34,8 @@
                         id:    "kaito_#{val}_#{i}",
                         class: "choice-radio",
                         style: "display:none;" %>
-                  <label for="kaito_<%= val %>_<%= i %>" class="choice-label">
-                    <span class="choice-badge"><%= val.upcase %></span>
+                  <label for="kaito_<%= val %>_<%= i %>" class="choice-label" data-letter="<%= val.upcase %>">
+                    <span class="choice-badge">未選択</span>
                     <span class="choice-text"><%= choice_text.to_s.sub(/^選択肢[a-cA-C][：:]\s*/, '') %></span>
                   </label>
                 </div>
@@ -94,21 +94,22 @@
   background-color: #f5f3ff;
 }
 
-/* 選択肢バッジ (A / B / C) */
+/* 選択肢バッジ (未選択 / A / B / C) */
 .choice-badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 2rem;
-  height: 2rem;
+  min-width: 3.5rem;
+  height: 1.75rem;
   border-radius: 9999px;
-  border: 2px solid #a5b4fc;
-  background-color: #fff;
-  color: #6366f1;
-  font-weight: 700;
-  font-size: 0.875rem;
+  border: 2px solid #d1d5db;
+  background-color: #f9fafb;
+  color: #9ca3af;
+  font-weight: 600;
+  font-size: 0.7rem;
   flex-shrink: 0;
-  transition: background-color 0.15s, color 0.15s, border-color 0.15s;
+  transition: background-color 0.15s, color 0.15s, border-color 0.15s, min-width 0.15s;
+  padding: 0 0.5rem;
 }
 
 .choice-text {
@@ -127,6 +128,9 @@
   background-color: #6366f1;
   color: #fff;
   border-color: #6366f1;
+  font-size: 1rem;
+  font-weight: 700;
+  min-width: 2rem;
 }
 </style>
 
@@ -141,11 +145,19 @@ function initChoiceCards() {
       var name = this.name;
       document.querySelectorAll('input.choice-radio[name="' + name + '"]').forEach(function(r) {
         var label = document.querySelector('label[for="' + r.id + '"]');
-        if (label) label.classList.remove('is-selected');
+        if (label) {
+          label.classList.remove('is-selected');
+          var badge = label.querySelector('.choice-badge');
+          if (badge) badge.textContent = '未選択';
+        }
       });
-      // 選択されたラベルにクラスを付与
+      // 選択されたラベルにクラスを付与してバッジをアルファベットに変更
       var selectedLabel = document.querySelector('label[for="' + this.id + '"]');
-      if (selectedLabel) selectedLabel.classList.add('is-selected');
+      if (selectedLabel) {
+        selectedLabel.classList.add('is-selected');
+        var badge = selectedLabel.querySelector('.choice-badge');
+        if (badge) badge.textContent = selectedLabel.dataset.letter;
+      }
     });
   });
 }
