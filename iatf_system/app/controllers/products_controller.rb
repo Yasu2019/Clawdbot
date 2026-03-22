@@ -474,8 +474,9 @@ class ProductsController < ApplicationController
       month_name = ::Regexp.last_match(1) # "May"
       year = ::Regexp.last_match(2).to_i # "2022"
 
-      # 月の名前を数字に変換
-      month = Date::MONTHNAMES.index(month_name.capitalize)
+      # 月の名前を数字に変換（フルネーム "November" と略称 "Nov" の両方に対応）
+      month = Date::MONTHNAMES.index(month_name.capitalize) ||
+              Date::ABBR_MONTHNAMES.index(month_name.capitalize)
 
       # 月の名前が有効であることを確認
       if month
