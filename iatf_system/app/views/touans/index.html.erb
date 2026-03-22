@@ -15,7 +15,7 @@
         <%= form_with(url: new_touan_path, method: :get, local: true, class: "flex items-center gap-2") do |form| %>
           <% @tes = Testmondai.select(:kajyou).distinct.order(:kajyou) %>
           <%= form.collection_select(:kajyou, @tes, :kajyou, :kajyou, { prompt: '箇条を選択' },
-                class: "select select-sm select-bordered max-w-xs") %>
+                class: "select select-sm select-bordered max-w-xs", required: true) %>
           <%= form.submit "テスト開始", class: "btn btn-primary btn-sm" %>
         <% end %>
       </div>

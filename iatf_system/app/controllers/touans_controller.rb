@@ -107,6 +107,11 @@ class TouansController < ApplicationController
   end
 
   def new
+    if params[:kajyou].blank?
+      flash[:alert] = '箇条を選択してからテストを開始してください。'
+      redirect_to index_touan_path and return
+    end
+
     @touan = Touan.new
     @owner_select = session[:owner_select]
 
@@ -117,6 +122,11 @@ class TouansController < ApplicationController
       user: @user,
       kajyou: params[:kajyou]
     )
+
+    if selected_testmondais.empty?
+      flash[:alert] = "「#{params[:kajyou]}」の出題対象問題がありません（全問正解率50%以上または5回以上解答済み）。"
+      redirect_to index_touan_path and return
+    end
 
     @touans = TouanCollection.new([], selected_testmondais, @user)
   end
