@@ -470,7 +470,7 @@ class ProductsController < ApplicationController
   end
 
   def days_since_published(file_name)
-    if file_name =~ /([A-Za-z]+)[_-](\d{4})_ja\.pdf$/
+    if file_name =~ /([A-Za-z]+)[_-](\d{4})[_-]ja\.pdf$/
       month_name = ::Regexp.last_match(1) # "May"
       year = ::Regexp.last_match(2).to_i # "2022"
 
