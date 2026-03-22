@@ -27,18 +27,16 @@
             <p class="text-sm font-medium leading-relaxed mb-4 text-base-content"><%= user.mondai %></p>
 
             <%# 選択肢ラジオボタンカード %>
-            <div class="flex flex-col gap-2">
+            <div class="flex flex-col gap-2" data-question="<%= i %>">
               <% [['a', user.mondai_a], ['b', user.mondai_b], ['c', user.mondai_c]].each do |val, choice_text| %>
-                <div>
+                <div class="choice-wrapper">
                   <%= field.radio_button :kaito, val,
                         id:    "kaito_#{val}_#{i}",
-                        class: "sr-only peer" %>
-                  <label for="kaito_<%= val %>_<%= i %>"
-                         class="flex items-start gap-3 p-3 rounded-lg border-2 border-base-300 cursor-pointer
-                                transition-all hover:border-primary/40 hover:bg-base-200
-                                peer-checked:border-primary peer-checked:bg-primary/10 peer-checked:shadow-sm">
-                    <span class="font-bold text-primary shrink-0 mt-0.5 w-5"><%= val.upcase %>.</span>
-                    <span class="text-sm leading-relaxed"><%= choice_text.to_s.sub(/^選択肢[a-cA-C][：:]\s*/, '') %></span>
+                        class: "choice-radio",
+                        style: "display:none;" %>
+                  <label for="kaito_<%= val %>_<%= i %>" class="choice-label">
+                    <span class="choice-badge"><%= val.upcase %></span>
+                    <span class="choice-text"><%= choice_text.to_s.sub(/^選択肢[a-cA-C][：:]\s*/, '') %></span>
                   </label>
                 </div>
               <% end %>
@@ -77,3 +75,78 @@
   </div>
 
 </div>
+
+<style>
+/* 選択肢ラベル (未選択) */
+.choice-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  border: 2px solid #d1d5db;
+  cursor: pointer;
+  transition: border-color 0.15s, background-color 0.15s, box-shadow 0.15s;
+  user-select: none;
+}
+.choice-label:hover {
+  border-color: #a5b4fc;
+  background-color: #f5f3ff;
+}
+
+/* 選択肢バッジ (A / B / C) */
+.choice-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 9999px;
+  border: 2px solid #a5b4fc;
+  background-color: #fff;
+  color: #6366f1;
+  font-weight: 700;
+  font-size: 0.875rem;
+  flex-shrink: 0;
+  transition: background-color 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.choice-text {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  padding-top: 0.2rem;
+}
+
+/* 選択済みスタイル */
+.choice-label.is-selected {
+  border-color: #6366f1;
+  background-color: #eef2ff;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+.choice-label.is-selected .choice-badge {
+  background-color: #6366f1;
+  color: #fff;
+  border-color: #6366f1;
+}
+</style>
+
+<script>
+document.addEventListener('turbo:load', initChoiceCards);
+document.addEventListener('DOMContentLoaded', initChoiceCards);
+
+function initChoiceCards() {
+  document.querySelectorAll('.choice-radio').forEach(function(radio) {
+    radio.addEventListener('change', function() {
+      // 同じ name グループの全ラベルをリセット
+      var name = this.name;
+      document.querySelectorAll('input.choice-radio[name="' + name + '"]').forEach(function(r) {
+        var label = document.querySelector('label[for="' + r.id + '"]');
+        if (label) label.classList.remove('is-selected');
+      });
+      // 選択されたラベルにクラスを付与
+      var selectedLabel = document.querySelector('label[for="' + this.id + '"]');
+      if (selectedLabel) selectedLabel.classList.add('is-selected');
+    });
+  });
+}
+</script>
