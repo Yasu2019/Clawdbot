@@ -19,6 +19,7 @@ RUN echo 'Acquire::Retries "10";' > /etc/apt/apt.conf.d/99net-tuning && \
 # Added procps for process monitoring
 RUN apt-get update && apt-get install -y --no-install-recommends -o Acquire::Retries=5 --fix-missing \
     ca-certificates curl tini git python3 python3-pip python3-venv unzip wget gnupg software-properties-common \
+    build-essential cmake locales pkg-config \
     gmsh openscad ffmpeg xvfb libgl1-mesa-dev procps \
     && rm -rf /var/lib/apt/lists/*
 
@@ -44,7 +45,7 @@ RUN wget --progress=dot:giga "https://github.com/FreeCAD/FreeCAD/releases/downlo
     rm /tmp/FreeCAD.AppImage
 
 # ElmerFEMのインストールと依存関係
-RUN wget -q "http://ppa.launchpad.net/elmer-csc-ubuntu/elmer-csc-ppa/ubuntu/pool/main/e/elmerfem-csc/elmerfem-csc_9.0-0ppa0-202602121017~b48eebbbf~ubuntu22.04.1_amd64.deb" -O /tmp/elmerfem.deb && \
+RUN wget -q "https://launchpad.net/~elmer-csc-ubuntu/+archive/ubuntu/elmer-csc-ppa/+files/elmerfem-csc_9.0-0ppa0-202603222235~bb201b65f~ubuntu22.04.1_amd64.deb" -O /tmp/elmerfem.deb && \
     mkdir -p /tmp/extracted && dpkg -x /tmp/elmerfem.deb /tmp/extracted && \
     cp -r /tmp/extracted/usr/bin/Elmer* /usr/local/bin/ && \
     cp -r /tmp/extracted/usr/lib/elmersolver /usr/lib/ && \
@@ -77,14 +78,14 @@ RUN curl -O https://downloads.rclone.org/rclone-current-linux-amd64.zip && unzip
 
 # 統計 (R), VNC, 3D PDF, Rhubarb, Docker CLI, Tesseract
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    r-base libcurl4-openssl-dev libssl-dev libxml2-dev libgmp-dev libmpfr-dev libglpk-dev && rm -rf /var/lib/apt/lists/*
-RUN R -e "install.packages(c('SixSigma', 'qcc', 'AlgDesign', 'DoE.wrapper', 'skpr'), repos='https://cloud.r-project.org')"
+    r-base r-base-dev libcurl4-openssl-dev libssl-dev libxml2-dev libgmp-dev libmpfr-dev libglpk-dev && rm -rf /var/lib/apt/lists/*
+RUN R -e "install.packages(c('SixSigma', 'qcc', 'AlgDesign', 'DoE.wrapper', 'skpr', 'languageserver'), repos='https://cloud.r-project.org')"
 
 RUN apt-get update && apt-get install -y --no-install-recommends x11vnc fluxbox imagemagick x11-xserver-utils && rm -rf /var/lib/apt/lists/*
 RUN git clone --depth 1 https://github.com/novnc/noVNC.git /opt/noVNC && git clone --depth 1 https://github.com/novnc/websockify.git /opt/noVNC/utils/websockify
 
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-    build-essential cmake locales libpng-dev libjpeg-dev texlive-latex-extra texlive-fonts-recommended && rm -rf /var/lib/apt/lists/*
+    libpng-dev libjpeg-dev texlive-latex-extra texlive-fonts-recommended && rm -rf /var/lib/apt/lists/*
 RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && locale-gen
 ENV LANG=en_US.UTF-8
 RUN git clone https://github.com/ningfei/u3d.git /tmp/u3d && cd /tmp/u3d && CXXFLAGS="-std=c++14" ./configure && make && make install && rm -rf /tmp/u3d

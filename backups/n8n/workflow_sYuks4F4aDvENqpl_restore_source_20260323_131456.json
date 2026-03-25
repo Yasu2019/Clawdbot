@@ -1,0 +1,247 @@
+{
+  "updatedAt": "2026-03-23T03:02:07.959Z",
+  "createdAt": "2026-03-02T13:52:47.258Z",
+  "id": "sYuks4F4aDvENqpl",
+  "name": "P016 Email Report (Daily 21:00 JST)",
+  "description": null,
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "id": "trigger_p016",
+      "name": "daily_trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        112,
+        96
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "10 13 * * *"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "get_status",
+      "name": "build_todo_report",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        320,
+        96
+      ],
+      "parameters": {
+        "command": "docker exec clawstack-unified-clawdbot-gateway-1 sh -lc \"python3 /home/node/clawd/generate_todo_report.py --months-back 6 --limit 10\""
+      }
+    },
+    {
+      "id": "format_msg",
+      "name": "format_message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        560,
+        96
+      ],
+      "parameters": {
+        "jsCode": "var NL = String.fromCharCode(10);\nvar now = new Date().toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' });\nvar raw = (($input.first() && $input.first().json && $input.first().json.stdout) || '').trim();\nvar summary = '直近6か月の未対応案件は見つかりませんでした。';\ntry {\n  var parsed = JSON.parse(raw);\n  summary = parsed.summary || summary;\n} catch (e) {\n  summary = raw || ('P016 report parse error: ' + e.message);\n}\nvar parts = ['P016 Email ToDo Daily [' + now + ']', '', summary, '', 'ルール: 既定は直近6か月。さらに過去が必要なら範囲を広げて再送します。'];\nreturn [{ json: { text: parts.join(NL) } }];"
+      }
+    },
+    {
+      "id": "telegram_send",
+      "name": "telegram_send",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        800,
+        96
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.telegram.org/bot8085717200:AAHzacN6Q3xSunrLyvUTuHnKEf7Cd5YFdt4/sendMessage",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "chat_id",
+              "value": "8173025084"
+            },
+            {
+              "name": "text",
+              "value": "={{ $json.text }}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "gmail-send-report",
+      "name": "gmail_send",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1450,
+        0
+      ],
+      "parameters": {
+        "executeOnce": true,
+        "command": "node /workspace/scripts/send_allowed_gmail_from_b64.js y.suzuki.hk@gmail.com {{$json.subject_b64}} {{$json.body_b64}}"
+      }
+    },
+    {
+      "id": "prepare-gmail-payload",
+      "name": "prepare_gmail_payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1190,
+        0
+      ],
+      "parameters": {
+        "jsCode": "const body = (($json.text || $json.summary || $json.stdout || '') + '').trim();\nconst encode = (value) => Buffer.from((value || '') + '', 'utf8')\n  .toString('base64')\n  .replace(/\\+/g, '-')\n  .replace(/\\//g, '_')\n  .replace(/=+$/g, '');\nreturn [{ json: { subject_b64: encode(\"P016 Email ToDo Daily\"), body_b64: encode(body), text: body } }];"
+      }
+    }
+  ],
+  "connections": {
+    "daily_trigger": {
+      "main": [
+        [
+          {
+            "node": "build_todo_report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "build_todo_report": {
+      "main": [
+        [
+          {
+            "node": "format_message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "format_message": {
+      "main": [
+        [
+          {
+            "node": "telegram_send",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "prepare_gmail_payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "prepare_gmail_payload": {
+      "main": [
+        [
+          {
+            "node": "gmail_send",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "timezone": "Asia/Tokyo",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "executionTimeout": 300
+  },
+  "staticData": {
+    "node:??7:00????": {
+      "recurrenceRules": []
+    },
+    "node:daily_trigger": {
+      "recurrenceRules": []
+    }
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "53b9d24d-8018-406f-b266-2dadc666268a",
+  "activeVersionId": null,
+  "versionCounter": 225,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-03-02T13:52:47.262Z",
+      "createdAt": "2026-03-02T13:52:47.262Z",
+      "role": "workflow:owner",
+      "workflowId": "sYuks4F4aDvENqpl",
+      "projectId": "9U7rI3bmgXpsJ71S",
+      "project": {
+        "updatedAt": "2026-03-13T14:28:41.239Z",
+        "createdAt": "2026-02-07T05:28:19.729Z",
+        "id": "9U7rI3bmgXpsJ71S",
+        "name": "yasuhiro suzuki <y.suzuki.hk@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "291ff157-9849-45a3-8560-b87bb49ab833",
+        "projectRelations": [
+          {
+            "updatedAt": "2026-02-07T05:28:19.730Z",
+            "createdAt": "2026-02-07T05:28:19.730Z",
+            "userId": "291ff157-9849-45a3-8560-b87bb49ab833",
+            "projectId": "9U7rI3bmgXpsJ71S",
+            "user": {
+              "updatedAt": "2026-03-22T23:00:37.000Z",
+              "createdAt": "2026-02-07T05:28:19.229Z",
+              "id": "291ff157-9849-45a3-8560-b87bb49ab833",
+              "email": "y.suzuki.hk@gmail.com",
+              "firstName": "yasuhiro",
+              "lastName": "suzuki",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2026-02-24T23:12:30.310Z",
+                "personalization_survey_n8n_version": "2.6.4",
+                "automationGoalDevops": [
+                  "reporting"
+                ],
+                "companyIndustryExtended": [
+                  "manufacturing-industry"
+                ],
+                "companySize": "100-499",
+                "companyType": "other",
+                "role": "engineering",
+                "reportedSource": "google"
+              },
+              "settings": {
+                "userActivated": true,
+                "firstSuccessfulWorkflowId": "jVGXe2GEIz6RN7Z0",
+                "userActivatedAt": 1772595011158
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-03-22",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": null
+}

@@ -1,0 +1,262 @@
+{
+  "updatedAt": "2026-03-21T02:23:48.256Z",
+  "createdAt": "2026-03-14T23:46:11.931Z",
+  "id": "vo3Yhdb8M97JQHfx",
+  "name": "Daily System Health Check (09:00 JST)",
+  "description": null,
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "id": "hc_trigger",
+      "name": "trigger_0900",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        200,
+        300
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 9 * * *"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "hc_copy",
+      "name": "copy_script",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        420,
+        300
+      ],
+      "parameters": {
+        "command": "docker cp /workspace/daily_health_check.py clawstack-unified-clawdbot-gateway-1:/home/node/clawd/daily_health_check.py 2>&1 || true"
+      }
+    },
+    {
+      "id": "hc_run",
+      "name": "run_check",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        640,
+        300
+      ],
+      "parameters": {
+        "command": "docker exec clawstack-unified-clawdbot-gateway-1 sh -c \"python3 /home/node/clawd/daily_health_check.py\" 2>&1"
+      }
+    },
+    {
+      "id": "hc_format",
+      "name": "format_message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        860,
+        300
+      ],
+      "parameters": {
+        "jsCode": "var first = $input.first();\nvar raw = ((first && first.json && (first.json.stdout || first.json.stderr)) || '').slice(0, 3500);\nvar hasWarn = raw.includes('WARN');\nvar warnCount = (raw.match(/WARN/g) || []).length;\nvar prefix = hasWarn ? '[WARNING ' + warnCount + ' items] ' : '[OK] ';\nvar now = new Date().toLocaleString('ja-JP', {timeZone: 'Asia/Tokyo'});\nvar text = prefix + 'Daily Health Check ' + now + String.fromCharCode(10) + raw;\nreturn [{json: {text: text, has_warn: hasWarn}}];"
+      }
+    },
+    {
+      "id": "hc_telegram",
+      "name": "telegram_send",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1080,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.telegram.org/bot8085717200:AAHzacN6Q3xSunrLyvUTuHnKEf7Cd5YFdt4/sendMessage",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "chat_id",
+              "value": "8173025084"
+            },
+            {
+              "name": "text",
+              "value": "={{ $json.text }}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "gmail-send-report",
+      "name": "gmail_send",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1350,
+        0
+      ],
+      "parameters": {
+        "executeOnce": true,
+        "command": "node /workspace/scripts/send_allowed_gmail_from_b64.js y.suzuki.hk@gmail.com {{$json.subject_b64}} {{$json.body_b64}}"
+      }
+    },
+    {
+      "id": "prepare-gmail-payload",
+      "name": "prepare_gmail_payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1090,
+        0
+      ],
+      "parameters": {
+        "jsCode": "const body = (($json.text || $json.summary || $json.stdout || '') + '').trim();\nconst encode = (value) => Buffer.from((value || '') + '', 'utf8')\n  .toString('base64')\n  .replace(/\\+/g, '-')\n  .replace(/\\//g, '_')\n  .replace(/=+$/g, '');\nreturn [{ json: { subject_b64: encode(\"Daily System Health Check\"), body_b64: encode(body), text: body } }];"
+      }
+    }
+  ],
+  "connections": {
+    "trigger_0900": {
+      "main": [
+        [
+          {
+            "node": "copy_script",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "copy_script": {
+      "main": [
+        [
+          {
+            "node": "run_check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "run_check": {
+      "main": [
+        [
+          {
+            "node": "format_message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "format_message": {
+      "main": [
+        [
+          {
+            "node": "telegram_send",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "prepare_gmail_payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "prepare_gmail_payload": {
+      "main": [
+        [
+          {
+            "node": "gmail_send",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": {
+    "node:trigger_0900": {
+      "recurrenceRules": []
+    }
+  },
+  "meta": null,
+  "pinData": null,
+  "versionId": "873a7398-da98-40c1-817d-f875a5d4b85f",
+  "activeVersionId": null,
+  "versionCounter": 33,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-03-14T23:46:11.960Z",
+      "createdAt": "2026-03-14T23:46:11.960Z",
+      "role": "workflow:owner",
+      "workflowId": "vo3Yhdb8M97JQHfx",
+      "projectId": "9U7rI3bmgXpsJ71S",
+      "project": {
+        "updatedAt": "2026-03-13T14:28:41.239Z",
+        "createdAt": "2026-02-07T05:28:19.729Z",
+        "id": "9U7rI3bmgXpsJ71S",
+        "name": "yasuhiro suzuki <y.suzuki.hk@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "291ff157-9849-45a3-8560-b87bb49ab833",
+        "projectRelations": [
+          {
+            "updatedAt": "2026-02-07T05:28:19.730Z",
+            "createdAt": "2026-02-07T05:28:19.730Z",
+            "userId": "291ff157-9849-45a3-8560-b87bb49ab833",
+            "projectId": "9U7rI3bmgXpsJ71S",
+            "user": {
+              "updatedAt": "2026-03-22T23:00:37.000Z",
+              "createdAt": "2026-02-07T05:28:19.229Z",
+              "id": "291ff157-9849-45a3-8560-b87bb49ab833",
+              "email": "y.suzuki.hk@gmail.com",
+              "firstName": "yasuhiro",
+              "lastName": "suzuki",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2026-02-24T23:12:30.310Z",
+                "personalization_survey_n8n_version": "2.6.4",
+                "automationGoalDevops": [
+                  "reporting"
+                ],
+                "companyIndustryExtended": [
+                  "manufacturing-industry"
+                ],
+                "companySize": "100-499",
+                "companyType": "other",
+                "role": "engineering",
+                "reportedSource": "google"
+              },
+              "settings": {
+                "userActivated": true,
+                "firstSuccessfulWorkflowId": "jVGXe2GEIz6RN7Z0",
+                "userActivatedAt": 1772595011158
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-03-22",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": null
+}

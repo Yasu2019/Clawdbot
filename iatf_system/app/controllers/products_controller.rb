@@ -374,7 +374,7 @@ class ProductsController < ApplicationController
       products:     @products,
       all_products: @all_products,
       dropdownlist: @dropdownlist
-    ).each { |key, value| instance_variable_set("@\#{key}", value) }
+    ).each { |key, value| instance_variable_set("@#{key}", value) }
   end
 
   def create_data_apqp_plan_report
@@ -383,7 +383,7 @@ class ProductsController < ApplicationController
       all_products: @all_products,
       dropdownlist: @dropdownlist,
       partnumber:   params[:partnumber]
-    ).each { |key, value| instance_variable_set("@\#{key}", value) }
+    ).each { |key, value| instance_variable_set("@#{key}", value) }
   end
 
   def create_data_apqp_approved_report
@@ -392,7 +392,7 @@ class ProductsController < ApplicationController
       all_products: @all_products,
       dropdownlist: @dropdownlist,
       partnumber:   params[:partnumber]
-    ).each { |key, value| instance_variable_set("@\#{key}", value) }
+    ).each { |key, value| instance_variable_set("@#{key}", value) }
   end
   def generate_xlsx
     send_data(

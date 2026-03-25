@@ -49,9 +49,9 @@
   <input id="tab3" type="radio" name="tab_btn">
 
   <div class="tab-labels">
-    <label for="tab1">テスト結果</label>
-    <label for="tab2"><%= @owner_select_jp %>が主管の箇条</label>
-    <label for="tab3"><%= @owner_select_jp %>が関係する箇条</label>
+    <label for="tab1">📊 テスト結果</label>
+    <label for="tab2" class="tab-label-shuukan">⭐ 主管箇条</label>
+    <label for="tab3" class="tab-label-kankei">🔗 関係箇条</label>
   </div>
 
   <div class="tab-panels">
@@ -120,20 +120,22 @@
                           <td class="text-xs"><%= data[:test_created_at]&.strftime("%m/%d %H:%M") %></td>
                           <td>
                             <% pct = data[:total_count] > 0 ? sprintf("%.0f", data[:correct_count].to_f / data[:total_count] * 100) : '0' %>
-                            <span class="badge badge-sm <%= pct.to_i >= 80 ? 'badge-success' : pct.to_i >= 60 ? 'badge-warning' : 'badge-error' %>">
+                            <span class="badge badge-lg text-lg font-bold px-3 py-4 <%= pct.to_i >= 80 ? 'badge-success' : pct.to_i >= 60 ? 'badge-warning' : 'badge-error' %>">
                               <%= pct %>%
                             </span>
                           </td>
-                          <td class="flex gap-1">
+                          <td>
                             <% if data[:related_touans].any? %>
-                              <%= form_with(url: kekka_touan_path, method: :get, local: true) do |form| %>
-                                <%= form.hidden_field :created_at, value: data[:test_created_at] %>
-                                <%= form.submit "結果", class: "btn btn-xs btn-primary" %>
-                              <% end %>
-                              <%= button_to '削除', delete_related_touans_path(target_date: data[:test_created_at]),
-                                    method: :delete,
-                                    data: { confirm: '本当に削除しますか？' },
-                                    class: 'btn btn-xs btn-ghost text-error' %>
+                              <div class="flex flex-col gap-1">
+                                <%= form_with(url: kekka_touan_path, method: :get, local: true) do |form| %>
+                                  <%= form.hidden_field :created_at, value: data[:test_created_at] %>
+                                  <%= form.submit "📋 テスト結果の詳細解説", class: "btn btn-sm btn-primary w-full" %>
+                                <% end %>
+                                <%= button_to '削除', delete_related_touans_path(target_date: data[:test_created_at]),
+                                      method: :delete,
+                                      data: { confirm: '本当に削除しますか？' },
+                                      class: 'btn btn-xs btn-ghost text-error w-full' %>
+                              </div>
                             <% end %>
                           </td>
                         </tr>
@@ -154,9 +156,17 @@
       <div class="container mx-auto px-4 py-6">
         <% chart_kajyou_audit, chart_score_audit = calculate_chart_data(@iatf_data_audit, @touans) %>
         <div class="flex flex-col gap-6">
-          <div class="card bg-base-100 shadow-md">
+          <%# 主管バナー %>
+          <div class="rounded-xl px-4 py-3 flex items-center gap-3" style="background:#fef9c3; border:2px solid #f59e0b;">
+            <span style="font-size:1.5rem;">⭐</span>
+            <div>
+              <p class="font-bold text-base" style="color:#92400e;"><%= @owner_select_jp %> が<span class="underline decoration-amber-500">主管</span>する箇条</p>
+              <p class="text-xs" style="color:#b45309;">このプロセスが責任者として直接管理・運営する要求事項です。</p>
+            </div>
+          </div>
+          <div class="card bg-base-100 shadow-md" style="border:2px solid #f59e0b;">
             <div class="card-body p-4">
-              <h3 class="card-title text-sm font-semibold text-base-content/70 mb-2">評価結果レーダーチャート</h3>
+              <h3 class="card-title text-sm font-semibold mb-2" style="color:#b45309;">⭐ 主管箇条 — 評価結果レーダーチャート</h3>
               <div class="w-full" style="height: 750px; position: relative;">
                 <canvas id="chartRadar_iatf_request_audit"></canvas>
               </div>
@@ -180,9 +190,17 @@
       <div class="container mx-auto px-4 py-6">
         <% chart_kajyou_audit_sub, chart_score_audit_sub = calculate_chart_data(@iatf_data_audit_sub, @touans) %>
         <div class="flex flex-col gap-6">
-          <div class="card bg-base-100 shadow-md">
+          <%# 関係バナー %>
+          <div class="rounded-xl px-4 py-3 flex items-center gap-3" style="background:#ccfbf1; border:2px solid #14b8a6;">
+            <span style="font-size:1.5rem;">🔗</span>
+            <div>
+              <p class="font-bold text-base" style="color:#134e4a;"><%= @owner_select_jp %> が<span class="underline decoration-teal-500">関係</span>する箇条</p>
+              <p class="text-xs" style="color:#0f766e;">他プロセスが主管するが、このプロセスも連携・協力が必要な要求事項です。</p>
+            </div>
+          </div>
+          <div class="card bg-base-100 shadow-md" style="border:2px solid #14b8a6;">
             <div class="card-body p-4">
-              <h3 class="card-title text-sm font-semibold text-base-content/70 mb-2">評価結果レーダーチャート</h3>
+              <h3 class="card-title text-sm font-semibold mb-2" style="color:#0f766e;">🔗 関係箇条 — 評価結果レーダーチャート</h3>
               <div class="w-full" style="height: 750px; position: relative;">
                 <canvas id="chartRadar_iatf_request_audit_sub"></canvas>
               </div>
@@ -222,10 +240,10 @@
   border-bottom: 2px solid oklch(var(--b3));
 }
 .tab-labels label {
-  padding: 0.5rem 1.25rem;
+  padding: 0.75rem 2rem;
   border-radius: 0.5rem 0.5rem 0 0;
   cursor: pointer;
-  font-size: 0.875rem;
+  font-size: 1.05rem;
   font-weight: 500;
   color: oklch(var(--bc) / 0.5);
   background: oklch(var(--b3));
@@ -236,14 +254,34 @@
 }
 .tab-labels label:hover { color: oklch(var(--bc) / 0.8); }
 
-#tab1:checked ~ .tab-labels label[for="tab1"],
-#tab2:checked ~ .tab-labels label[for="tab2"],
-#tab3:checked ~ .tab-labels label[for="tab3"] {
+#tab1:checked ~ .tab-labels label[for="tab1"] {
   background: oklch(var(--b1));
   color: oklch(var(--p));
   font-weight: 600;
   border-color: oklch(var(--b3));
   border-bottom-color: oklch(var(--b1));
+}
+
+/* 主管タブ：金色系 */
+.tab-label-shuukan { color: #92400e !important; }
+#tab2:checked ~ .tab-labels label[for="tab2"] {
+  background: #fef9c3;
+  color: #78350f;
+  font-weight: 700;
+  border-color: #f59e0b;
+  border-bottom-color: #fef9c3;
+  font-size: 1.1rem;
+}
+
+/* 関係タブ：青緑系 */
+.tab-label-kankei { color: #0f766e !important; }
+#tab3:checked ~ .tab-labels label[for="tab3"] {
+  background: #ccfbf1;
+  color: #134e4a;
+  font-weight: 700;
+  border-color: #14b8a6;
+  border-bottom-color: #ccfbf1;
+  font-size: 1.1rem;
 }
 
 .tab-panels { background: oklch(var(--b1)); }
@@ -255,58 +293,139 @@
 </style>
 
 
-<%# ===== Chart.js ===== %>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1"></script>
-
+<%# ===== Chart.js (Chart.bundle 4.4.1 via importmap — CDN script 不要) ===== %>
 <script>
-function createRadarChart(elementId, labels, data) {
-  const el = document.getElementById(elementId);
+// チャートデータ（ERBでサーバーサイドレンダリング）
+var CHART_DATA = {
+  all:   { labels: <%= raw chart_kajyou.to_json %>,           scores: <%= chart_average_score.map(&:to_f).to_json %>,           color: "rgb(133,105,241)", label: "テスト正解率(%)" },
+  main:  { labels: <%= raw chart_kajyou_audit.to_json %>,      scores: <%= chart_score_audit.map(&:to_f).to_json %>,      color: "rgb(245,158,11)",  label: "⭐ 主管箇条 正解率(%)" },
+  sub:   { labels: <%= raw chart_kajyou_audit_sub.to_json %>,  scores: <%= chart_score_audit_sub.map(&:to_f).to_json %>,  color: "rgb(20,184,166)",   label: "🔗 関係箇条 正解率(%)" }
+};
+
+var CHART_MAP = {
+  "chartRadar":                        CHART_DATA.all,
+  "chartRadar_iatf_request_audit":     CHART_DATA.main,
+  "chartRadar_iatf_request_audit_sub": CHART_DATA.sub
+};
+
+// ── プラグイン登録フラグ ──
+// renderChart() 内で初回だけ Chart.register() を呼ぶ。
+// こうすることで Chart.bundle 4.4.1 が window.Chart に設定された後に
+// 確実に同じインスタンスへ登録できる（CDN版と混在しない）。
+var _radarColorPluginRegistered = false;
+
+function ensureRadarColorPlugin() {
+  if (_radarColorPluginRegistered) return;
+  if (typeof Chart === 'undefined') return;
+
+  Chart.register({
+    id: 'radarAxisColor',
+    afterDraw: function(chart) {
+      if (chart.config.type !== 'radar') return;
+      var scale = chart.scales && chart.scales.r;
+      if (!scale || !scale._pointLabelItems || !scale._pointLabelItems.length) return;
+      if (!scale._pointLabels || !scale._pointLabels.length) return;
+
+      var ds = chart.data.datasets[0];
+      if (!ds) return;
+      var color = ds.borderColor;
+
+      var ctx    = chart.ctx;
+      var labels = scale._pointLabels;
+      var items  = scale._pointLabelItems;
+      var plOpts = scale.options.pointLabels;
+      var fontSize   = (plOpts.font && plOpts.font.size)   || 14;
+      var fontWeight = (plOpts.font && plOpts.font.weight) || 'bold';
+      var fontFamily = (plOpts.font && plOpts.font.family) ||
+                       (Chart.defaults.font && Chart.defaults.font.family) || 'sans-serif';
+      var lineHeight = fontSize * 1.2;
+
+      ctx.save();
+      ctx.font         = fontWeight + ' ' + fontSize + 'px ' + fontFamily;
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle    = color;
+
+      items.forEach(function(item, i) {
+        if (!item.visible) return;
+        var rawLabel = labels[i];
+        if (rawLabel === undefined || rawLabel === null) return;
+        var lines = Array.isArray(rawLabel) ? rawLabel : [String(rawLabel)];
+        ctx.textAlign = item.textAlign || 'center';
+        // Chart.bundle.js drawPointLabels と同じ座標:
+        //   renderText(ctx, label, item.x, item.y + lineHeight/2, ...)
+        lines.forEach(function(line, j) {
+          ctx.fillText(String(line), item.x, item.y + lineHeight / 2 + j * lineHeight);
+        });
+      });
+
+      ctx.restore();
+    }
+  });
+
+  _radarColorPluginRegistered = true;
+}
+
+function renderChart(elementId) {
+  var el = document.getElementById(elementId);
   if (!el) return;
-  if (window[elementId] instanceof Chart) {
+
+  // Chart.bundle 4.4.1 インスタンスへプラグイン登録（初回のみ）
+  ensureRadarColorPlugin();
+
+  if (typeof Chart !== 'undefined' && window[elementId] instanceof Chart) {
     window[elementId].destroy();
   }
+  var d = CHART_MAP[elementId];
+  if (!d || d.labels.length === 0) return;
+  if (typeof Chart === 'undefined') return;
+
+  var bg = d.color.replace("rgb(", "rgba(").replace(")", ", 0.18)");
   window[elementId] = new Chart(el, {
     type: "radar",
     data: {
-      labels: labels,
+      labels: d.labels,
       datasets: [{
-        label: "テスト正解率(%)",
-        data: data,
-        fill: true,
-        backgroundColor: "rgba(133, 105, 241, 0.15)",
-        borderColor: "rgb(133, 105, 241)",
-        pointBackgroundColor: "rgb(133, 105, 241)",
-        pointBorderColor: "#fff",
-        pointHoverBackgroundColor: "#fff",
-        pointHoverBorderColor: "rgb(133, 105, 241)"
+        label: d.label, data: d.scores, fill: true,
+        backgroundColor: bg, borderColor: d.color,
+        pointBackgroundColor: d.color, pointBorderColor: "#fff",
+        pointHoverBackgroundColor: "#fff", pointHoverBorderColor: d.color
       }]
     },
     options: {
-      responsive: true,
-      maintainAspectRatio: false,
+      animation: false,
+      responsive: true, maintainAspectRatio: false,
       scales: {
         r: {
-          min: 0, max: 100, stepSize: 20,
-          ticks:       { font: { size: 16 }, backdropPadding: 4 },
-          pointLabels: { font: { size: 16, weight: 'bold' } }
+          min: 0, max: 100,
+          ticks:       { stepSize: 20, font: { size: 13 }, color: d.color, backdropColor: "transparent" },
+          pointLabels: { font: { size: 14, weight: "bold" }, color: "rgba(0,0,0,0)" },
+          grid:        { color: "rgba(0,0,0,0.1)" },
+          angleLines:  { color: "rgba(0,0,0,0.15)" }
         }
       },
       plugins: {
-        legend:  { labels:    { font: { size: 18 }, padding: 20 } },
-        tooltip: { bodyFont:  { size: 16 }, titleFont: { size: 16 } }
+        legend:  { labels: { font: { size: 15 }, padding: 20, color: d.color } },
+        tooltip: { bodyFont: { size: 13 }, titleFont: { size: 13 } }
       }
     }
   });
 }
 
-document.addEventListener("turbo:load", function() {
-  createRadarChart("chartRadar", <%= raw chart_kajyou.to_json %>, <%= chart_average_score.map(&:to_f).to_json %>);
-  createRadarChart("chartRadar_iatf_request_audit",     <%= raw chart_kajyou_audit.to_json %>,     <%= chart_score_audit.map(&:to_f).to_json %>);
-  createRadarChart("chartRadar_iatf_request_audit_sub", <%= raw chart_kajyou_audit_sub.to_json %>, <%= chart_score_audit_sub.map(&:to_f).to_json %>);
+// ページ読み込み時: Panel1（可視）のみ生成
+function initChart1() { renderChart("chartRadar"); }
+document.addEventListener("turbo:load",       initChart1);
+document.addEventListener("DOMContentLoaded", initChart1);
+
+// タブ切り替え時: そのタブのチャートを生成（表示後に生成することでcanvasサイズが正確）
+document.addEventListener("change", function(e) {
+  if (e.target.name !== "tab_btn") return;
+  var tabChartMap = { tab1: "chartRadar", tab2: "chartRadar_iatf_request_audit", tab3: "chartRadar_iatf_request_audit_sub" };
+  var chartId = tabChartMap[e.target.id];
+  if (chartId) { setTimeout(function() { renderChart(chartId); }, 30); }
 });
 
 document.addEventListener("turbo:before-cache", function() {
-  ["chartRadar", "chartRadar_iatf_request_audit", "chartRadar_iatf_request_audit_sub"].forEach(function(id) {
+  Object.keys(CHART_MAP).forEach(function(id) {
     if (window[id] instanceof Chart) { window[id].destroy(); window[id] = null; }
   });
 });

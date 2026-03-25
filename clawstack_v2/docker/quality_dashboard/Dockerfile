@@ -35,7 +35,7 @@ RUN pip install --no-cache-dir \
     pymeshlab ezdxf trimesh gmsh scipy plotly streamlit-plotly-events \
     pycalphad "scikit-fem[all]" h5py netcdf4 pyvista meshio
 
-RUN Rscript -e "install.packages(c('AlgDesign','jsonlite'), repos='https://cloud.r-project.org')"
+RUN Rscript -e "install.packages(c('AlgDesign','jsonlite','languageserver'), repos='https://cloud.r-project.org')"
 
 ENV PYVISTA_OFF_SCREEN=true
 

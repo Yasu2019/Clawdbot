@@ -1,19 +1,19 @@
 \documentclass[11pt]{article}
-\usepackage[margin=15mm]{geometry}
+\usepackage[a4paper,margin=5mm,noheadfoot]{geometry}
 \usepackage{media9}
-\usepackage{hyperref}
 \begin{document}
-\section*{3D Model}
-
-\includemedia[
-  width=0.95\linewidth,
-  height=0.75\linewidth,
+\pagestyle{empty}
+\noindent\includemedia[
+  width=\linewidth,
+  height=0.98\textheight,
   activate=pageopen,
   3Dtoolbar=true,
   3Dmenu=true,
-  3Dviews=,
-]{\fbox{\parbox[c][0.75\linewidth][c]{0.95\linewidth}{\centering Click to activate 3D}}}{__MODEL_U3D__}
-
-\bigskip
-\noindent \textbf{Note:} Interactive 3D works best in Adobe Acrobat Reader.
+  3Dcoo=__COO_X__ __COO_Y__ __COO_Z__,
+  3Droo=__ROO__,
+  3Dc2c=1 -1 0.5,
+  3Dlights=CAD,
+  3Drender=Solid,
+  3Dbg=1 1 1,
+]{}{__MODEL_U3D__}
 \end{document}

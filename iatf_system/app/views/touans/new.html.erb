@@ -11,7 +11,7 @@
 
     <% i = 1 %>
     <% @touans.collection.each do |user| %>
-      <%= fields_for 'touans[]', user do |field| %>
+      <%= fields_for 'touans[]', user, index: (i - 1) do |field| %>
 
         <%# 問題カード %>
         <div class="card bg-base-100 shadow-md border border-base-300 mb-6">
@@ -64,8 +64,10 @@
     <% end %>
 
     <%# 送信ボタン (sticky) %>
-    <div class="sticky bottom-4 z-10 flex justify-center mt-2 pb-2">
-      <%= form.submit "提出する", class: "btn btn-primary btn-lg shadow-xl px-12" %>
+    <div class="sticky bottom-4 z-10 flex flex-col items-center gap-1 mt-2 pb-2">
+      <%= form.submit "提出する", class: "btn btn-primary btn-lg shadow-xl px-12", id: "submit-btn",
+            disabled: true, style: "opacity:0.35; cursor:not-allowed;" %>
+      <span id="submit-progress" class="text-xs text-base-content/50">0 / <%= @touans.collection.size %> 問回答済み</span>
     </div>
 
   <% end %>
@@ -74,6 +76,12 @@
     <%= link_to '← 戻る', touans_path, class: 'btn btn-ghost btn-sm' %>
   </div>
 
+</div>
+
+<%# 未回答警告 Toast (画面上部固定) %>
+<div id="submit-warning"
+     class="hidden fixed top-4 left-1/2 z-50 -translate-x-1/2 alert alert-warning shadow-xl text-sm px-5 py-3 rounded-xl max-w-lg w-11/12">
+  <span id="submit-warning-text"></span>
 </div>
 
 <style>
@@ -118,6 +126,12 @@
   padding-top: 0.2rem;
 }
 
+/* 未回答ハイライト */
+.choice-label.is-unanswered {
+  border-color: #f87171;
+  background-color: #fff5f5;
+}
+
 /* 選択済みスタイル */
 .choice-label.is-selected {
   border-color: #6366f1;
@@ -137,13 +151,66 @@
 <script>
 document.addEventListener('turbo:load', initChoiceCards);
 document.addEventListener('DOMContentLoaded', initChoiceCards);
+document.addEventListener('turbo:load', initSubmitGuard);
+document.addEventListener('DOMContentLoaded', initSubmitGuard);
+
+function countAnswered() {
+  var total = document.querySelectorAll('[data-question]').length;
+  var answered = 0;
+  document.querySelectorAll('[data-question]').forEach(function(container) {
+    if (container.querySelectorAll('.choice-label.is-selected').length > 0) answered++;
+  });
+  return { answered: answered, total: total };
+}
+
+function updateSubmitButton() {
+  var btn      = document.getElementById('submit-btn');
+  var progress = document.getElementById('submit-progress');
+  var c = countAnswered();
+  if (!btn) return;
+
+  if (c.answered >= c.total) {
+    btn.disabled = false;
+    btn.style.opacity = '';
+    btn.style.cursor  = '';
+  } else {
+    btn.disabled = true;
+    btn.style.opacity = '0.35';
+    btn.style.cursor  = 'not-allowed';
+  }
+  if (progress) progress.textContent = c.answered + ' / ' + c.total + ' 問回答済み';
+}
+
+function initSubmitGuard() {
+  updateSubmitButton();
+}
 
 function initChoiceCards() {
+  document.querySelectorAll('.choice-label').forEach(function(label) {
+    label.addEventListener('click', function(e) {
+      var radio = document.getElementById(this.getAttribute('for'));
+      if (!radio) return;
+
+      if (radio.checked) {
+        // すでに選択済み → クリックで解除
+        e.preventDefault();
+        radio.checked = false;
+        this.classList.remove('is-selected');
+        var badge = this.querySelector('.choice-badge');
+        if (badge) badge.textContent = '未選択';
+        updateSubmitButton();
+      }
+      // 未選択の場合はブラウザ標準の radio 選択に任せる（change イベントで処理）
+    });
+  });
+
   document.querySelectorAll('.choice-radio').forEach(function(radio) {
     radio.addEventListener('change', function() {
-      // 同じ name グループの全ラベルをリセット
-      var name = this.name;
-      document.querySelectorAll('input.choice-radio[name="' + name + '"]').forEach(function(r) {
+      // この問題のコンテナ内だけをリセット（他の問題に影響させない）
+      var questionContainer = this.closest('[data-question]');
+      if (!questionContainer) return;
+
+      questionContainer.querySelectorAll('.choice-radio').forEach(function(r) {
         var label = document.querySelector('label[for="' + r.id + '"]');
         if (label) {
           label.classList.remove('is-selected');
@@ -151,13 +218,13 @@ function initChoiceCards() {
           if (badge) badge.textContent = '未選択';
         }
       });
-      // 選択されたラベルにクラスを付与してバッジをアルファベットに変更
       var selectedLabel = document.querySelector('label[for="' + this.id + '"]');
       if (selectedLabel) {
         selectedLabel.classList.add('is-selected');
         var badge = selectedLabel.querySelector('.choice-badge');
         if (badge) badge.textContent = selectedLabel.dataset.letter;
       }
+      updateSubmitButton();
     });
   });
 }

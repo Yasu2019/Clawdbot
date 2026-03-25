@@ -157,6 +157,21 @@ def mesh_to_idtf(mesh_path: Path, idtf_path: Path) -> None:
         f.flush()
         os.fsync(f.fileno())
 
+def compute_camera_params(stl_path: Path) -> tuple[float, float, float, float]:
+    """Compute 3D camera parameters from mesh bounding box.
+    Returns (coo_x, coo_y, coo_z, roo) where coo is the model center
+    and roo is the camera distance that fits the model in the viewport.
+    """
+    import trimesh
+    mesh = trimesh.load(str(stl_path), force='mesh')
+    center = mesh.bounding_box.centroid
+    diagonal = float(np.linalg.norm(mesh.bounding_box.extents))
+    # roo = distance from camera to model center.
+    # Using diagonal * 2.0 ensures the full model fits within ~28deg half-FOV.
+    roo = max(diagonal * 2.0, 1.0)
+    return float(center[0]), float(center[1]), float(center[2]), roo
+
+
 def main():
     ap = argparse.ArgumentParser(description="Convert 3D model to interactive 3D PDF")
     ap.add_argument("input_model", type=Path, help="Input 3D model file (STEP/STL/OBJ/PLY)")
@@ -167,34 +182,43 @@ def main():
 
     with tempfile.TemporaryDirectory() as td:
         td = Path(td)
-        
+
         # Step 1: Ensure we have an STL
         stl_path = ensure_stl(args.input_model, td)
-        
-        # Step 2: Convert mesh to IDTF
+
+        # Step 2: Compute camera parameters from mesh bounding box
+        coo_x, coo_y, coo_z, roo = compute_camera_params(stl_path)
+        print(f"Camera: coo=({coo_x:.3f}, {coo_y:.3f}, {coo_z:.3f}), roo={roo:.3f}")
+
+        # Step 3: Convert mesh to IDTF
         idtf_path = td / (stl_path.stem + ".idtf")
         mesh_to_idtf(stl_path, idtf_path)
-        
-        # Step 3: Convert IDTF to U3D
+
+        # Step 4: Convert IDTF to U3D
         u3d_path = td / (stl_path.stem + ".u3d")
         rc, out, err = run(["IDTFConverter", "-input", str(idtf_path), "-output", str(u3d_path)])
         os.sync()
-        
+
         if not u3d_path.exists():
             raise RuntimeError(f"IDTFConverter failed: {err}")
-        
-        # Step 4: Copy template and substitute filename using sed
+
+        # Step 5: Generate .tex from template with Python string substitution
+        tex_content = TEMPLATE_PATH.read_text(encoding='utf-8')
+        tex_content = tex_content.replace("__MODEL_U3D__", u3d_path.name)
+        tex_content = tex_content.replace("__COO_X__", f"{coo_x:.4f}")
+        tex_content = tex_content.replace("__COO_Y__", f"{coo_y:.4f}")
+        tex_content = tex_content.replace("__COO_Z__", f"{coo_z:.4f}")
+        tex_content = tex_content.replace("__ROO__", f"{roo:.4f}")
         tex_path = td / "model.tex"
-        shutil.copy(TEMPLATE_PATH, tex_path)
-        subprocess.run(["sed", "-i", f"s/__MODEL_U3D__/{u3d_path.name}/g", str(tex_path)], check=True)
-        
-        # Step 5: Compile PDF with pdflatex (no -halt-on-error to allow PDF generation)
+        tex_path.write_text(tex_content, encoding='utf-8')
+
+        # Step 6: Compile PDF with pdflatex (no -halt-on-error to allow PDF generation)
         run(["pdflatex", "-interaction=nonstopmode", tex_path.name], cwd=td)
-        
+
         built_pdf = td / "model.pdf"
         if not built_pdf.exists():
             raise RuntimeError("pdflatex did not generate PDF")
-        
+
         # Copy output
         args.output_pdf.write_bytes(built_pdf.read_bytes())
         print(f"PDF created: {args.output_pdf} ({args.output_pdf.stat().st_size} bytes)")

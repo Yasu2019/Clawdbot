@@ -141,7 +141,7 @@ class TouansController < ApplicationController
         QuizAttemptScoringService.score!(touans)
       end
 
-      redirect_to touans_url
+      redirect_to kekka_touan_path(created_at: @touans.collection.first.created_at)
     else
       render :new
     end
@@ -179,7 +179,10 @@ class TouansController < ApplicationController
   end
 
   def touans_params
-    params.require(:touans).map do |p|
+    raw = params.require(:touans)
+    list = raw.is_a?(Array) ? raw : raw.values
+    list.map do |p|
+      p = ActionController::Parameters.new(p) if p.is_a?(Hash)
       p.permit(:kajyou, :kaito, :mondai, :mondai_a, :mondai_b, :mondai_c, :user_id, :seikai, :kaisetsu, :mondai_no, :seikairitsu,
                :total_answers, :correct_answers, :rev, :created_at, :updated_at)
     end

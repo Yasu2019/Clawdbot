@@ -44,7 +44,7 @@
         <div class="flex items-center gap-2 mb-3">
           <span class="badge badge-primary badge-md font-bold">問題 <%= q[:num] %></span>
           <span class="badge badge-outline text-xs">箇条 <%= touan.kajyou %></span>
-          <span class="ml-auto badge <%= is_correct ? 'badge-success' : 'badge-error' %> font-bold">
+          <span class="ml-auto badge badge-lg <%= is_correct ? 'badge-success' : 'badge-error' %> font-bold text-base px-3 py-3">
             <%= is_correct ? '✓ 正解' : '✗ 不正解' %>
           </span>
         </div>
@@ -85,8 +85,9 @@
     </div>
   <% end %>
 
-  <div class="mt-6 mb-8">
+  <div class="mt-6 mb-8 flex gap-3">
     <%= link_to '← 戻る', index_touan_path, class: 'btn btn-ghost btn-sm' %>
+    <%= link_to 'テスト一覧へ →', touans_path, class: 'btn btn-primary btn-sm' %>
   </div>
 
 </div>

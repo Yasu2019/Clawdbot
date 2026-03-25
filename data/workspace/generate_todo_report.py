@@ -3,9 +3,16 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sqlite3
+import urllib.request
+import urllib.error
 from datetime import date, timedelta
 from pathlib import Path
+
+OLLAMA_URL = "http://ollama:11434/api/generate"
+OLLAMA_MODEL = "qwen3:8b"
+SUMMARY_MAX_BODY = 800  # 要約に渡す本文の最大文字数
 
 
 def detect_db_path(explicit: str | None) -> Path:
@@ -19,6 +26,28 @@ def detect_db_path(explicit: str | None) -> Path:
         if candidate.exists():
             return candidate
     return candidates[0]
+
+
+def load_blacklist_patterns() -> list[str]:
+    candidates = [
+        Path(__file__).resolve().parent / "email_rag_sender_filters.json",
+        Path("/home/node/clawd/email_rag_sender_filters.json"),
+    ]
+    for path in candidates:
+        if path.exists():
+            try:
+                data = json.loads(path.read_text(encoding="utf-8"))
+                return [p.lower() for p in data.get("blacklist_patterns", []) if p]
+            except Exception:
+                pass
+    return []
+
+
+def is_blacklisted(subject: str | None, requester: str | None, blacklist: list[str]) -> bool:
+    if not blacklist:
+        return False
+    target = ((subject or "") + " " + (requester or "")).lower()
+    return any(pat in target for pat in blacklist)
 
 
 def connect_db(db_path: Path) -> sqlite3.Connection:
@@ -38,23 +67,122 @@ def clean_text(value: str | None, max_len: int = 80) -> str:
     return text
 
 
-def build_summary(rows: list[sqlite3.Row], from_date: str, to_date: str, limit: int) -> str:
+def extract_requester_name(requester: str | None) -> str:
+    """'表示名 <email@example.com>' から表示名のみ抽出する"""
+    if not requester:
+        return "-"
+    # "Name <email>" 形式
+    m = re.match(r'^"?([^"<]+)"?\s*<[^>]+>', requester.strip())
+    if m:
+        return m.group(1).strip().strip('"')
+    # メールアドレスのみの場合はそのまま
+    return clean_text(requester, 40)
+
+
+def call_ollama_summary(subject: str, body: str) -> str | None:
+    """qwen3:8b で本文を要約する。失敗時は None を返す。"""
+    body_trimmed = body[:SUMMARY_MAX_BODY]
+    prompt = (
+        "以下はメールの件名と本文です。依頼内容を日本語で2〜3文に要約してください。\n"
+        "挨拶・署名・宣伝文句は除外し、何を・いつまでに・どうしてほしいかを中心にまとめてください。\n\n"
+        f"【件名】{subject}\n【本文】{body_trimmed}\n\n【要約】"
+    )
+    payload = json.dumps({
+        "model": OLLAMA_MODEL,
+        "prompt": prompt,
+        "stream": False,
+        "think": False,
+        "options": {"temperature": 0.2, "num_predict": 120},
+    }).encode("utf-8")
+    try:
+        req = urllib.request.Request(
+            OLLAMA_URL,
+            data=payload,
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=90) as resp:
+            result = json.loads(resp.read().decode("utf-8"))
+            text = result.get("response", "").strip()
+            return text if text else None
+    except Exception as e:
+        import sys
+        print(f"[WARN] LLM summary failed: {e}", file=sys.stderr)
+        return None
+
+
+def get_or_generate_summary(
+    con: sqlite3.Connection,
+    source: str,
+    source_id: str,
+    subject: str,
+    body: str,
+    use_llm: bool,
+) -> tuple[str, bool]:
+    """
+    DBキャッシュを確認し、なければLLMで生成してDBに保存する。
+    戻り値: (要約テキスト, llmを呼び出したか)
+    """
+    cached = con.execute(
+        "SELECT request_summary FROM tasks WHERE source=? AND source_id=?",
+        (source, source_id),
+    ).fetchone()
+    if cached and cached["request_summary"]:
+        return cached["request_summary"], False
+
+    if not use_llm:
+        return "", False
+
+    summary = call_ollama_summary(subject, body or "")
+    if summary:
+        con.execute(
+            "UPDATE tasks SET request_summary=? WHERE source=? AND source_id=?",
+            (summary, source, source_id),
+        )
+        con.commit()
+        return summary, True
+    return "", True  # LLM呼び出し試みたが失敗
+
+
+def check_ollama_available() -> bool:
+    """Ollama が応答するか確認する"""
+    try:
+        req = urllib.request.Request(
+            "http://ollama:11434/api/tags",
+            method="GET",
+        )
+        with urllib.request.urlopen(req, timeout=5):
+            return True
+    except Exception:
+        return False
+
+
+def build_report(rows: list[sqlite3.Row], from_date: str, to_date: str, limit: int) -> str:
     lines = [
-        f"ToDo定刻レポート（対象: {from_date} ～ {to_date}）",
-        f"直近6か月の未対応案件: {len(rows)}件 / 表示: {min(len(rows), limit)}件",
+        f"📋 ToDo一覧（{from_date} ～ {to_date}）",
+        f"未対応件数: {len(rows)}件 / 表示: {min(len(rows), limit)}件",
     ]
     if not rows:
-        lines.append("直近6か月では未対応案件は見つかりませんでした。")
+        lines.append("直近期間では未対応案件はありませんでした。")
         lines.append("さらに古い案件を見たい場合は、months_back を増やして再生成します。")
         return "\n".join(lines)
 
     for idx, row in enumerate(rows[:limit], start=1):
+        subject = clean_text(row["request_subject"], 60)
+        requester = extract_requester_name(row["requester"])
+        req_date = row["request_date"] or "-"
+        due_date = row["due_date"] or "期日未設定"
+        summary = row["request_summary"] or clean_text(row["request_body"], 100)
+
         lines.append("")
-        lines.append(f"{idx}. {clean_text(row['request_subject'], 72)}")
-        lines.append(f"依頼日: {row['request_date'] or '-'} / 期限: {row['due_date'] or '-'}")
-        lines.append(f"依頼者: {clean_text(row['requester'], 30)} / 担当: {clean_text(row['assignee'], 20)}")
-        lines.append(f"内容: {clean_text(row['request_body'], 90)}")
+        lines.append(f"{'─' * 30}")
+        lines.append(f"[{idx}] {subject}")
+        lines.append(f"依頼日: {req_date}　期日: {due_date}")
+        lines.append(f"依頼者: {requester}")
+        lines.append(f"要約: {summary if summary else '（要約なし）'}")
+
     lines.append("")
+    lines.append("─" * 30)
     lines.append("さらに過去へさかのぼりたい場合は、months_back を増やして再送できます。")
     return "\n".join(lines)
 
@@ -64,15 +192,21 @@ def main() -> int:
     parser.add_argument("--db")
     parser.add_argument("--months-back", type=int, default=6)
     parser.add_argument("--limit", type=int, default=10)
+    parser.add_argument("--no-llm", action="store_true", help="LLM要約を無効化（キャッシュのみ使用）")
     args = parser.parse_args()
 
     db_path = detect_db_path(args.db)
     to_date = date.today()
     from_date = to_date - timedelta(days=max(args.months_back, 1) * 31)
 
+    blacklist = load_blacklist_patterns()
+
+    # LLM利用可否チェック
+    use_llm = (not args.no_llm) and check_ollama_available()
+
     con = connect_db(db_path)
     try:
-        rows = con.execute(
+        all_rows = con.execute(
             """
             SELECT
                 source,
@@ -86,24 +220,48 @@ def main() -> int:
                 status,
                 reply_status,
                 replier,
-                reply_summary
+                reply_summary,
+                request_summary
             FROM tasks
             WHERE status = 'open'
               AND request_date <> ''
               AND request_date BETWEEN ? AND ?
             ORDER BY CASE WHEN due_date = '' THEN 1 ELSE 0 END, due_date ASC, request_date DESC
-            LIMIT ?
             """,
-            (from_date.isoformat(), to_date.isoformat(), args.limit),
+            (from_date.isoformat(), to_date.isoformat()),
         ).fetchall()
+
+        rows = [r for r in all_rows if not is_blacklisted(r["request_subject"], r["requester"], blacklist)]
+        rows = rows[: args.limit]
+
+        # 要約生成（キャッシュ優先、LLM利用可能な場合のみ生成）
+        enriched = []
+        for row in rows:
+            summary, _ = get_or_generate_summary(
+                con,
+                row["source"],
+                row["source_id"],
+                row["request_subject"] or "",
+                row["request_body"] or "",
+                use_llm=use_llm,
+            )
+            # rowはsqlite3.Rowなのでdictに変換してsummaryを上書き
+            d = dict(row)
+            if summary:
+                d["request_summary"] = summary
+            enriched.append(d)
+
+        report_text = build_report(enriched, from_date.isoformat(), to_date.isoformat(), args.limit)
+
         payload = {
             "db_path": str(db_path),
             "months_back": args.months_back,
             "from_date": from_date.isoformat(),
             "to_date": to_date.isoformat(),
-            "result_count": len(rows),
-            "results": [dict(row) for row in rows],
-            "summary": build_summary(rows, from_date.isoformat(), to_date.isoformat(), args.limit),
+            "result_count": len(enriched),
+            "llm_available": use_llm,
+            "results": enriched,
+            "summary": report_text,
             "rule": "定刻送信の既定範囲は直近6か月です。さらに過去を希望した場合は months_back を増やして再送します。",
         }
         print(json.dumps(payload, ensure_ascii=False, indent=2))

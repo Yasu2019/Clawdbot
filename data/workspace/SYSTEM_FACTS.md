@@ -147,6 +147,11 @@ Effective task execution follows a **"Top-Down Architecture"** flow:
   docker exec -it clawstack-antigravity-1 claude -f /path/to/document.txt -p "Summarize this document and identify key risks."
   ```
 
+### 4.9 OpenClaw ↔ Ollama Integration
+
+- **Local backend:** OpenClaw Gateway/Notebook pathways already call `http://ollama:11434` inside Docker, so the YouTube workflow (`mY5KE8Zsce0`) is essentially the current architecture instead of a future proposal. `data/workspace/CLAWSTACK_SYSTEM_PROTOCOL_v1.md` documents this path and the related service chart for quick reference.
+- **Embedding & memory:** `data/state/litellm_config.yaml` points all default embedding routes at `http://ollama:11434/v1`, uses no API key, and skips the pre-flight health check so the gateway can rely on the same Ollama instance without extra handshakes. Monitor that config plus the Ollama container (port 11434) when you validate the integration.
+
 ---
 
 ## 5. 📜 Protocols & Promises
