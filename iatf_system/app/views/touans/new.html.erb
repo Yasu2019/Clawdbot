@@ -1,10 +1,28 @@
 <div class="max-w-2xl mx-auto px-4 py-6">
 
   <%# ユーザー情報バー %>
-  <div class="flex flex-wrap items-center gap-3 mb-6 p-3 bg-base-200 rounded-xl text-sm">
+  <div class="flex flex-wrap items-center gap-3 mb-4 p-3 bg-base-200 rounded-xl text-sm">
     <div><span class="font-semibold">名前：</span><%= @user.name %></div>
     <div><span class="font-semibold">識別：</span><%= @user.role %></div>
     <div class="ml-auto text-xs text-base-content/50"><%= @user.email %></div>
+  </div>
+
+  <%# 進捗バー %>
+  <div class="mb-6">
+    <div class="flex items-center justify-between mb-1">
+      <span class="text-sm font-semibold">
+        問題 <span id="current-q">1</span> / <%= @touans.collection.size %>
+      </span>
+      <a href="<%= touans_path %>"
+         onclick="return confirm('テストを中断しますか？\n回答は保存されません。')"
+         class="btn btn-ghost btn-xs text-error">
+        ✕ キャンセル
+      </a>
+    </div>
+    <progress id="quiz-progress"
+              class="progress progress-primary w-full"
+              value="0"
+              max="<%= @touans.collection.size %>"></progress>
   </div>
 
   <%= form_with model: @touans, url: touans_path, local: true do |form| %>
@@ -13,79 +31,95 @@
     <% @touans.collection.each do |user| %>
       <%= fields_for 'touans[]', user, index: (i - 1) do |field| %>
 
-        <%# 問題カード %>
-        <div class="card bg-base-100 shadow-md border border-base-300 mb-6">
-          <div class="card-body p-5">
+        <%# 1問ずつ表示するラッパー %>
+        <div class="question-step"
+             id="step-<%= i %>"
+             data-seikai="<%= user.seikai %>"
+             data-kaisetsu="<%= CGI.escapeHTML(user.kaisetsu.to_s) %>"
+             style="<%= i == 1 ? '' : 'display:none;' %>">
 
-            <%# 問題ヘッダー %>
-            <div class="flex items-center gap-2 mb-3">
-              <span class="badge badge-primary badge-lg font-bold px-3">問題 <%= i %></span>
-              <span class="badge badge-outline text-xs">箇条 <%= user.kajyou %></span>
+          <%# 問題カード %>
+          <div class="card bg-base-100 shadow-md border border-base-300 mb-4">
+            <div class="card-body p-5">
+
+              <%# 問題ヘッダー %>
+              <div class="flex items-center gap-2 mb-3">
+                <span class="badge badge-primary badge-lg font-bold px-3">問題 <%= i %></span>
+                <span class="badge badge-outline text-xs">箇条 <%= user.kajyou %></span>
+              </div>
+
+              <%# 問題文 %>
+              <p class="text-sm font-medium leading-relaxed mb-4 text-base-content"><%= user.mondai %></p>
+
+              <%# 選択肢 %>
+              <div class="flex flex-col gap-2" data-question="<%= i %>">
+                <% [['a', user.mondai_a], ['b', user.mondai_b], ['c', user.mondai_c]].each do |val, choice_text| %>
+                  <div class="choice-wrapper">
+                    <%= field.radio_button :kaito, val,
+                          id:    "kaito_#{val}_#{i}",
+                          class: "choice-radio",
+                          style: "display:none;" %>
+                    <label for="kaito_<%= val %>_<%= i %>"
+                           class="choice-label"
+                           data-letter="<%= val.upcase %>">
+                      <span class="choice-badge">未選択</span>
+                      <span class="choice-text"><%= choice_text.to_s.sub(/^選択肢[a-cA-C][：:]\s*/, '') %></span>
+                    </label>
+                  </div>
+                <% end %>
+              </div>
+
             </div>
-
-            <%# 問題文 %>
-            <p class="text-sm font-medium leading-relaxed mb-4 text-base-content"><%= user.mondai %></p>
-
-            <%# 選択肢ラジオボタンカード %>
-            <div class="flex flex-col gap-2" data-question="<%= i %>">
-              <% [['a', user.mondai_a], ['b', user.mondai_b], ['c', user.mondai_c]].each do |val, choice_text| %>
-                <div class="choice-wrapper">
-                  <%= field.radio_button :kaito, val,
-                        id:    "kaito_#{val}_#{i}",
-                        class: "choice-radio",
-                        style: "display:none;" %>
-                  <label for="kaito_<%= val %>_<%= i %>" class="choice-label" data-letter="<%= val.upcase %>">
-                    <span class="choice-badge">未選択</span>
-                    <span class="choice-text"><%= choice_text.to_s.sub(/^選択肢[a-cA-C][：:]\s*/, '') %></span>
-                  </label>
-                </div>
-              <% end %>
-            </div>
-
-            <%# 隠しフィールド群 %>
-            <%= field.hidden_field :kajyou %>
-            <%= field.hidden_field :mondai %>
-            <%= field.hidden_field :mondai_a %>
-            <%= field.hidden_field :mondai_b %>
-            <%= field.hidden_field :mondai_c %>
-            <%= field.hidden_field :seikai %>
-            <%= field.hidden_field :kaisetsu %>
-            <%= field.hidden_field :mondai_no %>
-            <%= field.hidden_field :seikairitsu %>
-            <%= field.hidden_field :total_answers %>
-            <%= field.hidden_field :correct_answers %>
-            <%= field.hidden_field :rev %>
-
           </div>
+
+          <%# 判定・解説エリア（回答後に表示） %>
+          <div id="result-<%= i %>" class="result-area" style="display:none;">
+            <div id="result-verdict-<%= i %>" class="result-verdict mb-3"></div>
+            <div id="result-kaisetsu-<%= i %>" class="result-kaisetsu"></div>
+          </div>
+
+          <%# 次へボタン %>
+          <div id="next-wrap-<%= i %>" style="display:none;" class="flex justify-end mt-4 mb-8">
+            <% if i < @touans.collection.size %>
+              <button type="button"
+                      class="btn btn-primary px-8"
+                      onclick="nextQuestion(<%= i %>)">
+                次の問題へ →
+              </button>
+            <% else %>
+              <button type="submit"
+                      class="btn btn-success btn-lg px-10 shadow-xl">
+                結果を見る ✓
+              </button>
+            <% end %>
+          </div>
+
+          <%# 隠しフィールド群 %>
+          <%= field.hidden_field :kajyou %>
+          <%= field.hidden_field :mondai %>
+          <%= field.hidden_field :mondai_a %>
+          <%= field.hidden_field :mondai_b %>
+          <%= field.hidden_field :mondai_c %>
+          <%= field.hidden_field :seikai %>
+          <%= field.hidden_field :kaisetsu %>
+          <%= field.hidden_field :mondai_no %>
+          <%= field.hidden_field :seikairitsu %>
+          <%= field.hidden_field :total_answers %>
+          <%= field.hidden_field :correct_answers %>
+          <%= field.hidden_field :rev %>
+
         </div>
 
-        <% i += 1 %>
       <% end %>
+      <% i += 1 %>
     <% end %>
-
-    <%# 送信ボタン (sticky) %>
-    <div class="sticky bottom-4 z-10 flex flex-col items-center gap-1 mt-2 pb-2">
-      <%= form.submit "提出する", class: "btn btn-primary btn-lg shadow-xl px-12", id: "submit-btn",
-            disabled: true, style: "opacity:0.35; cursor:not-allowed;" %>
-      <span id="submit-progress" class="text-xs text-base-content/50">0 / <%= @touans.collection.size %> 問回答済み</span>
-    </div>
 
   <% end %>
 
-  <div class="mt-4 mb-8">
-    <%= link_to '← 戻る', touans_path, class: 'btn btn-ghost btn-sm' %>
-  </div>
-
-</div>
-
-<%# 未回答警告 Toast (画面上部固定) %>
-<div id="submit-warning"
-     class="hidden fixed top-4 left-1/2 z-50 -translate-x-1/2 alert alert-warning shadow-xl text-sm px-5 py-3 rounded-xl max-w-lg w-11/12">
-  <span id="submit-warning-text"></span>
 </div>
 
 <style>
-/* 選択肢ラベル (未選択) */
+/* ── 選択肢（共通） ── */
 .choice-label {
   display: flex;
   align-items: flex-start;
@@ -101,8 +135,57 @@
   border-color: #a5b4fc;
   background-color: #f5f3ff;
 }
+.choice-label.locked { cursor: default; }
+.choice-label.locked:hover {
+  border-color: inherit;
+  background-color: inherit;
+}
 
-/* 選択肢バッジ (未選択 / A / B / C) */
+/* 選択済み */
+.choice-label.is-selected {
+  border-color: #6366f1;
+  background-color: #eef2ff;
+  box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
+}
+.choice-label.is-selected .choice-badge {
+  background-color: #6366f1;
+  color: #fff;
+  border-color: #6366f1;
+  font-size: 1rem;
+  font-weight: 700;
+  min-width: 2rem;
+}
+
+/* 正解ハイライト（回答後） */
+.choice-label.is-correct-answer {
+  border-color: #22c55e !important;
+  background-color: #f0fdf4 !important;
+  box-shadow: 0 0 0 3px rgba(34,197,94,0.2) !important;
+}
+.choice-label.is-correct-answer .choice-badge {
+  background-color: #22c55e !important;
+  color: #fff !important;
+  border-color: #22c55e !important;
+  font-size: 1rem;
+  font-weight: 700;
+  min-width: 2rem;
+}
+
+/* 誤答ハイライト（回答後） */
+.choice-label.is-wrong-answer {
+  border-color: #ef4444 !important;
+  background-color: #fef2f2 !important;
+}
+.choice-label.is-wrong-answer .choice-badge {
+  background-color: #ef4444 !important;
+  color: #fff !important;
+  border-color: #ef4444 !important;
+  font-size: 1rem;
+  font-weight: 700;
+  min-width: 2rem;
+}
+
+/* バッジ（未選択） */
 .choice-badge {
   display: inline-flex;
   align-items: center;
@@ -119,113 +202,152 @@
   transition: background-color 0.15s, color 0.15s, border-color 0.15s, min-width 0.15s;
   padding: 0 0.5rem;
 }
-
 .choice-text {
   font-size: 0.875rem;
   line-height: 1.6;
   padding-top: 0.2rem;
 }
 
-/* 未回答ハイライト */
-.choice-label.is-unanswered {
-  border-color: #f87171;
-  background-color: #fff5f5;
+/* ── 判定エリア ── */
+.result-area {
+  border-radius: 0.75rem;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
 }
-
-/* 選択済みスタイル */
-.choice-label.is-selected {
-  border-color: #6366f1;
-  background-color: #eef2ff;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
-}
-.choice-label.is-selected .choice-badge {
-  background-color: #6366f1;
-  color: #fff;
-  border-color: #6366f1;
+.result-verdict {
+  padding: 0.9rem 1.1rem;
   font-size: 1rem;
   font-weight: 700;
-  min-width: 2rem;
+  border-radius: 0.5rem;
+}
+.result-verdict.correct {
+  background-color: #dcfce7;
+  color: #15803d;
+  border: 1px solid #86efac;
+}
+.result-verdict.wrong {
+  background-color: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fca5a5;
+}
+.result-kaisetsu {
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  padding: 0.9rem 1.1rem;
+  font-size: 0.85rem;
+  line-height: 1.7;
+  color: #334155;
+  white-space: pre-wrap;
 }
 </style>
 
 <script>
-document.addEventListener('turbo:load', initChoiceCards);
-document.addEventListener('DOMContentLoaded', initChoiceCards);
-document.addEventListener('turbo:load', initSubmitGuard);
-document.addEventListener('DOMContentLoaded', initSubmitGuard);
+(function () {
+  var TOTAL = <%= @touans.collection.size %>;
 
-function countAnswered() {
-  var total = document.querySelectorAll('[data-question]').length;
-  var answered = 0;
-  document.querySelectorAll('[data-question]').forEach(function(container) {
-    if (container.querySelectorAll('.choice-label.is-selected').length > 0) answered++;
-  });
-  return { answered: answered, total: total };
-}
+  document.addEventListener('turbo:load', initQuiz);
+  document.addEventListener('DOMContentLoaded', initQuiz);
 
-function updateSubmitButton() {
-  var btn      = document.getElementById('submit-btn');
-  var progress = document.getElementById('submit-progress');
-  var c = countAnswered();
-  if (!btn) return;
+  function initQuiz() {
+    document.querySelectorAll('.choice-radio').forEach(function (radio) {
+      radio.addEventListener('change', function () {
+        var step = this.closest('.question-step');
+        if (!step || step.dataset.answered) return;
+        step.dataset.answered = '1';
 
-  if (c.answered >= c.total) {
-    btn.disabled = false;
-    btn.style.opacity = '';
-    btn.style.cursor  = '';
-  } else {
-    btn.disabled = true;
-    btn.style.opacity = '0.35';
-    btn.style.cursor  = 'not-allowed';
-  }
-  if (progress) progress.textContent = c.answered + ' / ' + c.total + ' 問回答済み';
-}
+        var qNum     = parseInt(step.id.replace('step-', ''), 10);
+        var seikai   = step.dataset.seikai;
+        var kaisetsu = step.dataset.kaisetsu;
+        var selected = this.value;
 
-function initSubmitGuard() {
-  updateSubmitButton();
-}
+        // 選択済みビジュアル
+        updateChoiceVisual(step, this.id, selected);
 
-function initChoiceCards() {
-  document.querySelectorAll('.choice-label').forEach(function(label) {
-    label.addEventListener('click', function(e) {
-      var radio = document.getElementById(this.getAttribute('for'));
-      if (!radio) return;
+        // ラジオをロック
+        step.querySelectorAll('.choice-radio').forEach(function (r) { r.disabled = true; });
+        step.querySelectorAll('.choice-label').forEach(function (l) { l.classList.add('locked'); });
 
-      if (radio.checked) {
-        // すでに選択済み → クリックで解除
-        e.preventDefault();
-        radio.checked = false;
-        this.classList.remove('is-selected');
-        var badge = this.querySelector('.choice-badge');
-        if (badge) badge.textContent = '未選択';
-        updateSubmitButton();
-      }
-      // 未選択の場合はブラウザ標準の radio 選択に任せる（change イベントで処理）
-    });
-  });
+        // 正解・誤答を色分け
+        highlightChoices(step, selected, seikai);
 
-  document.querySelectorAll('.choice-radio').forEach(function(radio) {
-    radio.addEventListener('change', function() {
-      // この問題のコンテナ内だけをリセット（他の問題に影響させない）
-      var questionContainer = this.closest('[data-question]');
-      if (!questionContainer) return;
+        // 判定・解説を表示
+        showResult(qNum, selected, seikai, kaisetsu);
 
-      questionContainer.querySelectorAll('.choice-radio').forEach(function(r) {
-        var label = document.querySelector('label[for="' + r.id + '"]');
-        if (label) {
-          label.classList.remove('is-selected');
-          var badge = label.querySelector('.choice-badge');
-          if (badge) badge.textContent = '未選択';
+        // プログレスバー更新
+        var bar = document.getElementById('quiz-progress');
+        if (bar) bar.value = qNum;
+
+        // 次へボタン表示
+        var nextWrap = document.getElementById('next-wrap-' + qNum);
+        if (nextWrap) nextWrap.style.display = 'flex';
+
+        // スクロール
+        var resultEl = document.getElementById('result-' + qNum);
+        if (resultEl) {
+          setTimeout(function () {
+            resultEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }, 80);
         }
       });
-      var selectedLabel = document.querySelector('label[for="' + this.id + '"]');
-      if (selectedLabel) {
-        selectedLabel.classList.add('is-selected');
-        var badge = selectedLabel.querySelector('.choice-badge');
-        if (badge) badge.textContent = selectedLabel.dataset.letter;
-      }
-      updateSubmitButton();
     });
-  });
-}
+  }
+
+  function updateChoiceVisual(step, radioId, selectedVal) {
+    step.querySelectorAll('.choice-label').forEach(function (lbl) {
+      lbl.classList.remove('is-selected');
+      var badge = lbl.querySelector('.choice-badge');
+      if (badge) badge.textContent = '未選択';
+    });
+    var selLabel = step.querySelector('label[for="' + radioId + '"]');
+    if (selLabel) {
+      selLabel.classList.add('is-selected');
+      var badge = selLabel.querySelector('.choice-badge');
+      if (badge) badge.textContent = selLabel.dataset.letter;
+    }
+  }
+
+  function highlightChoices(step, selected, seikai) {
+    step.querySelectorAll('.choice-label').forEach(function (lbl) {
+      var letter = (lbl.dataset.letter || '').toLowerCase();
+      lbl.classList.remove('is-selected');
+      if (letter === seikai) {
+        lbl.classList.add('is-correct-answer');
+      } else if (letter === selected && selected !== seikai) {
+        lbl.classList.add('is-wrong-answer');
+      }
+    });
+  }
+
+  function showResult(qNum, selected, seikai, kaisetsu) {
+    var isCorrect = selected === seikai;
+    var verdictEl  = document.getElementById('result-verdict-' + qNum);
+    var kaisetsuEl = document.getElementById('result-kaisetsu-' + qNum);
+    var resultEl   = document.getElementById('result-' + qNum);
+
+    if (verdictEl) {
+      verdictEl.className = 'result-verdict ' + (isCorrect ? 'correct' : 'wrong');
+      verdictEl.textContent = isCorrect
+        ? '✓ 正解！'
+        : '✗ 不正解　　正解は「選択肢 ' + seikai.toUpperCase() + '」です';
+    }
+    if (kaisetsuEl) {
+      kaisetsuEl.textContent = kaisetsu || '';
+      kaisetsuEl.style.display = kaisetsu ? 'block' : 'none';
+    }
+    if (resultEl) resultEl.style.display = 'block';
+  }
+
+  window.nextQuestion = function (qNum) {
+    var cur  = document.getElementById('step-' + qNum);
+    var next = document.getElementById('step-' + (qNum + 1));
+    if (cur)  cur.style.display  = 'none';
+    if (next) next.style.display = 'block';
+
+    var label = document.getElementById('current-q');
+    if (label) label.textContent = qNum + 1;
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+}());
 </script>

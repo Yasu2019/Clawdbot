@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>メール検索 | Clawstack</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --card: #1a1d27;
+    --border: #2d3148;
+    --accent: #5b6ef5;
+    --accent2: #7c3aed;
+    --text: #e2e8f0;
+    --muted: #8892a4;
+    --open: #ef4444;
+    --replied: #22c55e;
+    --warn: #f59e0b;
+    --radius: 10px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+  header {
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+    padding: 20px 28px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  header h1 { font-size: 1.4rem; font-weight: 700; letter-spacing: -0.3px; }
+  header .sub { font-size: 0.82rem; opacity: 0.85; }
+
+  .stats-bar {
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 28px;
+    display: flex;
+    gap: 24px;
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+  .stats-bar span b { color: var(--text); }
+
+  .main { padding: 20px 28px; max-width: 1100px; margin: 0 auto; }
+
+  /* タブ */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 18px;
+    border-bottom: 1px solid var(--border);
+  }
+  .tab {
+    padding: 9px 20px;
+    border: none;
+    background: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 0.9rem;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tab:hover:not(.active) { color: var(--text); }
+
+  /* 検索バー */
+  .search-bar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .search-bar input[type=text] {
+    flex: 1;
+    min-width: 220px;
+    padding: 10px 14px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--text);
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .search-bar input[type=text]:focus { border-color: var(--accent); }
+  .search-bar input::placeholder { color: var(--muted); }
+  .search-bar select {
+    padding: 10px 12px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--text);
+    font-size: 0.88rem;
+    cursor: pointer;
+  }
+  .search-bar label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    color: var(--muted);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .search-bar input[type=checkbox] { accent-color: var(--accent); }
+  button.btn {
+    padding: 10px 22px;
+    border-radius: var(--radius);
+    border: none;
+    background: var(--accent);
+    color: #fff;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  button.btn:hover { opacity: 0.85; }
+  button.btn:disabled { opacity: 0.5; cursor: default; }
+
+  /* 件数 */
+  .result-count {
+    font-size: 0.82rem;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  /* カード */
+  .results { display: flex; flex-direction: column; gap: 10px; }
+
+  .email-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    transition: border-color 0.15s;
+  }
+  .email-card:hover { border-color: var(--accent); }
+
+  .email-card .subject {
+    font-weight: 600;
+    font-size: 0.97rem;
+    margin-bottom: 6px;
+    line-height: 1.4;
+  }
+  .email-card .meta {
+    display: flex;
+    gap: 12px;
+    font-size: 0.78rem;
+    color: var(--muted);
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+  }
+  .email-card .meta .date { color: var(--text); }
+  .email-card .snippet {
+    font-size: 0.83rem;
+    color: var(--muted);
+    line-height: 1.6;
+    border-left: 3px solid var(--border);
+    padding-left: 10px;
+  }
+  .cat-badge {
+    background: rgba(91,110,245,0.18);
+    color: var(--accent);
+    font-size: 0.73rem;
+    padding: 2px 8px;
+    border-radius: 20px;
+    border: 1px solid rgba(91,110,245,0.3);
+  }
+
+  /* タスクカード */
+  .task-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    transition: border-color 0.15s;
+  }
+  .task-card:hover { border-color: var(--accent); }
+  .task-card .task-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+  .status-dot {
+    display: inline-block;
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    margin-top: 5px;
+    flex-shrink: 0;
+  }
+  .status-open { background: var(--open); }
+  .status-replied { background: var(--replied); }
+  .status-unknown { background: var(--muted); }
+  .task-card .subject {
+    font-weight: 600;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    flex: 1;
+  }
+  .task-meta {
+    display: flex;
+    gap: 14px;
+    font-size: 0.78rem;
+    color: var(--muted);
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+  }
+  .task-meta .due {
+    font-weight: 600;
+  }
+  .task-meta .due.overdue { color: var(--open); }
+  .task-meta .due.today { color: var(--warn); }
+  .task-summary {
+    font-size: 0.83rem;
+    color: #b8c0cc;
+    line-height: 1.6;
+    border-left: 3px solid var(--border);
+    padding-left: 10px;
+  }
+
+  /* 空表示 */
+  .empty {
+    text-align: center;
+    color: var(--muted);
+    padding: 48px 0;
+    font-size: 0.95rem;
+  }
+  .loading {
+    text-align: center;
+    color: var(--muted);
+    padding: 32px 0;
+    font-size: 0.9rem;
+  }
+
+  .panel { display: none; }
+  .panel.active { display: block; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>📬 メール全文検索</h1>
+    <div class="sub">email_search.db — ローカルEML + Gmail インデックス</div>
+  </div>
+</header>
+
+<div class="stats-bar" id="statsBar">読み込み中...</div>
+
+<div class="main">
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('email')">📧 メール検索</button>
+    <button class="tab" onclick="switchTab('task')">📋 依頼・タスク検索</button>
+  </div>
+
+  <!-- メール検索パネル -->
+  <div class="panel active" id="panel-email">
+    <div class="search-bar">
+      <input type="text" id="emailQ" placeholder="キーワードを入力（例: 在庫 確認、RoHS 分析）" onkeydown="if(event.key==='Enter')searchEmail()">
+      <button class="btn" onclick="searchEmail()">検索</button>
+    </div>
+    <div class="result-count" id="emailCount"></div>
+    <div class="results" id="emailResults"></div>
+  </div>
+
+  <!-- タスク検索パネル -->
+  <div class="panel" id="panel-task">
+    <div class="search-bar">
+      <input type="text" id="taskQ" placeholder="キーワード（件名・依頼内容・依頼者など）" onkeydown="if(event.key==='Enter')searchTask()">
+      <select id="taskStatus">
+        <option value="">全ステータス</option>
+        <option value="open">未回答のみ</option>
+        <option value="replied">回答済のみ</option>
+      </select>
+      <label><input type="checkbox" id="taskOverdue"> 期限切れのみ</label>
+      <button class="btn" onclick="searchTask()">検索</button>
+    </div>
+    <div class="result-count" id="taskCount"></div>
+    <div class="results" id="taskResults"></div>
+  </div>
+</div>
+
+<script>
+const API = 'http://127.0.0.1:8792';
+let currentTab = 'email';
+
+// タブ切り替え
+function switchTab(name) {
+  currentTab = name;
+  document.querySelectorAll('.tab').forEach((t, i) => {
+    t.classList.toggle('active', ['email','task'][i] === name);
+  });
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+}
+
+// 統計バー
+async function loadStats() {
+  try {
+    const r = await fetch(API + '/api/stats');
+    const d = await r.json();
+    const pct = d.total_tasks ? Math.round(d.cached_summaries / d.total_tasks * 100) : 0;
+    document.getElementById('statsBar').innerHTML =
+      `メール: <b>${d.total_emails.toLocaleString()}件</b> &nbsp;|&nbsp; ` +
+      `タスク: <b>${d.total_tasks.toLocaleString()}件</b> (未回答: <b>${d.open_tasks.toLocaleString()}件</b>) &nbsp;|&nbsp; ` +
+      `AI要約キャッシュ: <b>${d.cached_summaries.toLocaleString()}件</b> (${pct}%) &nbsp;|&nbsp; ` +
+      `期間: <b>${d.date_range.min} ～ ${d.date_range.max}</b>`;
+  } catch(e) {
+    document.getElementById('statsBar').innerHTML =
+      '<span style="color:#ef4444">⚠ APIサーバー未起動 (port 8792)。email_search_api.py を起動してください。</span>';
+  }
+}
+
+// メール検索
+async function searchEmail() {
+  const q = document.getElementById('emailQ').value.trim();
+  const countEl = document.getElementById('emailCount');
+  const resultsEl = document.getElementById('emailResults');
+  if (!q) return;
+  resultsEl.innerHTML = '<div class="loading">検索中...</div>';
+  countEl.textContent = '';
+  try {
+    const r = await fetch(`${API}/api/search?q=${encodeURIComponent(q)}&limit=30`);
+    const d = await r.json();
+    const items = d.results || [];
+    countEl.textContent = `${items.length}件`;
+    if (!items.length) {
+      resultsEl.innerHTML = '<div class="empty">該当するメールは見つかりませんでした。</div>';
+      return;
+    }
+    resultsEl.innerHTML = items.map(item => `
+      <div class="email-card">
+        <div class="subject">${esc(item.subject || '（件名なし）')}</div>
+        <div class="meta">
+          <span class="date">${fmtDate(item.email_date)}</span>
+          <span>From: ${esc(item.sender)}</span>
+          ${item.category ? `<span class="cat-badge">${esc(item.category)}${item.person ? ' / ' + esc(item.person) : ''}</span>` : ''}
+        </div>
+        ${item.snippet ? `<div class="snippet">${esc(item.snippet)}</div>` : ''}
+      </div>
+    `).join('');
+  } catch(e) {
+    resultsEl.innerHTML = '<div class="empty" style="color:#ef4444">APIエラー: ' + esc(String(e)) + '</div>';
+  }
+}
+
+// タスク検索
+async function searchTask() {
+  const q = document.getElementById('taskQ').value.trim();
+  const status = document.getElementById('taskStatus').value;
+  const overdue = document.getElementById('taskOverdue').checked ? '1' : '0';
+  const countEl = document.getElementById('taskCount');
+  const resultsEl = document.getElementById('taskResults');
+  resultsEl.innerHTML = '<div class="loading">検索中...</div>';
+  countEl.textContent = '';
+  try {
+    const url = `${API}/api/tasks?q=${encodeURIComponent(q)}&status=${status}&overdue=${overdue}&limit=30`;
+    const r = await fetch(url);
+    const d = await r.json();
+    const items = d.results || [];
+    countEl.textContent = `${d.result_count}件`;
+    if (!items.length) {
+      resultsEl.innerHTML = '<div class="empty">該当するタスクはありませんでした。</div>';
+      return;
+    }
+    resultsEl.innerHTML = items.map(item => {
+      const dotClass = item.status === 'open' ? 'status-open'
+                     : item.status === 'replied' ? 'status-replied' : 'status-unknown';
+      const statusLabel = item.status === 'open' ? '未回答'
+                        : item.status === 'replied' ? '回答済' : item.status || '-';
+      const dueClass = item.due_label.includes('🔴') ? 'overdue'
+                     : item.due_label.includes('🟠') ? 'today' : '';
+      return `
+        <div class="task-card">
+          <div class="task-head">
+            <span class="status-dot ${dotClass}" title="${statusLabel}"></span>
+            <div class="subject">${esc(item.subject || '（件名なし）')}</div>
+          </div>
+          <div class="task-meta">
+            <span>依頼日: ${item.request_date || '-'}</span>
+            ${item.due_date ? `<span class="due ${dueClass}">期日: ${item.due_date} ${item.due_label}</span>` : ''}
+            <span>依頼者: ${esc(item.requester) || '-'}</span>
+            ${item.assignee ? `<span>担当: ${esc(item.assignee)}</span>` : ''}
+            <span style="color:${item.status==='open'?'#ef4444':'#22c55e'}">${statusLabel}</span>
+          </div>
+          ${item.summary ? `<div class="task-summary">${esc(item.summary)}</div>` : ''}
+          ${item.reply_summary ? `<div class="task-summary" style="border-left-color:#22c55e;margin-top:6px">回答: ${esc(item.reply_summary)}</div>` : ''}
+        </div>
+      `;
+    }).join('');
+  } catch(e) {
+    resultsEl.innerHTML = '<div class="empty" style="color:#ef4444">APIエラー: ' + esc(String(e)) + '</div>';
+  }
+}
+
+function esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function fmtDate(d) {
+  if (!d) return '-';
+  try { return new Date(d).toLocaleDateString('ja-JP', {year:'numeric',month:'2-digit',day:'2-digit'}); }
+  catch(e) { return d; }
+}
+
+// 初期ロード
+loadStats();
+
+// 初回はタスク検索を空クエリで表示（期限順）
+document.addEventListener('DOMContentLoaded', () => {
+  // メールタブは入力待ち、タスクタブも入力待ち
+});
+</script>
+</body>
+</html>

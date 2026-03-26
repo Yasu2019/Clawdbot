@@ -2,16 +2,25 @@
 from __future__ import annotations
 
 import argparse
+import io
 import json
 import re
 import sqlite3
+import sys
 import urllib.request
 import urllib.error
 from datetime import date, timedelta
 from pathlib import Path
 
+# Windows環境でも絵文字・日本語を正しく出力する（fd再オープンは避ける）
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
+
 OLLAMA_URL = "http://ollama:11434/api/generate"
-OLLAMA_MODEL = "qwen3:8b"
+OLLAMA_MODEL = "qwen2.5-coder:7b"
 SUMMARY_MAX_BODY = 800  # 要約に渡す本文の最大文字数
 
 
@@ -53,6 +62,14 @@ def is_blacklisted(subject: str | None, requester: str | None, blacklist: list[s
 def connect_db(db_path: Path) -> sqlite3.Connection:
     con = sqlite3.connect(db_path)
     con.row_factory = sqlite3.Row
+    # マイグレーション: 不足カラムを追加
+    existing = {r[1] for r in con.execute("PRAGMA table_info(tasks)").fetchall()}
+    if "reply_date" not in existing:
+        con.execute("ALTER TABLE tasks ADD COLUMN reply_date TEXT NOT NULL DEFAULT ''")
+        con.commit()
+    if "request_summary" not in existing:
+        con.execute("ALTER TABLE tasks ADD COLUMN request_summary TEXT NOT NULL DEFAULT ''")
+        con.commit()
     return con
 
 
@@ -91,7 +108,6 @@ def call_ollama_summary(subject: str, body: str) -> str | None:
         "model": OLLAMA_MODEL,
         "prompt": prompt,
         "stream": False,
-        "think": False,
         "options": {"temperature": 0.2, "num_predict": 120},
     }).encode("utf-8")
     try:
@@ -101,7 +117,7 @@ def call_ollama_summary(subject: str, body: str) -> str | None:
             headers={"Content-Type": "application/json"},
             method="POST",
         )
-        with urllib.request.urlopen(req, timeout=90) as resp:
+        with urllib.request.urlopen(req, timeout=25) as resp:
             result = json.loads(resp.read().decode("utf-8"))
             text = result.get("response", "").strip()
             return text if text else None
@@ -157,9 +173,28 @@ def check_ollama_available() -> bool:
         return False
 
 
+def due_label(due_date: str) -> str:
+    """回答期日に残日数・期限切れラベルを付与する"""
+    if not due_date:
+        return "期日未設定"
+    try:
+        due = date.fromisoformat(due_date)
+        delta = (due - date.today()).days
+        if delta < 0:
+            return f"{due_date} 🔴期限切れ({abs(delta)}日超過)"
+        elif delta == 0:
+            return f"{due_date} 🟠今日まで"
+        elif delta <= 3:
+            return f"{due_date} 🟡残{delta}日"
+        else:
+            return f"{due_date} 残{delta}日"
+    except ValueError:
+        return due_date
+
+
 def build_report(rows: list[sqlite3.Row], from_date: str, to_date: str, limit: int) -> str:
     lines = [
-        f"📋 ToDo一覧（{from_date} ～ {to_date}）",
+        f"📋 アクション一覧（{from_date} ～ {to_date}）",
         f"未対応件数: {len(rows)}件 / 表示: {min(len(rows), limit)}件",
     ]
     if not rows:
@@ -168,21 +203,23 @@ def build_report(rows: list[sqlite3.Row], from_date: str, to_date: str, limit: i
         return "\n".join(lines)
 
     for idx, row in enumerate(rows[:limit], start=1):
-        subject = clean_text(row["request_subject"], 60)
         requester = extract_requester_name(row["requester"])
         req_date = row["request_date"] or "-"
-        due_date = row["due_date"] or "期日未設定"
-        summary = row["request_summary"] or clean_text(row["request_body"], 100)
+        due_str = due_label(row["due_date"] or "")
+        reply_date = row.get("reply_date") or "-"
+        summary = row["request_summary"] or clean_text(row["request_body"], 120)
 
         lines.append("")
-        lines.append(f"{'─' * 30}")
-        lines.append(f"[{idx}] {subject}")
-        lines.append(f"依頼日: {req_date}　期日: {due_date}")
-        lines.append(f"依頼者: {requester}")
-        lines.append(f"要約: {summary if summary else '（要約なし）'}")
+        lines.append(f"{'─' * 40}")
+        lines.append(f"[{idx}]")
+        lines.append(f"  依頼日　: {req_date}")
+        lines.append(f"  依頼者　: {requester}")
+        lines.append(f"  依頼内容: {summary if summary else '（要約なし）'}")
+        lines.append(f"  回答期日: {due_str}")
+        lines.append(f"  回答日　: {reply_date}")
 
     lines.append("")
-    lines.append("─" * 30)
+    lines.append("─" * 40)
     lines.append("さらに過去へさかのぼりたい場合は、months_back を増やして再送できます。")
     return "\n".join(lines)
 
@@ -221,6 +258,7 @@ def main() -> int:
                 reply_status,
                 replier,
                 reply_summary,
+                reply_date,
                 request_summary
             FROM tasks
             WHERE status = 'open'

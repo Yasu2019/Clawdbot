@@ -6,6 +6,7 @@ RUN apt-get update && apt-get install -y \
     texlive-latex-extra \
     texlive-science \
     texlive-fonts-recommended \
+    asymptote \
     libgl1 \
     libglu1-mesa \
     libglib2.0-0 \

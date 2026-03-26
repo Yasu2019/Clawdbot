@@ -106,6 +106,15 @@
       <span class="status" id="statusText">準備中...</span>
     </div>
 
+    <div class="toolbar" style="gap:10px">
+      <span style="color:var(--muted);font-size:14px;white-space:nowrap">手動追加:</span>
+      <input id="manualInput" type="text" placeholder="追加したいワードをカンマ区切りで入力（例: ローソン, ponta）"
+        style="flex:1;min-width:260px;padding:9px 13px;border-radius:10px;border:1px solid var(--line);
+               background:rgba(255,255,255,0.05);color:var(--text);font-size:14px;outline:none;"
+        onkeydown="if(event.key==='Enter')addManual()">
+      <button onclick="addManual()">追加</button>
+    </div>
+
     <div class="panel">
       <div class="hint">候補は sender 由来のドメイン・表示名トークンです。内部ドメインと既存 blacklist は除外済みです。</div>
       <table>
@@ -211,6 +220,30 @@
           throw new Error(data.error || 'request_failed');
         }
         setStatus(`追加完了: ${data.added.length} 件`, 'ok');
+        await refreshCandidates();
+      } catch (err) {
+        setStatus(`追加失敗: ${err}`, 'warn');
+      }
+    }
+
+    async function addManual() {
+      const raw = document.getElementById('manualInput').value;
+      const patterns = raw.split(/[,、\n]/).map(s => s.trim().toLowerCase()).filter(s => s.length > 0);
+      if (!patterns.length) {
+        setStatus('ワードを入力してください', 'warn');
+        return;
+      }
+      setStatus(`追加中... (${patterns.join(', ')})`, 'warn');
+      try {
+        const res = await fetch(`${API_BASE}/add`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ patterns })
+        });
+        const data = await res.json();
+        if (!res.ok || !data.ok) throw new Error(data.error || 'request_failed');
+        document.getElementById('manualInput').value = '';
+        setStatus(`追加完了: ${data.added.join(', ')}`, 'ok');
         await refreshCandidates();
       } catch (err) {
         setStatus(`追加失敗: ${err}`, 'warn');

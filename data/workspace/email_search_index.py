@@ -312,6 +312,7 @@ def extract_task_record(record: EmailRecord) -> Optional[TaskRecord]:
         reply_status=reply_status,
         replier=normalize_space(record.sender) if reply_status == STATUS_REPLIED else "",
         reply_summary=body_summary if reply_status == STATUS_REPLIED else "",
+        reply_date=datetime.now().strftime("%Y-%m-%d") if reply_status == STATUS_REPLIED else "",
         evidence=json.dumps(
             {
                 "message_id_header": record.message_id_header,
@@ -362,6 +363,7 @@ class TaskRecord:
     reply_status: str
     replier: str
     reply_summary: str
+    reply_date: str
     evidence: str
 
 
@@ -643,6 +645,7 @@ def connect_db() -> sqlite3.Connection:
             reply_status TEXT NOT NULL DEFAULT '',
             replier TEXT NOT NULL DEFAULT '',
             reply_summary TEXT NOT NULL DEFAULT '',
+            reply_date TEXT NOT NULL DEFAULT '',
             evidence TEXT NOT NULL DEFAULT '{}',
             updated_at TEXT NOT NULL,
             PRIMARY KEY (source, source_id),
@@ -650,6 +653,12 @@ def connect_db() -> sqlite3.Connection:
         )
         """
     )
+    # マイグレーション: reply_date / request_summary カラムが存在しない場合は追加
+    existing_cols = {r[1] for r in con.execute("PRAGMA table_info(tasks)").fetchall()}
+    if "reply_date" not in existing_cols:
+        con.execute("ALTER TABLE tasks ADD COLUMN reply_date TEXT NOT NULL DEFAULT ''")
+    if "request_summary" not in existing_cols:
+        con.execute("ALTER TABLE tasks ADD COLUMN request_summary TEXT NOT NULL DEFAULT ''")
     con.execute(
         """
         CREATE VIRTUAL TABLE IF NOT EXISTS tasks_fts USING fts5(
@@ -746,8 +755,8 @@ def upsert_record(con: sqlite3.Connection, record: EmailRecord) -> None:
             INSERT INTO tasks (
                 source, source_id, thread_key, request_date, due_date, requester, assignee,
                 request_subject, request_body, status, reply_status, replier, reply_summary,
-                evidence, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                reply_date, evidence, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(source, source_id) DO UPDATE SET
                 thread_key=excluded.thread_key,
                 request_date=excluded.request_date,
@@ -760,6 +769,7 @@ def upsert_record(con: sqlite3.Connection, record: EmailRecord) -> None:
                 reply_status=excluded.reply_status,
                 replier=excluded.replier,
                 reply_summary=excluded.reply_summary,
+                reply_date=CASE WHEN excluded.reply_status='replied' AND tasks.reply_date='' THEN excluded.reply_date ELSE tasks.reply_date END,
                 evidence=excluded.evidence,
                 updated_at=excluded.updated_at
             """,
@@ -777,6 +787,7 @@ def upsert_record(con: sqlite3.Connection, record: EmailRecord) -> None:
                 task.reply_status,
                 task.replier,
                 task.reply_summary,
+                task.reply_date,
                 task.evidence,
                 now_iso(),
             ),
@@ -798,8 +809,8 @@ def rebuild_tasks(con: sqlite3.Connection) -> int:
             INSERT INTO tasks (
                 source, source_id, thread_key, request_date, due_date, requester, assignee,
                 request_subject, request_body, status, reply_status, replier, reply_summary,
-                evidence, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                reply_date, evidence, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 task.source,
@@ -815,6 +826,7 @@ def rebuild_tasks(con: sqlite3.Connection) -> int:
                 task.reply_status,
                 task.replier,
                 task.reply_summary,
+                task.reply_date,
                 task.evidence,
                 now_iso(),
             ),

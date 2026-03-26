@@ -67,6 +67,11 @@ else
     echo "[entrypoint] Warning: mcp or requests not available — clawstack MCP server not started"
 fi
 
+# Start summary cache builder (generates LLM summaries for email tasks in background)
+# Pauses when Ollama is busy, resumes when idle — no API consumption
+nohup python3 /home/node/clawd/summary_cache_builder.py >> /home/node/clawd/summary_cache_builder.log 2>&1 &
+echo "[entrypoint] Summary cache builder started (PID $!)"
+
 # Start the gateway with local proxy for Ollama (strips tools to fix 400 error)
 node /home/node/.openclaw/ollama_proxy.js &
 

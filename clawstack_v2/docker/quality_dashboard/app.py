@@ -633,13 +633,39 @@ elif page == "3D Converter":
                             st.error(f"Conversion failed: {result.stderr or result.stdout}")
                         elif os.path.exists(output_path):
                             st.success("Conversion completed.")
-                            with open(output_path, "rb") as f:
-                                st.download_button(
-                                    "Download Output",
-                                    f.read(),
-                                    file_name=os.path.basename(output_path),
-                                    use_container_width=True
+                            if conv_type == "Model -> 3D HTML":
+                                with open(output_path, "rb") as f:
+                                    st.download_button(
+                                        "Download 3D HTML",
+                                        f.read(),
+                                        file_name=os.path.basename(output_path),
+                                        mime="text/html",
+                                        use_container_width=True,
+                                    )
+                                st.caption("The downloaded HTML can be opened locally by double-clicking it in a browser.")
+                            else:
+                                preview_path = os.path.join(
+                                    td,
+                                    os.path.splitext(os.path.basename(output_path))[0] + "_outline_preview.pdf",
                                 )
+                                dl1, dl2 = st.columns(2)
+                                with dl1:
+                                    with open(output_path, "rb") as f:
+                                        st.download_button(
+                                            "Download 3D PDF",
+                                            f.read(),
+                                            file_name=os.path.basename(output_path),
+                                            use_container_width=True
+                                        )
+                                with dl2:
+                                    if os.path.exists(preview_path):
+                                        with open(preview_path, "rb") as f:
+                                            st.download_button(
+                                                "Download Outline Preview",
+                                                f.read(),
+                                                file_name=os.path.basename(preview_path),
+                                                use_container_width=True
+                                            )
                         else:
                             st.error("Output file was not generated.")
                     except subprocess.TimeoutExpired:
