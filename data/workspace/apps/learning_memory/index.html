@@ -1,0 +1,1602 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Learning Memory</title>
+  <style>
+    :root {
+      --bg: #07131b;
+      --panel: rgba(15, 29, 40, 0.9);
+      --line: rgba(135, 177, 204, 0.18);
+      --text: #eef7fb;
+      --muted: #9db4c1;
+      --accent: #4dd0c8;
+      --accent-2: #76b9ff;
+      --ok: #45d483;
+      --warn: #f6c85f;
+      --bad: #ff8c7b;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "Hiragino Sans", "Yu Gothic UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(77, 208, 200, 0.14), transparent 24%),
+        radial-gradient(circle at top right, rgba(118, 185, 255, 0.14), transparent 28%),
+        linear-gradient(180deg, #08131b, #0d1d29 58%, #102634);
+    }
+
+    .shell {
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 28px 20px 48px;
+    }
+
+    .hero, .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.26);
+      backdrop-filter: blur(12px);
+    }
+
+    .hero {
+      padding: 26px;
+      margin-bottom: 18px;
+    }
+
+    .eyebrow {
+      margin: 0 0 10px;
+      color: var(--accent);
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 32px;
+    }
+
+    .hero p, .muted {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .hero-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      text-decoration: none;
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--line);
+      font-size: 13px;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .stat {
+      padding: 18px;
+    }
+
+    .label {
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .value {
+      font-size: 28px;
+      font-weight: 700;
+      margin-top: 8px;
+    }
+
+    .sub {
+      color: var(--muted);
+      margin-top: 8px;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .ok { color: var(--ok); }
+    .warn { color: var(--warn); }
+    .bad { color: var(--bad); }
+
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(380px, 520px) 1fr;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .stack {
+      display: grid;
+      gap: 18px;
+    }
+
+    .panel {
+      padding: 20px;
+    }
+
+    .panel h2 {
+      margin: 0 0 14px;
+      font-size: 20px;
+    }
+
+    .panel h3 {
+      margin: 18px 0 10px;
+      font-size: 15px;
+    }
+
+    .field {
+      margin-bottom: 14px;
+    }
+
+    .field label {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    textarea, input, select, button {
+      width: 100%;
+      font: inherit;
+    }
+
+    textarea, input, select {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px 14px;
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text);
+    }
+
+    textarea {
+      min-height: 110px;
+      resize: vertical;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 14px;
+      padding: 12px 14px;
+      background: linear-gradient(135deg, #2aaab0, #3d83d7);
+      color: white;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    button.secondary {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--line);
+      color: var(--text);
+    }
+
+    .presets {
+      display: grid;
+      gap: 8px;
+    }
+
+    .preset {
+      text-align: left;
+      padding: 12px 14px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--line);
+    }
+
+    .preset small {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-weight: 400;
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .mini {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px;
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .mini strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 14px;
+    }
+
+    .section-note {
+      margin: 0 0 14px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .table-wrap {
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 560px;
+    }
+
+    th, td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+      font-size: 14px;
+    }
+
+    th {
+      color: var(--muted);
+      font-weight: 600;
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .result-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .result-card {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .result-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .result-title {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 6px 10px;
+      color: var(--muted);
+      font-size: 12px;
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .id-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .id-tile {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 10px 12px;
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .id-label {
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 6px;
+    }
+
+    .id-value {
+      word-break: break-word;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .detail-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .mini-button {
+      width: auto;
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .details-panel {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--line);
+    }
+
+    .details-panel[hidden] {
+      display: none;
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .detail-block {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 10px 12px;
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .detail-block strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .raw {
+      white-space: pre-wrap;
+      word-break: break-word;
+      margin-top: 14px;
+      padding: 16px;
+      border-radius: 16px;
+      background: rgba(0, 0, 0, 0.24);
+      border: 1px solid var(--line);
+      color: #d8f6ff;
+      font-size: 12px;
+      line-height: 1.6;
+      max-height: 420px;
+      overflow: auto;
+    }
+
+    @media (max-width: 980px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .row, .actions {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="hero">
+      <div class="eyebrow">Nested Learning Console</div>
+      <h1>Learning Memory</h1>
+      <p>
+        learning_engine の health、横断検索、Case 比較、CAE 比較をまとめて扱う画面です。
+        既存の同期状況を見ながら、過去のメール、品質不具合、改善活動、CAE 実行履歴を比較できます。
+      </p>
+      <div class="hero-links">
+        <a class="chip" href="/portal.html">Portal</a>
+        <a class="chip" href="#" id="healthLink" target="_blank" rel="noreferrer">API Health</a>
+      </div>
+    </section>
+
+    <section class="stats">
+      <article class="hero stat">
+        <div class="label">Engine</div>
+        <div class="value" id="engineStatus">Loading...</div>
+        <div class="sub" id="engineSub">Fetching health</div>
+      </article>
+      <article class="hero stat">
+        <div class="label">Collections</div>
+        <div class="value" id="collectionCount">--</div>
+        <div class="sub" id="collectionSub">waiting...</div>
+      </article>
+      <article class="hero stat">
+        <div class="label">Records</div>
+        <div class="value" id="recordCount">--</div>
+        <div class="sub" id="recordSub">waiting...</div>
+      </article>
+      <article class="hero stat">
+        <div class="label">Sync Status</div>
+        <div class="value" id="syncState">--</div>
+        <div class="sub" id="syncSub">waiting...</div>
+      </article>
+      <article class="hero stat">
+        <div class="label">Auto Repair</div>
+        <div class="value" id="autoRepairState">--</div>
+        <div class="sub" id="autoRepairSub">waiting...</div>
+      </article>
+      <article class="hero stat">
+        <div class="label">Risk Notify</div>
+        <div class="value" id="riskNotifyState">--</div>
+        <div class="sub" id="riskNotifySub">waiting...</div>
+      </article>
+    </section>
+
+    <section class="grid">
+      <div class="stack">
+        <article class="panel">
+          <h2>Memory Search</h2>
+          <p class="section-note">
+            まずは横断検索で近い記憶を探し、必要に応じて下の Compare フォームで構造化比較へ進みます。
+          </p>
+
+          <div class="field">
+            <label for="query">Query</label>
+            <textarea id="query" placeholder="例: plating defect recurrence after containment action"></textarea>
+          </div>
+
+          <div class="row">
+            <div class="field">
+              <label for="collections">Collections</label>
+              <input id="collections" value="defect_case_memory,quality_issue_memory,improvement_activity_memory,email_thread_memory,email_fact_memory,cae_run_memory" />
+            </div>
+            <div class="field">
+              <label for="topK">Top K</label>
+              <input id="topK" type="number" value="8" min="1" max="20" />
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="field">
+              <label for="sourceOrg">Source Org</label>
+              <input id="sourceOrg" value="Mitsui" />
+            </div>
+            <div class="field">
+              <label for="crossOrg">Cross Org</label>
+              <select id="crossOrg">
+                <option value="false" selected>Off</option>
+                <option value="true">On</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button id="runSearch" type="button">Run Search</button>
+            <button id="refreshHealth" type="button" class="secondary">Refresh Health</button>
+            <button id="toggleRaw" type="button" class="secondary">Toggle Raw JSON</button>
+            <button id="clearResults" type="button" class="secondary">Clear Results</button>
+          </div>
+
+          <h3>Quick Presets</h3>
+          <div class="presets">
+            <button class="preset" type="button" data-mode="search" data-query="plating defect recurrence after containment action" data-collections="defect_case_memory,quality_issue_memory,improvement_activity_memory">
+              品質不具合の再発検索
+              <small>defect / quality issue / improvement を横断</small>
+            </button>
+            <button class="preset" type="button" data-mode="search" data-query="customer complaint open questions latest status next action" data-collections="email_thread_memory,email_fact_memory">
+              メール論点の検索
+              <small>email thread / message から未解決事項を引く</small>
+            </button>
+            <button class="preset" type="button" data-mode="compare-email">
+              Email 比較の入力例をセット
+              <small>件名、要約、未解決事項、次アクションで thread を比較</small>
+            </button>
+            <button class="preset" type="button" data-mode="compare-case">
+              Case 比較の入力例をセット
+              <small>不具合の再発条件、推定原因、恒久対策を比較</small>
+            </button>
+            <button class="preset" type="button" data-mode="compare-quality">
+              Quality Issue 比較の入力例をセット
+              <small>品質問題の症状、原因、是正内容から近い issue を探す</small>
+            </button>
+            <button class="preset" type="button" data-mode="compare-improvement">
+              Improvement 比較の入力例をセット
+              <small>改善活動のテーマ、施策、効果から近い activity を探す</small>
+            </button>
+            <button class="preset" type="button" data-mode="compare-cae">
+              CAE 比較の入力例をセット
+              <small>OpenFOAM / OpenRadioss の類似 run を比較</small>
+            </button>
+          </div>
+
+          <p class="section-note">
+            この画面は利用可能な <code>learning_engine</code> の URL を自動検出します。
+            learning_engine が起動していれば、ポータルから直接開いてそのまま使えます。
+          </p>
+        </article>
+
+        <article class="panel">
+          <h2>Compare Email Thread</h2>
+          <p class="section-note">
+            メールの件名、要約、未解決事項、次アクションから、似た thread を直接比較します。
+          </p>
+
+          <div class="row">
+            <div class="field">
+              <label for="emailSourceOrg">Source Org</label>
+              <input id="emailSourceOrg" value="Mitsui" />
+            </div>
+            <div class="field">
+              <label for="emailTopK">Top K</label>
+              <input id="emailTopK" type="number" value="8" min="1" max="20" />
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="field">
+              <label for="emailCrossOrg">Cross Org</label>
+              <select id="emailCrossOrg">
+                <option value="false" selected>Off</option>
+                <option value="true">On</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="emailLatestStatus">Latest Status</label>
+              <input id="emailLatestStatus" placeholder="例: waiting for customer feedback" />
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="emailSubject">Subject</label>
+            <input id="emailSubject" placeholder="例: Customer complaint on plating color variation" />
+          </div>
+
+          <div class="field">
+            <label for="emailSummary">Summary</label>
+            <textarea id="emailSummary" placeholder="例: Complaint thread discussing plating discoloration after containment."></textarea>
+          </div>
+
+          <div class="field">
+            <label for="emailOpenQuestions">Open Questions</label>
+            <textarea id="emailOpenQuestions" placeholder="1行に1件。例: Has the customer confirmed all affected lots?"></textarea>
+          </div>
+
+          <div class="field">
+            <label for="emailNextAction">Next Action</label>
+            <textarea id="emailNextAction" placeholder="例: Share containment evidence and request customer confirmation."></textarea>
+          </div>
+
+          <div class="field">
+            <label for="emailTags">Tags</label>
+            <input id="emailTags" placeholder="comma separated, e.g. complaint, plating, action-required" />
+          </div>
+
+          <div class="actions">
+            <button id="runCompareEmail" type="button">Compare Email</button>
+            <button id="fillEmailPreset" type="button" class="secondary">Load Example</button>
+          </div>
+        </article>
+
+        <article class="panel">
+          <h2>Compare Case</h2>
+          <p class="section-note">
+            不具合事例や品質案件を構造化して投入し、似た defect case を直接比較します。
+          </p>
+
+          <div class="row">
+            <div class="field">
+              <label for="caseSourceOrg">Source Org</label>
+              <input id="caseSourceOrg" value="Mitsui" />
+            </div>
+            <div class="field">
+              <label for="caseTopK">Top K</label>
+              <input id="caseTopK" type="number" value="8" min="1" max="20" />
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="caseTitle">Title</label>
+            <input id="caseTitle" placeholder="例: Plating discoloration recurrence" />
+          </div>
+
+          <div class="field">
+            <label for="caseSummary">Summary</label>
+            <textarea id="caseSummary" placeholder="例: Recurring issue after containment action."></textarea>
+          </div>
+
+          <div class="row">
+            <div class="field">
+              <label for="caseProcess">Process</label>
+              <input id="caseProcess" placeholder="plating" />
+            </div>
+            <div class="field">
+              <label for="caseDefectName">Defect Name</label>
+              <input id="caseDefectName" placeholder="discoloration" />
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="caseSymptom">Symptom</label>
+            <textarea id="caseSymptom" placeholder="例: Yellowing after shipment"></textarea>
+          </div>
+
+          <div class="field">
+            <label for="caseRootCause">Suspected Root Cause</label>
+            <textarea id="caseRootCause" placeholder="例: Bath contamination"></textarea>
+          </div>
+
+          <div class="field">
+            <label for="caseAction">Permanent Action</label>
+            <textarea id="caseAction" placeholder="例: Replace chemistry and tighten SPC"></textarea>
+          </div>
+
+          <div class="actions">
+            <button id="runCompareCase" type="button">Compare Case</button>
+            <button id="fillCasePreset" type="button" class="secondary">Load Example</button>
+          </div>
+        </article>
+
+        <article class="panel">
+          <h2>Compare Quality Issue</h2>
+          <p class="section-note">
+            品質問題のタイトル、症状、推定原因、暫定対応、是正内容をまとめて入力し、近い quality issue を探します。
+          </p>
+
+          <div class="row">
+            <div class="field">
+              <label for="qualitySourceOrg">Source Org</label>
+              <input id="qualitySourceOrg" value="Mitsui" />
+            </div>
+            <div class="field">
+              <label for="qualityTopK">Top K</label>
+              <input id="qualityTopK" type="number" value="8" min="1" max="20" />
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="field">
+              <label for="qualityCrossOrg">Cross Org</label>
+              <select id="qualityCrossOrg">
+                <option value="false" selected>Off</option>
+                <option value="true">On</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="qualityProcess">Process</label>
+              <input id="qualityProcess" placeholder="plating" />
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="qualityTitle">Title</label>
+            <input id="qualityTitle" placeholder="例: Shipment discoloration complaint after containment" />
+          </div>
+
+          <div class="field">
+            <label for="qualitySummary">Summary</label>
+            <textarea id="qualitySummary" placeholder="例: Customer reported discoloration recurrence after shipment release."></textarea>
+          </div>
+
+          <div class="field">
+            <label for="qualitySymptom">Symptom</label>
+            <textarea id="qualitySymptom" placeholder="例: Yellow-brown tone on finished plated surface."></textarea>
+          </div>
+
+          <div class="field">
+            <label for="qualityRootCause">Suspected Root Cause</label>
+            <textarea id="qualityRootCause" placeholder="例: Bath chemistry drift and weak SPC reaction."></textarea>
+          </div>
+
+          <div class="field">
+            <label for="qualityContainment">Containment / Correction</label>
+            <textarea id="qualityContainment" placeholder="例: Hold shipment, sort stock, refresh bath chemistry."></textarea>
+          </div>
+
+          <div class="field">
+            <label for="qualityTags">Tags</label>
+            <input id="qualityTags" placeholder="comma separated, e.g. complaint, plating, recurrence" />
+          </div>
+
+          <div class="actions">
+            <button id="runCompareQuality" type="button">Compare Quality Issue</button>
+            <button id="fillQualityPreset" type="button" class="secondary">Load Example</button>
+          </div>
+        </article>
+
+        <article class="panel">
+          <h2>Compare Improvement Activity</h2>
+          <p class="section-note">
+            改善テーマ、実施内容、狙い、効果をまとめて入力し、近い improvement activity を探します。
+          </p>
+
+          <div class="row">
+            <div class="field">
+              <label for="improvementSourceOrg">Source Org</label>
+              <input id="improvementSourceOrg" value="Mitsui" />
+            </div>
+            <div class="field">
+              <label for="improvementTopK">Top K</label>
+              <input id="improvementTopK" type="number" value="8" min="1" max="20" />
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="field">
+              <label for="improvementCrossOrg">Cross Org</label>
+              <select id="improvementCrossOrg">
+                <option value="false" selected>Off</option>
+                <option value="true">On</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="improvementCategory">Category</label>
+              <input id="improvementCategory" placeholder="quality improvement" />
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="improvementTitle">Title</label>
+            <input id="improvementTitle" placeholder="例: Tighten plating bath control and line audit" />
+          </div>
+
+          <div class="field">
+            <label for="improvementSummary">Summary</label>
+            <textarea id="improvementSummary" placeholder="例: Improvement activity to prevent discoloration recurrence in plating line."></textarea>
+          </div>
+
+          <div class="field">
+            <label for="improvementObjective">Objective</label>
+            <textarea id="improvementObjective" placeholder="例: Reduce recurrence risk and stabilize outgoing quality."></textarea>
+          </div>
+
+          <div class="field">
+            <label for="improvementAction">Action</label>
+            <textarea id="improvementAction" placeholder="例: Add SPC trigger, chemistry audit, and startup checklist."></textarea>
+          </div>
+
+          <div class="field">
+            <label for="improvementEffect">Effect / Result</label>
+            <textarea id="improvementEffect" placeholder="例: No recurrence for 3 months and lower complaint rate."></textarea>
+          </div>
+
+          <div class="field">
+            <label for="improvementTags">Tags</label>
+            <input id="improvementTags" placeholder="comma separated, e.g. plating, spc, prevention" />
+          </div>
+
+          <div class="actions">
+            <button id="runCompareImprovement" type="button">Compare Improvement</button>
+            <button id="fillImprovementPreset" type="button" class="secondary">Load Example</button>
+          </div>
+        </article>
+
+        <article class="panel">
+          <h2>Compare CAE Run</h2>
+          <p class="section-note">
+            CAE 実行条件や失敗シグネチャを使って、似た simulation run を直接比較します。
+          </p>
+
+          <div class="row">
+            <div class="field">
+              <label for="caeSourceOrg">Source Org</label>
+              <input id="caeSourceOrg" value="Mitsui" />
+            </div>
+            <div class="field">
+              <label for="caeTopK">Top K</label>
+              <input id="caeTopK" type="number" value="8" min="1" max="20" />
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="field">
+              <label for="caeToolName">Tool Name</label>
+              <input id="caeToolName" value="OpenFOAM" />
+            </div>
+            <div class="field">
+              <label for="caeSimulationType">Simulation Type</label>
+              <input id="caeSimulationType" value="multiphase_cfd" />
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="field">
+              <label for="caeResultStatus">Result Status</label>
+              <input id="caeResultStatus" value="success" />
+            </div>
+            <div class="field">
+              <label for="caeFailureMode">Failure Mode</label>
+              <input id="caeFailureMode" placeholder="blank if success" />
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="caeErrorSignature">Error Signature</label>
+            <textarea id="caeErrorSignature" placeholder="例: divergence in pressure correction"></textarea>
+          </div>
+
+          <div class="field">
+            <label for="caeSummary">Summary</label>
+            <textarea id="caeSummary" placeholder="例: interFoam resin air VTK outputs stable CFD case"></textarea>
+          </div>
+
+          <div class="field">
+            <label for="caeLesson">Lesson</label>
+            <textarea id="caeLesson" placeholder="例: Stable when VTK output cadence is reduced"></textarea>
+          </div>
+
+          <div class="actions">
+            <button id="runCompareCae" type="button">Compare CAE</button>
+            <button id="fillCaePreset" type="button" class="secondary">Load Example</button>
+          </div>
+        </article>
+      </div>
+
+      <article class="panel">
+        <h2>Live Summary</h2>
+        <div class="meta-grid" id="miniCards">
+          <div class="mini">
+            <strong>Health</strong>
+            <div class="muted">loading...</div>
+          </div>
+        </div>
+
+        <h3>Collection Details</h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Collection</th>
+                <th>Points</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="collectionTable">
+              <tr><td colspan="3" class="muted">loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Results</h3>
+        <div class="result-list" id="resultCards">
+          <div class="result-card">
+            <div class="result-title">learning_engine is ready when health is green.</div>
+            <div class="muted">Use Search, Compare Case, or Compare CAE to start.</div>
+          </div>
+        </div>
+
+        <pre class="raw" id="rawOutput" hidden>waiting for response...</pre>
+      </article>
+    </section>
+  </main>
+
+  <script>
+    const baseUrlCandidates = (() => {
+      const candidates = [];
+      const seen = new Set();
+      const protocol = window.location.protocol === "https:" ? "https:" : "http:";
+      const host = window.location.hostname || "localhost";
+      function push(url) {
+        if (!url || seen.has(url)) return;
+        seen.add(url);
+        candidates.push(url);
+      }
+      if (window.location.protocol === "http:" || window.location.protocol === "https:") {
+        push(`${protocol}//${host}:8110`);
+      }
+      push("http://127.0.0.1:8110");
+      push("http://localhost:8110");
+      return candidates;
+    })();
+    let baseUrl = baseUrlCandidates[0];
+    let rawVisible = false;
+
+    function scoreText(value) {
+      if (typeof value !== "number") return "--";
+      return value.toFixed(3);
+    }
+
+    function stamp(value) {
+      return value || "--";
+    }
+
+    function setBusy(message) {
+      document.getElementById("resultCards").innerHTML = `
+        <div class="result-card">
+          <div class="result-title">${message}</div>
+          <div class="muted">learning_engine に問い合わせています</div>
+        </div>
+      `;
+    }
+
+    function setRawOutput(data) {
+      document.getElementById("rawOutput").textContent = JSON.stringify(data, null, 2);
+    }
+
+    async function copyText(value, button) {
+      if (!value) return;
+      const original = button ? button.textContent : "";
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(value);
+        } else {
+          const temp = document.createElement("textarea");
+          temp.value = value;
+          document.body.appendChild(temp);
+          temp.select();
+          document.execCommand("copy");
+          document.body.removeChild(temp);
+        }
+        if (button) {
+          button.textContent = "Copied";
+          setTimeout(() => {
+            button.textContent = original;
+          }, 1200);
+        }
+      } catch (error) {
+        if (button) {
+          button.textContent = "Copy failed";
+          setTimeout(() => {
+            button.textContent = original;
+          }, 1200);
+        }
+      }
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+    }
+
+    async function ensureBaseUrl() {
+      const failures = [];
+      for (const candidate of baseUrlCandidates) {
+        try {
+          const response = await fetch(`${candidate}/health`, { cache: "no-store" });
+          if (!response.ok) {
+            failures.push(`${candidate} -> HTTP ${response.status}`);
+            continue;
+          }
+          const data = await response.json();
+          if (data && data.status) {
+            baseUrl = candidate;
+            const healthLink = document.getElementById("healthLink");
+            if (healthLink) {
+              healthLink.href = `${candidate}/health`;
+            }
+            return { baseUrl: candidate, health: data };
+          }
+          failures.push(`${candidate} -> invalid payload`);
+        } catch (error) {
+          failures.push(`${candidate} -> ${String(error)}`);
+        }
+      }
+      throw new Error(failures.join(" | "));
+    }
+
+    function valueList(payload) {
+      return [
+        ["external_id", payload.external_id],
+        ["thread_id", payload.thread_id],
+        ["message_id", payload.message_id],
+        ["case_id", payload.case_id],
+        ["issue_id", payload.issue_id],
+        ["activity_id", payload.activity_id],
+        ["run_id", payload.run_id]
+      ].filter((item) => item[1]);
+    }
+
+    function detailEntries(payload) {
+      return [
+        ["subject", payload.subject],
+        ["summary", payload.summary],
+        ["latest_status", payload.latest_status],
+        ["next_action", payload.next_action],
+        ["open_questions", Array.isArray(payload.open_questions) ? payload.open_questions.join(" | ") : payload.open_questions],
+        ["participants", Array.isArray(payload.participants) ? payload.participants.join(", ") : payload.participants],
+        ["process", payload.process],
+        ["defect_name", payload.defect_name],
+        ["symptom", payload.symptom],
+        ["suspected_root_cause", payload.suspected_root_cause],
+        ["permanent_action", payload.permanent_action],
+        ["tool_name", payload.tool_name],
+        ["simulation_type", payload.simulation_type],
+        ["failure_mode", payload.failure_mode],
+        ["error_signature", payload.error_signature],
+        ["lesson", payload.lesson]
+      ].filter((item) => item[1]);
+    }
+
+    function renderMiniCards(health) {
+      const email = health.workspace_sync?.email_learning || {};
+      const cae = health.workspace_sync?.cae_learning || {};
+      const idle = health.workspace_sync?.idle_maintenance || {};
+      const cards = [
+        {
+          title: "Email Sync",
+          body: `${email.stage || "unknown"} | messages ${email.postedMessages ?? 0} | threads ${email.postedThreads ?? 0}`,
+          foot: stamp(email.finishedAt || email.startedAt)
+        },
+        {
+          title: "CAE Sync",
+          body: `${cae.stage || "unknown"} | runs ${cae.postedRuns ?? 0} | candidates ${cae.candidates ?? 0}`,
+          foot: stamp(cae.finishedAt || cae.startedAt)
+        },
+        {
+          title: "Idle Maintenance",
+          body: `${idle.step || "unknown"} | actions ${Object.keys(idle.results || {}).length}`,
+          foot: stamp(idle.finishedAt || idle.startedAt)
+        },
+        {
+          title: "Embedding",
+          body: `${health.settings?.embedding_model || "--"} | size ${health.settings?.embedding_size || "--"}`,
+          foot: `top_k ${health.settings?.memory_top_k || "--"}`
+        }
+      ];
+      document.getElementById("miniCards").innerHTML = cards.map((card) => `
+        <div class="mini">
+          <strong>${card.title}</strong>
+          <div class="muted">${card.body}</div>
+          <div class="sub">${card.foot}</div>
+        </div>
+      `).join("");
+    }
+
+    function renderCollectionTable(details) {
+      const tbody = document.getElementById("collectionTable");
+      if (!details.length) {
+        tbody.innerHTML = '<tr><td colspan="3" class="muted">no collection details</td></tr>';
+        return;
+      }
+      tbody.innerHTML = details.map((item) => `
+        <tr>
+          <td><code>${item.name}</code></td>
+          <td>${item.points_count ?? 0}</td>
+          <td>${item.status || "--"}</td>
+        </tr>
+      `).join("");
+    }
+
+    async function loadAutoRepairStatus() {
+      try {
+        const response = await fetch("../../auto_repair_allowed_status.json", { cache: "no-store" });
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        const data = await response.json();
+        const rules = data.rules || [];
+        const activeRules = rules.filter((rule) => rule.shouldRepair);
+        const target = document.getElementById("autoRepairState");
+        const sub = document.getElementById("autoRepairSub");
+        if (activeRules.length) {
+          target.textContent = "Repairing";
+          target.className = "value warn";
+          sub.textContent = activeRules.map((rule) => `${rule.name}: ${rule.reason}`).join(" | ");
+        } else {
+          target.textContent = "Healthy";
+          target.className = "value ok";
+          sub.textContent = rules.map((rule) => `${rule.name}: ${rule.reason}`).join(" | ") || "no rule status";
+        }
+      } catch (error) {
+        const target = document.getElementById("autoRepairState");
+        const sub = document.getElementById("autoRepairSub");
+        target.textContent = "Unknown";
+        target.className = "value warn";
+        sub.textContent = `auto repair status unavailable: ${String(error)}`;
+      }
+    }
+
+    async function loadRiskNotificationStatus() {
+      const target = document.getElementById("riskNotifyState");
+      const sub = document.getElementById("riskNotifySub");
+      try {
+        const response = await fetch("../../risk_notification_status.json", { cache: "no-store" });
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        const data = await response.json();
+        const findings = data.findings || [];
+        const hasHigh = findings.some((item) => item.severity === "high");
+        if (!findings.length) {
+          target.textContent = "None";
+          target.className = "value ok";
+          sub.textContent = "no medium/high risk findings";
+          return;
+        }
+        target.textContent = data.sent ? (hasHigh ? "High sent" : "Medium sent") : (hasHigh ? "High" : "Medium");
+        target.className = `value ${hasHigh ? "bad" : "warn"}`;
+        sub.textContent = findings.map((item) => `${item.severity}:${item.key}`).join(" | ");
+      } catch (error) {
+        target.textContent = "Unknown";
+        target.className = "value warn";
+        sub.textContent = `risk notification unavailable: ${String(error)}`;
+      }
+    }
+
+    function renderResultCards(data) {
+      const target = document.getElementById("resultCards");
+      const items = data.results || data.similar_cases || data.similar_threads || data.similar_runs || [];
+      if (!items.length) {
+        target.innerHTML = `
+          <div class="result-card">
+            <div class="result-title">No matching memories</div>
+            <div class="muted">Try another query or refresh sync status.</div>
+          </div>
+        `;
+        return;
+      }
+
+      target.innerHTML = items.map((item) => {
+        const payload = item.payload || {};
+        const title = payload.title || payload.subject || payload.project_name || payload.run_id || payload.case_id || payload.issue_id || payload.activity_id || payload.external_id || "memory hit";
+        const summary = payload.summary || payload.lesson || payload.decision_summary || payload.latest_status || payload.symptom || "(no summary)";
+        const badges = [
+          item.collection,
+          payload.memory_type,
+          payload.source_org,
+          payload.review_status,
+          payload.result_status,
+          payload.tool_name,
+          payload.process,
+          payload.defect_name,
+          payload.simulation_type
+        ].filter(Boolean);
+        const ids = valueList(payload);
+        const details = detailEntries(payload);
+        const itemKey = payload.external_id || payload.thread_id || payload.case_id || payload.run_id || item.id;
+        return `
+          <div class="result-card" data-item-key="${escapeHtml(itemKey)}">
+            <div class="result-top">
+              <div>
+                <div class="result-title">${title}</div>
+                <div class="muted">score ${scoreText(item.score)} | ${payload.source_type || "--"}</div>
+              </div>
+            </div>
+            <div>${summary}</div>
+            <div class="badge-row">
+              ${badges.map((badge) => `<span class="badge">${badge}</span>`).join("")}
+            </div>
+            ${ids.length ? `
+              <div class="id-grid">
+                ${ids.map(([label, value]) => `
+                  <div class="id-tile">
+                    <div class="id-label">${escapeHtml(label)}</div>
+                    <div class="id-value">${escapeHtml(value)}</div>
+                  </div>
+                `).join("")}
+              </div>
+            ` : ""}
+            <div class="detail-actions">
+              ${ids[0] ? `<button type="button" class="secondary mini-button copy-primary" data-copy="${escapeHtml(ids[0][1])}">Copy ${escapeHtml(ids[0][0])}</button>` : ""}
+              <button type="button" class="secondary mini-button toggle-details">Show Details</button>
+              <button type="button" class="secondary mini-button copy-json" data-json="${escapeHtml(JSON.stringify(payload))}">Copy Payload</button>
+            </div>
+            <div class="details-panel" hidden>
+              ${details.length ? `
+                <div class="detail-grid">
+                  ${details.map(([label, value]) => `
+                    <div class="detail-block">
+                      <strong>${escapeHtml(label)}</strong>
+                      <div>${escapeHtml(value)}</div>
+                    </div>
+                  `).join("")}
+                </div>
+              ` : `<div class="muted">No extra detail fields for this memory.</div>`}
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      target.querySelectorAll(".toggle-details").forEach((button) => {
+        button.addEventListener("click", () => {
+          const card = button.closest(".result-card");
+          const panel = card ? card.querySelector(".details-panel") : null;
+          if (!panel) return;
+          const isHidden = panel.hasAttribute("hidden");
+          if (isHidden) {
+            panel.removeAttribute("hidden");
+            button.textContent = "Hide Details";
+          } else {
+            panel.setAttribute("hidden", "");
+            button.textContent = "Show Details";
+          }
+        });
+      });
+
+      target.querySelectorAll(".copy-primary").forEach((button) => {
+        button.addEventListener("click", () => {
+          copyText(button.dataset.copy || "", button);
+        });
+      });
+
+      target.querySelectorAll(".copy-json").forEach((button) => {
+        button.addEventListener("click", () => {
+          try {
+            const raw = button.dataset.json || "{}";
+            copyText(JSON.stringify(JSON.parse(raw), null, 2), button);
+          } catch (error) {
+            copyText(button.dataset.json || "", button);
+          }
+        });
+      });
+    }
+
+    async function postJson(path, payload, loadingMessage) {
+      setBusy(loadingMessage);
+      await ensureBaseUrl();
+      const response = await fetch(`${baseUrl}${path}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.detail || JSON.stringify(data));
+      }
+      renderResultCards(data);
+      setRawOutput(data);
+      return data;
+    }
+
+    async function loadHealth() {
+      const engineStatus = document.getElementById("engineStatus");
+      const engineSub = document.getElementById("engineSub");
+      try {
+        const { baseUrl: activeBaseUrl, health: data } = await ensureBaseUrl();
+        const details = data.collection_details || [];
+        const totalPoints = details.reduce((sum, item) => sum + (item.points_count || 0), 0);
+        engineStatus.textContent = data.status === "ok" ? "Online" : "Degraded";
+        engineStatus.className = `value ${data.status === "ok" ? "ok" : "warn"}`;
+        engineSub.textContent = `Qdrant ${data.qdrant || "--"} | ${activeBaseUrl}`;
+        const allCollections = data.collections || [];
+        document.getElementById("collectionCount").textContent = String(allCollections.length || details.length);
+        document.getElementById("collectionSub").textContent = allCollections.join(", ") || "no collections";
+        document.getElementById("recordCount").textContent = String(totalPoints);
+        document.getElementById("recordSub").textContent = "sum of known points across displayed memory collections";
+        const emailStage = data.workspace_sync?.email_learning?.stage || "email?";
+        const caeStage = data.workspace_sync?.cae_learning?.stage || "cae?";
+        const idleStep = data.workspace_sync?.idle_maintenance?.step || "idle?";
+        document.getElementById("syncState").textContent = `${emailStage} / ${caeStage}`;
+        document.getElementById("syncSub").textContent = `maintenance ${idleStep}`;
+        renderMiniCards(data);
+        renderCollectionTable(details);
+        setRawOutput(data);
+      } catch (error) {
+        engineStatus.textContent = "Offline";
+        engineStatus.className = "value bad";
+        engineSub.textContent = String(error);
+        document.getElementById("collectionCount").textContent = "--";
+        document.getElementById("recordCount").textContent = "--";
+        document.getElementById("syncState").textContent = "--";
+        document.getElementById("syncSub").textContent = "health fetch failed";
+      }
+    }
+
+    async function runSearch() {
+      const query = document.getElementById("query").value.trim();
+      const collections = document.getElementById("collections").value.split(",").map((item) => item.trim()).filter(Boolean);
+      const topK = Number(document.getElementById("topK").value || "8");
+      const sourceOrg = document.getElementById("sourceOrg").value.trim() || "Mitsui";
+      const includeCrossOrg = document.getElementById("crossOrg").value === "true";
+      try {
+        await postJson("/search/memory", {
+          query,
+          collections,
+          source_org: sourceOrg,
+          include_cross_org: includeCrossOrg,
+          top_k: topK
+        }, "Searching...");
+      } catch (error) {
+        document.getElementById("resultCards").innerHTML = `
+          <div class="result-card">
+            <div class="result-title">Search failed</div>
+            <div class="muted">${String(error)}</div>
+          </div>
+        `;
+      }
+    }
+
+    function splitLines(value) {
+      return value.split(/\r?\n/).map((item) => item.trim()).filter(Boolean);
+    }
+
+    function splitComma(value) {
+      return value.split(",").map((item) => item.trim()).filter(Boolean);
+    }
+
+    function fillEmailPreset() {
+      document.getElementById("emailSubject").value = "Customer complaint on plating color variation";
+      document.getElementById("emailSummary").value = "Complaint thread discussing plating discoloration after containment and shipment risk.";
+      document.getElementById("emailOpenQuestions").value = "Has the customer confirmed all affected lots?\nDo we need additional sorting evidence?";
+      document.getElementById("emailLatestStatus").value = "waiting for customer feedback";
+      document.getElementById("emailNextAction").value = "Share containment evidence and request customer confirmation.";
+      document.getElementById("emailTags").value = "complaint, plating, action-required";
+    }
+
+    async function runCompareEmail() {
+      const payload = {
+        source_org: document.getElementById("emailSourceOrg").value.trim() || "Mitsui",
+        include_cross_org: document.getElementById("emailCrossOrg").value === "true",
+        top_k: Number(document.getElementById("emailTopK").value || "8"),
+        subject: document.getElementById("emailSubject").value.trim(),
+        summary: document.getElementById("emailSummary").value.trim(),
+        open_questions: splitLines(document.getElementById("emailOpenQuestions").value),
+        latest_status: document.getElementById("emailLatestStatus").value.trim(),
+        next_action: document.getElementById("emailNextAction").value.trim(),
+        tags: splitComma(document.getElementById("emailTags").value)
+      };
+      try {
+        await postJson("/compare/email-thread", payload, "Comparing email thread...");
+      } catch (error) {
+        document.getElementById("resultCards").innerHTML = `
+          <div class="result-card">
+            <div class="result-title">Email compare failed</div>
+            <div class="muted">${String(error)}</div>
+          </div>
+        `;
+      }
+    }
+
+    function fillCasePreset() {
+      document.getElementById("caseTitle").value = "Plating discoloration recurrence";
+      document.getElementById("caseSummary").value = "Recurring issue after containment action.";
+      document.getElementById("caseProcess").value = "plating";
+      document.getElementById("caseDefectName").value = "discoloration";
+      document.getElementById("caseSymptom").value = "Yellowing after shipment.";
+      document.getElementById("caseRootCause").value = "Bath contamination.";
+      document.getElementById("caseAction").value = "Replace chemistry and tighten SPC.";
+    }
+
+    async function runCompareCase() {
+      const payload = {
+        source_org: document.getElementById("caseSourceOrg").value.trim() || "Mitsui",
+        title: document.getElementById("caseTitle").value.trim(),
+        summary: document.getElementById("caseSummary").value.trim(),
+        process: document.getElementById("caseProcess").value.trim(),
+        defect_name: document.getElementById("caseDefectName").value.trim(),
+        symptom: document.getElementById("caseSymptom").value.trim(),
+        suspected_root_cause: document.getElementById("caseRootCause").value.trim(),
+        permanent_action: document.getElementById("caseAction").value.trim(),
+        top_k: Number(document.getElementById("caseTopK").value || "8")
+      };
+      try {
+        await postJson("/compare/case", payload, "Comparing case...");
+      } catch (error) {
+        document.getElementById("resultCards").innerHTML = `
+          <div class="result-card">
+            <div class="result-title">Case compare failed</div>
+            <div class="muted">${String(error)}</div>
+          </div>
+        `;
+      }
+    }
+
+    function fillQualityPreset() {
+      document.getElementById("qualityTitle").value = "Shipment discoloration complaint after containment";
+      document.getElementById("qualitySummary").value = "Customer reported discoloration recurrence after shipment release.";
+      document.getElementById("qualityProcess").value = "plating";
+      document.getElementById("qualitySymptom").value = "Yellow-brown tone on finished plated surface.";
+      document.getElementById("qualityRootCause").value = "Bath chemistry drift and weak SPC reaction.";
+      document.getElementById("qualityContainment").value = "Hold shipment, sort stock, refresh bath chemistry.";
+      document.getElementById("qualityTags").value = "complaint, plating, recurrence";
+    }
+
+    async function runCompareQuality() {
+      const sourceOrg = document.getElementById("qualitySourceOrg").value.trim() || "Mitsui";
+      const topK = Number(document.getElementById("qualityTopK").value || "8");
+      const includeCrossOrg = document.getElementById("qualityCrossOrg").value === "true";
+      const query = [
+        document.getElementById("qualityTitle").value.trim(),
+        document.getElementById("qualitySummary").value.trim(),
+        document.getElementById("qualityProcess").value.trim(),
+        document.getElementById("qualitySymptom").value.trim(),
+        document.getElementById("qualityRootCause").value.trim(),
+        document.getElementById("qualityContainment").value.trim(),
+        document.getElementById("qualityTags").value.trim()
+      ].filter(Boolean).join(" | ");
+      try {
+        await postJson("/search/memory", {
+          query,
+          collections: ["quality_issue_memory"],
+          source_org: sourceOrg,
+          include_cross_org: includeCrossOrg,
+          top_k: topK
+        }, "Comparing quality issue...");
+      } catch (error) {
+        document.getElementById("resultCards").innerHTML = `
+          <div class="result-card">
+            <div class="result-title">Quality issue compare failed</div>
+            <div class="muted">${String(error)}</div>
+          </div>
+        `;
+      }
+    }
+
+    function fillImprovementPreset() {
+      document.getElementById("improvementTitle").value = "Tighten plating bath control and line audit";
+      document.getElementById("improvementSummary").value = "Improvement activity to prevent discoloration recurrence in plating line.";
+      document.getElementById("improvementCategory").value = "quality improvement";
+      document.getElementById("improvementObjective").value = "Reduce recurrence risk and stabilize outgoing quality.";
+      document.getElementById("improvementAction").value = "Add SPC trigger, chemistry audit, and startup checklist.";
+      document.getElementById("improvementEffect").value = "No recurrence for 3 months and lower complaint rate.";
+      document.getElementById("improvementTags").value = "plating, spc, prevention";
+    }
+
+    async function runCompareImprovement() {
+      const sourceOrg = document.getElementById("improvementSourceOrg").value.trim() || "Mitsui";
+      const topK = Number(document.getElementById("improvementTopK").value || "8");
+      const includeCrossOrg = document.getElementById("improvementCrossOrg").value === "true";
+      const query = [
+        document.getElementById("improvementTitle").value.trim(),
+        document.getElementById("improvementSummary").value.trim(),
+        document.getElementById("improvementCategory").value.trim(),
+        document.getElementById("improvementObjective").value.trim(),
+        document.getElementById("improvementAction").value.trim(),
+        document.getElementById("improvementEffect").value.trim(),
+        document.getElementById("improvementTags").value.trim()
+      ].filter(Boolean).join(" | ");
+      try {
+        await postJson("/search/memory", {
+          query,
+          collections: ["improvement_activity_memory"],
+          source_org: sourceOrg,
+          include_cross_org: includeCrossOrg,
+          top_k: topK
+        }, "Comparing improvement activity...");
+      } catch (error) {
+        document.getElementById("resultCards").innerHTML = `
+          <div class="result-card">
+            <div class="result-title">Improvement compare failed</div>
+            <div class="muted">${String(error)}</div>
+          </div>
+        `;
+      }
+    }
+
+    function fillCaePreset() {
+      document.getElementById("caeToolName").value = "OpenFOAM";
+      document.getElementById("caeSimulationType").value = "multiphase_cfd";
+      document.getElementById("caeResultStatus").value = "success";
+      document.getElementById("caeFailureMode").value = "";
+      document.getElementById("caeErrorSignature").value = "";
+      document.getElementById("caeSummary").value = "interFoam resin air VTK outputs stable CFD case";
+      document.getElementById("caeLesson").value = "Stable run with usable VTK outputs for review.";
+    }
+
+    async function runCompareCae() {
+      const payload = {
+        source_org: document.getElementById("caeSourceOrg").value.trim() || "Mitsui",
+        tool_name: document.getElementById("caeToolName").value.trim(),
+        simulation_type: document.getElementById("caeSimulationType").value.trim(),
+        result_status: document.getElementById("caeResultStatus").value.trim(),
+        failure_mode: document.getElementById("caeFailureMode").value.trim(),
+        error_signature: document.getElementById("caeErrorSignature").value.trim(),
+        summary: document.getElementById("caeSummary").value.trim(),
+        lesson: document.getElementById("caeLesson").value.trim(),
+        top_k: Number(document.getElementById("caeTopK").value || "8")
+      };
+      try {
+        await postJson("/compare/cae-run", payload, "Comparing CAE run...");
+      } catch (error) {
+        document.getElementById("resultCards").innerHTML = `
+          <div class="result-card">
+            <div class="result-title">CAE compare failed</div>
+            <div class="muted">${String(error)}</div>
+          </div>
+        `;
+      }
+    }
+
+    function clearResults() {
+      document.getElementById("resultCards").innerHTML = `
+        <div class="result-card">
+          <div class="result-title">Results cleared</div>
+          <div class="muted">Search, Compare Case, or Compare CAE を実行してください。</div>
+        </div>
+      `;
+      setRawOutput({ message: "cleared" });
+    }
+
+    document.getElementById("runSearch").addEventListener("click", runSearch);
+    document.getElementById("refreshHealth").addEventListener("click", loadHealth);
+    document.getElementById("runCompareEmail").addEventListener("click", runCompareEmail);
+    document.getElementById("runCompareCase").addEventListener("click", runCompareCase);
+    document.getElementById("runCompareQuality").addEventListener("click", runCompareQuality);
+    document.getElementById("runCompareImprovement").addEventListener("click", runCompareImprovement);
+    document.getElementById("runCompareCae").addEventListener("click", runCompareCae);
+    document.getElementById("fillEmailPreset").addEventListener("click", fillEmailPreset);
+    document.getElementById("fillCasePreset").addEventListener("click", fillCasePreset);
+    document.getElementById("fillQualityPreset").addEventListener("click", fillQualityPreset);
+    document.getElementById("fillImprovementPreset").addEventListener("click", fillImprovementPreset);
+    document.getElementById("fillCaePreset").addEventListener("click", fillCaePreset);
+    document.getElementById("clearResults").addEventListener("click", clearResults);
+    document.getElementById("toggleRaw").addEventListener("click", () => {
+      rawVisible = !rawVisible;
+      document.getElementById("rawOutput").hidden = !rawVisible;
+    });
+
+    document.querySelectorAll(".preset").forEach((button) => {
+      button.addEventListener("click", () => {
+        const mode = button.dataset.mode || "search";
+        if (mode === "search") {
+          document.getElementById("query").value = button.dataset.query || "";
+          document.getElementById("collections").value = button.dataset.collections || "";
+          runSearch();
+          return;
+        }
+        if (mode === "compare-email") {
+          fillEmailPreset();
+          runCompareEmail();
+          return;
+        }
+        if (mode === "compare-case") {
+          fillCasePreset();
+          runCompareCase();
+          return;
+        }
+        if (mode === "compare-quality") {
+          fillQualityPreset();
+          runCompareQuality();
+          return;
+        }
+        if (mode === "compare-improvement") {
+          fillImprovementPreset();
+          runCompareImprovement();
+          return;
+        }
+        if (mode === "compare-cae") {
+          fillCaePreset();
+          runCompareCae();
+        }
+      });
+    });
+
+    loadHealth();
+    loadAutoRepairStatus();
+    loadRiskNotificationStatus();
+  </script>
+</body>
+</html>

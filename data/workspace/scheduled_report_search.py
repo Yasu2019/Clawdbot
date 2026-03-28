@@ -3,8 +3,12 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
+import shutil
 import sqlite3
+import tempfile
+import urllib.error
 import urllib.request
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -12,13 +16,24 @@ from typing import Iterable
 
 
 JST = timezone(timedelta(hours=9))
-API_BASE = "http://127.0.0.1:5679/api/v1"
+DEFAULT_API_BASES = [
+    "http://127.0.0.1:5679/api/v1",
+    "http://host.docker.internal:5679/api/v1",
+    "http://127.0.0.1:5679/rest",
+    "http://host.docker.internal:5679/rest",
+]
+API_BASE_CANDIDATES = [
+    base.rstrip("/")
+    for base in ([os.getenv("N8N_API_BASE", "").strip()] + DEFAULT_API_BASES)
+    if base and base.strip()
+]
 API_KEY = "n8n_api_clawstack_f39c126b684f59ab50cc3fdedd82891086bfc633601067c9"
 WORKSPACE_ROOT = Path("/home/node/clawd")
 DEFAULT_DB = WORKSPACE_ROOT / "email_search.db"
 HOST_WORKSPACE_ROOT = Path(__file__).resolve().parent
 STATUS_PATH = (WORKSPACE_ROOT if WORKSPACE_ROOT.exists() else HOST_WORKSPACE_ROOT) / "scheduled_report_search_status.json"
 SYNC_STATE_PATH = (WORKSPACE_ROOT if WORKSPACE_ROOT.exists() else HOST_WORKSPACE_ROOT) / "scheduled_report_sync_state.json"
+ACTIVE_API_BASE: str | None = None
 
 TARGET_WORKFLOWS = [
     "Daily AI Scout (新AI・ツール探索)",
@@ -54,9 +69,34 @@ def detect_db_path(explicit: str | None) -> Path:
 def connect_db(db_path: Path) -> sqlite3.Connection:
     con = sqlite3.connect(db_path, timeout=30)
     con.row_factory = sqlite3.Row
-    con.execute("PRAGMA journal_mode=WAL")
+    try:
+        con.execute("PRAGMA journal_mode=WAL")
+    except sqlite3.OperationalError:
+        # Mounted workspaces on Windows shares can reject WAL; fall back to DELETE mode.
+        con.execute("PRAGMA journal_mode=DELETE")
     con.execute("PRAGMA synchronous=NORMAL")
     return con
+
+
+def should_use_temp_db(db_path: Path) -> bool:
+    path_text = str(db_path).replace("\\", "/").lower()
+    return path_text.startswith("/workspace/") or "clawd/email_search.db" in path_text
+
+
+def sync_using_temp_db(db_path: Path, limit_executions: int) -> dict:
+    tmpdir = Path(tempfile.mkdtemp(prefix="scheduled_report_sync_"))
+    temp_db_path = tmpdir / db_path.name
+    shutil.copy2(db_path, temp_db_path)
+    try:
+        con = connect_db(temp_db_path)
+        try:
+            result = sync_reports(con, limit_executions)
+        finally:
+            con.close()
+        shutil.copy2(temp_db_path, db_path)
+        return result
+    finally:
+        shutil.rmtree(tmpdir, ignore_errors=True)
 
 
 def ensure_schema(con: sqlite3.Connection) -> None:
@@ -111,12 +151,37 @@ def ensure_schema(con: sqlite3.Connection) -> None:
 
 
 def request_json(path: str) -> dict:
-    req = urllib.request.Request(
-        f"{API_BASE}{path}",
-        headers={"X-N8N-API-KEY": API_KEY, "Content-Type": "application/json"},
-    )
-    with urllib.request.urlopen(req, timeout=30) as resp:
-        return json.load(resp)
+    global ACTIVE_API_BASE
+    candidates = [ACTIVE_API_BASE] if ACTIVE_API_BASE else []
+    candidates.extend([base for base in API_BASE_CANDIDATES if base != ACTIVE_API_BASE])
+    last_error: Exception | None = None
+
+    for base in candidates:
+        if not base:
+            continue
+        for headers in (
+            {"X-N8N-API-KEY": API_KEY, "Content-Type": "application/json"},
+            {"N8N-API-KEY": API_KEY, "Content-Type": "application/json"},
+        ):
+            req = urllib.request.Request(f"{base}{path}", headers=headers)
+            try:
+                with urllib.request.urlopen(req, timeout=30) as resp:
+                    ACTIVE_API_BASE = base
+                    return json.load(resp)
+            except urllib.error.HTTPError as exc:
+                last_error = exc
+                if exc.code in (401, 403):
+                    continue
+                if exc.code == 404:
+                    continue
+                raise
+            except Exception as exc:
+                last_error = exc
+                continue
+
+    if last_error:
+        raise last_error
+    raise RuntimeError("No valid n8n API base configured")
 
 
 def list_workflows() -> list[dict]:
@@ -408,15 +473,18 @@ def build_context(query: str, rows: list[dict], fallback_kind: str) -> str:
 
 def cmd_sync(args: argparse.Namespace) -> int:
     db_path = detect_db_path(args.db)
-    con = connect_db(db_path)
-    try:
-        result = sync_reports(con, args.limit_executions)
-        payload = {"db_path": str(db_path), **result}
-        write_status({"updatedAt": now_jst(), "stage": "sync", **payload})
-        print(json.dumps(payload, ensure_ascii=False, indent=2))
-        return 0
-    finally:
-        con.close()
+    if should_use_temp_db(db_path):
+        result = sync_using_temp_db(db_path, args.limit_executions)
+    else:
+        con = connect_db(db_path)
+        try:
+            result = sync_reports(con, args.limit_executions)
+        finally:
+            con.close()
+    payload = {"db_path": str(db_path), **result}
+    write_status({"updatedAt": now_jst(), "stage": "sync", **payload})
+    print(json.dumps(payload, ensure_ascii=False, indent=2))
+    return 0
 
 
 def cmd_context(args: argparse.Namespace) -> int:

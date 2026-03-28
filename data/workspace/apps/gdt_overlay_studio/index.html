@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GD&amp;T Overlay Studio</title>
+  <style>
+    :root{--bg:#0a1220;--panel:#101a2b;--line:#243347;--text:#edf4ff;--muted:#9fb1ca;--accent:#5db0ff;--ok:#95efbf;--warn:#ffd978;--danger:#ff8f8f}
+    *{box-sizing:border-box}
+    body{margin:0;font:14px/1.4 "Segoe UI",sans-serif;background:radial-gradient(circle at top,#16233a,#0a1220 45%);color:var(--text);height:100vh;overflow:hidden}
+    .app{display:grid;grid-template-columns:360px 1fr 300px;grid-template-rows:56px 1fr;height:100vh}
+    .header{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;padding:0 16px;background:rgba(8,12,20,.92);border-bottom:1px solid var(--line)}
+    .sub{font-size:12px;color:var(--muted)}
+    .badge{display:inline-block;padding:3px 8px;border-radius:999px;background:rgba(93,176,255,.16);color:var(--accent);font-size:11px;font-weight:700;margin-left:10px}
+    .side,.inspect{overflow:auto;background:rgba(10,17,29,.96)}
+    .side{border-right:1px solid var(--line)}
+    .inspect{border-left:1px solid var(--line)}
+    .viewer{position:relative;background:#020611}
+    #c{width:100%;height:100%;display:block}
+    .sec{padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.05)}
+    .sec h2{margin:0 0 10px;font-size:13px;color:var(--accent);text-transform:uppercase}
+    .small{font-size:12px;color:var(--muted)}
+    .drop{border:1px dashed rgba(93,176,255,.45);border-radius:12px;padding:12px;background:rgba(93,176,255,.05);margin-bottom:10px}
+    label.btn,button{display:inline-block;border:1px solid var(--line);background:#132035;color:var(--text);border-radius:10px;padding:8px 12px;cursor:pointer}
+    label.btn:hover,button:hover{border-color:var(--accent)}
+    button.primary{background:linear-gradient(135deg,#3c8dff,#2463d9);border-color:#3c8dff}
+    .tab{display:inline-block;border:1px solid var(--line);background:#132035;color:var(--text);border-radius:10px;padding:8px 12px;cursor:pointer}
+    .tab:hover{border-color:var(--accent)}
+    .tab.active{border-color:var(--accent);background:rgba(93,176,255,.12)}
+    input[type=file]{display:none}
+    .field{margin-bottom:9px}
+    .field label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
+    .field input,.field select{width:100%;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:#0d1627;color:var(--text)}
+    .r2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .r3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+    .tabs{display:flex;gap:8px;margin-bottom:10px}
+    .list{display:grid;gap:8px}
+    .item{padding:10px;border:1px solid var(--line);border-radius:12px;background:#10192a;cursor:pointer}
+    .item.active{border-color:var(--accent);background:rgba(93,176,255,.12)}
+    .sym{font-weight:700;color:var(--accent)}
+    .status{padding:8px 10px;border-radius:10px;background:rgba(255,217,120,.1);border:1px solid rgba(255,217,120,.25);color:var(--warn);font-size:12px}
+    .status.ok{background:rgba(149,239,191,.1);border-color:rgba(149,239,191,.25);color:var(--ok)}
+    .status.danger{background:rgba(255,143,143,.1);border-color:rgba(255,143,143,.25);color:var(--danger)}
+    .thumb{border:1px solid var(--line);border-radius:12px;padding:8px;background:#0d1627;margin-bottom:10px}
+    .thumb img,.thumb canvas,.thumb .svg{width:100%;background:#fff;border-radius:8px}
+    .svg{padding:8px;overflow:auto;max-height:280px}
+    .overlay{position:absolute;left:12px;bottom:12px;max-width:500px;padding:10px 12px;background:rgba(7,11,19,.86);border:1px solid var(--line);border-radius:12px;font-size:12px;color:var(--muted)}
+    .toolbar{position:absolute;top:12px;left:12px;display:flex;gap:8px}
+    .pill{padding:5px 9px;border-radius:999px;background:rgba(255,255,255,.06);font-size:11px;color:var(--muted)}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="header">
+      <div>
+        <b>GD&amp;T Overlay Studio</b><span class="badge">MVP</span>
+        <div class="sub">3D model + DXF/PDF drawing + datum and tolerance overlay workbench</div>
+      </div>
+      <div>
+        <button id="resetBtn">Reset View</button>
+        <button id="exportBtn">Export JSON</button>
+        <label class="btn">Import JSON<input id="jsonIn" type="file" accept=".json"></label>
+      </div>
+    </div>
+
+    <aside class="side">
+      <div class="sec">
+        <h2>Inputs</h2>
+        <div class="drop">
+          <b>3D Model</b>
+          <div class="small">STL / OBJ / GLB / GLTF</div>
+          <div style="height:8px"></div>
+          <label class="btn">Load Model<input id="modelIn" type="file" accept=".stl,.obj,.glb,.gltf"></label>
+        </div>
+        <div class="drop">
+          <b>Drawing</b>
+          <div class="small">PDF / PNG / JPG / SVG / DXF</div>
+          <div style="height:8px"></div>
+          <label class="btn">Load Drawings<input id="drawIn" type="file" accept=".pdf,.png,.jpg,.jpeg,.svg,.dxf" multiple></label>
+        </div>
+        <div class="drop">
+          <b>Packed HTML</b>
+          <div class="small">Import `gdt_packed_iso_*.html` and reuse embedded STL / DATUMS / GDT data.</div>
+          <div style="height:8px"></div>
+          <label class="btn">Import Packed HTML<input id="packedIn" type="file" accept=".html,.htm"></label>
+        </div>
+        <div id="status" class="status">Load a 3D model to begin.</div>
+      </div>
+
+      <div class="sec">
+        <div class="tabs">
+          <button class="tab active" data-tab="gdt">Annotations</button>
+          <button class="tab" data-tab="datum">Datums</button>
+          <button class="tab" data-tab="draw">Drawings</button>
+        </div>
+
+        <div id="tab-gdt">
+          <div class="small" id="picked">Click the 3D viewer to capture coordinates.</div>
+          <div style="height:8px"></div>
+          <div class="r2">
+            <div class="field"><label>ID</label><input id="gid" value="gdt-001"></div>
+            <div class="field">
+              <label>Category</label>
+              <select id="gcat">
+                <option>position</option>
+                <option>flatness</option>
+                <option>perpendicularity</option>
+                <option>parallelism</option>
+                <option>symmetry</option>
+                <option>dimension</option>
+                <option>note</option>
+              </select>
+            </div>
+          </div>
+          <div class="r2">
+            <div class="field"><label>Symbol / Value</label><input id="gsym" value="0.2"></div>
+            <div class="field"><label>Datum Ref</label><input id="gref" value="A-B | C-C"></div>
+          </div>
+          <div class="field"><label>Description</label><input id="gdesc" value="Manual callout"></div>
+          <div class="r3">
+            <div class="field"><label>X</label><input id="gx" type="number" step="0.01" value="0"></div>
+            <div class="field"><label>Y</label><input id="gy" type="number" step="0.01" value="0"></div>
+            <div class="field"><label>Z</label><input id="gz" type="number" step="0.01" value="0"></div>
+          </div>
+          <div class="r2">
+            <div class="field">
+              <label>Zone Type</label>
+              <select id="gtype">
+                <option value="cyl">Cylinder</option>
+                <option value="planes">Parallel planes</option>
+                <option value="sphere">Sphere marker</option>
+              </select>
+            </div>
+            <div class="field"><label>Zone Size</label><input id="gsize" type="number" step="0.01" value="0.2"></div>
+          </div>
+          <div class="r3">
+            <div class="field"><label>Ax</label><input id="gax" type="number" step="0.1" value="0"></div>
+            <div class="field"><label>Ay</label><input id="gay" type="number" step="0.1" value="1"></div>
+            <div class="field"><label>Az</label><input id="gaz" type="number" step="0.1" value="0"></div>
+          </div>
+          <div class="r2">
+            <button id="pickBtn">Use Picked</button>
+            <button id="gsave" class="primary">Add / Update</button>
+          </div>
+          <div style="height:10px"></div>
+          <div id="glist" class="list"></div>
+        </div>
+
+        <div id="tab-datum" style="display:none">
+          <div class="r2">
+            <div class="field"><label>Label</label><input id="dlabel" value="A"></div>
+            <div class="field"><label>Color</label><input id="dcolor" value="#ff6b6b"></div>
+          </div>
+          <div class="r3">
+            <div class="field"><label>X</label><input id="dx" type="number" step="0.01" value="0"></div>
+            <div class="field"><label>Y</label><input id="dy" type="number" step="0.01" value="0"></div>
+            <div class="field"><label>Z</label><input id="dz" type="number" step="0.01" value="0"></div>
+          </div>
+          <div class="r3">
+            <div class="field"><label>Nx</label><input id="dnx" type="number" step="0.1" value="0"></div>
+            <div class="field"><label>Ny</label><input id="dny" type="number" step="0.1" value="1"></div>
+            <div class="field"><label>Nz</label><input id="dnz" type="number" step="0.1" value="0"></div>
+          </div>
+          <div class="r2">
+            <button id="dpickBtn">Use Picked</button>
+            <button id="dsave" class="primary">Add / Update</button>
+          </div>
+          <div style="height:10px"></div>
+          <div id="dlist" class="list"></div>
+        </div>
+
+        <div id="tab-draw" style="display:none">
+          <div id="drawList"></div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="viewer">
+      <div class="toolbar">
+        <div class="pill" id="mname">No model</div>
+        <div class="pill" id="sel">No selection</div>
+      </div>
+      <canvas id="c"></canvas>
+      <div class="overlay">Load a 3D model and one or more drawings, then place datums and GD&amp;T zones in 3D. Packed HTML import also works for ChatGPT-generated DATUMS / GDT prototypes.</div>
+    </main>
+
+    <aside class="inspect">
+      <div class="sec">
+        <h2>Selection</h2>
+        <div id="info" class="small">Details for the selected datum or GD&amp;T item appear here.</div>
+      </div>
+      <div class="sec">
+        <h2>Notes</h2>
+        <div class="small">Direct STEP import is not included in this MVP. Use the existing STEP to 3D HTML or STEP to STL workflow first, then load the converted model here. DXF preview reuses the existing dxf2step API SVG preview.</div>
+        <div style="height:10px"></div>
+        <div class="small"><b>Protocol:</b> The supervised workflow reference is `local_llm_supervision_protocol_complete_utf8_bom.zip`. Key working rule: keep datum and GD&amp;T data reviewable and editable rather than fully automatic.</div>
+      </div>
+    </aside>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/loaders/STLLoader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/loaders/OBJLoader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/loaders/GLTFLoader.js"></script>
+  <script type="module">
+    import * as pdfjsLib from "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.3.136/build/pdf.min.mjs";
+
+    pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.3.136/build/pdf.worker.min.mjs";
+
+    const state = { model: null, name: "", datums: {}, gdts: [], drawings: [], pick: null, sel: null };
+    const $ = (id) => document.getElementById(id);
+    const setStatus = (text, cls = "") => {
+      $("status").className = cls ? `status ${cls}` : "status";
+      $("status").textContent = text;
+    };
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x020611);
+    const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 10000);
+    camera.position.set(120, 90, 120);
+    const renderer = new THREE.WebGLRenderer({ canvas: $("c"), antialias: true });
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+
+    const modelGroup = new THREE.Group();
+    const overlayGroup = new THREE.Group();
+    scene.add(new THREE.GridHelper(240, 24, 0x2f4765, 0x1b2940), modelGroup, overlayGroup, new THREE.AmbientLight(0xffffff, 1.35));
+    const directional = new THREE.DirectionalLight(0xffffff, 1.5);
+    directional.position.set(120, 160, 90);
+    scene.add(directional);
+
+    const pickMarker = new THREE.Mesh(
+      new THREE.SphereGeometry(1.8, 18, 18),
+      new THREE.MeshBasicMaterial({ color: 0xffca57 })
+    );
+    pickMarker.visible = false;
+    overlayGroup.add(pickMarker);
+
+    const raycaster = new THREE.Raycaster();
+    const pointer = new THREE.Vector2();
+
+    function resize() {
+      const rect = renderer.domElement.getBoundingClientRect();
+      camera.aspect = rect.width / rect.height;
+      camera.updateProjectionMatrix();
+      renderer.setSize(rect.width, rect.height, false);
+    }
+
+    addEventListener("resize", resize);
+    resize();
+    (function loop() {
+      controls.update();
+      renderer.render(scene, camera);
+      requestAnimationFrame(loop);
+    })();
+
+    function toHex(value) {
+      return typeof value === "number" ? `#${value.toString(16).padStart(6, "0")}` : (value || "#58a6ff");
+    }
+
+    function makeLabel(text, color = "#dbeafe") {
+      const canvas = document.createElement("canvas");
+      canvas.width = 512;
+      canvas.height = 128;
+      const ctx = canvas.getContext("2d");
+      ctx.fillStyle = "rgba(6,10,18,.86)";
+      ctx.fillRect(0, 0, 512, 128);
+      ctx.strokeStyle = "rgba(93,176,255,.8)";
+      ctx.lineWidth = 3;
+      ctx.strokeRect(4, 4, 504, 120);
+      ctx.fillStyle = color;
+      ctx.font = "bold 44px Segoe UI";
+      ctx.fillText(text, 18, 74);
+      const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(canvas), transparent: true }));
+      sprite.scale.set(22, 5.5, 1);
+      return sprite;
+    }
+
+    function fitObject(object3d) {
+      const box = new THREE.Box3().setFromObject(object3d);
+      if (!Number.isFinite(box.min.x)) return;
+      const center = box.getCenter(new THREE.Vector3());
+      const size = box.getSize(new THREE.Vector3());
+      const maxSize = Math.max(size.x, size.y, size.z) || 1;
+      controls.target.copy(center);
+      camera.position.copy(center.clone().add(new THREE.Vector3(maxSize * 1.6, maxSize * 1.2, maxSize * 1.6)));
+      camera.near = Math.max(0.1, maxSize / 1000);
+      camera.far = maxSize * 100;
+      camera.updateProjectionMatrix();
+    }
+
+    function applyStandardMaterial(object3d) {
+      object3d.traverse((child) => {
+        if (child.isMesh) {
+          child.material = new THREE.MeshStandardMaterial({
+            color: 0xaed3ff,
+            metalness: 0.12,
+            roughness: 0.58,
+            side: THREE.DoubleSide,
+          });
+        }
+      });
+    }
+
+    function clearModel() {
+      while (modelGroup.children.length) modelGroup.remove(modelGroup.children[0]);
+      state.model = null;
+    }
+
+    function setModel(object3d, name) {
+      clearModel();
+      applyStandardMaterial(object3d);
+      modelGroup.add(object3d);
+      state.model = object3d;
+      state.name = name;
+      $("mname").textContent = name;
+      fitObject(object3d);
+      redrawOverlay();
+      setStatus(`Model loaded: ${name}`, "ok");
+    }
+
+    function loadStlBuffer(buffer, name) {
+      const geometry = new THREE.STLLoader().parse(buffer);
+      geometry.computeVertexNormals();
+      setModel(new THREE.Mesh(geometry, new THREE.MeshStandardMaterial({ color: 0xaed3ff })), name);
+    }
+
+    function loadModel(file) {
+      const ext = file.name.split(".").pop().toLowerCase();
+      const url = URL.createObjectURL(file);
+      if (ext === "stl") return file.arrayBuffer().then((buffer) => loadStlBuffer(buffer, file.name));
+      if (ext === "obj") return new THREE.OBJLoader().load(url, (obj) => setModel(obj, file.name));
+      if (ext === "glb" || ext === "gltf") return new THREE.GLTFLoader().load(url, (gltf) => setModel(gltf.scene, file.name));
+      setStatus(`Unsupported 3D format: ${ext}`, "danger");
+    }
+
+    function redrawOverlay() {
+      while (overlayGroup.children.length > 1) overlayGroup.remove(overlayGroup.children[1]);
+
+      Object.values(state.datums).forEach((datum) => {
+        const group = new THREE.Group();
+        const color = new THREE.Color(toHex(datum.color));
+        const pos = new THREE.Vector3(...datum.pos);
+        const normal = new THREE.Vector3(...datum.n).normalize();
+        const dot = new THREE.Mesh(new THREE.SphereGeometry(2.3, 18, 18), new THREE.MeshBasicMaterial({ color }));
+        dot.position.copy(pos);
+        group.add(dot);
+        group.add(new THREE.ArrowHelper(normal, pos, 16, color.getHex(), 4, 2));
+        const label = makeLabel(`Datum ${datum.label}`, toHex(datum.color));
+        label.position.copy(pos.clone().add(new THREE.Vector3(0, 8, 0)));
+        group.add(label);
+        overlayGroup.add(group);
+      });
+
+      state.gdts.forEach((gdt) => {
+        if (gdt.visible === false) return;
+        const group = new THREE.Group();
+        const highlight = gdt.id === state.sel ? 0xffca57 : 0x5db0ff;
+        (gdt.zones || []).forEach((zone) => {
+          const pos = new THREE.Vector3(...(zone.pos || [0, 0, 0]));
+          if (zone.t === "cyl") {
+            const radius = Number(zone.d || zone.size || 1) / 2;
+            const height = Number(zone.h || 16);
+            const mesh = new THREE.Mesh(
+              new THREE.CylinderGeometry(radius, radius, height, 24, 1, true),
+              new THREE.MeshBasicMaterial({ color: highlight, wireframe: true })
+            );
+            mesh.quaternion.setFromUnitVectors(
+              new THREE.Vector3(0, 1, 0),
+              new THREE.Vector3(...(zone.ax || [0, 1, 0])).normalize()
+            );
+            mesh.position.copy(pos);
+            group.add(mesh);
+          } else if (zone.t === "planes") {
+            const mesh = new THREE.Mesh(
+              new THREE.BoxGeometry(Number(zone.sx || 18), Number(zone.off || zone.size || 0.2) * 2, Number(zone.sz || 18)),
+              new THREE.MeshBasicMaterial({ color: highlight, wireframe: true })
+            );
+            mesh.quaternion.setFromUnitVectors(
+              new THREE.Vector3(0, 1, 0),
+              new THREE.Vector3(...(zone.n || [0, 1, 0])).normalize()
+            );
+            mesh.position.copy(pos);
+            group.add(mesh);
+          } else {
+            const mesh = new THREE.Mesh(
+              new THREE.SphereGeometry(Number(zone.size || 2), 16, 16),
+              new THREE.MeshBasicMaterial({ color: highlight, wireframe: true })
+            );
+            mesh.position.copy(pos);
+            group.add(mesh);
+          }
+        });
+        const anchor = gdt.zones && gdt.zones[0] && gdt.zones[0].pos ? new THREE.Vector3(...gdt.zones[0].pos) : new THREE.Vector3();
+        const label = makeLabel(`${gdt.id} ${gdt.sym || ""}`);
+        label.position.copy(anchor.add(new THREE.Vector3(0, 10, 0)));
+        group.add(label);
+        overlayGroup.add(group);
+      });
+    }
+
+    function renderDatums() {
+      const wrap = $("dlist");
+      wrap.innerHTML = "";
+      Object.values(state.datums).forEach((datum) => {
+        const item = document.createElement("div");
+        item.className = `item ${state.sel === `datum:${datum.label}` ? "active" : ""}`;
+        item.innerHTML = `<div class="sym">Datum ${datum.label}</div><div class="small">(${datum.pos.map((v) => Number(v).toFixed(2)).join(", ")})</div>`;
+        item.onclick = () => {
+          state.sel = `datum:${datum.label}`;
+          $("sel").textContent = `Datum ${datum.label}`;
+          $("info").innerHTML = `<b>${datum.label}</b><br>pos: ${datum.pos.map((v) => Number(v).toFixed(2)).join(", ")}<br>normal: ${datum.n.join(", ")}`;
+          renderDatums();
+          renderGdts();
+        };
+        wrap.appendChild(item);
+      });
+    }
+
+    function renderGdts() {
+      const wrap = $("glist");
+      wrap.innerHTML = "";
+      state.gdts.forEach((gdt) => {
+        const item = document.createElement("div");
+        item.className = `item ${state.sel === gdt.id ? "active" : ""}`;
+        item.innerHTML = `<div class="sym">${gdt.id} | ${gdt.sym || ""}</div><div>${gdt.desc || ""}</div><div class="small">${gdt.cat || ""} | ${gdt.ref || ""}</div>`;
+        item.onclick = () => {
+          state.sel = gdt.id;
+          $("sel").textContent = gdt.id;
+          $("info").innerHTML = `<b>${gdt.id}</b><br>${gdt.desc || ""}<br>ref: ${gdt.ref || "-"}<br>zones: ${(gdt.zones || []).length}`;
+          renderDatums();
+          renderGdts();
+          redrawOverlay();
+        };
+        wrap.appendChild(item);
+      });
+    }
+
+    function renderDrawings() {
+      const wrap = $("drawList");
+      wrap.innerHTML = "";
+      state.drawings.forEach((drawing) => {
+        const item = document.createElement("div");
+        item.className = "thumb";
+        if (drawing.kind === "image") {
+          const img = document.createElement("img");
+          img.src = drawing.preview;
+          item.appendChild(img);
+        } else if (drawing.kind === "pdf") {
+          item.appendChild(drawing.canvas);
+        } else if (drawing.kind === "dxf") {
+          const holder = document.createElement("div");
+          holder.className = "svg";
+          holder.innerHTML = drawing.svg;
+          item.appendChild(holder);
+        }
+        item.innerHTML += `<div class="small" style="margin-top:8px">${drawing.kind.toUpperCase()} | ${drawing.name}</div>`;
+        wrap.appendChild(item);
+      });
+    }
+
+    function refreshAll() {
+      renderDatums();
+      renderGdts();
+      renderDrawings();
+      redrawOverlay();
+    }
+
+    function num(id) {
+      return Number($(id).value);
+    }
+
+    function usePick(prefix) {
+      if (!state.pick) return;
+      $(`${prefix}x`).value = state.pick.x.toFixed(2);
+      $(`${prefix}y`).value = state.pick.y.toFixed(2);
+      $(`${prefix}z`).value = state.pick.z.toFixed(2);
+    }
+
+    function saveDatum() {
+      const key = $("dlabel").value.trim() || "A";
+      state.datums[key] = {
+        label: key,
+        color: $("dcolor").value || "#ff6b6b",
+        pos: [num("dx"), num("dy"), num("dz")],
+        n: [num("dnx"), num("dny"), num("dnz")],
+      };
+      refreshAll();
+    }
+
+    function saveGdt() {
+      const id = $("gid").value.trim() || `gdt-${state.gdts.length + 1}`;
+      const zoneSize = num("gsize");
+      const entry = {
+        id,
+        cat: $("gcat").value,
+        sym: $("gsym").value.trim(),
+        ref: $("gref").value.trim(),
+        desc: $("gdesc").value.trim(),
+        visible: true,
+        zones: [{
+          t: $("gtype").value,
+          pos: [num("gx"), num("gy"), num("gz")],
+          size: zoneSize,
+          d: zoneSize,
+          off: zoneSize / 2,
+          sx: 28,
+          sz: 18,
+          h: 18,
+          ax: [num("gax"), num("gay"), num("gaz")],
+          n: [num("gax"), num("gay"), num("gaz")],
+        }],
+      };
+      const index = state.gdts.findIndex((row) => row.id === id);
+      if (index >= 0) state.gdts[index] = entry;
+      else state.gdts.push(entry);
+      refreshAll();
+    }
+
+    function b64ToBuffer(b64) {
+      const binary = atob(b64);
+      const array = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i += 1) array[i] = binary.charCodeAt(i);
+      return array.buffer;
+    }
+
+    function parseJsBlock(text, name) {
+      const marker = `var ${name} =`;
+      const start = text.indexOf(marker);
+      if (start < 0) return null;
+      const valueStart = start + marker.length;
+      const end = text.indexOf(";\n", valueStart);
+      if (end < 0) return null;
+      return Function(`return (${text.slice(valueStart, end).trim()});`)();
+    }
+
+    function importPackedHtml(file) {
+      file.text().then((text) => {
+        const stlMatch = text.match(/var\s+EMBEDDED_STL_B64\s*=\s*"([\s\S]*?)";/);
+        const datums = parseJsBlock(text, "DATUMS") || {};
+        const gdts = parseJsBlock(text, "GDT") || [];
+        if (stlMatch) loadStlBuffer(b64ToBuffer(stlMatch[1]), file.name.replace(/\.html?$/i, ".stl"));
+        state.datums = {};
+        Object.entries(datums).forEach(([key, value]) => {
+          state.datums[key] = {
+            label: value.label || key,
+            color: toHex(value.color),
+            pos: value.pos || [0, 0, 0],
+            n: value.n || [0, 1, 0],
+          };
+        });
+        state.gdts = gdts.map((value) => ({
+          id: value.id,
+          cat: value.cat,
+          sym: value.sym,
+          ref: value.ref,
+          desc: value.desc,
+          val: value.val,
+          zones: value.zones || [],
+          visible: true,
+        }));
+        refreshAll();
+        setStatus(`Packed HTML imported: ${file.name}`, "ok");
+      }).catch((error) => setStatus(`Packed HTML import failed: ${error.message}`, "danger"));
+    }
+
+    function exportJson() {
+      const payload = {
+        meta: { modelName: state.name, exportedAt: new Date().toISOString() },
+        datums: state.datums,
+        gdts: state.gdts,
+        drawings: state.drawings.map((value) => ({ name: value.name, kind: value.kind })),
+      };
+      const url = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" }));
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "gdt_overlay_session.json";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function importJson(file) {
+      file.text().then((text) => {
+        const payload = JSON.parse(text);
+        state.datums = payload.datums || {};
+        state.gdts = payload.gdts || [];
+        refreshAll();
+        setStatus(`JSON imported: ${file.name}`, "ok");
+      }).catch((error) => setStatus(`JSON import failed: ${error.message}`, "danger"));
+    }
+
+    async function addDrawing(file) {
+      const ext = file.name.split(".").pop().toLowerCase();
+      if (["png", "jpg", "jpeg", "svg"].includes(ext)) {
+        state.drawings.push({ name: file.name, kind: "image", preview: URL.createObjectURL(file) });
+        renderDrawings();
+        return;
+      }
+      if (ext === "pdf") {
+        const pdf = await pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise;
+        const page = await pdf.getPage(1);
+        const viewport = page.getViewport({ scale: 1.2 });
+        const canvas = document.createElement("canvas");
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+        await page.render({ canvasContext: canvas.getContext("2d"), viewport }).promise;
+        state.drawings.push({ name: file.name, kind: "pdf", canvas });
+        renderDrawings();
+        return;
+      }
+      if (ext === "dxf") {
+        setStatus(`Generating DXF preview: ${file.name}`);
+        const fd = new FormData();
+        fd.append("file", file);
+        fd.append("default_thickness_mm", "10");
+        const jobResponse = await fetch("http://127.0.0.1:8003/api/dxf2step/jobs", { method: "POST", body: fd });
+        const job = await jobResponse.json();
+        const svgResponse = await fetch(`http://127.0.0.1:8003/api/dxf2step/preview-svg/${job.job_id}`);
+        const svg = await svgResponse.text();
+        state.drawings.push({ name: file.name, kind: "dxf", svg });
+        renderDrawings();
+        setStatus(`DXF preview ready: ${file.name}`, "ok");
+        return;
+      }
+      setStatus(`Unsupported drawing format: ${file.name}`, "danger");
+    }
+
+    $("c").addEventListener("pointerdown", (event) => {
+      const rect = renderer.domElement.getBoundingClientRect();
+      pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+      raycaster.setFromCamera(pointer, camera);
+      const hits = raycaster.intersectObjects(modelGroup.children, true);
+      if (!hits.length) return;
+      const point = hits[0].point;
+      state.pick = { x: point.x, y: point.y, z: point.z };
+      pickMarker.visible = true;
+      pickMarker.position.copy(point);
+      $("picked").textContent = `X ${point.x.toFixed(2)} / Y ${point.y.toFixed(2)} / Z ${point.z.toFixed(2)}`;
+    });
+
+    $("modelIn").addEventListener("change", (e) => e.target.files[0] && loadModel(e.target.files[0]));
+    $("drawIn").addEventListener("change", async (e) => { for (const file of e.target.files) await addDrawing(file); });
+    $("packedIn").addEventListener("change", (e) => e.target.files[0] && importPackedHtml(e.target.files[0]));
+    $("jsonIn").addEventListener("change", (e) => e.target.files[0] && importJson(e.target.files[0]));
+    $("pickBtn").onclick = () => usePick("g");
+    $("dpickBtn").onclick = () => usePick("d");
+    $("gsave").onclick = saveGdt;
+    $("dsave").onclick = saveDatum;
+    $("exportBtn").onclick = exportJson;
+    $("resetBtn").onclick = () => state.model && fitObject(state.model);
+
+    document.querySelectorAll(".tab").forEach((button) => {
+      button.onclick = () => {
+        document.querySelectorAll(".tab").forEach((x) => x.classList.remove("active"));
+        button.classList.add("active");
+        $("tab-gdt").style.display = button.dataset.tab === "gdt" ? "block" : "none";
+        $("tab-datum").style.display = button.dataset.tab === "datum" ? "block" : "none";
+        $("tab-draw").style.display = button.dataset.tab === "draw" ? "block" : "none";
+      };
+    });
+
+    refreshAll();
+  </script>
+</body>
+</html>

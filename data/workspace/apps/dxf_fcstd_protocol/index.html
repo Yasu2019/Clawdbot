@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DXF to FCStd Hub</title>
+    <style>
+        :root {
+            --bg: #0b1220;
+            --panel: rgba(19, 30, 52, 0.9);
+            --line: rgba(148, 163, 184, 0.24);
+            --text: #e5eefb;
+            --muted: #9fb1cb;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: "Segoe UI", "Yu Gothic UI", sans-serif;
+            background:
+                radial-gradient(circle at top left, rgba(96, 165, 250, 0.16), transparent 28%),
+                radial-gradient(circle at right 20%, rgba(52, 211, 153, 0.12), transparent 24%),
+                var(--bg);
+            color: var(--text);
+        }
+        .wrap {
+            max-width: 1080px;
+            margin: 0 auto;
+            padding: 32px 20px 48px;
+        }
+        .hero, .panel {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 22px;
+            padding: 24px;
+            box-shadow: 0 18px 48px rgba(0, 0, 0, 0.26);
+            backdrop-filter: blur(10px);
+        }
+        .hero h1 {
+            margin: 0 0 8px;
+            font-size: 2rem;
+        }
+        .hero p, .panel p, .panel li {
+            color: var(--muted);
+            line-height: 1.7;
+        }
+        .grid {
+            margin-top: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 18px;
+        }
+        .panel h2 {
+            margin: 0 0 12px;
+            font-size: 1.15rem;
+        }
+        .badge {
+            display: inline-block;
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            margin-right: 8px;
+            margin-bottom: 10px;
+            background: rgba(96, 165, 250, 0.16);
+            color: #cfe3ff;
+        }
+        .badge.ok {
+            background: rgba(52, 211, 153, 0.18);
+            color: #bbf7d0;
+        }
+        .badge.warn {
+            background: rgba(251, 191, 36, 0.18);
+            color: #fde68a;
+        }
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 18px;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 44px;
+            padding: 0 16px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            border: 1px solid var(--line);
+            color: var(--text);
+            background: rgba(255, 255, 255, 0.04);
+        }
+        .btn.primary {
+            background: linear-gradient(135deg, rgba(96, 165, 250, 0.28), rgba(52, 211, 153, 0.22));
+        }
+        .links a {
+            color: #bfdbfe;
+            text-decoration: none;
+        }
+        code {
+            color: #dbeafe;
+            background: rgba(255,255,255,0.06);
+            border-radius: 6px;
+            padding: 2px 6px;
+        }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <section class="hero">
+            <span class="badge ok">Existing engine found</span>
+            <span class="badge">Portal launcher</span>
+            <h1>DXF to FCStd Hub</h1>
+            <p>
+                既存の <code>dxf2step</code> アプリと、今回受領した DXF to FCStd protocol pack をつなぐ入口です。
+                現在の実装資産では DXF を FreeCAD ベースで処理して 3D 化でき、今後は FCStd を主出力とする自動生成へ段階拡張できます。
+            </p>
+            <div class="actions">
+                <a class="btn primary" href="../dxf2step/" target="_blank" rel="noopener">Open DXF Converter</a>
+                <a class="btn" href="../../../../DXF_to_FCStd_Codex_Protocol_Package.zip" target="_blank" rel="noopener">Open Protocol ZIP</a>
+                <a class="btn" href="../../portal.html">Back to Portal</a>
+            </div>
+        </section>
+        <div class="grid">
+            <section class="panel">
+                <h2>Current overlap</h2>
+                <p>
+                    既存アプリ <code>apps/dxf2step</code> はすでに FreeCAD ベースで DXF から 3D モデルを生成しています。
+                    Worker 側にも <code>FreeCADCmd</code>、レイヤー分割、厚み推定、STEP 出力の流れがあります。
+                </p>
+                <ul>
+                    <li>既存 UI: DXF 読み込み、レイヤー確認、ジョブ実行、プレビュー</li>
+                    <li>既存 backend: <code>/api/dxf2step</code></li>
+                    <li>既存 FreeCAD pipeline: headless 実行済み</li>
+                </ul>
+            </section>
+            <section class="panel">
+                <h2>What the protocol adds</h2>
+                <p>
+                    protocol pack は、単なるメッシュ生成ではなく、<strong>Feature tree を意識した FCStd 自動生成</strong>へ寄せる考え方です。
+                    目標は「Body / Sketch / Pad / Pocket / Hole の構造化」と、<code>report.json</code> などの説明可能な出力です。
+                </p>
+                <ul>
+                    <li>主出力を FCStd に寄せる</li>
+                    <li>Feature 名と生成ログを残す</li>
+                    <li>失敗時に report と preview を返す</li>
+                </ul>
+            </section>
+            <section class="panel">
+                <h2>Recommended next step</h2>
+                <p>
+                    まずは既存 <code>dxf2step</code> を改修して、出力選択に <code>FCStd</code> を追加するのが最短です。
+                    新規サービスを増やすより、既存ジョブ管理と FreeCAD 実行基盤をそのまま使えます。
+                </p>
+                <span class="badge warn">Suggested path</span>
+                <p>DXF -> layer split -> FreeCAD feature build -> FCStd + STEP/STL + report</p>
+            </section>
+            <section class="panel links">
+                <h2>Key references</h2>
+                <p><a href="../../../../_tmp_dxf_fcstd_zip/dxf_fcstd_protocol_zip/DXF_to_FCStd_Auto_Generation_Protocol_JA.md" target="_blank" rel="noopener">DXF to FCStd Auto Generation Protocol</a></p>
+                <p><a href="../../../../_tmp_dxf_fcstd_zip/dxf_fcstd_protocol_zip/Existing_Code_Migration_Strategy.md" target="_blank" rel="noopener">Migration Strategy</a></p>
+                <p><a href="../../../../_tmp_dxf_fcstd_zip/dxf_fcstd_protocol_zip/Implementation_Task_Checklist.md" target="_blank" rel="noopener">Implementation Checklist</a></p>
+                <p><a href="../dxf2step/" target="_blank" rel="noopener">Existing DXF to STEP App</a></p>
+            </section>
+        </div>
+    </div>
+</body>
+</html>

@@ -5,8 +5,10 @@ import json
 import urllib.request
 import os
 import datetime
+import io
 import shutil
 import sys
+import zipfile
 import pypdf
 import docx
 import openpyxl
@@ -30,6 +32,28 @@ for d in [WORK_DIR, INGEST_DIR, WIP_DIR, KINDLE_DIR]:
     os.makedirs(d, exist_ok=True)
 
 st.set_page_config(page_title="Clawstack QA Dashboard", layout="wide")
+
+PDCA_STATUS_PATH = "/work/pdca_lab/status.json"
+
+
+def load_pdca_status():
+    try:
+        with open(PDCA_STATUS_PATH, "r", encoding="utf-8") as handle:
+            return json.load(handle)
+    except Exception:
+        return {}
+
+
+pdca_status = load_pdca_status()
+with st.sidebar:
+    st.markdown("### PDCA Lab")
+    if pdca_status:
+        st.caption(f"Latest run: {pdca_status.get('latest_run_status', '--')}")
+        st.caption(f"Pending review: {pdca_status.get('pending_review_count', 0)}")
+        st.caption(f"Production prompt: {pdca_status.get('current_production_prompt_version', '--')}")
+    else:
+        st.caption("Phase 1 setup pending")
+    st.markdown("[Open PDCA Lab](http://localhost:8088/apps/pdca_lab/index.html)")
 
 PLATING_FLAG = os.getenv("ENABLE_PLATING_REFLOW_LAB", "1").lower() not in ("0", "false", "off")
 if "/work/scripts" not in sys.path:
@@ -598,6 +622,48 @@ elif page == "3D Converter":
             output_format = st.selectbox("Output format", ["STEP", "STL"])
         else:
             uploaded_3d = st.file_uploader("3D model", type=["step", "stp", "stl", "obj"], key="model_upload")
+            html_profile = "storage_5mb"
+            if conv_type == "Model -> 3D HTML":
+                html_profile = st.selectbox(
+                    "HTML Size Profile",
+                    ["email_2mb", "storage_5mb", "high_quality"],
+                    index=1,
+                    format_func=lambda value: {
+                        "email_2mb": "Email Attachment (Max 2MB)",
+                        "storage_5mb": "Computer Storage (Max 5MB)",
+                        "high_quality": "High Resolution (No Reduction)",
+                    }[value],
+                )
+                if uploaded_3d is not None:
+                    with tempfile.TemporaryDirectory() as td_est:
+                        estimate_input_path = os.path.join(td_est, uploaded_3d.name)
+                        with open(estimate_input_path, "wb") as f:
+                            f.write(uploaded_3d.getbuffer())
+                        estimate_cmd = [
+                            "python3",
+                            "/work/scripts/model2html.py",
+                            estimate_input_path,
+                            os.path.join(td_est, "estimate.html"),
+                            "--profile",
+                            html_profile,
+                            "--estimate-only",
+                        ]
+                        estimate_result = subprocess.run(estimate_cmd, capture_output=True, text=True, timeout=300)
+                        if estimate_result.returncode == 0:
+                            estimate_data = json.loads(estimate_result.stdout)
+                            st.caption(
+                                f"Safe HTML estimate: {estimate_data.get('actual_html_kb', '--'):,} KB | "
+                                f"ZIP estimate: {estimate_data.get('estimated_zip_kb', '--'):,} KB"
+                            )
+                            if estimate_data.get("selected_profile_ok"):
+                                st.success(
+                                    f"Selected profile should fit: {estimate_data.get('profile_label')} "
+                                    f"({estimate_data.get('actual_html_kb', '--'):,} KB est.)"
+                                )
+                            else:
+                                st.warning(estimate_data.get("selected_profile_error", "Selected profile may not fit."))
+                        else:
+                            st.warning(f"Size estimate failed: {estimate_result.stderr or estimate_result.stdout}")
     
     with col2:
         st.subheader("Run Conversion")
@@ -621,7 +687,14 @@ elif page == "3D Converter":
                             cmd = ["python3", "/work/scripts/dxf23d.py", input_path, output_path, "--height", str(height)]
                         elif conv_type == "Model -> 3D HTML":
                             output_path = os.path.join(td, "output.html")
-                            cmd = ["python3", "/work/scripts/model2html.py", input_path, output_path]
+                            cmd = [
+                                "python3",
+                                "/work/scripts/model2html.py",
+                                input_path,
+                                output_path,
+                                "--profile",
+                                html_profile,
+                            ]
                         else:  # 3D PDF
                             output_path = os.path.join(td, "output.pdf")
                             cmd = ["python3", "/work/scripts/model2pdf.py", input_path, output_path]
@@ -635,14 +708,32 @@ elif page == "3D Converter":
                             st.success("Conversion completed.")
                             if conv_type == "Model -> 3D HTML":
                                 with open(output_path, "rb") as f:
+                                    html_bytes = f.read()
+                                zip_buffer = io.BytesIO()
+                                with zipfile.ZipFile(zip_buffer, mode="w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as zf:
+                                    zf.writestr(os.path.basename(output_path), html_bytes)
+                                zip_bytes = zip_buffer.getvalue()
+                                dl_html, dl_zip = st.columns(2)
+                                with dl_html:
                                     st.download_button(
                                         "Download 3D HTML",
-                                        f.read(),
+                                        html_bytes,
                                         file_name=os.path.basename(output_path),
                                         mime="text/html",
                                         use_container_width=True,
                                     )
-                                st.caption("The downloaded HTML can be opened locally by double-clicking it in a browser.")
+                                with dl_zip:
+                                    st.download_button(
+                                        "Download ZIP",
+                                        zip_bytes,
+                                        file_name=os.path.splitext(os.path.basename(output_path))[0] + ".zip",
+                                        mime="application/zip",
+                                        use_container_width=True,
+                                    )
+                                st.caption(
+                                    f"The downloaded HTML can be opened locally by double-clicking it in a browser. "
+                                    f"HTML size: {round(len(html_bytes) / 1024):,} KB | ZIP size: {round(len(zip_bytes) / 1024):,} KB"
+                                )
                             else:
                                 preview_path = os.path.join(
                                     td,

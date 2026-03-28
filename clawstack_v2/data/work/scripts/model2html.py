@@ -10,8 +10,10 @@ from __future__ import annotations
 
 import argparse
 import html
+import io
 import json
 import tempfile
+import zipfile
 from pathlib import Path
 
 import numpy as np
@@ -22,6 +24,32 @@ AUTO_SIMPLIFY_HARD_CAP = 150_000
 TARGET_HTML_SIZE_KB = 5000
 TARGET_HTML_BYTES = TARGET_HTML_SIZE_KB * 1024
 PLOTLY_CDN = "https://cdn.plot.ly/plotly-2.35.2.min.js"
+DECIMATION_EDGE_OUTLIER_RATIO = 1.8
+DECIMATION_AREA_OUTLIER_RATIO = 4.0
+HTML_SIZE_PROFILES = {
+    "email_2mb": {
+        "label": "Email Attachment (Max 2MB)",
+        "target_html_kb": 2000,
+        "allow_auto_simplify": True,
+        "strict_max": True,
+    },
+    "storage_5mb": {
+        "label": "Computer Storage (Max 5MB)",
+        "target_html_kb": 5000,
+        "allow_auto_simplify": True,
+        "strict_max": True,
+    },
+    "high_quality": {
+        "label": "High Resolution (No Reduction)",
+        "target_html_kb": None,
+        "allow_auto_simplify": False,
+        "strict_max": False,
+    },
+}
+
+
+class HtmlSizeLimitError(RuntimeError):
+    pass
 
 
 HTML_TEMPLATE = """<!doctype html>
@@ -627,8 +655,64 @@ def decimate_mesh(mesh, target_faces: int):
     return simplified
 
 
-def simplify_mesh_for_html(mesh):
+def mesh_quality_metrics(mesh) -> dict[str, float]:
+    vertices = np.asarray(mesh.vertices, dtype=np.float64)
+    faces = np.asarray(mesh.faces, dtype=np.int64)
+    if len(vertices) == 0 or len(faces) == 0:
+        return {
+            "face_count": float(len(faces)),
+            "max_edge": 0.0,
+            "edge_q999": 0.0,
+            "max_area": 0.0,
+            "area_q999": 0.0,
+        }
+
+    tri = vertices[faces]
+    edge_lengths = np.stack(
+        [
+            np.linalg.norm(tri[:, 1] - tri[:, 0], axis=1),
+            np.linalg.norm(tri[:, 2] - tri[:, 1], axis=1),
+            np.linalg.norm(tri[:, 0] - tri[:, 2], axis=1),
+        ],
+        axis=1,
+    )
+    max_edges = edge_lengths.max(axis=1)
+    areas = 0.5 * np.linalg.norm(np.cross(tri[:, 1] - tri[:, 0], tri[:, 2] - tri[:, 0]), axis=1)
+    return {
+        "face_count": float(len(faces)),
+        "max_edge": float(max_edges.max()),
+        "edge_q999": float(np.quantile(max_edges, 0.999)),
+        "max_area": float(areas.max()),
+        "area_q999": float(np.quantile(areas, 0.999)),
+    }
+
+
+def simplified_mesh_is_acceptable(candidate) -> tuple[bool, str]:
+    metrics = mesh_quality_metrics(candidate)
+    if metrics["face_count"] <= 0:
+        return False, "empty mesh after decimation"
+
+    edge_q999 = max(metrics["edge_q999"], 1e-9)
+    area_q999 = max(metrics["area_q999"], 1e-9)
+    edge_ratio = metrics["max_edge"] / edge_q999
+    area_ratio = metrics["max_area"] / area_q999
+
+    if edge_ratio > DECIMATION_EDGE_OUTLIER_RATIO and area_ratio > DECIMATION_AREA_OUTLIER_RATIO:
+        return False, (
+            "decimation introduced oversized triangles "
+            f"(edge_ratio={edge_ratio:.2f}, area_ratio={area_ratio:.2f})"
+        )
+    return True, ""
+
+
+def simplify_mesh_for_html(mesh, enable: bool = True):
     face_count = int(len(mesh.faces))
+    if not enable:
+        return mesh, {
+            "original_faces": face_count,
+            "final_faces": face_count,
+            "simplified": False,
+        }
     if face_count <= AUTO_SIMPLIFY_FACE_THRESHOLD:
         return mesh, {
             "original_faces": face_count,
@@ -637,10 +721,27 @@ def simplify_mesh_for_html(mesh):
         }
 
     simplified = decimate_mesh(mesh, AUTO_SIMPLIFY_TARGET_FACES)
+    acceptable, reason = simplified_mesh_is_acceptable(simplified)
+    if not acceptable:
+        return mesh, {
+            "original_faces": face_count,
+            "final_faces": face_count,
+            "simplified": False,
+            "simplify_warning": reason,
+        }
 
     final_faces = int(len(simplified.faces))
     if final_faces > AUTO_SIMPLIFY_HARD_CAP:
-        simplified = decimate_mesh(simplified, AUTO_SIMPLIFY_HARD_CAP)
+        recapped = decimate_mesh(simplified, AUTO_SIMPLIFY_HARD_CAP)
+        acceptable, reason = simplified_mesh_is_acceptable(recapped)
+        if not acceptable:
+            return mesh, {
+                "original_faces": face_count,
+                "final_faces": face_count,
+                "simplified": False,
+                "simplify_warning": reason,
+            }
+        simplified = recapped
         final_faces = int(len(simplified.faces))
 
     return simplified, {
@@ -736,29 +837,49 @@ def estimate_model_payload_bytes(model_data: dict) -> int:
     return len(json.dumps(model_data, ensure_ascii=False).encode("utf-8"))
 
 
-def fit_mesh_to_size_budget(mesh):
+def fit_mesh_to_size_budget(mesh, target_html_kb: int | None):
     original_faces = int(len(mesh.faces))
     working = mesh
     simplified = False
+    warning = ""
+    target_html_bytes = None if target_html_kb is None else int(target_html_kb * 1024)
+
+    if target_html_bytes is None:
+        model_data = build_model_data(working)
+        payload_bytes = estimate_model_payload_bytes(model_data)
+        estimated_html_bytes = payload_bytes + 250_000
+        return working, model_data, {
+            "original_faces": original_faces,
+            "final_faces": int(len(working.faces)),
+            "simplified": simplified,
+            "estimated_html_kb": round(estimated_html_bytes / 1024),
+            "simplify_warning": warning,
+        }
 
     for _ in range(4):
         model_data = build_model_data(working)
         payload_bytes = estimate_model_payload_bytes(model_data)
         estimated_html_bytes = payload_bytes + 250_000
-        if estimated_html_bytes <= TARGET_HTML_BYTES:
+        if estimated_html_bytes <= target_html_bytes:
             return working, model_data, {
                 "original_faces": original_faces,
                 "final_faces": int(len(working.faces)),
                 "simplified": simplified,
                 "estimated_html_kb": round(estimated_html_bytes / 1024),
+                "simplify_warning": warning,
             }
 
-        ratio = TARGET_HTML_BYTES / max(estimated_html_bytes, 1)
+        ratio = target_html_bytes / max(estimated_html_bytes, 1)
         current_faces = int(len(working.faces))
         target_faces = int(max(8_000, current_faces * max(0.35, min(0.85, ratio * 0.92))))
         if target_faces >= current_faces:
             break
-        working = decimate_mesh(working, target_faces)
+        candidate = decimate_mesh(working, target_faces)
+        acceptable, reason = simplified_mesh_is_acceptable(candidate)
+        if not acceptable:
+            warning = reason
+            break
+        working = candidate
         simplified = True
 
     model_data = build_model_data(working)
@@ -769,10 +890,31 @@ def fit_mesh_to_size_budget(mesh):
         "final_faces": int(len(working.faces)),
         "simplified": simplified,
         "estimated_html_kb": round(estimated_html_bytes / 1024),
+        "simplify_warning": warning,
     }
 
 
+def ensure_profile_limit(mesh_info: dict, profile: dict) -> None:
+    target_html_kb = profile.get("target_html_kb")
+    if not profile.get("strict_max") or target_html_kb is None:
+        return
+    estimated_html_kb = mesh_info.get("estimated_html_kb")
+    if estimated_html_kb is None or estimated_html_kb <= target_html_kb:
+        return
+
+    warning = mesh_info.get("simplify_warning")
+    detail = (
+        f"Requested profile '{profile['label']}' requires <= {target_html_kb:,} KB, "
+        f"but the safest output is estimated at {estimated_html_kb:,} KB."
+    )
+    if warning:
+        detail += f" Shape-preserving simplification stopped because {warning}."
+    detail += " Please choose a larger size profile or High Resolution."
+    raise HtmlSizeLimitError(detail)
+
+
 def build_html(model_name: str, model_data: dict, mesh_info: dict) -> str:
+    profile_label = mesh_info.get("profile_label")
     if mesh_info["simplified"]:
         meta = (
             f"HTML表示用に自動軽量化: "
@@ -780,7 +922,11 @@ def build_html(model_name: str, model_data: dict, mesh_info: dict) -> str:
         )
     else:
         meta = f"Faces: {mesh_info['final_faces']:,}"
+    if profile_label:
+        meta = f"{profile_label} / {meta}"
     meta += f" / Est. HTML: {mesh_info['estimated_html_kb']:,} KB"
+    if mesh_info.get("simplify_warning"):
+        meta += f" / Safety fallback: {mesh_info['simplify_warning']}"
     return (
         HTML_TEMPLATE.replace("__MODEL_NAME__", html.escape(model_name))
         .replace("__MESH_INFO__", html.escape(meta))
@@ -789,27 +935,72 @@ def build_html(model_name: str, model_data: dict, mesh_info: dict) -> str:
     )
 
 
+def estimate_zip_bytes(file_name: str, html_text: str) -> int:
+    mem = io.BytesIO()
+    with zipfile.ZipFile(mem, mode="w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as zf:
+        zf.writestr(file_name, html_text.encode("utf-8"))
+    return len(mem.getvalue())
+
+
+def prepare_output(input_model: Path, profile_key: str) -> tuple[str, dict]:
+    profile = HTML_SIZE_PROFILES[profile_key]
+    with tempfile.TemporaryDirectory() as td:
+        td_path = Path(td)
+        mesh = load_mesh(input_model, td_path)
+        mesh, mesh_info = simplify_mesh_for_html(mesh, enable=bool(profile["allow_auto_simplify"]))
+        mesh, model_data, budget_info = fit_mesh_to_size_budget(mesh, target_html_kb=profile["target_html_kb"])
+        mesh_info.update(budget_info)
+        mesh_info["profile_label"] = profile["label"]
+
+        selected_profile_ok = True
+        selected_profile_error = ""
+        try:
+            ensure_profile_limit(mesh_info, profile)
+        except HtmlSizeLimitError as exc:
+            selected_profile_ok = False
+            selected_profile_error = str(exc)
+
+        html_text = build_html(
+            model_name=input_model.name,
+            model_data=model_data,
+            mesh_info=mesh_info,
+        )
+        html_bytes = len(html_text.encode("utf-8"))
+        zip_bytes = estimate_zip_bytes(input_model.with_suffix(".html").name, html_text)
+        metadata = {
+            **mesh_info,
+            "profile_key": profile_key,
+            "profile_label": profile["label"],
+            "selected_profile_ok": selected_profile_ok,
+            "selected_profile_error": selected_profile_error,
+            "actual_html_kb": round(html_bytes / 1024),
+            "estimated_zip_kb": round(zip_bytes / 1024),
+            "strict_max": bool(profile.get("strict_max")),
+        }
+        return html_text, metadata
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("input_model", type=Path, help="STEP/STL/OBJ/PLY...")
     ap.add_argument("output_html", type=Path)
+    ap.add_argument(
+        "--profile",
+        choices=sorted(HTML_SIZE_PROFILES.keys()),
+        default="storage_5mb",
+        help="HTML size preset",
+    )
+    ap.add_argument("--estimate-only", action="store_true", help="print estimate JSON instead of writing HTML")
     args = ap.parse_args()
 
     args.output_html.parent.mkdir(parents=True, exist_ok=True)
-
-    with tempfile.TemporaryDirectory() as td:
-        td_path = Path(td)
-        mesh = load_mesh(args.input_model, td_path)
-        mesh, mesh_info = simplify_mesh_for_html(mesh)
-        mesh, model_data, budget_info = fit_mesh_to_size_budget(mesh)
-        mesh_info.update(budget_info)
-
-        html_text = build_html(
-            model_name=args.input_model.name,
-            model_data=model_data,
-            mesh_info=mesh_info,
-        )
-        args.output_html.write_text(html_text, encoding="utf-8")
+    html_text, metadata = prepare_output(args.input_model, args.profile)
+    if args.estimate_only:
+        print(json.dumps(metadata, ensure_ascii=False, indent=2))
+        return
+    profile = HTML_SIZE_PROFILES[args.profile]
+    ensure_profile_limit(metadata, profile)
+    args.output_html.write_text(html_text, encoding="utf-8")
 
 
 if __name__ == "__main__":

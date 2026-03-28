@@ -9,31 +9,42 @@ from typing import Any
 
 
 JST = timezone(timedelta(hours=9))
+EMAIL_INGEST_TIMEOUT_SECONDS = 5400
 SCRIPT_PATH = Path(__file__).resolve()
 SCRIPT_POSIX = SCRIPT_PATH.as_posix()
 if SCRIPT_POSIX.startswith("/workspace/"):
     WORKSPACE = SCRIPT_PATH.parent
     EMAIL_CMD = "python3 /workspace/run_email_rag_ingest_report.py"
+    CAE_SYNC_CMD = "python3 /workspace/sync_cae_learning_memory.py --base-url http://localhost:8110 --source-org Mitsui"
     REPORT_SYNC_CMD = "python3 /workspace/scheduled_report_search.py sync --limit-executions 20"
     CMUX_CMD = "python3 /workspace/update_cmux_status.py"
     TERMS_CMD = "python3 /workspace/update_mitsui_terms_auto.py"
+    AUTO_REPAIR_CMD = "python3 /workspace/auto_repair_allowed.py"
+    RISK_NOTIFY_CMD = "python3 /workspace/risk_notification.py"
 elif SCRIPT_POSIX.startswith("/home/node/clawd/"):
     WORKSPACE = SCRIPT_PATH.parent
     EMAIL_CMD = "python3 /home/node/clawd/run_email_rag_ingest_report.py"
+    CAE_SYNC_CMD = "python3 /home/node/clawd/sync_cae_learning_memory.py --base-url http://localhost:8110 --source-org Mitsui"
     REPORT_SYNC_CMD = "python3 /home/node/clawd/scheduled_report_search.py sync --limit-executions 20"
     CMUX_CMD = "python3 /home/node/clawd/update_cmux_status.py"
     TERMS_CMD = "python3 /home/node/clawd/update_mitsui_terms_auto.py"
+    AUTO_REPAIR_CMD = "python3 /home/node/clawd/auto_repair_allowed.py"
+    RISK_NOTIFY_CMD = "python3 /home/node/clawd/risk_notification.py"
 else:
     WORKSPACE = SCRIPT_PATH.parents[2] / "data" / "workspace"
     EMAIL_CMD = f'python "{WORKSPACE / "run_email_rag_ingest_report.py"}"'
+    CAE_SYNC_CMD = f'python "{WORKSPACE / "sync_cae_learning_memory.py"}" --base-url "http://localhost:8110" --source-org "Mitsui"'
     REPORT_SYNC_CMD = f'python "{WORKSPACE / "scheduled_report_search.py"}" sync --limit-executions 20'
     CMUX_CMD = f'python "{WORKSPACE / "update_cmux_status.py"}"'
     TERMS_CMD = f'python "{WORKSPACE / "update_mitsui_terms_auto.py"}"'
+    AUTO_REPAIR_CMD = f'python "{WORKSPACE / "auto_repair_allowed.py"}"'
+    RISK_NOTIFY_CMD = f'python "{WORKSPACE / "risk_notification.py"}"'
 
 EMAIL_RUNTIME = WORKSPACE / "email_rag_ingest_runtime_status.json"
 SCHEDULED_SYNC = WORKSPACE / "scheduled_report_sync_state.json"
 CMUX_STATUS = WORKSPACE / "apps" / "cmux_hub" / "cmux_status.json"
 MITSUI_TERMS_STATUS = WORKSPACE / "mitsui_terms_auto_status.json"
+CAE_SYNC_STATUS = WORKSPACE / "cae_learning_memory_sync_status.json"
 STATUS_PATH = WORKSPACE / "idle_ingest_maintenance_status.json"
 HEARTBEAT_STATE_PATH = WORKSPACE / "memory" / "heartbeat-state.json"
 
@@ -133,11 +144,13 @@ def determine_actions() -> dict[str, dict[str, Any]]:
     reports = read_json(SCHEDULED_SYNC, {})
     cmux = read_json(CMUX_STATUS, {})
     mitsui_terms = read_json(MITSUI_TERMS_STATUS, {})
+    cae_sync = read_json(CAE_SYNC_STATUS, {})
 
     email_dt = parse_dt(email.get("finishedAt") or email.get("startedAt"))
     reports_dt = parse_dt(reports.get("updatedAt") or reports.get("finishedAt"))
     cmux_dt = parse_dt(cmux.get("generatedAt"))
     terms_dt = parse_dt(mitsui_terms.get("updatedAt"))
+    cae_dt = parse_dt(cae_sync.get("finishedAt") or cae_sync.get("startedAt"))
 
     return {
         "email_ingest": {
@@ -151,6 +164,12 @@ def determine_actions() -> dict[str, dict[str, Any]]:
             "ageHours": age_hours(reports_dt),
             "shouldRun": reports_dt is None or (now_jst().astimezone(reports_dt.tzinfo) - reports_dt) >= timedelta(hours=2),
             "reason": "stale_or_missing" if (reports_dt is None or (now_jst().astimezone(reports_dt.tzinfo) - reports_dt) >= timedelta(hours=2)) else "fresh",
+        },
+        "cae_learning_sync": {
+            "lastSeen": cae_sync.get("finishedAt") or cae_sync.get("startedAt"),
+            "ageHours": age_hours(cae_dt),
+            "shouldRun": cae_dt is None or (now_jst().astimezone(cae_dt.tzinfo) - cae_dt) >= timedelta(hours=12),
+            "reason": "stale_or_missing" if (cae_dt is None or (now_jst().astimezone(cae_dt.tzinfo) - cae_dt) >= timedelta(hours=12)) else "fresh",
         },
         "cmux_status_refresh": {
             "lastSeen": cmux.get("generatedAt"),
@@ -179,13 +198,19 @@ def main() -> None:
     if status["actions"]["email_ingest"]["shouldRun"]:
         status["step"] = "email_ingest"
         write_status(status)
-        status["results"]["email_ingest"] = run_command(EMAIL_CMD, 1800)
+        status["results"]["email_ingest"] = run_command(EMAIL_CMD, EMAIL_INGEST_TIMEOUT_SECONDS)
         write_status(status)
 
     if status["actions"]["scheduled_reports_sync"]["shouldRun"]:
         status["step"] = "scheduled_reports_sync"
         write_status(status)
         status["results"]["scheduled_reports_sync"] = run_command(REPORT_SYNC_CMD, 300)
+        write_status(status)
+
+    if status["actions"]["cae_learning_sync"]["shouldRun"]:
+        status["step"] = "cae_learning_sync"
+        write_status(status)
+        status["results"]["cae_learning_sync"] = run_command(CAE_SYNC_CMD, 300)
         write_status(status)
 
     if status["actions"]["cmux_status_refresh"]["shouldRun"]:
@@ -199,6 +224,16 @@ def main() -> None:
         write_status(status)
         status["results"]["mitsui_terms_refresh"] = run_command(TERMS_CMD, 180)
         write_status(status)
+
+    status["step"] = "auto_repair_allowed"
+    write_status(status)
+    status["results"]["auto_repair_allowed"] = run_command(AUTO_REPAIR_CMD, 300)
+    write_status(status)
+
+    status["step"] = "risk_notification"
+    write_status(status)
+    status["results"]["risk_notification"] = run_command(RISK_NOTIFY_CMD, 300)
+    write_status(status)
 
     update_heartbeat_state(list(status["results"].keys()))
     status["step"] = "completed"

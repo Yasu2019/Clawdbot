@@ -10,8 +10,21 @@ from urllib.request import Request, urlopen
 
 
 JST = timezone(timedelta(hours=9))
-ROOT = Path(__file__).resolve().parents[2]
-STATUS_PATH = ROOT / "data" / "workspace" / "apps" / "cmux_hub" / "cmux_status.json"
+def detect_workspace() -> Path:
+    current = Path(__file__).resolve()
+    if str(current).startswith("/workspace/"):
+        return current.parent
+    if current.parent.name == "workspace" and current.parent.parent.name == "data":
+        return current.parent
+    for candidate in [current.parent, *current.parents]:
+        if (candidate / "data" / "workspace").exists():
+            return candidate / "data" / "workspace"
+    raise RuntimeError(f"Could not detect workspace from {current}")
+
+
+WORKSPACE = detect_workspace()
+ROOT = WORKSPACE.parents[1] if WORKSPACE.name == "workspace" and WORKSPACE.parent.name == "data" else WORKSPACE.parent
+STATUS_PATH = WORKSPACE / "apps" / "cmux_hub" / "cmux_status.json"
 OPENCLAW_CONFIG = ROOT / "data" / "state" / "openclaw.json"
 MODELS_JSON = ROOT / "data" / "state" / "agents" / "main" / "agent" / "models.json"
 TELEGRAM_HARNESS = ROOT / "data" / "state" / "telegram_fast" / "harness_status.json"

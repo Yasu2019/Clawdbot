@@ -566,7 +566,11 @@ def connect_db() -> sqlite3.Connection:
     con = sqlite3.connect(DB_PATH, timeout=30)
     con.row_factory = sqlite3.Row
     con.execute("PRAGMA busy_timeout=30000")
-    con.execute("PRAGMA journal_mode=WAL")
+    try:
+        con.execute("PRAGMA journal_mode=WAL")
+    except sqlite3.OperationalError:
+        # Some mounted or Windows-backed environments reject WAL after heavy writes.
+        con.execute("PRAGMA journal_mode=DELETE")
     con.execute("PRAGMA synchronous=NORMAL")
     con.execute(
         """

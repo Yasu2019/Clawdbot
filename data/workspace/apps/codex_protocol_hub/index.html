@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Codex Protocol Hub</title>
+  <style>
+    :root {
+      --bg: #0c1520;
+      --panel: rgba(18, 30, 42, 0.92);
+      --line: rgba(128, 170, 198, 0.18);
+      --text: #eef7fb;
+      --muted: #9fb6c4;
+      --accent: #61d1d8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "Yu Gothic UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(97,209,216,0.14), transparent 28%),
+        linear-gradient(180deg, #0a131b, #112230);
+    }
+    .shell { max-width: 1120px; margin: 0 auto; padding: 28px 20px 40px; }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      padding: 22px;
+      margin-bottom: 18px;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.28);
+      backdrop-filter: blur(10px);
+    }
+    .links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+    .chip {
+      color: var(--text);
+      text-decoration: none;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 9px 14px;
+      background: rgba(255,255,255,0.04);
+      font-size: 13px;
+    }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    @media (max-width: 920px) { .grid { grid-template-columns: 1fr; } }
+    .sub { color: var(--muted); line-height: 1.7; }
+    ul { margin: 0; padding-left: 20px; }
+    li { margin: 8px 0; }
+    code { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="panel">
+      <h1>Codex Protocol Hub</h1>
+      <p class="sub">Survey-first, merge/hold/new judgement, detail design, DR, implementation, testing, and final report structure for larger feature work.</p>
+      <div class="links">
+        <a class="chip" href="/portal.html">Portal</a>
+        <a class="chip" href="../../CODEX_PROTOCOL_REFERENCE.md" target="_blank" rel="noreferrer">Reference</a>
+        <a class="chip" href="/D:/Clawdbot_Docker_20260125/codex_protocol_package_report_template_utf8bom.zip">Original ZIP</a>
+        <a class="chip" href="../pdca_lab/index.html">PDCA Lab</a>
+      </div>
+    </section>
+
+    <section class="grid">
+      <article class="panel">
+        <h2>What It Adds</h2>
+        <ul>
+          <li>Existing asset survey before implementation</li>
+          <li><code>Adopt / Integrate / Hold / Reject / New Build</code> judgement discipline</li>
+          <li>Detail design and DR template</li>
+          <li>Final report template for consistent delivery</li>
+          <li>Anti-mojibake packaging and naming guidance</li>
+        </ul>
+      </article>
+      <article class="panel">
+        <h2>Best Entry Files</h2>
+        <ul>
+          <li><code>01_codex_master_protocol.md</code></li>
+          <li><code>03_repo_survey_checklist.md</code></li>
+          <li><code>04_decision_matrix.md</code></li>
+          <li><code>05_detail_design_and_dr_template.md</code></li>
+          <li><code>11_codex_report_template.md</code></li>
+        </ul>
+      </article>
+    </section>
+
+    <section class="panel">
+      <h2>Recommended Use</h2>
+      <p class="sub">Use this pack before new feature work that may overlap with existing Portal cards, apps, Docker services, or archived prototypes. In this system it fits especially well with PDCA Lab, DXF to FCStd, QMS Audit, GD&amp;T Overlay Studio, and Kinematics Hub work.</p>
+    </section>
+  </main>
+</body>
+</html>
