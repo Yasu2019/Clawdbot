@@ -33,6 +33,57 @@ class ProductsController < ApplicationController
     )
   end
 
+  def audit_followup_status
+    @audit_followup = AuditFollowupStatusService.call
+    @available_audit_years = collect_audit_years(@audit_followup)
+    @selected_audit_year = params[:year].presence&.to_i
+    filter_audit_followup!(@selected_audit_year) if @selected_audit_year.present?
+  end
+
+  def document_reconciliation
+    @document_reconciliation = DocumentReconciliationService.call
+  end
+
+  def process_monitoring_measurement
+    @process_monitoring_measurement = ProcessMonitoringMeasurementService.call
+    @available_monitoring_years = @process_monitoring_measurement[:available_years] || [2024, 2025]
+    @selected_monitoring_year = params[:year].presence&.to_i || 2024
+  end
+
+  def update_history
+    @update_history = UpdateHistoryService.call
+  end
+
+  def audit_followup_status_excel
+    payload = AuditFollowupStatusService.call
+    selected_year = params[:year].presence&.to_i
+
+    send_data(
+      AuditFollowupExportService.call(payload: payload, selected_year: selected_year),
+      filename: selected_year.present? ? "audit_followup_status_#{selected_year}.xlsx" : "audit_followup_status_all_years.xlsx",
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+  end
+
+  def upload_jqa_audit_reports
+    files = Array(params[:jqa_reports]).compact
+    if files.empty?
+      redirect_to audit_followup_status_product_path(year: params[:year]), alert: "JQA審査報告書を選択してください。"
+      return
+    end
+
+    result = JqaAuditReportIngestService.call(files: files)
+    redirect_to(
+      audit_followup_status_product_path(year: params[:year]),
+      notice: "JQA審査報告書 #{result[:imported_count]} 件を登録しました。category=2 の文書として attachedfile.csv と Product Documents に反映しています。"
+    )
+  rescue StandardError => e
+    redirect_to(
+      audit_followup_status_product_path(year: params[:year]),
+      alert: "JQA審査報告書の取り込みに失敗しました: #{e.message}"
+    )
+  end
+
 
   def audit_improvement_opportunity
     send_data(
@@ -73,8 +124,9 @@ class ProductsController < ApplicationController
     phase  # @dropdownlistを設定するためにphaseメソッドを呼び出す
     @products = Product.all
 
+    xlsx_data = ExportPhasesToExcelService.call(products: @products, dropdownlist: @dropdownlist)
     send_data(
-      ExportPhasesToExcelService.call(products: @products, dropdownlist: @dropdownlist),
+      style_exported_workbook(xlsx_data),
       filename: 'phases_data.xlsx',
       type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
@@ -493,6 +545,73 @@ class ProductsController < ApplicationController
     else
       Rails.logger.info "Could not extract date from file name: #{file_name}"
       [nil, nil]
+    end
+  end
+
+  def style_exported_workbook(binary_data)
+    workbook = RubyXL::Parser.parse_buffer(binary_data)
+
+    workbook.worksheets.each do |worksheet|
+      max_col = 0
+      max_row = 0
+      worksheet.sheet_data.rows.each_with_index do |row, row_idx|
+        next unless row
+
+        row.cells.each_with_index do |cell, col_idx|
+          next unless cell
+
+          max_col = [max_col, col_idx].max
+        end
+        max_row = [max_row, row_idx].max
+      end
+
+      (0..max_row).each do |row_idx|
+        (0..max_col).each do |col_idx|
+          row = worksheet[row_idx]
+          cell = (row && row[col_idx]) || worksheet.add_cell(row_idx, col_idx, '')
+          cell.change_text_wrap(true)
+          cell.change_vertical_alignment('top')
+          %w[top bottom left right].each do |direction|
+            cell.change_border(direction, 'thin')
+          end
+        end
+      end
+
+      (0..max_col).each do |col|
+        worksheet.change_column_width(col, 18)
+      end
+    end
+
+    workbook.stream.string
+  end
+
+  def collect_audit_years(payload)
+    years = []
+    [:audit_corrections, :audit_opportunities, :nonconformities].each do |section_key|
+      Array(payload.dig(section_key, :entries)).each do |entry|
+        year = [entry[:due_date], entry[:completed_on]].find { |value| value.respond_to?(:year) }&.year
+        years << year if year.present?
+      end
+    end
+    Array(payload[:jqa_yearly_matrix]).each do |row|
+      years << row[:year].to_i if row[:year].present?
+    end
+    years.compact.uniq.sort.reverse
+  end
+
+  def filter_audit_followup!(selected_year)
+    [:audit_corrections, :audit_opportunities, :nonconformities].each do |section_key|
+      section = @audit_followup[section_key] || {}
+      entries = Array(section[:entries]).select do |entry|
+        [entry[:due_date], entry[:completed_on]].find { |value| value.respond_to?(:year) }&.year == selected_year
+      end
+      counts = Hash.new(0)
+      entries.each { |entry| counts[entry[:status]] += 1 }
+      @audit_followup[section_key] = section.merge(entries: entries, total: entries.length, counts: counts)
+    end
+
+    @audit_followup[:jqa_yearly_matrix] = Array(@audit_followup[:jqa_yearly_matrix]).select do |row|
+      row[:year].to_i == selected_year
     end
   end
 end

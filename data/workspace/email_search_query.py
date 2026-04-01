@@ -33,6 +33,101 @@ RELATIVE_TERMS = {
     "recent", "yesterday", "today", "tomorrow", "lastweek", "lastmonth", "thisweek", "thismonth",
 }
 
+COMPLAINT_SUBJECT_TERMS = [
+    "クレーム",
+    "不具合",
+    "密着不良",
+    "溶解異常",
+    "改善計画提出",
+    "調査及び改善",
+    "糸バリ",
+    "異物",
+    "再発防止",
+    "品質問題",
+    "顧客不良",
+    "市場不良",
+    "不適合事例",
+]
+
+COMPLAINT_BODY_TERMS = [
+    "クレーム",
+    "不具合",
+    "密着不良",
+    "溶解異常",
+    "糸バリ",
+    "異物",
+    "ご迷惑をおかけ",
+    "改善計画",
+    "再発防止",
+    "品質問題",
+    "顧客不良",
+    "市場不良",
+]
+
+COMPLAINT_NEGATIVE_TERMS = [
+    "エアコンクリーニング",
+    "洗濯槽",
+    "ミツモア",
+    "EPARK",
+    "クーポン",
+    "識学",
+    "評価面談",
+    "部下に気を遣いすぎて",
+    "おすすめ時期",
+    "無料セミナー",
+    "プレゼント",
+    "キャンペーン",
+    "Email RAG Ingest",
+    "納入試作",
+]
+
+COMPLAINT_SYSTEM_SENDERS = [
+    "postmaster",
+    "mail administrator",
+    "mailer-daemon",
+    "mail delivery subsystem",
+]
+
+COMPLAINT_SYSTEM_SUBJECTS = [
+    "mail system error",
+    "returned mail",
+    "undeliverable",
+    "delivery status notification",
+]
+
+COMPLAINT_ADMIN_SUBJECT_TERMS = [
+    "内部監査",
+    "チェックシート",
+    "台帳",
+    "漏れがないかチェック",
+    "品質情報を台帳",
+]
+
+COMPLAINT_ADMIN_BODY_TERMS = [
+    "台帳のアップデート",
+    "行は上詰めで記載",
+    "日付順に並べよう",
+    "内部監査の記録",
+    "改善の機会",
+    "自己チェック",
+]
+
+COMPLAINT_NEWSLETTER_SENDERS = [
+    "pickup_news@",
+    "newsletter@",
+    "news@",
+    "noreply@",
+    "no-reply@",
+]
+
+COMPLAINT_NEWSLETTER_SUBJECTS = [
+    "アンケート",
+    "ニュース",
+    "ポイント",
+    "キャンペーン",
+    "プレゼント",
+]
+
 
 WORKSPACE = Path(__file__).resolve().parent
 MITSUI_GLOSSARY_PATHS = (
@@ -193,7 +288,16 @@ def rows_to_dicts(rows: Iterable[sqlite3.Row]) -> List[dict]:
 
 def search_rows(con: sqlite3.Connection, query: str, limit: int) -> List[sqlite3.Row]:
     rows: List[sqlite3.Row] = []
+    terms = tokenize_query(query)
+    if not terms and query.strip():
+        terms = [query.strip()]
+    terms = expand_with_mitsui_glossary(terms, max_expansions=10)
+
     try:
+        fts_query = " OR ".join(
+            f'"{term}"' if re.search(r"\s", term) else term
+            for term in terms[:8]
+        ) or query
         rows = con.execute(
             """
             SELECT
@@ -212,22 +316,19 @@ def search_rows(con: sqlite3.Connection, query: str, limit: int) -> List[sqlite3
             FROM emails_fts
             JOIN emails e ON e.rowid = emails_fts.rowid
             WHERE emails_fts MATCH ?
-            ORDER BY score
+            ORDER BY score, e.internal_ts DESC
             LIMIT ?
             """,
-            (query, limit),
+            (fts_query, limit),
         ).fetchall()
     except sqlite3.OperationalError:
         rows = []
 
-    if rows:
+    if len(rows) >= limit:
         return rows
 
-    terms = tokenize_query(query)
-    if not terms and query.strip():
-        terms = [query.strip()]
     if not terms:
-        return []
+        return rows
 
     clauses = []
     params: List[object] = []
@@ -238,7 +339,7 @@ def search_rows(con: sqlite3.Connection, query: str, limit: int) -> List[sqlite3
         needle = f"%{term}%"
         params.extend([needle, needle, needle, needle, needle, needle])
     params.append(limit)
-    return con.execute(
+    fallback_rows = con.execute(
         f"""
         SELECT
             source,
@@ -260,6 +361,21 @@ def search_rows(con: sqlite3.Connection, query: str, limit: int) -> List[sqlite3
         """,
         params,
     ).fetchall()
+
+    if not rows:
+        return fallback_rows
+
+    existing = {(row["source"], row["source_id"]) for row in rows}
+    merged = list(rows)
+    for row in fallback_rows:
+        key = (row["source"], row["source_id"])
+        if key in existing:
+            continue
+        existing.add(key)
+        merged.append(row)
+        if len(merged) >= limit:
+            break
+    return merged
 
 
 def recent_rows(con: sqlite3.Connection, limit: int) -> List[sqlite3.Row]:
@@ -405,6 +521,54 @@ def parse_explicit_date_range(query: str) -> tuple[Optional[date], Optional[date
     return None, None
 
 
+def resolve_relative_boundary(token: str, today: date) -> Optional[date]:
+    mapping = {
+        "今日": today,
+        "本日": today,
+        "昨日": today - timedelta(days=1),
+        "明日": today + timedelta(days=1),
+    }
+    return mapping.get(token)
+
+
+def parse_month_start_range(query: str) -> tuple[Optional[date], Optional[date]]:
+    compact = re.sub(r"\s+", "", query or "")
+    today = datetime.now().date()
+
+    match = re.search(r"(20\d{2}|今年|去年|昨年|本年)年(\d{1,2})月から(今日|本日|昨日|明日)(?:まで)?", compact)
+    if match:
+        year_token = match.group(1)
+        month = int(match.group(2))
+        end_token = match.group(3)
+        if year_token == "今年" or year_token == "本年":
+            year = today.year
+        elif year_token in {"去年", "昨年"}:
+            year = today.year - 1
+        else:
+            year = int(year_token)
+        start = date(year, month, 1)
+        end = resolve_relative_boundary(end_token, today)
+        return start, end
+
+    match = re.search(r"(20\d{2}|今年|去年|昨年|本年)年(\d{1,2})月(\d{1,2})日から(今日|本日|昨日|明日)(?:まで)?", compact)
+    if match:
+        year_token = match.group(1)
+        month = int(match.group(2))
+        day = int(match.group(3))
+        end_token = match.group(4)
+        if year_token == "今年" or year_token == "本年":
+            year = today.year
+        elif year_token in {"去年", "昨年"}:
+            year = today.year - 1
+        else:
+            year = int(year_token)
+        start = date(year, month, day)
+        end = resolve_relative_boundary(end_token, today)
+        return start, end
+
+    return None, None
+
+
 def resolve_due_range(query: str) -> tuple[Optional[str], Optional[str], Optional[str]]:
     today = datetime.now().date()
     compact = re.sub(r"\s+", "", query or "")
@@ -437,6 +601,28 @@ def resolve_due_range(query: str) -> tuple[Optional[str], Optional[str], Optiona
             end = date(start.year, start.month + 1, 1) - timedelta(days=1)
         return None, start.isoformat(), end.isoformat()
     return None, None, None
+
+
+def resolve_request_range(query: str) -> tuple[date, date]:
+    today = datetime.now().date()
+    start, end = parse_explicit_date_range(query)
+    if start and end:
+        return start, end
+
+    start, end = parse_month_start_range(query)
+    if start and end:
+        return start, end
+
+    exact = parse_specific_date(query)
+    if exact:
+        return exact, exact
+
+    compact = re.sub(r"\s+", "", query or "")
+    if "今年" in compact:
+        return date(today.year, 1, 1), today
+    if "去年" in compact or "昨年" in compact:
+        return date(today.year - 1, 1, 1), date(today.year - 1, 12, 31)
+    return date(today.year, 1, 1), today
 
 
 def extract_named_filter(query: str, label: str) -> str:
@@ -703,6 +889,128 @@ def build_task_summary(query: str, rows: List[dict]) -> str:
     return "\n\n".join(lines)
 
 
+def normalize_subject_for_grouping(subject: str) -> str:
+    text = (subject or "").strip()
+    changed = True
+    while changed:
+        before = text
+        text = re.sub(r"^(?:(?:re|fw|fwd)\s*:\s*)+", "", text, flags=re.IGNORECASE)
+        text = re.sub(r"^\(ミツイメンバーのみ\)\s*", "", text)
+        text = re.sub(r"^【MEK 社内用】\s*", "", text)
+        text = text.strip()
+        changed = text != before
+    text = re.sub(r"\s+", " ", text).strip()
+    return text
+
+
+def complaint_candidate_rows(con: sqlite3.Connection, query: str, limit: int) -> List[dict]:
+    start_date, end_date = resolve_request_range(query)
+    start_ms = int(datetime.combine(start_date, datetime.min.time()).timestamp() * 1000)
+    end_ms = int(datetime.combine(end_date + timedelta(days=1), datetime.min.time()).timestamp() * 1000)
+
+    subject_clause = " OR ".join(["subject LIKE ?" for _ in COMPLAINT_SUBJECT_TERMS])
+    body_clause = " OR ".join(["body_text LIKE ?" for _ in COMPLAINT_BODY_TERMS])
+    negative_clause = " AND ".join(["subject NOT LIKE ?" for _ in COMPLAINT_NEGATIVE_TERMS])
+
+    sql = f"""
+        SELECT
+            source,
+            source_id,
+            subject,
+            sender,
+            recipients,
+            email_date,
+            filepath,
+            category,
+            person,
+            substr(replace(replace(body_text, char(13), ' '), char(10), ' '), 1, 320) AS snippet,
+            internal_ts
+        FROM emails
+        WHERE internal_ts >= ?
+          AND internal_ts < ?
+          AND (
+            ({subject_clause})
+            OR (
+              ({body_clause})
+              AND (body_text LIKE '%調査%' OR body_text LIKE '%改善%' OR body_text LIKE '%依頼%' OR body_text LIKE '%ご迷惑%')
+            )
+          )
+          AND {negative_clause}
+        ORDER BY internal_ts DESC
+        LIMIT 200
+    """
+    positive_params = [f"%{term}%" for term in COMPLAINT_SUBJECT_TERMS]
+    body_params = [f"%{term}%" for term in COMPLAINT_BODY_TERMS]
+    negative_params = [f"%{term}%" for term in COMPLAINT_NEGATIVE_TERMS]
+    rows = con.execute(sql, [start_ms, end_ms, *positive_params, *body_params, *negative_params]).fetchall()
+
+    deduped: List[dict] = []
+    seen_subjects: set[str] = set()
+    for row in rows:
+        item = dict(row)
+        subject_blob = (item.get("subject") or "").casefold()
+        sender_blob = (item.get("sender") or "").casefold()
+        snippet_blob = (item.get("snippet") or "").casefold()
+        if any(term in sender_blob for term in COMPLAINT_SYSTEM_SENDERS):
+            continue
+        if any(term in subject_blob for term in COMPLAINT_SYSTEM_SUBJECTS):
+            continue
+        if any(term in subject_blob for term in COMPLAINT_ADMIN_SUBJECT_TERMS):
+            continue
+        if any(term in snippet_blob for term in COMPLAINT_ADMIN_BODY_TERMS):
+            continue
+        if any(term in sender_blob for term in COMPLAINT_NEWSLETTER_SENDERS):
+            continue
+        if any(term in subject_blob for term in COMPLAINT_NEWSLETTER_SUBJECTS):
+            continue
+        if "undeliverable" in snippet_blob and "returned" in snippet_blob:
+            continue
+        normalized_subject = normalize_subject_for_grouping(item.get("subject") or "")
+        if not normalized_subject:
+            continue
+        subject_key = normalized_subject.casefold()
+        if subject_key in seen_subjects:
+            continue
+        seen_subjects.add(subject_key)
+        item["normalized_subject"] = normalized_subject
+        deduped.append(item)
+        if len(deduped) >= limit:
+            break
+    return deduped
+
+
+def build_complaint_summary(query: str, rows: List[dict], start_date: date, end_date: date) -> str:
+    if not rows:
+        return f"{start_date.isoformat()} から {end_date.isoformat()} の顧客クレーム候補は見つかりませんでした。"
+
+    lines = [f"{start_date.isoformat()} から {end_date.isoformat()} の顧客クレーム候補は {len(rows)} 件です。"]
+    for idx, row in enumerate(rows[:5], start=1):
+        sender = clean_display_text(row.get("sender") or "-", 40)
+        subject = clean_display_text(row.get("normalized_subject") or row.get("subject") or "-", 90)
+        snippet = clean_display_text(row.get("snippet") or "", 90)
+        lines.append(f"{idx}. {subject}\n送信者: {sender}\n日時: {row.get('email_date') or '-'}\n要旨: {snippet}")
+    return "\n\n".join(lines)
+
+
+def build_complaint_context(query: str, rows: List[dict], start_date: date, end_date: date) -> str:
+    if not rows:
+        return ""
+    lines = [
+        f"Customer complaint candidates for: {query}",
+        f"Date range: {start_date.isoformat()} - {end_date.isoformat()}",
+        "Use these complaint-related records first.",
+    ]
+    for idx, row in enumerate(rows, start=1):
+        lines.append(
+            f"[{idx}] {row.get('email_date') or '-'} | from={clean_display_text(row.get('sender') or '-', 48)} | "
+            f"subject={clean_display_text(row.get('normalized_subject') or row.get('subject') or '-', 110)}"
+        )
+        snippet = clean_display_text(row.get("snippet") or "", 220)
+        if snippet != "-":
+            lines.append(snippet)
+    return "\n".join(lines)
+
+
 def cmd_search(args: argparse.Namespace) -> int:
     con = connect_db(detect_db_path(args.db))
     try:
@@ -763,6 +1071,27 @@ def cmd_tasks(args: argparse.Namespace) -> int:
         con.close()
 
 
+def cmd_complaints(args: argparse.Namespace) -> int:
+    con = connect_db(detect_db_path(args.db))
+    try:
+        start_date, end_date = resolve_request_range(args.query)
+        rows = complaint_candidate_rows(con, args.query, args.limit)
+        payload = {
+            "query": args.query,
+            "db_path": str(detect_db_path(args.db)),
+            "result_count": len(rows),
+            "results": rows,
+            "summary": build_complaint_summary(args.query, rows, start_date, end_date),
+            "context": build_complaint_context(args.query, rows, start_date, end_date),
+            "start_date": start_date.isoformat(),
+            "end_date": end_date.isoformat(),
+        }
+        print(json.dumps(payload, ensure_ascii=False, indent=2))
+        return 0
+    finally:
+        con.close()
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
     parser.add_argument("--db")
@@ -783,6 +1112,11 @@ def build_parser() -> argparse.ArgumentParser:
     tasks.add_argument("query")
     tasks.add_argument("--limit", type=int, default=5)
     tasks.set_defaults(func=cmd_tasks)
+
+    complaints = sub.add_parser("complaint-context")
+    complaints.add_argument("query")
+    complaints.add_argument("--limit", type=int, default=5)
+    complaints.set_defaults(func=cmd_complaints)
 
     return parser
 

@@ -20,6 +20,7 @@ STATE_PATH = WORKSPACE / "risk_notification_state.json"
 EMAIL_RUNTIME = WORKSPACE / "email_rag_ingest_runtime_status.json"
 IDLE_STATUS = WORKSPACE / "idle_ingest_maintenance_status.json"
 AUTO_REPAIR_STATUS = WORKSPACE / "auto_repair_allowed_status.json"
+IATF_AUTO_DIFF_STATUS = WORKSPACE / "iatf_seed_auto_update_status.json"
 NODE_GMAIL_SCRIPT = WORKSPACE / "scripts" / "send_allowed_gmail_from_b64.js"
 
 TELEGRAM_BOT = "8085717200:AAHzacN6Q3xSunrLyvUTuHnKEf7Cd5YFdt4"
@@ -153,6 +154,7 @@ def collect_findings() -> tuple[list[dict[str, str]], dict[str, Any]]:
     email = read_json(EMAIL_RUNTIME)
     idle = read_json(IDLE_STATUS)
     auto_repair = read_json(AUTO_REPAIR_STATUS)
+    iatf_auto_diff = read_json(IATF_AUTO_DIFF_STATUS)
     health = health_check()
 
     if not health.get("ok"):
@@ -215,7 +217,19 @@ def collect_findings() -> tuple[list[dict[str, str]], dict[str, Any]]:
                 )
             )
 
-    return findings, {"health": health, "email": email, "idle": idle, "autoRepair": auto_repair}
+    auto_diff_summary = (iatf_auto_diff.get("summary") or {})
+    changed_existing = int(auto_diff_summary.get("changed_existing") or 0)
+    if changed_existing > 0:
+        findings.append(
+            make_finding(
+                "iatf_seed_changed_existing",
+                "medium",
+                "IATF seed auto diff detected changed existing files",
+                f"changed_existing={changed_existing}. Manual review is recommended before overwriting seed/live documents.",
+            )
+        )
+
+    return findings, {"health": health, "email": email, "idle": idle, "autoRepair": auto_repair, "iatfAutoDiff": iatf_auto_diff}
 
 
 def should_send(findings: list[dict[str, str]], state: dict[str, Any]) -> tuple[bool, list[str]]:

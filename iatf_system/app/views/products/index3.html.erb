@@ -1,12 +1,34 @@
+<style>
+  .tab_wrap{width:1200px; max-width:100%; margin:32px auto;}
+  .tab_wrap input[type="radio"]{display:none;}
+  .tab_area{font-size:0; margin:0 10px 12px;}
+  .tab_area label{width:150px; margin:0 5px 8px 0; display:inline-block; padding:12px 0; color:#4b5563; background:#d1d5db; text-align:center; font-size:13px; cursor:pointer; transition:ease 0.2s opacity;}
+  .tab_area label:hover{opacity:0.8;}
+  .panel_area{background:#fff;}
+  .tab_panel{width:100%; padding:24px 0; display:none;}
+  #tab1:checked ~ .tab_area .tab1_label{background:#fff; color:#111827; border-bottom:2px solid #2563eb;}
+  #tab1:checked ~ .panel_area #panel1{display:block;}
+  #tab2:checked ~ .tab_area .tab2_label{background:#fff; color:#111827; border-bottom:2px solid #2563eb;}
+  #tab2:checked ~ .panel_area #panel2{display:block;}
+  #tab3:checked ~ .tab_area .tab3_label{background:#fff; color:#111827; border-bottom:2px solid #2563eb;}
+  #tab3:checked ~ .panel_area #panel3{display:block;}
+  #tab4:checked ~ .tab_area .tab4_label{background:#fff; color:#111827; border-bottom:2px solid #2563eb;}
+  #tab4:checked ~ .panel_area #panel4{display:block;}
+  #tab5:checked ~ .tab_area .tab5_label{background:#fff; color:#111827; border-bottom:2px solid #2563eb;}
+  #tab5:checked ~ .panel_area #panel5{display:block;}
+  #tab6:checked ~ .tab_area .tab6_label{background:#fff; color:#111827; border-bottom:2px solid #2563eb;}
+  #tab6:checked ~ .panel_area #panel6{display:block;}
+  #tab7:checked ~ .tab_area .tab7_label{background:#fff; color:#111827; border-bottom:2px solid #2563eb;}
+  #tab7:checked ~ .panel_area #panel7{display:block;}
+</style>
 
+<h1>IATF APQP / PPAP 全体進捗一覧</h1>
 
-<h1>IATF APQP / PPAP 進捗一覧表</h1>
-
-<%= link_to 'フェーズデータをExcelにエクスポート', export_phases_to_excel_products_path, class: "btn btn-primary" %>
+<%= link_to 'フェーズ別データをExcel出力', export_phases_to_excel_products_path, class: "btn btn-primary" %>
 
 <div class="tab_wrap">
-	<%= render "tab_header" %>
-	<div class="panel_area">
+  <%= render "tab_header" %>
+  <div class="panel_area">
     <div id="panel1" class="tab_panel">
       <% koumoku = APQP_PHASES[1] %>
       <%= render partial: "form3", locals: { products: @products, koumoku: koumoku, dropdownlist: @dropdownlist } %>
@@ -38,43 +60,8 @@
     </div>
 
     <div id="panel7" class="tab_panel">
-      <% koumoku=["顧客要求事項検討会議事録_営業", "金型製造指示書_営業", "金型製作依頼票_金型設計", "進捗管理票_生産技術", "試作製造指示書_営業", "設計計画書_金型設計", "設計検証チェックリスト_金型設計", "設計変更会議議事録_金型設計", "製造実現可能性検討書", "妥当性確認記録_金型設計", "初期流動検査記録", "レイアウト/歩留まり_営業", "DR構想検討会議議事録_生産技術", "DR会議議事録_金型設計"] %>
-      <%= render partial: "form3", locals: { products: @products, koumoku:koumoku,dropdownlist:@dropdownlist } %>
-		</div>
-
-
-
-
-	</div>
+      <% koumoku = ["顧客要求事項検討会議事録_営業", "金型製造指示書_営業", "金型製作依頼票_金型設計", "進捗管理票_生産技術", "試作製造指示書_営業", "設計計画書_金型設計", "設計検証チェックリスト_金型設計", "設計変更会議議事録_金型設計", "妥当性確認記録_金型設計", "初期流動検査記録", "レイアウト/歩留まり_営業", "DR構想検討会議議事録_生産技術", "DR会議議事録_金型設計"] %>
+      <%= render partial: "form3", locals: { products: @products, koumoku: koumoku, dropdownlist: @dropdownlist } %>
+    </div>
+  </div>
 </div>
-
-
-</div>
-
-
-
-
-
-
-
-
-
-      
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

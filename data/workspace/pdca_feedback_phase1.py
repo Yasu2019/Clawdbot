@@ -4,7 +4,9 @@ from __future__ import annotations
 import argparse
 import base64
 import json
+import os
 import subprocess
+import time
 import uuid
 from datetime import datetime, timedelta, timezone
 from difflib import SequenceMatcher
@@ -17,7 +19,28 @@ WORKSPACE = Path(__file__).resolve().parent
 PDCA_ROOT = WORKSPACE / "pdca_lab"
 STATE_DIR = PDCA_ROOT / "state"
 EXAMPLES_DIR = PDCA_ROOT / "examples"
-MIRROR_ROOT = WORKSPACE.parents[1] / "clawstack_v2" / "data" / "work" / "pdca_lab"
+LOCK_PATH = STATE_DIR / "phase1.lock"
+
+
+def resolve_mirror_root() -> Path:
+    candidate_roots = []
+    parents = list(WORKSPACE.parents)
+    if len(parents) >= 2:
+        candidate_roots.append(parents[1] / "clawstack_v2" / "data" / "work" / "pdca_lab")
+    if len(parents) >= 1:
+        candidate_roots.append(parents[0] / "clawstack_v2" / "data" / "work" / "pdca_lab")
+    candidate_roots.append(PDCA_ROOT / "mirror")
+
+    for candidate in candidate_roots:
+        try:
+            candidate.parent.mkdir(parents=True, exist_ok=True)
+            return candidate
+        except Exception:
+            continue
+    return PDCA_ROOT / "mirror"
+
+
+MIRROR_ROOT = resolve_mirror_root()
 
 STATUS_PATH = STATE_DIR / "status.json"
 REGISTRY_PATH = STATE_DIR / "prompt_registry.json"
@@ -38,6 +61,46 @@ def now_jst_text() -> str:
 def ensure_dirs() -> None:
     for path in [PDCA_ROOT, STATE_DIR, EXAMPLES_DIR, MIRROR_ROOT]:
         path.mkdir(parents=True, exist_ok=True)
+
+
+def acquire_lock(wait_seconds: int = 5, stale_minutes: int = 15) -> tuple[int | None, dict[str, Any] | None]:
+    ensure_dirs()
+    deadline = time.time() + wait_seconds
+    while True:
+        try:
+            fd = os.open(str(LOCK_PATH), os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+            payload = {"pid": os.getpid(), "startedAt": now_jst_text()}
+            os.write(fd, json.dumps(payload, ensure_ascii=False).encode("utf-8"))
+            os.fsync(fd)
+            return fd, None
+        except FileExistsError:
+            current = read_json(LOCK_PATH, {})
+            started_at = str(current.get("startedAt") or "")
+            try:
+                started_dt = datetime.strptime(started_at, "%Y-%m-%d %H:%M:%S JST").replace(tzinfo=JST)
+            except Exception:
+                started_dt = None
+            if started_dt and (now_jst() - started_dt) >= timedelta(minutes=stale_minutes):
+                try:
+                    LOCK_PATH.unlink(missing_ok=True)
+                except Exception:
+                    pass
+                continue
+            if time.time() >= deadline:
+                return None, current
+            time.sleep(0.5)
+
+
+def release_lock(fd: int | None) -> None:
+    if fd is not None:
+        try:
+            os.close(fd)
+        except Exception:
+            pass
+    try:
+        LOCK_PATH.unlink(missing_ok=True)
+    except Exception:
+        pass
 
 
 def read_json(path: Path, fallback: Any) -> Any:
@@ -442,18 +505,30 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main() -> None:
     args = build_parser().parse_args()
-    if args.command == "init":
-        init_state()
-        result = {"status": "initialized", "updatedAt": now_jst_text()}
-    elif args.command == "capture":
-        result = capture(Path(args.input_json))
-    elif args.command == "promote":
-        result = promote(args.family, args.candidate, args.approved_by, args.rationale)
-    elif args.command == "rollback":
-        result = rollback(args.family, args.rollback_version, args.approved_by, args.rationale)
-    else:
-        init_state()
-        result = refresh_status()
+    lock_fd, held = acquire_lock()
+    if lock_fd is None:
+        result = {
+            "status": "skipped_busy",
+            "updatedAt": now_jst_text(),
+            "lock": held or {},
+        }
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return
+    try:
+        if args.command == "init":
+            init_state()
+            result = {"status": "initialized", "updatedAt": now_jst_text()}
+        elif args.command == "capture":
+            result = capture(Path(args.input_json))
+        elif args.command == "promote":
+            result = promote(args.family, args.candidate, args.approved_by, args.rationale)
+        elif args.command == "rollback":
+            result = rollback(args.family, args.rollback_version, args.approved_by, args.rationale)
+        else:
+            init_state()
+            result = refresh_status()
+    finally:
+        release_lock(lock_fd)
     print(json.dumps(result, ensure_ascii=False, indent=2))
 
 

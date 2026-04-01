@@ -11,7 +11,10 @@ from pathlib import Path
 
 JST = timezone(timedelta(hours=9))
 DEFAULT_MONTHS_BACK = 6
-DEFAULT_LIMIT = 20
+DEFAULT_LIMIT = 60
+DEFAULT_URGENT_WINDOW_DAYS = 30
+DEFAULT_RECENT_WINDOW_DAYS = 45
+DEFAULT_STALE_DUE_DATE_DAYS = 180
 
 DEFAULT_BLACKLIST_PATTERNS = [
     "autodesk",
@@ -41,7 +44,6 @@ DEFAULT_BLACKLIST_PATTERNS = [
     "hello@ollama.com",
     "pinterest",
 ]
-
 
 if hasattr(sys.stdout, "reconfigure"):
     try:
@@ -90,11 +92,21 @@ def connect_db(db_path: Path) -> sqlite3.Connection:
     return con
 
 
+def normalize_spaces(text: str | None) -> str:
+    return " ".join((text or "").replace("\r", " ").replace("\n", " ").split())
+
+
+def looks_garbled(text: str | None) -> bool:
+    value = text or ""
+    garbled_tokens = ["\x1b", "・ｽ", "隴", "關", "陜", "陷", "闔会"]
+    return any(token in value for token in garbled_tokens)
+
+
 def clean_text(value: str | None, max_len: int = 120) -> str:
-    text = " ".join((value or "").replace("\r", " ").replace("\n", " ").split())
+    text = normalize_spaces(value)
     if not text:
         return "-"
-    if "\x1b" in text:
+    if looks_garbled(text):
         return "[encoding issue detected]"
     if len(text) > max_len:
         return text[: max_len - 3] + "..."
@@ -116,26 +128,77 @@ def is_blacklisted(subject: str | None, requester: str | None, blacklist: list[s
     return any(pattern in target for pattern in blacklist)
 
 
-def due_label(due_date: str) -> str:
-    if not due_date:
-        return "未設定"
+def parse_iso_date(value: str | None) -> date | None:
+    if not value:
+        return None
     try:
-        due = date.fromisoformat(due_date)
-        delta = (due - date.today()).days
-        if delta < 0:
-            return f"{due_date} 🔴期限切れ({abs(delta)}日)"
-        if delta == 0:
-            return f"{due_date} 🟠今日"
-        if delta <= 3:
-            return f"{due_date} 🟡{delta}日"
-        return f"{due_date} {delta}日"
+        return date.fromisoformat(value)
     except ValueError:
-        return due_date
+        return None
 
 
-def fetch_open_tasks(con: sqlite3.Connection, months_back: int, limit: int, blacklist: list[str]) -> list[dict]:
-    to_date = date.today()
-    from_date = to_date - timedelta(days=max(months_back, 1) * 31)
+def normalize_due_date(
+    due_date_value: str | None,
+    request_date_value: str | None,
+    today: date,
+) -> tuple[date | None, str]:
+    due = parse_iso_date(due_date_value)
+    request_date = parse_iso_date(request_date_value)
+    if not due:
+        return None, "missing"
+
+    # Some ingested tasks have impossible due dates from years before the request.
+    if request_date and due < request_date - timedelta(days=7):
+        return None, "invalid_before_request"
+
+    if due < today - timedelta(days=DEFAULT_STALE_DUE_DATE_DAYS):
+        return None, "stale_past"
+
+    return due, "valid"
+
+
+def due_label(due_date: date | None, due_state: str, today: date) -> str:
+    if due_state == "invalid_before_request":
+        return "期日データ異常"
+    if due_state == "stale_past":
+        return "古い期日データ"
+    if not due_date:
+        return "期日未設定"
+
+    delta = (due_date - today).days
+    if delta < 0:
+        return f"{due_date.isoformat()} 期限切れ({abs(delta)}日)"
+    if delta == 0:
+        return f"{due_date.isoformat()} 本日期日"
+    if delta <= 3:
+        return f"{due_date.isoformat()} あと{delta}日"
+    return f"{due_date.isoformat()} あと{delta}日"
+
+
+def summarize_request(row: sqlite3.Row) -> str:
+    subject = normalize_spaces(row["request_subject"])
+    summary = normalize_spaces(row["request_summary"])
+    body = normalize_spaces(row["request_body"])
+
+    for candidate in [summary, subject, body]:
+        if not candidate or looks_garbled(candidate):
+            continue
+        if len(candidate) > 220 and subject and not looks_garbled(subject):
+            return clean_text(subject, 120)
+        return clean_text(candidate, 140)
+
+    if subject:
+        return clean_text(subject, 120)
+    return "[encoding issue detected]" if any(looks_garbled(v) for v in [summary, body, subject]) else "-"
+
+
+def fetch_candidate_tasks(
+    con: sqlite3.Connection,
+    months_back: int,
+    blacklist: list[str],
+) -> tuple[list[dict], dict]:
+    today = date.today()
+    from_date = today - timedelta(days=max(months_back, 1) * 31)
     rows = con.execute(
         """
         SELECT
@@ -157,50 +220,161 @@ def fetch_open_tasks(con: sqlite3.Connection, months_back: int, limit: int, blac
         WHERE status = 'open'
           AND request_date <> ''
           AND request_date BETWEEN ? AND ?
-        ORDER BY CASE WHEN due_date = '' THEN 1 ELSE 0 END, due_date ASC, request_date DESC
+        ORDER BY request_date DESC
         """,
-        (from_date.isoformat(), to_date.isoformat()),
+        (from_date.isoformat(), today.isoformat()),
     ).fetchall()
+
+    stats = {
+        "open_recent": len(rows),
+        "blacklisted": 0,
+        "invalid_due": 0,
+        "stale_due": 0,
+        "missing_due": 0,
+        "valid_due": 0,
+    }
 
     items: list[dict] = []
     for row in rows:
         if is_blacklisted(row["request_subject"], row["requester"], blacklist):
+            stats["blacklisted"] += 1
             continue
-        requester = extract_requester_name(row["requester"])
-        request_text = row["request_summary"] or row["request_body"] or row["request_subject"]
+
+        due_date, due_state = normalize_due_date(row["due_date"], row["request_date"], today)
+        if due_state == "invalid_before_request":
+            stats["invalid_due"] += 1
+        elif due_state == "stale_past":
+            stats["stale_due"] += 1
+        elif due_state == "missing":
+            stats["missing_due"] += 1
+        else:
+            stats["valid_due"] += 1
+
+        request_date = parse_iso_date(row["request_date"])
+        if not request_date:
+            continue
+
         items.append(
             {
                 "request_date": row["request_date"] or "-",
-                "requester": requester,
+                "request_date_obj": request_date,
+                "requester": extract_requester_name(row["requester"]),
                 "subject": clean_text(row["request_subject"], 90),
-                "request": clean_text(request_text, 140),
-                "due_date": row["due_date"] or "",
-                "due_label": due_label(row["due_date"] or ""),
+                "request": summarize_request(row),
+                "due_date": due_date.isoformat() if due_date else "",
+                "due_date_obj": due_date,
+                "due_state": due_state,
+                "due_label": due_label(due_date, due_state, today),
                 "reply_date": row["reply_date"] or "-",
                 "reply_summary": clean_text(row["reply_summary"], 100),
                 "assignee": clean_text(row["assignee"], 30),
+                "source": row["source"],
                 "source_id": row["source_id"],
             }
         )
-        if len(items) >= limit:
+    return items, stats
+
+
+def prioritize_tasks(items: list[dict], limit: int) -> tuple[list[dict], dict]:
+    today = date.today()
+    urgent_cutoff = today + timedelta(days=DEFAULT_URGENT_WINDOW_DAYS)
+    recent_cutoff = today - timedelta(days=DEFAULT_RECENT_WINDOW_DAYS)
+
+    due_soon: list[dict] = []
+    overdue_recent: list[dict] = []
+    recent: list[dict] = []
+    backlog: list[dict] = []
+    stale_due_hidden = 0
+
+    for item in items:
+        due = item["due_date_obj"]
+        request_date = item["request_date_obj"]
+
+        if item["due_state"] == "stale_past":
+            stale_due_hidden += 1
+            continue
+
+        if due and today <= due <= urgent_cutoff:
+            due_soon.append(item)
+        elif due and due < today:
+            overdue_recent.append(item)
+        elif request_date >= recent_cutoff:
+            recent.append(item)
+        else:
+            backlog.append(item)
+
+    due_soon.sort(key=lambda item: (item["due_date_obj"], item["request_date_obj"]))
+    overdue_recent.sort(
+        key=lambda item: (item["request_date_obj"], item["due_date_obj"] or date.min),
+        reverse=True,
+    )
+    recent.sort(key=lambda item: (item["request_date_obj"], item["due_date_obj"] or date.max), reverse=True)
+    backlog.sort(key=lambda item: (item["request_date_obj"], item["due_date_obj"] or date.max), reverse=True)
+
+    selected: list[dict] = []
+    seen: set[tuple[str, str]] = set()
+    for bucket in (due_soon, overdue_recent, recent, backlog):
+        for item in bucket:
+            key = (item["source"], item["source_id"])
+            if key in seen:
+                continue
+            seen.add(key)
+            selected.append(item)
+            if len(selected) >= limit:
+                break
+        if len(selected) >= limit:
             break
-    return items
+
+    stats = {
+        "due_soon_candidates": len(due_soon),
+        "overdue_recent_candidates": len(overdue_recent),
+        "recent_candidates": len(recent),
+        "backlog_candidates": len(backlog),
+        "stale_due_hidden": stale_due_hidden,
+        "selected": len(selected),
+    }
+    return selected, stats
 
 
-def build_report(tasks: list[dict], months_back: int) -> str:
+def build_report(tasks: list[dict], months_back: int, source_stats: dict, priority_stats: dict) -> str:
     now = datetime.now(JST)
     since = now.date() - timedelta(days=max(months_back, 1) * 31)
+    total_candidates = source_stats["open_recent"] - source_stats["blacklisted"]
+    omitted = max(total_candidates - source_stats["stale_due"] - len(tasks), 0)
+
     lines = [
         "Email TodoList Report",
         "",
         f"Updated: {now.strftime('%Y-%m-%d %H:%M:%S JST')}",
         f"Range: {since.isoformat()} - {now.date().isoformat()}",
-        f"Open tasks shown: {len(tasks)}",
+        f"Open tasks in range: {source_stats['open_recent']}",
+        f"Excluded by blacklist: {source_stats['blacklisted']}",
+        f"Shown: {len(tasks)}",
+        f"Omitted after prioritization: {omitted}",
         "",
-        "Fields: request_date | requester | request | due_date | reply_date | subject",
+        "Priority rule: 期日が近い依頼を優先し、その後に直近の依頼を表示します。",
+        "Invalid due dates older than the request are ignored for sorting.",
+        "",
+        "Fields: 依頼日 | 依頼者 | 依頼内容 | 期日 | 回答日 | 件名",
     ]
+
+    lines.extend(
+        [
+            "",
+            "Stats:",
+            f"- valid_due={source_stats['valid_due']}",
+            f"- missing_due={source_stats['missing_due']}",
+            f"- invalid_due={source_stats['invalid_due']}",
+            f"- stale_due_hidden={priority_stats['stale_due_hidden']}",
+            f"- due_soon_candidates={priority_stats['due_soon_candidates']}",
+            f"- overdue_recent_candidates={priority_stats['overdue_recent_candidates']}",
+            f"- recent_candidates={priority_stats['recent_candidates']}",
+            f"- backlog_candidates={priority_stats['backlog_candidates']}",
+        ]
+    )
+
     if not tasks:
-        lines.extend(["", "No open tasks found in the selected period."])
+        lines.extend(["", "対象となる未対応タスクはありません。"])
         return "\n".join(lines)
 
     for idx, task in enumerate(tasks, start=1):
@@ -218,7 +392,7 @@ def build_report(tasks: list[dict], months_back: int) -> str:
             ]
         )
         if task["reply_summary"] and task["reply_summary"] != "-":
-            lines.append(f"回答内容: {task['reply_summary']}")
+            lines.append(f"回答要約: {task['reply_summary']}")
         if task["assignee"] and task["assignee"] != "-":
             lines.append(f"担当: {task['assignee']}")
     return "\n".join(lines)
@@ -229,10 +403,12 @@ def main() -> int:
     blacklist = load_blacklist_patterns()
     con = connect_db(db_path)
     try:
-        tasks = fetch_open_tasks(con, DEFAULT_MONTHS_BACK, DEFAULT_LIMIT, blacklist)
+        items, source_stats = fetch_candidate_tasks(con, DEFAULT_MONTHS_BACK, blacklist)
     finally:
         con.close()
-    print(build_report(tasks, DEFAULT_MONTHS_BACK))
+
+    tasks, priority_stats = prioritize_tasks(items, DEFAULT_LIMIT)
+    print(build_report(tasks, DEFAULT_MONTHS_BACK, source_stats, priority_stats))
     return 0
 
 

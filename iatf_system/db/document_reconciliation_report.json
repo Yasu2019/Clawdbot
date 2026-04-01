@@ -1,0 +1,4586 @@
+{
+  "generated_at": "2026-03-29T13:30:04.979893",
+  "source_zip": {
+    "name": "文書照合_20250329.zip",
+    "relative_path": "clawstack_v2/data/paperless/consume/文書照合_20250329.zip",
+    "size_bytes": 729090,
+    "sha1": "246f1d0e1a9aa3fbb7c0960d94ded0c139b3df24",
+    "updated_at": "2026-03-29T12:18:44.023313"
+  },
+  "numbering_reference": {
+    "file": {
+      "name": "記録の採番一覧.doc",
+      "relative_path": "data/workspace/_tmp_doc_reconcile/文書照合_20250329/記録の採番一覧.doc",
+      "size_bytes": 201216,
+      "sha1": "fc169e2c0b34f486927263aa8933bcc0aa4c1e92",
+      "updated_at": "2026-03-29T13:30:01.907735"
+    },
+    "status": "unparsed",
+    "reason": "この環境では Word COM / antiword / LibreOffice が利用できず、.doc 本文を自動抽出できませんでした。存在確認とハッシュ取得のみ実施しています。"
+  },
+  "source_files": {
+    "qm001_appendix4": {
+      "name": "QM001付表4_文書（記録を含む）体系表_第5版_20250110.xlsx",
+      "relative_path": "data/workspace/_tmp_doc_reconcile/文書照合_20250329/QM001付表4_文書（記録を含む）体系表_第5版_20250110.xlsx",
+      "size_bytes": 161432,
+      "sha1": "f5736b0952a3eb258551369588a913a952c0185c",
+      "updated_at": "2026-03-29T13:30:01.899134"
+    },
+    "record_rule_table": {
+      "name": "記録管理規定 表1　25.1.10改.xlsx",
+      "relative_path": "data/workspace/_tmp_doc_reconcile/文書照合_20250329/記録管理規定 表1　25.1.10改.xlsx",
+      "size_bytes": 231416,
+      "sha1": "e8b7660b3fc66a0be6ea74af371b41f3b6788a64",
+      "updated_at": "2026-03-29T13:30:01.908847"
+    },
+    "department_ledgers": {
+      "設計部門": [
+        {
+          "name": "設計部門_管理文書一覧.xls",
+          "relative_path": "data/workspace/_tmp_doc_reconcile/文書照合_20250329/設計部門/設計部門_管理文書一覧.xls",
+          "size_bytes": 40960,
+          "sha1": "8eabf183c66fc76d1c65621f4a2751c0b5b82c9f",
+          "updated_at": "2026-03-29T13:30:01.909589"
+        }
+      ],
+      "生産技術": [
+        {
+          "name": "生産技術管理文書一覧.xls",
+          "relative_path": "data/workspace/_tmp_doc_reconcile/文書照合_20250329/生産技術/生産技術管理文書一覧.xls",
+          "size_bytes": 41472,
+          "sha1": "9bc1951e4727991c1fc4067d660c7fbc174e1d9f",
+          "updated_at": "2026-03-29T13:30:01.905185"
+        },
+        {
+          "name": "第三階層文書・文書見直し記録(KGO007)_2025_1_20.xls",
+          "relative_path": "data/workspace/_tmp_doc_reconcile/文書照合_20250329/生産技術/第三階層文書・文書見直し記録(KGO007)_2025_1_20.xls",
+          "size_bytes": 64000,
+          "sha1": "fbc5b216771e6f6d3cd390419dd7c98dc773afec",
+          "updated_at": "2026-03-29T13:30:01.905185"
+        }
+      ],
+      "プレス_表面処理": [
+        {
+          "name": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls",
+          "relative_path": "data/workspace/_tmp_doc_reconcile/文書照合_20250329/プレス_表面処理/プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls",
+          "size_bytes": 201728,
+          "sha1": "47454e10accfc578aa19a27676c58356c05cd460",
+          "updated_at": "2026-03-29T13:30:01.900137"
+        }
+      ],
+      "成形": [
+        {
+          "name": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls",
+          "relative_path": "data/workspace/_tmp_doc_reconcile/文書照合_20250329/成形/第三階層文書・文書見直し記録(KSOa903) 2021.11.xls",
+          "size_bytes": 777728,
+          "sha1": "d51e9074ddb779bfe243a00857dfe7c6c7c60f5d",
+          "updated_at": "2026-03-29T13:30:01.904186"
+        },
+        {
+          "name": "第二階層文書管理台帳（KSOa906)（文書見直し記録）2022.11.xls",
+          "relative_path": "data/workspace/_tmp_doc_reconcile/文書照合_20250329/成形/第二階層文書管理台帳（KSOa906)（文書見直し記録）2022.11.xls",
+          "size_bytes": 45568,
+          "sha1": "453a2b08e1390080be37b08ddec3462cadb5970e",
+          "updated_at": "2026-03-29T13:30:01.904186"
+        }
+      ],
+      "営業部": [
+        {
+          "name": "営業部管理文書台帳EG-008-9　(最新）.xls",
+          "relative_path": "data/workspace/_tmp_doc_reconcile/文書照合_20250329/営業部/営業部管理文書台帳EG-008-9　(最新）.xls",
+          "size_bytes": 114176,
+          "sha1": "c54cee708259de7dd4addb76769633c3bc2a4350",
+          "updated_at": "2026-03-29T13:30:01.901651"
+        }
+      ],
+      "管理部": [
+        {
+          "name": "管理部　文書管理台帳.xls",
+          "relative_path": "data/workspace/_tmp_doc_reconcile/文書照合_20250329/管理部/管理部　文書管理台帳.xls",
+          "size_bytes": 51712,
+          "sha1": "29016f0330c24eef3cb9b0572f5b88de1fb83971",
+          "updated_at": "2026-03-29T13:30:01.906186"
+        }
+      ]
+    }
+  },
+  "summary": {
+    "qm_entry_count": 278,
+    "record_rule_count": 137,
+    "department_entry_count": 313,
+    "core_mismatch_count": 195,
+    "department_mismatch_count": 352
+  },
+  "core_mismatches": [
+    {
+      "type": "missing_in_record_rule",
+      "family_name": "各月成果報告書",
+      "qm_name": "各月成果報告書",
+      "qm_number": "-",
+      "qm_retention": "3年",
+      "rule_name": "",
+      "rule_number": "",
+      "rule_retention": ""
+    },
+    {
+      "type": "number_mismatch",
+      "family_name": "プロセスの監視・測定記録",
+      "qm_name": "プロセスの監視・測定記録",
+      "qm_number": "KH-062-QM001-1",
+      "qm_retention": "3年",
+      "rule_name": "プロセスの監視・測定記録",
+      "rule_number": "-",
+      "rule_retention": "5年間"
+    },
+    {
+      "type": "retention_mismatch",
+      "family_name": "プロセスの監視・測定記録",
+      "qm_name": "プロセスの監視・測定記録",
+      "qm_number": "KH-062-QM001-1",
+      "qm_retention": "3年",
+      "rule_name": "プロセスの監視・測定記録",
+      "rule_number": "-",
+      "rule_retention": "5年間"
+    },
+    {
+      "type": "missing_in_record_rule",
+      "family_name": "プロセスオーナーリスト",
+      "qm_name": "プロセスオーナーリスト",
+      "qm_number": "KH-061-QM001-1",
+      "qm_retention": "3年",
+      "rule_name": "",
+      "rule_number": "",
+      "rule_retention": ""
+    },
+    {
+      "type": "number_mismatch",
+      "family_name": "年度目標達成計画書",
+      "qm_name": "年度目標達成計画書",
+      "qm_number": "-",
+      "qm_retention": "3年",
+      "rule_name": "年度目標達成計画書",
+      "rule_number": "KT",
+      "rule_retention": "3年間"
+    },
+    {
+      "type": "number_mismatch",
+      "family_name": "年度目標達成成果報告書",
+      "qm_name": "年度目標達成成果報告書",
+      "qm_number": "-",
+      "qm_retention": "3年",
+      "rule_name": "年度目標達成成果報告書",
+      "rule_number": "KT",
+      "rule_retention": "3年間"
+    },
+    {
+      "type": "missing_in_record_rule",
+      "family_name": "",
+      "qm_name": "(目標達成計画書）",
+      "qm_number": "­­­",
+      "qm_retention": "­­­",
+      "rule_name": "",
+      "rule_number": "",
+      "rule_retention": ""
+    },
+    {
+      "type": "missing_in_record_rule",
+      "family_name": "金型",
+      "qm_name": "金型",
+      "qm_number": "",
+      "qm_retention": "",
+      "rule_name": "",
+      "rule_number": "",
+      "rule_retention": ""
+    },
+    {
+      "type": "retention_mismatch",
+      "family_name": "始業点検表",
+      "qm_name": "始業点検表",
+      "qm_number": "KGD017-QK007",
+      "qm_retention": "3年",
+      "rule_name": "始業点検表（設備）",
+      "rule_number": "K",
+      "rule_retention": "15年間"
+    },
+    {
+      "type": "missing_in_record_rule",
+      "family_name": "プレス工程",
+      "qm_name": "プレス工程",
+      "qm_number": "",
+      "qm_retention": "",
+      "rule_name": "",
+      "rule_number": "",
+      "rule_retention": ""
+    },
+    {
+      "type": "missing_in_record_rule",
+      "family_name": "設備定期点検表",
+      "qm_name": "設備定期点検表",
+      "qm_number": "-",
+      "qm_retention": "15年",
+      "rule_name": "",
+      "rule_number": "",
+      "rule_retention": ""
+    },
+    {
+      "type": "missing_in_record_rule",
+      "family_name": "プレス機始業点検表",
+      "qm_name": "プレス機始業点検表",
+      "qm_number": "KSU001",
+      "qm_retention": "15年",
+      "rule_name": "",
+      "rule_number": "",
+      "rule_retention": ""
+    },
+    {
+      "type": "retention_mismatch",
+      "family_name": "始業点検表",
+      "qm_name": "始業点検表（冷却機）",
+      "qm_number": "KSAU002",
+      "qm_retention": "3年",
+      "rule_name": "始業点検表（設備）",
+      "rule_number": "K",
+      "rule_retention": "15年間"
+    },
+    {
+      "type": "missing_in_record_rule",
+      "family_name": "設備始業点検表",
+      "qm_name": "設備始業点検表",
+      "qm_number": "KSSST001",
+      "qm_retention": "15年",
+      "rule_name": "",
+      "rule_number": "",
+      "rule_retention": ""
+    },
+    {
+      "type": "missing_in_record_rule",
+      "family_name": "炭化水素自動洗浄乾燥機設備始業点検表",
+      "qm_name": "炭化水素自動洗浄乾燥機設備始業点検表",
+      "qm_number": "KSSHCST001",
+      "qm_retention": "15年",
+      "rule_name": "",
+      "rule_number": "",
+      "rule_retention": ""
+    },
+    {
+      "type": "missing_in_record_rule",
+      "family_name": "成形工程",
+      "qm_name": "成形工程",
+      "qm_number": "",
+      "qm_retention": "",
+      "rule_name": "",
+      "rule_number": "",
+      "rule_retention": ""
+    },
+    {
+      "type": "number_mismatch",
+      "family_name": "設備管理台帳",
+      "qm_name": "設備管理台帳",
+      "qm_number": "-",
+      "qm_retention": "廃止後3年",
+      "rule_name": "設備管理台帳",
+      "rule_number": "K",
+      "rule_retention": "廃止後3年"
+    },
+    {
+      "type": "missing_in_record_rule",
+      "family_name": "設備・付帯設備日常点検チェックシート",
+      "qm_name": "設備・付帯設備日常点検チェックシート",
+      "qm_number": "ＫＳＲ008",
+      "qm_retention": "15年",
+      "rule_name": "",
+      "rule_number": "",
+      "rule_retention": ""
+    },
+    {
+      "type": "missing_in_record_rule",
+      "family_name": "射出成形機定期点検チェックシート",
+      "qm_name": "射出成形機 定期点検チェックシート",
+      "qm_number": "ＫＳＲ012",
+      "qm_retention": "15年",
+      "rule_name": "",
+      "rule_number": "",
+      "rule_retention": ""
+    },
+    {
+      "type": "missing_in_record_rule",
+      "family_name": "",
+      "qm_name": "(工程レイアウト図)",
+      "qm_number": "KH-071-HH1005-1",
+      "qm_retention": "廃止後３年",
+      "rule_name": "",
+      "rule_number": "",
+      "rule_retention": ""
+    },
+    {
+      "type": "missing_in_record_rule",
+      "family_name": "",
+      "qm_name": "(製造実現可能性検討書)",
+      "qm_number": "EG-021",
+      "qm_retention": "15年",
+      "rule_name": "",
+      "rule_number": "",
+      "rule_retention": ""
+    },
+    {
+      "type": "missing_in_record_rule",
+      "family_name": "",
+      "qm_name": "(コントロールプラン)",
+      "qm_number": "KH-081-HH1001-2",
+      "qm_retention": "15年",
+      "rule_name": "",
+      "rule_number": "",
+      "rule_retention": ""
+    },
+    {
+      "type": "missing_in_record_rule",
+      "family_name": "温度・湿度・照度・クリーン度の記録",
+      "qm_name": "温度・湿度・照度・クリーン度の記録",
+      "qm_number": "-",
+      "qm_retention": "3年",
+      "rule_name": "",
+      "rule_number": "",
+      "rule_retention": ""
+    },
+    {
+      "type": "retention_mismatch",
+      "family_name": "測定機器管理台帳",
+      "qm_name": "測定機器管理台帳",
+      "qm_number": "KH024-QK006",
+      "qm_retention": "-",
+      "rule_name": "測定機器管理台帳",
+      "rule_number": "KH",
+      "rule_retention": "廃止後3年"
+    },
+    {
+      "type": "missing_in_record_rule",
+      "family_name": "測定機器校正・検証記録",
+      "qm_name": "測定機器校正・検証記録（内部）",
+      "qm_number": "KH006-HH-033",
+      "qm_retention": "15年",
+      "rule_name": "",
+      "rule_number": "",
+      "rule_retention": ""
+    },
+    {
+      "type": "missing_in_record_rule",
+      "family_name": "測定機器校正・検証記録",
+      "qm_name": "測定機器校正・検証記録（外部）",
+      "qm_number": "KH006-HH-033",
+      "qm_retention": "15年",
+      "rule_name": "",
+      "rule_number": "",
+      "rule_retention": ""
+    },
+    {
+      "type": "number_mismatch",
+      "family_name": "始業点検シート",
+      "qm_name": "始業点検シート（検査機器）",
+      "qm_number": "-",
+      "qm_retention": "15年",
+      "rule_name": "始業点検シート（検査機器）",
+      "rule_number": "K",
+      "rule_retention": "3年間"
+    },
+    {
+      "type": "retention_mismatch",
+      "family_name": "始業点検シート",
+      "qm_name": "始業点検シート（検査機器）",
+      "qm_number": "-",
+      "qm_retention": "15年",
+      "rule_name": "始業点検シート（検査機器）",
+      "rule_number": "K",
+      "rule_retention": "3年間"
+    },
+    {
+      "type": "number_mismatch",
+      "family_name": "ゲージR＆R評価記録",
+      "qm_name": "ゲージＲ＆Ｒ評価記録",
+      "qm_number": "KH035-HH1002",
+      "qm_retention": "5年",
+      "rule_name": "ゲージＲ＆Ｒ評価記録",
+      "rule_number": "KH035",
+      "rule_retention": "15年間"
+    },
+    {
+      "type": "retention_mismatch",
+      "family_name": "ゲージR＆R評価記録",
+      "qm_name": "ゲージＲ＆Ｒ評価記録",
+      "qm_number": "KH035-HH1002",
+      "qm_retention": "5年",
+      "rule_name": "ゲージＲ＆Ｒ評価記録",
+      "rule_number": "KH035",
+      "rule_retention": "15年間"
+    },
+    {
+      "type": "number_mismatch",
+      "family_name": "計数値MSA報告書",
+      "qm_name": "計数値MSA報告書",
+      "qm_number": "KH036-HH1002",
+      "qm_retention": "5年",
+      "rule_name": "計数値MSA報告書",
+      "rule_number": "KH036",
+      "rule_retention": "15年間"
+    },
+    {
+      "type": "retention_mismatch",
+      "family_name": "計数値MSA報告書",
+      "qm_name": "計数値MSA報告書",
+      "qm_number": "KH036-HH1002",
+      "qm_retention": "5年",
+      "rule_name": "計数値MSA報告書",
+      "rule_number": "KH036",
+      "rule_retention": "15年間"
+    },
+    {
+      "type": "number_mismatch",
+      "family_name": "個人別教育記録",
+      "qm_name": "個人別教育記録",
+      "qm_number": "-",
+      "qm_retention": "退職後1年",
+      "rule_name": "個人別教育記録",
+      "rule_number": "K",
+      "rule_retention": "退職後１年"
+    },
+    {
+      "type": "retention_mismatch",
+      "family_name": "個人別教育記録",
+      "qm_name": "個人別教育記録",
+      "qm_number": "-",
+      "qm_retention": "退職後1年",
+      "rule_name": "個人別教育記録",
+      "rule_number": "K",
+      "rule_retention": "退職後１年"
+    },
+    {
+      "type": "number_mismatch",
+      "family_name": "作業資格台帳",
+      "qm_name": "作業資格(認定登録)台帳",
+      "qm_number": "-",
+      "qm_retention": "毎年更新",
+      "rule_name": "作業資格（認定登録）台帳",
+      "rule_number": "K",
+      "rule_retention": "毎年更新"
+    },
+    {
+      "type": "missing_in_record_rule",
+      "family_name": "改善提案報告書",
+      "qm_name": "改善提案報告書",
+      "qm_number": "KGM011-QK012",
+      "qm_retention": "3年",
+      "rule_name": "",
+      "rule_number": "",
+      "rule_retention": ""
+    },
+    {
+      "type": "missing_in_record_rule",
+      "family_name": "会議議事録",
+      "qm_name": "会議議事録",
+      "qm_number": "-",
+      "qm_retention": "3年",
+      "rule_name": "",
+      "rule_number": "",
+      "rule_retention": ""
+    },
+    {
+      "type": "missing_in_record_rule",
+      "family_name": "原本及び発行文書管理台帳",
+      "qm_name": "原本及び発行文書管理台帳",
+      "qm_number": "-",
+      "qm_retention": "-",
+      "rule_name": "",
+      "rule_number": "",
+      "rule_retention": ""
+    },
+    {
+      "type": "missing_in_record_rule",
+      "family_name": "文書配付台帳",
+      "qm_name": "文書配付台帳",
+      "qm_number": "KHK001",
+      "qm_retention": "廃止後1年",
+      "rule_name": "",
+      "rule_number": "",
+      "rule_retention": ""
+    },
+    {
+      "type": "missing_in_record_rule",
+      "family_name": "外部文書管理台帳",
+      "qm_name": "外部文書管理台帳",
+      "qm_number": "-",
+      "qm_retention": "-",
+      "rule_name": "",
+      "rule_number": "",
+      "rule_retention": ""
+    },
+    {
+      "type": "number_mismatch",
+      "family_name": "文書レビュー記録",
+      "qm_name": "文書レビュー記録",
+      "qm_number": "-",
+      "qm_retention": "廃止後1年",
+      "rule_name": "文書レビュー記録",
+      "rule_number": "K",
+      "rule_retention": "廃止後1年"
+    },
+    {
+      "type": "missing_in_record_rule",
+      "family_name": "APQP計画書",
+      "qm_name": "APQP計画書",
+      "qm_number": "KH-070-HH1005-1",
+      "qm_retention": "廃止後３年",
+      "rule_name": "",
+      "rule_number": "",
+      "rule_retention": ""
+    },
+    {
+      "type": "missing_in_record_rule",
+      "family_name": "工程レイアウト図",
+      "qm_name": "工程レイアウト図",
+      "qm_number": "KH-071-HH1005-1",
+      "qm_retention": "廃止後３年",
+      "rule_name": "",
+      "rule_number": "",
+      "rule_retention": ""
+    },
+    {
+      "type": "missing_in_record_rule",
+      "family_name": "レイアウトチェックリスト",
+      "qm_name": "レイアウトチェックリスト",
+      "qm_number": "KH-072-HH1005-1",
+      "qm_retention": "廃止後３年",
+      "rule_name": "",
+      "rule_number": "",
+      "rule_retention": ""
+    },
+    {
+      "type": "number_mismatch",
+      "family_name": "顧客要求事項検討会議事録",
+      "qm_name": "顧客要求事項検討会議事録",
+      "qm_number": "EG-023",
+      "qm_retention": "15年",
+      "rule_name": "顧客要求事項検討会議事録",
+      "rule_number": "KE",
+      "rule_retention": "15年"
+    },
+    {
+      "type": "number_mismatch",
+      "family_name": "見積書",
+      "qm_name": "見積書",
+      "qm_number": "EG-024",
+      "qm_retention": "5年",
+      "rule_name": "見積書",
+      "rule_number": "KG",
+      "rule_retention": "15年間"
+    },
+    {
+      "type": "retention_mismatch",
+      "family_name": "見積書",
+      "qm_name": "見積書",
+      "qm_number": "EG-024",
+      "qm_retention": "5年",
+      "rule_name": "見積書",
+      "rule_number": "KG",
+      "rule_retention": "15年間"
+    },
+    {
+      "type": "number_mismatch",
+      "family_name": "製造指示書",
+      "qm_name": "製造指示書",
+      "qm_number": "EG-018～020",
+      "qm_retention": "3年",
+      "rule_name": "製造指示書",
+      "rule_number": "KE",
+      "rule_retention": "15年間"
+    },
+    {
+      "type": "retention_mismatch",
+      "family_name": "製造指示書",
+      "qm_name": "製造指示書",
+      "qm_number": "EG-018～020",
+      "qm_retention": "3年",
+      "rule_name": "製造指示書",
+      "rule_number": "KE",
+      "rule_retention": "15年間"
+    },
+    {
+      "type": "number_mismatch",
+      "family_name": "金型製造指示書",
+      "qm_name": "金型製造指示書",
+      "qm_number": "-",
+      "qm_retention": "3年",
+      "rule_name": "金型製造指示書",
+      "rule_number": "KE",
+      "rule_retention": "15年間"
+    },
+    {
+      "type": "retention_mismatch",
+      "family_name": "金型製造指示書",
+      "qm_name": "金型製造指示書",
+      "qm_number": "-",
+      "qm_retention": "3年",
+      "rule_name": "金型製造指示書",
+      "rule_number": "KE",
+      "rule_retention": "15年間"
+    },
+    {
+      "type": "number_mismatch",
+      "family_name": "製造実現可能性検討書",
+      "qm_name": "製造実現可能性検討書",
+      "qm_number": "EG-021",
+      "qm_retention": "15年",
+      "rule_name": "製造実現可能性検討書",
+      "rule_number": "KG",
+      "rule_retention": "15年間"
+    },
+    {
+      "type": "number_mismatch",
+      "family_name": "注文書",
+      "qm_name": "注文書（顧客）",
+      "qm_number": "TC12-A01/17-1",
+      "qm_retention": "生産終了+暦年",
+      "rule_name": "注文書（購買製品）",
+      "rule_number": "KGM023-GM021-0KGM024-GM021-0",
+      "rule_retention": "製品の生産終了後+暦年"
+    },
+    {
+      "type": "retention_mismatch",
+      "family_name": "見積り受付台帳",
+      "qm_name": "見積り受付台帳",
+      "qm_number": "KE-012-4",
+      "qm_retention": "5年",
+      "rule_name": "見積り受付台帳",
+      "rule_number": "KE",
+      "rule_retention": "15年間"
+    },
+    {
+      "type": "retention_mismatch",
+      "family_name": "設計計画書",
+      "qm_name": "設計計画書（総抜き型）",
+      "qm_number": "KGS016-GTS046",
+      "qm_retention": "廃止後５年",
+      "rule_name": "設計計画書",
+      "rule_number": "KG",
+      "rule_retention": "廃止後5年"
+    },
+    {
+      "type": "retention_mismatch",
+      "family_name": "設計計画書",
+      "qm_name": "設計計画書(プレス)",
+      "qm_number": "KGS017-GTS034",
+      "qm_retention": "廃止後５年",
+      "rule_name": "設計計画書",
+      "rule_number": "KG",
+      "rule_retention": "廃止後5年"
+    },
+    {
+      "type": "retention_mismatch",
+      "family_name": "設計計画書",
+      "qm_name": "設計計画書（アルミパネル）",
+      "qm_number": "KGS018-GTS047",
+      "qm_retention": "廃止後５年",
+      "rule_name": "設計計画書",
+      "rule_number": "KG",
+      "rule_retention": "廃止後5年"
+    },
+    {
+      "type": "retention_mismatch",
+      "family_name": "設計計画書",
+      "qm_name": "設計計画書(モールド)",
+      "qm_number": "KGS023-GTS035",
+      "qm_retention": "廃止後５年",
+      "rule_name": "設計計画書",
+      "rule_number": "KG",
+      "rule_retention": "廃止後5年"
+    },
+    {
+      "type": "retention_mismatch",
+      "family_name": "設計計画書",
+      "qm_name": "設計計画書(モールドⅡ)",
+      "qm_number": "KGS036-GTS049",
+      "qm_retention": "廃止後５年",
+      "rule_name": "設計計画書",
+      "rule_number": "KG",
+      "rule_retention": "廃止後5年"
+    },
+    {
+      "type": "missing_in_record_rule",
+      "family_name": "金型製作依頼票",
+      "qm_name": "金型製作依頼票（総抜き型）",
+      "qm_number": "KGS039-GTS046",
+      "qm_retention": "廃止後５年",
+      "rule_name": "",
+      "rule_number": "",
+      "rule_retention": ""
+    },
+    {
+      "type": "missing_in_record_rule",
+      "family_name": "金型製作依頼票",
+      "qm_name": "金型製作依頼票(プレス)",
+      "qm_number": "KGS040-GTS034",
+      "qm_retention": "廃止後５年",
+      "rule_name": "",
+      "rule_number": "",
+      "rule_retention": ""
+    },
+    {
+      "type": "missing_in_record_rule",
+      "family_name": "金型製作依頼票",
+      "qm_name": "金型製作依頼票（アルミパネル）",
+      "qm_number": "KGS041-GTS047",
+      "qm_retention": "廃止後５年",
+      "rule_name": "",
+      "rule_number": "",
+      "rule_retention": ""
+    },
+    {
+      "type": "missing_in_record_rule",
+      "family_name": "金型製作依頼票",
+      "qm_name": "金型製作依頼票(モールド)",
+      "qm_number": "KGS042-GTS035",
+      "qm_retention": "廃止後５年",
+      "rule_name": "",
+      "rule_number": "",
+      "rule_retention": ""
+    },
+    {
+      "type": "missing_in_record_rule",
+      "family_name": "金型製作依頼票",
+      "qm_name": "金型製作依頼票(モールドⅡ)",
+      "qm_number": "KGS043-GTS049",
+      "qm_retention": "廃止後５年",
+      "rule_name": "",
+      "rule_number": "",
+      "rule_retention": ""
+    },
+    {
+      "type": "retention_mismatch",
+      "family_name": "DR会議議事録",
+      "qm_name": "DR会議議事録（総抜き型）",
+      "qm_number": "KGS024-GTS046",
+      "qm_retention": "廃止後１年",
+      "rule_name": "D・R会議議事録",
+      "rule_number": "KG",
+      "rule_retention": "廃止後1年"
+    },
+    {
+      "type": "retention_mismatch",
+      "family_name": "DR会議議事録",
+      "qm_name": "DR会議議事録(プレス)",
+      "qm_number": "KGS025-GTS034",
+      "qm_retention": "廃止後１年",
+      "rule_name": "D・R会議議事録",
+      "rule_number": "KG",
+      "rule_retention": "廃止後1年"
+    },
+    {
+      "type": "retention_mismatch",
+      "family_name": "DR会議議事録",
+      "qm_name": "DR会議議事録（アルミパネル）",
+      "qm_number": "KGS026-GTS047",
+      "qm_retention": "廃止後１年",
+      "rule_name": "D・R会議議事録",
+      "rule_number": "KG",
+      "rule_retention": "廃止後1年"
+    },
+    {
+      "type": "retention_mismatch",
+      "family_name": "DR会議議事録",
+      "qm_name": "DR会議議事録(モールド)",
+      "qm_number": "KGS027-GTS035",
+      "qm_retention": "廃止後１年",
+      "rule_name": "D・R会議議事録",
+      "rule_number": "KG",
+      "rule_retention": "廃止後1年"
+    },
+    {
+      "type": "retention_mismatch",
+      "family_name": "DR会議議事録",
+      "qm_name": "DR会議議事録(モールドⅡ)",
+      "qm_number": "KGS037-GTS049",
+      "qm_retention": "廃止後１年",
+      "rule_name": "D・R会議議事録",
+      "rule_number": "KG",
+      "rule_retention": "廃止後1年"
+    },
+    {
+      "type": "retention_mismatch",
+      "family_name": "設計検証チェックリスト",
+      "qm_name": "設計検証チェックリスト（総抜き型）",
+      "qm_number": "KGS024-GTS046",
+      "qm_retention": "廃止後１年",
+      "rule_name": "設計検証チェックリスト",
+      "rule_number": "KG",
+      "rule_retention": "廃止後1年"
+    },
+    {
+      "type": "retention_mismatch",
+      "family_name": "設計検証チェックリスト",
+      "qm_name": "設計検証チェックリスト(プレス)",
+      "qm_number": "KGS025-GTS034",
+      "qm_retention": "廃止後１年",
+      "rule_name": "設計検証チェックリスト",
+      "rule_number": "KG",
+      "rule_retention": "廃止後1年"
+    },
+    {
+      "type": "retention_mismatch",
+      "family_name": "設計検証チェックリスト",
+      "qm_name": "設計検証チェックリスト（アルミパネル）",
+      "qm_number": "KGS026-GTS047",
+      "qm_retention": "廃止後１年",
+      "rule_name": "設計検証チェックリスト",
+      "rule_number": "KG",
+      "rule_retention": "廃止後1年"
+    },
+    {
+      "type": "retention_mismatch",
+      "family_name": "設計検証チェックリスト",
+      "qm_name": "設計検証チェックリスト(モールド)",
+      "qm_number": "KGS027-GTS035",
+      "qm_retention": "廃止後１年",
+      "rule_name": "設計検証チェックリスト",
+      "rule_number": "KG",
+      "rule_retention": "廃止後1年"
+    },
+    {
+      "type": "retention_mismatch",
+      "family_name": "設計検証チェックリスト",
+      "qm_name": "設計検証チェックリスト(モールドⅡ)",
+      "qm_number": "KGS037-GTS049",
+      "qm_retention": "廃止後１年",
+      "rule_name": "設計検証チェックリスト",
+      "rule_number": "KG",
+      "rule_retention": "廃止後1年"
+    },
+    {
+      "type": "number_mismatch",
+      "family_name": "成形金型キャビNO.リスト",
+      "qm_name": "成形金型キャビNO.リスト",
+      "qm_number": "-",
+      "qm_retention": "廃止後２年",
+      "rule_name": "成形金型キャビNO.リスト",
+      "rule_number": "KG",
+      "rule_retention": "廃止後3年"
+    },
+    {
+      "type": "retention_mismatch",
+      "family_name": "成形金型キャビNO.リスト",
+      "qm_name": "成形金型キャビNO.リスト",
+      "qm_number": "-",
+      "qm_retention": "廃止後２年",
+      "rule_name": "成形金型キャビNO.リスト",
+      "rule_number": "KG",
+      "rule_retention": "廃止後3年"
+    },
+    {
+      "type": "retention_mismatch",
+      "family_name": "金型の妥当性確認記録",
+      "qm_name": "金型の妥当性確認記録（総抜き型）",
+      "qm_number": "KGS004-GTS046",
+      "qm_retention": "廃止後３年",
+      "rule_name": "金型の妥当性確認記録",
+      "rule_number": "KG",
+      "rule_retention": "廃止後3年"
+    },
+    {
+      "type": "retention_mismatch",
+      "family_name": "金型の妥当性確認記録",
+      "qm_name": "金型の妥当性確認記録(プレス)",
+      "qm_number": "KGS005-GTS034",
+      "qm_retention": "廃止後３年",
+      "rule_name": "金型の妥当性確認記録",
+      "rule_number": "KG",
+      "rule_retention": "廃止後3年"
+    },
+    {
+      "type": "retention_mismatch",
+      "family_name": "金型の妥当性確認記録",
+      "qm_name": "金型の妥当性確認記録（アルミパネル）",
+      "qm_number": "KGS006-GTS035",
+      "qm_retention": "廃止後３年",
+      "rule_name": "金型の妥当性確認記録",
+      "rule_number": "KG",
+      "rule_retention": "廃止後3年"
+    },
+    {
+      "type": "retention_mismatch",
+      "family_name": "金型の妥当性確認記録",
+      "qm_name": "金型の妥当性確認記録(モールド)",
+      "qm_number": "KGS007-GTS035",
+      "qm_retention": "廃止後３年",
+      "rule_name": "金型の妥当性確認記録",
+      "rule_number": "KG",
+      "rule_retention": "廃止後3年"
+    },
+    {
+      "type": "retention_mismatch",
+      "family_name": "金型の妥当性確認記録",
+      "qm_name": "金型の妥当性確認記録(モールド金型Ⅱ)",
+      "qm_number": "KGS032-GTS049",
+      "qm_retention": "廃止後３年",
+      "rule_name": "金型の妥当性確認記録",
+      "rule_number": "KG",
+      "rule_retention": "廃止後3年"
+    },
+    {
+      "type": "number_mismatch",
+      "family_name": "設計検証チェックリスト",
+      "qm_name": "設計検証チェックリスト",
+      "qm_number": "-",
+      "qm_retention": "廃止後１年",
+      "rule_name": "設計検証チェックリスト",
+      "rule_number": "KG",
+      "rule_retention": "廃止後1年"
+    },
+    {
+      "type": "retention_mismatch",
+      "family_name": "設計検証チェックリスト",
+      "qm_name": "設計検証チェックリスト",
+      "qm_number": "-",
+      "qm_retention": "廃止後１年",
+      "rule_name": "設計検証チェックリスト",
+      "rule_number": "KG",
+      "rule_retention": "廃止後1年"
+    },
+    {
+      "type": "retention_mismatch",
+      "family_name": "設計変更会議議事録",
+      "qm_name": "設計変更会議議事録（総抜き型）",
+      "qm_number": "KGS028-GTS046",
+      "qm_retention": "廃止後１年",
+      "rule_name": "設計変更会議議事録",
+      "rule_number": "KG",
+      "rule_retention": "廃止後1年"
+    },
+    {
+      "type": "retention_mismatch",
+      "family_name": "設計変更会議議事録",
+      "qm_name": "設計変更会議議事録(プレス)",
+      "qm_number": "KGS029-GTS034",
+      "qm_retention": "廃止後１年",
+      "rule_name": "設計変更会議議事録",
+      "rule_number": "KG",
+      "rule_retention": "廃止後1年"
+    },
+    {
+      "type": "retention_mismatch",
+      "family_name": "設計変更会議議事録",
+      "qm_name": "設計変更会議議事録（アルミパネル）",
+      "qm_number": "KGS030-GTS047",
+      "qm_retention": "廃止後１年",
+      "rule_name": "設計変更会議議事録",
+      "rule_number": "KG",
+      "rule_retention": "廃止後1年"
+    },
+    {
+      "type": "retention_mismatch",
+      "family_name": "設計変更会議議事録",
+      "qm_name": "設計変更会議議事録(モールド)",
+      "qm_number": "KGS031-GTS035",
+      "qm_retention": "廃止後１年",
+      "rule_name": "設計変更会議議事録",
+      "rule_number": "KG",
+      "rule_retention": "廃止後1年"
+    },
+    {
+      "type": "retention_mismatch",
+      "family_name": "設計変更会議議事録",
+      "qm_name": "設計変更会議議事録(モールド金型Ⅱ)",
+      "qm_number": "KGS038-GTS049",
+      "qm_retention": "廃止後１年",
+      "rule_name": "設計変更会議議事録",
+      "rule_number": "KG",
+      "rule_retention": "廃止後1年"
+    },
+    {
+      "type": "retention_mismatch",
+      "family_name": "DR構想検討会議議事録",
+      "qm_name": "DR構想検討会議議事録",
+      "qm_number": "-",
+      "qm_retention": "廃止後１年",
+      "rule_name": "DR構想検討会議議事録",
+      "rule_number": "-",
+      "rule_retention": "廃止後1年"
+    },
+    {
+      "type": "retention_mismatch",
+      "family_name": "進捗管理票",
+      "qm_name": "進捗管理票",
+      "qm_number": "-",
+      "qm_retention": "廃止後１年",
+      "rule_name": "進捗管理票",
+      "rule_number": "-",
+      "rule_retention": "廃止後1年"
+    },
+    {
+      "type": "missing_in_record_rule",
+      "family_name": "製品サンプル検査依頼票",
+      "qm_name": "製品サンプル検査依頼票",
+      "qm_number": "KH004-HH025",
+      "qm_retention": "廃止後３年",
+      "rule_name": "",
+      "rule_number": "",
+      "rule_retention": ""
+    },
+    {
+      "type": "missing_in_record_rule",
+      "family_name": "型検サンプル検査成績書",
+      "qm_name": "型検サンプル検査成績書",
+      "qm_number": "KH004-HH025",
+      "qm_retention": "廃止後３年",
+      "rule_name": "",
+      "rule_number": "",
+      "rule_retention": ""
+    },
+    {
+      "type": "missing_in_record_rule",
+      "family_name": "部品提出保証書",
+      "qm_name": "部品提出保証書",
+      "qm_number": "KH-080-HH1007-1",
+      "qm_retention": "廃止後３年",
+      "rule_name": "",
+      "rule_number": "",
+      "rule_retention": ""
+    },
+    {
+      "type": "missing_in_record_rule",
+      "family_name": "コントロールプラン",
+      "qm_name": "コントロールプラン",
+      "qm_number": "KH-081-HH1001-2",
+      "qm_retention": "15年",
+      "rule_name": "",
+      "rule_number": "",
+      "rule_retention": ""
+    },
+    {
+      "type": "number_mismatch",
+      "family_name": "見積仕様書",
+      "qm_name": "見積仕様書",
+      "qm_number": "KM022-GM021",
+      "qm_retention": "廃止後１年",
+      "rule_name": "見積仕様書",
+      "rule_number": "KM022",
+      "rule_retention": "廃止後1年"
+    },
+    {
+      "type": "retention_mismatch",
+      "family_name": "見積仕様書",
+      "qm_name": "見積仕様書",
+      "qm_number": "KM022-GM021",
+      "qm_retention": "廃止後１年",
+      "rule_name": "見積仕様書",
+      "rule_number": "KM022",
+      "rule_retention": "廃止後1年"
+    },
+    {
+      "type": "missing_in_record_rule",
+      "family_name": "供給者リスト",
+      "qm_name": "供給者リスト",
+      "qm_number": "-",
+      "qm_retention": "廃止後１年",
+      "rule_name": "",
+      "rule_number": "",
+      "rule_retention": ""
+    },
+    {
+      "type": "missing_in_record_rule",
+      "family_name": "供給者評価表",
+      "qm_name": "供給者評価表",
+      "qm_number": "KGM013",
+      "qm_retention": "停止後1年",
+      "rule_name": "",
+      "rule_number": "",
+      "rule_retention": ""
+    },
+    {
+      "type": "missing_in_record_rule",
+      "family_name": "プレス材料受入台帳",
+      "qm_name": "プレス材料受入台帳",
+      "qm_number": "KSM001",
+      "qm_retention": "3年",
+      "rule_name": "",
+      "rule_number": "",
+      "rule_retention": ""
+    },
+    {
+      "type": "missing_in_record_rule",
+      "family_name": "工程検査記録表",
+      "qm_name": "工程検査記録表",
+      "qm_number": "KSSII001",
+      "qm_retention": "5年/15年",
+      "rule_name": "",
+      "rule_number": "",
+      "rule_retention": ""
+    },
+    {
+      "type": "missing_in_record_rule",
+      "family_name": "表面処理始業点検表",
+      "qm_name": "表面処理始業点検表",
+      "qm_number": "KSSSGD1001～2001",
+      "qm_retention": "15年",
+      "rule_name": "",
+      "rule_number": "",
+      "rule_retention": ""
+    },
+    {
+      "type": "retention_mismatch",
+      "family_name": "薬品管理記録表",
+      "qm_name": "薬品管理記録表",
+      "qm_number": "KSSEKD2001",
+      "qm_retention": "15年",
+      "rule_name": "薬品管理記録表",
+      "rule_number": "KS",
+      "rule_retention": "3年間"
+    },
+    {
+      "type": "retention_mismatch",
+      "family_name": "金型管理台帳",
+      "qm_name": "金型管理台帳",
+      "qm_number": "KSMO001",
+      "qm_retention": "廃止後３年",
+      "rule_name": "金型管理台帳",
+      "rule_number": "K",
+      "rule_retention": "廃止後3年"
+    },
+    {
+      "type": "retention_mismatch",
+      "family_name": "エッチング量・苛性濃度管理記録表",
+      "qm_name": "エッチング量・苛性濃度管理記録表",
+      "qm_number": "KSSEGD1001",
+      "qm_retention": "15年",
+      "rule_name": "エッチング量・苛性濃度管理記録表",
+      "rule_number": "KS",
+      "rule_retention": "3年間"
+    },
+    {
+      "type": "retention_mismatch",
+      "family_name": "苛性濃度管理記録表",
+      "qm_name": "苛性濃度管理記録表",
+      "qm_number": "KSSEND2001",
+      "qm_retention": "15年",
+      "rule_name": "苛性濃度管理記録表",
+      "rule_number": "KS",
+      "rule_retention": "3年間"
+    },
+    {
+      "type": "retention_mismatch",
+      "family_name": "表面処理工程妥当性再確認書",
+      "qm_name": "表面処理工程妥当性再確認書",
+      "qm_number": "KSSDT001",
+      "qm_retention": "15年",
+      "rule_name": "表面処理工程妥当性再確認書",
+      "rule_number": "KS",
+      "rule_retention": "3年間"
+    },
+    {
+      "type": "retention_mismatch",
+      "family_name": "比重計日常点検チェック表",
+      "qm_name": "比重計日常点検チェック表",
+      "qm_number": "KSSH001",
+      "qm_retention": "15年",
+      "rule_name": "比重計日常点検チェック表",
+      "rule_number": "KS",
+      "rule_retention": "3年間"
+    },
+    {
+      "type": "retention_mismatch",
+      "family_name": "設備保全計画",
+      "qm_name": "設備保全計画（保守・点検記録）",
+      "qm_number": "KSSCD1001KSSCHCM1",
+      "qm_retention": "15年",
+      "rule_name": "設備保全計画（保守・点検記録）",
+      "rule_number": "K",
+      "rule_retention": "3年間"
+    },
+    {
+      "type": "retention_mismatch",
+      "family_name": "金型メンテナンス記録台帳",
+      "qm_name": "金型メンテナンス記録台帳",
+      "qm_number": "KGD009-GTD009",
+      "qm_retention": "廃止後３年",
+      "rule_name": "金型メンテナンス記録台帳",
+      "rule_number": "K",
+      "rule_retention": "廃止後3年"
+    },
+    {
+      "type": "retention_mismatch",
+      "family_name": "材料入出庫台帳",
+      "qm_name": "材料入出庫台帳",
+      "qm_number": "KSO007",
+      "qm_retention": "5年",
+      "rule_name": "材料入出庫台帳",
+      "rule_number": "K",
+      "rule_retention": "3年間"
+    },
+    {
+      "type": "number_mismatch",
+      "family_name": "成形条件表",
+      "qm_name": "成形条件表",
+      "qm_number": "KSR001",
+      "qm_retention": "5年/15年",
+      "rule_name": "成形条件表",
+      "rule_number": "KSO007",
+      "rule_retention": "5年/15年"
+    },
+    {
+      "type": "missing_in_record_rule",
+      "family_name": "工程検査記録表",
+      "qm_name": "工程検査記録表",
+      "qm_number": "KSQ031",
+      "qm_retention": "5年/15年",
+      "rule_name": "",
+      "rule_number": "",
+      "rule_retention": ""
+    },
+    {
+      "type": "number_mismatch",
+      "family_name": "サンプルカード",
+      "qm_name": "サンプルカード",
+      "qm_number": "-",
+      "qm_retention": "5年/15年",
+      "rule_name": "サンプルカード",
+      "rule_number": "K",
+      "rule_retention": "3年間"
+    },
+    {
+      "type": "retention_mismatch",
+      "family_name": "サンプルカード",
+      "qm_name": "サンプルカード",
+      "qm_number": "-",
+      "qm_retention": "5年/15年",
+      "rule_name": "サンプルカード",
+      "rule_number": "K",
+      "rule_retention": "3年間"
+    },
+    {
+      "type": "retention_mismatch",
+      "family_name": "金型管理台帳",
+      "qm_name": "金型管理台帳",
+      "qm_number": "KSMA005",
+      "qm_retention": "廃止後３年",
+      "rule_name": "金型管理台帳",
+      "rule_number": "K",
+      "rule_retention": "廃止後3年"
+    },
+    {
+      "type": "retention_mismatch",
+      "family_name": "金型カルテ",
+      "qm_name": "金型カルテ",
+      "qm_number": "KSMA001",
+      "qm_retention": "廃止後３年",
+      "rule_name": "金型カルテ",
+      "rule_number": "KSMA001",
+      "rule_retention": "廃止後3年"
+    },
+    {
+      "type": "number_mismatch",
+      "family_name": "製造指示書",
+      "qm_name": "製造指示書",
+      "qm_number": "-",
+      "qm_retention": "3年",
+      "rule_name": "製造指示書",
+      "rule_number": "KE",
+      "rule_retention": "15年間"
+    },
+    {
+      "type": "retention_mismatch",
+      "family_name": "製造指示書",
+      "qm_name": "製造指示書",
+      "qm_number": "-",
+      "qm_retention": "3年",
+      "rule_name": "製造指示書",
+      "rule_number": "KE",
+      "rule_retention": "15年間"
+    },
+    {
+      "type": "missing_in_record_rule",
+      "family_name": "生産計画表/実績",
+      "qm_name": "生産計画表/実績",
+      "qm_number": "-",
+      "qm_retention": "5年",
+      "rule_name": "",
+      "rule_number": "",
+      "rule_retention": ""
+    },
+    {
+      "type": "retention_mismatch",
+      "family_name": "変更提案・実施計画書",
+      "qm_name": "変更提案・実施計画書",
+      "qm_number": "KH-001",
+      "qm_retention": "5年/15年",
+      "rule_name": "変更提案・実施計画書",
+      "rule_number": "KH",
+      "rule_retention": "15年間"
+    },
+    {
+      "type": "missing_in_record_rule",
+      "family_name": "工程変更連絡書",
+      "qm_name": "工程変更連絡書",
+      "qm_number": "KH-033",
+      "qm_retention": "5年/15年",
+      "rule_name": "",
+      "rule_number": "",
+      "rule_retention": ""
+    },
+    {
+      "type": "missing_in_record_rule",
+      "family_name": "工程変更申請書",
+      "qm_name": "工程変更申請書",
+      "qm_number": "HK-034",
+      "qm_retention": "5年/15年",
+      "rule_name": "",
+      "rule_number": "",
+      "rule_retention": ""
+    },
+    {
+      "type": "missing_in_record_rule",
+      "family_name": "ロット管理表",
+      "qm_name": "ロット管理表",
+      "qm_number": "KSQ018(成形)KSL001(金属)",
+      "qm_retention": "5年/15年",
+      "rule_name": "",
+      "rule_number": "",
+      "rule_retention": ""
+    },
+    {
+      "type": "number_mismatch",
+      "family_name": "部品検査成績書",
+      "qm_name": "部品検査成績書",
+      "qm_number": "KH020-HH042",
+      "qm_retention": "5年/15年",
+      "rule_name": "部品検査成績書",
+      "rule_number": "KH020",
+      "rule_retention": "5年/15年"
+    },
+    {
+      "type": "number_mismatch",
+      "family_name": "不適合品管理票",
+      "qm_name": "不適合品管理票",
+      "qm_number": "KH022-QK004",
+      "qm_retention": "5年/15年",
+      "rule_name": "不適合品管理票",
+      "rule_number": "KH022",
+      "rule_retention": "5年/15年"
+    },
+    {
+      "type": "number_mismatch",
+      "family_name": "工程内不適合品管理票",
+      "qm_name": "工程内不適合品管理票",
+      "qm_number": "KH021-QK004",
+      "qm_retention": "5年/15年",
+      "rule_name": "工程内不適合品管理票",
+      "rule_number": "KH021",
+      "rule_retention": "5年/15年"
+    },
+    {
+      "type": "missing_in_record_rule",
+      "family_name": "是正予防処置管理票",
+      "qm_name": "是正予防処置管理票",
+      "qm_number": "KH023-QK005",
+      "qm_retention": "5年/15年",
+      "rule_name": "",
+      "rule_number": "",
+      "rule_retention": ""
+    },
+    {
+      "type": "number_mismatch",
+      "family_name": "特採申請書",
+      "qm_name": "特採申請書",
+      "qm_number": "-",
+      "qm_retention": "5年/15年",
+      "rule_name": "特採申請書",
+      "rule_number": "KH",
+      "rule_retention": "5年間"
+    },
+    {
+      "type": "missing_in_record_rule",
+      "family_name": "顧客異常連絡書",
+      "qm_name": "顧客異常連絡書",
+      "qm_number": "-",
+      "qm_retention": "5年/15年",
+      "rule_name": "",
+      "rule_number": "",
+      "rule_retention": ""
+    },
+    {
+      "type": "number_mismatch",
+      "family_name": "内部監査実施計画書",
+      "qm_name": "内部監査実施計画書",
+      "qm_number": "KH041-QK1015",
+      "qm_retention": "5年",
+      "rule_name": "内部監査実施計画書",
+      "rule_number": "KK101",
+      "rule_retention": "5年間"
+    },
+    {
+      "type": "number_mismatch",
+      "family_name": "内部監査チェックシート",
+      "qm_name": "内部監査（ＱＭＳ）チェックシート",
+      "qm_number": "KH047-QK1015",
+      "qm_retention": "5年",
+      "rule_name": "内部監査（ＱＭＳ）チェックシート",
+      "rule_number": "KH047",
+      "rule_retention": "5年間"
+    },
+    {
+      "type": "number_mismatch",
+      "family_name": "内部監査報告書",
+      "qm_name": "内部監査報告書",
+      "qm_number": "KH042-QK1015",
+      "qm_retention": "5年",
+      "rule_name": "内部監査報告書",
+      "rule_number": "KH042",
+      "rule_retention": "5年間"
+    },
+    {
+      "type": "number_mismatch",
+      "family_name": "内部監査是正処置報告書",
+      "qm_name": "内部監査是正処置報告書",
+      "qm_number": "KH044-QK1015",
+      "qm_retention": "5年",
+      "rule_name": "内部監査是正処置報告書",
+      "rule_number": "KK104",
+      "rule_retention": "5年間"
+    },
+    {
+      "type": "number_mismatch",
+      "family_name": "ＩＡＴＦ内部監査員ｽｷﾙ評価表",
+      "qm_name": "ＩＡＴＦ内部監査員ｽｷﾙ評価表",
+      "qm_number": "KH039-QK1015",
+      "qm_retention": "5年",
+      "rule_name": "ＩＡＴＦ内部監査員ｽｷﾙ評価表",
+      "rule_number": "KH039",
+      "rule_retention": "5年間"
+    },
+    {
+      "type": "number_mismatch",
+      "family_name": "内部監査員登録リスト",
+      "qm_name": "内部監査員登録リスト",
+      "qm_number": "KH039-QK1015",
+      "qm_retention": "毎年更新",
+      "rule_name": "内部監査員登録リスト",
+      "rule_number": "KH039",
+      "rule_retention": "毎年更新"
+    },
+    {
+      "type": "number_mismatch",
+      "family_name": "内部監査実施計画書",
+      "qm_name": "内部監査実施計画書",
+      "qm_number": "KK101-QK003",
+      "qm_retention": "5年",
+      "rule_name": "内部監査実施計画書",
+      "rule_number": "KK101",
+      "rule_retention": "5年間"
+    },
+    {
+      "type": "number_mismatch",
+      "family_name": "内部監査計画書",
+      "qm_name": "内部監査計画書",
+      "qm_number": "KK102-QK003",
+      "qm_retention": "5年",
+      "rule_name": "内部監査計画書",
+      "rule_number": "KK102",
+      "rule_retention": "5年間"
+    },
+    {
+      "type": "number_mismatch",
+      "family_name": "監査チェックリスト兼監査報告書",
+      "qm_name": "監査チェックリスト兼監査報告書",
+      "qm_number": "KK103-QK003",
+      "qm_retention": "5年",
+      "rule_name": "監査チェックリスト兼監査報告書",
+      "rule_number": "KK103",
+      "rule_retention": "5年間"
+    },
+    {
+      "type": "number_mismatch",
+      "family_name": "内部監査是正処置報告書",
+      "qm_name": "内部監査是正処置報告書",
+      "qm_number": "KK104-QK003",
+      "qm_retention": "5年",
+      "rule_name": "内部監査是正処置報告書",
+      "rule_number": "KK104",
+      "rule_retention": "5年間"
+    },
+    {
+      "type": "missing_in_record_rule",
+      "family_name": "内部監査実施報告書兼内部監査実施報告会議事録",
+      "qm_name": "内部監査実施報告書兼内部監査実施報告会議事録",
+      "qm_number": "KK111-QK003",
+      "qm_retention": "5年",
+      "rule_name": "",
+      "rule_number": "",
+      "rule_retention": ""
+    },
+    {
+      "type": "missing_in_record_rule",
+      "family_name": "内部監査員資格認定登録台帳",
+      "qm_name": "内部監査員資格認定登録台帳",
+      "qm_number": "KK112-QK003",
+      "qm_retention": "毎年更新",
+      "rule_name": "",
+      "rule_number": "",
+      "rule_retention": ""
+    },
+    {
+      "type": "missing_in_record_rule",
+      "family_name": "品質マネジメンシステム検討会議事録",
+      "qm_name": "品質マネジメンシステム検討会議事録",
+      "qm_number": "KK001-QM001",
+      "qm_retention": "5年",
+      "rule_name": "",
+      "rule_number": "",
+      "rule_retention": ""
+    },
+    {
+      "type": "missing_in_record_rule",
+      "family_name": "是正・予防処置管理票",
+      "qm_name": "是正・予防処置管理票",
+      "qm_number": "KH023-QK005",
+      "qm_retention": "5年/15年",
+      "rule_name": "",
+      "rule_number": "",
+      "rule_retention": ""
+    },
+    {
+      "type": "number_mismatch",
+      "family_name": "品質向上委員会議事録",
+      "qm_name": "品質向上委員会議事録",
+      "qm_number": "-",
+      "qm_retention": "5年",
+      "rule_name": "品質向上委員会議事録",
+      "rule_number": "KH",
+      "rule_retention": "3年間"
+    },
+    {
+      "type": "retention_mismatch",
+      "family_name": "品質向上委員会議事録",
+      "qm_name": "品質向上委員会議事録",
+      "qm_number": "-",
+      "qm_retention": "5年",
+      "rule_name": "品質向上委員会議事録",
+      "rule_number": "KH",
+      "rule_retention": "3年間"
+    },
+    {
+      "type": "missing_in_qm001",
+      "family_name": "保守管理台帳",
+      "qm_name": "",
+      "qm_number": "",
+      "qm_retention": "",
+      "rule_name": "保守管理台帳",
+      "rule_number": "K",
+      "rule_retention": "廃止後3年"
+    },
+    {
+      "type": "missing_in_qm001",
+      "family_name": "品質マネジメントシステム検討会議事録",
+      "qm_name": "",
+      "qm_number": "",
+      "qm_retention": "",
+      "rule_name": "品質マネジメントシステム検討会議事録",
+      "rule_number": "KK001",
+      "rule_retention": "5年間"
+    },
+    {
+      "type": "missing_in_qm001",
+      "family_name": "内部監査実施報告会議事録",
+      "qm_name": "",
+      "qm_number": "",
+      "qm_retention": "",
+      "rule_name": "内部監査実施報告会議事録",
+      "rule_number": "KK111",
+      "rule_retention": "5年間"
+    },
+    {
+      "type": "missing_in_qm001",
+      "family_name": "内部監査実施報告書",
+      "qm_name": "",
+      "qm_number": "",
+      "qm_retention": "",
+      "rule_name": "内部監査実施報告書",
+      "rule_number": "KT",
+      "rule_retention": "5年間"
+    },
+    {
+      "type": "missing_in_qm001",
+      "family_name": "検査成績書",
+      "qm_name": "",
+      "qm_number": "",
+      "qm_retention": "",
+      "rule_name": "検査成績書(４8と同じ)",
+      "rule_number": "KG",
+      "rule_retention": "廃止後3年"
+    },
+    {
+      "type": "missing_in_qm001",
+      "family_name": "顧客所有物報告書",
+      "qm_name": "",
+      "qm_number": "",
+      "qm_retention": "",
+      "rule_name": "顧客所有物報告書",
+      "rule_number": "KE",
+      "rule_retention": "廃止後1年"
+    },
+    {
+      "type": "missing_in_qm001",
+      "family_name": "評価･監査実施計画書",
+      "qm_name": "",
+      "qm_number": "",
+      "qm_retention": "",
+      "rule_name": "評価･監査実施計画書",
+      "rule_number": "KGM",
+      "rule_retention": "停止後1年"
+    },
+    {
+      "type": "missing_in_qm001",
+      "family_name": "供給者登録台帳",
+      "qm_name": "",
+      "qm_number": "",
+      "qm_retention": "",
+      "rule_name": "供給者登録台帳",
+      "rule_number": "KGM",
+      "rule_retention": "停止後3年"
+    },
+    {
+      "type": "missing_in_qm001",
+      "family_name": "供給者再評価記録台帳",
+      "qm_name": "",
+      "qm_number": "",
+      "qm_retention": "",
+      "rule_name": "供給者再評価記録台帳",
+      "rule_number": "KM",
+      "rule_retention": "停止後3年"
+    },
+    {
+      "type": "missing_in_qm001",
+      "family_name": "供給先評価表",
+      "qm_name": "",
+      "qm_number": "",
+      "qm_retention": "",
+      "rule_name": "供給先評価表",
+      "rule_number": "KGM",
+      "rule_retention": "停止後1年"
+    },
+    {
+      "type": "missing_in_qm001",
+      "family_name": "工程検査記録票",
+      "qm_name": "",
+      "qm_number": "",
+      "qm_retention": "",
+      "rule_name": "工程検査記録票",
+      "rule_number": "K",
+      "rule_retention": "5年/15年"
+    },
+    {
+      "type": "missing_in_qm001",
+      "family_name": "パネルＶ溝検査成績書",
+      "qm_name": "",
+      "qm_number": "",
+      "qm_retention": "",
+      "rule_name": "パネルＶ溝検査成績書",
+      "rule_number": "K",
+      "rule_retention": "3年間"
+    },
+    {
+      "type": "missing_in_qm001",
+      "family_name": "パネルＶ溝検査成績書",
+      "qm_name": "",
+      "qm_number": "",
+      "qm_retention": "",
+      "rule_name": "パネルＶ溝検査成績書",
+      "rule_number": "KH",
+      "rule_retention": "3年間"
+    },
+    {
+      "type": "missing_in_qm001",
+      "family_name": "材料管理票",
+      "qm_name": "",
+      "qm_number": "",
+      "qm_retention": "",
+      "rule_name": "材料管理票（A）",
+      "rule_number": "K",
+      "rule_retention": "3年間"
+    },
+    {
+      "type": "missing_in_qm001",
+      "family_name": "設定温度監視記録票",
+      "qm_name": "",
+      "qm_number": "",
+      "qm_retention": "",
+      "rule_name": "設定温度監視記録票",
+      "rule_number": "KI",
+      "rule_retention": "3年間"
+    },
+    {
+      "type": "missing_in_qm001",
+      "family_name": "目視検査記録",
+      "qm_name": "",
+      "qm_number": "",
+      "qm_retention": "",
+      "rule_name": "目視検査記録",
+      "rule_number": "KI",
+      "rule_retention": "3年間"
+    },
+    {
+      "type": "missing_in_qm001",
+      "family_name": "測定機器校正検証記録",
+      "qm_name": "",
+      "qm_number": "",
+      "qm_retention": "",
+      "rule_name": "測定機器校正検証記録",
+      "rule_number": "KH",
+      "rule_retention": "15年間"
+    },
+    {
+      "type": "missing_in_qm001",
+      "family_name": "検査成績書",
+      "qm_name": "",
+      "qm_number": "",
+      "qm_retention": "",
+      "rule_name": "検査成績書(原紙、16と同じ)",
+      "rule_number": "KH",
+      "rule_retention": "廃止後3年"
+    },
+    {
+      "type": "missing_in_qm001",
+      "family_name": "顧客からの不適合品連絡書",
+      "qm_name": "",
+      "qm_number": "",
+      "qm_retention": "",
+      "rule_name": "顧客からの不適合品連絡書",
+      "rule_number": "-",
+      "rule_retention": "5年/15年"
+    },
+    {
+      "type": "missing_in_qm001",
+      "family_name": "是正処置・予防処置管理票",
+      "qm_name": "",
+      "qm_number": "",
+      "qm_retention": "",
+      "rule_name": "是正処置・予防処置管理票",
+      "rule_number": "KH023",
+      "rule_retention": "5年/15年"
+    },
+    {
+      "type": "missing_in_qm001",
+      "family_name": "不適合対策会議議事録",
+      "qm_name": "",
+      "qm_number": "",
+      "qm_retention": "",
+      "rule_name": "不適合対策会議議事録",
+      "rule_number": "KH",
+      "rule_retention": "5年間"
+    },
+    {
+      "type": "missing_in_qm001",
+      "family_name": "品質マニュアル旧版",
+      "qm_name": "",
+      "qm_number": "",
+      "qm_retention": "",
+      "rule_name": "品質マニュアル旧版",
+      "rule_number": "-",
+      "rule_retention": "廃止後3年"
+    },
+    {
+      "type": "missing_in_qm001",
+      "family_name": "その他の管理文書旧版",
+      "qm_name": "",
+      "qm_number": "",
+      "qm_retention": "",
+      "rule_name": "その他の管理文書旧版",
+      "rule_number": "-",
+      "rule_retention": "廃止後3年"
+    },
+    {
+      "type": "missing_in_qm001",
+      "family_name": "廃止管理文書",
+      "qm_name": "",
+      "qm_number": "",
+      "qm_retention": "",
+      "rule_name": "廃止管理文書",
+      "rule_number": "-",
+      "rule_retention": "廃止後3年"
+    },
+    {
+      "type": "missing_in_qm001",
+      "family_name": "設備・付帯設備点検チェックシート",
+      "qm_name": "",
+      "qm_number": "",
+      "qm_retention": "",
+      "rule_name": "設備・付帯設備点検チェックシート",
+      "rule_number": "KS",
+      "rule_retention": "廃止後3年"
+    },
+    {
+      "type": "missing_in_qm001",
+      "family_name": "計量・梱包作業記録",
+      "qm_name": "",
+      "qm_number": "",
+      "qm_retention": "",
+      "rule_name": "計量・梱包作業記録",
+      "rule_number": "KC",
+      "rule_retention": "3年間"
+    },
+    {
+      "type": "missing_in_qm001",
+      "family_name": "受入検査記録表",
+      "qm_name": "",
+      "qm_number": "",
+      "qm_retention": "",
+      "rule_name": "受入検査記録表",
+      "rule_number": "KS",
+      "rule_retention": "3年間"
+    },
+    {
+      "type": "missing_in_qm001",
+      "family_name": "部材入出庫台帳",
+      "qm_name": "",
+      "qm_number": "",
+      "qm_retention": "",
+      "rule_name": "部材入出庫台帳",
+      "rule_number": "K",
+      "rule_retention": "3年間"
+    },
+    {
+      "type": "missing_in_qm001",
+      "family_name": "計量・梱包出荷記録",
+      "qm_name": "",
+      "qm_number": "",
+      "qm_retention": "",
+      "rule_name": "計量・梱包出荷記録",
+      "rule_number": "KSＣ",
+      "rule_retention": "3年間"
+    },
+    {
+      "type": "missing_in_qm001",
+      "family_name": "生産計画",
+      "qm_name": "",
+      "qm_number": "",
+      "qm_retention": "",
+      "rule_name": "生産計画",
+      "rule_number": "K",
+      "rule_retention": "5年間"
+    },
+    {
+      "type": "missing_in_qm001",
+      "family_name": "月次成果報告書",
+      "qm_name": "",
+      "qm_number": "",
+      "qm_retention": "",
+      "rule_name": "月次成果報告書",
+      "rule_number": "KT",
+      "rule_retention": "3年間"
+    },
+    {
+      "type": "missing_in_qm001",
+      "family_name": "部課長会議議事録",
+      "qm_name": "",
+      "qm_number": "",
+      "qm_retention": "",
+      "rule_name": "部課長会議議事録",
+      "rule_number": "KT",
+      "rule_retention": "3年間"
+    },
+    {
+      "type": "missing_in_qm001",
+      "family_name": "アニール工程妥当性確認記録表",
+      "qm_name": "",
+      "qm_number": "",
+      "qm_retention": "",
+      "rule_name": "アニール工程妥当性確認記録表",
+      "rule_number": "KS",
+      "rule_retention": "3年間"
+    },
+    {
+      "type": "missing_in_qm001",
+      "family_name": "定期メンテナンス確認表",
+      "qm_name": "",
+      "qm_number": "",
+      "qm_retention": "",
+      "rule_name": "定期メンテナンス確認表",
+      "rule_number": "KGD",
+      "rule_retention": "廃止後3年"
+    },
+    {
+      "type": "missing_in_qm001",
+      "family_name": "作業指示書",
+      "qm_name": "",
+      "qm_number": "",
+      "qm_retention": "",
+      "rule_name": "作業指示書",
+      "rule_number": "KS",
+      "rule_retention": "3年間"
+    },
+    {
+      "type": "missing_in_qm001",
+      "family_name": "アニール条件表",
+      "qm_name": "",
+      "qm_number": "",
+      "qm_retention": "",
+      "rule_name": "アニール条件表",
+      "rule_number": "KS",
+      "rule_retention": "3年間"
+    },
+    {
+      "type": "missing_in_qm001",
+      "family_name": "温度・湿度管理記録表",
+      "qm_name": "",
+      "qm_number": "",
+      "qm_retention": "",
+      "rule_name": "温度・湿度管理記録表",
+      "rule_number": "K",
+      "rule_retention": "3年間"
+    },
+    {
+      "type": "missing_in_qm001",
+      "family_name": "材料受入れ台帳",
+      "qm_name": "",
+      "qm_number": "",
+      "qm_retention": "",
+      "rule_name": "材料受入れ台帳",
+      "rule_number": "KSM001",
+      "rule_retention": "3年間"
+    },
+    {
+      "type": "missing_in_qm001",
+      "family_name": "CT-5811M処理薬品受入手順書兼チェックリスト",
+      "qm_name": "",
+      "qm_number": "",
+      "qm_retention": "",
+      "rule_name": "CT-5811M処理薬品受入手順書兼チェックリスト",
+      "rule_number": "KS",
+      "rule_retention": "3年間"
+    },
+    {
+      "type": "missing_in_qm001",
+      "family_name": "文書管理台帳",
+      "qm_name": "",
+      "qm_number": "",
+      "qm_retention": "",
+      "rule_name": "文書管理台帳",
+      "rule_number": "K",
+      "rule_retention": "都度更新"
+    },
+    {
+      "type": "missing_in_qm001",
+      "family_name": "記録管理台帳",
+      "qm_name": "",
+      "qm_number": "",
+      "qm_retention": "",
+      "rule_name": "記録管理台帳",
+      "rule_number": "K",
+      "rule_retention": "都度更新"
+    },
+    {
+      "type": "missing_in_qm001",
+      "family_name": "生産日報",
+      "qm_name": "",
+      "qm_number": "",
+      "qm_retention": "",
+      "rule_name": "生産日報（作業日報）",
+      "rule_number": "K",
+      "rule_retention": "3年間"
+    },
+    {
+      "type": "missing_in_qm001",
+      "family_name": "高清浄度環境パーティクル測定記録表",
+      "qm_name": "",
+      "qm_number": "",
+      "qm_retention": "",
+      "rule_name": "高清浄度環境パーティクル測定記録表",
+      "rule_number": "K",
+      "rule_retention": "3年間"
+    },
+    {
+      "type": "missing_in_qm001",
+      "family_name": "教育・指導成果確認表",
+      "qm_name": "",
+      "qm_number": "",
+      "qm_retention": "",
+      "rule_name": "教育・指導成果確認表",
+      "rule_number": "K",
+      "rule_retention": "退職後１年"
+    },
+    {
+      "type": "missing_in_qm001",
+      "family_name": "完成品在庫台帳",
+      "qm_name": "",
+      "qm_number": "",
+      "qm_retention": "",
+      "rule_name": "完成品在庫台帳",
+      "rule_number": "KCA",
+      "rule_retention": "3年間"
+    },
+    {
+      "type": "missing_in_qm001",
+      "family_name": "供給者供者評価表",
+      "qm_name": "",
+      "qm_number": "",
+      "qm_retention": "",
+      "rule_name": "供給者供者評価表",
+      "rule_number": "KGM013",
+      "rule_retention": "停止後1年"
+    },
+    {
+      "type": "missing_in_qm001",
+      "family_name": "契約書",
+      "qm_name": "",
+      "qm_number": "",
+      "qm_retention": "",
+      "rule_name": "契約書（顧客）",
+      "rule_number": "-",
+      "rule_retention": ""
+    },
+    {
+      "type": "missing_in_qm001",
+      "family_name": "契約書",
+      "qm_name": "",
+      "qm_number": "",
+      "qm_retention": "",
+      "rule_name": "契約書（供給者）",
+      "rule_number": "",
+      "rule_retention": ""
+    },
+    {
+      "type": "missing_in_qm001",
+      "family_name": "INVOICE",
+      "qm_name": "",
+      "qm_number": "",
+      "qm_retention": "",
+      "rule_name": "INVOICE",
+      "rule_number": "-",
+      "rule_retention": "7年間"
+    },
+    {
+      "type": "missing_in_qm001",
+      "family_name": "作業環境管理表",
+      "qm_name": "",
+      "qm_number": "",
+      "qm_retention": "",
+      "rule_name": "作業環境管理表",
+      "rule_number": "-",
+      "rule_retention": "5年間"
+    }
+  ],
+  "department_mismatches": [
+    {
+      "department": "設計部門",
+      "baseline_count": 30,
+      "ledger_count": 52,
+      "adopted_sheets": [
+        {
+          "source_file": "設計部門_管理文書一覧.xls",
+          "sheet": "作業手順書",
+          "entry_count": 7,
+          "header_row": 2,
+          "name_column_index": 2,
+          "number_column_index": 1,
+          "retention_column_index": null
+        },
+        {
+          "source_file": "設計部門_管理文書一覧.xls",
+          "sheet": "記録表",
+          "entry_count": 45,
+          "header_row": 2,
+          "name_column_index": 2,
+          "number_column_index": 1,
+          "retention_column_index": null
+        }
+      ],
+      "inspected_files": [
+        {
+          "source_file": "設計部門_管理文書一覧.xls",
+          "sheet_names": [
+            "作業手順書",
+            "記録表",
+            "Sheet3"
+          ]
+        }
+      ],
+      "missing_in_department": [
+        {
+          "name": "DR会議議事録(プレス)",
+          "number": "KGS025-GTS034",
+          "retention": "廃止後１年",
+          "source_file": "QM001付表4_文書（記録を含む）体系表_第5版_20250110.xlsx"
+        },
+        {
+          "name": "DR会議議事録(モールド)",
+          "number": "KGS027-GTS035",
+          "retention": "廃止後１年",
+          "source_file": "QM001付表4_文書（記録を含む）体系表_第5版_20250110.xlsx"
+        },
+        {
+          "name": "DR会議議事録(モールドⅡ)",
+          "number": "KGS037-GTS049",
+          "retention": "廃止後１年",
+          "source_file": "QM001付表4_文書（記録を含む）体系表_第5版_20250110.xlsx"
+        },
+        {
+          "name": "DR会議議事録（アルミパネル）",
+          "number": "KGS026-GTS047",
+          "retention": "廃止後１年",
+          "source_file": "QM001付表4_文書（記録を含む）体系表_第5版_20250110.xlsx"
+        },
+        {
+          "name": "DR会議議事録（総抜き型）",
+          "number": "KGS024-GTS046",
+          "retention": "廃止後１年",
+          "source_file": "QM001付表4_文書（記録を含む）体系表_第5版_20250110.xlsx"
+        },
+        {
+          "name": "設計検証チェックリスト(プレス)",
+          "number": "KGS025-GTS034",
+          "retention": "廃止後１年",
+          "source_file": "QM001付表4_文書（記録を含む）体系表_第5版_20250110.xlsx"
+        },
+        {
+          "name": "設計検証チェックリスト(モールド)",
+          "number": "KGS027-GTS035",
+          "retention": "廃止後１年",
+          "source_file": "QM001付表4_文書（記録を含む）体系表_第5版_20250110.xlsx"
+        },
+        {
+          "name": "設計検証チェックリスト(モールドⅡ)",
+          "number": "KGS037-GTS049",
+          "retention": "廃止後１年",
+          "source_file": "QM001付表4_文書（記録を含む）体系表_第5版_20250110.xlsx"
+        },
+        {
+          "name": "設計検証チェックリスト（アルミパネル）",
+          "number": "KGS026-GTS047",
+          "retention": "廃止後１年",
+          "source_file": "QM001付表4_文書（記録を含む）体系表_第5版_20250110.xlsx"
+        },
+        {
+          "name": "設計検証チェックリスト（総抜き型）",
+          "number": "KGS024-GTS046",
+          "retention": "廃止後１年",
+          "source_file": "QM001付表4_文書（記録を含む）体系表_第5版_20250110.xlsx"
+        },
+        {
+          "name": "金型の妥当性確認記録(プレス)",
+          "number": "KGS005-GTS034",
+          "retention": "廃止後３年",
+          "source_file": "QM001付表4_文書（記録を含む）体系表_第5版_20250110.xlsx"
+        },
+        {
+          "name": "金型の妥当性確認記録(モールド)",
+          "number": "KGS007-GTS035",
+          "retention": "廃止後３年",
+          "source_file": "QM001付表4_文書（記録を含む）体系表_第5版_20250110.xlsx"
+        },
+        {
+          "name": "金型の妥当性確認記録(モールド金型Ⅱ)",
+          "number": "KGS032-GTS049",
+          "retention": "廃止後３年",
+          "source_file": "QM001付表4_文書（記録を含む）体系表_第5版_20250110.xlsx"
+        },
+        {
+          "name": "金型の妥当性確認記録（アルミパネル）",
+          "number": "KGS006-GTS035",
+          "retention": "廃止後３年",
+          "source_file": "QM001付表4_文書（記録を含む）体系表_第5版_20250110.xlsx"
+        },
+        {
+          "name": "金型の妥当性確認記録（総抜き型）",
+          "number": "KGS004-GTS046",
+          "retention": "廃止後３年",
+          "source_file": "QM001付表4_文書（記録を含む）体系表_第5版_20250110.xlsx"
+        },
+        {
+          "name": "金型製作依頼票(プレス)",
+          "number": "KGS040-GTS034",
+          "retention": "廃止後５年",
+          "source_file": "QM001付表4_文書（記録を含む）体系表_第5版_20250110.xlsx"
+        },
+        {
+          "name": "金型製作依頼票(モールド)",
+          "number": "KGS042-GTS035",
+          "retention": "廃止後５年",
+          "source_file": "QM001付表4_文書（記録を含む）体系表_第5版_20250110.xlsx"
+        },
+        {
+          "name": "金型製作依頼票(モールドⅡ)",
+          "number": "KGS043-GTS049",
+          "retention": "廃止後５年",
+          "source_file": "QM001付表4_文書（記録を含む）体系表_第5版_20250110.xlsx"
+        },
+        {
+          "name": "金型製作依頼票（アルミパネル）",
+          "number": "KGS041-GTS047",
+          "retention": "廃止後５年",
+          "source_file": "QM001付表4_文書（記録を含む）体系表_第5版_20250110.xlsx"
+        },
+        {
+          "name": "金型製作依頼票（総抜き型）",
+          "number": "KGS039-GTS046",
+          "retention": "廃止後５年",
+          "source_file": "QM001付表4_文書（記録を含む）体系表_第5版_20250110.xlsx"
+        }
+      ],
+      "missing_in_baseline": [
+        {
+          "name": "D・R検討会議事録(プレス)",
+          "number": "KGS021-GTS034",
+          "sheet": "記録表",
+          "source_file": "設計部門_管理文書一覧.xls"
+        },
+        {
+          "name": "D・R検討会議事録(モールド)",
+          "number": "KGS023-GTS035",
+          "sheet": "記録表",
+          "source_file": "設計部門_管理文書一覧.xls"
+        },
+        {
+          "name": "D・R検討会議事録(モールドⅡ)",
+          "number": "KGS036-GTS049",
+          "sheet": "記録表",
+          "source_file": "設計部門_管理文書一覧.xls"
+        },
+        {
+          "name": "D・R検討会議事録（アルミパネル）",
+          "number": "KGS022-GTS047",
+          "sheet": "記録表",
+          "source_file": "設計部門_管理文書一覧.xls"
+        },
+        {
+          "name": "D・R検討会議事録（総抜き型）",
+          "number": "KGS020-GTS046",
+          "sheet": "記録表",
+          "source_file": "設計部門_管理文書一覧.xls"
+        },
+        {
+          "name": "アルミパネル設計標準",
+          "number": "GTS047-QK001",
+          "sheet": "作業手順書",
+          "source_file": "設計部門_管理文書一覧.xls"
+        },
+        {
+          "name": "図面配布台帳",
+          "number": "KGS001-QK009",
+          "sheet": "記録表",
+          "source_file": "設計部門_管理文書一覧.xls"
+        },
+        {
+          "name": "成形金型キャビNo.リスト",
+          "number": "KGS003-GTS035",
+          "sheet": "記録表",
+          "source_file": "設計部門_管理文書一覧.xls"
+        },
+        {
+          "name": "技術課個人別教育記録",
+          "number": "KGS044-QK002",
+          "sheet": "記録表",
+          "source_file": "設計部門_管理文書一覧.xls"
+        },
+        {
+          "name": "生産技術業務手順書",
+          "number": "GTS002-QK001",
+          "sheet": "作業手順書",
+          "source_file": "設計部門_管理文書一覧.xls"
+        },
+        {
+          "name": "総抜き型設計標準",
+          "number": "GTS046-QK001",
+          "sheet": "作業手順書",
+          "source_file": "設計部門_管理文書一覧.xls"
+        },
+        {
+          "name": "設計作業手順書（プレス金型）",
+          "number": "GTS034-QK001",
+          "sheet": "作業手順書",
+          "source_file": "設計部門_管理文書一覧.xls"
+        },
+        {
+          "name": "設計作業手順書（モールド金型Ⅱ）",
+          "number": "GTS049-QK001",
+          "sheet": "作業手順書",
+          "source_file": "設計部門_管理文書一覧.xls"
+        },
+        {
+          "name": "設計作業手順書（モールド金型）",
+          "number": "GTS035-QK001",
+          "sheet": "作業手順書",
+          "source_file": "設計部門_管理文書一覧.xls"
+        },
+        {
+          "name": "設計検証(プレス)",
+          "number": "KGS025-GTS034",
+          "sheet": "記録表",
+          "source_file": "設計部門_管理文書一覧.xls"
+        },
+        {
+          "name": "設計検証(モールド)",
+          "number": "KGS027-GTS035",
+          "sheet": "記録表",
+          "source_file": "設計部門_管理文書一覧.xls"
+        },
+        {
+          "name": "設計検証(モールドⅡ)",
+          "number": "KGS037-GTS049",
+          "sheet": "記録表",
+          "source_file": "設計部門_管理文書一覧.xls"
+        },
+        {
+          "name": "設計検証(総抜き型)",
+          "number": "KGS024-GTS046",
+          "sheet": "記録表",
+          "source_file": "設計部門_管理文書一覧.xls"
+        },
+        {
+          "name": "設計検証（アルミパネル）",
+          "number": "KGS026-GTS047",
+          "sheet": "記録表",
+          "source_file": "設計部門_管理文書一覧.xls"
+        },
+        {
+          "name": "金型受付台帳",
+          "number": "KGS002-GTS046",
+          "sheet": "記録表",
+          "source_file": "設計部門_管理文書一覧.xls"
+        },
+        {
+          "name": "金型妥当性確認記録表（アルミパネル）",
+          "number": "KGS006-GTS035",
+          "sheet": "記録表",
+          "source_file": "設計部門_管理文書一覧.xls"
+        },
+        {
+          "name": "金型妥当性確認記録表（プレス）",
+          "number": "KGS005-GTS034",
+          "sheet": "記録表",
+          "source_file": "設計部門_管理文書一覧.xls"
+        },
+        {
+          "name": "金型妥当性確認記録表（モールド金型Ⅱ）",
+          "number": "KGS032-GTS049",
+          "sheet": "記録表",
+          "source_file": "設計部門_管理文書一覧.xls"
+        },
+        {
+          "name": "金型妥当性確認記録表（モールド）",
+          "number": "KGS007-GTS035",
+          "sheet": "記録表",
+          "source_file": "設計部門_管理文書一覧.xls"
+        },
+        {
+          "name": "金型妥当性確認記録表（総抜き型）",
+          "number": "KGS004-GTS046",
+          "sheet": "記録表",
+          "source_file": "設計部門_管理文書一覧.xls"
+        },
+        {
+          "name": "金型管理票 量産指示書（アルミパネル）",
+          "number": "KGS014-GTS047",
+          "sheet": "記録表",
+          "source_file": "設計部門_管理文書一覧.xls"
+        },
+        {
+          "name": "金型管理票 量産指示書（プレス）",
+          "number": "KGS013-GTS034",
+          "sheet": "記録表",
+          "source_file": "設計部門_管理文書一覧.xls"
+        },
+        {
+          "name": "金型管理票 量産指示書（モールドⅡ）",
+          "number": "KGS034-GTS049",
+          "sheet": "記録表",
+          "source_file": "設計部門_管理文書一覧.xls"
+        },
+        {
+          "name": "金型管理票 量産指示書（モールド）",
+          "number": "KGS015-GTS035",
+          "sheet": "記録表",
+          "source_file": "設計部門_管理文書一覧.xls"
+        },
+        {
+          "name": "金型管理票 量産指示書（総抜き型）",
+          "number": "KGS012-GTS046",
+          "sheet": "記録表",
+          "source_file": "設計部門_管理文書一覧.xls"
+        },
+        {
+          "name": "金型管理票（アルミパネル）",
+          "number": "KGS010-GTS047",
+          "sheet": "記録表",
+          "source_file": "設計部門_管理文書一覧.xls"
+        },
+        {
+          "name": "金型管理票（プレス）",
+          "number": "KGS009-GTS034",
+          "sheet": "記録表",
+          "source_file": "設計部門_管理文書一覧.xls"
+        },
+        {
+          "name": "金型管理票（モールドⅡ）",
+          "number": "KGS033-GTS049",
+          "sheet": "記録表",
+          "source_file": "設計部門_管理文書一覧.xls"
+        },
+        {
+          "name": "金型管理票（モールド）",
+          "number": "KGS011-GTS035",
+          "sheet": "記録表",
+          "source_file": "設計部門_管理文書一覧.xls"
+        },
+        {
+          "name": "金型管理票（総抜き型）",
+          "number": "KGS008-GTS046",
+          "sheet": "記録表",
+          "source_file": "設計部門_管理文書一覧.xls"
+        },
+        {
+          "name": "金型製作依頼表(プレス)",
+          "number": "KGS040-GTS034",
+          "sheet": "記録表",
+          "source_file": "設計部門_管理文書一覧.xls"
+        },
+        {
+          "name": "金型製作依頼表(モールド)",
+          "number": "KGS042-GTS035",
+          "sheet": "記録表",
+          "source_file": "設計部門_管理文書一覧.xls"
+        },
+        {
+          "name": "金型製作依頼表(モールドⅡ)",
+          "number": "KGS043-GTS049",
+          "sheet": "記録表",
+          "source_file": "設計部門_管理文書一覧.xls"
+        },
+        {
+          "name": "金型製作依頼表（アルミパネル）",
+          "number": "KGS041-GTS047",
+          "sheet": "記録表",
+          "source_file": "設計部門_管理文書一覧.xls"
+        },
+        {
+          "name": "金型製作依頼表（総抜き型）",
+          "number": "KGS039-GTS046",
+          "sheet": "記録表",
+          "source_file": "設計部門_管理文書一覧.xls"
+        },
+        {
+          "name": "金型製作技能教育成果報告書",
+          "number": "KGS045-QK002",
+          "sheet": "記録表",
+          "source_file": "設計部門_管理文書一覧.xls"
+        },
+        {
+          "name": "順送型不具合対策・流出防止措置設計要領",
+          "number": "GTS048-QK001",
+          "sheet": "作業手順書",
+          "source_file": "設計部門_管理文書一覧.xls"
+        }
+      ],
+      "number_mismatches": [
+        {
+          "baseline_name": "設計計画書(モールド)",
+          "baseline_number": "KGS023-GTS035",
+          "ledger_name": "設計計画書(モールド)",
+          "ledger_number": "KGS019-GTS035",
+          "sheet": "記録表",
+          "source_file": "設計部門_管理文書一覧.xls"
+        },
+        {
+          "baseline_name": "設計計画書(モールドⅡ)",
+          "baseline_number": "KGS036-GTS049",
+          "ledger_name": "設計計画書(モールドⅡ)",
+          "ledger_number": "KGS035-GTS049",
+          "sheet": "記録表",
+          "source_file": "設計部門_管理文書一覧.xls"
+        }
+      ]
+    },
+    {
+      "department": "生産技術",
+      "baseline_count": 0,
+      "ledger_count": 38,
+      "adopted_sheets": [
+        {
+          "source_file": "生産技術管理文書一覧.xls",
+          "sheet": "【第3階層】作業手順書",
+          "entry_count": 9,
+          "header_row": 2,
+          "name_column_index": 2,
+          "number_column_index": 1,
+          "retention_column_index": null
+        },
+        {
+          "source_file": "生産技術管理文書一覧.xls",
+          "sheet": "【第4階層】記録表",
+          "entry_count": 11,
+          "header_row": 2,
+          "name_column_index": 2,
+          "number_column_index": 1,
+          "retention_column_index": null
+        },
+        {
+          "source_file": "生産技術管理文書一覧.xls",
+          "sheet": "Sheet3",
+          "entry_count": 18,
+          "header_row": 1,
+          "name_column_index": 2,
+          "number_column_index": 3,
+          "retention_column_index": 5
+        },
+        {
+          "source_file": "第三階層文書・文書見直し記録(KGO007)_2025_1_20.xls",
+          "sheet": "KGO007-QK001-1 ①",
+          "entry_count": 9,
+          "header_row": 3,
+          "name_column_index": 2,
+          "number_column_index": 1,
+          "retention_column_index": null
+        }
+      ],
+      "inspected_files": [
+        {
+          "source_file": "生産技術管理文書一覧.xls",
+          "sheet_names": [
+            "【第3階層】作業手順書",
+            "【第4階層】記録表",
+            "Sheet3"
+          ]
+        },
+        {
+          "source_file": "第三階層文書・文書見直し記録(KGO007)_2025_1_20.xls",
+          "sheet_names": [
+            "KGO007-QK001-1 ①",
+            "KGO007-QK001-1 ②",
+            "KGO007-QK001-1 ③",
+            "KGO007-QK001-1④"
+          ]
+        }
+      ],
+      "missing_in_department": [],
+      "missing_in_baseline": [
+        {
+          "name": "(プレス)",
+          "number": "",
+          "sheet": "Sheet3",
+          "source_file": "生産技術管理文書一覧.xls"
+        },
+        {
+          "name": "DR構想検討会議議事録",
+          "number": "KGI002-GTI001-1",
+          "sheet": "【第4階層】記録表",
+          "source_file": "生産技術管理文書一覧.xls"
+        },
+        {
+          "name": "D・R会議議事録",
+          "number": "KGS022-GTS047",
+          "sheet": "Sheet3",
+          "source_file": "生産技術管理文書一覧.xls"
+        },
+        {
+          "name": "D・R会議議事録(プレス)",
+          "number": "KGS021-GTS034",
+          "sheet": "Sheet3",
+          "source_file": "生産技術管理文書一覧.xls"
+        },
+        {
+          "name": "D・R会議議事録(モールド)",
+          "number": "KGS023-GTS035",
+          "sheet": "Sheet3",
+          "source_file": "生産技術管理文書一覧.xls"
+        },
+        {
+          "name": "作業指導書 ボール盤",
+          "number": "GTI002-GTI001-2",
+          "sheet": "【第3階層】作業手順書",
+          "source_file": "生産技術管理文書一覧.xls"
+        },
+        {
+          "name": "作業指導書 接着剤スリッター",
+          "number": "GTP002-HH080-1",
+          "sheet": "【第3階層】作業手順書",
+          "source_file": "生産技術管理文書一覧.xls"
+        },
+        {
+          "name": "作業指導書 接着剤ラミネート装置2号機",
+          "number": "GTP005-HH080-1",
+          "sheet": "【第3階層】作業手順書",
+          "source_file": "生産技術管理文書一覧.xls"
+        },
+        {
+          "name": "作業指導書　接着剤ｽﾘｯﾀー",
+          "number": "GTP002-HH080-1",
+          "sheet": "KGO007-QK001-1 ①",
+          "source_file": "第三階層文書・文書見直し記録(KGO007)_2025_1_20.xls"
+        },
+        {
+          "name": "個人別教育記録",
+          "number": "KGO003-GTO001-1",
+          "sheet": "【第4階層】記録表",
+          "source_file": "生産技術管理文書一覧.xls"
+        },
+        {
+          "name": "品質改善報告書",
+          "number": "KGI004-GTI001-1",
+          "sheet": "【第4階層】記録表",
+          "source_file": "生産技術管理文書一覧.xls"
+        },
+        {
+          "name": "技術課個人別教育記録",
+          "number": "KGS044-QK002",
+          "sheet": "Sheet3",
+          "source_file": "生産技術管理文書一覧.xls"
+        },
+        {
+          "name": "文書見直し記録",
+          "number": "KGO007-QK001-1",
+          "sheet": "【第4階層】記録表",
+          "source_file": "生産技術管理文書一覧.xls"
+        },
+        {
+          "name": "生産技術係業務フロー",
+          "number": "GTI001-QM001-3",
+          "sheet": "【第3階層】作業手順書",
+          "source_file": "生産技術管理文書一覧.xls"
+        },
+        {
+          "name": "生産技術業務手順書",
+          "number": "GTI004-QK001-1",
+          "sheet": "【第3階層】作業手順書",
+          "source_file": "生産技術管理文書一覧.xls"
+        },
+        {
+          "name": "生産技術課 技能者認定内規",
+          "number": "GTO001-QM001-5",
+          "sheet": "【第3階層】作業手順書",
+          "source_file": "生産技術管理文書一覧.xls"
+        },
+        {
+          "name": "生産技術課 資格付与基準",
+          "number": "GTO002-GTO001-4",
+          "sheet": "【第3階層】作業手順書",
+          "source_file": "生産技術管理文書一覧.xls"
+        },
+        {
+          "name": "生産技術課技能教育成果報告書",
+          "number": "KGO010-GTO001-1",
+          "sheet": "【第4階層】記録表",
+          "source_file": "生産技術管理文書一覧.xls"
+        },
+        {
+          "name": "生産技術課技能認定登録台帳",
+          "number": "KGO002-GTO002-1",
+          "sheet": "【第4階層】記録表",
+          "source_file": "生産技術管理文書一覧.xls"
+        },
+        {
+          "name": "生産技術課教育計画",
+          "number": "KGO009-GTO001-1",
+          "sheet": "【第4階層】記録表",
+          "source_file": "生産技術管理文書一覧.xls"
+        },
+        {
+          "name": "自動機パーツ、購買リスト台帳",
+          "number": "KGI003-GTI001-4",
+          "sheet": "【第4階層】記録表",
+          "source_file": "生産技術管理文書一覧.xls"
+        },
+        {
+          "name": "製造指示書",
+          "number": "GTI003-GTI001-1",
+          "sheet": "【第3階層】作業手順書",
+          "source_file": "生産技術管理文書一覧.xls"
+        },
+        {
+          "name": "設備管理台帳",
+          "number": "KGI005-QK007-1",
+          "sheet": "【第4階層】記録表",
+          "source_file": "生産技術管理文書一覧.xls"
+        },
+        {
+          "name": "設備管理台帳",
+          "number": "KGS046-QK007",
+          "sheet": "Sheet3",
+          "source_file": "生産技術管理文書一覧.xls"
+        },
+        {
+          "name": "設備管理票",
+          "number": "KGI006-QK007-1",
+          "sheet": "【第4階層】記録表",
+          "source_file": "生産技術管理文書一覧.xls"
+        },
+        {
+          "name": "設計検証チェックリスト",
+          "number": "KGS024-GTS046",
+          "sheet": "Sheet3",
+          "source_file": "生産技術管理文書一覧.xls"
+        },
+        {
+          "name": "設計検証チェックリスト",
+          "number": "KGS025-GTS034",
+          "sheet": "Sheet3",
+          "source_file": "生産技術管理文書一覧.xls"
+        },
+        {
+          "name": "設計検証チェックリスト　　(モールド)",
+          "number": "KGS027-GTS035",
+          "sheet": "Sheet3",
+          "source_file": "生産技術管理文書一覧.xls"
+        },
+        {
+          "name": "設計検証チェックリスト　　（アルミパネル）",
+          "number": "KGS026-GTS047",
+          "sheet": "Sheet3",
+          "source_file": "生産技術管理文書一覧.xls"
+        },
+        {
+          "name": "設計計画書(プレス)",
+          "number": "KGS017-GTS034",
+          "sheet": "Sheet3",
+          "source_file": "生産技術管理文書一覧.xls"
+        },
+        {
+          "name": "設計計画書(モールド)",
+          "number": "KGS019-GTS035",
+          "sheet": "Sheet3",
+          "source_file": "生産技術管理文書一覧.xls"
+        },
+        {
+          "name": "設計計画書(モールドⅡ)",
+          "number": "KGS034-GTS049",
+          "sheet": "Sheet3",
+          "source_file": "生産技術管理文書一覧.xls"
+        },
+        {
+          "name": "設計計画書（アルミパネル）",
+          "number": "KGS018-GTS047",
+          "sheet": "Sheet3",
+          "source_file": "生産技術管理文書一覧.xls"
+        },
+        {
+          "name": "進捗管理票",
+          "number": "KGI001-GTI001-1",
+          "sheet": "【第4階層】記録表",
+          "source_file": "生産技術管理文書一覧.xls"
+        },
+        {
+          "name": "電子文書の取り扱い注意事項",
+          "number": "GTO003-GTI001-2",
+          "sheet": "【第3階層】作業手順書",
+          "source_file": "生産技術管理文書一覧.xls"
+        },
+        {
+          "name": "（アルミパネル）",
+          "number": "",
+          "sheet": "Sheet3",
+          "source_file": "生産技術管理文書一覧.xls"
+        },
+        {
+          "name": "（総抜き型）",
+          "number": "",
+          "sheet": "Sheet3",
+          "source_file": "生産技術管理文書一覧.xls"
+        },
+        {
+          "name": "Ｄ・Ｒ会議議事録",
+          "number": "KGS020-GTS046",
+          "sheet": "Sheet3",
+          "source_file": "生産技術管理文書一覧.xls"
+        }
+      ],
+      "number_mismatches": []
+    },
+    {
+      "department": "プレス_表面処理",
+      "baseline_count": 34,
+      "ledger_count": 96,
+      "adopted_sheets": [
+        {
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls",
+          "sheet": "管理番号",
+          "entry_count": 42,
+          "header_row": 2,
+          "name_column_index": 1,
+          "number_column_index": 6,
+          "retention_column_index": null
+        },
+        {
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls",
+          "sheet": "NEW管理番号",
+          "entry_count": 42,
+          "header_row": 2,
+          "name_column_index": 1,
+          "number_column_index": 6,
+          "retention_column_index": null
+        },
+        {
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls",
+          "sheet": "NEW文書管理番号リスト (プレス係)",
+          "entry_count": 31,
+          "header_row": 2,
+          "name_column_index": 1,
+          "number_column_index": 6,
+          "retention_column_index": null
+        },
+        {
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls",
+          "sheet": "NEW文書管理番号リスト (プレス係) (レビュー用)",
+          "entry_count": 31,
+          "header_row": 2,
+          "name_column_index": 1,
+          "number_column_index": 6,
+          "retention_column_index": null
+        },
+        {
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls",
+          "sheet": "NEW文書管理番号リスト (プレス係個片作業手順書レビュー用)",
+          "entry_count": 4,
+          "header_row": 2,
+          "name_column_index": 1,
+          "number_column_index": 6,
+          "retention_column_index": null
+        },
+        {
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls",
+          "sheet": "NEW文書管理番号リスト (プレス係) (2022.2.1)",
+          "entry_count": 32,
+          "header_row": 2,
+          "name_column_index": 1,
+          "number_column_index": 6,
+          "retention_column_index": null
+        },
+        {
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls",
+          "sheet": "NEW文書管理番号リスト (プレス係個片作業手順書)2022.",
+          "entry_count": 4,
+          "header_row": 2,
+          "name_column_index": 1,
+          "number_column_index": 6,
+          "retention_column_index": null
+        }
+      ],
+      "inspected_files": [
+        {
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls",
+          "sheet_names": [
+            "管理番号",
+            "NEW管理番号",
+            "NEW文書管理番号リスト (プレス係)",
+            "NEW文書管理番号リスト (プレス係) (レビュー用)",
+            "NEW文書管理番号リスト (プレス係個片作業手順書レビュー用)",
+            "NEW文書管理番号リスト (プレス係) (2022.2.1)",
+            "NEW文書管理番号リスト (プレス係個片作業手順書)2022."
+          ]
+        }
+      ],
+      "missing_in_department": [
+        {
+          "name": "エッチング量管理記録兼残留油部チェック記録表",
+          "number": "KSSEGD2001",
+          "retention": "15年",
+          "source_file": "QM001付表4_文書（記録を含む）体系表_第5版_20250110.xlsx"
+        },
+        {
+          "name": "トラバース 自動運転までの作業手順 (SZR026)",
+          "number": "SZR026",
+          "retention": "",
+          "source_file": "QM001付表4_文書（記録を含む）体系表_第5版_20250110.xlsx"
+        },
+        {
+          "name": "レシピ一覧",
+          "number": "KSSD2R001",
+          "retention": "15年",
+          "source_file": "QM001付表4_文書（記録を含む）体系表_第5版_20250110.xlsx"
+        },
+        {
+          "name": "原材料・部材入出庫手順(SZR004)",
+          "number": "SZR004",
+          "retention": "",
+          "source_file": "QM001付表4_文書（記録を含む）体系表_第5版_20250110.xlsx"
+        },
+        {
+          "name": "外観検査要領書（SZQ025）",
+          "number": "SZQ025",
+          "retention": "",
+          "source_file": "QM001付表4_文書（記録を含む）体系表_第5版_20250110.xlsx"
+        },
+        {
+          "name": "工程検査記録表",
+          "number": "KSSII001",
+          "retention": "5年/15年",
+          "source_file": "QM001付表4_文書（記録を含む）体系表_第5版_20250110.xlsx"
+        },
+        {
+          "name": "成形作業手順(SZR002,023～026）",
+          "number": "SZR002",
+          "retention": "",
+          "source_file": "QM001付表4_文書（記録を含む）体系表_第5版_20250110.xlsx"
+        },
+        {
+          "name": "成形作業指示書 金型取付方法 (SZR002)",
+          "number": "SZR002",
+          "retention": "",
+          "source_file": "QM001付表4_文書（記録を含む）体系表_第5版_20250110.xlsx"
+        },
+        {
+          "name": "材料予備乾燥手順(SZR006)",
+          "number": "SZR006",
+          "retention": "",
+          "source_file": "QM001付表4_文書（記録を含む）体系表_第5版_20250110.xlsx"
+        },
+        {
+          "name": "梱包・出荷作業手順書 (SZCa001)",
+          "number": "SZCA001",
+          "retention": "",
+          "source_file": "QM001付表4_文書（記録を含む）体系表_第5版_20250110.xlsx"
+        },
+        {
+          "name": "梱包出荷作業手順書「パネル」（SZCa008）",
+          "number": "SZCA008",
+          "retention": "",
+          "source_file": "QM001付表4_文書（記録を含む）体系表_第5版_20250110.xlsx"
+        },
+        {
+          "name": "梱包出荷作業手順書「個片国内」（SZCa001）",
+          "number": "SZCA001",
+          "retention": "",
+          "source_file": "QM001付表4_文書（記録を含む）体系表_第5版_20250110.xlsx"
+        },
+        {
+          "name": "梱包出荷作業手順書「個片国内」（SZCa002）",
+          "number": "SZCA002",
+          "retention": "",
+          "source_file": "QM001付表4_文書（記録を含む）体系表_第5版_20250110.xlsx"
+        },
+        {
+          "name": "梱包手順書 (SZCb012)",
+          "number": "SZCB012",
+          "retention": "",
+          "source_file": "QM001付表4_文書（記録を含む）体系表_第5版_20250110.xlsx"
+        },
+        {
+          "name": "梱包手順書 (SZCb013)",
+          "number": "SZCB013",
+          "retention": "",
+          "source_file": "QM001付表4_文書（記録を含む）体系表_第5版_20250110.xlsx"
+        },
+        {
+          "name": "梱包手順書 (SZCb014)",
+          "number": "SZCB014",
+          "retention": "",
+          "source_file": "QM001付表4_文書（記録を含む）体系表_第5版_20250110.xlsx"
+        },
+        {
+          "name": "検査管理手順(SZQ003)",
+          "number": "SZQ003",
+          "retention": "",
+          "source_file": "QM001付表4_文書（記録を含む）体系表_第5版_20250110.xlsx"
+        },
+        {
+          "name": "苛性濃度管理記録表",
+          "number": "KSSEND2001",
+          "retention": "15年",
+          "source_file": "QM001付表4_文書（記録を含む）体系表_第5版_20250110.xlsx"
+        },
+        {
+          "name": "薬品管理記録表",
+          "number": "KSSEKD2001",
+          "retention": "15年",
+          "source_file": "QM001付表4_文書（記録を含む）体系表_第5版_20250110.xlsx"
+        },
+        {
+          "name": "表面処理作業手順書(SZSD1001～2001)",
+          "number": "SZSD1001",
+          "retention": "",
+          "source_file": "QM001付表4_文書（記録を含む）体系表_第5版_20250110.xlsx"
+        },
+        {
+          "name": "表面処理始業点検表",
+          "number": "KSSSGD1001～2001",
+          "retention": "15年",
+          "source_file": "QM001付表4_文書（記録を含む）体系表_第5版_20250110.xlsx"
+        },
+        {
+          "name": "製造管理手順（SZR001）",
+          "number": "SZR001",
+          "retention": "",
+          "source_file": "QM001付表4_文書（記録を含む）体系表_第5版_20250110.xlsx"
+        },
+        {
+          "name": "計量・梱包・出荷手順 (SZCb001)",
+          "number": "SZCB001",
+          "retention": "",
+          "source_file": "QM001付表4_文書（記録を含む）体系表_第5版_20250110.xlsx"
+        },
+        {
+          "name": "設備保全計画（保守・点検記録）",
+          "number": "KSSCD1001KSSCHCM1",
+          "retention": "15年",
+          "source_file": "QM001付表4_文書（記録を含む）体系表_第5版_20250110.xlsx"
+        },
+        {
+          "name": "金型保守管理手順(SZOm003)",
+          "number": "SZOM003",
+          "retention": "",
+          "source_file": "QM001付表4_文書（記録を含む）体系表_第5版_20250110.xlsx"
+        }
+      ],
+      "missing_in_baseline": [
+        {
+          "name": "CT-5811M処理薬品受入手順書兼チェックリスト",
+          "number": "KSSCT001",
+          "sheet": "管理番号",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "DE-1薬品補充早見表",
+          "number": "SZS1H001",
+          "sheet": "管理番号",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "DE-2処理工程品名別レシピ一覧",
+          "number": "KSSD2R001",
+          "sheet": "管理番号",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "アニール処理作業標準書",
+          "number": "SZA001",
+          "sheet": "NEW文書管理番号リスト (プレス係)",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "アニール処理作業標準書（個片用）",
+          "number": "SZA005",
+          "sheet": "NEW文書管理番号リスト (プレス係)",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "アニール工程平坦度検査手順書",
+          "number": "SZA002",
+          "sheet": "NEW文書管理番号リスト (プレス係)",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "アニール工程平坦度検査手順書（個片用）",
+          "number": "SZA006",
+          "sheet": "NEW文書管理番号リスト (プレス係)",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "アニール自動冷却機始業点検表手順書",
+          "number": "SZA004",
+          "sheet": "NEW文書管理番号リスト (プレス係)",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "アニール自動機始業点検表手順書",
+          "number": "SZA003",
+          "sheet": "NEW文書管理番号リスト (プレス係)",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "アルマイト製品引渡し作業手順書",
+          "number": "SZSI005",
+          "sheet": "NEW文書管理番号リスト (プレス係)",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "エッチング量・苛性濃度管理記録表　ＤＥ－１",
+          "number": "KSSEGD1001",
+          "sheet": "管理番号",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "エッチング量管理兼残留油分チェック記録表",
+          "number": "KSSEGD2001",
+          "sheet": "管理番号",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "エッチング量管理記録表",
+          "number": "",
+          "sheet": "管理番号",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "エッチング量管理記録表ＤＥ-2",
+          "number": "",
+          "sheet": "管理番号",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "デジマジックインジケータ取扱い手順",
+          "number": "HH-075-2-QK006品証部管轄",
+          "sheet": "管理番号",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "パネルレシピ一覧",
+          "number": "KSSPR001",
+          "sheet": "管理番号",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "プレス係教育・指導要綱",
+          "number": "SZ007",
+          "sheet": "NEW文書管理番号リスト (プレス係)",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "プレス工程内異常処置手順書",
+          "number": "SZ005",
+          "sheet": "NEW文書管理番号リスト (プレス係)",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "プレス材料受入手順書",
+          "number": "SZM001",
+          "sheet": "NEW文書管理番号リスト (プレス係)",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "プレス機始業点検表手順書（アマダ）",
+          "number": "SZ002",
+          "sheet": "NEW文書管理番号リスト (プレス係)",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "プレス機始業点検表手順書（コマツ）",
+          "number": "SZ001",
+          "sheet": "NEW文書管理番号リスト (プレス係)",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "プレス機始業点検表手順書（ドビー）",
+          "number": "SZ003",
+          "sheet": "NEW文書管理番号リスト (プレス係)",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "ホイスト式天井クレーン作業手順書",
+          "number": "SZX001",
+          "sheet": "NEW文書管理番号リスト (プレス係)",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "レベラー取扱作業手順書",
+          "number": "SZX002",
+          "sheet": "NEW文書管理番号リスト (プレス係)",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "ロット管理票標準書",
+          "number": "SZ004",
+          "sheet": "NEW文書管理番号リスト (プレス係)",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "・苛性濃度管理記録表ＤＥ－２",
+          "number": "KSSEND2001",
+          "sheet": "NEW管理番号",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "・薬品管理記録表ＤＥ－２",
+          "number": "KSSEKD2001",
+          "sheet": "NEW管理番号",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "下死点検出器作業手順書（カス上がり検知器EX-110V）",
+          "number": "SZP004",
+          "sheet": "NEW文書管理番号リスト (プレス係)",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "下死点検出器作業手順書（カス上がり検知器PL-465）",
+          "number": "SZP003",
+          "sheet": "NEW文書管理番号リスト (プレス係)",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "作業トレーサビリティ",
+          "number": "KSSTSP001",
+          "sheet": "管理番号",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "処理生産日報",
+          "number": "KSSN001",
+          "sheet": "管理番号",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "回転ドラム作業手順書",
+          "number": "SZSSD001",
+          "sheet": "管理番号",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "外観検査作業手順書（アルミパネル）",
+          "number": "SZP006",
+          "sheet": "NEW文書管理番号リスト (プレス係)",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "平坦度確認作業手順書",
+          "number": "SZSI003",
+          "sheet": "NEW文書管理番号リスト (プレス係)",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "技能認定登録台帳（表面処理教育計画＆力量評価スキルマップ）",
+          "number": "KS003",
+          "sheet": "NEW管理番号",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "技能認定登録台帳（表面処理教育計画＆力量評価スキルマップ）",
+          "number": "ＫＳ００３",
+          "sheet": "管理番号",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "排水チェックシート",
+          "number": "KSSＨＩ001",
+          "sheet": "NEW管理番号",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "排水チェックシート",
+          "number": "ＫＳＳＨＩ001",
+          "sheet": "管理番号",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "新入社員教育実施要網",
+          "number": "SZ010",
+          "sheet": "NEW文書管理番号リスト (プレス係) (2022.2.1)",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "曲げ製品工程検査作業標準書",
+          "number": "SZSI002",
+          "sheet": "NEW文書管理番号リスト (プレス係)",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "材料入出庫管理表手順書",
+          "number": "SZSIM001",
+          "sheet": "NEW文書管理番号リスト (プレス係)",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "材料入出庫管理表手順書（アルミパネル・自動車アルミパネル）",
+          "number": "SZPM001",
+          "sheet": "NEW文書管理番号リスト (プレス係)",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "温度・湿度管理手順書",
+          "number": "SZM002",
+          "sheet": "NEW文書管理番号リスト (プレス係)",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "温度・湿度管理記録表",
+          "number": "KSSOS001",
+          "sheet": "NEW管理番号",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "温度・湿度管理記録表",
+          "number": "KSSOS００１",
+          "sheet": "管理番号",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "測定器始業点検シート",
+          "number": "KH-19-1-HH075品証部管轄",
+          "sheet": "NEW管理番号",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "測定器始業点検シート",
+          "number": "KH19-1-HH075      品証部管轄",
+          "sheet": "管理番号",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "熱引乾燥機始業点検表",
+          "number": "KSSHD001",
+          "sheet": "管理番号",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "空気清浄機　フィルタ交換記録表",
+          "number": "KSSＦ001",
+          "sheet": "NEW管理番号",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "空気清浄機　フィルタ交換記録表",
+          "number": "ＫＳＳＦ001",
+          "sheet": "管理番号",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "簡易液交換装置始業点検表",
+          "number": "KSSKAN001",
+          "sheet": "管理番号",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "紙入識別記入票",
+          "number": "KSSPK001",
+          "sheet": "管理番号",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "自動整列機始業点検表",
+          "number": "KSSAPM001",
+          "sheet": "NEW管理番号",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "自動紙入機始業点検表",
+          "number": "KSSOP001",
+          "sheet": "管理番号",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "自動車アルミパネル画像検査機作業手順書",
+          "number": "SZP005",
+          "sheet": "NEW文書管理番号リスト (プレス係)",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "苛性濃度管理記録表ＤＥ－１",
+          "number": "",
+          "sheet": "管理番号",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "苛性濃度管理記録表ＤＥ－２",
+          "number": "KSSEND2001",
+          "sheet": "管理番号",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "薬品管理記録表ＤＥ－１",
+          "number": "KSSEKD1001",
+          "sheet": "管理番号",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "薬品管理記録表ＤＥ－２",
+          "number": "KSSEKD2001",
+          "sheet": "管理番号",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "表面処理作業手順書DE-1　　　　　　         　　　　　　（通常苛性処理、苛性＋CT－５８１１Mパネル・シングル）",
+          "number": "SZSD1001",
+          "sheet": "管理番号",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "表面処理作業手順書DE-2",
+          "number": "SZSD2001",
+          "sheet": "管理番号",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "表面処理係　個人別教育記録",
+          "number": "KS001",
+          "sheet": "NEW管理番号",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "表面処理係　個人別教育記録",
+          "number": "ＫＳ００１",
+          "sheet": "管理番号",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "表面処理係　技能認定テスト",
+          "number": "KS009",
+          "sheet": "NEW管理番号",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "表面処理係　技能認定テスト",
+          "number": "ＫＳ００９",
+          "sheet": "管理番号",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "表面処理係　技能認定更新テスト",
+          "number": "KS008",
+          "sheet": "NEW管理番号",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "表面処理係　技能認定更新テスト",
+          "number": "ＫＳ００８",
+          "sheet": "管理番号",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "表面処理係　教育指導要綱",
+          "number": "SZ008",
+          "sheet": "NEW管理番号",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "表面処理係　教育指導要綱",
+          "number": "ＳＺ００８",
+          "sheet": "管理番号",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "表面処理係　文書管理台帳",
+          "number": "KSSD001",
+          "sheet": "NEW管理番号",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "表面処理係　文書管理台帳",
+          "number": "ＫＳＳＤ００１",
+          "sheet": "管理番号",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "表面処理始業点検表DE-1",
+          "number": "KSSSGD1001",
+          "sheet": "管理番号",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "表面処理始業点検表DE-2",
+          "number": "KSSSGD2001",
+          "sheet": "管理番号",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "表面処理薬品受入作業手順書",
+          "number": "SZSK001",
+          "sheet": "管理番号",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "製造1部技能者認定内規",
+          "number": "SZ006",
+          "sheet": "NEW文書管理番号リスト (プレス係)",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "設備保全計画書ＤＥ－１",
+          "number": "KSSCD1001",
+          "sheet": "管理番号",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "設備保全計画書ＤＥ－２",
+          "number": "KSSCD2001",
+          "sheet": "管理番号",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "運用停止（統合）",
+          "number": "",
+          "sheet": "管理番号",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "金型保守作業手順書",
+          "number": "SZMA001",
+          "sheet": "NEW文書管理番号リスト (プレス係)",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "name": "Ｚｒ（ジリコニウム）測定手順書",
+          "number": "HH-072-02-HH-066・067品証部管轄",
+          "sheet": "管理番号",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        }
+      ],
+      "number_mismatches": [
+        {
+          "baseline_name": "プレス作業手順書(SZSi004-)",
+          "baseline_number": "SZSI004",
+          "ledger_name": "プレス作業手順書（アルミパネル）",
+          "ledger_number": "SZP001",
+          "sheet": "NEW文書管理番号リスト (プレス係)",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "baseline_name": "プレス作業手順書(SZSi004-)",
+          "baseline_number": "SZSI004",
+          "ledger_name": "プレス作業手順書（個片）",
+          "ledger_number": "SZSI004-001～",
+          "sheet": "NEW文書管理番号リスト (プレス係)",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "baseline_name": "プレス作業手順書(SZSi004-)",
+          "baseline_number": "SZSI004",
+          "ledger_name": "プレス作業手順書（個片）",
+          "ledger_number": "SZSI004-283～",
+          "sheet": "NEW文書管理番号リスト (プレス係個片作業手順書レビュー用)",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "baseline_name": "プレス作業手順書(SZSi004-)",
+          "baseline_number": "SZSI004",
+          "ledger_name": "プレス作業手順書（個片）",
+          "ledger_number": "SZSI004-296～",
+          "sheet": "NEW文書管理番号リスト (プレス係個片作業手順書)2022.",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "baseline_name": "プレス作業手順書(SZSi004-)",
+          "baseline_number": "SZSI004",
+          "ledger_name": "プレス作業手順書（個片）",
+          "ledger_number": "～SZSI004-282",
+          "sheet": "NEW文書管理番号リスト (プレス係個片作業手順書レビュー用)",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "baseline_name": "プレス作業手順書(SZSi004-)",
+          "baseline_number": "SZSI004",
+          "ledger_name": "プレス作業手順書（個片）",
+          "ledger_number": "～SZSI004-295",
+          "sheet": "NEW文書管理番号リスト (プレス係個片作業手順書レビュー用)",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "baseline_name": "プレス作業手順書(SZSi004-)",
+          "baseline_number": "SZSI004",
+          "ledger_name": "プレス作業手順書（個片）",
+          "ledger_number": "～SZSI004-339",
+          "sheet": "NEW文書管理番号リスト (プレス係個片作業手順書)2022.",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        },
+        {
+          "baseline_name": "プレス作業手順書(SZSi004-)",
+          "baseline_number": "SZSI004",
+          "ledger_name": "プレス作業手順書（自動車アルミパネル）",
+          "ledger_number": "SZP002",
+          "sheet": "NEW文書管理番号リスト (プレス係)",
+          "source_file": "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls"
+        }
+      ]
+    },
+    {
+      "department": "成形",
+      "baseline_count": 1,
+      "ledger_count": 73,
+      "adopted_sheets": [
+        {
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls",
+          "sheet": "KA903-QK001-1 ①",
+          "entry_count": 27,
+          "header_row": 3,
+          "name_column_index": 2,
+          "number_column_index": 1,
+          "retention_column_index": null
+        },
+        {
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls",
+          "sheet": "KA903-QK001-1 ②",
+          "entry_count": 10,
+          "header_row": 3,
+          "name_column_index": 2,
+          "number_column_index": 1,
+          "retention_column_index": null
+        },
+        {
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls",
+          "sheet": "KSOa903-QK001-2 ①",
+          "entry_count": 27,
+          "header_row": 3,
+          "name_column_index": 2,
+          "number_column_index": 1,
+          "retention_column_index": null
+        },
+        {
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls",
+          "sheet": "KSOa903－QK001－2　②",
+          "entry_count": 10,
+          "header_row": 3,
+          "name_column_index": 2,
+          "number_column_index": 1,
+          "retention_column_index": null
+        },
+        {
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls",
+          "sheet": "KSOa903-QK001-2 ① 新文書番号",
+          "entry_count": 29,
+          "header_row": 3,
+          "name_column_index": 2,
+          "number_column_index": 1,
+          "retention_column_index": null
+        },
+        {
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls",
+          "sheet": "KSOa903－QK001－2　② 新文書番号",
+          "entry_count": 14,
+          "header_row": 3,
+          "name_column_index": 2,
+          "number_column_index": 1,
+          "retention_column_index": null
+        },
+        {
+          "source_file": "第二階層文書管理台帳（KSOa906)（文書見直し記録）2022.11.xls",
+          "sheet": "KSOa906-QK-001-3",
+          "entry_count": 2,
+          "header_row": 3,
+          "name_column_index": 2,
+          "number_column_index": 1,
+          "retention_column_index": null
+        },
+        {
+          "source_file": "第二階層文書管理台帳（KSOa906)（文書見直し記録）2022.11.xls",
+          "sheet": "KA906-QK-001-2 ",
+          "entry_count": 2,
+          "header_row": 3,
+          "name_column_index": 2,
+          "number_column_index": 1,
+          "retention_column_index": null
+        },
+        {
+          "source_file": "第二階層文書管理台帳（KSOa906)（文書見直し記録）2022.11.xls",
+          "sheet": "AK-897 Rev.1",
+          "entry_count": 2,
+          "header_row": 3,
+          "name_column_index": 2,
+          "number_column_index": 1,
+          "retention_column_index": null
+        }
+      ],
+      "inspected_files": [
+        {
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls",
+          "sheet_names": [
+            "KA903-QK001-1 ①",
+            "KA903-QK001-1 ②",
+            "KSOa903-QK001-2 ①",
+            "KSOa903－QK001－2　②",
+            "KSOa903-QK001-2 ① 新文書番号",
+            "KSOa903－QK001－2　② 新文書番号"
+          ]
+        },
+        {
+          "source_file": "第二階層文書管理台帳（KSOa906)（文書見直し記録）2022.11.xls",
+          "sheet_names": [
+            "KSOa906-QK-001-3",
+            "KA906-QK-001-2 ",
+            "AK-897 Rev.1"
+          ]
+        }
+      ],
+      "missing_in_department": [
+        {
+          "name": "材料入出庫台帳",
+          "number": "KSO007",
+          "retention": "5年",
+          "source_file": "QM001付表4_文書（記録を含む）体系表_第5版_20250110.xlsx"
+        }
+      ],
+      "missing_in_baseline": [
+        {
+          "name": "QC　工程表　（標準)",
+          "number": "ＨＨ-061",
+          "sheet": "KSOa906-QK-001-3",
+          "source_file": "第二階層文書管理台帳（KSOa906)（文書見直し記録）2022.11.xls"
+        },
+        {
+          "name": "インターバル検査手順",
+          "number": "SZQ005-SZQ003",
+          "sheet": "KSOa903-QK001-2 ① 新文書番号",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "インターバル検査手順",
+          "number": "ＡＫＱ005-ＡＫＱ003-4",
+          "sheet": "KA903-QK001-1 ①",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "エアブロー",
+          "number": "ＡＫＱ011-ＨＨ061-3",
+          "sheet": "KA903-QK001-1 ①",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "サンプル保管管理手順",
+          "number": "SZQ008-SZR001",
+          "sheet": "KSOa903－QK001－2　② 新文書番号",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "サンプル保管管理手順",
+          "number": "ＡＫＱ008-ＡＫＲ001-2",
+          "sheet": "KA903-QK001-1 ②",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "セットアップ検査手順",
+          "number": "AKQ 004-ＡＫＱ003-2",
+          "sheet": "KA903-QK001-1 ①",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "セットアップ検査手順",
+          "number": "SZQ004-SZQ003",
+          "sheet": "KSOa903-QK001-2 ① 新文書番号",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "トラバース自動運転までの作業手順書",
+          "number": "SZR026-HH061",
+          "sheet": "KSOa903－QK001－2　② 新文書番号",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "ブリスター作業手順書",
+          "number": "ＡＫＲ010-ＨＨ061-4",
+          "sheet": "KA903-QK001-1 ①",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "ホットランナー作業手順書",
+          "number": "SZR025-HH061",
+          "sheet": "KSOa903－QK001－2　② 新文書番号",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "ロット管理手順",
+          "number": "SZQ009-HH061",
+          "sheet": "KSOa903-QK001-2 ① 新文書番号",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "ロット管理手順",
+          "number": "ＡＫＱ009-ＨＨ061-2",
+          "sheet": "KA903-QK001-1 ①",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "ロット管理手順、京セラエルコ㈱向け",
+          "number": "ＡＫ-１８５１",
+          "sheet": "KA903-QK001-1 ①",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "原材料･部材入出庫手順",
+          "number": "AKR 004-HH061-4",
+          "sheet": "KA903-QK001-1 ①",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "原材料･部材入出庫手順",
+          "number": "SZR004-HH061",
+          "sheet": "KSOa903-QK001-2 ① 新文書番号",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "品質管理手順、管理図での管理方法",
+          "number": "SZQ001-SZR001",
+          "sheet": "KSOa903-QK001-2 ① 新文書番号",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "品質管理手順、管理図での管理方法",
+          "number": "ＡＫＱ001-ＡＫＲ001-2",
+          "sheet": "KA903-QK001-1 ①",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "工程品質マニュアルの中の手順書及び標準書の作成及び変更に関する手順書",
+          "number": "SZO003-SZQK001",
+          "sheet": "KSOa903－QK001－2　② 新文書番号",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "工程品質マニュアルの中の手順書及び標準書の作成及び変更に関する手順書",
+          "number": "ＡＫＯ003-ＱＫ001-2",
+          "sheet": "KA903-QK001-1 ②",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "工程管理手順書",
+          "number": "AKD-005-HH061-3",
+          "sheet": "KA903-QK001-1 ①",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "工程管理手順書",
+          "number": "SZCB005-HH061",
+          "sheet": "KSOa903-QK001-2 ① 新文書番号",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "引渡し手順",
+          "number": "SZCB004-HH061",
+          "sheet": "KSOa903-QK001-2 ① 新文書番号",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "引渡し手順",
+          "number": "ＡＫＤ004-ＨＨ061-2",
+          "sheet": "KA903-QK001-1 ①",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "成形作業手順　　　　　　　　　　　材料供給作業",
+          "number": "SZR024-HH061",
+          "sheet": "KSOa903-QK001-2 ① 新文書番号",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "成形作業手順　　　　　　　　　　　材料切り替え作業手順",
+          "number": "SZR023-HH061",
+          "sheet": "KSOa903-QK001-2 ① 新文書番号",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "成形作業手順、異常停止時チョコ停の復帰作業手順",
+          "number": "SZR012-HH061",
+          "sheet": "KSOa903-QK001-2 ① 新文書番号",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "成形作業手順、異常停止時チョコ停の復帰作業手順",
+          "number": "ＡＫＲ012-ＨＨ061-2",
+          "sheet": "KA903-QK001-1 ①",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "成形作業手順、異常停止時チョコ停の製品処理",
+          "number": "SZR011-HH061",
+          "sheet": "KSOa903-QK001-2 ① 新文書番号",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "成形作業手順、異常停止時チョコ停の製品処理",
+          "number": "ＡＫＲ011-ＨＨ061-3",
+          "sheet": "KA903-QK001-1 ①",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "成形作業手順、金型取付方法",
+          "number": "SZR002-HH061",
+          "sheet": "KSOa903-QK001-2 ① 新文書番号",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "成形作業手順、金型取付方法",
+          "number": "ＡＫＲ002-ＨＨ061-2",
+          "sheet": "KA903-QK001-1 ①",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "成形作業指示書",
+          "number": "ＡＫＲ006-ＨＨ061-3",
+          "sheet": "KA903-QK001-1 ①",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "成形作業指示書　　　　　　　　　　　　材料予備乾燥手順",
+          "number": "SZR006-HH061",
+          "sheet": "KSOa903-QK001-2 ① 新文書番号",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "成形作業指示書、成形機清掃チエックシート記入要領",
+          "number": "ＡＫＲ008-ＡＫＲ007-2",
+          "sheet": "KA903-QK001-1 ①",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "成形作業要領",
+          "number": "SZR009-SZR001",
+          "sheet": "KSOa903－QK001－2　② 新文書番号",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "成形作業要領",
+          "number": "ＡＫＲ009-ＡＫＲ001-2",
+          "sheet": "KA903-QK001-1 ②",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "成形材料混合一覧表",
+          "number": "SZR005-HH061",
+          "sheet": "KSOa903-QK001-2 ① 新文書番号",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "成形材料混合一覧表",
+          "number": "ＡＫＲ005-ＨＨ061-5",
+          "sheet": "KA903-QK001-1 ①",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "教育･指導･成果確認書",
+          "number": "ＡＫ-１７０１",
+          "sheet": "KA903-QK001-1 ②",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "教育･指導･成果確認書　　　　　工程内検査",
+          "number": "SZR022-SZR021",
+          "sheet": "KSOa903－QK001－2　② 新文書番号",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "新規導入設備の登録に関する手順書",
+          "number": "SZCＢ006-SZQK001",
+          "sheet": "KSOa903－QK001－2　② 新文書番号",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "新規導入設備の登録に関する手順書",
+          "number": "ＡＫＤ006-ＱＫ001-2",
+          "sheet": "KA903-QK001-1 ②",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "材料供給作業手順",
+          "number": "ＳＺＲ024-HH061",
+          "sheet": "KSOa903－QK001－2　② 新文書番号",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "材料切り替え作業手順",
+          "number": "SZR023-HH061",
+          "sheet": "KSOa903－QK001－2　② 新文書番号",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "材料管理手順",
+          "number": "SZR005-HH061",
+          "sheet": "KSOa903-QK001-2 ① 新文書番号",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "材料管理手順",
+          "number": "ＡＫＲ005-ＨＨ061-3",
+          "sheet": "KA903-QK001-1 ①",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "検査管理手順",
+          "number": "AKQ 003-HH061-6",
+          "sheet": "KA903-QK001-1 ①",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "検査管理手順",
+          "number": "SZQ003-HH061",
+          "sheet": "KSOa903-QK001-2 ① 新文書番号",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "洗浄作業指示書",
+          "number": "ＡＫＱ012-ＨＨ061-2",
+          "sheet": "KA903-QK001-1 ①",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "測定機器及びゲージ類の符号基準",
+          "number": "ＡＫ-１６１０",
+          "sheet": "KA903-QK001-1 ①",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "測定管理手順　ゲージＲ＆Ｒ",
+          "number": "ＡＫ-１５７０",
+          "sheet": "KA903-QK001-1 ①",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "第一及び第二階層文書のレビュー手順",
+          "number": "SZO004-SZQK001",
+          "sheet": "KSOa903－QK001－2　② 新文書番号",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "第一及び第二階層文書のレビュー手順",
+          "number": "ＡＫＯ004-ＱＫ001-4",
+          "sheet": "KA903-QK001-1 ②",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "製造1部生産課　教育･指導･　　成果確認書",
+          "number": "SZR021-SZR020",
+          "sheet": "KSOa903－QK001－2　② 新文書番号",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "製造3部　教育･指導･成果確認書",
+          "number": "ＡＫ-１７００",
+          "sheet": "KA903-QK001-1 ②",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "製造3部技能者認定内規",
+          "number": "ＡＫＲ020ＱＭ001-7",
+          "sheet": "KA903-QK001-1 ②",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "製造作業指示書,成形機清掃要領",
+          "number": "SZR007-HH061",
+          "sheet": "KSOa903-QK001-2 ① 新文書番号",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "製造作業指示書,成形機清掃要領",
+          "number": "SZR007-HH061-3",
+          "sheet": "KA903-QK001-1 ①",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "製造管理手順",
+          "number": "SZR001-HH061",
+          "sheet": "KSOa903-QK001-2 ① 新文書番号",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "製造管理手順",
+          "number": "ＡＫＲ001-ＨＨ061-5",
+          "sheet": "KA903-QK001-1 ①",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "計量、梱包、出荷手順",
+          "number": "SZCB001-HH061",
+          "sheet": "KSOa903-QK001-2 ① 新文書番号",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "計量、梱包、出荷手順",
+          "number": "ＡＫＤ001-ＨＨ061-5",
+          "sheet": "KA903-QK001-1 ①",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "記録管理手順",
+          "number": "SZQ007-SZQK002",
+          "sheet": "KSOa903－QK001－2　② 新文書番号",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "記録管理手順",
+          "number": "ＡＫＱ007-ＱＫ002-2",
+          "sheet": "KA903-QK001-1 ②",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "設備管理点検手順",
+          "number": "SZR003-SZR001",
+          "sheet": "KSOa903-QK001-2 ① 新文書番号",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "設備管理点検手順",
+          "number": "ＡＫＲ003-ＡＫＲ001-2",
+          "sheet": "KA903-QK001-1 ①",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "識別管理手順書",
+          "number": "SZQ013-SZQK004",
+          "sheet": "KSOa903-QK001-2 ① 新文書番号",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "識別管理手順書",
+          "number": "ＡＫＱ013-ＱＫ004-2",
+          "sheet": "KA903-QK001-1 ①",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "金型保守管理手順",
+          "number": "AKM 003-HH061-2",
+          "sheet": "KA903-QK001-1 ①",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "金型保守管理手順",
+          "number": "SZOM003-HH061",
+          "sheet": "KSOa903-QK001-2 ① 新文書番号",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "電子秤取扱い手順",
+          "number": "SZCB003-SZCＢ001",
+          "sheet": "KSOa903－QK001－2　② 新文書番号",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        },
+        {
+          "name": "電子秤取扱い手順",
+          "number": "ＡＫＤ003-ＡＫＤ001-2",
+          "sheet": "KA903-QK001-1 ②",
+          "source_file": "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls"
+        }
+      ],
+      "number_mismatches": []
+    },
+    {
+      "department": "営業部",
+      "baseline_count": 6,
+      "ledger_count": 33,
+      "adopted_sheets": [
+        {
+          "source_file": "営業部管理文書台帳EG-008-9　(最新）.xls",
+          "sheet": "営業部管理文書台帳",
+          "entry_count": 33,
+          "header_row": 5,
+          "name_column_index": 1,
+          "number_column_index": 27,
+          "retention_column_index": null
+        }
+      ],
+      "inspected_files": [
+        {
+          "source_file": "営業部管理文書台帳EG-008-9　(最新）.xls",
+          "sheet_names": [
+            "営業部管理文書台帳",
+            "Sheet2",
+            "Sheet3"
+          ]
+        }
+      ],
+      "missing_in_department": [
+        {
+          "name": "(製造実現可能性検討書)",
+          "number": "EG-021",
+          "retention": "15年",
+          "source_file": "QM001付表4_文書（記録を含む）体系表_第5版_20250110.xlsx"
+        },
+        {
+          "name": "製造実現可能性検討書",
+          "number": "EG-021",
+          "retention": "15年",
+          "source_file": "QM001付表4_文書（記録を含む）体系表_第5版_20250110.xlsx"
+        },
+        {
+          "name": "製造指示書",
+          "number": "EG-018～020",
+          "retention": "3年",
+          "source_file": "QM001付表4_文書（記録を含む）体系表_第5版_20250110.xlsx"
+        },
+        {
+          "name": "見積り受付台帳",
+          "number": "KE-012-4",
+          "retention": "5年",
+          "source_file": "QM001付表4_文書（記録を含む）体系表_第5版_20250110.xlsx"
+        },
+        {
+          "name": "見積書",
+          "number": "EG-024",
+          "retention": "5年",
+          "source_file": "QM001付表4_文書（記録を含む）体系表_第5版_20250110.xlsx"
+        },
+        {
+          "name": "顧客要求事項検討会議事録",
+          "number": "EG-023",
+          "retention": "15年",
+          "source_file": "QM001付表4_文書（記録を含む）体系表_第5版_20250110.xlsx"
+        }
+      ],
+      "missing_in_baseline": [
+        {
+          "name": "1.0",
+          "number": "営業部１",
+          "sheet": "営業部管理文書台帳",
+          "source_file": "営業部管理文書台帳EG-008-9　(最新）.xls"
+        },
+        {
+          "name": "10.0",
+          "number": "営業部１",
+          "sheet": "営業部管理文書台帳",
+          "source_file": "営業部管理文書台帳EG-008-9　(最新）.xls"
+        },
+        {
+          "name": "11.0",
+          "number": "営業部１",
+          "sheet": "営業部管理文書台帳",
+          "source_file": "営業部管理文書台帳EG-008-9　(最新）.xls"
+        },
+        {
+          "name": "12.0",
+          "number": "営業部１",
+          "sheet": "営業部管理文書台帳",
+          "source_file": "営業部管理文書台帳EG-008-9　(最新）.xls"
+        },
+        {
+          "name": "13.0",
+          "number": "営業部１",
+          "sheet": "営業部管理文書台帳",
+          "source_file": "営業部管理文書台帳EG-008-9　(最新）.xls"
+        },
+        {
+          "name": "14.0",
+          "number": "営業部１、製造3部１",
+          "sheet": "営業部管理文書台帳",
+          "source_file": "営業部管理文書台帳EG-008-9　(最新）.xls"
+        },
+        {
+          "name": "15.0",
+          "number": "営業部１",
+          "sheet": "営業部管理文書台帳",
+          "source_file": "営業部管理文書台帳EG-008-9　(最新）.xls"
+        },
+        {
+          "name": "16.0",
+          "number": "営業部１",
+          "sheet": "営業部管理文書台帳",
+          "source_file": "営業部管理文書台帳EG-008-9　(最新）.xls"
+        },
+        {
+          "name": "17.0",
+          "number": "営業部１",
+          "sheet": "営業部管理文書台帳",
+          "source_file": "営業部管理文書台帳EG-008-9　(最新）.xls"
+        },
+        {
+          "name": "18.0",
+          "number": "営業部１",
+          "sheet": "営業部管理文書台帳",
+          "source_file": "営業部管理文書台帳EG-008-9　(最新）.xls"
+        },
+        {
+          "name": "19.0",
+          "number": "営業部１",
+          "sheet": "営業部管理文書台帳",
+          "source_file": "営業部管理文書台帳EG-008-9　(最新）.xls"
+        },
+        {
+          "name": "2.0",
+          "number": "営業部１",
+          "sheet": "営業部管理文書台帳",
+          "source_file": "営業部管理文書台帳EG-008-9　(最新）.xls"
+        },
+        {
+          "name": "20.0",
+          "number": "営業部１",
+          "sheet": "営業部管理文書台帳",
+          "source_file": "営業部管理文書台帳EG-008-9　(最新）.xls"
+        },
+        {
+          "name": "21.0",
+          "number": "営業部１",
+          "sheet": "営業部管理文書台帳",
+          "source_file": "営業部管理文書台帳EG-008-9　(最新）.xls"
+        },
+        {
+          "name": "22.0",
+          "number": "営業部１",
+          "sheet": "営業部管理文書台帳",
+          "source_file": "営業部管理文書台帳EG-008-9　(最新）.xls"
+        },
+        {
+          "name": "23.0",
+          "number": "営業部１",
+          "sheet": "営業部管理文書台帳",
+          "source_file": "営業部管理文書台帳EG-008-9　(最新）.xls"
+        },
+        {
+          "name": "24.0",
+          "number": "営業部１",
+          "sheet": "営業部管理文書台帳",
+          "source_file": "営業部管理文書台帳EG-008-9　(最新）.xls"
+        },
+        {
+          "name": "25.0",
+          "number": "営業部１",
+          "sheet": "営業部管理文書台帳",
+          "source_file": "営業部管理文書台帳EG-008-9　(最新）.xls"
+        },
+        {
+          "name": "26.0",
+          "number": "営業部１",
+          "sheet": "営業部管理文書台帳",
+          "source_file": "営業部管理文書台帳EG-008-9　(最新）.xls"
+        },
+        {
+          "name": "27.0",
+          "number": "営業部１",
+          "sheet": "営業部管理文書台帳",
+          "source_file": "営業部管理文書台帳EG-008-9　(最新）.xls"
+        },
+        {
+          "name": "28.0",
+          "number": "営業部1",
+          "sheet": "営業部管理文書台帳",
+          "source_file": "営業部管理文書台帳EG-008-9　(最新）.xls"
+        },
+        {
+          "name": "29.0",
+          "number": "営業部1",
+          "sheet": "営業部管理文書台帳",
+          "source_file": "営業部管理文書台帳EG-008-9　(最新）.xls"
+        },
+        {
+          "name": "3.0",
+          "number": "営業部１",
+          "sheet": "営業部管理文書台帳",
+          "source_file": "営業部管理文書台帳EG-008-9　(最新）.xls"
+        },
+        {
+          "name": "30.0",
+          "number": "営業部1",
+          "sheet": "営業部管理文書台帳",
+          "source_file": "営業部管理文書台帳EG-008-9　(最新）.xls"
+        },
+        {
+          "name": "31.0",
+          "number": "営業部1",
+          "sheet": "営業部管理文書台帳",
+          "source_file": "営業部管理文書台帳EG-008-9　(最新）.xls"
+        },
+        {
+          "name": "32.0",
+          "number": "営業部1",
+          "sheet": "営業部管理文書台帳",
+          "source_file": "営業部管理文書台帳EG-008-9　(最新）.xls"
+        },
+        {
+          "name": "4.0",
+          "number": "営業部１",
+          "sheet": "営業部管理文書台帳",
+          "source_file": "営業部管理文書台帳EG-008-9　(最新）.xls"
+        },
+        {
+          "name": "5.0",
+          "number": "営業部１",
+          "sheet": "営業部管理文書台帳",
+          "source_file": "営業部管理文書台帳EG-008-9　(最新）.xls"
+        },
+        {
+          "name": "6.0",
+          "number": "営業部１",
+          "sheet": "営業部管理文書台帳",
+          "source_file": "営業部管理文書台帳EG-008-9　(最新）.xls"
+        },
+        {
+          "name": "7.0",
+          "number": "営業部１",
+          "sheet": "営業部管理文書台帳",
+          "source_file": "営業部管理文書台帳EG-008-9　(最新）.xls"
+        },
+        {
+          "name": "8.0",
+          "number": "営業部１",
+          "sheet": "営業部管理文書台帳",
+          "source_file": "営業部管理文書台帳EG-008-9　(最新）.xls"
+        },
+        {
+          "name": "9.0",
+          "number": "営業部１",
+          "sheet": "営業部管理文書台帳",
+          "source_file": "営業部管理文書台帳EG-008-9　(最新）.xls"
+        },
+        {
+          "name": "毎年12月　文書見直し",
+          "number": "",
+          "sheet": "営業部管理文書台帳",
+          "source_file": "営業部管理文書台帳EG-008-9　(最新）.xls"
+        }
+      ],
+      "number_mismatches": []
+    },
+    {
+      "department": "管理部",
+      "baseline_count": 11,
+      "ledger_count": 21,
+      "adopted_sheets": [
+        {
+          "source_file": "管理部　文書管理台帳.xls",
+          "sheet": "手順書",
+          "entry_count": 11,
+          "header_row": 1,
+          "name_column_index": 1,
+          "number_column_index": 6,
+          "retention_column_index": null
+        },
+        {
+          "source_file": "管理部　文書管理台帳.xls",
+          "sheet": "規定類",
+          "entry_count": 10,
+          "header_row": 1,
+          "name_column_index": 1,
+          "number_column_index": 6,
+          "retention_column_index": null
+        }
+      ],
+      "inspected_files": [
+        {
+          "source_file": "管理部　文書管理台帳.xls",
+          "sheet_names": [
+            "手順書",
+            "規定類"
+          ]
+        }
+      ],
+      "missing_in_department": [
+        {
+          "name": "供給者における品質保証の手引き(GM019）",
+          "number": "GM019",
+          "retention": "",
+          "source_file": "QM001付表4_文書（記録を含む）体系表_第5版_20250110.xlsx"
+        },
+        {
+          "name": "供給者監査チェックリスト兼是正対策書",
+          "number": "KGM012",
+          "retention": "停止後1年",
+          "source_file": "QM001付表4_文書（記録を含む）体系表_第5版_20250110.xlsx"
+        },
+        {
+          "name": "供給者評価表",
+          "number": "KGM013",
+          "retention": "停止後1年",
+          "source_file": "QM001付表4_文書（記録を含む）体系表_第5版_20250110.xlsx"
+        },
+        {
+          "name": "改善提案報告書",
+          "number": "KGM011-QK012",
+          "retention": "3年",
+          "source_file": "QM001付表4_文書（記録を含む）体系表_第5版_20250110.xlsx"
+        },
+        {
+          "name": "改善要求書",
+          "number": "KGM005",
+          "retention": "停止後1年",
+          "source_file": "QM001付表4_文書（記録を含む）体系表_第5版_20250110.xlsx"
+        },
+        {
+          "name": "注文書（購買製品）",
+          "number": "KGM023-GM021-0KGM024-GM021-0",
+          "retention": "生産終了+暦年",
+          "source_file": "QM001付表4_文書（記録を含む）体系表_第5版_20250110.xlsx"
+        }
+      ],
+      "missing_in_baseline": [
+        {
+          "name": "カッターナイフ管理基準",
+          "number": "GM020",
+          "sheet": "規定類",
+          "source_file": "管理部　文書管理台帳.xls"
+        },
+        {
+          "name": "コンプライアンス規定",
+          "number": "QK018",
+          "sheet": "規定類",
+          "source_file": "管理部　文書管理台帳.xls"
+        },
+        {
+          "name": "供給先における品質保証の手引き",
+          "number": "GM019",
+          "sheet": "規定類",
+          "source_file": "管理部　文書管理台帳.xls"
+        },
+        {
+          "name": "供給者監査計画書",
+          "number": "",
+          "sheet": "規定類",
+          "source_file": "管理部　文書管理台帳.xls"
+        },
+        {
+          "name": "教育計画書",
+          "number": "KGM009-KGM001",
+          "sheet": "手順書",
+          "source_file": "管理部　文書管理台帳.xls"
+        },
+        {
+          "name": "異常処置手順書",
+          "number": "ＨＨ-68",
+          "sheet": "手順書",
+          "source_file": "管理部　文書管理台帳.xls"
+        },
+        {
+          "name": "管理一課引渡し手順書",
+          "number": "GM014",
+          "sheet": "手順書",
+          "source_file": "管理部　文書管理台帳.xls"
+        },
+        {
+          "name": "管理部 個人別教育記録",
+          "number": "KGM002",
+          "sheet": "手順書",
+          "source_file": "管理部　文書管理台帳.xls"
+        },
+        {
+          "name": "管理部　教育指導要綱",
+          "number": "GMA004",
+          "sheet": "手順書",
+          "source_file": "管理部　文書管理台帳.xls"
+        },
+        {
+          "name": "管理部　業務認定内規",
+          "number": "GMA003",
+          "sheet": "手順書",
+          "source_file": "管理部　文書管理台帳.xls"
+        },
+        {
+          "name": "管理部年度成果計画書",
+          "number": "GMA002",
+          "sheet": "手順書",
+          "source_file": "管理部　文書管理台帳.xls"
+        },
+        {
+          "name": "管理部年度目標",
+          "number": "GMA001-TM002-1",
+          "sheet": "手順書",
+          "source_file": "管理部　文書管理台帳.xls"
+        },
+        {
+          "name": "管理部管理部 技能認定登録台帳",
+          "number": "KGM001",
+          "sheet": "手順書",
+          "source_file": "管理部　文書管理台帳.xls"
+        },
+        {
+          "name": "設備管理票",
+          "number": "KGM009",
+          "sheet": "手順書",
+          "source_file": "管理部　文書管理台帳.xls"
+        },
+        {
+          "name": "設備管理規定(原本）",
+          "number": "QK007",
+          "sheet": "規定類",
+          "source_file": "管理部　文書管理台帳.xls"
+        },
+        {
+          "name": "購買管理規定",
+          "number": "QK-015",
+          "sheet": "規定類",
+          "source_file": "管理部　文書管理台帳.xls"
+        }
+      ],
+      "number_mismatches": [
+        {
+          "baseline_name": "基本会議体(GM0016)",
+          "baseline_number": "GM0016",
+          "ledger_name": "基本会議体",
+          "ledger_number": "GM016",
+          "sheet": "規定類",
+          "source_file": "管理部　文書管理台帳.xls"
+        },
+        {
+          "baseline_name": "購買手順書（GM021-QK001-1）",
+          "baseline_number": "GM021-QK001-1",
+          "ledger_name": "購買手順書",
+          "ledger_number": "GM021-QK001-0",
+          "sheet": "手順書",
+          "source_file": "管理部　文書管理台帳.xls"
+        }
+      ]
+    }
+  ]
+}

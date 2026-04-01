@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import copy
 import json
 import time
 import urllib.request
@@ -98,7 +99,7 @@ def main() -> None:
     originals: dict[str, dict] = {}
     for workflow_id, name in TARGETS.items():
         wf = request_json(f"/workflows/{workflow_id}")
-        originals[workflow_id] = wf
+        originals[workflow_id] = copy.deepcopy(wf)
         backup_path = backup_workflow(wf, "pre_trigger_once")
         node = schedule_node(wf)
         original_params = json.loads(json.dumps(node.get("parameters", {}), ensure_ascii=False))

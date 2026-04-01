@@ -2,26 +2,27 @@
 from __future__ import annotations
 
 import argparse
-import io
 import json
 import re
+import shutil
 import sqlite3
 import sys
+import tempfile
 import urllib.request
-import urllib.error
 from datetime import date, timedelta
 from pathlib import Path
 
-# Windows環境でも絵文字・日本語を正しく出力する（fd再オープンは避ける）
+
 if hasattr(sys.stdout, "reconfigure"):
     try:
         sys.stdout.reconfigure(encoding="utf-8")
     except Exception:
         pass
 
+
 OLLAMA_URL = "http://ollama:11434/api/generate"
 OLLAMA_MODEL = "qwen2.5-coder:7b"
-SUMMARY_MAX_BODY = 800  # 要約に渡す本文の最大文字数
+SUMMARY_MAX_BODY = 800
 
 
 def detect_db_path(explicit: str | None) -> Path:
@@ -59,18 +60,28 @@ def is_blacklisted(subject: str | None, requester: str | None, blacklist: list[s
     return any(pat in target for pat in blacklist)
 
 
+def stage_db_copy(db_path: Path) -> tuple[Path, Path | None]:
+    try:
+        temp_dir = Path(tempfile.mkdtemp(prefix="todo_report_db_"))
+        staged_path = temp_dir / db_path.name
+        shutil.copy2(db_path, staged_path)
+        return staged_path, temp_dir
+    except Exception:
+        return db_path, None
+
+
 def connect_db(db_path: Path) -> sqlite3.Connection:
     con = sqlite3.connect(db_path)
     con.row_factory = sqlite3.Row
-    # マイグレーション: 不足カラムを追加
-    existing = {r[1] for r in con.execute("PRAGMA table_info(tasks)").fetchall()}
-    if "reply_date" not in existing:
-        con.execute("ALTER TABLE tasks ADD COLUMN reply_date TEXT NOT NULL DEFAULT ''")
-        con.commit()
-    if "request_summary" not in existing:
-        con.execute("ALTER TABLE tasks ADD COLUMN request_summary TEXT NOT NULL DEFAULT ''")
-        con.commit()
     return con
+
+
+def available_task_columns(con: sqlite3.Connection) -> set[str]:
+    return {str(row[1]) for row in con.execute("PRAGMA table_info(tasks)").fetchall()}
+
+
+def task_select_expr(columns: set[str], column: str) -> str:
+    return column if column in columns else f"'' AS {column}"
 
 
 def clean_text(value: str | None, max_len: int = 80) -> str:
@@ -85,31 +96,29 @@ def clean_text(value: str | None, max_len: int = 80) -> str:
 
 
 def extract_requester_name(requester: str | None) -> str:
-    """'表示名 <email@example.com>' から表示名のみ抽出する"""
     if not requester:
         return "-"
-    # "Name <email>" 形式
-    m = re.match(r'^"?([^"<]+)"?\s*<[^>]+>', requester.strip())
-    if m:
-        return m.group(1).strip().strip('"')
-    # メールアドレスのみの場合はそのまま
+    match = re.match(r'^"?([^"<]+)"?\s*<[^>]+>', requester.strip())
+    if match:
+        return match.group(1).strip().strip('"')
     return clean_text(requester, 40)
 
 
 def call_ollama_summary(subject: str, body: str) -> str | None:
-    """qwen3:8b で本文を要約する。失敗時は None を返す。"""
     body_trimmed = body[:SUMMARY_MAX_BODY]
     prompt = (
-        "以下はメールの件名と本文です。依頼内容を日本語で2〜3文に要約してください。\n"
-        "挨拶・署名・宣伝文句は除外し、何を・いつまでに・どうしてほしいかを中心にまとめてください。\n\n"
-        f"【件名】{subject}\n【本文】{body_trimmed}\n\n【要約】"
+        "以下のメールの依頼内容を日本語で2文以内に要約してください。\n"
+        "固有名詞・型番・対策依頼は残し、挨拶や定型文は落としてください。\n\n"
+        f"件名: {subject}\n本文: {body_trimmed}\n\n要約:"
     )
-    payload = json.dumps({
-        "model": OLLAMA_MODEL,
-        "prompt": prompt,
-        "stream": False,
-        "options": {"temperature": 0.2, "num_predict": 120},
-    }).encode("utf-8")
+    payload = json.dumps(
+        {
+            "model": OLLAMA_MODEL,
+            "prompt": prompt,
+            "stream": False,
+            "options": {"temperature": 0.2, "num_predict": 120},
+        }
+    ).encode("utf-8")
     try:
         req = urllib.request.Request(
             OLLAMA_URL,
@@ -121,52 +130,38 @@ def call_ollama_summary(subject: str, body: str) -> str | None:
             result = json.loads(resp.read().decode("utf-8"))
             text = result.get("response", "").strip()
             return text if text else None
-    except Exception as e:
-        import sys
-        print(f"[WARN] LLM summary failed: {e}", file=sys.stderr)
+    except Exception as exc:
+        print(f"[WARN] LLM summary failed: {exc}", file=sys.stderr)
         return None
 
 
 def get_or_generate_summary(
     con: sqlite3.Connection,
+    available_columns: set[str],
     source: str,
     source_id: str,
     subject: str,
     body: str,
     use_llm: bool,
 ) -> tuple[str, bool]:
-    """
-    DBキャッシュを確認し、なければLLMで生成してDBに保存する。
-    戻り値: (要約テキスト, llmを呼び出したか)
-    """
-    cached = con.execute(
-        "SELECT request_summary FROM tasks WHERE source=? AND source_id=?",
-        (source, source_id),
-    ).fetchone()
-    if cached and cached["request_summary"]:
-        return cached["request_summary"], False
+    if "request_summary" in available_columns:
+        cached = con.execute(
+            "SELECT request_summary FROM tasks WHERE source=? AND source_id=?",
+            (source, source_id),
+        ).fetchone()
+        if cached and cached["request_summary"]:
+            return cached["request_summary"], False
 
     if not use_llm:
         return "", False
 
     summary = call_ollama_summary(subject, body or "")
-    if summary:
-        con.execute(
-            "UPDATE tasks SET request_summary=? WHERE source=? AND source_id=?",
-            (summary, source, source_id),
-        )
-        con.commit()
-        return summary, True
-    return "", True  # LLM呼び出し試みたが失敗
+    return (summary or "", bool(summary))
 
 
 def check_ollama_available() -> bool:
-    """Ollama が応答するか確認する"""
     try:
-        req = urllib.request.Request(
-            "http://ollama:11434/api/tags",
-            method="GET",
-        )
+        req = urllib.request.Request("http://ollama:11434/api/tags", method="GET")
         with urllib.request.urlopen(req, timeout=5):
             return True
     except Exception:
@@ -174,53 +169,82 @@ def check_ollama_available() -> bool:
 
 
 def due_label(due_date: str) -> str:
-    """回答期日に残日数・期限切れラベルを付与する"""
     if not due_date:
         return "期日未設定"
     try:
         due = date.fromisoformat(due_date)
         delta = (due - date.today()).days
         if delta < 0:
-            return f"{due_date} 🔴期限切れ({abs(delta)}日超過)"
-        elif delta == 0:
-            return f"{due_date} 🟠今日まで"
-        elif delta <= 3:
-            return f"{due_date} 🟡残{delta}日"
-        else:
-            return f"{due_date} 残{delta}日"
+            return f"{due_date} 期限切れ({abs(delta)}日超過)"
+        if delta == 0:
+            return f"{due_date} 今日まで"
+        if delta <= 3:
+            return f"{due_date} あと{delta}日"
+        return f"{due_date} 残り{delta}日"
     except ValueError:
         return due_date
 
 
-def build_report(rows: list[sqlite3.Row], from_date: str, to_date: str, limit: int) -> str:
+def classify_rows(rows: list[dict], today: date) -> tuple[list[dict], list[dict]]:
+    urgent, no_due = [], []
+    cutoff = (today - timedelta(days=30)).isoformat()
+    for row in rows:
+        due = row.get("due_date") or ""
+        if due and due >= cutoff:
+            urgent.append(row)
+        else:
+            no_due.append(row)
+    urgent.sort(key=lambda item: item.get("due_date") or "")
+    return urgent, no_due
+
+
+def format_row(idx: int, row: dict) -> list[str]:
+    requester = extract_requester_name(row.get("requester"))
+    req_date = row.get("request_date") or "-"
+    due_str = due_label(row.get("due_date") or "")
+    reply_date = row.get("reply_date") or "-"
+    summary = row.get("request_summary") or clean_text(row.get("request_body"), 120)
+    return [
+        "",
+        "-" * 60,
+        f"[{idx}]",
+        f"  依頼日: {req_date}",
+        f"  依頼者: {requester}",
+        f"  要点  : {summary if summary else '要約なし'}",
+        f"  期日  : {due_str}",
+        f"  回答日: {reply_date}",
+    ]
+
+
+def build_report(rows: list[dict], from_date: str, to_date: str, limit: int) -> str:
+    today = date.today()
+    urgent, no_due = classify_rows(rows, today)
+
     lines = [
-        f"📋 アクション一覧（{from_date} ～ {to_date}）",
-        f"未対応件数: {len(rows)}件 / 表示: {min(len(rows), limit)}件",
+        f"依頼事項一覧 ({from_date} 〜 {to_date})",
+        f"対象件数: {len(rows)}件 (期日あり: {len(urgent)}件 / 期日未設定・古い期限切れ: {len(no_due)}件)",
     ]
     if not rows:
-        lines.append("直近期間では未対応案件はありませんでした。")
-        lines.append("さらに古い案件を見たい場合は、months_back を増やして再生成します。")
+        lines.append("対象期間に未回答の依頼事項は見つかりませんでした。")
+        lines.append("さらに過去を見たい場合は months_back を増やして再実行してください。")
         return "\n".join(lines)
 
-    for idx, row in enumerate(rows[:limit], start=1):
-        requester = extract_requester_name(row["requester"])
-        req_date = row["request_date"] or "-"
-        due_str = due_label(row["due_date"] or "")
-        reply_date = row.get("reply_date") or "-"
-        summary = row["request_summary"] or clean_text(row["request_body"], 120)
-
+    urgent_show = urgent[:limit]
+    if urgent_show:
         lines.append("")
-        lines.append(f"{'─' * 40}")
-        lines.append(f"[{idx}]")
-        lines.append(f"  依頼日　: {req_date}")
-        lines.append(f"  依頼者　: {requester}")
-        lines.append(f"  依頼内容: {summary if summary else '（要約なし）'}")
-        lines.append(f"  回答期日: {due_str}")
-        lines.append(f"  回答日　: {reply_date}")
+        lines.append("【優先: 期日あり】")
+        for idx, row in enumerate(urgent_show, start=1):
+            lines.extend(format_row(idx, row))
+
+    no_due_show = no_due[: max(limit - len(urgent_show), 5)]
+    if no_due_show:
+        lines.append("")
+        lines.append("【参考: 期日未設定 / 古い期限切れ】")
+        for idx, row in enumerate(no_due_show, start=1):
+            lines.extend(format_row(idx, row))
 
     lines.append("")
-    lines.append("─" * 40)
-    lines.append("さらに過去へさかのぼりたい場合は、months_back を増やして再送できます。")
+    lines.append("さらに過去を見たい場合は months_back を増やして再実行してください。")
     return "\n".join(lines)
 
 
@@ -228,71 +252,90 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--db")
     parser.add_argument("--months-back", type=int, default=6)
-    parser.add_argument("--limit", type=int, default=10)
+    parser.add_argument("--limit", type=int, default=20)
     parser.add_argument("--no-llm", action="store_true", help="LLM要約を無効化（キャッシュのみ使用）")
     args = parser.parse_args()
 
     db_path = detect_db_path(args.db)
-    to_date = date.today()
+    today = date.today()
+    to_date = today
     from_date = to_date - timedelta(days=max(args.months_back, 1) * 31)
-
+    due_cutoff = (today - timedelta(days=30)).isoformat()
+    req_from = from_date.isoformat()
     blacklist = load_blacklist_patterns()
-
-    # LLM利用可否チェック
     use_llm = (not args.no_llm) and check_ollama_available()
 
-    con = connect_db(db_path)
+    staged_db_path, temp_dir = stage_db_copy(db_path)
+    con = connect_db(staged_db_path)
     try:
-        all_rows = con.execute(
-            """
+        columns = available_task_columns(con)
+        reply_date_expr = task_select_expr(columns, "reply_date")
+        request_summary_expr = task_select_expr(columns, "request_summary")
+
+        urgent_rows = con.execute(
+            f"""
             SELECT
-                source,
-                source_id,
-                request_date,
-                due_date,
-                requester,
-                assignee,
-                request_subject,
-                request_body,
-                status,
-                reply_status,
-                replier,
-                reply_summary,
-                reply_date,
-                request_summary
+                source, source_id, request_date, due_date,
+                requester, assignee, request_subject, request_body,
+                status, reply_status, replier, reply_summary, {reply_date_expr}, {request_summary_expr}
+            FROM tasks
+            WHERE status = 'open'
+              AND due_date >= ?
+            ORDER BY due_date ASC
+            LIMIT 200
+            """,
+            (due_cutoff,),
+        ).fetchall()
+
+        other_rows = con.execute(
+            f"""
+            SELECT
+                source, source_id, request_date, due_date,
+                requester, assignee, request_subject, request_body,
+                status, reply_status, replier, reply_summary, {reply_date_expr}, {request_summary_expr}
             FROM tasks
             WHERE status = 'open'
               AND request_date <> ''
               AND request_date BETWEEN ? AND ?
-            ORDER BY CASE WHEN due_date = '' THEN 1 ELSE 0 END, due_date ASC, request_date DESC
+              AND (due_date = '' OR due_date < ?)
+            ORDER BY request_date DESC
+            LIMIT 200
             """,
-            (from_date.isoformat(), to_date.isoformat()),
+            (req_from, to_date.isoformat(), due_cutoff),
         ).fetchall()
 
-        rows = [r for r in all_rows if not is_blacklisted(r["request_subject"], r["requester"], blacklist)]
-        rows = rows[: args.limit]
+        urgent_rows = [row for row in urgent_rows if not is_blacklisted(row["request_subject"], row["requester"], blacklist)]
+        other_rows = [row for row in other_rows if not is_blacklisted(row["request_subject"], row["requester"], blacklist)]
 
-        # 要約生成（キャッシュ優先、LLM利用可能な場合のみ生成）
-        enriched = []
+        seen = set()
+        all_rows: list[dict] = []
+        for row in list(urgent_rows) + list(other_rows):
+            key = (row["source"], row["source_id"])
+            if key in seen:
+                continue
+            seen.add(key)
+            all_rows.append(dict(row))
+
+        rows = all_rows[: args.limit * 3]
+        enriched: list[dict] = []
         for row in rows:
             summary, _ = get_or_generate_summary(
                 con,
+                columns,
                 row["source"],
                 row["source_id"],
-                row["request_subject"] or "",
-                row["request_body"] or "",
+                row.get("request_subject") or "",
+                row.get("request_body") or "",
                 use_llm=use_llm,
             )
-            # rowはsqlite3.Rowなのでdictに変換してsummaryを上書き
-            d = dict(row)
             if summary:
-                d["request_summary"] = summary
-            enriched.append(d)
+                row["request_summary"] = summary
+            enriched.append(row)
 
         report_text = build_report(enriched, from_date.isoformat(), to_date.isoformat(), args.limit)
-
         payload = {
             "db_path": str(db_path),
+            "staged_db_path": str(staged_db_path),
             "months_back": args.months_back,
             "from_date": from_date.isoformat(),
             "to_date": to_date.isoformat(),
@@ -300,12 +343,14 @@ def main() -> int:
             "llm_available": use_llm,
             "results": enriched,
             "summary": report_text,
-            "rule": "定刻送信の既定範囲は直近6か月です。さらに過去を希望した場合は months_back を増やして再送します。",
+            "rule": "①納期あり（直近30日超過〜未来）を優先表示し、②期日なし/古い期限切れは直近request_date順で補完します。",
         }
         print(json.dumps(payload, ensure_ascii=False, indent=2))
         return 0
     finally:
         con.close()
+        if temp_dir is not None:
+            shutil.rmtree(temp_dir, ignore_errors=True)
 
 
 if __name__ == "__main__":

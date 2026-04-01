@@ -3,6 +3,7 @@ const path = require('path');
 const {
   fetchEmailContext,
   fetchTaskContext,
+  fetchComplaintContext,
   fetchReportContext,
   buildEmailAwarePrompt,
 } = require(path.join(__dirname, '..', 'data', 'state', 'email_context_helper'));
@@ -22,6 +23,7 @@ const configFile = path.join(repoRoot, 'data', 'state', 'openclaw.json');
 
 const ollamaUrl = (process.env.OLLAMA_URL || 'http://127.0.0.1:11434').replace(/\/$/, '');
 const ollamaModel = process.env.TELEGRAM_FAST_MODEL || 'qwen3:8b';
+const OLLAMA_TIMEOUT_MS = Number(process.env.TELEGRAM_FAST_TIMEOUT_MS || 45000);
 
 fs.mkdirSync(stateDir, { recursive: true });
 
@@ -200,6 +202,25 @@ function isReportIntent(text) {
   return /(日報|レポート|AI Scout|トレンド|ランキング|約束事項|promises|health check|ヘルスチェック|P016|定刻|scheduled report)/i.test(trimmed);
 }
 
+function isComplaintIntent(text) {
+  const trimmed = (text || '').trim();
+  return /(クレーム|complaint|不具合|不良|品質問題|顧客不良|顧客クレーム|市場不良)/i.test(trimmed);
+}
+
+function normalizeComplaintQuery(text) {
+  let normalized = (text || '').trim();
+  normalized = normalized.replace(/20\d{2}年\d{1,2}月\d{1,2}日/g, ' ');
+  normalized = normalized.replace(/20\d{2}年\d{1,2}月/g, ' ');
+  normalized = normalized.replace(/\d{1,2}月\d{1,2}日/g, ' ');
+  normalized = normalized.replace(/\d{4}[/-]\d{1,2}[/-]\d{1,2}/g, ' ');
+  normalized = normalized.replace(/(今年|去年|昨年|本年|今日|本日|昨日|明日|今月|先月|来月)/g, ' ');
+  normalized = normalized.replace(/(から|まで|より|期間|内容|教えて|一覧|抽出|確認|顧客からの|届いた)/g, ' ');
+  normalized = normalized.replace(/\b\d+\b/g, ' ');
+  normalized = normalized.replace(/\s+[のにはをへでと]+\s+/g, ' ');
+  normalized = normalized.replace(/\s+/g, ' ').trim();
+  return normalized || 'クレーム';
+}
+
 async function telegramRequest(botToken, method, endpoint, body = null) {
   const url = `https://api.telegram.org/bot${botToken}/${endpoint}`;
   const init = { method };
@@ -246,6 +267,8 @@ async function getTelegramUpdates(botToken, offset) {
 async function callOllamaGenerate(prompt, onProgress = null) {
   let progressTimer = null;
   const startedAt = Date.now();
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), OLLAMA_TIMEOUT_MS);
   const emitProgress = async (stage) => {
     if (!onProgress) return;
     try {
@@ -271,6 +294,7 @@ async function callOllamaGenerate(prompt, onProgress = null) {
     const res = await fetch(`${ollamaUrl}/api/generate`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
+      signal: controller.signal,
       body: JSON.stringify({
         model: ollamaModel,
         prompt,
@@ -289,6 +313,7 @@ async function callOllamaGenerate(prompt, onProgress = null) {
     await emitProgress('回答の生成が完了しました。');
     return json.response || '';
   } finally {
+    clearTimeout(timeoutId);
     if (progressTimer) clearInterval(progressTimer);
   }
 }
@@ -329,6 +354,16 @@ async function generateTaskReply(text) {
   return '依頼事項は見つかりませんでした。';
 }
 
+async function generateComplaintReply(text) {
+  const complaintContext = await fetchComplaintContext(repoRoot, text, { limit: 5, force: true });
+  if (complaintContext.summary) {
+    return complaintContext.summary;
+  }
+
+  const normalizedQuery = normalizeComplaintQuery(text);
+  return `クレーム関連の記録は見つかりませんでした。検索語: ${normalizedQuery}`;
+}
+
 async function routeReply(text, onProgress = null) {
   if (isReportIntent(text)) {
     writeEvent('route', { lastMessage: text, route: 'report' });
@@ -348,6 +383,10 @@ async function routeReply(text, onProgress = null) {
   if (isTaskIntent(text)) {
     writeEvent('route', { lastMessage: text, route: 'task' });
     return generateTaskReply(text);
+  }
+  if (isComplaintIntent(text)) {
+    writeEvent('route', { lastMessage: text, route: 'complaint' });
+    return generateComplaintReply(text);
   }
   if (isEmailIntent(text)) {
     writeEvent('route', { lastMessage: text, route: 'email' });

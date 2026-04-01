@@ -3,6 +3,7 @@ import pandas as pd
 import subprocess
 import json
 import urllib.request
+import urllib.parse
 import os
 import datetime
 import io
@@ -15,9 +16,13 @@ import openpyxl
 
 # --- CONFIG ---
 OLLAMA_URL = os.getenv("OLLAMA_URL", "http://ollama:11434")
+LITELLM_URL = os.getenv("LITELLM_URL", "http://litellm:4000/v1")
 QDRANT_URL = "http://qdrant:6333"
+SEARXNG_URL = os.getenv("SEARXNG_URL", "http://searxng:8080")
 WORK_DIR = "/work/qa_reports" # Reports
 CONSUME_DIR = "/consume" # Paperless Input
+IATF_BASE_URL = os.getenv("IATF_BASE_URL", "http://localhost:3000")
+PROCESS_MONITORING_URL = f"{IATF_BASE_URL}/products/process_monitoring_measurement"
 
 # Subfolders
 INGEST_DIR = os.path.join(CONSUME_DIR, "PFMEA_5WHY_FTA_etc")
@@ -26,6 +31,8 @@ KINDLE_DIR = os.path.join(CONSUME_DIR, "Kindle")
 
 GEN_MODEL = os.getenv("OLLAMA_GEN_MODEL", "qwen3:14b")
 EMBED_MODEL = os.getenv("OLLAMA_EMBED_MODEL", "nomic-embed-text")
+FMEA_DEEP_MODEL = os.getenv("FMEA_DEEP_MODEL", os.getenv("OPENAI_MODEL", "openai/gemini-2.5-flash"))
+FMEA_DEEP_API_KEY = os.getenv("FMEA_DEEP_API_KEY", os.getenv("OPENAI_API_KEY", ""))
 COLLECTION_NAME = "iatf_knowledge"
 
 for d in [WORK_DIR, INGEST_DIR, WIP_DIR, KINDLE_DIR]:
@@ -99,7 +106,33 @@ def search_qdrant(vector, limit=3):
     except Exception:
         return "" 
 
-def ask_ai(prompt, context_text=""):
+def search_web(query, limit=3):
+    try:
+        params = urllib.parse.urlencode({
+            "q": query,
+            "format": "json",
+            "engines": "google,bing,duckduckgo",
+        })
+        with urllib.request.urlopen(f"{SEARXNG_URL}/search?{params}") as response:
+            payload = json.loads(response.read().decode("utf-8"))
+        results = payload.get("results", [])[:limit]
+        return "\n\n".join(
+            [
+                f"[WEB:{item.get('title', '?')}] {item.get('content', '')}\nURL: {item.get('url', '')}"
+                for item in results
+            ]
+        )
+    except Exception:
+        return ""
+
+def merge_reference_context(*sections):
+    blocks = []
+    for title, body in sections:
+        if body:
+            blocks.append(f"{title}:\n{body}")
+    return "\n\n".join(blocks)
+
+def ask_ai_local(prompt, context_text=""):
     system_prompt = "You are a Quality Assurance Expert."
     if context_text:
         system_prompt += f"\n\nREFERENCE DOCUMENTS:\n{context_text}\n\nUse these references to answer."
@@ -110,6 +143,51 @@ def ask_ai(prompt, context_text=""):
             return json.loads(response.read().decode('utf-8')).get('response', '').strip()
     except Exception as e:
         return f"笞・・AI Offline: {e}"
+
+def ask_ai_deep(prompt, context_text="", model_name=""):
+    selected_model = model_name or FMEA_DEEP_MODEL
+    if not selected_model:
+        return "Deep AI model is not configured."
+    system_prompt = (
+        "You are a senior PFMEA and quality engineering advisor. "
+        "Think carefully, prefer concrete manufacturing risk reasoning, and clearly separate assumptions from evidence."
+    )
+    if context_text:
+        system_prompt += f"\n\nREFERENCE DOCUMENTS:\n{context_text}\n\nUse internal references first and use web references only as supplemental evidence."
+    body = {
+        "model": selected_model,
+        "messages": [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": prompt},
+        ],
+        "temperature": 0.2,
+    }
+    headers = {"Content-Type": "application/json"}
+    if FMEA_DEEP_API_KEY:
+        headers["Authorization"] = f"Bearer {FMEA_DEEP_API_KEY}"
+    req = urllib.request.Request(
+        f"{LITELLM_URL}/chat/completions",
+        data=json.dumps(body).encode("utf-8"),
+        headers=headers,
+    )
+    with urllib.request.urlopen(req, timeout=90) as response:
+        payload = json.loads(response.read().decode("utf-8"))
+    choices = payload.get("choices", [])
+    if not choices:
+        return "Deep AI returned no choices."
+    message = choices[0].get("message", {})
+    return (message.get("content") or "").strip()
+
+def ask_ai(prompt, context_text="", mode="local", deep_model_name=""):
+    if mode == "deep":
+        try:
+            deep_reply = ask_ai_deep(prompt, context_text=context_text, model_name=deep_model_name)
+            if deep_reply:
+                return deep_reply
+        except Exception as e:
+            fallback = ask_ai_local(prompt, context_text=context_text)
+            return f"[Deep AI unavailable: {e}]\n\n{fallback}"
+    return ask_ai_local(prompt, context_text=context_text)
 
 def extract_text_immediate(filepath):
     """Refactored extraction logic for immediate use"""
@@ -420,6 +498,34 @@ def render_plating_quality_page():
             st.dataframe(pd.DataFrame(history_rows), use_container_width=True, hide_index=True)
 
 
+def render_process_monitoring_measurement_page():
+    st.header("Process Monitoring & Measurement")
+    st.caption("Open the existing IATF process monitoring and measurement record screen from the QA Portal.")
+
+    info_col, action_col = st.columns([3, 2])
+    with info_col:
+        st.markdown(
+            """
+            **Process Monitoring / Measurement Record**
+
+            Review the existing IATF page for monthly process metrics, targets, actual values,
+            and follow-up actions. This portal entry is a shortcut to the maintained Rails screen.
+            """
+        )
+        st.markdown(
+            """
+            Supported use:
+            - Open the current monitoring record page
+            - Review annual/monthly monitoring results
+            - Jump back to the main IATF product portal
+            """
+        )
+    with action_col:
+        st.link_button("Open Monitoring Record", PROCESS_MONITORING_URL, use_container_width=True)
+        st.link_button("Open IATF Products", f"{IATF_BASE_URL}/products", use_container_width=True)
+        st.caption("If the page does not open, check the Rails app on the configured IATF base URL.")
+
+
 
 # --- SIDEBAR ---
 st.sidebar.title("QA Toolkit")
@@ -448,6 +554,7 @@ page = st.sidebar.radio("Select Tool", [
     "FTA (Fault Tree)", 
     "Why-Why Analysis",
     "Work Study",
+    "Process Monitoring & Measurement",
     "3D Converter",
     "Tolerance Analysis",
     "Kindle Manuscript",
@@ -482,8 +589,26 @@ if page == "Home":
         with card_col2:
             st.info("Use the left sidebar to open `Plating Quality Analysis` and run the analysis.")
 
+    st.markdown("---")
+    st.subheader("Process Monitoring & Measurement")
+    pm_col1, pm_col2 = st.columns([3, 2])
+    with pm_col1:
+        st.markdown(
+            """
+            **IATF Process Monitoring Record**
+
+            Open the existing process monitoring and measurement record page for KPI review,
+            target-vs-actual tracking, and monthly follow-up status.
+            """
+        )
+    with pm_col2:
+        st.link_button("Open Record", PROCESS_MONITORING_URL, use_container_width=True)
+
 elif page == "Plating Quality Analysis":
     render_plating_quality_page()
+
+elif page == "Process Monitoring & Measurement":
+    render_process_monitoring_measurement_page()
 
 elif page == "Work Instruction Generator":
     st.header("統 Work Instruction Generator")
@@ -548,15 +673,44 @@ elif page == "Work Instruction Generator":
 elif page == "FMEA Editor":
     st.header("投 FMEA (Knowledge Aware)")
     process_step = st.text_input("Process Step", "Battery Weld")
+    use_web_reference = st.checkbox("Also use Web knowledge", value=True)
+    ai_mode = st.selectbox(
+        "Ask AI model",
+        [
+            "Deep AI (GPT-5.4 / Gemini Thinking if configured)",
+            "Local Ollama",
+        ],
+        index=0,
+    )
+    st.caption(
+        f"Deep model setting: `{FMEA_DEEP_MODEL}` via `{LITELLM_URL}/chat/completions`. "
+        "Set `FMEA_DEEP_MODEL` to a stronger model such as `gpt-5.4` or your Gemini thinking model when available."
+    )
     
     if st.button("笨ｨ Ask AI"):
         with st.spinner("Searching..."):
             vec = get_embedding(process_step)
-            context = search_qdrant(vec)
-            res = ask_ai(f"Suggest 3 Failure Modes for '{process_step}'. Format: Mode, Effect, Severity.", context)
-            if context:
+            rag_context = search_qdrant(vec)
+            web_context = search_web(f"PFMEA failure modes {process_step}", limit=3) if use_web_reference else ""
+            context = merge_reference_context(
+                ("INTERNAL / PDF KNOWLEDGE", rag_context),
+                ("WEB KNOWLEDGE", web_context),
+            )
+            res = ask_ai(
+                f"Suggest 3 Failure Modes for '{process_step}'. Format: Mode, Effect, Severity. "
+                "Prefer internal references when there is a conflict, and use web references as supplemental knowledge.",
+                context,
+                mode="deep" if ai_mode.startswith("Deep AI") else "local",
+                deep_model_name=FMEA_DEEP_MODEL,
+            )
+            if rag_context or web_context:
                 with st.expander("References"):
-                    st.markdown(context[:1000])
+                    if rag_context:
+                        st.markdown("**Internal / PDF Knowledge**")
+                        st.markdown(rag_context[:1200])
+                    if web_context:
+                        st.markdown("**Web Knowledge**")
+                        st.markdown(web_context[:1200])
             st.info(res)
             
     # Use existing dataframe logic...

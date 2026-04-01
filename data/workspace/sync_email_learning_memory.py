@@ -20,6 +20,7 @@ WORKSPACE_ROOT = SCRIPT_PATH.parent
 DB_PATH = WORKSPACE_ROOT / "email_search.db"
 STATUS_PATH = WORKSPACE_ROOT / "email_learning_memory_sync_status.json"
 STATE_PATH = WORKSPACE_ROOT / "email_learning_memory_sync_state.json"
+POLICY_PATH = WORKSPACE_ROOT / "email_ops_policy.json"
 LEARNING_ENGINE_URL = "http://localhost:8110"
 STATUS_FLUSH_INTERVAL = 25
 
@@ -45,6 +46,15 @@ def load_state() -> dict[str, Any]:
 
 def save_state(payload: dict[str, Any]) -> None:
     STATE_PATH.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def load_policy() -> dict[str, Any]:
+    if not POLICY_PATH.exists():
+        return {}
+    try:
+        return json.loads(POLICY_PATH.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
 
 
 def normalize_space(value: str | None) -> str:
@@ -101,6 +111,22 @@ def parse_task_evidence(value: str | None) -> dict[str, Any]:
         return data if isinstance(data, dict) else {}
     except Exception:
         return {}
+
+
+def infer_experience_bucket(status: str, due_date: str | None, reply_summary: str | None) -> str:
+    normalized = normalize_space(status).lower()
+    if normalized == "replied" and normalize_space(reply_summary):
+        return "success_cases"
+    due = normalize_space(due_date)
+    if normalized == "open" and due:
+        try:
+            if datetime.fromisoformat(due).date() < datetime.now(JST).date():
+                return "failure_cases"
+        except Exception:
+            pass
+    if normalized in {"open", "replied"}:
+        return "evaluations"
+    return "playbooks"
 
 
 def healthcheck(base_url: str, request_timeout: int) -> dict[str, Any]:
@@ -193,6 +219,7 @@ def build_message_payload(row: sqlite3.Row, source_org: str) -> dict[str, Any]:
             "gmail_message_id": normalize_space(row["gmail_message_id"]),
             "labels_json": normalize_space(row["labels_json"]),
             "indexed_at": normalize_space(row["indexed_at"]),
+            "memory_bucket": "evaluations",
         },
     }
 
@@ -235,6 +262,11 @@ def build_thread_payload(
     tags = ["email_thread"]
     if latest_status:
         tags.append(f"status:{latest_status}")
+    experience_bucket = infer_experience_bucket(
+        latest_status,
+        normalize_space(latest_task["due_date"]),
+        normalize_space(latest_task["reply_summary"]),
+    )
     return {
         "thread_id": thread_key,
         "source_org": source_org,
@@ -255,6 +287,8 @@ def build_thread_payload(
             "requester": normalize_space(latest_task["requester"]),
             "assignee": normalize_space(latest_task["assignee"]),
             "due_date": normalize_space(latest_task["due_date"]),
+            "memory_bucket": experience_bucket,
+            "playbook_candidate": experience_bucket in {"failure_cases", "success_cases"},
         },
     }
 
@@ -263,8 +297,8 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Sync email_search.db content into learning_engine memory")
     parser.add_argument("--base-url", default=LEARNING_ENGINE_URL)
     parser.add_argument("--source-org", default="Mitsui")
-    parser.add_argument("--bootstrap-days", type=int, default=14)
-    parser.add_argument("--limit", type=int, default=250)
+    parser.add_argument("--bootstrap-days", type=int, default=30)
+    parser.add_argument("--limit", type=int, default=800)
     parser.add_argument("--request-timeout", type=int, default=45)
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
@@ -277,6 +311,9 @@ def main() -> None:
         "dbPath": str(DB_PATH),
         "dryRun": args.dry_run,
     }
+    policy = load_policy()
+    if policy:
+        status["policy"] = policy
     write_status(status)
 
     state = load_state()
@@ -298,6 +335,9 @@ def main() -> None:
         status["stage"] = "loaded"
         status["emailCandidates"] = len(email_rows)
         status["taskCandidates"] = len(task_rows)
+        status["threadCandidates"] = len({infer_thread_key(row) for row in email_rows} | {
+            normalize_space(row["thread_key"]) for row in task_rows if normalize_space(row["thread_key"])
+        })
         status["postedMessages"] = 0
         status["postedThreads"] = 0
         status["errors"] = []

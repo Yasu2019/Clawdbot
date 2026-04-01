@@ -31,9 +31,9 @@
     }
 
     .shell {
-      max-width: 1320px;
+      max-width: 1720px;
       margin: 0 auto;
-      padding: 28px 20px 48px;
+      padding: 28px 24px 56px;
     }
 
     .hero, .panel {
@@ -90,7 +90,7 @@
 
     .stats {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
       gap: 14px;
       margin-bottom: 18px;
     }
@@ -125,7 +125,7 @@
 
     .grid {
       display: grid;
-      grid-template-columns: minmax(380px, 520px) 1fr;
+      grid-template-columns: minmax(520px, 1.35fr) minmax(420px, 1fr);
       gap: 18px;
       align-items: start;
     }
@@ -133,6 +133,11 @@
     .stack {
       display: grid;
       gap: 18px;
+    }
+
+    .summary-panel {
+      position: sticky;
+      top: 20px;
     }
 
     .panel {
@@ -413,6 +418,28 @@
       overflow: auto;
     }
 
+    @media (min-width: 1360px) {
+      .stack {
+        grid-template-columns: repeat(2, minmax(280px, 1fr));
+      }
+
+      .stack > .panel:first-child {
+        grid-column: 1 / -1;
+      }
+    }
+
+    @media (min-width: 1680px) {
+      .grid {
+        grid-template-columns: minmax(760px, 1.55fr) minmax(460px, 0.95fr);
+      }
+    }
+
+    @media (max-width: 1180px) {
+      .summary-panel {
+        position: static;
+      }
+    }
+
     @media (max-width: 980px) {
       .grid {
         grid-template-columns: 1fr;
@@ -420,6 +447,10 @@
 
       .row, .actions {
         grid-template-columns: 1fr;
+      }
+
+      .summary-panel {
+        position: static;
       }
     }
   </style>
@@ -469,6 +500,26 @@
         <div class="label">Risk Notify</div>
         <div class="value" id="riskNotifyState">--</div>
         <div class="sub" id="riskNotifySub">waiting...</div>
+      </article>
+      <article class="hero stat">
+        <div class="label">Gmail Window</div>
+        <div class="value" id="gmailWindowState">--</div>
+        <div class="sub" id="gmailWindowSub">waiting...</div>
+      </article>
+      <article class="hero stat">
+        <div class="label">SQLite Index</div>
+        <div class="value" id="sqliteIndexState">--</div>
+        <div class="sub" id="sqliteIndexSub">waiting...</div>
+      </article>
+      <article class="hero stat">
+        <div class="label">Gmail Backfill</div>
+        <div class="value" id="gmailBackfillState">--</div>
+        <div class="sub" id="gmailBackfillSub">waiting...</div>
+      </article>
+      <article class="hero stat">
+        <div class="label">Email Memory</div>
+        <div class="value" id="emailMemoryState">--</div>
+        <div class="sub" id="emailMemorySub">waiting...</div>
       </article>
     </section>
 
@@ -871,7 +922,7 @@
         </article>
       </div>
 
-      <article class="panel">
+      <article class="panel summary-panel">
         <h2>Live Summary</h2>
         <div class="meta-grid" id="miniCards">
           <div class="mini">
@@ -1153,6 +1204,57 @@
         target.textContent = "Unknown";
         target.className = "value warn";
         sub.textContent = `risk notification unavailable: ${String(error)}`;
+      }
+    }
+
+    async function loadEmailIngestStatus() {
+      const windowState = document.getElementById("gmailWindowState");
+      const windowSub = document.getElementById("gmailWindowSub");
+      const sqliteState = document.getElementById("sqliteIndexState");
+      const sqliteSub = document.getElementById("sqliteIndexSub");
+      const backfillState = document.getElementById("gmailBackfillState");
+      const backfillSub = document.getElementById("gmailBackfillSub");
+      const memoryState = document.getElementById("emailMemoryState");
+      const memorySub = document.getElementById("emailMemorySub");
+      try {
+        const response = await fetch("../../email_ingest_dashboard_status.json", { cache: "no-store" });
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        const data = await response.json();
+        const sqlite = data.sqlite || {};
+        const backfill = data.gmailBackfill || {};
+        const memory = data.learningMemory || {};
+        const windowInfo = data.window || {};
+
+        windowState.textContent = `${windowInfo.startDate || "--"} -> ${windowInfo.endDateInclusive || "--"}`;
+        windowState.className = "value ok";
+        windowSub.textContent = `gmail rows in window: ${sqlite.gmail_2026_window || 0}`;
+
+        sqliteState.textContent = `${sqlite.emails_total || 0} / ${sqlite.tasks_total || 0}`;
+        sqliteState.className = "value ok";
+        sqliteSub.textContent = `emails_fts=${sqlite.emails_fts_total || 0}, tasks_fts=${sqlite.tasks_fts_total || 0}`;
+
+        backfillState.textContent = backfill.ok ? "Completed" : (backfill.stage || "Unknown");
+        backfillState.className = `value ${backfill.ok ? "ok" : "warn"}`;
+        backfillSub.textContent = `indexed=${backfill.indexedMessages || 0}, skipped=${backfill.skippedMessages || 0}, rebuiltTasks=${backfill.rebuiltTasks || 0}`;
+
+        const memoryStage = memory.stage || "unknown";
+        memoryState.textContent = memoryStage;
+        memoryState.className = `value ${memoryStage === "completed" ? "ok" : (memoryStage === "skipped" ? "warn" : "bad")}`;
+        memorySub.textContent = memoryStage === "completed"
+          ? `posted messages=${memory.postedMessages || 0}, threads=${memory.postedThreads || 0}`
+          : `${memory.reason || "sync not completed"} | last successful messages=${memory.postedMessages || 0}, threads=${memory.postedThreads || 0}`;
+      } catch (error) {
+        windowState.textContent = "Unknown";
+        windowState.className = "value warn";
+        windowSub.textContent = `email ingest status unavailable: ${String(error)}`;
+        sqliteState.textContent = "--";
+        sqliteSub.textContent = "status unavailable";
+        backfillState.textContent = "--";
+        backfillSub.textContent = "status unavailable";
+        memoryState.textContent = "--";
+        memorySub.textContent = "status unavailable";
       }
     }
 
@@ -1597,6 +1699,7 @@
     loadHealth();
     loadAutoRepairStatus();
     loadRiskNotificationStatus();
+    loadEmailIngestStatus();
   </script>
 </body>
 </html>

@@ -1,0 +1,186 @@
+<% followup = @audit_followup || {} %>
+<% sections = [
+  ["内部監査是正処置報告書", :audit_corrections, followup[:audit_corrections] || {}],
+  ["内部監査改善の機会一覧", :audit_opportunities, followup[:audit_opportunities] || {}],
+  ["是正・予防処置管理票", :nonconformities, followup[:nonconformities] || {}]
+] %>
+<% total_entries = sections.sum { |_, _, section| section[:total].to_i } %>
+<% total_complete = sections.sum { |_, _, section| section.dig(:counts, :complete).to_i } %>
+<% total_overdue = sections.sum { |_, _, section| section.dig(:counts, :overdue).to_i } %>
+<% total_review = sections.sum { |_, _, section| section.dig(:counts, :needs_review).to_i } %>
+
+<div class="w-full p-6">
+  <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between mb-6">
+    <div>
+      <h1 class="font-bold text-4xl">IATF審査指摘 改善確認</h1>
+      <p class="text-sm text-gray-600 mt-2">
+        年度別に JQA 審査報告書の指摘件数と、既存帳票の実行状況を横断確認できます。
+      </p>
+      <%= link_to "更新履歴", update_history_product_path, class: "rounded-lg py-2 px-4 bg-slate-700 text-white font-medium" %>
+    </div>
+    <div class="flex flex-wrap gap-2">
+      <%= link_to "TOPへ戻る", products_path, class: "rounded-lg py-2 px-4 bg-gray-100 font-medium" %>
+      <%= link_to "Excelダウンロード", audit_followup_status_excel_product_path(year: @selected_audit_year), class: "rounded-lg py-2 px-4 bg-emerald-600 text-white font-medium" %>
+    </div>
+  </div>
+
+  <div class="rounded-lg border bg-white p-4 mb-6">
+    <div class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+      <div>
+        <div class="text-sm font-semibold text-gray-700 mb-2">年度タグ</div>
+        <div class="flex flex-wrap gap-2">
+          <%= link_to "全年度", audit_followup_status_product_path, class: "px-3 py-1 rounded-full text-sm #{ @selected_audit_year.present? ? 'bg-gray-100 text-gray-700' : 'bg-indigo-600 text-white' }" %>
+          <% Array(@available_audit_years).each do |year| %>
+            <%= link_to year.to_s, audit_followup_status_product_path(year: year), class: "px-3 py-1 rounded-full text-sm #{ @selected_audit_year.to_i == year.to_i ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700' }" %>
+          <% end %>
+        </div>
+      </div>
+
+      <div class="w-full lg:w-auto">
+        <%= form_with url: upload_jqa_audit_reports_product_path, method: :post, multipart: true, local: true, class: "flex flex-col gap-2 lg:items-end" do |form| %>
+          <%= hidden_field_tag :year, @selected_audit_year %>
+          <label class="text-sm font-semibold text-gray-700">JQA審査報告書の追加</label>
+          <div class="flex flex-col gap-2 sm:flex-row">
+            <%= form.file_field :jqa_reports, multiple: true, name: "jqa_reports[]", accept: ".pdf,.zip", class: "block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" %>
+            <%= form.submit "アップロードして更新", class: "rounded-lg bg-sky-600 text-white px-4 py-2 text-sm font-medium" %>
+          </div>
+          <p class="text-xs text-gray-500">PDF と ZIP を受け付けます。保存後に category=2 の文書として attachedfile.csv と Product Documents に登録します。</p>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-6">
+    <div class="border rounded-lg bg-white p-4">
+      <div class="text-xs text-gray-500">対象件数</div>
+      <div class="text-2xl font-bold"><%= total_entries %></div>
+    </div>
+    <div class="border rounded-lg bg-white p-4">
+      <div class="text-xs text-gray-500">完了</div>
+      <div class="text-2xl font-bold text-emerald-600"><%= total_complete %></div>
+    </div>
+    <div class="border rounded-lg bg-white p-4">
+      <div class="text-xs text-gray-500">期限超過</div>
+      <div class="text-2xl font-bold text-red-600"><%= total_overdue %></div>
+    </div>
+    <div class="border rounded-lg bg-white p-4">
+      <div class="text-xs text-gray-500">要確認</div>
+      <div class="text-2xl font-bold text-amber-600"><%= total_review %></div>
+    </div>
+  </div>
+
+  <% if followup[:jqa_yearly_matrix].present? %>
+    <div class="mb-8">
+      <div class="flex justify-between items-end mb-3">
+        <div>
+          <h2 class="text-2xl font-bold">JQA審査報告書 年度別一覧</h2>
+          <p class="text-sm text-gray-600">JQA 指摘件数と、帳票側の実行件数をプロセス別に確認できます。</p>
+        </div>
+      </div>
+
+      <% followup[:jqa_yearly_matrix].each do |year_row| %>
+        <div class="mb-6">
+          <div class="flex items-center gap-4 mb-2">
+            <h3 class="text-xl font-bold"><%= year_row[:year] %>年度</h3>
+            <span class="px-3 py-1 rounded bg-indigo-100 text-indigo-700 text-sm">JQA指摘 <%= year_row[:finding_count] %> 件</span>
+          </div>
+          <div class="overflow-auto border rounded-lg bg-white">
+            <table class="min-w-full text-sm border-collapse">
+              <thead class="bg-slate-100">
+                <tr>
+                  <th class="border px-2 py-2">プロセス</th>
+                  <th class="border px-2 py-2">JQA指摘件数</th>
+                  <th class="border px-2 py-2">是正処置</th>
+                  <th class="border px-2 py-2">改善の機会</th>
+                  <th class="border px-2 py-2">不適合管理</th>
+                  <th class="border px-2 py-2">完了</th>
+                  <th class="border px-2 py-2">期限超過</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% year_row[:process_rows].each do |row| %>
+                  <tr>
+                    <td class="border px-2 py-2"><%= row[:process_name] %></td>
+                    <td class="border px-2 py-2 font-semibold"><%= row[:finding_count] %></td>
+                    <td class="border px-2 py-2"><%= row[:audit_correction_count] %></td>
+                    <td class="border px-2 py-2"><%= row[:opportunity_count] %></td>
+                    <td class="border px-2 py-2"><%= row[:nonconformity_count] %></td>
+                    <td class="border px-2 py-2 text-emerald-700"><%= row[:complete_count] %></td>
+                    <td class="border px-2 py-2 text-red-700"><%= row[:overdue_count] %></td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+
+  <% sections.each do |title, key, section| %>
+    <div class="mb-8">
+      <div class="flex flex-col gap-3 md:flex-row md:items-end md:justify-between mb-3">
+        <div>
+          <h2 class="text-2xl font-bold"><%= title %></h2>
+          <p class="text-sm text-gray-600">件数: <%= section[:total].to_i %></p>
+        </div>
+        <div class="flex flex-wrap gap-2 text-sm">
+          <span class="px-3 py-1 rounded bg-emerald-100 text-emerald-700">完了 <%= section.dig(:counts, :complete).to_i %></span>
+          <span class="px-3 py-1 rounded bg-red-100 text-red-700">期限超過 <%= section.dig(:counts, :overdue).to_i %></span>
+          <span class="px-3 py-1 rounded bg-sky-100 text-sky-700">対応中 <%= section.dig(:counts, :in_progress).to_i %></span>
+          <span class="px-3 py-1 rounded bg-gray-100 text-gray-700">未着手 <%= section.dig(:counts, :pending).to_i %></span>
+          <span class="px-3 py-1 rounded bg-amber-100 text-amber-700">要確認 <%= section.dig(:counts, :needs_review).to_i %></span>
+        </div>
+      </div>
+
+      <div class="overflow-auto border rounded-lg bg-white">
+        <table class="min-w-full text-sm border-collapse">
+          <thead class="bg-slate-100">
+            <tr>
+              <th class="border px-2 py-2">状態</th>
+              <th class="border px-2 py-2">年度</th>
+              <th class="border px-2 py-2">ファイル</th>
+              <th class="border px-2 py-2">指摘No.</th>
+              <th class="border px-2 py-2">プロセス</th>
+              <th class="border px-2 py-2">指摘内容</th>
+              <th class="border px-2 py-2">条項/監査種別</th>
+              <th class="border px-2 py-2">期限日</th>
+              <th class="border px-2 py-2">完了日</th>
+              <th class="border px-2 py-2">証跡/メモ</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% section.fetch(:entries, []).each do |entry| %>
+              <% year = [entry[:due_date], entry[:completed_on]].find { |value| value.respond_to?(:year) }&.year %>
+              <% badge_class =
+                case entry[:status]
+                when :complete then "bg-emerald-100 text-emerald-700"
+                when :overdue then "bg-red-100 text-red-700"
+                when :in_progress then "bg-sky-100 text-sky-700"
+                when :pending then "bg-gray-100 text-gray-700"
+                else "bg-amber-100 text-amber-700"
+                end %>
+              <tr>
+                <td class="border px-2 py-2"><span class="px-2 py-1 rounded <%= badge_class %>"><%= entry[:status] %></span></td>
+                <td class="border px-2 py-2"><%= year %></td>
+                <td class="border px-2 py-2 whitespace-pre-wrap"><%= entry[:file_name] %></td>
+                <td class="border px-2 py-2"><%= entry[:issue_no] %></td>
+                <td class="border px-2 py-2"><%= entry[:process_name] %></td>
+                <td class="border px-2 py-2 whitespace-pre-wrap"><%= entry[:finding] %></td>
+                <td class="border px-2 py-2 whitespace-pre-wrap"><%= entry[:clause] %></td>
+                <td class="border px-2 py-2"><%= entry[:due_date].respond_to?(:strftime) ? entry[:due_date].strftime("%Y-%m-%d") : entry[:due_date] %></td>
+                <td class="border px-2 py-2"><%= entry[:completed_on].respond_to?(:strftime) ? entry[:completed_on].strftime("%Y-%m-%d") : entry[:completed_on] %></td>
+                <td class="border px-2 py-2 whitespace-pre-wrap"><%= entry[:evidence_note] %></td>
+              </tr>
+            <% end %>
+            <% if section.fetch(:entries, []).empty? %>
+              <tr>
+                <td colspan="10" class="border px-2 py-6 text-center text-gray-500">該当データはありません。</td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  <% end %>
+</div>

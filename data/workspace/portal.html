@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ja">
 
 <head>
@@ -56,12 +56,33 @@
 
         .grid-container {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(clamp(220px, 18vw, 280px), 1fr));
             gap: 24px;
             width: 100%;
-            max-width: 1200px;
-            padding: 0 40px 60px;
+            max-width: 1680px;
+            padding: 0 28px 60px;
             box-sizing: border-box;
+        }
+
+        @media (min-width: 1600px) {
+            .grid-container {
+                grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+                max-width: 1880px;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .grid-container {
+                grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+                padding: 0 20px 48px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .grid-container {
+                grid-template-columns: 1fr;
+                padding: 0 16px 40px;
+            }
         }
 
         .card {
@@ -252,7 +273,8 @@
         <a href="./apps/email_search/" class="card" target="_blank" rel="noopener">
             <span class="card-icon">🔍</span>
             <h2 class="card-title">メール全文検索</h2>
-            <p class="card-desc">2019年〜現在のEML/Gmail 13,000件以上をFTS検索。依頼・タスク絞り込み（未回答・期限切れ）、AI要約キャッシュ対応。</p>
+            <p class="card-desc">2019年から現在までの EML / Gmail を FTS 検索できます。依頼事項、タスク、期限切れ、返信状況の確認にも対応します。</p>
+            <p class="card-desc">Gmail DB に保存されたメール本文、依頼事項、期日、返信状況を検索・閲覧できます。</p>
             <div class="card-meta">
                 <span class="port-badge">Port 8792 API</span>
                 <span class="status-indicator"><span class="status-dot"></span>Ready</span>
@@ -263,7 +285,7 @@
         <a href="./apps/email_blacklist_hub/" class="card" target="_blank" rel="noopener">
             <span class="card-icon">✉️</span>
             <h2 class="card-title">Email Blacklist Hub</h2>
-            <p class="card-desc">Gmail で頻出する送信者語やドメイン候補を一覧化し、チェック操作で Email RAG の blacklist に追加します。</p>
+            <p class="card-desc">Gmail で頻出する送信者やドメイン候補を一覧化し、チェック操作で Email RAG の blacklist に追加できます。</p>
             <div class="card-meta">
                 <span class="port-badge">Port 8791 API</span>
                 <span class="status-indicator"><span class="status-dot"></span>Integrated</span>
@@ -330,7 +352,7 @@
         <a href="./apps/mobile_dev/" class="card" target="_blank" rel="noopener">
             <span class="card-icon">📱</span>
             <h2 class="card-title">Mobile Dev Assistant</h2>
-            <p class="card-desc">Flutter / React Native / iOS / Android の開発支援AI。コード生成・アーキテクチャ相談・ストア申請ガイド・フリーランス単価計算まで対応。</p>
+            <p class="card-desc">Flutter / React Native / iOS / Android の開発支援 AI です。コード生成、アーキテクチャ相談、ストア申請ガイド、単価試算まで対応します。</p>
             <div class="card-meta">
                 <span class="port-badge">Ollama:11434</span>
                 <span class="status-indicator"><span class="status-dot"></span>Ready</span>
@@ -341,7 +363,7 @@
         <a href="http://localhost:8090" class="card" target="_blank" rel="noopener">
             <span class="card-icon">🧊</span>
             <h2 class="card-title">3D Converter</h2>
-            <p class="card-desc">DXF→STEP/STL・モデル→3D HTML・モデル→3D PDF の変換ツール。サイドバーで「3D Converter」を選択。</p>
+            <p class="card-desc">DXF→STEP/STL、モデル→3D HTML、モデル→3D PDF の変換ツールです。Quality Dashboard の 3D Converter から利用できます。</p>
             <div class="card-meta">
                 <span class="port-badge">Port: 8090</span>
                 <span class="status-indicator"><span class="status-dot"></span>Ready</span>
@@ -493,14 +515,14 @@
         </a>
 
         <!-- Dify AI Workflow (V3) -->
-        <a href="http://localhost:80" class="card" target="_blank" rel="noopener">
+        <a href="http://localhost:8092" class="card" target="_blank" rel="noopener">
             <img class="card-icon-img" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@main/png/dify.png"
                 onerror="this.outerHTML='<span class=card-icon>🧩</span>'" alt="Dify">
             <h2 class="card-title">Dify Workflow Engine</h2>
             <p class="card-desc">Advanced RAG & AI workflow orchestration. Create complex agents with visual logic and
                 local model integration.</p>
             <div class="card-meta">
-                <span class="port-badge">Port 80</span>
+                <span class="port-badge">Port 8092</span>
                 <span class="status-indicator"><span class="status-dot"></span>V3 Core</span>
             </div>
         </a>
@@ -524,7 +546,7 @@
                 src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@main/png/freecad.png"
                 onerror="this.outerHTML='<span class=card-icon>🧊</span>'" alt="DXF to 3D">
             <h2 class="card-title">DXF → 3D Model</h2>
-            <p class="card-desc">2D DXFを3D STL/STEPに変換。100種+形状テストスイート（面数・体積・BBox・Watertight採点）内蔵。位相面数・精度を自動検証。APIゼロ・全ローカル処理。</p>
+            <p class="card-desc">2D DXF を 3D STL / STEP に変換します。多数の形状テスト、面数・体積・BBox・Watertight 検証を内蔵したローカル処理です。</p>
             <div class="card-meta">
                 <span class="port-badge">Port 8003</span>
                 <span class="status-indicator"><span class="status-dot"></span>Running</span>
@@ -535,7 +557,7 @@
         <a href="http://localhost:3100" class="card" target="_blank" rel="noopener">
             <span class="card-icon">🎮</span>
             <h2 class="card-title">MiniGame Factory</h2>
-            <p class="card-desc">SpecJSONからHTML5ゲーム＆Android APKを自動生成。Godot Builder + Single-HTML Builder搭載。</p>
+            <p class="card-desc">SpecJSON から HTML5 ゲームと Android APK を自動生成します。Godot Builder と Single-HTML Builder を搭載しています。</p>
             <div class="card-meta">
                 <span class="port-badge">Port 3100 / 8100</span>
                 <span class="status-indicator"><span class="status-dot"></span>External</span>
@@ -546,7 +568,7 @@
         <a href="http://localhost:7870" class="card" target="_blank" rel="noopener">
             <span class="card-icon">🏭</span>
             <h2 class="card-title">WorkStudy AI</h2>
-            <p class="card-desc">Therbligs + MOST互換 動作分析。骨格推定、自動セグメント、無駄/NVA定量化、姿勢負荷、PDF/Excel出力。</p>
+            <p class="card-desc">Therbligs と MOST に対応した動作分析アプリです。骨格推定、自動セグメント、NVA 定量化、姿勢負荷評価、PDF / Excel 出力に対応します。</p>
             <div class="card-meta">
                 <span class="port-badge">Port 7870</span>
                 <span class="status-indicator"><span class="status-dot"></span>External</span>
@@ -567,9 +589,9 @@
 
         <!-- Learning Memory -->
         <a href="apps/learning_memory/index.html" class="card" target="_blank" rel="noopener">
-            <span class="card-icon">階</span>
+            <span class="card-icon">🧠</span>
             <h2 class="card-title">Learning Memory</h2>
-            <p class="card-desc">Nested Learning console for memory search, sync visibility, and case, email, quality, improvement, and CAE comparisons.</p>
+            <p class="card-desc">Nested Learning console for memory search plus Gmail ingest range, SQLite and FTS counts, learning memory sync visibility, and case, email, quality, improvement, and CAE comparisons.</p>
             <div class="card-meta">
                 <span class="port-badge">Port 8110 / Local App</span>
                 <span class="status-indicator"><span class="status-dot"></span>Prototype</span>
@@ -665,12 +687,12 @@
         </a>
 
         <!-- IATF System (Ruby on Rails) - 開発環境 -->
-        <a href="http://localhost:3000" class="card" target="_blank" rel="noopener">
+        <a href="http://localhost:3000/users/sign_in" class="card host-aware-link" data-port="3000" data-path="/users/sign_in" rel="noopener">
             <img class="card-icon-img"
                 src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@main/png/ruby-on-rails.png"
                 onerror="this.outerHTML='<span class=card-icon>🛤️</span>'" alt="IATF Rails">
             <h2 class="card-title">IATF System (Rails) 開発</h2>
-            <p class="card-desc">Ruby on Rails — 開発環境 (development mode)。localhost のみアクセス可。</p>
+            <p class="card-desc">Ruby on Rails の開発環境です。まずログイン画面を開きます。</p>
             <div class="card-meta">
                 <span class="port-badge">Port: 3000</span>
                 <span class="status-indicator"><span class="status-dot"></span>Online</span>
@@ -678,12 +700,12 @@
         </a>
 
         <!-- IATF System (Ruby on Rails) - 本番環境 -->
-        <a href="http://localhost:3003" class="card" target="_blank" rel="noopener">
+        <a href="http://localhost:3003/users/sign_in" class="card host-aware-link" data-port="3003" data-path="/users/sign_in" rel="noopener">
             <img class="card-icon-img"
                 src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@main/png/ruby-on-rails.png"
                 onerror="this.outerHTML='<span class=card-icon>🛤️</span>'" alt="IATF Rails Production">
             <h2 class="card-title">IATF System (Rails) 本番</h2>
-            <p class="card-desc">Ruby on Rails — 本番環境 (production mode)。LAN内の他PCからは http://192.168.3.87:3003 でアクセス可。</p>
+            <p class="card-desc">Ruby on Rails の本番環境です。LAN 内の他 PC からは `http://192.168.3.87:3003` でアクセスできます。</p>
             <div class="card-meta">
                 <span class="port-badge">Port: 3003</span>
                 <span class="status-indicator"><span class="status-dot"></span>Online</span>
@@ -703,7 +725,7 @@
 
         <!-- OpenFOAM (CFD) -->
         <a href="#" class="card"
-            onclick="alert('【OpenFOAM (CFD)】\n\nOpenFOAMは内部のAntigravityコンテナ内で稼働する「完全Headless (GUI無し)」の流体解析ソルバーです。\n通常はClawdbotがPython経由で自動計算するか、FreeCAD / Blenderの連携アドオンを通じてビジュアル操作を行います。'); return false;">
+            onclick="alert('【OpenFOAM (CFD)】\\n\\nOpenFOAM は内部の Antigravity コンテナ内で動作する完全 Headless の流体解析ソルバーです。\\n通常は Clawdbot が Python 経由で自動計算するか、FreeCAD / Blender 連携アドオン経由で操作します。'); return false;">
             <span class="card-icon">💨</span>
             <h2 class="card-title">OpenFOAM (CFD)</h2>
             <p class="card-desc">Headless fluid dynamics solver. Integrated with Python scripts and FreeCAD/Blender
@@ -716,7 +738,7 @@
 
         <!-- Impact (Dynamics) -->
         <a href="#" class="card"
-            onclick="alert('【Impact (Dynamics)】\n\nJavaベースの動的有限要素法ソルバーです。\n一部専用のシンプルなJava GUIを持ちますが、複雑なモデルは他のソフトで作成してCLIからバッチ処理するのが基本です。'); return false;">
+            onclick="alert('【Impact (Dynamics)】\\n\\nJava ベースの動的有限要素法ソルバーです。\\n一部シンプルな Java GUI を持ちますが、複雑なモデルは他ソフトで作成して CLI からバッチ処理する使い方が基本です。'); return false;">
             <span class="card-icon">🔨</span>
             <h2 class="card-title">Impact (Dynamics)</h2>
             <p class="card-desc">Explicit finite element solver in Java. Optimized for batch processing of dynamic
@@ -729,7 +751,7 @@
 
         <!-- CalculiX (FEA) -->
         <a href="#" class="card"
-            onclick="alert('【CalculiX (FEA)】\n\nCalculiX自体はCUIソルバーですが、FreeCADの「FEM Workbench」に標準統合されており、FreeCAD起動後に直感的なGUI操作で実行することが可能です。'); return false;">
+            onclick="alert('【CalculiX (FEA)】\\n\\nCalculiX 自体は CUI ソルバーですが、FreeCAD の FEM Workbench に標準統合されており、FreeCAD 起動後に GUI 操作で実行できます。'); return false;">
             <span class="card-icon">🧮</span>
             <h2 class="card-title">CalculiX (FEA)</h2>
             <p class="card-desc">FEA solver integrated within FreeCAD. Perform structural analysis via the FEM Workbench
@@ -742,7 +764,7 @@
 
         <!-- PrePoMax -->
         <a href="#" class="card"
-            onclick="alert('【PrePoMax】\n\nPrePoMaxはCalculiXに特化した、非常に使いやすいWindows専用のネイティブGUIソフトです。\nブラウザからは起動できないため、Windowsのスタートメニューから直接アプリを立ち上げてください！'); return false;">
+            onclick="alert('【PrePoMax】\\n\\nPrePoMax は CalculiX に特化した使いやすい Windows 専用ネイティブ GUI です。\\nブラウザからは起動できないため、Windows のスタートメニューから直接起動してください。'); return false;">
             <span class="card-icon">📐</span>
             <h2 class="card-title">PrePoMax</h2>
             <p class="card-desc">Windows-native GUI for CalculiX. User-friendly interface for advanced FEA
@@ -781,7 +803,7 @@
 
         <!-- Wire Harness Engineering -->
         <a href="#" class="card"
-            onclick="alert('【Wire Harness Engineering】\n\nAntigravityコンテナ内に搭載された電気ハーネス設計・解析ツールセットです。\n\n主な機能:\n• WireViz: YAMLからハーネス図＋BOMを自動生成\n• Schemdraw: Pythonで電気回路図描画\n• PySpice: SPICEシミュレーション\n• harness_calc.py: 電線径選定・電圧降下・許容電流計算（ISO 6722準拠）\n• FMEAライブラリ: コネクタ/スプライス/被覆の標準故障モード\n\n使い方:\n① ClawdbotにAntigravityでハーネス計算を依頼\n② /work/harness/ に設計YAMLを作成\n③ wireviz sample.yml → PNG図面+BOM出力\n\nIoT開発・車載電装・産業設備の配線設計に活用できます。'); return false;">
+            onclick="alert('【Wire Harness Engineering】\\n\\nAntigravity コンテナ内に搭載された電気ハーネス設計・解析ツールセットです。\\n\\n主な機能:\\n・ WireViz: YAML からハーネス図と BOM を自動生成\\n・ Schemdraw: Python による電気回路図描画\\n・ PySpice: SPICE シミュレーション\\n・ harness_calc.py: 電線径選定、電圧降下、許容電流計算\\n・ FMEA ライブラリ: コネクタ、スプライス、被覆の標準故障モード\\n\\nIoT 開発、車載電装、産業設備の配線設計に活用できます。'); return false;">
             <span class="card-icon">🔌</span>
             <h2 class="card-title">Wire Harness Engineering</h2>
             <p class="card-desc">Electrical wire harness design and analysis. WireViz diagram generation, SPICE
@@ -826,6 +848,7 @@
             </div>
         </a>
     </div>
+    <script src="./portal_health.js"></script>
 </body>
 
 </html>

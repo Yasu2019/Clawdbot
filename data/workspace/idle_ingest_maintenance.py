@@ -19,8 +19,10 @@ if SCRIPT_POSIX.startswith("/workspace/"):
     REPORT_SYNC_CMD = "python3 /workspace/scheduled_report_search.py sync --limit-executions 20"
     CMUX_CMD = "python3 /workspace/update_cmux_status.py"
     TERMS_CMD = "python3 /workspace/update_mitsui_terms_auto.py"
+    IATF_SEED_AUTO_DIFF_CMD = "python3 /workspace/iatf_seed_auto_update.py --apply"
     AUTO_REPAIR_CMD = "python3 /workspace/auto_repair_allowed.py"
     RISK_NOTIFY_CMD = "python3 /workspace/risk_notification.py"
+    EMAIL_DASHBOARD_STATUS_CMD = "python3 /workspace/update_email_ingest_dashboard_status.py"
 elif SCRIPT_POSIX.startswith("/home/node/clawd/"):
     WORKSPACE = SCRIPT_PATH.parent
     EMAIL_CMD = "python3 /home/node/clawd/run_email_rag_ingest_report.py"
@@ -28,8 +30,10 @@ elif SCRIPT_POSIX.startswith("/home/node/clawd/"):
     REPORT_SYNC_CMD = "python3 /home/node/clawd/scheduled_report_search.py sync --limit-executions 20"
     CMUX_CMD = "python3 /home/node/clawd/update_cmux_status.py"
     TERMS_CMD = "python3 /home/node/clawd/update_mitsui_terms_auto.py"
+    IATF_SEED_AUTO_DIFF_CMD = "python3 /home/node/clawd/iatf_seed_auto_update.py --apply"
     AUTO_REPAIR_CMD = "python3 /home/node/clawd/auto_repair_allowed.py"
     RISK_NOTIFY_CMD = "python3 /home/node/clawd/risk_notification.py"
+    EMAIL_DASHBOARD_STATUS_CMD = "python3 /home/node/clawd/update_email_ingest_dashboard_status.py"
 else:
     WORKSPACE = SCRIPT_PATH.parents[2] / "data" / "workspace"
     EMAIL_CMD = f'python "{WORKSPACE / "run_email_rag_ingest_report.py"}"'
@@ -37,14 +41,18 @@ else:
     REPORT_SYNC_CMD = f'python "{WORKSPACE / "scheduled_report_search.py"}" sync --limit-executions 20'
     CMUX_CMD = f'python "{WORKSPACE / "update_cmux_status.py"}"'
     TERMS_CMD = f'python "{WORKSPACE / "update_mitsui_terms_auto.py"}"'
+    IATF_SEED_AUTO_DIFF_CMD = f'python "{WORKSPACE / "iatf_seed_auto_update.py"}" --apply'
     AUTO_REPAIR_CMD = f'python "{WORKSPACE / "auto_repair_allowed.py"}"'
     RISK_NOTIFY_CMD = f'python "{WORKSPACE / "risk_notification.py"}"'
+    EMAIL_DASHBOARD_STATUS_CMD = f'python "{WORKSPACE / "update_email_ingest_dashboard_status.py"}"'
 
 EMAIL_RUNTIME = WORKSPACE / "email_rag_ingest_runtime_status.json"
+EMAIL_DAEMON_STATUS = WORKSPACE / "email_continuous_ingest_status.json"
 SCHEDULED_SYNC = WORKSPACE / "scheduled_report_sync_state.json"
 CMUX_STATUS = WORKSPACE / "apps" / "cmux_hub" / "cmux_status.json"
 MITSUI_TERMS_STATUS = WORKSPACE / "mitsui_terms_auto_status.json"
 CAE_SYNC_STATUS = WORKSPACE / "cae_learning_memory_sync_status.json"
+IATF_SEED_AUTO_DIFF_STATUS = WORKSPACE / "iatf_seed_auto_update_status.json"
 STATUS_PATH = WORKSPACE / "idle_ingest_maintenance_status.json"
 HEARTBEAT_STATE_PATH = WORKSPACE / "memory" / "heartbeat-state.json"
 
@@ -141,23 +149,48 @@ def run_command(command: str, timeout_seconds: int) -> dict[str, Any]:
 
 def determine_actions() -> dict[str, dict[str, Any]]:
     email = read_json(EMAIL_RUNTIME, {})
+    email_daemon = read_json(EMAIL_DAEMON_STATUS, {})
     reports = read_json(SCHEDULED_SYNC, {})
     cmux = read_json(CMUX_STATUS, {})
     mitsui_terms = read_json(MITSUI_TERMS_STATUS, {})
     cae_sync = read_json(CAE_SYNC_STATUS, {})
+    iatf_seed_auto_diff = read_json(IATF_SEED_AUTO_DIFF_STATUS, {})
 
     email_dt = parse_dt(email.get("finishedAt") or email.get("startedAt"))
+    email_daemon_dt = parse_dt(email_daemon.get("updatedAt") or email_daemon.get("lastSuccessAt"))
     reports_dt = parse_dt(reports.get("updatedAt") or reports.get("finishedAt"))
     cmux_dt = parse_dt(cmux.get("generatedAt"))
     terms_dt = parse_dt(mitsui_terms.get("updatedAt"))
     cae_dt = parse_dt(cae_sync.get("finishedAt") or cae_sync.get("startedAt"))
+    iatf_seed_auto_diff_dt = parse_dt(iatf_seed_auto_diff.get("recorded_at"))
 
     return {
         "email_ingest": {
-            "lastSeen": email.get("finishedAt") or email.get("startedAt"),
-            "ageHours": age_hours(email_dt),
-            "shouldRun": email_dt is None or (now_jst().astimezone(email_dt.tzinfo) - email_dt) >= timedelta(hours=8),
-            "reason": "stale_or_missing" if (email_dt is None or (now_jst().astimezone(email_dt.tzinfo) - email_dt) >= timedelta(hours=8)) else "fresh",
+            "lastSeen": (
+                email_daemon.get("updatedAt")
+                or email_daemon.get("lastSuccessAt")
+                or email.get("finishedAt")
+                or email.get("startedAt")
+            ),
+            "ageHours": age_hours(email_daemon_dt or email_dt),
+            "shouldRun": (
+                False
+                if (
+                    email_daemon_dt is not None
+                    and (now_jst().astimezone(email_daemon_dt.tzinfo) - email_daemon_dt) < timedelta(minutes=15)
+                    and email_daemon.get("stage") in {"idle", "indexing", "sync_learning", "dashboard_refresh", "full_backfill"}
+                )
+                else (email_dt is None or (now_jst().astimezone(email_dt.tzinfo) - email_dt) >= timedelta(hours=1))
+            ),
+            "reason": (
+                "continuous_daemon_healthy"
+                if (
+                    email_daemon_dt is not None
+                    and (now_jst().astimezone(email_daemon_dt.tzinfo) - email_daemon_dt) < timedelta(minutes=15)
+                    and email_daemon.get("stage") in {"idle", "indexing", "sync_learning", "dashboard_refresh", "full_backfill"}
+                )
+                else ("stale_or_missing" if (email_dt is None or (now_jst().astimezone(email_dt.tzinfo) - email_dt) >= timedelta(hours=1)) else "fresh")
+            ),
         },
         "scheduled_reports_sync": {
             "lastSeen": reports.get("updatedAt") or reports.get("finishedAt"),
@@ -182,6 +215,12 @@ def determine_actions() -> dict[str, dict[str, Any]]:
             "ageHours": age_hours(terms_dt),
             "shouldRun": terms_dt is None or (now_jst().astimezone(terms_dt.tzinfo) - terms_dt) >= timedelta(hours=24),
             "reason": "stale_or_missing" if (terms_dt is None or (now_jst().astimezone(terms_dt.tzinfo) - terms_dt) >= timedelta(hours=24)) else "fresh",
+        },
+        "iatf_seed_auto_diff": {
+            "lastSeen": iatf_seed_auto_diff.get("recorded_at"),
+            "ageHours": age_hours(iatf_seed_auto_diff_dt),
+            "shouldRun": iatf_seed_auto_diff_dt is None or (now_jst().astimezone(iatf_seed_auto_diff_dt.tzinfo) - iatf_seed_auto_diff_dt) >= timedelta(hours=12),
+            "reason": "stale_or_missing" if (iatf_seed_auto_diff_dt is None or (now_jst().astimezone(iatf_seed_auto_diff_dt.tzinfo) - iatf_seed_auto_diff_dt) >= timedelta(hours=12)) else "fresh",
         },
     }
 
@@ -225,6 +264,12 @@ def main() -> None:
         status["results"]["mitsui_terms_refresh"] = run_command(TERMS_CMD, 180)
         write_status(status)
 
+    if status["actions"]["iatf_seed_auto_diff"]["shouldRun"]:
+        status["step"] = "iatf_seed_auto_diff"
+        write_status(status)
+        status["results"]["iatf_seed_auto_diff"] = run_command(IATF_SEED_AUTO_DIFF_CMD, 600)
+        write_status(status)
+
     status["step"] = "auto_repair_allowed"
     write_status(status)
     status["results"]["auto_repair_allowed"] = run_command(AUTO_REPAIR_CMD, 300)
@@ -233,6 +278,11 @@ def main() -> None:
     status["step"] = "risk_notification"
     write_status(status)
     status["results"]["risk_notification"] = run_command(RISK_NOTIFY_CMD, 300)
+    write_status(status)
+
+    status["step"] = "email_dashboard_status"
+    write_status(status)
+    status["results"]["email_dashboard_status"] = run_command(EMAIL_DASHBOARD_STATUS_CMD, 120)
     write_status(status)
 
     update_heartbeat_state(list(status["results"].keys()))

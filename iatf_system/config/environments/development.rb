@@ -79,6 +79,7 @@ Rails.application.configure do
   config.middleware.use Bullet::Rack
 
   config.hosts << 'nys-web.net'
+  config.hosts << 'host.docker.internal'
 
   # Settings specified here will take precedence over those in config/application.rb.
 

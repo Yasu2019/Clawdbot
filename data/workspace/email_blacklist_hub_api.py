@@ -46,8 +46,11 @@ def write_status(payload: dict) -> None:
 
 def load_filters() -> dict:
     if FILTER_PATH.exists():
-        return json.loads(FILTER_PATH.read_text(encoding="utf-8"))
-    return {"newsletter_patterns": [], "blacklist_patterns": []}
+        data = json.loads(FILTER_PATH.read_text(encoding="utf-8"))
+        if "whitelist_patterns" not in data:
+            data["whitelist_patterns"] = []
+        return data
+    return {"whitelist_patterns": [], "newsletter_patterns": [], "blacklist_patterns": []}
 
 
 def save_filters(payload: dict) -> None:
@@ -80,13 +83,15 @@ def extract_sender_candidates(sender: str) -> list[str]:
     return candidates
 
 
-def candidate_allowed(token: str, blacklist_patterns: list[str]) -> bool:
+def candidate_allowed(token: str, blacklist_patterns: list[str], whitelist_patterns: list[str] = []) -> bool:
     token = normalize_pattern(token)
     if len(token) < 2:
         return False
     if any(pattern in token or token in pattern for pattern in INTERNAL_ALLOW_PATTERNS):
         return False
     if any(pattern and (pattern in token or token in pattern) for pattern in blacklist_patterns):
+        return False
+    if any(pattern and (pattern in token or token in pattern) for pattern in whitelist_patterns):
         return False
     if token.isdigit():
         return False
@@ -101,6 +106,7 @@ def sender_is_internal(sender: str) -> bool:
 def build_candidates(min_count: int = 10, limit: int = 120) -> dict:
     filters = load_filters()
     blacklist_patterns = [normalize_pattern(v) for v in filters.get("blacklist_patterns", [])]
+    whitelist_patterns = [normalize_pattern(v) for v in filters.get("whitelist_patterns", [])]
 
     con = sqlite3.connect(DB_PATH)
     con.row_factory = sqlite3.Row
@@ -126,7 +132,7 @@ def build_candidates(min_count: int = 10, limit: int = 120) -> dict:
             continue
         row_tokens = {normalize_pattern(token) for token in extract_sender_candidates(sender)}
         for token in row_tokens:
-            if not candidate_allowed(token, blacklist_patterns):
+            if not candidate_allowed(token, blacklist_patterns, whitelist_patterns):
                 continue
             counts[token] += 1
             if token not in samples:
@@ -153,6 +159,7 @@ def build_candidates(min_count: int = 10, limit: int = 120) -> dict:
         "gmailRowCount": len(rows),
         "minCount": min_count,
         "currentBlacklistCount": len(blacklist_patterns),
+        "currentWhitelistCount": len(whitelist_patterns),
         "candidates": candidates,
     }
 
@@ -187,6 +194,7 @@ class Handler(BaseHTTPRequestHandler):
                     "updatedAt": now_jst_text(),
                     "blacklist_patterns": filters.get("blacklist_patterns", []),
                     "newsletter_patterns": filters.get("newsletter_patterns", []),
+                    "whitelist_patterns": filters.get("whitelist_patterns", []),
                 },
             )
             return
@@ -194,9 +202,6 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self) -> None:  # noqa: N802
         path = urlparse(self.path).path
-        if path != "/api/email-blacklist/add":
-            self._send(404, {"ok": False, "error": "not_found"})
-            return
         length = int(self.headers.get("Content-Length", "0"))
         raw = self.rfile.read(length) if length > 0 else b"{}"
         try:
@@ -205,27 +210,51 @@ class Handler(BaseHTTPRequestHandler):
             self._send(400, {"ok": False, "error": "invalid_json"})
             return
 
-        patterns = payload.get("patterns") or []
-        normalized = [normalize_pattern(v) for v in patterns if normalize_pattern(v)]
-        if not normalized:
-            self._send(400, {"ok": False, "error": "no_patterns"})
+        if path == "/api/email-blacklist/add":
+            patterns = payload.get("patterns") or []
+            normalized = [normalize_pattern(v) for v in patterns if normalize_pattern(v)]
+            if not normalized:
+                self._send(400, {"ok": False, "error": "no_patterns"})
+                return
+            filters = load_filters()
+            existing = [normalize_pattern(v) for v in filters.get("blacklist_patterns", [])]
+            merged = list(dict.fromkeys(existing + normalized))
+            filters["blacklist_patterns"] = merged
+            save_filters(filters)
+            write_status({"updatedAt": now_jst_text(), "lastAction": "add_blacklist", "added": normalized, "blacklistCount": len(merged)})
+            self._send(200, {"ok": True, "added": normalized, "blacklistCount": len(merged)})
             return
 
-        filters = load_filters()
-        existing = [normalize_pattern(v) for v in filters.get("blacklist_patterns", [])]
-        merged = list(dict.fromkeys(existing + normalized))
-        filters["blacklist_patterns"] = merged
-        save_filters(filters)
+        if path == "/api/email-blacklist/allow":
+            # ホワイトリストに追加（候補から永久除外）
+            patterns = payload.get("patterns") or []
+            normalized = [normalize_pattern(v) for v in patterns if normalize_pattern(v)]
+            if not normalized:
+                self._send(400, {"ok": False, "error": "no_patterns"})
+                return
+            filters = load_filters()
+            existing = [normalize_pattern(v) for v in filters.get("whitelist_patterns", [])]
+            merged = list(dict.fromkeys(existing + normalized))
+            filters["whitelist_patterns"] = merged
+            save_filters(filters)
+            write_status({"updatedAt": now_jst_text(), "lastAction": "add_whitelist", "added": normalized, "whitelistCount": len(merged)})
+            self._send(200, {"ok": True, "added": normalized, "whitelistCount": len(merged)})
+            return
 
-        write_status(
-            {
-                "updatedAt": now_jst_text(),
-                "lastAction": "add_blacklist",
-                "added": normalized,
-                "blacklistCount": len(merged),
-            }
-        )
-        self._send(200, {"ok": True, "added": normalized, "blacklistCount": len(merged)})
+        if path == "/api/email-blacklist/allow/remove":
+            # ホワイトリストから削除
+            patterns = payload.get("patterns") or []
+            normalized = {normalize_pattern(v) for v in patterns if normalize_pattern(v)}
+            filters = load_filters()
+            existing = [normalize_pattern(v) for v in filters.get("whitelist_patterns", [])]
+            remaining = [v for v in existing if v not in normalized]
+            filters["whitelist_patterns"] = remaining
+            save_filters(filters)
+            write_status({"updatedAt": now_jst_text(), "lastAction": "remove_whitelist", "removed": list(normalized), "whitelistCount": len(remaining)})
+            self._send(200, {"ok": True, "removed": list(normalized), "whitelistCount": len(remaining)})
+            return
+
+        self._send(404, {"ok": False, "error": "not_found"})
 
 
 def main() -> None:

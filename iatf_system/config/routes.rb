@@ -19,6 +19,12 @@ Rails.application.routes.draw do
 
   get 'suppliers/index' => 'suppliers#index', as: 'index_suppliers'
   resources :suppliers do
+    collection do
+      get :workbooks
+      get :download_excel
+      get :uploads
+      post :upload_sources
+    end
     member do
       get 'verify_password/:blob_id', to: 'downloadable#verify_password', as: :supplier_verify_password
     end
@@ -54,6 +60,12 @@ Rails.application.routes.draw do
   get 'products/process_design_plan_report' => 'products#process_design_plan_report', as: 'rubyxl_product'
   get 'products/apqp_plan_report' => 'products#apqp_plan_report', as: 'rubyxl_apqp_plan_report_product'
   get 'products/apqp_approved_report' => 'products#apqp_approved_report', as: 'rubyxl_apqp_approved_report_product'
+  get 'products/audit_followup_status' => 'products#audit_followup_status', as: 'audit_followup_status_product'
+  get 'products/document_reconciliation' => 'products#document_reconciliation', as: 'document_reconciliation_product'
+  get 'products/process_monitoring_measurement' => 'products#process_monitoring_measurement', as: 'process_monitoring_measurement_product'
+  get 'products/audit_followup_status_excel' => 'products#audit_followup_status_excel', as: 'audit_followup_status_excel_product'
+  post 'products/upload_jqa_audit_reports' => 'products#upload_jqa_audit_reports', as: 'upload_jqa_audit_reports_product'
+  get 'products/update_history' => 'products#update_history', as: 'update_history_product'
 
   get 'products/iot' => 'products#iot', as: 'iot_product'
   get 'products/graph' => 'products#graph', as: 'graph_product'

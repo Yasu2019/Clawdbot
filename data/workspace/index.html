@@ -56,12 +56,33 @@
 
         .grid-container {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(clamp(220px, 18vw, 280px), 1fr));
             gap: 24px;
             width: 100%;
-            max-width: 1200px;
-            padding: 0 40px 60px;
+            max-width: 1680px;
+            padding: 0 28px 60px;
             box-sizing: border-box;
+        }
+
+        @media (min-width: 1600px) {
+            .grid-container {
+                grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+                max-width: 1880px;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .grid-container {
+                grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+                padding: 0 20px 48px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .grid-container {
+                grid-template-columns: 1fr;
+                padding: 0 16px 40px;
+            }
         }
 
         .card {
@@ -449,14 +470,14 @@
         </a>
 
         <!-- Dify AI Workflow (V3) -->
-        <a href="http://localhost:80" class="card" target="_blank" rel="noopener">
+        <a href="http://localhost:8092" class="card" target="_blank" rel="noopener">
             <img class="card-icon-img" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@main/png/dify.png"
                 onerror="this.outerHTML='<span class=card-icon>🧩</span>'" alt="Dify">
             <h2 class="card-title">Dify Workflow Engine</h2>
             <p class="card-desc">Advanced RAG & AI workflow orchestration. Create complex agents with visual logic and
                 local model integration.</p>
             <div class="card-meta">
-                <span class="port-badge">Port 80</span>
+                <span class="port-badge">Port 8092</span>
                 <span class="status-indicator"><span class="status-dot"></span>V3 Core</span>
             </div>
         </a>
@@ -522,6 +543,17 @@
             </div>
         </a>
 
+        <!-- Learning Memory -->
+        <a href="apps/learning_memory/index.html" class="card" target="_blank" rel="noopener">
+            <span class="card-icon">LM</span>
+            <h2 class="card-title">Learning Memory</h2>
+            <p class="card-desc">Nested Learning console for memory search plus Gmail ingest range, SQLite and FTS counts, learning memory sync visibility, and case, email, quality, improvement, and CAE comparisons.</p>
+            <div class="card-meta">
+                <span class="port-badge">Port 8110 / Local App</span>
+                <span class="status-indicator"><span class="status-dot"></span>Prototype</span>
+            </div>
+        </a>
+
         <!-- Paperless NGX -->
         <a href="http://localhost:8000" class="card" target="_blank">
             <img class="card-icon-img"
@@ -577,15 +609,28 @@
             </div>
         </a>
 
-        <!-- IATF System (Ruby on Rails) -->
-        <a href="http://localhost:3000" class="card" target="_blank" rel="noopener">
+        <!-- IATF System (Ruby on Rails) - 開発環境 -->
+        <a href="http://localhost:3000/users/sign_in" class="card host-aware-link" data-port="3000" data-path="/users/sign_in" rel="noopener">
             <img class="card-icon-img"
                 src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@main/png/ruby-on-rails.png"
-                onerror="this.outerHTML='<span class=card-icon>🛤️</span>'" alt="IATF Rails">
-            <h2 class="card-title">IATF System (Rails)</h2>
-            <p class="card-desc">Ruby on Rails core system for IATF 16949 compliance and quality document control.</p>
+                onerror="this.outerHTML='<span class=card-icon>🛤️</span>'" alt="IATF Rails Development">
+            <h2 class="card-title">IATF System (Rails) 開発</h2>
+            <p class="card-desc">Ruby on Rails の開発環境です。まずログイン画面を開きます。</p>
             <div class="card-meta">
                 <span class="port-badge">Port: 3000</span>
+                <span class="status-indicator"><span class="status-dot"></span>Online</span>
+            </div>
+        </a>
+
+        <!-- IATF System (Ruby on Rails) - 本番環境 -->
+        <a href="http://localhost:3003/users/sign_in" class="card host-aware-link" data-port="3003" data-path="/users/sign_in" rel="noopener">
+            <img class="card-icon-img"
+                src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@main/png/ruby-on-rails.png"
+                onerror="this.outerHTML='<span class=card-icon>🛤️</span>'" alt="IATF Rails Production">
+            <h2 class="card-title">IATF System (Rails) 本番</h2>
+            <p class="card-desc">Ruby on Rails の本番環境です。まずログイン画面を開きます。</p>
+            <div class="card-meta">
+                <span class="port-badge">Port: 3003</span>
                 <span class="status-indicator"><span class="status-dot"></span>Online</span>
             </div>
         </a>
@@ -845,6 +890,7 @@
             </div>
         </a>
     </div>
+    <script src="./portal_health.js"></script>
 </body>
 
 </html>

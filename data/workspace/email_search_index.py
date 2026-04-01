@@ -39,12 +39,14 @@ EMAIL_ROOT = WORKSPACE_ROOT / "paperless_consume" / "email"
 DB_PATH = WORKSPACE_ROOT / "email_search.db"
 STATE_PATH = WORKSPACE_ROOT / "email_search_state.json"
 STATUS_PATH = WORKSPACE_ROOT / "email_search_harness_status.json"
+FILTER_PATH = WORKSPACE_ROOT / "email_rag_sender_filters.json"
 TOKEN_PATH = WORKSPACE_ROOT / "token.json"
 LEGACY_TOKEN_PATH = Path("/home/node/clawd/../work/token.json")
 CREDS_PATH = WORKSPACE_ROOT / "credentials.json"
 LEGACY_CREDS_PATH = Path("/home/node/clawd/../workspace/credentials.json")
 TIMEOUT = 30
 USER_AGENT = "claw-email-search-index/1.0"
+TASK_FILTER_CACHE: Optional[dict] = None
 TASK_KEYWORDS = (
     "依頼",
     "お願い",
@@ -53,14 +55,173 @@ TASK_KEYWORDS = (
     "提出",
     "回答",
     "返信",
-    "確認",
-    "ご確認",
-    "ご連絡",
     "送付",
     "締切",
     "期限",
     "期日",
     "至急",
+    "見積り依頼",
+    "見積もり依頼",
+)
+TASK_STRONG_PATTERNS = (
+    r"ご対応(?:のほど)?(?:お願いします|お願いいたします|願います)",
+    r"対応(?:を)?(?:お願いします|お願いいたします|願います)",
+    r"(?:までに|迄に).{0,20}(?:回答|返信|提出|送付|確認|対応)",
+    r"(?:回答|返信|提出|送付|確認|対応).{0,20}(?:まで|期限|期日|締切)",
+    r"(?:ご確認|確認)(?:を)?(?:お願いします|お願いいたします|願います)",
+    r"(?:再確認|内容確認)(?:を)?(?:お願いします|お願いいたします|願います)",
+    r"(?:ご確認頂きたく|ご確認いただきたく)",
+    r"(?:資料|見積|データ|写真|回答書).{0,20}(?:送付|提出|共有)",
+)
+TASK_EXPLICIT_PATTERNS = (
+    r"(?:までに|迄に)",
+    r"(?:期限|締切|期日)",
+    r"至急",
+    r"(?:ご|御)?対応(?:のほど)?(?:お願いします|願います|お願いいたします)",
+    r"(?:ご|御)?提出(?:のほど)?(?:お願いします|願います|お願いいたします)",
+    r"(?:ご|御)?送付(?:のほど)?(?:お願いします|願います|お願いいたします)",
+    r"(?:ご|御)?返信(?:のほど)?(?:お願いします|願います|お願いいたします)",
+    r"(?:ご|御)?回答(?:のほど)?(?:お願いします|願います|お願いいたします)",
+    r"(?:ご|御)?確認(?:を)?(?:お願いします|願います|お願いいたします)",
+    r"(?:再確認|内容確認)(?:を)?(?:お願いします|願います|お願いいたします)",
+)
+BUSINESS_MARKER_PATTERNS = (
+    r"(?:株式会社|有限会社|御中|各位|様|さん|殿)",
+    r"(?:お疲れ様です|お世話になっております|いつもお世話になっております)",
+    r"(?:ご確認頂きたく|ご確認をお願い|対応お願い|ご対応お願い|ご連絡いたします)",
+    r"^(?:re:|fw:|fwd:)",
+    r"【(?:社内用|見積|要件定義|不具合|依頼|提出|会議|監査|クレーム)",
+)
+NOISE_SUBJECT_KEYWORDS = (
+    "メールマガジン",
+    "メルマガ",
+    "ニュース",
+    "News",
+    "号外",
+    "キャンペーン",
+    "PR",
+    "ご案内",
+    "お知らせ",
+    "ご紹介",
+    "おすすめ",
+    "特集",
+    "リリース情報",
+    "お得",
+    "限定配信",
+    "オンライン開催",
+    "相談会",
+    "セミナー",
+    "アンケート",
+)
+NOISE_BODY_KEYWORDS = (
+    "配信停止",
+    "メールマガジン",
+    "ニュースレター",
+    "本メールは",
+    "このメールは",
+    "いつもご利用いただきありがとうございます",
+    "いつもご利用いただき誠にありがとうございます",
+    "ご登録いただいた方にお送りしています",
+    "配信を希望された方",
+    "配信をご希望",
+    "ブラウザのアドレス欄に貼り付け",
+    "会員登録",
+    "特設ページ",
+    "詳しくはこちら",
+    "おすすめ情報",
+    "広告",
+    "PR:",
+    "\"@type\":\"PromotionCard\"",
+    "おすすめする",
+    "人気エリア",
+)
+NOISE_SENDER_PATTERNS = (
+    r"(?i)\bno[\-_]?reply\b",
+    r"(?i)\bnoreply@",
+    r"(?i)\bnews@",
+    r"(?i)\bmailmagazine@",
+    r"(?i)\bnewsletter@",
+)
+HARD_NOISE_SENDER_SUBSTRINGS = (
+    "news@service.muumuu-domain.com",
+    "muumuu-domain.com",
+    "bizcon@onamae.com",
+    "infomail@onamae.com",
+    "announce@onamae.com",
+    "noreply@jobtalk.jp",
+    "jobtalk.jp",
+    "googleplaypromo-noreply@google.com",
+    "cloudplatform-noreply@google.com",
+    "googleplay-noreply@google.com",
+    "news-googleplay@google.com",
+    "no-reply@dropbox.com",
+    "info@japanet.co.jp",
+    "japanet.co.jp",
+    "bakuyasu.ai@t-suite.jp",
+    "t-suite.jp",
+    "postmaster@alpha-prm.jp",
+    "alpha-prm.jp",
+    "info@sejuku.net",
+    "sejuku.net",
+    "kazei@city.nasushiobara.tochigi.jp",
+)
+NON_TASK_SUBJECT_KEYWORDS = (
+    "実績",
+    "結果",
+    "報告のみ",
+    "ご案内",
+    "お知らせ",
+    "席_",
+    "席位置",
+    "レイアウト",
+    "品質実績報告",
+    "トライ結果",
+    "梱包写真",
+    "TRY",
+    "初動品",
+    "訪問の御礼",
+    "原価算出",
+    "実績",
+    "梱包写真",
+    "更新のご連絡",
+    "Mail System Error",
+    "Returned Mail",
+    "Password Notification",
+    "次回予定",
+    "トライ結果",
+    "会議開催",
+)
+INFORMATION_ONLY_PATTERNS = (
+    r"(?:ありがとうございます|ありがとうございました|誠にありがとうございます)",
+    r"(?:送付いたします|送付致します|共有します|共有いたします|ご連絡いたします)",
+    r"(?:実績|結果)(?:を)?(?:送付|共有|報告|連絡)",
+    r"(?:問題ありません|問題ございません)",
+    r"(?:よろしくお願いいたします|宜しくお願い致します|以上、よろしくお願いいたします)",
+    r"(?:ご報告(?:いたします|致します)|報告いたします)",
+    r"(?:添付(?:にて|で)?送付(?:いたします|致します|します)|送ります)",
+    r"(?:送付致します|送付いたします|送付します)",
+    r"(?:ご連絡致します|ご連絡いたします|ご連絡します)",
+    r"(?:報告致します|報告いたします|報告します)",
+    r"(?:ありがとうございます|有難うございます|承知しました|かしこまりました)",
+    r"(?:算出致しました|算出いたしました|算出しました)",
+    r"(?:社内手続きを進めさせていただきます)",
+    r"(?:ご回答ありがとうございます|早速のご返信ありがとうございます)",
+    r"(?:内容を確認させていただきました)",
+    r"(?:入力致しました|入力いたしました|入力しました)",
+    r"(?:照合致します|照合いたします|照合します)",
+    r"(?:送付されてきましたので)",
+    r"(?:ご連絡が遅くなり申し訳)",
+    r"(?:回答をさせていただきます)",
+    r"(?:お問い合わせありがとうございます)",
+)
+REQUEST_SIGNAL_PATTERNS = (
+    r"(?:お願い(?:します|いたします|致します)?|お願いすることできますか|お願いできますか|お願いしたく)",
+    r"(?:ご確認|確認を|確認のほど)",
+    r"(?:ご回答|回答を|回答のほど)",
+    r"(?:ご返信|返信を|返信のほど)",
+    r"(?:ご提出|提出を|提出のほど)",
+    r"(?:ご送付|送付を|送付のほど)",
+    r"(?:ご教示|教えてください|確認いただきますよう)",
 )
 REPLY_DONE_KEYWORDS = ("回答しました", "回答済", "送付しました", "送付済", "返信しました", "対応しました")
 STATUS_OPEN = "open"
@@ -88,6 +249,26 @@ def save_json(path: Path, payload: dict) -> None:
 
 def write_status(payload: dict) -> None:
     save_json(STATUS_PATH, payload)
+
+
+def load_task_filters() -> dict:
+    global TASK_FILTER_CACHE
+    if TASK_FILTER_CACHE is not None:
+        return TASK_FILTER_CACHE
+    payload = {}
+    for candidate in [FILTER_PATH, Path(__file__).resolve().parent / "email_rag_sender_filters.json"]:
+        if candidate.exists():
+            try:
+                payload = json.loads(candidate.read_text(encoding="utf-8"))
+                break
+            except Exception:
+                continue
+    TASK_FILTER_CACHE = {
+        "whitelist_patterns": [str(v).lower() for v in (payload.get("whitelist_patterns") or []) if str(v).strip()],
+        "newsletter_patterns": [str(v).lower() for v in (payload.get("newsletter_patterns") or []) if str(v).strip()],
+        "blacklist_patterns": [str(v).lower() for v in (payload.get("blacklist_patterns") or []) if str(v).strip()],
+    }
+    return TASK_FILTER_CACHE
 
 
 def decode_mime_words(value: Optional[str]) -> str:
@@ -165,6 +346,11 @@ def normalize_space(value: str) -> str:
     return re.sub(r"\s+", " ", value or "").strip()
 
 
+def is_reply_like_subject(subject: str) -> bool:
+    normalized = normalize_space(subject).lower()
+    return bool(re.search(r"(^|[\\]\\】）]\\s*)(re:|fw:|fwd:)", normalized)) or normalized.startswith(("re:", "fw:", "fwd:"))
+
+
 def parse_email_datetime(value: str) -> Optional[datetime]:
     text = normalize_space(value)
     if not text:
@@ -195,24 +381,154 @@ def infer_thread_key(record: EmailRecord) -> str:
 
 
 def looks_like_task(record: EmailRecord) -> bool:
-    haystack = normalize_space("\n".join([record.subject, record.body_text, record.snippet]))
+    subject = normalize_space(record.subject)
+    body = normalize_space(record.body_text or record.snippet)
+    sender = normalize_space(record.sender)
+    haystack = normalize_space("\n".join([subject, body, record.snippet]))
+    haystack_lower = haystack.lower()
+    sender_lower = sender.lower()
+    filters = load_task_filters()
+    if any(token in sender_lower for token in HARD_NOISE_SENDER_SUBSTRINGS):
+        return False
+    strong_task = any(re.search(pattern, haystack) for pattern in TASK_STRONG_PATTERNS)
+    noise_hits = 0
+    trusted_sender = any(pattern in haystack_lower or pattern in sender_lower for pattern in filters["whitelist_patterns"])
+    filter_noise = (
+        any(pattern in haystack_lower or pattern in sender_lower for pattern in filters["newsletter_patterns"])
+        or any(pattern in haystack_lower or pattern in sender_lower for pattern in filters["blacklist_patterns"])
+    )
+    hard_noise_subject = any(token in subject for token in ("PE-BANK", "限定配信", "オンライン開催", "アンケート", "セミナー"))
+    business_marker = any(re.search(pattern, haystack, flags=re.IGNORECASE) for pattern in BUSINESS_MARKER_PATTERNS)
+    if any(keyword in subject for keyword in NOISE_SUBJECT_KEYWORDS):
+        noise_hits += 1
+    if any(keyword in body for keyword in NOISE_BODY_KEYWORDS):
+        noise_hits += 1
+    if any(re.search(pattern, sender) for pattern in NOISE_SENDER_PATTERNS):
+        noise_hits += 1
+    if filter_noise and not trusted_sender:
+        noise_hits += 2
+    deadline_signal = bool(re.search(r"(までに|期限|締切|期日|本日中|今日中|明日|明後日|今週中|今週末|来週|週明け|月末|営業日)", haystack))
+    explicit_task = any(re.search(pattern, haystack) for pattern in TASK_EXPLICIT_PATTERNS)
+    request_signal = any(re.search(pattern, haystack) for pattern in REQUEST_SIGNAL_PATTERNS)
+    subject_lower = subject.lower()
+    reply_prefix = subject_lower.startswith(("re:", "fw:", "fwd:")) or " fw:" in subject_lower or " re:" in subject_lower or " fwd:" in subject_lower
+    informational_only = (
+        any(keyword in subject for keyword in NON_TASK_SUBJECT_KEYWORDS)
+        or any(re.search(pattern, haystack) for pattern in INFORMATION_ONLY_PATTERNS)
+    )
+    if filter_noise and not trusted_sender and not business_marker:
+        return False
+    if hard_noise_subject and filter_noise and not trusted_sender:
+        return False
+    if reply_prefix and not strong_task and not explicit_task and not deadline_signal and not request_signal:
+        return False
+    if informational_only and not strong_task and not explicit_task and not deadline_signal and not request_signal:
+        return False
+    if noise_hits >= 2 and not deadline_signal:
+        return False
+    if noise_hits >= 1 and not strong_task and not explicit_task:
+        return False
     if any(keyword in haystack for keyword in TASK_KEYWORDS):
         return True
-    return bool(re.search(r"(までに|期限|締切|期日|要約|提出|確認|回答|返信)", haystack))
+    return strong_task or explicit_task or bool(re.search(r"(までに|期限|締切|期日|要約|提出|確認|回答|返信)", haystack))
 
 
 def infer_relative_due_date(text: str, base_dt: datetime) -> Optional[datetime]:
+    weekday_map = {
+        "月": 0,
+        "火": 1,
+        "水": 2,
+        "木": 3,
+        "金": 4,
+        "土": 5,
+        "日": 6,
+    }
+    normalized = normalize_space(text)
+
+    if "本日中" in normalized or "今日中" in normalized or "当日中" in normalized:
+        return base_dt
     if "明日" in text:
         return base_dt + timedelta(days=1)
     if "今日" in text or "本日" in text:
         return base_dt
     if "明後日" in text:
         return base_dt + timedelta(days=2)
+    if "至急" in normalized:
+        return base_dt
+    if "毎日" in normalized:
+        return base_dt
     if "来週" in text:
         return base_dt + timedelta(days=7)
+    if "今週末" in normalized or "週末" in normalized:
+        return base_dt + timedelta(days=max(0, 4 - base_dt.weekday()))
     if "今週中" in text:
         return base_dt + timedelta(days=max(0, 4 - base_dt.weekday()))
+    if "来週中" in normalized:
+        return base_dt + timedelta(days=(11 - base_dt.weekday()))
+    if "週明け" in normalized:
+        return base_dt + timedelta(days=max(1, 7 - base_dt.weekday()))
+    if "毎月" in normalized or "月次" in normalized or "月度" in normalized:
+        next_month = base_dt.replace(day=28) + timedelta(days=4)
+        return next_month - timedelta(days=next_month.day)
+    if "今月末" in normalized or "月末" in normalized:
+        next_month = base_dt.replace(day=28) + timedelta(days=4)
+        return next_month - timedelta(days=next_month.day)
+    if "年度末" in normalized:
+        year = base_dt.year
+        fiscal_end = datetime(year, 3, 31, tzinfo=timezone.utc)
+        if base_dt.astimezone(timezone.utc) > fiscal_end:
+            fiscal_end = datetime(year + 1, 3, 31, tzinfo=timezone.utc)
+        return fiscal_end
+    if "年内" in normalized:
+        return datetime(base_dt.year, 12, 31, tzinfo=timezone.utc)
+    if "月初" in normalized:
+        month = base_dt.month + 1
+        year = base_dt.year
+        if month > 12:
+            month = 1
+            year += 1
+        return datetime(year, month, 1, tzinfo=timezone.utc)
+    if "上旬" in normalized:
+        return base_dt.replace(day=10)
+    if "中旬" in normalized:
+        return base_dt.replace(day=20)
+    if "下旬" in normalized:
+        next_month = base_dt.replace(day=28) + timedelta(days=4)
+        month_end = next_month - timedelta(days=next_month.day)
+        return month_end.replace(day=min(25, month_end.day))
+
+    weekday_match = re.search(r"(今週|来週)?([月火水木金土日])曜(?:日)?(?:まで|中|迄)?", normalized)
+    if weekday_match:
+        week_prefix = weekday_match.group(1) or ""
+        target_weekday = weekday_map[weekday_match.group(2)]
+        days_ahead = target_weekday - base_dt.weekday()
+        if week_prefix == "来週":
+            days_ahead += 7 if days_ahead >= 0 else 14
+        elif days_ahead < 0:
+            days_ahead += 7
+        return base_dt + timedelta(days=days_ahead)
+
+    business_match = re.search(r"(\d{1,2})営業日(?:以内|まで)", normalized)
+    if business_match:
+        remaining = int(business_match.group(1))
+        candidate = base_dt
+        while remaining > 0:
+            candidate += timedelta(days=1)
+            if candidate.weekday() < 5:
+                remaining -= 1
+        return candidate
     return None
+
+
+def normalize_candidate_due_date(candidate: datetime, base_dt: datetime) -> str:
+    normalized_base = base_dt.astimezone(timezone.utc)
+    normalized_candidate = candidate.astimezone(timezone.utc)
+    if normalized_candidate < normalized_base - timedelta(days=32):
+        try:
+            normalized_candidate = normalized_candidate.replace(year=normalized_candidate.year + 1)
+        except ValueError:
+            normalized_candidate = normalized_candidate + timedelta(days=365)
+    return normalized_candidate.strftime("%Y-%m-%d")
 
 
 def extract_due_date(text: str, base_dt: datetime) -> str:
@@ -230,9 +546,7 @@ def extract_due_date(text: str, base_dt: datetime) -> str:
         year = base_dt.year
         try:
             candidate = datetime(year, month, day, tzinfo=timezone.utc)
-            if candidate < base_dt - timedelta(days=32):
-                candidate = datetime(year + 1, month, day, tzinfo=timezone.utc)
-            return candidate.strftime("%Y-%m-%d")
+            return normalize_candidate_due_date(candidate, base_dt)
         except ValueError:
             return ""
     match = re.search(r"(?<!\d)(\d{1,2})月(\d{1,2})日", normalized)
@@ -242,9 +556,17 @@ def extract_due_date(text: str, base_dt: datetime) -> str:
         year = base_dt.year
         try:
             candidate = datetime(year, month, day, tzinfo=timezone.utc)
-            if candidate < base_dt - timedelta(days=32):
-                candidate = datetime(year + 1, month, day, tzinfo=timezone.utc)
-            return candidate.strftime("%Y-%m-%d")
+            return normalize_candidate_due_date(candidate, base_dt)
+        except ValueError:
+            return ""
+    match = re.search(r"(?<!\d)(\d{1,2})日(?:まで|迄|必着|締切|締め|期限)", normalized)
+    if match:
+        day = int(match.group(1))
+        year = base_dt.year
+        month = base_dt.month
+        try:
+            candidate = datetime(year, month, day, tzinfo=timezone.utc)
+            return normalize_candidate_due_date(candidate, base_dt)
         except ValueError:
             return ""
     relative = infer_relative_due_date(normalized, base_dt)
@@ -293,11 +615,64 @@ def infer_status(reply_status: str, due_date: str) -> str:
 def extract_task_record(record: EmailRecord) -> Optional[TaskRecord]:
     if not looks_like_task(record):
         return None
-    body_summary = summarize_request(record.body_text or record.snippet)
+    body_text = record.body_text or record.snippet
+    body_summary = summarize_request(body_text)
     base_dt = parse_email_datetime(record.email_date) or datetime.now(timezone.utc)
     request_date = base_dt.astimezone().strftime("%Y-%m-%d")
-    due_date = extract_due_date("\n".join([record.subject, body_summary]), base_dt)
+    subject_lower = normalize_space(record.subject).lower()
+    reply_like_subject = subject_lower.startswith(("re:", "fw:", "fwd:")) or " fw:" in subject_lower or " re:" in subject_lower or " fwd:" in subject_lower
+    if reply_like_subject:
+        # Reply/forward subjects often contain old thread dates such as "3/18 ..."
+        # which are not the current request deadline. Ignore subject dates for replies.
+        due_sources = [
+            body_summary,
+            normalize_space(body_text)[:2000],
+            normalize_space(record.snippet),
+        ]
+    else:
+        due_sources = [
+            record.subject,
+            body_summary,
+            normalize_space(body_text)[:2000],
+            normalize_space(record.snippet),
+        ]
+    due_date = ""
+    for source in due_sources:
+        if not source:
+            continue
+        due_date = extract_due_date(source, base_dt)
+        if due_date:
+            break
     reply_status = infer_reply_status(record, body_summary)
+    info_only_body = any(re.search(pattern, body_summary) for pattern in INFORMATION_ONLY_PATTERNS)
+    request_signal_body = any(re.search(pattern, body_summary) for pattern in REQUEST_SIGNAL_PATTERNS)
+    explicit_task_body = any(re.search(pattern, body_summary) for pattern in TASK_STRONG_PATTERNS)
+    due_dt: Optional[datetime] = None
+    if due_date:
+        try:
+            due_dt = datetime.strptime(due_date[:10], "%Y-%m-%d").replace(tzinfo=timezone.utc)
+        except Exception:
+            due_dt = None
+    if due_dt and due_dt.date() < (base_dt - timedelta(days=7)).date():
+        if reply_like_subject:
+            return None
+        if info_only_body and not request_signal_body:
+            return None
+    if info_only_body and not request_signal_body and not explicit_task_body and not due_date:
+        return None
+    subject_lower = normalize_space(record.subject).lower()
+    body_lower = body_summary.lower()
+    try_like = ("try" in subject_lower or "初動品" in record.subject)
+    try_info_only = ("送付" in body_summary or "スペック内" in body_summary or "報告" in body_summary) and not request_signal_body
+    if try_like and try_info_only and not due_date:
+        return None
+    # Recurring schedule cues are weak task signals; keep them only when the body still
+    # looks like an actionable request after due-date extraction.
+    if not due_date and reply_status == STATUS_UNKNOWN:
+        recurring_only = bool(re.search(r"(毎日|毎月|月次|月度|年度末|年内|適宜)", f"{record.subject}\n{body_summary}"))
+        weak_request = not any(re.search(pattern, body_summary) for pattern in TASK_STRONG_PATTERNS)
+        if recurring_only and weak_request and not any(re.search(pattern, body_summary) for pattern in REQUEST_SIGNAL_PATTERNS):
+            return None
     return TaskRecord(
         source=record.source,
         source_id=record.source_id,

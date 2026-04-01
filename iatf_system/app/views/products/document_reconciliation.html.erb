@@ -1,0 +1,213 @@
+<% report = @document_reconciliation || {} %>
+<% summary = report[:summary] || {} %>
+<% core_mismatches = Array(report[:core_mismatches]) %>
+<% department_mismatches = Array(report[:department_mismatches]) %>
+<% numbering_reference = report[:numbering_reference] || {} %>
+
+<div class="w-full p-6">
+  <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between mb-6">
+    <div>
+      <h1 class="font-bold text-4xl">文書照合一覧</h1>
+      <p class="text-sm text-gray-600 mt-2">
+        QM001付表4、記録管理規定 表1、各部門台帳を rule-based で照合し、不整合を一覧化します。
+      </p>
+      <% if report[:generated_at].present? %>
+        <p class="text-xs text-gray-500 mt-2">生成日時: <%= report[:generated_at] %></p>
+      <% end %>
+    </div>
+    <div class="flex flex-wrap gap-2">
+      <%= link_to "TOPへ戻る", products_path, class: "rounded-lg py-2 px-4 bg-gray-100 font-medium" %>
+      <%= link_to "更新履歴", update_history_product_path, class: "rounded-lg py-2 px-4 bg-slate-700 text-white font-medium" %>
+    </div>
+  </div>
+
+  <% if report[:error_message].present? %>
+    <div class="mb-6 rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-red-700">
+      <%= report[:error_message] %>
+    </div>
+  <% end %>
+
+  <div class="grid grid-cols-1 md:grid-cols-5 gap-3 mb-6">
+    <div class="border rounded-lg bg-white p-4">
+      <div class="text-xs text-gray-500">QM001基準件数</div>
+      <div class="text-2xl font-bold"><%= summary[:qm_entry_count].to_i %></div>
+    </div>
+    <div class="border rounded-lg bg-white p-4">
+      <div class="text-xs text-gray-500">記録管理規定件数</div>
+      <div class="text-2xl font-bold"><%= summary[:record_rule_count].to_i %></div>
+    </div>
+    <div class="border rounded-lg bg-white p-4">
+      <div class="text-xs text-gray-500">部門台帳件数</div>
+      <div class="text-2xl font-bold"><%= summary[:department_entry_count].to_i %></div>
+    </div>
+    <div class="border rounded-lg bg-white p-4">
+      <div class="text-xs text-gray-500">3帳票の不整合</div>
+      <div class="text-2xl font-bold text-red-600"><%= summary[:core_mismatch_count].to_i %></div>
+    </div>
+    <div class="border rounded-lg bg-white p-4">
+      <div class="text-xs text-gray-500">部門台帳の不整合</div>
+      <div class="text-2xl font-bold text-amber-600"><%= summary[:department_mismatch_count].to_i %></div>
+    </div>
+  </div>
+
+  <div class="mb-8 rounded-lg border bg-white p-4">
+    <h2 class="text-2xl font-bold mb-3">基準ファイル</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+      <div class="rounded border p-3">
+        <div class="font-semibold">QM001付表4</div>
+        <div class="text-gray-600"><%= report.dig(:source_files, :qm001_appendix4, :name) %></div>
+      </div>
+      <div class="rounded border p-3">
+        <div class="font-semibold">記録管理規定 表1</div>
+        <div class="text-gray-600"><%= report.dig(:source_files, :record_rule_table, :name) %></div>
+      </div>
+    </div>
+    <div class="mt-4 rounded border p-3">
+      <div class="font-semibold mb-1">記録の採番一覧.doc</div>
+      <div class="text-sm text-gray-700">
+        状態: <span class="font-semibold"><%= numbering_reference[:status] || "unknown" %></span>
+      </div>
+      <div class="text-sm text-gray-600 mt-1"><%= numbering_reference[:reason] %></div>
+    </div>
+  </div>
+
+  <div class="mb-8">
+    <div class="flex justify-between items-end mb-3">
+      <div>
+        <h2 class="text-2xl font-bold">① QM001付表4 と ② 記録管理規定 表1 の照合</h2>
+        <p class="text-sm text-gray-600">帳票名、記録様式番号、保管期間の整合を family 単位で比較しています。</p>
+      </div>
+    </div>
+
+    <div class="overflow-auto border rounded-lg bg-white">
+      <table class="min-w-full text-sm border-collapse">
+        <thead class="bg-slate-100">
+          <tr>
+            <th class="border px-2 py-2">不整合種別</th>
+            <th class="border px-2 py-2">family</th>
+            <th class="border px-2 py-2">QM001名</th>
+            <th class="border px-2 py-2">QM001番号</th>
+            <th class="border px-2 py-2">QM001保管期間</th>
+            <th class="border px-2 py-2">表1名</th>
+            <th class="border px-2 py-2">表1番号</th>
+            <th class="border px-2 py-2">表1保管期間</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% core_mismatches.each do |item| %>
+            <tr>
+              <td class="border px-2 py-2"><%= item[:type] %></td>
+              <td class="border px-2 py-2"><%= item[:family_name] %></td>
+              <td class="border px-2 py-2 whitespace-pre-wrap"><%= item[:qm_name] %></td>
+              <td class="border px-2 py-2"><%= item[:qm_number] %></td>
+              <td class="border px-2 py-2"><%= item[:qm_retention] %></td>
+              <td class="border px-2 py-2 whitespace-pre-wrap"><%= item[:rule_name] %></td>
+              <td class="border px-2 py-2"><%= item[:rule_number] %></td>
+              <td class="border px-2 py-2"><%= item[:rule_retention] %></td>
+            </tr>
+          <% end %>
+          <% if core_mismatches.empty? %>
+            <tr>
+              <td colspan="8" class="border px-2 py-6 text-center text-gray-500">現在検出されている不整合はありません。</td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <% department_mismatches.each do |department| %>
+    <% issue_count = department[:missing_in_department].length + department[:missing_in_baseline].length + department[:number_mismatches].length %>
+    <div class="mb-8">
+      <div class="flex flex-col gap-2 md:flex-row md:items-end md:justify-between mb-3">
+        <div>
+          <h2 class="text-2xl font-bold"><%= department[:department] %></h2>
+          <p class="text-sm text-gray-600">
+            QM001基準 <%= department[:baseline_count] %> 件 / 台帳 <%= department[:ledger_count] %> 件 / 不整合 <%= issue_count %> 件
+          </p>
+        </div>
+      </div>
+
+      <div class="mb-4 rounded-lg border bg-slate-50 p-4">
+        <div class="font-semibold mb-2">採用したシート</div>
+        <div class="text-sm text-gray-700 space-y-2">
+          <% Array(department[:adopted_sheets]).each do |sheet| %>
+            <div class="rounded border bg-white px-3 py-2">
+              <div><span class="font-medium"><%= sheet[:source_file] %></span> / <%= sheet[:sheet] %></div>
+              <div class="text-gray-500">
+                抽出件数 <%= sheet[:entry_count] %> / header row <%= sheet[:header_row] %> /
+                name col <%= sheet[:name_column_index] %> / number col <%= sheet[:number_column_index] %>
+                <% if sheet[:retention_column_index].present? %>
+                  / retention col <%= sheet[:retention_column_index] %>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+          <% if Array(department[:adopted_sheets]).empty? %>
+            <div class="text-gray-500">採用シートはまだありません。</div>
+          <% end %>
+        </div>
+
+        <details class="mt-3">
+          <summary class="cursor-pointer text-sm font-medium text-slate-700">確認したファイルと全シート名</summary>
+          <div class="mt-2 text-sm text-gray-700 space-y-2">
+            <% Array(department[:inspected_files]).each do |file| %>
+              <div class="rounded border bg-white px-3 py-2">
+                <div class="font-medium"><%= file[:source_file] %></div>
+                <div class="text-gray-500"><%= Array(file[:sheet_names]).join(" / ") %></div>
+              </div>
+            <% end %>
+          </div>
+        </details>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div class="border rounded-lg bg-white p-4">
+          <h3 class="font-semibold mb-2 text-red-700">台帳に見つからない QM001 基準</h3>
+          <ul class="text-sm space-y-2">
+            <% department[:missing_in_department].each do |item| %>
+              <li class="border-b pb-2">
+                <div><%= item[:name] %></div>
+                <div class="text-gray-500"><%= item[:number] %> / <%= item[:retention] %></div>
+              </li>
+            <% end %>
+            <% if department[:missing_in_department].empty? %>
+              <li class="text-gray-500">なし</li>
+            <% end %>
+          </ul>
+        </div>
+
+        <div class="border rounded-lg bg-white p-4">
+          <h3 class="font-semibold mb-2 text-amber-700">台帳にだけ存在する項目</h3>
+          <ul class="text-sm space-y-2">
+            <% department[:missing_in_baseline].each do |item| %>
+              <li class="border-b pb-2">
+                <div><%= item[:name] %></div>
+                <div class="text-gray-500"><%= item[:number] %> / <%= item[:source_file] %> / <%= item[:sheet] %></div>
+              </li>
+            <% end %>
+            <% if department[:missing_in_baseline].empty? %>
+              <li class="text-gray-500">なし</li>
+            <% end %>
+          </ul>
+        </div>
+
+        <div class="border rounded-lg bg-white p-4">
+          <h3 class="font-semibold mb-2 text-sky-700">番号不一致</h3>
+          <ul class="text-sm space-y-2">
+            <% department[:number_mismatches].each do |item| %>
+              <li class="border-b pb-2">
+                <div class="font-medium"><%= item[:ledger_name] %></div>
+                <div class="text-gray-500">QM001: <%= item[:baseline_number] %></div>
+                <div class="text-gray-500">台帳: <%= item[:ledger_number] %> / <%= item[:source_file] %> / <%= item[:sheet] %></div>
+              </li>
+            <% end %>
+            <% if department[:number_mismatches].empty? %>
+              <li class="text-gray-500">なし</li>
+            <% end %>
+          </ul>
+        </div>
+      </div>
+    </div>
+  <% end %>
+</div>

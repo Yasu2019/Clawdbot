@@ -33,9 +33,19 @@ class MetricsEngine:
             if lbl["is_nva"]:
                 nva_time += dur
 
-        kpi["inspect_ratio"] = round(label_times.get("INSPECT", 0) / max(total_time, 0.01), 3)
-        kpi["walking_ratio"] = round(label_times.get("MOVE", 0) / max(total_time, 0.01), 3)
-        kpi["waiting_ratio"] = round(label_times.get("WAIT", 0) / max(total_time, 0.01), 3)
+        kpi["inspect_ratio"] = round(
+            (label_times.get("INSPECT", 0) + label_times.get("I", 0)) / max(total_time, 0.01), 3
+        )
+        kpi["walking_ratio"] = round(
+            (label_times.get("MOVE", 0) + label_times.get("TE", 0) + label_times.get("TL", 0))
+            / max(total_time, 0.01),
+            3,
+        )
+        kpi["waiting_ratio"] = round(
+            (label_times.get("WAIT", 0) + label_times.get("ADe", 0) + label_times.get("UDe", 0))
+            / max(total_time, 0.01),
+            3,
+        )
         kpi["nva_ratio"] = round(nva_time / max(total_time, 0.01), 3)
 
         # Hand travel (total displacement of right wrist)
@@ -48,12 +58,19 @@ class MetricsEngine:
         kpi["tilt_actions"] = self._count_tilt_actions(pose_data)
         kpi["tool_switch_count"] = self._count_label_switches(labels)
         kpi["regrasp_count"] = self._count_regrasp(labels)
-        kpi["carry_count"] = sum(1 for l in labels if l["label"] == "MOVE")
+        kpi["carry_count"] = sum(1 for l in labels if l["label"] in ("MOVE", "TL"))
         kpi["roundtrip_count"] = 0  # Needs zone data (v0.2)
         kpi["search_ratio"] = round(label_times.get("SEARCH", 0) / max(total_time, 0.01), 3)
-        kpi["static_posture_ratio"] = round(label_times.get("HOLD", 0) / max(total_time, 0.01), 3)
+        kpi["static_posture_ratio"] = round(
+            (label_times.get("HOLD", 0) + label_times.get("H", 0)) / max(total_time, 0.01), 3
+        )
         kpi["hold_ratio"] = kpi["static_posture_ratio"]
         kpi["overlap_ratio"] = 0.0  # Needs multi-worker (v0.2)
+        kpi["review_required_ratio"] = round(
+            sum(lbl["duration_sec"] for lbl in labels if lbl.get("review_required")) / max(total_time, 0.01),
+            3,
+        )
+        kpi["unknown_ratio"] = round(label_times.get("UNKNOWN", 0) / max(total_time, 0.01), 3)
 
         # Confidence KPIs
         confidences = [lbl.get("confidence", 0.0) for lbl in labels]
@@ -79,6 +96,7 @@ class MetricsEngine:
         kpi["most_efficiency"] = most_result["efficiency"]
         kpi["most_avg_seq_tmu"] = most_result["avg_seq_tmu"]
         kpi["most_sequences"]  = len(most_result["sequences"])
+        kpi["most_review_sequences"] = most_result.get("review_seq_count", 0)
 
         # Ergonomic assessment
         ergo = self._compute_ergo(pose_data)
@@ -163,9 +181,9 @@ class MetricsEngine:
     def _count_recheck_loops(self, labels: list[dict]) -> int:
         loops = 0
         for i in range(2, len(labels)):
-            if (labels[i]["label"] == "INSPECT" and
-                labels[i-1]["label"] != "INSPECT" and
-                labels[i-2]["label"] == "INSPECT"):
+            if (labels[i]["label"] in ("INSPECT", "I") and
+                labels[i-1]["label"] not in ("INSPECT", "I") and
+                labels[i-2]["label"] in ("INSPECT", "I")):
                 loops += 1
         return loops
 
@@ -192,9 +210,9 @@ class MetricsEngine:
     def _count_regrasp(self, labels: list[dict]) -> int:
         count = 0
         for i in range(2, len(labels)):
-            if (labels[i]["label"] == "GET" and
-                labels[i-1]["label"] == "PUT" and
-                labels[i-2]["label"] == "GET"):
+            if (labels[i]["label"] in ("GET", "G") and
+                labels[i-1]["label"] in ("PUT", "P") and
+                labels[i-2]["label"] in ("GET", "G")):
                 count += 1
         return count
 

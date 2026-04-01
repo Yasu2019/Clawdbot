@@ -1,0 +1,319 @@
+<%
+  active_tab = @dataset == "evaluation" ? "evaluation" : "management_plan"
+  tabs = supplier_tabs(active_tab)
+  workbook_title = @workbook.fetch("title")
+  workbook_source = @workbook.fetch("source_name")
+  workbook_exported_at = @workbook.fetch("exported_at")
+  total_sheet_count = @sheets.length
+  active_sheet_rows = @active_rows.length
+  active_sheet_columns = @active_rows.map { |row| row.length }.max || 0
+%>
+
+<style>
+  .supplier-page { max-width: 1480px; margin: 0 auto; }
+  .supplier-hero, .supplier-card, .supplier-table-shell {
+    background: #fff;
+    border: 1px solid #dbe3ef;
+    border-radius: 20px;
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
+  }
+  .supplier-hero { padding: 24px; margin-bottom: 18px; background: linear-gradient(135deg, #ffffff, #f6fbff); }
+  .supplier-eyebrow { margin: 0 0 8px; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #2563eb; }
+  .supplier-title { margin: 0; font-size: 2rem; font-weight: 800; color: #0f172a; }
+  .supplier-lead { margin-top: 10px; color: #475569; line-height: 1.7; }
+  .supplier-actions, .supplier-tab-row, .supplier-sheet-row, .supplier-inline-list { display: flex; flex-wrap: wrap; gap: 10px; }
+  .supplier-actions { margin-top: 16px; }
+  .supplier-button, .supplier-button-secondary, .supplier-tab, .supplier-chip {
+    display: inline-flex; align-items: center; justify-content: center; text-decoration: none; font-weight: 700;
+  }
+  .supplier-button, .supplier-button-secondary { border-radius: 999px; padding: 10px 16px; }
+  .supplier-button { background: linear-gradient(135deg, #059669, #0f766e); color: white; }
+  .supplier-button-secondary { background: #eef2f7; color: #0f172a; }
+  .supplier-tab { border-radius: 999px; padding: 10px 16px; background: #eef2f7; color: #334155; }
+  .supplier-tab.active { background: #2563eb; color: white; }
+  .supplier-chip { border-radius: 999px; padding: 8px 14px; font-size: 0.95rem; background: #f8fafc; color: #334155; border: 1px solid #dbe3ef; }
+  .supplier-chip.active-primary { background: #0f766e; color: white; border-color: #0f766e; }
+  .supplier-chip.active-detail { background: #d97706; color: white; border-color: #d97706; }
+  .supplier-grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+  .supplier-card { padding: 18px; }
+  .supplier-label { color: #64748b; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+  .supplier-value { margin-top: 8px; font-size: 1.8rem; font-weight: 800; color: #0f172a; }
+  .supplier-sub { margin-top: 8px; color: #475569; line-height: 1.6; font-size: 0.92rem; }
+  .supplier-section { margin-top: 18px; }
+  .supplier-section h2 { margin: 0 0 12px; font-size: 1.1rem; color: #0f172a; }
+  .supplier-table-shell { margin-top: 18px; overflow: hidden; }
+  .supplier-table-wrap { overflow: auto; max-height: 70vh; }
+  .supplier-table { width: 100%; border-collapse: separate; border-spacing: 0; min-width: 1180px; font-size: 0.94rem; }
+  .supplier-table col.row-index-col { width: 72px; }
+  .supplier-table col.sheet-col-a { width: 56px; }
+  .supplier-table col.sheet-col-b { width: 78px; }
+  .supplier-table col.sheet-col-c,
+  .supplier-table col.sheet-col-d,
+  .supplier-table col.sheet-col-f,
+  .supplier-table col.sheet-col-j,
+  .supplier-table col.sheet-col-m,
+  .supplier-table col.sheet-col-n,
+  .supplier-table col.sheet-col-o,
+  .supplier-table col.sheet-col-p,
+  .supplier-table col.sheet-col-q,
+  .supplier-table col.sheet-col-t,
+  .supplier-table col.sheet-col-u,
+  .supplier-table col.sheet-col-v { width: 118px; }
+  .supplier-table col.sheet-col-e { width: 84px; }
+  .supplier-table col.sheet-col-g { width: 92px; }
+  .supplier-table col.sheet-col-h { width: 74px; }
+  .supplier-table col.sheet-col-i { width: 78px; }
+  .supplier-table col.sheet-col-k { width: 82px; }
+  .supplier-table col.sheet-col-l { width: 68px; }
+  .supplier-table col.sheet-col-r { width: 72px; }
+  .supplier-table col.sheet-col-s { width: 68px; }
+  .supplier-table col.sheet-col-w { width: 118px; }
+  .supplier-table col.sheet-col-x { width: 72px; }
+  .supplier-table td {
+    border-right: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; padding: 10px 12px; vertical-align: top;
+    white-space: pre-wrap; word-break: break-word; background: white; min-width: 180px; line-height: 1.55;
+  }
+  .supplier-table tr.layout-guide td,
+  .supplier-table tr.layout-header td {
+    border-top: 1px solid #94a3b8;
+    border-left: 1px solid #94a3b8;
+    border-right: 1px solid #94a3b8;
+    border-bottom: 1px solid #94a3b8;
+  }
+  .supplier-table tr.layout-header td { border-bottom: 3px solid #475569; }
+  .supplier-table tr.layout-title td { background: #eff6ff; font-weight: 700; color: #0f172a; }
+  .supplier-table tr.layout-guide td { background: #fff7ed; color: #7c2d12; }
+  .supplier-table tr.layout-header td { background: #e2e8f0; font-weight: 700; color: #0f172a; }
+  .supplier-table tr.company-start td { border-top: 3px solid #0f766e; }
+  .supplier-table tr.company-end td { border-bottom: 3px solid #0f766e; }
+  .supplier-table tr.company-start td:not(.row-index) { background: #f0fdfa; }
+  .supplier-table td.row-index {
+    position: sticky; left: 0; z-index: 2; min-width: 72px; max-width: 72px; text-align: center; background: #f8fafc; color: #64748b; font-weight: 700;
+  }
+  .supplier-table tr.layout-title td.row-index { background: #dbeafe; }
+  .supplier-table tr.layout-guide td.row-index { background: #ffedd5; }
+  .supplier-table tr.layout-header td.row-index { background: #cbd5e1; }
+  .supplier-table tr.company-start td.row-index { background: #ccfbf1; }
+  .supplier-rank-badge { display: inline-flex; align-items: center; gap: 8px; background: #f8fafc; border: 1px solid #dbe3ef; border-radius: 14px; padding: 10px 14px; color: #0f172a; font-weight: 700; }
+  @media (max-width: 768px) {
+    .supplier-title { font-size: 1.5rem; }
+    .supplier-table { min-width: 720px; }
+    .supplier-table td { min-width: 140px; padding: 8px 10px; }
+  }
+</style>
+
+<div class="supplier-page w-full">
+  <% if notice.present? %>
+    <p class="py-2 px-3 bg-green-50 mb-5 text-green-700 font-medium rounded-lg inline-block" id="notice"><%= notice %></p>
+  <% end %>
+
+  <section class="supplier-hero">
+    <div class="supplier-eyebrow">Supplier Workbook Viewer</div>
+    <h1 class="supplier-title"><%= workbook_title %></h1>
+    <p class="supplier-lead">
+      This page is arranged in the order of summary, sheet selection, active sheet info, and table content.
+      Management data is shown with progress totals first, while evaluation data highlights rank and execution status first.
+    </p>
+    <div class="supplier-actions">
+      <%= link_to "Excel Download", supplier_excel_download_path(@dataset), class: "supplier-button" %>
+      <%= link_to "Back to Supplier List", index_suppliers_path, class: "supplier-button-secondary" %>
+    </div>
+  </section>
+
+  <section class="supplier-section">
+    <div class="supplier-tab-row">
+      <% tabs.each do |tab| %>
+        <%= link_to tab[:label], tab[:path], class: "supplier-tab #{'active' if tab[:active]}" %>
+      <% end %>
+    </div>
+  </section>
+
+  <section class="supplier-section">
+    <div class="supplier-grid">
+      <article class="supplier-card">
+        <div class="supplier-label">Source File</div>
+        <div class="supplier-value" style="font-size:1.1rem;"><%= workbook_source %></div>
+        <div class="supplier-sub">Original Excel source</div>
+      </article>
+      <article class="supplier-card">
+        <div class="supplier-label">Sheets</div>
+        <div class="supplier-value"><%= total_sheet_count %></div>
+        <div class="supplier-sub">Total sheets in this workbook</div>
+      </article>
+      <article class="supplier-card">
+        <div class="supplier-label">Active Sheet</div>
+        <div class="supplier-value" style="font-size:1.1rem;"><%= @active_sheet_name %></div>
+        <div class="supplier-sub">Currently selected sheet</div>
+      </article>
+      <article class="supplier-card">
+        <div class="supplier-label">Exported</div>
+        <div class="supplier-value" style="font-size:1.1rem;"><%= workbook_exported_at %></div>
+        <div class="supplier-sub">JSON export timestamp</div>
+      </article>
+    </div>
+  </section>
+
+  <% if @dataset == "evaluation" %>
+    <section class="supplier-section">
+      <div class="supplier-grid">
+        <article class="supplier-card">
+          <div class="supplier-label">Total Rows</div>
+          <div class="supplier-value"><%= @summary["total_rows"] %></div>
+          <div class="supplier-sub">Rows included in summary</div>
+        </article>
+        <article class="supplier-card">
+          <div class="supplier-label">Planned</div>
+          <div class="supplier-value"><%= @summary["planned_count"] %></div>
+          <div class="supplier-sub">Rows with plan data</div>
+        </article>
+        <article class="supplier-card">
+          <div class="supplier-label">Executed</div>
+          <div class="supplier-value"><%= @summary["executed_count"] %></div>
+          <div class="supplier-sub">Rows marked as executed</div>
+        </article>
+        <article class="supplier-card">
+          <div class="supplier-label">Pending</div>
+          <div class="supplier-value"><%= @summary["pending_count"] %></div>
+          <div class="supplier-sub">Planned but not completed</div>
+        </article>
+      </div>
+      <div class="supplier-card" style="margin-top:14px;">
+        <div class="supplier-label">Rank Summary</div>
+        <div class="supplier-inline-list" style="margin-top:12px;">
+          <% (@summary["rank_counts"] || {}).sort.each do |rank, count| %>
+            <div class="supplier-rank-badge">
+              <span>Rank <%= rank %></span>
+              <strong><%= count %></strong>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </section>
+  <% else %>
+    <section class="supplier-section">
+      <div class="supplier-grid">
+        <% (@summary["action_totals"] || {}).each do |action_name, totals| %>
+          <% planned = totals["planned"].to_i %>
+          <% actual = totals["actual"].to_i %>
+          <% complete = totals["complete"].to_i %>
+          <% pending = totals["pending"].to_i %>
+          <article class="supplier-card">
+            <div class="supplier-label"><%= action_name %></div>
+            <div class="supplier-value"><%= actual %> / <%= planned %></div>
+            <div class="supplier-sub">
+              Complete suppliers: <strong><%= complete %></strong><br>
+              Pending suppliers: <strong><%= pending %></strong>
+            </div>
+          </article>
+        <% end %>
+      </div>
+    </section>
+  <% end %>
+
+  <section class="supplier-section">
+    <h2>Primary Sheets</h2>
+    <div class="supplier-sheet-row">
+      <% @primary_sheets.each do |sheet| %>
+        <% active_class = sheet["name"] == @active_sheet_name ? "active-primary" : "" %>
+        <%= link_to "#{sheet['name']} (#{sheet['row_count']})", workbooks_suppliers_path(dataset: @dataset, sheet: sheet["name"]), class: "supplier-chip #{active_class}" %>
+      <% end %>
+    </div>
+  </section>
+
+  <% if @detail_sheets.present? %>
+    <section class="supplier-section">
+      <h2>Detail Sheets</h2>
+      <div class="supplier-sheet-row">
+        <% @detail_sheets.each do |sheet| %>
+          <% active_class = sheet["name"] == @active_sheet_name ? "active-detail" : "" %>
+          <%= link_to "#{sheet['name']} (#{sheet['row_count']})", workbooks_suppliers_path(dataset: @dataset, sheet: sheet["name"]), class: "supplier-chip #{active_class}" %>
+        <% end %>
+      </div>
+    </section>
+  <% end %>
+
+  <section class="supplier-section">
+    <div class="supplier-grid">
+      <article class="supplier-card">
+        <div class="supplier-label">Row Count</div>
+        <div class="supplier-value"><%= active_sheet_rows %></div>
+        <div class="supplier-sub">Rows in the active sheet</div>
+      </article>
+      <article class="supplier-card">
+        <div class="supplier-label">Max Columns</div>
+        <div class="supplier-value"><%= active_sheet_columns %></div>
+        <div class="supplier-sub">Maximum detected columns</div>
+      </article>
+      <article class="supplier-card">
+        <div class="supplier-label">Workbook Mode</div>
+        <div class="supplier-value" style="font-size:1.2rem;"><%= @dataset == "evaluation" ? "Evaluation" : "Management" %></div>
+        <div class="supplier-sub">Current workbook category</div>
+      </article>
+      <article class="supplier-card">
+        <div class="supplier-label">Table Hint</div>
+        <div class="supplier-value" style="font-size:1.1rem;">Row + Cell</div>
+        <div class="supplier-sub">Left column shows original row numbers</div>
+      </article>
+    </div>
+  </section>
+
+  <section class="supplier-table-shell">
+    <div class="supplier-table-wrap">
+      <table class="supplier-table">
+        <colgroup>
+          <col class="row-index-col">
+          <col class="sheet-col-a">
+          <col class="sheet-col-b">
+          <col class="sheet-col-c">
+          <col class="sheet-col-d">
+          <col class="sheet-col-e">
+          <col class="sheet-col-f">
+          <col class="sheet-col-g">
+          <col class="sheet-col-h">
+          <col class="sheet-col-i">
+          <col class="sheet-col-j">
+          <col class="sheet-col-k">
+          <col class="sheet-col-l">
+          <col class="sheet-col-m">
+          <col class="sheet-col-n">
+          <col class="sheet-col-o">
+          <col class="sheet-col-p">
+          <col class="sheet-col-q">
+          <col class="sheet-col-r">
+          <col class="sheet-col-s">
+          <col class="sheet-col-t">
+          <col class="sheet-col-u">
+          <col class="sheet-col-v">
+          <col class="sheet-col-w">
+          <col class="sheet-col-x">
+        </colgroup>
+        <tbody>
+          <% @active_rows.each_with_index do |row, row_index| %>
+            <% row_classes = [] %>
+            <% row_classes << "layout-title" if row_index < 3 %>
+            <% row_classes << "layout-guide" if row_index >= 3 && row_index < 8 %>
+            <% row_classes << "layout-header" if row_index >= 8 && row_index < 10 %>
+            <% next_row = @active_rows[row_index + 1] %>
+            <% company_start = row_index >= 10 && row[0].present? && row[1].present? %>
+            <% next_company_start = next_row.present? && next_row[0].present? && next_row[1].present? %>
+            <% company_end = row_index >= 10 && (next_company_start || row_index == @active_rows.length - 1) %>
+            <% row_classes << "company-start" if company_start %>
+            <% row_classes << "company-end" if company_end %>
+            <tr class="<%= row_classes.join(' ') %>">
+              <td class="row-index"><%= row_index + 1 %></td>
+              <% if row_index < 10 %>
+                <% supplier_layout_segments(row).each do |segment| %>
+                  <td colspan="<%= segment[:colspan] %>"><%= segment[:text] %></td>
+                <% end %>
+              <% else %>
+                <% row.each_with_index do |cell, column_index| %>
+                  <td><%= supplier_workbook_cell_value(cell, row_index: row_index, column_index: column_index, row: row) %></td>
+                <% end %>
+              <% end %>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>

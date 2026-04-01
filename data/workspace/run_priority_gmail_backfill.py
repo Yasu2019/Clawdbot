@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import json
 import subprocess
+import sqlite3
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
@@ -48,6 +49,7 @@ def container_script(chunks: list[dict]) -> str:
     payload = json.dumps(chunks, ensure_ascii=False)
     return f"""
 import importlib.util, json, shutil, sys, traceback
+import sqlite3
 from pathlib import Path
 
 spec = importlib.util.spec_from_file_location("email_search_index", "/home/node/clawd/email_search_index.py")
@@ -62,9 +64,19 @@ backup_db = Path("/home/node/clawd/email_search.before_priority_backfill.db")
 temp_db = Path("/tmp/email_search_priority_backfill.db")
 temp_state = Path("/tmp/email_search_priority_backfill_state.json")
 
+def clone_db(src_path: Path, dst_path: Path) -> None:
+    src_con = sqlite3.connect(f"file:{{src_path}}?mode=ro", uri=True, timeout=30)
+    dst_con = sqlite3.connect(dst_path, timeout=30)
+    try:
+        src_con.backup(dst_con)
+        dst_con.commit()
+    finally:
+        dst_con.close()
+        src_con.close()
+
 if not backup_db.exists():
-    shutil.copy2(host_db, backup_db)
-shutil.copy2(host_db, temp_db)
+    clone_db(host_db, backup_db)
+clone_db(host_db, temp_db)
 if host_state.exists():
     shutil.copy2(host_state, temp_state)
 
@@ -73,6 +85,21 @@ mod.STATE_PATH = temp_state
 state = mod.load_json(mod.STATE_PATH)
 results = []
 con = None
+
+def promote_temp_db(src_path: Path, dst_path: Path) -> None:
+    src_con = sqlite3.connect(src_path)
+    dst_con = sqlite3.connect(dst_path, timeout=30)
+    try:
+        src_con.execute("PRAGMA quick_check")
+        try:
+            dst_con.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+        except Exception:
+            pass
+        src_con.backup(dst_con)
+        dst_con.commit()
+    finally:
+        dst_con.close()
+        src_con.close()
 
 try:
     con = mod.connect_db()
@@ -90,7 +117,10 @@ try:
         }})
     state["updatedAt"] = mod.now_iso()
     mod.save_json(mod.STATE_PATH, state)
-    shutil.copy2(temp_db, host_db)
+    integrity = sqlite3.connect(temp_db).execute("PRAGMA integrity_check").fetchone()[0]
+    if integrity != "ok":
+        raise RuntimeError(f"temp db integrity_check failed: {{integrity}}")
+    promote_temp_db(temp_db, host_db)
     if temp_state.exists():
         shutil.copy2(temp_state, host_state)
     summary = {{"ok": True, "chunks": results}}

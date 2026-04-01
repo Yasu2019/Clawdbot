@@ -1,0 +1,189 @@
+[
+  {
+    "recorded_at": "2026-03-29T12:08:25+09:00",
+    "type": "seed_sync",
+    "title": "IATF seed assets synchronized from production",
+    "source": "iatf_system-web-1",
+    "record_count": 1914,
+    "details": {
+      "host_attachedfile": "D:\\Clawdbot_Docker_20260125\\iatf_system\\db\\record\\attachedfile.csv",
+      "host_documents": "D:\\Clawdbot_Docker_20260125\\iatf_system\\db\\documents",
+      "missing_after_sync_count": 3
+    }
+  },
+  {
+    "recorded_at": "2026-03-29T12:08:25+09:00",
+    "type": "jqa_backfill",
+    "title": "JQA audit reports backfilled",
+    "source": "審査報告書",
+    "record_count": 3,
+    "details": {
+      "report_filenames": [
+        "21.Jun.24-NcManagement-JQA-UAU-Z17937ステージ２-23.Apr.2024-25.Apr.2024.pdf",
+        "08.Aug.25-AuditReport-AU0485_定期審査1_MITSUI_SEIMITSU_CO.,_LTD.-0539839-22.Jul.2025-25.Jul.2025.pdf",
+        "08.Aug.25-NcManagement-AU0485_定期審査1_MITSUI_SEIMITSU_CO.,_LTD.-0539839-22.Jul.2025-25.Jul.2025.pdf"
+      ],
+      "result_count": 2
+    }
+  },
+  {
+    "recorded_at": "2026-03-29T12:08:25+09:00",
+    "type": "manufacturing_design_import",
+    "title": "Manufacturing design ZIP imported",
+    "source": "D:\\Clawdbot_Docker_20260125\\clawstack_v2\\data\\paperless\\consume\\製造工程設計\\52期2025年.zip",
+    "record_count": 12,
+    "details": {
+      "appended_count": 12,
+      "copied_count": 12,
+      "partnumbers": [
+        "NT3621-P44",
+        "NT3621-P50",
+        "NT4584-P45-01"
+      ]
+    }
+  },
+  {
+    "recorded_at": "2026-03-29T12:32:29+09:00",
+    "type": "auto_diff_sync",
+    "title": "IATF seed auto diff sync applied",
+    "source": "審査報告書 / 製造工程設計",
+    "record_count": 15,
+    "details": {
+      "new_count": 0,
+      "missing_csv_only_count": 15,
+      "missing_document_only_count": 0,
+      "changed_existing_count": 0,
+      "applied_filenames": [
+        "21.Jun.24-NcManagement-JQA-UAU-Z17937ステージ２-23.Apr.2024-25.Apr.2024.pdf",
+        "08.Aug.25-AuditReport-AU0485_定期審査1_MITSUI_SEIMITSU_CO.,_LTD.-0539839-22.Jul.2025-25.Jul.2025.pdf",
+        "08.Aug.25-NcManagement-AU0485_定期審査1_MITSUI_SEIMITSU_CO.,_LTD.-0539839-22.Jul.2025-25.Jul.2025.pdf",
+        "NT3621-P44_PM9EBB_2個取り【増面型No.4】【25-022】設計検証チェックリスト.xls",
+        "NT3621-P44_PM9EBB_2個取り【増面型No.4】【25-022】設計計画書.xls",
+        "NT3621-P44_PM9EBB_2個取り【増面型No.4】【25-022】Ｄ.R会議議事録.xls",
+        "NT4584-P45-01_2個取り【増面型No.3】【25-009】_設計検証チェックリスト.xls",
+        "NT4584-P45-01_2個取り【増面型No.3】【25-009】_設計計画書.xls",
+        "NT4584-P45-01_2個取り【増面型No.3】【25-009】_Ｄ.R会議議事録.xls",
+        "NT4584-P45-01_2個取り【増面型No.4】【25-018】_設計検証チェックリスト.xls",
+        "NT4584-P45-01_2個取り【増面型No.4】【25-018】_設計計画書.xls",
+        "NT4584-P45-01_2個取り【増面型No.4】【25-018】_Ｄ.R会議議事録.xls",
+        "【380-3】☆NT3621-P50_PM9ECB_Busbar順送型_2個取り_増面型No3【25-007】設計検証チェックリスト.xls",
+        "【380-3】☆NT3621-P50_PM9ECB_Busbar順送型_2個取り_増面型No3【25-007】設計計画書.xls",
+        "【380-3】☆NT3621-P50_PM9ECB_Busbar順送型_2個取り_増面型No3【25-007】Ｄ.R会議議事録.xls"
+      ]
+    }
+  },
+  {
+    "recorded_at": "2026-03-29T12:33:47+09:00",
+    "type": "auto_diff_sync",
+    "title": "IATF seed auto diff sync applied",
+    "source": "審査報告書 / 製造工程設計",
+    "record_count": 3,
+    "details": {
+      "new_count": 0,
+      "missing_csv_only_count": 3,
+      "missing_document_only_count": 0,
+      "changed_existing_count": 0,
+      "applied_filenames": [
+        "21.Jun.24-NcManagement-JQA-UAU-Z17937ステージ２-23.Apr.2024-25.Apr.2024.pdf",
+        "08.Aug.25-AuditReport-AU0485_定期審査1_MITSUI_SEIMITSU_CO.,_LTD.-0539839-22.Jul.2025-25.Jul.2025.pdf",
+        "08.Aug.25-NcManagement-AU0485_定期審査1_MITSUI_SEIMITSU_CO.,_LTD.-0539839-22.Jul.2025-25.Jul.2025.pdf"
+      ]
+    }
+  },
+  {
+    "recorded_at": "2026-03-29T13:18:35+09:00",
+    "type": "document_reconciliation_seed_import",
+    "title": "Document reconciliation Excel assets synced to seed",
+    "source": "D:\\Clawdbot_Docker_20260125\\clawstack_v2\\data\\paperless\\consume\\文書照合_20250329.zip",
+    "record_count": 10,
+    "details": {
+      "category": 2,
+      "documentcategory": "文書照合資料",
+      "appended_count": 10,
+      "copied_count": 10,
+      "filenames": [
+        "QM001付表4_文書（記録を含む）体系表_第5版_20250110.xlsx",
+        "プレス_処理部門_ISO管理文書リスト（番号・改訂日・レビュー）.xls",
+        "営業部管理文書台帳EG-008-9　(最新）.xls",
+        "第三階層文書・文書見直し記録(KSOa903) 2021.11.xls",
+        "第二階層文書管理台帳（KSOa906)（文書見直し記録）2022.11.xls",
+        "生産技術管理文書一覧.xls",
+        "第三階層文書・文書見直し記録(KGO007)_2025_1_20.xls",
+        "管理部　文書管理台帳.xls",
+        "記録管理規定 表1　25.1.10改.xlsx",
+        "設計部門_管理文書一覧.xls"
+      ]
+    }
+  },
+  {
+    "recorded_at": "2026-03-29T13:37:25+09:00",
+    "type": "supplier_seed_import",
+    "title": "Supplier Excel assets synced to seed",
+    "source": "D:\\Clawdbot_Docker_20260125\\Supplier_20260329",
+    "record_count": 3,
+    "details": {
+      "category": 2,
+      "appended_count": 3,
+      "copied_count": 3,
+      "filenames": [
+        "供給者リスト.xlsx",
+        "2025●供給者管理計画／実績表(KGM017).xlsx",
+        "●供給者評価表・供給者再評価記録台帳2025.xls"
+      ]
+    }
+  },
+  {
+    "recorded_at": "2026-03-30T12:44:16+09:00",
+    "type": "process_monitoring_measurement_seed_import",
+    "title": "Process monitoring measurement PDFs synced to seed",
+    "source": "D:\\Clawdbot_Docker_20260125\\clawstack_v2\\data\\paperless\\consume\\IATF成果報告書",
+    "record_count": 26,
+    "details": {
+      "category": 2,
+      "phase": 16,
+      "stage": 343,
+      "appended_count": 26,
+      "copied_count": 26,
+      "filenames": [
+        "2024年10月度 IATF16949 成果報告書.pdf",
+        "2024年11月度 IATF16949 成果報告書.pdf",
+        "2024年12月度　IATF16949 成果報告書.pdf",
+        "2024年2月_IATF成果報告書.pdf",
+        "2024年2月度 IATF16949 成果報告書_20240312.pdf",
+        "2024年3月_IATF成果報告書.pdf",
+        "2024年4月_IATF成果報告書.pdf",
+        "2024年6月度 IATF16949 成果報告書 (1).pdf",
+        "2024年6月度 IATF16949 成果報告書.pdf",
+        "2024年7月度　IATF16949 成果報告書.pdf",
+        "2024年8月度　IATF16949 成果報告書.pdf",
+        "2024年9月度　IATF16949 成果報告書.pdf",
+        "2025年10月度IATF16949成果報告書.pdf",
+        "2025年11月度　IATF16949 成果報告書.pdf",
+        "2025年12月度_IATF16949 成果報告書.pdf",
+        "2025年1月度　IATF16949 成果報告書.pdf",
+        "2025年2月度　IATF16949 成果報告書.pdf",
+        "2025年3月度　IATF16949 成果報告書.pdf",
+        "2025年4月度 IATF16949 成果報告書.pdf",
+        "2025年5月度　IATF16949 成果報告書.pdf",
+        "2025年6月度　IATF16949 成果報告書.pdf",
+        "2025年7月度　IATF16949 成果報告書.pdf",
+        "2025年8月度　IATF16949 成果報告書.pdf",
+        "2025年9月度　IATF16949 成果報告書.pdf",
+        "2026年1月度 IATF16949 成果報告書_20260212.pdf",
+        "2026年2月度　IATF16949 成果報告書.pdf"
+      ],
+      "target_results": [
+        {
+          "container": "iatf_system_dev-web-1",
+          "environment": "development",
+          "returncode": 0
+        },
+        {
+          "container": "iatf_system-web-1",
+          "environment": "production",
+          "returncode": 0
+        }
+      ]
+    }
+  }
+]

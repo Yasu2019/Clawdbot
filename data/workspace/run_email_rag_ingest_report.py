@@ -17,6 +17,7 @@ if SCRIPT_PATH.parent.name == "workspace":
     EMAIL_LEARNING_SYNC_SCRIPT = SCRIPT_PATH.parent / "sync_email_learning_memory.py"
     EMAIL_LEARNING_SYNC_STATUS_PATH = SCRIPT_PATH.parent / "email_learning_memory_sync_status.json"
     PRIORITY_GMAIL_BACKFILL_SCRIPT = SCRIPT_PATH.parent / "run_priority_gmail_backfill.py"
+    EMAIL_DASHBOARD_STATUS_SCRIPT = SCRIPT_PATH.parent / "update_email_ingest_dashboard_status.py"
 else:
     STATUS_PATH = SCRIPT_PATH.parents[2] / "data" / "workspace" / "email_rag_ingest_runtime_status.json"
     NODE_GMAIL_SCRIPT = SCRIPT_PATH.parents[2] / "data" / "workspace" / "scripts" / "send_allowed_gmail_from_b64.js"
@@ -24,6 +25,7 @@ else:
     EMAIL_LEARNING_SYNC_SCRIPT = SCRIPT_PATH.parents[2] / "data" / "workspace" / "sync_email_learning_memory.py"
     EMAIL_LEARNING_SYNC_STATUS_PATH = SCRIPT_PATH.parents[2] / "data" / "workspace" / "email_learning_memory_sync_status.json"
     PRIORITY_GMAIL_BACKFILL_SCRIPT = SCRIPT_PATH.parents[2] / "data" / "workspace" / "run_priority_gmail_backfill.py"
+    EMAIL_DASHBOARD_STATUS_SCRIPT = SCRIPT_PATH.parents[2] / "data" / "workspace" / "update_email_ingest_dashboard_status.py"
 
 TELEGRAM_BOT = "8085717200:AAHzacN6Q3xSunrLyvUTuHnKEf7Cd5YFdt4"
 TELEGRAM_CHAT_ID = "8173025084"
@@ -200,7 +202,7 @@ def main() -> None:
         ),
         (
             "phase5_learning_memory_sync",
-            f'python3 "{EMAIL_LEARNING_SYNC_SCRIPT}" --base-url "http://localhost:8110" --source-org "Mitsui"',
+            f'python3 "{EMAIL_LEARNING_SYNC_SCRIPT}" --base-url "http://localhost:8110" --source-org "Mitsui" --bootstrap-days 30 --limit 800',
             EMAIL_LEARNING_SYNC_TIMEOUT,
         ),
     ]
@@ -246,6 +248,7 @@ def main() -> None:
     status["step"] = "completed"
     status["finishedAt"] = now_jst()
     write_status(status)
+    run_command(f'python3 "{EMAIL_DASHBOARD_STATUS_SCRIPT}"', 120)
 
 
 if __name__ == "__main__":

@@ -11,15 +11,25 @@ from typing import Any
 JST = timezone(timedelta(hours=9))
 SCRIPT_PATH = Path(__file__).resolve()
 WORKSPACE = SCRIPT_PATH.parent
+ROOT = WORKSPACE.parent.parent
 STATUS_PATH = WORKSPACE / "auto_repair_allowed_status.json"
+STATE_PATH = WORKSPACE / "auto_repair_allowed_state.json"
 EMAIL_RUNTIME = WORKSPACE / "email_rag_ingest_runtime_status.json"
+EMAIL_DAEMON_STATUS = WORKSPACE / "email_continuous_ingest_status.json"
 CAE_SYNC_STATUS = WORKSPACE / "cae_learning_memory_sync_status.json"
 SCHEDULED_REPORT_STATUS = WORKSPACE / "scheduled_report_search_status.json"
 IDLE_MAINTENANCE_STATUS = WORKSPACE / "idle_ingest_maintenance_status.json"
+EMAIL_WATCHDOG_START = ROOT / "scripts" / "start_email_continuous_watchdog.ps1"
+LEARNING_REPAIR_SCRIPT = WORKSPACE / "repair_learning_engine.py"
 
 EMAIL_CMD = f'python "{WORKSPACE / "run_email_rag_ingest_report.py"}"'
+EMAIL_DAEMON_CMD = (
+    f'python3 "{WORKSPACE / "continuous_email_ingest_daemon.py"}" '
+    '--poll-seconds 300 --learning-interval-cycles 3 --full-backfill-interval-cycles 72'
+)
 CAE_CMD = f'python "{WORKSPACE / "sync_cae_learning_memory.py"}" --base-url "http://localhost:8110" --source-org "Mitsui"'
 REPORT_CMD = 'docker exec clawstack-unified-learning_engine-1 python3 /workspace/scheduled_report_search.py sync --limit-executions 20'
+LEARNING_REPAIR_CMD = f'python3 "{LEARNING_REPAIR_SCRIPT}"'
 
 
 def now_jst() -> datetime:
@@ -41,6 +51,10 @@ def read_json(path: Path) -> dict[str, Any]:
         return json.loads(path.read_text(encoding="utf-8"))
     except Exception:
         return {}
+
+
+def save_json(path: Path, payload: dict[str, Any]) -> None:
+    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
 def parse_dt(value: str | None) -> datetime | None:
@@ -113,6 +127,25 @@ def ps_contains(token: str) -> bool:
     return bool(result.get("stdout") and "ProcessId" in result["stdout"])
 
 
+def can_attempt(state: dict[str, Any], key: str, max_attempts: int = 3, window_minutes: int = 60) -> tuple[bool, dict[str, Any]]:
+    attempts = state.setdefault("attempts", {}).setdefault(key, [])
+    now = now_jst()
+    recent: list[str] = []
+    for stamp in attempts:
+        dt = parse_dt(stamp)
+        if dt and (now.astimezone(dt.tzinfo) - dt) < timedelta(minutes=window_minutes):
+            recent.append(stamp)
+    state["attempts"][key] = recent
+    if len(recent) >= max_attempts:
+        return False, {
+            "skipped": True,
+            "reason": f"cooldown active after {len(recent)} attempts within {window_minutes} minutes",
+        }
+    recent.append(now_jst_text())
+    state["attempts"][key] = recent
+    return True, {}
+
+
 def should_repair_email_runtime(email_status: dict[str, Any]) -> tuple[bool, str]:
     started = parse_dt(email_status.get("startedAt"))
     current_phase = email_status.get("currentPhase")
@@ -123,6 +156,18 @@ def should_repair_email_runtime(email_status: dict[str, Any]) -> tuple[bool, str
         return True, "timedOut phase detected"
     if step != "completed" and started and (now_jst().astimezone(started.tzinfo) - started) >= timedelta(hours=2):
         return True, f"runtime stuck at {current_phase or step}"
+    return False, "healthy"
+
+
+def should_repair_email_daemon(daemon_status: dict[str, Any]) -> tuple[bool, str]:
+    updated = parse_dt(daemon_status.get("updatedAt") or daemon_status.get("lastSuccessAt"))
+    stage = str(daemon_status.get("stage") or "")
+    if updated is None:
+        return True, "daemon status missing"
+    if (now_jst().astimezone(updated.tzinfo) - updated) >= timedelta(minutes=15):
+        return True, "daemon heartbeat stale"
+    if stage == "error":
+        return True, "daemon entered error state"
     return False, "healthy"
 
 
@@ -159,11 +204,20 @@ def should_repair_scheduled_reports(report_status: dict[str, Any], idle_status: 
     return False, "healthy"
 
 
+def should_repair_learning_engine(cae_status: dict[str, Any]) -> tuple[bool, str]:
+    reason = str(cae_status.get("reason") or "")
+    if "learning_engine unavailable" in reason.lower():
+        return True, "cae sync observed learning_engine unavailable"
+    return False, "healthy"
+
+
 def main() -> None:
     email_status = read_json(EMAIL_RUNTIME)
+    email_daemon_status = read_json(EMAIL_DAEMON_STATUS)
     cae_status = read_json(CAE_SYNC_STATUS)
     report_status = read_json(SCHEDULED_REPORT_STATUS)
     idle_status = read_json(IDLE_MAINTENANCE_STATUS)
+    repair_state = read_json(STATE_PATH)
 
     status: dict[str, Any] = {
         "startedAt": now_jst_text(),
@@ -173,17 +227,32 @@ def main() -> None:
         "results": {},
     }
 
+    email_daemon_fix, email_daemon_reason = should_repair_email_daemon(email_daemon_status)
     email_fix, email_reason = should_repair_email_runtime(email_status)
     cae_fix, cae_reason = should_repair_cae_status(cae_status)
     report_fix, report_reason = should_repair_scheduled_reports(report_status, idle_status)
+    learning_fix, learning_reason = should_repair_learning_engine(cae_status)
     if report_fix and email_runtime_in_progress(email_status):
         report_fix = False
         report_reason = "email nightly in progress; defer scheduled report repair"
 
+    status["rules"].append({"name": "email_daemon", "shouldRepair": email_daemon_fix, "reason": email_daemon_reason})
     status["rules"].append({"name": "email_runtime", "shouldRepair": email_fix, "reason": email_reason})
     status["rules"].append({"name": "cae_sync", "shouldRepair": cae_fix, "reason": cae_reason})
     status["rules"].append({"name": "scheduled_reports", "shouldRepair": report_fix, "reason": report_reason})
+    status["rules"].append({"name": "learning_engine", "shouldRepair": learning_fix, "reason": learning_reason})
     write_status(status)
+
+    if learning_fix:
+        status["step"] = "repair_learning_engine"
+        status["actions"].append("learning_engine_repair")
+        write_status(status)
+        allowed, result = can_attempt(repair_state, "learning_engine_repair", max_attempts=2, window_minutes=120)
+        if allowed:
+            status["results"]["learning_engine_repair"] = run_command(LEARNING_REPAIR_CMD, 900)
+        else:
+            status["results"]["learning_engine_repair"] = result
+        write_status(status)
 
     if report_fix:
         status["step"] = "repair_scheduled_reports"
@@ -199,14 +268,38 @@ def main() -> None:
         status["results"]["cae_learning_sync"] = run_command(CAE_CMD, 300)
         write_status(status)
 
+    if email_daemon_fix and not ps_contains("continuous_email_ingest_daemon.py"):
+        status["step"] = "repair_email_daemon"
+        status["actions"].append("email_daemon_restart")
+        write_status(status)
+        allowed, result = can_attempt(repair_state, "email_daemon_restart")
+        if allowed:
+            status["results"]["email_daemon_restart"] = run_command(
+                f'powershell -NoProfile -ExecutionPolicy Bypass -File "{EMAIL_WATCHDOG_START}"',
+                60,
+            )
+        else:
+            status["results"]["email_daemon_restart"] = result
+        write_status(status)
+    elif email_daemon_fix:
+        status["results"]["email_daemon_restart"] = {
+            "skipped": True,
+            "reason": "continuous_email_ingest_daemon.py already running",
+        }
+        write_status(status)
+
     if email_fix and not ps_contains("run_email_rag_ingest_report.py"):
         status["step"] = "repair_email_runtime"
         status["actions"].append("email_ingest_restart")
         write_status(status)
-        status["results"]["email_ingest_restart"] = run_command(
-            f'powershell -NoProfile -Command "Start-Process -FilePath python -ArgumentList \'{WORKSPACE / "run_email_rag_ingest_report.py"}\' -WindowStyle Hidden"',
-            60,
-        )
+        allowed, result = can_attempt(repair_state, "email_ingest_restart")
+        if allowed:
+            status["results"]["email_ingest_restart"] = run_command(
+                f'powershell -NoProfile -Command "Start-Process -FilePath python3 -ArgumentList \'{WORKSPACE / "run_email_rag_ingest_report.py"}\' -WindowStyle Hidden"',
+                60,
+            )
+        else:
+            status["results"]["email_ingest_restart"] = result
         write_status(status)
     elif email_fix:
         status["results"]["email_ingest_restart"] = {
@@ -218,6 +311,7 @@ def main() -> None:
     status["step"] = "completed"
     status["finishedAt"] = now_jst_text()
     write_status(status)
+    save_json(STATE_PATH, repair_state)
 
 
 if __name__ == "__main__":

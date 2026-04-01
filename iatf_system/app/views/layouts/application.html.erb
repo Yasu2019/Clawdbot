@@ -21,6 +21,12 @@
 
   <body>
 
+  <% if show_global_back_button? %>
+    <div class="global-top-nav">
+      <%= link_to "← 戻る", global_back_href, class: "btn btn-sm btn-outline-secondary global-back-button" %>
+    </div>
+  <% end %>
+
   <% flash.each do |name, msg| %>
     <% if name.to_sym == :alert %>
       <div class="alert alert-danger p-4 mt-4 blinking-text font-weight-bold" style="font-size: 24px;"><%= msg %></div>
@@ -35,9 +41,33 @@
 
 
 
-  <%= yield %>
+  <div class="global-page-shell">
+    <%= yield %>
+  </div>
 
   <style>
+    .global-top-nav {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 16px;
+      background: rgba(255, 255, 255, 0.96);
+      border-bottom: 1px solid #e5e7eb;
+      backdrop-filter: blur(6px);
+    }
+
+    .global-back-button {
+      font-weight: 700;
+      min-width: 88px;
+    }
+
+    .global-page-shell {
+      padding-top: 8px;
+    }
+
     @keyframes blink {
       0% { opacity: 1; }
       50% { opacity: 0; }

@@ -1,6 +1,26 @@
 # frozen_string_literal: true
 
 module ApplicationHelper
+  def global_back_href
+    referer = request&.referer.to_s
+    current = request&.url.to_s
+    return referer if referer.present? && referer != current
+
+    return products_path if respond_to?(:products_path) && user_signed_in?
+
+    root_path
+  rescue StandardError
+    root_path
+  end
+
+  def show_global_back_button?
+    return false if controller_name == "suppliers" && action_name == "index"
+
+    !devise_controller?
+  rescue StandardError
+    true
+  end
+
   def icon_for_extension(ext)
     case ext
     when '.xls', '.xlsx', '.xlsm'

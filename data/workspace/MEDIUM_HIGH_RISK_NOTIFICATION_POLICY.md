@@ -11,50 +11,52 @@ Last updated: 2026-03-29 JST
 - Latest status:
   - [`risk_notification_status.json`](/D:/Clawdbot_Docker_20260125/data/workspace/risk_notification_status.json)
 
-`idle_ingest_maintenance.py` now runs `risk_notification.py` after low-risk auto-repair. Medium / high risk items are notified through Telegram first and Gmail second, with duplicate suppression via `risk_notification_state.json`.
+`idle_ingest_maintenance.py` runs `risk_notification.py` after low-risk auto-repair. Medium / high risk items are notified through Telegram first and Gmail second, with duplicate suppression via `risk_notification_state.json`.
 
-## 方針
+## Principle
 
-中リスク、高リスクは原則として `自動実行より先に通知` します。
+Medium and high risk findings must be notified, not auto-fixed.
 
-## 中リスク
+## Medium risk
 
-例:
-- timeout 延長のような運用条件変更
-- CORS や接続先フォールバックの変更
-- stale status の強制更新
-- nightly 再実行
+Examples:
+- long timeout or stuck nightly pipeline
+- stale status that cannot be safely healed by retry alone
+- low-risk auto-repair action failure
+- `iatf_seed_auto_update.py` detects `changed_existing > 0`
 
-原則:
-- 自動検知
-- status JSON に記録
-- Telegram と Gmail で通知
-- 明示的に許可されたルールだけ自動実行
+Handling:
+- do not overwrite automatically
+- persist status JSON
+- notify through Telegram and Gmail
+- keep enough detail for manual review
 
-## 高リスク
+## High risk
 
-例:
-- compose の大規模変更
-- 常駐サービス停止
-- cross-org データ方針変更
-- 商用 SDK 導入
-- 課金 / API キー / 権限変更
+Examples:
+- compose-level failures
+- shared service corruption
+- cross-org policy violations
+- SDK or license issues
+- auth / API key / permission breakage
 
-原則:
-- 自動検知
-- status JSON に記録
-- Telegram と Gmail で通知
-- 自動修復はしない
+Handling:
+- do not auto-fix
+- persist status JSON
+- notify through Telegram and Gmail
+- wait for explicit operator judgement
 
-## 通知チャネル
+## Channels
 
-- 速報: Telegram
-- 記録: Gmail
-- ローカル監視: Portal / Learning Memory / Auto Repair Console
+- Primary: Telegram
+- Secondary: Gmail
+- Local visibility: Portal / Learning Memory / Auto Repair Console
 
-## いま自動化している範囲
+## Auto-diff specific rule
 
-低リスクのみ:
-- `auto_repair_allowed.py`
+When `iatf_seed_auto_update.py` reports `changed_existing > 0`:
 
-中リスク以上は、今後このポリシーを前提に段階的に通知連携を足す。
+- treat it as medium risk
+- show it in the Rails update history page
+- send Telegram/Gmail notification through `risk_notification.py`
+- do not replace the existing seed/live file automatically

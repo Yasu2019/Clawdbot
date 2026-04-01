@@ -1,0 +1,192 @@
+<% report = @process_monitoring_measurement || {} %>
+<% selected_year = (@selected_monitoring_year || 2024).to_i %>
+<% year_payloads = { 2024 => report[:year_2024] || {}, 2025 => report[:year_2025] || {}, 2026 => report[:year_2026] || {} } %>
+<% active_year = year_payloads[selected_year].presence || year_payloads[2024] %>
+<% source_files = Array(active_year[:source_files]) %>
+
+<style>
+  .pmm-shell {
+    background: linear-gradient(180deg, #f8fbff 0%, #eef4ff 100%);
+  }
+  .pmm-tab {
+    border: 1px solid #cbd5e1;
+    border-radius: 9999px;
+    padding: 0.6rem 1.15rem;
+    font-weight: 700;
+    transition: all 0.2s ease;
+  }
+  .pmm-tab:hover {
+    border-color: #2563eb;
+    color: #1d4ed8;
+  }
+  .pmm-tab.active {
+    background: #2563eb;
+    border-color: #2563eb;
+    color: #fff;
+  }
+  .pmm-panel {
+    border: 1px solid #dbe4f0;
+    border-radius: 1.5rem;
+    background: rgba(255, 255, 255, 0.96);
+    box-shadow: 0 16px 40px rgba(15, 23, 42, 0.06);
+  }
+  .pmm-grid {
+    overflow-x: auto;
+  }
+  .pmm-grid table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    font-size: 11px;
+    line-height: 1.4;
+    color: #0f172a;
+    background: #fff;
+  }
+  .pmm-grid td,
+  .pmm-grid th {
+    border: 1px solid #94a3b8;
+    padding: 4px 5px;
+    vertical-align: top;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .pmm-grid .title-cell {
+    background: #dbeafe;
+    font-weight: 700;
+  }
+  .pmm-grid .note-cell {
+    background: #f8fafc;
+  }
+  .pmm-grid .header-cell {
+    background: #e2e8f0;
+    font-weight: 700;
+    text-align: center;
+  }
+  .pmm-grid .process-cell {
+    background: #f8fafc;
+    font-weight: 700;
+  }
+  .pmm-grid .month-cell {
+    text-align: center;
+  }
+  .pmm-source {
+    border: 1px solid #dbe4f0;
+    border-radius: 1rem;
+    background: #f8fafc;
+    padding: 0.85rem 1rem;
+  }
+  @media (max-width: 1280px) {
+    .pmm-grid table {
+      font-size: 10px;
+    }
+    .pmm-grid td,
+    .pmm-grid th {
+      padding: 3px 4px;
+    }
+  }
+</style>
+
+<div class="pmm-shell min-h-screen w-full p-4 md:p-6 lg:p-8">
+  <div class="mx-auto max-w-[1500px]">
+    <div class="mb-6 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+      <div>
+        <div class="mb-3">
+          <%= link_to "戻る", root_path, class: "inline-flex items-center rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm" %>
+        </div>
+        <h1 class="text-3xl font-black tracking-tight text-slate-900 md:text-5xl">プロセスの監視・測定記録</h1>
+        <p class="mt-3 max-w-4xl text-sm leading-7 text-slate-600 md:text-base">
+          Excel テンプレートに近い表レイアウトで、2024年の原票と、2025年・2026年の PDF 転記結果を同じ見た目で確認できます。
+        </p>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <%= link_to "TOP", root_path, class: "rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm ring-1 ring-slate-200" %>
+        <%= link_to "更新履歴", update_history_product_path, class: "rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm" %>
+      </div>
+    </div>
+
+    <div class="pmm-panel mb-5 p-4 md:p-5">
+      <div class="mb-3 text-sm font-semibold text-slate-500">年度切替</div>
+      <div class="flex flex-wrap gap-3">
+        <% Array(@available_monitoring_years).each do |year| %>
+          <%= link_to year.to_s, process_monitoring_measurement_product_path(year: year), class: "pmm-tab #{selected_year == year.to_i ? 'active' : ''}" %>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="pmm-panel mb-5 p-4 md:p-5">
+      <div class="text-lg font-bold text-slate-900"><%= selected_year %>年</div>
+      <% if selected_year == 2024 %>
+        <div class="mt-2 text-sm text-slate-600">
+          テンプレート: <%= active_year[:source_file].presence || "未設定" %>
+          <% if active_year[:sheet_name].present? %>
+            / シート: <%= active_year[:sheet_name] %>
+          <% end %>
+        </div>
+      <% elsif source_files.any? %>
+        <div class="mt-3 grid grid-cols-1 gap-3 lg:grid-cols-3 xl:grid-cols-4">
+          <% source_files.each do |item| %>
+            <div class="pmm-source text-sm text-slate-700">
+              <div class="font-bold text-slate-900"><%= item[:month] %>月</div>
+              <div><%= item[:source_file].presence || "未設定" %></div>
+              <% if item[:created_date].present? %>
+                <div class="mt-1 text-xs text-slate-500">作成日: <%= item[:created_date] %></div>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+
+      <% if active_year[:error].present? %>
+        <div class="mt-4 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+          読み込みエラー: <%= active_year[:error] %>
+        </div>
+      <% end %>
+    </div>
+
+    <div class="pmm-panel p-3 md:p-4">
+      <div class="pmm-grid">
+        <table>
+          <colgroup>
+            <% Array(active_year[:column_widths]).each_with_index do |width, index| %>
+              <% scaled =
+                if index <= 1
+                  [[width.to_f * 4.8, 48].max, 90].min
+                elsif index <= 4
+                  [[width.to_f * 5.4, 70].max, 150].min
+                else
+                  [[width.to_f * 3.9, 38].max, 74].min
+                end %>
+              <col style="width: <%= scaled.round %>px;">
+            <% end %>
+          </colgroup>
+          <tbody>
+            <% Array(active_year[:rows]).each do |row| %>
+              <% row_no = row[:row].to_i %>
+              <tr>
+                <% Array(row[:cells]).each do |cell| %>
+                  <% css_class =
+                    if row_no <= 3
+                      "title-cell"
+                    elsif row_no <= 7
+                      "note-cell"
+                    elsif row_no == 8
+                      "header-cell"
+                    elsif cell[:col].to_i == 2
+                      "process-cell"
+                    elsif cell[:col].to_i >= 10
+                      "month-cell"
+                    else
+                      ""
+                    end %>
+                  <td colspan="<%= cell[:colspan] %>" rowspan="<%= cell[:rowspan] %>" class="<%= css_class %>">
+                    <%= cell[:value].presence || " " %>
+                  </td>
+                <% end %>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
