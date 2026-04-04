@@ -7,6 +7,7 @@ import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
+from docker_runtime import docker_command
 
 ROOT = Path(__file__).resolve().parents[2]
 STATUS_PATH = ROOT / "data" / "workspace" / "portal_app_launch_check_status.json"
@@ -35,7 +36,7 @@ def main() -> int:
     write_status(status)
 
     result = subprocess.run(
-        ["docker", "exec", CONTAINER, "sh", "-lc", f"node {SCRIPT_PATH}"],
+        docker_command("exec", CONTAINER, "sh", "-lc", f"node {SCRIPT_PATH}"),
         text=True,
         encoding="utf-8",
         errors="replace",

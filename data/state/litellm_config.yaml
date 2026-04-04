@@ -1,4 +1,6 @@
 model_list:
+  # Optional experimental local Gemma 4 overlay:
+  # data/state/litellm_config.gemma4.experimental.yaml
   # ── Cloud (Gemini — for LiteLLM proxy routing if needed) ────────
   - model_name: google/gemini-2.5-flash
     litellm_params:

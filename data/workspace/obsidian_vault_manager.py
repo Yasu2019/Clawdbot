@@ -14,14 +14,35 @@ from typing import Any
 
 JST = timezone(timedelta(hours=9))
 ROOT = Path(__file__).resolve().parent.parent
-VAULT_ROOT = ROOT / "state" / "Obsidian Vault" / "Clawstack_Project"
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+RESOLVED_PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+DEFAULT_EXTENSIONS = {".md", ".markdown"}
+
+
+def resolve_vault_root() -> Path:
+    candidates = [
+        PROJECT_ROOT / "data" / "state" / "Obsidian Vault" / "Clawstack_Project",
+        RESOLVED_PROJECT_ROOT / "data" / "state" / "Obsidian Vault" / "Clawstack_Project",
+        ROOT / "state" / "Obsidian Vault" / "Clawstack_Project",
+    ]
+    for candidate in candidates:
+        if not candidate.exists():
+            continue
+        if any(path.is_file() and path.suffix.lower() in DEFAULT_EXTENSIONS for path in candidate.rglob("*")):
+            return candidate
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+    return candidates[0]
+
+
+VAULT_ROOT = resolve_vault_root()
 STATE_DIR = VAULT_ROOT / ".openclaw"
 INDEX_PATH = STATE_DIR / "obsidian_index.json"
 STATUS_PATH = STATE_DIR / "obsidian_index_status.json"
 INBOX_PATH = VAULT_ROOT / "AI_Inbox.md"
 REPORTS_DIR = VAULT_ROOT / "OpenClaw_Reports"
 EMAIL_SEARCH_SCRIPT = ROOT / "workspace" / "email_search_query.py"
-DEFAULT_EXTENSIONS = {".md", ".markdown"}
 PRIORITY_PATH_PATTERNS: tuple[tuple[str, int, str], ...] = (
     ("task.md", 12, "active_tasks"),
     ("implementation_plan_", 10, "implementation_plan"),

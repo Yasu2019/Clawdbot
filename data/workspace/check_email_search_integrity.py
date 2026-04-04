@@ -10,7 +10,7 @@ from typing import Any
 
 
 JST = timezone(timedelta(hours=9))
-WORKSPACE = Path(__file__).resolve().parent
+WORKSPACE = Path(__file__).absolute().parent
 DB_PATH = WORKSPACE / "email_search.db"
 STATUS_PATH = WORKSPACE / "email_search_integrity_status.json"
 

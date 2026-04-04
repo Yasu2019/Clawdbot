@@ -31,8 +31,14 @@ EMAIL_POLICY_PATH = WORKSPACE / "email_ops_policy.json"
 EMAIL_INTEGRITY_STATUS = WORKSPACE / "email_search_integrity_status.json"
 APP_IMPROVEMENT_READINESS_STATUS = WORKSPACE / "app_improvement_readiness_status.json"
 LEARNING_REPAIR_STATUS = WORKSPACE / "repair_learning_engine_status.json"
+PAPERLESS_RAG_WATCHDOG_STATUS = WORKSPACE / "paperless_rag_watchdog_status.json"
+PAPERLESS_INGEST_STATUS = WORKSPACE / "ingest_watchdog_status.json"
+PAPERLESS_REVIEW_ARTIFACT_STATUS = WORKSPACE / "paperless_pdf_review_artifacts_status.json"
+PAPERLESS_INGEST_AUDIT_STATUS = WORKSPACE / "paperless_ingest_audit_status.json"
+DOCKER_DESKTOP_UI_WATCHDOG_STATUS = WORKSPACE / "docker_desktop_ui_watchdog_status.json"
 
 START_EMAIL_WATCHDOG = ROOT / "scripts" / "start_email_continuous_watchdog.ps1"
+START_DOCKER_UI_WATCHDOG = ROOT / "scripts" / "start_docker_desktop_ui_watchdog.ps1"
 LEARNING_HEALTH_URLS = [
     "http://localhost:8110/health",
     "http://127.0.0.1:8110/health",
@@ -197,6 +203,11 @@ def summarize() -> tuple[list[dict[str, Any]], list[dict[str, Any]], dict[str, A
     email_integrity = read_json(EMAIL_INTEGRITY_STATUS, {})
     app_readiness = read_json(APP_IMPROVEMENT_READINESS_STATUS, {})
     learning_repair = read_json(LEARNING_REPAIR_STATUS, {})
+    paperless_watchdog = read_json(PAPERLESS_RAG_WATCHDOG_STATUS, {})
+    paperless_ingest = read_json(PAPERLESS_INGEST_STATUS, {})
+    paperless_review_artifacts = read_json(PAPERLESS_REVIEW_ARTIFACT_STATUS, {})
+    paperless_ingest_audit = read_json(PAPERLESS_INGEST_AUDIT_STATUS, {})
+    docker_ui_watchdog = read_json(DOCKER_DESKTOP_UI_WATCHDOG_STATUS, {})
     email_policy = read_json(EMAIL_POLICY_PATH, {})
     learning = learning_health()
 
@@ -258,6 +269,39 @@ def summarize() -> tuple[list[dict[str, Any]], list[dict[str, Any]], dict[str, A
             repair_detail = f"all configured health URLs failed; lastRepairResult={learning_repair.get('result')} repairAgeMinutes={repair_age if repair_age_ok else repair_age}"
         weaknesses.append({"key": "learning_engine", "severity": "high", "title": "Learning engine health endpoint is offline", "detail": repair_detail})
 
+    paperless_watchdog_ok, paperless_watchdog_age, paperless_watchdog_state = status_health(paperless_watchdog, ["updatedAt"], 20)
+    if paperless_watchdog_ok and str(paperless_watchdog.get("stage") or "") in {"healthy", "running"}:
+        strengths.append({"key": "paperless_rag_watchdog", "title": "Paperless RAG watchdog is active", "detail": f"updated {paperless_watchdog_age} minutes ago"})
+    else:
+        weaknesses.append({"key": "paperless_rag_watchdog", "severity": "high", "title": "Paperless RAG watchdog is stale", "detail": f"state={paperless_watchdog_state} ageMinutes={paperless_watchdog_age}"})
+
+    paperless_ingest_ok, paperless_ingest_age, paperless_ingest_state = status_health(paperless_ingest, ["updatedAt"], 20)
+    paperless_stage = str(paperless_ingest.get("stage") or "")
+    if paperless_ingest_ok and paperless_stage in {"starting", "polling", "processing", "processing_batch", "idle"}:
+        strengths.append({"key": "paperless_ingest", "title": "Paperless ingest heartbeat is fresh", "detail": f"stage={paperless_stage} age={paperless_ingest_age} minutes"})
+    else:
+        weaknesses.append({"key": "paperless_ingest", "severity": "high", "title": "Paperless ingest heartbeat is unhealthy", "detail": f"stage={paperless_stage or 'unknown'} state={paperless_ingest_state} ageMinutes={paperless_ingest_age}"})
+
+    paperless_review_ok, paperless_review_age, paperless_review_state = status_health(paperless_review_artifacts, ["updatedAt"], 720)
+    if paperless_review_ok and bool(paperless_review_artifacts.get("ok")):
+        strengths.append({"key": "paperless_review_artifacts", "title": "Paperless review artifacts are recent", "detail": f"age={paperless_review_age} minutes reason={paperless_review_artifacts.get('reason')}"})
+    else:
+        weaknesses.append({"key": "paperless_review_artifacts", "severity": "medium", "title": "Paperless review artifacts are stale or failed", "detail": f"state={paperless_review_state} ok={paperless_review_artifacts.get('ok')}"})
+
+    paperless_audit_ok, paperless_audit_age, paperless_audit_state = status_health(paperless_ingest_audit, ["updatedAt"], 720)
+    if paperless_audit_ok and str(paperless_ingest_audit.get("status") or "") == "healthy":
+        strengths.append({"key": "paperless_ingest_audit", "title": "Paperless ingest audit confirms recent documents are indexed", "detail": f"age={paperless_audit_age} minutes"})
+    else:
+        missing = len(paperless_ingest_audit.get("recentMissing") or [])
+        weaknesses.append({"key": "paperless_ingest_audit", "severity": "high", "title": "Paperless ingest audit found lag or is stale", "detail": f"state={paperless_audit_state} status={paperless_ingest_audit.get('status')} recentMissing={missing}"})
+
+    docker_ui_ok, docker_ui_age, docker_ui_state = status_health(docker_ui_watchdog, ["updatedAt"], 30)
+    docker_ui_stage = str(docker_ui_watchdog.get("stage") or "")
+    if docker_ui_ok and docker_ui_stage in {"healthy", "starting"} and process_exists("docker_desktop_ui_watchdog.py"):
+        strengths.append({"key": "docker_desktop_ui_watchdog", "title": "Docker Desktop UI watchdog is active", "detail": f"stage={docker_ui_stage} age={docker_ui_age} minutes"})
+    else:
+        weaknesses.append({"key": "docker_desktop_ui_watchdog", "severity": "medium", "title": "Docker Desktop UI watchdog is stale or missing", "detail": f"state={docker_ui_state} stage={docker_ui_stage or 'unknown'} ageMinutes={docker_ui_age}"})
+
     quality_ok, quality_age, quality_state = status_health(email_quality, ["finishedAt", "startedAt"], 720)
     metrics = email_quality.get("metrics") or {}
     if quality_ok and metrics:
@@ -303,6 +347,11 @@ def summarize() -> tuple[list[dict[str, Any]], list[dict[str, Any]], dict[str, A
         "emailIntegrity": email_integrity,
         "appReadiness": app_readiness,
         "learningRepair": learning_repair,
+        "paperlessWatchdog": paperless_watchdog,
+        "paperlessIngest": paperless_ingest,
+        "paperlessReviewArtifacts": paperless_review_artifacts,
+        "paperlessIngestAudit": paperless_ingest_audit,
+        "dockerDesktopUiWatchdog": docker_ui_watchdog,
         "emailPolicy": email_policy,
         "learningHealth": learning,
     }
@@ -314,6 +363,8 @@ def planned_actions(weaknesses: list[dict[str, Any]]) -> list[dict[str, str]]:
     weakness_keys = {item["key"] for item in weaknesses}
     if "email_watchdog" in weakness_keys:
         actions.append({"key": "start_email_watchdog", "reason": "Email watchdog is missing or stale"})
+    if "docker_desktop_ui_watchdog" in weakness_keys:
+        actions.append({"key": "start_docker_desktop_ui_watchdog", "reason": "Docker Desktop UI watchdog is missing or stale"})
     if "auto_repair" in weakness_keys or "email_daemon" in weakness_keys:
         actions.append({"key": "run_auto_repair", "reason": "Auto repair should re-evaluate email-related health"})
     if "idle_maintenance" in weakness_keys:
@@ -341,6 +392,17 @@ def execute_action(action_key: str) -> dict[str, Any]:
                 "Bypass",
                 "-File",
                 str(START_EMAIL_WATCHDOG),
+            ]
+        )
+    if action_key == "start_docker_desktop_ui_watchdog":
+        return start_detached(
+            [
+                "powershell",
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                str(START_DOCKER_UI_WATCHDOG),
             ]
         )
     if action_key == "run_auto_repair":
@@ -424,6 +486,7 @@ def main() -> None:
             "emailQualityMetrics": (context.get("emailQuality") or {}).get("metrics"),
             "emailIntegrityOk": (context.get("emailIntegrity") or {}).get("ok"),
             "appReadiness": (context.get("appReadiness") or {}).get("readiness"),
+            "paperlessIngestAudit": (context.get("paperlessIngestAudit") or {}).get("status"),
             "emailPolicyMode": (context.get("emailPolicy") or {}).get("email"),
         }
         write_json(STATUS_PATH, status)

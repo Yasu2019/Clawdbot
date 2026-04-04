@@ -94,7 +94,7 @@ services:
       - ./data/rclone:/home/node/.config/rclone
       - ./data/state/claude.json:/home/node/.claude.json
       - ./data/state/playwright_cache/ms-playwright:/home/node/.cache/ms-playwright
-      - /var/run/docker.sock:/var/run/docker.sock
+      - ${HOST_DOCKER_SOCKET:-/var/run/docker.sock}:/var/run/docker.sock
     extra_hosts:
       - "host.docker.internal:host-gateway"
     user: root
@@ -222,7 +222,7 @@ services:
       - ./clawstack_v2/data/work:/work
       - ./data/workspace:/workspace
       - ./clawstack_v2/data/paperless/consume/email:/local_emails:ro
-      - /var/run/docker.sock:/var/run/docker.sock
+      - ${HOST_DOCKER_SOCKET:-/var/run/docker.sock}:/var/run/docker.sock
     user: root
     restart: unless-stopped
 
@@ -307,6 +307,7 @@ services:
   # ============================================================
   paperless:
     image: ghcr.io/paperless-ngx/paperless-ngx:latest
+    user: "1000:1000"
     restart: unless-stopped
     depends_on: [ postgres, redis ]
     ports:
@@ -621,7 +622,7 @@ services:
     ports:
       - "127.0.0.1:8096:8080"
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ${HOST_DOCKER_SOCKET:-/var/run/docker.sock}:/var/run/docker.sock:ro
     environment:
       - DOZZLE_LEVEL=info
       - DOZZLE_TAILSIZE=300
@@ -635,7 +636,7 @@ services:
     ports:
       - "127.0.0.1:9002:9000"
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ${HOST_DOCKER_SOCKET:-/var/run/docker.sock}:/var/run/docker.sock:ro
       - ./clawstack_v2/data/portainer:/data
     restart: unless-stopped
 
@@ -717,7 +718,7 @@ services:
   watchtower:
     image: containrrr/watchtower:latest
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ${HOST_DOCKER_SOCKET:-/var/run/docker.sock}:/var/run/docker.sock:ro
     environment:
       - WATCHTOWER_MONITOR_ONLY=true
       - WATCHTOWER_SCHEDULE=0 0 3 * * *
@@ -766,7 +767,7 @@ services:
       - "127.0.0.1:8003:8002"
     volumes:
       - ./clawstack_v2/data/work:/work
-      - /var/run/docker.sock:/var/run/docker.sock
+      - ${HOST_DOCKER_SOCKET:-/var/run/docker.sock}:/var/run/docker.sock
     restart: unless-stopped
 
   # ============================================================

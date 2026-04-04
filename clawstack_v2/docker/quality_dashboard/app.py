@@ -13,6 +13,7 @@ import zipfile
 import pypdf
 import docx
 import openpyxl
+import re
 
 # --- CONFIG ---
 OLLAMA_URL = os.getenv("OLLAMA_URL", "http://ollama:11434")
@@ -33,7 +34,53 @@ GEN_MODEL = os.getenv("OLLAMA_GEN_MODEL", "qwen3:14b")
 EMBED_MODEL = os.getenv("OLLAMA_EMBED_MODEL", "nomic-embed-text")
 FMEA_DEEP_MODEL = os.getenv("FMEA_DEEP_MODEL", os.getenv("OPENAI_MODEL", "openai/gemini-2.5-flash"))
 FMEA_DEEP_API_KEY = os.getenv("FMEA_DEEP_API_KEY", os.getenv("OPENAI_API_KEY", ""))
+WHYWHY_MODEL_GEMINI = os.getenv("WHYWHY_MODEL_GEMINI", "openai/gemini-2.5-flash")
+WHYWHY_MODEL_CHATGPT = os.getenv("WHYWHY_MODEL_CHATGPT", "gpt-5.4")
+WHYWHY_MODEL_CLAUDE = os.getenv("WHYWHY_MODEL_CLAUDE", "anthropic/claude-sonnet-4-5")
+WHYWHY_MODEL_COSTS_JSON = os.getenv("WHYWHY_MODEL_COSTS_JSON", "")
 COLLECTION_NAME = "iatf_knowledge"
+
+WHYWHY_AGENT_CATALOG = {
+    "Gemini": {
+        "model": WHYWHY_MODEL_GEMINI,
+        "role": "Lead Investigator",
+        "focus": "広く原因仮説を出し、事実と仮説を分けて一次案を作る",
+    },
+    "ChatGPT": {
+        "model": WHYWHY_MODEL_CHATGPT,
+        "role": "Logic Auditor",
+        "focus": "5Why の因果の飛躍、表現の曖昧さ、抜け漏れを監査する",
+    },
+    "Claude": {
+        "model": WHYWHY_MODEL_CLAUDE,
+        "role": "Countermeasure Critic",
+        "focus": "再発防止、標準化、手順・管理策の不足を厳しく見る",
+    },
+}
+
+WHYWHY_MODE_PRESETS = {
+    "省APIモード": {
+        "max_agents": 1,
+        "use_web": False,
+        "synthesis": False,
+        "top_k": 3,
+        "description": "最小構成です。AI 1名、Web参照なし、統合作業なしで消費を抑えます。",
+    },
+    "標準モード": {
+        "max_agents": 2,
+        "use_web": True,
+        "synthesis": True,
+        "top_k": 5,
+        "description": "既定構成です。AI 2名で討議し、最終合意案を作ります。",
+    },
+    "深掘りモード": {
+        "max_agents": 3,
+        "use_web": True,
+        "synthesis": True,
+        "top_k": 6,
+        "description": "AI 3名で論点を広げ、より深い監査まで行います。",
+    },
+}
 
 for d in [WORK_DIR, INGEST_DIR, WIP_DIR, KINDLE_DIR]:
     os.makedirs(d, exist_ok=True)
@@ -132,6 +179,42 @@ def merge_reference_context(*sections):
             blocks.append(f"{title}:\n{body}")
     return "\n\n".join(blocks)
 
+def load_whywhy_cost_table():
+    if not WHYWHY_MODEL_COSTS_JSON.strip():
+        return {}
+    try:
+        data = json.loads(WHYWHY_MODEL_COSTS_JSON)
+        return data if isinstance(data, dict) else {}
+    except Exception:
+        return {}
+
+WHYWHY_MODEL_COSTS = load_whywhy_cost_table()
+
+def estimate_usage_cost(model_name, usage, explicit_cost=None):
+    if explicit_cost is not None:
+        try:
+            return float(explicit_cost)
+        except Exception:
+            pass
+    pricing = WHYWHY_MODEL_COSTS.get(model_name, {})
+    if not pricing:
+        return None
+    prompt_tokens = usage.get("prompt_tokens", 0)
+    completion_tokens = usage.get("completion_tokens", 0)
+    input_rate = float(pricing.get("input_per_1m_usd", 0))
+    output_rate = float(pricing.get("output_per_1m_usd", 0))
+    return ((prompt_tokens / 1_000_000) * input_rate) + ((completion_tokens / 1_000_000) * output_rate)
+
+def format_usage_summary(usage_summary):
+    cost = usage_summary.get("estimated_cost_usd")
+    cost_text = f"${cost:.6f}" if isinstance(cost, (int, float)) else "N/A"
+    return (
+        f"Prompt {usage_summary.get('prompt_tokens', 0):,} / "
+        f"Completion {usage_summary.get('completion_tokens', 0):,} / "
+        f"Total {usage_summary.get('total_tokens', 0):,} tokens | "
+        f"Estimated cost {cost_text}"
+    )
+
 def ask_ai_local(prompt, context_text=""):
     system_prompt = "You are a Quality Assurance Expert."
     if context_text:
@@ -144,11 +227,11 @@ def ask_ai_local(prompt, context_text=""):
     except Exception as e:
         return f"笞・・AI Offline: {e}"
 
-def ask_ai_deep(prompt, context_text="", model_name=""):
+def ask_ai_deep(prompt, context_text="", model_name="", system_prompt_override=""):
     selected_model = model_name or FMEA_DEEP_MODEL
     if not selected_model:
         return "Deep AI model is not configured."
-    system_prompt = (
+    system_prompt = system_prompt_override or (
         "You are a senior PFMEA and quality engineering advisor. "
         "Think carefully, prefer concrete manufacturing risk reasoning, and clearly separate assumptions from evidence."
     )
@@ -178,16 +261,588 @@ def ask_ai_deep(prompt, context_text="", model_name=""):
     message = choices[0].get("message", {})
     return (message.get("content") or "").strip()
 
-def ask_ai(prompt, context_text="", mode="local", deep_model_name=""):
+
+def safe_stem(name: str) -> str:
+    base = os.path.splitext(os.path.basename(name))[0]
+    normalized = re.sub(r"[^A-Za-z0-9._-]+", "_", base).strip("._-")
+    return normalized or "model"
+
+
+def extract_gdt_pdf_review_context(pdf_path: str, max_pages: int = 6, max_preview_chars: int = 2200) -> dict:
+    drawing_info = {
+        "drawing_name": os.path.basename(pdf_path),
+        "page_count": 0,
+        "text_extract_method": "pypdf",
+        "text_preview": "",
+        "candidate_requirements": [],
+        "review_notes": [],
+    }
+    try:
+        reader = pypdf.PdfReader(pdf_path)
+        drawing_info["page_count"] = len(reader.pages)
+        preview_parts = []
+        candidate_lines = []
+        keyword_pattern = re.compile(
+            r"(datum|profile|position|perpendicular|parallel|flatness|straightness|runout|"
+            r"円筒度|真円度|真直度|平面度|直角度|平行度|位置度|同軸度|振れ|データム|幾何公差|基準)",
+            re.IGNORECASE,
+        )
+        for page_index, page in enumerate(reader.pages[:max_pages], start=1):
+            page_text = (page.extract_text() or "").replace("\x00", " ")
+            compact = re.sub(r"\s+", " ", page_text).strip()
+            if not compact:
+                continue
+            preview_parts.append(f"[Page {page_index}] {compact[:700]}")
+            for raw_line in re.split(r"[\r\n]+", page_text):
+                line = re.sub(r"\s+", " ", raw_line).strip()
+                if len(line) < 4:
+                    continue
+                if keyword_pattern.search(line):
+                    candidate_lines.append(line)
+        deduped_candidates = []
+        seen = set()
+        for line in candidate_lines:
+            key = line.lower()
+            if key in seen:
+                continue
+            seen.add(key)
+            deduped_candidates.append(line[:180])
+            if len(deduped_candidates) >= 12:
+                break
+        preview_text = "\n\n".join(preview_parts)
+        drawing_info["text_preview"] = preview_text[:max_preview_chars]
+        drawing_info["candidate_requirements"] = deduped_candidates
+        if not deduped_candidates:
+            drawing_info["review_notes"].append(
+                "No obvious GD&T/datum keywords were extracted automatically; manual drawing review is still required."
+            )
+    except Exception as exc:
+        drawing_info["review_notes"].append(f"PDF extraction failed: {exc}")
+    return drawing_info
+
+
+def build_gdt_requirement_mapping_rows(candidate_requirements):
+    rows = []
+    for idx, requirement in enumerate(candidate_requirements or [], start=1):
+        rows.append({
+            "requirement_id": f"REQ-{idx:02d}",
+            "requirement_text": requirement,
+            "candidate_face_ids": "",
+            "candidate_axis_ids": "",
+            "chosen_target": "",
+            "status": "pending",
+            "review_note": "",
+        })
+    return rows
+
+
+def summarize_gdt_requirement_mappings(requirement_mappings: list[dict] | None) -> dict:
+    rows = requirement_mappings or []
+    chosen_count = 0
+    pending_count = 0
+    rejected_count = 0
+    candidate_listed_count = 0
+    for row in rows:
+        status = (row.get("status") or "").strip().lower()
+        chosen_target = (row.get("chosen_target") or "").strip()
+        if chosen_target or status == "chosen":
+            chosen_count += 1
+        elif status == "rejected":
+            rejected_count += 1
+        elif status == "candidate_listed":
+            candidate_listed_count += 1
+        else:
+            pending_count += 1
+    return {
+        "total_requirements": len(rows),
+        "chosen_count": chosen_count,
+        "candidate_listed_count": candidate_listed_count,
+        "pending_count": pending_count,
+        "rejected_count": rejected_count,
+    }
+
+
+def build_gdt_review_manifest(
+    model_name: str,
+    html_profile: str,
+    drawing_info: dict | None = None,
+    requirement_mappings: list[dict] | None = None,
+) -> dict:
+    drawing_info = drawing_info or {}
+    drawing_name = drawing_info.get("drawing_name")
+    candidate_requirements = drawing_info.get("candidate_requirements") or []
+    requirement_mappings = requirement_mappings or build_gdt_requirement_mapping_rows(candidate_requirements)
+    mapping_summary = summarize_gdt_requirement_mappings(requirement_mappings)
+    unresolved_points = [
+        "Chosen face ids and exact GD&T targets still need engineer review.",
+    ]
+    if drawing_name:
+        unresolved_points.append(
+            "Drawing PDF was attached and preview-extracted, but 2D callouts still need mapping to 3D face/axis ids."
+        )
+    else:
+        unresolved_points.append("2D drawing/PDF was not attached in this converter run.")
+    return {
+        "job_meta": {
+            "job_id": f"gdt-review-{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}",
+            "model_name": model_name,
+            "purpose": "GD&T 2D/3D alignment review",
+            "artifact_version": "gdt_review_v1",
+            "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        },
+        "conversion": {
+            "html_profile": html_profile,
+            "viewer_type": "interactive_html",
+            "mode": "gdt_review_bundle",
+        },
+        "drawing": {
+            "attached": bool(drawing_name),
+            "drawing_name": drawing_name or "",
+            "page_count": drawing_info.get("page_count", 0),
+            "text_extract_method": drawing_info.get("text_extract_method", ""),
+            "candidate_requirement_count": len(candidate_requirements),
+            "candidate_requirements": candidate_requirements,
+            "text_preview": drawing_info.get("text_preview", ""),
+            "review_notes": drawing_info.get("review_notes", []),
+        },
+        "claim_gate": {
+            "render_success": False,
+            "placement_verified": False,
+            "requires_front_validation": True,
+            "requires_side_validation": True,
+            "requires_face_or_axis_ids": True,
+        },
+        "required_outputs": [
+            "requirement_list",
+            "candidate_face_ids",
+            "chosen_face_ids_or_axis_ids",
+            "front_validation",
+            "side_validation",
+            "unresolved_points",
+        ],
+        "validation": {
+            "front": {"status": "pending", "notes": ""},
+            "side": {"status": "pending", "notes": ""},
+            "top": {"status": "optional", "notes": ""},
+        },
+        "review_mapping": {
+            "requirement_rows": requirement_mappings,
+            "mapping_complete": mapping_summary["chosen_count"] > 0 and mapping_summary["pending_count"] == 0,
+            "summary": mapping_summary,
+        },
+        "status": {
+            "render_success": True,
+            "placement_verified": False,
+            "unresolved_points": unresolved_points,
+        },
+    }
+
+
+def build_gdt_checklist_markdown(model_name: str, drawing_name: str = "") -> str:
+    lines = [
+        f"# GD&T 2D/3D Alignment Checklist",
+        "",
+        f"Model: {model_name}",
+        f"Drawing: {drawing_name or 'Not attached'}",
+        f"Generated: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+        "",
+        "## Drawing Read",
+        "- [ ] datum / section / detail symbols were separated correctly",
+        "- [ ] drawing target face or axis is identified from the 2D document",
+        "- [ ] theoretical geometry and physical faces are not mixed",
+        "",
+        "## 3D Mapping",
+        "- [ ] candidate face ids were listed",
+        "- [ ] chosen face ids / axis ids were recorded",
+        "- [ ] exact layer and debug layer are separated",
+        "",
+        "## Validation",
+        "- [ ] front view is acceptable",
+        "- [ ] side view is acceptable",
+        "- [ ] top or local crop was checked if ambiguity remains",
+        "- [ ] explanation text matches the rendered geometry",
+        "",
+        "## Before Claiming Success",
+        "- [ ] unresolved items are explicitly listed",
+        "- [ ] no 'STEP-face based' claim is made without face ids",
+        "- [ ] screenshot evidence was reviewed",
+        "",
+    ]
+    return "\n".join(lines)
+
+def ask_ai_deep_with_meta(prompt, context_text="", model_name="", system_prompt_override=""):
+    selected_model = model_name or FMEA_DEEP_MODEL
+    if not selected_model:
+        return {
+            "content": "Deep AI model is not configured.",
+            "model": selected_model,
+            "usage": {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0},
+            "estimated_cost_usd": None,
+            "error": "model_not_configured",
+        }
+    system_prompt = system_prompt_override or (
+        "You are a senior PFMEA and quality engineering advisor. "
+        "Think carefully, prefer concrete manufacturing risk reasoning, and clearly separate assumptions from evidence."
+    )
+    if context_text:
+        system_prompt += f"\n\nREFERENCE DOCUMENTS:\n{context_text}\n\nUse internal references first and use web references only as supplemental evidence."
+    body = {
+        "model": selected_model,
+        "messages": [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": prompt},
+        ],
+        "temperature": 0.2,
+    }
+    headers = {"Content-Type": "application/json"}
+    if FMEA_DEEP_API_KEY:
+        headers["Authorization"] = f"Bearer {FMEA_DEEP_API_KEY}"
+    req = urllib.request.Request(
+        f"{LITELLM_URL}/chat/completions",
+        data=json.dumps(body).encode("utf-8"),
+        headers=headers,
+    )
+    with urllib.request.urlopen(req, timeout=90) as response:
+        payload = json.loads(response.read().decode("utf-8"))
+    choices = payload.get("choices", [])
+    message = choices[0].get("message", {}) if choices else {}
+    usage = payload.get("usage", {}) or {}
+    usage_summary = {
+        "prompt_tokens": int(usage.get("prompt_tokens", 0) or 0),
+        "completion_tokens": int(usage.get("completion_tokens", 0) or 0),
+        "total_tokens": int(usage.get("total_tokens", 0) or 0),
+    }
+    estimated_cost = estimate_usage_cost(
+        selected_model,
+        usage_summary,
+        explicit_cost=payload.get("response_cost", usage.get("cost")),
+    )
+    return {
+        "content": (message.get("content") or "").strip(),
+        "model": selected_model,
+        "usage": usage_summary,
+        "estimated_cost_usd": estimated_cost,
+        "error": None,
+    }
+
+def ask_ai(prompt, context_text="", mode="local", deep_model_name="", system_prompt_override=""):
     if mode == "deep":
         try:
-            deep_reply = ask_ai_deep(prompt, context_text=context_text, model_name=deep_model_name)
+            deep_reply = ask_ai_deep(
+                prompt,
+                context_text=context_text,
+                model_name=deep_model_name,
+                system_prompt_override=system_prompt_override,
+            )
             if deep_reply:
                 return deep_reply
         except Exception as e:
             fallback = ask_ai_local(prompt, context_text=context_text)
             return f"[Deep AI unavailable: {e}]\n\n{fallback}"
     return ask_ai_local(prompt, context_text=context_text)
+
+def build_whywhy_context(problem, whys, use_internal_docs=True, use_web_docs=True, rag_limit=5):
+    query_parts = [problem, *[item for item in whys if item]]
+    query = " | ".join([part for part in query_parts if part]).strip()
+    if not query:
+        return "", "", "", ""
+    rag_context = ""
+    if use_internal_docs:
+        vec = get_embedding(query)
+        rag_context = search_qdrant(vec, limit=rag_limit) if vec else ""
+    web_context = ""
+    if use_web_docs:
+        web_context = search_web(f'5 why root cause analysis manufacturing quality {problem}', limit=3)
+    context = merge_reference_context(
+        ("MITSUI / INTERNAL QUALITY KNOWLEDGE", rag_context),
+        ("PUBLIC WEB KNOWLEDGE", web_context),
+    )
+    return query, rag_context, web_context, context
+
+def run_whywhy_agents(problem, whys, selected_agent_names, context_text, synthesis_enabled=True):
+    steps_text = "\n".join([f"{index}. {item}" for index, item in enumerate(whys, start=1) if item]) or "(No why steps entered)"
+    role_plan = {
+        1: "Lead Investigator",
+        2: "Logic Auditor",
+        3: "Countermeasure Critic",
+    }
+    agent_outputs = []
+    usage_rollup = {
+        "prompt_tokens": 0,
+        "completion_tokens": 0,
+        "total_tokens": 0,
+        "estimated_cost_usd": 0.0,
+        "cost_known": False,
+        "calls": 0,
+    }
+    for index, agent_name in enumerate(selected_agent_names, start=1):
+        agent = WHYWHY_AGENT_CATALOG.get(agent_name, {})
+        assigned_role = role_plan.get(index, agent.get("role", "Reviewer"))
+        system_prompt = (
+            f"You are participating in a 5-Why quality review as {agent_name}. "
+            f"Your assigned role is {assigned_role}. "
+            f"Your focus is: {agent.get('focus', 'analyze carefully')}. "
+            "Be practical for manufacturing quality management, separate evidence from assumptions, "
+            "and point out weak causal links or missing verification."
+        )
+        prompt = f"""
+Problem:
+{problem}
+
+Current 5-Why draft:
+{steps_text}
+
+Task:
+1. Evaluate whether the causal chain is logically connected.
+2. Point out weak or missing links.
+3. Suggest improved why statements if needed.
+4. Suggest what evidence or standard/procedure should be checked next.
+5. Run a backward check: start from the assumed deepest cause and verify whether the chain can realistically return to the original problem.
+6. If the backward check fails, point out the exact why-step where the reverse logic breaks.
+7. Keep the response concise and structured.
+"""
+        reply_meta = ask_ai_deep_with_meta(
+            prompt,
+            context_text=context_text,
+            system_prompt_override=system_prompt,
+            model_name=agent.get("model", ""),
+        )
+        usage = reply_meta.get("usage", {})
+        usage_rollup["prompt_tokens"] += usage.get("prompt_tokens", 0)
+        usage_rollup["completion_tokens"] += usage.get("completion_tokens", 0)
+        usage_rollup["total_tokens"] += usage.get("total_tokens", 0)
+        usage_rollup["calls"] += 1
+        if isinstance(reply_meta.get("estimated_cost_usd"), (int, float)):
+            usage_rollup["estimated_cost_usd"] += float(reply_meta["estimated_cost_usd"])
+            usage_rollup["cost_known"] = True
+        agent_outputs.append({
+            "agent_name": agent_name,
+            "assigned_role": assigned_role,
+            "model": reply_meta.get("model", agent.get("model", "")),
+            "focus": agent.get("focus", ""),
+            "reply": reply_meta.get("content", ""),
+            "usage": usage,
+            "estimated_cost_usd": reply_meta.get("estimated_cost_usd"),
+        })
+
+    if not synthesis_enabled:
+        summary = agent_outputs[0]["reply"] if agent_outputs else "No agent output."
+        usage_rollup["estimated_cost_usd"] = usage_rollup["estimated_cost_usd"] if usage_rollup["cost_known"] else None
+        return agent_outputs, summary, usage_rollup
+
+    synthesis_prompt = f"""
+Problem:
+{problem}
+
+Current 5-Why draft:
+{steps_text}
+
+Agent reviews:
+{chr(10).join([f"[{item['agent_name']} - {item['assigned_role']}]{chr(10)}{item['reply']}" for item in agent_outputs])}
+
+Task:
+Create a final integrated 5-Why review with these sections:
+1. Consensus Summary
+2. Rewritten 5-Why Draft
+3. Backward Validation
+4. Disagreements or open points
+5. Evidence to confirm next
+6. Recommended containment / corrective action direction
+"""
+    moderator_name = selected_agent_names[0] if selected_agent_names else "Gemini"
+    moderator = WHYWHY_AGENT_CATALOG.get(moderator_name, {})
+    synthesis_meta = ask_ai_deep_with_meta(
+        synthesis_prompt,
+        context_text=context_text,
+        system_prompt_override=(
+            "You are the moderator of a multi-agent 5-Why quality review. "
+            "Synthesize competing viewpoints fairly, prefer internal standards when available, "
+            "and make the final output practical for a manufacturing quality team."
+        ),
+        model_name=moderator.get("model", ""),
+    )
+    synthesis_usage = synthesis_meta.get("usage", {})
+    usage_rollup["prompt_tokens"] += synthesis_usage.get("prompt_tokens", 0)
+    usage_rollup["completion_tokens"] += synthesis_usage.get("completion_tokens", 0)
+    usage_rollup["total_tokens"] += synthesis_usage.get("total_tokens", 0)
+    usage_rollup["calls"] += 1
+    if isinstance(synthesis_meta.get("estimated_cost_usd"), (int, float)):
+        usage_rollup["estimated_cost_usd"] += float(synthesis_meta["estimated_cost_usd"])
+        usage_rollup["cost_known"] = True
+    usage_rollup["estimated_cost_usd"] = usage_rollup["estimated_cost_usd"] if usage_rollup["cost_known"] else None
+    return agent_outputs, synthesis_meta.get("content", ""), usage_rollup
+
+def build_standard_review_context(query, web_query, use_internal_docs=True, use_web_docs=True, rag_limit=5):
+    query = (query or "").strip()
+    if not query:
+        return "", "", "", ""
+    rag_context = ""
+    if use_internal_docs:
+        vec = get_embedding(query)
+        rag_context = search_qdrant(vec, limit=rag_limit) if vec else ""
+    web_context = ""
+    if use_web_docs:
+        web_context = search_web(web_query, limit=3)
+    context = merge_reference_context(
+        ("MITSUI / INTERNAL QUALITY KNOWLEDGE", rag_context),
+        ("PUBLIC WEB KNOWLEDGE", web_context),
+    )
+    return query, rag_context, web_context, context
+
+def run_multi_agent_quality_review(
+    subject_title,
+    subject_body,
+    selected_agent_names,
+    context_text,
+    review_task_text,
+    synthesis_task_text,
+    synthesis_enabled=True,
+):
+    role_plan = {
+        1: "Lead Investigator",
+        2: "Logic Auditor",
+        3: "Countermeasure Critic",
+    }
+    agent_outputs = []
+    usage_rollup = {
+        "prompt_tokens": 0,
+        "completion_tokens": 0,
+        "total_tokens": 0,
+        "estimated_cost_usd": 0.0,
+        "cost_known": False,
+        "calls": 0,
+    }
+    for index, agent_name in enumerate(selected_agent_names, start=1):
+        agent = WHYWHY_AGENT_CATALOG.get(agent_name, {})
+        assigned_role = role_plan.get(index, agent.get("role", "Reviewer"))
+        system_prompt = (
+            f"You are participating in a multi-AI manufacturing quality review as {agent_name}. "
+            f"Your assigned role is {assigned_role}. "
+            f"Your focus is: {agent.get('focus', 'analyze carefully')}. "
+            "Use internal standards first when available, separate evidence from assumptions, "
+            "and make the review practical for a quality engineering team."
+        )
+        prompt = f"""
+{subject_title}:
+{subject_body}
+
+Task:
+{review_task_text}
+"""
+        reply_meta = ask_ai_deep_with_meta(
+            prompt,
+            context_text=context_text,
+            system_prompt_override=system_prompt,
+            model_name=agent.get("model", ""),
+        )
+        usage = reply_meta.get("usage", {})
+        usage_rollup["prompt_tokens"] += usage.get("prompt_tokens", 0)
+        usage_rollup["completion_tokens"] += usage.get("completion_tokens", 0)
+        usage_rollup["total_tokens"] += usage.get("total_tokens", 0)
+        usage_rollup["calls"] += 1
+        if isinstance(reply_meta.get("estimated_cost_usd"), (int, float)):
+            usage_rollup["estimated_cost_usd"] += float(reply_meta["estimated_cost_usd"])
+            usage_rollup["cost_known"] = True
+        agent_outputs.append({
+            "agent_name": agent_name,
+            "assigned_role": assigned_role,
+            "model": reply_meta.get("model", agent.get("model", "")),
+            "focus": agent.get("focus", ""),
+            "reply": reply_meta.get("content", ""),
+            "usage": usage,
+            "estimated_cost_usd": reply_meta.get("estimated_cost_usd"),
+        })
+
+    if not synthesis_enabled:
+        summary = agent_outputs[0]["reply"] if agent_outputs else "No agent output."
+        usage_rollup["estimated_cost_usd"] = usage_rollup["estimated_cost_usd"] if usage_rollup["cost_known"] else None
+        return agent_outputs, summary, usage_rollup
+
+    moderator_name = selected_agent_names[0] if selected_agent_names else "Gemini"
+    moderator = WHYWHY_AGENT_CATALOG.get(moderator_name, {})
+    synthesis_prompt = f"""
+{subject_title}:
+{subject_body}
+
+Agent reviews:
+{chr(10).join([f"[{item['agent_name']} - {item['assigned_role']}]{chr(10)}{item['reply']}" for item in agent_outputs])}
+
+Task:
+{synthesis_task_text}
+"""
+    synthesis_meta = ask_ai_deep_with_meta(
+        synthesis_prompt,
+        context_text=context_text,
+        system_prompt_override=(
+            "You are the moderator of a multi-agent quality engineering review. "
+            "Synthesize competing viewpoints fairly, prefer internal standards when available, "
+            "and produce a practical conclusion for a manufacturing team."
+        ),
+        model_name=moderator.get("model", ""),
+    )
+    synthesis_usage = synthesis_meta.get("usage", {})
+    usage_rollup["prompt_tokens"] += synthesis_usage.get("prompt_tokens", 0)
+    usage_rollup["completion_tokens"] += synthesis_usage.get("completion_tokens", 0)
+    usage_rollup["total_tokens"] += synthesis_usage.get("total_tokens", 0)
+    usage_rollup["calls"] += 1
+    if isinstance(synthesis_meta.get("estimated_cost_usd"), (int, float)):
+        usage_rollup["estimated_cost_usd"] += float(synthesis_meta["estimated_cost_usd"])
+        usage_rollup["cost_known"] = True
+    usage_rollup["estimated_cost_usd"] = usage_rollup["estimated_cost_usd"] if usage_rollup["cost_known"] else None
+    return agent_outputs, synthesis_meta.get("content", ""), usage_rollup
+
+def default_pfmea_rows(process_step):
+    return [{
+        "Process Step": process_step,
+        "Process Function": "",
+        "Requirement": "",
+        "Potential Failure Mode": "",
+        "Potential Effect": "",
+        "Severity": 0,
+        "Potential Cause": "",
+        "Occurrence": 0,
+        "Current Prevention Control": "",
+        "Current Detection Control": "",
+        "Detection": 0,
+        "RPN": 0,
+        "Recommended Action": "",
+        "Responsibility": "",
+        "Due Date": "",
+        "Action Status": "Open",
+    }]
+
+def normalize_pfmea_dataframe(df, process_step):
+    expected_columns = [
+        "Process Step",
+        "Process Function",
+        "Requirement",
+        "Potential Failure Mode",
+        "Potential Effect",
+        "Severity",
+        "Potential Cause",
+        "Occurrence",
+        "Current Prevention Control",
+        "Current Detection Control",
+        "Detection",
+        "RPN",
+        "Recommended Action",
+        "Responsibility",
+        "Due Date",
+        "Action Status",
+    ]
+    if df is None or df.empty:
+        return pd.DataFrame(default_pfmea_rows(process_step))
+    normalized = df.copy()
+    for column in expected_columns:
+        if column not in normalized.columns:
+            normalized[column] = ""
+    numeric_columns = ["Severity", "Occurrence", "Detection"]
+    for column in numeric_columns:
+        normalized[column] = pd.to_numeric(normalized[column], errors="coerce").fillna(0).astype(int).clip(lower=0, upper=10)
+    normalized["Process Step"] = normalized["Process Step"].replace("", process_step).fillna(process_step)
+    normalized["RPN"] = normalized["Severity"] * normalized["Occurrence"] * normalized["Detection"]
+    normalized["Action Status"] = normalized["Action Status"].replace("", "Open").fillna("Open")
+    return normalized[expected_columns]
 
 def extract_text_immediate(filepath):
     """Refactored extraction logic for immediate use"""
@@ -555,11 +1210,12 @@ page = st.sidebar.radio("Select Tool", [
     "Why-Why Analysis",
     "Work Study",
     "Process Monitoring & Measurement",
-    "3D Converter",
-    "Tolerance Analysis",
-    "Kindle Manuscript",
     "Email Daily Report (P016)"
 ])
+st.sidebar.caption("Portal に独立カードがある重複ツールは、QA Dashboard から順次整理しています。")
+st.sidebar.markdown("[Open 3D Converter from Portal](http://localhost:8088/portal.html)")
+st.sidebar.markdown("[Open Tolerance Center from Portal](http://localhost:8088/portal.html)")
+st.sidebar.markdown("[Open Kindle Author from Portal](http://localhost:8088/portal.html)")
 
 # --- PAGES ---
 
@@ -671,77 +1327,411 @@ elif page == "Work Instruction Generator":
                     st.success(f"Saved to {WORK_DIR}/{fn}")
 
 elif page == "FMEA Editor":
-    st.header("投 FMEA (Knowledge Aware)")
+    st.header("投 PFMEA Workspace")
+    st.caption("実務向けの PFMEA 列に寄せています。ユーザーが表を作り、AI は会議メンバーとして抜け漏れと妥当性をレビューします。")
     process_step = st.text_input("Process Step", "Battery Weld")
-    use_web_reference = st.checkbox("Also use Web knowledge", value=True)
-    ai_mode = st.selectbox(
-        "Ask AI model",
-        [
-            "Deep AI (GPT-5.4 / Gemini Thinking if configured)",
-            "Local Ollama",
-        ],
-        index=0,
+    process_function = st.text_input("Process Function", "Join tab and terminal with stable nugget size")
+    requirement = st.text_input("Requirement / Customer Need", "No crack, no leakage, electrical resistance within spec")
+    st.session_state.fmea_data = normalize_pfmea_dataframe(st.session_state.get("fmea_data"), process_step)
+    if st.button("Add starter PFMEA row"):
+        starter_df = st.session_state.fmea_data.copy()
+        starter_df.loc[len(starter_df)] = default_pfmea_rows(process_step)[0]
+        st.session_state.fmea_data = normalize_pfmea_dataframe(starter_df, process_step)
+
+    edited_df = st.data_editor(
+        st.session_state.fmea_data,
+        num_rows="dynamic",
+        use_container_width=True,
+        hide_index=True,
+        column_config={
+            "Process Step": st.column_config.TextColumn(width="medium"),
+            "Process Function": st.column_config.TextColumn(width="medium"),
+            "Requirement": st.column_config.TextColumn(width="medium"),
+            "Potential Failure Mode": st.column_config.TextColumn(width="large"),
+            "Potential Effect": st.column_config.TextColumn(width="large"),
+            "Severity": st.column_config.NumberColumn(min_value=0, max_value=10, step=1),
+            "Potential Cause": st.column_config.TextColumn(width="large"),
+            "Occurrence": st.column_config.NumberColumn(min_value=0, max_value=10, step=1),
+            "Current Prevention Control": st.column_config.TextColumn(width="large"),
+            "Current Detection Control": st.column_config.TextColumn(width="large"),
+            "Detection": st.column_config.NumberColumn(min_value=0, max_value=10, step=1),
+            "RPN": st.column_config.NumberColumn(disabled=True),
+            "Recommended Action": st.column_config.TextColumn(width="large"),
+            "Responsibility": st.column_config.TextColumn(width="small"),
+            "Due Date": st.column_config.TextColumn(width="small", help="例: 2026-04-15"),
+            "Action Status": st.column_config.SelectboxColumn(options=["Open", "In Progress", "Done", "Hold"]),
+        },
+    )
+    edited_df = normalize_pfmea_dataframe(edited_df, process_step)
+    edited_df["Process Function"] = edited_df["Process Function"].replace("", process_function)
+    edited_df["Requirement"] = edited_df["Requirement"].replace("", requirement)
+    st.session_state.fmea_data = edited_df
+
+    risk_col1, risk_col2, risk_col3, risk_col4 = st.columns(4)
+    risk_col1.metric("Rows", len(edited_df))
+    risk_col2.metric("High RPN Rows", int((edited_df["RPN"] >= 100).sum()))
+    risk_col3.metric("Open Actions", int((edited_df["Action Status"] != "Done").sum()))
+    risk_col4.metric("Max RPN", int(edited_df["RPN"].max()) if len(edited_df) else 0)
+
+    with st.expander("PFMEA Review Focus"):
+        st.markdown(
+            "- `Potential Failure Mode` が現象になっているか\n"
+            "- `Potential Effect` が顧客・次工程影響まで届いているか\n"
+            "- `Potential Cause` が真因候補になっているか\n"
+            "- `Current Prevention / Detection Control` が分かれているか\n"
+            "- `Recommended Action` と `Responsibility / Due Date` が会議で決められる粒度か"
+        )
+
+    mode_name = st.selectbox(
+        "FMEA review mode",
+        list(WHYWHY_MODE_PRESETS.keys()),
+        index=1,
+        key="fmea_mode_name",
+    )
+    mode_preset = WHYWHY_MODE_PRESETS[mode_name]
+    st.caption(mode_preset["description"])
+
+    setup_col1, setup_col2 = st.columns([2, 1])
+    with setup_col1:
+        selected_agents = st.multiselect(
+            "FMEA AI participants",
+            options=list(WHYWHY_AGENT_CATALOG.keys()),
+            default=["Gemini", "ChatGPT"],
+            max_selections=3,
+            key="fmea_agents",
+        )
+    with setup_col2:
+        st.markdown("**Current role plan**")
+        for idx, agent_name in enumerate(selected_agents or ["Gemini", "ChatGPT"], start=1):
+            role = ["Lead Investigator", "Logic Auditor", "Countermeasure Critic"][idx - 1]
+            st.caption(f"{agent_name}: {role}")
+
+    options_col1, options_col2 = st.columns(2)
+    with options_col1:
+        use_internal_docs = st.checkbox("Use Mitsui / internal RAG", value=True, key="fmea_internal_docs")
+    with options_col2:
+        use_web_docs = st.checkbox("Use Web knowledge", value=mode_preset["use_web"], key="fmea_web_docs")
+
+    effective_agents = (selected_agents or ["Gemini", "ChatGPT"])[: mode_preset["max_agents"]]
+    effective_use_web = use_web_docs and mode_preset["use_web"]
+    st.info(
+        " | ".join([
+            f"Participants: {', '.join(effective_agents)}",
+            f"Web knowledge: {'On' if effective_use_web else 'Off'}",
+            f"Consensus synthesis: {'On' if mode_preset['synthesis'] else 'Off'}",
+            f"Internal RAG top-k: {mode_preset['top_k']}",
+        ])
     )
     st.caption(
         f"Deep model setting: `{FMEA_DEEP_MODEL}` via `{LITELLM_URL}/chat/completions`. "
-        "Set `FMEA_DEEP_MODEL` to a stronger model such as `gpt-5.4` or your Gemini thinking model when available."
+        "単独の軽い確認が必要な場合だけ Local Ollama へ戻すより、まずは省APIモードを使うのがおすすめです。"
     )
-    
-    if st.button("笨ｨ Ask AI"):
-        with st.spinner("Searching..."):
-            vec = get_embedding(process_step)
-            rag_context = search_qdrant(vec)
-            web_context = search_web(f"PFMEA failure modes {process_step}", limit=3) if use_web_reference else ""
-            context = merge_reference_context(
-                ("INTERNAL / PDF KNOWLEDGE", rag_context),
-                ("WEB KNOWLEDGE", web_context),
+
+    if st.button("Run Multi-AI FMEA Review"):
+        effective_agents = effective_agents or ["Gemini"]
+        records = []
+        for row in edited_df.fillna("").to_dict(orient="records"):
+            step_value = row.get("Process Step") or process_step
+            records.append(
+                f"- Process Step: {step_value} | Function: {row.get('Process Function', '')} | "
+                f"Requirement: {row.get('Requirement', '')} | Failure Mode: {row.get('Potential Failure Mode', '')} | "
+                f"Effect: {row.get('Potential Effect', '')} | Cause: {row.get('Potential Cause', '')} | "
+                f"S/O/D: {row.get('Severity', '')}/{row.get('Occurrence', '')}/{row.get('Detection', '')} | "
+                f"RPN: {row.get('RPN', '')} | Prevention: {row.get('Current Prevention Control', '')} | "
+                f"Detection Control: {row.get('Current Detection Control', '')} | Action: {row.get('Recommended Action', '')} | "
+                f"Owner/Due: {row.get('Responsibility', '')}/{row.get('Due Date', '')} | Status: {row.get('Action Status', '')}"
             )
-            res = ask_ai(
-                f"Suggest 3 Failure Modes for '{process_step}'. Format: Mode, Effect, Severity. "
-                "Prefer internal references when there is a conflict, and use web references as supplemental knowledge.",
-                context,
-                mode="deep" if ai_mode.startswith("Deep AI") else "local",
-                deep_model_name=FMEA_DEEP_MODEL,
+        fmea_body = (
+            f"Process Step: {process_step}\n"
+            f"Process Function: {process_function}\n"
+            f"Requirement: {requirement}\n"
+            f"Current PFMEA rows:\n" + ("\n".join(records) if records else f"- Process Step: {process_step}")
+        )
+        with st.spinner("Reviewing FMEA with multiple AI agents..."):
+            query, rag_context, web_context, context = build_standard_review_context(
+                query=f"PFMEA {process_step} {process_function} {requirement} {' '.join([str(v) for v in edited_df.fillna('').astype(str).values.flatten()[:20]])}",
+                web_query=f"PFMEA manufacturing process function failure mode effect cause controls action {process_step}",
+                use_internal_docs=use_internal_docs,
+                use_web_docs=effective_use_web,
+                rag_limit=mode_preset["top_k"],
             )
-            if rag_context or web_context:
-                with st.expander("References"):
-                    if rag_context:
-                        st.markdown("**Internal / PDF Knowledge**")
-                        st.markdown(rag_context[:1200])
-                    if web_context:
-                        st.markdown("**Web Knowledge**")
-                        st.markdown(web_context[:1200])
-            st.info(res)
-            
-    # Use existing dataframe logic...
-    if 'fmea_data' not in st.session_state:
-        st.session_state.fmea_data = pd.DataFrame([{"Process Step": process_step, "Mode": "", "Effect": "", "S": 0, "O": 0, "D": 0, "RPN": 0}])
-    edited_df = st.data_editor(st.session_state.fmea_data, num_rows="dynamic", use_container_width=True)
+            agent_outputs, synthesis, usage_rollup = run_multi_agent_quality_review(
+                subject_title="FMEA draft",
+                subject_body=fmea_body,
+                selected_agent_names=effective_agents,
+                context_text=context,
+                review_task_text=(
+                    "1. Review the PFMEA rows for logical quality and real manufacturing usability.\n"
+                    "2. Check whether Process Function, Requirement, Failure Mode, Effect, and Cause are properly separated.\n"
+                    "3. Comment on whether S/O/D severity appears justified.\n"
+                    "4. Point out missing prevention controls, missing detection controls, and weak recommended actions.\n"
+                    "5. Suggest where FTA or Why-Why deepening is needed for high-risk causes.\n"
+                    "6. Highlight what internal standards or procedures should be checked next.\n"
+                    "7. Keep the response concise and structured for a PFMEA meeting."
+                ),
+                synthesis_task_text=(
+                    "Create a final integrated PFMEA review with these sections:\n"
+                    "1. Consensus Summary\n"
+                    "2. Recommended PFMEA row corrections\n"
+                    "3. S/O/D concerns\n"
+                    "4. Missing controls or actions\n"
+                    "5. Where FTA or Why-Why should be used next\n"
+                    "6. Evidence / procedures to confirm next"
+                ),
+                synthesis_enabled=mode_preset["synthesis"],
+            )
+
+        st.subheader("Integrated Conclusion")
+        st.markdown(synthesis)
+
+        usage_col1, usage_col2 = st.columns([2, 1])
+        with usage_col1:
+            st.subheader("Turn Usage")
+            st.caption(format_usage_summary(usage_rollup))
+        with usage_col2:
+            st.metric("Deep AI Calls", usage_rollup.get("calls", 0))
+            st.metric("Total Tokens", f"{usage_rollup.get('total_tokens', 0):,}")
+
+        st.subheader("Agent Opinions")
+        for item in agent_outputs:
+            with st.expander(f"{item['agent_name']} | {item['assigned_role']} | {item['model']}"):
+                st.caption(item["focus"])
+                st.markdown(item["reply"])
+                st.caption(format_usage_summary({
+                    "prompt_tokens": item.get("usage", {}).get("prompt_tokens", 0),
+                    "completion_tokens": item.get("usage", {}).get("completion_tokens", 0),
+                    "total_tokens": item.get("usage", {}).get("total_tokens", 0),
+                    "estimated_cost_usd": item.get("estimated_cost_usd"),
+                }))
+
+        if rag_context or web_context:
+            st.subheader("References")
+            if rag_context:
+                with st.expander("Internal / PDF Knowledge"):
+                    st.markdown(rag_context[:2000])
+            if web_context:
+                with st.expander("Web Knowledge"):
+                    st.markdown(web_context[:2000])
+            st.caption(f"Search query: {query}")
 
 elif page == "FTA (Fault Tree)":
     st.header("元 Fault Tree")
+    st.caption("FTA も Why-Why と同じく、既定 2 名の AI で原因展開をチェックできるようにしています。")
     top_event = st.text_input("Top Event", "Motor Stall")
-    if st.button("笨ｨ Suggest Causes"):
-        with st.spinner("Analyzing..."):
-            vec = get_embedding(top_event)
-            context = search_qdrant(vec)
-            res = ask_ai(f"List 5 root causes for '{top_event}'.", context)
-            st.text_area("AI Suggestions", res)
-            
     nodes = st.text_area("Define Causes (Lines)", "Overload\nShort Circuit").split('\n')
     mermaid = f"graph TD\nTOP[\"{top_event}\"] --> OR((OR))"
     for i, n in enumerate(nodes):
         if n.strip(): mermaid += f"\nOR --> C{i}[\"{n.strip()}\"]"
     st.mermaid(mermaid)
 
+    mode_name = st.selectbox(
+        "FTA review mode",
+        list(WHYWHY_MODE_PRESETS.keys()),
+        index=1,
+        key="fta_mode_name",
+    )
+    mode_preset = WHYWHY_MODE_PRESETS[mode_name]
+    st.caption(mode_preset["description"])
+
+    setup_col1, setup_col2 = st.columns([2, 1])
+    with setup_col1:
+        selected_agents = st.multiselect(
+            "FTA AI participants",
+            options=list(WHYWHY_AGENT_CATALOG.keys()),
+            default=["Gemini", "ChatGPT"],
+            max_selections=3,
+            key="fta_agents",
+        )
+    with setup_col2:
+        st.markdown("**Current role plan**")
+        for idx, agent_name in enumerate(selected_agents or ["Gemini", "ChatGPT"], start=1):
+            role = ["Lead Investigator", "Logic Auditor", "Countermeasure Critic"][idx - 1]
+            st.caption(f"{agent_name}: {role}")
+
+    options_col1, options_col2 = st.columns(2)
+    with options_col1:
+        use_internal_docs = st.checkbox("Use Mitsui / internal RAG", value=True, key="fta_internal_docs")
+    with options_col2:
+        use_web_docs = st.checkbox("Use Web knowledge", value=mode_preset["use_web"], key="fta_web_docs")
+
+    effective_agents = (selected_agents or ["Gemini", "ChatGPT"])[: mode_preset["max_agents"]]
+    effective_use_web = use_web_docs and mode_preset["use_web"]
+    st.info(
+        " | ".join([
+            f"Participants: {', '.join(effective_agents)}",
+            f"Web knowledge: {'On' if effective_use_web else 'Off'}",
+            f"Consensus synthesis: {'On' if mode_preset['synthesis'] else 'Off'}",
+            f"Internal RAG top-k: {mode_preset['top_k']}",
+        ])
+    )
+
+    if st.button("Run Multi-AI FTA Review"):
+        effective_agents = effective_agents or ["Gemini"]
+        cause_lines = [item.strip() for item in nodes if item.strip()]
+        fta_body = (
+            f"Top event: {top_event}\n"
+            f"Current fault tree branch draft:\n" +
+            "\n".join([f"- {item}" for item in cause_lines])
+        )
+        with st.spinner("Reviewing FTA with multiple AI agents..."):
+            query, rag_context, web_context, context = build_standard_review_context(
+                query=f"FTA {top_event} {' '.join(cause_lines)}",
+                web_query=f"fault tree analysis manufacturing root causes {top_event}",
+                use_internal_docs=use_internal_docs,
+                use_web_docs=effective_use_web,
+                rag_limit=mode_preset["top_k"],
+            )
+            agent_outputs, synthesis, usage_rollup = run_multi_agent_quality_review(
+                subject_title="FTA draft",
+                subject_body=fta_body,
+                selected_agent_names=effective_agents,
+                context_text=context,
+                review_task_text=(
+                    "1. Review whether the listed causes are logically connected to the top event.\n"
+                    "2. Suggest missing intermediate causes, branch separation, or gate logic concerns.\n"
+                    "3. Point out if immediate causes and root causes are mixed together.\n"
+                    "4. Identify what evidence, records, or procedures should be checked next.\n"
+                    "5. Keep the response concise and structured for an FTA review meeting."
+                ),
+                synthesis_task_text=(
+                    "Create a final integrated FTA review with these sections:\n"
+                    "1. Consensus Summary\n"
+                    "2. Recommended branch structure\n"
+                    "3. Missing intermediate or root causes\n"
+                    "4. Gate logic / tree quality concerns\n"
+                    "5. Evidence to confirm next"
+                ),
+                synthesis_enabled=mode_preset["synthesis"],
+            )
+
+        st.subheader("Integrated Conclusion")
+        st.markdown(synthesis)
+
+        usage_col1, usage_col2 = st.columns([2, 1])
+        with usage_col1:
+            st.subheader("Turn Usage")
+            st.caption(format_usage_summary(usage_rollup))
+        with usage_col2:
+            st.metric("Deep AI Calls", usage_rollup.get("calls", 0))
+            st.metric("Total Tokens", f"{usage_rollup.get('total_tokens', 0):,}")
+
+        st.subheader("Agent Opinions")
+        for item in agent_outputs:
+            with st.expander(f"{item['agent_name']} | {item['assigned_role']} | {item['model']}"):
+                st.caption(item["focus"])
+                st.markdown(item["reply"])
+                st.caption(format_usage_summary({
+                    "prompt_tokens": item.get("usage", {}).get("prompt_tokens", 0),
+                    "completion_tokens": item.get("usage", {}).get("completion_tokens", 0),
+                    "total_tokens": item.get("usage", {}).get("total_tokens", 0),
+                    "estimated_cost_usd": item.get("estimated_cost_usd"),
+                }))
+
+        if rag_context or web_context:
+            st.subheader("References")
+            if rag_context:
+                with st.expander("Internal / PDF Knowledge"):
+                    st.markdown(rag_context[:2000])
+            if web_context:
+                with st.expander("Web Knowledge"):
+                    st.markdown(web_context[:2000])
+            st.caption(f"Search query: {query}")
+
 elif page == "Why-Why Analysis":
-    st.header("笶・5-Whys (Logic Check)")
+    st.header("5-Whys (Multi-AI Review)")
+    st.caption("既定は 2 名の AI で討議し、必要なら 3 名まで増やせます。社内文書 RAG を優先し、Web 知識は補助参照にします。")
     problem = st.text_input("Problem", "Leakage")
     whys = [st.text_input(f"{i}. Why?", key=f"w{i}") for i in range(1, 6)]
-    if st.button("売 Verify Logic"):
-        chain = " -> Therefore -> ".join([w for w in whys if w][::-1] + [problem])
-        res = ask_ai(f"Verify this logic chain: {chain}")
-        st.markdown(res)
+    mode_name = st.selectbox(
+        "Review mode",
+        list(WHYWHY_MODE_PRESETS.keys()),
+        index=1,
+    )
+    mode_preset = WHYWHY_MODE_PRESETS[mode_name]
+    st.caption(mode_preset["description"])
+
+    setup_col1, setup_col2 = st.columns([2, 1])
+    with setup_col1:
+        selected_agents = st.multiselect(
+            "AI participants",
+            options=list(WHYWHY_AGENT_CATALOG.keys()),
+            default=["Gemini", "ChatGPT"],
+            max_selections=3,
+            help="既定は 2 名です。Gemini / ChatGPT / Claude から選べます。",
+        )
+    with setup_col2:
+        st.markdown("**Current role plan**")
+        for idx, agent_name in enumerate(selected_agents or ["Gemini", "ChatGPT"], start=1):
+            role = ["Lead Investigator", "Logic Auditor", "Countermeasure Critic"][idx - 1]
+            st.caption(f"{agent_name}: {role}")
+
+    options_col1, options_col2 = st.columns(2)
+    with options_col1:
+        use_internal_docs = st.checkbox("Use Mitsui / internal RAG", value=True)
+    with options_col2:
+        use_web_docs = st.checkbox("Use Web knowledge", value=mode_preset["use_web"])
+
+    effective_agents = (selected_agents or ["Gemini", "ChatGPT"])[: mode_preset["max_agents"]]
+    effective_use_web = use_web_docs and mode_preset["use_web"]
+    runtime_notes = [
+        f"Participants: {', '.join(effective_agents)}",
+        f"Web knowledge: {'On' if effective_use_web else 'Off'}",
+        f"Consensus synthesis: {'On' if mode_preset['synthesis'] else 'Off'}",
+        f"Internal RAG top-k: {mode_preset['top_k']}",
+        "Backward validation: On",
+    ]
+    st.info(" | ".join(runtime_notes))
+
+    if st.button("Run Multi-AI Review"):
+        effective_agents = effective_agents or ["Gemini"]
+        with st.spinner("Reviewing with multiple AI agents..."):
+            query, rag_context, web_context, context = build_whywhy_context(
+                problem,
+                whys,
+                use_internal_docs=use_internal_docs,
+                use_web_docs=effective_use_web,
+                rag_limit=mode_preset["top_k"],
+            )
+            agent_outputs, synthesis, usage_rollup = run_whywhy_agents(
+                problem,
+                whys,
+                effective_agents,
+                context,
+                synthesis_enabled=mode_preset["synthesis"],
+            )
+
+        st.subheader("Integrated Conclusion")
+        st.markdown(synthesis)
+
+        usage_col1, usage_col2 = st.columns([2, 1])
+        with usage_col1:
+            st.subheader("Turn Usage")
+            st.caption(format_usage_summary(usage_rollup))
+        with usage_col2:
+            st.metric("Deep AI Calls", usage_rollup.get("calls", 0))
+            st.metric("Total Tokens", f"{usage_rollup.get('total_tokens', 0):,}")
+
+        st.subheader("Agent Opinions")
+        for item in agent_outputs:
+            with st.expander(f"{item['agent_name']} | {item['assigned_role']} | {item['model']}"):
+                st.caption(item["focus"])
+                st.markdown(item["reply"])
+                st.caption(format_usage_summary({
+                    "prompt_tokens": item.get("usage", {}).get("prompt_tokens", 0),
+                    "completion_tokens": item.get("usage", {}).get("completion_tokens", 0),
+                    "total_tokens": item.get("usage", {}).get("total_tokens", 0),
+                    "estimated_cost_usd": item.get("estimated_cost_usd"),
+                }))
+
+        if rag_context or web_context:
+            st.subheader("References")
+            if rag_context:
+                with st.expander("Internal / PDF Knowledge"):
+                    st.markdown(rag_context[:2000])
+            if web_context:
+                with st.expander("Web Knowledge"):
+                    st.markdown(web_context[:2000])
+            st.caption(f"Search query: {query}")
 
 elif page == "Work Study":
     st.header("竢ｱ・・Work Study")
@@ -777,7 +1767,15 @@ elif page == "3D Converter":
         else:
             uploaded_3d = st.file_uploader("3D model", type=["step", "stp", "stl", "obj"], key="model_upload")
             html_profile = "storage_5mb"
+            html_purpose = "普通の生成"
+            drawing_pdf = None
             if conv_type == "Model -> 3D HTML":
+                html_purpose = st.radio(
+                    "Generation Purpose",
+                    ["普通の生成", "GD&T 2D/3D 整合"],
+                    horizontal=True,
+                    help="GD&T 2D/3D 整合を選ぶと、通常のHTMLに加えてレビュー用マニフェストとチェックリストを含む版を生成します。",
+                )
                 html_profile = st.selectbox(
                     "HTML Size Profile",
                     ["email_2mb", "storage_5mb", "high_quality"],
@@ -818,6 +1816,71 @@ elif page == "3D Converter":
                                 st.warning(estimate_data.get("selected_profile_error", "Selected profile may not fit."))
                         else:
                             st.warning(f"Size estimate failed: {estimate_result.stderr or estimate_result.stdout}")
+                if html_purpose == "GD&T 2D/3D 整合":
+                    drawing_pdf = st.file_uploader(
+                        "2D Drawing PDF (Optional but recommended)",
+                        type=["pdf"],
+                        key="gdt_drawing_upload",
+                        help="図面PDFを添付すると、レビュー bundle に抽出プレビューと候補 requirement を含めます。",
+                    )
+                    st.info(
+                        "GD&T review mode: HTML viewer に加えて、review manifest と checklist を含むレビュー版を生成します。"
+                    )
+                    if drawing_pdf is not None:
+                        with tempfile.TemporaryDirectory() as td_drawing_preview:
+                            preview_pdf_path = os.path.join(td_drawing_preview, drawing_pdf.name)
+                            with open(preview_pdf_path, "wb") as f:
+                                f.write(drawing_pdf.getbuffer())
+                            drawing_preview = extract_gdt_pdf_review_context(preview_pdf_path)
+                        mapping_key = f"gdt_requirement_mapping::{safe_stem(uploaded_3d.name)}::{safe_stem(drawing_pdf.name)}"
+                        default_mapping_rows = build_gdt_requirement_mapping_rows(
+                            drawing_preview.get("candidate_requirements", [])
+                        )
+                        prior_rows = st.session_state.get(mapping_key)
+                        if prior_rows and isinstance(prior_rows, list) and len(prior_rows) == len(default_mapping_rows):
+                            default_mapping_rows = prior_rows
+                        if drawing_preview.get("candidate_requirements"):
+                            st.caption(
+                                f"Drawing preview: {drawing_preview.get('page_count', 0)} page(s) | "
+                                f"{len(drawing_preview.get('candidate_requirements', []))} likely GD&T lines detected"
+                            )
+                            with st.expander("Drawing extraction preview"):
+                                st.write(drawing_preview.get("candidate_requirements", []))
+                                if drawing_preview.get("text_preview"):
+                                    st.text_area(
+                                        "Preview text",
+                                        drawing_preview.get("text_preview", ""),
+                                        height=180,
+                                        disabled=True,
+                                        key="gdt_drawing_preview_text",
+                                    )
+                            st.markdown("**Requirement -> face/axis review table**")
+                            edited_mapping_df = st.data_editor(
+                                pd.DataFrame(default_mapping_rows),
+                                hide_index=True,
+                                use_container_width=True,
+                                num_rows="fixed",
+                                key=f"{mapping_key}::editor",
+                                column_config={
+                                    "requirement_id": st.column_config.TextColumn("Requirement ID", disabled=True, width="small"),
+                                    "requirement_text": st.column_config.TextColumn("Requirement", disabled=True, width="large"),
+                                    "candidate_face_ids": st.column_config.TextColumn("Candidate Face IDs"),
+                                    "candidate_axis_ids": st.column_config.TextColumn("Candidate Axis IDs"),
+                                    "chosen_target": st.column_config.TextColumn("Chosen Target"),
+                                    "status": st.column_config.SelectboxColumn(
+                                        "Status",
+                                        options=["pending", "candidate_listed", "chosen", "rejected"],
+                                        required=True,
+                                    ),
+                                    "review_note": st.column_config.TextColumn("Review Note", width="large"),
+                                },
+                            )
+                            st.session_state[mapping_key] = edited_mapping_df.to_dict("records")
+                        else:
+                            st.caption(
+                                f"Drawing preview: {drawing_preview.get('page_count', 0)} page(s) | "
+                                "No strong GD&T keywords detected automatically"
+                            )
     
     with col2:
         st.subheader("Run Conversion")
@@ -840,7 +1903,8 @@ elif page == "3D Converter":
                             output_path = os.path.join(td, f"output.{ext}")
                             cmd = ["python3", "/work/scripts/dxf23d.py", input_path, output_path, "--height", str(height)]
                         elif conv_type == "Model -> 3D HTML":
-                            output_path = os.path.join(td, "output.html")
+                            output_basename = "output_gdt_review.html" if html_purpose == "GD&T 2D/3D 整合" else "output.html"
+                            output_path = os.path.join(td, output_basename)
                             cmd = [
                                 "python3",
                                 "/work/scripts/model2html.py",
@@ -861,26 +1925,64 @@ elif page == "3D Converter":
                         elif os.path.exists(output_path):
                             st.success("Conversion completed.")
                             if conv_type == "Model -> 3D HTML":
+                                gdt_manifest = None
+                                drawing_info = {}
+                                drawing_pdf_name = ""
+                                drawing_pdf_bytes = None
+                                if html_purpose == "GD&T 2D/3D 整合" and drawing_pdf is not None:
+                                    drawing_pdf_name = drawing_pdf.name
+                                    drawing_pdf_bytes = drawing_pdf.getbuffer().tobytes()
+                                    drawing_pdf_path = os.path.join(td, drawing_pdf_name)
+                                    with open(drawing_pdf_path, "wb") as f:
+                                        f.write(drawing_pdf_bytes)
+                                    drawing_info = extract_gdt_pdf_review_context(drawing_pdf_path)
+                                requirement_mappings = build_gdt_requirement_mapping_rows(
+                                    drawing_info.get("candidate_requirements", [])
+                                )
+                                if html_purpose == "GD&T 2D/3D 整合" and drawing_pdf is not None:
+                                    mapping_key = f"gdt_requirement_mapping::{safe_stem(uploaded_3d.name)}::{safe_stem(drawing_pdf.name)}"
+                                    stored_mapping = st.session_state.get(mapping_key)
+                                    if stored_mapping and isinstance(stored_mapping, list):
+                                        requirement_mappings = stored_mapping
+                                if html_purpose == "GD&T 2D/3D 整合":
+                                    gdt_manifest = build_gdt_review_manifest(
+                                        uploaded_3d.name,
+                                        html_profile,
+                                        drawing_info=drawing_info,
+                                        requirement_mappings=requirement_mappings,
+                                    )
                                 with open(output_path, "rb") as f:
                                     html_bytes = f.read()
+                                output_name = os.path.basename(output_path)
+                                zip_name = os.path.splitext(output_name)[0] + ".zip"
                                 zip_buffer = io.BytesIO()
                                 with zipfile.ZipFile(zip_buffer, mode="w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as zf:
-                                    zf.writestr(os.path.basename(output_path), html_bytes)
+                                    zf.writestr(output_name, html_bytes)
+                                    if html_purpose == "GD&T 2D/3D 整合":
+                                        checklist_md = build_gdt_checklist_markdown(uploaded_3d.name, drawing_name=drawing_info.get("drawing_name", ""))
+                                        prefix = safe_stem(uploaded_3d.name)
+                                        zf.writestr(
+                                            f"{prefix}_gdt_review_manifest.json",
+                                            json.dumps(gdt_manifest, ensure_ascii=False, indent=2),
+                                        )
+                                        zf.writestr(f"{prefix}_gdt_checklist.md", checklist_md)
+                                        if drawing_pdf_name and drawing_pdf_bytes is not None:
+                                            zf.writestr(f"{prefix}_source_drawing.pdf", drawing_pdf_bytes)
                                 zip_bytes = zip_buffer.getvalue()
                                 dl_html, dl_zip = st.columns(2)
                                 with dl_html:
                                     st.download_button(
-                                        "Download 3D HTML",
+                                        "Download 3D HTML" if html_purpose == "普通の生成" else "Download GD&T HTML",
                                         html_bytes,
-                                        file_name=os.path.basename(output_path),
+                                        file_name=output_name,
                                         mime="text/html",
                                         use_container_width=True,
                                     )
                                 with dl_zip:
                                     st.download_button(
-                                        "Download ZIP",
+                                        "Download ZIP" if html_purpose == "普通の生成" else "Download GD&T Review ZIP",
                                         zip_bytes,
-                                        file_name=os.path.splitext(os.path.basename(output_path))[0] + ".zip",
+                                        file_name=zip_name,
                                         mime="application/zip",
                                         use_container_width=True,
                                     )
@@ -888,6 +1990,27 @@ elif page == "3D Converter":
                                     f"The downloaded HTML can be opened locally by double-clicking it in a browser. "
                                     f"HTML size: {round(len(html_bytes) / 1024):,} KB | ZIP size: {round(len(zip_bytes) / 1024):,} KB"
                                 )
+                                if html_purpose == "GD&T 2D/3D 整合":
+                                    st.markdown("**GD&T review bundle contents**")
+                                    st.json(gdt_manifest)
+                                    if drawing_info.get("candidate_requirements"):
+                                        mapping_summary = summarize_gdt_requirement_mappings(requirement_mappings)
+                                        mcol1, mcol2, mcol3, mcol4 = st.columns(4)
+                                        with mcol1:
+                                            st.metric("Requirements", mapping_summary["total_requirements"])
+                                        with mcol2:
+                                            st.metric("Chosen", mapping_summary["chosen_count"])
+                                        with mcol3:
+                                            st.metric("Candidate Listed", mapping_summary["candidate_listed_count"])
+                                        with mcol4:
+                                            st.metric("Pending", mapping_summary["pending_count"])
+                                        st.markdown("**Drawing-derived candidate requirements**")
+                                        st.write(drawing_info.get("candidate_requirements", []))
+                                        st.markdown("**Saved requirement mapping rows**")
+                                        st.dataframe(pd.DataFrame(requirement_mappings), use_container_width=True, hide_index=True)
+                                    st.caption(
+                                        "This bundle is review-oriented. Exact face ids / chosen targets still need engineer confirmation against the 2D drawing."
+                                    )
                             else:
                                 preview_path = os.path.join(
                                     td,

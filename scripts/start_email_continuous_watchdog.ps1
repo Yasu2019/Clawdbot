@@ -3,7 +3,9 @@ $ErrorActionPreference = "Stop"
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $scriptPath = Join-Path $repoRoot "data\workspace\email_continuous_watchdog.py"
 
-$existing = Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -like "*email_continuous_watchdog.py*" }
+$existing = Get-CimInstance Win32_Process | Where-Object {
+  $_.Name -like "python*" -and $_.CommandLine -like "*email_continuous_watchdog.py*"
+}
 if ($existing) {
   Write-Output "Email continuous watchdog already running."
   exit 0

@@ -79,7 +79,7 @@ RUN curl -O https://downloads.rclone.org/rclone-current-linux-amd64.zip && unzip
 # 統計 (R), VNC, 3D PDF, Rhubarb, Docker CLI, Tesseract
 RUN apt-get update && apt-get install -y --no-install-recommends \
     r-base r-base-dev libcurl4-openssl-dev libssl-dev libxml2-dev libgmp-dev libmpfr-dev libglpk-dev && rm -rf /var/lib/apt/lists/*
-RUN R -e "install.packages(c('SixSigma', 'qcc', 'AlgDesign', 'DoE.wrapper', 'skpr', 'languageserver'), repos='https://cloud.r-project.org')"
+RUN R -e "install.packages(c('SixSigma', 'qcc', 'AlgDesign', 'DoE.wrapper', 'skpr'), repos='https://cloud.r-project.org')"
 
 RUN apt-get update && apt-get install -y --no-install-recommends x11vnc fluxbox imagemagick x11-xserver-utils && rm -rf /var/lib/apt/lists/*
 RUN git clone --depth 1 https://github.com/novnc/noVNC.git /opt/noVNC && git clone --depth 1 https://github.com/novnc/websockify.git /opt/noVNC/utils/websockify

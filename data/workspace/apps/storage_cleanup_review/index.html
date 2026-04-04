@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Storage Cleanup Review</title>
+  <style>
+    body { margin:0; font-family:"Segoe UI","Yu Gothic UI",sans-serif; background:#f4f1e8; color:#1f2a22; }
+    .wrap { max-width:1400px; margin:0 auto; padding:28px 20px 40px; }
+    .hero { background:linear-gradient(135deg,#5c3b1e,#7f5730); color:#fff9f3; border-radius:24px; padding:28px; }
+    .hero h1 { margin:0 0 10px; font-size:2rem; }
+    .hero p { margin:0; line-height:1.7; color:rgba(255,249,243,.86); }
+    .toolbar { display:flex; flex-wrap:wrap; gap:12px; margin-top:18px; }
+    button { border:0; border-radius:999px; padding:10px 14px; cursor:pointer; font-weight:600; }
+    .primary { background:#1f6a4a; color:white; }
+    .ghost { background:#efe6d8; color:#5d4937; }
+    .warn { background:#7d1f1f; color:white; }
+    .panel { margin-top:22px; background:#fffdf8; border:1px solid #d9cfbe; border-radius:22px; padding:18px; box-shadow:0 14px 32px rgba(31,42,34,.08); }
+    .summary { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px; }
+    .metric { background:#f8f3e9; border:1px solid #e1d7c7; border-radius:18px; padding:16px; }
+    .metric .label { color:#6d655b; font-size:.86rem; }
+    .metric .value { margin-top:6px; font-size:1.35rem; font-weight:700; }
+    table { width:100%; border-collapse:collapse; margin-top:16px; }
+    th, td { text-align:left; padding:12px 10px; border-bottom:1px solid #ebe3d6; vertical-align:top; }
+    th { font-size:.86rem; color:#6d655b; text-transform:uppercase; letter-spacing:.05em; }
+    td { font-size:.93rem; }
+    .path { font-family:Consolas, monospace; font-size:.83rem; word-break:break-all; color:#4e5a52; }
+    .pill { display:inline-block; padding:5px 9px; border-radius:999px; background:#efe6d8; font-size:.8rem; }
+    .recommend-delete { background:#fde5e5; color:#7d1f1f; }
+    .recommend-archive { background:#fff2d7; color:#7a5a09; }
+    .row-actions { display:flex; gap:8px; flex-wrap:wrap; }
+    .statusline { margin-top:10px; color:#6d655b; }
+    .muted { color:#7a746b; }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="hero">
+      <h1>Storage Cleanup Review</h1>
+      <p>長期間使用していない Temp / cache / log / relief archive を確認するページです。候補は自動抽出され、ここから再圧縮しながら削除するか、削除だけ行うかを選べます。対象は安全な領域だけに限定しています。</p>
+      <div class="toolbar">
+        <button class="primary" id="scan-btn">再スキャン</button>
+        <a class="ghost" style="text-decoration:none; display:inline-flex; align-items:center;" href="http://127.0.0.1:8088/storage_cleanup_candidates.json" target="_blank" rel="noopener">JSON を開く</a>
+      </div>
+      <div class="statusline" id="api-status">API を確認中です...</div>
+    </section>
+
+    <section class="panel">
+      <div class="summary">
+        <div class="metric"><div class="label">Updated</div><div class="value" id="updated-at">-</div></div>
+        <div class="metric"><div class="label">Candidates</div><div class="value" id="candidate-count">-</div></div>
+        <div class="metric"><div class="label">Total Size</div><div class="value" id="total-size">-</div></div>
+        <div class="metric"><div class="label">Delete Ready After</div><div class="value" id="delete-days">-</div></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Category</th>
+            <th>Size</th>
+            <th>Age</th>
+            <th>Path</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+      <div id="empty" class="muted" style="display:none; margin-top:12px;">候補はありません。</div>
+    </section>
+  </main>
+  <script>
+    const API = 'http://127.0.0.1:8097';
+
+    function fmtSize(gb) { return `${Number(gb || 0).toFixed(3)} GB`; }
+    function text(id, value) { document.getElementById(id).textContent = value ?? '-'; }
+
+    async function fetchJson(url, options = {}) {
+      const res = await fetch(url, options);
+      if (!res.ok) throw new Error(`${res.status} ${url}`);
+      return res.json();
+    }
+
+    async function refresh() {
+      const data = await fetchJson(`${API}/status`, { cache: 'no-store' });
+      text('updated-at', data.updatedAt || '-');
+      text('candidate-count', data.candidateCount || 0);
+      text('total-size', `${data.totalCandidateGB || 0} GB`);
+      text('delete-days', `${data.deleteReadyDays || '-'} days`);
+      renderRows(data.candidates || []);
+    }
+
+    function renderRows(rows) {
+      const tbody = document.getElementById('rows');
+      const empty = document.getElementById('empty');
+      tbody.innerHTML = '';
+      if (!rows.length) {
+        empty.style.display = 'block';
+        return;
+      }
+      empty.style.display = 'none';
+      for (const row of rows) {
+        const tr = document.createElement('tr');
+        const recClass = row.recommended_action === 'archive_delete' ? 'recommend-delete' : 'recommend-archive';
+        tr.innerHTML = `
+          <td><strong>${row.name}</strong></td>
+          <td><span class="pill">${row.category}</span></td>
+          <td>${fmtSize(row.size_gb)}</td>
+          <td>${row.age_days} days<br><span class="pill ${recClass}">${row.recommended_action}</span></td>
+          <td><div class="path">${row.path}</div></td>
+          <td>
+            <div class="row-actions">
+              <button class="primary" data-action="archive_delete" data-path="${row.path}">Archive+Delete</button>
+              <button class="warn" data-action="delete" data-path="${row.path}">Delete</button>
+            </div>
+          </td>`;
+        tbody.appendChild(tr);
+      }
+      tbody.querySelectorAll('button[data-action]').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          const action = btn.dataset.action;
+          const path = btn.dataset.path;
+          const ok = confirm(`${action} を実行しますか？\n${path}`);
+          if (!ok) return;
+          btn.disabled = true;
+          try {
+            await fetchJson(`${API}/${action}`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ path })
+            });
+            await refresh();
+          } catch (err) {
+            alert(`失敗: ${err.message}`);
+          } finally {
+            btn.disabled = false;
+          }
+        });
+      });
+    }
+
+    document.getElementById('scan-btn').addEventListener('click', async () => {
+      try {
+        await fetchJson(`${API}/scan`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+        await refresh();
+      } catch (err) {
+        alert(`再スキャン失敗: ${err.message}`);
+      }
+    });
+
+    (async () => {
+      try {
+        document.getElementById('api-status').textContent = 'API online';
+        await refresh();
+      } catch (err) {
+        document.getElementById('api-status').textContent = `API error: ${err.message}`;
+      }
+    })();
+  </script>
+</body>
+</html>

@@ -16,6 +16,7 @@ import sys
 import time
 import json
 import requests
+from typing import Iterable
 from mcp.server.fastmcp import FastMCP
 
 # tracing ユーティリティ — 利用不可でも起動継続
@@ -38,6 +39,26 @@ import logging
 logger = logging.getLogger("clawstack_mcp")
 
 mcp = FastMCP("clawstack-tools")
+
+
+def _candidate_urls(primary: str, fallbacks: Iterable[str]) -> list[str]:
+    urls: list[str] = []
+    for item in [primary, *fallbacks]:
+        value = (item or "").strip()
+        if value and value not in urls:
+            urls.append(value)
+    return urls
+
+
+def _qdrant_candidates() -> list[str]:
+    return _candidate_urls(
+        QDRANT_URL,
+        [
+            "http://qdrant:6333",
+            "http://host.docker.internal:6333",
+            "http://127.0.0.1:6333",
+        ],
+    )
 
 
 def _translate_query(query: str, collection: str) -> str:
@@ -116,14 +137,23 @@ def rag_search(
 
     try:
         t0 = time.monotonic()
-        resp = requests.post(
-            f"{QDRANT_URL}/collections/{collection}/points/search",
-            json={"vector": vector, "limit": top_k, "with_payload": True},
-            timeout=30,
-        )
-        resp.raise_for_status()
-        search_ms = (time.monotonic() - t0) * 1000
-        results = resp.json().get("result", [])
+        last_error = None
+        results = []
+        for candidate in _qdrant_candidates():
+            try:
+                resp = requests.post(
+                    f"{candidate}/collections/{collection}/points/search",
+                    json={"vector": vector, "limit": top_k, "with_payload": True},
+                    timeout=30,
+                )
+                resp.raise_for_status()
+                search_ms = (time.monotonic() - t0) * 1000
+                results = resp.json().get("result", [])
+                break
+            except Exception as exc:
+                last_error = exc
+        if last_error and not results:
+            raise last_error
     except Exception as e:
         result = f"[ERROR] Qdrant検索失敗: {e}"
         return result

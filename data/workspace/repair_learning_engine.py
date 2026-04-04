@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any
 
 import requests
+from docker_runtime import docker_command, docker_compose_command
 
 
 JST = timezone(timedelta(hours=9))
@@ -17,6 +18,7 @@ ROOT = WORKSPACE.parent.parent
 STATUS_PATH = WORKSPACE / "repair_learning_engine_status.json"
 STATE_PATH = WORKSPACE / "repair_learning_engine_state.json"
 RESTART_DOCKER_SCRIPT = WORKSPACE / "restart_docker.ps1"
+DOCKER_RUNTIME_CONFIG = WORKSPACE / "docker_runtime_config.json"
 BASE_COMPOSE = ROOT / "clawstack_v2" / "docker-compose.yml"
 PATCH_COMPOSE = ROOT / "clawstack_v2" / "docker-compose.learning_engine.patch.yml"
 HEALTH_URLS = [
@@ -92,7 +94,7 @@ def run_command(command: list[str], timeout_seconds: int) -> dict[str, Any]:
 
 
 def docker_api_check() -> dict[str, Any]:
-    result = run_command(["docker", "version"], 60)
+    result = run_command(docker_command("version"), 60)
     ok = result.get("returncode") == 0 and "Server:" in result.get("stdout", "")
     return {
         "ok": ok,
@@ -126,6 +128,12 @@ def can_restart_docker(state: dict[str, Any], cooldown_minutes: int) -> bool:
     return (now_jst().astimezone(last.tzinfo) - last) >= timedelta(minutes=cooldown_minutes)
 
 
+def docker_runtime_mode() -> str:
+    config = read_json(DOCKER_RUNTIME_CONFIG)
+    mode = str(config.get("mode") or "").strip()
+    return mode or "legacy"
+
+
 def mark_restart(state: dict[str, Any]) -> None:
     state["dockerRestart"] = {"lastAt": now_jst_text()}
     write_json(STATE_PATH, state)
@@ -145,9 +153,11 @@ def wait_for_learning_engine(total_seconds: int, poll_seconds: int) -> dict[str,
 
 def main() -> int:
     state = read_json(STATE_PATH)
+    runtime_mode = docker_runtime_mode()
     status: dict[str, Any] = {
         "startedAt": now_jst_text(),
         "stage": "starting",
+        "dockerRuntimeMode": runtime_mode,
         "dockerApi": {},
         "learningHealthBefore": {},
         "actions": [],
@@ -169,7 +179,17 @@ def main() -> int:
 
     if not docker_status.get("ok"):
         status["stage"] = "restart_docker_desktop"
-        if can_restart_docker(state, cooldown_minutes=120):
+        if runtime_mode == "wsl_native":
+            status["actions"].append(
+                {
+                    "key": "restart_docker_desktop",
+                    "result": {
+                        "skipped": True,
+                        "reason": "headless native docker mode active; refusing Docker Desktop / WSL restart",
+                    },
+                }
+            )
+        elif can_restart_docker(state, cooldown_minutes=120):
             restart_result = run_command(
                 [
                     "powershell",
@@ -195,11 +215,25 @@ def main() -> int:
         status["dockerApiAfterRestart"] = docker_api_check()
         write_json(STATUS_PATH, status)
 
+    if runtime_mode == "wsl_native":
+        status["stage"] = "completed"
+        status["finishedAt"] = now_jst_text()
+        status["result"] = "skipped_in_headless_native_mode"
+        status["actions"].append(
+            {
+                "key": "compose_up_learning_engine",
+                "result": {
+                    "skipped": True,
+                    "reason": "headless native docker mode active; learning_engine compose repair disabled until native compose path is corrected",
+                },
+            }
+        )
+        write_json(STATUS_PATH, status)
+        return 0
+
     status["stage"] = "compose_up_learning_engine"
     compose_result = run_command(
-        [
-            "docker",
-            "compose",
+        docker_compose_command(
             "-f",
             str(BASE_COMPOSE),
             "-f",
@@ -207,7 +241,7 @@ def main() -> int:
             "up",
             "-d",
             "learning_engine",
-        ],
+        ),
         300,
     )
     status["actions"].append({"key": "compose_up_learning_engine", "result": compose_result})

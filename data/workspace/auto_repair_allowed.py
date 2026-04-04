@@ -21,6 +21,9 @@ SCHEDULED_REPORT_STATUS = WORKSPACE / "scheduled_report_search_status.json"
 IDLE_MAINTENANCE_STATUS = WORKSPACE / "idle_ingest_maintenance_status.json"
 EMAIL_WATCHDOG_START = ROOT / "scripts" / "start_email_continuous_watchdog.ps1"
 LEARNING_REPAIR_SCRIPT = WORKSPACE / "repair_learning_engine.py"
+PAPERLESS_RAG_WATCHDOG_STATUS = WORKSPACE / "paperless_rag_watchdog_status.json"
+PAPERLESS_INGEST_STATUS = WORKSPACE / "ingest_watchdog_status.json"
+PAPERLESS_RAG_WATCHDOG_START = ROOT / "scripts" / "start_paperless_rag_watchdog.ps1"
 
 EMAIL_CMD = f'python "{WORKSPACE / "run_email_rag_ingest_report.py"}"'
 EMAIL_DAEMON_CMD = (
@@ -30,6 +33,7 @@ EMAIL_DAEMON_CMD = (
 CAE_CMD = f'python "{WORKSPACE / "sync_cae_learning_memory.py"}" --base-url "http://localhost:8110" --source-org "Mitsui"'
 REPORT_CMD = 'docker exec clawstack-unified-learning_engine-1 python3 /workspace/scheduled_report_search.py sync --limit-executions 20'
 LEARNING_REPAIR_CMD = f'python3 "{LEARNING_REPAIR_SCRIPT}"'
+PAPERLESS_RAG_WATCHDOG_CMD = f'powershell -ExecutionPolicy Bypass -File "{PAPERLESS_RAG_WATCHDOG_START}"'
 
 
 def now_jst() -> datetime:
@@ -211,12 +215,31 @@ def should_repair_learning_engine(cae_status: dict[str, Any]) -> tuple[bool, str
     return False, "healthy"
 
 
+def should_repair_paperless_rag(watchdog_status: dict[str, Any], ingest_status: dict[str, Any]) -> tuple[bool, str]:
+    watchdog_updated = parse_dt(watchdog_status.get("updatedAt"))
+    ingest_updated = parse_dt(ingest_status.get("updatedAt"))
+    ingest_stage = str(ingest_status.get("stage") or "")
+    if watchdog_updated is None:
+        return True, "paperless watchdog status missing"
+    if (now_jst().astimezone(watchdog_updated.tzinfo) - watchdog_updated) >= timedelta(minutes=20):
+        return True, "paperless watchdog stale"
+    if ingest_updated is None:
+        return True, "paperless ingest heartbeat missing"
+    if (now_jst().astimezone(ingest_updated.tzinfo) - ingest_updated) >= timedelta(minutes=20):
+        return True, "paperless ingest heartbeat stale"
+    if ingest_stage == "error":
+        return True, "paperless ingest reported error state"
+    return False, "healthy"
+
+
 def main() -> None:
     email_status = read_json(EMAIL_RUNTIME)
     email_daemon_status = read_json(EMAIL_DAEMON_STATUS)
     cae_status = read_json(CAE_SYNC_STATUS)
     report_status = read_json(SCHEDULED_REPORT_STATUS)
     idle_status = read_json(IDLE_MAINTENANCE_STATUS)
+    paperless_watchdog_status = read_json(PAPERLESS_RAG_WATCHDOG_STATUS)
+    paperless_ingest_status = read_json(PAPERLESS_INGEST_STATUS)
     repair_state = read_json(STATE_PATH)
 
     status: dict[str, Any] = {
@@ -232,6 +255,7 @@ def main() -> None:
     cae_fix, cae_reason = should_repair_cae_status(cae_status)
     report_fix, report_reason = should_repair_scheduled_reports(report_status, idle_status)
     learning_fix, learning_reason = should_repair_learning_engine(cae_status)
+    paperless_fix, paperless_reason = should_repair_paperless_rag(paperless_watchdog_status, paperless_ingest_status)
     if report_fix and email_runtime_in_progress(email_status):
         report_fix = False
         report_reason = "email nightly in progress; defer scheduled report repair"
@@ -241,11 +265,23 @@ def main() -> None:
     status["rules"].append({"name": "cae_sync", "shouldRepair": cae_fix, "reason": cae_reason})
     status["rules"].append({"name": "scheduled_reports", "shouldRepair": report_fix, "reason": report_reason})
     status["rules"].append({"name": "learning_engine", "shouldRepair": learning_fix, "reason": learning_reason})
+    status["rules"].append({"name": "paperless_rag", "shouldRepair": paperless_fix, "reason": paperless_reason})
     write_status(status)
 
     if learning_fix:
         status["step"] = "repair_learning_engine"
         status["actions"].append("learning_engine_repair")
+        write_status(status)
+
+    if paperless_fix:
+        status["step"] = "repair_paperless_rag"
+        status["actions"].append("paperless_rag_watchdog_restart")
+        write_status(status)
+        allowed, result = can_attempt(repair_state, "paperless_rag_watchdog_restart", max_attempts=3, window_minutes=120)
+        if allowed:
+            status["results"]["paperless_rag_watchdog_restart"] = run_command(PAPERLESS_RAG_WATCHDOG_CMD, 120)
+        else:
+            status["results"]["paperless_rag_watchdog_restart"] = result
         write_status(status)
         allowed, result = can_attempt(repair_state, "learning_engine_repair", max_attempts=2, window_minutes=120)
         if allowed:

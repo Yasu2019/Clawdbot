@@ -15,7 +15,7 @@ import requests
 
 
 JST = timezone(timedelta(hours=9))
-WORKSPACE = Path(__file__).resolve().parent
+WORKSPACE = Path(__file__).absolute().parent
 ROOT = WORKSPACE.parent.parent
 STATUS_PATH = WORKSPACE / "email_continuous_watchdog_status.json"
 STATE_PATH = WORKSPACE / "email_continuous_watchdog_state.json"
@@ -141,11 +141,20 @@ def list_daemon_processes() -> list[dict[str, Any]]:
         data = json.loads(stdout)
     except Exception:
         return []
-    if isinstance(data, list):
-        return data
     if isinstance(data, dict):
-        return [data]
-    return []
+        data = [data]
+    if not isinstance(data, list):
+        return []
+    filtered = []
+    for item in data:
+        name = str(item.get("Name") or "").lower()
+        cmdline = str(item.get("CommandLine") or "")
+        if "python" not in name:
+            continue
+        if DAEMON_TOKEN not in cmdline:
+            continue
+        filtered.append(item)
+    return filtered
 
 
 def stop_daemon_processes(processes: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -160,21 +169,29 @@ def stop_daemon_processes(processes: list[dict[str, Any]]) -> list[dict[str, Any
 
 def start_daemon() -> dict[str, Any]:
     daemon_path = str(WORKSPACE / "continuous_email_ingest_daemon.py")
+    args = [
+        "python3",
+        daemon_path,
+        "--poll-seconds",
+        "300",
+        "--learning-interval-cycles",
+        "9999",
+        "--full-backfill-interval-cycles",
+        "72",
+        "--skip-full-backfill",
+        "--gmail-max-messages",
+        "5",
+        "--gmail-fallback-days",
+        "1",
+        "--gmail-index-timeout-seconds",
+        "240",
+    ]
     try:
         creationflags = 0
         if os.name == "nt":
             creationflags = getattr(subprocess, "DETACHED_PROCESS", 0) | getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
         proc = subprocess.Popen(
-            [
-                "python3",
-                daemon_path,
-                "--poll-seconds",
-                "300",
-                "--learning-interval-cycles",
-                "3",
-                "--full-backfill-interval-cycles",
-                "72",
-            ],
+            args,
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
             stdin=subprocess.DEVNULL,
@@ -182,7 +199,7 @@ def start_daemon() -> dict[str, Any]:
             creationflags=creationflags,
         )
         return {
-            "command": f"python3 {daemon_path} --poll-seconds 300 --learning-interval-cycles 3 --full-backfill-interval-cycles 72",
+            "command": " ".join(args),
             "returncode": 0,
             "stdout": "",
             "stderr": "",
@@ -191,7 +208,7 @@ def start_daemon() -> dict[str, Any]:
         }
     except Exception as exc:
         return {
-            "command": f"python3 {daemon_path} --poll-seconds 300 --learning-interval-cycles 3 --full-backfill-interval-cycles 72",
+            "command": " ".join(args),
             "returncode": 1,
             "stdout": "",
             "stderr": str(exc),

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Open Notebook → Obsidian Hub</title>
+  <style>
+    :root {
+      --bg: #0b1520;
+      --panel: rgba(15, 23, 42, 0.9);
+      --line: rgba(148, 163, 184, 0.2);
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent2: #22c55e;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "Noto Sans JP", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(56, 189, 248, 0.12), transparent 28%),
+        radial-gradient(circle at top right, rgba(34, 197, 94, 0.10), transparent 24%),
+        var(--bg);
+    }
+    .shell { width: min(1180px, calc(100% - 32px)); margin: 0 auto; padding: 28px 0 40px; }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 18px 48px rgba(0, 0, 0, 0.26);
+      backdrop-filter: blur(10px);
+    }
+    .hero h1 { margin: 0 0 10px; font-size: clamp(1.8rem, 2.2vw, 2.8rem); }
+    .hero p, .sub { color: var(--muted); line-height: 1.7; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 18px;
+      background: rgba(2, 6, 23, 0.28);
+    }
+    .card h2, .card h3 { margin-top: 0; }
+    .links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+    .button, .chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 40px;
+      padding: 0 14px;
+      border-radius: 999px;
+      text-decoration: none;
+      font-weight: 700;
+    }
+    .button {
+      color: #05111d;
+      background: linear-gradient(135deg, var(--accent), #7dd3fc);
+    }
+    .chip {
+      color: var(--text);
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--line);
+      font-size: 0.9rem;
+    }
+    pre {
+      margin: 0;
+      padding: 14px;
+      border-radius: 16px;
+      background: rgba(2, 6, 23, 0.48);
+      border: 1px solid rgba(148, 163, 184, 0.12);
+      color: #cbd5e1;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    ul { margin: 0; padding-left: 20px; }
+    li { margin: 8px 0; }
+    code { color: var(--accent2); }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="panel hero">
+      <h1>Open Notebook → Obsidian Hub</h1>
+      <p>Open Notebook を AI 読書室、Obsidian を長期知識ベースとして使い分けるための運用ハブです。要約・比較・一次読解は Open Notebook で行い、価値がある内容だけを Obsidian に昇格します。</p>
+      <div class="links">
+        <a class="button" href="http://localhost:8502" target="_blank" rel="noopener">Open Notebook を開く</a>
+        <a class="chip" href="obsidian://open?path=D:%5CClawdbot_Docker_20260125%5Cdata%5Cstate%5CObsidian%20Vault" rel="noopener">Obsidian Vault</a>
+        <a class="chip" href="../../state/workspace/protocols/obsidian_open_notebook_workflow.md" target="_blank" rel="noopener">Protocol</a>
+      </div>
+    </section>
+
+    <section class="grid">
+      <article class="panel card">
+        <h2>役割分担</h2>
+        <ul>
+          <li><code>Open Notebook</code>: PDF / Web / 音声 / YouTube の読解と比較</li>
+          <li><code>Obsidian</code>: 判断、SOP、研究サマリ、長期ノート</li>
+          <li><code>OpenClaw / Qdrant</code>: 安定したノートだけを operational context 化</li>
+        </ul>
+      </article>
+
+      <article class="panel card">
+        <h2>昇格先</h2>
+        <ul>
+          <li><code>AI_Inbox.md</code>: 安全な下書き置き場</li>
+          <li><code>05_Research_Summaries</code>: 人手レビュー後の恒久サマリ</li>
+          <li><code>OpenClaw_Reports</code>: 自動生成レポート</li>
+        </ul>
+      </article>
+    </section>
+
+    <section class="panel">
+      <h2>標準コマンド</h2>
+      <pre>python data\workspace\open_notebook_obsidian_bridge.py --title "Notebook Summary" --source-type pdf --source-title "Example Source" --body "Key findings..." --tags open_notebook draft --write-target inbox</pre>
+      <div class="links" style="margin-top:14px;">
+        <a class="chip" href="../../state/workspace/TOOLS.md" target="_blank" rel="noopener">TOOLS.md</a>
+        <a class="chip" href="../../state/Obsidian%20Vault/Clawstack_Project/OpenClaw_Obsidian_Guide.md" target="_blank" rel="noopener">Obsidian Guide</a>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

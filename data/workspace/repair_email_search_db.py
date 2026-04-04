@@ -16,7 +16,7 @@ from typing import Any
 
 
 JST = timezone(timedelta(hours=9))
-WORKSPACE = Path(__file__).resolve().parent
+WORKSPACE = Path(__file__).absolute().parent
 ROOT = WORKSPACE.parent.parent
 DB_PATH = WORKSPACE / "email_search.db"
 STATE_PATH = WORKSPACE / "email_search_state.json"
@@ -123,6 +123,32 @@ def count_rows(con: sqlite3.Connection, table: str) -> int:
     return int(con.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0])
 
 
+def clone_db_via_backup(src_path: Path, dst_path: Path) -> None:
+    src_con = sqlite3.connect(f"file:{src_path}?mode=ro", uri=True, timeout=30)
+    dst_con = sqlite3.connect(dst_path, timeout=30)
+    try:
+        src_con.backup(dst_con)
+        dst_con.commit()
+    finally:
+        dst_con.close()
+        src_con.close()
+
+
+def promote_db_via_backup(src_path: Path, dst_path: Path) -> None:
+    src_con = sqlite3.connect(src_path, timeout=30)
+    dst_con = sqlite3.connect(dst_path, timeout=30)
+    try:
+        try:
+            dst_con.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+        except Exception:
+            pass
+        src_con.backup(dst_con)
+        dst_con.commit()
+    finally:
+        dst_con.close()
+        src_con.close()
+
+
 def copy_email_range(
     src_con: sqlite3.Connection,
     dst_con: sqlite3.Connection,
@@ -191,8 +217,14 @@ def main() -> int:
         backup_path = backup_path_for(timestamp)
         status["backupPath"] = str(backup_path)
         write_status(status)
-        shutil.move(str(DB_PATH), str(backup_path))
-        status["movedSourceDbTo"] = str(backup_path)
+        try:
+            shutil.move(str(DB_PATH), str(backup_path))
+            status["backupMode"] = "move"
+            status["movedSourceDbTo"] = str(backup_path)
+        except PermissionError:
+            clone_db_via_backup(DB_PATH, backup_path)
+            status["backupMode"] = "sqlite_backup_copy"
+            status["copiedSourceDbTo"] = str(backup_path)
         write_status(status)
 
     repaired_path = WORKSPACE / f"email_search_repaired_{timestamp}.db"
@@ -260,7 +292,13 @@ def main() -> int:
     status["repairedCounts"] = repaired_counts
     write_status(status)
 
-    os.replace(repaired_path, DB_PATH)
+    try:
+        os.replace(repaired_path, DB_PATH)
+        status["swapMode"] = "os_replace"
+    except PermissionError:
+        promote_db_via_backup(repaired_path, DB_PATH)
+        repaired_path.unlink(missing_ok=True)
+        status["swapMode"] = "sqlite_backup_promote"
     if STATE_PATH.exists():
         status["statePathPreserved"] = str(STATE_PATH)
 
