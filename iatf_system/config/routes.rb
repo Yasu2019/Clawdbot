@@ -63,6 +63,7 @@ Rails.application.routes.draw do
   get 'products/audit_followup_status' => 'products#audit_followup_status', as: 'audit_followup_status_product'
   get 'products/document_reconciliation' => 'products#document_reconciliation', as: 'document_reconciliation_product'
   get 'products/process_monitoring_measurement' => 'products#process_monitoring_measurement', as: 'process_monitoring_measurement_product'
+  post 'products/process_monitoring_measurement/refresh' => 'products#refresh_process_monitoring_measurement', as: 'refresh_process_monitoring_measurement_product'
   get 'products/audit_followup_status_excel' => 'products#audit_followup_status_excel', as: 'audit_followup_status_excel_product'
   post 'products/upload_jqa_audit_reports' => 'products#upload_jqa_audit_reports', as: 'upload_jqa_audit_reports_product'
   get 'products/update_history' => 'products#update_history', as: 'update_history_product'

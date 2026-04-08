@@ -36,8 +36,11 @@
         .hero p { margin: 0; max-width: 860px; color: rgba(248, 255, 249, 0.88); line-height: 1.7; }
         .badge-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
         .badge {
-            padding: 8px 12px; border-radius: 999px; background: rgba(255,255,255,0.12);
-            border: 1px solid rgba(255,255,255,0.18); font-size: 0.92rem;
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.12);
+            border: 1px solid rgba(255,255,255,0.18);
+            font-size: 0.92rem;
         }
         .section { margin-top: 30px; }
         .section h2 { margin: 0 0 14px; font-size: 1.15rem; letter-spacing: 0.02em; }
@@ -65,8 +68,14 @@
         .status-card h3 { margin: 0 0 8px; font-size: 0.98rem; }
         .status-line { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
         .status-pill {
-            display: inline-flex; align-items: center; gap: 6px; border-radius: 999px;
-            font-size: 0.8rem; padding: 6px 10px; border: 1px solid var(--line); background: var(--panel-alt);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            padding: 6px 10px;
+            border: 1px solid var(--line);
+            background: var(--panel-alt);
         }
         .status-pill.good { color: #18533d; background: #e5f5ee; border-color: #bbdfcf; }
         .status-pill.warn { color: #7c5b07; background: #fff4d6; border-color: #e9d39b; }
@@ -76,22 +85,95 @@
         .kv div { font-size: 0.88rem; color: var(--muted); }
         .kv strong { color: var(--ink); font-weight: 600; }
         .card {
-            display: flex; flex-direction: column; gap: 10px; padding: 22px; text-decoration: none;
-            color: inherit; background: var(--panel); border: 1px solid var(--line); border-radius: 22px;
-            box-shadow: var(--shadow); transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 22px;
+            text-decoration: none;
+            color: inherit;
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 22px;
+            box-shadow: var(--shadow);
+            transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
         }
-        .card:hover { transform: translateY(-3px); border-color: rgba(25, 92, 67, 0.36); box-shadow: 0 24px 48px rgba(31, 42, 34, 0.12); }
-        .eyebrow { font-size: 0.82rem; color: var(--accent); font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
+        .card:hover {
+            transform: translateY(-3px);
+            border-color: rgba(25, 92, 67, 0.36);
+            box-shadow: 0 24px 48px rgba(31, 42, 34, 0.12);
+        }
+        .eyebrow {
+            font-size: 0.82rem;
+            color: var(--accent);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
         .card h3 { margin: 0; font-size: 1.15rem; }
         .card p { margin: 0; color: var(--muted); line-height: 1.65; }
         .meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; padding-top: 8px; }
         .chip {
-            font-size: 0.8rem; padding: 6px 10px; border-radius: 999px; background: var(--panel-alt);
-            color: var(--muted); border: 1px solid var(--line);
+            font-size: 0.8rem;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: var(--panel-alt);
+            color: var(--muted);
+            border: 1px solid var(--line);
         }
         .note {
-            margin-top: 18px; padding: 18px 20px; background: var(--panel-alt);
-            border: 1px solid var(--line); border-radius: 18px; color: var(--muted); line-height: 1.7;
+            margin-top: 18px;
+            padding: 18px 20px;
+            background: var(--panel-alt);
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            color: var(--muted);
+            line-height: 1.7;
+        }
+        .action-panel {
+            margin-top: 18px;
+            padding: 18px 20px;
+            background: linear-gradient(135deg, #fffaf0, #f8f2e6);
+            border: 1px solid #e5d7b8;
+            border-radius: 18px;
+            color: var(--muted);
+            line-height: 1.75;
+        }
+        .action-panel strong { color: var(--ink); }
+        .action-panel ul { margin: 10px 0 0; padding-left: 18px; }
+        .action-panel li { margin: 4px 0; }
+        .summary-box {
+            margin-top: 12px;
+            padding: 12px 14px;
+            border-radius: 14px;
+            background: rgba(125, 31, 31, 0.06);
+            border: 1px solid rgba(125, 31, 31, 0.12);
+            color: #7d1f1f;
+            font-size: 0.92rem;
+            display: none;
+        }
+        .summary-box.show { display: block; }
+        .shortcut-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 14px;
+        }
+        .shortcut-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            border-radius: 999px;
+            text-decoration: none;
+            color: var(--ink);
+            background: #fffdf8;
+            border: 1px solid var(--line);
+            font-weight: 700;
+            box-shadow: 0 8px 18px rgba(31, 42, 34, 0.05);
+        }
+        .shortcut-btn:hover {
+            border-color: rgba(25, 92, 67, 0.36);
+            transform: translateY(-1px);
         }
         @media (max-width: 720px) {
             .shell { padding: 22px 14px 32px; }
@@ -103,7 +185,7 @@
     <main class="shell">
         <section class="hero">
             <h1>Ingestion / RAG Control Center</h1>
-            <p>Gmail の取り込み、Paperless NGX の原本、Learning Memory への同期、RAG 展開、DB テーブル閲覧をひとまとめにした運用ハブです。状態確認だけでなく、原本・検索・テーブル閲覧の導線もここから辿れます。</p>
+            <p>Gmail の読み込み、Paperless NGX の取り込み、Learning Memory への同期、RAG 展開、DB テーブル確認をまとめて見られる統合ハブです。状態確認だけでなく、次にどの画面を開けばよいかもここから判断できます。</p>
             <div class="badge-row">
                 <span class="badge">Gmail</span>
                 <span class="badge">Paperless NGX</span>
@@ -113,7 +195,7 @@
             </div>
             <div id="alert-banner" class="alert-banner">
                 <strong id="alert-title">要注意</strong>
-                <span id="alert-body">現在の統合ステータスに注意項目があります。</span>
+                <span id="alert-body">現在の統合ステータスに注意事項があります。</span>
             </div>
         </section>
 
@@ -136,12 +218,14 @@
                     <div class="status-line">
                         <span id="gmail-pill" class="status-pill">Loading</span>
                     </div>
-                    <p id="gmail-summary">Gmail 取り込み状況を確認しています。</p>
+                    <p id="gmail-summary">Gmail 取り込み状況を読み込み中です。</p>
                     <div class="kv">
                         <div><strong>Last success:</strong> <span id="gmail-last-success">-</span></div>
                         <div><strong>Age:</strong> <span id="gmail-age">-</span></div>
                         <div><strong>Emails / Tasks:</strong> <span id="gmail-counts">-</span></div>
                         <div><strong>Backfill:</strong> <span id="gmail-backfill">-</span></div>
+                        <div><strong>Last indexed:</strong> <span id="gmail-last-indexed">-</span></div>
+                        <div><strong>Task rebuild:</strong> <span id="gmail-task-rebuild">-</span></div>
                     </div>
                 </article>
                 <article class="status-card">
@@ -149,12 +233,14 @@
                     <div class="status-line">
                         <span id="paperless-pill" class="status-pill">Loading</span>
                     </div>
-                    <p id="paperless-summary">Paperless の取り込み監査を確認しています。</p>
+                    <p id="paperless-summary">Paperless 取り込み状況を読み込み中です。</p>
                     <div class="kv">
                         <div><strong>Processed:</strong> <span id="paperless-counts">-</span></div>
                         <div><strong>Age:</strong> <span id="paperless-age">-</span></div>
                         <div><strong>Watchdog:</strong> <span id="paperless-watchdog">-</span></div>
                         <div><strong>Recent missing:</strong> <span id="paperless-missing">-</span></div>
+                        <div><strong>Last doc:</strong> <span id="paperless-last-doc">-</span></div>
+                        <div><strong>Last processed:</strong> <span id="paperless-last-processed">-</span></div>
                     </div>
                 </article>
                 <article class="status-card">
@@ -162,7 +248,7 @@
                     <div class="status-line">
                         <span id="learning-pill" class="status-pill">Loading</span>
                     </div>
-                    <p id="learning-summary">Learning と RAG 展開の状態を確認しています。</p>
+                    <p id="learning-summary">Learning / RAG 状況を読み込み中です。</p>
                     <div class="kv">
                         <div><strong>Learning stage:</strong> <span id="learning-stage">-</span></div>
                         <div><strong>Age:</strong> <span id="learning-age">-</span></div>
@@ -174,80 +260,86 @@
         </section>
 
         <section class="section">
-            <h2>読み込み・同期の状態を見る</h2>
+            <h2>状態確認と復旧</h2>
             <div class="grid">
                 <a class="card" href="../learning_memory/index.html" target="_blank" rel="noopener">
                     <span class="eyebrow">Status</span>
                     <h3>Learning Memory</h3>
-                    <p>Gmail Window、SQLite Index、Backfill、Email Memory など、取り込みから学習同期までの状態確認に向いています。</p>
+                    <p>Gmail Window、SQLite Index、Backfill、Email Memory など、学習メモリまわりの状態確認に向いています。</p>
                     <div class="meta"><span class="chip">Gmail</span><span class="chip">Learning Sync</span></div>
                 </a>
                 <a class="card" href="../observability_hub/index.html" target="_blank" rel="noopener">
                     <span class="eyebrow">Status</span>
                     <h3>AI Observability Hub</h3>
-                    <p>RAG、Qdrant、ingest、各種 health の監視入口です。展開状況や監視系の俯瞰に使えます。</p>
+                    <p>RAG、Qdrant、ingest、各サービス health の確認に向いています。Paperless と RAG のずれ確認にも使えます。</p>
                     <div class="meta"><span class="chip">RAG</span><span class="chip">Observability</span></div>
                 </a>
+            </div>
+            <div class="action-panel">
+                <strong>次に見るべき画面</strong>
+                <div id="recommended-actions">現在の状態に応じた案内を読み込み中です。</div>
+                <div id="cause-summary" class="summary-box"></div>
+                <div id="recommended-shortcuts" class="shortcut-row"></div>
             </div>
         </section>
 
         <section class="section">
-            <h2>原本・検索結果を見る</h2>
+            <h2>原本と検索</h2>
             <div class="grid">
                 <a class="card" href="http://localhost:8000/dashboard" target="_blank" rel="noopener">
                     <span class="eyebrow">Source</span>
                     <h3>Paperless NGX</h3>
-                    <p>原本 PDF、書籍、添付資料の確認はここです。タグ、文書属性、本文検索も Paperless 側で追えます。</p>
+                    <p>原本 PDF、添付資料、スキャン、移動履歴の確認用です。Paperless 側の実データ確認はこちらを使います。</p>
                     <div class="meta"><span class="chip">Original Documents</span><span class="chip">Port 8000</span></div>
                 </a>
                 <a class="card" href="../email_search/index.html" target="_blank" rel="noopener">
                     <span class="eyebrow">Search</span>
                     <h3>Email Search</h3>
-                    <p>Gmail DB に保存された本文、依頼事項、期日、返信状況を検索・閲覧できます。</p>
+                    <p>Gmail DB に保存された本文、依頼事項、期日、返信状況の検索用です。Email の中身を見るときはこちらです。</p>
                     <div class="meta"><span class="chip">SQLite</span><span class="chip">Requests / Due Dates</span></div>
                 </a>
                 <a class="card" href="http://localhost:3002" target="_blank" rel="noopener">
                     <span class="eyebrow">Search</span>
                     <h3>Open WebUI (RAG)</h3>
-                    <p>RAG でどのように知識が使われるかを対話ベースで確認したいときの入口です。</p>
+                    <p>RAG でどのように応答されるかを対話ベースで確認したいときに使います。</p>
                     <div class="meta"><span class="chip">Chat</span><span class="chip">RAG Runtime</span></div>
                 </a>
             </div>
         </section>
 
         <section class="section">
-            <h2>DB テーブルや可視化を見る</h2>
+            <h2>DB テーブルと分析</h2>
             <div class="grid">
                 <a class="card" href="http://localhost:8093" target="_blank" rel="noopener">
                     <span class="eyebrow">Tables</span>
                     <h3>NocoDB</h3>
-                    <p>SQLite や PostgreSQL のテーブルをスプレッドシート感覚で閲覧したいときに最も近い入口です。</p>
+                    <p>SQLite / PostgreSQL のテーブルをスプレッドシート感覚で見たいときに使います。</p>
                     <div class="meta"><span class="chip">DB Viewer</span><span class="chip">Tables</span></div>
                 </a>
                 <a class="card" href="http://localhost:3014" target="_blank" rel="noopener">
                     <span class="eyebrow">BI</span>
                     <h3>Metabase</h3>
-                    <p>件数や推移をグラフで見たいときの入口です。生テーブル確認より集計・可視化向きです。</p>
+                    <p>集計やグラフ中心で分析したいときに使います。生テーブル閲覧より集計確認向けです。</p>
                     <div class="meta"><span class="chip">Dashboards</span><span class="chip">Analytics</span></div>
                 </a>
                 <a class="card" href="http://localhost:8092" target="_blank" rel="noopener">
                     <span class="eyebrow">Flow</span>
                     <h3>Dify Workflow Engine</h3>
-                    <p>取り込みや検索がどの workflow に流れているかを確認したいときの入口です。</p>
+                    <p>取り込みや生成がどの workflow に流れているかを確認したいときに使います。</p>
                     <div class="meta"><span class="chip">Workflow</span><span class="chip">Port 8092</span></div>
                 </a>
             </div>
         </section>
 
-        <div class="note">まず状態確認をするなら <strong>Learning Memory</strong> と <strong>AI Observability Hub</strong>、原本確認は <strong>Paperless NGX</strong>、Gmail 本文や依頼事項は <strong>Email Search</strong>、DB テーブルは <strong>NocoDB</strong> が最短です。</div>
+        <div class="note">まずは <strong>この画面</strong> で全体状態を見て、原本確認は <strong>Paperless NGX</strong>、Gmail 本文検索は <strong>Email Search</strong>、学習メモリは <strong>Learning Memory</strong>、RAG 健全性は <strong>AI Observability Hub</strong>、DB テーブル閲覧は <strong>NocoDB</strong> を使うと迷いにくくなります。</div>
     </main>
 
     <script>
         function pillClass(level) {
-            const v = String(level || '').toLowerCase();
-            if (['healthy', 'ok', 'good', 'running'].includes(v)) return 'status-pill good';
-            if (['degraded', 'repairing', 'warning', 'warn', 'skipped'].includes(v)) return 'status-pill warn';
-            if (['error', 'failed', 'unhealthy', 'bad'].includes(v)) return 'status-pill bad';
+            const value = String(level || '').toLowerCase();
+            if (['healthy', 'ok', 'good', 'running'].includes(value)) return 'status-pill good';
+            if (['degraded', 'repairing', 'warning', 'warn', 'skipped'].includes(value)) return 'status-pill warn';
+            if (['error', 'failed', 'unhealthy', 'bad'].includes(value)) return 'status-pill bad';
             return 'status-pill';
         }
 
@@ -263,13 +355,10 @@
         }
 
         function parseStatusDate(value) {
-            if (!value) return null;
-            if (typeof value !== 'string') return null;
+            if (!value || typeof value !== 'string') return null;
             const trimmed = value.trim();
             if (!trimmed) return null;
-            const normalized = trimmed
-                .replace(' JST', '+09:00')
-                .replace('Z', '+00:00');
+            const normalized = trimmed.replace(' JST', '+09:00').replace('Z', '+00:00');
             const direct = new Date(normalized);
             if (!Number.isNaN(direct.getTime())) return direct;
             const fallback = new Date(trimmed);
@@ -289,11 +378,75 @@
             return `${hours}h ${rem}m`;
         }
 
+        function formatEpochMillis(value) {
+            if (value === undefined || value === null || value === '') return '-';
+            const num = Number(value);
+            if (!Number.isFinite(num) || num <= 0) return '-';
+            const dt = new Date(num);
+            if (Number.isNaN(dt.getTime())) return '-';
+            return dt.toLocaleString('ja-JP', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            });
+        }
+
+        function safeJsonParse(text) {
+            if (!text || typeof text !== 'string') return null;
+            try {
+                return JSON.parse(text);
+            } catch {
+                return null;
+            }
+        }
+
         function showAlert(title, body) {
             const banner = document.getElementById('alert-banner');
             banner.classList.add('show');
             setText('alert-title', title);
             setText('alert-body', body);
+        }
+
+        function setRecommendedActions(actions) {
+            const el = document.getElementById('recommended-actions');
+            if (!actions || actions.length === 0) {
+                el.innerHTML = '<ul><li>大きな異常は見えていません。まずはこの画面で数字を確認してください。</li></ul>';
+                return;
+            }
+            el.innerHTML = `<ul>${actions.map((item) => `<li>${item}</li>`).join('')}</ul>`;
+        }
+
+        function setRecommendedShortcuts(shortcuts) {
+            const el = document.getElementById('recommended-shortcuts');
+            if (!shortcuts || shortcuts.length === 0) {
+                el.innerHTML = '';
+                return;
+            }
+            const seen = new Set();
+            el.innerHTML = shortcuts
+                .filter((item) => {
+                    const key = `${item.href}|${item.label}`;
+                    if (seen.has(key)) return false;
+                    seen.add(key);
+                    return true;
+                })
+                .map((item) => `<a class="shortcut-btn" href="${item.href}" target="_blank" rel="noopener">${item.label}</a>`)
+                .join('');
+        }
+
+        function setCauseSummary(lines) {
+            const el = document.getElementById('cause-summary');
+            if (!lines || lines.length === 0) {
+                el.classList.remove('show');
+                el.textContent = '';
+                return;
+            }
+            el.classList.add('show');
+            el.innerHTML = `<strong>原因の一言要約</strong><br>${lines.join('<br>')}`;
         }
 
         async function fetchJson(path) {
@@ -304,67 +457,129 @@
 
         async function loadStatus() {
             try {
-                const [control, emailDash, paperlessWatchdog, paperlessAudit] = await Promise.all([
+                const [control, emailDash, paperlessWatchdog, paperlessAudit, emailContinuous] = await Promise.all([
                     fetchJson('../../data_ingestion_control_status.json'),
                     fetchJson('../../email_ingest_dashboard_status.json'),
                     fetchJson('../../paperless_rag_watchdog_status.json'),
-                    fetchJson('../../paperless_ingest_audit_status.json')
+                    fetchJson('../../paperless_ingest_audit_status.json'),
+                    fetchJson('../../email_continuous_ingest_status.json')
                 ]);
 
                 setPill('overall-pill', control.overall, (control.overall || 'unknown').toUpperCase());
-                setText('overall-summary', control.summary || '統合状況の要約はありません。');
+                setText('overall-summary', control.summary || '統合状況の詳細はまだありません。');
                 setText('overall-updated', control.updatedAt);
                 setText('overall-age', formatAgeMinutes(control.updatedAt));
 
                 const gmail = control.systems?.gmail || {};
                 setPill('gmail-pill', gmail.level, (gmail.level || 'unknown').toUpperCase());
-                setText('gmail-summary', gmail.lastError ? `注意: ${gmail.lastError}` : `daemon=${gmail.daemonStage || '-'} / integrity=${gmail.integrityOk ? 'ok' : 'check needed'}`);
-                setText('gmail-last-success', gmail.lastSuccessAt || '-');
-                setText('gmail-age', formatAgeMinutes(gmail.lastSuccessAt || emailDash.runtime?.daemonUpdatedAt));
+                setText(
+                    'gmail-summary',
+                    gmail.lastError
+                        ? `注意: ${gmail.lastError}`
+                        : `daemon=${gmail.daemonStage || '-'} / integrity=${gmail.integrityOk ? 'ok' : 'check needed'}`
+                );
+                setText('gmail-last-success', gmail.lastSuccessAt || emailContinuous.lastSuccessAt || '-');
+                setText('gmail-age', formatAgeMinutes(gmail.lastSuccessAt || emailDash.runtime?.daemonUpdatedAt || emailContinuous.updatedAt));
                 setText('gmail-counts', `${emailDash.sqlite?.emails_total ?? '-'} emails / ${emailDash.sqlite?.tasks_total ?? '-'} tasks`);
                 setText('gmail-backfill', `${emailDash.gmailBackfill?.stage ?? '-'} / ok=${emailDash.gmailBackfill?.ok ?? '-'}`);
+                const gmailIndexPayload = safeJsonParse(emailContinuous.lastIndexResult?.stdout);
+                const latestIndexedTs = gmailIndexPayload?.gmail?.latest_internal_ts ?? emailContinuous.lastSummary?.index?.gmail?.latest_internal_ts;
+                setText('gmail-last-indexed', formatEpochMillis(latestIndexedTs));
+                const rebuildSummary = emailContinuous.lastSummary?.index
+                    ? `${emailContinuous.lastSummary.index.rebuiltTasks ?? '-'} / ${emailContinuous.lastSummary.index.taskRebuildReason ?? '-'}`
+                    : '-';
+                setText('gmail-task-rebuild', rebuildSummary);
 
                 const paperless = control.systems?.paperless || {};
                 setPill('paperless-pill', paperless.level, (paperless.level || paperlessWatchdog.stage || 'unknown').toUpperCase());
-                setText('paperless-summary', `ingest=${paperless.ingestStage || paperlessWatchdog.lastIngestStatus?.stage || '-'} / review=${paperless.reviewOk ? 'ok' : 'check needed'}`);
+                setText(
+                    'paperless-summary',
+                    `ingest=${paperless.ingestStage || paperlessWatchdog.lastIngestStatus?.stage || '-'} / review=${paperless.reviewOk ? 'ok' : 'check needed'}`
+                );
                 setText('paperless-counts', `${paperless.processedCount ?? paperlessAudit.gatewayProcessedState?.processedCount ?? '-'} / total ${paperlessAudit.paperlessRecent?.count ?? '-'}`);
                 setText('paperless-age', formatAgeMinutes(paperlessWatchdog.updatedAt || paperlessAudit.updatedAt));
                 setText('paperless-watchdog', `${paperlessWatchdog.stage || '-'} / container=${paperlessWatchdog.containerRunning ? 'running' : 'stopped'}`);
                 setText('paperless-missing', paperlessAudit.recentMissing ? paperlessAudit.recentMissing.length : '-');
+                const latestPaperlessDoc = paperlessAudit.gatewayProcessedState?.recentProcessed?.[0] || null;
+                setText('paperless-last-doc', latestPaperlessDoc ? `#${latestPaperlessDoc.id} / ${latestPaperlessDoc.pdf_type || '-'} / ${latestPaperlessDoc.chunks ?? '-'} chunks` : '-');
+                setText('paperless-last-processed', latestPaperlessDoc?.ts || '-');
 
                 const learningStage = emailDash.learningMemory?.stage || 'unknown';
                 const ragStage = paperlessWatchdog.stage || 'unknown';
                 const learningLevel = learningStage === 'skipped' ? 'degraded' : 'healthy';
                 setPill('learning-pill', learningLevel, `${String(learningStage).toUpperCase()} / ${String(ragStage).toUpperCase()}`);
-                setText('learning-summary', emailDash.learningMemory?.reason || 'Learning / RAG は稼働中です。');
+                setText('learning-summary', emailDash.learningMemory?.reason || 'Learning / RAG は正常です。');
                 setText('learning-stage', `${emailDash.learningMemory?.stage ?? '-'} / ${emailDash.learningMemory?.finishedAt ?? '-'}`);
                 setText('learning-age', formatAgeMinutes(emailDash.learningMemory?.lastRunAt || emailDash.learningMemory?.finishedAt));
                 setText('learning-posted', emailDash.learningMemory?.postedMessages ?? '-');
                 setText('rag-stage', `${paperlessWatchdog.lastIngestStatus?.stage ?? '-'} / processed=${paperlessWatchdog.lastIngestStatus?.processedCount ?? '-'}`);
 
                 const alerts = [];
+                const actions = [];
+                const shortcuts = [];
+                const causes = [];
+
                 if (String(control.overall).toLowerCase() !== 'healthy') {
                     alerts.push(`overall=${control.overall}`);
                 }
+
                 if (String(gmail.level).toLowerCase() !== 'healthy') {
                     alerts.push(`gmail=${gmail.level}`);
+                    causes.push(`Gmail は ${gmail.level} です。${gmail.lastError ? `主因: ${gmail.lastError}` : '取り込みや整合性の確認が必要です。'}`);
+                    actions.push('Gmail 側に注意があります。まずは <strong>Learning Memory</strong> を開いて Gmail Window / SQLite Index / Backfill のどこが崩れているか確認してください。');
+                    shortcuts.push({ label: 'Learning Memory を開く', href: '../learning_memory/index.html' });
+                    shortcuts.push({ label: 'Email Search を開く', href: '../email_search/index.html' });
                 }
+
                 if (String(paperless.level).toLowerCase() !== 'healthy') {
                     alerts.push(`paperless=${paperless.level}`);
+                    causes.push(`Paperless は ${paperless.level} です。watchdog=${paperlessWatchdog.stage || '-'}、missing=${paperlessAudit.recentMissing?.length || 0}。`);
+                    actions.push('Paperless 側に注意があります。まずは <strong>Paperless NGX</strong> で原本を確認し、その後 <strong>AI Observability Hub</strong> で ingest / RAG の状態を見てください。');
+                    shortcuts.push({ label: 'Paperless NGX を開く', href: 'http://localhost:8000/dashboard' });
+                    shortcuts.push({ label: 'AI Observability Hub を開く', href: '../observability_hub/index.html' });
                 }
+
                 if (learningStage === 'skipped') {
                     alerts.push('learning=skipped');
+                    causes.push('Learning sync が skipped です。learning engine 側か同期処理の確認が必要です。');
+                    actions.push('Learning 同期が止まっています。<strong>Learning Memory</strong> を開いて learning sync と learning engine の状態を確認してください。');
+                    shortcuts.push({ label: 'Learning Memory を開く', href: '../learning_memory/index.html' });
                 }
+
                 if ((paperlessAudit.recentMissing || []).length > 0) {
                     alerts.push(`paperless_missing=${paperlessAudit.recentMissing.length}`);
+                    causes.push(`Paperless の recent missing が ${paperlessAudit.recentMissing.length} 件あります。原本件数と ingest 件数の差があります。`);
+                    actions.push('Paperless の missing が見えています。<strong>Paperless NGX</strong> と <strong>AI Observability Hub</strong> を見比べて、最新文書が ingest 済みか確認してください。');
+                    shortcuts.push({ label: 'Paperless NGX を開く', href: 'http://localhost:8000/dashboard' });
+                    shortcuts.push({ label: 'AI Observability Hub を開く', href: '../observability_hub/index.html' });
                 }
+
+                if (!actions.length) {
+                    actions.push('大きな異常は見えていません。原本確認は <strong>Paperless NGX</strong>、Gmail 本文検索は <strong>Email Search</strong>、DB テーブル確認は <strong>NocoDB</strong> を使ってください。');
+                    shortcuts.push({ label: 'Paperless NGX を開く', href: 'http://localhost:8000/dashboard' });
+                    shortcuts.push({ label: 'Email Search を開く', href: '../email_search/index.html' });
+                    shortcuts.push({ label: 'NocoDB を開く', href: 'http://localhost:8093' });
+                }
+
+                setRecommendedActions(actions);
+                setRecommendedShortcuts(shortcuts);
+                setCauseSummary(causes);
+
                 if (alerts.length > 0) {
-                    showAlert('要注意', `現在の統合状態に注意項目があります: ${alerts.join(' / ')}`);
+                    showAlert('要注意', `現在の統合状況に注意事項があります: ${alerts.join(' / ')}`);
                 }
             } catch (err) {
                 setPill('overall-pill', 'degraded', 'LOAD ERROR');
-                setText('overall-summary', `ステータス JSON の読込に失敗しました: ${err.message}`);
-                showAlert('読込エラー', `ステータス JSON の読込に失敗しました: ${err.message}`);
+                setText('overall-summary', `状態 JSON の読み込みに失敗しました: ${err.message}`);
+                setRecommendedActions([
+                    '状態 JSON の読み込みに失敗しています。まずは <strong>Operations Toolbox</strong> と <strong>AI Observability Hub</strong> を開いて、配信と監視ファイルが生きているか確認してください。'
+                ]);
+                setRecommendedShortcuts([
+                    { label: 'Operations Toolbox を開く', href: '../operations_toolbox/index.html' },
+                    { label: 'AI Observability Hub を開く', href: '../observability_hub/index.html' }
+                ]);
+                setCauseSummary([`状態 JSON の読み込みに失敗しました: ${err.message}`]);
+                showAlert('読込エラー', `状態 JSON の読み込みに失敗しました: ${err.message}`);
             }
         }
 

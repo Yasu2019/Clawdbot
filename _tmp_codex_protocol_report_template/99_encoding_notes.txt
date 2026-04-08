@@ -1,0 +1,19 @@
+﻿# Encoding Notes
+
+このパッケージは、文字化け防止のため以下で作成しています。
+
+- text encoding: UTF-8 with BOM
+- filenames: ASCII only
+- zip entry names: ASCII only
+
+## 再生成時の注意
+- Markdown, TXT, JSON, YAML, CSV を混在させる場合も UTF-8 を統一すること
+- 日本語 Windows 環境向け文書は UTF-8 with BOM を優先
+- Shift_JIS はユーザー明示要求時のみ
+- 機種依存文字、特殊囲み文字、半角カナの多用を避ける
+- ファイル名に日本語を使わない
+
+## 推奨確認
+- VS Code で開いて文字化けがないか
+- ZIP 展開後に文字化けがないか
+- HTML / JSON でブラウザ表示した際に文字化けがないか

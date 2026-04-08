@@ -1,0 +1,19 @@
+﻿Expected deliverables:
+- survey_report.md
+- candidate_inventory.md
+- conflict_inventory.md
+- architecture_decision.md
+- detailed_design.md
+- dr_memo.md
+- implementation_notes.md
+- test_results.md
+- final_report.md
+- user_runbook.md
+- known_limitations.md
+
+Recommended optional deliverables:
+- stage_sequence.json
+- kinematics_demo_data.json
+- solver_bridge_schema.json
+- preview_screenshots/
+- rollback_notes.md

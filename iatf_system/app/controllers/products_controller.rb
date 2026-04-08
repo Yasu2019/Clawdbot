@@ -50,6 +50,20 @@ class ProductsController < ApplicationController
     @selected_monitoring_year = params[:year].presence&.to_i || 2024
   end
 
+  def refresh_process_monitoring_measurement
+    year = params[:year].presence&.to_i
+    result = ProcessMonitoringMeasurementRefreshService.call(year: year)
+
+    if result[:success]
+      label = Array(result[:updated_years]).presence&.join(', ') || year || 'selected'
+      notice = "PDF再読込が完了しました: #{label}"
+      notice = "#{notice} / skipped #{result[:skipped_files].size} files" if result[:skipped_files].present?
+      redirect_to process_monitoring_measurement_product_path(year: year), notice: notice
+    else
+      redirect_to process_monitoring_measurement_product_path(year: year), alert: "PDF再読込に失敗しました: #{result[:error]}"
+    end
+  end
+
   def update_history
     @update_history = UpdateHistoryService.call
   end

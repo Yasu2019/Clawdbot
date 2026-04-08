@@ -63,6 +63,7 @@ services:
       - MINIPC=${MINIPC}
       - PORT=3003
       - DB_HOST=host.docker.internal
+      - DB_PORT=5436
       - REDIS_URL=redis://host.docker.internal:6381/0
     ports:
       - "3003:3003"
@@ -95,6 +96,7 @@ services:
       - KEY_DERIVATION_SALT=${KEY_DERIVATION_SALT}
       - RAILS_LOG_TO_STDOUT=true
       - DB_HOST=host.docker.internal
+      - DB_PORT=5436
       - REDIS_URL=redis://host.docker.internal:6381/0
     volumes:
       - .:/myapp:delegated

@@ -115,5 +115,28 @@
   - traceability / rollback safety
 - 上記が示せない場合、採用は **partial** のままにするか、保留する。
 
+## 8. 修正後の記録義務 (Post-Fix Documentation Rule)
+
+- バグ修正、障害対応、パフォーマンス改善など、**実稼働に影響する修正を行った場合**、必ず以下を実施する。
+  1. `docs/INCIDENT_LOG.md` にインシデントエントリを追加する（INC-XXX 形式）。
+  2. エントリには最低限、以下を記載する：
+     - 発生日 / 発見方法 / 影響範囲
+     - 根本原因（5Why レベルの深掘り）
+     - 修正内容（ファイルパス・行番号）
+     - 検証結果（定量的に）
+     - 教訓（Lessons Learned）
+  3. 修正が反復発生し得る種類の場合、**再発防止策**（監視追加、自動テスト、ルール追加等）を明記する。
+- 記録を残さずに修正だけ行うことは禁止する。
+
+## 9. 一時ファイル衛生規則 (Temp File Hygiene Rule)
+
+- `tempfile.mkdtemp()` や `tempfile.NamedTemporaryFile(delete=False)` を使用する場合、**必ず `try...finally` で `shutil.rmtree()` / `os.unlink()` を入れること。**
+- 可能であれば `tempfile.TemporaryDirectory()` コンテキストマネージャを使用し、自動削除に依存する設計にする。
+- 定期実行（daemon / cron / ループ）スクリプトで一時ファイルを使用する場合、以下をレビュー必須とする：
+  1. 正常完了時に削除されるか
+  2. 例外発生時にも削除されるか
+  3. プロセス強制終了時のゴミ残留リスクはないか
+- 既知の再発パターン（参照: `docs/INCIDENT_LOG.md` INC-001）
+
 ---
-*Last Updated: 2026-03-07 11:00 (JST)*
+*Last Updated: 2026-04-05 16:25 (JST)*

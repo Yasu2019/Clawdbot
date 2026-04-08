@@ -19,6 +19,7 @@ services:
     ports:
       - "127.0.0.1:${OPENCLAW_PORT:-18789}:18789"
       - "127.0.0.1:${OPENCLAW_BROWSER_PORT:-18791}:18791"
+      - "127.0.0.1:8099:8099"
     env_file: .env
     environment:
       - GEMINI_API_KEY=${GEMINI_API_KEY}
@@ -262,6 +263,17 @@ services:
     working_dir: /work
     command: [ "bash", "-lc", "sleep infinity" ]
 
+  progressive_die_hub:
+    build: ./clawstack_v2/docker/progressive_die_hub
+    ports:
+      - "127.0.0.1:8004:8004"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./data/workspace:/workspace:ro
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+
   chrono:
     image: uwsbel/projectchrono:latest
     volumes:
@@ -456,6 +468,8 @@ services:
       - GROQ_API_KEY=${GROQ_API_KEY}
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - CEREBRAS_API_KEY=${CEREBRAS_API_KEY}
+      - OLLAMA_API_BASE=http://ollama:11434
+      - OPENAI_API_KEY=ollama
     depends_on:
       - redis
       - ollama
@@ -782,6 +796,7 @@ services:
       - ./clawstack_v2/data/docling/scratch:/tmp/docling
     environment:
       - DOCLING_SERVE_NUM_WORKERS=2
+      - DOCLING_SERVE_MAX_SYNC_WAIT=600
     deploy:
       resources:
         limits:

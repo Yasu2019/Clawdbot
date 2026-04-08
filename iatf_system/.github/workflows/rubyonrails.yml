@@ -50,9 +50,8 @@ jobs:
       - name: Security audit application code
         run: bundle exec brakeman -q -w2 --ignore-config brakeman.ignore
         continue-on-error: true
-      # RuboCopのチェックを一時的にコメントアウト
-      # - name: Lint Ruby files
-      #   run: bin/rubocop --parallel
+      - name: Lint Ruby files
+        run: bin/rubocop --parallel
       # - name: Auto-correct RuboCop offenses
       #   run: bin/rubocop --auto-correct
       # - name: Commit changes

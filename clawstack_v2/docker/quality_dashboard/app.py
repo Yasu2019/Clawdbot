@@ -1,4 +1,4 @@
-﻿import streamlit as st
+import streamlit as st
 import pandas as pd
 import subprocess
 import json
@@ -1259,6 +1259,45 @@ if page == "Home":
         )
     with pm_col2:
         st.link_button("Open Record", PROCESS_MONITORING_URL, use_container_width=True)
+
+    st.markdown("---")
+    st.subheader("Storage Cleanup Review")
+    st.caption("ドライブ内の長期使用していないファイルをチェックし、削除・アーカイブ指示を出す画面")
+    storage_col1, storage_col2 = st.columns([3, 2])
+    with storage_col1:
+        st.markdown(
+            """
+            **Storage Archiving & Cleanup**
+
+            各ドライブ（C・Dドライブ等）で長期間アクセスされていない大容量の Temp / Cache / Log 等をスキャンし、
+            安全に削除できる候補をリストアップします。ここからユーザー自身の判断（Archive+Delete / Delete）で容量解放を行えます。
+            """
+        )
+    with storage_col2:
+        st.link_button("Open Cleanup Dashboard", "http://localhost:8088/apps/storage_cleanup_review/index.html", use_container_width=True)
+
+    st.markdown("---")
+    st.subheader("🛠️ Host Maintenance (Self-Healing)")
+    st.caption("Cドライブ容量枯渇を防ぐためのホスト側メンテナンス機能")
+    maint_col1, maint_col2 = st.columns([3, 2])
+    with maint_col1:
+        st.markdown(
+            """
+            **Clawstack Janitor (掃除屋)**
+            
+            Gmail同期やAI処理で発生する一時的なゴミファイル（`host_gmail_incremental_*`等）を強制清掃します。
+            Cドライブの空き容量が急減した際に実行してください。
+            
+            - **場所**: `d:\\Clawdbot_Docker_20260125\\scripts\\clawstack_janitor.bat`
+            - **効果**: 数十〜数百GBの不要フォルダを安全に削除します。
+            """
+        )
+    with maint_col2:
+        st.info("ホスト側のバッチファイルを実行してください。セッション終了時にこのバッチを叩くことで、常にクリーンな状態を保てます。")
+        # Since this button cannot DIRECTLY run host bash from inside docker easily without a bridge, 
+        # we provide the clear path and instructions. 
+        if st.button("Generate Cleanup Report (Mock)", use_container_width=True):
+            st.success("Janitor script is ready at: scripts/clawstack_janitor.bat")
 
 elif page == "Plating Quality Analysis":
     render_plating_quality_page()

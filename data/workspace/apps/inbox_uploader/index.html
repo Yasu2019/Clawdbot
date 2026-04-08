@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inbox Uploader — Clawstack</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --card: rgba(30,41,59,0.8);
+    --border: rgba(255,255,255,0.1);
+    --primary: #38bdf8;
+    --secondary: #818cf8;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --text: #f8fafc;
+    --muted: #94a3b8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    background-image:
+      radial-gradient(circle at 15% 50%, rgba(56,189,248,0.06), transparent 30%),
+      radial-gradient(circle at 85% 20%, rgba(129,140,248,0.06), transparent 30%);
+  }
+  .header {
+    padding: 40px 28px 24px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  .back { color: var(--muted); text-decoration: none; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px; margin-bottom: 20px; }
+  .back:hover { color: var(--primary); }
+  h1 { font-size: 2rem; font-weight: 800; background: linear-gradient(135deg, var(--primary), var(--secondary)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .subtitle { color: var(--muted); margin-top: 6px; font-size: 0.95rem; }
+
+  .main { max-width: 900px; margin: 0 auto; padding: 0 28px 60px; }
+
+  /* Drop Zone */
+  .drop-zone {
+    border: 2px dashed rgba(56,189,248,0.35);
+    border-radius: 20px;
+    padding: 60px 30px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    background: rgba(56,189,248,0.03);
+    position: relative;
+  }
+  .drop-zone.dragover {
+    border-color: var(--primary);
+    background: rgba(56,189,248,0.08);
+    transform: scale(1.01);
+  }
+  .drop-icon { font-size: 3.5rem; margin-bottom: 16px; }
+  .drop-title { font-size: 1.25rem; font-weight: 700; margin-bottom: 8px; }
+  .drop-sub { color: var(--muted); font-size: 0.9rem; line-height: 1.6; }
+  .drop-zone input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 12px 28px; border-radius: 12px; border: none;
+    font-size: 0.95rem; font-weight: 600; cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .btn-primary { background: var(--primary); color: #0f172a; }
+  .btn-primary:hover { background: #7dd3fc; transform: translateY(-1px); }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  .btn-sm { padding: 6px 14px; font-size: 0.82rem; border-radius: 8px; }
+  .btn-danger { background: rgba(239,68,68,0.15); color: var(--danger); border: 1px solid rgba(239,68,68,0.3); }
+  .btn-danger:hover { background: rgba(239,68,68,0.25); }
+
+  /* Staged files */
+  .staged-section { margin: 24px 0; }
+  .section-title { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; }
+  .file-list { display: flex; flex-direction: column; gap: 8px; }
+  .file-item {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 12px 16px;
+  }
+  .file-ext {
+    width: 42px; height: 42px; border-radius: 10px;
+    background: rgba(56,189,248,0.12); border: 1px solid rgba(56,189,248,0.2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.72rem; font-weight: 700; color: var(--primary); flex-shrink: 0;
+    text-transform: uppercase;
+  }
+  .file-info { flex: 1; min-width: 0; }
+  .file-name { font-size: 0.9rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .file-size { font-size: 0.8rem; color: var(--muted); margin-top: 2px; }
+  .file-status { flex-shrink: 0; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 4px 10px; border-radius: 20px; font-size: 0.78rem; font-weight: 600;
+  }
+  .badge-waiting { background: rgba(148,163,184,0.15); color: var(--muted); }
+  .badge-uploading { background: rgba(56,189,248,0.15); color: var(--primary); }
+  .badge-done { background: rgba(16,185,129,0.15); color: var(--success); }
+  .badge-error { background: rgba(239,68,68,0.15); color: var(--danger); }
+
+  .upload-actions { display: flex; gap: 12px; margin-top: 16px; align-items: center; }
+  .clear-btn { background: none; border: 1px solid var(--border); color: var(--muted); border-radius: 10px; padding: 10px 18px; font-size: 0.88rem; cursor: pointer; transition: all 0.2s; }
+  .clear-btn:hover { border-color: var(--danger); color: var(--danger); }
+
+  /* Progress */
+  .progress-bar-wrap { flex: 1; height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden; }
+  .progress-bar { height: 100%; background: linear-gradient(90deg, var(--primary), var(--secondary)); border-radius: 3px; transition: width 0.3s ease; }
+
+  /* Inbox status */
+  .status-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 28px 0 20px;
+  }
+  .stat-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 18px;
+    text-align: center;
+  }
+  .stat-value { font-size: 2rem; font-weight: 800; color: var(--primary); }
+  .stat-label { font-size: 0.8rem; color: var(--muted); margin-top: 4px; }
+
+  .inbox-list { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+  .inbox-item {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 10px 14px;
+  }
+  .inbox-item .file-ext { width: 36px; height: 36px; font-size: 0.68rem; }
+  .inbox-item .file-name { font-size: 0.85rem; }
+  .inbox-item .file-size { font-size: 0.75rem; }
+  .inbox-empty { text-align: center; color: var(--muted); padding: 32px; font-size: 0.9rem; }
+
+  .refresh-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .refresh-time { font-size: 0.78rem; color: var(--muted); }
+  .btn-refresh { background: rgba(255,255,255,0.06); border: 1px solid var(--border); color: var(--muted); border-radius: 8px; padding: 6px 14px; font-size: 0.8rem; cursor: pointer; transition: all 0.2s; }
+  .btn-refresh:hover { border-color: var(--primary); color: var(--primary); }
+
+  .allowed-types { color: var(--muted); font-size: 0.8rem; margin-top: 10px; }
+  .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(56,189,248,0.3); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .toast { position: fixed; bottom: 28px; right: 28px; padding: 14px 20px; border-radius: 12px; font-size: 0.9rem; font-weight: 600; z-index: 999; animation: slideIn 0.3s ease; max-width: 320px; }
+  .toast-success { background: rgba(16,185,129,0.9); color: #fff; }
+  .toast-error   { background: rgba(239,68,68,0.9);  color: #fff; }
+  @keyframes slideIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <a href="../../portal.html" class="back">← Portal</a>
+  <h1>📥 Inbox Uploader</h1>
+  <p class="subtitle">ファイルをアップロードすると、OpenClawが内容を判断して自動ルーティングします</p>
+</div>
+
+<div class="main">
+
+  <!-- Drop Zone -->
+  <div class="drop-zone" id="dropZone">
+    <input type="file" id="fileInput" multiple
+      accept=".pdf,.xlsx,.xls,.csv,.docx,.doc,.txt,.md,.json,.yaml,.yml,.xml,.png,.jpg,.jpeg,.zip">
+    <div class="drop-icon">📂</div>
+    <div class="drop-title">ファイルをここにドロップ</div>
+    <div class="drop-sub">
+      または クリックしてファイルを選択<br>
+    </div>
+    <div class="allowed-types">対応形式: PDF, Excel, CSV, Word, テキスト, 画像, ZIP（最大100MB/ファイル）</div>
+  </div>
+
+  <!-- Staged files -->
+  <div class="staged-section" id="stagedSection" style="display:none">
+    <div class="section-title">アップロード予定</div>
+    <div class="file-list" id="fileList"></div>
+    <div class="upload-actions">
+      <button class="btn btn-primary" id="uploadBtn" onclick="uploadAll()">
+        <span>📤</span> inbox に送信
+      </button>
+      <button class="clear-btn" onclick="clearStaged()">クリア</button>
+      <div class="progress-bar-wrap" id="progressWrap" style="display:none">
+        <div class="progress-bar" id="progressBar" style="width:0%"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Inbox Status -->
+  <div class="status-grid">
+    <div class="stat-card">
+      <div class="stat-value" id="statInbox">—</div>
+      <div class="stat-label">Inbox 待機中</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="statProc">—</div>
+      <div class="stat-label">処理済み</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="statRag">—</div>
+      <div class="stat-label">RAGキュー</div>
+    </div>
+  </div>
+
+  <div class="refresh-row">
+    <div class="section-title" style="margin:0">Inbox 現在のファイル</div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <span class="refresh-time" id="refreshTime"></span>
+      <button class="btn-refresh" onclick="loadStatus()">↻ 更新</button>
+    </div>
+  </div>
+  <div id="inboxList" class="inbox-list">
+    <div class="inbox-empty">読み込み中...</div>
+  </div>
+
+</div>
+
+<script>
+const API = 'http://localhost:8099';
+let staged = [];
+
+// ── Drop Zone ──────────────────────────────────────────────────────────────
+
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('dragover');
+  addFiles([...e.dataTransfer.files]);
+});
+fileInput.addEventListener('change', () => {
+  addFiles([...fileInput.files]);
+  fileInput.value = '';
+});
+
+function addFiles(files) {
+  for (const f of files) {
+    if (!staged.find(s => s.file.name === f.name && s.file.size === f.size)) {
+      staged.push({ file: f, status: 'waiting', id: Date.now() + Math.random() });
+    }
+  }
+  renderStaged();
+}
+
+function ext(name) { return name.split('.').pop().toLowerCase().slice(0, 4); }
+function fmtSize(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024*1024) return (bytes/1024).toFixed(1) + ' KB';
+  return (bytes/1024/1024).toFixed(1) + ' MB';
+}
+
+function renderStaged() {
+  const sec  = document.getElementById('stagedSection');
+  const list = document.getElementById('fileList');
+  if (!staged.length) { sec.style.display = 'none'; return; }
+  sec.style.display = '';
+
+  list.innerHTML = staged.map((s, i) => `
+    <div class="file-item" id="staged-${s.id}">
+      <div class="file-ext">${ext(s.file.name)}</div>
+      <div class="file-info">
+        <div class="file-name">${s.file.name}</div>
+        <div class="file-size">${fmtSize(s.file.size)}</div>
+      </div>
+      <div class="file-status">
+        ${statusBadge(s.status)}
+      </div>
+      ${s.status === 'waiting' ? `<button class="btn btn-sm btn-danger" onclick="removeStaged(${i})">✕</button>` : ''}
+    </div>
+  `).join('');
+}
+
+function statusBadge(status) {
+  const map = {
+    waiting:   '<span class="badge badge-waiting">待機中</span>',
+    uploading: '<span class="badge badge-uploading"><span class="spinner"></span> 送信中</span>',
+    done:      '<span class="badge badge-done">✓ 完了</span>',
+    error:     '<span class="badge badge-error">✕ エラー</span>',
+  };
+  return map[status] || status;
+}
+
+function removeStaged(i) { staged.splice(i, 1); renderStaged(); }
+function clearStaged()   { staged = staged.filter(s => s.status !== 'waiting'); renderStaged(); }
+
+// ── Upload ────────────────────────────────────────────────────────────────
+
+async function uploadAll() {
+  const waiting = staged.filter(s => s.status === 'waiting');
+  if (!waiting.length) return;
+
+  document.getElementById('uploadBtn').disabled = true;
+  document.getElementById('progressWrap').style.display = '';
+
+  let done = 0;
+  for (const s of waiting) {
+    s.status = 'uploading';
+    renderStaged();
+
+    const fd = new FormData();
+    fd.append('files', s.file);
+
+    try {
+      const res  = await fetch(`${API}/upload`, { method: 'POST', body: fd });
+      const data = await res.json();
+      s.status = (data.saved && data.saved.length > 0) ? 'done' : 'error';
+    } catch (e) {
+      s.status = 'error';
+    }
+
+    done++;
+    document.getElementById('progressBar').style.width = (done / waiting.length * 100) + '%';
+    renderStaged();
+  }
+
+  document.getElementById('uploadBtn').disabled = false;
+  const successes = staged.filter(s => s.status === 'done').length;
+  toast(`${successes} ファイルをinboxに送信しました`, 'success');
+  setTimeout(() => { loadStatus(); }, 1500);
+  setTimeout(() => {
+    staged = staged.filter(s => s.status !== 'done');
+    renderStaged();
+    document.getElementById('progressWrap').style.display = 'none';
+    document.getElementById('progressBar').style.width = '0%';
+  }, 3000);
+}
+
+// ── Status ────────────────────────────────────────────────────────────────
+
+async function loadStatus() {
+  try {
+    const res  = await fetch(`${API}/status`);
+    const data = await res.json();
+
+    document.getElementById('statInbox').textContent = data.inbox_count;
+    document.getElementById('statProc').textContent  = data.processed_count;
+    document.getElementById('statRag').textContent   = data.rag_queue_count;
+    document.getElementById('refreshTime').textContent = data.timestamp;
+
+    const list = document.getElementById('inboxList');
+    if (!data.inbox.length) {
+      list.innerHTML = '<div class="inbox-empty">📭 inbox は空です — ファイルを投入してください</div>';
+      return;
+    }
+
+    list.innerHTML = data.inbox.map(f => `
+      <div class="inbox-item">
+        <div class="file-ext">${ext(f.name)}</div>
+        <div class="file-info">
+          <div class="file-name">${f.name}</div>
+          <div class="file-size">${f.size_kb} KB &nbsp;·&nbsp; ${f.modified}</div>
+        </div>
+        <button class="btn btn-sm btn-danger" onclick="deleteFile('${f.name}')">削除</button>
+      </div>
+    `).join('');
+  } catch (e) {
+    document.getElementById('inboxList').innerHTML =
+      '<div class="inbox-empty" style="color:var(--danger)">API サーバーに接続できません (port 8099)</div>';
+  }
+}
+
+async function deleteFile(name) {
+  if (!confirm(`"${name}" を inbox から削除しますか？`)) return;
+  try {
+    const res = await fetch(`${API}/file/${encodeURIComponent(name)}`, { method: 'DELETE' });
+    if (res.ok) { toast(`${name} を削除しました`, 'success'); loadStatus(); }
+    else        { toast('削除に失敗しました', 'error'); }
+  } catch (e) { toast('削除に失敗しました', 'error'); }
+}
+
+// ── Toast ────────────────────────────────────────────────────────────────
+
+function toast(msg, type = 'success') {
+  const el = document.createElement('div');
+  el.className = `toast toast-${type}`;
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 3500);
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────
+
+loadStatus();
+setInterval(loadStatus, 15000);
+</script>
+</body>
+</html>

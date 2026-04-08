@@ -135,6 +135,10 @@ MITSUI_GLOSSARY_PATHS = (
     WORKSPACE / "mitsui_terms_auto.md",
     WORKSPACE.parent.parent / "ミツイ精密専門用語",
 )
+EMAIL_FILTER_PATHS = (
+    WORKSPACE / "email_rag_sender_filters.json",
+    Path("/home/node/clawd/email_rag_sender_filters.json"),
+)
 
 
 @lru_cache(maxsize=1)
@@ -232,6 +236,22 @@ def connect_db(db_path: Path) -> sqlite3.Connection:
     con = sqlite3.connect(db_path)
     con.row_factory = sqlite3.Row
     return con
+
+
+@lru_cache(maxsize=1)
+def load_email_blacklist_patterns() -> List[str]:
+    for path in EMAIL_FILTER_PATHS:
+        try:
+            if not path.exists():
+                continue
+            payload = json.loads(path.read_text(encoding="utf-8"))
+            values = payload.get("blacklist_patterns") or []
+            patterns = [str(value).strip().casefold() for value in values if str(value).strip()]
+            if patterns:
+                return patterns
+        except Exception:
+            continue
+    return []
 
 
 def tokenize_query(query: str) -> List[str]:
@@ -413,6 +433,24 @@ def dedupe(rows: Iterable[sqlite3.Row]) -> List[dict]:
         seen.add(key)
         output.append(item)
     return output
+
+
+def is_email_blacklisted(row: dict, blacklist_patterns: List[str]) -> bool:
+    if not blacklist_patterns:
+        return False
+    sender = str(row.get("sender") or "")
+    subject = str(row.get("subject") or "")
+    source = str(row.get("source") or "")
+    target = f"{sender} {subject} {source}".casefold()
+    return any(pattern in target for pattern in blacklist_patterns)
+
+
+def filter_blacklisted_email_rows(rows: List[dict]) -> tuple[List[dict], int]:
+    blacklist_patterns = load_email_blacklist_patterns()
+    if not blacklist_patterns:
+        return rows, 0
+    filtered = [row for row in rows if not is_email_blacklisted(row, blacklist_patterns)]
+    return filtered, len(rows) - len(filtered)
 
 
 def build_context(query: str, rows: List[dict], fallback_kind: str) -> str:
@@ -1015,6 +1053,7 @@ def cmd_search(args: argparse.Namespace) -> int:
     con = connect_db(detect_db_path(args.db))
     try:
         rows = rows_to_dicts(search_rows(con, args.query, args.limit))
+        rows, _excluded = filter_blacklisted_email_rows(rows)
         print(json.dumps(rows, ensure_ascii=False, indent=2))
         return 0
     finally:
@@ -1029,10 +1068,12 @@ def cmd_context(args: argparse.Namespace) -> int:
         if (not primary and relative_requested(args.query)) or args.recent_only:
             primary = dedupe(recent_rows(con, args.limit))
             fallback_kind = "recent"
+        primary, excluded_count = filter_blacklisted_email_rows(primary)
         payload = {
             "query": args.query,
             "db_path": str(detect_db_path(args.db)),
             "result_count": len(primary),
+            "excluded_blacklist_count": excluded_count,
             "fallback_kind": fallback_kind,
             "results": primary,
             "summary": build_email_summary(args.query, primary, fallback_kind),

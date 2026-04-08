@@ -1,0 +1,67 @@
+﻿docker : time="2026-04-05T16:28:55+09:00" level=warning msg="d
+:\\Clawdbot_Docker_20260125\\iatf_system\\docker-compose.produ
+ction.yml: the attribute `version` is obsolete, it will be ign
+ored, please remove it to avoid potential confusion"
+発生場所 行:1 文字:1
++ docker compose -f d:\Clawdbot_Docker_20260125\iatf_system\do
+cker-comp ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (time="2026-04-0. 
+   ..tial confusion":String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+web-1  | [1G[0K笄・[1G[0K
+web-1  | > app@1.0.0 build:css
+web-1  | > tailwindcss -i ./app/assets/stylesheets/application.tailwind.css -o ./app/assets/stylesheets/tailwind.css --minify
+web-1  | 
+web-1  | [1G[0K笄・[1G[0KBrowserslist: caniuse-lite is outdated. Please run:
+web-1  |   npx update-browserslist-db@latest
+web-1  |   Why you should do it regularly: https://github.com/browserslist/update-db#readme
+web-1  | 
+web-1  | Rebuilding...
+web-1  | 
+web-1  | [1m[33mwarn[39m[22m - No utility classes were detected in your source files. If this is unexpected, double-check the `content` option in your Tailwind CSS configuration.
+web-1  | [1m[33mwarn[39m[22m - https://tailwindcss.com/docs/content-configuration
+web-1  | 
+web-1  | Done in 303ms.
+web-1  | [1G[0K笄・[1G[0K[1mnpm[22m [96mnotice[39m
+web-1  | [1mnpm[22m [96mnotice[39m New [31mmajor[39m version of npm available! [31m10.8.2[39m -> [34m11.12.1[39m
+web-1  | [1mnpm[22m [96mnotice[39m Changelog: [34mhttps://github.com/npm/cli/releases/tag/v11.12.1[39m
+web-1  | [1mnpm[22m [96mnotice[39m To update run: [4mnpm install -g npm@11.12.1[24m
+web-1  | [1mnpm[22m [96mnotice[39m
+web-1  | [1G[0K笄・[1G[0K=> Booting Puma
+web-1  | => Rails 7.0.8 application starting in production 
+web-1  | => Run `bin/rails server --help` for more startup options
+web-1  | I, [2026-04-05T06:52:36.707852 #1]  INFO -- : DocumentMonitorService: Initialized with watch path: /myapp/db/latest_documents
+web-1  | I, [2026-04-05T06:52:36.707986 #1]  INFO -- : DocumentMonitorService: Check interval: 30 seconds
+web-1  | I, [2026-04-05T06:52:36.708956 #1]  INFO -- : DocumentMonitorService: Setting up listener...
+web-1  | I, [2026-04-05T06:52:36.713325 #1]  INFO -- : DocumentMonitorService: Listener started successfully
+web-1  | Puma starting in single mode...
+web-1  | * Puma version: 5.6.8 (ruby 3.1.2-p20) ("Birdie's Version")
+web-1  | *  Min threads: 5
+web-1  | *  Max threads: 5
+web-1  | *  Environment: production
+web-1  | *          PID: 1
+web-1  | * Listening on http://0.0.0.0:3003
+web-1  | Use Ctrl-C to stop
+web-1  | I, [2026-04-05T06:52:39.911157 #1]  INFO -- : [3f02506f-fe33-48aa-b5ab-a832dbbc472f] Started HEAD "/users/sign_in" for 172.22.0.1 at 2026-04-05 06:52:39 +0000
+web-1  | I, [2026-04-05T06:52:39.912642 #1]  INFO -- : [3f02506f-fe33-48aa-b5ab-a832dbbc472f] Processing by Users::SessionsController#new as */*
+web-1  | I, [2026-04-05T06:52:39.922189 #1]  INFO -- : [3f02506f-fe33-48aa-b5ab-a832dbbc472f] Completed 500 Internal Server Error in 9ms (ActiveRecord: 0.0ms | Allocations: 2432)
+web-1  | F, [2026-04-05T06:52:39.922678 #1] FATAL -- : [3f02506f-fe33-48aa-b5ab-a832dbbc472f]   
+web-1  | [3f02506f-fe33-48aa-b5ab-a832dbbc472f] ActiveRecord::ConnectionNotEstablished (connection to server at "192.168.65.254", port 5432 failed: FATAL:  the database system is starting up
+web-1  | connection to server at "fdc4:f303:9324::254", port 5432 failed: Network is unreachable
+web-1  | 	Is the server running on that host and accepting TCP/IP connections?
+web-1  | ):
+web-1  | [3f02506f-fe33-48aa-b5ab-a832dbbc472f]   
+web-1  | [3f02506f-fe33-48aa-b5ab-a832dbbc472f] app/controllers/users/sessions_controller.rb:24:in `new'
+web-1  | I, [2026-04-05T07:28:22.306569 #1]  INFO -- : [ccd44fad-a510-4871-b2da-ea32d829c71f] Started GET "/users/sign_in" for 172.22.0.1 at 2026-04-05 07:28:22 +0000
+web-1  | I, [2026-04-05T07:28:22.307906 #1]  INFO -- : [ccd44fad-a510-4871-b2da-ea32d829c71f] Processing by Users::SessionsController#new as */*
+web-1  | I, [2026-04-05T07:28:22.316351 #1]  INFO -- : [ccd44fad-a510-4871-b2da-ea32d829c71f] Completed 500 Internal Server Error in 8ms (ActiveRecord: 0.0ms | Allocations: 1973)
+web-1  | F, [2026-04-05T07:28:22.316989 #1] FATAL -- : [ccd44fad-a510-4871-b2da-ea32d829c71f]   
+web-1  | [ccd44fad-a510-4871-b2da-ea32d829c71f] ActiveRecord::ConnectionNotEstablished (connection to server at "192.168.65.254", port 5432 failed: FATAL:  the database system is starting up
+web-1  | connection to server at "fdc4:f303:9324::254", port 5432 failed: Network is unreachable
+web-1  | 	Is the server running on that host and accepting TCP/IP connections?
+web-1  | ):
+web-1  | [ccd44fad-a510-4871-b2da-ea32d829c71f]   
+web-1  | [ccd44fad-a510-4871-b2da-ea32d829c71f] app/controllers/users/sessions_controller.rb:24:in `new'

@@ -8,116 +8,739 @@
     <link rel="stylesheet" href="../../style.css">
     <style>
         :root {
-            --accent: #eab308;
+            --accent: #9a6b07;
+            --accent-soft: #fef3c7;
+            --bg: #f8f4ea;
+            --panel: #fffdf8;
+            --line: #eadfc8;
+            --ink: #2f2412;
+            --muted: #6f6657;
+            --shadow: 0 18px 42px rgba(57, 44, 16, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
         }
 
         body {
-            background: #fefce8;
-            color: #422006;
-            font-family: 'Outfit', sans-serif;
             margin: 0;
+            min-height: 100vh;
+            font-family: "Segoe UI", "Hiragino Sans", "Yu Gothic UI", sans-serif;
+            color: var(--ink);
+            background:
+                radial-gradient(circle at top right, rgba(234, 179, 8, 0.12), transparent 30%),
+                linear-gradient(180deg, #fffcf5 0%, var(--bg) 100%);
+        }
+
+        header {
+            padding: 20px 28px;
             display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            background: rgba(255, 252, 245, 0.92);
+            border-bottom: 1px solid rgba(234, 223, 200, 0.9);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 10;
         }
 
-        .nav {
-            width: 300px;
-            background: #fef9c3;
-            border-right: 1px solid #fde047;
-            height: 100vh;
-            padding: 30px;
+        header h1 {
+            margin: 0;
+            font-size: 1.45rem;
         }
 
-        .content {
+        header p {
+            margin: 4px 0 0;
+            color: var(--muted);
+            font-size: 0.93rem;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 11px 16px;
+            border-radius: 999px;
+            font-weight: 700;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: 0.2s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            filter: brightness(1.05);
+        }
+
+        .btn-ghost {
+            background: white;
+            color: var(--ink);
+            border-color: var(--line);
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: minmax(320px, 420px) minmax(0, 1fr) 340px;
+            gap: 22px;
+            padding: 22px 28px 34px;
+            align-items: start;
+        }
+
+        .panel {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 22px;
+            box-shadow: var(--shadow);
+        }
+
+        .panel-inner {
+            padding: 22px;
+        }
+
+        .panel h2,
+        .panel h3,
+        .panel h4 {
+            margin: 0 0 12px;
+        }
+
+        .subtle {
+            color: var(--muted);
+            line-height: 1.7;
+        }
+
+        .metric-row {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+            margin-top: 14px;
+        }
+
+        .metric {
+            background: #fcf8ef;
+            border: 1px solid #efe4cd;
+            border-radius: 16px;
+            padding: 14px;
+        }
+
+        .metric .label {
+            display: block;
+            color: var(--muted);
+            font-size: 0.84rem;
+        }
+
+        .metric .value {
+            display: block;
+            margin-top: 6px;
+            font-size: 1.08rem;
+            font-weight: 800;
+        }
+
+        .book-list {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            margin-top: 16px;
+            max-height: calc(100vh - 290px);
+            overflow: auto;
+            padding-right: 4px;
+        }
+
+        .book-card {
+            border: 1px solid #eadfc9;
+            border-radius: 18px;
+            padding: 16px;
+            background: #fffdfa;
+        }
+
+        .book-card.featured {
+            border-color: rgba(154, 107, 7, 0.35);
+            box-shadow: 0 10px 24px rgba(154, 107, 7, 0.08);
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border-radius: 999px;
+            padding: 6px 10px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            border: 1px solid #eadfc9;
+            background: #f8f1e0;
+            color: #695a33;
+        }
+
+        .pill.fresh {
+            background: var(--accent-soft);
+            border-color: #f2d883;
+            color: #855c05;
+        }
+
+        .book-card h3 {
+            margin: 0 0 8px;
+            font-size: 1.06rem;
+            line-height: 1.5;
+        }
+
+        .book-card p {
+            margin: 0;
+            color: var(--muted);
+            line-height: 1.65;
+        }
+
+        .book-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 14px;
+        }
+
+        .mini-btn {
+            border: 1px solid var(--line);
+            background: white;
+            color: var(--ink);
+            border-radius: 999px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-weight: 700;
+        }
+
+        .editor-panel {
+            min-height: calc(100vh - 150px);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .title-input {
+            width: 100%;
+            border: none;
+            outline: none;
+            background: transparent;
+            font-size: clamp(1.8rem, 2.8vw, 2.6rem);
+            font-weight: 800;
+            color: var(--ink);
+            margin-bottom: 12px;
+        }
+
+        .summary-box {
+            border: 1px dashed #d2bf95;
+            background: #fff8ea;
+            border-radius: 16px;
+            padding: 14px 16px;
+            margin-bottom: 14px;
+            color: var(--muted);
+            line-height: 1.7;
+        }
+
+        .editor-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+            margin-bottom: 14px;
+        }
+
+        textarea,
+        input,
+        select {
+            width: 100%;
+            border: 1px solid #ddd3bf;
+            padding: 12px 13px;
+            border-radius: 12px;
+            font: inherit;
+            background: white;
+        }
+
+        #editor {
             flex: 1;
-            padding: 60px;
+            border: 1px solid #e6decc;
+            border-radius: 18px;
+            padding: 24px;
+            font-size: 16px;
+            line-height: 1.85;
+            outline: none;
+            background: white;
             overflow-y: auto;
+            min-height: 420px;
+            white-space: pre-wrap;
+        }
+
+        .toolbox {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .muted-box {
+            padding: 14px;
+            border-radius: 16px;
+            background: #faf5e9;
+            border: 1px solid #eadfc9;
+            color: var(--muted);
+            line-height: 1.7;
         }
 
         .chapter-list {
-            list-style: none;
-            padding: 0;
+            margin: 0;
+            padding-left: 18px;
+            color: var(--muted);
+            line-height: 1.8;
         }
 
-        .chapter-item {
-            background: #fff;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            border: 1px solid #fef08a;
-            display: flex;
-            justify-content: space-between;
-        }
+        @media (max-width: 1180px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
 
-        .btn-gold {
-            background: var(--accent);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-        }
+            .book-list {
+                max-height: none;
+            }
 
-        .cover-preview {
-            width: 240px;
-            aspect-ratio: 2/3;
-            background: #e5e5e5;
-            border-radius: 4px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-top: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            .editor-panel {
+                min-height: auto;
+            }
+
+            .editor-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 
 <body>
-    <div class="nav">
-        <h1>📚 Kindle Author</h1>
-        <div class="cover-preview" id="cover">
-            <span>表紙プレビュー</span>
+    <header>
+        <div>
+            <h1>Kindle Author Studio</h1>
+            <p>毎日収集しているローカル LLM / 仕事効率化トレンドから、売れそうな領域と Kindle 書籍案を提案します。</p>
         </div>
-        <button class="btn-gold" style="width:100%; margin-top:20px;" onclick="generateCover()">🎨 表紙をAI生成</button>
-        <hr style="margin:30px 0;">
-        <button class="btn-gold" style="width:100%; background: #92400e;" onclick="buildEbook()">🛠️ e-bookをビルド</button>
-    </div>
-    <div class="content">
-        <h2>書籍構成データ</h2>
-        <div style="display:flex; gap:20px; margin-bottom:30px;">
-            <div style="flex:1;">
-                <label>タイトル</label><br>
-                <input type="text" style="width:100%; font-size:24px;" placeholder="書籍タイトル">
-            </div>
-            <div style="flex:1;">
-                <label>ジャンル</label><br>
-                <select style="width:100%; padding:14px;">
-                    <option>ビジネス・IT</option>
-                    <option>実用・自己啓発</option>
-                    <option>小説・ノンフィクション</option>
-                </select>
-            </div>
+        <div class="actions">
+            <button class="btn btn-primary" id="refreshRecommendations">おすすめを再読込</button>
+            <button class="btn btn-ghost" id="saveHtml">HTMLとして保存</button>
         </div>
-        <h3>章立て</h3>
-        <ul class="chapter-list" id="chapters">
-            <li class="chapter-item"><span>第1章：AI時代の到来</span>
-                <tag>完了</tag>
-            </li>
-            <li class="chapter-item"><span>第2章：自律エージェントの衝撃</span> <span>執筆中</span></li>
-        </ul>
-        <button class="btn-gold" style="background:#713f12;" onclick="addChapter()">➕ 章を追加</button>
-    </div>
+    </header>
+
+    <main class="layout">
+        <section class="panel">
+            <div class="panel-inner">
+                <h2>おすすめ書籍テーマ</h2>
+                <p class="subtle">最近の公開ソースから、読者ニーズが伸びやすそうなテーマを優先表示します。技術そのものではなく、「誰のどんな悩みを解く本か」を重視しています。</p>
+
+                <div class="metric-row">
+                    <div class="metric">
+                        <span class="label">候補テーマ</span>
+                        <span class="value" id="candidateCount">-</span>
+                    </div>
+                    <div class="metric">
+                        <span class="label">最新データ</span>
+                        <span class="value" id="generatedAt">-</span>
+                    </div>
+                </div>
+
+                <div class="book-list" id="bookList">
+                    <div class="book-card">
+                        <h3>読み込み中...</h3>
+                        <p>収集済みのトレンドデータから Kindle 向けテーマ案を作成しています。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="panel editor-panel">
+            <div class="panel-inner">
+                <input id="bookTitle" class="title-input" type="text" placeholder="ここに書籍タイトル案が入ります">
+                <div class="summary-box" id="positioningBox">
+                    売れ筋テーマの仮説、読者像、差別化ポイント、元になったトレンドをここに表示します。
+                </div>
+
+                <div class="editor-grid">
+                    <div class="input-group">
+                        <label for="category">カテゴリ</label>
+                        <select id="category">
+                            <option>生成AI・ローカルLLM</option>
+                            <option>業務効率化・自動化</option>
+                            <option>現場改善・個人DX</option>
+                            <option>品質管理・設計レビュー</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="audience">想定読者</label>
+                        <input id="audience" type="text" placeholder="例: 中小企業の管理職、個人開発者、現場改善担当">
+                    </div>
+                    <div class="input-group">
+                        <label for="promise">約束する成果</label>
+                        <input id="promise" type="text" placeholder="例: 7日でローカルAI導入の全体像がわかる">
+                    </div>
+                    <div class="input-group">
+                        <label for="hook">販売フック</label>
+                        <input id="hook" type="text" placeholder="例: 無料ツールだけで始める / 事例ベースで学べる">
+                    </div>
+                </div>
+
+                <div id="editor" contenteditable="true"></div>
+            </div>
+        </section>
+
+        <aside class="panel">
+            <div class="panel-inner toolbox">
+                <div>
+                    <h3>章立てのたたき台</h3>
+                    <ol class="chapter-list" id="chapterList">
+                        <li>テーマを選ぶと章立て候補を表示します。</li>
+                    </ol>
+                </div>
+
+                <div class="input-group">
+                    <label for="angleSelect">記事タイプ / 角度</label>
+                    <select id="angleSelect">
+                        <option value="practical">すぐ使える実践ガイド</option>
+                        <option value="manager">管理職向けの導入判断</option>
+                        <option value="case">事例ベースの導入記録</option>
+                        <option value="trend">最新トレンド整理本</option>
+                    </select>
+                </div>
+
+                <div>
+                    <h3>AI用プロンプト</h3>
+                    <div class="muted-box" id="promptBox">
+                        テーマを選ぶと、書籍企画を深掘りするためのプロンプトを表示します。
+                    </div>
+                </div>
+
+                <div>
+                    <h3>元ネタ</h3>
+                    <div class="muted-box" id="sourceBox">
+                        元になった公開記事や release 情報をここに表示します。
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </main>
 
     <script>
-        function generateCover() {
-            const cover = document.getElementById('cover');
-            cover.style.background = 'linear-gradient(45deg, #422006, #713f12)';
-            cover.innerHTML = '<span style="color:white; font-weight:bold; text-align:center;">AIが生成した<br>プロフェッショナルな表紙</span>';
-            alert("Stable Diffusion APIを呼び出し、表紙画像を生成しました。");
+        const DIGEST_URL = "../../local_llm_oss_digest.json";
+
+        const dom = {
+            candidateCount: document.getElementById("candidateCount"),
+            generatedAt: document.getElementById("generatedAt"),
+            bookList: document.getElementById("bookList"),
+            bookTitle: document.getElementById("bookTitle"),
+            positioningBox: document.getElementById("positioningBox"),
+            category: document.getElementById("category"),
+            audience: document.getElementById("audience"),
+            promise: document.getElementById("promise"),
+            hook: document.getElementById("hook"),
+            editor: document.getElementById("editor"),
+            chapterList: document.getElementById("chapterList"),
+            promptBox: document.getElementById("promptBox"),
+            sourceBox: document.getElementById("sourceBox"),
+            angleSelect: document.getElementById("angleSelect"),
+            refresh: document.getElementById("refreshRecommendations"),
+            saveHtml: document.getElementById("saveHtml")
+        };
+
+        function escapeHtml(text) {
+            return String(text ?? "")
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#39;");
         }
-        function buildEbook() {
-            alert("Stirling-PDFを使用して、EPUBおよびPDF形式の書籍をビルドしています... 完了！");
+
+        function normalizeTitle(title) {
+            return String(title || "")
+                .replace(/\s+/g, " ")
+                .replace(/`/g, "")
+                .trim();
         }
+
+        function classifyTheme(title, category) {
+            const t = normalizeTitle(title).toLowerCase();
+            if (category === "Local LLM" || /gemma|llama|ollama|vllm|lm studio|mlx|local model|openclaw/.test(t)) {
+                return {
+                    segment: "ローカルAI実務",
+                    audience: "社内導入を任された実務担当、個人開発者、小規模チーム",
+                    category: "生成AI・ローカルLLM",
+                    hook: "無料または低コストで始める",
+                    promise: "ローカルAI導入の判断軸と実装パターンが短時間でつかめる"
+                };
+            }
+            if (category === "Productivity OSS" || /n8n|appflowy|docmost|plane|twenty|workflow|automation/.test(t)) {
+                return {
+                    segment: "業務効率化",
+                    audience: "業務改善担当、管理職、ひとり情シス",
+                    category: "業務効率化・自動化",
+                    hook: "現場でそのまま真似できる",
+                    promise: "自動化の着手点と、無駄な遠回りを避ける方法がわかる"
+                };
+            }
+            return {
+                segment: "最新トレンド整理",
+                audience: "新規テーマを追いたい技術者、企画担当、情報感度の高い読者",
+                category: "現場改善・個人DX",
+                hook: "難しすぎない要点整理",
+                promise: "変化の早い分野を短時間でキャッチアップできる"
+            };
+        }
+
+        function buildBookTitle(baseTitle, profile) {
+            const clean = normalizeTitle(baseTitle).replace(/^v[\d.]+.*$/i, profile.segment);
+            if (profile.segment === "ローカルAI実務") {
+                return `ローカルAI実務入門 2026 - ${clean}から始める小さな自動化`;
+            }
+            if (profile.segment === "業務効率化") {
+                return `仕事が早い人の仕組み化ノート - ${clean}で始める自動化設計`;
+            }
+            return `2026年版 いま読むべき技術トレンド - ${clean}から見える次の一手`;
+        }
+
+        function buildAngleSummary(profile, source) {
+            return [
+                `狙い: ${profile.segment} の中でも「${source.source} で反応が強い話題」を、一般読者向けの実用書として再構成します。`,
+                `読者像: ${profile.audience}`,
+                `売れ筋仮説: 新しい技術名そのものより、「何ができるのか」「自分の仕事でどう使えるか」を噛み砕いた本のほうが入口になりやすいです。`
+            ].join("\n");
+        }
+
+        function buildChapters(title, profile) {
+            return [
+                `なぜいま「${title}」なのか`,
+                `${profile.segment} の全体像と、読者が先に知るべき判断軸`,
+                `導入前に整理するべき課題と失敗パターン`,
+                `まずは小さく試す実践ステップ`,
+                `継続運用で差がつく改善ポイント`,
+                `次に広げるときのロードマップ`
+            ];
+        }
+
+        function buildPrompt(rec) {
+            const angle = dom.angleSelect.value;
+            const angleLabel = dom.angleSelect.options[dom.angleSelect.selectedIndex].text;
+            return [
+                `次の Kindle 書籍企画を深掘りしてください。`,
+                `書籍タイトル案: ${rec.bookTitle}`,
+                `分類: ${rec.profile.category}`,
+                `想定読者: ${rec.profile.audience}`,
+                `訴求: ${rec.profile.promise}`,
+                `販売フック: ${rec.profile.hook}`,
+                `記事タイプ: ${angleLabel}`,
+                `元になった話題: ${rec.source.title} (${rec.source.source})`,
+                `出力してほしいもの:`,
+                `1. さらに売れそうなタイトル案を5本`,
+                `2. Amazon Kindle 向けの紹介文`,
+                `3. 章立ての改善案`,
+                `4. 読者の悩みに刺さるキーワード`,
+                `5. 競合と差別化しやすい切り口`
+            ].join("\n");
+        }
+
+        function buildEditorDraft(rec) {
+            return [
+                `# 企画メモ`,
+                ``,
+                `- 書籍タイトル: ${rec.bookTitle}`,
+                `- 主要テーマ: ${rec.profile.segment}`,
+                `- 想定読者: ${rec.profile.audience}`,
+                `- 約束する成果: ${rec.profile.promise}`,
+                `- 販売フック: ${rec.profile.hook}`,
+                ``,
+                `## この本が売れそうな理由`,
+                `- ${rec.reason}`,
+                `- 新しい技術名の紹介ではなく、読者の仕事に引き寄せた説明へ落とし込みやすい`,
+                `- 「今追うべき理由」が公開ソースの更新で説明しやすい`,
+                ``,
+                `## 章立て案`,
+                ...buildChapters(rec.bookTitle, rec.profile).map((item, idx) => `${idx + 1}. ${item}`),
+                ``,
+                `## 参考ソース`,
+                `- ${rec.source.title}`,
+                `- ${rec.source.url}`
+            ].join("\n");
+        }
+
+        function buildReason(source, profile) {
+            const freshnessLabel = source.freshness === "fresh" ? "更新が新しく" : "継続関心があり";
+            if (profile.segment === "ローカルAI実務") {
+                return `${freshnessLabel}、しかも「ローカルで使えるAI」「オンデバイス実用化」に直結するため、導入判断や実践ガイドの需要を取りやすいです。`;
+            }
+            if (profile.segment === "業務効率化") {
+                return `${freshnessLabel}、読者が「明日から仕事に使える仕組み」を探しやすい領域なので、ハウツー本にしやすいです。`;
+            }
+            return `${freshnessLabel}、技術トレンドを短時間で把握したい読者向けの整理本として企画しやすいです。`;
+        }
+
+        function scoreSource(source, category) {
+            let score = 0;
+            if (source.freshness === "fresh") score += 4;
+            if (/gemma|ollama|llama|lm studio|vllm|openclaw/i.test(source.title)) score += 3;
+            if (/n8n|appflowy|docmost|twenty|plane/i.test(source.title)) score += 3;
+            if (/welcome|introducing|run|use|now supports|frontier|guide|tutorial/i.test(source.title)) score += 2;
+            if (category === "Productivity OSS") score += 1;
+            return score;
+        }
+
+        function createRecommendations(digest) {
+            const recommendations = [];
+            const categories = digest?.categories || {};
+            Object.entries(categories).forEach(([category, items]) => {
+                (items || []).forEach((source) => {
+                    const profile = classifyTheme(source.title, category);
+                    recommendations.push({
+                        source,
+                        profile,
+                        score: scoreSource(source, category),
+                        reason: buildReason(source, profile),
+                        bookTitle: buildBookTitle(source.title, profile)
+                    });
+                });
+            });
+            return recommendations
+                .sort((a, b) => b.score - a.score)
+                .slice(0, 8);
+        }
+
+        function renderBookList(recommendations, digest) {
+            dom.candidateCount.textContent = `${recommendations.length}件`;
+            dom.generatedAt.textContent = digest.generatedAt || "不明";
+            dom.bookList.innerHTML = recommendations.map((rec, index) => `
+                <article class="book-card ${index === 0 ? "featured" : ""}">
+                    <div class="eyebrow">
+                        <span class="pill ${rec.source.freshness === "fresh" ? "fresh" : ""}">${escapeHtml(rec.source.freshness || "reference")}</span>
+                        <span class="pill">${escapeHtml(rec.profile.segment)}</span>
+                        <span class="pill">${escapeHtml(rec.source.source)}</span>
+                    </div>
+                    <h3>${escapeHtml(rec.bookTitle)}</h3>
+                    <p>${escapeHtml(rec.reason)}</p>
+                    <div class="book-actions">
+                        <button class="mini-btn" data-index="${index}" data-action="use">この企画を使う</button>
+                        <button class="mini-btn" data-index="${index}" data-action="open">元記事を開く</button>
+                    </div>
+                </article>
+            `).join("");
+
+            dom.bookList.querySelectorAll("[data-action='use']").forEach((button) => {
+                button.addEventListener("click", () => applyRecommendation(recommendations[Number(button.dataset.index)]));
+            });
+
+            dom.bookList.querySelectorAll("[data-action='open']").forEach((button) => {
+                button.addEventListener("click", () => {
+                    const rec = recommendations[Number(button.dataset.index)];
+                    window.open(rec.source.url, "_blank", "noopener");
+                });
+            });
+        }
+
+        function applyRecommendation(rec) {
+            dom.bookTitle.value = rec.bookTitle;
+            dom.category.value = rec.profile.category;
+            dom.audience.value = rec.profile.audience;
+            dom.promise.value = rec.profile.promise;
+            dom.hook.value = rec.profile.hook;
+            dom.positioningBox.textContent = buildAngleSummary(rec.profile, rec.source);
+            dom.editor.textContent = buildEditorDraft(rec);
+            dom.chapterList.innerHTML = buildChapters(rec.bookTitle, rec.profile)
+                .map((chapter) => `<li>${escapeHtml(chapter)}</li>`)
+                .join("");
+            dom.promptBox.textContent = buildPrompt(rec);
+            dom.sourceBox.innerHTML = `
+                <strong>${escapeHtml(rec.source.title)}</strong><br>
+                <span>${escapeHtml(rec.source.source)}</span><br>
+                <a href="${escapeHtml(rec.source.url)}" target="_blank" rel="noopener">${escapeHtml(rec.source.url)}</a>
+            `;
+            dom.angleSelect.onchange = () => {
+                dom.promptBox.textContent = buildPrompt(rec);
+            };
+        }
+
+        async function loadRecommendations() {
+            dom.bookList.innerHTML = `
+                <div class="book-card">
+                    <h3>読み込み中...</h3>
+                    <p>収集済みのトレンドデータから Kindle 向けテーマ案を作成しています。</p>
+                </div>
+            `;
+            try {
+                const response = await fetch(DIGEST_URL, { cache: "no-store" });
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const digest = await response.json();
+                const recommendations = createRecommendations(digest);
+                if (!recommendations.length) {
+                    dom.bookList.innerHTML = `
+                        <div class="book-card">
+                            <h3>候補が見つかりませんでした</h3>
+                            <p>収集データがまだ少ないため、おすすめテーマを出せませんでした。</p>
+                        </div>
+                    `;
+                    return;
+                }
+                renderBookList(recommendations, digest);
+                applyRecommendation(recommendations[0]);
+            } catch (error) {
+                dom.bookList.innerHTML = `
+                    <div class="book-card">
+                        <h3>読み込みエラー</h3>
+                        <p>おすすめデータの取得に失敗しました: ${escapeHtml(error.message)}</p>
+                    </div>
+                `;
+                dom.candidateCount.textContent = "-";
+                dom.generatedAt.textContent = "-";
+            }
+        }
+
+        function saveHtml() {
+            const html = `
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>${escapeHtml(dom.bookTitle.value || "Kindle Draft")}</title>
+</head>
+<body>
+  <h1>${escapeHtml(dom.bookTitle.value || "Kindle Draft")}</h1>
+  <p><strong>カテゴリ:</strong> ${escapeHtml(dom.category.value)}</p>
+  <p><strong>想定読者:</strong> ${escapeHtml(dom.audience.value)}</p>
+  <p><strong>約束する成果:</strong> ${escapeHtml(dom.promise.value)}</p>
+  <p><strong>販売フック:</strong> ${escapeHtml(dom.hook.value)}</p>
+  <pre>${escapeHtml(dom.editor.textContent)}</pre>
+</body>
+</html>`;
+            const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "kindle_author_draft.html";
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        dom.refresh.addEventListener("click", loadRecommendations);
+        dom.saveHtml.addEventListener("click", saveHtml);
+        loadRecommendations();
     </script>
 </body>
 

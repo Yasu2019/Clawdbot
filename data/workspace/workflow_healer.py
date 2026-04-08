@@ -34,7 +34,7 @@ LOG_FILE          = Path("/home/node/clawd/workflow_healer.log")
 
 MAX_SIMPLE_ATTEMPTS = 2   # disable+enable restarts before trying LLM
 MAX_LLM_ATTEMPTS    = 4   # LLM fix attempts before escalation
-MAX_TOTAL_ATTEMPTS  = 5   # after this, notify only
+MAX_TOTAL_ATTEMPTS  = 4   # after this, escalate to user (was 5, causing stuck-at-4 bug)
 
 # Workflows to exclude from monitoring (infrastructure monitors themselves)
 EXCLUDE_WF_IDS = {"jVGXe2GEIz6RN7Z0"}  # Ingest Watchdog Supervisor

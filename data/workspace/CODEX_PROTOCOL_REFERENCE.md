@@ -2,6 +2,13 @@
 
 Updated: 2026-03-29 JST
 
+## Active canonical policy
+
+- Primary routing and adoption policy:
+  [`docs/canonical_routing_and_adoption_20260404.md`](/D:/Clawdbot_Docker_20260125/docs/canonical_routing_and_adoption_20260404.md)
+- System-wide refactor assessment:
+  [`docs/system_refactor_assessment_20260404.md`](/D:/Clawdbot_Docker_20260125/docs/system_refactor_assessment_20260404.md)
+
 ## Source package
 
 - Original ZIP:
@@ -35,6 +42,7 @@ This package is a reusable execution protocol for:
 1. Use this pack before large feature work that may overlap with existing Portal, apps, or Docker services.
 2. Prefer extending existing tools before building parallel apps.
 3. Reuse the report template when delivering new app or protocol integrations.
+4. Use the canonical routing and adoption policy as the active governance layer; treat this file and the ZIP as supporting references.
 
 ## Current integration status
 

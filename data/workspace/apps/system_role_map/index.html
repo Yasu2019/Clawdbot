@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>System Role Map</title>
+  <style>
+    :root {
+      --bg: #0b1320;
+      --panel: rgba(15, 23, 42, 0.92);
+      --line: rgba(148, 163, 184, 0.18);
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --accent: #7dd3fc;
+      --good: #86efac;
+      --warn: #fdba74;
+      --hide: #fca5a5;
+      --shadow: 0 18px 48px rgba(0,0,0,0.22);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "Noto Sans JP", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(125, 211, 252, 0.12), transparent 26%),
+        radial-gradient(circle at bottom right, rgba(134, 239, 172, 0.1), transparent 24%),
+        var(--bg);
+    }
+    .shell {
+      width: min(1220px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 42px;
+    }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+    }
+    .hero h1 { margin: 0 0 10px; font-size: clamp(1.9rem, 2.3vw, 2.8rem); }
+    .hero p { margin: 0; color: var(--muted); line-height: 1.75; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 18px;
+      background: rgba(2, 6, 23, 0.28);
+    }
+    h2, h3 { margin-top: 0; }
+    ul { margin: 0; padding-left: 20px; }
+    li { margin: 8px 0; line-height: 1.65; }
+    .label {
+      display: inline-flex;
+      align-items: center;
+      min-height: 32px;
+      padding: 0 12px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 0.82rem;
+      margin-bottom: 10px;
+    }
+    .keep { background: rgba(134, 239, 172, 0.14); color: var(--good); }
+    .merge { background: rgba(125, 211, 252, 0.14); color: var(--accent); }
+    .repurpose { background: rgba(253, 186, 116, 0.14); color: var(--warn); }
+    .hide { background: rgba(252, 165, 165, 0.14); color: var(--hide); }
+    .links, .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+    .state-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 8px 0 14px;
+    }
+    .state-pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 30px;
+      padding: 0 10px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.05);
+    }
+    .state-pill.done {
+      color: var(--good);
+      background: rgba(134, 239, 172, 0.12);
+      border-color: rgba(134, 239, 172, 0.28);
+    }
+    .state-pill.progress {
+      color: var(--warn);
+      background: rgba(253, 186, 116, 0.12);
+      border-color: rgba(253, 186, 116, 0.28);
+    }
+    .state-pill.pending {
+      color: var(--hide);
+      background: rgba(252, 165, 165, 0.12);
+      border-color: rgba(252, 165, 165, 0.28);
+    }
+    .chip,
+    .action-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 38px;
+      padding: 0 14px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      text-decoration: none;
+      color: var(--text);
+      background: rgba(255,255,255,0.05);
+      font-weight: 700;
+    }
+    .action-btn {
+      background: rgba(125, 211, 252, 0.1);
+      border-color: rgba(125, 211, 252, 0.28);
+    }
+    .action-btn:hover,
+    .chip:hover {
+      transform: translateY(-1px);
+      border-color: rgba(125, 211, 252, 0.45);
+    }
+    .note {
+      color: var(--muted);
+      line-height: 1.75;
+      margin-top: 14px;
+    }
+    .subtle {
+      font-size: 0.92rem;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+    .status-meta {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="panel hero">
+      <h1>System Role Map</h1>
+      <p>
+        現在のシステム内アプリを、残す / 統合する / 役割変更する / 隠す の4分類で整理したページです。
+        単なる棚卸しではなく、次にどの改善を進めるべきかをボタンで追えるようにしています。
+      </p>
+      <div class="links">
+        <a class="chip" href="file:///D:/Clawdbot_Docker_20260125/data/state/workspace/protocols/system_app_role_matrix_20260404.md" target="_blank" rel="noopener">Role Matrix</a>
+        <a class="chip" href="/D:/Clawdbot_Docker_20260125/docs/protocol_package_inventory_20260404.md" target="_blank" rel="noopener">Protocol Inventory</a>
+        <a class="chip" href="/D:/Clawdbot_Docker_20260125/docs/canonical_routing_and_adoption_20260404.md" target="_blank" rel="noopener">Canonical Policy</a>
+        <a class="chip" href="../ingestion_rag_control_center/index.html" target="_blank" rel="noopener">Ingestion / RAG Control Center</a>
+        <a class="chip" href="../operations_toolbox/index.html" target="_blank" rel="noopener">Operations Toolbox</a>
+        <a class="chip" href="file:///D:/Clawdbot_Docker_20260125/data/state/workspace/protocols/agent_harness_partial_adoption_20260404.md" target="_blank" rel="noopener">Agent Harness Protocol</a>
+      </div>
+      <div class="status-meta">Status updated: <span id="status-updated">-</span></div>
+    </section>
+
+    <section class="grid">
+      <article class="panel card">
+        <div class="label keep">残す</div>
+        <h2>主入口・主作業面</h2>
+        <div class="state-row" id="state-keep">
+          <span class="state-pill progress">読込中</span>
+        </div>
+        <ul>
+          <li>Portal</li>
+          <li>OpenClaw Chat</li>
+          <li>Ingestion / RAG Control Center</li>
+          <li>Paperless NGX</li>
+          <li>Email Search</li>
+          <li>NocoDB</li>
+          <li>Metabase</li>
+          <li>Quality QA Dashboard</li>
+        </ul>
+        <p class="note">この領域は消すより、役割を明確にして前面化したほうが効果が高いです。</p>
+        <div class="actions">
+          <a class="action-btn" href="../ingestion_rag_control_center/index.html" target="_blank" rel="noopener">監視ハブを開く</a>
+          <a class="action-btn" href="../../portal.html" target="_blank" rel="noopener">Portal 主画面を確認</a>
+        </div>
+      </article>
+
+      <article class="panel card">
+        <div class="label merge">統合する</div>
+        <h2>入口をまとめる対象</h2>
+        <div class="state-row" id="state-merge">
+          <span class="state-pill progress">読込中</span>
+        </div>
+        <ul>
+          <li>Learning Memory + AI Observability Hub + Ingestion / RAG Control Center</li>
+          <li>Paperless NGX + Open Notebook + Obsidian の運用ハブ</li>
+          <li>状態確認は Control Center を主入口に寄せる</li>
+        </ul>
+        <p class="note">重複導線を減らして、ユーザーが迷わない入口を固定する方針です。</p>
+        <div class="actions">
+          <a class="action-btn" href="../ingestion_rag_control_center/index.html" target="_blank" rel="noopener">統合ハブを改善</a>
+          <a class="action-btn" href="../open_notebook_obsidian/index.html" target="_blank" rel="noopener">Notebook / Obsidian ハブへ</a>
+        </div>
+      </article>
+
+      <article class="panel card">
+        <div class="label repurpose">役割変更する</div>
+        <h2>用途を絞る対象</h2>
+        <div class="state-row" id="state-repurpose">
+          <span class="state-pill progress">読込中</span>
+        </div>
+        <ul>
+          <li>Learning Memory → learning sync / memory visibility 専用</li>
+          <li>AI Observability Hub → observability / logs / health 専用</li>
+          <li>Stitch UI Evaluation → UI 叩き台の評価ハブ</li>
+          <li>Storage Cleanup Review → 容量対策の確認画面</li>
+        </ul>
+        <p class="note">多機能に見せるより、何のための画面かを固定したほうが相乗効果が出ます。</p>
+        <div class="actions">
+          <a class="action-btn" href="../stitch_ui_evaluation/index.html" target="_blank" rel="noopener">Stitch 活用方針を見る</a>
+          <a class="action-btn" href="../storage_cleanup_review/index.html" target="_blank" rel="noopener">Cleanup Review を開く</a>
+        </div>
+      </article>
+
+      <article class="panel card">
+        <div class="label hide">隠す</div>
+        <h2>主画面からは一段下げる対象</h2>
+        <div class="state-row" id="state-hide">
+          <span class="state-pill progress">読込中</span>
+        </div>
+        <ul>
+          <li>Auto Repair Console</li>
+          <li>Codex Protocol Hub</li>
+          <li>Stitch UI Evaluation</li>
+          <li>OpenNotebook Backups</li>
+          <li>Wire Harness Engineering</li>
+        </ul>
+        <p class="note">使う価値はありますが、日常業務の主入口に並べると主画面が散らかります。</p>
+        <div class="actions">
+          <a class="action-btn" href="../operations_toolbox/index.html" target="_blank" rel="noopener">Operations Toolbox を開く</a>
+          <a class="action-btn" href="../../portal.html" target="_blank" rel="noopener">Portal 配置を確認</a>
+        </div>
+      </article>
+    </section>
+
+    <section class="panel">
+      <h2>単一の真実の場所</h2>
+      <div class="grid">
+        <article class="card">
+          <h3>Gmail 読み込み</h3>
+          <p class="note"><strong>Email Search</strong> を唯一の Gmail 本文・依頼・期日検索入口にします。</p>
+          <div class="actions">
+            <a class="action-btn" href="../email_search/index.html" target="_blank" rel="noopener">Email Search を開く</a>
+          </div>
+        </article>
+        <article class="card">
+          <h3>Paperless 原本</h3>
+          <p class="note"><strong>Paperless NGX</strong> を原本確認の主入口にします。</p>
+          <div class="actions">
+            <a class="action-btn" href="http://localhost:8000/dashboard" target="_blank" rel="noopener">Paperless NGX を開く</a>
+          </div>
+        </article>
+        <article class="card">
+          <h3>ingest / learning / RAG 状態</h3>
+          <p class="note"><strong>Ingestion / RAG Control Center</strong> を統合監視の主入口にします。</p>
+          <div class="actions">
+            <a class="action-btn" href="../ingestion_rag_control_center/index.html" target="_blank" rel="noopener">Control Center を開く</a>
+          </div>
+        </article>
+        <article class="card">
+          <h3>DB テーブル</h3>
+          <p class="note"><strong>NocoDB</strong> を GUI でのテーブル確認の主入口にします。</p>
+          <div class="actions">
+            <a class="action-btn" href="http://localhost:8093" target="_blank" rel="noopener">NocoDB を開く</a>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>いま進めるべき改善</h2>
+      <p class="subtle">
+        ここからは、分類だけで終わらせず、実際の改善に進むための導線です。
+      </p>
+      <div class="state-row" id="state-priority">
+        <span class="state-pill progress">読込中</span>
+      </div>
+      <div class="actions">
+        <a class="action-btn" href="../ingestion_rag_control_center/index.html" target="_blank" rel="noopener">監視ハブをさらに改善</a>
+        <a class="action-btn" href="../operations_toolbox/index.html" target="_blank" rel="noopener">保守系を Toolbox に集約</a>
+        <a class="action-btn" href="../stitch_ui_evaluation/index.html" target="_blank" rel="noopener">Stitch で TOP 改善を検討</a>
+        <a class="action-btn" href="../../portal.html" target="_blank" rel="noopener">Portal の主面を確認</a>
+        <a class="action-btn" href="file:///D:/Clawdbot_Docker_20260125/data/state/workspace/protocols/agent_harness_partial_adoption_20260404.md" target="_blank" rel="noopener">Agent Harness 方針を見る</a>
+      </div>
+      <p class="note">
+        現在の改善方針は、主画面の入口を減らし、状態確認と原本確認の場所を固定することです。
+        そのうえで、保守向け画面は `Operations Toolbox` に寄せるのが安全です。
+      </p>
+    </section>
+  </main>
+  <script>
+    function stateText(state) {
+      const map = {
+        done: '改善済み',
+        progress: '進行中',
+        pending: '未対応'
+      };
+      return map[state] || state || '未設定';
+    }
+
+    function renderStateRow(id, items) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      if (!Array.isArray(items) || items.length === 0) {
+        el.innerHTML = '<span class="state-pill pending">未設定</span>';
+        return;
+      }
+      el.innerHTML = items.map((item) =>
+        `<span class="state-pill ${item.state}">${item.label}: ${stateText(item.state)}</span>`
+      ).join('');
+    }
+
+    async function loadStatus() {
+      try {
+        const res = await fetch('../../system_role_map_status.json', { cache: 'no-store' });
+        if (!res.ok) throw new Error(`status ${res.status}`);
+        const data = await res.json();
+        document.getElementById('status-updated').textContent = data.updatedAt || '-';
+        renderStateRow('state-keep', data.sections?.keep);
+        renderStateRow('state-merge', data.sections?.merge);
+        renderStateRow('state-repurpose', data.sections?.repurpose);
+        renderStateRow('state-hide', data.sections?.hide);
+        renderStateRow('state-priority', data.sections?.priority);
+      } catch (err) {
+        document.getElementById('status-updated').textContent = `読込失敗: ${err.message}`;
+        ['state-keep', 'state-merge', 'state-repurpose', 'state-hide', 'state-priority'].forEach((id) => {
+          renderStateRow(id, [{ label: '状態JSON読込', state: 'pending' }]);
+        });
+      }
+    }
+
+    loadStatus();
+  </script>
+</body>
+</html>

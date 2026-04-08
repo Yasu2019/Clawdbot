@@ -72,6 +72,19 @@ fi
 nohup python3 /home/node/clawd/summary_cache_builder.py >> /home/node/clawd/summary_cache_builder.log 2>&1 &
 echo "[entrypoint] Summary cache builder started (PID $!)"
 
+# Start inbox upload API (port 8099 — Portal inbox_uploader app)
+nohup python3 /home/node/clawd/inbox_upload_api.py > /dev/null 2>&1 &
+echo "[entrypoint] Inbox upload API started on port 8099 (PID $!)"
+
+# Start RAG queue processor (rag_queue/ → Docling/PyMuPDF → Infinity embed → Qdrant)
+nohup python3 /home/node/clawd/rag_queue_processor.py > /dev/null 2>&1 &
+echo "[entrypoint] RAG queue processor started (PID $!)"
+
+# Start inbox watcher (folder-drop → OpenClaw judgment → Telegram notification)
+# Phase 1: observes OpenClaw judgment on dropped files; no automated actions yet
+nohup python3 /home/node/clawd/inbox_watcher.py > /dev/null 2>&1 &
+echo "[entrypoint] Inbox watcher started (PID $!)"
+
 # Start the gateway with local proxy for Ollama (strips tools to fix 400 error)
 node /home/node/.openclaw/ollama_proxy.js &
 

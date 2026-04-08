@@ -169,6 +169,14 @@ class JqaAuditReportIngestService
     ensure_record_csv_exists(headers)
     return if csv_contains_filename?(metadata["filename"])
 
+    # バリデーションの実行
+    validator = CsvValidationService.attachedfile_validator
+    # DictReader形式をシミュレートするためHashとして検証
+    unless validator.validate_row(metadata, "Internal Append")
+      Rails.logger.error "JqaAuditReportIngest: Validation failed for #{metadata['filename']}. Errors: #{validator.errors.join(', ')}"
+      return false
+    end
+
     CSV.open(RECORD_CSV_PATH, "a", write_headers: false, encoding: "UTF-8") do |csv|
       csv << headers.map { |header| metadata[header] }
     end

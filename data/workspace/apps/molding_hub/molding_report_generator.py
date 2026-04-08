@@ -2,9 +2,58 @@ import os
 import json
 import pandas as pd
 from datetime import datetime
+import json
+import urllib.request
+import os
 
 # Injection MoldingHub - Automated Report Generator
 # This script compiles DOE results, resin properties, and visualization frames into a report.
+
+LITELLM_BASE_URL = os.environ.get("OPENAI_BASE_URL", "http://localhost:4000/v1")
+LITELLM_API_KEY = os.environ.get("OPENAI_API_KEY", "local-dev-key")
+MODEL_REVIEWER = "google/gemini-2.5-flash"
+
+def run_ai_audit(report_text):
+    try:
+        sys_prompt = (
+            "あなたは非常に厳格な射出成形・金型設計の監査AI（デザインレビュワー）です。\n"
+            "以下のDOEシミュレーション結果（最適な充填時間や反り量・Warpage）を含むレポートを確認し、\n"
+            "エンジニアリングの観点から考えうるリスク、冷却設定の懸念事項、エッジケースを指摘してください。\n"
+            "絶対に妥協せず、問題がなければ「量産移行に問題なし」とだけ答えてください。"
+        )
+        
+        body = {
+            "model": MODEL_REVIEWER,
+            "messages": [
+                {"role": "system", "content": sys_prompt},
+                {"role": "user", "content": f"以下がDOEの最終レポートです。監査願います：\n\n{report_text}"}
+            ],
+            "temperature": 0.2
+        }
+        
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {LITELLM_API_KEY}"
+        }
+        
+        req = urllib.request.Request(
+            f"{LITELLM_BASE_URL}/chat/completions",
+            data=json.dumps(body).encode("utf-8"),
+            headers=headers
+        )
+        
+        # タイムアウトを長めに設定（ディープシンキングモデル対応）
+        with urllib.request.urlopen(req, timeout=90) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+            
+        choices = payload.get("choices", [])
+        if not choices:
+            return "⚠️ AI Audit Error: No choices returned."
+            
+        return choices[0].get("message", {}).get("content", "").strip()
+        
+    except Exception as e:
+        return f"⚠️ AI監査の実行中にエラーが発生しました: {str(e)}"
 
 def create_report(study_dir, material_id, out_file="Molding_Analysis_Report.md"):
     print(f"--> Compiling Report for {study_dir}")
@@ -62,6 +111,14 @@ Below are the renders of the melt-front progression at the optimal condition.
 ## 4. Engineering Conclusion
 Based on the coupled CFD-FEA analysis, the part exhibits stable flow with the current gate configuration. 
 **Recommended Action**: Implement the cooling layout consistent with Run {optimal_row.name + 1 if optimal_row is not None else 'N/A'} of the DOE to minimize warpage across the thin-walled sections.
+"""
+
+    print("--> Running AI Final Audit (Sandwich Review Phase)...")
+    ai_feedback = run_ai_audit(report_content)
+
+    report_content += f"""
+## 5. AI Final Audit (デザインレビュー)
+{ai_feedback}
 
 ---
 *Clawstack Automated Engineering Framework*

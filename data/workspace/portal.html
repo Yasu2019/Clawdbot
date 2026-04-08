@@ -54,6 +54,93 @@
             margin: 0;
         }
 
+        .start-strip {
+            width: min(1680px, calc(100% - 56px));
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 14px;
+            margin: 0 0 28px;
+        }
+
+        .start-pill {
+            display: block;
+            padding: 16px 18px;
+            border-radius: 16px;
+            text-decoration: none;
+            color: var(--text-main);
+            background: rgba(15, 23, 42, 0.72);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(12px);
+            box-shadow: 0 10px 24px rgba(2, 6, 23, 0.22);
+        }
+
+        .start-pill:hover {
+            border-color: rgba(56, 189, 248, 0.35);
+            transform: translateY(-2px);
+            transition: all 0.2s ease;
+        }
+
+        .start-pill strong {
+            display: block;
+            font-size: 0.95rem;
+            margin-bottom: 4px;
+        }
+
+        .start-pill span {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            line-height: 1.45;
+        }
+
+        .category-shell {
+            width: min(1680px, calc(100% - 56px));
+            margin: 0 0 24px;
+        }
+
+        .category-label {
+            margin: 0 0 12px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        .category-strip {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 14px;
+        }
+
+        .category-pill {
+            display: block;
+            padding: 16px 18px;
+            border-radius: 18px;
+            text-decoration: none;
+            color: var(--text-main);
+            background: rgba(15, 23, 42, 0.86);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 10px 24px rgba(2, 6, 23, 0.18);
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+
+        .category-pill:hover {
+            transform: translateY(-2px);
+            border-color: rgba(129, 140, 248, 0.35);
+        }
+
+        .category-pill strong {
+            display: block;
+            font-size: 0.98rem;
+            margin-bottom: 4px;
+        }
+
+        .category-pill span {
+            color: var(--text-muted);
+            font-size: 0.88rem;
+            line-height: 1.45;
+        }
+
         .grid-container {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(clamp(220px, 18vw, 280px), 1fr));
@@ -98,6 +185,37 @@
             position: relative;
             overflow: hidden;
             backdrop-filter: blur(12px);
+        }
+
+        .card.featured {
+            border-color: rgba(56, 189, 248, 0.22);
+            box-shadow: 0 12px 30px rgba(14, 165, 233, 0.12);
+        }
+
+        .card.featured .card-title::after {
+            content: 'Recommended';
+            display: inline-block;
+            margin-left: 10px;
+            padding: 2px 8px;
+            border-radius: 999px;
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            vertical-align: middle;
+            background: rgba(56, 189, 248, 0.16);
+            color: #7dd3fc;
+        }
+
+        .card-role {
+            display: inline-flex;
+            align-self: flex-start;
+            margin: 8px 0 14px;
+            padding: 5px 10px;
+            border-radius: 999px;
+            font-size: 0.76rem;
+            color: var(--text-muted);
+            background: rgba(148, 163, 184, 0.12);
+            border: 1px solid rgba(148, 163, 184, 0.14);
         }
 
         .card::before {
@@ -256,49 +374,69 @@
         <p>Autonomous Engineering Master Portal</p>
     </div>
 
+    <div class="start-strip">
+        <a href="http://127.0.0.1:18789/overview?password=yasu-fresh-token-2026-02-01" class="start-pill" target="_blank" rel="noopener">
+            <strong>Start Here: OpenClaw Chat</strong>
+            <span>日常の相談、調査、実装依頼の起点です。</span>
+        </a>
+        <a href="apps/ingestion_rag_control_center/index.html" class="start-pill" target="_blank" rel="noopener">
+            <strong>Check Data Flow</strong>
+            <span>Gmail、Paperless、Learning、RAG の健康状態を最初に確認します。</span>
+        </a>
+        <a href="apps/operations_toolbox/index.html" class="start-pill" target="_blank" rel="noopener">
+            <strong>Maintenance Hub</strong>
+            <span>修復、監視、cleanup、プロトコル類はここへ集約しています。</span>
+        </a>
+    </div>
+
+    <div class="category-shell">
+        <p class="category-label">Quick Routes</p>
+        <div class="category-strip">
+            <a href="apps/operations_toolbox/index.html" class="category-pill" target="_blank" rel="noopener">
+                <strong>Operations</strong>
+                <span>保守、監視、修復、cleanup、運用系ハブを先に開く入口です。</span>
+            </a>
+            <a href="apps/codex_protocol_hub/index.html" class="category-pill" target="_blank" rel="noopener">
+                <strong>Protocols</strong>
+                <span>canonical policy、Codex protocol、routing と採用判断の入口です。</span>
+            </a>
+            <a href="http://localhost:3004/users/sign_in" class="category-pill" target="_blank" rel="noopener">
+                <strong>Quality</strong>
+                <span>IATF Rails 本番、QMS Audit、品質業務系へ向かう優先入口です。</span>
+            </a>
+            <a href="apps/gdt_overlay_studio/index.html" class="category-pill" target="_blank" rel="noopener">
+                <strong>Geometry / CAD</strong>
+                <span>DXF、3D、GD&amp;T、解析系のワークベンチへ進む入口です。</span>
+            </a>
+            <a href="apps/ingestion_rag_control_center/index.html" class="category-pill" target="_blank" rel="noopener">
+                <strong>Observability</strong>
+                <span>Gmail、Paperless、Learning、RAG の流れと状態を確認する入口です。</span>
+            </a>
+        </div>
+    </div>
+
     <div class="grid-container">
 
-        <!-- Cmux Hub -->
-        <a href="./apps/cmux_hub/" class="card" target="_blank" rel="noopener">
-            <span class="card-icon">🧠</span>
-            <h2 class="card-title">Cmux Hub</h2>
-            <p class="card-desc">Role-based local-first orchestration map for OpenClaw, Antigravity, Codex, Ollama, testing, security, and DOE/R.</p>
+        <!-- Inbox Uploader -->
+        <a href="apps/inbox_uploader/index.html" class="card featured" target="_blank" rel="noopener">
+            <span class="card-icon">📥</span>
+            <h2 class="card-title">Inbox Uploader</h2>
+            <span class="card-role">AI Document Router</span>
+            <p class="card-desc">ファイルをドラッグ&ドロップで投入。OpenClawが内容を判断し、PDF→Paperless・技術資料→RAG・IATF→通知へ自動ルーティング。</p>
             <div class="card-meta">
-                <span class="port-badge">Protocol Hub</span>
-                <span class="status-indicator"><span class="status-dot"></span>Integrated</span>
-            </div>
-        </a>
-
-        <!-- Email Search -->
-        <a href="./apps/email_search/" class="card" target="_blank" rel="noopener">
-            <span class="card-icon">🔍</span>
-            <h2 class="card-title">メール全文検索</h2>
-            <p class="card-desc">2019年から現在までの EML / Gmail を FTS 検索できます。依頼事項、タスク、期限切れ、返信状況の確認にも対応します。</p>
-            <p class="card-desc">Gmail DB に保存されたメール本文、依頼事項、期日、返信状況を検索・閲覧できます。</p>
-            <div class="card-meta">
-                <span class="port-badge">Port 8792 API</span>
-                <span class="status-indicator"><span class="status-dot"></span>Ready</span>
-            </div>
-        </a>
-
-        <!-- Email Blacklist Hub -->
-        <a href="./apps/email_blacklist_hub/" class="card" target="_blank" rel="noopener">
-            <span class="card-icon">✉️</span>
-            <h2 class="card-title">Email Blacklist Hub</h2>
-            <p class="card-desc">Gmail で頻出する送信者やドメイン候補を一覧化し、チェック操作で Email RAG の blacklist に追加できます。</p>
-            <div class="card-meta">
-                <span class="port-badge">Port 8791 API</span>
-                <span class="status-indicator"><span class="status-dot"></span>Integrated</span>
+                <span class="port-badge">Port: 8099</span>
+                <span class="status-indicator"><span class="status-dot"></span>Online</span>
             </div>
         </a>
 
         <!-- OpenClaw Chat -->
-        <a href="http://127.0.0.1:18789/overview?password=yasu-fresh-token-2026-02-01" class="card" target="_blank"
+        <a href="http://127.0.0.1:18789/overview?password=yasu-fresh-token-2026-02-01" class="card featured" target="_blank"
             rel="noopener">
             <img class="card-icon-img"
                 src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@main/png/openclaw.png"
                 onerror="this.outerHTML='<span class=card-icon>🤖</span>'" alt="OpenClaw">
             <h2 class="card-title">OpenClaw Chat (AI)</h2>
+            <span class="card-role">Main Work Surface</span>
             <p class="card-desc">Main conversational interface. Chat with your personal AGI agent, initiate tasks, and
                 monitor system progress.</p>
             <div class="card-meta">
@@ -312,6 +450,7 @@
             <img class="card-icon-img" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@main/png/n8n.png"
                 onerror="this.outerHTML='<span class=card-icon>⚡</span>'" alt="n8n">
             <h2 class="card-title">n8n Automation</h2>
+            <span class="card-role">Workflow Engine</span>
             <p class="card-desc">Visual workflow automation tool. Manage external API integrations, webhooks, and
                 complex scheduled tasks.</p>
             <div class="card-meta">
@@ -340,6 +479,7 @@
                 src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@main/png/grafana.png"
                 onerror="this.outerHTML='<span class=card-icon>📊</span>'" alt="Quality Dashboard">
             <h2 class="card-title">Quality QA Dashboard</h2>
+            <span class="card-role">Quality Analytics</span>
             <p class="card-desc">Interactive Streamlit dashboard for Quality Assurance. View FMEA, statistical
                 distributions, and QIF tracking.</p>
             <div class="card-meta">
@@ -519,6 +659,7 @@
             <img class="card-icon-img" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@main/png/dify.png"
                 onerror="this.outerHTML='<span class=card-icon>🧩</span>'" alt="Dify">
             <h2 class="card-title">Dify Workflow Engine</h2>
+            <span class="card-role">Workflow / External</span>
             <p class="card-desc">Advanced RAG & AI workflow orchestration. Create complex agents with visual logic and
                 local model integration.</p>
             <div class="card-meta">
@@ -591,6 +732,7 @@
         <a href="apps/learning_memory/index.html" class="card" target="_blank" rel="noopener">
             <span class="card-icon">🧠</span>
             <h2 class="card-title">Learning Memory</h2>
+            <span class="card-role">Prototype / Memory</span>
             <p class="card-desc">Nested Learning console for memory search plus Gmail ingest range, SQLite and FTS counts, learning memory sync visibility, and case, email, quality, improvement, and CAE comparisons.</p>
             <div class="card-meta">
                 <span class="port-badge">Port 8110 / Local App</span>
@@ -602,6 +744,7 @@
         <a href="apps/local_llm_oss_scout/index.html" class="card" target="_blank" rel="noopener">
             <span class="card-icon">🛰️</span>
             <h2 class="card-title">Local LLM / OSS Scout</h2>
+            <span class="card-role">Reference / Scout</span>
             <p class="card-desc">ローカル LLM と OSS 仕事効率化アプリの新着を、公開 RSS / 公開ページ / GitHub Releases だけで日次確認します。API を消費しない軽量専門版です。</p>
             <div class="card-meta">
                 <span class="port-badge">Daily 06:40 JST</span>
@@ -609,36 +752,15 @@
             </div>
         </a>
 
-        <!-- Auto Repair Console -->
-        <a href="apps/auto_repair_console/index.html" class="card" target="_blank" rel="noopener">
-            <span class="card-icon">🛠</span>
-            <h2 class="card-title">Auto Repair Console</h2>
-            <p class="card-desc">Low-risk self-healing status, allowed repair rules, and nightly ingest health. Medium and high risk changes are notification-first.</p>
-            <div class="card-meta">
-                <span class="port-badge">Local App</span>
-                <span class="status-indicator"><span class="status-dot"></span>Active</span>
-            </div>
-        </a>
-
         <!-- PDCA Lab -->
         <a href="apps/pdca_lab/index.html" class="card" target="_blank" rel="noopener">
             <span class="card-icon">PL</span>
             <h2 class="card-title">PDCA Lab</h2>
+            <span class="card-role">Ops / Feedback Loop</span>
             <p class="card-desc">Phase 1 feedback loop hub for prompt registry, review queue, score snapshots, promotion audit, and rollback visibility. Built as a thin layer over Portal, Langfuse, and n8n.</p>
             <div class="card-meta">
                 <span class="port-badge">Local App / Langfuse / n8n</span>
                 <span class="status-indicator"><span class="status-dot"></span>Phase 1</span>
-            </div>
-        </a>
-
-        <!-- Codex Protocol Hub -->
-        <a href="apps/codex_protocol_hub/index.html" class="card" target="_blank" rel="noopener">
-            <span class="card-icon">CP</span>
-            <h2 class="card-title">Codex Protocol Hub</h2>
-            <p class="card-desc">Reusable survey-first and report-template package for larger Codex work. Covers repo survey, decision matrix, detail design, DR, implementation flow, and anti-mojibake delivery guidance.</p>
-            <div class="card-meta">
-                <span class="port-badge">Protocol / Report Template</span>
-                <span class="status-indicator"><span class="status-dot"></span>Integrated</span>
             </div>
         </a>
 
@@ -648,24 +770,12 @@
                 src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@main/png/paperless-ngx.png"
                 onerror="this.outerHTML='<span class=card-icon>📄</span>'" alt="Paperless NGX">
             <h2 class="card-title">Paperless NGX</h2>
+            <span class="card-role">Document System</span>
             <p class="card-desc">Document Management System. Raw PDF/Scanning inbox and OCR engine for storing
                 unstructured files.</p>
             <div class="card-meta">
                 <span class="port-badge">Port: 8000</span>
                 <span class="status-indicator"><span class="status-dot"></span>Online</span>
-            </div>
-        </a>
-
-        <!-- OpenNotebook Backup Repo -->
-        <a href="file:///D:/Clawdbot_Docker_20260125/data/state/OpenNotebook_Backup" class="card" target="_blank"
-            rel="noopener">
-            <span class="card-icon">📓</span>
-            <h2 class="card-title">OpenNotebook Backups</h2>
-            <p class="card-desc">Local directory storing the consolidated AI knowledge baselines (Markdown) generated
-                from PDF ingestion.</p>
-            <div class="card-meta">
-                <span class="port-badge">Local Directory</span>
-                <span class="status-indicator"><span class="status-dot"></span>Ready</span>
             </div>
         </a>
 
@@ -675,6 +785,7 @@
                 src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@main/png/notebookllm.png"
                 onerror="this.outerHTML='<span class=card-icon>🧠</span>'" alt="Open Notebook">
             <h2 class="card-title">Open Notebook App</h2>
+            <span class="card-role">Knowledge Workspace</span>
             <p class="card-desc">Fully local NotebookLM clone powered by Ollama. Analyze documents and interact with
                 your knowledge base.</p>
             <div class="card-meta">
@@ -683,10 +794,36 @@
             </div>
         </a>
 
+        <!-- Email Search -->
+        <a href="./apps/email_search/" class="card" target="_blank" rel="noopener">
+            <span class="card-icon">🔍</span>
+            <h2 class="card-title">メール全文検索</h2>
+            <span class="card-role">Active Search</span>
+            <p class="card-desc">2019年から現在までの EML / Gmail を FTS 検索できます。依頼事項、タスク、期限切れ、返信状況の確認にも対応します。</p>
+            <p class="card-desc">Gmail DB に保存されたメール本文、依頼事項、期日、返信状況を検索・閲覧できます。</p>
+            <div class="card-meta">
+                <span class="port-badge">Port 8792 API</span>
+                <span class="status-indicator"><span class="status-dot"></span>Ready</span>
+            </div>
+        </a>
+
+        <!-- Email Blacklist Hub -->
+        <a href="./apps/email_blacklist_hub/" class="card" target="_blank" rel="noopener">
+            <span class="card-icon">✉️</span>
+            <h2 class="card-title">Email Blacklist Hub</h2>
+            <span class="card-role">Ops / Control</span>
+            <p class="card-desc">Gmail で頻出する送信者やドメイン候補を一覧化し、チェック操作で Email RAG の blacklist に追加できます。</p>
+            <div class="card-meta">
+                <span class="port-badge">Port 8791 API</span>
+                <span class="status-indicator"><span class="status-dot"></span>Integrated</span>
+            </div>
+        </a>
+
         <!-- Open Notebook to Obsidian -->
         <a href="apps/open_notebook_obsidian/index.html" class="card" target="_blank" rel="noopener">
             <span class="card-icon">📓</span>
             <h2 class="card-title">Open Notebook → Obsidian</h2>
+            <span class="card-role">Workflow / Bridge</span>
             <p class="card-desc">Open Notebook を AI 読書室、Obsidian を長期知識ベースとして使い分ける運用ハブです。要約を安全に AI_Inbox や研究サマリへ昇格できます。</p>
             <div class="card-meta">
                 <span class="port-badge">Workflow / Bridge</span>
@@ -708,21 +845,35 @@
             </div>
         </a>
 
-        <!-- Stitch UI Evaluation -->
-        <a href="apps/stitch_ui_evaluation/index.html" class="card" target="_blank" rel="noopener">
-            <span class="card-icon">🧵</span>
-            <h2 class="card-title">Stitch UI Evaluation</h2>
-            <p class="card-desc">Stitch を UI 設計アクセラレータとして安全に部分採用するための評価ハブです。Portal TOP、Ingestion / RAG、Note Pro などの優先順位と即使用できる prompt をまとめています。</p>
+        <!-- System Role Map -->
+        <a href="apps/system_role_map/index.html" class="card" target="_blank" rel="noopener">
+            <span class="card-icon">🧭</span>
+            <h2 class="card-title">System Role Map</h2>
+            <span class="card-role">Reference / Inventory</span>
+            <p class="card-desc">アプリ全体を `残す / 統合する / 役割変更する / 隠す` で整理した棚卸しハブです。入口の重複と責務の曖昧さを減らすための判断材料をまとめています。</p>
             <div class="card-meta">
-                <span class="port-badge">UI Protocol</span>
+                <span class="port-badge">Architecture</span>
+                <span class="status-indicator"><span class="status-dot"></span>Integrated</span>
+            </div>
+        </a>
+
+        <!-- Cmux Hub -->
+        <a href="./apps/cmux_hub/" class="card" target="_blank" rel="noopener">
+            <span class="card-icon">🧠</span>
+            <h2 class="card-title">Cmux Hub</h2>
+            <span class="card-role">Reference / Orchestration</span>
+            <p class="card-desc">Role-based local-first orchestration map for OpenClaw, Antigravity, Codex, Ollama, testing, security, and DOE/R.</p>
+            <div class="card-meta">
+                <span class="port-badge">Protocol Hub</span>
                 <span class="status-indicator"><span class="status-dot"></span>Integrated</span>
             </div>
         </a>
 
         <!-- Ingestion / RAG Control Center -->
-        <a href="apps/ingestion_rag_control_center/index.html" class="card" target="_blank" rel="noopener">
+        <a href="apps/ingestion_rag_control_center/index.html" class="card featured" target="_blank" rel="noopener">
             <span class="card-icon">🗂️</span>
             <h2 class="card-title">Ingestion / RAG Control Center</h2>
+            <span class="card-role">System Health</span>
             <p class="card-desc">Gmail の読み込み、Paperless NGX、Learning 同期、RAG 展開、DB テーブル閲覧の導線をまとめた統合ハブです。</p>
             <div class="card-meta">
                 <span class="port-badge">Unified Hub</span>
@@ -730,13 +881,14 @@
             </div>
         </a>
 
-        <!-- Storage Cleanup Review -->
-        <a href="apps/storage_cleanup_review/index.html" class="card" target="_blank" rel="noopener">
-            <span class="card-icon">🧹</span>
-            <h2 class="card-title">Storage Cleanup Review</h2>
-            <p class="card-desc">長期間未使用の Temp / cache / log / relief archive を一覧し、圧縮付き削除や削除を安全に実行する確認ハブです。</p>
+        <!-- Operations Toolbox -->
+        <a href="apps/operations_toolbox/index.html" class="card featured" target="_blank" rel="noopener">
+            <span class="card-icon">🧰</span>
+            <h2 class="card-title">Operations Toolbox</h2>
+            <span class="card-role">Ops / Maintenance</span>
+            <p class="card-desc">Auto Repair、AI Harness Monitor、Storage Cleanup、Stitch、Codex Protocol、OpenNotebook Backups などの保守向け画面をまとめた運用ハブです。</p>
             <div class="card-meta">
-                <span class="port-badge">Cleanup Hub</span>
+                <span class="port-badge">Ops / Maintenance</span>
                 <span class="status-indicator"><span class="status-dot"></span>Integrated</span>
             </div>
         </a>
@@ -755,11 +907,12 @@
         </a>
 
         <!-- IATF System (Ruby on Rails) - 本番環境 -->
-        <a href="http://localhost:3004/users/sign_in" class="card host-aware-link" data-port="3004" data-path="/users/sign_in" rel="noopener">
+        <a href="http://localhost:3004/users/sign_in" class="card featured host-aware-link" data-port="3004" data-path="/users/sign_in" rel="noopener">
             <img class="card-icon-img"
                 src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@main/png/ruby-on-rails.png"
                 onerror="this.outerHTML='<span class=card-icon>🛤️</span>'" alt="IATF Rails Production">
             <h2 class="card-title">IATF System (Rails) 本番</h2>
+            <span class="card-role">Business DB / Production</span>
             <p class="card-desc">Ruby on Rails の本番環境です。現在は Windows 側 reverse proxy 経由で、この PC では `http://localhost:3004/users/sign_in` から開けます。</p>
             <div class="card-meta">
                 <span class="port-badge">Port: 3004</span>
@@ -830,19 +983,6 @@
             </div>
         </a>
 
-        <!-- AI Harness Monitor -->
-        <a href="http://localhost:5679/workflow/hv84u6vWBn7NjPjx" class="card" target="_blank" rel="noopener">
-            <span class="card-icon">🛡️</span>
-            <h2 class="card-title">AI Harness Monitor</h2>
-            <p class="card-desc">Agent harness health monitoring. Checks OpenClaw Gateway, LiteLLM (AI Model), and
-                Qdrant (Memory) every 10 min. Telegram alert on failure. Harness Engineering — Guard &amp;
-                Observability layer.</p>
-            <div class="card-meta">
-                <span class="port-badge">n8n Workflow</span>
-                <span class="status-indicator"><span class="status-dot"></span>Active (10min)</span>
-            </div>
-        </a>
-
         <!-- Wire Harness Viewer -->
         <a href="harness/index.html" class="card" target="_blank" rel="noopener">
             <span class="card-icon">📊</span>
@@ -856,24 +996,11 @@
             </div>
         </a>
 
-        <!-- Wire Harness Engineering -->
-        <a href="#" class="card"
-            onclick="alert('【Wire Harness Engineering】\\n\\nAntigravity コンテナ内に搭載された電気ハーネス設計・解析ツールセットです。\\n\\n主な機能:\\n・ WireViz: YAML からハーネス図と BOM を自動生成\\n・ Schemdraw: Python による電気回路図描画\\n・ PySpice: SPICE シミュレーション\\n・ harness_calc.py: 電線径選定、電圧降下、許容電流計算\\n・ FMEA ライブラリ: コネクタ、スプライス、被覆の標準故障モード\\n\\nIoT 開発、車載電装、産業設備の配線設計に活用できます。'); return false;">
-            <span class="card-icon">🔌</span>
-            <h2 class="card-title">Wire Harness Engineering</h2>
-            <p class="card-desc">Electrical wire harness design and analysis. WireViz diagram generation, SPICE
-                simulation, ISO 6722 wire sizing, voltage drop calc, and FMEA failure mode library. IoT &amp; automotive
-                wiring.</p>
-            <div class="card-meta">
-                <span class="port-badge">Antigravity (内部)</span>
-                <span class="status-indicator"><span class="status-dot"></span>Installed</span>
-            </div>
-        </a>
-
         <!-- DXF to FCStd -->
         <a href="apps/dxf_fcstd_protocol/index.html" class="card" target="_blank" rel="noopener">
             <span class="card-icon">DX</span>
             <h2 class="card-title">DXF to FCStd Hub</h2>
+            <span class="card-role">Protocol Entry</span>
             <p class="card-desc">Portal entry for the DXF to FCStd protocol pack. Reuses the existing DXF to STEP FreeCAD pipeline and maps the path to FCStd-first feature generation.</p>
             <div class="card-meta">
                 <span class="port-badge">Existing DXF App + Protocol</span>
@@ -885,6 +1012,7 @@
         <a href="apps/qms_audit/index.html" class="card" target="_blank" rel="noopener">
             <span class="card-icon">QA</span>
             <h2 class="card-title">QMS Audit Hub</h2>
+            <span class="card-role">Quality / Protocol</span>
             <p class="card-desc">Portal launcher for the QMS Audit protocol bundle. Connects existing IATF and audit assets with a staged rule-based integration path.</p>
             <div class="card-meta">
                 <span class="port-badge">QMS / IATF / Audit</span>
@@ -896,6 +1024,7 @@
         <a href="apps/gdt_overlay_studio/index.html" class="card" target="_blank" rel="noopener">
             <span class="card-icon">GD</span>
             <h2 class="card-title">GD&amp;T Overlay Studio</h2>
+            <span class="card-role">Geometry Workbench</span>
             <p class="card-desc">3D model and DXF/PDF drawing workbench for overlaying datum systems and geometric tolerance zones on a browser-based 3D viewer. Includes packed HTML import for ChatGPT-generated GD&amp;T prototypes.</p>
             <div class="card-meta">
                 <span class="port-badge">3D + Drawing + GD&amp;T</span>

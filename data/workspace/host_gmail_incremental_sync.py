@@ -107,20 +107,22 @@ def main() -> int:
         print(json.dumps(payload, ensure_ascii=False))
         return 2
 
-    tempdir = Path(tempfile.mkdtemp(prefix="host_gmail_incremental_"))
-    temp_db_path = tempdir / "email_search_incremental.db"
-    temp_state_path = tempdir / "email_search_incremental_state.json"
-
-    write_status(
-        {
-            "task": "host_gmail_incremental_sync",
-            "stage": "starting",
-            "startedAt": now_text(),
-            "dbPath": str(HOST_DB_PATH),
-        }
-    )
-
+    tempdir = None
     try:
+        temp_root = WORKSPACE / "tmp"
+        temp_root.mkdir(parents=True, exist_ok=True)
+        tempdir = Path(tempfile.mkdtemp(prefix="host_gmail_sync_", dir=str(temp_root)))
+        temp_db_path = tempdir / "email_search_incremental.db"
+        temp_state_path = tempdir / "email_search_incremental_state.json"
+
+        write_status(
+            {
+                "task": "host_gmail_incremental_sync",
+                "stage": "starting",
+                "startedAt": now_text(),
+                "dbPath": str(HOST_DB_PATH),
+            }
+        )
         clone_db_via_backup(HOST_DB_PATH, temp_db_path)
         if HOST_STATE_PATH.exists():
             shutil.copy2(HOST_STATE_PATH, temp_state_path)
@@ -220,6 +222,13 @@ def main() -> int:
         return 1
     finally:
         lock.release()
+        # ── Cleanup: remove temp directory to prevent disk space leak ──
+        # Without this, ~370MB of temp SQLite files accumulate every cycle
+        # (approximately once per minute), causing C-drive exhaustion.
+        try:
+            shutil.rmtree(tempdir, ignore_errors=True)
+        except Exception:
+            pass
 
 
 if __name__ == "__main__":

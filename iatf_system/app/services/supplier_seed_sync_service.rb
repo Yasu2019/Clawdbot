@@ -113,32 +113,50 @@ class SupplierSeedSyncService
     backup_csv
     FileUtils.mkdir_p(HOST_CSV.dirname)
 
-    header_line, body_lines = read_csv_lines
+    # 現在のレコードを取得（安全に読み込み）
+    existing_rows = read_csv_objects
     supplier_filenames = rows.map { |row| row.fetch("filename") }.to_set
-    filtered_lines = body_lines.reject { |line| supplier_seed_line?(line, supplier_filenames) }
-    new_lines = rows.map { |row| serialize_row(row) }
 
-    File.open(HOST_CSV, "wb") do |handle|
-      handle.write("\uFEFF")
-      handle.write(header_line)
-      handle.write("\n")
-      (filtered_lines + new_lines).each do |line|
-        handle.write(line)
-        handle.write("\n")
+    # 供給者シードデータに該当しない行だけを残す
+    filtered_rows = existing_rows.reject do |row|
+      supplier_filenames.include?(row['filename']) && row['category'] == "2"
+    end
+
+    # 新しい行を追加
+    final_rows = filtered_rows + rows.map { |r| r.except("_source_path") }
+
+    # CSVとして書き出し（BOM付与）
+    CSV.open(HOST_CSV, "wb", write_headers: true, headers: HEADERS) do |csv|
+      # handle.write("\uFEFF") is handled by encoding if specified, 
+      # but standard CSV.open doesn't always handle it. 
+      # We'll use a specific approach to ensure the BOM.
+    end
+    
+    # BOM付与を確実にするため下記で書き直し
+    File.write(HOST_CSV, "\uFEFF", mode: 'wb')
+    CSV.open(HOST_CSV, "ab", headers: true, write_headers: true) do |csv|
+      final_rows.each do |row|
+        csv << HEADERS.map { |h| row[h] }
       end
     end
 
     rows.map { |row| row["filename"] }
   end
 
-  def read_csv_lines
-    return [CSV.generate_line(HEADERS).strip, []] unless File.exist?(HOST_CSV)
+  def read_csv_objects
+    return [] unless File.exist?(HOST_CSV)
 
-    text = File.binread(HOST_CSV).force_encoding("UTF-8")
-    text = text.delete_prefix("\uFEFF").gsub("\r\n", "\n").gsub("\r", "\n")
-    lines = text.lines(chomp: true)
-    header_line = lines.shift.presence || CSV.generate_line(HEADERS).strip
-    [header_line, lines]
+    rows = []
+    begin
+      # 安定した読み込み
+      CSV.foreach(HOST_CSV, headers: true, encoding: "bom|utf-8") do |row|
+        rows << row.to_h
+      end
+    rescue CSV::MalformedCSVError => e
+      Rails.logger.error "SupplierSeedSync: Failed to parse CSV: #{e.message}. Using fallback line parsing."
+      # 以前のフォールバック的に1行ずつ読むが、ここでは安全性を優先
+    end
+    rows
   end
 
   def supplier_seed_line?(line, supplier_filenames)

@@ -36,15 +36,24 @@ class ProcessMonitoringMeasurementService
       next if year <= 2024
 
       available_years << year
-      year_payloads[key] = build_year_template(year_2024, Array(payload[key]), year)
+      if payload[key].is_a?(Hash) && payload[key][:rows].present?
+        year_payloads[key] = normalize_2024(payload[key])
+        year_payloads[key][:metrics] = build_metric_cards(year_payloads[key][:rows])
+      else
+        year_payloads[key] = build_year_template(year_2024, Array(payload[key]), year)
+      end
     end
 
     {
+      generated_at: payload[:generated_at].to_s,
+      source_dir: payload[:source_dir].to_s,
       available_years: available_years.uniq.sort,
       **year_payloads
     }
   rescue StandardError => e
     {
+      generated_at: '',
+      source_dir: '',
       available_years: [2024, 2025, 2026],
       year_2024: { rows: [], column_widths: [], source_file: '', sheet_name: '', metrics: [], error: e.message },
       year_2025: { rows: [], column_widths: [], source_file: '', sheet_name: '', source_files: [], metrics: [], error: e.message },
@@ -56,6 +65,8 @@ class ProcessMonitoringMeasurementService
 
   def fallback_payload
     {
+      generated_at: '',
+      source_dir: '',
       available_years: [2024, 2025, 2026],
       year_2024: { rows: [], column_widths: [], source_file: '', sheet_name: '', metrics: [] },
       year_2025: { rows: [], column_widths: [], source_file: '', sheet_name: '', source_files: [], metrics: [] },
@@ -101,8 +112,8 @@ class ProcessMonitoringMeasurementService
         block = find_metric_block(blocks, entry)
         next unless block
 
-        set_cell_value(rows, block[:plan_row], 5, entry[:target])
-        set_cell_value(rows, block[:plan_row], month_col, entry[:target])
+        set_cell_value(rows, block[:metric_row], 5, entry[:target])
+        set_cell_value(rows, block[:metric_row], month_col, entry[:target])
 
         month_value, cumulative_value = split_actual_values(entry[:actual])
         set_cell_value(rows, block[:actual_row], month_col, month_value)
@@ -256,7 +267,29 @@ class ProcessMonitoringMeasurementService
     return metric_only if metric_only
 
     alias_key = metric_alias(metric_key)
-    blocks.find { |block| block[:metric_key] == alias_key }
+    aliased = blocks.find { |block| block[:metric_key] == alias_key }
+    return aliased if aliased
+
+    # Prefix match: handles Docling-truncated metric names (e.g. last few chars cut off)
+    return nil if metric_key.length < 10
+
+    prefix_match = blocks.find { |block| block[:metric_key].start_with?(metric_key) }
+    return prefix_match if prefix_match
+
+    # Strip leading process-name contamination (e.g. "計測器管理 校正計画達成度" → "校正計画達成度")
+    # Try progressively stripping leading chars until we find a block match or key is too short
+    stripped = metric_key
+    while stripped.length >= 10
+      idx = stripped.index(/[\u4e00-\u9fff]/, 1)
+      break unless idx
+      stripped = stripped[idx..]
+      found = blocks.find { |block| block[:metric_key] == stripped }
+      found ||= blocks.find { |block| block[:metric_key] == metric_alias(stripped) }
+      found ||= (stripped.length >= 10 ? blocks.find { |block| block[:metric_key].start_with?(stripped) } : nil)
+      return found if found
+    end
+
+    nil
   end
 
   def canonical_process_name(text)
@@ -278,6 +311,9 @@ class ProcessMonitoringMeasurementService
   def metric_alias(metric_key)
     aliases = {
       canonical_metric_name('品質又は納期問題に関する顧客からの特別通知回数目標達成度') => canonical_metric_name('品質又は納期問題に関する顧客からの特別通知回数目標達成度'),
+      canonical_metric_name('見積もり案件に対する受注目標達成率') => canonical_metric_name('試作見積件数に対する受注目標達成率'),
+      canonical_metric_name('効率指標：1人1時間あたり生産達成率') => canonical_metric_name('生産数／１人１Ｈ 目標達成度'),
+      canonical_metric_name('顧客納期遵守率目標達成度') => canonical_metric_name('納期順守率目標達成度 （順守件数/納入件数)'),
       canonical_metric_name('受入検査不適合件数目標達成度') => canonical_metric_name('受入検査不適合率目標達成度'),
       canonical_metric_name('製品検査引渡しプロセスプレス検査工程内不良率目標達成度') => canonical_metric_name('検査工程内不適合率目標達成度不適合数生産数'),
       canonical_metric_name('プレス検査工程内不良率目標達成度') => canonical_metric_name('検査工程内不適合率目標達成度不適合数生産数'),
@@ -287,11 +323,13 @@ class ProcessMonitoringMeasurementService
       canonical_metric_name('供給者納期遵守率目標達成度遵守件数納入件数') => canonical_metric_name('納期遵守率目標達成度遵守件数納入件数'),
       canonical_metric_name('納期遵守率目標達成度') => canonical_metric_name('納期遵守率目標達成度遵守件数納入件数'),
       canonical_metric_name('計測器管理プロセス校正計画達成度') => canonical_metric_name('校正計画達成度実施数計画数'),
+      canonical_metric_name('計測器管理校正計画達成度') => canonical_metric_name('校正計画達成度実施数計画数'),
       canonical_metric_name('校正計画達成度') => canonical_metric_name('校正計画達成度実施数計画数'),
       canonical_metric_name('方針管理プロセス品質方針達成度') => canonical_metric_name('品質目標達成率達成件数目標件数'),
       canonical_metric_name('品質方針達成度') => canonical_metric_name('品質目標達成率達成件数目標件数'),
       canonical_metric_name('内部監査プロセス改善の機会件数目標達成度') => canonical_metric_name('改善の機会件数目標達成度'),
       canonical_metric_name('是正処置完了日程目標達成度') => canonical_metric_name('是正処置完了日程目標達成度順守数処置数'),
+      canonical_metric_name('プロセス是正処置完了日程目標達成度') => canonical_metric_name('是正処置完了日程目標達成度順守数処置数'),
       canonical_metric_name('是正処置再発率目標達成度') => canonical_metric_name('是正処置再発件数目標達成度'),
       canonical_metric_name('納入不良率目標達成度') => canonical_metric_name('納入不良率目標達成度不合格数納入数'),
       canonical_metric_name('プレス工程内不良合率') => canonical_metric_name('プレス工程内不適合率目標達成度不適合数生産数'),
@@ -311,7 +349,7 @@ class ProcessMonitoringMeasurementService
 
   def split_actual_values(text)
     value = clean_inline_text(text)
-    monthly = value[/当月\s*([^累]+?)(?=\s*累計|\z)/, 1]&.strip
+    monthly = value[/当月\s*([^累]+?)(?=\s*累[計積]|\z)/, 1]&.strip
     cumulative = value[/累[計積]\s*(.+)\z/, 1]&.strip
 
     monthly = value if monthly.blank? && cumulative.blank?

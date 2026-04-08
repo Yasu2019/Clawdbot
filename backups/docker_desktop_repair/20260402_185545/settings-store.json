@@ -1,0 +1,14 @@
+{
+  "AutoStart": false,
+  "CustomWslDistroDir": "E:\\DockerData\\DockerDesktopWSL",
+  "DisplayedOnboarding": true,
+  "EnableDockerAI": true,
+  "IntegratedWslDistros": [
+    "Ubuntu"
+  ],
+  "LastContainerdSnapshotterEnable": 1768172278,
+  "LicenseTermsVersion": 2,
+  "SettingsVersion": 43,
+  "UpdateInstallTime": 0,
+  "UseContainerdSnapshotter": true
+}

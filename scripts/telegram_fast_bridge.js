@@ -1,5 +1,8 @@
 const fs = require('fs');
 const path = require('path');
+const { execFile } = require('child_process');
+const { promisify } = require('util');
+const execFileAsync = promisify(execFile);
 const {
   fetchEmailContext,
   fetchTaskContext,
@@ -22,8 +25,18 @@ const pidFile = path.join(stateDir, 'bridge.pid');
 const configFile = path.join(repoRoot, 'data', 'state', 'openclaw.json');
 
 const ollamaUrl = (process.env.OLLAMA_URL || 'http://127.0.0.1:11434').replace(/\/$/, '');
-const ollamaModel = process.env.TELEGRAM_FAST_MODEL || 'qwen3:8b';
-const OLLAMA_TIMEOUT_MS = Number(process.env.TELEGRAM_FAST_TIMEOUT_MS || 45000);
+const replyModel = process.env.TELEGRAM_FAST_MODEL || 'google/gemini-2.5-flash';
+const replyApiBase = (process.env.TELEGRAM_FAST_API_BASE || 'http://127.0.0.1:4000/v1').replace(/\/$/, '');
+const replyApiKey = process.env.TELEGRAM_FAST_API_KEY || process.env.OPENAI_API_KEY || 'none';
+const MODEL_TIMEOUT_MS = Number(process.env.TELEGRAM_FAST_TIMEOUT_MS || 45000);
+// Escalation settings
+const localModel = process.env.TELEGRAM_LOCAL_MODEL || 'qwen3:8b';
+const AGENT_TIMEOUT_MS = Number(process.env.TELEGRAM_AGENT_TIMEOUT_MS || 120000);
+const GATEWAY_CONTAINER = process.env.CLAWDBOT_GATEWAY_CONTAINER || 'clawstack-unified-clawdbot-gateway-1';
+
+function usesOpenAiCompatibleRoute(modelName) {
+  return /^(google|gemini|openai|anthropic|claude)\//i.test(modelName || '');
+}
 
 fs.mkdirSync(stateDir, { recursive: true });
 
@@ -59,7 +72,7 @@ function writeStatus(state, extra = {}) {
     updatedAt: nowIso(),
     pid: process.pid,
     state,
-    model: ollamaModel,
+    model: replyModel,
     ...extra,
   };
   fs.writeFileSync(statusFile, JSON.stringify(payload, null, 2));
@@ -127,96 +140,90 @@ function releaseLock() {
 function buildStackStatusText() {
   return [
     'telegram_fast_bridge status',
-    `reply_model=${ollamaModel}`,
-    'router=explicit local rules',
+    `reply_model=${replyModel}`,
+    `reply_backend=${usesOpenAiCompatibleRoute(replyModel) ? 'litellm-openai' : 'ollama-generate'}`,
+    'router=commands-local_context-aware',
     'task_search=sqlite tasks-context',
     'email_search=sqlite email context',
-    'telegram_path=no_dify_no_classifier',
+    'telegram_path=general-direct-model',
   ].join('\n');
 }
 
 async function getFastReply(text) {
   const trimmed = (text || '').trim();
+  if (!trimmed) return 'メッセージを送ってください。';
   if (/^ping$/i.test(trimmed)) return 'pong';
   if (/^\/status$/i.test(trimmed)) return buildStackStatusText();
   if (/^\/models$/i.test(trimmed) || /^\/rankings$/i.test(trimmed) || isModelRankingIntent(trimmed)) {
     const installedModels = await fetchInstalledOllamaModels(ollamaUrl);
     return `${buildStackStatusText()}\n\n${buildModelRankingText(installedModels)}`;
   }
-  if (!trimmed) return 'メッセージを送ってください。';
-  if (/^(こんばんは|こんにちは|おはよう|やあ|hello|hi)$/i.test(trimmed)) {
-    return 'こんにちは。メール要約、依頼事項確認、未回答確認、返信文案の下書きができます。';
-  }
-  if (/(何ができる|なにができる|使い方|ヘルプ|help|モデル構成|使っているモデル|使用モデル|今のモデル)/i.test(trimmed)) {
-    return `${buildStackStatusText()}\n例: 昨日のメールを要約してください / 今月期限の未回答のみ / 依頼者 福田 の未回答のみ`;
-  }
-  if (/(天気|気温|降水|雨|晴れ|weather|forecast)/i.test(trimmed)) {
-    return '天気データには未接続です。地域名と情報源を指定してもらえれば、別途接続できます。';
-  }
-  if (/(会話になってない|通じない|反応おかしい|変だ|おかしい)/.test(trimmed)) {
-    return '失礼しました。今は業務向けです。メール、依頼事項、期限、未回答、回答内容の形式で送ってください。';
-  }
   return null;
 }
 
 function getAckReply() {
-  return '受け付けました。進捗をお知らせします。';
+  return '確認します。少し待ってください。';
 }
 
 function getProgressMessage(stage, elapsedSeconds) {
   const seconds = Math.max(0, Math.floor(elapsedSeconds));
-  return `${stage}\n経過: ${seconds}秒\nモデル: ${ollamaModel}`;
+  return `${stage}\n経過: ${seconds}秒\nモデル: ${replyModel}`;
 }
 
 function normalizeCompareText(text) {
   return (text || '').trim().toLowerCase().replace(/\s+/g, '');
 }
 
-function sanitizeOllamaReply(inputText, replyText) {
-  const trimmed = (inputText || '').trim();
+function sanitizeModelReply(inputText, replyText) {
+  const inputNorm = normalizeCompareText(inputText);
   const reply = (replyText || '').trim();
-  if (!reply) return '回答を生成できませんでした。メール、依頼事項、期限など具体的に送ってください。';
-  const inputNorm = normalizeCompareText(trimmed);
   const replyNorm = normalizeCompareText(reply);
-  if (replyNorm === 'received.' || replyNorm === 'received') {
-    return '受信はできています。内容をもう少し具体的に送ってください。';
+
+  if (!reply) {
+    return 'うまく応答を生成できませんでした。少し言い換えてもう一度送ってください。';
   }
-  if (replyNorm === inputNorm) {
-    return '入力をそのまま返してしまいました。目的を具体的に書いてください。';
+  if (replyNorm === 'received' || replyNorm === 'received.') {
+    return '受け取りました。内容をもう少し具体的に送ってください。';
+  }
+  if (inputNorm && replyNorm === inputNorm) {
+    return '内容をそのまま繰り返さず、要点で答えてください。もう一度送るなら少し具体化してください。';
   }
   return reply;
 }
 
 function isTaskIntent(text) {
   const trimmed = (text || '').trim();
-  return /(依頼事項|依頼|期限|締切|締め切り|納期|提出|未回答|未返信|回答済|回答者|回答内容|担当者|期限切れ|今週|今月|明日|本日|タスク|todo|task|deadline|due)/i.test(trimmed);
+  return /(タスク|依頼|やること|todo|task|deadline|締切|期限|未回答|約束|remind|follow up)/i.test(trimmed);
 }
 
 function isEmailIntent(text) {
   const trimmed = (text || '').trim();
-  return /(メール|mail|gmail|eml|受信|受診|inbox|件名|送信者|from:|to:|要約)/i.test(trimmed);
+  return /(メール|mail|gmail|eml|返信|受信|inbox|from:|to:|件名)/i.test(trimmed);
 }
 
 function isReportIntent(text) {
   const trimmed = (text || '').trim();
-  return /(日報|レポート|AI Scout|トレンド|ランキング|約束事項|promises|health check|ヘルスチェック|P016|定刻|scheduled report)/i.test(trimmed);
+  return /(日報|レポート|AI Scout|trend ranking|promises|health check|ヘルスチェック|scheduled report)/i.test(trimmed);
 }
 
 function isComplaintIntent(text) {
   const trimmed = (text || '').trim();
-  return /(クレーム|complaint|不具合|不良|品質問題|顧客不良|顧客クレーム|市場不良)/i.test(trimmed);
+  return /(クレーム|complaint|品質異常|顧客苦情|不具合案件)/i.test(trimmed);
+}
+
+function classifyRoute(text) {
+  if (isReportIntent(text)) return 'report';
+  if (isComplaintIntent(text)) return 'complaint';
+  if (isEmailIntent(text)) return 'email';
+  if (isTaskIntent(text)) return 'task';
+  return 'general';
 }
 
 function normalizeComplaintQuery(text) {
   let normalized = (text || '').trim();
-  normalized = normalized.replace(/20\d{2}年\d{1,2}月\d{1,2}日/g, ' ');
-  normalized = normalized.replace(/20\d{2}年\d{1,2}月/g, ' ');
-  normalized = normalized.replace(/\d{1,2}月\d{1,2}日/g, ' ');
   normalized = normalized.replace(/\d{4}[/-]\d{1,2}[/-]\d{1,2}/g, ' ');
-  normalized = normalized.replace(/(今年|去年|昨年|本年|今日|本日|昨日|明日|今月|先月|来月)/g, ' ');
-  normalized = normalized.replace(/(から|まで|より|期間|内容|教えて|一覧|抽出|確認|顧客からの|届いた)/g, ' ');
+  normalized = normalized.replace(/(今日|昨日|明日|本日|先月|今月|今年|去年)/g, ' ');
   normalized = normalized.replace(/\b\d+\b/g, ' ');
-  normalized = normalized.replace(/\s+[のにはをへでと]+\s+/g, ' ');
   normalized = normalized.replace(/\s+/g, ' ').trim();
   return normalized || 'クレーム';
 }
@@ -264,11 +271,52 @@ async function getTelegramUpdates(botToken, offset) {
   return telegramRequest(botToken, 'GET', `getUpdates?${params.toString()}`);
 }
 
-async function callOllamaGenerate(prompt, onProgress = null) {
+// ── Think mode utilities ──────────────────────────────────────────────────────
+
+/**
+ * Parse /no_think or /think prefix from user message.
+ * Returns { text: stripped_text, thinkOverride: true|false|null }
+ *   null = use auto-detection
+ */
+function parseThinkPrefix(rawText) {
+  const t = (rawText || '').trim();
+  if (/^\/no_think\s*/i.test(t)) {
+    return { text: t.replace(/^\/no_think\s*/i, '').trim(), thinkOverride: false };
+  }
+  if (/^\/think\s*/i.test(t)) {
+    return { text: t.replace(/^\/think\s*/i, '').trim(), thinkOverride: true };
+  }
+  return { text: t, thinkOverride: null };
+}
+
+/**
+ * Auto-detect whether thinking mode is beneficial.
+ * Long analytical/reasoning questions → think: true (slower but smarter)
+ * Short/factual → think: false (fast)
+ */
+function shouldAutoThink(text) {
+  const t = (text || '').trim();
+  if (t.length < 20) return false;
+  return /(分析|解析|比較|評価|考察|推論|なぜ|理由|原因|対策|計画|設計|最適化|どうすれば|どうしたら|どちらが|pros|cons|メリット|デメリット|利点|欠点|問題点|改善|提案|説明して|教えて.*詳しく|深く|根本|仮説|検討)/i.test(t);
+}
+
+/**
+ * Resolve final think flag for a qwen3 call.
+ *   thinkOverride=true/false → use that directly
+ *   thinkOverride=null       → auto-detect via shouldAutoThink
+ */
+function resolveThink(text, thinkOverride) {
+  if (thinkOverride !== null && thinkOverride !== undefined) return thinkOverride;
+  return shouldAutoThink(text);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+async function callOllamaGenerate(prompt, onProgress = null, think = false) {
   let progressTimer = null;
   const startedAt = Date.now();
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), OLLAMA_TIMEOUT_MS);
+  const timeoutId = setTimeout(() => controller.abort(), MODEL_TIMEOUT_MS);
   const emitProgress = async (stage) => {
     if (!onProgress) return;
     try {
@@ -278,12 +326,10 @@ async function callOllamaGenerate(prompt, onProgress = null) {
   };
 
   try {
-    await emitProgress('回答を準備しています。');
-    const stages = [
-      '質問内容を確認しています。',
-      '回答案を生成しています。',
-      '文章を整えています。',
-    ];
+    await emitProgress(think ? '思考中...' : '応答を準備しています。');
+    const stages = think
+      ? ['考えています...', '分析しています...', '回答をまとめています。']
+      : ['質問を整理しています。', '応答を生成しています。', '文面を整えています。'];
     let index = 0;
     progressTimer = setInterval(() => {
       const stage = stages[Math.min(index, stages.length - 1)];
@@ -296,13 +342,14 @@ async function callOllamaGenerate(prompt, onProgress = null) {
       headers: { 'content-type': 'application/json' },
       signal: controller.signal,
       body: JSON.stringify({
-        model: ollamaModel,
+        model: replyModel,
         prompt,
         stream: false,
+        ...(replyModel.includes('qwen3') || replyModel.includes('qwen') ? { think } : {}),
         options: {
-          temperature: 0.2,
-          num_predict: 160,
-          num_ctx: 2048,
+          temperature: 0.3,
+          num_predict: think ? 600 : 220,
+          num_ctx: think ? 8192 : 4096,
         },
       }),
     });
@@ -310,7 +357,7 @@ async function callOllamaGenerate(prompt, onProgress = null) {
       throw new Error(`Ollama API ${res.status}`);
     }
     const json = await res.json();
-    await emitProgress('回答の生成が完了しました。');
+    await emitProgress('応答の生成が完了しました。');
     return json.response || '';
   } finally {
     clearTimeout(timeoutId);
@@ -318,40 +365,456 @@ async function callOllamaGenerate(prompt, onProgress = null) {
   }
 }
 
-async function generateGeneralReply(text, onProgress = null) {
+async function callModelGenerate(prompt, onProgress = null) {
+  let progressTimer = null;
+  const startedAt = Date.now();
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), MODEL_TIMEOUT_MS);
+  const emitProgress = async (stage) => {
+    if (!onProgress) return;
+    try {
+      await onProgress(stage, startedAt);
+    } catch {
+    }
+  };
+
+  try {
+    await emitProgress('応答を準備しています。');
+    const stages = [
+      '質問を整理しています。',
+      '応答を生成しています。',
+      '文面を整えています。',
+    ];
+    let index = 0;
+    progressTimer = setInterval(() => {
+      const stage = stages[Math.min(index, stages.length - 1)];
+      index += 1;
+      void emitProgress(stage);
+    }, 5000);
+
+    if (usesOpenAiCompatibleRoute(replyModel)) {
+      const res = await fetch(`${replyApiBase}/chat/completions`, {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          authorization: `Bearer ${replyApiKey}`,
+        },
+        signal: controller.signal,
+        body: JSON.stringify({
+          model: replyModel,
+          temperature: 0.35,
+          max_tokens: 260,
+          messages: [{ role: 'user', content: prompt }],
+        }),
+      });
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`OpenAI-compatible API ${res.status}: ${text.slice(0, 200)}`);
+      }
+      const json = await res.json();
+      await emitProgress('応答の生成が完了しました。');
+      return json.choices?.[0]?.message?.content || '';
+    }
+
+    return callOllamaGenerate(prompt, onProgress);
+  } finally {
+    clearTimeout(timeoutId);
+    if (progressTimer) clearInterval(progressTimer);
+  }
+}
+
+// ── RAG: embedding + Qdrant search (direct HTTP, no docker exec) ──────────────
+
+const INFINITY_URL  = process.env.INFINITY_URL  || 'http://127.0.0.1:7997';
+const QDRANT_URL    = process.env.QDRANT_URL    || 'http://127.0.0.1:6333';
+const RAG_SCORE_MIN = parseFloat(process.env.RAG_SCORE_MIN || '0.50');
+
+async function embedMxbai(text) {
+  const res = await fetch(`${INFINITY_URL}/embeddings`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ model: 'mixedbread-ai/mxbai-embed-large-v1', input: [text] }),
+  });
+  if (!res.ok) throw new Error(`Infinity embed ${res.status}`);
+  const json = await res.json();
+  return json.data[0].embedding;
+}
+
+async function embedNomic(text) {
+  const res = await fetch(`${ollamaUrl}/api/embeddings`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ model: 'nomic-embed-text', prompt: text }),
+  });
+  if (!res.ok) throw new Error(`Ollama embed ${res.status}`);
+  const json = await res.json();
+  return json.embedding;
+}
+
+async function qdrantSearch(collection, vector, topK = 4) {
+  const res = await fetch(`${QDRANT_URL}/collections/${collection}/points/search`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ vector, top: topK, with_payload: true, score_threshold: RAG_SCORE_MIN }),
+  });
+  if (!res.ok) throw new Error(`Qdrant search ${res.status}`);
+  const json = await res.json();
+  return json.result || [];
+}
+
+function detectRagCollection(text) {
+  const t = text || '';
+  if (/(IATF|ISO.?9001|ISO.?16949|QMS|品質マニュアル|品質管理システム|内部監査|顧客要求|マネジメントレビュー|是正処置|不適合管理)/i.test(t)) {
+    return { collection: 'iatf_knowledge', embedFn: embedNomic };
+  }
+  if (/(FMEA|5Why|故障モード|工程能力|公差解析|CETOL|FEM|有限要素|強度解析|射出成形|金型設計|プレス加工|溶接|材料特性|SPC|MSA|測定システム|検査基準|図面公差|幾何公差|GD&T|不良原因|品質異常|改善提案|設備保全|予防保全)/i.test(t)) {
+    return { collection: 'universal_knowledge', embedFn: embedMxbai };
+  }
+  return null;
+}
+
+async function ragSearch(text) {
+  const target = detectRagCollection(text);
+  if (!target) return [];
+  try {
+    const vector  = await target.embedFn(text);
+    const results = await qdrantSearch(target.collection, vector, 4);
+    return results.map(r => ({
+      score:  r.score,
+      source: r.payload?.source || r.payload?.file || 'unknown',
+      text:   (r.payload?.text || r.payload?.content || '').slice(0, 600),
+    }));
+  } catch {
+    return [];
+  }
+}
+
+// ── LLM Classifier (qwen3:8b, think:false, ~5-10s) ───────────────────────────
+
+const CLASSIFIER_MODEL   = process.env.TELEGRAM_CLASSIFIER_MODEL || 'qwen3:8b';
+const CLASSIFIER_TIMEOUT = Number(process.env.TELEGRAM_CLASSIFIER_TIMEOUT_MS || 20000);
+
+async function classifyWithLLM(text) {
+  const prompt = `以下の質問を1語で分類してください。選択肢のみ出力。
+
+simple: 挨拶・雑談・簡単な一般知識
+rag: 品質管理・IATF・製造技術・図面・材料・工程・FMEA・公差・設備の専門知識
+agent: ブラウザ操作・ファイル操作・複数ステップの自動化タスク・システム操作
+gemini: 最新情報・時事・複雑な推論・広範な一般知識・創作・翻訳
+
+質問: "${text.slice(0, 200)}"
+分類(simple/rag/agent/gemini):`;
+
+  const controller = new AbortController();
+  const tid = setTimeout(() => controller.abort(), CLASSIFIER_TIMEOUT);
+  try {
+    const res = await fetch(`${ollamaUrl}/api/generate`, {
+      method: 'POST', headers: { 'content-type': 'application/json' }, signal: controller.signal,
+      body: JSON.stringify({
+        model: CLASSIFIER_MODEL, prompt, stream: false, think: false,
+        options: { temperature: 0.1, num_predict: 8, num_ctx: 1024 },
+      }),
+    });
+    if (!res.ok) return null;
+    const reply = ((await res.json()).response || '').toLowerCase().trim();
+    if (reply.includes('simple')) return 'simple';
+    if (reply.includes('rag'))    return 'rag';
+    if (reply.includes('agent'))  return 'agent';
+    if (reply.includes('gemini')) return 'gemini';
+    return null;
+  } catch { return null; } finally { clearTimeout(tid); }
+}
+
+/**
+ * Expanded keyword classifier — no LLM call (CPU推論は遅すぎるため).
+ * Coverage priority: simple > agent > rag > local-general > gemini
+ */
+function classifyMessageFast(text) {
+  const t = (text || '').trim();
+
+  // ── simple: greetings, short factual, status ───────────────────────
+  if (needsLocalOnly(t)) return 'simple';
+  if (/^(今日|今週|今月|今年|明日|昨日)の(天気|予定|タスク|売上|生産|進捗|状況|報告|スケジュール)/.test(t)) return 'simple';
+  if (/^(ステータス|状態|進捗|状況)(は|を|教えて|どう|確認)/.test(t)) return 'simple';
+  if (/(何時|何日|何曜日|いつ|どこ|誰が)[？?]?\s*$/.test(t)) return 'simple';
+
+  // ── agent: multi-step system ops ──────────────────────────────────
+  if (needsAgentEscalation(t)) return 'agent';
+
+  // ── rag: manufacturing / quality / engineering domain ─────────────
+  if (detectRagCollection(t)) return 'rag';
+  // Extended rag keywords (manufacturing/quality ops not in detectRagCollection)
+  if (/(工程\s*(管理|改善|フロー|能力)|設備\s*(保全|故障|異常|点検)|品質\s*(コスト|指標|目標|改善|記録)|作業標準|手順書|WI|QC工程図|初物検査|最終検査|出荷検査|受入検査|サンプリング|抜取り|ロット|トレーサビリティ|4M変更|変更管理)/i.test(t)) return 'rag';
+
+  // ── local-general: Japanese conversational / factual (qwen3:8b) ───
+  if (t.length <= 60 && /^[ぁ-んァ-ン一-龥々〆〇ー！？。、\s]+$/.test(t)) return 'simple';
+  if (/(どうすれば|どうやって|方法|手順|ポイント|コツ|注意点|違い|比較|メリット|デメリット|おすすめ|アドバイス)/.test(t) && t.length < 80) return 'simple';
+
+  // ── gemini: current events, broad knowledge, translation, creative
+  if (/(最新|ニュース|今年.*リリース|新機能|アップデート|翻訳して|英語で|英訳|日本語訳|要約して.*記事|ウェブで|インターネット)/.test(t)) return 'gemini';
+
+  // Default: short → simple (local), longer → gemini (cloud)
+  return t.length <= 50 ? 'simple' : 'gemini';
+}
+
+async function classifyMessage(text) {
+  return classifyMessageFast(text);
+  // NOTE: LLM classifier (classifyWithLLM) disabled — qwen3:8b takes 120s on CPU
+  // Re-enable when GPU is added: return (await classifyWithLLM(text)) || 'gemini';
+}
+
+// ── Escalation tier detection ─────────────────────────────────────────────────
+
+/**
+ * Tier 1: Simple/short messages → local qwen3:8b (free, ~95s on CPU)
+ * Greetings, single-word queries, very short acknowledgments.
+ */
+function needsLocalOnly(text) {
+  const t = (text || '').trim();
+  if (t.length === 0) return false;
+  // Greetings / acknowledgments
+  if (/^(こんにちは|おはよう|こんばんは|お疲れ様|ありがとう|thanks|thank you|hello|hi|hey|ok|okay|はい|いいえ|わかりました|了解|なるほど|そうか|すごい|やった|確認しました)[\!\?。！？\s]*$/i.test(t)) return true;
+  // Very short with no complex intent
+  if (t.length <= 12 && !/[調査|検索|分析|作成|生成|修正|コード|スクリプト|設定|一覧|送信|削除]/.test(t)) return true;
+  return false;
+}
+
+/**
+ * Tier 3: Agent-requiring messages → OpenClaw (browser, file ops, system ops)
+ * User can also explicitly prefix with /agent or エージェント:
+ */
+function needsAgentEscalation(text) {
+  const t = (text || '').trim();
+  if (/^\/agent\b/i.test(t) || /^エージェント[：:]/i.test(t)) return true;
+  return /(ブラウザで|サイトを開|URLを|ファイルを(作成|削除|移動|編集)|スクリプトを(書|実行|作成)|n8nの(ワークフロー|設定)|コンテナを再起動|ログを(取得|確認|解析)して|自動(化|実行|スクレイピング)|PDFを(作成|生成|変換)|メールを(送信|作成|書いて)|全件(取得|一覧|検索)|データベース(を|に|から)(操作|更新|クエリ))/i.test(t);
+}
+
+// ── Escalation call functions ─────────────────────────────────────────────────
+
+/**
+ * Call local Ollama directly (qwen3:8b) — bypasses LiteLLM for speed.
+ * Used for Tier 1 (simple) and Tier 2 local analytical questions.
+ * @param {string} text
+ * @param {function|null} onProgress
+ * @param {boolean|null} thinkOverride  null=auto-detect, true/false=force
+ */
+async function callLocalModelDirect(text, onProgress = null, thinkOverride = null) {
+  const think = resolveThink(text, thinkOverride);
+  const prompt = think
+    ? [
+        'あなたは日本語で深く考えて答える分析的なアシスタントです。',
+        '段階的に考え、根拠を示しながら丁寧に答えてください。',
+        '',
+        `User: ${text}`,
+      ].join('\n')
+    : [
+        'あなたは日本語で答える実用的で親切なアシスタントです。',
+        '簡潔に、1〜3文で答えてください。',
+        '',
+        `User: ${text}`,
+      ].join('\n');
+  try {
+    const savedModel = replyModel;
+    // Temporarily override replyModel so callOllamaGenerate uses qwen3:8b
+    // We call the Ollama endpoint directly instead to avoid model confusion
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), MODEL_TIMEOUT_MS + (think ? 90000 : 0));
+    try {
+      const res = await fetch(`${ollamaUrl}/api/generate`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        signal: controller.signal,
+        body: JSON.stringify({
+          model: localModel,
+          prompt,
+          stream: false,
+          think,
+          options: {
+            temperature: think ? 0.5 : 0.3,
+            num_predict: think ? 800 : 220,
+            num_ctx: think ? 8192 : 4096,
+          },
+        }),
+      });
+      if (!res.ok) throw new Error(`Ollama ${res.status}`);
+      const json = await res.json();
+      return sanitizeModelReply(text, json.response || '');
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  } catch {
+    return null; // fallback to cloud
+  }
+}
+
+/**
+ * Escalate to OpenClaw agent via docker exec.
+ * Used for Tier 3 (agent-requiring) questions.
+ */
+async function callAgentEscalation(text, onProgress = null) {
+  if (onProgress) {
+    await onProgress('エージェントに転送中...', Date.now()).catch(() => {});
+  }
+  try {
+    const { stdout } = await execFileAsync(
+      'docker',
+      [
+        'exec', GATEWAY_CONTAINER,
+        'openclaw', 'agent',
+        '--message', text,
+        '--json',
+        '--timeout', '110',
+      ],
+      { timeout: AGENT_TIMEOUT_MS }
+    );
+    // openclaw --json may output multiple lines; find the JSON object
+    const lines = stdout.trim().split('\n').reverse();
+    for (const line of lines) {
+      try {
+        const obj = JSON.parse(line.trim());
+        const reply = obj.reply || obj.response || obj.content || obj.output || obj.text;
+        if (reply && typeof reply === 'string' && reply.length > 0) return reply;
+      } catch { /* skip non-JSON lines */ }
+    }
+    const plain = stdout.trim();
+    if (plain.length > 0) return plain;
+    return null;
+  } catch (e) {
+    return null; // fallback to cloud on timeout or error
+  }
+}
+
+// ── General reply (tiered) ────────────────────────────────────────────────────
+
+// ── RAG-enhanced reply ────────────────────────────────────────────────────────
+
+async function generateRagReply(text, onProgress = null, thinkOverride = null) {
+  if (onProgress) await onProgress('知識ベースを検索しています...', Date.now()).catch(() => {});
+
+  const hits = await ragSearch(text);
+
+  if (hits.length === 0) {
+    // RAG found nothing → fall back to qwen3:8b without context
+    return callLocalModelDirect(text, onProgress, thinkOverride);
+  }
+
+  const context = hits
+    .map((h, i) => `[${i + 1}] (score=${h.score.toFixed(2)}, source: ${h.source})\n${h.text}`)
+    .join('\n\n');
+
+  const think = resolveThink(text, thinkOverride);
   const prompt = [
-    'You are a practical Japanese work assistant on Telegram.',
+    'あなたは製造業の専門知識を持つ日本語アシスタントです。',
+    '以下の参照資料を使って、質問に対して正確かつ簡潔に答えてください。',
+    '資料に答えがない場合は「資料には記載がありません」と明示してください。',
+    '',
+    '=== 参照資料 ===',
+    context,
+    '=== ここまで ===',
+    '',
+    `質問: ${text}`,
+  ].join('\n');
+
+  const controller = new AbortController();
+  const tid = setTimeout(() => controller.abort(), MODEL_TIMEOUT_MS + (think ? 90000 : 0));
+  try {
+    const res = await fetch(`${ollamaUrl}/api/generate`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      signal: controller.signal,
+      body: JSON.stringify({
+        model: localModel,
+        prompt,
+        stream: false,
+        think,
+        options: {
+          temperature: think ? 0.4 : 0.3,
+          num_predict: think ? 1000 : 400,
+          num_ctx: think ? 8192 : 6144,
+        },
+      }),
+    });
+    if (!res.ok) throw new Error(`Ollama RAG ${res.status}`);
+    const json = await res.json();
+    const reply = sanitizeModelReply(text, json.response || '');
+    if (reply) {
+      const srcList = [...new Set(hits.map(h => h.source))].slice(0, 2).join(', ');
+      return `${reply}\n\n📚 参照: ${srcList}`;
+    }
+    return null;
+  } catch { return null; } finally { clearTimeout(tid); }
+}
+
+// ── Main general reply — full 4-tier loop ─────────────────────────────────────
+
+async function generateGeneralReply(text, onProgress = null, thinkOverride = null) {
+  const tier = await classifyMessage(text);
+  writeEvent('classify', { lastMessage: text, tier, think: thinkOverride });
+
+  switch (tier) {
+
+    case 'simple': {
+      const r = await callLocalModelDirect(text, onProgress, false);
+      if (r) return r;
+      break; // fallthrough to gemini if local fails
+    }
+
+    case 'rag': {
+      const r = await generateRagReply(text, onProgress, thinkOverride);
+      if (r) return r;
+      break; // fallthrough to gemini if RAG+local fails
+    }
+
+    case 'agent': {
+      const r = await callAgentEscalation(text, onProgress);
+      if (r) return r;
+      break; // fallthrough to gemini if agent fails
+    }
+
+    // 'gemini' or fallthrough:
+  }
+
+  // Final tier: Cloud model (Gemini 2.5 Flash)
+  // Also handles thinkOverride=true by first trying local with thinking
+  if (thinkOverride === true && tier !== 'agent') {
+    const r = await callLocalModelDirect(text, onProgress, true);
+    if (r) return r;
+  }
+
+  const prompt = [
+    'You are a warm and natural Japanese assistant on Telegram.',
     'Reply in Japanese.',
-    'Keep the answer short and natural.',
-    'If you do not know, say so directly.',
+    'For greetings or casual conversation, respond warmly and naturally in 1 to 3 short sentences.',
+    'Do not list capabilities unless the user asks for them.',
+    'If you cannot verify something from local context, say that clearly and offer the next helpful step.',
     '',
     `User: ${text}`,
   ].join('\n');
-  const raw = await callOllamaGenerate(prompt, onProgress);
-  return sanitizeOllamaReply(text, raw);
+  const raw = await callModelGenerate(prompt, onProgress);
+  return sanitizeModelReply(text, raw);
 }
 
 async function generateEmailReply(text, onProgress = null) {
   const emailContext = await fetchEmailContext(repoRoot, text, { limit: 5, force: true });
-  if (emailContext.summary && emailContext.resultCount > 0 && /(要約|summary|昨日|今日|先週|先月)/i.test(text)) {
+  if (emailContext.summary && emailContext.resultCount > 0 && /(summary|要約|今日|昨日|最新)/i.test(text)) {
     return emailContext.summary;
   }
   const prompt = buildEmailAwarePrompt([
-    'You are a practical Japanese work assistant on Telegram.',
+    'You are a practical Japanese assistant on Telegram.',
     'Reply in Japanese.',
-    'Use the local email context if relevant.',
-    'If the local context is insufficient, say so directly.',
+    'Use the local email context if it is relevant.',
+    'If the local context is insufficient, say that clearly.',
     '',
     `User: ${text}`,
   ], emailContext, null);
-  const raw = await callOllamaGenerate(prompt, onProgress);
-  return sanitizeOllamaReply(text, raw);
+  const raw = await callModelGenerate(prompt, onProgress);
+  return sanitizeModelReply(text, raw);
 }
 
 async function generateTaskReply(text) {
   const taskContext = await fetchTaskContext(repoRoot, text, { limit: 5, force: true });
   if (taskContext.summary) return taskContext.summary;
-  return '依頼事項は見つかりませんでした。';
+  return 'タスクに関する一致はまだ見つかりませんでした。対象や期限があればもう少し具体的に送ってください。';
 }
 
 async function generateComplaintReply(text) {
@@ -361,39 +824,41 @@ async function generateComplaintReply(text) {
   }
 
   const normalizedQuery = normalizeComplaintQuery(text);
-  return `クレーム関連の記録は見つかりませんでした。検索語: ${normalizedQuery}`;
+  return `クレーム関連の一致はまだ見つかりませんでした。確認対象: ${normalizedQuery}`;
 }
 
-async function routeReply(text, onProgress = null) {
-  if (isReportIntent(text)) {
-    writeEvent('route', { lastMessage: text, route: 'report' });
+async function routeReply(text, onProgress = null, routeName = null, thinkOverride = null) {
+  const route = routeName || classifyRoute(text);
+  writeEvent('route', { lastMessage: text, route, think: thinkOverride });
+
+  if (route === 'report') {
     const reportContext = await fetchReportContext(repoRoot, text, { limit: 5, force: true });
     if (reportContext.summary && reportContext.resultCount > 0) return reportContext.summary;
     const prompt = buildEmailAwarePrompt([
-      'You are a practical Japanese work assistant on Telegram.',
+      'You are a practical Japanese assistant on Telegram.',
       'Reply in Japanese.',
-      'Use the scheduled report context if relevant.',
-      'If the local context is insufficient, say so directly.',
+      'Use the scheduled report context if it is relevant.',
+      'If the local context is insufficient, say that clearly.',
       '',
       `User: ${text}`,
     ], null, null, reportContext);
-    const raw = await callOllamaGenerate(prompt, onProgress);
-    return sanitizeOllamaReply(text, raw);
+    const raw = await callModelGenerate(prompt, onProgress);
+    return sanitizeModelReply(text, raw);
   }
-  if (isTaskIntent(text)) {
-    writeEvent('route', { lastMessage: text, route: 'task' });
+
+  if (route === 'task') {
     return generateTaskReply(text);
   }
-  if (isComplaintIntent(text)) {
-    writeEvent('route', { lastMessage: text, route: 'complaint' });
+
+  if (route === 'complaint') {
     return generateComplaintReply(text);
   }
-  if (isEmailIntent(text)) {
-    writeEvent('route', { lastMessage: text, route: 'email' });
+
+  if (route === 'email') {
     return generateEmailReply(text, onProgress);
   }
-  writeEvent('route', { lastMessage: text, route: 'general' });
-  return generateGeneralReply(text, onProgress);
+
+  return generateGeneralReply(text, onProgress, thinkOverride);
 }
 
 async function main() {
@@ -445,38 +910,67 @@ async function main() {
           continue;
         }
 
-        let reply = await getFastReply(text);
-        if (reply === null) {
-          const ack = getAckReply();
-          await sendTelegramMessage(botToken, chatId, ack, messageId);
-          writeEvent('ack', { lastUpdateId: updateId, lastChatId: chatId, lastMessage: text, lastReply: ack });
-          writeStatus('generating', { lastUpdateId: updateId, lastChatId: chatId, lastMessage: text });
+        // Parse /no_think or /think prefix BEFORE routing
+        const { text: cleanText, thinkOverride } = parseThinkPrefix(text);
 
-          const progressStart = Date.now();
-          const progressResult = await sendTelegramMessage(
-            botToken,
-            chatId,
-            getProgressMessage('処理を開始しました。', 0),
-            messageId,
-          );
-          const progressMessageId = Number(progressResult?.result?.message_id || 0);
-          const updateProgress = async (stage, startedAt = progressStart) => {
-            if (progressMessageId <= 0) return;
-            const elapsedSeconds = (Date.now() - startedAt) / 1000;
-            await editTelegramMessage(botToken, chatId, progressMessageId, getProgressMessage(stage, elapsedSeconds));
+        let reply = await getFastReply(cleanText);
+        if (reply === null) {
+          const routeName = classifyRoute(cleanText);
+
+          if (routeName === 'general') {
             writeStatus('generating', {
               lastUpdateId: updateId,
               lastChatId: chatId,
-              lastMessage: text,
-              progressStage: stage,
-              progressElapsedSec: Math.floor(elapsedSeconds),
+              lastMessage: cleanText,
+              route: routeName,
+              think: thinkOverride,
             });
-          };
+            reply = await routeReply(cleanText, null, routeName, thinkOverride);
+          } else {
+            const ack = getAckReply();
+            await sendTelegramMessage(botToken, chatId, ack, messageId);
+            writeEvent('ack', {
+              lastUpdateId: updateId,
+              lastChatId: chatId,
+              lastMessage: cleanText,
+              lastReply: ack,
+              route: routeName,
+            });
+            writeStatus('generating', {
+              lastUpdateId: updateId,
+              lastChatId: chatId,
+              lastMessage: cleanText,
+              route: routeName,
+              think: thinkOverride,
+            });
 
-          reply = await routeReply(text, updateProgress);
-          if (progressMessageId > 0) {
-            const doneSeconds = (Date.now() - progressStart) / 1000;
-            await editTelegramMessage(botToken, chatId, progressMessageId, getProgressMessage('処理が完了しました。', doneSeconds));
+            const progressStart = Date.now();
+            const progressResult = await sendTelegramMessage(
+              botToken,
+              chatId,
+              getProgressMessage(thinkOverride === true ? '思考中...' : '応答を準備しています。', 0),
+              messageId,
+            );
+            const progressMessageId = Number(progressResult?.result?.message_id || 0);
+            const updateProgress = async (stage, startedAt = progressStart) => {
+              if (progressMessageId <= 0) return;
+              const elapsedSeconds = (Date.now() - startedAt) / 1000;
+              await editTelegramMessage(botToken, chatId, progressMessageId, getProgressMessage(stage, elapsedSeconds));
+              writeStatus('generating', {
+                lastUpdateId: updateId,
+                lastChatId: chatId,
+                lastMessage: cleanText,
+                route: routeName,
+                progressStage: stage,
+                progressElapsedSec: Math.floor(elapsedSeconds),
+              });
+            };
+
+            reply = await routeReply(cleanText, updateProgress, routeName, thinkOverride);
+            if (progressMessageId > 0) {
+              const doneSeconds = (Date.now() - progressStart) / 1000;
+              await editTelegramMessage(botToken, chatId, progressMessageId, getProgressMessage('応答の生成が完了しました。', doneSeconds));
+            }
           }
         }
 
