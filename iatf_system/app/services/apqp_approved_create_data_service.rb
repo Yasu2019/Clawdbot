@@ -91,8 +91,8 @@ class ApqpApprovedCreateDataService
 
   def collect_press_work_standard(pro, stage)
     if %w[プレス作業標準書].include?(stage)
-      @stamping_standard_procedure_yotei = pro.deadline_at.strftime('%y/%m/%d')
-      @stamping_standard_procedure_kanryou = pro.end_at.strftime('%y/%m/%d')
+      @stamping_standard_procedure_yotei = pro.deadline_at&.strftime('%y/%m/%d') || ''
+      @stamping_standard_procedure_kanryou = pro.end_at&.strftime('%y/%m/%d') || ''
       if pro.documents.attached?
         @stamping_standard_procedure_check = '☑'
         @stamping_standard_procedure_filename = pro.documents.first.filename.to_s
@@ -105,8 +105,8 @@ class ApqpApprovedCreateDataService
   def collect_process_flow(pro, stage)
     if stage == 'プロセスフロー図' || stage == 'プロセスフロー図(Phase3)'
 
-      @processflow_check = if pro.documents.attached?
-        '☑'
+      if pro.documents.attached?
+        @processflow_check = '☑'
 
         begin
           # プレスファイルの確認
@@ -128,7 +128,7 @@ class ApqpApprovedCreateDataService
                           when '.xlsx' then Roo::Excelx.new(temp_file.path)
                           when '.xls'  then Roo::Excel.new(temp_file.path)
                           else
-                            return
+                            next
                           end
 
                 Rails.logger.info "=== ワークシート情報 ==="
@@ -156,7 +156,7 @@ class ApqpApprovedCreateDataService
 
                 unless target_sheet
                   Rails.logger.warn "必要なデータを含むシートが見つかりませんでした"
-                  return
+                  next
                 end
 
                 workbook.default_sheet = target_sheet
@@ -167,7 +167,7 @@ class ApqpApprovedCreateDataService
                 # セルの値を文字列として取得し、デバッグ情報を出力
                 @processflow_stamping_person_in_charge = workbook.cell(2, 21).to_s.strip
                 @processflow_stamping_dept = workbook.cell(4, 13).to_s.strip
-                @processflow_stamping_yotei = pro.deadline_at.strftime('%y/%m/%d')
+                @processflow_stamping_yotei = pro.deadline_at&.strftime('%y/%m/%d') || ''
                 @processflow_stamping_check = '☑'
 
                 Rails.logger.info "=== セルの値確認 ==="
@@ -205,7 +205,7 @@ class ApqpApprovedCreateDataService
                             when '.xlsx' then Roo::Excelx.new(temp_file.path)
                             when '.xls'  then Roo::Excel.new(temp_file.path)
                             else
-                              return
+                              next
                             end
 
                   Rails.logger.info "=== ワークシート情報 ==="
@@ -233,7 +233,7 @@ class ApqpApprovedCreateDataService
 
                   unless target_sheet
                     Rails.logger.warn "必要なデータを含むシートが見つかりませんでした"
-                    return
+                    next
                   end
 
                   workbook.default_sheet = target_sheet
@@ -244,8 +244,8 @@ class ApqpApprovedCreateDataService
                   # セルの値を文字列として取得し、デバッグ情報を出力
                   @processflow_mold_person_in_charge = workbook.cell(2, 21).to_s.strip
                   @processflow_mold_dept = workbook.cell(4, 13).to_s.strip
-                  @processflow_mold_yotei = pro.deadline_at.strftime('%y/%m/%d')
-                  @processflow_mold_kanryou = pro.end_at.strftime('%y/%m/%d')
+                  @processflow_mold_yotei = pro.deadline_at&.strftime('%y/%m/%d') || ''
+                  @processflow_mold_kanryou = pro.end_at&.strftime('%y/%m/%d') || ''
                   @processflow_mold_check = '☑'
 
                   Rails.logger.info "=== セルの値確認 ==="
@@ -270,7 +270,7 @@ class ApqpApprovedCreateDataService
           # 営業、工程設計、検査のファイルは毎回確認
           pro.documents.each do |doc|
             filename = doc.filename.to_s
-            return unless filename.include?('プロセスフロー')
+            next unless filename.include?('プロセスフロー')
 
             begin
               temp_file = Tempfile.new(['temp', File.extname(filename)])
@@ -282,7 +282,7 @@ class ApqpApprovedCreateDataService
                         when '.xlsx' then Roo::Excelx.new(temp_file.path)
                         when '.xls'  then Roo::Excel.new(temp_file.path)
                         else
-                          return
+                          next
                         end
 
               Rails.logger.info "=== ワークシート情報 ==="
@@ -310,7 +310,7 @@ class ApqpApprovedCreateDataService
 
               unless target_sheet
                 Rails.logger.warn "必要なデータを含むシートが見つかりませんでした"
-                return
+                next
               end
 
               workbook.default_sheet = target_sheet
@@ -322,22 +322,22 @@ class ApqpApprovedCreateDataService
               if filename.include?('営業')
                 @processflow_sales_person_in_charge = workbook.cell(2, 21).to_s.strip
                 @processflow_sales_dept = workbook.cell(4, 13).to_s.strip
-                @processflow_sales_yotei = pro.deadline_at.strftime('%y/%m/%d')
-                @processflow_sales_kanryou = pro.end_at.strftime('%y/%m/%d')
+                @processflow_sales_yotei = pro.deadline_at&.strftime('%y/%m/%d') || ''
+                @processflow_sales_kanryou = pro.end_at&.strftime('%y/%m/%d') || ''
                 @processflow_sales_check='☑'
                 Rails.logger.info "営業承認者: \#{?processflow_sales_person_in_charge}"
               elsif filename.include?('工程設計')
                 @processflow_design_person_in_charge = workbook.cell(2, 21).to_s.strip
                 @processflow_design_dept = workbook.cell(4, 13).to_s.strip
-                @processflow_design_yotei = pro.deadline_at.strftime('%y/%m/%d')
-                @processflow_design_kanryou = pro.end_at.strftime('%y/%m/%d')
+                @processflow_design_yotei = pro.deadline_at&.strftime('%y/%m/%d') || ''
+                @processflow_design_kanryou = pro.end_at&.strftime('%y/%m/%d') || ''
                 @processflow_design_check='☑'
                 Rails.logger.info "工程設計承認者: \#{?processflow_design_person_in_charge}"
               elsif filename.include?('検査')
                 @processflow_inspection_person_in_charge = workbook.cell(2, 21).to_s.strip
                 @processflow_inspection_dept = workbook.cell(4, 13).to_s.strip
-                @processflow_inspection_yotei = pro.deadline_at.strftime('%y/%m/%d')
-                @processflow_inspection_kanryou = pro.end_at.strftime('%y/%m/%d')
+                @processflow_inspection_yotei = pro.deadline_at&.strftime('%y/%m/%d') || ''
+                @processflow_inspection_kanryou = pro.end_at&.strftime('%y/%m/%d') || ''
                 @processflow_inspection_check='☑'
                 Rails.logger.info "検査引渡し承認者: \#{?processflow_inspection_person_in_charge}"
               end
@@ -354,15 +354,15 @@ class ApqpApprovedCreateDataService
           Rails.logger.error "ファイル処理エラー: #{e.message}"
         end
       else
-        '☐'
+        @processflow_check = '☐'
       end
     end
   end
 
   def collect_initial_process_survey(pro, stage)
     if stage == '初期工程調査結果'
-      @cpk_yotei = pro.deadline_at.strftime('%y/%m/%d')
-      @cpk_kanryou = pro.end_at.strftime('%y/%m/%d')
+      @cpk_yotei = pro.deadline_at&.strftime('%y/%m/%d') || ''
+      @cpk_kanryou = pro.end_at&.strftime('%y/%m/%d') || ''
       if pro.documents.attached?
         # 変数の設定
         partnumber = pro.partnumber # ここには実際の値を設定してください
@@ -439,8 +439,8 @@ class ApqpApprovedCreateDataService
 
   def collect_msa_grr(pro, stage)
     if stage == '測定システム解析（MSA)' # GRR
-      @grr_yotei = pro.deadline_at.strftime('%y/%m/%d')
-      @grr_kanryou = pro.end_at.strftime('%y/%m/%d')
+      @grr_yotei = pro.deadline_at&.strftime('%y/%m/%d') || ''
+      @grr_kanryou = pro.end_at&.strftime('%y/%m/%d') || ''
 
       if pro.documents.attached?
         # 変数の設定
@@ -514,8 +514,8 @@ class ApqpApprovedCreateDataService
 
   def collect_msa_crosstab(pro, stage)
     if stage == '測定システム解析（MSA)' # クロスタブ
-      @msa_yotei = pro.deadline_at.strftime('%y/%m/%d')
-      @msa_kanryou = pro.end_at.strftime('%y/%m/%d')
+      @msa_yotei = pro.deadline_at&.strftime('%y/%m/%d') || ''
+      @msa_kanryou = pro.end_at&.strftime('%y/%m/%d') || ''
 
       if pro.documents.attached?
         # 変数の設定
@@ -576,8 +576,8 @@ class ApqpApprovedCreateDataService
 
   def collect_control_plan(pro, stage)
     if %w[量産コントロールプラン 試作コントロールプラン].include?(stage)
-      @controlplan_yotei = pro.deadline_at.strftime('%y/%m/%d')
-      @controlplan_kanryou = pro.end_at.strftime('%y/%m/%d')
+      @controlplan_yotei = pro.deadline_at&.strftime('%y/%m/%d') || ''
+      @controlplan_kanryou = pro.end_at&.strftime('%y/%m/%d') || ''
       if pro.documents.attached?
         @cp_check = '☑'
         @cp_filename = pro.documents.first.filename.to_s
@@ -590,8 +590,8 @@ class ApqpApprovedCreateDataService
   def collect_design_plan(pro, stage)
     return unless stage == '設計計画書_金型設計'
 
-    @plan_yotei = pro.deadline_at.strftime('%y/%m/%d')
-    @plan_kanryou = pro.end_at.strftime('%y/%m/%d')
+    @plan_yotei = pro.deadline_at&.strftime('%y/%m/%d') || ''
+    @plan_kanryou = pro.end_at&.strftime('%y/%m/%d') || ''
     return unless pro.documents.attached?
 
     # 変数の設定

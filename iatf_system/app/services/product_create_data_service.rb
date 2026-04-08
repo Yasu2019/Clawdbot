@@ -142,8 +142,8 @@ class ProductCreateDataService
   def collect_process_flow(pro, stage)
     if stage == 'プロセスフロー図' || stage == 'プロセスフロー図(Phase3)'
 
-      @processflow_check = if pro.documents.attached?
-        '☑'
+      if pro.documents.attached?
+        @processflow_check = '☑'
 
         begin
           # プレスファイルの確認
@@ -204,7 +204,7 @@ class ProductCreateDataService
                 # セルの値を文字列として取得し、デバッグ情報を出力
                 @processflow_stamping_person_in_charge = workbook.cell(2, 21).to_s.strip
                 @processflow_stamping_dept = workbook.cell(4, 13).to_s.strip
-                @processflow_stamping_yotei = pro.deadline_at.strftime('%y/%m/%d')
+                @processflow_stamping_yotei = pro.deadline_at&.strftime('%y/%m/%d') || ''
                 @processflow_stamping_check = '☑'
 
                 Rails.logger.info "=== セルの値確認 ==="
@@ -281,8 +281,8 @@ class ProductCreateDataService
                   # セルの値を文字列として取得し、デバッグ情報を出力
                   @processflow_mold_person_in_charge = workbook.cell(2, 21).to_s.strip
                   @processflow_mold_dept = workbook.cell(4, 13).to_s.strip
-                  @processflow_mold_yotei = pro.deadline_at.strftime('%y/%m/%d')
-                  @processflow_mold_kanryou = pro.end_at.strftime('%y/%m/%d')
+                  @processflow_mold_yotei = pro.deadline_at&.strftime('%y/%m/%d') || ''
+                  @processflow_mold_kanryou = pro.end_at&.strftime('%y/%m/%d') || ''
                   @processflow_mold_check = '☑'
 
                   Rails.logger.info "=== セルの値確認 ==="
@@ -359,22 +359,22 @@ class ProductCreateDataService
               if filename.include?('営業')
                 @processflow_sales_person_in_charge = workbook.cell(2, 21).to_s.strip
                 @processflow_sales_dept = workbook.cell(4, 13).to_s.strip
-                @processflow_sales_yotei = pro.deadline_at.strftime('%y/%m/%d')
-                @processflow_sales_kanryou = pro.end_at.strftime('%y/%m/%d')
+                @processflow_sales_yotei = pro.deadline_at&.strftime('%y/%m/%d') || ''
+                @processflow_sales_kanryou = pro.end_at&.strftime('%y/%m/%d') || ''
                 @processflow_sales_check='☑'
                 Rails.logger.info "営業承認者: \#{?processflow_sales_person_in_charge}"
               elsif filename.include?('工程設計')
                 @processflow_design_person_in_charge = workbook.cell(2, 21).to_s.strip
                 @processflow_design_dept = workbook.cell(4, 13).to_s.strip
-                @processflow_design_yotei = pro.deadline_at.strftime('%y/%m/%d')
-                @processflow_design_kanryou = pro.end_at.strftime('%y/%m/%d')
+                @processflow_design_yotei = pro.deadline_at&.strftime('%y/%m/%d') || ''
+                @processflow_design_kanryou = pro.end_at&.strftime('%y/%m/%d') || ''
                 @processflow_design_check='☑'
                 Rails.logger.info "工程設計承認者: \#{?processflow_design_person_in_charge}"
               elsif filename.include?('検査')
                 @processflow_inspection_person_in_charge = workbook.cell(2, 21).to_s.strip
                 @processflow_inspection_dept = workbook.cell(4, 13).to_s.strip
-                @processflow_inspection_yotei = pro.deadline_at.strftime('%y/%m/%d')
-                @processflow_inspection_kanryou = pro.end_at.strftime('%y/%m/%d')
+                @processflow_inspection_yotei = pro.deadline_at&.strftime('%y/%m/%d') || ''
+                @processflow_inspection_kanryou = pro.end_at&.strftime('%y/%m/%d') || ''
                 @processflow_inspection_check='☑'
                 Rails.logger.info "検査引渡し承認者: \#{?processflow_inspection_person_in_charge}"
               end
@@ -391,15 +391,15 @@ class ProductCreateDataService
           Rails.logger.error "ファイル処理エラー: #{e.message}"
         end
       else
-        '☐'
+        @processflow_check = '☐'
       end
     end
   end
 
   def collect_floor_plan_layout(pro, stage)
     if stage == 'フロアプランレイアウト'
-      @floor_plan_layout_yotei = pro.deadline_at.strftime('%y/%m/%d')
-      @floor_plan_layout_kanryou = pro.end_at.strftime('%y/%m/%d')
+      @floor_plan_layout_yotei = pro.deadline_at&.strftime('%y/%m/%d') || ''
+      @floor_plan_layout_kanryou = pro.end_at&.strftime('%y/%m/%d') || ''
       @floor_plan_layout_person_in_charge = "鈴木"
       @floor_plan_layout_check = if pro.documents.attached?
 
@@ -412,8 +412,8 @@ class ProductCreateDataService
 
   def collect_control_plan(pro, stage)
     if %w[量産コントロールプラン 試作コントロールプラン].include?(stage)
-      @controlplan_yotei = pro.deadline_at.strftime('%y/%m/%d')
-      @controlplan_kanryou = pro.end_at.strftime('%y/%m/%d')
+      @controlplan_yotei = pro.deadline_at&.strftime('%y/%m/%d') || ''
+      @controlplan_kanryou = pro.end_at&.strftime('%y/%m/%d') || ''
       @cp_check = if pro.documents.attached?
                     '☑'
                   else
@@ -424,8 +424,8 @@ class ProductCreateDataService
 
   def collect_characteristics_matrix(pro, stage)
     if stage == '特性マトリクス'
-      @special_characteristics_yotei = pro.deadline_at.strftime('%y/%m/%d')
-      @special_characteristics_kanryou = pro.end_at.strftime('%y/%m/%d')
+      @special_characteristics_yotei = pro.deadline_at&.strftime('%y/%m/%d') || ''
+      @special_characteristics_kanryou = pro.end_at&.strftime('%y/%m/%d') || ''
       @special_characteristics_person_in_charge = "鈴木"
       @special_characteristics_check = if pro.documents.attached?
 
@@ -438,8 +438,8 @@ class ProductCreateDataService
 
   def collect_validation_record(pro, stage)
     if stage == '妥当性確認記録_金型設計'
-      @datou_yotei = pro.deadline_at.strftime('%y/%m/%d')
-      @datou_kanryou = pro.end_at.strftime('%y/%m/%d')
+      @datou_yotei = pro.deadline_at&.strftime('%y/%m/%d') || ''
+      @datou_kanryou = pro.end_at&.strftime('%y/%m/%d') || ''
       if pro.documents.attached?
         @datou_check = '☑'
 
@@ -484,8 +484,8 @@ class ProductCreateDataService
 
   def collect_customer_requirements(pro, stage)
     if stage == '顧客要求事項検討会議事録_営業'
-      @scr_yotei = pro.deadline_at.strftime('%y/%m/%d')
-      @scr_kanryou = pro.end_at.strftime('%y/%m/%d')
+      @scr_yotei = pro.deadline_at&.strftime('%y/%m/%d') || ''
+      @scr_kanryou = pro.end_at&.strftime('%y/%m/%d') || ''
       @scr_check = if pro.documents.attached?
                      '☑'
                    else
@@ -496,8 +496,8 @@ class ProductCreateDataService
 
   def collect_packaging_specs(pro, stage)
     if stage == '梱包規格・仕様書'
-      @packing_instruction_yotei = pro.deadline_at.strftime('%y/%m/%d')
-      @packing_instruction_kanryou = pro.end_at.strftime('%y/%m/%d')
+      @packing_instruction_yotei = pro.deadline_at&.strftime('%y/%m/%d') || ''
+      @packing_instruction_kanryou = pro.end_at&.strftime('%y/%m/%d') || ''
       @packing_instruction_check = if pro.documents.attached?
         '☑'
       else
@@ -508,8 +508,8 @@ class ProductCreateDataService
 
   def collect_parts_inspection(pro, stage)
     if stage == '部品検査成績書'
-      @parts_inspection_report_yotei = pro.deadline_at.strftime('%y/%m/%d')
-      @parts_inspection_report_kanryou = pro.end_at.strftime('%y/%m/%d')
+      @parts_inspection_report_yotei = pro.deadline_at&.strftime('%y/%m/%d') || ''
+      @parts_inspection_report_kanryou = pro.end_at&.strftime('%y/%m/%d') || ''
       @parts_inspection_report_check = if pro.documents.attached?
                      '☑'
                    else
@@ -520,8 +520,8 @@ class ProductCreateDataService
 
   def collect_tech_specs(pro, stage)
     if stage == '技術仕様書'
-      @specifications_yotei = pro.deadline_at.strftime('%y/%m/%d')
-      @specifications_kanryou = pro.end_at.strftime('%y/%m/%d')
+      @specifications_yotei = pro.deadline_at&.strftime('%y/%m/%d') || ''
+      @specifications_kanryou = pro.end_at&.strftime('%y/%m/%d') || ''
       @specifications_check = if pro.documents.attached?
                      '☑'
                    else
@@ -532,8 +532,8 @@ class ProductCreateDataService
 
   def collect_drawings(pro, stage)
     if stage == '図面（数学的データを含む）' || stage == '図面・仕様書の変更'
-      @drawing_yotei = pro.deadline_at.strftime('%y/%m/%d')
-      @drawing_kanryou = pro.end_at.strftime('%y/%m/%d')
+      @drawing_yotei = pro.deadline_at&.strftime('%y/%m/%d') || ''
+      @drawing_kanryou = pro.end_at&.strftime('%y/%m/%d') || ''
       @drawing_check = if pro.documents.attached?
                      '☑'
                    else
@@ -544,8 +544,8 @@ class ProductCreateDataService
 
   def collect_press_instructions(pro, stage)
     if stage == 'プレス作業手順書'
-      @stamping_instruction_yotei = pro.deadline_at.strftime('%y/%m/%d')
-      @stamping_instruction_kanryou = pro.end_at.strftime('%y/%m/%d')
+      @stamping_instruction_yotei = pro.deadline_at&.strftime('%y/%m/%d') || ''
+      @stamping_instruction_kanryou = pro.end_at&.strftime('%y/%m/%d') || ''
       @stamping_instruction_check = if pro.documents.attached?
                      '☑'
                    else
@@ -556,8 +556,8 @@ class ProductCreateDataService
 
   def collect_process_inspection_record(pro, stage)
     if stage == '工程検査記録票'
-      @process_inspection_record_yotei = pro.deadline_at.strftime('%y/%m/%d')
-      @process_inspection_record_kanryou = pro.end_at.strftime('%y/%m/%d')
+      @process_inspection_record_yotei = pro.deadline_at&.strftime('%y/%m/%d') || ''
+      @process_inspection_record_kanryou = pro.end_at&.strftime('%y/%m/%d') || ''
       @process_inspection_record_check = if pro.documents.attached?
                      '☑'
                    else
@@ -568,8 +568,8 @@ class ProductCreateDataService
 
   def collect_visual_inspection_guideline(pro, stage)
     if stage == '外観検査要領書'
-      @visual_inspection_youryousho_yotei = pro.deadline_at.strftime('%y/%m/%d')
-      @visual_inspection_youryousho_kanryou = pro.end_at.strftime('%y/%m/%d')
+      @visual_inspection_youryousho_yotei = pro.deadline_at&.strftime('%y/%m/%d') || ''
+      @visual_inspection_youryousho_kanryou = pro.end_at&.strftime('%y/%m/%d') || ''
       @visual_inspection_youryousho_check = if pro.documents.attached?
                      '☑'
                    else
@@ -580,8 +580,8 @@ class ProductCreateDataService
 
   def collect_inspection_procedures(pro, stage)
     if stage == '検査手順書'
-      @visual_inspection_tejyunsho_yotei = pro.deadline_at.strftime('%y/%m/%d')
-      @visual_inspection_tejyunsho_kanryou = pro.end_at.strftime('%y/%m/%d')
+      @visual_inspection_tejyunsho_yotei = pro.deadline_at&.strftime('%y/%m/%d') || ''
+      @visual_inspection_tejyunsho_kanryou = pro.end_at&.strftime('%y/%m/%d') || ''
       @visual_inspection_tejyunsho_check = if pro.documents.attached?
                      '☑'
                    else
@@ -592,8 +592,8 @@ class ProductCreateDataService
 
   def collect_manufacturing_feasibility(pro, stage)
     if stage == '製造実現可能性検討書'
-      @scr_yotei = pro.deadline_at.strftime('%y/%m/%d')
-      @scr_kanryou = pro.end_at.strftime('%y/%m/%d')
+      @scr_yotei = pro.deadline_at&.strftime('%y/%m/%d') || ''
+      @scr_kanryou = pro.end_at&.strftime('%y/%m/%d') || ''
       @feasibility_check = if pro.documents.attached?
                              '☑'
                            else
@@ -604,8 +604,8 @@ class ProductCreateDataService
 
   def collect_process_fmea(pro, stage)
     if stage == 'プロセスFMEA' || stage == 'プロセス故障モード影響解析（PFMEA）'
-      @pfmea_yotei = pro.deadline_at.strftime('%y/%m/%d')
-      @pfmea_kanryou = pro.end_at.strftime('%y/%m/%d')
+      @pfmea_yotei = pro.deadline_at&.strftime('%y/%m/%d') || ''
+      @pfmea_kanryou = pro.end_at&.strftime('%y/%m/%d') || ''
 
       if pro.documents.attached?
         begin
@@ -656,8 +656,8 @@ class ProductCreateDataService
 
   def collect_dr_meeting_minutes(pro, stage)
     if stage == 'DR会議議事録_金型設計'
-      @dr_yotei = pro.deadline_at.strftime('%y/%m/%d')
-      @dr_kanryou = pro.end_at.strftime('%y/%m/%d')
+      @dr_yotei = pro.deadline_at&.strftime('%y/%m/%d') || ''
+      @dr_kanryou = pro.end_at&.strftime('%y/%m/%d') || ''
       if pro.documents.attached?
         # 変数の設定
         partnumber = pro.partnumber # ここには実際の値を設定してください
@@ -703,8 +703,8 @@ class ProductCreateDataService
 
   def collect_msa_grr(pro, stage)
     if stage == '測定システム解析（MSA)' # GRR
-      @grr_yotei = pro.deadline_at.strftime('%y/%m/%d')
-      @grr_kanryou = pro.end_at.strftime('%y/%m/%d')
+      @grr_yotei = pro.deadline_at&.strftime('%y/%m/%d') || ''
+      @grr_kanryou = pro.end_at&.strftime('%y/%m/%d') || ''
 
       if pro.documents.attached?
         # 変数の設定
@@ -778,8 +778,8 @@ class ProductCreateDataService
 
   def collect_msa_crosstab(pro, stage)
     if stage == '測定システム解析（MSA)' # クロスタブ
-      @msa_yotei = pro.deadline_at.strftime('%y/%m/%d')
-      @msa_kanryou = pro.end_at.strftime('%y/%m/%d')
+      @msa_yotei = pro.deadline_at&.strftime('%y/%m/%d') || ''
+      @msa_kanryou = pro.end_at&.strftime('%y/%m/%d') || ''
 
       if pro.documents.attached?
         # 変数の設定
@@ -840,8 +840,8 @@ class ProductCreateDataService
 
   def collect_dimensional_measurement(pro, stage)
     if stage == '寸法測定結果' # 型検
-      @kataken_yotei = pro.deadline_at.strftime('%y/%m/%d')
-      @kataken_kanryou = pro.end_at.strftime('%y/%m/%d')
+      @kataken_yotei = pro.deadline_at&.strftime('%y/%m/%d') || ''
+      @kataken_kanryou = pro.end_at&.strftime('%y/%m/%d') || ''
 
       if pro.documents.attached?
         # 変数の設定
@@ -924,8 +924,8 @@ class ProductCreateDataService
 
   def collect_initial_process_survey(pro, stage)
     if stage == '初期工程調査結果'
-      @cpk_yotei = pro.deadline_at.strftime('%y/%m/%d')
-      @cpk_kanryou = pro.end_at.strftime('%y/%m/%d')
+      @cpk_yotei = pro.deadline_at&.strftime('%y/%m/%d') || ''
+      @cpk_kanryou = pro.end_at&.strftime('%y/%m/%d') || ''
       if pro.documents.attached?
         # 変数の設定
         partnumber = pro.partnumber # ここには実際の値を設定してください
@@ -1002,22 +1002,22 @@ class ProductCreateDataService
 
   def collect_prototype_instructions(pro, stage)
     if stage == '試作製造指示書_営業'
-      @shisaku_yotei = pro.deadline_at.strftime('%y/%m/%d')
-      @shisaku_kanryou = pro.end_at.strftime('%y/%m/%d')
+      @shisaku_yotei = pro.deadline_at&.strftime('%y/%m/%d') || ''
+      @shisaku_kanryou = pro.end_at&.strftime('%y/%m/%d') || ''
     end
   end
 
   def collect_mold_instructions(pro, stage)
     if stage == '金型製造指示書_営業'
-      @kanagata_yotei = pro.deadline_at.strftime('%y/%m/%d')
-      @kanagata_kanryou = pro.end_at.strftime('%y/%m/%d')
+      @kanagata_yotei = pro.deadline_at&.strftime('%y/%m/%d') || ''
+      @kanagata_kanryou = pro.end_at&.strftime('%y/%m/%d') || ''
     end
   end
 
   def collect_design_plan(pro, stage)
     if stage == '設計計画書_金型設計'
-      @plan_yotei = pro.deadline_at.strftime('%y/%m/%d')
-      @plan_kanryou = pro.end_at.strftime('%y/%m/%d')
+      @plan_yotei = pro.deadline_at&.strftime('%y/%m/%d') || ''
+      @plan_kanryou = pro.end_at&.strftime('%y/%m/%d') || ''
       if pro.documents.attached?
         # 変数の設定
         partnumber = pro.partnumber # ここには実際の値を設定してください
@@ -1064,8 +1064,8 @@ class ProductCreateDataService
 
   def collect_dr_concept_minutes(pro, stage)
     if stage == 'DR構想検討会議議事録_生産技術'
-      @dr_setsubi_yotei = pro.deadline_at.strftime('%y/%m/%d')
-      @dr_setsubi_kanryou = pro.end_at.strftime('%y/%m/%d')
+      @dr_setsubi_yotei = pro.deadline_at&.strftime('%y/%m/%d') || ''
+      @dr_setsubi_kanryou = pro.end_at&.strftime('%y/%m/%d') || ''
       if pro.documents.attached?
         # 変数の設定
         partnumber = pro.partnumber # ここには実際の値を設定してください
@@ -1131,8 +1131,8 @@ class ProductCreateDataService
 
   def collect_progress_management(pro, stage)
     if stage == '進捗管理票_生産技術'
-      @dr_seigi_yotei = pro.deadline_at.strftime('%y/%m/%d')
-      @dr_seigi_plan_kanryou = pro.end_at.strftime('%y/%m/%d')
+      @dr_seigi_yotei = pro.deadline_at&.strftime('%y/%m/%d') || ''
+      @dr_seigi_plan_kanryou = pro.end_at&.strftime('%y/%m/%d') || ''
       if pro.documents.attached?
         # 変数の設定
         partnumber = pro.partnumber # ここには実際の値を設定してください
@@ -1234,8 +1234,8 @@ class ProductCreateDataService
 
   def collect_initial_flow_record(pro, stage)
     if stage == '初期流動検査記録'
-      @shoki_yotei = pro.deadline_at.strftime('%y/%m/%d')
-      @shoki_kanryou = pro.end_at.strftime('%y/%m/%d')
+      @shoki_yotei = pro.deadline_at&.strftime('%y/%m/%d') || ''
+      @shoki_kanryou = pro.end_at&.strftime('%y/%m/%d') || ''
       @shoki_check = '☑'
       @shoki_person_in_charge = '石栗'
     end
@@ -1243,16 +1243,16 @@ class ProductCreateDataService
 
   def collect_material_specs(pro, stage)
     if stage == '材料仕様書'
-      @material_specification_yotei = pro.deadline_at.strftime('%y/%m/%d')
-      @material_specification_kanryou = pro.end_at.strftime('%y/%m/%d')
+      @material_specification_yotei = pro.deadline_at&.strftime('%y/%m/%d') || ''
+      @material_specification_kanryou = pro.end_at&.strftime('%y/%m/%d') || ''
       @material_specification_check = '☑'
     end
   end
 
   def collect_process_instructions(pro, stage)
     if stage == 'プロセス指示書'
-      @wi_yotei = pro.deadline_at.strftime('%y/%m/%d')
-      @wi_kanryou = pro.end_at.strftime('%y/%m/%d')
+      @wi_yotei = pro.deadline_at&.strftime('%y/%m/%d') || ''
+      @wi_kanryou = pro.end_at&.strftime('%y/%m/%d') || ''
     end
   end
 
