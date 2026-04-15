@@ -1,0 +1,17 @@
+Claudian（Obsidian プラグイン）の動作不良に関する調査を完了しました。
+
+調査の結果、Windows ホスト側で Docker Desktop が停止していることが、現在 Claudian が初期化タイムアウト（Request timeout: initialize）を起こしている直接的な原因であることが分かりました。また、直近のログ（INCIDENT_LOG.md）から、Gateway のフリーズやゾンビプロセスの蓄積、さらには E: ドライブの Junction 消失などが不安定さの背景にあることが判明しました。
+
+これらすべての背景と、Claude に伝えるためのプロトコル（指示テンプレート含む）をまとめたアーティファクトを作成しました。
+
+作成したプロトコル
+claudian_handover_protocol.md
+
+実施したこと
+docs/INCIDENT_LOG.md から、過去の Gateway / Paperless 障害（INC-003, INC-004）を特定。
+docker ps および tasklist により、ホスト側で Docker が停止していることを確認。
+LiteLLM の設定（Port 4000）や構成要素を整理し、他 AI への引き継ぎ用テンプレートを作成。
+推奨される次のステップ
+Docker Desktop の起動: Windows のスタートメニューから Docker Desktop を手動で起動してください。
+プロトコルの活用: Docker 起動後も動作が不安定な場合は、作成したプロトコルの「Claude への指示テンプレート」をコピーして、新しいセッションで Claude に調査を依頼してください。
+ご確認をお願いいたします。

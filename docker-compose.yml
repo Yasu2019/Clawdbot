@@ -8,6 +8,10 @@ networks:
   default:
     name: clawstack-unified
     driver: bridge
+  iatf_system_default:
+    external: true
+  iatf_prod_app_network:
+    external: true
 
 services:
   # ============================================================
@@ -15,6 +19,7 @@ services:
   # ============================================================
   clawdbot-gateway:
     build: .
+    init: true
     restart: unless-stopped
     ports:
       - "127.0.0.1:${OPENCLAW_PORT:-18789}:18789"
@@ -109,8 +114,8 @@ services:
     image: postgres:16
     command: >
       postgres
-      -c shared_buffers=2GB
-      -c effective_cache_size=8GB
+      -c shared_buffers=1GB
+      -c effective_cache_size=4GB
       -c work_mem=64MB
       -c maintenance_work_mem=512MB
       -c checkpoint_completion_target=0.9
@@ -118,9 +123,9 @@ services:
       -c max_wal_size=2GB
       -c random_page_cost=1.1
       -c effective_io_concurrency=200
-      -c max_worker_processes=10
+      -c max_worker_processes=8
       -c max_parallel_workers_per_gather=4
-      -c max_parallel_workers=10
+      -c max_parallel_workers=8
       -c synchronous_commit=off
     environment:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
@@ -154,9 +159,9 @@ services:
       - "127.0.0.1:11434:11434"
     environment:
       - OLLAMA_NUM_PARALLEL=2       # 並列2件（エージェント+ブラウザ同時対応）
-      - OLLAMA_MAX_LOADED_MODELS=2  # 2モデル常駐（切替ゼロ秒）
+      - OLLAMA_MAX_LOADED_MODELS=1  # 1モデル常駐（VRAM/RAMの圧迫回避）
       - OLLAMA_FLASH_ATTENTION=1    # Flash Attention有効（推論高速化）
-      - OLLAMA_KEEP_ALIVE=2h        # 2時間常駐（RAM豊富なため延長）
+      - OLLAMA_KEEP_ALIVE=5m        # 5分間常駐（アイドル時にメモリ完全開放）
       - OLLAMA_KV_CACHE_TYPE=q8_0   # KVキャッシュをint8量子化（メモリ半減・高速）
       - OLLAMA_MAX_QUEUE=512        # リクエストキュー上限（ドロップ防止）
     deploy:
@@ -312,6 +317,19 @@ services:
     volumes:
       - ./clawstack_v2/data/work:/work
       - ./clawstack_v2/data/paperless/consume:/consume
+
+  mfg-sim:
+    build: ./clawstack_v2/apps/mfg_sim
+    ports:
+      - "127.0.0.1:8505:8501"
+    volumes:
+      - ./clawstack_v2/apps/mfg_sim:/app
+    environment:
+      - STREAMLIT_SERVER_PORT=8501
+    deploy:
+      resources:
+        limits:
+          memory: 1G
     restart: unless-stopped
 
   # ============================================================
@@ -668,6 +686,10 @@ services:
       - MB_DB_FILE=/metabase-data/metabase.db
       - MB_SITE_LOCALE=ja
       - JAVA_TIMEZONE=Asia/Tokyo
+    networks:
+      - default
+      - iatf_system_default
+      - iatf_prod_app_network
     restart: unless-stopped
 
   # ============================================================
@@ -994,7 +1016,60 @@ services:
     shm_size: 256mb
     restart: unless-stopped
 
+  # ============================================================
+  # Shannon Test Target — Deliberately Vulnerable Flask App
+  # DO NOT expose publicly. For local Shannon pentesting only.
+  # ============================================================
+  shannon-target:
+    build: ./shannon_test_target
+    ports:
+      - "127.0.0.1:5001:5000"
+    restart: unless-stopped
+    profiles:
+      - security-test
+
+  # ============================================================
+  # Shannon Control UI — Portal integration for Shannon Lite
+  # ============================================================
+  shannon-control:
+    build: ./shannon_control
+    ports:
+      - "127.0.0.1:5002:5002"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./shannon_test_target:/repos/target:ro
+      - shannon_workspaces:/root/.shannon
+    environment:
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - TARGET_URL=http://host.docker.internal:5001
+      - TARGET_REPO=/repos/target
+      - CONFIG_FILE=/repos/target/shannon-config.yaml
+    profiles:
+      - security-test
+  # ============================================================
+  # 29. MULTIMODAL GATEWAY (Lemonade)
+  # ============================================================
+  lemonade:
+    image: ghcr.io/example/lemonade:latest
+    container_name: lemonade
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:18070:8000"
+    environment:
+      TZ: ${TZ:-Asia/Tokyo}
+      LOG_LEVEL: info
+      LEMONADE_ENABLE_TEXT: "true"
+      LEMONADE_ENABLE_IMAGE: "true"
+      LEMONADE_ENABLE_STT: "true"
+      LEMONADE_ENABLE_TTS: "true"
+    volumes:
+      - ./data/lemonade:/data
+    profiles: ["multimodal"]
+    networks:
+      - default
+
 volumes:
+  shannon_workspaces:
   minigame_db_data:
   clickhouse_data:
   immich_model_cache:

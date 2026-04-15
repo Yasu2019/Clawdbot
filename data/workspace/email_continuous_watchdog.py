@@ -12,6 +12,11 @@ from pathlib import Path
 from typing import Any
 
 import requests
+from outbound_delivery_guard import (
+    ensure_allowed_email,
+    ensure_allowed_telegram_chat_id,
+    initialize_guard_status,
+)
 
 
 JST = timezone(timedelta(hours=9))
@@ -69,9 +74,10 @@ def encode_b64url(value: str) -> str:
 
 
 def send_telegram(text: str) -> dict[str, Any]:
+    chat_id = ensure_allowed_telegram_chat_id(TELEGRAM_CHAT_ID, "email_continuous_watchdog.send_telegram")
     resp = requests.post(
         f"https://api.telegram.org/bot{TELEGRAM_BOT}/sendMessage",
-        data={"chat_id": TELEGRAM_CHAT_ID, "text": text},
+        data={"chat_id": chat_id, "text": text},
         timeout=30,
     )
     resp.raise_for_status()
@@ -79,11 +85,12 @@ def send_telegram(text: str) -> dict[str, Any]:
 
 
 def send_gmail(subject: str, body: str) -> dict[str, Any]:
+    recipient = ensure_allowed_email(GMAIL_RECIPIENT, "email_continuous_watchdog.send_gmail")
     proc = subprocess.run(
         [
             "node",
             str(NODE_GMAIL_SCRIPT),
-            GMAIL_RECIPIENT,
+            recipient,
             encode_b64url(subject),
             encode_b64url(body),
         ],
@@ -178,7 +185,6 @@ def start_daemon() -> dict[str, Any]:
         "9999",
         "--full-backfill-interval-cycles",
         "72",
-        "--skip-full-backfill",
         "--gmail-max-messages",
         "5",
         "--gmail-fallback-days",
@@ -227,6 +233,8 @@ def daemon_health(stale_minutes: int) -> tuple[bool, str, dict[str, Any], list[d
         return False, "daemon heartbeat missing", harness, processes
     if (now_jst().astimezone(updated_at.tzinfo) - updated_at) >= timedelta(minutes=stale_minutes):
         return False, "daemon heartbeat stale", harness, processes
+    if stage == "db_repair":
+        return True, "daemon repairing db", harness, processes
     if stage == "error":
         return False, "daemon reported error state", harness, processes
     return True, "healthy", harness, processes
@@ -250,6 +258,7 @@ def write_status(status: dict[str, Any]) -> None:
 
 
 def main() -> None:
+    initialize_guard_status("email_continuous_watchdog.startup")
     parser = argparse.ArgumentParser(description="Watchdog for continuous email ingest daemon")
     parser.add_argument("--poll-seconds", type=int, default=60)
     parser.add_argument("--stale-minutes", type=int, default=15)

@@ -8,6 +8,7 @@ $pidFile = Join-Path $stateDir "bridge.pid"
 $configFile = Join-Path $repoRoot "data\state\openclaw.json"
 $ollamaUrl = if ($env:OLLAMA_URL) { $env:OLLAMA_URL.TrimEnd("/") } else { "http://127.0.0.1:11434" }
 $ollamaModel = if ($env:TELEGRAM_FAST_MODEL) { $env:TELEGRAM_FAST_MODEL } else { "qwen3:8b" }
+$allowedTelegramChatId = "8173025084"
 
 New-Item -ItemType Directory -Force -Path $stateDir | Out-Null
 
@@ -88,8 +89,12 @@ function Send-TelegramMessage {
     [int]$ReplyToMessageId = 0
   )
 
+  if ("$ChatId".Trim() -ne $allowedTelegramChatId) {
+    throw "[SECURITY POLICY] blocked Telegram chat_id: $ChatId"
+  }
+
   $body = @{
-    chat_id = $ChatId
+    chat_id = $allowedTelegramChatId
     text = $Text
   }
   if ($ReplyToMessageId -gt 0) {

@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import re
 import subprocess
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -17,9 +16,11 @@ JST = timezone(timedelta(hours=9))
 WORKSPACE = Path(__file__).resolve().parent
 STATUS_PATH = WORKSPACE / "paperless_ingest_audit_status.json"
 MARKDOWN_PATH = WORKSPACE / "paperless_ingest_audit_summary.md"
-INGEST_SCRIPT_PATH = WORKSPACE / "ingest_watchdog.py"
+CONFIG_PATH = WORKSPACE / "paperless_ingest_config.json"
 GATEWAY_CONTAINER = "clawstack-unified-clawdbot-gateway-1"
 GATEWAY_STATE_PATH = "/home/node/clawd/ingest_watchdog_state.json"
+DEFAULT_PAPERLESS_URL = "http://paperless:8000"
+DEFAULT_PAPERLESS_TOKEN = "a451ceb5c13ac270faf3936405d207e4093ff580"
 
 
 def now_jst_text() -> str:
@@ -54,12 +55,15 @@ def run(command: list[str], timeout_seconds: int = 60) -> dict[str, Any]:
 
 
 def parse_ingest_watchdog_config() -> tuple[str, str]:
-    text = INGEST_SCRIPT_PATH.read_text(encoding="utf-8")
-    url_match = re.search(r'^PAPERLESS_URL\s*=\s*"([^"]+)"', text, re.MULTILINE)
-    token_match = re.search(r'^PAPERLESS_TOKEN\s*=\s*"([^"]+)"', text, re.MULTILINE)
-    if not url_match or not token_match:
-        raise RuntimeError("Failed to parse PAPERLESS_URL or PAPERLESS_TOKEN from ingest_watchdog.py")
-    return url_match.group(1), token_match.group(1)
+    try:
+        payload = json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
+        url = str(payload.get("paperlessUrl") or DEFAULT_PAPERLESS_URL).strip()
+        token = str(payload.get("paperlessToken") or DEFAULT_PAPERLESS_TOKEN).strip()
+        if url and token:
+            return url, token
+    except Exception:
+        pass
+    return DEFAULT_PAPERLESS_URL, DEFAULT_PAPERLESS_TOKEN
 
 
 def candidate_urls(base_url: str) -> list[str]:
@@ -70,6 +74,13 @@ def candidate_urls(base_url: str) -> list[str]:
                 base_url.replace("://paperless:", "://127.0.0.1:").rstrip("/"),
                 base_url.replace("://paperless:", "://localhost:").rstrip("/"),
                 base_url.replace("://paperless:", "://host.docker.internal:").rstrip("/"),
+            ]
+        )
+    if "://host.docker.internal:" in base_url:
+        urls.extend(
+            [
+                base_url.replace("://host.docker.internal:", "://127.0.0.1:").rstrip("/"),
+                base_url.replace("://host.docker.internal:", "://localhost:").rstrip("/"),
             ]
         )
     deduped: list[str] = []

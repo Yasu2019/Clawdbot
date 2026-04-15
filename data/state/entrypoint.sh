@@ -7,11 +7,15 @@ mkdir -p /home/node/.openclaw/devices
 # Always reset pending (incomplete pairings are stale after restart)
 echo "{}" > /home/node/.openclaw/devices/pending.json
 
-# FORCING REINSTALLATION IF MISSING
+# AUTO-UPDATE openclaw to latest on every startup
 export PATH=$PATH:/usr/local/bin:/home/node/.npm-global/bin
-if ! command -v openclaw &> /dev/null; then
-    echo "[entrypoint] openclaw not found. Attempting installation..."
-    npm install -g openclaw
+INSTALLED_VER=$(openclaw --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+LATEST_VER=$(npm show openclaw version 2>/dev/null | tr -d '[:space:]')
+if [ -z "$INSTALLED_VER" ] || [ "$INSTALLED_VER" != "$LATEST_VER" ]; then
+    echo "[entrypoint] Updating openclaw: $INSTALLED_VER -> $LATEST_VER"
+    npm install -g openclaw@latest 2>&1 | tail -3
+else
+    echo "[entrypoint] openclaw $INSTALLED_VER is up to date"
 fi
 
 # Wrapper function for openclaw to handle both binary and npx
@@ -46,7 +50,7 @@ chmod +x /home/node/.openclaw/auto_approve.sh
 pip3 install --quiet --break-system-packages openpyxl xlrd python-docx 2>/dev/null || true
 
 # Start ingest watchdog (Paperless API → Qdrant universal_knowledge)
-# n8n supervisor will restart it every 5 min if it dies; this starts it on container boot
+# Host-side paperless_rag_watchdog will restart it if it dies; this starts it on container boot
 if python3 -c "import fitz, requests" 2>/dev/null; then
     nohup python3 /home/node/clawd/ingest_watchdog.py >> /home/node/clawd/ingest_watchdog.log 2>&1 &
     echo "[entrypoint] Ingest watchdog started (PID $!)"

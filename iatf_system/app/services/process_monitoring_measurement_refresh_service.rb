@@ -22,8 +22,6 @@ class ProcessMonitoringMeasurementRefreshService
   end
 
   def call
-    return failure('PDF source directory was not found.') unless source_dir.exist?
-
     payload = load_payload
     years = target_years
     refreshed = []
@@ -80,9 +78,11 @@ class ProcessMonitoringMeasurementRefreshService
     excel_path = Rails.root.join('db', 'documents', "プロセスの監視・測定記録_#{year}年.xls")
 
     if excel_path.exist?
-      payload["year_#{year}"] = extract_excel_grid(excel_path, year)
+      payload["year_#{year}"] = extract_excel_year_items(excel_path, year)
       { updated: true, skipped_files: [] }
     else
+      return failure('PDF source directory was not found.') unless source_dir.exist?
+
       existing_by_month = Array(payload["year_#{year}"]).index_by { |item| item['month'].to_i }
       refreshed_by_month = {}
       skipped_files = []
@@ -95,6 +95,52 @@ class ProcessMonitoringMeasurementRefreshService
   def refresh_from_excel(excel_path, year, refreshed_by_month)
     items = extract_excel_year_items(excel_path, year)
     items.each { |item| refreshed_by_month[item['month'].to_i] = item }
+  end
+
+  def extract_excel_year_items(excel_path, year)
+    book = Spreadsheet.open(excel_path.to_s)
+    sheet = book.worksheet(0)
+
+    (1..12).map do |month|
+      {
+        'source_file' => excel_path.basename.to_s,
+        'year' => year,
+        'month' => month,
+        'created_date' => '',
+        'entries' => extract_excel_year_entries(sheet, month)
+      }
+    end
+  end
+
+  def extract_excel_year_entries(sheet, month)
+    data_col = month + 8
+    entries = []
+    current_process = nil
+
+    (8..150).each do |row_idx|
+      process_val = format_excel_value(sheet.cell(row_idx, 2))
+      current_process = process_val if process_val.present? && PROCESS_NAMES.any? { |pn| process_val.include?(pn.delete('???????')) }
+
+      metric_val = format_excel_value(sheet.cell(row_idx, 3))
+      next if metric_val.blank?
+      next if metric_val.include?('??') || metric_val.include?('??') || metric_val.include?('??')
+
+      target_val = format_excel_value(sheet.cell(row_idx, 4))
+      actual_val = format_excel_value(sheet.cell(row_idx + 1, data_col))
+      cumulative_val = format_excel_value(sheet.cell(row_idx + 2, data_col))
+      next if metric_val.blank? || target_val.blank? || actual_val.blank?
+
+      formatted_actual = "??#{actual_val} ??#{cumulative_val.presence || actual_val}"
+
+      entries << {
+        'process' => current_process.to_s,
+        'metric' => metric_val,
+        'target' => target_val,
+        'actual' => formatted_actual
+      }
+    end
+
+    entries
   end
 
   def refresh_from_pdfs(year, refreshed_by_month, skipped_files)
@@ -142,7 +188,7 @@ class ProcessMonitoringMeasurementRefreshService
     merges = sheet.merged_cells
 
     max_row = 150 # Increased to capture full footer contents
-    max_col = 25
+    max_col = 23
 
     rows_data = (0...max_row).filter_map do |r|
       row_obj = sheet.row(r)
@@ -182,6 +228,20 @@ class ProcessMonitoringMeasurementRefreshService
     }
   end
 
+  def template_column_widths(payload)
+    widths = Array(payload.dig('year_2024', 'column_widths'))
+    return widths if widths.present?
+
+    [3.625, 11.875, 3.625, 21.5, 11.625, 13.0, 10.875, 19.875, 5.375, 6.875, 6.875, 13.0, 13.0, 13.0, 13.0, 13.0, 13.0, 13.0, 13.0, 13.0, 13.0, 13.0, 13.0]
+  end
+
+  def template_header_rows(payload)
+    rows = Array(payload.dig('year_2024', 'rows'))
+    return [] if rows.blank?
+
+    Marshal.load(Marshal.dump(rows.first(8)))
+  end
+
   def merged_inner_cell?(merges, r, c)
     merges.any? { |m| r >= m[0] && r <= m[1] && c >= m[2] && c <= m[3] && !(r == m[0] && c == m[2]) }
   end
@@ -191,9 +251,15 @@ class ProcessMonitoringMeasurementRefreshService
   end
 
   def format_excel_value(val)
+    if val.respond_to?(:value)
+      inner = val.value
+      return format_excel_value(inner) unless inner.equal?(val)
+    end
+
     case val
     when Float
-      (val % 1).zero? ? val.to_i.to_s : val.to_s
+      formatted = format('%.4f', val.to_f)
+      formatted.sub(/\.?0+$/, '')
     when Spreadsheet::Link
       val.to_s.strip
     else

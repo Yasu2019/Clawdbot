@@ -26,6 +26,13 @@ import urllib.request
 import urllib.error
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
+import sys
+
+SCRIPT_PATH = Path(__file__).resolve()
+if str(SCRIPT_PATH.parent) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_PATH.parent))
+
+from outbound_delivery_guard import ensure_allowed_telegram_chat_id, initialize_guard_status
 
 # ── 設定 ─────────────────────────────────────────────────────────────────────
 
@@ -69,12 +76,13 @@ def send_telegram(text: str):
     if not TELEGRAM_BOT or not TELEGRAM_CID:
         log("WARN: Telegram credentials not set")
         return
+    chat_id = ensure_allowed_telegram_chat_id(TELEGRAM_CID, "inbox_watcher.send_telegram")
     if DRY_RUN:
         log(f"[dry-run] Telegram: {text[:120]}")
         return
     url  = f"https://api.telegram.org/bot{TELEGRAM_BOT}/sendMessage"
     data = json.dumps({
-        "chat_id":    TELEGRAM_CID,
+        "chat_id":    chat_id,
         "text":       text,
         "parse_mode": "HTML",
     }).encode()
@@ -427,4 +435,5 @@ def main():
 
 
 if __name__ == "__main__":
+    initialize_guard_status("inbox_watcher.startup")
     main()

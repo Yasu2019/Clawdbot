@@ -7,11 +7,26 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
+import requests
+
 
 JST = timezone(timedelta(hours=9))
 SCRIPT_PATH = Path(__file__).resolve()
 WORKSPACE = SCRIPT_PATH.parent
-ROOT = WORKSPACE.parent.parent
+
+
+def resolve_repo_root() -> Path:
+    candidates = [
+        WORKSPACE.parent.parent,
+        Path.cwd(),
+    ]
+    for candidate in candidates:
+        if (candidate / "scripts").exists() and (candidate / "docs").exists():
+            return candidate
+    return Path.cwd()
+
+
+ROOT = resolve_repo_root()
 STATUS_PATH = WORKSPACE / "auto_repair_allowed_status.json"
 STATE_PATH = WORKSPACE / "auto_repair_allowed_state.json"
 EMAIL_RUNTIME = WORKSPACE / "email_rag_ingest_runtime_status.json"
@@ -23,7 +38,19 @@ EMAIL_WATCHDOG_START = ROOT / "scripts" / "start_email_continuous_watchdog.ps1"
 LEARNING_REPAIR_SCRIPT = WORKSPACE / "repair_learning_engine.py"
 PAPERLESS_RAG_WATCHDOG_STATUS = WORKSPACE / "paperless_rag_watchdog_status.json"
 PAPERLESS_INGEST_STATUS = WORKSPACE / "ingest_watchdog_status.json"
+PAPERLESS_INGEST_CONFIG = WORKSPACE / "paperless_ingest_config.json"
+PAPERLESS_TOKEN_REFRESH_SCRIPT = WORKSPACE / "refresh_paperless_ingest_token.py"
 PAPERLESS_RAG_WATCHDOG_START = ROOT / "scripts" / "start_paperless_rag_watchdog.ps1"
+CLAUDIAN_WATCHDOG_STATUS = WORKSPACE / "claudian_watchdog_status.json"
+DOCKER_UI_WATCHDOG_STATUS = WORKSPACE / "docker_desktop_ui_watchdog_status.json"
+MINIPC_OPTIMIZER_WATCHDOG_STATUS = WORKSPACE / "minipc_optimizer_watchdog_status.json"
+EMAIL_BLACKLIST_HUB_STATUS = WORKSPACE / "email_blacklist_hub_status.json"
+EMAIL_SEARCH_API_PID = WORKSPACE / "email_search_api_windows.pid"
+CLAUDIAN_WATCHDOG_START = ROOT / "scripts" / "start_claudian_watchdog.ps1"
+DOCKER_UI_WATCHDOG_START = ROOT / "scripts" / "start_docker_desktop_ui_watchdog.ps1"
+MINIPC_OPTIMIZER_WATCHDOG_START = ROOT / "scripts" / "start_minipc_optimizer_watchdog.ps1"
+EMAIL_BLACKLIST_HUB_START = ROOT / "scripts" / "start_email_blacklist_hub_api.ps1"
+EMAIL_SEARCH_API_START = ROOT / "scripts" / "start_email_search_api.ps1"
 
 EMAIL_CMD = f'python "{WORKSPACE / "run_email_rag_ingest_report.py"}"'
 EMAIL_DAEMON_CMD = (
@@ -31,9 +58,16 @@ EMAIL_DAEMON_CMD = (
     '--poll-seconds 300 --learning-interval-cycles 3 --full-backfill-interval-cycles 72'
 )
 CAE_CMD = f'python "{WORKSPACE / "sync_cae_learning_memory.py"}" --base-url "http://localhost:8110" --source-org "Mitsui"'
-REPORT_CMD = 'docker exec clawstack-unified-learning_engine-1 python3 /workspace/scheduled_report_search.py sync --limit-executions 20'
+REPORT_CMD = f'python "{WORKSPACE / "scheduled_report_search.py"}" sync --limit-executions 20'
 LEARNING_REPAIR_CMD = f'python3 "{LEARNING_REPAIR_SCRIPT}"'
 PAPERLESS_RAG_WATCHDOG_CMD = f'powershell -ExecutionPolicy Bypass -File "{PAPERLESS_RAG_WATCHDOG_START}"'
+PAPERLESS_TOKEN_REFRESH_CMD = f'python3 "{PAPERLESS_TOKEN_REFRESH_SCRIPT}"'
+CLAUDIAN_WATCHDOG_CMD = f'powershell -ExecutionPolicy Bypass -File "{CLAUDIAN_WATCHDOG_START}"'
+DOCKER_UI_WATCHDOG_CMD = f'powershell -ExecutionPolicy Bypass -File "{DOCKER_UI_WATCHDOG_START}"'
+MINIPC_OPTIMIZER_WATCHDOG_CMD = f'powershell -ExecutionPolicy Bypass -File "{MINIPC_OPTIMIZER_WATCHDOG_START}"'
+EMAIL_BLACKLIST_HUB_CMD = f'powershell -ExecutionPolicy Bypass -File "{EMAIL_BLACKLIST_HUB_START}"'
+EMAIL_SEARCH_API_CMD = f'powershell -ExecutionPolicy Bypass -File "{EMAIL_SEARCH_API_START}"'
+EMAIL_SEARCH_STATS_URL = "http://127.0.0.1:8792/api/stats"
 
 
 def now_jst() -> datetime:
@@ -216,6 +250,8 @@ def should_repair_learning_engine(cae_status: dict[str, Any]) -> tuple[bool, str
 
 
 def should_repair_paperless_rag(watchdog_status: dict[str, Any], ingest_status: dict[str, Any]) -> tuple[bool, str]:
+    if not ps_contains("paperless_rag_watchdog.py"):
+        return True, "paperless watchdog process missing"
     watchdog_updated = parse_dt(watchdog_status.get("updatedAt"))
     ingest_updated = parse_dt(ingest_status.get("updatedAt"))
     ingest_stage = str(ingest_status.get("stage") or "")
@@ -232,6 +268,59 @@ def should_repair_paperless_rag(watchdog_status: dict[str, Any], ingest_status: 
     return False, "healthy"
 
 
+def load_paperless_ingest_config() -> dict[str, Any]:
+    return read_json(PAPERLESS_INGEST_CONFIG)
+
+
+def should_refresh_paperless_token() -> tuple[bool, str]:
+    config = load_paperless_ingest_config()
+    token = str(config.get("paperlessToken") or "").strip()
+    base_url = str(config.get("paperlessUrl") or "http://host.docker.internal:8000").strip()
+    if not token:
+        return True, "paperless token missing"
+    probe_urls = [base_url]
+    if "://host.docker.internal:" in base_url:
+        probe_urls.append(base_url.replace("://host.docker.internal:", "://127.0.0.1:"))
+        probe_urls.append(base_url.replace("://host.docker.internal:", "://localhost:"))
+    for probe_url in probe_urls:
+        try:
+            resp = requests.get(
+                f"{probe_url.rstrip('/')}/api/documents/?page_size=1",
+                headers={"Authorization": f"Token {token}"},
+                timeout=8,
+            )
+            if resp.status_code in {401, 403}:
+                return True, f"paperless auth returned {resp.status_code}"
+            if resp.ok:
+                return False, "healthy"
+        except Exception:
+            continue
+    return False, "probe inconclusive"
+
+
+def should_restart_watchdog(status_payload: dict[str, Any], process_token: str, max_age_minutes: int) -> tuple[bool, str]:
+    updated = parse_dt(status_payload.get("updatedAt") or status_payload.get("startedAt"))
+    if not ps_contains(process_token):
+        return True, f"{process_token} process missing"
+    if updated is None:
+        return True, f"{process_token} status missing"
+    if (now_jst().astimezone(updated.tzinfo) - updated) >= timedelta(minutes=max_age_minutes):
+        return True, f"{process_token} status stale"
+    return False, "healthy"
+
+
+def should_repair_email_search_api() -> tuple[bool, str]:
+    if not ps_contains("email_search_api.py"):
+        return True, "email_search_api.py process missing"
+    try:
+        resp = requests.get(EMAIL_SEARCH_STATS_URL, timeout=8)
+        if not resp.ok:
+            return True, f"email search api returned {resp.status_code}"
+    except Exception as exc:
+        return True, f"email search api probe failed: {exc}"
+    return False, "healthy"
+
+
 def main() -> None:
     email_status = read_json(EMAIL_RUNTIME)
     email_daemon_status = read_json(EMAIL_DAEMON_STATUS)
@@ -240,6 +329,10 @@ def main() -> None:
     idle_status = read_json(IDLE_MAINTENANCE_STATUS)
     paperless_watchdog_status = read_json(PAPERLESS_RAG_WATCHDOG_STATUS)
     paperless_ingest_status = read_json(PAPERLESS_INGEST_STATUS)
+    claudian_watchdog_status = read_json(CLAUDIAN_WATCHDOG_STATUS)
+    docker_ui_watchdog_status = read_json(DOCKER_UI_WATCHDOG_STATUS)
+    minipc_optimizer_watchdog_status = read_json(MINIPC_OPTIMIZER_WATCHDOG_STATUS)
+    email_blacklist_hub_status = read_json(EMAIL_BLACKLIST_HUB_STATUS)
     repair_state = read_json(STATE_PATH)
 
     status: dict[str, Any] = {
@@ -256,6 +349,12 @@ def main() -> None:
     report_fix, report_reason = should_repair_scheduled_reports(report_status, idle_status)
     learning_fix, learning_reason = should_repair_learning_engine(cae_status)
     paperless_fix, paperless_reason = should_repair_paperless_rag(paperless_watchdog_status, paperless_ingest_status)
+    paperless_token_fix, paperless_token_reason = should_refresh_paperless_token()
+    claudian_fix, claudian_reason = should_restart_watchdog(claudian_watchdog_status, "claudian_watchdog.py", 30)
+    docker_ui_fix, docker_ui_reason = should_restart_watchdog(docker_ui_watchdog_status, "docker_desktop_ui_watchdog.py", 30)
+    minipc_fix, minipc_reason = should_restart_watchdog(minipc_optimizer_watchdog_status, "minipc_optimizer_watchdog.py", 30)
+    blacklist_fix, blacklist_reason = should_restart_watchdog(email_blacklist_hub_status, "email_blacklist_hub_api.py", 180)
+    email_search_fix, email_search_reason = should_repair_email_search_api()
     if report_fix and email_runtime_in_progress(email_status):
         report_fix = False
         report_reason = "email nightly in progress; defer scheduled report repair"
@@ -266,6 +365,12 @@ def main() -> None:
     status["rules"].append({"name": "scheduled_reports", "shouldRepair": report_fix, "reason": report_reason})
     status["rules"].append({"name": "learning_engine", "shouldRepair": learning_fix, "reason": learning_reason})
     status["rules"].append({"name": "paperless_rag", "shouldRepair": paperless_fix, "reason": paperless_reason})
+    status["rules"].append({"name": "paperless_token", "shouldRepair": paperless_token_fix, "reason": paperless_token_reason})
+    status["rules"].append({"name": "claudian_watchdog", "shouldRepair": claudian_fix, "reason": claudian_reason})
+    status["rules"].append({"name": "docker_ui_watchdog", "shouldRepair": docker_ui_fix, "reason": docker_ui_reason})
+    status["rules"].append({"name": "minipc_optimizer_watchdog", "shouldRepair": minipc_fix, "reason": minipc_reason})
+    status["rules"].append({"name": "email_blacklist_hub", "shouldRepair": blacklist_fix, "reason": blacklist_reason})
+    status["rules"].append({"name": "email_search_api", "shouldRepair": email_search_fix, "reason": email_search_reason})
     write_status(status)
 
     if learning_fix:
@@ -277,6 +382,13 @@ def main() -> None:
         status["step"] = "repair_paperless_rag"
         status["actions"].append("paperless_rag_watchdog_restart")
         write_status(status)
+        if paperless_token_fix:
+            allowed, result = can_attempt(repair_state, "paperless_token_refresh", max_attempts=3, window_minutes=180)
+            if allowed:
+                status["results"]["paperless_token_refresh"] = run_command(PAPERLESS_TOKEN_REFRESH_CMD, 120)
+            else:
+                status["results"]["paperless_token_refresh"] = result
+            write_status(status)
         allowed, result = can_attempt(repair_state, "paperless_rag_watchdog_restart", max_attempts=3, window_minutes=120)
         if allowed:
             status["results"]["paperless_rag_watchdog_restart"] = run_command(PAPERLESS_RAG_WATCHDOG_CMD, 120)
@@ -288,6 +400,16 @@ def main() -> None:
             status["results"]["learning_engine_repair"] = run_command(LEARNING_REPAIR_CMD, 900)
         else:
             status["results"]["learning_engine_repair"] = result
+        write_status(status)
+    elif paperless_token_fix:
+        status["step"] = "refresh_paperless_token"
+        status["actions"].append("paperless_token_refresh")
+        write_status(status)
+        allowed, result = can_attempt(repair_state, "paperless_token_refresh", max_attempts=3, window_minutes=180)
+        if allowed:
+            status["results"]["paperless_token_refresh"] = run_command(PAPERLESS_TOKEN_REFRESH_CMD, 120)
+        else:
+            status["results"]["paperless_token_refresh"] = result
         write_status(status)
 
     if report_fix:
@@ -342,6 +464,61 @@ def main() -> None:
             "skipped": True,
             "reason": "run_email_rag_ingest_report.py already running",
         }
+        write_status(status)
+
+    if claudian_fix:
+        status["step"] = "repair_claudian_watchdog"
+        status["actions"].append("claudian_watchdog_restart")
+        write_status(status)
+        allowed, result = can_attempt(repair_state, "claudian_watchdog_restart", max_attempts=3, window_minutes=180)
+        if allowed:
+            status["results"]["claudian_watchdog_restart"] = run_command(CLAUDIAN_WATCHDOG_CMD, 60)
+        else:
+            status["results"]["claudian_watchdog_restart"] = result
+        write_status(status)
+
+    if docker_ui_fix:
+        status["step"] = "repair_docker_ui_watchdog"
+        status["actions"].append("docker_ui_watchdog_restart")
+        write_status(status)
+        allowed, result = can_attempt(repair_state, "docker_ui_watchdog_restart", max_attempts=3, window_minutes=180)
+        if allowed:
+            status["results"]["docker_ui_watchdog_restart"] = run_command(DOCKER_UI_WATCHDOG_CMD, 60)
+        else:
+            status["results"]["docker_ui_watchdog_restart"] = result
+        write_status(status)
+
+    if minipc_fix:
+        status["step"] = "repair_minipc_optimizer_watchdog"
+        status["actions"].append("minipc_optimizer_watchdog_restart")
+        write_status(status)
+        allowed, result = can_attempt(repair_state, "minipc_optimizer_watchdog_restart", max_attempts=3, window_minutes=180)
+        if allowed:
+            status["results"]["minipc_optimizer_watchdog_restart"] = run_command(MINIPC_OPTIMIZER_WATCHDOG_CMD, 60)
+        else:
+            status["results"]["minipc_optimizer_watchdog_restart"] = result
+        write_status(status)
+
+    if blacklist_fix:
+        status["step"] = "repair_email_blacklist_hub"
+        status["actions"].append("email_blacklist_hub_restart")
+        write_status(status)
+        allowed, result = can_attempt(repair_state, "email_blacklist_hub_restart", max_attempts=3, window_minutes=180)
+        if allowed:
+            status["results"]["email_blacklist_hub_restart"] = run_command(EMAIL_BLACKLIST_HUB_CMD, 60)
+        else:
+            status["results"]["email_blacklist_hub_restart"] = result
+        write_status(status)
+
+    if email_search_fix:
+        status["step"] = "repair_email_search_api"
+        status["actions"].append("email_search_api_restart")
+        write_status(status)
+        allowed, result = can_attempt(repair_state, "email_search_api_restart", max_attempts=3, window_minutes=180)
+        if allowed:
+            status["results"]["email_search_api_restart"] = run_command(EMAIL_SEARCH_API_CMD, 60)
+        else:
+            status["results"]["email_search_api_restart"] = result
         write_status(status)
 
     status["step"] = "completed"

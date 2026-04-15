@@ -30,6 +30,8 @@ from pathlib import Path
 
 import requests
 
+from outbound_delivery_guard import ensure_allowed_telegram_chat_id, initialize_guard_status
+
 # ── 設定 ─────────────────────────────────────────────────────────────────────
 
 JST        = timezone(timedelta(hours=9))
@@ -78,12 +80,13 @@ def log(msg: str, level: str = "INFO") -> None:
 def send_telegram(text: str) -> None:
     if not TELEGRAM_BOT or not TELEGRAM_CID:
         return
+    chat_id = ensure_allowed_telegram_chat_id(TELEGRAM_CID, "rag_queue_processor.send_telegram")
     if DRY_RUN:
         log(f"[dry-run] Telegram: {text[:100]}")
         return
     url  = f"https://api.telegram.org/bot{TELEGRAM_BOT}/sendMessage"
     data = json.dumps({
-        "chat_id": TELEGRAM_CID, "text": text, "parse_mode": "HTML"
+        "chat_id": chat_id, "text": text, "parse_mode": "HTML"
     }).encode()
     try:
         req = urllib.request.Request(url, data=data,
@@ -415,4 +418,5 @@ def main() -> None:
 
 
 if __name__ == "__main__":
+    initialize_guard_status("rag_queue_processor.startup")
     main()

@@ -12,7 +12,7 @@ Rails.application.configure do
   
   # メール設定
   config.action_mailer.default_url_options = {
-    host: ENV['MINIPC'] == 'true' ? 'localhost:3001' : 'nys-web.net',
+    host: ENV['MINIPC'] == 'true' ? 'localhost:3004' : 'nys-web.net',
     protocol: ENV['MINIPC'] == 'true' ? 'http' : 'https'
   }
   config.action_mailer.delivery_method = :smtp

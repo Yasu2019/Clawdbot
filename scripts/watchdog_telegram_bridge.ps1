@@ -4,16 +4,17 @@
 
 param()
 
-$repoRoot    = Split-Path -Parent $PSScriptRoot
-$stateDir    = Join-Path $repoRoot "data\state\telegram_fast"
-$statusFile  = Join-Path $stateDir "harness_status.json"
-$pidFile     = Join-Path $stateDir "bridge.pid"
-$logFile     = Join-Path $stateDir "watchdog.log"
+$repoRoot = Split-Path -Parent $PSScriptRoot
+$stateDir = Join-Path $repoRoot "data\state\telegram_fast"
+$statusFile = Join-Path $stateDir "harness_status.json"
+$pidFile = Join-Path $stateDir "bridge.pid"
+$logFile = Join-Path $stateDir "watchdog.log"
 $startScript = Join-Path $repoRoot "scripts\start_telegram_fast_bridge.ps1"
+$canonicalBridge = Join-Path $repoRoot "scripts\telegram_fast_bridge.js"
 
 function Write-WLog {
     param([string]$msg)
-    $ts   = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+    $ts = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
     $line = "[$ts] $msg"
     Write-Output $line
     Add-Content -Path $logFile -Value $line -Encoding UTF8 -ErrorAction SilentlyContinue
@@ -23,14 +24,59 @@ function Start-Bridge {
     & powershell.exe -NonInteractive -ExecutionPolicy Bypass -File $startScript
 }
 
-# 1. No status file -> not running
+function Get-BridgeProcesses {
+    $escapedRepoRoot = [regex]::Escape($repoRoot)
+    $canonicalPattern = [regex]::Escape($canonicalBridge)
+    @(Get-CimInstance Win32_Process | Where-Object {
+        $_.CommandLine -and
+        $_.CommandLine -match $escapedRepoRoot -and
+        $_.CommandLine -match 'telegram_fast_bridge'
+    } | Select-Object ProcessId, Name, CommandLine, @{
+        Name = "Implementation";
+        Expression = {
+            if ($_.CommandLine -match $canonicalPattern) { "canonical_js" }
+            elseif ($_.CommandLine -match 'telegram_fast_bridge_v\d+\.ps1') { "legacy_ps_variant" }
+            elseif ($_.CommandLine -match 'telegram_fast_bridge\.ps1') { "legacy_ps" }
+            else { "unknown" }
+        }
+    })
+}
+
+function Restart-CanonicalBridge {
+    param([string]$Reason)
+    Write-WLog "WARN: $Reason Restarting canonical bridge..."
+    $processes = Get-BridgeProcesses
+    foreach ($proc in $processes) {
+        Stop-Process -Id $proc.ProcessId -Force -ErrorAction SilentlyContinue
+    }
+    if (Test-Path $pidFile) {
+        Remove-Item $pidFile -Force -ErrorAction SilentlyContinue
+    }
+    Start-Sleep -Seconds 3
+    Start-Bridge
+    exit 0
+}
+
+$bridgeProcesses = Get-BridgeProcesses
+$canonicalProcesses = @($bridgeProcesses | Where-Object { $_.Implementation -eq "canonical_js" })
+$legacyProcesses = @($bridgeProcesses | Where-Object { $_.Implementation -ne "canonical_js" })
+
+if ($legacyProcesses.Count -gt 0) {
+    $legacySummary = ($legacyProcesses | ForEach-Object { "$($_.ProcessId):$($_.Implementation)" }) -join ", "
+    Restart-CanonicalBridge -Reason "unexpected legacy bridge implementation detected ($legacySummary)."
+}
+
+if ($canonicalProcesses.Count -gt 1) {
+    $canonicalSummary = ($canonicalProcesses | ForEach-Object { $_.ProcessId }) -join ", "
+    Restart-CanonicalBridge -Reason "multiple canonical bridge processes detected ($canonicalSummary)."
+}
+
 if (-not (Test-Path $statusFile)) {
     Write-WLog "WARN: status file missing. Starting bridge..."
     Start-Bridge
     exit 0
 }
 
-# 2. Parse status
 try {
     $status = [System.IO.File]::ReadAllText($statusFile, [System.Text.Encoding]::UTF8) | ConvertFrom-Json
 } catch {
@@ -39,11 +85,19 @@ try {
     exit 0
 }
 
-$state     = $status.state
+$state = $status.state
 $updatedAt = $status.updatedAt
-$pidVal    = [int]$status.pid
+$pidVal = [int]$status.pid
+$canonicalPid = if ($canonicalProcesses.Count -eq 1) { [int]$canonicalProcesses[0].ProcessId } else { 0 }
 
-# 3. Check if process is alive
+if ($canonicalPid -le 0) {
+    Restart-CanonicalBridge -Reason "canonical bridge process not found."
+}
+
+if ($pidVal -ne $canonicalPid) {
+    Restart-CanonicalBridge -Reason "status pid $pidVal does not match canonical bridge pid $canonicalPid."
+}
+
 $processAlive = $false
 if ($pidVal -gt 0) {
     $proc = Get-Process -Id $pidVal -ErrorAction SilentlyContinue
@@ -51,36 +105,23 @@ if ($pidVal -gt 0) {
 }
 
 if (-not $processAlive) {
-    Write-WLog "WARN: bridge process (PID=$pidVal) not found. Restarting..."
-    Start-Bridge
-    exit 0
+    Restart-CanonicalBridge -Reason "bridge process (PID=$pidVal) not found."
 }
 
-# 4. Check for stale status (hung process)
 $lagMin = 999
 try {
     $lastUpdate = [datetime]::Parse($updatedAt).ToUniversalTime()
-    $lagMin     = ([datetime]::UtcNow - $lastUpdate).TotalMinutes
+    $lagMin = ([datetime]::UtcNow - $lastUpdate).TotalMinutes
 } catch {
     $lagMin = 999
 }
 
 if ($lagMin -gt 10) {
-    Write-WLog "WARN: bridge stale ${lagMin}min (state=$state). Restarting..."
-    Stop-Process -Id $pidVal -Force -ErrorAction SilentlyContinue
-    Start-Sleep -Seconds 32
-    Start-Bridge
-    exit 0
+    Restart-CanonicalBridge -Reason "bridge stale ${lagMin}min (state=$state)."
 }
 
-# 5. poll_conflict for >2min -> restart to clear stale TCP connection
 if ($state -eq "poll_conflict" -and $lagMin -gt 2) {
-    Write-WLog "WARN: poll_conflict ${lagMin}min. Clearing TCP and restarting..."
-    Stop-Process -Id $pidVal -Force -ErrorAction SilentlyContinue
-    Start-Sleep -Seconds 32
-    Start-Bridge
-    exit 0
+    Restart-CanonicalBridge -Reason "poll_conflict ${lagMin}min."
 }
 
-# 6. Healthy
-Write-WLog "OK: bridge running (PID=$pidVal, state=$state, lag=${lagMin}min)"
+Write-WLog "OK: bridge running (PID=$pidVal, state=$state, lag=${lagMin}min, impl=canonical_js)"

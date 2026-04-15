@@ -241,6 +241,34 @@
 
   .panel { display: none; }
   .panel.active { display: block; }
+
+  /* 検索チップス */
+  .search-tips {
+    background: rgba(91,110,245,0.05);
+    border: 1px solid rgba(91,110,245,0.2);
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    font-size: 0.82rem;
+    line-height: 1.6;
+    color: var(--muted);
+  }
+  .search-tips h4 {
+    color: var(--accent);
+    font-size: 0.85rem;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .search-tips b { color: var(--text); }
+  .search-tips code {
+    background: rgba(255,255,255,0.1);
+    padding: 2px 5px;
+    border-radius: 4px;
+    font-family: inherit;
+    color: var(--text);
+  }
 </style>
 </head>
 <body>
@@ -265,6 +293,14 @@
     <div class="search-bar">
       <input type="text" id="emailQ" placeholder="キーワードを入力（例: 在庫 確認、RoHS 分析）" onkeydown="if(event.key==='Enter')searchEmail()">
       <button class="btn" onclick="searchEmail()">検索</button>
+    </div>
+    <div class="search-tips">
+      <h4>💡 検索のヒント</h4>
+      <b>1. AND 検索</b>: 複数の単語を <code>スペース</code> で区切って入力してください。<br>
+      &nbsp;&nbsp;&nbsp;例: <code>報告 会議</code> &rarr; 「報告」と「会議」の <b>両方</b> を含むメールがヒットします。<br>
+      <b>2. OR 検索</b>: 単語の間に <b>大文字の <code>OR</code></b> を入れて入力してください。<br>
+      &nbsp;&nbsp;&nbsp;例: <code>報告 OR 会議</code> &rarr; 「報告」または「会議」の <b>どちらか</b> を含むメールがヒットします。<br>
+      <small style="opacity:0.8">※注意: <code>or</code>（小文字）だと単なる検索ワードとして扱われるため、必ず大文字の <code>OR</code> を使用してください。</small>
     </div>
     <div class="result-count" id="emailCount"></div>
     <div class="results" id="emailResults"></div>

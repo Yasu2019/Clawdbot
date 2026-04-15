@@ -1,0 +1,16 @@
+encoding: utf-8
+line_endings: lf
+naming:
+  style: snake_case
+  ascii_preferred: true
+  date_format: yyyy-mm-dd
+linking:
+  min_related_notes: 3
+  require_sources: true
+  require_open_questions: true
+qa:
+  save_every_query: true
+  promote_to_topic_when_reused: true
+maintenance:
+  weekly_review: true
+  monthly_lint: true

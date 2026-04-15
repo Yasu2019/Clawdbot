@@ -349,8 +349,16 @@ class ProcessMonitoringMeasurementService
 
   def split_actual_values(text)
     value = clean_inline_text(text)
-    monthly = value[/当月\s*([^累]+?)(?=\s*累[計積]|\z)/, 1]&.strip
-    cumulative = value[/累[計積]\s*(.+)\z/, 1]&.strip
+    monthly = nil
+    cumulative = nil
+
+    if value.include?('??') && value.include?('??')
+      monthly = value.split('??', 2).last.to_s.split('??', 2).first.to_s.strip
+      cumulative = value.split('??', 2).last.to_s.strip
+    elsif value.include?('???') && value.include?('??')
+      monthly = value.split('???', 2).last.to_s.split('??', 2).first.to_s.strip
+      cumulative = value.split('??', 2).last.to_s.strip
+    end
 
     monthly = value if monthly.blank? && cumulative.blank?
     [monthly, cumulative]

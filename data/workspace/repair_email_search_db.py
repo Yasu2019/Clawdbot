@@ -188,6 +188,7 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--chunk-size", type=int, default=500)
     parser.add_argument("--restart-watchdog", action="store_true")
+    parser.add_argument("--skip-stop-processes", action="store_true")
     parser.add_argument("--source-db")
     args = parser.parse_args()
 
@@ -200,10 +201,16 @@ def main() -> int:
     }
     write_status(status)
 
-    stop_results = {
-        "watchdog": stop_processes("email_continuous_watchdog.py"),
-        "daemon": stop_processes("continuous_email_ingest_daemon.py"),
-    }
+    if args.skip_stop_processes:
+        stop_results = {
+            "watchdog": {"skipped": True},
+            "daemon": {"skipped": True},
+        }
+    else:
+        stop_results = {
+            "watchdog": stop_processes("email_continuous_watchdog.py"),
+            "daemon": stop_processes("continuous_email_ingest_daemon.py"),
+        }
     status["stopResults"] = stop_results
     status["stage"] = "backing_up"
     write_status(status)

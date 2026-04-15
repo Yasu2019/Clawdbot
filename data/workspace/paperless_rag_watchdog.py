@@ -136,18 +136,36 @@ def ingest_process_alive() -> bool:
             GATEWAY_CONTAINER,
             "sh",
             "-lc",
-            "ps -ef | grep ingest_watchdog.py | grep -v grep >/dev/null",
+            "pgrep -f '^python3 /home/node/clawd/ingest_watchdog.py$' >/dev/null",
         ),
         30,
     )
     return result.get("returncode") == 0
 
 
+def ingest_process_count() -> int:
+    result = run_command(
+        docker_command(
+            "exec",
+            GATEWAY_CONTAINER,
+            "sh",
+            "-lc",
+            "pgrep -fc '^python3 /home/node/clawd/ingest_watchdog.py$' || true",
+        ),
+        30,
+    )
+    try:
+        return int(str(result.get("stdout") or "").strip() or "0")
+    except Exception:
+        return 0
+
+
 def restart_ingest() -> dict[str, Any]:
     script = (
-        f'if [ -f "{INGEST_PID}" ]; then kill $(cat "{INGEST_PID}") 2>/dev/null || true; fi; '
+        "pkill -f '^python3 /home/node/clawd/ingest_watchdog.py$' || true; "
+        "sleep 1; "
         f'rm -f "{INGEST_PID}"; '
-        f'nohup python3 "{INGEST_SCRIPT}" >> "{INGEST_LOG}" 2>&1 &'
+        f'nohup python3 "{INGEST_SCRIPT}" >> "{INGEST_LOG}" 2>&1 </dev/null &'
     )
     return run_command(docker_command("exec", GATEWAY_CONTAINER, "sh", "-lc", script), 60)
 
@@ -243,6 +261,7 @@ def main() -> None:
         container_running = container_is_running()
         container_state = gateway_container_state() if container_running else {}
         ingest_alive = container_running and ingest_process_alive()
+        ingest_count = ingest_process_count() if container_running else 0
 
         healthy = True
         reason = "healthy"
@@ -264,6 +283,9 @@ def main() -> None:
         elif not ingest_alive:
             healthy = False
             reason = "ingest_watchdog.py is not running inside gateway"
+        elif ingest_count > 1:
+            healthy = False
+            reason = f"ingest_watchdog.py has duplicate processes ({ingest_count})"
         elif updated is None:
             healthy = False
             reason = "ingest heartbeat is missing"
@@ -282,6 +304,7 @@ def main() -> None:
             "runningForMinutes": running_for_minutes,
         }
         status["ingestAlive"] = ingest_alive
+        status["ingestProcessCount"] = ingest_count
         status["lastIngestStatus"] = ingest_status
         status["lastReason"] = warmup_reason if warmup else reason
         status["stage"] = "warming_up" if warmup else ("healthy" if healthy else "repairing")

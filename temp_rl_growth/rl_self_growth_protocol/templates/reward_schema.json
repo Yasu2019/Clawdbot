@@ -1,0 +1,9 @@
+{
+  "accuracy_weight": 0.30,
+  "completeness_weight": 0.20,
+  "usefulness_weight": 0.20,
+  "instruction_following_weight": 0.15,
+  "conciseness_weight": 0.10,
+  "reuse_value_weight": 0.05,
+  "rewrite_threshold": 4.0
+}

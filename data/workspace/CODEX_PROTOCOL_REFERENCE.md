@@ -53,3 +53,4 @@ This package is a reusable execution protocol for:
   - QMS Audit
   - GD&T Overlay Studio
   - Kinematics Hub
+  - Caveman Minimal Agent Protocol: reference-only thin loop, not a new always-on framework

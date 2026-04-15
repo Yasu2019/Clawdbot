@@ -135,8 +135,8 @@ litellm_settings:
   success_callback: ["langfuse"]
   failure_callback: ["langfuse"]
 environment_variables:
-  LANGFUSE_PUBLIC_KEY: "pk-lf-clawstack-2026"
-  LANGFUSE_SECRET_KEY: "sk-lf-clawstack-2026"
+  LANGFUSE_PUBLIC_KEY: "pk-lf-REDACTED-"
+  LANGFUSE_SECRET_KEY: "sk-lf-REDACTED-"
   LANGFUSE_HOST: "http://langfuse:3000"
 ```
 LiteLLM経由の**全LLM呼び出しがLangfuseに自動記録**される。
@@ -329,8 +329,8 @@ user: root  ← Docker Socket 常時アクセス可
 | **外部ポート** | 3001 |
 | **内部ポート** | 3000 |
 | **Version** | 3.37.0（固定） |
-| **SDK公開鍵** | `pk-lf-clawstack-2026` |
-| **SDK秘密鍵** | `sk-lf-clawstack-2026` |
+| **SDK公開鍵** | `pk-lf-REDACTED-` |
+| **SDK秘密鍵** | `sk-lf-REDACTED-` |
 | **接続状態** | LiteLLM経由で全LLM呼び出しを自動トレース（2026-03-09 接続済み） |
 
 **依存コンポーネント**:

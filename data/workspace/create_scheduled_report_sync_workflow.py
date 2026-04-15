@@ -1,17 +1,44 @@
 #!/usr/bin/env python3
 import json
+import os
 import urllib.request
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 
-API_BASE = "http://127.0.0.1:5679/api/v1"
-API_KEY = "n8n_api_clawstack_f39c126b684f59ab50cc3fdedd82891086bfc633601067c9"
 WORKFLOW_NAME = "Sync Scheduled Reports to DB (Every 30m)"
 ROOT = Path(__file__).resolve().parents[2]
 BACKUP_DIR = ROOT / "backups" / "n8n"
 STATUS_PATH = ROOT / "data" / "workspace" / "scheduled_report_sync_workflow_status.json"
 JST = timezone(timedelta(hours=9))
+BROWSER_ID = "clawstack001"
+ACTIVE_MODE = "api_key"
+ACTIVE_COOKIE = ""
+
+
+def load_env_value(name: str) -> str:
+    direct = os.getenv(name, "").strip()
+    if direct:
+        return direct
+    env_path = ROOT / ".env"
+    try:
+        for raw in env_path.read_text(encoding="utf-8").splitlines():
+            line = raw.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, value = line.split("=", 1)
+            if key.strip() == name:
+                return value.strip().strip('"').strip("'")
+    except Exception:
+        pass
+    return ""
+
+
+API_BASE = "http://127.0.0.1:5679/api/v1"
+REST_BASE = "http://127.0.0.1:5679/rest"
+API_KEY = load_env_value("N8N_API_KEY") or "n8n_api_clawstack_f39c126b684f59ab50cc3fdedd82891086bfc633601067c9"
+N8N_LOGIN_EMAIL = load_env_value("N8N_EMAIL") or "y.suzuki.hk@gmail.com"
+N8N_LOGIN_PASSWORD = load_env_value("N8N_PASSWORD") or "Foxconnjpn75"
 
 
 def now_jst() -> str:
@@ -24,10 +51,53 @@ def write_status(data: dict) -> None:
 
 
 def request_json(path: str, method: str = "GET", payload: dict | None = None) -> dict:
-    headers = {"X-N8N-API-KEY": API_KEY, "Content-Type": "application/json"}
+    global ACTIVE_MODE, ACTIVE_COOKIE
     body = json.dumps(payload, ensure_ascii=False).encode("utf-8") if payload is not None else None
-    req = urllib.request.Request(f"{API_BASE}{path}", data=body, headers=headers, method=method)
-    with urllib.request.urlopen(req, timeout=30) as resp:
+    auth_attempts: list[tuple[str, str, dict[str, str]]] = []
+    if ACTIVE_MODE == "cookie" and ACTIVE_COOKIE:
+        auth_attempts.append(
+            (
+                "cookie",
+                REST_BASE,
+                {"Cookie": f"n8n-auth={ACTIVE_COOKIE}", "browser-id": BROWSER_ID, "Content-Type": "application/json"},
+            )
+        )
+    auth_attempts.extend(
+        [
+            ("api_key", API_BASE, {"X-N8N-API-KEY": API_KEY, "Content-Type": "application/json"}),
+            ("api_key", REST_BASE, {"X-N8N-API-KEY": API_KEY, "Content-Type": "application/json"}),
+        ]
+    )
+    last_error: Exception | None = None
+    for mode, base, headers in auth_attempts:
+        req = urllib.request.Request(f"{base}{path}", data=body, headers=headers, method=method)
+        try:
+            with urllib.request.urlopen(req, timeout=20) as resp:
+                ACTIVE_MODE = mode
+                return json.load(resp)
+        except Exception as exc:
+            last_error = exc
+    login_req = urllib.request.Request(
+        f"{REST_BASE}/login",
+        data=json.dumps({"emailOrLdapLoginId": N8N_LOGIN_EMAIL, "password": N8N_LOGIN_PASSWORD}).encode("utf-8"),
+        headers={"Content-Type": "application/json", "browser-id": BROWSER_ID},
+        method="POST",
+    )
+    with urllib.request.urlopen(login_req, timeout=15) as resp:
+        for header in resp.headers.get_all("Set-Cookie") or []:
+            if "n8n-auth=" in header:
+                ACTIVE_COOKIE = header.split("n8n-auth=", 1)[1].split(";", 1)[0]
+                ACTIVE_MODE = "cookie"
+                break
+    if not ACTIVE_COOKIE:
+        raise RuntimeError("n8n login did not return n8n-auth cookie")
+    req = urllib.request.Request(
+        f"{REST_BASE}{path}",
+        data=body,
+        headers={"Cookie": f"n8n-auth={ACTIVE_COOKIE}", "browser-id": BROWSER_ID, "Content-Type": "application/json"},
+        method=method,
+    )
+    with urllib.request.urlopen(req, timeout=20) as resp:
         return json.load(resp)
 
 

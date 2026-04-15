@@ -17,14 +17,24 @@ import json
 import os
 import sys
 import time
+import traceback
 import urllib.request
 import urllib.error
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
+SCRIPT_PATH = Path(__file__).resolve()
+if str(SCRIPT_PATH.parent) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_PATH.parent))
+
+from outbound_delivery_guard import ensure_allowed_telegram_chat_id, initialize_guard_status
+
 # ── Config ────────────────────────────────────────────────────────────────────
-N8N_BASE     = "http://n8n:5678/api/v1"
-N8N_API_KEY  = "n8n_api_clawstack_f39c126b684f59ab50cc3fdedd82891086bfc633601067c9"
+N8N_BASE     = "http://n8n:5678/rest"
+N8N_REST     = "http://n8n:5678/rest"
+N8N_EMAIL    = "y.suzuki.hk@gmail.com"
+N8N_PASSWORD = "Foxconnjpn75"
+_n8n_token: str = ""   # cached login token
 OLLAMA_BASE  = "http://ollama:11434"
 OLLAMA_MODEL = os.getenv("OLLAMA_CODE_MODEL", "qwen2.5-coder:14b")
 TELEGRAM_BOT = "8085717200:AAHzacN6Q3xSunrLyvUTuHnKEf7Cd5YFdt4"
@@ -37,7 +47,7 @@ MAX_LLM_ATTEMPTS    = 4   # LLM fix attempts before escalation
 MAX_TOTAL_ATTEMPTS  = 4   # after this, escalate to user (was 5, causing stuck-at-4 bug)
 
 # Workflows to exclude from monitoring (infrastructure monitors themselves)
-EXCLUDE_WF_IDS = {"jVGXe2GEIz6RN7Z0"}  # Ingest Watchdog Supervisor
+EXCLUDE_WF_IDS = {"VBQMPFGWSVtwy2Vy"}  # Ingest Watchdog Supervisor
 
 JST = timezone(timedelta(hours=9))
 
@@ -55,8 +65,35 @@ def log(msg: str):
         pass
 
 
+def _get_n8n_token() -> str:
+    """n8n にログインして認証トークンを取得・キャッシュする。"""
+    global _n8n_token
+    if _n8n_token:
+        return _n8n_token
+    req = urllib.request.Request(
+        N8N_REST + "/login",
+        data=json.dumps({"emailOrLdapLoginId": N8N_EMAIL, "password": N8N_PASSWORD}).encode(),
+        headers={"Content-Type": "application/json", "browser-id": "clawstack001"},
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=15) as r:
+            for hdr in r.headers.get_all("Set-Cookie") or []:
+                if "n8n-auth=" in hdr:
+                    _n8n_token = hdr.split("n8n-auth=")[1].split(";")[0]
+                    return _n8n_token
+    except Exception as e:
+        log(f"n8n ログイン失敗: {e}")
+    return ""
+
+
 def http_json(url: str, method="GET", data=None, headers=None) -> dict:
-    _headers = {"X-N8N-API-KEY": N8N_API_KEY, "Content-Type": "application/json"}
+    token = _get_n8n_token()
+    _headers = {
+        "Content-Type": "application/json",
+        "Cookie": f"n8n-auth={token}",
+        "browser-id": "clawstack001",
+    }
     if headers:
         _headers.update(headers)
     body = json.dumps(data, ensure_ascii=False).encode() if data else None
@@ -65,14 +102,34 @@ def http_json(url: str, method="GET", data=None, headers=None) -> dict:
         with urllib.request.urlopen(req, timeout=30) as r:
             return json.load(r)
     except urllib.error.HTTPError as e:
+        if e.code == 401:
+            global _n8n_token
+            _n8n_token = ""   # トークン期限切れ → 次回再ログイン
         return {"_error": e.code, "_body": e.read().decode(errors="replace")}
     except Exception as e:
         return {"_error": str(e)}
 
 
+def extract_n8n_items(payload) -> list:
+    """Normalize n8n list responses across API versions."""
+    if isinstance(payload, list):
+        return payload
+    if not isinstance(payload, dict):
+        return []
+    data = payload.get("data")
+    if isinstance(data, list):
+        return data
+    if isinstance(data, dict):
+        results = data.get("results")
+        if isinstance(results, list):
+            return results
+    return []
+
+
 def send_telegram(text: str):
+    chat_id = ensure_allowed_telegram_chat_id(TELEGRAM_CID, "workflow_healer.send_telegram")
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT}/sendMessage"
-    data = {"chat_id": TELEGRAM_CID, "text": text, "parse_mode": "HTML"}
+    data = {"chat_id": chat_id, "text": text, "parse_mode": "HTML"}
     body = json.dumps(data).encode()
     req = urllib.request.Request(url, data=body,
                                  headers={"Content-Type": "application/json"},
@@ -102,19 +159,19 @@ def save_state(state: dict):
 
 def get_active_workflows() -> list:
     r = http_json(f"{N8N_BASE}/workflows?limit=100&active=true")
-    return r.get("data", [])
+    return extract_n8n_items(r)
 
 
 def get_recent_executions(wf_id: str, limit=3) -> list:
     r = http_json(f"{N8N_BASE}/executions?workflowId={wf_id}&limit={limit}")
-    return r.get("data", [])
+    return extract_n8n_items(r)
 
 
 def get_execution_error(wf_id: str) -> dict:
     """Returns {node_name, error_message, node_type, js_code} for the latest failed exec."""
     r = http_json(
         f"{N8N_BASE}/executions?workflowId={wf_id}&limit=1&includeData=true")
-    execs = r.get("data", [])
+    execs = extract_n8n_items(r)
     if not execs:
         return {}
     e = execs[0]
@@ -436,6 +493,7 @@ def dry_run():
 
 if __name__ == "__main__":
     import argparse
+    initialize_guard_status("workflow_healer.startup")
     parser = argparse.ArgumentParser(description="n8n Workflow Self-Healer")
     parser.add_argument("--dry-run", "-n", action="store_true",
                         help="実際の修復は行わず、状態確認のみ")
@@ -447,6 +505,7 @@ if __name__ == "__main__":
         except Exception as e:
             print(f"[ERROR] {e}")
             sys.exit(1)
+        sys.exit(0)
     else:
         try:
             msgs = heal()
@@ -454,7 +513,9 @@ if __name__ == "__main__":
                 print("HEALER_MSGS:" + " | ".join(
                     m.replace("<b>", "").replace("</b>", "").replace("<code>", "").replace("</code>", "")
                     for m in msgs))
+            sys.exit(0)
         except Exception as e:
             log(f"FATAL: {e}")
+            log(traceback.format_exc().rstrip())
             send_telegram(f"🔥 workflow_healer.py クラッシュ: {e}")
-        sys.exit(1)
+            sys.exit(1)

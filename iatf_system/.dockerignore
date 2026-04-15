@@ -1,4 +1,26 @@
-# これは .dockerignore ファイルの例です
-
-# storage ディレクトリを無視
+# Ignore data/logs/temp
 storage/
+log/
+tmp/
+
+# Ignore local dependencies
+node_modules/
+vendor/bundle/
+.bundle/
+
+# Ignore local databases and documents
+db/*.sqlite3
+db/*.sqlite3-journal
+db/documents/
+db/record/
+
+# Ignore Git
+.git/
+.github/
+
+# Ignore local config/assets/backups
+.env*
+!.env.production
+public/assets/
+backups/
+dist/

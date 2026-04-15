@@ -5,6 +5,7 @@ const { promisify } = require('util');
 const execFileAsync = promisify(execFile);
 const {
   fetchEmailContext,
+  fetchEmailCount,
   fetchTaskContext,
   fetchComplaintContext,
   fetchReportContext,
@@ -22,6 +23,7 @@ const statusFile = path.join(stateDir, 'harness_status.json');
 const eventsFile = path.join(stateDir, 'events.log');
 const offsetFile = path.join(stateDir, 'offset.json');
 const pidFile = path.join(stateDir, 'bridge.pid');
+const dbContextFile = path.join(stateDir, 'last_db_context.json');
 const configFile = path.join(repoRoot, 'data', 'state', 'openclaw.json');
 
 const ollamaUrl = (process.env.OLLAMA_URL || 'http://127.0.0.1:11434').replace(/\/$/, '');
@@ -29,6 +31,7 @@ const replyModel = process.env.TELEGRAM_FAST_MODEL || 'google/gemini-2.5-flash';
 const replyApiBase = (process.env.TELEGRAM_FAST_API_BASE || 'http://127.0.0.1:4000/v1').replace(/\/$/, '');
 const replyApiKey = process.env.TELEGRAM_FAST_API_KEY || process.env.OPENAI_API_KEY || 'none';
 const MODEL_TIMEOUT_MS = Number(process.env.TELEGRAM_FAST_TIMEOUT_MS || 45000);
+const ALLOWED_TELEGRAM_CHAT_ID = '8173025084';
 // Escalation settings
 const localModel = process.env.TELEGRAM_LOCAL_MODEL || 'qwen3:8b';
 const AGENT_TIMEOUT_MS = Number(process.env.TELEGRAM_AGENT_TIMEOUT_MS || 120000);
@@ -86,6 +89,30 @@ function writeEvent(kind, data = {}) {
     ...data,
   };
   fs.appendFileSync(eventsFile, `${JSON.stringify(payload)}\n`);
+}
+
+function saveDbContext(payload) {
+  fs.writeFileSync(dbContextFile, JSON.stringify({
+    updatedAt: nowIso(),
+    ...payload,
+  }, null, 2));
+}
+
+function loadDbContext() {
+  return readJson(dbContextFile, null);
+}
+
+function assertAllowedTelegramChatId(chatId, source) {
+  const normalized = String(chatId || '').trim();
+  if (normalized !== ALLOWED_TELEGRAM_CHAT_ID) {
+    writeEvent('telegram_send_blocked', {
+      source,
+      requestedChatId: normalized,
+      allowedChatId: ALLOWED_TELEGRAM_CHAT_ID,
+    });
+    throw new Error(`[SECURITY POLICY] blocked Telegram chat_id for ${source}: ${normalized}`);
+  }
+  return ALLOWED_TELEGRAM_CHAT_ID;
 }
 
 function loadOffset() {
@@ -191,32 +218,251 @@ function sanitizeModelReply(inputText, replyText) {
   return reply;
 }
 
+function normalizeUserText(text) {
+  return String(text || '')
+    .normalize('NFKC')
+    .replace(/\u3000/g, ' ')
+    .trim();
+}
+
+function compactUserText(text) {
+  return normalizeUserText(text).toLowerCase().replace(/\s+/g, '');
+}
+
+function hasAnyPattern(text, patterns) {
+  return patterns.some((pattern) => pattern.test(text));
+}
+
+function extractContextTitles(context) {
+  const rows = Array.isArray(context?.results) ? context.results : [];
+  return rows
+    .map((item) => String(item?.subject || item?.title || item?.name || '').trim())
+    .filter(Boolean);
+}
+
+function uniqueStrings(values) {
+  const seen = new Set();
+  const result = [];
+  for (const value of values) {
+    const text = String(value || '').trim();
+    if (!text) continue;
+    const key = text.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    result.push(text);
+  }
+  return result;
+}
+
+function hasDbDomainHint(normalized, compact) {
+  return hasAnyPattern(normalized, [
+    /IATF/i,
+    /ISO\s*9001/i,
+    /ISO\s*16949/i,
+    /QMS/i,
+    /品質/,
+    /監査/,
+    /資料/,
+    /文書/,
+    /書類/,
+    /帳票/,
+    /記録/,
+    /データベース/,
+    /DB/,
+  ]) || hasAnyPattern(compact, [
+    /iatf/,
+    /iso9001/,
+    /iso16949/,
+    /qms/,
+    /db/,
+  ]);
+}
+
+function hasDbSearchVerb(normalized, compact) {
+  return hasAnyPattern(normalized, [
+    /検索/,
+    /探して/,
+    /調べて/,
+    /見つけて/,
+    /教えて/,
+    /見せて/,
+    /出して/,
+    /一覧/,
+    /リスト/,
+    /数えて/,
+    /件数/,
+    /何件/,
+    /何個/,
+    /どんな/,
+    /何がある/,
+    /あるか/,
+    /ありますか/,
+    /登録/,
+    /保存/,
+  ]) || hasAnyPattern(compact, [
+    /search/,
+    /find/,
+    /count/,
+    /list/,
+    /howmany/,
+    /whatisthere/,
+  ]);
+}
+
+function looksLikeDbCountRequest(normalized, compact) {
+  return hasAnyPattern(normalized, [
+    /何件/,
+    /件数/,
+    /総数/,
+    /何個/,
+    /いくつ/,
+    /数えて/,
+    /数を数えて/,
+    /資料数/,
+    /文書数/,
+    /書類数/,
+    /件ありますか/,
+    /件ある/,
+  ]) || hasAnyPattern(compact, [
+    /count/,
+    /howmany/,
+  ]);
+}
+
+function looksLikeDbListRequest(normalized, compact) {
+  return hasAnyPattern(normalized, [
+    /資料名/,
+    /文書名/,
+    /タイトル/,
+    /一覧/,
+    /リスト/,
+    /内訳/,
+    /どんな資料/,
+    /どの資料/,
+    /何がある/,
+    /何が登録/,
+    /代表資料/,
+    /例を見せて/,
+    /具体例/,
+  ]) || hasAnyPattern(compact, [
+    /titles/,
+    /list/,
+    /documents/,
+  ]);
+}
+
+function looksLikeDbFollowupRequest(normalized, compact, hasDbContext) {
+  if (!hasDbContext) return false;
+  return hasAnyPattern(normalized, [
+    /^それ$/,
+    /^それは$/,
+    /^これ$/,
+    /^これで$/,
+    /^その資料名は$/,
+    /^資料名は$/,
+    /^文書名は$/,
+    /^タイトルは$/,
+    /^一覧は$/,
+    /^もっと$/,
+    /^他には$/,
+    /^ほかには$/,
+    /^前の$/,
+    /^さっきの$/,
+    /^直前の$/,
+    /^その$/,
+    /^この$/,
+  ]) || hasAnyPattern(compact, [
+    /それは/,
+    /これ/,
+    /そのしりょうめいは/,
+    /そのもんしょめいは/,
+    /いちらんは/,
+    /もっと/,
+    /ほかには/,
+    /さっきの/,
+    /ちょくぜんの/,
+  ]);
+}
+
+function normalizeUserIntent(text) {
+  const normalized = normalizeUserText(text);
+  const compact = compactUserText(text);
+  const existingDbContext = loadDbContext();
+  const hasDbContext = Boolean(
+    existingDbContext &&
+    Array.isArray(existingDbContext.titles) &&
+    existingDbContext.titles.length > 0,
+  );
+
+  const countQuery = looksLikeDbCountRequest(normalized, compact);
+  const listQuery = looksLikeDbListRequest(normalized, compact);
+  const followupQuery = looksLikeDbFollowupRequest(normalized, compact, hasDbContext);
+  const dbDomainHint = hasDbDomainHint(normalized, compact);
+  const searchVerb = hasDbSearchVerb(normalized, compact);
+  const taskIntent = /(?:タスク|依頼|やること|todo|task|deadline|締切|期限|未回答|約束|remind|follow up|納期|来週|今週|明日|今日まで|何まで|いつまで)/i.test(normalized)
+    || /(?:deadline|due|task|todo|followup)/i.test(compact);
+  const reportIntent = /(?:日報|レポート|AI Scout|trend ranking|promises|health check|ヘルスチェック|定期報告|scheduled report|週次報告|月次報告)/i.test(normalized)
+    || /(?:aiscout|healthcheck|scheduledreport|dailyreport|trendranking)/i.test(compact);
+  const complaintIntent = /(?:クレーム|complaint|不具合|密着不良|溶解異常|再発防止|市場不良|品質問題|顧客不良|不適合事例)/i.test(normalized);
+  const emailIntent = /(?:メール|mail|gmail|eml|inbox|from:|to:|送信者|受信|返信|未読)/i.test(normalized)
+    || /(?:mail|gmail|inbox|from:|to:)/i.test(compact);
+
+  if ((countQuery || listQuery || followupQuery || (dbDomainHint && searchVerb)) && (dbDomainHint || hasDbContext || countQuery || listQuery || followupQuery)) {
+    return {
+      route: 'db',
+      mode: countQuery ? 'count' : followupQuery ? 'followup' : 'list',
+      normalized,
+      compact,
+      hasDbContext,
+    };
+  }
+
+  if (taskIntent) {
+    return {
+      route: 'task',
+      mode: /(?:納期|期限|締切|来週|今週|明日|今日まで|何まで|いつまで)/i.test(normalized) ? 'due' : 'search',
+      normalized,
+      compact,
+    };
+  }
+
+  if (reportIntent) {
+    return { route: 'report', mode: 'search', normalized, compact };
+  }
+
+  if (complaintIntent) {
+    return { route: 'complaint', mode: 'search', normalized, compact };
+  }
+
+  if (emailIntent) {
+    return { route: 'email', mode: 'search', normalized, compact };
+  }
+
+  return { route: 'general', mode: 'general', normalized, compact };
+}
+
 function isTaskIntent(text) {
-  const trimmed = (text || '').trim();
-  return /(タスク|依頼|やること|todo|task|deadline|締切|期限|未回答|約束|remind|follow up)/i.test(trimmed);
+  return normalizeUserIntent(text).route === 'task';
+}
+
+function isDatabaseIntent(text) {
+  return normalizeUserIntent(text).route === 'db';
 }
 
 function isEmailIntent(text) {
-  const trimmed = (text || '').trim();
-  return /(メール|mail|gmail|eml|返信|受信|inbox|from:|to:|件名)/i.test(trimmed);
+  return normalizeUserIntent(text).route === 'email';
 }
 
 function isReportIntent(text) {
-  const trimmed = (text || '').trim();
-  return /(日報|レポート|AI Scout|trend ranking|promises|health check|ヘルスチェック|scheduled report)/i.test(trimmed);
+  return normalizeUserIntent(text).route === 'report';
 }
 
 function isComplaintIntent(text) {
-  const trimmed = (text || '').trim();
-  return /(クレーム|complaint|品質異常|顧客苦情|不具合案件)/i.test(trimmed);
+  return normalizeUserIntent(text).route === 'complaint';
 }
 
 function classifyRoute(text) {
-  if (isReportIntent(text)) return 'report';
-  if (isComplaintIntent(text)) return 'complaint';
-  if (isEmailIntent(text)) return 'email';
-  if (isTaskIntent(text)) return 'task';
-  return 'general';
+  return normalizeUserIntent(text).route;
 }
 
 function normalizeComplaintQuery(text) {
@@ -244,7 +490,8 @@ async function telegramRequest(botToken, method, endpoint, body = null) {
 }
 
 async function sendTelegramMessage(botToken, chatId, text, replyToMessageId = 0) {
-  const body = { chat_id: String(chatId), text };
+  const allowedChatId = assertAllowedTelegramChatId(chatId, 'telegram_fast_bridge.sendTelegramMessage');
+  const body = { chat_id: allowedChatId, text };
   if (replyToMessageId > 0) {
     body.reply_to_message_id = String(replyToMessageId);
   }
@@ -252,8 +499,9 @@ async function sendTelegramMessage(botToken, chatId, text, replyToMessageId = 0)
 }
 
 async function editTelegramMessage(botToken, chatId, messageId, text) {
+  const allowedChatId = assertAllowedTelegramChatId(chatId, 'telegram_fast_bridge.editTelegramMessage');
   const body = {
-    chat_id: String(chatId),
+    chat_id: allowedChatId,
     message_id: String(messageId),
     text,
   };
@@ -827,9 +1075,80 @@ async function generateComplaintReply(text) {
   return `クレーム関連の一致はまだ見つかりませんでした。確認対象: ${normalizedQuery}`;
 }
 
+async function generateDatabaseReply(text) {
+  const existingContext = loadDbContext();
+  const intent = normalizeUserIntent(text);
+
+  if (intent.mode === 'followup' && existingContext && Array.isArray(existingContext.titles) && existingContext.titles.length > 0) {
+    return `直前のDB検索で見つかった資料名です。\n${existingContext.titles.slice(0, 10).map((title, index) => `${index + 1}. ${title}`).join('\n')}`;
+  }
+
+  if (intent.mode === 'count') {
+    const emailCount = await fetchEmailCount(repoRoot, text);
+    const emailContext = await fetchEmailContext(repoRoot, text, { limit: 10, force: true });
+    const titles = uniqueStrings(extractContextTitles(emailContext));
+    saveDbContext({
+      query: text,
+      route: 'db',
+      mode: 'count',
+      resultCount: emailCount.resultCount,
+      titles,
+    });
+    const preview = titles.length > 0
+      ? `\n代表資料名:\n${titles.slice(0, 5).map((title, index) => `${index + 1}. ${title}`).join('\n')}`
+      : '';
+    return `ローカルDB検索結果\n該当件数: ${emailCount.resultCount} 件${preview}`;
+  }
+
+  const taskContext = await fetchTaskContext(repoRoot, text, { limit: 5, force: true });
+  const reportContext = await fetchReportContext(repoRoot, text, { limit: 5, force: true });
+  const emailContext = await fetchEmailContext(repoRoot, text, { limit: 5, force: true });
+  const sections = [];
+
+  if (taskContext.summary && taskContext.resultCount > 0) {
+    sections.push(`タスクDB:\n${taskContext.summary}`);
+  }
+  if (reportContext.summary && reportContext.resultCount > 0) {
+    sections.push(`レポートDB:\n${reportContext.summary}`);
+  }
+  if (emailContext.summary && emailContext.resultCount > 0) {
+    sections.push(`メールDB:\n${emailContext.summary}`);
+  }
+
+  if (sections.length > 0) {
+    const titles = uniqueStrings([
+      ...extractContextTitles(taskContext),
+      ...extractContextTitles(reportContext),
+      ...extractContextTitles(emailContext),
+    ]);
+    saveDbContext({
+      query: text,
+      route: 'db',
+      mode: intent.mode || 'search',
+      resultCount: Math.max(
+        Number(taskContext.resultCount || 0),
+        Number(reportContext.resultCount || 0),
+        Number(emailContext.resultCount || 0),
+      ),
+      titles,
+    });
+    return `ローカルDBを検索しました。\n\n${sections.join('\n\n')}`;
+  }
+
+  if (intent.mode === 'list' && existingContext && Array.isArray(existingContext.titles) && existingContext.titles.length > 0) {
+    return `直前のDB検索で見つかった資料名です。\n${existingContext.titles.slice(0, 10).map((title, index) => `${index + 1}. ${title}`).join('\n')}`;
+  }
+
+  return 'ローカルDB検索では該当データを見つけられませんでした。キーワードを少し変えるか、資料名・期間・対象をもう少し具体的に教えてください。';
+}
+
 async function routeReply(text, onProgress = null, routeName = null, thinkOverride = null) {
   const route = routeName || classifyRoute(text);
   writeEvent('route', { lastMessage: text, route, think: thinkOverride });
+
+  if (route === 'db') {
+    return generateDatabaseReply(text);
+  }
 
   if (route === 'report') {
     const reportContext = await fetchReportContext(repoRoot, text, { limit: 5, force: true });

@@ -147,8 +147,40 @@
         <div class="panel">
             <h1>生成プレビュー</h1>
             <p>Remotionレンダラーによるリアルタイムプレビューです。</p>
-            <div class="preview-box">
-                <span style="color: #52525b;">レンダリング待機中</span>
+            <div class="preview-box" id="preview-box">
+                <span style="color: #52525b;" id="preview-placeholder">レンダリング待機中</span>
+                <video id="preview-video" style="display:none; width:100%; border-radius:10px;"
+                       controls playsinline></video>
+            </div>
+
+            <!-- サンプル動画 -->
+            <div style="margin-top:16px; display:flex; gap:10px; flex-wrap:wrap;">
+                <button class="btn-primary" style="background:#1a1a2e; border:1px solid #555; font-size:12px;"
+                        onclick="playSample('output/metal_short_sample.mp4', '🎸 ベーシック版')">
+                    🎸 ベーシック
+                </button>
+                <button class="btn-primary" style="background:#1a1a2e; border:1px solid #ff6600; font-size:12px;"
+                        onclick="playSample('output/metal_mv_enhanced.mp4', '🔥 MV強化版（炎・稲妻・波形）')">
+                    🔥 MV強化版
+                </button>
+                <button class="btn-primary" style="background:#1a1a2e; border:1px solid #22c55e; font-size:12px;"
+                        onclick="playSample('output/metal_mv_bgm.mp4', '🎵 MV強化版＋BGM（ヘビーメタルギター）')">
+                    🎵 MV＋BGM ★
+                </button>
+                <button class="btn-primary" style="background:#1a1a2e; border:1px solid #a855f7; font-size:12px;"
+                        onclick="playSample('output/metal_anime_bgm.mp4', '🤖 アニメ＋口パク＋BGM')">
+                    🤖 アニメ＋BGM ★
+                </button>
+                <button class="btn-primary" id="btn-sd" style="background:#1a1a2e; border:1px solid #f59e0b; font-size:12px; opacity:0.5;"
+                        onclick="playSample('output/metal_sd_final.mp4', '✨ SDキャラ版（Stable Diffusion）')"
+                        disabled>
+                    ✨ SDキャラ版（生成中…）
+                </button>
+                <a id="download-link" style="display:none;" download>
+                    <button class="btn-primary" style="background:#222; border:1px solid #22c55e; font-size:13px;">
+                        ⬇️ ダウンロード
+                    </button>
+                </a>
             </div>
         </div>
 
@@ -157,8 +189,9 @@
             <div id="log"
                 style="font-family: monospace; color: #a1a1aa; font-size: 13px; height: 150px; overflow-y: auto;">
                 > System initialized.<br>
-                > Remotion engine ready.<br>
-                > TTS profiles loaded.
+                > VOICEVOX engine ready. (青山龍星・熱血)<br>
+                > FFmpeg pipeline ready.<br>
+                > Sample: metal_short_sample.mp4 (4.4MB / 30sec) ✅
             </div>
         </div>
     </div>
@@ -170,13 +203,26 @@
             el.scrollTop = el.scrollHeight;
         }
 
+        function playSample(src, title) {
+            const video = document.getElementById('preview-video');
+            const placeholder = document.getElementById('preview-placeholder');
+            const dl = document.getElementById('download-link');
+            video.src = src;
+            video.style.display = 'block';
+            placeholder.style.display = 'none';
+            video.play();
+            dl.href = src;
+            dl.style.display = 'inline';
+            log(`▶ 再生: ${title}`);
+        }
+
         async function generateVideo() {
             log("Script generating via LLM...");
-            setTimeout(() => log("Generating audio via VOICEVOX..."), 1500);
-            setTimeout(() => log("Rendering frames in Remotion... (ffmpeg)"), 3000);
+            setTimeout(() => log("Generating audio via VOICEVOX (青山龍星・熱血)..."), 1500);
+            setTimeout(() => log("Rendering frames... (Pillow + FFmpeg)"), 3000);
             setTimeout(() => {
-                log("✅ Video ready: out/tiktok_shorts_v1.mp4");
-                alert("動画の生成が完了しました！出力フォルダを確認してください。");
+                log("✅ Video ready: metal_short_sample.mp4");
+                playSample('output/metal_short_sample.mp4', '生成完了');
             }, 5000);
         }
 

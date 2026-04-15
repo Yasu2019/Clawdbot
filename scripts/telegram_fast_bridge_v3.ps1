@@ -11,6 +11,7 @@ $configFile = Join-Path $repoRoot "data\state\openclaw.json"
 $libFile = Join-Path $repoRoot "scripts\telegram_fast_bridge_lib.ps1"
 $ollamaUrl = if ($env:OLLAMA_URL) { $env:OLLAMA_URL.TrimEnd("/") } else { "http://127.0.0.1:11434" }
 $ollamaModel = if ($env:TELEGRAM_FAST_MODEL) { $env:TELEGRAM_FAST_MODEL } else { "qwen3:8b" }
+$allowedTelegramChatId = "8173025084"
 
 New-Item -ItemType Directory -Force -Path $stateDir | Out-Null
 . $libFile
@@ -81,7 +82,11 @@ function Release-Lock {
 
 function Send-TelegramMessage {
   param([string]$BotToken, [string]$ChatId, [string]$Text, [int]$ReplyToMessageId = 0)
-  $body = @{ chat_id = $ChatId; text = $Text }
+  if ("$ChatId".Trim() -ne $allowedTelegramChatId) {
+    Write-Event -Kind "telegram_send_blocked" -Data @{ requestedChatId = $ChatId; allowedChatId = $allowedTelegramChatId }
+    throw "[SECURITY POLICY] blocked Telegram chat_id: $ChatId"
+  }
+  $body = @{ chat_id = $allowedTelegramChatId; text = $Text }
   if ($ReplyToMessageId -gt 0) { $body["reply_to_message_id"] = "$ReplyToMessageId" }
   Invoke-RestMethod -Method Post -Uri "https://api.telegram.org/bot$BotToken/sendMessage" -Body $body -TimeoutSec 20 | Out-Null
 }

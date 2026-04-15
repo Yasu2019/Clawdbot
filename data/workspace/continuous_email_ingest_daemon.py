@@ -25,11 +25,19 @@ STATUS_PATH = WORKSPACE / "email_continuous_ingest_status.json"
 STATE_PATH = WORKSPACE / "email_continuous_ingest_state.json"
 HARNESS_STATUS_PATH = ROOT / "data" / "state" / "email_continuous_ingest" / "harness_status.json"
 BACKFILL_STATUS_PATH = WORKSPACE / "gmail_priority_backfill_status.json"
+DB_REPAIR_STATUS_PATH = WORKSPACE / "email_search_db_repair_status.json"
 CONTAINER_NAME = "clawstack-unified-clawdbot-gateway-1"
 HOST_DB_PATH = WORKSPACE / "email_search.db"
 HOST_STATE_PATH = WORKSPACE / "email_search_state.json"
 CONTAINER_TEMP_DB = "/tmp/email_search_incremental.db"
 CONTAINER_TEMP_STATE = "/tmp/email_search_incremental_state.json"
+DB_CORRUPTION_SIGNATURES = (
+    "database disk image is malformed",
+    "temp integrity_check failed",
+    "integrity_check failed",
+    "freelist: size is",
+    "malformed",
+)
 
 
 def now_jst() -> datetime:
@@ -146,6 +154,22 @@ def parse_latest_json(stdout: str) -> dict[str, Any]:
         except Exception:
             continue
     return {}
+
+
+def is_db_corruption_error(*texts: str | None) -> bool:
+    haystack = "\n".join(str(text or "") for text in texts).lower()
+    return any(signature in haystack for signature in DB_CORRUPTION_SIGNATURES)
+
+
+def run_db_repair(timeout_seconds: int = 3600) -> dict[str, Any]:
+    return run_command(
+        [
+            "python",
+            str(WORKSPACE / "repair_email_search_db.py"),
+            "--skip-stop-processes",
+        ],
+        timeout_seconds=timeout_seconds,
+    )
 
 
 def clone_db_via_backup(src_path: Path, dst_path: Path) -> None:
@@ -302,13 +326,19 @@ def run_incremental_index(
     if force_query:
         command.extend(["--gmail-force-query", force_query])
 
+    popen_kwargs: dict[str, Any] = {
+        "stdout": subprocess.PIPE,
+        "stderr": subprocess.PIPE,
+        "text": True,
+        "encoding": "utf-8",
+        "errors": "replace",
+    }
+    if os.name == "nt":
+        popen_kwargs["creationflags"] = getattr(subprocess, "CREATE_NO_WINDOW", 0)
+
     proc = subprocess.Popen(
         command,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True,
-        encoding="utf-8",
-        errors="replace",
+        **popen_kwargs,
     )
 
     started = time.monotonic()
@@ -393,6 +423,7 @@ def build_initial_status(args: argparse.Namespace) -> dict[str, Any]:
         "indexTimeoutSeconds": args.gmail_index_timeout_seconds,
         "lastSuccessAt": state.get("lastSuccessAt"),
         "lastFullBackfillAt": last_full_backfill_at,
+        "lastRepairAt": state.get("lastRepairAt"),
         "lastSummary": state.get("lastSummary", {}),
         "lastError": "",
     }
@@ -407,6 +438,7 @@ def main() -> None:
     parser.add_argument("--gmail-fallback-days", type=int, default=3)
     parser.add_argument("--gmail-force-query")
     parser.add_argument("--gmail-index-timeout-seconds", type=int, default=900)
+    parser.add_argument("--db-repair-cooldown-minutes", type=int, default=180)
     parser.add_argument("--once", action="store_true")
     parser.add_argument("--skip-full-backfill", action="store_true")
     args = parser.parse_args()
@@ -447,8 +479,54 @@ def main() -> None:
                 write_status(status)
                 time.sleep(max(args.poll_seconds, 60))
                 continue
+            error_text = index_result.get("stderr") or index_result.get("stdout") or "incremental index failed"
+            if is_db_corruption_error(error_text, index_summary.get("error"), index_summary.get("traceback")):
+                last_repair_dt = parse_dt(status.get("lastRepairAt"))
+                repair_allowed = (
+                    last_repair_dt is None
+                    or (now_jst().astimezone(last_repair_dt.tzinfo) - last_repair_dt)
+                    >= timedelta(minutes=args.db_repair_cooldown_minutes)
+                )
+                if repair_allowed:
+                    status["stage"] = "db_repair"
+                    status["currentTask"] = "repair_email_search_db"
+                    status["lastError"] = error_text
+                    status["updatedAt"] = now_jst_text()
+                    write_status(status)
+                    repair_result = run_db_repair()
+                    repair_summary = load_json(DB_REPAIR_STATUS_PATH, {})
+                    status["lastRepairResult"] = repair_result
+                    status["lastSummary"]["repair"] = repair_summary
+                    status["lastRepairAt"] = now_jst_text()
+                    if repair_result.get("returncode") == 0 and repair_summary.get("stage") == "completed":
+                        status["stage"] = "idle"
+                        status["currentTask"] = "repair_completed_waiting"
+                        status["lastError"] = ""
+                        status["updatedAt"] = now_jst_text()
+                        write_status(status)
+                        save_json(
+                            STATE_PATH,
+                            {
+                                "cycle": cycle,
+                                "lastSuccessAt": status.get("lastSuccessAt"),
+                                "lastFullBackfillAt": last_full_backfill_at,
+                                "lastRepairAt": status.get("lastRepairAt"),
+                                "lastSummary": status.get("lastSummary", {}),
+                            },
+                        )
+                        time.sleep(5)
+                        continue
+                    status["stage"] = "error"
+                    status["currentTask"] = "repair_failed"
+                    status["lastError"] = repair_result.get("stderr") or repair_summary.get("error") or error_text
+                    status["updatedAt"] = now_jst_text()
+                    write_status(status)
+                    if args.once:
+                        break
+                    time.sleep(max(args.poll_seconds, 60))
+                    continue
             status["stage"] = "error"
-            status["lastError"] = index_result.get("stderr") or "incremental index failed"
+            status["lastError"] = error_text
             status["updatedAt"] = now_jst_text()
             write_status(status)
             if args.once:
@@ -527,6 +605,7 @@ def main() -> None:
                 "cycle": cycle,
                 "lastSuccessAt": status["lastSuccessAt"],
                 "lastFullBackfillAt": last_full_backfill_at,
+                "lastRepairAt": status.get("lastRepairAt"),
                 "lastSummary": status.get("lastSummary", {}),
             },
         )

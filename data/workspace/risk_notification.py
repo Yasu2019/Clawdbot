@@ -9,6 +9,11 @@ from pathlib import Path
 from typing import Any
 
 import requests
+from outbound_delivery_guard import (
+    ensure_allowed_email,
+    ensure_allowed_telegram_chat_id,
+    initialize_guard_status,
+)
 
 
 JST = timezone(timedelta(hours=9))
@@ -106,9 +111,10 @@ def encode_b64url(value: str) -> str:
 
 
 def send_telegram(text: str) -> dict[str, Any]:
+    chat_id = ensure_allowed_telegram_chat_id(TELEGRAM_CHAT_ID, "risk_notification.send_telegram")
     response = requests.post(
         f"https://api.telegram.org/bot{TELEGRAM_BOT}/sendMessage",
-        data={"chat_id": TELEGRAM_CHAT_ID, "text": text},
+        data={"chat_id": chat_id, "text": text},
         timeout=30,
     )
     response.raise_for_status()
@@ -116,11 +122,12 @@ def send_telegram(text: str) -> dict[str, Any]:
 
 
 def send_gmail(subject: str, body: str) -> dict[str, Any]:
+    recipient = ensure_allowed_email(GMAIL_RECIPIENT, "risk_notification.send_gmail")
     proc = subprocess.run(
         [
             "node",
             str(NODE_GMAIL_SCRIPT),
-            GMAIL_RECIPIENT,
+            recipient,
             encode_b64url(subject),
             encode_b64url(body),
         ],
@@ -149,6 +156,16 @@ def has_bad_result(result: dict[str, Any] | None) -> bool:
     return result.get("returncode") not in (None, 0)
 
 
+def failed_phase_names(results: dict[str, Any] | None) -> list[str]:
+    if not isinstance(results, dict):
+        return []
+    names: list[str] = []
+    for name, result in results.items():
+        if has_bad_result(result):
+            names.append(name)
+    return names
+
+
 def collect_findings() -> tuple[list[dict[str, str]], dict[str, Any]]:
     findings: list[dict[str, str]] = []
     email = read_json(EMAIL_RUNTIME)
@@ -168,13 +185,15 @@ def collect_findings() -> tuple[list[dict[str, str]], dict[str, Any]]:
         )
 
     email_started = parse_dt(email.get("startedAt"))
-    if any(has_bad_result(v) for v in (email.get("results") or {}).values()):
+    email_results = email.get("results") or {}
+    failed_phases = failed_phase_names(email_results)
+    if failed_phases:
         findings.append(
             make_finding(
                 "email_nightly_failed",
                 "medium",
                 "Email nightly reported a failed phase",
-                f"step={email.get('step')} currentPhase={email.get('currentPhase')}",
+                f"step={email.get('step')} currentPhase={email.get('currentPhase')} failedPhases={', '.join(failed_phases)}",
             )
         )
     elif email.get("step") != "completed" and email_started and age_minutes(email_started) and age_minutes(email_started) >= 120:
@@ -262,6 +281,7 @@ def build_message(findings: list[dict[str, str]], keys_to_send: list[str], conte
 
 
 def main() -> None:
+    initialize_guard_status("risk_notification.startup")
     state = read_json(STATE_PATH)
     findings, context = collect_findings()
     should_notify, keys_to_send = should_send(findings, state)

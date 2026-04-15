@@ -19,6 +19,7 @@ import sys
 import time
 import traceback
 from datetime import datetime
+from pathlib import Path
 from typing import Iterable
 
 import requests
@@ -29,9 +30,10 @@ LOG_FILE = "/home/node/clawd/ingest_watchdog.log"
 STATUS_FILE = "/home/node/clawd/ingest_watchdog_status.json"
 PID_FILE = "/home/node/clawd/ingest_watchdog.pid"
 FIGURE_ASSET_DIR = "/home/node/clawd/paperless_figure_assets"
+CONFIG_FILE = "/home/node/clawd/paperless_ingest_config.json"
 
-PAPERLESS_URL = "http://paperless:8000"
-PAPERLESS_TOKEN = "a451ceb5c13ac270faf3936405d207e4093ff580"
+DEFAULT_PAPERLESS_URL = "http://paperless:8000"
+DEFAULT_PAPERLESS_TOKEN = "a451ceb5c13ac270faf3936405d207e4093ff580"
 
 OLLAMA_URL = "http://ollama:11434/api/generate"
 INFINITY_URL = os.getenv("INFINITY_URL", "http://infinity:7997/embeddings")
@@ -49,7 +51,25 @@ MAX_PAGES = 60
 IDLE_SLEEP = 120
 CAPTION_TOKENS = ("fig", "figure", "table", "chart", "graph", "図", "表", "グラフ")
 
-HEADERS = {"Authorization": f"Token {PAPERLESS_TOKEN}"}
+
+def load_paperless_config() -> tuple[str, str]:
+    url = os.getenv("PAPERLESS_URL", DEFAULT_PAPERLESS_URL).strip()
+    token = os.getenv("PAPERLESS_TOKEN", DEFAULT_PAPERLESS_TOKEN).strip()
+    try:
+        payload = json.loads(Path(CONFIG_FILE).read_text(encoding="utf-8"))
+        if isinstance(payload, dict):
+            url = str(payload.get("paperlessUrl") or url).strip()
+            token = str(payload.get("paperlessToken") or token).strip()
+    except Exception:
+        pass
+    return url, token
+
+
+PAPERLESS_URL, PAPERLESS_TOKEN = load_paperless_config()
+
+
+def paperless_headers() -> dict[str, str]:
+    return {"Authorization": f"Token {PAPERLESS_TOKEN}"}
 
 
 def log(msg: str, level: str = "INFO") -> None:
@@ -170,7 +190,7 @@ def fetch_all_docs(state: dict) -> list[dict]:
     url = f"{PAPERLESS_URL}/api/documents/?page_size=100&ordering=id"
     while url:
         try:
-            resp = requests.get(url, headers=HEADERS, timeout=30)
+            resp = requests.get(url, headers=paperless_headers(), timeout=30)
             resp.raise_for_status()
             data = resp.json()
         except Exception as exc:
@@ -194,7 +214,7 @@ def fetch_all_docs(state: dict) -> list[dict]:
 
 def fetch_doc_detail(doc_id: int) -> dict | None:
     try:
-        resp = requests.get(f"{PAPERLESS_URL}/api/documents/{doc_id}/", headers=HEADERS, timeout=30)
+        resp = requests.get(f"{PAPERLESS_URL}/api/documents/{doc_id}/", headers=paperless_headers(), timeout=30)
         resp.raise_for_status()
         return resp.json()
     except Exception as exc:
@@ -204,7 +224,7 @@ def fetch_doc_detail(doc_id: int) -> dict | None:
 
 def download_pdf(doc_id: int) -> bytes | None:
     try:
-        resp = requests.get(f"{PAPERLESS_URL}/api/documents/{doc_id}/download/", headers=HEADERS, timeout=60)
+        resp = requests.get(f"{PAPERLESS_URL}/api/documents/{doc_id}/download/", headers=paperless_headers(), timeout=60)
         resp.raise_for_status()
         return resp.content
     except Exception as exc:
@@ -222,7 +242,7 @@ def extract_text_docling(doc_id: int) -> str | None:
                     {
                         "kind": "http",
                         "url": pdf_url,
-                        "headers": {"Authorization": f"Token {PAPERLESS_TOKEN}"},
+                        "headers": paperless_headers(),
                     }
                 ],
                 "options": {
@@ -737,10 +757,12 @@ def main() -> None:
     log(f"State loaded: {already} document(s) already processed")
     write_status(stage="starting", processedCount=already, idleSleepSeconds=IDLE_SLEEP)
 
+    consecutive_failures = 0
     while True:
         try:
             write_status(stage="polling", processedCount=len(state.get("processed", {})), idleSleepSeconds=IDLE_SLEEP)
             new_docs = fetch_all_docs(state)
+            consecutive_failures = 0  # Reset on success
             if new_docs:
                 log(f"Found {len(new_docs)} new document(s) to process")
                 write_status(stage="processing_batch", queueLength=len(new_docs), processedCount=len(state.get("processed", {})))
@@ -767,11 +789,14 @@ def main() -> None:
             else:
                 log(f"No new documents. Sleeping {IDLE_SLEEP}s...")
                 write_status(stage="idle", queueLength=0, processedCount=len(state.get("processed", {})), idleSleepSeconds=IDLE_SLEEP)
+            time.sleep(IDLE_SLEEP)
         except Exception as exc:
-            log(f"Main loop error: {exc}", "ERROR")
-            log(traceback.format_exc(), "ERROR")
+            consecutive_failures += 1
+            backoff = min(IDLE_SLEEP * (2 ** (consecutive_failures - 1)), 3600)
+            log(f"Main loop error (failure {consecutive_failures}): {exc}", "ERROR")
+            log(f"Backing off for {backoff}s...", "INFO")
             write_status(stage="error", lastError=str(exc), processedCount=len(state.get("processed", {})))
-        time.sleep(IDLE_SLEEP)
+            time.sleep(backoff)
 
 
 if __name__ == "__main__":

@@ -252,7 +252,9 @@ def main() -> None:
         state["consecutiveFailures"] = current_failures
         status["consecutiveFailures"] = current_failures
 
-        if unhealthy and not allow_ui_reset:
+        should_force_reset = unhealthy and current_failures >= max(failure_threshold * 3, 18)
+
+        if unhealthy and not allow_ui_reset and not should_force_reset:
             status["lastAction"] = "observe_only_no_ui_reset"
         elif unhealthy and current_failures < failure_threshold:
             status["lastAction"] = "observe_only_threshold_not_met"
@@ -263,7 +265,7 @@ def main() -> None:
                 "reason": reason,
                 "result": reset_result,
             }
-            status["lastAction"] = "reset_frontend_cache"
+            status["lastAction"] = "reset_frontend_cache_forced" if should_force_reset and not allow_ui_reset else "reset_frontend_cache"
             status["resetResult"] = reset_result
             save_json(STATE_PATH, state)
         elif unhealthy:

@@ -11,5 +11,5 @@ if ($existing) {
   exit 0
 }
 
-Start-Process -FilePath "python3" -ArgumentList "`"$scriptPath`" --poll-seconds 1 --quiet-recheck-seconds 1 --reset-cooldown-minutes 180" -WindowStyle Hidden
+Start-Process -FilePath "python3" -ArgumentList "`"$scriptPath`" --poll-seconds 30 --quiet-recheck-seconds 30 --reset-cooldown-minutes 180" -WindowStyle Hidden
 Write-Output "Docker Desktop UI watchdog started."

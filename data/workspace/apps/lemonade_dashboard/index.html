@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lemonade Dashboard | Clawstack</title>
+    <style>
+        :root {
+            --bg: #0b0d11;
+            --card: #151921;
+            --border: #2a2f3a;
+            --accent: #ffcc00;
+            --text: #e0e6ed;
+            --muted: #8892a4;
+            --green: #22c55e;
+            --red: #ef4444;
+            --radius: 12px;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 40px 20px;
+            line-height: 1.5;
+        }
+        .container { max-width: 800px; margin: 0 auto; }
+        header { margin-bottom: 32px; }
+        h1 { font-size: 2rem; font-weight: 800; color: var(--accent); margin-bottom: 8px; }
+        .sub { color: var(--muted); font-size: 0.9rem; }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+        .status-online { background: rgba(34, 197, 94, 0.15); color: var(--green); border: 1px solid rgba(34, 197, 104, 0.3); }
+        .status-offline { background: rgba(239, 68, 68, 0.15); color: var(--red); border: 1px solid rgba(239, 68, 68, 0.3); }
+
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; }
+        .item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+        }
+        .item .label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+        .item .val { font-size: 1.1rem; font-weight: 700; }
+
+        .log-box {
+            background: #000;
+            color: #ace;
+            font-family: 'Fira Code', monospace;
+            padding: 16px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            height: 200px;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🍋 Lemonade Portal</h1>
+            <div class="sub">Multimodal API Gateway — Unified OpenAI Interface</div>
+        </header>
+
+        <div class="card">
+            <div id="statusBadge" class="status-badge status-offline">Checking Status...</div>
+            <div class="grid">
+                <div class="item"><div class="label">Host Port</div><div class="val">18070</div></div>
+                <div class="item"><div class="label">STT</div><div class="val" style="color:var(--accent)">Active</div></div>
+                <div class="item"><div class="label">TTS</div><div class="val" style="color:var(--accent)">Active</div></div>
+                <div class="item"><div class="label">Vision</div><div class="val" style="color:var(--accent)">Active</div></div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3 style="margin-bottom:12px; font-size:0.9rem; color:var(--muted)">Health Log</h3>
+            <div class="log-box" id="logs">
+                [SYSTEM] Ready to monitor...
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API = 'http://127.0.0.1:18070';
+        const badge = document.getElementById('statusBadge');
+        const logs = document.getElementById('logs');
+
+        function addLog(msg) {
+            const time = new Date().toLocaleTimeString();
+            logs.innerHTML += `<div>[${time}] ${msg}</div>`;
+            logs.scrollTop = logs.scrollHeight;
+        }
+
+        async function checkStatus() {
+            try {
+                const res = await fetch(API + '/health', { mode: 'no-cors' });
+                // Since it's no-cors, we can't see the text but if fetch doesn't throw, it's likely up
+                badge.className = 'status-badge status-online';
+                badge.textContent = '● Lemonade is Online';
+                addLog('Health check passed.');
+            } catch (e) {
+                badge.className = 'status-badge status-offline';
+                badge.textContent = '○ Lemonade is Offline';
+                addLog('Health check failed: ' + e.message);
+            }
+        }
+
+        setInterval(checkStatus, 10000);
+        checkStatus();
+    </script>
+</body>
+</html>

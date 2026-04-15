@@ -187,7 +187,7 @@ langfuse / langfuse-worker 両方に適用。ClickHouse の TTL は Langfuse が
 プレースホルダーキーを実キーに更新済み:
 ```javascript
 const LANGFUSE_PUB    = 'pk-lf-07926c92-5480-4fb5-ae97-39e35a0a0ce5';
-const LANGFUSE_SECRET = 'sk-lf-9b4e86b1-ec3b-4826-aca7-b20bd68b1bd8';
+const LANGFUSE_SECRET = 'sk-lf-REDACTED-';
 ```
 
 ### アクセス

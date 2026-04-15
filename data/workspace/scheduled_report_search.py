@@ -18,8 +18,8 @@ from typing import Iterable
 JST = timezone(timedelta(hours=9))
 DEFAULT_API_BASES = [
     "http://127.0.0.1:5679/api/v1",
-    "http://host.docker.internal:5679/api/v1",
     "http://127.0.0.1:5679/rest",
+    "http://host.docker.internal:5679/api/v1",
     "http://host.docker.internal:5679/rest",
 ]
 API_BASE_CANDIDATES = [
@@ -27,15 +27,24 @@ API_BASE_CANDIDATES = [
     for base in ([os.getenv("N8N_API_BASE", "").strip()] + DEFAULT_API_BASES)
     if base and base.strip()
 ]
-API_KEY = "n8n_api_clawstack_f39c126b684f59ab50cc3fdedd82891086bfc633601067c9"
 WORKSPACE_ROOT = Path("/home/node/clawd")
 DEFAULT_DB = WORKSPACE_ROOT / "email_search.db"
 HOST_WORKSPACE_ROOT = Path(__file__).resolve().parent
 STATUS_PATH = (WORKSPACE_ROOT if WORKSPACE_ROOT.exists() else HOST_WORKSPACE_ROOT) / "scheduled_report_search_status.json"
 SYNC_STATE_PATH = (WORKSPACE_ROOT if WORKSPACE_ROOT.exists() else HOST_WORKSPACE_ROOT) / "scheduled_report_sync_state.json"
 ACTIVE_API_BASE: str | None = None
+ACTIVE_AUTH_MODE: str | None = None
+ACTIVE_COOKIE_BASE: str | None = None
+BROWSER_ID = "clawstack001"
 
 TARGET_WORKFLOWS = [
+    # 現行の n8n ワークフロー
+    "RLAnything Phase3 Runner",
+    "RLAnything Phase2 Monitor",
+    "P017 Workflow Self-Healer",
+    "AB Test: Multi-Model Comparison",
+    "Sync Scheduled Reports to DB (Every 30m)",
+    # （後日復元されたときのために旧レポート系も残しておく）
     "Daily AI Scout (新AI・ツール探索)",
     "Daily Trend Opportunity Report (20:30 JST)",
     "Daily Promises Report (23:00 JST)",
@@ -43,6 +52,30 @@ TARGET_WORKFLOWS = [
     "P016 Email Report (Daily 21:00 JST)",
     "Email RAG Ingest (Nightly 02:00 JST)",
 ]
+
+
+def load_env_value(name: str) -> str:
+    direct = os.getenv(name, "").strip()
+    if direct:
+        return direct
+    env_path = HOST_WORKSPACE_ROOT.parent.parent / ".env"
+    try:
+        for raw in env_path.read_text(encoding="utf-8").splitlines():
+            line = raw.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, value = line.split("=", 1)
+            if key.strip() == name:
+                return value.strip().strip('"').strip("'")
+    except Exception:
+        pass
+    return ""
+
+
+API_KEY = load_env_value("N8N_API_KEY") or "n8n_api_clawstack_f39c126b684f59ab50cc3fdedd82891086bfc633601067c9"
+N8N_LOGIN_EMAIL = load_env_value("N8N_EMAIL") or "y.suzuki.hk@gmail.com"
+N8N_LOGIN_PASSWORD = load_env_value("N8N_PASSWORD") or "Foxconnjpn75"
+CACHED_COOKIES: dict[str, str] = {}
 
 
 def now_jst() -> str:
@@ -150,8 +183,34 @@ def ensure_schema(con: sqlite3.Connection) -> None:
     con.commit()
 
 
+def cookie_base_for(base: str) -> str:
+    if base.endswith("/api/v1"):
+        return base[: -len("/api/v1")] + "/rest"
+    return base
+
+
+def fetch_login_cookie(base: str) -> str:
+    cookie_base = cookie_base_for(base)
+    cached = CACHED_COOKIES.get(cookie_base)
+    if cached:
+        return cached
+    req = urllib.request.Request(
+        f"{cookie_base}/login",
+        data=json.dumps({"emailOrLdapLoginId": N8N_LOGIN_EMAIL, "password": N8N_LOGIN_PASSWORD}).encode(),
+        headers={"Content-Type": "application/json", "browser-id": BROWSER_ID},
+        method="POST",
+    )
+    with urllib.request.urlopen(req, timeout=15) as resp:
+        for header in resp.headers.get_all("Set-Cookie") or []:
+            if "n8n-auth=" in header:
+                cookie = header.split("n8n-auth=", 1)[1].split(";", 1)[0]
+                CACHED_COOKIES[cookie_base] = cookie
+                return cookie
+    raise RuntimeError(f"n8n login at {cookie_base} did not return n8n-auth cookie")
+
+
 def request_json(path: str) -> dict:
-    global ACTIVE_API_BASE
+    global ACTIVE_API_BASE, ACTIVE_AUTH_MODE, ACTIVE_COOKIE_BASE
     candidates = [ACTIVE_API_BASE] if ACTIVE_API_BASE else []
     candidates.extend([base for base in API_BASE_CANDIDATES if base != ACTIVE_API_BASE])
     last_error: Exception | None = None
@@ -159,22 +218,56 @@ def request_json(path: str) -> dict:
     for base in candidates:
         if not base:
             continue
-        for headers in (
-            {"X-N8N-API-KEY": API_KEY, "Content-Type": "application/json"},
-            {"N8N-API-KEY": API_KEY, "Content-Type": "application/json"},
-        ):
-            req = urllib.request.Request(f"{base}{path}", headers=headers)
+        auth_attempts = [
+            ("api_key", base, {"X-N8N-API-KEY": API_KEY, "Content-Type": "application/json"}),
+            ("api_key", base, {"N8N-API-KEY": API_KEY, "Content-Type": "application/json"}),
+        ]
+        cookie_base = cookie_base_for(base)
+        if ACTIVE_AUTH_MODE == "cookie" and ACTIVE_COOKIE_BASE == cookie_base:
             try:
-                with urllib.request.urlopen(req, timeout=30) as resp:
-                    ACTIVE_API_BASE = base
+                cookie = fetch_login_cookie(base)
+                auth_attempts.insert(
+                    0,
+                    ("cookie", cookie_base, {"Cookie": f"n8n-auth={cookie}", "browser-id": BROWSER_ID, "Content-Type": "application/json"}),
+                )
+            except Exception as exc:
+                last_error = exc
+
+        auth_failed = False
+        for auth_mode, request_base, headers in auth_attempts:
+            req = urllib.request.Request(f"{request_base}{path}", headers=headers)
+            try:
+                with urllib.request.urlopen(req, timeout=20) as resp:
+                    ACTIVE_API_BASE = request_base
+                    ACTIVE_AUTH_MODE = auth_mode
+                    ACTIVE_COOKIE_BASE = cookie_base if auth_mode == "cookie" else None
                     return json.load(resp)
             except urllib.error.HTTPError as exc:
                 last_error = exc
                 if exc.code in (401, 403):
+                    auth_failed = True
+                    if auth_mode == "cookie":
+                        CACHED_COOKIES.pop(cookie_base, None)
                     continue
                 if exc.code == 404:
                     continue
                 raise
+            except Exception as exc:
+                last_error = exc
+                continue
+
+        if auth_failed:
+            try:
+                cookie = fetch_login_cookie(base)
+                req = urllib.request.Request(
+                    f"{cookie_base}{path}",
+                    headers={"Cookie": f"n8n-auth={cookie}", "browser-id": BROWSER_ID, "Content-Type": "application/json"},
+                )
+                with urllib.request.urlopen(req, timeout=20) as resp:
+                    ACTIVE_API_BASE = cookie_base
+                    ACTIVE_AUTH_MODE = "cookie"
+                    ACTIVE_COOKIE_BASE = cookie_base
+                    return json.load(resp)
             except Exception as exc:
                 last_error = exc
                 continue
@@ -249,7 +342,8 @@ def sync_reports(con: sqlite3.Connection, limit_per_workflow: int) -> dict:
     for wf in workflows:
         workflow_id = wf["id"]
         workflow_name = wf["name"]
-        executions = request_json(f"/executions?workflowId={workflow_id}&limit={limit_per_workflow}").get("data", [])
+        executions_raw = request_json(f"/executions?workflowId={workflow_id}&limit={limit_per_workflow}").get("data", [])
+        executions = executions_raw.get("results", []) if isinstance(executions_raw, dict) else executions_raw
         for execution_summary in executions:
             if execution_summary.get("status") != "success":
                 continue

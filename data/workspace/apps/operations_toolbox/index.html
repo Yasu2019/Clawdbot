@@ -144,6 +144,26 @@
           <div class="status-meta">Updated: <span id="agent-harness-updated">-</span></div>
           <div class="meta"><span class="chip">Harness</span><span class="chip">Checklist</span></div>
         </article>
+
+        <article class="card" onclick="location.href='/apps/lemonade_dashboard/'">
+          <span class="eyebrow">Multimodal</span>
+          <h3>Lemonade Gateway Status</h3>
+          <p class="sub">API: 18070 | OpenAI互換の音声認識・画像解析レイヤーの稼働状況を確認できます。</p>
+          <div class="row" id="lemonade-pills">
+            <span class="pill status-unknown" id="status-lemonade">Unknown</span>
+          </div>
+          <div class="meta"><span class="chip">Multimodal</span><span class="chip">Gateway</span></div>
+        </article>
+        <article class="card">
+          <span class="eyebrow">Operational Health</span>
+          <h3>AI Engineering Harness Status</h3>
+          <p class="sub">各種コア API と監視ハーネスの健全性サマリーです。Host API や Docker サービスの稼働状況を確認できます。</p>
+          <div class="row" id="ai-harness-pills">
+            <span class="pill progress">読み込み中</span>
+          </div>
+          <div class="status-meta">Updated: <span id="ai-harness-updated">-</span></div>
+          <div class="meta"><span class="chip">Health</span><span class="chip">APIs</span></div>
+        </article>
       </div>
     </section>
 
@@ -155,6 +175,12 @@
           <h3>Agent Harness Status</h3>
           <p class="sub">チェックリスト項目ごとの状態とメモを確認できます。</p>
           <div class="meta"><span class="chip">Details</span></div>
+        </a>
+        <a class="card" href="../ai_engineering_harness_status/index.html" target="_blank" rel="noopener">
+          <span class="eyebrow">Engineering</span>
+          <h3>AI Engineering Harness Status</h3>
+          <p class="sub">Host API、Docker サービス、Watchdog の詳細な稼働状態を確認できます。</p>
+          <div class="meta"><span class="chip">Service Health</span></div>
         </a>
       </div>
     </section>
@@ -284,8 +310,31 @@
       }
     }
 
+    async function loadAIEngineeringHarnessStatus() {
+      try {
+        const res = await fetch("../../continuous_system_improvement_status.json", { cache: "no-store" });
+        if (!res.ok) throw new Error(`status ${res.status}`);
+        const data = await res.json();
+        document.getElementById("ai-harness-updated").textContent = data.updatedAt || "-";
+        const strengths = data.strengths?.length || 0;
+        const weaknesses = data.weaknesses?.length || 0;
+        
+        let pills = "";
+        if (weaknesses > 0) {
+          pills += `<span class="pill pending">課題: ${weaknesses} 件</span>`;
+        }
+        pills += `<span class="pill done">健全: ${strengths} 件</span>`;
+        
+        document.getElementById("ai-harness-pills").innerHTML = pills || '<span class="pill progress">データなし</span>';
+      } catch (err) {
+        document.getElementById("ai-harness-updated").textContent = `読み込み失敗: ${err.message}`;
+        document.getElementById("ai-harness-pills").innerHTML = '<span class="pill pending">状態取得失敗</span>';
+      }
+    }
+
     loadRoleMapStatus();
     loadAgentHarnessStatus();
+    loadAIEngineeringHarnessStatus();
   </script>
 </body>
 </html>

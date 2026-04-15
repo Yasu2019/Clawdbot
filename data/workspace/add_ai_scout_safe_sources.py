@@ -1,19 +1,30 @@
 #!/usr/bin/env python3
 import copy
 import json
+import os
 import urllib.request
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 
 API_BASE = "http://127.0.0.1:5679/api/v1"
-API_KEY = "n8n_api_clawstack_f39c126b684f59ab50cc3fdedd82891086bfc633601067c9"
 WORKFLOW_ID = "zO38wIUIoZJ7KsyS"
-ROOT = Path(__file__).resolve().parents[2]
+
+
+def detect_root() -> Path:
+    candidates = [Path.cwd(), *Path.cwd().parents, Path(__file__).resolve().parent, *Path(__file__).resolve().parents]
+    for candidate in candidates:
+        if (candidate / "AGENTS.md").exists() and (candidate / ".env").exists():
+            return candidate
+    return Path(__file__).resolve().parents[2]
+
+
+ROOT = detect_root()
 BACKUP_DIR = ROOT / "backups" / "n8n"
 STATUS_PATH = ROOT / "data" / "workspace" / "ai_scout_safe_sources_status.json"
 JST = timezone(timedelta(hours=9))
 TS = datetime.now(JST).strftime("%Y%m%d_%H%M%S")
+ENV_PATH = ROOT / ".env"
 
 
 def now_jst() -> str:
@@ -23,6 +34,26 @@ def now_jst() -> str:
 def write_status(status: dict) -> None:
     STATUS_PATH.parent.mkdir(parents=True, exist_ok=True)
     STATUS_PATH.write_text(json.dumps(status, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def load_env_value(name: str) -> str:
+    current = os.environ.get(name, "").strip()
+    if current:
+        return current
+    if ENV_PATH.exists():
+        for raw in ENV_PATH.read_text(encoding="utf-8-sig", errors="replace").splitlines():
+            line = raw.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, value = line.split("=", 1)
+            if key.strip() == name:
+                return value.strip().strip('"').strip("'")
+    return ""
+
+
+API_KEY = load_env_value("N8N_API_KEY")
+if not API_KEY:
+    raise RuntimeError("N8N_API_KEY is not set in environment or .env")
 
 
 def request_json(path: str, method: str = "GET", payload: dict | None = None) -> dict:

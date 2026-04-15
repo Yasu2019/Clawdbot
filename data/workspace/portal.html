@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ja">
 
 <head>
@@ -488,6 +488,18 @@
             </div>
         </a>
 
+        <!-- Manufacturing Simulator Pro -->
+        <a href="http://localhost:8505" class="card featured" target="_blank" rel="noopener">
+            <span class="card-icon">🏗️</span>
+            <h2 class="card-title">Mfg Engineering Simulator</h2>
+            <span class="card-role">Domain Simulation</span>
+            <p class="card-desc">Professional-grade simulator for Molding, Pressing, Reflow, and IMC growth. Supports hypothetical verification and process optimization.</p>
+            <div class="card-meta">
+                <span class="port-badge">Port: 8505</span>
+                <span class="status-indicator"><span class="status-dot"></span>New</span>
+            </div>
+        </a>
+
         <!-- Mobile Dev Assistant -->
         <a href="./apps/mobile_dev/" class="card" target="_blank" rel="noopener">
             <span class="card-icon">📱</span>
@@ -694,6 +706,18 @@
             </div>
         </a>
 
+        <!-- 3D Workbench -->
+        <a href="apps/three_d_workbench/index.html" class="card featured" target="_blank" rel="noopener">
+            <span class="card-icon">3D</span>
+            <h2 class="card-title">3D Workbench</h2>
+            <span class="card-role">Folder / Launcher Hub</span>
+            <p class="card-desc">E:\Assets\3D の canonical folder tree、Blender 作業導線、DXF→STEP / DXF→FCStd / GD&T / Tolerance の入口をまとめた軽量ハブです。常駐機能は増やしません。</p>
+            <div class="card-meta">
+                <span class="port-badge">Folder-first</span>
+                <span class="status-indicator"><span class="status-dot"></span>New</span>
+            </div>
+        </a>
+
         <!-- MiniGame Factory -->
         <a href="http://localhost:3100" class="card" target="_blank" rel="noopener">
             <span class="card-icon">🎮</span>
@@ -725,6 +749,18 @@
             <div class="card-meta">
                 <span class="port-badge">Local File</span>
                 <span class="status-indicator status-pending"><span class="status-dot"></span>Active</span>
+            </div>
+        </a>
+
+        <!-- AI Strategy Scout -->
+        <a href="apps/ai_strategy_scout/index.html" class="card featured" target="_blank" rel="noopener">
+            <span class="card-icon">🛰️</span>
+            <h2 class="card-title">AI Strategy Scout</h2>
+            <span class="card-role">Autonomous Trend / Scout</span>
+            <p class="card-desc">最新モデル、動画・音楽生成、システム改善手法、GitHub 有益情報を毎日自律的に収集します。メモリ肥大化防止の 30 日ローテーション制を導入。</p>
+            <div class="card-meta">
+                <span class="port-badge">Daily 09:40 JST</span>
+                <span class="status-indicator"><span class="status-dot"></span>Active</span>
             </div>
         </a>
 
@@ -1009,6 +1045,18 @@
         </a>
 
         <!-- QMS Audit -->
+        <!-- Shannon Pentest -->
+        <a href="http://localhost:5002" class="card" target="_blank" rel="noopener">
+            <span class="card-icon">🔐</span>
+            <h2 class="card-title">Shannon Pentest</h2>
+            <span class="card-role">AI Security Testing</span>
+            <p class="card-desc">AIペンテスター Shannon Lite によるホワイトボックスセキュリティスキャン。ソースコード解析＋ライブエクスプロイトで脆弱性を自動検出・実証。</p>
+            <div class="card-meta">
+                <span class="port-badge">Port: 5002</span>
+                <span class="status-indicator"><span class="status-dot"></span>On-Demand</span>
+            </div>
+        </a>
+
         <a href="apps/qms_audit/index.html" class="card" target="_blank" rel="noopener">
             <span class="card-icon">QA</span>
             <h2 class="card-title">QMS Audit Hub</h2>
@@ -1031,10 +1079,102 @@
                 <span class="status-indicator"><span class="status-dot"></span>New</span>
             </div>
         </a>
+
+        <!-- A/B Model Comparison (Interactive) -->
+        <div class="card" style="cursor:default;" onclick="event.stopPropagation()">
+            <span class="card-icon">🔬</span>
+            <h2 class="card-title">A/B モデル比較</h2>
+            <span class="card-role">AI Quality / Experiment</span>
+            <p class="card-desc">同一クエリを Gemini 2.5 Flash・Qwen2.5-Coder・DeepSeek-R1 の3モデルに同時送信し、Critic スコアで自動比較します。</p>
+            <div class="solver-list" style="gap:8px;">
+                <input id="ab-query-input" type="text"
+                    placeholder="比較したい質問を入力..."
+                    style="width:100%;box-sizing:border-box;padding:9px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.06);color:#f8fafc;font-size:0.88rem;outline:none;"
+                    onkeydown="if(event.key==='Enter') runABTest()"
+                >
+                <button onclick="runABTest()"
+                    class="solver-btn"
+                    style="justify-content:center;cursor:pointer;background:rgba(56,189,248,0.12);border-color:rgba(56,189,248,0.3);">
+                    <span>3モデルに送信して比較</span>
+                    <span class="solver-badge gui">GO</span>
+                </button>
+                <div id="ab-result" style="display:none;font-size:0.82rem;line-height:1.6;color:#cbd5e1;background:rgba(0,0,0,0.25);border-radius:8px;padding:10px 12px;white-space:pre-wrap;word-break:break-all;max-height:200px;overflow-y:auto;"></div>
+            </div>
+            <div class="card-meta" style="margin-top:14px;">
+                <span class="port-badge">n8n :5679/webhook/ab-test</span>
+                <span class="status-indicator"><span class="status-dot"></span>Active</span>
+            </div>
+        </div>
+
+        <!-- Harness Runner (Multi-Agent) -->
+        <a href="#" class="card" onclick="alert('【Harness Runner — Planner → Executor → Critic】\n\n同一タスクを3ロールのAIが分業して処理します。\n\n● Planner  : Gemini 2.5 Flash でタスクをステップ分解\n● Executor : Qwen2.5-Coder でステップを実行\n● Critic   : DeepSeek-R1 でスコアリング (0-100)\n● Gate     : score ≥ 80 で完了 / 未満なら最大3回リトライ\n\n――― 使い方 (gateway コンテナ内) ―――\ndocker exec clawstack-unified-clawdbot-gateway-1 \\\n  python3 //home/node/clawd/harness_runner.py \\\n  \"タスク説明\" --max-retry 3\n\nオプション:\n  --max-retry N  最大リトライ数 (default: 3)\n  --json         結果を JSON 出力\n\nスクリプト場所:\n  data/workspace/harness_runner.py'); return false;">
+            <span class="card-icon">🎯</span>
+            <h2 class="card-title">Harness Runner</h2>
+            <span class="card-role">Multi-Agent / Planner→Executor→Critic</span>
+            <p class="card-desc">タスクを Planner・Executor・Critic の3ロールで分業処理し、Gate スコア(≥80)を満たすまで自動リトライします。LiteLLM 未起動時は Ollama に自動フォールバック。</p>
+            <div class="solver-list">
+                <span class="solver-btn" style="pointer-events:none;opacity:0.8;">
+                    <span style="font-size:0.82rem;font-weight:400;color:#94a3b8;">docker exec gateway python3 //home/node/clawd/harness_runner.py "タスク"</span>
+                    <span class="solver-badge cli">CLI</span>
+                </span>
+            </div>
+            <div class="card-meta">
+                <span class="port-badge">LiteLLM / Ollama</span>
+                <span class="status-indicator"><span class="status-dot"></span>Ready</span>
+            </div>
+        </a>
+
+        <!-- RLAnything Skill Promotion -->
+        <a href="http://localhost:5679/workflow/n1O3iKGqTHTsHhfJ" class="card" target="_blank" rel="noopener">
+            <span class="card-icon">🧬</span>
+            <h2 class="card-title">RLAnything スキル昇格</h2>
+            <span class="card-role">Self-Evolution / RL Loop</span>
+            <p class="card-desc">Phase 1→2→3 の自己学習ループを監視します。昇格閾値は過去スコア分布の60%ileから動的算出（最低50・上限120）。n8n Phase2 Monitor から手動トリガーも可能。</p>
+            <div class="solver-list">
+                <a href="http://localhost:5679/workflow/n1O3iKGqTHTsHhfJ" class="solver-btn" target="_blank" rel="noopener">
+                    <span>Phase2 Monitor を開く</span>
+                    <span class="solver-badge gui">n8n</span>
+                </a>
+                <a href="http://localhost:5679/workflow/i98OqH2Uj9309AwR" class="solver-btn" target="_blank" rel="noopener">
+                    <span>A/B Test ワークフローを開く</span>
+                    <span class="solver-badge gui">n8n</span>
+                </a>
+            </div>
+            <div class="card-meta">
+                <span class="port-badge">n8n :5679</span>
+                <span class="status-indicator"><span class="status-dot"></span>Active</span>
+            </div>
+        </a>
     </div>
+
+    <script>
+    async function runABTest() {
+        const input = document.getElementById('ab-query-input');
+        const result = document.getElementById('ab-result');
+        const query = input.value.trim();
+        if (!query) { input.focus(); return; }
+
+        result.style.display = 'block';
+        result.textContent = '送信中... (3モデルを並列評価中、30〜90秒かかります)';
+
+        try {
+            const res = await fetch('http://127.0.0.1:5679/webhook/ab-test', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ query }),
+            });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const data = await res.json();
+            const table = data.table || data.summary || JSON.stringify(data, null, 2);
+            result.textContent = table;
+        } catch (e) {
+            result.textContent = '⚠️ エラー: ' + e.message
+                + '\nn8n が起動中か、A/B Test ワークフローがアクティブか確認してください。'
+                + '\n管理画面: http://localhost:5679/workflow/i98OqH2Uj9309AwR';
+        }
+    }
+    </script>
     <script src="./portal_health.js"></script>
 </body>
-
-</html>
 
 </html>

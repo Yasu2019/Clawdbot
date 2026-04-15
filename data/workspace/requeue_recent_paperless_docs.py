@@ -13,13 +13,14 @@ JST = timezone(timedelta(hours=9))
 WORKSPACE = Path(__file__).resolve().parent
 STATE_PATH = WORKSPACE / "ingest_watchdog_state.json"
 STATUS_PATH = WORKSPACE / "requeue_recent_paperless_docs_status.json"
+CONFIG_PATH = WORKSPACE / "paperless_ingest_config.json"
 PAPERLESS_CANDIDATES = [
     "http://paperless:8000",
+    "http://host.docker.internal:8000",
     "http://localhost:8000",
     "http://127.0.0.1:8000",
 ]
-PAPERLESS_TOKEN = "a451ceb5c13ac270faf3936405d207e4093ff580"
-HEADERS = {"Authorization": f"Token {PAPERLESS_TOKEN}"}
+DEFAULT_PAPERLESS_TOKEN = "a451ceb5c13ac270faf3936405d207e4093ff580"
 
 
 def now_jst_text() -> str:
@@ -37,13 +38,25 @@ def save_state(state: dict) -> None:
     STATE_PATH.write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
+def load_paperless_token() -> str:
+    try:
+        payload = json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
+        token = str(payload.get("paperlessToken") or "").strip()
+        if token:
+            return token
+    except Exception:
+        pass
+    return DEFAULT_PAPERLESS_TOKEN
+
+
 def fetch_recent_docs(limit: int) -> tuple[str, list[dict]]:
     last_error = None
+    headers = {"Authorization": f"Token {load_paperless_token()}"}
     for base_url in PAPERLESS_CANDIDATES:
         try:
             resp = requests.get(
                 f"{base_url}/api/documents/?page_size={max(1, limit)}&ordering=-id",
-                headers=HEADERS,
+                headers=headers,
                 timeout=60,
             )
             resp.raise_for_status()

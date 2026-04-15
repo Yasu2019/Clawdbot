@@ -1,0 +1,30 @@
+services:
+  lemonade:
+    image: ghcr.io/example/lemonade:latest
+    container_name: lemonade
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:18070:8000"
+    environment:
+      TZ: Asia/Tokyo
+      LOG_LEVEL: info
+      # MODEL / BACKEND settings are placeholders.
+      # Receiving agent must replace them after verifying real Lemonade requirements.
+      LEMONADE_ENABLE_TEXT: "true"
+      LEMONADE_ENABLE_IMAGE: "true"
+      LEMONADE_ENABLE_STT: "true"
+      LEMONADE_ENABLE_TTS: "true"
+    volumes:
+      - ./volumes/lemonade:/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+      - clawstack
+
+networks:
+  clawstack:
+    external: true

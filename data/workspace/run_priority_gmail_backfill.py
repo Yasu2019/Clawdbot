@@ -1,30 +1,29 @@
 #!/usr/bin/env python3
+import argparse
+import importlib.util
 import json
 import subprocess
 import sqlite3
 import shutil
+import sys
 import tempfile
 import time
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
-from docker_runtime import docker_command, is_docker_runtime_command
 from email_db_lock import EmailDbLock, read_lock_owner
 
 
 JST = timezone(timedelta(hours=9))
 START_DATE = date(2026, 1, 1)
-MAX_MESSAGES_PER_CHUNK = 5000
+MAX_MESSAGES_PER_CHUNK = 500
 TIMEOUT_SECONDS = 3600
-CONTAINER_NAME = "clawstack-unified-clawdbot-gateway-1"
 
 SCRIPT_PATH = Path(__file__).resolve()
 WORKSPACE = SCRIPT_PATH.parent
 STATUS_PATH = SCRIPT_PATH.parent / "gmail_priority_backfill_status.json"
 HOST_DB_PATH = WORKSPACE / "email_search.db"
 HOST_STATE_PATH = WORKSPACE / "email_search_state.json"
-CONTAINER_TEMP_DB = "/tmp/email_search_priority_backfill.db"
-CONTAINER_TEMP_STATE = "/tmp/email_search_priority_backfill_state.json"
 
 
 def now_jst() -> str:
@@ -82,170 +81,127 @@ def promote_db_via_backup(src_path: Path, dst_path: Path) -> None:
         src_con.close()
 
 
-def run_command(command: list[str], timeout_seconds: int) -> dict:
-    attempts = 3 if is_docker_runtime_command(command) else 1
-    last_result: dict | None = None
-    for attempt in range(1, attempts + 1):
-        proc = subprocess.run(
-            command,
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-            errors="replace",
-            timeout=timeout_seconds,
-        )
-        result = {
-            "returncode": proc.returncode,
-            "stdout": proc.stdout.strip(),
-            "stderr": proc.stderr.strip(),
-            "timedOut": False,
-            "attempt": attempt,
-        }
-        last_result = result
-        stderr_text = str(result.get("stderr") or "")
-        transient_docker_error = (
-            is_docker_runtime_command(command)
-            and ("500 Internal Server Error" in stderr_text or "dockerDesktopLinuxEngine" in stderr_text)
-        )
-        if transient_docker_error and attempt < attempts:
-            time.sleep(3 * attempt)
-            continue
-        return result
-    return last_result or {
-        "returncode": 1,
-        "stdout": "",
-        "stderr": "unknown command failure",
-        "timedOut": False,
-        "attempt": 1,
-    }
-
-
 def stage_temp_files(temp_db_host: Path, temp_state_host: Path) -> None:
     clone_db_via_backup(HOST_DB_PATH, temp_db_host)
     if HOST_STATE_PATH.exists():
         shutil.copy2(HOST_STATE_PATH, temp_state_host)
     else:
         temp_state_host.write_text("{}", encoding="utf-8")
-    run_command(docker_command("cp", str(temp_db_host), f"{CONTAINER_NAME}:{CONTAINER_TEMP_DB}"), 300)
-    run_command(docker_command("cp", str(temp_state_host), f"{CONTAINER_NAME}:{CONTAINER_TEMP_STATE}"), 120)
+
+def load_email_search_index():
+    spec = importlib.util.spec_from_file_location("email_search_index", str(WORKSPACE / "email_search_index.py"))
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    assert spec.loader is not None
+    spec.loader.exec_module(module)
+    return module
 
 
-def collect_temp_files(temp_db_host: Path, temp_state_host: Path) -> None:
-    run_command(docker_command("cp", f"{CONTAINER_NAME}:{CONTAINER_TEMP_DB}", str(temp_db_host)), 300)
-    run_command(docker_command("cp", f"{CONTAINER_NAME}:{CONTAINER_TEMP_STATE}", str(temp_state_host)), 120)
+def run_backfill(chunks: list[dict], max_messages_per_chunk: int) -> dict:
+    with tempfile.TemporaryDirectory(prefix="email_backfill_") as tempdir_raw:
+        tempdir = Path(tempdir_raw)
+        temp_db_host = tempdir / "email_search_priority_backfill.db"
+        temp_state_host = tempdir / "email_search_priority_backfill_state.json"
+        stage_temp_files(temp_db_host, temp_state_host)
+        result = {
+            "returncode": 0,
+            "stdout": "",
+            "stderr": "",
+            "timedOut": False,
+        }
+        mod = load_email_search_index()
+        mod.WORKSPACE_ROOT = WORKSPACE
+        mod.EMAIL_ROOT = WORKSPACE / "paperless_consume" / "email"
+        mod.DB_PATH = temp_db_host
+        mod.STATE_PATH = temp_state_host
+        mod.STATUS_PATH = WORKSPACE / "email_search_harness_status.json"
+        mod.FILTER_PATH = WORKSPACE / "email_rag_sender_filters.json"
+        mod.TOKEN_PATH = WORKSPACE / "token.json"
+        mod.LEGACY_TOKEN_PATH = WORKSPACE.parent / "work" / "token.json"
+        mod.CREDS_PATH = WORKSPACE / "credentials.json"
+        mod.LEGACY_CREDS_PATH = WORKSPACE / "credentials.json"
 
-
-def container_script(chunks: list[dict]) -> str:
-    payload = json.dumps(chunks, ensure_ascii=False)
-    return f"""
-import importlib.util, json, sys, traceback
-import sqlite3
-from pathlib import Path
-
-spec = importlib.util.spec_from_file_location("email_search_index", "/home/node/clawd/email_search_index.py")
-mod = importlib.util.module_from_spec(spec)
-sys.modules[spec.name] = mod
-spec.loader.exec_module(mod)
-
-chunks = json.loads({payload!r})
-temp_db = Path("{CONTAINER_TEMP_DB}")
-temp_state = Path("{CONTAINER_TEMP_STATE}")
-
-mod.DB_PATH = temp_db
-mod.STATE_PATH = temp_state
-state = mod.load_json(mod.STATE_PATH)
-results = []
-con = None
-
-try:
-    con = mod.connect_db()
-    for chunk in chunks:
-        gmail_result = mod.index_gmail(con, state, {MAX_MESSAGES_PER_CHUNK}, 30, chunk["query"])
-        con.commit()
-        rebuilt = mod.rebuild_tasks(con)
-        con.commit()
-        results.append({{
-            "startDate": chunk["startDate"],
-            "endDateInclusive": chunk["endDateInclusive"],
-            "query": chunk["query"],
-            "gmail": gmail_result,
-            "rebuiltTasks": rebuilt,
-        }})
-    state["updatedAt"] = mod.now_iso()
-    mod.save_json(mod.STATE_PATH, state)
-    integrity = sqlite3.connect(temp_db).execute("PRAGMA integrity_check").fetchone()[0]
-    if integrity != "ok":
-        raise RuntimeError(f"temp db integrity_check failed: {{integrity}}")
-    summary = {{"ok": True, "chunks": results}}
-    print(json.dumps(summary, ensure_ascii=False))
-except Exception as exc:
-    print(json.dumps({{
-        "ok": False,
-        "error": str(exc),
-        "traceback": traceback.format_exc(),
-        "chunks": results,
-    }}, ensure_ascii=False))
-    raise
-finally:
-    if con is not None:
-        con.close()
-"""
-
-
-def run_backfill(chunks: list[dict]) -> dict:
-    tempdir = Path(tempfile.mkdtemp(prefix="email_backfill_"))
-    temp_db_host = tempdir / "email_search_priority_backfill.db"
-    temp_state_host = tempdir / "email_search_priority_backfill_state.json"
-    stage_temp_files(temp_db_host, temp_state_host)
-    proc = subprocess.run(
-        docker_command("exec", "-i", CONTAINER_NAME, "python3", "-"),
-        input=container_script(chunks),
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-        errors="replace",
-        timeout=TIMEOUT_SECONDS,
-    )
-    result = {
-        "returncode": proc.returncode,
-        "stdout": proc.stdout.strip(),
-        "stderr": proc.stderr.strip(),
-        "timedOut": False,
-    }
-    lines = [line.strip() for line in proc.stdout.splitlines() if line.strip()]
-    for line in reversed(lines):
+        state = mod.load_json(mod.STATE_PATH)
+        con = None
+        chunk_results: list[dict] = []
         try:
-            result["summary"] = json.loads(line)
-            break
-        except Exception:
-            continue
-    if result.get("returncode") == 0 and result.get("summary", {}).get("ok"):
-        collect_temp_files(temp_db_host, temp_state_host)
-        con = sqlite3.connect(temp_db_host)
-        try:
+            con = mod.connect_db()
+            for chunk in chunks:
+                gmail_result = mod.index_gmail(con, state, max_messages_per_chunk, 30, chunk["query"])
+                con.commit()
+                rebuilt = mod.rebuild_tasks(con)
+                con.commit()
+                chunk_results.append(
+                    {
+                        "startDate": chunk["startDate"],
+                        "endDateInclusive": chunk["endDateInclusive"],
+                        "query": chunk["query"],
+                        "gmail": gmail_result,
+                        "rebuiltTasks": rebuilt,
+                    }
+                )
+            state["updatedAt"] = mod.now_iso()
+            mod.save_json(mod.STATE_PATH, state)
             integrity = con.execute("PRAGMA integrity_check").fetchone()[0]
-        finally:
-            con.close()
-        if integrity != "ok":
+        except Exception as exc:
             result["returncode"] = 1
-            result["stderr"] = f"host temp integrity_check failed: {integrity}"
-        else:
-            promote_db_via_backup(temp_db_host, HOST_DB_PATH)
-            if temp_state_host.exists():
-                shutil.copy2(temp_state_host, HOST_STATE_PATH)
-    return result
+            result["stderr"] = str(exc)
+            result["summary"] = {
+                "ok": False,
+                "error": str(exc),
+                "chunks": chunk_results,
+            }
+        finally:
+            if con is not None:
+                con.close()
+
+        if result.get("returncode") == 0:
+            if integrity != "ok":
+                result["returncode"] = 1
+                result["stderr"] = f"host temp integrity_check failed: {integrity}"
+                result["summary"] = {
+                    "ok": False,
+                    "error": result["stderr"],
+                    "chunks": chunk_results,
+                }
+            else:
+                promote_db_via_backup(temp_db_host, HOST_DB_PATH)
+                if temp_state_host.exists():
+                    shutil.copy2(temp_state_host, HOST_STATE_PATH)
+                result["summary"] = {
+                    "ok": True,
+                    "chunks": chunk_results,
+                }
+        result["stdout"] = json.dumps(result.get("summary", {}), ensure_ascii=False)
+        return result
+
+
+def parse_date_arg(value: str) -> date:
+    return datetime.strptime(value, "%Y-%m-%d").date()
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(description="Priority Gmail backfill starting from 2026-01-01")
+    parser.add_argument("--start-date", type=parse_date_arg, default=START_DATE)
+    parser.add_argument("--end-date", type=parse_date_arg)
+    parser.add_argument("--max-messages-per-chunk", type=int, default=MAX_MESSAGES_PER_CHUNK)
+    args = parser.parse_args()
+
     yesterday = datetime.now(JST).date() - timedelta(days=1)
-    chunks = month_chunks(START_DATE, yesterday)
+    end_date = args.end_date or yesterday
+    if end_date > yesterday:
+        end_date = yesterday
+    if args.start_date > end_date:
+        raise SystemExit("start-date must be on or before end-date")
+
+    chunks = month_chunks(args.start_date, end_date)
     lock = EmailDbLock("priority_backfill")
     status = {
         "startedAt": now_jst(),
         "stage": "running",
-        "startDate": START_DATE.isoformat(),
-        "endDateInclusive": yesterday.isoformat(),
-        "maxMessagesPerChunk": MAX_MESSAGES_PER_CHUNK,
+        "startDate": args.start_date.isoformat(),
+        "endDateInclusive": end_date.isoformat(),
+        "maxMessagesPerChunk": args.max_messages_per_chunk,
         "chunks": chunks,
     }
     write_status(status)
@@ -263,7 +219,7 @@ def main() -> None:
         print(json.dumps(status, ensure_ascii=False))
         raise SystemExit(2)
     try:
-        result = run_backfill(chunks)
+        result = run_backfill(chunks, args.max_messages_per_chunk)
         status["result"] = result
         status["ok"] = bool(result.get("returncode") == 0 and result.get("summary", {}).get("ok"))
     except subprocess.TimeoutExpired as exc:

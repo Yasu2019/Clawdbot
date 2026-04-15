@@ -1,0 +1,5 @@
+- three_d_workbench: Lightweight 3D launcher hub for the canonical E:\Assets\3D workspace, Blender editing flow, and links to DXF->STEP / DXF->FCStd / GD&T / Tolerance tools.
+- dxf2step: Existing DXF-to-3D converter used as the primary geometry pipeline.
+- dxf_fcstd_protocol: Portal entry for FCStd-first feature generation over the existing DXF pipeline.
+- gdt_overlay_studio: Browser-based 3D and drawing workbench for datum and GD&T overlay work.
+- tolerance_hub: 2D/3D gap analysis hub used for tolerance studies.

@@ -1,0 +1,16 @@
+`CLIPImageProcessor` requires torchvision (not installed); falling back to `CLIPImageProcessorPil` for backward compatibility. Install torchvision to use the default backend, or import `CLIPImageProcessorPil` directly to silence this warning.
+`SiglipImageProcessor` requires torchvision (not installed); falling back to `SiglipImageProcessorPil` for backward compatibility. Install torchvision to use the default backend, or import `SiglipImageProcessorPil` directly to silence this warning.
+📥 モデルロード中: Lykon/dreamshaper-8
+   キャッシュ先: /home/node/.codex/ai_models/
+Fetching 13 files:   0%|          | 0/13 [00:00<?, ?it/s]Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Fetching 13 files:   8%|▊         | 1/13 [00:00<00:03,  3.97it/s]Fetching 13 files:  38%|███▊      | 5/13 [05:20<09:05, 68.17s/it]Fetching 13 files: 100%|██████████| 13/13 [05:20<00:00, 24.65s/it]
+Loading pipeline components...:   0%|          | 0/6 [00:00<?, ?it/s]Loading pipeline components...:  17%|█▋        | 1/6 [00:00<00:01,  3.30it/s]Loading pipeline components...:  33%|███▎      | 2/6 [00:00<00:00,  4.62it/s]CLIPFeatureExtractor appears to have been deprecated in transformers. Using CLIPImageProcessor instead.
+
+Loading weights:   0%|          | 0/196 [00:00<?, ?it/s][ALoading weights: 100%|██████████| 196/196 [00:00<00:00, 2774.93it/s]
+Loading pipeline components...:  83%|████████▎ | 5/6 [00:00<00:00,  5.98it/s]Loading pipeline components...: 100%|██████████| 6/6 [00:02<00:00,  2.46it/s]Loading pipeline components...: 100%|██████████| 6/6 [00:02<00:00,  2.98it/s]
+🎨 画像生成中（20ステップ・CPU）...
+   プロンプト: anime style, 18 year old japanese male, heavy metal musician, spiky black hair w...
+  0%|          | 0/20 [00:00<?, ?it/s]  5%|▌         | 1/20 [01:23<26:18, 83.09s/it] 10%|█         | 2/20 [02:28<21:44, 72.47s/it] 15%|█▌        | 3/20 [03:04<15:54, 56.13s/it] 20%|██        | 4/20 [03:36<12:26, 46.64s/it] 25%|██▌       | 5/20 [04:08<10:16, 41.07s/it] 30%|███       | 6/20 [04:40<08:54, 38.20s/it] 35%|███▌      | 7/20 [05:15<08:02, 37.13s/it] 40%|████      | 8/20 [05:43<06:51, 34.33s/it] 45%|████▌     | 9/20 [06:16<06:12, 33.88s/it] 50%|█████     | 10/20 [06:46<05:25, 32.57s/it] 55%|█████▌    | 11/20 [07:18<04:50, 32.25s/it] 60%|██████    | 12/20 [07:49<04:16, 32.04s/it] 65%|██████▌   | 13/20 [08:22<03:46, 32.36s/it] 70%|███████   | 14/20 [08:58<03:21, 33.51s/it] 75%|███████▌  | 15/20 [09:30<02:44, 32.95s/it] 80%|████████  | 16/20 [10:03<02:11, 32.83s/it] 85%|████████▌ | 17/20 [10:37<01:40, 33.40s/it] 90%|█████████ | 18/20 [11:10<01:06, 33.27s/it] 95%|█████████▌| 19/20 [11:38<00:31, 31.57s/it]100%|██████████| 20/20 [12:07<00:00, 30.90s/it]100%|██████████| 20/20 [12:07<00:00, 36.39s/it]
+✅ SD画像生成完了: /home/node/clawd/apps/video_factory/output/character_sd.png (347KB)
+✅ SD画像確認。Wav2Lip + 合成を開始...
+✅ SDキャラ最終動画完成: /home/node/clawd/apps/video_factory/output/metal_sd_final.mp4 (8.3MB)

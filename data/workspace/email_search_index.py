@@ -433,6 +433,32 @@ def looks_like_task(record: EmailRecord) -> bool:
     return strong_task or explicit_task or bool(re.search(r"(までに|期限|締切|期日|要約|提出|確認|回答|返信)", haystack))
 
 
+def should_store_gmail_record(record: EmailRecord) -> bool:
+    subject = normalize_space(record.subject)
+    body = normalize_space(record.body_text or record.snippet)
+    sender = normalize_space(record.sender)
+    haystack = normalize_space("\n".join([subject, body, record.snippet]))
+    haystack_lower = haystack.lower()
+    sender_lower = sender.lower()
+    filters = load_task_filters()
+
+    trusted_sender = any(pattern in haystack_lower or pattern in sender_lower for pattern in filters["whitelist_patterns"])
+    if trusted_sender:
+        return True
+
+    blocked_by_filters = (
+        any(pattern in haystack_lower or pattern in sender_lower for pattern in filters["newsletter_patterns"])
+        or any(pattern in haystack_lower or pattern in sender_lower for pattern in filters["blacklist_patterns"])
+    )
+    if blocked_by_filters:
+        return False
+
+    if any(token in sender_lower for token in HARD_NOISE_SENDER_SUBSTRINGS):
+        return False
+
+    return True
+
+
 def infer_relative_due_date(text: str, base_dt: datetime) -> Optional[datetime]:
     weekday_map = {
         "月": 0,
@@ -1337,6 +1363,7 @@ def index_gmail(
     ids = list_gmail_message_ids(session, query, max_messages)
     indexed = 0
     skipped = 0
+    skipped_by_filter = 0
     errors = 0
     latest_ts = int(gmail_state.get("latest_internal_ts", 0) or 0)
 
@@ -1360,6 +1387,10 @@ def index_gmail(
                 skipped += 1
                 continue
             record = parse_gmail_message(payload)
+            if not should_store_gmail_record(record):
+                skipped += 1
+                skipped_by_filter += 1
+                continue
             latest_ts = max(latest_ts, record.internal_ts)
             upsert_record(con, record)
             indexed += 1
@@ -1376,6 +1407,7 @@ def index_gmail(
                         "processed": idx,
                         "indexed": indexed,
                         "skipped": skipped,
+                        "skippedByFilter": skipped_by_filter,
                         "errors": errors,
                     }
                 )
@@ -1391,6 +1423,7 @@ def index_gmail(
         "candidates": len(ids),
         "indexed": indexed,
         "skipped": skipped,
+        "skipped_by_filter": skipped_by_filter,
         "errors": errors,
         "latest_internal_ts": latest_ts,
     }

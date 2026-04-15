@@ -1,0 +1,26 @@
+{
+  "task_id": "uuid",
+  "task_type": "string",
+  "input_summary": "string",
+  "user_goal": "string",
+  "initial_answer": "string",
+  "final_answer": "string",
+  "review": {
+    "scores": {
+      "accuracy": 0,
+      "completeness": 0,
+      "usefulness": 0,
+      "instruction_following": 0,
+      "conciseness": 0,
+      "reuse_value": 0
+    },
+    "total_score": 0,
+    "failure_tags": [],
+    "success_tags": [],
+    "critique": "string"
+  },
+  "model": "string",
+  "latency_ms": 0,
+  "cost_usd": 0,
+  "timestamp": "ISO-8601"
+}

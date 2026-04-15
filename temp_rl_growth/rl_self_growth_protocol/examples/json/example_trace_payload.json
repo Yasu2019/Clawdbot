@@ -1,0 +1,22 @@
+{
+  "trace_name": "self_improvement_loop",
+  "task_type": "technical_protocol",
+  "task_id": "123e4567-e89b-12d3-a456-426614174000",
+  "model": "gemini-2.5-flash",
+  "review_model": "claude-opus-4.6",
+  "improver_model": "gemini-2.5-pro",
+  "scores": {
+    "accuracy": 4.0,
+    "completeness": 3.5,
+    "usefulness": 4.5,
+    "instruction_following": 4.0,
+    "conciseness": 3.5,
+    "reuse_value": 4.0,
+    "total": 3.95
+  },
+  "verdict": "rewrite",
+  "failure_tags": ["missing_steps", "too_vague"],
+  "latency_ms": 6210,
+  "cost_usd": 0.022,
+  "rewrite_performed": true
+}

@@ -29,8 +29,8 @@ TASK_TERMS = {
     "todo", "task", "tasks", "deadline", "due", "open",
 }
 RELATIVE_TERMS = {
-    "昨日", "今日", "明日", "本日", "先週", "先月", "今週", "今月",
-    "recent", "yesterday", "today", "tomorrow", "lastweek", "lastmonth", "thisweek", "thismonth",
+    "昨日", "今日", "明日", "本日", "先週", "先月", "今週", "来週", "今週末", "来週末", "今月",
+    "recent", "yesterday", "today", "tomorrow", "lastweek", "lastmonth", "thisweek", "nextweek", "thismonth",
 }
 
 COMPLAINT_SUBJECT_TERMS = [
@@ -398,6 +398,49 @@ def search_rows(con: sqlite3.Connection, query: str, limit: int) -> List[sqlite3
     return merged
 
 
+def count_search_rows(con: sqlite3.Connection, query: str) -> int:
+    terms = tokenize_query(query)
+    if not terms and query.strip():
+        terms = [query.strip()]
+    terms = expand_with_mitsui_glossary(terms, max_expansions=10)
+
+    try:
+        fts_query = " OR ".join(
+            f'"{term}"' if re.search(r"\s", term) else term
+            for term in terms[:8]
+        ) or query
+        row = con.execute(
+            """
+            SELECT COUNT(*) AS total
+            FROM emails_fts
+            JOIN emails e ON e.rowid = emails_fts.rowid
+            WHERE emails_fts MATCH ?
+            """,
+            (fts_query,),
+        ).fetchone()
+        return int(row["total"] if row else 0)
+    except sqlite3.OperationalError:
+        if not terms:
+            return 0
+        clauses = []
+        params: List[object] = []
+        for term in terms[:6]:
+            needle = f"%{term}%"
+            clauses.append("(subject LIKE ? OR sender LIKE ? OR recipients LIKE ? OR snippet LIKE ?)")
+            params.extend([needle, needle, needle, needle])
+        if not clauses:
+            return 0
+        row = con.execute(
+            f"""
+            SELECT COUNT(*) AS total
+            FROM emails
+            WHERE {" OR ".join(clauses)}
+            """,
+            params,
+        ).fetchone()
+        return int(row["total"] if row else 0)
+
+
 def recent_rows(con: sqlite3.Connection, limit: int) -> List[sqlite3.Row]:
     return con.execute(
         """
@@ -627,6 +670,18 @@ def resolve_due_range(query: str) -> tuple[Optional[str], Optional[str], Optiona
     if "昨日" in compact or "yesterday" in lower:
         exact_str = (today - timedelta(days=1)).isoformat()
         return exact_str, exact_str, exact_str
+    if "来週末" in compact:
+        start = today - timedelta(days=today.weekday()) + timedelta(days=7)
+        end = start + timedelta(days=6)
+        return None, start.isoformat(), end.isoformat()
+    if "今週末" in compact:
+        start = today - timedelta(days=today.weekday())
+        end = start + timedelta(days=6)
+        return None, start.isoformat(), end.isoformat()
+    if "来週" in compact or "nextweek" in lower:
+        start = today - timedelta(days=today.weekday()) + timedelta(days=7)
+        end = start + timedelta(days=6)
+        return None, start.isoformat(), end.isoformat()
     if "今週" in compact:
         start = today - timedelta(days=today.weekday())
         end = start + timedelta(days=6)
@@ -1085,6 +1140,20 @@ def cmd_context(args: argparse.Namespace) -> int:
         con.close()
 
 
+def cmd_search_count(args: argparse.Namespace) -> int:
+    con = connect_db(detect_db_path(args.db))
+    try:
+        payload = {
+            "query": args.query,
+            "db_path": str(detect_db_path(args.db)),
+            "result_count": count_search_rows(con, args.query),
+        }
+        print(json.dumps(payload, ensure_ascii=False, indent=2))
+        return 0
+    finally:
+        con.close()
+
+
 def cmd_tasks(args: argparse.Namespace) -> int:
     con = connect_db(detect_db_path(args.db))
     try:
@@ -1142,6 +1211,10 @@ def build_parser() -> argparse.ArgumentParser:
     search.add_argument("query")
     search.add_argument("--limit", type=int, default=5)
     search.set_defaults(func=cmd_search)
+
+    search_count = sub.add_parser("search-count")
+    search_count.add_argument("query")
+    search_count.set_defaults(func=cmd_search_count)
 
     context = sub.add_parser("context")
     context.add_argument("query")

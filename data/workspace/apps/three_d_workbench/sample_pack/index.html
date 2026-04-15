@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3D Workbench Sample Pack</title>
+  <style>
+    :root{
+      --bg:#08111d; --panel:rgba(15,23,42,.88); --line:rgba(148,163,184,.18);
+      --text:#edf4ff; --muted:#9fb1ca; --accent:#67e8f9; --accent2:#a78bfa;
+      --good:#86efac;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family:"Segoe UI","Noto Sans JP",sans-serif; color:var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(103,232,249,.12), transparent 24%),
+        radial-gradient(circle at bottom right, rgba(167,139,250,.10), transparent 24%),
+        var(--bg);
+    }
+    .wrap{width:min(1180px, calc(100% - 32px)); margin:0 auto; padding:28px 0 48px;}
+    .panel{
+      background:var(--panel); border:1px solid var(--line); border-radius:22px;
+      padding:22px; box-shadow:0 18px 48px rgba(0,0,0,.24); backdrop-filter:blur(10px);
+      margin-bottom:18px;
+    }
+    h1{margin:0 0 8px; font-size:clamp(2rem,3vw,3rem)}
+    p{margin:0; color:var(--muted); line-height:1.75}
+    .meta{display:flex; flex-wrap:wrap; gap:8px; margin:14px 0 8px}
+    .chip{
+      display:inline-flex; align-items:center; gap:6px; font-size:.8rem; padding:6px 10px;
+      border-radius:999px; border:1px solid var(--line); background:rgba(255,255,255,.05); color:var(--muted);
+    }
+    .chip.good{color:var(--good); border-color:rgba(134,239,172,.25); background:rgba(134,239,172,.08)}
+    .chip.accent{color:var(--accent); border-color:rgba(103,232,249,.25); background:rgba(103,232,249,.08)}
+    .grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:14px}
+    .card{
+      background:rgba(2,6,23,.25); border:1px solid var(--line); border-radius:18px; padding:16px;
+    }
+    .label{
+      color:var(--accent); font-size:.78rem; letter-spacing:.08em; text-transform:uppercase; font-weight:700; margin-bottom:8px;
+    }
+    .path{
+      display:block; margin:12px 0; padding:10px 12px; border-radius:12px;
+      background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.06);
+      color:#d9e7fb; font-family:Consolas,"Cascadia Mono",monospace; font-size:.85rem; word-break:break-all;
+    }
+    .btn{
+      display:inline-flex; align-items:center; justify-content:center; min-height:42px; padding:0 14px;
+      border-radius:12px; border:1px solid var(--line); background:rgba(255,255,255,.04);
+      color:var(--text); text-decoration:none; cursor:pointer; font-weight:600; margin-right:8px; margin-top:8px;
+    }
+    .btn.primary{background:linear-gradient(135deg, rgba(103,232,249,.22), rgba(167,139,250,.18)); border-color:rgba(103,232,249,.28)}
+    ul{margin:10px 0 0 18px; color:var(--muted); line-height:1.7; padding:0}
+    code{background:rgba(255,255,255,.06); padding:2px 6px; border-radius:6px; color:#dbeafe}
+    .copy-row{display:flex; gap:10px; flex-wrap:wrap; margin-top:6px}
+    .toast{
+      position:fixed; right:16px; bottom:16px; padding:10px 14px; border-radius:12px;
+      background:rgba(15,23,42,.92); border:1px solid var(--line); color:var(--text);
+      box-shadow:0 16px 40px rgba(0,0,0,.3); opacity:0; transform:translateY(8px);
+      transition:opacity .2s ease, transform .2s ease; pointer-events:none;
+    }
+    .toast.show{opacity:1; transform:translateY(0)}
+    pre{
+      margin:0; padding:14px; border-radius:14px; overflow:auto;
+      background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.06);
+      color:#dbeafe; font-size:.82rem; line-height:1.65;
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="panel">
+      <div class="meta">
+        <span class="chip good">Sample pack</span>
+        <span class="chip accent">Safe demo</span>
+        <span class="chip">No heavy runtime</span>
+      </div>
+      <h1>3D Workbench Sample Pack</h1>
+      <p>
+        This sample shows the recommended folder-first workflow for 3D work. It is intentionally
+        light: no engines, no background jobs, just a reusable structure and a small manifest.
+      </p>
+      <div style="margin-top:14px;">
+        <a class="btn primary" href="../index.html">Back to 3D Workbench</a>
+        <a class="btn" href="../../../../portal.html">Portal</a>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2 style="margin:0 0 10px;">Sample Structure</h2>
+      <div class="grid">
+        <article class="card">
+          <div class="label">Incoming</div>
+          <div>Drop raw inputs here.</div>
+          <div class="path">E:\Assets\3D\Incoming\SamplePack</div>
+          <div class="copy-row">
+            <button class="btn" data-copy-btn="E:\Assets\3D\Incoming\SamplePack">Copy path</button>
+          </div>
+        </article>
+        <article class="card">
+          <div class="label">Working</div>
+          <div>Use for edits and scratch files.</div>
+          <div class="path">E:\Assets\3D\Working\SamplePack</div>
+          <div class="copy-row">
+            <button class="btn" data-copy-btn="E:\Assets\3D\Working\SamplePack">Copy path</button>
+          </div>
+        </article>
+        <article class="card">
+          <div class="label">ExportReady</div>
+          <div>Put reviewable deliverables here.</div>
+          <div class="path">E:\Assets\3D\ExportReady\SamplePack</div>
+          <div class="copy-row">
+            <button class="btn" data-copy-btn="E:\Assets\3D\ExportReady\SamplePack">Copy path</button>
+          </div>
+        </article>
+        <article class="card">
+          <div class="label">Cache</div>
+          <div>Keep cache separate from source files.</div>
+          <div class="path">E:\Assets\3D\Cache\SamplePack</div>
+          <div class="copy-row">
+            <button class="btn" data-copy-btn="E:\Assets\3D\Cache\SamplePack">Copy path</button>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2 style="margin:0 0 10px;">Included Files</h2>
+      <ul>
+        <li><code>sample_manifest.json</code> - a tiny machine-readable overview of the sample set.</li>
+        <li><code>README.md</code> - operator notes for the sample workflow.</li>
+        <li><code>index.html</code> - this launcher page.</li>
+      </ul>
+      <pre>{
+  "name": "sample-pack",
+  "source": "folder-first 3D workbench demo",
+  "recommended_flow": ["Incoming", "Working", "ExportReady", "Cache"],
+  "notes": ["keep Unreal off the always-on path", "reuse Portal links for navigation"]
+}</pre>
+      <div style="margin-top:14px;">
+        <a class="btn" href="sample_manifest.json" target="_blank" rel="noopener">Open manifest</a>
+        <a class="btn" href="README.md" target="_blank" rel="noopener">Open README</a>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast">Copied</div>
+  <script>
+    const toast = document.getElementById('toast');
+    let timer = null;
+    function showToast(text) {
+      toast.textContent = text;
+      toast.classList.add('show');
+      clearTimeout(timer);
+      timer = setTimeout(() => toast.classList.remove('show'), 1200);
+    }
+    async function copyText(text) {
+      try {
+        await navigator.clipboard.writeText(text);
+        showToast('Copied: ' + text);
+      } catch {
+        showToast('Copy failed');
+      }
+    }
+    document.querySelectorAll('[data-copy-btn]').forEach((btn) => {
+      btn.addEventListener('click', () => copyText(btn.getAttribute('data-copy-btn')));
+    });
+  </script>
+</body>
+</html>
