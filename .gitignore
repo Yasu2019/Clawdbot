@@ -82,6 +82,9 @@ data/workspace/**
 # HTML ファイル
 !data/workspace/*.html
 
+# エージェントハーネスポリシー (セキュリティ設定)
+!data/workspace/agent_harness_policy.json
+
 # Portal アプリ (apps/ 以下全体)
 !data/workspace/apps/
 !data/workspace/apps/**

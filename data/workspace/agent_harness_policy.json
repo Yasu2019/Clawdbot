@@ -1,0 +1,112 @@
+{
+  "updatedAt": "2026-04-17 JST",
+  "decision": "PARTIAL_ADOPT",
+  "guard": {
+    "destructive_requires_approval": true,
+    "must_disclose_failures": true,
+    "must_not_present_guesses_as_facts": true,
+    "must_verify_latest_when_needed": true
+  },
+  "forbidden_commands": [
+    "rm -rf /", "rm -rf *", "sudo rm -rf",
+    "mkfs", "fdisk", "parted",
+    "shutdown", "reboot", "init 0",
+    ":(){ :|:& };:",
+    "dd if=",
+    "curl http", "wget http",
+    "nc -e",
+    "powershell -enc",
+    "certutil -urlcache",
+    "reg delete",
+    "format"
+  ],
+  "tool_policy": {
+    "allowed": [
+      "rag_search", "file_read", "markdown_convert",
+      "csv_transform", "analysis_python"
+    ],
+    "blocked": [
+      "shell_exec", "external_http", "ftp_upload",
+      "browser_login_automation", "system_delete"
+    ],
+    "source": "protocols/ai_security_v1/02_AGENT/tool_whitelist.json"
+  },
+  "retry_policy": {
+    "max_total_retries": 2,
+    "max_same_error_retries": 1,
+    "backoff_seconds": [2, 8],
+    "stop_on_errors": [
+      "AUTH_FAILED",
+      "PERMISSION_DENIED",
+      "INVALID_SCHEMA",
+      "APPROVAL_REQUIRED"
+    ]
+  },
+  "review_gate": {
+    "enabled_for": [
+      "gmail_ingestion",
+      "paperless_ingestion",
+      "rag_summary",
+      "storage_cleanup",
+      "external_send",
+      "destructive_action"
+    ],
+    "require_evidence_count_min": 1,
+    "require_human_approval_for": [
+      "send_email",
+      "delete_file",
+      "overwrite_config",
+      "external_publish",
+      "file_overwrite_outside_sandbox",
+      "shell_execute",
+      "package_install",
+      "network_access",
+      "secrets_access"
+    ]
+  },
+  "context_rules": {
+    "bundle_required_for_high_risk": true,
+    "must_cite_sources": true,
+    "must_track_freshness": true,
+    "must_track_ocr_quality_when_available": true
+  },
+  "tool_risk_tiers": {
+    "qdrant_search": "low",
+    "paperless_read": "low",
+    "file_read": "low",
+    "rag_search": "low",
+    "markdown_convert": "low",
+    "csv_transform": "low",
+    "analysis_python": "low",
+    "draft_email": "medium",
+    "file_write_in_sandbox": "medium",
+    "send_email": "high",
+    "external_http": "high",
+    "browser_login_automation": "high",
+    "network_access": "high",
+    "storage_cleanup_archive_delete": "high",
+    "package_install": "high",
+    "delete_file": "critical",
+    "shell_exec": "critical",
+    "system_delete": "critical",
+    "ftp_upload": "critical",
+    "secrets_access": "critical"
+  },
+  "status": {
+    "implemented": [
+      "retry_upper_bound",
+      "external_harness_pattern",
+      "status_json_visibility",
+      "rollback_documentation",
+      "forbidden_commands_list",
+      "tool_policy_allowlist_blocklist",
+      "approval_flow_expanded",
+      "tool_risk_tier_expansion"
+    ],
+    "next": [
+      "review_gate_on_high_risk_actions",
+      "freshness_and_ocr_quality_standardization",
+      "input_output_guard_layer"
+    ]
+  }
+}
