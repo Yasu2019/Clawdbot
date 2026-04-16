@@ -1,0 +1,18 @@
+rm -rf /
+rm -rf *
+sudo rm -rf
+mkfs
+fdisk
+parted
+shutdown
+reboot
+init 0
+:(){ :|:& };:
+dd if=
+curl http
+wget http
+nc -e
+powershell -enc
+certutil -urlcache
+reg delete
+format

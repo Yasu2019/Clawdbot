@@ -1,0 +1,14 @@
+logging:
+  enabled: true
+  store_prompt: true
+  store_response: true
+  mask_secrets: true
+  store_tool_calls: true
+  retention_days: 90
+
+redaction:
+  patterns:
+    - API_KEY
+    - SECRET
+    - TOKEN
+    - PASSWORD

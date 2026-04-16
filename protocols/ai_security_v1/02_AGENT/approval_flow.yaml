@@ -1,0 +1,27 @@
+rules:
+  - action: file_read
+    approval: auto
+
+  - action: rag_search
+    approval: auto
+
+  - action: file_write_in_sandbox
+    approval: auto
+
+  - action: file_overwrite_outside_sandbox
+    approval: required
+
+  - action: file_delete
+    approval: required
+
+  - action: shell_execute
+    approval: required
+
+  - action: package_install
+    approval: required
+
+  - action: network_access
+    approval: required
+
+  - action: secrets_access
+    approval: required
