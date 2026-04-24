@@ -1,0 +1,79 @@
+﻿[SERIOUS HANDOFF PROTOCOL FOR CODEX / CLAUDE / ANTIGRAVITY]
+
+Title:
+Adopt-or-merge protocol for local Qwen stack on GMKtec K10 (Windows 11, 48GB RAM, no discrete GPU at baseline)
+
+Mission:
+Please assess, patch, or partially integrate a local-first Qwen deployment strategy centered on:
+- Ollama
+- Qwen-family models only
+- Safe local handling of confidential manufacturing / QA data
+- Future compatibility with LiteLLM / RAG / agent workflows
+
+Environment facts:
+- Host: Windows 11 Pro
+- Machine: GMKtec K10
+- CPU: Intel Core i9-13900HK
+- RAM: 48GB
+- Baseline GPU: none
+- Existing ecosystem may include Docker Desktop, WSL2, OpenClaw, LiteLLM, Qdrant, n8n, Portal cards, and local observability
+
+Primary objective:
+Deliver a practical, stable, low-risk local AI setup that works now on CPU/RAM, while leaving a clean upgrade path for future GPU/eGPU acceleration.
+
+Constraints:
+1. Prefer Qwen-family models only.
+2. Do not assume cloud APIs are allowed.
+3. Confidential data must remain local by default.
+4. Avoid breaking any existing OpenClaw / LiteLLM / Portal setup.
+5. Before adding anything new, inspect for naming conflicts, port conflicts, path conflicts, duplicate cards, duplicate compose services, and duplicated model-routing logic.
+6. If a proposed change is risky or redundant, mark it HOLD instead of forcing adoption.
+
+Required output:
+A. Decision
+- ADOPT
+- PARTIAL MERGE
+- HOLD
+
+B. Reasons
+- Why this decision is correct in this environment
+
+C. Hardware-aware recommendation
+- Best default daily model
+- Best coding model
+- Best heavy-analysis model
+- Whether Qwen3.6-35B-A3B should be default or secondary
+
+D. Minimal implementation plan
+- Exact files to create/update
+- Exact commands to run
+- Exact rollback steps
+
+E. Safety checks
+- Prevent accidental file deletion
+- Prevent accidental external API calls
+- Keep logs concise but sufficient
+- Add dry-run where possible
+
+F. Validation
+- Smoke tests
+- Latency test
+- Memory pressure test
+- Large-context sanity test
+- Two real-world manufacturing / QA prompts
+
+Decision heuristic:
+- If Qwen3.6 on CPU-only is too slow for daily work, keep it as a specialist model
+- Use lighter Qwen models for normal workflow
+- Preserve a clean model routing strategy
+- Prefer reversible changes
+
+Expected recommendation direction:
+- Daily: qwen3:14b or equivalent Qwen-family daily model
+- Coding: qwen2.5-coder:14b or strongest practical Qwen coding model available locally
+- Heavy task: qwen3.6:35b-a3b
+- Integrate model auto-selection later after baseline validation
+
+Please do not only critique.
+Please produce concrete patch-ready outputs.
+If there are conflicts with existing cards, apps, compose services, or routing, explain clearly and propose the least invasive fix first.

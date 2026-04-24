@@ -321,9 +321,18 @@ def main() -> None:
     if PID_PATH.exists():
         try:
             existing = int(PID_PATH.read_text().strip())
-            if Path(f"/proc/{existing}").exists():
+            # Windows/Unix compatible process check
+            import errno
+            try:
+                os.kill(existing, 0)
                 print(f"Already running (PID {existing})", flush=True)
                 sys.exit(0)
+            except OSError as e:
+                if e.errno == errno.EPERM:
+                    print(f"Already running (PID {existing}, Permission Denied)", flush=True)
+                    sys.exit(0)
+                # Process not found, proceed
+                pass
         except Exception:
             pass
     PID_PATH.write_text(str(os.getpid()))

@@ -83,21 +83,151 @@ def fetch_public_digest() -> dict:
                 "source": "Logan Kilpatrick / Google Blog",
                 "results": fetch_ai_public_sources.extract_rss("https://blog.google/authors/logan-kilpatrick/rss/"),
             },
+            {
+                "category": "Creative Trends",
+                "source": "Runway / Video Generation",
+                "results": fetch_ai_public_sources.extract_homepage_links("https://runwayml.com/blog", link_pattern=r"blog/.*"),
+            },
+            {
+                "category": "Creative Trends",
+                "source": "Suno / Music Generation",
+                "results": fetch_ai_public_sources.extract_homepage_links("https://suno.com/blog", link_pattern=r"blog/.*"),
+            },
+            {
+                "category": "Creative Trends",
+                "source": "ComfyUI / Anime Workflows",
+                "results": fetch_ai_public_sources.extract_homepage_links("https://blog.comfy.org/", link_pattern=r"blog/.*"),
+            },
+            {
+                "category": "Manufacturing & Fab",
+                "source": "Cults3D / 3D Trends Blog",
+                "results": fetch_ai_public_sources.extract_rss("https://cults3d.com/en/blog.rss"),
+            },
+            {
+                "category": "Manufacturing & Fab",
+                "source": "3DPrint.com / Industry News",
+                "results": fetch_ai_public_sources.extract_rss("https://3dprint.com/feed"),
+            },
+            {
+                "category": "Manufacturing & Fab",
+                "source": "Creality Official / Ender GitHub",
+                "results": fetch_ai_public_sources.extract_rss("https://github.com/CrealityOfficial/Ender-3_V3_KE_Klipper/releases.atom"),
+            },
         ],
     }
+    # Defensive robustness: Filter out individual source failures
+    sanitized_sources = []
+    for s in payload["sources"]:
+        try:
+            # results is already populated by extract_rss/extract_homepage_links
+            sanitized_sources.append(s)
+        except Exception:
+            s["results"] = []
+            sanitized_sources.append(s)
+    payload["sources"] = sanitized_sources
     return payload
 
 
+# --- Hub Registry for Architectural Sentinel ---
+HUB_REGISTRY = {
+    "Creative Studio": {
+        "path": "apps/creative_studio/index.html",
+        "keywords": ["video", "anime", "manga", "cinema", "comfyui", "kling", "luma", "runway", "gen-3", "gen-4", "cogvideo"]
+    },
+    "Audio Lab": {
+        "path": "apps/audio_lab/index.html",
+        "keywords": ["audio", "music", "suno", "udio", "rvc", "voice", "speech", "stable audio"]
+    },
+    "Knowledge Hub": {
+        "path": "apps/knowledge_hub/index.html",
+        "keywords": ["note", "knowledge", "obsidian", "mcp", "rag", "summary", "semantic", "notebooklm"]
+    },
+    "Pub-Hub": {
+        "path": "apps/pub_hub/index.html",
+        "keywords": ["kindle", "ebook", "kdp", "epub", "formatting", "writing", "author", "kimi"]
+    },
+    "3D Fab-Forge": {
+        "path": "apps/3d_fab_forge/index.html",
+        "keywords": ["3d print", "ender", "creality", "klipper", "stl", "printables", "cults3d", "slicing", "cad", "monetization", "etsy"]
+    },
+    "Ops Toolbox": {
+        "path": "apps/operations_toolbox/index.html",
+        "keywords": ["clean", "disk", "maintenance", "system", "monitoring", "docker"]
+    }
+}
+
+def analyze_adoption(combined: dict) -> list[dict]:
+    """Analyzes daily items and recommends architectural adoption decisions."""
+    recommendations = []
+    seen_recommendations = set()
+    
+    # Collect all items
+    all_items = []
+    for item in combined["localDigest"]["categories"].values():
+        all_items.extend(item)
+    for source in combined["publicDigest"]["sources"]:
+        all_items.extend(source.get("results", []))
+    
+    # Keyword Matching
+    hub_scores = {name: [] for name in HUB_REGISTRY.keys()}
+    potential_new = []
+
+    for item in all_items:
+        title = item.get("title", "").lower()
+        matched = False
+        for hub_name, hub_info in HUB_REGISTRY.items():
+            if any(kw in title for kw in hub_info["keywords"]):
+                hub_scores[hub_name].append(item)
+                matched = True
+        
+        # Identify high-impact singleton potential (e.g. Robotics, 3D printing)
+        if not matched and any(kw in title for kw in ["robot", "cad", "3d print", "automation"]):
+           potential_new.append(item)
+
+    # Generate Recommendations
+    for hub_name, items in hub_scores.items():
+        if items:
+            recommendations.append({
+                "type": "ADOPT_INTEGRATE",
+                "hub": hub_name,
+                "reason": f"Matches {len(items)} new developments in this domain.",
+                "items": [i["title"] for i in items[:3]]
+            })
+
+    if len(potential_new) >= 2:
+        recommendations.append({
+            "type": "ADOPT_NEW",
+            "hub": "Emerging Technologies",
+            "reason": "Multiple developments in uncategorized high-impact domains.",
+            "items": [i["title"] for i in potential_new[:3]]
+        })
+
+    return recommendations
+
 def build_markdown(combined: dict) -> str:
+    recommendations = analyze_adoption(combined)
+    
     lines = [
-        "# AI Strategy Scout (Local / No API Cost)",
+        "# AI Strategy Scout: Architectural Sentinel Edition",
         "",
         f"- Generated at: {combined['generatedAt']}",
         f"- Mode: {combined['mode']}",
         "",
-        "## Local LLM / OSS",
-        "",
     ]
+    
+    if recommendations:
+        lines.extend(["## 🏛️ [DECISION] Architectural Recommendations", ""])
+        for rec in recommendations:
+            icon = "🔌" if rec["type"] == "ADOPT_INTEGRATE" else "🏠"
+            lines.append(f"### {icon} {rec['type']}: {rec['hub']}")
+            lines.append(f"- **Rationale**: {rec['reason']}")
+            for item in rec["items"]:
+                lines.append(f"  - {item}")
+            lines.append("")
+        lines.append("---")
+        lines.append("")
+
+    lines.extend(["## Local LLM / OSS", ""])
     for category, rows in combined["localDigest"]["categories"].items():
         lines.append(f"### {category}")
         if not rows:

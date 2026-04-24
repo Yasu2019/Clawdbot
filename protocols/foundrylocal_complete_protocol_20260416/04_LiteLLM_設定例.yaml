@@ -1,0 +1,27 @@
+﻿# LiteLLM 設定例（概念サンプル）
+# 実際の model 名、API ベース URL、ポート、認証要否は導入時に調整してください。
+
+model_list:
+  - model_name: local_primary_ollama
+    litellm_params:
+      model: openai/qwen_local
+      api_base: http://127.0.0.1:11434/v1
+      api_key: dummy
+
+  - model_name: local_compare_foundry
+    litellm_params:
+      model: openai/phi_local
+      api_base: http://127.0.0.1:FOUNDRY_PORT/v1
+      api_key: dummy
+
+router_settings:
+  routing_strategy: simple-shuffle
+
+general_settings:
+  master_key: CHANGE_ME
+
+# 運用ルール
+# 1. 既存 default は local_primary_ollama を維持
+# 2. 比較時だけ local_compare_foundry を明示指定
+# 3. 差が明確になるまでデフォルト切替しない
+# 4. 問題時は Foundry alias を無効化するだけで戻す

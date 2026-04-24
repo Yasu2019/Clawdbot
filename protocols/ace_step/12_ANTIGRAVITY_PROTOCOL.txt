@@ -1,0 +1,13 @@
+Mission: autonomously evaluate and integrate the ACE-Step 1.5 full automation package.
+
+Execution mode:
+- approval_policy = never
+- sandbox_mode = danger-full-access
+- web_search = live
+
+Requirements:
+- inspect current Docker, Portal, and app topology
+- avoid duplicate app cards
+- choose full adopt / partial adopt / hold
+- leave a machine-readable report
+- preserve 127.0.0.1 binding

@@ -24,7 +24,7 @@ validator = CsvValidationService.attachedfile_validator
 success_count = 0
 fail_count = 0
 
-CSV.foreach(Rails.root.join('db/record/attachedfile.csv'), headers: true).with_index(2) do |row, line_num|
+CSV.foreach(Rails.root.join('db/record/attachedfile.csv'), headers: true, encoding: 'bom|utf-8').with_index(2) do |row, line_num|
   unless validator.validate_row(row, line_num)
     fail_count += 1
     next

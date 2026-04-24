@@ -34,7 +34,7 @@ function Stop-TelegramBridgeProcesses {
 }
 
 if (-not $env:TELEGRAM_FAST_MODEL) {
-  $env:TELEGRAM_FAST_MODEL = "qwen3:8b"
+  $env:TELEGRAM_FAST_MODEL = "google/gemini-2.5-flash"
 }
 if (-not $env:TELEGRAM_FAST_API_BASE) {
   $env:TELEGRAM_FAST_API_BASE = "http://127.0.0.1:4000/v1"

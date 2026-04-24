@@ -1,0 +1,67 @@
+{
+  "company": {
+    "name": "Mitsui-Seimitsu-AI-Ops",
+    "mission": "品質保証、技術調査、資料生成、AI業務自動化を安全かつ低コストで継続改善する",
+    "governance": {
+      "approval_required_for": [
+        "docker compose changes",
+        "production file deletion",
+        "database schema change",
+        "external outbound email/webhook",
+        "git push to protected branches"
+      ],
+      "budget_policy": {
+        "currency": "USD",
+        "period": "monthly"
+      }
+    }
+  },
+  "teams": [
+    {
+      "name": "qa-ops",
+      "goal": "品質保証文書、監査、解析支援の自動化"
+    },
+    {
+      "name": "dev-ops",
+      "goal": "Clawstack / Portal / agent runtime の保守改善"
+    },
+    {
+      "name": "research-ops",
+      "goal": "新規AIツール調査、比較、導入判断の高速化"
+    }
+  ],
+  "agents": [
+    {
+      "name": "openclaw-main",
+      "team": "qa-ops",
+      "role": "operator",
+      "runtime": "http",
+      "budget_monthly_usd": 15,
+      "heartbeat_seconds": 60
+    },
+    {
+      "name": "claude-code-designer",
+      "team": "dev-ops",
+      "role": "design-and-review",
+      "runtime": "cli",
+      "budget_monthly_usd": 10,
+      "heartbeat_seconds": 120
+    },
+    {
+      "name": "codex-implementer",
+      "team": "dev-ops",
+      "role": "implementation",
+      "runtime": "cli",
+      "budget_monthly_usd": 10,
+      "heartbeat_seconds": 120
+    },
+    {
+      "name": "antigravity-scout",
+      "team": "research-ops",
+      "role": "rapid-research-and-prototyping",
+      "runtime": "http",
+      "budget_monthly_usd": 5,
+      "heartbeat_seconds": 180
+    }
+  ]
+}

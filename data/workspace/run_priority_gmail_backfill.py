@@ -15,7 +15,7 @@ from email_db_lock import EmailDbLock, read_lock_owner
 
 
 JST = timezone(timedelta(hours=9))
-START_DATE = date(2026, 1, 1)
+START_DATE = date(2019, 1, 1)
 MAX_MESSAGES_PER_CHUNK = 500
 TIMEOUT_SECONDS = 3600
 

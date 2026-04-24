@@ -385,9 +385,9 @@ def email_tasks(
 
 if __name__ == "__main__":
     port = int(os.getenv("MCP_PORT", "9876"))
-    print(f"[clawstack-mcp] Starting streamable-http on 127.0.0.1:{port}", flush=True)
+    print(f"[clawstack-mcp] Starting streamable-http on 0.0.0.0:{port}", flush=True)
     print(f"[clawstack-mcp] Tracing: {'enabled' if TRACING_AVAILABLE else 'disabled'}", flush=True)
     # FastMCP 1.26.0: host/port set in constructor settings
-    mcp.settings.host = "127.0.0.1"
+    mcp.settings.host = "0.0.0.0"
     mcp.settings.port = port
     mcp.run(transport="streamable-http")

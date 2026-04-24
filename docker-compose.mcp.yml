@@ -1,0 +1,55 @@
+version: "3.9"
+
+services:
+  mcp-server:
+    image: python:3.12-slim
+    container_name: honki-mcp-server
+    working_dir: /app
+    command: ["python", "server.py"]
+    volumes:
+      - ./data/workspace/mcp_server/07_server_blueprint:/app
+      - ./data/workspace/mcp_server/runtime:/runtime
+    environment:
+      MCP_BIND_HOST: "0.0.0.0"
+      MCP_BIND_PORT: "5001"
+      MCP_ENV: "prod"
+      LOG_LEVEL: "INFO"
+      # Using container names for internal networking
+      TOKEN_BROKER_URL: "http://honki-token-broker:8080"
+      SANDBOX_URL: "http://honki-sandbox-runner:8090"
+    ports:
+      - "127.0.0.1:5001:5001"
+    restart: unless-stopped
+    networks:
+      - mcp_net
+
+  sandbox-runner:
+    image: python:3.12-slim
+    container_name: honki-sandbox-runner
+    working_dir: /sandbox
+    command: ["python", "sandbox_runner.py"]
+    volumes:
+      - ./data/workspace/mcp_server/08_sandbox:/sandbox
+      - ./data/workspace/mcp_server/runtime:/runtime
+    environment:
+      SANDBOX_TIMEOUT_SEC: "120"
+      SANDBOX_TMP_DIR: "/runtime/tmp"
+      SANDBOX_MAX_OUTPUT_KB: "512"
+    restart: unless-stopped
+    networks:
+      - mcp_net
+
+  token-broker:
+    image: python:3.12-slim
+    container_name: honki-token-broker
+    working_dir: /broker
+    command: ["python", "-m", "http.server", "8080"]
+    volumes:
+      - ./data/workspace/mcp_server/09_auth:/broker
+    restart: unless-stopped
+    networks:
+      - mcp_net
+
+networks:
+  mcp_net:
+    driver: bridge

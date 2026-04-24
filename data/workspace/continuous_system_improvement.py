@@ -57,6 +57,8 @@ MINIPC_OPTIMIZER_WATCHDOG_STATUS = WORKSPACE / "minipc_optimizer_watchdog_status
 EMAIL_BLACKLIST_HUB_STATUS = WORKSPACE / "email_blacklist_hub_status.json"
 EMAIL_FILTER_PATH = WORKSPACE / "email_rag_sender_filters.json"
 EMAIL_SEARCH_API_LOG = WORKSPACE / "email_search_api.log"
+MAINTENANCE_MODE_PATH = WORKSPACE / "maintenance_mode.json"
+
 
 START_EMAIL_WATCHDOG = ROOT / "scripts" / "start_email_continuous_watchdog.ps1"
 START_DOCKER_UI_WATCHDOG = ROOT / "scripts" / "start_docker_desktop_ui_watchdog.ps1"
@@ -463,7 +465,11 @@ def summarize() -> tuple[list[dict[str, Any]], list[dict[str, Any]], dict[str, A
     email_policy = read_json(EMAIL_POLICY_PATH, {})
     outbound_guard = read_json(OUTBOUND_GUARD_STATUS_PATH, {})
     email_filters = read_json(EMAIL_FILTER_PATH, {})
+    maintenance = read_json(MAINTENANCE_MODE_PATH, {})
+    excluded = set(maintenance.get("excluded_services") or [])
+
     learning = learning_health()
+
     blacklist_config = probe_json_api(EMAIL_BLACKLIST_HUB_URL)
     blacklist_candidates = probe_json_api(EMAIL_BLACKLIST_CANDIDATES_URL)
     email_search_stats = probe_json_api(EMAIL_SEARCH_STATS_URL)
@@ -927,7 +933,10 @@ def execute_action(action_key: str) -> dict[str, Any]:
 
 
 def write_summary(strengths: list[dict[str, Any]], weaknesses: list[dict[str, Any]], actions: list[dict[str, Any]]) -> None:
+    maintenance = read_json(MAINTENANCE_MODE_PATH, {})
+    excluded = set(maintenance.get("excluded_services") or [])
     lines = [
+
         f"# Continuous System Improvement Summary",
         "",
         f"Updated: {now_jst_text()}",
@@ -942,8 +951,12 @@ def write_summary(strengths: list[dict[str, Any]], weaknesses: list[dict[str, An
     lines.extend(["", "## Weaknesses"])
     if weaknesses:
         for item in weaknesses:
-            lines.append(f"- [{item['severity'].upper()}] {item['title']}: {item['detail']}")
+            if item["key"] in excluded:
+                lines.append(f"- [MAINTENANCE] {item['title']}: {item['detail']} (Scheduled)")
+            else:
+                lines.append(f"- [{item['severity'].upper()}] {item['title']}: {item['detail']}")
     else:
+
         lines.append("- none")
     lines.extend(["", "## Actions"])
     if actions:

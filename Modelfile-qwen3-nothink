@@ -1,0 +1,4 @@
+FROM qwen3:8b
+# thinking モードを無効化 — LightRAG の entity 抽出に使用
+# thinking=true だと 1チャンクあたり 10分+ かかるため無効化
+PARAMETER think false

@@ -1,0 +1,11 @@
+{
+  "project_id": "demo_project",
+  "assets": {
+    "start_frame": "assets/start_pose_ref.png",
+    "end_frame": "assets/end_pose_ref.png",
+    "motion_reference": "assets/motion_ref.mp4"
+  },
+  "outputs": {
+    "generated_preview": "outputs/shot_001_v001.mp4"
+  }
+}

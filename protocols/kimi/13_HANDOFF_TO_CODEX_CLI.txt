@@ -1,0 +1,24 @@
+Task: Safely evaluate and, if justified, integrate Kimi K2.6 as a worker model into the user's existing Docker-based Clawstack/OpenClaw environment.
+
+Constraints:
+- preserve current behavior
+- no destructive actions
+- no secret exposure
+- no sensitive remote routing
+- minimal diff only
+- prefer additive changes
+
+Required sequence:
+1. inspect current repo/compose/env/model routing
+2. identify collisions
+3. output decision report: ADOPT / PARTIAL / HOLD
+4. if justified, patch in phased form:
+   - add env placeholders
+   - add non-default model route
+   - add kill switch
+   - add sample workflow hooks only
+5. summarize exact edits
+6. provide rollback notes
+
+Success condition:
+Kimi exists as an optional worker route without breaking the current system.

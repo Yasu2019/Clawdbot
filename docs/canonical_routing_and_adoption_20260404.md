@@ -15,6 +15,7 @@ This document is the canonical policy for:
 
 Use this document as the primary routing reference.
 Other ZIP packages, handoff bundles, and hub pages should be treated as supporting references unless they explicitly replace this file in a future approved change.
+For the current duplicate-reduction execution path, see `docs/duplication_cleanup_plan_20260416.md`.
 
 ## Core Rule
 

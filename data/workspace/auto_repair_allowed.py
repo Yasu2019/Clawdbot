@@ -13,25 +13,42 @@ import requests
 JST = timezone(timedelta(hours=9))
 SCRIPT_PATH = Path(__file__).resolve()
 WORKSPACE = SCRIPT_PATH.parent
-
-
 def resolve_repo_root() -> Path:
-    candidates = [
-        WORKSPACE.parent.parent,
-        Path.cwd(),
-    ]
-    for candidate in candidates:
-        if (candidate / "scripts").exists() and (candidate / "docs").exists():
-            return candidate
+    # 1. Traversal from WORKSPACE (Most reliable if __file__ is accurate)
+    curr = WORKSPACE
+    for _ in range(5):
+        if (curr / "scripts").exists() and (curr / "docs").exists():
+            return curr
+        if curr.parent == curr:
+            break
+        curr = curr.parent
+
+    # 2. Historical fallback
+    candidate = WORKSPACE.parent.parent
+    if candidate.exists() and (candidate / "scripts").exists():
+        return candidate
+
+    # 3. Current Working Directory
+    if (Path.cwd() / "scripts").exists() and (Path.cwd() / "docs").exists():
+        return Path.cwd()
+
+    # 4. Emergency fallback for this specific environment
+    mini_pc_root = Path("D:/Clawdbot_Docker_20260125")
+    if mini_pc_root.exists():
+        return mini_pc_root
+
     return Path.cwd()
 
 
 ROOT = resolve_repo_root()
+print(f"[auto_repair] Resolved ROOT to: {ROOT}")
 STATUS_PATH = WORKSPACE / "auto_repair_allowed_status.json"
 STATE_PATH = WORKSPACE / "auto_repair_allowed_state.json"
 EMAIL_RUNTIME = WORKSPACE / "email_rag_ingest_runtime_status.json"
 EMAIL_DAEMON_STATUS = WORKSPACE / "email_continuous_ingest_status.json"
 CAE_SYNC_STATUS = WORKSPACE / "cae_learning_memory_sync_status.json"
+MAINTENANCE_MODE_PATH = WORKSPACE / "maintenance_mode.json"
+
 SCHEDULED_REPORT_STATUS = WORKSPACE / "scheduled_report_search_status.json"
 IDLE_MAINTENANCE_STATUS = WORKSPACE / "idle_ingest_maintenance_status.json"
 EMAIL_WATCHDOG_START = ROOT / "scripts" / "start_email_continuous_watchdog.ps1"
@@ -58,15 +75,22 @@ EMAIL_DAEMON_CMD = (
     '--poll-seconds 300 --learning-interval-cycles 3 --full-backfill-interval-cycles 72'
 )
 CAE_CMD = f'python "{WORKSPACE / "sync_cae_learning_memory.py"}" --base-url "http://localhost:8110" --source-org "Mitsui"'
-REPORT_CMD = f'python "{WORKSPACE / "scheduled_report_search.py"}" sync --limit-executions 20'
+REPORT_CMD = ["python", str(WORKSPACE / "scheduled_report_search.py"), "sync", "--limit-executions", "20"]
+
 LEARNING_REPAIR_CMD = f'python3 "{LEARNING_REPAIR_SCRIPT}"'
-PAPERLESS_RAG_WATCHDOG_CMD = f'powershell -ExecutionPolicy Bypass -File "{PAPERLESS_RAG_WATCHDOG_START}"'
+PAPERLESS_RAG_WATCHDOG_CMD = ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(PAPERLESS_RAG_WATCHDOG_START)]
+
 PAPERLESS_TOKEN_REFRESH_CMD = f'python3 "{PAPERLESS_TOKEN_REFRESH_SCRIPT}"'
-CLAUDIAN_WATCHDOG_CMD = f'powershell -ExecutionPolicy Bypass -File "{CLAUDIAN_WATCHDOG_START}"'
-DOCKER_UI_WATCHDOG_CMD = f'powershell -ExecutionPolicy Bypass -File "{DOCKER_UI_WATCHDOG_START}"'
-MINIPC_OPTIMIZER_WATCHDOG_CMD = f'powershell -ExecutionPolicy Bypass -File "{MINIPC_OPTIMIZER_WATCHDOG_START}"'
-EMAIL_BLACKLIST_HUB_CMD = f'powershell -ExecutionPolicy Bypass -File "{EMAIL_BLACKLIST_HUB_START}"'
-EMAIL_SEARCH_API_CMD = f'powershell -ExecutionPolicy Bypass -File "{EMAIL_SEARCH_API_START}"'
+CLAUDIAN_WATCHDOG_CMD = ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(CLAUDIAN_WATCHDOG_START)]
+
+DOCKER_UI_WATCHDOG_CMD = ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(DOCKER_UI_WATCHDOG_START)]
+
+MINIPC_OPTIMIZER_WATCHDOG_CMD = ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(MINIPC_OPTIMIZER_WATCHDOG_START)]
+
+EMAIL_BLACKLIST_HUB_CMD = ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(EMAIL_BLACKLIST_HUB_START)]
+
+EMAIL_SEARCH_API_CMD = ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(EMAIL_SEARCH_API_START)]
+
 EMAIL_SEARCH_STATS_URL = "http://127.0.0.1:8792/api/stats"
 
 
@@ -126,11 +150,12 @@ def age_minutes(dt: datetime | None) -> float | None:
     return round((now_jst().astimezone(dt.tzinfo) - dt).total_seconds() / 60.0, 1)
 
 
-def run_command(command: str, timeout_seconds: int) -> dict[str, Any]:
+def run_command(command: str | list[str], timeout_seconds: int) -> dict[str, Any]:
     try:
+        shell = isinstance(command, str)
         proc = subprocess.run(
             command,
-            shell=True,
+            shell=shell,
             capture_output=True,
             text=True,
             encoding="utf-8",
@@ -138,7 +163,7 @@ def run_command(command: str, timeout_seconds: int) -> dict[str, Any]:
             timeout=timeout_seconds,
         )
         return {
-            "command": command,
+            "command": command if isinstance(command, str) else " ".join(command),
             "returncode": proc.returncode,
             "stdout": proc.stdout.strip(),
             "stderr": proc.stderr.strip(),
@@ -146,12 +171,20 @@ def run_command(command: str, timeout_seconds: int) -> dict[str, Any]:
         }
     except subprocess.TimeoutExpired as exc:
         return {
-            "command": command,
+            "command": command if isinstance(command, str) else " ".join(command),
             "returncode": None,
             "stdout": (exc.stdout or "").strip() if isinstance(exc.stdout, str) else "",
             "stderr": (exc.stderr or "").strip() if isinstance(exc.stderr, str) else "",
             "timedOut": True,
             "timeoutSeconds": timeout_seconds,
+        }
+    except Exception as exc:
+        return {
+            "command": command if isinstance(command, str) else " ".join(command),
+            "returncode": 1,
+            "stdout": "",
+            "stderr": str(exc),
+            "timedOut": False,
         }
 
 
@@ -334,6 +367,10 @@ def main() -> None:
     minipc_optimizer_watchdog_status = read_json(MINIPC_OPTIMIZER_WATCHDOG_STATUS)
     email_blacklist_hub_status = read_json(EMAIL_BLACKLIST_HUB_STATUS)
     repair_state = read_json(STATE_PATH)
+    maintenance = read_json(MAINTENANCE_MODE_PATH)
+    excluded = set(maintenance.get("excluded_services") or [])
+
+
 
     status: dict[str, Any] = {
         "startedAt": now_jst_text(),
@@ -371,7 +408,14 @@ def main() -> None:
     status["rules"].append({"name": "minipc_optimizer_watchdog", "shouldRepair": minipc_fix, "reason": minipc_reason})
     status["rules"].append({"name": "email_blacklist_hub", "shouldRepair": blacklist_fix, "reason": blacklist_reason})
     status["rules"].append({"name": "email_search_api", "shouldRepair": email_search_fix, "reason": email_search_reason})
+
+    for rule in status["rules"]:
+        if rule["name"] in excluded:
+            rule["shouldRepair"] = False
+            rule["reason"] = f"planned_maintenance (via {MAINTENANCE_MODE_PATH.name})"
+
     write_status(status)
+
 
     if learning_fix:
         status["step"] = "repair_learning_engine"

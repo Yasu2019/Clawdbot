@@ -1,0 +1,76 @@
+{
+  "generated_at": "2026-04-17T06:05:07+0900",
+  "source_phase0_dir": "tmp/foundrylocal_phase0/20260417_041828",
+  "rows": [
+    {
+      "case_no": 1,
+      "date": "2026-04-17",
+      "prompt_file": "filled_01_短文即答.txt",
+      "elapsed_sec": 17.22,
+      "ollama_model": "Ollama/qwen3:8b",
+      "foundry": "Foundry/qwen2.5-0.5b-instruct-openvino-gpu:2",
+      "ollama_chars": 45,
+      "foundry_chars": 26,
+      "run_dir": "tmp\\hybrid_eval\\20260417_043037",
+      "ollama_text": "明日の会議用の資料がまだ完成しておりません。早急にご提出いただけますようお願いいたします。",
+      "foundry_text": "明日の会議、資料が必要です。早めにご用意ください。",
+      "error": ""
+    },
+    {
+      "case_no": 2,
+      "date": "2026-04-17",
+      "prompt_file": "filled_02_長文要約.txt",
+      "elapsed_sec": 81.63,
+      "ollama_model": "Ollama/qwen3:8b",
+      "foundry": "Foundry/qwen2.5-0.5b-instruct-openvino-gpu:2",
+      "ollama_chars": 210,
+      "foundry_chars": 52,
+      "run_dir": "tmp\\hybrid_eval\\20260417_043054",
+      "ollama_text": "以下は、手順書を3つの見出しに分けて要点を整理したものです。抜け漏れが分かるよう、それぞれの見出し内で箇条書きで整理しています。\n\n---\n\n### 1. **基本的なトラブルシューティング手順**\n- 端末を再起動する（電源を切ってから再起動する）\n- ネットワーク設定を確認する（Wi-Fiや有線接続が正常か確認）\n- ログを取得する（必要な情報が含まれているか確認）\n\n---\n\n### 2. **問題解決のための",
+      "foundry_text": "1) 端末を再起動\n2) ネットワーク設定を確認\n3) ログを取得\n4) 問題が続く場合は管理者へ連絡",
+      "error": ""
+    },
+    {
+      "case_no": 3,
+      "date": "2026-04-17",
+      "prompt_file": "filled_03_コード補助.txt",
+      "elapsed_sec": 61.51,
+      "ollama_model": "Ollama/qwen3:8b",
+      "foundry": "Foundry/qwen2.5-0.5b-instruct-openvino-gpu:2",
+      "ollama_chars": 176,
+      "foundry_chars": 47,
+      "run_dir": "tmp\\hybrid_eval\\20260417_043216",
+      "ollama_text": "以下のように読みやすく修正しました。処理内容は変わりません。\n\n```python\ndef add(a, b):\n    return a + b\n\nprint(add(1, 2))\n```\n\n**バグの有無**:  \nこのコードは正しい動作をします。`add`関数は2つの引数を加算し、`print`文で結果を出力しています。  \n**バグなし**。",
+      "foundry_text": "def add(a, b):\n return a + b\n\nprint(add(1, 2))",
+      "error": ""
+    },
+    {
+      "case_no": 4,
+      "date": "2026-04-17",
+      "prompt_file": "filled_04_業務文書生成.txt",
+      "elapsed_sec": 78.69,
+      "ollama_model": "Ollama/qwen3:8b",
+      "foundry": "Foundry/qwen2.5-0.5b-instruct-openvino-gpu:2",
+      "ollama_chars": 198,
+      "foundry_chars": 182,
+      "run_dir": "tmp\\hybrid_eval\\20260417_043318",
+      "ollama_text": "件名：納期遅延についてのお詫び\n\nいつも弊社をご利用いただき、誠にありがとうございます。\n\nこの度は、ご注文いただいた商品の納期が遅延してしまい、大変ご迷惑をおかけしてしまい、心よりお詫び申し上げます。\n\n遅延の原因は、部材の調達に時間を要したためでございます。お手数ではございますが、ご理解いただけますと幸いです。\n\n今後は、このような事態を防ぐために、手配を前倒しして進めてまいりますし、進捗",
+      "foundry_text": "申し訳が強くなりすぎないように、以下に納期遅延のお詫びメールを作成します。\n\n申し訳が強くなりすぎないように、納期遅延のお詫びメールを作成します。\n\n申し訳が強くなりすぎないように、納期遅延のお詫びメールを作成します。\n\n申し訳が強くなりすぎないように、納期遅延のお詫びメールを作成します。\n\n申し訳が強くなりすぎないように、納期遅延のお詫びメールを作成します。",
+      "error": ""
+    },
+    {
+      "case_no": 5,
+      "date": "2026-04-17",
+      "prompt_file": "filled_05_QA業務向け.txt",
+      "elapsed_sec": 86.67,
+      "ollama_model": "Ollama/qwen3:8b",
+      "foundry": "Foundry/qwen2.5-0.5b-instruct-openvino-gpu:2",
+      "ollama_chars": 167,
+      "foundry_chars": 230,
+      "run_dir": "tmp\\hybrid_eval\\20260417_043436",
+      "ollama_text": "以下は、監査指摘「記録の承認者が不明確」をもとに整理した **是正処置案**、**再発防止案**、**確認方法**です。\n\n---\n\n### ✅ **是正処置案（現状の改善策）**\n\n1. **承認者の記録を明確化する**  \n   - すべての記録に、承認者（氏名、所属、役職）を明記する。\n   - 紙の記録・電子記録問わず、承認",
+      "foundry_text": "監査指摘: 記録の承認者が不明確。\n\n是正処置案:\n1. 計査指摘をもとに、承認者が不明確な点を追跡し、その承認状況を確認する。\n\n2. 計格の遵守と責任を確認し、その承認状況を確認する。\n\n3. 計査指摘の承認者が不明確な点を追跡し、その承認状況を確認する。\n\n再発防止処置案:\n1. 計査指摘の承認者が不明確な点を追跡し、その承認状況を確認する。\n\n2. 計査指摘の承認者が不明確な点を追跡し、その承認状況を確認する。\n\n確認方法:\n1. 計査指摘の承認",
+      "error": ""
+    }
+  ]
+}

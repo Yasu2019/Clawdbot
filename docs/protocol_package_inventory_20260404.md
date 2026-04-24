@@ -37,6 +37,8 @@ It does not replace `AGENTS.md`.
 | `agent_harness_protocol_20260404_ascii_utf8bom.zip` | ZIP | supports harness thinking, but repo constraints already live in `AGENTS.md` |
 | `gemma4_qwen_honki_protocol_utf8.zip` | ZIP | model-routing and performance decision pack; overlaps with existing Gemma 4 partial-adoption policy, so keep as reference only |
 | `unreal_native_protocol_20260414.zip` | ZIP | Unreal native deployment guidance; useful as a reference pack, but too heavy to promote on this mini PC and should not become a second active 3D stack |
+| `Blender_MCP_HONKI_Protocol_20260416.zip` | ZIP | strong partial-adoption candidate for isolated Windows-native evaluation only; do not promote to active governance or always-on runtime before sandbox proof |
+| `AI_壊れにくい設計_文字化けし難いZIPプロトコル_20260416.zip` | ZIP | useful refactor and handoff checklist bundle, but overlaps with active governance and adoption docs, so keep as reference only |
 | `obsidian_open_notebook_protocol_20260403.zip` | ZIP | domain-specific workflow reference |
 | `obsidian_skills_codex_protocol_utf8bom_ascii_filenames.zip` | ZIP | narrow workflow reference |
 | `OpenClaw_Learning_Protocol_Pack.zip` | ZIP | source package for implemented learning work; no longer primary governance |

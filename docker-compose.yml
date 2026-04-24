@@ -25,6 +25,7 @@ services:
       - "127.0.0.1:${OPENCLAW_PORT:-18789}:18789"
       - "127.0.0.1:${OPENCLAW_BROWSER_PORT:-18791}:18791"
       - "127.0.0.1:8099:8099"
+      - "127.0.0.1:5900:5900"
     env_file: .env
     environment:
       - GEMINI_API_KEY=${GEMINI_API_KEY}
@@ -405,7 +406,9 @@ services:
     ports:
       - "127.0.0.1:8088:80"
     volumes:
-      - ./data/workspace:/usr/share/nginx/html:ro
+      - ./data/workspace:/usr/share/nginx/html
+      - ./protocols:/usr/share/nginx/html/protocols:ro
+      - ./ops:/usr/share/nginx/html/ops:ro
     restart: unless-stopped
 
   # ============================================================
@@ -457,6 +460,13 @@ services:
       - minigame_api
     restart: unless-stopped
 
+  portal_next:
+    build: ./data/workspace/apps/portal_next
+    ports:
+      - "127.0.0.1:3101:3000"
+    restart: unless-stopped
+
+
   # ============================================================
   # 8. VOICE & SIMULATION
   # ============================================================
@@ -486,6 +496,9 @@ services:
       - GROQ_API_KEY=${GROQ_API_KEY}
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - CEREBRAS_API_KEY=${CEREBRAS_API_KEY}
+      - MOONSHOT_API_KEY=${MOONSHOT_API_KEY}
+      - KIMI_BASE_URL=${KIMI_BASE_URL}
+      - CLOUD_OPENAI_API_KEY=${CLOUD_OPENAI_API_KEY}
       - OLLAMA_API_BASE=http://ollama:11434
       - OPENAI_API_KEY=ollama
     depends_on:
@@ -1067,6 +1080,26 @@ services:
     profiles: ["multimodal"]
     networks:
       - default
+
+  # ── Agentic Efficiency (Consolidated & Optimized 2026-04-22) ────────
+  mcp-bridge:
+    image: python:3.11-slim
+    container_name: clawstack-unified-mcp-bridge
+    environment:
+      - MCP_PORT=3333
+      - LITELLM_MASTER_KEY=${LITELLM_MASTER_KEY}
+      - QDRANT_URL=http://qdrant:6333
+      - SEARXNG_URL=http://searxng:8080
+      - INFINITY_URL=http://infinity:7997
+      - OLLAMA_URL=http://ollama:11434
+    volumes:
+      - ./data/workspace:/app/workspace:rw
+      - ./data/workspace/knowledge_vault:/app/knowledge_vault:rw
+    ports:
+      - "127.0.0.1:3333:3333"
+    restart: unless-stopped
+    command: >
+      sh -c "pip install mcp[cli] requests && python3 /app/workspace/clawstack_mcp_server.py"
 
 volumes:
   shannon_workspaces:

@@ -187,7 +187,12 @@ def collect_findings() -> tuple[list[dict[str, str]], dict[str, Any]]:
     email_started = parse_dt(email.get("startedAt"))
     email_results = email.get("results") or {}
     failed_phases = failed_phase_names(email_results)
-    if failed_phases:
+    
+    # Don't report if the status file is too old (stale findings)
+    email_age_min = age_minutes(email_started)
+    is_stale = email_age_min is not None and email_age_min > 1440 # 24 hours
+    
+    if failed_phases and not is_stale:
         findings.append(
             make_finding(
                 "email_nightly_failed",
@@ -196,7 +201,7 @@ def collect_findings() -> tuple[list[dict[str, str]], dict[str, Any]]:
                 f"step={email.get('step')} currentPhase={email.get('currentPhase')} failedPhases={', '.join(failed_phases)}",
             )
         )
-    elif email.get("step") != "completed" and email_started and age_minutes(email_started) and age_minutes(email_started) >= 120:
+    elif email.get("step") != "completed" and email_started and email_age_min and email_age_min >= 120 and not is_stale:
         findings.append(
             make_finding(
                 "email_nightly_stuck",

@@ -156,5 +156,46 @@ Antigravity は、外部の最新トレンドを自律的に収集し、シス�
 - **メモリローテーション**: スカウトした生データ (JSON/Markdown) は **30 日間** 保持し、その後は「有益な結論」のみを知識ベース (`knowledge/`) に集約した上で、生データを削除する。
 - **Qdrant 衛生**: `agent_self_growth_memory` などの自律学習用コレクションは、1000件または100MBを超えた時点で、類似度の高い重複情報をマージし、低スコアの古い情報をアーカイブする。
 
+## 12. 統括ポリシーとルーティング (Canonical Policy & Routing)
+
+Antigravity は、個別のタスクルーティングや新機能の採用判断において、以下のドキュメントを「単一の真実（Canonical Source）」として参照する。
+
+- **統括ポリシー**: [docs/canonical_routing_and_adoption_20260404.md](file:///d:/Clawdbot_Docker_20260125/docs/canonical_routing_and_adoption_20260404.md)
+- **判定基準**: 新規 ZIP やプロコトルの導入前には、必ず上記ドキュメントの「Adoption Rules」および `implementation_plan.md` での承認プロセスを経ること。
+- **本気プロトコル (Honki Protocols)**:
+    - **MCP (Tool Standard)**: [data/workspace/mcp_server/04_OPENCLAW_INTEGRATION_PROTOCOL.md](file:///d:/Clawdbot_Docker_20260125/data/workspace/mcp_server/04_OPENCLAW_INTEGRATION_PROTOCOL.md)
+    - **TasteSkill (UI/Audit)**: [protocols/taste_skill/README_FIRST.md](file:///d:/Clawdbot_Docker_20260125/protocols/taste_skill/README_FIRST.md)
+    - **Feature Dev (Field SOP)**: [protocols/feature_dev/06_ClaudeCodeプロトコル/ClaudeCode_現場プロトコル_全.md](file:///d:/Clawdbot_Docker_20260125/protocols/feature_dev/06_ClaudeCodeプロトコル/ClaudeCode_現場プロトコル_全.md)
+
+## 13. クラウドAPI利用承諾プロトコル (Cloud API Consent Protocol)
+
+Antigravity は、コスト発生およびデータ送信が伴う外部クラウドモデル（OpenAI, Gemini, Kimi 等）を利用する際、以下のルールを遵守する。
+
+- **利用前通達**: ローカルモデルからクラウドモデルへ切り替える際、必ず実行前に「どのモデルを、どのような目的で、いくら程度のコスト感で利用するか」をユーザーに通達する。
+- **承諾確認**: 特に大規模なファイルの一括処理や、機密性が高い可能性がある情報を扱う場合は、通達だけでなく明示的な承諾（Consent）を得ることを推奨する。
+- **代替案の提示**: ローカルモデル（Qwen/Gemma）で代用可能な場合は、コスト抑制の観点からまずローカルでの実行を検討・提案する。
+
 ---
-*Last Updated: 2026-04-11 09:48 (JST)*
+*Last Updated: 2026-04-22 13:28 (JST)*
+
+---
+
+## 14. 新機能採用と Hub 統合プロトコル (Feature Adoption & Hub Integration)
+
+AI Strategy Scout およびエージェントによる提案は、以下の「無駄のない（No-Waste）」原則に従って行われる。
+
+### 14-1. 採用判断のフロー (Adoption Workflow)
+1. **既存資産のクロスチェック**: 新しいツールやワークフローを追加する前に、必ず `data/workspace/apps/` および `_legacy/` 内の既存実装と機能を比較する。
+2. **統合優先の原則 (Integrate-First)**: 既存の Hub (Creative Studio, Knowledge Hub 等) に収まる機能であれば、新規に独立したアプリを作るのではなく「Hub への追加・拡張」として実装する。
+3. **新規 Hub の設立基準**:
+   - 既存のどの Hub にも属さない全く新しいドメインであること。
+   - 少なくとも 2 つ以上の強力な関連ニュース・ツールが発見された場合、あるいは極めて高い独立性を要する場合にのみ「新規 Hub」として提案する。
+
+### 14-2. 提案形式 (Proposal Format)
+エージェントが新しい進化を提案する際は、`implementation_plan.md` において以下を明示する：
+- 「なぜ既存の Hub では不十分なのか（または、なぜ統合が最適なのか）」の技術的根拠。
+- 重複実装をいかに回避するかの方針。
+- 想定される「保守負荷」と「期待効果」のバランス。
+
+### 14-3. アーキテクチャ・センチネル (Architectural Sentinel)
+毎日の AI Strategy Scout は、単なるニュース配信ではなく「Clawstack のアーキテクチャ最適化のための提案」を行う義務を負う。Scout で [ADOPT_INTEGRATE] または [ADOPT_NEW] が表示された際、エージェントはユーザー承認後に速やかに統合または構築を開始する。

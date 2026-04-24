@@ -37,7 +37,7 @@ TELEGRAM_CHAT_ID = "8173025084"
 GMAIL_RECIPIENT = "y.suzuki.hk@gmail.com"
 GMAIL_PRIORITY_START_DATE = datetime(2026, 1, 1, tzinfo=JST).date()
 GMAIL_PRIORITY_BACKFILL_TIMEOUT = 5400
-EMAIL_LEARNING_SYNC_TIMEOUT = 1800
+EMAIL_LEARNING_SYNC_TIMEOUT = 3600
 def now_jst() -> str:
     return datetime.now(JST).strftime("%Y-%m-%d %H:%M:%S JST")
 

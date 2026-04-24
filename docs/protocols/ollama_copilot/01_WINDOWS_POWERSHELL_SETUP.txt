@@ -1,0 +1,66 @@
+﻿\
+Windows 11 / PowerShell 用セットアップ手順
+
+前提
+- Ollama は事前に Windows 版を導入してください
+- Copilot CLI は Windows では WinGet で入れるのが公式手順です
+
+1. PowerShell を開く
+通常の PowerShell で可
+
+2. Copilot CLI をインストール
+winget install GitHub.Copilot
+
+3. Ollama が起動しているか確認
+ollama
+
+4. 最短起動（まずはこれ）
+ollama launch copilot
+
+補足
+- 初回はモデル選択やセットアップが対話で進みます
+- 「まず動くことを確認する」目的なら、この方法が最短です
+
+5. モデルを直接指定して起動したい場合
+例:
+ollama launch copilot --model qwen3.5
+
+または cloud モデル例:
+ollama launch copilot --model qwen3.5:cloud
+
+6. PowerShell で手動 BYOK / ローカル接続する場合
+以下は Ollama の OpenAI 互換 API を Copilot CLI に渡す方法です
+
+$env:COPILOT_PROVIDER_BASE_URL="http://localhost:11434/v1"
+$env:COPILOT_PROVIDER_API_KEY=""
+$env:COPILOT_PROVIDER_WIRE_API="responses"
+$env:COPILOT_MODEL="qwen3.5"
+copilot
+
+7. オフライン寄り運用（GitHub に接続しない）
+$env:COPILOT_PROVIDER_BASE_URL="http://localhost:11434/v1"
+$env:COPILOT_PROVIDER_API_KEY=""
+$env:COPILOT_PROVIDER_WIRE_API="responses"
+$env:COPILOT_MODEL="qwen3.5"
+$env:COPILOT_OFFLINE="true"
+copilot
+
+8. セッション終了
+exit
+
+9. その PowerShell セッションだけ環境変数を消す場合
+Remove-Item Env:COPILOT_PROVIDER_BASE_URL -ErrorAction SilentlyContinue
+Remove-Item Env:COPILOT_PROVIDER_API_KEY -ErrorAction SilentlyContinue
+Remove-Item Env:COPILOT_PROVIDER_WIRE_API -ErrorAction SilentlyContinue
+Remove-Item Env:COPILOT_MODEL -ErrorAction SilentlyContinue
+Remove-Item Env:COPILOT_OFFLINE -ErrorAction SilentlyContinue
+
+PowerShell での推奨サンプルプロンプト
+copilot
+  Explain this repository.
+  Tell me about issue #15291.
+  Review the current diff and propose a safer refactor.
+  Create tests for the modified files only.
+
+VS Code も併用する場合
+- 03_VSCODE_AND_GITHUB_AUTH.txt へ進む

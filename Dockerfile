@@ -102,7 +102,7 @@ RUN pip3 install --no-cache-dir --break-system-packages \
 
 # Python Stack (Unified) - Step 2: Vision, PDF & Document
 RUN pip3 install --no-cache-dir --break-system-packages \
-    opencv-python-headless Pillow PyMuPDF reportlab python-docx pyyaml
+    opencv-python-headless Pillow PyMuPDF reportlab python-docx pyyaml pytesseract openpyxl
 
 # Python Stack (Unified) - Step 3: Engineering, CAD & Mesh
 RUN pip3 install --no-cache-dir --break-system-packages \

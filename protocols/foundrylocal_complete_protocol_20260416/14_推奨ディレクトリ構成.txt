@@ -1,0 +1,28 @@
+﻿推奨ディレクトリ構成（例）
+==========================
+
+D:\AI_Local\
+├─ backups\
+│  ├─ litellm\
+│  ├─ openclaw\
+│  └─ n8n\
+├─ configs\
+│  ├─ litellm\
+│  ├─ openclaw\
+│  └─ foundry\
+├─ logs\
+│  ├─ comparison\
+│  ├─ rollback\
+│  └─ test_runs\
+├─ prompts\
+│  ├─ benchmark\
+│  └─ qa_tasks\
+└─ docs\
+   ├─ foundry_local_eval\
+   └─ decision_notes\
+
+運用ポイント
+------------
+- 比較ログは分離保存
+- 本番設定と評価設定を混ぜない
+- バックアップを先に取る

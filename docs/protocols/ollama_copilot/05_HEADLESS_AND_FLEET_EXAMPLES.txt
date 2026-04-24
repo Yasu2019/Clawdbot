@@ -1,0 +1,47 @@
+﻿\
+Headless 実行 / 並列化の例
+
+1. Ollama の headless 起動例
+公式例:
+ollama launch copilot --model kimi-k2.5:cloud --yes -- -p "how does this repository work?"
+
+意味
+- --model : モデルを明示
+- --yes   : モデル取得や選択確認を省略
+- --      : 以降の引数を Copilot CLI へ渡す
+- -p      : 非対話で prompt を 1 回流す
+
+2. ローカル qwen で headless を試す例
+ollama launch copilot --model qwen3.5 --yes -- -p "Summarize the architecture of this repository."
+
+3. /fleet の考え方
+/fleet は、大きい依頼を小さなタスクに分け、可能な箇所を並列に動かすためのコマンドです
+
+開始例
+copilot
+/fleet Refactor this repository safely. First map the architecture, then identify dead code, then propose a minimal patch plan.
+
+4. /fleet が向く依頼
+- 大きい repo の構造調査
+- テスト追加箇所の探索
+- 安全な分割リファクタ計画
+- 変更影響範囲の洗い出し
+
+5. まず失敗しにくい依頼文
+/fleet Analyze this repository in parallel. One track should summarize architecture, one track should identify risky files, and one track should find missing tests. Return one consolidated plan only.
+
+6. issue / PR を絡める例
+Tell me about issue #15291 and compare it with the current local changes.
+Review the current branch against the open pull request and list unresolved risks.
+Summarize the current diff and propose the smallest safe patch.
+
+7. VS Code 連携と組み合わせる例
+- VS Code で該当関数を選択
+- copilot 側で:
+  Debug this
+  Refactor this function but preserve behavior
+  Add tests for this file only
+
+8. 注意
+- /fleet は便利ですが、最初から広く投げすぎると文脈負荷が上がります
+- まずは repo 全体ではなく、サブディレクトリ単位・変更ファイル単位で試すと安定しやすいです

@@ -33,6 +33,12 @@
   <button class="step-btn" id="step-5" onclick="gotoStep(5)">
     <span class="badge">5</span>設計報告書
   </button>
+  <button class="step-btn" id="step-6" onclick="gotoStep(6)" style="border-left:2px solid var(--accent);margin-left:8px">
+    <span class="badge" style="background:var(--accent)">⚡</span>INP → RAD 変換
+  </button>
+  <button class="step-btn" id="step-7" onclick="gotoStep(7)" style="border-left:2px solid #4ecdc4;margin-left:8px">
+    <span class="badge" style="background:#4ecdc4">📊</span>ANIM → VTK
+  </button>
 </nav>
 
 <main>
@@ -210,6 +216,99 @@
   <div class="panel hidden" id="report-preview">
     <h2>プレビュー</h2>
     <iframe class="report-frame" id="report-frame" title="設計報告書"></iframe>
+  </div>
+</div>
+
+<!-- ══════════════════ Step 6: INP → RAD 変換 ══════════════════ -->
+<div class="tab-content" id="tab-6">
+  <div class="panel">
+    <h2>⚡ Prepomax INP → OpenRadioss RAD 変換</h2>
+    <p style="color:var(--muted);font-size:.88em;margin-bottom:16px">
+      PrepomaxからExportした <strong>.inp</strong> ファイルをアップロードすると、
+      OpenRadioss用の <strong>_0000.rad</strong>（スターター）と
+      <strong>_0001.rad</strong>（エンジン）を自動生成します。<br>
+      対応: C3D4要素 / MM_TON_S_C単位系 / 接触 TYPE25 / 弾性(LAW1)・弾塑性(LAW2)
+    </p>
+
+    <div class="upload-zone" id="inp-upload-zone">
+      <div class="icon" id="inp-upload-icon">📄</div>
+      <div style="color:var(--accent);font-weight:bold;margin-bottom:6px">
+        .inp ファイルをドラッグ＆ドロップ
+      </div>
+      <p>または クリックして選択</p>
+      <p style="margin-top:8px">対応形式: <strong>.inp</strong>（Prepomax Export）</p>
+    </div>
+    <input type="file" id="inp-file-input" accept=".inp">
+
+    <div style="margin-top:12px">
+      <button class="btn btn-primary" id="btn-convert-inp" disabled
+              data-label="変換実行">変換実行</button>
+    </div>
+    <div id="inp-convert-msg" style="margin-top:10px"></div>
+  </div>
+
+  <div class="panel hidden" id="inp-result-panel">
+    <h2>変換結果</h2>
+    <div id="inp-result-info" style="margin-bottom:14px"></div>
+    <div class="btn-group" id="inp-download-btns"></div>
+    <div id="inp-warnings" style="margin-top:10px"></div>
+  </div>
+</div>
+
+<!-- ══════════════════ Step 7: ANIM → VTK 変換 ══════════════════ -->
+<div class="tab-content" id="tab-7">
+  <div class="panel">
+    <h2>📊 OpenRadioss ANIM → VTK 変換</h2>
+    <p style="color:var(--muted);font-size:.88em;margin-bottom:16px">
+      OpenRadioss が出力した <strong>ANIMファイル</strong>（例: A001〜A056）を
+      ParaView で開ける <strong>VTKファイル</strong> に変換します。<br>
+      変換後のファイルをダウンロードして ParaView で可視化してください。
+    </p>
+
+    <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:14px">
+      <div class="field" style="flex:1;min-width:220px">
+        <label>ANIMファイル プレフィックス</label>
+        <select id="anim-prefix-select" style="width:100%">
+          <option value="">-- スキャン中... --</option>
+        </select>
+      </div>
+      <button class="btn btn-ghost" id="btn-anim-scan" data-label="再スキャン">再スキャン</button>
+    </div>
+
+    <div id="anim-prefix-info" style="font-size:.84em;color:var(--muted);margin-bottom:14px"></div>
+
+    <div class="btn-group">
+      <button class="btn btn-primary" id="btn-anim-convert" disabled data-label="VTK変換実行">
+        VTK変換実行
+      </button>
+    </div>
+    <div id="anim-convert-msg" style="margin-top:10px"></div>
+  </div>
+
+  <div class="panel hidden" id="anim-result-panel">
+    <h2>変換結果</h2>
+    <div id="anim-result-info" style="margin-bottom:14px"></div>
+    <div id="anim-stdout-box" style="margin-bottom:14px"></div>
+    <h3>ダウンロード</h3>
+    <div id="anim-download-list"></div>
+    <div class="msg msg-info" style="margin-top:14px;font-size:.85em">
+      ダウンロードしたファイルを ParaView で開いてください。<br>
+      複数ファイルある場合は <strong>.pvd</strong> ファイルをParaViewで開くとアニメーション再生できます。
+    </div>
+  </div>
+
+  <div class="panel" id="vtk-jobs-panel">
+    <h2>🗂 生成済み VTK ジョブ管理</h2>
+    <div style="display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap">
+      <button class="btn btn-ghost btn-sm" id="btn-vtk-jobs-refresh" data-label="再読み込み" onclick="loadVtkJobs()">再読み込み</button>
+      <button class="btn btn-sm" id="btn-vtk-jobs-delete-all"
+              style="background:#c0392b;color:#fff;border:none;padding:6px 14px;border-radius:4px;cursor:pointer"
+              onclick="deleteAllVtkJobs()">🗑 一括削除</button>
+    </div>
+    <div id="vtk-jobs-msg" style="margin-bottom:10px"></div>
+    <div id="vtk-jobs-list">
+      <div style="color:var(--muted);font-size:.88em">読み込み中...</div>
+    </div>
   </div>
 </div>
 

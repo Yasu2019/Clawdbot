@@ -1,0 +1,47 @@
+English Prompt Templates
+
+A. Audit Flow Infographic
+Create a vertical A4 infographic for internal business use.
+Topic: "Process Audit Flow".
+Show six steps from top to bottom:
+1. Audit Planning
+2. Pre-check
+3. On-site Audit
+4. Findings Review
+5. Corrective Action Plan
+6. Effectiveness Check
+Use a clean manufacturing-style design with blue, white, and gray colors.
+Keep the Japanese text readable and concise.
+
+B. Photo Annotation for Work Instruction
+Use the uploaded photo as the base image.
+Keep the person, product, and main work area as unchanged as possible.
+Add:
+- Step numbers 1, 2, 3
+- Red highlight boxes for caution points
+- Short Japanese labels for key notes
+- Cleaner background for clarity
+Make it practical and professional, not flashy.
+
+C. Before/After Improvement Slide Visual
+Create a 16:9 business slide visual comparing "Before" and "After".
+Put "Before" on the left and "After" on the right.
+Use a calm blue-based corporate style.
+Keep the layout simple, presentation-ready, and easy to understand.
+
+D. Product Hero Image
+Use this product photo as the base.
+Preserve the product shape as much as possible.
+Turn it into a polished B2B catalog-style hero image with natural lighting, refined reflections, and a clean premium background.
+Avoid warping logos, markings, or critical product features.
+
+E. Internal Poster
+Create a vertical A4 internal poster in Japanese.
+Theme: "Three Checks to Prevent Defects".
+Use a large readable title, three icon-supported sections, and a clean white background with small red accents.
+Designed for factory wall posting, readable from a distance.
+
+F. Icon Set
+Create a consistent business icon set for:
+PC, smartphone, factory, checklist, gear, graph, warning.
+Use a flat, clean, minimal, blue-themed style on white background.

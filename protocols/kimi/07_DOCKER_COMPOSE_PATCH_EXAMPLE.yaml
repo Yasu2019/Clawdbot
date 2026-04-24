@@ -1,0 +1,28 @@
+# Example patch only. Merge carefully into existing stack.
+# Do NOT apply blindly.
+
+services:
+  litellm:
+    environment:
+      - KIMI_API_BASE=${KIMI_API_BASE}
+      - KIMI_API_KEY=${KIMI_API_KEY}
+      - KIMI_ENABLED=${KIMI_ENABLED:-false}
+    volumes:
+      - ./litellm/config.yaml:/app/config.yaml:ro
+
+  kimi-router:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: kimi-router-placeholder
+    restart: unless-stopped
+    profiles: ["disabled_by_default"]
+    environment:
+      - ENABLE_OPENAI_API=True
+      - OPENAI_API_BASE_URL=${KIMI_API_BASE}
+      - OPENAI_API_KEY=${KIMI_API_KEY}
+    ports:
+      - "127.0.0.1:18081:8080"
+
+# Notes:
+# - The kimi-router service above is only a placeholder pattern.
+# - In many cases, direct LiteLLM routing is cleaner than adding another UI/proxy.
+# - Prefer fewer moving parts unless a UI/testing endpoint is really needed.

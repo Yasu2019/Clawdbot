@@ -1,0 +1,22 @@
+﻿# 実行コマンド集
+
+## モデル導入
+ollama pull qwen3:14b
+ollama pull qwen2.5-coder:14b
+ollama pull qwen3.6:35b-a3b
+
+## 会話実行
+ollama run qwen3:14b
+ollama run qwen2.5-coder:14b
+ollama run qwen3.6:35b-a3b
+
+## 一覧確認
+ollama list
+
+## 自動選定スクリプト
+powershell -ExecutionPolicy Bypass -File .\qwen-auto-select.ps1 -Task daily
+powershell -ExecutionPolicy Bypass -File .\qwen-auto-select.ps1 -Task coding
+powershell -ExecutionPolicy Bypass -File .\qwen-auto-select.ps1 -Task heavy
+
+## ベンチマーク
+powershell -ExecutionPolicy Bypass -File .\qwen-benchmark.ps1

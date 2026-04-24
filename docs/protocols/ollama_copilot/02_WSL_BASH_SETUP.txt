@@ -1,0 +1,54 @@
+﻿\
+WSL(Ubuntu) / Bash 用セットアップ手順
+
+前提
+- Ollama は Windows 側で動作している想定
+- Copilot CLI は npm でも導入できます
+- npm で導入する場合、Node.js 22 以降が必要です
+
+1. Node.js / npm が使えるか確認
+node -v
+npm -v
+
+2. Copilot CLI を導入
+npm install -g @github/copilot
+
+3. 起動確認
+copilot --help
+
+4. 最短起動（まずはこれ）
+ollama launch copilot
+
+5. WSL 側で手動 BYOK / ローカル接続する場合
+export COPILOT_PROVIDER_BASE_URL=http://localhost:11434/v1
+export COPILOT_PROVIDER_API_KEY=
+export COPILOT_PROVIDER_WIRE_API=responses
+export COPILOT_MODEL=qwen3.5
+copilot
+
+6. オフライン寄り運用
+export COPILOT_PROVIDER_BASE_URL=http://localhost:11434/v1
+export COPILOT_PROVIDER_API_KEY=
+export COPILOT_PROVIDER_WIRE_API=responses
+export COPILOT_MODEL=qwen3.5
+export COPILOT_OFFLINE=true
+copilot
+
+7. 環境変数を一時的に外す
+unset COPILOT_PROVIDER_BASE_URL
+unset COPILOT_PROVIDER_API_KEY
+unset COPILOT_PROVIDER_WIRE_API
+unset COPILOT_MODEL
+unset COPILOT_OFFLINE
+
+8. GitHub 認証する場合
+copilot login
+
+9. GitHub CLI の認証を流用したい場合
+gh auth status
+copilot
+
+補足
+- GitHub 認証済みだと GitHub 側機能が使いやすくなります
+- BYOK のみなら GitHub 認証なしでも起動可能です
+- ただし /delegate, GitHub MCP, GitHub Code Search は GitHub 認証が必要です

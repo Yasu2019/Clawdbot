@@ -1,0 +1,67 @@
+﻿\
+トラブルシューティング
+
+1. copilot コマンドが見つからない
+確認:
+copilot --help
+
+対処
+- Windows: winget install GitHub.Copilot
+- WSL: npm install -g @github/copilot
+- 新しいターミナルを開き直す
+
+2. Ollama に接続できない
+確認:
+ollama
+または
+ollama ps
+
+対処
+- Ollama アプリが起動しているか確認
+- 手動設定なら URL が http://localhost:11434/v1 になっているか確認
+- 環境変数が残って競合していないか確認
+
+3. ローカルモデルが重い / 遅い
+対処
+- より軽いモデルへ変更
+- 文脈長を下げる
+- まずは小さい repo / サブディレクトリで試す
+- cloud モデルを検討する
+
+4. 文脈不足や agent 系で詰まる
+対処
+- Ollama 側コンテキストを 64k 以上にする
+- 例:
+  OLLAMA_CONTEXT_LENGTH=64000 ollama serve
+- 状況確認:
+  ollama ps
+
+5. GitHub 機能が使えない
+確認
+- GitHub 認証をしているか
+  copilot login
+- offline にしていないか
+- /delegate, GitHub MCP, GitHub Code Search は GitHub 認証が必要
+
+6. VS Code に自動接続しない
+対処
+- repo を VS Code で trusted mode で開く
+- 同じディレクトリから copilot を起動
+- /ide で手動接続する
+
+7. 認証が意図せず切り替わる
+注意
+- GH_TOKEN / GITHUB_TOKEN / COPILOT_GITHUB_TOKEN があると、それが優先されます
+- 別ツール用の GH_TOKEN が残っていないか確認してください
+
+8. 完全ローカルだと思ったのに通信している
+注意
+- COPILOT_OFFLINE=true でも、BYOK 先が remote endpoint ならそこへ通信されます
+- localhost の Ollama を使っているか再確認してください
+
+9. まず何を試すべきか分からない
+推奨順
+A) ollama launch copilot
+B) copilot login
+C) /ide
+D) 必要なら offline / BYOK 手動設定

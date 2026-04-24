@@ -1,0 +1,24 @@
+services:
+  comfyui:
+    image: python:3.11-slim
+    container_name: ace-step-comfyui
+    working_dir: /workspace
+    command: bash -lc "apt-get update && apt-get install -y git && python -m venv .venv && . .venv/bin/activate && pip install --upgrade pip && if [ ! -d ComfyUI ]; then git clone ${COMFYUI_REPO_URL} ComfyUI; fi && cd ComfyUI && pip install -r requirements.txt && mkdir -p custom_nodes && cd custom_nodes && if [ ! -d ACE-Step-ComfyUI ]; then git clone ${ACE_COMFY_REPO_URL}; fi && cd ../.. && python ComfyUI/main.py --listen 0.0.0.0 --port ${COMFYUI_PORT}"
+    ports:
+      - "${BIND_HOST:-127.0.0.1}:${COMFYUI_PORT:-8188}:${COMFYUI_PORT:-8188}"
+    volumes:
+      - ../runtime:/workspace
+      - ../models:/workspace/models
+      - ../outputs:/workspace/outputs
+    restart: unless-stopped
+
+  portal_stub:
+    image: python:3.11-slim
+    container_name: ace-step-portal-stub
+    working_dir: /site
+    command: bash -lc "python -m http.server ${PORTAL_STUB_PORT} --bind 0.0.0.0"
+    ports:
+      - "${BIND_HOST:-127.0.0.1}:${PORTAL_STUB_PORT:-8099}:${PORTAL_STUB_PORT:-8099}"
+    volumes:
+      - ../portal_stub:/site
+    restart: unless-stopped

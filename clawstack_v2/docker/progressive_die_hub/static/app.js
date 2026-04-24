@@ -396,6 +396,179 @@ async function generateReport() {
   }
 }
 
+// ── ANIM → VTK 変換 ──────────────────────────────────────────────────────────
+async function scanAnimFiles() {
+  setLoading('btn-anim-scan', true, 'スキャン中...');
+  const sel = $('anim-prefix-select');
+  try {
+    const res = await fetch(API + '/api/anim-scan');
+    const json = await res.json();
+    sel.innerHTML = '';
+    if (!json.prefixes || json.prefixes.length === 0) {
+      sel.innerHTML = '<option value="">ANIMファイルが見つかりません</option>';
+      $('btn-anim-convert').disabled = true;
+      $('anim-prefix-info').textContent = '/work ディレクトリに ANIMファイルがありません';
+    } else {
+      json.prefixes.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p;
+        opt.textContent = p;
+        sel.appendChild(opt);
+      });
+      $('btn-anim-convert').disabled = false;
+      updateAnimInfo();
+    }
+  } catch(e) {
+    sel.innerHTML = '<option value="">スキャン失敗</option>';
+    msg('anim-convert-msg', 'err', `❌ スキャンエラー: ${e.message}`);
+  } finally {
+    setLoading('btn-anim-scan', false, '再スキャン');
+  }
+}
+
+function updateAnimInfo() {
+  const prefix = $('anim-prefix-select').value;
+  if (!prefix) return;
+  $('anim-prefix-info').textContent = `プレフィックス: ${prefix}  →  ${prefix}A001, A002 ... を変換します`;
+}
+
+async function runAnimToVtk() {
+  const prefix = $('anim-prefix-select').value;
+  if (!prefix) {
+    msg('anim-convert-msg', 'warn', 'プレフィックスを選択してください');
+    return;
+  }
+  setLoading('btn-anim-convert', true, '変換中...');
+  msg('anim-convert-msg', 'info', '<span class="spinner"></span>OpenRadioss で変換中... しばらくお待ちください');
+  hide('anim-result-panel');
+
+  const fd = new FormData();
+  fd.append('prefix', prefix);
+  try {
+    const res = await apiPost('/api/anim-to-vtk', fd);
+    renderAnimResult(res);
+    msg('anim-convert-msg', res.success ? 'ok' : 'warn',
+      res.success ? '✅ 変換完了' : '⚠ 変換に一部エラーがあります（ログを確認してください）');
+    loadVtkJobs();
+  } catch(e) {
+    msg('anim-convert-msg', 'err', `❌ ${e.message}`);
+  } finally {
+    setLoading('btn-anim-convert', false, 'VTK変換実行');
+  }
+}
+
+// ── VTKジョブ管理 ─────────────────────────────────────────────────────────────
+async function loadVtkJobs() {
+  const list = $('vtk-jobs-list');
+  list.innerHTML = '<div style="color:var(--muted);font-size:.88em">読み込み中...</div>';
+  try {
+    const res = await fetch(API + '/api/vtk-jobs');
+    const json = await res.json();
+    if (!json.jobs || json.jobs.length === 0) {
+      list.innerHTML = '<div style="color:var(--muted);font-size:.88em">生成済みジョブはありません。</div>';
+      return;
+    }
+    list.innerHTML = `
+      <table style="width:100%;border-collapse:collapse;font-size:.87em">
+        <thead>
+          <tr style="border-bottom:1px solid var(--border)">
+            <th style="text-align:left;padding:6px 8px">ジョブID</th>
+            <th style="text-align:right;padding:6px 8px">VTK数</th>
+            <th style="text-align:left;padding:6px 8px">PVDファイル</th>
+            <th style="text-align:right;padding:6px 8px">操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${json.jobs.map(j => `
+            <tr style="border-bottom:1px solid #2a2a2a" id="job-row-${j.job_id}">
+              <td style="padding:6px 8px;font-family:monospace">${j.job_id}</td>
+              <td style="padding:6px 8px;text-align:right">${j.vtk_count}</td>
+              <td style="padding:6px 8px;color:var(--muted)">
+                ${j.pvd_files.map(f =>
+                  `<a href="/api/download/${j.job_id}/${f}" download style="color:#4ecdc4;margin-right:8px">⬇ ${f}</a>`
+                ).join('') || '—'}
+              </td>
+              <td style="padding:6px 8px;text-align:right">
+                <button onclick="deleteVtkJob('${j.job_id}')"
+                  style="background:#c0392b;color:#fff;border:none;padding:4px 10px;border-radius:4px;cursor:pointer;font-size:.82em">
+                  🗑 削除
+                </button>
+              </td>
+            </tr>`).join('')}
+        </tbody>
+      </table>`;
+  } catch(e) {
+    list.innerHTML = `<div class="msg msg-err">❌ 読み込みエラー: ${e.message}</div>`;
+  }
+}
+
+async function deleteVtkJob(jobId) {
+  if (!confirm(`ジョブ ${jobId} のVTKファイルを削除しますか？`)) return;
+  try {
+    const res = await fetch(API + `/api/vtk-jobs/${jobId}`, { method: 'DELETE' });
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.detail || '削除失敗');
+    const row = $(`job-row-${jobId}`);
+    if (row) row.remove();
+    const tbody = document.querySelector('#vtk-jobs-list tbody');
+    if (tbody && tbody.querySelectorAll('tr').length === 0) {
+      $('vtk-jobs-list').innerHTML = '<div style="color:var(--muted);font-size:.88em">生成済みジョブはありません。</div>';
+    }
+    $('vtk-jobs-msg').innerHTML = `<div class="msg msg-ok">✅ ${jobId} を削除しました</div>`;
+  } catch(e) {
+    $('vtk-jobs-msg').innerHTML = `<div class="msg msg-err">❌ ${e.message}</div>`;
+  }
+}
+
+async function deleteAllVtkJobs() {
+  if (!confirm('VTKファイルを含む全ジョブを削除しますか？この操作は元に戻せません。')) return;
+  try {
+    const res = await fetch(API + '/api/vtk-jobs', { method: 'DELETE' });
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.detail || '削除失敗');
+    $('vtk-jobs-msg').innerHTML = `<div class="msg msg-ok">✅ ${json.count}件のジョブを削除しました</div>`;
+    $('vtk-jobs-list').innerHTML = '<div style="color:var(--muted);font-size:.88em">生成済みジョブはありません。</div>';
+  } catch(e) {
+    $('vtk-jobs-msg').innerHTML = `<div class="msg msg-err">❌ ${e.message}</div>`;
+  }
+}
+
+function renderAnimResult(res) {
+  $('anim-result-info').innerHTML = `
+    <div class="kv-grid">
+      <div class="kv-card"><div class="label">ジョブID</div>
+        <div class="value" style="font-size:.85em">${res.job_id}</div></div>
+      <div class="kv-card"><div class="label">生成ファイル数</div>
+        <div class="value">${res.vtk_files.length}</div></div>
+      <div class="kv-card"><div class="label">ステータス</div>
+        <div class="value ${res.success ? 'ok' : 'warn'}">${res.success ? '成功' : '警告あり'}</div></div>
+    </div>`;
+
+  if (res.stdout) {
+    $('anim-stdout-box').innerHTML = `
+      <details>
+        <summary style="cursor:pointer;color:var(--muted);font-size:.85em">変換ログ（クリックで展開）</summary>
+        <pre style="font-size:.75em;background:#111;padding:10px;border-radius:4px;overflow-x:auto;margin-top:6px">${res.stdout}</pre>
+      </details>`;
+  }
+
+  if (res.vtk_files.length > 0) {
+    $('anim-download-list').innerHTML = `
+      <ul class="file-list">
+        ${res.vtk_files.map(f => `
+          <li>
+            <span class="fname">📊 ${f}</span>
+            <a href="/api/download/${res.job_id}/${f}" download
+               class="btn btn-ghost btn-sm">⬇ DL</a>
+          </li>`).join('')}
+      </ul>`;
+  } else {
+    $('anim-download-list').innerHTML =
+      '<div class="msg msg-warn">VTKファイルが生成されませんでした。ログを確認してください。</div>';
+  }
+  show('anim-result-panel');
+}
+
 // ── 初期化 ────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   initUpload();
@@ -416,5 +589,103 @@ document.addEventListener('DOMContentLoaded', () => {
   $('btn-run-ccx').addEventListener('click', runCalculix);
   $('btn-report').addEventListener('click', generateReport);
 
+  initInpConverter();
+
+  $('btn-anim-scan').addEventListener('click', scanAnimFiles);
+  $('anim-prefix-select').addEventListener('change', updateAnimInfo);
+  $('btn-anim-convert').addEventListener('click', runAnimToVtk);
+  scanAnimFiles();
+  loadVtkJobs();
+
   switchTab(1);
 });
+
+// ── INP → RAD 変換 ─────────────────────────────────────────────────────────
+function initInpConverter() {
+  const zone  = $('inp-upload-zone');
+  const input = $('inp-file-input');
+  let   selectedFile = null;
+
+  zone.addEventListener('click',     () => input.click());
+  zone.addEventListener('dragover',  e => { e.preventDefault(); zone.classList.add('drag'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('drag'));
+  zone.addEventListener('drop', e => {
+    e.preventDefault();
+    zone.classList.remove('drag');
+    if (e.dataTransfer.files.length) setInpFile(e.dataTransfer.files[0]);
+  });
+  input.addEventListener('change', () => {
+    if (input.files.length) setInpFile(input.files[0]);
+  });
+
+  $('btn-convert-inp').addEventListener('click', runInpConvert);
+
+  function setInpFile(file) {
+    if (!file.name.toLowerCase().endsWith('.inp')) {
+      msg('inp-convert-msg', 'err', '❌ .inp ファイルのみ対応しています');
+      return;
+    }
+    selectedFile = file;
+    $('inp-upload-icon').textContent = '📄';
+    zone.querySelector('div[style*="font-weight"]').textContent = file.name;
+    $('btn-convert-inp').disabled = false;
+    $('btn-convert-inp').dataset.label = '変換実行';
+    msg('inp-convert-msg', 'info', `${file.name} を選択しました。「変換実行」を押してください。`);
+  }
+
+  async function runInpConvert() {
+    if (!selectedFile) return;
+    setLoading('btn-convert-inp', true, '変換中...');
+    msg('inp-convert-msg', 'info', '<span class="spinner"></span>変換処理中...');
+    hide('inp-result-panel');
+
+    const fd = new FormData();
+    fd.append('file', selectedFile);
+    try {
+      const res = await apiPost('/api/convert-inp', fd);
+      setLoading('btn-convert-inp', false, '変換実行');
+      $('inp-upload-icon').textContent = '✅';
+      msg('inp-convert-msg', 'ok', '✅ 変換完了');
+      renderInpResult(res);
+    } catch (e) {
+      setLoading('btn-convert-inp', false, '変換実行');
+      $('inp-upload-icon').textContent = '❌';
+      msg('inp-convert-msg', 'err', `❌ ${e.message}`);
+    }
+  }
+
+  function renderInpResult(res) {
+    const s = res.stats;
+    $('inp-result-info').innerHTML = `
+      <div class="kv-grid">
+        <div class="kv-card"><div class="label">ノード数</div>
+          <div class="value">${s.nodes.toLocaleString()}</div></div>
+        <div class="kv-card"><div class="label">要素数</div>
+          <div class="value">${s.elements.toLocaleString()}</div></div>
+        <div class="kv-card"><div class="label">パート数</div>
+          <div class="value">${s.parts}</div></div>
+        <div class="kv-card"><div class="label">材料数</div>
+          <div class="value">${s.materials}</div></div>
+        <div class="kv-card"><div class="label">接触ペア数</div>
+          <div class="value">${s.contacts}</div></div>
+        <div class="kv-card"><div class="label">終了時刻</div>
+          <div class="value">${s.end_time} s</div></div>
+      </div>`;
+
+    $('inp-download-btns').innerHTML = `
+      <a class="btn btn-primary" style="text-decoration:none"
+         href="/api/convert-inp/download/${res.job_id}/${res.starter}"
+         download="${res.starter}">⬇ ${res.starter}</a>
+      <a class="btn btn-secondary" style="text-decoration:none;margin-left:8px"
+         href="/api/convert-inp/download/${res.job_id}/${res.engine}"
+         download="${res.engine}">⬇ ${res.engine}</a>`;
+
+    if (res.warnings && res.warnings.length > 0) {
+      $('inp-warnings').innerHTML = res.warnings.map(
+        w => `<div class="msg msg-warn">⚠️ ${w}</div>`).join('');
+    } else {
+      $('inp-warnings').innerHTML = '';
+    }
+    show('inp-result-panel');
+  }
+}

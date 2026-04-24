@@ -1,0 +1,26 @@
+services:
+  semgrep:
+    image: semgrep/semgrep:latest
+    working_dir: /work
+    volumes:
+      - ../:/work
+    entrypoint: ["/bin/sh","-lc"]
+    command: ["semgrep --config auto ${TARGET_REPO:-.} || true"]
+
+  bandit:
+    image: python:3.12-slim
+    working_dir: /work
+    volumes:
+      - ../:/work
+    entrypoint: ["/bin/sh","-lc"]
+    command:
+      - "pip install --no-cache-dir bandit && bandit -r ${TARGET_REPO:-.} -f txt -o /work/reports_bandit.txt || true"
+
+  zap:
+    image: ghcr.io/zaproxy/zaproxy:stable
+    working_dir: /zap/wrk
+    volumes:
+      - ../:/zap/wrk
+    entrypoint: ["/bin/sh","-lc"]
+    command:
+      - "zap-baseline.py -t ${TARGET_URL} -r zap_report.html || true"

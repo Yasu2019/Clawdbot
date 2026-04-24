@@ -15,6 +15,49 @@ model_list:
       model: ollama/qwen2.5-coder:7b
       api_base: http://ollama:11434
       api_key: ollama
+  # ── LightRAG 専用: thinking 無効化済み qwen3 (2026-04-17) ────────
+  # バッチ処理・グラフ抽出に使用。thinking=off で高速化
+  - model_name: local_fast_nothink
+    litellm_params:
+      model: ollama/qwen3-nothink
+      api_base: http://ollama:11434
+      api_key: ollama
+
+  # ── OpenAI Cloud Layer (Added 2026-04-22) ────────────────────────
+  - model_name: openai/gpt-4o
+    litellm_params:
+      model: gpt-4o
+      api_key: "${CLOUD_OPENAI_API_KEY}"
+  - model_name: openai/gpt-4o-mini
+    litellm_params:
+      model: gpt-4o-mini
+      api_key: "${CLOUD_OPENAI_API_KEY}"
+
+  # ── Kimi Moonshot AI (Added 2026-04-22) ──────────────────────────
+  - model_name: openai/kimi-agent-primary
+    litellm_params:
+      model: kimi-k2.6
+      custom_llm_provider: openai
+      api_key: "${MOONSHOT_API_KEY}"
+      api_base: "${KIMI_BASE_URL}"
+      timeout: 180
+      max_retries: 2
+  - model_name: openai/kimi-vision-primary
+    litellm_params:
+      model: kimi-k2.6
+      custom_llm_provider: openai
+      api_key: "${MOONSHOT_API_KEY}"
+      api_base: "${KIMI_BASE_URL}"
+      timeout: 180
+      max_retries: 2
+  - model_name: openai/kimi-agent-with-fallback
+    litellm_params:
+      model: kimi-k2.6
+      custom_llm_provider: openai
+      api_key: "${MOONSHOT_API_KEY}"
+      api_base: "${KIMI_BASE_URL}"
+      timeout: 180
+      max_retries: 2
 
   # ── Lemonade Multimodal Layer (2026-04-12) ─────────────────────
   - model_name: lemonade-speech
@@ -100,6 +143,11 @@ litellm_settings:
   set_timeout: 120
 
 environment_variables:
+  # Monitoring & Portals
   LANGFUSE_PUBLIC_KEY: "pk-lf-07926c92-5480-4fb5-ae97-39e35a0a0ce5"
   LANGFUSE_SECRET_KEY: "os.environ/LANGFUSE_SECRET_KEY"
   LANGFUSE_HOST: "http://langfuse:3000"
+  # Cloud Token Pass-through
+  MOONSHOT_API_KEY: "os.environ/MOONSHOT_API_KEY"
+  KIMI_BASE_URL: "os.environ/KIMI_BASE_URL"
+  CLOUD_OPENAI_API_KEY: "os.environ/CLOUD_OPENAI_API_KEY"

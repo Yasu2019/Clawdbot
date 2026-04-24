@@ -370,16 +370,66 @@ def run_incremental_index(
         "timedOut": timed_out,
     }
 
+def run_command_with_heartbeat(command: list[str], timeout_seconds: int, status: dict[str, Any], stage: str, task_name: str) -> dict[str, Any]:
+    popen_kwargs: dict[str, Any] = {
+        "stdout": subprocess.PIPE,
+        "stderr": subprocess.PIPE,
+        "text": True,
+        "encoding": "utf-8",
+        "errors": "replace",
+    }
+    if os.name == "nt":
+        popen_kwargs["creationflags"] = getattr(subprocess, "CREATE_NO_WINDOW", 0)
 
-def run_full_backfill() -> dict[str, Any]:
-    return run_command(
+    proc = subprocess.Popen(
+        command,
+        **popen_kwargs,
+    )
+
+    started = time.monotonic()
+    heartbeat_every_seconds = 30
+    timed_out = False
+    
+    while proc.poll() is None:
+        if (time.monotonic() - started) >= timeout_seconds:
+            timed_out = True
+            proc.terminate()
+            try:
+                proc.wait(timeout=10)
+            except subprocess.TimeoutExpired:
+                proc.kill()
+                proc.wait(timeout=10)
+            break
+            
+        time.sleep(heartbeat_every_seconds)
+        status["updatedAt"] = now_jst_text()
+        status["stage"] = stage
+        status["currentTask"] = task_name
+        status[f"{task_name}HeartbeatAt"] = now_jst_text()
+        write_status(status)
+
+    stdout, stderr = proc.communicate()
+    return {
+        "command": " ".join(command),
+        "returncode": None if timed_out else proc.returncode,
+        "stdout": (stdout or "").strip(),
+        "stderr": (stderr or "").strip(),
+        "timedOut": timed_out,
+    }
+
+
+def run_full_backfill(status: dict[str, Any]) -> dict[str, Any]:
+    return run_command_with_heartbeat(
         ["python3", str(WORKSPACE / "run_priority_gmail_backfill.py")],
         timeout_seconds=5400,
+        status=status,
+        stage="full_backfill",
+        task_name="priority_backfill",
     )
 
 
-def run_learning_sync() -> dict[str, Any]:
-    return run_command(
+def run_learning_sync(status: dict[str, Any]) -> dict[str, Any]:
+    return run_command_with_heartbeat(
         [
             "python3",
             str(WORKSPACE / "sync_email_learning_memory.py"),
@@ -393,6 +443,9 @@ def run_learning_sync() -> dict[str, Any]:
             "800",
         ],
         timeout_seconds=1800,
+        status=status,
+        stage="sync_learning",
+        task_name="learning_sync",
     )
 
 
@@ -539,7 +592,7 @@ def main() -> None:
             status["updatedAt"] = now_jst_text()
             status["currentTask"] = "learning_sync"
             write_status(status)
-            learning_result = run_learning_sync()
+            learning_result = run_learning_sync(status)
             status["lastLearningSyncResult"] = learning_result
             status["lastSummary"]["learning"] = parse_latest_json(learning_result.get("stdout", ""))
             if learning_result.get("timedOut") or learning_result.get("returncode") not in (0, None):
@@ -565,7 +618,7 @@ def main() -> None:
             status["updatedAt"] = now_jst_text()
             status["currentTask"] = "priority_backfill"
             write_status(status)
-            backfill_result = run_full_backfill()
+            backfill_result = run_full_backfill(status)
             status["lastBackfillResult"] = backfill_result
             status["lastSummary"]["backfill"] = parse_latest_json(backfill_result.get("stdout", ""))
             backfill_ok = bool(

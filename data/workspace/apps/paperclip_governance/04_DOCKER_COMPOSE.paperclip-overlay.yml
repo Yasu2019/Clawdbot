@@ -1,0 +1,28 @@
+version: "3.9"
+
+services:
+  paperclip:
+    image: node:20-bookworm
+    container_name: paperclip-local
+    working_dir: /workspace/paperclip
+    command: >
+      bash -lc "corepack enable &&
+      if [ ! -d /workspace/paperclip/.git ]; then
+        git clone https://github.com/paperclipai/paperclip.git /workspace/paperclip;
+      fi &&
+      cd /workspace/paperclip &&
+      pnpm install &&
+      pnpm dev"
+    ports:
+      - "127.0.0.1:3110:3100"
+    environment:
+      - NODE_ENV=development
+      - HOST=0.0.0.0
+    volumes:
+      - ./paperclip-work:/workspace
+    restart: unless-stopped
+
+# 運用メモ:
+# - 初回は dev 起動でよい
+# - 安定後は build 済みイメージ化を推奨
+# - 本番導入時は外部 Postgres と永続 volume を再設計すること

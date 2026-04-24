@@ -258,16 +258,43 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def main() -> None:
-    PID_PATH.write_text(str(Path(__file__).resolve()), encoding="utf-8")
+    import os
+    import sys
+    import signal
+    import errno
+
+    # 多重起動防止
+    if PID_PATH.exists():
+        try:
+            existing = int(PID_PATH.read_text().strip())
+            try:
+                os.kill(existing, 0)
+                print(f"Already running (PID {existing})", flush=True)
+                sys.exit(0)
+            except OSError as e:
+                if e.errno == errno.EPERM:
+                    print(f"Already running (PID {existing}, Permission Denied)", flush=True)
+                    sys.exit(0)
+                pass
+        except Exception:
+            pass
+    
+    PID_PATH.write_text(str(os.getpid()))
+
+    def _stop(sig, frame):
+        PID_PATH.unlink(missing_ok=True)
+        sys.exit(0)
+
+    signal.signal(signal.SIGTERM, _stop)
+    signal.signal(signal.SIGINT, _stop)
+
     write_status({"updatedAt": now_jst_text(), "lastAction": "startup", "listen": f"http://{HOST}:{PORT}"})
+    print(f"[{now_jst_text()}] Blacklist Hub API started: http://{HOST}:{PORT}", flush=True)
     server = ThreadingHTTPServer((HOST, PORT), Handler)
     try:
         server.serve_forever()
     finally:
-        try:
-            PID_PATH.unlink(missing_ok=True)
-        except Exception:
-            pass
+        PID_PATH.unlink(missing_ok=True)
 
 
 if __name__ == "__main__":

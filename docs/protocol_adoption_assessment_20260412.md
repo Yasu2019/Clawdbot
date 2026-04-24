@@ -13,6 +13,8 @@ Scope: evaluate whether the following ZIP packages should be adopted on this min
 - `DUAL_LLM_PROTOCOL_UTF8_ZIP.zip`
 - `ComfyUI_Full_Implementation_UTF8_20260412.zip`
 - `obsidian_second_brain_protocol_utf8bom_20260413.zip`
+- `K10_Image_Generation_Protocol_v2.zip`
+
 
 ## Summary Decision
 
@@ -27,6 +29,8 @@ Scope: evaluate whether the following ZIP packages should be adopted on this min
 | `DUAL_LLM_PROTOCOL_UTF8_ZIP.zip` | `REFERENCE_ONLY` | dual-model routing ideas largely overlap with existing LiteLLM/Ollama routing and canonical adoption policy; useful only for narrow prompt/checklist borrowing |
 | `ComfyUI_Full_Implementation_UTF8_20260412.zip` | `HOLD` | substantial overlap with existing Lemonade / Stable Diffusion / Portal surfaces; full adoption would add another heavy always-on generation stack on this mini PC |
 | `obsidian_second_brain_protocol_utf8bom_20260413.zip` | `ADOPT_PARTIAL` | safe `_ai/`-only Obsidian batch structuring improves note reuse without creating a second canonical memory system |
+| `K10_Image_Generation_Protocol_v2.zip` | `ADOPT_PILLAR (v2)` | Intel-optimized local image generation (OpenVINO) specifically tuned for the K10 hardware; zero-cost high-quality path |
+
 
 ## Repo Scan Result
 

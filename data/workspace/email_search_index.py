@@ -306,6 +306,44 @@ def decode_bytes(payload: bytes, charset: Optional[str]) -> str:
     return payload.decode("utf-8", errors="replace")
 
 
+def extract_attachment_text(mime_type: str, data_bytes: bytes) -> str:
+    """Extract searchable text from a binary attachment (PDF/Excel/Word)."""
+    try:
+        if "pdf" in mime_type:
+            import fitz  # pymupdf
+            doc = fitz.open(stream=data_bytes, filetype="pdf")
+            return "\n".join(page.get_text() for page in doc).strip()
+        if mime_type in (
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "application/vnd.ms-excel",
+        ):
+            import io
+            import openpyxl
+            wb = openpyxl.load_workbook(io.BytesIO(data_bytes), data_only=True)
+            rows = []
+            for ws in wb.worksheets:
+                for row in ws.iter_rows(values_only=True):
+                    rows.append(" ".join(str(c) for c in row if c is not None))
+            return "\n".join(rows).strip()
+        if mime_type in (
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "application/msword",
+        ):
+            import io
+            import docx as docx_module
+            doc = docx_module.Document(io.BytesIO(data_bytes))
+            return "\n".join(p.text for p in doc.paragraphs if p.text.strip()).strip()
+        if mime_type.startswith("image/"):
+            import io
+            import pytesseract
+            from PIL import Image
+            img = Image.open(io.BytesIO(data_bytes))
+            return pytesseract.image_to_string(img, lang="jpn+eng").strip()
+    except Exception:
+        pass
+    return ""
+
+
 def extract_body_and_attachments(msg: Message) -> Tuple[str, List[str]]:
     plain_parts: List[str] = []
     html_parts: List[str] = []
@@ -747,6 +785,7 @@ class EmailRecord:
     snippet: str = ""
     body_hash: str = ""
     raw_sha1: str = ""
+    attachment_text: str = ""
 
 
 @dataclass
@@ -775,6 +814,7 @@ def email_record_from_row(row: sqlite3.Row) -> EmailRecord:
         attachment_names = []
     if not isinstance(attachment_names, list):
         attachment_names = []
+    keys = row.keys()
     return EmailRecord(
         source=row["source"],
         source_id=row["source_id"],
@@ -796,6 +836,7 @@ def email_record_from_row(row: sqlite3.Row) -> EmailRecord:
         snippet=row["snippet"],
         body_hash=row["body_hash"],
         raw_sha1=row["raw_sha1"],
+        attachment_text=row["attachment_text"] if "attachment_text" in keys else "",
     )
 
 
@@ -905,24 +946,30 @@ def decode_base64url(data: str) -> str:
     return decode_bytes(raw, "utf-8")
 
 
-def extract_gmail_parts(payload: dict) -> Tuple[str, List[str]]:
+def extract_gmail_parts(payload: dict) -> Tuple[str, List[str], str]:
     plain_parts: List[str] = []
     html_parts: List[str] = []
     attachments: List[str] = []
+    attachment_texts: List[str] = []
 
     def walk(part: dict) -> None:
         filename = decode_mime_words(part.get("filename"))
         if filename:
             attachments.append(filename)
-        body = part.get("body", {})
+        body_obj = part.get("body", {})
         mime = part.get("mimeType", "")
-        data = body.get("data")
+        data = body_obj.get("data")
         if data:
-            text = decode_base64url(data)
             if mime == "text/plain":
-                plain_parts.append(text)
+                plain_parts.append(decode_base64url(data))
             elif mime == "text/html":
-                html_parts.append(html_to_text(text))
+                html_parts.append(html_to_text(decode_base64url(data)))
+            elif filename:
+                padding = "=" * (-len(data) % 4)
+                raw = base64.urlsafe_b64decode(data + padding)
+                extracted = extract_attachment_text(mime, raw)
+                if extracted:
+                    attachment_texts.append(f"[{filename}]\n{extracted}")
         for child in part.get("parts", []) or []:
             walk(child)
 
@@ -930,13 +977,14 @@ def extract_gmail_parts(payload: dict) -> Tuple[str, List[str]]:
     body = "\n\n".join([p.strip() for p in plain_parts if p.strip()]).strip()
     if not body:
         body = "\n\n".join([p.strip() for p in html_parts if p.strip()]).strip()
-    return body, attachments
+    attachment_text = "\n\n".join(attachment_texts).strip()
+    return body, attachments, attachment_text
 
 
 def parse_gmail_message(message: dict) -> EmailRecord:
     payload = message.get("payload", {})
     headers = parse_gmail_headers(payload)
-    body, attachments = extract_gmail_parts(payload)
+    body, attachments, attachment_text = extract_gmail_parts(payload)
     snippet = message.get("snippet", "") or body[:280]
     body_hash = hashlib.sha1(body.encode("utf-8", errors="ignore")).hexdigest()
     raw_sha1 = hashlib.sha1(
@@ -952,6 +1000,7 @@ def parse_gmail_message(message: dict) -> EmailRecord:
         email_date=decode_mime_words(headers.get("date", "")),
         body_text=body,
         attachment_names=attachments,
+        attachment_text=attachment_text,
         gmail_thread_id=message.get("threadId", ""),
         gmail_message_id=message.get("id", ""),
         message_id_header=decode_mime_words(headers.get("message-id", "")),
@@ -996,44 +1045,96 @@ def connect_db() -> sqlite3.Connection:
             snippet TEXT NOT NULL DEFAULT '',
             body_hash TEXT NOT NULL DEFAULT '',
             raw_sha1 TEXT NOT NULL DEFAULT '',
+            attachment_text TEXT NOT NULL DEFAULT '',
             indexed_at TEXT NOT NULL,
             PRIMARY KEY (source, source_id)
         )
         """
     )
-    con.execute(
-        """
-        CREATE VIRTUAL TABLE IF NOT EXISTS emails_fts USING fts5(
-            subject,
-            sender,
-            recipients,
-            cc,
-            body_text,
-            attachment_names,
-            content='emails',
-            content_rowid='rowid',
-            tokenize='unicode61'
+    # マイグレーション: attachment_text カラムが存在しない既存DBに追加
+    existing_email_cols = {r[1] for r in con.execute("PRAGMA table_info(emails)").fetchall()}
+    if "attachment_text" not in existing_email_cols:
+        con.execute("ALTER TABLE emails ADD COLUMN attachment_text TEXT NOT NULL DEFAULT ''")
+        # FTS/トリガーを attachment_text 対応版に再構築
+        con.executescript(
+            """
+            DROP TRIGGER IF EXISTS emails_ai;
+            DROP TRIGGER IF EXISTS emails_ad;
+            DROP TRIGGER IF EXISTS emails_au;
+            DROP TABLE IF EXISTS emails_fts;
+            """
         )
-        """
-    )
-    con.executescript(
-        """
-        CREATE TRIGGER IF NOT EXISTS emails_ai AFTER INSERT ON emails BEGIN
-            INSERT INTO emails_fts(rowid, subject, sender, recipients, cc, body_text, attachment_names)
-            VALUES (new.rowid, new.subject, new.sender, new.recipients, new.cc, new.body_text, new.attachment_names);
-        END;
-        CREATE TRIGGER IF NOT EXISTS emails_ad AFTER DELETE ON emails BEGIN
-            INSERT INTO emails_fts(emails_fts, rowid, subject, sender, recipients, cc, body_text, attachment_names)
-            VALUES('delete', old.rowid, old.subject, old.sender, old.recipients, old.cc, old.body_text, old.attachment_names);
-        END;
-        CREATE TRIGGER IF NOT EXISTS emails_au AFTER UPDATE ON emails BEGIN
-            INSERT INTO emails_fts(emails_fts, rowid, subject, sender, recipients, cc, body_text, attachment_names)
-            VALUES('delete', old.rowid, old.subject, old.sender, old.recipients, old.cc, old.body_text, old.attachment_names);
-            INSERT INTO emails_fts(rowid, subject, sender, recipients, cc, body_text, attachment_names)
-            VALUES (new.rowid, new.subject, new.sender, new.recipients, new.cc, new.body_text, new.attachment_names);
-        END;
-        """
-    )
+        con.execute(
+            """
+            CREATE VIRTUAL TABLE emails_fts USING fts5(
+                subject,
+                sender,
+                recipients,
+                cc,
+                body_text,
+                attachment_names,
+                attachment_text,
+                content='emails',
+                content_rowid='rowid',
+                tokenize='unicode61'
+            )
+            """
+        )
+        con.executescript(
+            """
+            INSERT INTO emails_fts(emails_fts) VALUES('rebuild');
+            CREATE TRIGGER emails_ai AFTER INSERT ON emails BEGIN
+                INSERT INTO emails_fts(rowid, subject, sender, recipients, cc, body_text, attachment_names, attachment_text)
+                VALUES (new.rowid, new.subject, new.sender, new.recipients, new.cc, new.body_text, new.attachment_names, new.attachment_text);
+            END;
+            CREATE TRIGGER emails_ad AFTER DELETE ON emails BEGIN
+                INSERT INTO emails_fts(emails_fts, rowid, subject, sender, recipients, cc, body_text, attachment_names, attachment_text)
+                VALUES('delete', old.rowid, old.subject, old.sender, old.recipients, old.cc, old.body_text, old.attachment_names, old.attachment_text);
+            END;
+            CREATE TRIGGER emails_au AFTER UPDATE ON emails BEGIN
+                INSERT INTO emails_fts(emails_fts, rowid, subject, sender, recipients, cc, body_text, attachment_names, attachment_text)
+                VALUES('delete', old.rowid, old.subject, old.sender, old.recipients, old.cc, old.body_text, old.attachment_names, old.attachment_text);
+                INSERT INTO emails_fts(rowid, subject, sender, recipients, cc, body_text, attachment_names, attachment_text)
+                VALUES (new.rowid, new.subject, new.sender, new.recipients, new.cc, new.body_text, new.attachment_names, new.attachment_text);
+            END;
+            """
+        )
+        con.commit()
+    else:
+        con.execute(
+            """
+            CREATE VIRTUAL TABLE IF NOT EXISTS emails_fts USING fts5(
+                subject,
+                sender,
+                recipients,
+                cc,
+                body_text,
+                attachment_names,
+                attachment_text,
+                content='emails',
+                content_rowid='rowid',
+                tokenize='unicode61'
+            )
+            """
+        )
+        con.executescript(
+            """
+            CREATE TRIGGER IF NOT EXISTS emails_ai AFTER INSERT ON emails BEGIN
+                INSERT INTO emails_fts(rowid, subject, sender, recipients, cc, body_text, attachment_names, attachment_text)
+                VALUES (new.rowid, new.subject, new.sender, new.recipients, new.cc, new.body_text, new.attachment_names, new.attachment_text);
+            END;
+            CREATE TRIGGER IF NOT EXISTS emails_ad AFTER DELETE ON emails BEGIN
+                INSERT INTO emails_fts(emails_fts, rowid, subject, sender, recipients, cc, body_text, attachment_names, attachment_text)
+                VALUES('delete', old.rowid, old.subject, old.sender, old.recipients, old.cc, old.body_text, old.attachment_names, old.attachment_text);
+            END;
+            CREATE TRIGGER IF NOT EXISTS emails_au AFTER UPDATE ON emails BEGIN
+                INSERT INTO emails_fts(emails_fts, rowid, subject, sender, recipients, cc, body_text, attachment_names, attachment_text)
+                VALUES('delete', old.rowid, old.subject, old.sender, old.recipients, old.cc, old.body_text, old.attachment_names, old.attachment_text);
+                INSERT INTO emails_fts(rowid, subject, sender, recipients, cc, body_text, attachment_names, attachment_text)
+                VALUES (new.rowid, new.subject, new.sender, new.recipients, new.cc, new.body_text, new.attachment_names, new.attachment_text);
+            END;
+            """
+        )
     con.execute(
         """
         CREATE TABLE IF NOT EXISTS tasks (
@@ -1106,8 +1207,9 @@ def upsert_record(con: sqlite3.Connection, record: EmailRecord) -> None:
         INSERT INTO emails (
             source, source_id, subject, sender, recipients, cc, email_date, body_text,
             attachment_names, filepath, category, person, gmail_thread_id, gmail_message_id,
-            message_id_header, labels_json, internal_ts, snippet, body_hash, raw_sha1, indexed_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            message_id_header, labels_json, internal_ts, snippet, body_hash, raw_sha1,
+            attachment_text, indexed_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(source, source_id) DO UPDATE SET
             subject=excluded.subject,
             sender=excluded.sender,
@@ -1127,6 +1229,7 @@ def upsert_record(con: sqlite3.Connection, record: EmailRecord) -> None:
             snippet=excluded.snippet,
             body_hash=excluded.body_hash,
             raw_sha1=excluded.raw_sha1,
+            attachment_text=CASE WHEN excluded.attachment_text != '' THEN excluded.attachment_text ELSE emails.attachment_text END,
             indexed_at=excluded.indexed_at
         """,
         (
@@ -1150,6 +1253,7 @@ def upsert_record(con: sqlite3.Connection, record: EmailRecord) -> None:
             record.snippet,
             record.body_hash,
             record.raw_sha1,
+            record.attachment_text,
             now_iso(),
         ),
     )
@@ -1427,6 +1531,46 @@ def index_gmail(
         "errors": errors,
         "latest_internal_ts": latest_ts,
     }
+
+
+def backfill_attachment_text(con: sqlite3.Connection, limit: int = 200) -> dict:
+    """Re-fetch Gmail messages that have attachments but no extracted attachment_text yet."""
+    rows = con.execute(
+        """
+        SELECT source_id FROM emails
+        WHERE source='gmail'
+          AND attachment_names NOT IN ('[]', '', 'null')
+          AND (attachment_text IS NULL OR attachment_text = '')
+        LIMIT ?
+        """,
+        (limit,),
+    ).fetchall()
+    if not rows:
+        return {"candidates": 0, "updated": 0, "errors": 0}
+    session, _token = gmail_session()
+    updated = 0
+    errors = 0
+    for row in rows:
+        message_id = row[0]
+        try:
+            payload = gmail_request(
+                session,
+                "GET",
+                f"https://gmail.googleapis.com/gmail/v1/users/me/messages/{message_id}",
+                params={"format": "full"},
+            )
+            _, _, attachment_text = extract_gmail_parts(payload.get("payload", {}))
+            if attachment_text:
+                con.execute(
+                    "UPDATE emails SET attachment_text=? WHERE source='gmail' AND source_id=?",
+                    (attachment_text, message_id),
+                )
+                updated += 1
+        except Exception as exc:
+            errors += 1
+            log(f"[WARN] backfill_attachment_text failed: {message_id}: {exc}")
+    con.commit()
+    return {"candidates": len(rows), "updated": updated, "errors": errors}
 
 
 def cmd_index(args: argparse.Namespace) -> int:

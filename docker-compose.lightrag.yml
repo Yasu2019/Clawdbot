@@ -1,0 +1,66 @@
+# docker-compose.lightrag.yml
+# LightRAG グラフRAG補助層 — Clawstack Unified への横付け追加
+#
+# 起動方法:
+#   docker compose -f docker-compose.yml -f docker-compose.lightrag.yml up -d lightrag
+#
+# 停止方法:
+#   docker compose -f docker-compose.yml -f docker-compose.lightrag.yml stop lightrag
+#
+# 既存サービスへの影響: なし（ports・volumes は独立）
+# ネットワーク: clawstack-unified に参加（既存 Ollama / Qdrant / LiteLLM にアクセス可能）
+#
+# ポート: 127.0.0.1:18795:9621
+#   18795 は Graphify プロトコル予約番号を踏襲
+#   9621  は LightRAG のデフォルト内部ポート
+#
+# LightRAG API エンドポイント:
+#   POST http://localhost:18795/documents/upload    # ファイル直接アップロード
+#   POST http://localhost:18795/documents/scan      # inbox ディレクトリスキャン
+#   POST http://localhost:18795/query               # グラフRAGクエリ
+#   GET  http://localhost:18795/health
+#   GET  http://localhost:18795/graph/label/list    # ノード一覧
+#   WebUI: http://localhost:18795/
+#
+# 設定の優先順位: docker-compose environment > lightrag/.env > デフォルト値
+# 参照: https://github.com/HKUDS/LightRAG/blob/main/lightrag/api/README.md
+
+name: clawstack-unified
+
+networks:
+  # LLM / Embedding サービス (litellm, infinity, ollama) が居るネットワーク
+  main:
+    name: clawstack-unified
+    external: true
+  # Qdrant / learning_engine が居るネットワーク（Docker auto-created）
+  qdrant_net:
+    name: clawstack-unified_default
+    external: true
+
+services:
+  lightrag:
+    image: ghcr.io/hkuds/lightrag:latest
+    container_name: lightrag
+    restart: on-failure:10
+    ports:
+      - "127.0.0.1:18795:9621"
+    env_file:
+      - ./lightrag/.env           # LightRAG 専用 .env（Clawstack .env とは分離）
+    environment:
+      TZ: Asia/Tokyo
+    networks:
+      - main        # litellm / infinity / ollama へのアクセス
+      - qdrant_net  # qdrant へのアクセス
+    volumes:
+      - ./lightrag/data:/app/data/rag_storage   # グラフデータ・KVストア（公式パス準拠）
+      - ./lightrag/inbox:/app/data/inputs        # 取込待ちファイル（公式 INPUT_DIR 準拠）
+      - ./lightrag/logs:/app/logs
+      - ./lightrag/config.ini:/app/config.ini    # LightRAG 詳細設定（空ファイルで可）
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "/app/.venv/bin/python3", "-c", "import socket; s = socket.socket(socket.AF_INET, socket.SOCK_STREAM); s.settimeout(1); s.connect(('localhost', 9621)); s.close()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s

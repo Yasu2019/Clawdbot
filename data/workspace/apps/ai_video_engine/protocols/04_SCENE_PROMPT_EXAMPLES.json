@@ -1,0 +1,67 @@
+{
+  "shot_examples": [
+    {
+      "name": "controlled_walk",
+      "description": "Short realistic walking shot with fixed composition and motion reference",
+      "json_patch_focus": [
+        "camera",
+        "motion",
+        "exclusions"
+      ]
+    },
+    {
+      "name": "dialogue_closeup",
+      "description": "Close-up conversation shot with strong face consistency requirements",
+      "json_patch_focus": [
+        "subject",
+        "camera",
+        "quality_targets"
+      ]
+    },
+    {
+      "name": "action_turn",
+      "description": "Quick turn and reach motion where start/end pose constraints are critical",
+      "json_patch_focus": [
+        "pose_constraints",
+        "start_frame",
+        "end_frame",
+        "motion"
+      ]
+    }
+  ],
+  "revision_examples": [
+    {
+      "problem": "camera drifts sideways",
+      "change_only": {
+        "camera": {
+          "movement": "locked forward motion only",
+          "stability": "very high"
+        }
+      }
+    },
+    {
+      "problem": "hands deform",
+      "change_only": {
+        "motion": {
+          "hand_behavior": "minimal finger articulation"
+        },
+        "exclusions": [
+          "extra fingers",
+          "merged fingers",
+          "broken wrist angle"
+        ]
+      }
+    },
+    {
+      "problem": "face changes between frames",
+      "change_only": {
+        "subject": {
+          "identity_lock": true
+        },
+        "quality_targets": {
+          "face_consistency": ">=5/5"
+        }
+      }
+    }
+  ]
+}

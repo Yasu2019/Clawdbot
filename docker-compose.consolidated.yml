@@ -1,0 +1,39 @@
+name: clawstack-consolidated
+
+networks:
+  default:
+    name: clawstack-unified
+    external: true
+
+services:
+  toolkit:
+    build:
+      context: .
+      dockerfile: Dockerfile.unified.temp
+    container_name: clawstack-consolidated-toolkit
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:28789:18789"  # Temporary port for unified gateway testing
+      - "127.0.0.1:28791:18791"
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - HOME=/home/node
+      - OPENCLAW_GATEWAY_TOKEN=yasu-fresh-token-2026-02-01
+    volumes:
+      - ./data/state:/home/node/.openclaw
+      - ./data/workspace:/home/node/clawd
+      - ./clawstack_v2/data/work:/work
+      - ./data/state/claude_config:/home/node/.config/claude-code
+      - ./data/state/codex:/home/node/.codex
+      - ${HOST_DOCKER_SOCKET:-/var/run/docker.sock}:/var/run/docker.sock
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    user: root # Needed for AppImage extraction and tool installations during runtime if any
+    entrypoint: ["/usr/bin/tini", "--", "/bin/bash", "/home/node/.openclaw/entrypoint.sh"]
+    command: ["openclaw", "gateway", "--port", "18789", "--bind", "lan", "--verbose"]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:18789/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3

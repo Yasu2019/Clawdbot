@@ -1,0 +1,42 @@
+EXAMPLES
+========
+
+1) Activate the virtual environment
+-----------------------------------
+.\.venv\Scripts\Activate.ps1
+
+2) Check devices
+----------------
+python .\03_DEVICE_CHECK.py
+
+3) Precision metal part
+-----------------------
+python .\04_GENERATE_IMAGE_FLUX.py --prompt "A high quality product photo of a precision stamped metal part, studio light, realistic, detailed, clean background"
+
+4) Factory scene
+----------------
+python .\04_GENERATE_IMAGE_FLUX.py --prompt "A modern precision manufacturing floor, bright clean factory, realistic lighting, high detail"
+
+5) Packaging mockup
+-------------------
+python .\04_GENERATE_IMAGE_FLUX.py --prompt "A premium product packaging mockup for an industrial electronic component, white background, realistic shadows"
+
+6) Force CPU mode
+-----------------
+python .\04_GENERATE_IMAGE_FLUX.py --device CPU --prompt "A brushed aluminum part on a dark studio table, realistic"
+
+7) Force GPU mode if OpenVINO sees one
+--------------------------------------
+python .\04_GENERATE_IMAGE_FLUX.py --device GPU --prompt "A futuristic machine component, product render, ultra detailed"
+
+8) Change seed
+--------------
+python .\04_GENERATE_IMAGE_FLUX.py --seed 123 --prompt "A realistic automotive connector part, product photo"
+
+9) Save with your own file name
+-------------------------------
+python .\04_GENERATE_IMAGE_FLUX.py --file-name my_test.png --prompt "A precision die component, studio photo"
+
+10) Keep outputs organized
+--------------------------
+python .\04_GENERATE_IMAGE_FLUX.py --out-dir D:\AI_ImageGen\outputs --prompt "A modern electronics assembly part, realistic, detailed"

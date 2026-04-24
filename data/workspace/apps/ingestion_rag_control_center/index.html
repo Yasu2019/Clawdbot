@@ -175,6 +175,46 @@
             border-color: rgba(25, 92, 67, 0.36);
             transform: translateY(-1px);
         }
+        .progress-container {
+            margin-top: 10px;
+            background: #e9e5d9;
+            border-radius: 999px;
+            height: 10px;
+            overflow: hidden;
+            border: 1px solid var(--line);
+        }
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #195c43, #2e8b57);
+            width: 0%;
+            transition: width 0.6s ease;
+        }
+        .prediction-stats {
+            margin-top: 14px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+            padding: 16px;
+            background: var(--panel-alt);
+            border-radius: 16px;
+            border: 1px solid var(--line);
+        }
+        .prediction-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .prediction-item label {
+            font-size: 0.75rem;
+            color: var(--muted);
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .prediction-item span {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--accent);
+        }
         @media (max-width: 720px) {
             .shell { padding: 22px 14px 32px; }
             .hero { padding: 24px 20px; border-radius: 22px; }
@@ -185,7 +225,7 @@
     <main class="shell">
         <section class="hero">
             <h1>Ingestion / RAG Control Center</h1>
-            <p>Gmail の読み込み、Paperless NGX の取り込み、Learning Memory への同期、RAG 展開、DB テーブル確認をまとめて見られる統合ハブです。状態確認だけでなく、次にどの画面を開けばよいかもここから判断できます。</p>
+            <p>Gmail の読み込み、Paperless NGX の取り込み、Learning Memory への同期、RAG 展開、DB テーブル確認をまとめて見られる最初の入口です。まず全体状態と異常箇所をここで見て、その後に詳細確認用の画面へ進むための判断を行います。</p>
             <div class="badge-row">
                 <span class="badge">Gmail</span>
                 <span class="badge">Paperless NGX</span>
@@ -260,18 +300,50 @@
         </section>
 
         <section class="section">
+            <h2>取り込み予測 (Ingestion Prediction)</h2>
+            <div class="status-card">
+                <div class="status-line">
+                    <span class="eyebrow">Gmail Backfill Progress</span>
+                    <span id="gmail-percent" style="margin-left: auto; font-weight: 700; color: var(--accent);">0%</span>
+                </div>
+                <div class="progress-container">
+                    <div id="gmail-progress-bar" class="progress-bar"></div>
+                </div>
+                <div class="prediction-stats">
+                    <div class="prediction-item">
+                        <label>現在の通数</label>
+                        <span id="pred-current">-</span>
+                    </div>
+                    <div class="prediction-item">
+                        <label>推定合計</label>
+                        <span id="pred-total">-</span>
+                    </div>
+                    <div class="prediction-item">
+                        <label>完了までの予測</label>
+                        <span id="pred-days" style="color: #c2410c;">-</span>
+                    </div>
+                    <div class="prediction-item">
+                        <label>カバー期間</label>
+                        <span id="pred-coverage" style="font-size: 0.9rem;">-</span>
+                    </div>
+                </div>
+                <p style="margin-top: 12px; font-size: 0.85rem;">※ 完了予測は過去の月間平均ボリューム（800通/月）と毎晩の取り込みペースに基づいた概算です。</p>
+            </div>
+        </section>
+
+        <section class="section">
             <h2>状態確認と復旧</h2>
             <div class="grid">
                 <a class="card" href="../learning_memory/index.html" target="_blank" rel="noopener">
                     <span class="eyebrow">Status</span>
                     <h3>Learning Memory</h3>
-                    <p>Gmail Window、SQLite Index、Backfill、Email Memory など、学習メモリまわりの状態確認に向いています。</p>
+                    <p>Gmail Window、SQLite Index、Backfill、Email Memory など、学習メモリと learning sync の詳細確認に向いています。</p>
                     <div class="meta"><span class="chip">Gmail</span><span class="chip">Learning Sync</span></div>
                 </a>
                 <a class="card" href="../observability_hub/index.html" target="_blank" rel="noopener">
                     <span class="eyebrow">Status</span>
                     <h3>AI Observability Hub</h3>
-                    <p>RAG、Qdrant、ingest、各サービス health の確認に向いています。Paperless と RAG のずれ確認にも使えます。</p>
+                    <p>RAG、Qdrant、ingest、各サービス health の詳細確認に向いています。Paperless と RAG のずれ確認にも使えます。</p>
                     <div class="meta"><span class="chip">RAG</span><span class="chip">Observability</span></div>
                 </a>
             </div>
@@ -331,7 +403,7 @@
             </div>
         </section>
 
-        <div class="note">まずは <strong>この画面</strong> で全体状態を見て、原本確認は <strong>Paperless NGX</strong>、Gmail 本文検索は <strong>Email Search</strong>、学習メモリは <strong>Learning Memory</strong>、RAG 健全性は <strong>AI Observability Hub</strong>、DB テーブル閲覧は <strong>NocoDB</strong> を使うと迷いにくくなります。</div>
+        <div class="note">まずは <strong>この画面</strong> で全体状態と次の行き先を決め、原本確認は <strong>Paperless NGX</strong>、Gmail 本文検索は <strong>Email Search</strong>、learning sync の詳細は <strong>Learning Memory</strong>、RAG 健全性の詳細は <strong>AI Observability Hub</strong>、DB テーブル閲覧は <strong>NocoDB</strong> を使うと迷いにくくなります。</div>
     </main>
 
     <script>
@@ -513,6 +585,15 @@
                 setText('learning-age', formatAgeMinutes(emailDash.learningMemory?.lastRunAt || emailDash.learningMemory?.finishedAt));
                 setText('learning-posted', emailDash.learningMemory?.postedMessages ?? '-');
                 setText('rag-stage', `${paperlessWatchdog.lastIngestStatus?.stage ?? '-'} / processed=${paperlessWatchdog.lastIngestStatus?.processedCount ?? '-'}`);
+
+                // Ingestion Prediction
+                const gProg = emailDash.gmailBackfill?.progress || {};
+                setText('gmail-percent', `${gProg.percent ?? 0}%`);
+                document.getElementById('gmail-progress-bar').style.width = `${gProg.percent ?? 0}%`;
+                setText('pred-current', `${gProg.current ?? '-'} 通`);
+                setText('pred-total', `${gProg.estimatedTotal ?? '-'} 通`);
+                setText('pred-days', gProg.daysRemaining !== undefined ? `残り約 ${gProg.daysRemaining} 日` : '-');
+                setText('pred-coverage', gProg.dateCoverage || '2019-01-01 〜');
 
                 const alerts = [];
                 const actions = [];

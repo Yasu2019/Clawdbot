@@ -164,6 +164,28 @@ function releaseLock() {
   }
 }
 
+
+function loadHistory(chatId) {
+  const file = path.join(stateDir, `history_${chatId}.json`);
+  if (!fs.existsSync(file)) return [];
+  return readJson(file, []);
+}
+
+function saveHistory(chatId, history) {
+  const file = path.join(stateDir, `history_${chatId}.json`);
+  fs.writeFileSync(file, JSON.stringify(history.slice(-12), null, 2));
+}
+
+function formatHistoryBlock(history) {
+  if (!history || history.length === 0) return [];
+  return [
+    '=== 会話履歴 (Conversation Context) ===',
+    ...history.map(m => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`),
+    '========================',
+    ''
+  ];
+}
+
 function buildStackStatusText() {
   return [
     'telegram_fast_bridge status',
@@ -527,14 +549,31 @@ async function getTelegramUpdates(botToken, offset) {
  *   null = use auto-detection
  */
 function parseThinkPrefix(rawText) {
-  const t = (rawText || '').trim();
-  if (/^\/no_think\s*/i.test(t)) {
-    return { text: t.replace(/^\/no_think\s*/i, '').trim(), thinkOverride: false };
+  let t = (rawText || '').trim();
+  let thinkOverride = null;
+  let fastMode = false;
+
+  // Multi-command support: /fast /think ...
+  let matched = true;
+  while (matched) {
+    matched = false;
+    if (/^\/no_think\s*/i.test(t)) {
+      t = t.replace(/^\/no_think\s*/i, '').trim();
+      thinkOverride = false;
+      matched = true;
+    }
+    if (/^\/think\s*/i.test(t)) {
+      t = t.replace(/^\/think\s*/i, '').trim();
+      thinkOverride = true;
+      matched = true;
+    }
+    if (/^\/fast\s*/i.test(t)) {
+      t = t.replace(/^\/fast\s*/i, '').trim();
+      fastMode = true;
+      matched = true;
+    }
   }
-  if (/^\/think\s*/i.test(t)) {
-    return { text: t.replace(/^\/think\s*/i, '').trim(), thinkOverride: true };
-  }
-  return { text: t, thinkOverride: null };
+  return { text: t, thinkOverride, fastMode };
 }
 
 /**
@@ -560,7 +599,7 @@ function resolveThink(text, thinkOverride) {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-async function callOllamaGenerate(prompt, onProgress = null, think = false) {
+async function callOllamaGenerate(prompt, onProgress = null, think = false, onStream = null) {
   let progressTimer = null;
   const startedAt = Date.now();
   const controller = new AbortController();
@@ -574,26 +613,28 @@ async function callOllamaGenerate(prompt, onProgress = null, think = false) {
   };
 
   try {
-    await emitProgress(think ? '思考中...' : '応答を準備しています。');
-    const stages = think
-      ? ['考えています...', '分析しています...', '回答をまとめています。']
-      : ['質問を整理しています。', '応答を生成しています。', '文面を整えています。'];
-    let index = 0;
-    progressTimer = setInterval(() => {
-      const stage = stages[Math.min(index, stages.length - 1)];
-      index += 1;
-      void emitProgress(stage);
-    }, 5000);
+    if (!onStream) {
+      await emitProgress(think ? '思考中...' : '応答を準備しています。');
+      const stages = think
+        ? ['考えています...', '分析しています...', '回答をまとめています。']
+        : ['質問を整理しています。', '応答を生成しています。', '文面を整えています。'];
+      let index = 0;
+      progressTimer = setInterval(() => {
+        const stage = stages[Math.min(index, stages.length - 1)];
+        index += 1;
+        void emitProgress(stage);
+      }, 5000);
+    }
 
     const res = await fetch(`${ollamaUrl}/api/generate`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       signal: controller.signal,
       body: JSON.stringify({
-        model: replyModel,
+        model: localModel,
         prompt,
-        stream: false,
-        ...(replyModel.includes('qwen3') || replyModel.includes('qwen') ? { think } : {}),
+        stream: !!onStream,
+        ...(localModel.includes('qwen3') || localModel.includes('qwen') ? { think } : {}),
         options: {
           temperature: 0.3,
           num_predict: think ? 600 : 220,
@@ -604,16 +645,38 @@ async function callOllamaGenerate(prompt, onProgress = null, think = false) {
     if (!res.ok) {
       throw new Error(`Ollama API ${res.status}`);
     }
-    const json = await res.json();
-    await emitProgress('応答の生成が完了しました。');
-    return json.response || '';
+
+    if (onStream) {
+      const reader = res.body.getReader();
+      let fullText = '';
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const chunk = new TextDecoder().decode(value);
+        const lines = chunk.split('\n').filter(l => l.trim());
+        for (const line of lines) {
+          try {
+            const json = JSON.parse(line);
+            if (json.response) {
+              fullText += json.response;
+              onStream(fullText);
+            }
+          } catch (e) {}
+        }
+      }
+      return fullText;
+    } else {
+      const json = await res.json();
+      await emitProgress('応答の生成が完了しました。');
+      return json.response || '';
+    }
   } finally {
     clearTimeout(timeoutId);
     if (progressTimer) clearInterval(progressTimer);
   }
 }
 
-async function callModelGenerate(prompt, onProgress = null) {
+async function callModelGenerate(prompt, onProgress = null, onStream = null) {
   let progressTimer = null;
   const startedAt = Date.now();
   const controller = new AbortController();
@@ -627,18 +690,20 @@ async function callModelGenerate(prompt, onProgress = null) {
   };
 
   try {
-    await emitProgress('応答を準備しています。');
-    const stages = [
-      '質問を整理しています。',
-      '応答を生成しています。',
-      '文面を整えています。',
-    ];
-    let index = 0;
-    progressTimer = setInterval(() => {
-      const stage = stages[Math.min(index, stages.length - 1)];
-      index += 1;
-      void emitProgress(stage);
-    }, 5000);
+    if (!onStream) {
+      await emitProgress('応答を準備しています。');
+      const stages = [
+        '質問を整理しています。',
+        '応答を生成しています。',
+        '文面を整えています。',
+      ];
+      let index = 0;
+      progressTimer = setInterval(() => {
+        const stage = stages[Math.min(index, stages.length - 1)];
+        index += 1;
+        void emitProgress(stage);
+      }, 5000);
+    }
 
     if (usesOpenAiCompatibleRoute(replyModel)) {
       const res = await fetch(`${replyApiBase}/chat/completions`, {
@@ -651,7 +716,8 @@ async function callModelGenerate(prompt, onProgress = null) {
         body: JSON.stringify({
           model: replyModel,
           temperature: 0.35,
-          max_tokens: 260,
+          max_tokens: 300,
+          stream: !!onStream,
           messages: [{ role: 'user', content: prompt }],
         }),
       });
@@ -659,12 +725,40 @@ async function callModelGenerate(prompt, onProgress = null) {
         const text = await res.text();
         throw new Error(`OpenAI-compatible API ${res.status}: ${text.slice(0, 200)}`);
       }
-      const json = await res.json();
-      await emitProgress('応答の生成が完了しました。');
-      return json.choices?.[0]?.message?.content || '';
+
+      if (onStream) {
+        const reader = res.body.getReader();
+        let fullText = '';
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          const chunk = new TextDecoder().decode(value);
+          const lines = chunk.split('\n').filter(l => l.trim());
+          for (const line of lines) {
+            let jsonString = line;
+            if (line.startsWith('data: ')) {
+              jsonString = line.substring(6);
+            }
+            if (jsonString === '[DONE]') continue;
+            try {
+              const json = JSON.parse(jsonString);
+              const delta = json.choices?.[0]?.delta?.content;
+              if (delta) {
+                fullText += delta;
+                onStream(fullText);
+              }
+            } catch (e) {}
+          }
+        }
+        return fullText;
+      } else {
+        const json = await res.json();
+        await emitProgress('応答の生成が完了しました。');
+        return json.choices?.[0]?.message?.content || '';
+      }
     }
 
-    return callOllamaGenerate(prompt, onProgress);
+    return callOllamaGenerate(prompt, onProgress, false, onStream);
   } finally {
     clearTimeout(timeoutId);
     if (progressTimer) clearInterval(progressTimer);
@@ -846,19 +940,21 @@ function needsAgentEscalation(text) {
  * @param {function|null} onProgress
  * @param {boolean|null} thinkOverride  null=auto-detect, true/false=force
  */
-async function callLocalModelDirect(text, onProgress = null, thinkOverride = null) {
+async function callLocalModelDirect(text, onProgress = null, thinkOverride = null, history = []) {
   const think = resolveThink(text, thinkOverride);
   const prompt = think
     ? [
         'あなたは日本語で深く考えて答える分析的なアシスタントです。',
         '段階的に考え、根拠を示しながら丁寧に答えてください。',
         '',
+        ...formatHistoryBlock(history),
         `User: ${text}`,
       ].join('\n')
     : [
         'あなたは日本語で答える実用的で親切なアシスタントです。',
         '簡潔に、1〜3文で答えてください。',
         '',
+        ...formatHistoryBlock(history),
         `User: ${text}`,
       ].join('\n');
   try {
@@ -936,14 +1032,14 @@ async function callAgentEscalation(text, onProgress = null) {
 
 // ── RAG-enhanced reply ────────────────────────────────────────────────────────
 
-async function generateRagReply(text, onProgress = null, thinkOverride = null) {
+async function generateRagReply(text, onProgress = null, thinkOverride = null, history = []) {
   if (onProgress) await onProgress('知識ベースを検索しています...', Date.now()).catch(() => {});
 
   const hits = await ragSearch(text);
 
   if (hits.length === 0) {
     // RAG found nothing → fall back to qwen3:8b without context
-    return callLocalModelDirect(text, onProgress, thinkOverride);
+    return callLocalModelDirect(text, onProgress, thinkOverride, history);
   }
 
   const context = hits
@@ -960,6 +1056,7 @@ async function generateRagReply(text, onProgress = null, thinkOverride = null) {
     context,
     '=== ここまで ===',
     '',
+    ...formatHistoryBlock(history),
     `質問: ${text}`,
   ].join('\n');
 
@@ -995,54 +1092,57 @@ async function generateRagReply(text, onProgress = null, thinkOverride = null) {
 
 // ── Main general reply — full 4-tier loop ─────────────────────────────────────
 
-async function generateGeneralReply(text, onProgress = null, thinkOverride = null) {
+async function generateGeneralReply(text, onProgress = null, thinkOverride = null, history = [], onStream = null, fastMode = false) {
   const tier = await classifyMessage(text);
-  writeEvent('classify', { lastMessage: text, tier, think: thinkOverride });
+  writeEvent('classify', { lastMessage: text, tier, think: thinkOverride, fast: fastMode });
 
-  switch (tier) {
+  // Speed optimization: for fastMode or specific keywords, prefer Cloud (Gemini)
+  const isUrgent = /(緊急|至急|トラブル|故障|停止|火災|事故|怪我|危険)/.test(text);
+  const useFastCloud = fastMode || isUrgent;
 
-    case 'simple': {
-      const r = await callLocalModelDirect(text, onProgress, false);
-      if (r) return r;
-      break; // fallthrough to gemini if local fails
+  if (!useFastCloud) {
+    switch (tier) {
+      case 'simple': {
+        const r = await callLocalModelDirect(text, onProgress, false);
+        if (r) return r;
+        break;
+      }
+      case 'rag': {
+        const r = await generateRagReply(text, onProgress, thinkOverride);
+        if (r) return r;
+        break;
+      }
+      case 'agent': {
+        const r = await callAgentEscalation(text, onProgress);
+        if (r) return r;
+        break;
+      }
     }
-
-    case 'rag': {
-      const r = await generateRagReply(text, onProgress, thinkOverride);
-      if (r) return r;
-      break; // fallthrough to gemini if RAG+local fails
-    }
-
-    case 'agent': {
-      const r = await callAgentEscalation(text, onProgress);
-      if (r) return r;
-      break; // fallthrough to gemini if agent fails
-    }
-
-    // 'gemini' or fallthrough:
   }
 
   // Final tier: Cloud model (Gemini 2.5 Flash)
   // Also handles thinkOverride=true by first trying local with thinking
-  if (thinkOverride === true && tier !== 'agent') {
-    const r = await callLocalModelDirect(text, onProgress, true);
+  if (thinkOverride === true && tier !== 'agent' && !fastMode) {
+    const r = await callLocalModelDirect(text, onProgress, true, history);
     if (r) return r;
   }
 
   const prompt = [
     'You are a warm and natural Japanese assistant on Telegram.',
     'Reply in Japanese.',
+    isUrgent ? 'IMPORTANT: This is an URGENT inquiry. Provide a brief, safe, and helpful initial response immediately.' : '',
     'For greetings or casual conversation, respond warmly and naturally in 1 to 3 short sentences.',
     'Do not list capabilities unless the user asks for them.',
     'If you cannot verify something from local context, say that clearly and offer the next helpful step.',
     '',
+    ...formatHistoryBlock(history),
     `User: ${text}`,
   ].join('\n');
-  const raw = await callModelGenerate(prompt, onProgress);
+  const raw = await callModelGenerate(prompt, onProgress, onStream);
   return sanitizeModelReply(text, raw);
 }
 
-async function generateEmailReply(text, onProgress = null) {
+async function generateEmailReply(text, onProgress = null, history = [], onStream = null) {
   const emailContext = await fetchEmailContext(repoRoot, text, { limit: 5, force: true });
   if (emailContext.summary && emailContext.resultCount > 0 && /(summary|要約|今日|昨日|最新)/i.test(text)) {
     return emailContext.summary;
@@ -1053,9 +1153,10 @@ async function generateEmailReply(text, onProgress = null) {
     'Use the local email context if it is relevant.',
     'If the local context is insufficient, say that clearly.',
     '',
+    ...formatHistoryBlock(history),
     `User: ${text}`,
   ], emailContext, null);
-  const raw = await callModelGenerate(prompt, onProgress);
+  const raw = await callModelGenerate(prompt, onProgress, onStream);
   return sanitizeModelReply(text, raw);
 }
 
@@ -1142,15 +1243,15 @@ async function generateDatabaseReply(text) {
   return 'ローカルDB検索では該当データを見つけられませんでした。キーワードを少し変えるか、資料名・期間・対象をもう少し具体的に教えてください。';
 }
 
-async function routeReply(text, onProgress = null, routeName = null, thinkOverride = null) {
+async function routeReply(text, onProgress = null, routeName = null, thinkOverride = null, history = [], onStream = null, fastMode = false) {
   const route = routeName || classifyRoute(text);
-  writeEvent('route', { lastMessage: text, route, think: thinkOverride });
+  writeEvent('route', { lastMessage: text, route, think: thinkOverride, fast: fastMode });
 
-  if (route === 'db') {
+  if (route === 'db' && !fastMode) {
     return generateDatabaseReply(text);
   }
 
-  if (route === 'report') {
+  if (route === 'report' && !fastMode) {
     const reportContext = await fetchReportContext(repoRoot, text, { limit: 5, force: true });
     if (reportContext.summary && reportContext.resultCount > 0) return reportContext.summary;
     const prompt = buildEmailAwarePrompt([
@@ -1159,25 +1260,77 @@ async function routeReply(text, onProgress = null, routeName = null, thinkOverri
       'Use the scheduled report context if it is relevant.',
       'If the local context is insufficient, say that clearly.',
       '',
+      ...formatHistoryBlock(history),
       `User: ${text}`,
     ], null, null, reportContext);
-    const raw = await callModelGenerate(prompt, onProgress);
+    const raw = await callModelGenerate(prompt, onProgress, onStream);
     return sanitizeModelReply(text, raw);
   }
 
-  if (route === 'task') {
+  if (route === 'task' && !fastMode) {
     return generateTaskReply(text);
   }
 
-  if (route === 'complaint') {
+  if (route === 'complaint' && !fastMode) {
     return generateComplaintReply(text);
   }
 
-  if (route === 'email') {
-    return generateEmailReply(text, onProgress);
+  if (route === 'email' && !fastMode) {
+    return generateEmailReply(text, onProgress, history, onStream);
   }
 
-  return generateGeneralReply(text, onProgress, thinkOverride);
+  return generateGeneralReply(text, onProgress, thinkOverride, history, onStream, fastMode);
+}
+
+// ── Buffered Stream Updater ──────────────────────────────────────────────────
+class BufferedStreamUpdater {
+  constructor(botToken, chatId, messageId, initialText = '') {
+    this.botToken = botToken;
+    this.chatId = chatId;
+    this.messageId = messageId;
+    this.currentText = initialText;
+    this.pendingText = '';
+    this.lastUpdateTime = 0;
+    this.updateInterval = 1200; // Telegram rate limit safe
+    this.timer = null;
+    this.isFinished = false;
+  }
+
+  async update(newText) {
+    if (this.isFinished) return;
+    this.pendingText = newText;
+    if (Date.now() - this.lastUpdateTime > this.updateInterval) {
+      await this.flush();
+    } else if (!this.timer) {
+      this.timer = setTimeout(() => this.flush(), this.updateInterval);
+    }
+  }
+
+  async flush() {
+    if (this.timer) {
+      clearTimeout(this.timer);
+      this.timer = null;
+    }
+    if (this.pendingText === this.currentText || !this.pendingText) return;
+
+    try {
+      await editTelegramMessage(this.botToken, this.chatId, this.messageId, this.pendingText);
+      this.currentText = this.pendingText;
+      this.lastUpdateTime = Date.now();
+    } catch (e) {
+      // Ignore "message is not modified" or "too many requests" errors during stream
+    }
+  }
+
+  async finish(finalText) {
+    this.isFinished = true;
+    if (this.timer) clearTimeout(this.timer);
+    if (finalText && finalText !== this.currentText) {
+      try {
+        await editTelegramMessage(this.botToken, this.chatId, this.messageId, finalText);
+      } catch (e) {}
+    }
+  }
 }
 
 async function main() {
@@ -1229,40 +1382,39 @@ async function main() {
           continue;
         }
 
-        // Parse /no_think or /think prefix BEFORE routing
-        const { text: cleanText, thinkOverride } = parseThinkPrefix(text);
+        // Parse /no_think, /think, or /fast prefix BEFORE routing
+        const { text: cleanText, thinkOverride, fastMode } = parseThinkPrefix(text);
+        const history = loadHistory(chatId);
 
         let reply = await getFastReply(cleanText);
         if (reply === null) {
           const routeName = classifyRoute(cleanText);
 
-          if (routeName === 'general') {
-            writeStatus('generating', {
-              lastUpdateId: updateId,
-              lastChatId: chatId,
-              lastMessage: cleanText,
-              route: routeName,
-              think: thinkOverride,
-            });
-            reply = await routeReply(cleanText, null, routeName, thinkOverride);
+          writeStatus('generating', {
+            lastUpdateId: updateId,
+            lastChatId: chatId,
+            lastMessage: cleanText,
+            route: routeName,
+            think: thinkOverride,
+            fast: fastMode,
+          });
+
+          // Initial typing status/ACK
+          let progressMessageId = 0;
+          let streamUpdater = null;
+
+          if (routeName === 'general' || fastMode) {
+            // Instant cloud route or simple general
+            const initialText = fastMode ? '🚀 高速モードで確認中...' : '...';
+            const progressResult = await sendTelegramMessage(botToken, chatId, initialText, messageId);
+            progressMessageId = Number(progressResult?.result?.message_id || 0);
+            if (progressMessageId > 0) {
+              streamUpdater = new BufferedStreamUpdater(botToken, chatId, progressMessageId, initialText);
+            }
           } else {
+            // Complex local RAG/DB route with full progress reporting
             const ack = getAckReply();
             await sendTelegramMessage(botToken, chatId, ack, messageId);
-            writeEvent('ack', {
-              lastUpdateId: updateId,
-              lastChatId: chatId,
-              lastMessage: cleanText,
-              lastReply: ack,
-              route: routeName,
-            });
-            writeStatus('generating', {
-              lastUpdateId: updateId,
-              lastChatId: chatId,
-              lastMessage: cleanText,
-              route: routeName,
-              think: thinkOverride,
-            });
-
             const progressStart = Date.now();
             const progressResult = await sendTelegramMessage(
               botToken,
@@ -1270,30 +1422,48 @@ async function main() {
               getProgressMessage(thinkOverride === true ? '思考中...' : '応答を準備しています。', 0),
               messageId,
             );
-            const progressMessageId = Number(progressResult?.result?.message_id || 0);
+            progressMessageId = Number(progressResult?.result?.message_id || 0);
+            
             const updateProgress = async (stage, startedAt = progressStart) => {
               if (progressMessageId <= 0) return;
               const elapsedSeconds = (Date.now() - startedAt) / 1000;
               await editTelegramMessage(botToken, chatId, progressMessageId, getProgressMessage(stage, elapsedSeconds));
-              writeStatus('generating', {
-                lastUpdateId: updateId,
-                lastChatId: chatId,
-                lastMessage: cleanText,
-                route: routeName,
-                progressStage: stage,
-                progressElapsedSec: Math.floor(elapsedSeconds),
-              });
             };
 
-            reply = await routeReply(cleanText, updateProgress, routeName, thinkOverride);
+            reply = await routeReply(cleanText, updateProgress, routeName, thinkOverride, history, null, fastMode);
             if (progressMessageId > 0) {
-              const doneSeconds = (Date.now() - progressStart) / 1000;
-              await editTelegramMessage(botToken, chatId, progressMessageId, getProgressMessage('応答の生成が完了しました。', doneSeconds));
+              await editTelegramMessage(botToken, chatId, progressMessageId, getProgressMessage('生成完了。', (Date.now() - progressStart) / 1000));
             }
+          }
+
+          if (streamUpdater) {
+            reply = await routeReply(
+              cleanText,
+              null,
+              routeName,
+              thinkOverride,
+              history,
+              (text) => streamUpdater.update(text),
+              fastMode
+            );
+            await streamUpdater.finish(reply);
           }
         }
 
-        await sendTelegramMessage(botToken, chatId, reply, messageId);
+        // Final reply (if not already handled by stream finishing)
+        if (reply) {
+          // Note: If we streamed, the reply is already in progressMessageId.
+          // But the code below might send it again. We should avoid double-sending.
+          // In the current logic, if streamUpdater was used, we don't send separately.
+          if (!streamUpdater) {
+             await sendTelegramMessage(botToken, chatId, reply, messageId);
+          }
+        }
+        
+        history.push({ role: 'user', content: cleanText });
+        history.push({ role: 'assistant', content: reply });
+        saveHistory(chatId, history);
+
         offset = updateId;
         saveOffset(offset);
         writeEvent('reply', { lastUpdateId: offset, lastChatId: chatId, lastMessage: text, lastReply: reply });

@@ -54,6 +54,14 @@
             margin: 0;
         }
 
+        .header-note {
+            max-width: 880px;
+            margin: 14px auto 0;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
         .start-strip {
             width: min(1680px, calc(100% - 56px));
             display: grid;
@@ -323,9 +331,14 @@
     <div class="header">
         <h1>Clawstack V2</h1>
         <p>Autonomous Engineering Master Portal</p>
+        <p class="header-note">このページは portal の補助ミラーです。迷ったら上の quick start を使い、正本の入口判断は `portal.html` と各 domain start page を優先します。</p>
     </div>
 
     <div class="start-strip">
+        <a href="portal.html" class="start-pill" target="_blank" rel="noopener">
+            <strong>Open Master Portal (portal.html)</strong>
+            <span>正本のランチャーに戻る入口です。迷ったらここから始めます。</span>
+        </a>
         <a href="http://127.0.0.1:18789/overview?password=yasu-fresh-token-2026-02-01" class="start-pill" target="_blank" rel="noopener">
             <strong>Start Here: OpenClaw Chat</strong>
             <span>日常の相談、調査、実装依頼の起点です。</span>
@@ -336,7 +349,7 @@
         </a>
         <a href="apps/operations_toolbox/index.html" class="start-pill" target="_blank" rel="noopener">
             <strong>Maintenance Hub</strong>
-            <span>修復、監視、cleanup、プロトコル類はここへ集約しています。</span>
+            <span>修復、監視、cleanup、プロトコル類が必要なときだけここへ入ります。</span>
         </a>
     </div>
 
@@ -346,7 +359,7 @@
         <a href="./apps/cmux_hub/" class="card" target="_blank" rel="noopener">
             <span class="card-icon">🧠</span>
             <h2 class="card-title">Cmux Hub</h2>
-            <p class="card-desc">Role-based local-first orchestration map for OpenClaw, Antigravity, Codex, Ollama, testing, security, and DOE/R.</p>
+            <p class="card-desc">Reference orchestration map for agent roles, protocol boundaries, and local-first coordination. Use this to understand architecture, not as the daily operator start page.</p>
             <div class="card-meta">
                 <span class="port-badge">Protocol Hub</span>
                 <span class="status-indicator"><span class="status-dot"></span>Integrated</span>
@@ -357,8 +370,8 @@
         <a href="./apps/email_search/" class="card" target="_blank" rel="noopener">
             <span class="card-icon">🔍</span>
             <h2 class="card-title">メール全文検索</h2>
-            <p class="card-desc">2019年から現在までの EML / Gmail を FTS 検索できます。依頼事項、タスク、期限切れ、返信状況の確認にも対応します。</p>
-            <p class="card-desc">Gmail DB に保存されたメール本文、依頼事項、期日、返信状況を検索・閲覧できます。</p>
+            <p class="card-desc">Gmail DB に保存された本文、依頼事項、期日、返信状況を深掘り検索する詳細画面です。まず全体状態を見たいときは Control Center を使います。</p>
+            <p class="card-desc">2019年から現在までの EML / Gmail を FTS 検索でき、個別メールの確認や依頼追跡に向いています。</p>
             <div class="card-meta">
                 <span class="port-badge">Port 8792 API</span>
                 <span class="status-indicator"><span class="status-dot"></span>Ready</span>
@@ -543,6 +556,20 @@
             </div>
         </a>
 
+        <!-- Prepomax → ParaView Pipeline -->
+        <a href="http://localhost:8004" class="card" target="_blank" rel="noopener">
+            <span class="card-icon">🔩</span>
+            <h2 class="card-title">順送金型 FEM 解析ハブ</h2>
+            <span class="card-role">CAE / OpenRadioss / ParaView</span>
+            <p class="card-desc">Prepomax INP → OpenRadioss RAD 変換・解析実行・ANIM → VTK 変換まで一貫対応。
+                ダウンロードした VTK を ParaView で即座に可視化できます。
+                ストリップレイアウト生成・CalculiX パンチ強度解析・設計報告書も内包。</p>
+            <div class="card-meta">
+                <span class="port-badge">Port 8004</span>
+                <span class="status-indicator"><span class="status-dot"></span>Progressive Die Hub</span>
+            </div>
+        </a>
+
         <!-- Stable Diffusion -->
         <a href="http://localhost:7861" class="card" target="_blank" rel="noopener">
             <img class="card-icon-img"
@@ -664,8 +691,7 @@
         <a href="ingest_dashboard.html" class="card" target="_blank">
             <span class="card-icon">📚</span>
             <h2 class="card-title">Knowledge Ingestion</h2>
-            <p class="card-desc">Real-time status monitor for the VLM/LLM document parsing pipeline. Watch PDF and Email
-                extraction progress.</p>
+            <p class="card-desc">Detailed pipeline monitor for PDF and email extraction progress. Use this after the Control Center when you need parser-stage visibility rather than a general first-stop overview.</p>
             <div class="card-meta">
                 <span class="port-badge">Local File</span>
                 <span class="status-indicator status-pending"><span class="status-dot"></span>Active</span>
@@ -676,7 +702,7 @@
         <a href="apps/learning_memory/index.html" class="card" target="_blank" rel="noopener">
             <span class="card-icon">🧠</span>
             <h2 class="card-title">Learning Memory</h2>
-            <p class="card-desc">Nested Learning console for memory search plus Gmail ingest range, SQLite and FTS counts, learning memory sync visibility, and case, email, quality, improvement, and CAE comparisons.</p>
+            <p class="card-desc">Detailed investigation console for learning memory, learning sync, Gmail ingest range, and cross-domain comparisons after narrowing the overall issue in the Control Center.</p>
             <div class="card-meta">
                 <span class="port-badge">Port 8110 / Local App</span>
                 <span class="status-indicator"><span class="status-dot"></span>Prototype</span>
@@ -711,8 +737,7 @@
                 src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@main/png/paperless-ngx.png"
                 onerror="this.outerHTML='<span class=card-icon>📄</span>'" alt="Paperless NGX">
             <h2 class="card-title">Paperless NGX</h2>
-            <p class="card-desc">Document Management System. Raw PDF/Scanning inbox and OCR engine for storing
-                unstructured files.</p>
+            <p class="card-desc">Raw document inbox and OCR store for unstructured files. Use this when you need the original scanned files and ingestion source, not a cross-system overview.</p>
             <div class="card-meta">
                 <span class="port-badge">Port: 8000</span>
                 <span class="status-indicator"><span class="status-dot"></span>Online</span>
@@ -762,7 +787,7 @@
         <a href="apps/system_role_map/index.html" class="card" target="_blank" rel="noopener">
             <span class="card-icon">🧭</span>
             <h2 class="card-title">System Role Map</h2>
-            <p class="card-desc">アプリ全体を `残す / 統合する / 役割変更する / 隠す` で整理した棚卸しハブです。入口の重複と責務の曖昧さを減らすための判断材料をまとめています。</p>
+            <p class="card-desc">Architecture and cleanup map for deciding what stays canonical, what should merge, and what should move to reference. Use this for planning, not as the daily first entry point.</p>
             <div class="card-meta">
                 <span class="port-badge">Architecture</span>
                 <span class="status-indicator"><span class="status-dot"></span>Integrated</span>
@@ -774,19 +799,31 @@
             <span class="card-icon">🗂️</span>
             <h2 class="card-title">Ingestion / RAG Control Center</h2>
             <span class="card-role">System Health</span>
-            <p class="card-desc">Gmail の読み込み、Paperless NGX、Learning 同期、RAG 展開、DB テーブル閲覧の導線をまとめた統合ハブです。</p>
+            <p class="card-desc">Primary entry point for checking the overall state of Gmail ingest, Paperless, learning sync, RAG, and DB surfaces before jumping into a more specific detail page.</p>
             <div class="card-meta">
                 <span class="port-badge">Unified Hub</span>
                 <span class="status-indicator"><span class="status-dot"></span>Integrated</span>
             </div>
         </a>
 
+        <!-- Hybrid Eval Compare (Ollama vs Foundry) -->
+        <a href="apps/hybrid_eval_compare/index.html" class="card" target="_blank" rel="noopener">
+            <span class="card-icon">⚖️</span>
+            <h2 class="card-title">Hybrid Eval Compare</h2>
+            <span class="card-role">Model Comparison / Read-only</span>
+            <p class="card-desc">同一プロンプトを Ollama（主系）と Foundry Local（比較系）で実行し、結果・所要時間・差分を一覧/並列で確認するページです（スナップショット表示）。</p>
+            <div class="card-meta">
+                <span class="port-badge">Local File</span>
+                <span class="status-indicator"><span class="status-dot"></span>Snapshot</span>
+            </div>
+        </a>
+
         <!-- Operations Toolbox -->
-        <a href="apps/operations_toolbox/index.html" class="card featured" target="_blank" rel="noopener">
+        <a href="apps/operations_toolbox/index.html" class="card" target="_blank" rel="noopener">
             <span class="card-icon">🧰</span>
             <h2 class="card-title">Operations Toolbox</h2>
             <span class="card-role">Ops / Maintenance</span>
-            <p class="card-desc">Auto Repair、AI Harness Monitor、Storage Cleanup、Stitch、Codex Protocol、OpenNotebook Backups などの保守向け画面をまとめた運用ハブです。</p>
+            <p class="card-desc">Maintenance-only hub for repair, cleanup, harness monitoring, backup, and protocol utilities. Open this when you are doing system upkeep, not when you are starting normal daily work.</p>
             <div class="card-meta">
                 <span class="port-badge">Ops / Maintenance</span>
                 <span class="status-indicator"><span class="status-dot"></span>Integrated</span>

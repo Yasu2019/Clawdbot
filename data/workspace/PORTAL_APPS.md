@@ -3,3 +3,8 @@
 - dxf_fcstd_protocol: Portal entry for FCStd-first feature generation over the existing DXF pipeline.
 - gdt_overlay_studio: Browser-based 3D and drawing workbench for datum and GD&T overlay work.
 - tolerance_hub: 2D/3D gap analysis hub used for tolerance studies.
+- clearwing_defense: Integrated security scanner (Semgrep/Bandit/ZAP).
+- anijam_qa: Automated QA drama/education video generator.
+- kimi_worker: Moonshot AI high-throughput worker (256K context).
+- ace_visual_lab: ComfyUI node-based engineering automation.
+- serious_imaging_studio: DALL-E 3 technical illustration and layout protocol optimized for IATF/QA.

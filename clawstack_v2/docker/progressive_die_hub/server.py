@@ -18,6 +18,7 @@ import strip_layout as sl
 import radioss_generator as rg
 import calculix_generator as cg
 import report_generator as rep
+import inp_converter as ic
 
 # ── 定数 ─────────────────────────────────────────────────────────────────────
 JOBS_DIR = Path("/tmp/pdie_jobs")
@@ -319,6 +320,45 @@ async def run_calculix(job_id: str = Form(...)):
     return JSONResponse({'job_id': job_id, 'results': results})
 
 
+@app.post("/api/convert-inp")
+async def convert_inp(file: UploadFile = File(...)):
+    """Prepomax .inp → OpenRadioss _0000.rad / _0001.rad 変換"""
+    if not file.filename.lower().endswith('.inp'):
+        raise HTTPException(400, "拡張子 .inp のファイルのみ対応しています")
+
+    job_id  = str(uuid.uuid4())[:8]
+    job_dir = _job_dir(job_id)
+    inp_path = job_dir / file.filename
+
+    content = await file.read()
+    inp_path.write_bytes(content)
+
+    try:
+        result = ic.convert(str(inp_path), str(job_dir))
+    except Exception as e:
+        shutil.rmtree(job_dir, ignore_errors=True)
+        raise HTTPException(422, f"変換エラー: {e}")
+
+    return JSONResponse({
+        'job_id':   job_id,
+        'starter':  Path(result['starter']).name,
+        'engine':   Path(result['engine']).name,
+        'base':     result['base'],
+        'stats':    result['stats'],
+        'warnings': result['warnings'],
+    })
+
+
+@app.get("/api/convert-inp/download/{job_id}/{filename}")
+async def download_rad(job_id: str, filename: str):
+    """変換済み .rad ファイルのダウンロード"""
+    path = _job_dir(job_id) / filename
+    if not path.exists() or path.suffix != '.rad':
+        raise HTTPException(404, "ファイルが見つかりません")
+    return FileResponse(str(path), filename=filename,
+                        media_type='application/octet-stream')
+
+
 @app.get("/api/report/{job_id}", response_class=HTMLResponse)
 async def get_report(job_id: str):
     """HTML 報告書生成・返却"""
@@ -357,6 +397,150 @@ async def get_materials():
         'uts': v['uts'],
         'k_factor': v['k_factor'],
     } for k, v in sl.MATERIALS.items()})
+
+
+def _docker_client():
+    import docker as docker_sdk
+    return docker_sdk.from_env()
+
+
+def _ensure_openradioss():
+    """OpenRadioss コンテナが起動していなければ起動"""
+    import docker as docker_sdk
+    client = _docker_client()
+    try:
+        c = client.containers.get(OPENRADIOSS_CONTAINER)
+        if c.status != 'running':
+            c.start()
+    except docker_sdk.errors.NotFound:
+        raise HTTPException(503, f"コンテナが見つかりません: {OPENRADIOSS_CONTAINER}")
+
+
+@app.get("/api/anim-scan")
+async def anim_scan():
+    """OpenRadioss /work 内の ANIM ファイルセット（プレフィックス）を列挙"""
+    _ensure_openradioss()
+    client = _docker_client()
+    c = client.containers.get(OPENRADIOSS_CONTAINER)
+    exit_code, output = c.exec_run(
+        ['bash', '-lc',
+         "ls /work/ 2>/dev/null | grep -E 'A[0-9]{3}$' | sed 's/A[0-9]*$//' | sort -u"])
+    text = output.decode('utf-8', errors='replace') if output else ''
+    prefixes = [p.strip() for p in text.strip().split('\n') if p.strip()]
+    return JSONResponse({'prefixes': prefixes})
+
+
+@app.post("/api/anim-to-vtk")
+async def anim_to_vtk(prefix: str = Form(...)):
+    """OpenRadioss ANIM ファイル → VTK 変換"""
+    _ensure_openradioss()
+    client = _docker_client()
+    c = client.containers.get(OPENRADIOSS_CONTAINER)
+
+    job_id  = str(uuid.uuid4())[:8]
+    job_dir = _job_dir(job_id)
+
+    # ANIMファイル一覧取得
+    _, ls_out = c.exec_run(
+        ['bash', '-lc', f'ls /work/{prefix}A[0-9]* 2>/dev/null | sort'])
+    anim_files = [Path(f.strip()).name for f in
+                  (ls_out.decode('utf-8', errors='replace') if ls_out else '').strip().split('\n')
+                  if f.strip()]
+
+    if not anim_files:
+        raise HTTPException(404, f"ANIMファイルが見つかりません: {prefix}A*")
+
+    # 各ANIMファイルをVTKに変換（標準出力 → .vtk ファイルとして保存）
+    vtk_files = []
+    logs = []
+    all_ok = True
+    for anim_name in anim_files:
+        vtk_name = anim_name + '.vtk'
+        exit_code, output = c.exec_run(
+            ['bash', '-lc',
+             f'/opt/openradioss/OpenRadioss/exec/anim_to_vtk_linux64_gf /work/{anim_name}'
+             f' > /work/{vtk_name} 2>/tmp/{anim_name}.log; cat /tmp/{anim_name}.log'])
+        log_text = output.decode('utf-8', errors='replace') if output else ''
+        logs.append(f'[{anim_name}] exit={exit_code}  {log_text[:200]}')
+        if exit_code == 0:
+            vtk_files.append(vtk_name)
+        else:
+            all_ok = False
+
+    # VTKファイルをジョブディレクトリへコピー
+    import tarfile, io
+    for vtk_name in vtk_files:
+        try:
+            bits, _ = c.get_archive(f'/work/{vtk_name}')
+            buf = io.BytesIO(b''.join(bits))
+            with tarfile.open(fileobj=buf) as tf:
+                member = tf.getmembers()[0]
+                member.name = vtk_name
+                tf.extract(member, path=str(job_dir))
+        except Exception:
+            pass
+
+    # .pvd インデックスファイル生成
+    pvd_name = prefix + '.pvd'
+    pvd_lines = ['<?xml version="1.0"?>\n<VTKFile type="Collection">\n  <Collection>\n']
+    for i, vtk_name in enumerate(vtk_files):
+        pvd_lines.append(f'    <DataSet timestep="{i}" file="{vtk_name}"/>\n')
+    pvd_lines.append('  </Collection>\n</VTKFile>\n')
+    (job_dir / pvd_name).write_text(''.join(pvd_lines), encoding='utf-8')
+    vtk_files.append(pvd_name)
+
+    return JSONResponse({
+        'job_id':    job_id,
+        'stdout':    '\n'.join(logs[-20:]),
+        'vtk_files': vtk_files,
+        'success':   all_ok,
+    })
+
+
+@app.get("/api/vtk-jobs")
+async def list_vtk_jobs():
+    """VTKファイルを含むジョブ一覧を返す"""
+    jobs = []
+    if JOBS_DIR.exists():
+        for job_dir in sorted(JOBS_DIR.iterdir(), key=lambda p: p.stat().st_mtime, reverse=True):
+            if not job_dir.is_dir():
+                continue
+            vtk_files = sorted(f.name for f in job_dir.iterdir() if f.suffix == '.vtk')
+            pvd_files = sorted(f.name for f in job_dir.iterdir() if f.suffix == '.pvd')
+            if vtk_files or pvd_files:
+                import time
+                jobs.append({
+                    'job_id':    job_dir.name,
+                    'vtk_count': len(vtk_files),
+                    'pvd_files': pvd_files,
+                    'mtime':     job_dir.stat().st_mtime,
+                })
+    return JSONResponse({'jobs': jobs})
+
+
+@app.delete("/api/vtk-jobs/{job_id}")
+async def delete_vtk_job(job_id: str):
+    """指定ジョブのディレクトリを削除"""
+    job_dir = JOBS_DIR / job_id
+    if not job_dir.exists():
+        raise HTTPException(404, f"ジョブが見つかりません: {job_id}")
+    shutil.rmtree(job_dir, ignore_errors=True)
+    return JSONResponse({'deleted': job_id})
+
+
+@app.delete("/api/vtk-jobs")
+async def delete_all_vtk_jobs():
+    """VTKファイルを含む全ジョブを削除"""
+    deleted = []
+    if JOBS_DIR.exists():
+        for job_dir in JOBS_DIR.iterdir():
+            if not job_dir.is_dir():
+                continue
+            has_vtk = any(f.suffix in ('.vtk', '.pvd') for f in job_dir.iterdir())
+            if has_vtk:
+                shutil.rmtree(job_dir, ignore_errors=True)
+                deleted.append(job_dir.name)
+    return JSONResponse({'deleted': deleted, 'count': len(deleted)})
 
 
 @app.get("/api/health")

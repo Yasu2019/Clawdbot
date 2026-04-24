@@ -1,0 +1,21 @@
+{
+  "project_name": "audit_training_case_001",
+  "video_type": "audit_drama",
+  "theme": "承認漏れの内部監査教育",
+  "audience": "現場責任者と監査員",
+  "duration": "120s",
+  "scenes": [
+    {
+      "scene_id": 1,
+      "message": "監査の目的は改善である",
+      "visual": "工場の朝礼風景",
+      "narration": "内部監査は、責めるためではなく改善のために行います。"
+    },
+    {
+      "scene_id": 2,
+      "message": "承認漏れが見つかった",
+      "visual": "ロット管理票を確認する監査員",
+      "narration": "監査の途中で、外観検査工程の承認漏れが確認されました。"
+    }
+  ]
+}
