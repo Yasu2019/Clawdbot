@@ -1,0 +1,18 @@
+* Relay coil flyback diode conceptual template
+* Do not drive relay directly from ESP32 pin in real circuit.
+
+Vcoil supply 0 12
+S1 coil_low 0 gate 0 SW
+Vgate gate 0 PULSE(0 5 0 1m 1m 200m 500m)
+Rcoil supply coil_mid 120
+Lcoil coil_mid coil_low 100m
+Dfly coil_low supply D1
+.model D1 D(Is=1n Rs=0.5)
+.model SW SW(Ron=0.1 Roff=1Meg Vt=2 Vh=0.5)
+
+.tran 0 2 0 0.5m
+.control
+run
+wrdata relay_flyback_output.csv time v(coil_low) i(Lcoil)
+.endc
+.end

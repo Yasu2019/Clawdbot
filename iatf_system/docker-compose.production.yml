@@ -7,7 +7,7 @@ services:
     volumes:
       - shared_data:/myapp/db/record
     ports:
-      - '127.0.0.1:1880:1880'
+      - '127.0.0.1:1881:1880'
     command: ["node-red"]
     ulimits:
       nofile:
@@ -15,12 +15,12 @@ services:
         hard: 65536
 
   db:
-    image: postgres:14.2
+    image: postgres:16.0
     env_file: .env.production
     ports:
-      - '127.0.0.1:5432:5432'
+      - '5436:5432'
     volumes:
-      - postgresql-data:/var/lib/postgresql/data
+      - postgresql-data-prod:/var/lib/postgresql/data
     environment:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     shm_size: '2gb'
@@ -36,6 +36,8 @@ services:
   redis:
     image: redis:latest
     command: redis-server --appendonly yes
+    ports:
+      - '6381:6379'
     volumes:
       - redis-data:/data
     networks:
@@ -49,7 +51,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.production.web
-    command: bash -c "rm -f tmp/pids/server.pid && bundle exec chmod +x bin/rails && npm run build:css && bundle exec rails s -p 3001 -b '0.0.0.0' -e production"
+    command: bash -c "rm -f tmp/pids/server.pid && bundle exec chmod +x bin/rails && npm run build:css && bundle exec rails s -p 3004 -b '0.0.0.0' -e production"
     tty: true
     stdin_open: true
     env_file: .env.production
@@ -59,9 +61,12 @@ services:
       - RAILS_LOG_TO_STDOUT=true
       - RAILS_LOG_LEVEL=debug
       - MINIPC=${MINIPC}
-      - PORT=3001
+      - PORT=3004
+      - DB_HOST=host.docker.internal
+      - DB_PORT=5436
+      - REDIS_URL=redis://host.docker.internal:6381/0
     ports:
-      - "3001:3001"
+      - "3004:3004"
     volumes:
       - .:/myapp:delegated
       - shared_data:/myapp/db/record
@@ -71,8 +76,10 @@ services:
       - /myapp/tmp
     networks:
       - app_network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     expose:
-      - '3001'
+      - '3004'
     depends_on:
       - db
       - redis
@@ -88,6 +95,9 @@ services:
     environment:
       - KEY_DERIVATION_SALT=${KEY_DERIVATION_SALT}
       - RAILS_LOG_TO_STDOUT=true
+      - DB_HOST=host.docker.internal
+      - DB_PORT=5436
+      - REDIS_URL=redis://host.docker.internal:6381/0
     volumes:
       - .:/myapp:delegated
       - shared_data:/myapp/db/record
@@ -97,6 +107,8 @@ services:
       - /myapp/tmp
     networks:
       - app_network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       - db
       - redis
@@ -126,7 +138,7 @@ services:
       - app_network
 
 volumes:
-  postgresql-data:
+  postgresql-data-prod:
   shared_data:
   storage-data:
   redis-data:
@@ -137,6 +149,6 @@ networks:
     driver: bridge
     ipam:
       config:
-        - subnet: 172.21.0.0/16
+        - subnet: 172.23.0.0/16
   default:
     driver: bridge

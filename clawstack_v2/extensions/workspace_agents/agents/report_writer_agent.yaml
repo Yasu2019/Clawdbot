@@ -1,0 +1,15 @@
+name: report_writer_agent
+role: QA分析結果・IATF監査結果を社内報告書形式に整形
+formats:
+  - markdown
+  - docx_later
+  - pptx_later
+sections:
+  - 目的
+  - 対象データ
+  - 分析結果
+  - 判定
+  - 推定原因
+  - 是正/予防処置案
+  - 未確認事項
+  - 承認欄

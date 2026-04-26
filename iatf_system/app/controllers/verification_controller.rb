@@ -37,13 +37,9 @@ class VerificationController < ActionController::Base
       return
     end
 
-    if user.token_expiry > Time.current
-      # トークンをリセット
-      user.update(verification_token: nil, token_expiry: nil)
-      sign_in(user)
-      redirect_to new_user_session_path, notice: 'ログインしてください'
-    else
-      redirect_to new_user_session_path, alert: 'トークンが無効です。'
-    end
+    # トークンをリセットしてログイン
+    user.update(verification_token: nil, token_expiry: nil)
+    sign_in(user)
+    redirect_to root_path
   end
 end

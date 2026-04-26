@@ -1,0 +1,46 @@
+﻿\
+完全ローカル寄り / GitHub 非接続モード
+
+目的
+- GitHub サーバーへの接続を止める
+- Ollama のローカルモデルだけで Copilot CLI を動かす
+
+重要
+- COPILOT_OFFLINE=true を設定すると、GitHub には接続しません
+- ただし、接続先が remote API の場合は、その remote API には通信されます
+- 完全ローカルに近づけるには、BYOK 先を localhost の Ollama にします
+
+PowerShell 例
+$env:COPILOT_PROVIDER_BASE_URL="http://localhost:11434/v1"
+$env:COPILOT_PROVIDER_API_KEY=""
+$env:COPILOT_PROVIDER_WIRE_API="responses"
+$env:COPILOT_MODEL="qwen3.5"
+$env:COPILOT_OFFLINE="true"
+copilot
+
+Bash 例
+export COPILOT_PROVIDER_BASE_URL=http://localhost:11434/v1
+export COPILOT_PROVIDER_API_KEY=
+export COPILOT_PROVIDER_WIRE_API=responses
+export COPILOT_MODEL=qwen3.5
+export COPILOT_OFFLINE=true
+copilot
+
+期待する挙動
+- GitHub 認証は試みません
+- テレメトリは無効になります
+- モデル呼び出し先は Ollama のみになります
+
+このモードで使えないもの
+- /delegate
+- GitHub MCP server
+- GitHub Code Search
+
+このモードが向く場面
+- 社内ローカル repo の一次整理
+- 機密コードのローカル説明
+- 小規模な修正案・リファクタ候補の洗い出し
+
+このモードで向かないもの
+- GitHub issue / PR のサーバー側文脈を積極利用したいとき
+- /delegate で GitHub 側のクラウドエージェントを使いたいとき

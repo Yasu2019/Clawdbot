@@ -1,0 +1,82 @@
+Clawstack / OpenClaw 連携構想（概念版）
+
+目的:
+ChatGPT画像生成を、単発作業ではなく、社内の資料生成パイプラインの一部として扱う。
+
+想定フロー:
+1. ユーザーがフォーム入力
+   - 用途
+   - サイズ
+   - タイトル
+   - 入れたい項目
+   - 色味
+   - 写真有無
+   - 社外提出の有無
+
+2. プロンプト正規化
+   - 文字数調整
+   - 禁止語チェック
+   - テンプレ分類
+   - 社内色への補正
+
+3. 画像生成実行
+   - 初稿生成
+   - 修正生成
+   - バリエーション生成
+
+4. レビュー支援
+   - 誤字確認支援
+   - 数値確認項目の抽出
+   - レビューチェックリスト生成
+
+5. 保存
+   - source / prompt / output / review metadata
+
+6. Portal表示
+   - カード化
+   - 履歴一覧
+   - 再生成ボタン
+   - 承認状態表示
+
+推奨コンポーネント:
+- Frontend: Next.js
+- Backend: FastAPI
+- Metadata DB: PostgreSQL
+- File store: MinIO or local volume
+- Audit log: Langfuse or dedicated table
+- Prompt template store: YAML / DB table
+- Approval state: simple workflow state machine
+
+最低限のデータモデル例:
+image_jobs
+- id
+- created_at
+- requested_by
+- purpose
+- format
+- language
+- prompt_master
+- prompt_final
+- source_file_path
+- output_file_path
+- review_status
+- approved_by
+- external_use_flag
+
+review_checks
+- job_id
+- check_type
+- result
+- note
+
+重要:
+画像生成そのものだけでなく、
+「何の用途で」「誰が」「何を元に」「どの版を」「誰が承認したか」を残すことが、
+品質保証的には非常に重要。
+
+将来的な拡張:
+- IATF監査テンプレ自動選択
+- 不良解析テンプレ自動化
+- 写真注釈自動レイアウト
+- 生成画像からPowerPoint挿入支援
+- Word議事録テンプレへの図版自動貼付

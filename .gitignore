@@ -82,6 +82,9 @@ data/workspace/**
 # HTML ファイル
 !data/workspace/*.html
 
+# エージェントハーネスポリシー (セキュリティ設定)
+!data/workspace/agent_harness_policy.json
+
 # Portal アプリ (apps/ 以下全体)
 !data/workspace/apps/
 !data/workspace/apps/**
@@ -108,3 +111,40 @@ data/state/**
 .claude/settings.local.json
 
 # agent ワークフロー定義は含める
+
+# ============================================================
+# NEW EXCLUSIONS (Honki Mode Optimization)
+# ============================================================
+# Models & Weights
+*.pth
+*.bin
+*.onnx
+*.weights
+*.model
+*.task
+*.xml
+*.tflite
+*.pb
+
+# Large Assets/Models in Protocols
+protocols/**/models/
+protocols/**/.venv/
+protocols/**/venv/
+protocols/**/__pycache__/
+
+# Large Assets in Apps
+data/workspace/apps/**/generated/
+data/workspace/apps/**/output/
+data/workspace/apps/**/.venv/
+data/workspace/apps/**/venv/
+
+# Temporary folders
+temp_*/
+tmp_*/
+.tmp_*/
+
+# Large Archives
+*.zip
+*.tar.gz
+*.7z
+*.rar

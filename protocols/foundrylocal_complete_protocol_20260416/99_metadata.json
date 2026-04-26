@@ -1,0 +1,8 @@
+﻿{
+  "title": "Foundry Local × Ollama 併用評価・実装 完全版プロトコル",
+  "created_date": "2026-04-16",
+  "encoding": "UTF-8 with BOM",
+  "language": "ja",
+  "purpose": "Foundry Local を既存 Ollama / LiteLLM / OpenClaw / n8n 環境へ比較用に追加するための完全版プロトコル",
+  "recommended_strategy": "併用評価。主系は Ollama のまま。明確な優位が無ければ保留。"
+}

@@ -1,0 +1,3 @@
+version,shot_id,face_consistency,body_realism,camera_stability,physics_plausibility,continuity,acting_quality,overall,main_issue,action
+v001,shot_001,3,2,4,2,3,3,3,"hands deform / weight shift weak","patch motion + exclusions"
+v002,shot_001,4,4,4,3,4,4,4,"minor cloth flutter instability","tune physics exclusions"

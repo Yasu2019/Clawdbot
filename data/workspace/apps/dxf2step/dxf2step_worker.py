@@ -373,6 +373,7 @@ else:
         # Convert Windows paths to Linux container paths for use inside FreeCAD
         dxf_path = self._to_container_path(dxf_path)
         step_path = self._to_container_path(step_path)
+        fcstd_path = step_path[:-5] + ".FCStd" if step_path.lower().endswith(".step") else step_path + ".FCStd"
 
         return f"""
 import FreeCAD as App
@@ -425,6 +426,15 @@ if edges:
                 except Exception as rse:
                     print(f"removeSplitter skipped: {{rse}}")
                 result.exportStep("{step_path}")
+                try:
+                    out_doc = App.newDocument("LayerModel")
+                    obj = out_doc.addObject("Part::Feature", "LayerSolid")
+                    obj.Shape = result
+                    out_doc.recompute()
+                    out_doc.saveAs("{fcstd_path}")
+                    print(f"Saved FCStd: {fcstd_path}")
+                except Exception as fce:
+                    print(f"FCStd save failed: {{fce}}")
                 print(f"Exported: {step_path}  faces={{len(result.Faces)}}")
             else:
                 print("Extrusion failed for all faces")
@@ -448,6 +458,7 @@ else:
         combined_step: host path for the output combined.step
         """
         c_combined = self._to_container_path(combined_step)
+        c_fcstd = c_combined[:-5] + ".FCStd" if c_combined.lower().endswith(".step") else c_combined + ".FCStd"
 
         views_list_str = "[\n"
         for view_type, dxf_path in view_map.items():
@@ -606,6 +617,15 @@ else:
             "            except Exception as e:\n"
             "                print('Face upgrade skipped:', e)\n"
             "            result.exportStep('" + c_combined + "')\n"
+            "            try:\n"
+            "                out_doc = App.newDocument('ReconstructionResult')\n"
+            "                obj = out_doc.addObject('Part::Feature', 'CombinedSolid')\n"
+            "                obj.Shape = result\n"
+            "                out_doc.recompute()\n"
+            "                out_doc.saveAs('" + c_fcstd + "')\n"
+            "                print('Saved FCStd:', '" + c_fcstd + "')\n"
+            "            except Exception as fce:\n"
+            "                print('FCStd save failed:', fce)\n"
             "            print('Reconstruction complete - volume:', result.Volume,\n"
             "                  '- faces:', len(result.Faces))\n"
             "        else:\n"

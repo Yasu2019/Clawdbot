@@ -1,0 +1,23 @@
+{
+  "name": "3D Workbench Sample Pack",
+  "version": "1.0.0",
+  "purpose": "folder-first 3D workflow demo",
+  "paths": {
+    "incoming": "E:\\Assets\\3D\\Incoming\\SamplePack",
+    "working": "E:\\Assets\\3D\\Working\\SamplePack",
+    "export_ready": "E:\\Assets\\3D\\ExportReady\\SamplePack",
+    "cache": "E:\\Assets\\3D\\Cache\\SamplePack"
+  },
+  "recommended_tools": [
+    "Blender",
+    "Portal",
+    "dxf2step",
+    "gdt_overlay_studio",
+    "tolerance_hub"
+  ],
+  "notes": [
+    "Keep Unreal reserved for later.",
+    "Do not put cache files next to source files.",
+    "Use Portal as the navigation layer."
+  ]
+}

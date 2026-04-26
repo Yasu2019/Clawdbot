@@ -1,0 +1,49 @@
+AI VIDEO CONTROL PROTOCOL - HONKI EDITION
+
+GOAL
+Turn AI video generation from probabilistic "slot machine production" into human-directed, repeatable production.
+
+CORE PRINCIPLE
+The human remains the director.
+The AI is a tool, not the author.
+
+FOUR CONTROL LAYERS
+1. Structured intent:
+   Use JSON instead of vague natural language prompts.
+2. Pose constraints:
+   Fix start and end frames with human-defined composition.
+3. Human motion:
+   Feed real motion reference to recover body realism.
+4. Differential revision:
+   Revise only the failing block, not the whole prompt.
+
+WHY AI LOOKS "AI-GENERATED"
+- weak temporal consistency
+- unstable identity
+- synthetic body timing
+- camera drift
+- random composition reinterpretation
+- uncontrolled interpolation
+
+BEST PRACTICE
+- separate camera / character / motion / lighting / restrictions
+- define exclusions explicitly
+- review with a scoring sheet
+- version the JSON
+- reuse proven templates
+
+MINIMUM LOOP
+1. define objective
+2. build JSON
+3. prepare start/end pose
+4. record motion reference
+5. generate short shot
+6. review
+7. patch JSON
+8. regenerate
+
+DO NOT
+- edit too many variables at once
+- trust vague cinematic prompts alone
+- skip review notes
+- jump directly to long scenes

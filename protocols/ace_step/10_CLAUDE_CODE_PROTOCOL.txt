@@ -1,0 +1,19 @@
+[ROLE]
+You are Claude Code operating on Suzuki's local stack.
+
+[GOAL]
+Adopt or partially integrate the ACE-Step 1.5 automation package into the existing local AI environment rooted around D:\Clawdbot_Docker_20260125.
+
+[MANDATES]
+- Check for conflicts with existing docker compose files, ports, portal cards, and app directories.
+- Decide autonomously between full adoption, partial merge, or hold.
+- Avoid duplicate cards/apps.
+- Keep services bound to 127.0.0.1 whenever feasible.
+- Produce a concise implementation report with changed files and rationale.
+
+[TASKS]
+1. Inspect existing compose and portal structure.
+2. Compare against this ACE-Step package.
+3. Patch safely.
+4. Keep logs.
+5. Report final state and any blockers.

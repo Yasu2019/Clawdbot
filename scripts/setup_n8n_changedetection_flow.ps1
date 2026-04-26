@@ -4,11 +4,23 @@ $repoRoot = Split-Path -Parent $PSScriptRoot
 $stateDir = Join-Path $repoRoot "data\state\n8n_changedetection_flow"
 $configPath = Join-Path $stateDir "config.json"
 $statusPath = Join-Path $stateDir "harness_status.json"
+$envPath = Join-Path $repoRoot ".env"
 
 $n8nBaseUrl = "http://127.0.0.1:5679"
-$n8nApiKey = "n8n_api_clawstack_f39c126b684f59ab50cc3fdedd82891086bfc633601067c9"
+$n8nApiKey = $env:N8N_API_KEY
 $webhookPath = "changedetection-bridge"
 $workflowName = "Changedetection Bridge Intake"
+
+if (-not $n8nApiKey -and (Test-Path $envPath)) {
+  $line = Get-Content $envPath | Where-Object { $_ -match '^N8N_API_KEY=' } | Select-Object -First 1
+  if ($line) {
+    $n8nApiKey = ($line -split '=', 2)[1].Trim().Trim('"').Trim("'")
+  }
+}
+
+if (-not $n8nApiKey) {
+  throw "N8N_API_KEY is not set in environment or .env"
+}
 
 function Write-Status {
   param([string]$State, [hashtable]$Extra = @{})

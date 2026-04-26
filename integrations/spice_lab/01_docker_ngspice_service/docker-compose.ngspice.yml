@@ -1,0 +1,20 @@
+services:
+  openclaw-spice-lab:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: openclaw-spice-lab
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${SPICE_LAB_PORT:-8765}:8765"
+    environment:
+      - SPICE_LAB_WORKDIR=/work
+      - SPICE_LAB_MAX_NETLIST_BYTES=200000
+      - SPICE_LAB_TIMEOUT_SEC=60
+    volumes:
+      - ./work:/work
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8765/health', timeout=3).read()"]
+      interval: 30s
+      timeout: 5s
+      retries: 3

@@ -1,0 +1,8 @@
+{"name": "auto_f8958ce0", "pattern": "Iteration\\ \\d+\\ OK.*", "replacement": "[TACO] auto-pattern compressed: {count} lines / Iteration <N> OK", "confidence": 0.55, "success_count": 0, "failure_count": 0, "domain": "auto"}
+{"name": "auto_da8688f0", "pattern": "heartbeat\\ \\d+.*", "replacement": "[TACO] auto-pattern compressed: {count} lines / heartbeat <N>", "confidence": 0.55, "success_count": 0, "failure_count": 0, "domain": "auto"}
+{"name": "auto_f8958ce0", "pattern": "Iteration\\ \\d+\\ OK.*", "replacement": "[TACO] auto-pattern compressed: {count} lines / Iteration <N> OK", "confidence": 0.55, "success_count": 0, "failure_count": 0, "domain": "auto"}
+{"name": "auto_da8688f0", "pattern": "heartbeat\\ \\d+.*", "replacement": "[TACO] auto-pattern compressed: {count} lines / heartbeat <N>", "confidence": 0.55, "success_count": 0, "failure_count": 0, "domain": "auto"}
+{"name": "auto_f8958ce0", "pattern": "Iteration\\ \\d+\\ OK.*", "replacement": "[TACO] auto-pattern compressed: {count} lines / Iteration <N> OK", "confidence": 0.55, "success_count": 0, "failure_count": 0, "domain": "auto"}
+{"name": "auto_da8688f0", "pattern": "heartbeat\\ \\d+.*", "replacement": "[TACO] auto-pattern compressed: {count} lines / heartbeat <N>", "confidence": 0.55, "success_count": 0, "failure_count": 0, "domain": "auto"}
+{"name": "auto_f8958ce0", "pattern": "Iteration\\ \\d+\\ OK.*", "replacement": "[TACO] auto-pattern compressed: {count} lines / Iteration <N> OK", "confidence": 0.55, "success_count": 0, "failure_count": 0, "domain": "auto"}
+{"name": "auto_da8688f0", "pattern": "heartbeat\\ \\d+.*", "replacement": "[TACO] auto-pattern compressed: {count} lines / heartbeat <N>", "confidence": 0.55, "success_count": 0, "failure_count": 0, "domain": "auto"}

@@ -1,0 +1,8 @@
+mode: lean
+checks:
+  sql_readonly: true
+  secret_leak: true
+  port_conflict: true
+  portal_duplicate: true
+  iatf_evidence: true
+  act_updated: true

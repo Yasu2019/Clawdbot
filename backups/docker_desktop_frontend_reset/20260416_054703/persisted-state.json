@@ -1,0 +1,122 @@
+{
+	"cloud.hasUserAcknowledgedBetaDialog": false,
+	"cloud.hasUserAcknowledgedReleaseDialog": false,
+	"cloud.hasDisplayedFirstSessionNotification": false,
+	"dockerAI.showSuggestion": true,
+	"dockerAI.globalDraftUserMessage": "",
+	"dockerAI.threads": {},
+	"dockerAgent.recentDirectories": [],
+	"dockerAgent.lastUsedDirectory": null,
+	"dockerAgent.agentsListFilters": {
+		"layout": "grid"
+	},
+	"dockerAgent.lowLimitAlertDismissed": false,
+	"login.history.signedOutNotification": {
+		"timestamp": 1776036203930
+	},
+	"logsSavedFilters.savedFilters": [],
+	"mcp.isEnableServerDialogDismissed": false,
+	"mcp.canShowInstallMCPTour": true,
+	"sideNavBar.dashboardRoutes": [
+		[
+			"dockerAgent",
+			{
+				"label": "Ask Gordon",
+				"path": "/dashboard/docker-agent",
+				"icon": "Stars",
+				"feature": [
+					"DesktopCagent",
+					"AskGordonDesktop"
+				],
+				"beta": true,
+				"hiddenByUser": false
+			}
+		],
+		[
+			"containers",
+			{
+				"label": "Containers",
+				"path": "/dashboard/containers",
+				"icon": "ContainerIcon",
+				"hiddenByUser": false
+			}
+		],
+		[
+			"images",
+			{
+				"label": "Images",
+				"path": "/dashboard/images/local",
+				"icon": "ImagesIcon",
+				"hiddenByUser": false
+			}
+		],
+		[
+			"volumes",
+			{
+				"label": "Volumes",
+				"path": "/dashboard/volumes",
+				"icon": "VolumeIcon",
+				"hiddenByUser": false
+			}
+		],
+		[
+			"kubernetes",
+			{
+				"label": "Kubernetes",
+				"path": "/dashboard/kubernetes",
+				"icon": "KubernetesIcon",
+				"hiddenByUser": false
+			}
+		],
+		[
+			"build",
+			{
+				"label": "Builds",
+				"path": "/dashboard/build/buildHistory",
+				"icon": "BuildIcon",
+				"hiddenByUser": false
+			}
+		],
+		[
+			"dockerHub",
+			{
+				"label": "Docker Hub",
+				"path": "/dashboard/docker-hub",
+				"icon": "Public",
+				"hiddenByUser": false
+			}
+		],
+		[
+			"dockerScout",
+			{
+				"label": "Docker Scout",
+				"path": "/dashboard/docker-scout",
+				"icon": "ScoutIcon",
+				"hiddenByUser": false
+			}
+		],
+		[
+			"models",
+			{
+				"label": "Models",
+				"path": "/dashboard/models",
+				"icon": "AssistantOutlinedIcon",
+				"feature": "InferenceAvailable",
+				"desktopSetting": "enableInference"
+			}
+		],
+		[
+			"mcp",
+			{
+				"label": "MCP Toolkit",
+				"path": "/dashboard/mcp",
+				"icon": "McpToolkitIcon",
+				"desktopSetting": "enableDockerMCPToolkit",
+				"beta": true
+			}
+		]
+	],
+	"sideNavBar.extensionsHiddenByUser": false,
+	"sideNavBar.offloadHiddenByUser": false,
+	"update.osNotifications.lastShownTime": 1776079402751
+}

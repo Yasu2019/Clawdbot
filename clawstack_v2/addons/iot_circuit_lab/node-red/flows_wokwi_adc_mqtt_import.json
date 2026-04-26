@@ -1,0 +1,209 @@
+[
+  {
+    "id": "tab_wokwi_adc",
+    "type": "tab",
+    "label": "Wokwi ADC MQTT Normalize",
+    "disabled": false,
+    "info": "Wokwi ESP32 ADC MQTTを受け、電圧/ADC値を正規化してalarmを出す"
+  },
+  {
+    "id": "mqtt_broker_wokwi_adc",
+    "type": "mqtt-broker",
+    "name": "claw-mqtt-broker",
+    "broker": "mqtt-broker",
+    "port": "1883",
+    "clientid": "node-red-wokwi-adc",
+    "autoConnect": true,
+    "usetls": false,
+    "protocolVersion": "4",
+    "keepalive": "60",
+    "cleansession": true
+  },
+  {
+    "id": "mqtt_in_adc",
+    "type": "mqtt in",
+    "z": "tab_wokwi_adc",
+    "name": "MQTT in ADC telemetry",
+    "topic": "factory/lab/+/telemetry",
+    "qos": "0",
+    "datatype": "auto-detect",
+    "broker": "mqtt_broker_wokwi_adc",
+    "nl": false,
+    "rap": true,
+    "rh": 0,
+    "inputs": 0,
+    "x": 180,
+    "y": 120,
+    "wires": [
+      [
+        "json_adc",
+        "debug_adc_raw"
+      ]
+    ]
+  },
+  {
+    "id": "json_adc",
+    "type": "json",
+    "z": "tab_wokwi_adc",
+    "name": "JSON parse",
+    "property": "payload",
+    "action": "",
+    "pretty": false,
+    "x": 410,
+    "y": 120,
+    "wires": [
+      [
+        "fn_normalize_adc"
+      ]
+    ]
+  },
+  {
+    "id": "fn_normalize_adc",
+    "type": "function",
+    "z": "tab_wokwi_adc",
+    "name": "normalize ADC",
+    "func": "const p = msg.payload || {};\\nconst adc = Number(p.adc_raw ?? p.adc ?? NaN);\\nconst vref = Number(p.adc_vref ?? 3.3);\\nconst bits = Number(p.adc_bits ?? 12);\\nconst adcMax = Math.pow(2, bits) - 1;\\nconst voltage = Number.isFinite(Number(p.voltage)) ? Number(p.voltage) : (adc / adcMax) * vref;\\nconst warn = Boolean(p.warn || adc >= 3000 || adc <= 100);\\nconst alarm = Boolean(p.alarm || adc >= 3500 || adc <= 50);\\nmsg.payload = {\\n  ts_node_red: new Date().toISOString(),\\n  device: p.device || 'unknown',\\n  site: p.site || 'lab',\\n  line: p.line || 'demo',\\n  machine: p.machine || 'unknown',\\n  adc_raw: Number.isFinite(adc) ? adc : null,\\n  voltage: Number.isFinite(voltage) ? Number(voltage.toFixed(4)) : null,\\n  warn,\\n  alarm,\\n  source: p.source || 'mqtt_adc',\\n  raw: p\\n};\\nmsg.topic = `factory/${msg.payload.site}/${msg.payload.device}/normalized`;\\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 600,
+    "y": 120,
+    "wires": [
+      [
+        "mqtt_out_adc_normalized",
+        "debug_adc_normalized",
+        "switch_adc_alarm"
+      ]
+    ]
+  },
+  {
+    "id": "mqtt_out_adc_normalized",
+    "type": "mqtt out",
+    "z": "tab_wokwi_adc",
+    "name": "MQTT out normalized",
+    "topic": "",
+    "qos": "0",
+    "retain": "",
+    "respTopic": "",
+    "contentType": "",
+    "userProps": "",
+    "correl": "",
+    "expiry": "",
+    "broker": "mqtt_broker_wokwi_adc",
+    "x": 850,
+    "y": 100,
+    "wires": []
+  },
+  {
+    "id": "debug_adc_normalized",
+    "type": "debug",
+    "z": "tab_wokwi_adc",
+    "name": "ADC normalized",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": true,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "payload.alarm",
+    "statusType": "msg",
+    "x": 850,
+    "y": 150,
+    "wires": []
+  },
+  {
+    "id": "debug_adc_raw",
+    "type": "debug",
+    "z": "tab_wokwi_adc",
+    "name": "ADC raw",
+    "active": false,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "x": 410,
+    "y": 180,
+    "wires": []
+  },
+  {
+    "id": "switch_adc_alarm",
+    "type": "switch",
+    "z": "tab_wokwi_adc",
+    "name": "alarm?",
+    "property": "payload.alarm",
+    "propertyType": "msg",
+    "rules": [
+      {
+        "t": "true"
+      }
+    ],
+    "checkall": "true",
+    "repair": false,
+    "outputs": 1,
+    "x": 820,
+    "y": 220,
+    "wires": [
+      [
+        "fn_adc_alarm_text"
+      ]
+    ]
+  },
+  {
+    "id": "fn_adc_alarm_text",
+    "type": "function",
+    "z": "tab_wokwi_adc",
+    "name": "alarm text",
+    "func": "msg.topic = 'factory/lab/alarm/text';\\nmsg.payload = `[ADC ALARM] ${msg.payload.device} ${msg.payload.machine} adc=${msg.payload.adc_raw} voltage=${msg.payload.voltage}`;\\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 1000,
+    "y": 220,
+    "wires": [
+      [
+        "mqtt_out_adc_alarm",
+        "debug_adc_alarm"
+      ]
+    ]
+  },
+  {
+    "id": "mqtt_out_adc_alarm",
+    "type": "mqtt out",
+    "z": "tab_wokwi_adc",
+    "name": "MQTT out alarm",
+    "topic": "",
+    "qos": "0",
+    "retain": "",
+    "respTopic": "",
+    "contentType": "",
+    "userProps": "",
+    "correl": "",
+    "expiry": "",
+    "broker": "mqtt_broker_wokwi_adc",
+    "x": 1210,
+    "y": 200,
+    "wires": []
+  },
+  {
+    "id": "debug_adc_alarm",
+    "type": "debug",
+    "z": "tab_wokwi_adc",
+    "name": "ADC alarm text",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "x": 1210,
+    "y": 250,
+    "wires": []
+  }
+]

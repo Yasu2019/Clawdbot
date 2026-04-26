@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Audit Hub | Clawstack</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #0f172a; --card: #1e293b; --primary: #10b981; --text: #f8fafc; --muted: #94a3b8; }
+        body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; padding: 40px; }
+        .container { max-width: 900px; margin: 0 auto; }
+        h1 { font-family: 'Outfit'; font-size: 2.5rem; color: var(--primary); margin-bottom: 30px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
+        .card { background: var(--card); border-radius: 16px; padding: 24px; border: 1px solid #334155; text-decoration: none; color: inherit; transition: 0.3s; }
+        .card:hover { border-color: var(--primary); transform: translateY(-5px); }
+        .card h3 { margin: 0 0 10px 0; font-size: 1.25rem; }
+        .card p { margin: 0; color: var(--muted); font-size: 0.9rem; }
+        .alert { background: #064e3b; border: 1px solid var(--primary); color: #d1fae5; padding: 16px; border-radius: 12px; margin-bottom: 30px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Secure Runtime Audit Hub</h1>
+        <div class="alert">
+            <strong>Runtime Status:</strong> System is operating under enhanced isolation (WSL2/Docker). Audit evidence collection is active.
+        </div>
+        
+        <div class="grid">
+            <a href="../../clawstack_v2/openclaw_secure_audit_bundle/docs/SECURITY_DESIGN_UTF8.md" class="card">
+                <h3>Security Design</h3>
+                <p>Isolation architecture and threat models for AI agents.</p>
+            </a>
+            <a href="../../clawstack_v2/openclaw_secure_audit_bundle/templates/audit_checklist.md" class="card">
+                <h3>Audit Checklist</h3>
+                <p>Preparation for IATF/ISO security audits.</p>
+            </a>
+            <a href="../../clawstack_v2/openclaw_secure_audit_bundle/README.md" class="card">
+                <h3>Integration Guide</h3>
+                <p>Setup instructions for WSL/Docker hardening.</p>
+            </a>
+        </div>
+    </div>
+</body>
+</html>

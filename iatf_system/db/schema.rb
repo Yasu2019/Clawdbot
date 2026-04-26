@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_01_15_125633) do
+ActiveRecord::Schema[7.0].define(version: 2026_03_21_094500) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -162,12 +162,12 @@ ActiveRecord::Schema[7.0].define(version: 2024_01_15_125633) do
     t.string "kajyou"
     t.string "mondai_no"
     t.string "rev"
-    t.string "mondai"
-    t.string "mondai_a"
-    t.string "mondai_b"
-    t.string "mondai_c"
+    t.text "mondai"
+    t.text "mondai_a"
+    t.text "mondai_b"
+    t.text "mondai_c"
     t.string "seikai"
-    t.string "kaisetsu"
+    t.text "kaisetsu"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end
@@ -176,12 +176,12 @@ ActiveRecord::Schema[7.0].define(version: 2024_01_15_125633) do
     t.string "kajyou"
     t.string "mondai_no"
     t.string "rev"
-    t.string "mondai"
-    t.string "mondai_a"
-    t.string "mondai_b"
-    t.string "mondai_c"
+    t.text "mondai"
+    t.text "mondai_a"
+    t.text "mondai_b"
+    t.text "mondai_c"
     t.string "seikai"
-    t.string "kaisetsu"
+    t.text "kaisetsu"
     t.string "kaito"
     t.integer "user_id"
     t.integer "total_answers"

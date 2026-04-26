@@ -1,32 +1,40 @@
 # frozen_string_literal: true
 
-# このクラスはApplicationRecordを継承し、ActiveRecordの機能を使用しています。
 class Touan < ApplicationRecord
   after_save :update_cache
-  # バリデーション
+
   validates :kaito, presence: true
 
-  # 保存されるたびにキャッシュを更新するコールバック
-  after_save :update_cache
-
-  # CSV インポートに関するメソッド
   def self.import_kaitou(file)
-    CSV.foreach(file.path, headers: true) do |row|
-      testkaitou = find_by(id: row['id']) || new
-      testkaitou.attributes = row.to_hash.slice(*updatable_attributes)
-      testkaitou.save
-    end
+    TouanImportService.call(file)
   end
 
-  # 更新を許可するカラムを定義
   def self.updatable_attributes
     %w[id kajyou mondai_no rev mondai mondai_a mondai_b mondai_c seikai kaisetsu kaito user_id
        total_answers correct_answers seikairitsu created_at updated_at]
   end
 
+  def correct_answer?
+    kaito.present? && seikai.present? && kaito == seikai
+  end
+
+  def calculate_stats!(user_id:)
+    total   = Touan.where(kajyou: kajyou, user_id: user_id, mondai_no: mondai_no).count
+    correct = Touan.correct_answers_for(user_id: user_id, kajyou: kajyou, mondai_no: mondai_no, up_to_id: id)
+    self.total_answers   = total
+    self.correct_answers = correct
+    self.seikairitsu     = correct.to_f / total * 100
+  end
+
+  def self.correct_answers_for(user_id:, mondai_no:, kajyou: nil, up_to_id: nil)
+    scope = where(user_id:, mondai_no:)
+    scope = scope.where(kajyou:) if kajyou.present?
+    scope = scope.where('id <= ?', up_to_id) if up_to_id.present?
+    scope.where('kaito = seikai').count
+  end
+
   private
 
-  # キャッシュの更新をトリガーするメソッド
   def update_cache
     CacheUpdateJob.perform_async(user_id)
   end

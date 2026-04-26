@@ -83,28 +83,28 @@ jobs:
               # DL3008: apt に --no-install-recommends を強制 (ローカル事情で無視)
               # DL3009: apt-get clean 強制 (ローカル事情で無視)
               # DL3059: 複数 RUN 統合推奨 (可読性優先で無視)
-              hadolint \
+              if ! hadolint \
                 --ignore DL3008 \
                 --ignore DL3009 \
                 --ignore DL3059 \
-                "$df" 2>&1 && true || {
+                "$df" 2>&1; then
                 echo "::warning file=$df::hadolint 警告: $df"
                 FAILED=$((FAILED + 1))
-              }
+              fi
             fi
           done
 
           # clawstack_v2 配下の Dockerfile も検査
           while IFS= read -r -d '' df; do
             echo "--- $df ---"
-            hadolint \
+            if ! hadolint \
               --ignore DL3008 \
               --ignore DL3009 \
               --ignore DL3059 \
-              "$df" 2>&1 && true || {
+              "$df" 2>&1; then
               echo "::warning file=$df::hadolint 警告: $df"
               FAILED=$((FAILED + 1))
-            }
+            fi
           done < <(find clawstack_v2/docker -name "Dockerfile*" -print0 2>/dev/null)
 
           if [ "$FAILED" -gt 0 ]; then

@@ -1,0 +1,34 @@
+﻿{
+  "source_csv": "D:\\Clawdbot_Docker_20260125\\clawstack_v2\\addons\\iot_circuit_lab\\ltspice\\exported_waveforms\\sample_sensor_waveform.csv",
+  "voltage_column": "v_adc",
+  "vref": 3.3,
+  "adc_bits": 12,
+  "adc_max": 4095,
+  "stats": {
+    "samples": 13,
+    "min_voltage": 0.0,
+    "max_voltage": 3.0,
+    "mean_voltage": 1.4346153846153846
+  },
+  "adc_counts": {
+    "min": 0,
+    "max": 3723,
+    "mean": 1780
+  },
+  "suggested_thresholds": {
+    "warn_high_adc": 3351,
+    "alarm_high_adc": 3611,
+    "warn_low_adc": 112,
+    "alarm_low_adc": 37
+  },
+  "wokwi_cpp_snippet": {
+    "ADC_WARN_HIGH": 3351,
+    "ADC_ALARM_HIGH": 3611,
+    "ADC_WARN_LOW": 112,
+    "ADC_ALARM_LOW": 37
+  },
+  "notes": [
+    "しきい値は自動案です。実機のノイズ、管理幅、安全要求に合わせて調整してください。",
+    "ESP32 ADCは直線性・精度に限界があるため、必要に応じて実測校正してください。"
+  ]
+}

@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cmux Hub</title>
+  <style>
+    :root {
+      --bg: #0b1220;
+      --panel: #111a2b;
+      --line: #22314d;
+      --text: #e8eef8;
+      --muted: #9db0d0;
+      --accent: #5eead4;
+      --accent2: #60a5fa;
+      --warn: #fbbf24;
+      --ok: #34d399;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(96,165,250,0.14), transparent 28%),
+        radial-gradient(circle at bottom right, rgba(94,234,212,0.10), transparent 24%),
+        var(--bg);
+      color: var(--text);
+      padding: 32px;
+    }
+    .wrap { max-width: 1180px; margin: 0 auto; }
+    h1 { margin: 0 0 8px; font-size: 34px; }
+    .lead { margin: 0 0 24px; color: var(--muted); }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .card, .panel {
+      background: rgba(17, 26, 43, 0.88);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 18px 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+    .k { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+    .v { font-size: 22px; font-weight: 700; margin-top: 6px; }
+    .sub { color: var(--muted); font-size: 14px; margin-top: 6px; line-height: 1.5; }
+    .role-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 14px;
+      margin-top: 16px;
+    }
+    .role-title { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      margin-right: 8px;
+      margin-bottom: 8px;
+      background: rgba(96,165,250,0.12);
+      color: var(--accent2);
+      border: 1px solid rgba(96,165,250,0.25);
+    }
+    .ok { color: var(--ok); }
+    .warn { color: var(--warn); }
+    ul { margin: 10px 0 0 18px; color: var(--muted); }
+    li { margin: 6px 0; }
+    code {
+      background: rgba(255,255,255,0.05);
+      padding: 2px 6px;
+      border-radius: 6px;
+    }
+    .footer { margin-top: 20px; color: var(--muted); font-size: 13px; }
+    a { color: var(--accent); }
+    .status-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 14px;
+      margin-top: 16px;
+    }
+    .mono { font-family: Consolas, monospace; font-size: 13px; }
+    .list { margin-top: 10px; color: var(--muted); line-height: 1.7; }
+    .route-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 14px;
+      font-size: 14px;
+    }
+    .route-table th, .route-table td {
+      border-bottom: 1px solid var(--line);
+      padding: 10px 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+    .route-table th { color: var(--muted); font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Cmux Hub</h1>
+    <p class="lead">OpenClaw / Antigravity / Codex / Ollama / R の役割分担を、現行 Docker システム上で非侵襲に運用するためのハブです。</p>
+
+    <div class="grid">
+      <div class="card">
+        <div class="k">Mode</div>
+        <div class="v">Local-first</div>
+        <div class="sub">API は最後に使い、ローカルで完結できる処理を優先します。</div>
+      </div>
+      <div class="card">
+        <div class="k">Orchestrator</div>
+        <div class="v">Antigravity</div>
+        <div class="sub">分類、ループ制御、fallback の判断を担当します。</div>
+      </div>
+      <div class="card">
+        <div class="k">Main Local LLM</div>
+        <div class="v">qwen3:8b</div>
+        <div class="sub">現行の OpenClaw / Telegram 系の主系ローカル応答モデルです。</div>
+      </div>
+      <div class="card">
+        <div class="k">Code / DOE</div>
+        <div class="v">Codex + R</div>
+        <div class="sub">実装は Codex、統計と DOE は R ツールチェーンへ寄せます。</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="role-title">Role Map</div>
+      <div class="role-grid">
+        <div class="card">
+          <div class="role-title">Coder</div>
+          <span class="badge">Primary: gpt-5.4</span>
+          <span class="badge">Fallback: qwen2.5-coder:14b</span>
+          <ul>
+            <li>Rails / Python / JS 実装</li>
+            <li>差分生成と安全な修正</li>
+            <li>Docker-safe 変更</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="role-title">Reviewer</div>
+          <span class="badge">Primary: Claude-class</span>
+          <span class="badge">Fallback: qwen3:14b</span>
+          <ul>
+            <li>設計レビュー</li>
+            <li>品質観点チェック</li>
+            <li>文書整形</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="role-title">Tester</div>
+          <span class="badge">pytest</span>
+          <span class="badge">rspec</span>
+          <span class="badge">playwright</span>
+          <ul>
+            <li>実テスト優先</li>
+            <li>ログ検証</li>
+            <li>UI 確認</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="role-title">Security</div>
+          <span class="badge">brakeman</span>
+          <span class="badge">semgrep</span>
+          <span class="badge">bandit</span>
+          <ul>
+            <li>脆弱性の早期検出</li>
+            <li>ローカル検査優先</li>
+            <li>レビュー前に一度通す</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="role-title">DOE / Statistics</div>
+          <span class="badge">AlgDesign</span>
+          <span class="badge">rsm</span>
+          <span class="badge">ggplot2</span>
+          <ul>
+            <li>DOE / D-optimal</li>
+            <li>回帰 / ANOVA</li>
+            <li>CSV / PNG 出力</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="role-title">Local LLM</div>
+          <span class="badge">light: sam860/lfm2.5:1.2b</span>
+          <span class="badge">main: qwen3:8b</span>
+          <span class="badge">vision: minicpm-v</span>
+          <ul>
+            <li>前処理と省コスト応答</li>
+            <li>完全ローカル fallback</li>
+            <li>視覚タスクは別系統</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="role-title">Execution Rules</div>
+      <ul>
+        <li><span class="ok">1.</span> まずローカルLLMまたは決定的処理で前処理</li>
+        <li><span class="ok">2.</span> Antigravity が実装 / テスト / セキュリティ / DOE に振り分け</li>
+        <li><span class="ok">3.</span> テスト結果を AI 意見より優先</li>
+        <li><span class="warn">4.</span> cloud API はローカルで足りない場合だけ使う</li>
+        <li><span class="warn">5.</span> 10 ループ超の自律実行は打ち切って要約する</li>
+      </ul>
+    </div>
+
+    <div class="panel">
+      <div class="role-title">Fixed Task Routes</div>
+      <div class="sub">Cmux が優先する役割と primary / fallback を固定表示します。</div>
+      <table class="route-table">
+        <thead>
+          <tr>
+            <th>Task</th>
+            <th>Role</th>
+            <th>Primary</th>
+            <th>Fallback</th>
+          </tr>
+        </thead>
+        <tbody id="routeTableBody">
+          <tr><td colspan="4" class="mono">loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="panel">
+      <div class="role-title">Live Status</div>
+      <div class="sub">`cmux_status.json` を 15 分ごとに更新し、ページ側で 30 秒ごとに再読込します。</div>
+      <div class="status-grid">
+        <div class="card">
+          <div class="k">OpenClaw Primary</div>
+          <div class="v" id="primaryModel">--</div>
+          <div class="sub mono" id="primaryModelSub">--</div>
+        </div>
+        <div class="card">
+          <div class="k">Telegram Reply Model</div>
+          <div class="v" id="telegramModel">--</div>
+          <div class="sub mono" id="telegramModelSub">--</div>
+        </div>
+        <div class="card">
+          <div class="k">Fallback Status</div>
+          <div class="v" id="fallbackStatus">--</div>
+          <div class="sub mono" id="fallbackSub">--</div>
+        </div>
+        <div class="card">
+          <div class="k">Ollama Installed</div>
+          <div class="v" id="ollamaCount">--</div>
+          <div class="sub mono" id="ollamaSub">--</div>
+        </div>
+      </div>
+      <div class="list mono" id="ollamaModels">--</div>
+      <div class="list mono" id="recentModels">--</div>
+      <div class="list mono" id="latestError">--</div>
+    </div>
+
+    <div class="footer">
+      OpenClaw 側の参照先: <code>/home/node/.openclaw/workspace/protocols/cmux_orchestration.md</code><br>
+      Portal 起点: <a href="../../portal.html">Master Portal</a>
+    </div>
+  </div>
+  <script>
+    async function loadStatus() {
+      try {
+        const resp = await fetch('./cmux_status.json?ts=' + Date.now(), { cache: 'no-store' });
+        if (!resp.ok) throw new Error('status json not ready');
+        const data = await resp.json();
+        const primary = data.openclaw?.primary || '--';
+        const primaryInstalled = data.openclaw?.primary_installed ? 'installed' : 'missing';
+        document.getElementById('primaryModel').textContent = primary;
+        document.getElementById('primaryModelSub').textContent = `primary ${primaryInstalled} | updated ${data.generatedAt || '--'}`;
+
+        const tg = data.telegram?.reply_model || '--';
+        const tgInstalled = data.telegram?.reply_model_installed ? 'installed' : 'missing';
+        document.getElementById('telegramModel').textContent = tg;
+        document.getElementById('telegramModelSub').textContent = `state ${data.telegram?.state || '--'} | ${tgInstalled}`;
+
+        document.getElementById('fallbackStatus').textContent = data.statusSummary?.fallback_mode || '--';
+        document.getElementById('fallbackSub').textContent =
+          `ollama ${data.statusSummary?.ollama_health || '--'} | recent fallback ${data.recentActivity?.fallback_provider_calls ?? '--'}`;
+
+        document.getElementById('ollamaCount').textContent = String(data.ollama?.count ?? '--');
+        document.getElementById('ollamaSub').textContent =
+          `registered ${((data.openclaw?.registered_local_models) || []).length} | telegram pid ${data.telegram?.pid || '--'}`;
+
+        const ollamaModels = (data.ollama?.models || []).join(', ');
+        document.getElementById('ollamaModels').textContent = `Installed Ollama models: ${ollamaModels || '--'}`;
+
+        const recentModels = (data.recentActivity?.models_seen || []).join(', ');
+        const recentProviders = (data.recentActivity?.providers_seen || []).join(', ');
+        document.getElementById('recentModels').textContent =
+          `Recent models: ${recentModels || '--'} | providers: ${recentProviders || '--'} | ollama errors: ${data.recentActivity?.ollama_errors ?? '--'}`;
+
+        const err = data.recentActivity?.latest_error;
+        document.getElementById('latestError').textContent = err
+          ? `Latest error: ${err.provider || '--'} / ${err.model || '--'} / ${err.error || '--'} / ${err.session || '--'}`
+          : 'Latest error: none observed in recent sessions';
+
+        const routes = data.runtime?.task_routes || {};
+        const tbody = document.getElementById('routeTableBody');
+        const entries = Object.entries(routes);
+        if (!entries.length) {
+          tbody.innerHTML = '<tr><td colspan="4" class="mono">no route data</td></tr>';
+        } else {
+          tbody.innerHTML = entries.map(([name, route]) => `
+            <tr>
+              <td><code>${name}</code></td>
+              <td>${route.role || '--'}</td>
+              <td class="mono">${route.primary || '--'}</td>
+              <td class="mono">${(route.fallback || []).join(' -> ') || '--'}</td>
+            </tr>
+          `).join('');
+        }
+      } catch (e) {
+        document.getElementById('primaryModel').textContent = 'status unavailable';
+        document.getElementById('primaryModelSub').textContent = String(e);
+      }
+    }
+
+    loadStatus();
+    setInterval(loadStatus, 30000);
+  </script>
+</body>
+</html>

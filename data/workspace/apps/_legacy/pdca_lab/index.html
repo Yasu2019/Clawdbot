@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PDCA Lab</title>
+  <style>
+    :root {
+      --bg: #0b1620;
+      --panel: rgba(18, 32, 44, 0.92);
+      --line: rgba(128, 171, 196, 0.2);
+      --text: #edf6fb;
+      --muted: #9db3c1;
+      --ok: #46d588;
+      --warn: #f1c45d;
+      --bad: #ff8b79;
+      --accent: #5dcfe8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "Yu Gothic UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(93, 207, 232, 0.16), transparent 24%),
+        linear-gradient(180deg, #09131b, #10212c);
+    }
+    .shell { max-width: 1220px; margin: 0 auto; padding: 28px 20px 42px; }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      padding: 22px;
+      margin-bottom: 18px;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.28);
+      backdrop-filter: blur(10px);
+    }
+    .links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+    .chip {
+      color: var(--text);
+      text-decoration: none;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 9px 14px;
+      background: rgba(255,255,255,0.04);
+      font-size: 13px;
+    }
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; margin-bottom: 18px; }
+    .label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; }
+    .value { font-size: 28px; font-weight: 700; margin-top: 8px; }
+    .sub { color: var(--muted); margin-top: 8px; font-size: 13px; line-height: 1.6; }
+    .ok { color: var(--ok); } .warn { color: var(--warn); } .bad { color: var(--bad); }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 960px) { .grid, .form-grid { grid-template-columns: 1fr; } }
+    .field { margin-bottom: 12px; }
+    .field label { display: block; margin-bottom: 6px; color: var(--muted); font-size: 13px; }
+    input, textarea, select, button { width: 100%; font: inherit; }
+    input, textarea, select {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px 14px;
+      background: rgba(255,255,255,0.04);
+      color: var(--text);
+    }
+    textarea { min-height: 110px; resize: vertical; }
+    button {
+      border: 0;
+      border-radius: 14px;
+      padding: 12px 14px;
+      background: linear-gradient(135deg, #2aaab0, #3d83d7);
+      color: white;
+      cursor: pointer;
+      font-weight: 700;
+    }
+    button.secondary {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--line);
+      color: var(--text);
+    }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid rgba(255,255,255,0.06); vertical-align: top; }
+    th { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; }
+    pre {
+      margin: 0;
+      white-space: pre-wrap;
+      word-break: break-word;
+      background: rgba(0,0,0,0.24);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 14px;
+      padding: 14px;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="panel">
+      <h1>PDCA Lab</h1>
+      <p class="sub">Prompt registry, review queue, promotion audit, and Phase 1 feedback-loop status. Business logic stays in external harness scripts.</p>
+      <div class="links">
+        <a class="chip" href="/portal.html">Portal</a>
+        <a class="chip" href="../observability_hub/index.html">Observability Hub</a>
+        <a class="chip" href="http://localhost:3001" target="_blank" rel="noreferrer">Langfuse</a>
+        <a class="chip" href="http://localhost:5679" target="_blank" rel="noreferrer">n8n</a>
+        <a class="chip" href="../../pdca_lab/inventory_memo.md" target="_blank" rel="noreferrer">Inventory Memo</a>
+        <a class="chip" href="../../pdca_lab/decision_table.md" target="_blank" rel="noreferrer">Decision Table</a>
+        <a class="chip" href="../../pdca_lab/n8n_workflows_phase1.md" target="_blank" rel="noreferrer">n8n Workflows</a>
+        <a class="chip" href="../codex_protocol_hub/index.html">Codex Protocol Hub</a>
+      </div>
+    </section>
+
+    <section class="stats">
+      <article class="panel">
+        <div class="label">Latest Run</div>
+        <div class="value" id="latestRun">--</div>
+        <div class="sub" id="latestRunSub">waiting...</div>
+      </article>
+      <article class="panel">
+        <div class="label">Pending Review</div>
+        <div class="value" id="pendingReview">--</div>
+        <div class="sub" id="pendingReviewSub">waiting...</div>
+      </article>
+      <article class="panel">
+        <div class="label">Production Prompt</div>
+        <div class="value" id="prodPrompt">--</div>
+        <div class="sub" id="prodPromptSub">waiting...</div>
+      </article>
+      <article class="panel">
+        <div class="label">Shadow Prompt</div>
+        <div class="value" id="shadowPrompt">--</div>
+        <div class="sub" id="shadowPromptSub">waiting...</div>
+      </article>
+      <article class="panel">
+        <div class="label">Latest Severe Issue</div>
+        <div class="value" id="severeIssue">--</div>
+        <div class="sub" id="severeIssueSub">waiting...</div>
+      </article>
+    </section>
+
+    <section class="grid">
+      <article class="panel">
+        <h2>Review Capture Builder</h2>
+        <div class="form-grid">
+          <div>
+            <div class="field">
+              <label for="taskType">Task Type</label>
+              <select id="taskType">
+                <option value="customer_reply_draft">customer_reply_draft</option>
+                <option value="supplier_followup_draft">supplier_followup_draft</option>
+                <option value="internal_quality_summary">internal_quality_summary</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="promptFamily">Prompt Family</label>
+              <select id="promptFamily">
+                <option value="customer_reply">customer_reply</option>
+                <option value="supplier_followup">supplier_followup</option>
+                <option value="internal_quality_summary">internal_quality_summary</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="promptVersion">Prompt Version</label>
+              <input id="promptVersion" value="customer_reply.v2026_03_29_01" />
+            </div>
+            <div class="field">
+              <label for="reviewerOutcome">Reviewer Outcome</label>
+              <select id="reviewerOutcome">
+                <option value="accepted">accepted</option>
+                <option value="approved">approved</option>
+                <option value="">pending_review</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <div class="field">
+              <label for="subject">Subject / Title</label>
+              <input id="subject" value="Customer complaint on plating discoloration" />
+            </div>
+            <div class="field">
+              <label for="summary">Summary</label>
+              <textarea id="summary">Customer requested root cause and timing for containment evidence.</textarea>
+            </div>
+          </div>
+        </div>
+        <div class="field">
+          <label for="outputSnapshot">Model Output</label>
+          <textarea id="outputSnapshot">Thank you for the report. Confirmed facts are listed below. Our containment is active and we request two additional lot references from the customer.</textarea>
+        </div>
+        <div class="field">
+          <label for="humanCorrection">Human Corrected Output</label>
+          <textarea id="humanCorrection">Thank you for the report. Confirmed facts are listed below. Containment is active. Please share two additional lot references.</textarea>
+        </div>
+        <div class="field">
+          <label for="feedbackText">Feedback</label>
+          <textarea id="feedbackText">Request was clear and separated from facts.</textarea>
+        </div>
+        <div class="form-grid">
+          <button onclick="downloadCaptureJson()">Download Capture JSON</button>
+          <button class="secondary" onclick="copyCaptureCommand()">Copy Capture Command</button>
+        </div>
+        <div class="sub" id="captureHint">Build a JSON payload, save it under `data/workspace/pdca_lab/examples/`, then run the external harness command.</div>
+      </article>
+      <article class="panel">
+        <h2>Review Queue</h2>
+        <table>
+          <thead><tr><th>Run</th><th>Task</th><th>Prompt</th><th>Created</th></tr></thead>
+          <tbody id="reviewQueue"><tr><td colspan="4" class="sub">loading...</td></tr></tbody>
+        </table>
+      </article>
+      <article class="panel">
+        <h2>Prompt Families</h2>
+        <table>
+          <thead><tr><th>Family</th><th>Production</th><th>Shadow</th><th>Approval</th></tr></thead>
+          <tbody id="promptFamilies"><tr><td colspan="4" class="sub">loading...</td></tr></tbody>
+        </table>
+      </article>
+    </section>
+
+    <section class="grid">
+      <article class="panel">
+        <h2>Recent Runs</h2>
+        <table>
+          <thead><tr><th>Run</th><th>Task</th><th>Status</th><th>Created</th></tr></thead>
+          <tbody id="recentRuns"><tr><td colspan="4" class="sub">loading...</td></tr></tbody>
+        </table>
+      </article>
+      <article class="panel">
+        <h2>Promotion Audit</h2>
+        <pre id="promotionAudit">waiting...</pre>
+      </article>
+    </section>
+  </main>
+
+  <script>
+    async function loadJson(path) {
+      const res = await fetch(path, { cache: "no-store" });
+      if (!res.ok) throw new Error(`${path} -> HTTP ${res.status}`);
+      return res.json();
+    }
+    async function loadText(path) {
+      const res = await fetch(path, { cache: "no-store" });
+      if (!res.ok) throw new Error(`${path} -> HTTP ${res.status}`);
+      return res.text();
+    }
+    function fillRows(targetId, rows, emptyCols) {
+      const target = document.getElementById(targetId);
+      target.innerHTML = rows.length ? rows.join("") : `<tr><td colspan="${emptyCols}" class="sub">empty</td></tr>`;
+    }
+    function buildCapturePayload() {
+      return {
+        task_type: document.getElementById("taskType").value,
+        prompt_family: document.getElementById("promptFamily").value,
+        input_snapshot: {
+          subject: document.getElementById("subject").value,
+          summary: document.getElementById("summary").value
+        },
+        output_snapshot: document.getElementById("outputSnapshot").value,
+        human_corrected_output: document.getElementById("humanCorrection").value,
+        model_route: "litellm-default",
+        prompt_version: document.getElementById("promptVersion").value,
+        retrieval_profile: "email_quality",
+        source_refs: [],
+        reviewer_outcome: document.getElementById("reviewerOutcome").value,
+        factual_issues: [],
+        domain_rule_violations: [],
+        feedback: [
+          {
+            feedback_type: "human_review",
+            label: "manual_feedback",
+            feedback_text: document.getElementById("feedbackText").value,
+            severity: "medium"
+          }
+        ]
+      };
+    }
+    function downloadCaptureJson() {
+      const payload = buildCapturePayload();
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "pdca_capture_payload.json";
+      a.click();
+      URL.revokeObjectURL(url);
+      document.getElementById("captureHint").textContent = "JSON downloaded. Save it under data/workspace/pdca_lab/examples/ or another reachable path.";
+    }
+    async function copyCaptureCommand() {
+      const cmd = "python data/workspace/pdca_feedback_phase1.py capture --input-json data/workspace/pdca_lab/examples/pdca_capture_payload.json";
+      try {
+        await navigator.clipboard.writeText(cmd);
+        document.getElementById("captureHint").textContent = "Capture command copied to clipboard.";
+      } catch (error) {
+        document.getElementById("captureHint").textContent = cmd;
+      }
+    }
+    async function main() {
+      try {
+        const [status, registry, promotionAuditText] = await Promise.all([
+          loadJson("../../pdca_lab/state/status.json"),
+          loadJson("../../pdca_lab/state/prompt_registry.json"),
+          loadText("../../pdca_lab/state/promotion_audit.jsonl")
+        ]);
+
+        document.getElementById("latestRun").textContent = status.latest_run_status || "--";
+        document.getElementById("latestRun").className = `value ${status.latest_run_status === "setup_pending" ? "warn" : "ok"}`;
+        document.getElementById("latestRunSub").textContent = `updated ${status.updatedAt || "--"}`;
+        document.getElementById("pendingReview").textContent = String(status.pending_review_count ?? "--");
+        document.getElementById("pendingReview").className = `value ${(status.pending_review_count || 0) > 0 ? "warn" : "ok"}`;
+        document.getElementById("pendingReviewSub").textContent = `${status.counts?.task_runs || 0} total runs`;
+        document.getElementById("prodPrompt").textContent = status.current_production_prompt_version || "--";
+        document.getElementById("prodPromptSub").textContent = "customer_reply production";
+        document.getElementById("shadowPrompt").textContent = status.current_shadow_prompt_version || "--";
+        document.getElementById("shadowPromptSub").textContent = "customer_reply shadow";
+
+        const severe = status.latest_severe_issue;
+        document.getElementById("severeIssue").textContent = severe ? severe.label : "None";
+        document.getElementById("severeIssue").className = `value ${severe ? "bad" : "ok"}`;
+        document.getElementById("severeIssueSub").textContent = severe ? severe.feedback_text : "no severe issue recorded";
+
+        fillRows("reviewQueue", (status.review_queue || []).map((item) => `
+          <tr><td><code>${item.task_run_id}</code></td><td>${item.task_type}</td><td>${item.prompt_version}</td><td>${item.created_at}</td></tr>
+        `), 4);
+        fillRows("recentRuns", (status.recent_runs || []).map((item) => `
+          <tr><td><code>${item.task_run_id}</code></td><td>${item.task_type}</td><td>${item.status}</td><td>${item.created_at}</td></tr>
+        `), 4);
+        fillRows("promptFamilies", Object.entries(registry.families || {}).map(([family, info]) => `
+          <tr><td><code>${family}</code></td><td>${info.production || "--"}</td><td>${info.shadow || "--"}</td><td>${info.approval_required ? "required" : "not required"}</td></tr>
+        `), 4);
+        document.getElementById("promotionAudit").textContent = promotionAuditText.trim() || "no promotion / rollback audit yet";
+      } catch (error) {
+        document.getElementById("promotionAudit").textContent = String(error);
+      }
+    }
+    main();
+  </script>
+</body>
+</html>

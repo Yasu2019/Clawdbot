@@ -1,0 +1,53 @@
+﻿\
+VS Code 連携 + GitHub 認証
+
+目的
+- VS Code 上の選択範囲を Copilot CLI の文脈に入れる
+- 提案差分を VS Code の diff で確認する
+- 必要に応じて GitHub issue / PR / Code Search 側も使う
+
+A. GitHub 認証
+対話ログイン:
+copilot login
+
+または、CLI 内から:
+copilot
+/login
+
+認証が必要な理由
+- GitHub 認証がないと、GitHub 側機能の一部が使えません
+- 例: /delegate, GitHub MCP server, GitHub Code Search
+
+B. VS Code 連携の基本
+1) 対象 repo を VS Code で trusted mode で開く
+2) 同じ repo ディレクトリで copilot を起動
+3) 自動接続されれば、起動時に「Visual Studio Code connected」系の表示が出ます
+4) 手動で切り替える場合は CLI 内で /ide を使います
+
+/ide でできること
+- 接続状態の確認
+- 別の VS Code workspace への接続
+- VS Code から切断
+- 自動接続の ON/OFF
+- diff 表示の ON/OFF
+
+C. VS Code 連携の実運用例
+1) VS Code でコードを選択
+2) Copilot CLI で:
+   Debug this
+   Explain this file
+3) ファイル変更提案が出たら、VS Code 側 diff で accept / reject
+
+D. VS Code 側でも Ollama モデルを使いたい場合
+Ollama 公式の最短手順:
+ollama launch vscode
+
+補足
+- VS Code のモデル選択を使うには GitHub ログインが必要です
+- ただし paid Copilot 必須ではなく、Copilot Free でもカスタムモデル選択は可能とされています
+
+E. 迷った場合の推奨
+- まずは copilot login
+- 次に対象 repo を VS Code で開く
+- 同じディレクトリで copilot
+- 選択コードを使って小さな依頼から始める

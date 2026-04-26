@@ -1,0 +1,58 @@
+{
+  "memory_id": "exp_2026_000001",
+  "timestamp_utc": "2026-04-11T12:00:00Z",
+  "session_id": "sess_example_001",
+  "task_type": "environment_troubleshooting",
+  "task_summary": "Diagnose local agent startup failure after configuration change.",
+  "user_goal": "Restore normal startup with minimal downtime.",
+  "context_tags": [
+    "openclaw",
+    "docker",
+    "litellm",
+    "ollama",
+    "local_agent"
+  ],
+  "tools_used": [
+    "shell",
+    "docker",
+    "logs",
+    "qdrant",
+    "langfuse"
+  ],
+  "models_used": [
+    "gemini",
+    "qwen",
+    "local_reflection_model"
+  ],
+  "result_status": "partial_success",
+  "success_score": 0.72,
+  "cost_estimate": 0.18,
+  "latency_ms": 19400,
+  "root_causes": [
+    "port conflict",
+    "stale environment variable"
+  ],
+  "effective_actions": [
+    "inspect container logs first",
+    "verify port mapping before restarting services"
+  ],
+  "ineffective_actions": [
+    "restarting all services without checking logs"
+  ],
+  "recommended_next_time": [
+    "run focused container health check",
+    "validate env file diff",
+    "check model endpoint reachability before agent restart"
+  ],
+  "avoid_next_time": [
+    "blind full stack restart"
+  ],
+  "evidence_refs": [
+    "langfuse_trace_id_example",
+    "container_log_path_example"
+  ],
+  "lesson_text": "For startup failures after config edits, check env diffs and container logs before restarting the full stack.",
+  "quality_score": 0.86,
+  "freshness_class": "current",
+  "approved_for_retrieval": true
+}

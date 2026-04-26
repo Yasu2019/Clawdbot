@@ -1,0 +1,15 @@
+Objective: integrate ACE-Step 1.5 automation package into the user's local stack with minimal manual intervention.
+
+Constraints:
+- Detect collisions before changing anything.
+- Respect existing apps and cards in Portal.
+- Prefer additive changes over destructive edits.
+- Bind to loopback only.
+- Keep output UTF-8.
+
+Deliverables:
+- integration decision: full / partial / hold
+- patch summary
+- changed file tree
+- runbook
+- rollback note

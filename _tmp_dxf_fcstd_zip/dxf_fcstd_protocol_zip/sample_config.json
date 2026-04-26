@@ -1,0 +1,27 @@
+{
+  "units": "mm",
+  "views": {
+    "front": [0, 0, 120, 80],
+    "right": [130, 0, 190, 80],
+    "top": [0, 90, 120, 140]
+  },
+  "base_strategy": "right_view_profile",
+  "front_reference_face": "XZ",
+  "depth_axis": "Y",
+  "filters": {
+    "exclude_layers": ["FRAME", "TITLE", "DIM_UNUSED"],
+    "min_segment_length": 0.02,
+    "join_tolerance": 0.05
+  },
+  "inference": {
+    "allow_auto_cbore_only_with_annotation": true,
+    "unknown_depth_policy": "hold",
+    "through_hole_default": false
+  },
+  "outputs": {
+    "save_step": true,
+    "save_stl": true,
+    "save_preview_png": true,
+    "save_feature_map": true
+  }
+}

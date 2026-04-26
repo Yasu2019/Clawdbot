@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <title>Image2 QA Auto</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;margin:24px;background:#f7f7f8;color:#222}
+    .card{max-width:980px;margin:auto;background:white;border-radius:18px;padding:24px;box-shadow:0 8px 30px #0001}
+    label{display:block;margin-top:14px;font-weight:700}
+    input,textarea,select{width:100%;box-sizing:border-box;padding:10px;border:1px solid #ccc;border-radius:10px;font-size:15px}
+    textarea{min-height:110px} button{margin-top:18px;padding:12px 18px;border:0;border-radius:12px;background:#222;color:white;font-weight:700;cursor:pointer}
+    pre{white-space:pre-wrap;background:#111;color:#eee;padding:14px;border-radius:12px;overflow:auto}
+    .warn{background:#fff5d6;border:1px solid #f0d27a;padding:12px;border-radius:12px;margin:12px 0}
+  </style>
+</head>
+<body>
+<div class="card">
+  <h1>Image2 × OpenClaw QA資料自動生成</h1>
+  <div class="warn">用途: 教育・監査説明・顧客説明のドラフト。寸法保証・合否判定には使用しないでください。</div>
+  <label>目的</label><input id="purpose" value="IATF内部監査教育用の図解" />
+  <label>対象工程/製品</label><input id="process" value="プレス加工 外観検査工程" />
+  <label>伝えたい結論</label><textarea id="message">検査記録と現物確認をセットで行い、見逃しリスクを下げる。</textarea>
+  <label>RAG要約・根拠メモ</label><textarea id="rag">IATF 16949では、工程管理、検査記録、是正処置、有効性確認を一貫して確認する。</textarea>
+  <label>モード</label><select id="dry"><option value="true">dry_run: プロンプト確認のみ</option><option value="false">画像生成まで実行</option></select>
+  <button onclick="run()">生成</button>
+  <h2>結果</h2><pre id="out">未実行</pre>
+</div>
+<script>
+async function run(){
+  const payload={purpose:purpose.value,process_or_product:process.value,main_message:message.value,rag_summary:rag.value,aspect_ratio:'16:9',dry_run:dry.value==='true'};
+  out.textContent='実行中...';
+  const r=await fetch('/api/image2-qa/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+  const j=await r.json();
+  out.textContent=JSON.stringify(j,null,2);
+}
+</script>
+</body>
+</html>

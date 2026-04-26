@@ -1,0 +1,33 @@
+# docker-compose.yml 追記例
+# 既存構成への最小追加
+
+services:
+  learning_engine:
+    build:
+      context: ./clawstack_v2/docker/learning_engine
+      dockerfile: Dockerfile
+    ports:
+      - "127.0.0.1:8110:8000"
+    environment:
+      - TZ=${TZ}
+      - QDRANT_URL=http://qdrant:6333
+      - LLM_BASE_URL=http://litellm:4000/v1
+      - LLM_API_KEY=${LITELLM_MASTER_KEY:-local-dev-key}
+      - EMBEDDING_BASE_URL=http://infinity:7997
+      - LANGFUSE_HOST=http://langfuse:3000
+      - LANGFUSE_PUBLIC_KEY=${LANGFUSE_PUBLIC_KEY}
+      - LANGFUSE_SECRET_KEY=${LANGFUSE_SECRET_KEY}
+      - DEFAULT_CHAT_MODEL=google/gemini-2.5-flash
+      - DEFAULT_LOCAL_MODEL=ollama_chat/qwen2.5-coder:7b
+      - MEMORY_TOP_K=8
+      - INCLUDE_CROSS_ORG_DEFAULT=false
+    volumes:
+      - ./clawstack_v2/data/work:/work
+      - ./data/workspace:/workspace
+      - ./clawstack_v2/data/learning_engine:/app/data
+    depends_on:
+      - qdrant
+      - litellm
+      - langfuse
+      - infinity
+    restart: unless-stopped

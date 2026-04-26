@@ -1,13 +1,14 @@
 # frozen_string_literal: true
 
-# データベースのクリーンアップ
+require 'csv'
+require 'active_storage'
+
+Rails.logger = Logger.new(STDOUT)
+
 puts "Cleaning up database..."
 
-# ActiveStorageのアタッチメントを削除
 ActiveStorage::Attachment.destroy_all
 ActiveStorage::Blob.destroy_all
-
-# 各モデルのデータを削除
 Product.destroy_all
 Phase.destroy_all
 User.destroy_all
@@ -17,54 +18,68 @@ Mitsui.destroy_all
 
 puts "Database cleaned successfully!"
 
-require 'csv'
-require 'active_storage'
-
-# ロガーの設定
-Rails.logger = Logger.new(STDOUT)
-
 # 製品データの処理
-CSV.foreach(Rails.root.join('db/record/attachedfile.csv'), headers: true) do |row|
-  product = Product.new
-  product.category = row['category']
-  product.partnumber = row['partnumber']
-  product.materialcode = row['materialcode']
-  product.phase = row['phase']
-  product.stage = row['stage']
-  product.description = row['description']
-  product.status = row['status']
-  product.documenttype = row['documenttype']
-  product.documentname = row['documentname']
-  product.documentrev = row['documentrev']
-  product.documentcategory = row['documentcategory']
-  product.documentnumber = row['documentnumber'].present? ? row['documentnumber'].strip : nil
-  product.start_time = row['start_time']
-  product.deadline_at = row['deadline_at']
-  product.end_at = row['end_at']
-  product.goal_attainment_level = row['goal_attainment_level']
-  product.tasseido = row['tasseido']
-  product.object = row['object']
+puts "Seeding product data from attachedfile.csv..."
+validator = CsvValidationService.attachedfile_validator
+success_count = 0
+fail_count = 0
 
-  # ファイル添付処理
-  if row['filename'].present?
-    file_path = Rails.root.join("db/documents/#{row['filename']}")
-    if File.file?(file_path)
-      product.documents.attach(
-        io: File.open(file_path),
-        filename: row['filename']
-      )
-    else
-      Rails.logger.debug { "Attached File not found: #{file_path}" }
-    end
-  else
-    Rails.logger.debug 'Attached Filename is empty on csv data'
+CSV.foreach(Rails.root.join('db/record/attachedfile.csv'), headers: true, encoding: 'bom|utf-8').with_index(2) do |row, line_num|
+  unless validator.validate_row(row, line_num)
+    fail_count += 1
+    next
   end
 
-  unless product.save
-    Rails.logger.error "製品の保存に失敗しました。ドキュメント番号: #{product.documentnumber}。" \
-                       "エラー: #{product.errors.full_messages.join(', ')}"
+  begin
+    product = Product.new
+    product.category = row['category']
+    product.partnumber = row['partnumber']
+    product.materialcode = row['materialcode']
+    product.phase = row['phase']
+    product.stage = row['stage']
+    product.description = row['description']
+    product.status = row['status']
+    product.documenttype = row['documenttype']
+    product.documentname = row['documentname']
+    product.documentrev = row['documentrev']
+    product.documentcategory = row['documentcategory']
+    product.documentnumber = row['documentnumber'].present? ? row['documentnumber'].strip : nil
+    product.start_time = row['start_time']
+    product.deadline_at = row['deadline_at']
+    product.end_at = row['end_at']
+    product.goal_attainment_level = row['goal_attainment_level']
+    product.tasseido = row['tasseido']
+    product.object = row['object']
+
+    # ファイル添付処理
+    if row['filename'].present?
+      file_path = Rails.root.join("db/documents/#{row['filename']}")
+      if File.file?(file_path)
+        product.documents.attach(
+          io: File.open(file_path),
+          filename: row['filename']
+        )
+      else
+        Rails.logger.debug { "Attached File not found: #{file_path}" }
+      end
+    else
+      Rails.logger.debug 'Attached Filename is empty on csv data'
+    end
+
+    if product.save
+      success_count += 1
+    else
+      fail_count += 1
+      Rails.logger.error "Line #{line_num}: Failed to save product. documentnumber: #{product.documentnumber}. Errors: #{product.errors.full_messages.join(', ')}"
+    end
+  rescue => e
+    fail_count += 1
+    Rails.logger.error "Line #{line_num}: Unexpected error during processing: #{e.message}"
   end
 end
+
+puts "Product seeding finished: #{success_count} succeeded, #{fail_count} failed."
+validator.errors.each { |err| puts "  - Validation Error: #{err}" }
 
 # Phase データの更新
 CSV.foreach('db/category.csv') do |row|
@@ -185,18 +200,15 @@ CSV.foreach('db/record/iatf_kajyou_list.csv') do |row|
 end
 
 # テスト問題データの作成
-Dir.glob('db/record/bing/kajyou*.csv') do |file|
-  CSV.foreach(file) do |row|
-    Testmondai.create(
-      kajyou: row[0],
-      mondai_no: row[1],
-      rev: row[2],
-      mondai: row[3],
-      mondai_a: row[4],
-      mondai_b: row[5],
-      mondai_c: row[6],
-      seikai: row[7],
-      kaisetsu: row[8]
-    )
+Dir.glob(Rails.root.join('db/record/**/*.csv')).sort.each do |file|
+  next unless file.downcase.include?('kajyou') || file.downcase.include?('test_mondai')
+
+  cleaned = Pathname(file).sub_ext("_cleaned#{File.extname(file)}")
+  import_path = cleaned.exist? ? cleaned : file
+
+  File.open(import_path) do |quiz_file|
+    result = TestmondaiImportService.call(quiz_file)
+    Rails.logger.info "Imported quiz CSV #{Pathname(import_path).basename}: #{result.summary}"
+    result.errors.first(10).each { |message| Rails.logger.warn(message) }
   end
 end

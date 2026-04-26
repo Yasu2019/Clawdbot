@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hybrid Eval Compare</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: rgba(30, 41, 59, 0.72);
+      --panel-2: rgba(15, 23, 42, 0.72);
+      --border: rgba(255, 255, 255, 0.08);
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --ok: #10b981;
+      --ng: #f59e0b;
+      --bad: #ef4444;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      background-image: radial-gradient(circle at 20% 30%, rgba(56, 189, 248, 0.10), transparent 25%),
+        radial-gradient(circle at 80% 25%, rgba(129, 140, 248, 0.10), transparent 25%);
+    }
+
+    .wrap {
+      width: min(1680px, calc(100% - 48px));
+      margin: 28px auto 40px;
+    }
+
+    header {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      font-size: 1.35rem;
+      margin: 0;
+      letter-spacing: -0.2px;
+    }
+
+    .sub {
+      color: var(--muted);
+      margin-top: 6px;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      max-width: 980px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    button,
+    a.btn {
+      border: 1px solid var(--border);
+      background: var(--panel-2);
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 12px;
+      cursor: pointer;
+      text-decoration: none;
+      font-size: 0.95rem;
+    }
+
+    button:hover,
+    a.btn:hover {
+      border-color: rgba(56, 189, 248, 0.35);
+    }
+
+    .meta {
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      white-space: nowrap;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 14px;
+    }
+
+    @media (max-width: 1180px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 14px 14px 12px;
+      backdrop-filter: blur(8px);
+    }
+
+    .card h2 {
+      font-size: 1rem;
+      margin: 0 0 10px;
+      color: rgba(248, 250, 252, 0.95);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.95rem;
+    }
+
+    th,
+    td {
+      padding: 10px 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      vertical-align: top;
+    }
+
+    th {
+      color: var(--muted);
+      font-weight: 600;
+      text-align: left;
+      font-size: 0.85rem;
+      letter-spacing: 0.2px;
+    }
+
+    tr:hover td {
+      background: rgba(15, 23, 42, 0.25);
+    }
+
+    .rowbtn {
+      width: 100%;
+      text-align: left;
+      border: none;
+      background: transparent;
+      padding: 0;
+      margin: 0;
+      color: inherit;
+      cursor: pointer;
+      font: inherit;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      font-family: var(--mono);
+      font-size: 0.82rem;
+      color: var(--muted);
+      background: rgba(15, 23, 42, 0.35);
+      white-space: nowrap;
+    }
+
+    .badge.ok {
+      color: #d1fae5;
+      border-color: rgba(16, 185, 129, 0.35);
+      background: rgba(16, 185, 129, 0.12);
+    }
+
+    .badge.warn {
+      color: #fde68a;
+      border-color: rgba(245, 158, 11, 0.35);
+      background: rgba(245, 158, 11, 0.10);
+    }
+
+    .badge.bad {
+      color: #fecaca;
+      border-color: rgba(239, 68, 68, 0.35);
+      background: rgba(239, 68, 68, 0.10);
+    }
+
+    .split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    @media (max-width: 980px) {
+      .split {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    pre {
+      margin: 0;
+      padding: 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(15, 23, 42, 0.5);
+      font-family: var(--mono);
+      font-size: 0.88rem;
+      line-height: 1.45;
+      white-space: pre-wrap;
+      overflow: auto;
+      max-height: 44vh;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .err {
+      color: #fecaca;
+      font-family: var(--mono);
+      font-size: 0.88rem;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>Hybrid Eval Compare（Ollama 主系 / Foundry 比較系）</h1>
+        <div class="sub">
+          直近の比較スイート結果（Ollama vs Foundry）を一覧・差分表示します。データは公開スナップショットとして
+          <span class="badge">apps/hybrid_eval_compare/data/latest.json</span>
+          に保存されています（自動生成）。
+        </div>
+      </div>
+      <div class="actions">
+        <button id="refreshBtn">↺ Refresh</button>
+        <a class="btn" id="openCsv" href="./data/compare_results.csv" target="_blank" rel="noopener">CSV</a>
+        <a class="btn" id="openMd" href="./data/compare_outputs.md" target="_blank" rel="noopener">MD</a>
+        <div class="meta" id="metaLine">loading…</div>
+      </div>
+    </header>
+
+    <div class="grid">
+      <section class="card">
+        <h2>Cases</h2>
+        <div id="tableWrap"></div>
+        <div class="err" id="loadErr" style="display:none;"></div>
+      </section>
+
+      <section class="card">
+        <h2>Selected</h2>
+        <div class="muted" id="selectedMeta">Select a row.</div>
+        <div style="height:10px;"></div>
+        <div class="split">
+          <div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+              <div class="badge ok">Ollama</div>
+              <div class="badge" id="ollamaBadge">-</div>
+            </div>
+            <pre id="ollamaOut">(none)</pre>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+              <div class="badge warn">Foundry</div>
+              <div class="badge" id="foundryBadge">-</div>
+            </div>
+            <pre id="foundryOut">(none)</pre>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    const el = (id) => document.getElementById(id);
+
+    function escapeHtml(s) {
+      return String(s ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;");
+    }
+
+    function badge(kind, text) {
+      const cls = kind ? `badge ${kind}` : "badge";
+      return `<span class="${cls}">${escapeHtml(text)}</span>`;
+    }
+
+    function renderTable(snapshot) {
+      const rows = snapshot?.rows ?? [];
+      const head = `
+        <table>
+          <thead>
+            <tr>
+              <th style="width:64px;">Case</th>
+              <th>Prompt</th>
+              <th style="width:110px;">Elapsed</th>
+              <th style="width:120px;">Chars</th>
+              <th style="width:110px;">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+      const body = rows.map((r, idx) => {
+        const ok = (r.error ?? "") === "";
+        const status = ok ? badge("ok", "OK") : badge("bad", "ERR");
+        const chars = `${r.ollama_chars ?? 0} / ${r.foundry_chars ?? 0}`;
+        const elapsed = `${r.elapsed_sec ?? "-"}s`;
+        const prompt = r.prompt_file ?? r.prompt_template ?? "(unknown)";
+        return `
+          <tr>
+            <td><button class="rowbtn" data-idx="${idx}">${escapeHtml(r.case_no ?? (idx + 1))}</button></td>
+            <td><button class="rowbtn" data-idx="${idx}">${escapeHtml(prompt)}</button></td>
+            <td>${escapeHtml(elapsed)}</td>
+            <td>${escapeHtml(chars)}</td>
+            <td>${status}</td>
+          </tr>
+        `;
+      }).join("");
+      const tail = `
+          </tbody>
+        </table>
+      `;
+      el("tableWrap").innerHTML = head + body + tail;
+      el("tableWrap").querySelectorAll(".rowbtn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const idx = Number(btn.getAttribute("data-idx"));
+          selectRow(snapshot, idx);
+        });
+      });
+    }
+
+    function selectRow(snapshot, idx) {
+      const r = snapshot?.rows?.[idx];
+      if (!r) return;
+      el("selectedMeta").textContent = `Case ${r.case_no}: ${r.prompt_file ?? ""} / ${r.date ?? ""}`;
+      el("ollamaBadge").textContent = (r.ollama_model ?? "Ollama");
+      el("foundryBadge").textContent = (r.foundry ?? "Foundry");
+      el("ollamaOut").textContent = (r.ollama_text ?? "(empty)");
+      el("foundryOut").textContent = (r.foundry_text ?? "(empty)");
+    }
+
+    async function loadSnapshot() {
+      el("loadErr").style.display = "none";
+      const url = `./data/latest.json?ts=${Date.now()}`;
+      const res = await fetch(url, { cache: "no-store" });
+      if (!res.ok) throw new Error(`fetch failed: ${res.status}`);
+      const data = await res.json();
+      const gen = data?.generated_at ?? "(unknown)";
+      const src = data?.source_phase0_dir ?? "(unknown)";
+      el("metaLine").textContent = `generated: ${gen} / source: ${src}`;
+      renderTable(data);
+      if ((data?.rows ?? []).length > 0) selectRow(data, 0);
+      return data;
+    }
+
+    async function refresh() {
+      try {
+        await loadSnapshot();
+      } catch (e) {
+        el("loadErr").style.display = "block";
+        el("loadErr").textContent = `Load error: ${e?.message ?? e}`;
+        el("metaLine").textContent = "load failed";
+      }
+    }
+
+    el("refreshBtn").addEventListener("click", refresh);
+    refresh();
+  </script>
+</body>
+
+</html>
+

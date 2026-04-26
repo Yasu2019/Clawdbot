@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Email Blacklist Hub</title>
+  <style>
+    :root {
+      --bg: #0b1220;
+      --panel: #111a2b;
+      --line: #22314d;
+      --text: #e8eef8;
+      --muted: #9db0d0;
+      --accent: #60a5fa;
+      --accent2: #34d399;
+      --warn: #fbbf24;
+      --allow: #a78bfa;
+      --danger: #f87171;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(96,165,250,0.12), transparent 28%),
+        radial-gradient(circle at bottom right, rgba(52,211,153,0.10), transparent 22%),
+        var(--bg);
+      padding: 28px;
+    }
+    .wrap { max-width: 1280px; margin: 0 auto; }
+    h1 { margin: 0 0 8px; font-size: 34px; }
+    h2 { margin: 0 0 10px; font-size: 18px; color: var(--muted); }
+    .lead { color: var(--muted); margin: 0 0 20px; line-height: 1.6; }
+    .toolbar, .stats, .panel {
+      background: rgba(17, 26, 43, 0.9);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 18px 20px;
+      margin-bottom: 18px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+    .panel.allow-panel { border-color: rgba(167,139,250,0.35); }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 14px;
+    }
+    .stat .k { font-size: 12px; text-transform: uppercase; color: var(--muted); letter-spacing: 0.08em; }
+    .stat .v { font-size: 24px; font-weight: 700; margin-top: 6px; }
+    .stat .v.allow-color { color: var(--allow); }
+    .toolbar {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    button {
+      border: 0;
+      border-radius: 10px;
+      padding: 10px 16px;
+      font-weight: 700;
+      cursor: pointer;
+      background: var(--accent);
+      color: #04111f;
+    }
+    button.secondary {
+      background: rgba(255,255,255,0.08);
+      color: var(--text);
+      border: 1px solid var(--line);
+    }
+    button.allow-btn {
+      background: rgba(167,139,250,0.18);
+      color: var(--allow);
+      border: 1px solid rgba(167,139,250,0.4);
+      padding: 5px 10px;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 8px;
+      white-space: nowrap;
+    }
+    button.allow-btn:hover { background: rgba(167,139,250,0.30); }
+    button.remove-btn {
+      background: rgba(248,113,113,0.12);
+      color: var(--danger);
+      border: 1px solid rgba(248,113,113,0.3);
+      padding: 4px 9px;
+      font-size: 12px;
+      border-radius: 7px;
+    }
+    button.remove-btn:hover { background: rgba(248,113,113,0.22); }
+    .hint { color: var(--muted); font-size: 14px; margin-bottom: 8px; }
+    .status { font-weight: 700; }
+    .ok { color: var(--accent2); }
+    .warn { color: var(--warn); }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+    th, td {
+      text-align: left;
+      border-bottom: 1px solid var(--line);
+      padding: 10px 8px;
+      vertical-align: middle;
+    }
+    th { color: var(--muted); }
+    .mono { font-family: Consolas, monospace; }
+    .footer { color: var(--muted); font-size: 13px; margin-top: 16px; }
+    a { color: var(--accent); }
+    .allow-badge {
+      display: inline-block;
+      background: rgba(167,139,250,0.15);
+      color: var(--allow);
+      border: 1px solid rgba(167,139,250,0.35);
+      border-radius: 6px;
+      padding: 2px 8px;
+      font-size: 12px;
+      font-family: Consolas, monospace;
+    }
+    .whitelist-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .wl-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(167,139,250,0.10);
+      border: 1px solid rgba(167,139,250,0.25);
+      border-radius: 8px;
+      padding: 5px 10px;
+      font-size: 13px;
+      font-family: Consolas, monospace;
+    }
+    details summary { cursor: pointer; color: var(--allow); font-weight: 600; user-select: none; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Email Blacklist Hub</h1>
+    <p class="lead">Gmail で 10 回以上出現した候補語を一覧化します。<br>
+      <strong style="color:var(--accent)">ブラックリスト追加</strong>: 候補をチェック → 「選択語を Blacklist に追加」<br>
+      <strong style="color:var(--allow)">絶対に登録しない（ホワイトリスト）</strong>: 行の「登録しない」ボタン → 以後候補に表示されなくなります</p>
+
+    <div class="stats">
+      <div class="stat"><div class="k">Updated</div><div class="v mono" id="updatedAt">--</div></div>
+      <div class="stat"><div class="k">Gmail Rows</div><div class="v" id="gmailRows">--</div></div>
+      <div class="stat"><div class="k">Blacklist Count</div><div class="v" id="blacklistCount">--</div></div>
+      <div class="stat"><div class="k">Whitelist Count</div><div class="v allow-color" id="whitelistCount">--</div></div>
+      <div class="stat"><div class="k">Candidates</div><div class="v" id="candidateCount">--</div></div>
+    </div>
+
+    <div class="toolbar">
+      <button onclick="refreshCandidates()">候補を再読込</button>
+      <button class="secondary" onclick="selectAllVisible()">全選択</button>
+      <button class="secondary" onclick="clearSelection()">選択解除</button>
+      <button onclick="addSelected()">選択語を Blacklist に追加</button>
+      <span class="status" id="statusText">準備中...</span>
+    </div>
+
+    <div class="toolbar" style="gap:10px">
+      <span style="color:var(--muted);font-size:14px;white-space:nowrap">手動追加:</span>
+      <input id="manualInput" type="text" placeholder="ブラックリストに追加したいワード（カンマ区切り）"
+        style="flex:1;min-width:260px;padding:9px 13px;border-radius:10px;border:1px solid var(--line);
+               background:rgba(255,255,255,0.05);color:var(--text);font-size:14px;outline:none;"
+        onkeydown="if(event.key==='Enter')addManual()">
+      <button onclick="addManual()">追加</button>
+    </div>
+
+    <div class="toolbar" style="gap:10px">
+      <span style="color:var(--allow);font-size:14px;white-space:nowrap">手動ホワイトリスト:</span>
+      <input id="allowManualInput" type="text" placeholder="絶対に登録しないワード（カンマ区切り）"
+        style="flex:1;min-width:260px;padding:9px 13px;border-radius:10px;border:1px solid rgba(167,139,250,0.35);
+               background:rgba(167,139,250,0.05);color:var(--text);font-size:14px;outline:none;"
+        onkeydown="if(event.key==='Enter')addAllowManual()">
+      <button class="allow-btn" style="padding:10px 16px;font-size:14px" onclick="addAllowManual()">登録しない設定</button>
+    </div>
+
+    <div class="panel">
+      <div class="hint">候補は sender 由来のドメイン・表示名トークンです。内部ドメイン・既存 blacklist・whitelist は除外済みです。<br>
+        「登録しない」ボタンを押すとホワイトリストに追加され、以後この候補は表示されなくなります。</div>
+      <table>
+        <thead>
+          <tr>
+            <th><input type="checkbox" id="masterCheck" onchange="toggleMaster(this.checked)"></th>
+            <th>Pattern</th>
+            <th>Count</th>
+            <th>Unique Senders</th>
+            <th>Sample Sender</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="candidateTable">
+          <tr><td colspan="6" class="mono">loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ホワイトリスト管理 -->
+    <div class="panel allow-panel">
+      <h2>絶対に登録しない一覧（ホワイトリスト）</h2>
+      <div class="hint">ここに登録されたパターンは候補に表示されません。削除すると再び候補に現れる可能性があります。</div>
+      <div class="whitelist-grid" id="whitelistGrid">
+        <span style="color:var(--muted);font-size:13px">（読み込み中）</span>
+      </div>
+    </div>
+
+    <div class="footer">
+      Portal 起点: <a href="../../portal.html">Master Portal</a><br>
+      API: <code>http://127.0.0.1:8791/api/email-blacklist/*</code>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = 'http://127.0.0.1:8791/api/email-blacklist';
+    let currentCandidates = [];
+    let currentWhitelist = [];
+
+    function setStatus(text, cls = 'ok') {
+      const el = document.getElementById('statusText');
+      el.textContent = text;
+      el.className = `status ${cls}`;
+    }
+
+    function renderCandidates(items) {
+      currentCandidates = items;
+      document.getElementById('candidateCount').textContent = items.length;
+      const tbody = document.getElementById('candidateTable');
+      if (!items.length) {
+        tbody.innerHTML = '<tr><td colspan="6" class="mono">no candidates</td></tr>';
+        return;
+      }
+      tbody.innerHTML = items.map((item) => `
+        <tr>
+          <td><input type="checkbox" class="candidate-check" data-pattern="${item.pattern.replace(/"/g, '&quot;')}"></td>
+          <td class="mono">${item.pattern}</td>
+          <td>${item.count}</td>
+          <td>${item.unique_senders}</td>
+          <td>${item.sample_sender || '-'}</td>
+          <td><button class="allow-btn" onclick="allowSingle('${item.pattern.replace(/'/g, "\\'")}')">登録しない</button></td>
+        </tr>
+      `).join('');
+    }
+
+    function renderWhitelist(patterns) {
+      currentWhitelist = patterns;
+      document.getElementById('whitelistCount').textContent = patterns.length;
+      const grid = document.getElementById('whitelistGrid');
+      if (!patterns.length) {
+        grid.innerHTML = '<span style="color:var(--muted);font-size:13px">（登録なし）</span>';
+        return;
+      }
+      grid.innerHTML = patterns.map(p => `
+        <div class="wl-item">
+          <span>${p}</span>
+          <button class="remove-btn" onclick="removeFromWhitelist('${p.replace(/'/g, "\\'")}')">×</button>
+        </div>
+      `).join('');
+    }
+
+    function selectedPatterns() {
+      return Array.from(document.querySelectorAll('.candidate-check:checked')).map(el => el.dataset.pattern);
+    }
+
+    function toggleMaster(checked) {
+      document.querySelectorAll('.candidate-check').forEach(el => { el.checked = checked; });
+    }
+
+    function selectAllVisible() { toggleMaster(true); document.getElementById('masterCheck').checked = true; }
+    function clearSelection() { toggleMaster(false); document.getElementById('masterCheck').checked = false; }
+
+    async function refreshCandidates() {
+      setStatus('候補を読込中...', 'warn');
+      try {
+        const [candRes, cfgRes] = await Promise.all([
+          fetch(`${API_BASE}/candidates`, { cache: 'no-store' }),
+          fetch(`${API_BASE}/config`, { cache: 'no-store' }),
+        ]);
+        const data = await candRes.json();
+        const cfg = await cfgRes.json();
+        document.getElementById('updatedAt').textContent = data.updatedAt || '--';
+        document.getElementById('gmailRows').textContent = data.gmailRowCount ?? '--';
+        document.getElementById('blacklistCount').textContent = data.currentBlacklistCount ?? '--';
+        renderCandidates(data.candidates || []);
+        renderWhitelist(cfg.whitelist_patterns || []);
+        setStatus('候補を更新しました', 'ok');
+      } catch (err) {
+        renderCandidates([]);
+        setStatus(`読込失敗: ${err}`, 'warn');
+      }
+    }
+
+    async function addSelected() {
+      const patterns = selectedPatterns();
+      if (!patterns.length) { setStatus('追加する候補を選択してください', 'warn'); return; }
+      setStatus(`Blacklist へ追加中... (${patterns.length})`, 'warn');
+      try {
+        const res = await fetch(`${API_BASE}/add`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ patterns })
+        });
+        const data = await res.json();
+        if (!res.ok || !data.ok) throw new Error(data.error || 'request_failed');
+        setStatus(`追加完了: ${data.added.length} 件`, 'ok');
+        await refreshCandidates();
+      } catch (err) { setStatus(`追加失敗: ${err}`, 'warn'); }
+    }
+
+    async function addManual() {
+      const raw = document.getElementById('manualInput').value;
+      const patterns = raw.split(/[,、\n]/).map(s => s.trim().toLowerCase()).filter(s => s.length > 0);
+      if (!patterns.length) { setStatus('ワードを入力してください', 'warn'); return; }
+      setStatus(`追加中... (${patterns.join(', ')})`, 'warn');
+      try {
+        const res = await fetch(`${API_BASE}/add`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ patterns })
+        });
+        const data = await res.json();
+        if (!res.ok || !data.ok) throw new Error(data.error || 'request_failed');
+        document.getElementById('manualInput').value = '';
+        setStatus(`追加完了: ${data.added.join(', ')}`, 'ok');
+        await refreshCandidates();
+      } catch (err) { setStatus(`追加失敗: ${err}`, 'warn'); }
+    }
+
+    async function allowSingle(pattern) {
+      setStatus(`ホワイトリストに追加中: ${pattern}`, 'warn');
+      try {
+        const res = await fetch(`${API_BASE}/allow`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ patterns: [pattern] })
+        });
+        const data = await res.json();
+        if (!res.ok || !data.ok) throw new Error(data.error || 'request_failed');
+        setStatus(`ホワイトリスト追加: ${pattern}`, 'ok');
+        await refreshCandidates();
+      } catch (err) { setStatus(`失敗: ${err}`, 'warn'); }
+    }
+
+    async function addAllowManual() {
+      const raw = document.getElementById('allowManualInput').value;
+      const patterns = raw.split(/[,、\n]/).map(s => s.trim().toLowerCase()).filter(s => s.length > 0);
+      if (!patterns.length) { setStatus('ワードを入力してください', 'warn'); return; }
+      setStatus(`ホワイトリストに追加中...`, 'warn');
+      try {
+        const res = await fetch(`${API_BASE}/allow`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ patterns })
+        });
+        const data = await res.json();
+        if (!res.ok || !data.ok) throw new Error(data.error || 'request_failed');
+        document.getElementById('allowManualInput').value = '';
+        setStatus(`ホワイトリスト追加完了: ${data.added.join(', ')}`, 'ok');
+        await refreshCandidates();
+      } catch (err) { setStatus(`失敗: ${err}`, 'warn'); }
+    }
+
+    async function removeFromWhitelist(pattern) {
+      setStatus(`ホワイトリストから削除中: ${pattern}`, 'warn');
+      try {
+        const res = await fetch(`${API_BASE}/allow/remove`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ patterns: [pattern] })
+        });
+        const data = await res.json();
+        if (!res.ok || !data.ok) throw new Error(data.error || 'request_failed');
+        setStatus(`削除完了: ${pattern}`, 'ok');
+        await refreshCandidates();
+      } catch (err) { setStatus(`失敗: ${err}`, 'warn'); }
+    }
+
+    refreshCandidates();
+  </script>
+</body>
+</html>

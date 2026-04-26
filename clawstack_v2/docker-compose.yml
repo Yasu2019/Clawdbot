@@ -400,7 +400,7 @@ services:
     container_name: redis-stack
     ports:
       - "127.0.0.1:6380:6379" # Redis port
-      - "127.0.0.1:8001:8001" # RedisInsight UI
+      - "127.0.0.1:8006:8001" # RedisInsight UI (avoid host conflict with open_notebook_db)
     volumes:
       - ./data/redis-stack:/data
     restart: unless-stopped

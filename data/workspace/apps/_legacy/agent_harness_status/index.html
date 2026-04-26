@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Agent Harness Status</title>
+  <style>
+    :root {
+      --bg: #0b1320;
+      --panel: rgba(15, 23, 42, 0.92);
+      --line: rgba(148, 163, 184, 0.18);
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --good: #86efac;
+      --warn: #fdba74;
+      --bad: #fca5a5;
+      --accent: #7dd3fc;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "Noto Sans JP", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(125, 211, 252, 0.12), transparent 26%),
+        radial-gradient(circle at bottom right, rgba(134, 239, 172, 0.1), transparent 24%),
+        var(--bg);
+    }
+    .shell {
+      width: min(1200px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 42px;
+    }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 18px 48px rgba(0,0,0,0.22);
+      backdrop-filter: blur(10px);
+    }
+    .hero h1 { margin: 0 0 10px; font-size: clamp(1.9rem, 2.3vw, 2.8rem); }
+    .hero p, .sub {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.75;
+    }
+    .meta-row, .links, .summary-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .chip, .pill, .link-btn {
+      display: inline-flex;
+      align-items: center;
+      min-height: 34px;
+      padding: 0 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      text-decoration: none;
+      color: var(--text);
+      background: rgba(255,255,255,0.05);
+      font-size: 0.86rem;
+      font-weight: 700;
+    }
+    .pill.done { color: var(--good); border-color: rgba(134,239,172,0.28); background: rgba(134,239,172,0.12); }
+    .pill.partial { color: var(--warn); border-color: rgba(253,186,116,0.28); background: rgba(253,186,116,0.12); }
+    .pill.pending { color: var(--bad); border-color: rgba(252,165,165,0.28); background: rgba(252,165,165,0.12); }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+    }
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 18px;
+      background: rgba(2, 6, 23, 0.28);
+    }
+    .card h3 { margin-top: 0; }
+    .item-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .item {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px;
+      background: rgba(255,255,255,0.03);
+    }
+    .item-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+    .item-title {
+      font-weight: 700;
+      color: var(--text);
+    }
+    .item-note {
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 0.94rem;
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="panel hero">
+      <h1>Agent Harness Status</h1>
+      <p>
+        共通ハーネスの導入状況を確認するページです。
+        retry 上限、承認制御、must-cite、freshness、OCR quality など、高リスク作業で効く安全策をここで追えます。
+      </p>
+      <div class="summary-row">
+        <span class="pill partial" id="summary-stage">読み込み中</span>
+        <span class="chip" id="summary-counts">-</span>
+        <span class="chip" id="summary-updated">Updated: -</span>
+      </div>
+      <div class="links">
+        <a class="link-btn" href="file:///D:/Clawdbot_Docker_20260125/data/state/workspace/protocols/agent_harness_partial_adoption_20260404.md" target="_blank" rel="noopener">Harness 方針</a>
+        <a class="link-btn" href="../../agent_harness_policy.json" target="_blank" rel="noopener">機械可読ポリシー</a>
+        <a class="link-btn" href="../operations_toolbox/index.html" target="_blank" rel="noopener">Operations Toolbox</a>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>導入サマリー</h2>
+      <div class="grid">
+        <article class="card">
+          <h3>Guard</h3>
+          <p class="sub">破壊的操作の承認制御と、危険度の高い変更を止めるガードを扱います。</p>
+        </article>
+        <article class="card">
+          <h3>Retry</h3>
+          <p class="sub">無限リトライを避けるため、共通の retry 上限と stop-on-errors を明示します。</p>
+        </article>
+        <article class="card">
+          <h3>Context</h3>
+          <p class="sub">高リスク用途では must-cite、freshness、OCR quality を重視する方針です。</p>
+        </article>
+        <article class="card">
+          <h3>Rollout</h3>
+          <p class="sub">全面導入ではなく、Gmail、Paperless、RAG、cleanup などから段階導入しています。</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>チェック項目</h2>
+      <div id="item-list" class="item-list">
+        <div class="item">
+          <div class="item-head">
+            <div class="item-title">読み込み中</div>
+            <span class="pill partial">Loading</span>
+          </div>
+          <div class="item-note">チェックリストを読み込み中です。</div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <script>
+    function labelForStatus(status) {
+      const map = {
+        done: "完了",
+        partial: "部分導入",
+        pending: "未対応"
+      };
+      return map[status] || status || "未設定";
+    }
+
+    function classForStatus(status) {
+      return ["done", "partial", "pending"].includes(status) ? status : "pending";
+    }
+
+    async function loadStatus() {
+      const res = await fetch("../../agent_harness_checklist_status.json", { cache: "no-store" });
+      if (!res.ok) throw new Error(`status ${res.status}`);
+      const data = await res.json();
+      const summary = data.summary || {};
+      document.getElementById("summary-stage").className = `pill ${classForStatus(summary.stage)}`;
+      document.getElementById("summary-stage").textContent = `段階: ${labelForStatus(summary.stage)}`;
+      document.getElementById("summary-counts").textContent = `完了 ${summary.checked || 0} / ${summary.total || 0}`;
+      document.getElementById("summary-updated").textContent = `Updated: ${data.updatedAt || "-"}`;
+
+      const list = document.getElementById("item-list");
+      list.innerHTML = (data.items || []).map((item) => `
+        <div class="item">
+          <div class="item-head">
+            <div class="item-title">${item.key}</div>
+            <span class="pill ${classForStatus(item.status)}">${labelForStatus(item.status)}</span>
+          </div>
+          <div class="item-note">${item.note || "-"}</div>
+        </div>
+      `).join("");
+    }
+
+    loadStatus().catch((err) => {
+      document.getElementById("summary-stage").className = "pill pending";
+      document.getElementById("summary-stage").textContent = "読み込み失敗";
+      document.getElementById("summary-counts").textContent = "-";
+      document.getElementById("summary-updated").textContent = `Updated: ${err.message}`;
+    });
+  </script>
+</body>
+</html>

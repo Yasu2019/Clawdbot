@@ -1,0 +1,18 @@
+# Paperclip overlay env template
+# Copy and adapt only after validation.
+
+PAPERCLIP_PUBLIC_PORT=3110
+PAPERCLIP_INTERNAL_PORT=3100
+PAPERCLIP_BIND_HOST=127.0.0.1
+PAPERCLIP_MODE=local
+
+# Optional future production values
+# DATABASE_URL=postgres://paperclip:CHANGE_ME@postgres:5432/paperclip
+# PAPERCLIP_TELEMETRY_DISABLED=1
+
+# Existing ecosystem references (document only, adapt to your environment)
+LITELLM_BASE_URL=http://127.0.0.1:4000
+LANGFUSE_URL=http://127.0.0.1:3001
+QDRANT_URL=http://127.0.0.1:6333
+N8N_URL=http://127.0.0.1:5679
+OPENCLAW_URL=http://127.0.0.1:18789

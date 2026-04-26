@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Fab-Forge | Clawstack 2026</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #27ae60;
+            --secondary: #2ecc71;
+            --bg: #0d0d0d;
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --border: rgba(39, 174, 96, 0.2);
+            --text: #e8e8e8;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+        }
+
+        header {
+            padding: 5rem 2rem;
+            text-align: center;
+            background: linear-gradient(to bottom, rgba(39, 174, 96, 0.1), transparent);
+        }
+
+        h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 3.5rem;
+            letter-spacing: -2px;
+            margin-bottom: 0.5rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2.5rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 3rem;
+            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
+        }
+
+        .card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 0 50px rgba(39, 174, 96, 0.1);
+            transform: translateY(-10px);
+        }
+
+        .label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 1.5rem;
+            display: block;
+        }
+
+        h2 { font-family: 'Outfit', sans-serif; margin-bottom: 1.5rem; font-size: 2rem; }
+        p { color: #888; font-size: 1rem; line-height: 1.7; margin-bottom: 2.5rem; }
+
+        .btn-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .btn {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.2rem 1.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--secondary);
+        }
+
+        .ip-config {
+            margin-top: 1rem;
+            font-size: 0.8rem;
+            color: #555;
+            text-align: right;
+            cursor: pointer;
+        }
+
+        .ip-config:hover { color: var(--primary); }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>3D Fab-Forge</h1>
+        <p style="color: #666;">Precision Manufacturing & Marketplace Intelligence</p>
+    </header>
+
+    <main class="container">
+        <!-- Ender-3 KE Control -->
+        <section class="card">
+            <span class="label">Machine Control</span>
+            <h2>Ender-3 V3 KE</h2>
+            <p>Creality Klipper Dashboardへのクイックアクセス。印刷ステータスの監視とG-Codeのアップロードを管理します。</p>
+            <div class="btn-list">
+                <a href="http://localhost" target="_blank" class="btn">Launch Klipper UI (Mainsail) <span>→</span></a>
+                <a href="https://github.com/CrealityOfficial/Ender-3_V3_KE_Klipper" target="_blank" class="btn">Firmware / GitHub <span>→</span></a>
+            </div>
+            <div class="ip-config">Configure Local IP Address...</div>
+        </section>
+
+        <!-- Model Sourcing -->
+        <section class="card">
+            <span class="label">Search Engine</span>
+            <h2>Free Models</h2>
+            <p>Printables, Cults3D, Thingiverse から最適なSTLファイルを検索。商用利用ライセンスの確認も自動的に支援します。</p>
+            <div class="btn-list">
+                <a href="https://www.printables.com/" target="_blank" class="btn">Printables Explorer <span>→</span></a>
+                <a href="https://cults3d.com/en" target="_blank" class="btn">Cults3D Trending <span>→</span></a>
+            </div>
+        </section>
+
+        <!-- Monetization Hub -->
+        <section class="card">
+            <span class="label">Production & Sales</span>
+            <h2>Marketplace Intel</h2>
+            <p>Etsy, Shopify, メルカリでの販売トレンド。AIモデリング（Meshy AI）を活用した独自商品の開発戦略を立案します。</p>
+            <div class="btn-list">
+                <a href="https://www.meshy.ai/" target="_blank" class="btn">AI 3D Modeler (Meshy) <span>→</span></a>
+                <a href="../../data/workspace/ai_strategy_scout_local_digest.md" class="btn">View Sales Trends (Scout) <span>→</span></a>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

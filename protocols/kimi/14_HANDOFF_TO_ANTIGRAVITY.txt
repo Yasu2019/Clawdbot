@@ -1,0 +1,21 @@
+Mission:
+Autonomously inspect the user's environment and determine whether Kimi K2.6 should be integrated as a worker layer for large-context, high-throughput autonomous jobs.
+
+Execution policy:
+- fully autonomous analysis is allowed
+- actual environment modifications must remain minimal and reversible
+- protect privacy boundaries
+- do not break current Portal cards/apps
+- do not replace default models without explicit justification inside your report
+
+You must:
+1. inspect the current stack
+2. classify workloads suitable for Kimi
+3. classify workloads that must remain local-only
+4. propose a phased integration plan
+5. output ADOPT / PARTIAL / HOLD
+6. if justified, implement only Phase 1 safe changes
+7. document all changed files and rollback steps
+
+Priority:
+stability > privacy > observability > throughput > novelty

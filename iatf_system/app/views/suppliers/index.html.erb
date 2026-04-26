@@ -1,81 +1,85 @@
-<div class="w-full">
+<div class="w-full max-w-[1600px] mx-auto">
   <% if notice.present? %>
-    <p class="py-2 px-3 bg-green-50 mb-5 text-green-500 font-medium rounded-lg inline-block" id="notice"><%= notice %></p>
+    <p class="py-2 px-3 bg-green-50 mb-5 text-green-700 font-medium rounded-lg inline-block" id="notice"><%= notice %></p>
   <% end %>
 
-  <div class="flex justify-between items-center  ">
-    <h1 class="font-bold text-4xl">供給者リスト</h1>
-    <%= link_to '新規供給者登録', new_supplier_path, class: "text-2xl rounded-lg py-3 px-5 bg-blue-600 text-white block font-medium" %>
+  <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+    <div class="flex flex-wrap gap-2">
+      <%= link_to "戻る", root_path, class: "rounded-lg py-2 px-4 font-medium bg-slate-200 text-slate-800" %>
+      <% supplier_tabs("list").each do |tab| %>
+        <% classes = tab[:active] ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-800" %>
+        <%= link_to tab[:label], tab[:path], class: "rounded-lg py-2 px-4 font-medium #{classes}" %>
+      <% end %>
+      <%= link_to "Excel Download", supplier_excel_download_path, class: "rounded-lg py-2 px-4 font-medium bg-emerald-600 text-white" %>
+    </div>
+    <%= link_to "新規供給者を登録", new_supplier_path, class: "text-base rounded-lg py-2 px-4 bg-blue-600 text-white font-medium" %>
   </div>
-<!--
-  <div id="suppliers" class="min-w-full">
-    <%= render @suppliers %>
+
+  <div class="mb-4">
+    <h1 class="font-bold text-4xl text-slate-900">供給者リスト</h1>
+    <p class="mt-2 text-slate-600">
+      供給者の基本情報、監査・QMS・取引内容、添付ファイルを一覧で確認できます。
+    </p>
   </div>
-  
-  
-   -->
-  <table  class="sticky_table table-striped table-hover border-separate border-spacing-1 border-2 border-blue-900 bg-gray-100">
-            <thead>
-              <tr>  
-                <th class="border-2 border-blue-900"><%="ID"%></th>
-                <th class="border-2 border-blue-900"><%="供給者名"%></th>
-                <th class="border-2 border-blue-900"><%="メーカー名"%></th>
-                <th class="border-2 border-blue-900"><%="ISO有無"%></th>
-                <th class="border-2 border-blue-900"><%="評価対象"%></th>
-                <th class="border-2 border-blue-900"><%="QMS開発"%></th>
-                <th class="border-2 border-blue-900"><%="第2者監査"%></th>
-                <th class="border-2 border-blue-900"><%="供給者開発"%></th>
-                <th class="border-2 border-blue-900"><%="車載関係"%></th>
-                <th class="border-2 border-blue-900"><%="関係部署"%></th>
-                <th class="border-2 border-blue-900"><%="取引内容"%></th>
-                <th class="border-2 border-blue-900"><%="住所①"%></th>
-                <th class="border-2 border-blue-900"><%="住所②"%></th>
-                <th class="border-2 border-blue-900"><%="郵便番号"%></th>
-                <th class="border-2 border-blue-900"><%="TEL"%></th>
-                <th class="border-2 border-blue-900"><%="FAX"%></th>
-              </tr>
-            </thead>
 
-            <tbody>
-                  <% @suppliers.each do |sup| %>
-                    <tr>
-                      <td class="border-2 border-blue-900"><%= sup.no %></td>
-                      <td class="border-2 border-blue-900"><%= sup.supplier_name %></td>
-                      <td class="border-2 border-blue-900"><%= sup.manufacturer_name %></td>
-                      <td class="border-2 border-blue-900"><%= sup.iso_existence %></td>
-                      <td class="border-2 border-blue-900"><%= sup.target %></td>
-                      <td class="border-2 border-blue-900"><%= sup.qms %></td>
-                      <td class="border-2 border-blue-900"><%= sup.second_party_audit %></td>
-                      <td class="border-2 border-blue-900"><%= sup.supplier_development %></td>
-                      <td class="border-2 border-blue-900"><%= sup.automotive_related %></td>
-                      <td class="border-2 border-blue-900"><%= sup.departments %></td>
-                      <td class="border-2 border-blue-900"><%= sup.transaction_details %></td>
-                      <td class="border-2 border-blue-900"><%= sup.address1 %></td>
-                      <td class="border-2 border-blue-900"><%= sup.address2 %></td>
-                      <td class="border-2 border-blue-900"><%= sup.postal_code %></td>
-                      <td class="border-2 border-blue-900"><%= sup.tel %></td>
-                      <td class="border-2 border-blue-900"><%= sup.fax %></td>
-
-                      <!-- 詳細ボタン -->
-                      <td><div class="btn btn-accent btn-sm"><%= link_to '詳細', supplier_path(sup) %></div></td>
-
-                      <!-- 編集ボタン -->
-                      <td><div class="btn btn-primary btn-sm"><%= link_to '編集', edit_supplier_path(sup) %></div></td>
-
-                      <!-- 削除ボタン -->
-                      <td><div class="btn btn-secondary btn-sm"><%= link_to '削除', supplier_path(sup), method: :delete, data: { confirm: 'Are you sure?' } %></div></td>
-
-                      <td class="inline-block"><%= render partial: "attached_file_suppliers", locals: { sup: sup }  %></td>
-
-                    <tr>
-                  <% end %>
-            </tbody>
-</table>
+  <div class="overflow-auto rounded-xl border border-slate-300 bg-white shadow-sm">
+    <table class="min-w-[1800px] border-separate border-spacing-0 text-sm">
+      <thead class="sticky top-0 z-10 bg-slate-100">
+        <tr>
+          <th class="border border-slate-400 px-3 py-2 text-left">ID</th>
+          <th class="border border-slate-400 px-3 py-2 text-left">供給者名</th>
+          <th class="border border-slate-400 px-3 py-2 text-left">メーカー名</th>
+          <th class="border border-slate-400 px-3 py-2 text-left">ISO有無</th>
+          <th class="border border-slate-400 px-3 py-2 text-left">対象</th>
+          <th class="border border-slate-400 px-3 py-2 text-left">QMS</th>
+          <th class="border border-slate-400 px-3 py-2 text-left">第二者監査</th>
+          <th class="border border-slate-400 px-3 py-2 text-left">供給者開発</th>
+          <th class="border border-slate-400 px-3 py-2 text-left">自動車関連</th>
+          <th class="border border-slate-400 px-3 py-2 text-left">関係部署</th>
+          <th class="border border-slate-400 px-3 py-2 text-left">取引内容</th>
+          <th class="border border-slate-400 px-3 py-2 text-left">住所1</th>
+          <th class="border border-slate-400 px-3 py-2 text-left">住所2</th>
+          <th class="border border-slate-400 px-3 py-2 text-left">郵便番号</th>
+          <th class="border border-slate-400 px-3 py-2 text-left">TEL</th>
+          <th class="border border-slate-400 px-3 py-2 text-left">FAX</th>
+          <th class="border border-slate-400 px-3 py-2 text-left">詳細</th>
+          <th class="border border-slate-400 px-3 py-2 text-left">編集</th>
+          <th class="border border-slate-400 px-3 py-2 text-left">削除</th>
+          <th class="border border-slate-400 px-3 py-2 text-left">添付ファイル</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @suppliers.each do |sup| %>
+          <tr class="odd:bg-white even:bg-slate-50">
+            <td class="border border-slate-300 px-3 py-2"><%= sup.no %></td>
+            <td class="border border-slate-300 px-3 py-2"><%= sup.supplier_name %></td>
+            <td class="border border-slate-300 px-3 py-2"><%= sup.manufacturer_name %></td>
+            <td class="border border-slate-300 px-3 py-2"><%= sup.iso_existence %></td>
+            <td class="border border-slate-300 px-3 py-2"><%= sup.target %></td>
+            <td class="border border-slate-300 px-3 py-2"><%= sup.qms %></td>
+            <td class="border border-slate-300 px-3 py-2"><%= sup.second_party_audit %></td>
+            <td class="border border-slate-300 px-3 py-2"><%= sup.supplier_development %></td>
+            <td class="border border-slate-300 px-3 py-2"><%= sup.automotive_related %></td>
+            <td class="border border-slate-300 px-3 py-2"><%= sup.departments %></td>
+            <td class="border border-slate-300 px-3 py-2"><%= sup.transaction_details %></td>
+            <td class="border border-slate-300 px-3 py-2"><%= sup.address1 %></td>
+            <td class="border border-slate-300 px-3 py-2"><%= sup.address2 %></td>
+            <td class="border border-slate-300 px-3 py-2"><%= sup.postal_code %></td>
+            <td class="border border-slate-300 px-3 py-2"><%= sup.tel %></td>
+            <td class="border border-slate-300 px-3 py-2"><%= sup.fax %></td>
+            <td class="border border-slate-300 px-3 py-2">
+              <div class="btn btn-accent btn-sm"><%= link_to "詳細", supplier_path(sup) %></div>
+            </td>
+            <td class="border border-slate-300 px-3 py-2">
+              <div class="btn btn-primary btn-sm"><%= link_to "編集", edit_supplier_path(sup) %></div>
+            </td>
+            <td class="border border-slate-300 px-3 py-2">
+              <div class="btn btn-secondary btn-sm"><%= link_to "削除", supplier_path(sup), method: :delete, data: { confirm: "Are you sure?" } %></div>
+            </td>
+            <td class="border border-slate-300 px-3 py-2 align-top"><%= render partial: "attached_file_suppliers", locals: { sup: sup } %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
 </div>
-
-
-
-  <%= link_to '戻る', root_path, class: 'btn btn-accent btn-sm' %>
-
-</div>
-

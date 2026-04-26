@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Stitch UI Evaluation Hub</title>
+  <style>
+    :root {
+      --bg: #0b1320;
+      --panel: rgba(15, 23, 42, 0.9);
+      --line: rgba(148, 163, 184, 0.2);
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --accent: #5eead4;
+      --accent-2: #7dd3fc;
+      --good: #86efac;
+      --warn: #fdba74;
+      --hold: #fca5a5;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "Noto Sans JP", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(94, 234, 212, 0.12), transparent 28%),
+        radial-gradient(circle at top right, rgba(125, 211, 252, 0.12), transparent 26%),
+        var(--bg);
+    }
+
+    .shell {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 40px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 18px 48px rgba(0, 0, 0, 0.25);
+      backdrop-filter: blur(10px);
+    }
+
+    h1, h2, h3 { margin-top: 0; }
+
+    .hero h1 {
+      margin-bottom: 10px;
+      font-size: clamp(1.9rem, 2.2vw, 2.8rem);
+    }
+
+    .sub {
+      color: var(--muted);
+      line-height: 1.75;
+      margin: 0;
+    }
+
+    .links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 40px;
+      padding: 0 14px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      color: var(--text);
+      text-decoration: none;
+      font-weight: 700;
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 18px;
+      background: rgba(2, 6, 23, 0.3);
+    }
+
+    ul {
+      margin: 0;
+      padding-left: 20px;
+    }
+
+    li {
+      margin: 8px 0;
+      line-height: 1.65;
+    }
+
+    .rank {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      margin-right: 10px;
+      font-weight: 800;
+      background: rgba(94, 234, 212, 0.14);
+      color: var(--accent);
+    }
+
+    .adopt { color: var(--good); font-weight: 700; }
+    .partial { color: var(--warn); font-weight: 700; }
+    .hold { color: var(--hold); font-weight: 700; }
+
+    .prompt-box {
+      border: 1px solid rgba(125, 211, 252, 0.2);
+      background: rgba(15, 23, 42, 0.7);
+      border-radius: 16px;
+      padding: 16px;
+    }
+
+    .prompt-box h3 {
+      color: var(--accent-2);
+      margin-bottom: 10px;
+    }
+
+    pre {
+      margin: 0;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-family: Consolas, "Courier New", monospace;
+      color: #dbeafe;
+      line-height: 1.65;
+      font-size: 0.92rem;
+    }
+
+    .copy-row {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 12px;
+    }
+
+    button {
+      border: 1px solid rgba(94, 234, 212, 0.24);
+      background: rgba(94, 234, 212, 0.12);
+      color: var(--text);
+      border-radius: 999px;
+      padding: 8px 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .note {
+      margin-top: 16px;
+      padding: 14px 16px;
+      border-radius: 16px;
+      background: rgba(125, 211, 252, 0.08);
+      border: 1px solid rgba(125, 211, 252, 0.18);
+      color: var(--muted);
+      line-height: 1.7;
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="panel hero">
+      <h1>Stitch UI Evaluation Hub</h1>
+      <p class="sub">
+        Google Stitch を UI 設計アクセラレータとして安全に使うための評価ハブです。
+        Stitch は画面の骨格と見た目の初稿づくりに使い、既存の業務ロジックや状態判定、
+        危険操作まわりは Codex 側で実装する方針を前提にしています。
+      </p>
+      <div class="links">
+        <a class="chip" href="file:///D:/Clawdbot_Docker_20260125/data/state/workspace/protocols/stitch_ui_evaluation.md" target="_blank" rel="noopener">Protocol</a>
+        <a class="chip" href="file:///D:/Clawdbot_Docker_20260125/data/state/workspace/protocols/stitch_priority_targets_20260404.md" target="_blank" rel="noopener">Priority Targets</a>
+        <a class="chip" href="../codex_protocol_hub/index.html" target="_blank" rel="noopener">Codex Protocol Hub</a>
+      </div>
+    </section>
+
+    <section class="grid">
+      <article class="panel card">
+        <h2>Stitch を使ってよい場面</h2>
+        <ul>
+          <li>新しい TOP ページや統合ダッシュボードの初稿</li>
+          <li>カード配置、ヒーロー、サマリー帯の見た目設計</li>
+          <li>利用導線や onboarding 画面のたたき台</li>
+          <li>既存画面を壊さずに新規ハブを作る場合</li>
+        </ul>
+      </article>
+      <article class="panel card">
+        <h2>Stitch を使わないほうがよい場面</h2>
+        <ul>
+          <li>DB 接続や API 連携を含む中核ロジック</li>
+          <li>削除、修復、移設などの危険操作画面</li>
+          <li>compose / proxy / port の設定や実行系</li>
+          <li>実務正確性が最優先の監視・制御画面</li>
+        </ul>
+      </article>
+    </section>
+
+    <section class="panel">
+      <h2>優先順位</h2>
+      <div class="grid">
+        <article class="card">
+          <h3><span class="rank">1</span>Portal TOP</h3>
+          <p class="sub">一番効果が高い対象です。カテゴリ整理、カード密度、ヒーロー、状態の見せ方は Stitch の得意領域です。</p>
+        </article>
+        <article class="card">
+          <h3><span class="rank">2</span>Ingestion / RAG Control Center</h3>
+          <p class="sub">KPI カード、赤帯、状態サマリーの見せ方に向きます。JSON 読み込みや health 判定は Codex 側で保持します。</p>
+        </article>
+        <article class="card">
+          <h3><span class="rank">3</span>Note Pro</h3>
+          <p class="sub">おすすめ記事、執筆エディタ、AI 補助サイドバーのレイアウト改善に向いています。</p>
+        </article>
+        <article class="card">
+          <h3><span class="rank">4</span>Open Notebook → Obsidian</h3>
+          <p class="sub">案内ハブや onboarding ページなら相性が良いです。実コマンドや保存ロジックは Codex 側で統合します。</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>採用ラベル</h2>
+      <ul>
+        <li><span class="adopt">ADOPT</span>: そのまま初稿づくりに使ってよい</li>
+        <li><span class="partial">ADOPT_PARTIAL</span>: UI 骨格だけ使い、ロジックは Codex が実装する</li>
+        <li><span class="hold">HOLD</span>: 高リスクなので Stitch 適用を保留する</li>
+      </ul>
+      <p class="note">このシステムでは、Stitch は基本的に <strong>ADOPT_PARTIAL</strong> です。見た目の初稿は任せつつ、状態判定、安全操作、既存 JSON / API 連携は Codex 側で閉じます。</p>
+    </section>
+
+    <section class="panel">
+      <h2>そのまま使える Stitch プロンプト</h2>
+      <div class="grid">
+        <article class="prompt-box">
+          <h3>Portal TOP</h3>
+          <pre id="prompt-portal">Create a Japanese desktop-first internal portal homepage for an AI engineering workstation. Use a premium but practical card dashboard style. Prioritize: category grouping, compact card density on wide monitors, clear status badges, and a strong hero summary. Include cards for AI chat, n8n, Paperless NGX, Learning Memory, Email Search, Ingestion/RAG Control Center, Note Pro, and Stitch UI Evaluation. The output should be a visual shell only. Do not invent backend logic, dangerous actions, or database flows.</pre>
+          <div class="copy-row"><button data-copy="prompt-portal">Copy</button></div>
+        </article>
+        <article class="prompt-box">
+          <h3>Ingestion / RAG Control Center</h3>
+          <pre id="prompt-ingestion">Design a Japanese operations dashboard for Gmail ingestion, Paperless document ingest, Learning sync, and RAG observability. Show an overall health banner, compact metric cards, aging indicators, and quick links to detailed tools. This should look operational and trustworthy, with emphasis on degraded states and what to open next. Visual design only. Assume Codex will wire JSON and API logic later.</pre>
+          <div class="copy-row"><button data-copy="prompt-ingestion">Copy</button></div>
+        </article>
+        <article class="prompt-box">
+          <h3>Note Pro</h3>
+          <pre id="prompt-notepro">Create a Japanese writing workspace for drafting articles from recommended AI and OSS news. Layout should include a left recommendation rail, a central editor, and a right-side assistance panel for structure and prompts. Make it editorial and focused, not generic SaaS. Keep the design suitable for a local AI tool. UI only, no fake backend implementation.</pre>
+          <div class="copy-row"><button data-copy="prompt-notepro">Copy</button></div>
+        </article>
+        <article class="prompt-box">
+          <h3>Open Notebook → Obsidian</h3>
+          <pre id="prompt-notebook">Design a Japanese workflow hub that explains how Open Notebook summaries are promoted into Obsidian safely. Show stages, guardrails, recommended destinations like AI_Inbox, and a simple review-first flow. The page should feel instructional and reliable. No backend logic; this is a UI concept that Codex will later connect to scripts.</pre>
+          <div class="copy-row"><button data-copy="prompt-notebook">Copy</button></div>
+        </article>
+      </div>
+    </section>
+
+    <section class="grid">
+      <article class="panel card">
+        <h2>注意して使う画面</h2>
+        <ul>
+          <li>Learning Memory</li>
+          <li>Email Search</li>
+          <li>Storage Cleanup Review</li>
+          <li>FMEA / FTA / Why-Why の導入画面</li>
+        </ul>
+      </article>
+      <article class="panel card">
+        <h2>使わないほうがよい画面</h2>
+        <ul>
+          <li>IATF Rails の業務本画面</li>
+          <li>QMS Audit の監査中核</li>
+          <li>3D Converter / GD&amp;T / DXF の実務画面</li>
+          <li>Paperless / Gmail / RAG の制御中核</li>
+        </ul>
+      </article>
+    </section>
+  </main>
+
+  <script>
+    document.querySelectorAll("[data-copy]").forEach((button) => {
+      button.addEventListener("click", async () => {
+        const targetId = button.getAttribute("data-copy");
+        const source = document.getElementById(targetId);
+        if (!source) return;
+        try {
+          await navigator.clipboard.writeText(source.textContent.trim());
+          const original = button.textContent;
+          button.textContent = "Copied";
+          setTimeout(() => {
+            button.textContent = original;
+          }, 1200);
+        } catch (error) {
+          button.textContent = "Copy failed";
+          setTimeout(() => {
+            button.textContent = "Copy";
+          }, 1200);
+        }
+      });
+    });
+  </script>
+</body>
+</html>

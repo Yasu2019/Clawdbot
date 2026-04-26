@@ -1,0 +1,12 @@
+﻿{
+  "package": "iot_circuit_lab_ltspice_wokwi_nodered",
+  "created": "2026-04-26T01:16:38.718187",
+  "target": "GMKtec NucBox K10 / Clawstack / Portal / Node-RED / LTspice / Wokwi",
+  "concept": "LTspice electrical safety check -> Wokwi ESP32 control simulation -> Node-RED data operation",
+  "non_goals": [
+    "LTspice Dockerization",
+    "real-time co-simulation",
+    "overwriting existing Node-RED flows",
+    "overwriting existing Portal config"
+  ]
+}

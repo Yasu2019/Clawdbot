@@ -1,0 +1,140 @@
+{
+  "name": "Email RAG Ingest (Nightly 02:00 JST)",
+  "nodes": [
+    {
+      "id": "trigger",
+      "name": "nightly_trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 17 * * *"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "phase12",
+      "name": "phase12_qdrant",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        250,
+        0
+      ],
+      "parameters": {
+        "executeOnce": true,
+        "command": "docker exec clawstack-unified-clawdbot-gateway-1 sh -lc \"python3 /home/node/clawd/ingest_eml_v2.py >>/home/node/clawd/ingest_eml.log 2>&1; tail -5 /home/node/clawd/ingest_eml.log\" || true"
+      }
+    },
+    {
+      "id": "phase3",
+      "name": "phase3_meilisearch",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        500,
+        0
+      ],
+      "parameters": {
+        "executeOnce": true,
+        "command": "docker exec clawstack-unified-clawdbot-gateway-1 sh -lc \"python3 /home/node/clawd/ingest_eml_to_meili.py >>/home/node/clawd/ingest_eml.log 2>&1; tail -3 /home/node/clawd/ingest_eml.log\" || true"
+      }
+    },
+    {
+      "id": "phase4",
+      "name": "phase4_sqlite_search",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        750,
+        0
+      ],
+      "parameters": {
+        "executeOnce": true,
+        "command": "docker exec clawstack-unified-clawdbot-gateway-1 sh -lc \"python3 /home/node/clawd/email_search_index.py --gmail-max-messages 500 >>/home/node/clawd/email_search_index.log 2>&1; tail -5 /home/node/clawd/email_search_index.log\" || true"
+      }
+    },
+    {
+      "id": "notify",
+      "name": "telegram_notify",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1000,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.telegram.org/bot8085717200:AAHzacN6Q3xSunrLyvUTuHnKEf7Cd5YFdt4/sendMessage",
+        "sendBody": true,
+        "contentType": "json",
+        "body": {
+          "chat_id": "{{ $json.chat_id ?? '7769164479' }}",
+          "text": "=?? *Email Ingest ??*\n\n?? Qdrant: {{ $node[\"phase12_qdrant\"].json.stdout.split(\"\\n\").slice(-3).join(\"\\n\") }}\n?? Meilisearch: {{ $node[\"phase3_meilisearch\"].json.stdout.split(\"\\n\").slice(-2).join(\"\\n\") }}\n??? SQLite/Gmail: {{ $node[\"phase4_sqlite_search\"].json.stdout.split(\"\\n\").slice(-2).join(\"\\n\") }}",
+          "parse_mode": "Markdown"
+        },
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "nightly_trigger": {
+      "main": [
+        [
+          {
+            "node": "phase12_qdrant",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "phase12_qdrant": {
+      "main": [
+        [
+          {
+            "node": "phase3_meilisearch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "phase3_meilisearch": {
+      "main": [
+        [
+          {
+            "node": "phase4_sqlite_search",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "phase4_sqlite_search": {
+      "main": [
+        [
+          {
+            "node": "telegram_notify",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  }
+}

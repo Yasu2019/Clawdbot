@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Knowledge Hub | Clawstack 2026</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #9b51e0;
+            --secondary: #bb6bd9;
+            --bg: #0b0b0d;
+            --card-bg: rgba(255, 255, 255, 0.02);
+            --border: rgba(155, 81, 224, 0.15);
+            --text: #f0f0f0;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+        }
+
+        .ambient {
+            position: fixed;
+            top: -10%; right: -10%;
+            width: 50vw; height: 50vw;
+            background: radial-gradient(circle, rgba(155, 81, 224, 0.08) 0%, transparent 70%);
+            z-index: -1;
+        }
+
+        header {
+            padding: 5rem 2rem;
+            text-align: center;
+        }
+
+        h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 3.5rem;
+            margin-bottom: 0.5rem;
+            letter-spacing: -1.5px;
+        }
+
+        .grid {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2.5rem;
+        }
+
+        .feature-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 3rem;
+            transition: 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            position: relative;
+        }
+
+        .feature-card:hover {
+            border-color: var(--primary);
+            background: rgba(155, 81, 224, 0.03);
+            transform: scale(1.02);
+        }
+
+        .label {
+            color: var(--primary);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 2px;
+            margin-bottom: 1.5rem;
+            display: block;
+        }
+
+        h2 { font-family: 'Outfit', sans-serif; margin-bottom: 1.5rem; font-size: 2rem; }
+        p { color: #888; font-size: 1rem; line-height: 1.7; margin-bottom: 2.5rem; }
+
+        .mcp-indicator {
+            position: absolute;
+            top: 2rem; right: 2rem;
+            font-size: 0.6rem;
+            background: rgba(0, 255, 136, 0.1);
+            color: #00ff88;
+            padding: 4px 10px;
+            border-radius: 100px;
+            border: 1px solid rgba(0, 255, 136, 0.2);
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 1.1rem 2rem;
+            background: var(--primary);
+            color: white;
+            text-decoration: none;
+            border-radius: 14px;
+            font-weight: 600;
+            transition: 0.3s;
+            text-align: center;
+            width: 100%;
+        }
+
+        .btn:hover {
+            filter: brightness(1.2);
+            box-shadow: 0 10px 30px rgba(155, 81, 224, 0.3);
+        }
+
+        .secondary-link {
+            display: block;
+            margin-top: 1.5rem;
+            text-align: center;
+            color: #555;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: 0.2s;
+        }
+
+        .secondary-link:hover { color: #999; text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="ambient"></div>
+
+    <header>
+        <h1>Knowledge Hub</h1>
+        <p style="color: #555; letter-spacing: 1px;">AI-Augmented Cognitive Architecture</p>
+    </header>
+
+    <main class="grid">
+        <!-- AI Notes Engine -->
+        <section class="feature-card">
+            <span class="mcp-indicator">MCP CONNECTED</span>
+            <span class="label">AI Notes Engine</span>
+            <h2>Connected Vault</h2>
+            <p>Obsidian Vault内の知識をMCP経由で直接読み込み、要約や思考の整理をサポート。Local AI (Ollama)との連携でプライバシーも万全です。</p>
+            <a href="#" class="btn">Search Vault Memory</a>
+            <a href="#" class="secondary-link">Configure Vault Path</a>
+        </section>
+
+        <!-- Notebook Summarizer -->
+        <section class="feature-card">
+            <span class="label">Grounding</span>
+            <h2>Local NotebookLM</h2>
+            <p>指定したドキュメント群に基づいた「事実のみ」の対話。Kimi 256Kのロングコンテキストを活用し、大量の研究資料を一括分析します。</p>
+            <a href="../../apps/ingestion_rag_control_center/index.html" class="btn">Manage Data Sources</a>
+        </section>
+
+        <!-- Thinking Protocol -->
+        <section class="feature-card">
+            <span class="label">Augmentation</span>
+            <h2>Notes Refactoring</h2>
+            <p>乱雑なメモを階層化し、ナレッジグラフへと昇華。Agentic Routingにより、関連する過去のプロジェクトを自動でリンクします。</p>
+            <a href="#" class="btn">Auto-Refactor Notes</a>
+            <a href="../../apps/learning_memory/index.html" class="secondary-link">View Learning Memory</a>
+        </section>
+    </main>
+</body>
+</html>

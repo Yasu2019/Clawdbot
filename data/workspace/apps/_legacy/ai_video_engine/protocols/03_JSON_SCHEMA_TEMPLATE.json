@@ -1,0 +1,77 @@
+{
+  "project_id": "demo_project",
+  "sequence_id": "seq_001",
+  "shot_id": "shot_001",
+  "objective": "Create a realistic cinematic short shot with controlled movement and minimal AI artifacts.",
+  "scene": {
+    "location": "Tokyo alley at night",
+    "time": "rainy evening",
+    "weather": "light rain",
+    "background_elements": [
+      "neon signs",
+      "wet asphalt",
+      "dim traffic in distance"
+    ]
+  },
+  "subject": {
+    "type": "human",
+    "identity_lock": true,
+    "age_range": "late 20s",
+    "gender_presentation": "female",
+    "appearance": {
+      "hair": "dark shoulder-length hair",
+      "face": "natural proportions, subtle expression",
+      "outfit": "black coat, dark boots"
+    }
+  },
+  "props": [
+    "umbrella"
+  ],
+  "camera": {
+    "shot_type": "tracking shot",
+    "angle": "eye level",
+    "lens": "50mm",
+    "movement": "slow forward tracking",
+    "stability": "high"
+  },
+  "lighting": {
+    "style": "neon reflection mixed with street ambient light",
+    "contrast": "medium",
+    "intensity": "moderate"
+  },
+  "motion": {
+    "action": "walk slowly while turning head slightly left",
+    "pace": "natural",
+    "body_weight_shift": "clear and realistic",
+    "hand_behavior": "umbrella held steadily"
+  },
+  "pose_constraints": {
+    "use_start_end_frames": true,
+    "preserve_composition": true
+  },
+  "start_frame": "start_pose_ref.png",
+  "end_frame": "end_pose_ref.png",
+  "timing": {
+    "duration_sec": 4,
+    "fps_goal": 24
+  },
+  "style": {
+    "rendering": "photorealistic",
+    "tone": "restrained cinematic realism"
+  },
+  "exclusions": [
+    "extra fingers",
+    "identity drift",
+    "camera warp",
+    "floating feet",
+    "rubbery elbows",
+    "unnatural eye direction"
+  ],
+  "quality_targets": {
+    "face_consistency": ">=4/5",
+    "body_realism": ">=4/5",
+    "camera_stability": ">=4/5",
+    "continuity": ">=4/5"
+  },
+  "review_notes": ""
+}

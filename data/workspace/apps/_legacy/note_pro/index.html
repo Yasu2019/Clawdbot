@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Note Pro Writer - Clawstack</title>
+    <link rel="stylesheet" href="../../style.css">
+    <style>
+        :root {
+            --accent: #1f7a5a;
+            --accent-soft: #dff4ec;
+            --bg: #f5f2ea;
+            --panel: #fffdf8;
+            --line: #ddd4c4;
+            --ink: #18231d;
+            --muted: #617067;
+            --shadow: 0 18px 42px rgba(24, 35, 29, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background:
+                radial-gradient(circle at top right, rgba(31, 122, 90, 0.12), transparent 28%),
+                linear-gradient(180deg, #fbf8f1 0%, var(--bg) 100%);
+            color: var(--ink);
+            font-family: "Segoe UI", "Hiragino Sans", "Yu Gothic UI", sans-serif;
+            margin: 0;
+            min-height: 100vh;
+        }
+
+        header {
+            padding: 20px 28px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            background: rgba(255, 253, 248, 0.92);
+            border-bottom: 1px solid rgba(221, 212, 196, 0.8);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 1.4rem;
+        }
+
+        header p {
+            margin: 4px 0 0;
+            color: var(--muted);
+            font-size: 0.92rem;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 11px 16px;
+            border-radius: 999px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: 0.2s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            filter: brightness(1.05);
+        }
+
+        .btn-ghost {
+            background: white;
+            color: var(--ink);
+            border-color: var(--line);
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: minmax(300px, 400px) minmax(0, 1fr) 340px;
+            gap: 22px;
+            padding: 22px 28px 34px;
+            align-items: start;
+        }
+
+        .panel {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 22px;
+            box-shadow: var(--shadow);
+        }
+
+        .panel-inner {
+            padding: 22px;
+        }
+
+        .panel h2,
+        .panel h3,
+        .panel h4 {
+            margin: 0 0 12px;
+        }
+
+        .subtle {
+            color: var(--muted);
+            line-height: 1.7;
+        }
+
+        .metric-row {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+            margin-top: 14px;
+        }
+
+        .metric {
+            background: #f8f4ea;
+            border: 1px solid #e8decd;
+            border-radius: 16px;
+            padding: 14px;
+        }
+
+        .metric .label {
+            display: block;
+            color: var(--muted);
+            font-size: 0.84rem;
+        }
+
+        .metric .value {
+            display: block;
+            margin-top: 6px;
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .article-list {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            margin-top: 16px;
+            max-height: calc(100vh - 280px);
+            overflow: auto;
+            padding-right: 4px;
+        }
+
+        .article-card {
+            border: 1px solid #e6dece;
+            border-radius: 18px;
+            padding: 16px;
+            background: #fffdfa;
+        }
+
+        .article-card.featured {
+            border-color: rgba(31, 122, 90, 0.35);
+            box-shadow: 0 10px 24px rgba(31, 122, 90, 0.08);
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border-radius: 999px;
+            padding: 6px 10px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            border: 1px solid #e3dacb;
+            background: #f7f2e8;
+            color: #55635a;
+        }
+
+        .pill.fresh {
+            background: var(--accent-soft);
+            border-color: #bfe2d2;
+            color: #17543d;
+        }
+
+        .article-card h3 {
+            margin: 0 0 8px;
+            font-size: 1.05rem;
+            line-height: 1.5;
+        }
+
+        .article-card p {
+            margin: 0;
+            color: var(--muted);
+            line-height: 1.65;
+        }
+
+        .article-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 14px;
+        }
+
+        .mini-btn {
+            border: 1px solid var(--line);
+            background: white;
+            color: var(--ink);
+            border-radius: 999px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .editor-panel {
+            min-height: calc(100vh - 150px);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .title-input {
+            width: 100%;
+            border: none;
+            outline: none;
+            background: transparent;
+            font-size: clamp(1.8rem, 2.8vw, 2.6rem);
+            font-weight: 800;
+            color: var(--ink);
+            margin-bottom: 12px;
+        }
+
+        .summary-box {
+            border: 1px dashed #cdbfa8;
+            background: #faf7ef;
+            border-radius: 16px;
+            padding: 14px 16px;
+            margin-bottom: 14px;
+            color: var(--muted);
+            line-height: 1.7;
+        }
+
+        #editor {
+            flex: 1;
+            border: 1px solid #e5e0d4;
+            border-radius: 18px;
+            padding: 24px;
+            font-size: 17px;
+            line-height: 1.85;
+            outline: none;
+            background: white;
+            overflow-y: auto;
+            min-height: 520px;
+        }
+
+        .toolbox {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        textarea,
+        input,
+        select {
+            border: 1px solid #ddd5c6;
+            padding: 12px 13px;
+            border-radius: 12px;
+            font: inherit;
+            background: white;
+        }
+
+        .muted-box {
+            padding: 14px;
+            border-radius: 16px;
+            background: #faf6ee;
+            border: 1px solid #e7dece;
+            color: var(--muted);
+            line-height: 1.7;
+        }
+
+        @media (max-width: 1180px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
+
+            .article-list {
+                max-height: none;
+            }
+
+            .editor-panel {
+                min-height: auto;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div>
+            <h1>Note Pro Writer</h1>
+            <p>最近の流行記事を見ながら、`note` / ブログ向けの下書きを組み立てるエディタです。</p>
+        </div>
+        <div class="actions">
+            <button class="btn btn-ghost" onclick="refreshRecommendations()">おすすめ更新</button>
+            <button class="btn btn-primary" onclick="exportNote()">HTML として保存</button>
+        </div>
+    </header>
+
+    <div class="layout">
+        <section class="panel">
+            <div class="panel-inner">
+                <h2>おすすめ記事</h2>
+                <p class="subtle">毎日収集している `Local LLM / OSS Scout` のデータから、ブログ記事向きの話題を優先して提案します。</p>
+                <div class="metric-row">
+                    <div class="metric">
+                        <span class="label">Digest Updated</span>
+                        <span class="value" id="digest-updated">-</span>
+                    </div>
+                    <div class="metric">
+                        <span class="label">記事候補</span>
+                        <span class="value" id="article-count">-</span>
+                    </div>
+                </div>
+                <div class="article-list" id="article-list">
+                    <div class="muted-box">おすすめ記事を読み込み中です...</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="panel editor-panel">
+            <div class="panel-inner" style="display:flex; flex-direction:column; height:100%;">
+                <input type="text" id="title" class="title-input" placeholder="タイトルを入力してください">
+                <div class="summary-box" id="selected-summary">左側のおすすめ記事を選ぶと、要点と導入文のたたき台をここへ出します。</div>
+                <div id="editor" contenteditable="true">
+                    <p><strong>導入</strong></p>
+                    <p>最近のAI / OSSトレンドの中から、読者に役立つテーマを選んで整理します。</p>
+                    <p><strong>本文メモ</strong></p>
+                    <p>・背景</p>
+                    <p>・何が新しいか</p>
+                    <p>・業務でどう使えるか</p>
+                    <p>・次に試すべきこと</p>
+                </div>
+            </div>
+        </section>
+
+        <aside class="panel">
+            <div class="panel-inner toolbox">
+                <div>
+                    <h3>AI アシスタント</h3>
+                    <p class="subtle">選んだ記事やトレンド全体をもとに、下書き用プロンプトをすぐ作れます。</p>
+                </div>
+
+                <div class="input-group">
+                    <label for="genre">記事タイプ</label>
+                    <select id="genre">
+                        <option value="trend">トレンド解説</option>
+                        <option value="howto">業務活用ハウツー</option>
+                        <option value="comparison">比較記事</option>
+                        <option value="opinion">所感 / 提言</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label for="ai-prompt">AI に渡す指示</label>
+                    <textarea id="ai-prompt" rows="8" placeholder="例: おすすめ記事をもとに、製造業の現場で役立つ視点で 3 つのポイントに整理してください。"></textarea>
+                </div>
+
+                <div class="actions" style="padding-top:4px;">
+                    <button class="btn btn-primary" onclick="generateDraft()">下書きの叩き台を挿入</button>
+                    <button class="btn btn-ghost" onclick="improve()">本文を整えるメモを挿入</button>
+                </div>
+
+                <div class="muted-box" id="prompt-preview">
+                    ここに、選択中の記事をもとにした推奨プロンプトを表示します。
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <script>
+        const DIGEST_PATH = '../../local_llm_oss_digest.json';
+        let digestPayload = null;
+        let recommendedArticles = [];
+        let selectedArticle = null;
+
+        function safeText(value) {
+            return String(value || '').replace(/[&<>"]/g, (ch) => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;'
+            }[ch]));
+        }
+
+        function isoDateToLabel(value) {
+            if (!value) return 'reference';
+            const date = new Date(value);
+            if (Number.isNaN(date.getTime())) return 'reference';
+            return date.toLocaleDateString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit' });
+        }
+
+        function normalizeTitle(title) {
+            const text = String(title || '').trim();
+            if (!text) return 'Untitled';
+            return text
+                .replace(/\s+/g, ' ')
+                .replace(/窶｢/g, '・');
+        }
+
+        function scoreArticle(row) {
+            const title = normalizeTitle(row.title).toLowerCase();
+            let score = row.freshness === 'fresh' ? 40 : 10;
+
+            if (row.category === 'Local LLM') score += 8;
+            if (row.category === 'Productivity OSS') score += 5;
+
+            if (/welcome|introducing|frontier|intelligence|use .* in|powered by|supports|breaking|vision|enterprise|how|guide|tutorial|blog/.test(title)) {
+                score += 25;
+            }
+
+            if (/v\d|rc\d|^b\d+$|@\d/.test(title)) {
+                score -= 18;
+            }
+
+            if (/gemma|ollama|lm studio|appflowy|docmost|n8n|twenty|plane|granite|falcon/.test(title)) {
+                score += 12;
+            }
+
+            if ((row.source || '').includes('Blog')) score += 10;
+            if ((row.source || '').includes('Releases')) score -= 6;
+
+            return score;
+        }
+
+        function flattenDigest(payload) {
+            const rows = [];
+            for (const [category, items] of Object.entries(payload.categories || {})) {
+                for (const item of items || []) {
+                    rows.push({ ...item, category, score: 0 });
+                }
+            }
+            for (const row of rows) {
+                row.score = scoreArticle(row);
+            }
+            rows.sort((a, b) => b.score - a.score);
+            return rows;
+        }
+
+        function articleSummary(row) {
+            const freshnessLabel = row.freshness === 'fresh' ? '最近の更新です。' : '参考情報として押さえておく候補です。';
+            return [
+                `${normalizeTitle(row.title)}`,
+                `${row.category} / ${row.source}`,
+                `${freshnessLabel}`,
+                `読者への切り口: 「何が新しいか」「業務でどう使えるか」「次に試すべきこと」を中心に書くとまとまりやすいです。`
+            ].join('\n');
+        }
+
+        function suggestedPrompt(row) {
+            const genre = document.getElementById('genre').value;
+            const baseInstruction = document.getElementById('ai-prompt').value.trim();
+            const templates = {
+                trend: 'トレンド解説として、背景・更新点・実務インパクト・次の一手の4点で整理してください。',
+                howto: '業務活用ハウツーとして、導入前提・使いどころ・注意点・すぐ試す手順の順で整理してください。',
+                comparison: '比較記事として、他の選択肢との違い・向いている用途・導入コストの観点で整理してください。',
+                opinion: '所感 / 提言として、最近の流れ・自分の見解・現場での活用余地・今後の見通しを整理してください。'
+            };
+            const genrePrompt = templates[genre] || templates.trend;
+            return [
+                `テーマ: ${normalizeTitle(row.title)}`,
+                `分類: ${row.category}`,
+                `出典: ${row.source}`,
+                `URL: ${row.url}`,
+                '',
+                genrePrompt,
+                baseInstruction ? `追加条件: ${baseInstruction}` : ''
+            ].filter(Boolean).join('\n');
+        }
+
+        function renderRecommendations(rows) {
+            const list = document.getElementById('article-list');
+            if (!rows.length) {
+                list.innerHTML = '<div class="muted-box">おすすめ候補が見つかりませんでした。</div>';
+                return;
+            }
+
+            list.innerHTML = rows.map((row, idx) => `
+                <article class="article-card ${idx === 0 ? 'featured' : ''}">
+                    <div class="eyebrow">
+                        <span class="pill ${row.freshness === 'fresh' ? 'fresh' : ''}">${row.freshness}</span>
+                        <span class="pill">${safeText(row.category)}</span>
+                        <span class="pill">${safeText(isoDateToLabel(row.published))}</span>
+                    </div>
+                    <h3>${safeText(normalizeTitle(row.title))}</h3>
+                    <p>${safeText(row.source)} / score ${row.score}</p>
+                    <div class="article-actions">
+                        <button class="mini-btn" onclick="selectArticle(${idx})">この話題を使う</button>
+                        <a class="mini-btn" href="${safeText(row.url)}" target="_blank" rel="noopener">記事を開く</a>
+                    </div>
+                </article>
+            `).join('');
+        }
+
+        function selectArticle(index) {
+            selectedArticle = recommendedArticles[index];
+            if (!selectedArticle) return;
+
+            const title = normalizeTitle(selectedArticle.title);
+            document.getElementById('title').value = `${title}から見る最新トレンド`;
+            document.getElementById('selected-summary').innerText = articleSummary(selectedArticle);
+            document.getElementById('prompt-preview').innerText = suggestedPrompt(selectedArticle);
+
+            const editor = document.getElementById('editor');
+            editor.innerHTML = `
+                <h2>${safeText(title)}</h2>
+                <p><strong>この記事を選んだ理由</strong></p>
+                <p>${safeText(selectedArticle.category)} の中でも、最近性と実務での応用しやすさが高いテーマだからです。</p>
+                <p><strong>押さえたいポイント</strong></p>
+                <p>1. 何が新しいか</p>
+                <p>2. どんなユーザーや現場に向いているか</p>
+                <p>3. 既存ツールと比べて何が違うか</p>
+                <p>4. 次に試すべき具体策</p>
+                <p><strong>参照URL</strong></p>
+                <p><a href="${safeText(selectedArticle.url)}" target="_blank" rel="noopener">${safeText(selectedArticle.url)}</a></p>
+            `;
+        }
+
+        async function refreshRecommendations() {
+            const list = document.getElementById('article-list');
+            list.innerHTML = '<div class="muted-box">おすすめ候補を更新しています...</div>';
+            try {
+                const response = await fetch(DIGEST_PATH, { cache: 'no-store' });
+                if (!response.ok) throw new Error(`digest load failed: ${response.status}`);
+                digestPayload = await response.json();
+                recommendedArticles = flattenDigest(digestPayload).slice(0, 8);
+                document.getElementById('digest-updated').textContent = digestPayload.generatedAt || '-';
+                document.getElementById('article-count').textContent = `${recommendedArticles.length} 件`;
+                renderRecommendations(recommendedArticles);
+                if (recommendedArticles.length > 0) {
+                    selectArticle(0);
+                }
+            } catch (error) {
+                list.innerHTML = `<div class="muted-box">読み込み失敗: ${safeText(error.message)}</div>`;
+                document.getElementById('digest-updated').textContent = 'error';
+                document.getElementById('article-count').textContent = '0 件';
+            }
+        }
+
+        function generateDraft() {
+            if (!selectedArticle) {
+                alert('先に左側のおすすめ記事を選んでください。');
+                return;
+            }
+            const prompt = suggestedPrompt(selectedArticle);
+            document.getElementById('prompt-preview').innerText = prompt;
+            const editor = document.getElementById('editor');
+            editor.innerHTML += `
+                <h3>AI 下書きメモ</h3>
+                <p>${safeText(normalizeTitle(selectedArticle.title))} をもとに、${safeText(document.getElementById('genre').selectedOptions[0].text)} の構成で書く。</p>
+                <p>出典: ${safeText(selectedArticle.source)}</p>
+                <p>URL: <a href="${safeText(selectedArticle.url)}" target="_blank" rel="noopener">${safeText(selectedArticle.url)}</a></p>
+            `;
+        }
+
+        function improve() {
+            const editor = document.getElementById('editor');
+            editor.innerHTML += `
+                <h3>改善チェック</h3>
+                <p>・読者が得をする具体例が入っているか</p>
+                <p>・単なるリリース紹介ではなく、実務への意味が書けているか</p>
+                <p>・他ツールとの違いが伝わるか</p>
+            `;
+        }
+
+        function exportNote() {
+            const title = document.getElementById('title').value.trim() || 'note_pro_draft';
+            const editorHtml = document.getElementById('editor').innerHTML;
+            const html = `<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><title>${safeText(title)}</title></head><body><h1>${safeText(title)}</h1>${editorHtml}</body></html>`;
+            const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${title.replace(/[\\\\/:*?\"<>|]/g, '_')}.html`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+        }
+
+        document.getElementById('genre').addEventListener('change', () => {
+            if (selectedArticle) {
+                document.getElementById('prompt-preview').innerText = suggestedPrompt(selectedArticle);
+            }
+        });
+
+        refreshRecommendations();
+        window.refreshRecommendations = refreshRecommendations;
+        window.selectArticle = selectArticle;
+        window.generateDraft = generateDraft;
+        window.improve = improve;
+        window.exportNote = exportNote;
+    </script>
+</body>
+
+</html>

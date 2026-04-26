@@ -1,0 +1,22 @@
+﻿推奨フォルダ構成
+
+project_root/
+├─ raw_docs/
+│  ├─ pdf/
+│  ├─ docx/
+│  ├─ xlsx/
+│  ├─ pptx/
+│  ├─ images/
+│  └─ zip/
+├─ processed_md/
+├─ logs/
+├─ quarantine/
+├─ metadata/
+├─ docker/
+└─ prompts/
+
+補足:
+- raw_docs は原本保管
+- processed_md は派生物
+- quarantine は失敗物隔離
+- metadata は文書ID、元パス、変換日時など

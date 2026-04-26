@@ -22,7 +22,7 @@ class DocumentMonitorService
 
   def setup_listener
     Rails.logger.info "DocumentMonitorService: Setting up listener..."
-    
+
     # Docker環境での監視に最適化された設定
     @listener = Listen.to(
       @watch_path,
@@ -37,14 +37,14 @@ class DocumentMonitorService
         Rails.logger.info "  - Added files: #{added.inspect}"
         Rails.logger.info "  - Modified files: #{modified.inspect}"
         Rails.logger.info "  - Removed files: #{removed.inspect}"
-        
+
         handle_changes(modified, added, removed)
       end
     end
 
     @listener.start
     Rails.logger.info "DocumentMonitorService: Listener started successfully"
-    
+
     # 定期的なポーリングを開始
     start_polling
   rescue => e
@@ -58,7 +58,7 @@ class DocumentMonitorService
 
     Rails.logger.tagged("DocumentMonitorService") do
       Rails.logger.info "Processing changes..."
-      
+
       added.each do |file_path|
         process_new_file(file_path)
       end
@@ -72,15 +72,15 @@ class DocumentMonitorService
     filename = File.basename(file_path)
     Rails.logger.tagged("DocumentMonitorService") do
       Rails.logger.info "Processing new file: #{filename}"
-      
+
       return unless File.exist?(file_path)
-      
+
       # ファイルが完全に書き込まれるまで少し待機
       sleep 0.5
-      
+
       # ActiveStorageのBlobを検索
       existing_blob = ActiveStorage::Blob.find_by(filename: filename)
-      
+
       if existing_blob.nil?
         Rails.logger.info "New file detected: #{filename}"
         broadcast_notification('new', filename)

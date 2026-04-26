@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Operations Toolbox</title>
+  <style>
+    :root {
+      --bg: #0a1220;
+      --panel: rgba(15, 23, 42, 0.92);
+      --line: rgba(148, 163, 184, 0.18);
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --accent: #67e8f9;
+      --good: #86efac;
+      --warn: #fdba74;
+      --bad: #fca5a5;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "Noto Sans JP", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(103, 232, 249, 0.12), transparent 26%),
+        radial-gradient(circle at bottom right, rgba(148, 163, 184, 0.1), transparent 24%),
+        var(--bg);
+    }
+    .shell {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 42px;
+    }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 18px 48px rgba(0,0,0,0.22);
+      backdrop-filter: blur(10px);
+    }
+    .hero h1 { margin: 0 0 10px; font-size: clamp(1.9rem, 2.2vw, 2.8rem); }
+    .hero p, .sub {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.75;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 16px;
+    }
+    .card {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      background: rgba(2, 6, 23, 0.28);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 18px;
+      text-decoration: none;
+      color: inherit;
+    }
+    .eyebrow {
+      color: var(--accent);
+      font-size: 0.82rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+    h2, h3 { margin-top: 0; }
+    .meta, .row {
+      margin-top: auto;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .chip, .pill {
+      font-size: 0.8rem;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.05);
+      color: var(--muted);
+    }
+    .pill.done {
+      color: var(--good);
+      border-color: rgba(134, 239, 172, 0.28);
+      background: rgba(134, 239, 172, 0.12);
+    }
+    .pill.progress {
+      color: var(--warn);
+      border-color: rgba(253, 186, 116, 0.28);
+      background: rgba(253, 186, 116, 0.12);
+    }
+    .pill.pending {
+      color: var(--bad);
+      border-color: rgba(252, 165, 165, 0.28);
+      background: rgba(252, 165, 165, 0.12);
+    }
+    .status-meta {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="panel hero">
+      <h1>Operations Toolbox</h1>
+      <p>
+        保守、監視、設計補助の画面をまとめた運用ハブです。
+        日常業務の主入口からは一段下げ、必要なときだけここから開く前提で整理しています。
+      </p>
+    </section>
+
+    <section class="panel">
+      <h2>改善状況サマリー</h2>
+      <div class="meta" style="margin-bottom:16px;">
+        <span class="chip">Primary ops surface</span>
+        <a class="chip" href="/D:/Clawdbot_Docker_20260125/docs/canonical_routing_and_adoption_20260404.md" target="_blank" rel="noopener">Canonical Policy</a>
+        <a class="chip" href="/D:/Clawdbot_Docker_20260125/docs/protocol_package_inventory_20260404.md" target="_blank" rel="noopener">Protocol Inventory</a>
+      </div>
+      <div class="grid">
+        <article class="card">
+          <span class="eyebrow">Architecture</span>
+          <h3>System Role Map Status</h3>
+          <p class="sub">Portal 主画面整理や統合方針の改善がどこまで進んでいるかを、JSON から自動表示します。</p>
+          <div class="row" id="role-map-pills">
+            <span class="pill progress">読み込み中</span>
+          </div>
+          <div class="status-meta">Updated: <span id="role-map-updated">-</span></div>
+          <div class="meta"><span class="chip">Role Map</span><span class="chip">Progress</span></div>
+        </article>
+        <article class="card">
+          <span class="eyebrow">Harness</span>
+          <h3>Agent Harness Status</h3>
+          <p class="sub">共通ハーネスの導入状況です。retry 上限、承認制御、must-cite、freshness などの状態を追えます。</p>
+          <div class="row" id="agent-harness-pills">
+            <span class="pill progress">読み込み中</span>
+          </div>
+          <div class="status-meta">Updated: <span id="agent-harness-updated">-</span></div>
+          <div class="meta"><span class="chip">Harness</span><span class="chip">Checklist</span></div>
+        </article>
+
+        <article class="card" onclick="location.href='/apps/lemonade_dashboard/'">
+          <span class="eyebrow">Multimodal</span>
+          <h3>Lemonade Gateway Status</h3>
+          <p class="sub">API: 18070 | OpenAI互換の音声認識・画像解析レイヤーの稼働状況を確認できます。</p>
+          <div class="row" id="lemonade-pills">
+            <span class="pill status-unknown" id="status-lemonade">Unknown</span>
+          </div>
+          <div class="meta"><span class="chip">Multimodal</span><span class="chip">Gateway</span></div>
+        </article>
+        <article class="card">
+          <span class="eyebrow">Operational Health</span>
+          <h3>AI Engineering Harness Status</h3>
+          <p class="sub">各種コア API と監視ハーネスの健全性サマリーです。Host API や Docker サービスの稼働状況を確認できます。</p>
+          <div class="row" id="ai-harness-pills">
+            <span class="pill progress">読み込み中</span>
+          </div>
+          <div class="status-meta">Updated: <span id="ai-harness-updated">-</span></div>
+          <div class="meta"><span class="chip">Health</span><span class="chip">APIs</span></div>
+        </article>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Harness 詳細</h2>
+      <div class="grid">
+        <a class="card" href="../agent_harness_status/index.html" target="_blank" rel="noopener">
+          <span class="eyebrow">Harness</span>
+          <h3>Agent Harness Status</h3>
+          <p class="sub">チェックリスト項目ごとの状態とメモを確認できます。</p>
+          <div class="meta"><span class="chip">Details</span></div>
+        </a>
+        <a class="card" href="../ai_engineering_harness_status/index.html" target="_blank" rel="noopener">
+          <span class="eyebrow">Engineering</span>
+          <h3>AI Engineering Harness Status</h3>
+          <p class="sub">Host API、Docker サービス、Watchdog の詳細な稼働状態を確認できます。</p>
+          <div class="meta"><span class="chip">Service Health</span></div>
+        </a>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>保守・運用</h2>
+      <div class="grid">
+        <a class="card" href="../auto_repair_console/index.html" target="_blank" rel="noopener">
+          <span class="eyebrow">Maintenance</span>
+          <h3>Auto Repair Console</h3>
+          <p class="sub">自動修復ルール、評価結果、重要 ingest 系の修復状況を確認できます。</p>
+          <div class="meta"><span class="chip">Repair</span></div>
+        </a>
+        <a class="card" href="http://localhost:5679/workflow/hv84u6vWBn7NjPjx" target="_blank" rel="noopener">
+          <span class="eyebrow">Monitoring</span>
+          <h3>AI Harness Monitor</h3>
+          <p class="sub">OpenClaw、LiteLLM、Qdrant などの監視と通知の流れを見られます。</p>
+          <div class="meta"><span class="chip">n8n</span></div>
+        </a>
+        <a class="card" href="../storage_cleanup_review/index.html" target="_blank" rel="noopener">
+          <span class="eyebrow">Maintenance</span>
+          <h3>Storage Cleanup Review</h3>
+          <p class="sub">長期間未使用の temp、cache、log を確認し、安全に退避・削除できます。</p>
+          <div class="meta"><span class="chip">Cleanup</span></div>
+        </a>
+        <a class="card" href="../cmux_hub/index.html" target="_blank" rel="noopener">
+          <span class="eyebrow">Architecture</span>
+          <h3>Cmux Hub</h3>
+          <p class="sub">ローカル統合の方針、AI ルーティング、依存関係の整理を確認できます。</p>
+          <div class="meta"><span class="chip">Orchestration</span></div>
+        </a>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>プロトコル・設計補助</h2>
+      <div class="grid">
+        <a class="card" href="../codex_protocol_hub/index.html" target="_blank" rel="noopener">
+          <span class="eyebrow">Reference</span>
+          <h3>Codex Protocol Hub</h3>
+          <p class="sub">Survey-first や DR の参照ハブです。一次ルールは canonical policy を優先し、ここは supporting reference として使います。</p>
+          <div class="meta"><span class="chip">Reference Hub</span></div>
+        </a>
+        <a class="card" href="../stitch_ui_evaluation/index.html" target="_blank" rel="noopener">
+          <span class="eyebrow">Design</span>
+          <h3>Stitch UI Evaluation</h3>
+          <p class="sub">Stitch をどこに使うか、避けるか、実務 prompt 付きで確認できます。</p>
+          <div class="meta"><span class="chip">UI</span></div>
+        </a>
+        <a class="card" href="../system_role_map/index.html" target="_blank" rel="noopener">
+          <span class="eyebrow">Architecture</span>
+          <h3>System Role Map</h3>
+          <p class="sub">アプリ全体の役割、統合、縮退、改善方針を整理したページです。</p>
+          <div class="meta"><span class="chip">Role Map</span></div>
+        </a>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>履歴・バックアップ</h2>
+      <div class="grid">
+        <a class="card" href="file:///D:/Clawdbot_Docker_20260125/data/state/OpenNotebook_Backup" target="_blank" rel="noopener">
+          <span class="eyebrow">Archive</span>
+          <h3>OpenNotebook Backups</h3>
+          <p class="sub">Open Notebook 由来の Markdown バックアップを確認できます。</p>
+          <div class="meta"><span class="chip">Local Directory</span></div>
+        </a>
+        <a class="card" href="#" onclick="alert('Wire Harness Engineering\\n\\nAntigravity コンテナ群で WireViz / Schemdraw / PySpice / harness_calc を使う設計カードです。'); return false;">
+          <span class="eyebrow">Engineering</span>
+          <h3>Wire Harness Engineering</h3>
+          <p class="sub">ワイヤーハーネス設計、解析ツール整理、補助情報をまとめています。</p>
+          <div class="meta"><span class="chip">Antigravity</span></div>
+        </a>
+      </div>
+    </section>
+  </main>
+  <script>
+    function stateText(state) {
+      const map = {
+        done: "改善済み",
+        progress: "進行中",
+        pending: "未対応"
+      };
+      return map[state] || state || "未設定";
+    }
+
+    async function loadRoleMapStatus() {
+      try {
+        const res = await fetch("../../system_role_map_status.json", { cache: "no-store" });
+        if (!res.ok) throw new Error(`status ${res.status}`);
+        const data = await res.json();
+        document.getElementById("role-map-updated").textContent = data.updatedAt || "-";
+        const pills = (data.sections?.priority || []).map((item) =>
+          `<span class="pill ${item.state}">${item.label}: ${stateText(item.state)}</span>`
+        ).join("");
+        document.getElementById("role-map-pills").innerHTML = pills || '<span class="pill pending">未設定</span>';
+      } catch (err) {
+        document.getElementById("role-map-updated").textContent = `読み込み失敗: ${err.message}`;
+        document.getElementById("role-map-pills").innerHTML = '<span class="pill pending">状態取得失敗</span>';
+      }
+    }
+
+    function harnessStatusText(status) {
+      const map = {
+        done: "完了",
+        partial: "部分導入",
+        pending: "未対応"
+      };
+      return map[status] || status || "未設定";
+    }
+
+    async function loadAgentHarnessStatus() {
+      try {
+        const res = await fetch("../../agent_harness_checklist_status.json", { cache: "no-store" });
+        if (!res.ok) throw new Error(`status ${res.status}`);
+        const data = await res.json();
+        const summary = data.summary || {};
+        document.getElementById("agent-harness-updated").textContent = data.updatedAt || "-";
+        const pills = [
+          `<span class="pill done">完了 ${summary.checked || 0} / ${summary.total || 0}</span>`,
+          `<span class="pill progress">段階: ${harnessStatusText(summary.stage)}</span>`
+        ].join("");
+        document.getElementById("agent-harness-pills").innerHTML = pills;
+      } catch (err) {
+        document.getElementById("agent-harness-updated").textContent = `読み込み失敗: ${err.message}`;
+        document.getElementById("agent-harness-pills").innerHTML = '<span class="pill pending">状態取得失敗</span>';
+      }
+    }
+
+    async function loadAIEngineeringHarnessStatus() {
+      try {
+        const res = await fetch("../../continuous_system_improvement_status.json", { cache: "no-store" });
+        if (!res.ok) throw new Error(`status ${res.status}`);
+        const data = await res.json();
+        document.getElementById("ai-harness-updated").textContent = data.updatedAt || "-";
+        const strengths = data.strengths?.length || 0;
+        const weaknesses = data.weaknesses?.length || 0;
+        
+        let pills = "";
+        if (weaknesses > 0) {
+          pills += `<span class="pill pending">課題: ${weaknesses} 件</span>`;
+        }
+        pills += `<span class="pill done">健全: ${strengths} 件</span>`;
+        
+        document.getElementById("ai-harness-pills").innerHTML = pills || '<span class="pill progress">データなし</span>';
+      } catch (err) {
+        document.getElementById("ai-harness-updated").textContent = `読み込み失敗: ${err.message}`;
+        document.getElementById("ai-harness-pills").innerHTML = '<span class="pill pending">状態取得失敗</span>';
+      }
+    }
+
+    loadRoleMapStatus();
+    loadAgentHarnessStatus();
+    loadAIEngineeringHarnessStatus();
+  </script>
+</body>
+</html>

@@ -1,0 +1,193 @@
+{
+  "moods": {
+    "Joy/Happy": {
+      "description": "Bright and uplifting movements using major chords.",
+      "progressions": [
+        ["I", "IV", "V"],
+        ["I", "V", "vi", "IV"],
+        ["I", "IV", "I", "V"]
+      ]
+    },
+    "Sadness/Melancholy": {
+      "description": "Emotive minor key movements or descending lines.",
+      "progressions": [
+        ["i", "VII", "VI", "V"],
+        ["i", "VI", "III", "VII"],
+        ["I", "iii", "IV", "iv"]
+      ]
+    },
+    "Tension/Drama": {
+      "description": "Dissonant or chromatic shifts for suspense.",
+      "progressions": [
+        ["i", "bII", "i"],
+        ["vi", "IV", "#ivdim", "V"]
+      ]
+    }
+  },
+  "genres": {
+    "Pop": {
+      "description": "Catchy, repetitive 4-chord foundations.",
+      "progressions": [
+        ["I", "V", "vi", "IV"],
+        ["I", "vi", "IV", "V"],
+        ["vi", "IV", "I", "V"]
+      ]
+    },
+    "Rock": {
+      "description": "Strong root-oriented movements with power chord energy.",
+      "progressions": [
+        ["I", "bVII", "IV"],
+        ["I", "V", "IV"],
+        ["I", "bIII", "bVII", "IV"]
+      ]
+    },
+    "Jazz": {
+      "description": "Functional cycles with 7th and 9th extensions.",
+      "progressions": [
+        ["ii7", "V7", "Imaj7"],
+        ["Imaj7", "vi7", "ii7", "V7"],
+        ["iii7", "vi7", "ii7", "V7"]
+      ]
+    },
+    "Ballad": {
+      "description": "Slow, sentimental movements with gentle transitions.",
+      "progressions": [
+        ["I", "vi", "ii", "V"],
+        ["I", "V/VII", "vi", "I/V", "IV", "I/III", "ii", "V"]
+      ]
+    },
+    "Heavy Metal": {
+      "description": "Modal, minor-heavy, and chromatic movements.",
+      "progressions": [
+        ["i", "VI", "III", "VII"],
+        ["i", "bII", "i"],
+        ["i", "bV", "IV", "bII"]
+      ]
+    },
+    "March/Brass Band": {
+      "description": "Structured, stable, and strong cadences.",
+      "progressions": [
+        ["I", "IV", "V", "I"],
+        ["I", "V", "vi", "iii", "IV", "I", "IV", "V"],
+        ["I", "I", "IV", "V", "I"]
+      ]
+    }
+  },
+  "artist_styles": {
+    "Beethoven": {
+      "description": "Dramatic, classical, and weightful movements.",
+      "progressions": [
+        ["i", "V", "VI", "III", "iv", "i", "V", "i"],
+        ["I", "V", "I", "IV", "V", "I"]
+      ]
+    },
+    "Chopin": {
+      "description": "Elegant, romantic, and sophisticated chromatic flows.",
+      "progressions": [
+        ["Imaj7", "vi7", "ii7", "V7", "I", "IVmaj7", "V7", "I"],
+        ["vi", "ii", "V", "I", "IV", "vii", "III", "vi"]
+      ]
+    },
+    "Joe Hisaishi": {
+      "description": "Nostalgic, magical, and emotive 'Ghibli' sound.",
+      "progressions": [
+        ["IV", "V", "iii", "vi"],
+        ["IVmaj7", "V7", "iii7", "vi7"],
+        ["ii7", "V7", "Imaj7", "IVmaj7"]
+      ]
+    },
+    "Arale-chan": {
+      "description": "Energetic, bright 80s anime pop.",
+      "progressions": [
+        ["I", "V", "vi", "iii", "IV", "I", "IV", "V"],
+        ["I", "vi", "IV", "V"]
+      ]
+    },
+    "Gundam": {
+      "description": "Epic, driving anthemic movements.",
+      "progressions": [
+        ["vi", "IV", "I", "V"],
+        ["i", "VI", "VII", "i"],
+        ["iv", "VII", "III", "VI"]
+      ]
+    },
+    "Arashi": {
+      "description": "Polished, upbeat J-Pop structures.",
+      "progressions": [
+        ["IV", "V", "iii", "vi", "ii", "V", "I"],
+        ["I", "V/VII", "vi", "iii/V", "IV", "I/III", "ii7", "V7"]
+      ]
+    },
+    "B'z": {
+      "description": "Hard rock energy with blues-inspired riffs.",
+      "progressions": [
+        ["I", "bIII", "IV", "I"],
+        ["vi", "IV", "I", "V"],
+        ["I", "V", "vi", "iii", "IV", "V", "I"]
+      ]
+    },
+    "J.S. Bach": {
+      "description": "Baroque counterpoint, circle of fifths, and clear resolutions.",
+      "progressions": [
+        ["I", "IV", "vii", "iii", "vi", "ii", "V", "I"],
+        ["i", "iv", "VII", "III", "VI", "ii", "V", "i"]
+      ]
+    },
+    "Stravinsky": {
+      "description": "Modern, rhythmic, and bold chromatic/modal shifts.",
+      "progressions": [
+        ["I", "bII", "I"],
+        ["I", "#IV", "I"],
+        ["i", "bII", "bV", "vii"]
+      ]
+    },
+    "Alfred Reed": {
+      "description": "Rich, symphonic, and coloristic wind orchestra style.",
+      "progressions": [
+        ["I", "IV", "V", "vi", "IV", "I", "V", "I"],
+        ["i", "VI", "iv", "V7", "i"]
+      ]
+    },
+    "James Swearingen": {
+      "description": "Driving, energetic, and majestic educational wind band style.",
+      "progressions": [
+        ["I", "vi", "IV", "V"],
+        ["I", "IV", "V", "I"],
+        ["vi", "IV", "I", "V"]
+      ]
+    },
+    "James Barnes": {
+      "description": "Grand, symphonic, and emotionally powerful cinematic style.",
+      "progressions": [
+        ["i", "VI", "III", "VII", "i"],
+        ["I", "V", "vi", "iii", "IV", "V", "I"]
+      ]
+    },
+    "Brass Contest": {
+      "description": "High-energy fanfare and technical competition style.",
+      "progressions": [
+        ["I", "IV", "V", "I"],
+        ["IV", "V", "iii", "vi", "ii", "V", "I"],
+        ["vi", "V", "IV", "III"]
+      ]
+    }
+  },
+  "famous_patterns": {
+    "Canon": {
+      "origin": "Pachelbel's Canon in D",
+      "progression": ["I", "V", "vi", "iii", "IV", "I", "IV", "V"]
+    },
+    "Axis": {
+      "origin": "Axis of Awesome / 4 Chord Song",
+      "progression": ["I", "V", "vi", "IV"]
+    },
+    "Doo-Wop": {
+      "origin": "50s Progression",
+      "progression": ["I", "vi", "IV", "V"]
+    },
+    "Royal Road": {
+      "origin": "Oudou Shinkou (Japanese Pop)",
+      "progression": ["IV", "V", "iii", "vi"]
+    }
+  }
+}

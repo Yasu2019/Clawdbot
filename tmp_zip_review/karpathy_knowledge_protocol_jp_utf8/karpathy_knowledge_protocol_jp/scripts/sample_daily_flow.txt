@@ -1,0 +1,5 @@
+1. WebやPDFを raw に入れる
+2. Claude Code で compile_single_source.md を使って topic ノート化
+3. 複数資料なら compile_multi_source.md を使って統合
+4. 質問したら query_and_update.md に沿って qa ノート化
+5. 週末に maintenance_lint.md で点検

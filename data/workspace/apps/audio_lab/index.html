@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Lab | Clawstack 2026</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #00d2ff;
+            --secondary: #3a7bd5;
+            --bg: #050505;
+            --card-bg: rgba(255, 255, 255, 0.02);
+            --border: rgba(255, 255, 255, 0.08);
+            --text: #f0f0f0;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+        }
+
+        .ambient-light {
+            position: fixed;
+            top: 50%; left: 50%;
+            width: 80vw; height: 80vh;
+            background: radial-gradient(circle, rgba(0, 210, 255, 0.03) 0%, transparent 70%);
+            transform: translate(-50%, -50%);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        header {
+            padding: 5rem 2rem;
+            text-align: center;
+        }
+
+        h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 3rem;
+            letter-spacing: -1px;
+            margin-bottom: 0.5rem;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2.5rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 2rem;
+            transition: 0.4s;
+        }
+
+        .card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 0 30px rgba(0, 210, 255, 0.1);
+        }
+
+        .icon {
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            display: block;
+        }
+
+        h2 { font-family: 'Outfit', sans-serif; margin-bottom: 1rem; }
+        p { color: #888; font-size: 0.95rem; line-height: 1.6; margin-bottom: 2rem; }
+
+        .link-list {
+            list-style: none;
+        }
+
+        .link-item {
+            margin-bottom: 0.8rem;
+        }
+
+        .link-btn {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.8rem 1.2rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: #ccc;
+            text-decoration: none;
+            transition: 0.2s;
+        }
+
+        .link-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: white;
+            transform: scale(1.02);
+        }
+
+        .status-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: #00ff88;
+            margin-left: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="ambient-light"></div>
+    
+    <header>
+        <h1>Audio Lab</h1>
+        <p style="color: #666;">Sonic Engineering & AI Music Production</p>
+    </header>
+
+    <main class="container">
+        <!-- AI Music -->
+        <section class="card">
+            <span class="icon">🎵</span>
+            <h2>AI Music Studio</h2>
+            <p>Suno v5.5, Udio 等の最新エンジンを利用した楽曲生成。高品質なフルレングスの楽曲制作が数秒で完了します。</p>
+            <div class="link-list">
+                <div class="link-item"><a href="https://suno.com" target="_blank" class="btn link-btn">Suno AI (S-Tier) <span class="status-dot"></span></a></div>
+                <div class="link-item"><a href="https://udio.com" target="_blank" class="btn link-btn">Udio (Licensed) <span class="status-dot"></span></a></div>
+            </div>
+        </section>
+
+        <!-- Voice & Effects -->
+        <section class="card">
+            <span class="icon">🎤</span>
+            <h2>Voice Conversion</h2>
+            <p>RVC (Retrieval-based Voice Conversion) による高品質な声質変換。自分の声やライセンス済みの声への差し替えが可能です。</p>
+            <div class="link-list">
+                <div class="link-item"><a href="#" class="btn link-btn">Local RVC Interface <small>(Requires GPU)</small></a></div>
+                <div class="link-item"><a href="http://localhost:8098" target="_blank" class="btn link-btn">Whishper STT Tool <span class="status-dot"></span></a></div>
+            </div>
+        </section>
+
+        <!-- Specialized Audio -->
+        <section class="card">
+            <span class="icon">📻</span>
+            <h2>Stable Audio</h2>
+            <p>効果音や環境音、ループ素材の生成に特化した Stable Audio Open。商用利用可能な素材制作に適しています。</p>
+            <div class="link-list">
+                <div class="link-item"><a href="https://stableaudio.com" target="_blank" class="btn link-btn">Stable Audio (Cloud)</a></div>
+                <div class="link-item"><a href="#" class="btn link-btn">Local Audio Generator</a></div>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

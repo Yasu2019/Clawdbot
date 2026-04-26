@@ -130,7 +130,7 @@
 <body>
 
 <h1>⚡ Clawstack 可観測性Hub</h1>
-<p class="subtitle">LLM・RAG・MCP・n8n のリアルタイム品質モニタリング</p>
+<p class="subtitle">LLM・RAG・MCP・n8n の詳細監視画面。まずは Ingestion / RAG Control Center で異常箇所を絞り、その後にここで深掘りします。</p>
 
 <div class="refresh-row">
   <button class="btn primary" onclick="refreshAll()">↺ 今すぐ更新</button>
@@ -212,6 +212,36 @@
   <div class="section-title" style="border:none;margin-bottom:0.25rem">RAG ベンチマーク (期待スコア)</div>
   <div class="benchmark-grid" id="benchGrid">
     <!-- JS で生成 -->
+  </div>
+</div>
+
+<!-- 信頼性 & リスク管理 -->
+<div class="panel" style="border-color: var(--purple);">
+  <div class="section-title" style="border-color: var(--purple); color: var(--purple);">🛡️ システム信頼性 & リスク管理 (Reliability & Risk)</div>
+  <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); margin-top: 1rem;">
+    <div class="card" style="background: rgba(163, 113, 247, 0.05); border-color: rgba(163, 113, 247, 0.2);">
+      <div class="label">MTBF (平均故障間隔)</div>
+      <div class="value purple" id="mtbfValue">--</div>
+      <div class="unit">Hours (直近 15 件)</div>
+    </div>
+    <div class="card" style="background: rgba(163, 113, 247, 0.05); border-color: rgba(163, 113, 247, 0.2);">
+      <div class="label">累積インシデント数</div>
+      <div class="value purple" id="incidentCount">--</div>
+      <div class="unit">Total (INC + TH)</div>
+    </div>
+    <div class="card" style="background: rgba(248, 81, 73, 0.05); border-color: rgba(248, 81, 73, 0.2);">
+      <div class="label">集中パトロール頻度</div>
+      <div class="value red">High</div>
+      <div class="unit">INC-052 対策強化中</div>
+    </div>
+  </div>
+  <div style="margin-top: 1.5rem;">
+    <div class="section-title" style="font-size: 0.85rem; border-bottom: none; margin-bottom: 0.5rem;">最新のインシデント履歴 (Recent Incidents)</div>
+    <table id="incidentTable">
+      <tbody id="incidentBody">
+        <!-- JS で生成 -->
+      </tbody>
+    </table>
   </div>
 </div>
 
@@ -514,6 +544,28 @@ function renderBenchmarks(scores) {
   }).join('');
 }
 
+async function refreshReliability() {
+  try {
+    const r = await fetch('../../reliability_metrics.json', { cache: 'no-cache' });
+    if (r.ok) {
+      const data = await r.json();
+      el('mtbfValue').textContent = data.mtbf_hours;
+      el('incidentCount').textContent = data.incident_count;
+      
+      const body = el('incidentBody');
+      body.innerHTML = data.recent_incidents.map(inc => `
+        <tr>
+          <td style="width:100px"><span class="tag ${inc.source === 'INCIDENT_LOG' ? 'rag' : 'n8n'}">${inc.id}</span></td>
+          <td style="color:var(--text-muted)">${inc.date.split(' ')[0]}</td>
+          <td>${inc.title}</td>
+        </tr>
+      `).join('');
+    }
+  } catch (e) {
+    console.error("Failed to refresh reliability metrics:", e);
+  }
+}
+
 // ============================================================
 // メインリフレッシュ
 // ============================================================
@@ -521,6 +573,7 @@ async function refreshAll() {
   await Promise.all([
     refreshServices(),
     refreshKPIs(),
+    refreshReliability(),
   ]);
   const scores = await fetchLangfuseScores(50);
   renderBenchmarks(scores);

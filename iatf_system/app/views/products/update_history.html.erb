@@ -1,0 +1,106 @@
+<% history = @update_history || {} %>
+<% entries = history[:entries] || [] %>
+<% auto_diff = history[:auto_diff_status] || {} %>
+<% auto_diff_summary = auto_diff["summary"] || {} %>
+
+<div class="w-full p-6">
+  <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between mb-6">
+    <div>
+      <h1 class="font-bold text-4xl">更新履歴</h1>
+      <p class="text-sm text-gray-600 mt-2">
+        db:seed 向けの同期、JQA報告書バックフィル、製造工程設計 ZIP 取込などの更新履歴を確認できます。
+      </p>
+    </div>
+    <div class="flex flex-wrap gap-2">
+      <%= link_to "TOPへ戻る", products_path, class: "rounded-lg py-2 px-4 bg-gray-100 font-medium" %>
+      <%= link_to "改善確認へ", audit_followup_status_product_path, class: "rounded-lg py-2 px-4 bg-indigo-600 text-white font-medium" %>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
+    <div class="border rounded-lg bg-white p-4">
+      <div class="text-xs text-gray-500">履歴件数</div>
+      <div class="text-2xl font-bold"><%= history[:total].to_i %></div>
+    </div>
+    <div class="border rounded-lg bg-white p-4">
+      <div class="text-xs text-gray-500">最新更新</div>
+      <div class="text-lg font-bold"><%= entries.first&.dig("recorded_at") || "-" %></div>
+    </div>
+    <div class="border rounded-lg bg-white p-4">
+      <div class="text-xs text-gray-500">対象</div>
+      <div class="text-lg font-bold">IATF seed / JQA / 製造工程設計</div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-5 gap-3 mb-6">
+    <div class="border rounded-lg bg-white p-4">
+      <div class="text-xs text-gray-500">Auto Diff 最終実行</div>
+      <div class="text-sm font-bold break-all"><%= auto_diff["recorded_at"] || "-" %></div>
+    </div>
+    <div class="border rounded-lg bg-white p-4">
+      <div class="text-xs text-gray-500">Mode</div>
+      <div class="text-lg font-bold"><%= auto_diff["mode"] || "-" %></div>
+    </div>
+    <div class="border rounded-lg bg-white p-4">
+      <div class="text-xs text-gray-500">New</div>
+      <div class="text-2xl font-bold text-sky-700"><%= auto_diff_summary["new"].to_i %></div>
+    </div>
+    <div class="border rounded-lg bg-white p-4">
+      <div class="text-xs text-gray-500">Changed Existing</div>
+      <div class="text-2xl font-bold text-amber-700"><%= auto_diff_summary["changed_existing"].to_i %></div>
+    </div>
+    <div class="border rounded-lg bg-white p-4">
+      <div class="text-xs text-gray-500">Missing CSV / Doc</div>
+      <div class="text-2xl font-bold text-emerald-700"><%= auto_diff_summary["missing_csv_only"].to_i + auto_diff_summary["missing_document_only"].to_i %></div>
+    </div>
+  </div>
+
+  <% if auto_diff_summary["changed_existing"].to_i > 0 %>
+    <div class="border border-amber-300 bg-amber-50 text-amber-900 rounded-lg p-4 mb-6">
+      <div class="font-semibold">Auto Diff Warning</div>
+      <div class="text-sm mt-1">
+        `changed_existing` が <%= auto_diff_summary["changed_existing"].to_i %> 件あります。
+        既存 seed/live ファイルとの差分が見つかっているため、自動上書きは行っていません。内容確認後に手動判断してください。
+      </div>
+    </div>
+  <% end %>
+
+  <% if auto_diff.present? %>
+    <div class="border rounded-lg bg-white p-4 mb-6">
+      <div class="text-sm font-semibold mb-2">Auto Diff 最新サマリー</div>
+      <pre class="text-xs whitespace-pre-wrap text-gray-700"><%= JSON.pretty_generate(auto_diff) %></pre>
+    </div>
+  <% end %>
+
+  <div class="overflow-auto border rounded-lg bg-white">
+    <table class="min-w-full text-sm border-collapse">
+      <thead class="bg-slate-100">
+        <tr>
+          <th class="border px-2 py-2">記録日時</th>
+          <th class="border px-2 py-2">種別</th>
+          <th class="border px-2 py-2">タイトル</th>
+          <th class="border px-2 py-2">件数</th>
+          <th class="border px-2 py-2">ソース</th>
+          <th class="border px-2 py-2">詳細</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% entries.each do |entry| %>
+          <tr>
+            <td class="border px-2 py-2 whitespace-nowrap"><%= entry["recorded_at"] %></td>
+            <td class="border px-2 py-2"><%= entry["type"] %></td>
+            <td class="border px-2 py-2"><%= entry["title"] %></td>
+            <td class="border px-2 py-2"><%= entry["record_count"] %></td>
+            <td class="border px-2 py-2 whitespace-pre-wrap"><%= entry["source"] %></td>
+            <td class="border px-2 py-2 whitespace-pre-wrap"><%= JSON.pretty_generate(entry["details"] || {}) %></td>
+          </tr>
+        <% end %>
+        <% if entries.empty? %>
+          <tr>
+            <td colspan="6" class="border px-2 py-6 text-center text-gray-500">更新履歴はまだありません。</td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>

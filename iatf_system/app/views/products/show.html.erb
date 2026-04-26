@@ -25,29 +25,10 @@
        
     
       <tr>
-        <% if @product.partnumber=="" || @product.partnumber==nil %>
-            <td class="border border-slate-300"><%= "----" %></td>
-        <% else %>
-            <td class="border border-slate-300"><%= @product.partnumber %></td>
-        <% end %>
-
-        <% if @product.materialcode=="" || @product.materialcode==nil  %>
-            <td class="border border-slate-300"><%= "----" %></td>
-        <% else %>
-            <td class="border border-slate-300"><%= @product.materialcode %></td>
-        <% end %>
- 
-        <% if @product.documentname=="" || @product.documentname==nil  %>
-            <td class="border border-slate-300"><%= "----" %></td>
-        <% else %>
-            <td class="border border-slate-300"><%= @product.documentname %></td>
-        <% end %>
-
-        <% if @product.description=="" || @product.description==nil  %>
-            <td class="border border-slate-300"><%= "----" %></td>
-        <% else %>
-            <td class="border border-slate-300"><%= @product.description %></td>
-        <% end %>
+        <td class="border border-slate-300"><%= product_field(@product.partnumber) %></td>
+        <td class="border border-slate-300"><%= product_field(@product.materialcode) %></td>
+        <td class="border border-slate-300"><%= product_field(@product.documentname) %></td>
+        <td class="border border-slate-300"><%= product_field(@product.description) %></td>
         
         <td class="border border-slate-300"><%= @dropdownlist[@product.category.to_i] %></td>
         <td class="border border-slate-300"><%= @dropdownlist[@product.phase.to_i] %></td>
@@ -57,23 +38,9 @@
         https://qiita.com/jnchito/items/831654253fb8a958ec25
         -->
 
-        <% if @product.start_time==nil %>
-              <td class="border border-slate-300"><%= "------"  %></td>
-        <% else %>
-              <td class="border border-slate-300"><%= @product.start_time.strftime('%y/%m/%d')  %></td>
-        <% end %>
-
-        <% if @product.deadline_at==nil %>
-              <td class="border border-slate-300"><%= "------"  %></td>
-        <% else %>
-              <td class="border border-slate-300"><%= @product.deadline_at.strftime('%y/%m/%d')  %></td>
-        <% end %>
-
-        <% if @product.end_at==nil %>
-              <td class="border border-slate-300"><%= "------"  %></td>
-        <% else %>
-              <td class="border border-slate-300"><%= @product.end_at.strftime('%y/%m/%d')  %></td>
-        <% end %>
+        <td class="border border-slate-300"><%= product_date(@product.start_time) %></td>
+        <td class="border border-slate-300"><%= product_date(@product.deadline_at) %></td>
+        <td class="border border-slate-300"><%= product_date(@product.end_at) %></td>
         
 
         <td class="border border-slate-300"><%= @product.goal_attainment_level %></td>

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>RLA (Self-Growth) History</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Outfit:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #020617;
+      --panel: rgba(15, 23, 42, 0.7);
+      --line: rgba(56, 189, 248, 0.2);
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --primary: #38bdf8;
+      --ok: #4ade80;
+      --warn: #fbbf24;
+    }
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      padding: 40px;
+    }
+    .header { margin-bottom: 30px; }
+    h1 { font-family: 'Outfit'; font-size: 2.5rem; margin-bottom: 10px; background: linear-gradient(135deg, #fff, var(--primary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    p { color: var(--muted); line-height: 1.6; }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 30px;
+      backdrop-filter: blur(10px);
+    }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { text-align: left; padding: 12px 15px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+    th { color: var(--muted); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+    td { font-size: 0.95rem; }
+    tbody tr:hover { background: rgba(56, 189, 248, 0.05); }
+    .score-high { color: var(--ok); font-weight: bold; }
+    .score-mid { color: var(--warn); }
+    .link-back { display: inline-block; padding: 10px 20px; border-radius: 8px; background: rgba(255,255,255,0.05); color: var(--text); text-decoration: none; border: 1px solid var(--line); margin-bottom: 20px; transition: 0.2s;}
+    .link-back:hover { background: rgba(56, 189, 248, 0.1); border-color: var(--primary); }
+    .files-list { font-size: 0.8rem; color: var(--muted); max-width: 400px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  </style>
+</head>
+<body>
+  <a href="../../portal.html" class="link-back">← Back to Portal</a>
+  
+  <div class="header">
+    <h1>RLA History</h1>
+    <p>Displays the reinforcement learning (self-growth) evaluation history. Evaluated sessions exceeding the dynamic threshold are promoted to approved skills.</p>
+  </div>
+
+  <div class="card">
+    <table id="rlaTable">
+      <thead>
+        <tr>
+          <th>Scored At</th>
+          <th>Total Score</th>
+          <th>Success / Fail</th>
+          <th>Run ID</th>
+          <th>Changes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td colspan="5" style="text-align:center; color: var(--muted);">Loading logs...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    async function loadLogs() {
+      try {
+        const response = await fetch('../../rl_anything/score_log.jsonl');
+        if (!response.ok) throw new Error('Failed to load logs');
+        
+        const text = await response.text();
+        const lines = text.trim().split('\n');
+        
+        const tbody = document.querySelector('#rlaTable tbody');
+        tbody.innerHTML = '';
+        
+        // Reverse slightly to show newest first if it's appending ordered
+        const parsed = lines.map(line => JSON.parse(line)).reverse();
+        
+        for (const entry of parsed) {
+          const date = new Date(entry.scored_at).toLocaleString();
+          let scoreClass = '';
+          if (entry.total_score >= 1000) scoreClass = 'score-high';
+          else if (entry.total_score >= 100) scoreClass = 'score-mid';
+          
+          let failClass = entry.fail_count > 0 ? 'style="color: var(--bad);"' : '';
+          
+          const files = entry.files_changed && entry.files_changed.length > 0 
+              ? `<div class="files-list" title="${entry.files_changed.join(', ')}">${entry.files_changed.length} files changed</div>` 
+              : '<span class="files-list">No files</span>';
+
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${date}</td>
+            <td class="${scoreClass}">${entry.total_score}</td>
+            <td><span style="color:var(--ok)">${entry.success_count}</span> / <span ${failClass}>${entry.fail_count}</span></td>
+            <td style="font-family:monospace; font-size:0.85em; color:var(--muted)">${entry.run_id}</td>
+            <td>${files}</td>
+          `;
+          tbody.appendChild(tr);
+        }
+      } catch (err) {
+        document.querySelector('#rlaTable tbody').innerHTML = `<tr><td colspan="5" style="color: #ff8c7b;">Error loading memory log: ${err.message}</td></tr>`;
+      }
+    }
+    
+    document.addEventListener('DOMContentLoaded', loadLogs);
+  </script>
+</body>
+</html>

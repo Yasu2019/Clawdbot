@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>順送金型 設計ハブ</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<header>
+  <span style="font-size:2em">🔩</span>
+  <div>
+    <h1>順送金型 設計ハブ</h1>
+    <div class="subtitle">Progressive Die Design — DXF/STEP → ストリップレイアウト → FEM 解析 → 設計報告書</div>
+  </div>
+</header>
+
+<!-- ステップナビゲーション -->
+<nav class="steps">
+  <button class="step-btn active" id="step-1" onclick="gotoStep(1)">
+    <span class="badge">1</span>ファイルアップロード
+  </button>
+  <button class="step-btn" id="step-2" onclick="gotoStep(2)">
+    <span class="badge">2</span>材料・パラメータ
+  </button>
+  <button class="step-btn" id="step-3" onclick="gotoStep(3)">
+    <span class="badge">3</span>ストリップレイアウト
+  </button>
+  <button class="step-btn" id="step-4" onclick="gotoStep(4)">
+    <span class="badge">4</span>FEM 解析
+  </button>
+  <button class="step-btn" id="step-5" onclick="gotoStep(5)">
+    <span class="badge">5</span>設計報告書
+  </button>
+  <button class="step-btn" id="step-6" onclick="gotoStep(6)" style="border-left:2px solid var(--accent);margin-left:8px">
+    <span class="badge" style="background:var(--accent)">⚡</span>INP → RAD 変換
+  </button>
+  <button class="step-btn" id="step-7" onclick="gotoStep(7)" style="border-left:2px solid #4ecdc4;margin-left:8px">
+    <span class="badge" style="background:#4ecdc4">📊</span>ANIM → VTK
+  </button>
+</nav>
+
+<main>
+
+<!-- ══════════════════ Step 1: ファイルアップロード ══════════════════ -->
+<div class="tab-content active" id="tab-1">
+  <div class="panel">
+    <h2>① 部品ファイルのアップロード</h2>
+    <p style="color:var(--muted);font-size:.88em;margin-bottom:16px">
+      2D 部品図（DXF）または 3D モデル（STEP/STP）をアップロードしてください。<br>
+      外形・穴・曲げ線を自動抽出します。
+    </p>
+    <div class="upload-zone" id="upload-zone">
+      <div class="icon">📂</div>
+      <div style="color:var(--accent);font-weight:bold;margin-bottom:6px">
+        ファイルをドラッグ＆ドロップ
+      </div>
+      <p>または クリックして選択</p>
+      <p style="margin-top:8px">対応形式: <strong>.dxf</strong> / <strong>.stp</strong> / <strong>.step</strong></p>
+    </div>
+    <input type="file" id="file-input" accept=".dxf,.stp,.step">
+    <div id="upload-msg" style="margin-top:10px"></div>
+  </div>
+
+  <div class="panel hidden" id="geom-result">
+    <h2>解析結果</h2>
+    <div id="geom-info"></div>
+    <div class="btn-group" style="margin-top:14px">
+      <button class="btn btn-primary" id="btn-to-step2">次へ: 材料・パラメータ設定 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ Step 2: 材料・パラメータ ══════════════════ -->
+<div class="tab-content" id="tab-2">
+  <div class="panel">
+    <h2>② 材料・板厚・曲げ条件の設定</h2>
+
+    <div class="form-grid">
+      <div class="field">
+        <label>材料</label>
+        <select id="mat-select"></select>
+      </div>
+      <div class="field">
+        <label>板厚 (t)</label>
+        <input type="number" id="thickness" value="1.0" min="0.1" max="20" step="0.1">
+        <div class="unit">mm</div>
+      </div>
+      <div class="field">
+        <label>内側曲げ半径 (r)</label>
+        <input type="number" id="bend-radius" value="1.0" min="0" max="50" step="0.5">
+        <div class="unit">mm（推奨: t × 1.0 以上）</div>
+      </div>
+      <div class="field">
+        <label>曲げ角度</label>
+        <input type="number" id="bend-angle" value="90" min="1" max="180" step="1">
+        <div class="unit">度</div>
+      </div>
+      <div class="field">
+        <label>ストリップ幅マージン</label>
+        <input type="number" id="strip-margin" value="1.6" min="1.2" max="3.0" step="0.1">
+        <div class="unit">× 部品高さ</div>
+      </div>
+    </div>
+
+    <!-- 材料特性表示 -->
+    <div style="margin-top:16px;padding:12px;background:#1a1a3a;border-radius:6px;
+                display:flex;gap:20px;flex-wrap:wrap;font-size:.85em">
+      <span id="mat-E"  style="color:#81d4fa"></span>
+      <span id="mat-sy" style="color:#a5d6a7"></span>
+      <span id="mat-uts" style="color:#ffcc80"></span>
+      <span id="mat-kf" style="color:#ce93d8"></span>
+    </div>
+
+    <div class="btn-group">
+      <button class="btn btn-ghost" onclick="gotoStep(1)">← 戻る</button>
+      <button class="btn btn-primary" id="btn-to-step3" onclick="gotoStep(3)">次へ: ストリップレイアウト生成 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ Step 3: ストリップレイアウト ══════════════════ -->
+<div class="tab-content" id="tab-3">
+  <div class="panel">
+    <h2>③ ストリップレイアウト生成</h2>
+    <p style="color:var(--muted);font-size:.88em;margin-bottom:14px">
+      工程設計・ブランク展開・ピッチ計算・打ち抜き力を自動算出します。
+    </p>
+    <div class="btn-group">
+      <button class="btn btn-primary" id="btn-layout">ストリップレイアウト生成</button>
+      <button class="btn btn-ghost" onclick="gotoStep(2)">← パラメータ変更</button>
+    </div>
+    <div id="layout-msg" style="margin-top:10px"></div>
+  </div>
+
+  <div class="panel hidden" id="layout-result">
+    <h2>レイアウト結果</h2>
+    <div id="layout-summary"></div>
+    <div class="svg-container" id="svg-container"></div>
+    <h2 style="margin-top:16px">工程詳細</h2>
+    <div id="station-table"></div>
+    <div class="btn-group" style="margin-top:14px">
+      <button class="btn btn-primary" id="btn-to-step4" onclick="gotoStep(4)">次へ: FEM 解析 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ Step 4: FEM 解析 ══════════════════ -->
+<div class="tab-content" id="tab-4">
+  <div class="panel">
+    <h2>④ FEM 解析入力デッキ生成</h2>
+
+    <div class="msg msg-info" style="margin-bottom:14px">
+      <strong>OpenRadioss</strong>（打ち抜き・曲げ）と <strong>CalculiX</strong>（パンチ・ダイ強度）の
+      入力ファイルを生成します。<br>
+      ソルバーを実行するには対応コンテナが起動している必要があります。
+    </div>
+
+    <div class="btn-group">
+      <button class="btn btn-primary" id="btn-fem">FEM 入力デッキ生成</button>
+      <button class="btn btn-ghost" onclick="gotoStep(3)">← レイアウトに戻る</button>
+    </div>
+    <div id="fem-msg" style="margin-top:10px"></div>
+  </div>
+
+  <div class="panel hidden" id="fem-result">
+
+    <!-- OpenRadioss -->
+    <h2>OpenRadioss — 打ち抜き・曲げ解析</h2>
+    <div id="radioss-info"></div>
+    <div class="btn-group">
+      <button class="btn btn-warn" id="btn-run-radioss">▶ OpenRadioss 実行</button>
+    </div>
+    <div class="msg msg-info" style="margin-top:8px;font-size:.84em">
+      ※ コンテナ未起動の場合は自動起動を試みます（初回は時間がかかる場合があります）
+    </div>
+    <div class="hidden" id="radioss-run-result"></div>
+
+    <!-- CalculiX -->
+    <h2 style="margin-top:20px">CalculiX — パンチ・ダイ強度</h2>
+    <div id="calculix-info"></div>
+    <div class="btn-group">
+      <button class="btn btn-warn" id="btn-run-ccx">▶ CalculiX 実行</button>
+    </div>
+    <div class="msg msg-info" style="margin-top:8px;font-size:.84em">
+      ※ Antigravity コンテナ（CalculiX 内蔵）が必要です
+    </div>
+    <div class="hidden" id="ccx-run-result"></div>
+
+    <!-- ファイルダウンロード -->
+    <h2 style="margin-top:20px">入力ファイルダウンロード</h2>
+    <div id="fem-files"></div>
+
+    <div class="btn-group" style="margin-top:16px">
+      <button class="btn btn-primary" onclick="gotoStep(5)">次へ: 報告書生成 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ Step 5: 設計報告書 ══════════════════ -->
+<div class="tab-content" id="tab-5">
+  <div class="panel">
+    <h2>⑤ 設計報告書</h2>
+    <p style="color:var(--muted);font-size:.88em;margin-bottom:14px">
+      全ステップの結果をまとめた HTML 報告書を生成します。
+    </p>
+    <div class="btn-group">
+      <button class="btn btn-primary" id="btn-report">報告書生成</button>
+      <a class="btn btn-success hidden" id="btn-dl-report"
+         download="progressive_die_report.html">⬇ 報告書ダウンロード</a>
+    </div>
+    <div id="report-msg" style="margin-top:10px"></div>
+  </div>
+
+  <div class="panel hidden" id="report-preview">
+    <h2>プレビュー</h2>
+    <iframe class="report-frame" id="report-frame" title="設計報告書"></iframe>
+  </div>
+</div>
+
+<!-- ══════════════════ Step 6: INP → RAD 変換 ══════════════════ -->
+<div class="tab-content" id="tab-6">
+  <div class="panel">
+    <h2>⚡ Prepomax INP → OpenRadioss RAD 変換</h2>
+    <p style="color:var(--muted);font-size:.88em;margin-bottom:16px">
+      PrepomaxからExportした <strong>.inp</strong> ファイルをアップロードすると、
+      OpenRadioss用の <strong>_0000.rad</strong>（スターター）と
+      <strong>_0001.rad</strong>（エンジン）を自動生成します。<br>
+      対応: C3D4要素 / MM_TON_S_C単位系 / 接触 TYPE25 / 弾性(LAW1)・弾塑性(LAW2)
+    </p>
+
+    <div class="upload-zone" id="inp-upload-zone">
+      <div class="icon" id="inp-upload-icon">📄</div>
+      <div style="color:var(--accent);font-weight:bold;margin-bottom:6px">
+        .inp ファイルをドラッグ＆ドロップ
+      </div>
+      <p>または クリックして選択</p>
+      <p style="margin-top:8px">対応形式: <strong>.inp</strong>（Prepomax Export）</p>
+    </div>
+    <input type="file" id="inp-file-input" accept=".inp">
+
+    <div style="margin-top:12px">
+      <button class="btn btn-primary" id="btn-convert-inp" disabled
+              data-label="変換実行">変換実行</button>
+    </div>
+    <div id="inp-convert-msg" style="margin-top:10px"></div>
+  </div>
+
+  <div class="panel hidden" id="inp-result-panel">
+    <h2>変換結果</h2>
+    <div id="inp-result-info" style="margin-bottom:14px"></div>
+    <div class="btn-group" id="inp-download-btns"></div>
+    <div id="inp-warnings" style="margin-top:10px"></div>
+  </div>
+</div>
+
+<!-- ══════════════════ Step 7: ANIM → VTK 変換 ══════════════════ -->
+<div class="tab-content" id="tab-7">
+  <div class="panel">
+    <h2>📊 OpenRadioss ANIM → VTK 変換</h2>
+    <p style="color:var(--muted);font-size:.88em;margin-bottom:16px">
+      OpenRadioss が出力した <strong>ANIMファイル</strong>（例: A001〜A056）を
+      ParaView で開ける <strong>VTKファイル</strong> に変換します。<br>
+      変換後のファイルをダウンロードして ParaView で可視化してください。
+    </p>
+
+    <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:14px">
+      <div class="field" style="flex:1;min-width:220px">
+        <label>ANIMファイル プレフィックス</label>
+        <select id="anim-prefix-select" style="width:100%">
+          <option value="">-- スキャン中... --</option>
+        </select>
+      </div>
+      <button class="btn btn-ghost" id="btn-anim-scan" data-label="再スキャン">再スキャン</button>
+    </div>
+
+    <div id="anim-prefix-info" style="font-size:.84em;color:var(--muted);margin-bottom:14px"></div>
+
+    <div class="btn-group">
+      <button class="btn btn-primary" id="btn-anim-convert" disabled data-label="VTK変換実行">
+        VTK変換実行
+      </button>
+    </div>
+    <div id="anim-convert-msg" style="margin-top:10px"></div>
+  </div>
+
+  <div class="panel hidden" id="anim-result-panel">
+    <h2>変換結果</h2>
+    <div id="anim-result-info" style="margin-bottom:14px"></div>
+    <div id="anim-stdout-box" style="margin-bottom:14px"></div>
+    <h3>ダウンロード</h3>
+    <div id="anim-download-list"></div>
+    <div class="msg msg-info" style="margin-top:14px;font-size:.85em">
+      ダウンロードしたファイルを ParaView で開いてください。<br>
+      複数ファイルある場合は <strong>.pvd</strong> ファイルをParaViewで開くとアニメーション再生できます。
+    </div>
+  </div>
+
+  <div class="panel" id="vtk-jobs-panel">
+    <h2>🗂 生成済み VTK ジョブ管理</h2>
+    <div style="display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap">
+      <button class="btn btn-ghost btn-sm" id="btn-vtk-jobs-refresh" data-label="再読み込み" onclick="loadVtkJobs()">再読み込み</button>
+      <button class="btn btn-sm" id="btn-vtk-jobs-delete-all"
+              style="background:#c0392b;color:#fff;border:none;padding:6px 14px;border-radius:4px;cursor:pointer"
+              onclick="deleteAllVtkJobs()">🗑 一括削除</button>
+    </div>
+    <div id="vtk-jobs-msg" style="margin-bottom:10px"></div>
+    <div id="vtk-jobs-list">
+      <div style="color:var(--muted);font-size:.88em">読み込み中...</div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<footer>
+  Progressive Die Hub v1.0 — Clawstack / OpenRadioss / CalculiX
+</footer>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

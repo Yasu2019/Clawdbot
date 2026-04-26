@@ -1,0 +1,24 @@
+﻿# Homepage / Portal 用サービスカード例
+# 既存 services.yaml に手動マージしてください。丸ごと上書き禁止。
+
+- IoT Circuit Lab:
+    - LTspice:
+        href: file:///C:/Users/Public/Documents/LTspice
+        description: アナログ回路・センサー入力・保護回路の検証
+        icon: mdi-sine-wave
+    - LTspice Templates:
+        href: file:///D:/Clawdbot_Docker_20260125/clawstack_v2/addons/iot_circuit_lab/ltspice/templates
+        description: センサー/ADC/RC/リレー保護テンプレート
+        icon: mdi-folder-cog
+    - Wokwi ESP32 ADC:
+        href: https://wokwi.com/projects/new/esp32
+        description: ESP32 ADC + MQTT 試作
+        icon: mdi-chip
+    - Node-RED:
+        href: http://127.0.0.1:1880
+        description: MQTT受信・異常判定・運用フロー
+        icon: node-red
+    - MQTT Watch:
+        href: http://127.0.0.1:1880/#flow/tab_wokwi_adc
+        description: Wokwi/LTspice replay telemetry
+        icon: mdi-access-point-network

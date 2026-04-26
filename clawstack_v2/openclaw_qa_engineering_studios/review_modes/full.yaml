@@ -1,0 +1,14 @@
+mode: full
+checks:
+  sql_readonly: true
+  secret_leak: true
+  port_conflict: true
+  portal_duplicate: true
+  iatf_evidence: true
+  vba_destructive: true
+  act_updated: true
+policy:
+  fail_on_sql_write: true
+  fail_on_secret: true
+  warn_on_iatf_evidence_gap: true
+  warn_on_vba_destructive: true

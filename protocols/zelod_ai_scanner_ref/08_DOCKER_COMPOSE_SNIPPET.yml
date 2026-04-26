@@ -1,0 +1,21 @@
+﻿version: "3.9"
+
+services:
+  ai_redteam_runner:
+    image: python:3.11-slim
+    container_name: ai_redteam_runner
+    working_dir: /work
+    command: ["bash", "-lc", "python runner.py"]
+    volumes:
+      - ./ai_redteam:/work
+    environment:
+      TARGET_BASE_URL: "http://host.docker.internal:18789"
+      TARGET_API_KEY: "${TARGET_API_KEY:-}"
+      REPORT_DIR: "/work/reports"
+    restart: "no"
+    networks:
+      - default
+
+# 注意:
+# - 実在ツール仕様に合わせた image / command / env は必ず一次情報確認後に修正すること
+# - 既存 compose と merge する場合、container_name, paths, env を衝突確認すること

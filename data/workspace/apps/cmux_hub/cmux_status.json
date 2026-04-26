@@ -1,0 +1,38 @@
+{
+  "generatedAt": "2026-04-10T18:46:30.136681+09:00",
+  "runtime": {
+    "mode": null,
+    "roles": {},
+    "task_routes": {}
+  },
+  "openclaw": {
+    "primary": null,
+    "primary_installed": false,
+    "fallbacks": [],
+    "registered_local_models": []
+  },
+  "telegram": {
+    "reply_model": null,
+    "reply_model_installed": false,
+    "state": null,
+    "pid": null,
+    "updatedAt": null,
+    "lastChatId": null
+  },
+  "ollama": {
+    "models": [],
+    "count": 0
+  },
+  "recentActivity": {
+    "files_scanned": 0,
+    "ollama_errors": 0,
+    "fallback_provider_calls": 0,
+    "providers_seen": [],
+    "models_seen": [],
+    "latest_error": null
+  },
+  "statusSummary": {
+    "fallback_mode": "not_observed_recently",
+    "ollama_health": "ok"
+  }
+}

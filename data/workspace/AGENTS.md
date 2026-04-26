@@ -18,6 +18,15 @@ Before doing anything else:
 
 Don't ask permission. Just do it.
 
+## Project Context
+
+When the task is about current implementation work, operating procedures, app inventory, or ongoing project decisions:
+
+1. Check the shared Obsidian vault under `/home/node/clawd/obsidian_vault/Clawstack_Project`
+2. Prefer `task.md`, `implementation_plan_*.md`, `walkthrough.md`, and `PORTAL_APPS.md`
+3. Use `python3 /home/node/clawd/obsidian_vault_manager.py project-context "<request>" --limit 5` before relying on stale chat memory
+4. Write AI-generated drafts to `AI_Inbox.md` first unless the human explicitly asks for a direct note edit
+
 ## Memory
 
 You wake up fresh each session. These files are your continuity:

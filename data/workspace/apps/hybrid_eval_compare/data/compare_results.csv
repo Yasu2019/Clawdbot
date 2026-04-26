@@ -1,0 +1,6 @@
+﻿"case_no","date","prompt_file","ollama_model","foundry","elapsed_sec","ollama_chars","foundry_chars","run_dir","error"
+"1","2026-04-17","filled_01_短文即答.txt","Ollama/qwen3:8b","Foundry/qwen2.5-0.5b-instruct-openvino-gpu:2","17.22","45","26","tmp\hybrid_eval\20260417_043037",""
+"2","2026-04-17","filled_02_長文要約.txt","Ollama/qwen3:8b","Foundry/qwen2.5-0.5b-instruct-openvino-gpu:2","81.63","210","52","tmp\hybrid_eval\20260417_043054",""
+"3","2026-04-17","filled_03_コード補助.txt","Ollama/qwen3:8b","Foundry/qwen2.5-0.5b-instruct-openvino-gpu:2","61.51","176","47","tmp\hybrid_eval\20260417_043216",""
+"4","2026-04-17","filled_04_業務文書生成.txt","Ollama/qwen3:8b","Foundry/qwen2.5-0.5b-instruct-openvino-gpu:2","78.69","198","182","tmp\hybrid_eval\20260417_043318",""
+"5","2026-04-17","filled_05_QA業務向け.txt","Ollama/qwen3:8b","Foundry/qwen2.5-0.5b-instruct-openvino-gpu:2","86.67","167","230","tmp\hybrid_eval\20260417_043436",""

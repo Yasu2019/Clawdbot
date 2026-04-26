@@ -1,0 +1,14 @@
+* Sensor input RC filter template
+Vsig sig 0 PULSE(0 10 0 10u 10u 20m 40m)
+Rsource sig node1 200
+Rfilter node1 adc 4.7k
+Cfilter adc 0 0.1u
+Radc adc 0 1Meg
+.tran 10u 100m
+.meas tran adc_max MAX v(adc)
+.meas tran adc_final FIND v(adc) AT=100m
+.control
+run
+wrdata sensor_input_filter.csv time v(sig) v(adc)
+.endc
+.end

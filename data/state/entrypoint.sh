@@ -7,10 +7,26 @@ mkdir -p /home/node/.openclaw/devices
 # Always reset pending (incomplete pairings are stale after restart)
 echo "{}" > /home/node/.openclaw/devices/pending.json
 
-# Auto-update openclaw to latest version (ensures compatibility with current config)
-echo "[entrypoint] Updating openclaw to latest version..."
-npm install -g openclaw 2>&1 | tail -3
-echo "[entrypoint] openclaw version: $(openclaw --version 2>/dev/null || echo 'unknown')"
+# AUTO-UPDATE openclaw to latest on every startup
+export PATH=$PATH:/usr/local/bin:/home/node/.npm-global/bin
+INSTALLED_VER=$(openclaw --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+LATEST_VER=$(npm show openclaw version 2>/dev/null | tr -d '[:space:]')
+if [ -z "$INSTALLED_VER" ] || [ "$INSTALLED_VER" != "$LATEST_VER" ]; then
+    echo "[entrypoint] Updating openclaw: $INSTALLED_VER -> $LATEST_VER"
+    npm install -g openclaw@latest 2>&1 | tail -3
+else
+    echo "[entrypoint] openclaw $INSTALLED_VER is up to date"
+fi
+
+# Wrapper function for openclaw to handle both binary and npx
+openclaw() {
+    if command -v openclaw &> /dev/null && [ "$(command -v openclaw)" != "openclaw" ]; then
+        command openclaw "$@"
+    else
+        npx -y openclaw "$@"
+    fi
+}
+export -f openclaw
 
 # Install Chromium shared library dependencies if not already present
 # Required for Playwright Chromium (headless browser for agent)
@@ -34,7 +50,7 @@ chmod +x /home/node/.openclaw/auto_approve.sh
 pip3 install --quiet --break-system-packages openpyxl xlrd python-docx 2>/dev/null || true
 
 # Start ingest watchdog (Paperless API → Qdrant universal_knowledge)
-# n8n supervisor will restart it every 5 min if it dies; this starts it on container boot
+# Host-side paperless_rag_watchdog will restart it if it dies; this starts it on container boot
 if python3 -c "import fitz, requests" 2>/dev/null; then
     nohup python3 /home/node/clawd/ingest_watchdog.py >> /home/node/clawd/ingest_watchdog.log 2>&1 &
     echo "[entrypoint] Ingest watchdog started (PID $!)"
@@ -55,6 +71,36 @@ else
     echo "[entrypoint] Warning: mcp or requests not available — clawstack MCP server not started"
 fi
 
+# Start summary cache builder (generates LLM summaries for email tasks in background)
+# Pauses when Ollama is busy, resumes when idle — no API consumption
+nohup python3 /home/node/clawd/summary_cache_builder.py >> /home/node/clawd/summary_cache_builder.log 2>&1 &
+echo "[entrypoint] Summary cache builder started (PID $!)"
+
+# Start inbox upload API (port 8099 — Portal inbox_uploader app)
+nohup python3 /home/node/clawd/inbox_upload_api.py > /dev/null 2>&1 &
+echo "[entrypoint] Inbox upload API started on port 8099 (PID $!)"
+
+# Start RAG queue processor (rag_queue/ → Docling/PyMuPDF → Infinity embed → Qdrant)
+nohup python3 /home/node/clawd/rag_queue_processor.py > /dev/null 2>&1 &
+echo "[entrypoint] RAG queue processor started (PID $!)"
+
+# Start inbox watcher (folder-drop → OpenClaw judgment → Telegram notification)
+# Phase 1: observes OpenClaw judgment on dropped files; no automated actions yet
+nohup python3 /home/node/clawd/inbox_watcher.py > /dev/null 2>&1 &
+echo "[entrypoint] Inbox watcher started (PID $!)"
+
 # Start the gateway with local proxy for Ollama (strips tools to fix 400 error)
 node /home/node/.openclaw/ollama_proxy.js &
+
+# Ensure we can run openclaw even if global install failed
+if [[ "$1" == "openclaw" ]]; then
+    shift
+    if command -v openclaw &> /dev/null; then
+        exec openclaw "$@"
+    else
+        echo "[entrypoint] WARNING: openclaw binary not found. Using npx fallback."
+        exec npx -y openclaw "$@"
+    fi
+fi
+
 exec "$@"

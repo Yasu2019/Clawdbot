@@ -1,0 +1,15 @@
+* Thermistor divider simplified template
+* Replace Rntc value by temperature-dependent model as needed.
+
+Vref vref 0 3.3
+Rpullup vref adc 10k
+Rntc adc 0 10k
+Cadc adc 0 100n
+
+.op
+.tran 0 1 0 1m
+.control
+run
+wrdata thermistor_divider_output.csv time v(adc)
+.endc
+.end

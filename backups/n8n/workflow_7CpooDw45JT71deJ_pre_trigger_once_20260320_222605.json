@@ -1,0 +1,344 @@
+{
+  "updatedAt": "2026-03-20T13:25:00.055Z",
+  "createdAt": "2026-03-20T13:24:15.141Z",
+  "id": "7CpooDw45JT71deJ",
+  "name": "Daily Trend Opportunity Report (20:30 JST)",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "id": "node-schedule",
+      "name": "Daily 20:30 JST",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "30 20 * * *"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "node-fetch",
+      "name": "Fetch Trend Report",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        240,
+        0
+      ],
+      "parameters": {
+        "command": "python3 /workspace/fetch_trend_opportunity_report.py"
+      }
+    },
+    {
+      "id": "node-format",
+      "name": "Format Trend Report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        500,
+        0
+      ],
+      "parameters": {
+        "jsCode": "const raw = ($input.first().json.stdout || '').trim();\nlet parsed = {};\ntry {\n  parsed = raw ? JSON.parse(raw) : {};\n} catch (error) {\n  parsed = { message: 'トレンド日報のJSON解析に失敗しました。\\n\\n' + raw };\n}\nconst msg = String(parsed.message || 'トレンド日報の本文が空です。');\nconst truncated = msg.length > 3800 ? msg.slice(0, 3800) + '\\n...(省略)' : msg;\nreturn [{ json: { text: truncated } }];"
+      }
+    },
+    {
+      "id": "node-telegram",
+      "name": "Telegram Notify",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        760,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.telegram.org/bot8085717200:AAHzacN6Q3xSunrLyvUTuHnKEf7Cd5YFdt4/sendMessage",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "chat_id",
+              "value": "8173025084"
+            },
+            {
+              "name": "text",
+              "value": "={{ $json.text }}"
+            }
+          ]
+        },
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "Daily 20:30 JST": {
+      "main": [
+        [
+          {
+            "node": "Fetch Trend Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Trend Report": {
+      "main": [
+        [
+          {
+            "node": "Format Trend Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Trend Report": {
+      "main": [
+        [
+          {
+            "node": "Telegram Notify",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "timezone": "Asia/Tokyo",
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": {
+    "node:Daily 20:30 JST": {
+      "recurrenceRules": []
+    }
+  },
+  "meta": null,
+  "pinData": null,
+  "versionId": "5e964209-721d-425a-b397-bd8a05314175",
+  "activeVersionId": "5e964209-721d-425a-b397-bd8a05314175",
+  "versionCounter": 10,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-03-20T13:24:15.157Z",
+      "createdAt": "2026-03-20T13:24:15.157Z",
+      "role": "workflow:owner",
+      "workflowId": "7CpooDw45JT71deJ",
+      "projectId": "9U7rI3bmgXpsJ71S",
+      "project": {
+        "updatedAt": "2026-03-13T14:28:41.239Z",
+        "createdAt": "2026-02-07T05:28:19.729Z",
+        "id": "9U7rI3bmgXpsJ71S",
+        "name": "yasuhiro suzuki <y.suzuki.hk@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "291ff157-9849-45a3-8560-b87bb49ab833",
+        "projectRelations": [
+          {
+            "updatedAt": "2026-02-07T05:28:19.730Z",
+            "createdAt": "2026-02-07T05:28:19.730Z",
+            "userId": "291ff157-9849-45a3-8560-b87bb49ab833",
+            "projectId": "9U7rI3bmgXpsJ71S",
+            "user": {
+              "updatedAt": "2026-03-19T15:01:01.000Z",
+              "createdAt": "2026-02-07T05:28:19.229Z",
+              "id": "291ff157-9849-45a3-8560-b87bb49ab833",
+              "email": "y.suzuki.hk@gmail.com",
+              "firstName": "yasuhiro",
+              "lastName": "suzuki",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2026-02-24T23:12:30.310Z",
+                "personalization_survey_n8n_version": "2.6.4",
+                "automationGoalDevops": [
+                  "reporting"
+                ],
+                "companyIndustryExtended": [
+                  "manufacturing-industry"
+                ],
+                "companySize": "100-499",
+                "companyType": "other",
+                "role": "engineering",
+                "reportedSource": "google"
+              },
+              "settings": {
+                "userActivated": true,
+                "firstSuccessfulWorkflowId": "jVGXe2GEIz6RN7Z0",
+                "userActivatedAt": 1772595011158
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-03-19",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-03-20T13:24:15.178Z",
+    "createdAt": "2026-03-20T13:24:15.178Z",
+    "versionId": "5e964209-721d-425a-b397-bd8a05314175",
+    "workflowId": "7CpooDw45JT71deJ",
+    "nodes": [
+      {
+        "id": "node-schedule",
+        "name": "Daily 20:30 JST",
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.2,
+        "position": [
+          0,
+          0
+        ],
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "cronExpression",
+                "expression": "30 20 * * *"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "node-fetch",
+        "name": "Fetch Trend Report",
+        "type": "n8n-nodes-base.executeCommand",
+        "typeVersion": 1,
+        "position": [
+          240,
+          0
+        ],
+        "parameters": {
+          "command": "python3 /workspace/fetch_trend_opportunity_report.py"
+        }
+      },
+      {
+        "id": "node-format",
+        "name": "Format Trend Report",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          500,
+          0
+        ],
+        "parameters": {
+          "jsCode": "const raw = ($input.first().json.stdout || '').trim();\nlet parsed = {};\ntry {\n  parsed = raw ? JSON.parse(raw) : {};\n} catch (error) {\n  parsed = { message: 'トレンド日報のJSON解析に失敗しました。\\n\\n' + raw };\n}\nconst msg = String(parsed.message || 'トレンド日報の本文が空です。');\nconst truncated = msg.length > 3800 ? msg.slice(0, 3800) + '\\n...(省略)' : msg;\nreturn [{ json: { text: truncated } }];"
+        }
+      },
+      {
+        "id": "node-telegram",
+        "name": "Telegram Notify",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          760,
+          0
+        ],
+        "parameters": {
+          "method": "POST",
+          "url": "https://api.telegram.org/bot8085717200:AAHzacN6Q3xSunrLyvUTuHnKEf7Cd5YFdt4/sendMessage",
+          "sendBody": true,
+          "bodyParameters": {
+            "parameters": [
+              {
+                "name": "chat_id",
+                "value": "8173025084"
+              },
+              {
+                "name": "text",
+                "value": "={{ $json.text }}"
+              }
+            ]
+          },
+          "options": {}
+        }
+      }
+    ],
+    "connections": {
+      "Daily 20:30 JST": {
+        "main": [
+          [
+            {
+              "node": "Fetch Trend Report",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Fetch Trend Report": {
+        "main": [
+          [
+            {
+              "node": "Format Trend Report",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Format Trend Report": {
+        "main": [
+          [
+            {
+              "node": "Telegram Notify",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "yasuhiro suzuki",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-03-20T13:24:43.247Z",
+        "id": 178,
+        "workflowId": "7CpooDw45JT71deJ",
+        "versionId": "5e964209-721d-425a-b397-bd8a05314175",
+        "event": "activated",
+        "userId": "291ff157-9849-45a3-8560-b87bb49ab833"
+      },
+      {
+        "createdAt": "2026-03-20T13:25:00.183Z",
+        "id": 179,
+        "workflowId": "7CpooDw45JT71deJ",
+        "versionId": "5e964209-721d-425a-b397-bd8a05314175",
+        "event": "activated",
+        "userId": "291ff157-9849-45a3-8560-b87bb49ab833"
+      },
+      {
+        "createdAt": "2026-03-20T13:25:00.295Z",
+        "id": 180,
+        "workflowId": "7CpooDw45JT71deJ",
+        "versionId": "5e964209-721d-425a-b397-bd8a05314175",
+        "event": "activated",
+        "userId": "291ff157-9849-45a3-8560-b87bb49ab833"
+      }
+    ]
+  }
+}

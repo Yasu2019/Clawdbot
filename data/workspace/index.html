@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ja">
 
 <head>
@@ -54,14 +54,81 @@
             margin: 0;
         }
 
+        .header-note {
+            max-width: 880px;
+            margin: 14px auto 0;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .start-strip {
+            width: min(1680px, calc(100% - 56px));
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 14px;
+            margin: 0 0 28px;
+        }
+
+        .start-pill {
+            display: block;
+            padding: 16px 18px;
+            border-radius: 16px;
+            text-decoration: none;
+            color: var(--text-main);
+            background: rgba(15, 23, 42, 0.72);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(12px);
+            box-shadow: 0 10px 24px rgba(2, 6, 23, 0.22);
+        }
+
+        .start-pill:hover {
+            border-color: rgba(56, 189, 248, 0.35);
+            transform: translateY(-2px);
+            transition: all 0.2s ease;
+        }
+
+        .start-pill strong {
+            display: block;
+            font-size: 0.95rem;
+            margin-bottom: 4px;
+        }
+
+        .start-pill span {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            line-height: 1.45;
+        }
+
         .grid-container {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(clamp(220px, 18vw, 280px), 1fr));
             gap: 24px;
             width: 100%;
-            max-width: 1200px;
-            padding: 0 40px 60px;
+            max-width: 1680px;
+            padding: 0 28px 60px;
             box-sizing: border-box;
+        }
+
+        @media (min-width: 1600px) {
+            .grid-container {
+                grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+                max-width: 1880px;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .grid-container {
+                grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+                padding: 0 20px 48px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .grid-container {
+                grid-template-columns: 1fr;
+                padding: 0 16px 40px;
+            }
         }
 
         .card {
@@ -77,6 +144,37 @@
             position: relative;
             overflow: hidden;
             backdrop-filter: blur(12px);
+        }
+
+        .card.featured {
+            border-color: rgba(56, 189, 248, 0.22);
+            box-shadow: 0 12px 30px rgba(14, 165, 233, 0.12);
+        }
+
+        .card.featured .card-title::after {
+            content: 'Recommended';
+            display: inline-block;
+            margin-left: 10px;
+            padding: 2px 8px;
+            border-radius: 999px;
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            vertical-align: middle;
+            background: rgba(56, 189, 248, 0.16);
+            color: #7dd3fc;
+        }
+
+        .card-role {
+            display: inline-flex;
+            align-self: flex-start;
+            margin: 8px 0 14px;
+            padding: 5px 10px;
+            border-radius: 999px;
+            font-size: 0.76rem;
+            color: var(--text-muted);
+            background: rgba(148, 163, 184, 0.12);
+            border: 1px solid rgba(148, 163, 184, 0.14);
         }
 
         .card::before {
@@ -233,17 +331,72 @@
     <div class="header">
         <h1>Clawstack V2</h1>
         <p>Autonomous Engineering Master Portal</p>
+        <p class="header-note">このページは portal の補助ミラーです。迷ったら上の quick start を使い、正本の入口判断は `portal.html` と各 domain start page を優先します。</p>
+    </div>
+
+    <div class="start-strip">
+        <a href="portal.html" class="start-pill" target="_blank" rel="noopener">
+            <strong>Open Master Portal (portal.html)</strong>
+            <span>正本のランチャーに戻る入口です。迷ったらここから始めます。</span>
+        </a>
+        <a href="http://127.0.0.1:18789/overview?password=yasu-fresh-token-2026-02-01" class="start-pill" target="_blank" rel="noopener">
+            <strong>Start Here: OpenClaw Chat</strong>
+            <span>日常の相談、調査、実装依頼の起点です。</span>
+        </a>
+        <a href="apps/ingestion_rag_control_center/index.html" class="start-pill" target="_blank" rel="noopener">
+            <strong>Check Data Flow</strong>
+            <span>Gmail、Paperless、Learning、RAG の健康状態を最初に確認します。</span>
+        </a>
+        <a href="apps/operations_toolbox/index.html" class="start-pill" target="_blank" rel="noopener">
+            <strong>Maintenance Hub</strong>
+            <span>修復、監視、cleanup、プロトコル類が必要なときだけここへ入ります。</span>
+        </a>
     </div>
 
     <div class="grid-container">
 
+        <!-- Cmux Hub -->
+        <a href="./apps/cmux_hub/" class="card" target="_blank" rel="noopener">
+            <span class="card-icon">🧠</span>
+            <h2 class="card-title">Cmux Hub</h2>
+            <p class="card-desc">Reference orchestration map for agent roles, protocol boundaries, and local-first coordination. Use this to understand architecture, not as the daily operator start page.</p>
+            <div class="card-meta">
+                <span class="port-badge">Protocol Hub</span>
+                <span class="status-indicator"><span class="status-dot"></span>Integrated</span>
+            </div>
+        </a>
+
+        <!-- Email Search -->
+        <a href="./apps/email_search/" class="card" target="_blank" rel="noopener">
+            <span class="card-icon">🔍</span>
+            <h2 class="card-title">メール全文検索</h2>
+            <p class="card-desc">Gmail DB に保存された本文、依頼事項、期日、返信状況を深掘り検索する詳細画面です。まず全体状態を見たいときは Control Center を使います。</p>
+            <p class="card-desc">2019年から現在までの EML / Gmail を FTS 検索でき、個別メールの確認や依頼追跡に向いています。</p>
+            <div class="card-meta">
+                <span class="port-badge">Port 8792 API</span>
+                <span class="status-indicator"><span class="status-dot"></span>Ready</span>
+            </div>
+        </a>
+
+        <!-- Email Blacklist Hub -->
+        <a href="./apps/email_blacklist_hub/" class="card" target="_blank" rel="noopener">
+            <span class="card-icon">✉️</span>
+            <h2 class="card-title">Email Blacklist Hub</h2>
+            <p class="card-desc">Gmail で頻出する送信者やドメイン候補を一覧化し、チェック操作で Email RAG の blacklist に追加できます。</p>
+            <div class="card-meta">
+                <span class="port-badge">Port 8791 API</span>
+                <span class="status-indicator"><span class="status-dot"></span>Integrated</span>
+            </div>
+        </a>
+
         <!-- OpenClaw Chat -->
-        <a href="http://127.0.0.1:18789/overview?password=yasu-fresh-token-2026-02-01" class="card" target="_blank"
+        <a href="http://127.0.0.1:18789/overview?password=yasu-fresh-token-2026-02-01" class="card featured" target="_blank"
             rel="noopener">
             <img class="card-icon-img"
                 src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@main/png/openclaw.png"
                 onerror="this.outerHTML='<span class=card-icon>🤖</span>'" alt="OpenClaw">
             <h2 class="card-title">OpenClaw Chat (AI)</h2>
+            <span class="card-role">Main Work Surface</span>
             <p class="card-desc">Main conversational interface. Chat with your personal AGI agent, initiate tasks, and
                 monitor system progress.</p>
             <div class="card-meta">
@@ -293,13 +446,24 @@
             </div>
         </a>
 
-        <!-- AI Observability Hub (AIエンジニアリングハーネス可視化) -->
-        <a href="apps/observability_hub/index.html" class="card" target="_blank" rel="noopener">
-            <span class="card-icon">🔭</span>
-            <h2 class="card-title">AI Observability Hub</h2>
-            <p class="card-desc">AIエンジニアリングハーネス可視化。Langfuse トレース・KPI（Fallback率/ハーネス遮断/Self-Heal率）をリアルタイム監視。</p>
+        <!-- Mobile Dev Assistant -->
+        <a href="./apps/mobile_dev/" class="card" target="_blank" rel="noopener">
+            <span class="card-icon">📱</span>
+            <h2 class="card-title">Mobile Dev Assistant</h2>
+            <p class="card-desc">Flutter / React Native / iOS / Android の開発支援 AI です。コード生成、アーキテクチャ相談、ストア申請ガイド、単価試算まで対応します。</p>
             <div class="card-meta">
-                <span class="port-badge">Local App</span>
+                <span class="port-badge">Ollama:11434</span>
+                <span class="status-indicator"><span class="status-dot"></span>Ready</span>
+            </div>
+        </a>
+
+        <!-- 3D Converter -->
+        <a href="http://localhost:8090" class="card" target="_blank" rel="noopener">
+            <span class="card-icon">🧊</span>
+            <h2 class="card-title">3D Converter</h2>
+            <p class="card-desc">DXF→STEP/STL、モデル→3D HTML、モデル→3D PDF の変換ツールです。Quality Dashboard の 3D Converter から利用できます。</p>
+            <div class="card-meta">
+                <span class="port-badge">Port: 8090</span>
                 <span class="status-indicator"><span class="status-dot"></span>Ready</span>
             </div>
         </a>
@@ -392,6 +556,20 @@
             </div>
         </a>
 
+        <!-- Prepomax → ParaView Pipeline -->
+        <a href="http://localhost:8004" class="card" target="_blank" rel="noopener">
+            <span class="card-icon">🔩</span>
+            <h2 class="card-title">順送金型 FEM 解析ハブ</h2>
+            <span class="card-role">CAE / OpenRadioss / ParaView</span>
+            <p class="card-desc">Prepomax INP → OpenRadioss RAD 変換・解析実行・ANIM → VTK 変換まで一貫対応。
+                ダウンロードした VTK を ParaView で即座に可視化できます。
+                ストリップレイアウト生成・CalculiX パンチ強度解析・設計報告書も内包。</p>
+            <div class="card-meta">
+                <span class="port-badge">Port 8004</span>
+                <span class="status-indicator"><span class="status-dot"></span>Progressive Die Hub</span>
+            </div>
+        </a>
+
         <!-- Stable Diffusion -->
         <a href="http://localhost:7861" class="card" target="_blank" rel="noopener">
             <img class="card-icon-img"
@@ -421,7 +599,7 @@
         </a>
 
         <!-- SearXNG -->
-        <a href="http://localhost:8086" class="card" target="_blank" rel="noopener">
+        <a href="http://localhost:8081" class="card" target="_blank" rel="noopener">
             <img class="card-icon-img"
                 src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@main/png/searxng.png"
                 onerror="this.outerHTML='<span class=card-icon>🔍</span>'" alt="SearXNG">
@@ -429,7 +607,7 @@
             <p class="card-desc">Privacy-respecting metasearch engine proxy. Powers the internet retrieval for your AI
                 agents.</p>
             <div class="card-meta">
-                <span class="port-badge">Port 8086</span>
+                <span class="port-badge">Port 8081</span>
                 <span class="status-indicator"><span class="status-dot"></span>Online</span>
             </div>
         </a>
@@ -449,14 +627,14 @@
         </a>
 
         <!-- Dify AI Workflow (V3) -->
-        <a href="http://localhost:80" class="card" target="_blank" rel="noopener">
+        <a href="http://localhost:8092" class="card" target="_blank" rel="noopener">
             <img class="card-icon-img" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@main/png/dify.png"
                 onerror="this.outerHTML='<span class=card-icon>🧩</span>'" alt="Dify">
             <h2 class="card-title">Dify Workflow Engine</h2>
             <p class="card-desc">Advanced RAG & AI workflow orchestration. Create complex agents with visual logic and
                 local model integration.</p>
             <div class="card-meta">
-                <span class="port-badge">Port 80</span>
+                <span class="port-badge">Port 8092</span>
                 <span class="status-indicator"><span class="status-dot"></span>V3 Core</span>
             </div>
         </a>
@@ -474,17 +652,16 @@
             </div>
         </a>
 
-        <!-- DXF to STEP (Layer Split) -->
-        <a href="http://localhost:8002/" class="card" target="_blank" rel="noopener">
+        <!-- DXF to 3D -->
+        <a href="http://localhost:8003/" class="card" target="_blank" rel="noopener">
             <img class="card-icon-img"
                 src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@main/png/freecad.png"
-                onerror="this.outerHTML='<span class=card-icon>🧊</span>'" alt="DXF to STEP">
-            <h2 class="card-title">DXF → STEP (Layer Split)</h2>
-            <p class="card-desc">Assembly DXF preprocessing and solid extrusion. Generates STEP files per layer using
-                FreeCAD engine.</p>
+                onerror="this.outerHTML='<span class=card-icon>🧊</span>'" alt="DXF to 3D">
+            <h2 class="card-title">DXF → 3D Model</h2>
+            <p class="card-desc">2D DXF を 3D STL / STEP に変換します。多数の形状テスト、面数・体積・BBox・Watertight 検証を内蔵したローカル処理です。</p>
             <div class="card-meta">
-                <span class="port-badge">Port 8002</span>
-                <span class="status-indicator"><span class="status-dot"></span>GUI Ready</span>
+                <span class="port-badge">Port 8003</span>
+                <span class="status-indicator"><span class="status-dot"></span>Running</span>
             </div>
         </a>
 
@@ -492,7 +669,7 @@
         <a href="http://localhost:3100" class="card" target="_blank" rel="noopener">
             <span class="card-icon">🎮</span>
             <h2 class="card-title">MiniGame Factory</h2>
-            <p class="card-desc">SpecJSONからHTML5ゲーム＆Android APKを自動生成。Godot Builder + Single-HTML Builder搭載。</p>
+            <p class="card-desc">SpecJSON から HTML5 ゲームと Android APK を自動生成します。Godot Builder と Single-HTML Builder を搭載しています。</p>
             <div class="card-meta">
                 <span class="port-badge">Port 3100 / 8100</span>
                 <span class="status-indicator"><span class="status-dot"></span>External</span>
@@ -503,7 +680,7 @@
         <a href="http://localhost:7870" class="card" target="_blank" rel="noopener">
             <span class="card-icon">🏭</span>
             <h2 class="card-title">WorkStudy AI</h2>
-            <p class="card-desc">Therbligs + MOST互換 動作分析。骨格推定、自動セグメント、無駄/NVA定量化、姿勢負荷、PDF/Excel出力。</p>
+            <p class="card-desc">Therbligs と MOST に対応した動作分析アプリです。骨格推定、自動セグメント、NVA 定量化、姿勢負荷評価、PDF / Excel 出力に対応します。</p>
             <div class="card-meta">
                 <span class="port-badge">Port 7870</span>
                 <span class="status-indicator"><span class="status-dot"></span>External</span>
@@ -514,11 +691,43 @@
         <a href="ingest_dashboard.html" class="card" target="_blank">
             <span class="card-icon">📚</span>
             <h2 class="card-title">Knowledge Ingestion</h2>
-            <p class="card-desc">Real-time status monitor for the VLM/LLM document parsing pipeline. Watch PDF and Email
-                extraction progress.</p>
+            <p class="card-desc">Detailed pipeline monitor for PDF and email extraction progress. Use this after the Control Center when you need parser-stage visibility rather than a general first-stop overview.</p>
             <div class="card-meta">
                 <span class="port-badge">Local File</span>
                 <span class="status-indicator status-pending"><span class="status-dot"></span>Active</span>
+            </div>
+        </a>
+
+        <!-- Learning Memory -->
+        <a href="apps/learning_memory/index.html" class="card" target="_blank" rel="noopener">
+            <span class="card-icon">🧠</span>
+            <h2 class="card-title">Learning Memory</h2>
+            <p class="card-desc">Detailed investigation console for learning memory, learning sync, Gmail ingest range, and cross-domain comparisons after narrowing the overall issue in the Control Center.</p>
+            <div class="card-meta">
+                <span class="port-badge">Port 8110 / Local App</span>
+                <span class="status-indicator"><span class="status-dot"></span>Prototype</span>
+            </div>
+        </a>
+
+        <!-- Local LLM / OSS Scout -->
+        <a href="apps/local_llm_oss_scout/index.html" class="card" target="_blank" rel="noopener">
+            <span class="card-icon">🛰️</span>
+            <h2 class="card-title">Local LLM / OSS Scout</h2>
+            <p class="card-desc">ローカル LLM と OSS 仕事効率化アプリの新着を、公開 RSS / 公開ページ / GitHub Releases だけで日次確認します。API を消費しない軽量専門版です。</p>
+            <div class="card-meta">
+                <span class="port-badge">Daily 06:40 JST</span>
+                <span class="status-indicator"><span class="status-dot"></span>No API</span>
+            </div>
+        </a>
+
+        <!-- PDCA Lab -->
+        <a href="apps/pdca_lab/index.html" class="card" target="_blank" rel="noopener">
+            <span class="card-icon">PL</span>
+            <h2 class="card-title">PDCA Lab</h2>
+            <p class="card-desc">Phase 1 feedback loop hub for prompt registry, review queue, score snapshots, promotion audit, and rollback visibility. Built as a thin layer over Portal, Langfuse, and n8n.</p>
+            <div class="card-meta">
+                <span class="port-badge">Local App / Langfuse / n8n</span>
+                <span class="status-indicator"><span class="status-dot"></span>Phase 1</span>
             </div>
         </a>
 
@@ -528,24 +737,10 @@
                 src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@main/png/paperless-ngx.png"
                 onerror="this.outerHTML='<span class=card-icon>📄</span>'" alt="Paperless NGX">
             <h2 class="card-title">Paperless NGX</h2>
-            <p class="card-desc">Document Management System. Raw PDF/Scanning inbox and OCR engine for storing
-                unstructured files.</p>
+            <p class="card-desc">Raw document inbox and OCR store for unstructured files. Use this when you need the original scanned files and ingestion source, not a cross-system overview.</p>
             <div class="card-meta">
                 <span class="port-badge">Port: 8000</span>
                 <span class="status-indicator"><span class="status-dot"></span>Online</span>
-            </div>
-        </a>
-
-        <!-- OpenNotebook Backup Repo -->
-        <a href="file:///D:/Clawdbot_Docker_20260125/data/state/OpenNotebook_Backup" class="card" target="_blank"
-            rel="noopener">
-            <span class="card-icon">📓</span>
-            <h2 class="card-title">OpenNotebook Backups</h2>
-            <p class="card-desc">Local directory storing the consolidated AI knowledge baselines (Markdown) generated
-                from PDF ingestion.</p>
-            <div class="card-meta">
-                <span class="port-badge">Local Directory</span>
-                <span class="status-indicator"><span class="status-dot"></span>Ready</span>
             </div>
         </a>
 
@@ -563,6 +758,17 @@
             </div>
         </a>
 
+        <!-- Open Notebook to Obsidian -->
+        <a href="apps/open_notebook_obsidian/index.html" class="card" target="_blank" rel="noopener">
+            <span class="card-icon">📓</span>
+            <h2 class="card-title">Open Notebook → Obsidian</h2>
+            <p class="card-desc">Open Notebook を AI 読書室、Obsidian を長期知識ベースとして使い分ける運用ハブです。要約を安全に AI_Inbox や研究サマリへ昇格できます。</p>
+            <div class="card-meta">
+                <span class="port-badge">Workflow / Bridge</span>
+                <span class="status-indicator"><span class="status-dot"></span>Integrated</span>
+            </div>
+        </a>
+
         <!-- Obsidian App Launcher -->
         <a href="obsidian://open?path=D:%5CClawdbot_Docker_20260125%5Cdata%5Cstate%5CObsidian%20Vault" class="card">
             <img class="card-icon-img"
@@ -577,15 +783,76 @@
             </div>
         </a>
 
-        <!-- IATF System (Ruby on Rails) -->
-        <a href="http://localhost:3000" class="card" target="_blank" rel="noopener">
+        <!-- System Role Map -->
+        <a href="apps/system_role_map/index.html" class="card" target="_blank" rel="noopener">
+            <span class="card-icon">🧭</span>
+            <h2 class="card-title">System Role Map</h2>
+            <p class="card-desc">Architecture and cleanup map for deciding what stays canonical, what should merge, and what should move to reference. Use this for planning, not as the daily first entry point.</p>
+            <div class="card-meta">
+                <span class="port-badge">Architecture</span>
+                <span class="status-indicator"><span class="status-dot"></span>Integrated</span>
+            </div>
+        </a>
+
+        <!-- Ingestion / RAG Control Center -->
+        <a href="apps/ingestion_rag_control_center/index.html" class="card featured" target="_blank" rel="noopener">
+            <span class="card-icon">🗂️</span>
+            <h2 class="card-title">Ingestion / RAG Control Center</h2>
+            <span class="card-role">System Health</span>
+            <p class="card-desc">Primary entry point for checking the overall state of Gmail ingest, Paperless, learning sync, RAG, and DB surfaces before jumping into a more specific detail page.</p>
+            <div class="card-meta">
+                <span class="port-badge">Unified Hub</span>
+                <span class="status-indicator"><span class="status-dot"></span>Integrated</span>
+            </div>
+        </a>
+
+        <!-- Hybrid Eval Compare (Ollama vs Foundry) -->
+        <a href="apps/hybrid_eval_compare/index.html" class="card" target="_blank" rel="noopener">
+            <span class="card-icon">⚖️</span>
+            <h2 class="card-title">Hybrid Eval Compare</h2>
+            <span class="card-role">Model Comparison / Read-only</span>
+            <p class="card-desc">同一プロンプトを Ollama（主系）と Foundry Local（比較系）で実行し、結果・所要時間・差分を一覧/並列で確認するページです（スナップショット表示）。</p>
+            <div class="card-meta">
+                <span class="port-badge">Local File</span>
+                <span class="status-indicator"><span class="status-dot"></span>Snapshot</span>
+            </div>
+        </a>
+
+        <!-- Operations Toolbox -->
+        <a href="apps/operations_toolbox/index.html" class="card" target="_blank" rel="noopener">
+            <span class="card-icon">🧰</span>
+            <h2 class="card-title">Operations Toolbox</h2>
+            <span class="card-role">Ops / Maintenance</span>
+            <p class="card-desc">Maintenance-only hub for repair, cleanup, harness monitoring, backup, and protocol utilities. Open this when you are doing system upkeep, not when you are starting normal daily work.</p>
+            <div class="card-meta">
+                <span class="port-badge">Ops / Maintenance</span>
+                <span class="status-indicator"><span class="status-dot"></span>Integrated</span>
+            </div>
+        </a>
+
+        <!-- IATF System (Ruby on Rails) - 開発環境 -->
+        <a href="http://localhost:3000/users/sign_in" class="card host-aware-link" data-port="3000" data-path="/users/sign_in" rel="noopener">
             <img class="card-icon-img"
                 src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@main/png/ruby-on-rails.png"
                 onerror="this.outerHTML='<span class=card-icon>🛤️</span>'" alt="IATF Rails">
-            <h2 class="card-title">IATF System (Rails)</h2>
-            <p class="card-desc">Ruby on Rails core system for IATF 16949 compliance and quality document control.</p>
+            <h2 class="card-title">IATF System (Rails) 開発</h2>
+            <p class="card-desc">Ruby on Rails の開発環境です。まずログイン画面を開きます。</p>
             <div class="card-meta">
                 <span class="port-badge">Port: 3000</span>
+                <span class="status-indicator"><span class="status-dot"></span>Online</span>
+            </div>
+        </a>
+
+        <!-- IATF System (Ruby on Rails) - 本番環境 -->
+        <a href="http://localhost:3004/users/sign_in" class="card featured host-aware-link" data-port="3004" data-path="/users/sign_in" rel="noopener">
+            <img class="card-icon-img"
+                src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@main/png/ruby-on-rails.png"
+                onerror="this.outerHTML='<span class=card-icon>🛤️</span>'" alt="IATF Rails Production">
+            <h2 class="card-title">IATF System (Rails) 本番</h2>
+            <span class="card-role">Business DB / Production</span>
+            <p class="card-desc">Ruby on Rails の本番環境です。現在は Windows 側 reverse proxy 経由で、この PC では `http://localhost:3004/users/sign_in` から開けます。</p>
+            <div class="card-meta">
+                <span class="port-badge">Port: 3004</span>
                 <span class="status-indicator"><span class="status-dot"></span>Online</span>
             </div>
         </a>
@@ -603,7 +870,7 @@
 
         <!-- OpenFOAM (CFD) -->
         <a href="#" class="card"
-            onclick="alert('【OpenFOAM (CFD)】\n\nOpenFOAMは内部のAntigravityコンテナ内で稼働する「完全Headless (GUI無し)」の流体解析ソルバーです。\n通常はClawdbotがPython経由で自動計算するか、FreeCAD / Blenderの連携アドオンを通じてビジュアル操作を行います。'); return false;">
+            onclick="alert('【OpenFOAM (CFD)】\\n\\nOpenFOAM は内部の Antigravity コンテナ内で動作する完全 Headless の流体解析ソルバーです。\\n通常は Clawdbot が Python 経由で自動計算するか、FreeCAD / Blender 連携アドオン経由で操作します。'); return false;">
             <span class="card-icon">💨</span>
             <h2 class="card-title">OpenFOAM (CFD)</h2>
             <p class="card-desc">Headless fluid dynamics solver. Integrated with Python scripts and FreeCAD/Blender
@@ -616,7 +883,7 @@
 
         <!-- Impact (Dynamics) -->
         <a href="#" class="card"
-            onclick="alert('【Impact (Dynamics)】\n\nJavaベースの動的有限要素法ソルバーです。\n一部専用のシンプルなJava GUIを持ちますが、複雑なモデルは他のソフトで作成してCLIからバッチ処理するのが基本です。'); return false;">
+            onclick="alert('【Impact (Dynamics)】\\n\\nJava ベースの動的有限要素法ソルバーです。\\n一部シンプルな Java GUI を持ちますが、複雑なモデルは他ソフトで作成して CLI からバッチ処理する使い方が基本です。'); return false;">
             <span class="card-icon">🔨</span>
             <h2 class="card-title">Impact (Dynamics)</h2>
             <p class="card-desc">Explicit finite element solver in Java. Optimized for batch processing of dynamic
@@ -629,7 +896,7 @@
 
         <!-- CalculiX (FEA) -->
         <a href="#" class="card"
-            onclick="alert('【CalculiX (FEA)】\n\nCalculiX自体はCUIソルバーですが、FreeCADの「FEM Workbench」に標準統合されており、FreeCAD起動後に直感的なGUI操作で実行することが可能です。'); return false;">
+            onclick="alert('【CalculiX (FEA)】\\n\\nCalculiX 自体は CUI ソルバーですが、FreeCAD の FEM Workbench に標準統合されており、FreeCAD 起動後に GUI 操作で実行できます。'); return false;">
             <span class="card-icon">🧮</span>
             <h2 class="card-title">CalculiX (FEA)</h2>
             <p class="card-desc">FEA solver integrated within FreeCAD. Perform structural analysis via the FEM Workbench
@@ -642,7 +909,7 @@
 
         <!-- PrePoMax -->
         <a href="#" class="card"
-            onclick="alert('【PrePoMax】\n\nPrePoMaxはCalculiXに特化した、非常に使いやすいWindows専用のネイティブGUIソフトです。\nブラウザからは起動できないため、Windowsのスタートメニューから直接アプリを立ち上げてください！'); return false;">
+            onclick="alert('【PrePoMax】\\n\\nPrePoMax は CalculiX に特化した使いやすい Windows 専用ネイティブ GUI です。\\nブラウザからは起動できないため、Windows のスタートメニューから直接起動してください。'); return false;">
             <span class="card-icon">📐</span>
             <h2 class="card-title">PrePoMax</h2>
             <p class="card-desc">Windows-native GUI for CalculiX. User-friendly interface for advanced FEA
@@ -653,198 +920,53 @@
             </div>
         </a>
 
-        <!-- Uptime Kuma -->
-        <a href="http://localhost:3010" class="card" target="_blank">
-            <img class="card-icon-img" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@main/png/uptime-kuma.png"
-                onerror="this.outerHTML='<span class=card-icon>📡</span>'" alt="Uptime Kuma">
-            <h2 class="card-title">Uptime Kuma</h2>
-            <p class="card-desc">全サービスの死活監視・応答時間グラフ・ダウン時アラート通知。初回アクセス時にアカウント作成。</p>
+        <!-- Wire Harness Viewer -->
+        <a href="harness/index.html" class="card" target="_blank" rel="noopener">
+            <span class="card-icon">📊</span>
+            <h2 class="card-title">Wire Harness Viewer</h2>
+            <p class="card-desc">View WireViz-generated harness diagrams in browser. Drag &amp; drop PNG output from
+                /work/harness/. Includes wire gauge calculator, voltage drop analysis, and FMEA failure mode
+                library (ISO 6722 / IATF).</p>
             <div class="card-meta">
-                <span class="port-badge">Port 3010</span>
-                <span class="status-indicator"><span class="status-dot"></span>Running</span>
+                <span class="port-badge">Port 8088 / Static</span>
+                <span class="status-indicator"><span class="status-dot"></span>Ready</span>
             </div>
         </a>
 
-        <!-- Grafana -->
-        <a href="http://localhost:3012" class="card" target="_blank">
-            <img class="card-icon-img" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@main/png/grafana.png"
-                onerror="this.outerHTML='<span class=card-icon>📈</span>'" alt="Grafana">
-            <h2 class="card-title">Grafana</h2>
-            <p class="card-desc">LiteLLM・Qdrant・Ollamaのメトリクスをリアルタイム可視化。ダッシュボードでLLMコスト・負荷を把握。(admin / clawstack2026)</p>
+        <!-- DXF to FCStd -->
+        <a href="apps/dxf_fcstd_protocol/index.html" class="card" target="_blank" rel="noopener">
+            <span class="card-icon">DX</span>
+            <h2 class="card-title">DXF to FCStd Hub</h2>
+            <p class="card-desc">Portal entry for the DXF to FCStd protocol pack. Reuses the existing DXF to STEP FreeCAD pipeline and maps the path to FCStd-first feature generation.</p>
             <div class="card-meta">
-                <span class="port-badge">Port 3012</span>
-                <span class="status-indicator"><span class="status-dot"></span>Running</span>
+                <span class="port-badge">Existing DXF App + Protocol</span>
+                <span class="status-indicator"><span class="status-dot"></span>Integrated</span>
             </div>
         </a>
 
-        <!-- Prometheus -->
-        <a href="http://localhost:9090" class="card" target="_blank">
-            <img class="card-icon-img" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@main/png/prometheus.png"
-                onerror="this.outerHTML='<span class=card-icon>🔥</span>'" alt="Prometheus">
-            <h2 class="card-title">Prometheus</h2>
-            <p class="card-desc">メトリクス収集エンジン。LiteLLM・Qdrant・Ollamaのデータを30日間保持。Grafanaのデータソース。</p>
+        <!-- QMS Audit -->
+        <a href="apps/qms_audit/index.html" class="card" target="_blank" rel="noopener">
+            <span class="card-icon">QA</span>
+            <h2 class="card-title">QMS Audit Hub</h2>
+            <p class="card-desc">Portal launcher for the QMS Audit protocol bundle. Connects existing IATF and audit assets with a staged rule-based integration path.</p>
             <div class="card-meta">
-                <span class="port-badge">Port 9090</span>
-                <span class="status-indicator"><span class="status-dot"></span>Running</span>
+                <span class="port-badge">QMS / IATF / Audit</span>
+                <span class="status-indicator"><span class="status-dot"></span>Integrated</span>
             </div>
         </a>
 
-        <!-- NocoDB -->
-        <a href="http://localhost:8093" class="card" target="_blank">
-            <img class="card-icon-img" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@main/png/nocodb.png"
-                onerror="this.outerHTML='<span class=card-icon>🗄️</span>'" alt="NocoDB">
-            <h2 class="card-title">NocoDB</h2>
-            <p class="card-desc">SQLite・PostgreSQLをスプレッドシート感覚で閲覧・編集。メール解析DBやシステムDBをGUI操作。</p>
+        <!-- GD&T Overlay Studio -->
+        <a href="apps/gdt_overlay_studio/index.html" class="card" target="_blank" rel="noopener">
+            <span class="card-icon">GD</span>
+            <h2 class="card-title">GD&amp;T Overlay Studio</h2>
+            <p class="card-desc">3D model and DXF/PDF drawing workbench for overlaying datum systems and geometric tolerance zones on a browser-based 3D viewer. Includes packed HTML import for ChatGPT-generated GD&amp;T prototypes.</p>
             <div class="card-meta">
-                <span class="port-badge">Port 8093</span>
-                <span class="status-indicator"><span class="status-dot"></span>Running</span>
-            </div>
-        </a>
-
-        <!-- Crawl4AI -->
-        <a href="http://localhost:8094" class="card" target="_blank">
-            <img class="card-icon-img" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@main/png/chromium.png"
-                onerror="this.outerHTML='<span class=card-icon>🕷️</span>'" alt="Crawl4AI">
-            <h2 class="card-title">Crawl4AI</h2>
-            <p class="card-desc">AI最適化Webスクレイピング。WebページをMarkdown変換してRAGデータ収集。エージェントが自律的に利用。</p>
-            <div class="card-meta">
-                <span class="port-badge">Port 8094</span>
-                <span class="status-indicator"><span class="status-dot"></span>Running</span>
-            </div>
-        </a>
-
-        <!-- Mailpit -->
-        <a href="http://localhost:8025" class="card" target="_blank">
-            <img class="card-icon-img" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@main/png/mailpit.png"
-                onerror="this.outerHTML='<span class=card-icon>📬</span>'" alt="Mailpit">
-            <h2 class="card-title">Mailpit</h2>
-            <p class="card-desc">SMTPメールテスト受信ボックス。n8nやアプリからの送信メールをキャプチャして確認。SMTP: localhost:1025</p>
-            <div class="card-meta">
-                <span class="port-badge">Port 8025</span>
-                <span class="status-indicator"><span class="status-dot"></span>Running</span>
-            </div>
-        </a>
-
-        <!-- Dozzle -->
-        <a href="http://localhost:8096" class="card" target="_blank">
-            <img class="card-icon-img" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@main/png/dozzle.png"
-                onerror="this.outerHTML='<span class=card-icon>📋</span>'" alt="Dozzle">
-            <h2 class="card-title">Dozzle</h2>
-            <p class="card-desc">全Dockerコンテナのログをブラウザでリアルタイム確認。docker logsコマンド不要で障害調査が快速に。</p>
-            <div class="card-meta">
-                <span class="port-badge">Port 8096</span>
-                <span class="status-indicator"><span class="status-dot"></span>Running</span>
-            </div>
-        </a>
-
-        <!-- Portainer -->
-        <a href="http://localhost:9002" class="card" target="_blank">
-            <img class="card-icon-img" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@main/png/portainer.png"
-                onerror="this.outerHTML='<span class=card-icon>🐳</span>'" alt="Portainer">
-            <h2 class="card-title">Portainer CE</h2>
-            <p class="card-desc">コンテナの起動・停止・再起動・ログ確認をGUIで操作。40以上のコンテナを一元管理。</p>
-            <div class="card-meta">
-                <span class="port-badge">Port 9002</span>
-                <span class="status-indicator"><span class="status-dot"></span>Running</span>
-            </div>
-        </a>
-
-        <!-- Metabase -->
-        <a href="http://localhost:3014" class="card" target="_blank">
-            <img class="card-icon-img" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@main/png/metabase.png"
-                onerror="this.outerHTML='<span class=card-icon>📊</span>'" alt="Metabase">
-            <h2 class="card-title">Metabase</h2>
-            <p class="card-desc">メール解析DB・PostgreSQLをグラフ・集計で自動可視化。品質管理データのBIダッシュボード。</p>
-            <div class="card-meta">
-                <span class="port-badge">Port 3014</span>
-                <span class="status-indicator"><span class="status-dot"></span>Running</span>
-            </div>
-        </a>
-
-        <!-- LibreTranslate -->
-        <a href="http://localhost:5100" class="card" target="_blank">
-            <img class="card-icon-img" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@main/png/libretranslate.png"
-                onerror="this.outerHTML='<span class=card-icon>🌐</span>'" alt="LibreTranslate">
-            <h2 class="card-title">LibreTranslate</h2>
-            <p class="card-desc">完全オフラインの日本語↔英語翻訳API。メール解析・Paperless文書処理に活用。クラウド不要。</p>
-            <div class="card-meta">
-                <span class="port-badge">Port 5100</span>
-                <span class="status-indicator"><span class="status-dot"></span>Running</span>
-            </div>
-        </a>
-
-        <!-- IT-Tools -->
-        <a href="http://localhost:8097" class="card" target="_blank">
-            <img class="card-icon-img" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@main/png/it-tools.png"
-                onerror="this.outerHTML='<span class=card-icon>🔧</span>'" alt="IT-Tools">
-            <h2 class="card-title">IT-Tools</h2>
-            <p class="card-desc">Base64・JWT・正規表現・色変換・YAML→JSONなど40以上の開発ユーティリティをブラウザで即使用。</p>
-            <div class="card-meta">
-                <span class="port-badge">Port 8097</span>
-                <span class="status-indicator"><span class="status-dot"></span>Running</span>
-            </div>
-        </a>
-
-        <!-- Outline -->
-        <a href="http://localhost:3015" class="card" target="_blank">
-            <img class="card-icon-img" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@main/png/outline.png"
-                onerror="this.outerHTML='<span class=card-icon>📝</span>'" alt="Outline">
-            <h2 class="card-title">Outline Wiki</h2>
-            <p class="card-desc">チームナレッジベース・手順書・ノウハウを構造化管理。メール登録→Mailpitで認証。Notionライクなエディタ。</p>
-            <div class="card-meta">
-                <span class="port-badge">Port 3015</span>
-                <span class="status-indicator"><span class="status-dot"></span>Running</span>
-            </div>
-        </a>
-
-        <!-- Whishper -->
-        <a href="http://localhost:8098" class="card" target="_blank">
-            <img class="card-icon-img" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@main/png/whisper.png"
-                onerror="this.outerHTML='<span class=card-icon>🎤</span>'" alt="Whishper">
-            <h2 class="card-title">Whishper</h2>
-            <p class="card-desc">音声・会議録音ファイルをアップロードしてテキスト化。LibreTranslate連携で日本語翻訳も可能。</p>
-            <div class="card-meta">
-                <span class="port-badge">Port 8098</span>
-                <span class="status-indicator"><span class="status-dot"></span>Running</span>
-            </div>
-        </a>
-
-        <!-- Excalidraw -->
-        <a href="http://localhost:3013" class="card" target="_blank">
-            <img class="card-icon-img" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@main/png/excalidraw.png"
-                onerror="this.outerHTML='<span class=card-icon>✏️</span>'" alt="Excalidraw">
-            <h2 class="card-title">Excalidraw</h2>
-            <p class="card-desc">ブラウザで動くホワイトボード。システム構成図・フローチャート・手書きメモをオフラインで作成・共有。</p>
-            <div class="card-meta">
-                <span class="port-badge">Port 3013</span>
-                <span class="status-indicator"><span class="status-dot"></span>Running</span>
-            </div>
-        </a>
-
-        <!-- Langfuse -->
-        <a href="http://localhost:3001" class="card" target="_blank">
-            <img class="card-icon-img" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@main/png/langfuse.png"
-                onerror="this.outerHTML='<span class=card-icon>🔭</span>'" alt="Langfuse">
-            <h2 class="card-title">Langfuse (LLM観測)</h2>
-            <p class="card-desc">LLMトレース・コスト・レイテンシを可視化。OpenClawのAPI呼び出しをリアルタイム監視。初回: y.suzuki.hk@gmail.com / clawstack2026</p>
-            <div class="card-meta">
-                <span class="port-badge">Port 3001</span>
-                <span class="status-indicator"><span class="status-dot"></span>Running</span>
-            </div>
-        </a>
-
-        <!-- Docling -->
-        <a href="http://localhost:8087" class="card" target="_blank">
-            <img class="card-icon-img" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@main/png/docling.png"
-                onerror="this.outerHTML='<span class=card-icon>📑</span>'" alt="Docling">
-            <h2 class="card-title">Docling (PDF変換)</h2>
-            <p class="card-desc">PDF・DOCX・PPTXをMarkdown/JSONに高精度変換。表・図のレイアウト保持。Paperless→RAGパイプラインで自動利用。</p>
-            <div class="card-meta">
-                <span class="port-badge">Port 8087</span>
-                <span class="status-indicator"><span class="status-dot"></span>Running</span>
+                <span class="port-badge">3D + Drawing + GD&amp;T</span>
+                <span class="status-indicator"><span class="status-dot"></span>New</span>
             </div>
         </a>
     </div>
+    <script src="./portal_health.js"></script>
 </body>
 
 </html>

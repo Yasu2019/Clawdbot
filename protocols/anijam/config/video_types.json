@@ -1,0 +1,24 @@
+{
+  "video_types": [
+    {
+      "id": "audit_drama",
+      "name": "IATF Internal Audit Drama",
+      "recommended_duration": "90-180s"
+    },
+    {
+      "id": "capa_story",
+      "name": "Corrective Action Story",
+      "recommended_duration": "60-150s"
+    },
+    {
+      "id": "defect_analysis",
+      "name": "Defect Analysis Story",
+      "recommended_duration": "60-180s"
+    },
+    {
+      "id": "work_instruction",
+      "name": "Work Instruction Animation",
+      "recommended_duration": "30-120s"
+    }
+  ]
+}

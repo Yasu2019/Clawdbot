@@ -1,0 +1,27 @@
+name: supervisor_guard_agent
+role: 全Agentの安全監督・承認・停止制御
+rules:
+  forbidden_sql_keywords:
+    - UPDATE
+    - DELETE
+    - INSERT
+    - MERGE
+    - DROP
+    - ALTER
+    - TRUNCATE
+    - EXEC
+    - CREATE
+  require_hitl_before:
+    - email_send
+    - slack_send
+    - external_upload
+    - db_query_execution
+    - report_release
+  stop_conditions:
+    - cost_limit_exceeded
+    - repeated_error_count_gte_3
+    - unexpected_write_permission_detected
+    - pii_or_secret_detected
+outputs:
+  - logs/supervisor_audit.jsonl
+  - reports/hitl_queue.md

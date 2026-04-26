@@ -1,0 +1,5 @@
+# Add YouTube URLs here for nightly analysis
+https://www.youtube.com/watch?v=R9_3F5K9-70
+https://www.youtube.com/watch?v=I_cSKgiDYLo&list=PL0jjRo1CaNbaBzv1YPGZ0_UVlgKp3So98
+https://www.youtube.com/watch?v=x371auMgJbI&list=RDEMorKc_dX3AQLUKnnuNR2rBg
+https://www.youtube.com/watch?v=hN5MBlGv2Ac&list=RDEMiv_JSlG11xwE56XlW--NBg

@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Topview Video Agent for QA</title>
+  <style>
+    body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;margin:0;background:#f6f7f9;color:#1f2937}
+    header{background:#111827;color:white;padding:20px 28px}
+    main{max-width:1100px;margin:24px auto;padding:0 16px;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    section{background:white;border-radius:16px;padding:18px;box-shadow:0 6px 18px rgba(0,0,0,.08)}
+    label{display:block;margin-top:12px;font-weight:700}
+    input,select,textarea{width:100%;box-sizing:border-box;margin-top:6px;padding:10px;border:1px solid #d1d5db;border-radius:10px;font-size:14px}
+    textarea{min-height:110px}
+    button{margin-top:14px;padding:11px 16px;border:0;border-radius:12px;background:#2563eb;color:white;font-weight:700;cursor:pointer}
+    pre{white-space:pre-wrap;background:#0b1020;color:#e5e7eb;padding:14px;border-radius:12px;min-height:360px;overflow:auto}
+    .note{font-size:13px;color:#6b7280;line-height:1.6}
+    @media(max-width:800px){main{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Topview Video Agent for QA</h1>
+  <p>不良・監査指摘・作業標準を、Topview Agent V2向け動画プロンプトへ変換します。</p>
+</header>
+<main>
+  <section>
+    <h2>入力</h2>
+    <label>動画目的</label>
+    <select id="purpose">
+      <option>社内教育</option><option>注意喚起</option><option>内部監査説明</option><option>客先説明前の社内共有</option>
+    </select>
+    <label>対象者</label>
+    <select id="audience">
+      <option>現場作業者</option><option>検査員</option><option>管理者</option><option>新入社員</option>
+    </select>
+    <label>テーマ</label>
+    <input id="theme" value="プレス加工でのバリ発生原因候補と確認方法" />
+    <label>尺</label>
+    <select id="duration"><option>60秒</option><option>90秒</option><option>3分</option></select>
+    <label>元情報（機密は抽象化済みにしてください）</label>
+    <textarea id="source">現象：端面にバリ傾向。原因候補：金型刃先摩耗、クリアランス、材料状態、送りズレ。確認：初品・終品比較、拡大観察、金型点検。</textarea>
+    <button onclick="generatePrompt()">Topview用プロンプト生成</button>
+    <button onclick="copyPrompt()">コピー</button>
+    <p class="note">APIキーはこの画面に入力しません。Topview画面へ手動貼付、またはn8n/APIコネクタで使用してください。</p>
+  </section>
+  <section>
+    <h2>生成プロンプト</h2>
+    <pre id="out"></pre>
+  </section>
+</main>
+<script>
+function v(id){return document.getElementById(id).value.trim()}
+function generatePrompt(){
+  const prompt = `あなたは製造業QA教育動画の専門ディレクターです。以下の条件で、${v('duration')}の教育動画を作成してください。\n\n目的：${v('purpose')}\n対象者：${v('audience')}\nテーマ：${v('theme')}\n元情報：${v('source')}\n\nスタイル：日本の製造現場向け、清潔な工場、落ち着いたナレーション、分かりやすい図解、過度に派手すぎない演出。\n\n必須構成：\n1. 問題提起\n2. 現象の説明\n3. 原因候補の整理\n4. 現場での確認方法\n5. 暫定処置と再発防止\n6. まとめ\n\n制約：\n- 顧客名、品番、図番、個人名、ロット番号、未公開形状は出さない。\n- 原因未確定の事項は断定せず「可能性」「確認が必要」と表現する。\n- 危険作業を推奨しない。\n- 日本語字幕を短文で入れる。\n- 日本語ナレーションは明瞭でややゆっくり。\n\n出力：16:9、社内教育に使える完成動画。`;
+  document.getElementById('out').textContent = prompt;
+}
+async function copyPrompt(){
+  await navigator.clipboard.writeText(document.getElementById('out').textContent);
+  alert('コピーしました');
+}
+generatePrompt();
+</script>
+</body>
+</html>

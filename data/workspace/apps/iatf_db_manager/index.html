@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IATF Document Ingest Manager</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Outfit:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --bg: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --text: #f8fafc;
+            --accent: #818cf8;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 2rem;
+            min-height: 100vh;
+            background-image: radial-gradient(circle at top right, #1e1b4b, transparent),
+                              radial-gradient(circle at bottom left, #1e1b4b, transparent);
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(to right, #818cf8, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .file-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .file-item {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 1rem;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            display: grid;
+            grid-template-columns: 1fr auto auto auto;
+            align-items: center;
+            gap: 1.5rem;
+            transition: transform 0.2s, background 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .file-item.uncertain {
+            border-color: var(--warning);
+            background: rgba(245, 158, 11, 0.05);
+        }
+
+        .file-name {
+            font-weight: 500;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .confidence-tag {
+            font-size: 0.7rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 0.5rem;
+            text-transform: uppercase;
+        }
+
+        .high { background: rgba(16, 185, 129, 0.2); color: var(--success); }
+        .medium { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+        .low { background: rgba(245, 158, 11, 0.2); color: var(--warning); }
+        .none { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
+
+        select, input[type="text"] {
+            background: #334155;
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 0.5rem;
+            padding: 0.6rem;
+            font-size: 0.9rem;
+            outline: none;
+        }
+
+        button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 0.75rem;
+            padding: 0.6rem 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            white-space: nowrap;
+        }
+
+        button:hover {
+            background: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        button.secondary { background: rgba(255, 255, 255, 0.1); }
+        button.action { background: var(--success); }
+
+        .new-category-box {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px dashed rgba(255,255,255,0.1);
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            opacity: 0.5;
+        }
+
+        .controls {
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--success);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            display: none;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>IATF DB Manager</h1>
+            <p style="opacity: 0.7; margin-bottom: 2rem;">ドキュメントの自動取り込み・判定・整理</p>
+        </header>
+
+        <div class="controls">
+            <button onclick="scanFolder()">
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                フォルダをスキャン
+            </button>
+            <div style="font-size: 0.9rem; opacity: 0.6;">
+                ターゲット: <code>iatf_system/db/ingest</code>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="section-title">
+                <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                待機中のドキュメント
+            </div>
+
+            <ul id="fileList" class="file-list">
+                <div class="empty-state">
+                    「フォルダをスキャン」を押して、新規ファイルを確認してください。
+                </div>
+            </ul>
+        </div>
+
+        <!-- Add Category Section -->
+        <div class="card" style="padding: 1.5rem;">
+            <div class="section-title" style="margin-bottom: 1rem; font-size: 1.1rem;">
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                新しいカテゴリを追加
+            </div>
+            <div style="display: flex; gap: 1rem;">
+                <input type="text" id="newCatName" placeholder="カテゴリ名 (例: 2026年度監査資料)" style="flex: 1;">
+                <button class="secondary" onclick="addNewCategory()">カテゴリ作成</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+        const categories = [
+            {id: "1", name: "製品"}, {id: "2", name: "文書"}, {id: "3", name: "教材"},
+            {id: "13", name: "規定"}, {id: "15", name: "手順書"}, {id: "25", name: "内部監査"},
+            {id: "102", name: "金型製作依頼票"}, {id: "105", name: "設計計画書"}
+        ];
+
+        // Simulated results from backend scan
+        const mockPending = [
+            { name: "IATF_Checklist_2026.pdf", guess: "25", confidence: "high" },
+            { name: "Machine_Manual_X100.pdf", guess: "3", confidence: "medium" },
+            { name: "Unkown_Note_001.txt", guess: "unknown", confidence: "none" }
+        ];
+
+        function renderList(files) {
+            const list = document.getElementById('fileList');
+            if (files.length === 0) {
+                list.innerHTML = '<div class="empty-state">新規ファイルは見つかりませんでした。</div>';
+                return;
+            }
+            
+            list.innerHTML = files.map((f, i) => `
+                <li class="file-item ${f.confidence === 'none' || f.confidence === 'low' ? 'uncertain' : ''}">
+                    <div class="file-name" title="${f.name}">${f.name}</div>
+                    <div class="confidence-tag ${f.confidence}">
+                        ${f.confidence === 'none' ? '判定不可' : f.confidence === 'low' ? '不確実' : '自動判定済み'}
+                    </div>
+                    <select id="cat-select-${i}">
+                        <option value="">-- カテゴリを選択 --</option>
+                        ${categories.map(c => `<option value="${c.id}" ${c.id === f.guess ? 'selected' : ''}>${c.name}</option>`).join('')}
+                    </select>
+                    <button class="action" onclick="ingest(${i}, '${f.name}')">取り込み</button>
+                </li>
+            `).join('');
+        }
+
+        function scanFolder() {
+            // For demo/agent interaction, we show the mock list
+            renderList(mockPending);
+            showToast("スキャン完了");
+        }
+
+        function ingest(index, filename) {
+            const catId = document.getElementById(`cat-select-${index}`).value;
+            if (!catId) {
+                alert("カテゴリを選択してください。");
+                return;
+            }
+            // In reality, this calls db_manager.py ingest
+            showToast(`${filename} を取り込みました！`);
+            // Remove from list
+            const items = document.querySelectorAll('.file-item');
+            items[index].style.opacity = '0.5';
+            items[index].style.pointerEvents = 'none';
+        }
+
+        function addNewCategory() {
+            const name = document.getElementById('newCatName').value;
+            if (!name) return;
+            // In reality, calls db_manager.py create_cat
+            categories.push({id: Date.now().toString(), name: name});
+            showToast(`カテゴリ「${name}」を追加しました。`);
+            document.getElementById('newCatName').value = '';
+            // Refresh selects
+            renderList(mockPending);
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.innerText = msg;
+            toast.style.display = 'block';
+            setTimeout(() => { toast.style.display = 'none'; }, 3000);
+        }
+    </script>
+</body>
+</html>

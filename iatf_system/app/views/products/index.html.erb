@@ -14,8 +14,6 @@ xl	1280px	@media (min-width: 1280px) { ... }
 2xl	1536px	@media (min-width: 1536px) { ... }
 -->
 
-
-
 <div class="text-xs lg:hidden">
     <div class="hamburger-menu">
         <input type="checkbox" id="menu-btn-check">
@@ -36,19 +34,19 @@ xl	1280px	@media (min-width: 1280px) { ... }
 
                 <li class="py-0 border-b-2"><a>
                         <%= form_with(url: index2_product_path, method: :get, local: true) do|form| %>
-                        <%= form.label :"図番選択" %> 
+                        <%= form.label :"図番選択" %>
                         <% @produc=Product.select(:partnumber).distinct.order(:partnumber) %>
-                        <%= form.collection_select(:partnumber, @produc, :partnumber, :partnumber,{prompt: '選択してください',class:"hidden"})%> 
-                        <%= form.submit "APQP・PPAP一覧表示 (図番毎)",class:"btn btn-sm"%>
+                        <%= form.collection_select(:partnumber, @produc, :partnumber, :partnumber,{prompt: '選択してください',class:"hidden"}) %>
+                        <%= form.submit "APQP・PPAP一覧表示 (図番毎)",class:"btn btn-sm" %>
                         <% end %>
                     </a></li>
 
                 <li class="py-0 border-b-2"><a>
                         <%= form_with(url: index8_product_path, method: :get, local: true) do|form| %>
                         <%= form.label :"図番選択" %>
-                        <% @produc=Product.select(:partnumber).distinct.order(:partnumber) %> 
-                        <%= form.collection_select(:partnumber, @produc, :partnumber, :partnumber,{prompt: '選択してください',class:"hidden"})%> 
-                        <%= form.submit "達成度 (図番毎)",class:"btn btn-sm"%>
+                        <% @produc=Product.select(:partnumber).distinct.order(:partnumber) %>
+                        <%= form.collection_select(:partnumber, @produc, :partnumber, :partnumber,{prompt: '選択してください',class:"hidden"}) %>
+                        <%= form.submit "達成度 (図番毎)",class:"btn btn-sm" %>
                         <% end %>
                     </a></li>
                     <!--
@@ -87,11 +85,11 @@ xl	1280px	@media (min-width: 1280px) { ... }
                     <li class="py-1 border-b-2"><a>
                     <%= form_tag import_products_path, multipart: true do %>
                     <label class="mt-2 sm:mt-0 py-2 w-[500px] sm:w-[100px] h-10 border border-primary-300 bg-gray-100 bg-opacity-50 text-primary-300 rounded-[3px] text-xs flex justify-center items-center">
-                    <span class="text-mg ml-5 mx-8"  style="width: 230px;">CSVファイル選択</span>
-                    <%= file_field_tag :file , class: "hidden"%>
+                    <span class="text-mg ml-5 mx-8" style="width: 230px;">CSVファイル選択</span>
+                    <%= file_field_tag :file , class: "hidden" %>
                     </label>
 
-                    <%= submit_tag "インポート",class:"btn btn-primary btn-sm"  %>
+                    <%= submit_tag "インポート",class:"btn btn-primary btn-sm" %>
                     <% end %>
                     </a></li>
 
@@ -105,6 +103,22 @@ xl	1280px	@media (min-width: 1280px) { ... }
                     <%= form_with(url: index_touan_path, method: :get, local: true) do|form| %>
                     <%= form.submit "IATF評価テスト",class:"btn btn-primary btn-sm" %>
                     <% end %>
+                    </a></li>
+
+                    <li class="py-0 border-b-2"><a>
+                    <%= link_to "IATF審査指摘 改善確認", audit_followup_status_product_path, class: "btn btn-primary btn-sm" %>
+                    </a></li>
+
+                    <li class="py-0 border-b-2"><a>
+                    <%= link_to "文書照合一覧", document_reconciliation_product_path, class: "btn btn-primary btn-sm" %>
+                    </a></li>
+
+                    <li class="py-0 border-b-2"><a>
+                    <%= link_to "プロセスの監視・測定記録", process_monitoring_measurement_product_path, class: "btn btn-primary btn-sm" %>
+                    </a></li>
+
+                    <li class="py-0 border-b-2"><a>
+                    <%= link_to "更新履歴", update_history_product_path, class: "btn btn-outline btn-sm" %>
                     </a></li>
 
             </ul>
@@ -126,7 +140,7 @@ xl	1280px	@media (min-width: 1280px) { ... }
     <div class="hidden lg:flex">
         <h1 class="px-12 text-3xl font-bold bg-gradient-to-tr from-indigo-600 to-green-600 bg-clip-text text-transparent hover:cursor-pointer">IATF16949</h1>
       </div>
-    
+
       <!--
       Devise 4.9をインストールしてRails 7.0 （Hotwire/Turbo）に対応する
       https://qiita.com/jnchito/items/20fad64ab162b2c49bb9
@@ -141,26 +155,26 @@ xl	1280px	@media (min-width: 1280px) { ... }
       https://qiita.com/newburu/items/64f214d2f0fbc7a05d42
 
       -->
-    
+
         <div class="flex flex-col items-end text-xs lg:flex items-start lg:flex-row text-lg">
             <div class="lg:mr-4 ">
 
-              <div class="hidden lg:block"><%= "Email："%>
+              <div class="hidden lg:block"><%= "Email：" %>
               <%= @user.email if @user %> <br>
               </div>
-                                      <%= "名前 ："%>
+                                      <%= "名前 ：" %>
                                       <%= @user.name  if @user %> <br>
-              <div class="hidden lg:block"><%= "識別 ："%>
+              <div class="hidden lg:block"><%= "識別 ：" %>
                                   <%= @user.role  if @user %> <br>
               </div>
               <div>
               <%= link_to 'サインアウト', destroy_user_session_path, method: :delete, data: { turbo_method: :delete } %>
-              </div>   
+              </div>
             </div>
         </div>
 
         <div>
-    
+
             <%= search_form_for @q do |f| %>
 
               <ul class="flex space-x-4 items-center">
@@ -172,17 +186,17 @@ xl	1280px	@media (min-width: 1280px) { ... }
 
                 <li><div class="text-gray-700 hover:text-indigo-600 text-xs lg:text-gray-700 hover:text-indigo-600 text-lg ">
                     <%= "材料コード" %> <br>
-                    <%= f.collection_select :materialcode_eq, Product.select(:materialcode).distinct.order(:materialcode), :materialcode, :materialcode,  include_blank: '指定なし'  %>
+                    <%= f.collection_select :materialcode_eq, Product.select(:materialcode).distinct.order(:materialcode), :materialcode, :materialcode,  include_blank: '指定なし' %>
                 </div></li>
 
                 <li><div class="text-gray-700 hover:text-indigo-600 text-xs lg:text-gray-700 hover:text-indigo-600 text-lg ">
                     <%= "文書名" %> <br>
-                    <%= f.collection_select :documentname_eq, Product.select(:documentname).distinct.order(:documentname), :documentname, :documentname,  include_blank: '指定なし'  %>
+                    <%= f.collection_select :documentname_eq, Product.select(:documentname).distinct.order(:documentname), :documentname, :documentname,  include_blank: '指定なし' %>
                 </div></li>
 
                 <li><div class="text-gray-700 hover:text-indigo-600 text-xs lg:text-gray-700 hover:text-indigo-600 text-lg ">
                     <%= "コメント" %> <br>
-                    <%= f.collection_select :description_eq, Product.select(:description).distinct.order(:description), :description, :description,  include_blank: '指定なし'  %>
+                    <%= f.collection_select :description_eq, Product.select(:description).distinct.order(:description), :description, :description,  include_blank: '指定なし' %>
                 </div></li>
 
                 <div class="hidden lg:block">
@@ -194,25 +208,24 @@ xl	1280px	@media (min-width: 1280px) { ... }
 
               </ul>
             <% end %>
-            
+
         </div>
-    
 
   </div>
   </nav>
 </header>
 
-<main >
-  <!-- section hero 
+<main>
+  <!-- section hero
   -->
   <section class="flex h-full">
-  
+
     <!--
     <div class="hidden lg:inline-block w-1/6 fixed top-0 left-0">
     -->
 
 <div class="hidden lg:inline-block w-1/6">
-  
+
   <div class="bg-white py-3 px-4 rounded-lg flex justify-around items-center">
     <input type="text" id="searchInput" placeholder="search" class="bg-gray-100 rounded-md outline-none pl-2 ring-indigo-700 w-full mr-2 p-2">
     <span id="searchTrigger">
@@ -221,15 +234,13 @@ xl	1280px	@media (min-width: 1280px) { ... }
       </svg>
     </span>
   </div>
-  
-
 
 <script>
 $(document).ready(function(){
   const allProductColumns = [
-    "category", "partnumber", "materialcode", "phase", "stage", "description", 
-    "status", "documenttype", "documentname", "documentrev", "documentcategory", 
-    "documentnumber", "start_time", "deadline_at", "end_at", 
+    "category", "partnumber", "materialcode", "phase", "stage", "description",
+    "status", "documenttype", "documentname", "documentrev", "documentcategory",
+    "documentnumber", "start_time", "deadline_at", "end_at",
     "goal_attainment_level", "tasseido", "object"
   ];
 
@@ -266,7 +277,6 @@ $(document).ready(function(){
 });
 </script>
 
-
 <style>
 
 .search-icon {
@@ -287,13 +297,11 @@ $(document).ready(function(){
 
 </style>
 
-      
-
             <div class="bg-white  rounded-md ">
               <h1 class="text-center font-bold text-text-gray-600  py-2 hover:cursor-pointer px-4 rounded text-white bg-gradient-to-tr from-indigo-600 to-green-600 hover:shadow-lg">Menu</h1>
               <div class="bg-white rounded-md list-none  text-center ">
-    
-                    <li class="py-1 border-b-2"><a> 
+
+                    <li class="py-1 border-b-2"><a>
                     <%= link_to '新規製品登録', new_product_path, class: "py-2 text-gray-700 hover:text-indigo-600 text-md" %>
                     </a></li>
 
@@ -307,20 +315,20 @@ $(document).ready(function(){
 
                     <li class="py-1 border-b-2"><a>
                         <%= form_with(url: index2_product_path, method: :get, local: true) do|form| %>
-                        <%= form.label :"図番選択" %> 
+                        <%= form.label :"図番選択" %>
                         <% @produc=Product.select(:partnumber).distinct.order(:partnumber) %>
-                        <%= form.collection_select(:partnumber, @produc, :partnumber, :partnumber,{prompt: '選択してください',class:"hidden"})%> 
-                        <%= form.submit "APQP・PPAP一覧表示 (図番毎)",class:"btn btn-sm"%>
+                        <%= form.collection_select(:partnumber, @produc, :partnumber, :partnumber,{prompt: '選択してください',class:"hidden"}) %>
+                        <%= form.submit "APQP・PPAP一覧表示 (図番毎)",class:"btn btn-sm" %>
                         <% end %>
                     </a></li>
 
                     <li class="py-1 border-b-2"><a>
                         <%= form_with(url: index8_product_path, method: :get, local: true) do|form| %>
-                        <%= form.label :"図番選択" %> 
-                        <% @produc=Product.select(:partnumber).distinct.order(:partnumber) %> 
-                        <%= form.collection_select(:partnumber, @produc, :partnumber, :partnumber,{prompt: '選択してください',class:"hidden"})%> <br>
-                        <%= form.submit "達成度 (図番毎)",class:"btn btn-sm"%>
-                        <% end %>                    
+                        <%= form.label :"図番選択" %>
+                        <% @produc=Product.select(:partnumber).distinct.order(:partnumber) %>
+                        <%= form.collection_select(:partnumber, @produc, :partnumber, :partnumber,{prompt: '選択してください',class:"hidden"}) %> <br>
+                        <%= form.submit "達成度 (図番毎)",class:"btn btn-sm" %>
+                        <% end %>
                     </a></li>
                     <!--
                     #RailsでExcel出力しないといけなくなった時の対処法
@@ -351,7 +359,6 @@ $(document).ready(function(){
                     <% end %>
                     </a></li>
 
-
                     <!--
                     #Railsて゛Axlsxを使ってxlsxを生成
                     #https://qiita.com/necojackarc/items/0dbd672b2888c30c5a38
@@ -370,14 +377,14 @@ $(document).ready(function(){
                     <li class="py-1 border-b-2">
                     <%= form_tag import_products_path, multipart: true do %>
                     <label class="mt-2 sm:mt-0 py-2 w-[500px] sm:w-[212px] h-10 border border-primary-300 bg-gray-100 bg-opacity-50 text-primary-300 rounded-[3px] text-xs flex justify-center items-center">
-                    <span class="text-mg ml-5 mx-8"  style="width: 200px;">CSVファイル選択</span>
-                    <%= file_field_tag :file , class: "hidden"%>
+                    <span class="text-mg ml-5 mx-8" style="width: 200px;">CSVファイル選択</span>
+                    <%= file_field_tag :file , class: "hidden" %>
                     </label>
 
-                    <%= submit_tag "インポート",class:"btn btn-primary btn-sm"  %>
+                    <%= submit_tag "インポート",class:"btn btn-primary btn-sm" %>
                     <% end %>
                     </li>
-                    
+
 
                     <li class="py-1 border-b-2">
                     <%= form_with(url: iot_product_path, method: :get, local: true) do|form| %>
@@ -400,7 +407,7 @@ $(document).ready(function(){
                             ['顧客満足プロセス', 'satisfaction'],
                             ['内部監査プロセス', 'audit'],
                             ['改善プロセス', 'corrective_action']
-            
+
                         ], {}, class: "form-control" %>
 
                     <%= form.submit "IATF評価テスト",class:"btn btn-primary btn-sm" %>
@@ -437,22 +444,38 @@ $(document).ready(function(){
                     <li class="py-1 border-b-2">
                     <%= link_to "工程内不適合品管理票/是正・予防処置管理票", in_process_nonconforming_product_control_form_products_path, class: "btn btn-primary btn-sm" %>
                     </li>
-                
+
+                    <li class="py-1 border-b-2">
+                    <%= link_to "IATF審査指摘 改善確認", audit_followup_status_product_path, class: "btn btn-primary btn-sm" %>
+                    </li>
+
+                    <li class="py-1 border-b-2">
+                    <%= link_to "文書照合一覧", document_reconciliation_product_path, class: "btn btn-primary btn-sm" %>
+                    </li>
+
+                    <li class="py-1 border-b-2">
+                    <%= link_to "プロセスの監視・測定記録", process_monitoring_measurement_product_path, class: "btn btn-primary btn-sm" %>
+                    </li>
+
+                    <li class="py-1 border-b-2">
+                    <%= link_to "更新履歴", update_history_product_path, class: "btn btn-outline btn-sm" %>
+                    </li>
+
                     <%= form_with(url: rubyxl_product_path, method: :get, local: true, html: { id: 'product-form' }) do |form| %>
                       <%= form.label :"図番選択" %>
-                      <%= form.collection_select(:partnumber, @produc, :partnumber, :partnumber)%> <br>
+                      <%= form.collection_select(:partnumber, @produc, :partnumber, :partnumber) %> <br>
                     <% end %>
                     <%= button_to "製造工程設計計画／実績書", "#", id: "design_submit-button", class: "btn btn-primary" %>
-                    
+
                     <%= form_with(url: rubyxl_apqp_plan_report_product_path, method: :get, local: true, html: { id: 'apqp_plan-form' }) do |form| %>
                       <%= form.label :"図番選択" %>
-                      <%= form.collection_select(:partnumber, @produc, :partnumber, :partnumber)%> <br>
+                      <%= form.collection_select(:partnumber, @produc, :partnumber, :partnumber) %> <br>
                     <% end %>
                     <%= button_to "APQP計画書", "#", id: "apqp_plan_submit-button", class: "btn btn-primary" %>
-                    
+
                     <%= form_with(url: rubyxl_apqp_approved_report_product_path, method: :get, local: true, html: { id: 'apqp_approved-form' }) do |form| %>
                       <%= form.label :"図番選択" %>
-                      <%= form.collection_select(:partnumber, @produc, :partnumber, :partnumber)%> <br>
+                      <%= form.collection_select(:partnumber, @produc, :partnumber, :partnumber) %> <br>
                     <% end %>
                     <%= button_to "APQP総括・承認書", "#", id: "apqp_approved_submit-button", class: "btn btn-primary" %>
 
@@ -493,23 +516,23 @@ $(document).ready(function(){
     <p class="text-center text-sm font-semibold">IATF SIs FQAs情報が利用できません</p>
   <% end %>
 </div>
-        
 
-        
 
-                    
+
+
+
                     <script>
                     $(document).ready(function() {
                         $("#design_submit-button").on("click", function(e) {
                             e.preventDefault();
                             $("#product-form").submit();
                         });
-                    
+
                         $("#apqp_plan_submit-button").on("click", function(e) {
                             e.preventDefault();
                             $("#apqp_plan-form").submit();
                         });
-                    
+
                         $("#apqp_approved_submit-button").on("click", function(e) {
                             e.preventDefault();
                             $("#apqp_approved-form").submit();
@@ -518,11 +541,11 @@ $(document).ready(function(){
                     </script>
 
 
-                  
+
               </div>
-            </div> 
+            </div>
     </div>
- 
+
     <!--
     <div class="w-full lg:w-5/6 bg-blue-700 p-8 text-gray-600 rounded-lg ">
     -->
@@ -536,16 +559,16 @@ $(document).ready(function(){
 
 
       <%= paginate @products %>
-      <table  class="sticky_table table-striped table-hover border-separate border-spacing-1 border-2 border-blue-900 bg-gray-100">
+      <table class="sticky_table table-striped table-hover border-separate border-spacing-1 border-2 border-blue-900 bg-gray-100">
         <thead>
-              <tr>  
+              <tr>
                   <th class="border-2 border-blue-900"><%= sort_link(@q, :partnumber, "図番") %></th>
                   <th class="border-2 border-blue-900"><%= sort_link(@q, :materialcode, "材料コード") %></th>
                   <th class="border-2 border-blue-900"><%= sort_link(@q, :documentname, "文書名") %></th>
                   <th class="border-2 border-blue-900"><%= sort_link(@q, :description, "詳細") %></th>
                   <th class="border-2 border-blue-900"><%= sort_link(@q, :category , "カテゴリー") %></th>
                   <th class="border-2 border-blue-900"><%= sort_link(@q, :phase, "フェーズ") %></th>
-                  <th class="border-2 border-blue-900"><%= sort_link(@q, :stage, "項目") %></th>      
+                  <th class="border-2 border-blue-900"><%= sort_link(@q, :stage, "項目") %></th>
                   <th class="border-2 border-blue-900"><%= sort_link(@q, :start_time, "登録日") %></th>
                   <th class="border-2 border-blue-900"><%= sort_link(@q, :deadline_at, "完了予定日") %></th>
                   <th class="border-2 border-blue-900"><%= sort_link(@q, :end_at, "完了日") %></th>
@@ -555,7 +578,7 @@ $(document).ready(function(){
                   <th>アイコン</th>
               </tr>
         </thead>
-  
+
         <tbody>
   <% if @products.any? %>
     <% @products.each_with_index do |pro, index| %>
@@ -574,19 +597,19 @@ $(document).ready(function(){
         <% else %>
             <td class="border-2 border-blue-900 "><%= pro.partnumber %></td>
         <% end %>
-        
-        <% if pro.materialcode=="" || pro.materialcode==nil  %>
+
+        <% if pro.materialcode=="" || pro.materialcode==nil %>
             <td class="border-2 border-blue-900 "><%= "----" %></td>
         <% else %>
             <td class="border-2 border-blue-900 "><%= pro.materialcode %></td>
         <% end %>
 
-        <% if pro.documentname=="" || pro.documentname==nil  %>
+        <% if pro.documentname=="" || pro.documentname==nil %>
             <td class="border-2 border-blue-900 "><%= "----" %></td>
         <% else %>
             <td class="border-2 border-blue-900 "><%= pro.documentname %></td>
         <% end %>
-        <% if pro.description=="" || pro.description==nil  %>
+        <% if pro.description=="" || pro.description==nil %>
             <td class="border-2 border-blue-900 "><%= "----" %></td>
         <% else %>
             <td class="border-2 border-blue-900 "><div class="line-clamp-3"><%= pro.description %></div></td>
@@ -597,27 +620,27 @@ $(document).ready(function(){
         <td class="border-2 border-blue-900 "><div class="line-clamp-3"> <%= @dropdownlist[pro.stage.to_i] %></div></td>
 
         <% if pro.start_time==nil %>
-              <td class="border-2 border-blue-900 "><div class="vertical-rl lg:horizontal-tb"><%= "------"  %></div></td>
+              <td class="border-2 border-blue-900 "><div class="vertical-rl lg:horizontal-tb"><%= "------" %></div></td>
         <% else %>
-              <td class="border-2 border-blue-900 "><div class="vertical-rl lg:horizontal-tb"><%= pro.start_time.strftime('%y/%m/%d')  %></div></td>
+              <td class="border-2 border-blue-900 "><div class="vertical-rl lg:horizontal-tb"><%= pro.start_time.strftime('%y/%m/%d') %></div></td>
         <% end %>
         <% if pro.deadline_at==nil %>
-              <td class="border-2 border-blue-900 "><div class="vertical-rl lg:horizontal-tb"><%= "------"  %></div></td>
+              <td class="border-2 border-blue-900 "><div class="vertical-rl lg:horizontal-tb"><%= "------" %></div></td>
         <% else %>
-              <td class="border-2 border-blue-900 "><div class="vertical-rl lg:horizontal-tb"><%= pro.deadline_at.strftime('%y/%m/%d')  %></div></td>
+              <td class="border-2 border-blue-900 "><div class="vertical-rl lg:horizontal-tb"><%= pro.deadline_at.strftime('%y/%m/%d') %></div></td>
         <% end %>
         <% if pro.end_at==nil %>
-              <td class="border-2 border-blue-900 "><div class="vertical-rl lg:horizontal-tb"><%= "------"  %></div></td>
+              <td class="border-2 border-blue-900 "><div class="vertical-rl lg:horizontal-tb"><%= "------" %></div></td>
         <% else %>
-              <td class="border-2 border-blue-900 "><div class="vertical-rl lg:horizontal-tb"><%= pro.end_at.strftime('%y/%m/%d')  %></div></td>
+              <td class="border-2 border-blue-900 "><div class="vertical-rl lg:horizontal-tb"><%= pro.end_at.strftime('%y/%m/%d') %></div></td>
         <% end %>
-        
+
         <td class="border-2 border-blue-900 "><%= pro.goal_attainment_level %></td>
         <td class="border-2 border-blue-900 "><%= pro.status %></td>
-        <td class="inline-block"><div class="btn btn-accent btn-sm"><%= button_to '詳細表示', product_path(pro), { method: :get, params: pro }  %></div></td>
+        <td class="inline-block"><div class="btn btn-accent btn-sm"><%= button_to '詳細表示', product_path(pro), { method: :get, params: pro } %></div></td>
         <td class="inline-block"><div class="btn btn-primary btn-sm"><%= button_to '編集', edit_product_path(pro), { method: :get, params: pro } %><div></td>
         <td class="inline-block"><div class="btn btn-secondary btn-sm"> <%= button_to '削除', pro, {method: :delete, data: { confirm: '本当に削除しますか？' } } %></div></td>
-        <td class="inline-block"><%= render partial: "attached_file", locals: { pro: pro }  %></td>
+        <td class="inline-block"><%= render partial: "attached_file", locals: { pro: pro } %></td>
       </tr>
     <% end %>
   <% else %>
@@ -748,4 +771,3 @@ $(document).ready(function(){
 
 
 /*---------------------------*/
-

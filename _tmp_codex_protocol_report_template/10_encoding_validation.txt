@@ -1,0 +1,13 @@
+﻿Encoding validation notes:
+
+1. All text files in this package are saved as UTF-8 with BOM.
+2. Filenames are ASCII only.
+3. ZIP entry names are ASCII only.
+4. Recommended checks after extraction:
+   - Open 00_README_FIRST.txt in VS Code
+   - Confirm Japanese text displays correctly
+   - Open 02_codex_starter_prompt.txt in Codex-side editor
+   - Confirm 11_codex_report_template.md headings render correctly
+5. If an editor reports plain UTF-8 without BOM, re-check with a hex viewer.
+6. Expected BOM bytes for all text files:
+   EF BB BF

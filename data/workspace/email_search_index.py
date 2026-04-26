@@ -1,0 +1,1763 @@
+#!/usr/bin/env python3
+"""
+email_search_index.py
+
+Indexes local EML files and Gmail messages into a single SQLite FTS database.
+
+Default action:
+  python3 /home/node/clawd/email_search_index.py
+
+Search:
+  python3 /home/node/clawd/email_search_index.py search "品質 会議"
+"""
+
+from __future__ import annotations
+
+import argparse
+import base64
+import email
+import hashlib
+import json
+import re
+import sqlite3
+import sys
+import time
+from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
+from email.header import decode_header
+from email.message import Message
+from email.utils import parsedate_to_datetime
+from html import unescape
+from pathlib import Path
+from typing import Dict, Iterable, List, Optional, Tuple
+
+import requests
+
+
+WORKSPACE_ROOT = Path("/home/node/clawd")
+EMAIL_ROOT = WORKSPACE_ROOT / "paperless_consume" / "email"
+DB_PATH = WORKSPACE_ROOT / "email_search.db"
+STATE_PATH = WORKSPACE_ROOT / "email_search_state.json"
+STATUS_PATH = WORKSPACE_ROOT / "email_search_harness_status.json"
+FILTER_PATH = WORKSPACE_ROOT / "email_rag_sender_filters.json"
+TOKEN_PATH = WORKSPACE_ROOT / "token.json"
+LEGACY_TOKEN_PATH = Path("/home/node/clawd/../work/token.json")
+CREDS_PATH = WORKSPACE_ROOT / "credentials.json"
+LEGACY_CREDS_PATH = Path("/home/node/clawd/../workspace/credentials.json")
+TIMEOUT = 30
+USER_AGENT = "claw-email-search-index/1.0"
+TASK_FILTER_CACHE: Optional[dict] = None
+TASK_KEYWORDS = (
+    "依頼",
+    "お願い",
+    "ご対応",
+    "対応",
+    "提出",
+    "回答",
+    "返信",
+    "送付",
+    "締切",
+    "期限",
+    "期日",
+    "至急",
+    "見積り依頼",
+    "見積もり依頼",
+)
+TASK_STRONG_PATTERNS = (
+    r"ご対応(?:のほど)?(?:お願いします|お願いいたします|願います)",
+    r"対応(?:を)?(?:お願いします|お願いいたします|願います)",
+    r"(?:までに|迄に).{0,20}(?:回答|返信|提出|送付|確認|対応)",
+    r"(?:回答|返信|提出|送付|確認|対応).{0,20}(?:まで|期限|期日|締切)",
+    r"(?:ご確認|確認)(?:を)?(?:お願いします|お願いいたします|願います)",
+    r"(?:再確認|内容確認)(?:を)?(?:お願いします|お願いいたします|願います)",
+    r"(?:ご確認頂きたく|ご確認いただきたく)",
+    r"(?:資料|見積|データ|写真|回答書).{0,20}(?:送付|提出|共有)",
+)
+TASK_EXPLICIT_PATTERNS = (
+    r"(?:までに|迄に)",
+    r"(?:期限|締切|期日)",
+    r"至急",
+    r"(?:ご|御)?対応(?:のほど)?(?:お願いします|願います|お願いいたします)",
+    r"(?:ご|御)?提出(?:のほど)?(?:お願いします|願います|お願いいたします)",
+    r"(?:ご|御)?送付(?:のほど)?(?:お願いします|願います|お願いいたします)",
+    r"(?:ご|御)?返信(?:のほど)?(?:お願いします|願います|お願いいたします)",
+    r"(?:ご|御)?回答(?:のほど)?(?:お願いします|願います|お願いいたします)",
+    r"(?:ご|御)?確認(?:を)?(?:お願いします|願います|お願いいたします)",
+    r"(?:再確認|内容確認)(?:を)?(?:お願いします|願います|お願いいたします)",
+)
+BUSINESS_MARKER_PATTERNS = (
+    r"(?:株式会社|有限会社|御中|各位|様|さん|殿)",
+    r"(?:お疲れ様です|お世話になっております|いつもお世話になっております)",
+    r"(?:ご確認頂きたく|ご確認をお願い|対応お願い|ご対応お願い|ご連絡いたします)",
+    r"^(?:re:|fw:|fwd:)",
+    r"【(?:社内用|見積|要件定義|不具合|依頼|提出|会議|監査|クレーム)",
+)
+NOISE_SUBJECT_KEYWORDS = (
+    "メールマガジン",
+    "メルマガ",
+    "ニュース",
+    "News",
+    "号外",
+    "キャンペーン",
+    "PR",
+    "ご案内",
+    "お知らせ",
+    "ご紹介",
+    "おすすめ",
+    "特集",
+    "リリース情報",
+    "お得",
+    "限定配信",
+    "オンライン開催",
+    "相談会",
+    "セミナー",
+    "アンケート",
+)
+NOISE_BODY_KEYWORDS = (
+    "配信停止",
+    "メールマガジン",
+    "ニュースレター",
+    "本メールは",
+    "このメールは",
+    "いつもご利用いただきありがとうございます",
+    "いつもご利用いただき誠にありがとうございます",
+    "ご登録いただいた方にお送りしています",
+    "配信を希望された方",
+    "配信をご希望",
+    "ブラウザのアドレス欄に貼り付け",
+    "会員登録",
+    "特設ページ",
+    "詳しくはこちら",
+    "おすすめ情報",
+    "広告",
+    "PR:",
+    "\"@type\":\"PromotionCard\"",
+    "おすすめする",
+    "人気エリア",
+)
+NOISE_SENDER_PATTERNS = (
+    r"(?i)\bno[\-_]?reply\b",
+    r"(?i)\bnoreply@",
+    r"(?i)\bnews@",
+    r"(?i)\bmailmagazine@",
+    r"(?i)\bnewsletter@",
+)
+HARD_NOISE_SENDER_SUBSTRINGS = (
+    "news@service.muumuu-domain.com",
+    "muumuu-domain.com",
+    "bizcon@onamae.com",
+    "infomail@onamae.com",
+    "announce@onamae.com",
+    "noreply@jobtalk.jp",
+    "jobtalk.jp",
+    "googleplaypromo-noreply@google.com",
+    "cloudplatform-noreply@google.com",
+    "googleplay-noreply@google.com",
+    "news-googleplay@google.com",
+    "no-reply@dropbox.com",
+    "info@japanet.co.jp",
+    "japanet.co.jp",
+    "bakuyasu.ai@t-suite.jp",
+    "t-suite.jp",
+    "postmaster@alpha-prm.jp",
+    "alpha-prm.jp",
+    "info@sejuku.net",
+    "sejuku.net",
+    "kazei@city.nasushiobara.tochigi.jp",
+)
+NON_TASK_SUBJECT_KEYWORDS = (
+    "実績",
+    "結果",
+    "報告のみ",
+    "ご案内",
+    "お知らせ",
+    "席_",
+    "席位置",
+    "レイアウト",
+    "品質実績報告",
+    "トライ結果",
+    "梱包写真",
+    "TRY",
+    "初動品",
+    "訪問の御礼",
+    "原価算出",
+    "実績",
+    "梱包写真",
+    "更新のご連絡",
+    "Mail System Error",
+    "Returned Mail",
+    "Password Notification",
+    "次回予定",
+    "トライ結果",
+    "会議開催",
+)
+INFORMATION_ONLY_PATTERNS = (
+    r"(?:ありがとうございます|ありがとうございました|誠にありがとうございます)",
+    r"(?:送付いたします|送付致します|共有します|共有いたします|ご連絡いたします)",
+    r"(?:実績|結果)(?:を)?(?:送付|共有|報告|連絡)",
+    r"(?:問題ありません|問題ございません)",
+    r"(?:よろしくお願いいたします|宜しくお願い致します|以上、よろしくお願いいたします)",
+    r"(?:ご報告(?:いたします|致します)|報告いたします)",
+    r"(?:添付(?:にて|で)?送付(?:いたします|致します|します)|送ります)",
+    r"(?:送付致します|送付いたします|送付します)",
+    r"(?:ご連絡致します|ご連絡いたします|ご連絡します)",
+    r"(?:報告致します|報告いたします|報告します)",
+    r"(?:ありがとうございます|有難うございます|承知しました|かしこまりました)",
+    r"(?:算出致しました|算出いたしました|算出しました)",
+    r"(?:社内手続きを進めさせていただきます)",
+    r"(?:ご回答ありがとうございます|早速のご返信ありがとうございます)",
+    r"(?:内容を確認させていただきました)",
+    r"(?:入力致しました|入力いたしました|入力しました)",
+    r"(?:照合致します|照合いたします|照合します)",
+    r"(?:送付されてきましたので)",
+    r"(?:ご連絡が遅くなり申し訳)",
+    r"(?:回答をさせていただきます)",
+    r"(?:お問い合わせありがとうございます)",
+)
+REQUEST_SIGNAL_PATTERNS = (
+    r"(?:お願い(?:します|いたします|致します)?|お願いすることできますか|お願いできますか|お願いしたく)",
+    r"(?:ご確認|確認を|確認のほど)",
+    r"(?:ご回答|回答を|回答のほど)",
+    r"(?:ご返信|返信を|返信のほど)",
+    r"(?:ご提出|提出を|提出のほど)",
+    r"(?:ご送付|送付を|送付のほど)",
+    r"(?:ご教示|教えてください|確認いただきますよう)",
+)
+REPLY_DONE_KEYWORDS = ("回答しました", "回答済", "送付しました", "送付済", "返信しました", "対応しました")
+STATUS_OPEN = "open"
+STATUS_REPLIED = "replied"
+STATUS_UNKNOWN = "unknown"
+
+
+def now_iso() -> str:
+    return datetime.now(timezone.utc).astimezone().isoformat()
+
+
+def log(message: str) -> None:
+    print(message, flush=True)
+
+
+def load_json(path: Path) -> dict:
+    if not path.exists():
+        return {}
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def save_json(path: Path, payload: dict) -> None:
+    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def write_status(payload: dict) -> None:
+    save_json(STATUS_PATH, payload)
+
+
+def load_task_filters() -> dict:
+    global TASK_FILTER_CACHE
+    if TASK_FILTER_CACHE is not None:
+        return TASK_FILTER_CACHE
+    payload = {}
+    for candidate in [FILTER_PATH, Path(__file__).resolve().parent / "email_rag_sender_filters.json"]:
+        if candidate.exists():
+            try:
+                payload = json.loads(candidate.read_text(encoding="utf-8"))
+                break
+            except Exception:
+                continue
+    TASK_FILTER_CACHE = {
+        "whitelist_patterns": [str(v).lower() for v in (payload.get("whitelist_patterns") or []) if str(v).strip()],
+        "newsletter_patterns": [str(v).lower() for v in (payload.get("newsletter_patterns") or []) if str(v).strip()],
+        "blacklist_patterns": [str(v).lower() for v in (payload.get("blacklist_patterns") or []) if str(v).strip()],
+    }
+    return TASK_FILTER_CACHE
+
+
+def decode_mime_words(value: Optional[str]) -> str:
+    if not value:
+        return ""
+    chunks = []
+    for raw, enc in decode_header(value):
+        if isinstance(raw, bytes):
+            for candidate in [enc or "utf-8", "iso-2022-jp", "utf-8", "cp932", "latin-1"]:
+                try:
+                    chunks.append(raw.decode(candidate))
+                    break
+                except Exception:
+                    continue
+            else:
+                chunks.append(raw.decode("utf-8", errors="replace"))
+        else:
+            chunks.append(str(raw))
+    return "".join(chunks).strip()
+
+
+def html_to_text(html: str) -> str:
+    text = re.sub(r"(?is)<(script|style).*?>.*?</\\1>", " ", html)
+    text = re.sub(r"(?s)<[^>]+>", " ", text)
+    text = re.sub(r"\s+", " ", unescape(text))
+    return text.strip()
+
+
+def decode_bytes(payload: bytes, charset: Optional[str]) -> str:
+    for candidate in [charset or "utf-8", "iso-2022-jp", "utf-8", "cp932", "latin-1"]:
+        try:
+            return payload.decode(candidate)
+        except Exception:
+            continue
+    return payload.decode("utf-8", errors="replace")
+
+
+def extract_attachment_text(mime_type: str, data_bytes: bytes) -> str:
+    """Extract searchable text from a binary attachment (PDF/Excel/Word)."""
+    try:
+        if "pdf" in mime_type:
+            import fitz  # pymupdf
+            doc = fitz.open(stream=data_bytes, filetype="pdf")
+            return "\n".join(page.get_text() for page in doc).strip()
+        if mime_type in (
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "application/vnd.ms-excel",
+        ):
+            import io
+            import openpyxl
+            wb = openpyxl.load_workbook(io.BytesIO(data_bytes), data_only=True)
+            rows = []
+            for ws in wb.worksheets:
+                for row in ws.iter_rows(values_only=True):
+                    rows.append(" ".join(str(c) for c in row if c is not None))
+            return "\n".join(rows).strip()
+        if mime_type in (
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "application/msword",
+        ):
+            import io
+            import docx as docx_module
+            doc = docx_module.Document(io.BytesIO(data_bytes))
+            return "\n".join(p.text for p in doc.paragraphs if p.text.strip()).strip()
+        if mime_type.startswith("image/"):
+            import io
+            import pytesseract
+            from PIL import Image
+            img = Image.open(io.BytesIO(data_bytes))
+            return pytesseract.image_to_string(img, lang="jpn+eng").strip()
+    except Exception:
+        pass
+    return ""
+
+
+def extract_body_and_attachments(msg: Message) -> Tuple[str, List[str]]:
+    plain_parts: List[str] = []
+    html_parts: List[str] = []
+    attachments: List[str] = []
+
+    if msg.is_multipart():
+        for part in msg.walk():
+            filename = decode_mime_words(part.get_filename())
+            if filename:
+                attachments.append(filename)
+            content_type = part.get_content_type()
+            disposition = str(part.get("Content-Disposition", "")).lower()
+            if "attachment" in disposition:
+                continue
+            payload = part.get_payload(decode=True)
+            if not payload:
+                continue
+            if content_type == "text/plain":
+                plain_parts.append(decode_bytes(payload, part.get_content_charset()))
+            elif content_type == "text/html":
+                html_parts.append(html_to_text(decode_bytes(payload, part.get_content_charset())))
+    else:
+        payload = msg.get_payload(decode=True)
+        if payload:
+            body = decode_bytes(payload, msg.get_content_charset())
+            if msg.get_content_type() == "text/html":
+                html_parts.append(html_to_text(body))
+            else:
+                plain_parts.append(body)
+
+    body = "\n\n".join([p.strip() for p in plain_parts if p.strip()]).strip()
+    if not body:
+        body = "\n\n".join([p.strip() for p in html_parts if p.strip()]).strip()
+    return body, attachments
+
+
+def normalize_space(value: str) -> str:
+    return re.sub(r"\s+", " ", value or "").strip()
+
+
+def is_reply_like_subject(subject: str) -> bool:
+    normalized = normalize_space(subject).lower()
+    return bool(re.search(r"(^|[\\]\\】）]\\s*)(re:|fw:|fwd:)", normalized)) or normalized.startswith(("re:", "fw:", "fwd:"))
+
+
+def parse_email_datetime(value: str) -> Optional[datetime]:
+    text = normalize_space(value)
+    if not text:
+        return None
+    try:
+        parsed = parsedate_to_datetime(text)
+        if parsed.tzinfo is None:
+            return parsed.replace(tzinfo=timezone.utc)
+        return parsed.astimezone(timezone.utc)
+    except Exception:
+        pass
+    for fmt in ("%Y-%m-%d", "%Y/%m/%d", "%Y.%m.%d", "%Y年%m月%d日"):
+        try:
+            return datetime.strptime(text[: len(fmt)], fmt).replace(tzinfo=timezone.utc)
+        except Exception:
+            continue
+    return None
+
+
+def infer_thread_key(record: EmailRecord) -> str:
+    if record.gmail_thread_id:
+        return f"gmail:{record.gmail_thread_id}"
+    if record.message_id_header:
+        return normalize_space(record.message_id_header.lower())
+    subject = normalize_space(record.subject.lower())
+    subject = re.sub(r"^(re|fw|fwd)\s*:\s*", "", subject, flags=re.IGNORECASE)
+    return f"{normalize_space(record.sender.lower())}|{subject}"[:240]
+
+
+def looks_like_task(record: EmailRecord) -> bool:
+    subject = normalize_space(record.subject)
+    body = normalize_space(record.body_text or record.snippet)
+    sender = normalize_space(record.sender)
+    haystack = normalize_space("\n".join([subject, body, record.snippet]))
+    haystack_lower = haystack.lower()
+    sender_lower = sender.lower()
+    filters = load_task_filters()
+    if any(token in sender_lower for token in HARD_NOISE_SENDER_SUBSTRINGS):
+        return False
+    strong_task = any(re.search(pattern, haystack) for pattern in TASK_STRONG_PATTERNS)
+    noise_hits = 0
+    trusted_sender = any(pattern in haystack_lower or pattern in sender_lower for pattern in filters["whitelist_patterns"])
+    filter_noise = (
+        any(pattern in haystack_lower or pattern in sender_lower for pattern in filters["newsletter_patterns"])
+        or any(pattern in haystack_lower or pattern in sender_lower for pattern in filters["blacklist_patterns"])
+    )
+    hard_noise_subject = any(token in subject for token in ("PE-BANK", "限定配信", "オンライン開催", "アンケート", "セミナー"))
+    business_marker = any(re.search(pattern, haystack, flags=re.IGNORECASE) for pattern in BUSINESS_MARKER_PATTERNS)
+    if any(keyword in subject for keyword in NOISE_SUBJECT_KEYWORDS):
+        noise_hits += 1
+    if any(keyword in body for keyword in NOISE_BODY_KEYWORDS):
+        noise_hits += 1
+    if any(re.search(pattern, sender) for pattern in NOISE_SENDER_PATTERNS):
+        noise_hits += 1
+    if filter_noise and not trusted_sender:
+        noise_hits += 2
+    deadline_signal = bool(re.search(r"(までに|期限|締切|期日|本日中|今日中|明日|明後日|今週中|今週末|来週|週明け|月末|営業日)", haystack))
+    explicit_task = any(re.search(pattern, haystack) for pattern in TASK_EXPLICIT_PATTERNS)
+    request_signal = any(re.search(pattern, haystack) for pattern in REQUEST_SIGNAL_PATTERNS)
+    subject_lower = subject.lower()
+    reply_prefix = subject_lower.startswith(("re:", "fw:", "fwd:")) or " fw:" in subject_lower or " re:" in subject_lower or " fwd:" in subject_lower
+    informational_only = (
+        any(keyword in subject for keyword in NON_TASK_SUBJECT_KEYWORDS)
+        or any(re.search(pattern, haystack) for pattern in INFORMATION_ONLY_PATTERNS)
+    )
+    if filter_noise and not trusted_sender and not business_marker:
+        return False
+    if hard_noise_subject and filter_noise and not trusted_sender:
+        return False
+    if reply_prefix and not strong_task and not explicit_task and not deadline_signal and not request_signal:
+        return False
+    if informational_only and not strong_task and not explicit_task and not deadline_signal and not request_signal:
+        return False
+    if noise_hits >= 2 and not deadline_signal:
+        return False
+    if noise_hits >= 1 and not strong_task and not explicit_task:
+        return False
+    if any(keyword in haystack for keyword in TASK_KEYWORDS):
+        return True
+    return strong_task or explicit_task or bool(re.search(r"(までに|期限|締切|期日|要約|提出|確認|回答|返信)", haystack))
+
+
+def should_store_gmail_record(record: EmailRecord) -> bool:
+    subject = normalize_space(record.subject)
+    body = normalize_space(record.body_text or record.snippet)
+    sender = normalize_space(record.sender)
+    haystack = normalize_space("\n".join([subject, body, record.snippet]))
+    haystack_lower = haystack.lower()
+    sender_lower = sender.lower()
+    filters = load_task_filters()
+
+    trusted_sender = any(pattern in haystack_lower or pattern in sender_lower for pattern in filters["whitelist_patterns"])
+    if trusted_sender:
+        return True
+
+    blocked_by_filters = (
+        any(pattern in haystack_lower or pattern in sender_lower for pattern in filters["newsletter_patterns"])
+        or any(pattern in haystack_lower or pattern in sender_lower for pattern in filters["blacklist_patterns"])
+    )
+    if blocked_by_filters:
+        return False
+
+    if any(token in sender_lower for token in HARD_NOISE_SENDER_SUBSTRINGS):
+        return False
+
+    return True
+
+
+def infer_relative_due_date(text: str, base_dt: datetime) -> Optional[datetime]:
+    weekday_map = {
+        "月": 0,
+        "火": 1,
+        "水": 2,
+        "木": 3,
+        "金": 4,
+        "土": 5,
+        "日": 6,
+    }
+    normalized = normalize_space(text)
+
+    if "本日中" in normalized or "今日中" in normalized or "当日中" in normalized:
+        return base_dt
+    if "明日" in text:
+        return base_dt + timedelta(days=1)
+    if "今日" in text or "本日" in text:
+        return base_dt
+    if "明後日" in text:
+        return base_dt + timedelta(days=2)
+    if "至急" in normalized:
+        return base_dt
+    if "毎日" in normalized:
+        return base_dt
+    if "来週" in text:
+        return base_dt + timedelta(days=7)
+    if "今週末" in normalized or "週末" in normalized:
+        return base_dt + timedelta(days=max(0, 4 - base_dt.weekday()))
+    if "今週中" in text:
+        return base_dt + timedelta(days=max(0, 4 - base_dt.weekday()))
+    if "来週中" in normalized:
+        return base_dt + timedelta(days=(11 - base_dt.weekday()))
+    if "週明け" in normalized:
+        return base_dt + timedelta(days=max(1, 7 - base_dt.weekday()))
+    if "毎月" in normalized or "月次" in normalized or "月度" in normalized:
+        next_month = base_dt.replace(day=28) + timedelta(days=4)
+        return next_month - timedelta(days=next_month.day)
+    if "今月末" in normalized or "月末" in normalized:
+        next_month = base_dt.replace(day=28) + timedelta(days=4)
+        return next_month - timedelta(days=next_month.day)
+    if "年度末" in normalized:
+        year = base_dt.year
+        fiscal_end = datetime(year, 3, 31, tzinfo=timezone.utc)
+        if base_dt.astimezone(timezone.utc) > fiscal_end:
+            fiscal_end = datetime(year + 1, 3, 31, tzinfo=timezone.utc)
+        return fiscal_end
+    if "年内" in normalized:
+        return datetime(base_dt.year, 12, 31, tzinfo=timezone.utc)
+    if "月初" in normalized:
+        month = base_dt.month + 1
+        year = base_dt.year
+        if month > 12:
+            month = 1
+            year += 1
+        return datetime(year, month, 1, tzinfo=timezone.utc)
+    if "上旬" in normalized:
+        return base_dt.replace(day=10)
+    if "中旬" in normalized:
+        return base_dt.replace(day=20)
+    if "下旬" in normalized:
+        next_month = base_dt.replace(day=28) + timedelta(days=4)
+        month_end = next_month - timedelta(days=next_month.day)
+        return month_end.replace(day=min(25, month_end.day))
+
+    weekday_match = re.search(r"(今週|来週)?([月火水木金土日])曜(?:日)?(?:まで|中|迄)?", normalized)
+    if weekday_match:
+        week_prefix = weekday_match.group(1) or ""
+        target_weekday = weekday_map[weekday_match.group(2)]
+        days_ahead = target_weekday - base_dt.weekday()
+        if week_prefix == "来週":
+            days_ahead += 7 if days_ahead >= 0 else 14
+        elif days_ahead < 0:
+            days_ahead += 7
+        return base_dt + timedelta(days=days_ahead)
+
+    business_match = re.search(r"(\d{1,2})営業日(?:以内|まで)", normalized)
+    if business_match:
+        remaining = int(business_match.group(1))
+        candidate = base_dt
+        while remaining > 0:
+            candidate += timedelta(days=1)
+            if candidate.weekday() < 5:
+                remaining -= 1
+        return candidate
+    return None
+
+
+def normalize_candidate_due_date(candidate: datetime, base_dt: datetime) -> str:
+    normalized_base = base_dt.astimezone(timezone.utc)
+    normalized_candidate = candidate.astimezone(timezone.utc)
+    if normalized_candidate < normalized_base - timedelta(days=32):
+        try:
+            normalized_candidate = normalized_candidate.replace(year=normalized_candidate.year + 1)
+        except ValueError:
+            normalized_candidate = normalized_candidate + timedelta(days=365)
+    return normalized_candidate.strftime("%Y-%m-%d")
+
+
+def extract_due_date(text: str, base_dt: datetime) -> str:
+    normalized = normalize_space(text)
+    match = re.search(r"(20\d{2})[/-](\d{1,2})[/-](\d{1,2})", normalized)
+    if match:
+        return f"{int(match.group(1)):04d}-{int(match.group(2)):02d}-{int(match.group(3)):02d}"
+    match = re.search(r"(20\d{2})年(\d{1,2})月(\d{1,2})日", normalized)
+    if match:
+        return f"{int(match.group(1)):04d}-{int(match.group(2)):02d}-{int(match.group(3)):02d}"
+    match = re.search(r"(?<!\d)(\d{1,2})[/-](\d{1,2})(?!\d)", normalized)
+    if match:
+        month = int(match.group(1))
+        day = int(match.group(2))
+        year = base_dt.year
+        try:
+            candidate = datetime(year, month, day, tzinfo=timezone.utc)
+            return normalize_candidate_due_date(candidate, base_dt)
+        except ValueError:
+            return ""
+    match = re.search(r"(?<!\d)(\d{1,2})月(\d{1,2})日", normalized)
+    if match:
+        month = int(match.group(1))
+        day = int(match.group(2))
+        year = base_dt.year
+        try:
+            candidate = datetime(year, month, day, tzinfo=timezone.utc)
+            return normalize_candidate_due_date(candidate, base_dt)
+        except ValueError:
+            return ""
+    match = re.search(r"(?<!\d)(\d{1,2})日(?:まで|迄|必着|締切|締め|期限)", normalized)
+    if match:
+        day = int(match.group(1))
+        year = base_dt.year
+        month = base_dt.month
+        try:
+            candidate = datetime(year, month, day, tzinfo=timezone.utc)
+            return normalize_candidate_due_date(candidate, base_dt)
+        except ValueError:
+            return ""
+    relative = infer_relative_due_date(normalized, base_dt)
+    return relative.strftime("%Y-%m-%d") if relative else ""
+
+
+def extract_assignee(text: str) -> str:
+    match = re.search(r"([一-龠々ぁ-んァ-ヶA-Za-z0-9._-]{2,40})(様|さん|殿|宛|ご担当)", text)
+    if match:
+        return normalize_space(match.group(1))
+    return ""
+
+
+def summarize_request(text: str) -> str:
+    cleaned = normalize_space(text)
+    if not cleaned:
+        return ""
+    for split_token in ("-----Original Message-----", "From:", "差出人:", "Sent:", "送信日時:"):
+        if split_token in cleaned:
+            cleaned = cleaned.split(split_token, 1)[0].strip()
+    sentences = re.split(r"(?<=[。！？\n])", cleaned)
+    summary = normalize_space("".join(sentences[:3]))
+    return summary[:600]
+
+
+def infer_reply_status(record: EmailRecord, body_summary: str) -> str:
+    subject = normalize_space(record.subject)
+    haystack = normalize_space(f"{subject}\n{body_summary}")
+    if any(keyword in haystack for keyword in REPLY_DONE_KEYWORDS):
+        return STATUS_REPLIED
+    if subject.lower().startswith(("re:", "fw:", "fwd:")):
+        return STATUS_REPLIED
+    if "未回答" in haystack or "未返信" in haystack:
+        return STATUS_OPEN
+    return STATUS_UNKNOWN
+
+
+def infer_status(reply_status: str, due_date: str) -> str:
+    if reply_status == STATUS_REPLIED:
+        return STATUS_REPLIED
+    if due_date:
+        return STATUS_OPEN
+    return STATUS_UNKNOWN
+
+
+def extract_task_record(record: EmailRecord) -> Optional[TaskRecord]:
+    if not looks_like_task(record):
+        return None
+    body_text = record.body_text or record.snippet
+    body_summary = summarize_request(body_text)
+    base_dt = parse_email_datetime(record.email_date) or datetime.now(timezone.utc)
+    request_date = base_dt.astimezone().strftime("%Y-%m-%d")
+    subject_lower = normalize_space(record.subject).lower()
+    reply_like_subject = subject_lower.startswith(("re:", "fw:", "fwd:")) or " fw:" in subject_lower or " re:" in subject_lower or " fwd:" in subject_lower
+    if reply_like_subject:
+        # Reply/forward subjects often contain old thread dates such as "3/18 ..."
+        # which are not the current request deadline. Ignore subject dates for replies.
+        due_sources = [
+            body_summary,
+            normalize_space(body_text)[:2000],
+            normalize_space(record.snippet),
+        ]
+    else:
+        due_sources = [
+            record.subject,
+            body_summary,
+            normalize_space(body_text)[:2000],
+            normalize_space(record.snippet),
+        ]
+    due_date = ""
+    for source in due_sources:
+        if not source:
+            continue
+        due_date = extract_due_date(source, base_dt)
+        if due_date:
+            break
+    reply_status = infer_reply_status(record, body_summary)
+    info_only_body = any(re.search(pattern, body_summary) for pattern in INFORMATION_ONLY_PATTERNS)
+    request_signal_body = any(re.search(pattern, body_summary) for pattern in REQUEST_SIGNAL_PATTERNS)
+    explicit_task_body = any(re.search(pattern, body_summary) for pattern in TASK_STRONG_PATTERNS)
+    due_dt: Optional[datetime] = None
+    if due_date:
+        try:
+            due_dt = datetime.strptime(due_date[:10], "%Y-%m-%d").replace(tzinfo=timezone.utc)
+        except Exception:
+            due_dt = None
+    if due_dt and due_dt.date() < (base_dt - timedelta(days=7)).date():
+        if reply_like_subject:
+            return None
+        if info_only_body and not request_signal_body:
+            return None
+    if info_only_body and not request_signal_body and not explicit_task_body and not due_date:
+        return None
+    subject_lower = normalize_space(record.subject).lower()
+    body_lower = body_summary.lower()
+    try_like = ("try" in subject_lower or "初動品" in record.subject)
+    try_info_only = ("送付" in body_summary or "スペック内" in body_summary or "報告" in body_summary) and not request_signal_body
+    if try_like and try_info_only and not due_date:
+        return None
+    # Recurring schedule cues are weak task signals; keep them only when the body still
+    # looks like an actionable request after due-date extraction.
+    if not due_date and reply_status == STATUS_UNKNOWN:
+        recurring_only = bool(re.search(r"(毎日|毎月|月次|月度|年度末|年内|適宜)", f"{record.subject}\n{body_summary}"))
+        weak_request = not any(re.search(pattern, body_summary) for pattern in TASK_STRONG_PATTERNS)
+        if recurring_only and weak_request and not any(re.search(pattern, body_summary) for pattern in REQUEST_SIGNAL_PATTERNS):
+            return None
+    return TaskRecord(
+        source=record.source,
+        source_id=record.source_id,
+        thread_key=infer_thread_key(record),
+        request_date=request_date,
+        due_date=due_date,
+        requester=normalize_space(record.sender),
+        assignee=extract_assignee("\n".join([record.recipients, record.cc, body_summary])),
+        request_subject=normalize_space(record.subject)[:300],
+        request_body=body_summary,
+        status=infer_status(reply_status, due_date),
+        reply_status=reply_status,
+        replier=normalize_space(record.sender) if reply_status == STATUS_REPLIED else "",
+        reply_summary=body_summary if reply_status == STATUS_REPLIED else "",
+        reply_date=datetime.now().strftime("%Y-%m-%d") if reply_status == STATUS_REPLIED else "",
+        evidence=json.dumps(
+            {
+                "message_id_header": record.message_id_header,
+                "gmail_thread_id": record.gmail_thread_id,
+                "snippet": normalize_space(record.snippet)[:280],
+            },
+            ensure_ascii=False,
+        ),
+    )
+
+
+@dataclass
+class EmailRecord:
+    source: str
+    source_id: str
+    subject: str
+    sender: str
+    recipients: str
+    cc: str
+    email_date: str
+    body_text: str
+    attachment_names: List[str]
+    filepath: str = ""
+    category: str = ""
+    person: str = ""
+    gmail_thread_id: str = ""
+    gmail_message_id: str = ""
+    message_id_header: str = ""
+    labels_json: str = "[]"
+    internal_ts: int = 0
+    snippet: str = ""
+    body_hash: str = ""
+    raw_sha1: str = ""
+    attachment_text: str = ""
+
+
+@dataclass
+class TaskRecord:
+    source: str
+    source_id: str
+    thread_key: str
+    request_date: str
+    due_date: str
+    requester: str
+    assignee: str
+    request_subject: str
+    request_body: str
+    status: str
+    reply_status: str
+    replier: str
+    reply_summary: str
+    reply_date: str
+    evidence: str
+
+
+def email_record_from_row(row: sqlite3.Row) -> EmailRecord:
+    try:
+        attachment_names = json.loads(row["attachment_names"] or "[]")
+    except Exception:
+        attachment_names = []
+    if not isinstance(attachment_names, list):
+        attachment_names = []
+    keys = row.keys()
+    return EmailRecord(
+        source=row["source"],
+        source_id=row["source_id"],
+        subject=row["subject"],
+        sender=row["sender"],
+        recipients=row["recipients"],
+        cc=row["cc"],
+        email_date=row["email_date"],
+        body_text=row["body_text"],
+        attachment_names=attachment_names,
+        filepath=row["filepath"],
+        category=row["category"],
+        person=row["person"],
+        gmail_thread_id=row["gmail_thread_id"],
+        gmail_message_id=row["gmail_message_id"],
+        message_id_header=row["message_id_header"],
+        labels_json=row["labels_json"],
+        internal_ts=row["internal_ts"],
+        snippet=row["snippet"],
+        body_hash=row["body_hash"],
+        raw_sha1=row["raw_sha1"],
+        attachment_text=row["attachment_text"] if "attachment_text" in keys else "",
+    )
+
+
+def parse_eml(path: Path) -> EmailRecord:
+    raw = path.read_bytes()
+    msg = email.message_from_bytes(raw)
+    rel = path.relative_to(EMAIL_ROOT)
+    parts = rel.parts
+    category = parts[0] if len(parts) > 1 else ""
+    person = parts[1] if len(parts) > 2 else ""
+    body, attachments = extract_body_and_attachments(msg)
+    source_id = str(rel).replace("\\", "/")
+    return EmailRecord(
+        source="eml",
+        source_id=source_id,
+        subject=decode_mime_words(msg.get("subject")),
+        sender=decode_mime_words(msg.get("from")),
+        recipients=decode_mime_words(msg.get("to")),
+        cc=decode_mime_words(msg.get("cc")),
+        email_date=decode_mime_words(msg.get("date")),
+        body_text=body,
+        attachment_names=attachments,
+        filepath=source_id,
+        category=category,
+        person=person,
+        message_id_header=decode_mime_words(msg.get("message-id")),
+        snippet=body[:280],
+        body_hash=hashlib.sha1(body.encode("utf-8", errors="ignore")).hexdigest(),
+        raw_sha1=hashlib.sha1(raw).hexdigest(),
+    )
+
+
+def find_existing_path(paths: Iterable[Path]) -> Optional[Path]:
+    for path in paths:
+        if path.exists():
+            return path
+    return None
+
+
+def refresh_gmail_token(token: dict, creds: dict) -> dict:
+    installed = creds.get("installed") or creds.get("web") or {}
+    response = requests.post(
+        installed["token_uri"],
+        headers={"User-Agent": USER_AGENT},
+        data={
+            "client_id": installed["client_id"],
+            "client_secret": installed["client_secret"],
+            "refresh_token": token["refresh_token"],
+            "grant_type": "refresh_token",
+        },
+        timeout=TIMEOUT,
+    )
+    response.raise_for_status()
+    refreshed = response.json()
+    token["access_token"] = refreshed["access_token"]
+    token["token_type"] = refreshed.get("token_type", token.get("token_type", "Bearer"))
+    expires_in = int(refreshed.get("expires_in", 3600))
+    token["expiry_date"] = int((time.time() + expires_in - 60) * 1000)
+    return token
+
+
+def gmail_session() -> Tuple[requests.Session, dict]:
+    token_path = find_existing_path([TOKEN_PATH, LEGACY_TOKEN_PATH])
+    creds_path = find_existing_path([CREDS_PATH, LEGACY_CREDS_PATH])
+    if not token_path or not creds_path:
+        raise FileNotFoundError("Gmail token or credentials file was not found")
+
+    token = load_json(token_path)
+    creds = load_json(creds_path)
+    expiry_ms = int(token.get("expiry_date", 0))
+    if not token.get("access_token") or expiry_ms <= int(time.time() * 1000):
+        token = refresh_gmail_token(token, creds)
+        save_json(token_path, token)
+
+    session = requests.Session()
+    session.headers.update(
+        {
+            "Authorization": f"Bearer {token['access_token']}",
+            "User-Agent": USER_AGENT,
+        }
+    )
+    return session, token
+
+
+def gmail_request(session: requests.Session, method: str, url: str, **kwargs) -> dict:
+    response = session.request(method, url, timeout=TIMEOUT, **kwargs)
+    if response.status_code == 401:
+        raise RuntimeError("Gmail access token was rejected")
+    response.raise_for_status()
+    return response.json()
+
+
+def parse_gmail_headers(payload: dict) -> Dict[str, str]:
+    result: Dict[str, str] = {}
+    for item in payload.get("headers", []):
+        name = item.get("name", "").lower()
+        if name:
+            result[name] = item.get("value", "")
+    return result
+
+
+def decode_base64url(data: str) -> str:
+    if not data:
+        return ""
+    padding = "=" * (-len(data) % 4)
+    raw = base64.urlsafe_b64decode(data + padding)
+    return decode_bytes(raw, "utf-8")
+
+
+def extract_gmail_parts(payload: dict) -> Tuple[str, List[str], str]:
+    plain_parts: List[str] = []
+    html_parts: List[str] = []
+    attachments: List[str] = []
+    attachment_texts: List[str] = []
+
+    def walk(part: dict) -> None:
+        filename = decode_mime_words(part.get("filename"))
+        if filename:
+            attachments.append(filename)
+        body_obj = part.get("body", {})
+        mime = part.get("mimeType", "")
+        data = body_obj.get("data")
+        if data:
+            if mime == "text/plain":
+                plain_parts.append(decode_base64url(data))
+            elif mime == "text/html":
+                html_parts.append(html_to_text(decode_base64url(data)))
+            elif filename:
+                padding = "=" * (-len(data) % 4)
+                raw = base64.urlsafe_b64decode(data + padding)
+                extracted = extract_attachment_text(mime, raw)
+                if extracted:
+                    attachment_texts.append(f"[{filename}]\n{extracted}")
+        for child in part.get("parts", []) or []:
+            walk(child)
+
+    walk(payload)
+    body = "\n\n".join([p.strip() for p in plain_parts if p.strip()]).strip()
+    if not body:
+        body = "\n\n".join([p.strip() for p in html_parts if p.strip()]).strip()
+    attachment_text = "\n\n".join(attachment_texts).strip()
+    return body, attachments, attachment_text
+
+
+def parse_gmail_message(message: dict) -> EmailRecord:
+    payload = message.get("payload", {})
+    headers = parse_gmail_headers(payload)
+    body, attachments, attachment_text = extract_gmail_parts(payload)
+    snippet = message.get("snippet", "") or body[:280]
+    body_hash = hashlib.sha1(body.encode("utf-8", errors="ignore")).hexdigest()
+    raw_sha1 = hashlib.sha1(
+        json.dumps(message, ensure_ascii=False, sort_keys=True).encode("utf-8", errors="ignore")
+    ).hexdigest()
+    return EmailRecord(
+        source="gmail",
+        source_id=message["id"],
+        subject=decode_mime_words(headers.get("subject", "")),
+        sender=decode_mime_words(headers.get("from", "")),
+        recipients=decode_mime_words(headers.get("to", "")),
+        cc=decode_mime_words(headers.get("cc", "")),
+        email_date=decode_mime_words(headers.get("date", "")),
+        body_text=body,
+        attachment_names=attachments,
+        attachment_text=attachment_text,
+        gmail_thread_id=message.get("threadId", ""),
+        gmail_message_id=message.get("id", ""),
+        message_id_header=decode_mime_words(headers.get("message-id", "")),
+        labels_json=json.dumps(message.get("labelIds", []), ensure_ascii=False),
+        internal_ts=int(message.get("internalDate", "0") or 0),
+        snippet=snippet,
+        body_hash=body_hash,
+        raw_sha1=raw_sha1,
+    )
+
+
+def connect_db() -> sqlite3.Connection:
+    con = sqlite3.connect(DB_PATH, timeout=30)
+    con.row_factory = sqlite3.Row
+    con.execute("PRAGMA busy_timeout=30000")
+    try:
+        con.execute("PRAGMA journal_mode=WAL")
+    except sqlite3.OperationalError:
+        # Some mounted or Windows-backed environments reject WAL after heavy writes.
+        con.execute("PRAGMA journal_mode=DELETE")
+    con.execute("PRAGMA synchronous=NORMAL")
+    con.execute(
+        """
+        CREATE TABLE IF NOT EXISTS emails (
+            source TEXT NOT NULL,
+            source_id TEXT NOT NULL,
+            subject TEXT NOT NULL DEFAULT '',
+            sender TEXT NOT NULL DEFAULT '',
+            recipients TEXT NOT NULL DEFAULT '',
+            cc TEXT NOT NULL DEFAULT '',
+            email_date TEXT NOT NULL DEFAULT '',
+            body_text TEXT NOT NULL DEFAULT '',
+            attachment_names TEXT NOT NULL DEFAULT '',
+            filepath TEXT NOT NULL DEFAULT '',
+            category TEXT NOT NULL DEFAULT '',
+            person TEXT NOT NULL DEFAULT '',
+            gmail_thread_id TEXT NOT NULL DEFAULT '',
+            gmail_message_id TEXT NOT NULL DEFAULT '',
+            message_id_header TEXT NOT NULL DEFAULT '',
+            labels_json TEXT NOT NULL DEFAULT '[]',
+            internal_ts INTEGER NOT NULL DEFAULT 0,
+            snippet TEXT NOT NULL DEFAULT '',
+            body_hash TEXT NOT NULL DEFAULT '',
+            raw_sha1 TEXT NOT NULL DEFAULT '',
+            attachment_text TEXT NOT NULL DEFAULT '',
+            indexed_at TEXT NOT NULL,
+            PRIMARY KEY (source, source_id)
+        )
+        """
+    )
+    # マイグレーション: attachment_text カラムが存在しない既存DBに追加
+    existing_email_cols = {r[1] for r in con.execute("PRAGMA table_info(emails)").fetchall()}
+    if "attachment_text" not in existing_email_cols:
+        con.execute("ALTER TABLE emails ADD COLUMN attachment_text TEXT NOT NULL DEFAULT ''")
+        # FTS/トリガーを attachment_text 対応版に再構築
+        con.executescript(
+            """
+            DROP TRIGGER IF EXISTS emails_ai;
+            DROP TRIGGER IF EXISTS emails_ad;
+            DROP TRIGGER IF EXISTS emails_au;
+            DROP TABLE IF EXISTS emails_fts;
+            """
+        )
+        con.execute(
+            """
+            CREATE VIRTUAL TABLE emails_fts USING fts5(
+                subject,
+                sender,
+                recipients,
+                cc,
+                body_text,
+                attachment_names,
+                attachment_text,
+                content='emails',
+                content_rowid='rowid',
+                tokenize='unicode61'
+            )
+            """
+        )
+        con.executescript(
+            """
+            INSERT INTO emails_fts(emails_fts) VALUES('rebuild');
+            CREATE TRIGGER emails_ai AFTER INSERT ON emails BEGIN
+                INSERT INTO emails_fts(rowid, subject, sender, recipients, cc, body_text, attachment_names, attachment_text)
+                VALUES (new.rowid, new.subject, new.sender, new.recipients, new.cc, new.body_text, new.attachment_names, new.attachment_text);
+            END;
+            CREATE TRIGGER emails_ad AFTER DELETE ON emails BEGIN
+                INSERT INTO emails_fts(emails_fts, rowid, subject, sender, recipients, cc, body_text, attachment_names, attachment_text)
+                VALUES('delete', old.rowid, old.subject, old.sender, old.recipients, old.cc, old.body_text, old.attachment_names, old.attachment_text);
+            END;
+            CREATE TRIGGER emails_au AFTER UPDATE ON emails BEGIN
+                INSERT INTO emails_fts(emails_fts, rowid, subject, sender, recipients, cc, body_text, attachment_names, attachment_text)
+                VALUES('delete', old.rowid, old.subject, old.sender, old.recipients, old.cc, old.body_text, old.attachment_names, old.attachment_text);
+                INSERT INTO emails_fts(rowid, subject, sender, recipients, cc, body_text, attachment_names, attachment_text)
+                VALUES (new.rowid, new.subject, new.sender, new.recipients, new.cc, new.body_text, new.attachment_names, new.attachment_text);
+            END;
+            """
+        )
+        con.commit()
+    else:
+        con.execute(
+            """
+            CREATE VIRTUAL TABLE IF NOT EXISTS emails_fts USING fts5(
+                subject,
+                sender,
+                recipients,
+                cc,
+                body_text,
+                attachment_names,
+                attachment_text,
+                content='emails',
+                content_rowid='rowid',
+                tokenize='unicode61'
+            )
+            """
+        )
+        con.executescript(
+            """
+            CREATE TRIGGER IF NOT EXISTS emails_ai AFTER INSERT ON emails BEGIN
+                INSERT INTO emails_fts(rowid, subject, sender, recipients, cc, body_text, attachment_names, attachment_text)
+                VALUES (new.rowid, new.subject, new.sender, new.recipients, new.cc, new.body_text, new.attachment_names, new.attachment_text);
+            END;
+            CREATE TRIGGER IF NOT EXISTS emails_ad AFTER DELETE ON emails BEGIN
+                INSERT INTO emails_fts(emails_fts, rowid, subject, sender, recipients, cc, body_text, attachment_names, attachment_text)
+                VALUES('delete', old.rowid, old.subject, old.sender, old.recipients, old.cc, old.body_text, old.attachment_names, old.attachment_text);
+            END;
+            CREATE TRIGGER IF NOT EXISTS emails_au AFTER UPDATE ON emails BEGIN
+                INSERT INTO emails_fts(emails_fts, rowid, subject, sender, recipients, cc, body_text, attachment_names, attachment_text)
+                VALUES('delete', old.rowid, old.subject, old.sender, old.recipients, old.cc, old.body_text, old.attachment_names, old.attachment_text);
+                INSERT INTO emails_fts(rowid, subject, sender, recipients, cc, body_text, attachment_names, attachment_text)
+                VALUES (new.rowid, new.subject, new.sender, new.recipients, new.cc, new.body_text, new.attachment_names, new.attachment_text);
+            END;
+            """
+        )
+    con.execute(
+        """
+        CREATE TABLE IF NOT EXISTS tasks (
+            source TEXT NOT NULL,
+            source_id TEXT NOT NULL,
+            thread_key TEXT NOT NULL DEFAULT '',
+            request_date TEXT NOT NULL DEFAULT '',
+            due_date TEXT NOT NULL DEFAULT '',
+            requester TEXT NOT NULL DEFAULT '',
+            assignee TEXT NOT NULL DEFAULT '',
+            request_subject TEXT NOT NULL DEFAULT '',
+            request_body TEXT NOT NULL DEFAULT '',
+            status TEXT NOT NULL DEFAULT '',
+            reply_status TEXT NOT NULL DEFAULT '',
+            replier TEXT NOT NULL DEFAULT '',
+            reply_summary TEXT NOT NULL DEFAULT '',
+            reply_date TEXT NOT NULL DEFAULT '',
+            evidence TEXT NOT NULL DEFAULT '{}',
+            updated_at TEXT NOT NULL,
+            PRIMARY KEY (source, source_id),
+            FOREIGN KEY (source, source_id) REFERENCES emails(source, source_id) ON DELETE CASCADE
+        )
+        """
+    )
+    # マイグレーション: reply_date / request_summary カラムが存在しない場合は追加
+    existing_cols = {r[1] for r in con.execute("PRAGMA table_info(tasks)").fetchall()}
+    if "reply_date" not in existing_cols:
+        con.execute("ALTER TABLE tasks ADD COLUMN reply_date TEXT NOT NULL DEFAULT ''")
+    if "request_summary" not in existing_cols:
+        con.execute("ALTER TABLE tasks ADD COLUMN request_summary TEXT NOT NULL DEFAULT ''")
+    con.execute(
+        """
+        CREATE VIRTUAL TABLE IF NOT EXISTS tasks_fts USING fts5(
+            requester,
+            assignee,
+            request_subject,
+            request_body,
+            replier,
+            reply_summary,
+            content='tasks',
+            content_rowid='rowid',
+            tokenize='unicode61'
+        )
+        """
+    )
+    con.executescript(
+        """
+        CREATE TRIGGER IF NOT EXISTS tasks_ai AFTER INSERT ON tasks BEGIN
+            INSERT INTO tasks_fts(rowid, requester, assignee, request_subject, request_body, replier, reply_summary)
+            VALUES (new.rowid, new.requester, new.assignee, new.request_subject, new.request_body, new.replier, new.reply_summary);
+        END;
+        CREATE TRIGGER IF NOT EXISTS tasks_ad AFTER DELETE ON tasks BEGIN
+            INSERT INTO tasks_fts(tasks_fts, rowid, requester, assignee, request_subject, request_body, replier, reply_summary)
+            VALUES('delete', old.rowid, old.requester, old.assignee, old.request_subject, old.request_body, old.replier, old.reply_summary);
+        END;
+        CREATE TRIGGER IF NOT EXISTS tasks_au AFTER UPDATE ON tasks BEGIN
+            INSERT INTO tasks_fts(tasks_fts, rowid, requester, assignee, request_subject, request_body, replier, reply_summary)
+            VALUES('delete', old.rowid, old.requester, old.assignee, old.request_subject, old.request_body, old.replier, old.reply_summary);
+            INSERT INTO tasks_fts(rowid, requester, assignee, request_subject, request_body, replier, reply_summary)
+            VALUES (new.rowid, new.requester, new.assignee, new.request_subject, new.request_body, new.replier, new.reply_summary);
+        END;
+        """
+    )
+    return con
+
+
+def upsert_record(con: sqlite3.Connection, record: EmailRecord) -> None:
+    con.execute(
+        """
+        INSERT INTO emails (
+            source, source_id, subject, sender, recipients, cc, email_date, body_text,
+            attachment_names, filepath, category, person, gmail_thread_id, gmail_message_id,
+            message_id_header, labels_json, internal_ts, snippet, body_hash, raw_sha1,
+            attachment_text, indexed_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(source, source_id) DO UPDATE SET
+            subject=excluded.subject,
+            sender=excluded.sender,
+            recipients=excluded.recipients,
+            cc=excluded.cc,
+            email_date=excluded.email_date,
+            body_text=excluded.body_text,
+            attachment_names=excluded.attachment_names,
+            filepath=excluded.filepath,
+            category=excluded.category,
+            person=excluded.person,
+            gmail_thread_id=excluded.gmail_thread_id,
+            gmail_message_id=excluded.gmail_message_id,
+            message_id_header=excluded.message_id_header,
+            labels_json=excluded.labels_json,
+            internal_ts=excluded.internal_ts,
+            snippet=excluded.snippet,
+            body_hash=excluded.body_hash,
+            raw_sha1=excluded.raw_sha1,
+            attachment_text=CASE WHEN excluded.attachment_text != '' THEN excluded.attachment_text ELSE emails.attachment_text END,
+            indexed_at=excluded.indexed_at
+        """,
+        (
+            record.source,
+            record.source_id,
+            record.subject,
+            record.sender,
+            record.recipients,
+            record.cc,
+            record.email_date,
+            record.body_text,
+            json.dumps(record.attachment_names, ensure_ascii=False),
+            record.filepath,
+            record.category,
+            record.person,
+            record.gmail_thread_id,
+            record.gmail_message_id,
+            record.message_id_header,
+            record.labels_json,
+            record.internal_ts,
+            record.snippet,
+            record.body_hash,
+            record.raw_sha1,
+            record.attachment_text,
+            now_iso(),
+        ),
+    )
+    task = extract_task_record(record)
+    if task:
+        con.execute(
+            """
+            INSERT INTO tasks (
+                source, source_id, thread_key, request_date, due_date, requester, assignee,
+                request_subject, request_body, status, reply_status, replier, reply_summary,
+                reply_date, evidence, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(source, source_id) DO UPDATE SET
+                thread_key=excluded.thread_key,
+                request_date=excluded.request_date,
+                due_date=excluded.due_date,
+                requester=excluded.requester,
+                assignee=excluded.assignee,
+                request_subject=excluded.request_subject,
+                request_body=excluded.request_body,
+                status=excluded.status,
+                reply_status=excluded.reply_status,
+                replier=excluded.replier,
+                reply_summary=excluded.reply_summary,
+                reply_date=CASE WHEN excluded.reply_status='replied' AND tasks.reply_date='' THEN excluded.reply_date ELSE tasks.reply_date END,
+                evidence=excluded.evidence,
+                updated_at=excluded.updated_at
+            """,
+            (
+                task.source,
+                task.source_id,
+                task.thread_key,
+                task.request_date,
+                task.due_date,
+                task.requester,
+                task.assignee,
+                task.request_subject,
+                task.request_body,
+                task.status,
+                task.reply_status,
+                task.replier,
+                task.reply_summary,
+                task.reply_date,
+                task.evidence,
+                now_iso(),
+            ),
+        )
+    else:
+        con.execute("DELETE FROM tasks WHERE source=? AND source_id=?", (record.source, record.source_id))
+
+
+def rebuild_tasks(con: sqlite3.Connection) -> int:
+    rows = con.execute("SELECT * FROM emails ORDER BY internal_ts DESC, indexed_at DESC").fetchall()
+    con.execute("DELETE FROM tasks")
+    rebuilt = 0
+    for idx, row in enumerate(rows, start=1):
+        task = extract_task_record(email_record_from_row(row))
+        if not task:
+            continue
+        con.execute(
+            """
+            INSERT INTO tasks (
+                source, source_id, thread_key, request_date, due_date, requester, assignee,
+                request_subject, request_body, status, reply_status, replier, reply_summary,
+                reply_date, evidence, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                task.source,
+                task.source_id,
+                task.thread_key,
+                task.request_date,
+                task.due_date,
+                task.requester,
+                task.assignee,
+                task.request_subject,
+                task.request_body,
+                task.status,
+                task.reply_status,
+                task.replier,
+                task.reply_summary,
+                task.reply_date,
+                task.evidence,
+                now_iso(),
+            ),
+        )
+        rebuilt += 1
+        if idx % 500 == 0:
+            con.commit()
+    return rebuilt
+
+
+def remove_deleted_eml(con: sqlite3.Connection, existing: set[str]) -> int:
+    current = {
+        row["source_id"]
+        for row in con.execute("SELECT source_id FROM emails WHERE source='eml'")
+    }
+    missing = current - existing
+    for source_id in missing:
+        con.execute("DELETE FROM emails WHERE source='eml' AND source_id=?", (source_id,))
+    return len(missing)
+
+
+def index_eml(con: sqlite3.Connection, state: dict, limit: Optional[int]) -> dict:
+    eml_state = state.setdefault("eml", {})
+    file_state = eml_state.setdefault("files", {})
+    all_files = sorted(EMAIL_ROOT.rglob("*.eml"))
+    if limit:
+        all_files = all_files[:limit]
+    existing_ids = {
+        row["source_id"]
+        for row in con.execute("SELECT source_id FROM emails WHERE source='eml'")
+    }
+
+    indexed = 0
+    skipped = 0
+    errors = 0
+    seen_ids: set[str] = set()
+
+    for idx, path in enumerate(all_files, start=1):
+        rel = str(path.relative_to(EMAIL_ROOT)).replace("\\", "/")
+        seen_ids.add(rel)
+        stat = path.stat()
+        signature = f"{stat.st_size}:{stat.st_mtime_ns}"
+        if file_state.get(rel) == signature and rel in existing_ids:
+            skipped += 1
+            continue
+        try:
+            upsert_record(con, parse_eml(path))
+            file_state[rel] = signature
+            indexed += 1
+            if indexed % 200 == 0:
+                con.commit()
+            if idx % 250 == 0:
+                write_status(
+                    {
+                        "task": "email_search_index",
+                        "stage": "eml",
+                        "updatedAt": now_iso(),
+                        "totalFiles": len(all_files),
+                        "processed": idx,
+                        "indexed": indexed,
+                        "skipped": skipped,
+                        "errors": errors,
+                    }
+                )
+        except Exception as exc:
+            errors += 1
+            log(f"[WARN] EML parse failed: {rel}: {exc}")
+
+    deleted = 0
+    if limit is None:
+        deleted = remove_deleted_eml(con, seen_ids)
+    eml_state["last_scan_at"] = now_iso()
+    eml_state["known_files"] = len(file_state)
+    return {
+        "total": len(all_files),
+        "indexed": indexed,
+        "skipped": skipped,
+        "deleted": deleted,
+        "errors": errors,
+    }
+
+
+def gmail_query_from_state(state: dict, fallback_days: int) -> str:
+    gmail_state = state.setdefault("gmail", {})
+    latest_ts = int(gmail_state.get("latest_internal_ts", 0) or 0)
+    if latest_ts > 0:
+        dt = datetime.fromtimestamp(max(latest_ts - 86400000, 0) / 1000, tz=timezone.utc)
+        return f"in:anywhere after:{dt.strftime('%Y/%m/%d')}"
+    dt = datetime.now(timezone.utc) - timedelta(days=fallback_days)
+    return f"in:anywhere after:{dt.strftime('%Y/%m/%d')}"
+
+
+def list_gmail_message_ids(
+    session: requests.Session, query: str, max_messages: int
+) -> List[str]:
+    ids: List[str] = []
+    page_token = None
+    while len(ids) < max_messages:
+        params = {
+            "q": query,
+            "maxResults": min(100, max_messages - len(ids)),
+            "includeSpamTrash": "true",
+        }
+        if page_token:
+            params["pageToken"] = page_token
+        payload = gmail_request(
+            session,
+            "GET",
+            "https://gmail.googleapis.com/gmail/v1/users/me/messages",
+            params=params,
+        )
+        ids.extend(item["id"] for item in payload.get("messages", []))
+        page_token = payload.get("nextPageToken")
+        if not page_token:
+            break
+    return ids
+
+
+def index_gmail(
+    con: sqlite3.Connection,
+    state: dict,
+    max_messages: int,
+    fallback_days: int,
+    force_query: Optional[str],
+) -> dict:
+    session, _token = gmail_session()
+    gmail_state = state.setdefault("gmail", {})
+    query = force_query or gmail_query_from_state(state, fallback_days)
+    ids = list_gmail_message_ids(session, query, max_messages)
+    indexed = 0
+    skipped = 0
+    skipped_by_filter = 0
+    errors = 0
+    latest_ts = int(gmail_state.get("latest_internal_ts", 0) or 0)
+
+    existing_hashes = {
+        row["source_id"]: row["raw_sha1"]
+        for row in con.execute("SELECT source_id, raw_sha1 FROM emails WHERE source='gmail'")
+    }
+
+    for idx, message_id in enumerate(ids, start=1):
+        try:
+            payload = gmail_request(
+                session,
+                "GET",
+                f"https://gmail.googleapis.com/gmail/v1/users/me/messages/{message_id}",
+                params={"format": "full"},
+            )
+            raw_sha1 = hashlib.sha1(
+                json.dumps(payload, ensure_ascii=False, sort_keys=True).encode("utf-8", errors="ignore")
+            ).hexdigest()
+            if existing_hashes.get(message_id) == raw_sha1:
+                skipped += 1
+                continue
+            record = parse_gmail_message(payload)
+            if not should_store_gmail_record(record):
+                skipped += 1
+                skipped_by_filter += 1
+                continue
+            latest_ts = max(latest_ts, record.internal_ts)
+            upsert_record(con, record)
+            indexed += 1
+            if indexed % 50 == 0:
+                con.commit()
+            if idx % 25 == 0:
+                write_status(
+                    {
+                        "task": "email_search_index",
+                        "stage": "gmail",
+                        "updatedAt": now_iso(),
+                        "query": query,
+                        "totalMessages": len(ids),
+                        "processed": idx,
+                        "indexed": indexed,
+                        "skipped": skipped,
+                        "skippedByFilter": skipped_by_filter,
+                        "errors": errors,
+                    }
+                )
+        except Exception as exc:
+            errors += 1
+            log(f"[WARN] Gmail fetch failed: {message_id}: {exc}")
+
+    gmail_state["latest_internal_ts"] = latest_ts
+    gmail_state["last_query"] = query
+    gmail_state["last_scan_at"] = now_iso()
+    return {
+        "query": query,
+        "candidates": len(ids),
+        "indexed": indexed,
+        "skipped": skipped,
+        "skipped_by_filter": skipped_by_filter,
+        "errors": errors,
+        "latest_internal_ts": latest_ts,
+    }
+
+
+def backfill_attachment_text(con: sqlite3.Connection, limit: int = 200) -> dict:
+    """Re-fetch Gmail messages that have attachments but no extracted attachment_text yet."""
+    rows = con.execute(
+        """
+        SELECT source_id FROM emails
+        WHERE source='gmail'
+          AND attachment_names NOT IN ('[]', '', 'null')
+          AND (attachment_text IS NULL OR attachment_text = '')
+        LIMIT ?
+        """,
+        (limit,),
+    ).fetchall()
+    if not rows:
+        return {"candidates": 0, "updated": 0, "errors": 0}
+    session, _token = gmail_session()
+    updated = 0
+    errors = 0
+    for row in rows:
+        message_id = row[0]
+        try:
+            payload = gmail_request(
+                session,
+                "GET",
+                f"https://gmail.googleapis.com/gmail/v1/users/me/messages/{message_id}",
+                params={"format": "full"},
+            )
+            _, _, attachment_text = extract_gmail_parts(payload.get("payload", {}))
+            if attachment_text:
+                con.execute(
+                    "UPDATE emails SET attachment_text=? WHERE source='gmail' AND source_id=?",
+                    (attachment_text, message_id),
+                )
+                updated += 1
+        except Exception as exc:
+            errors += 1
+            log(f"[WARN] backfill_attachment_text failed: {message_id}: {exc}")
+    con.commit()
+    return {"candidates": len(rows), "updated": updated, "errors": errors}
+
+
+def cmd_index(args: argparse.Namespace) -> int:
+    state = load_json(STATE_PATH)
+    write_status({"task": "email_search_index", "stage": "starting", "updatedAt": now_iso()})
+    con = connect_db()
+    try:
+        eml_result = index_eml(con, state, args.eml_limit)
+        con.commit()
+        if args.with_gmail:
+            gmail_result = index_gmail(
+                con,
+                state,
+                args.gmail_max_messages,
+                args.gmail_fallback_days,
+                args.gmail_force_query,
+            )
+            con.commit()
+        else:
+            gmail_result = {"skipped": True}
+        rebuilt_tasks = rebuild_tasks(con)
+        con.commit()
+        state["updatedAt"] = now_iso()
+        save_json(STATE_PATH, state)
+        summary = {
+            "task": "email_search_index",
+            "stage": "completed",
+            "updatedAt": now_iso(),
+            "dbPath": str(DB_PATH),
+            "eml": eml_result,
+            "gmail": gmail_result,
+            "taskCount": con.execute("SELECT COUNT(*) FROM tasks").fetchone()[0],
+            "rebuiltTasks": rebuilt_tasks,
+        }
+        write_status(summary)
+        log(json.dumps(summary, ensure_ascii=False))
+        return 0
+    finally:
+        con.close()
+
+
+def cmd_search(args: argparse.Namespace) -> int:
+    con = connect_db()
+    try:
+        try:
+            rows = con.execute(
+                """
+                SELECT
+                    e.source,
+                    e.source_id,
+                    e.subject,
+                    e.sender,
+                    e.recipients,
+                    e.email_date,
+                    e.filepath,
+                    e.category,
+                    e.person,
+                    e.snippet,
+                    bm25(emails_fts) AS score
+                FROM emails_fts
+                JOIN emails e ON e.rowid = emails_fts.rowid
+                WHERE emails_fts MATCH ?
+                ORDER BY score
+                LIMIT ?
+                """,
+                (args.query, args.limit),
+            ).fetchall()
+        except sqlite3.OperationalError:
+            rows = []
+        if not rows:
+            terms = [term.strip() for term in re.split(r"\s+", args.query) if term.strip()]
+            if not terms:
+                terms = [args.query]
+            clauses = []
+            params: List[object] = []
+            for term in terms:
+                clauses.append(
+                    "(subject LIKE ? OR sender LIKE ? OR recipients LIKE ? OR cc LIKE ? OR body_text LIKE ? OR attachment_names LIKE ?)"
+                )
+                needle = f"%{term}%"
+                params.extend([needle, needle, needle, needle, needle, needle])
+            params.append(args.limit)
+            rows = con.execute(
+                f"""
+                SELECT
+                    source,
+                    source_id,
+                    subject,
+                    sender,
+                    recipients,
+                    email_date,
+                    filepath,
+                    category,
+                    person,
+                    snippet,
+                    0.0 AS score
+                FROM emails
+                WHERE {' AND '.join(clauses)}
+                ORDER BY internal_ts DESC, indexed_at DESC
+                LIMIT ?
+                """,
+                params,
+            ).fetchall()
+        print(json.dumps([dict(row) for row in rows], ensure_ascii=False, indent=2))
+        return 0
+    finally:
+        con.close()
+
+
+def cmd_tasks(args: argparse.Namespace) -> int:
+    con = connect_db()
+    try:
+        params: List[object] = []
+        clauses: List[str] = []
+        if args.query:
+            terms = [term.strip() for term in re.split(r"\s+", args.query) if term.strip()]
+            for term in terms:
+                needle = f"%{term}%"
+                clauses.append(
+                    "(requester LIKE ? OR assignee LIKE ? OR request_subject LIKE ? OR request_body LIKE ? OR replier LIKE ? OR reply_summary LIKE ?)"
+                )
+                params.extend([needle, needle, needle, needle, needle, needle])
+        if args.status:
+            clauses.append("status = ?")
+            params.append(args.status)
+        if args.due_on:
+            clauses.append("due_date = ?")
+            params.append(args.due_on)
+        params.append(args.limit)
+        rows = con.execute(
+            f"""
+            SELECT
+                source,
+                source_id,
+                thread_key,
+                request_date,
+                due_date,
+                requester,
+                assignee,
+                request_subject,
+                status,
+                reply_status,
+                replier,
+                substr(reply_summary, 1, 280) AS reply_summary
+            FROM tasks
+            {'WHERE ' + ' AND '.join(clauses) if clauses else ''}
+            ORDER BY CASE WHEN due_date = '' THEN 1 ELSE 0 END, due_date ASC, updated_at DESC
+            LIMIT ?
+            """,
+            params,
+        ).fetchall()
+        print(json.dumps([dict(row) for row in rows], ensure_ascii=False, indent=2))
+        return 0
+    finally:
+        con.close()
+
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser()
+    sub = parser.add_subparsers(dest="command")
+
+    search = sub.add_parser("search")
+    search.add_argument("query")
+    search.add_argument("--limit", type=int, default=10)
+    search.set_defaults(func=cmd_search)
+
+    tasks = sub.add_parser("tasks")
+    tasks.add_argument("query", nargs="?")
+    tasks.add_argument("--status")
+    tasks.add_argument("--due-on")
+    tasks.add_argument("--limit", type=int, default=20)
+    tasks.set_defaults(func=cmd_tasks)
+
+    parser.set_defaults(func=cmd_index)
+    parser.add_argument("--without-gmail", dest="with_gmail", action="store_false")
+    parser.add_argument("--gmail-max-messages", type=int, default=500)
+    parser.add_argument("--gmail-fallback-days", type=int, default=365)
+    parser.add_argument("--gmail-force-query")
+    parser.add_argument("--eml-limit", type=int)
+    return parser
+
+
+def main() -> int:
+    parser = build_parser()
+    args = parser.parse_args()
+    return args.func(args)
+
+
+if __name__ == "__main__":
+    sys.exit(main())

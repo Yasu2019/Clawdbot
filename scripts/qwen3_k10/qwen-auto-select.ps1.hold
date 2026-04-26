@@ -1,0 +1,78 @@
+﻿# qwen-auto-select.ps1
+# Purpose:
+#   Choose a practical local Qwen model based on hardware and task class.
+#   Safe default: print recommendation only (no destructive action).
+
+param(
+    [ValidateSet("daily","coding","heavy")]
+    [string]$Task = "daily"
+)
+
+function Get-TotalRAMGB {
+    try {
+        $cs = Get-CimInstance Win32_ComputerSystem
+        return [math]::Round($cs.TotalPhysicalMemory / 1GB, 0)
+    } catch {
+        return 0
+    }
+}
+
+function Get-GPUNames {
+    try {
+        return (Get-CimInstance Win32_VideoController | Select-Object -ExpandProperty Name)
+    } catch {
+        return @()
+    }
+}
+
+function Has-DiscreteGPU {
+    param([string[]]$Names)
+    foreach ($n in $Names) {
+        if ($n -match "NVIDIA|RTX|GTX|AMD|Radeon|ARC") { return $true }
+    }
+    return $false
+}
+
+$ram = Get-TotalRAMGB
+$gpus = Get-GPUNames
+$hasDGPU = Has-DiscreteGPU -Names $gpus
+
+$model = ""
+$reason = ""
+
+switch ($Task) {
+    "daily" {
+        if ($hasDGPU -or $ram -ge 48) {
+            $model = "qwen3:14b"
+            $reason = "Balanced for everyday local use."
+        } else {
+            $model = "qwen3:8b"
+            $reason = "Safer default for tighter hardware."
+        }
+    }
+    "coding" {
+        if ($hasDGPU -or $ram -ge 48) {
+            $model = "qwen2.5-coder:14b"
+            $reason = "Better coding-focused default on this class of machine."
+        } else {
+            $model = "qwen2.5-coder:7b"
+            $reason = "Safer coding model for limited hardware."
+        }
+    }
+    "heavy" {
+        if ($hasDGPU -or $ram -ge 48) {
+            $model = "qwen3.6:35b-a3b"
+            $reason = "Use for heavy tasks only; may still be slow on CPU-only systems."
+        } else {
+            $model = "qwen3:14b"
+            $reason = "Fallback because Qwen3.6 may be too heavy."
+        }
+    }
+}
+
+Write-Host "Detected RAM(GB): $ram"
+Write-Host "Detected GPU(s):"
+$gpus | ForEach-Object { Write-Host " - $_" }
+Write-Host ""
+Write-Host "Recommended model for task [$Task]: $model"
+Write-Host "Reason: $reason"

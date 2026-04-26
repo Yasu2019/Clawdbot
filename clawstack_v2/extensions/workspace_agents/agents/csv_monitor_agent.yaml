@@ -1,0 +1,14 @@
+name: csv_monitor_agent
+role: 指定フォルダのCSVを監視し、異常時にレポートと承認待ち通知を生成
+watch:
+  folder: /app/samples
+  pattern: "*.csv"
+  interval_seconds: 60
+thresholds:
+  defect_rate_warn: 0.03
+  defect_rate_alarm: 0.05
+outputs:
+  - reports/csv_monitor_events.jsonl
+  - reports/latest_alert.md
+hitl:
+  before_notification: true

@@ -1,4 +1,102 @@
 model_list:
+  # ── Claudian Protocol Aliases (2026-04-09) ──────────────────────
+  - model_name: claude
+    litellm_params:
+      model: ollama/qwen3:8b
+      api_base: http://ollama:11434
+      api_key: ollama
+  - model_name: codex
+    litellm_params:
+      model: ollama/qwen3:8b
+      api_base: http://ollama:11434
+      api_key: ollama
+  - model_name: ollama
+    litellm_params:
+      model: ollama/qwen2.5-coder:7b
+      api_base: http://ollama:11434
+      api_key: ollama
+  # ── LightRAG 専用: thinking 無効化済み qwen3 (2026-04-17) ────────
+  # バッチ処理・グラフ抽出に使用。thinking=off で高速化
+  - model_name: local_fast_nothink
+    litellm_params:
+      model: ollama/qwen3-nothink
+      api_base: http://ollama:11434
+      api_key: ollama
+
+  # ── OpenAI Cloud Layer (Added 2026-04-22) ────────────────────────
+  - model_name: openai/gpt-4o
+    litellm_params:
+      model: gpt-4o
+      api_key: "${CLOUD_OPENAI_API_KEY}"
+  - model_name: openai/gpt-4o-mini
+    litellm_params:
+      model: gpt-4o-mini
+      api_key: "${CLOUD_OPENAI_API_KEY}"
+
+  # ── Kimi Moonshot AI (Added 2026-04-22) ──────────────────────────
+  - model_name: openai/kimi-agent-primary
+    litellm_params:
+      model: kimi-k2.6
+      custom_llm_provider: openai
+      api_key: "${MOONSHOT_API_KEY}"
+      api_base: "${KIMI_BASE_URL}"
+      timeout: 180
+      max_retries: 2
+  - model_name: openai/kimi-vision-primary
+    litellm_params:
+      model: kimi-k2.6
+      custom_llm_provider: openai
+      api_key: "${MOONSHOT_API_KEY}"
+      api_base: "${KIMI_BASE_URL}"
+      timeout: 180
+      max_retries: 2
+  - model_name: openai/kimi-agent-with-fallback
+    litellm_params:
+      model: kimi-k2.6
+      custom_llm_provider: openai
+      api_key: "${MOONSHOT_API_KEY}"
+      api_base: "${KIMI_BASE_URL}"
+      timeout: 180
+      max_retries: 2
+
+  # ── Lemonade Multimodal Layer (2026-04-12) ─────────────────────
+  - model_name: lemonade-speech
+    litellm_params:
+      model: openai/whisper-large-v3
+      api_base: http://lemonade:8000/v1
+      api_key: local-dev-key
+  - model_name: lemonade-image
+    litellm_params:
+      model: openai/stable-diffusion-xl
+      api_base: http://lemonade:8000/v1
+      api_key: local-dev-key
+  - model_name: lemonade-multimodal
+    litellm_params:
+      model: openai/gpt-4o-compat
+      api_base: http://lemonade:8000/v1
+      api_key: local-dev-key
+
+  # Optional experimental local Gemma 4 overlay:
+  # data/state/litellm_config.gemma4.experimental.yaml
+  # ── Local (Ollama via OpenAI-compat /v1) ────────────────────────
+  # LiteLLM v1.10.1: model_name must use a recognized provider prefix
+  # so the router can validate it before routing to litellm_params.
+  - model_name: openai/gemma4
+    litellm_params:
+      model: ollama/gemma4:e2b
+      api_base: http://ollama:11434
+      api_key: ollama
+  - model_name: openai/qwen3
+    litellm_params:
+      model: ollama/qwen3:8b
+      api_base: http://ollama:11434
+      api_key: ollama
+  - model_name: local_fast
+    litellm_params:
+      model: ollama/qwen3:8b
+      api_base: http://ollama:11434
+      api_key: ollama
+
   # ── Cloud (Gemini — for LiteLLM proxy routing if needed) ────────
   - model_name: google/gemini-2.5-flash
     litellm_params:
@@ -14,18 +112,18 @@ model_list:
   # ── Embeddings (OpenClaw memory search) ─────────────────────────
   - model_name: text-embedding-ada-002
     litellm_params:
-      model: openai/nomic-embed-text
-      api_base: http://ollama:11434/v1
+      model: ollama/nomic-embed-text
+      api_base: http://ollama:11434
       api_key: none
   - model_name: text-embedding-3-small
     litellm_params:
-      model: openai/nomic-embed-text
-      api_base: http://ollama:11434/v1
+      model: ollama/nomic-embed-text
+      api_base: http://ollama:11434
       api_key: none
   - model_name: text-embedding-3-large
     litellm_params:
-      model: openai/nomic-embed-text
-      api_base: http://ollama:11434/v1
+      model: ollama/nomic-embed-text
+      api_base: http://ollama:11434
       api_key: none
   - model_name: mixedbread-ai/mxbai-embed-large-v1
     litellm_params:
@@ -45,6 +143,11 @@ litellm_settings:
   set_timeout: 120
 
 environment_variables:
+  # Monitoring & Portals
   LANGFUSE_PUBLIC_KEY: "pk-lf-07926c92-5480-4fb5-ae97-39e35a0a0ce5"
-  LANGFUSE_SECRET_KEY: "sk-lf-9b4e86b1-ec3b-4826-aca7-b20bd68b1bd8"
+  LANGFUSE_SECRET_KEY: "os.environ/LANGFUSE_SECRET_KEY"
   LANGFUSE_HOST: "http://langfuse:3000"
+  # Cloud Token Pass-through
+  MOONSHOT_API_KEY: "os.environ/MOONSHOT_API_KEY"
+  KIMI_BASE_URL: "os.environ/KIMI_BASE_URL"
+  CLOUD_OPENAI_API_KEY: "os.environ/CLOUD_OPENAI_API_KEY"

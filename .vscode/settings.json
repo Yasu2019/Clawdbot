@@ -1,0 +1,18 @@
+{
+  "editor.formatOnSave": false,
+  "editor.codeActionsOnSave": {},
+  "files.autoSave": "off",
+  "git.confirmSync": true,
+  "git.enableSmartCommit": false,
+  "git.autofetch": true,
+  "files.exclude": {
+    "**/tmp/**": true,
+    "**/log/**": true
+  },
+  "search.exclude": {
+    "**/node_modules/**": true,
+    "**/vendor/bundle/**": true,
+    "**/tmp/**": true,
+    "**/log/**": true
+  }
+}

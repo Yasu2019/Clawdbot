@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Auto Repair Console</title>
+  <style>
+    :root {
+      --bg: #0a141b;
+      --panel: rgba(17, 30, 40, 0.92);
+      --line: rgba(128, 170, 198, 0.2);
+      --text: #edf6fb;
+      --muted: #9eb4c2;
+      --ok: #47d68a;
+      --warn: #f5c25c;
+      --bad: #ff8d7a;
+      --accent: #58cfd1;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "Yu Gothic UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(88, 207, 209, 0.16), transparent 28%),
+        linear-gradient(180deg, #0b151d, #10212b);
+    }
+    .shell { max-width: 1120px; margin: 0 auto; padding: 28px 20px 40px; }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      padding: 22px;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.28);
+      backdrop-filter: blur(10px);
+      margin-bottom: 18px;
+    }
+    h1, h2 { margin: 0 0 10px; }
+    p, .muted { color: var(--muted); line-height: 1.7; }
+    .chips { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+    .chip {
+      display: inline-flex; align-items: center; gap: 8px; text-decoration: none;
+      color: var(--text); border: 1px solid var(--line); border-radius: 999px;
+      padding: 9px 14px; background: rgba(255,255,255,0.04); font-size: 13px;
+    }
+    .stats { display: grid; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); gap: 14px; }
+    .stat .label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; }
+    .stat .value { font-size: 28px; font-weight: 700; margin-top: 8px; }
+    .sub { color: var(--muted); margin-top: 8px; font-size: 13px; }
+    .ok { color: var(--ok); } .warn { color: var(--warn); } .bad { color: var(--bad); }
+    .grid { display: grid; grid-template-columns: 1.1fr .9fr; gap: 18px; }
+    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid rgba(255,255,255,0.06); vertical-align: top; }
+    th { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; }
+    .badge { display: inline-block; padding: 4px 9px; border-radius: 999px; background: rgba(255,255,255,0.06); margin-right: 6px; font-size: 12px; }
+    pre {
+      margin: 0; white-space: pre-wrap; word-break: break-word; overflow: auto;
+      background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 14px; padding: 14px; font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="panel">
+      <h1>Auto Repair Console</h1>
+      <p>低リスクの自己修復ルールを表示します。中リスク、高リスクは通知優先で扱う前提です。</p>
+      <div class="chips">
+        <a class="chip" href="/portal.html">Portal</a>
+        <a class="chip" href="../learning_memory/index.html">Learning Memory</a>
+        <a class="chip" href="../../AUTO_REPAIR_ALLOWED_RULES.md" target="_blank" rel="noreferrer">Allowed Rules</a>
+        <a class="chip" href="../../MEDIUM_HIGH_RISK_NOTIFICATION_POLICY.md" target="_blank" rel="noreferrer">Risk Policy</a>
+      </div>
+    </section>
+
+    <section class="stats">
+      <article class="panel stat">
+        <div class="label">Auto Repair</div>
+        <div class="value" id="overallState">Loading...</div>
+        <div class="sub" id="overallSub">waiting...</div>
+      </article>
+      <article class="panel stat">
+        <div class="label">Actions</div>
+        <div class="value" id="actionCount">--</div>
+        <div class="sub" id="actionSub">waiting...</div>
+      </article>
+      <article class="panel stat">
+        <div class="label">Nightly</div>
+        <div class="value" id="nightlyState">--</div>
+        <div class="sub" id="nightlySub">waiting...</div>
+      </article>
+      <article class="panel stat">
+        <div class="label">Updated</div>
+        <div class="value" id="updatedAt">--</div>
+        <div class="sub" id="updatedSub">waiting...</div>
+      </article>
+      <article class="panel stat">
+        <div class="label">Risk Notify</div>
+        <div class="value" id="riskState">--</div>
+        <div class="sub" id="riskSub">waiting...</div>
+      </article>
+    </section>
+
+    <section class="grid">
+      <article class="panel">
+        <h2>Repair Rules</h2>
+        <table>
+          <thead>
+            <tr><th>Rule</th><th>Decision</th><th>Reason</th></tr>
+          </thead>
+          <tbody id="rulesTable"><tr><td colspan="3" class="muted">loading...</td></tr></tbody>
+        </table>
+      </article>
+      <article class="panel">
+        <h2>Recent Results</h2>
+        <div id="resultsPane" class="muted">loading...</div>
+      </article>
+    </section>
+
+    <section class="panel">
+      <h2>Raw Status</h2>
+      <pre id="rawStatus">waiting...</pre>
+    </section>
+  </main>
+
+  <script>
+    async function loadJson(path) {
+      const response = await fetch(path, { cache: "no-store" });
+      if (!response.ok) throw new Error(`${path} -> HTTP ${response.status}`);
+      return response.json();
+    }
+
+    function classifyAutoRepair(data) {
+      const rules = data.rules || [];
+      const active = rules.filter((rule) => rule.shouldRepair);
+      if (active.length) return { text: "Repairing", cls: "warn" };
+      return { text: "Healthy", cls: "ok" };
+    }
+
+    function classifyNightly(data) {
+      const results = data.results || {};
+      const timedOut = Object.values(results).some((result) => result && result.timedOut);
+      if (timedOut) return { text: "Warning", cls: "warn" };
+      if (data.step && data.step !== "completed") return { text: "Running", cls: "warn" };
+      return { text: "OK", cls: "ok" };
+    }
+
+    async function main() {
+      try {
+        const [autoRepair, nightly, risk] = await Promise.all([
+          loadJson("../../auto_repair_allowed_status.json"),
+          loadJson("../../email_rag_ingest_runtime_status.json"),
+          loadJson("../../risk_notification_status.json")
+        ]);
+
+        const repairState = classifyAutoRepair(autoRepair);
+        document.getElementById("overallState").textContent = repairState.text;
+        document.getElementById("overallState").className = `value ${repairState.cls}`;
+        document.getElementById("overallSub").textContent = (autoRepair.rules || []).map((rule) => `${rule.name}:${rule.reason}`).join(" | ") || "no rules";
+
+        document.getElementById("actionCount").textContent = String((autoRepair.actions || []).length);
+        document.getElementById("actionSub").textContent = (autoRepair.actions || []).join(", ") || "no repair action required";
+
+        const nightlyState = classifyNightly(nightly);
+        document.getElementById("nightlyState").textContent = nightlyState.text;
+        document.getElementById("nightlyState").className = `value ${nightlyState.cls}`;
+        document.getElementById("nightlySub").textContent = nightly.currentPhase || nightly.step || "unknown";
+
+        document.getElementById("updatedAt").textContent = autoRepair.finishedAt || autoRepair.startedAt || "--";
+        document.getElementById("updatedSub").textContent = "auto repair status";
+
+        const findings = risk.findings || [];
+        const highestRisk = findings.some((item) => item.severity === "high") ? "High" : (findings.length ? "Medium" : "None");
+        const riskClass = highestRisk === "High" ? "bad" : (highestRisk === "Medium" ? "warn" : "ok");
+        document.getElementById("riskState").textContent = risk.sent ? `${highestRisk} sent` : highestRisk;
+        document.getElementById("riskState").className = `value ${riskClass}`;
+        document.getElementById("riskSub").textContent = findings.length
+          ? findings.map((item) => `${item.severity}:${item.key}`).join(" | ")
+          : "no medium/high risk findings";
+
+        const rules = autoRepair.rules || [];
+        document.getElementById("rulesTable").innerHTML = rules.length
+          ? rules.map((rule) => `
+              <tr>
+                <td><code>${rule.name}</code></td>
+                <td><span class="badge">${rule.shouldRepair ? "repair" : "skip"}</span></td>
+                <td>${rule.reason || "--"}</td>
+              </tr>
+            `).join("")
+          : '<tr><td colspan="3" class="muted">no rules</td></tr>';
+
+        const results = autoRepair.results || {};
+        const resultEntries = Object.entries(results);
+        document.getElementById("resultsPane").innerHTML = resultEntries.length
+          ? resultEntries.map(([name, result]) => `
+              <div style="margin-bottom:12px;">
+                <strong>${name}</strong>
+                <div class="muted">returncode=${result.returncode ?? "--"} timedOut=${result.timedOut ? "true" : "false"}</div>
+                <div>${(result.stderr || result.stdout || result.reason || "").slice(0, 260) || "no detail"}</div>
+              </div>
+            `).join("")
+          : "no recent repair actions";
+
+        document.getElementById("rawStatus").textContent = JSON.stringify({ autoRepair, nightly, risk }, null, 2);
+      } catch (error) {
+        document.getElementById("overallState").textContent = "Offline";
+        document.getElementById("overallState").className = "value bad";
+        document.getElementById("overallSub").textContent = String(error);
+        document.getElementById("rawStatus").textContent = String(error);
+      }
+    }
+
+    main();
+  </script>
+</body>
+</html>

@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mobile Dev Assistant | Clawstack</title>
+<style>
+:root {
+  --bg: #0d1117;
+  --surface: #161b22;
+  --surface2: #1c2330;
+  --border: #30363d;
+  --accent: #238636;
+  --accent2: #1f6feb;
+  --flutter: #027dfd;
+  --rn: #61dafb;
+  --android: #3ddc84;
+  --ios: #147efb;
+  --text: #e6edf3;
+  --muted: #7d8590;
+  --warn: #d29922;
+  --danger: #da3633;
+  --radius: 8px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, "Segoe UI", sans-serif; background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+/* ヘッダー */
+.app-header {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 20px; border-bottom: 1px solid var(--border);
+  background: var(--surface); flex-shrink: 0;
+}
+.app-header h1 { font-size: 1.1rem; font-weight: 700; }
+.app-header .badge { font-size: 0.72rem; background: var(--flutter); color: #fff; padding: 2px 8px; border-radius: 20px; }
+
+/* レイアウト */
+.layout { display: flex; flex: 1; overflow: hidden; }
+
+/* サイドバー */
+.sidebar {
+  width: 220px; flex-shrink: 0;
+  background: var(--surface); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; overflow-y: auto;
+}
+.sidebar-section { padding: 12px 10px 4px; font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+.nav-item {
+  display: flex; align-items: center; gap: 9px;
+  padding: 8px 14px; cursor: pointer; font-size: 0.88rem;
+  border-radius: var(--radius); margin: 1px 6px;
+  transition: background 0.12s; color: var(--muted); border: none; background: none; width: calc(100% - 12px); text-align: left;
+}
+.nav-item:hover { background: rgba(255,255,255,0.06); color: var(--text); }
+.nav-item.active { background: rgba(35,134,54,0.2); color: var(--accent); font-weight: 600; }
+.nav-item .icon { font-size: 1rem; width: 18px; text-align: center; }
+
+/* メインエリア */
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+/* パネル */
+.panel { display: none; flex: 1; overflow: hidden; flex-direction: column; }
+.panel.active { display: flex; }
+
+/* ── チャット ── */
+.chat-settings {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding: 10px 16px; border-bottom: 1px solid var(--border);
+  background: var(--surface); flex-shrink: 0;
+}
+.chat-settings select, .chat-settings input[type=range] {
+  background: var(--surface2); border: 1px solid var(--border);
+  color: var(--text); border-radius: 6px; padding: 5px 8px; font-size: 0.83rem;
+}
+.chat-settings label { font-size: 0.8rem; color: var(--muted); }
+.chat-settings .model-badge { font-size: 0.75rem; color: var(--muted); }
+
+.quick-prompts {
+  display: flex; gap: 6px; flex-wrap: wrap;
+  padding: 8px 16px; border-bottom: 1px solid var(--border);
+  background: var(--surface2); flex-shrink: 0;
+}
+.qp-btn {
+  font-size: 0.75rem; padding: 4px 10px; border-radius: 20px;
+  border: 1px solid var(--border); background: none; color: var(--muted);
+  cursor: pointer; transition: all 0.12s; white-space: nowrap;
+}
+.qp-btn:hover { border-color: var(--accent2); color: var(--text); background: rgba(31,111,235,0.12); }
+
+.messages {
+  flex: 1; overflow-y: auto; padding: 16px;
+  display: flex; flex-direction: column; gap: 14px;
+}
+.msg { display: flex; gap: 10px; align-items: flex-start; }
+.msg.user { flex-direction: row-reverse; }
+.avatar {
+  width: 30px; height: 30px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.8rem; flex-shrink: 0;
+}
+.msg.assistant .avatar { background: var(--accent); }
+.msg.user .avatar { background: var(--accent2); }
+.bubble {
+  max-width: 80%; padding: 10px 14px; border-radius: var(--radius);
+  font-size: 0.88rem; line-height: 1.65; white-space: pre-wrap; word-break: break-word;
+}
+.msg.assistant .bubble { background: var(--surface2); border: 1px solid var(--border); }
+.msg.user .bubble { background: rgba(31,111,235,0.2); border: 1px solid rgba(31,111,235,0.3); }
+.bubble code { background: rgba(0,0,0,0.4); padding: 1px 5px; border-radius: 4px; font-family: Consolas, monospace; font-size: 0.83em; }
+.bubble pre { background: #0d1117; border: 1px solid var(--border); border-radius: 6px; padding: 12px; overflow-x: auto; margin: 8px 0; }
+.bubble pre code { background: none; padding: 0; font-size: 0.82em; }
+.thinking { color: var(--muted); font-style: italic; font-size: 0.82rem; }
+.cursor::after { content: "▋"; animation: blink 0.8s step-end infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+
+.chat-input-area {
+  padding: 12px 16px; border-top: 1px solid var(--border);
+  background: var(--surface); flex-shrink: 0;
+}
+.input-row { display: flex; gap: 8px; }
+.chat-input-area textarea {
+  flex: 1; min-height: 44px; max-height: 140px;
+  background: var(--surface2); border: 1px solid var(--border);
+  color: var(--text); border-radius: var(--radius); padding: 10px 12px;
+  font-size: 0.9rem; resize: none; font-family: inherit; outline: none; line-height: 1.5;
+  transition: border-color 0.15s;
+}
+.chat-input-area textarea:focus { border-color: var(--accent2); }
+.send-btn {
+  padding: 0 18px; background: var(--accent2); border: none; color: #fff;
+  border-radius: var(--radius); cursor: pointer; font-weight: 600; font-size: 0.9rem;
+  transition: opacity 0.15s; align-self: flex-end; height: 44px;
+}
+.send-btn:hover { opacity: 0.85; }
+.send-btn:disabled { opacity: 0.4; cursor: default; }
+.stop-btn {
+  padding: 0 18px; background: var(--danger); border: none; color: #fff;
+  border-radius: var(--radius); cursor: pointer; font-weight: 600;
+  align-self: flex-end; height: 44px; display: none;
+}
+
+/* ── テンプレート ── */
+.template-panel { flex: 1; overflow-y: auto; padding: 20px; }
+.template-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
+.template-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 16px; cursor: pointer; transition: border-color 0.15s;
+}
+.template-card:hover { border-color: var(--accent2); }
+.template-card h3 { font-size: 0.95rem; margin-bottom: 6px; }
+.template-card p { font-size: 0.8rem; color: var(--muted); line-height: 1.5; }
+.template-card .tech-badge {
+  display: inline-block; font-size: 0.7rem; padding: 2px 8px; border-radius: 20px; margin-top: 8px; margin-right: 4px; border: 1px solid;
+}
+.flutter-badge { color: var(--flutter); border-color: var(--flutter); }
+.rn-badge { color: var(--rn); border-color: var(--rn); }
+.android-badge { color: var(--android); border-color: var(--android); }
+.ios-badge { color: var(--ios); border-color: var(--ios); }
+
+/* ── ストア申請ガイド ── */
+.guide-panel { flex: 1; overflow-y: auto; padding: 20px; }
+.store-tabs { display: flex; gap: 6px; margin-bottom: 20px; }
+.store-tab {
+  padding: 8px 20px; border: 1px solid var(--border); border-radius: 20px;
+  cursor: pointer; font-size: 0.88rem; background: none; color: var(--muted);
+  transition: all 0.15s;
+}
+.store-tab.active.android-tab { background: rgba(61,220,132,0.15); border-color: var(--android); color: var(--android); }
+.store-tab.active.ios-tab { background: rgba(20,126,251,0.15); border-color: var(--ios); color: var(--ios); }
+.checklist { display: flex; flex-direction: column; gap: 8px; }
+.check-item {
+  display: flex; gap: 12px; align-items: flex-start;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 12px 14px;
+}
+.check-item input[type=checkbox] { accent-color: var(--accent); margin-top: 2px; flex-shrink: 0; }
+.check-item.done { opacity: 0.5; }
+.check-item h4 { font-size: 0.88rem; margin-bottom: 3px; }
+.check-item p { font-size: 0.78rem; color: var(--muted); line-height: 1.5; }
+.phase-title { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin: 16px 0 8px; }
+
+/* ── フリーランス電卓 ── */
+.freelance-panel { flex: 1; overflow-y: auto; padding: 20px; }
+.calc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+@media (max-width: 700px) { .calc-grid { grid-template-columns: 1fr; } }
+.calc-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; }
+.calc-card h3 { font-size: 0.95rem; margin-bottom: 14px; color: var(--text); }
+.field { margin-bottom: 12px; }
+.field label { display: block; font-size: 0.78rem; color: var(--muted); margin-bottom: 4px; }
+.field input, .field select {
+  width: 100%; padding: 8px 10px; border-radius: 6px;
+  border: 1px solid var(--border); background: var(--surface2); color: var(--text); font-size: 0.9rem;
+}
+.result-box {
+  background: rgba(35,134,54,0.1); border: 1px solid var(--accent);
+  border-radius: var(--radius); padding: 14px; margin-top: 14px;
+}
+.result-box .big { font-size: 1.6rem; font-weight: 700; color: var(--accent); }
+.result-box .sub { font-size: 0.78rem; color: var(--muted); margin-top: 4px; }
+.proposal-template {
+  background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 14px; font-size: 0.82rem; line-height: 1.8; white-space: pre-wrap; margin-top: 10px;
+}
+.copy-btn {
+  padding: 6px 14px; background: var(--surface2); border: 1px solid var(--border);
+  color: var(--text); border-radius: 6px; cursor: pointer; font-size: 0.8rem; margin-top: 8px;
+}
+.copy-btn:hover { border-color: var(--accent2); }
+
+.page-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 4px; }
+.page-sub { font-size: 0.82rem; color: var(--muted); margin-bottom: 20px; }
+</style>
+</head>
+<body>
+
+<div class="app-header">
+  <span style="font-size:1.4rem">📱</span>
+  <h1>Mobile Dev Assistant</h1>
+  <span class="badge">Flutter / React Native / iOS / Android</span>
+  <span style="margin-left:auto;font-size:0.78rem;color:var(--muted)" id="modelIndicator">モデル読込中...</span>
+</div>
+
+<div class="layout">
+  <nav class="sidebar">
+    <div class="sidebar-section">開発支援</div>
+    <button class="nav-item active" onclick="showPanel('chat')"><span class="icon">💬</span>AIアシスタント</button>
+    <button class="nav-item" onclick="showPanel('templates')"><span class="icon">📋</span>コードテンプレート</button>
+    <div class="sidebar-section">リリース</div>
+    <button class="nav-item" onclick="showPanel('guide')"><span class="icon">🚀</span>ストア申請ガイド</button>
+    <div class="sidebar-section">フリーランス</div>
+    <button class="nav-item" onclick="showPanel('freelance')"><span class="icon">💰</span>単価計算・提案書</button>
+  </nav>
+
+  <div class="main">
+
+    <!-- ── チャット ── -->
+    <div class="panel active" id="panel-chat">
+      <div class="chat-settings">
+        <label>モデル:
+          <select id="modelSelect" onchange="saveSettings()">
+            <option value="qwen2.5-coder:14b">qwen2.5-coder:14b (推奨)</option>
+            <option value="qwen2.5-coder:7b">qwen2.5-coder:7b (高速)</option>
+            <option value="qwen3:14b">qwen3:14b (思考型)</option>
+            <option value="qwen3:8b">qwen3:8b</option>
+          </select>
+        </label>
+        <label>温度:
+          <input type="range" id="tempSlider" min="0" max="1" step="0.1" value="0.2" oninput="document.getElementById('tempVal').textContent=this.value;saveSettings()">
+          <span id="tempVal">0.2</span>
+        </label>
+        <label>
+          <select id="platformSelect" onchange="saveSettings()">
+            <option value="flutter">Flutter</option>
+            <option value="react-native">React Native</option>
+            <option value="android">Android (Kotlin)</option>
+            <option value="ios">iOS (Swift)</option>
+          </select>
+        </label>
+        <button class="copy-btn" onclick="clearChat()">会話をクリア</button>
+      </div>
+
+      <div class="quick-prompts">
+        <button class="qp-btn" onclick="quickPrompt('画面遷移のコード例を教えてください')">🗺 画面遷移</button>
+        <button class="qp-btn" onclick="quickPrompt('HTTPリクエスト（REST API呼び出し）のベストプラクティスを教えてください')">🌐 API通信</button>
+        <button class="qp-btn" onclick="quickPrompt('ローカルデータの永続化（SQLite/SharedPreferences）の実装方法を教えてください')">💾 データ保存</button>
+        <button class="qp-btn" onclick="quickPrompt('プッシュ通知の実装方法を教えてください（Firebase FCM）')">🔔 プッシュ通知</button>
+        <button class="qp-btn" onclick="quickPrompt('ログイン・認証画面のUIとロジックのサンプルを書いてください')">🔐 認証</button>
+        <button class="qp-btn" onclick="quickPrompt('アプリのアーキテクチャ（MVVM/Riverpod/BLoC）をどれにすべきか相談したい')">🏗 アーキテクチャ</button>
+        <button class="qp-btn" onclick="quickPrompt('App StoreまたはGoogle Playへの初回申請で注意すべきことを教えてください')">📦 ストア申請</button>
+        <button class="qp-btn" onclick="quickPrompt('フリーランスとしてモバイルアプリ開発の最初の案件を取るためのアドバイスをください')">💼 案件獲得</button>
+      </div>
+
+      <div class="messages" id="messages">
+        <div class="msg assistant">
+          <div class="avatar">🤖</div>
+          <div class="bubble">こんにちは！モバイルアプリ開発のアシスタントです。Flutter / React Native / Android / iOS に関する質問、コード生成、アーキテクチャ相談など何でも聞いてください。
+
+フリーランスとして独立を目指しているとのこと、一緒に準備を進めましょう！まず何から始めますか？</div>
+        </div>
+      </div>
+
+      <div class="chat-input-area">
+        <div class="input-row">
+          <textarea id="chatInput" placeholder="メッセージを入力...（Shift+Enter で改行、Enter で送信）" rows="1"
+            onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+          <button class="send-btn" id="sendBtn" onclick="sendMessage()">送信</button>
+          <button class="stop-btn" id="stopBtn" onclick="stopGeneration()">停止</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── テンプレート ── -->
+    <div class="panel" id="panel-templates">
+      <div class="template-panel">
+        <div class="page-title">コードテンプレート</div>
+        <div class="page-sub">クリックするとAIチャットでそのテンプレートの詳細コードを生成します</div>
+        <div class="template-grid" id="templateGrid"></div>
+      </div>
+    </div>
+
+    <!-- ── ストアガイド ── -->
+    <div class="panel" id="panel-guide">
+      <div class="guide-panel">
+        <div class="page-title">ストア申請チェックリスト</div>
+        <div class="page-sub">初回申請から審査通過まで、必要な手順をチェックしながら進めます</div>
+        <div class="store-tabs">
+          <button class="store-tab android-tab active" onclick="switchStore('android', this)">🤖 Google Play</button>
+          <button class="store-tab ios-tab" onclick="switchStore('ios', this)">🍎 App Store</button>
+        </div>
+        <div id="checklistContainer"></div>
+      </div>
+    </div>
+
+    <!-- ── フリーランス ── -->
+    <div class="panel" id="panel-freelance">
+      <div class="freelance-panel">
+        <div class="page-title">フリーランス支援ツール</div>
+        <div class="page-sub">単価計算・案件見積もり・提案書テンプレート</div>
+        <div class="calc-grid">
+
+          <!-- 単価計算 -->
+          <div class="calc-card">
+            <h3>💴 希望年収から単価を逆算</h3>
+            <div class="field">
+              <label>希望年収（万円）</label>
+              <input type="number" id="targetIncome" value="600" oninput="calcRate()">
+            </div>
+            <div class="field">
+              <label>稼働月数（年間）</label>
+              <input type="number" id="workMonths" value="10" min="1" max="12" oninput="calcRate()">
+            </div>
+            <div class="field">
+              <label>1日稼働時間</label>
+              <input type="number" id="hoursPerDay" value="6" min="1" max="12" oninput="calcRate()">
+            </div>
+            <div class="field">
+              <label>経費・税金引当 (%)</label>
+              <input type="number" id="expenseRate" value="30" min="0" max="60" oninput="calcRate()">
+            </div>
+            <div class="result-box" id="rateResult">
+              <div class="big" id="monthlyRate">--</div>
+              <div class="sub" id="hourlyRate">--</div>
+              <div class="sub" id="dailyRate">--</div>
+            </div>
+          </div>
+
+          <!-- プロジェクト見積もり -->
+          <div class="calc-card">
+            <h3>📊 案件見積もり</h3>
+            <div class="field">
+              <label>規模</label>
+              <select id="projSize" oninput="calcEstimate()">
+                <option value="small">小規模（シンプルなアプリ 1〜2画面）</option>
+                <option value="medium" selected>中規模（5〜10画面、API連携）</option>
+                <option value="large">大規模（10画面以上、認証・DB・管理画面）</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>プラットフォーム</label>
+              <select id="projPlatform" oninput="calcEstimate()">
+                <option value="1">Android か iOS のみ</option>
+                <option value="1.3" selected>Flutter（Android + iOS 同時）</option>
+                <option value="1.5">ネイティブ両方（Android + iOS 別々）</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>時間単価（円）</label>
+              <input type="number" id="hourlyWage" value="5000" oninput="calcEstimate()">
+            </div>
+            <div class="result-box" id="estimateResult">
+              <div class="big" id="estimatePrice">--</div>
+              <div class="sub" id="estimateHours">--</div>
+              <div class="sub" id="estimateDays">--</div>
+            </div>
+          </div>
+
+          <!-- 提案書テンプレート -->
+          <div class="calc-card" style="grid-column: 1 / -1">
+            <h3>📝 提案書テンプレート（クライアント向け）</h3>
+            <div class="field">
+              <label>クライアント会社名</label>
+              <input type="text" id="clientName" value="株式会社○○" oninput="updateProposal()">
+            </div>
+            <div class="field">
+              <label>アプリ名・サービス内容</label>
+              <input type="text" id="appDesc" value="在庫管理モバイルアプリ" oninput="updateProposal()">
+            </div>
+            <div class="proposal-template" id="proposalText"></div>
+            <button class="copy-btn" onclick="copyProposal()">📋 コピー</button>
+            <button class="copy-btn" onclick="aiRefineProposal()" style="margin-left:8px">✨ AIで文章を改善</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const OLLAMA = 'http://localhost:11434';
+let abortCtrl = null;
+
+// ── 設定 ─────────────────────────────────────────
+const SYSTEM_PROMPTS = {
+  flutter: `あなたはFlutterとDartの専門エンジニアです。日本語で回答し、コードはFlutter/Dartで書いてください。
+実践的で動作するコードを提供し、状態管理にはRiverpodを優先してください。
+フリーランスエンジニアを支援する観点から、保守性・可読性を重視してください。`,
+  'react-native': `あなたはReact Nativeの専門エンジニアです。日本語で回答し、TypeScriptを使ったコードを書いてください。
+Expoエコシステムを優先し、実践的なサンプルコードを提供してください。`,
+  android: `あなたはAndroid開発の専門エンジニアです。日本語で回答し、Kotlinを使ったコードを書いてください。
+Jetpack Composeを使ったモダンなAndroid開発を推奨してください。`,
+  ios: `あなたはiOS開発の専門エンジニアです。日本語で回答し、SwiftとSwiftUIを使ったコードを書いてください。
+モダンなSwift並行処理（async/await）を活用してください。`,
+};
+
+function getSystemPrompt() {
+  const p = document.getElementById('platformSelect')?.value || 'flutter';
+  return SYSTEM_PROMPTS[p];
+}
+
+function saveSettings() {
+  localStorage.setItem('mda_model', document.getElementById('modelSelect').value);
+  localStorage.setItem('mda_temp', document.getElementById('tempSlider').value);
+  localStorage.setItem('mda_platform', document.getElementById('platformSelect').value);
+}
+
+function loadSettings() {
+  const m = localStorage.getItem('mda_model');
+  const t = localStorage.getItem('mda_temp');
+  const p = localStorage.getItem('mda_platform');
+  if (m) document.getElementById('modelSelect').value = m;
+  if (t) { document.getElementById('tempSlider').value = t; document.getElementById('tempVal').textContent = t; }
+  if (p) document.getElementById('platformSelect').value = p;
+}
+
+// Ollamaのモデル一覧を取得して表示
+async function loadModels() {
+  try {
+    const r = await fetch(`${OLLAMA}/api/tags`);
+    const d = await r.json();
+    const sel = document.getElementById('modelSelect');
+    const current = sel.value;
+    sel.innerHTML = '';
+    const models = d.models || [];
+    const codingModels = models.filter(m => !['nomic-embed-text', 'llava', 'minicpm-v'].some(s => m.name.includes(s)));
+    codingModels.forEach(m => {
+      const opt = document.createElement('option');
+      opt.value = m.name;
+      opt.textContent = m.name;
+      sel.appendChild(opt);
+    });
+    if (codingModels.find(m => m.name === current)) sel.value = current;
+    else if (codingModels.find(m => m.name.includes('coder:14b'))) sel.value = codingModels.find(m => m.name.includes('coder:14b')).name;
+    document.getElementById('modelIndicator').textContent = `${codingModels.length} models available`;
+    loadSettings();
+  } catch(e) {
+    document.getElementById('modelIndicator').textContent = 'Ollama未接続 (localhost:11434)';
+  }
+}
+
+// ── チャット ────────────────────────────────────
+let messages = [];
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 140) + 'px';
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+}
+
+function quickPrompt(text) {
+  const platform = document.getElementById('platformSelect').value;
+  const labels = { flutter: 'Flutter', 'react-native': 'React Native', android: 'Android(Kotlin)', ios: 'iOS(Swift)' };
+  document.getElementById('chatInput').value = `[${labels[platform]}] ${text}`;
+  showPanel('chat');
+  sendMessage();
+}
+
+function appendMessage(role, content) {
+  const div = document.createElement('div');
+  div.className = `msg ${role}`;
+  const avatar = document.createElement('div');
+  avatar.className = 'avatar';
+  avatar.textContent = role === 'user' ? '👤' : '🤖';
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble';
+  bubble.textContent = content;
+  div.appendChild(avatar);
+  div.appendChild(bubble);
+  document.getElementById('messages').appendChild(div);
+  div.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  return bubble;
+}
+
+function renderMarkdown(text) {
+  // シンプルなコードブロック変換
+  return text
+    .replace(/```(\w*)\n([\s\S]*?)```/g, (_, lang, code) =>
+      `<pre><code class="lang-${lang}">${escHtml(code.trimEnd())}</code></pre>`)
+    .replace(/`([^`]+)`/g, '<code>$1</code>');
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+async function sendMessage() {
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if (!text) return;
+
+  input.value = '';
+  input.style.height = 'auto';
+  messages.push({ role: 'user', content: text });
+  appendMessage('user', text);
+
+  const model = document.getElementById('modelSelect').value;
+  const temp = parseFloat(document.getElementById('tempSlider').value);
+
+  document.getElementById('sendBtn').style.display = 'none';
+  document.getElementById('stopBtn').style.display = 'block';
+
+  const bubble = appendMessage('assistant', '');
+  bubble.classList.add('cursor');
+  let fullText = '';
+
+  abortCtrl = new AbortController();
+  try {
+    const resp = await fetch(`${OLLAMA}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      signal: abortCtrl.signal,
+      body: JSON.stringify({
+        model,
+        messages: [
+          { role: 'system', content: getSystemPrompt() },
+          ...messages.slice(-20),
+        ],
+        stream: true,
+        options: { temperature: temp, num_predict: 2048 },
+      }),
+    });
+
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      const lines = decoder.decode(value).split('\n').filter(Boolean);
+      for (const line of lines) {
+        try {
+          const j = JSON.parse(line);
+          const token = j?.message?.content || '';
+          fullText += token;
+          bubble.innerHTML = renderMarkdown(fullText);
+          bubble.closest('.msg').scrollIntoView({ behavior: 'smooth', block: 'end' });
+        } catch {}
+      }
+    }
+  } catch(e) {
+    if (e.name !== 'AbortError') {
+      fullText = `エラー: ${e.message}\n\nOllamaが起動しているか確認してください (localhost:11434)`;
+      bubble.textContent = fullText;
+    }
+  }
+
+  bubble.classList.remove('cursor');
+  messages.push({ role: 'assistant', content: fullText });
+  document.getElementById('sendBtn').style.display = 'block';
+  document.getElementById('stopBtn').style.display = 'none';
+  abortCtrl = null;
+}
+
+function stopGeneration() {
+  if (abortCtrl) abortCtrl.abort();
+}
+
+function clearChat() {
+  messages = [];
+  const el = document.getElementById('messages');
+  el.innerHTML = '<div class="msg assistant"><div class="avatar">🤖</div><div class="bubble">会話をクリアしました。新しい質問をどうぞ！</div></div>';
+}
+
+// ── テンプレート ──────────────────────────────────
+const TEMPLATES = [
+  { title: 'ログイン画面', desc: 'メール+パスワードのログインUI、バリデーション付き', tech: ['flutter'], prompt: 'Flutterでメールとパスワードのログイン画面を作ってください。バリデーション、エラー表示、ローディング状態を含む完全なコードをお願いします。' },
+  { title: 'ボトムナビゲーション', desc: '5タブのボトムナビゲーションバー実装', tech: ['flutter'], prompt: 'FlutterでBottomNavigationBarを使った5タブのナビゲーション実装コードを書いてください。各タブにアイコンとラベルを設定してください。' },
+  { title: 'REST API通信', desc: 'Dioを使ったHTTP通信 + エラーハンドリング', tech: ['flutter'], prompt: 'FlutterでDioを使ったREST API通信クラスを作ってください。GET/POST対応、エラーハンドリング、Riverpodとの統合例も含めてください。' },
+  { title: 'ListView with API', desc: 'APIデータをListViewで表示（FutureBuilder）', tech: ['flutter'], prompt: 'FlutterでAPIから取得したデータをListViewで表示するサンプルを書いてください。FutureBuilderとRiverpodを使い、プルトゥリフレッシュ対応にしてください。' },
+  { title: '写真撮影・ギャラリー', desc: 'image_pickerで写真を取得してプレビュー', tech: ['flutter'], prompt: 'Flutterでimage_pickerを使ってカメラ撮影またはギャラリーから画像を選択し、プレビュー表示するコードを書いてください。' },
+  { title: 'SharedPreferences', desc: 'ローカルに設定やトークンを保存', tech: ['flutter'], prompt: 'Flutterでshared_preferencesを使ってログイントークンやユーザー設定を保存・読み込みするユーティリティクラスを書いてください。' },
+  { title: 'React Native 画面遷移', desc: 'React NavigationでStack/Tab組み合わせ', tech: ['react-native'], prompt: 'React NativeでReact Navigationを使い、BottomTabNavigatorとStackNavigatorを組み合わせたナビゲーション構成のサンプルコードをTypeScriptで書いてください。' },
+  { title: 'Jetpack Compose UI', desc: 'MaterialDesign3対応のモダンAndroid UI', tech: ['android'], prompt: 'Jetpack Composeを使ってMaterial Design 3準拠のカードリスト画面を作ってください。LazyColumnとViewModel、Flowによる状態管理を含めてください。' },
+  { title: 'SwiftUI リスト画面', desc: 'NavigationStackとListを使ったiOS画面', tech: ['ios'], prompt: 'SwiftUIでNavigationStackとListを組み合わせたマスター詳細画面を作ってください。async/awaitでAPIからデータを取得して表示するコードをお願いします。' },
+  { title: 'Firebase FCM プッシュ通知', desc: 'Firebase経由でプッシュ通知を受信', tech: ['flutter'], prompt: 'Flutterでfirebase_messagingを使ってFCMプッシュ通知を実装する手順とコードを教えてください。フォアグラウンド・バックグラウンド両方の処理を含めてください。' },
+  { title: 'SQLite データベース', desc: 'sqfliteでローカルDBにCRUD操作', tech: ['flutter'], prompt: 'Flutterでsqfliteを使ったローカルデータベース操作クラスを書いてください。CRUD操作、マイグレーション対応のサンプルをお願いします。' },
+  { title: 'アプリアーキテクチャ相談', desc: 'プロジェクト規模に合ったアーキテクチャ選択', tech: ['flutter', 'react-native'], prompt: 'モバイルアプリ開発でのアーキテクチャ選択について相談したいです。中規模のアプリ（10画面程度、API連携あり）に適したFlutterのアーキテクチャを教えてください。' },
+];
+
+function buildTemplates() {
+  const grid = document.getElementById('templateGrid');
+  grid.innerHTML = TEMPLATES.map(t => {
+    const badges = t.tech.map(tech => {
+      const cls = {'flutter':'flutter-badge','react-native':'rn-badge','android':'android-badge','ios':'ios-badge'}[tech] || '';
+      const label = {'flutter':'Flutter','react-native':'React Native','android':'Android','ios':'iOS'}[tech] || tech;
+      return `<span class="tech-badge ${cls}">${label}</span>`;
+    }).join('');
+    return `<div class="template-card" onclick="useTemplate(${TEMPLATES.indexOf(t)})">
+      <h3>${t.title}</h3>
+      <p>${t.desc}</p>
+      ${badges}
+    </div>`;
+  }).join('');
+}
+
+function useTemplate(idx) {
+  const t = TEMPLATES[idx];
+  const platform = t.tech[0];
+  document.getElementById('platformSelect').value = platform;
+  saveSettings();
+  document.getElementById('chatInput').value = t.prompt;
+  showPanel('chat');
+  sendMessage();
+}
+
+// ── ストアガイド ──────────────────────────────────
+const STORE_DATA = {
+  android: [
+    { phase: '事前準備', items: [
+      { title: 'Google Play Console アカウント作成', desc: '$25 の登録料（一度のみ）。developer.android.com/distribute/console' },
+      { title: 'APK/AABの署名', desc: 'Release APKまたはAABを生成し、キーストアで署名。キーストアは絶対に紛失しないこと（再申請不可）。' },
+      { title: 'アプリアイコン作成', desc: '512×512 PNG（透過なし）。Material Designガイドラインに従う。' },
+      { title: 'スクリーンショット準備', desc: '最低2枚。フォンは 1080×1920 以上、タブレットは 1200×1920 以上推奨。' },
+      { title: 'Privacy Policy URL', desc: '必須。GitHub PagesやNotion等で無料公開可能。' },
+    ]},
+    { phase: '申請', items: [
+      { title: 'アプリ情報入力', desc: '説明文（日本語）、カテゴリ、コンテンツレーティング、価格設定を入力。' },
+      { title: 'コンテンツレーティング回答', desc: 'IARC回答フォームを完了。子供向けアプリは特別なポリシーあり。' },
+      { title: 'ターゲット国・地域設定', desc: '日本のみか全世界か設定。無料アプリは全世界が多い。' },
+      { title: 'AABアップロード', desc: 'Internal Testing → Closed Testing → Open Testing → Production の順で段階的リリース推奨。' },
+    ]},
+    { phase: '審査・公開', items: [
+      { title: '審査期間', desc: '通常数時間〜数日。初回は長め（1〜3日程度）。' },
+      { title: '却下対応', desc: 'メールで理由が届く。権限の過剰要求・不正広告・ポリシー違反が多い原因。' },
+      { title: 'ASO対策', desc: 'タイトル・説明文にキーワードを含める。日本語での最適化を忘れずに。' },
+    ]},
+  ],
+  ios: [
+    { phase: '事前準備', items: [
+      { title: 'Apple Developer Program 登録', desc: '年間$99（約14,000円）。developer.apple.com から登録。法人と個人で手続き異なる。' },
+      { title: 'MacとXcodeの準備', desc: 'App StoreへのアップロードはMacが必要。Xcode最新版を使用。Macがない場合はMac Stadiumなどのクラウドサービスで対応可。' },
+      { title: 'App IDの作成', desc: 'Apple Developer ConsoleでApp IDを作成。Bundle IDは後から変更不可。' },
+      { title: '証明書・プロビジョニングプロファイル', desc: 'Distribution証明書とApp Store用プロビジョニングプロファイルを作成。Xcodeから自動管理が楽。' },
+      { title: 'アプリアイコン', desc: '1024×1024 PNG（透過なし、角丸なし）。Figmaで作るのが便利。' },
+      { title: 'スクリーンショット', desc: 'iPhone 6.7インチ（1290×2796）が必須。6.5インチ（1242×2688）も推奨。' },
+    ]},
+    { phase: '申請', items: [
+      { title: 'App Store Connect でアプリ作成', desc: 'appstoreconnect.apple.com でNew Appを作成。' },
+      { title: 'メタデータ入力', desc: '名前（30字以内）、サブタイトル（30字以内）、説明文（4000字以内）、キーワード（100字）。' },
+      { title: 'Privacy Policy URL必須', desc: 'iOSはGoogleより厳格。プライバシーポリシーが必須。' },
+      { title: 'App Privacy入力', desc: '収集するデータの種類を詳細に申告。虚偽申告はリジェクト原因。' },
+      { title: 'Testflightでベータテスト', desc: '本番申請前にTestflightで動作確認。最大10,000人に配布可能。' },
+      { title: 'アーカイブ & アップロード', desc: 'Xcodeでアーカイブを作成し、App Store Connectにアップロード。' },
+    ]},
+    { phase: '審査・公開', items: [
+      { title: '審査期間', desc: '通常24〜48時間。週末・連休前は長くなる傾向。' },
+      { title: 'よくあるリジェクト理由', desc: 'クラッシュ・機能不足・不明確な説明・プライバシー違反・不適切なコンテンツ。' },
+      { title: '審査ノートの活用', desc: 'テスト用アカウントや特殊な操作が必要な場合は「Notes for Reviewer」に必ず記載。' },
+      { title: 'レビュー対応', desc: 'Resolve機能で審査員とやり取り可能。丁寧に英語（または日本語）で回答。' },
+    ]},
+  ],
+};
+
+let currentStore = 'android';
+
+function buildChecklist(store) {
+  const data = STORE_DATA[store];
+  let html = '';
+  data.forEach(section => {
+    html += `<div class="phase-title">${section.phase}</div><div class="checklist">`;
+    section.items.forEach((item, i) => {
+      html += `<div class="check-item" id="ci_${store}_${section.phase}_${i}">
+        <input type="checkbox" onchange="this.closest('.check-item').classList.toggle('done', this.checked)">
+        <div><h4>${item.title}</h4><p>${item.desc}</p></div>
+      </div>`;
+    });
+    html += '</div>';
+  });
+  document.getElementById('checklistContainer').innerHTML = html;
+}
+
+function switchStore(store, btn) {
+  currentStore = store;
+  document.querySelectorAll('.store-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  buildChecklist(store);
+}
+
+// ── フリーランス計算 ─────────────────────────────
+function calcRate() {
+  const income = parseFloat(document.getElementById('targetIncome').value) * 10000 || 0;
+  const months = parseFloat(document.getElementById('workMonths').value) || 10;
+  const hours = parseFloat(document.getElementById('hoursPerDay').value) || 6;
+  const expense = parseFloat(document.getElementById('expenseRate').value) / 100 || 0.3;
+
+  const grossIncome = income / (1 - expense);
+  const monthly = grossIncome / months;
+  const daily = monthly / 20;
+  const hourly = daily / hours;
+
+  document.getElementById('monthlyRate').textContent = `月額 ${Math.ceil(monthly/10000)}万円`;
+  document.getElementById('dailyRate').textContent = `日額 ${Math.ceil(daily/1000)}千円`;
+  document.getElementById('hourlyRate').textContent = `時間単価 ${Math.ceil(hourly)}円（経費・税引当 ${Math.round(expense*100)}% 込）`;
+}
+
+function calcEstimate() {
+  const sizes = { small: [80, 160], medium: [200, 400], large: [500, 1000] };
+  const size = document.getElementById('projSize').value;
+  const mult = parseFloat(document.getElementById('projPlatform').value);
+  const wage = parseFloat(document.getElementById('hourlyWage').value) || 5000;
+  const [minH, maxH] = sizes[size];
+  const minTotal = Math.round(minH * mult * wage / 10000);
+  const maxTotal = Math.round(maxH * mult * wage / 10000);
+  const midH = Math.round((minH + maxH) / 2 * mult);
+  const days = Math.round(midH / 6);
+
+  document.getElementById('estimatePrice').textContent = `${minTotal}万〜${maxTotal}万円`;
+  document.getElementById('estimateHours').textContent = `作業時間: 約${Math.round(minH*mult)}〜${Math.round(maxH*mult)}時間`;
+  document.getElementById('estimateDays').textContent = `目安: 約${days}日（1日6時間稼働）`;
+}
+
+function updateProposal() {
+  const client = document.getElementById('clientName').value;
+  const app = document.getElementById('appDesc').value;
+  const text = `${client} 御中
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+アプリ開発 ご提案書
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+この度は「${app}」の開発につきまして、
+ご提案の機会をいただき誠にありがとうございます。
+
+■ ご提案内容
+${app}の設計・開発・テストおよびストア申請まで
+一貫してご支援させていただきます。
+
+■ 採用技術
+Flutter（iOS / Android 同時対応）
+REST API連携・ローカルDB実装
+
+■ 納期目安
+ご要件確認後、詳細スケジュールをご提示いたします。
+通常、中規模アプリで2〜3ヶ月程度を想定しております。
+
+■ 料金
+別途お見積もりとなります。
+ご要件・機能数に応じてご提示いたします。
+
+■ 保守・サポート
+リリース後1ヶ月は無償バグ対応。
+継続保守はご相談の上、月額にて承ります。
+
+ご不明な点がございましたら、
+お気軽にご連絡ください。
+
+──────────────────────
+フリーランスエンジニア
+[お名前]
+[メールアドレス]
+[電話番号]
+──────────────────────`;
+  document.getElementById('proposalText').textContent = text;
+}
+
+function copyProposal() {
+  const text = document.getElementById('proposalText').textContent;
+  navigator.clipboard.writeText(text).then(() => alert('コピーしました！'));
+}
+
+async function aiRefineProposal() {
+  const text = document.getElementById('proposalText').textContent;
+  const client = document.getElementById('clientName').value;
+  const app = document.getElementById('appDesc').value;
+  document.getElementById('chatInput').value = `下記の提案書を、より説得力があり専門的な日本語ビジネス文章にブラッシュアップしてください。${client}向け、「${app}」の開発提案です。\n\n---\n${text}`;
+  showPanel('chat');
+  sendMessage();
+}
+
+// ── ナビ ─────────────────────────────────────────
+function showPanel(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById(`panel-${name}`).classList.add('active');
+  const idx = ['chat','templates','guide','freelance'].indexOf(name);
+  document.querySelectorAll('.nav-item')[idx]?.classList.add('active');
+}
+
+// ── 初期化 ──────────────────────────────────────
+loadModels();
+buildTemplates();
+buildChecklist('android');
+calcRate();
+calcEstimate();
+updateProposal();
+</script>
+</body>
+</html>

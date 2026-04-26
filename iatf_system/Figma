@@ -1,0 +1,247 @@
+# OpenClaw UI Design System Integration Protocol v1.0
+
+## 0. Objective
+
+Integrate a unified UI design system into the existing OpenClaw-based platform to:
+
+* Improve visual consistency across Portal apps
+* Increase AI-generated UI quality (Antigravity / Codex / Claude Code)
+* Reduce UI rework loops
+* Enable reusable component-based generation
+
+This protocol MUST be implemented without breaking existing services.
+
+---
+
+## 1. Target Environment
+
+Root:
+D:\Clawdbot_Docker_20260125
+
+Key Components:
+
+* Portal (nginx): http://localhost:8088
+* Antigravity: UI/code generation
+* Codex CLI: implementation & repair
+* Ollama / Gemini (via LiteLLM): LLM backend
+
+UI Locations:
+
+* /portal/apps/*
+* standalone HTML tools (GD&T viewer etc.)
+
+---
+
+## 2. Core Concept
+
+AI must NOT generate arbitrary UI.
+
+Instead:
+→ All UI must conform to a strict design system
+
+This system will be enforced via:
+
+1. design_system.json
+2. reusable UI components
+3. strict prompt constraints
+
+---
+
+## 3. File Structure (MANDATORY)
+
+Create:
+
+/portal/design_system/
+├── design_system.json
+├── ui_rules.md
+├── components/
+│      ├── card.html
+│      ├── button.html
+│      ├── input.html
+│      └── layout.html
+└── templates/
+├── dashboard.html
+└── form.html
+
+---
+
+## 4. design_system.json
+
+Create the following EXACT file:
+
+{
+"spacing": [4, 8, 16, 24, 32],
+"radius": "rounded-2xl",
+"shadow": "shadow-md",
+"font": {
+"title": "text-xl font-semibold",
+"body": "text-base",
+"caption": "text-sm text-gray-500"
+},
+"colors": {
+"primary": "blue-600",
+"secondary": "gray-700",
+"danger": "red-500",
+"background": "gray-50"
+},
+"layout": {
+"card_padding": "p-4",
+"gap": "gap-4"
+}
+}
+
+---
+
+## 5. UI Rules (STRICT)
+
+Create ui_rules.md:
+
+### MANDATORY RULES
+
+1. NO inline styles
+2. Tailwind classes ONLY
+3. MUST use spacing scale (4/8/16/24/32)
+4. ALL cards must use:
+
+   * rounded-2xl
+   * shadow-md
+   * p-4
+5. Font hierarchy must follow design_system.json
+6. DO NOT invent colors
+7. DO NOT mix different padding sizes randomly
+8. Layout must use flex or grid
+9. Every UI must look consistent with Portal
+
+---
+
+## 6. Component Templates
+
+### card.html
+
+<div class="bg-white rounded-2xl shadow-md p-4">
+  <h2 class="text-xl font-semibold mb-2">Title</h2>
+  <p class="text-base text-gray-700">Content</p>
+</div>
+
+---
+
+### button.html
+
+<button class="bg-blue-600 text-white px-4 py-2 rounded-2xl shadow-md">
+  Action
+</button>
+
+---
+
+### input.html
+
+<input class="border rounded-2xl p-2 w-full" placeholder="Enter value" />
+
+---
+
+## 7. Integration with Antigravity
+
+Modify ALL prompts:
+
+### ADD THIS BLOCK (MANDATORY)
+
+## UI DESIGN CONSTRAINT
+
+You MUST follow:
+
+* /portal/design_system/design_system.json
+* /portal/design_system/ui_rules.md
+
+You are NOT allowed to:
+
+* create new styles
+* use inline CSS
+* ignore spacing system
+
+All UI must look like a professional dashboard.
+
+---
+
+## 8. Integration with Codex
+
+When generating or modifying UI:
+
+ALWAYS prepend:
+
+"Follow design_system.json strictly."
+
+Codex must:
+
+* refactor inconsistent UI
+* unify padding / spacing
+* remove inline CSS
+
+---
+
+## 9. Portal Integration
+
+All apps under:
+
+/portal/apps/
+
+MUST:
+
+* include Tailwind
+* follow card layout
+* align to grid
+
+Example layout:
+
+<div class="p-4 grid grid-cols-3 gap-4">
+  <!-- cards -->
+</div>
+
+---
+
+## 10. Migration Strategy
+
+Step 1:
+Create design system files
+
+Step 2:
+Test on ONE app (e.g., observability_hub)
+
+Step 3:
+Refactor all apps gradually
+
+Step 4:
+Enforce rule in all AI prompts
+
+---
+
+## 11. Validation
+
+A UI is VALID if:
+
+* spacing is consistent
+* no inline CSS exists
+* all cards visually match
+* no random font sizes exist
+
+---
+
+## 12. Future Extension
+
+Optional:
+
+* dark mode
+* component registry API
+* React migration
+
+---
+
+## 13. Critical Rule
+
+This system is NOT optional.
+
+Any UI not following this:
+→ must be rejected and regenerated
+
+---
+
+END OF PROTOCOL

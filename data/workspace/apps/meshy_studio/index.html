@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <title>Meshy × Remotion Studio</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 24px; }
+    textarea, input { width: 100%; box-sizing: border-box; margin-top: 8px; }
+    textarea { min-height: 120px; }
+    button { margin-top: 12px; padding: 10px 16px; }
+    pre { background: #f4f4f4; padding: 12px; overflow:auto; }
+  </style>
+</head>
+<body>
+  <h1>Meshy × Remotion Studio</h1>
+  <p>IATF動画向けの3D素材生成を支援するPortalカード雛形です。</p>
+
+  <label>3D生成プロンプト</label>
+  <textarea id="prompt">factory QA trainer character, friendly Japanese industrial training style, suitable for IATF training animation, simple clean outfit, full body</textarea>
+
+  <label>API Base</label>
+  <input id="apiBase" value="http://127.0.0.1:18981" />
+
+  <button onclick="submitJob()">ドライラン/生成依頼</button>
+  <pre id="out">ここに結果が表示されます。</pre>
+
+  <script>
+    async function submitJob() {
+      const apiBase = document.getElementById('apiBase').value;
+      const prompt = document.getElementById('prompt').value;
+      const out = document.getElementById('out');
+      out.textContent = '送信中...';
+      try {
+        const res = await fetch(`${apiBase}/meshy/text-to-3d`, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ prompt })
+        });
+        const json = await res.json();
+        out.textContent = JSON.stringify(json, null, 2);
+      } catch (e) {
+        out.textContent = String(e);
+      }
+    }
+  </script>
+</body>
+</html>

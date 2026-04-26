@@ -4,18 +4,6 @@ require 'open3'
 
 module Users
   class SessionsController < Devise::SessionsController
-    def allowed_ips
-      ENV['ALLOWED_IPS'].to_s.split(',').map(&:strip)
-    end
-
-    def allowed_emails
-      ENV['ALLOWED_EMAILS'].to_s.split(',').map(&:strip)
-    end
-
-    def ip_restriction_enabled?
-      ENV['ENABLE_IP_RESTRICTION'].to_s.downcase == 'true'
-    end
-
     rescue_from ActionController::InvalidAuthenticityToken, with: :handle_invalid_token
 
     # 既存のnewメソッドは変更なし
@@ -70,17 +58,21 @@ module Users
 
     private
 
-    def ip_allowed?
-      return true unless ip_restriction_enabled?
-      allowed_ips.include?(request.remote_ip)
+    def ip_restriction_enabled?
+      ENV['ENABLE_IP_RESTRICTION'].to_s.downcase == 'true'
     end
 
     def allowed_ips
-      ENV['ALLOWED_IPS'].split(',').map(&:strip)
+      ENV['ALLOWED_IPS'].to_s.split(',').map(&:strip)
     end
 
     def allowed_emails
-      ENV['ALLOWED_EMAILS'].split(',').map(&:strip)
+      ENV['ALLOWED_EMAILS'].to_s.split(',').map(&:strip)
+    end
+
+    def ip_allowed?
+      return true unless ip_restriction_enabled?
+      allowed_ips.include?(request.remote_ip)
     end
 
     def handle_invalid_token
@@ -101,26 +93,26 @@ module Users
     def restore_database(backup_file_path)
       Rails.logger.info "Attempting to restore database from #{backup_file_path}"
       script_path = Rails.root.join('bin', 'restore_latest_backup.sh')
-      
+
       unless File.exist?(script_path)
         Rails.logger.error "Restore script not found at #{script_path}"
         raise "リストアスクリプトが見つかりません"
       end
 
       result = ActiveRecord::Base.connection.execute("SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = current_database() AND pid <> pg_backend_pid()")
-      
+
       begin
         conn = ActiveRecord::Base.connection.raw_connection
         conn.exec("DROP DATABASE IF EXISTS #{db_config['database']}_temp")
         conn.exec("CREATE DATABASE #{db_config['database']}_temp")
-        
+
         restore_command = "psql -h #{db_config['host']} -U #{db_config['username']} -d #{db_config['database']}_temp -f #{backup_file_path}"
         conn.exec(restore_command)
-        
+
         conn.exec("ALTER DATABASE #{db_config['database']} RENAME TO #{db_config['database']}_old")
         conn.exec("ALTER DATABASE #{db_config['database']}_temp RENAME TO #{db_config['database']}")
         conn.exec("DROP DATABASE IF EXISTS #{db_config['database']}_old")
-        
+
         Rails.logger.info "Database restoration completed successfully"
       rescue => e
         Rails.logger.error "Database restoration failed: #{e.message}"

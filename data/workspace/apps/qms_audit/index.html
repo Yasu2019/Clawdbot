@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QMS Audit Studio</title>
+    <style>
+        :root {
+            --bg: #0d1526;
+            --panel: rgba(16, 26, 48, 0.92);
+            --panel-2: rgba(24, 37, 66, 0.92);
+            --line: rgba(148, 163, 184, 0.22);
+            --text: #eef5ff;
+            --muted: #9eb0cb;
+            --warn: #f59e0b;
+            --bad: #ef4444;
+            --accent: #38bdf8;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: "Segoe UI", "Yu Gothic UI", sans-serif;
+            background:
+                radial-gradient(circle at top right, rgba(245, 158, 11, 0.18), transparent 26%),
+                radial-gradient(circle at left 30%, rgba(56, 189, 248, 0.12), transparent 24%),
+                var(--bg);
+            color: var(--text);
+        }
+        .wrap {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 28px 18px 40px;
+        }
+        .hero, .panel {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 22px;
+            padding: 22px;
+            box-shadow: 0 18px 48px rgba(0, 0, 0, 0.25);
+            backdrop-filter: blur(10px);
+        }
+        .hero h1 {
+            margin: 0 0 10px;
+            font-size: 2rem;
+        }
+        .hero p, .panel p, .panel li, td, th {
+            color: var(--muted);
+            line-height: 1.6;
+        }
+        .toolbar, .chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+        }
+        .toolbar {
+            margin-top: 18px;
+        }
+        .btn, .file-label, select {
+            min-height: 44px;
+            border-radius: 12px;
+            border: 1px solid var(--line);
+            background: rgba(255,255,255,0.04);
+            color: var(--text);
+            padding: 0 14px;
+            font: inherit;
+        }
+        .btn {
+            cursor: pointer;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn.primary {
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.22), rgba(245, 158, 11, 0.20));
+        }
+        .btn:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+        }
+        input[type="file"] { display: none; }
+        .grid {
+            margin-top: 18px;
+            display: grid;
+            grid-template-columns: 360px 1fr;
+            gap: 18px;
+        }
+        @media (max-width: 900px) {
+            .grid { grid-template-columns: 1fr; }
+        }
+        .badge {
+            display: inline-block;
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            background: rgba(56, 189, 248, 0.14);
+            color: #cfe9ff;
+        }
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 14px;
+        }
+        .stat {
+            background: var(--panel-2);
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 14px;
+        }
+        .stat strong {
+            display: block;
+            font-size: 1.4rem;
+            color: var(--text);
+        }
+        .issue-list {
+            display: grid;
+            gap: 12px;
+            margin-top: 14px;
+        }
+        .issue {
+            background: var(--panel-2);
+            border: 1px solid var(--line);
+            border-left: 4px solid var(--warn);
+            border-radius: 14px;
+            padding: 14px;
+        }
+        .issue.bad { border-left-color: var(--bad); }
+        .issue .meta {
+            font-size: 0.84rem;
+            color: #cbd5e1;
+            margin-bottom: 8px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+        }
+        th, td {
+            text-align: left;
+            padding: 10px 8px;
+            border-bottom: 1px solid var(--line);
+            vertical-align: top;
+        }
+        .small {
+            font-size: 0.9rem;
+            color: var(--muted);
+        }
+        .empty {
+            padding: 20px;
+            border: 1px dashed var(--line);
+            border-radius: 16px;
+            color: var(--muted);
+            text-align: center;
+        }
+        .links a {
+            color: #bfdbfe;
+            text-decoration: none;
+        }
+        code {
+            background: rgba(255,255,255,0.06);
+            border-radius: 6px;
+            padding: 2px 6px;
+            color: #dbeafe;
+        }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <section class="hero">
+            <span class="badge">Rule-based local audit</span>
+            <h1>QMS Audit Studio</h1>
+            <p>
+                Browser-local audit studio for IATF / QMS CSV checks. Load one or more CSV files,
+                run rule-based validation, and export a reviewable JSON report without depending on a backend.
+            </p>
+            <div class="toolbar">
+                <label class="file-label" for="fileInput">Select CSV</label>
+                <input id="fileInput" type="file" accept=".csv,text/csv" multiple>
+                <select id="auditMode">
+                    <option value="quiz">IATF Quiz CSV</option>
+                    <option value="generic">Generic CSV sanity check</option>
+                </select>
+                <button class="btn primary" id="runAuditBtn">Run Audit</button>
+                <button class="btn" id="downloadBtn" disabled>Download JSON</button>
+                <a class="btn" href="http://localhost:3000" target="_blank" rel="noopener">IATF Rails</a>
+                <a class="btn" href="../../../../QMS_Audit_Protocol_Complete_WindowsSafe.zip" target="_blank" rel="noopener">Protocol ZIP</a>
+                <a class="btn" href="./PROTOCOL_REFERENCE.md" target="_blank" rel="noopener">Protocol Notes</a>
+                <a class="btn" href="../../portal.html">Portal</a>
+            </div>
+            <p class="small" id="fileStatus">No files selected.</p>
+        </section>
+
+        <div class="grid">
+            <section class="panel">
+                <h2>Summary</h2>
+                <div class="stat-grid">
+                    <div class="stat"><span class="small">Files</span><strong id="statFiles">0</strong></div>
+                    <div class="stat"><span class="small">Rows</span><strong id="statRows">0</strong></div>
+                    <div class="stat"><span class="small">Issues</span><strong id="statIssues">0</strong></div>
+                    <div class="stat"><span class="small">Worst file</span><strong id="statWorst">-</strong></div>
+                </div>
+                <div class="chips" style="margin-top:14px;">
+                    <span class="badge">blank question</span>
+                    <span class="badge">short explanation</span>
+                    <span class="badge">invalid seikai</span>
+                    <span class="badge">duplicate choices</span>
+                    <span class="badge">mojibake suspected</span>
+                </div>
+                <div class="links" style="margin-top:18px;">
+                    <p><a href="./PROTOCOL_REFERENCE.md" target="_blank" rel="noopener">Protocol Reference</a></p>
+                    <p><span class="small">Canonical bundle: <code>QMS_Audit_Protocol_Complete_WindowsSafe.zip</code></span></p>
+                </div>
+            </section>
+
+            <section class="panel">
+                <h2>Audit Results</h2>
+                <div id="results" class="empty">Select CSV files and run the audit to see results here.</div>
+            </section>
+        </div>
+    </div>
+
+    <script>
+        const REQUIRED_COLUMNS = ["kajyou", "mondai_no", "mondai", "mondai_a", "mondai_b", "mondai_c", "seikai"];
+        const HEADERLESS_COLUMNS = ["kajyou", "mondai_no", "rev", "mondai", "mondai_a", "mondai_b", "mondai_c", "seikai", "kaisetsu"];
+        const MOJIBAKE_MARKERS = ["鬩搾ｽｵ", "鬩幢ｽ｢", "鬮｣蛹・", "鬮ｯ・ｷ", "鬯ｯ・ｩ", "鬯ｮ・ｯ", "鬯ｮ・ｫ"];
+        let lastReport = null;
+
+        const fileInput = document.getElementById("fileInput");
+        const runAuditBtn = document.getElementById("runAuditBtn");
+        const downloadBtn = document.getElementById("downloadBtn");
+        const fileStatus = document.getElementById("fileStatus");
+        const resultsEl = document.getElementById("results");
+
+        fileInput.addEventListener("change", () => {
+            const files = Array.from(fileInput.files || []);
+            fileStatus.textContent = files.length
+                ? `${files.length} file selected: ${files.map(f => f.name).join(", ")}`
+                : "No files selected.";
+        });
+
+        runAuditBtn.addEventListener("click", async () => {
+            const files = Array.from(fileInput.files || []);
+            if (!files.length) {
+                alert("Please select one or more CSV files.");
+                return;
+            }
+            const mode = document.getElementById("auditMode").value;
+            runAuditBtn.disabled = true;
+            resultsEl.textContent = "Running audit...";
+            try {
+                const fileReports = [];
+                for (const file of files) {
+                    const text = await file.text();
+                    fileReports.push(auditCsvText(file.name, text, mode));
+                }
+                const report = buildAggregateReport(fileReports);
+                lastReport = report;
+                downloadBtn.disabled = false;
+                renderReport(report);
+            } catch (err) {
+                resultsEl.innerHTML = `<div class="issue bad"><div class="meta">runtime_error</div><div>${escapeHtml(String(err))}</div></div>`;
+            } finally {
+                runAuditBtn.disabled = false;
+            }
+        });
+
+        downloadBtn.addEventListener("click", () => {
+            if (!lastReport) return;
+            const blob = new Blob([JSON.stringify(lastReport, null, 2)], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "qms_audit_report.json";
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+
+        function parseCsv(text) {
+            const rows = [];
+            let row = [];
+            let cell = "";
+            let inQuotes = false;
+            for (let i = 0; i < text.length; i++) {
+                const ch = text[i];
+                const next = text[i + 1];
+                if (ch === "\"") {
+                    if (inQuotes && next === "\"") {
+                        cell += "\"";
+                        i++;
+                    } else {
+                        inQuotes = !inQuotes;
+                    }
+                } else if (ch === "," && !inQuotes) {
+                    row.push(cell);
+                    cell = "";
+                } else if ((ch === "\n" || ch === "\r") && !inQuotes) {
+                    if (ch === "\r" && next === "\n") i++;
+                    row.push(cell);
+                    if (row.some(v => String(v).trim() !== "")) rows.push(row);
+                    row = [];
+                    cell = "";
+                } else {
+                    cell += ch;
+                }
+            }
+            row.push(cell);
+            if (row.some(v => String(v).trim() !== "")) rows.push(row);
+            return rows;
+        }
+
+        function normalizeText(value) {
+            return String(value ?? "").replace(/\uFEFF/g, "").replace(/\s+/g, " ").trim();
+        }
+
+        function looksMojibake(text) {
+            const normalized = normalizeText(text);
+            const markerHits = MOJIBAKE_MARKERS.filter(marker => normalized.includes(marker)).length;
+            const replacementHits = (normalized.match(/[・ｽ郢晢ｽｻ繝ｻ・ｽ]/g) || []).length;
+            return markerHits >= 2 || replacementHits / Math.max(normalized.length, 1) > 0.02;
+        }
+
+        function auditCsvText(name, text, mode) {
+            const rows = parseCsv(text);
+            if (!rows.length) {
+                return { path: name, row_count: 0, issue_count: 1, issues: [{ row_number: 1, type: "empty_csv", message: "CSV is empty" }] };
+            }
+
+            if (mode === "generic") {
+                return auditGenericCsv(name, rows);
+            }
+
+            const firstRow = rows[0].map(normalizeText).map(v => v.toLowerCase());
+            const headered = REQUIRED_COLUMNS.filter(col => firstRow.includes(col)).length >= 4;
+            const headers = headered ? firstRow : HEADERLESS_COLUMNS;
+            const bodyRows = (headered ? rows.slice(1) : rows).map(r => headers.reduce((acc, key, idx) => ({ ...acc, [key]: normalizeText(r[idx]) }), {}));
+            const issues = [];
+
+            const missingColumns = REQUIRED_COLUMNS.filter(col => !headers.includes(col));
+            if (missingColumns.length) {
+                issues.push({ row_number: 1, type: "missing_columns", message: `Missing required columns: ${missingColumns.join(", ")}` });
+            }
+
+            bodyRows.forEach((row, idx) => {
+                const rowNumber = headered ? idx + 2 : idx + 1;
+                const mondai = normalizeText(row.mondai);
+                const kaisetsu = normalizeText(row.kaisetsu);
+                const answers = ["mondai_a", "mondai_b", "mondai_c"].map(key => normalizeText(row[key]));
+                const seikai = normalizeText(row.seikai).toLowerCase();
+
+                if (!mondai) issues.push(issue(rowNumber, "blank_question", "Question text is blank", row));
+                if (mondai && mondai.length < 15) issues.push(issue(rowNumber, "short_question", "Question text is too short", row));
+                if (!kaisetsu) issues.push(issue(rowNumber, "blank_explanation", "Explanation is blank", row));
+                if (kaisetsu && kaisetsu.length < 20) issues.push(issue(rowNumber, "short_explanation", "Explanation is too short", row));
+                if (seikai && !["a", "b", "c"].includes(seikai)) issues.push(issue(rowNumber, "invalid_seikai", `Invalid seikai: ${seikai}`, row));
+
+                const duplicates = answers.filter(Boolean).filter((v, i, arr) => arr.indexOf(v) !== i);
+                if (duplicates.length) issues.push(issue(rowNumber, "duplicate_choices", `Duplicate choices: ${[...new Set(duplicates)].join(" / ")}`, row));
+
+                if ([mondai, kaisetsu, ...answers].some(looksMojibake)) {
+                    issues.push(issue(rowNumber, "mojibake_suspected", "Text appears mojibake or wrongly encoded", row));
+                }
+            });
+
+            return { path: name, row_count: bodyRows.length, issue_count: issues.length, issues };
+        }
+
+        function auditGenericCsv(name, rows) {
+            const headers = rows[0].map(normalizeText);
+            const issues = [];
+            if (new Set(headers).size !== headers.length) {
+                issues.push({ row_number: 1, type: "duplicate_headers", message: "Duplicate header names detected" });
+            }
+            rows.slice(1).forEach((row, idx) => {
+                const rowNumber = idx + 2;
+                if (row.length !== headers.length) {
+                    issues.push({ row_number: rowNumber, type: "column_count_mismatch", message: `Expected ${headers.length} columns, found ${row.length}` });
+                }
+                row.forEach((cell, cellIdx) => {
+                    if (looksMojibake(cell)) {
+                        issues.push({ row_number: rowNumber, type: "mojibake_suspected", message: `Column ${headers[cellIdx] || cellIdx + 1} appears mojibake` });
+                    }
+                });
+            });
+            return { path: name, row_count: Math.max(rows.length - 1, 0), issue_count: issues.length, issues };
+        }
+
+        function issue(rowNumber, type, message, row) {
+            return {
+                row_number: rowNumber,
+                type,
+                message,
+                kajyou: normalizeText(row.kajyou),
+                mondai_no: normalizeText(row.mondai_no)
+            };
+        }
+
+        function buildAggregateReport(files) {
+            return {
+                generated_at: new Date().toISOString(),
+                scanned_files: files.length,
+                total_rows: files.reduce((sum, f) => sum + (f.row_count || 0), 0),
+                total_issues: files.reduce((sum, f) => sum + (f.issue_count || 0), 0),
+                files: files.sort((a, b) => b.issue_count - a.issue_count)
+            };
+        }
+
+        function renderReport(report) {
+            document.getElementById("statFiles").textContent = String(report.scanned_files);
+            document.getElementById("statRows").textContent = String(report.total_rows);
+            document.getElementById("statIssues").textContent = String(report.total_issues);
+            document.getElementById("statWorst").textContent = report.files[0] ? `${report.files[0].issue_count}` : "-";
+
+            if (!report.files.length) {
+                resultsEl.innerHTML = '<div class="empty">No report entries found.</div>';
+                return;
+            }
+
+            resultsEl.innerHTML = report.files.map(file => {
+                const topIssues = file.issues.slice(0, 12).map(entry => {
+                    const level = entry.type.includes("invalid") || entry.type.includes("missing") ? "bad" : "";
+                    const ref = [entry.kajyou, entry.mondai_no].filter(Boolean).join(" / ");
+                    return `<div class="issue ${level}">
+                        <div class="meta">row ${entry.row_number} | ${escapeHtml(entry.type)}${ref ? ` | ${escapeHtml(ref)}` : ""}</div>
+                        <div>${escapeHtml(entry.message)}</div>
+                    </div>`;
+                }).join("");
+
+                return `<section style="margin-bottom:18px;">
+                    <table>
+                        <tr><th style="width:160px;">File</th><td>${escapeHtml(file.path)}</td></tr>
+                        <tr><th>Rows</th><td>${file.row_count}</td></tr>
+                        <tr><th>Issues</th><td>${file.issue_count}</td></tr>
+                    </table>
+                    <div class="issue-list">${topIssues || '<div class="empty">No issues found in the preview set.</div>'}</div>
+                </section>`;
+            }).join("");
+        }
+
+        function escapeHtml(text) {
+            return String(text)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/\"/g, "&quot;")
+                .replace(/'/g, "&#39;");
+        }
+    </script>
+</body>
+</html>

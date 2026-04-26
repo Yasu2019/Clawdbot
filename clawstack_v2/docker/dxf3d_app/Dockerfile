@@ -2,6 +2,7 @@ FROM python:3.11-slim
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     docker.io \
+    tesseract-ocr \
     libgl1 \
     libglu1-mesa \
     libglib2.0-0 \
@@ -29,7 +30,9 @@ RUN pip install --no-cache-dir \
     requests \
     gmsh \
     pandas \
-    scipy
+    scipy \
+    PyMuPDF \
+    olefile
 
 WORKDIR /app
 COPY app.py /app/app.py

@@ -8,6 +8,10 @@ networks:
   default:
     name: clawstack-unified
     driver: bridge
+  iatf_system_default:
+    external: true
+  iatf_prod_app_network:
+    external: true
 
 services:
   # ============================================================
@@ -15,16 +19,20 @@ services:
   # ============================================================
   clawdbot-gateway:
     build: .
+    init: true
     restart: unless-stopped
     ports:
       - "127.0.0.1:${OPENCLAW_PORT:-18789}:18789"
       - "127.0.0.1:${OPENCLAW_BROWSER_PORT:-18791}:18791"
+      - "127.0.0.1:8099:8099"
+      - "127.0.0.1:5900:5900"
     env_file: .env
     environment:
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - GROQ_API_KEY=${GROQ_API_KEY}
       - HOME=/home/node
       - OPENCLAW_GATEWAY_TOKEN=yasu-fresh-token-2026-02-01
+      - OPENCLAW_GATEWAY_CONTROL_UI_ALLOWED_ORIGINS=http://localhost:${OPENCLAW_PORT:-18789},http://127.0.0.1:${OPENCLAW_PORT:-18789},http://host.docker.internal:${OPENCLAW_PORT:-18789}
       # Internal service URLs (Docker network — used by agent scripts/API calls)
       - N8N_URL=http://n8n:5678
       - N8N_API_URL=http://n8n:5678/api/v1
@@ -64,6 +72,7 @@ services:
       - OUTLINE_URL=http://outline:3000
       - WHISHPER_URL=http://whishper:8080
       - LANGFUSE_URL=http://langfuse:3000
+      - TACO_URL=http://taco-engine:8000
       - DOCLING_URL=http://docling:5001
       # Browser-facing URLs (host.docker.internal — used by openclaw browser)
       - PORTAL_URL=http://host.docker.internal:8088/portal.html
@@ -79,6 +88,7 @@ services:
       - BROWSER_IATF_URL=http://host.docker.internal:3000
       - BROWSER_VOICEVOX_URL=http://host.docker.internal:50021
       - CONTEXT_FILE=/home/node/clawd/PORTAL_APPS.md
+      - OLLAMA_API_KEY=ollama-local
     volumes:
       - ./data/state:/home/node/.openclaw
       - ./data/workspace:/home/node/clawd
@@ -92,7 +102,7 @@ services:
       - ./data/rclone:/home/node/.config/rclone
       - ./data/state/claude.json:/home/node/.claude.json
       - ./data/state/playwright_cache/ms-playwright:/home/node/.cache/ms-playwright
-      - /var/run/docker.sock:/var/run/docker.sock
+      - ${HOST_DOCKER_SOCKET:-/var/run/docker.sock}:/var/run/docker.sock
     extra_hosts:
       - "host.docker.internal:host-gateway"
     user: root
@@ -104,6 +114,21 @@ services:
   # ============================================================
   postgres:
     image: postgres:16
+    command: >
+      postgres
+      -c shared_buffers=1GB
+      -c effective_cache_size=4GB
+      -c work_mem=64MB
+      -c maintenance_work_mem=512MB
+      -c checkpoint_completion_target=0.9
+      -c wal_buffers=64MB
+      -c max_wal_size=2GB
+      -c random_page_cost=1.1
+      -c effective_io_concurrency=200
+      -c max_worker_processes=8
+      -c max_parallel_workers_per_gather=4
+      -c max_parallel_workers=8
+      -c synchronous_commit=off
     environment:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     volumes:
@@ -114,6 +139,14 @@ services:
 
   redis:
     image: redis:7
+    command: >
+      redis-server
+      --maxmemory 4gb
+      --maxmemory-policy allkeys-lru
+      --hz 100
+      --dynamic-hz yes
+      --tcp-backlog 511
+      --latency-monitor-threshold 10
     volumes:
       - ./clawstack_v2/data/redis:/data
     ports:
@@ -127,15 +160,17 @@ services:
     ports:
       - "127.0.0.1:11434:11434"
     environment:
-      - OLLAMA_NUM_PARALLEL=1       # CPUではキュー直列化が高速（スレッド競合回避）
-      - OLLAMA_MAX_LOADED_MODELS=1  # モデルスワップ禁止（ロード待ち時間ゼロ）
+      - OLLAMA_NUM_PARALLEL=2       # 並列2件（エージェント+ブラウザ同時対応）
+      - OLLAMA_MAX_LOADED_MODELS=1  # 1モデル常駐（VRAM/RAMの圧迫回避）
       - OLLAMA_FLASH_ATTENTION=1    # Flash Attention有効（推論高速化）
-      - OLLAMA_KEEP_ALIVE=30m       # 30分アイドル後アンロード（RAM解放）
+      - OLLAMA_KEEP_ALIVE=5m        # 5分間常駐（アイドル時にメモリ完全開放）
+      - OLLAMA_KV_CACHE_TYPE=q8_0   # KVキャッシュをint8量子化（メモリ半減・高速）
+      - OLLAMA_MAX_QUEUE=512        # リクエストキュー上限（ドロップ防止）
     deploy:
       resources:
         limits:
-          cpus: "14"    # 20コア中14コア（他サービス用に6コア確保）
-          memory: 20g   # qwen3:14b(9.3GB)+KVキャッシュ+余裕
+          cpus: "18"    # 20スレッド中18（Windows+WSL最低限2スレッド確保）
+          memory: 32g   # 48GB中32GB（2モデル+KVキャッシュ+余裕）
     restart: unless-stopped
 
   qdrant:
@@ -174,7 +209,8 @@ services:
       - N8N_PROTOCOL=http
       - NODE_ENV=production
       - WEBHOOK_URL=http://127.0.0.1:5679/
-      - GENERIC_TIMEZONE=${TZ}
+      - GENERIC_TIMEZONE=Asia/Tokyo
+      - N8N_USER_FOLDER=/root/.n8n
       # Execute Command ノード & Local File Trigger を有効化
       # デフォルトでは ['n8n-nodes-base.executeCommand','n8n-nodes-base.localFileTrigger'] が除外される
       - NODES_EXCLUDE=[]
@@ -195,7 +231,7 @@ services:
       - ./clawstack_v2/data/work:/work
       - ./data/workspace:/workspace
       - ./clawstack_v2/data/paperless/consume/email:/local_emails:ro
-      - /var/run/docker.sock:/var/run/docker.sock
+      - ${HOST_DOCKER_SOCKET:-/var/run/docker.sock}:/var/run/docker.sock
     user: root
     restart: unless-stopped
 
@@ -235,6 +271,17 @@ services:
     working_dir: /work
     command: [ "bash", "-lc", "sleep infinity" ]
 
+  progressive_die_hub:
+    build: ./clawstack_v2/docker/progressive_die_hub
+    ports:
+      - "127.0.0.1:8004:8004"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./data/workspace:/workspace:ro
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+
   chrono:
     image: uwsbel/projectchrono:latest
     volumes:
@@ -273,6 +320,19 @@ services:
     volumes:
       - ./clawstack_v2/data/work:/work
       - ./clawstack_v2/data/paperless/consume:/consume
+
+  mfg-sim:
+    build: ./clawstack_v2/apps/mfg_sim
+    ports:
+      - "127.0.0.1:8505:8501"
+    volumes:
+      - ./clawstack_v2/apps/mfg_sim:/app
+    environment:
+      - STREAMLIT_SERVER_PORT=8501
+    deploy:
+      resources:
+        limits:
+          memory: 1G
     restart: unless-stopped
 
   # ============================================================
@@ -280,6 +340,7 @@ services:
   # ============================================================
   paperless:
     image: ghcr.io/paperless-ngx/paperless-ngx:latest
+    user: "1000:1000"
     restart: unless-stopped
     depends_on: [ postgres, redis ]
     ports:
@@ -302,13 +363,13 @@ services:
       PAPERLESS_URL: http://localhost:8000
       PAPERLESS_CONSUMER_RECURSIVE: "true"
       PAPERLESS_CONSUMER_SUBDIRS_AS_TAGS: "true"
-      PAPERLESS_TASK_WORKERS: "1"       # OCRワーカーを1に制限（CPU競合防止）
-      PAPERLESS_THREADS_PER_WORKER: "2" # スレッド数を2に制限
+      PAPERLESS_TASK_WORKERS: "2"       # OCRワーカー2（48GB RAM・20コアで余裕あり）
+      PAPERLESS_THREADS_PER_WORKER: "4" # スレッド数4（高速OCR並列処理）
     deploy:
       resources:
         limits:
-          cpus: "4"
-          memory: 2g
+          cpus: "8"
+          memory: 4g
 
   open_notebook_db:
     image: surrealdb/surrealdb:v2
@@ -347,7 +408,9 @@ services:
     ports:
       - "127.0.0.1:8088:80"
     volumes:
-      - ./data/workspace:/usr/share/nginx/html:ro
+      - ./data/workspace:/usr/share/nginx/html
+      - ./protocols:/usr/share/nginx/html/protocols:ro
+      - ./ops:/usr/share/nginx/html/ops:ro
     restart: unless-stopped
 
   # ============================================================
@@ -399,6 +462,13 @@ services:
       - minigame_api
     restart: unless-stopped
 
+  portal_next:
+    build: ./data/workspace/apps/portal_next
+    ports:
+      - "127.0.0.1:3101:3000"
+    restart: unless-stopped
+
+
   # ============================================================
   # 8. VOICE & SIMULATION
   # ============================================================
@@ -408,7 +478,7 @@ services:
     ports:
       - "127.0.0.1:50021:50021"
     environment:
-      - VV_CPU_NUM_THREADS=4
+      - VV_CPU_NUM_THREADS=8
 
   # ============================================================
   # 9. LLM GATEWAY
@@ -428,6 +498,11 @@ services:
       - GROQ_API_KEY=${GROQ_API_KEY}
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - CEREBRAS_API_KEY=${CEREBRAS_API_KEY}
+      - MOONSHOT_API_KEY=${MOONSHOT_API_KEY}
+      - KIMI_BASE_URL=${KIMI_BASE_URL}
+      - CLOUD_OPENAI_API_KEY=${CLOUD_OPENAI_API_KEY}
+      - OLLAMA_API_BASE=http://ollama:11434
+      - OPENAI_API_KEY=ollama
     depends_on:
       - redis
       - ollama
@@ -440,14 +515,14 @@ services:
     image: michaelf34/infinity:latest
     platform: linux/amd64
     command: [ "v2", "--model-id", "mixedbread-ai/mxbai-embed-large-v1", "--port", "7997",
-               "--batch-size", "16" ]
+               "--batch-size", "32" ]
     ports:
       - "127.0.0.1:7997:7997"
     deploy:
       resources:
         limits:
-          cpus: "8"    # インジェスト中もOllamaに6コア以上確保
-          memory: 4g
+          cpus: "8"
+          memory: 8g
     restart: unless-stopped
 
   # ============================================================
@@ -504,12 +579,12 @@ services:
     environment:
       - OPENAI_API_KEY=local-dev-key
       - OPENAI_BASE_URL=http://litellm:4000/v1
-    shm_size: '1gb'
+    shm_size: '2gb'
     deploy:
       resources:
         limits:
-          cpus: "4"
-          memory: 2g
+          cpus: "8"
+          memory: 4g
     restart: unless-stopped
 
   # ============================================================
@@ -594,7 +669,7 @@ services:
     ports:
       - "127.0.0.1:8096:8080"
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ${HOST_DOCKER_SOCKET:-/var/run/docker.sock}:/var/run/docker.sock:ro
     environment:
       - DOZZLE_LEVEL=info
       - DOZZLE_TAILSIZE=300
@@ -608,7 +683,7 @@ services:
     ports:
       - "127.0.0.1:9002:9000"
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ${HOST_DOCKER_SOCKET:-/var/run/docker.sock}:/var/run/docker.sock:ro
       - ./clawstack_v2/data/portainer:/data
     restart: unless-stopped
 
@@ -626,6 +701,10 @@ services:
       - MB_DB_FILE=/metabase-data/metabase.db
       - MB_SITE_LOCALE=ja
       - JAVA_TIMEZONE=Asia/Tokyo
+    networks:
+      - default
+      - iatf_system_default
+      - iatf_prod_app_network
     restart: unless-stopped
 
   # ============================================================
@@ -690,7 +769,7 @@ services:
   watchtower:
     image: containrrr/watchtower:latest
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ${HOST_DOCKER_SOCKET:-/var/run/docker.sock}:/var/run/docker.sock:ro
     environment:
       - WATCHTOWER_MONITOR_ONLY=true
       - WATCHTOWER_SCHEDULE=0 0 3 * * *
@@ -739,7 +818,7 @@ services:
       - "127.0.0.1:8003:8002"
     volumes:
       - ./clawstack_v2/data/work:/work
-      - /var/run/docker.sock:/var/run/docker.sock
+      - ${HOST_DOCKER_SOCKET:-/var/run/docker.sock}:/var/run/docker.sock
     restart: unless-stopped
 
   # ============================================================
@@ -753,12 +832,13 @@ services:
     volumes:
       - ./clawstack_v2/data/docling/scratch:/tmp/docling
     environment:
-      - DOCLING_SERVE_NUM_WORKERS=1
+      - DOCLING_SERVE_NUM_WORKERS=2
+      - DOCLING_SERVE_MAX_SYNC_WAIT=600
     deploy:
       resources:
         limits:
-          cpus: "4"
-          memory: 6g
+          cpus: "8"
+          memory: 8g
     restart: unless-stopped
 
   # ============================================================
@@ -784,8 +864,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "2"
-          memory: 2g
+          cpus: "4"
+          memory: 4g
     restart: unless-stopped
 
   langfuse-db-init:
@@ -948,10 +1028,115 @@ services:
       - POSTGRES_INITDB_ARGS=--data-checksums
     volumes:
       - immich_pgdata:/var/lib/postgresql/data
-    shm_size: 128mb
+    shm_size: 256mb
     restart: unless-stopped
 
+  # ============================================================
+  # Shannon Test Target — Deliberately Vulnerable Flask App
+  # DO NOT expose publicly. For local Shannon pentesting only.
+  # ============================================================
+  shannon-target:
+    build: ./shannon_test_target
+    ports:
+      - "127.0.0.1:5001:5000"
+    restart: unless-stopped
+    profiles:
+      - security-test
+
+  # ============================================================
+  # Shannon Control UI — Portal integration for Shannon Lite
+  # ============================================================
+  shannon-control:
+    build: ./shannon_control
+    ports:
+      - "127.0.0.1:5002:5002"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./shannon_test_target:/repos/target:ro
+      - shannon_workspaces:/root/.shannon
+    environment:
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - TARGET_URL=http://host.docker.internal:5001
+      - TARGET_REPO=/repos/target
+      - CONFIG_FILE=/repos/target/shannon-config.yaml
+    profiles:
+      - security-test
+  # ============================================================
+  # 29. MULTIMODAL GATEWAY (Lemonade)
+  # ============================================================
+  lemonade:
+    image: ghcr.io/example/lemonade:latest
+    container_name: lemonade
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:18070:8000"
+    environment:
+      TZ: ${TZ:-Asia/Tokyo}
+      LOG_LEVEL: info
+      LEMONADE_ENABLE_TEXT: "true"
+      LEMONADE_ENABLE_IMAGE: "true"
+      LEMONADE_ENABLE_STT: "true"
+      LEMONADE_ENABLE_TTS: "true"
+    volumes:
+      - ./data/lemonade:/data
+    profiles: ["multimodal"]
+    networks:
+      - default
+
+  # ── Agentic Efficiency (Consolidated & Optimized 2026-04-22) ────────
+  mcp-bridge:
+    image: python:3.11-slim
+    container_name: clawstack-unified-mcp-bridge
+    environment:
+      - MCP_PORT=3333
+      - LITELLM_MASTER_KEY=${LITELLM_MASTER_KEY}
+      - QDRANT_URL=http://qdrant:6333
+      - SEARXNG_URL=http://searxng:8080
+      - INFINITY_URL=http://infinity:7997
+      - OLLAMA_URL=http://ollama:11434
+    volumes:
+      - ./data/workspace:/app/workspace:rw
+      - ./data/workspace/knowledge_vault:/app/knowledge_vault:rw
+    ports:
+      - "127.0.0.1:3333:3333"
+    restart: unless-stopped
+    command: >
+      sh -c "pip install mcp[cli] requests && python3 /app/workspace/clawstack_mcp_server.py"
+
+  # ============================================================
+  # TACO++ AUTO-OPS (Context Optimization)
+  # ============================================================
+  taco-engine:
+    image: python:3.11-slim
+    container_name: taco_engine
+    working_dir: /app
+    volumes:
+      - ./clawstack_v2/OpenClaw_TACOplusplus_AutoOps_UTF8:/app
+      - ./data/workspace/logs:/logs:ro
+    environment:
+      - TACO_CONFIG=/app/taco/config.yaml
+      - QDRANT_URL=http://qdrant:6333
+      - QDRANT_COLLECTION=taco_rules
+      - LANGFUSE_HOST=http://langfuse:3000
+      - TACO_MODE=autonomous_safe
+    command: sh -c "pip install -r requirements.txt && python -m taco.service"
+    restart: unless-stopped
+    networks:
+      - default
+
+  taco-portal:
+    image: nginx:alpine
+    container_name: taco_portal
+    volumes:
+      - ./data/workspace/apps/taco_dashboard:/usr/share/nginx/html:ro
+    ports:
+      - "127.0.0.1:18088:80"
+    restart: unless-stopped
+    networks:
+      - default
+
 volumes:
+  shannon_workspaces:
   minigame_db_data:
   clickhouse_data:
   immich_model_cache:

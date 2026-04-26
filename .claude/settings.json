@@ -11,5 +11,29 @@
     "additionalDirectories": [
       "\\tmp"
     ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 /d/Clawdbot_Docker_20260125/data/workspace/rl_anything/hook_pre_tool_use.py"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 /d/Clawdbot_Docker_20260125/data/workspace/rl_anything/hook_post_tool_use.py"
+          }
+        ]
+      }
+    ]
   }
 }

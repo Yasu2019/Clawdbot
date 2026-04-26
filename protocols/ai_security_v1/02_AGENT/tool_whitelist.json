@@ -1,0 +1,16 @@
+{
+  "allowed_tools": [
+    "rag_search",
+    "file_read",
+    "markdown_convert",
+    "csv_transform",
+    "analysis_python"
+  ],
+  "blocked_tools": [
+    "shell_exec",
+    "external_http",
+    "ftp_upload",
+    "browser_login_automation",
+    "system_delete"
+  ]
+}

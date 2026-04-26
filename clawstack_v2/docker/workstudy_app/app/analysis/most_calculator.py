@@ -20,7 +20,7 @@ P (placement):  0, 1, 3, 6
 from __future__ import annotations
 
 # Therbligs that signal the END of a General Move cycle
-_CYCLE_END = {"RL", "ADe", "UDe", "H"}
+_CYCLE_END = {"RL", "ADe", "UDe", "H", "UNKNOWN"}
 # Therbligs that indicate tool use inside a move
 _TOOL_USE   = {"U", "USE_TOOL"}
 
@@ -68,6 +68,7 @@ class MOSTCalculator:
             "nva_tmu":      round(nva_tmu, 1),
             "efficiency":   round(va_tmu / max(total_tmu, 1), 3),
             "avg_seq_tmu":  round(total_tmu / max(len(sequences), 1), 1),
+            "review_seq_count": sum(1 for s in sequences if s.get("needs_review")),
             "summary_rows": summary_rows,
         }
 
@@ -106,8 +107,12 @@ class MOSTCalculator:
         labels_in_seq = [s["label"] for s in segs]
         has_tool_use  = any(lbl in _TOOL_USE for lbl in labels_in_seq)
         has_nva       = any(s.get("is_nva", False) for s in segs)
+        needs_review  = any(s.get("review_required", False) for s in segs)
+        avg_confidence = sum(s.get("confidence", 0.0) for s in segs) / max(len(segs), 1)
 
         seq_type = "Tool Use" if has_tool_use else "General Move"
+        if needs_review:
+            seq_type += " (Review)"
 
         # General Move formula: (A+B+G+A+B+P+A) × 10  (A appears 3 times)
         tmu = (3 * A + 2 * B + G + P) * 10
@@ -124,6 +129,8 @@ class MOSTCalculator:
             "tmu":        round(float(tmu), 1),
             "duration_s": round(sum(s.get("duration_sec", 0) for s in segs), 2),
             "has_nva":    has_nva,
+            "needs_review": needs_review,
+            "avg_confidence": round(avg_confidence, 3),
             "start_sec":  segs[0].get("start_sec", 0),
             "end_sec":    segs[-1].get("end_sec", 0),
         }

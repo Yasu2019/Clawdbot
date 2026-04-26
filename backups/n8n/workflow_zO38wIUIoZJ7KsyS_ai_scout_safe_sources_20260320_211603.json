@@ -1,0 +1,1755 @@
+{
+  "updatedAt": "2026-03-20T12:14:54.060Z",
+  "createdAt": "2026-03-07T04:53:48.139Z",
+  "id": "zO38wIUIoZJ7KsyS",
+  "name": "Daily AI Scout (新AI・ツール探索)",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "id": "node-schedule",
+      "name": "Daily 09:00 JST",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 0 * * *"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "node-queries",
+      "name": "Search Queries",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        200,
+        0
+      ],
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "q1",
+              "name": "q1",
+              "value": "frontier AI model release openai anthropic google deepmind 2026",
+              "type": "string"
+            },
+            {
+              "id": "q2",
+              "name": "q2",
+              "value": "Qwen Llama Mistral DeepSeek compact local model release 2026",
+              "type": "string"
+            },
+            {
+              "id": "q3",
+              "name": "q3",
+              "value": "video generation music generation image generation lipsync AI release 2026",
+              "type": "string"
+            },
+            {
+              "id": "q4",
+              "name": "q4",
+              "value": "deep learning research paper open source model release 2026",
+              "type": "string"
+            },
+            {
+              "id": "q5",
+              "name": "q5",
+              "value": "Rowan Cheung Ethan Mollick Alina K. Miller Logan Kilpatrick AI Explained latest AI",
+              "type": "string"
+            },
+            {
+              "id": "q6",
+              "name": "q6",
+              "value": "Rowan Cheung site:rowancheung.com OR site:therundown.ai OR site:rundown.ai",
+              "type": "string"
+            },
+            {
+              "id": "q7",
+              "name": "q7",
+              "value": "Ethan Mollick site:oneusefulthing.org",
+              "type": "string"
+            },
+            {
+              "id": "q8",
+              "name": "q8",
+              "value": "Allie K. Miller site:alliekmiller.com",
+              "type": "string"
+            },
+            {
+              "id": "q9",
+              "name": "q9",
+              "value": "Logan Kilpatrick site:blog.google",
+              "type": "string"
+            },
+            {
+              "id": "q10",
+              "name": "q10",
+              "value": "AI Explained site:youtube.com",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "node-search1",
+      "name": "Search: AI Models",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        420,
+        -200
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "http://searxng:8080/search",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "q",
+              "value": "={{ $json.q1 }}"
+            },
+            {
+              "name": "format",
+              "value": "json"
+            },
+            {
+              "name": "language",
+              "value": "en"
+            },
+            {
+              "name": "time_range",
+              "value": "week"
+            }
+          ]
+        },
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Forwarded-For",
+              "value": "127.0.0.1"
+            }
+          ]
+        },
+        "sendHeaders": true
+      }
+    },
+    {
+      "id": "node-search2",
+      "name": "Search: LLM Releases",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        420,
+        -80
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "http://searxng:8080/search",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "q",
+              "value": "={{ $json.q2 }}"
+            },
+            {
+              "name": "format",
+              "value": "json"
+            },
+            {
+              "name": "language",
+              "value": "en"
+            },
+            {
+              "name": "time_range",
+              "value": "week"
+            }
+          ]
+        },
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Forwarded-For",
+              "value": "127.0.0.1"
+            }
+          ]
+        },
+        "sendHeaders": true
+      }
+    },
+    {
+      "id": "node-search3",
+      "name": "Search: Video Gen AI",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        420,
+        40
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "http://searxng:8080/search",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "q",
+              "value": "={{ $json.q3 }}"
+            },
+            {
+              "name": "format",
+              "value": "json"
+            },
+            {
+              "name": "language",
+              "value": "en"
+            },
+            {
+              "name": "time_range",
+              "value": "week"
+            }
+          ]
+        },
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Forwarded-For",
+              "value": "127.0.0.1"
+            }
+          ]
+        },
+        "sendHeaders": true
+      }
+    },
+    {
+      "id": "node-search4",
+      "name": "Search: Image Gen AI",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        420,
+        160
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "http://searxng:8080/search",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "q",
+              "value": "={{ $json.q4 }}"
+            },
+            {
+              "name": "format",
+              "value": "json"
+            },
+            {
+              "name": "language",
+              "value": "en"
+            },
+            {
+              "name": "time_range",
+              "value": "week"
+            }
+          ]
+        },
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Forwarded-For",
+              "value": "127.0.0.1"
+            }
+          ]
+        },
+        "sendHeaders": true
+      }
+    },
+    {
+      "id": "node-search5",
+      "name": "Search: Productivity AI",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        420,
+        280
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "http://searxng:8080/search",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "q",
+              "value": "={{ $json.q5 }}"
+            },
+            {
+              "name": "format",
+              "value": "json"
+            },
+            {
+              "name": "language",
+              "value": "en"
+            },
+            {
+              "name": "time_range",
+              "value": "week"
+            }
+          ]
+        },
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Forwarded-For",
+              "value": "127.0.0.1"
+            }
+          ]
+        },
+        "sendHeaders": true
+      }
+    },
+    {
+      "id": "node-aggregate",
+      "name": "Aggregate Results",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        40
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const allItems = $input.all();\nconst today = new Date().toLocaleDateString('ja-JP', { timeZone: 'Asia/Tokyo' });\nconst sourceCatalog = [\n  {\n    title: 'AIモデル',\n    matches: ['frontier ai model', 'openai anthropic google deepmind'],\n  },\n  {\n    title: 'ローカルLLM',\n    matches: ['qwen llama mistral deepseek'],\n  },\n  {\n    title: '動画・音楽・画像・LipSync',\n    matches: ['video generation music generation image generation lipsync'],\n  },\n  {\n    title: 'DeepLearning / 論文',\n    matches: ['deep learning research paper'],\n  },\n  {\n    title: '注目発信者 / メディア',\n    matches: ['rowan cheung ethan mollick'],\n  },\n  {\n    title: '公式サイト / ニュースレター',\n    matches: ['site:rowancheung.com', 'site:rundown.ai', 'site:therundown.ai', 'site:oneusefulthing.org'],\n  },\n  {\n    title: '公式プロフィール / ブログ',\n    matches: ['site:alliekmiller.com', 'site:blog.google', 'site:developers.googleblog.com'],\n  },\n  {\n    title: 'YouTube 公開チャンネル',\n    matches: ['site:youtube.com', 'site:youtube.com/@aiexplained-official'],\n  },\n];\nconst fixedSources = [\n  'Rowan Cheung: https://rowancheung.com / https://www.rundown.ai / https://www.therundown.ai',\n  'Ethan Mollick: https://www.oneusefulthing.org',\n  'Allie K. Miller: https://www.alliekmiller.com',\n  'Logan Kilpatrick: https://blog.google/authors/logan-kilpatrick/',\n  'AI Explained: https://www.youtube.com/results?search_query=AI+Explained',\n];\nfunction classify(query) {\n  const lowered = (query || '').toLowerCase();\n  for (const entry of sourceCatalog) {\n    if (entry.matches.some((token) => lowered.includes(token))) return entry.title;\n  }\n  return 'その他';\n}\nconst sections = new Map(sourceCatalog.map((entry) => [entry.title, []]));\nsections.set('その他', []);\nconst seen = new Set();\nfor (const item of allItems) {\n  const data = item.json || {};\n  const query = data.query || '';\n  const category = classify(query);\n  for (const hit of (data.results || []).slice(0, 4)) {\n    const title = (hit.title || '').trim();\n    const url = (hit.url || '').trim();\n    if (!title || !url) continue;\n    const dedupe = `${title}::${url}`;\n    if (seen.has(dedupe)) continue;\n    seen.add(dedupe);\n    sections.get(category).push(`- ${title}\\n  ${url}`);\n  }\n}\nconst parts = [\n  `AI Scout 日報 (${today})`,\n  '',\n  '取得元: SearXNG 経由の公開Web検索',\n  '方針: Instagram / X / TikTok の直接スクレイプは使わず、公開ページ・公式サイト・公開YouTubeページのみを対象にしています。',\n  '',\n  '固定監視先:',\n  ...fixedSources.map((line) => `- ${line}`),\n  '',\n];\nfor (const [title, hits] of sections.entries()) {\n  if (!hits.length) continue;\n  parts.push(`■ ${title}`);\n  parts.push(...hits.slice(0, 4));\n  parts.push('');\n}\nparts.push('補足: 公開検索結果ベースの日報です。さらに深掘りが必要なテーマは個別に検索して確認してください。');\nreturn [{ json: { message: parts.join('\\n').trim() } }];"
+      }
+    },
+    {
+      "id": "node-llm",
+      "name": "Gemini Summary",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        880,
+        40
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:11434/api/generate",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "body": "={{ JSON.stringify({ model: 'qwen2.5-coder:7b', prompt: 'あなたはAI業界ウォッチャーです。与えられた検索結果から、AIモデル、動画生成、音楽生成、画像生成、リップシンク、DeepLearning、業務活用の観点で本当に新しい情報だけを日本語で5-10件の箇条書きに整理してください。各項目は短く、媒体名や人物名が分かる場合は含めてください。SNSや動画は検索結果に含まれる公開ページだけを根拠にし、未確認の断定は避けてください。検索結果:\\n' + $json.summary_input, stream: false, options: { num_predict: 700, temperature: 0.2 } }) }}"
+      }
+    },
+    {
+      "id": "node-extract",
+      "name": "Extract AI Report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1100,
+        40
+      ],
+      "parameters": {
+        "jsCode": "const body = $input.item.json || {};\nconst content = (body.response || '').trim() || '(結果なし)';\nconst today = new Date().toLocaleDateString('ja-JP', { timeZone: 'Asia/Tokyo' });\nreturn [{\n  json: {\n    message: `AI Scout 日報 (${today})\\n\\n${content}\\n\\n---\\n取得元: SearXNG 公開Web検索`\n  }\n}];"
+      }
+    },
+    {
+      "id": "node-telegram",
+      "name": "Telegram Notify",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1320,
+        40
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.telegram.org/bot8085717200:AAHzacN6Q3xSunrLyvUTuHnKEf7Cd5YFdt4/sendMessage",
+        "sendBody": true,
+        "contentType": "json",
+        "body": {
+          "chat_id": "8173025084",
+          "text": "={{ $json.message }}",
+          "parse_mode": "Markdown"
+        }
+      }
+    },
+    {
+      "id": "node-search-official-rowan",
+      "name": "Search: Official Rowan",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        420,
+        220
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "http://searxng:8080/search",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "q",
+              "value": "={{ $json.q6 }}"
+            },
+            {
+              "name": "format",
+              "value": "json"
+            },
+            {
+              "name": "language",
+              "value": "en"
+            },
+            {
+              "name": "time_range",
+              "value": "month"
+            }
+          ]
+        },
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Forwarded-For",
+              "value": "127.0.0.1"
+            }
+          ]
+        },
+        "sendHeaders": true
+      }
+    },
+    {
+      "id": "node-search-ethan-mollick",
+      "name": "Search: Ethan Mollick",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        420,
+        420
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "http://searxng:8080/search",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "q",
+              "value": "={{ $json.q7 }}"
+            },
+            {
+              "name": "format",
+              "value": "json"
+            },
+            {
+              "name": "language",
+              "value": "en"
+            },
+            {
+              "name": "time_range",
+              "value": "month"
+            }
+          ]
+        },
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Forwarded-For",
+              "value": "127.0.0.1"
+            }
+          ]
+        },
+        "sendHeaders": true
+      }
+    },
+    {
+      "id": "node-search-allie-miller",
+      "name": "Search: Allie K. Miller",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        420,
+        620
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "http://searxng:8080/search",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "q",
+              "value": "={{ $json.q8 }}"
+            },
+            {
+              "name": "format",
+              "value": "json"
+            },
+            {
+              "name": "language",
+              "value": "en"
+            },
+            {
+              "name": "time_range",
+              "value": "month"
+            }
+          ]
+        },
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Forwarded-For",
+              "value": "127.0.0.1"
+            }
+          ]
+        },
+        "sendHeaders": true
+      }
+    },
+    {
+      "id": "node-search-logan-kilpatrick",
+      "name": "Search: Logan Kilpatrick",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        420,
+        820
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "http://searxng:8080/search",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "q",
+              "value": "={{ $json.q9 }}"
+            },
+            {
+              "name": "format",
+              "value": "json"
+            },
+            {
+              "name": "language",
+              "value": "en"
+            },
+            {
+              "name": "time_range",
+              "value": "month"
+            }
+          ]
+        },
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Forwarded-For",
+              "value": "127.0.0.1"
+            }
+          ]
+        },
+        "sendHeaders": true
+      }
+    },
+    {
+      "id": "node-search-youtube-ai-explained",
+      "name": "Search: YouTube AI Explained",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        420,
+        1020
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "http://searxng:8080/search",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "q",
+              "value": "={{ $json.q10 }}"
+            },
+            {
+              "name": "format",
+              "value": "json"
+            },
+            {
+              "name": "language",
+              "value": "en"
+            },
+            {
+              "name": "time_range",
+              "value": "month"
+            }
+          ]
+        },
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Forwarded-For",
+              "value": "127.0.0.1"
+            }
+          ]
+        },
+        "sendHeaders": true
+      }
+    }
+  ],
+  "connections": {
+    "Daily 09:00 JST": {
+      "main": [
+        [
+          {
+            "node": "Search Queries",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search Queries": {
+      "main": [
+        [
+          {
+            "node": "Search: AI Models",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Search: LLM Releases",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Search: Video Gen AI",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Search: Image Gen AI",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Search: Productivity AI",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Search: Official Rowan",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Search: Ethan Mollick",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Search: Allie K. Miller",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Search: Logan Kilpatrick",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Search: YouTube AI Explained",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search: AI Models": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search: LLM Releases": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search: Video Gen AI": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search: Image Gen AI": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search: Productivity AI": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate Results": {
+      "main": [
+        [
+          {
+            "node": "Telegram Notify",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini Summary": {
+      "main": [
+        [
+          {
+            "node": "Extract AI Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract AI Report": {
+      "main": [
+        [
+          {
+            "node": "Telegram Notify",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search: Official Rowan": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search: Ethan Mollick": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search: Allie K. Miller": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search: Logan Kilpatrick": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search: YouTube AI Explained": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": {
+    "node:Daily 09:00 JST": {
+      "recurrenceRules": []
+    }
+  },
+  "meta": null,
+  "pinData": null,
+  "versionId": "dbb67143-10dc-4b70-8528-fc9bca0d568b",
+  "activeVersionId": "dbb67143-10dc-4b70-8528-fc9bca0d568b",
+  "versionCounter": 47,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-03-07T04:53:48.147Z",
+      "createdAt": "2026-03-07T04:53:48.147Z",
+      "role": "workflow:owner",
+      "workflowId": "zO38wIUIoZJ7KsyS",
+      "projectId": "9U7rI3bmgXpsJ71S",
+      "project": {
+        "updatedAt": "2026-03-13T14:28:41.239Z",
+        "createdAt": "2026-02-07T05:28:19.729Z",
+        "id": "9U7rI3bmgXpsJ71S",
+        "name": "yasuhiro suzuki <y.suzuki.hk@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "291ff157-9849-45a3-8560-b87bb49ab833",
+        "projectRelations": [
+          {
+            "updatedAt": "2026-02-07T05:28:19.730Z",
+            "createdAt": "2026-02-07T05:28:19.730Z",
+            "userId": "291ff157-9849-45a3-8560-b87bb49ab833",
+            "projectId": "9U7rI3bmgXpsJ71S",
+            "user": {
+              "updatedAt": "2026-03-19T15:01:01.000Z",
+              "createdAt": "2026-02-07T05:28:19.229Z",
+              "id": "291ff157-9849-45a3-8560-b87bb49ab833",
+              "email": "y.suzuki.hk@gmail.com",
+              "firstName": "yasuhiro",
+              "lastName": "suzuki",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2026-02-24T23:12:30.310Z",
+                "personalization_survey_n8n_version": "2.6.4",
+                "automationGoalDevops": [
+                  "reporting"
+                ],
+                "companyIndustryExtended": [
+                  "manufacturing-industry"
+                ],
+                "companySize": "100-499",
+                "companyType": "other",
+                "role": "engineering",
+                "reportedSource": "google"
+              },
+              "settings": {
+                "userActivated": true,
+                "firstSuccessfulWorkflowId": "jVGXe2GEIz6RN7Z0",
+                "userActivatedAt": 1772595011158
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-03-19",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-03-20T12:14:54.064Z",
+    "createdAt": "2026-03-20T12:14:54.064Z",
+    "versionId": "dbb67143-10dc-4b70-8528-fc9bca0d568b",
+    "workflowId": "zO38wIUIoZJ7KsyS",
+    "nodes": [
+      {
+        "id": "node-schedule",
+        "name": "Daily 09:00 JST",
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.2,
+        "position": [
+          0,
+          0
+        ],
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "cronExpression",
+                "expression": "0 0 * * *"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "node-queries",
+        "name": "Search Queries",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          200,
+          0
+        ],
+        "parameters": {
+          "mode": "manual",
+          "assignments": {
+            "assignments": [
+              {
+                "id": "q1",
+                "name": "q1",
+                "value": "frontier AI model release openai anthropic google deepmind 2026",
+                "type": "string"
+              },
+              {
+                "id": "q2",
+                "name": "q2",
+                "value": "Qwen Llama Mistral DeepSeek compact local model release 2026",
+                "type": "string"
+              },
+              {
+                "id": "q3",
+                "name": "q3",
+                "value": "video generation music generation image generation lipsync AI release 2026",
+                "type": "string"
+              },
+              {
+                "id": "q4",
+                "name": "q4",
+                "value": "deep learning research paper open source model release 2026",
+                "type": "string"
+              },
+              {
+                "id": "q5",
+                "name": "q5",
+                "value": "Rowan Cheung Ethan Mollick Alina K. Miller Logan Kilpatrick AI Explained latest AI",
+                "type": "string"
+              },
+              {
+                "id": "q6",
+                "name": "q6",
+                "value": "Rowan Cheung site:rowancheung.com OR site:therundown.ai OR site:rundown.ai",
+                "type": "string"
+              },
+              {
+                "id": "q7",
+                "name": "q7",
+                "value": "Ethan Mollick site:oneusefulthing.org",
+                "type": "string"
+              },
+              {
+                "id": "q8",
+                "name": "q8",
+                "value": "Allie K. Miller site:alliekmiller.com",
+                "type": "string"
+              },
+              {
+                "id": "q9",
+                "name": "q9",
+                "value": "Logan Kilpatrick site:blog.google",
+                "type": "string"
+              },
+              {
+                "id": "q10",
+                "name": "q10",
+                "value": "AI Explained site:youtube.com",
+                "type": "string"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "node-search1",
+        "name": "Search: AI Models",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          420,
+          -200
+        ],
+        "parameters": {
+          "method": "GET",
+          "url": "http://searxng:8080/search",
+          "sendQuery": true,
+          "queryParameters": {
+            "parameters": [
+              {
+                "name": "q",
+                "value": "={{ $json.q1 }}"
+              },
+              {
+                "name": "format",
+                "value": "json"
+              },
+              {
+                "name": "language",
+                "value": "en"
+              },
+              {
+                "name": "time_range",
+                "value": "week"
+              }
+            ]
+          },
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "X-Forwarded-For",
+                "value": "127.0.0.1"
+              }
+            ]
+          },
+          "sendHeaders": true
+        }
+      },
+      {
+        "id": "node-search2",
+        "name": "Search: LLM Releases",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          420,
+          -80
+        ],
+        "parameters": {
+          "method": "GET",
+          "url": "http://searxng:8080/search",
+          "sendQuery": true,
+          "queryParameters": {
+            "parameters": [
+              {
+                "name": "q",
+                "value": "={{ $json.q2 }}"
+              },
+              {
+                "name": "format",
+                "value": "json"
+              },
+              {
+                "name": "language",
+                "value": "en"
+              },
+              {
+                "name": "time_range",
+                "value": "week"
+              }
+            ]
+          },
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "X-Forwarded-For",
+                "value": "127.0.0.1"
+              }
+            ]
+          },
+          "sendHeaders": true
+        }
+      },
+      {
+        "id": "node-search3",
+        "name": "Search: Video Gen AI",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          420,
+          40
+        ],
+        "parameters": {
+          "method": "GET",
+          "url": "http://searxng:8080/search",
+          "sendQuery": true,
+          "queryParameters": {
+            "parameters": [
+              {
+                "name": "q",
+                "value": "={{ $json.q3 }}"
+              },
+              {
+                "name": "format",
+                "value": "json"
+              },
+              {
+                "name": "language",
+                "value": "en"
+              },
+              {
+                "name": "time_range",
+                "value": "week"
+              }
+            ]
+          },
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "X-Forwarded-For",
+                "value": "127.0.0.1"
+              }
+            ]
+          },
+          "sendHeaders": true
+        }
+      },
+      {
+        "id": "node-search4",
+        "name": "Search: Image Gen AI",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          420,
+          160
+        ],
+        "parameters": {
+          "method": "GET",
+          "url": "http://searxng:8080/search",
+          "sendQuery": true,
+          "queryParameters": {
+            "parameters": [
+              {
+                "name": "q",
+                "value": "={{ $json.q4 }}"
+              },
+              {
+                "name": "format",
+                "value": "json"
+              },
+              {
+                "name": "language",
+                "value": "en"
+              },
+              {
+                "name": "time_range",
+                "value": "week"
+              }
+            ]
+          },
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "X-Forwarded-For",
+                "value": "127.0.0.1"
+              }
+            ]
+          },
+          "sendHeaders": true
+        }
+      },
+      {
+        "id": "node-search5",
+        "name": "Search: Productivity AI",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          420,
+          280
+        ],
+        "parameters": {
+          "method": "GET",
+          "url": "http://searxng:8080/search",
+          "sendQuery": true,
+          "queryParameters": {
+            "parameters": [
+              {
+                "name": "q",
+                "value": "={{ $json.q5 }}"
+              },
+              {
+                "name": "format",
+                "value": "json"
+              },
+              {
+                "name": "language",
+                "value": "en"
+              },
+              {
+                "name": "time_range",
+                "value": "week"
+              }
+            ]
+          },
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "X-Forwarded-For",
+                "value": "127.0.0.1"
+              }
+            ]
+          },
+          "sendHeaders": true
+        }
+      },
+      {
+        "id": "node-aggregate",
+        "name": "Aggregate Results",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          660,
+          40
+        ],
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "jsCode": "const allItems = $input.all();\nconst today = new Date().toLocaleDateString('ja-JP', { timeZone: 'Asia/Tokyo' });\nconst sourceCatalog = [\n  {\n    title: 'AIモデル',\n    matches: ['frontier ai model', 'openai anthropic google deepmind'],\n  },\n  {\n    title: 'ローカルLLM',\n    matches: ['qwen llama mistral deepseek'],\n  },\n  {\n    title: '動画・音楽・画像・LipSync',\n    matches: ['video generation music generation image generation lipsync'],\n  },\n  {\n    title: 'DeepLearning / 論文',\n    matches: ['deep learning research paper'],\n  },\n  {\n    title: '注目発信者 / メディア',\n    matches: ['rowan cheung ethan mollick'],\n  },\n  {\n    title: '公式サイト / ニュースレター',\n    matches: ['site:rowancheung.com', 'site:rundown.ai', 'site:therundown.ai', 'site:oneusefulthing.org'],\n  },\n  {\n    title: '公式プロフィール / ブログ',\n    matches: ['site:alliekmiller.com', 'site:blog.google', 'site:developers.googleblog.com'],\n  },\n  {\n    title: 'YouTube 公開チャンネル',\n    matches: ['site:youtube.com', 'site:youtube.com/@aiexplained-official'],\n  },\n];\nconst fixedSources = [\n  'Rowan Cheung: https://rowancheung.com / https://www.rundown.ai / https://www.therundown.ai',\n  'Ethan Mollick: https://www.oneusefulthing.org',\n  'Allie K. Miller: https://www.alliekmiller.com',\n  'Logan Kilpatrick: https://blog.google/authors/logan-kilpatrick/',\n  'AI Explained: https://www.youtube.com/results?search_query=AI+Explained',\n];\nfunction classify(query) {\n  const lowered = (query || '').toLowerCase();\n  for (const entry of sourceCatalog) {\n    if (entry.matches.some((token) => lowered.includes(token))) return entry.title;\n  }\n  return 'その他';\n}\nconst sections = new Map(sourceCatalog.map((entry) => [entry.title, []]));\nsections.set('その他', []);\nconst seen = new Set();\nfor (const item of allItems) {\n  const data = item.json || {};\n  const query = data.query || '';\n  const category = classify(query);\n  for (const hit of (data.results || []).slice(0, 4)) {\n    const title = (hit.title || '').trim();\n    const url = (hit.url || '').trim();\n    if (!title || !url) continue;\n    const dedupe = `${title}::${url}`;\n    if (seen.has(dedupe)) continue;\n    seen.add(dedupe);\n    sections.get(category).push(`- ${title}\\n  ${url}`);\n  }\n}\nconst parts = [\n  `AI Scout 日報 (${today})`,\n  '',\n  '取得元: SearXNG 経由の公開Web検索',\n  '方針: Instagram / X / TikTok の直接スクレイプは使わず、公開ページ・公式サイト・公開YouTubeページのみを対象にしています。',\n  '',\n  '固定監視先:',\n  ...fixedSources.map((line) => `- ${line}`),\n  '',\n];\nfor (const [title, hits] of sections.entries()) {\n  if (!hits.length) continue;\n  parts.push(`■ ${title}`);\n  parts.push(...hits.slice(0, 4));\n  parts.push('');\n}\nparts.push('補足: 公開検索結果ベースの日報です。さらに深掘りが必要なテーマは個別に検索して確認してください。');\nreturn [{ json: { message: parts.join('\\n').trim() } }];"
+        }
+      },
+      {
+        "id": "node-llm",
+        "name": "Gemini Summary",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          880,
+          40
+        ],
+        "parameters": {
+          "method": "POST",
+          "url": "http://host.docker.internal:11434/api/generate",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "contentType": "raw",
+          "body": "={{ JSON.stringify({ model: 'qwen2.5-coder:7b', prompt: 'あなたはAI業界ウォッチャーです。与えられた検索結果から、AIモデル、動画生成、音楽生成、画像生成、リップシンク、DeepLearning、業務活用の観点で本当に新しい情報だけを日本語で5-10件の箇条書きに整理してください。各項目は短く、媒体名や人物名が分かる場合は含めてください。SNSや動画は検索結果に含まれる公開ページだけを根拠にし、未確認の断定は避けてください。検索結果:\\n' + $json.summary_input, stream: false, options: { num_predict: 700, temperature: 0.2 } }) }}"
+        }
+      },
+      {
+        "id": "node-extract",
+        "name": "Extract AI Report",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1100,
+          40
+        ],
+        "parameters": {
+          "jsCode": "const body = $input.item.json || {};\nconst content = (body.response || '').trim() || '(結果なし)';\nconst today = new Date().toLocaleDateString('ja-JP', { timeZone: 'Asia/Tokyo' });\nreturn [{\n  json: {\n    message: `AI Scout 日報 (${today})\\n\\n${content}\\n\\n---\\n取得元: SearXNG 公開Web検索`\n  }\n}];"
+        }
+      },
+      {
+        "id": "node-telegram",
+        "name": "Telegram Notify",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          1320,
+          40
+        ],
+        "parameters": {
+          "method": "POST",
+          "url": "https://api.telegram.org/bot8085717200:AAHzacN6Q3xSunrLyvUTuHnKEf7Cd5YFdt4/sendMessage",
+          "sendBody": true,
+          "contentType": "json",
+          "body": {
+            "chat_id": "8173025084",
+            "text": "={{ $json.message }}",
+            "parse_mode": "Markdown"
+          }
+        }
+      },
+      {
+        "id": "node-search-official-rowan",
+        "name": "Search: Official Rowan",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          420,
+          220
+        ],
+        "parameters": {
+          "method": "GET",
+          "url": "http://searxng:8080/search",
+          "sendQuery": true,
+          "queryParameters": {
+            "parameters": [
+              {
+                "name": "q",
+                "value": "={{ $json.q6 }}"
+              },
+              {
+                "name": "format",
+                "value": "json"
+              },
+              {
+                "name": "language",
+                "value": "en"
+              },
+              {
+                "name": "time_range",
+                "value": "month"
+              }
+            ]
+          },
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "X-Forwarded-For",
+                "value": "127.0.0.1"
+              }
+            ]
+          },
+          "sendHeaders": true
+        }
+      },
+      {
+        "id": "node-search-ethan-mollick",
+        "name": "Search: Ethan Mollick",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          420,
+          420
+        ],
+        "parameters": {
+          "method": "GET",
+          "url": "http://searxng:8080/search",
+          "sendQuery": true,
+          "queryParameters": {
+            "parameters": [
+              {
+                "name": "q",
+                "value": "={{ $json.q7 }}"
+              },
+              {
+                "name": "format",
+                "value": "json"
+              },
+              {
+                "name": "language",
+                "value": "en"
+              },
+              {
+                "name": "time_range",
+                "value": "month"
+              }
+            ]
+          },
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "X-Forwarded-For",
+                "value": "127.0.0.1"
+              }
+            ]
+          },
+          "sendHeaders": true
+        }
+      },
+      {
+        "id": "node-search-allie-miller",
+        "name": "Search: Allie K. Miller",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          420,
+          620
+        ],
+        "parameters": {
+          "method": "GET",
+          "url": "http://searxng:8080/search",
+          "sendQuery": true,
+          "queryParameters": {
+            "parameters": [
+              {
+                "name": "q",
+                "value": "={{ $json.q8 }}"
+              },
+              {
+                "name": "format",
+                "value": "json"
+              },
+              {
+                "name": "language",
+                "value": "en"
+              },
+              {
+                "name": "time_range",
+                "value": "month"
+              }
+            ]
+          },
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "X-Forwarded-For",
+                "value": "127.0.0.1"
+              }
+            ]
+          },
+          "sendHeaders": true
+        }
+      },
+      {
+        "id": "node-search-logan-kilpatrick",
+        "name": "Search: Logan Kilpatrick",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          420,
+          820
+        ],
+        "parameters": {
+          "method": "GET",
+          "url": "http://searxng:8080/search",
+          "sendQuery": true,
+          "queryParameters": {
+            "parameters": [
+              {
+                "name": "q",
+                "value": "={{ $json.q9 }}"
+              },
+              {
+                "name": "format",
+                "value": "json"
+              },
+              {
+                "name": "language",
+                "value": "en"
+              },
+              {
+                "name": "time_range",
+                "value": "month"
+              }
+            ]
+          },
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "X-Forwarded-For",
+                "value": "127.0.0.1"
+              }
+            ]
+          },
+          "sendHeaders": true
+        }
+      },
+      {
+        "id": "node-search-youtube-ai-explained",
+        "name": "Search: YouTube AI Explained",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          420,
+          1020
+        ],
+        "parameters": {
+          "method": "GET",
+          "url": "http://searxng:8080/search",
+          "sendQuery": true,
+          "queryParameters": {
+            "parameters": [
+              {
+                "name": "q",
+                "value": "={{ $json.q10 }}"
+              },
+              {
+                "name": "format",
+                "value": "json"
+              },
+              {
+                "name": "language",
+                "value": "en"
+              },
+              {
+                "name": "time_range",
+                "value": "month"
+              }
+            ]
+          },
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "X-Forwarded-For",
+                "value": "127.0.0.1"
+              }
+            ]
+          },
+          "sendHeaders": true
+        }
+      }
+    ],
+    "connections": {
+      "Daily 09:00 JST": {
+        "main": [
+          [
+            {
+              "node": "Search Queries",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Search Queries": {
+        "main": [
+          [
+            {
+              "node": "Search: AI Models",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Search: LLM Releases",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Search: Video Gen AI",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Search: Image Gen AI",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Search: Productivity AI",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Search: Official Rowan",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Search: Ethan Mollick",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Search: Allie K. Miller",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Search: Logan Kilpatrick",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Search: YouTube AI Explained",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Search: AI Models": {
+        "main": [
+          [
+            {
+              "node": "Aggregate Results",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Search: LLM Releases": {
+        "main": [
+          [
+            {
+              "node": "Aggregate Results",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Search: Video Gen AI": {
+        "main": [
+          [
+            {
+              "node": "Aggregate Results",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Search: Image Gen AI": {
+        "main": [
+          [
+            {
+              "node": "Aggregate Results",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Search: Productivity AI": {
+        "main": [
+          [
+            {
+              "node": "Aggregate Results",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Aggregate Results": {
+        "main": [
+          [
+            {
+              "node": "Telegram Notify",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Gemini Summary": {
+        "main": [
+          [
+            {
+              "node": "Extract AI Report",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Extract AI Report": {
+        "main": [
+          [
+            {
+              "node": "Telegram Notify",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Search: Official Rowan": {
+        "main": [
+          [
+            {
+              "node": "Aggregate Results",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Search: Ethan Mollick": {
+        "main": [
+          [
+            {
+              "node": "Aggregate Results",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Search: Allie K. Miller": {
+        "main": [
+          [
+            {
+              "node": "Aggregate Results",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Search: Logan Kilpatrick": {
+        "main": [
+          [
+            {
+              "node": "Aggregate Results",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Search: YouTube AI Explained": {
+        "main": [
+          [
+            {
+              "node": "Aggregate Results",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "yasuhiro suzuki",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-03-20T12:14:54.175Z",
+        "id": 172,
+        "workflowId": "zO38wIUIoZJ7KsyS",
+        "versionId": "dbb67143-10dc-4b70-8528-fc9bca0d568b",
+        "event": "activated",
+        "userId": "291ff157-9849-45a3-8560-b87bb49ab833"
+      }
+    ]
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "model_list": [
+    {
+      "model_name": "claude",
+      "litellm_params": {
+        "model": "claude-3"
+      }
+    },
+    {
+      "model_name": "codex",
+      "litellm_params": {
+        "model": "gpt-5"
+      }
+    },
+    {
+      "model_name": "ollama",
+      "litellm_params": {
+        "model": "ollama/qwen2.5"
+      }
+    }
+  ]
+}

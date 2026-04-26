@@ -1,0 +1,32 @@
+Sources used to prepare this protocol
+====================================
+
+OpenVINO GenAI:
+https://openvinotoolkit.github.io/openvino.genai/
+https://docs.openvino.ai/
+
+OpenVINO install docs:
+https://openvinotoolkit.github.io/openvino.genai/docs/getting-started/installation/
+https://docs.openvino.ai/2026/get-started/install-openvino/install-openvino-genai.html
+
+OpenVINO FLUX model card:
+https://huggingface.co/OpenVINO/FLUX.1-schnell-fp16-ov
+
+Original FLUX.1-schnell model card:
+https://huggingface.co/black-forest-labs/FLUX.1-schnell
+
+OpenVINO image generation docs:
+https://docs.openvino.ai/2025/model-server/ovms_demos_image_generation.html
+https://docs.openvino.ai/2024/notebooks/flux.1-image-generation-with-output.html
+
+ComfyUI docs:
+https://docs.comfy.org/installation/system_requirements
+https://docs.comfy.org/installation/comfyui_portable_windows
+https://docs.comfy.org/installation/desktop/windows
+
+Runway pricing:
+https://runwayml.com/pricing
+https://help.runwayml.com/hc/en-us/articles/15124877443219-How-do-credits-work
+
+SD-Turbo model card:
+https://huggingface.co/stabilityai/sd-turbo

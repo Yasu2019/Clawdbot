@@ -1,0 +1,30 @@
+{
+  "imported_at": "2026-03-29T12:33:48+09:00",
+  "imported_count": 3,
+  "imported_files": [
+    {
+      "stored_name": "21.Jun.24-NcManagement-JQA-UAU-Z17937ステージ２-23.Apr.2024-25.Apr.2024_20260329_123348.pdf",
+      "stored_path": "/myapp/db/documents/21.Jun.24-NcManagement-JQA-UAU-Z17937ステージ２-23.Apr.2024-25.Apr.2024_20260329_123348.pdf",
+      "product_id": 5749,
+      "category": "2",
+      "document_category": "JQA審査報告書",
+      "document_number": "2024-JQA-002"
+    },
+    {
+      "stored_name": "08.Aug.25-AuditReport-AU0485_定期審査1_MITSUI_SEIMITSU_CO.,_LTD.-0539839-22.Jul.2025-25.Jul.2025.pdf",
+      "stored_path": "/myapp/db/documents/08.Aug.25-AuditReport-AU0485_定期審査1_MITSUI_SEIMITSU_CO.,_LTD.-0539839-22.Jul.2025-25.Jul.2025.pdf",
+      "product_id": 5735,
+      "category": "2",
+      "document_category": "JQA審査報告書",
+      "document_number": "2025-JQA-003"
+    },
+    {
+      "stored_name": "08.Aug.25-NcManagement-AU0485_定期審査1_MITSUI_SEIMITSU_CO.,_LTD.-0539839-22.Jul.2025-25.Jul.2025.pdf",
+      "stored_path": "/myapp/db/documents/08.Aug.25-NcManagement-AU0485_定期審査1_MITSUI_SEIMITSU_CO.,_LTD.-0539839-22.Jul.2025-25.Jul.2025.pdf",
+      "product_id": 5736,
+      "category": "2",
+      "document_category": "JQA審査報告書",
+      "document_number": "2025-JQA-004"
+    }
+  ]
+}

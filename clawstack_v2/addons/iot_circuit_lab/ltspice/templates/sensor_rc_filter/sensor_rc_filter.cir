@@ -1,0 +1,17 @@
+* Sensor RC Filter Template for ESP32 ADC front-end
+* Input: pulse/noisy sensor voltage
+* Output: v(adc)
+* Export waveform as CSV: time, v(adc)
+
+Vin in 0 PULSE(0 3.3 0 1m 1m 200m 500m)
+Rin in filt 4.7k
+Cfilt filt 0 1u
+Rprotect filt adc 1k
+Cadc adc 0 100n
+
+.tran 0 2 0 1m
+.control
+run
+wrdata sensor_rc_filter_output.csv time v(in) v(filt) v(adc)
+.endc
+.end

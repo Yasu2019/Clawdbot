@@ -1,0 +1,208 @@
+{
+  "generated_at": "2026-03-29T10:03:24+09:00",
+  "report_count": 2,
+  "reports": [
+    {
+      "source_kind": "pdf",
+      "source_path": "D:\\Clawdbot_Docker_20260125\\clawstack_v2\\data\\paperless\\consume\\審査報告書\\2024\\21.Jun.24-NcManagement-JQA-UAU-Z17937ステージ２-23.Apr.2024-25.Apr.2024.pdf",
+      "display_name": "21.Jun.24-NcManagement-JQA-UAU-Z17937ステージ２-23.Apr.2024-25.Apr.2024.pdf",
+      "pdf_name": "21.Jun.24-NcManagement-JQA-UAU-Z17937ステージ２-23.Apr.2024-25.Apr.2024.pdf",
+      "year": 2024,
+      "entry_count": 14,
+      "entries": [
+        {
+          "nc_no": "1",
+          "nc_id": "KS-1",
+          "clause": "7.5.1.1",
+          "classification": "マイナー",
+          "due_date": "14.Jun.2024",
+          "process": "方針管理P"
+        },
+        {
+          "nc_no": "2",
+          "nc_id": "KS-2",
+          "clause": "7.5.3.2.1",
+          "classification": "マイナー",
+          "due_date": "14.Jun.2024",
+          "process": "方針管理P"
+        },
+        {
+          "nc_no": "3",
+          "nc_id": "KS-3",
+          "clause": "8.5.1.1",
+          "classification": "マイナー",
+          "due_date": "14.Jun.2024",
+          "process": "製造P(表面処理)"
+        },
+        {
+          "nc_no": "4",
+          "nc_id": "SM-1",
+          "clause": "8.7.2",
+          "classification": "マイナー",
+          "due_date": "14.Jun.2024",
+          "process": "製造P(プレス)"
+        },
+        {
+          "nc_no": "5",
+          "nc_id": "SM-2",
+          "clause": "6.1.2.2",
+          "classification": "マイナー",
+          "due_date": "14.Jun.2024",
+          "process": "製造P(プレス)"
+        },
+        {
+          "nc_no": "6",
+          "nc_id": "SM-3",
+          "clause": "10.2.4",
+          "classification": "マイナー",
+          "due_date": "14.Jun.2024",
+          "process": "製造P(プレス)"
+        },
+        {
+          "nc_no": "7",
+          "nc_id": "SM-4",
+          "clause": "7.2.1",
+          "classification": "マイナー",
+          "due_date": "14.Jun.2024",
+          "process": "製造P(プレス)"
+        },
+        {
+          "nc_no": "8",
+          "nc_id": "SM-5",
+          "clause": "8.5.1.5",
+          "classification": "マイナー",
+          "due_date": "14.Jun.2024",
+          "process": "製造P(プレス)"
+        },
+        {
+          "nc_no": "9",
+          "nc_id": "SM-6",
+          "clause": "7.1.5.2.1",
+          "classification": "マイナー",
+          "due_date": "14.Jun.2024",
+          "process": "製造P(プレス)"
+        },
+        {
+          "nc_no": "10",
+          "nc_id": "SM-7",
+          "clause": "7.1.5.3.1",
+          "classification": "マイナー",
+          "due_date": "14.Jun.2024",
+          "process": "製品検査・引渡しP"
+        },
+        {
+          "nc_no": "11",
+          "nc_id": "SM-8",
+          "clause": "7.1.5.1.1",
+          "classification": "マイナー",
+          "due_date": "14.Jun.2024",
+          "process": "測定機器管理P"
+        },
+        {
+          "nc_no": "12",
+          "nc_id": "IT-1",
+          "clause": "8.3.5.2",
+          "classification": "minor",
+          "due_date": "14.Jun.2024",
+          "process": "製造P(樹脂成形)"
+        },
+        {
+          "nc_no": "13",
+          "nc_id": "IT-2",
+          "clause": "10.2.4",
+          "classification": "マイナー",
+          "due_date": "14.Jun.2024",
+          "process": "製造P(樹脂成形)"
+        },
+        {
+          "nc_no": "14",
+          "nc_id": "IT-3",
+          "clause": "9.1.1.1",
+          "classification": "メジャー",
+          "due_date": "10.May.2024",
+          "process": "14.Jun.2024"
+        }
+      ],
+      "process_counts": {
+        "方針管理P": 2,
+        "製造P(表面処理)": 1,
+        "製造P(プレス)": 6,
+        "製品検査・引渡しP": 1,
+        "測定機器管理P": 1,
+        "製造P(樹脂成形)": 2,
+        "14.Jun.2024": 1
+      }
+    },
+    {
+      "source_kind": "zip",
+      "source_path": "D:\\Clawdbot_Docker_20260125\\clawstack_v2\\data\\paperless\\consume\\審査報告書\\2025\\20250808_審査報告書(AU0485 Step1 Review完了).zip",
+      "display_name": "20250808_審査報告書(AU0485 Step1 Review完了).zip",
+      "pdf_name": "08.Aug.25-NcManagement-AU0485_定期審査1_MITSUI_SEIMITSU_CO.,_LTD.-0539839-22.Jul.2025-25.Jul.2025.pdf",
+      "year": 2025,
+      "entry_count": 4,
+      "entries": [
+        {
+          "nc_no": "1",
+          "nc_id": "KK-1",
+          "clause": "9.2.2",
+          "classification": "マイナー",
+          "due_date": "13.Sep.2025",
+          "process": "内部監査P"
+        },
+        {
+          "nc_no": "2",
+          "nc_id": "KK-2",
+          "clause": "10.2.3",
+          "classification": "マイナー",
+          "due_date": "13.Sep.2025",
+          "process": "製造工程設計P"
+        },
+        {
+          "nc_no": "3",
+          "nc_id": "HT-1",
+          "clause": "8.3.3.3",
+          "classification": "マイナー",
+          "due_date": "13.Sep.2025",
+          "process": "製造P(プレス)"
+        },
+        {
+          "nc_no": "4",
+          "nc_id": "HT-2",
+          "clause": "7.5.3.2",
+          "classification": "マイナー",
+          "due_date": "13.Sep.2025",
+          "process": "製造P(プレス)"
+        }
+      ],
+      "process_counts": {
+        "内部監査P": 1,
+        "製造工程設計P": 1,
+        "製造P(プレス)": 2
+      }
+    }
+  ],
+  "years": [
+    {
+      "year": 2024,
+      "finding_count": 14,
+      "process_counts": {
+        "方針管理P": 2,
+        "製造P(表面処理)": 1,
+        "製造P(プレス)": 6,
+        "製品検査・引渡しP": 1,
+        "測定機器管理P": 1,
+        "製造P(樹脂成形)": 2,
+        "14.Jun.2024": 1
+      }
+    },
+    {
+      "year": 2025,
+      "finding_count": 4,
+      "process_counts": {
+        "内部監査P": 1,
+        "製造工程設計P": 1,
+        "製造P(プレス)": 2
+      }
+    }
+  ]
+}

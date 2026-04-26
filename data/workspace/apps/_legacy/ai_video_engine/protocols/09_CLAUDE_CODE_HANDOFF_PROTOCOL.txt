@@ -1,0 +1,49 @@
+CLAUDE CODE HANDOFF PROTOCOL
+PROJECT: AI Video Control Pipeline
+MODE: serious / implementation-oriented / minimize mojibake risk
+
+OBJECTIVE
+Build a practical local-first workflow that reduces "AI-looking" artifacts in AI-generated video by combining:
+1. structured JSON prompting
+2. start/end pose constraints
+3. human motion reference
+4. review-driven differential revision
+
+REQUIRED OUTPUTS
+- project folder structure
+- JSON schema validator
+- sample UI or CLI prompt editor
+- revision log system
+- QA scoring sheet support
+- import/export ZIP support
+- minimal documentation
+
+CONSTRAINTS
+- prioritize UTF-8 safe files
+- avoid unnecessary dependencies
+- keep config explicit
+- separate prompt data from code
+- preserve future expandability for local tools and commercial APIs
+
+IMPLEMENTATION PRIORITY
+P1:
+- JSON schema
+- example shot files
+- CLI validator
+- QA CSV import/export
+
+P2:
+- local web UI
+- asset binding for start/end frames and motion reference
+- revision diff viewer
+
+P3:
+- generation connector adapters
+- automation hooks
+- dashboard analytics
+
+EXPECTED DELIVERABLE STYLE
+- copy-paste friendly
+- no omitted code sections
+- explain assumptions clearly
+- output complete files whenever possible

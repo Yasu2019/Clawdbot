@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3D Workbench</title>
+  <style>
+    :root {
+      --bg: #08111d;
+      --panel: rgba(14, 24, 39, 0.9);
+      --line: rgba(148, 163, 184, 0.2);
+      --text: #edf4ff;
+      --muted: #9fb1ca;
+      --accent: #67e8f9;
+      --accent2: #a78bfa;
+      --good: #86efac;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "Noto Sans JP", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(103, 232, 249, 0.14), transparent 24%),
+        radial-gradient(circle at bottom right, rgba(167, 139, 250, 0.12), transparent 24%),
+        var(--bg);
+    }
+    .wrap {
+      width: min(1240px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 48px;
+    }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      padding: 22px;
+      box-shadow: 0 18px 48px rgba(0, 0, 0, 0.24);
+      backdrop-filter: blur(10px);
+      margin-bottom: 18px;
+    }
+    h1 { margin: 0 0 8px; font-size: clamp(2rem, 3vw, 3rem); }
+    p { margin: 0; color: var(--muted); line-height: 1.75; }
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 16px 0 4px;
+    }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.8rem;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--muted);
+    }
+    .chip.good { color: var(--good); border-color: rgba(134, 239, 172, 0.24); background: rgba(134, 239, 172, 0.08); }
+    .chip.accent { color: var(--accent); border-color: rgba(103, 232, 249, 0.24); background: rgba(103, 232, 249, 0.08); }
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 42px;
+      padding: 0 14px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text);
+      text-decoration: none;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .btn.primary {
+      background: linear-gradient(135deg, rgba(103, 232, 249, 0.22), rgba(167, 139, 250, 0.18));
+      border-color: rgba(103, 232, 249, 0.28);
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 14px;
+    }
+    .card {
+      background: rgba(2, 6, 23, 0.26);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 16px;
+    }
+    .label {
+      color: var(--accent);
+      font-size: 0.78rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .path {
+      display: block;
+      margin: 12px 0;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      color: #d9e7fb;
+      font-family: Consolas, "Cascadia Mono", monospace;
+      font-size: 0.85rem;
+      word-break: break-all;
+    }
+    code {
+      background: rgba(255,255,255,0.06);
+      padding: 2px 6px;
+      border-radius: 6px;
+      color: #dbeafe;
+    }
+    ul {
+      margin: 10px 0 0 18px;
+      color: var(--muted);
+      line-height: 1.7;
+      padding: 0;
+    }
+    .small {
+      font-size: 0.92rem;
+      color: var(--muted);
+    }
+    .copy-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .toast {
+      position: fixed;
+      right: 16px;
+      bottom: 16px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      background: rgba(15, 23, 42, 0.92);
+      border: 1px solid var(--line);
+      color: var(--text);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.3);
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      pointer-events: none;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="panel">
+      <div class="meta">
+        <span class="chip good">Lightweight hub</span>
+        <span class="chip accent">Folder-first workflow</span>
+        <span class="chip">Blender / Portal / three.js</span>
+      </div>
+      <h1>3D Workbench</h1>
+      <p>
+        This hub keeps the day-to-day 3D workflow light: collect inputs in <code>Incoming</code>,
+        edit in <code>Working</code>, export deliverables in <code>ExportReady</code>, and keep
+        caches separate so the mini PC stays responsive.
+      </p>
+      <div class="actions">
+        <a class="btn primary" href="../../portal.html">Back to Portal</a>
+        <a class="btn" href="../gdt_overlay_studio/index.html" target="_blank" rel="noopener">GD&amp;T Overlay Studio</a>
+        <a class="btn" href="../dxf2step/index.html" target="_blank" rel="noopener">DXF → STEP / STL</a>
+        <a class="btn" href="../dxf_fcstd_protocol/index.html" target="_blank" rel="noopener">DXF → FCStd Protocol</a>
+        <a class="btn" href="../tolerance_hub/index.html" target="_blank" rel="noopener">Tolerance Center</a>
+        <a class="btn" href="sample_pack/index.html" target="_blank" rel="noopener">Open Sample Pack</a>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2 style="margin:0 0 10px;">Workspace Layout</h2>
+      <p class="small">These are the canonical folders created on <code>E:</code>. Use them as the default routing targets.</p>
+      <div class="grid" style="margin-top:16px;">
+        <article class="card">
+          <div class="label">Incoming</div>
+          <div>Raw sources and imports</div>
+          <div class="path">E:\Assets\3D\Incoming</div>
+          <div class="copy-row">
+            <button class="btn" data-copy-btn="E:\Assets\3D\Incoming">Copy path</button>
+          </div>
+        </article>
+        <article class="card">
+          <div class="label">Working</div>
+          <div>Active Blender / preview work</div>
+          <div class="path">E:\Assets\3D\Working</div>
+          <div class="copy-row">
+            <button class="btn" data-copy-btn="E:\Assets\3D\Working">Copy path</button>
+          </div>
+        </article>
+        <article class="card">
+          <div class="label">ExportReady</div>
+          <div>Final HTML / GLB / STL / STEP outputs</div>
+          <div class="path">E:\Assets\3D\ExportReady</div>
+          <div class="copy-row">
+            <button class="btn" data-copy-btn="E:\Assets\3D\ExportReady">Copy path</button>
+          </div>
+        </article>
+        <article class="card">
+          <div class="label">Cache</div>
+          <div>Blender / DDC / temp cache separation</div>
+          <div class="path">E:\Assets\3D\Cache</div>
+          <div class="copy-row">
+            <button class="btn" data-copy-btn="E:\Assets\3D\Cache">Copy path</button>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2 style="margin:0 0 10px;">Recommended Flow</h2>
+      <ul>
+        <li>Drop incoming files into <code>Incoming</code> and keep source types separated by folder.</li>
+        <li>Use Blender for editing and keep scratch files in <code>Working</code>.</li>
+        <li>Send reviewable exports to <code>ExportReady</code> so Portal and browser previews can reuse them.</li>
+        <li>Leave Unreal reserved for later. Do not make it part of the always-on path on this machine.</li>
+      </ul>
+      <div class="actions" style="margin-top:18px;">
+        <a class="btn" href="../../../../docs/3d_model_folder_policy_20260414.md" target="_blank" rel="noopener">Policy note</a>
+        <a class="btn" href="../../../../scripts/setup_3d_model_workspace.ps1" target="_blank" rel="noopener">Setup script</a>
+        <a class="btn" href="../../../../docs/INCIDENT_LOG.md" target="_blank" rel="noopener">Incident log</a>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast">Copied</div>
+
+  <script>
+    const toast = document.getElementById('toast');
+    let toastTimer = null;
+
+    function showToast(text) {
+      toast.textContent = text;
+      toast.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove('show'), 1200);
+    }
+
+    async function copyText(text) {
+      try {
+        await navigator.clipboard.writeText(text);
+        showToast('Copied: ' + text);
+      } catch (err) {
+        showToast('Copy failed');
+      }
+    }
+
+    document.querySelectorAll('[data-copy-btn]').forEach((button) => {
+      button.addEventListener('click', () => copyText(button.getAttribute('data-copy-btn')));
+    });
+  </script>
+</body>
+</html>

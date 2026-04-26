@@ -4,6 +4,7 @@ import shutil
 import threading
 import subprocess
 from fastapi import FastAPI, UploadFile, File, Form, BackgroundTasks, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from typing import List, Optional
@@ -16,6 +17,13 @@ import matplotlib.pyplot as plt
 import io
 
 app = FastAPI(title="Antigravity DXF2STEP API")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/")
 def read_root():
@@ -222,22 +230,33 @@ def list_outputs(job_id: str):
         
     # Only expose the combined 3D model and its preview image.
     # Per-layer STEP files are 2D extrusions only — not useful to the user.
-    ALLOWED = {
-        "combined.step":       "step",
-        "combined_views.png":  "png",
+    allowed_types = {
+        ".step": "step",
+        ".fcstd": "fcstd",
+        ".png": "png",
     }
 
     outputs = []
     for f in os.listdir(output_dir):
-        if f in ALLOWED:
+        ext = os.path.splitext(f)[1].lower()
+        if ext in allowed_types:
             outputs.append({
-                "type": ALLOWED[f],
+                "type": allowed_types[ext],
                 "name": f,
                 "url": f"/api/dxf2step/jobs/{job_id}/download/{f}"
             })
 
-    # Sort: STEP first, PNG second
-    outputs.sort(key=lambda o: o["type"])
+    def sort_key(item):
+        name = item["name"].lower()
+        if name == "combined.fcstd":
+            return (0, name)
+        if name == "combined.step":
+            return (1, name)
+        if name == "combined_views.png":
+            return (2, name)
+        return (3, item["type"], name)
+
+    outputs.sort(key=sort_key)
     return {"outputs": outputs}
 
 @app.get("/api/dxf2step/jobs/{job_id}/download/{filename}")

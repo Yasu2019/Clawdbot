@@ -1,0 +1,43 @@
+services:
+  auto-lp-generator:
+    build:
+      context: ./data/workspace/apps/auto_lp_generator
+      dockerfile: docker/Dockerfile
+    container_name: openclaw_auto_lp_generator
+    env_file:
+      - .env
+    environment:
+      - AUTO_LP_PORT=8000
+      - LITELLM_BASE_URL=http://litellm:4000
+      - OPENCLAW_GATEWAY_URL=http://clawdbot-gateway:18789
+      - OUTPUT_DIR=/app/generated
+    ports:
+      - "8010:8000"
+    volumes:
+      - ./data/workspace/apps/auto_lp_generator/app/generated:/app/generated
+    restart: unless-stopped
+    networks:
+      - clawstack_net
+
+  image2-qa-automation:
+    build:
+      context: ./data/workspace/apps/image2_qa
+      dockerfile: Dockerfile
+    container_name: openclaw_image2_qa
+    env_file:
+      - .env
+    environment:
+      - IMAGE2_QA_OUTPUT_DIR=/data/generated/image2_qa
+      - OPENAI_API_KEY=${CLOUD_OPENAI_API_KEY}
+    ports:
+      - "8011:8000"
+    volumes:
+      - ./data/generated/image2_qa:/data/generated/image2_qa
+    restart: unless-stopped
+    networks:
+      - clawstack_net
+
+networks:
+  clawstack_net:
+    name: clawstack-unified_default
+    external: true

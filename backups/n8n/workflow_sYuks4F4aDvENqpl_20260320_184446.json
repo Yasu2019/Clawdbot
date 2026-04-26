@@ -1,0 +1,341 @@
+{
+  "updatedAt": "2026-03-14T21:42:49.813Z",
+  "createdAt": "2026-03-02T13:52:47.258Z",
+  "id": "sYuks4F4aDvENqpl",
+  "name": "P016 Email Report (Daily 21:00 JST)",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "id": "trigger_p016",
+      "name": "daily_trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        112,
+        96
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 21 * * *"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "get_status",
+      "name": "build_todo_report",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        320,
+        96
+      ],
+      "parameters": {
+        "command": "docker exec clawstack-unified-clawdbot-gateway-1 sh -lc \"python3 /home/node/clawd/ingest_emails.py >/tmp/p016.log 2>&1; cat /home/node/clawd/Email_Analysis_Report.md 2>/dev/null || cat /tmp/p016.log\" || true"
+      }
+    },
+    {
+      "id": "format_msg",
+      "name": "format_message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        560,
+        96
+      ],
+      "parameters": {
+        "jsCode": "var NL = String.fromCharCode(10);\nvar now = new Date().toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' });\nvar raw = (($input.first() && $input.first().json && $input.first().json.stdout) || '').replace(/\r/g, '');\nvar lines = raw.split(NL);\nvar tasks = [];\nfunction looksGarbled(text) {\n  if (!text) return false;\n  return text.indexOf('Jd=~') >= 0 || text.indexOf('=?UTF-8?') >= 0 || text.indexOf('=?ISO-2022-JP?') >= 0 || text.indexOf('FbIt4F::') >= 0 || text.indexOf('0w650') >= 0;\n}\nfor (var i = 0; i < lines.length; i++) {\n  var line = lines[i].trim();\n  if (!line || line.indexOf('|') !== 0) continue;\n  if (line.indexOf('| ---') === 0) continue;\n  if (line.indexOf('| ??? |') === 0) continue;\n  var cols = line.split('|').slice(1, -1).map(function(v) { return v.trim(); });\n  if (cols.length < 8) continue;\n  if (cols[1] === '???' && cols[2] === '????') continue;\n  if (looksGarbled(cols[1]) || looksGarbled(cols[2])) continue;\n  tasks.push({\n    requestDate: cols[0],\n    sender: cols[1],\n    request: cols[2],\n    deadline: cols[3],\n    response: cols[4],\n    responder: cols[5],\n    responseDate: cols[6],\n    priority: cols[7]\n  });\n}\nif (tasks.length && tasks[0].sender === '???') { tasks.shift(); }\nvar parts = ['P016 Email ToDo Daily [' + now + ']'];\nif (!tasks.length) {\n  parts.push('No open items found.');\n} else {\n  var limit = Math.min(tasks.length, 5);\n  parts.push('Open items: ' + tasks.length + ' / showing: ' + limit);\n  for (var j = 0; j < limit; j++) {\n    var t = tasks[j];\n    var req = t.request.length > 80 ? t.request.slice(0, 80) + '...' : t.request;\n    var response = t.response.length > 60 ? t.response.slice(0, 60) + '...' : t.response;\n    parts.push('');\n    parts.push(String(j + 1) + '. Requester: ' + t.sender);\n    parts.push('Request date: ' + t.requestDate + ' / Due: ' + t.deadline);\n    parts.push('Task: ' + req);\n    parts.push('Response: ' + response);\n    parts.push('Responder: ' + t.responder + ' / Response date: ' + t.responseDate);\n    parts.push('Priority: ' + t.priority);\n  }\n}\nreturn [{ json: { text: parts.join(NL) } }];"
+      }
+    },
+    {
+      "id": "telegram_send",
+      "name": "telegram_send",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        800,
+        96
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.telegram.org/bot8085717200:AAHzacN6Q3xSunrLyvUTuHnKEf7Cd5YFdt4/sendMessage",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "chat_id",
+              "value": "8173025084"
+            },
+            {
+              "name": "text",
+              "value": "={{ $json.text }}"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "connections": {
+    "daily_trigger": {
+      "main": [
+        [
+          {
+            "node": "build_todo_report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "build_todo_report": {
+      "main": [
+        [
+          {
+            "node": "format_message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "format_message": {
+      "main": [
+        [
+          {
+            "node": "telegram_send",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "timezone": "Asia/Tokyo",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "executionTimeout": 300
+  },
+  "staticData": {
+    "node:??7:00????": {
+      "recurrenceRules": []
+    },
+    "node:daily_trigger": {
+      "recurrenceRules": []
+    }
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "7f064ec6-6d71-4ecc-9841-e62741eb0008",
+  "activeVersionId": "7f064ec6-6d71-4ecc-9841-e62741eb0008",
+  "versionCounter": 146,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-03-02T13:52:47.262Z",
+      "createdAt": "2026-03-02T13:52:47.262Z",
+      "role": "workflow:owner",
+      "workflowId": "sYuks4F4aDvENqpl",
+      "projectId": "9U7rI3bmgXpsJ71S",
+      "project": {
+        "updatedAt": "2026-03-13T14:28:41.239Z",
+        "createdAt": "2026-02-07T05:28:19.729Z",
+        "id": "9U7rI3bmgXpsJ71S",
+        "name": "yasuhiro suzuki <y.suzuki.hk@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "291ff157-9849-45a3-8560-b87bb49ab833",
+        "projectRelations": [
+          {
+            "updatedAt": "2026-02-07T05:28:19.730Z",
+            "createdAt": "2026-02-07T05:28:19.730Z",
+            "userId": "291ff157-9849-45a3-8560-b87bb49ab833",
+            "projectId": "9U7rI3bmgXpsJ71S",
+            "user": {
+              "updatedAt": "2026-03-19T15:01:01.000Z",
+              "createdAt": "2026-02-07T05:28:19.229Z",
+              "id": "291ff157-9849-45a3-8560-b87bb49ab833",
+              "email": "y.suzuki.hk@gmail.com",
+              "firstName": "yasuhiro",
+              "lastName": "suzuki",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2026-02-24T23:12:30.310Z",
+                "personalization_survey_n8n_version": "2.6.4",
+                "automationGoalDevops": [
+                  "reporting"
+                ],
+                "companyIndustryExtended": [
+                  "manufacturing-industry"
+                ],
+                "companySize": "100-499",
+                "companyType": "other",
+                "role": "engineering",
+                "reportedSource": "google"
+              },
+              "settings": {
+                "userActivated": true,
+                "firstSuccessfulWorkflowId": "jVGXe2GEIz6RN7Z0",
+                "userActivatedAt": 1772595011158
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-03-19",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-03-14T21:42:28.944Z",
+    "createdAt": "2026-03-14T21:42:28.944Z",
+    "versionId": "7f064ec6-6d71-4ecc-9841-e62741eb0008",
+    "workflowId": "sYuks4F4aDvENqpl",
+    "nodes": [
+      {
+        "id": "trigger_p016",
+        "name": "daily_trigger",
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.2,
+        "position": [
+          112,
+          96
+        ],
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "cronExpression",
+                "expression": "0 21 * * *"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "get_status",
+        "name": "build_todo_report",
+        "type": "n8n-nodes-base.executeCommand",
+        "typeVersion": 1,
+        "position": [
+          320,
+          96
+        ],
+        "parameters": {
+          "command": "docker exec clawstack-unified-clawdbot-gateway-1 sh -lc \"python3 /home/node/clawd/ingest_emails.py >/tmp/p016.log 2>&1; cat /home/node/clawd/Email_Analysis_Report.md 2>/dev/null || cat /tmp/p016.log\" || true"
+        }
+      },
+      {
+        "id": "format_msg",
+        "name": "format_message",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          560,
+          96
+        ],
+        "parameters": {
+          "jsCode": "var NL = String.fromCharCode(10);\nvar now = new Date().toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' });\nvar raw = (($input.first() && $input.first().json && $input.first().json.stdout) || '').replace(/\r/g, '');\nvar lines = raw.split(NL);\nvar tasks = [];\nfunction looksGarbled(text) {\n  if (!text) return false;\n  return text.indexOf('Jd=~') >= 0 || text.indexOf('=?UTF-8?') >= 0 || text.indexOf('=?ISO-2022-JP?') >= 0 || text.indexOf('FbIt4F::') >= 0 || text.indexOf('0w650') >= 0;\n}\nfor (var i = 0; i < lines.length; i++) {\n  var line = lines[i].trim();\n  if (!line || line.indexOf('|') !== 0) continue;\n  if (line.indexOf('| ---') === 0) continue;\n  if (line.indexOf('| ??? |') === 0) continue;\n  var cols = line.split('|').slice(1, -1).map(function(v) { return v.trim(); });\n  if (cols.length < 8) continue;\n  if (cols[1] === '???' && cols[2] === '????') continue;\n  if (looksGarbled(cols[1]) || looksGarbled(cols[2])) continue;\n  tasks.push({\n    requestDate: cols[0],\n    sender: cols[1],\n    request: cols[2],\n    deadline: cols[3],\n    response: cols[4],\n    responder: cols[5],\n    responseDate: cols[6],\n    priority: cols[7]\n  });\n}\nif (tasks.length && tasks[0].sender === '???') { tasks.shift(); }\nvar parts = ['P016 Email ToDo Daily [' + now + ']'];\nif (!tasks.length) {\n  parts.push('No open items found.');\n} else {\n  var limit = Math.min(tasks.length, 5);\n  parts.push('Open items: ' + tasks.length + ' / showing: ' + limit);\n  for (var j = 0; j < limit; j++) {\n    var t = tasks[j];\n    var req = t.request.length > 80 ? t.request.slice(0, 80) + '...' : t.request;\n    var response = t.response.length > 60 ? t.response.slice(0, 60) + '...' : t.response;\n    parts.push('');\n    parts.push(String(j + 1) + '. Requester: ' + t.sender);\n    parts.push('Request date: ' + t.requestDate + ' / Due: ' + t.deadline);\n    parts.push('Task: ' + req);\n    parts.push('Response: ' + response);\n    parts.push('Responder: ' + t.responder + ' / Response date: ' + t.responseDate);\n    parts.push('Priority: ' + t.priority);\n  }\n}\nreturn [{ json: { text: parts.join(NL) } }];"
+        }
+      },
+      {
+        "id": "telegram_send",
+        "name": "telegram_send",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          800,
+          96
+        ],
+        "parameters": {
+          "method": "POST",
+          "url": "https://api.telegram.org/bot8085717200:AAHzacN6Q3xSunrLyvUTuHnKEf7Cd5YFdt4/sendMessage",
+          "sendBody": true,
+          "bodyParameters": {
+            "parameters": [
+              {
+                "name": "chat_id",
+                "value": "8173025084"
+              },
+              {
+                "name": "text",
+                "value": "={{ $json.text }}"
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "connections": {
+      "daily_trigger": {
+        "main": [
+          [
+            {
+              "node": "build_todo_report",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "build_todo_report": {
+        "main": [
+          [
+            {
+              "node": "format_message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "format_message": {
+        "main": [
+          [
+            {
+              "node": "telegram_send",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "yasuhiro suzuki",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-03-14T21:42:29.055Z",
+        "id": 110,
+        "workflowId": "sYuks4F4aDvENqpl",
+        "versionId": "7f064ec6-6d71-4ecc-9841-e62741eb0008",
+        "event": "activated",
+        "userId": "291ff157-9849-45a3-8560-b87bb49ab833"
+      },
+      {
+        "createdAt": "2026-03-14T21:42:49.872Z",
+        "id": 111,
+        "workflowId": "sYuks4F4aDvENqpl",
+        "versionId": "7f064ec6-6d71-4ecc-9841-e62741eb0008",
+        "event": "activated",
+        "userId": "291ff157-9849-45a3-8560-b87bb49ab833"
+      }
+    ]
+  }
+}

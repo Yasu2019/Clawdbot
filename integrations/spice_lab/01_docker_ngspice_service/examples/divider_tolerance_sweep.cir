@@ -1,0 +1,9 @@
+* Voltage divider tolerance example
+.param Rtop=10000
+.param Rbot=10000
+V1 in 0 DC 5
+R1 in out {Rtop}
+R2 out 0 {Rbot}
+.op
+.meas op vout FIND v(out)
+.end

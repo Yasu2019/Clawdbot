@@ -206,10 +206,13 @@ class FactoryVideoAnnotator:
         draw   = ImageDraw.Draw(overlay)
         is_nva = lbl.get("is_nva", False)
         conf   = lbl.get("confidence", 0.0)
+        needs_review = lbl.get("review_required", False)
 
         # ── Panel background colour ──────────────────────────────────────────
         # Priority: NVA=red, then confidence tier (green/yellow/orange)
-        if is_nva:
+        if needs_review:
+            bg = (90, 30, 120, 220)
+        elif is_nva:
             bg = (150, 0, 0, 215)
         elif conf >= 0.75:
             bg = (0, 100, 30, 210)      # dark green  — high confidence

@@ -1,0 +1,6 @@
+name: rag_rules
+rules:
+  - OCR品質を確認する
+  - 図番・版数・日付をメタデータに入れる
+  - 表と箇条書き構造を保持する
+  - Qdrant collection名を明示する

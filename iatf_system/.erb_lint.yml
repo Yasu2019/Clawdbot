@@ -1,0 +1,18 @@
+---
+glob: "**/*.html.erb"
+
+linters:
+  FinalNewline:
+    enabled: true
+    exclude:
+      - "app/views/devise/sessions/new_two_step_verification.html.erb"
+      - "app/views/downloadable/download_page.html.erb"
+
+  NoJavascriptTagHelper:
+    enabled: true
+
+  TrailingWhitespace:
+    enabled: true
+
+  SelfClosingTag:
+    enabled: true

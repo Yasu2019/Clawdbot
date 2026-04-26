@@ -1,0 +1,14 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><title>TACO++ Dashboard</title>
+<style>body{font-family:system-ui,sans-serif;margin:24px;background:#f7f7f8;color:#222}.card{background:white;border-radius:16px;padding:18px;margin:12px 0;box-shadow:0 2px 10px #0001}.ok{color:#087a2f}.warn{color:#a36200}textarea{width:100%;height:180px}button{padding:10px 16px;border-radius:10px;border:1px solid #ddd;background:#111;color:white}pre{white-space:pre-wrap;background:#111;color:#eee;padding:12px;border-radius:12px;max-height:360px;overflow:auto}</style>
+</head><body>
+<h1>OpenClaw TACO++ AutoOps</h1>
+<div class="card"><b class="ok">Safe Compression</b><p>CAE/ERROR/WARNINGを保護しながらログを圧縮します。</p></div>
+<div class="card"><h2>Manual Test</h2><textarea id="in">Iteration 1 OK\nIteration 2 OK\nIteration 3 OK\nERROR contact failed at element 120\nTraceback example</textarea><br><button onclick="run()">Compress</button></div>
+<div class="card"><h2>Result</h2><pre id="out">未実行</pre></div>
+<script>
+async function run(){
+ const text=document.getElementById('in').value;
+ try{const r=await fetch('/compress',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,domain:'portal'})});
+ const j=await r.json(); document.getElementById('out').textContent=j.text+'\n\nSTATS:\n'+JSON.stringify(j.stats,null,2);}catch(e){document.getElementById('out').textContent='taco-engine APIに直接接続できない場合は、docker内またはGateway経由で確認してください。\n'+e;}
+}
+</script></body></html>

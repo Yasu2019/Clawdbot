@@ -21,7 +21,7 @@ We found two jobs scheduled to run every hour (`0 * * * *`):
 
 ### 2. Suspicious Process on Host
 
-- **Process:** `curl "https://generativelanguage.googleapis.com/v1beta/models?key=AIzaSyBgsqb..."`
+- **Process:** `curl "https://generativelanguage.googleapis.com/v1beta/models?key=AIzaSyB-REDACTED-"`
 - **Duration:** Running for **28+ hours**.
 - **Analysis:** This looks like a hanging process on your main terminal/console. If it is stuck in a retry loop, it could be hammering the API.
 - **Recommendation:** Please close any open terminals or kill this `curl` process.

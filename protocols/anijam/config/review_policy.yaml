@@ -1,0 +1,6 @@
+review_policy:
+  requires_human_approval: true
+  external_distribution_requires_legal_check: true
+  customer_named_content_requires_anonymization: true
+  standard_interpretation_requires_expert_review: true
+  retain_generation_logs: true

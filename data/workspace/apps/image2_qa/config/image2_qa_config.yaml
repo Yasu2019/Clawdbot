@@ -1,0 +1,31 @@
+app:
+  name: image2_qa_auto
+  portal_path: /apps/image2_qa/
+  gateway_route: /api/image2-qa/generate
+
+openai:
+  image_model: gpt-image-2
+  fallback_image_model: gpt-image-1
+  quality_default: high
+  size_default: 16:9
+
+rag:
+  qdrant_url: http://qdrant:6333
+  collections:
+    - iatf_knowledge
+    - universal_knowledge
+  top_k: 8
+  require_source_notes: true
+
+review:
+  require_human_approval: true
+  prohibited_use:
+    - dimensional_judgement
+    - final_defect_acceptance
+    - legal_or_contractual_claim_without_review
+
+output:
+  base_dir: /data/generated/image2_qa
+  save_prompt_json: true
+  save_review_checklist: true
+  save_source_summary_md: true

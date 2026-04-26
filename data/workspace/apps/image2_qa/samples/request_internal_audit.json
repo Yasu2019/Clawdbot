@@ -1,0 +1,8 @@
+{
+  "purpose": "IATF内部監査教育用の図解",
+  "process_or_product": "外観検査工程",
+  "main_message": "記録確認だけでなく、現物・工程・是正処置のつながりを確認する",
+  "rag_summary": "工程管理、検査記録、不適合処置、是正処置、有効性確認を一連で確認する。",
+  "aspect_ratio": "16:9",
+  "dry_run": true
+}

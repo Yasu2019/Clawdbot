@@ -10,7 +10,7 @@ class DownloadsController < ApplicationController
 
     @document = Product.find(params[:id])
     Rails.logger.info("Found Product: #{@document.inspect}")
-    
+
     session[:download_blob_id] = params[:blob_id]
     Rails.logger.info("Stored blob_id in session: #{session[:download_blob_id]}")
 
@@ -27,7 +27,7 @@ class DownloadsController < ApplicationController
         Rails.logger.info("Associated blob: #{file.inspect}")
         Rails.logger.info("Blob key: #{file.key}")
         Rails.logger.info("Checking if blob file exists: #{file.service.exist?(file.key)}")
-        
+
         begin
           @download_url = rails_blob_url(file)
           Rails.logger.info("Generated download URL: #{@download_url}")
@@ -69,10 +69,10 @@ class DownloadsController < ApplicationController
       Rails.logger.info("Blob filename: #{file.filename}")
       Rails.logger.info("Storage service: #{file.service.class.name}")
       Rails.logger.info("Checking if blob file exists: #{file.service.exist?(file.key)}")
-      
+
       file_data = file.download
       Rails.logger.info("File successfully downloaded from storage")
-      
+
       send_data file_data, filename: file.filename.to_s, disposition: 'attachment'
       Rails.logger.info("File sent to user: #{file.filename}")
     rescue => e

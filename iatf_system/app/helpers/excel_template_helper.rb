@@ -20,10 +20,6 @@ module ExcelTemplateHelper
 
   private
 
-  def content_eval(content)
-    view_context.instance_eval(%("#{content}"), __FILE__, __LINE__).gsub(/\R/, "\n") # エクセルの改行は LF
-  end
-
   def cell_render(cell)
     cell.change_contents(content_eval(cell.value))
     cell.change_text_wrap(true) if cell.value&.lines("\n")&.count&.> 1

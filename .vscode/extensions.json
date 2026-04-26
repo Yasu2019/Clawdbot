@@ -1,0 +1,7 @@
+{
+  "recommendations": [
+    "github.copilot",
+    "ms-vscode.powershell",
+    "eamodio.gitlens"
+  ]
+}
