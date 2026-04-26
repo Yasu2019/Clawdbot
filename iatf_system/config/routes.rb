@@ -85,12 +85,12 @@ Rails.application.routes.draw do
   root to: 'products#index'
 
   resources :products, only: %i[index new create show edit update] do
-    collection do 
+    collection do
       post :import
       get 'export_phases_to_excel'
-      get 'audit_correction_report'  
-      get 'audit_improvement_opportunity'  
-      get 'in_process_nonconforming_product_control_form'  
+      get 'audit_correction_report'
+      get 'audit_improvement_opportunity'
+      get 'in_process_nonconforming_product_control_form'
     end
     member do
       get 'verify_password/:blob_id', to: 'downloadable#verify_password', as: :product_verify_password

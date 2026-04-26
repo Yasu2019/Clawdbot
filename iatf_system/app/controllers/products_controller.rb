@@ -106,15 +106,15 @@ class ProductsController < ApplicationController
       type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
   end
-  
-  
-  
-  
-  
-  
-  
-  
-  
+
+
+
+
+
+
+
+
+
   def audit_correction_report
     send_data(
       AuditCorrectionReportService.call,
@@ -221,7 +221,7 @@ class ProductsController < ApplicationController
   def training
     @products = Product.includes(:documents_attachments).all
   end
-  
+
   def index
 
     # PDFリンクの取得
@@ -242,14 +242,14 @@ class ProductsController < ApplicationController
     @user = current_user
 
     @q = Product.ransack(params[:q])
-    
+
     # デバッグ情報
     Rails.logger.debug "Ransack params: #{params[:q].inspect}"
     Rails.logger.debug "Ransack object: #{@q.inspect}"
-    
+
     # 数値型カラムに対する検索条件を別途処理
     numeric_columns = [:goal_attainment_level] # 他の数値型カラムがあればここに追加
-    
+
     numeric_columns.each do |column|
       if params[:q] && params[:q]["#{column}_cont"].present?
         value = params[:q]["#{column}_cont"]
@@ -257,7 +257,7 @@ class ProductsController < ApplicationController
         params[:q].delete("#{column}_cont")
       end
     end
-    
+
     @products = @q.result(distinct: true)
                .includes(documents_attachments: :blob)
                .page(params[:page])
@@ -269,7 +269,7 @@ class ProductsController < ApplicationController
     Rails.logger.debug "Results on this page: #{@products.count}"
     Rails.logger.debug "First result: #{@products.first.inspect}" if @products.any?
   end
-  
+
 
   def show
     return unless @product.documents.attached?

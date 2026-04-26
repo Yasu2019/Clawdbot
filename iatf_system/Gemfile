@@ -192,6 +192,10 @@ gem 'htmlbeautifier'
 gem 'rubocop', require: false
 gem 'rubocop-rails', require: false
 
+# ERBテンプレートのlint（構文エラー・スタイル検出）
+gem 'erb_lint', require: false
+# reek 6.5.0 は dry-schema 1.14.1 と Ruby 3.1 で非互換のため除外
+
 # https://stackoverflow.com/questions/41051423/how-do-i-auto-format-ruby-or-erb-files-in-vs-code
 gem 'erb-formatter'
 

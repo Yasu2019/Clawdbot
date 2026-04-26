@@ -79,7 +79,7 @@ class DownloadableController < ApplicationController
     end
   end
 
-  
+
 
   def download
     blob_id = session[:download_blob_id]
@@ -102,8 +102,8 @@ class DownloadableController < ApplicationController
       end
 
       # Stream the file directly
-      send_data file.download, 
-                filename: file.filename.to_s, 
+      send_data file.download,
+                filename: file.filename.to_s,
                 content_type: file.content_type,
                 disposition: 'attachment'
     rescue StandardError => e

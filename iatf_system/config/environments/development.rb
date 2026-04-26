@@ -18,7 +18,7 @@ Rails.application.configure do
 
   # ミツイ精密社内からだけのアクセスを許可する場合
   config.web_console.permissions = '153.227.172.42'
-  
+
   # 自宅からだけのアクセスを許可する場合
 
   # ミツイ精密および、個人pcからのアクセスを許可する場合

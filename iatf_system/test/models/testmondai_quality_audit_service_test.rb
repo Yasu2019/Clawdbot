@@ -14,9 +14,9 @@ class TestmondaiQualityAuditServiceTest < ActiveSupport::TestCase
 
     assert_equal 1, report[:scanned_files]
     assert_equal 1, report[:files].first[:row_count]
-    assert report[:files].first[:issues].any? { |issue| issue[:type] == 'duplicate_choices' }
-    assert report[:files].first[:issues].any? { |issue| issue[:type] == 'invalid_seikai' }
-    assert report[:files].first[:issues].any? { |issue| issue[:type] == 'short_explanation' }
+    assert(report[:files].first[:issues].any? { |issue| issue[:type] == 'duplicate_choices' })
+    assert(report[:files].first[:issues].any? { |issue| issue[:type] == 'invalid_seikai' })
+    assert(report[:files].first[:issues].any? { |issue| issue[:type] == 'short_explanation' })
   ensure
     csv.close!
   end
@@ -29,7 +29,7 @@ class TestmondaiQualityAuditServiceTest < ActiveSupport::TestCase
 
     report = TestmondaiQualityAuditService.call([csv.path])
 
-    assert report[:files].first[:issues].any? { |issue| issue[:type] == 'mojibake_suspected' }
+    assert(report[:files].first[:issues].any? { |issue| issue[:type] == 'mojibake_suspected' })
   ensure
     csv.close!
   end

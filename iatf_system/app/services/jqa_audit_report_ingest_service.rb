@@ -210,7 +210,7 @@ class JqaAuditReportIngestService
     return if File.exist?(RECORD_CSV_PATH)
 
     FileUtils.mkdir_p(RECORD_CSV_PATH.dirname)
-    CSV.open(RECORD_CSV_PATH, "w", write_headers: true, headers: headers, encoding: "UTF-8") {}
+    CSV.open(RECORD_CSV_PATH, "w", write_headers: true, headers: headers, encoding: "UTF-8") { |_csv| } # rubocop:disable Lint/EmptyBlock
   end
 
   def find_or_create_product(metadata, stored_path)

@@ -9,7 +9,7 @@ Rails.application.configure do
   config.force_ssl = false
   config.ssl_options = { redirect: { exclude: -> request { true } } }
   config.action_dispatch.default_headers.delete('X-Frame-Options')
-  
+
   # メール設定
   config.action_mailer.default_url_options = {
     host: ENV['MINIPC'] == 'true' ? 'localhost:3004' : 'nys-web.net',

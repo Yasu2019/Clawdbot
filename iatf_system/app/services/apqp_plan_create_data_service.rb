@@ -741,20 +741,20 @@ class ApqpPlanCreateDataService
       row_number = insert_row_number + i # 正しい行番号を計算
       worksheet.insert_row(row_number)
       Rails.logger.info "row_number= #{row_number}" # 追加
-    
+
       # 新しく追加された行に、生技（#{?dr_setsubi_designer_#{i+2}}）を設定
       worksheet[row_number][12].change_contents("報告書名：\#{?dr_setsubi_filename_#{i + 2}}")
-    
+
       # 横方向の結合のみループ内で実行
       worksheet.merge_cells(row_number, 12, row_number, 19)
     end
-    
+
     # ループ終了後に縦方向の結合を実行
     if count > 0
       # 開始行は最初に挿入した行、終了行は最後に挿入した行
       start_row = insert_row_number
       end_row = insert_row_number + count - 1
-      
+
       # 5列目から11列目の結合
       worksheet.merge_cells(start_row-1, 5, end_row, 11)
       # 4列目の結合

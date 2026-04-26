@@ -48,7 +48,7 @@ module Myapp
     config.active_record.encryption.primary_key = ENV.fetch('PRIMARY_KEY', nil)
 
     # メールのタイムゾーン設定
-    config.action_mailer.default_options = { 
+    config.action_mailer.default_options = {
       from: 'mitsui.seimitsu.iatf16949@gmail.com',
       charset: 'UTF-8',
       time_zone: 'Tokyo'

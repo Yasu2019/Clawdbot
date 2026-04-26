@@ -127,11 +127,11 @@ class SupplierSeedSyncService
 
     # CSVとして書き出し（BOM付与）
     CSV.open(HOST_CSV, "wb", write_headers: true, headers: HEADERS) do |csv|
-      # handle.write("\uFEFF") is handled by encoding if specified, 
-      # but standard CSV.open doesn't always handle it. 
+      # handle.write("\uFEFF") is handled by encoding if specified,
+      # but standard CSV.open doesn't always handle it.
       # We'll use a specific approach to ensure the BOM.
     end
-    
+
     # BOM付与を確実にするため下記で書き直し
     File.write(HOST_CSV, "\uFEFF", mode: 'wb')
     CSV.open(HOST_CSV, "ab", headers: true, write_headers: true) do |csv|
