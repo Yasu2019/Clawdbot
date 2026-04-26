@@ -1,0 +1,31 @@
+{
+  "run_id": "20260426T010456Z_62b3febb",
+  "name": "rc_lowpass_test_python",
+  "created_at_utc": "2026-04-26T01:04:56.216590+00:00",
+  "elapsed_sec": 0.133814,
+  "exit_code": 0,
+  "files": {
+    "input.cir": "/work/runs/20260426T010456Z_62b3febb_rc_lowpass_test_python/input.cir",
+    "rc_lowpass.csv": "/work/runs/20260426T010456Z_62b3febb_rc_lowpass_test_python/rc_lowpass.csv",
+    "run.log": "/work/runs/20260426T010456Z_62b3febb_rc_lowpass_test_python/run.log",
+    "stdout.txt": "/work/runs/20260426T010456Z_62b3febb_rc_lowpass_test_python/stdout.txt"
+  },
+  "measurements": {
+    "vmax_out": {
+      "value": 4.966554,
+      "raw": "vmax_out            =  4.966554e+00 at=  3.500100e-02",
+      "extra": "at=  3.500100e-02"
+    },
+    "vfinal": {
+      "value": 0.03351317,
+      "raw": "vfinal              =  3.351317e-02",
+      "extra": ""
+    },
+    "Stack": {
+      "value": 0.0,
+      "raw": "Stack = 0 bytes.",
+      "extra": "bytes."
+    }
+  },
+  "warnings": []
+}

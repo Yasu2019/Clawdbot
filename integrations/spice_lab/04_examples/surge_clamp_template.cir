@@ -1,0 +1,13 @@
+* Surge / clamp template - replace diode model with real vendor model before using for design decisions.
+Vsurge in 0 PULSE(0 24 0 1u 1u 1m 10m)
+Rsource in node 10
+Rload node 0 1k
+Dclamp node 0 DGENERIC
+.model DGENERIC D(Is=1n Rs=0.5 Cjo=50p Bv=15 Ibv=1m)
+.tran 1u 20m
+.meas tran vmax_node MAX v(node)
+.control
+run
+wrdata surge_clamp.csv time v(in) v(node)
+.endc
+.end
