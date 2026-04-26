@@ -1,0 +1,21 @@
+* 0-10V to ESP32 ADC divider + simple clamp concept
+* This is a conceptual template. Verify real clamp current and device ratings.
+
+Vin sensor 0 PULSE(0 10 0 1m 1m 500m 1s)
+Rtop sensor adc_raw 20k
+Rbottom adc_raw 0 10k
+Rprotect adc_raw adc 1k
+Cadc adc 0 100n
+
+* Clamp concept using generic diodes to 3.3V rail and GND
+Vdd vdd 0 3.3
+Dhi adc vdd Dclamp
+Dlo 0 adc Dclamp
+.model Dclamp D(Is=1n Rs=1 Cjo=2p)
+
+.tran 0 3 0 1m
+.control
+run
+wrdata voltage_divider_adc_output.csv time v(sensor) v(adc_raw) v(adc)
+.endc
+.end

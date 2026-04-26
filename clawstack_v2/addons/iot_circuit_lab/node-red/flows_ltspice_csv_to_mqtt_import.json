@@ -1,0 +1,156 @@
+[
+  {
+    "id": "tab_ltspice_csv",
+    "type": "tab",
+    "label": "LTspice CSV Replay to MQTT",
+    "disabled": false,
+    "info": "LTspice CSVをMQTTにリプレイしてNode-RED運用ロジックを検証する"
+  },
+  {
+    "id": "mqtt_broker_ltspice",
+    "type": "mqtt-broker",
+    "name": "claw-mqtt-broker",
+    "broker": "mqtt-broker",
+    "port": "1883",
+    "clientid": "node-red-ltspice-replay",
+    "autoConnect": true,
+    "usetls": false,
+    "protocolVersion": "4",
+    "keepalive": "60",
+    "cleansession": true
+  },
+  {
+    "id": "inject_sample_csv",
+    "type": "inject",
+    "z": "tab_ltspice_csv",
+    "name": "sample csv payload",
+    "props": [
+      {
+        "p": "payload"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "",
+    "payload": "time,v_adc\\n0.000,0.000\\n0.100,1.200\\n0.200,2.600\\n0.300,3.100\\n0.400,3.300\\n0.500,1.800",
+    "payloadType": "str",
+    "x": 170,
+    "y": 120,
+    "wires": [
+      [
+        "csv_parse_node"
+      ]
+    ]
+  },
+  {
+    "id": "csv_parse_node",
+    "type": "csv",
+    "z": "tab_ltspice_csv",
+    "name": "CSV parse",
+    "sep": ",",
+    "hdrin": true,
+    "hdrout": "none",
+    "multi": "mult",
+    "ret": "\\n",
+    "temp": "",
+    "skip": "0",
+    "strings": true,
+    "include_empty_strings": "",
+    "include_null_values": "",
+    "x": 370,
+    "y": 120,
+    "wires": [
+      [
+        "split_rows"
+      ]
+    ]
+  },
+  {
+    "id": "split_rows",
+    "type": "split",
+    "z": "tab_ltspice_csv",
+    "name": "split rows",
+    "splt": "\\n",
+    "spltType": "str",
+    "arraySplt": 1,
+    "arraySpltType": "len",
+    "stream": false,
+    "addname": "",
+    "property": "payload",
+    "x": 540,
+    "y": 120,
+    "wires": [
+      [
+        "fn_csvrow_to_mqtt"
+      ]
+    ]
+  },
+  {
+    "id": "fn_csvrow_to_mqtt",
+    "type": "function",
+    "z": "tab_ltspice_csv",
+    "name": "row -> MQTT JSON",
+    "func": "const r = msg.payload || {};\\nconst v = Number(r.v_adc ?? r.voltage ?? r.v_filtered ?? 0);\\nconst adcMax = 4095;\\nconst vref = 3.3;\\nlet adc = Math.round((v / vref) * adcMax);\\nadc = Math.max(0, Math.min(adcMax, adc));\\nconst alarm = adc >= 3500 || adc <= 50;\\nconst warn = adc >= 3000 || adc <= 100;\\nmsg.topic = 'factory/lab/ltspice-replay-001/telemetry';\\nmsg.payload = {\\n    device: 'ltspice-replay-001',\\n    site: 'lab',\\n    line: 'demo',\\n    machine: 'ltspice_replay',\\n    time: Number(r.time ?? 0),\\n    voltage: v,\\n    adc_raw: adc,\\n    warn,\\n    alarm,\\n    source: 'ltspice_csv_replay'\\n};\\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 750,
+    "y": 120,
+    "wires": [
+      [
+        "mqtt_out_ltspice",
+        "debug_ltspice"
+      ]
+    ]
+  },
+  {
+    "id": "mqtt_out_ltspice",
+    "type": "mqtt out",
+    "z": "tab_ltspice_csv",
+    "name": "MQTT out replay",
+    "topic": "",
+    "qos": "0",
+    "retain": "",
+    "respTopic": "",
+    "contentType": "",
+    "userProps": "",
+    "correl": "",
+    "expiry": "",
+    "broker": "mqtt_broker_ltspice",
+    "x": 990,
+    "y": 100,
+    "wires": []
+  },
+  {
+    "id": "debug_ltspice",
+    "type": "debug",
+    "z": "tab_ltspice_csv",
+    "name": "ltspice replay payload",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": true,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "payload.alarm",
+    "statusType": "msg",
+    "x": 1000,
+    "y": 150,
+    "wires": []
+  },
+  {
+    "id": "comment_ltspice",
+    "type": "comment",
+    "z": "tab_ltspice_csv",
+    "name": "実運用ではCSVをfile nodeで読み込むか、scripts/04_publish_ltspice_csv_to_mqtt.pyを使う",
+    "info": "このフローはImport直後に動作確認できるよう、injectにサンプルCSVを入れています。",
+    "x": 420,
+    "y": 60,
+    "wires": []
+  }
+]
