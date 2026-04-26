@@ -1,0 +1,58 @@
+services:
+  milvus-etcd:
+    image: quay.io/coreos/etcd:v3.5.18
+    container_name: openclaw_milvus_etcd
+    environment:
+      - ETCD_AUTO_COMPACTION_MODE=revision
+      - ETCD_AUTO_COMPACTION_RETENTION=1000
+      - ETCD_QUOTA_BACKEND_BYTES=4294967296
+      - ETCD_SNAPSHOT_COUNT=50000
+    command: etcd -advertise-client-urls=http://127.0.0.1:2379 -listen-client-urls http://0.0.0.0:2379 --data-dir /etcd
+    volumes:
+      - milvus_etcd:/etcd
+    networks:
+      - openclaw_context_net
+
+  milvus-minio:
+    image: minio/minio:RELEASE.2025-04-22T22-12-26Z
+    container_name: openclaw_milvus_minio
+    environment:
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+    command: minio server /minio_data --console-address :9001
+    volumes:
+      - milvus_minio:/minio_data
+    ports:
+      - "127.0.0.1:19000:9000"
+      - "127.0.0.1:19001:9001"
+    networks:
+      - openclaw_context_net
+
+  milvus-standalone:
+    image: milvusdb/milvus:v2.5.10
+    container_name: openclaw_milvus_standalone
+    command: ["milvus", "run", "standalone"]
+    security_opt:
+      - seccomp:unconfined
+    environment:
+      ETCD_ENDPOINTS: milvus-etcd:2379
+      MINIO_ADDRESS: milvus-minio:9000
+    volumes:
+      - milvus_data:/var/lib/milvus
+    ports:
+      - "127.0.0.1:19530:19530"
+      - "127.0.0.1:19091:9091"
+    depends_on:
+      - milvus-etcd
+      - milvus-minio
+    networks:
+      - openclaw_context_net
+
+networks:
+  openclaw_context_net:
+    name: openclaw_context_net
+
+volumes:
+  milvus_etcd:
+  milvus_minio:
+  milvus_data:

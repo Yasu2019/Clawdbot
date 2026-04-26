@@ -73,7 +73,7 @@ def load_env_value(name: str) -> str:
 
 
 API_KEY = load_env_value("N8N_API_KEY") or "n8n_api_clawstack_f39c126b684f59ab50cc3fdedd82891086bfc633601067c9"
-N8N_LOGIN_EMAIL = load_env_value("N8N_EMAIL") or "y.suzuki.hk@gmail.com"
+N8N_LOGIN_EMAIL = load_env_value("N8N_EMAIL") or load_env_value("CLAWSTACK_ADMIN_EMAIL") or "y.suzuki.hk@gmail.com"
 N8N_LOGIN_PASSWORD = load_env_value("N8N_PASSWORD") or "Foxconnjpn75"
 CACHED_COOKIES: dict[str, str] = {}
 
@@ -246,6 +246,7 @@ def request_json(path: str) -> dict:
                 last_error = exc
                 if exc.code in (401, 403):
                     auth_failed = True
+                    print(f"[scheduled_report_search] Auth failed ({exc.code}) for {auth_mode} at {request_base}")
                     if auth_mode == "cookie":
                         CACHED_COOKIES.pop(cookie_base, None)
                     continue

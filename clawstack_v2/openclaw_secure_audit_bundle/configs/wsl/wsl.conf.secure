@@ -1,0 +1,14 @@
+# /etc/wsl.conf - secure profile for AI agents
+# Apply inside WSL with: sudo cp wsl.conf.secure /etc/wsl.conf
+# Then run from Windows PowerShell: wsl --shutdown
+
+[interop]
+enabled=false
+appendWindowsPath=false
+
+[automount]
+enabled=false
+mountFsTab=false
+
+[boot]
+systemd=true

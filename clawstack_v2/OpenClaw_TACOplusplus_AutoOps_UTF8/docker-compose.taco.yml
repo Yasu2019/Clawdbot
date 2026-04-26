@@ -1,0 +1,27 @@
+services:
+  taco-engine:
+    image: python:3.11-slim
+    container_name: taco_engine
+    working_dir: /app
+    volumes:
+      - ./OpenClaw_TACOplusplus_AutoOps_UTF8:/app
+      - ./logs:/logs:ro
+    environment:
+      TACO_CONFIG: /app/taco/config.yaml
+      QDRANT_URL: http://qdrant:6333
+      QDRANT_COLLECTION: taco_rules
+      LANGFUSE_HOST: http://langfuse-web:3000
+      TACO_MODE: autonomous_safe
+    command: sh -c "pip install -r requirements.txt && python -m taco.service"
+    restart: unless-stopped
+    networks:
+      - default
+
+  taco-portal:
+    image: nginx:alpine
+    container_name: taco_portal
+    volumes:
+      - ./OpenClaw_TACOplusplus_AutoOps_UTF8/portal:/usr/share/nginx/html:ro
+    ports:
+      - "127.0.0.1:18088:80"
+    restart: unless-stopped

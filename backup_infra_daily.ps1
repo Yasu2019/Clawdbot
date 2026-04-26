@@ -5,6 +5,8 @@ $BackupDir = "D:\ClawstackArchive\DailyBackup"
 $Timestamp = Get-Date -Format "yyyyMMdd_HHmm"
 $PostgresContainer = "clawstack-unified-postgres-1"
 $PaperlessMediaDir = "D:\Clawdbot_Docker_20260125\clawstack_v2\data\paperless\media"
+$N8nDataDir = "D:\Clawdbot_Docker_20260125\clawstack_v2\data\n8n"
+$N8nContainer = "clawstack-unified-n8n-1"
 
 Write-Host "Starting Clawstack V2 Infrastructure Backup..." -ForegroundColor Cyan
 
@@ -26,6 +28,24 @@ if ($LASTEXITCODE -eq 0) {
     Write-Host "Media backup successful: $MediaZipFile" -ForegroundColor Green
 } else {
     Write-Host "Media backup FAILED!" -ForegroundColor Red
+}
+
+# 3. n8n Database & Workflow Backup
+Write-Host "Backing up n8n database and workflows..."
+$N8nDbFile = "$BackupDir\n8n_database_$Timestamp.sqlite"
+Copy-Item "$N8nDataDir\database.sqlite" $N8nDbFile -Force
+
+# Export workflows to JSON
+$N8nExportDir = "$BackupDir\n8n_workflows_$Timestamp"
+New-Item -ItemType Directory -Force -Path $N8nExportDir | Out-Null
+docker exec -u root -e N8N_USER_FOLDER=/root/.n8n $N8nContainer n8n export:workflow --backup --output=/workspace/restore/backups/
+# Copy from workspace to backup archive
+Copy-Item "D:\Clawdbot_Docker_20260125\data\workspace\restore\backups\*" $N8nExportDir -Force
+
+if ($LASTEXITCODE -eq 0) {
+    Write-Host "n8n backup successful." -ForegroundColor Green
+} else {
+    Write-Host "n8n backup encountered errors during export." -ForegroundColor Yellow
 }
 
 # 3. Cleanup Old Backups (Retain last 7 days)

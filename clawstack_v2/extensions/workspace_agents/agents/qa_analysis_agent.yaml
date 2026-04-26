@@ -1,0 +1,23 @@
+name: qa_analysis_agent
+role: 不良率・不良数・検査数の分析、上位ランキング、P管理図向けデータ作成
+inputs:
+  - csv
+  - readonly_sql
+  - excel_export
+required_columns:
+  lot_no: optional
+  product_no: optional
+  defect_count: required
+  inspection_count: required
+calculations:
+  - defect_rate = defect_count / inspection_count
+  - top10_by_defect_rate
+  - top10_by_defect_count
+  - warn_alarm_judgement
+safety:
+  db_mode: read_only
+  allow_write: false
+outputs:
+  - reports/qa_summary.md
+  - reports/qa_top10.csv
+  - reports/qa_alerts.json

@@ -180,3 +180,8 @@ To minimize API costs while maximizing autonomy:
   - 失敗理由の分類例: `要件漏れ` / `ツールエラー` / `タイムアウト` / `権限不足` / `依存関係エラー`
   - 次に取るべきアクション（リトライ・エスカレート・スキップ等）
 - 生ログやJSONを貼るだけで終わらせず、必ず上記サマリーを付与すること（Rule 9 と連動）。
+## Workspace Agents Safety Principles
+- Treat all DB access as read-only unless explicitly approved by administrator.
+- Never send customer data outside local network without human approval.
+- Prefer local OpenClaw RAG before cloud model calls.
+- Generate reports as drafts first; release requires HITL.

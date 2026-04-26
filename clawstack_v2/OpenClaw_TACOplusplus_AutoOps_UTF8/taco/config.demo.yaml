@@ -1,0 +1,47 @@
+mode: autonomous_safe
+max_input_chars: 400000
+max_output_chars: 80000
+critical_keep_context_before: 8
+critical_keep_context_after: 16
+compression:
+  min_confidence_to_apply: 0.80
+  min_success_count_to_promote: 3
+  rollback_on_agent_complaint: true
+  preserve_first_n_lines: 80
+  preserve_last_n_lines: 160
+qdrant:
+  enabled: false
+  url_env: QDRANT_URL
+  collection_env: QDRANT_COLLECTION
+langfuse:
+  enabled: false
+  host_env: LANGFUSE_HOST
+healer:
+  enabled: false
+  loop_threshold: 3
+critical_patterns:
+  - "ERROR"
+  - "WARNING"
+  - "FATAL"
+  - "Traceback"
+  - "Exception"
+  - "segmentation fault"
+  - "access denied"
+  - "permission denied"
+  - "connection refused"
+  - "timeout"
+  - "NaN"
+  - "divergence"
+  - "not converged"
+  - "contact.*fail"
+  - "penetration"
+  - "negative volume"
+  - "timestep.*collapse"
+  - "element.*distortion"
+  - "CalculiX"
+  - "OpenRadioss"
+compressible_patterns:
+  iteration: "^(Iteration|ITER|Step)\\s+[0-9]+.*$"
+  docker_health: ".*(healthcheck|heartbeat|polling|GET /health).*"
+  npm_progress: ".*(npm|yarn|pnpm).*(download|fetch|extract|progress).*"
+  python_progress: ".*(\\d+%|it/s|ETA).*"

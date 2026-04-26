@@ -1,0 +1,6 @@
+name: portal_rules
+rules:
+  - 新規カード追加前にPORTAL_APPS.mdを確認する
+  - 既存/apps配下と名称重複しない
+  - 既存Nginxルートと衝突しない
+  - CDN依存を避けローカル配布可能にする

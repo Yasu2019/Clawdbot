@@ -7,7 +7,8 @@ from pathlib import Path
 
 import fetch_ai_public_sources
 import fetch_local_llm_oss_digest
-
+import fetch_youtube_transcripts
+import subprocess
 
 JST = timezone(timedelta(hours=9))
 WORKSPACE = Path(__file__).resolve().parent
@@ -51,70 +52,32 @@ def fetch_local_digest() -> dict:
 
 
 def fetch_public_digest() -> dict:
+    # Expand with official corporate blogs from updated fetch_ai_public_sources
+    public_sources_raw = {"sources": []}
+    try:
+        proc = subprocess.run(["python", str(WORKSPACE / "fetch_ai_public_sources.py")], capture_output=True, text=True, encoding="utf-8")
+        if proc.stdout.strip():
+            public_sources_raw = json.loads(proc.stdout)
+    except Exception as e:
+        print(f"[!] Public sources research failed: {e}")
+
+    # YouTube Deep Analysis
+    print("[*] Starting YouTube Deep Research...")
+    youtube_results = []
+    try:
+        # Run the transcript fetcher
+        proc_yt = subprocess.run(["python", str(WORKSPACE / "fetch_youtube_transcripts.py")], capture_output=True, text=True, encoding="utf-8")
+        if proc_yt.stdout.strip():
+            youtube_results = json.loads(proc_yt.stdout)
+    except Exception as e:
+        print(f"[!] YouTube research failed: {e}")
+
     payload = {
         "generatedAt": now_jst_text(),
-        "sources": [
-            {
-                "category": "Official public sources",
-                "source": "Rowan Cheung / The Rundown AI",
-                "results": fetch_ai_public_sources.extract_homepage_links(
-                    "https://rowancheung.com/",
-                    link_pattern=r"rowancheung\.com|rundown\.ai|therundown\.ai",
-                ),
-            },
-            {
-                "category": "Official public sources",
-                "source": "Ethan Mollick / One Useful Thing",
-                "results": fetch_ai_public_sources.extract_homepage_links(
-                    "https://www.oneusefulthing.org/",
-                    link_pattern=r"oneusefulthing\.org",
-                ),
-            },
-            {
-                "category": "Official public sources",
-                "source": "Allie K. Miller",
-                "results": fetch_ai_public_sources.extract_homepage_links(
-                    "https://www.alliekmiller.com/",
-                    link_pattern=r"alliekmiller\.com/(resources|courses|home|$)|youtube\.com/@AKMofficial",
-                ),
-            },
-            {
-                "category": "Official public sources",
-                "source": "Logan Kilpatrick / Google Blog",
-                "results": fetch_ai_public_sources.extract_rss("https://blog.google/authors/logan-kilpatrick/rss/"),
-            },
-            {
-                "category": "Creative Trends",
-                "source": "Runway / Video Generation",
-                "results": fetch_ai_public_sources.extract_homepage_links("https://runwayml.com/blog", link_pattern=r"blog/.*"),
-            },
-            {
-                "category": "Creative Trends",
-                "source": "Suno / Music Generation",
-                "results": fetch_ai_public_sources.extract_homepage_links("https://suno.com/blog", link_pattern=r"blog/.*"),
-            },
-            {
-                "category": "Creative Trends",
-                "source": "ComfyUI / Anime Workflows",
-                "results": fetch_ai_public_sources.extract_homepage_links("https://blog.comfy.org/", link_pattern=r"blog/.*"),
-            },
-            {
-                "category": "Manufacturing & Fab",
-                "source": "Cults3D / 3D Trends Blog",
-                "results": fetch_ai_public_sources.extract_rss("https://cults3d.com/en/blog.rss"),
-            },
-            {
-                "category": "Manufacturing & Fab",
-                "source": "3DPrint.com / Industry News",
-                "results": fetch_ai_public_sources.extract_rss("https://3dprint.com/feed"),
-            },
-            {
-                "category": "Manufacturing & Fab",
-                "source": "Creality Official / Ender GitHub",
-                "results": fetch_ai_public_sources.extract_rss("https://github.com/CrealityOfficial/Ender-3_V3_KE_Klipper/releases.atom"),
-            },
-        ],
+        "sources": public_sources_raw.get("sources", []),
+        "youtubeInsights": youtube_results
     }
+    return payload
     # Defensive robustness: Filter out individual source failures
     sanitized_sources = []
     for s in payload["sources"]:
@@ -148,7 +111,7 @@ HUB_REGISTRY = {
     },
     "3D Fab-Forge": {
         "path": "apps/3d_fab_forge/index.html",
-        "keywords": ["3d print", "ender", "creality", "klipper", "stl", "printables", "cults3d", "slicing", "cad", "monetization", "etsy"]
+        "keywords": ["3d print", "ender", "creality", "klipper", "stl", "printables", "cults3d", "slicing", "cad", "monetization", "etsy", "fem", "openfoam", "calculix", "simulation", "cfd"]
     },
     "Ops Toolbox": {
         "path": "apps/operations_toolbox/index.html",
@@ -242,8 +205,18 @@ def build_markdown(combined: dict) -> str:
             lines.append(f"  {row.get('url')}")
         lines.append("")
 
-    lines.extend(["## Official Public Sources", ""])
-    for source_entry in combined["publicDigest"]["sources"]:
+    # Dynamic Public Source Sections
+    public_sources = combined.get("publicDigest", {}).get("sources", [])
+    current_category = None
+    
+    # Sort or group by category if needed, but the fetcher already groups them
+    for source_entry in public_sources:
+        category = source_entry.get("category", "Official Public Sources")
+        if category != current_category:
+            lines.append(f"## {category}")
+            lines.append("")
+            current_category = category
+            
         lines.append(f"### {source_entry['source']}")
         results = source_entry.get("results", [])
         if not results:
@@ -254,6 +227,7 @@ def build_markdown(combined: dict) -> str:
             lines.append(f"- {row.get('title')}")
             lines.append(f"  {row.get('url')}")
         lines.append("")
+
     return "\n".join(lines).strip() + "\n"
 
 

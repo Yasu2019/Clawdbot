@@ -199,3 +199,63 @@ AI Strategy Scout およびエージェントによる提案は、以下の「�
 
 ### 14-3. アーキテクチャ・センチネル (Architectural Sentinel)
 毎日の AI Strategy Scout は、単なるニュース配信ではなく「Clawstack のアーキテクチャ最適化のための提案」を行う義務を負う。Scout で [ADOPT_INTEGRATE] または [ADOPT_NEW] が表示された際、エージェントはユーザー承認後に速やかに統合または構築を開始する。
+
+---
+# Added by AI Surgical Guardrails v1
+
+# AGENTS.md - Codex / General Agent Guardrails
+
+## Non-Negotiable Core Principles
+1. Think Before Coding.
+2. Simplicity First.
+3. Surgical Changes.
+4. Goal-Driven Execution.
+5. Backup Before Large Change.
+
+## Mandatory Backup Rule
+Before any large change, refactor, layout/UI change, route change, or multi-file edit:
+
+1. Create a recoverable backup commit.
+2. Push it to GitHub if remote is available.
+3. If push fails, create a local backup branch and report the failure.
+4. Do not proceed until backup status is reported.
+
+Definition of large change:
+- More than 1 file changed
+- Any refactor
+- Any architecture or folder structure change
+- Any Rails layout/UI/CSS/Tailwind/route/shared partial change
+- Any generated code touching many files
+
+## Surgical Change Rules
+- Modify only the requested behavior.
+- Do not refactor unrelated code.
+- Do not reformat entire files.
+- Do not rename files, classes, variables, or routes unless explicitly requested.
+- Keep diffs minimal and reviewable.
+
+## Before Editing
+Report:
+- Goal
+- Files expected to change
+- Files explicitly protected
+- Whether backup is required
+
+## After Editing
+Report:
+- Changed files
+- Reason for each file
+- Tests/checks run
+- Any protected files touched
+- Backup commit/branch information
+
+## Protected Rails Paths
+Do not modify unless explicitly requested:
+- app/views/layouts/*
+- app/views/shared/*
+- app/assets/*
+- app/javascript/*
+- config/routes.rb
+- config/application.rb
+- config/environments/*
+- package.json / yarn.lock / package-lock.json unless dependency change is explicitly requested

@@ -1,0 +1,13 @@
+{
+  "name": "OpenClaw TACO++ AutoOps",
+  "version": "0.2.0",
+  "created": "2026-04-25",
+  "features": [
+    "safe compression",
+    "rule evolution",
+    "qdrant memory",
+    "langfuse events",
+    "workflow healer",
+    "portal dashboard"
+  ]
+}

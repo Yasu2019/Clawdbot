@@ -1,0 +1,6 @@
+name: excel_rules
+rules:
+  - SQL Server接続は読み取り専用
+  - UPDATE/DELETE/INSERT/DROP/ALTERは禁止
+  - 原本Excelへの上書き保存は禁止
+  - 範囲削除は対象シートとセル範囲を明示する

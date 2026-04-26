@@ -72,6 +72,7 @@ services:
       - OUTLINE_URL=http://outline:3000
       - WHISHPER_URL=http://whishper:8080
       - LANGFUSE_URL=http://langfuse:3000
+      - TACO_URL=http://taco-engine:8000
       - DOCLING_URL=http://docling:5001
       # Browser-facing URLs (host.docker.internal — used by openclaw browser)
       - PORTAL_URL=http://host.docker.internal:8088/portal.html
@@ -208,7 +209,8 @@ services:
       - N8N_PROTOCOL=http
       - NODE_ENV=production
       - WEBHOOK_URL=http://127.0.0.1:5679/
-      - GENERIC_TIMEZONE=${TZ}
+      - GENERIC_TIMEZONE=Asia/Tokyo
+      - N8N_USER_FOLDER=/root/.n8n
       # Execute Command ノード & Local File Trigger を有効化
       # デフォルトでは ['n8n-nodes-base.executeCommand','n8n-nodes-base.localFileTrigger'] が除外される
       - NODES_EXCLUDE=[]
@@ -1100,6 +1102,38 @@ services:
     restart: unless-stopped
     command: >
       sh -c "pip install mcp[cli] requests && python3 /app/workspace/clawstack_mcp_server.py"
+
+  # ============================================================
+  # TACO++ AUTO-OPS (Context Optimization)
+  # ============================================================
+  taco-engine:
+    image: python:3.11-slim
+    container_name: taco_engine
+    working_dir: /app
+    volumes:
+      - ./clawstack_v2/OpenClaw_TACOplusplus_AutoOps_UTF8:/app
+      - ./data/workspace/logs:/logs:ro
+    environment:
+      - TACO_CONFIG=/app/taco/config.yaml
+      - QDRANT_URL=http://qdrant:6333
+      - QDRANT_COLLECTION=taco_rules
+      - LANGFUSE_HOST=http://langfuse:3000
+      - TACO_MODE=autonomous_safe
+    command: sh -c "pip install -r requirements.txt && python -m taco.service"
+    restart: unless-stopped
+    networks:
+      - default
+
+  taco-portal:
+    image: nginx:alpine
+    container_name: taco_portal
+    volumes:
+      - ./data/workspace/apps/taco_dashboard:/usr/share/nginx/html:ro
+    ports:
+      - "127.0.0.1:18088:80"
+    restart: unless-stopped
+    networks:
+      - default
 
 volumes:
   shannon_workspaces:

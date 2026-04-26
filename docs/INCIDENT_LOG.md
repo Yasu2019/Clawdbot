@@ -15,6 +15,21 @@
 | **Validation** | Local scout refresh can run without n8n API writes, self-growth Qdrant sync now targets `agent_self_growth_memory`, hygiene status can report thresholds without deleting healthy data, and startup retrieval verification writes per-session status with top hits or errors. |
 | **Lessons Learned** | For self-improving systems, 窶徇emory exists窶・is not enough. The store, retrieval path, and hygiene path must target the same collection, and there should be an explicit log proving that startup retrieval was attempted. |
 | **Recurrence Prevention** | Keep AI Scout on local/no-cost collection paths where possible, enforce a dedicated hygiene script on the actual self-growth collection, and keep first-use retrieval verification enabled through repo-local hook config. |
+ 
+---
+ 
+## INC-053: n8n API authentication failure (401) and patrol weakness persistence
+| Field | Detail |
+|---|---|
+| **Date** | 2026-04-25 11:50 JST |
+| **Detection** | `continuous_system_improvement.py` reported high-severity weakness: `n8n API authentication failed (401)`. System health summary showed persistent failure even after credentials were updated in `.env`. |
+| **Impact** | Automated n8n maintenance tasks (scheduled report sync, workflow healer, etc.) could fail silently due to auth drift. Patrol summaries stayed "dirty" with high-risk alerts, masking other potential issues. |
+| **Root Cause (5 Why)** | **Why1**: n8n v2.6.4 (containerized) requires API keys to be explicitly generated in the UI; environment-variable keys are ignored if not in the DB. **Why2**: The user's `.env` password `Foxconnjpn75` was correct, but the patrol script used `admin@clawstack.local` as a default email for the fallback login, which was incorrect. **Why3**: The fallback login process in the patrol script did not correctly manage sessions/cookies, causing the subsequent `/rest/workflows` check to fail with 401 even after a successful login. **Why4**: The patrol script had redundant reporting: it both probed n8n auth explicitly and included it in a generic host-api-inventory loop, causing double-reporting of weaknesses. **Why5**: The patrol logic lacked a robust multi-strategy auth resolver (API Key -> Cookie Session -> User/PW fallback) that accounted for specific n8n backend behavior. |
+| **Fix** | Updated `data/workspace/continuous_system_improvement.py` to: (1) Use `requests.Session` for cookie-based fallback. (2) Explicitly pass the `n8n-auth` cookie in subsequent requests. (3) Prioritize the correct user email `y.suzuki.hk@gmail.com`. (4) Exclude `n8n_auth` from the generic reporting loop to avoid double-alerts. Updated `scheduled_report_search.py` to improve error logging and follow the same auth fallback logic. |
+| **Files** | `data/workspace/continuous_system_improvement.py`, `data/workspace/scheduled_report_search.py`, `docs/INCIDENT_LOG.md` |
+| **Verification** | `python data/workspace/continuous_system_improvement.py --once` now reports `n8n API authentication is valid: url=http://127.0.0.1:5679/rest/workflows status=200`. Weakness count dropped from 3 to 1. `scheduled_report_search.py` manual run confirmed sync capability. |
+| **Lessons Learned** | For n8n on this machine, API Keys are unreliable. Always implement a robust Cookie-based session fallback using the user's primary email. Patrol reporting must be de-duplicated when a component has both a dedicated probe and a generic inventory check. |
+| **Prevention** | Standardize n8n auth helpers across all maintenance scripts. Ensure the patrol summary uses a single canonical source for each component's health status. |
 
 ---
 
@@ -712,3 +727,17 @@ un_command_with_heartbeat wrapper that utilizes subprocess.Popen to update the h
 | **Verification** | Verified all endpoints (8110, 8791, 8792, 3333) are reachable from the host. Auto-repair script confirmed correct ROOT resolution (D:\Clawdbot_Docker_20260125). |
 | **Lessons Learned** | Background processes must be managed via a single canonical launcher to avoid duplicates. Auto-repair scripts must be path-agnostic or have robust discovery for the host repository root. |
 | **Prevention** | Audit the startup sequence in start_minipc_balanced_stack.ps1 to ensure no duplicate spawns occur. Add a check in individual API scripts to exit if another instance is already bound to the port. |
+
+## INC-052: AI Strategy Scout watchdog stopped due to omission from balanced startup
+| Field | Detail |
+| --- | --- |
+| **Date** | 2026-04-25 06:21 JST |
+| **Detection** | User reported that AI tool info was not being updated. `ai_strategy_scout_watchdog_status.json` showed updatedAt from 12 days ago. |
+| **Impact** | Automated technology research and architectural recommendations were stale. |
+| **Root Cause (5 Why)** | **Why1**: Watchdog process was not running. **Why2**: System was recovered multiple times recently (INC-051, etc.). **Why3**: Recoveries used `start_minipc_balanced_stack.ps1`. **Why4**: The balanced startup script did not include the scout watchdog step. **Why5**: The scout was initially treated as a non-core "extra" but is actually part of daily governance. |
+| **Fix** | (1) Triggered manual scout to refresh data. (2) Modified `scripts/start_minipc_balanced_stack.ps1` to include `ai_strategy_scout_watchdog` in the default balanced sequence. (3) Restarted the watchdog process. |
+| **Files** | `scripts/start_minipc_balanced_stack.ps1`, `docs/INCIDENT_LOG.md`, `ACT.md` |
+| **Verification** | Verified `ai_strategy_scout_local_digest.md` contains current date (2026-04-25). Watchdog process confirmed active. |
+| **Lessons Learned** | Governance and research tasks (Scout) are as critical as connectivity tasks (Telegram Bridge) for long-term agent autonomy. |
+| **Prevention** | Audit the balanced startup script whenever a new critical governance or watchdog service is introduced. |
+$entry

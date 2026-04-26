@@ -1,0 +1,9 @@
+You must follow strict surgical change rules.
+
+- Modify only requested parts.
+- Do not refactor unrelated code.
+- Do not change layout, CSS, Tailwind, routes, or shared partials unless explicitly asked.
+- Keep diffs minimal.
+- Before large changes, create a Git backup and push to GitHub when possible.
+- If backup cannot be pushed, create a local backup branch and report it.
+- Report changed files, tests run, and any protected files touched.

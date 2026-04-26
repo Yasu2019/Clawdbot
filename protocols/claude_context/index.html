@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Context Hub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Outfit:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #020617; --primary: #818cf8; --card: rgba(15, 23, 42, 0.7); --text: #f8fafc; --muted: #94a3b8; }
+        body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; padding: 40px; }
+        .header { margin-bottom: 40px; }
+        .header h1 { font-family: 'Outfit'; font-size: 2.5rem; margin: 0; background: linear-gradient(135deg, #fff, var(--primary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .status-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 40px; }
+        .status-card { background: var(--card); border: 1px solid rgba(255, 255, 255, 0.08); padding: 20px; border-radius: 16px; backdrop-filter: blur(10px); }
+        .status-card h3 { margin: 0 0 10px 0; color: var(--muted); font-size: 0.9rem; text-transform: uppercase; }
+        .status-card .val { font-size: 1.5rem; font-weight: 700; color: var(--text); }
+        .status-card .ok { color: #4ade80; }
+        .status-card .warn { color: #fbbf24; }
+        .section-title { font-family: 'Outfit'; font-size: 1.2rem; margin-bottom: 20px; color: var(--primary); }
+        .doc-list { list-style: none; padding: 0; }
+        .doc-list li { margin-bottom: 15px; }
+        .doc-list a { color: var(--text); text-decoration: none; display: flex; align-items: center; gap: 10px; transition: 0.2s; }
+        .doc-list a:hover { color: var(--primary); }
+        .tag { background: rgba(129, 140, 248, 0.1); border: 1px solid rgba(129, 140, 248, 0.2); color: var(--primary); padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Claude Context Hub</h1>
+        <p style="color: var(--muted)">コードベース検索 & エージェント連携基盤</p>
+    </div>
+
+    <div class="status-grid">
+        <div class="status-card">
+            <h3>Milvus Standalone</h3>
+            <div class="val ok">Running</div>
+            <p style="font-size: 0.8rem; margin-top: 5px;">Port: 19530 (gRPC)</p>
+        </div>
+        <div class="status-card">
+            <h3>Ollama Embedding</h3>
+            <div class="val ok">nomic-embed-text</div>
+            <p style="font-size: 0.8rem; margin-top: 5px;">Ready for indexing</p>
+        </div>
+        <div class="status-card">
+            <h3>Repository State</h3>
+            <div class="val">146.2h MTBF</div>
+            <p style="font-size: 0.8rem; margin-top: 5px;">Last Inc: INC-052</p>
+        </div>
+    </div>
+
+    <h2 class="section-title">Integration Guides</h2>
+    <ul class="doc-list">
+        <li><a href="docs/01_architecture.md"><span class="tag">DOC</span> アーキテクチャ構成図</a></li>
+        <li><a href="docs/03_install_steps.md"><span class="tag">DOC</span> インデックス作成手順</a></li>
+        <li><a href="docs/04_agent_handoff.md"><span class="tag">DOC</span> エージェント間引き継ぎ（Handoff）プロトコル</a></li>
+        <li><a href="docs/05_risk_controls.md"><span class="tag">RISK</span> セキュリティ & リスク管理</a></li>
+    </ul>
+
+    <h2 class="section-title">Maintenance</h2>
+    <div style="background: rgba(255,255,255,0.03); border-radius: 12px; padding: 20px;">
+        <code style="color: var(--primary)">docker exec -it openclaw_milvus_standalone milvus run healthcheck</code>
+    </div>
+</body>
+</html>

@@ -11,5 +11,5 @@ if ($existing) {
   exit 0
 }
 
-Start-Process -FilePath "python3" -ArgumentList "`"$scriptPath`" --poll-seconds 600" -WindowStyle Hidden
+Start-Process -FilePath "python3" -ArgumentList "`"$scriptPath`" --poll-seconds 180" -WindowStyle Hidden
 Write-Output "Continuous system improvement patrol started."

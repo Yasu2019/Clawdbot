@@ -1,0 +1,14 @@
+name: image_material_agent
+role: Image2/画像生成AIを使った監査教育資料・不良説明図の生成補助
+allowed_tasks:
+  - infographic_prompt_generation
+  - audit_training_scene_prompt
+  - defect_reproduction_prompt
+  - qr_label_design_prompt
+not_allowed:
+  - confidential drawing upload without approval
+  - customer logo use without permission
+  - misleading evidence image generation
+outputs:
+  - reports/image_prompts.md
+  - reports/image_usage_risk_check.md

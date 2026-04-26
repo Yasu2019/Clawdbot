@@ -1,0 +1,27 @@
+{
+  "name": "Workspace Agent Approval Flow",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "workspace-agent-approval",
+        "responseMode": "lastNode"
+      },
+      "name": "Approval Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "functionCode": "return [{json: {approved: false, message: 'HITL required. Review report before external send.'}}];"
+      },
+      "name": "Default Deny Until Human Review",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [260, 0]
+    }
+  ],
+  "connections": {
+    "Approval Webhook": {"main": [[{"node": "Default Deny Until Human Review", "type": "main", "index": 0}]]}
+  }
+}

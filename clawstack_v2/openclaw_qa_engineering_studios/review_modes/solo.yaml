@@ -1,0 +1,8 @@
+mode: solo
+checks:
+  sql_readonly: true
+  secret_leak: true
+  port_conflict: false
+  portal_duplicate: false
+  iatf_evidence: false
+  act_updated: true

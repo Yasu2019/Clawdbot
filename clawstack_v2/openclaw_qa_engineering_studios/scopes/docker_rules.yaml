@@ -1,0 +1,6 @@
+name: docker_rules
+rules:
+  - 既存ポートと衝突しない
+  - 可能な限り127.0.0.1バインドにする
+  - compose変更前にバックアップする
+  - healthcheckを追加する

@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "openclaw-code-context": {
+      "command": "npx",
+      "args": ["-y", "@zilliz/claude-context-mcp@latest"],
+      "env": {
+        "MILVUS_ADDRESS": "http://127.0.0.1:19530",
+        "OLLAMA_BASE_URL": "http://127.0.0.1:11434",
+        "EMBEDDING_PROVIDER": "ollama",
+        "EMBEDDING_MODEL": "nomic-embed-text"
+      }
+    }
+  }
+}

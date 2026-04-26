@@ -1,0 +1,35 @@
+# OpenClaw本体composeに直接混ぜず、まずは追加composeとして起動すること。
+# 例:
+# docker compose -f docker-compose.yml -f extensions/workspace_agents/docker-compose.workspace-agents.yml up -d
+
+services:
+  workspace-agents-api:
+    build:
+      context: ./extensions/workspace_agents/api
+    container_name: openclaw-workspace-agents-api
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:18080:8000"
+    volumes:
+      - ./extensions/workspace_agents/reports:/app/reports
+      - ./extensions/workspace_agents/samples:/app/samples:ro
+      - ./extensions/workspace_agents/templates:/app/templates:ro
+      - ./extensions/workspace_agents/logs:/app/logs
+    networks:
+      - default
+
+  workspace-agents-worker:
+    build:
+      context: ./extensions/workspace_agents/api
+    container_name: openclaw-workspace-agents-worker
+    command: ["python", "-m", "app.worker"]
+    restart: unless-stopped
+    env_file:
+      - ./extensions/workspace_agents/config/.env.example
+    volumes:
+      - ./extensions/workspace_agents/reports:/app/reports
+      - ./extensions/workspace_agents/samples:/app/samples:ro
+      - ./extensions/workspace_agents/templates:/app/templates:ro
+      - ./extensions/workspace_agents/logs:/app/logs
+    networks:
+      - default

@@ -177,6 +177,22 @@ Add-Step -Name "email_search_api" -Action { Start-HostScript -ScriptPath (Join-P
 Add-Step -Name "email_blacklist_hub" -Action { Start-HostScript -ScriptPath (Join-Path $repoRoot "scripts\start_email_blacklist_hub_api.ps1") -Name "email_blacklist_hub" -ProbeUrls @("http://127.0.0.1:8791/api/email-blacklist/candidates") }
 Add-Step -Name "email_continuous_watchdog" -Action { Start-HostScript -ScriptPath (Join-Path $repoRoot "scripts\start_email_continuous_watchdog.ps1") -Name "email_continuous_watchdog" }
 Add-Step -Name "telegram_fast_bridge" -Action { Start-HostScript -ScriptPath (Join-Path $repoRoot "scripts\start_telegram_fast_bridge.ps1") -Name "telegram_fast_bridge" }
+Add-Step -Name "ai_strategy_scout_watchdog" -Action { Start-HostScript -ScriptPath (Join-Path $repoRoot "scripts\start_ai_strategy_scout_watchdog.ps1") -Name "ai_strategy_scout_watchdog" }
+Add-Step -Name "agent_self_growth_memory_hygiene" -Action { Start-HostScript -ScriptPath (Join-Path $repoRoot "scripts\start_agent_self_growth_memory_hygiene.ps1") -Name "agent_self_growth_memory_hygiene" }
+Add-Step -Name "claudian_watchdog" -Action { Start-HostScript -ScriptPath (Join-Path $repoRoot "scripts\start_claudian_watchdog.ps1") -Name "claudian_watchdog" }
+Add-Step -Name "continuous_system_improvement" -Action { Start-HostScript -ScriptPath (Join-Path $repoRoot "scripts\start_continuous_system_improvement.ps1") -Name "continuous_system_improvement" }
+Add-Step -Name "minipc_optimizer_watchdog" -Action { Start-HostScript -ScriptPath (Join-Path $repoRoot "scripts\start_minipc_optimizer_watchdog.ps1") -Name "minipc_optimizer_watchdog" }
+Add-Step -Name "paperless_rag_watchdog" -Action { Start-HostScript -ScriptPath (Join-Path $repoRoot "scripts\start_paperless_rag_watchdog.ps1") -Name "paperless_rag_watchdog" }
+Add-Step -Name "c_drive_relief_guard" -Action { Start-HostScript -ScriptPath (Join-Path $repoRoot "scripts\start_c_drive_relief_guard.ps1") -Name "c_drive_relief_guard" }
+Add-Step -Name "central_patrol_watchdog" -Action { Start-HostScript -ScriptPath (Join-Path $repoRoot "scripts\start_central_patrol_watchdog.ps1") -Name "central_patrol_watchdog" }
+Add-Step -Name "claude_context_milvus" -Action {
+  Write-Log "START Claude Context Milvus stack"
+  $composeFile = Join-Path $repoRoot "protocols\claude_context\compose\docker-compose.claude-context.yml"
+  & docker compose -f $composeFile up -d
+  if ($LASTEXITCODE -ne 0) { throw "Failed to start Claude Context Milvus" }
+  Write-Log "READY Claude Context Milvus stack"
+  return [ordered]@{ name = "claude_context_milvus"; kind = "docker-overlay"; status = "started" }
+}
 
 if ($Mode -eq "full") {
   Add-Step -Name "minio" -Action { Start-DockerService -ComposeFile $dockerBase -ServiceName "minio" }

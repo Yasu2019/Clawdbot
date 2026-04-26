@@ -1,0 +1,12 @@
+version: 1
+suite_name: openclaw_workspace_agents_production
+mode: production_guarded
+hitl_required: true
+read_only_default: true
+agents:
+  - qa_analysis_agent
+  - iatf_audit_agent
+  - csv_monitor_agent
+  - report_writer_agent
+  - image_material_agent
+  - supervisor_guard_agent

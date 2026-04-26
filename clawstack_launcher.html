@@ -215,154 +215,111 @@
     </header>
 
     <div class="grid-container">
-
-        <!-- Zone 1: The Agent -->
+        <!-- ZONE 1: AI COCKPIT -->
         <div class="card">
             <div class="card-header">
                 <div class="title">🤖 AGENT COCKPIT <span class="badge">LIVE</span></div>
                 <a href="http://localhost:18789" target="_blank">Expand ↗</a>
             </div>
             <div class="iframe-container">
-                <iframe src="http://localhost:18789/vnc.html?autoconnect=true&resize=scale&reconnect=true" id="gateway-frame"></iframe>
+                <iframe src="http://localhost:18789/vnc.html?autoconnect=true&resize=scale&reconnect=true"></iframe>
             </div>
         </div>
 
-        <!-- Zone 2: Quality Dashboard -->
+        <!-- ZONE 2: ENGINEERING & DESIGN -->
         <div class="card">
             <div class="card-header">
-                <div class="title">📊 QUALITY INSIGHTS</div>
-                <a href="http://localhost:8090" target="_blank">Expand ↗</a>
-            </div>
-            <div class="iframe-container">
-                <iframe src="http://localhost:8090"></iframe>
-            </div>
-        </div>
-
-        <!-- Zone 3: Creative Studio (NEW) -->
-        <div class="card studio-card">
-            <div class="card-header">
-                <div class="title">🎨 CREATIVE STUDIO</div>
-                <a href="data/workspace/apps/creative_studio/index.html" target="_blank">Launch ↗</a>
-            </div>
-            <div class="iframe-container" style="background: var(--bg-color);">
-                <div class="studio-content">
-                    <div class="studio-icon">🎬</div>
-                    <h2 style="margin: 0 0 10px 0;">AI Video & Content</h2>
-                    <p style="color: var(--text-dim); margin-bottom: 25px; max-width: 300px;">
-                        Generate Remotion videos, AI scripts, and social media content locally.
-                    </p>
-                    <a href="data/workspace/apps/creative_studio/index.html" class="btn" style="background: var(--studio-gradient); color: white; box-shadow: 0 4px 15px rgba(255, 0, 128, 0.4);">
-                        Enter Studio
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Zone 4: Automation -->
-        <div class="card">
-            <div class="card-header">
-                <div class="title">⚡ AUTOMATION ENGINE</div>
-                <a href="http://localhost:1880" target="_blank">Expand ↗</a>
-            </div>
-            <div class="iframe-container">
-                <iframe src="http://localhost:1880"></iframe>
-            </div>
-        </div>
-
-        <!-- Zone 5: Knowledge Activity (UPDATED) -->
-        <div class="card">
-            <div class="card-header">
-                <div class="title">📚 KNOWLEDGE ACTIVITY <span id="ingest-badge" class="badge" style="background: #0ea5e9;">MONITORING</span></div>
-                <a href="data/workspace/apps/ingestion_rag_control_center/index.html" target="_blank">Full Status ↗</a>
-            </div>
-            <div class="iframe-container" style="background: #161b22; flex-direction: column; padding: 25px; align-items: flex-start; justify-content: flex-start; text-align: left;">
-                <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px;">
-                    <div style="font-size: 2.5rem;">📖</div>
-                    <div>
-                        <h3 style="margin: 0; font-size: 1.1rem;">Ingestion Progress</h3>
-                        <p style="color: var(--text-dim); font-size: 0.8rem; margin: 2px 0 0 0;">Gmail & Paperless NGX</p>
-                    </div>
-                </div>
-
-                <div style="width: 100%; margin-bottom: 20px;">
-                    <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 8px;">
-                        <span style="color: var(--text-dim);">Gmail Backfill (2019-2026)</span>
-                        <span id="gmail-pct-label" style="color: var(--accent); font-weight: bold;">0%</span>
-                    </div>
-                    <div style="width: 100%; height: 8px; background: #30363d; border-radius: 4px; overflow: hidden;">
-                        <div id="gmail-progress-inner" style="width: 0%; height: 100%; background: var(--accent); transition: width 1s ease;"></div>
-                    </div>
-                    <div id="gmail-eta" style="font-size: 0.75rem; color: #ffa657; margin-top: 8px;">Estimating completion...</div>
-                </div>
-
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; margin-bottom: 25px;">
-                    <div style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 10px; border: 1px solid var(--border);">
-                        <div style="font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase;">Indexed Emails</div>
-                        <div id="gmail-count-val" style="font-size: 1.2rem; font-weight: bold; margin-top: 4px;">-</div>
-                    </div>
-                    <div style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 10px; border: 1px solid var(--border);">
-                        <div style="font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase;">Paperless Docs</div>
-                        <div id="paperless-count-val" style="font-size: 1.2rem; font-weight: bold; margin-top: 4px;">-</div>
-                    </div>
-                </div>
-
-                <div style="display: flex; gap: 10px; margin-top: auto; width: 100%;">
-                    <a href="http://localhost:8000" target="_blank" class="btn" style="flex: 1; text-align: center; font-size: 0.85rem; padding: 10px;">Archive</a>
-                    <a href="data/workspace/apps/ingestion_rag_control_center/index.html" target="_blank" class="btn" style="flex: 1; text-align: center; font-size: 0.85rem; padding: 10px; background: transparent; border: 1px solid var(--accent); color: var(--accent);">Monitor</a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Zone 6: File Sync -->
-        <div class="card">
-            <div class="card-header">
-                <div class="title">🔄 FILE SERVER SYNC</div>
-                <a href="data/workspace/file_server_sync_status.json" target="_blank">View Status ↗</a>
-            </div>
-            <div class="iframe-container" style="background: #0b0e14; flex-direction: column; padding: 20px; text-align: center;">
-                <div style="font-size: 3.5rem; margin-bottom: 20px;">📂</div>
-                <h3 style="margin: 0 0 10px 0;">Folder Mirroring</h3>
-                <p style="color: var(--text-dim); font-size: 0.9rem; margin-bottom: 25px;">
-                    Differential sync from corporate server to Mini PC.
-                </p>
-                <div style="display: flex; gap: 10px;">
-                    <a href="data/workspace/file_server_sync_config.json" target="_blank" class="btn" style="background: #30363d; color: white;">Configure</a>
-                    <a href="data/workspace/file_server_sync_status.json" target="_blank" class="btn">Latest Log</a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Zone 7: Generative & Visual -->
-        <div class="card">
-            <div class="card-header">
-                <div class="title">🚀 AUTO LP GENERATOR</div>
-                <a href="http://localhost:8010/ui" target="_blank">Expand ↗</a>
+                <div class="title">🏗️ ENGINEERING HUB</div>
+                <a href="data/workspace/apps/three_d_workbench/index.html" target="_blank">Launch ↗</a>
             </div>
             <div class="iframe-container" style="background: #161b22; flex-direction: column; padding: 20px; text-align: center;">
-                <div style="font-size: 3.5rem; margin-bottom: 15px;">🌐</div>
-                <h3 style="margin: 0 0 5px 0;">Automated Web Assets</h3>
-                <p style="color: var(--text-dim); font-size: 0.85rem; margin-bottom: 20px;">
-                    Generate IATF / QA Landing Pages and technical documentation automatically.
+                <div style="font-size: 3rem; margin-bottom: 15px;">📐</div>
+                <h3 style="margin: 0;">3D & Geometry Pipeline</h3>
+                <p style="color: var(--text-dim); font-size: 0.85rem; margin-top: 10px;">
+                    DXF2STEP, FCStd Protocols, and GD&T Overlays.
                 </p>
-                <a href="http://localhost:8010/ui" target="_blank" class="btn" style="width: 200px; background: linear-gradient(to right, #58a6ff, #bc8cff); color: white;">Open Generator</a>
+                <div style="display: flex; gap: 8px; margin-top: 20px; flex-wrap: wrap; justify-content: center;">
+                    <a href="data/workspace/apps/three_d_workbench/index.html" class="btn" style="font-size: 0.8rem; padding: 8px 16px;">Workbench</a>
+                    <a href="data/workspace/apps/dxf2step/index.html" class="btn" style="font-size: 0.8rem; padding: 8px 16px; background: #30363d;">DXF2STEP</a>
+                </div>
             </div>
         </div>
 
+        <!-- ZONE 3: QUALITY & AUDIT HUB -->
         <div class="card">
             <div class="card-header">
-                <div class="title">📸 VISUAL QA AUTOMATION</div>
-                <a href="http://localhost:8011/ui" target="_blank">Expand ↗</a>
+                <div class="title">✅ QUALITY & AUDIT</div>
+                <a href="http://localhost:8090" target="_blank">Insights ↗</a>
             </div>
             <div class="iframe-container" style="background: #0b0e14; flex-direction: column; padding: 20px; text-align: center;">
-                <div style="font-size: 3.5rem; margin-bottom: 15px;">🖼️</div>
-                <h3 style="margin: 0 0 5px 0;">Image2QA Protocol</h3>
-                <p style="color: var(--text-dim); font-size: 0.85rem; margin-bottom: 20px;">
-                    Convert audit photos and defect images into visual education materials.
-                </p>
-                <a href="http://localhost:8011/ui" target="_blank" class="btn" style="width: 200px; background: #238636; color: white;">Start Visual QA</a>
+                <div style="font-size: 3rem; margin-bottom: 15px;">🛡️</div>
+                <h3 style="margin: 0;">Inspection & Compliance</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; margin-top: 20px;">
+                    <a href="http://localhost:8090" target="_blank" class="btn" style="font-size: 0.8rem; padding: 10px;">QMS Dashboard</a>
+                    <a href="http://localhost:8011/ui" target="_blank" class="btn" style="font-size: 0.8rem; padding: 10px; background: #238636;">Visual QA</a>
+                </div>
+                <a href="data/workspace/apps/qms_audit/index.html" target="_blank" class="btn" style="width: 100%; margin-top: 10px; font-size: 0.8rem; background: #30363d;">Audit Checklist Pro</a>
             </div>
         </div>
 
+        <!-- ZONE 4: KNOWLEDGE & RAG HUB -->
+        <div class="card">
+            <div class="card-header">
+                <div class="title">📚 KNOWLEDGE RAG <span id="ingest-badge" class="badge">SYNCED</span></div>
+                <a href="data/workspace/apps/knowledge_hub/index.html" target="_blank">Enter Hub ↗</a>
+            </div>
+            <div class="iframe-container" style="background: #161b22; flex-direction: column; padding: 25px; align-items: flex-start; text-align: left;">
+                <div style="width: 100%; margin-bottom: 15px;">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 5px;">
+                        <span style="color: var(--text-dim);">Gmail Ingest</span>
+                        <span id="gmail-pct-label" style="color: var(--accent); font-weight: bold;">0%</span>
+                    </div>
+                    <div style="width: 100%; height: 6px; background: #30363d; border-radius: 3px; overflow: hidden;">
+                        <div id="gmail-progress-inner" style="width: 0%; height: 100%; background: var(--accent);"></div>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 10px; width: 100%;">
+                    <a href="http://localhost:8000" target="_blank" class="btn" style="flex: 1; font-size: 0.8rem; padding: 8px;">Paperless</a>
+                    <a href="data/workspace/apps/ingestion_rag_control_center/index.html" target="_blank" class="btn" style="flex: 1; font-size: 0.8rem; padding: 8px; background: #30363d;">Monitor</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- ZONE 5: AUTOMATION & OPS -->
+        <div class="card">
+            <div class="card-header">
+                <div class="title">⚡ AUTOMATION & OPS</div>
+                <a href="http://localhost:1880" target="_blank">Node-RED ↗</a>
+            </div>
+            <div class="iframe-container" style="background: #0b0e14; display: grid; grid-template-columns: 1fr 1fr; padding: 15px; gap: 10px;">
+                <a href="http://localhost:5679" target="_blank" class="btn" style="display: flex; flex-direction: column; justify-content: center; height: 100%; background: #30363d;">
+                    <span style="font-size: 1.5rem;">🔗</span>
+                    <span style="font-size: 0.75rem; margin-top: 5px;">n8n Flows</span>
+                </a>
+                <a href="data/workspace/apps/observability_hub/index.html" target="_blank" class="btn" style="display: flex; flex-direction: column; justify-content: center; height: 100%;">
+                    <span style="font-size: 1.5rem;">📈</span>
+                    <span style="font-size: 0.75rem; margin-top: 5px;">System Status</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- ZONE 6: CREATIVE HUB -->
+        <div class="card studio-card">
+            <div class="card-header">
+                <div class="title">🎨 CREATIVE HUB</div>
+                <a href="data/workspace/apps/creative_studio/index.html" target="_blank">Studio ↗</a>
+            </div>
+            <div class="iframe-container" style="background: var(--bg-color); flex-direction: column; padding: 20px; text-align: center;">
+                <div style="font-size: 3rem; margin-bottom: 10px;">🎬</div>
+                <h3 style="margin: 0;">AI Video & Content</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; margin-top: 15px;">
+                    <a href="data/workspace/apps/creative_studio/index.html" class="btn" style="background: var(--studio-gradient); color: white; font-size: 0.75rem; padding: 8px;">Studio</a>
+                    <a href="http://localhost:8010/ui" target="_blank" class="btn" style="font-size: 0.75rem; padding: 8px; background: #30363d;">LP Gen</a>
+                    <a href="protocols/anijam/README.md" target="_blank" class="btn" style="font-size: 0.75rem; padding: 8px; background: #30363d;">Anijam QA</a>
+                    <a href="protocols/ace_step/01_FAST_START.md" target="_blank" class="btn" style="font-size: 0.75rem; padding: 8px; background: #30363d;">ACE Lab</a>
+                </div>
+            </div>
+        </div>
     </div>
 
     <footer>

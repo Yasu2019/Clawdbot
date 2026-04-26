@@ -1,0 +1,26 @@
+name: AI Guardrails
+
+on:
+  pull_request:
+  push:
+
+jobs:
+  guardrails:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check protected paths
+        run: |
+          set -e
+          base="${{ github.event.before }}"
+          if [ -z "$base" ] || [ "$base" = "0000000000000000000000000000000000000000" ]; then
+            base="HEAD~1"
+          fi
+          changed=$(git diff --name-only "$base" HEAD || true)
+          echo "$changed"
+          if echo "$changed" | grep -E "app/views/layouts|app/views/shared|app/assets|app/javascript|config/routes.rb|\.env|config/master.key|config/credentials.yml.enc"; then
+            echo "Protected paths changed. Confirm explicit approval and backup."
+            exit 1
+          fi

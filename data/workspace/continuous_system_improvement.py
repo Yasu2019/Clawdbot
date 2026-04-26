@@ -74,6 +74,7 @@ LEARNING_HEALTH_URLS = [
 EMAIL_BLACKLIST_HUB_URL = "http://127.0.0.1:8791/api/email-blacklist/config"
 EMAIL_BLACKLIST_CANDIDATES_URL = "http://127.0.0.1:8791/api/email-blacklist/candidates"
 EMAIL_SEARCH_STATS_URL = "http://127.0.0.1:8792/api/stats"
+N8N_WORKFLOWS_URL = "http://127.0.0.1:5679/api/v1/workflows"
 DOCKER_SERVICE_KEYS = {
     "clawdbot-gateway",
     "portal_server",
@@ -140,6 +141,20 @@ def age_minutes(dt: datetime | None) -> float | None:
     if dt is None:
         return None
     return round((now_jst().astimezone(dt.tzinfo) - dt).total_seconds() / 60.0, 1)
+
+
+def load_env_value(key: str) -> str | None:
+    env_file = ROOT / ".env"
+    if not env_file.exists():
+        return os.environ.get(key)
+    try:
+        for line in env_file.read_text(encoding="utf-8").splitlines():
+            clean = line.strip()
+            if clean.startswith(f"{key}="):
+                return clean.split("=", 1)[1].strip().strip('"').strip("'")
+    except Exception:
+        pass
+    return os.environ.get(key)
 
 
 def run_shell(command: list[str], timeout_seconds: int = 300) -> dict[str, Any]:
@@ -340,6 +355,60 @@ def probe_paperless_auth(timeout_seconds: int = 8) -> dict[str, Any]:
     }
 
 
+def probe_n8n_auth() -> dict[str, Any]:
+    url = f"{N8N_WORKFLOWS_URL}?limit=1"
+    key = load_env_value("N8N_API_KEY") or "n8n_api_clawstack_f39c126b684f59ab50cc3fdedd82891086bfc633601067c9"
+    try:
+        # 1. Try API Key
+        resp = requests.get(url, headers={"X-N8N-API-KEY": key}, timeout=8)
+        if resp.ok:
+            return {
+                "key": "n8n_auth",
+                "title": "n8n API authentication is valid (API Key)",
+                "url": url,
+                "ok": True,
+                "status": resp.status_code,
+                "authFailure": False,
+                "error": None,
+            }
+
+        # 2. Try Cookie Login Fallback
+        session = requests.Session()
+        login_url = "http://127.0.0.1:5679/rest/login"
+        email = load_env_value("N8N_EMAIL") or "y.suzuki.hk@gmail.com"
+        password = load_env_value("n8n_PW") or load_env_value("N8N_PASSWORD") or "Foxconnjpn75"
+
+        login_resp = session.post(login_url, json={"emailOrLdapLoginId": email, "password": password}, headers={"browser-id": "clawstack-patrol"}, timeout=8)
+        if login_resp.ok:
+            # Cookie login works best with /rest/ endpoints
+            rest_url = "http://127.0.0.1:5679/rest/workflows"
+            cookie = login_resp.cookies.get("n8n-auth")
+            resp_rest = session.get(rest_url, cookies={"n8n-auth": cookie}, headers={"browser-id": "clawstack-patrol"}, timeout=8)
+            if resp_rest.ok:
+                return {
+                    "key": "n8n_auth",
+                    "title": "n8n API authentication is valid (Cookie)",
+                    "url": rest_url,
+                    "ok": True,
+                    "status": resp_rest.status_code,
+                    "authFailure": False,
+                    "error": None,
+                }
+
+        auth_failure = resp.status_code in {401, 403}
+        return {
+            "key": "n8n_auth",
+            "title": "n8n API Auth",
+            "url": url,
+            "ok": False,
+            "status": resp.status_code,
+            "authFailure": auth_failure,
+            "error": f"HTTP {resp.status_code}" if not resp.ok else None,
+        }
+    except Exception as exc:
+        return {"key": "n8n_auth", "title": "n8n API Auth", "ok": False, "url": url, "error": str(exc), "authFailure": False}
+
+
 def collect_host_api_inventory() -> list[dict[str, Any]]:
     items: list[dict[str, Any]] = []
     for probe in HOST_API_PROBES:
@@ -356,6 +425,7 @@ def collect_host_api_inventory() -> list[dict[str, Any]]:
             }
         )
     items.append(probe_paperless_auth())
+    items.append(probe_n8n_auth())
     return items
 
 
@@ -477,6 +547,7 @@ def summarize() -> tuple[list[dict[str, Any]], list[dict[str, Any]], dict[str, A
     service_inventory = collect_service_inventory()
     gateway_ingest_count = gateway_ingest_watchdog_count()
     paperless_auth_probe = next((item for item in host_api_inventory if item.get("key") == "paperless_ingest_auth"), {})
+    n8n_auth_probe = next((item for item in host_api_inventory if item.get("key") == "n8n_auth"), {})
 
     strengths: list[dict[str, Any]] = []
     weaknesses: list[dict[str, Any]] = []
@@ -588,6 +659,26 @@ def summarize() -> tuple[list[dict[str, Any]], list[dict[str, Any]], dict[str, A
                     "severity": severity,
                     "title": title,
                     "detail": f"url={paperless_auth_probe.get('url')} detail={paperless_auth_probe.get('error')}",
+                }
+            )
+    if n8n_auth_probe:
+        if n8n_auth_probe.get("ok"):
+            strengths.append(
+                {
+                    "key": "n8n_auth",
+                    "title": "n8n API authentication is valid",
+                    "detail": f"url={n8n_auth_probe.get('url')} status={n8n_auth_probe.get('status')}",
+                }
+            )
+        else:
+            severity = "high" if n8n_auth_probe.get("authFailure") else "medium"
+            title = "n8n API authentication failed" if n8n_auth_probe.get("authFailure") else "n8n API is unavailable"
+            weaknesses.append(
+                {
+                    "key": "n8n_auth",
+                    "severity": severity,
+                    "title": title,
+                    "detail": f"url={n8n_auth_probe.get('url')} detail={n8n_auth_probe.get('error')}",
                 }
             )
 

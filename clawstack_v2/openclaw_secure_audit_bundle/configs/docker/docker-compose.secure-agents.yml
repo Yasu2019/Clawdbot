@@ -1,0 +1,44 @@
+services:
+  claude_code_runner:
+    image: node:22-bookworm-slim
+    container_name: claude_code_runner_secure
+    user: "1000:1000"
+    working_dir: /workspace
+    command: ["bash", "-lc", "sleep infinity"]
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=256m
+    volumes:
+      - ./workspace:/workspace:rw
+      - ./readonly_inputs:/inputs:ro
+    environment:
+      - NODE_ENV=production
+      - HOME=/workspace/.home
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    networks:
+      - ai_restricted_net
+
+  openclaw_gateway_guarded:
+    image: node:22-bookworm-slim
+    container_name: openclaw_gateway_guarded
+    user: "1000:1000"
+    working_dir: /app
+    command: ["bash", "-lc", "sleep infinity"]
+    read_only: false
+    volumes:
+      - ./openclaw_app:/app:rw
+      - ./policies:/policies:ro
+      - ./evidence:/evidence:rw
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    networks:
+      - ai_restricted_net
+
+networks:
+  ai_restricted_net:
+    driver: bridge

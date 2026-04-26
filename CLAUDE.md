@@ -33,3 +33,34 @@
 - Model router: `data/workspace/model_router.py`
 - Session protocol: `docs/token_saving_session_protocol.md`
 - Trouble log: `data/workspace/memory/trouble_history.md`
+
+---
+# Added by AI Surgical Guardrails v1
+
+# CLAUDE.md - Claude Code Guardrails
+
+## Core Principles
+- Think Before Coding
+- Simplicity First
+- Surgical Changes
+- Goal-Driven Execution
+- Backup Before Large Change
+
+## Hard Constraints
+- No broad refactor without explicit approval.
+- No layout, CSS, route, shared partial, or architecture change without explicit approval.
+- No large formatting-only changes.
+- No hidden file moves or dependency changes.
+
+## Backup Rule
+Before multi-file edits, refactors, UI/layout changes, or risky changes:
+1. Commit current state.
+2. Push backup to GitHub if possible.
+3. If push fails, create local backup branch.
+4. Report backup result.
+
+## Editing Policy
+Only touch code required to satisfy the requested goal.
+
+## Diff Quality
+Keep diffs minimal, readable, and reviewable.
