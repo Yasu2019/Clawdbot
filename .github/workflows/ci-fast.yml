@@ -95,6 +95,11 @@ jobs:
             | grep -v "node_modules/" \
             | grep -v "data/workspace/projects/" \
             | grep -v "iatf_system/" \
+            | grep -v "temp_" \
+            | grep -v "shannon_test_target/" \
+            | grep -v "scratch/" \
+            | grep -v "\.tmp_" \
+            | grep -v "tmp_" \
             | tr '\n' '\0')
           echo "=== 検査完了 ==="
           if [ "$FAILED" -gt 0 ]; then

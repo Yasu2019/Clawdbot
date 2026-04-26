@@ -82,6 +82,11 @@ jobs:
             -not -path "*/node_modules/*" \
             -not -path "./data/workspace/projects/*" \
             -not -path "./iatf_system/*" \
+            -not -path "./temp_*" \
+            -not -path "./shannon_test_target/*" \
+            -not -path "./scratch/*" \
+            -not -path "./.tmp_*" \
+            -not -path "./tmp_*" \
             -print0)
           if [ "$FAILED" -gt 0 ]; then
             echo "::error::$FAILED ファイルで YAML エラー"
