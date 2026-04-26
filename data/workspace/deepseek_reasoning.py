@@ -107,6 +107,7 @@ def extract_answer(response: str) -> tuple[str, str]:
 
 
 def main():
+    global OLLAMA_URL
     parser = argparse.ArgumentParser(description="DeepSeek-R1 Reasoning Subagent")
     parser.add_argument("problem", nargs="?", help="推論させる問題（'-'でstdin）")
     parser.add_argument("--model", default=DEFAULT_MODEL,
@@ -118,7 +119,6 @@ def main():
     parser.add_argument("--json", action="store_true", help="JSON形式で出力")
     args = parser.parse_args()
 
-    global OLLAMA_URL
     OLLAMA_URL = args.url
 
     if args.problem == "-":

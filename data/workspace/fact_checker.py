@@ -105,6 +105,7 @@ def fact_check(text: str, verbose: bool = True) -> list[dict]:
 
 
 def main():
+    global SEARXNG_URL
     parser = argparse.ArgumentParser(description="SearXNG Fact Checker")
     parser.add_argument("text", nargs="?", help="チェックするテキスト（'-'でstdin）")
     parser.add_argument("--batch", metavar="FILE", help="1行1主張のテキストファイル")
@@ -112,7 +113,6 @@ def main():
     parser.add_argument("--url", default=SEARXNG_URL, help=f"SearXNG URL (default: {SEARXNG_URL})")
     args = parser.parse_args()
 
-    global SEARXNG_URL
     SEARXNG_URL = args.url
 
     if args.batch:
