@@ -1,0 +1,9 @@
+{
+  "id": "opencode-go-intelligence-hub",
+  "title": "OpenCode GO Intelligence Hub",
+  "description": "外部情報収集・有益性判定・採用候補化・安全ゲートを行うClawstack拡張カード",
+  "url": "/apps/opencode_go_intel/index.html",
+  "category": "AI Ops",
+  "icon": "https://opencode.ai/favicon.ico",
+  "tags": ["OpenCode GO", "LiteLLM", "External Intelligence", "Governance", "Clawstack"]
+}

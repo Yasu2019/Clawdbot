@@ -1,0 +1,9 @@
+{
+  "id": "design-cae-loop-agent",
+  "title": "DesignCAE Loop Agent",
+  "description": "3D/2Dモデル、金型、DOE、CAE、ノウハウ蓄積を安全に支援する増設カード",
+  "path": "/apps/design_cae_loop/index.html",
+  "tags": ["CAE", "DOE", "OpenRadioss", "OpenFOAM", "樹脂成形", "順送プレス"],
+  "risk_level": "controlled",
+  "external_ai_policy": "public_or_anonymized_only"
+}

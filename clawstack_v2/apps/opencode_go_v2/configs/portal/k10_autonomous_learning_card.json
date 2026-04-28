@@ -1,0 +1,9 @@
+{
+  "id": "k10-autonomous-learning",
+  "title": "K10 自律ノウハウ蓄積",
+  "description": "公開情報の調査、有益性判定、DB登録、改善提案を行う。自動本番変更は禁止。",
+  "path": "/apps/k10_learning/index.html",
+  "tags": ["OpenCode GO", "Knowledge", "Safety", "Research"],
+  "default_mode": "Learn",
+  "allowed_modes": ["Observe", "Learn", "Propose", "Implement-Dev"]
+}

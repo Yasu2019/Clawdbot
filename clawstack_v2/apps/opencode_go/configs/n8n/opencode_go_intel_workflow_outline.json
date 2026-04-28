@@ -1,0 +1,12 @@
+{
+  "name": "OpenCode GO External Intelligence Outline",
+  "nodes": [
+    {"name": "Manual Trigger", "type": "n8n-nodes-base.manualTrigger"},
+    {"name": "Collect Public Info", "type": "HTTP Request / RSS / Search placeholder"},
+    {"name": "Redact", "type": "Function: remove secrets and identifiers"},
+    {"name": "Evaluate Usefulness", "type": "LiteLLM Chat: opencode-go/kimi-k2.6"},
+    {"name": "Safety Gate", "type": "LiteLLM Chat: local model or premium reviewer"},
+    {"name": "Create Adoption Report", "type": "Markdown file / Paperless / Git"}
+  ],
+  "note": "This is an import outline, not a ready credentialed workflow. Build with your existing n8n credentials and LiteLLM endpoint."
+}

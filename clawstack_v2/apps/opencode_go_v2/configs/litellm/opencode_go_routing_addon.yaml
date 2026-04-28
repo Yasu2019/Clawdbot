@@ -1,0 +1,17 @@
+# LiteLLM 追加ルーティング例。既存configへ手動追記してください。
+model_list:
+  - model_name: opencode-go-research
+    litellm_params:
+      model: openai/opencode-go-default
+      api_base: ${OPENCODE_GO_API_BASE}
+      api_key: ${OPENCODE_GO_API_KEY}
+    model_info:
+      mode: external_public_research_only
+      allowed_data: public_or_anonymized_only
+
+  - model_name: local-safe-review
+    litellm_params:
+      model: ollama/qwen3:8b
+      api_base: http://127.0.0.1:11434
+    model_info:
+      mode: local_confidential_review_allowed

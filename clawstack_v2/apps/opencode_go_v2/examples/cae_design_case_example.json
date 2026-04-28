@@ -1,0 +1,15 @@
+{
+  "domain": "plastic_molding",
+  "model_feature_json": {
+    "part_type": "anonymous_cover",
+    "features": ["rib", "boss", "thin_wall", "gate_candidate"],
+    "dimension_policy": "normalized_only"
+  },
+  "doe_plan_json": {
+    "factors": ["melt_temperature", "mold_temperature", "injection_speed", "packing_pressure", "cooling_time"],
+    "method": "D-optimal or Taguchi"
+  },
+  "cae_solver": "OpenFOAM/Elmer/CalculiX/OpenRadioss candidate",
+  "result_summary": "ヒケ、ソリ、ウエルドライン、収縮、バリ、型剛性を評価する。",
+  "outcome": "unknown"
+}

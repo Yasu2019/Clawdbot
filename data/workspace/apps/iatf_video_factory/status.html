@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>IATF動画工場 ステータス</title>
+<style>
+  body { background: #0f1117; color: #e0e4f0; font-family: "Segoe UI","Noto Sans JP",sans-serif; padding: 24px; }
+  h1 { font-size: 20px; margin-bottom: 20px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; padding: 8px 12px; background: #1a1d26; color: #6b7299; font-weight: 600; }
+  td { padding: 8px 12px; border-bottom: 1px solid #2e3348; }
+  .done  { color: #4caf7d; } .running { color: #f97316; }
+  .error { color: #e05555; } .pending { color: #6b7299; }
+  .refresh { background: #4f8ef7; color: #fff; border: none; padding: 8px 18px; border-radius: 6px; cursor: pointer; margin-bottom: 16px; font-size: 13px; }
+</style>
+</head>
+<body>
+<h1>🎬 IATF動画工場 — 生成ステータス</h1>
+<button class="refresh" onclick="load()">更新</button>
+<table>
+  <thead><tr><th>ID</th><th>PDFファイル</th><th>箇条</th><th>トピック</th><th>ステータス</th><th>時間(秒)</th><th>更新日時</th></tr></thead>
+  <tbody id="tbody"></tbody>
+</table>
+<script>
+async function load() {
+  try {
+    const res = await fetch('http://localhost:18797/videos');
+    const videos = await res.json();
+    const tbody = document.getElementById('tbody');
+    if (!videos.length) { tbody.innerHTML = '<tr><td colspan="7" style="color:#6b7299;padding:20px">生成済み動画なし</td></tr>'; return; }
+    tbody.innerHTML = videos.map((v, i) => `
+      <tr>
+        <td>${i+1}</td>
+        <td><a href="http://localhost:18797/video/${v.name}/stream" style="color:#4f8ef7" target="_blank">${v.name}</a></td>
+        <td>-</td><td>-</td>
+        <td class="done">done</td>
+        <td>-</td><td>-</td>
+      </tr>`).join('');
+  } catch(e) {
+    document.getElementById('tbody').innerHTML = `<tr><td colspan="7" style="color:#e05555">APIエラー: ${e.message} (エディタAPIが起動していません)</td></tr>`;
+  }
+}
+load();
+</script>
+</body>
+</html>

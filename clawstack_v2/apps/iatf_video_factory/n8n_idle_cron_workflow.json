@@ -1,0 +1,91 @@
+{
+  "name": "IATF動画工場 idle cron",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 2,4,6 * * *"
+            }
+          ]
+        }
+      },
+      "id": "cron-trigger",
+      "name": "深夜Cron (2時/4時/6時)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "command": "docker inspect --format='{{.State.Status}}' iatf-video-factory 2>/dev/null || echo 'stopped'"
+      },
+      "id": "check-running",
+      "name": "工場コンテナ状態確認",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json.stdout.trim()}}",
+              "operation": "notEqual",
+              "value2": "running"
+            }
+          ]
+        }
+      },
+      "id": "if-not-running",
+      "name": "実行中でなければ起動",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "command": "docker compose -f /d/Clawdbot_Docker_20260125/docker-compose.yml -f /d/Clawdbot_Docker_20260125/docker-compose.iatf-video.yml run --rm iatf-video-factory python3 pipeline/orchestrator.py --limit 1 >> /tmp/iatf_video_factory.log 2>&1 &"
+      },
+      "id": "run-factory",
+      "name": "工場1本生成",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [900, 220]
+    },
+    {
+      "parameters": {
+        "chatId": "={{$env.TELEGRAM_CHAT_ID}}",
+        "text": "🎬 IATF動画工場 起動 — 深夜バッチ開始 ({{$now.toISO()}})"
+      },
+      "id": "notify-telegram",
+      "name": "Telegram通知",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [1120, 220]
+    }
+  ],
+  "connections": {
+    "深夜Cron (2時/4時/6時)": {
+      "main": [[{ "node": "工場コンテナ状態確認", "type": "main", "index": 0 }]]
+    },
+    "工場コンテナ状態確認": {
+      "main": [[{ "node": "実行中でなければ起動", "type": "main", "index": 0 }]]
+    },
+    "実行中でなければ起動": {
+      "main": [
+        [{ "node": "工場1本生成", "type": "main", "index": 0 }],
+        []
+      ]
+    },
+    "工場1本生成": {
+      "main": [[{ "node": "Telegram通知", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

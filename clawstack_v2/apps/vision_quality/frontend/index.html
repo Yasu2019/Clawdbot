@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <title>OpenClaw 視覚AI品質検査</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 24px; background:#f7f7f7; color:#222; }
+    .card { background:white; border-radius:16px; padding:20px; margin-bottom:16px; box-shadow:0 4px 16px rgba(0,0,0,.08); }
+    label { display:block; margin-top:10px; font-weight:600; }
+    input { width:100%; padding:10px; border:1px solid #ccc; border-radius:8px; }
+    button { padding:12px 18px; border:0; border-radius:10px; background:#222; color:white; cursor:pointer; margin-top:16px; }
+    pre { background:#111; color:#eee; padding:16px; border-radius:12px; overflow:auto; }
+    .warn { color:#a33; font-weight:bold; }
+  </style>
+</head>
+<body>
+  <h1>OpenClaw 視覚AI品質検査</h1>
+  <div class="card">
+    <p>画像をアップロードし、不良候補をAI補助判定します。最終判定は人間レビュー前提です。</p>
+    <form id="form">
+      <label>画像</label>
+      <input type="file" name="image" accept="image/*" required>
+      <label>品番</label>
+      <input name="part_no" placeholder="例: NT5480-P50-01">
+      <label>Lot No</label>
+      <input name="lot_no" placeholder="例: 250115">
+      <label>設備ID</label>
+      <input name="machine_id" placeholder="例: AMADA80T-3">
+      <label>ショット数</label>
+      <input name="shot_count">
+      <label>SPM</label>
+      <input name="spm">
+      <label>チョコ停止回数</label>
+      <input name="chokotei_count">
+      <button type="submit">検査する</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2>結果</h2>
+    <div id="summary"></div>
+    <pre id="result">未実行</pre>
+  </div>
+
+<script>
+const API = "http://localhost:18795";
+
+document.getElementById("form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const fd = new FormData(e.target);
+  const res = await fetch(`${API}/inspect`, { method: "POST", body: fd });
+  const data = await res.json();
+  document.getElementById("result").textContent = JSON.stringify(data, null, 2);
+  document.getElementById("summary").innerHTML =
+    `<p><b>判定:</b> ${data.judgement}</p>` +
+    `<p><b>候補:</b> ${data.defect_candidates.join(", ") || "なし"}</p>` +
+    `<p><b>信頼度:</b> ${Math.round(data.confidence * 100)}%</p>` +
+    (data.human_review_required ? `<p class="warn">人間レビューが必要です</p>` : "");
+});
+</script>
+</body>
+</html>

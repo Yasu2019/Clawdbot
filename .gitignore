@@ -148,3 +148,12 @@ tmp_*/
 *.tar.gz
 *.7z
 *.rar
+
+# Python cache
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+
+# Large asset directories
+data/meshy_assets/
+data/iatf_videos/

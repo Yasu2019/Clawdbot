@@ -1,4 +1,62 @@
 model_list:
+  # ── OpenCode GO v2: Research alias + Local safe review (Added 2026-04-28) ──
+  # 外部公開情報調査専用エイリアス。機密データ投入禁止。
+  - model_name: opencode-go-research
+    litellm_params:
+      model: openai/deepseek-v4-flash
+      api_base: os.environ/OPENCODE_GO_API_BASE
+      api_key: os.environ/OPENCODE_GO_API_KEY
+      timeout: 120
+    model_info:
+      mode: external_public_research_only
+  # 機密情報含むレビューはローカルのみ
+  - model_name: local-safe-review
+    litellm_params:
+      model: ollama/qwen3:8b
+      api_base: http://ollama:11434
+      api_key: ollama
+    model_info:
+      mode: local_confidential_review_allowed
+
+  # ── OpenCode GO External AI Layer (Added 2026-04-28) ────────────
+  # 外部情報収集・有益性評価・差分案作成用。機密データ投入禁止。
+  - model_name: opencode-go/kimi-k2.6
+    litellm_params:
+      model: openai/kimi-k2.6
+      api_base: os.environ/OPENCODE_GO_API_BASE
+      api_key: os.environ/OPENCODE_GO_API_KEY
+      timeout: 120
+  - model_name: opencode-go/glm-5.1
+    litellm_params:
+      model: openai/glm-5.1
+      api_base: os.environ/OPENCODE_GO_API_BASE
+      api_key: os.environ/OPENCODE_GO_API_KEY
+      timeout: 120
+  - model_name: opencode-go/deepseek-v4-flash
+    litellm_params:
+      model: openai/deepseek-v4-flash
+      api_base: os.environ/OPENCODE_GO_API_BASE
+      api_key: os.environ/OPENCODE_GO_API_KEY
+      timeout: 120
+  - model_name: opencode-go/deepseek-v4-pro
+    litellm_params:
+      model: openai/deepseek-v4-pro
+      api_base: os.environ/OPENCODE_GO_API_BASE
+      api_key: os.environ/OPENCODE_GO_API_KEY
+      timeout: 120
+
+  # ── DeepSeek V4 Production Layer (Added 2026-04-28) ─────────────
+  - model_name: deepseek-v4-pro
+    litellm_params:
+      model: openai/deepseek-chat
+      api_base: https://api.deepseek.com/v1
+      api_key: "${DEEPSEEK_API_KEY}"
+  - model_name: deepseek-v4-flash
+    litellm_params:
+      model: openai/deepseek-chat
+      api_base: https://api.deepseek.com/v1
+      api_key: "${DEEPSEEK_API_KEY}"
+
   # ── Claudian Protocol Aliases (2026-04-09) ──────────────────────
   - model_name: claude
     litellm_params:
@@ -151,3 +209,6 @@ environment_variables:
   MOONSHOT_API_KEY: "os.environ/MOONSHOT_API_KEY"
   KIMI_BASE_URL: "os.environ/KIMI_BASE_URL"
   CLOUD_OPENAI_API_KEY: "os.environ/CLOUD_OPENAI_API_KEY"
+  # OpenCode GO
+  OPENCODE_GO_API_KEY: "os.environ/OPENCODE_GO_API_KEY"
+  OPENCODE_GO_API_BASE: "os.environ/OPENCODE_GO_API_BASE"

@@ -1,0 +1,89 @@
+services:
+
+  # ── 動画生成ワーカー（n8n cronからdocker run で起動） ────────────
+  iatf-video-factory:
+    build:
+      context: ./clawstack_v2/apps/iatf_video_factory
+      dockerfile: Dockerfile
+    image: clawstack/iatf-video-factory:latest
+    container_name: iatf-video-factory
+    restart: "no"            # cronから都度起動するため常駐しない
+    environment:
+      LITELLM_URL:         http://litellm:4001
+      LITELLM_MASTER_KEY:  ${LITELLM_MASTER_KEY:-local-dev-key}
+      DATABASE_URL:        postgresql://postgres:${POSTGRES_PASSWORD:-postgres}@postgres:5432/sim_trials
+      VOICEVOX_URL:        http://voicevox:50021
+      IATF_VIDEO_OUTPUT:   /data/iatf_videos
+      IATF_AUDIO_CACHE:    /tmp/iatf_audio
+      BLENDER_BIN:         /usr/local/bin/blender
+      RHUBARB_BIN:         /usr/local/bin/rhubarb
+    volumes:
+      - iatf_pdfs:/iatf_docs:ro
+      - iatf_videos:/data/iatf_videos
+      - iatf_assets:/data/meshy_assets:ro
+    networks:
+      - clawstack-net
+    deploy:
+      resources:
+        limits:
+          cpus: "4.0"
+          memory: "8g"
+
+  # ── 動画エディタ API (port 18797) ────────────────────────────────
+  iatf-video-editor-api:
+    build:
+      context: ./clawstack_v2/apps/iatf_video_editor
+      dockerfile: Dockerfile
+    image: clawstack/iatf-video-editor-api:latest
+    container_name: iatf-video-editor-api
+    restart: unless-stopped
+    ports:
+      - "18797:18797"
+    environment:
+      LITELLM_URL:        http://litellm:4001
+      LITELLM_MASTER_KEY: ${LITELLM_MASTER_KEY:-local-dev-key}
+      DATABASE_URL:       postgresql://postgres:${POSTGRES_PASSWORD:-postgres}@postgres:5432/sim_trials
+      BLENDER_BIN:        /usr/local/bin/blender
+      IATF_VIDEO_ROOT:    /data/iatf_videos
+    volumes:
+      - iatf_videos:/data/iatf_videos
+      - iatf_assets:/data/meshy_assets:ro
+    networks:
+      - clawstack-net
+
+  # ── 動画エディタ UI (port 8096) ──────────────────────────────────
+  iatf-video-editor-ui:
+    image: nginx:1.27-alpine
+    container_name: iatf-video-editor-ui
+    restart: unless-stopped
+    ports:
+      - "8096:80"
+    volumes:
+      - ./clawstack_v2/apps/iatf_video_editor/frontend:/usr/share/nginx/html:ro
+    networks:
+      - clawstack-net
+
+volumes:
+  iatf_videos:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: d:/Clawdbot_Docker_20260125/data/iatf_videos
+  iatf_pdfs:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: d:/Clawdbot_Docker_20260125/iatf_system/db/documents
+  iatf_assets:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: d:/Clawdbot_Docker_20260125/data/meshy_assets
+
+networks:
+  clawstack-net:
+    external: true
+    name: clawstack-unified_default

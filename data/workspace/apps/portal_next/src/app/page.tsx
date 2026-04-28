@@ -14,6 +14,9 @@ const DOMAINS = [
     items: [
       { name: "IATF Rails", href: "http://localhost:3004/users/sign_in", description: "Core compliance system." },
       { name: "Quality Dashboard", href: "http://localhost:8090", description: "FMEA/QIF analytics." },
+      { name: "視覚AI品質検査", href: "http://localhost:8095", description: "外観検査・不良候補検出 (Gemini Vision)." },
+      { name: "IATF動画工場", href: "http://localhost:8088/apps/iatf_video_factory/status.html", description: "内部監査教材3D動画 自律生成 (Blender+VoiceVox)." },
+      { name: "IATF動画エディタ", href: "http://localhost:8096", description: "AI生成動画をタイムスタンプ指定で自然言語編集." },
     ]
   },
   {
@@ -28,11 +31,13 @@ const DOMAINS = [
     items: [
       { name: "OpenRadioss", href: "http://localhost:8088/apps/radioss_hub/index.html", description: "Crash simulation." },
       { name: "Molding Hub", href: "http://localhost:8088/apps/molding_hub/index.html", description: "ElmerFEM cockpit." },
+      { name: "DesignCAE Loop", href: "http://localhost:8088/apps/design_cae_loop/index.html", description: "金型・DOE・CAE・ノウハウ蓄積ループ." },
     ]
   },
   {
     title: "5. Data Ingestion & RAG",
     items: [
+      { name: "OpenCode GO Intel", href: "http://localhost:8088/apps/opencode_go/portal_card/index.html", description: "外部AI情報収集・採用判定レイヤー." },
       { name: "Ingestion / RAG Hub", href: "http://localhost:8088/apps/ingestion_rag_control_center/index.html", description: "Monitor sync health." },
       { name: "Paperless NGX", href: "http://localhost:8000", description: "Document OCR store." },
     ]
@@ -40,6 +45,7 @@ const DOMAINS = [
   {
     title: "6. Autonomous Learning",
     items: [
+      { name: "K10 自律ノウハウ蓄積", href: "http://localhost:8088/apps/k10_learning/index.html", description: "公開情報調査・有益性判定・DB登録 (OpenCode GO)." },
       { name: "Learning Memory", href: "http://localhost:8088/apps/learning_memory/index.html", description: "RL feedback memory." },
       { name: "AI Strategy Scout", href: "http://localhost:8088/apps/ai_strategy_scout/index.html", description: "Daily tactic collection." },
       { name: "AI Governance Hub", href: "http://localhost:8088/apps/paperclip_governance/index.html", description: "Org chart & budget control." },

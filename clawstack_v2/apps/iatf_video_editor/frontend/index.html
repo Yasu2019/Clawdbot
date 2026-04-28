@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IATF動画エディタ</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --panel: #1a1d26;
+    --border: #2e3348;
+    --accent: #4f8ef7;
+    --accent2: #7c5cbf;
+    --text: #e0e4f0;
+    --muted: #6b7299;
+    --ok: #4caf7d;
+    --warn: #e0a830;
+    --err: #e05555;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: "Segoe UI", "Noto Sans JP", sans-serif; font-size: 14px; }
+
+  header {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 20px; border-bottom: 1px solid var(--border);
+    background: var(--panel);
+  }
+  header h1 { font-size: 17px; font-weight: 700; }
+  header .sub { font-size: 12px; color: var(--muted); }
+
+  .layout { display: grid; grid-template-columns: 260px 1fr 320px; height: calc(100vh - 53px); overflow: hidden; }
+
+  /* ── サイドバー ── */
+  .sidebar { background: var(--panel); border-right: 1px solid var(--border); overflow-y: auto; padding: 12px; }
+  .sidebar h2 { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 10px; }
+  .video-item {
+    padding: 10px 12px; border-radius: 8px; cursor: pointer;
+    border: 1px solid transparent; margin-bottom: 6px;
+    transition: background .15s;
+  }
+  .video-item:hover { background: #22273a; }
+  .video-item.active { border-color: var(--accent); background: #1b2340; }
+  .video-item .vname { font-weight: 600; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .video-item .vmeta { font-size: 11px; color: var(--muted); margin-top: 3px; }
+
+  /* ── 中央プレビュー ── */
+  .center { display: flex; flex-direction: column; }
+  .video-wrap { flex: 1; display: flex; align-items: center; justify-content: center; background: #000; }
+  video { max-height: 100%; max-width: 100%; }
+
+  /* タイムライン */
+  .timeline-bar {
+    background: var(--panel); border-top: 1px solid var(--border);
+    padding: 10px 16px; user-select: none;
+  }
+  .timeline-bar h3 { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+  .tl-scroll { overflow-x: auto; }
+  .tl-track { display: flex; height: 36px; position: relative; min-width: 600px; }
+  .tl-seg {
+    position: absolute; top: 0; height: 100%;
+    border-radius: 4px; cursor: pointer; font-size: 11px;
+    display: flex; align-items: center; justify-content: center;
+    padding: 0 4px; overflow: hidden; white-space: nowrap;
+    opacity: .85; transition: opacity .15s;
+    border: 1px solid rgba(255,255,255,.08);
+  }
+  .tl-seg:hover { opacity: 1; }
+  .tl-cursor {
+    position: absolute; top: 0; bottom: 0; width: 2px;
+    background: var(--accent); pointer-events: none;
+    box-shadow: 0 0 6px var(--accent);
+  }
+  .tl-time {
+    position: absolute; top: -18px; transform: translateX(-50%);
+    font-size: 11px; color: var(--accent); white-space: nowrap;
+  }
+
+  /* キャラ色 */
+  .c-bulma    { background: #8b5cf6; }
+  .c-goku     { background: #f97316; }
+  .c-gohan    { background: #22c55e; }
+  .c-android17{ background: #06b6d4; }
+  .c-android18{ background: #ec4899; }
+  .c-roshi    { background: #a3a3a3; }
+  .c-trunks   { background: #84cc16; }
+
+  /* ── 右パネル ── */
+  .panel { background: var(--panel); border-left: 1px solid var(--border); padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; }
+  .panel h2 { font-size: 13px; font-weight: 700; }
+  .panel label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 4px; }
+  .panel input, .panel select, .panel textarea {
+    width: 100%; background: #22273a; border: 1px solid var(--border); border-radius: 6px;
+    color: var(--text); padding: 8px 10px; font-size: 13px; font-family: inherit;
+    resize: vertical;
+  }
+  .panel textarea { min-height: 80px; }
+  .panel input:focus, .panel select:focus, .panel textarea:focus {
+    outline: none; border-color: var(--accent);
+  }
+  .ts-row { display: flex; gap: 8px; }
+  .ts-row input { flex: 1; }
+  .btn {
+    width: 100%; padding: 10px; border-radius: 8px; border: none;
+    font-size: 14px; font-weight: 600; cursor: pointer; transition: opacity .15s;
+  }
+  .btn:hover { opacity: .85; }
+  .btn-primary  { background: var(--accent); color: #fff; }
+  .btn-apply    { background: var(--ok);    color: #fff; }
+  .btn-export   { background: var(--accent2);color: #fff; }
+  .btn:disabled { opacity: .4; cursor: not-allowed; }
+
+  .code-box {
+    background: #111520; border: 1px solid var(--border); border-radius: 6px;
+    padding: 10px; font-family: "Consolas", monospace; font-size: 11px;
+    color: #a8c4ff; white-space: pre-wrap; max-height: 200px; overflow-y: auto;
+  }
+  .status-msg { font-size: 12px; padding: 8px 10px; border-radius: 6px; }
+  .status-ok   { background: #1a3d29; color: var(--ok); }
+  .status-err  { background: #3d1a1a; color: var(--err); }
+  .status-info { background: #1a2340; color: var(--accent); }
+  .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--muted); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; vertical-align: middle; margin-right: 6px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>🎬 IATF動画エディタ</h1>
+    <div class="sub">タイムスタンプをクリック → 自然言語で編集指示</div>
+  </div>
+</header>
+
+<div class="layout">
+
+  <!-- サイドバー: 動画一覧 -->
+  <aside class="sidebar">
+    <h2>生成済み動画</h2>
+    <div id="videoList"></div>
+  </aside>
+
+  <!-- 中央: プレビュー + タイムライン -->
+  <section class="center">
+    <div class="video-wrap">
+      <video id="player" controls preload="metadata">
+        <source src="" type="video/mp4">
+        動画を選択してください
+      </video>
+    </div>
+    <div class="timeline-bar">
+      <h3>タイムライン（クリックで編集箇所を指定）</h3>
+      <div class="tl-scroll">
+        <div class="tl-track" id="tlTrack">
+          <div class="tl-cursor" id="tlCursor" style="left:0">
+            <div class="tl-time" id="tlTime">0.0s</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 右パネル: 編集 -->
+  <aside class="panel">
+    <h2>編集パネル</h2>
+
+    <div>
+      <label>対象キャラクター</label>
+      <select id="charSelect">
+        <option value="bulma">ブルマ</option>
+        <option value="goku">悟空</option>
+        <option value="gohan">御飯</option>
+        <option value="android17">17号</option>
+        <option value="android18">18号</option>
+        <option value="roshi">亀仙人</option>
+        <option value="trunks">トランクス</option>
+      </select>
+    </div>
+
+    <div>
+      <label>編集区間（秒）</label>
+      <div class="ts-row">
+        <input type="number" id="startSec" min="0" step="0.1" placeholder="開始" value="0">
+        <input type="number" id="endSec"   min="0" step="0.1" placeholder="終了" value="3">
+      </div>
+    </div>
+
+    <div>
+      <label>編集指示（日本語で自由に）</label>
+      <textarea id="instruction" placeholder="例: 悟空に驚いた表情で右手を上げてほしい"></textarea>
+    </div>
+
+    <button class="btn btn-primary" id="btnGenerate">
+      パッチ生成（AI）
+    </button>
+
+    <div id="patchSection" style="display:none">
+      <label>生成されたBlenderスクリプト（確認・編集可）</label>
+      <div class="code-box" id="patchCode" contenteditable="true"></div>
+      <br>
+      <button class="btn btn-apply" id="btnApply">
+        適用して再レンダリング
+      </button>
+    </div>
+
+    <div id="statusMsg" style="display:none" class="status-msg"></div>
+
+    <div id="exportSection" style="display:none">
+      <button class="btn btn-export" id="btnExport">
+        編集済み動画をダウンロード
+      </button>
+    </div>
+  </aside>
+
+</div>
+
+<script>
+const API = 'http://localhost:18797';
+let currentVideo = null;
+let currentTimeline = [];
+let currentJobId = null;
+let currentOutputMp4 = null;
+
+// ── 動画一覧読み込み ────────────────────────────────────────
+async function loadVideos() {
+  const res = await fetch(`${API}/videos`);
+  const videos = await res.json();
+  const list = document.getElementById('videoList');
+  list.innerHTML = '';
+  videos.forEach(v => {
+    const el = document.createElement('div');
+    el.className = 'video-item';
+    el.innerHTML = `<div class="vname">${v.name}</div>
+                    <div class="vmeta">MP4</div>`;
+    el.onclick = () => selectVideo(v, el);
+    list.appendChild(el);
+  });
+}
+
+async function selectVideo(v, el) {
+  document.querySelectorAll('.video-item').forEach(e => e.classList.remove('active'));
+  el.classList.add('active');
+  currentVideo = v;
+  const player = document.getElementById('player');
+  player.src = `${API}/video/${v.name}/stream`;
+  player.load();
+
+  // タイムライン読み込み
+  const res = await fetch(`${API}/video/${v.name}/timeline`);
+  currentTimeline = await res.json();
+  renderTimeline(currentTimeline);
+}
+
+// ── タイムライン描画 ────────────────────────────────────────
+function renderTimeline(tl) {
+  const track = document.getElementById('tlTrack');
+  track.innerHTML = `<div class="tl-cursor" id="tlCursor" style="left:0">
+    <div class="tl-time" id="tlTime">0.0s</div>
+  </div>`;
+
+  if (!tl.length) return;
+  const totalSec = tl[tl.length - 1].start_sec + tl[tl.length - 1].duration_sec;
+  const pxPerSec = 40;
+  track.style.width = (totalSec * pxPerSec + 20) + 'px';
+
+  tl.forEach(entry => {
+    const seg = document.createElement('div');
+    seg.className = `tl-seg c-${entry.character}`;
+    seg.style.left  = (entry.start_sec * pxPerSec) + 'px';
+    seg.style.width = (entry.duration_sec * pxPerSec) + 'px';
+    seg.title = `${entry.character}: ${entry.text}`;
+    seg.textContent = entry.character;
+    seg.onclick = () => {
+      document.getElementById('startSec').value = entry.start_sec.toFixed(1);
+      document.getElementById('endSec').value   = (entry.start_sec + entry.duration_sec).toFixed(1);
+      document.getElementById('charSelect').value = entry.character;
+      moveCursor(entry.start_sec, totalSec, pxPerSec);
+    };
+    track.appendChild(seg);
+  });
+
+  // プレイヤー連動カーソル
+  document.getElementById('player').addEventListener('timeupdate', function() {
+    moveCursor(this.currentTime, totalSec, pxPerSec);
+  });
+}
+
+function moveCursor(sec, totalSec, pxPerSec) {
+  const cursor = document.getElementById('tlCursor');
+  const timeEl = document.getElementById('tlTime');
+  if (cursor) {
+    cursor.style.left = (sec * pxPerSec) + 'px';
+    timeEl.textContent = sec.toFixed(1) + 's';
+  }
+}
+
+// ── パッチ生成 ──────────────────────────────────────────────
+document.getElementById('btnGenerate').onclick = async () => {
+  if (!currentVideo) { showStatus('動画を選択してください', 'info'); return; }
+  const instruction = document.getElementById('instruction').value.trim();
+  if (!instruction) { showStatus('編集指示を入力してください', 'info'); return; }
+
+  showStatus('<span class="spinner"></span>AIがBlenderスクリプトを生成中...', 'info');
+  document.getElementById('btnGenerate').disabled = true;
+
+  try {
+    const res = await fetch(`${API}/edit/generate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        video_name:    currentVideo.name,
+        timestamp_sec: parseFloat(document.getElementById('startSec').value),
+        end_sec:       parseFloat(document.getElementById('endSec').value),
+        character:     document.getElementById('charSelect').value,
+        instruction,
+      }),
+    });
+    const data = await res.json();
+    currentJobId = data.job_id;
+    document.getElementById('patchCode').textContent = data.patch_script;
+    document.getElementById('patchSection').style.display = 'block';
+    showStatus('スクリプト生成完了。内容を確認して「適用」してください。', 'ok');
+  } catch (e) {
+    showStatus('生成エラー: ' + e.message, 'err');
+  } finally {
+    document.getElementById('btnGenerate').disabled = false;
+  }
+};
+
+// ── パッチ適用 ──────────────────────────────────────────────
+document.getElementById('btnApply').onclick = async () => {
+  showStatus('<span class="spinner"></span>部分再レンダリング中（数分かかる場合があります）...', 'info');
+  document.getElementById('btnApply').disabled = true;
+
+  try {
+    const res = await fetch(`${API}/edit/apply`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        job_id:       currentJobId,
+        video_name:   currentVideo.name,
+        patch_script: document.getElementById('patchCode').textContent,
+        start_sec:    parseFloat(document.getElementById('startSec').value),
+        end_sec:      parseFloat(document.getElementById('endSec').value),
+      }),
+    });
+    const data = await res.json();
+    currentOutputMp4 = data.output_mp4;
+    document.getElementById('exportSection').style.display = 'block';
+    showStatus('再レンダリング完了！ダウンロードボタンで取得してください。', 'ok');
+  } catch (e) {
+    showStatus('適用エラー: ' + e.message, 'err');
+  } finally {
+    document.getElementById('btnApply').disabled = false;
+  }
+};
+
+// ── ダウンロード ────────────────────────────────────────────
+document.getElementById('btnExport').onclick = () => {
+  if (!currentOutputMp4) return;
+  const filename = currentOutputMp4.split('/').pop().split('\\').pop();
+  const a = document.createElement('a');
+  a.href = `${API}/video/${currentVideo.name}/stream`;
+  a.download = filename;
+  a.click();
+};
+
+// ── ステータス表示 ──────────────────────────────────────────
+function showStatus(msg, type) {
+  const el = document.getElementById('statusMsg');
+  el.style.display = 'block';
+  el.className = 'status-msg status-' + type;
+  el.innerHTML = msg;
+}
+
+// ── 起動 ───────────────────────────────────────────────────
+loadVideos();
+</script>
+</body>
+</html>

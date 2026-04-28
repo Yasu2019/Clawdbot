@@ -1,0 +1,9 @@
+{
+  "id": "vision-quality",
+  "title": "視覚AI品質検査",
+  "description": "画像・設備データ・Lot情報から不良候補を提示し、監査ログを残します。",
+  "url": "http://localhost:8095",
+  "icon": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/openai.png",
+  "category": "Quality Assurance",
+  "tags": ["vision", "quality", "inspection", "iot", "openclaw"]
+}

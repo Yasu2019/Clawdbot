@@ -1,0 +1,51 @@
+# docker-compose.vision.yml
+# OpenClaw 外観AI品質検査 — Clawstack Unified への横付け追加
+#
+# 起動方法 (プロジェクトルートから):
+#   docker compose -f docker-compose.yml -f clawstack_v2/apps/vision_quality/docker-compose.vision.yml up -d --build openclaw-vision-quality-api openclaw-vision-quality-ui
+#
+# 停止方法:
+#   docker compose -f docker-compose.yml -f clawstack_v2/apps/vision_quality/docker-compose.vision.yml stop openclaw-vision-quality-api openclaw-vision-quality-ui
+#
+# ポート:
+#   18796: Vision Quality API  (18795はLightRAGが使用中のため変更)
+#   8095:  Vision Quality UI
+
+name: clawstack-unified
+
+networks:
+  main:
+    name: clawstack-unified
+    external: true
+
+services:
+  vision-quality-api:
+    build:
+      context: ./clawstack_v2/apps/vision_quality/backend
+      dockerfile: Dockerfile
+    container_name: openclaw-vision-quality-api
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${VISION_API_PORT:-18796}:18796"
+    env_file:
+      - ./clawstack_v2/apps/vision_quality/.env
+    volumes:
+      - ./clawstack_v2/apps/vision_quality/data:/data
+      - ./clawstack_v2/apps/vision_quality/backend/prompts:/app/prompts:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - main
+
+  vision-quality-ui:
+    image: nginx:alpine
+    container_name: openclaw-vision-quality-ui
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${VISION_FRONTEND_PORT:-8095}:80"
+    volumes:
+      - ./clawstack_v2/apps/vision_quality/frontend:/usr/share/nginx/html:ro
+    depends_on:
+      - vision-quality-api
+    networks:
+      - main

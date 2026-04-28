@@ -1,0 +1,44 @@
+[
+  {
+    "id": "mqtt_press_data",
+    "type": "mqtt in",
+    "z": "vision_quality",
+    "name": "Press MQTT",
+    "topic": "press/+/telemetry",
+    "qos": "0",
+    "datatype": "json",
+    "broker": "local_mqtt",
+    "nl": false,
+    "rap": true,
+    "rh": 0,
+    "inputs": 0,
+    "x": 160,
+    "y": 100,
+    "wires": [["csv_join_function"]]
+  },
+  {
+    "id": "csv_join_function",
+    "type": "function",
+    "z": "vision_quality",
+    "name": "CSV形式へ整形",
+    "func": "const p = msg.payload;\nmsg.payload = `${new Date().toISOString()},${p.machine_id||''},${p.shot||''},${p.spm||''},${p.chokotei||''}\n`;\nreturn msg;",
+    "outputs": 1,
+    "x": 360,
+    "y": 100,
+    "wires": [["file_dropbox_stub"]]
+  },
+  {
+    "id": "file_dropbox_stub",
+    "type": "file",
+    "z": "vision_quality",
+    "name": "CSV保存",
+    "filename": "/data/press_telemetry.csv",
+    "appendNewline": false,
+    "createDir": true,
+    "overwriteFile": "false",
+    "encoding": "utf8",
+    "x": 560,
+    "y": 100,
+    "wires": [[]]
+  }
+]
