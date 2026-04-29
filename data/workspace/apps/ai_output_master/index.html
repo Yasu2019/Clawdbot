@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Output Master Hub - Clawstack</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Outfit:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #0b0f19; --primary: #00f2fe; --accent: #4facfe; --card: rgba(30, 41, 59, 0.5); --text: #f1f5f9; --muted: #94a3b8; }
+        body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; padding: 40px; line-height: 1.6; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        header { text-align: center; margin-bottom: 60px; }
+        header h1 { font-family: 'Outfit'; font-size: 3.5rem; margin: 0; background: linear-gradient(135deg, #fff, var(--primary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        header p { color: var(--muted); font-size: 1.1rem; }
+        
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 30px; }
+        .section-card { background: var(--card); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; padding: 30px; backdrop-filter: blur(20px); }
+        .section-card h2 { font-family: 'Outfit'; color: var(--primary); margin-top: 0; border-bottom: 1px solid rgba(0, 242, 254, 0.2); padding-bottom: 15px; }
+        
+        .method-block { margin-bottom: 20px; }
+        .method-block h3 { font-size: 1rem; color: #fff; margin-bottom: 8px; display: flex; align-items: center; }
+        .method-block h3 span { background: var(--accent); color: #000; padding: 2px 8px; border-radius: 6px; font-size: 0.8rem; margin-right: 10px; font-weight: bold; }
+        
+        pre { background: rgba(0,0,0,0.3); padding: 15px; border-radius: 12px; font-size: 0.9rem; color: #cbd5e1; overflow-x: auto; position: relative; }
+        .copy-btn { position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.1); border: none; color: #fff; padding: 5px 10px; border-radius: 8px; cursor: pointer; font-size: 0.75rem; transition: 0.2s; }
+        .copy-btn:hover { background: var(--primary); color: #000; }
+        
+        .badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; margin-bottom: 15px; background: rgba(79, 172, 254, 0.2); color: var(--accent); border: 1px solid var(--accent); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>AI Output Master</h1>
+            <p>一般論を現場の正解（120点）へ昇華させるための思考フレームワーク</p>
+        </header>
+
+        <div class="grid">
+            <!-- 三歩法 (Sanpo Method) -->
+            <div class="section-card">
+                <div class="badge">PROMPT STRATEGY</div>
+                <h2>三歩法 (Sanpo Method)</h2>
+                <p>AIの一般論を、あなたの現場情報と結合させて「実戦的な対策」へ変換します。</p>
+                
+                <div class="method-block">
+                    <h3><span>STEP 1</span> 一般論の網羅</h3>
+                    <pre id="sanpo1">あなた、E製造業QA/IATF/工程改喁EE専門家です。以下テーマにつぁE一般皁E原因・リスク・対策を網羁Eてください、E<button class="copy-btn" onclick="copy('sanpo1')">Copy</button></pre>
+                </div>
+                <div class="method-block">
+                    <h3><span>STEP 2</span> 現場情報の注入</h3>
+                    <pre id="sanpo2">制紁E件、設備条件、ロチE差、E客要求、社冁E情、E去トラブル、測定条件を追加してください、E<button class="copy-btn" onclick="copy('sanpo2')">Copy</button></pre>
+                </div>
+                <div class="method-block">
+                    <h3><span>STEP 3</span> 現実解への絞り込み</h3>
+                    <pre id="sanpo3">上記E現場惁Eを忁E反映し、現実的に実行可能な対策だけに絞って、優先頁EE根拠・忁EデータをEしてください、E<button class="copy-btn" onclick="copy('sanpo3')">Copy</button></pre>
+                </div>
+            </div>
+
+            <!-- 説得の三角形 (Persuasion Triangle) -->
+            <div class="section-card">
+                <div class="badge">COMMUNICATION</div>
+                <h2>説得の三角形 (Persuasion)</h2>
+                <p>論理(Logos)、情熱(Pathos)、信頼(Ethos)を組み合わせ、関係者を動かす文章を作ります。</p>
+                
+                <div class="method-block">
+                    <h3><span>LOGOS</span> 論理・データ</h3>
+                    <pre id="logos">データ、規格、IATF要求、測定値、工程能力、再現性<button class="copy-btn" onclick="copy('logos')">Copy</button></pre>
+                </div>
+                <div class="method-block">
+                    <h3><span>PATHOS</span> 信頼・共感</h3>
+                    <pre id="pathos">相手の不安、現場負担、ライン停止リスク、顧客クレーム不安に寄り添う<button class="copy-btn" onclick="copy('pathos')">Copy</button></pre>
+                </div>
+                <div class="method-block">
+                    <h3><span>ETHOS</span> 立場・経験</h3>
+                    <pre id="ethos">過去の共通体験、品質保証としての立場、現場経験者への敬意を入れる<button class="copy-btn" onclick="copy('ethos')">Copy</button></pre>
+                </div>
+            </div>
+
+            <!-- QA/IATF Field Templates -->
+            <div class="section-card">
+                <div class="badge">QA / IATF COMPLIANCE</div>
+                <h2>現場活用テンプレート</h2>
+                <p>不適合解析やIATF監査対応のための標準構造です。</p>
+                
+                <div class="method-block">
+                    <h3>不適合解析レポート</h3>
+                    <pre id="qa_report">- 現象
+- 発生工程 / 検知工程
+- 発生ロット / 材料ロット
+- 設備条件 / 測定条件
+- 暫定処置 / 恒久対策<button class="copy-btn" onclick="copy('qa_report')">Copy</button></pre>
+                </div>
+                <div class="method-block">
+                    <h3>IATF 条項リファレンス</h3>
+                    <pre id="iatf_ref">7.2 力量
+8.5 製造及びサービス提供
+8.6 リリース
+10.2 不適合及び是正処置<button class="copy-btn" onclick="copy('iatf_ref')">Copy</button></pre>
+                </div>
+            </div>
+
+            <!-- Autonomous Rules -->
+            <div class="section-card" style="grid-column: 1 / -1; background: linear-gradient(135deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.9)); border-color: var(--accent);">
+                <div class="badge" style="background: var(--primary); color: #000;">SYSTEM PROTOCOL</div>
+                <h2>自律運用ルール (Autonomous Rules)</h2>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                    <ul style="color: var(--muted); padding-left: 20px;">
+                        <li>まず一般論を出す（Step 1）</li>
+                        <li>必ず現場情報を要求または既存RAGから補完（Step 2）</li>
+                        <li>再提案時は実行可能性で絞る（Step 3）</li>
+                    </ul>
+                    <ul style="color: var(--muted); padding-left: 20px;">
+                        <li>重要提案は根拠とリスクを併記</li>
+                        <li>大規模修正前にGitHubへバックアップ</li>
+                        <li>既存Portalカードと競合しない</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function copy(id) {
+            const text = document.getElementById(id).innerText.replace('Copy', '').trim();
+            navigator.clipboard.writeText(text);
+            const btn = document.querySelector(`#${id} .copy-btn`);
+            btn.innerText = 'Copied!';
+            setTimeout(() => btn.innerText = 'Copy', 2000);
+        }
+    </script>
+</body>
+</html>

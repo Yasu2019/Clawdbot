@@ -1,10 +1,17 @@
 """台本生成 — Kimi K2.6 (256K ctx) 優先、Gemini 2.5 Flash フォールバック。
-PDF全文を省略なく読み込み、7キャラ対話台本JSONを生成する。"""
+PDF全文を省略なく読み込み、7キャラ対話台本JSONを生成する。
+LiteLLM不達時はOpenCode GO / Gemini APIへ直接フォールバック。"""
 import json, requests, os
 from pathlib import Path
 
 LITELLM_URL = os.getenv("LITELLM_URL", "http://localhost:4001")
 LITELLM_KEY = os.getenv("LITELLM_MASTER_KEY", "local-dev-key")
+
+# 直接API設定 (LiteLLM未達時フォールバック)
+OPENCODE_GO_BASE = os.getenv("OPENCODE_GO_API_BASE", "https://opencode.ai/zen/go/v1")
+OPENCODE_GO_KEY  = os.getenv("OPENCODE_GO_API_KEY", "")
+GEMINI_KEY       = os.getenv("GEMINI_API_KEY", "")
+GEMINI_BASE      = "https://generativelanguage.googleapis.com/v1beta/openai"
 
 # モデル優先順位 (OpenCode GO API接続確認後に kimi-k2.6 を最優先に)
 SCRIPT_MODELS = [
@@ -37,7 +44,17 @@ SYSTEM_PROMPT = """あなたはIATF 16949内部監査教育動画の台本作家
 1. 提供されたPDFの内容を一切省略せず、全てのポイントを台本に盛り込む
 2. 各シーンの会話は自然な対話形式にする
 3. 専門用語はキャラクターが解説しながら進める
-4. 出力は必ず指定のJSON形式のみ（他のテキスト不要）"""
+4. 出力は必ず指定のJSON形式のみ（他のテキスト不要）
+
+【オープニング必須ルール（場面1）】
+- ブルマMCがPDF表紙の情報（タイトル・箇条番号・バージョン・日付）を読み上げること
+- 「本日学ぶ要求事項」として全要求事項を一覧で紹介すること（省略禁止）
+
+【エンディング必須ルール（最終場面）】
+- ブルマMCが以下の3点を必ず全て述べること（省略・端折り絶対禁止）：
+  (1) 監査で見つかった問題点のまとめ（本動画で指摘した全不適合・問題点を再列挙）
+  (2) 対応策のまとめ（是正処置・予防処置・改善策を再確認）
+  (3) 箇条要求事項のまとめ（この箇条の要求事項を改めて整理・強調）"""
 
 SCENE_STRUCTURE = [
     ("opening",       "オープニング",         ["bulma"]),
@@ -50,18 +67,46 @@ SCENE_STRUCTURE = [
 ]
 
 
+def _extract_json(raw: str) -> str:
+    if "```" in raw:
+        raw = raw.split("```")[1]
+        if raw.startswith("json"):
+            raw = raw[4:]
+    return raw.strip()
+
+
 def _call_llm(model: str, messages: list, max_tokens: int = 8000) -> str | None:
     try:
         resp = requests.post(
             f"{LITELLM_URL}/v1/chat/completions",
             headers={"Authorization": f"Bearer {LITELLM_KEY}"},
             json={"model": model, "messages": messages, "max_tokens": max_tokens, "temperature": 0.7},
-            timeout=300,
+            timeout=30,
         )
         resp.raise_for_status()
         return resp.json()["choices"][0]["message"]["content"].strip()
     except Exception as e:
-        print(f"  [{model}] failed: {e}")
+        print(f"  [{model}] via LiteLLM failed: {e}")
+        return None
+
+
+def _call_direct(endpoint: str, api_key: str, model: str, messages: list, max_tokens: int = 8000) -> str | None:
+    """LiteLLMをバイパスしてAPIを直接呼び出す"""
+    try:
+        resp = requests.post(
+            f"{endpoint}/chat/completions",
+            headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+            json={"model": model, "messages": messages, "max_tokens": max_tokens, "temperature": 0.7},
+            timeout=300,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        content = data["choices"][0]["message"].get("content") or ""
+        if not content and "reasoning_content" in data["choices"][0]["message"]:
+            content = data["choices"][0]["message"].get("content", "")
+        return content.strip() if content else None
+    except Exception as e:
+        print(f"  [{model}] direct API failed: {e}")
         return None
 
 
@@ -77,6 +122,17 @@ def generate_script(pdf_text: str, clause: str, topic: str) -> dict:
 【場面構成】
 {scene_list}
 
+【場面1 オープニング — 必須指示】
+ブルマMCは必ず以下を行うこと：
+- PDF表紙の情報（タイトル「{topic}」、箇条{clause}、バージョン、日付）を読み上げる
+- 「本日の学習内容」として、このPDFに記載された全要求事項を箇条書き形式で一覧紹介する（省略禁止）
+
+【場面7 エンディング — 必須指示（3点セット）】
+ブルマMCは必ず以下の3点を全て詳しく述べること（省略・端折り絶対禁止）：
+1. 監査で見つかった問題点のまとめ（場面4で指摘した全不適合・問題点を再列挙）
+2. 対応策のまとめ（場面6の是正処置・予防処置・改善策を再確認）
+3. 箇条{clause}要求事項のまとめ（この箇条の要求事項を改めて整理・強調して締める）
+
 【出力JSON形式】
 {{
   "clause": "{clause}",
@@ -85,11 +141,11 @@ def generate_script(pdf_text: str, clause: str, topic: str) -> dict:
     {{
       "scene_id": "opening",
       "scene_name": "オープニング",
-      "duration_sec": 30,
+      "duration_sec": 60,
       "lines": [
         {{
           "character": "bulma",
-          "text": "セリフテキスト",
+          "text": "セリフテキスト（PDF表紙情報 + 要求事項全一覧を含む）",
           "emotion": "normal|happy|serious|explain",
           "pose": "neutral|point|bow|arms_crossed|nod",
           "duration_sec": 5
@@ -114,11 +170,7 @@ def generate_script(pdf_text: str, clause: str, topic: str) -> dict:
         raw = _call_llm(model, messages)
         if not raw:
             continue
-        # JSON抽出
-        if "```" in raw:
-            raw = raw.split("```")[1]
-            if raw.startswith("json"):
-                raw = raw[4:]
+        raw = _extract_json(raw)
         try:
             script = json.loads(raw)
             script["model_used"] = model
@@ -126,6 +178,35 @@ def generate_script(pdf_text: str, clause: str, topic: str) -> dict:
         except json.JSONDecodeError as e:
             print(f"  JSON parse error: {e}")
             continue
+
+    # LiteLLM未達フォールバック: OpenCode GO直接
+    if OPENCODE_GO_KEY:
+        for oc_model in ["kimi-k2.6", "deepseek-v4-flash"]:
+            print(f"  Direct OpenCode GO: {oc_model}")
+            raw = _call_direct(OPENCODE_GO_BASE, OPENCODE_GO_KEY, oc_model, messages)
+            if not raw:
+                continue
+            raw = _extract_json(raw)
+            try:
+                script = json.loads(raw)
+                script["model_used"] = f"direct/opencode-go/{oc_model}"
+                return script
+            except json.JSONDecodeError as e:
+                print(f"  JSON parse error: {e}")
+                continue
+
+    # 最終フォールバック: Gemini直接
+    if GEMINI_KEY:
+        print("  Direct Gemini 2.5 Flash")
+        raw = _call_direct(GEMINI_BASE, GEMINI_KEY, "gemini-2.5-flash", messages, max_tokens=16000)
+        if raw:
+            raw = _extract_json(raw)
+            try:
+                script = json.loads(raw)
+                script["model_used"] = "direct/gemini-2.5-flash"
+                return script
+            except json.JSONDecodeError as e:
+                print(f"  Gemini JSON parse error: {e}")
 
     raise RuntimeError("全モデルで台本生成失敗")
 

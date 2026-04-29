@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "EducationVideoMetadata",
+  "type": "object",
+  "properties": {
+    "source_doc_id": {"type": "string"},
+    "source_doc_title": {"type": "string"},
+    "process": {"type": "string"},
+    "defect_type": {"type": "string"},
+    "iatf_clause": {"type": "string"},
+    "confidentiality_level": {"type": "string"},
+    "masking_required": {"type": "boolean"},
+    "approval_status": {"type": "string"},
+    "approver": {"type": "string"},
+    "created_at": {"type": "string"},
+    "revision": {"type": "string"}
+  },
+  "required": ["source_doc_id", "confidentiality_level", "masking_required"]
+}

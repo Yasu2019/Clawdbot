@@ -1,0 +1,13 @@
+collections:
+  para_projects:
+    source: 02_PARA_Vault/10_Projects
+    priority: high
+  para_areas:
+    source: 02_PARA_Vault/20_Areas
+    priority: medium
+  para_resources:
+    source: 02_PARA_Vault/30_Resources
+    priority: medium
+  para_past_troubles:
+    source: 02_PARA_Vault/40_Archives
+    priority: learning

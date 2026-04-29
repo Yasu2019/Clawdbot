@@ -1,0 +1,28 @@
+routes:
+  factory_alert:
+    preferred: [voicevox, stylebert, fish_audio]
+    cloud_allowed: false
+    max_latency_ms: 1500
+    style: clear_short
+  iatf_training:
+    preferred: [fish_audio, irodori, miotts, stylebert]
+    cloud_allowed: true
+    require_review: true
+    style: calm_teacher
+  customer_presentation:
+    preferred: [fish_audio, gemini]
+    cloud_allowed: true
+    require_review: true
+    style: polite_business
+  realtime_agent:
+    preferred: [gemini, fish_audio, stylebert]
+    cloud_allowed: true
+    max_latency_ms: 1200
+    style: conversational
+  local_only:
+    preferred: [voicevox, stylebert, gpt_sovits]
+    cloud_allowed: false
+    style: neutral
+fallback:
+  engine: voicevox
+  message_prefix: "読み上げエンジンをローカルフォールバックに切り替えました。"

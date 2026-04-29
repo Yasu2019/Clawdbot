@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PARA Knowledge Hub - Autonomous Organizer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Outfit:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #020617;
+            --primary: #38bdf8;
+            --secondary: #818cf8;
+            --card: rgba(15, 23, 42, 0.7);
+            --text: #f8fafc;
+            --muted: #94a3b8;
+            --accent-p: #f43f5e; /* Projects */
+            --accent-a: #10b981; /* Areas */
+            --accent-r: #f59e0b; /* Resources */
+            --accent-ar: #8b5cf6; /* Archives */
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        .hero {
+            height: 400px;
+            background: linear-gradient(rgba(2, 6, 23, 0.6), rgba(2, 6, 23, 1)), url('para_hub_hero_1777447167081.png');
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .hero h1 {
+            font-family: 'Outfit';
+            font-size: 3.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #fff, var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            color: var(--muted);
+            max-width: 600px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: -60px auto 60px;
+            padding: 0 20px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .para-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 25px;
+            margin-bottom: 50px;
+        }
+
+        .para-card {
+            background: var(--card);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 30px;
+            border-radius: 24px;
+            backdrop-filter: blur(20px);
+            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .para-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--primary);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+
+        .para-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 4px; height: 100%;
+            background: var(--accent);
+        }
+
+        .para-card.projects { --accent: var(--accent-p); }
+        .para-card.areas { --accent: var(--accent-a); }
+        .para-card.resources { --accent: var(--accent-r); }
+        .para-card.archives { --accent: var(--accent-ar); }
+
+        .para-card h2 {
+            font-family: 'Outfit';
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            color: var(--accent);
+        }
+
+        .para-card p {
+            color: var(--muted);
+            font-size: 0.95rem;
+        }
+
+        .inbox-section {
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px dashed rgba(56, 189, 248, 0.3);
+            border-radius: 24px;
+            padding: 40px;
+            text-align: center;
+            margin-top: 50px;
+        }
+
+        .btn {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 14px 28px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            margin-top: 20px;
+            transition: 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(56, 189, 248, 0.5);
+        }
+
+        .status-badge {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+            padding: 4px 12px;
+            border-radius: 99px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+
+        .file-list {
+            text-align: left;
+            margin-top: 20px;
+            background: rgba(0,0,0,0.2);
+            padding: 20px;
+            border-radius: 12px;
+        }
+
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="hero">
+        <div class="status-badge">● SYSTEM ACTIVE</div>
+        <h1>PARA Knowledge Hub</h1>
+        <p>Autonomous organization layer for the Clawstack intelligence ecosystem.</p>
+    </div>
+
+    <div class="container">
+        <div class="para-grid">
+            <div class="para-card projects">
+                <h2>Projects</h2>
+                <p>現在進行中のタスクや短期的な目標。IATF監査、新モデル開発、プレス機IoT化など。</p>
+            </div>
+            <div class="para-card areas">
+                <h2>Areas</h2>
+                <p>継続的な責任範囲。品質管理、AIオペレーション、生産技術、システム保守など。</p>
+            </div>
+            <div class="para-card resources">
+                <h2>Resources</h2>
+                <p>将来役立つ可能性のある知識や素材。図面、SDS、マニュアル、設計ガイドラインなど。</p>
+            </div>
+            <div class="para-card archives">
+                <h2>Archives</h2>
+                <p>完了したプロジェクトや現在不要なデータ。過去の不具合事例、旧バックアップなど。</p>
+            </div>
+        </div>
+
+        <div class="inbox-section">
+            <h2 style="font-family: 'Outfit'; margin-bottom: 10px;">📥 Inbox / Telemetry Intake</h2>
+            <p>Node-REDや各Hubから収集された未分類のデータがここに集約されます。</p>
+            
+            <div class="file-list">
+                <div class="file-item"><span>📄 iatf_audit_report_v2.pdf</span><span style="color:var(--accent-p)">→ Projects (AI Suggest)</span></div>
+                <div class="file-item"><span>📊 machine_logs_20260429.csv</span><span style="color:var(--accent-ar)">→ Archives (Auto)</span></div>
+                <div class="file-item"><span>📝 tool_router_notes.md</span><span style="color:var(--accent-r)">→ Resources (AI Suggest)</span></div>
+            </div>
+
+            <button class="btn">Run Autonomous Router Now</button>
+            <p style="margin-top: 15px; font-size: 0.85rem; color: var(--muted);">Last run: 2026-04-29 16:15 (Next: 00:00 JST)</p>
+        </div>
+    </div>
+
+</body>
+</html>

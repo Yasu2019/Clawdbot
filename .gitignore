@@ -157,3 +157,4 @@ tmp_*/
 # Large asset directories
 data/meshy_assets/
 data/iatf_videos/
+data/state/litellm_config.yaml

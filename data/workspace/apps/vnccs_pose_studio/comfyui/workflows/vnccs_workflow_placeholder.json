@@ -1,0 +1,18 @@
+{
+  "note": "これはプレースホルダーです。VNCCS Pose Studio公式/配布ワークフローJSONを取得し、comfyui/workflows/official/ に保存してください。",
+  "safe_install_policy": {
+    "do_not_overwrite_custom_nodes": true,
+    "install_missing_nodes_via_comfyui_manager": true,
+    "verify_model_paths_before_queue": true
+  },
+  "metadata_required": [
+    "condition_id",
+    "pose_parameters",
+    "lighting_parameters",
+    "camera_parameters",
+    "prompt",
+    "negative_prompt",
+    "seed",
+    "model_names"
+  ]
+}

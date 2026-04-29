@@ -1,0 +1,36 @@
+[
+  {
+    "id": "inject_test_tts",
+    "type": "inject",
+    "name": "TTS alert test",
+    "props": [{"p":"payload"}],
+    "payload": "品質保証部からのお知らせです。工程異常を検出しました。",
+    "payloadType": "str",
+    "wires": [["make_tts_payload"]]
+  },
+  {
+    "id": "make_tts_payload",
+    "type": "function",
+    "name": "make TTS payload",
+    "func": "msg.headers = {'Content-Type':'application/json'};\nmsg.payload = { text: msg.payload, purpose: 'factory_alert' };\nreturn msg;",
+    "outputs": 1,
+    "wires": [["call_tts_router"]]
+  },
+  {
+    "id": "call_tts_router",
+    "type": "http request",
+    "name": "POST /tts/speak",
+    "method": "POST",
+    "ret": "obj",
+    "url": "http://openclaw-tts-router:8080/tts/speak",
+    "wires": [["debug_tts"]]
+  },
+  {
+    "id": "debug_tts",
+    "type": "debug",
+    "name": "TTS result",
+    "active": true,
+    "tosidebar": true,
+    "complete": "payload"
+  }
+]

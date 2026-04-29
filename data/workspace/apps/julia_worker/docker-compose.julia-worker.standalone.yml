@@ -1,0 +1,36 @@
+services:
+  julia-numerical-worker:
+    build:
+      context: ./services/julia-worker
+      dockerfile: Dockerfile
+    container_name: clawstack-julia-numerical-worker
+    restart: unless-stopped
+    environment:
+      JULIA_NUM_THREADS: "auto"
+      JULIA_WORKER_HOST: "0.0.0.0"
+      JULIA_WORKER_PORT: "8096"
+      READ_ONLY_MODE: "true"
+    ports:
+      - "8096:8096"
+    networks:
+      - clawstack_julia_net
+
+  julia-python-bridge:
+    build:
+      context: ./services/python-bridge
+      dockerfile: Dockerfile
+    container_name: clawstack-julia-python-bridge
+    restart: unless-stopped
+    environment:
+      JULIA_WORKER_URL: "http://julia-numerical-worker:8096"
+      PYTHON_BRIDGE_PORT: "8097"
+    ports:
+      - "8097:8097"
+    depends_on:
+      - julia-numerical-worker
+    networks:
+      - clawstack_julia_net
+
+networks:
+  clawstack_julia_net:
+    driver: bridge

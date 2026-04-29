@@ -1,0 +1,9 @@
+{
+  "id": "vnccs_pose_studio_pro",
+  "title": "VNCCS Pose Studio Pro",
+  "description": "ComfyUIのポーズ・ライティング条件管理とDOEデータ生成ライン",
+  "path": "/apps/vnccs_pose_studio/index.html",
+  "category": "AI / Image Generation / QA Dataset",
+  "safe_install": true,
+  "overwrite_existing": false
+}

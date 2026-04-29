@@ -1,0 +1,10 @@
+{
+  "id": "julia-numerical-worker",
+  "title": "Julia Numerical Worker",
+  "description": "DOE・最適化・レベラー条件探索・CAE補助用のJulia高速数値計算Worker",
+  "url": "/apps/julia_numerical_worker/index.html",
+  "icon": "https://julialang.org/assets/infra/logo.svg",
+  "category": "CAE / Optimization",
+  "tags": ["Julia", "DOE", "Optimization", "CAE", "Leveler"],
+  "safe_mode": true
+}

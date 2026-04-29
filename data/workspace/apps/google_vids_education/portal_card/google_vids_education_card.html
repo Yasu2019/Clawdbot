@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Google Vids × OpenClaw 教育動画</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 24px; background: #f7f7f7; color: #222; }
+    .card { max-width: 920px; margin: auto; background: white; border-radius: 18px; padding: 24px; box-shadow: 0 8px 24px rgba(0,0,0,.08); }
+    h1 { margin-top: 0; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+    .box { border: 1px solid #ddd; border-radius: 14px; padding: 16px; background: #fafafa; }
+    code { background: #eee; padding: 2px 6px; border-radius: 6px; }
+    button { padding: 10px 14px; border-radius: 10px; border: 0; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Google Vids × OpenClaw 教育動画</h1>
+    <p>OpenClawで根拠付き台本を作り、Google Vidsで動画化するための入口です。</p>
+    <div class="grid">
+      <div class="box"><h3>1. 教材ブリーフ</h3><p>対象者・目的・機密区分を定義します。</p></div>
+      <div class="box"><h3>2. RAG検索</h3><p>Paperless/Qdrantから根拠資料を抽出します。</p></div>
+      <div class="box"><h3>3. 台本生成</h3><p>ナレーション・絵コンテ・テロップを生成します。</p></div>
+      <div class="box"><h3>4. Vids投入</h3><p>マスク済みプロンプトをGoogle Vidsへ渡します。</p></div>
+    </div>
+    <h2>推奨操作</h2>
+    <ol>
+      <li><code>templates/education_video_brief.yaml</code> を編集</li>
+      <li><code>scripts/generate_vids_package.py</code> を実行</li>
+      <li><code>google_vids_prompt.md</code> をVidsへ貼り付け</li>
+      <li><code>checklists/release_checklist.md</code> で確認</li>
+    </ol>
+  </div>
+</body>
+</html>

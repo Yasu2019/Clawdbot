@@ -1,0 +1,56 @@
+services:
+  tool-router:
+    build: ./tool_attention/tool-router
+    container_name: clawstack-tool-router
+    ports:
+      - "127.0.0.1:8190:8090"
+    environment:
+      - QDRANT_HOST=qdrant
+      - QDRANT_PORT=6333
+      - COLLECTION_NAME=tool_registry
+      - LEARNING_URL=http://learning-store:8092
+      - ANOMALY_URL=http://anomaly-guard:8093
+    depends_on:
+      - learning-store
+      - anomaly-guard
+    restart: unless-stopped
+    networks:
+      - clawstack-unified_default
+
+  lazy-loader:
+    build: ./tool_attention/lazy-loader
+    container_name: clawstack-lazy-loader
+    ports:
+      - "127.0.0.1:8191:8091"
+    volumes:
+      - ./tool_attention/registry:/app/registry:ro
+    restart: unless-stopped
+    networks:
+      - clawstack-unified_default
+
+  learning-store:
+    build: ./tool_attention/learning
+    container_name: clawstack-tool-learning
+    ports:
+      - "127.0.0.1:8192:8092"
+    volumes:
+      - tool_learning_data:/data
+    restart: unless-stopped
+    networks:
+      - clawstack-unified_default
+
+  anomaly-guard:
+    build: ./tool_attention/anomaly
+    container_name: clawstack-anomaly-guard
+    ports:
+      - "127.0.0.1:8193:8093"
+    restart: unless-stopped
+    networks:
+      - clawstack-unified_default
+
+networks:
+  clawstack-unified_default:
+    external: true
+
+volumes:
+  tool_learning_data:

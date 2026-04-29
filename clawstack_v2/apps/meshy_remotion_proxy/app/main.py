@@ -1,81 +1,60 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from typing import Optional, List
 import os
 import httpx
 
-app = FastAPI(title="Meshy Remotion Proxy", version="0.1.0")
+app = FastAPI(title="Meshy Remotion Proxy", version="0.1.2")
 
-MESHY_API_KEY = os.getenv("MESHY_API_KEY", "")
-MESHY_API_BASE = os.getenv("MESHY_API_BASE", "https://api.meshy.ai/openapi/v2")
-MESHY_DRY_RUN = os.getenv("MESHY_DRY_RUN", "true").lower() == "true"
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-class TextTo3DRequest(BaseModel):
-    prompt: str
-    art_style: Optional[str] = "realistic"
-    negative_prompt: Optional[str] = None
-    should_remesh: Optional[bool] = True
-    metadata_tags: Optional[List[str]] = None
+if os.path.exists("/data/meshy_assets"):
+    app.mount("/assets", StaticFiles(directory="/data/meshy_assets"), name="assets")
+
+MESHY_API_KEY = (os.getenv("Meshy_AI_Secret_Key") or os.getenv("MESHY_API_KEY") or "").strip()
+MESHY_API_BASE = "https://api.meshy.ai/openapi/v2"
 
 @app.get("/health")
 def health():
-    return {
-        "ok": True,
-        "dry_run": MESHY_DRY_RUN,
-        "api_base": MESHY_API_BASE,
-        "api_key_set": bool(MESHY_API_KEY),
-    }
+    return {"ok": True, "api_key_set": bool(MESHY_API_KEY)}
 
-@app.post("/meshy/text-to-3d")
-async def create_text_to_3d(req: TextTo3DRequest):
-    if MESHY_DRY_RUN:
-        return {
-            "dry_run": True,
-            "message": "Dry run mode. No credits consumed.",
-            "request": req.model_dump(),
-            "suggested_asset_name": req.prompt[:40].replace(" ", "_")
-        }
-
+@app.post("/meshy/image-to-3d")
+async def create_image_to_3d(image_path: str):
     if not MESHY_API_KEY:
         raise HTTPException(status_code=400, detail="MESHY_API_KEY is not set")
 
-    headers = {
-        "Authorization": f"Bearer {MESHY_API_KEY}",
-        "Content-Type": "application/json",
+    # ホスト側のパスをコンテナ内のパスに変換
+    internal_path = image_path.replace("D:\\Clawdbot_Docker_20260125\\data\\meshy_assets", "/data/meshy_assets")
+    if not os.path.exists(internal_path):
+         raise HTTPException(status_code=404, detail=f"File not found: {internal_path}")
+
+    headers = {"Authorization": f"Bearer {MESHY_API_KEY}"}
+    files = {
+        'image': (os.path.basename(internal_path), open(internal_path, 'rb'), 'image/png')
     }
-    payload = {
-        "mode": "preview",
-        "prompt": req.prompt,
-        "art_style": req.art_style,
-        "negative_prompt": req.negative_prompt,
-        "should_remesh": req.should_remesh,
+    data = {
+        'enable_pbr': 'true'
     }
 
     async with httpx.AsyncClient(timeout=60.0) as client:
-        resp = await client.post(f"{MESHY_API_BASE}/text-to-3d", headers=headers, json=payload)
-        resp.raise_for_status()
+        resp = await client.post(f"{MESHY_API_BASE}/image-to-3d", headers=headers, files=files, data=data)
         return resp.json()
 
 @app.get("/meshy/task/{task_id}")
 async def get_task(task_id: str):
-    if MESHY_DRY_RUN:
-        return {
-            "dry_run": True,
-            "task_id": task_id,
-            "status": "SUCCEEDED",
-            "asset": {
-                "preview_url": "/static/dummy-preview.png",
-                "model_url": "/static/dummy.glb"
-            }
-        }
-
-    if not MESHY_API_KEY:
-        raise HTTPException(status_code=400, detail="MESHY_API_KEY is not set")
-
-    headers = {
-        "Authorization": f"Bearer {MESHY_API_KEY}",
-    }
+    headers = {"Authorization": f"Bearer {MESHY_API_KEY}"}
     async with httpx.AsyncClient(timeout=60.0) as client:
-        resp = await client.get(f"{MESHY_API_BASE}/text-to-3d/{task_id}", headers=headers)
-        resp.raise_for_status()
+        resp = await client.get(f"{MESHY_API_BASE}/image-to-3d/{task_id}", headers=headers)
         return resp.json()
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)

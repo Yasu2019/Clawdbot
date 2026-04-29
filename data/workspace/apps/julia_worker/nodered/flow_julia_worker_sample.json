@@ -1,0 +1,80 @@
+[
+  {
+    "id": "julia_worker_tab",
+    "type": "tab",
+    "label": "Julia Worker Sample",
+    "disabled": false,
+    "info": "Julia Numerical Worker sample flow"
+  },
+  {
+    "id": "inject_leveler",
+    "type": "inject",
+    "z": "julia_worker_tab",
+    "name": "レベラー条件サンプル",
+    "props": [
+      {
+        "p": "payload"
+      }
+    ],
+    "payload": "{\"thickness_mm\":0.8,\"yield_mpa\":85,\"roller_diameter_mm\":12,\"pitch_mm\":16,\"entry_gap_mm\":0.7,\"exit_gap_mm\":1.1,\"stages\":11,\"friction\":0.05}",
+    "payloadType": "json",
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "x": 180,
+    "y": 100,
+    "wires": [
+      [
+        "http_leveler"
+      ]
+    ]
+  },
+  {
+    "id": "http_leveler",
+    "type": "http request",
+    "z": "julia_worker_tab",
+    "name": "Julia Bridge /leveler/estimate",
+    "method": "POST",
+    "ret": "obj",
+    "paytoqs": "ignore",
+    "url": "http://localhost:8097/leveler/estimate",
+    "tls": "",
+    "persist": false,
+    "proxy": "",
+    "authType": "",
+    "senderr": false,
+    "headers": [
+      {
+        "keyType": "Content-Type",
+        "keyValue": "application/json",
+        "valueType": "other",
+        "valueValue": "application/json"
+      }
+    ],
+    "x": 470,
+    "y": 100,
+    "wires": [
+      [
+        "debug_result"
+      ]
+    ]
+  },
+  {
+    "id": "debug_result",
+    "type": "debug",
+    "z": "julia_worker_tab",
+    "name": "結果",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 730,
+    "y": 100,
+    "wires": []
+  }
+]

@@ -1,0 +1,9 @@
+{
+  "id": "google_vids_openclaw_education",
+  "title": "Google Vids 教育動画",
+  "description": "OpenClaw RAGで根拠付き台本を作り、Google Vidsで教育動画化する",
+  "url": "/apps/google_vids_education/index.html",
+  "category": "Education / QA",
+  "icon": "🎬",
+  "enabled": true
+}

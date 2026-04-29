@@ -1,0 +1,10 @@
+# Optional override template. Merge manually with existing clawstack-unified compose.
+services:
+  para-organizer:
+    image: python:3.11-slim
+    container_name: para-organizer
+    working_dir: /app
+    volumes:
+      - ../:/app
+    command: ["python", "04_Autonomous_Agent/scripts/para_autonomous_router.py", "--base", "/app", "--dry-run"]
+    profiles: ["manual"]

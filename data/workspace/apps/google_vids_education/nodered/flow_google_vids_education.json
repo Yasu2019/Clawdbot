@@ -1,0 +1,43 @@
+[
+  {
+    "id": "google_vids_edu_inject",
+    "type": "inject",
+    "z": "google_vids_edu",
+    "name": "教材化候補チェック",
+    "props": [{"p": "payload"}],
+    "repeat": "3600",
+    "once": false,
+    "payload": "check_new_quality_docs",
+    "payloadType": "str",
+    "wires": [["google_vids_edu_function"]]
+  },
+  {
+    "id": "google_vids_edu_function",
+    "type": "function",
+    "z": "google_vids_edu",
+    "name": "OpenClaw教材候補生成リクエスト",
+    "func": "msg.headers = {'Content-Type':'application/json'};\nmsg.url = 'http://127.0.0.1:18789/workflows/google_vids_education_pipeline/draft';\nmsg.method = 'POST';\nmsg.payload = {mode:'candidate_scan', source:'paperless', human_approval_required:true};\nreturn msg;",
+    "outputs": 1,
+    "wires": [["google_vids_edu_http"]]
+  },
+  {
+    "id": "google_vids_edu_http",
+    "type": "http request",
+    "z": "google_vids_edu",
+    "name": "OpenClawへ送信",
+    "method": "use",
+    "ret": "obj",
+    "paytoqs": "ignore",
+    "url": "",
+    "wires": [["google_vids_edu_debug"]]
+  },
+  {
+    "id": "google_vids_edu_debug",
+    "type": "debug",
+    "z": "google_vids_edu",
+    "name": "結果",
+    "active": true,
+    "tosidebar": true,
+    "complete": "payload"
+  }
+]

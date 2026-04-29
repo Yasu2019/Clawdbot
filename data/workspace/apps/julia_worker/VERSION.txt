@@ -1,0 +1,3 @@
+clawstack-julia-numerical-worker-full
+version=2026.04.29-regenerated
+encoding=UTF-8

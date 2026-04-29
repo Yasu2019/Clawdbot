@@ -4,6 +4,7 @@ services:
       context: ./clawstack_v2/apps/meshy_remotion_proxy
     container_name: meshy-remotion-proxy
     env_file:
+      - .env
       - .env.meshy-remotion
     ports:
       - "127.0.0.1:${MESHY_PROXY_PORT:-18981}:8000"

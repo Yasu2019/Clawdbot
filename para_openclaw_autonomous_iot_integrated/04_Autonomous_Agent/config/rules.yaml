@@ -1,0 +1,34 @@
+projects:
+  - iatf
+  - audit
+  - esp32
+  - mqtt
+  - nodered
+  - node-red
+  - leveler
+  - openfoam
+  - anomaly
+  - gdandt
+  - gd&t
+areas:
+  - quality
+  - qa
+  - press
+  - molding
+  - plating
+  - reflow
+  - ai_operations
+resources:
+  - manual
+  - standard
+  - paper
+  - datasheet
+  - sds
+  - reference
+archives:
+  - past_trouble
+  - failure
+  - old
+  - backup
+  - incident
+  - error

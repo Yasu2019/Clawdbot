@@ -14,6 +14,8 @@ Usage:
 from __future__ import annotations
 import argparse
 import sys
+import json
+import os
 from dataclasses import dataclass
 from typing import Literal
 
@@ -39,6 +41,28 @@ LITELLM_MODEL_MAP: dict[ModelTier, str] = {
     "cloud_batch":  "openai/kimi-agent-primary",    # Kimi K2.6
     "security_lock": "local_fast",                  # Forced local
 }
+
+# ── Production Override (DeepSeek V4 Integration) ──────────────────────────
+ROUTING_CONFIG_PATH = os.path.join(os.path.dirname(__file__), "routing.json")
+def load_routing_config():
+    if os.path.exists(ROUTING_CONFIG_PATH):
+        try:
+            with open(ROUTING_CONFIG_PATH, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception as e:
+            print(f"[router] Warning: Could not load routing.json: {e}", file=sys.stderr)
+    return {}
+
+_ROUTING_CONFIG = load_routing_config()
+if _ROUTING_CONFIG:
+    print(f"[router] Applying production override from routing.json", file=sys.stderr)
+    if "default" in _ROUTING_CONFIG:
+        LITELLM_MODEL_MAP["cloud_heavy"] = _ROUTING_CONFIG["default"]
+        LITELLM_MODEL_MAP["cloud_medium"] = _ROUTING_CONFIG["default"]
+    if "fast" in _ROUTING_CONFIG:
+        LITELLM_MODEL_MAP["local_light"] = _ROUTING_CONFIG["fast"]
+        LITELLM_MODEL_MAP["local_codex"] = _ROUTING_CONFIG["fast"]
+# ───────────────────────────────────────────────────────────────────────────
 
 # Routing Rules (Order matters: first match wins)
 _ROUTING_RULES: list[tuple[ModelTier, list[str], str]] = [
@@ -152,10 +176,11 @@ def route_task(task: str) -> RouteResult:
             )
 
     # Default fallback
+    default_model = _ROUTING_CONFIG.get("default", LITELLM_MODEL_MAP["cloud_medium"])
     return RouteResult(
         tier="cloud_medium",
-        litellm_model=LITELLM_MODEL_MAP["cloud_medium"],
-        reason="[DEFAULT] 特徴未検知: 汎用バランスのクラウドモデルを使用",
+        litellm_model=default_model,
+        reason="[DEFAULT] 特徴未検知: 汎用バランスのモデルを使用",
         use_plan_mode=False,
         matched_keywords=[],
         security_flag=False,

@@ -1,0 +1,22 @@
+services:
+  openclaw-tts-router:
+    build: ./gateway
+    container_name: openclaw-tts-router
+    ports:
+      - "18081:8080"
+    env_file:
+      - ./config/.env.example
+    volumes:
+      - ./outputs:/app/outputs
+      - ./config:/app/config:ro
+    restart: unless-stopped
+
+  tts-static:
+    image: nginx:alpine
+    container_name: openclaw-tts-static
+    ports:
+      - "18082:80"
+    volumes:
+      - ./outputs:/usr/share/nginx/html/audio:ro
+      - ./portal/apps/tts_hub:/usr/share/nginx/html/tts_hub:ro
+    restart: unless-stopped

@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <title>Clawstack Rigging Studio</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
+  <style>
+    body { font-family: 'Inter', system-ui, sans-serif; margin: 0; background: #0f172a; color: #f8fafc; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+    header { background: #1e293b; padding: 1rem 2rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
+    h1 { margin: 0; font-size: 1.25rem; color: #38bdf8; }
+    
+    .main-container { display: flex; flex: 1; position: relative; }
+    .control-panel { width: 320px; background: #1e293b; padding: 2rem; border-right: 1px solid #334155; z-index: 100; }
+    .viewport { flex: 1; display: flex; justify-content: center; align-items: center; position: relative; background: #020617; }
+    
+    /* ガイドラインのエリア */
+    #rig-area { position: relative; width: 400px; height: 600px; border: 2px dashed #334155; }
+    model-viewer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
+    
+    .guide-line { position: absolute; left: 0; width: 100%; height: 4px; cursor: ns-resize; display: flex; align-items: center; z-index: 50; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
+    .guide-line::after { content: attr(data-label); position: absolute; right: -80px; background: rgba(0,0,0,0.8); padding: 4px 12px; border-radius: 4px; font-size: 12px; white-space: nowrap; color: white; }
+    
+    #line-head { background: #ff4d4d; top: 150px; } 
+    #line-neck { background: #4d94ff; top: 250px; } 
+    #line-spine { background: #4dff4d; top: 450px; }
+
+    .btn { background: #38bdf8; color: #0f172a; border: none; padding: 1rem; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 1rem; transition: 0.2s; }
+    .btn:hover { background: #7dd3fc; transform: translateY(-2px); }
+    .status { margin-top: 1rem; font-size: 0.875rem; color: #94a3b8; }
+    input { width: 100%; background: #0f172a; color: white; border: 1px solid #334155; padding: 8px; border-radius: 4px; margin-bottom: 10px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>⚙️ Clawstack Rigging Studio</h1>
+    <a href="index.html" style="color: #94a3b8; text-decoration: none; font-size: 0.8rem;">← 戻る</a>
+  </header>
+
+  <div class="main-container">
+    <div class="control-panel">
+      <h3>1. モデルの調整</h3>
+      <label style="font-size: 0.8rem;">表示ファイル名</label>
+      <input id="model-file" value="bulma_color_mc.glb" onchange="updateModel()">
+      
+      <p style="font-size: 0.8rem; color: #94a3b8;">
+        3Dモデルが表示されたら、マウスで正面を向かせてください。<br>
+        その後、赤・青・緑の線をドラッグして関節の位置（境界線）を決めてください。
+      </p>
+      
+      <div style="margin-top: 1rem; background: #0f172a; padding: 1rem; border-radius: 8px;">
+        <div>Head Z: <span id="val-head" style="color: #ff4d4d;">0.35</span></div>
+        <div>Neck Z: <span id="val-neck" style="color: #4d94ff;">0.10</span></div>
+        <div>Spine Z: <span id="val-spine" style="color: #4dff4d;">-0.30</span></div>
+      </div>
+
+      <button class="btn" onclick="executeRig()">骨入れ実行 (Blender)</button>
+      <div id="status" class="status">待機中...</div>
+    </div>
+
+    <div class="viewport">
+      <div id="rig-area">
+        <!-- 3Dモデルを直接表示 -->
+        <model-viewer id="viewer" src="http://localhost:18981/assets/bulma_color_mc.glb" 
+            camera-controls interaction-prompt="none" shadow-intensity="1" environment-image="neutral">
+        </model-viewer>
+        
+        <div id="line-head" class="guide-line" data-label="HEAD (顎のライン)"></div>
+        <div id="line-neck" class="guide-line" data-label="NECK (首の付け根)"></div>
+        <div id="line-spine" class="guide-line" data-label="SPINE (腰)"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let activeLine = null;
+    const rigArea = document.getElementById('rig-area');
+    const viewer = document.getElementById('viewer');
+    const lines = {
+      head: document.getElementById('line-head'),
+      neck: document.getElementById('line-neck'),
+      spine: document.getElementById('line-spine')
+    };
+
+    function pxToZ(top) {
+      // モデルビューアーの高さ 600px に合わせる
+      // 0.003 はスケール調整用の定数
+      return (300 - top) * 0.0032; 
+    }
+
+    function updateLabels() {
+        document.getElementById('val-head').textContent = pxToZ(lines.head.offsetTop).toFixed(2);
+        document.getElementById('val-neck').textContent = pxToZ(lines.neck.offsetTop).toFixed(2);
+        document.getElementById('val-spine').textContent = pxToZ(lines.spine.offsetTop).toFixed(2);
+    }
+
+    function updateModel() {
+        const file = document.getElementById('model-file').value;
+        viewer.src = `http://localhost:18981/assets/${file}`;
+    }
+
+    document.querySelectorAll('.guide-line').forEach(line => {
+      line.onmousedown = (e) => { 
+        activeLine = line; 
+        e.stopPropagation();
+        e.preventDefault(); 
+      };
+    });
+
+    window.onmousemove = (e) => {
+      if (!activeLine) return;
+      let rect = rigArea.getBoundingClientRect();
+      let top = e.clientY - rect.top;
+      if (top >= 0 && top <= 600) {
+        activeLine.style.top = top + 'px';
+        updateLabels();
+      }
+    };
+
+    window.onmouseup = () => { activeLine = null; };
+
+    async function executeRig() {
+      const status = document.getElementById('status');
+      const file = document.getElementById('model-file').value;
+      status.textContent = 'Blender を起動中... (ホスト側)';
+      
+      const payload = {
+        model_name: file,
+        spine_z: parseFloat(pxToZ(lines.spine.offsetTop)),
+        neck_z: parseFloat(pxToZ(lines.neck.offsetTop)),
+        head_z: parseFloat(pxToZ(lines.head.offsetTop))
+      };
+
+      try {
+        const res = await fetch('http://localhost:18985/rig', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        status.textContent = '処理開始！約30秒ほどお待ちください。';
+        alert("リギングを開始しました。完了後、Remotion をリロードしてください。");
+      } catch (e) {
+        status.textContent = 'エラー: ' + e;
+        console.error(e);
+      }
+    }
+    
+    updateLabels();
+  </script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+{
+  "tool_name": "vnccs_pose_studio_dataset_manager",
+  "version": "0.1.0",
+  "purpose": "Manage VNCCS Pose Studio generation conditions, metadata, and dataset logging.",
+  "inputs": {
+    "condition_id": "string",
+    "pose_parameters": "object",
+    "lighting_parameters": "object",
+    "camera_parameters": "object",
+    "prompt": "string",
+    "negative_prompt": "string",
+    "seed": "integer"
+  },
+  "outputs": {
+    "metadata_json": "file",
+    "generation_log_csv": "file"
+  },
+  "safety": {
+    "no_overwrite": true,
+    "require_backup_before_modification": true,
+    "human_review_for_model_install": true
+  }
+}

@@ -1,0 +1,8 @@
+[
+  {
+    "id": "para_iot_comment",
+    "type": "comment",
+    "name": "PARA IoT Flow Template: MQTT/CSV -> 90_Inbox/iot_logs -> anomaly detection",
+    "info": "Import into Node-RED and adjust paths. Keep read/copy behavior first."
+  }
+]

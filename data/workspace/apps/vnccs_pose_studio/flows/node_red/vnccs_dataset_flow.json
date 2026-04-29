@@ -1,0 +1,60 @@
+[
+  {
+    "id": "vnccs-tab-001",
+    "type": "tab",
+    "label": "VNCCS Dataset Logger",
+    "disabled": false,
+    "info": "VNCCS Pose Studio generated image metadata logger template"
+  },
+  {
+    "id": "vnccs-http-in",
+    "type": "http in",
+    "z": "vnccs-tab-001",
+    "name": "receive generation metadata",
+    "url": "/vnccs/metadata",
+    "method": "post",
+    "upload": false,
+    "swaggerDoc": "",
+    "x": 180,
+    "y": 100,
+    "wires": [["vnccs-json"]]
+  },
+  {
+    "id": "vnccs-json",
+    "type": "json",
+    "z": "vnccs-tab-001",
+    "name": "parse json",
+    "property": "payload",
+    "action": "",
+    "pretty": false,
+    "x": 410,
+    "y": 100,
+    "wires": [["vnccs-debug","vnccs-http-response"]]
+  },
+  {
+    "id": "vnccs-debug",
+    "type": "debug",
+    "z": "vnccs-tab-001",
+    "name": "metadata debug",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "x": 640,
+    "y": 70,
+    "wires": []
+  },
+  {
+    "id": "vnccs-http-response",
+    "type": "http response",
+    "z": "vnccs-tab-001",
+    "name": "ok",
+    "statusCode": "200",
+    "headers": {},
+    "x": 650,
+    "y": 130,
+    "wires": []
+  }
+]

@@ -1,0 +1,5 @@
+condition_id,pose_arm_angle_deg,camera_distance,key_light_position,key_light_strength,ambient_strength,prompt_note,status
+VNCCS_DOE_0001,30,near,left_front,0.6,0.2,Describe character/material/background/defect here,planned
+VNCCS_DOE_0002,30,near,left_front,1.0,0.5,Describe character/material/background/defect here,planned
+VNCCS_DOE_0003,60,middle,front,1.0,0.5,Describe character/material/background/defect here,planned
+VNCCS_DOE_0004,90,far,right_front,1.4,0.5,Describe character/material/background/defect here,planned

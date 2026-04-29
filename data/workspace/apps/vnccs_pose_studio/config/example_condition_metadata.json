@@ -1,0 +1,22 @@
+{
+  "condition_id": "VNCCS_DOE_0001",
+  "pose_parameters": {
+    "arm_angle_deg": 30,
+    "body_orientation": "front",
+    "head_orientation": "slightly_left"
+  },
+  "lighting_parameters": {
+    "key_light_position": "left_front",
+    "key_light_strength": 1.0,
+    "ambient_strength": 0.5
+  },
+  "camera_parameters": {
+    "distance": "middle",
+    "focal_length_hint": "standard",
+    "composition": "center"
+  },
+  "prompt": "character, controlled pose, controlled lighting",
+  "negative_prompt": "bad anatomy, extra fingers, inconsistent lighting",
+  "seed": 123456,
+  "model_names": []
+}

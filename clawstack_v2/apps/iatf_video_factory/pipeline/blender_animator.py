@@ -154,16 +154,17 @@ def animate_lipsync(armature_obj, phoneme_timeline, fps):
             jaw_bone.rotation_euler[0] = a
             jaw_bone.keyframe_insert("rotation_euler", frame=f)
 
-def setup_render(output_dir, fps=30, width=1920, height=1080):
+def setup_render(output_dir, fps=30, width=1280, height=720):
     scene = bpy.context.scene
-    scene.render.engine = "BLENDER_EEVEE_NEXT"
+    scene.render.engine = "BLENDER_EEVEE"
     scene.render.fps = fps
     scene.render.image_settings.file_format = "PNG"
     scene.render.resolution_x = width
     scene.render.resolution_y = height
     scene.render.filepath = str(output_dir) + "/frame_"
+    scene.render.use_overwrite = False
     eevee = scene.eevee
-    eevee.taa_render_samples = 16
+    eevee.taa_render_samples = 8
 '''
 
 BLENDER_SCENE_TEMPLATE = '''

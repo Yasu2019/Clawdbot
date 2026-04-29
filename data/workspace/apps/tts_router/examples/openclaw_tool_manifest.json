@@ -1,0 +1,21 @@
+{
+  "name": "openclaw_tts_router",
+  "description": "用途別にTTSエンジンを選択して音声生成するOpenClawツール",
+  "base_url": "http://openclaw-tts-router:8080",
+  "tools": [
+    {
+      "name": "speak",
+      "method": "POST",
+      "path": "/tts/speak",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "text": {"type": "string"},
+          "purpose": {"type": "string"},
+          "review_approved": {"type": "boolean"}
+        },
+        "required": ["text"]
+      }
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>OpenCode GO Intelligence Hub</title>
+  <style>
+    body{font-family:system-ui,"Noto Sans JP",sans-serif;margin:24px;background:#0f172a;color:#e5e7eb}
+    .card{background:#111827;border:1px solid #334155;border-radius:16px;padding:20px;margin-bottom:16px;box-shadow:0 8px 24px #0004}
+    h1{font-size:24px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+    .ok{color:#86efac}.warn{color:#fde68a}.bad{color:#fca5a5} code{background:#020617;padding:2px 6px;border-radius:6px}
+  </style>
+</head>
+<body>
+  <h1>OpenCode GO Intelligence Hub</h1>
+  <div class="grid">
+    <div class="card"><h2>1. 外部情報収集</h2><p>公開情報を収集し、要約・出典・鮮度を記録。</p></div>
+    <div class="card"><h2>2. 有益性判定</h2><p>業務効果、導入容易性、保守性、セキュリティを採点。</p></div>
+    <div class="card"><h2>3. 安全ゲート</h2><p>機密・上書き・Docker破壊・GitHub未保存を検出。</p></div>
+    <div class="card"><h2>4. 採用候補化</h2><p>本番反映ではなく、差分案・テスト案・ロールバック案を生成。</p></div>
+  </div>
+  <div class="card">
+    <h2>運用モード</h2>
+    <p class="ok">推奨: 候補化のみ / 人間承認必須</p>
+    <p class="warn">注意: 外部AIへ機密原文を送信しない</p>
+    <p class="bad">禁止: 自動本番反映、docker compose down -v</p>
+  </div>
+</body>
+</html>

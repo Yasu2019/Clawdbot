@@ -1,0 +1,23 @@
+title: "バリ不良の基礎教育"
+audience: "新人検査員・プレス作業者"
+video_length: "3min"
+process: "プレス加工"
+defect_type: "バリ"
+objective: "バリ不良の見つけ方、原因、初動対応を理解する"
+source_documents:
+  - "内部不具合報告書"
+  - "作業標準書"
+  - "検査基準書"
+confidentiality_level: "Internal-B"
+masking_required: true
+must_include:
+  - "NG例とOK例"
+  - "発生しやすい工程"
+  - "初動連絡ルール"
+  - "再発防止の考え方"
+must_not_include:
+  - "顧客名"
+  - "品番"
+  - "図面番号"
+  - "具体的な金型寸法"
+approver: "品質保証責任者"

@@ -1,0 +1,17 @@
+name: para_autonomous_organizer
+version: 1.0.0
+purpose: Classify files, IoT logs, Paperless documents, and AI outputs into PARA structure.
+inputs:
+  - inbox_path
+  - file_metadata
+  - optional_text_preview
+outputs:
+  - proposed_path
+  - confidence
+  - summary
+  - rag_action
+  - anomaly_action
+safety:
+  dry_run_default: true
+  overwrite: false
+  delete: false

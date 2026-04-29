@@ -1,0 +1,58 @@
+name: google_vids_education_pipeline
+version: 1.0.0
+mode: human_approval_required
+
+inputs:
+  - source_document_ids
+  - target_audience
+  - video_length
+  - confidentiality_level
+  - output_language
+
+steps:
+  - id: retrieve_sources
+    type: rag_search
+    collection: universal_knowledge
+    description: "関連文書をRAG検索する"
+
+  - id: extract_claims
+    type: llm_local_first
+    model_policy: local_first_cloud_fallback
+    description: "教育に使う主張と根拠を抽出する"
+
+  - id: mask_sensitive_info
+    type: pii_confidentiality_filter
+    description: "顧客名・品番・図面番号・個人名をマスクする"
+
+  - id: build_script
+    type: llm_local_first
+    description: "台本、絵コンテ、ナレーションを生成する"
+
+  - id: generate_vids_prompt
+    type: template_renderer
+    template: prompts/vids_prompt_templates.md
+    description: "Google Vids投入用プロンプトを生成する"
+
+  - id: human_review_gate
+    type: approval_gate
+    required: true
+    approver_role: quality_assurance_manager
+
+  - id: export_package
+    type: file_export
+    outputs:
+      - script.md
+      - storyboard.md
+      - google_vids_prompt.md
+      - review_sheet.md
+      - audit_trace.json
+
+observability:
+  langfuse_trace: true
+  store_prompt_hash: true
+  store_source_doc_ids: true
+
+safety:
+  forbid_direct_upload_confidential_docs_to_vids: true
+  require_masking_before_export: true
+  require_human_approval_before_publish: true

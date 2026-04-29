@@ -1,0 +1,14 @@
+{
+  "title": "打痕不良の初動対応",
+  "audience": "検査員・プレス作業者",
+  "process": "プレス加工",
+  "defect_type": "打痕",
+  "masking_required": true,
+  "human_approval_required": true,
+  "outputs": [
+    "script.md",
+    "storyboard.md",
+    "google_vids_prompt.md",
+    "review_sheet.md"
+  ]
+}

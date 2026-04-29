@@ -1,0 +1,12 @@
+name = "ClawstackJuliaNumericalWorker"
+uuid = "ce470e2a-d1a1-4bfe-8e8d-91bfa6f36001"
+authors = ["Clawstack Local"]
+version = "0.1.0"
+
+[deps]
+HTTP = "cd3eb016-35fb-5094-929b-558a96fad6f3"
+JSON3 = "0f8b85d8-7281-11e9-16c2-5779cd4c7a9a"
+StructTypes = "856f2bd8-1eba-4b0a-8007-ebc267875bd4"
+Random = "9a3f8284-a2c9-5f02-9a11-8459805c0ae7"
+Statistics = "10745b16-91d9-5c2f-9d20-17d1f1c2d0c4"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"

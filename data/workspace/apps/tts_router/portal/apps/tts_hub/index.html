@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>OpenClaw TTS Hub</title>
+  <style>
+    body{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;margin:0;background:#0f172a;color:#e5e7eb}
+    main{max-width:980px;margin:auto;padding:28px}
+    .card{background:#111827;border:1px solid #334155;border-radius:18px;padding:22px;margin:16px 0;box-shadow:0 8px 24px #0005}
+    textarea,select,input{width:100%;box-sizing:border-box;border-radius:12px;border:1px solid #475569;background:#020617;color:#e5e7eb;padding:12px;margin:8px 0}
+    button{border:0;border-radius:12px;padding:12px 18px;background:#38bdf8;color:#082f49;font-weight:700;cursor:pointer}
+    code{background:#020617;padding:2px 6px;border-radius:6px}
+  </style>
+</head>
+<body>
+<main>
+  <h1>OpenClaw TTS Hub</h1>
+  <p>用途別にTTSを切り替え、現場通知・教育動画・顧客向けナレーションを生成します。</p>
+  <section class="card">
+    <label>用途</label>
+    <select id="purpose">
+      <option value="factory_alert">現場アラート</option>
+      <option value="iatf_training">IATF教育動画</option>
+      <option value="customer_presentation">顧客向け資料</option>
+      <option value="realtime_agent">リアルタイム対話</option>
+      <option value="local_only">完全ローカル</option>
+    </select>
+    <label>読み上げ文</label>
+    <textarea id="text" rows="8">品質保証部からのお知らせです。工程内で異常傾向を検出しました。担当者は確認をお願いします。</textarea>
+    <label><input id="review" type="checkbox" /> 社外公開・顧客向け利用レビュー済み</label>
+    <button onclick="speak()">TTS生成</button>
+  </section>
+  <section class="card">
+    <h2>結果</h2>
+    <pre id="result">未生成</pre>
+    <audio id="audio" controls style="width:100%;display:none"></audio>
+  </section>
+</main>
+<script>
+async function speak(){
+  const payload={text:document.getElementById('text').value,purpose:document.getElementById('purpose').value,review_approved:document.getElementById('review').checked};
+  const res=await fetch('http://localhost:18081/tts/speak',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+  const json=await res.json();
+  document.getElementById('result').textContent=JSON.stringify(json,null,2);
+  const audio=document.getElementById('audio');
+  audio.src='http://localhost:18081'+json.url;
+  audio.style.display='block';
+}
+</script>
+</body>
+</html>

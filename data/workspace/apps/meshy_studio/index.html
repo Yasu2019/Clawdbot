@@ -4,28 +4,57 @@
   <meta charset="utf-8" />
   <title>Meshy × Remotion Studio</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
   <style>
-    body { font-family: system-ui, sans-serif; margin: 24px; }
-    textarea, input { width: 100%; box-sizing: border-box; margin-top: 8px; }
-    textarea { min-height: 120px; }
-    button { margin-top: 12px; padding: 10px 16px; }
-    pre { background: #f4f4f4; padding: 12px; overflow:auto; }
+    body { font-family: system-ui, sans-serif; margin: 24px; background: #f8f9fa; color: #202124; }
+    .card { background: white; padding: 24px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); max-width: 800px; margin: auto; }
+    h1 { margin-top: 0; font-size: 1.5rem; color: #1a73e8; }
+    label { font-weight: bold; font-size: 0.9rem; color: #5f6368; }
+    textarea, input { width: 100%; box-sizing: border-box; margin-top: 8px; margin-bottom: 16px; padding: 12px; border: 1px solid #dadce0; border-radius: 8px; font-size: 14px; }
+    textarea { min-height: 100px; }
+    button { background: #1a73e8; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; transition: background 0.2s; }
+    button:hover { background: #1557b0; }
+    pre { background: #f1f3f4; padding: 12px; overflow: auto; border-radius: 8px; font-size: 12px; }
+    .viewer-container { margin-top: 24px; border-top: 1px solid #eee; padding-top: 24px; }
+    model-viewer { width: 100%; height: 400px; background: #eee; border-radius: 12px; }
   </style>
 </head>
 <body>
-  <h1>Meshy × Remotion Studio</h1>
-  <p>IATF動画向けの3D素材生成を支援するPortalカード雛形です。</p>
+  <div class="card">
+    <h1>⚡ Meshy × Remotion Studio</h1>
+    <div style="margin-bottom: 20px; padding: 10px; background: #e8f0fe; border-radius: 8px;">
+      <a href="rigging.html" style="color: #1a73e8; font-weight: bold; text-decoration: none;">👉 手動リギング画面 (Rigging Studio) を開く</a>
+    </div>
+    <p>IATF動画向けの3D素材生成を支援するPortalカードです。</p>
 
-  <label>3D生成プロンプト</label>
-  <textarea id="prompt">factory QA trainer character, friendly Japanese industrial training style, suitable for IATF training animation, simple clean outfit, full body</textarea>
+    <label>3D生成プロンプト</label>
+    <textarea id="prompt">Akira Toriyama style female engineer, turquoise hair, IATF orange jumpsuit, cel-shaded animation style</textarea>
 
-  <label>API Base</label>
-  <input id="apiBase" value="http://127.0.0.1:18981" />
+    <label>API Base</label>
+    <input id="apiBase" value="http://localhost:18981" />
 
-  <button onclick="submitJob()">ドライラン/生成依頼</button>
-  <pre id="out">ここに結果が表示されます。</pre>
+    <label>表示する 3D モデル (assets/ 以降)</label>
+    <input id="previewFile" value="bulma_color_mc.glb" onchange="updatePreview()" />
+
+    <button onclick="submitJob()">ドライラン/生成依頼</button>
+
+    <div class="viewer-container">
+      <label>3D プレビュー (ドラッグで回転)</label>
+      <model-viewer id="viewer" src="http://localhost:18981/assets/bulma_color_mc.glb" 
+          camera-controls auto-rotate shadow-intensity="1" environment-image="neutral">
+      </model-viewer>
+    </div>
+
+    <pre id="out">ここに結果が表示されます。</pre>
+  </div>
 
   <script>
+    function updatePreview() {
+      const apiBase = document.getElementById('apiBase').value;
+      const file = document.getElementById('previewFile').value;
+      document.getElementById('viewer').src = `${apiBase}/assets/${file}`;
+    }
+
     async function submitJob() {
       const apiBase = document.getElementById('apiBase').value;
       const prompt = document.getElementById('prompt').value;
@@ -39,6 +68,9 @@
         });
         const json = await res.json();
         out.textContent = JSON.stringify(json, null, 2);
+        if (json.dry_run === false && json.result) {
+            alert("生成依頼に成功しました！Task ID: " + json.result);
+        }
       } catch (e) {
         out.textContent = String(e);
       }

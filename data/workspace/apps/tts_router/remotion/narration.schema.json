@@ -1,0 +1,22 @@
+{
+  "title": "IATF Training Narration Schema",
+  "type": "object",
+  "properties": {
+    "title": {"type":"string"},
+    "audioFile": {"type":"string"},
+    "approvedBy": {"type":"string"},
+    "segments": {
+      "type":"array",
+      "items": {
+        "type":"object",
+        "properties": {
+          "start": {"type":"number"},
+          "end": {"type":"number"},
+          "text": {"type":"string"}
+        },
+        "required": ["start", "end", "text"]
+      }
+    }
+  },
+  "required": ["title", "audioFile", "segments"]
+}
