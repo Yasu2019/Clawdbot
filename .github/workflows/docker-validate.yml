@@ -22,6 +22,10 @@ on:
 permissions:
   contents: read
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
   compose-config:
     name: docker compose config 検証
