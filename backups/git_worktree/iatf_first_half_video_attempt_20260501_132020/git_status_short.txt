@@ -1,0 +1,60 @@
+﻿ M .claude/scheduled_tasks.lock
+ M .vscode/extensions.json
+ M clawstack_v2/apps/iatf_video_factory/pipeline/script_generator.py
+ M clawstack_v2/apps/iatf_video_factory/run_host.py
+ M data/state/litellm_config.yaml
+ M data/workspace/ai_strategy_scout_local_digest.md
+ M data/workspace/ai_strategy_scout_watchdog.py
+ M data/workspace/paperless_pdf_review_report.md
+ M data/workspace/portal.html
+ M docker-compose.yml
+ M docs/INCIDENT_LOG.md
+ M iatf_system/app/assets/stylesheets/tailwind.css
+ M iatf_system/app/controllers/products_controller.rb
+ M iatf_system/app/services/iot_data_service.rb
+ M iatf_system/app/views/products/index.html.erb
+ M iatf_system/app/views/products/iot.html.erb
+ M iatf_system/config/routes.rb
+ M iatf_system/docker-compose.production.yml
+ M iatf_system/nginx/conf.d/default.conf
+ M scripts/start_telegram_fast_bridge.ps1
+ M scripts/telegram_fast_bridge.js
+ ? shannon_test_target
+?? Node_Red_JSON_20260429/
+?? backups/git_worktree/
+?? backups/iot_csv_timezone_20260430_095031/
+?? backups/n8n/workflow_Mc3U5YAJrQxydJ96_pre_ai_scout_schedule_repair_20260429_215617.json
+?? backups/n8n/workflow_OpnCRJquLkBjXOyw_pre_due_telegram_repair_20260429_215616.json
+?? backups/n8n/workflow_sYuks4F4aDvENqpl_pre_due_telegram_repair_20260429_215013.json
+?? backups/n8n/workflows_current_pre_critical_restore_20260429_223024.json
+?? backups/nodered/
+?? backups/openradioss/
+?? backups/repair_20260429/
+?? clawstack_v2/apps/iatf_video_factory/pipeline/slide_preflight.py
+?? clawstack_v2/apps/iatf_video_factory/pipeline/slide_video_builder.py
+?? clawstack_v2/apps/iatf_video_factory/pipeline/visual_qa.py
+?? corpus2skill/
+?? data/workspace/apps/asana_quality_hub/
+?? data/workspace/apps/blender_autonomous_studio/
+?? data/workspace/apps/corpus2skill/
+?? data/workspace/apps/gdt_step_face_viewer_v2/
+?? data/workspace/apps/motion_lab/
+?? data/workspace/blender_mode_design_deepseek.md
+?? data/workspace/deepseek_blender_design_request.py
+?? data/workspace/design_request2.py
+?? data/workspace/handoff_codex_20260429.md
+?? data/workspace/iatf_opencode_go_preflight.py
+?? data/workspace/openradioss_10h_tune_run35.py
+?? data/workspace/openradioss_10h_tuning_report.md
+?? data/workspace/rebuild_iatf_video_as_slides_20260430.py
+?? data/workspace/render_iatf_first_half_opencode_once.py
+?? data/workspace/repair_telegram_n8n_schedules_20260429.py
+?? data/workspace/restore_missing_critical_n8n_workflows_20260429.py
+?? data/workspace/run_iatf_first_half_video_once.py
+?? docs/knowledge/
+?? iatf_system/app/services/iot_daily_matrix_service.rb
+?? iatf_system/app/services/iot_monthly_summary_service.rb
+?? iatf_system/app/views/products/_iot_daily_matrix_number_table.html.erb
+?? iatf_system/app/views/products/iot_daily_matrix.html.erb
+?? iatf_system/app/views/products/iot_monthly.html.erb
+?? scripts/brv_safe_curate.ps1

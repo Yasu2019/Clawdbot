@@ -51,7 +51,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.production.web
-    command: bash -c "rm -f tmp/pids/server.pid && bundle exec chmod +x bin/rails && npm run build:css && bundle exec rails s -p 3004 -b '0.0.0.0' -e production"
+    command: bash -c "rm -f tmp/pids/server.pid && bundle exec chmod +x bin/rails && bundle exec rails assets:precompile && bundle exec rails s -p 3004 -b '0.0.0.0' -e production"
     tty: true
     stdin_open: true
     env_file: .env.production
@@ -116,7 +116,7 @@ services:
   nginx:
     image: nginx:latest
     ports:
-      - "80:80"
+      - "127.0.0.1:18090:80"
     volumes:
       - ./nginx/conf.d:/etc/nginx/conf.d:ro
       - letsencrypt_data:/etc/letsencrypt:ro

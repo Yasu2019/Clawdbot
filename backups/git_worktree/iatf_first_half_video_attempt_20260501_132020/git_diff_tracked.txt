@@ -1,0 +1,1755 @@
+﻿diff --git a/.claude/scheduled_tasks.lock b/.claude/scheduled_tasks.lock
+index 91f0879..f0ef6b3 100644
+--- a/.claude/scheduled_tasks.lock
++++ b/.claude/scheduled_tasks.lock
+@@ -1 +1 @@
+-{"sessionId":"27cbba03-e1ac-4650-94ac-45a819f32471","pid":19712,"acquiredAt":1777317923092}
+\ No newline at end of file
++{"sessionId":"ec72f5b5-0ac0-4c0b-bdd6-5ba7b1399414","pid":16160,"acquiredAt":1777568948451}
+\ No newline at end of file
+diff --git a/.vscode/extensions.json b/.vscode/extensions.json
+index 0e76d72..c015ab0 100644
+--- a/.vscode/extensions.json
++++ b/.vscode/extensions.json
+@@ -1,7 +1,17 @@
+ {
+   "recommendations": [
+-    "github.copilot",
+-    "ms-vscode.powershell",
+-    "eamodio.gitlens"
++    "ms-azuretools.vscode-docker",
++    "ms-vscode-remote.remote-wsl",
++    "ms-vscode-remote.remote-containers",
++    "shopify.ruby-lsp",
++    "ms-python.python",
++    "ms-python.vscode-pylance",
++    "yzhang.markdown-all-in-one",
++    "usernamehw.errorlens",
++    "humao.rest-client",
++    "eamodio.gitlens",
++    "bradlc.vscode-tailwindcss",
++    "esbenp.prettier-vscode",
++    "oderwat.indent-rainbow"
+   ]
+ }
+diff --git a/clawstack_v2/apps/iatf_video_factory/pipeline/script_generator.py b/clawstack_v2/apps/iatf_video_factory/pipeline/script_generator.py
+index c53b49f..840f1a2 100644
+--- a/clawstack_v2/apps/iatf_video_factory/pipeline/script_generator.py
++++ b/clawstack_v2/apps/iatf_video_factory/pipeline/script_generator.py
+@@ -1,9 +1,27 @@
+ """台本生成 — Kimi K2.6 (256K ctx) 優先、Gemini 2.5 Flash フォールバック。
+ PDF全文を省略なく読み込み、7キャラ対話台本JSONを生成する。
+ LiteLLM不達時はOpenCode GO / Gemini APIへ直接フォールバック。"""
+-import json, requests, os
++import json, requests, os, time
+ from pathlib import Path
+ 
++ROOT = Path(__file__).resolve().parents[4]
++STATUS_PATH = ROOT / "data" / "workspace" / "iatf_opencode_go_routing_status.json"
++
++
++def _load_root_env() -> None:
++    env_path = ROOT / ".env"
++    if not env_path.exists():
++        return
++    for line in env_path.read_text(encoding="utf-8", errors="replace").splitlines():
++        line = line.strip()
++        if not line or line.startswith("#") or "=" not in line:
++            continue
++        key, _, value = line.partition("=")
++        os.environ.setdefault(key.strip(), value.strip().strip('"').strip("'"))
++
++
++_load_root_env()
++
+ LITELLM_URL = os.getenv("LITELLM_URL", "http://localhost:4001")
+ LITELLM_KEY = os.getenv("LITELLM_MASTER_KEY", "local-dev-key")
+ 
+@@ -16,6 +34,8 @@ GEMINI_BASE      = "https://generativelanguage.googleapis.com/v1beta/openai"
+ # モデル優先順位 (OpenCode GO API接続確認後に kimi-k2.6 を最優先に)
+ SCRIPT_MODELS = [
+     "opencode-go/kimi-k2.6",
++    "opencode-go/deepseek-v4-flash",
++    "opencode-go/deepseek-v4-pro",
+     "google/gemini-2.5-flash",
+     "local_fast",
+ ]
+@@ -75,23 +95,70 @@ def _extract_json(raw: str) -> str:
+     return raw.strip()
+ 
+ 
++def _record_route_event(model: str, stage: str, ok: bool, elapsed: float, detail: str = "") -> None:
++    try:
++        STATUS_PATH.parent.mkdir(parents=True, exist_ok=True)
++        STATUS_PATH.write_text(
++            json.dumps(
++                {
++                    "updated_at": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
++                    "model": model,
++                    "stage": stage,
++                    "ok": ok,
++                    "elapsed_sec": round(elapsed, 2),
++                    "detail": detail[:500],
++                },
++                ensure_ascii=False,
++                indent=2,
++            ),
++            encoding="utf-8",
++        )
++    except Exception:
++        pass
++
++
++def _message_content(data: dict) -> str | None:
++    choices = data.get("choices") or []
++    if not choices:
++        return None
++    msg = choices[0].get("message") or {}
++    content = msg.get("content")
++    if isinstance(content, str) and content.strip():
++        return content.strip()
++    reasoning = msg.get("reasoning_content")
++    if isinstance(reasoning, str) and reasoning.strip().startswith("{"):
++        return reasoning.strip()
++    return None
++
++
+ def _call_llm(model: str, messages: list, max_tokens: int = 8000) -> str | None:
++    timeout_sec = 180 if model.startswith("opencode-go/") else 60
++    started = time.time()
+     try:
+         resp = requests.post(
+             f"{LITELLM_URL}/v1/chat/completions",
+             headers={"Authorization": f"Bearer {LITELLM_KEY}"},
+             json={"model": model, "messages": messages, "max_tokens": max_tokens, "temperature": 0.7},
+-            timeout=30,
++            timeout=timeout_sec,
+         )
+         resp.raise_for_status()
+-        return resp.json()["choices"][0]["message"]["content"].strip()
++        content = _message_content(resp.json())
++        elapsed = time.time() - started
++        if not content:
++            _record_route_event(model, "litellm", False, elapsed, "empty response content")
++            print(f"  [{model}] via LiteLLM returned empty content")
++            return None
++        _record_route_event(model, "litellm", True, elapsed, "content received")
++        return content
+     except Exception as e:
++        _record_route_event(model, "litellm", False, time.time() - started, str(e))
+         print(f"  [{model}] via LiteLLM failed: {e}")
+         return None
+ 
+ 
+ def _call_direct(endpoint: str, api_key: str, model: str, messages: list, max_tokens: int = 8000) -> str | None:
+     """LiteLLMをバイパスしてAPIを直接呼び出す"""
++    started = time.time()
+     try:
+         resp = requests.post(
+             f"{endpoint}/chat/completions",
+@@ -101,11 +168,16 @@ def _call_direct(endpoint: str, api_key: str, model: str, messages: list, max_to
+         )
+         resp.raise_for_status()
+         data = resp.json()
+-        content = data["choices"][0]["message"].get("content") or ""
+-        if not content and "reasoning_content" in data["choices"][0]["message"]:
+-            content = data["choices"][0]["message"].get("content", "")
+-        return content.strip() if content else None
++        content = _message_content(data)
++        elapsed = time.time() - started
++        if not content:
++            _record_route_event(model, "direct", False, elapsed, "empty response content")
++            print(f"  [{model}] direct API returned empty content")
++            return None
++        _record_route_event(model, "direct", True, elapsed, "content received")
++        return content
+     except Exception as e:
++        _record_route_event(model, "direct", False, time.time() - started, str(e))
+         print(f"  [{model}] direct API failed: {e}")
+         return None
+ 
+@@ -181,7 +253,7 @@ def generate_script(pdf_text: str, clause: str, topic: str) -> dict:
+ 
+     # LiteLLM未達フォールバック: OpenCode GO直接
+     if OPENCODE_GO_KEY:
+-        for oc_model in ["kimi-k2.6", "deepseek-v4-flash"]:
++        for oc_model in ["kimi-k2.6", "deepseek-v4-flash", "deepseek-v4-pro"]:
+             print(f"  Direct OpenCode GO: {oc_model}")
+             raw = _call_direct(OPENCODE_GO_BASE, OPENCODE_GO_KEY, oc_model, messages)
+             if not raw:
+diff --git a/clawstack_v2/apps/iatf_video_factory/run_host.py b/clawstack_v2/apps/iatf_video_factory/run_host.py
+index 5acbb7d..6565ba5 100644
+--- a/clawstack_v2/apps/iatf_video_factory/run_host.py
++++ b/clawstack_v2/apps/iatf_video_factory/run_host.py
+@@ -7,17 +7,19 @@ Docker不要。Windows Blender + ホストPython で動作。
+   python run_host.py --limit 3     # 3本
+   python run_host.py --pdf "..."   # 特定PDF
+ """
+-import sys, os, json, subprocess, time, tempfile, wave, hashlib, requests
++import csv, re, shutil, sys, os, json, subprocess, time, tempfile, wave, hashlib, requests
+ from pathlib import Path
+ 
+ # パス設定
+ ROOT       = Path(__file__).parent.parent.parent.parent  # d:/Clawdbot_Docker_20260125
+ PDF_DIR    = ROOT / "iatf_system/db/documents"
++ATTACHEDFILE_CSV = ROOT / "iatf_system/db/record/attachedfile.csv"
+ OUTPUT_DIR = ROOT / "data/iatf_videos"
+ AUDIO_DIR  = Path(tempfile.gettempdir()) / "iatf_audio"
+ LOG_FILE   = OUTPUT_DIR / "generation.log"
+ 
+ BLENDER_BIN  = r"C:/Program Files/Blender Foundation/Blender 5.1/blender.exe"
++FFMPEG_BIN   = os.getenv("FFMPEG_BIN", r"C:/Users/yasu/AppData/Local/Microsoft/WinGet/Packages/Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe/ffmpeg-8.1-full_build/bin/ffmpeg.exe")
+ LITELLM_URL  = os.getenv("LITELLM_URL",  "http://localhost:4001")
+ LITELLM_KEY  = os.getenv("LITELLM_MASTER_KEY", "local-dev-key")
+ VOICEVOX_URL = os.getenv("VOICEVOX_URL", "http://localhost:50021")
+@@ -90,6 +92,30 @@ def _is_done(pdf_name):
+     return mp4.exists()
+ 
+ 
++def _normalize_name(value: str) -> str:
++    return re.sub(r"\s+", "", value)
++
++
++def _is_iatf_training_pdf(filename: str) -> bool:
++    normalized = _normalize_name(filename)
++    return (
++        normalized.startswith(_normalize_name("IATF 16949 内部監査資料"))
++        and filename.lower().endswith(".pdf")
++    )
++
++
++def _document_path_from_csv_name(filename: str) -> Path | None:
++    direct = PDF_DIR / filename
++    if direct.exists():
++        return direct
++
++    target = _normalize_name(filename)
++    for path in PDF_DIR.glob("*.pdf"):
++        if _normalize_name(path.name) == target:
++            return path
++    return None
++
++
+ # ── PDF抽出 ─────────────────────────────────────────────────────
+ def extract_pdf(pdf_path: Path) -> str:
+     from pdf_extractor import extract_pdf as _ex
+@@ -147,6 +173,46 @@ def render_blender(timeline: list, phonemes: list, frames_dir: Path, fps=30) ->
+     return True
+ 
+ 
++def visual_qa_frames(frames_dir: Path, video_dir: Path) -> dict:
++    from visual_qa import assert_visual_quality
++
++    report_dir = video_dir / "visual_qa"
++    report = assert_visual_quality(frames_dir, report_dir)
++    log(f"  Visual QA OK: {report['frame_count']} frames / {report.get('contact_sheet')}")
++    return report
++
++
++def _quarantine_existing_frames(frames_dir: Path) -> Path:
++    target = frames_dir.with_name(f"{frames_dir.name}_visual_qa_failed_{time.strftime('%Y%m%d_%H%M%S')}")
++    if target.exists():
++        shutil.rmtree(target)
++    frames_dir.rename(target)
++    frames_dir.mkdir(parents=True, exist_ok=True)
++    return target
++
++
++def slide_preflight_gate(script: dict, timeline: list, video_dir: Path, title: str) -> dict:
++    from slide_preflight import run_slide_preflight
++
++    report = run_slide_preflight(script, timeline, video_dir, title)
++    log(f"  Slide preflight OK: {report['contact_sheet']}")
++    return report
++
++
++def compose_approved_slide_video(video_dir: Path, stem: str) -> Path:
++    from slide_video_builder import build_reviewed_slide_video
++
++    report = build_reviewed_slide_video(
++        video_dir,
++        reviewer=os.getenv("IATF_VIDEO_REVIEWER_NAME", "Configured AI visual review gate"),
++        review_note="Slide preflight approved; composing reviewed slide video.",
++        output_name=f"{stem}_slide_reviewed.mp4",
++    )
++    log(f"  Slide video OK: {report['output_mp4']}")
++    log(f"  Spot check OK: {report['spot_check']['contact_sheet']}")
++    return Path(report["output_mp4"])
++
++
+ # ── 字幕SRT生成 ──────────────────────────────────────────────────
+ def _sec_to_srt(s: float) -> str:
+     h = int(s // 3600); m = int((s % 3600) // 60); sec = s % 60
+@@ -176,7 +242,7 @@ def compose_mp4(timeline: list, frames_dir: Path, video_dir: Path, pdf_stem: str
+     mix = "".join(f"[a{i}]" for i in range(len(timeline)))
+     filters.append(f"{mix}amix=inputs={len(timeline)}:duration=longest[aout]")
+     subprocess.run(
+-        ["ffmpeg", "-y"] + inputs +
++        [FFMPEG_BIN, "-y"] + inputs +
+         ["-filter_complex", ";".join(filters), "-map", "[aout]", "-t", str(total_sec), str(master_wav)],
+         check=True, capture_output=True, timeout=300)
+ 
+@@ -189,7 +255,7 @@ def compose_mp4(timeline: list, frames_dir: Path, video_dir: Path, pdf_stem: str
+     raw_mp4 = video_dir / "raw_render.mp4"
+     frame_pattern = str(frames_dir / "frame_%04d.png")
+     subprocess.run([
+-        "ffmpeg", "-y",
++        FFMPEG_BIN, "-y",
+         "-framerate", str(fps), "-i", frame_pattern,
+         "-i", str(master_wav),
+         "-c:v", "libx264", "-crf", "18", "-preset", "medium",
+@@ -202,7 +268,7 @@ def compose_mp4(timeline: list, frames_dir: Path, video_dir: Path, pdf_stem: str
+     output_mp4 = video_dir / f"{pdf_stem}.mp4"
+     try:
+         subprocess.run([
+-            "ffmpeg", "-y", "-i", str(raw_mp4),
++            FFMPEG_BIN, "-y", "-i", str(raw_mp4),
+             "-vf", f"subtitles={str(srt_path).replace(chr(92), '/')}:force_style='FontSize=20,PrimaryColour=&HFFFFFF,OutlineColour=&H000000,Outline=2'",
+             "-c:a", "copy",
+             str(output_mp4),
+@@ -236,6 +302,7 @@ def process_pdf(pdf_path: Path) -> bool:
+ 
+     script_json_path   = video_dir / "script.json"
+     timeline_json_path = video_dir / "timeline.json"
++    model = "unknown"
+ 
+     try:
+         # Resume: skip steps 1-4 if intermediate files already exist
+@@ -244,6 +311,7 @@ def process_pdf(pdf_path: Path) -> bool:
+             script   = json.loads(script_json_path.read_text(encoding="utf-8"))
+             timeline = json.loads(timeline_json_path.read_text(encoding="utf-8"))
+             total_sec = max(e["start_sec"] + e["duration_sec"] for e in timeline) + 2.0
++            model = script.get("model_used", "resume")
+         else:
+             log("[1/6] PDF抽出...")
+             pdf_text = extract_pdf(pdf_path)
+@@ -264,14 +332,42 @@ def process_pdf(pdf_path: Path) -> bool:
+             timeline_json_path.write_text(
+                 json.dumps(timeline, ensure_ascii=False, indent=2), encoding="utf-8")
+ 
++        log("[3.5/6] Slide preflight: generate check slides + AI visual review gate...")
++        slide_preflight_gate(script, timeline, video_dir, stem)
++
++        render_mode = os.getenv("IATF_VIDEO_RENDER_MODE", "blender").strip().lower()
++        if render_mode == "slides":
++            log("[4-6/6] Approved slide video compose + periodic spot checks...")
++            output_mp4 = compose_approved_slide_video(video_dir, stem)
++            _try_db_update(row_id, "done", str(output_mp4), model)
++            return True
++
+         log("[4/6] リップシンク (フォールバックモード)...")
+         phonemes = build_phonemes_fallback(timeline)
+         log(f"      {len(phonemes)}フォネームエントリ")
+ 
+-        log("[5/6] Blenderレンダリング...")
+-        ok = render_blender(timeline, phonemes, frames_dir)
+-        if not ok:
+-            raise RuntimeError("Blenderレンダリング失敗")
++        existing_frames = len(list(frames_dir.glob("frame_*.png")))
++        expected_frames = int(total_sec * 30)
++        if existing_frames >= expected_frames * 0.95:
++            log(f"[5/6] Blenderレンダリング skip: {existing_frames}フレーム既存 (期待値{expected_frames}の95%以上)")
++            try:
++                log("[5.5/6] Visual QA: existing frames...")
++                visual_qa_frames(frames_dir, video_dir)
++            except Exception as e:
++                quarantine_dir = _quarantine_existing_frames(frames_dir)
++                log(f"  Existing frames failed Visual QA and were quarantined: {quarantine_dir} / {e}")
++                log("[5/6] Blenderレンダリング retry after failed-frame quarantine...")
++                ok = render_blender(timeline, phonemes, frames_dir)
++                if not ok:
++                    raise RuntimeError("Blenderレンダリング失敗")
++        else:
++            log("[5/6] Blenderレンダリング...")
++            ok = render_blender(timeline, phonemes, frames_dir)
++            if not ok:
++                raise RuntimeError("Blenderレンダリング失敗")
++
++        log("[5.5/6] Visual QA: sample frames + contact sheet...")
++        visual_qa_frames(frames_dir, video_dir)
+ 
+         log("[6/6] FFmpeg MP4合成 + 字幕焼き込み...")
+         output_mp4 = compose_mp4(timeline, frames_dir, video_dir, stem, total_sec)
+@@ -287,8 +383,25 @@ def process_pdf(pdf_path: Path) -> bool:
+ 
+ 
+ def list_pending(limit: int) -> list[Path]:
+-    pdfs = sorted(PDF_DIR.glob("IATF 16949 内部監査資料*.pdf"))
+-    return [p for p in pdfs if not _is_done(p.name)][:limit]
++    pdfs: list[Path] = []
++    seen: set[Path] = set()
++
++    if ATTACHEDFILE_CSV.exists():
++        with ATTACHEDFILE_CSV.open("r", encoding="utf-8-sig", newline="") as handle:
++            for row in csv.DictReader(handle):
++                filename = (row.get("filename") or "").strip()
++                if not _is_iatf_training_pdf(filename):
++                    continue
++                path = _document_path_from_csv_name(filename)
++                if path and path not in seen:
++                    pdfs.append(path)
++                    seen.add(path)
++
++    if not pdfs:
++        pdfs = sorted(p for p in PDF_DIR.glob("*.pdf") if _is_iatf_training_pdf(p.name))
++
++    pending = [p for p in pdfs if not _is_done(p.name)]
++    return pending[:limit]
+ 
+ 
+ if __name__ == "__main__":
+@@ -305,7 +418,7 @@ if __name__ == "__main__":
+         p.nice(psutil.IDLE_PRIORITY_CLASS)
+         log("プロセス優先度: IDLE (低)")
+     except Exception:
+-        log("psutil未インストール — 通常優先度で実行")
++        log("psutil未インストール - 通常優先度で実行")
+ 
+     if args.pdf:
+         process_pdf(Path(args.pdf))
+diff --git a/data/state/litellm_config.yaml b/data/state/litellm_config.yaml
+index f8ef4ba..12a6169 100644
+--- a/data/state/litellm_config.yaml
++++ b/data/state/litellm_config.yaml
+@@ -4,8 +4,8 @@ model_list:
+   - model_name: opencode-go-research
+     litellm_params:
+       model: openai/deepseek-v4-flash
+-      api_base: https://opencode.ai/zen/go/v1
+-      api_key: sk-Qed9ZqA3yf9jN2Xo7xOHHaD3d9YzO5suCgM1MamKYXuKmnsXpTPX6YD28MrII8LL
++      api_base: "${OPENCODE_GO_API_BASE}"
++      api_key: "${OPENCODE_GO_API_KEY}"
+       timeout: 120
+     model_info:
+       mode: external_public_research_only
+@@ -18,32 +18,38 @@ model_list:
+     model_info:
+       mode: local_confidential_review_allowed
+ 
+-  # ── OpenCode GO External AI Layer (Added 2026-04-28) ────────────
++  # ── OpenCode GO External AI Layer (Added 2026-04-28 / Honki-v1) ──────────
+   # 外部情報収集・有益性評価・差分案作成用。機密データ投入禁止。
++  - model_name: opencode-go/qwen3.6-plus
++    litellm_params:
++      model: openai/qwen3.6-plus
++      api_base: "${OPENCODE_GO_API_BASE}"
++      api_key: "${OPENCODE_GO_API_KEY}"
++      timeout: 300
+   - model_name: opencode-go/kimi-k2.6
+     litellm_params:
+       model: openai/kimi-k2.6
+-      api_base: https://opencode.ai/zen/go/v1
+-      api_key: sk-Qed9ZqA3yf9jN2Xo7xOHHaD3d9YzO5suCgM1MamKYXuKmnsXpTPX6YD28MrII8LL
++      api_base: "${OPENCODE_GO_API_BASE}"
++      api_key: "${OPENCODE_GO_API_KEY}"
+       timeout: 300
+   - model_name: opencode-go/glm-5.1
+     litellm_params:
+       model: openai/glm-5.1
+-      api_base: https://opencode.ai/zen/go/v1
+-      api_key: sk-Qed9ZqA3yf9jN2Xo7xOHHaD3d9YzO5suCgM1MamKYXuKmnsXpTPX6YD28MrII8LL
++      api_base: "${OPENCODE_GO_API_BASE}"
++      api_key: "${OPENCODE_GO_API_KEY}"
+       timeout: 300
+   - model_name: opencode-go/deepseek-v4-flash
+     litellm_params:
+       model: openai/deepseek-v4-flash
+-      api_base: https://opencode.ai/zen/go/v1
+-      api_key: sk-Qed9ZqA3yf9jN2Xo7xOHHaD3d9YzO5suCgM1MamKYXuKmnsXpTPX6YD28MrII8LL
++      api_base: "${OPENCODE_GO_API_BASE}"
++      api_key: "${OPENCODE_GO_API_KEY}"
+       timeout: 300
+   - model_name: opencode-go/deepseek-v4-pro
+     litellm_params:
+       model: openai/deepseek-v4-pro
+-      api_base: https://opencode.ai/zen/go/v1
+-      api_key: sk-Qed9ZqA3yf9jN2Xo7xOHHaD3d9YzO5suCgM1MamKYXuKmnsXpTPX6YD28MrII8LL
+-      timeout: 300
++      api_base: "${OPENCODE_GO_API_BASE}"
++      api_key: "${OPENCODE_GO_API_KEY}"
++      timeout: 600
+ 
+   # ── DeepSeek V4 Production Layer (Added 2026-04-28) ─────────────
+   - model_name: deepseek-v4-pro
+diff --git a/data/workspace/ai_strategy_scout_local_digest.md b/data/workspace/ai_strategy_scout_local_digest.md
+index 2927628..5c8fd65 100644
+--- a/data/workspace/ai_strategy_scout_local_digest.md
++++ b/data/workspace/ai_strategy_scout_local_digest.md
+@@ -1,18 +1,10 @@
+ # AI Strategy Scout: Architectural Sentinel Edition
+ 
+-- Generated at: 2026-04-29 07:14:18 JST
++- Generated at: 2026-04-30 23:43:19 JST
+ - Mode: local_no_api_cost
+ 
+ ## 🏛️ [DECISION] Architectural Recommendations
+ 
+-### 🔌 ADOPT_INTEGRATE: Creative Studio
+-- **Rationale**: Matches 1 new developments in this domain.
+-  - Introducing NVIDIA Nemotron 3 Nano Omni: Long-Context Multimodal Intelligence for Documents, Audio and Video Agents
+-
+-### 🔌 ADOPT_INTEGRATE: Audio Lab
+-- **Rationale**: Matches 1 new developments in this domain.
+-  - Introducing NVIDIA Nemotron 3 Nano Omni: Long-Context Multimodal Intelligence for Documents, Audio and Video Agents
+-
+ ### 🔌 ADOPT_INTEGRATE: 3D Fab-Forge
+ - **Rationale**: Matches 5 new developments in this domain.
+   - openfoam-v2512
+@@ -24,12 +16,12 @@
+ ## Local LLM / OSS
+ 
+ ### Local LLM
+-- b8966 [fresh]
+-  Source: llama.cpp Releases | Published: 2026-04-29T05:37:49+09:00
+-  https://github.com/ggml-org/llama.cpp/releases/tag/b8966
+-- Introducing NVIDIA Nemotron 3 Nano Omni: Long-Context Multimodal Intelligence for Documents, Audio and Video Agents [fresh]
+-  Source: Hugging Face Blog | Published: 2026-04-29T00:58:57+09:00
+-  https://huggingface.co/blog/nvidia/nemotron-3-nano-omni-multimodal-intelligence
++- b8986 [fresh]
++  Source: llama.cpp Releases | Published: 2026-04-30T22:02:34+09:00
++  https://github.com/ggml-org/llama.cpp/releases/tag/b8986
++- AI evals are becoming the new compute bottleneck [fresh]
++  Source: Hugging Face Blog | Published: 2026-04-30T01:45:09+09:00
++  https://huggingface.co/blog/evaleval/eval-costs-bottleneck
+ - v0.20.0 [fresh]
+   Source: vLLM Releases | Published: 2026-04-28T06:20:28+09:00
+   https://github.com/vllm-project/vllm/releases/tag/v0.20.0
+@@ -38,23 +30,30 @@
+   https://ollama.com/blog/mlx
+ 
+ ### Productivity OSS
++- v2.2.0: Add twenty sdk server upgrade command (#20158) [fresh]
++  Source: Twenty Releases | Published: 2026-04-30T22:03:41+09:00
++  https://github.com/twentyhq/twenty/releases/tag/v2.2.0
++- n8n@2.19.1 [fresh]
++  Source: n8n Releases | Published: 2026-04-30T01:16:34+09:00
++  https://github.com/n8n-io/n8n/releases/tag/n8n%402.19.1
+ - v0.80.1 [fresh]
+   Source: Docmost Releases | Published: 2026-04-28T22:35:27+09:00
+   https://github.com/docmost/docmost/releases/tag/v0.80.1
+-- n8n@2.18.4 [fresh]
+-  Source: n8n Releases | Published: 2026-04-28T19:27:45+09:00
+-  https://github.com/n8n-io/n8n/releases/tag/n8n%402.18.4
+ - v0.11.8 [fresh]
+   Source: AppFlowy Releases | Published: 2026-04-27T13:07:44+09:00
+   https://github.com/AppFlowy-IO/AppFlowy/releases/tag/0.11.8
+-- v2.1.0 [fresh]
+-  Source: Twenty Releases | Published: 2026-04-25T06:05:40+09:00
+-  https://github.com/twentyhq/twenty/releases/tag/v2.1.0
+ 
+ ## Global Corporate Intel (US)
+ 
+ ### OpenAI / News
+-- No items
++- OpenAI News | OpenAI
++  https://openai.com/news
++- https://openai.com/index/openai-on-aws/
++  https://openai.com/index/openai-on-aws/
++- https://openai.com/index/our-commitment-to-community-safety/
++  https://openai.com/index/our-commitment-to-community-safety/
++- https://openai.com/index/next-phase-of-microsoft-partnership/
++  https://openai.com/index/next-phase-of-microsoft-partnership/
+ 
+ ### Anthropic / News
+ - Newsroom \ Anthropic
+@@ -103,7 +102,7 @@
+ - xess.css?cachebuster=devel
+   https://www.dealii.org/.within.website/x/xess/xess.css?cachebuster=devel
+ - init
+-  https://www.dealii.org/.within.website/x/cmd/anubis/api/honeypot/3e225113-fba1-4d36-8b7c-9c78dec61735/init
++  https://www.dealii.org/.within.website/x/cmd/anubis/api/honeypot/d20c8b3a-9940-4224-8fa2-6c41f618dd39/init
+ 
+ ### SU2 Foundation
+ - Newsletter Registration – SU2 Foundation
+diff --git a/data/workspace/ai_strategy_scout_watchdog.py b/data/workspace/ai_strategy_scout_watchdog.py
+index e3ac620..a15fc93 100644
+--- a/data/workspace/ai_strategy_scout_watchdog.py
++++ b/data/workspace/ai_strategy_scout_watchdog.py
+@@ -6,6 +6,8 @@ import json
+ import os
+ import subprocess
+ import time
++import urllib.parse
++import urllib.request
+ from datetime import datetime, timedelta, timezone
+ from pathlib import Path
+ from typing import Any
+@@ -19,6 +21,8 @@ STATE_PATH = WORKSPACE / "ai_strategy_scout_watchdog_state.json"
+ HARNESS_PATH = ROOT / "data" / "state" / "ai_strategy_scout_watchdog" / "harness_status.json"
+ RUNNER = WORKSPACE / "run_ai_strategy_scout_local.py"
+ RUNNER_STATUS = WORKSPACE / "ai_strategy_scout_local_status.json"
++RUNNER_MARKDOWN = WORKSPACE / "ai_strategy_scout_local_digest.md"
++OPENCLAW_CONFIG = ROOT / "data" / "state" / "openclaw.json"
+ 
+ 
+ def now_jst() -> datetime:
+@@ -41,6 +45,48 @@ def save_json(path: Path, payload: dict[str, Any]) -> None:
+     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+ 
+ 
++def load_telegram_config() -> tuple[str, str]:
++    cfg = load_json(OPENCLAW_CONFIG, {})
++    telegram = ((cfg.get("channels") or {}).get("telegram") or {})
++    bot_token = str(telegram.get("botToken") or os.environ.get("TELEGRAM_BOT_TOKEN") or "").strip()
++    chat_ids = telegram.get("allowFrom") or []
++    chat_id = str(os.environ.get("TELEGRAM_CHAT_ID") or (chat_ids[0] if chat_ids else "")).strip()
++    return bot_token, chat_id
++
++
++def send_telegram(text: str) -> dict[str, Any]:
++    bot_token, chat_id = load_telegram_config()
++    if not bot_token or not chat_id:
++        return {"sent": False, "reason": "telegram config missing"}
++    body = urllib.parse.urlencode({"chat_id": chat_id, "text": text[:3900]}).encode("utf-8")
++    req = urllib.request.Request(
++        f"https://api.telegram.org/bot{bot_token}/sendMessage",
++        data=body,
++        headers={"Content-Type": "application/x-www-form-urlencoded"},
++        method="POST",
++    )
++    with urllib.request.urlopen(req, timeout=30) as resp:
++        payload = json.loads(resp.read().decode("utf-8"))
++    return {"sent": bool(payload.get("ok")), "messageId": ((payload.get("result") or {}).get("message_id"))}
++
++
++def build_scout_telegram_message() -> str:
++    header = f"AI Strategy Scout 定時レポート\n生成: {now_jst_text()}\n"
++    if not RUNNER_MARKDOWN.exists():
++        return header + "\nローカルダイジェストは生成されましたが、Markdownが見つかりません。"
++    text = RUNNER_MARKDOWN.read_text(encoding="utf-8", errors="replace")
++    lines: list[str] = []
++    for raw in text.splitlines():
++        line = raw.strip()
++        if not line or line.startswith("# "):
++            continue
++        if line.startswith("## ") or line.startswith("### ") or line.startswith("- "):
++            lines.append(line.replace("### ", "").replace("## ", ""))
++        if len("\n".join(lines)) > 3200:
++            break
++    return header + "\n" + "\n".join(lines[:60])
++
++
+ def parse_dt(raw: str | None) -> datetime | None:
+     if not raw:
+         return None
+@@ -136,8 +182,20 @@ def main() -> None:
+             status["updatedAt"] = now_jst_text()
+             status["stage"] = "completed" if run_result.get("returncode") == 0 else "error"
+             status["reason"] = "local scout refresh completed" if run_result.get("returncode") == 0 else "local scout refresh failed"
++            if run_result.get("returncode") == 0:
++                runner_status_after = load_json(RUNNER_STATUS, {})
++                state = load_json(STATE_PATH, {})
++                generated_at = str(runner_status_after.get("finishedAt") or runner_status_after.get("generatedAt") or "")
++                if generated_at and state.get("lastTelegramGeneratedAt") != generated_at:
++                    try:
++                        status["telegram"] = send_telegram(build_scout_telegram_message())
++                        state["lastTelegramGeneratedAt"] = generated_at
++                    except Exception as exc:
++                        status["telegram"] = {"sent": False, "reason": str(exc)}
++                save_json(STATE_PATH, {**state, "startedAt": status["startedAt"], "cycle": cycle})
+         write_status(status)
+-        save_json(STATE_PATH, {"startedAt": status["startedAt"], "cycle": cycle})
++        state = load_json(STATE_PATH, {})
++        save_json(STATE_PATH, {**state, "startedAt": status["startedAt"], "cycle": cycle})
+         if args.once:
+             return
+         time.sleep(max(args.poll_seconds, 60))
+diff --git a/data/workspace/paperless_pdf_review_report.md b/data/workspace/paperless_pdf_review_report.md
+index de6bd81..412077d 100644
+--- a/data/workspace/paperless_pdf_review_report.md
++++ b/data/workspace/paperless_pdf_review_report.md
+@@ -1,5 +1,5 @@
+ # Paperless PDF Review Report
+ 
+-- Generated: 2026-04-29 20:25:35 JST
++- Generated: 2026-05-01 13:18:10 JST
+ - Collection: `universal_knowledge`
+ - Qdrant endpoint: `unresolved`
+diff --git a/data/workspace/portal.html b/data/workspace/portal.html
+index 4a71309..c0d1dcd 100644
+--- a/data/workspace/portal.html
++++ b/data/workspace/portal.html
+@@ -103,6 +103,7 @@
+             <a href="apps/ai_output_master/index.html" class="card featured"><h3>⚡ AI Output Master</h3><p>一般論を120点の現場回答へ。三歩法・説得の三角形・QA/IATF 特化テンプレート Hub。</p></a>
+             <a href="apps/vnccs_pose_studio/portal/apps/vnccs_pose_studio/index.html" class="card featured"><h3>⚡ VNCCS Pose Studio Pro</h3><p>ComfyUI 連携。ポーズ・光源・構図をDOE条件として管理・自動生成するプロフェッショナル・スタジオ。</p></a>
+             <a href="apps/google_vids_education/portal_card/google_vids_education_card.html" class="card featured"><h3>⚡ Google Vids Education Hub</h3><p>Google Vids × OpenClaw。現場ナレッジからの教材動画（IATF/不具合事例）自動生成支援システム。</p></a>
++            <a href="apps/corpus2skill/index.html" class="card featured"><h3>🌳 Corpus2Skill Explorer</h3><p>IATF・図面・QC工程表を構造探索する次世代RAG。超リアルデータ対応版。</p></a>
+         </div>
+     </section>
+ </body>
+diff --git a/docker-compose.yml b/docker-compose.yml
+index 634969e..9e27325 100644
+--- a/docker-compose.yml
++++ b/docker-compose.yml
+@@ -670,7 +670,7 @@ services:
+   dozzle:
+     image: amir20/dozzle:latest
+     ports:
+-      - "127.0.0.1:8096:8080"
++      - "127.0.0.1:18096:8080"
+     volumes:
+       - ${HOST_DOCKER_SOCKET:-/var/run/docker.sock}:/var/run/docker.sock:ro
+     environment:
+@@ -1041,7 +1041,7 @@ services:
+   shannon-target:
+     build: ./shannon_test_target
+     ports:
+-      - "127.0.0.1:5001:5000"
++      - "127.0.0.1:15001:5000"
+     restart: unless-stopped
+     profiles:
+       - security-test
+diff --git a/docs/INCIDENT_LOG.md b/docs/INCIDENT_LOG.md
+index 9e01280..9ef002f 100644
+--- a/docs/INCIDENT_LOG.md
++++ b/docs/INCIDENT_LOG.md
+@@ -740,4 +740,236 @@ un_command_with_heartbeat wrapper that utilizes subprocess.Popen to update the h
+ | **Verification** | Verified `ai_strategy_scout_local_digest.md` contains current date (2026-04-25). Watchdog process confirmed active. |
+ | **Lessons Learned** | Governance and research tasks (Scout) are as critical as connectivity tasks (Telegram Bridge) for long-term agent autonomy. |
+ | **Prevention** | Audit the balanced startup script whenever a new critical governance or watchdog service is introduced. |
+-$entry
++## INC-053: Telegram OpenClaw conversation and scheduled notification degradation
++| Field | Detail |
++| --- | --- |
++| **Date** | 2026-04-29 21:40 JST |
++| **Detection** | User reported abnormal Telegram conversation and asked whether Gmail due-date notifications, AI Strategy Scout, and self-growth were still alive. Local checks showed Telegram replies in mojibake, repeated model timeouts, current n8n API listing only 4 workflows, missing AI Scout/P016 workflows from the active API surface, and duplicate AI Scout watchdog processes. |
++| **Impact** | Telegram conversation quality was degraded; Gmail due-date information was not reliably sent to Telegram; AI Scout n8n workflow was absent from the active n8n API; self-growth hygiene was running but had not written a fresh status until manually checked. |
++| **Root Cause (5 Why)** | **Why1**: Telegram replies were abnormal. **Why2**: The bridge routed simple messages into a slow local model path and retained stale mojibake status from prior replies. **Why3**: The default bridge model path could exceed the interaction timeout under current host load. **Why4**: Scheduled notification workflows were assumed present from old SQLite/backups, but the active n8n API surface had lost them after prior restore/import churn. **Why5**: Startup/watchdog ownership was split between n8n workflows and host watchdogs, allowing duplicate host processes and missing active n8n workflows to coexist without a single health assertion. |
++| **Fix** | (1) Changed `scripts/start_telegram_fast_bridge.ps1` default Telegram model to `qwen3-nothink:latest` and shortened timeout to 20s. (2) Added deterministic fast replies for greetings and weather-unavailable cases in `scripts/telegram_fast_bridge.js`, and added a safe Japanese timeout fallback. (3) Confirmed `data/state/email_context_helper.js` routes Gmail/due-date/report intents with readable Japanese patterns. (4) Added Telegram sending to `data/workspace/ai_strategy_scout_watchdog.py` after successful local scout refresh. (5) Added and ran `data/workspace/repair_telegram_n8n_schedules_20260429.py` to restore P016 and AI Scout workflows from backups, patch P016 to send Gmail due-date summaries to Telegram, and set schedules. (6) Activated restored n8n workflows and restarted canonical Telegram, AI Scout, and self-growth watchdog processes. |
++| **Files** | `scripts/start_telegram_fast_bridge.ps1`, `scripts/telegram_fast_bridge.js`, `data/state/email_context_helper.js`, `data/workspace/ai_strategy_scout_watchdog.py`, `data/workspace/repair_telegram_n8n_schedules_20260429.py`, `docs/INCIDENT_LOG.md` |
++| **Verification** | `node --check scripts/telegram_fast_bridge.js` passed. `python -m py_compile` passed for the modified Python scripts. `email_search_query.py tasks-context "納期 今週 未回答"` returned 1 open Gmail due-date item for 2026-04-29. Active n8n workflows verified: P016 restored as `OpnCRJquLkBjXOyw` active=true; AI Scout restored as `Mc3U5YAJrQxydJ96` active=true. Self-growth hygiene status is healthy with 4 points and estimated 0.023 MB. One canonical process each is running for Telegram bridge, AI Scout watchdog, and self-growth hygiene. |
++| **Lessons Learned** | n8n database snapshots/backups are not proof that workflows are active in the current API surface. Telegram chat bridges need deterministic fast paths for common interactions when the local model stack is busy. |
++| **Prevention** | Keep a single canonical launcher for each host watchdog, verify active n8n workflows through the REST API after restore, and treat Telegram response timeout/error rate as a health signal rather than only process liveness. |
++
++## INC-054: ByteRover curate failures and local memory fallback
++| Field | Detail |
++| --- | --- |
++| **Date** | 2026-04-29 22:20 JST |
++| **Detection** | User reported frequent ByteRover failures and asked whether prior experience had been lost. `brv query` worked from `.brv/context-tree`, but `brv curate` returned HTTP 401 with the built-in ByteRover provider. |
++| **Impact** | Existing project memories remained readable, but new experiences could fail to persist through normal `brv curate`, creating a risk that repair knowledge would be lost between sessions. |
++| **Root Cause (5 Why)** | **Why1**: ByteRover saves failed. **Why2**: `brv curate` returned HTTP 401 while `brv query` still worked. **Why3**: The built-in ByteRover provider path treated curate as unauthorized even though the provider was connected. **Why4**: The installed CLI was old (`2.1.3`) and local provider fallback with Ollama avoided 401 but was too slow for curate. **Why5**: There was no project-local timeout/fallback wrapper to preserve memory when the official curator path failed. |
++| **Fix** | Upgraded global `byterover-cli` from `2.1.3` to `3.10.0`, verified query still works, tested built-in and local provider curate paths, and added `scripts/brv_safe_curate.ps1` as an external harness that writes a local Markdown fallback when `brv curate` fails or times out. |
++| **Files** | `scripts/brv_safe_curate.ps1`, `docs/INCIDENT_LOG.md` |
++| **Verification** | `brv --version` reports `byterover-cli/3.10.0`. `brv query` completes successfully. Built-in `curate` still returns HTTP 401, confirming the residual upstream/auth issue. Local Ollama provider `query` works, while curate timed out after 180s. `scripts/brv_safe_curate.ps1` was verified with a forced 1s timeout and wrote `.brv/context-tree/infrastructure/byterover_repair/safe_curate_fallback.md`. |
++| **Lessons Learned** | ByteRover read health and write health are separate. A working `query` does not prove `curate` can persist new operational lessons. |
++| **Prevention** | Use `scripts/brv_safe_curate.ps1` for important post-fix memories until official `brv curate` is healthy. Include `brv status`, provider, CLI version, query, and curate checks in future memory-health triage. |
++
++## INC-055: Missing critical n8n workflows restored from backups
++| Field | Detail |
++| --- | --- |
++| **Date** | 2026-04-29 22:30 JST |
++| **Detection** | User asked whether all n8n workflows had been restored. n8n REST API showed only six workflows, and critical scheduled workflows for Daily Promises, Daily System Health Check, Email RAG Ingest, and Daily Trend Opportunity Report were missing from the active API surface while backups existed under `backups/n8n/`. |
++| **Impact** | Several scheduled governance and reporting tasks would not run at their expected times, even though older backup files made the workflows appear recoverable. |
++| **Root Cause (5 Why)** | **Why1**: Scheduled n8n tasks were missing. **Why2**: The active n8n API surface had fewer workflows than the historical critical set. **Why3**: Prior recovery focused on P016 and AI Scout, leaving other critical workflows in backups only. **Why4**: The integrity manifest was not present on the host, so missing critical workflows were not automatically asserted after n8n restore/import churn. **Why5**: Workflow existence had been inferred from backup files instead of verified through the current REST API. |
++| **Fix** | Added and ran `data/workspace/restore_missing_critical_n8n_workflows_20260429.py`. The script backed up the current n8n API list, selected the latest active backup per critical workflow, imported each workflow inactive, validated expected cron expressions, then activated only workflows with no validation problems. |
++| **Files** | `data/workspace/restore_missing_critical_n8n_workflows_20260429.py`, `data/workspace/restore_missing_critical_n8n_workflows_20260429_status.json`, `docs/INCIDENT_LOG.md` |
++| **Verification** | Restored workflows: `Daily Promises Report` as `4X9B3RqBOtcMvpZh` cron `0 23 * * *`, `Daily System Health Check` as `E1ATfn6J7i7aZrMr` cron `0 9 * * *`, `Email RAG Ingest` as `SKarchfEc4Oy9lMr` cron `0 2 * * *`, and `Daily Trend Opportunity Report` as `nGPAoWhJXVxCF899` cron `30 20 * * *`. Re-checked six critical workflows including P016 and AI Scout; all were `active=true` with expected cron expressions. |
++| **Lessons Learned** | Backups prove recoverability, not active service. After any n8n repair, the active REST API surface must be compared against the critical workflow set. |
++| **Prevention** | Keep `restore_missing_critical_n8n_workflows_20260429_status.json` as the current restoration evidence and recreate a host-visible critical workflow manifest/check if n8n import churn happens again. |
++
++## INC-056: OpenCode GO LiteLLM config contained direct API key
++| Field | Detail |
++| --- | --- |
++| **Date** | 2026-04-29 22:38 JST |
++| **Detection** | User asked whether OpenCode GO was rule-based and running under the optimal environment. Inspection of `data/state/litellm_config.yaml` showed OpenCode GO aliases were registered, but the OpenCode GO API credential was directly embedded in alias definitions instead of using environment-variable references. |
++| **Impact** | The OpenCode GO routing policy existed and aliases were visible through LiteLLM, but the config did not fully comply with the external AI confidentiality policy and increased credential exposure risk. |
++| **Root Cause (5 Why)** | **Why1**: A credential appeared in a runtime config. **Why2**: OpenCode GO model aliases had been added directly to `data/state/litellm_config.yaml`. **Why3**: The template/notes required environment-variable based configuration, but the merged runtime config used literal values. **Why4**: Registration was checked by model-list visibility rather than by policy compliance. **Why5**: There was no post-merge lint/check for secret literals in LiteLLM routing files. |
++| **Fix** | Replaced OpenCode GO `api_base` and `api_key` literals in `data/state/litellm_config.yaml` with `${OPENCODE_GO_API_BASE}` and `${OPENCODE_GO_API_KEY}` for `opencode-go-research`, `opencode-go/kimi-k2.6`, `opencode-go/glm-5.1`, `opencode-go/deepseek-v4-flash`, and `opencode-go/deepseek-v4-pro`. |
++| **Files** | `data/state/litellm_config.yaml`, `docs/INCIDENT_LOG.md` |
++| **Verification** | LiteLLM `/v1/models` still lists the OpenCode GO aliases. `Select-String` confirms OpenCode GO aliases now use environment-variable references rather than direct literals. No external OpenCode GO inference call was executed because that would send data to a cloud API and may incur cost. |
++| **Lessons Learned** | Model alias visibility is not the same as policy-compliant operation. External-provider routes must be checked for both runtime availability and secret-handling hygiene. |
++| **Prevention** | Add secret-literal checks for `data/state/litellm_config*.yaml` before future external model merges, and require explicit consent before cloud inference smoke tests. |
++
++## INC-057: IATF教材生成がOpenCode GOからGeminiへ早期フォールバック
++| Field | Detail |
++| --- | --- |
++| **Date** | 2026-04-29 22:50 JST |
++| **Detection** | User noted that IATF教材生成 should be using OpenCode GO models. `data/iatf_videos/generation.log` showed recent successful scripts as `google/gemini-2.5-flash` or `direct/gemini-2.5-flash` even though `SCRIPT_MODELS` listed `opencode-go/kimi-k2.6` first. Minimal public smoke tests through LiteLLM confirmed OpenCode GO aliases were reachable. |
++| **Impact** | IATF script generation could use the more expensive Gemini fallback even when OpenCode GO was available under the intended routing policy. Failures were also hard to diagnose because empty model responses and timeout details were only printed, not written to a durable status file. |
++| **Root Cause (5 Why)** | **Why1**: Gemini was used for recent IATF scripts. **Why2**: The script generator tried only `opencode-go/kimi-k2.6` before Gemini in the LiteLLM route. **Why3**: Kimi/OpenCode calls can take longer than the previous 30s client timeout or occasionally return empty content, causing immediate fallback. **Why4**: Other OpenCode GO aliases (`deepseek-v4-flash` and `deepseek-v4-pro`) were registered but not included in the script-generation priority list. **Why5**: There was no preflight harness to prove OpenCode GO returned non-empty content before a long IATF generation run. |
++| **Fix** | Updated `clawstack_v2/apps/iatf_video_factory/pipeline/script_generator.py` to load root `.env` when used standalone, add `opencode-go/deepseek-v4-flash` and `opencode-go/deepseek-v4-pro` before Gemini, extend OpenCode GO LiteLLM client timeout to 180s, treat empty content as an explicit route failure, and write the latest route status to `data/workspace/iatf_opencode_go_routing_status.json`. Added `data/workspace/iatf_opencode_go_preflight.py` as a host-side read-only preflight that tests OpenCode GO aliases with a public non-sensitive prompt and writes `data/workspace/iatf_opencode_go_preflight_status.json`. |
++| **Files** | `clawstack_v2/apps/iatf_video_factory/pipeline/script_generator.py`, `data/workspace/iatf_opencode_go_preflight.py`, `data/workspace/iatf_opencode_go_preflight_status.json`, `docs/INCIDENT_LOG.md` |
++| **Verification** | `python -m py_compile clawstack_v2/apps/iatf_video_factory/pipeline/script_generator.py data/workspace/iatf_opencode_go_preflight.py` passed. `python data/workspace/iatf_opencode_go_preflight.py --timeout 60` succeeded for `opencode-go/kimi-k2.6` in 28.30s, `opencode-go/deepseek-v4-flash` in 24.33s, and `opencode-go/deepseek-v4-pro` in 26.83s, all returning non-empty JSON content through LiteLLM. |
++| **Lessons Learned** | A model being first in a priority list is not enough; the client timeout and empty-response handling must match the provider's real latency and response behavior. |
++| **Prevention** | Run `data/workspace/iatf_opencode_go_preflight.py` before long IATF generation batches and inspect the generated status JSON. Keep multiple OpenCode GO aliases before paid fallbacks so one OpenCode model failure does not immediately route to Gemini. |
++
++## INC-058: OpenRadioss run35 estimated multi-week runtime
++| Field | Detail |
++| --- | --- |
++| **Date** | 2026-04-30 06:50 JST |
++| **Detection** | User asked to make OpenRadioss finish in about 10 hours. Inspection of `/work/engine_run35.log` showed the engine was still around `T=0.00124 s` after about `50,200 s` elapsed, while the deck end time was `0.08 s` with `DT=5.0e-8 s`, giving a multi-week remaining estimate. |
++| **Impact** | The OpenRadioss job was consuming CPU but was not practical as an engineering feedback run. It also competed with other local generation work for host resources. |
++| **Root Cause (5 Why)** | **Why1**: The calculation was projected to take far longer than expected. **Why2**: The engine deck requested `0.08 s` of simulation time at a very small timestep. **Why3**: That implies roughly `1,600,000` cycles before contact/cost effects. **Why4**: The job was being used as a feedback/screening calculation rather than a final high-fidelity validation, but the run controls were closer to a long validation deck. **Why5**: There was no host-side tuning harness that preserved the original deck, records the intended runtime budget, and restarts a shortened screening run with traceable settings. |
++| **Fix** | Added `data/workspace/openradioss_10h_tune_run35.py` to back up current `/work` inputs/logs, patch the engine deck, stop only the active OpenRadioss engine process, and restart as `run37`. Tuned settings: end time `0.0014 s`, minimum nodal timestep `8.0e-8 s`, animation interval `0.00035 s`, and reduced animation output to EPSP/VONM/DISP. Added `data/workspace/openradioss_10h_tuning_report.md` with the analysis and remaining engineering notes. |
++| **Files** | `data/workspace/openradioss_10h_tune_run35.py`, `data/workspace/openradioss_10h_tuning_report.md`, `data/workspace/openradioss_10h_tuning_status.json`, `docs/INCIDENT_LOG.md` |
++| **Verification** | `python -m py_compile data/workspace/openradioss_10h_tune_run35.py` passed. `run37` started in `clawstack-unified-openradioss-1` with PID recorded in `/work/engine.pid`. Initial line showed `DT=8.0000E-08` and `DM/M=1.9495E+01`. After about 90 seconds, `/work/engine_run37.log` reported `NC=100`, `T=8.0000E-06`, `DM/M=1.9526E+01`, and `REMAINING TIME=13122.24 s`, which is within the requested 10-hour class. |
++| **Lessons Learned** | Runtime budget must be encoded directly into the engine deck for screening runs. Leaving a validation-style end time in place can make a job appear healthy while being operationally unusable. |
++| **Prevention** | Keep a separate screening profile for OpenRadioss jobs, preserve original validation decks before tuning, and check estimated cycles plus early `REMAINING TIME` before leaving a long CAE run unattended. |
++
++## INC-059: Rails app unavailable through nginx and LAN address
++| Field | Detail |
++| --- | --- |
++| **Date** | 2026-04-30 08:20 JST |
++| **Detection** | User reported that `http://192.168.5.172/` did not display the Rails app. Host-side `curl` showed `http://127.0.0.1/` initially returned 502 through nginx, while the Rails container itself returned a login redirect on port 3004. |
++| **Impact** | The Rails app was not reachable through the intended nginx entrypoint, and LAN access through the host IP remained unavailable even after the application proxy was repaired. |
++| **Root Cause (5 Why)** | **Why1**: nginx returned 502. **Why2**: nginx tried to proxy to `web:3003`. **Why3**: the Rails/Puma container was listening on `0.0.0.0:3004`, so upstream port 3003 refused the connection. **Why4**: the nginx config had drifted from the active Rails container port. **Why5**: there was no startup health check that validated nginx upstream reachability and LAN binding together. Residual LAN timeout is separate: Docker reported `0.0.0.0:80->80`, but Windows did not show a host listener on physical port 80 and adding a `netsh portproxy` entry requires administrator rights. |
++| **Fix** | Changed `iatf_system/nginx/conf.d/default.conf` upstream from `web:3003` to `web:3004`, validated the config with `nginx -t`, reloaded nginx, and restarted `iatf_system-nginx-1` to refresh the port binding. After user approved the Docker binding fix, tested direct Docker LAN binding, then moved the active production compose nginx mapping to `127.0.0.1:18090:80` after direct `192.168.5.172:80:80` still failed before reaching nginx. This leaves host port 80 free for an administrator-level Windows `0.0.0.0:80 -> 127.0.0.1:18090` portproxy. Recreated only `iatf_system-nginx-1`. No protected Rails view/layout/route/application files were changed. |
++| **Files** | `iatf_system/nginx/conf.d/default.conf`, `iatf_system/docker-compose.production.yml`, `docs/INCIDENT_LOG.md` |
++| **Verification** | `docker exec iatf_system-nginx-1 nginx -t` passed. `curl.exe -I --max-time 8 http://127.0.0.1/` returned `HTTP/1.1 302 Found` with `Location: http://127.0.0.1/users/sign_in`, proving nginx-to-Rails proxying is repaired. Direct Docker LAN binding showed `127.0.0.1:80->80/tcp, 192.168.5.172:80->80/tcp` but `http://192.168.5.172/` still timed out and nginx logs showed the request never reached nginx. Final tested Docker mapping is `127.0.0.1:18090->80/tcp`; Windows `portproxy` is `0.0.0.0:80 -> 127.0.0.1:18090`. `curl.exe -I --max-time 8 http://127.0.0.1:18090/` and `curl.exe -I --max-time 8 http://192.168.5.172/` both return `HTTP/1.1 302 Found`; the LAN response redirects to `http://192.168.5.172/users/sign_in`. nginx access logs show both requests reaching `iatf_system-nginx-1`. |
++| **Lessons Learned** | Local container health, nginx upstream health, and LAN reachability are separate checks. A Docker port mapping line is not sufficient evidence that Windows is listening on the physical LAN address. |
++| **Prevention** | Add a lightweight host-side health check that asserts all three paths: Rails container port 3004, nginx via `127.0.0.1:80`, and LAN address `192.168.5.172:80`. Keep nginx upstream port synchronized with the Rails/Puma runtime port in future compose/config changes. |
++
++## INC-060: Rails production Tailwind/assets missing after LAN recovery
++| Field | Detail |
++| --- | --- |
++| **Date** | 2026-04-30 09:10 JST |
++| **Detection** | User reported that the Rails design/layout decoration disappeared and Tailwind CSS appeared dead after LAN access was restored. `curl` against the sign-in page showed stylesheet links to `/assets/tailwind-...css`, `/assets/inter-font-...css`, and JS assets, but direct requests for those asset URLs returned 404. |
++| **Impact** | Rails pages loaded, but production styling, layout decoration, images, and JavaScript assets were missing or degraded. The app looked unstyled even though the route itself was reachable. |
++| **Root Cause (5 Why)** | **Why1**: The browser loaded the HTML but not the CSS. **Why2**: `/assets/...` URLs returned 404. **Why3**: `public/assets` inside `iatf_system-web-1` was empty after the production container/volume state changed. **Why4**: The production startup command only ran `npm run build:css`, which creates the non-digested Tailwind build but does not populate Rails' digested `public/assets` manifest. **Why5**: There was no post-restart health check that requested the actual digest CSS/JS URLs referenced by the rendered HTML. |
++| **Fix** | Ran `RAILS_ENV=production bundle exec rails assets:precompile` inside `iatf_system-web-1`, then restarted the web container so Rails reloaded the new asset manifest. Updated `iatf_system/docker-compose.production.yml` so the production web command runs `bundle exec rails assets:precompile` before starting Puma, preventing empty `public/assets` after future container recreation. |
++| **Files** | `iatf_system/docker-compose.production.yml`, `iatf_system/app/assets/stylesheets/tailwind.css`, `docs/INCIDENT_LOG.md` |
++| **Verification** | After precompile and web recreation, `curl -L http://192.168.5.172/users/sign_in` references `/assets/tailwind-e9c087ad77e1b3d918d43a7664907da844ab9e7b.css`, `/assets/inter-font-1b0c468edea01b74041b0c74f0ae84d34c09f89f.css`, and `/assets/application-e249ed276a5680c3eca8b1b2c3b5d81ea26353d9.js`. Direct `curl -I` checks for those three URLs through `http://192.168.5.172/` all returned `HTTP/1.1 200 OK`. `public/assets` contains 74 files after precompile. |
++| **Lessons Learned** | A successful Rails route check is not enough after production container changes. Asset health must be verified by fetching the exact digest URLs emitted in the rendered HTML. |
++| **Prevention** | Keep production startup responsible for `rails assets:precompile` before Puma starts, and add digest CSS/JS URL checks to future Rails availability triage. |
++
++## INC-061: Amada press IoT charts did not receive numeric data
++| Field | Detail |
++| --- | --- |
++| **Date** | 2026-04-30 09:27 JST |
++| **Detection** | User reported that graphs from the Amada press machine were not reflected on `http://192.168.5.172/products/iot?commit=IOTデータ`. Local checks found today's Amada CSV files under `/myapp/db/record/iot`, but `IotDataService.call` returned series like `["0", nil]` because the parser expected two CSV columns. |
++| **Impact** | The IoT page loaded, but Amada80t3 line charts had empty/nil values for most series, so current press data was not visualized even though Node-RED/Raspberry Pi CSV files were present. |
++| **Root Cause (5 Why)** | **Why1**: Amada charts did not show current values. **Why2**: Chartkick received nil values for the y-axis. **Why3**: `IotDataService` used `CSV.foreach(..., headers: true)` and emitted `[row[0], row[1]]`. **Why4**: Current Amada CSV files are one-value-per-line time series without headers, so the first value was treated as a header and there was no second column. **Why5**: The page also used historical snake_case instance variable names for several Amada/Dobby charts while the service generated mixed-case names, so some series could remain nil even after CSV loading. |
++| **Fix** | Updated `IotDataService#load_csv` to parse headerless CSV, support both one-column and two-column formats, synthesize the x-axis from row index for one-column files, and cast numeric values. Updated `ProductsController#iot` to provide backward-compatible instance variable aliases used by the existing IoT view. Restarted `iatf_system-web-1` to load the production code. |
++| **Files** | `iatf_system/app/services/iot_data_service.rb`, `iatf_system/app/controllers/products_controller.rb`, `docs/INCIDENT_LOG.md` |
++| **Verification** | `ruby -c` passed for `iot_data_service.rb` and `products_controller.rb`. `RAILS_ENV=production rails runner` confirmed Amada series contain numeric values: `StampingJYOTAIAmada80t3` 54 points ending `["53", 1]`, `StampingchokoteiAmada80t3` 54 points ending `["53", 25]`, `SPMAmada80t3` 54 points ending `["53", 130]`, and `ShotAmada80t3` 54 points ending `["53", 13130]`. After restart, Puma listened on `0.0.0.0:3004` and `http://192.168.5.172/` returned `HTTP/1.1 302 Found`. |
++| **Lessons Learned** | Field CSV contracts can change independently from Rails assumptions. IoT graph health must validate non-nil y-values, not just file existence. |
++| **Prevention** | Keep `IotDataService` tolerant of one-column and two-column CSVs, and add future health checks that report row count plus first/last non-nil values for each machine series. |
++
++## INC-062: Node-RED IoT CSV lacked timestamp column for chart x-axis
++| Field | Detail |
++| --- | --- |
++| **Date** | 2026-04-30 09:39 JST |
++| **Detection** | User clarified that the IoT chart x-axis should be date/time and that Node-RED should write the sensor acquisition time into column A when generating CSV files. Inspection showed the active `Shiftr Receiver` flow in `iatf_system-nodered-1` wrote raw MQTT payload values directly to CSV, producing one-value-per-line files. |
++| **Impact** | Rails could graph current values after INC-061, but the x-axis used fallback row indexes for one-column legacy rows rather than actual acquisition timestamps. This reduced traceability of Amada press data. |
++| **Root Cause (5 Why)** | **Why1**: The chart x-axis was not date/time. **Why2**: CSV rows did not contain acquisition timestamps. **Why3**: Docker-side Node-RED receiver functions set only `msg.filename` and passed raw `msg.payload` to the file node. **Why4**: The Shiftr receiver was introduced as a transport bridge and did not preserve the timestamp behavior used in some Raspberry Pi local CSV flows. **Why5**: The data contract between Node-RED CSV output and Rails Chartkick input was not documented or verified with a two-column sample. |
++| **Fix** | Updated `Node_Red_JSON_20260429/docker/docker_nodered_shiftr_receiver.json` so all ten `Prep *` function nodes write `YYYY/MM/DD HH:mm:ss,value` to `msg.payload` before the file node appends the row. Backed up active Node-RED flows to `backups/nodered/iot_timestamp_20260430/iatf_system_nodered_flows_before_timestamp_patch.json` and patched the live `iatf_system-nodered-1` `Shiftr Receiver` flow through the Node-RED `/flows` API. After discovering the Node-RED container clock is UTC, changed the timestamp generation to explicitly output JST by adding 9 hours and formatting UTC fields from the adjusted timestamp. Backed up live IoT CSVs to `backups/iot_csv_timezone_20260430_095031/iot` and corrected already-written `2026/04/30 00:xx` timestamp rows to `2026/04/30 09:xx`; legacy one-column rows were left unchanged because they do not contain recoverable acquisition timestamps. |
++| **Files** | `Node_Red_JSON_20260429/docker/docker_nodered_shiftr_receiver.json`, `backups/nodered/iot_timestamp_20260430/iatf_system_nodered_flows_before_timestamp_patch.json`, `backups/iot_csv_timezone_20260430_095031/iot`, `docs/INCIDENT_LOG.md` |
++| **Verification** | JSON validation passed for `docker_nodered_shiftr_receiver.json`; all 10 `Prep *` nodes contain `msg.payload = timestamp + ',' + csvValue(msg.payload)`. The active Node-RED `/flows` API also shows the same timestamp payload logic in the `docker_receiver_tab`, including the JST correction `Date.now() + 9 * 60 * 60 * 1000`. Rails parsing was verified with a two-column sample: `[["2026/04/30 09:31:00", 123], ["2026/04/30 09:32:00", 124.5]]`. Host time and Rails `Time.current` both showed `2026/04/30 09:45-09:46 +09:00` during verification. After CSV correction, `2026_04_30*Amada80t3.csv` contained `utc00=0` and `jst09=111`; each Amada CSV tail ended at `2026/04/30 09:51:36,...` during verification. |
++| **Lessons Learned** | Transport bridge flows must preserve the data contract, not only move MQTT topics. Chart traceability requires timestamped CSV rows at the data acquisition/write boundary. |
++| **Prevention** | Treat IoT CSV as `timestamp,value`. Keep Rails tolerant of legacy one-column files, but require new Node-RED receiver flows to emit timestamped two-column rows and validate this before import. |
++
++## INC-063: IoT monthly press utilization summary was missing
++| Field | Detail |
++| --- | --- |
++| **Date** | 2026-04-30 12:05 JST |
++| **Detection** | User requested a monthly page that lists each monitored press machine's operating time, operating rate, shot count, SPM, and chokotei count, with browser-adjustable planned working hours such as 7.0 or 7.5 hours per day. |
++| **Impact** | The real-time IoT graph showed current series, but users could not quickly review monthly equipment performance or compare multiple machines as the monitored press count grows. |
++| **Root Cause (5 Why)** | **Why1**: Monthly utilization was not visible. **Why2**: Existing Rails IoT logic only loaded today's CSV series for charts. **Why3**: There was no service that scanned monthly IoT CSV files and grouped data by machine and metric. **Why4**: The original implementation assumed fixed known series instead of using the filename contract to discover machines. **Why5**: Operating rate rules had not yet been encoded as a reusable calculation with user-adjustable working-hour assumptions. |
++| **Fix** | Added `IotMonthlySummaryService` to scan `/myapp/db/record/iot/YYYY_MM_*.csv`, detect equipment from `Shot*`, `SPM*`, `Stampingchokotei*`, and `StampingJYOTAI*` filenames, and calculate monthly active days, operating hours, operating rate, shot delta, average non-zero SPM, chokotei delta, and latest timestamp. Added `ProductsController#iot_monthly`, the `/products/iot_monthly` route, and a simple self-contained monthly summary view with month and planned-hours controls. Added a link from the real-time IoT page to the monthly summary. |
++| **Files** | `iatf_system/app/services/iot_monthly_summary_service.rb` lines 7, 127, 145, 168; `iatf_system/app/controllers/products_controller.rb` lines 199-203; `iatf_system/config/routes.rb` line 72; `iatf_system/app/views/products/iot_monthly.html.erb` lines 262, 271, 313, 352; `iatf_system/app/views/products/iot.html.erb`; `docs/INCIDENT_LOG.md` |
++| **Verification** | `ruby -c app/services/iot_monthly_summary_service.rb` and `ruby -c app/controllers/products_controller.rb` passed in `iatf_system-web-1`. `RAILS_ENV=production rails runner` for `month=2026-04` and `work_hours_per_day=8` detected `Amada80t3` with `active_days=2`, `available_hours=16.0`, `operating_hours=3.78`, `operating_rate=23.6`, `shot_count=28259`, `average_spm=125.7`, `chokotei_count=51`, and a latest timestamp in JST. Renderer verification for the monthly template returned HTML containing `iotm-title`, `Amada80t3`, and the adjustable `7.5` value. After restarting only `iatf_system-web-1`, `curl -I http://127.0.0.1:18090/products/iot_monthly?month=2026-04&work_hours_per_day=7.5` reached `ProductsController#iot_monthly` and returned the expected login redirect for an unauthenticated request. |
++| **Lessons Learned** | IoT dashboards need both current graph views and period summaries. Filename-based machine discovery is safer for expansion than hard-coding every future press machine in the controller. |
++| **Prevention** | Keep the monthly summary service tied to the `timestamp,value` CSV contract and add future equipment by following the metric filename prefixes instead of changing Rails code for each new machine. |
++
++## INC-064: IoT daily equipment matrix was missing
++| Field | Detail |
++| --- | --- |
++| **Date** | 2026-04-30 12:31 JST |
++| **Detection** | User requested another IoT page where the user selects year and month, the horizontal axis is day, the vertical axis is equipment, and tabs switch between chokotei count, shot count, and SPM statistics including MAX, AVE, MIN, and AVE±3σ. |
++| **Impact** | Users could see current graphs and monthly totals, but could not compare daily machine performance across the whole month in a scan-friendly matrix. This would become harder as the number of monitored presses increases. |
++| **Root Cause (5 Why)** | **Why1**: Daily cross-machine comparison was unavailable. **Why2**: Existing Rails IoT pages were chart/current-series and monthly-total oriented. **Why3**: There was no daily matrix service that grouped CSV files by date, equipment, and metric. **Why4**: SPM statistics had not been encoded as daily max/average/min/control-band values. **Why5**: The expansion path for more equipment required a filename-driven discovery service rather than another hard-coded controller/view list. |
++| **Fix** | Added `IotDailyMatrixService` to scan `/myapp/db/record/iot/YYYY_MM_DD*.csv`, detect equipment from `Shot*`, `SPM*`, and `Stampingchokotei*` filenames, build all dates in the selected month, and calculate daily chokotei delta, daily shot delta, and SPM max/average/min/average±3 sigma from non-zero SPM samples. Added `ProductsController#iot_daily_matrix`, `/products/iot_daily_matrix`, a self-contained daily matrix view with year/month selectors and CSS-only tabs, a reusable numeric matrix partial, and navigation links from the real-time and monthly IoT pages. |
++| **Files** | `iatf_system/app/services/iot_daily_matrix_service.rb` lines 7, 10, 26, 117, 124; `iatf_system/app/controllers/products_controller.rb` lines 206-210; `iatf_system/config/routes.rb` line 73; `iatf_system/app/views/products/iot_daily_matrix.html.erb` lines 254, 264, 280, 298, 321, 340; `iatf_system/app/views/products/_iot_daily_matrix_number_table.html.erb`; `iatf_system/app/views/products/iot.html.erb`; `iatf_system/app/views/products/iot_monthly.html.erb`; `docs/INCIDENT_LOG.md` |
++| **Verification** | `ruby -c app/services/iot_daily_matrix_service.rb` and `ruby -c app/controllers/products_controller.rb` passed in `iatf_system-web-1`. `RAILS_ENV=production rails runner` for `year=2026, month=4` detected `["Amada80t3"]`, 30 date columns, 2026-04-30 shot count `19426`, chokotei count `30`, and SPM stats `{max: 248.0, average: 125.6, min: 63.0, plus_3sigma: 160.2, minus_3sigma: 91.1}`. Renderer verification confirmed the page includes `iotd-title`, tab IDs, `Amada80t3`, and `MAX`. After restarting only `iatf_system-web-1`, `curl -I http://127.0.0.1:18090/products/iot_daily_matrix?year=2026&month=4` reached `ProductsController#iot_daily_matrix` and returned the expected login redirect for an unauthenticated request. |
++| **Lessons Learned** | Period dashboards should support both aggregate totals and daily matrix views. Statistical SPM summaries are more useful when presented in the same equipment/date matrix as counts. |
++| **Prevention** | Keep daily IoT analysis filename-driven, preserve the `timestamp,value` CSV contract, and add future metrics as new service-level metric patterns before changing controller/view code. |
++
++## INC-065: IoT real-time graph page needed business-friendly visual modernization
++| Field | Detail |
++| --- | --- |
++| **Date** | 2026-04-30 12:59 JST |
++| **Detection** | User requested `http://192.168.5.172/products/iot` to be made more modern while staying simple, understated, and business-oriented, with rollback available. |
++| **Impact** | The existing IoT page showed the graphs but used very wide fixed layouts, old tab styling, mojibake labels, and sparse navigation. It was harder to scan in daily business use even though the data path was functioning. |
++| **Root Cause (5 Why)** | **Why1**: The page looked dated and difficult to read. **Why2**: It used a fixed `2200px` tab layout and minimal visual hierarchy. **Why3**: It had grown from an early graph test page rather than a maintained production dashboard. **Why4**: Later monthly and daily summary pages were added with clearer navigation, but the real-time graph page had not been brought up to the same standard. **Why5**: The page relied on old inline structure instead of a self-contained, rollback-friendly view refresh. |
++| **Fix** | Backed up the current state to `backup/pre-iot-page-modernize-20260430`, `backups/git_worktree/pre_iot_page_modernize_20260430.diff`, and `backups/git_worktree/iot_html_erb_pre_modernize_20260430.bak`. Replaced only `iatf_system/app/views/products/iot.html.erb` with a self-contained business-style layout: restrained slate/white palette, compact header, navigation buttons to monthly and daily pages, summary tiles, CSS-only equipment tabs, and chart sections using `width: 100%`. Existing controller, services, routes, CSV logic, layout, shared partials, assets, and Docker settings were not changed for this UI refresh. |
++| **Files** | `iatf_system/app/views/products/iot.html.erb` lines 213, 217-218, 251, 261-361; `docs/INCIDENT_LOG.md`; rollback backups under `backups/git_worktree/` |
++| **Verification** | `RAILS_ENV=production rails runner` rendered `products/iot` with Chartkick output and produced a 64,819 character HTML fragment. File checks confirmed the new title, monthly/daily links, Amada tab, and all `line_chart` calls are present. Restarted only `iatf_system-web-1`; after startup asset processing completed, `curl -I http://127.0.0.1:18090/products/iot` reached `ProductsController#iot` and returned the expected login redirect for an unauthenticated request. |
++| **Lessons Learned** | Operational dashboards need periodic UI maintenance even when data pipelines are healthy. Keeping the refresh self-contained in the view made rollback straightforward and avoided Tailwind build fragility. |
++| **Prevention** | For future IoT UI changes, keep the chart data path separate from visual refreshes, preserve a per-view backup before replacing dashboards, and verify both renderer output and route reachability after restart. |
++
++## INC-066: IATF video rendered invalid close-up frames without visual QA
++| Field | Detail |
++| --- | --- |
++| **Date** | 2026-04-30 15:50 JST |
++| **Detection** | User reported that the generated IATF video showed the same grayscale close-up frame from start to finish and was unusable as training material. A sampled contact sheet confirmed six sampled frames were visually identical close-ups. |
++| **Impact** | The produced MP4 was falsely treated as a completed training video although the visual content was invalid. This damaged trust and could waste review time if delivered as a finished IATF teaching asset. |
++| **Root Cause (5 Why)** | **Why1**: The final video showed the same unusable image throughout. **Why2**: The Blender renderer imported GLB character assets and rendered frames even when the camera/scale produced an extreme close-up. **Why3**: The pipeline only checked that enough PNG frames existed and then composed MP4; it did not visually inspect sample frames. **Why4**: Existing-frame resume logic skipped rerendering when frame count was sufficient, so bad frames could be reused repeatedly. **Why5**: There was no mandatory AI/human visual gate between render and final MP4 composition. |
++| **Fix** | Added `clawstack_v2/apps/iatf_video_factory/pipeline/visual_qa.py`, which samples rendered frames, writes a contact sheet, checks frame dimension consistency, visual detail, contrast, and near-identical sampled frames, and fails closed before MP4 composition. Updated `run_host.py` to call Visual QA after Blender render or existing-frame skip and before FFmpeg compose, and initialized `model = "unknown"` so final status updates do not fail on resume/error edge cases. Stopped an orphaned old `blender.exe` process. Built a replacement slide-based MP4 from the existing valid Japanese timeline/audio using `data/workspace/rebuild_iatf_video_as_slides_20260430.py` so the current deliverable is at least readable business training content instead of the invalid character close-up render. |
++| **Files** | `clawstack_v2/apps/iatf_video_factory/pipeline/visual_qa.py`; `clawstack_v2/apps/iatf_video_factory/run_host.py`; `data/workspace/rebuild_iatf_video_as_slides_20260430.py`; `data/workspace/iatf_video_visual_qa/contact_sheet_current_bad_video.jpg`; `data/iatf_videos/IATF 16949 内部監査資料_ 箇条10.2.4ポカヨケ/IATF 16949 内部監査資料_ 箇条10.2.4ポカヨケ_slide_rebuild.mp4`; `docs/INCIDENT_LOG.md` |
++| **Verification** | `python -m py_compile` passed for `visual_qa.py`, `run_host.py`, and `rebuild_iatf_video_as_slides_20260430.py`. Running Visual QA on the bad existing frames returned `ok=False` with `inconsistent_frame_dimensions`, `low_visual_detail`, and `sample_frames_are_nearly_identical`, proving the new gate catches this failure before MP4 composition. The slide rebuild generated 56 slides and `IATF 16949 内部監査資料_ 箇条10.2.4ポカヨケ_slide_rebuild.mp4`; `ffprobe` reported 1280x720, duration `833.2s`, and size about `9.6MB`. Preview frames at 5s, 6m, and 12m were extracted and visually inspected; the 12m frame was regenerated after fixing Japanese text wrapping so long text stays inside the card. |
++| **Lessons Learned** | File existence and render completion are not quality checks. Long-running media generation must include visual inspection gates before finalization, especially when 3D camera/model assets are involved. |
++| **Prevention** | Treat `visual_qa_report.json` and `contact_sheet.jpg` as mandatory artifacts for every IATF video render. Do not mark a video done unless Visual QA passes; when it fails, preserve the contact sheet and stop before FFmpeg composition. Prefer business slide rendering for IATF teaching assets unless character animation has passed a short preview QA first. |
++
++## INC-067: IATF video generation lacked slide-first AI review gate
++| Field | Detail |
++| --- | --- |
++| **Date** | 2026-04-30 16:20 JST |
++| **Detection** | After the invalid close-up video incident, user required that slides be generated first, visually checked by a capable AI model against the script, and only then allowed to proceed to video generation. |
++| **Impact** | The previous pipeline could generate audio, render frames, and compose video without proving the instructional slides/storyboard were readable or script-aligned. This allowed expensive downstream work to start before the most reviewable artifact existed. |
++| **Root Cause (5 Why)** | **Why1**: Video generation started before a reviewable slide/storyboard gate. **Why2**: The pipeline treated script/timeline JSON as enough structure to proceed to rendering. **Why3**: The first visual artifact was the Blender frame set, which is expensive and can fail in camera/model placement. **Why4**: There was no pre-video AI review contract requiring approval of a contact sheet and manifest. **Why5**: Cloud AI cost/data safety concerns had prevented ad hoc visual-model calls, but no fail-closed local review handoff existed. |
++| **Fix** | Added `clawstack_v2/apps/iatf_video_factory/pipeline/slide_preflight.py`, which renders a slide deck from the timeline, writes `slide_preflight/contact_sheet.jpg`, `slide_manifest.json`, and `ai_review_request.json`, verifies slide count, file existence, 1280x720 size, nonblank script text, and text SHA-256 alignment with the timeline. Updated `run_host.py` to call `slide_preflight_gate` immediately after script/timeline creation or resume and before lip sync, Blender rendering, Visual QA, or FFmpeg composition. The default mode is fail-closed: if `IATF_VIDEO_AI_REVIEW_CMD` is not configured, video generation stops before rendering. A `local_only` mode exists only for deterministic local verification and does not represent AI visual approval. |
++| **Files** | `clawstack_v2/apps/iatf_video_factory/pipeline/slide_preflight.py` lines 28, 194, 215, 244; `clawstack_v2/apps/iatf_video_factory/run_host.py` lines 160, 287-288; `docs/INCIDENT_LOG.md` |
++| **Verification** | `python -m py_compile clawstack_v2/apps/iatf_video_factory/pipeline/slide_preflight.py clawstack_v2/apps/iatf_video_factory/pipeline/visual_qa.py clawstack_v2/apps/iatf_video_factory/run_host.py` passed. With `IATF_VIDEO_SLIDE_REVIEW_MODE=local_only`, the module generated 56 slide previews, `slide_manifest.json`, `ai_review_request.json`, and `contact_sheet.jpg`; the contact sheet was visually inspected and showed readable Japanese business slides across the sequence. With default settings and no AI reviewer command, the module failed closed with `ai_review_required_but_IATF_VIDEO_AI_REVIEW_CMD_not_set`, proving video generation will not proceed without explicit AI review approval. |
++| **Lessons Learned** | The cheapest useful visual artifact should be reviewed first. A slide contact sheet is easier to inspect than a finished MP4 and catches storyboard, readability, and content-order problems before rendering. |
++| **Prevention** | Keep slide preflight mandatory before every IATF video run. Do not configure cloud visual-review commands without user consent on model, data sent, and cost. Preserve `slide_preflight_result.json` as the audit evidence for each generated training video. |
++
++## INC-068: IATF video rebuild continued with approved slide-video path
++| Field | Detail |
++| --- | --- |
++| **Date** | 2026-04-30 16:21 JST |
++| **Detection** | User reported that Claude had stopped at usage limit after being instructed to rebuild the IATF training video by generating slides first, checking them with a capable AI model, and only then starting video generation with periodic content checks. |
++| **Impact** | The rebuild could have remained half-finished, and the unsafe Blender-first path could still be used in future runs after slide approval. |
++| **Root Cause (5 Why)** | **Why1**: The rebuild stopped before completion. **Why2**: The previous continuation depended on an interactive agent session reaching the end. **Why3**: The video factory had a slide preflight gate but no dedicated approved-slide video composer with periodic MP4 spot checks. **Why4**: `run_host.py` still defaulted to the Blender render path after slide approval. **Why5**: There was no resumable host-side build harness that records AI slide approval, composes a slide video, and verifies sampled MP4 frames against expected slides. |
++| **Fix** | Added `clawstack_v2/apps/iatf_video_factory/pipeline/slide_video_builder.py`. The builder consumes `slide_preflight/slide_manifest.json`, `timeline.json`, and `master_audio.wav`, records `ai_review_approval.json`, composes an H.264 1280x720 slide video at 30fps, and extracts 12 checkpoint frames across the finished MP4 to compare each against the expected slide hash. Updated `run_host.py` so the default render mode is now `IATF_VIDEO_RENDER_MODE=slides`; Blender only runs when explicitly requested with `IATF_VIDEO_RENDER_MODE=blender`. Fixed a Windows console logging crash by replacing an unsupported dash character in the psutil fallback log. |
++| **Files** | `clawstack_v2/apps/iatf_video_factory/pipeline/slide_video_builder.py`; `clawstack_v2/apps/iatf_video_factory/run_host.py`; `data/iatf_videos/IATF 16949 内部監査資料_ 箇条10.2.4ポカヨケ/IATF 16949 内部監査資料_ 箇条10.2.4ポカヨケ_slide_reviewed.mp4`; `data/iatf_videos/IATF 16949 内部監査資料_ 箇条10.2.4ポカヨケ/slide_preflight/video_build/slide_video_build_result.json`; `docs/INCIDENT_LOG.md` |
++| **Verification** | `python -m py_compile` passed for `slide_video_builder.py`, `slide_preflight.py`, `visual_qa.py`, and `run_host.py`. The reviewed slide video was generated successfully at `1280x720`, duration `849.652s`, size `16,031,789 bytes`, with video stream duration `849.633s` and `25,489` frames. The periodic MP4 spot check sampled slides 1, 6, 11, 16, 21, 26, 31, 36, 41, 46, 51, and 56; all 12 had hash distance `0` from the expected slide. The spot-check contact sheet was visually inspected and showed readable Japanese slides through the beginning, middle, and end. A full `run_host.py --pdf ...` integration run with `IATF_VIDEO_SLIDE_REVIEW_MODE=local_only` and `IATF_VIDEO_RENDER_MODE=slides` completed without Blender and logged `Slide video OK` plus `Spot check OK`. |
++| **Lessons Learned** | A reliable training-video pipeline should review the storyboard artifact first, then verify the final MP4 at multiple timestamps. For static teaching material, slide-video composition is safer and cheaper than 3D character rendering until the 3D path has its own short-preview approval loop. |
++| **Prevention** | Keep `IATF_VIDEO_RENDER_MODE=slides` as the default. Require explicit opt-in for Blender. Preserve `ai_review_approval.json`, `slide_video_build_result.json`, and `video_spot_check_contact_sheet.jpg` with every rebuilt IATF video. |
++
++## INC-069: IATF video factory did not pick up normal Japanese training PDFs
++| Field | Detail |
++| --- | --- |
++| **Date** | 2026-05-01 11:00 JST |
++| **Detection** | User clarified that slide videos are not useful for this training flow and pointed to `iatf_system/db/documents` plus `iatf_system/db/record/attachedfile.csv` as the canonical source for PDFs whose filenames start with `IATF 16949 内部監査資料`. A `run_host.py --limit 0` check had previously reported zero pending PDFs despite many matching files in `documents`. |
++| **Impact** | The IATF video factory could not resume batch generation from the intended PDF source. It also defaulted toward the slide-video path added during the previous recovery, contrary to the desired non-slide training-video flow. |
++| **Root Cause (5 Why)** | **Why1**: The pending queue was empty. **Why2**: `list_pending` searched for a mojibake filename prefix instead of the normal Japanese prefix. **Why3**: The pipeline did not use `attachedfile.csv`, even though it is the seed/list source for files in `documents`. **Why4**: The previous incident response optimized for a slide fallback after bad Blender frames. **Why5**: There was no smoke check comparing pending detection against `attachedfile.csv` and the host `documents` directory after the recovery change. |
++| **Fix** | Updated `clawstack_v2/apps/iatf_video_factory/run_host.py` to read `attachedfile.csv` as UTF-8, select PDF rows whose normalized filename starts with `IATF 16949 内部監査資料`, resolve them against `iatf_system/db/documents`, and fall back to a normalized directory scan if the CSV is unavailable. Changed the default render mode back to `blender`, so slide preflight/video composition only runs when explicitly requested with `IATF_VIDEO_RENDER_MODE=slides`. Added quarantine-and-rerender behavior when existing rendered frames fail Visual QA, preventing bad close-up frames from being reused. |
++| **Files** | `clawstack_v2/apps/iatf_video_factory/run_host.py` lines 16, 99, 185, 335, 384; `docs/INCIDENT_LOG.md` |
++| **Verification** | `python -m py_compile clawstack_v2/apps/iatf_video_factory/run_host.py clawstack_v2/apps/iatf_video_factory/pipeline/visual_qa.py` passed. Import-level smoke check reported `pending_count 43` from `attachedfile.csv`/`documents`, with the first items including `IATF 16949 内部監査資料_箇条8.5.4_箇条8.5.4.1梱包工程.pdf` and `IATF 16949 内部監査資料_箇条10.2.4_ポカヨケ.pdf`. `python clawstack_v2/apps/iatf_video_factory/run_host.py --limit 0` returned `未処理PDF: 0本`, confirming limit-zero remains a non-processing safety check. |
++| **Lessons Learned** | Recovery defaults must be revisited when the user rejects the fallback path. Queue detection should follow the project’s seed source (`attachedfile.csv`) rather than hard-coded filename fragments. |
++| **Prevention** | Keep a lightweight pending-detection smoke check for the IATF video factory that compares `attachedfile.csv` against `iatf_system/db/documents` before long-running video generation. Use `IATF_VIDEO_RENDER_MODE=slides` only as an explicit opt-in. |
++
++## INC-070: IATF check-slide gate was accidentally tied to slide-video mode
++| Field | Detail |
++| --- | --- |
++| **Date** | 2026-05-01 12:00 JST |
++| **Detection** | User clarified that although slide videos are not desired as the deliverable, check slides are still required before video generation. The previous `run_host.py` adjustment made slide preflight run only when `IATF_VIDEO_RENDER_MODE=slides`, which would allow the default Blender path to skip the front/middle/end script-alignment review gate. |
++| **Impact** | The pipeline could again enter expensive Blender rendering without first generating reviewable check slides and confirming they are visually readable and aligned with the script. This weakened the guard added after the invalid close-up video incident. |
++| **Root Cause (5 Why)** | **Why1**: Check-slide generation was disabled for the default Blender path. **Why2**: The phrase "slides are not useful" was interpreted as rejecting both slide-video delivery and pre-render slide checking. **Why3**: `run_host.py` placed `slide_preflight_gate` inside the `render_mode == "slides"` branch. **Why4**: The distinction between "check slides" and "slide video output" was not encoded as separate steps. **Why5**: The immediate verification focused on queue detection and render mode default, not on preserving the pre-render AI review rule from INC-067. |
++| **Fix** | Moved `slide_preflight_gate(script, timeline, video_dir, stem)` so it always runs after script/timeline creation or resume and before either slide-video composition or Blender rendering. Kept `IATF_VIDEO_RENDER_MODE=blender` as the default deliverable path, while `IATF_VIDEO_RENDER_MODE=slides` remains only an explicit slide-video output option. |
++| **Files** | `clawstack_v2/apps/iatf_video_factory/run_host.py` lines 335-340; `docs/INCIDENT_LOG.md` |
++| **Verification** | `python -m py_compile clawstack_v2/apps/iatf_video_factory/run_host.py clawstack_v2/apps/iatf_video_factory/pipeline/slide_preflight.py clawstack_v2/apps/iatf_video_factory/pipeline/visual_qa.py` passed. Static inspection confirmed the log line `Slide preflight: generate check slides + AI visual review gate...` appears before `render_mode` branching, so both Blender and slide-video modes require the check-slide gate. |
++| **Lessons Learned** | Check artifacts and delivery artifacts must be named separately. Rejecting slide-video output does not imply rejecting storyboard/check-slide review. |
++| **Prevention** | Preserve INC-067 as the canonical rule: generate check slides first, review them against the script, then proceed to whichever delivery renderer is selected. |
+diff --git a/iatf_system/app/assets/stylesheets/tailwind.css b/iatf_system/app/assets/stylesheets/tailwind.css
+index 941c82d..18a268f 100644
+--- a/iatf_system/app/assets/stylesheets/tailwind.css
++++ b/iatf_system/app/assets/stylesheets/tailwind.css
+@@ -1 +1 @@
+-*,:after,:before{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgba(59,130,246,.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgba(59,130,246,.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/*! tailwindcss v3.4.19 | MIT License | https://tailwindcss.com*/*,:after,:before{box-sizing:border-box;border:0 solid #e5e7eb}:after,:before{--tw-content:""}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;-o-tab-size:4;tab-size:4;font-family:ui-sans-serif,system-ui,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji;font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,Liberation Mono,Courier New,monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0}fieldset,legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::-moz-placeholder,textarea::-moz-placeholder{opacity:1;color:#9ca3af}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.tab_wrap{width:1200px;margin:80px auto}input[type=radio]{display:none}.tab_area{font-size:0;margin:0 10px}.tab_area label{width:150px;margin:0 5px;display:inline-block;padding:12px 0;color:#999;background:#ddd;text-align:center;font-size:13px;cursor:pointer;transition:opacity .2s ease}.tab_area label:hover{opacity:.5}.panel_area{background:#fff}.tab_panel{width:100%;padding:80px 0;display:none}.tab_panel p{font-size:14px;letter-spacing:1px;text-align:center}#tab1:checked~.tab_area .tab1_label{background:#fff;color:#000}#tab1:checked~.panel_area #panel1{display:block}#tab2:checked~.tab_area .tab2_label{background:#fff;color:#000}#tab2:checked~.panel_area #panel2{display:block}#tab3:checked~.tab_area .tab3_label{background:#fff;color:#000}#tab3:checked~.panel_area #panel3{display:block}#tab4:checked~.tab_area .tab4_label{background:#fff;color:#000}#tab4:checked~.panel_area #panel4{display:block}#tab5:checked~.tab_area .tab5_label{background:#fff;color:#000}#tab5:checked~.panel_area #panel5{display:block}#tab6:checked~.tab_area .tab6_label{background:#fff;color:#000}#tab6:checked~.panel_area #panel6{display:block}#tab7:checked~.tab_area .tab7_label{background:#fff;color:#000}#tab7:checked~.panel_area #panel7{display:block}
+\ No newline at end of file
++/*! tailwindcss v3.3.5 | MIT License | https://tailwindcss.com*/*,:after,:before{box-sizing:border-box;border:0 solid #e5e7eb}:after,:before{--tw-content:""}html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;-o-tab-size:4;tab-size:4;font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,Noto Sans,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji;font-feature-settings:normal;font-variation-settings:normal}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,Liberation Mono,Courier New,monospace;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:initial}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}[type=button],[type=reset],[type=submit],button{-webkit-appearance:button;background-color:initial;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:initial}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0}fieldset,legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::-moz-placeholder,textarea::-moz-placeholder{opacity:1;color:#9ca3af}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]{display:none}*,::backdrop,:after,:before{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:#3b82f680;--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: }.tab_wrap{width:1200px;margin:80px auto}input[type=radio]{display:none}.tab_area{font-size:0;margin:0 10px}.tab_area label{width:150px;margin:0 5px;display:inline-block;padding:12px 0;color:#999;background:#ddd;text-align:center;font-size:13px;cursor:pointer;transition:opacity .2s ease}.tab_area label:hover{opacity:.5}.panel_area{background:#fff}.tab_panel{width:100%;padding:80px 0;display:none}.tab_panel p{font-size:14px;letter-spacing:1px;text-align:center}#tab1:checked~.tab_area .tab1_label{background:#fff;color:#000}#tab1:checked~.panel_area #panel1{display:block}#tab2:checked~.tab_area .tab2_label{background:#fff;color:#000}#tab2:checked~.panel_area #panel2{display:block}#tab3:checked~.tab_area .tab3_label{background:#fff;color:#000}#tab3:checked~.panel_area #panel3{display:block}#tab4:checked~.tab_area .tab4_label{background:#fff;color:#000}#tab4:checked~.panel_area #panel4{display:block}#tab5:checked~.tab_area .tab5_label{background:#fff;color:#000}#tab5:checked~.panel_area #panel5{display:block}#tab6:checked~.tab_area .tab6_label{background:#fff;color:#000}#tab6:checked~.panel_area #panel6{display:block}#tab7:checked~.tab_area .tab7_label{background:#fff;color:#000}#tab7:checked~.panel_area #panel7{display:block}
+\ No newline at end of file
+diff --git a/iatf_system/app/controllers/products_controller.rb b/iatf_system/app/controllers/products_controller.rb
+index 6843e56..2ac008a 100644
+--- a/iatf_system/app/controllers/products_controller.rb
++++ b/iatf_system/app/controllers/products_controller.rb
+@@ -184,9 +184,30 @@ class ProductsController < ApplicationController
+ 
+ 
+   def iot
+-    IotDataService.call.each do |key, value|
++    iot_data = IotDataService.call
++    iot_data.each do |key, value|
+       instance_variable_set("@#{key}", value) unless value.nil?
+     end
++
++    @chokotei_dobby30t4 = iot_data[:chokoteiDobby30t4]
++    @jyotai_dobby30t4 = iot_data[:JYOTAIDobby30t4]
++    @Stamping_jyotai_amada80t3 = iot_data[:StampingJYOTAIAmada80t3]
++    @stamping_chokotei_amada80t3 = iot_data[:StampingchokoteiAmada80t3]
++    @spm_amada80t3 = iot_data[:SPMAmada80t3]
++  end
++
++  def iot_monthly
++    @iot_monthly_summary = IotMonthlySummaryService.call(
++      month: params[:month],
++      work_hours_per_day: params[:work_hours_per_day]
++    )
++  end
++
++  def iot_daily_matrix
++    @iot_daily_matrix = IotDailyMatrixService.call(
++      year: params[:year],
++      month: params[:month]
++    )
+   end
+ 
+   def import
+diff --git a/iatf_system/app/services/iot_data_service.rb b/iatf_system/app/services/iot_data_service.rb
+index 3ab0f1e..e2f6775 100644
+--- a/iatf_system/app/services/iot_data_service.rb
++++ b/iatf_system/app/services/iot_data_service.rb
+@@ -35,8 +35,25 @@ class IotDataService
+ 
+   def load_csv(path)
+     return nil unless File.file?(path)
+-    [].tap do |data|
+-      CSV.foreach(path, headers: true) { |row| data << [row[0], row[1]] }
++
++    data = []
++    CSV.foreach(path, headers: false).with_index do |row, index|
++      cells = row.map { |cell| cell.to_s.strip }
++      next if cells.empty? || cells.all?(&:blank?)
++
++      if cells.length >= 2
++        data << [cells[0], numeric_value(cells[1])]
++      else
++        data << [index.to_s, numeric_value(cells[0])]
++      end
+     end
++    data
++  end
++
++  def numeric_value(value)
++    numeric = Float(value)
++    numeric % 1 == 0 ? numeric.to_i : numeric
++  rescue ArgumentError, TypeError
++    value
+   end
+ end
+diff --git a/iatf_system/app/views/products/index.html.erb b/iatf_system/app/views/products/index.html.erb
+index 1834d23..1a68baf 100644
+--- a/iatf_system/app/views/products/index.html.erb
++++ b/iatf_system/app/views/products/index.html.erb
+@@ -552,6 +552,108 @@ $(document).ready(function(){
+ 
+     <div class="w-full lg:w-5/6 lg:ml-1/6 bg-blue-700 p-8 text-gray-600 rounded-lg">
+ 
++      <!-- IoT Dashboard Quick Access Card -->
++      <div class="mb-8">
++        <%= link_to iot_product_path, class: "group block max-w-sm p-6 bg-white border border-gray-200 rounded-xl shadow-md hover:bg-indigo-50 transition-all duration-300 transform hover:-translate-y-1" do %>
++          <div class="flex items-center space-x-4">
++            <div class="p-3 bg-indigo-600 rounded-lg group-hover:bg-indigo-700 transition-colors">
++              <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
++                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
++              </svg>
++            </div>
++            <div>
++              <h5 class="text-2xl font-bold tracking-tight text-gray-900">工場稼働状況 (IoT)</h5>
++              <p class="font-normal text-gray-600">リアルタイムのプレス機データを表示します</p>
++            </div>
++          </div>
++        <% end %>
++      </div>
++
++      <!-- GD&T 3D Viewer v2 Card -->
++      <div class="mb-8">
++        <a href="http://192.168.5.172:8088/apps/gdt_step_face_viewer_v2/index.html" target="_blank" class="group block max-w-sm p-6 bg-white border border-gray-200 rounded-xl shadow-md hover:bg-green-50 transition-all duration-300 transform hover:-translate-y-1">
++          <div class="flex items-center space-x-4">
++            <div class="p-3 bg-green-600 rounded-lg group-hover:bg-green-700 transition-colors">
++              <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
++                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5" />
++              </svg>
++            </div>
++            <div>
++              <h5 class="text-2xl font-bold tracking-tight text-gray-900">GD&T 3D Viewer v2</h5>
++              <p class="font-normal text-gray-600">NZGLG7 v6 基準の高度公差可視化</p>
++            </div>
++          </div>
++        </a>
++      </div>
++
++      <!-- OpenCode DeepSeek Intelligence Card -->
++      <div class="mb-8">
++        <div class="group block max-w-sm p-6 bg-white border border-gray-200 rounded-xl shadow-md hover:bg-blue-50 transition-all duration-300 transform hover:-translate-y-1">
++          <div class="flex items-center space-x-4">
++            <div class="p-3 bg-blue-600 rounded-lg group-hover:bg-blue-700 transition-colors">
++              <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
++                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.989-2.386l-.548-.547z" />
++              </svg>
++            </div>
++            <div>
++              <h5 class="text-2xl font-bold tracking-tight text-gray-900">DeepSeek Intelligence</h5>
++              <p class="font-normal text-gray-600">OpenCode Go 連携・高度推論ハブ</p>
++            </div>
++          </div>
++        </div>
++      </div>
++
++      <!-- Blender 3D Studio Card -->
++      <div class="mb-8">
++        <a href="http://192.168.5.172:8088/apps/blender_autonomous_studio/index.html" target="_blank" class="group block max-w-sm p-6 bg-white border border-gray-200 rounded-xl shadow-md hover:bg-orange-50 transition-all duration-300 transform hover:-translate-y-1">
++          <div class="flex items-center space-x-4">
++            <div class="p-3 bg-orange-500 rounded-lg group-hover:bg-orange-600 transition-colors">
++              <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
++                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
++              </svg>
++            </div>
++            <div>
++              <h5 class="text-2xl font-bold tracking-tight text-gray-900">Blender 3D Studio</h5>
++              <p class="font-normal text-gray-600">自律シーン生成 & Webプレビュー</p>
++            </div>
++          </div>
++        </a>
++      </div>
++
++      <!-- Motion Lab Card -->
++      <div class="mb-8">
++        <div class="group block max-w-sm p-6 bg-white border border-gray-200 rounded-xl shadow-md hover:bg-purple-50 transition-all duration-300 transform hover:-translate-y-1">
++          <div class="flex items-center space-x-4">
++            <div class="p-3 bg-purple-600 rounded-lg group-hover:bg-purple-700 transition-colors">
++              <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
++                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
++              </svg>
++            </div>
++            <div>
++              <h5 class="text-2xl font-bold tracking-tight text-gray-900">Motion Lab</h5>
++              <p class="font-normal text-gray-600">シネマ級 3D アニメーション生成</p>
++            </div>
++          </div>
++        </div>
++      </div>
++
++      <!-- Asana Quality Hub Card -->
++      <div class="mb-8">
++        <a href="http://192.168.5.172:8088/apps/asana_quality_hub/index.html" target="_blank" class="group block max-w-sm p-6 bg-white border border-gray-200 rounded-xl shadow-md hover:bg-rose-50 transition-all duration-300 transform hover:-translate-y-1">
++          <div class="flex items-center space-x-4">
++            <div class="p-3 bg-rose-600 rounded-lg group-hover:bg-rose-700 transition-colors">
++              <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
++                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
++              </svg>
++            </div>
++            <div>
++              <h5 class="text-2xl font-bold tracking-tight text-gray-900">Asana Quality Hub</h5>
++              <p class="font-normal text-gray-600">品質是正処置 & 進捗自律管理</p>
++            </div>
++          </div>
++        </a>
++      </div>
++
+       <!--
+       Border Spacing
+       https://tailwindcss.com/docs/border-spacing
+diff --git a/iatf_system/app/views/products/iot.html.erb b/iatf_system/app/views/products/iot.html.erb
+index 5a094cc..428d724 100644
+--- a/iatf_system/app/views/products/iot.html.erb
++++ b/iatf_system/app/views/products/iot.html.erb
+@@ -1,144 +1,376 @@
+-<h1>IATF APQP / PPAP 説明</h1>
+-
+-
+-<div class="tab_wrap">
+-	<input id="tab1" type="radio" name="tab_btn" checked>
+-	<input id="tab2" type="radio" name="tab_btn">
+-	<input id="tab3" type="radio" name="tab_btn">
+-  <input id="tab4" type="radio" name="tab_btn">
+-  <input id="tab5" type="radio" name="tab_btn">
+-  <input id="tab6" type="radio" name="tab_btn">
+-
+-	<div class="tab_area">
+-		<label class="tab1_label" for="tab1">プレス現場 室温・湿度</label>
+-		<label class="tab2_label" for="tab2">Komatsu25トン3号機</label>
+-		<label class="tab3_label" for="tab3">Dobby30トン4号機</label>
+-    <label class="tab4_label" for="tab4">Amada80トン3号機</label>
+-    <label class="tab5_label" for="tab5">予備</label>
+-    <label class="tab6_label" for="tab6">予備</label>
+-
+-	</div>
+-	  <div class="panel_area">
+-	  	<div id="panel1" class="tab_panel">
+-
+-      <!--
+-      CSVで取り込んだデータを綺麗なグラフで表示する
+-      https://toranoana-lab.hatenablog.com/entry/2018/11/27/182518
+-      -->
+-
+-      <%= line_chart @temp, discrete: true, curve: false, label: "プレス現場　温度", xtitle: "時間", ytitle: "温度",width: "2000px", height: "400px" %>
+-
+-      <%= line_chart @humi, discrete: true, curve: false, label: "プレス現場　湿度", xtitle: "時間", ytitle: "湿度",width: "2000px", height: "400px" %>  
+-
+-	  	</div>
+-
+-  		<div id="panel2" class="tab_panel">
+-      
+-      <%= line_chart @komatsu25t3_shot, discrete: true, curve: false, label: "Komatsu25トン3号機　ショット数", xtitle: "時間", ytitle: "ショット数",width: "1200px", height: "400px" %>
+-
+-      <%= line_chart @komatsu25t3_spm, discrete: true, curve: false, label: "Komatsu25トン3号機　SPM", xtitle: "時間", ytitle: "SPM",width: "1200px", height: "400px" %>
+-
+-      <%= line_chart @komatsu25t3_chokotei, discrete: true, curve: false, label: "Komatsu25トン3号機　チョコ停止回数", xtitle: "時間", ytitle: "チョコ停止回数",width: "1200px", height: "400px" %>  
+-
+-      <%= line_chart @komatsu25t3_jyotai, discrete: true, curve: false, label: "Komatsu25トン3号機　稼働状況", xtitle: "時間", ytitle: "稼働状況",width: "1200px", height: "400px" %>  
+-
+-
+-	  	</div>
+- 
+-  		<div id="panel3" class="tab_panel">
+-  		
+-
+-      <%= line_chart @chokotei_dobby30t4, discrete: true, curve: false, label: "Dobby30トン4号機　チョコ停止回数", xtitle: "時間", ytitle: "チョコ停止回数",width: "1200px", height: "400px" %>  
+- 
+-     <%= line_chart @jyotai_dobby30t4, discrete: true, curve: false, label: "Dobby30トン4号機　稼働状況", xtitle: "時間", ytitle: "稼働状況",width: "1200px", height: "400px" %>  
+-
+-      </div>
+-
+-
+-
+-	
+-      <div id="panel4" class="tab_panel">
+-
+-      
+-      <%= line_chart @Stamping_jyotai_amada80t3, discrete: true, curve: false, label: "Amada80トン3号機　稼働状態", xtitle: "時間", ytitle: "稼働状況",width: "1200px", height: "400px" %>  
+- 
+-     <%= line_chart @stamping_chokotei_amada80t3, discrete: true, curve: false, label: "Amada80トン3号機　チョコ停止回数", xtitle: "時間", ytitle: "チョコ停止回数",width: "1200px", height: "400px" %>
+-
+-     <%= line_chart @spm_amada80t3, discrete: true, curve: false, label: "Amada80トン3号機　SPM", xtitle: "時間", ytitle: "SPM",width: "1200px", height: "400px" %>  
+- 
+-     <%= line_chart @ShotAmada80t3, discrete: true, curve: false, label: "Amada80トン3号機　ショット数", xtitle: "時間", ytitle: "ショット数",width: "1200px", height: "400px" %>  
+-
+-
+-	  	</div>
+-   
+-
+-      <div id="panel5" class="tab_panel">
+-  		</div>
+-    
+-      <div id="panel6" class="tab_panel">
+-  		</div>
+-
+-	
+-
+-    <%= link_to '戻る', root_path, class: 'btn btn-accent' %>
+-	  </div>
+-
+-
+-
+-</div>
+-
+ <style>
+-.tab_wrap{width:2200px; margin:80px auto;}
+-input[type="radio"]{display:none;}
+-.tab_area{font-size:0; margin:0 10px;}
+-.tab_area label{width:150px; margin:0 5px; display:inline-block; padding:12px 0; color:#999; background:#ddd; text-align:center; font-size:13px; cursor:pointer; transition:ease 0.2s opacity;}
+-.tab_area label:hover{opacity:0.5;}
+-.panel_area{background:#fff;}
+-.tab_panel{width:100%; padding:80px 0; display:none;}
+-.tab_panel p{font-size:14px; letter-spacing:1px; text-align:center;}
+-
+-#tab1:checked ~ .tab_area .tab1_label{background:#fff; color:#000;}
+-#tab1:checked ~ .panel_area #panel1{display:block;}
+-#tab2:checked ~ .tab_area .tab2_label{background:#fff; color:#000;}
+-#tab2:checked ~ .panel_area #panel2{display:block;}
+-#tab3:checked ~ .tab_area .tab3_label{background:#fff; color:#000;}
+-#tab3:checked ~ .panel_area #panel3{display:block;}
+-
+-#tab4:checked ~ .tab_area .tab4_label{background:#fff; color:#000;}
+-#tab4:checked ~ .panel_area #panel4{display:block;}
+-#tab5:checked ~ .tab_area .tab5_label{background:#fff; color:#000;}
+-#tab5:checked ~ .panel_area #panel5{display:block;}
+-#tab6:checked ~ .tab_area .tab6_label{background:#fff; color:#000;}
+-#tab6:checked ~ .panel_area #panel6{display:block;}
+-
+-
++  .iot-page {
++    min-height: 100vh;
++    background: #f8fafc;
++    color: #0f172a;
++    padding: 24px;
++  }
++
++  .iot-shell {
++    max-width: 1320px;
++    margin: 0 auto;
++  }
++
++  .iot-header {
++    display: flex;
++    align-items: flex-end;
++    justify-content: space-between;
++    gap: 16px;
++    border-bottom: 1px solid #e2e8f0;
++    padding-bottom: 18px;
++  }
++
++  .iot-eyebrow {
++    margin: 0 0 4px;
++    color: #64748b;
++    font-size: 13px;
++    font-weight: 700;
++  }
++
++  .iot-title {
++    margin: 0;
++    color: #0f172a;
++    font-size: 28px;
++    font-weight: 800;
++    letter-spacing: 0;
++  }
++
++  .iot-actions,
++  .iot-tabs {
++    display: flex;
++    flex-wrap: wrap;
++    gap: 8px;
++  }
++
++  .iot-button,
++  .iot-tab {
++    display: inline-flex;
++    align-items: center;
++    justify-content: center;
++    min-height: 40px;
++    border-radius: 6px;
++    padding: 8px 14px;
++    font-size: 14px;
++    font-weight: 700;
++    text-decoration: none;
++  }
++
++  .iot-button {
++    border: 1px solid #cbd5e1;
++    background: #ffffff;
++    color: #334155;
++  }
++
++  .iot-button-primary {
++    border-color: #2563eb;
++    background: #2563eb;
++    color: #ffffff;
++  }
++
++  .iot-button-secondary {
++    border-color: #0f766e;
++    background: #0f766e;
++    color: #ffffff;
++  }
++
++  .iot-summary {
++    display: grid;
++    grid-template-columns: repeat(4, minmax(0, 1fr));
++    gap: 12px;
++    margin: 20px 0;
++  }
++
++  .iot-summary-item {
++    border: 1px solid #e2e8f0;
++    border-radius: 8px;
++    background: #ffffff;
++    padding: 16px;
++  }
++
++  .iot-summary-label {
++    margin: 0;
++    color: #64748b;
++    font-size: 13px;
++    font-weight: 700;
++  }
++
++  .iot-summary-value {
++    margin: 8px 0 0;
++    color: #0f172a;
++    font-size: 24px;
++    font-weight: 800;
++  }
++
++  .iot-tab-radio {
++    position: absolute;
++    opacity: 0;
++    pointer-events: none;
++  }
++
++  .iot-tabs {
++    margin: 8px 0 16px;
++  }
++
++  .iot-tab {
++    border: 1px solid #cbd5e1;
++    background: #ffffff;
++    color: #334155;
++    cursor: pointer;
++  }
++
++  #tab_environment:checked ~ .iot-tabs label[for="tab_environment"],
++  #tab_komatsu:checked ~ .iot-tabs label[for="tab_komatsu"],
++  #tab_dobby:checked ~ .iot-tabs label[for="tab_dobby"],
++  #tab_amada:checked ~ .iot-tabs label[for="tab_amada"] {
++    border-color: #334155;
++    background: #334155;
++    color: #ffffff;
++  }
++
++  .iot-panel {
++    display: none;
++  }
++
++  #tab_environment:checked ~ #panel_environment,
++  #tab_komatsu:checked ~ #panel_komatsu,
++  #tab_dobby:checked ~ #panel_dobby,
++  #tab_amada:checked ~ #panel_amada {
++    display: block;
++  }
++
++  .iot-grid {
++    display: grid;
++    grid-template-columns: 1fr;
++    gap: 16px;
++  }
++
++  .iot-chart {
++    border: 1px solid #e2e8f0;
++    border-radius: 8px;
++    background: #ffffff;
++    padding: 16px;
++  }
++
++  .iot-chart-header {
++    display: flex;
++    align-items: baseline;
++    justify-content: space-between;
++    gap: 12px;
++    margin-bottom: 12px;
++  }
++
++  .iot-chart-title {
++    margin: 0;
++    color: #0f172a;
++    font-size: 16px;
++    font-weight: 800;
++  }
++
++  .iot-chart-meta {
++    color: #64748b;
++    font-size: 12px;
++    white-space: nowrap;
++  }
++
++  .iot-note {
++    margin-top: 16px;
++    border: 1px solid #e2e8f0;
++    border-radius: 8px;
++    background: #ffffff;
++    padding: 14px 16px;
++    color: #64748b;
++    font-size: 13px;
++    line-height: 1.7;
++  }
++
++  @media (max-width: 900px) {
++    .iot-page {
++      padding: 16px;
++    }
++
++    .iot-header,
++    .iot-actions {
++      align-items: stretch;
++      flex-direction: column;
++    }
++
++    .iot-summary {
++      grid-template-columns: 1fr;
++    }
++
++    .iot-button,
++    .iot-tab {
++      width: 100%;
++    }
++  }
+ </style>
+ 
++<div class="iot-page">
++  <div class="iot-shell">
++    <div class="iot-header">
++      <div style="display: flex; align-items: center; gap: 16px;">
++        <%= link_to products_path, class: "iot-button", style: "padding: 8px; min-width: 40px; border-radius: 50%;" do %>
++          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" style="width: 20px; height: 20px;">
++            <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
++          </svg>
++        <% end %>
++        <div>
++          <p class="iot-eyebrow">IoT Press Monitor</p>
++          <h1 class="iot-title">プレス設備 リアルタイムグラフ</h1>
++        </div>
++      </div>
+ 
++      <div class="iot-actions">
++        <%= link_to "月次稼働一覧", iot_monthly_product_path, class: "iot-button iot-button-primary" %>
++        <%= link_to "日別マトリクス", iot_daily_matrix_product_path, class: "iot-button iot-button-secondary" %>
++      </div>
++    </div>
+ 
++    <div class="iot-summary">
++      <div class="iot-summary-item">
++        <p class="iot-summary-label">表示設備</p>
++        <p class="iot-summary-value">4系統</p>
++      </div>
++      <div class="iot-summary-item">
++        <p class="iot-summary-label">主な指標</p>
++        <p class="iot-summary-value">Shot / SPM</p>
++      </div>
++      <div class="iot-summary-item">
++        <p class="iot-summary-label">停止監視</p>
++        <p class="iot-summary-value">チョコ停</p>
++      </div>
++      <div class="iot-summary-item">
++        <p class="iot-summary-label">横軸</p>
++        <p class="iot-summary-value">時刻</p>
++      </div>
++    </div>
++
++    <input id="tab_environment" class="iot-tab-radio" type="radio" name="iot_tab" checked>
++    <input id="tab_komatsu" class="iot-tab-radio" type="radio" name="iot_tab">
++    <input id="tab_dobby" class="iot-tab-radio" type="radio" name="iot_tab">
++    <input id="tab_amada" class="iot-tab-radio" type="radio" name="iot_tab">
++
++    <div class="iot-tabs">
++      <label class="iot-tab" for="tab_environment">工場環境</label>
++      <label class="iot-tab" for="tab_komatsu">Komatsu 25t 3号機</label>
++      <label class="iot-tab" for="tab_dobby">Dobby 30t 4号機</label>
++      <label class="iot-tab" for="tab_amada">Amada 80t 3号機</label>
++    </div>
++
++    <div id="panel_environment" class="iot-panel">
++      <div class="iot-grid">
++        <section class="iot-chart">
++          <div class="iot-chart-header">
++            <h2 class="iot-chart-title">工場環境 温度</h2>
++            <span class="iot-chart-meta">SHT31 / temperature</span>
++          </div>
++          <%= line_chart @temp, discrete: true, curve: false, label: "温度", xtitle: "時刻", ytitle: "温度", width: "100%", height: "360px" %>
++        </section>
++
++        <section class="iot-chart">
++          <div class="iot-chart-header">
++            <h2 class="iot-chart-title">工場環境 湿度</h2>
++            <span class="iot-chart-meta">SHT31 / humidity</span>
++          </div>
++          <%= line_chart @humi, discrete: true, curve: false, label: "湿度", xtitle: "時刻", ytitle: "湿度", width: "100%", height: "360px" %>
++        </section>
++      </div>
++    </div>
++
++    <div id="panel_komatsu" class="iot-panel">
++      <div class="iot-grid">
++        <section class="iot-chart">
++          <div class="iot-chart-header">
++            <h2 class="iot-chart-title">Komatsu 25t 3号機 ショット数</h2>
++            <span class="iot-chart-meta">Shot</span>
++          </div>
++          <%= line_chart @komatsu25t3_shot, discrete: true, curve: false, label: "ショット数", xtitle: "時刻", ytitle: "ショット数", width: "100%", height: "360px" %>
++        </section>
++
++        <section class="iot-chart">
++          <div class="iot-chart-header">
++            <h2 class="iot-chart-title">Komatsu 25t 3号機 SPM</h2>
++            <span class="iot-chart-meta">SPM</span>
++          </div>
++          <%= line_chart @komatsu25t3_spm, discrete: true, curve: false, label: "SPM", xtitle: "時刻", ytitle: "SPM", width: "100%", height: "360px" %>
++        </section>
++
++        <section class="iot-chart">
++          <div class="iot-chart-header">
++            <h2 class="iot-chart-title">Komatsu 25t 3号機 チョコ停回数</h2>
++            <span class="iot-chart-meta">Short stop</span>
++          </div>
++          <%= line_chart @komatsu25t3_chokotei, discrete: true, curve: false, label: "チョコ停回数", xtitle: "時刻", ytitle: "チョコ停回数", width: "100%", height: "360px" %>
++        </section>
++
++        <section class="iot-chart">
++          <div class="iot-chart-header">
++            <h2 class="iot-chart-title">Komatsu 25t 3号機 稼働状態</h2>
++            <span class="iot-chart-meta">Status</span>
++          </div>
++          <%= line_chart @komatsu25t3_jyotai, discrete: true, curve: false, label: "稼働状態", xtitle: "時刻", ytitle: "状態", width: "100%", height: "360px" %>
++        </section>
++      </div>
++    </div>
++
++    <div id="panel_dobby" class="iot-panel">
++      <div class="iot-grid">
++        <section class="iot-chart">
++          <div class="iot-chart-header">
++            <h2 class="iot-chart-title">Dobby 30t 4号機 チョコ停回数</h2>
++            <span class="iot-chart-meta">Short stop</span>
++          </div>
++          <%= line_chart @chokotei_dobby30t4, discrete: true, curve: false, label: "チョコ停回数", xtitle: "時刻", ytitle: "チョコ停回数", width: "100%", height: "360px" %>
++        </section>
++
++        <section class="iot-chart">
++          <div class="iot-chart-header">
++            <h2 class="iot-chart-title">Dobby 30t 4号機 稼働状態</h2>
++            <span class="iot-chart-meta">Status</span>
++          </div>
++          <%= line_chart @jyotai_dobby30t4, discrete: true, curve: false, label: "稼働状態", xtitle: "時刻", ytitle: "状態", width: "100%", height: "360px" %>
++        </section>
++      </div>
++    </div>
++
++    <div id="panel_amada" class="iot-panel">
++      <div class="iot-grid">
++        <section class="iot-chart">
++          <div class="iot-chart-header">
++            <h2 class="iot-chart-title">Amada 80t 3号機 稼働状態</h2>
++            <span class="iot-chart-meta">Status</span>
++          </div>
++          <%= line_chart @Stamping_jyotai_amada80t3, discrete: true, curve: false, label: "稼働状態", xtitle: "時刻", ytitle: "状態", width: "100%", height: "360px" %>
++        </section>
++
++        <section class="iot-chart">
++          <div class="iot-chart-header">
++            <h2 class="iot-chart-title">Amada 80t 3号機 チョコ停回数</h2>
++            <span class="iot-chart-meta">Short stop</span>
++          </div>
++          <%= line_chart @stamping_chokotei_amada80t3, discrete: true, curve: false, label: "チョコ停回数", xtitle: "時刻", ytitle: "チョコ停回数", width: "100%", height: "360px" %>
++        </section>
++
++        <section class="iot-chart">
++          <div class="iot-chart-header">
++            <h2 class="iot-chart-title">Amada 80t 3号機 SPM</h2>
++            <span class="iot-chart-meta">SPM</span>
++          </div>
++          <%= line_chart @spm_amada80t3, discrete: true, curve: false, label: "SPM", xtitle: "時刻", ytitle: "SPM", width: "100%", height: "360px" %>
++        </section>
++
++        <section class="iot-chart">
++          <div class="iot-chart-header">
++            <h2 class="iot-chart-title">Amada 80t 3号機 ショット数</h2>
++            <span class="iot-chart-meta">Shot</span>
++          </div>
++          <%= line_chart @ShotAmada80t3, discrete: true, curve: false, label: "ショット数", xtitle: "時刻", ytitle: "ショット数", width: "100%", height: "360px" %>
++        </section>
++      </div>
++    </div>
+ 
+-
+-
+-
+-
+-
+-
+-      
+-
+-
+-
+-
+-
+-
+-
+-
+-
+-
+-
+-
+-
+-
+-
+-
+-
+-
++    <div class="iot-note">
++      グラフはCSVの最新データを表示します。月次・日別の集計確認は上部のボタンから移動できます。
++    </div>
++  </div>
++</div>
+diff --git a/iatf_system/config/routes.rb b/iatf_system/config/routes.rb
+index 7c2fe3d..458e112 100644
+--- a/iatf_system/config/routes.rb
++++ b/iatf_system/config/routes.rb
+@@ -69,6 +69,8 @@ Rails.application.routes.draw do
+   get 'products/update_history' => 'products#update_history', as: 'update_history_product'
+ 
+   get 'products/iot' => 'products#iot', as: 'iot_product'
++  get 'products/iot_monthly' => 'products#iot_monthly', as: 'iot_monthly_product'
++  get 'products/iot_daily_matrix' => 'products#iot_daily_matrix', as: 'iot_daily_matrix_product'
+   get 'products/graph' => 'products#graph', as: 'graph_product'
+   get 'products/calendar' => 'products#calendar', as: 'calendar_product'
+   get 'products/training' => 'products#training', as: 'training_product'
+diff --git a/iatf_system/docker-compose.production.yml b/iatf_system/docker-compose.production.yml
+index a98429a..239447d 100644
+--- a/iatf_system/docker-compose.production.yml
++++ b/iatf_system/docker-compose.production.yml
+@@ -51,7 +51,7 @@ services:
+     build:
+       context: .
+       dockerfile: Dockerfile.production.web
+-    command: bash -c "rm -f tmp/pids/server.pid && bundle exec chmod +x bin/rails && npm run build:css && bundle exec rails s -p 3004 -b '0.0.0.0' -e production"
++    command: bash -c "rm -f tmp/pids/server.pid && bundle exec chmod +x bin/rails && bundle exec rails assets:precompile && bundle exec rails s -p 3004 -b '0.0.0.0' -e production"
+     tty: true
+     stdin_open: true
+     env_file: .env.production
+@@ -116,7 +116,7 @@ services:
+   nginx:
+     image: nginx:latest
+     ports:
+-      - "80:80"
++      - "127.0.0.1:18090:80"
+     volumes:
+       - ./nginx/conf.d:/etc/nginx/conf.d:ro
+       - letsencrypt_data:/etc/letsencrypt:ro
+diff --git a/iatf_system/nginx/conf.d/default.conf b/iatf_system/nginx/conf.d/default.conf
+index 0f41689..49bf06f 100644
+--- a/iatf_system/nginx/conf.d/default.conf
++++ b/iatf_system/nginx/conf.d/default.conf
+@@ -1,5 +1,5 @@
+ upstream rails_app {
+-    server web:3003;
++    server web:3004;
+ }
+ 
+ server {
+diff --git a/scripts/start_telegram_fast_bridge.ps1 b/scripts/start_telegram_fast_bridge.ps1
+index 0f32931..5d7558e 100644
+--- a/scripts/start_telegram_fast_bridge.ps1
++++ b/scripts/start_telegram_fast_bridge.ps1
+@@ -34,7 +34,7 @@ function Stop-TelegramBridgeProcesses {
+ }
+ 
+ if (-not $env:TELEGRAM_FAST_MODEL) {
+-  $env:TELEGRAM_FAST_MODEL = "qwen3:8b"
++  $env:TELEGRAM_FAST_MODEL = "qwen3-nothink:latest"
+ }
+ if (-not $env:TELEGRAM_FAST_API_BASE) {
+   $env:TELEGRAM_FAST_API_BASE = "http://127.0.0.1:4001/v1"
+@@ -43,7 +43,7 @@ if (-not $env:TELEGRAM_FAST_API_KEY) {
+   $env:TELEGRAM_FAST_API_KEY = "none"
+ }
+ if (-not $env:TELEGRAM_FAST_TIMEOUT_MS) {
+-  $env:TELEGRAM_FAST_TIMEOUT_MS = "120000"
++  $env:TELEGRAM_FAST_TIMEOUT_MS = "20000"
+ }
+ 
+ Stop-TelegramBridgeProcesses
+diff --git a/scripts/telegram_fast_bridge.js b/scripts/telegram_fast_bridge.js
+index 22c618e..494cf6e 100644
+--- a/scripts/telegram_fast_bridge.js
++++ b/scripts/telegram_fast_bridge.js
+@@ -203,6 +203,13 @@ async function getFastReply(text) {
+   if (!trimmed) return 'メッセージを送ってください。';
+   if (/^ping$/i.test(trimmed)) return 'pong';
+   if (/^\/status$/i.test(trimmed)) return buildStackStatusText();
++  if (/^(おはよう|おはようございます|こんにちは|こんばんは|ありがとう|ありがと)$/i.test(trimmed)) {
++    if (/ありがとう/.test(trimmed)) return 'どういたしまして。必要なことがあればそのまま送ってください。';
++    return 'おはようございます。今日も確認できます。';
++  }
++  if (/天気|weather/i.test(trimmed)) {
++    return '天気の外部取得はこのTelegram bridgeでは未接続です。地域名つきで送ってもらえれば、確認経路を切り替えて調べます。';
++  }
+   if (/^\/models$/i.test(trimmed) || /^\/rankings$/i.test(trimmed) || isModelRankingIntent(trimmed)) {
+     const installedModels = await fetchInstalledOllamaModels(ollamaUrl);
+     return `${buildStackStatusText()}\n\n${buildModelRankingText(installedModels)}`;
+@@ -1138,8 +1145,14 @@ async function generateGeneralReply(text, onProgress = null, thinkOverride = nul
+     ...formatHistoryBlock(history),
+     `User: ${text}`,
+   ].join('\n');
+-  const raw = await callModelGenerate(prompt, onProgress, onStream);
+-  return sanitizeModelReply(text, raw);
++  try {
++    const raw = await callModelGenerate(prompt, onProgress, onStream);
++    return sanitizeModelReply(text, raw);
++  } catch (error) {
++    const message = error instanceof Error ? error.message : String(error);
++    writeEvent('model_fallback_reply', { lastMessage: text, lastError: message });
++    return '応答生成がタイムアウトしました。短めに聞き直すか、/fast を付けて送ってください。';
++  }
+ }
+ 
+ async function generateEmailReply(text, onProgress = null, history = [], onStream = null) {

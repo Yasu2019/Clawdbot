@@ -1,0 +1,12 @@
+{
+  "tree_id": "drawing-example",
+  "root": {
+    "node_id": "drawing:root",
+    "title": "Drawing and GD&T Knowledge",
+    "children": ["drawing:metadata", "drawing:datum", "drawing:features", "drawing:tolerances", "drawing:measurement"]
+  },
+  "notes": [
+    "図面要求、STEP幾何、測定採用面、人間確認済みを分ける",
+    "Datum C-CやA-Bなどの複合基準は人間確認フラグ必須"
+  ]
+}

@@ -1,0 +1,17 @@
+domains:
+  iatf:
+    trigger_keywords: ["IATF", "16949", "内部監査", "是正処置", "改善の機会", "8.3", "8.5", "PPAP", "APQP"]
+    required_evidence_count: 2
+    must_not_guess: ["clause_id", "requirement", "audit_result"]
+  drawing:
+    trigger_keywords: ["図面", "PDF", "STEP", "STL", "GD&T", "幾何公差", "datum", "データム", "DRF", "C-C"]
+    required_evidence_count: 2
+    human_verify_fields: ["datum", "tolerance_zone", "measurement_feature"]
+  qc_process:
+    trigger_keywords: ["QC工程表", "管理項目", "管理値", "測定頻度", "異常処置", "工程"]
+    required_evidence_count: 2
+    must_not_guess: ["spec_limit", "frequency", "responsibility"]
+  defect:
+    trigger_keywords: ["不具合", "是正", "原因", "対策", "再発", "水平展開", "5Why"]
+    required_evidence_count: 3
+    compare_required: true

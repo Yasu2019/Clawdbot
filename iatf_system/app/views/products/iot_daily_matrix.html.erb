@@ -1,0 +1,343 @@
+<% summary = @iot_daily_matrix %>
+<% dates = summary[:dates] %>
+<% machines = summary[:machines] %>
+<% matrix = summary[:matrix] %>
+<% years = ((summary[:year] - 3)..(summary[:year] + 1)).to_a %>
+
+<style>
+  .iotd-page {
+    min-height: 100vh;
+    background: #f8fafc;
+    color: #0f172a;
+    padding: 24px;
+  }
+
+  .iotd-shell {
+    max-width: 1480px;
+    margin: 0 auto;
+  }
+
+  .iotd-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 18px;
+  }
+
+  .iotd-eyebrow {
+    margin: 0 0 4px;
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .iotd-title {
+    margin: 0;
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: 0;
+  }
+
+  .iotd-actions,
+  .iotd-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .iotd-button,
+  .iotd-submit,
+  .iotd-tab {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+    border-radius: 6px;
+    padding: 8px 14px;
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .iotd-button {
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #334155;
+  }
+
+  .iotd-submit {
+    border: 1px solid #2563eb;
+    background: #2563eb;
+    color: #ffffff;
+    cursor: pointer;
+  }
+
+  .iotd-filter {
+    display: grid;
+    grid-template-columns: 160px 160px auto;
+    gap: 14px;
+    margin: 20px 0;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #ffffff;
+    padding: 16px;
+  }
+
+  .iotd-field label {
+    display: block;
+    margin-bottom: 6px;
+    color: #475569;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .iotd-field select {
+    width: 100%;
+    min-height: 40px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    background: #ffffff;
+    padding: 8px 10px;
+    color: #0f172a;
+    font-size: 14px;
+  }
+
+  .iotd-submit-wrap {
+    display: flex;
+    align-items: flex-end;
+  }
+
+  .iotd-tabs {
+    margin-bottom: 12px;
+  }
+
+  .iotd-radio {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .iotd-tab {
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #334155;
+    cursor: pointer;
+  }
+
+  #tab_chokotei:checked ~ .iotd-tabs label[for="tab_chokotei"],
+  #tab_shot:checked ~ .iotd-tabs label[for="tab_shot"],
+  #tab_spm:checked ~ .iotd-tabs label[for="tab_spm"] {
+    border-color: #2563eb;
+    background: #2563eb;
+    color: #ffffff;
+  }
+
+  .iotd-panel {
+    display: none;
+  }
+
+  #tab_chokotei:checked ~ #panel_chokotei,
+  #tab_shot:checked ~ #panel_shot,
+  #tab_spm:checked ~ #panel_spm {
+    display: block;
+  }
+
+  .iotd-table-wrap {
+    overflow-x: auto;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #ffffff;
+  }
+
+  .iotd-table {
+    width: 100%;
+    min-width: 1080px;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  .iotd-table th,
+  .iotd-table td {
+    border-bottom: 1px solid #e2e8f0;
+    border-right: 1px solid #e2e8f0;
+    padding: 10px;
+    vertical-align: middle;
+  }
+
+  .iotd-table th {
+    background: #f1f5f9;
+    color: #334155;
+    font-weight: 800;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  .iotd-table tr:last-child td {
+    border-bottom: 0;
+  }
+
+  .iotd-machine {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    min-width: 150px;
+    background: #ffffff;
+    font-weight: 800;
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  .iotd-table th.iotd-machine {
+    z-index: 2;
+    background: #f1f5f9;
+  }
+
+  .iotd-num {
+    min-width: 86px;
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .iotd-spm {
+    min-width: 132px;
+    color: #334155;
+    line-height: 1.55;
+    white-space: nowrap;
+  }
+
+  .iotd-muted {
+    color: #94a3b8;
+    text-align: center;
+  }
+
+  .iotd-note {
+    margin-top: 16px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #ffffff;
+    padding: 14px 16px;
+    color: #64748b;
+    font-size: 13px;
+    line-height: 1.7;
+  }
+
+  @media (max-width: 900px) {
+    .iotd-page {
+      padding: 16px;
+    }
+
+    .iotd-header,
+    .iotd-actions {
+      align-items: stretch;
+      flex-direction: column;
+    }
+
+    .iotd-filter {
+      grid-template-columns: 1fr;
+    }
+
+    .iotd-button,
+    .iotd-submit,
+    .iotd-tab {
+      width: 100%;
+    }
+  }
+</style>
+
+<div class="iotd-page">
+  <div class="iotd-shell">
+    <div class="iotd-header">
+      <div>
+        <p class="iotd-eyebrow">IoT Daily Matrix</p>
+        <h1 class="iotd-title">設備別 日次実績マトリクス</h1>
+      </div>
+
+      <div class="iotd-actions">
+        <%= link_to "月次稼働一覧", iot_monthly_product_path(month: format("%04d-%02d", summary[:year], summary[:month])), class: "iotd-button" %>
+        <%= link_to "リアルタイムグラフ", iot_product_path, class: "iotd-button" %>
+        <%= link_to "TOPへ戻る", products_path, class: "iotd-button" %>
+      </div>
+    </div>
+
+    <%= form_with url: iot_daily_matrix_product_path, method: :get, local: true, class: "iotd-filter" do |form| %>
+      <div class="iotd-field">
+        <%= form.label :year, "年" %>
+        <%= select_tag :year, options_for_select(years, summary[:year]) %>
+      </div>
+
+      <div class="iotd-field">
+        <%= form.label :month, "月" %>
+        <%= select_tag :month, options_for_select((1..12).map { |month| [format("%02d月", month), month] }, summary[:month]) %>
+      </div>
+
+      <div class="iotd-submit-wrap">
+        <%= form.submit "表示更新", class: "iotd-submit" %>
+      </div>
+    <% end %>
+
+    <input id="tab_chokotei" class="iotd-radio" type="radio" name="iotd_tab" checked>
+    <input id="tab_shot" class="iotd-radio" type="radio" name="iotd_tab">
+    <input id="tab_spm" class="iotd-radio" type="radio" name="iotd_tab">
+
+    <div class="iotd-tabs">
+      <label class="iotd-tab" for="tab_chokotei">チョコ停止回数</label>
+      <label class="iotd-tab" for="tab_shot">ショット数</label>
+      <label class="iotd-tab" for="tab_spm">SPM統計</label>
+    </div>
+
+    <div id="panel_chokotei" class="iotd-panel">
+      <%= render partial: "products/iot_daily_matrix_number_table", locals: { machines: machines, dates: dates, data: matrix[:chokotei], title: "チョコ停止回数" } %>
+    </div>
+
+    <div id="panel_shot" class="iotd-panel">
+      <%= render partial: "products/iot_daily_matrix_number_table", locals: { machines: machines, dates: dates, data: matrix[:shot], title: "ショット数" } %>
+    </div>
+
+    <div id="panel_spm" class="iotd-panel">
+      <div class="iotd-table-wrap">
+        <table class="iotd-table">
+          <thead>
+            <tr>
+              <th class="iotd-machine">設備</th>
+              <% dates.each do |date| %>
+                <th><%= date.strftime("%m/%d") %></th>
+              <% end %>
+            </tr>
+          </thead>
+          <tbody>
+            <% if machines.any? %>
+              <% machines.each do |machine| %>
+                <tr>
+                  <td class="iotd-machine"><%= machine %></td>
+                  <% dates.each do |date| %>
+                    <% stats = matrix[:spm].dig(machine, date) %>
+                    <% if stats.present? %>
+                      <td class="iotd-spm">
+                        MAX <%= stats[:max] %><br>
+                        AVE <%= stats[:average] %><br>
+                        MIN <%= stats[:min] %><br>
+                        ±3σ <%= stats[:minus_3sigma] %> - <%= stats[:plus_3sigma] %>
+                      </td>
+                    <% else %>
+                      <td class="iotd-muted">-</td>
+                    <% end %>
+                  <% end %>
+                </tr>
+              <% end %>
+            <% else %>
+              <tr>
+                <td colspan="<%= dates.size + 1 %>" class="iotd-muted">対象月のIoT CSVデータがありません。</td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="iotd-note">
+      横軸は日付、縦軸は設備です。チョコ停止回数とショット数は日ごとの累積値差分、SPMは0を除いたサンプルからMAX、AVE、MIN、AVE±3σを算出しています。
+    </div>
+  </div>
+</div>

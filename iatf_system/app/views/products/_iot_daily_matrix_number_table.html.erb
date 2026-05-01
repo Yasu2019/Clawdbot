@@ -1,0 +1,33 @@
+<div class="iotd-table-wrap" aria-label="<%= title %>">
+  <table class="iotd-table">
+    <thead>
+      <tr>
+        <th class="iotd-machine">設備</th>
+        <% dates.each do |date| %>
+          <th><%= date.strftime("%m/%d") %></th>
+        <% end %>
+      </tr>
+    </thead>
+    <tbody>
+      <% if machines.any? %>
+        <% machines.each do |machine| %>
+          <tr>
+            <td class="iotd-machine"><%= machine %></td>
+            <% dates.each do |date| %>
+              <% value = data.dig(machine, date) %>
+              <% if value.present? %>
+                <td class="iotd-num"><%= number_with_delimiter(value) %></td>
+              <% else %>
+                <td class="iotd-muted">-</td>
+              <% end %>
+            <% end %>
+          </tr>
+        <% end %>
+      <% else %>
+        <tr>
+          <td colspan="<%= dates.size + 1 %>" class="iotd-muted">対象月のIoT CSVデータがありません。</td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

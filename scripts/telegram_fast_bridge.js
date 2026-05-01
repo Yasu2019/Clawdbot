@@ -203,6 +203,13 @@ async function getFastReply(text) {
   if (!trimmed) return 'メッセージを送ってください。';
   if (/^ping$/i.test(trimmed)) return 'pong';
   if (/^\/status$/i.test(trimmed)) return buildStackStatusText();
+  if (/^(おはよう|おはようございます|こんにちは|こんばんは|ありがとう|ありがと)$/i.test(trimmed)) {
+    if (/ありがとう/.test(trimmed)) return 'どういたしまして。必要なことがあればそのまま送ってください。';
+    return 'おはようございます。今日も確認できます。';
+  }
+  if (/天気|weather/i.test(trimmed)) {
+    return '天気の外部取得はこのTelegram bridgeでは未接続です。地域名つきで送ってもらえれば、確認経路を切り替えて調べます。';
+  }
   if (/^\/models$/i.test(trimmed) || /^\/rankings$/i.test(trimmed) || isModelRankingIntent(trimmed)) {
     const installedModels = await fetchInstalledOllamaModels(ollamaUrl);
     return `${buildStackStatusText()}\n\n${buildModelRankingText(installedModels)}`;
@@ -1138,8 +1145,14 @@ async function generateGeneralReply(text, onProgress = null, thinkOverride = nul
     ...formatHistoryBlock(history),
     `User: ${text}`,
   ].join('\n');
-  const raw = await callModelGenerate(prompt, onProgress, onStream);
-  return sanitizeModelReply(text, raw);
+  try {
+    const raw = await callModelGenerate(prompt, onProgress, onStream);
+    return sanitizeModelReply(text, raw);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    writeEvent('model_fallback_reply', { lastMessage: text, lastError: message });
+    return '応答生成がタイムアウトしました。短めに聞き直すか、/fast を付けて送ってください。';
+  }
 }
 
 async function generateEmailReply(text, onProgress = null, history = [], onStream = null) {

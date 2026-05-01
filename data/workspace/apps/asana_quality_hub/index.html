@@ -1,0 +1,11 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Asana Quality Approval</title><style>body{font-family:system-ui,"Noto Sans JP",sans-serif;margin:24px;background:#f7f7f8;color:#202124}.card{background:white;border-radius:16px;padding:20px;box-shadow:0 2px 12px #0001;margin-bottom:16px}button{border:0;border-radius:10px;padding:10px 14px;margin:4px;cursor:pointer}.ok{background:#e7f5ea}.ng{background:#fdecec}.sub{color:#666;font-size:13px}pre{white-space:pre-wrap;background:#f1f3f4;padding:12px;border-radius:10px}</style></head><body><h1>OpenClaw × Asana 品質承認ゲート</h1><div class="card"><button onclick="load()">提案を再読込</button><span id="health" class="sub"></span></div><div id="list"></div><script>
+const API='http://127.0.0.1:18920';
+async function load(){
+  try{const h=await fetch(API+'/health').then(r=>r.json());health.textContent=' status: '+JSON.stringify(h);}catch(e){health.textContent=' approval-gate未起動';}
+  const box=document.getElementById('list'); box.innerHTML='';
+  let data={items:[]}; try{data=await fetch(API+'/proposals').then(r=>r.json())}catch(e){}
+  data.items.reverse().forEach(x=>{const d=document.createElement('div');d.className='card';d.innerHTML=`<h3>${x.name||'品質タスク提案'}</h3><div class=sub>${x.proposal_id||''} / ${x.priority||''}</div><pre>${JSON.stringify(x,null,2)}</pre><button class=ok>承認してAsana登録</button><button class=ng>却下</button>`;d.querySelector('.ok').onclick=()=>post('/approve',x);d.querySelector('.ng').onclick=()=>post('/reject',x);box.appendChild(d);});
+}
+async function post(path,obj){await fetch(API+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(obj)});load();}
+load();
+</script></body></html>

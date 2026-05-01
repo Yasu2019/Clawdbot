@@ -184,9 +184,30 @@ class ProductsController < ApplicationController
 
 
   def iot
-    IotDataService.call.each do |key, value|
+    iot_data = IotDataService.call
+    iot_data.each do |key, value|
       instance_variable_set("@#{key}", value) unless value.nil?
     end
+
+    @chokotei_dobby30t4 = iot_data[:chokoteiDobby30t4]
+    @jyotai_dobby30t4 = iot_data[:JYOTAIDobby30t4]
+    @Stamping_jyotai_amada80t3 = iot_data[:StampingJYOTAIAmada80t3]
+    @stamping_chokotei_amada80t3 = iot_data[:StampingchokoteiAmada80t3]
+    @spm_amada80t3 = iot_data[:SPMAmada80t3]
+  end
+
+  def iot_monthly
+    @iot_monthly_summary = IotMonthlySummaryService.call(
+      month: params[:month],
+      work_hours_per_day: params[:work_hours_per_day]
+    )
+  end
+
+  def iot_daily_matrix
+    @iot_daily_matrix = IotDailyMatrixService.call(
+      year: params[:year],
+      month: params[:month]
+    )
   end
 
   def import

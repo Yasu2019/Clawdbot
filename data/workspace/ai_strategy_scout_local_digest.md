@@ -1,17 +1,9 @@
 # AI Strategy Scout: Architectural Sentinel Edition
 
-- Generated at: 2026-04-29 07:14:18 JST
+- Generated at: 2026-05-01 19:54:00 JST
 - Mode: local_no_api_cost
 
 ## 🏛️ [DECISION] Architectural Recommendations
-
-### 🔌 ADOPT_INTEGRATE: Creative Studio
-- **Rationale**: Matches 1 new developments in this domain.
-  - Introducing NVIDIA Nemotron 3 Nano Omni: Long-Context Multimodal Intelligence for Documents, Audio and Video Agents
-
-### 🔌 ADOPT_INTEGRATE: Audio Lab
-- **Rationale**: Matches 1 new developments in this domain.
-  - Introducing NVIDIA Nemotron 3 Nano Omni: Long-Context Multimodal Intelligence for Documents, Audio and Video Agents
 
 ### 🔌 ADOPT_INTEGRATE: 3D Fab-Forge
 - **Rationale**: Matches 5 new developments in this domain.
@@ -24,12 +16,12 @@
 ## Local LLM / OSS
 
 ### Local LLM
-- b8966 [fresh]
-  Source: llama.cpp Releases | Published: 2026-04-29T05:37:49+09:00
-  https://github.com/ggml-org/llama.cpp/releases/tag/b8966
-- Introducing NVIDIA Nemotron 3 Nano Omni: Long-Context Multimodal Intelligence for Documents, Audio and Video Agents [fresh]
-  Source: Hugging Face Blog | Published: 2026-04-29T00:58:57+09:00
-  https://huggingface.co/blog/nvidia/nemotron-3-nano-omni-multimodal-intelligence
+- b8994 [fresh]
+  Source: llama.cpp Releases | Published: 2026-05-01T15:23:38+09:00
+  https://github.com/ggml-org/llama.cpp/releases/tag/b8994
+- AI evals are becoming the new compute bottleneck [fresh]
+  Source: Hugging Face Blog | Published: 2026-04-30T01:45:09+09:00
+  https://huggingface.co/blog/evaleval/eval-costs-bottleneck
 - v0.20.0 [fresh]
   Source: vLLM Releases | Published: 2026-04-28T06:20:28+09:00
   https://github.com/vllm-project/vllm/releases/tag/v0.20.0
@@ -38,23 +30,30 @@
   https://ollama.com/blog/mlx
 
 ### Productivity OSS
+- n8n@2.19.2 [fresh]
+  Source: n8n Releases | Published: 2026-05-01T18:36:35+09:00
+  https://github.com/n8n-io/n8n/releases/tag/n8n%402.19.2
+- v2.2.0: Select application excluding logo (#20159) [fresh]
+  Source: Twenty Releases | Published: 2026-05-01T00:13:54+09:00
+  https://github.com/twentyhq/twenty/releases/tag/v2.2.0
 - v0.80.1 [fresh]
   Source: Docmost Releases | Published: 2026-04-28T22:35:27+09:00
   https://github.com/docmost/docmost/releases/tag/v0.80.1
-- n8n@2.18.4 [fresh]
-  Source: n8n Releases | Published: 2026-04-28T19:27:45+09:00
-  https://github.com/n8n-io/n8n/releases/tag/n8n%402.18.4
 - v0.11.8 [fresh]
   Source: AppFlowy Releases | Published: 2026-04-27T13:07:44+09:00
   https://github.com/AppFlowy-IO/AppFlowy/releases/tag/0.11.8
-- v2.1.0 [fresh]
-  Source: Twenty Releases | Published: 2026-04-25T06:05:40+09:00
-  https://github.com/twentyhq/twenty/releases/tag/v2.1.0
 
 ## Global Corporate Intel (US)
 
 ### OpenAI / News
-- No items
+- OpenAI News | OpenAI
+  https://openai.com/news
+- https://openai.com/index/advanced-account-security/
+  https://openai.com/index/advanced-account-security/
+- https://openai.com/index/our-commitment-to-community-safety/
+  https://openai.com/index/our-commitment-to-community-safety/
+- https://openai.com/index/openai-on-aws/
+  https://openai.com/index/openai-on-aws/
 
 ### Anthropic / News
 - Newsroom \ Anthropic
@@ -103,7 +102,7 @@
 - xess.css?cachebuster=devel
   https://www.dealii.org/.within.website/x/xess/xess.css?cachebuster=devel
 - init
-  https://www.dealii.org/.within.website/x/cmd/anubis/api/honeypot/3e225113-fba1-4d36-8b7c-9c78dec61735/init
+  https://www.dealii.org/.within.website/x/cmd/anubis/api/honeypot/fba8d423-525a-499a-a72c-66cd4442d8bc/init
 
 ### SU2 Foundation
 - Newsletter Registration – SU2 Foundation

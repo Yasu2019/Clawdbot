@@ -1,0 +1,11 @@
+/RUN/Punch_Die_Shearing/1
+             0.0016000000
+/DT/NODA/CST/0
+             0.90000             0.10000E-06
+/RFILE/50000
+/ANIM/DT
+             0.0000000000         0.40000E-03
+/ANIM/ELEM/EPSP
+/ANIM/ELEM/VONM
+/ANIM/VECT/DISP
+/END

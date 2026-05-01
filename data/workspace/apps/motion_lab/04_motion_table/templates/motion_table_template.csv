@@ -1,0 +1,2 @@
+cut_id,start_sec,end_sec,spoken_line,body_action,arm_action,hand_action,face_direction,eye_direction,emotion,motion_source,retarget_notes,manual_fix_notes,priority
+CUT_001,0,3,"ここにセリフ","直立から少し前傾","右腕を胸高さへ","手のひらを上向き","正面","カメラ","説明的","mocap_required","rootを安定","手首と視線補正",A

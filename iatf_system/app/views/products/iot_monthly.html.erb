@@ -1,0 +1,356 @@
+<% summary = @iot_monthly_summary %>
+<% rows = summary[:rows] %>
+<% totals = summary[:totals] %>
+<% total_rate = totals[:available_hours].to_f.positive? ? ((totals[:operating_hours].to_f / totals[:available_hours].to_f) * 100).round(1) : 0.0 %>
+
+<style>
+  .iotm-page {
+    min-height: 100vh;
+    background: #f8fafc;
+    color: #0f172a;
+    padding: 24px;
+  }
+
+  .iotm-shell {
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+
+  .iotm-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 18px;
+  }
+
+  .iotm-eyebrow {
+    margin: 0 0 4px;
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .iotm-title {
+    margin: 0;
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: 0;
+  }
+
+  .iotm-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .iotm-button,
+  .iotm-submit {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+    border-radius: 6px;
+    padding: 8px 14px;
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .iotm-button {
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #334155;
+  }
+
+  .iotm-submit {
+    border: 1px solid #2563eb;
+    background: #2563eb;
+    color: #ffffff;
+    cursor: pointer;
+  }
+
+  .iotm-filter {
+    display: grid;
+    grid-template-columns: 180px 210px auto;
+    gap: 14px;
+    margin: 20px 0;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #ffffff;
+    padding: 16px;
+  }
+
+  .iotm-field label {
+    display: block;
+    margin-bottom: 6px;
+    color: #475569;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .iotm-field input {
+    width: 100%;
+    min-height: 40px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 8px 10px;
+    color: #0f172a;
+    font-size: 14px;
+  }
+
+  .iotm-field-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .iotm-unit {
+    color: #64748b;
+    font-size: 14px;
+    white-space: nowrap;
+  }
+
+  .iotm-submit-wrap {
+    display: flex;
+    align-items: flex-end;
+  }
+
+  .iotm-kpis {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .iotm-kpi {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #ffffff;
+    padding: 16px;
+  }
+
+  .iotm-kpi-label {
+    margin: 0;
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .iotm-kpi-value {
+    margin: 8px 0 0;
+    font-size: 26px;
+    font-weight: 800;
+  }
+
+  .iotm-table-wrap {
+    overflow-x: auto;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #ffffff;
+  }
+
+  .iotm-table {
+    width: 100%;
+    min-width: 920px;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+
+  .iotm-table th,
+  .iotm-table td {
+    border-bottom: 1px solid #e2e8f0;
+    padding: 12px 14px;
+    vertical-align: middle;
+  }
+
+  .iotm-table th {
+    background: #f1f5f9;
+    color: #334155;
+    font-weight: 800;
+    text-align: left;
+  }
+
+  .iotm-table tr:last-child td {
+    border-bottom: 0;
+  }
+
+  .iotm-num {
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .iotm-machine {
+    font-weight: 800;
+    white-space: nowrap;
+  }
+
+  .iotm-rate {
+    display: inline-flex;
+    min-width: 64px;
+    justify-content: center;
+    border-radius: 999px;
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 800;
+  }
+
+  .iotm-rate-good {
+    background: #dcfce7;
+    color: #166534;
+  }
+
+  .iotm-rate-mid {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  .iotm-rate-low {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+
+  .iotm-empty,
+  .iotm-note {
+    color: #64748b;
+  }
+
+  .iotm-empty {
+    padding: 32px;
+    text-align: center;
+  }
+
+  .iotm-note {
+    margin-top: 16px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #ffffff;
+    padding: 14px 16px;
+    font-size: 13px;
+    line-height: 1.7;
+  }
+
+  @media (max-width: 900px) {
+    .iotm-page {
+      padding: 16px;
+    }
+
+    .iotm-header,
+    .iotm-actions {
+      align-items: stretch;
+      flex-direction: column;
+    }
+
+    .iotm-filter,
+    .iotm-kpis {
+      grid-template-columns: 1fr;
+    }
+
+    .iotm-submit,
+    .iotm-button {
+      width: 100%;
+    }
+  }
+</style>
+
+<div class="iotm-page">
+  <div class="iotm-shell">
+    <div class="iotm-header">
+      <div>
+        <p class="iotm-eyebrow">IoT Monthly Summary</p>
+        <h1 class="iotm-title">設備別 月次稼働一覧</h1>
+      </div>
+
+      <div class="iotm-actions">
+        <%= link_to "日別マトリクス", iot_daily_matrix_product_path(year: summary[:month].year, month: summary[:month].month), class: "iotm-button" %>
+        <%= link_to "リアルタイムグラフ", iot_product_path, class: "iotm-button" %>
+        <%= link_to "TOPへ戻る", products_path, class: "iotm-button" %>
+      </div>
+    </div>
+
+    <%= form_with url: iot_monthly_product_path, method: :get, local: true, class: "iotm-filter" do |form| %>
+      <div class="iotm-field">
+        <%= form.label :month, "対象月" %>
+        <%= form.month_field :month, value: summary[:month].strftime("%Y-%m") %>
+      </div>
+
+      <div class="iotm-field">
+        <%= form.label :work_hours_per_day, "1日あたり稼働基準" %>
+        <div class="iotm-field-row">
+          <%= form.number_field :work_hours_per_day, value: summary[:work_hours_per_day], min: 0.5, max: 24, step: 0.5 %>
+          <span class="iotm-unit">時間</span>
+        </div>
+      </div>
+
+      <div class="iotm-submit-wrap">
+        <%= form.submit "表示更新", class: "iotm-submit" %>
+      </div>
+    <% end %>
+
+    <div class="iotm-kpis">
+      <div class="iotm-kpi">
+        <p class="iotm-kpi-label">設備数</p>
+        <p class="iotm-kpi-value"><%= totals[:machine_count] %></p>
+      </div>
+      <div class="iotm-kpi">
+        <p class="iotm-kpi-label">稼働時間</p>
+        <p class="iotm-kpi-value"><%= totals[:operating_hours] %>h</p>
+      </div>
+      <div class="iotm-kpi">
+        <p class="iotm-kpi-label">総合稼働率</p>
+        <p class="iotm-kpi-value"><%= total_rate %>%</p>
+      </div>
+      <div class="iotm-kpi">
+        <p class="iotm-kpi-label">ショット数</p>
+        <p class="iotm-kpi-value"><%= number_with_delimiter(totals[:shot_count]) %></p>
+      </div>
+      <div class="iotm-kpi">
+        <p class="iotm-kpi-label">チョコ停回数</p>
+        <p class="iotm-kpi-value"><%= number_with_delimiter(totals[:chokotei_count]) %></p>
+      </div>
+    </div>
+
+    <div class="iotm-table-wrap">
+      <table class="iotm-table">
+        <thead>
+          <tr>
+            <th>設備</th>
+            <th class="iotm-num">稼働日数</th>
+            <th class="iotm-num">稼働時間</th>
+            <th class="iotm-num">稼働率</th>
+            <th class="iotm-num">ショット数</th>
+            <th class="iotm-num">平均SPM</th>
+            <th class="iotm-num">チョコ停回数</th>
+            <th>最終データ</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if rows.any? %>
+            <% rows.each do |row| %>
+              <% rate_class = row[:operating_rate] >= 85 ? "iotm-rate-good" : row[:operating_rate] >= 60 ? "iotm-rate-mid" : "iotm-rate-low" %>
+              <tr>
+                <td class="iotm-machine"><%= row[:machine] %></td>
+                <td class="iotm-num"><%= row[:active_days] %>日</td>
+                <td class="iotm-num"><%= row[:operating_hours] %>h</td>
+                <td class="iotm-num"><span class="iotm-rate <%= rate_class %>"><%= row[:operating_rate] %>%</span></td>
+                <td class="iotm-num"><%= number_with_delimiter(row[:shot_count]) %></td>
+                <td class="iotm-num"><%= row[:average_spm] %></td>
+                <td class="iotm-num"><%= number_with_delimiter(row[:chokotei_count]) %></td>
+                <td><%= row[:latest_at]&.strftime("%Y/%m/%d %H:%M") || "-" %></td>
+              </tr>
+            <% end %>
+          <% else %>
+            <tr>
+              <td colspan="8" class="iotm-empty">対象月のIoT CSVデータがありません。</td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="iotm-note">
+      稼働率 = 稼働時間 / （1日あたり稼働基準 × CSVが存在する日数）。稼働時間は状態データが1以上のサンプル数と記録間隔から算出しています。
+    </div>
+  </div>
+</div>

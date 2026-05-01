@@ -1,0 +1,10 @@
+{
+  "name": "Corpus2Skill Ingest Workflow Template",
+  "nodes": [
+    {"name": "Manual Trigger", "type": "n8n-nodes-base.manualTrigger"},
+    {"name": "Fetch Paperless Docs", "type": "n8n-nodes-base.httpRequest"},
+    {"name": "Build Corpus Tree", "type": "n8n-nodes-base.httpRequest"},
+    {"name": "Store Evidence", "type": "n8n-nodes-base.httpRequest"}
+  ],
+  "connections": {}
+}

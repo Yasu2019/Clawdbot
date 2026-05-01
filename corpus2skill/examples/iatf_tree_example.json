@@ -1,0 +1,16 @@
+{
+  "tree_id": "iatf-example",
+  "root": {
+    "node_id": "iatf:root",
+    "title": "IATF 16949 Knowledge",
+    "summary": "IATF要求事項、社内規定、監査証跡、是正処置を横断する構造探索ツリー",
+    "children": ["iatf:clause8", "iatf:audit", "iatf:corrective_action"]
+  },
+  "nodes": {
+    "iatf:clause8": {"title": "8 Operation", "children": ["iatf:8.3", "iatf:8.5"]},
+    "iatf:8.3": {"title": "8.3 Product design and development", "children": []},
+    "iatf:8.5": {"title": "8.5 Production and service provision", "children": []},
+    "iatf:audit": {"title": "Internal Audit Evidence", "children": []},
+    "iatf:corrective_action": {"title": "Corrective Action Reports", "children": []}
+  }
+}

@@ -1,0 +1,23 @@
+project: sample_busbar
+shape_type: busbar
+units: mm
+material: A1050-H24
+parameters:
+  length: 120.0
+  width: 18.0
+  thickness: 0.8
+  corner_radius: 2.0
+  holes:
+    - x: 20.0
+      y: 9.0
+      diameter: 4.2
+    - x: 100.0
+      y: 9.0
+      diameter: 4.2
+outputs:
+  step: true
+  stl: true
+  png_preview: false
+safety:
+  overwrite_existing_files: false
+  require_human_check_before_use: true

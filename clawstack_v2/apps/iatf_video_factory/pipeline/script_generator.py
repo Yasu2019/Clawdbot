@@ -1,8 +1,26 @@
 """台本生成 — Kimi K2.6 (256K ctx) 優先、Gemini 2.5 Flash フォールバック。
 PDF全文を省略なく読み込み、7キャラ対話台本JSONを生成する。
 LiteLLM不達時はOpenCode GO / Gemini APIへ直接フォールバック。"""
-import json, requests, os
+import json, requests, os, time
 from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[4]
+STATUS_PATH = ROOT / "data" / "workspace" / "iatf_opencode_go_routing_status.json"
+
+
+def _load_root_env() -> None:
+    env_path = ROOT / ".env"
+    if not env_path.exists():
+        return
+    for line in env_path.read_text(encoding="utf-8", errors="replace").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, _, value = line.partition("=")
+        os.environ.setdefault(key.strip(), value.strip().strip('"').strip("'"))
+
+
+_load_root_env()
 
 LITELLM_URL = os.getenv("LITELLM_URL", "http://localhost:4001")
 LITELLM_KEY = os.getenv("LITELLM_MASTER_KEY", "local-dev-key")
@@ -16,6 +34,8 @@ GEMINI_BASE      = "https://generativelanguage.googleapis.com/v1beta/openai"
 # モデル優先順位 (OpenCode GO API接続確認後に kimi-k2.6 を最優先に)
 SCRIPT_MODELS = [
     "opencode-go/kimi-k2.6",
+    "opencode-go/deepseek-v4-flash",
+    "opencode-go/deepseek-v4-pro",
     "google/gemini-2.5-flash",
     "local_fast",
 ]
@@ -75,23 +95,70 @@ def _extract_json(raw: str) -> str:
     return raw.strip()
 
 
+def _record_route_event(model: str, stage: str, ok: bool, elapsed: float, detail: str = "") -> None:
+    try:
+        STATUS_PATH.parent.mkdir(parents=True, exist_ok=True)
+        STATUS_PATH.write_text(
+            json.dumps(
+                {
+                    "updated_at": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
+                    "model": model,
+                    "stage": stage,
+                    "ok": ok,
+                    "elapsed_sec": round(elapsed, 2),
+                    "detail": detail[:500],
+                },
+                ensure_ascii=False,
+                indent=2,
+            ),
+            encoding="utf-8",
+        )
+    except Exception:
+        pass
+
+
+def _message_content(data: dict) -> str | None:
+    choices = data.get("choices") or []
+    if not choices:
+        return None
+    msg = choices[0].get("message") or {}
+    content = msg.get("content")
+    if isinstance(content, str) and content.strip():
+        return content.strip()
+    reasoning = msg.get("reasoning_content")
+    if isinstance(reasoning, str) and reasoning.strip().startswith("{"):
+        return reasoning.strip()
+    return None
+
+
 def _call_llm(model: str, messages: list, max_tokens: int = 8000) -> str | None:
+    timeout_sec = 180 if model.startswith("opencode-go/") else 60
+    started = time.time()
     try:
         resp = requests.post(
             f"{LITELLM_URL}/v1/chat/completions",
             headers={"Authorization": f"Bearer {LITELLM_KEY}"},
             json={"model": model, "messages": messages, "max_tokens": max_tokens, "temperature": 0.7},
-            timeout=30,
+            timeout=timeout_sec,
         )
         resp.raise_for_status()
-        return resp.json()["choices"][0]["message"]["content"].strip()
+        content = _message_content(resp.json())
+        elapsed = time.time() - started
+        if not content:
+            _record_route_event(model, "litellm", False, elapsed, "empty response content")
+            print(f"  [{model}] via LiteLLM returned empty content")
+            return None
+        _record_route_event(model, "litellm", True, elapsed, "content received")
+        return content
     except Exception as e:
+        _record_route_event(model, "litellm", False, time.time() - started, str(e))
         print(f"  [{model}] via LiteLLM failed: {e}")
         return None
 
 
 def _call_direct(endpoint: str, api_key: str, model: str, messages: list, max_tokens: int = 8000) -> str | None:
     """LiteLLMをバイパスしてAPIを直接呼び出す"""
+    started = time.time()
     try:
         resp = requests.post(
             f"{endpoint}/chat/completions",
@@ -101,11 +168,16 @@ def _call_direct(endpoint: str, api_key: str, model: str, messages: list, max_to
         )
         resp.raise_for_status()
         data = resp.json()
-        content = data["choices"][0]["message"].get("content") or ""
-        if not content and "reasoning_content" in data["choices"][0]["message"]:
-            content = data["choices"][0]["message"].get("content", "")
-        return content.strip() if content else None
+        content = _message_content(data)
+        elapsed = time.time() - started
+        if not content:
+            _record_route_event(model, "direct", False, elapsed, "empty response content")
+            print(f"  [{model}] direct API returned empty content")
+            return None
+        _record_route_event(model, "direct", True, elapsed, "content received")
+        return content
     except Exception as e:
+        _record_route_event(model, "direct", False, time.time() - started, str(e))
         print(f"  [{model}] direct API failed: {e}")
         return None
 
@@ -181,7 +253,7 @@ def generate_script(pdf_text: str, clause: str, topic: str) -> dict:
 
     # LiteLLM未達フォールバック: OpenCode GO直接
     if OPENCODE_GO_KEY:
-        for oc_model in ["kimi-k2.6", "deepseek-v4-flash"]:
+        for oc_model in ["kimi-k2.6", "deepseek-v4-flash", "deepseek-v4-pro"]:
             print(f"  Direct OpenCode GO: {oc_model}")
             raw = _call_direct(OPENCODE_GO_BASE, OPENCODE_GO_KEY, oc_model, messages)
             if not raw:

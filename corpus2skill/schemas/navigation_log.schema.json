@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Corpus2Skill Navigation Log",
+  "type": "object",
+  "required": ["query", "steps", "final_evidence", "answer_status"],
+  "properties": {
+    "query": {"type": "string"},
+    "steps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["step", "node_id", "action", "reason"],
+        "properties": {
+          "step": {"type": "integer"},
+          "node_id": {"type": "string"},
+          "action": {"enum": ["read", "descend", "backtrack", "compare", "accept", "reject"]},
+          "reason": {"type": "string"}
+        }
+      }
+    },
+    "final_evidence": {"type": "array", "items": {"type": "string"}},
+    "answer_status": {"enum": ["answered", "partial", "unknown", "conflict"]}
+  }
+}

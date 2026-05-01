@@ -1,7 +1,17 @@
 {
   "recommendations": [
-    "github.copilot",
-    "ms-vscode.powershell",
-    "eamodio.gitlens"
+    "ms-azuretools.vscode-docker",
+    "ms-vscode-remote.remote-wsl",
+    "ms-vscode-remote.remote-containers",
+    "shopify.ruby-lsp",
+    "ms-python.python",
+    "ms-python.vscode-pylance",
+    "yzhang.markdown-all-in-one",
+    "usernamehw.errorlens",
+    "humao.rest-client",
+    "eamodio.gitlens",
+    "bradlc.vscode-tailwindcss",
+    "esbenp.prettier-vscode",
+    "oderwat.indent-rainbow"
   ]
 }

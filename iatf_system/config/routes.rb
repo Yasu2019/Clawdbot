@@ -69,6 +69,8 @@ Rails.application.routes.draw do
   get 'products/update_history' => 'products#update_history', as: 'update_history_product'
 
   get 'products/iot' => 'products#iot', as: 'iot_product'
+  get 'products/iot_monthly' => 'products#iot_monthly', as: 'iot_monthly_product'
+  get 'products/iot_daily_matrix' => 'products#iot_daily_matrix', as: 'iot_daily_matrix_product'
   get 'products/graph' => 'products#graph', as: 'graph_product'
   get 'products/calendar' => 'products#calendar', as: 'calendar_product'
   get 'products/training' => 'products#training', as: 'training_product'

@@ -1,0 +1,535 @@
+{
+  "updatedAt": "2026-04-29T12:50:43.930Z",
+  "createdAt": "2026-04-29T12:50:13.967Z",
+  "id": "OpnCRJquLkBjXOyw",
+  "name": "P016 Email Report (Daily 21:00 JST)",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "id": "trigger_p016",
+      "name": "daily_trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        112,
+        96
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 21 * * *"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "get_status",
+      "name": "build_todo_report",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        320,
+        96
+      ],
+      "parameters": {
+        "command": "docker exec clawstack-unified-clawdbot-gateway-1 sh -lc \"python3 /home/node/clawd/email_search_query.py --db /home/node/clawd/email_search.db tasks-context '納期 今週 未回答' --limit 10\""
+      }
+    },
+    {
+      "id": "format_msg",
+      "name": "format_message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        560,
+        96
+      ],
+      "parameters": {
+        "jsCode": "var NL = String.fromCharCode(10);\nvar now = new Date().toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' });\nvar raw = (($input.first() && $input.first().json && $input.first().json.stdout) || '').trim();\nvar summary = '直近6か月の未対応案件は見つかりませんでした。';\ntry {\n  var parsed = JSON.parse(raw);\n  summary = parsed.summary || summary;\n} catch (e) {\n  summary = raw || ('P016 report parse error: ' + e.message);\n}\nvar parts = ['P016 Email ToDo Daily [' + now + ']', '', summary, '', 'ルール: 既定は直近6か月。さらに過去が必要なら範囲を広げて再送します。'];\nreturn [{ json: { text: parts.join(NL) } }];"
+      }
+    },
+    {
+      "id": "telegram_send",
+      "name": "telegram_send",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        800,
+        96
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.telegram.org/bot8085717200:AAHzacN6Q3xSunrLyvUTuHnKEf7Cd5YFdt4/sendMessage",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "chat_id",
+              "value": "8173025084"
+            },
+            {
+              "name": "text",
+              "value": "={{ $json.text }}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "gmail-send-report",
+      "name": "gmail_send",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1450,
+        0
+      ],
+      "parameters": {
+        "executeOnce": true,
+        "command": "node /workspace/scripts/send_allowed_gmail_from_b64.js y.suzuki.hk@gmail.com {{$json.subject_b64}} {{$json.body_b64}}"
+      }
+    },
+    {
+      "id": "prepare-gmail-payload",
+      "name": "prepare_gmail_payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1190,
+        0
+      ],
+      "parameters": {
+        "jsCode": "const body = (($json.text || $json.summary || $json.stdout || '') + '').trim();\nconst encode = (value) => Buffer.from((value || '') + '', 'utf8')\n  .toString('base64')\n  .replace(/\\+/g, '-')\n  .replace(/\\//g, '_')\n  .replace(/=+$/g, '');\nreturn [{ json: { subject_b64: encode(\"P016 Email ToDo Daily\"), body_b64: encode(body), text: body } }];"
+      }
+    },
+    {
+      "id": "format-due-telegram-payload",
+      "name": "format_due_telegram_payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1180,
+        180
+      ],
+      "parameters": {
+        "jsCode": "const raw = String($json.stdout || $json.text || '').trim();\nlet parsed = {};\ntry { parsed = JSON.parse(raw); } catch (e) { parsed = {}; }\nconst summary = String(parsed.summary || raw || '納期確認データは取得できませんでした。').trim();\nconst count = Number(parsed.result_count || 0);\nconst message = `Gmail納期確認 定時レポート\\n対象: 今週期限・未回答\\n件数: ${count}件\\n\\n${summary}`;\nreturn [{ json: { message, text: message, summary, result_count: count } }];"
+      }
+    },
+    {
+      "id": "telegram-due-notify",
+      "name": "telegram_due_notify",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1450,
+        180
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.telegram.org/bot8085717200:AAHzacN6Q3xSunrLyvUTuHnKEf7Cd5YFdt4/sendMessage",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "chat_id",
+              "value": "8173025084"
+            },
+            {
+              "name": "text",
+              "value": "={{ $json.message }}"
+            }
+          ]
+        },
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "daily_trigger": {
+      "main": [
+        [
+          {
+            "node": "build_todo_report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "build_todo_report": {
+      "main": [
+        [
+          {
+            "node": "format_message",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "format_due_telegram_payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "format_message": {
+      "main": [
+        [
+          {
+            "node": "telegram_send",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "prepare_gmail_payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "prepare_gmail_payload": {
+      "main": [
+        [
+          {
+            "node": "gmail_send",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "format_due_telegram_payload": {
+      "main": [
+        [
+          {
+            "node": "telegram_due_notify",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "timezone": "Asia/Tokyo",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "executionTimeout": 300
+  },
+  "staticData": {
+    "node:??7:00????": {
+      "recurrenceRules": []
+    },
+    "node:daily_trigger": {
+      "recurrenceRules": []
+    }
+  },
+  "meta": null,
+  "pinData": null,
+  "versionId": "72c281f7-10c4-4a28-a4fc-eebcdee3c1cc",
+  "activeVersionId": "72c281f7-10c4-4a28-a4fc-eebcdee3c1cc",
+  "versionCounter": 4,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-04-29T12:50:14.003Z",
+      "createdAt": "2026-04-29T12:50:14.003Z",
+      "role": "workflow:owner",
+      "workflowId": "OpnCRJquLkBjXOyw",
+      "projectId": "izcxOokmNd8PeKLX",
+      "project": {
+        "updatedAt": "2026-04-25T02:42:23.561Z",
+        "createdAt": "2026-04-24T10:51:07.589Z",
+        "id": "izcxOokmNd8PeKLX",
+        "name": "yasuhiro y.suzuki.hk@gmail.com <y.suzuki.hk@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "9752e012-fdcb-4770-87fe-6aa95cf6d342",
+        "projectRelations": [
+          {
+            "updatedAt": "2026-04-24T10:51:07.589Z",
+            "createdAt": "2026-04-24T10:51:07.589Z",
+            "userId": "9752e012-fdcb-4770-87fe-6aa95cf6d342",
+            "projectId": "izcxOokmNd8PeKLX",
+            "user": {
+              "updatedAt": "2026-04-29T12:48:56.000Z",
+              "createdAt": "2026-04-24T10:51:06.985Z",
+              "id": "9752e012-fdcb-4770-87fe-6aa95cf6d342",
+              "email": "y.suzuki.hk@gmail.com",
+              "firstName": "yasuhiro",
+              "lastName": "y.suzuki.hk@gmail.com",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2026-04-25T02:42:31.533Z",
+                "personalization_survey_n8n_version": "2.6.4"
+              },
+              "settings": {
+                "userActivated": true,
+                "firstSuccessfulWorkflowId": "cZSWSDtOfDsu3fJd",
+                "userActivatedAt": 1777210416005
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-04-28",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [],
+  "parentFolder": null,
+  "activeVersion": {
+    "updatedAt": "2026-04-29T12:50:14.008Z",
+    "createdAt": "2026-04-29T12:50:14.008Z",
+    "versionId": "72c281f7-10c4-4a28-a4fc-eebcdee3c1cc",
+    "workflowId": "OpnCRJquLkBjXOyw",
+    "nodes": [
+      {
+        "id": "trigger_p016",
+        "name": "daily_trigger",
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.2,
+        "position": [
+          112,
+          96
+        ],
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "cronExpression",
+                "expression": "0 21 * * *"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "get_status",
+        "name": "build_todo_report",
+        "type": "n8n-nodes-base.executeCommand",
+        "typeVersion": 1,
+        "position": [
+          320,
+          96
+        ],
+        "parameters": {
+          "command": "docker exec clawstack-unified-clawdbot-gateway-1 sh -lc \"python3 /home/node/clawd/email_search_query.py --db /home/node/clawd/email_search.db tasks-context '納期 今週 未回答' --limit 10\""
+        }
+      },
+      {
+        "id": "format_msg",
+        "name": "format_message",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          560,
+          96
+        ],
+        "parameters": {
+          "jsCode": "var NL = String.fromCharCode(10);\nvar now = new Date().toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' });\nvar raw = (($input.first() && $input.first().json && $input.first().json.stdout) || '').trim();\nvar summary = '直近6か月の未対応案件は見つかりませんでした。';\ntry {\n  var parsed = JSON.parse(raw);\n  summary = parsed.summary || summary;\n} catch (e) {\n  summary = raw || ('P016 report parse error: ' + e.message);\n}\nvar parts = ['P016 Email ToDo Daily [' + now + ']', '', summary, '', 'ルール: 既定は直近6か月。さらに過去が必要なら範囲を広げて再送します。'];\nreturn [{ json: { text: parts.join(NL) } }];"
+        }
+      },
+      {
+        "id": "telegram_send",
+        "name": "telegram_send",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          800,
+          96
+        ],
+        "parameters": {
+          "method": "POST",
+          "url": "https://api.telegram.org/bot8085717200:AAHzacN6Q3xSunrLyvUTuHnKEf7Cd5YFdt4/sendMessage",
+          "sendBody": true,
+          "bodyParameters": {
+            "parameters": [
+              {
+                "name": "chat_id",
+                "value": "8173025084"
+              },
+              {
+                "name": "text",
+                "value": "={{ $json.text }}"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "gmail-send-report",
+        "name": "gmail_send",
+        "type": "n8n-nodes-base.executeCommand",
+        "typeVersion": 1,
+        "position": [
+          1450,
+          0
+        ],
+        "parameters": {
+          "executeOnce": true,
+          "command": "node /workspace/scripts/send_allowed_gmail_from_b64.js y.suzuki.hk@gmail.com {{$json.subject_b64}} {{$json.body_b64}}"
+        }
+      },
+      {
+        "id": "prepare-gmail-payload",
+        "name": "prepare_gmail_payload",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1190,
+          0
+        ],
+        "parameters": {
+          "jsCode": "const body = (($json.text || $json.summary || $json.stdout || '') + '').trim();\nconst encode = (value) => Buffer.from((value || '') + '', 'utf8')\n  .toString('base64')\n  .replace(/\\+/g, '-')\n  .replace(/\\//g, '_')\n  .replace(/=+$/g, '');\nreturn [{ json: { subject_b64: encode(\"P016 Email ToDo Daily\"), body_b64: encode(body), text: body } }];"
+        }
+      },
+      {
+        "id": "format-due-telegram-payload",
+        "name": "format_due_telegram_payload",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1180,
+          180
+        ],
+        "parameters": {
+          "jsCode": "const raw = String($json.stdout || $json.text || '').trim();\nlet parsed = {};\ntry { parsed = JSON.parse(raw); } catch (e) { parsed = {}; }\nconst summary = String(parsed.summary || raw || '納期確認データは取得できませんでした。').trim();\nconst count = Number(parsed.result_count || 0);\nconst message = `Gmail納期確認 定時レポート\\n対象: 今週期限・未回答\\n件数: ${count}件\\n\\n${summary}`;\nreturn [{ json: { message, text: message, summary, result_count: count } }];"
+        }
+      },
+      {
+        "id": "telegram-due-notify",
+        "name": "telegram_due_notify",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          1450,
+          180
+        ],
+        "parameters": {
+          "method": "POST",
+          "url": "https://api.telegram.org/bot8085717200:AAHzacN6Q3xSunrLyvUTuHnKEf7Cd5YFdt4/sendMessage",
+          "sendBody": true,
+          "bodyParameters": {
+            "parameters": [
+              {
+                "name": "chat_id",
+                "value": "8173025084"
+              },
+              {
+                "name": "text",
+                "value": "={{ $json.message }}"
+              }
+            ]
+          },
+          "options": {}
+        }
+      }
+    ],
+    "connections": {
+      "daily_trigger": {
+        "main": [
+          [
+            {
+              "node": "build_todo_report",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "build_todo_report": {
+        "main": [
+          [
+            {
+              "node": "format_message",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "format_due_telegram_payload",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "format_message": {
+        "main": [
+          [
+            {
+              "node": "telegram_send",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "prepare_gmail_payload",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "prepare_gmail_payload": {
+        "main": [
+          [
+            {
+              "node": "gmail_send",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "format_due_telegram_payload": {
+        "main": [
+          [
+            {
+              "node": "telegram_due_notify",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "yasuhiro y.suzuki.hk@gmail.com",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-04-29T12:51:36.998Z",
+        "id": 2,
+        "workflowId": "OpnCRJquLkBjXOyw",
+        "versionId": "72c281f7-10c4-4a28-a4fc-eebcdee3c1cc",
+        "event": "activated",
+        "userId": "9752e012-fdcb-4770-87fe-6aa95cf6d342"
+      }
+    ]
+  },
+  "scopes": [
+    "workflow:create",
+    "workflow:delete",
+    "workflow:execute",
+    "workflow:execute-chat",
+    "workflow:list",
+    "workflow:move",
+    "workflow:publish",
+    "workflow:read",
+    "workflow:share",
+    "workflow:update"
+  ],
+  "checksum": "396895008c128b59ea0964cff36b570ed95941c21bd4bb78ae739025772b55d8"
+}

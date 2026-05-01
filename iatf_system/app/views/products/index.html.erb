@@ -552,6 +552,125 @@ $(document).ready(function(){
 
     <div class="w-full lg:w-5/6 lg:ml-1/6 bg-blue-700 p-8 text-gray-600 rounded-lg">
 
+      <!-- IoT Dashboard Quick Access Card -->
+      <div class="mb-8">
+        <%= link_to iot_product_path, class: "group block max-w-sm p-6 bg-white border border-gray-200 rounded-xl shadow-md hover:bg-indigo-50 transition-all duration-300 transform hover:-translate-y-1" do %>
+          <div class="flex items-center space-x-4">
+            <div class="p-3 bg-indigo-600 rounded-lg group-hover:bg-indigo-700 transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+            </div>
+            <div>
+              <h5 class="text-2xl font-bold tracking-tight text-gray-900">工場稼働状況 (IoT)</h5>
+              <p class="font-normal text-gray-600">リアルタイムのプレス機データを表示します</p>
+            </div>
+          </div>
+        <% end %>
+      </div>
+
+      <!-- GD&T 3D Viewer v2 Card -->
+      <div class="mb-8">
+        <a href="http://192.168.5.172:8088/apps/gdt_step_face_viewer_v2/index.html" target="_blank" class="group block max-w-sm p-6 bg-white border border-gray-200 rounded-xl shadow-md hover:bg-green-50 transition-all duration-300 transform hover:-translate-y-1">
+          <div class="flex items-center space-x-4">
+            <div class="p-3 bg-green-600 rounded-lg group-hover:bg-green-700 transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5" />
+              </svg>
+            </div>
+            <div>
+              <h5 class="text-2xl font-bold tracking-tight text-gray-900">GD&T 3D Viewer v2</h5>
+              <p class="font-normal text-gray-600">NZGLG7 v6 基準の高度公差可視化</p>
+            </div>
+          </div>
+        </a>
+      </div>
+
+      <!-- OpenCode DeepSeek Intelligence Card -->
+      <div class="mb-8">
+        <div class="group block max-w-sm p-6 bg-white border border-gray-200 rounded-xl shadow-md hover:bg-blue-50 transition-all duration-300 transform hover:-translate-y-1">
+          <div class="flex items-center space-x-4">
+            <div class="p-3 bg-blue-600 rounded-lg group-hover:bg-blue-700 transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.989-2.386l-.548-.547z" />
+              </svg>
+            </div>
+            <div>
+              <h5 class="text-2xl font-bold tracking-tight text-gray-900">DeepSeek Intelligence</h5>
+              <p class="font-normal text-gray-600">OpenCode Go 連携・高度推論ハブ</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Blender 3D Studio Card -->
+      <div class="mb-8">
+        <a href="http://192.168.5.172:8088/apps/blender_autonomous_studio/index.html" target="_blank" class="group block max-w-sm p-6 bg-white border border-gray-200 rounded-xl shadow-md hover:bg-orange-50 transition-all duration-300 transform hover:-translate-y-1">
+          <div class="flex items-center space-x-4">
+            <div class="p-3 bg-orange-500 rounded-lg group-hover:bg-orange-600 transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+              </svg>
+            </div>
+            <div>
+              <h5 class="text-2xl font-bold tracking-tight text-gray-900">Blender 3D Studio</h5>
+              <p class="font-normal text-gray-600">自律シーン生成 & Webプレビュー</p>
+            </div>
+          </div>
+        </a>
+      </div>
+
+      <!-- 3D Fab-Forge (MultiCAD) Card -->
+      <div class="mb-8">
+        <a href="http://192.168.5.172:8088/apps/3d_fab_forge/multicad_pipeline/dashboard.html" target="_blank" class="group block max-w-sm p-6 bg-white border border-gray-200 rounded-xl shadow-md hover:bg-cyan-50 transition-all duration-300 transform hover:-translate-y-1">
+          <div class="flex items-center space-x-4">
+            <div class="p-3 bg-cyan-600 rounded-lg group-hover:bg-cyan-700 transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+              </svg>
+            </div>
+            <div>
+              <h5 class="text-2xl font-bold tracking-tight text-gray-900">3D Fab-Forge <span class="text-sm font-normal text-cyan-500 uppercase tracking-widest ml-2">MultiCAD</span></h5>
+              <p class="font-normal text-gray-600">自律設計訓練 & 多形式変換ハブ</p>
+            </div>
+          </div>
+        </a>
+      </div>
+
+      <!-- Motion Lab Card -->
+      <div class="mb-8">
+        <a href="http://192.168.5.172:8088/apps/motion_lab/index.html" target="_blank" class="group block max-w-sm p-6 bg-white border border-gray-200 rounded-xl shadow-md hover:bg-purple-50 transition-all duration-300 transform hover:-translate-y-1">
+          <div class="flex items-center space-x-4">
+            <div class="p-3 bg-purple-600 rounded-lg group-hover:bg-purple-700 transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <div>
+              <h5 class="text-2xl font-bold tracking-tight text-gray-900">Motion Lab <span class="text-sm font-normal text-purple-500 uppercase tracking-widest ml-2">Cinematic</span></h5>
+              <p class="font-normal text-gray-600">映画級 MoCap 統合 & Visual QA</p>
+            </div>
+          </div>
+        </a>
+      </div>
+
+      <!-- Asana Quality Hub Card -->
+      <div class="mb-8">
+        <a href="http://192.168.5.172:8088/apps/asana_quality_hub/index.html" target="_blank" class="group block max-w-sm p-6 bg-white border border-gray-200 rounded-xl shadow-md hover:bg-rose-50 transition-all duration-300 transform hover:-translate-y-1">
+          <div class="flex items-center space-x-4">
+            <div class="p-3 bg-rose-600 rounded-lg group-hover:bg-rose-700 transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+              </svg>
+            </div>
+            <div>
+              <h5 class="text-2xl font-bold tracking-tight text-gray-900">Asana Quality Hub</h5>
+              <p class="font-normal text-gray-600">品質是正処置 & 進捗自律管理</p>
+            </div>
+          </div>
+        </a>
+      </div>
+
       <!--
       Border Spacing
       https://tailwindcss.com/docs/border-spacing

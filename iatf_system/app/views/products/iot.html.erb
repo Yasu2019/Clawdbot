@@ -1,144 +1,376 @@
-<h1>IATF APQP / PPAP 説明</h1>
-
-
-<div class="tab_wrap">
-	<input id="tab1" type="radio" name="tab_btn" checked>
-	<input id="tab2" type="radio" name="tab_btn">
-	<input id="tab3" type="radio" name="tab_btn">
-  <input id="tab4" type="radio" name="tab_btn">
-  <input id="tab5" type="radio" name="tab_btn">
-  <input id="tab6" type="radio" name="tab_btn">
-
-	<div class="tab_area">
-		<label class="tab1_label" for="tab1">プレス現場 室温・湿度</label>
-		<label class="tab2_label" for="tab2">Komatsu25トン3号機</label>
-		<label class="tab3_label" for="tab3">Dobby30トン4号機</label>
-    <label class="tab4_label" for="tab4">Amada80トン3号機</label>
-    <label class="tab5_label" for="tab5">予備</label>
-    <label class="tab6_label" for="tab6">予備</label>
-
-	</div>
-	  <div class="panel_area">
-	  	<div id="panel1" class="tab_panel">
-
-      <!--
-      CSVで取り込んだデータを綺麗なグラフで表示する
-      https://toranoana-lab.hatenablog.com/entry/2018/11/27/182518
-      -->
-
-      <%= line_chart @temp, discrete: true, curve: false, label: "プレス現場　温度", xtitle: "時間", ytitle: "温度",width: "2000px", height: "400px" %>
-
-      <%= line_chart @humi, discrete: true, curve: false, label: "プレス現場　湿度", xtitle: "時間", ytitle: "湿度",width: "2000px", height: "400px" %>  
-
-	  	</div>
-
-  		<div id="panel2" class="tab_panel">
-      
-      <%= line_chart @komatsu25t3_shot, discrete: true, curve: false, label: "Komatsu25トン3号機　ショット数", xtitle: "時間", ytitle: "ショット数",width: "1200px", height: "400px" %>
-
-      <%= line_chart @komatsu25t3_spm, discrete: true, curve: false, label: "Komatsu25トン3号機　SPM", xtitle: "時間", ytitle: "SPM",width: "1200px", height: "400px" %>
-
-      <%= line_chart @komatsu25t3_chokotei, discrete: true, curve: false, label: "Komatsu25トン3号機　チョコ停止回数", xtitle: "時間", ytitle: "チョコ停止回数",width: "1200px", height: "400px" %>  
-
-      <%= line_chart @komatsu25t3_jyotai, discrete: true, curve: false, label: "Komatsu25トン3号機　稼働状況", xtitle: "時間", ytitle: "稼働状況",width: "1200px", height: "400px" %>  
-
-
-	  	</div>
- 
-  		<div id="panel3" class="tab_panel">
-  		
-
-      <%= line_chart @chokotei_dobby30t4, discrete: true, curve: false, label: "Dobby30トン4号機　チョコ停止回数", xtitle: "時間", ytitle: "チョコ停止回数",width: "1200px", height: "400px" %>  
- 
-     <%= line_chart @jyotai_dobby30t4, discrete: true, curve: false, label: "Dobby30トン4号機　稼働状況", xtitle: "時間", ytitle: "稼働状況",width: "1200px", height: "400px" %>  
-
-      </div>
-
-
-
-	
-      <div id="panel4" class="tab_panel">
-
-      
-      <%= line_chart @Stamping_jyotai_amada80t3, discrete: true, curve: false, label: "Amada80トン3号機　稼働状態", xtitle: "時間", ytitle: "稼働状況",width: "1200px", height: "400px" %>  
- 
-     <%= line_chart @stamping_chokotei_amada80t3, discrete: true, curve: false, label: "Amada80トン3号機　チョコ停止回数", xtitle: "時間", ytitle: "チョコ停止回数",width: "1200px", height: "400px" %>
-
-     <%= line_chart @spm_amada80t3, discrete: true, curve: false, label: "Amada80トン3号機　SPM", xtitle: "時間", ytitle: "SPM",width: "1200px", height: "400px" %>  
- 
-     <%= line_chart @ShotAmada80t3, discrete: true, curve: false, label: "Amada80トン3号機　ショット数", xtitle: "時間", ytitle: "ショット数",width: "1200px", height: "400px" %>  
-
-
-	  	</div>
-   
-
-      <div id="panel5" class="tab_panel">
-  		</div>
-    
-      <div id="panel6" class="tab_panel">
-  		</div>
-
-	
-
-    <%= link_to '戻る', root_path, class: 'btn btn-accent' %>
-	  </div>
-
-
-
-</div>
-
 <style>
-.tab_wrap{width:2200px; margin:80px auto;}
-input[type="radio"]{display:none;}
-.tab_area{font-size:0; margin:0 10px;}
-.tab_area label{width:150px; margin:0 5px; display:inline-block; padding:12px 0; color:#999; background:#ddd; text-align:center; font-size:13px; cursor:pointer; transition:ease 0.2s opacity;}
-.tab_area label:hover{opacity:0.5;}
-.panel_area{background:#fff;}
-.tab_panel{width:100%; padding:80px 0; display:none;}
-.tab_panel p{font-size:14px; letter-spacing:1px; text-align:center;}
+  .iot-page {
+    min-height: 100vh;
+    background: #f8fafc;
+    color: #0f172a;
+    padding: 24px;
+  }
 
-#tab1:checked ~ .tab_area .tab1_label{background:#fff; color:#000;}
-#tab1:checked ~ .panel_area #panel1{display:block;}
-#tab2:checked ~ .tab_area .tab2_label{background:#fff; color:#000;}
-#tab2:checked ~ .panel_area #panel2{display:block;}
-#tab3:checked ~ .tab_area .tab3_label{background:#fff; color:#000;}
-#tab3:checked ~ .panel_area #panel3{display:block;}
+  .iot-shell {
+    max-width: 1320px;
+    margin: 0 auto;
+  }
 
-#tab4:checked ~ .tab_area .tab4_label{background:#fff; color:#000;}
-#tab4:checked ~ .panel_area #panel4{display:block;}
-#tab5:checked ~ .tab_area .tab5_label{background:#fff; color:#000;}
-#tab5:checked ~ .panel_area #panel5{display:block;}
-#tab6:checked ~ .tab_area .tab6_label{background:#fff; color:#000;}
-#tab6:checked ~ .panel_area #panel6{display:block;}
+  .iot-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 18px;
+  }
 
+  .iot-eyebrow {
+    margin: 0 0 4px;
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 700;
+  }
 
+  .iot-title {
+    margin: 0;
+    color: #0f172a;
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: 0;
+  }
+
+  .iot-actions,
+  .iot-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .iot-button,
+  .iot-tab {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+    border-radius: 6px;
+    padding: 8px 14px;
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .iot-button {
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #334155;
+  }
+
+  .iot-button-primary {
+    border-color: #2563eb;
+    background: #2563eb;
+    color: #ffffff;
+  }
+
+  .iot-button-secondary {
+    border-color: #0f766e;
+    background: #0f766e;
+    color: #ffffff;
+  }
+
+  .iot-summary {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    margin: 20px 0;
+  }
+
+  .iot-summary-item {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #ffffff;
+    padding: 16px;
+  }
+
+  .iot-summary-label {
+    margin: 0;
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .iot-summary-value {
+    margin: 8px 0 0;
+    color: #0f172a;
+    font-size: 24px;
+    font-weight: 800;
+  }
+
+  .iot-tab-radio {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .iot-tabs {
+    margin: 8px 0 16px;
+  }
+
+  .iot-tab {
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #334155;
+    cursor: pointer;
+  }
+
+  #tab_environment:checked ~ .iot-tabs label[for="tab_environment"],
+  #tab_komatsu:checked ~ .iot-tabs label[for="tab_komatsu"],
+  #tab_dobby:checked ~ .iot-tabs label[for="tab_dobby"],
+  #tab_amada:checked ~ .iot-tabs label[for="tab_amada"] {
+    border-color: #334155;
+    background: #334155;
+    color: #ffffff;
+  }
+
+  .iot-panel {
+    display: none;
+  }
+
+  #tab_environment:checked ~ #panel_environment,
+  #tab_komatsu:checked ~ #panel_komatsu,
+  #tab_dobby:checked ~ #panel_dobby,
+  #tab_amada:checked ~ #panel_amada {
+    display: block;
+  }
+
+  .iot-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .iot-chart {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #ffffff;
+    padding: 16px;
+  }
+
+  .iot-chart-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .iot-chart-title {
+    margin: 0;
+    color: #0f172a;
+    font-size: 16px;
+    font-weight: 800;
+  }
+
+  .iot-chart-meta {
+    color: #64748b;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  .iot-note {
+    margin-top: 16px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #ffffff;
+    padding: 14px 16px;
+    color: #64748b;
+    font-size: 13px;
+    line-height: 1.7;
+  }
+
+  @media (max-width: 900px) {
+    .iot-page {
+      padding: 16px;
+    }
+
+    .iot-header,
+    .iot-actions {
+      align-items: stretch;
+      flex-direction: column;
+    }
+
+    .iot-summary {
+      grid-template-columns: 1fr;
+    }
+
+    .iot-button,
+    .iot-tab {
+      width: 100%;
+    }
+  }
 </style>
 
+<div class="iot-page">
+  <div class="iot-shell">
+    <div class="iot-header">
+      <div style="display: flex; align-items: center; gap: 16px;">
+        <%= link_to products_path, class: "iot-button", style: "padding: 8px; min-width: 40px; border-radius: 50%;" do %>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" style="width: 20px; height: 20px;">
+            <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+          </svg>
+        <% end %>
+        <div>
+          <p class="iot-eyebrow">IoT Press Monitor</p>
+          <h1 class="iot-title">プレス設備 リアルタイムグラフ</h1>
+        </div>
+      </div>
 
+      <div class="iot-actions">
+        <%= link_to "月次稼働一覧", iot_monthly_product_path, class: "iot-button iot-button-primary" %>
+        <%= link_to "日別マトリクス", iot_daily_matrix_product_path, class: "iot-button iot-button-secondary" %>
+      </div>
+    </div>
 
+    <div class="iot-summary">
+      <div class="iot-summary-item">
+        <p class="iot-summary-label">表示設備</p>
+        <p class="iot-summary-value">4系統</p>
+      </div>
+      <div class="iot-summary-item">
+        <p class="iot-summary-label">主な指標</p>
+        <p class="iot-summary-value">Shot / SPM</p>
+      </div>
+      <div class="iot-summary-item">
+        <p class="iot-summary-label">停止監視</p>
+        <p class="iot-summary-value">チョコ停</p>
+      </div>
+      <div class="iot-summary-item">
+        <p class="iot-summary-label">横軸</p>
+        <p class="iot-summary-value">時刻</p>
+      </div>
+    </div>
 
+    <input id="tab_environment" class="iot-tab-radio" type="radio" name="iot_tab" checked>
+    <input id="tab_komatsu" class="iot-tab-radio" type="radio" name="iot_tab">
+    <input id="tab_dobby" class="iot-tab-radio" type="radio" name="iot_tab">
+    <input id="tab_amada" class="iot-tab-radio" type="radio" name="iot_tab">
 
+    <div class="iot-tabs">
+      <label class="iot-tab" for="tab_environment">工場環境</label>
+      <label class="iot-tab" for="tab_komatsu">Komatsu 25t 3号機</label>
+      <label class="iot-tab" for="tab_dobby">Dobby 30t 4号機</label>
+      <label class="iot-tab" for="tab_amada">Amada 80t 3号機</label>
+    </div>
 
+    <div id="panel_environment" class="iot-panel">
+      <div class="iot-grid">
+        <section class="iot-chart">
+          <div class="iot-chart-header">
+            <h2 class="iot-chart-title">工場環境 温度</h2>
+            <span class="iot-chart-meta">SHT31 / temperature</span>
+          </div>
+          <%= line_chart @temp, discrete: true, curve: false, label: "温度", xtitle: "時刻", ytitle: "温度", width: "100%", height: "360px" %>
+        </section>
 
+        <section class="iot-chart">
+          <div class="iot-chart-header">
+            <h2 class="iot-chart-title">工場環境 湿度</h2>
+            <span class="iot-chart-meta">SHT31 / humidity</span>
+          </div>
+          <%= line_chart @humi, discrete: true, curve: false, label: "湿度", xtitle: "時刻", ytitle: "湿度", width: "100%", height: "360px" %>
+        </section>
+      </div>
+    </div>
 
+    <div id="panel_komatsu" class="iot-panel">
+      <div class="iot-grid">
+        <section class="iot-chart">
+          <div class="iot-chart-header">
+            <h2 class="iot-chart-title">Komatsu 25t 3号機 ショット数</h2>
+            <span class="iot-chart-meta">Shot</span>
+          </div>
+          <%= line_chart @komatsu25t3_shot, discrete: true, curve: false, label: "ショット数", xtitle: "時刻", ytitle: "ショット数", width: "100%", height: "360px" %>
+        </section>
 
+        <section class="iot-chart">
+          <div class="iot-chart-header">
+            <h2 class="iot-chart-title">Komatsu 25t 3号機 SPM</h2>
+            <span class="iot-chart-meta">SPM</span>
+          </div>
+          <%= line_chart @komatsu25t3_spm, discrete: true, curve: false, label: "SPM", xtitle: "時刻", ytitle: "SPM", width: "100%", height: "360px" %>
+        </section>
 
-      
+        <section class="iot-chart">
+          <div class="iot-chart-header">
+            <h2 class="iot-chart-title">Komatsu 25t 3号機 チョコ停回数</h2>
+            <span class="iot-chart-meta">Short stop</span>
+          </div>
+          <%= line_chart @komatsu25t3_chokotei, discrete: true, curve: false, label: "チョコ停回数", xtitle: "時刻", ytitle: "チョコ停回数", width: "100%", height: "360px" %>
+        </section>
 
+        <section class="iot-chart">
+          <div class="iot-chart-header">
+            <h2 class="iot-chart-title">Komatsu 25t 3号機 稼働状態</h2>
+            <span class="iot-chart-meta">Status</span>
+          </div>
+          <%= line_chart @komatsu25t3_jyotai, discrete: true, curve: false, label: "稼働状態", xtitle: "時刻", ytitle: "状態", width: "100%", height: "360px" %>
+        </section>
+      </div>
+    </div>
 
+    <div id="panel_dobby" class="iot-panel">
+      <div class="iot-grid">
+        <section class="iot-chart">
+          <div class="iot-chart-header">
+            <h2 class="iot-chart-title">Dobby 30t 4号機 チョコ停回数</h2>
+            <span class="iot-chart-meta">Short stop</span>
+          </div>
+          <%= line_chart @chokotei_dobby30t4, discrete: true, curve: false, label: "チョコ停回数", xtitle: "時刻", ytitle: "チョコ停回数", width: "100%", height: "360px" %>
+        </section>
 
+        <section class="iot-chart">
+          <div class="iot-chart-header">
+            <h2 class="iot-chart-title">Dobby 30t 4号機 稼働状態</h2>
+            <span class="iot-chart-meta">Status</span>
+          </div>
+          <%= line_chart @jyotai_dobby30t4, discrete: true, curve: false, label: "稼働状態", xtitle: "時刻", ytitle: "状態", width: "100%", height: "360px" %>
+        </section>
+      </div>
+    </div>
 
+    <div id="panel_amada" class="iot-panel">
+      <div class="iot-grid">
+        <section class="iot-chart">
+          <div class="iot-chart-header">
+            <h2 class="iot-chart-title">Amada 80t 3号機 稼働状態</h2>
+            <span class="iot-chart-meta">Status</span>
+          </div>
+          <%= line_chart @Stamping_jyotai_amada80t3, discrete: true, curve: false, label: "稼働状態", xtitle: "時刻", ytitle: "状態", width: "100%", height: "360px" %>
+        </section>
 
+        <section class="iot-chart">
+          <div class="iot-chart-header">
+            <h2 class="iot-chart-title">Amada 80t 3号機 チョコ停回数</h2>
+            <span class="iot-chart-meta">Short stop</span>
+          </div>
+          <%= line_chart @stamping_chokotei_amada80t3, discrete: true, curve: false, label: "チョコ停回数", xtitle: "時刻", ytitle: "チョコ停回数", width: "100%", height: "360px" %>
+        </section>
 
+        <section class="iot-chart">
+          <div class="iot-chart-header">
+            <h2 class="iot-chart-title">Amada 80t 3号機 SPM</h2>
+            <span class="iot-chart-meta">SPM</span>
+          </div>
+          <%= line_chart @spm_amada80t3, discrete: true, curve: false, label: "SPM", xtitle: "時刻", ytitle: "SPM", width: "100%", height: "360px" %>
+        </section>
 
+        <section class="iot-chart">
+          <div class="iot-chart-header">
+            <h2 class="iot-chart-title">Amada 80t 3号機 ショット数</h2>
+            <span class="iot-chart-meta">Shot</span>
+          </div>
+          <%= line_chart @ShotAmada80t3, discrete: true, curve: false, label: "ショット数", xtitle: "時刻", ytitle: "ショット数", width: "100%", height: "360px" %>
+        </section>
+      </div>
+    </div>
 
-
-
-
-
-
-
-
-
-
-
+    <div class="iot-note">
+      グラフはCSVの最新データを表示します。月次・日別の集計確認は上部のボタンから移動できます。
+    </div>
+  </div>
+</div>

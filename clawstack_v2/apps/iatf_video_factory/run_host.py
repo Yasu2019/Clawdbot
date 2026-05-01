@@ -7,17 +7,19 @@ Docker不要。Windows Blender + ホストPython で動作。
   python run_host.py --limit 3     # 3本
   python run_host.py --pdf "..."   # 特定PDF
 """
-import sys, os, json, subprocess, time, tempfile, wave, hashlib, requests
+import csv, re, shutil, sys, os, json, subprocess, time, tempfile, wave, hashlib, requests
 from pathlib import Path
 
 # パス設定
 ROOT       = Path(__file__).parent.parent.parent.parent  # d:/Clawdbot_Docker_20260125
 PDF_DIR    = ROOT / "iatf_system/db/documents"
+ATTACHEDFILE_CSV = ROOT / "iatf_system/db/record/attachedfile.csv"
 OUTPUT_DIR = ROOT / "data/iatf_videos"
 AUDIO_DIR  = Path(tempfile.gettempdir()) / "iatf_audio"
 LOG_FILE   = OUTPUT_DIR / "generation.log"
 
 BLENDER_BIN  = r"C:/Program Files/Blender Foundation/Blender 5.1/blender.exe"
+FFMPEG_BIN   = os.getenv("FFMPEG_BIN", r"C:/Users/yasu/AppData/Local/Microsoft/WinGet/Packages/Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe/ffmpeg-8.1-full_build/bin/ffmpeg.exe")
 LITELLM_URL  = os.getenv("LITELLM_URL",  "http://localhost:4001")
 LITELLM_KEY  = os.getenv("LITELLM_MASTER_KEY", "local-dev-key")
 VOICEVOX_URL = os.getenv("VOICEVOX_URL", "http://localhost:50021")
@@ -90,6 +92,30 @@ def _is_done(pdf_name):
     return mp4.exists()
 
 
+def _normalize_name(value: str) -> str:
+    return re.sub(r"\s+", "", value)
+
+
+def _is_iatf_training_pdf(filename: str) -> bool:
+    normalized = _normalize_name(filename)
+    return (
+        normalized.startswith(_normalize_name("IATF 16949 内部監査資料"))
+        and filename.lower().endswith(".pdf")
+    )
+
+
+def _document_path_from_csv_name(filename: str) -> Path | None:
+    direct = PDF_DIR / filename
+    if direct.exists():
+        return direct
+
+    target = _normalize_name(filename)
+    for path in PDF_DIR.glob("*.pdf"):
+        if _normalize_name(path.name) == target:
+            return path
+    return None
+
+
 # ── PDF抽出 ─────────────────────────────────────────────────────
 def extract_pdf(pdf_path: Path) -> str:
     from pdf_extractor import extract_pdf as _ex
@@ -147,6 +173,46 @@ def render_blender(timeline: list, phonemes: list, frames_dir: Path, fps=30) -> 
     return True
 
 
+def visual_qa_frames(frames_dir: Path, video_dir: Path) -> dict:
+    from visual_qa import assert_visual_quality
+
+    report_dir = video_dir / "visual_qa"
+    report = assert_visual_quality(frames_dir, report_dir)
+    log(f"  Visual QA OK: {report['frame_count']} frames / {report.get('contact_sheet')}")
+    return report
+
+
+def _quarantine_existing_frames(frames_dir: Path) -> Path:
+    target = frames_dir.with_name(f"{frames_dir.name}_visual_qa_failed_{time.strftime('%Y%m%d_%H%M%S')}")
+    if target.exists():
+        shutil.rmtree(target)
+    frames_dir.rename(target)
+    frames_dir.mkdir(parents=True, exist_ok=True)
+    return target
+
+
+def slide_preflight_gate(script: dict, timeline: list, video_dir: Path, title: str) -> dict:
+    from slide_preflight import run_slide_preflight
+
+    report = run_slide_preflight(script, timeline, video_dir, title)
+    log(f"  Slide preflight OK: {report['contact_sheet']}")
+    return report
+
+
+def compose_approved_slide_video(video_dir: Path, stem: str) -> Path:
+    from slide_video_builder import build_reviewed_slide_video
+
+    report = build_reviewed_slide_video(
+        video_dir,
+        reviewer=os.getenv("IATF_VIDEO_REVIEWER_NAME", "Configured AI visual review gate"),
+        review_note="Slide preflight approved; composing reviewed slide video.",
+        output_name=f"{stem}_slide_reviewed.mp4",
+    )
+    log(f"  Slide video OK: {report['output_mp4']}")
+    log(f"  Spot check OK: {report['spot_check']['contact_sheet']}")
+    return Path(report["output_mp4"])
+
+
 # ── 字幕SRT生成 ──────────────────────────────────────────────────
 def _sec_to_srt(s: float) -> str:
     h = int(s // 3600); m = int((s % 3600) // 60); sec = s % 60
@@ -176,7 +242,7 @@ def compose_mp4(timeline: list, frames_dir: Path, video_dir: Path, pdf_stem: str
     mix = "".join(f"[a{i}]" for i in range(len(timeline)))
     filters.append(f"{mix}amix=inputs={len(timeline)}:duration=longest[aout]")
     subprocess.run(
-        ["ffmpeg", "-y"] + inputs +
+        [FFMPEG_BIN, "-y"] + inputs +
         ["-filter_complex", ";".join(filters), "-map", "[aout]", "-t", str(total_sec), str(master_wav)],
         check=True, capture_output=True, timeout=300)
 
@@ -189,7 +255,7 @@ def compose_mp4(timeline: list, frames_dir: Path, video_dir: Path, pdf_stem: str
     raw_mp4 = video_dir / "raw_render.mp4"
     frame_pattern = str(frames_dir / "frame_%04d.png")
     subprocess.run([
-        "ffmpeg", "-y",
+        FFMPEG_BIN, "-y",
         "-framerate", str(fps), "-i", frame_pattern,
         "-i", str(master_wav),
         "-c:v", "libx264", "-crf", "18", "-preset", "medium",
@@ -202,7 +268,7 @@ def compose_mp4(timeline: list, frames_dir: Path, video_dir: Path, pdf_stem: str
     output_mp4 = video_dir / f"{pdf_stem}.mp4"
     try:
         subprocess.run([
-            "ffmpeg", "-y", "-i", str(raw_mp4),
+            FFMPEG_BIN, "-y", "-i", str(raw_mp4),
             "-vf", f"subtitles={str(srt_path).replace(chr(92), '/')}:force_style='FontSize=20,PrimaryColour=&HFFFFFF,OutlineColour=&H000000,Outline=2'",
             "-c:a", "copy",
             str(output_mp4),
@@ -236,6 +302,7 @@ def process_pdf(pdf_path: Path) -> bool:
 
     script_json_path   = video_dir / "script.json"
     timeline_json_path = video_dir / "timeline.json"
+    model = "unknown"
 
     try:
         # Resume: skip steps 1-4 if intermediate files already exist
@@ -244,6 +311,7 @@ def process_pdf(pdf_path: Path) -> bool:
             script   = json.loads(script_json_path.read_text(encoding="utf-8"))
             timeline = json.loads(timeline_json_path.read_text(encoding="utf-8"))
             total_sec = max(e["start_sec"] + e["duration_sec"] for e in timeline) + 2.0
+            model = script.get("model_used", "resume")
         else:
             log("[1/6] PDF抽出...")
             pdf_text = extract_pdf(pdf_path)
@@ -264,14 +332,42 @@ def process_pdf(pdf_path: Path) -> bool:
             timeline_json_path.write_text(
                 json.dumps(timeline, ensure_ascii=False, indent=2), encoding="utf-8")
 
+        log("[3.5/6] Slide preflight: generate check slides + AI visual review gate...")
+        slide_preflight_gate(script, timeline, video_dir, stem)
+
+        render_mode = os.getenv("IATF_VIDEO_RENDER_MODE", "blender").strip().lower()
+        if render_mode == "slides":
+            log("[4-6/6] Approved slide video compose + periodic spot checks...")
+            output_mp4 = compose_approved_slide_video(video_dir, stem)
+            _try_db_update(row_id, "done", str(output_mp4), model)
+            return True
+
         log("[4/6] リップシンク (フォールバックモード)...")
         phonemes = build_phonemes_fallback(timeline)
         log(f"      {len(phonemes)}フォネームエントリ")
 
-        log("[5/6] Blenderレンダリング...")
-        ok = render_blender(timeline, phonemes, frames_dir)
-        if not ok:
-            raise RuntimeError("Blenderレンダリング失敗")
+        existing_frames = len(list(frames_dir.glob("frame_*.png")))
+        expected_frames = int(total_sec * 30)
+        if existing_frames >= expected_frames * 0.95:
+            log(f"[5/6] Blenderレンダリング skip: {existing_frames}フレーム既存 (期待値{expected_frames}の95%以上)")
+            try:
+                log("[5.5/6] Visual QA: existing frames...")
+                visual_qa_frames(frames_dir, video_dir)
+            except Exception as e:
+                quarantine_dir = _quarantine_existing_frames(frames_dir)
+                log(f"  Existing frames failed Visual QA and were quarantined: {quarantine_dir} / {e}")
+                log("[5/6] Blenderレンダリング retry after failed-frame quarantine...")
+                ok = render_blender(timeline, phonemes, frames_dir)
+                if not ok:
+                    raise RuntimeError("Blenderレンダリング失敗")
+        else:
+            log("[5/6] Blenderレンダリング...")
+            ok = render_blender(timeline, phonemes, frames_dir)
+            if not ok:
+                raise RuntimeError("Blenderレンダリング失敗")
+
+        log("[5.5/6] Visual QA: sample frames + contact sheet...")
+        visual_qa_frames(frames_dir, video_dir)
 
         log("[6/6] FFmpeg MP4合成 + 字幕焼き込み...")
         output_mp4 = compose_mp4(timeline, frames_dir, video_dir, stem, total_sec)
@@ -287,8 +383,25 @@ def process_pdf(pdf_path: Path) -> bool:
 
 
 def list_pending(limit: int) -> list[Path]:
-    pdfs = sorted(PDF_DIR.glob("IATF 16949 内部監査資料*.pdf"))
-    return [p for p in pdfs if not _is_done(p.name)][:limit]
+    pdfs: list[Path] = []
+    seen: set[Path] = set()
+
+    if ATTACHEDFILE_CSV.exists():
+        with ATTACHEDFILE_CSV.open("r", encoding="utf-8-sig", newline="") as handle:
+            for row in csv.DictReader(handle):
+                filename = (row.get("filename") or "").strip()
+                if not _is_iatf_training_pdf(filename):
+                    continue
+                path = _document_path_from_csv_name(filename)
+                if path and path not in seen:
+                    pdfs.append(path)
+                    seen.add(path)
+
+    if not pdfs:
+        pdfs = sorted(p for p in PDF_DIR.glob("*.pdf") if _is_iatf_training_pdf(p.name))
+
+    pending = [p for p in pdfs if not _is_done(p.name)]
+    return pending[:limit]
 
 
 if __name__ == "__main__":
@@ -305,7 +418,7 @@ if __name__ == "__main__":
         p.nice(psutil.IDLE_PRIORITY_CLASS)
         log("プロセス優先度: IDLE (低)")
     except Exception:
-        log("psutil未インストール — 通常優先度で実行")
+        log("psutil未インストール - 通常優先度で実行")
 
     if args.pdf:
         process_pdf(Path(args.pdf))

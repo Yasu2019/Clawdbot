@@ -1,0 +1,9 @@
+﻿{
+  "title": "gdt_overlay",
+  "required": [
+    "drawing_id",
+    "model_id",
+    "overlays"
+  ],
+  "overlay_fields": "overlay_id, kind, label, tolerance, datum_refs, target_face_ids, target_axis_ids, zone_type, status, source"
+}

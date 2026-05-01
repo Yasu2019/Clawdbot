@@ -1,0 +1,8 @@
+{
+  "tree_id": "qc-process-example",
+  "root": {
+    "node_id": "qc:root",
+    "title": "QC工程表 Knowledge",
+    "children": ["qc:process_flow", "qc:control_items", "qc:measurement", "qc:abnormal_action", "qc:records"]
+  }
+}

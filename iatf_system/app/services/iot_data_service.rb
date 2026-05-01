@@ -35,8 +35,25 @@ class IotDataService
 
   def load_csv(path)
     return nil unless File.file?(path)
-    [].tap do |data|
-      CSV.foreach(path, headers: true) { |row| data << [row[0], row[1]] }
+
+    data = []
+    CSV.foreach(path, headers: false).with_index do |row, index|
+      cells = row.map { |cell| cell.to_s.strip }
+      next if cells.empty? || cells.all?(&:blank?)
+
+      if cells.length >= 2
+        data << [cells[0], numeric_value(cells[1])]
+      else
+        data << [index.to_s, numeric_value(cells[0])]
+      end
     end
+    data
+  end
+
+  def numeric_value(value)
+    numeric = Float(value)
+    numeric % 1 == 0 ? numeric.to_i : numeric
+  rescue ArgumentError, TypeError
+    value
   end
 end

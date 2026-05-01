@@ -1,0 +1,51 @@
+services:
+  corpus2skill-api:
+    build: ./services/api_gateway
+    container_name: corpus2skill-api
+    ports:
+      - "${C2S_API_PORT:-18920}:18920"
+    env_file: .env
+    volumes:
+      - ./data/corpus2skill:/data/corpus2skill
+    restart: unless-stopped
+    networks:
+      - clawstack-unified_default
+
+  corpus2skill-tree-builder:
+    build: ./services/tree_builder
+    container_name: corpus2skill-tree-builder
+    ports:
+      - "${C2S_TREE_BUILDER_PORT:-18921}:18921"
+    env_file: .env
+    volumes:
+      - ./data/corpus2skill:/data/corpus2skill
+    restart: unless-stopped
+    networks:
+      - clawstack-unified_default
+
+  corpus2skill-navigator:
+    build: ./services/navigator
+    container_name: corpus2skill-navigator
+    ports:
+      - "${C2S_NAVIGATOR_PORT:-18922}:18922"
+    env_file: .env
+    volumes:
+      - ./data/corpus2skill:/data/corpus2skill
+    restart: unless-stopped
+    networks:
+      - clawstack-unified_default
+
+  corpus2skill-evidence:
+    build: ./services/evidence_tracker
+    container_name: corpus2skill-evidence
+    ports:
+      - "${C2S_EVIDENCE_PORT:-18923}:18923"
+    env_file: .env
+    volumes:
+      - ./data/corpus2skill:/data/corpus2skill
+    networks:
+      - clawstack-unified_default
+
+networks:
+  clawstack-unified_default:
+    external: true

@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Corpus2Skill Node",
+  "type": "object",
+  "required": ["node_id", "node_type", "title", "summary", "source_refs", "children"],
+  "properties": {
+    "node_id": {"type": "string"},
+    "parent_id": {"type": ["string", "null"]},
+    "node_type": {"enum": ["root", "branch", "leaf", "evidence"]},
+    "domain": {"enum": ["iatf", "drawing", "qc_process", "defect", "general"]},
+    "title": {"type": "string"},
+    "summary": {"type": "string"},
+    "keywords": {"type": "array", "items": {"type": "string"}},
+    "source_refs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["source_id", "locator"],
+        "properties": {
+          "source_id": {"type": "string"},
+          "source_name": {"type": "string"},
+          "locator": {"type": "string"},
+          "text_hash": {"type": "string"}
+        }
+      }
+    },
+    "children": {"type": "array", "items": {"type": "string"}},
+    "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+    "human_verified": {"type": "boolean", "default": false}
+  }
+}

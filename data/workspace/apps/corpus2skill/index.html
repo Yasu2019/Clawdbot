@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="ja">
+<head><meta charset="utf-8"><title>Corpus2Skill Explorer</title></head>
+<body>
+<h1>Corpus2Skill Explorer</h1>
+<p>OpenClaw Portal に追加する構造探索RAGカードの雛形です。</p>
+<section>
+<h2>推奨モード</h2>
+<ul>
+<li>IATF監査探索</li>
+<li>図面/GD&T探索</li>
+<li>QC工程表探索</li>
+<li>不具合原因探索</li>
+</ul>
+</section>
+<textarea id="q" rows="4" cols="80" placeholder="質問を入力"></textarea><br>
+<select id="domain"><option>iatf</option><option>drawing</option><option>qc_process</option><option>defect</option><option>general</option></select>
+<button onclick="ask()">探索</button>
+<pre id="out"></pre>
+<script>
+async function ask(){
+ const q=document.getElementById('q').value;
+ const domain=document.getElementById('domain').value;
+ const r=await fetch('http://127.0.0.1:18920/ask',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query:q,domain})});
+ document.getElementById('out').textContent=JSON.stringify(await r.json(),null,2);
+}
+</script>
+</body>
+</html>

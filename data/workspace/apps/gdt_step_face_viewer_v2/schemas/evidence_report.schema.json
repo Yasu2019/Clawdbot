@@ -1,0 +1,16 @@
+﻿{
+  "title": "evidence_report",
+  "required": [
+    "model_id",
+    "drawing_id",
+    "view_checks",
+    "overlay_checks",
+    "decision"
+  ],
+  "views": [
+    "front",
+    "top",
+    "side",
+    "isometric"
+  ]
+}

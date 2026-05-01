@@ -1,0 +1,31 @@
+version: 1
+name: openclaw_3d_character_motion_cinema_pipeline
+mode: staging_first
+
+stages:
+  - id: ingest_character
+    checks: [has_armature, scale_normalized, bone_names_mapped, mesh_not_corrupted]
+  - id: source_motion
+    options: [mixamo, deepmotion, plask, rokoko, manual_keypose]
+  - id: retarget
+    tools: [blender, rokoko_addon, auto_rig_pro_optional]
+    checks: [hips_aligned, feet_aligned, hands_not_twisted, frame_rate_consistent]
+  - id: physics_refine
+    preferred_tool: cascadeur
+    checks: [center_of_mass, no_floaty_jump, landing_weight, foot_contact_stable]
+  - id: secondary_motion
+    tools: [blender_cloth, blender_hair, rigid_body, jiggle_bones]
+    checks: [cloth_no_explosion, hair_no_intersection, no_mesh_penetration]
+  - id: cinematic_render
+    tools: [blender_cycles_or_eevee_next]
+    checks: [camera_framing_ok, lighting_ok, motion_blur_ok, depth_of_field_ok]
+  - id: ai_quality_review
+    tools: [local_vlm_first, cloud_llm_optional]
+    checks: [foot_sliding, jitter, unnatural_timing, clipping, pose_silhouette]
+
+gates:
+  no_overwrite_existing_assets: true
+  require_staging_folder: true
+  require_manifest_before_run: true
+  require_codex_review_before_clawstack_merge: true
+  cloud_api_requires_manual_approval: true

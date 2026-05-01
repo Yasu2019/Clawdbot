@@ -1,0 +1,11 @@
+﻿{
+  "title": "face_map",
+  "required": [
+    "model_id",
+    "bbox",
+    "faces",
+    "axes"
+  ],
+  "faces": "face_id, surface_type, normal, centroid, area, loops.outer, loops.inner, confidence",
+  "axes": "axis_id, source_face_ids, origin, direction, diameter, confidence"
+}
