@@ -1,7 +1,22 @@
 # Incident Log 窶・繝医Λ繝悶Ν險倬鹸繝ｻ蜀咲匱髦ｲ豁｢蜿ｰ蟶ｳ
 
 譛ｬ繝輔ぃ繧､繝ｫ縺ｯ縲√す繧ｹ繝・Β縺ｫ逋ｺ逕溘＠縺滄囿螳ｳ繝ｻ荳榊・蜷医→縺昴・譬ｹ譛ｬ蜴溷屏繝ｻ菫ｮ豁｣蜀・ｮｹ繝ｻ蜀咲匱髦ｲ豁｢遲悶ｒ險倬鹸縺励∪縺吶・菫ｮ豁｣繧定｡後▲縺溷�ｴ蜷医・縲∝ｿ・★縺薙・繝輔ぃ繧､繝ｫ縺ｫ繧ｨ繝ｳ繝医Μ繧定ｿｽ蜉�縺励※縺上□縺輔＞縲・
----
+------
+
+## INC-074: GitHub Actions workflow failure due to Permission Denied (actionlint/gitleaks)
+| Field | Detail |
+|---|---|
+| **Date** | 2026-05-05 10:55 JST |
+| **Detection** | User reported CI failure in "GitHub Actions Workflow 検査" after a backup push. |
+| **Impact** | CI pipeline was blocked, preventing automated verification of code quality and security for the latest production sync. |
+| **Root Cause (5 Why)** | **Why1**: `actionlint` installation failed. **Why2**: Attempted to write to `/usr/local/bin` without sufficient privileges. **Why3**: The `ubuntu-latest` runner executes as a non-root user. **Why4**: The workflow command `bash -s -- -b /usr/local/bin` was missing the `sudo` prefix. **Why5**: Historical success or environment drift led to the assumption that standard user permissions were enough for this path. |
+| **Fix** | Updated `.github/workflows/ci-fast.yml` and `nightly-health-check.yml` to include `sudo` in `curl | bash` and `tar` installation pipes for `/usr/local/bin`. |
+| **Files** | `.github/workflows/ci-fast.yml`, `.github/workflows/nightly-health-check.yml`, `docs/INCIDENT_LOG.md` |
+| **Verification** | Re-pushed the corrected workflows. CI job "GitHub Actions Workflow 検査" passed successfully. |
+| **Lessons Learned** | Always use `sudo` for system-wide tool installations on GitHub runners. Never assume a push is successful until the CI status is explicitly verified as Green. |
+| **Prevention** | Formalized Rule 15 in `AGENTS.md` (GitHub Backup & CI Integrity Protocol), mandating CI status check and self-healing for all future backups. |
+
+
 
 ## INC-019: Local self-growth and scout loops were incomplete and inconsistent
 | Item | Details |
