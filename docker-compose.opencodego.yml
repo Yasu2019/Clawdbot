@@ -1,0 +1,20 @@
+services:
+  opencodego-worker:
+    image: python:3.11-slim
+    container_name: opencodego_worker
+    working_dir: /app
+    volumes:
+      - ./data/workspace/apps/opencodego_auto_manual_ai:/app
+    ports:
+      - "127.0.0.1:18095:8095"
+    command: ["python", "scripts/worker_stub.py"]
+    restart: unless-stopped
+
+  opencodego-viewer:
+    image: nginx:alpine
+    container_name: opencodego_viewer
+    volumes:
+      - ./data/workspace/apps/opencodego_auto_manual_ai/outputs:/usr/share/nginx/html:ro
+    ports:
+      - "127.0.0.1:18096:80"
+    restart: unless-stopped

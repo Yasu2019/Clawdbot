@@ -69,9 +69,76 @@
             </div>
         </div>
 
+        <section class="glass p-6 rounded-lg mb-12">
+            <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold text-white">Asset Intake</h2>
+                    <p class="text-slate-400 text-sm mt-1">Rig and character samples for Blender retarget checks.</p>
+                </div>
+                <a href="./04_motion_table/motion_knowledge_notes_20260503.md" class="text-cyan-300 hover:text-cyan-200 text-sm font-semibold">Motion knowledge notes</a>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <article class="bg-slate-950/50 border border-cyan-500/30 rounded-lg p-5">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 rounded-lg bg-cyan-600 flex items-center justify-center">
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2v20M5 8l7-4 7 4M5 16l7 4 7-4M5 8v8m14-8v8"></path></svg>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-cyan-100">Rig Samples</h3>
+                            <p class="text-xs text-slate-400">FBX / BVH / BLEND</p>
+                        </div>
+                    </div>
+                    <label class="block border border-dashed border-cyan-400/50 rounded-lg p-4 cursor-pointer hover:bg-cyan-500/10">
+                        <span class="block text-sm font-semibold text-cyan-200 mb-1">Select rig files for review</span>
+                        <span class="block text-xs text-slate-400 mb-3">Verify file names, then place them in the raw rig folder.</span>
+                        <input id="rigUpload" type="file" multiple accept=".fbx,.bvh,.blend" class="block w-full text-sm text-slate-300 file:mr-3 file:rounded file:border-0 file:bg-cyan-600 file:px-3 file:py-2 file:text-white hover:file:bg-cyan-500">
+                    </label>
+                    <code class="block mt-4 text-xs text-cyan-200 bg-slate-900/80 border border-slate-700 rounded p-3 break-all">D:\Clawdbot_Docker_20260125\data\workspace\apps\motion_lab\assets\rigs\raw</code>
+                    <ul id="rigUploadList" class="mt-3 text-xs text-slate-300 space-y-1"></ul>
+                </article>
+
+                <article class="bg-slate-950/50 border border-emerald-500/30 rounded-lg p-5">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 rounded-lg bg-emerald-600 flex items-center justify-center">
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM5 21a7 7 0 0114 0"></path></svg>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-emerald-100">Character Samples</h3>
+                            <p class="text-xs text-slate-400">GLB / FBX / VRM with textures</p>
+                        </div>
+                    </div>
+                    <label class="block border border-dashed border-emerald-400/50 rounded-lg p-4 cursor-pointer hover:bg-emerald-500/10">
+                        <span class="block text-sm font-semibold text-emerald-200 mb-1">Select character files for review</span>
+                        <span class="block text-xs text-slate-400 mb-3">Verify file names, then place them in the raw character folder.</span>
+                        <input id="characterUpload" type="file" multiple accept=".glb,.gltf,.fbx,.vrm,.png,.jpg,.jpeg,.webp" class="block w-full text-sm text-slate-300 file:mr-3 file:rounded file:border-0 file:bg-emerald-600 file:px-3 file:py-2 file:text-white hover:file:bg-emerald-500">
+                    </label>
+                    <code class="block mt-4 text-xs text-emerald-200 bg-slate-900/80 border border-slate-700 rounded p-3 break-all">D:\Clawdbot_Docker_20260125\data\workspace\apps\motion_lab\assets\characters\raw</code>
+                    <ul id="characterUploadList" class="mt-3 text-xs text-slate-300 space-y-1"></ul>
+                </article>
+            </div>
+        </section>
+
         <footer class="text-center text-slate-500 text-sm">
             &copy; 2026 Clawstack Cinematic Studio. All rights reserved. | 統合資産: blender_autonomous_studio / motion_lab / cinematic_mocap
         </footer>
     </div>
+    <script>
+        function bindAssetList(inputId, listId) {
+            const input = document.getElementById(inputId);
+            const list = document.getElementById(listId);
+            if (!input || !list) return;
+            input.addEventListener('change', () => {
+                list.innerHTML = '';
+                Array.from(input.files || []).forEach((file) => {
+                    const item = document.createElement('li');
+                    const sizeMb = (file.size / 1048576).toFixed(2);
+                    item.textContent = `${file.name} (${sizeMb} MB)`;
+                    list.appendChild(item);
+                });
+            });
+        }
+        bindAssetList('rigUpload', 'rigUploadList');
+        bindAssetList('characterUpload', 'characterUploadList');
+    </script>
 </body>
 </html>

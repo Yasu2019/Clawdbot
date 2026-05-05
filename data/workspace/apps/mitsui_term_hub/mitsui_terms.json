@@ -1,0 +1,8984 @@
+[
+  {
+    "term": "1. 不良・不具合・現象",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "11号機",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "127HD",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "128UK-A0A3FU",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "1336P-A0R8PE",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "136JD-A0S75H",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "1C909",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "1C910",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "1C911",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "1C912",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "1C913",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "1人1時間あたり生産達成率",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "2. 人物（敬称略・順不同）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "20VB003A-010",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "25MD013A0",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "25MD013B0",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "2F会議室",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "2重",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "3. 組織・企業・団体",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "3008",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "31108",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "380",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "380Dアルミ補材",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "380Dカバー",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "380Dカバー2号型",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "380Dハーフバスバー",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "380Dバスバー",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "380バスバ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "380バスバー1型",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "381D",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "381Dバスバ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "381Dバスバー",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "381ハーフバスバー",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "381バスバ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "3D-CAD",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "3D個片",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "4. 製品・部品",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "4520-431-7006-A",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "4520-431-7008-A",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "4520-431-7009-A",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "4M変更",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "4M申請",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "4M申請（4M準備）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "5. 設備・機器・システム",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "5S",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "6. 材料・素材・元素",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "6ヶ抜きパンチ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "6個抜きパンチ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "7. 規格・管理・用語",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "76セルケース",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "8. 場所・拠点",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "80tプレス機",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "9. その他",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "??",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "????",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "A-AB030080-3750",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "A-AB030080-6604-16",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "A-AB030080-6604-9",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "A-PET",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "A1050",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "A1050-H24",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "A1050-R24",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "A1050R-H24",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "A1100",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "A1100-H24",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "A1100P-H24",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "A5052",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "A5052-H34",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "A5052材",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "AAR",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "AAR4B25611",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "AAR4B25729",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "AAR4B25730",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "AES",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "AIAG",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "AL",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "AL6061-T6",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ALN0218",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ALN0218-A001-P44-05",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ALN0218-A001-P53-03",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ALN0223-A001-P55",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "AL補強板",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "APN0110-S021-P55-02",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "APN0255",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "APQP",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "AUN0013H1X3",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "AY546",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "AY564",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "Adobe XD",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "Al",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "Almit",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "Amata",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "Amata）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "Angkana T. ( Tarn )",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "Angsumarin",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "BBM",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "BONDING FILM SL-K-0050-500",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "BSIグループジャパン株式会社",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "Be",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "C1020",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "C1020-1/2H",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "CARA",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "CMRT",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "CP",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "CSAC",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "CSR",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "Candidate List",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "Canva",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "Cav",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ChatGPT",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ChemSHERPA",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "Cu",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "DC01(SPCC)",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "DFMEA",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "DIF",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "DOWAメタル",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "DR (Design Review)",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "DSM Stanyl TS250F6D",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "DXF",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "Dino Capture",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "DinoLite",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "D最適計画",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "EA300",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "EAシリーズ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ECHA（欧州化学品庁）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "EDX",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "EMRT",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "EMS",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "EOL",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "EPMA",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ESP32",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "EUN6593-H0L1-P41",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "Ellie Lu",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "Ep-Al/Ni0.5",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "Ep-Cu/Sn1m/:B",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "Ep-Ni",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "Erbium",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "Europium",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "Excel",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "F01132-P42-B01",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "FAX",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "FCST（フォーキャスト/FC）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "FG",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "FMEA",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "FR",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "FT-IR",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "Fe",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "Figma",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "G-6050",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "G-6050-LC",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "G92T8-33040-CA",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "GIGAファイル便",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "GM-003",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "GM-012",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "GON0336-P41",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "GPARS",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "GRR",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "GSユアサ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "Gemini",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "H25-051",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "HAP材",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "HB5735",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "HB57350119XR",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "Half-Busbar-A",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "Hanoi City",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "Hettich",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "Holmium",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "IATF16949＆ISO9001認証パートナー",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "IATF内部監査員",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "IATF承認",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "IATF更新審査認証確保",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "IATF緊急事態対応項目",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "IM",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "IM-7000",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "IMDS",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "IMシリーズ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "IQC（受入検査）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ISO14000",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ISO14001（EMS）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ISO19011",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ISO9000",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ISO9001",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ISO事務局",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ISO更新審査認証確保（ISO維持審査認証の確保）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "Image Dimension Measurement",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "JIT",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "JQA",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "JSON",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "KM-0111 Substrate 4.0x4.0 Insert",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "KPI",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "KT7N",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "Kamonworanee",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "Kate Lu",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "Keyence",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "Kitsakorn",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "L/T（リードタイム）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "LANケーブル",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "LC-MB-GK",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "LC-PFCA",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "LEDユニット",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "LMXシリーズ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "LTD",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "MA Aluminum",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "MAアルミ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "MAアルミニウム",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "MCCP",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "MD",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "MEK",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "MEK 380D",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "MEKTEC JP",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "MHVターミナルバスバー",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "MHVバスバー",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "MHV樹脂",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "MITSUI",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "MITSUI PRECISION VIETNAM CO.",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ML",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "MMCS",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "MMCT",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "MMCZ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "MOQ（最低発注数量）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "MPC",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "MPJ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "MPT",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "MPV",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "MR",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "MR536",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "MSA",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "MSDS",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "MT2394-P44",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "MTBF",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "MTS",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "MTTR",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "Mektec",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "Microsoft 365",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "Mitsui Precision Thailand",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "Mitsui Seimitsu",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "Mitutoyo",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "N201",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "N601",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NB109",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NEXIV",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NF0716",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NF6054-P07",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NF7760-R05",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NF7761-R05",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NF7829-P04",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NF7831-P04",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NF7833-P04",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NF7835-P04",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NF7837-P07",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NF7837-P08",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NF7838-P07",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NF7859-P21",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NF7859-P24",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NF7860-P23",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NF7865-P11",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NF7866-P11",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NF8022-P05",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NF8022-P06",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NF8110-P12",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NF8110-P15",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NF8139-P21",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NF8140-P20",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NF8402-P06",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NF8418-P24",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NF8418-P25",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NF8427-P13",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NF8526-P05",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NF8529-P14",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NF8613-P11",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NF8613-P12",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NF8885-P05",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NF8892",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NF8913-P04",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NF8915-P03",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NF8915-P04",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NF8928-P08",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NF8929-P08",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NF8937-P03",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NG",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NJ1951-P06",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NJ2023-P07",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NJ4798-P08",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NJ4799-P06",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NJ7053-P50",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NL8144",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NN8816-P06",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NOK",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NOKGRP",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NOK株式会社",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NT2394-43",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NT2394-P43",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NT2394-P44",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NT2792-P41",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NT2792-P47",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NT3621-P43",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NT3621-P44",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NT3621-P44-01",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NT3621-P44-02",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NT3621-P50",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NT3621-P50-02",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NT3621-P50_PM9ECB",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NT3621-P51",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NT3621-P51-03",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NT3621-P51-03_PM9EDC_Half-Busbar-A",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NT3621-P51-04",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NT3621-P52",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NT3621-P52-04",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NT3785-P52",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NT3785-P53",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NT4584-P45",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NT4584-P52-01_End_Busbar_B",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NT5480-P51",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NT5480-P52",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NTC",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NU0206-P08",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NU0206-P09",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NU0244-P08",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NU0245-P08",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NU0388-P03",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NU0388-P04",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NU0390-P12",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NU0391-P11",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NU0391-P12",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NU0450-P13",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NU0701-P04",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NU0701-P05",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NU0701-P06",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NU0895-P09",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NU1001-P16",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NU1001-P17",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NU1292-P16",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NU1292-P17",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NU1293-P16",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NU1293-P17",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NU1294-P12",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NU1294-P13",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NU1294-P14",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NU1294-P15",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NU1295-P12",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NU1295-P13",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NU1295-P14",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NU1295-P15",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NU1314-P04",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NU1315-P04",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NW0648-P06",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NW1950-R03",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NW1951-R03",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NY0689",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NY0690",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NY0691",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NY0699",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NY0699-14",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NY2394-P55-00",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NZFQN2-P41-01",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NZFQN2-P43-01",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NZGL80-P14",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NZGV28",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NZYAB7",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "Ni",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "Ni201",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "Nichapa",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "Nikon",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "Nikon Digimicro",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "Nitto",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "NotebookLM",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "Notta",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "N社",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "OBS",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "OEE",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "OQC（出荷検査）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "Oda",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "P44",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "P44-04",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "P44-05",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "P51",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "P55",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "P56",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "P58",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "P59",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "PBT GF30",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "PC",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "PC+ABS",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "PDF",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "PETフィルム",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "PFMEA",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "PGS01",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "PGS01エンドバスバー",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "PIF",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "PLC",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "PM3LBB",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "PM3LBC",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "PM6Y9B",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "PM81ED",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "PM81FD",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "PM8JNA",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "PO（注文書）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "PP",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "PPAP",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "PPES",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "PPESエンボス繋ぎ不具合",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "PQC",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "PQC（工程内検査）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "PSW",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "PTY01",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "PTY03",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "PTY04",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "PU00CA",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "PU03UB",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "PU06AA",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "PU06KD",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "PU06QA",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "PU06UB",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "Pathumthani",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "PowerPoint",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "Praevadee",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "P社",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "P管理図",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "QC工程表",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "QIF",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "QIF (Quality Information Form)",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "QIF-250827_381Dバスバ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "QIF-250926_NT3785-P52",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "QK001",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "QK002",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "QK003",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "QK004",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "QK005",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "QK006",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "QK007",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "QK008",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "QK009",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "QK011",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "QK012",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "QK013",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "QM001",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "QMM-204",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "QMS",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "QV",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "QV-X302-PRO",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "Quick Vision",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "R15550-21FA",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "R15730",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "R17540-AD986FA",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "R18530-AS310FA",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "REACH",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "RFQ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "RR",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "RaspberryPI",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "RoHS",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "RoHS10",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "RoHS2",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "RootPro",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "SABIC",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "SCS-NK",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "SCS-NK-APET",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "SDGs（かながわSDGsパートナー）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "SDS",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "SEM",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "SGS",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "SIIX",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "SIIX-PH",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "SL-K-0050",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "SPC",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "SQL",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "SR5900P",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "SR750",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ST-Ltype",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ST24QE",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "STL",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "SUS",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "SUS-L",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "SUS301",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "SUS304",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "SUS304CSP-1/2H",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "SUS材",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "SUS製品",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "SVHC",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "SZK-012",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "Sb",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "Sn",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "Sn1m",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "Sontaya",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "Suteera",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "S入子",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "TAIYO",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "TEL",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "TOYOTA",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "TPM",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "TRY",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "TV",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "Teams",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "Teraterm",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "Thang Long Industrial Park",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "Thulium",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "TimeTree",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "T社",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "Ultem",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "Ultem ATX200",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "VA",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "VDA",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "VDA6.3",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "VDA監査",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "VHXX1",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "VHXシリーズ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "VMZ-R3020",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "VMZ-S3020",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "VR-3000",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "VR-3200",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "VR-6000",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "Viet Nam",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "Vパンチ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "V外し",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "V溝調整不良",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "WDプレート",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "WP",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "WP傷",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "WP変形",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "Webex",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "Web記事",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "Wip",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "XPS",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "Xbar-R管理図",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "X線装置",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "Ytterbium",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "Zoom",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "doda",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "kistec",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ndc",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "wedm",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "こすれ傷",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "しごき量",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "にしてつ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "はんだ不具合（リード線はんだ部飛び出し）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "めくれ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "めっき",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "めっきムラ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "めっき剥がれ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "めっき剥離",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "めっき密着不良",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "アイン",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "アウトサート",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "アウトサート成形機",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "アニール",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "アニールシミ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "アマダ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "アルミ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "アルミニウム",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "アルミネ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "アルミネ材",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "アルミフレーム",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "アンコイラー",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "アンチモン",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "イイダ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "インサートナット",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "インサート成形",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "インサート成形機",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "インシュレーションカバー",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "インライン洗浄機",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ウェルディングプレート",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ウエルド",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ウエルドライン",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ウルテム",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "エアーナイフ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "エッチング",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "エリミネ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "エンドバスバー",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "エンボス",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "エンボステープ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "エンボスリール",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "エンボス梱包",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "エンボス梱包機",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "エンボス自動機",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "オーバーホール",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "カイジョー",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "カシマ式順送型",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "カジリ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "カス上がり",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "カス付着",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "カス詰まり",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "カテゴリーB指摘事項",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "カバーフィルム",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "カメラ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ガイドブッシュ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ガイドレール",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ガス焼け",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "キズ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "キズ不良",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "キズ対策",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "キッカーピン",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "キャスター",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "キャビティ（Cav）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "キーエンス",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "キーエンスの画像測定器",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "キーボード",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ギリ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "クラック（パネルクラック）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "クレーム",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "クロスタブ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "グリス付着",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "グリーン購入法",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "グリーン購入（購入率）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ゲージR&R",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ゲージR&R評価記録",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ゲートカス付着",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "コイニング",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "コイニングダイ入子",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "コイニングパンチ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "コイニング内型跡",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "コイニング孔",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "コイニング残り厚",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "コイニング（深さNG）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "コイル",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "コイルスタンド",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "コウテイ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "コネクタカバー",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "コンタミ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "コントロールプラン",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "コンプレッサー",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "コンベア",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "コンベアでのスルー落下品",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "コーティング",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "コードー",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ゴム",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "サイバー攻撃",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "サビック",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "サンプラテック",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "サービスPPAP",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "サーベイランス審査",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "サーミスタ保持板",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "システム",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "システム監査",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "シミ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "シム",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "シムアップ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "シム調整",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ショット数（メンテサイクル）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ショートショット",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ショートモールド",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ショート（未充填）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "シルバレン",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "シルバーストリーク（シルバー）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "シロキサン",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ジャパンプレクサス",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ジンケート",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "スイッチングHUB",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "スキルアップ教育",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "スクラッチキズ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "スクラップ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "スズ(Sn)",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "スズめっき不良",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ストリッパー",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ストレスチェック",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "スパイク不良",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "スリット",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "スリットバリ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "スリット加工",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "スーパークリーンシート・NK",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ソリ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ソレノイド",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "タイメクトロン",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "タイ（Thailand",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "タンロン工業団地",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "タートル図",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ターミナルカバー",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ターミナルバスバー",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ダイ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ダイセット",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ダイハイト",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ダイパンチ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ダイプレート",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ダインペン",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ダイ入子",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ダイ入子ボルト緩み",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "チェックリスト",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "チャウハン",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "チョコ停",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "テプラ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ディスプレイ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "デジマイクロ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "デポジット (Deposi)",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "データ取り",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "デートマーク",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "トミタ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "トライ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "トライオール箱",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "トラバース機",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "トリム",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "トレー梱包",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ドビー30t",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ドライブロール",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ドラム缶",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ナット",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ニコン",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ニッケル",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ネジ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ノギス",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ノックアウト曲げ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ハラスメント（カスハラ）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ハロゲンフリー",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ハーフバスバー",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "バキューム装置",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "バケット",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "バスバー",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "バスバートレイ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "バスバームラ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "バッテリーユニット",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "バラツキ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "バルブゲート",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "バーコードリーダー",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "バーコード管理システム",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "バージン材",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "パススルーラベルの異常",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "パソコン",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "パソナ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "パワ-ポイント",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "パンチ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "パンチ外れ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "パンチ工業",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "パンチ抜け",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "パンチ（Vパンチ、シャーパンチ）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ヒケ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ヒストグラム",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ピン折れ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ファーストトライ（T1トライ）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "フォローアップ会議",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "フォークリフト",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "フジクラプリントサーキット",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "フジケース",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "フタバ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "フルメンテ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "フレームキャップ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "フロン排出抑制法（第一種特定製品）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "フローマーク",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "フープ金型",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ブラケット",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ブロックダイ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "プッシュピン",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "プレス",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "プレス係",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "プレス工程",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "プレス棟",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "プレス機",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "プロジェクター",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "プロセスアプローチ監査",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "プロセスオーディット",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "プロセスオーナー",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "プロセスフロー",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "プロセスマップ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "プロセス・業務: 営業プロセス",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "プロセス管理図",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "プロテクター",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "プロテリアル",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "プロメテック",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ヘコミ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ヘコミ跡",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ベトナム（Hanoi）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ベリリウム",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ベルトコンベア",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ベンダー",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ベンチマーク",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ペリージョンソン",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ペレット",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ホットランナー",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ボイド",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ボルスタ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ポカヨケ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "マイクロスコープ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "マイクロメータ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "マウス",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "マガジン式",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "マシニングセンター（MC）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "マネジメントレビュー",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "マミヤオ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "マルアイ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "マーク・レボ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ミスミ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ミツイ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ミツイ品質保証部",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ミツイ専門用語リスト（カンマ区切り）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ミツイ精密",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ミツイ精密㈱本社",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ミツイ精密株式会社",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ミツトヨ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ミヤタ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ミルシート",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "メクテック",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "メクテック株式会社",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "メッキ不具合",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "メッキ剥がれ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "メンテ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "メンテナンス",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "モジュール",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "モデム",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "モノタロウ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ヤゲン曲げ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ユーザークレーム発生件数（ゼロの必達）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ライン改造",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ラベル違い",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ラベル間違い",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ランプーン",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "リクルートエージェント",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "リスクアセスメント",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "リターン材（再生材）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "リピート品",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "リモートサービス",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "リン(P)",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "リード線はんだNG",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "リール品番間違い",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "リール（リールテープ、キャリアテープ、カバーテープ）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ルール5",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "レアアース",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "レファレンスマニュアル",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "レベラー",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "レリース",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "レーザー",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ロット (Lot)",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ロットNo",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ロットアウト(pcs)",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ロット管理票",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ワイヤーカット",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ワイヤーカット機（W-EDM）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ワランティー",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "㈱アルミネ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "㈱ミヤタ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "㈱東電化",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "一般管理費",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "三井住友金属鉱山伸銅",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "三明",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "三次元測定器",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "三浦",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "三菱アルミニウム",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "上曲げダイ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "上曲げパンチ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "上村",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "上水流",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "上野",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "下曲げダイ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "下曲げパンチ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "下村",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "下死点センサー",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "不適合",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "不適合品管理票",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "世紀株式会社",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "中国メクトロン",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "中国（蘇州 Suzhou",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "中嶋",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "中渡瀬",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "中田",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "久保庭",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "乾燥機",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "事故・災害ゼロの必達",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "二次元測定機",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "二見",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "二見係長",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "于 (雪梅)",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "五位",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "五十嵐",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "井上",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "京セラ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "今村",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "今村雄二",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "他社コンサル",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "付着",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "仙田勝行",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "伊勢原（Isehara / 伊勢原工場）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "伊勢谷",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "伊原",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "伊地知",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "伊地知主任",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "休日出勤",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "住友電工",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "佐々木",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "佐藤",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "佐藤秀",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "佐野",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "作り貯め（先行生産）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "作業工数の削減",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "作業手順書",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "供給者開発",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "依田",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "修繕費",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "倉田",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "個片",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "停止",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "偶発不良",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "入子跡不具合",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "入子（カス上がり防止入子）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "全変動",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "全数画像検査機",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "公差幅",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "共ずれ傷",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "共栄興産",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "共疵",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "兵庫",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "内海",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "内部監査プロセス",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "内部監査（自己監査）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "再メンテ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "再検査",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "冨田",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "凹み",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "出荷検査工程不適合率",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "分別",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "初回型検合格率",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "初期値",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "初期流動管理手順",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "判定ミス",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "削りカス不良",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "前田",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "前詰め（納期前詰め）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "剥離強度試験機",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "劉 (翠霞)",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "加工課",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "労務費比率",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "効率指数（生産達成率）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "動作不良",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "化学物質管理者",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "北川",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "北里大学病院",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "南野",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "南野弘明",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "単発型",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "原価改善課",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "反り",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "反面挿入",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "受入検査（材料・薬品）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "古橋",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "古河電工",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "古河電気工業",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "台湾",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "台車",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "吉田",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "同和メタニクス",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "名鉄便",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "吸着ユニット",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "呂",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "和泉",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "品証部",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "品質パフォーマンス",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "品質会議",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "品質異常",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "品質目標",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "員数不足",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "営業部",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "四ツ谷",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "回転乾燥機",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "国際電工",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "土居",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "土屋",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "圧延",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "圧延方向に断片的な線状キズ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "圧痕",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "在庫回転率（FG+WIP在庫、Material在庫）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "在庫最大保管量",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "地球温暖化対策の推進に関する法律",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "坂井",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "坂本",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "坂田",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "坂田誠一郎",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "型ヨリ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "型検（金型検定）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "型跡対策",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "堀田",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "増田",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "増面型（増面金型）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "変位センサ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "変位センサー",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "変則2交代（変則勤務）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "変形大",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "変色",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "外し変形",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "外注費（外注労務費、メッキ代）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "外観の問題",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "外観品目",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "多能工教育",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "大同特殊鋼",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "大同特殊鋼株式会社",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "大和石油",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "大和金属工業",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "大川",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "大森",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "大沢",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "大澤",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "大田",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "大聖寺",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "大阪（泉南）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "天野",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "太洋",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "女子トイレ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "孫 (XiaoXiao)",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "宇部興産",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "安全パトロール",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "安全衛生委員会",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "安全衛生（安全衛生の確保）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "安齋",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "定月",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "定期審査",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "家電リサイクル法",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "密着不良",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "富士通",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "寸法NG",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "寸法・形状: 変形",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "寸法不良",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "寸法外れ（平行度寸法外れ）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "射出成形",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "射出成形機",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "導通不良",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "小井",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "小井手",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "小宮",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "小宮信行",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "小宮様",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "小山",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "小島",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "小川",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "小林",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "小林殿",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "小池",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "小泉",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "小田",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "小糸製作所",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "小野寺",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "尚",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "尼寺安全衛生指定集団",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "尼寺工業会",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "山口",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "山口（萩）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "山崎",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "山本",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "山東",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "山王",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "山田",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "岐阜（大垣）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "岩波",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "岸",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "岸野",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "嵌合不良",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "川口",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "川村",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "川西",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "工事費",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "工具顕微鏡",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "工程内不良",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "工程内不適合率（プレス工程内不適合率、成形工程内不適合率）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "工程能力指数（Cpk）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "工藤",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "巻きゆるみ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "巻取機",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "巽",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "平井",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "平岡",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "平岡部長",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "平瀬",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "平行度NG品",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "平行度悪化",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "平野",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "平野東之",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "平野部長様",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "平面度NG",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "平面度不安定",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "平面度不良",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "年間入賞案（入賞率）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "広東省東莞市石?鎮",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "広瀬",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "庄司",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "康",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "廃棄物（排出量）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "張 (Andy Zhang)",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "当たりキズ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "当月達成率（累計達成率）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "彭 (Yu)",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "影利)",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "後藤",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "徐",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "循環型社会形成推進基本法",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "徳留",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "悦郎",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "慧茹",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "成形・外観: バリ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "成形不良",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "成形型",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "成形機（35t、450t）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "戸来",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "手塚",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "打痕",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "技術部",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "技術部 技術1課 設計1係",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "技術部 金型課",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "掘込",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "掛川センター",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "接着剤",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "擦れ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "擦れキズ（様）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "擦過腐食",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "改善の機会",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "改善プロセス",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "改善提案",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "放電加工機",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "故障",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "数量不足",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "文書体系表",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "斎藤",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "新日本",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "新日本検査",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "新日本検査品",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "新日本精機",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "新月",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "新棟",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "新棟2階会議室",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "新規顧客先の開拓",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "方 (XiaoHua)",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "方針管理プロセス",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "旅交費",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "日吉",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "日本",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "日本アルミット",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "日本アレックス",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "日本ケミカル電子",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "日本メクトロン",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "日本工作油",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "日産",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "日産化学",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "日興運送",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "日金スチール",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "旧日立金属",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "早出",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "早坂",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "早坂係長",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "昌子",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "明石",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "星野",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "是正処置報告書",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "是正処置（是正予防報告書）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "是正対策書",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "曲げしごきキズ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "曲げダイ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "更新審査",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "更新金型",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "月次実績",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "有効性指数",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "有機物",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "服部",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "木俣",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "木村",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "本泉",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "本間",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "杉本",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "李 (Jie",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "材料",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "材料不良",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "材料不足",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "材料仕損率削減（仕損率）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "材料費比率",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "材料送り装置",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "村上",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "東ソー",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "東之",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "東京プロト",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "東京ワイジェーエス販売",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "東京台東区上野",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "東京本社",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "東京材料",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "東京都中央区日本橋本町",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "東京都中央区築地",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "東京（大手町",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "東北センター",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "東栄電化工業",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "東栄電化工業株式会社",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "東棟",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "東棟会議室",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "東洋機械金属",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "東莞市益久精密電子有限公司",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "東電化",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "松下",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "松井",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "松尾",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "松末",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "松村",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "松永",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "林田",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "柚乃",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "柴田",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "栃木ニコン",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "栃木（大田原）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "株式会社KOSKA",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "株式会社ミヤタ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "梱包間違い",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "森岡",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "検定（検定サンプル、検定データ）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "検査室",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "検査工程内不良率（プレス検査工程内不良率）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "榊原",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "横森",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "横浜",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "樹脂",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "樹脂: PS",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "樹脂成形",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "樹脂部品",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "欣也",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "武藤",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "残業",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "段取り（段取り時間短縮）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "気泡不良",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "水光費",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "永田",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "汎用LIBS分析装置",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "汚れ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "池上",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "河原畑",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "河村",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "河西",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "油付着",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "油分濃度計",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "油汚れ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "沼田",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "法令・教育: 消防法（指定数量）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "波多野",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "浅賀",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "浅野",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "海老名",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "消耗品購入費削減",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "混入",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "清水",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "減価償却費",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "渡辺硝子店",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "渡邉部長",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "渡邊",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "渡部",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "温水工場",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "温水（Nurumizu / 本社工場 / 神奈川県厚木市）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "測定システム解析",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "港北",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "湊",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "湯島",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "満谷",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "源後",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "濱田",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "瀬尾",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "炭化水素洗浄",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "為替差損",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "無人運転",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "無線LANアクセスポイント",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "無線子機",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "熊谷",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "熱処理サブゼロ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "爪変形",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "片倉",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "片倉様",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "片口",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "片木",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "片木アルミ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "片木アルミニウム",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "片木アルミニューム製作所",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "牛丸",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "牛久事業部",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "牛尾",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "牧野",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "物流センター（掛川）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "特別採用申請書",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "特別輸送費（発生金額）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "特定製品簡易点検（フロン排出抑制法）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "王 (Kaiyun",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "珠海 Zhuhai）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "瑞敏",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "環境管理委員会",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "生産・現場用語: プレス",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "生産技術",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "生産管理部",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "生産管理部/ミツイ精密",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "生産調整",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "産廃",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "田中",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "田代",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "田内英二",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "田川",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "田村",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "田淵",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "画像寸法測定器",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "画像検査付きエンボス自動機",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "画像測定器（クイックビジョン）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "画像測定機",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "異物付着",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "痕",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "白い点の様な痕",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "白シミ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "白化",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "白濁",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "百瀬",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "監査員",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "目標進捗率",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "相原",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "相武台",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "真空成形機",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "矢作",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "知覚区分数",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "短尺ロール",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "短納期",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "石井",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "石井部長様",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "石坂",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "石塚化学産業",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "石塚科学",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "石栗",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "石橋",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "研磨",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "破損",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "神奈川県横浜市緑区中山",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "神奈川県立産業技術総合研究所",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "神田）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "福島",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "福田",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "秋林",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "秋田工場",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "秋田（Akita / 秋田工場）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "稼働率（プレス稼働率、成形稼働率）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "穴バリ不良",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "端子浮き",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "竹内",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "竹腰",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "管理・規格: IATF16949（IATF）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "管理図",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "管理部",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "箱ひげ図",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "箱崎",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "簡易書留",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "粘着",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "糸バリ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "糸打痕",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "糸面取り",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "納入不良率",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "納期パフォーマンス",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "納期遵守率",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "紛争鉱物",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "累積実績（累計実績）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "経営・KPI: 売上年商の必達",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "経費削減",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "結着",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "結露",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "絶縁不良",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "緊急事態対応計画",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "総抜き型",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "総抜型",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "線キズ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "線跡",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "美玲)",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "胡 (Yi Long)",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "腐食",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "自動供給機",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "自動機",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "自動機（エンボス自動機、バスバー折取り自動機、アルミ補材ラミネート自動機、抜き貼り自動機）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "自動測定機",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "自動車リサイクル法",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "自製接着材",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "自覚教育（環境教育）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "苛性処理",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "若林",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "茨城県牛久市",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "茨城（牛久）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "荒井",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "菊森",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "菊池",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "菱光社",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "落下",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "落下防止装置（プリローラー）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "蒋 (慧茹)",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "薬品使用量",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "藤井",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "藤島",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "蘇武",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "蛍光X線分析装置",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "表面荒れ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "裏面ムラ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "補償管理システム",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "補強板",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "製品",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "製品トレイ台車",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "製品変形",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "製品検査・引渡しプロセス",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "製品混入",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "製品無",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "製品監査",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "製品落下",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "製品規格幅",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "製造1部",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "製造1部 成形課",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "製造1部加工課",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "製造プロセス",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "製造原価低減",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "製造原価把握",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "製造工程監査",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "製造工程設計プロセス",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "西川",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "西江",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "西澤",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "角田",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "計数値ＭＳＡ報告書",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "計測器管理プロセス",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "記入漏れ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "設備管理プロセス",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "設計",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "設計・開発の管理",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "試作",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "誤判定",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "諸星",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "譲嗣",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "販管費",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "購買プロセス",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "購買・生産管理プロセス",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "購買先品質監査チェックシート",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "購買課",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "超硬材",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "車載個片",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "輝",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "辻",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "追加現象: ムラ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "逃がし加工",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "逃し",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "運用・その他: テレコ（現品票貼り間違え、識別ミス）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "運賃",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "道家",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "適正在庫管理",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "選別（選別作業）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "邵 (Zelan)",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "部品違い",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "部門売上高",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "酒井",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "重要管理項目（特別特性）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "野崎",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "野手",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "野本",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "金井",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "金型",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "金型メンテナンス",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "金型・設備: EPカジリ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "金型図面",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "金型棟",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "金型破損",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "金型課",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "金型部門",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "金属: アルミニウム",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "金属クリップ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "金建値",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "金澤",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "鈴木",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "鈴木 康弘",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "鈴木忍",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "鈴木様",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "鈴木課長様",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "鉄",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "鉄板",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "銅",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "銅材",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "銘鈑",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "錆痕",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "錫",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "鎌田",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "長井",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "間紙",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "間藤",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "関西センター",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "関谷",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "阪和興業",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "阪和興業株式会社",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "阪本",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "限度見本",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "離脱性バリ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "電力原単価",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "電流計",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "面打ち",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "順送型",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "顧客受入検査合格率（顧客受入合格率）",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "顧客固有要求事項",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "顧客技術部門承認",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "顧客満足度の向上",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "顧客訪問回数",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "食堂",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "飯塚",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "香川",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "馬場",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "高 (Xin)",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "高木",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "高木君",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "高梨",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "高橋",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "高辻",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "鳥居塚",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "黒い付着物",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "黒シミ",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "黒川",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "黒点",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "黒点異物",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "黒色異物付着",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "齊藤",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "齋藤",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "（株）東北環境技術",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  },
+  {
+    "term": "ＩTシステム",
+    "category": "General",
+    "description": null,
+    "source": "Initial Import (Text File)"
+  }
+]

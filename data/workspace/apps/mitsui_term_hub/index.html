@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mitsui Term Hub | Clawstack</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Outfit:wght@600&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #0b0f19; --card: #161b22; --primary: #58a6ff; --text: #c9d1d9; --border: #30363d; }
+        body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; padding: 40px; }
+        header { margin-bottom: 40px; text-align: center; }
+        h1 { font-family: 'Outfit'; font-size: 2.5rem; margin: 0; color: white; }
+        .search-box { width: 100%; max-width: 600px; margin: 0 auto 40px; display: block; padding: 15px; background: var(--card); border: 1px solid var(--border); border-radius: 10px; color: white; font-size: 1.1rem; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
+        .term-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; transition: 0.2s; }
+        .term-card:hover { border-color: var(--primary); transform: translateY(-3px); }
+        .category { font-size: 0.8rem; color: #8b949e; text-transform: uppercase; margin-bottom: 8px; }
+        .term { font-size: 1.25rem; font-weight: 600; color: white; margin-bottom: 10px; }
+        .desc { font-size: 0.9rem; line-height: 1.5; color: #8b949e; }
+        .source { font-size: 0.75rem; color: #484f58; margin-top: 15px; border-top: 1px solid var(--border); padding-top: 10px; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Mitsui Term Hub</h1>
+        <p>ミツイ専門用語データベース - 1497 語収録済</p>
+    </header>
+    
+    <input type="text" class="search-box" id="searchInput" placeholder="用語またはカテゴリーで検索..." oninput="filterTerms()">
+    
+    <div class="grid" id="termGrid">
+        <!-- Content loaded via JS -->
+    </div>
+
+    <script>
+        let allTerms = [];
+
+        async function loadTerms() {
+            try {
+                // We'll use the API if available, or fetch a static JSON exported by the daemon
+                const res = await fetch('mitsui_terms.json');
+                allTerms = await res.json();
+                renderTerms(allTerms);
+            } catch (e) {
+                console.error("Failed to load terms", e);
+            }
+        }
+
+        function renderTerms(terms) {
+            const grid = document.getElementById('termGrid');
+            grid.innerHTML = terms.slice(0, 50).map(t => `
+                <div class="term-card">
+                    <div class="category">${t.category}</div>
+                    <div class="term">${t.term}</div>
+                    <div class="desc">${t.description || ''}</div>
+                    <div class="source">Source: ${t.source}</div>
+                </div>
+            `).join('');
+        }
+
+        function filterTerms() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = allTerms.filter(t => 
+                t.term.toLowerCase().includes(query) || 
+                t.category.toLowerCase().includes(query)
+            );
+            renderTerms(filtered);
+        }
+
+        loadTerms();
+    </script>
+</body>
+</html>

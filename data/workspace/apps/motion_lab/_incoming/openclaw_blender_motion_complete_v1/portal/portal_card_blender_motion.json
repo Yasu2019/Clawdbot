@@ -1,0 +1,26 @@
+{
+  "id": "blender_motion_pipeline",
+  "title": "Blender Motion Pipeline",
+  "description": "Mixamo/BVH/Rokoko/VRMを活用した自然動作生成パイプライン。既存環境確認後に有効化すること。",
+  "category": "3D / Motion / AI",
+  "safety": {
+    "requires_audit": true,
+    "no_db_write": true,
+    "no_volume_delete": true,
+    "dry_run_first": true
+  },
+  "actions": [
+    {
+      "label": "環境確認",
+      "command": "powershell -ExecutionPolicy Bypass -File scripts/tools/environment_audit.ps1"
+    },
+    {
+      "label": "台本→動作タグ",
+      "command": "python scripts/tools/script_to_motion_tags.py < samples/sample_script.txt"
+    },
+    {
+      "label": "Blender Armature確認",
+      "command": "blender --background sample.blend --python scripts/blender/retarget_helper.py"
+    }
+  ]
+}

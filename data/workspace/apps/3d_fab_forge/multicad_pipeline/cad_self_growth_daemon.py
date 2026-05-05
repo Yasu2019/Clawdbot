@@ -22,6 +22,10 @@ HEARTBEAT_FILE = os.path.join(LOG_DIR, "cad_growth_heartbeat.json")
 TURSO_URL = os.getenv("TURSO_DATABASE_URL")
 TURSO_TOKEN = os.getenv("TURSO_AUTH_TOKEN")
 
+# Fallback Config
+OBSIDIAN_VAULT_PATH = os.path.join(BASE_DIR, "..", "..", "obsidian_vault")
+FALLBACK_DIR = os.path.join(OBSIDIAN_VAULT_PATH, "Growth_Logs")
+
 # Sample Challenges for Growth
 CHALLENGES = [
     "Design a parametric mounting bracket for a NEMA17 stepper motor.",
@@ -74,8 +78,40 @@ def run_self_growth_cycle():
     update_db(challenge, engine, status, error_message, countermeasure, artifact_path)
     log_event("Success! Knowledge captured in self_training.db")
 
+def save_to_markdown_fallback(challenge, engine, status, error_message, countermeasure, artifact_path):
+    os.makedirs(FALLBACK_DIR, exist_ok=True)
+    now = datetime.datetime.now()
+    filename = f"Growth_Log_{now.strftime('%Y%m%d_%H%M%S')}.md"
+    filepath = os.path.join(FALLBACK_DIR, filename)
+    
+    content = f"""# CAD Self-Growth Record: {now.strftime('%Y-%m-%d %H:%M:%S')}
+
+## Metadata
+- **Challenge**: {challenge}
+- **Engine**: {engine}
+- **Status**: {status}
+- **Artifact**: `{artifact_path}`
+
+## Analysis & Know-how
+### Error Message
+{error_message if error_message else "None"}
+
+### Countermeasure (Know-how)
+{countermeasure}
+
+---
+*Note: This file was generated as a fallback because DB updates failed.*
+"""
+    try:
+        with open(filepath, "w", encoding="utf-8") as f:
+            f.write(content)
+        log_event(f"Fallback: Knowledge saved to markdown: {filename}")
+    except Exception as e:
+        log_event(f"CRITICAL: Markdown fallback failed: {e}")
+
 def update_db(challenge, engine, status, error_message, countermeasure, artifact_path):
     # 1. Local SQLite
+    sqlite_ok = False
     try:
         conn = sqlite3.connect(DB_FILE)
         cursor = conn.cursor()
@@ -86,10 +122,12 @@ def update_db(challenge, engine, status, error_message, countermeasure, artifact
         conn.commit()
         conn.close()
         log_event("Local DB updated.")
+        sqlite_ok = True
     except Exception as e:
         log_event(f"Local DB update failed: {e}")
 
     # 2. Turso Cloud (Dual Write)
+    turso_ok = False
     if TURSO_URL and TURSO_TOKEN:
         try:
             client = libsql_client.create_client_sync(url=TURSO_URL, auth_token=TURSO_TOKEN)
@@ -111,8 +149,13 @@ def update_db(challenge, engine, status, error_message, countermeasure, artifact
             """, (challenge, engine, status, error_message, countermeasure, artifact_path))
             client.close()
             log_event("Turso Cloud DB updated successfully.")
+            turso_ok = True
         except Exception as e:
             log_event(f"Turso Cloud DB update failed: {e}")
+
+    # 3. Fallback if both failed
+    if not sqlite_ok and not turso_ok:
+        save_to_markdown_fallback(challenge, engine, status, error_message, countermeasure, artifact_path)
 
 if __name__ == "__main__":
     os.makedirs(LOG_DIR, exist_ok=True)

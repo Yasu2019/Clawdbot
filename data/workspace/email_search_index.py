@@ -34,18 +34,19 @@ from typing import Dict, Iterable, List, Optional, Tuple
 import requests
 
 
-WORKSPACE_ROOT = Path("/home/node/clawd")
+WORKSPACE_ROOT = Path(__file__).resolve().parent
 EMAIL_ROOT = WORKSPACE_ROOT / "paperless_consume" / "email"
 DB_PATH = WORKSPACE_ROOT / "email_search.db"
 STATE_PATH = WORKSPACE_ROOT / "email_search_state.json"
 STATUS_PATH = WORKSPACE_ROOT / "email_search_harness_status.json"
 FILTER_PATH = WORKSPACE_ROOT / "email_rag_sender_filters.json"
 TOKEN_PATH = WORKSPACE_ROOT / "token.json"
-LEGACY_TOKEN_PATH = Path("/home/node/clawd/../work/token.json")
+LEGACY_TOKEN_PATH = WORKSPACE_ROOT / ".." / "work" / "token.json"
 CREDS_PATH = WORKSPACE_ROOT / "credentials.json"
-LEGACY_CREDS_PATH = Path("/home/node/clawd/../workspace/credentials.json")
+LEGACY_CREDS_PATH = WORKSPACE_ROOT / ".." / "workspace" / "credentials.json"
 TIMEOUT = 30
 USER_AGENT = "claw-email-search-index/1.0"
+MISSION_CONTROL_PATH = WORKSPACE_ROOT / "MISSION_CONTROL.md"
 TASK_FILTER_CACHE: Optional[dict] = None
 TASK_KEYWORDS = (
     "依頼",
@@ -304,6 +305,45 @@ def decode_bytes(payload: bytes, charset: Optional[str]) -> str:
         except Exception:
             continue
     return payload.decode("utf-8", errors="replace")
+
+
+def is_vision_enabled() -> bool:
+    """Check MISSION_CONTROL.md to see if visual analysis is enabled."""
+    if not MISSION_CONTROL_PATH.exists():
+        return False
+    content = MISSION_CONTROL_PATH.read_text(encoding="utf-8")
+    return "添付資料の深掘り" in content or "Vision" in content
+
+
+def analyze_attachment_visually(mime_type: str, data_bytes: bytes, filename: str) -> str:
+    """Call Honki Router to analyze attachment visually (Images/PDFs)."""
+    if not is_vision_enabled():
+        return ""
+
+    router_url = os.getenv("ROUTER_URL", "http://localhost:18092/execute")
+    prompt = f"Analyze this attachment: {filename} ({mime_type}). "
+    if "pdf" in mime_type or "spreadsheet" in mime_type or "excel" in mime_type:
+        prompt += "If it's a table or list, extract the key rows and columns into a readable text format. "
+    else:
+        prompt += "Describe what is shown in this image (parts, defects, site conditions, people). "
+    prompt += "Focus on practical utility for engineering and quality management."
+
+    payload = {
+        "task": f"Analyze attachment {filename}",
+        "prompt": prompt,
+        "mode": "approved",
+        "metadata": {"filename": filename, "mime_type": mime_type}
+    }
+
+    try:
+        import requests as sync_requests
+        r = sync_requests.post(router_url, json=payload, timeout=60)
+        if r.status_code == 200:
+            data = r.json()
+            return data.get("response", {}).get("choices", [{}])[0].get("message", {}).get("content", "")
+    except Exception as e:
+        log(f"[WARN] Vision analysis failed for {filename}: {e}")
+    return ""
 
 
 def extract_attachment_text(mime_type: str, data_bytes: bytes) -> str:
@@ -786,6 +826,7 @@ class EmailRecord:
     body_hash: str = ""
     raw_sha1: str = ""
     attachment_text: str = ""
+    vision_analysis: str = ""
 
 
 @dataclass
@@ -837,6 +878,7 @@ def email_record_from_row(row: sqlite3.Row) -> EmailRecord:
         body_hash=row["body_hash"],
         raw_sha1=row["raw_sha1"],
         attachment_text=row["attachment_text"] if "attachment_text" in keys else "",
+        vision_analysis=row["vision_analysis"] if "vision_analysis" in keys else "",
     )
 
 
@@ -946,11 +988,12 @@ def decode_base64url(data: str) -> str:
     return decode_bytes(raw, "utf-8")
 
 
-def extract_gmail_parts(payload: dict) -> Tuple[str, List[str], str]:
+def extract_gmail_parts(payload: dict) -> Tuple[str, List[str], str, str]:
     plain_parts: List[str] = []
     html_parts: List[str] = []
     attachments: List[str] = []
     attachment_texts: List[str] = []
+    vision_analyses: List[str] = []
 
     def walk(part: dict) -> None:
         filename = decode_mime_words(part.get("filename"))
@@ -970,6 +1013,13 @@ def extract_gmail_parts(payload: dict) -> Tuple[str, List[str], str]:
                 extracted = extract_attachment_text(mime, raw)
                 if extracted:
                     attachment_texts.append(f"[{filename}]\n{extracted}")
+                
+                # Vision Analysis Integration
+                if is_vision_enabled() and ("image" in mime or "pdf" in mime):
+                    vision_result = analyze_attachment_visually(mime, raw, filename)
+                    if vision_result:
+                        vision_analyses.append(f"[{filename} Vision Analysis]\n{vision_result}")
+
         for child in part.get("parts", []) or []:
             walk(child)
 
@@ -978,13 +1028,14 @@ def extract_gmail_parts(payload: dict) -> Tuple[str, List[str], str]:
     if not body:
         body = "\n\n".join([p.strip() for p in html_parts if p.strip()]).strip()
     attachment_text = "\n\n".join(attachment_texts).strip()
-    return body, attachments, attachment_text
+    vision_analysis = "\n\n".join(vision_analyses).strip()
+    return body, attachments, attachment_text, vision_analysis
 
 
 def parse_gmail_message(message: dict) -> EmailRecord:
     payload = message.get("payload", {})
     headers = parse_gmail_headers(payload)
-    body, attachments, attachment_text = extract_gmail_parts(payload)
+    body, attachments, attachment_text, vision_analysis = extract_gmail_parts(payload)
     snippet = message.get("snippet", "") or body[:280]
     body_hash = hashlib.sha1(body.encode("utf-8", errors="ignore")).hexdigest()
     raw_sha1 = hashlib.sha1(
@@ -1001,6 +1052,7 @@ def parse_gmail_message(message: dict) -> EmailRecord:
         body_text=body,
         attachment_names=attachments,
         attachment_text=attachment_text,
+        vision_analysis=vision_analysis,
         gmail_thread_id=message.get("threadId", ""),
         gmail_message_id=message.get("id", ""),
         message_id_header=decode_mime_words(headers.get("message-id", "")),
@@ -1046,16 +1098,21 @@ def connect_db() -> sqlite3.Connection:
             body_hash TEXT NOT NULL DEFAULT '',
             raw_sha1 TEXT NOT NULL DEFAULT '',
             attachment_text TEXT NOT NULL DEFAULT '',
+            vision_analysis TEXT NOT NULL DEFAULT '',
             indexed_at TEXT NOT NULL,
             PRIMARY KEY (source, source_id)
         )
         """
     )
-    # マイグレーション: attachment_text カラムが存在しない既存DBに追加
+    # 2026-05-02 Migration: attachment_text / vision_analysis
     existing_email_cols = {r[1] for r in con.execute("PRAGMA table_info(emails)").fetchall()}
-    if "attachment_text" not in existing_email_cols:
-        con.execute("ALTER TABLE emails ADD COLUMN attachment_text TEXT NOT NULL DEFAULT ''")
-        # FTS/トリガーを attachment_text 対応版に再構築
+    if "attachment_text" not in existing_email_cols or "vision_analysis" not in existing_email_cols:
+        if "attachment_text" not in existing_email_cols:
+            con.execute("ALTER TABLE emails ADD COLUMN attachment_text TEXT NOT NULL DEFAULT ''")
+        if "vision_analysis" not in existing_email_cols:
+            con.execute("ALTER TABLE emails ADD COLUMN vision_analysis TEXT NOT NULL DEFAULT ''")
+        
+        # FTS/トリガーを再構築
         con.executescript(
             """
             DROP TRIGGER IF EXISTS emails_ai;
@@ -1074,6 +1131,7 @@ def connect_db() -> sqlite3.Connection:
                 body_text,
                 attachment_names,
                 attachment_text,
+                vision_analysis,
                 content='emails',
                 content_rowid='rowid',
                 tokenize='unicode61'
@@ -1084,18 +1142,18 @@ def connect_db() -> sqlite3.Connection:
             """
             INSERT INTO emails_fts(emails_fts) VALUES('rebuild');
             CREATE TRIGGER emails_ai AFTER INSERT ON emails BEGIN
-                INSERT INTO emails_fts(rowid, subject, sender, recipients, cc, body_text, attachment_names, attachment_text)
-                VALUES (new.rowid, new.subject, new.sender, new.recipients, new.cc, new.body_text, new.attachment_names, new.attachment_text);
+                INSERT INTO emails_fts(rowid, subject, sender, recipients, cc, body_text, attachment_names, attachment_text, vision_analysis)
+                VALUES (new.rowid, new.subject, new.sender, new.recipients, new.cc, new.body_text, new.attachment_names, new.attachment_text, new.vision_analysis);
             END;
             CREATE TRIGGER emails_ad AFTER DELETE ON emails BEGIN
-                INSERT INTO emails_fts(emails_fts, rowid, subject, sender, recipients, cc, body_text, attachment_names, attachment_text)
-                VALUES('delete', old.rowid, old.subject, old.sender, old.recipients, old.cc, old.body_text, old.attachment_names, old.attachment_text);
+                INSERT INTO emails_fts(emails_fts, rowid, subject, sender, recipients, cc, body_text, attachment_names, attachment_text, vision_analysis)
+                VALUES('delete', old.rowid, old.subject, old.sender, old.recipients, old.cc, old.body_text, old.attachment_names, old.attachment_text, old.vision_analysis);
             END;
             CREATE TRIGGER emails_au AFTER UPDATE ON emails BEGIN
-                INSERT INTO emails_fts(emails_fts, rowid, subject, sender, recipients, cc, body_text, attachment_names, attachment_text)
-                VALUES('delete', old.rowid, old.subject, old.sender, old.recipients, old.cc, old.body_text, old.attachment_names, old.attachment_text);
-                INSERT INTO emails_fts(rowid, subject, sender, recipients, cc, body_text, attachment_names, attachment_text)
-                VALUES (new.rowid, new.subject, new.sender, new.recipients, new.cc, new.body_text, new.attachment_names, new.attachment_text);
+                INSERT INTO emails_fts(emails_fts, rowid, subject, sender, recipients, cc, body_text, attachment_names, attachment_text, vision_analysis)
+                VALUES('delete', old.rowid, old.subject, old.sender, old.recipients, old.cc, old.body_text, old.attachment_names, old.attachment_text, old.vision_analysis);
+                INSERT INTO emails_fts(rowid, subject, sender, recipients, cc, body_text, attachment_names, attachment_text, vision_analysis)
+                VALUES (new.rowid, new.subject, new.sender, new.recipients, new.cc, new.body_text, new.attachment_names, new.attachment_text, new.vision_analysis);
             END;
             """
         )
@@ -1111,6 +1169,7 @@ def connect_db() -> sqlite3.Connection:
                 body_text,
                 attachment_names,
                 attachment_text,
+                vision_analysis,
                 content='emails',
                 content_rowid='rowid',
                 tokenize='unicode61'
@@ -1120,21 +1179,22 @@ def connect_db() -> sqlite3.Connection:
         con.executescript(
             """
             CREATE TRIGGER IF NOT EXISTS emails_ai AFTER INSERT ON emails BEGIN
-                INSERT INTO emails_fts(rowid, subject, sender, recipients, cc, body_text, attachment_names, attachment_text)
-                VALUES (new.rowid, new.subject, new.sender, new.recipients, new.cc, new.body_text, new.attachment_names, new.attachment_text);
+                INSERT INTO emails_fts(rowid, subject, sender, recipients, cc, body_text, attachment_names, attachment_text, vision_analysis)
+                VALUES (new.rowid, new.subject, new.sender, new.recipients, new.cc, new.body_text, new.attachment_names, new.attachment_text, new.vision_analysis);
             END;
             CREATE TRIGGER IF NOT EXISTS emails_ad AFTER DELETE ON emails BEGIN
-                INSERT INTO emails_fts(emails_fts, rowid, subject, sender, recipients, cc, body_text, attachment_names, attachment_text)
-                VALUES('delete', old.rowid, old.subject, old.sender, old.recipients, old.cc, old.body_text, old.attachment_names, old.attachment_text);
+                INSERT INTO emails_fts(emails_fts, rowid, subject, sender, recipients, cc, body_text, attachment_names, attachment_text, vision_analysis)
+                VALUES('delete', old.rowid, old.subject, old.sender, old.recipients, old.cc, old.body_text, old.attachment_names, old.attachment_text, old.vision_analysis);
             END;
             CREATE TRIGGER IF NOT EXISTS emails_au AFTER UPDATE ON emails BEGIN
-                INSERT INTO emails_fts(emails_fts, rowid, subject, sender, recipients, cc, body_text, attachment_names, attachment_text)
-                VALUES('delete', old.rowid, old.subject, old.sender, old.recipients, old.cc, old.body_text, old.attachment_names, old.attachment_text);
-                INSERT INTO emails_fts(rowid, subject, sender, recipients, cc, body_text, attachment_names, attachment_text)
-                VALUES (new.rowid, new.subject, new.sender, new.recipients, new.cc, new.body_text, new.attachment_names, new.attachment_text);
+                INSERT INTO emails_fts(emails_fts, rowid, subject, sender, recipients, cc, body_text, attachment_names, attachment_text, vision_analysis)
+                VALUES('delete', old.rowid, old.subject, old.sender, old.recipients, old.cc, old.body_text, old.attachment_names, old.attachment_text, old.vision_analysis);
+                INSERT INTO emails_fts(rowid, subject, sender, recipients, cc, body_text, attachment_names, attachment_text, vision_analysis)
+                VALUES (new.rowid, new.subject, new.sender, new.recipients, new.cc, new.body_text, new.attachment_names, new.attachment_text, new.vision_analysis);
             END;
             """
         )
+        con.commit()
     con.execute(
         """
         CREATE TABLE IF NOT EXISTS tasks (
@@ -1208,8 +1268,8 @@ def upsert_record(con: sqlite3.Connection, record: EmailRecord) -> None:
             source, source_id, subject, sender, recipients, cc, email_date, body_text,
             attachment_names, filepath, category, person, gmail_thread_id, gmail_message_id,
             message_id_header, labels_json, internal_ts, snippet, body_hash, raw_sha1,
-            attachment_text, indexed_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            attachment_text, vision_analysis, indexed_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(source, source_id) DO UPDATE SET
             subject=excluded.subject,
             sender=excluded.sender,
@@ -1230,6 +1290,7 @@ def upsert_record(con: sqlite3.Connection, record: EmailRecord) -> None:
             body_hash=excluded.body_hash,
             raw_sha1=excluded.raw_sha1,
             attachment_text=CASE WHEN excluded.attachment_text != '' THEN excluded.attachment_text ELSE emails.attachment_text END,
+            vision_analysis=CASE WHEN excluded.vision_analysis != '' THEN excluded.vision_analysis ELSE emails.vision_analysis END,
             indexed_at=excluded.indexed_at
         """,
         (
@@ -1254,6 +1315,7 @@ def upsert_record(con: sqlite3.Connection, record: EmailRecord) -> None:
             record.body_hash,
             record.raw_sha1,
             record.attachment_text,
+            record.vision_analysis,
             now_iso(),
         ),
     )
@@ -1648,10 +1710,10 @@ def cmd_search(args: argparse.Namespace) -> int:
             params: List[object] = []
             for term in terms:
                 clauses.append(
-                    "(subject LIKE ? OR sender LIKE ? OR recipients LIKE ? OR cc LIKE ? OR body_text LIKE ? OR attachment_names LIKE ?)"
+                "(subject LIKE ? OR sender LIKE ? OR recipients LIKE ? OR cc LIKE ? OR body_text LIKE ? OR attachment_names LIKE ? OR attachment_text LIKE ? OR vision_analysis LIKE ?)"
                 )
                 needle = f"%{term}%"
-                params.extend([needle, needle, needle, needle, needle, needle])
+                params.extend([needle, needle, needle, needle, needle, needle, needle, needle])
             params.append(args.limit)
             rows = con.execute(
                 f"""
@@ -1755,8 +1817,36 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main() -> int:
     parser = build_parser()
+    subs = parser._subparsers._group_actions[0]
+    parser_suggest = subs.add_parser("suggest-buzz", help="Suggest buzz-worthy technical insights from recent emails")
+    parser_suggest.set_defaults(func=cmd_suggest_buzz)
+
     args = parser.parse_args()
+    if not hasattr(args, "func"):
+        parser.print_help()
+        return 0
     return args.func(args)
+
+
+def cmd_suggest_buzz(args):
+    """Suggests technical insights suitable for the V10 Buzz Strategy."""
+    con = connect_db()
+    # Fetch recent technical or quality related emails
+    rows = con.execute(
+        "SELECT subject, body_text, vision_analysis FROM emails ORDER BY indexed_at DESC LIMIT 20"
+    ).fetchall()
+    
+    print("\n=== [V10 Buzz Insights Scout] ===")
+    for row in rows:
+        subject, body, vision = row
+        # Simple heuristic: look for failure/improvement keywords
+        content = f"{subject} {body} {vision}"
+        if any(kw in content for kw in ["不良", "改善", "失敗", "水漏れ", "向上", "ミス", "解決"]):
+            print(f"\n[CANDIDATE]: {subject}")
+            snippet = (vision if vision else body)[:200].replace("\n", " ")
+            print(f"SEED DATA: {snippet}...")
+            print("-" * 30)
+    return 0
 
 
 if __name__ == "__main__":

@@ -4,8 +4,8 @@ model_list:
   - model_name: opencode-go-research
     litellm_params:
       model: openai/deepseek-v4-flash
-      api_base: "${OPENCODE_GO_API_BASE}"
-      api_key: "${OPENCODE_GO_API_KEY}"
+      api_base: https://opencode.ai/zen/go/v1
+      api_key: os.environ/OPENCODE_GO_API_KEY
       timeout: 120
     model_info:
       mode: external_public_research_only
@@ -23,32 +23,32 @@ model_list:
   - model_name: opencode-go/qwen3.6-plus
     litellm_params:
       model: openai/qwen3.6-plus
-      api_base: "${OPENCODE_GO_API_BASE}"
-      api_key: "${OPENCODE_GO_API_KEY}"
+      api_base: https://opencode.ai/zen/go/v1
+      api_key: os.environ/OPENCODE_GO_API_KEY
       timeout: 300
   - model_name: opencode-go/kimi-k2.6
     litellm_params:
       model: openai/kimi-k2.6
-      api_base: "${OPENCODE_GO_API_BASE}"
-      api_key: "${OPENCODE_GO_API_KEY}"
+      api_base: https://opencode.ai/zen/go/v1
+      api_key: os.environ/OPENCODE_GO_API_KEY
       timeout: 300
   - model_name: opencode-go/glm-5.1
     litellm_params:
       model: openai/glm-5.1
-      api_base: "${OPENCODE_GO_API_BASE}"
-      api_key: "${OPENCODE_GO_API_KEY}"
+      api_base: https://opencode.ai/zen/go/v1
+      api_key: os.environ/OPENCODE_GO_API_KEY
       timeout: 300
   - model_name: opencode-go/deepseek-v4-flash
     litellm_params:
       model: openai/deepseek-v4-flash
-      api_base: "${OPENCODE_GO_API_BASE}"
-      api_key: "${OPENCODE_GO_API_KEY}"
+      api_base: https://opencode.ai/zen/go/v1
+      api_key: os.environ/OPENCODE_GO_API_KEY
       timeout: 300
   - model_name: opencode-go/deepseek-v4-pro
     litellm_params:
       model: openai/deepseek-v4-pro
-      api_base: "${OPENCODE_GO_API_BASE}"
-      api_key: "${OPENCODE_GO_API_KEY}"
+      api_base: https://opencode.ai/zen/go/v1
+      api_key: os.environ/OPENCODE_GO_API_KEY
       timeout: 600
 
   # ── DeepSeek V4 Production Layer (Added 2026-04-28) ─────────────
@@ -215,6 +215,3 @@ environment_variables:
   MOONSHOT_API_KEY: "os.environ/MOONSHOT_API_KEY"
   KIMI_BASE_URL: "os.environ/KIMI_BASE_URL"
   CLOUD_OPENAI_API_KEY: "os.environ/CLOUD_OPENAI_API_KEY"
-  # OpenCode GO
-  OPENCODE_GO_API_KEY: "os.environ/OPENCODE_GO_API_KEY"
-  OPENCODE_GO_API_BASE: "os.environ/OPENCODE_GO_API_BASE"

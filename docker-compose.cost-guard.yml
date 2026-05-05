@@ -1,0 +1,19 @@
+services:
+  cloud-cost-guard:
+    image: python:3.11-slim
+    container_name: clawstack-cloud-cost-guard
+    working_dir: /app
+    volumes:
+      - ./data/workspace/cloud_cost_guard:/app
+    env_file:
+      - ./data/workspace/cloud_cost_guard/.env
+    command: sh -c "pip install -r api_guard/requirements.txt && uvicorn api_guard.main:app --host 0.0.0.0 --port 18799"
+    ports:
+      - "127.0.0.1:18799:18799"
+    networks:
+      - clawstack-unified
+    restart: unless-stopped
+
+networks:
+  clawstack-unified:
+    external: true

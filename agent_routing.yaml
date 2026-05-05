@@ -1,0 +1,5 @@
+routing:
+  quick:
+    model: qwen3:8b
+  deep:
+    model: deepseek-pro

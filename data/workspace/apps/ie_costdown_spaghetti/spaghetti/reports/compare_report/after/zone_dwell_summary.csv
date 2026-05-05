@@ -1,0 +1,6 @@
+﻿tag_id,zone_id,dwell_sec,samples,dwell_ratio
+worker_anon_01,INSPECT_4,70.0,71,0.30701754385964913
+worker_anon_01,INSPECT_5,69.0,69,0.3026315789473684
+worker_anon_01,BUFFER,42.0,42,0.18421052631578946
+worker_anon_01,OUTSIDE,31.0,31,0.13596491228070176
+worker_anon_01,BOX,16.0,16,0.07017543859649122

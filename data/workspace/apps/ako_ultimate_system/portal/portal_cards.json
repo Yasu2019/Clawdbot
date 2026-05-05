@@ -1,0 +1,17 @@
+[
+  {
+    "name": "AKO Ultimate - AI品質分析",
+    "endpoint": "/ako/run",
+    "description": "質問を自動ルーティングし、Corpus2Skill/LightRAG/GraphRAG/RAGを切替"
+  },
+  {
+    "name": "AKO Corpus2Skill",
+    "endpoint": "/ako/corpus",
+    "description": "IATF・規定・手順書の階層探索"
+  },
+  {
+    "name": "AKO Evidence Verifier",
+    "endpoint": "/ako/verify",
+    "description": "根拠不足や推測回答を検出"
+  }
+]

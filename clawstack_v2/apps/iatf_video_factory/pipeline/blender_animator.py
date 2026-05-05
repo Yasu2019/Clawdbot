@@ -39,10 +39,14 @@ def clear_scene():
         for item in list(d):
             d.remove(item)
 
-def setup_camera(pos=(0, 4, 1.5), target_z=1.0):
+def setup_camera(pos=(0, -14, 3.0), target=(0, 0, 1.4)):
+    from mathutils import Vector
     bpy.ops.object.camera_add(location=pos)
     cam = bpy.context.object
-    cam.rotation_euler = (math.radians(90), 0, math.radians(180))
+    direction = Vector(target) - Vector(pos)
+    cam.rotation_euler = direction.to_track_quat("-Z", "Y").to_euler()
+    cam.data.lens = 18
+    cam.data.clip_end = 100
     bpy.context.scene.camera = cam
 
 def setup_lighting():
@@ -112,7 +116,8 @@ def animate_breathing(armature_obj, fps, total_frames):
             if pbone:
                 bpy.context.scene.frame_set(frame)
                 pbone.rotation_mode = "XYZ"
-                pbone.rotation_euler[0] = math.sin(t * 0.5) * 0.015
+                # 0.05rad (≈3°) — QA ahash で差分が出る最低限
+                pbone.rotation_euler[0] = math.sin(t * 0.5) * 0.05
                 pbone.keyframe_insert("rotation_euler", frame=frame)
 
 def animate_blink(armature_obj, fps, total_frames, seed=42):
@@ -200,7 +205,9 @@ for char in active_chars:
         continue
     objs = import_glb(glb)
     for obj in objs:
-        obj.location = CHARACTER_POSITIONS.get(char, (0,0,0))
+        if obj.parent is None:
+            obj.location = CHARACTER_POSITIONS.get(char, (0,0,0))
+            obj.rotation_euler[2] = math.radians(180)
     arm = next((o for o in objs if o.type == "ARMATURE"), None)
     if arm:
         add_jaw_bone(arm)
@@ -239,6 +246,40 @@ for entry in timeline_data:
     phonemes = [p for p in phoneme_data if p.get("character") == char]
     if phonemes:
         animate_lipsync(arm, phonemes, fps)
+
+# ── シーン別背景カラー（フレーム差分を確実に保証）──────────────────
+# 各台詞セグメントごとに背景色を変えることでahash差分を強制生成する
+_BG_COLORS = [
+    (0.02, 0.02, 0.08, 1.0),  (0.50, 0.30, 0.10, 1.0),
+    (0.02, 0.08, 0.02, 1.0),  (0.10, 0.40, 0.50, 1.0),
+    (0.08, 0.02, 0.02, 1.0),  (0.50, 0.45, 0.10, 1.0),
+    (0.02, 0.02, 0.10, 1.0),  (0.40, 0.10, 0.50, 1.0),
+    (0.08, 0.04, 0.02, 1.0),  (0.10, 0.50, 0.25, 1.0),
+    (0.02, 0.08, 0.08, 1.0),  (0.50, 0.15, 0.35, 1.0),
+    (0.06, 0.02, 0.08, 1.0),  (0.20, 0.50, 0.10, 1.0),
+    (0.08, 0.04, 0.04, 1.0),  (0.25, 0.25, 0.50, 1.0),
+    (0.02, 0.06, 0.02, 1.0),  (0.50, 0.25, 0.10, 1.0),
+    (0.04, 0.02, 0.08, 1.0),  (0.15, 0.50, 0.40, 1.0),
+    (0.08, 0.08, 0.02, 1.0),  (0.45, 0.10, 0.25, 1.0),
+    (0.02, 0.04, 0.08, 1.0),  (0.35, 0.40, 0.15, 1.0),
+]
+_world = bpy.context.scene.world
+if _world is None:
+    bpy.ops.world.new()
+    _world = bpy.context.scene.world
+_world.use_nodes = True
+_bg_node = _world.node_tree.nodes.get("Background")
+if _bg_node:
+    for _i, _entry in enumerate(timeline_data):
+        _col = _BG_COLORS[_i % len(_BG_COLORS)]
+        _fs = int(_entry["start_sec"] * fps)
+        _fe = int((_entry["start_sec"] + _entry["duration_sec"]) * fps)
+        bpy.context.scene.frame_set(_fs)
+        _bg_node.inputs[0].default_value = _col
+        _bg_node.inputs[0].keyframe_insert("default_value", frame=_fs)
+        bpy.context.scene.frame_set(_fe)
+        _bg_node.inputs[0].default_value = _col
+        _bg_node.inputs[0].keyframe_insert("default_value", frame=_fe)
 
 bpy.ops.render.render(animation=True, write_still=True)
 print("Render complete:", total_frames, "frames")

@@ -1,0 +1,30 @@
+services:
+  clawstack-auto-router:
+    build:
+      context: ./data/workspace/router_service/router
+      dockerfile: Dockerfile
+    container_name: clawstack-auto-router
+    environment:
+      - DRY_RUN=true
+      - ROUTER_CONFIG=/app/configs/routing.yaml
+      - BUDGET_CONFIG=/app/configs/budget.yaml
+      - SAFETY_CONFIG=/app/configs/safety.yaml
+      - PROVIDERS_CONFIG=/app/configs/providers.local.yaml
+      - LOG_DIR=/app/logs
+      - LITELLM_BASE_URL=http://litellm:4000
+    volumes:
+      - ./data/workspace/router_service/configs:/app/configs
+      - ./data/workspace/router_service/logs:/app/logs
+      - ./data/workspace/router_service/router:/app
+    ports:
+      - "127.0.0.1:18092:8099"
+    networks:
+      - default
+    restart: unless-stopped
+    depends_on:
+      - litellm
+
+networks:
+  default:
+    external: true
+    name: clawstack-unified

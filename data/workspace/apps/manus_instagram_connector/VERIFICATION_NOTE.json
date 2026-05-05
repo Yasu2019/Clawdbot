@@ -1,0 +1,6 @@
+{
+  "generated_at": "2026-05-03",
+  "safety_scan_builtin_count": 0,
+  "safety_scan_notes": "Dangerous command strings are allowed only in explicit safety/forbidden/rollback documentation and adoption prompts as warning text.",
+  "file_count": 55
+}

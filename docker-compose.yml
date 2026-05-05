@@ -488,7 +488,7 @@ services:
     image: ghcr.io/berriai/litellm:main
     entrypoint: [ "/bin/sh", "/app/litellm_entrypoint.sh" ]
     ports:
-      - "127.0.0.1:4000:4000"
+      - "127.0.0.1:4001:4000"
     volumes:
       - ./data/state/litellm_config.yaml:/app/proxy_server_config.yaml:ro
       - ./data/state/litellm_entrypoint.sh:/app/litellm_entrypoint.sh:ro
@@ -504,6 +504,8 @@ services:
       - CLOUD_OPENAI_API_KEY=${CLOUD_OPENAI_API_KEY}
       - OPENCODE_GO_API_KEY=${OPENCODE_GO_API_KEY}
       - OPENCODE_GO_API_BASE=${OPENCODE_GO_API_BASE}
+      - OPENCODE_API_KEY=${OPENCODE_API_KEY}
+      - OPENCODE_ZEN_API_KEY=${OPENCODE_ZEN_API_KEY}
       - OLLAMA_API_BASE=http://ollama:11434
       - OPENAI_API_KEY=ollama
     depends_on:

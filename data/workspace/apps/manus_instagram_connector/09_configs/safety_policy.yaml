@@ -1,0 +1,55 @@
+version: 1
+name: openclaw_manus_instagram_safety_policy
+default_mode: dry_run
+requires_human_approval_before_publish: true
+
+allowed:
+  - draft_generation
+  - caption_generation
+  - hashtag_suggestion
+  - content_calendar_generation
+  - insight_summary
+  - weekly_report_generation
+  - manual_review
+  - approved_post_scheduling
+
+prohibited:
+  - auto_publish_without_approval
+  - unofficial_scraping
+  - auto_dm
+  - auto_like
+  - auto_follow
+  - credential_dump
+  - plaintext_token_storage
+  - destructive_docker_commands
+  - database_write
+  - volume_delete
+  - env_overwrite
+
+blocked_shell_patterns:
+  - "docker compose down -v"
+  - "docker volume rm"
+  - "docker system prune"
+  - "rm -rf"
+  - "Remove-Item -Recurse -Force"
+  - "DROP "
+  - "DELETE "
+  - "UPDATE "
+  - "INSERT "
+  - "TRUNCATE "
+
+review_required_for:
+  - post_publish
+  - story_publish
+  - reel_publish
+  - ad_manager_action
+  - paid_partnership_label
+  - affiliate_link
+  - legal_or_regulatory_claim
+  - customer_or_supplier_reference
+
+constraints:
+  daily_credit_limit_adherence: true
+  stay_within_replenished_credits: true
+  report_expected_high_consumption: true
+  manual_approval_required_for_expensive_tasks: true

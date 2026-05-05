@@ -1,0 +1,23 @@
+video:
+  chunk_minutes: 5
+  frame_interval_sec: 2
+  scene_threshold: 0.35
+  max_frames_per_chunk: 80
+ocr:
+  engine: tesseract
+  languages: "jpn+eng"
+ai:
+  provider: opencodego
+  preferred_models:
+    coding: "deepseek-coder"
+    japanese_manual: "deepseek-pro"
+    fallback: "qwen-coder"
+output:
+  formats: ["markdown", "html"]
+  include_checklist: true
+  include_audit_evidence: true
+safety:
+  read_only: true
+  no_db_write: true
+  no_volume_delete: true
+  require_existing_system_check: true

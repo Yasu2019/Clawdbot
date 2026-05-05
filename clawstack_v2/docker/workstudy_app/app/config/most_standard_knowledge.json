@@ -1,0 +1,74 @@
+{
+  "methodology": "New MOST (Maynard Operation Sequence Technique)",
+  "sequences": {
+    "general_move": {
+      "model": "A B G A B P A",
+      "description": "自由な空間での物体の移動",
+      "components": {
+        "A": "Action Distance (移動距離)",
+        "B": "Body Motion (体の動き)",
+        "G": "Gain Control (制御の取得)",
+        "P": "Placement (配置)"
+      },
+      "formula": "sum(indices) * 10"
+    },
+    "controlled_move": {
+      "model": "A B G M X I A",
+      "description": "経路上を拘束された状態での物体の移動",
+      "components": {
+        "A": "Action Distance (移動距離)",
+        "B": "Body Motion (体の動き)",
+        "G": "Gain Control (制御の取得)",
+        "M": "Move Controlled (制御移動)",
+        "X": "Process Time (プロセス時間)",
+        "I": "Alignment (整列)"
+      },
+      "formula": "sum(indices) * 10"
+    },
+    "tool_use": {
+      "model": "A B G A B P F/CP A B P A",
+      "description": "手工具の使用",
+      "components": {
+        "F": "Fasten/Loosen (締める/緩める)",
+        "CP": "Cut/Polish (切る/磨く)",
+        "S": "Surface Treat (表面処理)",
+        "M": "Measure (測定)",
+        "R": "Record (記録)",
+        "T": "Think (考える)"
+      },
+      "formula": "sum(indices) * 10"
+    }
+  },
+  "index_tables": {
+    "A": {
+      "0": "≤ 5cm (指の動きのみ)",
+      "1": "< 0.6m (手の届く範囲)",
+      "3": "0.6m - 1.5m (1-2歩)",
+      "6": "1.5m - 3.5m (3-4歩)",
+      "10": "3.5m - 5.0m (5-7歩)"
+    },
+    "B": {
+      "0": "なし",
+      "3": "腰を曲げる/戻す (50%)",
+      "6": "屈む/戻す、座る/立つ",
+      "10": "通り抜ける、登る"
+    },
+    "G": {
+      "0": "なし",
+      "1": "軽い物体、容易な把持",
+      "3": "重い物体、絡み合った部品",
+      "6": "注意を要する把持、壊れやすいもの"
+    },
+    "P": {
+      "0": "なし",
+      "1": "大まかな配置、投げ入れ",
+      "3": "緩い嵌め合い、調整を要する配置",
+      "6": "きつい嵌め合い、高精度な位置決め"
+    },
+    "M": {
+      "1": "≤ 30cmの移動、ボタン押し",
+      "3": "> 30cmの移動、レバー操作",
+      "6": "高精度な制御移動、円弧移動"
+    }
+  }
+}

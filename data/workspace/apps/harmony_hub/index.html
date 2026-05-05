@@ -95,7 +95,11 @@
                 <div class="result-box" id="progressionResult">
                     Click generate to see patterns.
                 </div>
-                <button id="playBtn" style="margin-top:10px; display:none;">Play Audio (MIDI)</button>
+                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                    <button id="playBtn" style="flex: 1; display:none;">Play Preview</button>
+                    <button id="musescoreBtn" style="flex: 1; display:none; background: #3a7bd5;">High-Quality Render (MuseScore)</button>
+                </div>
+                <div id="renderStatus" style="margin-top: 10px; font-size: 0.85rem; color: var(--primary);"></div>
             </div>
         </div>
     </div>
@@ -215,7 +219,45 @@
             // Render Score
             currentVisualObj = ABCJS.renderAbc("paper", abcString, { responsive: 'resize' });
             document.getElementById('playBtn').style.display = 'block';
+            document.getElementById('musescoreBtn').style.display = 'block';
         }
+
+        async function renderWithMuseScore() {
+            const status = document.getElementById('renderStatus');
+            status.innerHTML = "Rendering with MuseScore 4... Please wait.";
+            
+            // Generate a simple MusicXML from the current progression (simplified for demo)
+            const key = document.getElementById('keySelect').value;
+            const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE score-partwise PUBLIC "-//Recordare//DTD MusicXML 3.1 Partwise//EN" "http://www.musicxml.org/dtds/partwise.dtd">
+<score-partwise version="3.1">
+  <part-list><score-part id="P1"><part-name>Piano</part-name></score-part></part-list>
+  <part id="P1">
+    <measure number="1">
+      <attributes><divisions>1</divisions><key><fifths>0</fifths></key><time><beats>4</beats><beat-type>4</beat-type></time><clef><sign>G</sign><line>2</line></clef></attributes>
+      <note><pitch><step>C</step><octave>4</octave></pitch><duration>4</duration><type>whole</type></note>
+    </measure>
+  </part>
+</score-partwise>`;
+
+            try {
+                const res = await fetch('http://localhost:18099/render', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ xml: xml, filename: `harmony_${Date.now()}.wav` })
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    status.innerHTML = `Render Success! <a href="${data.url}" target="_blank" style="color:white; text-decoration:underline;">Download WAV</a>`;
+                } else {
+                    status.innerHTML = "Render Failed: " + data.message;
+                }
+            } catch (e) {
+                status.innerHTML = "MuseScore API not reachable. Make sure musescore_api.py is running.";
+            }
+        }
+
+        document.getElementById('musescoreBtn').addEventListener('click', renderWithMuseScore);
 
         document.getElementById('playBtn').addEventListener('click', function() {
             if (currentVisualObj && currentVisualObj[0]) {

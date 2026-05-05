@@ -85,6 +85,18 @@ def add_text(name, text, loc, size, material, align="LEFT"):
     obj.data.materials.append(material)
     return obj
 
+def add_empty(name, loc, parent=None):
+    obj = bpy.data.objects.new(name, None)
+    bpy.context.collection.objects.link(obj)
+    obj.empty_display_type = "SPHERE"
+    obj.empty_display_size = 0.06
+    if parent:
+        obj.parent = parent
+        obj.location = loc
+    else:
+        obj.location = loc
+    return obj
+
 def key(obj, frame, loc=None, scale=None, rot=None):
     bpy.context.scene.frame_set(frame)
     if loc is not None:
@@ -150,8 +162,23 @@ right_lid = add_cube("right_eyelid", (-1.43, -0.315, 1.675), (0.14, 0.014, 0.020
 left_brow = add_cube("left_brow", (-1.68, -0.320, 1.78), (0.16, 0.014, 0.020), black_m)
 right_brow = add_cube("right_brow", (-1.43, -0.320, 1.78), (0.16, 0.014, 0.020), black_m)
 mouth = add_cube("mouth_opening", (-1.55, -0.325, 1.48), (0.19, 0.014, 0.045), mouth_m)
-arm = add_cube("pointing_arm", (-1.12, -0.03, 1.02), (0.90, 0.12, 0.13), skin_m)
-finger = add_cube("pointing_finger", (-0.62, -0.11, 1.07), (0.28, 0.065, 0.065), skin_m)
+
+# Hierarchical arm rig: shoulder -> elbow -> wrist -> hand.
+shoulder = add_empty("right_shoulder_joint", (-1.32, -0.12, 1.18))
+upper_arm = add_cube("upper_arm", (0, 0, 0), (0.48, 0.12, 0.13), skin_m)
+upper_arm.parent = shoulder
+upper_arm.location = (0.24, 0, 0)
+elbow = add_empty("right_elbow_joint", (0.48, 0, 0), shoulder)
+forearm = add_cube("forearm", (0, 0, 0), (0.48, 0.105, 0.115), skin_m)
+forearm.parent = elbow
+forearm.location = (0.24, 0, 0)
+wrist = add_empty("right_wrist_joint", (0.48, 0, 0), elbow)
+hand = add_cube("hand", (0, 0, 0), (0.18, 0.09, 0.09), skin_m)
+hand.parent = wrist
+hand.location = (0.09, 0, 0)
+finger = add_cube("index_finger", (0, 0, 0), (0.28, 0.045, 0.045), skin_m)
+finger.parent = wrist
+finger.location = (0.29, -0.01, 0.02)
 
 # Character motion: talk, blink, expression, and point toward evidence in sequence.
 for f, h in [(1, 0.35), (5, 1.25), (10, 0.45), (15, 1.65), (20, 0.30), (26, 1.10), (32, 0.45), (39, 1.45), (47, 0.35), (55, 1.00), (60, 0.45)]:
@@ -176,14 +203,18 @@ key(head, 28, rot=(math.radians(4), 0, math.radians(-3)))
 key(head, 44, rot=(math.radians(-2), 0, math.radians(2)))
 key(head, 60, rot=(0, 0, 0))
 
-key(arm, 1, rot=(0, 0, math.radians(-10)), loc=(-1.12, -0.03, 1.02))
-key(finger, 1, rot=(0, 0, math.radians(-10)), loc=(-0.62, -0.11, 1.07))
-key(arm, 14, rot=(0, 0, math.radians(4)), loc=(-1.03, -0.03, 1.12))
-key(finger, 14, rot=(0, 0, math.radians(4)), loc=(-0.52, -0.11, 1.16))
-key(arm, 30, rot=(0, 0, math.radians(11)), loc=(-1.00, -0.03, 1.15))
-key(finger, 30, rot=(0, 0, math.radians(11)), loc=(-0.43, -0.11, 1.20))
-key(arm, 60, rot=(0, 0, math.radians(8)), loc=(-1.01, -0.03, 1.13))
-key(finger, 60, rot=(0, 0, math.radians(8)), loc=(-0.45, -0.11, 1.18))
+key(shoulder, 1, rot=(0, 0, math.radians(-24)))
+key(elbow, 1, rot=(0, 0, math.radians(18)))
+key(wrist, 1, rot=(0, 0, math.radians(4)))
+key(shoulder, 14, rot=(0, 0, math.radians(-7)))
+key(elbow, 14, rot=(0, 0, math.radians(13)))
+key(wrist, 14, rot=(0, 0, math.radians(0)))
+key(shoulder, 30, rot=(0, 0, math.radians(7)))
+key(elbow, 30, rot=(0, 0, math.radians(10)))
+key(wrist, 30, rot=(0, 0, math.radians(-5)))
+key(shoulder, 60, rot=(0, 0, math.radians(3)))
+key(elbow, 60, rot=(0, 0, math.radians(12)))
+key(wrist, 60, rot=(0, 0, math.radians(-3)))
 
 # Evidence emphasis: slight sequential pop without moving labels out of view.
 for obj, start in [(qmi, 4), (work_card, 16), (box40, 28), (box50, 36), (fifo, 44), (old_lot, 52)]:

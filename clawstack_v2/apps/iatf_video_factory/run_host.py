@@ -34,6 +34,7 @@ if _env_file.exists():
                 os.environ[_k.strip()] = _v.strip()
 
 sys.path.insert(0, str(Path(__file__).parent / "pipeline"))
+sys.path.insert(0, str(ROOT / "data" / "workspace"))
 
 # ── ロガー ────────────────────────────────────────────────────────
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -57,9 +58,18 @@ def _try_db_insert(pdf_name, clause, topic):
             cur.execute("""CREATE TABLE IF NOT EXISTS generated_videos (
                 id SERIAL PRIMARY KEY, pdf_name TEXT, clause TEXT, topic TEXT,
                 output_mp4 TEXT, status TEXT DEFAULT 'pending',
-                model_used TEXT, duration_sec FLOAT, error_msg TEXT,
+                model_used TEXT, duration_sec FLOAT, error_msg TEXT, error_code TEXT,
                 created_at TIMESTAMPTZ DEFAULT NOW(), updated_at TIMESTAMPTZ DEFAULT NOW()
             )""")
+            cur.execute("ALTER TABLE generated_videos ADD COLUMN IF NOT EXISTS error_code TEXT")
+            # 再発エラー検知: 同PDFで同エラーが2回以上あれば警告
+            cur.execute(
+                "SELECT error_code, COUNT(*) FROM generated_videos WHERE pdf_name=%s AND error_code IS NOT NULL GROUP BY error_code HAVING COUNT(*)>=2",
+                (pdf_name,))
+            recurring = cur.fetchall()
+            if recurring:
+                for ec, cnt in recurring:
+                    log(f"  [WARN] 再発エラー検知: pdf={pdf_name} error_code={ec} ({cnt}回)")
             cur.execute(
                 "INSERT INTO generated_videos (pdf_name, clause, topic, status) VALUES (%s,%s,%s,'running') RETURNING id",
                 (pdf_name, clause, topic))
@@ -70,7 +80,7 @@ def _try_db_insert(pdf_name, clause, topic):
         log(f"  DB skip: {e}")
         return None
 
-def _try_db_update(row_id, status, output_mp4=None, model_used=None, error_msg=None):
+def _try_db_update(row_id, status, output_mp4=None, model_used=None, error_msg=None, error_code=None):
     if row_id is None:
         return
     try:
@@ -79,8 +89,8 @@ def _try_db_update(row_id, status, output_mp4=None, model_used=None, error_msg=N
         db = psycopg2.connect(f"postgresql://postgres:{pg_pw}@localhost:5432/sim_trials?connect_timeout=5")
         with db, db.cursor() as cur:
             cur.execute(
-                "UPDATE generated_videos SET status=%s, output_mp4=%s, model_used=%s, error_msg=%s, updated_at=NOW() WHERE id=%s",
-                (status, output_mp4, model_used, error_msg, row_id))
+                "UPDATE generated_videos SET status=%s, output_mp4=%s, model_used=%s, error_msg=%s, error_code=%s, updated_at=NOW() WHERE id=%s",
+                (status, output_mp4, model_used, error_msg, error_code, row_id))
         db.close()
     except Exception:
         pass
@@ -199,6 +209,38 @@ def slide_preflight_gate(script: dict, timeline: list, video_dir: Path, title: s
     return report
 
 
+def opencode_go_preflight_gate(video_dir: Path) -> dict:
+    if os.getenv("IATF_VIDEO_OPENCODE_PREFLIGHT", "1").strip() == "0":
+        log("  OpenCodeGo preflight skipped by IATF_VIDEO_OPENCODE_PREFLIGHT=0")
+        return {"ok": True, "skipped": True}
+
+    from iatf_opencode_go_preflight import main as _opencode_preflight_main
+
+    old_argv = sys.argv[:]
+    try:
+        sys.argv = ["iatf_opencode_go_preflight.py", "--direct-only"]
+        if os.getenv("IATF_VIDEO_OPENCODE_REQUIRE_LITELLM", "0").strip() == "1":
+            sys.argv.append("--require-litellm")
+        exit_code = _opencode_preflight_main()
+    finally:
+        sys.argv = old_argv
+
+    status_path = ROOT / "data" / "workspace" / "iatf_opencode_go_preflight_status.json"
+    report = json.loads(status_path.read_text(encoding="utf-8"))
+    video_dir.mkdir(parents=True, exist_ok=True)
+    (video_dir / "opencode_go_preflight_status.json").write_text(
+        json.dumps(report, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+    if exit_code != 0 or not report.get("ok"):
+        raise RuntimeError(
+            "OpenCodeGo preflight failed; stop before IATF video generation. "
+            f"See {status_path}"
+        )
+    log(f"  OpenCodeGo preflight OK: {report.get('usable_litellm_routes', [])[:1]}")
+    return report
+
+
 def compose_approved_slide_video(video_dir: Path, stem: str) -> Path:
     from slide_video_builder import build_reviewed_slide_video
 
@@ -305,6 +347,9 @@ def process_pdf(pdf_path: Path) -> bool:
     model = "unknown"
 
     try:
+        log("[0/6] OpenCodeGo preflight: live HTTP 200 gate...")
+        opencode_go_preflight_gate(video_dir)
+
         # Resume: skip steps 1-4 if intermediate files already exist
         if script_json_path.exists() and timeline_json_path.exists():
             log("[1-4/6] resume: script.json + timeline.json 検出 → スキップ")
@@ -367,7 +412,12 @@ def process_pdf(pdf_path: Path) -> bool:
                 raise RuntimeError("Blenderレンダリング失敗")
 
         log("[5.5/6] Visual QA: sample frames + contact sheet...")
-        visual_qa_frames(frames_dir, video_dir)
+        try:
+            visual_qa_frames(frames_dir, video_dir)
+        except Exception as qa_err:
+            ec = "visual_qa_identical_frames" if "identical" in str(qa_err) else "visual_qa_failed"
+            _try_db_update(row_id, "error", error_msg=str(qa_err), error_code=ec)
+            raise
 
         log("[6/6] FFmpeg MP4合成 + 字幕焼き込み...")
         output_mp4 = compose_mp4(timeline, frames_dir, video_dir, stem, total_sec)

@@ -1,0 +1,10 @@
+version: "3.9"
+services:
+  warp-gateway:
+    image: warpdotdev/warp:latest
+    container_name: warp_gateway
+    ports:
+      - "8089:8080"
+    tty: true
+    command: tail -f /dev/null
+    restart: unless-stopped

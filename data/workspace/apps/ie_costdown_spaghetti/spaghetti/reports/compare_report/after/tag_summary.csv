@@ -1,0 +1,2 @@
+﻿tag_id,start,end,duration_sec,samples,distance_m,avg_speed_m_s,max_speed_m_s,outlier_count
+worker_anon_01,2026-05-01 09:00:00,2026-05-01 09:03:48,228.0,229,21.677,0.095,0.206,0

@@ -16,6 +16,8 @@ from outbound_delivery_guard import (
 JST = timezone(timedelta(hours=9))
 SCRIPT_PATH = Path(__file__).resolve()
 if SCRIPT_PATH.parent.name == "workspace":
+    import os
+    is_windows = os.name == "nt"
     STATUS_PATH = SCRIPT_PATH.parent / "email_rag_ingest_runtime_status.json"
     NODE_GMAIL_SCRIPT = SCRIPT_PATH.parent / "scripts" / "send_allowed_gmail_from_b64.js"
     SHARED_REPORT_PATH = SCRIPT_PATH.parent / "email_rag_message.txt"
@@ -23,7 +25,20 @@ if SCRIPT_PATH.parent.name == "workspace":
     EMAIL_LEARNING_SYNC_STATUS_PATH = SCRIPT_PATH.parent / "email_learning_memory_sync_status.json"
     PRIORITY_GMAIL_BACKFILL_SCRIPT = SCRIPT_PATH.parent / "run_priority_gmail_backfill.py"
     EMAIL_DASHBOARD_STATUS_SCRIPT = SCRIPT_PATH.parent / "update_email_ingest_dashboard_status.py"
+    TURSO_METRICS_SCRIPT = SCRIPT_PATH.parent / "get_turso_metrics.py"
+    GROWTH_VIDEO_SCRIPT = SCRIPT_PATH.parent / "generate_growth_video.py"
+    GROWTH_VIDEO_OUTPUT = SCRIPT_PATH.parent / "iatf_remotion_studio" / "out_goku.mp4"
+    GROWTH_METRICS_SCRIPT = SCRIPT_PATH.parent / "get_growth_metrics.py"
+    
+    # OS-aware venv path
+    venv_base = SCRIPT_PATH.parent / "apps" / "3d_fab_forge" / "multicad_pipeline" / ".venv"
+    if is_windows:
+        MULTICAD_PYTHON = venv_base / "Scripts" / "python.exe"
+    else:
+        MULTICAD_PYTHON = venv_base / "bin" / "python"
 else:
+    import os
+    is_windows = os.name == "nt"
     STATUS_PATH = SCRIPT_PATH.parents[2] / "data" / "workspace" / "email_rag_ingest_runtime_status.json"
     NODE_GMAIL_SCRIPT = SCRIPT_PATH.parents[2] / "data" / "workspace" / "scripts" / "send_allowed_gmail_from_b64.js"
     SHARED_REPORT_PATH = SCRIPT_PATH.parents[2] / "data" / "workspace" / "email_rag_message.txt"
@@ -31,6 +46,17 @@ else:
     EMAIL_LEARNING_SYNC_STATUS_PATH = SCRIPT_PATH.parents[2] / "data" / "workspace" / "email_learning_memory_sync_status.json"
     PRIORITY_GMAIL_BACKFILL_SCRIPT = SCRIPT_PATH.parents[2] / "data" / "workspace" / "run_priority_gmail_backfill.py"
     EMAIL_DASHBOARD_STATUS_SCRIPT = SCRIPT_PATH.parents[2] / "data" / "workspace" / "update_email_ingest_dashboard_status.py"
+    TURSO_METRICS_SCRIPT = SCRIPT_PATH.parents[2] / "data" / "workspace" / "get_turso_metrics.py"
+    GROWTH_VIDEO_SCRIPT = SCRIPT_PATH.parents[2] / "data" / "workspace" / "generate_growth_video.py"
+    GROWTH_VIDEO_OUTPUT = SCRIPT_PATH.parents[2] / "data" / "workspace" / "iatf_remotion_studio" / "out_goku.mp4"
+    GROWTH_METRICS_SCRIPT = SCRIPT_PATH.parents[2] / "data" / "workspace" / "get_growth_metrics.py"
+
+    # OS-aware venv path
+    venv_base = SCRIPT_PATH.parents[2] / "data" / "workspace" / "apps" / "3d_fab_forge" / "multicad_pipeline" / ".venv"
+    if is_windows:
+        MULTICAD_PYTHON = venv_base / "Scripts" / "python.exe"
+    else:
+        MULTICAD_PYTHON = venv_base / "bin" / "python"
 
 TELEGRAM_BOT = "8085717200:AAHzacN6Q3xSunrLyvUTuHnKEf7Cd5YFdt4"
 TELEGRAM_CHAT_ID = "8173025084"
@@ -135,6 +161,7 @@ def build_report(results: dict) -> str:
             if issues:
                 text += "\n\nRun status: " + overall.upper()
                 text += "\nIssues:\n- " + "\n- ".join(issues)
+
             sync_status = read_json_file(EMAIL_LEARNING_SYNC_STATUS_PATH)
             if sync_status:
                 sync_line = (
@@ -144,8 +171,42 @@ def build_report(results: dict) -> str:
                     f"threads={sync_status.get('postedThreads', 0)}, "
                     f"errors={len(sync_status.get('errors', []))}"
                 )
-                return text + sync_line
-            return text
+                report_with_sync = text + sync_line
+            else:
+                report_with_sync = text
+            
+            # --- Turso Metrics Integration ---
+            turso_res = results.get("phase6_turso_metrics")
+            if turso_res and turso_res.get("returncode") == 0:
+                try:
+                    turso_data = json.loads(turso_res["stdout"])
+                    if turso_data.get("status") == "success":
+                        turso_line = (
+                            "\n\nTurso Cloud Knowledge Accumulation:\n"
+                            f"- Record Count: {turso_data.get('record_count', 0)}\n"
+                            f"- Latest Entry: {turso_data.get('latest_timestamp', 'N/A')}"
+                        )
+                        return report_with_sync + turso_line
+                except Exception:
+                    pass
+            
+            # --- Universal Growth Metrics Integration ---
+            growth_res = results.get("phase8_universal_growth")
+            if growth_res and growth_res.get("returncode") == 0:
+                try:
+                    growth_data = json.loads(growth_res["stdout"])
+                    if growth_data.get("status") == "success":
+                        growth_line = (
+                            "\n\nSystem Growth Status:\n"
+                            f"- Total Challenges Solved: {growth_data.get('total_solved', 0)}\n"
+                            f"- Domain Breakdown: {', '.join([f'{k}:{v}' for k,v in growth_data.get('domain_counts', {}).items()])}\n"
+                            f"- Latest Growth: {growth_data.get('latest_activities', [{}])[0].get('challenge', 'N/A')}"
+                        )
+                        text += growth_line
+                except Exception:
+                    pass
+
+            return report_with_sync if 'growth_line' not in locals() else text
     latest = parse_latest_json_line(results["phase4_sqlite_search"]["stdout"])
     message = f"Email ingest {overall}\nUpdated: {latest.get('updatedAt', '(unknown)')}"
     if issues:
@@ -160,6 +221,21 @@ def send_telegram(text: str) -> dict:
         data={"chat_id": chat_id, "text": text},
         timeout=30,
     )
+    response.raise_for_status()
+    return response.json()
+
+
+def send_telegram_video(caption: str, video_path: Path) -> dict:
+    if not video_path.exists():
+        return {"error": "video file not found"}
+    chat_id = ensure_allowed_telegram_chat_id(TELEGRAM_CHAT_ID, "run_email_rag_ingest_report.send_telegram_video")
+    with open(video_path, "rb") as f:
+        response = requests.post(
+            f"https://api.telegram.org/bot{TELEGRAM_BOT}/sendVideo",
+            data={"chat_id": chat_id, "caption": caption},
+            files={"video": f},
+            timeout=120,
+        )
     response.raise_for_status()
     return response.json()
 
@@ -205,13 +281,28 @@ def main() -> None:
     commands = [
         (
             "phase4_sqlite_search",
-            f'python3 "{PRIORITY_GMAIL_BACKFILL_SCRIPT}"',
+            f'python3 "{PRIORITY_GMAIL_BACKFILL_SCRIPT}" --start-date {GMAIL_PRIORITY_START_DATE.isoformat()}',
             GMAIL_PRIORITY_BACKFILL_TIMEOUT,
         ),
         (
             "phase5_learning_memory_sync",
             f'python3 "{EMAIL_LEARNING_SYNC_SCRIPT}" --base-url "http://localhost:8110" --source-org "Mitsui" --bootstrap-days 30 --limit 800',
             EMAIL_LEARNING_SYNC_TIMEOUT,
+        ),
+        (
+            "phase6_turso_metrics",
+            f'"{MULTICAD_PYTHON}" "{TURSO_METRICS_SCRIPT}"',
+            60,
+        ),
+        (
+            "phase7_growth_video",
+            f'python3 "{GROWTH_VIDEO_SCRIPT}"',
+            600,
+        ),
+        (
+            "phase8_universal_growth",
+            f'python3 "{GROWTH_METRICS_SCRIPT}"',
+            60,
         ),
     ]
 
@@ -242,6 +333,8 @@ def main() -> None:
 
     try:
         status["telegram"] = send_telegram(report)
+        if status["results"].get("phase7_growth_video", {}).get("returncode") == 0:
+            status["telegram_video"] = send_telegram_video("Clawstack Growth Visualization (GokuMC)", GROWTH_VIDEO_OUTPUT)
     except Exception as exc:
         status["telegram"] = {"error": str(exc)}
     write_status(status)

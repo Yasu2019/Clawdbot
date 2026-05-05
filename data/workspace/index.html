@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ja">
 
 <head>
@@ -351,6 +351,18 @@
             <strong>Maintenance Hub</strong>
             <span>修復、監視、cleanup、プロトコル類が必要なときだけここへ入ります。</span>
         </a>
+        <a href="apps/email_blacklist_hub/index.html" class="start-pill" target="_blank" rel="noopener">
+            <strong>Email Blacklist Hub</strong>
+            <span>RAG 除外リスト（ブラックリスト）の管理。</span>
+        </a>
+        <a href="apps/growth_dashboard/index.html" class="start-pill" target="_blank" rel="noopener">
+            <strong>Intelligence Evolution</strong>
+            <span>AI が日々どれくらい賢くなったか、成長記録をグラフで可視化します。</span>
+        </a>
+        <a href="apps/mitsui_term_hub/index.html" class="start-pill" target="_blank" rel="noopener">
+            <strong>Mitsui Term Hub</strong>
+            <span>ミツイ専門用語リストの閲覧・検索。メールから自動抽出された用語も含まれます。</span>
+        </a>
     </div>
 
     <div class="grid-container">
@@ -359,7 +371,7 @@
         <a href="./apps/cmux_hub/" class="card" target="_blank" rel="noopener">
             <span class="card-icon">🧠</span>
             <h2 class="card-title">Cmux Hub</h2>
-            <p class="card-desc">Reference orchestration map for agent roles, protocol boundaries, and local-first coordination. Use this to understand architecture, not as the daily operator start page.</p>
+            <p class="card-desc">Reference orchestration map for agent roles, protocol boundaries, and local-first coordination.</p>
             <div class="card-meta">
                 <span class="port-badge">Protocol Hub</span>
                 <span class="status-indicator"><span class="status-dot"></span>Integrated</span>
@@ -370,22 +382,10 @@
         <a href="./apps/email_search/" class="card" target="_blank" rel="noopener">
             <span class="card-icon">🔍</span>
             <h2 class="card-title">メール全文検索</h2>
-            <p class="card-desc">Gmail DB に保存された本文、依頼事項、期日、返信状況を深掘り検索する詳細画面です。まず全体状態を見たいときは Control Center を使います。</p>
-            <p class="card-desc">2019年から現在までの EML / Gmail を FTS 検索でき、個別メールの確認や依頼追跡に向いています。</p>
+            <p class="card-desc">Gmail DB に保存された本文、依頼事項、期日、返信状況を深掘り検索する詳細画面です。</p>
             <div class="card-meta">
                 <span class="port-badge">Port 8792 API</span>
                 <span class="status-indicator"><span class="status-dot"></span>Ready</span>
-            </div>
-        </a>
-
-        <!-- Email Blacklist Hub -->
-        <a href="./apps/email_blacklist_hub/" class="card" target="_blank" rel="noopener">
-            <span class="card-icon">✉️</span>
-            <h2 class="card-title">Email Blacklist Hub</h2>
-            <p class="card-desc">Gmail で頻出する送信者やドメイン候補を一覧化し、チェック操作で Email RAG の blacklist に追加できます。</p>
-            <div class="card-meta">
-                <span class="port-badge">Port 8791 API</span>
-                <span class="status-indicator"><span class="status-dot"></span>Integrated</span>
             </div>
         </a>
 
@@ -526,6 +526,30 @@
                 woodblock/photorealistic cover art.</p>
             <div class="card-meta">
                 <span class="port-badge">Local App</span>
+                <span class="status-indicator"><span class="status-dot"></span>Ready</span>
+            </div>
+        </a>
+
+        <!-- OpenCodeGO Auto-Manual AI -->
+        <a href="http://localhost:18096" class="card" target="_blank" rel="noopener">
+            <span class="card-icon">📖</span>
+            <h2 class="card-title">Auto Manual AI</h2>
+            <span class="card-role">OpenCodeGO Protocol</span>
+            <p class="card-desc">画面録画MP4から操作手順書・教育資料・監査エビデンスを自動生成する AI パイプラインです。</p>
+            <div class="card-meta">
+                <span class="port-badge">Port 18096</span>
+                <span class="status-indicator"><span class="status-dot"></span>Ready</span>
+            </div>
+        </a>
+
+        <!-- AKO Ultimate Brain -->
+        <a href="apps/ako_ultimate_system/index.html" class="card" target="_blank" rel="noopener">
+            <span class="card-icon">🧠</span>
+            <h2 class="card-title">AKO Ultimate Brain</h2>
+            <span class="card-role">Engineering RAG Hub</span>
+            <p class="card-desc">IATF条項・手順書・不具合報告を根拠付きで横断検索。質問内容に応じたAIエンジンの自動切替と自己改善機能を搭載。</p>
+            <div class="card-meta">
+                <span class="port-badge">Local Hub</span>
                 <span class="status-indicator"><span class="status-dot"></span>Ready</span>
             </div>
         </a>
@@ -686,6 +710,31 @@
                 <span class="status-indicator"><span class="status-dot"></span>External</span>
             </div>
         </a>
+
+        
+        </div>
+
+        <!-- Mitsui Term Hub -->
+        <div class="start-pill" onclick="window.location.href='apps/mitsui_term_hub/index.html'">
+            <span class="pill-icon">📖</span>
+            <div class="pill-text">
+                <div class="pill-title">Mitsui Term Hub</div>
+                <div class="pill-desc">Technical Glossary</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+        <!-- Visual & Geometry Intelligence -->
+        <div class="card" onclick="window.location.href='apps/dxf2step/index.html'">
+            <span class="card-icon">📐</span>
+            <h2 class="card-title">Visual & Geometry Intelligence</h2>
+            <p class="card-desc">Advanced CAD analysis and video synthesis. Support for Counterbores, Bends, and 3D Avatar synchronization via Remotion + ComfyUI.</p>
+            <div class="card-meta">
+                <span class="port-badge">Dxf2Step Upgrade</span>
+                <span class="status-indicator status-active"><span class="status-dot"></span>Advanced</span>
+            </div>
+        </div>
 
         <!-- Ingestion Status -->
         <a href="ingest_dashboard.html" class="card" target="_blank">

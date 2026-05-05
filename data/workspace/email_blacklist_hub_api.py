@@ -10,6 +10,8 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlparse
 
+from file_utils import atomic_write_json, safe_load_json
+
 
 JST = timezone(timedelta(hours=9))
 WORKSPACE = Path(__file__).resolve().parent
@@ -41,20 +43,19 @@ def now_jst_text() -> str:
 
 
 def write_status(payload: dict) -> None:
-    STATUS_PATH.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    atomic_write_json(STATUS_PATH, payload, backup=False)
 
 
 def load_filters() -> dict:
-    if FILTER_PATH.exists():
-        data = json.loads(FILTER_PATH.read_text(encoding="utf-8"))
-        if "whitelist_patterns" not in data:
-            data["whitelist_patterns"] = []
-        return data
-    return {"whitelist_patterns": [], "newsletter_patterns": [], "blacklist_patterns": []}
+    fallback = {"whitelist_patterns": [], "newsletter_patterns": [], "blacklist_patterns": []}
+    data = safe_load_json(FILTER_PATH, fallback)
+    if "whitelist_patterns" not in data:
+        data["whitelist_patterns"] = []
+    return data
 
 
 def save_filters(payload: dict) -> None:
-    FILTER_PATH.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    atomic_write_json(FILTER_PATH, payload, backup=True)
 
 
 def normalize_pattern(value: str) -> str:
@@ -108,7 +109,7 @@ def build_candidates(min_count: int = 10, limit: int = 120) -> dict:
     blacklist_patterns = [normalize_pattern(v) for v in filters.get("blacklist_patterns", [])]
     whitelist_patterns = [normalize_pattern(v) for v in filters.get("whitelist_patterns", [])]
 
-    con = sqlite3.connect(DB_PATH)
+    con = sqlite3.connect(DB_PATH, timeout=10)
     con.row_factory = sqlite3.Row
     try:
         rows = con.execute(

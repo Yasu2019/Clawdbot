@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "OpenClaw Manus Instagram Adoption Decision",
+  "type": "object",
+  "required": [
+    "decision",
+    "reason",
+    "risk_level",
+    "approved_scope",
+    "blocked_scope",
+    "reviewer",
+    "review_date"
+  ],
+  "properties": {
+    "decision": {
+      "type": "string",
+      "enum": [
+        "adopt",
+        "partial_adopt",
+        "hold",
+        "reject",
+        "re_evaluate_after_research"
+      ]
+    },
+    "reason": {
+      "type": "string"
+    },
+    "risk_level": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ]
+    },
+    "approved_scope": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "blocked_scope": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "conditions_before_execution": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "rollback_plan": {
+      "type": "string"
+    },
+    "reviewer": {
+      "type": "string"
+    },
+    "review_date": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  }
+}

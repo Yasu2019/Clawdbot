@@ -1,0 +1,27 @@
+motion_sources:
+  mixamo:
+    priority: 1
+    format: [fbx]
+    use_for: [walk, run, idle, gesture, talk, dance, reaction]
+    license_check_required: true
+  bvh_libraries:
+    priority: 2
+    format: [bvh]
+    use_for: [walk, daily_motion, mocap_base, gesture]
+    license_check_required: true
+  rokoko:
+    priority: 3
+    format: [fbx, bvh]
+    use_for: [natural_human_motion, mocap_style]
+    license_check_required: true
+  vrm:
+    priority: character
+    format: [vrm]
+    use_for: [humanoid_character]
+    license_check_required: true
+quality_gates:
+  foot_sliding: required
+  hand_penetration: required
+  eye_line: required
+  timing: required
+  camera_composition: recommended

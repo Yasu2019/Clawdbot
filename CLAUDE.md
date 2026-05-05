@@ -9,6 +9,7 @@
 - 不明点は推測ではなく仮定として明記する
 - 完了時に「変更ファイル / 変更内容 / 未解決事項 / 次回推奨」を要約する
 - 作業前に `data/workspace/memory/trouble_history.md` と `data/workspace/PROMISES.md` を確認する
+- **新規コードでポートを使う場合は必ず `docker-compose.yml` の実ポートを確認してから書く**（推測・慣例での記載禁止 → T008）
 
 ## Avoid
 - 関係ないファイルの横断探索

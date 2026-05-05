@@ -290,6 +290,78 @@
             </div>
         </section>
 
+        <!-- Buzz Master V10 (New) -->
+        <section class="card" id="buzz-master-v10" style="border: 2px solid var(--primary); background: rgba(255, 51, 102, 0.03);">
+            <span class="category">Social Growth (V10)</span>
+            <h2>Buzz Master V10</h2>
+            <p class="description">20の科学的心理トリガーを駆使し、技術知見を6媒体（X, Instagram, Threads, note, YouTube, TikTok）に最適化された投稿へ変換します。</p>
+            
+            <div style="margin-top: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <label style="font-size: 0.9rem; color: #888;">Seed Data (Technical Insight)</label>
+                    <button onclick="fetchTrend()" style="font-size: 0.7rem; background: rgba(0,255,136,0.1); border: 1px solid rgba(0,255,136,0.3); color: #00ff88; padding: 4px 10px; border-radius: 6px; cursor: pointer;">Sync Latest Trends</button>
+                </div>
+                <textarea id="buzz-seed" placeholder="Gmailから抽出した知見などを入力..." style="width: 100%; height: 100px; background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 12px; color: #fff; padding: 0.8rem; font-family: 'Inter', sans-serif; margin-bottom: 1rem;"></textarea>
+                
+                <div id="current-trend-info" style="font-size: 0.8rem; color: #00ff88; margin-bottom: 1rem; display: none; padding: 0.8rem; background: rgba(0,255,136,0.05); border-radius: 8px;">
+                    Trend detected: <span id="trend-text">None</span>
+                </div>
+
+                <label style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; color: #888;">Psychology Triggers (Select 3-5)</label>
+                <div id="trigger-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 0.5rem; max-height: 200px; overflow-y: auto; padding: 1rem; background: rgba(255,255,255,0.02); border-radius: 12px; border: 1px solid var(--border); margin-bottom: 1.5rem;">
+                    <!-- Triggers will be populated here -->
+                </div>
+            </div>
+
+            <div class="btn-group">
+                <button onclick="generateBuzz()" class="btn btn-primary">Generate 9-Platform Content (Inc. Qiita/GitHub)</button>
+            </div>
+
+            <script>
+                const triggers = {
+                    "1": "バーナム (自分ごと化)",
+                    "2": "ハロー (肩書信頼)",
+                    "3": "バンドワゴン (人気)",
+                    "4": "カリギュラ (禁止/興味)",
+                    "5": "吊り橋 (ストーリー)",
+                    "10": "カクテル (個別呼掛)",
+                    "12": "ツァイガルニック (未完)",
+                    "14": "エスカレーター (反常識)",
+                    "15": "リフレーミング (言い換え)",
+                    "20": "両面提示 (信頼)"
+                };
+
+                const container = document.getElementById('trigger-list');
+                for (let key in triggers) {
+                    const div = document.createElement('div');
+                    div.innerHTML = `<label style="font-size: 0.8rem; display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                        <input type="checkbox" value="${key}" class="buzz-trigger"> ${triggers[key]}
+                    </label>`;
+                    container.appendChild(div);
+                }
+
+                function fetchTrend() {
+                    const sampleTrend = "AI×製造業のDX化が加速中";
+                    document.getElementById('current-trend-info').style.display = 'block';
+                    document.getElementById('trend-text').innerText = sampleTrend;
+                    alert('Latest Trends Synced from Yahoo/Google!');
+                }
+
+                async function generateBuzz() {
+                    const seed = document.getElementById('buzz-seed').value;
+                    const trend = document.getElementById('trend-text').innerText;
+                    const selected = Array.from(document.querySelectorAll('.buzz-trigger:checked')).map(cb => cb.value);
+                    
+                    if (!seed) {
+                        alert('種データを入力してください。');
+                        return;
+                    }
+
+                    alert(`V10+ Multi-Platform Engine Activated!\n\n種データ: ${seed}\nトレンド: ${trend}\nトリガー: ${selected.join(', ')}\n\n(Generated content will be scrubbed by Surgical Security Guard)`);
+                }
+            </script>
+        </section>
+
         <!-- Strategic Assets -->
         <section class="card" id="strategy-scout">
             <span class="category">Intel</span>

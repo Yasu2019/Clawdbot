@@ -1,0 +1,36 @@
+policy_name: openclaw_claude_security_guard
+mode: human_approval_required
+production_access: deny_by_default
+sql:
+  allowed:
+    - SELECT
+    - WITH
+    - EXPLAIN
+  denied:
+    - INSERT
+    - UPDATE
+    - DELETE
+    - DROP
+    - TRUNCATE
+    - ALTER
+    - MERGE
+    - EXEC
+    - CREATE
+shell:
+  denied_patterns:
+    - "rm -rf"
+    - "docker volume rm"
+    - "docker compose down -v"
+    - "DROP DATABASE"
+    - "format"
+    - "del /s /q"
+    - "Remove-Item -Recurse -Force"
+ai_actions:
+  auto_fix: proposal_only
+  auto_pr: allowed
+  auto_merge: denied
+  production_deploy: denied_without_human
+logging:
+  langfuse_required: true
+  save_prompt_and_response: true
+  save_diff: true

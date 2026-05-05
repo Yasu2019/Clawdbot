@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Intelligence Evolution | Clawstack</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Outfit:wght@600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0b0f19;
+            --card: #161b22;
+            --primary: #58a6ff;
+            --text-main: #ffffff; /* Improved Contrast */
+            --text-dim: #8b949e;
+            --border: #30363d;
+            --accent: #238636;
+        }
+        body {
+            background: var(--bg);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 40px;
+        }
+        header { margin-bottom: 40px; text-align: center; }
+        h1 { font-family: 'Outfit'; font-size: 2.5rem; margin: 0; color: white; letter-spacing: -1px; }
+        .subtitle { color: var(--text-dim); margin-top: 10px; }
+        
+        .container { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+        .card { background: var(--card); border: 1px solid var(--border); border-radius: 15px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        .full-width { grid-column: 1 / -1; }
+        
+        h2 { font-size: 1.2rem; color: var(--primary); margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; }
+        
+        .stat-value { font-size: 3rem; font-weight: 600; color: white; margin-bottom: 5px; }
+        .stat-label { color: var(--text-dim); font-size: 0.9rem; }
+
+        /* History Table */
+        .history-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .history-table th { text-align: left; color: var(--primary); padding: 10px; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
+        .history-table td { padding: 15px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+        .domain-tag { font-size: 0.7rem; padding: 3px 8px; border-radius: 10px; background: rgba(88, 166, 255, 0.1); color: var(--primary); font-weight: 600; }
+        .know-how { font-size: 0.9rem; color: #d1d5db; line-height: 1.5; margin-top: 5px; }
+        .timestamp { font-size: 0.75rem; color: var(--text-dim); }
+
+        canvas { max-height: 400px; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Intelligence Evolution</h1>
+        <p class="subtitle" id="lastUpdated">Last Synchronized: ---</p>
+    </header>
+
+    <div class="container">
+        <div class="card">
+            <h2>Domain Distribution</h2>
+            <canvas id="domainChart"></canvas>
+        </div>
+        <div class="card">
+            <h2>Growth Velocity (7 Days)</h2>
+            <canvas id="historyChart"></canvas>
+        </div>
+        
+        <div class="card full-width">
+            <h2>Latest Learning History (Captured Know-how)</h2>
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th width="15%">Domain</th>
+                        <th>Challenge & Captured Know-how</th>
+                        <th width="15%">Timestamp</th>
+                    </tr>
+                </thead>
+                <tbody id="historyBody">
+                    <!-- Dynamic Content -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        async function loadData() {
+            try {
+                const res = await fetch('growth_stats.json');
+                const data = await res.json();
+                
+                document.getElementById('lastUpdated').innerText = "Last Synchronized: " + new Date(data.updated_at).toLocaleString();
+                
+                // Domain Chart
+                new Chart(document.getElementById('domainChart'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: Object.keys(data.domain_stats),
+                        datasets: [{
+                            data: Object.values(data.domain_stats),
+                            backgroundColor: ['#58a6ff', '#238636', '#f1e05a', '#f85149', '#8957e5'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: { plugins: { legend: { labels: { color: '#fff' } } } }
+                });
+
+                // History Chart
+                new Chart(document.getElementById('historyChart'), {
+                    type: 'line',
+                    data: {
+                        labels: data.history.map(h => h.day),
+                        datasets: [{
+                            label: 'Daily Learnings',
+                            data: data.history.map(h => h.count),
+                            borderColor: '#58a6ff',
+                            tension: 0.3,
+                            fill: true,
+                            backgroundColor: 'rgba(88, 166, 255, 0.1)'
+                        }]
+                    },
+                    options: { 
+                        scales: { 
+                            y: { ticks: { color: '#8b949e' }, grid: { color: '#30363d' } },
+                            x: { ticks: { color: '#8b949e' }, grid: { color: '#30363d' } }
+                        },
+                        plugins: { legend: { labels: { color: '#fff' } } }
+                    }
+                });
+
+                // Learning History Table
+                const historyBody = document.getElementById('historyBody');
+                historyBody.innerHTML = (data.recent_know_how || []).map(item => `
+                    <tr>
+                        <td><span class="domain-tag">${item.domain}</span></td>
+                        <td>
+                            <div style="font-weight: 600; font-size: 0.95rem;">${item.challenge}</div>
+                            <div class="know-how">${item.know_how}</div>
+                        </td>
+                        <td><span class="timestamp">${new Date(item.timestamp).toLocaleString()}</span></td>
+                    </tr>
+                `).join('');
+
+            } catch (e) {
+                console.error("Failed to load growth data", e);
+            }
+        }
+        loadData();
+    </script>
+</body>
+</html>

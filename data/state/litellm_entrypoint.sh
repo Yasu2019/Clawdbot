@@ -93,10 +93,27 @@ def patch_proxy_routing():
         '            _lp = _mdl_entry.get("litellm_params", {})\n'
         '            _d = dict(data)\n'
         '            _d["model"] = _lp.get("model", _d["model"])\n'
-        '            if "api_base" in _lp: _d.setdefault("api_base", _lp["api_base"])\n'
+        '            if "api_base" in _lp: _d["api_base"] = _lp["api_base"]\n'
         '            if "api_key" in _lp: _d.setdefault("api_key", _lp["api_key"])\n'
         '            print(f"[routing-fix] FALLBACK model={_d.get(chr(39)+chr(109)+chr(111)+chr(100)+chr(101)+chr(108)+chr(39))} api_base={_d.get(chr(39)+chr(97)+chr(112)+chr(105)+chr(95)+chr(98)+chr(97)+chr(115)+chr(101)+chr(39))}", flush=True)\n'
-        '            response = await litellm.acompletion(**_d)\n'
+        '            if str(data.get("model", "")).startswith("opencode-go"):\n'
+        '                _base = _d.pop("api_base")\n'
+        '                _key = _d.pop("api_key")\n'
+        '                _key = os.environ.get("OPENCODE_GO_API_KEY") or os.environ.get("OPENCODE_API_KEY") or os.environ.get("OPENCODE_ZEN_API_KEY") or _key\n'
+        '                _m = _d["model"].split("-ModelID-", 1)[0]\n'
+        '                if _m.startswith("openai/"):\n'
+        '                    _m = _m.split("/", 1)[1]\n'
+        '                _d["model"] = _m\n'
+        '                for _proxy_only in ["metadata", "api_base", "api_key", "user_api_key", "request_timeout", "headers", "extra_headers"]:\n'
+        '                    _d.pop(_proxy_only, None)\n'
+        '                import httpx as _opencode_httpx\n'
+        '                async with _opencode_httpx.AsyncClient(timeout=120) as _client:\n'
+        '                    _resp = await _client.post(_base.rstrip("/") + "/chat/completions", headers={"Authorization": "Bearer " + _key, "Content-Type": "application/json", "User-Agent": "OpenCode/1.0"}, json=_d)\n'
+        '                if _resp.status_code >= 400:\n'
+        '                    raise Exception(_resp.text)\n'
+        '                response = _resp.json()\n'
+        '            else:\n'
+        '                response = await litellm.acompletion(**_d)\n'
         '        else: \n'
         '            response = await litellm.acompletion(**data)'
     )
@@ -111,6 +128,40 @@ def patch_proxy_routing():
     print(f"[routing-fix] SUCCESS: Patched {f}", flush=True)
 
 patch_proxy_routing()
+
+# OpenCode GO requires explicit env-key resolution and should not use the old
+# Router client cache, which can preserve stale or literal api_key values.
+def patch_proxy_routing_opencode_go():
+    f = "/usr/local/lib/python3.9/site-packages/litellm/proxy/proxy_server.py"
+    MARKER = "[opencode-router-bypass-v1]"
+    try:
+        with open(f) as fh:
+            content = fh.read()
+    except Exception as e:
+        print(f"[opencode-router-bypass] Could not read {f}: {e}", flush=True)
+        return
+    if MARKER in content:
+        print(f"[opencode-router-bypass] Already patched: {f}", flush=True)
+        return
+    content = content.replace(
+        'if llm_router is not None and data["model"] in router_model_names: # model in router model list',
+        'if llm_router is not None and data["model"] in router_model_names and not str(data.get("model", "")).startswith("opencode-go"): # model in router model list  # ' + MARKER,
+        1,
+    )
+    content = content.replace(
+        '            if "api_key" in _lp: _d.setdefault("api_key", _lp["api_key"])\n',
+        '            if "api_key" in _lp:\n'
+        '                _ak = _lp["api_key"]\n'
+        '                if isinstance(_ak, str) and _ak.startswith("os.environ/"):\n'
+        '                    _ak = os.environ.get(_ak.split("/", 1)[1])\n'
+        '                _d["api_key"] = _ak\n',
+        1,
+    )
+    with open(f, "w") as fh:
+        fh.write(content)
+    print(f"[opencode-router-bypass] SUCCESS: Patched {f}", flush=True)
+
+patch_proxy_routing_opencode_go()
 
 # ── Patch 3: ollama.py — replace localhost:11434 default with OLLAMA_API_BASE ─
 def patch_ollama(filepath):
@@ -176,18 +227,33 @@ for p in ["/app/litellm/main.py",
 
 # ── Patch 5: openai.py — api_key None → fall back to OPENAI_API_KEY env var ──
 def patch_openai(filepath):
+    CLIENT_OLD = 'if client is None:'
+    CLIENT_NEW = 'if client is None or (isinstance(api_base, str) and "opencode.ai" in api_base):'
     OLD = 'openai_aclient = AsyncOpenAI(api_key=api_key, base_url=api_base,'
-    NEW = 'openai_aclient = AsyncOpenAI(api_key=api_key if api_key is not None else os.environ.get("OPENAI_API_KEY"), base_url=api_base,'
+    OLD_V1 = 'openai_aclient = AsyncOpenAI(api_key=api_key if api_key is not None else os.environ.get("OPENAI_API_KEY"), base_url=api_base,'
+    OLD_V2 = 'openai_aclient = AsyncOpenAI(api_key=(os.environ.get(api_key.split("/", 1)[1]) if isinstance(api_key, str) and api_key.startswith("os.environ/") else (api_key if api_key is not None else os.environ.get("OPENAI_API_KEY"))), base_url=api_base,'
+    NEW = '''_resolved_api_key = os.environ.get(api_key.split("/", 1)[1]) if isinstance(api_key, str) and api_key.startswith("os.environ/") else (api_key if api_key is not None else os.environ.get("OPENAI_API_KEY"))
+                if isinstance(api_base, str) and "opencode.ai" in api_base:
+                    _resolved_api_key = os.environ.get("OPENCODE_GO_API_KEY") or os.environ.get("OPENCODE_API_KEY") or os.environ.get("OPENCODE_ZEN_API_KEY") or _resolved_api_key
+                openai_aclient = AsyncOpenAI(api_key=_resolved_api_key, base_url=api_base,'''
     try:
         with open(filepath) as fh:
             content = fh.read()
     except:
         return False
+    content = content.replace(CLIENT_OLD, CLIENT_NEW)
     if NEW in content:
+        with open(filepath, "w") as fh:
+            fh.write(content)
         return None
-    if OLD not in content:
+    if OLD_V2 in content:
+        patched = content.replace(OLD_V2, NEW)
+    elif OLD_V1 in content:
+        patched = content.replace(OLD_V1, NEW)
+    elif OLD in content:
+        patched = content.replace(OLD, NEW)
+    else:
         return False
-    patched = content.replace(OLD, NEW)
     if 'import os' not in patched[:300]:
         patched = 'import os\n' + patched
     with open(filepath, "w") as fh:
@@ -201,6 +267,74 @@ for p in ["/app/litellm/llms/openai.py",
         print(f"[openai-patch] SUCCESS: Patched {p}", flush=True)
     elif result is None:
         print(f"[openai-patch] Already patched: {p}", flush=True)
+
+# OpenCode GO blocks the default Python client User-Agent at the edge.
+# Add a provider-specific User-Agent only when api_base points at opencode.ai.
+def patch_openai_opencode_user_agent(filepath):
+    OLD = 'base_url=api_base, http_client=litellm.aclient_session'
+    NEW = 'base_url=api_base, default_headers=({"User-Agent": "OpenCode/1.0"} if isinstance(api_base, str) and "opencode.ai" in api_base else None), http_client=litellm.aclient_session'
+    try:
+        with open(filepath) as fh:
+            content = fh.read()
+    except:
+        return False
+    if NEW in content:
+        return None
+    if OLD not in content:
+        return False
+    with open(filepath, "w") as fh:
+        fh.write(content.replace(OLD, NEW))
+    return True
+
+for p in ["/app/litellm/llms/openai.py",
+          "/usr/local/lib/python3.9/site-packages/litellm/llms/openai.py"]:
+    result = patch_openai_opencode_user_agent(p)
+    if result is True:
+        print(f"[opencode-ua-patch] SUCCESS: Patched {p}", flush=True)
+    elif result is None:
+        print(f"[opencode-ua-patch] Already patched: {p}", flush=True)
+
+# LiteLLM needs the openai/ prefix to select the OpenAI-compatible provider,
+# but OpenCode GO rejects that prefix upstream.
+def patch_openai_opencode_model_prefix(filepath):
+    OLD = 'response = await openai_aclient.chat.completions.create(**data)'
+    OLD_V1 = '''if isinstance(api_base, str) and "opencode.ai" in api_base and isinstance(data.get("model"), str) and data["model"].startswith("openai/"):
+                data = dict(data)
+                data["model"] = data["model"].split("/", 1)[1]
+            response = await openai_aclient.chat.completions.create(**data)'''
+    NEW = '''if isinstance(api_base, str) and "opencode.ai" in api_base and isinstance(data.get("model"), str):
+                data = dict(data)
+                _opencode_model = data["model"].split("-ModelID-", 1)[0]
+                if _opencode_model.startswith("openai/"):
+                    _opencode_model = _opencode_model.split("/", 1)[1]
+                data["model"] = _opencode_model
+            response = await openai_aclient.chat.completions.create(**data)'''
+    try:
+        with open(filepath) as fh:
+            content = fh.read()
+    except:
+        return False
+    if NEW in content:
+        return None
+    if OLD_V1 in content:
+        with open(filepath, "w") as fh:
+            fh.write(content.replace(OLD_V1, NEW))
+        return True
+    if OLD not in content:
+        return False
+    with open(filepath, "w") as fh:
+        fh.write(content.replace(OLD, NEW))
+    return True
+
+for p in ["/app/litellm/llms/openai.py",
+          "/usr/local/lib/python3.9/site-packages/litellm/llms/openai.py"]:
+    result = patch_openai_opencode_model_prefix(p)
+    if result is True:
+        print(f"[opencode-model-patch] SUCCESS: Patched {p}", flush=True)
+    elif result is None:
+        print(f"[opencode-model-patch] Already patched: {p}", flush=True)
+    elif result is False:
+        print(f"[opencode-model-patch] WARNING: Pattern not found in {p}", flush=True)
 
 PYEOF
 

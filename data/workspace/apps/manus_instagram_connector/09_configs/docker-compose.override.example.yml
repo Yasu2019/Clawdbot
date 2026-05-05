@@ -1,0 +1,5 @@
+# Proposal only.
+# This package does not require new containers by default.
+# Do not apply this file until Claude/Codex confirms it does not conflict with the existing Clawstack.
+
+services: {}

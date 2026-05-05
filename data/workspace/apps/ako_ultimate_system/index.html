@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AKO Ultimate Brain - Clawstack</title>
+    <style>
+        :root {
+            --primary: #00d2ff;
+            --secondary: #3a7bd5;
+            --bg: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --text: #f8fafc;
+        }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: var(--text);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1000px;
+            width: 90%;
+            padding: 4rem 0;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(to right, var(--primary), var(--text));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .header p {
+            font-size: 1.2rem;
+            color: #94a3b8;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 2rem;
+            border-radius: 1.5rem;
+            transition: transform 0.3s ease, border-color 0.3s ease;
+            cursor: pointer;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+        }
+        .card-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+        }
+        .card-desc {
+            color: #94a3b8;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+        .status-badge {
+            display: inline-block;
+            margin-top: 1.5rem;
+            padding: 0.25rem 0.75rem;
+            background: rgba(0, 210, 255, 0.1);
+            color: var(--primary);
+            border-radius: 1rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .footer {
+            margin-top: auto;
+            padding: 4rem 0;
+            text-align: center;
+            color: #475569;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>AKO Ultimate Brain</h1>
+            <p>Engineering Knowledge Orchestration & Self-Evolution System</p>
+        </header>
+
+        <div class="grid">
+            <div class="card" onclick="alert('CLI から実行してください: python main.py')">
+                <span class="card-icon">🧪</span>
+                <div class="card-title">AI 品質分析 (Router)</div>
+                <div class="card-desc">不適合報告や品質マニュアルから、原因分析や再発防止策を自動生成。質問に応じて最適なエンジンをルーティングします。</div>
+                <div class="status-badge">CLI Ready</div>
+            </div>
+
+            <div class="card" onclick="alert('scripts/run_benchmark.sh を実行してください')">
+                <span class="card-icon">📊</span>
+                <div class="card-title">Benchmark Evaluator</div>
+                <div class="card-desc">現在の AI モデルが IATF 条項をどれだけ正解できるかスコアリング。日々の成長を定量的に測定します。</div>
+                <div class="status-badge">Automated</div>
+            </div>
+
+            <div class="card" onclick="window.location.href='docs/README_JA.md'">
+                <span class="card-icon">📚</span>
+                <div class="card-title">Integration Docs</div>
+                <div class="card-desc">AKO システムの構成、エンジンの仕組み、および Clawstack への統合プロトコルを確認できます。</div>
+                <div class="status-badge">Documentation</div>
+            </div>
+        </div>
+
+        <footer class="footer">
+            &copy; 2026 Clawstack Engineering Ecosystem | Powered by AKO Ultimate
+        </footer>
+    </div>
+</body>
+</html>

@@ -1,0 +1,45 @@
+{
+  "package_name": "OpenClaw × Manus × Instagram 品質保証付きSNS運用 本気版 V1",
+  "version": "1.0.0",
+  "created_at": "2026-05-03",
+  "target": "OpenClaw / Clawstack V2 / Manus Instagram Connector / Claude mini PC decision",
+  "default_decision": "partial_adopt_recommended",
+  "safety": {
+    "requires_human_approval_before_publish": true,
+    "prohibited_actions": [
+      "auto_publish_without_approval",
+      "unofficial_scraping",
+      "auto_dm",
+      "auto_like_follow",
+      "database_write",
+      "docker_volume_delete",
+      "credential_dump"
+    ]
+  },
+  "entrypoints": [
+    "00_CLAUDE_README_FIRST.md",
+    "12_decision/adoption_review_form.md",
+    "14_docs/runbook.md"
+  ],
+  "scripts": {
+    "read_only_audit": [
+      "10_scripts/audit_clawstack_readonly.ps1",
+      "10_scripts/collect_env_readonly.py"
+    ],
+    "offline_tools": [
+      "10_scripts/generate_content_calendar.py",
+      "10_scripts/validate_post_text.py",
+      "10_scripts/build_weekly_report.py",
+      "10_scripts/safe_run_checklist.py"
+    ]
+  },
+  "references": [
+    "https://manus.im/blog/manus-instagram-connector",
+    "https://manus.im/docs/introduction/plans",
+    "https://developers.facebook.com/docs/instagram-platform/",
+    "https://developers.facebook.com/docs/instagram-platform/content-publishing/",
+    "https://developers.facebook.com/docs/instagram-platform/insights/",
+    "https://developers.facebook.com/terms/dfc_platform_terms/",
+    "https://www.meta.com/actions/privacy-progress/"
+  ]
+}

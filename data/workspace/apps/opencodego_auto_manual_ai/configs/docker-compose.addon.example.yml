@@ -1,0 +1,22 @@
+services:
+  auto_manual_worker:
+    image: python:3.11-slim
+    container_name: clawstack_auto_manual_worker
+    working_dir: /app
+    volumes:
+      - ./auto_manual_ai:/app
+      - ./data/auto_manual_inputs:/inputs:ro
+      - ./data/auto_manual_outputs:/outputs
+    ports:
+      - "8095:8095"
+    command: ["python", "scripts/worker_stub.py"]
+    restart: unless-stopped
+
+  auto_manual_viewer:
+    image: nginx:alpine
+    container_name: clawstack_auto_manual_viewer
+    volumes:
+      - ./data/auto_manual_outputs:/usr/share/nginx/html:ro
+    ports:
+      - "8096:80"
+    restart: unless-stopped

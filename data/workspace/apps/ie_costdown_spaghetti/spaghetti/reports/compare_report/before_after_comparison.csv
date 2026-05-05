@@ -1,0 +1,2 @@
+﻿tag_id,before_distance_m,after_distance_m,distance_reduction_m,distance_reduction_ratio,before_duration_sec,after_duration_sec,before_patterns,after_patterns
+worker_anon_01,44.954,21.677,23.277,0.5178,426.0,228.0,1,1

@@ -1,0 +1,2 @@
+﻿date,status,theme,format,target,hook,slide_outline,caption,hashtags,cta,asset_source,human_approval,risk_notes
+2026-05-04,idea,不良率を安全に見える化する3ステップ,carousel,品質保証担当者,SQLを壊さずに分析したい方へ,1表紙;2課題;3読み取り専用;4集計;5グラフ;6確認;7注意;8CTA,,#製造業 #品質保証 #AI活用,#無料テンプレはプロフィールへ,original,required,DB書き込み禁止を明記

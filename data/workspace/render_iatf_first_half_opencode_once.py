@@ -29,28 +29,6 @@ def render_blender_preview(timeline: list[dict], phonemes: list[dict], frames_di
 
     script_str = generate_blender_script(timeline, phonemes, frames_dir)
     script_str = script_str.replace("fps           = 30", f"fps           = {fps}")
-    script_str = script_str.replace(
-        '''def setup_camera(pos=(0, 4, 1.5), target_z=1.0):
-    bpy.ops.object.camera_add(location=pos)
-    cam = bpy.context.object
-    cam.rotation_euler = (math.radians(90), 0, math.radians(180))
-    bpy.context.scene.camera = cam
-''',
-        '''def setup_camera(pos=(0, 14, 3.0), target=(0, 0, 1.4)):
-    from mathutils import Vector
-    bpy.ops.object.camera_add(location=pos)
-    cam = bpy.context.object
-    direction = Vector(target) - cam.location
-    cam.rotation_euler = direction.to_track_quat("-Z", "Y").to_euler()
-    cam.data.lens = 18
-    cam.data.clip_end = 100
-    bpy.context.scene.camera = cam
-''',
-    )
-    script_str = script_str.replace(
-        "        obj.location = CHARACTER_POSITIONS.get(char, (0,0,0))",
-        "        obj.location = CHARACTER_POSITIONS.get(char, (0,0,0))\n        obj.rotation_euler[2] = math.radians(180)",
-    )
     with tempfile.TemporaryDirectory(prefix="iatf_blender_preview_") as tmpdir:
         script_path = Path(tmpdir) / "preview_render.py"
         script_path.write_text(script_str, encoding="utf-8")

@@ -1,0 +1,9 @@
+{
+  "id": "auto-manual-ai",
+  "title": "Auto Manual AI",
+  "description": "画面録画MP4から操作手順書・教育資料・監査エビデンスを生成",
+  "category": "quality-ai",
+  "url": "http://localhost:8094",
+  "healthcheck": "http://localhost:8095/health",
+  "tags": ["OpenCodeGO", "manual", "IATF", "quality", "video"]
+}

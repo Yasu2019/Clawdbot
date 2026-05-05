@@ -1,0 +1,11 @@
+﻿tag_id,from_zone,to_zone,count
+worker_anon_01,BUFFER,OUTSIDE,4
+worker_anon_01,OUTSIDE,BUFFER,4
+worker_anon_01,OUTSIDE,INSPECT_5,3
+worker_anon_01,INSPECT_4,OUTSIDE,3
+worker_anon_01,OUTSIDE,INSPECT_4,3
+worker_anon_01,INSPECT_5,OUTSIDE,3
+worker_anon_01,BOX,OUTSIDE,2
+worker_anon_01,LABEL,OUTSIDE,2
+worker_anon_01,OUTSIDE,BOX,2
+worker_anon_01,OUTSIDE,LABEL,2

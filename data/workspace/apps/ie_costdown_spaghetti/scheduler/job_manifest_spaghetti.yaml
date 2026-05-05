@@ -1,0 +1,38 @@
+# Spaghetti Analysis Job Manifest
+# 既存の「定期的に情報を取りに行くルール」へジョブ追加するための雛形
+# 既存ジョブを上書きせず、このmanifestを読み込ませる/参照させる想定。
+
+job_id: ai_ie_spaghetti_weekly_learning
+enabled: false  # 初期はfalse。Codex/Claude/OpenCodeGOの融合判定後にtrue化
+owner: quality_assurance
+purpose: >
+  MOST/サーブリッグ法/スパゲッティ図の公開情報を収集し、
+  自社撮影・許諾済みサンプルのみ解析して経験カード化する。
+  Web動画本体の無断ダウンロードはしない。
+
+schedule:
+  type: weekly
+  day_of_week: fri
+  time: "17:30"
+
+inputs:
+  metadata_sources:
+    - youtube_search_metadata
+    - public_web_search
+    - internal_poc_csv_folder
+  allowed_video_sources:
+    - own_recorded
+    - permission_granted
+    - creative_commons_allowed
+
+outputs:
+  - data/experience_cards/spaghetti/
+  - data/learning_queue/opencodego_review/
+  - reports/spaghetti_weekly/
+
+safety:
+  no_personal_identification: true
+  anonymize_worker_id: true
+  no_hr_evaluation_use: true
+  no_unlicensed_video_download: true
+  read_only_existing_system: true

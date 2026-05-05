@@ -162,7 +162,11 @@ def _call_direct(endpoint: str, api_key: str, model: str, messages: list, max_to
     try:
         resp = requests.post(
             f"{endpoint}/chat/completions",
-            headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+                "User-Agent": "OpenCode/1.0" if "opencode.ai" in endpoint else "IATF-Video-Factory/1.0",
+            },
             json={"model": model, "messages": messages, "max_tokens": max_tokens, "temperature": 0.7},
             timeout=300,
         )

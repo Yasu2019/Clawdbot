@@ -1,0 +1,5 @@
+scene_id,line,action_tag,preferred_source,candidate_file,character,target_bone_profile,quality_notes,status
+001,"部屋に入る",walk_in,Mixamo,,main_girl,VRM,,todo
+002,"驚く",surprised,Mixamo/BVH,,main_girl,VRM,,todo
+003,"机の本を取る",pick_up,BVH/Rokoko,,main_girl,VRM,"手と本の接触注意",todo
+004,"カメラに説明する",talking_gesture,Mixamo/Rokoko,,main_girl,VRM,"視線と手振り",todo

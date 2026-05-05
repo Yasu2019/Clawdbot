@@ -1,0 +1,15 @@
+from http.server import BaseHTTPRequestHandler, HTTPServer
+import json
+
+class Handler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        if self.path == "/health":
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({"status":"ok","service":"auto_manual_worker"}).encode())
+        else:
+            self.send_response(404); self.end_headers()
+
+if __name__ == "__main__":
+    HTTPServer(("0.0.0.0", 8095), Handler).serve_forever()

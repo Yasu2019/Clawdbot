@@ -44,17 +44,33 @@
 | **菫ｮ豁｣繝輔ぃ繧､繝ｫ** | [host_gmail_incremental_sync.py](file:///d:/Clawdbot_Docker_20260125/data/workspace/host_gmail_incremental_sync.py) L221-228 |
 | **讀懆ｨｼ邨先棡** | 菫ｮ豁｣蠕・4 蛻・俣逶｣隕・竊・譁ｰ隕上ざ繝溘ヵ繧ｩ繝ｫ繝 0 蛟九・8.12 GB 繧貞叉譎りｧ｣謾ｾ縲・|
 | **霑ｽ蜉�蟇ｾ遲・* | (1) 謇句虚貂・祉繧ｹ繧ｯ繝ｪ繝励ヨ `scripts/clawstack_janitor.ps1` 繧帝・蛯吶・2) QA Dashboard 縺ｫ縲粂ost Maintenance縲阪き繝ｼ繝峨ｒ霑ｽ蜉�縲・|
-| **蜀咲匱髦ｲ豁｢** | 譛ｬ繧､繝ｳ繧ｷ繝・Φ繝医ｒ螂第ｩ溘↓ AGENTS.md 縺ｫ縲御ｿｮ豁｣蠕後・險倬鹸鄒ｩ蜍吶阪Ν繝ｼ繝ｫ繧定ｿｽ蜉�縲・|
+| **讀懆ｨｼ邨先棡** | 菫ｮ豁｣蠕・4 蛻・俣逶｣隕・竊・譁ｰ隕上ざ繝溘ヵ繧ｩ繝ｫ繝€ 0 蛟九€・8.12 GB 繧貞叉譎りｧ｣謾ｾ縲・|
+| **霑ｽ蜉蟇ｾ遲・* | (1) 謇句虚貂・祉繧ｹ繧ｯ繝ｪ繝励ヨ `scripts/clawstack_janitor.ps1` 繧帝・蛯吶€・2) QA Dashboard 縺ｫ粂ost Maintenance縲阪き繝ｼ繝峨ｒ霑ｽ蜉・縲・|
+| **蜀咲匱髦ｲ豁｢** | 譛ｬ繧､繝ｳ繧ｷ繝・Φ繝医ｒ螂第ｩ溘↓ AGENTS.md 縺ｫ縲御ｿｮ豁｣蠕後・險倬鹸鄒ｩ蜍吶€阪Ν繝ｼ繝ｫ繧定ｿｽ蜉・縲・|
 
 ### 謨呵ｨ難ｼ・essons Learned・・
-1. **`tempfile.mkdtemp()` 繧剃ｽｿ縺・�ｴ蜷医・縲∝ｿ・★ `try...finally` 縺ｧ `shutil.rmtree()` 繧貞・繧後ｋ縺薙→縲・* Python 縺ｮ `tempfile.TemporaryDirectory()` 繧ｳ繝ｳ繝・く繧ｹ繝医・繝阪・繧ｸ繝｣繧剃ｽｿ縺医・閾ｪ蜍募炎髯､縺輔ｌ繧九・2. **螳壽悄螳溯｡鯉ｼ・ron / daemon・峨せ繧ｯ繝ｪ繝励ヨ縺ｯ 1 蝗槭≠縺溘ｊ縺ｮ繝・ぅ繧ｹ繧ｯ菴ｿ逕ｨ驥上′蟆上＆縺上※繧ゅ∬塘遨阪☆繧九→閾ｴ蜻ｽ逧・↓縺ｪ繧九・* 譁ｰ縺励＞螳壽悄螳溯｡後せ繧ｯ繝ｪ繝励ヨ繧呈嶌縺城圀縺ｯ縲∝ｿ・★縲悟ｾ檎援莉倥￠縲阪さ繝ｼ繝峨・譛臥┌繧偵Ξ繝薙Η繝ｼ縺吶ｋ縺薙→縲・3. **繝・ぅ繧ｹ繧ｯ譫ｯ貂・・騾｣骼夜囿螳ｳ繧貞ｼ輔″襍ｷ縺薙☆縲・* Docker 繧ｨ繝ｳ繧ｸ繝ｳ縲￣ostgreSQL縲ヽedis縲ヽails 縺吶∋縺ｦ縺悟ｷｻ縺肴ｷｻ縺医〒蛛懈ｭ｢縺吶ｋ縲よ掠譛滓､懃衍縺ｮ莉慕ｵ・∩・・ptime Kuma 縺ｮ繝・ぅ繧ｹ繧ｯ逶｣隕也ｭ会ｼ峨ｒ讀懆ｨ弱☆繧九・
+1. **`tempfile.mkdtemp()` 繧剃ｽｿ縺・ｴ蜷医・縲∝ｿ・★ `try...finally` 縺ｧ `shutil.rmtree()` 繧貞・繧後ｋ縺薙→縲・* Python 縺ｮ `tempfile.TemporaryDirectory()` 繧ｳ繝ｳ繝・く繧ｹ繝医・繝阪・繧ｸ繝｣繧剃ｽｿ縺医・閾ｪ蜍募炎髯､縺輔ｌ繧九€・2. **螳壽悄螳溯｡鯉ｼ・ron / daemon・峨せ繧ｯ繝ｪ繝励ヨ縺ｯ 1 蝗槭≠縺溘ｊ縺ｮ繝・ぅ繧ｹ繧ｯ菴ｿ逕ｨ驥上′蟆上＆縺上※繧ゅ€∬塘遨阪☆繧九→閾ｴ蜻ｽ逧・↓縺ｪ繧九€・* 譁ｰ縺励＞螳壽悄螳溯｡後せ繧ｯ繝ｪ繝励ヨ繧呈嶌縺城圀縺ｯ縲∝ｿ・★縲悟ｾ檎援莉倥￠縲阪さ繝ｼ繝峨・譛臥┌繧偵Ξ繝薙Η繝ｼ縺吶ｋ縺薙→縲・3. **繝・ぅ繧ｹ繧ｯ譫ｯ貂・・騾｣骼夜囿螳ｳ繧貞ｼ輔″襍ｷ縺薙☆縲・* Docker 繧ｨ繝ｳ繧ｸ繝ｳ縲￣ostgreSQL縲ヽedis縲ヽails 縺吶∋縺ｦ縺悟ｷｻ縺肴ｷｻ縺医〒蛛懈ｭ｢縺吶ｋ縲よ掠譛滓､懃衍縺ｮ莉慕ｵ・∩・・ptime Kuma 縺ｮ繝・ぅ繧ｹ繧ｯ逶｣隕也ｭ会ｼ峨ｒ讀懆ｨ弱☆繧九€・
+
+## INC-073: Email Blacklist Hub config disappearance and API freeze
+| Field | Detail |
+| --- | --- |
+| **Date** | 2026-05-02 21:00 JST |
+| **Detection** | User reported Email Blacklist Hub card missing from Portal and "PURCHASE ORDER" not being filtered. API investigation showed `email_rag_sender_filters.json` was empty (0 bytes) and the API process was frozen. |
+| **Impact** | Email filtering logic was lost, allowing blacklisted senders to bypass RAG filters. The Portal UI for blacklist management was inaccessible. |
+| **Root Cause (5 Why)** | **Why1**: Config files became empty. **Why2**: Non-atomic `write_text` was used during system-wide I/O stress. **Why3**: If a write was interrupted by a crash or lock, the file was left truncated. **Why4**: The API also froze because it lacked a timeout when connecting to `email_search.db`, which was locked by a background backfill process. **Why5**: There was no unified "atomic persistence" utility in the workspace to handle sensitive JSON configuration safely. |
+| **Fix** | Created `data/workspace/file_utils.py` implementing `atomic_write_json` (tempfile + os.replace) and `safe_load_json` (with .bak fallback). Refactored `email_blacklist_hub_api.py` to use these utilities and added `timeout=10` to SQLite connections. Restored `PURCHASE ORDER` to the blacklist and restarted the API. |
+| **Files** | `data/workspace/file_utils.py`, `data/workspace/email_blacklist_hub_api.py`, `data/workspace/email_rag_sender_filters.json`, `docs/INCIDENT_LOG.md` |
+| **Verification** | Verified `email_blacklist_hub_status.json` reports success via atomic write. `curl` against `/api/email-blacklist/config` returned HTTP 200 with the full blacklist content including "purchase order". |
+| **Lessons Learned** | Never use direct `write_text` for mission-critical configuration in high-stress environments. Always implement DB timeouts to prevent cascading process freezes during maintenance locks. |
+| **Prevention** | Mandatory use of `file_utils.py` for all workspace JSON persistence. Added DB connection timeout as a standard for all engineering APIs. |
+
 ---
 
-## INC-002: IATF Rails 繧｢繝励Μ 500 繧ｨ繝ｩ繝ｼ・・B_PORT 荳堺ｸ閾ｴ・・
+## INC-002: IATF Rails 繧｢繝励Μ 500 繧ｨ繝ｩ繝ｼ・・B_PORT 荳堺ｸ€閾ｴ・・
 | 鬆・岼 | 蜀・ｮｹ |
 | --- | --- |
 | **逋ｺ逕滓律** | 2026-04-05 |
-| **逋ｺ隕区婿豕・* | `http://127.0.0.1:3003/users/sign_in` 縺ｫ繧｢繧ｯ繧ｻ繧ｹ縺吶ｋ縺ｨ HTTP 500 縺瑚ｿ斐ｋ縲ゅΘ繝ｼ繧ｶ繝ｼ縺九ｉ縺ｮ蝣ｱ蜻翫・|
+| **逋ｺ隕区婿豕・* | `http://127.0.0.1:3003/users/sign_in` 縺ｫ繧｢繧ｯ繧ｻ繧ｹ縺吶ｋ縺ｨ HTTP 500 縺瑚ｿ斐ｋ縲ゅΘ繝ｼ繧ｶ繝ｼ縺九ｉ縺ｮ蝣ｱ蜻翫€・|
 | **蠖ｱ髻ｿ遽・峇** | IATF16949 蜩∬ｳｪ邂｡逅・す繧ｹ繝・Β・・ails 繧｢繝励Μ・牙・讖溯・縺悟茜逕ｨ荳榊庄縲・|
 | **逋ｺ逕溽ｵ檎ｷｯ** | INC-001・・ 繝峨Λ繧､繝匁椡貂・ｼ峨↓繧医ｊ Docker Desktop 縺悟●豁｢縲ょｾｩ譌ｧ縺ｮ縺溘ａ Docker 繧貞・襍ｷ蜍輔＠縲～docker-compose.production.yml` 縺ｧ IATF 繧ｹ繧ｿ繝・け繧貞・讒区・縲ゅさ繝ｳ繝・リ閾ｪ菴薙・襍ｷ蜍輔＠縺溘′縲ヽails 縺・DB 縺ｫ謗･邯壹〒縺阪★ 500 繧ｨ繝ｩ繝ｼ縺ｨ縺ｪ縺｣縺溘・|
 | **譬ｹ譛ｬ蜴溷屏・・Why・・* | **Why1**: Rails 縺・DB 縺ｫ謗･邯壹〒縺阪↑縺・竊・**Why2**: `host.docker.internal:5432` 縺ｫ謗･邯壹＠繧医≧縺ｨ縺励※縺・ｋ 竊・**Why3**: `database.yml` 縺・`DB_PORT` 迺ｰ蠅・､画焚・医ョ繝輔か繝ｫ繝・5432・峨ｒ菴ｿ逕ｨ 竊・**Why4**: `docker-compose.production.yml` 縺ｮ `web` 繧ｵ繝ｼ繝薙せ縺ｫ `DB_PORT` 縺梧悴螳夂ｾｩ 竊・**Why5**: DB 繧ｳ繝ｳ繝・リ縺ｮ繝昴・繝医・繝・ヴ繝ｳ繧ｰ縺・`5436:5432`・医・繧ｹ繝亥・ 5436・峨↑縺ｮ縺ｫ縲ヽails 縺ｯ繝・ヵ繧ｩ繝ｫ繝医・ 5432 縺ｧ謗･邯壹ｒ隧ｦ陦後・*繝昴・繝医・繝・ヴ繝ｳ繧ｰ縺ｨ迺ｰ蠅・､画焚縺ｮ荳肴紛蜷医・* |
@@ -973,3 +989,94 @@ un_command_with_heartbeat wrapper that utilizes subprocess.Popen to update the h
 | **Verification** | `python -m py_compile clawstack_v2/apps/iatf_video_factory/run_host.py clawstack_v2/apps/iatf_video_factory/pipeline/slide_preflight.py clawstack_v2/apps/iatf_video_factory/pipeline/visual_qa.py` passed. Static inspection confirmed the log line `Slide preflight: generate check slides + AI visual review gate...` appears before `render_mode` branching, so both Blender and slide-video modes require the check-slide gate. |
 | **Lessons Learned** | Check artifacts and delivery artifacts must be named separately. Rejecting slide-video output does not imply rejecting storyboard/check-slide review. |
 | **Prevention** | Preserve INC-067 as the canonical rule: generate check slides first, review them against the script, then proceed to whichever delivery renderer is selected. |
+
+## INC-071: OpenCodeGo LiteLLM route returned 500 and direct API returned 403/401
+| Field | Detail |
+| --- | --- |
+| **Date** | 2026-05-02 15:45 JST |
+| **Detection** | User asked why IATF video OpenCodeGo usage showed `LiteLLM/OpenCodeGo 未接続/500` and zero successful calls. Re-running the preflight showed host `localhost:4001` refused connections, Docker LiteLLM returned 500, and direct OpenCodeGo calls returned `403 error code: 1010`. |
+| **Impact** | OpenCodeGo could not act as the primary IATF video generation/self-check model. CUT007-CUT009 PDCA continued locally, increasing Codex visual-check involvement and preventing OpenCodeGo usage/cost accounting from recording successful calls. |
+| **Root Cause (5 Why)** | **Why1**: OpenCodeGo calls through LiteLLM failed with 500. **Why2**: The active LiteLLM container is not published to host port 4001, while the existing preflight default still points to `http://localhost:4001/v1`. **Why3**: Inside Docker, the mounted LiteLLM config used values this older LiteLLM path did not expand consistently, producing `missing protocol` and later authentication failures. **Why4**: The `env_variables` section then overwrote the real process `OPENCODE_GO_API_KEY` with the literal string `os.environ/OPENCODE_GO_API_KEY`, so Docker-level env inspection looked correct while the LiteLLM process used an invalid key. **Why5**: OpenCodeGo also rejects the default Python User-Agent and does not accept LiteLLM's `openai/` model prefix or internal `-ModelID-` suffix, so the route needed provider-specific normalization. |
+| **Fix** | Updated OpenCodeGo entries in `data/state/litellm_config.yaml` to use explicit OpenCodeGo base URLs and provider-prefixed LiteLLM model IDs, then removed the OpenCodeGo `env_variables` overrides that corrupted the process key. Updated `data/state/litellm_entrypoint.sh` so OpenCodeGo requests bypass the old LiteLLM router client cache, resolve the key from real environment variables, send `User-Agent: OpenCode/1.0`, strip LiteLLM-only model prefixes/suffixes, and remove proxy-only request fields before posting upstream. Recreated only `clawstack-unified-litellm-1`; other Docker services were not restarted. |
+| **Files** | `data/state/litellm_config.yaml`; `data/state/litellm_entrypoint.sh`; `docker-compose.yml` (OpenCodeGo env passthrough added earlier in this incident); `.env` (OpenCodeGo alias variables added earlier in this incident); `docs/INCIDENT_LOG.md` |
+| **Verification** | Docker LiteLLM was force-recreated so `.env` was re-read. Hash-only checks confirmed the container-level OpenCodeGo env values were present without exposing the secret. Direct OpenCodeGo chat completion from inside the container returned HTTP 200. Final LiteLLM proxy request to `model=opencode-go/deepseek-v4-flash` also returned HTTP 200 with `model=deepseek-v4-flash`, `content=OK`, and usage `prompt_tokens=87`, `completion_tokens=27`, `total_tokens=114`. |
+| **Lessons Learned** | Preflight checks must validate both the currently active endpoint and the provider upstream. A historical successful status file is not enough when LiteLLM port exposure, mounted config, or provider credentials drift. |
+| **Prevention** | Update IATF OpenCodeGo preflight to prefer the live Docker-internal LiteLLM endpoint when host port 4001 is unavailable, report local routing errors separately from provider-side denials, and never count failed/blocked calls as successful usage cost. |
+
+## INC-072: IATF video generation lacked a mandatory live OpenCodeGo preflight gate
+| Field | Detail |
+| --- | --- |
+| **Date** | 2026-05-02 22:44 JST |
+| **Detection** | User asked whether IATF video generation success rate would improve and requested the proposed OpenCodeGo preflight guard be added. |
+| **Impact** | The IATF video flow could start PDF/script/slide/video work even when OpenCodeGo routing was stale, unavailable, or silently falling back. This increased the chance of wasted render cycles and manual Codex review. |
+| **Root Cause (5 Why)** | **Why1**: The main IATF video runner did not call a live OpenCodeGo connectivity check before generation. **Why2**: Existing OpenCodeGo status files were observational and not a blocking gate. **Why3**: The existing preflight script checked several routes but was not wired into `run_host.py`. **Why4**: Host-side LiteLLM ports can be unavailable even when Docker-internal LiteLLM works, so a host runner also needs direct OpenCodeGo validation. **Why5**: Direct OpenCodeGo checks require the provider-compatible `User-Agent`, which was missing from the script generator direct fallback. |
+| **Fix** | Added `opencode_go_preflight_gate()` to `clawstack_v2/apps/iatf_video_factory/run_host.py` and call it at `[0/6]` before PDF extraction, script generation, slide preflight, Blender, or MP4 composition. Strengthened `data/workspace/iatf_opencode_go_preflight.py` with direct-only mode, provider User-Agent, reasoning-content acceptance, compact one-model default, and JSON status output. Added the same OpenCodeGo User-Agent to `pipeline/script_generator.py` direct fallback. |
+| **Files** | `clawstack_v2/apps/iatf_video_factory/run_host.py`; `clawstack_v2/apps/iatf_video_factory/pipeline/script_generator.py`; `data/workspace/iatf_opencode_go_preflight.py`; `docs/INCIDENT_LOG.md` |
+| **Verification** | `python -m py_compile data/workspace/iatf_opencode_go_preflight.py clawstack_v2/apps/iatf_video_factory/run_host.py clawstack_v2/apps/iatf_video_factory/pipeline/script_generator.py` passed. `python data/workspace/iatf_opencode_go_preflight.py --direct-only --timeout 45` returned `ok=true` with `usable_routes=["direct:deepseek-v4-flash"]`. Direct invocation of `run_host.opencode_go_preflight_gate()` returned `ok True` and wrote `opencode_go_preflight_status.json` before any video rendering. |
+| **Lessons Learned** | A generation pipeline should gate on the exact route available to that runner, not only on a Docker-internal success or historical status file. Fast one-model checks are enough for a blocking gate; broader multi-model checks should be optional. |
+| **Prevention** | Keep `IATF_VIDEO_OPENCODE_PREFLIGHT=1` as the default. Use `IATF_VIDEO_OPENCODE_REQUIRE_LITELLM=1` only when the host LiteLLM port is intentionally published and must be validated. |
+
+## INC-073: Email Blacklist Hub config deletion and API freeze due to DB lock and atomic write failure
+| Field | Detail |
+| --- | --- |
+| **Date** | 2026-05-03 06:40 JST |
+| **Detection** | User reported missing Blacklist card on Portal and failure to add "PURCHASE ORDER" pattern. Investigation found `email_rag_sender_filters.json` was 0 bytes or missing, and API was unresponsive. |
+| **Impact** | Email filtering was non-functional; sensitive internal or noise patterns were not being filtered. API calls to update or read the blacklist hung indefinitely. |
+| **Root Cause (5 Why)** | **Why1**: Configuration files were overwritten directly via `Path.write_text()`. **Why2**: System stress or process termination during I/O caused 0-byte file corruption. **Why3**: The API lacked SQLite connection timeouts. **Why4**: Long-running background DB tasks (backfill) held exclusive locks. **Why5**: The API process entered an unrecoverable deadlock waiting for the DB and reading a corrupted config. |
+| **Fix** | Created `file_utils.py` for atomic JSON writes using `tempfile` + `os.replace`. Refactored `email_blacklist_hub_api.py` to use safe loading with backup fallbacks and implemented `sqlite3` connection timeouts (10s). Terminated frozen processes and restarted with PID cleanup. |
+| **Files** | `data/workspace/file_utils.py` [NEW]; `data/workspace/email_blacklist_hub_api.py`; `docs/INCIDENT_LOG.md` |
+| **Verification** | Verified `email_rag_sender_filters.json` contains "PURCHASE ORDER". Confirmed API endpoint `http://127.0.0.1:8791` returns 200 OK with correct config. Status file `email_blacklist_hub_status.json` is updating correctly. |
+| **Lessons Learned** | Critical configuration must always use atomic write patterns to prevent truncation. Database-backed APIs must have explicit lock timeouts to avoid service deadlocks during maintenance. |
+| **Prevention** | Standardize `file_utils.py` for all JSON persistence in the workspace. Monitor API status files for staleness. |
+
+## INC-074: Turso Cloud backup failure and Nightly Report error due to path mismatch and script disappearance
+| Field | Detail |
+| --- | --- |
+| **Date** | 2026-05-03 07:10 JST |
+| **Detection** | User asked if Turso backup was successful. Investigation of `email_rag_ingest_runtime_status.json` showed Phase 4 (Backfill) timeout and Phase 6 (Turso) error. |
+| **Impact** | Nightly knowledge accumulation in Turso Cloud was skipped. Gmail Todo reports failed to send because the Node.js mailer script was missing. |
+| **Root Cause (5 Why)** | **Why1**: `MULTICAD_PYTHON` was hardcoded to a Windows path (`Scripts/python.exe`), causing failure in Linux Docker. **Why2**: `run_priority_gmail_backfill.py` defaulted to 2019-01-01, attempting 7 years of history and exceeding the 1.5h timeout. **Why3**: `scripts/send_allowed_gmail_from_b64.js` was missing from the workspace. **Why4**: Recent structural reorganization or maintenance cleanup (Janitor) may have accidentally removed the `scripts` folder. |
+| **Fix** | Updated `run_email_rag_ingest_report.py` with OS-aware venv path detection and explicit `--start-date 2026-01-01` for the backfill command. Recreated `data/workspace/scripts/send_allowed_gmail_from_b64.js` with a robust, standalone OAuth2 Gmail implementation. |
+| **Files** | `data/workspace/run_email_rag_ingest_report.py`; `data/workspace/scripts/send_allowed_gmail_from_b64.js` [NEW]; `docs/INCIDENT_LOG.md` |
+| **Verification** | `python get_turso_metrics.py` (via multicad venv) confirmed cloud records are still at 2026-05-01. Manual run of the report script path logic verified correct Linux/Windows path resolution. The recreated Node.js script correctly decodes Base64 inputs. |
+| **Lessons Learned** | Shared scripts running in mixed environments (Host/Docker) must be OS-aware. Critical external script dependencies should be protected from "janitor" cleanup or structured for auto-regeneration. |
+| **Prevention** | Add `scripts` folder to the protected list in janitor/maintenance protocols. Use explicit start dates for all nightly batch tasks. |
+
+## INC-075: Integration of Instagram Honki (Manus Connector) for automated SNS strategy
+| Field | Detail |
+| --- | --- |
+| **Date** | 2026-05-03 07:45 JST |
+| **Detection** | User provided `OpenClaw_Manus_Instagram_Honki_V1.zip` for Instagram strategy and integration. |
+| **Impact** | Enhances Clawstack with a dedicated Instagram monetization and quality assurance pipeline. Provides structured competitor analysis and content validation. |
+| **Root Cause (Adoption)** | The package provides high-value prompts and scripts for manufacturing-focused AI content on Instagram. Adoption was requested to formalize SNS presence. |
+| **Fix** | Performed full file scan and script audit (Brawn/Codex). Confirmed no destructive commands or port conflicts. Executed `ADOPT_PARTIAL` decision: deployed strategy, prompts, and validators to `apps/manus_instagram_connector/`. Created `final_decision_report_20260503.md`. |
+| **Files** | `data/workspace/apps/manus_instagram_connector/` [NEW]; `docs/INCIDENT_LOG.md` |
+| **Verification** | `safe_run_checklist.py` returned OK. `audit_clawstack_readonly.ps1` logic verified as non-destructive. Portal card proposed for future UI integration. |
+| **Lessons Learned** | High-value external packages should undergo a formal adoption review (Adoption Assessment) before integration. "Partial Adopt" is a safe bridge for beta-stage tools. |
+| **Prevention** | Maintain the mandatory ZIP audit protocol for all external system extensions. Use "proposal_only" status for UI cards until full validation. |
+
+## INC-076: Adoption of AI IE CostDown Complete Kit (Spaghetti Analysis)
+| Field | Detail |
+| --- | --- |
+| **Date** | 2026-05-03 09:47 JST |
+| **Detection** | User provided `ai_ie_costdown_complete_kit_v4_spaghetti.zip` for movement and waste analysis. |
+| **Impact** | Expands Clawstack with Spaghetti diagram generation, zone dwell time analysis, and automated waste pattern detection (A-B-A travel). Complements existing motion study tools. |
+| **Root Cause (Adoption)** | High-quality Industrial Engineering (IE) toolset identified as a missing capability for macro-motion analysis. "Merge Adapter" design allowed for safe, non-destructive integration. |
+| **Fix** | Performed full file scan and script audit (Brawn/Codex). Confirmed non-destructive data processing and Streamlit-based GUI compatibility. Executed `ADOPT_FULL` decision: deployed all modules to `apps/ie_costdown_spaghetti/`. Created `final_decision_report_ie_costdown_20260503.md`. |
+| **Files** | `data/workspace/apps/ie_costdown_spaghetti/` [NEW]; `docs/INCIDENT_LOG.md` |
+| **Verification** | `safe_run_checklist.py` (Instagram kit version adapted) logic verified safety. Internal `read_only_detect_spaghetti.py` confirmed environment compatibility. |
+| **Lessons Learned** | "Merge Adapter" design is the gold standard for adding heavy analytical capabilities without risking core system stability. |
+| **Prevention** | Continue prioritizing packages that follow the non-destructive integration pattern. Maintain separation between macro-motion (Spaghetti) and micro-motion (Therblig) data flows. |
+
+## INC-077: Turso Cloud sync failure and Nightly Ingest skip recovery
+| Field | Detail |
+| --- | --- |
+| **Date** | 2026-05-04 09:20 JST |
+| **Detection** | User asked about Turso backup. Investigation showed `email_rag_ingest_runtime_status.json` had not updated since May 3rd, and Turso record count remained at 1 despite 15 local records. |
+| **Impact** | Nightly knowledge accumulation in Turso Cloud was partially broken (CAD growth didn't sync) and the main RAG report was skipped. |
+| **Root Cause (5 Why)** | **Why1**: `cad_self_growth_daemon.py` was running with system Python instead of the multicad venv, missing `libsql_client` or correct environment variables. **Why2**: `run_email_rag_ingest_report.py` had a `NameError` due to incomplete path resolution logic for host-side execution. **Why3**: The n8n trigger for the nightly report may have failed or was inactive in the current configuration. |
+| **Fix** | Fixed `run_email_rag_ingest_report.py` path resolution logic. Restarted `cad_self_growth_daemon.py` using the correct virtual environment. Manually triggered the ingest report for backfill. |
+| **Files** | `data/workspace/run_email_rag_ingest_report.py`; `docs/INCIDENT_LOG.md` |
+| **Verification** | `test_turso_sync.py` confirmed "Turso Cloud DB updated successfully" when using venv. `get_turso_metrics.py` showed record count increase from 1 to 2. |
+| **Lessons Learned** | Background daemons must be explicitly tied to their required virtual environments. Path resolution logic in shared scripts must be robustly tested for both Host and Container contexts. |
+| **Prevention** | Add a check to `cad_self_growth_daemon.py` to verify it's running in the expected venv. Include self-test phases in nightly scripts to report environment mismatches early. |

@@ -1,0 +1,7 @@
+rules:
+  - keyword: ["IATF", "条項", "規定", "手順書", "品質マニュアル"]
+    engine: corpus
+  - keyword: ["原因", "なぜ", "不具合", "クレーム", "是正", "再発防止"]
+    engine: graph
+  - keyword: ["検索", "探して", "ファイル", "資料"]
+    engine: rag

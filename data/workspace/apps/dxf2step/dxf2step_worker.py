@@ -425,6 +425,27 @@ if edges:
                         print(f"removeSplitter: {{len(result.Faces)}} faces")
                 except Exception as rse:
                     print(f"removeSplitter skipped: {{rse}}")
+                try:
+                    area = result.Area
+                    volume = result.Volume
+                    bbox = result.BoundBox
+                    dim_x = bbox.XMax - bbox.XMin
+                    dim_y = bbox.YMax - bbox.YMin
+                    dim_z = bbox.ZMax - bbox.ZMin
+                    self.log_data["layers"][layer_name]["metrics"] = {
+                        "faces": len(result.Faces),
+                        "area": round(area, 2),
+                        "volume": round(volume, 2),
+                        "dimensions": {
+                            "length": round(dim_x, 2),
+                            "width": round(dim_y, 2),
+                            "depth": round(dim_z, 2)
+                        }
+                    }
+                    print(f"Metrics for {layer_name}: V={volume:.1f} A={area:.1f} D={dim_x:.1f}x{dim_y:.1f}x{dim_z:.1f}")
+                except Exception as me:
+                    print(f"Metrics error: {me}")
+                
                 result.exportStep("{step_path}")
                 try:
                     out_doc = App.newDocument("LayerModel")

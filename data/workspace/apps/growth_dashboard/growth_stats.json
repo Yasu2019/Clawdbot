@@ -1,0 +1,80 @@
+{
+  "updated_at": "2026-05-05T07:01:58.105294",
+  "domain_stats": {
+    "CAD": 5,
+    "CAE_MATERIAL": 1,
+    "GEOMETRY_AI": 4,
+    "IE": 1,
+    "MUSIC": 1,
+    "QUALITY": 2,
+    "TERMINOLOGY": 1
+  },
+  "history": [
+    {
+      "day": "2026-05-04",
+      "count": 15
+    }
+  ],
+  "recent_know_how": [
+    {
+      "domain": "CAE_MATERIAL",
+      "challenge": "Extract SS400 Material Data for OpenRadioss",
+      "know_how": "Extracted SS400 properties: Density 7.85g/cm3, Youngs Modulus 206GPa, Poissons Ratio 0.3. Formatted into /MAT/LAW1 for linear elastic analysis in OpenRadioss.",
+      "timestamp": "2026-05-04 22:01:53"
+    },
+    {
+      "domain": "TERMINOLOGY",
+      "challenge": "Contextual Analysis of 4M\u7533\u8acb in Emails",
+      "know_how": "Learned that 4M applications at Mitsui are strictly tied to change management protocols: Found frequent mentions of material substitutions (Material) and equipment changes (Machine) requiring customer pre-approval.",
+      "timestamp": "2026-05-04 21:40:25"
+    },
+    {
+      "domain": "CAD",
+      "challenge": "Design a parametric mounting bracket.",
+      "know_how": "Learned optimal strategy for Design a parametric mounting bracket. using local-first inference.",
+      "timestamp": "2026-05-04 21:24:24"
+    },
+    {
+      "domain": "MUSIC",
+      "challenge": "Identify John Williams brass scoring and leitmotif usage in Star Wars",
+      "know_how": "Analyzed Star Wars score: Identified usage of Trumpets in perfect fifths for heroic themes and complex cluster chords for suspense.",
+      "timestamp": "2026-05-04 21:22:12"
+    },
+    {
+      "domain": "GEOMETRY_AI",
+      "challenge": "Algorithm Test: Reconstruct 3D volume from 2-view DXF projection.",
+      "know_how": "Learned optimal strategy for Algorithm Test: Reconstruct 3D volume from 2-view DXF projection. using local-first inference.",
+      "timestamp": "2026-05-04 21:21:57"
+    },
+    {
+      "domain": "CAD",
+      "challenge": "Generate a heat sink with custom fins.",
+      "know_how": "Learned optimal strategy for Generate a heat sink with custom fins. using local-first inference.",
+      "timestamp": "2026-05-04 19:45:30"
+    },
+    {
+      "domain": "CAD",
+      "challenge": "Design a parametric mounting bracket.",
+      "know_how": "Learned optimal strategy for Design a parametric mounting bracket. using local-first inference.",
+      "timestamp": "2026-05-04 19:41:14"
+    },
+    {
+      "domain": "IE",
+      "challenge": "Calculate the takt time for a custom production mix.",
+      "know_how": "Learned optimal strategy for Calculate the takt time for a custom production mix. using local-first inference.",
+      "timestamp": "2026-05-04 18:45:28"
+    },
+    {
+      "domain": "QUALITY",
+      "challenge": "Generate a Root Cause Analysis for a 'Missing Screw' defect.",
+      "know_how": "Learned optimal strategy for Generate a Root Cause Analysis for a 'Missing Screw' defect. using local-first inference.",
+      "timestamp": "2026-05-04 18:41:12"
+    },
+    {
+      "domain": "GEOMETRY_AI",
+      "challenge": "Algorithm Test: Reconstruct 3D volume from 2-view DXF projection.",
+      "know_how": "Learned optimal strategy for Algorithm Test: Reconstruct 3D volume from 2-view DXF projection. using local-first inference.",
+      "timestamp": "2026-05-04 17:45:26"
+    }
+  ]
+}

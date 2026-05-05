@@ -1,0 +1,61 @@
+{
+  "card_id": "manus_instagram_qa_sns",
+  "title": "Manus Instagram QA-SNS Pipeline",
+  "subtitle": "AI生成→品質確認→人間承認→投稿→週次改善",
+  "category": "sns_quality_workflow",
+  "version": "1.0.0",
+  "status": "proposal_only",
+  "safe_default": true,
+  "requires_human_approval_before_publish": true,
+  "prohibited_actions": [
+    "auto_publish_without_approval",
+    "unofficial_scraping",
+    "auto_dm",
+    "auto_like_follow",
+    "store_plaintext_tokens",
+    "overwrite_existing_env",
+    "modify_database"
+  ],
+  "links": [
+    {
+      "label": "Runbook",
+      "path": "14_docs/runbook.md"
+    },
+    {
+      "label": "Review Queue",
+      "path": "11_templates/post_review_checklist.csv"
+    },
+    {
+      "label": "Weekly Report Template",
+      "path": "11_templates/weekly_kpi_report_template.md"
+    },
+    {
+      "label": "Claude Decision Form",
+      "path": "12_decision/adoption_review_form.md"
+    }
+  ],
+  "actions": [
+    {
+      "name": "Generate Manus Prompt",
+      "mode": "manual",
+      "description": "投稿生成・競合分析用プロンプトを作成する。投稿はしない。"
+    },
+    {
+      "name": "Review Draft",
+      "mode": "manual",
+      "description": "投稿前チェックリストで安全確認する。"
+    },
+    {
+      "name": "Build Weekly Report",
+      "mode": "manual_or_scheduled_after_review",
+      "description": "CSVから週次レポートを作成する。"
+    }
+  ],
+  "ports_required": [],
+  "containers_required": [],
+  "environment_variables": [
+    "MANUS_WORKSPACE_URL_OPTIONAL",
+    "INSTAGRAM_ACCOUNT_ID_OPTIONAL",
+    "OPENCLAW_SNS_DATA_DIR"
+  ]
+}

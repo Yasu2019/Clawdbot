@@ -12,6 +12,10 @@
     "eamodio.gitlens",
     "bradlc.vscode-tailwindcss",
     "esbenp.prettier-vscode",
-    "oderwat.indent-rainbow"
+    "oderwat.indent-rainbow",
+    "editorconfig.editorconfig",
+    "charliermarsh.ruff",
+    "qwtel.sqlite-viewer",
+    "tamasfe.even-better-toml"
   ]
 }

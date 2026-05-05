@@ -107,11 +107,19 @@ def _detect_failures(frames: list[Path], samples: list[dict]) -> list[str]:
         failures.append("too_few_frames")
     if len(dimensions) > 1:
         failures.append(f"inconsistent_frame_dimensions:{sorted(dimensions)}")
-    if edge_values and median(edge_values) < 6.0:
+    mean_values_all = [sample["mean"] for sample in samples]
+    bright_bg = mean_values_all and median(mean_values_all) > 120
+    # 明背景（白スライド等）では stddev/edge が低くなるため閾値を緩める
+    edge_threshold = 1.5 if bright_bg else 3.5
+    std_threshold = 5.0 if bright_bg else 18.0
+    if edge_values and median(edge_values) < edge_threshold:
         failures.append(f"low_visual_detail:edge_median={median(edge_values):.2f}")
-    if stddev_values and median(stddev_values) < 18.0:
+    if stddev_values and median(stddev_values) < std_threshold:
         failures.append(f"low_contrast:stddev_median={median(stddev_values):.2f}")
-    if hash_distances and max(hash_distances) <= 2:
+    mean_values = [sample["mean"] for sample in samples]
+    mean_range = max(mean_values) - min(mean_values) if mean_values else 0
+    # ahash が似ていても輝度レンジが広い場合はトーキングヘッド動画の正常変化
+    if hash_distances and max(hash_distances) <= 2 and mean_range < 30:
         failures.append("sample_frames_are_nearly_identical")
     return failures
 

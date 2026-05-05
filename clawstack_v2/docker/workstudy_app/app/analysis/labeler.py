@@ -427,6 +427,9 @@ class TherbligLabeler:
             item["most_B"] = most["B"]
             item["most_G"] = most["G"]
             item["most_P"] = most["P"]
+            item["most_M"] = most.get("most_M", 0)
+            item["most_X"] = most.get("most_X", 0)
+            item["most_I"] = most.get("most_I", 0)
             item["most_tmu"] = most["tmu"]
 
     @staticmethod
@@ -449,15 +452,31 @@ class TherbligLabeler:
             G = 0
 
         var = features["end_variance"]
+        P = 0
+        M = 0
+        I = 0
+        X = 0
+
         if therblig in ("P", "PUT", "POSITION"):
             P = 6 if var < 0.00005 and dec > 0.01 else (3 if dec > 0.004 else 1)
         elif therblig in ("G", "GET"):
             P = 0
-        else:
+        elif therblig in ("MOVE", "TL"):
+            # If path is very straight (high path efficiency), it might be Controlled Move (M)
+            if features.get("path_efficiency", 0) > 0.95:
+                M = 3 if travel_cm > 30 else 1
             P = 1 if features["active_avg_vel"] < 0.015 else 0
+        elif therblig in ("I", "ALIGN"):
+            I = 6 if features["duration_sec"] > 1.5 else 3
+        elif therblig in ("WAIT", "PROCESS"):
+            X = int(features["duration_sec"] * 27.8 / 10) # 1s = 2.78 units of 10 TMU
 
-        tmu = (A + B + G + A + B + P + A) * 10
-        return {"A": A, "B": B, "G": G, "P": P, "tmu": tmu}
+        # Result dict
+        res = {"A": A, "B": B, "G": G, "P": P, "most_M": M, "most_X": X, "most_I": I}
+        
+        # Heuristic for default TMU calculation (General Move)
+        res["tmu"] = (3 * A + 2 * B + G + P) * 10
+        return res
 
     @staticmethod
     def _estimate_body_scale(pose_data: list[dict]) -> float:
