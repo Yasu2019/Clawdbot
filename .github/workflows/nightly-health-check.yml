@@ -183,7 +183,7 @@ jobs:
             | jq -r .tag_name | tr -d v)
           curl -sSfL \
             "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VER}/gitleaks_${GITLEAKS_VER}_linux_x64.tar.gz" \
-            | tar -xz -C /usr/local/bin gitleaks
+            | sudo tar -xz -C /usr/local/bin gitleaks
 
       - name: gitleaks スキャン (直近 push のみ)
         run: |
