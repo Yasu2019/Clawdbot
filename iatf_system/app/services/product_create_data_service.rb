@@ -247,11 +247,20 @@ class ProductCreateDataService
       @specifications_yotei = pro.deadline_at&.strftime('%y/%m/%d') || ''
       @specifications_kanryou = pro.end_at&.strftime('%y/%m/%d') || ''
       @specifications_check = if pro.documents.attached?
-                     '☑'
-                   else
-                     '☐'
-                   end
+                                '☑'
+                              else
+                                '☐'
+                              end
     end
+
+    # 納入仕様書のチェックを追加
+    return unless stage == '納入仕様書' || (pro.documents.attached? && pro.documents.any? { |doc| doc.filename.to_s.include?('納入仕様書') })
+
+    @specifications_check = '☑'
+    return unless stage == '納入仕様書'
+
+    @specifications_yotei = pro.deadline_at&.strftime('%y/%m/%d') || @specifications_yotei
+    @specifications_kanryou = pro.end_at&.strftime('%y/%m/%d') || @specifications_kanryou
   end
 
   def collect_drawings(pro, stage)
@@ -715,6 +724,8 @@ class ProductCreateDataService
     end
   end
 
+
+
   def insert_rows_to_excel_template_msa
     if @excel_template_initial == true # Excelテンプレートが初期値の場合
       workbook = RubyXL::Parser.parse('lib/excel_templates/process_design_plan_report.xlsx')
@@ -751,10 +762,10 @@ class ProductCreateDataService
       worksheet[row_number][14].change_contents("項番：\#{?grr_no_#{i + 2}} \n GRR値：\#{?grr_#{i + 2}}%、GRR結果：\#{?grr_result_#{i + 2}} \n ndc値：\#{?ndc_#{i + 2}}、ndc結果：\#{?ndc_result#{i + 2}}")
 
       # H列、I列、J列を結合
-      worksheet.merge_cells(row_number, 7, row_number, 9)
-      worksheet.merge_cells(row_number, 10, row_number, 11)
-      worksheet.merge_cells(row_number, 12, row_number, 13)
-      worksheet.merge_cells(row_number, 14, row_number, 23)
+      safe_merge_cells(worksheet, row_number, 7, row_number, 9)
+      safe_merge_cells(worksheet, row_number, 10, row_number, 11)
+      safe_merge_cells(worksheet, row_number, 12, row_number, 13)
+      safe_merge_cells(worksheet, row_number, 14, row_number, 23)
     end
 
     # worksheet.merge_cells メソッドは、セルの範囲を結合するために使用されます。
@@ -763,7 +774,7 @@ class ProductCreateDataService
     # 次の2つの数字 (41, 6) は、結合を終了するセルを指定します。この場合、42行目のG列（インデックス6はG列を示す）のセル、すなわちセルG42を示します。
     # したがって、このコマンドにより、セルD41からG42までの範囲（D41, E41, F41, G41, D42, E42, F42, G42の8つのセル）が結合されます。
 
-    worksheet.merge_cells(insert_row_number - 1, 3, insert_row_number + count - 1, 6)
+    safe_merge_cells(worksheet, insert_row_number - 1, 3, insert_row_number + count - 1, 6)
     Rails.logger.info "insert_row_number= #{insert_row_number}" # 追加
 
     Rails.logger.info "count= #{count}" # 追加
@@ -807,10 +818,10 @@ class ProductCreateDataService
       worksheet[row_number][14].change_contents("\#{?inspector_name_a_#{i + 2}}：\#{?inspector_a_result_#{i + 2}}、\#{?inspector_name_b_#{i + 2}}：\#{?inspector_b_result_#{i + 2}}、\#{?inspector_name_c_#{i + 2}}：\#{?inspector_c_result_#{i + 2}}")
 
       # H列、I列、J列を結合
-      worksheet.merge_cells(row_number, 7, row_number, 9)
-      worksheet.merge_cells(row_number, 10, row_number, 11)
-      worksheet.merge_cells(row_number, 12, row_number, 13)
-      worksheet.merge_cells(row_number, 14, row_number, 23)
+      safe_merge_cells(worksheet, row_number, 7, row_number, 9)
+      safe_merge_cells(worksheet, row_number, 10, row_number, 11)
+      safe_merge_cells(worksheet, row_number, 12, row_number, 13)
+      safe_merge_cells(worksheet, row_number, 14, row_number, 23)
     end
 
     # worksheet.merge_cells メソッドは、セルの範囲を結合するために使用されます。
@@ -819,7 +830,7 @@ class ProductCreateDataService
     # 次の2つの数字 (41, 6) は、結合を終了するセルを指定します。この場合、42行目のG列（インデックス6はG列を示す）のセル、すなわちセルG42を示します。
     # したがって、このコマンドにより、セルD41からG42までの範囲（D41, E41, F41, G41, D42, E42, F42, G42の8つのセル）が結合されます。
 
-    worksheet.merge_cells(insert_row_number - 1, 3, insert_row_number + count - 1, 6)
+    safe_merge_cells(worksheet, insert_row_number - 1, 3, insert_row_number + count - 1, 6)
     Rails.logger.info "insert_row_number= #{insert_row_number}" # 追加
 
     Rails.logger.info "count= #{count}" # 追加
@@ -865,10 +876,10 @@ class ProductCreateDataService
       worksheet[row_number][14].change_contents(content)
 
       # H列、I列、J列を結合
-      worksheet.merge_cells(row_number, 7, row_number, 9)
-      worksheet.merge_cells(row_number, 10, row_number, 11)
-      worksheet.merge_cells(row_number, 12, row_number, 13)
-      worksheet.merge_cells(row_number, 14, row_number, 23)
+      safe_merge_cells(worksheet, row_number, 7, row_number, 9)
+      safe_merge_cells(worksheet, row_number, 10, row_number, 11)
+      safe_merge_cells(worksheet, row_number, 12, row_number, 13)
+      safe_merge_cells(worksheet, row_number, 14, row_number, 23)
     end
 
     # worksheet.merge_cells メソッドは、セルの範囲を結合するために使用されます。
@@ -877,7 +888,7 @@ class ProductCreateDataService
     # 次の2つの数字 (41, 6) は、結合を終了するセルを指定します。この場合、42行目のG列（インデックス6はG列を示す）のセル、すなわちセルG42を示します。
     # したがって、このコマンドにより、セルD41からG42までの範囲（D41, E41, F41, G41, D42, E42, F42, G42の8つのセル）が結合されます。
 
-    worksheet.merge_cells(insert_row_number - 1, 3, insert_row_number + count - 1, 6)
+    safe_merge_cells(worksheet, insert_row_number - 1, 3, insert_row_number + count - 1, 6)
 
     workbook.write('lib/excel_templates/process_design_plan_report_modified.xlsx')
   end
@@ -957,32 +968,19 @@ class ProductCreateDataService
       worksheet[row_number + 2][5].change_contents('配線')
       worksheet[row_number + 3][5].change_contents('プログラム')
 
-      worksheet.merge_cells(row_number, 3, row_number, 6)
+      safe_merge_cells(worksheet, row_number, 3, row_number, 6)
+      safe_merge_cells(worksheet, row_number + 1, 3, row_number + 3, 4)
+      safe_merge_cells(worksheet, row_number + 1, 5, row_number + 1, 6)
+      safe_merge_cells(worksheet, row_number + 2, 5, row_number + 2, 6)
+      safe_merge_cells(worksheet, row_number + 3, 5, row_number + 3, 6)
+      safe_merge_cells(worksheet, row_number, 14, row_number + 3, 23)
 
-      worksheet.merge_cells(row_number + 1, 3, row_number + 3, 4) # D列、E列を結合
-
-      worksheet.merge_cells(row_number + 1, 5, row_number + 1, 6)
-      worksheet.merge_cells(row_number + 2, 5, row_number + 2, 6)
-      worksheet.merge_cells(row_number + 3, 5, row_number + 3, 6)
-
-      worksheet.merge_cells(row_number, 14, row_number + 3, 23) # 設備名称のセルを結合
-
-      # H列、I列、J列を結合
-      worksheet.merge_cells(row_number, 7, row_number, 9)
-      worksheet.merge_cells(row_number, 10, row_number, 11)
-      worksheet.merge_cells(row_number, 12, row_number, 13)
-
-      worksheet.merge_cells(row_number + 1, 7, row_number + 1, 9)
-      worksheet.merge_cells(row_number + 1, 10, row_number + 1, 11)
-      worksheet.merge_cells(row_number + 1, 12, row_number + 1, 13)
-
-      worksheet.merge_cells(row_number + 2, 7, row_number + 2, 9)
-      worksheet.merge_cells(row_number + 2, 10, row_number + 2, 11)
-      worksheet.merge_cells(row_number + 2, 12, row_number + 2, 13)
-
-      worksheet.merge_cells(row_number + 3, 7, row_number + 3, 9)
-      worksheet.merge_cells(row_number + 3, 10, row_number + 3, 11)
-      worksheet.merge_cells(row_number + 3, 12, row_number + 3, 13)
+      # 行ごとの結合 (7-9, 10-11, 12-13)
+      (0..3).each do |offset|
+        safe_merge_cells(worksheet, row_number + offset, 7, row_number + offset, 9)
+        safe_merge_cells(worksheet, row_number + offset, 10, row_number + offset, 11)
+        safe_merge_cells(worksheet, row_number + offset, 12, row_number + offset, 13)
+      end
     end
 
     # worksheet.merge_cells メソッドは、セルの範囲を結合するために使用されます。
@@ -1113,4 +1111,16 @@ class ProductCreateDataService
     end
   end
 
+  def safe_merge_cells(worksheet, r1, c1, r2, c2)
+    return if r1 == r2 && c1 == c2
+
+    worksheet.merged_cells&.delete_if do |m|
+      ref = RubyXL::Reference.new(m.ref)
+      row_overlap = ([ref.row_range.first, r1].max <= [ref.row_range.last, r2].min)
+      col_overlap = ([ref.col_range.first, c1].max <= [ref.col_range.last, c2].min)
+      row_overlap && col_overlap
+    end
+
+    worksheet.merge_cells(r1, c1, r2, c2)
+  end
 end

@@ -21,11 +21,30 @@ module ExcelTemplateHelper
   private
 
   def cell_render(cell)
+    # 結合セルのマスターセル（左上）以外への操作をスキップし、ファイルの破損を防ぐ
+    return if merged_and_not_master?(cell)
+
     cell.change_contents(content_eval(cell.value))
     cell.change_text_wrap(true) if cell.value&.lines("\n")&.count&.> 1
   rescue StandardError
     cell.change_contents('')
-    # cell.change_contents('error!')
+  end
+
+  def merged_and_not_master?(cell)
+    @worksheet.merged_cells&.any? do |merged_range|
+      # 結合範囲を取得 (A1:B2 形式など)
+      ref = merged_range.is_a?(String) ? merged_range : merged_range.ref.to_s
+      
+      # 範囲をパースして、現在のセルが含まれているか確認
+      # RubyXL::Reference を使用して範囲判定
+      range = RubyXL::Reference.new(ref)
+      
+      if range.row_range.include?(cell.row) && range.col_range.include?(cell.column)
+        # 範囲内だが、左上（開始点）でない場合は true (スキップ対象)
+        return cell.row != range.row_range.first || cell.column != range.col_range.first
+      end
+      false
+    end
   end
 
   # @のままだと出力したときに、＠のセルにメールのハイパーリンクがついてしまう。
