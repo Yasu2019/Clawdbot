@@ -401,3 +401,31 @@ Still not final beauty render:
 - This is a Blender Workbench diagnostic render.
 - Terrain mesh is still raw/faceted.
 - The method is still heuristic and should be preserved as a diagnostic baseline before any WebGL/export simplification work.
+
+## 16. 2026-05-16 Update: Building Floating Correction
+
+User visual review correctly found that some buildings still appeared to float above the terrain. The earlier center-point grounding was not sufficient on sloped terrain.
+
+Current correction:
+
+- Each building footprint is sampled on a 5 x 5 terrain grid.
+- Building bottom Z is now based on the highest sampled terrain point minus `BUILDING_EMBED_DEPTH = 0.35`.
+- A dark foundation pad is generated under adjusted buildings where the sampled terrain range leaves visible low-side gaps.
+- All 394 buildings were adjusted in the regenerated diagnostic report.
+
+Latest verified outputs:
+
+- `D:\Clawdbot_Docker_20260125\projects\AtsugiMechaCity\diagnostics\atsugi_terrain_grounding\Atsugi_Terrain_Grounded_Subset_Close.png`
+- `D:\Clawdbot_Docker_20260125\projects\AtsugiMechaCity\diagnostics\atsugi_terrain_grounding\Atsugi_Terrain_Grounded_Subset_Wide.png`
+- `D:\Clawdbot_Docker_20260125\projects\AtsugiMechaCity\diagnostics\atsugi_terrain_grounding\atsugi_terrain_grounding_subset_report.json`
+
+Validation:
+
+- `python -m py_compile projects/AtsugiMechaCity/place_mecha_on_atsugi_terrain.py`
+- Blender 5.1 background render completed successfully.
+- Manual visual check was performed on both close and wide PNGs after regeneration.
+
+Notes:
+
+- The dark bases are intentional diagnostic foundations to make sloped-ground contact visible.
+- The previous Telegram images sent before this correction should be treated as outdated.

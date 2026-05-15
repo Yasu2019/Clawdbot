@@ -10,6 +10,9 @@
   "building_test_limit": 394,
   "building_hit_xy_distance_guard": 0.001,
   "building_abs_delta_z_guard": 40.0,
+  "building_embed_depth": 0.35,
+  "building_foundation_enabled": true,
+  "building_foundation_margin": 0.35,
   "building_adjusted_count": 394,
   "building_candidate_summary": {
     "selection": "raycast_hit",
@@ -36,12 +39,12 @@
     "min": [
       0.032029,
       0.050632,
-      -4.242676
+      -4.187891
     ],
     "max": [
       986.169983,
       740.391846,
-      33.96703
+      35.136562
     ]
   },
   "terrain_bounds": {
@@ -407,177 +410,26 @@
   },
   "building_report_sample": [
     {
-      "name": "Bldg.321",
-      "status": "moved",
-      "reason": null,
-      "terrain_z": -0.080078,
-      "street_z_before": 0.0,
-      "planned_delta_z": -0.080078,
-      "delta_z": -0.080078,
-      "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
-      "hit_xy_distance": 0.0,
-      "center": [
-        114.25248,
-        236.676849,
-        8.575
-      ],
-      "height": 17.15,
-      "distance_to_anchor": 466.897715
-    },
-    {
-      "name": "Bldg.259",
-      "status": "moved",
-      "reason": null,
-      "terrain_z": -0.134277,
-      "street_z_before": 0.0,
-      "planned_delta_z": -0.134277,
-      "delta_z": -0.134277,
-      "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
-      "hit_xy_distance": 0.0,
-      "center": [
-        191.017624,
-        382.74173,
-        7.172
-      ],
-      "height": 14.344,
-      "distance_to_anchor": 341.928001
-    },
-    {
-      "name": "Bldg.176",
-      "status": "moved",
-      "reason": null,
-      "terrain_z": 0.136719,
-      "street_z_before": 0.0,
-      "planned_delta_z": 0.136719,
-      "delta_z": 0.136719,
-      "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
-      "hit_xy_distance": 0.0,
-      "center": [
-        104.436371,
-        236.814255,
-        8.555
-      ],
-      "height": 17.110001,
-      "distance_to_anchor": 465.854378
-    },
-    {
-      "name": "Bldg.080",
-      "status": "moved",
-      "reason": null,
-      "terrain_z": -0.136719,
-      "street_z_before": 0.0,
-      "planned_delta_z": -0.136719,
-      "delta_z": -0.136719,
-      "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
-      "hit_xy_distance": 0.0,
-      "center": [
-        941.032043,
-        186.727814,
-        8.595
-      ],
-      "height": 17.190001,
-      "distance_to_anchor": 1014.782245
-    },
-    {
-      "name": "Bldg.247",
-      "status": "moved",
-      "reason": null,
-      "terrain_z": -0.243164,
-      "street_z_before": 0.0,
-      "planned_delta_z": -0.243164,
-      "delta_z": -0.243164,
-      "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
-      "hit_xy_distance": 0.0,
-      "center": [
-        973.513,
-        140.730377,
-        7.302
-      ],
-      "height": 14.604,
-      "distance_to_anchor": 1066.348722
-    },
-    {
-      "name": "Bldg.380",
-      "status": "moved",
-      "reason": null,
-      "terrain_z": 0.294434,
-      "street_z_before": 0.0,
-      "planned_delta_z": 0.294434,
-      "delta_z": 0.294434,
-      "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
-      "hit_xy_distance": 0.0,
-      "center": [
-        162.677856,
-        340.660889,
-        7.615
-      ],
-      "height": 15.23,
-      "distance_to_anchor": 373.111392
-    },
-    {
-      "name": "Bldg.237",
-      "status": "moved",
-      "reason": null,
-      "terrain_z": -0.367188,
-      "street_z_before": 0.0,
-      "planned_delta_z": -0.367188,
-      "delta_z": -0.367188,
-      "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
-      "hit_xy_distance": 0.0,
-      "center": [
-        952.2771,
-        226.362457,
-        7.505
-      ],
-      "height": 15.01,
-      "distance_to_anchor": 1005.176411
-    },
-    {
-      "name": "Bldg.253",
-      "status": "moved",
-      "reason": null,
-      "terrain_z": 0.395996,
-      "street_z_before": 0.0,
-      "planned_delta_z": 0.395996,
-      "delta_z": 0.395996,
-      "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
-      "hit_xy_distance": 0.0,
-      "center": [
-        159.725525,
-        327.5354,
-        7.45
-      ],
-      "height": 14.9,
-      "distance_to_anchor": 385.078991
-    },
-    {
-      "name": "Bldg.372",
-      "status": "moved",
-      "reason": null,
-      "terrain_z": -0.443848,
-      "street_z_before": 0.0,
-      "planned_delta_z": -0.443848,
-      "delta_z": -0.443848,
-      "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
-      "hit_xy_distance": 0.0,
-      "center": [
-        960.056641,
-        252.204422,
-        9.3
-      ],
-      "height": 18.6,
-      "distance_to_anchor": 1000.178427
-    },
-    {
       "name": "Bldg.131",
       "status": "moved",
       "reason": null,
       "terrain_z": -0.505859,
+      "target_bottom_z": -0.116113,
       "street_z_before": 0.0,
-      "planned_delta_z": -0.505859,
-      "delta_z": -0.505859,
+      "planned_delta_z": -0.116113,
+      "delta_z": -0.116113,
       "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
       "hit_xy_distance": 0.0,
+      "footprint_terrain_min_z": -0.519531,
+      "footprint_terrain_max_z": 0.233887,
+      "footprint_terrain_range_z": 0.753418,
+      "embed_depth": 0.35,
+      "foundation": {
+        "name": "Foundation_Bldg.131",
+        "bottom_z": -0.76953125,
+        "top_z": -0.036113281249999976,
+        "height": 0.73341796875
+      },
       "center": [
         940.914795,
         205.035095,
@@ -587,69 +439,142 @@
       "distance_to_anchor": 1005.524454
     },
     {
-      "name": "Bldg.006",
+      "name": "Bldg.176",
       "status": "moved",
       "reason": null,
-      "terrain_z": -0.523438,
+      "terrain_z": 0.136719,
+      "target_bottom_z": -0.13418,
       "street_z_before": 0.0,
-      "planned_delta_z": -0.523438,
-      "delta_z": -0.523438,
+      "planned_delta_z": -0.13418,
+      "delta_z": -0.13418,
       "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
       "hit_xy_distance": 0.0,
+      "footprint_terrain_min_z": -0.255859,
+      "footprint_terrain_max_z": 0.21582,
+      "footprint_terrain_range_z": 0.47168,
+      "embed_depth": 0.35,
+      "foundation": {
+        "name": "Foundation_Bldg.176",
+        "bottom_z": -0.505859375,
+        "top_z": -0.054179687499999976,
+        "height": 0.45167968750000004
+      },
       "center": [
-        937.234863,
-        373.219666,
-        7.165
+        104.436371,
+        236.814255,
+        8.555
       ],
-      "height": 14.33,
-      "distance_to_anchor": 930.634129
+      "height": 17.110001,
+      "distance_to_anchor": 465.854378
     },
     {
-      "name": "Bldg.161",
+      "name": "Bldg.253",
       "status": "moved",
       "reason": null,
-      "terrain_z": 0.557129,
+      "terrain_z": 0.395996,
+      "target_bottom_z": 0.136328,
       "street_z_before": 0.0,
-      "planned_delta_z": 0.557129,
-      "delta_z": 0.557129,
+      "planned_delta_z": 0.136328,
+      "delta_z": 0.136328,
       "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
       "hit_xy_distance": 0.0,
+      "footprint_terrain_min_z": 0.339355,
+      "footprint_terrain_max_z": 0.486328,
+      "footprint_terrain_range_z": 0.146973,
+      "embed_depth": 0.35,
+      "foundation": {
+        "name": "Foundation_Bldg.253",
+        "bottom_z": 0.08935546875,
+        "top_z": 0.21632812500000004,
+        "height": 0.12697265625000004
+      },
       "center": [
-        164.307037,
-        328.345459,
-        7.367
+        159.725525,
+        327.5354,
+        7.45
       ],
-      "height": 14.734,
-      "distance_to_anchor": 385.432938
+      "height": 14.9,
+      "distance_to_anchor": 385.078991
     },
     {
-      "name": "Bldg.109",
+      "name": "Bldg.080",
       "status": "moved",
       "reason": null,
-      "terrain_z": 0.575684,
+      "terrain_z": -0.136719,
+      "target_bottom_z": -0.219629,
       "street_z_before": 0.0,
-      "planned_delta_z": 0.575684,
-      "delta_z": 0.575684,
+      "planned_delta_z": -0.219629,
+      "delta_z": -0.219629,
       "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
       "hit_xy_distance": 0.0,
+      "footprint_terrain_min_z": -0.369141,
+      "footprint_terrain_max_z": 0.130371,
+      "footprint_terrain_range_z": 0.499512,
+      "embed_depth": 0.35,
+      "foundation": {
+        "name": "Foundation_Bldg.080",
+        "bottom_z": -0.619140625,
+        "top_z": -0.13962890624999996,
+        "height": 0.47951171875000004
+      },
       "center": [
-        106.836342,
-        217.416428,
-        8.62
+        941.032043,
+        186.727814,
+        8.595
       ],
-      "height": 17.24,
-      "distance_to_anchor": 485.384276
+      "height": 17.190001,
+      "distance_to_anchor": 1014.782245
+    },
+    {
+      "name": "Bldg.380",
+      "status": "moved",
+      "reason": null,
+      "terrain_z": 0.294434,
+      "target_bottom_z": 0.222266,
+      "street_z_before": 0.0,
+      "planned_delta_z": 0.222266,
+      "delta_z": 0.222266,
+      "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
+      "hit_xy_distance": 0.0,
+      "footprint_terrain_min_z": -0.212891,
+      "footprint_terrain_max_z": 0.572266,
+      "footprint_terrain_range_z": 0.785156,
+      "embed_depth": 0.35,
+      "foundation": {
+        "name": "Foundation_Bldg.380",
+        "bottom_z": -0.462890625,
+        "top_z": 0.30226562500000004,
+        "height": 0.76515625
+      },
+      "center": [
+        162.677856,
+        340.660889,
+        7.615
+      ],
+      "height": 15.23,
+      "distance_to_anchor": 373.111392
     },
     {
       "name": "Bldg.208",
       "status": "moved",
       "reason": null,
       "terrain_z": 0.596191,
+      "target_bottom_z": 0.278418,
       "street_z_before": 0.0,
-      "planned_delta_z": 0.596191,
-      "delta_z": 0.596191,
+      "planned_delta_z": 0.278418,
+      "delta_z": 0.278418,
       "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
       "hit_xy_distance": 0.0,
+      "footprint_terrain_min_z": 0.425781,
+      "footprint_terrain_max_z": 0.628418,
+      "footprint_terrain_range_z": 0.202637,
+      "embed_depth": 0.35,
+      "foundation": {
+        "name": "Foundation_Bldg.208",
+        "bottom_z": 0.17578125,
+        "top_z": 0.35841796875000004,
+        "height": 0.18263671875000004
+      },
       "center": [
         153.028931,
         326.143097,
@@ -659,249 +584,84 @@
       "distance_to_anchor": 384.865223
     },
     {
-      "name": "Bldg.062",
+      "name": "Bldg.045",
       "status": "moved",
       "reason": null,
-      "terrain_z": 0.59668,
+      "terrain_z": -1.695801,
+      "target_bottom_z": -0.280664,
       "street_z_before": 0.0,
-      "planned_delta_z": 0.59668,
-      "delta_z": 0.59668,
+      "planned_delta_z": -0.280664,
+      "delta_z": -0.280664,
       "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
       "hit_xy_distance": 0.0,
+      "footprint_terrain_min_z": -1.886719,
+      "footprint_terrain_max_z": 0.069336,
+      "footprint_terrain_range_z": 1.956055,
+      "embed_depth": 0.35,
+      "foundation": {
+        "name": "Foundation_Bldg.045",
+        "bottom_z": -2.13671875,
+        "top_z": -0.20066406249999996,
+        "height": 1.9360546875
+      },
       "center": [
-        149.292603,
-        308.595093,
-        8.115
+        95.187805,
+        236.921814,
+        8.5125
       ],
-      "height": 16.23,
-      "distance_to_anchor": 401.191272
+      "height": 17.025,
+      "distance_to_anchor": 465.080726
     },
     {
-      "name": "Bldg.082",
+      "name": "Bldg.247",
       "status": "moved",
       "reason": null,
-      "terrain_z": 0.600586,
+      "terrain_z": -0.243164,
+      "target_bottom_z": -0.294336,
       "street_z_before": 0.0,
-      "planned_delta_z": 0.600586,
-      "delta_z": 0.600586,
+      "planned_delta_z": -0.294336,
+      "delta_z": -0.294336,
       "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
       "hit_xy_distance": 0.0,
+      "footprint_terrain_min_z": -0.303223,
+      "footprint_terrain_max_z": 0.055664,
+      "footprint_terrain_range_z": 0.358887,
+      "embed_depth": 0.35,
+      "foundation": {
+        "name": "Foundation_Bldg.247",
+        "bottom_z": -0.55322265625,
+        "top_z": -0.21433593749999996,
+        "height": 0.33888671875000004
+      },
       "center": [
-        153.081238,
-        318.376648,
-        8.15
+        973.513,
+        140.730377,
+        7.302
       ],
-      "height": 16.299999,
-      "distance_to_anchor": 392.447256
-    },
-    {
-      "name": "Bldg.390",
-      "status": "moved",
-      "reason": null,
-      "terrain_z": -0.612305,
-      "street_z_before": 0.0,
-      "planned_delta_z": -0.612305,
-      "delta_z": -0.612305,
-      "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
-      "hit_xy_distance": 0.0,
-      "center": [
-        938.591797,
-        366.209778,
-        7.08
-      ],
-      "height": 14.16,
-      "distance_to_anchor": 934.393591
-    },
-    {
-      "name": "Bldg.206",
-      "status": "moved",
-      "reason": null,
-      "terrain_z": 0.677246,
-      "street_z_before": 0.0,
-      "planned_delta_z": 0.677246,
-      "delta_z": 0.677246,
-      "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
-      "hit_xy_distance": 0.0,
-      "center": [
-        175.191498,
-        342.767761,
-        7.64
-      ],
-      "height": 15.28,
-      "distance_to_anchor": 374.522431
-    },
-    {
-      "name": "Bldg.282",
-      "status": "moved",
-      "reason": null,
-      "terrain_z": 0.707031,
-      "street_z_before": 0.0,
-      "planned_delta_z": 0.707031,
-      "delta_z": 0.707031,
-      "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
-      "hit_xy_distance": 0.0,
-      "center": [
-        777.393677,
-        63.199902,
-        16.629999
-      ],
-      "height": 33.259998,
-      "distance_to_anchor": 955.306831
-    },
-    {
-      "name": "Bldg.127",
-      "status": "moved",
-      "reason": null,
-      "terrain_z": -0.712402,
-      "street_z_before": 0.0,
-      "planned_delta_z": -0.712402,
-      "delta_z": -0.712402,
-      "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
-      "hit_xy_distance": 0.0,
-      "center": [
-        937.17865,
-        382.95282,
-        7.135
-      ],
-      "height": 14.27,
-      "distance_to_anchor": 927.196863
-    },
-    {
-      "name": "Bldg.147",
-      "status": "moved",
-      "reason": null,
-      "terrain_z": 0.725098,
-      "street_z_before": 0.0,
-      "planned_delta_z": 0.725098,
-      "delta_z": 0.725098,
-      "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
-      "hit_xy_distance": 0.0,
-      "center": [
-        185.689011,
-        340.089569,
-        7.285
-      ],
-      "height": 14.57,
-      "distance_to_anchor": 380.250607
-    },
-    {
-      "name": "Bldg.125",
-      "status": "moved",
-      "reason": null,
-      "terrain_z": 0.756348,
-      "street_z_before": 0.0,
-      "planned_delta_z": 0.756348,
-      "delta_z": 0.756348,
-      "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
-      "hit_xy_distance": 0.0,
-      "center": [
-        163.060242,
-        308.254639,
-        7.925
-      ],
-      "height": 15.85,
-      "distance_to_anchor": 404.595226
-    },
-    {
-      "name": "Bldg.326",
-      "status": "moved",
-      "reason": null,
-      "terrain_z": -0.758789,
-      "street_z_before": 0.0,
-      "planned_delta_z": -0.758789,
-      "delta_z": -0.758789,
-      "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
-      "hit_xy_distance": 0.0,
-      "center": [
-        932.985291,
-        358.221741,
-        7.357
-      ],
-      "height": 14.714,
-      "distance_to_anchor": 932.070595
-    },
-    {
-      "name": "Bldg.056",
-      "status": "moved",
-      "reason": null,
-      "terrain_z": -0.760742,
-      "street_z_before": 0.0,
-      "planned_delta_z": -0.760742,
-      "delta_z": -0.760742,
-      "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
-      "hit_xy_distance": 0.0,
-      "center": [
-        121.712898,
-        257.351349,
-        9.48
-      ],
-      "height": 18.959999,
-      "distance_to_anchor": 447.201176
-    },
-    {
-      "name": "Bldg.350",
-      "status": "moved",
-      "reason": null,
-      "terrain_z": -0.764648,
-      "street_z_before": 0.0,
-      "planned_delta_z": -0.764648,
-      "delta_z": -0.764648,
-      "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
-      "hit_xy_distance": 0.0,
-      "center": [
-        933.096558,
-        353.707977,
-        7.341
-      ],
-      "height": 14.682,
-      "distance_to_anchor": 933.843789
-    },
-    {
-      "name": "Bldg.179",
-      "status": "moved",
-      "reason": null,
-      "terrain_z": -0.782227,
-      "street_z_before": 0.0,
-      "planned_delta_z": -0.782227,
-      "delta_z": -0.782227,
-      "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
-      "hit_xy_distance": 0.0,
-      "center": [
-        937.128052,
-        351.493774,
-        7.075
-      ],
-      "height": 14.15,
-      "distance_to_anchor": 938.409805
-    },
-    {
-      "name": "Bldg.014",
-      "status": "moved",
-      "reason": null,
-      "terrain_z": -0.791992,
-      "street_z_before": 0.0,
-      "planned_delta_z": -0.791992,
-      "delta_z": -0.791992,
-      "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
-      "hit_xy_distance": 0.0,
-      "center": [
-        925.166504,
-        363.82605,
-        7.135
-      ],
-      "height": 14.27,
-      "distance_to_anchor": 922.741379
+      "height": 14.604,
+      "distance_to_anchor": 1066.348722
     },
     {
       "name": "Bldg.166",
       "status": "moved",
       "reason": null,
       "terrain_z": -0.833008,
+      "target_bottom_z": 0.295996,
       "street_z_before": 0.0,
-      "planned_delta_z": -0.833008,
-      "delta_z": -0.833008,
+      "planned_delta_z": 0.295996,
+      "delta_z": 0.295996,
       "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
       "hit_xy_distance": 0.0,
+      "footprint_terrain_min_z": -1.768555,
+      "footprint_terrain_max_z": 0.645996,
+      "footprint_terrain_range_z": 2.414551,
+      "embed_depth": 0.35,
+      "foundation": {
+        "name": "Foundation_Bldg.166",
+        "bottom_z": -2.0185546875,
+        "top_z": 0.37599609375000004,
+        "height": 2.39455078125
+      },
       "center": [
         140.789795,
         326.194641,
@@ -911,51 +671,461 @@
       "distance_to_anchor": 382.241781
     },
     {
-      "name": "Bldg.041",
+      "name": "Bldg.082",
       "status": "moved",
       "reason": null,
-      "terrain_z": 1.030273,
+      "terrain_z": 0.600586,
+      "target_bottom_z": 0.332617,
       "street_z_before": 0.0,
-      "planned_delta_z": 1.030273,
-      "delta_z": 1.030273,
+      "planned_delta_z": 0.332617,
+      "delta_z": 0.332617,
       "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
       "hit_xy_distance": 0.0,
+      "footprint_terrain_min_z": 0.451172,
+      "footprint_terrain_max_z": 0.682617,
+      "footprint_terrain_range_z": 0.231445,
+      "embed_depth": 0.35,
+      "foundation": {
+        "name": "Foundation_Bldg.082",
+        "bottom_z": 0.201171875,
+        "top_z": 0.41261718750000004,
+        "height": 0.21144531250000004
+      },
       "center": [
-        129.34314,
-        245.42099,
-        9.335
+        153.081238,
+        318.376648,
+        8.15
       ],
-      "height": 18.67,
-      "distance_to_anchor": 460.025758
+      "height": 16.299999,
+      "distance_to_anchor": 392.447256
     },
     {
-      "name": "Bldg.299",
+      "name": "Bldg.206",
       "status": "moved",
       "reason": null,
-      "terrain_z": 1.04834,
+      "terrain_z": 0.677246,
+      "target_bottom_z": 0.364355,
       "street_z_before": 0.0,
-      "planned_delta_z": 1.04834,
-      "delta_z": 1.04834,
+      "planned_delta_z": 0.364355,
+      "delta_z": 0.364355,
       "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
       "hit_xy_distance": 0.0,
+      "footprint_terrain_min_z": 0.342285,
+      "footprint_terrain_max_z": 0.714355,
+      "footprint_terrain_range_z": 0.37207,
+      "embed_depth": 0.35,
+      "foundation": {
+        "name": "Foundation_Bldg.206",
+        "bottom_z": 0.09228515625,
+        "top_z": 0.44435546875000004,
+        "height": 0.35207031250000004
+      },
       "center": [
-        173.547272,
-        322.474731,
-        7.3865
+        175.191498,
+        342.767761,
+        7.64
       ],
-      "height": 14.773,
-      "distance_to_anchor": 393.531199
+      "height": 15.28,
+      "distance_to_anchor": 374.522431
+    },
+    {
+      "name": "Bldg.161",
+      "status": "moved",
+      "reason": null,
+      "terrain_z": 0.557129,
+      "target_bottom_z": 0.369727,
+      "street_z_before": 0.0,
+      "planned_delta_z": 0.369727,
+      "delta_z": 0.369727,
+      "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
+      "hit_xy_distance": 0.0,
+      "footprint_terrain_min_z": 0.399902,
+      "footprint_terrain_max_z": 0.719727,
+      "footprint_terrain_range_z": 0.319824,
+      "embed_depth": 0.35,
+      "foundation": {
+        "name": "Foundation_Bldg.161",
+        "bottom_z": 0.14990234375,
+        "top_z": 0.44972656250000004,
+        "height": 0.29982421875000004
+      },
+      "center": [
+        164.307037,
+        328.345459,
+        7.367
+      ],
+      "height": 14.734,
+      "distance_to_anchor": 385.432938
+    },
+    {
+      "name": "Bldg.259",
+      "status": "moved",
+      "reason": null,
+      "terrain_z": -0.134277,
+      "target_bottom_z": -0.391504,
+      "street_z_before": 0.0,
+      "planned_delta_z": -0.391504,
+      "delta_z": -0.391504,
+      "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
+      "hit_xy_distance": 0.0,
+      "footprint_terrain_min_z": -0.21582,
+      "footprint_terrain_max_z": -0.041504,
+      "footprint_terrain_range_z": 0.174316,
+      "embed_depth": 0.35,
+      "foundation": {
+        "name": "Foundation_Bldg.259",
+        "bottom_z": -0.4658203125,
+        "top_z": -0.31150390624999996,
+        "height": 0.15431640625000004
+      },
+      "center": [
+        191.017624,
+        382.74173,
+        7.172
+      ],
+      "height": 14.344,
+      "distance_to_anchor": 341.928001
+    },
+    {
+      "name": "Bldg.372",
+      "status": "moved",
+      "reason": null,
+      "terrain_z": -0.443848,
+      "target_bottom_z": -0.411035,
+      "street_z_before": 0.0,
+      "planned_delta_z": -0.411035,
+      "delta_z": -0.411035,
+      "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
+      "hit_xy_distance": 0.0,
+      "footprint_terrain_min_z": -1.029785,
+      "footprint_terrain_max_z": -0.061035,
+      "footprint_terrain_range_z": 0.96875,
+      "embed_depth": 0.35,
+      "foundation": {
+        "name": "Foundation_Bldg.372",
+        "bottom_z": -1.27978515625,
+        "top_z": -0.33103515624999996,
+        "height": 0.94875
+      },
+      "center": [
+        960.056641,
+        252.204422,
+        9.3
+      ],
+      "height": 18.6,
+      "distance_to_anchor": 1000.178427
+    },
+    {
+      "name": "Bldg.109",
+      "status": "moved",
+      "reason": null,
+      "terrain_z": 0.575684,
+      "target_bottom_z": 0.484961,
+      "street_z_before": 0.0,
+      "planned_delta_z": 0.484961,
+      "delta_z": 0.484961,
+      "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
+      "hit_xy_distance": 0.0,
+      "footprint_terrain_min_z": 0.272949,
+      "footprint_terrain_max_z": 0.834961,
+      "footprint_terrain_range_z": 0.562012,
+      "embed_depth": 0.35,
+      "foundation": {
+        "name": "Foundation_Bldg.109",
+        "bottom_z": 0.02294921875,
+        "top_z": 0.5649609375,
+        "height": 0.54201171875
+      },
+      "center": [
+        106.836342,
+        217.416428,
+        8.62
+      ],
+      "height": 17.24,
+      "distance_to_anchor": 485.384276
+    },
+    {
+      "name": "Bldg.062",
+      "status": "moved",
+      "reason": null,
+      "terrain_z": 0.59668,
+      "target_bottom_z": 0.514746,
+      "street_z_before": 0.0,
+      "planned_delta_z": 0.514746,
+      "delta_z": 0.514746,
+      "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
+      "hit_xy_distance": 0.0,
+      "footprint_terrain_min_z": -0.187012,
+      "footprint_terrain_max_z": 0.864746,
+      "footprint_terrain_range_z": 1.051758,
+      "embed_depth": 0.35,
+      "foundation": {
+        "name": "Foundation_Bldg.062",
+        "bottom_z": -0.43701171875,
+        "top_z": 0.59474609375,
+        "height": 1.0317578125
+      },
+      "center": [
+        149.292603,
+        308.595093,
+        8.115
+      ],
+      "height": 16.23,
+      "distance_to_anchor": 401.191272
+    },
+    {
+      "name": "Bldg.237",
+      "status": "moved",
+      "reason": null,
+      "terrain_z": -0.367188,
+      "target_bottom_z": -0.652734,
+      "street_z_before": 0.0,
+      "planned_delta_z": -0.652734,
+      "delta_z": -0.652734,
+      "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
+      "hit_xy_distance": 0.0,
+      "footprint_terrain_min_z": -0.375977,
+      "footprint_terrain_max_z": -0.302734,
+      "footprint_terrain_range_z": 0.073242,
+      "embed_depth": 0.35,
+      "foundation": {
+        "name": "Foundation_Bldg.237",
+        "bottom_z": -0.6259765625,
+        "top_z": -0.572734375,
+        "height": 0.05324218749999998
+      },
+      "center": [
+        952.2771,
+        226.362457,
+        7.505
+      ],
+      "height": 15.01,
+      "distance_to_anchor": 1005.176411
+    },
+    {
+      "name": "Bldg.056",
+      "status": "moved",
+      "reason": null,
+      "terrain_z": -0.760742,
+      "target_bottom_z": 0.686133,
+      "street_z_before": 0.0,
+      "planned_delta_z": 0.686133,
+      "delta_z": 0.686133,
+      "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
+      "hit_xy_distance": 0.0,
+      "footprint_terrain_min_z": -0.898438,
+      "footprint_terrain_max_z": 1.036133,
+      "footprint_terrain_range_z": 1.93457,
+      "embed_depth": 0.35,
+      "foundation": {
+        "name": "Foundation_Bldg.056",
+        "bottom_z": -1.1484375,
+        "top_z": 0.7661328125,
+        "height": 1.9145703125
+      },
+      "center": [
+        121.712898,
+        257.351349,
+        9.48
+      ],
+      "height": 18.959999,
+      "distance_to_anchor": 447.201176
+    },
+    {
+      "name": "Bldg.225",
+      "status": "moved",
+      "reason": null,
+      "terrain_z": -1.868164,
+      "target_bottom_z": -0.694727,
+      "street_z_before": 0.0,
+      "planned_delta_z": -0.694727,
+      "delta_z": -0.694727,
+      "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
+      "hit_xy_distance": 0.0,
+      "footprint_terrain_min_z": -2.173828,
+      "footprint_terrain_max_z": -0.344727,
+      "footprint_terrain_range_z": 1.829102,
+      "embed_depth": 0.35,
+      "foundation": {
+        "name": "Foundation_Bldg.225",
+        "bottom_z": -2.423828125,
+        "top_z": -0.6147265625,
+        "height": 1.8091015625
+      },
+      "center": [
+        264.591766,
+        478.737915,
+        7.1175
+      ],
+      "height": 14.235,
+      "distance_to_anchor": 297.953088
+    },
+    {
+      "name": "Bldg.327",
+      "status": "moved",
+      "reason": null,
+      "terrain_z": -1.926758,
+      "target_bottom_z": -0.709375,
+      "street_z_before": 0.0,
+      "planned_delta_z": -0.709375,
+      "delta_z": -0.709375,
+      "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
+      "hit_xy_distance": 0.0,
+      "footprint_terrain_min_z": -1.996094,
+      "footprint_terrain_max_z": -0.359375,
+      "footprint_terrain_range_z": 1.636719,
+      "embed_depth": 0.35,
+      "foundation": {
+        "name": "Foundation_Bldg.327",
+        "bottom_z": -2.24609375,
+        "top_z": -0.629375,
+        "height": 1.61671875
+      },
+      "center": [
+        227.281891,
+        466.590332,
+        7.1655
+      ],
+      "height": 14.331,
+      "distance_to_anchor": 284.463743
+    },
+    {
+      "name": "Bldg.006",
+      "status": "moved",
+      "reason": null,
+      "terrain_z": -0.523438,
+      "target_bottom_z": -0.795312,
+      "street_z_before": 0.0,
+      "planned_delta_z": -0.795312,
+      "delta_z": -0.795312,
+      "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
+      "hit_xy_distance": 0.0,
+      "footprint_terrain_min_z": -0.616211,
+      "footprint_terrain_max_z": -0.445312,
+      "footprint_terrain_range_z": 0.170898,
+      "embed_depth": 0.35,
+      "foundation": {
+        "name": "Foundation_Bldg.006",
+        "bottom_z": -0.8662109375,
+        "top_z": -0.7153125,
+        "height": 0.15089843749999998
+      },
+      "center": [
+        937.234863,
+        373.219666,
+        7.165
+      ],
+      "height": 14.33,
+      "distance_to_anchor": 930.634129
+    },
+    {
+      "name": "Bldg.321",
+      "status": "moved",
+      "reason": null,
+      "terrain_z": -0.080078,
+      "target_bottom_z": 0.859473,
+      "street_z_before": 0.0,
+      "planned_delta_z": 0.859473,
+      "delta_z": 0.859473,
+      "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
+      "hit_xy_distance": 0.0,
+      "footprint_terrain_min_z": -0.271973,
+      "footprint_terrain_max_z": 1.209473,
+      "footprint_terrain_range_z": 1.481445,
+      "embed_depth": 0.35,
+      "foundation": {
+        "name": "Foundation_Bldg.321",
+        "bottom_z": -0.52197265625,
+        "top_z": 0.93947265625,
+        "height": 1.4614453125
+      },
+      "center": [
+        114.25248,
+        236.676849,
+        8.575
+      ],
+      "height": 17.15,
+      "distance_to_anchor": 466.897715
+    },
+    {
+      "name": "Bldg.390",
+      "status": "moved",
+      "reason": null,
+      "terrain_z": -0.612305,
+      "target_bottom_z": -0.88418,
+      "street_z_before": 0.0,
+      "planned_delta_z": -0.88418,
+      "delta_z": -0.88418,
+      "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
+      "hit_xy_distance": 0.0,
+      "footprint_terrain_min_z": -0.727051,
+      "footprint_terrain_max_z": -0.53418,
+      "footprint_terrain_range_z": 0.192871,
+      "embed_depth": 0.35,
+      "foundation": {
+        "name": "Foundation_Bldg.390",
+        "bottom_z": -0.97705078125,
+        "top_z": -0.8041796875,
+        "height": 0.17287109374999998
+      },
+      "center": [
+        938.591797,
+        366.209778,
+        7.08
+      ],
+      "height": 14.16,
+      "distance_to_anchor": 934.393591
+    },
+    {
+      "name": "Bldg.014",
+      "status": "moved",
+      "reason": null,
+      "terrain_z": -0.791992,
+      "target_bottom_z": -0.895898,
+      "street_z_before": 0.0,
+      "planned_delta_z": -0.895898,
+      "delta_z": -0.895898,
+      "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
+      "hit_xy_distance": 0.0,
+      "footprint_terrain_min_z": -0.826172,
+      "footprint_terrain_max_z": -0.545898,
+      "footprint_terrain_range_z": 0.280273,
+      "embed_depth": 0.35,
+      "foundation": {
+        "name": "Foundation_Bldg.014",
+        "bottom_z": -1.076171875,
+        "top_z": -0.8158984375,
+        "height": 0.2602734375
+      },
+      "center": [
+        925.166504,
+        363.82605,
+        7.135
+      ],
+      "height": 14.27,
+      "distance_to_anchor": 922.741379
     },
     {
       "name": "Bldg.097",
       "status": "moved",
       "reason": null,
       "terrain_z": 1.208008,
+      "target_bottom_z": 0.907813,
       "street_z_before": 0.0,
-      "planned_delta_z": 1.208008,
-      "delta_z": 1.208008,
+      "planned_delta_z": 0.907813,
+      "delta_z": 0.907813,
       "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
       "hit_xy_distance": 0.0,
+      "footprint_terrain_min_z": 1.157715,
+      "footprint_terrain_max_z": 1.257812,
+      "footprint_terrain_range_z": 0.100098,
+      "embed_depth": 0.35,
+      "foundation": {
+        "name": "Foundation_Bldg.097",
+        "bottom_z": 0.90771484375,
+        "top_z": 0.9878125,
+        "height": 0.08009765624999998
+      },
       "center": [
         834.702881,
         138.670105,
@@ -965,51 +1135,50 @@
       "distance_to_anchor": 952.267441
     },
     {
-      "name": "Bldg.183",
+      "name": "Bldg.127",
       "status": "moved",
       "reason": null,
-      "terrain_z": 1.267578,
+      "terrain_z": -0.712402,
+      "target_bottom_z": -0.979395,
       "street_z_before": 0.0,
-      "planned_delta_z": 1.267578,
-      "delta_z": 1.267578,
+      "planned_delta_z": -0.979395,
+      "delta_z": -0.979395,
       "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
       "hit_xy_distance": 0.0,
+      "footprint_terrain_min_z": -0.969238,
+      "footprint_terrain_max_z": -0.629395,
+      "footprint_terrain_range_z": 0.339844,
+      "embed_depth": 0.35,
+      "foundation": {
+        "name": "Foundation_Bldg.127",
+        "bottom_z": -1.21923828125,
+        "top_z": -0.89939453125,
+        "height": 0.31984375
+      },
       "center": [
-        117.701721,
-        228.193893,
-        8.485
+        937.17865,
+        382.95282,
+        7.135
       ],
-      "height": 16.969999,
-      "distance_to_anchor": 475.697091
-    },
-    {
-      "name": "Bldg.252",
-      "status": "moved",
-      "reason": null,
-      "terrain_z": -1.275879,
-      "street_z_before": 0.0,
-      "planned_delta_z": -1.275879,
-      "delta_z": -1.275879,
-      "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
-      "hit_xy_distance": 0.0,
-      "center": [
-        880.544189,
-        643.813232,
-        8.01
-      ],
-      "height": 16.02,
-      "distance_to_anchor": 816.282861
+      "height": 14.27,
+      "distance_to_anchor": 927.196863
     },
     {
       "name": "Bldg.087",
       "status": "moved",
       "reason": null,
       "terrain_z": 1.307617,
+      "target_bottom_z": 0.980078,
       "street_z_before": 0.0,
-      "planned_delta_z": 1.307617,
-      "delta_z": 1.307617,
+      "planned_delta_z": 0.980078,
+      "delta_z": 0.980078,
       "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
       "hit_xy_distance": 0.0,
+      "footprint_terrain_min_z": 1.285645,
+      "footprint_terrain_max_z": 1.330078,
+      "footprint_terrain_range_z": 0.044434,
+      "embed_depth": 0.35,
+      "foundation": null,
       "center": [
         123.446198,
         223.271408,
@@ -1023,11 +1192,17 @@
       "status": "moved",
       "reason": null,
       "terrain_z": 1.324707,
+      "target_bottom_z": 0.988379,
       "street_z_before": 0.0,
-      "planned_delta_z": 1.324707,
-      "delta_z": 1.324707,
+      "planned_delta_z": 0.988379,
+      "delta_z": 0.988379,
       "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
       "hit_xy_distance": 0.0,
+      "footprint_terrain_min_z": 1.271973,
+      "footprint_terrain_max_z": 1.338379,
+      "footprint_terrain_range_z": 0.066406,
+      "embed_depth": 0.35,
+      "foundation": null,
       "center": [
         839.714783,
         143.495621,
@@ -1041,11 +1216,17 @@
       "status": "moved",
       "reason": null,
       "terrain_z": 1.334961,
+      "target_bottom_z": 1.000098,
       "street_z_before": 0.0,
-      "planned_delta_z": 1.334961,
-      "delta_z": 1.334961,
+      "planned_delta_z": 1.000098,
+      "delta_z": 1.000098,
       "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
       "hit_xy_distance": 0.0,
+      "footprint_terrain_min_z": 1.318848,
+      "footprint_terrain_max_z": 1.350098,
+      "footprint_terrain_range_z": 0.03125,
+      "embed_depth": 0.35,
+      "foundation": null,
       "center": [
         847.181641,
         138.363739,
@@ -1059,11 +1240,17 @@
       "status": "moved",
       "reason": null,
       "terrain_z": 1.350098,
+      "target_bottom_z": 1.010352,
       "street_z_before": 0.0,
-      "planned_delta_z": 1.350098,
-      "delta_z": 1.350098,
+      "planned_delta_z": 1.010352,
+      "delta_z": 1.010352,
       "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
       "hit_xy_distance": 0.0,
+      "footprint_terrain_min_z": 1.316406,
+      "footprint_terrain_max_z": 1.360352,
+      "footprint_terrain_range_z": 0.043945,
+      "embed_depth": 0.35,
+      "foundation": null,
       "center": [
         840.454285,
         139.239578,
@@ -1077,11 +1264,22 @@
       "status": "moved",
       "reason": null,
       "terrain_z": 1.368652,
+      "target_bottom_z": 1.065527,
       "street_z_before": 0.0,
-      "planned_delta_z": 1.368652,
-      "delta_z": 1.368652,
+      "planned_delta_z": 1.065527,
+      "delta_z": 1.065527,
       "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
       "hit_xy_distance": 0.0,
+      "footprint_terrain_min_z": 1.243164,
+      "footprint_terrain_max_z": 1.415527,
+      "footprint_terrain_range_z": 0.172363,
+      "embed_depth": 0.35,
+      "foundation": {
+        "name": "Foundation_Bldg.023",
+        "bottom_z": 0.9931640625,
+        "top_z": 1.14552734375,
+        "height": 0.15236328124999998
+      },
       "center": [
         844.821411,
         112.6492,
@@ -1091,15 +1289,55 @@
       "distance_to_anchor": 975.916754
     },
     {
+      "name": "Bldg.183",
+      "status": "moved",
+      "reason": null,
+      "terrain_z": 1.267578,
+      "target_bottom_z": 1.074316,
+      "street_z_before": 0.0,
+      "planned_delta_z": 1.074316,
+      "delta_z": 1.074316,
+      "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
+      "hit_xy_distance": 0.0,
+      "footprint_terrain_min_z": -0.006836,
+      "footprint_terrain_max_z": 1.424316,
+      "footprint_terrain_range_z": 1.431152,
+      "embed_depth": 0.35,
+      "foundation": {
+        "name": "Foundation_Bldg.183",
+        "bottom_z": -0.2568359375,
+        "top_z": 1.15431640625,
+        "height": 1.41115234375
+      },
+      "center": [
+        117.701721,
+        228.193893,
+        8.485
+      ],
+      "height": 16.969999,
+      "distance_to_anchor": 475.697091
+    },
+    {
       "name": "Bldg.091",
       "status": "moved",
       "reason": null,
       "terrain_z": 1.377441,
+      "target_bottom_z": 1.094336,
       "street_z_before": 0.0,
-      "planned_delta_z": 1.377441,
-      "delta_z": 1.377441,
+      "planned_delta_z": 1.094336,
+      "delta_z": 1.094336,
       "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
       "hit_xy_distance": 0.0,
+      "footprint_terrain_min_z": 1.176758,
+      "footprint_terrain_max_z": 1.444336,
+      "footprint_terrain_range_z": 0.267578,
+      "embed_depth": 0.35,
+      "foundation": {
+        "name": "Foundation_Bldg.091",
+        "bottom_z": 0.9267578125,
+        "top_z": 1.1743359375,
+        "height": 0.24757812499999998
+      },
       "center": [
         867.935669,
         147.795807,
@@ -1109,51 +1347,103 @@
       "distance_to_anchor": 974.068705
     },
     {
-      "name": "Bldg.027",
+      "name": "Bldg.326",
       "status": "moved",
       "reason": null,
-      "terrain_z": 1.385742,
+      "terrain_z": -0.758789,
+      "target_bottom_z": -1.099512,
       "street_z_before": 0.0,
-      "planned_delta_z": 1.385742,
-      "delta_z": 1.385742,
+      "planned_delta_z": -1.099512,
+      "delta_z": -1.099512,
       "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
       "hit_xy_distance": 0.0,
+      "footprint_terrain_min_z": -0.790039,
+      "footprint_terrain_max_z": -0.749512,
+      "footprint_terrain_range_z": 0.040527,
+      "embed_depth": 0.35,
+      "foundation": null,
       "center": [
-        129.731598,
-        231.184082,
-        9.645
+        932.985291,
+        358.221741,
+        7.357
       ],
-      "height": 19.290001,
-      "distance_to_anchor": 474.184079
+      "height": 14.714,
+      "distance_to_anchor": 932.070595
     },
     {
-      "name": "Bldg.101",
+      "name": "Bldg.350",
       "status": "moved",
       "reason": null,
-      "terrain_z": 1.42627,
+      "terrain_z": -0.764648,
+      "target_bottom_z": -1.105859,
       "street_z_before": 0.0,
-      "planned_delta_z": 1.42627,
-      "delta_z": 1.42627,
+      "planned_delta_z": -1.105859,
+      "delta_z": -1.105859,
       "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
       "hit_xy_distance": 0.0,
+      "footprint_terrain_min_z": -0.766602,
+      "footprint_terrain_max_z": -0.755859,
+      "footprint_terrain_range_z": 0.010742,
+      "embed_depth": 0.35,
+      "foundation": null,
       "center": [
-        114.349106,
-        200.800049,
-        7.2315
+        933.096558,
+        353.707977,
+        7.341
       ],
-      "height": 14.463,
-      "distance_to_anchor": 502.607346
+      "height": 14.682,
+      "distance_to_anchor": 933.843789
+    },
+    {
+      "name": "Bldg.179",
+      "status": "moved",
+      "reason": null,
+      "terrain_z": -0.782227,
+      "target_bottom_z": -1.117578,
+      "street_z_before": 0.0,
+      "planned_delta_z": -1.117578,
+      "delta_z": -1.117578,
+      "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
+      "hit_xy_distance": 0.0,
+      "footprint_terrain_min_z": -0.860352,
+      "footprint_terrain_max_z": -0.767578,
+      "footprint_terrain_range_z": 0.092773,
+      "embed_depth": 0.35,
+      "foundation": {
+        "name": "Foundation_Bldg.179",
+        "bottom_z": -1.1103515625,
+        "top_z": -1.037578125,
+        "height": 0.07277343749999998
+      },
+      "center": [
+        937.128052,
+        351.493774,
+        7.075
+      ],
+      "height": 14.15,
+      "distance_to_anchor": 938.409805
     },
     {
       "name": "Bldg.293",
       "status": "moved",
       "reason": null,
       "terrain_z": -1.439453,
+      "target_bottom_z": -1.127344,
       "street_z_before": 0.0,
-      "planned_delta_z": -1.439453,
-      "delta_z": -1.439453,
+      "planned_delta_z": -1.127344,
+      "delta_z": -1.127344,
       "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
       "hit_xy_distance": 0.0,
+      "footprint_terrain_min_z": -2.358398,
+      "footprint_terrain_max_z": -0.777344,
+      "footprint_terrain_range_z": 1.581055,
+      "embed_depth": 0.35,
+      "foundation": {
+        "name": "Foundation_Bldg.293",
+        "bottom_z": -2.6083984375,
+        "top_z": -1.04734375,
+        "height": 1.5610546875
+      },
       "center": [
         114.625603,
         271.714752,
@@ -1163,15 +1453,55 @@
       "distance_to_anchor": 432.10189
     },
     {
+      "name": "Bldg.101",
+      "status": "moved",
+      "reason": null,
+      "terrain_z": 1.42627,
+      "target_bottom_z": 1.183203,
+      "street_z_before": 0.0,
+      "planned_delta_z": 1.183203,
+      "delta_z": 1.183203,
+      "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
+      "hit_xy_distance": 0.0,
+      "footprint_terrain_min_z": 1.216797,
+      "footprint_terrain_max_z": 1.533203,
+      "footprint_terrain_range_z": 0.316406,
+      "embed_depth": 0.35,
+      "foundation": {
+        "name": "Foundation_Bldg.101",
+        "bottom_z": 0.966796875,
+        "top_z": 1.263203125,
+        "height": 0.29640625
+      },
+      "center": [
+        114.349106,
+        200.800049,
+        7.2315
+      ],
+      "height": 14.463,
+      "distance_to_anchor": 502.607346
+    },
+    {
       "name": "Bldg.138",
       "status": "moved",
       "reason": null,
       "terrain_z": 1.44873,
+      "target_bottom_z": 1.261816,
       "street_z_before": 0.0,
-      "planned_delta_z": 1.44873,
-      "delta_z": 1.44873,
+      "planned_delta_z": 1.261816,
+      "delta_z": 1.261816,
       "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
       "hit_xy_distance": 0.0,
+      "footprint_terrain_min_z": 1.21582,
+      "footprint_terrain_max_z": 1.611816,
+      "footprint_terrain_range_z": 0.395996,
+      "embed_depth": 0.35,
+      "foundation": {
+        "name": "Foundation_Bldg.138",
+        "bottom_z": 0.9658203125,
+        "top_z": 1.34181640625,
+        "height": 0.37599609375
+      },
       "center": [
         882.997314,
         132.675323,
@@ -1181,105 +1511,84 @@
       "distance_to_anchor": 995.061078
     },
     {
-      "name": "Bldg.181",
+      "name": "Bldg.374",
       "status": "moved",
       "reason": null,
-      "terrain_z": -1.499023,
+      "terrain_z": -4.18457,
+      "target_bottom_z": -1.485254,
       "street_z_before": 0.0,
-      "planned_delta_z": -1.499023,
-      "delta_z": -1.499023,
+      "planned_delta_z": -1.485254,
+      "delta_z": -1.485254,
       "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
       "hit_xy_distance": 0.0,
+      "footprint_terrain_min_z": -4.212402,
+      "footprint_terrain_max_z": -1.135254,
+      "footprint_terrain_range_z": 3.077148,
+      "embed_depth": 0.35,
+      "foundation": {
+        "name": "Foundation_Bldg.374",
+        "bottom_z": -4.46240234375,
+        "top_z": -1.40525390625,
+        "height": 3.0571484375
+      },
       "center": [
-        668.952881,
-        691.78125,
-        6.9835
+        744.237793,
+        691.423767,
+        7.1115
       ],
-      "height": 13.967,
-      "distance_to_anchor": 602.750758
+      "height": 14.223,
+      "distance_to_anchor": 678.032675
     },
     {
-      "name": "Bldg.313",
+      "name": "Bldg.252",
       "status": "moved",
       "reason": null,
-      "terrain_z": -1.575684,
+      "terrain_z": -1.275879,
+      "target_bottom_z": -1.572656,
       "street_z_before": 0.0,
-      "planned_delta_z": -1.575684,
-      "delta_z": -1.575684,
+      "planned_delta_z": -1.572656,
+      "delta_z": -1.572656,
       "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
       "hit_xy_distance": 0.0,
+      "footprint_terrain_min_z": -1.663086,
+      "footprint_terrain_max_z": -1.222656,
+      "footprint_terrain_range_z": 0.44043,
+      "embed_depth": 0.35,
+      "foundation": {
+        "name": "Foundation_Bldg.252",
+        "bottom_z": -1.9130859375,
+        "top_z": -1.49265625,
+        "height": 0.4204296875
+      },
       "center": [
-        91.960251,
-        231.044952,
-        6.9005
+        880.544189,
+        643.813232,
+        8.01
       ],
-      "height": 13.801,
-      "distance_to_anchor": 470.759229
-    },
-    {
-      "name": "Bldg.156",
-      "status": "moved",
-      "reason": null,
-      "terrain_z": 1.575684,
-      "street_z_before": 0.0,
-      "planned_delta_z": 1.575684,
-      "delta_z": 1.575684,
-      "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
-      "hit_xy_distance": 0.0,
-      "center": [
-        122.420471,
-        216.935089,
-        7.81
-      ],
-      "height": 15.62,
-      "distance_to_anchor": 487.41243
-    },
-    {
-      "name": "Bldg.045",
-      "status": "moved",
-      "reason": null,
-      "terrain_z": -1.695801,
-      "street_z_before": 0.0,
-      "planned_delta_z": -1.695801,
-      "delta_z": -1.695801,
-      "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
-      "hit_xy_distance": 0.0,
-      "center": [
-        95.187805,
-        236.921814,
-        8.5125
-      ],
-      "height": 17.025,
-      "distance_to_anchor": 465.080726
-    },
-    {
-      "name": "Bldg.140",
-      "status": "moved",
-      "reason": null,
-      "terrain_z": -1.715332,
-      "street_z_before": 0.0,
-      "planned_delta_z": -1.715332,
-      "delta_z": -1.715332,
-      "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
-      "hit_xy_distance": 0.0,
-      "center": [
-        963.0495,
-        561.739624,
-        9.81
-      ],
-      "height": 19.620001,
-      "distance_to_anchor": 907.539557
+      "height": 16.02,
+      "distance_to_anchor": 816.282861
     },
     {
       "name": "Bldg.318",
       "status": "moved",
       "reason": null,
       "terrain_z": -1.736816,
+      "target_bottom_z": -1.66543,
       "street_z_before": 0.0,
-      "planned_delta_z": -1.736816,
-      "delta_z": -1.736816,
+      "planned_delta_z": -1.66543,
+      "delta_z": -1.66543,
       "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
       "hit_xy_distance": 0.0,
+      "footprint_terrain_min_z": -2.599121,
+      "footprint_terrain_max_z": -1.31543,
+      "footprint_terrain_range_z": 1.283691,
+      "embed_depth": 0.35,
+      "foundation": {
+        "name": "Foundation_Bldg.318",
+        "bottom_z": -2.84912109375,
+        "top_z": -1.5854296875,
+        "height": 1.26369140625
+      },
       "center": [
         554.490479,
         566.504028,
@@ -1289,15 +1598,200 @@
       "distance_to_anchor": 506.430631
     },
     {
+      "name": "Bldg.140",
+      "status": "moved",
+      "reason": null,
+      "terrain_z": -1.715332,
+      "target_bottom_z": -1.719629,
+      "street_z_before": 0.0,
+      "planned_delta_z": -1.719629,
+      "delta_z": -1.719629,
+      "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
+      "hit_xy_distance": 0.0,
+      "footprint_terrain_min_z": -2.087402,
+      "footprint_terrain_max_z": -1.369629,
+      "footprint_terrain_range_z": 0.717773,
+      "embed_depth": 0.35,
+      "foundation": {
+        "name": "Foundation_Bldg.140",
+        "bottom_z": -2.33740234375,
+        "top_z": -1.63962890625,
+        "height": 0.6977734375
+      },
+      "center": [
+        963.0495,
+        561.739624,
+        9.81
+      ],
+      "height": 19.620001,
+      "distance_to_anchor": 907.539557
+    },
+    {
+      "name": "Bldg.299",
+      "status": "moved",
+      "reason": null,
+      "terrain_z": 1.04834,
+      "target_bottom_z": 1.727637,
+      "street_z_before": 0.0,
+      "planned_delta_z": 1.727637,
+      "delta_z": 1.727637,
+      "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
+      "hit_xy_distance": 0.0,
+      "footprint_terrain_min_z": 0.450195,
+      "footprint_terrain_max_z": 2.077637,
+      "footprint_terrain_range_z": 1.627441,
+      "embed_depth": 0.35,
+      "foundation": {
+        "name": "Foundation_Bldg.299",
+        "bottom_z": 0.2001953125,
+        "top_z": 1.80763671875,
+        "height": 1.60744140625
+      },
+      "center": [
+        173.547272,
+        322.474731,
+        7.3865
+      ],
+      "height": 14.773,
+      "distance_to_anchor": 393.531199
+    },
+    {
+      "name": "Bldg.181",
+      "status": "moved",
+      "reason": null,
+      "terrain_z": -1.499023,
+      "target_bottom_z": -1.72793,
+      "street_z_before": 0.0,
+      "planned_delta_z": -1.72793,
+      "delta_z": -1.72793,
+      "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
+      "hit_xy_distance": 0.0,
+      "footprint_terrain_min_z": -2.626465,
+      "footprint_terrain_max_z": -1.37793,
+      "footprint_terrain_range_z": 1.248535,
+      "embed_depth": 0.35,
+      "foundation": {
+        "name": "Foundation_Bldg.181",
+        "bottom_z": -2.87646484375,
+        "top_z": -1.6479296875,
+        "height": 1.22853515625
+      },
+      "center": [
+        668.952881,
+        691.78125,
+        6.9835
+      ],
+      "height": 13.967,
+      "distance_to_anchor": 602.750758
+    },
+    {
+      "name": "Bldg.110",
+      "status": "moved",
+      "reason": null,
+      "terrain_z": -1.924805,
+      "target_bottom_z": -1.740625,
+      "street_z_before": 0.0,
+      "planned_delta_z": -1.740625,
+      "delta_z": -1.740625,
+      "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
+      "hit_xy_distance": 0.0,
+      "footprint_terrain_min_z": -2.09082,
+      "footprint_terrain_max_z": -1.390625,
+      "footprint_terrain_range_z": 0.700195,
+      "embed_depth": 0.35,
+      "foundation": {
+        "name": "Foundation_Bldg.110",
+        "bottom_z": -2.3408203125,
+        "top_z": -1.660625,
+        "height": 0.6801953125
+      },
+      "center": [
+        135.367554,
+        321.792389,
+        7.5665
+      ],
+      "height": 15.133,
+      "distance_to_anchor": 385.552018
+    },
+    {
+      "name": "Bldg.122",
+      "status": "moved",
+      "reason": null,
+      "terrain_z": -2.186523,
+      "target_bottom_z": -1.77627,
+      "street_z_before": 0.0,
+      "planned_delta_z": -1.77627,
+      "delta_z": -1.77627,
+      "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
+      "hit_xy_distance": 0.0,
+      "footprint_terrain_min_z": -2.463867,
+      "footprint_terrain_max_z": -1.42627,
+      "footprint_terrain_range_z": 1.037598,
+      "embed_depth": 0.35,
+      "foundation": {
+        "name": "Foundation_Bldg.122",
+        "bottom_z": -2.7138671875,
+        "top_z": -1.69626953125,
+        "height": 1.01759765625
+      },
+      "center": [
+        110.178879,
+        283.839294,
+        9.525
+      ],
+      "height": 19.049999,
+      "distance_to_anchor": 419.567088
+    },
+    {
+      "name": "Bldg.313",
+      "status": "moved",
+      "reason": null,
+      "terrain_z": -1.575684,
+      "target_bottom_z": -1.812891,
+      "street_z_before": 0.0,
+      "planned_delta_z": -1.812891,
+      "delta_z": -1.812891,
+      "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
+      "hit_xy_distance": 0.0,
+      "footprint_terrain_min_z": -1.703125,
+      "footprint_terrain_max_z": -1.462891,
+      "footprint_terrain_range_z": 0.240234,
+      "embed_depth": 0.35,
+      "foundation": {
+        "name": "Foundation_Bldg.313",
+        "bottom_z": -1.953125,
+        "top_z": -1.732890625,
+        "height": 0.22023437499999998
+      },
+      "center": [
+        91.960251,
+        231.044952,
+        6.9005
+      ],
+      "height": 13.801,
+      "distance_to_anchor": 470.759229
+    },
+    {
       "name": "Bldg.339",
       "status": "moved",
       "reason": null,
       "terrain_z": -1.75,
+      "target_bottom_z": -1.839746,
       "street_z_before": 0.0,
-      "planned_delta_z": -1.75,
-      "delta_z": -1.75,
+      "planned_delta_z": -1.839746,
+      "delta_z": -1.839746,
       "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
       "hit_xy_distance": 0.0,
+      "footprint_terrain_min_z": -1.975098,
+      "footprint_terrain_max_z": -1.489746,
+      "footprint_terrain_range_z": 0.485352,
+      "embed_depth": 0.35,
+      "foundation": {
+        "name": "Foundation_Bldg.339",
+        "bottom_z": -2.22509765625,
+        "top_z": -1.75974609375,
+        "height": 0.4653515625
+      },
       "center": [
         889.969116,
         605.119751,
@@ -1305,6 +1799,35 @@
       ],
       "height": 15.086,
       "distance_to_anchor": 829.268393
+    },
+    {
+      "name": "Bldg.185",
+      "status": "moved",
+      "reason": null,
+      "terrain_z": -3.466309,
+      "target_bottom_z": -1.875879,
+      "street_z_before": 0.0,
+      "planned_delta_z": -1.875879,
+      "delta_z": -1.875879,
+      "hit_obj": "Terrain_Raycast_Atsugi_Terrain",
+      "hit_xy_distance": 0.0,
+      "footprint_terrain_min_z": -4.36084,
+      "footprint_terrain_max_z": -1.525879,
+      "footprint_terrain_range_z": 2.834961,
+      "embed_depth": 0.35,
+      "foundation": {
+        "name": "Foundation_Bldg.185",
+        "bottom_z": -4.61083984375,
+        "top_z": -1.79587890625,
+        "height": 2.8149609375
+      },
+      "center": [
+        735.043823,
+        689.904541,
+        7.0775
+      ],
+      "height": 14.155,
+      "distance_to_anchor": 668.863365
     }
   ]
 }

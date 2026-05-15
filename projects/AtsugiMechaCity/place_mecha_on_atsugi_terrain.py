@@ -27,6 +27,11 @@ BUILDING_SUBSET_SELECTION = "raycast_hit"
 ADJUST_BUILDINGS = "subset"
 MAX_BUILDING_HIT_XY_DISTANCE = 0.001
 MAX_BUILDING_ABS_DELTA_Z = 40.0
+BUILDING_EMBED_DEPTH = 0.35
+BUILDING_FOUNDATION_ENABLED = True
+BUILDING_FOUNDATION_MARGIN = 0.35
+BUILDING_FOUNDATION_BOTTOM_CLEARANCE = 0.25
+BUILDING_FOUNDATION_TOP_OVERLAP = 0.08
 SNAP_MECHA_TO_NEAREST_TERRAIN_VERTEX = True
 ALIGN_TERRAIN_LIKE_WEB_VIEWER = True
 SNAP_TERRAIN_PATCH_TO_CITY_CENTER = True
@@ -351,6 +356,87 @@ def set_object_bottom_to_z(obj, target_z):
     return float(delta_z)
 
 
+def create_building_foundation(name, min_v, max_v, terrain_min_z, target_bottom_z):
+    if not BUILDING_FOUNDATION_ENABLED:
+        return None
+    foundation_bottom = terrain_min_z - BUILDING_FOUNDATION_BOTTOM_CLEARANCE
+    foundation_top = target_bottom_z + BUILDING_FOUNDATION_TOP_OVERLAP
+    height = foundation_top - foundation_bottom
+    if height <= 0.05:
+        return None
+
+    margin = BUILDING_FOUNDATION_MARGIN
+    center_x = (min_v.x + max_v.x) / 2.0
+    center_y = (min_v.y + max_v.y) / 2.0
+    center_z = foundation_bottom + height / 2.0
+    size_x = max(0.1, (max_v.x - min_v.x) + margin * 2.0)
+    size_y = max(0.1, (max_v.y - min_v.y) + margin * 2.0)
+
+    bpy.ops.mesh.primitive_cube_add(size=1.0, location=(center_x, center_y, center_z))
+    foundation = bpy.context.object
+    foundation.name = f"Foundation_{name}"
+    foundation.dimensions = (size_x, size_y, height)
+    bpy.context.view_layer.update()
+    foundation.data.materials.append(material_once("Foundation_Diagnostic_Dark", (0.28, 0.3, 0.28, 1.0)))
+    return {
+        "name": foundation.name,
+        "bottom_z": float(foundation_bottom),
+        "top_z": float(foundation_top),
+        "height": float(height),
+    }
+
+
+def building_footprint_terrain_stats(
+    depsgraph,
+    terrain_meshes,
+    terrain_min,
+    terrain_max,
+    terrain_sampler,
+    terrain_bvhs,
+    min_v,
+    max_v,
+):
+    sample_points = []
+    for fx in (0.05, 0.275, 0.5, 0.725, 0.95):
+        for fy in (0.05, 0.275, 0.5, 0.725, 0.95):
+            x = min_v.x + (max_v.x - min_v.x) * fx
+            y = min_v.y + (max_v.y - min_v.y) * fy
+            z, hit_obj, hit_distance, _hit_coord = terrain_height_at(
+                depsgraph,
+                terrain_meshes,
+                x,
+                y,
+                terrain_min.z,
+                terrain_max.z,
+                terrain_sampler,
+                terrain_bvhs,
+            )
+            sample_points.append({
+                "x": float(x),
+                "y": float(y),
+                "z": None if z is None else float(z),
+                "hit_obj": hit_obj,
+                "hit_distance": None if hit_distance is None else float(hit_distance),
+            })
+    valid = [point for point in sample_points if point["z"] is not None]
+    if not valid:
+        return None
+    max_hit_distance = max(point["hit_distance"] or 0.0 for point in valid)
+    min_z = min(point["z"] for point in valid)
+    max_z = max(point["z"] for point in valid)
+    mean_z = sum(point["z"] for point in valid) / len(valid)
+    return {
+        "sample_count": len(valid),
+        "terrain_min_z": min_z,
+        "terrain_max_z": max_z,
+        "terrain_mean_z": mean_z,
+        "terrain_range_z": max_z - min_z,
+        "max_hit_distance": max_hit_distance,
+        "target_bottom_z": max_z - BUILDING_EMBED_DEPTH,
+        "samples": sample_points,
+    }
+
+
 def set_group_bottom_to_z(root, mesh_objects, target_z):
     min_v, _max_v = world_bounds(mesh_objects)
     delta_z = target_z - min_v.z
@@ -474,8 +560,21 @@ def find_building_terrain_candidates(
         if terrain_z is None:
             skipped_counts["no_terrain_hit"] += 1
             continue
-        planned_delta_z = terrain_z - min_v.z
-        if hit_distance is None or hit_distance > MAX_BUILDING_HIT_XY_DISTANCE:
+        footprint_stats = building_footprint_terrain_stats(
+            depsgraph,
+            terrain_meshes,
+            terrain_min,
+            terrain_max,
+            terrain_sampler,
+            terrain_bvhs,
+            min_v,
+            max_v,
+        )
+        if footprint_stats is None:
+            skipped_counts["no_terrain_hit"] += 1
+            continue
+        planned_delta_z = footprint_stats["target_bottom_z"] - min_v.z
+        if footprint_stats["max_hit_distance"] > MAX_BUILDING_HIT_XY_DISTANCE:
             skipped_counts["nearest_terrain_sample_too_far"] += 1
             continue
         if abs(planned_delta_z) > MAX_BUILDING_ABS_DELTA_Z:
@@ -491,6 +590,8 @@ def find_building_terrain_candidates(
             "terrain_z": terrain_z,
             "hit_obj": hit_obj,
             "hit_distance": hit_distance,
+            "footprint_stats": footprint_stats,
+            "target_bottom_z": footprint_stats["target_bottom_z"],
             "planned_delta_z": planned_delta_z,
         })
     candidates.sort(key=lambda item: (abs(item["planned_delta_z"]), item["distance_to_anchor"]))
@@ -717,6 +818,8 @@ def main():
                 terrain_z = item["terrain_z"]
                 hit_obj = item["hit_obj"]
                 hit_distance = item["hit_distance"]
+                target_bottom_z = item.get("target_bottom_z", terrain_z)
+                footprint_stats = item.get("footprint_stats")
             else:
                 terrain_z, hit_obj, hit_distance, _hit_coord = terrain_height_at(
                     depsgraph,
@@ -728,6 +831,17 @@ def main():
                     terrain_sampler,
                     terrain_bvhs,
                 )
+                footprint_stats = building_footprint_terrain_stats(
+                    depsgraph,
+                    terrain_meshes,
+                    terrain_min,
+                    terrain_max,
+                    terrain_sampler,
+                    terrain_bvhs,
+                    min_v,
+                    max_v,
+                )
+                target_bottom_z = terrain_z if footprint_stats is None else footprint_stats["target_bottom_z"]
             if terrain_z is None:
                 building_reports.append({
                     "name": obj.name,
@@ -738,10 +852,11 @@ def main():
                     "distance_to_anchor": round(float(item["distance_to_anchor"]), 6),
                 })
                 continue
-            planned_delta_z = terrain_z - min_v.z
+            planned_delta_z = target_bottom_z - min_v.z
             status = "moved"
             reason = None
-            if hit_distance is None or hit_distance > MAX_BUILDING_HIT_XY_DISTANCE:
+            max_hit_distance = hit_distance if footprint_stats is None else footprint_stats["max_hit_distance"]
+            if max_hit_distance is None or max_hit_distance > MAX_BUILDING_HIT_XY_DISTANCE:
                 status = "skipped"
                 reason = "nearest_terrain_sample_too_far"
             elif abs(planned_delta_z) > MAX_BUILDING_ABS_DELTA_Z:
@@ -749,8 +864,19 @@ def main():
                 reason = "delta_z_exceeds_guard"
 
             delta_z = 0.0
+            foundation_report = None
             if status == "moved":
-                delta_z = set_object_bottom_to_z(obj, terrain_z)
+                delta_z = set_object_bottom_to_z(obj, target_bottom_z)
+                bpy.context.view_layer.update()
+                moved_min, moved_max = world_bounds([obj])
+                if footprint_stats is not None:
+                    foundation_report = create_building_foundation(
+                        obj.name,
+                        moved_min,
+                        moved_max,
+                        footprint_stats["terrain_min_z"],
+                        target_bottom_z,
+                    )
                 obj.data.materials.clear()
                 obj.data.materials.append(material_once("Adjusted_Building_Diagnostic_Grey", (0.68, 0.7, 0.68, 1.0)))
                 adjusted_count += 1
@@ -759,11 +885,17 @@ def main():
                 "status": status,
                 "reason": reason,
                 "terrain_z": round(terrain_z, 6),
+                "target_bottom_z": round(target_bottom_z, 6),
                 "street_z_before": round(float(min_v.z), 6),
                 "planned_delta_z": round(planned_delta_z, 6),
                 "delta_z": round(delta_z, 6),
                 "hit_obj": hit_obj,
-                "hit_xy_distance": round(hit_distance or 0.0, 6),
+                "hit_xy_distance": round(max_hit_distance or 0.0, 6),
+                "footprint_terrain_min_z": None if footprint_stats is None else round(footprint_stats["terrain_min_z"], 6),
+                "footprint_terrain_max_z": None if footprint_stats is None else round(footprint_stats["terrain_max_z"], 6),
+                "footprint_terrain_range_z": None if footprint_stats is None else round(footprint_stats["terrain_range_z"], 6),
+                "embed_depth": BUILDING_EMBED_DEPTH,
+                "foundation": foundation_report,
                 "center": [round(float(v), 6) for v in center],
                 "height": round(float(item["height"]), 6),
                 "distance_to_anchor": round(float(item["distance_to_anchor"]), 6),
@@ -865,6 +997,9 @@ def main():
         "building_test_limit": BUILDING_TEST_LIMIT,
         "building_hit_xy_distance_guard": MAX_BUILDING_HIT_XY_DISTANCE,
         "building_abs_delta_z_guard": MAX_BUILDING_ABS_DELTA_Z,
+        "building_embed_depth": BUILDING_EMBED_DEPTH,
+        "building_foundation_enabled": BUILDING_FOUNDATION_ENABLED,
+        "building_foundation_margin": BUILDING_FOUNDATION_MARGIN,
         "building_adjusted_count": adjusted_count,
         "building_candidate_summary": building_candidate_summary,
         "city_bounds_before": {
