@@ -409,8 +409,12 @@ User visual review correctly found that some buildings still appeared to float a
 Current correction:
 
 - Each building footprint is sampled on a 5 x 5 terrain grid.
-- Building bottom Z is now based on the highest sampled terrain point minus `BUILDING_EMBED_DEPTH = 0.35`.
-- A dark foundation pad is generated under adjusted buildings where the sampled terrain range leaves visible low-side gaps.
+- Initial dark foundation pads reduced some gaps but looked like raised pedestals in the diagnostic view.
+- Current setting uses the lowest sampled terrain point minus `BUILDING_EMBED_DEPTH = 0.75`.
+- Dark foundations are disabled.
+- Thin terrain-colored contact pads are generated under adjusted building footprints:
+  - `BUILDING_CONTACT_PAD_ENABLED = True`
+  - `BUILDING_CONTACT_PAD_MARGIN = 0.45`
 - All 394 buildings were adjusted in the regenerated diagnostic report.
 
 Latest verified outputs:
@@ -427,5 +431,5 @@ Validation:
 
 Notes:
 
-- The dark bases are intentional diagnostic foundations to make sloped-ground contact visible.
+- The contact pads are intentional diagnostic terrain caps to prevent visible air gaps around box buildings on raw/faceted terrain.
 - The previous Telegram images sent before this correction should be treated as outdated.

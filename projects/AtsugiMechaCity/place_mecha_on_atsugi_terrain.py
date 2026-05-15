@@ -27,11 +27,15 @@ BUILDING_SUBSET_SELECTION = "raycast_hit"
 ADJUST_BUILDINGS = "subset"
 MAX_BUILDING_HIT_XY_DISTANCE = 0.001
 MAX_BUILDING_ABS_DELTA_Z = 40.0
-BUILDING_EMBED_DEPTH = 0.45
+BUILDING_EMBED_DEPTH = 0.75
 BUILDING_FOUNDATION_ENABLED = False
 BUILDING_FOUNDATION_MARGIN = 0.35
 BUILDING_FOUNDATION_BOTTOM_CLEARANCE = 0.25
 BUILDING_FOUNDATION_TOP_OVERLAP = 0.08
+BUILDING_CONTACT_PAD_ENABLED = True
+BUILDING_CONTACT_PAD_MARGIN = 0.45
+BUILDING_CONTACT_PAD_THICKNESS = 0.08
+BUILDING_CONTACT_PAD_TOP_LIFT = 0.03
 SNAP_MECHA_TO_NEAREST_TERRAIN_VERTEX = True
 ALIGN_TERRAIN_LIKE_WEB_VIEWER = True
 SNAP_TERRAIN_PATCH_TO_CITY_CENTER = True
@@ -383,6 +387,32 @@ def create_building_foundation(name, min_v, max_v, terrain_min_z, target_bottom_
         "bottom_z": float(foundation_bottom),
         "top_z": float(foundation_top),
         "height": float(height),
+    }
+
+
+def create_building_contact_pad(name, min_v, max_v, terrain_min_z):
+    if not BUILDING_CONTACT_PAD_ENABLED:
+        return None
+    margin = BUILDING_CONTACT_PAD_MARGIN
+    top_z = terrain_min_z + BUILDING_CONTACT_PAD_TOP_LIFT
+    thickness = BUILDING_CONTACT_PAD_THICKNESS
+    center_x = (min_v.x + max_v.x) / 2.0
+    center_y = (min_v.y + max_v.y) / 2.0
+    center_z = top_z - thickness / 2.0
+    size_x = max(0.1, (max_v.x - min_v.x) + margin * 2.0)
+    size_y = max(0.1, (max_v.y - min_v.y) + margin * 2.0)
+
+    bpy.ops.mesh.primitive_cube_add(size=1.0, location=(center_x, center_y, center_z))
+    pad = bpy.context.object
+    pad.name = f"GroundContactPad_{name}"
+    pad.dimensions = (size_x, size_y, thickness)
+    bpy.context.view_layer.update()
+    pad.data.materials.append(material_once("Terrain_Contact_Pad_Matte", (0.20, 0.31, 0.23, 1.0)))
+    return {
+        "name": pad.name,
+        "top_z": float(top_z),
+        "thickness": float(thickness),
+        "margin": float(margin),
     }
 
 
@@ -865,11 +895,18 @@ def main():
 
             delta_z = 0.0
             foundation_report = None
+            contact_pad_report = None
             if status == "moved":
                 delta_z = set_object_bottom_to_z(obj, target_bottom_z)
                 bpy.context.view_layer.update()
                 moved_min, moved_max = world_bounds([obj])
                 if footprint_stats is not None:
+                    contact_pad_report = create_building_contact_pad(
+                        obj.name,
+                        moved_min,
+                        moved_max,
+                        footprint_stats["terrain_min_z"],
+                    )
                     foundation_report = create_building_foundation(
                         obj.name,
                         moved_min,
@@ -896,6 +933,7 @@ def main():
                 "footprint_terrain_range_z": None if footprint_stats is None else round(footprint_stats["terrain_range_z"], 6),
                 "embed_depth": BUILDING_EMBED_DEPTH,
                 "foundation": foundation_report,
+                "contact_pad": contact_pad_report,
                 "center": [round(float(v), 6) for v in center],
                 "height": round(float(item["height"]), 6),
                 "distance_to_anchor": round(float(item["distance_to_anchor"]), 6),
@@ -1004,6 +1042,8 @@ def main():
         "building_embed_depth": BUILDING_EMBED_DEPTH,
         "building_foundation_enabled": BUILDING_FOUNDATION_ENABLED,
         "building_foundation_margin": BUILDING_FOUNDATION_MARGIN,
+        "building_contact_pad_enabled": BUILDING_CONTACT_PAD_ENABLED,
+        "building_contact_pad_margin": BUILDING_CONTACT_PAD_MARGIN,
         "building_adjusted_count": adjusted_count,
         "building_candidate_summary": building_candidate_summary,
         "city_bounds_before": {
