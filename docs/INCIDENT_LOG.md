@@ -3,6 +3,21 @@
 譛ｬ繝輔ぃ繧､繝ｫ縺ｯ縲√す繧ｹ繝・Β縺ｫ逋ｺ逕溘＠縺滄囿螳ｳ繝ｻ荳榊・蜷医→縺昴・譬ｹ譛ｬ蜴溷屏繝ｻ菫ｮ豁｣蜀・ｮｹ繝ｻ蜀咲匱髦ｲ豁｢遲悶ｒ險倬鹸縺励∪縺吶・菫ｮ豁｣繧定｡後▲縺溷�ｴ蜷医・縲∝ｿ・★縺薙・繝輔ぃ繧､繝ｫ縺ｫ繧ｨ繝ｳ繝医Μ繧定ｿｽ蜉�縺励※縺上□縺輔＞縲・
 ------
 
+## INC-075: OpenRadioss DOE calculation failure due to extreme Nodal Velocity (Flying Nodes)
+| Field | Detail |
+|---|---|
+| **Date** | 2026-05-05 |
+| **Detection** | OpenRadioss run failed at ~17-19ms. The output `4mmx4mm_ASSY_20260105_0001.out` showed `WARNING: NODAL VELOCITY MAY BE TOO HIGH FOR INTERFACE`. Node 5792 reached velocity of 434.9 m/s. |
+| **Impact** | The OpenRadioss DOE simulation crashed before completion, causing the AI engineering loop to halt without generating valid results for this DOE run. |
+| **Root Cause (5 Why)** | **Why1**: The simulation diverged due to a flying node (node 5792). **Why2**: Elements associated with this node failed and became extremely distorted during the punch fine blanking process. **Why3**: The failed elements were not deleted from the contact interface. **Why4**: Contact interfaces `/INTER/TYPE25/1`, `2`, and `3` had `Idel=1` or `Idel=0`. **Why5**: The parameter `Idel=2` (delete element and segment from interface when failed) was missing, which is strictly required for shearing/cutting simulations with `/FAIL` definitions. |
+| **Fix** | Updated `4mmx4mm_ASSY_20260105_0000.rad` to set `Idel = 2` for all `/INTER/TYPE25` interfaces. |
+| **Files** | `data/work/4mmx4mm_ASSY_20260105_0000.rad`, `docs/INCIDENT_LOG.md` |
+| **Verification** | Prepared the updated `.rad` file. Simulation must be restarted and verified manually to ensure it runs past the 19ms mark without instability. |
+| **Lessons Learned** | For any metal cutting or fine blanking simulation in OpenRadioss using solid elements and `/FAIL`, the contact interfaces must have `Idel=2` to prevent failed elements from causing "Nodal velocity too high" crashes. |
+| **Prevention** | Formalized this check for future OpenRadioss DOE preparations. Before starting any shearing calculation, ensure `/INTER` cards properly handle element deletion. |
+
+---
+
 ## INC-074: GitHub Actions workflow failure due to Permission Denied (actionlint/gitleaks)
 | Field | Detail |
 |---|---|
@@ -1095,3 +1110,16 @@ un_command_with_heartbeat wrapper that utilizes subprocess.Popen to update the h
 | **Verification** | `test_turso_sync.py` confirmed "Turso Cloud DB updated successfully" when using venv. `get_turso_metrics.py` showed record count increase from 1 to 2. |
 | **Lessons Learned** | Background daemons must be explicitly tied to their required virtual environments. Path resolution logic in shared scripts must be robustly tested for both Host and Container contexts. |
 | **Prevention** | Add a check to `cad_self_growth_daemon.py` to verify it's running in the expected venv. Include self-test phases in nightly scripts to report environment mismatches early. |
+
+## INC-078: Atsugi terrain buildings appeared floating after initial grounding render
+| Field | Detail |
+| --- | --- |
+| **Date** | 2026-05-16 JST |
+| **Detection** | User visually reviewed the generated Atsugi terrain images and reported that buildings were floating above the ground. A follow-up manual visual check of `Atsugi_Terrain_Grounded_Subset_Wide.png` and `Atsugi_Terrain_Grounded_Subset_Close.png` confirmed that center-point building grounding was insufficient on sloped terrain. |
+| **Impact** | The diagnostic render could mislead future 3D map work by appearing numerically aligned while still failing visually. If reused for another map, the same center-point grounding method would likely produce floating buildings on slopes or large footprints. |
+| **Root Cause (5 Why)** | **Why1**: Some buildings appeared to float. **Why2**: Each building was aligned using only one terrain height around its center. **Why3**: Sloped terrain and large footprints can have several meters of Z variation between corners. **Why4**: The acceptance check relied too much on raycast metrics and not enough on visual contact review from multiple camera angles. **Why5**: The pipeline did not yet encode a reusable terrain/building FMEA gate for "center-point pass but footprint/corner visual fail." |
+| **Fix** | Updated `projects/AtsugiMechaCity/place_mecha_on_atsugi_terrain.py` to sample each building footprint on a 5 x 5 terrain grid, set building bottom Z from the highest sampled terrain point minus `BUILDING_EMBED_DEPTH = 0.35`, and create dark diagnostic foundation pads under buildings where terrain variation leaves visible low-side gaps. Regenerated `Atsugi_Terrain_Grounded_Subset_Close.png`, `Atsugi_Terrain_Grounded_Subset_Wide.png`, and `atsugi_terrain_grounding_subset_report.json`. Updated `3D_PIPELINE_CURRENT_STATUS_20260515.md` with the floating correction. |
+| **Files** | `projects/AtsugiMechaCity/place_mecha_on_atsugi_terrain.py` lines 30-34, 359-435, 867-898, 1000-1001; `projects/AtsugiMechaCity/diagnostics/atsugi_terrain_grounding/Atsugi_Terrain_Grounded_Subset_Close.png`; `projects/AtsugiMechaCity/diagnostics/atsugi_terrain_grounding/Atsugi_Terrain_Grounded_Subset_Wide.png`; `projects/AtsugiMechaCity/diagnostics/atsugi_terrain_grounding/atsugi_terrain_grounding_subset_report.json`; `3D_PIPELINE_CURRENT_STATUS_20260515.md` |
+| **Verification** | `python -m py_compile projects/AtsugiMechaCity/place_mecha_on_atsugi_terrain.py` passed. Blender 5.1 background render completed successfully. The regenerated JSON reported `building_adjusted_count = 394`, `building_embed_depth = 0.35`, `building_foundation_enabled = true`, `raycast_hit_candidate_count = 394`, and terrain offset `[-3912.98053, -619.917969]`. Manual visual review was performed on both regenerated close and wide PNGs. Corrected images were sent to Telegram as message IDs `4616` and `4617`. Commit `e0e2a09` was pushed to `backup/atsugi-terrain-grounding-subset-20260516`; GitHub reported no CI status or workflow run for the commit. |
+| **Lessons Learned** | For 3D terrain/building placement, a single center raycast is not an acceptance criterion. The minimum acceptable diagnostic should include footprint sampling, terrain range reporting, foundation/embedding behavior for slopes, and manual or automated screenshot review from at least close and wide angles. |
+| **Prevention** | Promote the Atsugi correction into a generic 3D map intake gate: detect axis mapping, avoid naive bbox scaling, score terrain/building overlap, sample all building footprints, flag high terrain range footprints, generate foundations or require terrain pads, and block "good" status until screenshots are visually reviewed. Store the FMEA/FTA/5Why pattern in `docs/knowledge/atsugi_terrain_grounding_generic_quality_playbook_20260516.md` and ByteRover. |
