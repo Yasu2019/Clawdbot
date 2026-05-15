@@ -503,3 +503,40 @@ Validation:
 Remaining note:
 
 - The right-side large building still does not visually run parallel to the road network. That is likely a source/alignment issue between the building model and PLATEAU road layer, not only a road overlay rendering issue. A future pass should add a dedicated road-building alignment diagnostic instead of blindly rotating buildings.
+
+## 19. 2026-05-16 Update: Hon-Atsugi Station PLATEAU Mecha Render
+
+A separate Hon-Atsugi Station scene was generated directly from PLATEAU source GML because the earlier lightweight `Atsugi_Terrain.obj` only contained the first DEM files and did not cover the station area.
+
+Source coordinate:
+
+- Hon-Atsugi Station:
+  - Latitude: `35.4393389`
+  - Longitude: `139.3643379`
+
+Generated scene:
+
+- Script:
+  - `D:\Clawdbot_Docker_20260125\projects\AtsugiMechaCity\render_hon_atsugi_station_from_plateau.py`
+- Output images:
+  - `D:\Clawdbot_Docker_20260125\projects\AtsugiMechaCity\diagnostics\hon_atsugi_station\Hon_Atsugi_Station_Plateau_Mecha_Close.png`
+  - `D:\Clawdbot_Docker_20260125\projects\AtsugiMechaCity\diagnostics\hon_atsugi_station\Hon_Atsugi_Station_Plateau_Mecha_Wide.png`
+- Output report:
+  - `D:\Clawdbot_Docker_20260125\projects\AtsugiMechaCity\diagnostics\hon_atsugi_station\hon_atsugi_station_plateau_mecha_report.json`
+
+Scene metrics:
+
+- Station extraction radius: 480m
+- Terrain mesh: 248,406 vertices / 82,802 faces
+- Road mesh: 11,626 vertices / 10,142 faces
+- Buildings extracted: 1,583
+- Buildings rendered after mecha clearance: 1,575
+- Mecha height: 32m diagnostic scale
+- Station terrain Z nearest distance: 0.748591m
+- Mecha terrain nearest distance: 1.643692m
+
+Validation:
+
+- `python -m py_compile projects/AtsugiMechaCity/render_hon_atsugi_station_from_plateau.py`
+- Blender 5.1 background render completed successfully.
+- Manual visual check confirmed the close render shows the mecha among station-area buildings, and the wide render shows the surrounding dense urban block.

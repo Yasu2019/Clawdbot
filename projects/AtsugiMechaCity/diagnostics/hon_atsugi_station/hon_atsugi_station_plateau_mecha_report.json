@@ -1,0 +1,50 @@
+{
+  "ok": true,
+  "station": {
+    "lat": 35.4393389,
+    "lon": 139.3643379,
+    "raw_x": -42579.53678521386,
+    "raw_y": 62100.218646340654
+  },
+  "radius": 480.0,
+  "output_blend": "D:\\Clawdbot_Docker_20260125\\projects\\AtsugiMechaCity\\diagnostics\\hon_atsugi_station\\Hon_Atsugi_Station_Plateau_Mecha.blend",
+  "output_close": "D:\\Clawdbot_Docker_20260125\\projects\\AtsugiMechaCity\\diagnostics\\hon_atsugi_station\\Hon_Atsugi_Station_Plateau_Mecha_Close.png",
+  "output_wide": "D:\\Clawdbot_Docker_20260125\\projects\\AtsugiMechaCity\\diagnostics\\hon_atsugi_station\\Hon_Atsugi_Station_Plateau_Mecha_Wide.png",
+  "terrain": {
+    "vertices": 248406,
+    "faces": 82802
+  },
+  "roads": {
+    "vertices": 11626,
+    "faces": 10142
+  },
+  "buildings": {
+    "source_count": 1583,
+    "rendered_count": 1575,
+    "skipped_for_mecha_clearance": 8,
+    "mecha_clearance_radius": 34.0
+  },
+  "station_terrain_z": 18.64,
+  "station_terrain_nearest_distance": 0.748591,
+  "mecha": {
+    "name": "Zaku_Armature",
+    "placement_xy": [
+      60.0,
+      -90.0
+    ],
+    "terrain_z": 18.056,
+    "terrain_nearest_distance": 1.643692,
+    "scale_factor": 16.0,
+    "delta_z": 36.202338,
+    "bounds_min": [
+      42.496426,
+      -95.146179,
+      18.056002
+    ],
+    "bounds_max": [
+      77.571815,
+      -84.400604,
+      50.056
+    ]
+  }
+}
