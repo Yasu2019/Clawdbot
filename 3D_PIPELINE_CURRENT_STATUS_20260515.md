@@ -433,3 +433,41 @@ Notes:
 
 - The contact pads are intentional diagnostic terrain caps to prevent visible air gaps around box buildings on raw/faceted terrain.
 - The previous Telegram images sent before this correction should be treated as outdated.
+
+## 17. 2026-05-16 Update: Road Layer Addition
+
+The PLATEAU traffic (`udx/tran`) road layer was added to the Atsugi diagnostic Blender render.
+
+Implementation:
+
+- Source:
+  - `D:\Clawdbot_Docker_20260125\data\PLATEAU\Atsugi\udx\tran`
+- Script:
+  - `D:\Clawdbot_Docker_20260125\projects\AtsugiMechaCity\place_mecha_on_atsugi_terrain.py`
+- Output images:
+  - `D:\Clawdbot_Docker_20260125\projects\AtsugiMechaCity\diagnostics\atsugi_terrain_grounding\Atsugi_Terrain_Grounded_Subset_Close.png`
+  - `D:\Clawdbot_Docker_20260125\projects\AtsugiMechaCity\diagnostics\atsugi_terrain_grounding\Atsugi_Terrain_Grounded_Subset_Wide.png`
+
+Road layer report:
+
+- Files read: 102
+- Source polygons parsed: 39,725
+- Polygons selected around current diagnostic city bounds: 243
+- Mesh vertices: 3,850
+- Mesh faces: 3,364
+- Skipped outside current diagnostic bounds: 39,482
+- Skipped due to terrain miss: 0
+- Blender object: `Road_Layer_TRAN_LOD1`
+- Road surface lift above sampled terrain: `0.08`
+
+Validation:
+
+- Blender 5.1 background render completed successfully.
+- Manual visual check was performed on both close and wide PNGs.
+- The roads are visible as dark asphalt strips over the terrain, mainly on the right/lower side of the current diagnostic camera.
+- The existing 394-building terrain grounding and contact-pad correction remained enabled.
+
+Notes:
+
+- Blender Python did not have `pyproj`, so the script uses a bounded host-Python helper with `tempfile.TemporaryDirectory()` for GML coordinate conversion.
+- This is still a diagnostic road layer, not a final beauty material pass.

@@ -72,6 +72,11 @@
       1252.680054,
       67393.132812
     ],
+    "raw_center": [
+      -48311.46875,
+      628.684998,
+      64583.78125
+    ],
     "method": "web_viewer_center_no_scale",
     "scale": [
       1.0,
@@ -387,6 +392,18 @@
   ],
   "terrain_sampler_vertices": 3070983,
   "terrain_bvh_count": 1,
+  "road_layer": {
+    "enabled": true,
+    "files_read": 102,
+    "source_polygons": 39725,
+    "selected_polygons": 243,
+    "vertices": 3850,
+    "faces": 3364,
+    "skipped_outside": 39482,
+    "skipped_no_terrain": 0,
+    "object": "Road_Layer_TRAN_LOD1",
+    "z_lift": 0.08
+  },
   "mecha": {
     "name": "Zaku_Armature",
     "scale_factor": 9.0,

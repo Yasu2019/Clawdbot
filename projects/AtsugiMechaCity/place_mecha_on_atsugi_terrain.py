@@ -1,16 +1,24 @@
 import json
 import math
+import subprocess
+import tempfile
 from pathlib import Path
+import xml.etree.ElementTree as ET
 
 import bpy
 import mathutils
 from mathutils import bvhtree
 from mathutils import kdtree
+try:
+    from pyproj import Transformer
+except ModuleNotFoundError:
+    Transformer = None
 
 
 ROOT = Path(r"D:\Clawdbot_Docker_20260125")
 BLEND_PATH = ROOT / "Gundam" / "Atsugi_Front_Final.blend"
 TERRAIN_OBJ = ROOT / "apps" / "agi_designer" / "viewer" / "exports" / "Atsugi_Terrain.obj"
+ROAD_GML_DIR = ROOT / "data" / "PLATEAU" / "Atsugi" / "udx" / "tran"
 OUT_DIR = ROOT / "projects" / "AtsugiMechaCity" / "diagnostics" / "atsugi_terrain_grounding"
 OUTPUT_BLEND = OUT_DIR / "Atsugi_Terrain_Grounded_Subset.blend"
 OUTPUT_PNG = OUT_DIR / "Atsugi_Terrain_Grounded_Subset_Close.png"
@@ -42,6 +50,13 @@ SNAP_TERRAIN_PATCH_TO_CITY_CENTER = True
 TERRAIN_HORIZONTAL_SNAP_MODE = "best_building_overlap"
 TERRAIN_OVERLAP_SCORE_DISTANCE = 25.0
 TERRAIN_OVERLAP_CANDIDATE_LIMIT = 80
+ROAD_LAYER_ENABLED = True
+ROAD_LAYER_MARGIN = 80.0
+ROAD_LAYER_Z_LIFT = 0.08
+ROAD_LAYER_MAX_POLYGONS = 12000
+ROAD_LAYER_MAX_FILES = 102
+
+GML_TO_PLANE_TRANSFORMER = None if Transformer is None else Transformer.from_crs("EPSG:6697", "EPSG:6677", always_xy=False)
 
 
 def ensure_dir():
@@ -150,6 +165,7 @@ def align_terrain_to_city(terrain_objects, city_min, city_max):
     return {
         "raw_min": [round(float(v), 6) for v in raw_min],
         "raw_max": [round(float(v), 6) for v in raw_max],
+        "raw_center": [round(float(v), 6) for v in raw_center],
         "method": "web_viewer_center_no_scale" if ALIGN_TERRAIN_LIKE_WEB_VIEWER else "bbox_scale_to_city",
         "scale": [round(float(scale_x), 9), round(float(scale_y), 9), round(float(scale_z), 9)],
         "aligned_min": [round(float(v), 6) for v in aligned_min],
@@ -180,6 +196,206 @@ def build_terrain_xy_sampler(terrain_objects):
         "object_names": object_names,
         "coords": coords,
         "vertices": total_vertices,
+    }
+
+
+def gml_coord_to_raw(lat, lon, alt):
+    if GML_TO_PLANE_TRANSFORMER is None:
+        raise RuntimeError("pyproj is unavailable in Blender Python; use subprocess road conversion.")
+    y_north, x_east, z_alt = GML_TO_PLANE_TRANSFORMER.transform(lat, lon, alt)
+    return mathutils.Vector((float(x_east), float(z_alt), float(-y_north)))
+
+
+def raw_coord_to_scene(raw, raw_center, city_center, terrain_horizontal_offset):
+    return mathutils.Vector((
+        city_center.x + (raw.x - raw_center.x) + terrain_horizontal_offset[0],
+        city_center.y + (raw.z - raw_center.z) + terrain_horizontal_offset[1],
+        raw.y,
+    ))
+
+
+def parse_road_polygons(limit_files):
+    ns_gml = "http://www.opengis.net/gml"
+    pos_list_tag = f"{{{ns_gml}}}posList"
+    polygons = []
+    files_read = 0
+    for gml_file in sorted(ROAD_GML_DIR.glob("*.gml"))[:limit_files]:
+        files_read += 1
+        try:
+            for _event, elem in ET.iterparse(gml_file, events=("end",)):
+                if elem.tag == pos_list_tag and elem.text:
+                    values = elem.text.strip().split()
+                    if len(values) >= 12 and len(values) % 3 == 0:
+                        coords = []
+                        for index in range(0, len(values), 3):
+                            coords.append((
+                                float(values[index]),
+                                float(values[index + 1]),
+                                float(values[index + 2]),
+                            ))
+                        if len(coords) >= 4 and coords[0] == coords[-1]:
+                            coords = coords[:-1]
+                        if len(coords) >= 3:
+                            polygons.append(coords)
+                elem.clear()
+        except ET.ParseError:
+            continue
+    return polygons, files_read
+
+
+def parse_road_polygons_raw_with_system_python(limit_files):
+    helper = r'''
+import json
+import sys
+import xml.etree.ElementTree as ET
+from pathlib import Path
+from pyproj import Transformer
+
+road_dir = Path(sys.argv[1])
+limit_files = int(sys.argv[2])
+output_path = Path(sys.argv[3])
+transformer = Transformer.from_crs("EPSG:6697", "EPSG:6677", always_xy=False)
+ns_gml = "http://www.opengis.net/gml"
+pos_list_tag = f"{{{ns_gml}}}posList"
+polygons = []
+files_read = 0
+for gml_file in sorted(road_dir.glob("*.gml"))[:limit_files]:
+    files_read += 1
+    try:
+        for _event, elem in ET.iterparse(gml_file, events=("end",)):
+            if elem.tag == pos_list_tag and elem.text:
+                values = elem.text.strip().split()
+                if len(values) >= 12 and len(values) % 3 == 0:
+                    coords = []
+                    for index in range(0, len(values), 3):
+                        lat = float(values[index])
+                        lon = float(values[index + 1])
+                        alt = float(values[index + 2])
+                        y_north, x_east, z_alt = transformer.transform(lat, lon, alt)
+                        coords.append([float(x_east), float(z_alt), float(-y_north)])
+                    if len(coords) >= 4 and coords[0] == coords[-1]:
+                        coords = coords[:-1]
+                    if len(coords) >= 3:
+                        polygons.append(coords)
+            elem.clear()
+    except ET.ParseError:
+        continue
+output_path.write_text(json.dumps({"files_read": files_read, "polygons": polygons}), encoding="utf-8")
+'''
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        output_path = Path(tmp_dir) / "road_raw_polygons.json"
+        result = subprocess.run(
+            ["python", "-c", helper, str(ROAD_GML_DIR), str(limit_files), str(output_path)],
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=180,
+        )
+        if result.returncode != 0:
+            raise RuntimeError(f"Road pyproj helper failed: {result.stderr.strip()}")
+        payload = json.loads(output_path.read_text(encoding="utf-8"))
+    return payload["polygons"], payload["files_read"]
+
+
+def add_road_layer(
+    depsgraph,
+    terrain_meshes,
+    terrain_min,
+    terrain_max,
+    terrain_sampler,
+    terrain_bvhs,
+    city_min,
+    city_max,
+    city_center,
+    terrain_alignment,
+    terrain_horizontal_offset,
+):
+    if not ROAD_LAYER_ENABLED or not ROAD_GML_DIR.exists():
+        return {"enabled": False, "reason": "disabled_or_missing"}
+
+    raw_center = mathutils.Vector(terrain_alignment["raw_center"])
+    if GML_TO_PLANE_TRANSFORMER is None:
+        polygons, files_read = parse_road_polygons_raw_with_system_python(ROAD_LAYER_MAX_FILES)
+        polygons_are_raw = True
+    else:
+        polygons, files_read = parse_road_polygons(ROAD_LAYER_MAX_FILES)
+        polygons_are_raw = False
+    margin = ROAD_LAYER_MARGIN
+    min_x = city_min.x - margin
+    max_x = city_max.x + margin
+    min_y = city_min.y - margin
+    max_y = city_max.y + margin
+
+    vertices = []
+    faces = []
+    selected = 0
+    skipped_outside = 0
+    skipped_no_terrain = 0
+
+    for polygon in polygons:
+        scene_xy = []
+        for coord in polygon:
+            raw = mathutils.Vector(coord) if polygons_are_raw else gml_coord_to_raw(coord[0], coord[1], coord[2])
+            scene = raw_coord_to_scene(raw, raw_center, city_center, terrain_horizontal_offset)
+            scene_xy.append(scene)
+        if not any(min_x <= point.x <= max_x and min_y <= point.y <= max_y for point in scene_xy):
+            skipped_outside += 1
+            continue
+        road_vertices = []
+        for point in scene_xy:
+            terrain_z, _hit_obj, _hit_distance, _hit_coord = terrain_height_at(
+                depsgraph,
+                terrain_meshes,
+                point.x,
+                point.y,
+                terrain_min.z,
+                terrain_max.z,
+                terrain_sampler,
+                terrain_bvhs,
+            )
+            if terrain_z is None:
+                break
+            road_vertices.append((float(point.x), float(point.y), float(terrain_z + ROAD_LAYER_Z_LIFT)))
+        if len(road_vertices) != len(scene_xy):
+            skipped_no_terrain += 1
+            continue
+        start = len(vertices)
+        vertices.extend(road_vertices)
+        for index in range(1, len(road_vertices) - 1):
+            faces.append((start, start + index, start + index + 1))
+        selected += 1
+        if selected >= ROAD_LAYER_MAX_POLYGONS:
+            break
+
+    if not vertices:
+        return {
+            "enabled": True,
+            "files_read": files_read,
+            "source_polygons": len(polygons),
+            "selected_polygons": 0,
+            "skipped_outside": skipped_outside,
+            "skipped_no_terrain": skipped_no_terrain,
+            "object": None,
+        }
+
+    mesh = bpy.data.meshes.new("Road_Layer_Mesh")
+    mesh.from_pydata(vertices, [], faces)
+    mesh.update()
+    obj = bpy.data.objects.new("Road_Layer_TRAN_LOD1", mesh)
+    bpy.context.collection.objects.link(obj)
+    obj.data.materials.append(material_once("Road_Layer_Diagnostic_Asphalt", (0.08, 0.085, 0.08, 1.0)))
+    bpy.context.view_layer.update()
+    return {
+        "enabled": True,
+        "files_read": files_read,
+        "source_polygons": len(polygons),
+        "selected_polygons": selected,
+        "vertices": len(vertices),
+        "faces": len(faces),
+        "skipped_outside": skipped_outside,
+        "skipped_no_terrain": skipped_no_terrain,
+        "object": obj.name,
+        "z_lift": ROAD_LAYER_Z_LIFT,
     }
 
 
@@ -815,6 +1031,20 @@ def main():
     if terrain_z_center is None:
         raise RuntimeError("Terrain raycast failed at city center. Coordinate systems may not overlap.")
 
+    road_layer_report = add_road_layer(
+        depsgraph,
+        terrain_meshes,
+        terrain_min,
+        terrain_max,
+        terrain_sampler,
+        terrain_bvhs,
+        city_min_before,
+        city_max_before,
+        city_center,
+        terrain_alignment,
+        terrain_horizontal_offset,
+    )
+
     building_reports = []
     adjusted_count = 0
     building_candidate_summary = None
@@ -1084,6 +1314,7 @@ def main():
         "terrain_coord_at_or_nearest_city_center": [round(float(v), 6) for v in terrain_coord_center],
         "terrain_sampler_vertices": terrain_sampler["vertices"],
         "terrain_bvh_count": len(terrain_bvhs),
+        "road_layer": road_layer_report,
         "mecha": mecha_report,
         "building_report_sample": building_reports[:50],
     }
