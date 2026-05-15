@@ -22,7 +22,7 @@ TARGET_HEIGHT_M = 18.0
 UPRIGHT_ROTATION_DEGREES = (90.0, 0.0, 0.0)
 RAY_MARGIN = 5000.0
 ANCHOR_BUILDING_NAME = "Bldg"
-BUILDING_TEST_LIMIT = 5
+BUILDING_TEST_LIMIT = 394
 BUILDING_SUBSET_SELECTION = "raycast_hit"
 ADJUST_BUILDINGS = "subset"
 MAX_BUILDING_HIT_XY_DISTANCE = 0.001
@@ -30,6 +30,9 @@ MAX_BUILDING_ABS_DELTA_Z = 40.0
 SNAP_MECHA_TO_NEAREST_TERRAIN_VERTEX = True
 ALIGN_TERRAIN_LIKE_WEB_VIEWER = True
 SNAP_TERRAIN_PATCH_TO_CITY_CENTER = True
+TERRAIN_HORIZONTAL_SNAP_MODE = "best_building_overlap"
+TERRAIN_OVERLAP_SCORE_DISTANCE = 25.0
+TERRAIN_OVERLAP_CANDIDATE_LIMIT = 80
 
 
 def ensure_dir():
@@ -174,6 +177,116 @@ def build_terrain_xy_sampler(terrain_objects):
 def terrain_height_by_nearest_xy(sampler, x, y):
     _co, index, distance = sampler["tree"].find((x, y, 0.0))
     return sampler["heights"][index], sampler["object_names"][index], float(distance), sampler["coords"][index]
+
+
+def building_center_infos(building_meshes):
+    infos = []
+    for obj in building_meshes:
+        min_v, max_v = world_bounds([obj])
+        height = max_v.z - min_v.z
+        if height <= 1.0:
+            continue
+        center = (min_v + max_v) / 2.0
+        infos.append({
+            "name": obj.name,
+            "center": center,
+            "height": float(height),
+            "bounds_min": min_v,
+            "bounds_max": max_v,
+        })
+    return infos
+
+
+def score_terrain_offset(terrain_sampler, building_infos, offset_x, offset_y):
+    hit_count = 0
+    total_distance = 0.0
+    max_distance = 0.0
+    for info in building_infos:
+        center = info["center"]
+        _co, _index, distance = terrain_sampler["tree"].find((center.x - offset_x, center.y - offset_y, 0.0))
+        distance = float(distance)
+        total_distance += distance
+        max_distance = max(max_distance, distance)
+        if distance <= TERRAIN_OVERLAP_SCORE_DISTANCE:
+            hit_count += 1
+    mean_distance = total_distance / len(building_infos) if building_infos else float("inf")
+    return {
+        "offset": (float(offset_x), float(offset_y)),
+        "near_building_count": hit_count,
+        "mean_nearest_distance": mean_distance,
+        "max_nearest_distance": max_distance,
+    }
+
+
+def choose_terrain_horizontal_offset(terrain_sampler, building_infos, city_center):
+    candidates = []
+    _height, _obj_name, _nearest_distance, city_nearest_coord = terrain_height_by_nearest_xy(
+        terrain_sampler,
+        city_center.x,
+        city_center.y,
+    )
+    candidates.append((float(city_center.x - city_nearest_coord[0]), float(city_center.y - city_nearest_coord[1])))
+
+    ranked_buildings = sorted(
+        building_infos,
+        key=lambda item: math.hypot(item["center"].x - city_center.x, item["center"].y - city_center.y),
+    )
+    for info in ranked_buildings[:TERRAIN_OVERLAP_CANDIDATE_LIMIT]:
+        center = info["center"]
+        _height, _obj_name, _distance, nearest_coord = terrain_height_by_nearest_xy(
+            terrain_sampler,
+            center.x,
+            center.y,
+        )
+        candidates.append((float(center.x - nearest_coord[0]), float(center.y - nearest_coord[1])))
+
+    # Try a few coarse shifts around the current city-center snap. The terrain and FBX
+    # origins are approximate, so a small grid catches better visual overlap cases.
+    base_x, base_y = candidates[0]
+    for gx in range(-600, 601, 200):
+        for gy in range(-600, 601, 200):
+            candidates.append((base_x + gx, base_y + gy))
+
+    unique = []
+    seen = set()
+    for offset_x, offset_y in candidates:
+        key = (round(offset_x, 3), round(offset_y, 3))
+        if key in seen:
+            continue
+        seen.add(key)
+        unique.append((offset_x, offset_y))
+
+    scored = [score_terrain_offset(terrain_sampler, building_infos, x, y) for x, y in unique]
+    scored.sort(key=lambda item: (
+        -item["near_building_count"],
+        item["mean_nearest_distance"],
+        abs(item["offset"][0]) + abs(item["offset"][1]),
+    ))
+    best = scored[0] if scored else {
+        "offset": (0.0, 0.0),
+        "near_building_count": 0,
+        "mean_nearest_distance": None,
+        "max_nearest_distance": None,
+    }
+    return best["offset"], {
+        "mode": TERRAIN_HORIZONTAL_SNAP_MODE,
+        "score_distance": TERRAIN_OVERLAP_SCORE_DISTANCE,
+        "candidate_count": len(scored),
+        "best": {
+            "offset": [round(float(v), 6) for v in best["offset"]],
+            "near_building_count": int(best["near_building_count"]),
+            "mean_nearest_distance": None if best["mean_nearest_distance"] is None else round(float(best["mean_nearest_distance"]), 6),
+            "max_nearest_distance": None if best["max_nearest_distance"] is None else round(float(best["max_nearest_distance"]), 6),
+        },
+        "top_candidates": [
+            {
+                "offset": [round(float(v), 6) for v in item["offset"]],
+                "near_building_count": int(item["near_building_count"]),
+                "mean_nearest_distance": round(float(item["mean_nearest_distance"]), 6),
+            }
+            for item in scored[:10]
+        ],
+    }
 
 
 def build_terrain_bvhs(terrain_objects, depsgraph):
@@ -453,8 +566,20 @@ def add_camera_and_light(target_center, terrain_z):
     sun.data.energy = 2.2
 
 
-def render_diagnostic(path, target_center, terrain_z, ortho_scale):
+def render_diagnostic(path, target_center, terrain_z, ortho_scale, camera_offset=None, look_height=None):
     add_camera_and_light(target_center, terrain_z)
+    if camera_offset is not None:
+        camera = bpy.context.scene.camera
+        camera.location = (
+            target_center.x + camera_offset[0],
+            target_center.y + camera_offset[1],
+            terrain_z + camera_offset[2],
+        )
+        look_at(camera, (
+            target_center.x,
+            target_center.y,
+            terrain_z + (TARGET_HEIGHT_M * 0.35 if look_height is None else look_height),
+        ))
     bpy.context.scene.camera.data.ortho_scale = ortho_scale
     bpy.context.scene.render.filepath = str(path)
     bpy.ops.render.render(write_still=True)
@@ -470,6 +595,10 @@ def main():
     ]
     if not building_meshes:
         raise RuntimeError("No Bldg meshes found. Check the Atsugi map import.")
+    building_mat = material_once("Building_Diagnostic_Warm_Grey", (0.62, 0.64, 0.63, 1.0))
+    for obj in building_meshes:
+        obj.data.materials.clear()
+        obj.data.materials.append(building_mat)
 
     imported = import_obj(TERRAIN_OBJ)
     terrain_meshes = [obj for obj in imported if obj.type == "MESH"]
@@ -491,18 +620,32 @@ def main():
     terrain_bvhs = build_terrain_bvhs(terrain_meshes, depsgraph)
     city_center = (city_min_before + city_max_before) / 2.0
     anchor = find_anchor_building(building_meshes, ANCHOR_BUILDING_NAME)
+    building_infos = building_center_infos(building_meshes)
     terrain_horizontal_offset = (0.0, 0.0)
+    terrain_horizontal_snap_report = None
 
     if SNAP_TERRAIN_PATCH_TO_CITY_CENTER:
-        _height, _obj_name, nearest_distance, nearest_coord = terrain_height_by_nearest_xy(
-            terrain_sampler,
-            city_center.x,
-            city_center.y,
-        )
-        terrain_horizontal_offset = (
-            float(city_center.x - nearest_coord[0]),
-            float(city_center.y - nearest_coord[1]),
-        )
+        if TERRAIN_HORIZONTAL_SNAP_MODE == "best_building_overlap":
+            terrain_horizontal_offset, terrain_horizontal_snap_report = choose_terrain_horizontal_offset(
+                terrain_sampler,
+                building_infos,
+                city_center,
+            )
+        else:
+            _height, _obj_name, nearest_distance, nearest_coord = terrain_height_by_nearest_xy(
+                terrain_sampler,
+                city_center.x,
+                city_center.y,
+            )
+            terrain_horizontal_offset = (
+                float(city_center.x - nearest_coord[0]),
+                float(city_center.y - nearest_coord[1]),
+            )
+            terrain_horizontal_snap_report = {
+                "mode": "city_center_nearest_vertex",
+                "nearest_distance": round(float(nearest_distance), 6),
+                "nearest_coord": [round(float(v), 6) for v in nearest_coord],
+            }
         offset_terrain_xy(terrain_meshes, terrain_horizontal_offset[0], terrain_horizontal_offset[1])
         depsgraph = bpy.context.evaluated_depsgraph_get()
         terrain_min, terrain_max = world_bounds(terrain_meshes)
@@ -609,7 +752,7 @@ def main():
             if status == "moved":
                 delta_z = set_object_bottom_to_z(obj, terrain_z)
                 obj.data.materials.clear()
-                obj.data.materials.append(material_once("Moved_Building_Diagnostic_Cyan", (0.2, 0.72, 0.9, 1.0)))
+                obj.data.materials.append(material_once("Adjusted_Building_Diagnostic_Grey", (0.68, 0.7, 0.68, 1.0)))
                 adjusted_count += 1
             building_reports.append({
                 "name": obj.name,
@@ -685,6 +828,7 @@ def main():
             }
 
     city_min_after, city_max_after = world_bounds(building_meshes)
+    city_target_center = (city_min_after + city_max_after) / 2.0
     moved_or_tested_buildings = [
         bpy.data.objects.get(item["name"]) for item in building_reports
         if item.get("name") and bpy.data.objects.get(item["name"])
@@ -745,6 +889,7 @@ def main():
             "bounds_max": [round(float(v), 6) for v in anchor["bounds_max"]],
         },
         "terrain_horizontal_snap_enabled": SNAP_TERRAIN_PATCH_TO_CITY_CENTER,
+        "terrain_horizontal_snap_report": terrain_horizontal_snap_report,
         "terrain_horizontal_offset": [round(float(v), 6) for v in terrain_horizontal_offset],
         "terrain_vertical_offset": round(float(terrain_vertical_offset), 6),
         "terrain_grid_best_before_vertical_offset": None if best_grid_hit is None else {
@@ -766,8 +911,22 @@ def main():
     OUTPUT_JSON.write_text(json.dumps(audit, ensure_ascii=False, indent=2), encoding="utf-8")
 
     bpy.ops.wm.save_as_mainfile(filepath=str(OUTPUT_BLEND))
-    render_diagnostic(OUTPUT_PNG, target_center, camera_ground_z, 220)
-    render_diagnostic(OUTPUT_WIDE_PNG, city_center, terrain_z_center, 900)
+    render_diagnostic(
+        OUTPUT_PNG,
+        city_target_center,
+        terrain_z_center,
+        620,
+        camera_offset=(320, -460, 260),
+        look_height=24,
+    )
+    render_diagnostic(
+        OUTPUT_WIDE_PNG,
+        city_center,
+        terrain_z_center,
+        1100,
+        camera_offset=(520, -760, 360),
+        look_height=36,
+    )
     print(json.dumps({"ok": True, **audit}, ensure_ascii=False, indent=2))
 
 

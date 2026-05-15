@@ -363,3 +363,41 @@ No Docker compose files were modified.
 No Rails protected paths were modified.
 No destructive file operations were performed.
 
+## 15. 2026-05-16 Update: Cleaner Terrain / Building Display
+
+The terrain-to-building display was improved after the initial 5-building subset test.
+
+Current successful diagnostic:
+
+- Script:
+  - `D:\Clawdbot_Docker_20260125\projects\AtsugiMechaCity\place_mecha_on_atsugi_terrain.py`
+- Output images:
+  - `D:\Clawdbot_Docker_20260125\projects\AtsugiMechaCity\diagnostics\atsugi_terrain_grounding\Atsugi_Terrain_Grounded_Subset_Close.png`
+  - `D:\Clawdbot_Docker_20260125\projects\AtsugiMechaCity\diagnostics\atsugi_terrain_grounding\Atsugi_Terrain_Grounded_Subset_Wide.png`
+- Output report:
+  - `D:\Clawdbot_Docker_20260125\projects\AtsugiMechaCity\diagnostics\atsugi_terrain_grounding\atsugi_terrain_grounding_subset_report.json`
+
+Key changes:
+
+- Horizontal terrain snap mode changed to `best_building_overlap`.
+- The script now scores candidate terrain offsets against building center coverage instead of snapping only to city center.
+- Best offset found:
+  - `[-3912.98053, -619.917969]`
+- Building overlap score:
+  - `near_building_count = 394`
+  - `mean_nearest_distance = 1.60439`
+  - `max_nearest_distance = 2.932804`
+- All 394 buildings passed the direct terrain raycast guard and were adjusted.
+- Close and wide diagnostic cameras were adjusted for cleaner visual confirmation.
+
+Visual result:
+
+- The main building cluster now appears on the terrain surface.
+- Terrain relief, roads/ditches, and surrounding building groups are visible in the same render.
+- The previous large horizontal separation between the main building cluster and terrain is no longer visible in the wide diagnostic render.
+
+Still not final beauty render:
+
+- This is a Blender Workbench diagnostic render.
+- Terrain mesh is still raw/faceted.
+- The method is still heuristic and should be preserved as a diagnostic baseline before any WebGL/export simplification work.
