@@ -471,3 +471,35 @@ Notes:
 
 - Blender Python did not have `pyproj`, so the script uses a bounded host-Python helper with `tempfile.TemporaryDirectory()` for GML coordinate conversion.
 - This is still a diagnostic road layer, not a final beauty material pass.
+
+## 18. 2026-05-16 Update: Road / Building Overlap Guard
+
+User visual review found that the large right-side building did not look parallel to the road network and appeared to sit on top of a road strip.
+
+Current correction:
+
+- Road triangles are now suppressed when their centroid or any triangle vertex falls inside a building XY exclusion box.
+- Building exclusion clearance:
+  - `ROAD_BUILDING_CLEARANCE = 3.0`
+- The building positions are not rotated to match roads, because that could falsify the imported building geometry. This pass only prevents roads from drawing under/through building footprints.
+
+Latest road layer report:
+
+- Source polygons parsed: 39,725
+- Selected road polygons: 243
+- Mesh vertices: 3,850
+- Mesh faces after building exclusion: 2,986
+- Road triangles skipped by building exclusion: 378
+- Largest exclusion hit:
+  - `Bldg.282`: 92 road triangles
+- Skipped due to terrain miss: 0
+
+Validation:
+
+- `python -m py_compile projects/AtsugiMechaCity/place_mecha_on_atsugi_terrain.py`
+- Blender 5.1 background render completed successfully.
+- Manual visual check was performed on regenerated wide and close PNGs.
+
+Remaining note:
+
+- The right-side large building still does not visually run parallel to the road network. That is likely a source/alignment issue between the building model and PLATEAU road layer, not only a road overlay rendering issue. A future pass should add a dedicated road-building alignment diagnostic instead of blindly rotating buildings.

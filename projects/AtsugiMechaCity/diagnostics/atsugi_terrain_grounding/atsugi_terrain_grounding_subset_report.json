@@ -398,9 +398,53 @@
     "source_polygons": 39725,
     "selected_polygons": 243,
     "vertices": 3850,
-    "faces": 3364,
+    "faces": 2986,
     "skipped_outside": 39482,
     "skipped_no_terrain": 0,
+    "skipped_by_building": 378,
+    "building_clearance": 3.0,
+    "building_exclusion_hits_top": [
+      [
+        "Bldg.282",
+        92
+      ],
+      [
+        "Bldg.131",
+        67
+      ],
+      [
+        "Bldg.014",
+        59
+      ],
+      [
+        "Bldg.138",
+        48
+      ],
+      [
+        "Bldg.140",
+        32
+      ],
+      [
+        "Bldg.080",
+        13
+      ],
+      [
+        "Bldg.182",
+        12
+      ],
+      [
+        "Bldg.053",
+        11
+      ],
+      [
+        "Bldg.267",
+        5
+      ],
+      [
+        "Bldg.372",
+        5
+      ]
+    ],
     "object": "Road_Layer_TRAN_LOD1",
     "z_lift": 0.08
   },

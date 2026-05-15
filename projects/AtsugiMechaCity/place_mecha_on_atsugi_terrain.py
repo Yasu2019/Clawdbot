@@ -55,6 +55,7 @@ ROAD_LAYER_MARGIN = 80.0
 ROAD_LAYER_Z_LIFT = 0.08
 ROAD_LAYER_MAX_POLYGONS = 12000
 ROAD_LAYER_MAX_FILES = 102
+ROAD_BUILDING_CLEARANCE = 3.0
 
 GML_TO_PLANE_TRANSFORMER = None if Transformer is None else Transformer.from_crs("EPSG:6697", "EPSG:6677", always_xy=False)
 
@@ -214,6 +215,27 @@ def raw_coord_to_scene(raw, raw_center, city_center, terrain_horizontal_offset):
     ))
 
 
+def build_xy_exclusion_boxes(objects, clearance):
+    boxes = []
+    for obj in objects:
+        min_v, max_v = world_bounds([obj])
+        boxes.append((
+            float(min_v.x - clearance),
+            float(max_v.x + clearance),
+            float(min_v.y - clearance),
+            float(max_v.y + clearance),
+            obj.name,
+        ))
+    return boxes
+
+
+def point_in_xy_exclusion(point, boxes):
+    for min_x, max_x, min_y, max_y, name in boxes:
+        if min_x <= point[0] <= max_x and min_y <= point[1] <= max_y:
+            return name
+    return None
+
+
 def parse_road_polygons(limit_files):
     ns_gml = "http://www.opengis.net/gml"
     pos_list_tag = f"{{{ns_gml}}}posList"
@@ -309,6 +331,7 @@ def add_road_layer(
     city_center,
     terrain_alignment,
     terrain_horizontal_offset,
+    building_meshes,
 ):
     if not ROAD_LAYER_ENABLED or not ROAD_GML_DIR.exists():
         return {"enabled": False, "reason": "disabled_or_missing"}
@@ -331,6 +354,9 @@ def add_road_layer(
     selected = 0
     skipped_outside = 0
     skipped_no_terrain = 0
+    skipped_by_building = 0
+    building_exclusion_boxes = build_xy_exclusion_boxes(building_meshes, ROAD_BUILDING_CLEARANCE)
+    building_exclusion_hits = {}
 
     for polygon in polygons:
         scene_xy = []
@@ -359,10 +385,27 @@ def add_road_layer(
         if len(road_vertices) != len(scene_xy):
             skipped_no_terrain += 1
             continue
-        start = len(vertices)
-        vertices.extend(road_vertices)
+        road_indices = []
+        for road_vertex in road_vertices:
+            road_indices.append(len(vertices))
+            vertices.append(road_vertex)
         for index in range(1, len(road_vertices) - 1):
-            faces.append((start, start + index, start + index + 1))
+            triangle = (road_vertices[0], road_vertices[index], road_vertices[index + 1])
+            centroid = (
+                (triangle[0][0] + triangle[1][0] + triangle[2][0]) / 3.0,
+                (triangle[0][1] + triangle[1][1] + triangle[2][1]) / 3.0,
+            )
+            exclusion_name = point_in_xy_exclusion(centroid, building_exclusion_boxes)
+            if not exclusion_name:
+                for triangle_point in triangle:
+                    exclusion_name = point_in_xy_exclusion((triangle_point[0], triangle_point[1]), building_exclusion_boxes)
+                    if exclusion_name:
+                        break
+            if exclusion_name:
+                skipped_by_building += 1
+                building_exclusion_hits[exclusion_name] = building_exclusion_hits.get(exclusion_name, 0) + 1
+                continue
+            faces.append((road_indices[0], road_indices[index], road_indices[index + 1]))
         selected += 1
         if selected >= ROAD_LAYER_MAX_POLYGONS:
             break
@@ -375,6 +418,7 @@ def add_road_layer(
             "selected_polygons": 0,
             "skipped_outside": skipped_outside,
             "skipped_no_terrain": skipped_no_terrain,
+            "skipped_by_building": skipped_by_building,
             "object": None,
         }
 
@@ -394,6 +438,13 @@ def add_road_layer(
         "faces": len(faces),
         "skipped_outside": skipped_outside,
         "skipped_no_terrain": skipped_no_terrain,
+        "skipped_by_building": skipped_by_building,
+        "building_clearance": ROAD_BUILDING_CLEARANCE,
+        "building_exclusion_hits_top": sorted(
+            building_exclusion_hits.items(),
+            key=lambda item: item[1],
+            reverse=True,
+        )[:10],
         "object": obj.name,
         "z_lift": ROAD_LAYER_Z_LIFT,
     }
@@ -1043,6 +1094,7 @@ def main():
         city_center,
         terrain_alignment,
         terrain_horizontal_offset,
+        building_meshes,
     )
 
     building_reports = []
