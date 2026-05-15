@@ -27,8 +27,8 @@ BUILDING_SUBSET_SELECTION = "raycast_hit"
 ADJUST_BUILDINGS = "subset"
 MAX_BUILDING_HIT_XY_DISTANCE = 0.001
 MAX_BUILDING_ABS_DELTA_Z = 40.0
-BUILDING_EMBED_DEPTH = 0.35
-BUILDING_FOUNDATION_ENABLED = True
+BUILDING_EMBED_DEPTH = 0.45
+BUILDING_FOUNDATION_ENABLED = False
 BUILDING_FOUNDATION_MARGIN = 0.35
 BUILDING_FOUNDATION_BOTTOM_CLEARANCE = 0.25
 BUILDING_FOUNDATION_TOP_OVERLAP = 0.08
@@ -432,7 +432,7 @@ def building_footprint_terrain_stats(
         "terrain_mean_z": mean_z,
         "terrain_range_z": max_z - min_z,
         "max_hit_distance": max_hit_distance,
-        "target_bottom_z": max_z - BUILDING_EMBED_DEPTH,
+        "target_bottom_z": min_z - BUILDING_EMBED_DEPTH,
         "samples": sample_points,
     }
 
@@ -979,6 +979,10 @@ def main():
     bpy.context.scene.render.engine = "BLENDER_WORKBENCH"
     bpy.context.scene.display.shading.light = "STUDIO"
     bpy.context.scene.display.shading.color_type = "MATERIAL"
+    if hasattr(bpy.context.scene.display.shading, "show_shadows"):
+        bpy.context.scene.display.shading.show_shadows = True
+    if hasattr(bpy.context.scene.display.shading, "show_cavity"):
+        bpy.context.scene.display.shading.show_cavity = True
     bpy.context.scene.render.resolution_x = 1280
     bpy.context.scene.render.resolution_y = 720
     bpy.context.scene.render.filepath = str(OUTPUT_PNG)
