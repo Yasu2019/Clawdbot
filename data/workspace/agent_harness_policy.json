@@ -32,9 +32,9 @@
     "source": "protocols/ai_security_v1/02_AGENT/tool_whitelist.json"
   },
   "retry_policy": {
-    "max_total_retries": 2,
+    "max_total_retries": 3,
     "max_same_error_retries": 1,
-    "backoff_seconds": [2, 8],
+    "backoff_seconds": [2, 8, 20],
     "stop_on_errors": [
       "AUTH_FAILED",
       "PERMISSION_DENIED",
@@ -95,6 +95,7 @@
   "status": {
     "implemented": [
       "retry_upper_bound",
+      "p015_three_retry_self_repair",
       "external_harness_pattern",
       "status_json_visibility",
       "rollback_documentation",

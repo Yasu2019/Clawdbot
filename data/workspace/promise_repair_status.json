@@ -1,0 +1,37 @@
+{
+  "updated_at": "2026-05-16T21:31:01+09:00",
+  "policies": {
+    "P009": {
+      "status": "active",
+      "implementation": [
+        "data/workspace/api_cost_report.py",
+        "scripts/run_api_cost_report.ps1",
+        "data/workspace/api_cost_report_status.json",
+        "data/workspace/api_cost_report_status.md"
+      ],
+      "reports": [
+        "known_spend_jpy",
+        "configured_limit_jpy",
+        "remaining_to_limit_jpy",
+        "usage_quota_remaining_when_local_status_exists"
+      ],
+      "limitation": "Provider billing remains unknown unless billing export/usage API data is available locally."
+    },
+    "P015": {
+      "status": "active",
+      "implementation": [
+        "data/workspace/self_repair_three_retry.py",
+        "data/workspace/self_repair_three_retry_status.json",
+        "data/workspace/agent_harness_policy.json"
+      ],
+      "max_attempts": 3,
+      "fail_closed_on": [
+        "AUTH_FAILED",
+        "PERMISSION_DENIED",
+        "APPROVAL_REQUIRED",
+        "authentication failed",
+        "permission denied"
+      ]
+    }
+  }
+}

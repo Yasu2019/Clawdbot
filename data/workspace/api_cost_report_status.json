@@ -1,0 +1,244 @@
+{
+  "policy_id": "P009",
+  "status": "active",
+  "generated_at_jst": "2026-05-16T21:31:01+09:00",
+  "generated_at_utc": "2026-05-16T12:31:01+00:00",
+  "usd_jpy": 155.0,
+  "providers": [
+    {
+      "provider": "OpenAI",
+      "id": "openai",
+      "configured": false,
+      "known_spend_jpy": null,
+      "configured_limit_jpy": null,
+      "remaining_to_limit_jpy": null,
+      "remaining_note": "unknown",
+      "usage_quota": {
+        "name": "Codex / GPT-4o",
+        "usage": 800,
+        "limit": 5000,
+        "remaining": 4200,
+        "unit": "Tokens/Min",
+        "resetIn": "1 minute",
+        "status": "ok"
+      },
+      "cost_mode": "unknown_without_billing_export",
+      "note": "No provider billing export or usage API result is available locally; do not invent yen cost."
+    },
+    {
+      "provider": "Anthropic / Claude",
+      "id": "anthropic",
+      "configured": false,
+      "known_spend_jpy": null,
+      "configured_limit_jpy": null,
+      "remaining_to_limit_jpy": null,
+      "remaining_note": "unknown",
+      "usage_quota": {
+        "name": "Claude 3.5 Sonnet",
+        "usage": 12000,
+        "limit": 200000,
+        "remaining": 188000,
+        "unit": "Tokens/Day",
+        "resetIn": "6 hours",
+        "status": "ok"
+      },
+      "cost_mode": "unknown_without_billing_export",
+      "note": "No provider billing export or usage API result is available locally; do not invent yen cost."
+    },
+    {
+      "provider": "Google Gemini",
+      "id": "gemini",
+      "configured": true,
+      "known_spend_jpy": null,
+      "configured_limit_jpy": null,
+      "remaining_to_limit_jpy": null,
+      "remaining_note": "unknown",
+      "usage_quota": {
+        "name": "Gemini 1.5 Pro",
+        "usage": 45,
+        "limit": 50,
+        "remaining": 5,
+        "unit": "RPM",
+        "resetIn": "15 minutes",
+        "status": "warning"
+      },
+      "cost_mode": "unknown_without_billing_export",
+      "note": "No provider billing export or usage API result is available locally; do not invent yen cost."
+    },
+    {
+      "provider": "Kimi / Moonshot",
+      "id": "kimi",
+      "configured": true,
+      "known_spend_jpy": null,
+      "configured_limit_jpy": null,
+      "remaining_to_limit_jpy": null,
+      "remaining_note": "unknown",
+      "usage_quota": null,
+      "cost_mode": "unknown_without_billing_export",
+      "note": "No provider billing export or usage API result is available locally; do not invent yen cost."
+    },
+    {
+      "provider": "OpenRouter",
+      "id": "openrouter",
+      "configured": true,
+      "known_spend_jpy": null,
+      "configured_limit_jpy": null,
+      "remaining_to_limit_jpy": null,
+      "remaining_note": "unknown",
+      "usage_quota": null,
+      "cost_mode": "unknown_without_billing_export",
+      "note": "No provider billing export or usage API result is available locally; do not invent yen cost."
+    },
+    {
+      "provider": "OpenCode GO",
+      "id": "opencode_go",
+      "configured": true,
+      "known_spend_jpy": null,
+      "configured_limit_jpy": null,
+      "remaining_to_limit_jpy": null,
+      "remaining_note": "unknown",
+      "usage_quota": {
+        "name": "OpenCodeGO",
+        "usage": 95,
+        "limit": 100,
+        "remaining": 5,
+        "unit": "Requests/Day",
+        "resetIn": "2 days",
+        "status": "critical"
+      },
+      "cost_mode": "local_status_when_available",
+      "note": "No provider billing export or usage API result is available locally; do not invent yen cost."
+    },
+    {
+      "provider": "ByteRover",
+      "id": "byterover",
+      "configured": true,
+      "known_spend_jpy": null,
+      "configured_limit_jpy": null,
+      "remaining_to_limit_jpy": null,
+      "remaining_note": "unknown",
+      "usage_quota": null,
+      "cost_mode": "free_tier_or_unknown",
+      "note": "No provider billing export or usage API result is available locally; do not invent yen cost."
+    },
+    {
+      "provider": "Pexels",
+      "id": "pexels",
+      "configured": true,
+      "known_spend_jpy": 0.0,
+      "configured_limit_jpy": null,
+      "remaining_to_limit_jpy": null,
+      "remaining_note": "no configured JPY limit",
+      "usage_quota": null,
+      "cost_mode": "free_api_cost_0_jpy_quota_unknown",
+      "note": "Monetary API cost is treated as 0 JPY; request quota/rate-limit is not fully known from local files."
+    },
+    {
+      "provider": "Pixabay",
+      "id": "pixabay",
+      "configured": true,
+      "known_spend_jpy": 0.0,
+      "configured_limit_jpy": null,
+      "remaining_to_limit_jpy": null,
+      "remaining_note": "no configured JPY limit",
+      "usage_quota": null,
+      "cost_mode": "free_api_cost_0_jpy_quota_unknown",
+      "note": "Monetary API cost is treated as 0 JPY; request quota/rate-limit is not fully known from local files."
+    },
+    {
+      "provider": "Unsplash",
+      "id": "unsplash",
+      "configured": true,
+      "known_spend_jpy": 0.0,
+      "configured_limit_jpy": null,
+      "remaining_to_limit_jpy": null,
+      "remaining_note": "no configured JPY limit",
+      "usage_quota": null,
+      "cost_mode": "free_api_cost_0_jpy_quota_unknown",
+      "note": "Monetary API cost is treated as 0 JPY; request quota/rate-limit is not fully known from local files."
+    },
+    {
+      "provider": "Telegram Bot",
+      "id": "telegram",
+      "configured": true,
+      "known_spend_jpy": 0.0,
+      "configured_limit_jpy": null,
+      "remaining_to_limit_jpy": null,
+      "remaining_note": "no configured JPY limit",
+      "usage_quota": null,
+      "cost_mode": "monetary_cost_0_jpy_rate_limit_only",
+      "note": "Monetary API cost is treated as 0 JPY; request quota/rate-limit is not fully known from local files."
+    },
+    {
+      "provider": "Turso",
+      "id": "turso",
+      "configured": true,
+      "known_spend_jpy": null,
+      "configured_limit_jpy": null,
+      "remaining_to_limit_jpy": null,
+      "remaining_note": "unknown",
+      "usage_quota": null,
+      "cost_mode": "unknown_without_plan_export",
+      "note": "No provider billing export or usage API result is available locally; do not invent yen cost."
+    }
+  ],
+  "local_cost_evidence": [
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\workspace\\iatf_opencodego_video_pdca_policy_status.json",
+      "estimated_cost_jpy_sum": 0.0,
+      "estimated_cost_usd_sum": 0,
+      "jpy_value_count": 1,
+      "usd_value_count": 0
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\workspace\\api_quota_status.json",
+      "estimated_cost_jpy_sum": 0,
+      "estimated_cost_usd_sum": 0,
+      "jpy_value_count": 0,
+      "usd_value_count": 0
+    }
+  ],
+  "local_usage_quota_evidence": [
+    {
+      "name": "Gemini 1.5 Pro",
+      "usage": 45,
+      "limit": 50,
+      "remaining": 5,
+      "unit": "RPM",
+      "resetIn": "15 minutes",
+      "status": "warning"
+    },
+    {
+      "name": "Claude 3.5 Sonnet",
+      "usage": 12000,
+      "limit": 200000,
+      "remaining": 188000,
+      "unit": "Tokens/Day",
+      "resetIn": "6 hours",
+      "status": "ok"
+    },
+    {
+      "name": "OpenCodeGO",
+      "usage": 95,
+      "limit": 100,
+      "remaining": 5,
+      "unit": "Requests/Day",
+      "resetIn": "2 days",
+      "status": "critical"
+    },
+    {
+      "name": "Codex / GPT-4o",
+      "usage": 800,
+      "limit": 5000,
+      "remaining": 4200,
+      "unit": "Tokens/Min",
+      "resetIn": "1 minute",
+      "status": "ok"
+    }
+  ],
+  "limitations": [
+    "Actual cloud billing requires provider billing exports or usage APIs; absent data is reported as unknown.",
+    "ChatGPT Plus/Codex UI usage is not visible from this workspace unless an export is provided.",
+    "Free photo APIs are reported as 0 JPY monetary cost, but quota remaining is not fully known locally."
+  ]
+}

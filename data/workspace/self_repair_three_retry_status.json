@@ -1,0 +1,23 @@
+{
+  "policy_id": "P015",
+  "name": "p015_smoke_final",
+  "status": "success",
+  "max_attempts": 3,
+  "started_at": "2026-05-16T21:30:00+09:00",
+  "attempts": [
+    {
+      "attempt": 1,
+      "started_at": "2026-05-16T21:30:00+09:00",
+      "finished_at": "2026-05-16T21:30:00+09:00",
+      "returncode": 0,
+      "stdout_tail": "p015 ready\n",
+      "stderr_tail": ""
+    }
+  ],
+  "command": [
+    "python",
+    "-c",
+    "print('p015 ready')"
+  ],
+  "finished_at": "2026-05-16T21:30:00+09:00"
+}

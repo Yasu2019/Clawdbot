@@ -138,3 +138,19 @@
 
 *ファイル名: `PROMISES.md`*
 *保存場所: `data/workspace/PROMISES.md`*
+
+---
+
+## 2026-05-16 P009 / P015 Repair Note
+
+| ID | Promise | Status | Implementation |
+| --- | --- | --- | --- |
+| P009 | 定期的なAPIコストレポート提出。日本円での既知使用額、設定済み上限、上限までの残量を報告する。未知の請求額は推測せず `unknown` として出す。 | 有効化 | `data/workspace/api_cost_report.py`, `scripts/run_api_cost_report.ps1`, `data/workspace/api_cost_report_status.json`, `data/workspace/api_cost_report_status.md` |
+| P015 | エラー発生時は最大3回まで自律的に修復を試み、各試行結果を記録する。認証/権限/承認が必要なエラーは fail-closed で停止する。 | 有効化 | `data/workspace/self_repair_three_retry.py`, `data/workspace/self_repair_three_retry_status.json`, `data/workspace/agent_harness_policy.json` |
+
+Notes:
+
+- P009は、OpenAI/Anthropic/Gemini/Kimi/OpenRouter/OpenCode GO/ByteRover/Pexels/Pixabay/Unsplash/Telegram/Tursoを一覧化する。
+- Pexels/Pixabay/Unsplash/Telegramは金額0円として扱うが、リクエスト上限の残量はローカルだけでは不明。
+- 実請求額は各社Billing exportまたはUsage APIがない限り推測しない。
+- ChatGPT Plus/Codex UI側の利用額は、このワークスペースからは取得不能。
