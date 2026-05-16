@@ -1,0 +1,53 @@
+{
+  "project": {
+    "name": "atsugi_realistic_3d_city_pipeline",
+    "adoption": "ADOPT_PARTIAL",
+    "source_zip": "ZIP_Group/opencraw_realistic_3d_city_pipeline_full.zip"
+  },
+  "policy": {
+    "google_maps_images": "forbidden_as_texture_or_background",
+    "user_photos": "visual_reference_only",
+    "photo_background_dependency": "avoid",
+    "plateau_osm_usage": "preferred",
+    "cloud_api": "require_cost_notice_and_user_consent_for_large_jobs"
+  },
+  "tools": {
+    "blender": {
+      "role": "model_cleanup_scene_assembly_grounding_render",
+      "current_scripts": [
+        "projects/AtsugiMechaCity/render_hon_atsugi_station_front_scene.py",
+        "projects/AtsugiMechaCity/render_hon_atsugi_osm_station_scene.py"
+      ]
+    },
+    "ue5": {
+      "role": "future_cinematic_renderer",
+      "status": "manual_or_future_phase"
+    },
+    "stable_diffusion_openvino": {
+      "role": "local_texture_finish_color_grading",
+      "allowed": [
+        "texture_generation",
+        "decal_generation",
+        "light_img2img_finish",
+        "color_grading_reference"
+      ],
+      "forbidden": [
+        "replacing_entire_background_when_station_accuracy_matters",
+        "changing_mecha_shape"
+      ]
+    },
+    "openclaw": {
+      "role": "orchestration_quality_assessment_retry_decision"
+    }
+  },
+  "quality_gates": {
+    "minimum_scores": {
+      "city_density": 3,
+      "material_realism": 3,
+      "lighting": 3,
+      "camera": 3,
+      "character_integration": 3
+    }
+  }
+}
+

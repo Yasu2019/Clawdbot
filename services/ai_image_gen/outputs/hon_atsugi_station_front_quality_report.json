@@ -1,0 +1,39 @@
+{
+  "target": "generic_realistic_3d_city_render",
+  "source_report": "D:\\Clawdbot_Docker_20260125\\services\\ai_image_gen\\outputs\\hon_atsugi_station_front_render_report.json",
+  "outputs_checked": {
+    "background": "D:\\Clawdbot_Docker_20260125\\services\\ai_image_gen\\outputs\\hon_atsugi_station_front_background_3d.png",
+    "reference": "D:\\Clawdbot_Docker_20260125\\services\\ai_image_gen\\outputs\\hon_atsugi_station_front_reference_3d.png",
+    "dom_cutout": "D:\\Clawdbot_Docker_20260125\\services\\ai_image_gen\\outputs\\hon_atsugi_station_front_dom_cutout.png"
+  },
+  "source_note": "This is station-front/crossing composition; railway platform is intentionally not emphasized because it is not visible in the reference photos.",
+  "scores": {
+    "city_density": 3,
+    "material_realism": 1,
+    "lighting": 2,
+    "camera": 2,
+    "character_integration": 2
+  },
+  "minimum_scores": {
+    "city_density": 3,
+    "material_realism": 3,
+    "lighting": 3,
+    "camera": 3,
+    "character_integration": 3
+  },
+  "pass_release_gate": false,
+  "next_actions": [
+    "Add facade material randomization and dirt decals.",
+    "Increase sign/panel contrast and add road surface wear.",
+    "Add stronger contact shadow or ambient occlusion below DOM feet.",
+    "Render a lower, more photographic station-front camera angle.",
+    "Use local OpenVINO for texture/decal generation rather than replacing the whole scene."
+  ],
+  "findings": [
+    "City density passes the first practical gate: windows, signs, crosswalks, and street furniture are present.",
+    "Material realism is intentionally scored low until PBR variation, dirt decals, glass reflection, and facade color variation are added.",
+    "Lighting is basic Blender sky/sun/fill lighting; UE5 Lumen or stronger atmospheric control is still future work.",
+    "Camera is composed for station-front review, but not yet a cinematic 35/50/85mm shot sequence.",
+    "Character integration has visible placement, but contact shadow/AO should be strengthened for final release."
+  ]
+}
