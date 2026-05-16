@@ -25,6 +25,22 @@
     "skipped_for_mecha_clearance": 42,
     "mecha_clearance_radius": 82.0
   },
+  "procedural_details": {
+    "station_layers": {
+      "roads": 4,
+      "sidewalks": 8,
+      "lane_dashes": 37,
+      "crosswalk_stripes": 25,
+      "rail_strips": 3,
+      "plaza_surfaces": 2
+    },
+    "facades": {
+      "window_panels": 6604,
+      "sign_panels": 25,
+      "window_object": "HonAtsugi_Facade_Windows",
+      "sign_object": "HonAtsugi_Facade_Signs"
+    }
+  },
   "station_terrain_z": 18.64,
   "station_terrain_nearest_distance": 0.748591,
   "mecha": {

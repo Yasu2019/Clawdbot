@@ -399,6 +399,211 @@ def add_building_box(name, box, material):
     return add_mesh_object(name, vertices, faces, material)
 
 
+def rotated_rect_points(center, length, width, angle_rad):
+    cx, cy = center
+    along = mathutils.Vector((math.cos(angle_rad), math.sin(angle_rad)))
+    across = mathutils.Vector((-math.sin(angle_rad), math.cos(angle_rad)))
+    half_l = length * 0.5
+    half_w = width * 0.5
+    return [
+        (cx - along.x * half_l - across.x * half_w, cy - along.y * half_l - across.y * half_w),
+        (cx + along.x * half_l - across.x * half_w, cy + along.y * half_l - across.y * half_w),
+        (cx + along.x * half_l + across.x * half_w, cy + along.y * half_l + across.y * half_w),
+        (cx - along.x * half_l + across.x * half_w, cy - along.y * half_l + across.y * half_w),
+    ]
+
+
+def add_rect_mesh(name, points, terrain_points, material, z_offset=0.2):
+    vertices = []
+    for x, y in points:
+        z, _dist = nearest_z(terrain_points, x, y)
+        vertices.append((x, y, z + z_offset))
+    return add_mesh_object(name, vertices, [(0, 1, 2, 3)], material)
+
+
+def add_rotated_rect(name, center, length, width, angle_rad, terrain_points, material, z_offset=0.2):
+    return add_rect_mesh(
+        name,
+        rotated_rect_points(center, length, width, angle_rad),
+        terrain_points,
+        material,
+        z_offset,
+    )
+
+
+def add_dashed_lane(name, center, length, angle_rad, terrain_points, material, z_offset=0.32):
+    cx, cy = center
+    along = mathutils.Vector((math.cos(angle_rad), math.sin(angle_rad)))
+    dash_length = 9.5
+    gap = 11.5
+    count = 0
+    cursor = -length * 0.5 + dash_length * 0.5
+    while cursor < length * 0.5:
+        dash_center = (cx + along.x * cursor, cy + along.y * cursor)
+        add_rotated_rect(
+            f"{name}_{count:02d}",
+            dash_center,
+            dash_length,
+            0.38,
+            angle_rad,
+            terrain_points,
+            material,
+            z_offset,
+        )
+        count += 1
+        cursor += dash_length + gap
+    return count
+
+
+def add_crosswalk(name, center, stripe_count, angle_rad, terrain_points, material, z_offset=0.34):
+    cx, cy = center
+    across = mathutils.Vector((-math.sin(angle_rad), math.cos(angle_rad)))
+    count = 0
+    spacing = 1.45
+    start = -(stripe_count - 1) * spacing * 0.5
+    for index in range(stripe_count):
+        stripe_center = (cx + across.x * (start + index * spacing), cy + across.y * (start + index * spacing))
+        add_rotated_rect(
+            f"{name}_{index:02d}",
+            stripe_center,
+            13.5,
+            0.72,
+            angle_rad + math.pi * 0.5,
+            terrain_points,
+            material,
+            z_offset,
+        )
+        count += 1
+    return count
+
+
+def add_station_detail_layers(terrain_points, station_z, mecha_z, mats):
+    stats = {"roads": 0, "sidewalks": 0, "lane_dashes": 0, "crosswalk_stripes": 0, "rail_strips": 0, "plaza_surfaces": 0}
+
+    plaza_specs = [
+        ((10, -52), 92, 54, math.radians(-6)),
+        ((62, -102), 78, 58, math.radians(8)),
+    ]
+    for index, spec in enumerate(plaza_specs):
+        add_rotated_rect(f"HonAtsugi_StationPlaza_{index:02d}", *spec, terrain_points, mats["plaza"], 0.18)
+        stats["plaza_surfaces"] += 1
+
+    road_specs = [
+        ((28, -92), 292, 15.5, math.radians(8)),
+        ((92, -62), 218, 13.0, math.radians(95)),
+        ((-18, -28), 268, 17.0, math.radians(-4)),
+        ((132, -146), 210, 12.5, math.radians(42)),
+    ]
+    for index, (center, length, width, angle) in enumerate(road_specs):
+        add_rotated_rect(f"HonAtsugi_EnhancedRoad_{index:02d}", center, length, width, angle, terrain_points, mats["road"], 0.24)
+        stats["roads"] += 1
+        along = mathutils.Vector((math.cos(angle), math.sin(angle)))
+        across = mathutils.Vector((-math.sin(angle), math.cos(angle)))
+        for side in (-1, 1):
+            sidewalk_center = (
+                center[0] + across.x * side * (width * 0.5 + 2.2),
+                center[1] + across.y * side * (width * 0.5 + 2.2),
+            )
+            add_rotated_rect(
+                f"HonAtsugi_Sidewalk_{index:02d}_{side:+d}",
+                sidewalk_center,
+                length * 0.96,
+                3.0,
+                angle,
+                terrain_points,
+                mats["sidewalk"],
+                0.27,
+            )
+            stats["sidewalks"] += 1
+        stats["lane_dashes"] += add_dashed_lane(
+            f"HonAtsugi_LaneDash_{index:02d}",
+            (center[0] + along.x * 2.0, center[1] + along.y * 2.0),
+            length * 0.78,
+            angle,
+            terrain_points,
+            mats["line"],
+        )
+
+    crosswalks = [
+        ((-18, -82), 8, math.radians(8)),
+        ((78, -30), 9, math.radians(95)),
+        ((98, -122), 8, math.radians(42)),
+    ]
+    for index, spec in enumerate(crosswalks):
+        stats["crosswalk_stripes"] += add_crosswalk(f"HonAtsugi_Crosswalk_{index:02d}", *spec, terrain_points, mats["line"])
+
+    rail_specs = [
+        ((-18, 34), 360, 0.62, math.radians(-3)),
+        ((-18, 39), 360, 0.62, math.radians(-3)),
+        ((-18, 26), 360, 1.55, math.radians(-3)),
+    ]
+    for index, (center, length, width, angle) in enumerate(rail_specs):
+        mat = mats["rail"] if index < 2 else mats["rail_bed"]
+        add_rotated_rect(f"HonAtsugi_Rail_{index:02d}", center, length, width, angle, terrain_points, mat, 0.3)
+        stats["rail_strips"] += 1
+
+    return stats
+
+
+def add_facade_details(building_boxes, mats):
+    window_vertices = []
+    window_faces = []
+    sign_vertices = []
+    sign_faces = []
+    sorted_boxes = sorted(
+        building_boxes,
+        key=lambda box: math.hypot(((box[0] + box[1]) * 0.5) - MECHA_OFFSET[0], ((box[2] + box[3]) * 0.5) - MECHA_OFFSET[1]),
+    )
+    for box_index, box in enumerate(sorted_boxes[:170]):
+        min_x, max_x, min_y, max_y, min_z, max_z = box
+        width_x = max_x - min_x
+        width_y = max_y - min_y
+        height = max_z - min_z
+        if height < 7.0:
+            continue
+        floors = min(8, max(1, int((height - 3.0) / 3.3)))
+        if width_x >= 7.5:
+            cols = min(7, max(2, int(width_x / 5.2)))
+            for side_y, normal in ((min_y - 0.035, -1), (max_y + 0.035, 1)):
+                for floor in range(floors):
+                    z = min_z + 3.0 + floor * 3.25
+                    for col in range(cols):
+                        x = min_x + (col + 0.5) * width_x / cols
+                        w = min(1.7, width_x / cols * 0.46)
+                        h = 1.25
+                        start = len(window_vertices)
+                        window_vertices.extend([
+                            (x - w * 0.5, side_y, z - h * 0.5),
+                            (x + w * 0.5, side_y, z - h * 0.5),
+                            (x + w * 0.5, side_y, z + h * 0.5),
+                            (x - w * 0.5, side_y, z + h * 0.5),
+                        ])
+                        window_faces.append((start, start + 1, start + 2, start + 3) if normal > 0 else (start + 3, start + 2, start + 1, start))
+        if box_index < 26 and width_x >= 8.0:
+            z = min_z + min(4.2, max(2.8, height * 0.28))
+            side_y = min_y - 0.055
+            x = (min_x + max_x) * 0.5
+            w = min(5.8, width_x * 0.52)
+            h = 1.05
+            start = len(sign_vertices)
+            sign_vertices.extend([
+                (x - w * 0.5, side_y, z - h * 0.5),
+                (x + w * 0.5, side_y, z - h * 0.5),
+                (x + w * 0.5, side_y, z + h * 0.5),
+                (x - w * 0.5, side_y, z + h * 0.5),
+            ])
+            sign_faces.append((start + 3, start + 2, start + 1, start))
+
+    window_obj = add_mesh_object("HonAtsugi_Facade_Windows", window_vertices, window_faces, mats["window"]) if window_faces else None
+    sign_obj = add_mesh_object("HonAtsugi_Facade_Signs", sign_vertices, sign_faces, mats["sign"]) if sign_faces else None
+    return {
+        "window_panels": len(window_faces),
+        "sign_panels": len(sign_faces),
+        "window_object": window_obj.name if window_obj else None,
+        "sign_object": sign_obj.name if sign_obj else None,
+    }
+
+
 def box_intersects_clearance(box, center, radius):
     min_x, max_x, min_y, max_y, _min_z, _max_z = box
     closest_x = min(max(center[0], min_x), max_x)
@@ -509,6 +714,16 @@ def main():
     road_mat = make_principled_material("HonAtsugi_Road_Asphalt", (0.035, 0.036, 0.034, 1.0), 0.96)
     bldg_mat = make_principled_material("HonAtsugi_Building_Grey", (0.48, 0.50, 0.49, 1.0), 0.82)
     mecha_mat = make_principled_material("HonAtsugi_Mecha_Posed_Olive", (0.28, 0.39, 0.16, 1.0), 0.52, 0.12)
+    detail_mats = {
+        "road": make_principled_material("HonAtsugi_Enhanced_Asphalt", (0.025, 0.026, 0.025, 1.0), 0.94),
+        "sidewalk": make_principled_material("HonAtsugi_Sidewalk_Concrete", (0.42, 0.43, 0.40, 1.0), 0.9),
+        "line": make_principled_material("HonAtsugi_Road_WhiteLine", (0.88, 0.86, 0.76, 1.0), 0.62),
+        "plaza": make_principled_material("HonAtsugi_Station_Plaza_Paving", (0.22, 0.23, 0.21, 1.0), 0.86),
+        "rail": make_principled_material("HonAtsugi_Rail_Steel", (0.12, 0.12, 0.11, 1.0), 0.48, 0.35),
+        "rail_bed": make_principled_material("HonAtsugi_Rail_Bed", (0.08, 0.075, 0.065, 1.0), 0.96),
+        "window": make_principled_material("HonAtsugi_Dark_Window_Glass", (0.035, 0.055, 0.065, 1.0), 0.28, 0.05),
+        "sign": make_principled_material("HonAtsugi_Sign_Panels", (0.58, 0.08, 0.055, 1.0), 0.5),
+    }
 
     terrain = add_mesh_object("HonAtsugi_Terrain", payload["terrain_vertices"], payload["terrain_faces"], terrain_mat)
     roads = add_mesh_object("HonAtsugi_Roads", payload["road_vertices"], payload["road_faces"], road_mat)
@@ -525,6 +740,8 @@ def main():
             continue
         building_boxes.append(box)
     buildings = [add_building_box(f"HonAtsugi_Bldg_{index:04d}", box, bldg_mat) for index, box in enumerate(building_boxes)]
+    detail_stats = add_station_detail_layers(terrain_points, station_z, mecha_z, detail_mats)
+    facade_stats = add_facade_details(building_boxes, detail_mats)
 
     existing_mecha = bpy.data.objects.get(MECHA_NAME)
     if existing_mecha:
@@ -604,6 +821,10 @@ def main():
             "rendered_count": len(buildings),
             "skipped_for_mecha_clearance": skipped_for_mecha,
             "mecha_clearance_radius": MECHA_CLEARANCE_RADIUS,
+        },
+        "procedural_details": {
+            "station_layers": detail_stats,
+            "facades": facade_stats,
         },
         "station_terrain_z": round(station_z, 6),
         "station_terrain_nearest_distance": round(station_z_distance, 6),
