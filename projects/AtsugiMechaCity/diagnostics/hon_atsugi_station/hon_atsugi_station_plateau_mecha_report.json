@@ -51,6 +51,18 @@
     "armatures": [
       "Armature"
     ],
+    "material_source": "source_fbx_or_blend_materials_preserved",
+    "materials": {
+      "material_names": [
+        "pbr_material"
+      ],
+      "image_texture_names": [
+        "Image",
+        "Image.003"
+      ],
+      "image_texture_count": 2,
+      "packed_image_count": 2
+    },
     "placement_xy": [
       60.0,
       -90.0

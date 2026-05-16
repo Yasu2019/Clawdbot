@@ -55,6 +55,39 @@ def make_principled_material(name, color, roughness=0.72, metallic=0.0):
     return mat
 
 
+def material_image_nodes(material):
+    if material is None or material.node_tree is None:
+        return []
+    images = []
+    for node in material.node_tree.nodes:
+        if node.bl_idname == "ShaderNodeTexImage" and getattr(node, "image", None):
+            images.append(node.image)
+    return images
+
+
+def mesh_material_report(mesh_objects):
+    material_names = []
+    image_names = []
+    packed_image_count = 0
+    for obj in mesh_objects:
+        for material in obj.data.materials:
+            if material is None:
+                continue
+            if material.name not in material_names:
+                material_names.append(material.name)
+            for image in material_image_nodes(material):
+                if image.name not in image_names:
+                    image_names.append(image.name)
+                    if image.packed_file:
+                        packed_image_count += 1
+    return {
+        "material_names": material_names,
+        "image_texture_names": image_names,
+        "image_texture_count": len(image_names),
+        "packed_image_count": packed_image_count,
+    }
+
+
 def world_bounds(objects):
     min_v = mathutils.Vector((float("inf"), float("inf"), float("inf")))
     max_v = mathutils.Vector((float("-inf"), float("-inf"), float("-inf")))
@@ -766,9 +799,15 @@ def main():
                 obj.hide_render = False
                 obj.hide_viewport = False
             scale_factor = normalize_imported_model(imported_model, model_meshes)
-            for part in model_meshes:
-                part.data.materials.clear()
-                part.data.materials.append(mecha_mat)
+            material_report = mesh_material_report(model_meshes)
+            if material_report["image_texture_count"] == 0:
+                for part in model_meshes:
+                    part.data.materials.clear()
+                    part.data.materials.append(mecha_mat)
+                material_report = mesh_material_report(model_meshes)
+                material_source = "fallback_single_material_no_texture_found"
+            else:
+                material_source = "source_fbx_or_blend_materials_preserved"
             place_imported_model(imported_model, model_meshes, mecha_x, mecha_y, mecha_z)
             mecha_min, mecha_max = evaluated_world_bounds(model_meshes)
             mecha_report = {
@@ -777,6 +816,8 @@ def main():
                 "rig_type": "Mixamo-rigged model frozen to posed static mesh",
                 "pose_frame": MIXAMO_POSE_FRAME,
                 "armatures": model_armature_names,
+                "material_source": material_source,
+                "materials": material_report,
                 "placement_xy": [round(mecha_x, 6), round(mecha_y, 6)],
                 "terrain_z": round(mecha_z, 6),
                 "terrain_nearest_distance": round(mecha_z_distance, 6),
