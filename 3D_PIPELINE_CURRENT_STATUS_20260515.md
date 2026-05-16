@@ -540,3 +540,37 @@ Validation:
 - `python -m py_compile projects/AtsugiMechaCity/render_hon_atsugi_station_from_plateau.py`
 - Blender 5.1 background render completed successfully.
 - Manual visual check confirmed the close render shows the mecha among station-area buildings, and the wide render shows the surrounding dense urban block.
+
+## 20. 2026-05-16 Update: Hon-Atsugi Mixamo Posed Model
+
+User visual review found that the previous Hon-Atsugi model was still effectively a T-pose/static placement. The station render was updated to use a Mixamo-rigged preview model and freeze one posed animation frame into the station scene.
+
+Current source model:
+
+- `D:\Clawdbot_Docker_20260125\projects\AtsugiMechaCity\diagnostics\dom_mixamo_walk\DOM_Mixamo_Walk_Preview.blend`
+- Pose frame: `34`
+- Imported objects used:
+  - `tmpsvjdp8mbobj`
+  - `Armature`
+
+Important correction:
+
+- Direct FBX import of `DOM_Mixamo_Walk_Preview.fbx` came in with an unusable horizontal/axis orientation.
+- Appending all objects from the preview blend also pulled in an unrelated source armature/mesh.
+- The final method appends only the confirmed visible Mixamo model pair, evaluates frame 34, freezes the posed mesh, then places the frozen posed mesh on the Hon-Atsugi terrain.
+
+Latest metrics:
+
+- Mecha source: Mixamo-rigged model frozen to posed static mesh
+- Mecha height: 52m diagnostic scale
+- Terrain Z at placement: 18.056
+- Mecha bounds after placement:
+  - min: `[45.054604, -110.11274, 18.05595]`
+  - max: `[74.945389, -69.887268, 70.055954]`
+- Buildings rendered after mecha clearance: 1,541
+
+Validation:
+
+- `python -m py_compile projects/AtsugiMechaCity/render_hon_atsugi_station_from_plateau.py`
+- Blender 5.1 background render completed successfully.
+- Manual visual check confirmed the close PNG shows a non-T-pose standing model in the station-area city block.
