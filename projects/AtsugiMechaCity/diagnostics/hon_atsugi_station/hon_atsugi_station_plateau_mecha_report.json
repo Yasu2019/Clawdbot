@@ -10,6 +10,7 @@
   "output_blend": "D:\\Clawdbot_Docker_20260125\\projects\\AtsugiMechaCity\\diagnostics\\hon_atsugi_station\\Hon_Atsugi_Station_Plateau_Mecha.blend",
   "output_close": "D:\\Clawdbot_Docker_20260125\\projects\\AtsugiMechaCity\\diagnostics\\hon_atsugi_station\\Hon_Atsugi_Station_Plateau_Mecha_Close.png",
   "output_wide": "D:\\Clawdbot_Docker_20260125\\projects\\AtsugiMechaCity\\diagnostics\\hon_atsugi_station\\Hon_Atsugi_Station_Plateau_Mecha_Wide.png",
+  "output_photolike": "D:\\Clawdbot_Docker_20260125\\projects\\AtsugiMechaCity\\diagnostics\\hon_atsugi_station\\Hon_Atsugi_Station_Plateau_Mecha_PhotoLike.png",
   "terrain": {
     "vertices": 248406,
     "faces": 82802

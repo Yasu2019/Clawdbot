@@ -14,6 +14,7 @@ SLICE_JSON = OUT_DIR / "hon_atsugi_station_plateau_slice.json"
 OUTPUT_BLEND = OUT_DIR / "Hon_Atsugi_Station_Plateau_Mecha.blend"
 OUTPUT_CLOSE = OUT_DIR / "Hon_Atsugi_Station_Plateau_Mecha_Close.png"
 OUTPUT_WIDE = OUT_DIR / "Hon_Atsugi_Station_Plateau_Mecha_Wide.png"
+OUTPUT_PHOTOLIKE = OUT_DIR / "Hon_Atsugi_Station_Plateau_Mecha_PhotoLike.png"
 OUTPUT_REPORT = OUT_DIR / "hon_atsugi_station_plateau_mecha_report.json"
 MIXAMO_POSED_BLEND = ROOT / "projects" / "AtsugiMechaCity" / "diagnostics" / "dom_mixamo_walk" / "DOM_Mixamo_Walk_Preview.blend"
 MIXAMO_POSED_FBX = ROOT / "projects" / "AtsugiMechaCity" / "diagnostics" / "dom_mixamo_walk" / "DOM_Mixamo_Walk_Preview.fbx"
@@ -37,6 +38,20 @@ def material_once(name, color):
     if mat is None:
         mat = bpy.data.materials.new(name)
     mat.diffuse_color = color
+    return mat
+
+
+def make_principled_material(name, color, roughness=0.72, metallic=0.0):
+    mat = material_once(name, color)
+    mat.use_nodes = True
+    bsdf = mat.node_tree.nodes.get("Principled BSDF")
+    if bsdf:
+        if "Base Color" in bsdf.inputs:
+            bsdf.inputs["Base Color"].default_value = color
+        if "Roughness" in bsdf.inputs:
+            bsdf.inputs["Roughness"].default_value = roughness
+        if "Metallic" in bsdf.inputs:
+            bsdf.inputs["Metallic"].default_value = metallic
     return mat
 
 
@@ -412,6 +427,75 @@ def render(path, target, ground_z, ortho_scale, offset, look_height):
     bpy.ops.render.render(write_still=True)
 
 
+def set_render_engine_photo():
+    scene = bpy.context.scene
+    for engine in ("BLENDER_EEVEE_NEXT", "BLENDER_EEVEE"):
+        try:
+            scene.render.engine = engine
+            break
+        except TypeError:
+            continue
+    eevee = getattr(scene, "eevee", None)
+    if eevee:
+        if hasattr(eevee, "taa_render_samples"):
+            eevee.taa_render_samples = 64
+        if hasattr(eevee, "use_gtao"):
+            eevee.use_gtao = True
+        if hasattr(eevee, "gtao_distance"):
+            eevee.gtao_distance = 4
+        if hasattr(eevee, "gtao_factor"):
+            eevee.gtao_factor = 1.35
+        if hasattr(eevee, "use_bloom"):
+            eevee.use_bloom = True
+    scene.view_settings.view_transform = "Standard"
+    scene.view_settings.look = "Medium High Contrast"
+    scene.view_settings.exposure = -0.35
+    scene.view_settings.gamma = 1.0
+    scene.render.film_transparent = False
+    scene.render.resolution_x = 1920
+    scene.render.resolution_y = 1080
+
+
+def render_photolike(path, target, ground_z):
+    set_render_engine_photo()
+    scene = bpy.context.scene
+    if scene.world is None:
+        scene.world = bpy.data.worlds.new("HonAtsugi_Photo_World")
+    scene.world.color = (0.58, 0.68, 0.84)
+    scene.world.use_nodes = True
+    bg = scene.world.node_tree.nodes.get("Background")
+    if bg:
+        bg.inputs["Color"].default_value = (0.58, 0.68, 0.84, 1.0)
+        bg.inputs["Strength"].default_value = 0.38
+
+    camera_data = bpy.data.cameras.new("HonAtsugi_Photo_Camera")
+    camera = bpy.data.objects.new("HonAtsugi_Photo_Camera", camera_data)
+    bpy.context.collection.objects.link(camera)
+    camera.data.type = "PERSP"
+    camera.data.lens = 38
+    camera.data.clip_end = 20000
+    camera.location = (target[0] + 118, target[1] - 182, ground_z + 74)
+    look_at(camera, (target[0] + 5, target[1] - 8, ground_z + 32))
+    bpy.context.scene.camera = camera
+
+    sun_data = bpy.data.lights.new("HonAtsugi_Photo_Sun", type="SUN")
+    sun = bpy.data.objects.new("HonAtsugi_Photo_Sun", sun_data)
+    bpy.context.collection.objects.link(sun)
+    sun.rotation_euler = (math.radians(43), 0.0, math.radians(-32))
+    sun.data.energy = 2.2
+    sun.data.angle = math.radians(4.0)
+
+    fill_data = bpy.data.lights.new("HonAtsugi_Photo_Fill", type="AREA")
+    fill = bpy.data.objects.new("HonAtsugi_Photo_Fill", fill_data)
+    bpy.context.collection.objects.link(fill)
+    fill.location = (target[0] - 120, target[1] - 70, ground_z + 95)
+    fill.data.energy = 220
+    fill.data.size = 65
+
+    bpy.context.scene.render.filepath = str(path)
+    bpy.ops.render.render(write_still=True)
+
+
 def main():
     ensure_dir()
     payload = build_plateau_slice()
@@ -421,10 +505,10 @@ def main():
         if obj.type == "MESH" and obj.name.startswith("Bldg"):
             bpy.data.objects.remove(obj, do_unlink=True)
 
-    terrain_mat = material_once("HonAtsugi_Terrain_Matte", (0.22, 0.34, 0.25, 1.0))
-    road_mat = material_once("HonAtsugi_Road_Asphalt", (0.05, 0.052, 0.048, 1.0))
-    bldg_mat = material_once("HonAtsugi_Building_Grey", (0.68, 0.7, 0.68, 1.0))
-    mecha_mat = material_once("HonAtsugi_Mecha_Posed_Olive", (0.42, 0.55, 0.25, 1.0))
+    terrain_mat = make_principled_material("HonAtsugi_Terrain_Matte", (0.18, 0.27, 0.18, 1.0), 0.9)
+    road_mat = make_principled_material("HonAtsugi_Road_Asphalt", (0.035, 0.036, 0.034, 1.0), 0.96)
+    bldg_mat = make_principled_material("HonAtsugi_Building_Grey", (0.48, 0.50, 0.49, 1.0), 0.82)
+    mecha_mat = make_principled_material("HonAtsugi_Mecha_Posed_Olive", (0.28, 0.39, 0.16, 1.0), 0.52, 0.12)
 
     terrain = add_mesh_object("HonAtsugi_Terrain", payload["terrain_vertices"], payload["terrain_faces"], terrain_mat)
     roads = add_mesh_object("HonAtsugi_Roads", payload["road_vertices"], payload["road_faces"], road_mat)
@@ -503,6 +587,7 @@ def main():
     bpy.ops.wm.save_as_mainfile(filepath=str(OUTPUT_BLEND))
     render(OUTPUT_CLOSE, (mecha_x, mecha_y), mecha_z, 180, (135, -205, 150), 44)
     render(OUTPUT_WIDE, (0.0, 0.0), station_z, 760, (520, -760, 360), 48)
+    render_photolike(OUTPUT_PHOTOLIKE, (mecha_x, mecha_y), mecha_z)
 
     report = {
         "ok": True,
@@ -511,6 +596,7 @@ def main():
         "output_blend": str(OUTPUT_BLEND),
         "output_close": str(OUTPUT_CLOSE),
         "output_wide": str(OUTPUT_WIDE),
+        "output_photolike": str(OUTPUT_PHOTOLIKE),
         "terrain": {"vertices": len(payload["terrain_vertices"]), "faces": len(payload["terrain_faces"])},
         "roads": {"vertices": len(payload["road_vertices"]), "faces": len(payload["road_faces"])},
         "buildings": {
