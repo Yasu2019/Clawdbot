@@ -203,6 +203,39 @@ def search_pexels(query, limit, api_key):
     return items
 
 
+def search_pixabay(query, limit, api_key):
+    if not api_key:
+        return []
+    params = {
+        "key": api_key,
+        "q": query,
+        "per_page": str(max(3, limit)),
+        "image_type": "photo",
+        "orientation": "horizontal",
+        "safesearch": "true",
+    }
+    url = "https://pixabay.com/api/?" + urllib.parse.urlencode(params)
+    data = request_json(url)
+    items = []
+    for photo in data.get("hits", [])[:limit]:
+        item = normalize_item(
+            source="pixabay",
+            asset_id=photo.get("id", ""),
+            title=photo.get("tags", "") or f"Pixabay photo {photo.get('id', '')}",
+            page_url=photo.get("pageURL", ""),
+            image_url=photo.get("largeImageURL") or photo.get("webformatURL", ""),
+            thumbnail_url=photo.get("previewURL", ""),
+            author=photo.get("user", ""),
+            license_name="Pixabay Content License",
+            license_url="https://pixabay.com/service/license-summary/",
+            width=photo.get("imageWidth"),
+            height=photo.get("imageHeight"),
+        )
+        if item["license_allowed_by_filter"]:
+            items.append(item)
+    return items
+
+
 def search_unsplash(query, limit, access_key):
     if not access_key:
         return []
@@ -266,7 +299,7 @@ def maybe_download(items, download_dir, max_downloads):
 def main():
     parser = argparse.ArgumentParser(description="Search license-aware city reference photos.")
     parser.add_argument("--query", required=True, help="Search query, e.g. 'Hon-Atsugi station'.")
-    parser.add_argument("--sources", default="wikimedia", help="Comma-separated sources: wikimedia,pexels,unsplash.")
+    parser.add_argument("--sources", default="wikimedia", help="Comma-separated sources: wikimedia,pexels,pixabay,unsplash.")
     parser.add_argument("--limit", type=int, default=8, help="Maximum candidates per source, capped at 20.")
     parser.add_argument("--env-file", default=str(DEFAULT_ENV), help=".env file path.")
     parser.add_argument("--output", default=str(DEFAULT_OUTPUT), help="Output manifest JSON.")
@@ -279,6 +312,7 @@ def main():
     sources = [source.strip().lower() for source in args.sources.split(",") if source.strip()]
     limit = max(1, min(args.limit, 20))
     pexels_key = env_first(env, "PEXELS_API_KEY")
+    pixabay_key = env_first(env, "PIXABAY_API_KEY")
     unsplash_key = env_first(env, "UNSPLASH_ACCESS_KEY", "Unsplash_Access Key")
 
     results = []
@@ -293,6 +327,11 @@ def main():
                     errors.append({"source": source, "error": "PEXELS_API_KEY is missing."})
                 else:
                     results.extend(search_pexels(args.query, limit, pexels_key))
+            elif source == "pixabay":
+                if not pixabay_key:
+                    errors.append({"source": source, "error": "PIXABAY_API_KEY is missing."})
+                else:
+                    results.extend(search_pixabay(args.query, limit, pixabay_key))
             elif source == "unsplash":
                 if not unsplash_key:
                     errors.append({"source": source, "error": "UNSPLASH_ACCESS_KEY or Unsplash_Access Key is missing."})

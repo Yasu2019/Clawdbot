@@ -6,7 +6,7 @@ It is designed for the Hon-Atsugi 3D city workflow:
 
 - Use photos as reference, texture candidates, or background candidates only when the manifest preserves source and license metadata.
 - Prefer Wikimedia Commons first because license metadata is explicit and no API key is required.
-- Use Pexels and Unsplash only when those sources are explicitly requested.
+- Use Pexels, Pixabay, and Unsplash only when those sources are explicitly requested.
 - Do not use Google Maps or Street View screenshots.
 
 ## Environment Keys
@@ -15,6 +15,7 @@ Supported `.env` keys:
 
 ```env
 PEXELS_API_KEY=
+PIXABAY_API_KEY=
 UNSPLASH_ACCESS_KEY=
 UNSPLASH_SECRET_KEY=
 ```
@@ -43,6 +44,12 @@ Use Pexels and Unsplash explicitly:
 python projects\AtsugiMechaCity\asset_search\search_city_reference_photos.py --query "Japanese station front crossing" --sources wikimedia,pexels,unsplash --limit 6
 ```
 
+Use Pixabay explicitly:
+
+```powershell
+python projects\AtsugiMechaCity\asset_search\search_city_reference_photos.py --query "Japanese station front crossing" --sources wikimedia,pixabay --limit 6
+```
+
 Download the first two candidate images after writing the manifest:
 
 ```powershell
@@ -54,6 +61,5 @@ python projects\AtsugiMechaCity\asset_search\search_city_reference_photos.py --q
 - `NC`, `ND`, unknown, fair-use, and all-rights-reserved assets are filtered out.
 - Attribution metadata is retained in the manifest.
 - Downloads are optional and capped.
-- Pexels and Unsplash are not queried unless named in `--sources`.
+- Pexels, Pixabay, and Unsplash are not queried unless named in `--sources`.
 - The script does not write to `.env`.
-
