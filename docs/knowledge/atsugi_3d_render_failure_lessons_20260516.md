@@ -16,6 +16,8 @@ Canonical records:
 - `services/ai_image_gen/outputs/hon_atsugi_station_front_quality_report.json`: latest station-front image quality gate.
 - `projects/AtsugiMechaCity/realistic_city_pipeline/README.md`: partial adoption decision for the realistic city pipeline ZIP.
 - `projects/AtsugiMechaCity/asset_search/asset_manifest.json`: licensed Wikimedia photo candidates and source metadata.
+- Turso `training_logs`: `Atsugi 3D render failure consolidation 2026-05-16`.
+- Beads issue: `iatf_system-a3d`.
 
 ## Failure Ledger
 
@@ -67,4 +69,3 @@ Minimum first-run acceptance:
 - Realism: material, lighting, camera, and character integration scores are at least 3.
 - Licensing: external photo/material inputs have source, author, license, and page URL in a manifest.
 - Delivery: final image is visually opened before Telegram or user-facing delivery.
-
