@@ -1,0 +1,16 @@
+{
+  "source_reference": "User-provided local Hon-Atsugi station-front screenshots used as visual reference only; not used as texture.",
+  "outputs": {
+    "background": "D:\\Clawdbot_Docker_20260125\\services\\ai_image_gen\\outputs\\hon_atsugi_station_front_background_3d.png",
+    "reference": "D:\\Clawdbot_Docker_20260125\\services\\ai_image_gen\\outputs\\hon_atsugi_station_front_reference_3d.png",
+    "dom_cutout": "D:\\Clawdbot_Docker_20260125\\services\\ai_image_gen\\outputs\\hon_atsugi_station_front_dom_cutout.png"
+  },
+  "procedural_features": {
+    "crosswalk_stripes": 20,
+    "sign_panels": 5,
+    "windows": 125,
+    "bollards": 15,
+    "lamps": 4
+  },
+  "note": "This is station-front/crossing composition; railway platform is intentionally not emphasized because it is not visible in the reference photos."
+}
