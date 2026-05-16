@@ -1,0 +1,30 @@
+{
+  "source": "OpenStreetMap via Overpass query, transformed to PLATEAU local coordinates",
+  "station_lat_lon": [
+    35.4393389,
+    139.3643379
+  ],
+  "outputs": {
+    "background": "D:\\Clawdbot_Docker_20260125\\services\\ai_image_gen\\outputs\\hon_atsugi_osm_station_background_3d.png",
+    "dom_cutout": "D:\\Clawdbot_Docker_20260125\\services\\ai_image_gen\\outputs\\hon_atsugi_osm_station_dom_cutout.png",
+    "reference": "D:\\Clawdbot_Docker_20260125\\services\\ai_image_gen\\outputs\\hon_atsugi_osm_station_reference_3d.png"
+  },
+  "stats": {
+    "rail_ways": 9,
+    "rail_segments": 59,
+    "sleepers": 221,
+    "platform_ways": 3,
+    "platform_segments": 24,
+    "station_markers": 1
+  },
+  "camera_target": [
+    16.682,
+    0.086,
+    19.017
+  ],
+  "mecha_center": [
+    60.0,
+    -90.0,
+    44.056
+  ]
+}
