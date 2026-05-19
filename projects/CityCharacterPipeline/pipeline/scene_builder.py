@@ -5,6 +5,12 @@ YAMLコンフィグからBlender Pythonスクリプトを生成する。
 Blender内で実行されるスクリプトを文字列として返す。
 """
 from __future__ import annotations
+import sys
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
 import math
 import os
 from pathlib import Path
@@ -14,6 +20,13 @@ ROOT = Path(__file__).resolve().parents[3]
 
 # ── Blenderスクリプトテンプレート ────────────────────────────────
 _BLENDER_SCRIPT = '''
+import sys
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 import bpy, math, os, glob, json, random
 from pathlib import Path
 from mathutils import Vector, Euler
@@ -93,6 +106,161 @@ def _get_char_meshes(char_obj):
         meshes = [o for o in bpy.context.scene.objects if o.type == "MESH"
                   and o.parent == char_obj]
     return meshes
+
+
+def _world_bbox_for_mesh(obj, depsgraph=None):
+    """評価済みMeshのワールドBBoxを返す。"""
+    depsgraph = depsgraph or bpy.context.evaluated_depsgraph_get()
+    ev = obj.evaluated_get(depsgraph)
+    xs, ys, zs = [], [], []
+    for corner in ev.bound_box:
+        w = ev.matrix_world @ Vector(corner)
+        xs.append(w.x)
+        ys.append(w.y)
+        zs.append(w.z)
+    if not xs:
+        loc = ev.matrix_world.translation
+        return loc.x, loc.x, loc.y, loc.y, loc.z, loc.z
+    return min(xs), max(xs), min(ys), max(ys), min(zs), max(zs)
+
+
+def _char_world_bbox(meshes, depsgraph=None):
+    """キャラクターMesh群のワールドBBoxを返す。"""
+    depsgraph = depsgraph or bpy.context.evaluated_depsgraph_get()
+    bounds = []
+    for mesh in meshes:
+        try:
+            bounds.append(_world_bbox_for_mesh(mesh, depsgraph))
+        except Exception:
+            pass
+    if not bounds:
+        return None
+    return (
+        min(b[0] for b in bounds), max(b[1] for b in bounds),
+        min(b[2] for b in bounds), max(b[3] for b in bounds),
+        min(b[4] for b in bounds), max(b[5] for b in bounds),
+    )
+
+
+def _max_walk_surface_z(min_x, max_x, min_y, max_y, exclude_objs):
+    """歩行足元にあるOSM地表系メッシュの最大Zを返す。"""
+    depsgraph = bpy.context.evaluated_depsgraph_get()
+    surface_z = 0.0
+    for obj in bpy.context.scene.objects:
+        if obj.type != "MESH" or obj in exclude_objs or obj.hide_render:
+            continue
+        name_l = obj.name.lower()
+        if not any(name_l.startswith(p) for p in ("osm_ground", "osm_road", "osm_park")):
+            continue
+        try:
+            ox0, ox1, oy0, oy1, _oz0, oz1 = _world_bbox_for_mesh(obj, depsgraph)
+        except Exception:
+            continue
+        if ox1 < min_x or ox0 > max_x or oy1 < min_y or oy0 > max_y:
+            continue
+        if oz1 > surface_z:
+            surface_z = oz1
+    return surface_z
+
+
+def _hide_walk_corridor_buildings(arm, walk_dir, step_m, char_meshes):
+    """歩行経路に重なるOSM建物を非表示にし、足元の視覚的な埋没を避ける。"""
+    depsgraph = bpy.context.evaluated_depsgraph_get()
+    cb = _char_world_bbox(char_meshes, depsgraph)
+    if cb is None:
+        return 0
+    char_width = max(cb[1] - cb[0], cb[3] - cb[2])
+    margin = max(6.0, char_width * 0.6)
+    sx, sy = arm.location.x, arm.location.y
+    ex = sx + float(walk_dir[0]) * float(step_m)
+    ey = sy + float(walk_dir[1]) * float(step_m)
+    min_x, max_x = min(sx, ex) - margin, max(sx, ex) + margin
+    min_y, max_y = min(sy, ey) - margin, max(sy, ey) + margin
+    hidden = 0
+    for obj in bpy.context.scene.objects:
+        if obj.type != "MESH" or not obj.name.lower().startswith("osm_building"):
+            continue
+        try:
+            ox0, ox1, oy0, oy1, _oz0, _oz1 = _world_bbox_for_mesh(obj, depsgraph)
+        except Exception:
+            continue
+        if ox1 < min_x or ox0 > max_x or oy1 < min_y or oy0 > max_y:
+            continue
+        obj.hide_render = True
+        obj.hide_set(True)
+        hidden += 1
+    if hidden:
+        print(f"[WalkAnim] motion corridor: hidden {hidden} OSM buildings", flush=True)
+    return hidden
+
+
+def _hide_camera_corridor_buildings(arm, char_meshes):
+    """カメラとキャラクターの間で下半身を隠すOSM建物を非表示にする。"""
+    cam = bpy.context.scene.camera
+    if cam is None:
+        return 0
+    depsgraph = bpy.context.evaluated_depsgraph_get()
+    cb = _char_world_bbox(char_meshes, depsgraph)
+    if cb is None:
+        return 0
+    char_width = max(cb[1] - cb[0], cb[3] - cb[2])
+    margin = max(8.0, char_width * 0.7)
+    ax, ay = cam.location.x, cam.location.y
+    bx, by = arm.location.x, arm.location.y
+    vx, vy = bx - ax, by - ay
+    seg_len2 = vx * vx + vy * vy
+    if seg_len2 <= 0.001:
+        return 0
+
+    def _near_segment(px, py):
+        t = ((px - ax) * vx + (py - ay) * vy) / seg_len2
+        if t < 0.0 or t > 1.05:
+            return False
+        qx, qy = ax + vx * t, ay + vy * t
+        dx, dy = px - qx, py - qy
+        return (dx * dx + dy * dy) <= margin * margin
+
+    hidden = 0
+    for obj in bpy.context.scene.objects:
+        if obj.type != "MESH" or obj.hide_render or not obj.name.lower().startswith("osm_building"):
+            continue
+        try:
+            ox0, ox1, oy0, oy1, _oz0, _oz1 = _world_bbox_for_mesh(obj, depsgraph)
+        except Exception:
+            continue
+        probe_points = [
+            ((ox0 + ox1) * 0.5, (oy0 + oy1) * 0.5),
+            (ox0, oy0), (ox0, oy1), (ox1, oy0), (ox1, oy1),
+        ]
+        if not any(_near_segment(px, py) for px, py in probe_points):
+            continue
+        obj.hide_render = True
+        obj.hide_set(True)
+        hidden += 1
+    if hidden:
+        print(f"[WalkAnim] camera corridor: hidden {hidden} OSM buildings", flush=True)
+    return hidden
+
+
+def _remove_action_object_transform_curves(action):
+    """Blender旧/Layered Action両APIでArmature本体Transformカーブを除去する。"""
+    transform_paths = {"location", "rotation_euler", "rotation_quaternion", "scale"}
+    fcurve_collections = []
+    if hasattr(action, "fcurves"):
+        fcurve_collections.append(action.fcurves)
+    for layer in getattr(action, "layers", []):
+        for strip in getattr(layer, "strips", []):
+            for channelbag in getattr(strip, "channelbags", []):
+                if hasattr(channelbag, "fcurves"):
+                    fcurve_collections.append(channelbag.fcurves)
+
+    removed = 0
+    for fcurves in fcurve_collections:
+        for fc in list(fcurves):
+            if fc.data_path in transform_paths:
+                fcurves.remove(fc)
+                removed += 1
+    return removed
 
 
 # ── ユーティリティ ──────────────────────────────────────────────
@@ -840,6 +1008,9 @@ def _apply_mixamo_action_walk(scene):
 
     new_action = src_action.copy()
     new_action.name = "Zaku_Walking_Baked"
+    removed_obj_curves = _remove_action_object_transform_curves(new_action)
+    if removed_obj_curves:
+        print(f"[WalkAnim] removed {removed_obj_curves} object transform curves from source action", flush=True)
     arm.animation_data_create()
     arm.animation_data.action = new_action
 
@@ -939,14 +1110,50 @@ def _apply_mixamo_action_walk(scene):
     # scene.frame_set(f) が自動的に正しい値を適用するようにする。
     arm_z_target  = orig_loc.z + const_z_lift
     walk_dir_v    = list(walk_dir)
-    print(f"[WalkAnim] arm.locationキーフレーム挿入 ({total_f}f, arm_z={arm_z_target:.4f}m)...", flush=True)
+    exclude_objs = set(char_meshes)
+    _hide_walk_corridor_buildings(arm, walk_dir_v, step_m, char_meshes)
+    _hide_camera_corridor_buildings(arm, char_meshes)
+    print(f"[WalkAnim] arm.locationキーフレーム挿入 ({total_f}f, base_arm_z={arm_z_target:.4f}m)...", flush=True)
+    min_render_foot_z = float("inf")
+    min_clearance = float("inf")
+    max_extra_lift = 0.0
     for fi in range(total_f):
         frame    = scene.frame_start + fi
         progress = max(0.0, min(1.0, fi / max(total_f - 1, 1)))
+        scene.frame_set(frame)
         arm.location.x = orig_loc.x + walk_dir_v[0] * step_m * progress
         arm.location.y = orig_loc.y + walk_dir_v[1] * step_m * progress
         arm.location.z = arm_z_target
+        bpy.context.view_layer.update()
+        _dg_key = bpy.context.evaluated_depsgraph_get()
+        _cb = _char_world_bbox(char_meshes, _dg_key)
+        if _cb is not None:
+            _pad = 0.5
+            _surface_z = _max_walk_surface_z(_cb[0] - _pad, _cb[1] + _pad, _cb[2] - _pad, _cb[3] + _pad, exclude_objs)
+            _target_min_z = _surface_z + 0.05
+            _extra_lift = max(0.0, _target_min_z - _cb[4])
+            if _extra_lift > 0.0:
+                arm.location.z += _extra_lift
+                bpy.context.view_layer.update()
+                _cb = _char_world_bbox(char_meshes, bpy.context.evaluated_depsgraph_get())
+            if _cb is not None:
+                min_render_foot_z = min(min_render_foot_z, _cb[4])
+                min_clearance = min(min_clearance, _cb[4] - _surface_z)
+                max_extra_lift = max(max_extra_lift, _extra_lift)
+                if fi in (0, min(10, total_f - 1), total_f - 1):
+                    print(
+                        f"[WalkAnim-DIAG] frame={frame} surface_z={_surface_z:.4f} "
+                        f"foot_min_z={_cb[4]:.4f} clearance={(_cb[4] - _surface_z):.4f} "
+                        f"extra_lift={_extra_lift:.4f}",
+                        flush=True,
+                    )
         arm.keyframe_insert(data_path="location", frame=frame)
+    if min_render_foot_z < float("inf"):
+        print(
+            f"[WalkAnim] grounding summary: min_foot_z={min_render_foot_z:.4f} "
+            f"min_clearance={min_clearance:.4f} max_extra_lift={max_extra_lift:.4f}",
+            flush=True,
+        )
 
     # アニメーション接地グローバルに確定値を保存 → _render_animation() のDIAG用
     global _WALK_ACTIVE, _WALK_ARM_NAME, _WALK_CONST_Z, _WALK_ORIG_X, _WALK_ORIG_Y

@@ -20,9 +20,9 @@ terrain:
 
 # キャラクター
 character:
-  fbx_path: "D:/Clawdbot_Docker_20260125/Gundam/FLB/Zaku_Rig_mixamo.fbx"
-  name: "Zaku_Armature"
-  height_m: 17.5                         # MS-06F 公式全高 17.5m
+  fbx_path: "D:/Clawdbot_Docker_20260125/projects/AtsugiMechaCity/diagnostics/Normal_Walking_RickDias.fbx"
+  name: "RickDias_Armature"
+  height_m: 20.0                         # RMS-099 Rick Dias — scene_builder._MECHA_HEIGHT_M テーブル値 (Antigravity調査済み)
   position:
     lat: 35.6590                         # 渋谷駅前（ヒカリエ・駅舎を背後に）
     lon: 139.7015
@@ -90,9 +90,9 @@ animation:
   camera_motion:
     type: "static"                         # カメラ固定 — Zakuが正面に歩いてくる構図
   character_motion:
-    type: "mixamo_action"                  # Mixamo Walking.fbx をZakuリグに直接適用
-    action_fbx: "D:/Clawdbot_Docker_20260125/data/workspace/apps/motion_lab/assets/motions/raw/mixamo/Walking.fbx"
-    step_length_m: 12.0                    # 3秒で12m前進（カメラ方向）
+    type: "mixamo_action"                  # RickDias埋め込みウォーキングをRickDiasに適用（ループベーキング+足Zリフト）
+    action_fbx: "D:/Clawdbot_Docker_20260125/projects/AtsugiMechaCity/diagnostics/Normal_Walking_RickDias.fbx"
+    step_length_m: 5.0                     # 3秒で5m前進（≈1.67m/s — 20mロボットのゆっくり歩行）
     walk_direction: [0.0, -1.0, 0.0]      # -Y方向（カメラへ向かう）
 
 # 都市シーン・キャラクター質感強化（material_enhancements.py ライブラリ）
@@ -112,9 +112,9 @@ city_enhancements:
     count: 4                # 配置する信号機数（positionsはNone=自動配置）
   character_metal:
     enabled: true
-    base_color: [0.10, 0.14, 0.06]  # MS-06F ザクII ダークオリーブグリーン
+    base_color: [0.05, 0.05, 0.12]  # RMS-099 Rick Dias ダークネイビー
     metallic: 0.80
-    roughness: 0.45
+    roughness: 0.40
 
 # 写真API背景合成（compare: true で SD版と横並び比較を生成）
 photo_bg:
