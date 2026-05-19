@@ -1,0 +1,17 @@
+{
+  "status": "ok",
+  "output": "D:/Clawdbot_Docker_20260125/projects/CityCharacterPipeline/output/shibuya_zaku",
+  "completed_steps": [
+    "terrain_osm",
+    "character_import",
+    "lighting",
+    "materials",
+    "contact_ao",
+    "camera",
+    "dof",
+    "postfx",
+    "render"
+  ],
+  "errors": [],
+  "warnings": []
+}

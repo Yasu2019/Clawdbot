@@ -1,0 +1,90 @@
+# yaml-language-server: $schema=
+# 本厚木駅前 + DOM シーン設定
+
+scene:
+  name: "hon_atsugi_dom"
+  description: "本厚木駅前広場にDOMを配置。PLATEAU + Mixamoポーズ。"
+
+blend_source: "D:/Clawdbot_Docker_20260125/projects/AtsugiMechaCity/diagnostics/hon_atsugi_station/Hon_Atsugi_Station_Plateau_Mecha.blend"
+
+terrain:
+  obj_path: "D:/Clawdbot_Docker_20260125/apps/agi_designer/viewer/exports/Atsugi_Terrain.obj"
+  plateau_gml_dir: "D:/Clawdbot_Docker_20260125/data/PLATEAU/Atsugi/udx"
+  coordinate_system: "EPSG:6668"
+
+character:
+  fbx_path: "D:/Clawdbot_Docker_20260125/Gundam/FLB/DOM_RIG_Mixamo.fbx"
+  name: "Zaku_Armature"
+  height_m: 18.0
+  position:
+    lat: 35.4437
+    lon: 139.4130
+  grounding:
+    enabled: true
+    embed_depth: 0.75
+    contact_pad: true
+  pose_fbx: "D:/Clawdbot_Docker_20260125/projects/AtsugiMechaCity/diagnostics/dom_mixamo_walk/DOM_Mixamo_Walk_Preview.blend"
+
+camera:
+  position: [0.0, -35.0, 6.0]
+  target:   [0.0,   0.0, 9.0]
+  lens_mm: 85
+  resolution: [1920, 1080]
+
+lighting:
+  hdri_path: ""                          # 手続き型空を使用（outdoor HDRI未取得のため）
+  hdri_strength: 1.0
+  sun:
+    enabled: true
+    lat: 35.4437
+    lon: 139.4130
+    hour: 14
+    energy: 6.0
+  fill_lights:
+    - type: "AREA"
+      position: [-15, -20, 10]
+      energy: 300
+      color: [0.95, 0.97, 1.0]
+    - type: "AREA"
+      position: [15, -10, 5]
+      energy: 150
+      color: [1.0, 0.95, 0.88]
+
+materials:
+  ambientcg_dir: "D:/Clawdbot_Docker_20260125/data/workspace/apps/blender_assets/ambientcg"
+  building_texture: "Concrete034"
+  road_texture:     "Ground079S"
+  metal_texture:    "Metal027"
+  roughness_override: 0.65
+  apply_to_existing: true
+
+contact_ao:
+  enabled: true
+  radius: 4.0
+  strength: 0.7
+  shadow_catcher: true
+
+render:
+  engine: "CYCLES"
+  device: "CPU"
+  samples: 64
+  denoiser: "OPENIMAGEDENOISE"
+  output_dir: "D:/Clawdbot_Docker_20260125/projects/CityCharacterPipeline/output/hon_atsugi_dom"
+  output_prefix: "hon_atsugi_dom"
+
+animation:
+  enabled: false
+  fps: 24
+  total_frames: 120
+  camera_motion:
+    type: "orbit"
+    orbit_radius: 40.0
+    orbit_z: 8.0
+  character_motion:
+    type: "idle"
+    action_fbx: ""
+
+knowledge:
+  record_to_db: true
+  record_to_brv: true
+  project_tag: "hon_atsugi_dom"

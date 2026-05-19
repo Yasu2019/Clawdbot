@@ -1,0 +1,14 @@
+{
+  "status": "ok",
+  "output": "D:/Clawdbot_Docker_20260125/projects/CityCharacterPipeline/output/hon_atsugi_dom",
+  "completed_steps": [
+    "character_import",
+    "lighting",
+    "materials",
+    "contact_ao",
+    "camera",
+    "render"
+  ],
+  "errors": [],
+  "warnings": []
+}

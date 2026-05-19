@@ -1,0 +1,128 @@
+# yaml-language-server: $schema=
+# CityCharacterPipeline — 渋谷 + ザク II (OSM地形・全世界汎用サンプル)
+# データソース: OpenStreetMap / Overpass API（PLATEAU不要）
+# 対象メカ: MS-06F ザクII / Zaku_Rig_mixamo.fbx
+
+scene:
+  name: "Shibuya_Zaku"
+  description: "渋谷駅前にザクIIを配置。OSM地形で全世界再現可能なデモ用config。"
+
+# blend_source は空 → OSMから新規シーン生成
+blend_source: ""
+
+# 地形・都市データ（OSMモード）
+terrain:
+  data_source: "osm"                     # Overpass APIから建物・道路・公園を取得
+  osm_bbox_margin_m: 200                 # 200m範囲（影なし設定なので広げてOK）
+  obj_path: ""
+  plateau_gml_dir: ""
+  coordinate_system: "EPSG:6668"
+
+# キャラクター
+character:
+  fbx_path: "D:/Clawdbot_Docker_20260125/Gundam/FLB/Zaku_Rig_mixamo.fbx"
+  name: "Zaku_Armature"
+  height_m: 17.5                         # MS-06F 公式全高 17.5m
+  position:
+    lat: 35.6590                         # 渋谷駅前（ヒカリエ・駅舎を背後に）
+    lon: 139.7015
+  grounding:
+    enabled: true
+    embed_depth: 0.0   # 廃止: 0.0固定。+5cmリフトはscene_builderで自動適用（Z-fighting防止）
+    contact_pad: true
+  pose_fbx: ""
+
+# カメラ（v17確認済み・全身表示）
+camera:
+  position: [10.0, -65.0, 14.0]         # v17で全身確認済みの完全一致パラメータ
+  target:   [0.0,   0.0,   8.0]         # v17と同じ
+  lens_mm: 35                            # 35mm: v17で全身確認済み
+  resolution: [2048, 1152]              # 写真品質静止画用（動画時は854x480に変更）
+
+# ライティング（渋谷 夏・午後2時 — Nishita空+強い太陽）
+lighting:
+  hdri_path: ""
+  hdri_strength: 0.05                   # sky ambient 大幅低減（0.25→0.05）
+  sun:
+    enabled: true
+    lat: 35.6590
+    lon: 139.7015
+    hour: 14
+    energy: 3.0                         # 太陽強さ低減（6.0→3.0）
+  fill_lights:
+    - type: "AREA"
+      position: [-25, -35, 18]
+      energy: 1                         # 補助光弱め（2→1）
+      color: [0.85, 0.90, 1.0]
+
+# マテリアル
+materials:
+  ambientcg_dir: "D:/Clawdbot_Docker_20260125/data/workspace/apps/blender_assets/ambientcg"
+  building_texture: "Concrete034"       # グレーコンクリート（047Aの砂色を回避）
+  road_texture:     "Ground079S"
+  metal_texture:    "Metal041B"         # ザク用：金属光沢
+  roughness_override: 0.65
+  apply_to_existing: true
+
+# 接地AO
+contact_ao:
+  enabled: true
+  radius: 4.0                            # height/4 ≈ 4.375 → 4.0
+  strength: 0.7
+  shadow_catcher: true
+
+# レンダリング
+render:
+  engine: "CYCLES"
+  device: "CPU"
+  samples: 128                             # 写真品質（動画時は32に変更）
+  denoiser: "OPENIMAGEDENOISE"
+  exposure: 0.0                            # lights を下げたので補正不要
+  output_dir: "D:/Clawdbot_Docker_20260125/projects/CityCharacterPipeline/output/shibuya_zaku"
+  output_prefix: "render"
+  two_pass: true                           # 2パス合成モード（背景SD強化 + Zaku保持）
+
+# 動画（--animate フラグで有効化）
+animation:
+  enabled: false
+  fps: 30                                  # YouTube標準
+  total_frames: 90                         # 3秒 (90f@30fps)
+  camera_motion:
+    type: "static"                         # カメラ固定 — Zakuが正面に歩いてくる構図
+  character_motion:
+    type: "mixamo_action"                  # Mixamo Walking.fbx をZakuリグに直接適用
+    action_fbx: "D:/Clawdbot_Docker_20260125/data/workspace/apps/motion_lab/assets/motions/raw/mixamo/Walking.fbx"
+    step_length_m: 12.0                    # 3秒で12m前進（カメラ方向）
+    walk_direction: [0.0, -1.0, 0.0]      # -Y方向（カメラへ向かう）
+
+# 都市シーン・キャラクター質感強化（material_enhancements.py ライブラリ）
+# 別都市・別キャラへの転用: このセクションのみ変更すればよい
+city_enhancements:
+  windows:
+    enabled: true
+    floor_height_m: 3.5    # 渋谷: 標準フロア高さ
+    win_width_m: 3.0        # 窓1枚の幅
+    mortar_ratio: 0.18      # 壁フレームの太さ比率
+  road_markings:
+    enabled: true
+    stripe_interval_m: 3.5  # 白線の繰り返し間隔(m)
+    stripe_width_ratio: 0.10 # 白線幅の割合
+  traffic_lights:
+    enabled: true
+    count: 4                # 配置する信号機数（positionsはNone=自動配置）
+  character_metal:
+    enabled: true
+    base_color: [0.10, 0.14, 0.06]  # MS-06F ザクII ダークオリーブグリーン
+    metallic: 0.80
+    roughness: 0.45
+
+# 写真API背景合成（compare: true で SD版と横並び比較を生成）
+photo_bg:
+  enabled: false
+  compare: false
+
+# 知識記録
+knowledge:
+  record_to_db: true
+  record_to_brv: true
+  project_tag: "city_character"

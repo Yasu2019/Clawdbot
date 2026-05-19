@@ -1,0 +1,111 @@
+# yaml-language-server: $schema=
+# CityCharacterPipeline — シーン設定テンプレート
+# このファイルをコピーして新しいシーン用configを作成する
+
+scene:
+  name: "MyScene"                         # シーン識別名（ログ・DB記録に使用）
+  description: "説明文"
+
+# ベースとなる .blend ファイル（既存シーン）
+blend_source: ""                          # 例: D:/path/to/scene.blend
+                                          # 空の場合は新規シーン作成
+
+# 地形・都市データ
+terrain:
+  data_source: "blend_only"              # "plateau" | "osm" | "blend_only"
+  obj_path: ""                           # PLATEAU/BlenderGIS OBJファイル
+  plateau_gml_dir: ""                    # PLATEAU CityGML tran/bldg ディレクトリ
+  coordinate_system: "EPSG:6668"         # PLATEAUデフォルト
+  osm_bbox_margin_m: 500                 # OSMクエリ範囲(m) — data_source="osm" 時に使用
+
+# キャラクター / 3Dモデル
+character:
+  fbx_path: ""                            # FBX/GLBパス
+  name: "Character"                       # Blender内オブジェクト名（Armature）
+  height_m: 18.0                          # キャラクター身長 (m) ← スケール自動調整
+  position:
+    lat: 35.4437                          # 緯度（配置座標）
+    lon: 139.4130                         # 経度
+  grounding:
+    enabled: true
+    embed_depth: 0.75                     # 地面への埋め込み深さ(m)
+    contact_pad: true
+  pose_fbx: ""                            # Mixamoポーズ用別FBX（空=T-ポーズ）
+
+# カメラ
+camera:
+  position: [0.0, -20.0, 4.0]            # [x, y, z]
+  target:   [0.0,   0.0, 8.0]            # 注視点
+  lens_mm: 50                             # 焦点距離
+  resolution: [1920, 1080]
+
+# ライティング
+lighting:
+  hdri_path: ""                           # Poly Haven HDRIパス（空=手続き型空）
+  hdri_strength: 1.2
+  sun:
+    enabled: true
+    lat: 35.4437                          # 太陽角度計算用緯度
+    lon: 139.4130
+    hour: 14                              # 現地時刻（24h）
+    energy: 5.0
+  fill_lights:
+    - type: "AREA"
+      position: [-10, -15, 8]
+      energy: 200
+      color: [0.95, 0.97, 1.0]
+
+# マテリアル強化
+materials:
+  ambientcg_dir: "D:/Clawdbot_Docker_20260125/data/workspace/apps/blender_assets/ambientcg"
+  building_texture: "Concrete034"        # 建物外壁
+  road_texture:     "Ground079S"         # 道路
+  metal_texture:    "Metal027"           # 金属部材
+  roughness_override: 0.7
+  apply_to_existing: true               # 既存マテリアルを上書き強化
+
+# 接地AO（キャラクター足元）
+contact_ao:
+  enabled: true
+  radius: 3.0                            # AOシャドウ半径(m)
+  strength: 0.6
+  shadow_catcher: true                   # 影のみ受けるプレーン
+
+# レンダリング
+render:
+  engine: "CYCLES"
+  device: "CPU"
+  samples: 64
+  denoiser: "OPENIMAGEDENOISE"
+  output_dir: ""                         # 出力先ディレクトリ
+  output_prefix: "render"
+
+# 動画拡張（静止画成功後に設定）
+animation:
+  enabled: false
+  fps: 24
+  total_frames: 120
+  camera_motion:
+    type: "orbit"                        # orbit / dolly / static
+    orbit_radius: 25.0
+    orbit_z: 4.0
+  character_motion:
+    type: "idle"                         # idle / walk / action
+    action_fbx: ""                       # Mixamoアニメーションパス
+
+# 超リアル化後処理（SD img2img + PIL + Lanczos）
+post_process:
+  sd_enabled: true                       # SD img2imgを使用するか
+  sd_strength: 0.35                      # 写実化強度（0=変化なし, 1=完全再生成）
+  sd_steps: 20                           # SD推論ステップ数
+  max_dimension: 768                     # SD入力最大寸法（OOM対策）
+  sharpness: 1.40                        # PIL シャープネス
+  contrast: 1.15                         # PIL コントラスト
+  saturation: 1.20                       # PIL 彩度
+  upscale_factor: 2                      # Lanczosアップスケール倍率（2=4K相当）
+
+# 知識記録
+knowledge:
+  record_to_db: true
+  record_to_brv: true
+  project_tag: "city_character"
