@@ -24,6 +24,17 @@ OUT_DIR.mkdir(parents=True, exist_ok=True)
 PREFIX   = CFG["render"]["output_prefix"]
 AMCG_DIR = Path(CFG["materials"]["ambientcg_dir"])
 
+# アニメーション接地グローバル（_apply_mixamo_action_walk → _render_animation で共有）
+_WALK_ACTIVE      = False
+_WALK_ARM_NAME    = ""
+_WALK_CONST_Z     = 0.0
+_WALK_ORIG_X      = 0.0
+_WALK_ORIG_Y      = 0.0
+_WALK_DIR         = [0.0, -1.0, 0.0]
+_WALK_STEP_M      = 5.0
+_WALK_TOTAL_F     = 90
+_WALK_FRAME_START = 1
+
 
 # ── 機体別公式全高テーブル（Gundam公式スペック） ────────────────
 _MECHA_HEIGHT_M = {
@@ -705,13 +716,84 @@ def _setup_animation():
     char_motion = anim_cfg.get("character_motion", {})
     if char_motion.get("type") == "mixamo_action":
         _apply_mixamo_action_walk(scene)
+    elif char_motion.get("type") == "tpose_march":
+        _apply_tpose_march(scene)
     print(f"[SceneBuilder] Animation: {scene.frame_end}frames, cam={cam_motion.get('type')}", flush=True)
 
 
+def _apply_tpose_march(scene):
+    """T-pose前進マーチ + プログラム的脚スイング。
+    ザク固有プロポーション対応: Mixamoアクション不使用でZ浮き/屈み問題を回避。
+    大腿骨を左右交互に±amp_deg スイング、膝を振り出し時に曲げる。"""
+    import math
+    anim_cfg = CFG.get("animation", {})
+    char_cfg = anim_cfg.get("character_motion", {})
+    step_m   = float(char_cfg.get("step_length_m", 12.0))
+    walk_dir = char_cfg.get("walk_direction", [0.0, -1.0, 0.0])
+
+    char_name = CFG.get("character", {}).get("name", "")
+    arm = bpy.data.objects.get(char_name) or next(
+        (o for o in bpy.data.objects if o.type == "ARMATURE"), None
+    )
+    if arm is None:
+        print("[WalkAnim] アーマチャーが見つかりません", flush=True)
+        return False
+
+    total_f     = scene.frame_end - scene.frame_start + 1
+    orig_loc    = arm.location.copy()
+    step_period = 20    # frames per step cycle (30fps → 1.5歩/秒)
+    bounce_amp  = 0.35  # m
+    thigh_amp   = math.radians(20)   # 大腿骨スイング幅 (±20°)
+    knee_amp    = math.radians(15)   # 膝曲げ最大 (15°)
+
+    # Mixamoボーン名 (mixamorig: プレフィックスあり)
+    # (bone_name, phase, is_knee, amp_override)
+    # 脚スイング + 腕スイング（逆位相で自然な歩行感）
+    swing_bones = [
+        ("mixamorig:LeftUpLeg",  0.0,     False, thigh_amp),      # 左大腿: 前振り=位相0
+        ("mixamorig:RightUpLeg", math.pi, False, thigh_amp),      # 右大腿: 逆位相
+        ("mixamorig:LeftLeg",    0.0,     True,  knee_amp),       # 左膝: 前振り時に曲げ
+        ("mixamorig:RightLeg",   math.pi, True,  knee_amp),       # 右膝
+        ("mixamorig:LeftArm",    math.pi, False, math.radians(10)),  # 左腕: 右脚と逆位相
+        ("mixamorig:RightArm",   0.0,     False, math.radians(10)),  # 右腕
+    ]
+    found_bones = [(n, p, k, a) for n, p, k, a in swing_bones if arm.pose.bones.get(n)]
+    print(f"[WalkAnim] スイングボーン検出: {[n for n,_,_,_ in found_bones]}", flush=True)
+
+    print(f"[WalkAnim] T-poseマーチ+レッグスイング開始 ({total_f}f, step={step_period}f)...", flush=True)
+    for fi in range(total_f):
+        frame    = scene.frame_start + fi
+        progress = fi / max(total_f - 1, 1)
+        t        = 2 * math.pi * fi / step_period
+
+        # アーマチャー前進 + バウンス
+        arm.location.x = orig_loc.x + walk_dir[0] * step_m * progress
+        arm.location.y = orig_loc.y + walk_dir[1] * step_m * progress
+        arm.location.z = orig_loc.z + bounce_amp * abs(math.sin(math.pi * fi / step_period))
+        arm.keyframe_insert(data_path="location", frame=frame)
+
+        # ボーンスイング（脚+腕）
+        for bname, phase, is_knee, amp in found_bones:
+            pb = arm.pose.bones.get(bname)
+            if pb is None:
+                continue
+            pb.rotation_mode = 'XYZ'
+            if is_knee:
+                # 膝: 振り出し（前方スイング）時のみ曲げる。後ろへは曲げない
+                pb.rotation_euler[0] = amp * max(0.0, math.sin(t + phase))
+            else:
+                # 大腿骨・上腕骨: X軸前後スイング（矢状面）
+                pb.rotation_euler[0] = amp * math.sin(t + phase)
+            pb.keyframe_insert(data_path="rotation_euler", frame=frame)
+
+    print(f"[WalkAnim] T-poseマーチ完了: {step_m}m前進 dir={walk_dir}", flush=True)
+    return True
+
+
 def _apply_mixamo_action_walk(scene):
-    """Mixamo Walking.fbx のアクションをZaku Mixamoアーマチャーに直接適用。
-    同じMixamoボーン名のため再ターゲット不要（DOM実績: 33共通ボーン）。"""
-    import mathutils as _mu
+    """Mixamo Walking.fbxをZakuに適用。
+    ループベーキング: scene.frame_set(looped_f)でポーズを取得しrenderフレームにベーク。
+    足ボーンZ最小値を計測してアーマチャーをリフト → 下半身が地中に埋もれない。"""
     anim_cfg   = CFG.get("animation", {})
     char_cfg   = anim_cfg.get("character_motion", {})
     action_fbx = char_cfg.get("action_fbx", "")
@@ -757,45 +839,128 @@ def _apply_mixamo_action_walk(scene):
             return False
 
     new_action = src_action.copy()
-    new_action.name = "Zaku_Walking_Mixamo"
+    new_action.name = "Zaku_Walking_Baked"
     arm.animation_data_create()
     arm.animation_data.action = new_action
-    print(f"[WalkAnim] アクション適用: {new_action.name}", flush=True)
 
     for o in src_objects:
         o.hide_set(True)
         o.hide_render = True
 
-    # ルートモーション: 前進 + 接地ロック (per-frame)
-    total_f = scene.frame_end - scene.frame_start + 1
-    orig_loc = arm.location.copy()
-    char_meshes = [c for c in arm.children_recursive if c.type == "MESH"]
+    total_f       = scene.frame_end - scene.frame_start + 1
+    orig_loc      = arm.location.copy()
+    action_start  = int(new_action.frame_range[0])
+    action_end    = int(new_action.frame_range[1])
+    action_length = max(1, action_end - action_start)
+    root_bone_names = [b.name for b in arm.data.bones if b.parent is None]
+    print(f"[WalkAnim] アクション長: {action_length}f ({action_start}-{action_end})", flush=True)
 
-    print(f"[WalkAnim] ルートモーション・接地ロック ({total_f}f)...", flush=True)
-    for fi in range(total_f):
-        frame = scene.frame_start + fi
-        scene.frame_set(frame)
+    # ── プリスキャン: ベーキング前に歩行アニメ全フレームのメッシュ最低Zを計測 ──
+    # ベーキング前はnew_actionにarm.locationキーフレームがないため
+    # scene.frame_set後もarm.location.z = orig_loc.z が保持される（正確に計測可能）。
+    char_meshes = [c for c in arm.children_recursive if c.type == 'MESH']
+    print(f"[WalkAnim] プリスキャン: {action_length}フレームのfoot-Z計測...", flush=True)
+    print(f"  [DIAG] orig_loc.z={orig_loc.z:.4f}", flush=True)
+    pre_min_z = float('inf')
+    for pre_fi in range(action_length):
+        pf = action_start + pre_fi
+        scene.frame_set(pf)
+        if pre_fi < 3:
+            print(f"  [DIAG pf={pf}] after frame_set: arm.loc.z={arm.location.z:.4f}", flush=True)
+        for bname in root_bone_names:
+            pb = arm.pose.bones.get(bname)
+            if pb is not None:
+                pb.location = (0.0, 0.0, pb.location.z)
         bpy.context.view_layer.update()
-        progress = fi / max(total_f - 1, 1)
+        if pre_fi < 3:
+            print(f"  [DIAG pf={pf}] after vl_update: arm.loc.z={arm.location.z:.4f}", flush=True)
+        _dg = bpy.context.evaluated_depsgraph_get()
+        _frame_bb_min = float('inf')   # [DIAG] bound_box最小値（参考用）
+        _frame_vt_min = float('inf')   # [DIAG] vertex最小値（採用値）
+        for _cm in char_meshes:
+            try:
+                _ev = _cm.evaluated_get(_dg)
+                _mw = _ev.matrix_world
+                # [DIAG] bound_box参考計測
+                for _corner in _ev.bound_box:
+                    _bbz = (_mw @ Vector(_corner)).z
+                    if _bbz < _frame_bb_min:
+                        _frame_bb_min = _bbz
+                # 実頂点でボーン回転変形を含む正確な最小Z計測
+                _emesh = _ev.to_mesh()
+                for _v in _emesh.vertices:
+                    _vz = (_mw @ _v.co).z
+                    if _vz < _frame_vt_min:
+                        _frame_vt_min = _vz
+                _ev.to_mesh_clear()
+            except Exception as _e:
+                print(f"  [DIAG] to_mesh err: {_e}", flush=True)
+        if _frame_vt_min < pre_min_z:
+            pre_min_z = _frame_vt_min
+        if pre_fi < 3:
+            print(f"  [DIAG pf={pf}] bb_min={_frame_bb_min:.4f} vt_min={_frame_vt_min:.4f} pre_min_z={pre_min_z:.4f}", flush=True)
+    if pre_min_z == float('inf'):
+        pre_min_z = 0.437
+    # 負値可: 歩行ポーズで足が浮く（pre_min_z > 0.05）場合はキャラを降下させる
+    const_z_lift = 0.05 - pre_min_z
+    print(f"[WalkAnim] 歩行min_foot_z={pre_min_z:.3f}m → const_z_lift={const_z_lift:.3f}m", flush=True)
 
-        arm.location.x = orig_loc.x + walk_dir[0] * step_m * progress
-        arm.location.y = orig_loc.y + walk_dir[1] * step_m * progress
+    # ── ベーキングループ: ポーズ取得 + ボーンキーフレーム挿入 ─────────────────
+    # arm.location はベーキングループで管理せず、_render_animation() でフレーム毎に
+    # scene.frame_set() 後に直接セットする（render(animation=True) では keyframe が
+    # 正しく適用されない Blender 5.1 バックグラウンドモード問題を回避）
+    print(f"[WalkAnim] ベーキング ({total_f}f)...", flush=True)
+    for fi in range(total_f):
+        frame    = scene.frame_start + fi
+        looped_f = action_start + (fi % action_length)
 
-        if char_meshes:
-            depsg = bpy.context.evaluated_depsgraph_get()
-            min_z = float("inf")
-            for mesh in char_meshes:
-                ev = mesh.evaluated_get(depsg)
-                for corner in ev.bound_box:
-                    wz = (ev.matrix_world @ _mu.Vector(corner)).z
-                    if wz < min_z:
-                        min_z = wz
-            if min_z < float("inf"):
-                arm.location.z = orig_loc.z - min_z + 0.05
+        scene.frame_set(looped_f)
+        for bname in root_bone_names:
+            pb = arm.pose.bones.get(bname)
+            if pb is not None:
+                pb.location = (0.0, 0.0, pb.location.z)
 
+        for pb in arm.pose.bones:
+            if pb.rotation_mode == 'QUATERNION':
+                pb.keyframe_insert(data_path="rotation_quaternion", frame=frame)
+            else:
+                pb.keyframe_insert(data_path="rotation_euler", frame=frame)
+        for bname in root_bone_names:
+            pb = arm.pose.bones.get(bname)
+            if pb is not None:
+                pb.keyframe_insert(data_path="location", frame=frame)
+
+    # ── arm.location キーフレーム挿入（ベーキング後・scene.frame_set評価で正しく反映させる）─
+    # 注意: render(animation=True)でもrender(write_still=True)でも、scene.frame_set(f)が
+    # アクションのarm.locationカーブを評価してRNA値を上書きする。
+    # Pythonで arm.location.z = X と設定しても view_layer.update()/render() 時に
+    # アクション評価が再実行されてRNA値が戻る可能性がある。
+    # 対策: arm.location自体をアクションに正しい値でキーフレーム登録し、
+    # scene.frame_set(f) が自動的に正しい値を適用するようにする。
+    arm_z_target  = orig_loc.z + const_z_lift
+    walk_dir_v    = list(walk_dir)
+    print(f"[WalkAnim] arm.locationキーフレーム挿入 ({total_f}f, arm_z={arm_z_target:.4f}m)...", flush=True)
+    for fi in range(total_f):
+        frame    = scene.frame_start + fi
+        progress = max(0.0, min(1.0, fi / max(total_f - 1, 1)))
+        arm.location.x = orig_loc.x + walk_dir_v[0] * step_m * progress
+        arm.location.y = orig_loc.y + walk_dir_v[1] * step_m * progress
+        arm.location.z = arm_z_target
         arm.keyframe_insert(data_path="location", frame=frame)
 
-    print(f"[WalkAnim] 完了。{step_m}m前進 dir={walk_dir}", flush=True)
+    # アニメーション接地グローバルに確定値を保存 → _render_animation() のDIAG用
+    global _WALK_ACTIVE, _WALK_ARM_NAME, _WALK_CONST_Z, _WALK_ORIG_X, _WALK_ORIG_Y
+    global _WALK_DIR, _WALK_STEP_M, _WALK_TOTAL_F, _WALK_FRAME_START
+    _WALK_ACTIVE      = True
+    _WALK_ARM_NAME    = arm.name
+    _WALK_CONST_Z     = arm_z_target
+    _WALK_ORIG_X      = orig_loc.x
+    _WALK_ORIG_Y      = orig_loc.y
+    _WALK_DIR         = walk_dir_v
+    _WALK_STEP_M      = step_m
+    _WALK_TOTAL_F     = total_f
+    _WALK_FRAME_START = scene.frame_start
+    print(f"[WalkAnim] 完了。ボーンベーク{total_f}f, arm_z={arm_z_target:.4f}m dir={walk_dir}", flush=True)
     return True
 
 
@@ -875,21 +1040,46 @@ def _render_animation():
     out_dir = Path(out_cfg["output_dir"])
     scene   = bpy.context.scene
 
-    if out_cfg.get("output_format", "PNG") == "FFMPEG":
-        scene.render.image_settings.file_format = "FFMPEG"
-        scene.render.ffmpeg.format = "MPEG4"
-        scene.render.ffmpeg.codec = "H264"
-        scene.render.ffmpeg.constant_rate_factor = "MEDIUM"
-        video_path = str(out_dir / f"{prefix}_walk.mp4")
-        scene.render.filepath = video_path
-        print(f"[SceneBuilder] ANIMATION → MP4: {video_path}", flush=True)
-    else:
-        frames_dir = out_dir / "frames"
-        frames_dir.mkdir(parents=True, exist_ok=True)
-        scene.render.filepath = str(frames_dir / f"{prefix}_frame_")
+    frames_dir = out_dir / "frames"
+    frames_dir.mkdir(parents=True, exist_ok=True)
+    scene.render.image_settings.file_format = "PNG"
 
-    bpy.ops.render.render(animation=True)
-    print(f"[SceneBuilder] ANIMATION RENDER OK: {scene.render.filepath}", flush=True)
+    # アーマチャーオブジェクト取得（接地補正用）
+    arm_obj = bpy.data.objects.get(_WALK_ARM_NAME) if _WALK_ACTIVE else None
+
+    # フレーム毎個別レンダー:
+    # arm.locationはnew_actionのキーフレームで制御（_apply_mixamo_action_walkで挿入済み）。
+    # scene.frame_set(f) がアクション評価でarm.locationとボーンポーズを両方正しく設定する。
+    char_meshes_r = [c for c in arm_obj.children_recursive if c.type == 'MESH'] if arm_obj else []
+
+    for f in range(scene.frame_start, scene.frame_end + 1):
+        scene.frame_set(f)  # arm.location + ボーンポーズをアクションから評価
+
+        # [DIAG] arm.z + 実際の足Z計測（フレーム1と11のみ）
+        if _WALK_ACTIVE and arm_obj and f in (scene.frame_start, scene.frame_start + 10):
+            _az = arm_obj.location.z
+            _dg_r = bpy.context.evaluated_depsgraph_get()
+            _real_min_z = float('inf')
+            for _cm in char_meshes_r:
+                try:
+                    _ev = _cm.evaluated_get(_dg_r)
+                    _mw = _ev.matrix_world
+                    _em = _ev.to_mesh()
+                    for _v in _em.vertices:
+                        _vz = (_mw @ _v.co).z
+                        if _vz < _real_min_z:
+                            _real_min_z = _vz
+                    _ev.to_mesh_clear()
+                except Exception:
+                    pass
+            print(f"[Render-DIAG] f={f} arm.z={_az:.4f}m  real_foot_min_z={_real_min_z:.4f}m  expected_min≈{0.05:.4f}m", flush=True)
+        elif _WALK_ACTIVE and arm_obj and ((f - scene.frame_start) % 10 == 0 or f == scene.frame_end):
+            print(f"[Render] f={f}/{scene.frame_end} arm.z={arm_obj.location.z:.4f}m", flush=True)
+
+        scene.render.filepath = str(frames_dir / f"{prefix}_frame_{f:04d}")
+        bpy.ops.render.render(write_still=True)
+
+    print(f"[SceneBuilder] ANIMATION RENDER OK: {frames_dir}", flush=True)
 
 
 # __ENHANCEMENT_CODE__

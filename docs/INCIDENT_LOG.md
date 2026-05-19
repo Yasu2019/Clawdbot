@@ -3,6 +3,40 @@
 譛ｬ繝輔ぃ繧､繝ｫ縺ｯ縲√す繧ｹ繝・Β縺ｫ逋ｺ逕溘＠縺滄囿螳ｳ繝ｻ荳榊・蜷医→縺昴・譬ｹ譛ｬ蜴溷屏繝ｻ菫ｮ豁｣蜀・ｮｹ繝ｻ蜀咲匱髦ｲ豁｢遲悶ｒ險倬鹸縺励∪縺吶・菫ｮ豁｣繧定｡後▲縺溷�ｴ蜷医・縲∝ｿ・★縺薙・繝輔ぃ繧､繝ｫ縺ｫ繧ｨ繝ｳ繝医Μ繧定ｿｽ蜉�縺励※縺上□縺輔＞縲・
 ------
 
+## INC-083: Missing Email Safety Policy and Unconfigured Maintenance Exclusions
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-05-18 |
+| **Detection** | Patrol script `continuous_system_improvement.py` reported high-severity weakness `Email safety policy is missing or unsafe` due to missing `email_ops_policy.json`. It also reported high-severity Paperless warnings even though Paperless is intentionally stopped in Mini PC "apply-lite" mode. |
+| **Impact** | Operational patrol dashboard remained in a high-severity alert state, causing alert fatigue and masking real runtime anomalies. Auto-repair loop could potentially waste cycles attempting to restart disabled Paperless services. |
+| **Root Cause (5 Why)** | **Why1**: The email safety policy weakness and Paperless status weakness persisted.<br>**Why2**: `email_ops_policy.json` and `maintenance_mode.json` were physically missing from the `data/workspace` directory.<br>**Why3**: These configuration files were not pre-initialized during standard environment staging or repository setup.<br>**Why4**: The system improvement and auto-repair check routines assumed these configuration files would exist to govern exclusions and safety policies.<br>**Why5**: No prior execution step had created or generated them to represent the lightweight Mini PC profile. |
+| **Fix** | (1) Created `data/workspace/email_ops_policy.json` with strict safety configuration (`draft_only=true`, `auto_send=false`).<br>(2) Created `data/workspace/maintenance_mode.json` to exclude Paperless-related watchdogs (`paperless_rag_watchdog`, `paperless_review_artifacts`, `paperless_ingest_audit`, `paperless_ingest_auth`, `paperless_rag`, `paperless_token`) from both the patrol report and auto-repair check routines. |
+| **Files** | `data/workspace/email_ops_policy.json`, `data/workspace/maintenance_mode.json`, `docs/INCIDENT_LOG.md` |
+| **Verification** | Ran `continuous_system_improvement.py --once` and `auto_repair_allowed.py` directly. Verified that:<br>- The email safety policy is now reported as a **Strength**.<br>- All Paperless weaknesses are cleanly categorized as **MAINTENANCE (Scheduled)**.<br>- Auto-repair reports `planned_maintenance (via maintenance_mode.json)` for `paperless_rag` and `paperless_token`. |
+| **Lessons Learned** | Watchdogs and reporting patrols must be designed to natively understand the host's lightweight profile (e.g. `minipc_optimizer`). Crucial safety configuration defaults should be explicitly declared or created on staging, and exclusions must be formalized via maintenance mode configurations to prevent alert fatigue. |
+| **Prevention** | Formalized `maintenance_mode.json` exclusions to align the system dashboard with the running container subset on lightweight resource footprints. |
+
+---
+
+## INC-082: cp932 UnicodeEncodeError in replay_pending_queue misidentified as DB connection failure
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-05-18 |
+| **Detection** | `replay_pending_queue()` in `db_self_healer.py` was catching UnicodeEncodeError as if it were a DB connection error, causing the pending queue replay to silently fail and enter the LLM diagnosis loop. |
+| **Impact** | DB pending queue was never replayed on startup. All buffered records remained unwritten to `city_render_trials`. The false diagnosis also triggered unnecessary Telegram alerts and wasted diagnostic cycles. |
+| **Root Cause (5 Why)** | **Why1**: `replay_pending_queue()` failed on every run. **Why2**: The `except Exception as e` block around `_pg_connect()` was catching a non-DB error. **Why3**: `print("[DBHealer] DB接続 OK -- リプレイ開始")` raised `UnicodeEncodeError: 'cp932' codec can't encode character '—' at position 19`. **Why4**: The string contained U+2014 (em dash `--`) which cp932 cannot encode. **Why5**: On Japanese Windows, `sys.stdout.encoding = cp932` by default; no `sys.stdout.reconfigure(utf-8)` was set at module initialization. |
+| **Fix** | (1) Added `sys.stdout.reconfigure(encoding="utf-8", errors="replace")` at module init in `db_self_healer.py` and `knowledge_recorder.py`. (2) Replaced all `--` (U+2014) with `--` (ASCII) in print statements across both files. |
+| **Files** | `projects/CityCharacterPipeline/pipeline/db_self_healer.py`, `projects/CityCharacterPipeline/pipeline/knowledge_recorder.py`, `docs/INCIDENT_LOG.md` |
+| **Verification** | Ran `replay_pending_queue()` directly — returned 1 (queued record successfully replayed and queue cleared). `[DBHealer] DB接続 OK -- リプレイ開始` printed without error. |
+| **Lessons Learned** | On Japanese Windows (cp932), any `print()` containing Unicode symbols (U+2014 `--`, U+2192 `->`, etc.) raises `UnicodeEncodeError`. When this occurs inside a `try/except Exception` block around DB code, it is silently misidentified as a DB failure. Always set `sys.stdout.reconfigure(utf-8)` at module top. |
+| **Prevention** | Rule added: all Python modules in this project must call `sys.stdout.reconfigure(encoding="utf-8", errors="replace")` at module initialization. Print statements must use ASCII-safe characters only (`--` not `--`, `->` not `--`). |
+| **Beads** | iatf_system-4r4 |
+| **DB id** | city_render_trials id=44 (project_tag=infrastructure) |
+
+---
+
 ## INC-075: OpenRadioss DOE calculation failure due to extreme Nodal Velocity (Flying Nodes)
 | Field | Detail |
 |---|---|
@@ -1162,3 +1196,17 @@ un_command_with_heartbeat wrapper that utilizes subprocess.Popen to update the h
 | **Verification** | Confirmed existing incident entries `INC-078`, `INC-079`, and `INC-080` cover the major geometry/pose failures. Confirmed the latest station-front quality gate records `pass_release_gate = false` with `city_density = 3`, `material_realism = 1`, `lighting = 2`, `camera = 2`, and `character_integration = 2`. Confirmed ByteRover returned the daily limit message `50/50`, so local documentation is the current durable source. Follow-up storage check recorded the same lesson to Turso `training_logs` as `Atsugi 3D render failure consolidation 2026-05-16` and to Beads as `iatf_system-a3d`. |
 | **Lessons Learned** | Visual quality failures need the same traceability as code bugs. "It rendered" is not equivalent to "it is acceptable"; each rejection reason should become a reusable gate or checklist item. |
 | **Prevention** | Keep the consolidated 3D failure ledger updated after each rejected visual render, run the quality gate before sending final images, and use local documentation as fallback whenever ByteRover cannot curate the memory. |
+
+## INC-082: OpenClaw Chat latency resolved by switching primary model to OpenCodeGO DeepSeek-v4-Flash, resolving SSRF block, and fixing .env syntax
+| Field | Detail |
+| --- | --- |
+| **Date** | 2026-05-18 JST |
+| **Detection** | User reported that the OpenClaw Chat panel is taking way too long to respond. Subsequently, user requested switching from Google Gemini 2.5 Flash to OpenCodeGO DeepSeek-v4-Flash. However, chat still remained slow after switching to DeepSeek. |
+| **Impact** | Chat UI had high latency or fell back to Gemini because outbound requests to `http://litellm:4000/v1` were silently blocked by the gateway's Server-Side Request Forgery (SSRF) protection policy. |
+| **Root Cause (5 Why)** | **Why1**: DeepSeek chat requests failed and fell back. **Why2**: OpenClaw gateway threw `SsrFBlockedError: resolves to private/internal/special-use IP address` when hitting LiteLLM. **Why3**: The hostname `"litellm"` was not registered in OpenClaw's `ssrfPolicy.allowedHostnames`. **Why4**: LiteLLM runs as a private container service inside the Docker bridge network. **Why5**: The openclaw.json `ssrfPolicy` restricted outbound connections to a hardcoded whitelist that omitted new local services. |
+| **Fix** | 1. Added `"litellm"` to `browser.ssrfPolicy.allowedHostnames` in `openclaw.json`. 2. Added `"apiKey": "local-dev-key"` under `models.providers.openai` to satisfy LiteLLM authorization. 3. Corrected `.env` space-containing key names. 4. Restarted the gateway container. |
+| **Files** | `data/state/openclaw.json`, `.env`, `docs/INCIDENT_LOG.md` |
+| **Verification** | Verified container startup. Gateway logs confirm the `SsrFBlockedError` has resolved. Direct chat requests to `openai/opencode-go/deepseek-v4-flash` are successfully allowed by the SSRF filter, authorized by LiteLLM, and return reasoning and chat outputs within 1.6 seconds. |
+| **Lessons Learned** | When integrating internal services inside a Docker network, ensure their hostnames are whitelisted in the application's SSRF and CORS policies. Silent failover behaviors in chat backends must be monitored via live logs. |
+| **Prevention** | Keep `"litellm"` whitelisted under `allowedHostnames`. Maintain the OpenAI provider key. |
+
