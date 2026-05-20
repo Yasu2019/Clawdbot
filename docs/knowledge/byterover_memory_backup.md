@@ -40,3 +40,17 @@ CityCharacterPipeline 2026-05-20: standardized photoreal/video rendering with --
 
 - projects/CityCharacterPipeline/run_pipeline.py,projects/CityCharacterPipeline/configs/photoreal_video.yaml,docs/knowledge/city_character_photoreal_standard_20260520.md,docs/INCIDENT_LOG.md
 
+## 2026-05-20 15:49:44 +09:00
+
+**Curate status:** failed
+
+**Reason:** brv curate failed
+
+**Context**
+
+INC-090 2026-05-20: Email nightly MEDIUM risk was caused by phase6_turso_metrics using a Linux venv path that does not exist in the n8n container, while the mounted venv only has Windows Scripts/python.exe. Fixed run_email_rag_ingest_report.py and generate_growth_video.py to ignore .exe candidates on Linux and fall back to python3. get_turso_metrics.py now returns status=degraded with exit code 0 when libsql_client or Turso credentials are unavailable, so optional Turso metrics do not mark the core nightly email report as failed. Verified in container: get_turso_metrics returns degraded JSON rc=0, growth video skips cleanly, and risk_notification.collect_findings returns [].
+
+**Source files**
+
+- none
+

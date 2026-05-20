@@ -1303,3 +1303,19 @@ un_command_with_heartbeat wrapper that utilizes subprocess.Popen to update the h
 | **Prevention** | Keep MP4 existence and `ffprobe` duration/frame checks in the completion criteria. Use `preview` for fast movement verification, `standard` for review, and `photoreal` for final candidates. Treat missing MP4 after frames render as a self-repair target rather than a pass. |
 
 ---
+
+## INC-090: Email nightly risk notification was triggered by Turso metrics Python path mismatch
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-05-20 JST |
+| **Detection** | Risk notification reported `Email nightly reported a failed phase | step=completed currentPhase=phase8_universal_growth failedPhases=phase6_turso_metrics`. `email_rag_ingest_runtime_status.json` showed `phase6_turso_metrics` failed with return code 127: `/workspace/apps/3d_fab_forge/multicad_pipeline/.venv/bin/python: not found`. |
+| **Impact** | The nightly email task list itself completed, but the report was marked error because the optional Turso metric phase failed. The growth video phase also used the Windows-only `.venv/Scripts/python.exe` path from inside Linux and could silently skip metric visualization. |
+| **Root Cause (5 Why)** | **Why1**: Risk notification was raised. **Why2**: `phase6_turso_metrics` returned 127. **Why3**: The n8n/Linux container could see a Windows-style venv mounted from the host, but it did not have an executable `.venv/bin/python`. **Why4**: The path resolver checked file existence but did not reject Windows `.exe` candidates on Linux. **Why5**: Optional Turso metrics were treated like a hard nightly failure instead of a degraded enrichment when `libsql_client` is unavailable in the container runtime. |
+| **Fix** | Updated `run_email_rag_ingest_report.py` to resolve a usable Python by OS and ignore `.exe` candidates on Linux. Updated `generate_growth_video.py` with the same resolver. Updated `get_turso_metrics.py` to return `status=degraded` with exit code 0 when `libsql_client` or Turso credentials are unavailable, preserving the nightly report while clearly showing that Turso metrics were not collected. |
+| **Files** | `data/workspace/run_email_rag_ingest_report.py`; `data/workspace/generate_growth_video.py`; `data/workspace/get_turso_metrics.py`; `docs/INCIDENT_LOG.md` |
+| **Verification** | `python -m py_compile data/workspace/get_turso_metrics.py data/workspace/run_email_rag_ingest_report.py data/workspace/generate_growth_video.py` passed. In `clawstack-unified-n8n-1`, `python3 /workspace/get_turso_metrics.py` returned degraded JSON with exit code 0, and `python3 /workspace/generate_growth_video.py` skipped video generation cleanly instead of failing on a Windows path. After updating the runtime status to the repaired phase result, `risk_notification.collect_findings()` returned an empty list, so `email_nightly_failed` is cleared. |
+| **Lessons Learned** | A bind-mounted Windows venv can look present from Linux while still being unusable. Cross-OS job runners must validate executable compatibility, not just path existence. Optional enrichment phases should degrade without making the core nightly report look failed. |
+| **Prevention** | Keep Turso metric collection as best-effort until a Linux-compatible dependency path is provisioned inside the n8n container or the metric job is moved to a host-side scheduled task. Risk notification should continue to flag hard failures, but degraded optional metrics should be visible in the report rather than treated as a failed nightly. |
+
+---

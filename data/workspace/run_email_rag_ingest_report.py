@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 import base64
 import json
+import os
 import subprocess
+import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -13,10 +15,26 @@ from outbound_delivery_guard import (
 )
 
 
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 JST = timezone(timedelta(hours=9))
 SCRIPT_PATH = Path(__file__).resolve()
+
+
+def resolve_existing_python(candidates: list[Path]) -> str:
+    for candidate in candidates:
+        if os.name != "nt" and candidate.suffix.lower() == ".exe":
+            continue
+        if candidate.exists():
+            return str(candidate)
+    return "python3" if os.name != "nt" else sys.executable
+
+
 if SCRIPT_PATH.parent.name == "workspace":
-    import os
     is_windows = os.name == "nt"
     STATUS_PATH = SCRIPT_PATH.parent / "email_rag_ingest_runtime_status.json"
     NODE_GMAIL_SCRIPT = SCRIPT_PATH.parent / "scripts" / "send_allowed_gmail_from_b64.js"
@@ -30,14 +48,13 @@ if SCRIPT_PATH.parent.name == "workspace":
     GROWTH_VIDEO_OUTPUT = SCRIPT_PATH.parent / "iatf_remotion_studio" / "out_goku.mp4"
     GROWTH_METRICS_SCRIPT = SCRIPT_PATH.parent / "get_growth_metrics.py"
     
-    # OS-aware venv path
     venv_base = SCRIPT_PATH.parent / "apps" / "3d_fab_forge" / "multicad_pipeline" / ".venv"
-    if is_windows:
-        MULTICAD_PYTHON = venv_base / "Scripts" / "python.exe"
-    else:
-        MULTICAD_PYTHON = venv_base / "bin" / "python"
+    MULTICAD_PYTHON = resolve_existing_python([
+        venv_base / ("Scripts/python.exe" if is_windows else "bin/python"),
+        venv_base / "Scripts" / "python.exe",
+        venv_base / "bin" / "python",
+    ])
 else:
-    import os
     is_windows = os.name == "nt"
     STATUS_PATH = SCRIPT_PATH.parents[2] / "data" / "workspace" / "email_rag_ingest_runtime_status.json"
     NODE_GMAIL_SCRIPT = SCRIPT_PATH.parents[2] / "data" / "workspace" / "scripts" / "send_allowed_gmail_from_b64.js"
@@ -51,12 +68,12 @@ else:
     GROWTH_VIDEO_OUTPUT = SCRIPT_PATH.parents[2] / "data" / "workspace" / "iatf_remotion_studio" / "out_goku.mp4"
     GROWTH_METRICS_SCRIPT = SCRIPT_PATH.parents[2] / "data" / "workspace" / "get_growth_metrics.py"
 
-    # OS-aware venv path
     venv_base = SCRIPT_PATH.parents[2] / "data" / "workspace" / "apps" / "3d_fab_forge" / "multicad_pipeline" / ".venv"
-    if is_windows:
-        MULTICAD_PYTHON = venv_base / "Scripts" / "python.exe"
-    else:
-        MULTICAD_PYTHON = venv_base / "bin" / "python"
+    MULTICAD_PYTHON = resolve_existing_python([
+        venv_base / ("Scripts/python.exe" if is_windows else "bin/python"),
+        venv_base / "Scripts" / "python.exe",
+        venv_base / "bin" / "python",
+    ])
 
 TELEGRAM_BOT = "8085717200:AAHzacN6Q3xSunrLyvUTuHnKEf7Cd5YFdt4"
 TELEGRAM_CHAT_ID = "8173025084"
@@ -187,6 +204,12 @@ def build_report(results: dict) -> str:
                             f"- Latest Entry: {turso_data.get('latest_timestamp', 'N/A')}"
                         )
                         return report_with_sync + turso_line
+                    if turso_data.get("status") == "degraded":
+                        turso_line = (
+                            "\n\nTurso Cloud Knowledge Accumulation:\n"
+                            f"- Status: degraded ({turso_data.get('reason', 'unknown')})"
+                        )
+                        report_with_sync += turso_line
                 except Exception:
                     pass
             

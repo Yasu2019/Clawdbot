@@ -4,19 +4,35 @@ import os
 import sys
 from pathlib import Path
 
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 # Try to import libsql_client
 try:
     import libsql_client
 except ImportError:
-    # If not in the current environment, we'll suggest using the venv
-    print(json.dumps({"error": "libsql_client not found in current environment. Please run with the multicad venv."}))
-    sys.exit(1)
+    print(json.dumps({
+        "status": "degraded",
+        "reason": "libsql_client not found in current environment",
+        "record_count": None,
+        "latest_timestamp": None,
+    }))
+    sys.exit(0)
 
 from dotenv import load_dotenv
 
-# Locate .env
-ROOT_DIR = Path(__file__).resolve().parents[2]
-DOTENV_PATH = ROOT_DIR / ".env"
+# Locate .env on both host and /workspace container paths.
+SCRIPT_DIR = Path(__file__).resolve().parent
+ROOT_DIR = SCRIPT_DIR.parents[1] if len(SCRIPT_DIR.parents) > 1 else SCRIPT_DIR
+DOTENV_CANDIDATES = [
+    ROOT_DIR / ".env",
+    SCRIPT_DIR / ".env",
+    SCRIPT_DIR.parent / ".env",
+]
+DOTENV_PATH = next((path for path in DOTENV_CANDIDATES if path.exists()), DOTENV_CANDIDATES[0])
 
 if DOTENV_PATH.exists():
     load_dotenv(DOTENV_PATH)
@@ -25,8 +41,13 @@ TURSO_URL = os.getenv("TURSO_DATABASE_URL")
 TURSO_TOKEN = os.getenv("TURSO_AUTH_TOKEN")
 
 if not TURSO_URL or not TURSO_TOKEN:
-    print(json.dumps({"error": "TURSO_DATABASE_URL or TURSO_AUTH_TOKEN not found in .env"}))
-    sys.exit(1)
+    print(json.dumps({
+        "status": "degraded",
+        "reason": "TURSO_DATABASE_URL or TURSO_AUTH_TOKEN not found in .env",
+        "record_count": None,
+        "latest_timestamp": None,
+    }))
+    sys.exit(0)
 
 def fetch_metrics():
     try:

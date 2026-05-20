@@ -5,11 +5,34 @@ import os
 import sys
 from pathlib import Path
 
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 # Paths
 WORKSPACE_DIR = Path(__file__).resolve().parent
 REMOTION_DIR = WORKSPACE_DIR / "iatf_remotion_studio"
 GET_METRICS_SCRIPT = WORKSPACE_DIR / "get_turso_metrics.py"
-MULTICAD_PYTHON = WORKSPACE_DIR / "apps" / "3d_fab_forge" / "multicad_pipeline" / ".venv" / "Scripts" / "python.exe"
+
+
+def resolve_metrics_python() -> str:
+    venv_base = WORKSPACE_DIR / "apps" / "3d_fab_forge" / "multicad_pipeline" / ".venv"
+    candidates = [
+        venv_base / ("Scripts/python.exe" if os.name == "nt" else "bin/python"),
+        venv_base / "Scripts" / "python.exe",
+        venv_base / "bin" / "python",
+    ]
+    for candidate in candidates:
+        if os.name != "nt" and candidate.suffix.lower() == ".exe":
+            continue
+        if candidate.exists():
+            return str(candidate)
+    return "python3" if os.name != "nt" else sys.executable
+
+
+MULTICAD_PYTHON = resolve_metrics_python()
 
 def main():
     print("--- Starting Growth Video Generation ---")
@@ -27,7 +50,7 @@ def main():
         return
 
     if metrics.get("status") != "success":
-        print(f"Metrics status error: {metrics.get('error')}")
+        print(f"Metrics unavailable, skipping growth video: {metrics.get('reason') or metrics.get('error')}")
         return
 
     count = metrics.get("record_count", 0)
