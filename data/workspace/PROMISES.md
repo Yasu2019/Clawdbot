@@ -184,3 +184,12 @@ if hasattr(sys.stdout, "reconfigure"):
 **参照:** `GOVERNANCE.md` Section 3 / `docs/INCIDENT_LOG.md` INC-082
 
 - ChatGPT Plus/Codex UI側の利用額は、このワークスペースからは取得不能。
+## 2026-05-20 P009 / Self-Growth Operations Hardening
+
+| ID | Status | Implementation |
+| --- | --- | --- |
+| P009 | Active with scheduler/watchdog and auto-repair freshness guard | `scripts/install_p009_self_growth_schedules.ps1` tries to register `Clawstack_P009_Api_Cost_Report` at startup and every 6 hours. If Windows Scheduled Task registration is denied, it falls back to `scripts/start_p009_self_growth_watchdog.ps1`. `auto_repair_allowed.py` treats a report older than 12 hours as repairable and reruns `scripts/run_api_cost_report.ps1` under the P015 3-try limit. |
+| P015 | Active for cause-aware recovery | `auto_repair_allowed.py` applies diagnosis -> countermeasure -> verification loops to P009 report generation, `agent_self_growth_memory_hygiene`, and `pdca_feedback_refresh`. Each loop is bounded by the existing 3-try gate. |
+| Self-growth | Active with scheduler/watchdog and freshness guard | `Clawstack_Agent_Self_Growth_Hygiene` keeps Qdrant memory hygiene alive every 6 hours when Scheduled Task is available. The fallback `p009_self_growth_watchdog.py` runs every 30 minutes and delegates to `auto_repair_allowed.py` to refresh P009, PDCA, and self-growth. |
+
+No-go: if authentication, permissions, approval, or destructive actions are required, fail closed and report instead of bypassing approval.

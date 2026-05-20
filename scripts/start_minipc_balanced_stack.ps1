@@ -179,6 +179,10 @@ Add-Step -Name "email_continuous_watchdog" -Action { Start-HostScript -ScriptPat
 Add-Step -Name "telegram_fast_bridge" -Action { Start-HostScript -ScriptPath (Join-Path $repoRoot "scripts\start_telegram_fast_bridge.ps1") -Name "telegram_fast_bridge" }
 Add-Step -Name "ai_strategy_scout_watchdog" -Action { Start-HostScript -ScriptPath (Join-Path $repoRoot "scripts\start_ai_strategy_scout_watchdog.ps1") -Name "ai_strategy_scout_watchdog" }
 Add-Step -Name "agent_self_growth_memory_hygiene" -Action { Start-HostScript -ScriptPath (Join-Path $repoRoot "scripts\start_agent_self_growth_memory_hygiene.ps1") -Name "agent_self_growth_memory_hygiene" }
+Add-Step -Name "pdca_feedback_refresh" -Action { Start-HostScript -ScriptPath (Join-Path $repoRoot "scripts\run_pdca_feedback_refresh.ps1") -Name "pdca_feedback_refresh" }
+Add-Step -Name "p009_api_cost_report" -Action { Start-HostScript -ScriptPath (Join-Path $repoRoot "scripts\run_api_cost_report.ps1") -Name "p009_api_cost_report" }
+Add-Step -Name "p009_self_growth_schedules" -Action { Start-HostScript -ScriptPath (Join-Path $repoRoot "scripts\install_p009_self_growth_schedules.ps1") -Name "p009_self_growth_schedules" }
+Add-Step -Name "p009_self_growth_watchdog" -Action { Start-HostScript -ScriptPath (Join-Path $repoRoot "scripts\start_p009_self_growth_watchdog.ps1") -Name "p009_self_growth_watchdog" }
 Add-Step -Name "claudian_watchdog" -Action { Start-HostScript -ScriptPath (Join-Path $repoRoot "scripts\start_claudian_watchdog.ps1") -Name "claudian_watchdog" }
 Add-Step -Name "continuous_system_improvement" -Action { Start-HostScript -ScriptPath (Join-Path $repoRoot "scripts\start_continuous_system_improvement.ps1") -Name "continuous_system_improvement" }
 Add-Step -Name "minipc_optimizer_watchdog" -Action { Start-HostScript -ScriptPath (Join-Path $repoRoot "scripts\start_minipc_optimizer_watchdog.ps1") -Name "minipc_optimizer_watchdog" }

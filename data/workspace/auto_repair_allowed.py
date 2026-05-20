@@ -1,6 +1,13 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import sys
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 import json
 import subprocess
 from datetime import datetime, timedelta, timezone
@@ -63,11 +70,18 @@ DOCKER_UI_WATCHDOG_STATUS = WORKSPACE / "docker_desktop_ui_watchdog_status.json"
 MINIPC_OPTIMIZER_WATCHDOG_STATUS = WORKSPACE / "minipc_optimizer_watchdog_status.json"
 EMAIL_BLACKLIST_HUB_STATUS = WORKSPACE / "email_blacklist_hub_status.json"
 EMAIL_SEARCH_API_PID = WORKSPACE / "email_search_api_windows.pid"
+API_COST_REPORT_STATUS = WORKSPACE / "api_cost_report_status.json"
+SELF_GROWTH_STATUS = WORKSPACE / "agent_self_growth_memory_hygiene_status.json"
+SELF_GROWTH_HARNESS_STATUS = ROOT / "data" / "state" / "agent_self_growth_memory_hygiene" / "harness_status.json"
+PDCA_STATUS = WORKSPACE / "pdca_lab" / "state" / "status.json"
 CLAUDIAN_WATCHDOG_START = ROOT / "scripts" / "start_claudian_watchdog.ps1"
 DOCKER_UI_WATCHDOG_START = ROOT / "scripts" / "start_docker_desktop_ui_watchdog.ps1"
 MINIPC_OPTIMIZER_WATCHDOG_START = ROOT / "scripts" / "start_minipc_optimizer_watchdog.ps1"
 EMAIL_BLACKLIST_HUB_START = ROOT / "scripts" / "start_email_blacklist_hub_api.ps1"
 EMAIL_SEARCH_API_START = ROOT / "scripts" / "start_email_search_api.ps1"
+API_COST_REPORT_START = ROOT / "scripts" / "run_api_cost_report.ps1"
+SELF_GROWTH_START = ROOT / "scripts" / "start_agent_self_growth_memory_hygiene.ps1"
+PDCA_REFRESH_START = ROOT / "scripts" / "run_pdca_feedback_refresh.ps1"
 
 EMAIL_CMD = f'python "{WORKSPACE / "run_email_rag_ingest_report.py"}"'
 EMAIL_DAEMON_CMD = (
@@ -90,6 +104,9 @@ MINIPC_OPTIMIZER_WATCHDOG_CMD = ["powershell", "-NoProfile", "-ExecutionPolicy",
 EMAIL_BLACKLIST_HUB_CMD = ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(EMAIL_BLACKLIST_HUB_START)]
 
 EMAIL_SEARCH_API_CMD = ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(EMAIL_SEARCH_API_START)]
+API_COST_REPORT_CMD = ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(API_COST_REPORT_START)]
+SELF_GROWTH_CMD = ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(SELF_GROWTH_START)]
+PDCA_REFRESH_CMD = ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(PDCA_REFRESH_START)]
 
 EMAIL_SEARCH_STATS_URL = "http://127.0.0.1:8792/api/stats"
 
@@ -354,6 +371,123 @@ def should_repair_email_search_api() -> tuple[bool, str]:
     return False, "healthy"
 
 
+def payload_age_minutes(payload: dict[str, Any], keys: list[str]) -> float | None:
+    for key in keys:
+        updated = parse_dt(payload.get(key))
+        if updated is not None:
+            return age_minutes(updated)
+    return None
+
+
+def should_run_api_cost_report(payload: dict[str, Any]) -> tuple[bool, str]:
+    if not payload:
+        return True, "P009 status missing"
+    if payload.get("status") not in {"active", "success", "ok"}:
+        return True, f"P009 status is {payload.get('status')}"
+    age = payload_age_minutes(payload, ["generated_at_jst", "updatedAt", "startedAt"])
+    if age is None:
+        return True, "P009 timestamp missing"
+    if age >= 720:
+        return True, f"P009 report stale: ageMinutes={age}"
+    return False, f"healthy: ageMinutes={age}"
+
+
+def should_restart_self_growth_hygiene(status_payload: dict[str, Any], harness_payload: dict[str, Any]) -> tuple[bool, str]:
+    if not ps_contains("agent_self_growth_memory_hygiene.py"):
+        return True, "agent_self_growth_memory_hygiene.py process missing"
+    age = payload_age_minutes(status_payload, ["updatedAt", "startedAt"])
+    harness_age = payload_age_minutes(harness_payload, ["updatedAt"])
+    ages = [item for item in [age, harness_age] if item is not None]
+    best_age = min(ages) if ages else None
+    if best_age is None:
+        return True, "self-growth hygiene timestamp missing"
+    if best_age >= 390:
+        return True, f"self-growth hygiene stale: ageMinutes={best_age}"
+    return False, f"healthy: ageMinutes={best_age}"
+
+
+def should_refresh_pdca_status(payload: dict[str, Any]) -> tuple[bool, str]:
+    if not payload:
+        return True, "PDCA status missing"
+    age = payload_age_minutes(payload, ["updatedAt", "created_at", "startedAt"])
+    if age is None:
+        return True, "PDCA timestamp missing"
+    if age >= 180:
+        return True, f"PDCA refresh stale: ageMinutes={age}"
+    return False, f"healthy: ageMinutes={age}"
+
+
+def classify_repair_reason(reason: str) -> dict[str, str]:
+    lowered = reason.lower()
+    if "missing" in lowered:
+        cause = "missing_status_or_process"
+        countermeasure = "start_or_regenerate_status"
+    elif "stale" in lowered:
+        cause = "stale_status"
+        countermeasure = "refresh_status_or_restart_worker"
+    elif "status is" in lowered:
+        cause = "unexpected_status"
+        countermeasure = "rerun_component_and_verify_status"
+    else:
+        cause = "freshness_probe_failed"
+        countermeasure = "rerun_component_and_recheck"
+    return {"cause": cause, "countermeasure": countermeasure}
+
+
+def run_cause_aware_repair(
+    *,
+    status: dict[str, Any],
+    repair_state: dict[str, Any],
+    key: str,
+    reason: str,
+    command: list[str],
+    timeout_seconds: int,
+    verify: Any,
+    max_attempts: int = 3,
+    window_minutes: int = 180,
+) -> None:
+    status["results"].setdefault(key, {"attempts": []})
+    for _ in range(max_attempts):
+        still_needed, verify_reason = verify()
+        if not still_needed:
+            status["results"][key]["status"] = "success"
+            status["results"][key]["verification"] = verify_reason
+            write_status(status)
+            return
+
+        allowed, gate = can_attempt(repair_state, key, max_attempts=max_attempts, window_minutes=window_minutes)
+        attempt_no = len(status["results"][key]["attempts"]) + 1
+        diagnosis = classify_repair_reason(verify_reason or reason)
+        attempt_record: dict[str, Any] = {
+            "attempt": attempt_no,
+            "diagnosis": diagnosis,
+            "reason_before": verify_reason or reason,
+            "command": " ".join(command),
+        }
+        if not allowed:
+            attempt_record["skipped"] = True
+            attempt_record["gate"] = gate
+            status["results"][key]["attempts"].append(attempt_record)
+            status["results"][key]["status"] = "deferred_by_p015_gate"
+            write_status(status)
+            return
+
+        attempt_record["result"] = run_command(command, timeout_seconds)
+        after_needed, after_reason = verify()
+        attempt_record["reason_after"] = after_reason
+        attempt_record["verified"] = not after_needed
+        status["results"][key]["attempts"].append(attempt_record)
+        write_status(status)
+        if not after_needed:
+            status["results"][key]["status"] = "success"
+            status["results"][key]["verification"] = after_reason
+            write_status(status)
+            return
+
+    status["results"][key]["status"] = "failed_after_diagnosed_3_attempts"
+    write_status(status)
+
+
 def main() -> None:
     email_status = read_json(EMAIL_RUNTIME)
     email_daemon_status = read_json(EMAIL_DAEMON_STATUS)
@@ -366,6 +500,10 @@ def main() -> None:
     docker_ui_watchdog_status = read_json(DOCKER_UI_WATCHDOG_STATUS)
     minipc_optimizer_watchdog_status = read_json(MINIPC_OPTIMIZER_WATCHDOG_STATUS)
     email_blacklist_hub_status = read_json(EMAIL_BLACKLIST_HUB_STATUS)
+    api_cost_report_status = read_json(API_COST_REPORT_STATUS)
+    self_growth_status = read_json(SELF_GROWTH_STATUS)
+    self_growth_harness_status = read_json(SELF_GROWTH_HARNESS_STATUS)
+    pdca_status = read_json(PDCA_STATUS)
     repair_state = read_json(STATE_PATH)
     maintenance = read_json(MAINTENANCE_MODE_PATH)
     excluded = set(maintenance.get("excluded_services") or [])
@@ -392,6 +530,9 @@ def main() -> None:
     minipc_fix, minipc_reason = should_restart_watchdog(minipc_optimizer_watchdog_status, "minipc_optimizer_watchdog.py", 30)
     blacklist_fix, blacklist_reason = should_restart_watchdog(email_blacklist_hub_status, "email_blacklist_hub_api.py", 180)
     email_search_fix, email_search_reason = should_repair_email_search_api()
+    p009_fix, p009_reason = should_run_api_cost_report(api_cost_report_status)
+    self_growth_fix, self_growth_reason = should_restart_self_growth_hygiene(self_growth_status, self_growth_harness_status)
+    pdca_fix, pdca_reason = should_refresh_pdca_status(pdca_status)
     if report_fix and email_runtime_in_progress(email_status):
         report_fix = False
         report_reason = "email nightly in progress; defer scheduled report repair"
@@ -408,6 +549,9 @@ def main() -> None:
     status["rules"].append({"name": "minipc_optimizer_watchdog", "shouldRepair": minipc_fix, "reason": minipc_reason})
     status["rules"].append({"name": "email_blacklist_hub", "shouldRepair": blacklist_fix, "reason": blacklist_reason})
     status["rules"].append({"name": "email_search_api", "shouldRepair": email_search_fix, "reason": email_search_reason})
+    status["rules"].append({"name": "p009_api_cost_report", "shouldRepair": p009_fix, "reason": p009_reason})
+    status["rules"].append({"name": "agent_self_growth_memory_hygiene", "shouldRepair": self_growth_fix, "reason": self_growth_reason})
+    status["rules"].append({"name": "pdca_feedback_refresh", "shouldRepair": pdca_fix, "reason": pdca_reason})
 
     for rule in status["rules"]:
         if rule["name"] in excluded:
@@ -564,6 +708,48 @@ def main() -> None:
         else:
             status["results"]["email_search_api_restart"] = result
         write_status(status)
+
+    if p009_fix:
+        status["step"] = "repair_p009_api_cost_report"
+        status["actions"].append("p009_api_cost_report_run")
+        write_status(status)
+        run_cause_aware_repair(
+            status=status,
+            repair_state=repair_state,
+            key="p009_api_cost_report_run",
+            reason=p009_reason,
+            command=API_COST_REPORT_CMD,
+            timeout_seconds=180,
+            verify=lambda: should_run_api_cost_report(read_json(API_COST_REPORT_STATUS)),
+        )
+
+    if self_growth_fix:
+        status["step"] = "repair_agent_self_growth_memory_hygiene"
+        status["actions"].append("agent_self_growth_memory_hygiene_restart")
+        write_status(status)
+        run_cause_aware_repair(
+            status=status,
+            repair_state=repair_state,
+            key="agent_self_growth_memory_hygiene_restart",
+            reason=self_growth_reason,
+            command=SELF_GROWTH_CMD,
+            timeout_seconds=90,
+            verify=lambda: should_restart_self_growth_hygiene(read_json(SELF_GROWTH_STATUS), read_json(SELF_GROWTH_HARNESS_STATUS)),
+        )
+
+    if pdca_fix:
+        status["step"] = "repair_pdca_feedback_refresh"
+        status["actions"].append("pdca_feedback_refresh")
+        write_status(status)
+        run_cause_aware_repair(
+            status=status,
+            repair_state=repair_state,
+            key="pdca_feedback_refresh",
+            reason=pdca_reason,
+            command=PDCA_REFRESH_CMD,
+            timeout_seconds=120,
+            verify=lambda: should_refresh_pdca_status(read_json(PDCA_STATUS)),
+        )
 
     status["step"] = "completed"
     status["finishedAt"] = now_jst_text()
