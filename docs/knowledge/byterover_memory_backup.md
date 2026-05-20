@@ -54,3 +54,32 @@ INC-090 2026-05-20: Email nightly MEDIUM risk was caused by phase6_turso_metrics
 
 - none
 
+## 2026-05-20 20:42:15 +09:00
+
+**Curate status:** failed
+
+**Reason:** brv curate failed
+
+**Context**
+
+CityCharacterPipeline photoreal facade render result 2026-05-20: enhanced background-building pass completed with configs/photoreal_video_short.yaml. Procedural facade details applied to 9 nearby OSM buildings. Output MP4: projects/CityCharacterPipeline/output/photoreal_video_short/Shibuya_RickDias_Photoreal_Short_walk.mp4. ffprobe: h264 1920x1080 10fps 30 frames 3.0s size 1544605 bytes. Blender/Cycles render time 3580.1s. QA PASS. Telegram sent successfully as message_id=4707. External generation APIs were not used; only Telegram delivery used network.
+
+**Source files**
+
+- none
+
+## 2026-05-20 22:48:28 +09:00
+
+**Curate status:** failed
+
+**Reason:** brv curate failed
+
+**Context**
+
+CityCharacterPipeline background realism fix 2026-05-20: previous facade_details were too subtle and one facade panel stayed in the walking corridor after the OSM building was hidden, so the background looked unchanged or was occluded. Fixed material_enhancements.py by overriding road/traffic/facade injection code: real geometry crosswalks/stop lines/lane guides, foreground traffic lights moved to road sides, large readable sign text, glass facade panels, and skip signs/glass for buildings in the walk corridor. Config photoreal_video_short.yaml now enables explicit traffic light positions and stronger facade options. Verified preview and photoreal render. Photoreal output: h264 1920x1080 10fps 30 frames 3.0s size 1669947 bytes, render time 3796.9s, QA PASS. Telegram message_id=4712. Commit afc6bd1 passed CI run 26163240376.
+
+**Source files**
+
+- projects/CityCharacterPipeline/pipeline/material_enhancements.py
+- projects/CityCharacterPipeline/configs/photoreal_video_short.yaml
+
