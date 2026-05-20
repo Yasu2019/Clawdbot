@@ -1706,3 +1706,21 @@
 | 7 | レンダリング | 画質 | Cycles 128spp | 全黒なし・ノイズ最小 | samples=128 denoiser=OPENIMAGEDENOISE |
 | 8 | QAゲート | 品質スコア | 4項目スコアリング | 全項目≥3/5 | 自動判定 |
 
+## QC Process Chart / PMP - RickDias Walking Movie Baseline (2026-05-20)
+
+Reference playbook: `docs/knowledge/city_character_pipeline_video_generation_playbook_20260520.md`
+Beads: `iatf_system-ckb`
+Incident: `INC-085`
+
+| # | Process | Input | Control method | Pass criteria | Record |
+|---|---|---|---|---|---|
+| 1 | Request capture | user movie goal | keep scope to existing CityCharacterPipeline | no new renderer/app/Docker flow | Beads issue |
+| 2 | Config baseline | `configs/shibuya_zaku.yaml` | compare against known-good timing | 90 frames, 30 fps, 5.0m stride, playback scale 1.0 | config diff |
+| 3 | Asset intake | RickDias FBX | import and inspect material nodes | image texture material is preserved | Blender log/frame check |
+| 4 | Material control | `material_enhancements.py` | preserve existing image texture nodes | no plain grey/white robot | rendered frame |
+| 5 | Motion control | Mixamo/FBX action | strip object transform drift, support Blender 5.x actions | character stays in camera and visibly walks | render log |
+| 6 | Grounding control | terrain and evaluated bbox | per-frame surface clearance | min foot Z and clearance stay positive | grounding summary |
+| 7 | Visibility control | OSM buildings and camera path | hide walk/camera corridor occluders | lower body is not hidden | visual QA |
+| 8 | Frame hygiene | output frame folder | delete old frame prefix before render | exact current frame count | frame directory |
+| 9 | MP4 encode | ffmpeg | encode only current frames | about 3.0 sec, non-zero MP4 | ffprobe |
+| 10 | Delivery | Telegram when requested | send after verification only | latest file path, message id returned | Telegram result |

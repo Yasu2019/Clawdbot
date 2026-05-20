@@ -2018,3 +2018,19 @@ QAスコア: material=3 lighting=3 camera=3 character=3
 ### 教訓
 全項目合格。このパラメータ設定を再利用推奨。
 
+## FMEA - RickDias Walking Movie Baseline (2026-05-20)
+
+Reference playbook: `docs/knowledge/city_character_pipeline_video_generation_playbook_20260520.md`
+Beads: `iatf_system-ckb`
+Incident: `INC-085`
+
+| Failure mode | Effect | Cause | S | O | D | RPN | Control |
+|---|---|---|---:|---:|---:|---:|---|
+| FBX texture overwritten | robot appears untextured | fallback PBR replaces imported image nodes | 8 | 4 | 4 | 128 | preserve existing texture materials |
+| Stale frames encoded | wrong duration or old motion appears | old PNG frames remain after shorter render | 7 | 5 | 3 | 105 | clean frame prefix before render |
+| Motion looks static | walking reads as stopped | frame count increased and stride/playback slowed too much | 7 | 4 | 5 | 140 | keep 90f/5.0m/scale 1.0 baseline |
+| Lower body looks buried | presentation fails | OSM foreground/camera corridor occlusion | 9 | 4 | 4 | 144 | hide walk and camera corridor occluders |
+| Feet actually below terrain | physical grounding error | per-frame lift missing | 9 | 3 | 3 | 81 | use per-frame clearance logs |
+| Character leaves camera | black or poor framing | imported object/root transform curves | 8 | 3 | 4 | 96 | remove object transform curves |
+| Blender action cleanup fails | render aborts | Blender 5.x Layered Action API mismatch | 8 | 3 | 3 | 72 | support `channelbags` plus old `fcurves` |
+| Local LLM over-refactors | new regressions | small model changes too much code at once | 8 | 4 | 6 | 192 | config-first, one hypothesis per run |

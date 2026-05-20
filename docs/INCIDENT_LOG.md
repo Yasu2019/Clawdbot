@@ -3,6 +3,22 @@
 譛ｬ繝輔ぃ繧､繝ｫ縺ｯ縲√す繧ｹ繝・Β縺ｫ逋ｺ逕溘＠縺滄囿螳ｳ繝ｻ荳榊・蜷医→縺昴・譬ｹ譛ｬ蜴溷屏繝ｻ菫ｮ豁｣蜀・ｮｹ繝ｻ蜀咲匱髦ｲ豁｢遲悶ｒ險倬鹸縺励∪縺吶・菫ｮ豁｣繧定｡後▲縺溷�ｴ蜷医・縲∝ｿ・★縺薙・繝輔ぃ繧､繝ｫ縺ｫ繧ｨ繝ｳ繝医Μ繧定ｿｽ蜉�縺励※縺上□縺輔＞縲・
 ------
 
+## INC-085: CityCharacterPipeline walking video know-how was scattered and not reproducible by small local LLMs
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-05-20 JST |
+| **Detection** | User reported that the RickDias walking movie finally reached an acceptable shape and asked to convert the lessons into reusable know-how for Byterover, Beads, incident log, QC process chart/PMP, FMEA, FTA, 5Why, and fishbone analysis. |
+| **Impact** | Without a consolidated playbook, a future local 8GB LLM could repeat the same failures: untextured FBX, apparent burial, stale-frame MP4 duration errors, overly slow static-looking motion, and unsafe over-refactoring. |
+| **Root Cause (5 Why)** | **Why1**: The successful movie required several separate fixes. **Why2**: The fixes were distributed across code, render logs, Telegram sends, and user feedback. **Why3**: QC/FMEA logs existed but did not yet state the final known-good movie baseline in a clean reproducible form. **Why4**: The process lacked explicit acceptance gates for texture preservation, stale frame cleanup, corridor occlusion, and visible motion. **Why5**: Small local LLMs need a compact deterministic checklist, otherwise they may change too many variables or rebuild the wrong layer. |
+| **Fix** | Added `docs/knowledge/city_character_pipeline_video_generation_playbook_20260520.md` with golden baseline, commands, acceptance gates, QC/PMP, FMEA, FTA, 5Why, fishbone, local LLM 8GB operating rules, no-go conditions, and final checklist. Appended the same baseline references to `projects/CityCharacterPipeline/knowledge/qc_process_chart.md`, `projects/CityCharacterPipeline/knowledge/fmea_log.md`, and `projects/CityCharacterPipeline/knowledge/lessons.md`. Created Beads issue `iatf_system-ckb` for traceability. |
+| **Verification** | Verified Beads issue creation and moved it to `in_progress`. Verified the playbook and existing knowledge files contain the required headings and references using `rg`. ByteRover query timed out at 45 seconds before editing; ByteRover curate was attempted after documentation and timed out at 60 seconds, so the confirmed durable records are the Markdown files and Beads issue. |
+| **Lessons Learned** | For video generation, "the code works" is not enough. The reproducible unit must include visual acceptance criteria: texture, feet visibility, motion readability, exact frame count, MP4 duration, and delivery artifact identity. |
+| **Prevention** | Future CityCharacterPipeline movie work should begin from the playbook, use `iatf_system-ckb` or a successor Beads issue for task tracking, preserve the 90-frame baseline unless intentionally changed, and update incident/knowledge records whenever a new failure mode is found. |
+| **Beads** | `iatf_system-ckb` |
+
+---
+
 ## INC-084: CityCharacterPipeline walking render lower-body burial caused by OSM occluders and grounding blind spots
 
 | Field | Detail |

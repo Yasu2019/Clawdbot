@@ -1673,3 +1673,15 @@
 
 **教訓**: 全項目合格。このパラメータ設定を再利用推奨。
 
+## Lesson - RickDias Walking Movie Reproducibility (2026-05-20)
+
+Reference playbook: `docs/knowledge/city_character_pipeline_video_generation_playbook_20260520.md`
+Beads: `iatf_system-ckb`
+Incident: `INC-085`
+
+- The stable movie baseline is `90` frames at `30` fps with `step_length_m=5.0` and playback scale `1.0`. The slower 5 sec attempt looked like a still image, so giant-robot weight must be balanced against visible screen-space motion.
+- Preserve imported FBX texture materials. If image texture nodes exist, do not replace them with a generic PBR material.
+- Visual burial can be caused by foreground OSM occluders even when foot Z is positive. Grounding QA must include both per-frame clearance and camera/walk corridor visibility.
+- Always delete stale `render_frame_*.png` files before ffmpeg encoding. Otherwise shorter rerenders can accidentally include older frames.
+- For Blender 5.x imported actions, support Layered Action `channelbags` as well as old direct `Action.fcurves`.
+- A local 8GB LLM should use config-first, one-hypothesis-at-a-time changes and avoid new render stacks or broad refactors.
