@@ -1043,3 +1043,633 @@
 
 **教訓**: 全項目合格。このパラメータ設定を再利用推奨。
 
+
+### 2026-05-19 10:27 — Shibuya_Zaku [PASS ✅]
+
+**QAスコア**: material=3 lighting=3 camera=3 character=3
+
+**再現パラメータ**:
+- samples=16, device=CPU
+- sun_energy=3.0, hdri=
+- building_tex=Concrete034, road_tex=Ground079S
+- contact_ao_r=4.0, strength=0.7
+- camera_lens=35mm, pos=[10.0, -65.0, 14.0]
+
+**教訓**: 全項目合格。このパラメータ設定を再利用推奨。
+
+
+### 2026-05-19 10:28 — Shibuya_Zaku [PASS ✅]
+
+**QAスコア**: material=3 lighting=3 camera=3 character=3
+
+**再現パラメータ**:
+- samples=16, device=CPU
+- sun_energy=3.0, hdri=
+- building_tex=Concrete034, road_tex=Ground079S
+- contact_ao_r=4.0, strength=0.7
+- camera_lens=35mm, pos=[10.0, -65.0, 14.0]
+
+**教訓**: 全項目合格。このパラメータ設定を再利用推奨。
+
+
+### 2026-05-19 10:34 — Shibuya_Zaku [PASS ✅]
+
+**QAスコア**: material=3 lighting=3 camera=3 character=3
+
+**再現パラメータ**:
+- samples=16, device=CPU
+- sun_energy=3.0, hdri=
+- building_tex=Concrete034, road_tex=Ground079S
+- contact_ao_r=4.0, strength=0.7
+- camera_lens=35mm, pos=[10.0, -65.0, 14.0]
+
+**教訓**: 全項目合格。このパラメータ設定を再利用推奨。
+
+
+### 2026-05-19 10:41 — Shibuya_Zaku [PASS ✅]
+
+**QAスコア**: material=3 lighting=3 camera=3 character=3
+
+**再現パラメータ**:
+- samples=16, device=CPU
+- sun_energy=3.0, hdri=
+- building_tex=Concrete034, road_tex=Ground079S
+- contact_ao_r=4.0, strength=0.7
+- camera_lens=35mm, pos=[10.0, -65.0, 14.0]
+
+**教訓**: 全項目合格。このパラメータ設定を再利用推奨。
+
+
+### 2026-05-19 10:48 — Shibuya_Zaku [PASS ✅]
+
+**QAスコア**: material=3 lighting=3 camera=3 character=3
+
+**再現パラメータ**:
+- samples=16, device=CPU
+- sun_energy=3.0, hdri=
+- building_tex=Concrete034, road_tex=Ground079S
+- contact_ao_r=4.0, strength=0.7
+- camera_lens=35mm, pos=[10.0, -65.0, 14.0]
+
+**教訓**: 全項目合格。このパラメータ設定を再利用推奨。
+
+
+### 2026-05-19 11:25 — Shibuya_Zaku [PASS ✅]
+
+**QAスコア**: material=3 lighting=3 camera=3 character=3
+
+**再現パラメータ**:
+- samples=16, device=CPU
+- sun_energy=3.0, hdri=
+- building_tex=Concrete034, road_tex=Ground079S
+- contact_ao_r=4.0, strength=0.7
+- camera_lens=35mm, pos=[10.0, -65.0, 14.0]
+
+**教訓**: 全項目合格。このパラメータ設定を再利用推奨。
+
+
+### 2026-05-19 11:35 — Shibuya_Zaku [PASS ✅]
+
+**QAスコア**: material=3 lighting=3 camera=3 character=3
+
+**再現パラメータ**:
+- samples=16, device=CPU
+- sun_energy=3.0, hdri=
+- building_tex=Concrete034, road_tex=Ground079S
+- contact_ao_r=4.0, strength=0.7
+- camera_lens=35mm, pos=[10.0, -65.0, 14.0]
+
+**教訓**: 全項目合格。このパラメータ設定を再利用推奨。
+
+
+### 2026-05-19 11:54 — Shibuya_Zaku [PASS ✅]
+
+**QAスコア**: material=3 lighting=3 camera=3 character=3
+
+**再現パラメータ**:
+- samples=16, device=CPU
+- sun_energy=3.0, hdri=
+- building_tex=Concrete034, road_tex=Ground079S
+- contact_ao_r=4.0, strength=0.7
+- camera_lens=35mm, pos=[10.0, -65.0, 14.0]
+
+**教訓**: 全項目合格。このパラメータ設定を再利用推奨。
+
+
+### 2026-05-19 12:08 — Shibuya_Zaku [PASS ✅]
+
+**QAスコア**: material=3 lighting=3 camera=3 character=3
+
+**再現パラメータ**:
+- samples=16, device=CPU
+- sun_energy=3.0, hdri=
+- building_tex=Concrete034, road_tex=Ground079S
+- contact_ao_r=4.0, strength=0.7
+- camera_lens=35mm, pos=[10.0, -65.0, 14.0]
+
+**教訓**: 全項目合格。このパラメータ設定を再利用推奨。
+
+
+### 2026-05-19 12:15 — Shibuya_Zaku [PASS ✅]
+
+**QAスコア**: material=3 lighting=3 camera=3 character=3
+
+**再現パラメータ**:
+- samples=16, device=CPU
+- sun_energy=3.0, hdri=
+- building_tex=Concrete034, road_tex=Ground079S
+- contact_ao_r=4.0, strength=0.7
+- camera_lens=35mm, pos=[10.0, -65.0, 14.0]
+
+**教訓**: 全項目合格。このパラメータ設定を再利用推奨。
+
+
+### 2026-05-19 12:19 — Shibuya_Zaku [PASS ✅]
+
+**QAスコア**: material=3 lighting=3 camera=3 character=3
+
+**再現パラメータ**:
+- samples=16, device=CPU
+- sun_energy=3.0, hdri=
+- building_tex=Concrete034, road_tex=Ground079S
+- contact_ao_r=4.0, strength=0.7
+- camera_lens=35mm, pos=[10.0, -65.0, 14.0]
+
+**教訓**: 全項目合格。このパラメータ設定を再利用推奨。
+
+
+### 2026-05-19 15:34 — Shibuya_Zaku [PASS ✅]
+
+**QAスコア**: material=3 lighting=3 camera=3 character=3
+
+**再現パラメータ**:
+- samples=16, device=CPU
+- sun_energy=3.0, hdri=
+- building_tex=Concrete034, road_tex=Ground079S
+- contact_ao_r=4.0, strength=0.7
+- camera_lens=35mm, pos=[10.0, -65.0, 14.0]
+
+**教訓**: 全項目合格。このパラメータ設定を再利用推奨。
+
+
+### 2026-05-19 20:17 — Shibuya_Zaku [PASS ✅]
+
+**QAスコア**: material=3 lighting=3 camera=3 character=3
+
+**再現パラメータ**:
+- samples=16, device=CPU
+- sun_energy=3.0, hdri=
+- building_tex=Concrete034, road_tex=Ground079S
+- contact_ao_r=4.0, strength=0.7
+- camera_lens=35mm, pos=[10.0, -65.0, 14.0]
+
+**教訓**: 全項目合格。このパラメータ設定を再利用推奨。
+
+
+### 2026-05-19 20:27 — Shibuya_Zaku [PASS ✅]
+
+**QAスコア**: material=3 lighting=3 camera=3 character=3
+
+**再現パラメータ**:
+- samples=16, device=CPU
+- sun_energy=3.0, hdri=
+- building_tex=Concrete034, road_tex=Ground079S
+- contact_ao_r=4.0, strength=0.7
+- camera_lens=35mm, pos=[10.0, -65.0, 14.0]
+
+**教訓**: 全項目合格。このパラメータ設定を再利用推奨。
+
+
+### 2026-05-19 20:33 — Shibuya_Zaku [PASS ✅]
+
+**QAスコア**: material=3 lighting=3 camera=3 character=3
+
+**再現パラメータ**:
+- samples=16, device=CPU
+- sun_energy=3.0, hdri=
+- building_tex=Concrete034, road_tex=Ground079S
+- contact_ao_r=4.0, strength=0.7
+- camera_lens=35mm, pos=[10.0, -65.0, 14.0]
+
+**教訓**: 全項目合格。このパラメータ設定を再利用推奨。
+
+
+### 2026-05-19 20:47 — Shibuya_Zaku [PASS ✅]
+
+**QAスコア**: material=5 lighting=5 camera=5 character=5
+
+**再現パラメータ**:
+- samples=16, device=CPU
+- sun_energy=3.0, hdri=
+- building_tex=Concrete034, road_tex=Ground079S
+- contact_ao_r=4.0, strength=0.7
+- camera_lens=35mm, pos=[10.0, -65.0, 14.0]
+
+**教訓**: 全項目合格。このパラメータ設定を再利用推奨。
+
+
+### 2026-05-19 20:50 — Shibuya_Zaku [PASS ✅]
+
+**QAスコア**: material=5 lighting=5 camera=5 character=5
+
+**再現パラメータ**:
+- samples=16, device=CPU
+- sun_energy=3.0, hdri=
+- building_tex=Concrete034, road_tex=Ground079S
+- contact_ao_r=4.0, strength=0.7
+- camera_lens=35mm, pos=[10.0, -65.0, 14.0]
+
+**教訓**: 全項目合格。このパラメータ設定を再利用推奨。
+
+
+### 2026-05-19 21:34 — Shibuya_Zaku [PASS ✅]
+
+**QAスコア**: material=5 lighting=5 camera=5 character=5
+
+**再現パラメータ**:
+- samples=16, device=CPU
+- sun_energy=3.0, hdri=
+- building_tex=Concrete034, road_tex=Ground079S
+- contact_ao_r=4.0, strength=0.7
+- camera_lens=35mm, pos=[10.0, -65.0, 14.0]
+
+**教訓**: 全項目合格。このパラメータ設定を再利用推奨。
+
+
+### 2026-05-19 21:46 — Shibuya_Zaku [PASS ✅]
+
+**QAスコア**: material=5 lighting=5 camera=5 character=5
+
+**再現パラメータ**:
+- samples=16, device=CPU
+- sun_energy=3.0, hdri=
+- building_tex=Concrete034, road_tex=Ground079S
+- contact_ao_r=4.0, strength=0.7
+- camera_lens=35mm, pos=[10.0, -65.0, 14.0]
+
+**教訓**: 全項目合格。このパラメータ設定を再利用推奨。
+
+
+### 2026-05-19 21:51 — Shibuya_Zaku [PASS ✅]
+
+**QAスコア**: material=5 lighting=5 camera=5 character=5
+
+**再現パラメータ**:
+- samples=16, device=CPU
+- sun_energy=3.0, hdri=
+- building_tex=Concrete034, road_tex=Ground079S
+- contact_ao_r=4.0, strength=0.7
+- camera_lens=35mm, pos=[10.0, -65.0, 14.0]
+
+**教訓**: 全項目合格。このパラメータ設定を再利用推奨。
+
+
+### 2026-05-19 22:02 — Shibuya_Zaku [PASS ✅]
+
+**QAスコア**: material=5 lighting=5 camera=5 character=5
+
+**再現パラメータ**:
+- samples=16, device=CPU
+- sun_energy=3.0, hdri=
+- building_tex=Concrete034, road_tex=Ground079S
+- contact_ao_r=4.0, strength=0.7
+- camera_lens=35mm, pos=[10.0, -65.0, 14.0]
+
+**教訓**: 全項目合格。このパラメータ設定を再利用推奨。
+
+
+### 2026-05-19 22:07 — Shibuya_Zaku [PASS ✅]
+
+**QAスコア**: material=5 lighting=5 camera=5 character=5
+
+**再現パラメータ**:
+- samples=16, device=CPU
+- sun_energy=3.0, hdri=
+- building_tex=Concrete034, road_tex=Ground079S
+- contact_ao_r=4.0, strength=0.7
+- camera_lens=35mm, pos=[10.0, -65.0, 14.0]
+
+**教訓**: 全項目合格。このパラメータ設定を再利用推奨。
+
+
+### 2026-05-19 22:19 — Shibuya_Zaku [PASS ✅]
+
+**QAスコア**: material=5 lighting=5 camera=5 character=5
+
+**再現パラメータ**:
+- samples=16, device=CPU
+- sun_energy=3.0, hdri=
+- building_tex=Concrete034, road_tex=Ground079S
+- contact_ao_r=4.0, strength=0.7
+- camera_lens=35mm, pos=[10.0, -65.0, 14.0]
+
+**教訓**: 全項目合格。このパラメータ設定を再利用推奨。
+
+
+### 2026-05-19 22:48 — Shibuya_Zaku [PASS ✅]
+
+**QAスコア**: material=5 lighting=5 camera=5 character=5
+
+**再現パラメータ**:
+- samples=16, device=CPU
+- sun_energy=3.0, hdri=
+- building_tex=Concrete034, road_tex=Ground079S
+- contact_ao_r=4.0, strength=0.7
+- camera_lens=35mm, pos=[10.0, -65.0, 14.0]
+
+**教訓**: 全項目合格。このパラメータ設定を再利用推奨。
+
+
+### 2026-05-19 22:56 — Shibuya_Zaku [PASS ✅]
+
+**QAスコア**: material=5 lighting=5 camera=5 character=5
+
+**再現パラメータ**:
+- samples=16, device=CPU
+- sun_energy=3.0, hdri=
+- building_tex=Concrete034, road_tex=Ground079S
+- contact_ao_r=4.0, strength=0.7
+- camera_lens=35mm, pos=[10.0, -65.0, 14.0]
+
+**教訓**: 全項目合格。このパラメータ設定を再利用推奨。
+
+
+### 2026-05-19 23:00 — Shibuya_Zaku [PASS ✅]
+
+**QAスコア**: material=5 lighting=5 camera=5 character=5
+
+**再現パラメータ**:
+- samples=16, device=CPU
+- sun_energy=3.0, hdri=
+- building_tex=Concrete034, road_tex=Ground079S
+- contact_ao_r=4.0, strength=0.7
+- camera_lens=35mm, pos=[10.0, -65.0, 14.0]
+
+**教訓**: 全項目合格。このパラメータ設定を再利用推奨。
+
+
+### 2026-05-20 05:16 — Shibuya_Zaku [PASS ✅]
+
+**QAスコア**: material=3 lighting=3 camera=3 character=3
+
+**再現パラメータ**:
+- samples=16, device=CPU
+- sun_energy=3.0, hdri=
+- building_tex=Concrete034, road_tex=Ground079S
+- contact_ao_r=4.0, strength=0.7
+- camera_lens=35mm, pos=[10.0, -65.0, 14.0]
+
+**教訓**: 全項目合格。このパラメータ設定を再利用推奨。
+
+
+### 2026-05-20 05:34 — Shibuya_Zaku [PASS ✅]
+
+**QAスコア**: material=5 lighting=5 camera=5 character=5
+
+**再現パラメータ**:
+- samples=16, device=CPU
+- sun_energy=3.0, hdri=
+- building_tex=Concrete034, road_tex=Ground079S
+- contact_ao_r=4.0, strength=0.7
+- camera_lens=35mm, pos=[10.0, -65.0, 14.0]
+
+**教訓**: 全項目合格。このパラメータ設定を再利用推奨。
+
+
+### 2026-05-20 05:38 — Shibuya_Zaku [PASS ✅]
+
+**QAスコア**: material=5 lighting=5 camera=5 character=5
+
+**再現パラメータ**:
+- samples=16, device=CPU
+- sun_energy=3.0, hdri=
+- building_tex=Concrete034, road_tex=Ground079S
+- contact_ao_r=4.0, strength=0.7
+- camera_lens=35mm, pos=[10.0, -65.0, 14.0]
+
+**教訓**: 全項目合格。このパラメータ設定を再利用推奨。
+
+
+### 2026-05-20 05:42 — Shibuya_Zaku [PASS ✅]
+
+**QAスコア**: material=5 lighting=5 camera=5 character=5
+
+**再現パラメータ**:
+- samples=16, device=CPU
+- sun_energy=3.0, hdri=
+- building_tex=Concrete034, road_tex=Ground079S
+- contact_ao_r=4.0, strength=0.7
+- camera_lens=35mm, pos=[10.0, -65.0, 14.0]
+
+**教訓**: 全項目合格。このパラメータ設定を再利用推奨。
+
+
+### 2026-05-20 05:58 — Shibuya_Zaku [PASS ✅]
+
+**QAスコア**: material=5 lighting=5 camera=5 character=5
+
+**再現パラメータ**:
+- samples=16, device=CPU
+- sun_energy=3.0, hdri=
+- building_tex=Concrete034, road_tex=Ground079S
+- contact_ao_r=4.0, strength=0.7
+- camera_lens=35mm, pos=[10.0, -65.0, 14.0]
+
+**教訓**: 全項目合格。このパラメータ設定を再利用推奨。
+
+
+### 2026-05-20 06:05 — Shibuya_Zaku [PASS ✅]
+
+**QAスコア**: material=5 lighting=5 camera=5 character=5
+
+**再現パラメータ**:
+- samples=16, device=CPU
+- sun_energy=3.0, hdri=
+- building_tex=Concrete034, road_tex=Ground079S
+- contact_ao_r=4.0, strength=0.7
+- camera_lens=35mm, pos=[10.0, -65.0, 14.0]
+
+**教訓**: 全項目合格。このパラメータ設定を再利用推奨。
+
+
+### 2026-05-20 06:14 — Shibuya_Zaku [PASS ✅]
+
+**QAスコア**: material=5 lighting=5 camera=5 character=5
+
+**再現パラメータ**:
+- samples=16, device=CPU
+- sun_energy=3.0, hdri=
+- building_tex=Concrete034, road_tex=Ground079S
+- contact_ao_r=4.0, strength=0.7
+- camera_lens=35mm, pos=[10.0, -65.0, 14.0]
+
+**教訓**: 全項目合格。このパラメータ設定を再利用推奨。
+
+
+### 2026-05-20 06:48 — Shibuya_Zaku [PASS ✅]
+
+**QAスコア**: material=5 lighting=5 camera=5 character=5
+
+**再現パラメータ**:
+- samples=16, device=CPU
+- sun_energy=3.0, hdri=
+- building_tex=Concrete034, road_tex=Ground079S
+- contact_ao_r=4.0, strength=0.7
+- camera_lens=35mm, pos=[10.0, -65.0, 14.0]
+
+**教訓**: 全項目合格。このパラメータ設定を再利用推奨。
+
+
+### 2026-05-20 06:48 — Shibuya_Zaku [PASS ✅]
+
+**QAスコア**: material=3 lighting=3 camera=3 character=3
+
+**再現パラメータ**:
+- samples=16, device=CPU
+- sun_energy=3.0, hdri=
+- building_tex=Concrete034, road_tex=Ground079S
+- contact_ao_r=4.0, strength=0.7
+- camera_lens=35mm, pos=[10.0, -65.0, 14.0]
+
+**教訓**: 全項目合格。このパラメータ設定を再利用推奨。
+
+
+### 2026-05-20 06:50 — Shibuya_Zaku [PASS ✅]
+
+**QAスコア**: material=4 lighting=4 camera=4 character=4
+
+**再現パラメータ**:
+- samples=16, device=CPU
+- sun_energy=3.0, hdri=
+- building_tex=Concrete034, road_tex=Ground079S
+- contact_ao_r=4.0, strength=0.7
+- camera_lens=35mm, pos=[10.0, -65.0, 14.0]
+
+**教訓**: 全項目合格。このパラメータ設定を再利用推奨。
+
+
+### 2026-05-20 06:53 — Shibuya_Zaku [PASS ✅]
+
+**QAスコア**: material=3 lighting=3 camera=3 character=3
+
+**再現パラメータ**:
+- samples=16, device=CPU
+- sun_energy=3.0, hdri=
+- building_tex=Concrete034, road_tex=Ground079S
+- contact_ao_r=4.0, strength=0.7
+- camera_lens=35mm, pos=[10.0, -65.0, 14.0]
+
+**教訓**: 全項目合格。このパラメータ設定を再利用推奨。
+
+
+### 2026-05-20 06:54 — Shibuya_Zaku [PASS ✅]
+
+**QAスコア**: material=5 lighting=5 camera=5 character=5
+
+**再現パラメータ**:
+- samples=16, device=CPU
+- sun_energy=3.0, hdri=
+- building_tex=Concrete034, road_tex=Ground079S
+- contact_ao_r=4.0, strength=0.7
+- camera_lens=35mm, pos=[10.0, -65.0, 14.0]
+
+**教訓**: 全項目合格。このパラメータ設定を再利用推奨。
+
+
+### 2026-05-20 06:59 — Shibuya_Zaku [PASS ✅]
+
+**QAスコア**: material=3 lighting=3 camera=3 character=3
+
+**再現パラメータ**:
+- samples=16, device=CPU
+- sun_energy=3.0, hdri=
+- building_tex=Concrete034, road_tex=Ground079S
+- contact_ao_r=4.0, strength=0.7
+- camera_lens=35mm, pos=[10.0, -65.0, 14.0]
+
+**教訓**: 全項目合格。このパラメータ設定を再利用推奨。
+
+
+### 2026-05-20 08:26 — Shibuya_Zaku [PASS ✅]
+
+**QAスコア**: material=5 lighting=5 camera=5 character=5
+
+**再現パラメータ**:
+- samples=16, device=CPU
+- sun_energy=3.0, hdri=
+- building_tex=Concrete034, road_tex=Ground079S
+- contact_ao_r=4.0, strength=0.7
+- camera_lens=35mm, pos=[10.0, -65.0, 14.0]
+
+**教訓**: 全項目合格。このパラメータ設定を再利用推奨。
+
+
+### 2026-05-20 08:46 — Shibuya_Zaku [PASS ✅]
+
+**QAスコア**: material=3 lighting=3 camera=3 character=3
+
+**再現パラメータ**:
+- samples=16, device=CPU
+- sun_energy=3.0, hdri=
+- building_tex=Concrete034, road_tex=Ground079S
+- contact_ao_r=4.0, strength=0.7
+- camera_lens=35mm, pos=[10.0, -65.0, 14.0]
+
+**教訓**: 全項目合格。このパラメータ設定を再利用推奨。
+
+
+### 2026-05-20 08:56 — Shibuya_Zaku [PASS ✅]
+
+**QAスコア**: material=5 lighting=5 camera=5 character=5
+
+**再現パラメータ**:
+- samples=16, device=CPU
+- sun_energy=3.0, hdri=
+- building_tex=Concrete034, road_tex=Ground079S
+- contact_ao_r=4.0, strength=0.7
+- camera_lens=35mm, pos=[10.0, -65.0, 14.0]
+
+**教訓**: 全項目合格。このパラメータ設定を再利用推奨。
+
+
+### 2026-05-20 09:11 — Shibuya_Zaku [PASS ✅]
+
+**QAスコア**: material=3 lighting=3 camera=3 character=3
+
+**再現パラメータ**:
+- samples=16, device=CPU
+- sun_energy=3.0, hdri=
+- building_tex=Concrete034, road_tex=Ground079S
+- contact_ao_r=4.0, strength=0.7
+- camera_lens=35mm, pos=[10.0, -65.0, 14.0]
+
+**教訓**: 全項目合格。このパラメータ設定を再利用推奨。
+
+
+### 2026-05-20 09:44 — Shibuya_Zaku [PASS ✅]
+
+**QAスコア**: material=5 lighting=5 camera=5 character=5
+
+**再現パラメータ**:
+- samples=16, device=CPU
+- sun_energy=3.0, hdri=
+- building_tex=Concrete034, road_tex=Ground079S
+- contact_ao_r=4.0, strength=0.7
+- camera_lens=35mm, pos=[10.0, -65.0, 14.0]
+
+**教訓**: 全項目合格。このパラメータ設定を再利用推奨。
+
+
+### 2026-05-20 09:53 — Shibuya_Zaku [PASS ✅]
+
+**QAスコア**: material=3 lighting=3 camera=3 character=3
+
+**再現パラメータ**:
+- samples=16, device=CPU
+- sun_energy=3.0, hdri=
+- building_tex=Concrete034, road_tex=Ground079S
+- contact_ao_r=4.0, strength=0.7
+- camera_lens=35mm, pos=[10.0, -65.0, 14.0]
+
+**教訓**: 全項目合格。このパラメータ設定を再利用推奨。
+

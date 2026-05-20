@@ -1253,3 +1253,768 @@ QAスコア: material=3 lighting=3 camera=3 character=3
 ### 教訓
 全項目合格。このパラメータ設定を再利用推奨。
 
+
+## FMEA — Shibuya_Zaku (2026-05-19 10:27)
+
+QAスコア: material=3 lighting=3 camera=3 character=3
+
+| 工程 | 故障モード | 影響 | 原因 | 重篤度 | 発生度 | 検出度 | RPN | 対策 |
+|---|---|---|---|---|---|---|---|---|
+| マテリアル | 白箱（PBR未適用） | リアリズム低下 | ambientCGアセット不在 | 8 | 2 | 3 | **48** | アセット事前ダウンロード確認 / fallback Principled |
+| ライティング | フラット照明 | 深度感なし | HDRI/太陽未設定 | 7 | 1 | 4 | **28** | Nishita Sky + sun_energy≥5 + fill2灯 |
+| 接地AO | DOM浮き | 不自然な接地 | Raycast miss / embed_depth不足 | 9 | 3 | 3 | **81** | embed_depth=0.75固定 + ShadowCatcher必須 |
+| カメラ | T-ポーズシルエット | キャラ品質低下 | Mixamo未適用 | 8 | 2 | 3 | **48** | posed FBX使用 / シルエット事前チェック |
+| レンダリング | 全黒フレーム | 成果物なし | Emission未接続 | 10 | 2 | 2 | **40** | visual_qa gate / samples≥64 |
+| アニメーション | フレーム間照明変化 | 動画品質低下 | ライト設定非固定 | 6 | 3 | 4 | **72** | 全フレームで同一照明パラメータ固定 |
+
+### 教訓
+全項目合格。このパラメータ設定を再利用推奨。
+
+
+## FMEA — Shibuya_Zaku (2026-05-19 10:28)
+
+QAスコア: material=3 lighting=3 camera=3 character=3
+
+| 工程 | 故障モード | 影響 | 原因 | 重篤度 | 発生度 | 検出度 | RPN | 対策 |
+|---|---|---|---|---|---|---|---|---|
+| マテリアル | 白箱（PBR未適用） | リアリズム低下 | ambientCGアセット不在 | 8 | 2 | 3 | **48** | アセット事前ダウンロード確認 / fallback Principled |
+| ライティング | フラット照明 | 深度感なし | HDRI/太陽未設定 | 7 | 1 | 4 | **28** | Nishita Sky + sun_energy≥5 + fill2灯 |
+| 接地AO | DOM浮き | 不自然な接地 | Raycast miss / embed_depth不足 | 9 | 3 | 3 | **81** | embed_depth=0.75固定 + ShadowCatcher必須 |
+| カメラ | T-ポーズシルエット | キャラ品質低下 | Mixamo未適用 | 8 | 2 | 3 | **48** | posed FBX使用 / シルエット事前チェック |
+| レンダリング | 全黒フレーム | 成果物なし | Emission未接続 | 10 | 2 | 2 | **40** | visual_qa gate / samples≥64 |
+| アニメーション | フレーム間照明変化 | 動画品質低下 | ライト設定非固定 | 6 | 3 | 4 | **72** | 全フレームで同一照明パラメータ固定 |
+
+### 教訓
+全項目合格。このパラメータ設定を再利用推奨。
+
+
+## FMEA — Shibuya_Zaku (2026-05-19 10:34)
+
+QAスコア: material=3 lighting=3 camera=3 character=3
+
+| 工程 | 故障モード | 影響 | 原因 | 重篤度 | 発生度 | 検出度 | RPN | 対策 |
+|---|---|---|---|---|---|---|---|---|
+| マテリアル | 白箱（PBR未適用） | リアリズム低下 | ambientCGアセット不在 | 8 | 2 | 3 | **48** | アセット事前ダウンロード確認 / fallback Principled |
+| ライティング | フラット照明 | 深度感なし | HDRI/太陽未設定 | 7 | 1 | 4 | **28** | Nishita Sky + sun_energy≥5 + fill2灯 |
+| 接地AO | DOM浮き | 不自然な接地 | Raycast miss / embed_depth不足 | 9 | 3 | 3 | **81** | embed_depth=0.75固定 + ShadowCatcher必須 |
+| カメラ | T-ポーズシルエット | キャラ品質低下 | Mixamo未適用 | 8 | 2 | 3 | **48** | posed FBX使用 / シルエット事前チェック |
+| レンダリング | 全黒フレーム | 成果物なし | Emission未接続 | 10 | 2 | 2 | **40** | visual_qa gate / samples≥64 |
+| アニメーション | フレーム間照明変化 | 動画品質低下 | ライト設定非固定 | 6 | 3 | 4 | **72** | 全フレームで同一照明パラメータ固定 |
+
+### 教訓
+全項目合格。このパラメータ設定を再利用推奨。
+
+
+## FMEA — Shibuya_Zaku (2026-05-19 10:41)
+
+QAスコア: material=3 lighting=3 camera=3 character=3
+
+| 工程 | 故障モード | 影響 | 原因 | 重篤度 | 発生度 | 検出度 | RPN | 対策 |
+|---|---|---|---|---|---|---|---|---|
+| マテリアル | 白箱（PBR未適用） | リアリズム低下 | ambientCGアセット不在 | 8 | 2 | 3 | **48** | アセット事前ダウンロード確認 / fallback Principled |
+| ライティング | フラット照明 | 深度感なし | HDRI/太陽未設定 | 7 | 1 | 4 | **28** | Nishita Sky + sun_energy≥5 + fill2灯 |
+| 接地AO | DOM浮き | 不自然な接地 | Raycast miss / embed_depth不足 | 9 | 3 | 3 | **81** | embed_depth=0.75固定 + ShadowCatcher必須 |
+| カメラ | T-ポーズシルエット | キャラ品質低下 | Mixamo未適用 | 8 | 2 | 3 | **48** | posed FBX使用 / シルエット事前チェック |
+| レンダリング | 全黒フレーム | 成果物なし | Emission未接続 | 10 | 2 | 2 | **40** | visual_qa gate / samples≥64 |
+| アニメーション | フレーム間照明変化 | 動画品質低下 | ライト設定非固定 | 6 | 3 | 4 | **72** | 全フレームで同一照明パラメータ固定 |
+
+### 教訓
+全項目合格。このパラメータ設定を再利用推奨。
+
+
+## FMEA — Shibuya_Zaku (2026-05-19 10:48)
+
+QAスコア: material=3 lighting=3 camera=3 character=3
+
+| 工程 | 故障モード | 影響 | 原因 | 重篤度 | 発生度 | 検出度 | RPN | 対策 |
+|---|---|---|---|---|---|---|---|---|
+| マテリアル | 白箱（PBR未適用） | リアリズム低下 | ambientCGアセット不在 | 8 | 2 | 3 | **48** | アセット事前ダウンロード確認 / fallback Principled |
+| ライティング | フラット照明 | 深度感なし | HDRI/太陽未設定 | 7 | 1 | 4 | **28** | Nishita Sky + sun_energy≥5 + fill2灯 |
+| 接地AO | DOM浮き | 不自然な接地 | Raycast miss / embed_depth不足 | 9 | 3 | 3 | **81** | embed_depth=0.75固定 + ShadowCatcher必須 |
+| カメラ | T-ポーズシルエット | キャラ品質低下 | Mixamo未適用 | 8 | 2 | 3 | **48** | posed FBX使用 / シルエット事前チェック |
+| レンダリング | 全黒フレーム | 成果物なし | Emission未接続 | 10 | 2 | 2 | **40** | visual_qa gate / samples≥64 |
+| アニメーション | フレーム間照明変化 | 動画品質低下 | ライト設定非固定 | 6 | 3 | 4 | **72** | 全フレームで同一照明パラメータ固定 |
+
+### 教訓
+全項目合格。このパラメータ設定を再利用推奨。
+
+
+## FMEA — Shibuya_Zaku (2026-05-19 11:25)
+
+QAスコア: material=3 lighting=3 camera=3 character=3
+
+| 工程 | 故障モード | 影響 | 原因 | 重篤度 | 発生度 | 検出度 | RPN | 対策 |
+|---|---|---|---|---|---|---|---|---|
+| マテリアル | 白箱（PBR未適用） | リアリズム低下 | ambientCGアセット不在 | 8 | 2 | 3 | **48** | アセット事前ダウンロード確認 / fallback Principled |
+| ライティング | フラット照明 | 深度感なし | HDRI/太陽未設定 | 7 | 1 | 4 | **28** | Nishita Sky + sun_energy≥5 + fill2灯 |
+| 接地AO | DOM浮き | 不自然な接地 | Raycast miss / embed_depth不足 | 9 | 3 | 3 | **81** | embed_depth=0.75固定 + ShadowCatcher必須 |
+| カメラ | T-ポーズシルエット | キャラ品質低下 | Mixamo未適用 | 8 | 2 | 3 | **48** | posed FBX使用 / シルエット事前チェック |
+| レンダリング | 全黒フレーム | 成果物なし | Emission未接続 | 10 | 2 | 2 | **40** | visual_qa gate / samples≥64 |
+| アニメーション | フレーム間照明変化 | 動画品質低下 | ライト設定非固定 | 6 | 3 | 4 | **72** | 全フレームで同一照明パラメータ固定 |
+
+### 教訓
+全項目合格。このパラメータ設定を再利用推奨。
+
+
+## FMEA — Shibuya_Zaku (2026-05-19 11:35)
+
+QAスコア: material=3 lighting=3 camera=3 character=3
+
+| 工程 | 故障モード | 影響 | 原因 | 重篤度 | 発生度 | 検出度 | RPN | 対策 |
+|---|---|---|---|---|---|---|---|---|
+| マテリアル | 白箱（PBR未適用） | リアリズム低下 | ambientCGアセット不在 | 8 | 2 | 3 | **48** | アセット事前ダウンロード確認 / fallback Principled |
+| ライティング | フラット照明 | 深度感なし | HDRI/太陽未設定 | 7 | 1 | 4 | **28** | Nishita Sky + sun_energy≥5 + fill2灯 |
+| 接地AO | DOM浮き | 不自然な接地 | Raycast miss / embed_depth不足 | 9 | 3 | 3 | **81** | embed_depth=0.75固定 + ShadowCatcher必須 |
+| カメラ | T-ポーズシルエット | キャラ品質低下 | Mixamo未適用 | 8 | 2 | 3 | **48** | posed FBX使用 / シルエット事前チェック |
+| レンダリング | 全黒フレーム | 成果物なし | Emission未接続 | 10 | 2 | 2 | **40** | visual_qa gate / samples≥64 |
+| アニメーション | フレーム間照明変化 | 動画品質低下 | ライト設定非固定 | 6 | 3 | 4 | **72** | 全フレームで同一照明パラメータ固定 |
+
+### 教訓
+全項目合格。このパラメータ設定を再利用推奨。
+
+
+## FMEA — Shibuya_Zaku (2026-05-19 11:54)
+
+QAスコア: material=3 lighting=3 camera=3 character=3
+
+| 工程 | 故障モード | 影響 | 原因 | 重篤度 | 発生度 | 検出度 | RPN | 対策 |
+|---|---|---|---|---|---|---|---|---|
+| マテリアル | 白箱（PBR未適用） | リアリズム低下 | ambientCGアセット不在 | 8 | 2 | 3 | **48** | アセット事前ダウンロード確認 / fallback Principled |
+| ライティング | フラット照明 | 深度感なし | HDRI/太陽未設定 | 7 | 1 | 4 | **28** | Nishita Sky + sun_energy≥5 + fill2灯 |
+| 接地AO | DOM浮き | 不自然な接地 | Raycast miss / embed_depth不足 | 9 | 3 | 3 | **81** | embed_depth=0.75固定 + ShadowCatcher必須 |
+| カメラ | T-ポーズシルエット | キャラ品質低下 | Mixamo未適用 | 8 | 2 | 3 | **48** | posed FBX使用 / シルエット事前チェック |
+| レンダリング | 全黒フレーム | 成果物なし | Emission未接続 | 10 | 2 | 2 | **40** | visual_qa gate / samples≥64 |
+| アニメーション | フレーム間照明変化 | 動画品質低下 | ライト設定非固定 | 6 | 3 | 4 | **72** | 全フレームで同一照明パラメータ固定 |
+
+### 教訓
+全項目合格。このパラメータ設定を再利用推奨。
+
+
+## FMEA — Shibuya_Zaku (2026-05-19 12:08)
+
+QAスコア: material=3 lighting=3 camera=3 character=3
+
+| 工程 | 故障モード | 影響 | 原因 | 重篤度 | 発生度 | 検出度 | RPN | 対策 |
+|---|---|---|---|---|---|---|---|---|
+| マテリアル | 白箱（PBR未適用） | リアリズム低下 | ambientCGアセット不在 | 8 | 2 | 3 | **48** | アセット事前ダウンロード確認 / fallback Principled |
+| ライティング | フラット照明 | 深度感なし | HDRI/太陽未設定 | 7 | 1 | 4 | **28** | Nishita Sky + sun_energy≥5 + fill2灯 |
+| 接地AO | DOM浮き | 不自然な接地 | Raycast miss / embed_depth不足 | 9 | 3 | 3 | **81** | embed_depth=0.75固定 + ShadowCatcher必須 |
+| カメラ | T-ポーズシルエット | キャラ品質低下 | Mixamo未適用 | 8 | 2 | 3 | **48** | posed FBX使用 / シルエット事前チェック |
+| レンダリング | 全黒フレーム | 成果物なし | Emission未接続 | 10 | 2 | 2 | **40** | visual_qa gate / samples≥64 |
+| アニメーション | フレーム間照明変化 | 動画品質低下 | ライト設定非固定 | 6 | 3 | 4 | **72** | 全フレームで同一照明パラメータ固定 |
+
+### 教訓
+全項目合格。このパラメータ設定を再利用推奨。
+
+
+## FMEA — Shibuya_Zaku (2026-05-19 12:15)
+
+QAスコア: material=3 lighting=3 camera=3 character=3
+
+| 工程 | 故障モード | 影響 | 原因 | 重篤度 | 発生度 | 検出度 | RPN | 対策 |
+|---|---|---|---|---|---|---|---|---|
+| マテリアル | 白箱（PBR未適用） | リアリズム低下 | ambientCGアセット不在 | 8 | 2 | 3 | **48** | アセット事前ダウンロード確認 / fallback Principled |
+| ライティング | フラット照明 | 深度感なし | HDRI/太陽未設定 | 7 | 1 | 4 | **28** | Nishita Sky + sun_energy≥5 + fill2灯 |
+| 接地AO | DOM浮き | 不自然な接地 | Raycast miss / embed_depth不足 | 9 | 3 | 3 | **81** | embed_depth=0.75固定 + ShadowCatcher必須 |
+| カメラ | T-ポーズシルエット | キャラ品質低下 | Mixamo未適用 | 8 | 2 | 3 | **48** | posed FBX使用 / シルエット事前チェック |
+| レンダリング | 全黒フレーム | 成果物なし | Emission未接続 | 10 | 2 | 2 | **40** | visual_qa gate / samples≥64 |
+| アニメーション | フレーム間照明変化 | 動画品質低下 | ライト設定非固定 | 6 | 3 | 4 | **72** | 全フレームで同一照明パラメータ固定 |
+
+### 教訓
+全項目合格。このパラメータ設定を再利用推奨。
+
+
+## FMEA — Shibuya_Zaku (2026-05-19 12:19)
+
+QAスコア: material=3 lighting=3 camera=3 character=3
+
+| 工程 | 故障モード | 影響 | 原因 | 重篤度 | 発生度 | 検出度 | RPN | 対策 |
+|---|---|---|---|---|---|---|---|---|
+| マテリアル | 白箱（PBR未適用） | リアリズム低下 | ambientCGアセット不在 | 8 | 2 | 3 | **48** | アセット事前ダウンロード確認 / fallback Principled |
+| ライティング | フラット照明 | 深度感なし | HDRI/太陽未設定 | 7 | 1 | 4 | **28** | Nishita Sky + sun_energy≥5 + fill2灯 |
+| 接地AO | DOM浮き | 不自然な接地 | Raycast miss / embed_depth不足 | 9 | 3 | 3 | **81** | embed_depth=0.75固定 + ShadowCatcher必須 |
+| カメラ | T-ポーズシルエット | キャラ品質低下 | Mixamo未適用 | 8 | 2 | 3 | **48** | posed FBX使用 / シルエット事前チェック |
+| レンダリング | 全黒フレーム | 成果物なし | Emission未接続 | 10 | 2 | 2 | **40** | visual_qa gate / samples≥64 |
+| アニメーション | フレーム間照明変化 | 動画品質低下 | ライト設定非固定 | 6 | 3 | 4 | **72** | 全フレームで同一照明パラメータ固定 |
+
+### 教訓
+全項目合格。このパラメータ設定を再利用推奨。
+
+
+## FMEA — Shibuya_Zaku (2026-05-19 15:34)
+
+QAスコア: material=3 lighting=3 camera=3 character=3
+
+| 工程 | 故障モード | 影響 | 原因 | 重篤度 | 発生度 | 検出度 | RPN | 対策 |
+|---|---|---|---|---|---|---|---|---|
+| マテリアル | 白箱（PBR未適用） | リアリズム低下 | ambientCGアセット不在 | 8 | 2 | 3 | **48** | アセット事前ダウンロード確認 / fallback Principled |
+| ライティング | フラット照明 | 深度感なし | HDRI/太陽未設定 | 7 | 1 | 4 | **28** | Nishita Sky + sun_energy≥5 + fill2灯 |
+| 接地AO | DOM浮き | 不自然な接地 | Raycast miss / embed_depth不足 | 9 | 3 | 3 | **81** | embed_depth=0.75固定 + ShadowCatcher必須 |
+| カメラ | T-ポーズシルエット | キャラ品質低下 | Mixamo未適用 | 8 | 2 | 3 | **48** | posed FBX使用 / シルエット事前チェック |
+| レンダリング | 全黒フレーム | 成果物なし | Emission未接続 | 10 | 2 | 2 | **40** | visual_qa gate / samples≥64 |
+| アニメーション | フレーム間照明変化 | 動画品質低下 | ライト設定非固定 | 6 | 3 | 4 | **72** | 全フレームで同一照明パラメータ固定 |
+
+### 教訓
+全項目合格。このパラメータ設定を再利用推奨。
+
+
+## FMEA — Shibuya_Zaku (2026-05-19 20:17)
+
+QAスコア: material=3 lighting=3 camera=3 character=3
+
+| 工程 | 故障モード | 影響 | 原因 | 重篤度 | 発生度 | 検出度 | RPN | 対策 |
+|---|---|---|---|---|---|---|---|---|
+| マテリアル | 白箱（PBR未適用） | リアリズム低下 | ambientCGアセット不在 | 8 | 2 | 3 | **48** | アセット事前ダウンロード確認 / fallback Principled |
+| ライティング | フラット照明 | 深度感なし | HDRI/太陽未設定 | 7 | 1 | 4 | **28** | Nishita Sky + sun_energy≥5 + fill2灯 |
+| 接地AO | DOM浮き | 不自然な接地 | Raycast miss / embed_depth不足 | 9 | 3 | 3 | **81** | embed_depth=0.75固定 + ShadowCatcher必須 |
+| カメラ | T-ポーズシルエット | キャラ品質低下 | Mixamo未適用 | 8 | 2 | 3 | **48** | posed FBX使用 / シルエット事前チェック |
+| レンダリング | 全黒フレーム | 成果物なし | Emission未接続 | 10 | 2 | 2 | **40** | visual_qa gate / samples≥64 |
+| アニメーション | フレーム間照明変化 | 動画品質低下 | ライト設定非固定 | 6 | 3 | 4 | **72** | 全フレームで同一照明パラメータ固定 |
+
+### 教訓
+全項目合格。このパラメータ設定を再利用推奨。
+
+
+## FMEA — Shibuya_Zaku (2026-05-19 20:27)
+
+QAスコア: material=3 lighting=3 camera=3 character=3
+
+| 工程 | 故障モード | 影響 | 原因 | 重篤度 | 発生度 | 検出度 | RPN | 対策 |
+|---|---|---|---|---|---|---|---|---|
+| マテリアル | 白箱（PBR未適用） | リアリズム低下 | ambientCGアセット不在 | 8 | 2 | 3 | **48** | アセット事前ダウンロード確認 / fallback Principled |
+| ライティング | フラット照明 | 深度感なし | HDRI/太陽未設定 | 7 | 1 | 4 | **28** | Nishita Sky + sun_energy≥5 + fill2灯 |
+| 接地AO | DOM浮き | 不自然な接地 | Raycast miss / embed_depth不足 | 9 | 3 | 3 | **81** | embed_depth=0.75固定 + ShadowCatcher必須 |
+| カメラ | T-ポーズシルエット | キャラ品質低下 | Mixamo未適用 | 8 | 2 | 3 | **48** | posed FBX使用 / シルエット事前チェック |
+| レンダリング | 全黒フレーム | 成果物なし | Emission未接続 | 10 | 2 | 2 | **40** | visual_qa gate / samples≥64 |
+| アニメーション | フレーム間照明変化 | 動画品質低下 | ライト設定非固定 | 6 | 3 | 4 | **72** | 全フレームで同一照明パラメータ固定 |
+
+### 教訓
+全項目合格。このパラメータ設定を再利用推奨。
+
+
+## FMEA — Shibuya_Zaku (2026-05-19 20:33)
+
+QAスコア: material=3 lighting=3 camera=3 character=3
+
+| 工程 | 故障モード | 影響 | 原因 | 重篤度 | 発生度 | 検出度 | RPN | 対策 |
+|---|---|---|---|---|---|---|---|---|
+| マテリアル | 白箱（PBR未適用） | リアリズム低下 | ambientCGアセット不在 | 8 | 2 | 3 | **48** | アセット事前ダウンロード確認 / fallback Principled |
+| ライティング | フラット照明 | 深度感なし | HDRI/太陽未設定 | 7 | 1 | 4 | **28** | Nishita Sky + sun_energy≥5 + fill2灯 |
+| 接地AO | DOM浮き | 不自然な接地 | Raycast miss / embed_depth不足 | 9 | 3 | 3 | **81** | embed_depth=0.75固定 + ShadowCatcher必須 |
+| カメラ | T-ポーズシルエット | キャラ品質低下 | Mixamo未適用 | 8 | 2 | 3 | **48** | posed FBX使用 / シルエット事前チェック |
+| レンダリング | 全黒フレーム | 成果物なし | Emission未接続 | 10 | 2 | 2 | **40** | visual_qa gate / samples≥64 |
+| アニメーション | フレーム間照明変化 | 動画品質低下 | ライト設定非固定 | 6 | 3 | 4 | **72** | 全フレームで同一照明パラメータ固定 |
+
+### 教訓
+全項目合格。このパラメータ設定を再利用推奨。
+
+
+## FMEA — Shibuya_Zaku (2026-05-19 20:47)
+
+QAスコア: material=5 lighting=5 camera=5 character=5
+
+| 工程 | 故障モード | 影響 | 原因 | 重篤度 | 発生度 | 検出度 | RPN | 対策 |
+|---|---|---|---|---|---|---|---|---|
+| マテリアル | 白箱（PBR未適用） | リアリズム低下 | ambientCGアセット不在 | 8 | 2 | 3 | **48** | アセット事前ダウンロード確認 / fallback Principled |
+| ライティング | フラット照明 | 深度感なし | HDRI/太陽未設定 | 7 | 1 | 4 | **28** | Nishita Sky + sun_energy≥5 + fill2灯 |
+| 接地AO | DOM浮き | 不自然な接地 | Raycast miss / embed_depth不足 | 9 | 3 | 3 | **81** | embed_depth=0.75固定 + ShadowCatcher必須 |
+| カメラ | T-ポーズシルエット | キャラ品質低下 | Mixamo未適用 | 8 | 2 | 3 | **48** | posed FBX使用 / シルエット事前チェック |
+| レンダリング | 全黒フレーム | 成果物なし | Emission未接続 | 10 | 2 | 2 | **40** | visual_qa gate / samples≥64 |
+| アニメーション | フレーム間照明変化 | 動画品質低下 | ライト設定非固定 | 6 | 3 | 4 | **72** | 全フレームで同一照明パラメータ固定 |
+
+### 教訓
+全項目合格。このパラメータ設定を再利用推奨。
+
+
+## FMEA — Shibuya_Zaku (2026-05-19 20:50)
+
+QAスコア: material=5 lighting=5 camera=5 character=5
+
+| 工程 | 故障モード | 影響 | 原因 | 重篤度 | 発生度 | 検出度 | RPN | 対策 |
+|---|---|---|---|---|---|---|---|---|
+| マテリアル | 白箱（PBR未適用） | リアリズム低下 | ambientCGアセット不在 | 8 | 2 | 3 | **48** | アセット事前ダウンロード確認 / fallback Principled |
+| ライティング | フラット照明 | 深度感なし | HDRI/太陽未設定 | 7 | 1 | 4 | **28** | Nishita Sky + sun_energy≥5 + fill2灯 |
+| 接地AO | DOM浮き | 不自然な接地 | Raycast miss / embed_depth不足 | 9 | 3 | 3 | **81** | embed_depth=0.75固定 + ShadowCatcher必須 |
+| カメラ | T-ポーズシルエット | キャラ品質低下 | Mixamo未適用 | 8 | 2 | 3 | **48** | posed FBX使用 / シルエット事前チェック |
+| レンダリング | 全黒フレーム | 成果物なし | Emission未接続 | 10 | 2 | 2 | **40** | visual_qa gate / samples≥64 |
+| アニメーション | フレーム間照明変化 | 動画品質低下 | ライト設定非固定 | 6 | 3 | 4 | **72** | 全フレームで同一照明パラメータ固定 |
+
+### 教訓
+全項目合格。このパラメータ設定を再利用推奨。
+
+
+## FMEA — Shibuya_Zaku (2026-05-19 21:34)
+
+QAスコア: material=5 lighting=5 camera=5 character=5
+
+| 工程 | 故障モード | 影響 | 原因 | 重篤度 | 発生度 | 検出度 | RPN | 対策 |
+|---|---|---|---|---|---|---|---|---|
+| マテリアル | 白箱（PBR未適用） | リアリズム低下 | ambientCGアセット不在 | 8 | 2 | 3 | **48** | アセット事前ダウンロード確認 / fallback Principled |
+| ライティング | フラット照明 | 深度感なし | HDRI/太陽未設定 | 7 | 1 | 4 | **28** | Nishita Sky + sun_energy≥5 + fill2灯 |
+| 接地AO | DOM浮き | 不自然な接地 | Raycast miss / embed_depth不足 | 9 | 3 | 3 | **81** | embed_depth=0.75固定 + ShadowCatcher必須 |
+| カメラ | T-ポーズシルエット | キャラ品質低下 | Mixamo未適用 | 8 | 2 | 3 | **48** | posed FBX使用 / シルエット事前チェック |
+| レンダリング | 全黒フレーム | 成果物なし | Emission未接続 | 10 | 2 | 2 | **40** | visual_qa gate / samples≥64 |
+| アニメーション | フレーム間照明変化 | 動画品質低下 | ライト設定非固定 | 6 | 3 | 4 | **72** | 全フレームで同一照明パラメータ固定 |
+
+### 教訓
+全項目合格。このパラメータ設定を再利用推奨。
+
+
+## FMEA — Shibuya_Zaku (2026-05-19 21:46)
+
+QAスコア: material=5 lighting=5 camera=5 character=5
+
+| 工程 | 故障モード | 影響 | 原因 | 重篤度 | 発生度 | 検出度 | RPN | 対策 |
+|---|---|---|---|---|---|---|---|---|
+| マテリアル | 白箱（PBR未適用） | リアリズム低下 | ambientCGアセット不在 | 8 | 2 | 3 | **48** | アセット事前ダウンロード確認 / fallback Principled |
+| ライティング | フラット照明 | 深度感なし | HDRI/太陽未設定 | 7 | 1 | 4 | **28** | Nishita Sky + sun_energy≥5 + fill2灯 |
+| 接地AO | DOM浮き | 不自然な接地 | Raycast miss / embed_depth不足 | 9 | 3 | 3 | **81** | embed_depth=0.75固定 + ShadowCatcher必須 |
+| カメラ | T-ポーズシルエット | キャラ品質低下 | Mixamo未適用 | 8 | 2 | 3 | **48** | posed FBX使用 / シルエット事前チェック |
+| レンダリング | 全黒フレーム | 成果物なし | Emission未接続 | 10 | 2 | 2 | **40** | visual_qa gate / samples≥64 |
+| アニメーション | フレーム間照明変化 | 動画品質低下 | ライト設定非固定 | 6 | 3 | 4 | **72** | 全フレームで同一照明パラメータ固定 |
+
+### 教訓
+全項目合格。このパラメータ設定を再利用推奨。
+
+
+## FMEA — Shibuya_Zaku (2026-05-19 21:51)
+
+QAスコア: material=5 lighting=5 camera=5 character=5
+
+| 工程 | 故障モード | 影響 | 原因 | 重篤度 | 発生度 | 検出度 | RPN | 対策 |
+|---|---|---|---|---|---|---|---|---|
+| マテリアル | 白箱（PBR未適用） | リアリズム低下 | ambientCGアセット不在 | 8 | 2 | 3 | **48** | アセット事前ダウンロード確認 / fallback Principled |
+| ライティング | フラット照明 | 深度感なし | HDRI/太陽未設定 | 7 | 1 | 4 | **28** | Nishita Sky + sun_energy≥5 + fill2灯 |
+| 接地AO | DOM浮き | 不自然な接地 | Raycast miss / embed_depth不足 | 9 | 3 | 3 | **81** | embed_depth=0.75固定 + ShadowCatcher必須 |
+| カメラ | T-ポーズシルエット | キャラ品質低下 | Mixamo未適用 | 8 | 2 | 3 | **48** | posed FBX使用 / シルエット事前チェック |
+| レンダリング | 全黒フレーム | 成果物なし | Emission未接続 | 10 | 2 | 2 | **40** | visual_qa gate / samples≥64 |
+| アニメーション | フレーム間照明変化 | 動画品質低下 | ライト設定非固定 | 6 | 3 | 4 | **72** | 全フレームで同一照明パラメータ固定 |
+
+### 教訓
+全項目合格。このパラメータ設定を再利用推奨。
+
+
+## FMEA — Shibuya_Zaku (2026-05-19 22:02)
+
+QAスコア: material=5 lighting=5 camera=5 character=5
+
+| 工程 | 故障モード | 影響 | 原因 | 重篤度 | 発生度 | 検出度 | RPN | 対策 |
+|---|---|---|---|---|---|---|---|---|
+| マテリアル | 白箱（PBR未適用） | リアリズム低下 | ambientCGアセット不在 | 8 | 2 | 3 | **48** | アセット事前ダウンロード確認 / fallback Principled |
+| ライティング | フラット照明 | 深度感なし | HDRI/太陽未設定 | 7 | 1 | 4 | **28** | Nishita Sky + sun_energy≥5 + fill2灯 |
+| 接地AO | DOM浮き | 不自然な接地 | Raycast miss / embed_depth不足 | 9 | 3 | 3 | **81** | embed_depth=0.75固定 + ShadowCatcher必須 |
+| カメラ | T-ポーズシルエット | キャラ品質低下 | Mixamo未適用 | 8 | 2 | 3 | **48** | posed FBX使用 / シルエット事前チェック |
+| レンダリング | 全黒フレーム | 成果物なし | Emission未接続 | 10 | 2 | 2 | **40** | visual_qa gate / samples≥64 |
+| アニメーション | フレーム間照明変化 | 動画品質低下 | ライト設定非固定 | 6 | 3 | 4 | **72** | 全フレームで同一照明パラメータ固定 |
+
+### 教訓
+全項目合格。このパラメータ設定を再利用推奨。
+
+
+## FMEA — Shibuya_Zaku (2026-05-19 22:07)
+
+QAスコア: material=5 lighting=5 camera=5 character=5
+
+| 工程 | 故障モード | 影響 | 原因 | 重篤度 | 発生度 | 検出度 | RPN | 対策 |
+|---|---|---|---|---|---|---|---|---|
+| マテリアル | 白箱（PBR未適用） | リアリズム低下 | ambientCGアセット不在 | 8 | 2 | 3 | **48** | アセット事前ダウンロード確認 / fallback Principled |
+| ライティング | フラット照明 | 深度感なし | HDRI/太陽未設定 | 7 | 1 | 4 | **28** | Nishita Sky + sun_energy≥5 + fill2灯 |
+| 接地AO | DOM浮き | 不自然な接地 | Raycast miss / embed_depth不足 | 9 | 3 | 3 | **81** | embed_depth=0.75固定 + ShadowCatcher必須 |
+| カメラ | T-ポーズシルエット | キャラ品質低下 | Mixamo未適用 | 8 | 2 | 3 | **48** | posed FBX使用 / シルエット事前チェック |
+| レンダリング | 全黒フレーム | 成果物なし | Emission未接続 | 10 | 2 | 2 | **40** | visual_qa gate / samples≥64 |
+| アニメーション | フレーム間照明変化 | 動画品質低下 | ライト設定非固定 | 6 | 3 | 4 | **72** | 全フレームで同一照明パラメータ固定 |
+
+### 教訓
+全項目合格。このパラメータ設定を再利用推奨。
+
+
+## FMEA — Shibuya_Zaku (2026-05-19 22:19)
+
+QAスコア: material=5 lighting=5 camera=5 character=5
+
+| 工程 | 故障モード | 影響 | 原因 | 重篤度 | 発生度 | 検出度 | RPN | 対策 |
+|---|---|---|---|---|---|---|---|---|
+| マテリアル | 白箱（PBR未適用） | リアリズム低下 | ambientCGアセット不在 | 8 | 2 | 3 | **48** | アセット事前ダウンロード確認 / fallback Principled |
+| ライティング | フラット照明 | 深度感なし | HDRI/太陽未設定 | 7 | 1 | 4 | **28** | Nishita Sky + sun_energy≥5 + fill2灯 |
+| 接地AO | DOM浮き | 不自然な接地 | Raycast miss / embed_depth不足 | 9 | 3 | 3 | **81** | embed_depth=0.75固定 + ShadowCatcher必須 |
+| カメラ | T-ポーズシルエット | キャラ品質低下 | Mixamo未適用 | 8 | 2 | 3 | **48** | posed FBX使用 / シルエット事前チェック |
+| レンダリング | 全黒フレーム | 成果物なし | Emission未接続 | 10 | 2 | 2 | **40** | visual_qa gate / samples≥64 |
+| アニメーション | フレーム間照明変化 | 動画品質低下 | ライト設定非固定 | 6 | 3 | 4 | **72** | 全フレームで同一照明パラメータ固定 |
+
+### 教訓
+全項目合格。このパラメータ設定を再利用推奨。
+
+
+## FMEA — Shibuya_Zaku (2026-05-19 22:48)
+
+QAスコア: material=5 lighting=5 camera=5 character=5
+
+| 工程 | 故障モード | 影響 | 原因 | 重篤度 | 発生度 | 検出度 | RPN | 対策 |
+|---|---|---|---|---|---|---|---|---|
+| マテリアル | 白箱（PBR未適用） | リアリズム低下 | ambientCGアセット不在 | 8 | 2 | 3 | **48** | アセット事前ダウンロード確認 / fallback Principled |
+| ライティング | フラット照明 | 深度感なし | HDRI/太陽未設定 | 7 | 1 | 4 | **28** | Nishita Sky + sun_energy≥5 + fill2灯 |
+| 接地AO | DOM浮き | 不自然な接地 | Raycast miss / embed_depth不足 | 9 | 3 | 3 | **81** | embed_depth=0.75固定 + ShadowCatcher必須 |
+| カメラ | T-ポーズシルエット | キャラ品質低下 | Mixamo未適用 | 8 | 2 | 3 | **48** | posed FBX使用 / シルエット事前チェック |
+| レンダリング | 全黒フレーム | 成果物なし | Emission未接続 | 10 | 2 | 2 | **40** | visual_qa gate / samples≥64 |
+| アニメーション | フレーム間照明変化 | 動画品質低下 | ライト設定非固定 | 6 | 3 | 4 | **72** | 全フレームで同一照明パラメータ固定 |
+
+### 教訓
+全項目合格。このパラメータ設定を再利用推奨。
+
+
+## FMEA — Shibuya_Zaku (2026-05-19 22:56)
+
+QAスコア: material=5 lighting=5 camera=5 character=5
+
+| 工程 | 故障モード | 影響 | 原因 | 重篤度 | 発生度 | 検出度 | RPN | 対策 |
+|---|---|---|---|---|---|---|---|---|
+| マテリアル | 白箱（PBR未適用） | リアリズム低下 | ambientCGアセット不在 | 8 | 2 | 3 | **48** | アセット事前ダウンロード確認 / fallback Principled |
+| ライティング | フラット照明 | 深度感なし | HDRI/太陽未設定 | 7 | 1 | 4 | **28** | Nishita Sky + sun_energy≥5 + fill2灯 |
+| 接地AO | DOM浮き | 不自然な接地 | Raycast miss / embed_depth不足 | 9 | 3 | 3 | **81** | embed_depth=0.75固定 + ShadowCatcher必須 |
+| カメラ | T-ポーズシルエット | キャラ品質低下 | Mixamo未適用 | 8 | 2 | 3 | **48** | posed FBX使用 / シルエット事前チェック |
+| レンダリング | 全黒フレーム | 成果物なし | Emission未接続 | 10 | 2 | 2 | **40** | visual_qa gate / samples≥64 |
+| アニメーション | フレーム間照明変化 | 動画品質低下 | ライト設定非固定 | 6 | 3 | 4 | **72** | 全フレームで同一照明パラメータ固定 |
+
+### 教訓
+全項目合格。このパラメータ設定を再利用推奨。
+
+
+## FMEA — Shibuya_Zaku (2026-05-19 23:00)
+
+QAスコア: material=5 lighting=5 camera=5 character=5
+
+| 工程 | 故障モード | 影響 | 原因 | 重篤度 | 発生度 | 検出度 | RPN | 対策 |
+|---|---|---|---|---|---|---|---|---|
+| マテリアル | 白箱（PBR未適用） | リアリズム低下 | ambientCGアセット不在 | 8 | 2 | 3 | **48** | アセット事前ダウンロード確認 / fallback Principled |
+| ライティング | フラット照明 | 深度感なし | HDRI/太陽未設定 | 7 | 1 | 4 | **28** | Nishita Sky + sun_energy≥5 + fill2灯 |
+| 接地AO | DOM浮き | 不自然な接地 | Raycast miss / embed_depth不足 | 9 | 3 | 3 | **81** | embed_depth=0.75固定 + ShadowCatcher必須 |
+| カメラ | T-ポーズシルエット | キャラ品質低下 | Mixamo未適用 | 8 | 2 | 3 | **48** | posed FBX使用 / シルエット事前チェック |
+| レンダリング | 全黒フレーム | 成果物なし | Emission未接続 | 10 | 2 | 2 | **40** | visual_qa gate / samples≥64 |
+| アニメーション | フレーム間照明変化 | 動画品質低下 | ライト設定非固定 | 6 | 3 | 4 | **72** | 全フレームで同一照明パラメータ固定 |
+
+### 教訓
+全項目合格。このパラメータ設定を再利用推奨。
+
+
+## FMEA — Shibuya_Zaku (2026-05-20 05:16)
+
+QAスコア: material=3 lighting=3 camera=3 character=3
+
+| 工程 | 故障モード | 影響 | 原因 | 重篤度 | 発生度 | 検出度 | RPN | 対策 |
+|---|---|---|---|---|---|---|---|---|
+| マテリアル | 白箱（PBR未適用） | リアリズム低下 | ambientCGアセット不在 | 8 | 2 | 3 | **48** | アセット事前ダウンロード確認 / fallback Principled |
+| ライティング | フラット照明 | 深度感なし | HDRI/太陽未設定 | 7 | 1 | 4 | **28** | Nishita Sky + sun_energy≥5 + fill2灯 |
+| 接地AO | DOM浮き | 不自然な接地 | Raycast miss / embed_depth不足 | 9 | 3 | 3 | **81** | embed_depth=0.75固定 + ShadowCatcher必須 |
+| カメラ | T-ポーズシルエット | キャラ品質低下 | Mixamo未適用 | 8 | 2 | 3 | **48** | posed FBX使用 / シルエット事前チェック |
+| レンダリング | 全黒フレーム | 成果物なし | Emission未接続 | 10 | 2 | 2 | **40** | visual_qa gate / samples≥64 |
+| アニメーション | フレーム間照明変化 | 動画品質低下 | ライト設定非固定 | 6 | 3 | 4 | **72** | 全フレームで同一照明パラメータ固定 |
+
+### 教訓
+全項目合格。このパラメータ設定を再利用推奨。
+
+
+## FMEA — Shibuya_Zaku (2026-05-20 05:34)
+
+QAスコア: material=5 lighting=5 camera=5 character=5
+
+| 工程 | 故障モード | 影響 | 原因 | 重篤度 | 発生度 | 検出度 | RPN | 対策 |
+|---|---|---|---|---|---|---|---|---|
+| マテリアル | 白箱（PBR未適用） | リアリズム低下 | ambientCGアセット不在 | 8 | 2 | 3 | **48** | アセット事前ダウンロード確認 / fallback Principled |
+| ライティング | フラット照明 | 深度感なし | HDRI/太陽未設定 | 7 | 1 | 4 | **28** | Nishita Sky + sun_energy≥5 + fill2灯 |
+| 接地AO | DOM浮き | 不自然な接地 | Raycast miss / embed_depth不足 | 9 | 3 | 3 | **81** | embed_depth=0.75固定 + ShadowCatcher必須 |
+| カメラ | T-ポーズシルエット | キャラ品質低下 | Mixamo未適用 | 8 | 2 | 3 | **48** | posed FBX使用 / シルエット事前チェック |
+| レンダリング | 全黒フレーム | 成果物なし | Emission未接続 | 10 | 2 | 2 | **40** | visual_qa gate / samples≥64 |
+| アニメーション | フレーム間照明変化 | 動画品質低下 | ライト設定非固定 | 6 | 3 | 4 | **72** | 全フレームで同一照明パラメータ固定 |
+
+### 教訓
+全項目合格。このパラメータ設定を再利用推奨。
+
+
+## FMEA — Shibuya_Zaku (2026-05-20 05:38)
+
+QAスコア: material=5 lighting=5 camera=5 character=5
+
+| 工程 | 故障モード | 影響 | 原因 | 重篤度 | 発生度 | 検出度 | RPN | 対策 |
+|---|---|---|---|---|---|---|---|---|
+| マテリアル | 白箱（PBR未適用） | リアリズム低下 | ambientCGアセット不在 | 8 | 2 | 3 | **48** | アセット事前ダウンロード確認 / fallback Principled |
+| ライティング | フラット照明 | 深度感なし | HDRI/太陽未設定 | 7 | 1 | 4 | **28** | Nishita Sky + sun_energy≥5 + fill2灯 |
+| 接地AO | DOM浮き | 不自然な接地 | Raycast miss / embed_depth不足 | 9 | 3 | 3 | **81** | embed_depth=0.75固定 + ShadowCatcher必須 |
+| カメラ | T-ポーズシルエット | キャラ品質低下 | Mixamo未適用 | 8 | 2 | 3 | **48** | posed FBX使用 / シルエット事前チェック |
+| レンダリング | 全黒フレーム | 成果物なし | Emission未接続 | 10 | 2 | 2 | **40** | visual_qa gate / samples≥64 |
+| アニメーション | フレーム間照明変化 | 動画品質低下 | ライト設定非固定 | 6 | 3 | 4 | **72** | 全フレームで同一照明パラメータ固定 |
+
+### 教訓
+全項目合格。このパラメータ設定を再利用推奨。
+
+
+## FMEA — Shibuya_Zaku (2026-05-20 05:42)
+
+QAスコア: material=5 lighting=5 camera=5 character=5
+
+| 工程 | 故障モード | 影響 | 原因 | 重篤度 | 発生度 | 検出度 | RPN | 対策 |
+|---|---|---|---|---|---|---|---|---|
+| マテリアル | 白箱（PBR未適用） | リアリズム低下 | ambientCGアセット不在 | 8 | 2 | 3 | **48** | アセット事前ダウンロード確認 / fallback Principled |
+| ライティング | フラット照明 | 深度感なし | HDRI/太陽未設定 | 7 | 1 | 4 | **28** | Nishita Sky + sun_energy≥5 + fill2灯 |
+| 接地AO | DOM浮き | 不自然な接地 | Raycast miss / embed_depth不足 | 9 | 3 | 3 | **81** | embed_depth=0.75固定 + ShadowCatcher必須 |
+| カメラ | T-ポーズシルエット | キャラ品質低下 | Mixamo未適用 | 8 | 2 | 3 | **48** | posed FBX使用 / シルエット事前チェック |
+| レンダリング | 全黒フレーム | 成果物なし | Emission未接続 | 10 | 2 | 2 | **40** | visual_qa gate / samples≥64 |
+| アニメーション | フレーム間照明変化 | 動画品質低下 | ライト設定非固定 | 6 | 3 | 4 | **72** | 全フレームで同一照明パラメータ固定 |
+
+### 教訓
+全項目合格。このパラメータ設定を再利用推奨。
+
+
+## FMEA — Shibuya_Zaku (2026-05-20 05:58)
+
+QAスコア: material=5 lighting=5 camera=5 character=5
+
+| 工程 | 故障モード | 影響 | 原因 | 重篤度 | 発生度 | 検出度 | RPN | 対策 |
+|---|---|---|---|---|---|---|---|---|
+| マテリアル | 白箱（PBR未適用） | リアリズム低下 | ambientCGアセット不在 | 8 | 2 | 3 | **48** | アセット事前ダウンロード確認 / fallback Principled |
+| ライティング | フラット照明 | 深度感なし | HDRI/太陽未設定 | 7 | 1 | 4 | **28** | Nishita Sky + sun_energy≥5 + fill2灯 |
+| 接地AO | DOM浮き | 不自然な接地 | Raycast miss / embed_depth不足 | 9 | 3 | 3 | **81** | embed_depth=0.75固定 + ShadowCatcher必須 |
+| カメラ | T-ポーズシルエット | キャラ品質低下 | Mixamo未適用 | 8 | 2 | 3 | **48** | posed FBX使用 / シルエット事前チェック |
+| レンダリング | 全黒フレーム | 成果物なし | Emission未接続 | 10 | 2 | 2 | **40** | visual_qa gate / samples≥64 |
+| アニメーション | フレーム間照明変化 | 動画品質低下 | ライト設定非固定 | 6 | 3 | 4 | **72** | 全フレームで同一照明パラメータ固定 |
+
+### 教訓
+全項目合格。このパラメータ設定を再利用推奨。
+
+
+## FMEA — Shibuya_Zaku (2026-05-20 06:05)
+
+QAスコア: material=5 lighting=5 camera=5 character=5
+
+| 工程 | 故障モード | 影響 | 原因 | 重篤度 | 発生度 | 検出度 | RPN | 対策 |
+|---|---|---|---|---|---|---|---|---|
+| マテリアル | 白箱（PBR未適用） | リアリズム低下 | ambientCGアセット不在 | 8 | 2 | 3 | **48** | アセット事前ダウンロード確認 / fallback Principled |
+| ライティング | フラット照明 | 深度感なし | HDRI/太陽未設定 | 7 | 1 | 4 | **28** | Nishita Sky + sun_energy≥5 + fill2灯 |
+| 接地AO | DOM浮き | 不自然な接地 | Raycast miss / embed_depth不足 | 9 | 3 | 3 | **81** | embed_depth=0.75固定 + ShadowCatcher必須 |
+| カメラ | T-ポーズシルエット | キャラ品質低下 | Mixamo未適用 | 8 | 2 | 3 | **48** | posed FBX使用 / シルエット事前チェック |
+| レンダリング | 全黒フレーム | 成果物なし | Emission未接続 | 10 | 2 | 2 | **40** | visual_qa gate / samples≥64 |
+| アニメーション | フレーム間照明変化 | 動画品質低下 | ライト設定非固定 | 6 | 3 | 4 | **72** | 全フレームで同一照明パラメータ固定 |
+
+### 教訓
+全項目合格。このパラメータ設定を再利用推奨。
+
+
+## FMEA — Shibuya_Zaku (2026-05-20 06:14)
+
+QAスコア: material=5 lighting=5 camera=5 character=5
+
+| 工程 | 故障モード | 影響 | 原因 | 重篤度 | 発生度 | 検出度 | RPN | 対策 |
+|---|---|---|---|---|---|---|---|---|
+| マテリアル | 白箱（PBR未適用） | リアリズム低下 | ambientCGアセット不在 | 8 | 2 | 3 | **48** | アセット事前ダウンロード確認 / fallback Principled |
+| ライティング | フラット照明 | 深度感なし | HDRI/太陽未設定 | 7 | 1 | 4 | **28** | Nishita Sky + sun_energy≥5 + fill2灯 |
+| 接地AO | DOM浮き | 不自然な接地 | Raycast miss / embed_depth不足 | 9 | 3 | 3 | **81** | embed_depth=0.75固定 + ShadowCatcher必須 |
+| カメラ | T-ポーズシルエット | キャラ品質低下 | Mixamo未適用 | 8 | 2 | 3 | **48** | posed FBX使用 / シルエット事前チェック |
+| レンダリング | 全黒フレーム | 成果物なし | Emission未接続 | 10 | 2 | 2 | **40** | visual_qa gate / samples≥64 |
+| アニメーション | フレーム間照明変化 | 動画品質低下 | ライト設定非固定 | 6 | 3 | 4 | **72** | 全フレームで同一照明パラメータ固定 |
+
+### 教訓
+全項目合格。このパラメータ設定を再利用推奨。
+
+
+## FMEA — Shibuya_Zaku (2026-05-20 06:48)
+
+QAスコア: material=5 lighting=5 camera=5 character=5
+
+| 工程 | 故障モード | 影響 | 原因 | 重篤度 | 発生度 | 検出度 | RPN | 対策 |
+|---|---|---|---|---|---|---|---|---|
+| マテリアル | 白箱（PBR未適用） | リアリズム低下 | ambientCGアセット不在 | 8 | 2 | 3 | **48** | アセット事前ダウンロード確認 / fallback Principled |
+| ライティング | フラット照明 | 深度感なし | HDRI/太陽未設定 | 7 | 1 | 4 | **28** | Nishita Sky + sun_energy≥5 + fill2灯 |
+| 接地AO | DOM浮き | 不自然な接地 | Raycast miss / embed_depth不足 | 9 | 3 | 3 | **81** | embed_depth=0.75固定 + ShadowCatcher必須 |
+| カメラ | T-ポーズシルエット | キャラ品質低下 | Mixamo未適用 | 8 | 2 | 3 | **48** | posed FBX使用 / シルエット事前チェック |
+| レンダリング | 全黒フレーム | 成果物なし | Emission未接続 | 10 | 2 | 2 | **40** | visual_qa gate / samples≥64 |
+| アニメーション | フレーム間照明変化 | 動画品質低下 | ライト設定非固定 | 6 | 3 | 4 | **72** | 全フレームで同一照明パラメータ固定 |
+
+### 教訓
+全項目合格。このパラメータ設定を再利用推奨。
+
+
+## FMEA — Shibuya_Zaku (2026-05-20 06:48)
+
+QAスコア: material=3 lighting=3 camera=3 character=3
+
+| 工程 | 故障モード | 影響 | 原因 | 重篤度 | 発生度 | 検出度 | RPN | 対策 |
+|---|---|---|---|---|---|---|---|---|
+| マテリアル | 白箱（PBR未適用） | リアリズム低下 | ambientCGアセット不在 | 8 | 2 | 3 | **48** | アセット事前ダウンロード確認 / fallback Principled |
+| ライティング | フラット照明 | 深度感なし | HDRI/太陽未設定 | 7 | 1 | 4 | **28** | Nishita Sky + sun_energy≥5 + fill2灯 |
+| 接地AO | DOM浮き | 不自然な接地 | Raycast miss / embed_depth不足 | 9 | 3 | 3 | **81** | embed_depth=0.75固定 + ShadowCatcher必須 |
+| カメラ | T-ポーズシルエット | キャラ品質低下 | Mixamo未適用 | 8 | 2 | 3 | **48** | posed FBX使用 / シルエット事前チェック |
+| レンダリング | 全黒フレーム | 成果物なし | Emission未接続 | 10 | 2 | 2 | **40** | visual_qa gate / samples≥64 |
+| アニメーション | フレーム間照明変化 | 動画品質低下 | ライト設定非固定 | 6 | 3 | 4 | **72** | 全フレームで同一照明パラメータ固定 |
+
+### 教訓
+全項目合格。このパラメータ設定を再利用推奨。
+
+
+## FMEA — Shibuya_Zaku (2026-05-20 06:50)
+
+QAスコア: material=4 lighting=4 camera=4 character=4
+
+| 工程 | 故障モード | 影響 | 原因 | 重篤度 | 発生度 | 検出度 | RPN | 対策 |
+|---|---|---|---|---|---|---|---|---|
+| マテリアル | 白箱（PBR未適用） | リアリズム低下 | ambientCGアセット不在 | 8 | 2 | 3 | **48** | アセット事前ダウンロード確認 / fallback Principled |
+| ライティング | フラット照明 | 深度感なし | HDRI/太陽未設定 | 7 | 1 | 4 | **28** | Nishita Sky + sun_energy≥5 + fill2灯 |
+| 接地AO | DOM浮き | 不自然な接地 | Raycast miss / embed_depth不足 | 9 | 3 | 3 | **81** | embed_depth=0.75固定 + ShadowCatcher必須 |
+| カメラ | T-ポーズシルエット | キャラ品質低下 | Mixamo未適用 | 8 | 2 | 3 | **48** | posed FBX使用 / シルエット事前チェック |
+| レンダリング | 全黒フレーム | 成果物なし | Emission未接続 | 10 | 2 | 2 | **40** | visual_qa gate / samples≥64 |
+| アニメーション | フレーム間照明変化 | 動画品質低下 | ライト設定非固定 | 6 | 3 | 4 | **72** | 全フレームで同一照明パラメータ固定 |
+
+### 教訓
+全項目合格。このパラメータ設定を再利用推奨。
+
+
+## FMEA — Shibuya_Zaku (2026-05-20 06:53)
+
+QAスコア: material=3 lighting=3 camera=3 character=3
+
+| 工程 | 故障モード | 影響 | 原因 | 重篤度 | 発生度 | 検出度 | RPN | 対策 |
+|---|---|---|---|---|---|---|---|---|
+| マテリアル | 白箱（PBR未適用） | リアリズム低下 | ambientCGアセット不在 | 8 | 2 | 3 | **48** | アセット事前ダウンロード確認 / fallback Principled |
+| ライティング | フラット照明 | 深度感なし | HDRI/太陽未設定 | 7 | 1 | 4 | **28** | Nishita Sky + sun_energy≥5 + fill2灯 |
+| 接地AO | DOM浮き | 不自然な接地 | Raycast miss / embed_depth不足 | 9 | 3 | 3 | **81** | embed_depth=0.75固定 + ShadowCatcher必須 |
+| カメラ | T-ポーズシルエット | キャラ品質低下 | Mixamo未適用 | 8 | 2 | 3 | **48** | posed FBX使用 / シルエット事前チェック |
+| レンダリング | 全黒フレーム | 成果物なし | Emission未接続 | 10 | 2 | 2 | **40** | visual_qa gate / samples≥64 |
+| アニメーション | フレーム間照明変化 | 動画品質低下 | ライト設定非固定 | 6 | 3 | 4 | **72** | 全フレームで同一照明パラメータ固定 |
+
+### 教訓
+全項目合格。このパラメータ設定を再利用推奨。
+
+
+## FMEA — Shibuya_Zaku (2026-05-20 06:54)
+
+QAスコア: material=5 lighting=5 camera=5 character=5
+
+| 工程 | 故障モード | 影響 | 原因 | 重篤度 | 発生度 | 検出度 | RPN | 対策 |
+|---|---|---|---|---|---|---|---|---|
+| マテリアル | 白箱（PBR未適用） | リアリズム低下 | ambientCGアセット不在 | 8 | 2 | 3 | **48** | アセット事前ダウンロード確認 / fallback Principled |
+| ライティング | フラット照明 | 深度感なし | HDRI/太陽未設定 | 7 | 1 | 4 | **28** | Nishita Sky + sun_energy≥5 + fill2灯 |
+| 接地AO | DOM浮き | 不自然な接地 | Raycast miss / embed_depth不足 | 9 | 3 | 3 | **81** | embed_depth=0.75固定 + ShadowCatcher必須 |
+| カメラ | T-ポーズシルエット | キャラ品質低下 | Mixamo未適用 | 8 | 2 | 3 | **48** | posed FBX使用 / シルエット事前チェック |
+| レンダリング | 全黒フレーム | 成果物なし | Emission未接続 | 10 | 2 | 2 | **40** | visual_qa gate / samples≥64 |
+| アニメーション | フレーム間照明変化 | 動画品質低下 | ライト設定非固定 | 6 | 3 | 4 | **72** | 全フレームで同一照明パラメータ固定 |
+
+### 教訓
+全項目合格。このパラメータ設定を再利用推奨。
+
+
+## FMEA — Shibuya_Zaku (2026-05-20 06:59)
+
+QAスコア: material=3 lighting=3 camera=3 character=3
+
+| 工程 | 故障モード | 影響 | 原因 | 重篤度 | 発生度 | 検出度 | RPN | 対策 |
+|---|---|---|---|---|---|---|---|---|
+| マテリアル | 白箱（PBR未適用） | リアリズム低下 | ambientCGアセット不在 | 8 | 2 | 3 | **48** | アセット事前ダウンロード確認 / fallback Principled |
+| ライティング | フラット照明 | 深度感なし | HDRI/太陽未設定 | 7 | 1 | 4 | **28** | Nishita Sky + sun_energy≥5 + fill2灯 |
+| 接地AO | DOM浮き | 不自然な接地 | Raycast miss / embed_depth不足 | 9 | 3 | 3 | **81** | embed_depth=0.75固定 + ShadowCatcher必須 |
+| カメラ | T-ポーズシルエット | キャラ品質低下 | Mixamo未適用 | 8 | 2 | 3 | **48** | posed FBX使用 / シルエット事前チェック |
+| レンダリング | 全黒フレーム | 成果物なし | Emission未接続 | 10 | 2 | 2 | **40** | visual_qa gate / samples≥64 |
+| アニメーション | フレーム間照明変化 | 動画品質低下 | ライト設定非固定 | 6 | 3 | 4 | **72** | 全フレームで同一照明パラメータ固定 |
+
+### 教訓
+全項目合格。このパラメータ設定を再利用推奨。
+
+
+## FMEA — Shibuya_Zaku (2026-05-20 08:26)
+
+QAスコア: material=5 lighting=5 camera=5 character=5
+
+| 工程 | 故障モード | 影響 | 原因 | 重篤度 | 発生度 | 検出度 | RPN | 対策 |
+|---|---|---|---|---|---|---|---|---|
+| マテリアル | 白箱（PBR未適用） | リアリズム低下 | ambientCGアセット不在 | 8 | 2 | 3 | **48** | アセット事前ダウンロード確認 / fallback Principled |
+| ライティング | フラット照明 | 深度感なし | HDRI/太陽未設定 | 7 | 1 | 4 | **28** | Nishita Sky + sun_energy≥5 + fill2灯 |
+| 接地AO | DOM浮き | 不自然な接地 | Raycast miss / embed_depth不足 | 9 | 3 | 3 | **81** | embed_depth=0.75固定 + ShadowCatcher必須 |
+| カメラ | T-ポーズシルエット | キャラ品質低下 | Mixamo未適用 | 8 | 2 | 3 | **48** | posed FBX使用 / シルエット事前チェック |
+| レンダリング | 全黒フレーム | 成果物なし | Emission未接続 | 10 | 2 | 2 | **40** | visual_qa gate / samples≥64 |
+| アニメーション | フレーム間照明変化 | 動画品質低下 | ライト設定非固定 | 6 | 3 | 4 | **72** | 全フレームで同一照明パラメータ固定 |
+
+### 教訓
+全項目合格。このパラメータ設定を再利用推奨。
+
+
+## FMEA — Shibuya_Zaku (2026-05-20 08:46)
+
+QAスコア: material=3 lighting=3 camera=3 character=3
+
+| 工程 | 故障モード | 影響 | 原因 | 重篤度 | 発生度 | 検出度 | RPN | 対策 |
+|---|---|---|---|---|---|---|---|---|
+| マテリアル | 白箱（PBR未適用） | リアリズム低下 | ambientCGアセット不在 | 8 | 2 | 3 | **48** | アセット事前ダウンロード確認 / fallback Principled |
+| ライティング | フラット照明 | 深度感なし | HDRI/太陽未設定 | 7 | 1 | 4 | **28** | Nishita Sky + sun_energy≥5 + fill2灯 |
+| 接地AO | DOM浮き | 不自然な接地 | Raycast miss / embed_depth不足 | 9 | 3 | 3 | **81** | embed_depth=0.75固定 + ShadowCatcher必須 |
+| カメラ | T-ポーズシルエット | キャラ品質低下 | Mixamo未適用 | 8 | 2 | 3 | **48** | posed FBX使用 / シルエット事前チェック |
+| レンダリング | 全黒フレーム | 成果物なし | Emission未接続 | 10 | 2 | 2 | **40** | visual_qa gate / samples≥64 |
+| アニメーション | フレーム間照明変化 | 動画品質低下 | ライト設定非固定 | 6 | 3 | 4 | **72** | 全フレームで同一照明パラメータ固定 |
+
+### 教訓
+全項目合格。このパラメータ設定を再利用推奨。
+
+
+## FMEA — Shibuya_Zaku (2026-05-20 08:56)
+
+QAスコア: material=5 lighting=5 camera=5 character=5
+
+| 工程 | 故障モード | 影響 | 原因 | 重篤度 | 発生度 | 検出度 | RPN | 対策 |
+|---|---|---|---|---|---|---|---|---|
+| マテリアル | 白箱（PBR未適用） | リアリズム低下 | ambientCGアセット不在 | 8 | 2 | 3 | **48** | アセット事前ダウンロード確認 / fallback Principled |
+| ライティング | フラット照明 | 深度感なし | HDRI/太陽未設定 | 7 | 1 | 4 | **28** | Nishita Sky + sun_energy≥5 + fill2灯 |
+| 接地AO | DOM浮き | 不自然な接地 | Raycast miss / embed_depth不足 | 9 | 3 | 3 | **81** | embed_depth=0.75固定 + ShadowCatcher必須 |
+| カメラ | T-ポーズシルエット | キャラ品質低下 | Mixamo未適用 | 8 | 2 | 3 | **48** | posed FBX使用 / シルエット事前チェック |
+| レンダリング | 全黒フレーム | 成果物なし | Emission未接続 | 10 | 2 | 2 | **40** | visual_qa gate / samples≥64 |
+| アニメーション | フレーム間照明変化 | 動画品質低下 | ライト設定非固定 | 6 | 3 | 4 | **72** | 全フレームで同一照明パラメータ固定 |
+
+### 教訓
+全項目合格。このパラメータ設定を再利用推奨。
+
+
+## FMEA — Shibuya_Zaku (2026-05-20 09:11)
+
+QAスコア: material=3 lighting=3 camera=3 character=3
+
+| 工程 | 故障モード | 影響 | 原因 | 重篤度 | 発生度 | 検出度 | RPN | 対策 |
+|---|---|---|---|---|---|---|---|---|
+| マテリアル | 白箱（PBR未適用） | リアリズム低下 | ambientCGアセット不在 | 8 | 2 | 3 | **48** | アセット事前ダウンロード確認 / fallback Principled |
+| ライティング | フラット照明 | 深度感なし | HDRI/太陽未設定 | 7 | 1 | 4 | **28** | Nishita Sky + sun_energy≥5 + fill2灯 |
+| 接地AO | DOM浮き | 不自然な接地 | Raycast miss / embed_depth不足 | 9 | 3 | 3 | **81** | embed_depth=0.75固定 + ShadowCatcher必須 |
+| カメラ | T-ポーズシルエット | キャラ品質低下 | Mixamo未適用 | 8 | 2 | 3 | **48** | posed FBX使用 / シルエット事前チェック |
+| レンダリング | 全黒フレーム | 成果物なし | Emission未接続 | 10 | 2 | 2 | **40** | visual_qa gate / samples≥64 |
+| アニメーション | フレーム間照明変化 | 動画品質低下 | ライト設定非固定 | 6 | 3 | 4 | **72** | 全フレームで同一照明パラメータ固定 |
+
+### 教訓
+全項目合格。このパラメータ設定を再利用推奨。
+
+
+## FMEA — Shibuya_Zaku (2026-05-20 09:44)
+
+QAスコア: material=5 lighting=5 camera=5 character=5
+
+| 工程 | 故障モード | 影響 | 原因 | 重篤度 | 発生度 | 検出度 | RPN | 対策 |
+|---|---|---|---|---|---|---|---|---|
+| マテリアル | 白箱（PBR未適用） | リアリズム低下 | ambientCGアセット不在 | 8 | 2 | 3 | **48** | アセット事前ダウンロード確認 / fallback Principled |
+| ライティング | フラット照明 | 深度感なし | HDRI/太陽未設定 | 7 | 1 | 4 | **28** | Nishita Sky + sun_energy≥5 + fill2灯 |
+| 接地AO | DOM浮き | 不自然な接地 | Raycast miss / embed_depth不足 | 9 | 3 | 3 | **81** | embed_depth=0.75固定 + ShadowCatcher必須 |
+| カメラ | T-ポーズシルエット | キャラ品質低下 | Mixamo未適用 | 8 | 2 | 3 | **48** | posed FBX使用 / シルエット事前チェック |
+| レンダリング | 全黒フレーム | 成果物なし | Emission未接続 | 10 | 2 | 2 | **40** | visual_qa gate / samples≥64 |
+| アニメーション | フレーム間照明変化 | 動画品質低下 | ライト設定非固定 | 6 | 3 | 4 | **72** | 全フレームで同一照明パラメータ固定 |
+
+### 教訓
+全項目合格。このパラメータ設定を再利用推奨。
+
+
+## FMEA — Shibuya_Zaku (2026-05-20 09:53)
+
+QAスコア: material=3 lighting=3 camera=3 character=3
+
+| 工程 | 故障モード | 影響 | 原因 | 重篤度 | 発生度 | 検出度 | RPN | 対策 |
+|---|---|---|---|---|---|---|---|---|
+| マテリアル | 白箱（PBR未適用） | リアリズム低下 | ambientCGアセット不在 | 8 | 2 | 3 | **48** | アセット事前ダウンロード確認 / fallback Principled |
+| ライティング | フラット照明 | 深度感なし | HDRI/太陽未設定 | 7 | 1 | 4 | **28** | Nishita Sky + sun_energy≥5 + fill2灯 |
+| 接地AO | DOM浮き | 不自然な接地 | Raycast miss / embed_depth不足 | 9 | 3 | 3 | **81** | embed_depth=0.75固定 + ShadowCatcher必須 |
+| カメラ | T-ポーズシルエット | キャラ品質低下 | Mixamo未適用 | 8 | 2 | 3 | **48** | posed FBX使用 / シルエット事前チェック |
+| レンダリング | 全黒フレーム | 成果物なし | Emission未接続 | 10 | 2 | 2 | **40** | visual_qa gate / samples≥64 |
+| アニメーション | フレーム間照明変化 | 動画品質低下 | ライト設定非固定 | 6 | 3 | 4 | **72** | 全フレームで同一照明パラメータ固定 |
+
+### 教訓
+全項目合格。このパラメータ設定を再利用推奨。
+

@@ -3,6 +3,21 @@
 譛ｬ繝輔ぃ繧､繝ｫ縺ｯ縲√す繧ｹ繝・Β縺ｫ逋ｺ逕溘＠縺滄囿螳ｳ繝ｻ荳榊・蜷医→縺昴・譬ｹ譛ｬ蜴溷屏繝ｻ菫ｮ豁｣蜀・ｮｹ繝ｻ蜀咲匱髦ｲ豁｢遲悶ｒ險倬鹸縺励∪縺吶・菫ｮ豁｣繧定｡後▲縺溷�ｴ蜷医・縲∝ｿ・★縺薙・繝輔ぃ繧､繝ｫ縺ｫ繧ｨ繝ｳ繝医Μ繧定ｿｽ蜉�縺励※縺上□縺輔＞縲・
 ------
 
+## INC-084: CityCharacterPipeline walking render lower-body burial caused by OSM occluders and grounding blind spots
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-05-20 JST |
+| **Detection** | User reported that the RickDias walking animation still looked buried even after `pre_min_z=-0.080m` produced `const_z_lift=0.130m`. Render diagnostics showed `real_foot_min_z=0.5673m` at frame 1 and `0.3125m` at frame 11, so the mesh itself was above z=0 while the image still looked buried. |
+| **Impact** | The generated `Shibuya_Zaku_walk.mp4` made the character's lower body appear hidden by the scene, blocking reliable use of the animation output for review or presentation. |
+| **Root Cause (5 Why)** | **Why1**: The lower body looked buried in the rendered video. **Why2**: The feet were not actually below the ground plane; foreground OSM building/roof geometry was occluding the lower body from the camera. **Why3**: The previous guard only skipped buildings around the initial origin and did not clear the camera sight corridor or the full walking corridor. **Why4**: The grounding check only compared character foot Z against z=0 and did not include per-frame surface/occluder diagnostics. **Why5**: Blender 5.1 uses Layered Action data, and the previous attempt to sanitize object transform curves assumed the old `Action.fcurves` API, which failed before rendering. |
+| **Fix** | Added evaluated mesh BBox helpers and per-frame walking surface clearance checks in `projects/CityCharacterPipeline/pipeline/scene_builder.py:145`. Added walk-corridor OSM building hiding at `scene_builder.py:166`, camera-corridor OSM building hiding at `scene_builder.py:197`, and Blender 5.1 Layered Action transform-curve cleanup at `scene_builder.py:245` and `scene_builder.py:1011`. Added per-frame grounding summary logs at `scene_builder.py:1153`. Also added Windows UTF-8 stdout setup at `scene_builder.py:11` and generated Blender script setup at `scene_builder.py:26`. |
+| **Verification** | Ran `python -m py_compile projects/CityCharacterPipeline/pipeline/scene_builder.py`. Ran `python run_pipeline.py --config configs/shibuya_zaku.yaml --animate --skip-qa` successfully. Blender rendered all 90 frames and ffmpeg rebuilt `Shibuya_Zaku_walk.mp4`. Key log values: `motion corridor: hidden 1 OSM buildings`, `camera corridor: hidden 1 OSM buildings`, `min_foot_z=0.0500`, `min_clearance=0.0500`, `max_extra_lift=0.0000`, frame 1 `real_foot_min_z=0.5673m`, frame 11 `real_foot_min_z=0.3125m`. Manual frame check of `render_frame_0011.png` confirmed the lower body is visible instead of hidden behind the foreground roof/ground-like surface. |
+| **Lessons Learned** | A positive foot Z does not prove visual grounding is correct when city geometry can sit between camera and character. Character animation diagnostics must check both physical clearance and camera-visible occluders. Blender 5.x action code should support Layered Action `channelbags` instead of assuming old direct `Action.fcurves`. |
+| **Prevention** | Keep walk/camera corridor occluder removal enabled for OSM animation shots, retain per-frame clearance summary logs, and use Blender-version-compatible action curve access when modifying imported FBX animation data. |
+
+---
+
 ## INC-083: Missing Email Safety Policy and Unconfigured Maintenance Exclusions
 
 | Field | Detail |

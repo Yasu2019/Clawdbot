@@ -1076,3 +1076,633 @@
 | 7 | レンダリング | 画質 | Cycles 128spp | 全黒なし・ノイズ最小 | samples=128 denoiser=OPENIMAGEDENOISE |
 | 8 | QAゲート | 品質スコア | 4項目スコアリング | 全項目≥3/5 | 自動判定 |
 
+
+## QC工程表 — Shibuya_Zaku (2026-05-19 10:27)
+
+| # | 工程 | 管理特性 | 管理方法 | 判定基準 | パラメータ |
+|---|---|---|---|---|---|
+| 1 | Config読み込み | YAMLスキーマ検証 | 必須フィールド確認 | 全フィールド存在 | — |
+| 2 | Blend読み込み | シーン整合性 | オブジェクト数確認 | ≥1オブジェクト | blend= |
+| 3 | マテリアル強化 | PBRテクスチャ適用 | ambientCGアセット | 全建物・道路に適用 | bldg=Concrete034 rough=0.65 |
+| 4 | ライティング | 照明設定 | HDRI + 太陽 + Fill | 日中自然光 | sun_energy=3.0 hdri= |
+| 5 | 接地AO | キャラ接地影 | ShadowCatcherプレーン | 足元に自然な影 | r=4.0 strength=0.7 |
+| 6 | カメラ | 構図・レンズ | Cycles Camera | 被写体が中央 | lens=35mm res=[2048, 1152] |
+| 7 | レンダリング | 画質 | Cycles 128spp | 全黒なし・ノイズ最小 | samples=128 denoiser=OPENIMAGEDENOISE |
+| 8 | QAゲート | 品質スコア | 4項目スコアリング | 全項目≥3/5 | 自動判定 |
+
+
+## QC工程表 — Shibuya_Zaku (2026-05-19 10:28)
+
+| # | 工程 | 管理特性 | 管理方法 | 判定基準 | パラメータ |
+|---|---|---|---|---|---|
+| 1 | Config読み込み | YAMLスキーマ検証 | 必須フィールド確認 | 全フィールド存在 | — |
+| 2 | Blend読み込み | シーン整合性 | オブジェクト数確認 | ≥1オブジェクト | blend= |
+| 3 | マテリアル強化 | PBRテクスチャ適用 | ambientCGアセット | 全建物・道路に適用 | bldg=Concrete034 rough=0.65 |
+| 4 | ライティング | 照明設定 | HDRI + 太陽 + Fill | 日中自然光 | sun_energy=3.0 hdri= |
+| 5 | 接地AO | キャラ接地影 | ShadowCatcherプレーン | 足元に自然な影 | r=4.0 strength=0.7 |
+| 6 | カメラ | 構図・レンズ | Cycles Camera | 被写体が中央 | lens=35mm res=[2048, 1152] |
+| 7 | レンダリング | 画質 | Cycles 128spp | 全黒なし・ノイズ最小 | samples=128 denoiser=OPENIMAGEDENOISE |
+| 8 | QAゲート | 品質スコア | 4項目スコアリング | 全項目≥3/5 | 自動判定 |
+
+
+## QC工程表 — Shibuya_Zaku (2026-05-19 10:31)
+
+| # | 工程 | 管理特性 | 管理方法 | 判定基準 | パラメータ |
+|---|---|---|---|---|---|
+| 1 | Config読み込み | YAMLスキーマ検証 | 必須フィールド確認 | 全フィールド存在 | — |
+| 2 | Blend読み込み | シーン整合性 | オブジェクト数確認 | ≥1オブジェクト | blend= |
+| 3 | マテリアル強化 | PBRテクスチャ適用 | ambientCGアセット | 全建物・道路に適用 | bldg=Concrete034 rough=0.65 |
+| 4 | ライティング | 照明設定 | HDRI + 太陽 + Fill | 日中自然光 | sun_energy=3.0 hdri= |
+| 5 | 接地AO | キャラ接地影 | ShadowCatcherプレーン | 足元に自然な影 | r=4.0 strength=0.7 |
+| 6 | カメラ | 構図・レンズ | Cycles Camera | 被写体が中央 | lens=35mm res=[2048, 1152] |
+| 7 | レンダリング | 画質 | Cycles 128spp | 全黒なし・ノイズ最小 | samples=128 denoiser=OPENIMAGEDENOISE |
+| 8 | QAゲート | 品質スコア | 4項目スコアリング | 全項目≥3/5 | 自動判定 |
+
+
+## QC工程表 — Shibuya_Zaku (2026-05-19 10:40)
+
+| # | 工程 | 管理特性 | 管理方法 | 判定基準 | パラメータ |
+|---|---|---|---|---|---|
+| 1 | Config読み込み | YAMLスキーマ検証 | 必須フィールド確認 | 全フィールド存在 | — |
+| 2 | Blend読み込み | シーン整合性 | オブジェクト数確認 | ≥1オブジェクト | blend= |
+| 3 | マテリアル強化 | PBRテクスチャ適用 | ambientCGアセット | 全建物・道路に適用 | bldg=Concrete034 rough=0.65 |
+| 4 | ライティング | 照明設定 | HDRI + 太陽 + Fill | 日中自然光 | sun_energy=3.0 hdri= |
+| 5 | 接地AO | キャラ接地影 | ShadowCatcherプレーン | 足元に自然な影 | r=4.0 strength=0.7 |
+| 6 | カメラ | 構図・レンズ | Cycles Camera | 被写体が中央 | lens=35mm res=[2048, 1152] |
+| 7 | レンダリング | 画質 | Cycles 128spp | 全黒なし・ノイズ最小 | samples=128 denoiser=OPENIMAGEDENOISE |
+| 8 | QAゲート | 品質スコア | 4項目スコアリング | 全項目≥3/5 | 自動判定 |
+
+
+## QC工程表 — Shibuya_Zaku (2026-05-19 10:44)
+
+| # | 工程 | 管理特性 | 管理方法 | 判定基準 | パラメータ |
+|---|---|---|---|---|---|
+| 1 | Config読み込み | YAMLスキーマ検証 | 必須フィールド確認 | 全フィールド存在 | — |
+| 2 | Blend読み込み | シーン整合性 | オブジェクト数確認 | ≥1オブジェクト | blend= |
+| 3 | マテリアル強化 | PBRテクスチャ適用 | ambientCGアセット | 全建物・道路に適用 | bldg=Concrete034 rough=0.65 |
+| 4 | ライティング | 照明設定 | HDRI + 太陽 + Fill | 日中自然光 | sun_energy=3.0 hdri= |
+| 5 | 接地AO | キャラ接地影 | ShadowCatcherプレーン | 足元に自然な影 | r=4.0 strength=0.7 |
+| 6 | カメラ | 構図・レンズ | Cycles Camera | 被写体が中央 | lens=35mm res=[2048, 1152] |
+| 7 | レンダリング | 画質 | Cycles 128spp | 全黒なし・ノイズ最小 | samples=128 denoiser=OPENIMAGEDENOISE |
+| 8 | QAゲート | 品質スコア | 4項目スコアリング | 全項目≥3/5 | 自動判定 |
+
+
+## QC工程表 — Shibuya_Zaku (2026-05-19 11:22)
+
+| # | 工程 | 管理特性 | 管理方法 | 判定基準 | パラメータ |
+|---|---|---|---|---|---|
+| 1 | Config読み込み | YAMLスキーマ検証 | 必須フィールド確認 | 全フィールド存在 | — |
+| 2 | Blend読み込み | シーン整合性 | オブジェクト数確認 | ≥1オブジェクト | blend= |
+| 3 | マテリアル強化 | PBRテクスチャ適用 | ambientCGアセット | 全建物・道路に適用 | bldg=Concrete034 rough=0.65 |
+| 4 | ライティング | 照明設定 | HDRI + 太陽 + Fill | 日中自然光 | sun_energy=3.0 hdri= |
+| 5 | 接地AO | キャラ接地影 | ShadowCatcherプレーン | 足元に自然な影 | r=4.0 strength=0.7 |
+| 6 | カメラ | 構図・レンズ | Cycles Camera | 被写体が中央 | lens=35mm res=[2048, 1152] |
+| 7 | レンダリング | 画質 | Cycles 128spp | 全黒なし・ノイズ最小 | samples=128 denoiser=OPENIMAGEDENOISE |
+| 8 | QAゲート | 品質スコア | 4項目スコアリング | 全項目≥3/5 | 自動判定 |
+
+
+## QC工程表 — Shibuya_Zaku (2026-05-19 11:32)
+
+| # | 工程 | 管理特性 | 管理方法 | 判定基準 | パラメータ |
+|---|---|---|---|---|---|
+| 1 | Config読み込み | YAMLスキーマ検証 | 必須フィールド確認 | 全フィールド存在 | — |
+| 2 | Blend読み込み | シーン整合性 | オブジェクト数確認 | ≥1オブジェクト | blend= |
+| 3 | マテリアル強化 | PBRテクスチャ適用 | ambientCGアセット | 全建物・道路に適用 | bldg=Concrete034 rough=0.65 |
+| 4 | ライティング | 照明設定 | HDRI + 太陽 + Fill | 日中自然光 | sun_energy=3.0 hdri= |
+| 5 | 接地AO | キャラ接地影 | ShadowCatcherプレーン | 足元に自然な影 | r=4.0 strength=0.7 |
+| 6 | カメラ | 構図・レンズ | Cycles Camera | 被写体が中央 | lens=35mm res=[2048, 1152] |
+| 7 | レンダリング | 画質 | Cycles 128spp | 全黒なし・ノイズ最小 | samples=128 denoiser=OPENIMAGEDENOISE |
+| 8 | QAゲート | 品質スコア | 4項目スコアリング | 全項目≥3/5 | 自動判定 |
+
+
+## QC工程表 — Shibuya_Zaku (2026-05-19 11:51)
+
+| # | 工程 | 管理特性 | 管理方法 | 判定基準 | パラメータ |
+|---|---|---|---|---|---|
+| 1 | Config読み込み | YAMLスキーマ検証 | 必須フィールド確認 | 全フィールド存在 | — |
+| 2 | Blend読み込み | シーン整合性 | オブジェクト数確認 | ≥1オブジェクト | blend= |
+| 3 | マテリアル強化 | PBRテクスチャ適用 | ambientCGアセット | 全建物・道路に適用 | bldg=Concrete034 rough=0.65 |
+| 4 | ライティング | 照明設定 | HDRI + 太陽 + Fill | 日中自然光 | sun_energy=3.0 hdri= |
+| 5 | 接地AO | キャラ接地影 | ShadowCatcherプレーン | 足元に自然な影 | r=4.0 strength=0.7 |
+| 6 | カメラ | 構図・レンズ | Cycles Camera | 被写体が中央 | lens=35mm res=[2048, 1152] |
+| 7 | レンダリング | 画質 | Cycles 128spp | 全黒なし・ノイズ最小 | samples=128 denoiser=OPENIMAGEDENOISE |
+| 8 | QAゲート | 品質スコア | 4項目スコアリング | 全項目≥3/5 | 自動判定 |
+
+
+## QC工程表 — Shibuya_Zaku (2026-05-19 12:05)
+
+| # | 工程 | 管理特性 | 管理方法 | 判定基準 | パラメータ |
+|---|---|---|---|---|---|
+| 1 | Config読み込み | YAMLスキーマ検証 | 必須フィールド確認 | 全フィールド存在 | — |
+| 2 | Blend読み込み | シーン整合性 | オブジェクト数確認 | ≥1オブジェクト | blend= |
+| 3 | マテリアル強化 | PBRテクスチャ適用 | ambientCGアセット | 全建物・道路に適用 | bldg=Concrete034 rough=0.65 |
+| 4 | ライティング | 照明設定 | HDRI + 太陽 + Fill | 日中自然光 | sun_energy=3.0 hdri= |
+| 5 | 接地AO | キャラ接地影 | ShadowCatcherプレーン | 足元に自然な影 | r=4.0 strength=0.7 |
+| 6 | カメラ | 構図・レンズ | Cycles Camera | 被写体が中央 | lens=35mm res=[2048, 1152] |
+| 7 | レンダリング | 画質 | Cycles 128spp | 全黒なし・ノイズ最小 | samples=128 denoiser=OPENIMAGEDENOISE |
+| 8 | QAゲート | 品質スコア | 4項目スコアリング | 全項目≥3/5 | 自動判定 |
+
+
+## QC工程表 — Shibuya_Zaku (2026-05-19 12:12)
+
+| # | 工程 | 管理特性 | 管理方法 | 判定基準 | パラメータ |
+|---|---|---|---|---|---|
+| 1 | Config読み込み | YAMLスキーマ検証 | 必須フィールド確認 | 全フィールド存在 | — |
+| 2 | Blend読み込み | シーン整合性 | オブジェクト数確認 | ≥1オブジェクト | blend= |
+| 3 | マテリアル強化 | PBRテクスチャ適用 | ambientCGアセット | 全建物・道路に適用 | bldg=Concrete034 rough=0.65 |
+| 4 | ライティング | 照明設定 | HDRI + 太陽 + Fill | 日中自然光 | sun_energy=3.0 hdri= |
+| 5 | 接地AO | キャラ接地影 | ShadowCatcherプレーン | 足元に自然な影 | r=4.0 strength=0.7 |
+| 6 | カメラ | 構図・レンズ | Cycles Camera | 被写体が中央 | lens=35mm res=[2048, 1152] |
+| 7 | レンダリング | 画質 | Cycles 128spp | 全黒なし・ノイズ最小 | samples=128 denoiser=OPENIMAGEDENOISE |
+| 8 | QAゲート | 品質スコア | 4項目スコアリング | 全項目≥3/5 | 自動判定 |
+
+
+## QC工程表 — Shibuya_Zaku (2026-05-19 12:16)
+
+| # | 工程 | 管理特性 | 管理方法 | 判定基準 | パラメータ |
+|---|---|---|---|---|---|
+| 1 | Config読み込み | YAMLスキーマ検証 | 必須フィールド確認 | 全フィールド存在 | — |
+| 2 | Blend読み込み | シーン整合性 | オブジェクト数確認 | ≥1オブジェクト | blend= |
+| 3 | マテリアル強化 | PBRテクスチャ適用 | ambientCGアセット | 全建物・道路に適用 | bldg=Concrete034 rough=0.65 |
+| 4 | ライティング | 照明設定 | HDRI + 太陽 + Fill | 日中自然光 | sun_energy=3.0 hdri= |
+| 5 | 接地AO | キャラ接地影 | ShadowCatcherプレーン | 足元に自然な影 | r=4.0 strength=0.7 |
+| 6 | カメラ | 構図・レンズ | Cycles Camera | 被写体が中央 | lens=35mm res=[2048, 1152] |
+| 7 | レンダリング | 画質 | Cycles 128spp | 全黒なし・ノイズ最小 | samples=128 denoiser=OPENIMAGEDENOISE |
+| 8 | QAゲート | 品質スコア | 4項目スコアリング | 全項目≥3/5 | 自動判定 |
+
+
+## QC工程表 — Shibuya_Zaku (2026-05-19 15:31)
+
+| # | 工程 | 管理特性 | 管理方法 | 判定基準 | パラメータ |
+|---|---|---|---|---|---|
+| 1 | Config読み込み | YAMLスキーマ検証 | 必須フィールド確認 | 全フィールド存在 | — |
+| 2 | Blend読み込み | シーン整合性 | オブジェクト数確認 | ≥1オブジェクト | blend= |
+| 3 | マテリアル強化 | PBRテクスチャ適用 | ambientCGアセット | 全建物・道路に適用 | bldg=Concrete034 rough=0.65 |
+| 4 | ライティング | 照明設定 | HDRI + 太陽 + Fill | 日中自然光 | sun_energy=3.0 hdri= |
+| 5 | 接地AO | キャラ接地影 | ShadowCatcherプレーン | 足元に自然な影 | r=4.0 strength=0.7 |
+| 6 | カメラ | 構図・レンズ | Cycles Camera | 被写体が中央 | lens=35mm res=[2048, 1152] |
+| 7 | レンダリング | 画質 | Cycles 128spp | 全黒なし・ノイズ最小 | samples=128 denoiser=OPENIMAGEDENOISE |
+| 8 | QAゲート | 品質スコア | 4項目スコアリング | 全項目≥3/5 | 自動判定 |
+
+
+## QC工程表 — Shibuya_Zaku (2026-05-19 20:13)
+
+| # | 工程 | 管理特性 | 管理方法 | 判定基準 | パラメータ |
+|---|---|---|---|---|---|
+| 1 | Config読み込み | YAMLスキーマ検証 | 必須フィールド確認 | 全フィールド存在 | — |
+| 2 | Blend読み込み | シーン整合性 | オブジェクト数確認 | ≥1オブジェクト | blend= |
+| 3 | マテリアル強化 | PBRテクスチャ適用 | ambientCGアセット | 全建物・道路に適用 | bldg=Concrete034 rough=0.65 |
+| 4 | ライティング | 照明設定 | HDRI + 太陽 + Fill | 日中自然光 | sun_energy=3.0 hdri= |
+| 5 | 接地AO | キャラ接地影 | ShadowCatcherプレーン | 足元に自然な影 | r=4.0 strength=0.7 |
+| 6 | カメラ | 構図・レンズ | Cycles Camera | 被写体が中央 | lens=35mm res=[2048, 1152] |
+| 7 | レンダリング | 画質 | Cycles 128spp | 全黒なし・ノイズ最小 | samples=128 denoiser=OPENIMAGEDENOISE |
+| 8 | QAゲート | 品質スコア | 4項目スコアリング | 全項目≥3/5 | 自動判定 |
+
+
+## QC工程表 — Shibuya_Zaku (2026-05-19 20:24)
+
+| # | 工程 | 管理特性 | 管理方法 | 判定基準 | パラメータ |
+|---|---|---|---|---|---|
+| 1 | Config読み込み | YAMLスキーマ検証 | 必須フィールド確認 | 全フィールド存在 | — |
+| 2 | Blend読み込み | シーン整合性 | オブジェクト数確認 | ≥1オブジェクト | blend= |
+| 3 | マテリアル強化 | PBRテクスチャ適用 | ambientCGアセット | 全建物・道路に適用 | bldg=Concrete034 rough=0.65 |
+| 4 | ライティング | 照明設定 | HDRI + 太陽 + Fill | 日中自然光 | sun_energy=3.0 hdri= |
+| 5 | 接地AO | キャラ接地影 | ShadowCatcherプレーン | 足元に自然な影 | r=4.0 strength=0.7 |
+| 6 | カメラ | 構図・レンズ | Cycles Camera | 被写体が中央 | lens=35mm res=[2048, 1152] |
+| 7 | レンダリング | 画質 | Cycles 128spp | 全黒なし・ノイズ最小 | samples=128 denoiser=OPENIMAGEDENOISE |
+| 8 | QAゲート | 品質スコア | 4項目スコアリング | 全項目≥3/5 | 自動判定 |
+
+
+## QC工程表 — Shibuya_Zaku (2026-05-19 20:30)
+
+| # | 工程 | 管理特性 | 管理方法 | 判定基準 | パラメータ |
+|---|---|---|---|---|---|
+| 1 | Config読み込み | YAMLスキーマ検証 | 必須フィールド確認 | 全フィールド存在 | — |
+| 2 | Blend読み込み | シーン整合性 | オブジェクト数確認 | ≥1オブジェクト | blend= |
+| 3 | マテリアル強化 | PBRテクスチャ適用 | ambientCGアセット | 全建物・道路に適用 | bldg=Concrete034 rough=0.65 |
+| 4 | ライティング | 照明設定 | HDRI + 太陽 + Fill | 日中自然光 | sun_energy=3.0 hdri= |
+| 5 | 接地AO | キャラ接地影 | ShadowCatcherプレーン | 足元に自然な影 | r=4.0 strength=0.7 |
+| 6 | カメラ | 構図・レンズ | Cycles Camera | 被写体が中央 | lens=35mm res=[2048, 1152] |
+| 7 | レンダリング | 画質 | Cycles 128spp | 全黒なし・ノイズ最小 | samples=128 denoiser=OPENIMAGEDENOISE |
+| 8 | QAゲート | 品質スコア | 4項目スコアリング | 全項目≥3/5 | 自動判定 |
+
+
+## QC工程表 — Shibuya_Zaku (2026-05-19 20:43)
+
+| # | 工程 | 管理特性 | 管理方法 | 判定基準 | パラメータ |
+|---|---|---|---|---|---|
+| 1 | Config読み込み | YAMLスキーマ検証 | 必須フィールド確認 | 全フィールド存在 | — |
+| 2 | Blend読み込み | シーン整合性 | オブジェクト数確認 | ≥1オブジェクト | blend= |
+| 3 | マテリアル強化 | PBRテクスチャ適用 | ambientCGアセット | 全建物・道路に適用 | bldg=Concrete034 rough=0.65 |
+| 4 | ライティング | 照明設定 | HDRI + 太陽 + Fill | 日中自然光 | sun_energy=3.0 hdri= |
+| 5 | 接地AO | キャラ接地影 | ShadowCatcherプレーン | 足元に自然な影 | r=4.0 strength=0.7 |
+| 6 | カメラ | 構図・レンズ | Cycles Camera | 被写体が中央 | lens=35mm res=[2048, 1152] |
+| 7 | レンダリング | 画質 | Cycles 128spp | 全黒なし・ノイズ最小 | samples=128 denoiser=OPENIMAGEDENOISE |
+| 8 | QAゲート | 品質スコア | 4項目スコアリング | 全項目≥3/5 | 自動判定 |
+
+
+## QC工程表 — Shibuya_Zaku (2026-05-19 20:47)
+
+| # | 工程 | 管理特性 | 管理方法 | 判定基準 | パラメータ |
+|---|---|---|---|---|---|
+| 1 | Config読み込み | YAMLスキーマ検証 | 必須フィールド確認 | 全フィールド存在 | — |
+| 2 | Blend読み込み | シーン整合性 | オブジェクト数確認 | ≥1オブジェクト | blend= |
+| 3 | マテリアル強化 | PBRテクスチャ適用 | ambientCGアセット | 全建物・道路に適用 | bldg=Concrete034 rough=0.65 |
+| 4 | ライティング | 照明設定 | HDRI + 太陽 + Fill | 日中自然光 | sun_energy=3.0 hdri= |
+| 5 | 接地AO | キャラ接地影 | ShadowCatcherプレーン | 足元に自然な影 | r=4.0 strength=0.7 |
+| 6 | カメラ | 構図・レンズ | Cycles Camera | 被写体が中央 | lens=35mm res=[2048, 1152] |
+| 7 | レンダリング | 画質 | Cycles 128spp | 全黒なし・ノイズ最小 | samples=128 denoiser=OPENIMAGEDENOISE |
+| 8 | QAゲート | 品質スコア | 4項目スコアリング | 全項目≥3/5 | 自動判定 |
+
+
+## QC工程表 — Shibuya_Zaku (2026-05-19 21:31)
+
+| # | 工程 | 管理特性 | 管理方法 | 判定基準 | パラメータ |
+|---|---|---|---|---|---|
+| 1 | Config読み込み | YAMLスキーマ検証 | 必須フィールド確認 | 全フィールド存在 | — |
+| 2 | Blend読み込み | シーン整合性 | オブジェクト数確認 | ≥1オブジェクト | blend= |
+| 3 | マテリアル強化 | PBRテクスチャ適用 | ambientCGアセット | 全建物・道路に適用 | bldg=Concrete034 rough=0.65 |
+| 4 | ライティング | 照明設定 | HDRI + 太陽 + Fill | 日中自然光 | sun_energy=3.0 hdri= |
+| 5 | 接地AO | キャラ接地影 | ShadowCatcherプレーン | 足元に自然な影 | r=4.0 strength=0.7 |
+| 6 | カメラ | 構図・レンズ | Cycles Camera | 被写体が中央 | lens=35mm res=[2048, 1152] |
+| 7 | レンダリング | 画質 | Cycles 128spp | 全黒なし・ノイズ最小 | samples=128 denoiser=OPENIMAGEDENOISE |
+| 8 | QAゲート | 品質スコア | 4項目スコアリング | 全項目≥3/5 | 自動判定 |
+
+
+## QC工程表 — Shibuya_Zaku (2026-05-19 21:42)
+
+| # | 工程 | 管理特性 | 管理方法 | 判定基準 | パラメータ |
+|---|---|---|---|---|---|
+| 1 | Config読み込み | YAMLスキーマ検証 | 必須フィールド確認 | 全フィールド存在 | — |
+| 2 | Blend読み込み | シーン整合性 | オブジェクト数確認 | ≥1オブジェクト | blend= |
+| 3 | マテリアル強化 | PBRテクスチャ適用 | ambientCGアセット | 全建物・道路に適用 | bldg=Concrete034 rough=0.65 |
+| 4 | ライティング | 照明設定 | HDRI + 太陽 + Fill | 日中自然光 | sun_energy=3.0 hdri= |
+| 5 | 接地AO | キャラ接地影 | ShadowCatcherプレーン | 足元に自然な影 | r=4.0 strength=0.7 |
+| 6 | カメラ | 構図・レンズ | Cycles Camera | 被写体が中央 | lens=35mm res=[2048, 1152] |
+| 7 | レンダリング | 画質 | Cycles 128spp | 全黒なし・ノイズ最小 | samples=128 denoiser=OPENIMAGEDENOISE |
+| 8 | QAゲート | 品質スコア | 4項目スコアリング | 全項目≥3/5 | 自動判定 |
+
+
+## QC工程表 — Shibuya_Zaku (2026-05-19 21:48)
+
+| # | 工程 | 管理特性 | 管理方法 | 判定基準 | パラメータ |
+|---|---|---|---|---|---|
+| 1 | Config読み込み | YAMLスキーマ検証 | 必須フィールド確認 | 全フィールド存在 | — |
+| 2 | Blend読み込み | シーン整合性 | オブジェクト数確認 | ≥1オブジェクト | blend= |
+| 3 | マテリアル強化 | PBRテクスチャ適用 | ambientCGアセット | 全建物・道路に適用 | bldg=Concrete034 rough=0.65 |
+| 4 | ライティング | 照明設定 | HDRI + 太陽 + Fill | 日中自然光 | sun_energy=3.0 hdri= |
+| 5 | 接地AO | キャラ接地影 | ShadowCatcherプレーン | 足元に自然な影 | r=4.0 strength=0.7 |
+| 6 | カメラ | 構図・レンズ | Cycles Camera | 被写体が中央 | lens=35mm res=[2048, 1152] |
+| 7 | レンダリング | 画質 | Cycles 128spp | 全黒なし・ノイズ最小 | samples=128 denoiser=OPENIMAGEDENOISE |
+| 8 | QAゲート | 品質スコア | 4項目スコアリング | 全項目≥3/5 | 自動判定 |
+
+
+## QC工程表 — Shibuya_Zaku (2026-05-19 21:58)
+
+| # | 工程 | 管理特性 | 管理方法 | 判定基準 | パラメータ |
+|---|---|---|---|---|---|
+| 1 | Config読み込み | YAMLスキーマ検証 | 必須フィールド確認 | 全フィールド存在 | — |
+| 2 | Blend読み込み | シーン整合性 | オブジェクト数確認 | ≥1オブジェクト | blend= |
+| 3 | マテリアル強化 | PBRテクスチャ適用 | ambientCGアセット | 全建物・道路に適用 | bldg=Concrete034 rough=0.65 |
+| 4 | ライティング | 照明設定 | HDRI + 太陽 + Fill | 日中自然光 | sun_energy=3.0 hdri= |
+| 5 | 接地AO | キャラ接地影 | ShadowCatcherプレーン | 足元に自然な影 | r=4.0 strength=0.7 |
+| 6 | カメラ | 構図・レンズ | Cycles Camera | 被写体が中央 | lens=35mm res=[2048, 1152] |
+| 7 | レンダリング | 画質 | Cycles 128spp | 全黒なし・ノイズ最小 | samples=128 denoiser=OPENIMAGEDENOISE |
+| 8 | QAゲート | 品質スコア | 4項目スコアリング | 全項目≥3/5 | 自動判定 |
+
+
+## QC工程表 — Shibuya_Zaku (2026-05-19 22:03)
+
+| # | 工程 | 管理特性 | 管理方法 | 判定基準 | パラメータ |
+|---|---|---|---|---|---|
+| 1 | Config読み込み | YAMLスキーマ検証 | 必須フィールド確認 | 全フィールド存在 | — |
+| 2 | Blend読み込み | シーン整合性 | オブジェクト数確認 | ≥1オブジェクト | blend= |
+| 3 | マテリアル強化 | PBRテクスチャ適用 | ambientCGアセット | 全建物・道路に適用 | bldg=Concrete034 rough=0.65 |
+| 4 | ライティング | 照明設定 | HDRI + 太陽 + Fill | 日中自然光 | sun_energy=3.0 hdri= |
+| 5 | 接地AO | キャラ接地影 | ShadowCatcherプレーン | 足元に自然な影 | r=4.0 strength=0.7 |
+| 6 | カメラ | 構図・レンズ | Cycles Camera | 被写体が中央 | lens=35mm res=[2048, 1152] |
+| 7 | レンダリング | 画質 | Cycles 128spp | 全黒なし・ノイズ最小 | samples=128 denoiser=OPENIMAGEDENOISE |
+| 8 | QAゲート | 品質スコア | 4項目スコアリング | 全項目≥3/5 | 自動判定 |
+
+
+## QC工程表 — Shibuya_Zaku (2026-05-19 22:16)
+
+| # | 工程 | 管理特性 | 管理方法 | 判定基準 | パラメータ |
+|---|---|---|---|---|---|
+| 1 | Config読み込み | YAMLスキーマ検証 | 必須フィールド確認 | 全フィールド存在 | — |
+| 2 | Blend読み込み | シーン整合性 | オブジェクト数確認 | ≥1オブジェクト | blend= |
+| 3 | マテリアル強化 | PBRテクスチャ適用 | ambientCGアセット | 全建物・道路に適用 | bldg=Concrete034 rough=0.65 |
+| 4 | ライティング | 照明設定 | HDRI + 太陽 + Fill | 日中自然光 | sun_energy=3.0 hdri= |
+| 5 | 接地AO | キャラ接地影 | ShadowCatcherプレーン | 足元に自然な影 | r=4.0 strength=0.7 |
+| 6 | カメラ | 構図・レンズ | Cycles Camera | 被写体が中央 | lens=35mm res=[2048, 1152] |
+| 7 | レンダリング | 画質 | Cycles 128spp | 全黒なし・ノイズ最小 | samples=128 denoiser=OPENIMAGEDENOISE |
+| 8 | QAゲート | 品質スコア | 4項目スコアリング | 全項目≥3/5 | 自動判定 |
+
+
+## QC工程表 — Shibuya_Zaku (2026-05-19 22:45)
+
+| # | 工程 | 管理特性 | 管理方法 | 判定基準 | パラメータ |
+|---|---|---|---|---|---|
+| 1 | Config読み込み | YAMLスキーマ検証 | 必須フィールド確認 | 全フィールド存在 | — |
+| 2 | Blend読み込み | シーン整合性 | オブジェクト数確認 | ≥1オブジェクト | blend= |
+| 3 | マテリアル強化 | PBRテクスチャ適用 | ambientCGアセット | 全建物・道路に適用 | bldg=Concrete034 rough=0.65 |
+| 4 | ライティング | 照明設定 | HDRI + 太陽 + Fill | 日中自然光 | sun_energy=3.0 hdri= |
+| 5 | 接地AO | キャラ接地影 | ShadowCatcherプレーン | 足元に自然な影 | r=4.0 strength=0.7 |
+| 6 | カメラ | 構図・レンズ | Cycles Camera | 被写体が中央 | lens=35mm res=[2048, 1152] |
+| 7 | レンダリング | 画質 | Cycles 128spp | 全黒なし・ノイズ最小 | samples=128 denoiser=OPENIMAGEDENOISE |
+| 8 | QAゲート | 品質スコア | 4項目スコアリング | 全項目≥3/5 | 自動判定 |
+
+
+## QC工程表 — Shibuya_Zaku (2026-05-19 22:53)
+
+| # | 工程 | 管理特性 | 管理方法 | 判定基準 | パラメータ |
+|---|---|---|---|---|---|
+| 1 | Config読み込み | YAMLスキーマ検証 | 必須フィールド確認 | 全フィールド存在 | — |
+| 2 | Blend読み込み | シーン整合性 | オブジェクト数確認 | ≥1オブジェクト | blend= |
+| 3 | マテリアル強化 | PBRテクスチャ適用 | ambientCGアセット | 全建物・道路に適用 | bldg=Concrete034 rough=0.65 |
+| 4 | ライティング | 照明設定 | HDRI + 太陽 + Fill | 日中自然光 | sun_energy=3.0 hdri= |
+| 5 | 接地AO | キャラ接地影 | ShadowCatcherプレーン | 足元に自然な影 | r=4.0 strength=0.7 |
+| 6 | カメラ | 構図・レンズ | Cycles Camera | 被写体が中央 | lens=35mm res=[2048, 1152] |
+| 7 | レンダリング | 画質 | Cycles 128spp | 全黒なし・ノイズ最小 | samples=128 denoiser=OPENIMAGEDENOISE |
+| 8 | QAゲート | 品質スコア | 4項目スコアリング | 全項目≥3/5 | 自動判定 |
+
+
+## QC工程表 — Shibuya_Zaku (2026-05-19 22:56)
+
+| # | 工程 | 管理特性 | 管理方法 | 判定基準 | パラメータ |
+|---|---|---|---|---|---|
+| 1 | Config読み込み | YAMLスキーマ検証 | 必須フィールド確認 | 全フィールド存在 | — |
+| 2 | Blend読み込み | シーン整合性 | オブジェクト数確認 | ≥1オブジェクト | blend= |
+| 3 | マテリアル強化 | PBRテクスチャ適用 | ambientCGアセット | 全建物・道路に適用 | bldg=Concrete034 rough=0.65 |
+| 4 | ライティング | 照明設定 | HDRI + 太陽 + Fill | 日中自然光 | sun_energy=3.0 hdri= |
+| 5 | 接地AO | キャラ接地影 | ShadowCatcherプレーン | 足元に自然な影 | r=4.0 strength=0.7 |
+| 6 | カメラ | 構図・レンズ | Cycles Camera | 被写体が中央 | lens=35mm res=[2048, 1152] |
+| 7 | レンダリング | 画質 | Cycles 128spp | 全黒なし・ノイズ最小 | samples=128 denoiser=OPENIMAGEDENOISE |
+| 8 | QAゲート | 品質スコア | 4項目スコアリング | 全項目≥3/5 | 自動判定 |
+
+
+## QC工程表 — Shibuya_Zaku (2026-05-20 05:13)
+
+| # | 工程 | 管理特性 | 管理方法 | 判定基準 | パラメータ |
+|---|---|---|---|---|---|
+| 1 | Config読み込み | YAMLスキーマ検証 | 必須フィールド確認 | 全フィールド存在 | — |
+| 2 | Blend読み込み | シーン整合性 | オブジェクト数確認 | ≥1オブジェクト | blend= |
+| 3 | マテリアル強化 | PBRテクスチャ適用 | ambientCGアセット | 全建物・道路に適用 | bldg=Concrete034 rough=0.65 |
+| 4 | ライティング | 照明設定 | HDRI + 太陽 + Fill | 日中自然光 | sun_energy=3.0 hdri= |
+| 5 | 接地AO | キャラ接地影 | ShadowCatcherプレーン | 足元に自然な影 | r=4.0 strength=0.7 |
+| 6 | カメラ | 構図・レンズ | Cycles Camera | 被写体が中央 | lens=35mm res=[2048, 1152] |
+| 7 | レンダリング | 画質 | Cycles 128spp | 全黒なし・ノイズ最小 | samples=128 denoiser=OPENIMAGEDENOISE |
+| 8 | QAゲート | 品質スコア | 4項目スコアリング | 全項目≥3/5 | 自動判定 |
+
+
+## QC工程表 — Shibuya_Zaku (2026-05-20 05:30)
+
+| # | 工程 | 管理特性 | 管理方法 | 判定基準 | パラメータ |
+|---|---|---|---|---|---|
+| 1 | Config読み込み | YAMLスキーマ検証 | 必須フィールド確認 | 全フィールド存在 | — |
+| 2 | Blend読み込み | シーン整合性 | オブジェクト数確認 | ≥1オブジェクト | blend= |
+| 3 | マテリアル強化 | PBRテクスチャ適用 | ambientCGアセット | 全建物・道路に適用 | bldg=Concrete034 rough=0.65 |
+| 4 | ライティング | 照明設定 | HDRI + 太陽 + Fill | 日中自然光 | sun_energy=3.0 hdri= |
+| 5 | 接地AO | キャラ接地影 | ShadowCatcherプレーン | 足元に自然な影 | r=4.0 strength=0.7 |
+| 6 | カメラ | 構図・レンズ | Cycles Camera | 被写体が中央 | lens=35mm res=[2048, 1152] |
+| 7 | レンダリング | 画質 | Cycles 128spp | 全黒なし・ノイズ最小 | samples=128 denoiser=OPENIMAGEDENOISE |
+| 8 | QAゲート | 品質スコア | 4項目スコアリング | 全項目≥3/5 | 自動判定 |
+
+
+## QC工程表 — Shibuya_Zaku (2026-05-20 05:34)
+
+| # | 工程 | 管理特性 | 管理方法 | 判定基準 | パラメータ |
+|---|---|---|---|---|---|
+| 1 | Config読み込み | YAMLスキーマ検証 | 必須フィールド確認 | 全フィールド存在 | — |
+| 2 | Blend読み込み | シーン整合性 | オブジェクト数確認 | ≥1オブジェクト | blend= |
+| 3 | マテリアル強化 | PBRテクスチャ適用 | ambientCGアセット | 全建物・道路に適用 | bldg=Concrete034 rough=0.65 |
+| 4 | ライティング | 照明設定 | HDRI + 太陽 + Fill | 日中自然光 | sun_energy=3.0 hdri= |
+| 5 | 接地AO | キャラ接地影 | ShadowCatcherプレーン | 足元に自然な影 | r=4.0 strength=0.7 |
+| 6 | カメラ | 構図・レンズ | Cycles Camera | 被写体が中央 | lens=35mm res=[2048, 1152] |
+| 7 | レンダリング | 画質 | Cycles 128spp | 全黒なし・ノイズ最小 | samples=128 denoiser=OPENIMAGEDENOISE |
+| 8 | QAゲート | 品質スコア | 4項目スコアリング | 全項目≥3/5 | 自動判定 |
+
+
+## QC工程表 — Shibuya_Zaku (2026-05-20 05:39)
+
+| # | 工程 | 管理特性 | 管理方法 | 判定基準 | パラメータ |
+|---|---|---|---|---|---|
+| 1 | Config読み込み | YAMLスキーマ検証 | 必須フィールド確認 | 全フィールド存在 | — |
+| 2 | Blend読み込み | シーン整合性 | オブジェクト数確認 | ≥1オブジェクト | blend= |
+| 3 | マテリアル強化 | PBRテクスチャ適用 | ambientCGアセット | 全建物・道路に適用 | bldg=Concrete034 rough=0.65 |
+| 4 | ライティング | 照明設定 | HDRI + 太陽 + Fill | 日中自然光 | sun_energy=3.0 hdri= |
+| 5 | 接地AO | キャラ接地影 | ShadowCatcherプレーン | 足元に自然な影 | r=4.0 strength=0.7 |
+| 6 | カメラ | 構図・レンズ | Cycles Camera | 被写体が中央 | lens=35mm res=[2048, 1152] |
+| 7 | レンダリング | 画質 | Cycles 128spp | 全黒なし・ノイズ最小 | samples=128 denoiser=OPENIMAGEDENOISE |
+| 8 | QAゲート | 品質スコア | 4項目スコアリング | 全項目≥3/5 | 自動判定 |
+
+
+## QC工程表 — Shibuya_Zaku (2026-05-20 05:54)
+
+| # | 工程 | 管理特性 | 管理方法 | 判定基準 | パラメータ |
+|---|---|---|---|---|---|
+| 1 | Config読み込み | YAMLスキーマ検証 | 必須フィールド確認 | 全フィールド存在 | — |
+| 2 | Blend読み込み | シーン整合性 | オブジェクト数確認 | ≥1オブジェクト | blend= |
+| 3 | マテリアル強化 | PBRテクスチャ適用 | ambientCGアセット | 全建物・道路に適用 | bldg=Concrete034 rough=0.65 |
+| 4 | ライティング | 照明設定 | HDRI + 太陽 + Fill | 日中自然光 | sun_energy=3.0 hdri= |
+| 5 | 接地AO | キャラ接地影 | ShadowCatcherプレーン | 足元に自然な影 | r=4.0 strength=0.7 |
+| 6 | カメラ | 構図・レンズ | Cycles Camera | 被写体が中央 | lens=35mm res=[2048, 1152] |
+| 7 | レンダリング | 画質 | Cycles 128spp | 全黒なし・ノイズ最小 | samples=128 denoiser=OPENIMAGEDENOISE |
+| 8 | QAゲート | 品質スコア | 4項目スコアリング | 全項目≥3/5 | 自動判定 |
+
+
+## QC工程表 — Shibuya_Zaku (2026-05-20 06:01)
+
+| # | 工程 | 管理特性 | 管理方法 | 判定基準 | パラメータ |
+|---|---|---|---|---|---|
+| 1 | Config読み込み | YAMLスキーマ検証 | 必須フィールド確認 | 全フィールド存在 | — |
+| 2 | Blend読み込み | シーン整合性 | オブジェクト数確認 | ≥1オブジェクト | blend= |
+| 3 | マテリアル強化 | PBRテクスチャ適用 | ambientCGアセット | 全建物・道路に適用 | bldg=Concrete034 rough=0.65 |
+| 4 | ライティング | 照明設定 | HDRI + 太陽 + Fill | 日中自然光 | sun_energy=3.0 hdri= |
+| 5 | 接地AO | キャラ接地影 | ShadowCatcherプレーン | 足元に自然な影 | r=4.0 strength=0.7 |
+| 6 | カメラ | 構図・レンズ | Cycles Camera | 被写体が中央 | lens=35mm res=[2048, 1152] |
+| 7 | レンダリング | 画質 | Cycles 128spp | 全黒なし・ノイズ最小 | samples=128 denoiser=OPENIMAGEDENOISE |
+| 8 | QAゲート | 品質スコア | 4項目スコアリング | 全項目≥3/5 | 自動判定 |
+
+
+## QC工程表 — Shibuya_Zaku (2026-05-20 06:11)
+
+| # | 工程 | 管理特性 | 管理方法 | 判定基準 | パラメータ |
+|---|---|---|---|---|---|
+| 1 | Config読み込み | YAMLスキーマ検証 | 必須フィールド確認 | 全フィールド存在 | — |
+| 2 | Blend読み込み | シーン整合性 | オブジェクト数確認 | ≥1オブジェクト | blend= |
+| 3 | マテリアル強化 | PBRテクスチャ適用 | ambientCGアセット | 全建物・道路に適用 | bldg=Concrete034 rough=0.65 |
+| 4 | ライティング | 照明設定 | HDRI + 太陽 + Fill | 日中自然光 | sun_energy=3.0 hdri= |
+| 5 | 接地AO | キャラ接地影 | ShadowCatcherプレーン | 足元に自然な影 | r=4.0 strength=0.7 |
+| 6 | カメラ | 構図・レンズ | Cycles Camera | 被写体が中央 | lens=35mm res=[2048, 1152] |
+| 7 | レンダリング | 画質 | Cycles 128spp | 全黒なし・ノイズ最小 | samples=128 denoiser=OPENIMAGEDENOISE |
+| 8 | QAゲート | 品質スコア | 4項目スコアリング | 全項目≥3/5 | 自動判定 |
+
+
+## QC工程表 — Shibuya_Zaku (2026-05-20 06:47)
+
+| # | 工程 | 管理特性 | 管理方法 | 判定基準 | パラメータ |
+|---|---|---|---|---|---|
+| 1 | Config読み込み | YAMLスキーマ検証 | 必須フィールド確認 | 全フィールド存在 | — |
+| 2 | Blend読み込み | シーン整合性 | オブジェクト数確認 | ≥1オブジェクト | blend= |
+| 3 | マテリアル強化 | PBRテクスチャ適用 | ambientCGアセット | 全建物・道路に適用 | bldg=Concrete034 rough=0.65 |
+| 4 | ライティング | 照明設定 | HDRI + 太陽 + Fill | 日中自然光 | sun_energy=3.0 hdri= |
+| 5 | 接地AO | キャラ接地影 | ShadowCatcherプレーン | 足元に自然な影 | r=4.0 strength=0.7 |
+| 6 | カメラ | 構図・レンズ | Cycles Camera | 被写体が中央 | lens=35mm res=[2048, 1152] |
+| 7 | レンダリング | 画質 | Cycles 128spp | 全黒なし・ノイズ最小 | samples=128 denoiser=OPENIMAGEDENOISE |
+| 8 | QAゲート | 品質スコア | 4項目スコアリング | 全項目≥3/5 | 自動判定 |
+
+
+## QC工程表 — Shibuya_Zaku (2026-05-20 06:48)
+
+| # | 工程 | 管理特性 | 管理方法 | 判定基準 | パラメータ |
+|---|---|---|---|---|---|
+| 1 | Config読み込み | YAMLスキーマ検証 | 必須フィールド確認 | 全フィールド存在 | — |
+| 2 | Blend読み込み | シーン整合性 | オブジェクト数確認 | ≥1オブジェクト | blend= |
+| 3 | マテリアル強化 | PBRテクスチャ適用 | ambientCGアセット | 全建物・道路に適用 | bldg=Concrete034 rough=0.65 |
+| 4 | ライティング | 照明設定 | HDRI + 太陽 + Fill | 日中自然光 | sun_energy=3.0 hdri= |
+| 5 | 接地AO | キャラ接地影 | ShadowCatcherプレーン | 足元に自然な影 | r=4.0 strength=0.7 |
+| 6 | カメラ | 構図・レンズ | Cycles Camera | 被写体が中央 | lens=35mm res=[2048, 1152] |
+| 7 | レンダリング | 画質 | Cycles 128spp | 全黒なし・ノイズ最小 | samples=128 denoiser=OPENIMAGEDENOISE |
+| 8 | QAゲート | 品質スコア | 4項目スコアリング | 全項目≥3/5 | 自動判定 |
+
+
+## QC工程表 — Shibuya_Zaku (2026-05-20 06:49)
+
+| # | 工程 | 管理特性 | 管理方法 | 判定基準 | パラメータ |
+|---|---|---|---|---|---|
+| 1 | Config読み込み | YAMLスキーマ検証 | 必須フィールド確認 | 全フィールド存在 | — |
+| 2 | Blend読み込み | シーン整合性 | オブジェクト数確認 | ≥1オブジェクト | blend= |
+| 3 | マテリアル強化 | PBRテクスチャ適用 | ambientCGアセット | 全建物・道路に適用 | bldg=Concrete034 rough=0.65 |
+| 4 | ライティング | 照明設定 | HDRI + 太陽 + Fill | 日中自然光 | sun_energy=3.0 hdri= |
+| 5 | 接地AO | キャラ接地影 | ShadowCatcherプレーン | 足元に自然な影 | r=4.0 strength=0.7 |
+| 6 | カメラ | 構図・レンズ | Cycles Camera | 被写体が中央 | lens=35mm res=[2048, 1152] |
+| 7 | レンダリング | 画質 | Cycles 128spp | 全黒なし・ノイズ最小 | samples=128 denoiser=OPENIMAGEDENOISE |
+| 8 | QAゲート | 品質スコア | 4項目スコアリング | 全項目≥3/5 | 自動判定 |
+
+
+## QC工程表 — Shibuya_Zaku (2026-05-20 06:50)
+
+| # | 工程 | 管理特性 | 管理方法 | 判定基準 | パラメータ |
+|---|---|---|---|---|---|
+| 1 | Config読み込み | YAMLスキーマ検証 | 必須フィールド確認 | 全フィールド存在 | — |
+| 2 | Blend読み込み | シーン整合性 | オブジェクト数確認 | ≥1オブジェクト | blend= |
+| 3 | マテリアル強化 | PBRテクスチャ適用 | ambientCGアセット | 全建物・道路に適用 | bldg=Concrete034 rough=0.65 |
+| 4 | ライティング | 照明設定 | HDRI + 太陽 + Fill | 日中自然光 | sun_energy=3.0 hdri= |
+| 5 | 接地AO | キャラ接地影 | ShadowCatcherプレーン | 足元に自然な影 | r=4.0 strength=0.7 |
+| 6 | カメラ | 構図・レンズ | Cycles Camera | 被写体が中央 | lens=35mm res=[2048, 1152] |
+| 7 | レンダリング | 画質 | Cycles 128spp | 全黒なし・ノイズ最小 | samples=128 denoiser=OPENIMAGEDENOISE |
+| 8 | QAゲート | 品質スコア | 4項目スコアリング | 全項目≥3/5 | 自動判定 |
+
+
+## QC工程表 — Shibuya_Zaku (2026-05-20 06:54)
+
+| # | 工程 | 管理特性 | 管理方法 | 判定基準 | パラメータ |
+|---|---|---|---|---|---|
+| 1 | Config読み込み | YAMLスキーマ検証 | 必須フィールド確認 | 全フィールド存在 | — |
+| 2 | Blend読み込み | シーン整合性 | オブジェクト数確認 | ≥1オブジェクト | blend= |
+| 3 | マテリアル強化 | PBRテクスチャ適用 | ambientCGアセット | 全建物・道路に適用 | bldg=Concrete034 rough=0.65 |
+| 4 | ライティング | 照明設定 | HDRI + 太陽 + Fill | 日中自然光 | sun_energy=3.0 hdri= |
+| 5 | 接地AO | キャラ接地影 | ShadowCatcherプレーン | 足元に自然な影 | r=4.0 strength=0.7 |
+| 6 | カメラ | 構図・レンズ | Cycles Camera | 被写体が中央 | lens=35mm res=[2048, 1152] |
+| 7 | レンダリング | 画質 | Cycles 128spp | 全黒なし・ノイズ最小 | samples=128 denoiser=OPENIMAGEDENOISE |
+| 8 | QAゲート | 品質スコア | 4項目スコアリング | 全項目≥3/5 | 自動判定 |
+
+
+## QC工程表 — Shibuya_Zaku (2026-05-20 06:54)
+
+| # | 工程 | 管理特性 | 管理方法 | 判定基準 | パラメータ |
+|---|---|---|---|---|---|
+| 1 | Config読み込み | YAMLスキーマ検証 | 必須フィールド確認 | 全フィールド存在 | — |
+| 2 | Blend読み込み | シーン整合性 | オブジェクト数確認 | ≥1オブジェクト | blend= |
+| 3 | マテリアル強化 | PBRテクスチャ適用 | ambientCGアセット | 全建物・道路に適用 | bldg=Concrete034 rough=0.65 |
+| 4 | ライティング | 照明設定 | HDRI + 太陽 + Fill | 日中自然光 | sun_energy=3.0 hdri= |
+| 5 | 接地AO | キャラ接地影 | ShadowCatcherプレーン | 足元に自然な影 | r=4.0 strength=0.7 |
+| 6 | カメラ | 構図・レンズ | Cycles Camera | 被写体が中央 | lens=35mm res=[2048, 1152] |
+| 7 | レンダリング | 画質 | Cycles 128spp | 全黒なし・ノイズ最小 | samples=128 denoiser=OPENIMAGEDENOISE |
+| 8 | QAゲート | 品質スコア | 4項目スコアリング | 全項目≥3/5 | 自動判定 |
+
+
+## QC工程表 — Shibuya_Zaku (2026-05-20 08:26)
+
+| # | 工程 | 管理特性 | 管理方法 | 判定基準 | パラメータ |
+|---|---|---|---|---|---|
+| 1 | Config読み込み | YAMLスキーマ検証 | 必須フィールド確認 | 全フィールド存在 | — |
+| 2 | Blend読み込み | シーン整合性 | オブジェクト数確認 | ≥1オブジェクト | blend= |
+| 3 | マテリアル強化 | PBRテクスチャ適用 | ambientCGアセット | 全建物・道路に適用 | bldg=Concrete034 rough=0.65 |
+| 4 | ライティング | 照明設定 | HDRI + 太陽 + Fill | 日中自然光 | sun_energy=3.0 hdri= |
+| 5 | 接地AO | キャラ接地影 | ShadowCatcherプレーン | 足元に自然な影 | r=4.0 strength=0.7 |
+| 6 | カメラ | 構図・レンズ | Cycles Camera | 被写体が中央 | lens=35mm res=[2048, 1152] |
+| 7 | レンダリング | 画質 | Cycles 128spp | 全黒なし・ノイズ最小 | samples=128 denoiser=OPENIMAGEDENOISE |
+| 8 | QAゲート | 品質スコア | 4項目スコアリング | 全項目≥3/5 | 自動判定 |
+
+
+## QC工程表 — Shibuya_Zaku (2026-05-20 08:27)
+
+| # | 工程 | 管理特性 | 管理方法 | 判定基準 | パラメータ |
+|---|---|---|---|---|---|
+| 1 | Config読み込み | YAMLスキーマ検証 | 必須フィールド確認 | 全フィールド存在 | — |
+| 2 | Blend読み込み | シーン整合性 | オブジェクト数確認 | ≥1オブジェクト | blend= |
+| 3 | マテリアル強化 | PBRテクスチャ適用 | ambientCGアセット | 全建物・道路に適用 | bldg=Concrete034 rough=0.65 |
+| 4 | ライティング | 照明設定 | HDRI + 太陽 + Fill | 日中自然光 | sun_energy=3.0 hdri= |
+| 5 | 接地AO | キャラ接地影 | ShadowCatcherプレーン | 足元に自然な影 | r=4.0 strength=0.7 |
+| 6 | カメラ | 構図・レンズ | Cycles Camera | 被写体が中央 | lens=35mm res=[2048, 1152] |
+| 7 | レンダリング | 画質 | Cycles 128spp | 全黒なし・ノイズ最小 | samples=128 denoiser=OPENIMAGEDENOISE |
+| 8 | QAゲート | 品質スコア | 4項目スコアリング | 全項目≥3/5 | 自動判定 |
+
+
+## QC工程表 — Shibuya_Zaku (2026-05-20 08:55)
+
+| # | 工程 | 管理特性 | 管理方法 | 判定基準 | パラメータ |
+|---|---|---|---|---|---|
+| 1 | Config読み込み | YAMLスキーマ検証 | 必須フィールド確認 | 全フィールド存在 | — |
+| 2 | Blend読み込み | シーン整合性 | オブジェクト数確認 | ≥1オブジェクト | blend= |
+| 3 | マテリアル強化 | PBRテクスチャ適用 | ambientCGアセット | 全建物・道路に適用 | bldg=Concrete034 rough=0.65 |
+| 4 | ライティング | 照明設定 | HDRI + 太陽 + Fill | 日中自然光 | sun_energy=3.0 hdri= |
+| 5 | 接地AO | キャラ接地影 | ShadowCatcherプレーン | 足元に自然な影 | r=4.0 strength=0.7 |
+| 6 | カメラ | 構図・レンズ | Cycles Camera | 被写体が中央 | lens=35mm res=[2048, 1152] |
+| 7 | レンダリング | 画質 | Cycles 128spp | 全黒なし・ノイズ最小 | samples=128 denoiser=OPENIMAGEDENOISE |
+| 8 | QAゲート | 品質スコア | 4項目スコアリング | 全項目≥3/5 | 自動判定 |
+
+
+## QC工程表 — Shibuya_Zaku (2026-05-20 08:56)
+
+| # | 工程 | 管理特性 | 管理方法 | 判定基準 | パラメータ |
+|---|---|---|---|---|---|
+| 1 | Config読み込み | YAMLスキーマ検証 | 必須フィールド確認 | 全フィールド存在 | — |
+| 2 | Blend読み込み | シーン整合性 | オブジェクト数確認 | ≥1オブジェクト | blend= |
+| 3 | マテリアル強化 | PBRテクスチャ適用 | ambientCGアセット | 全建物・道路に適用 | bldg=Concrete034 rough=0.65 |
+| 4 | ライティング | 照明設定 | HDRI + 太陽 + Fill | 日中自然光 | sun_energy=3.0 hdri= |
+| 5 | 接地AO | キャラ接地影 | ShadowCatcherプレーン | 足元に自然な影 | r=4.0 strength=0.7 |
+| 6 | カメラ | 構図・レンズ | Cycles Camera | 被写体が中央 | lens=35mm res=[2048, 1152] |
+| 7 | レンダリング | 画質 | Cycles 128spp | 全黒なし・ノイズ最小 | samples=128 denoiser=OPENIMAGEDENOISE |
+| 8 | QAゲート | 品質スコア | 4項目スコアリング | 全項目≥3/5 | 自動判定 |
+
+
+## QC工程表 — Shibuya_Zaku (2026-05-20 09:43)
+
+| # | 工程 | 管理特性 | 管理方法 | 判定基準 | パラメータ |
+|---|---|---|---|---|---|
+| 1 | Config読み込み | YAMLスキーマ検証 | 必須フィールド確認 | 全フィールド存在 | — |
+| 2 | Blend読み込み | シーン整合性 | オブジェクト数確認 | ≥1オブジェクト | blend= |
+| 3 | マテリアル強化 | PBRテクスチャ適用 | ambientCGアセット | 全建物・道路に適用 | bldg=Concrete034 rough=0.65 |
+| 4 | ライティング | 照明設定 | HDRI + 太陽 + Fill | 日中自然光 | sun_energy=3.0 hdri= |
+| 5 | 接地AO | キャラ接地影 | ShadowCatcherプレーン | 足元に自然な影 | r=4.0 strength=0.7 |
+| 6 | カメラ | 構図・レンズ | Cycles Camera | 被写体が中央 | lens=35mm res=[2048, 1152] |
+| 7 | レンダリング | 画質 | Cycles 128spp | 全黒なし・ノイズ最小 | samples=128 denoiser=OPENIMAGEDENOISE |
+| 8 | QAゲート | 品質スコア | 4項目スコアリング | 全項目≥3/5 | 自動判定 |
+
+
+## QC工程表 — Shibuya_Zaku (2026-05-20 09:44)
+
+| # | 工程 | 管理特性 | 管理方法 | 判定基準 | パラメータ |
+|---|---|---|---|---|---|
+| 1 | Config読み込み | YAMLスキーマ検証 | 必須フィールド確認 | 全フィールド存在 | — |
+| 2 | Blend読み込み | シーン整合性 | オブジェクト数確認 | ≥1オブジェクト | blend= |
+| 3 | マテリアル強化 | PBRテクスチャ適用 | ambientCGアセット | 全建物・道路に適用 | bldg=Concrete034 rough=0.65 |
+| 4 | ライティング | 照明設定 | HDRI + 太陽 + Fill | 日中自然光 | sun_energy=3.0 hdri= |
+| 5 | 接地AO | キャラ接地影 | ShadowCatcherプレーン | 足元に自然な影 | r=4.0 strength=0.7 |
+| 6 | カメラ | 構図・レンズ | Cycles Camera | 被写体が中央 | lens=35mm res=[2048, 1152] |
+| 7 | レンダリング | 画質 | Cycles 128spp | 全黒なし・ノイズ最小 | samples=128 denoiser=OPENIMAGEDENOISE |
+| 8 | QAゲート | 品質スコア | 4項目スコアリング | 全項目≥3/5 | 自動判定 |
+
