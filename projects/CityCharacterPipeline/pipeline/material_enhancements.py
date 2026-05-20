@@ -409,18 +409,238 @@ def _add_facade_details():
         print("[Enhance] Facade details skip: " + str(_fe), flush=True)
 '''
 
+ROAD_MARKINGS_CODE = r'''
+def _make_principled_mat(name, color, roughness=0.65, metallic=0.0):
+    mat = bpy.data.materials.new(name)
+    mat.use_nodes = True
+    bsdf = next((n for n in mat.node_tree.nodes if n.type == "BSDF_PRINCIPLED"), None)
+    if bsdf:
+        bsdf.inputs["Base Color"].default_value = color
+        bsdf.inputs["Roughness"].default_value = roughness
+        bsdf.inputs["Metallic"].default_value = metallic
+    return mat
+
+def _add_flat_box(name, loc, scale, mat):
+    bpy.ops.mesh.primitive_cube_add(size=1.0, location=loc)
+    obj = bpy.context.object
+    obj.name = name
+    obj.scale = scale
+    bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
+    obj.data.materials.append(mat)
+    return obj
+
+def _add_road_markings():
+    """Add visible road markings as real geometry, not only a shader pattern."""
+    enh = CFG.get("city_enhancements", {}).get("road_markings", {})
+    if not enh.get("enabled", True):
+        return
+    try:
+        white = _make_principled_mat("Road_Paint_White_Real", (0.93, 0.92, 0.86, 1.0), 0.82, 0.0)
+        yellow = _make_principled_mat("Road_Paint_Yellow_Real", (1.0, 0.72, 0.08, 1.0), 0.78, 0.0)
+        asphalt = _make_principled_mat("Foreground_Asphalt_Darker", (0.018, 0.019, 0.018, 1.0), 0.92, 0.0)
+
+        _add_flat_box("Foreground_Asphalt_Patch", (0.0, -18.0, 0.018), (14.0, 34.0, 0.012), asphalt)
+
+        stripe_count = 9
+        for i in range(stripe_count):
+            x = -5.6 + i * 1.4
+            _add_flat_box("Crosswalk_Stripe_FG_" + str(i), (x, -25.0, 0.055), (0.42, 4.2, 0.018), white)
+            _add_flat_box("Crosswalk_Stripe_MID_" + str(i), (x, -6.5, 0.055), (0.42, 3.6, 0.018), white)
+
+        _add_flat_box("Stop_Line_FG", (0.0, -29.3, 0.058), (6.0, 0.20, 0.018), white)
+        _add_flat_box("Stop_Line_MID", (0.0, -10.7, 0.058), (5.6, 0.18, 0.018), white)
+
+        for y in [-33, -28, -21, -14, -7, 0, 7]:
+            _add_flat_box("Lane_Center_Yellow_" + str(y), (0.0, float(y), 0.052), (0.11, 2.6, 0.016), yellow)
+        for x in [-6.4, 6.4]:
+            _add_flat_box("Road_Edge_Line_" + str(x), (float(x), -16.0, 0.053), (0.08, 31.0, 0.014), white)
+
+        print("[Enhance] Road markings: geometry crosswalks=2 stop_lines=2 lane_guides=7", flush=True)
+    except Exception as _re:
+        print("[Enhance] Road markings skip: " + str(_re), flush=True)
+'''
+
+TRAFFIC_LIGHTS_CODE = r'''
+def _make_emission_mat(name, color, strength):
+    mat = bpy.data.materials.new(name)
+    mat.use_nodes = True
+    for node in list(mat.node_tree.nodes):
+        mat.node_tree.nodes.remove(node)
+    em = mat.node_tree.nodes.new("ShaderNodeEmission")
+    em.inputs["Color"].default_value = color
+    em.inputs["Strength"].default_value = strength
+    out = mat.node_tree.nodes.new("ShaderNodeOutputMaterial")
+    mat.node_tree.links.new(em.outputs["Emission"], out.inputs["Surface"])
+    return mat
+
+def _add_traffic_lights():
+    """Add foreground traffic lights that read clearly from the street-low camera."""
+    enh = CFG.get("city_enhancements", {}).get("traffic_lights", {})
+    if not enh.get("enabled", True):
+        return
+    positions = enh.get("positions", None)
+    if positions is None:
+        positions = [(-5.8, -27.0, 0), (5.8, -27.0, 0), (-5.8, -8.5, 0), (5.8, -8.5, 0)]
+    try:
+        pole_mat = _make_principled_mat("TL_Pole_Black_Metal", (0.025, 0.025, 0.023, 1.0), 0.38, 0.8)
+        box_mat = _make_principled_mat("TL_Box_Dark", (0.015, 0.015, 0.012, 1.0), 0.70, 0.2)
+        red = _make_emission_mat("TL_Red_Visible", (1.0, 0.02, 0.0, 1.0), 16.0)
+        amber = _make_emission_mat("TL_Amber_Visible", (1.0, 0.42, 0.02, 1.0), 6.0)
+        green = _make_emission_mat("TL_Green_Visible", (0.0, 0.85, 0.18, 1.0), 5.0)
+
+        placed = 0
+        for i, pos in enumerate(positions):
+            lx, ly = float(pos[0]), float(pos[1])
+            side = -1.0 if lx < 0 else 1.0
+            bpy.ops.mesh.primitive_cylinder_add(radius=0.13, depth=6.2, location=(lx, ly, 3.1))
+            pole = bpy.context.object
+            pole.name = "TL_Pole_Foreground_" + str(i)
+            pole.data.materials.append(pole_mat)
+
+            head_x = lx + side * 1.55
+            _add_flat_box("TL_Arm_" + str(i), (lx + side * 0.78, ly, 6.15), (0.86, 0.055, 0.055), pole_mat)
+            _add_flat_box("TL_Box_Foreground_" + str(i), (head_x, ly - 0.06, 5.65), (0.28, 0.16, 0.72), box_mat)
+
+            for j, mat in enumerate([red, amber, green]):
+                bpy.ops.mesh.primitive_uv_sphere_add(radius=0.13, location=(head_x, ly - 0.22, 5.98 - j * 0.31))
+                lamp = bpy.context.object
+                lamp.name = "TL_Lamp_" + str(i) + "_" + str(j)
+                lamp.data.materials.append(mat)
+            bpy.ops.object.light_add(type="POINT", location=(head_x, ly - 0.35, 6.02))
+            light = bpy.context.object
+            light.name = "TL_Glow_" + str(i)
+            light.data.color = (1.0, 0.06, 0.03)
+            light.data.energy = 45.0
+            light.data.shadow_soft_size = 1.6
+            placed += 1
+        print("[Enhance] Traffic lights: foreground visible " + str(placed) + " placed", flush=True)
+    except Exception as _te:
+        print("[Enhance] Traffic lights skip: " + str(_te), flush=True)
+'''
+
+FACADE_DETAILS_CODE = r'''
+def _add_text_sign(name, text, loc, normal_y, width, height, mat):
+    import math as _math
+    bpy.ops.object.text_add(location=loc, rotation=(_math.radians(90.0) if normal_y < 0 else _math.radians(-90.0), 0.0, 0.0))
+    obj = bpy.context.object
+    obj.name = name
+    obj.data.body = text
+    obj.data.align_x = "CENTER"
+    obj.data.align_y = "CENTER"
+    obj.data.size = max(0.55, min(height * 0.62, 1.4))
+    obj.data.extrude = 0.012
+    obj.scale.x = max(0.85, min(width / max(len(text) * 0.55, 1.0), 2.2))
+    obj.data.materials.append(mat)
+    return obj
+
+def _add_facade_details():
+    """Add large readable signs, glass panels, and rooftop units to visible buildings."""
+    enh = CFG.get("city_enhancements", {}).get("facade_details", {})
+    if not enh.get("enabled", True):
+        return
+    max_buildings = int(enh.get("max_buildings", 36))
+    max_distance = float(enh.get("max_distance", 95.0))
+    add_signs = bool(enh.get("signs", True))
+    add_roof_units = bool(enh.get("roof_units", True))
+    vary_material = bool(enh.get("material_variation", True))
+    add_text = bool(enh.get("sign_text", True))
+    add_glass = bool(enh.get("glass_panels", True))
+    try:
+        import math as _math
+        camera_cfg = CFG.get("camera", {})
+        cpos = camera_cfg.get("position", [0, -40, 6])
+        cam_x, cam_y = float(cpos[0]), float(cpos[1])
+        buildings = []
+        for obj in bpy.data.objects:
+            if obj.type != "MESH" or not obj.name.startswith("OSM_Building_"):
+                continue
+            pts = [obj.matrix_world @ v.co for v in obj.data.vertices]
+            if not pts:
+                continue
+            min_x = min(v.x for v in pts); max_x = max(v.x for v in pts)
+            min_y = min(v.y for v in pts); max_y = max(v.y for v in pts)
+            max_z = max(v.z for v in pts)
+            cx = (min_x + max_x) * 0.5
+            cy = (min_y + max_y) * 0.5
+            dist = _math.hypot(cx - cam_x, cy - cam_y)
+            if dist <= max_distance and max_z >= 5.0:
+                buildings.append((dist, obj, min_x, max_x, min_y, max_y, max_z))
+        buildings.sort(key=lambda item: item[0])
+
+        sign_colors = [(0.0, 0.28, 1.0, 1.0), (1.0, 0.05, 0.02, 1.0), (0.0, 0.75, 0.25, 1.0), (1.0, 0.65, 0.0, 1.0), (0.72, 0.08, 1.0, 1.0)]
+        sign_mats = [_make_emission_mat("Facade_Neon_" + str(i), color, 9.0) for i, color in enumerate(sign_colors)]
+        white_text = _make_emission_mat("Facade_Sign_Text_White", (1.0, 0.96, 0.82, 1.0), 7.0)
+        glass_mat = _make_principled_mat("Facade_Deep_Glass_Panels", (0.015, 0.035, 0.070, 1.0), 0.12, 0.0)
+        roof_mat = _make_principled_mat("Facade_Roof_Unit_Mat_Strong", (0.16, 0.16, 0.15, 1.0), 0.55, 0.35)
+        label_words = ["HOTEL", "CAFE", "SHOP", "LAB", "PARK", "DINER", "METRO", "TOWER"]
+
+        count = 0
+        signs = 0
+        glass = 0
+        for idx, item in enumerate(buildings[:max_buildings]):
+            _, obj, min_x, max_x, min_y, max_y, max_z = item
+            width_x = max_x - min_x
+            width_y = max_y - min_y
+            cx = (min_x + max_x) * 0.5
+            cy = (min_y + max_y) * 0.5
+
+            if vary_material and obj.data.materials and obj.data.materials[0]:
+                src = obj.data.materials[0]
+                mat = src.copy()
+                mat.name = "Facade_Var_Strong_" + obj.name
+                if mat.use_nodes and mat.node_tree:
+                    bsdf = next((n for n in mat.node_tree.nodes if n.type == "BSDF_PRINCIPLED"), None)
+                    if bsdf:
+                        tint = 0.72 + ((idx % 9) * 0.055)
+                        old = bsdf.inputs["Base Color"].default_value
+                        bsdf.inputs["Base Color"].default_value = (min(float(old[0]) * tint + 0.015, 1.0), min(float(old[1]) * tint + 0.012, 1.0), min(float(old[2]) * tint + 0.018, 1.0), 1.0)
+                obj.data.materials[0] = mat
+
+            face_y = min_y if abs(cam_y - min_y) < abs(cam_y - max_y) else max_y
+            normal_y = -1.0 if face_y == min_y else 1.0
+            y_offset = -0.075 if normal_y < 0 else 0.075
+            in_walk_corridor = abs(cx) < 7.0 and min_y < 8.0 and max_y > -36.0
+
+            if (not in_walk_corridor) and add_glass and max_z > 7.0 and width_x > 4.0:
+                panel_w = min(max(width_x * 0.62, 3.0), 11.0)
+                panel_h = min(max(max_z * 0.34, 3.0), 9.0)
+                panel_z = min(max_z * 0.56, max_z - panel_h * 0.28)
+                _add_flat_box("Facade_Glass_Panel_" + str(idx), (cx, face_y + y_offset * 0.8, panel_z), (panel_w * 0.5, 0.028, panel_h * 0.5), glass_mat)
+                glass += 1
+
+            if (not in_walk_corridor) and add_signs and max_z > 6.0:
+                sign_w = min(max(width_x * 0.78, 4.5), 15.0)
+                sign_h = min(max(max_z * 0.12, 1.2), 2.8)
+                sign_z = min(max(max_z * 0.33, 3.2), 9.2)
+                _add_flat_box("Facade_Large_Sign_" + str(idx), (cx, face_y + y_offset, sign_z), (sign_w * 0.5, 0.045, sign_h * 0.5), sign_mats[idx % len(sign_mats)])
+                if add_text:
+                    _add_text_sign("Facade_Text_" + str(idx), label_words[idx % len(label_words)], (cx, face_y + y_offset * 1.75, sign_z + 0.02), normal_y, sign_w, sign_h, white_text)
+                signs += 1
+
+            if add_roof_units and max(width_x, width_y) > 6.0:
+                unit_w = min(max(width_x * 0.22, 1.4), 4.0)
+                unit_d = min(max(width_y * 0.22, 1.4), 4.0)
+                _add_flat_box("Facade_RoofUnit_Strong_" + str(idx), (cx, cy, max_z + 0.38), (unit_w * 0.5, unit_d * 0.5, 0.38), roof_mat)
+            count += 1
+        print("[Enhance] Facade details strong: buildings=" + str(count) + " signs=" + str(signs) + " glass=" + str(glass), flush=True)
+    except Exception as _fe:
+        print("[Enhance] Facade details skip: " + str(_fe), flush=True)
+'''
+
 CHARACTER_METAL_CODE = r'''
 def _apply_metal_pbr(char_obj):
-    """キャラクター全子Meshに金属PBRマテリアルを適用する。
+    """キャラクターMeshの質感を整える。
 
     base_color / metallic / roughness は YAML city_enhancements.character_metal で設定。
     例: MS-06F Zaku II -> base_color=[0.10,0.14,0.06] metallic=0.80
+    FBXに画像テクスチャがある場合はマテリアルを置換せず、既存テクスチャを保持する。
     """
     if char_obj is None:
         return
     enh = CFG.get("city_enhancements", {}).get("character_metal", {})
     if not enh.get("enabled", True):
         return
+    preserve_textures = bool(enh.get("preserve_existing_textures", True))
     bc  = enh.get("base_color", [0.10, 0.14, 0.06])
     met = float(enh.get("metallic",  0.80))
     rou = float(enh.get("roughness", 0.45))
@@ -428,6 +648,30 @@ def _apply_metal_pbr(char_obj):
         meshes = [c for c in char_obj.children_recursive if c.type == "MESH"]
         if not meshes:
             return
+        preserved = 0
+        for mesh in meshes:
+            if not preserve_textures:
+                continue
+            texture_mats = []
+            for mat in mesh.data.materials:
+                if mat is None or not mat.use_nodes or mat.node_tree is None:
+                    continue
+                has_image = any(n.type == "TEX_IMAGE" and getattr(n, "image", None) is not None
+                                for n in mat.node_tree.nodes)
+                if not has_image:
+                    continue
+                texture_mats.append(mat)
+                bsdf = next((n for n in mat.node_tree.nodes if n.type == "BSDF_PRINCIPLED"), None)
+                if bsdf:
+                    bsdf.inputs["Metallic"].default_value = met
+                    bsdf.inputs["Roughness"].default_value = rou
+            if texture_mats:
+                preserved += 1
+        if preserved:
+            print("[Enhance] Character texture preserved: " + str(preserved)
+                  + " meshes metal=" + str(met) + " rough=" + str(rou), flush=True)
+            return
+
         mat = bpy.data.materials.new("Char_Metal_PBR")
         mat.use_nodes = True
         bsdf = next(n for n in mat.node_tree.nodes if n.type == "BSDF_PRINCIPLED")

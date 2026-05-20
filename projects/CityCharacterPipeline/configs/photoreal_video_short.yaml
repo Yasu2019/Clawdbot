@@ -98,16 +98,28 @@ city_enhancements:
     enabled: true
     stripe_interval_m: 3.5
     stripe_width_ratio: 0.1
+    crosswalks: true
+    stop_lines: true
+    lane_guides: true
   traffic_lights:
     enabled: true
     count: 4
+    foreground: true
+    positions:
+      - [-5.8, -27.0, 0.0]
+      - [5.8, -27.0, 0.0]
+      - [-5.8, -8.5, 0.0]
+      - [5.8, -8.5, 0.0]
   facade_details:
     enabled: true
-    max_buildings: 44
-    max_distance: 110.0
+    max_buildings: 64
+    max_distance: 145.0
     signs: true
     roof_units: true
     material_variation: true
+    large_billboards: true
+    sign_text: true
+    glass_panels: true
   character_metal:
     enabled: true
     base_color: [0.05, 0.05, 0.12]
