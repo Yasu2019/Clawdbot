@@ -17,7 +17,7 @@ def resolve_repo_root() -> Path:
     # 1. Traversal from WORKSPACE (Most reliable if __file__ is accurate)
     curr = WORKSPACE
     for _ in range(5):
-        if (curr / "scripts").exists() and (curr / "docs").exists():
+        if (curr / ".env").exists() and (curr / "docker-compose.yml").exists():
             return curr
         if curr.parent == curr:
             break
@@ -25,11 +25,11 @@ def resolve_repo_root() -> Path:
 
     # 2. Historical fallback
     candidate = WORKSPACE.parent.parent
-    if candidate.exists() and (candidate / "scripts").exists():
+    if candidate.exists() and (candidate / ".env").exists():
         return candidate
 
     # 3. Current Working Directory
-    if (Path.cwd() / "scripts").exists() and (Path.cwd() / "docs").exists():
+    if (Path.cwd() / ".env").exists() and (Path.cwd() / "docker-compose.yml").exists():
         return Path.cwd()
 
     # 4. Emergency fallback for this specific environment

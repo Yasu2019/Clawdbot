@@ -153,4 +153,34 @@ Notes:
 - P009は、OpenAI/Anthropic/Gemini/Kimi/OpenRouter/OpenCode GO/ByteRover/Pexels/Pixabay/Unsplash/Telegram/Tursoを一覧化する。
 - Pexels/Pixabay/Unsplash/Telegramは金額0円として扱うが、リクエスト上限の残量はローカルだけでは不明。
 - 実請求額は各社Billing exportまたはUsage APIがない限り推測しない。
+
+---
+
+### P023: Python Windows エンコーディング標準 (INC-082 / 2026-05-18追加)
+
+| ID | 約束内容 | ステータス |
+| --- | --- | --- |
+| P023 | **すべてのPythonモジュールはモジュール先頭で `sys.stdout.reconfigure(encoding="utf-8", errors="replace")` を呼び出し、print文に U+2014(--)/U+2192(->) 等のcp932非対応文字を使用してはならない** | ✅ 有効 |
+
+**背景 (INC-082):** 2026-05-18、`db_self_healer.py` の `replay_pending_queue()` 内で `print("... OK -- リプレイ開始")` の U+2014 が cp932 stdout でエンコード失敗。`except Exception` に捕捉され DB 接続成功にもかかわらず「DB接続失敗」と誤認。ペンディングキューリプレイが全件スキップされた（RPN=504）。
+
+**適用対象:** このプロジェクトのすべてのPythonファイル（AIエージェントが生成するコードを含む）。
+
+**必須テンプレート:**
+
+```python
+import sys
+import os
+os.environ.setdefault("PGCLIENTENCODING", "UTF8")   # DB接続モジュールのみ
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+```
+
+**禁止文字（print文内）:** `--`(U+2014)、`->`(U+2192)、絵文字全般 -> ASCII代替 `--` / `->` / `[OK]` を使用すること。
+
+**参照:** `GOVERNANCE.md` Section 3 / `docs/INCIDENT_LOG.md` INC-082
+
 - ChatGPT Plus/Codex UI側の利用額は、このワークスペースからは取得不能。
