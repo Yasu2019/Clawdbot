@@ -1477,6 +1477,7 @@ def _build_osm_terrain():
                 bm.free()
 
     # 道路白線オーバーレイ（hide_renderで非表示 — BsdfTransparentがBlender5.1で不透明化する問題を回避）
+    _add_facade_details()
     _add_road_markings()
     _rm_obj = bpy.data.objects.get("Road_Markings")
     if _rm_obj:

@@ -57,6 +57,14 @@ DEFAULT_PARAMS: dict = {
         "count":     4,
         "positions": None,   # None -> 原点周辺を自動配置
     },
+    "facade_details": {
+        "enabled":      True,
+        "max_buildings": 36,
+        "max_distance": 95.0,
+        "signs":        True,
+        "roof_units":   True,
+        "material_variation": True,
+    },
     "character_metal": {
         "enabled":    True,
         "base_color": [0.10, 0.14, 0.06],  # MS-06F ダークオリーブグリーン
@@ -287,6 +295,120 @@ def _add_traffic_lights():
         print("[Enhance] Traffic lights skip: " + str(_te), flush=True)
 '''
 
+FACADE_DETAILS_CODE = r'''
+def _add_facade_details():
+    """Add lightweight facade details to nearby OSM buildings."""
+    enh = CFG.get("city_enhancements", {}).get("facade_details", {})
+    if not enh.get("enabled", True):
+        return
+    max_buildings = int(enh.get("max_buildings", 36))
+    max_distance = float(enh.get("max_distance", 95.0))
+    add_signs = bool(enh.get("signs", True))
+    add_roof_units = bool(enh.get("roof_units", True))
+    vary_material = bool(enh.get("material_variation", True))
+    try:
+        import math as _math
+        camera_cfg = CFG.get("camera", {})
+        cpos = camera_cfg.get("position", [0, -40, 6])
+        cam_x, cam_y = float(cpos[0]), float(cpos[1])
+        buildings = []
+        for obj in bpy.data.objects:
+            if obj.type != "MESH" or not obj.name.startswith("OSM_Building_"):
+                continue
+            pts = [obj.matrix_world @ v.co for v in obj.data.vertices]
+            if not pts:
+                continue
+            min_x = min(v.x for v in pts); max_x = max(v.x for v in pts)
+            min_y = min(v.y for v in pts); max_y = max(v.y for v in pts)
+            max_z = max(v.z for v in pts)
+            cx = (min_x + max_x) * 0.5
+            cy = (min_y + max_y) * 0.5
+            dist = _math.hypot(cx - cam_x, cy - cam_y)
+            if dist <= max_distance and max_z >= 5.0:
+                buildings.append((dist, obj, min_x, max_x, min_y, max_y, max_z))
+        buildings.sort(key=lambda item: item[0])
+
+        sign_mats = []
+        sign_colors = [
+            (0.10, 0.45, 1.00, 1.0),
+            (1.00, 0.18, 0.05, 1.0),
+            (0.05, 0.90, 0.35, 1.0),
+            (1.00, 0.72, 0.08, 1.0),
+        ]
+        for i, color in enumerate(sign_colors):
+            mat = bpy.data.materials.new("Facade_Sign_Emission_" + str(i))
+            mat.use_nodes = True
+            for node in list(mat.node_tree.nodes):
+                mat.node_tree.nodes.remove(node)
+            em = mat.node_tree.nodes.new("ShaderNodeEmission")
+            em.inputs["Color"].default_value = color
+            em.inputs["Strength"].default_value = 2.5
+            out = mat.node_tree.nodes.new("ShaderNodeOutputMaterial")
+            mat.node_tree.links.new(em.outputs["Emission"], out.inputs["Surface"])
+            sign_mats.append(mat)
+
+        roof_mat = bpy.data.materials.new("Facade_Roof_Unit_Mat")
+        roof_mat.use_nodes = True
+        rb = next((n for n in roof_mat.node_tree.nodes if n.type == "BSDF_PRINCIPLED"), None)
+        if rb:
+            rb.inputs["Base Color"].default_value = (0.18, 0.18, 0.17, 1.0)
+            rb.inputs["Metallic"].default_value = 0.3
+            rb.inputs["Roughness"].default_value = 0.55
+
+        count = 0
+        for idx, item in enumerate(buildings[:max_buildings]):
+            _, obj, min_x, max_x, min_y, max_y, max_z = item
+            width_x = max_x - min_x
+            width_y = max_y - min_y
+            cx = (min_x + max_x) * 0.5
+            cy = (min_y + max_y) * 0.5
+
+            if vary_material and obj.data.materials and obj.data.materials[0]:
+                src = obj.data.materials[0]
+                mat = src.copy()
+                mat.name = "Facade_Var_" + obj.name
+                if mat.use_nodes and mat.node_tree:
+                    bsdf = next((n for n in mat.node_tree.nodes if n.type == "BSDF_PRINCIPLED"), None)
+                    if bsdf:
+                        tint = 0.86 + ((idx % 7) * 0.035)
+                        old = bsdf.inputs["Base Color"].default_value
+                        bsdf.inputs["Base Color"].default_value = (
+                            min(float(old[0]) * tint, 1.0),
+                            min(float(old[1]) * tint, 1.0),
+                            min(float(old[2]) * tint, 1.0),
+                            1.0,
+                        )
+                obj.data.materials[0] = mat
+
+            if add_signs and max_z > 8.0:
+                face_y = min_y if abs(cam_y - min_y) < abs(cam_y - max_y) else max_y
+                sign_w = max(2.5, min(width_x * 0.45, 8.0))
+                sign_h = max(0.7, min(max_z * 0.08, 1.6))
+                sign_z = min(max_z * 0.38, 7.5)
+                y_offset = -0.06 if face_y == min_y else 0.06
+                bpy.ops.mesh.primitive_cube_add(size=1.0, location=(cx, face_y + y_offset, sign_z))
+                sign = bpy.context.object
+                sign.name = "Facade_Sign_" + str(idx)
+                sign.scale = (sign_w * 0.5, 0.035, sign_h * 0.5)
+                bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
+                sign.data.materials.append(sign_mats[idx % len(sign_mats)])
+
+            if add_roof_units and max(width_x, width_y) > 7.0:
+                unit_w = min(max(width_x * 0.18, 1.2), 3.5)
+                unit_d = min(max(width_y * 0.18, 1.2), 3.5)
+                bpy.ops.mesh.primitive_cube_add(size=1.0, location=(cx, cy, max_z + 0.35))
+                unit = bpy.context.object
+                unit.name = "Facade_RoofUnit_" + str(idx)
+                unit.scale = (unit_w * 0.5, unit_d * 0.5, 0.35)
+                bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
+                unit.data.materials.append(roof_mat)
+
+            count += 1
+        print("[Enhance] Facade details: " + str(count) + " buildings", flush=True)
+    except Exception as _fe:
+        print("[Enhance] Facade details skip: " + str(_fe), flush=True)
+'''
+
 CHARACTER_METAL_CODE = r'''
 def _apply_metal_pbr(char_obj):
     """キャラクター全子Meshに金属PBRマテリアルを適用する。
@@ -331,6 +453,7 @@ def get_injection_code(params: dict) -> str:
         + WINDOW_OVERLAY_CODE
         + ROAD_MARKINGS_CODE
         + TRAFFIC_LIGHTS_CODE
+        + FACADE_DETAILS_CODE
         + CHARACTER_METAL_CODE
         + "# --- CityEnhancement Library end ---\n"
     )

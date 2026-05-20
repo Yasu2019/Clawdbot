@@ -101,6 +101,13 @@ city_enhancements:
   traffic_lights:
     enabled: true
     count: 4
+  facade_details:
+    enabled: true
+    max_buildings: 44
+    max_distance: 110.0
+    signs: true
+    roof_units: true
+    material_variation: true
   character_metal:
     enabled: true
     base_color: [0.05, 0.05, 0.12]
