@@ -20,11 +20,18 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import shutil
 import subprocess
 import sys
 import time
 from datetime import datetime
 from pathlib import Path
+
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
 
 ROOT = Path(__file__).resolve().parent
 
@@ -110,6 +117,112 @@ def _validate_config(config: dict) -> list[str]:
     return errors
 
 
+def _deep_update(base: dict, patch: dict) -> dict:
+    for key, value in patch.items():
+        if isinstance(value, dict) and isinstance(base.get(key), dict):
+            _deep_update(base[key], value)
+        else:
+            base[key] = value
+    return base
+
+
+CAMERA_ANGLE_PRESETS: dict[str, dict] = {
+    "config": {},
+    "hero": {
+        "camera": {"position": [14.0, -58.0, 13.0], "target": [0.0, 0.0, 9.0], "lens_mm": 45},
+        "animation": {"camera_motion": {"type": "static"}},
+    },
+    "street_low": {
+        "camera": {"position": [7.0, -44.0, 5.6], "target": [0.0, 0.0, 8.5], "lens_mm": 35},
+        "animation": {"camera_motion": {"type": "static"}},
+    },
+    "telephoto": {
+        "camera": {"position": [4.0, -95.0, 16.0], "target": [0.0, 0.0, 10.0], "lens_mm": 85},
+        "animation": {"camera_motion": {"type": "static"}},
+    },
+    "orbit": {
+        "camera": {"position": [10.0, -65.0, 14.0], "target": [0.0, 0.0, 9.0], "lens_mm": 45},
+        "animation": {"camera_motion": {"type": "orbit", "orbit_radius": 62.0, "orbit_z": 11.0}},
+    },
+}
+
+
+def _apply_camera_angle(config: dict, angle: str) -> dict:
+    preset = CAMERA_ANGLE_PRESETS.get(angle)
+    if preset is None:
+        raise ValueError(f"Unknown camera angle preset: {angle}")
+    if preset:
+        _deep_update(config, preset)
+    config.setdefault("camera", {})["angle_preset"] = angle
+    return config
+
+
+def _apply_render_profile(config: dict, profile: str, animate: bool) -> dict:
+    render = config.setdefault("render", {})
+    camera = config.setdefault("camera", {})
+    lighting = config.setdefault("lighting", {})
+    sun = lighting.setdefault("sun", {})
+    post = config.setdefault("post_process", {})
+    city = config.setdefault("city_enhancements", {})
+
+    if profile == "preview":
+        if animate:
+            render.update({
+                "engine": "BLENDER_EEVEE",
+                "samples": 16,
+                "resolution": [854, 480],
+                "two_pass": False,
+                "output_format": "FFMPEG",
+            })
+        else:
+            render.setdefault("samples", 32)
+            render.setdefault("resolution", camera.get("resolution", [1280, 720]))
+        return config
+
+    if profile == "standard":
+        if animate:
+            render.update({
+                "engine": "BLENDER_EEVEE",
+                "samples": 24,
+                "resolution": [1280, 720],
+                "two_pass": False,
+                "output_format": "FFMPEG",
+            })
+        else:
+            render.setdefault("engine", "CYCLES")
+            render.setdefault("samples", 96)
+            render.setdefault("resolution", camera.get("resolution", [1920, 1080]))
+        sun["energy"] = max(float(sun.get("energy", 3.0)), 4.0)
+        return config
+
+    if profile == "photoreal":
+        render.update({
+            "engine": "CYCLES",
+            "device": render.get("device", "CPU"),
+            "samples": 96 if animate else 192,
+            "resolution": [1920, 1080] if animate else camera.get("resolution", [2560, 1440]),
+            "two_pass": False if animate else True,
+            "output_format": "PNG",
+            "denoiser": "OPENIMAGEDENOISE",
+        })
+        sun["energy"] = max(float(sun.get("energy", 3.0)), 5.5)
+        lighting["hdri_strength"] = max(float(lighting.get("hdri_strength", 0.05)), 0.12)
+        post["sd_enabled"] = bool(post.get("sd_enabled", True))
+        post["sd_strength"] = min(float(post.get("sd_strength", 0.28)), 0.32)
+        post["sd_strength_bg"] = max(float(post.get("sd_strength_bg", 0.45)), 0.42)
+        post["sd_steps"] = max(int(post.get("sd_steps", 20)), 24)
+        post["max_dimension"] = max(int(post.get("max_dimension", 768)), 960)
+        post["upscale_factor"] = max(int(post.get("upscale_factor", 2)), 2)
+        city.setdefault("windows", {}).setdefault("enabled", True)
+        city.setdefault("road_markings", {}).setdefault("enabled", True)
+        city.setdefault("traffic_lights", {}).setdefault("enabled", True)
+        config.setdefault("contact_ao", {})["enabled"] = True
+        config["contact_ao"]["strength"] = max(float(config["contact_ao"].get("strength", 0.7)), 0.8)
+        return config
+
+    raise ValueError(f"Unknown render profile: {profile}")
+
+
 # ══════════════════════════════════════════════════════════════
 # 3. Blender 実行
 # ══════════════════════════════════════════════════════════════
@@ -146,6 +259,52 @@ def _run_blender(script_path: Path, timeout: int = 3600) -> dict:
                 "errors": [f"Blenderが見つかりません: {BLENDER_PATH}"]}
 
 
+def _safe_filename(value: str) -> str:
+    safe = "".join(ch if ch.isalnum() or ch in ("-", "_") else "_" for ch in value)
+    return safe.strip("_") or "city_character"
+
+
+def _find_ffmpeg() -> str | None:
+    candidates = [
+        os.getenv("FFMPEG_PATH", ""),
+        shutil.which("ffmpeg") or "",
+        r"C:\Users\yasu\AppData\Local\Microsoft\WinGet\Packages\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\ffmpeg-8.1-full_build\bin\ffmpeg.exe",
+    ]
+    for candidate in candidates:
+        if candidate and Path(candidate).exists():
+            return candidate
+    return None
+
+
+def _assemble_animation_video(output_dir: Path, output_prefix: str, fps: int, scene_name: str) -> dict:
+    frames_dir = output_dir / "frames"
+    frames = sorted(frames_dir.glob(f"{output_prefix}_frame_*.png"))
+    if not frames:
+        return {"status": "no_frames", "path": "", "errors": [f"No PNG frames found in {frames_dir}"]}
+
+    ffmpeg_path = _find_ffmpeg()
+    if not ffmpeg_path:
+        return {"status": "ffmpeg_not_found", "path": "", "errors": ["ffmpeg not found"]}
+
+    video_path = output_dir / f"{_safe_filename(scene_name)}_walk.mp4"
+    pattern = frames_dir / f"{output_prefix}_frame_%04d.png"
+    cmd = [
+        ffmpeg_path,
+        "-y",
+        "-framerate", str(int(fps) or 30),
+        "-i", str(pattern),
+        "-c:v", "libx264",
+        "-pix_fmt", "yuv420p",
+        "-movflags", "+faststart",
+        "-crf", "18",
+        str(video_path),
+    ]
+    result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
+    if result.returncode != 0:
+        return {"status": "ffmpeg_error", "path": str(video_path), "errors": [result.stderr[-1200:]]}
+    return {"status": "done", "path": str(video_path), "errors": [], "frames": len(frames)}
+
+
 # ══════════════════════════════════════════════════════════════
 # メイン
 # ══════════════════════════════════════════════════════════════
@@ -155,6 +314,18 @@ def main():
     parser.add_argument("--animate", action="store_true", help="動画モードで実行（静止画合格後）")
     parser.add_argument("--skip-qa",   action="store_true", help="QAゲートをスキップ（デバッグ用）")
     parser.add_argument("--dry-run",   action="store_true", help="Blenderを実際には実行しない")
+    parser.add_argument(
+        "--render-profile",
+        choices=["preview", "standard", "photoreal"],
+        default="preview",
+        help="Render quality profile. preview is fast, photoreal is slower but YouTube-oriented.",
+    )
+    parser.add_argument(
+        "--camera-angle",
+        choices=sorted(CAMERA_ANGLE_PRESETS.keys()),
+        default="config",
+        help="Camera angle preset to apply on top of the YAML config.",
+    )
     args = parser.parse_args()
 
     config_path = Path(args.config)
@@ -164,6 +335,12 @@ def main():
     print(f"\n[Pipeline] 設定ファイル: {config_path}", flush=True)
     with open(config_path, encoding="utf-8") as f:
         config = yaml.safe_load(f)
+    config = _apply_camera_angle(config, args.camera_angle)
+    config = _apply_render_profile(config, args.render_profile, args.animate)
+    print(
+        f"[Pipeline] profile={args.render_profile} camera_angle={args.camera_angle}",
+        flush=True,
+    )
 
     scene_name = config.get("scene", {}).get("name", "unknown")
     output_dir = Path(config.get("render", {}).get("output_dir", f"output/{scene_name}"))
@@ -197,12 +374,7 @@ def main():
     print("[4/8] Blenderスクリプト生成", flush=True)
     if args.animate:
         config.setdefault("animation", {})["enabled"] = True
-        # 動画用設定: Eevee + 低解像度 + FFMPEG出力（two_pass不要）
-        config.setdefault("render", {})["engine"] = "BLENDER_EEVEE_NEXT"
-        config["render"]["samples"] = 16
-        config["render"]["resolution"] = [854, 480]
-        config["render"]["two_pass"] = False
-        config["render"]["output_format"] = "FFMPEG"
+        config.setdefault("render", {}).setdefault("output_format", "PNG")
     blender_script = generate_blender_script(config)
     script_path = output_dir / "blender_scene_script.py"
     script_path.write_text(blender_script, encoding="utf-8")
@@ -229,6 +401,20 @@ def main():
                 build_result = json.load(f)
         except Exception:
             pass
+
+    video_result = None
+    if args.animate and not args.dry_run and run_result.get("status") == "done":
+        video_result = _assemble_animation_video(
+            output_dir,
+            output_prefix,
+            int(config.get("animation", {}).get("fps", 30)),
+            scene_name,
+        )
+        if video_result.get("status") == "done":
+            print(f"  [OK] MP4 assembled: {video_result['path']}", flush=True)
+        else:
+            print(f"  [WARN] MP4 assembly skipped: {video_result.get('status')}", flush=True)
+            run_result.setdefault("errors", []).extend(video_result.get("errors", []))
 
     # ── Step 6: QAゲート ──────────────────────────────────────
     print("[6/8] QAゲート", flush=True)
@@ -309,6 +495,8 @@ def main():
             print(f"  比較画像       : {compare_result['comparison_path']}", flush=True)
     elif ultra_path:
         print(f"  超リアル画像   : {ultra_path}", flush=True)
+    if video_result and video_result.get("path"):
+        print(f"  MP4動画        : {video_result['path']}", flush=True)
     print(f"  レンダー時間: {run_result.get('render_sec', render_sec):.1f}s", flush=True)
     print("="*60 + "\n", flush=True)
 

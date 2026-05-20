@@ -1287,3 +1287,19 @@ un_command_with_heartbeat wrapper that utilizes subprocess.Popen to update the h
 | **Prevention** | Run local actionlint before pushing workflow changes. Keep workflow control files ASCII-only unless there is a strong reason otherwise. Treat any CI failure after push as a P015 self-healing target: fetch logs, diagnose, apply a changed countermeasure, verify, and push a fix. |
 
 ---
+
+## INC-089: CityCharacterPipeline preview video rendered frames but initially failed to produce a complete MP4
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-05-20 JST |
+| **Detection** | During photoreal/video standardization, the first preview render attempt failed in Blender with `enum "BLENDER_EEVEE_NEXT" not found`. After fixing that, Blender rendered 90 PNG frames but no MP4 file was produced, so the result was not yet a completed video. |
+| **Impact** | The pipeline could report a pass while leaving only image frames, which made video delivery manual and fragile. Blender 5.1 also rejected the old `BLENDER_EEVEE_NEXT` engine name, preventing animation renders before self-repair. |
+| **Root Cause (5 Why)** | **Why1**: The first animation run failed. **Why2**: `run_pipeline.py` still forced `BLENDER_EEVEE_NEXT` inside the legacy `--animate` branch. **Why3**: New render profiles were applied earlier, but the old animation override ran later and replaced the selected engine. **Why4**: The animation pipeline rendered PNG frames through `scene_builder.py`, but `run_pipeline.py` had no standard ffmpeg assembly step. **Why5**: Previous acceptance focused on Blender frame completion, not final video artifact completion. |
+| **Fix** | Added `--render-profile` and `--camera-angle` as standard controls, removed the legacy `BLENDER_EEVEE_NEXT` override, and added `_assemble_animation_video()` to convert `frames/render_frame_%04d.png` into H.264 MP4 with ffmpeg after successful animation renders. Added `configs/photoreal_video.yaml` and the standard operating note `docs/knowledge/city_character_photoreal_standard_20260520.md`. |
+| **Files** | `projects/CityCharacterPipeline/run_pipeline.py`; `projects/CityCharacterPipeline/configs/photoreal_video.yaml`; `docs/knowledge/city_character_photoreal_standard_20260520.md`; `docs/INCIDENT_LOG.md` |
+| **Verification** | `python -m py_compile projects/CityCharacterPipeline/run_pipeline.py` passed. YAML load check confirmed `Shibuya_RickDias_Photoreal`, 90 frames, 30 fps. Dry-run passed with `--render-profile preview --camera-angle street_low`. Blender 5.1 rendered 90 frames successfully in 614.6 seconds. `_assemble_animation_video()` produced `Shibuya_RickDias_Photoreal_walk.mp4`; `ffprobe` reported H.264, 854x480, 90 frames, 3.000 seconds, 703721 bytes. |
+| **Lessons Learned** | A video pipeline is not complete until the final MP4 is created and probed. Profile logic must be applied after or instead of legacy animation defaults so later overrides do not undo the selected standard. |
+| **Prevention** | Keep MP4 existence and `ffprobe` duration/frame checks in the completion criteria. Use `preview` for fast movement verification, `standard` for review, and `photoreal` for final candidates. Treat missing MP4 after frames render as a self-repair target rather than a pass. |
+
+---

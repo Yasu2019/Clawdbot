@@ -26,3 +26,17 @@ verification 2026-05-20: safe curate completed status is now recognized before f
 
 - none
 
+## 2026-05-20 15:33:18 +09:00
+
+**Curate status:** failed
+
+**Reason:** brv curate failed
+
+**Context**
+
+CityCharacterPipeline 2026-05-20: standardized photoreal/video rendering with --render-profile preview/standard/photoreal and --camera-angle config/hero/street_low/telephoto/orbit. Removed legacy BLENDER_EEVEE_NEXT animation override because Blender 5.1 supports BLENDER_EEVEE/CYCLES and the later override broke profile selection. Added ffmpeg MP4 assembly after successful animation frames. Verified preview MP4 Shibuya_RickDias_Photoreal_walk.mp4: H.264 854x480 90 frames 3.0 sec.
+
+**Source files**
+
+- projects/CityCharacterPipeline/run_pipeline.py,projects/CityCharacterPipeline/configs/photoreal_video.yaml,docs/knowledge/city_character_photoreal_standard_20260520.md,docs/INCIDENT_LOG.md
+
