@@ -1255,3 +1255,19 @@ un_command_with_heartbeat wrapper that utilizes subprocess.Popen to update the h
 | **Prevention** | Prefer Windows Scheduled Tasks when available, but keep `p009_self_growth_watchdog.py` as the no-admin fallback. Include P009/self-growth/PDCA in balanced startup, and keep `auto_repair_allowed.py` as the bounded repair path when freshness checks become stale. |
 
 ---
+
+## INC-087: ByteRover memories were not protected against local PC loss
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-05-20 JST |
+| **Detection** | User asked whether ByteRover Markdown memories remain in Turso or GitHub and raised concern that a mini-PC crash could lose them. Investigation showed `.brv/` is ignored by Git, ByteRover Space is not connected, and no confirmed Turso mirror exists for `.brv/context-tree/*.md`. |
+| **Impact** | Important operational lessons saved only under `.brv/context-tree/` could be lost if the local PC storage fails before a separate backup is made. |
+| **Root Cause (5 Why)** | **Why1**: ByteRover memories were local-only. **Why2**: `.brv/` is intentionally ignored by Git to avoid noisy internal state and possible sensitive context. **Why3**: The existing safe fallback wrote to `.brv/context-tree/infrastructure/byterover_repair/safe_curate_fallback.md`, which is also ignored. **Why4**: There was no Git-tracked Markdown mirror for high-value curate contexts. **Why5**: Obsidian/Turso/GitHub roles had not been separated into recovery backup, human reading, and search/index layers. |
+| **Fix** | Extended `scripts/brv_safe_curate.ps1` with `-MirrorPath`, defaulting to `docs/knowledge/byterover_memory_backup.md`. The wrapper now writes a Git-tracked Markdown mirror on successful, failed, or timed-out curation attempts while preserving the original `.brv` fallback behavior for failures. |
+| **Files** | `scripts/brv_safe_curate.ps1`; `docs/knowledge/byterover_memory_backup.md`; `docs/INCIDENT_LOG.md` |
+| **Verification** | Confirmed `docs/knowledge/byterover_memory_backup.md` is not ignored by Git. Ran `scripts/brv_safe_curate.ps1` with a small verification context; `brv curate` completed and the wrapper appended `mirror_written=docs/knowledge/byterover_memory_backup.md` with exit code 0. During verification, the first implementation incorrectly treated a completed stream as failure when the CLI exit code was non-zero; the wrapper was corrected to prefer explicit `"event":"completed"` / `"status":"completed"` before fallback handling. |
+| **Lessons Learned** | A local AI memory is not a durable backup unless it lands in a Git-tracked or externally synced location. Successful `curate` streams should be detected from their structured events, not only process exit code. |
+| **Prevention** | Use `scripts/brv_safe_curate.ps1` for important memories. Keep GitHub as the primary recovery path, Obsidian as an optional human-readable vault, and Turso/Qdrant as search or scoring indexes rather than the only source of truth. |
+
+---
