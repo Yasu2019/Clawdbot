@@ -6,7 +6,6 @@ on:
   pull_request:
     branches: ["**"]
 
-# 最小権限 — 読み取りのみ
 permissions:
   contents: read
 
@@ -16,24 +15,23 @@ defaults:
 
 jobs:
   python-syntax:
-    name: Python 構文チェック
+    name: Python syntax check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Python セットアップ
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: Python 構文チェック (py_compile)
+      - name: Python syntax check with py_compile
         run: |
-          echo "=== Python 構文チェック開始 ==="
+          echo "=== Python syntax check start ==="
           FAILED=0
-          # .venv / __pycache__ / 一時ディレクトリを除外して全 .py を検査
           while IFS= read -r -d '' f; do
             if ! python -m py_compile "$f" 2>&1; then
-              echo "::error file=$f::構文エラー: $f"
+              echo "::error file=$f::Python syntax error: $f"
               FAILED=$((FAILED + 1))
             fi
           done < <(find . \
@@ -43,28 +41,28 @@ jobs:
             -not -path "*/__pycache__/*" \
             -not -path "./tmp/*" \
             -print0)
-          echo "=== 検査完了 ==="
+          echo "=== Python syntax check complete ==="
           if [ "$FAILED" -gt 0 ]; then
-            echo "::error::構文エラーが $FAILED ファイルで見つかりました"
+            echo "::error::Python syntax errors were found in $FAILED files"
             exit 1
           fi
-          echo "全 Python ファイルの構文チェック OK"
+          echo "All Python files passed syntax check"
 
   yaml-syntax:
-    name: YAML 構文チェック
+    name: YAML syntax check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Python セットアップ
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: yamllint インストール
+      - name: Install yamllint
         run: pip install yamllint
 
-      - name: yamllint 設定ファイル生成
+      - name: Generate yamllint config
         run: |
           cat > /tmp/.yamllint.yml << 'EOF'
           extends: relaxed
@@ -80,13 +78,13 @@ jobs:
               max-spaces-inside: 1
           EOF
 
-      - name: YAML 構文チェック (yamllint)
+      - name: YAML syntax check with yamllint
         run: |
-          echo "=== YAML 構文チェック開始 ==="
+          echo "=== YAML syntax check start ==="
           FAILED=0
           while IFS= read -r -d '' f; do
             if ! yamllint -c /tmp/.yamllint.yml "$f" 2>&1; then
-              echo "::error file=$f::YAML エラー: $f"
+              echo "::error file=$f::YAML error: $f"
               FAILED=$((FAILED + 1))
             fi
           done < <(find . \
@@ -105,58 +103,54 @@ jobs:
             | grep -v "\.tmp_" \
             | grep -v "tmp_" \
             | tr '\n' '\0')
-          echo "=== 検査完了 ==="
+          echo "=== YAML syntax check complete ==="
           if [ "$FAILED" -gt 0 ]; then
-            echo "::error::YAML エラーが $FAILED ファイルで見つかりました"
+            echo "::error::YAML errors were found in $FAILED files"
             exit 1
           fi
-          echo "全 YAML ファイルの構文チェック OK"
+          echo "All YAML files passed syntax check"
 
   workflow-lint:
-    name: GitHub Actions Workflow 検査
+    name: GitHub Actions workflow check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: actionlint インストール
+      - name: Install actionlint
         run: |
-          # actionlint — GitHub Actions 専用 linter
+          ACTIONLINT_VER="1.7.12"
           curl -sSfL \
-            https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash \
-            | sudo bash -s -- -b /usr/local/bin
+            "https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VER}/actionlint_${ACTIONLINT_VER}_linux_amd64.tar.gz" \
+            | sudo tar -xz -C /usr/local/bin actionlint
+          actionlint --version
 
-      - name: actionlint 実行
+      - name: Run actionlint
         run: |
-          echo "=== GitHub Actions workflow 検査 ==="
-          if [ -d .github/workflows ]; then
-            actionlint .github/workflows/*.yml 2>&1
-            echo "Workflow 検査 OK"
-          else
-            echo "::warning::.github/workflows ディレクトリが見つかりません"
-          fi
+          echo "=== GitHub Actions workflow check ==="
+          actionlint .github/workflows/*.yml 2>&1
+          echo "Workflow check OK"
 
   markdown-check:
-    name: Markdown 検査
+    name: Markdown check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Node.js セットアップ
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "20"
 
-      - name: markdownlint-cli インストール
+      - name: Install markdownlint-cli
         run: npm install -g markdownlint-cli
 
-      - name: Markdown 検査
+      - name: Markdown check
         run: |
-          echo "=== Markdown 検査開始 ==="
-          # 緩めのルール — リンク切れ・スタイル強制はしない
+          echo "=== Markdown check start ==="
           markdownlint \
             --disable MD013 MD033 MD041 MD034 \
             '**/*.md' \
             --ignore '.venv/**' \
             --ignore 'tmp/**' \
             2>&1 || true
-          echo "Markdown 検査完了 (警告は無視、エラーのみ失敗)"
+          echo "Markdown check complete. Warnings are non-blocking."

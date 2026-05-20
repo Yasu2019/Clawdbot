@@ -1271,3 +1271,19 @@ un_command_with_heartbeat wrapper that utilizes subprocess.Popen to update the h
 | **Prevention** | Use `scripts/brv_safe_curate.ps1` for important memories. Keep GitHub as the primary recovery path, Obsidian as an optional human-readable vault, and Turso/Qdrant as search or scoring indexes rather than the only source of truth. |
 
 ---
+
+## INC-088: CI Fast workflow lint failed because the workflow file contained a malformed step and control characters
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-05-20 JST |
+| **Detection** | User reported that `CI Fast / GitHub Actions Workflow 検査` failed while Python, YAML, and Markdown checks passed. Local inspection of `.github/workflows/ci-fast.yml` found a malformed `actionlint` step at line 129 where `name` and `run` were collapsed onto one line. Local `actionlint` also reported that the workflow could not be parsed because control characters were present. |
+| **Impact** | Every push could show a failed workflow lint job even when unrelated code changes were valid. This made CI look abandoned and weakened trust in the self-healing promise. |
+| **Root Cause (5 Why)** | **Why1**: Workflow lint failed. **Why2**: `ci-fast.yml` had an invalid step line and hidden control characters. **Why3**: Mojibake text in comments/job labels introduced C1 control characters such as `U+0080`. **Why4**: The file had been allowed to keep non-ASCII garbled text in a CI control file. **Why5**: The workflow itself was not locally actionlint-verified before push, so CI became the first parser to catch it. |
+| **Fix** | Rewrote `.github/workflows/ci-fast.yml` with ASCII-only job names, comments, and log messages while preserving the same Python, YAML, workflow, and Markdown check behavior. Split the malformed `actionlint` step into a valid `name` plus `run` block. |
+| **Files** | `.github/workflows/ci-fast.yml`; `docs/INCIDENT_LOG.md` |
+| **Verification** | Confirmed zero disallowed control characters in `.github/workflows/ci-fast.yml`. Downloaded `actionlint` v1.7.12 for Windows and ran it against all `.github/workflows/*.yml`; it exited successfully. Ran `git diff --check` for the workflow file successfully. |
+| **Lessons Learned** | CI workflow files should be boring ASCII. Garbled labels and comments are not cosmetic when they can introduce parser-level control characters. |
+| **Prevention** | Run local actionlint before pushing workflow changes. Keep workflow control files ASCII-only unless there is a strong reason otherwise. Treat any CI failure after push as a P015 self-healing target: fetch logs, diagnose, apply a changed countermeasure, verify, and push a fix. |
+
+---
