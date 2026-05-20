@@ -83,3 +83,17 @@ CityCharacterPipeline background realism fix 2026-05-20: previous facade_details
 - projects/CityCharacterPipeline/pipeline/material_enhancements.py
 - projects/CityCharacterPipeline/configs/photoreal_video_short.yaml
 
+## 2026-05-20 23:30:34 +09:00
+
+**Curate status:** failed
+
+**Reason:** brv curate failed
+
+**Context**
+
+CityCharacterPipeline free local img2img photoreal background test 2026-05-20: Best free effect used existing services/ai_image_gen OpenVINO DreamShaper LCM img2img, no external generation API. Direct API auto-resize to 768x432 caused HTTP 500 because dimensions were not 64-aligned. Fix was to pre-resize frames to 640x384, send max_dimension=9999, strength=0.52, steps=6, guidance=1.3, then resize back to 1920x1080. To preserve the robot, SD output was composited only into background using a simple red/central robot mask. Processed 30/30 frames, about 12.6 min total, output MP4 projects/CityCharacterPipeline/output/photoreal_img2img_free_test/RickDias_free_local_img2img_bg_001.mp4, h264 1920x1080 10fps 3.0s, Telegram message_id=4713. Result is much more photorealistic in background, with expected limitations: temporal background flicker and some robot-edge blending.
+
+**Source files**
+
+- none
+
