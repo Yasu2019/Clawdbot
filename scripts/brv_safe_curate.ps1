@@ -9,7 +9,9 @@ param(
 
     [string]$FallbackPath = ".brv/context-tree/infrastructure/byterover_repair/safe_curate_fallback.md",
 
-    [string]$MirrorPath = "docs/knowledge/byterover_memory_backup.md"
+    [string]$MirrorPath = "docs/knowledge/byterover_memory_backup.md",
+
+    [string]$QueuePath = "docs/knowledge/byterover_curate_queue.jsonl"
 )
 
 $ErrorActionPreference = "Stop"
@@ -139,6 +141,42 @@ $fileLines
     Write-Output "mirror_written=$OutputPath"
 }
 
+function Add-CurateQueueItem {
+    param(
+        [string]$Reason,
+        [string]$ContextText,
+        [string[]]$SourceFiles,
+        [string]$OutputPath
+    )
+
+    if ([string]::IsNullOrWhiteSpace($OutputPath)) {
+        return
+    }
+
+    $fullPath = Join-Path (Get-Location) $OutputPath
+    $dir = Split-Path -Parent $fullPath
+    if (-not (Test-Path -LiteralPath $dir)) {
+        New-Item -ItemType Directory -Path $dir -Force | Out-Null
+    }
+
+    $now = Get-Date
+    $item = [ordered]@{
+        id = "brv-" + $now.ToString("yyyyMMddHHmmssfff") + "-" + ([guid]::NewGuid().ToString("N").Substring(0, 8))
+        status = "pending"
+        created_at = $now.ToString("o")
+        next_attempt_after = $now.ToString("o")
+        attempts = 0
+        reason = $Reason
+        context = $ContextText
+        files = @($SourceFiles)
+        last_error = $Reason
+    }
+
+    $json = $item | ConvertTo-Json -Compress -Depth 8
+    Add-Content -LiteralPath $fullPath -Value $json -Encoding UTF8
+    Write-Output "queue_written=$OutputPath"
+}
+
 function Quote-WindowsArgument {
     param([string]$Value)
 
@@ -199,6 +237,7 @@ try {
         Stop-ProcessTreeSafe -RootPid $process.Id
         Write-FallbackMemory -Reason "brv curate timed out after ${TimeoutSec}s" -ContextText $Context -SourceFiles $Files -OutputPath $FallbackPath
         Write-GitMirrorMemory -Reason "brv curate timed out after ${TimeoutSec}s" -ContextText $Context -SourceFiles $Files -OutputPath $MirrorPath -CurateStatus "timeout"
+        Add-CurateQueueItem -Reason "brv curate timed out after ${TimeoutSec}s" -ContextText $Context -SourceFiles $Files -OutputPath $QueuePath
         exit 2
     }
 
@@ -223,6 +262,7 @@ try {
         }
         Write-FallbackMemory -Reason $reason -ContextText $Context -SourceFiles $Files -OutputPath $FallbackPath
         Write-GitMirrorMemory -Reason $reason -ContextText $Context -SourceFiles $Files -OutputPath $MirrorPath -CurateStatus "failed"
+        Add-CurateQueueItem -Reason $reason -ContextText $Context -SourceFiles $Files -OutputPath $QueuePath
         exit 1
     }
 

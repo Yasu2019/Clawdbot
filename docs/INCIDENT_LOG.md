@@ -1319,3 +1319,19 @@ un_command_with_heartbeat wrapper that utilizes subprocess.Popen to update the h
 | **Prevention** | Keep Turso metric collection as best-effort until a Linux-compatible dependency path is provisioned inside the n8n container or the metric job is moved to a host-side scheduled task. Risk notification should continue to flag hard failures, but degraded optional metrics should be visible in the report rather than treated as a failed nightly. |
 
 ---
+
+## INC-091: ByteRover fallback memories were preserved locally but not automatically resynced
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-05-21 JST |
+| **Detection** | User asked whether fallback operation means local storage first and ByteRover re-entry after quota reset, then requested an automatic resync queue to reduce memory loss risk when the free daily ByteRover limit is reached. |
+| **Impact** | Failed `brv curate` calls were mirrored to Markdown, but an agent had to manually find and re-submit important entries after quota recovery. This could leave durable lessons outside ByteRover search. |
+| **Root Cause (5 Why)** | **Why1**: ByteRover entries could remain local-only. **Why2**: `brv_safe_curate.ps1` wrote fallback and Git mirror records but did not create machine-readable retry work. **Why3**: The fallback Markdown format was optimized for human recovery, not idempotent queue processing. **Why4**: There was no retry script with bounded attempts, timeout control, and backoff. **Why5**: The memory durability fix in INC-087 solved loss prevention, but not automatic reintegration into ByteRover. |
+| **Fix** | Extended `scripts/brv_safe_curate.ps1` with `-QueuePath`, defaulting to `docs/knowledge/byterover_curate_queue.jsonl`, and added `scripts/brv_sync_curate_queue.ps1` to retry pending JSONL entries, archive synced entries, and keep failed entries pending with `attempts`, `last_error`, and `next_attempt_after`. |
+| **Files** | `scripts/brv_safe_curate.ps1`; `scripts/brv_sync_curate_queue.ps1`; `docs/INCIDENT_LOG.md` |
+| **Verification** | PowerShell parsing succeeded for both scripts. A scratch queue test with the current ByteRover daily limit wrote `queue_written=scratch/brv_test_queue.jsonl`; running the sync script processed 1 item, kept it pending, incremented `attempts` to 1, and wrote a future `next_attempt_after` instead of dropping it. |
+| **Lessons Learned** | Fallback storage and resync are separate controls. A human-readable mirror prevents data loss, while a JSONL queue makes recovery actionable after quota reset. |
+| **Prevention** | Use `scripts/brv_safe_curate.ps1` for important memories and run `scripts/brv_sync_curate_queue.ps1` manually or from a scheduler after ByteRover quota resets. Keep retries bounded per invocation with `-MaxItems` and `-TimeoutSec`. |
+
+---

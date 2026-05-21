@@ -97,3 +97,183 @@ CityCharacterPipeline free local img2img photoreal background test 2026-05-20: B
 
 - none
 
+## 2026-05-20 23:48:53 +09:00
+
+**Curate status:** failed
+
+**Reason:** brv curate failed
+
+**Context**
+
+2026-05-20 CityCharacterPipeline photoreal background improvement: local SD/img2img improved texture but flickered and mutated geometry. Higher realism came from real photo plate compositing: use a free photo plate (Pixabay id 5655593 by djedj), render Blender foreground alpha pass with all non-character meshes hidden and film_transparent RGBA, then composite high-quality Cycles robot RGB over the photo using the alpha mask. Best settings in output/real_photo_plate_video: v4 clean matte, robot shifted down 72px, tight upper matte, grown lower matte, soft contact shadow, slight road-color dust tint, outdoor photo color grading. Output RickDias_real_photo_plate_v4_clean.mp4 sent to Telegram message_id 4714. This avoided paid/cloud image generation and produced a more photoreal background than procedural buildings.
+
+**Source files**
+
+- projects/CityCharacterPipeline/output/real_photo_plate_video/candidate04_alpha_photo_v4_clean_meta.json
+- projects/CityCharacterPipeline/output/real_photo_plate_video/RickDias_real_photo_plate_v4_clean.mp4
+
+## 2026-05-21 02:51:22 +09:00
+
+**Curate status:** failed
+
+**Reason:** brv curate failed
+
+**Context**
+
+2026-05-21 CityCharacterPipeline photoreal v5: To improve the v4 real-photo-plate composite, focus on the robot CG mismatch rather than the background. Effective local-only changes: threshold the alpha matte (>96) to remove old procedural background halos, feather 1.05px, use lower-half matte growth only for feet/legs, shift robot down 72px for road contact, add stronger dual contact shadow, use mild local background defocus around the robot silhouette, reduce robot saturation/contrast/brightness (0.82/0.93/0.91), add tiny film grain and restrained vignette. Output: projects/CityCharacterPipeline/output/real_photo_plate_video/RickDias_real_photo_plate_v5_cinema.mp4, Telegram message_id 4716. Source photo remains Pixabay id 5655593 by djedj. No paid/cloud image generation.
+
+**Source files**
+
+- projects/CityCharacterPipeline/output/real_photo_plate_video/candidate04_alpha_photo_v5_cinema_meta.json
+- projects/CityCharacterPipeline/output/real_photo_plate_video/RickDias_real_photo_plate_v5_cinema.mp4
+
+## 2026-05-21 04:07:18 +09:00
+
+**Curate status:** failed
+
+**Reason:** brv curate failed
+
+**Context**
+
+2026-05-21 CityCharacterPipeline: User rejected 2D photo plate background as unacceptable. Switched back to true 3D background. Attempt v1 added dense procedural 3D street canyon, road, signs, traffic lights, and camera dolly, but legacy OSM geometry produced a black overhang in camera. Attempt v2 hid legacy OSM/enhancement visual meshes and rendered clean 3D city, but background was too box-like and low-detail. Attempt v3 added road-edge storefronts/signs and wider camera for 3D parallax; output RickDias_real_3d_city_v3_storefronts.mp4 sent to Telegram message_id 4717. Result is acceptable only as a 3D direction/evaluation asset, not photoreal final. Next recommended route for final quality: UE5/PLATEAU/Megascans or Blender with real asset packs; procedural boxes alone cannot reach YouTube photoreal city quality.
+
+**Source files**
+
+- projects/CityCharacterPipeline/output/real_3d_city_v3_storefronts/RickDias_real_3d_city_v3_storefronts.mp4
+- projects/CityCharacterPipeline/output/real_3d_city_v3_storefronts/blender_scene_script_real_3d_city_v3.py
+
+## 2026-05-21 06:32:22 +09:00
+
+**Curate status:** failed
+
+**Reason:** brv curate failed
+
+**Context**
+
+UE5 local no-cloud render baseline: UnrealEditor 5.7.4 at D:\UnrealEngine\UE_5.7\UE_5.7 can run AtsugiMechaCity offscreen with SceneCapture2D and export EXR without AI/cloud API consumption. HighResShot/editor viewport path is unstable/headless and produced sky/black/hangs. SceneCapture2D export_render_target works; UE writes EXR even if extension says PNG. Convert with ffmpeg from .exr to PNG. Existing Atsugi_Front_Final and Zaku_Posed spawn, but city/camera/material scale are unreliable; procedural UE primitives can create true 3D road/building background. Color material generation via /Temp MaterialEditingLibrary failed in UE 5.7 with create_material_expression returning None, so current output falls back to existing gray PBR materials. Next fix: create real Material assets under /Game/CodexGenerated or use confirmed engine material with parameters, then build Movie Render Queue sequence.
+
+**Source files**
+
+- projects/AtsugiMechaCity/diagnostics/ue5_local_render/ue5_render_capture2d.py,projects/AtsugiMechaCity/diagnostics/ue5_local_render/ue5_render_procedural_city.py,projects/AtsugiMechaCity/diagnostics/ue5_local_render/ue5_render_procedural_city_report.json
+
+## 2026-05-21 07:04:49 +09:00
+
+**Curate status:** failed
+
+**Reason:** brv curate failed
+
+**Context**
+
+UE5 local procedural city render advanced color pass: fixed material creation by writing reusable assets under /Game/CodexGenerated instead of /Temp. Added v2 saturated asphalt, lane, glass, sky, facade materials plus sidewalk and traffic light emissive materials. Added sidewalks, crosswalk, asphalt detail strips, window cells, red/amber/green traffic lights, and overhead road signs in ue5_render_procedural_city.py. Latest checked PNG is projects/AtsugiMechaCity/diagnostics/ue5_local_render/Atsugi_UE5_procedural_city_color2_view.png. Still not photorealistic; it is a true 3D UE5 stylized/procedural city baseline. Next realistic step: replace primitive blocks with PLATEAU/Megascans/PBR mesh assets or import real city meshes, then render with Movie Render Queue.
+
+**Source files**
+
+- projects/AtsugiMechaCity/diagnostics/ue5_local_render/ue5_render_procedural_city.py
+
+## 2026-05-21 07:55:57 +09:00
+
+**Curate status:** failed
+
+**Reason:** brv curate failed
+
+**Context**
+
+UE5 local PLATEAU render attempt 2026-05-21: Blender Hon_Atsugi_Station_Plateau_Mecha.blend was exported to UE5 FBX via diagnostics/ue5_local_render/export_hon_atsugi_plateau_for_ue5.py. Key fixes: exclude oversized mecha from city background FBX, recenter city to origin, apply transforms, use global_scale=1. UE5 import/render script diagnostics/ue5_local_render/ue5_import_render_plateau_fbx.py imports to /Game/CodexGenerated/PlateauHonAtsugiCityOnlyCmScale, uses SceneCapture2D, applies material slots for terrain/building/window/sign/road/sidewalk/line/rail/plaza. Output: Atsugi_UE5_plateau_city_real_asset_materialized_view.png. Result: API cost none; real PLATEAU geometry imports successfully, but visual is still blocky/gray and not photoreal because CityGML-derived buildings are simple boxes and lack facade textures/detail; next improvement should add real facade textures/PBR assets or use higher quality UE/Megascans-like assets.
+
+**Source files**
+
+- projects/AtsugiMechaCity/diagnostics/ue5_local_render/export_hon_atsugi_plateau_for_ue5.py
+- projects/AtsugiMechaCity/diagnostics/ue5_local_render/ue5_import_render_plateau_fbx.py
+
+## 2026-05-21 08:02:23 +09:00
+
+**Curate status:** failed
+
+**Reason:** brv curate failed
+
+**Context**
+
+Created projects/AtsugiMechaCity/diagnostics/ue5_local_render/UE5_PLATEAU_RENDER_ANALYSIS.md summarizing the UE5/PLATEAU photoreal background attempt through 2026-05-21. It records: local-only/no API use, procedural UE5 baseline, Blender PLATEAU FBX export, PostProcessVolume UE5.7 property failure and fix, recentering, exclusion of oversized mecha from background FBX, global_scale=1 correction, UE5 material slot reassignment, remaining limitation that PLATEAU box geometry lacks photoreal facade/PBR detail, and recommended next steps: split mesh import, SkyAtmosphere/exposure/fog, PBR material library, decoration assets, then separate mecha integration/video/Telegram.
+
+**Source files**
+
+- projects/AtsugiMechaCity/diagnostics/ue5_local_render/UE5_PLATEAU_RENDER_ANALYSIS.md
+
+## 2026-05-21 09:27:07 +09:00
+
+**Curate status:** completed
+
+**Reason:** brv curate completed successfully
+
+**Context**
+
+Ingested C:\Users\yasu\Downloads\UE5_MINIPC_VIDEO_ADVICE_20260521.md into projects/AtsugiMechaCity/diagnostics/ue5_local_render/UE5_MINIPC_VIDEO_GENERATION_ADVICE.md and appended its key guidance to UE5_PLATEAU_RENDER_ANALYSIS.md. Updated guidance: ADOPT_PARTIAL, mini-PC first target is still-image comparison at 1280x720, city-only radius 100m, background/mecha separated, split exports for Terrain/Road/Sidewalk/Buildings/Windows/Signs/Rails/Props, SceneCapture2D/RenderTarget/EXR standard, avoid HighResShot/editor viewport, avoid initial Lumen/Nanite/high-quality shadows, apply PBR in order road/sidewalk/building/window/sign, pass only after black background/bounds/material issues are resolved.
+
+**Source files**
+
+- projects/AtsugiMechaCity/diagnostics/ue5_local_render/UE5_PLATEAU_RENDER_ANALYSIS.md
+- projects/AtsugiMechaCity/diagnostics/ue5_local_render/UE5_MINIPC_VIDEO_GENERATION_ADVICE.md
+
+## 2026-05-21 10:03:32 +09:00
+
+**Curate status:** completed
+
+**Reason:** brv curate completed successfully
+
+**Context**
+
+Implemented and ran the UE5 mini-PC safe radius100 still-image comparison flow. Added export_city_split_radius100_for_ue5.py, ue5_render_radius100_comparison.py, config_ue5_minipc_render_profile.json, and radius100_compare_template.md under projects/AtsugiMechaCity/diagnostics/ue5_local_render. Blender split export succeeded for Terrain/Road/RoadMarkings/Sidewalk/Buildings/Windows/Rails; Signs had no faces in the slice. UE5 rendered 1280x720 baseline/pbr_road/pbr_road_building_props via SceneCapture2D and EXR output, converted to PNG, and created r100_contact_sheet.png. Fixed a camera bug: initial camera used terrain min Z and sat below the road layer; now it uses road/sidewalk bounds and a sky backdrop. Result is end-to-end successful and local-only, but not photoreal yet; next still fix should improve camera composition, hide/blocking buildings, strengthen road/sidewalk PBR contrast, and enlarge visible props before video.
+
+**Source files**
+
+- projects/AtsugiMechaCity/diagnostics/ue5_local_render/export_city_split_radius100_for_ue5.py
+- projects/AtsugiMechaCity/diagnostics/ue5_local_render/ue5_render_radius100_comparison.py
+- projects/AtsugiMechaCity/diagnostics/ue5_local_render/UE5_PLATEAU_RENDER_ANALYSIS.md
+
+## 2026-05-21 10:13:10 +09:00
+
+**Curate status:** completed
+
+**Reason:** brv curate completed successfully
+
+**Context**
+
+UE5 radius100 composition v2 completed. Backup branch pushed: backup/ue5-radius100-composition-before-20260521-100841. Updated ue5_render_radius100_comparison.py to improve street composition: camera recentered at road surface, PLATEAU Windows actor hidden in final variant to avoid giant blue wall, foreground asphalt proxy enlarged/darkened, lane stripes/crosswalk/curbs added, proxy facades/windows/cars/sign/poles added. Output r100_pbr_road_building_props.png now shows a readable street with road surface, lane markings, facades and props, though still not photoreal. Next still-image loop should add PBR wall/tile textures, emissive traffic lights, TextRender signs, and better low-poly vehicle shapes before video.
+
+**Source files**
+
+- projects/AtsugiMechaCity/diagnostics/ue5_local_render/ue5_render_radius100_comparison.py
+- projects/AtsugiMechaCity/diagnostics/ue5_local_render/UE5_PLATEAU_RENDER_ANALYSIS.md
+- projects/AtsugiMechaCity/diagnostics/ue5_local_render/radius100_compare_template.md
+
+## 2026-05-21 12:12:50 +09:00
+
+**Curate status:** failed
+
+**Reason:** brv curate failed
+
+**Context**
+
+UE5 Hon Atsugi cinematic foreground variant: Added cinematic_station_front_set variant for Hon Atsugi UE5 radius100 comparison. Backup branch pushed before changes. NullRHI failed with divide-by-zero in SceneCapture2D; retry without nullrhi succeeded. Added 78 foreground proxy props, report/harness status, and Telegram contact sheet output. Remaining limitation: proxy/blockout quality, not photoreal.
+
+**Source files**
+
+- projects/AtsugiMechaCity/diagnostics/ue5_local_render/ue5_render_radius100_comparison.py
+- projects/AtsugiMechaCity/diagnostics/ue5_local_render/radius100_compare/radius100_ue5_compare_report.json
+
+## 2026-05-21 13:07:55 +09:00
+
+**Curate status:** failed
+
+**Reason:** brv curate failed
+
+**Context**
+
+Implemented ByteRover fallback automatic resync queue. brv_safe_curate now writes pending JSONL queue entries on timeout/failure, and brv_sync_curate_queue retries pending entries after quota recovery with bounded MaxItems, timeout control, backoff, archive on success, and no data loss on failure.
+
+**Source files**
+
+- scripts/brv_safe_curate.ps1
+- scripts/brv_sync_curate_queue.ps1
+- docs/INCIDENT_LOG.md
+
