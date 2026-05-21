@@ -230,6 +230,14 @@ def spawn_props(cube, mats):
     return props
 
 
+def spawn_box(cube, label, loc, scale, mat):
+    actor = unreal.EditorLevelLibrary.spawn_actor_from_object(cube, loc)
+    actor.set_actor_label("Codex_R100_" + label)
+    actor.set_actor_scale3d(scale)
+    set_actor_mat(actor, mat)
+    return actor
+
+
 def spawn_proxy_buildings(cube, mats, surface_z):
     if cube is None:
         return []
@@ -262,16 +270,159 @@ def spawn_proxy_buildings(cube, mats, surface_z):
     return actors
 
 
+def spawn_cinematic_station_front_set(cube, mats, surface_z, road_origin):
+    if cube is None:
+        return []
+    actors = []
+
+    storefronts = [
+        ("Storefront_Left_01", -1610.0, -1040.0, 5.6, mats["storefront_red"]),
+        ("Storefront_Left_02", -1610.0, -300.0, 5.6, mats["storefront_blue"]),
+        ("Storefront_Right_01", 1710.0, -760.0, 5.2, mats["storefront_green"]),
+        ("Storefront_Right_02", 1710.0, 40.0, 5.2, mats["storefront_yellow"]),
+    ]
+    for label, x, y, width, mat in storefronts:
+        actors.append(spawn_box(
+            cube,
+            label + "_Wall",
+            unreal.Vector(road_origin.x + x, road_origin.y + y, surface_z + 310.0),
+            unreal.Vector(0.12, width, 2.4),
+            mats["shop_wall"],
+        ))
+        actors.append(spawn_box(
+            cube,
+            label + "_Awning",
+            unreal.Vector(road_origin.x + x * 0.995, road_origin.y + y, surface_z + 520.0),
+            unreal.Vector(0.32, width * 0.55, 0.16),
+            mat,
+        ))
+        actors.append(spawn_box(
+            cube,
+            label + "_Glass",
+            unreal.Vector(road_origin.x + x * 0.992, road_origin.y + y - 130.0, surface_z + 285.0),
+            unreal.Vector(0.05, width * 0.34, 0.95),
+            mats["shop_glass"],
+        ))
+        actors.append(spawn_box(
+            cube,
+            label + "_Sign",
+            unreal.Vector(road_origin.x + x * 0.99, road_origin.y + y + 150.0, surface_z + 650.0),
+            unreal.Vector(0.07, width * 0.32, 0.22),
+            mat,
+        ))
+
+    for side_x in [-1340.0, 1350.0]:
+        for y in [-3950.0, -2950.0, -1950.0, -950.0, 50.0, 1050.0]:
+            actors.append(spawn_box(
+                cube,
+                "Sidewalk_Tile",
+                unreal.Vector(road_origin.x + side_x, road_origin.y + y, surface_z + 9.0),
+                unreal.Vector(2.4, 2.1, 0.018),
+                mats["paving_alt"],
+            ))
+
+    for y in [-4200.0, -3600.0, -3000.0, -2400.0, -1800.0, -1200.0]:
+        for x in [-620.0, 620.0]:
+            actors.append(spawn_box(
+                cube,
+                "Asphalt_RepairPatch",
+                unreal.Vector(road_origin.x + x, road_origin.y + y, surface_z + 10.0),
+                unreal.Vector(2.2, 1.25, 0.011),
+                mats["road_patch"],
+            ))
+
+    for y in [-3800.0, -2600.0, -1400.0, -200.0]:
+        actors.append(spawn_box(
+            cube,
+            "Manhole",
+            unreal.Vector(road_origin.x + 430.0, road_origin.y + y, surface_z + 13.0),
+            unreal.Vector(0.48, 0.48, 0.012),
+            mats["manhole"],
+        ))
+
+    pole_specs = [
+        ("SignalPole_L", -1250.0, -3460.0, 4.4),
+        ("SignalPole_R", 1270.0, -3370.0, 4.0),
+        ("StreetLamp_L1", -1380.0, -2200.0, 4.8),
+        ("StreetLamp_R1", 1420.0, -1300.0, 4.8),
+        ("StreetLamp_L2", -1380.0, -200.0, 4.8),
+    ]
+    for label, x, y, height in pole_specs:
+        actors.append(spawn_box(
+            cube,
+            label,
+            unreal.Vector(road_origin.x + x, road_origin.y + y, surface_z + height * 50.0),
+            unreal.Vector(0.055, 0.055, height),
+            mats["metal"],
+        ))
+        actors.append(spawn_box(
+            cube,
+            label + "_Head",
+            unreal.Vector(road_origin.x + x, road_origin.y + y + 42.0, surface_z + height * 100.0),
+            unreal.Vector(0.52, 0.12, 0.18),
+            mats["lamp_emissive"],
+        ))
+
+    for y in [-3300.0, -2800.0, -2300.0, -1800.0, -1300.0, -800.0]:
+        actors.append(spawn_box(
+            cube,
+            "GuardRail_Left",
+            unreal.Vector(road_origin.x - 1130.0, road_origin.y + y, surface_z + 80.0),
+            unreal.Vector(1.7, 0.045, 0.12),
+            mats["metal"],
+        ))
+        actors.append(spawn_box(
+            cube,
+            "GuardRail_Right",
+            unreal.Vector(road_origin.x + 1160.0, road_origin.y + y, surface_z + 80.0),
+            unreal.Vector(1.7, 0.045, 0.12),
+            mats["metal"],
+        ))
+
+    car_specs = [
+        ("Taxi_A", -360.0, -3000.0, mats["taxi"]),
+        ("DarkCar_A", 780.0, -2450.0, mats["car_dark"]),
+        ("WhiteVan_A", -820.0, -1540.0, mats["van_white"]),
+    ]
+    for label, x, y, mat in car_specs:
+        actors.append(spawn_box(
+            cube,
+            label + "_Body",
+            unreal.Vector(road_origin.x + x, road_origin.y + y, surface_z + 64.0),
+            unreal.Vector(1.65, 0.74, 0.34),
+            mat,
+        ))
+        actors.append(spawn_box(
+            cube,
+            label + "_Cabin",
+            unreal.Vector(road_origin.x + x, road_origin.y + y + 8.0, surface_z + 118.0),
+            unreal.Vector(0.95, 0.58, 0.28),
+            mats["car_glass"],
+        ))
+
+    for x in [-1540.0, 1540.0]:
+        for y in [-1900.0, -560.0, 680.0]:
+            actors.append(spawn_box(
+                cube,
+                "PosterPanel",
+                unreal.Vector(road_origin.x + x, road_origin.y + y, surface_z + 440.0),
+                unreal.Vector(0.06, 0.78, 0.52),
+                mats["poster"],
+            ))
+
+    return actors
+
+
 def spawn_foreground_road(cube, mats, surface_z, road_origin):
     if cube is None:
         return []
     actors = []
     road = unreal.EditorLevelLibrary.spawn_actor_from_object(
         cube,
-            unreal.Vector(road_origin.x - 120.0, road_origin.y - 2050.0, surface_z - 16.0),
+        unreal.Vector(road_origin.x - 120.0, road_origin.y - 3350.0, surface_z + 18.0),
     )
     road.set_actor_label("Codex_R100_Foreground_Asphalt")
-    road.set_actor_scale3d(unreal.Vector(34.0, 46.0, 0.04))
+    road.set_actor_scale3d(unreal.Vector(34.0, 76.0, 0.04))
     set_actor_mat(road, mats["road"])
     actors.append(road)
 
@@ -348,7 +499,7 @@ def main():
         if key in {"Road", "RoadMarkings", "Sidewalk", "Rails"}
     ]
     road_origin, road_extent, road_bounds_min, road_bounds_max = actor_bounds(road_actor_list or list(actors.values()))
-    surface_z = max(road_bounds_min[2], road_bounds_max[2] - 80.0)
+    surface_z = road_bounds_max[2] + 6.0
     target = unreal.Vector(road_origin.x + 180.0, road_origin.y + 950.0, surface_z + 250.0)
     camera_loc = unreal.Vector(road_origin.x - 900.0, road_origin.y - 5350.0, surface_z + 165.0)
     camera_rot = unreal.MathLibrary.find_look_at_rotation(camera_loc, target)
@@ -372,17 +523,32 @@ def main():
     asphalt_tex = import_texture(ROOT / "data" / "workspace" / "apps" / "blender_assets" / "polyhaven" / "textures" / "asphalt_floor" / "diffuse.png", "T_R100_Asphalt_Diffuse")
     mats = {
         "terrain": create_color_material("M_R100_Terrain_MutedGreen", unreal.LinearColor(0.14, 0.22, 0.14, 1.0), 0.92),
-        "road": create_color_material("M_R100_Road_Asphalt_Dark_v2", unreal.LinearColor(0.014, 0.015, 0.016, 1.0), 0.96),
+        "road": create_color_material("M_R100_Road_Asphalt_Dark_v3", unreal.LinearColor(0.014, 0.015, 0.016, 1.0), 0.96),
+        "road_patch": create_color_material("M_R100_Road_RepairPatch", unreal.LinearColor(0.030, 0.031, 0.032, 1.0), 0.98),
+        "manhole": create_color_material("M_R100_Manhole_DarkMetal", unreal.LinearColor(0.075, 0.073, 0.066, 1.0), 0.55),
         "marking": create_color_material("M_R100_Road_Marking_Bright_v2", unreal.LinearColor(0.95, 0.90, 0.68, 1.0), 0.58),
         "sidewalk": create_color_material("M_R100_Sidewalk_Concrete_v2", unreal.LinearColor(0.50, 0.48, 0.42, 1.0), 0.88),
+        "paving_alt": create_color_material("M_R100_Paving_AltBlocks", unreal.LinearColor(0.42, 0.40, 0.36, 1.0), 0.90),
         "building": create_color_material("M_R100_Building_WarmConcrete_v2", unreal.LinearColor(0.50, 0.49, 0.44, 1.0), 0.84),
         "building2": create_color_material("M_R100_Building_CoolConcrete_v2", unreal.LinearColor(0.32, 0.37, 0.39, 1.0), 0.82),
         "window": create_color_material("M_R100_Window_DarkGlass", unreal.LinearColor(0.025, 0.10, 0.16, 1.0), 0.25, unreal.LinearColor(0.0, 0.045, 0.09, 1.0)),
         "sign": create_color_material("M_R100_Sign_Emissive", unreal.LinearColor(0.85, 0.12, 0.05, 1.0), 0.45, unreal.LinearColor(1.1, 0.08, 0.03, 1.0)),
+        "shop_wall": create_color_material("M_R100_Shop_Wall_OffWhite", unreal.LinearColor(0.68, 0.65, 0.58, 1.0), 0.78),
+        "shop_glass": create_color_material("M_R100_Shop_Glass", unreal.LinearColor(0.02, 0.075, 0.10, 1.0), 0.22, unreal.LinearColor(0.0, 0.035, 0.055, 1.0)),
+        "storefront_red": create_color_material("M_R100_Storefront_Red", unreal.LinearColor(0.78, 0.05, 0.035, 1.0), 0.48, unreal.LinearColor(0.55, 0.02, 0.01, 1.0)),
+        "storefront_blue": create_color_material("M_R100_Storefront_Blue", unreal.LinearColor(0.03, 0.12, 0.64, 1.0), 0.46, unreal.LinearColor(0.02, 0.04, 0.36, 1.0)),
+        "storefront_green": create_color_material("M_R100_Storefront_Green", unreal.LinearColor(0.03, 0.42, 0.18, 1.0), 0.50, unreal.LinearColor(0.01, 0.19, 0.06, 1.0)),
+        "storefront_yellow": create_color_material("M_R100_Storefront_Yellow", unreal.LinearColor(0.95, 0.64, 0.08, 1.0), 0.48, unreal.LinearColor(0.55, 0.28, 0.02, 1.0)),
         "rail": create_color_material("M_R100_Rail_Metal", unreal.LinearColor(0.12, 0.12, 0.11, 1.0), 0.42),
         "metal": create_color_material("M_R100_Prop_Metal", unreal.LinearColor(0.10, 0.10, 0.095, 1.0), 0.48),
+        "lamp_emissive": create_color_material("M_R100_Lamp_Emissive", unreal.LinearColor(1.0, 0.86, 0.52, 1.0), 0.28, unreal.LinearColor(1.0, 0.68, 0.25, 1.0)),
         "car": create_color_material("M_R100_Prop_CarBlue", unreal.LinearColor(0.05, 0.16, 0.38, 1.0), 0.35),
         "car2": create_color_material("M_R100_Prop_CarWhite", unreal.LinearColor(0.75, 0.73, 0.68, 1.0), 0.40),
+        "taxi": create_color_material("M_R100_Taxi_Yellow", unreal.LinearColor(0.98, 0.68, 0.06, 1.0), 0.36),
+        "car_dark": create_color_material("M_R100_Car_Dark", unreal.LinearColor(0.035, 0.04, 0.052, 1.0), 0.32),
+        "van_white": create_color_material("M_R100_Van_White", unreal.LinearColor(0.80, 0.79, 0.74, 1.0), 0.42),
+        "car_glass": create_color_material("M_R100_Car_Glass", unreal.LinearColor(0.012, 0.044, 0.065, 1.0), 0.20, unreal.LinearColor(0.0, 0.025, 0.045, 1.0)),
+        "poster": create_color_material("M_R100_Poster_Mixed", unreal.LinearColor(0.92, 0.18, 0.44, 1.0), 0.44, unreal.LinearColor(0.32, 0.04, 0.12, 1.0)),
         "sky": create_color_material("M_R100_Sky_Backdrop", unreal.LinearColor(0.16, 0.43, 0.82, 1.0), 0.95, unreal.LinearColor(0.03, 0.14, 0.32, 1.0)),
     }
 
@@ -413,6 +579,8 @@ def main():
     proxy_buildings = spawn_proxy_buildings(cube, mats, surface_z)
     props = spawn_props(cube, mats)
     results.append(capture_variant(world, component, render_target, "pbr_road_building_props"))
+    cinematic_set = spawn_cinematic_station_front_set(cube, mats, surface_z, road_origin)
+    results.append(capture_variant(world, component, render_target, "cinematic_station_front_set"))
 
     report = {
         "ok": all(item["ok"] for item in results),
@@ -431,6 +599,7 @@ def main():
         "camera_rotation": [camera_rot.pitch, camera_rot.yaw, camera_rot.roll],
         "props_count": len(props),
         "proxy_building_count": len(proxy_buildings),
+        "cinematic_set_count": len(cinematic_set),
         "foreground_road_count": len(foreground_road),
         "sky_backdrop": sky_actor is not None,
         "variants": results,

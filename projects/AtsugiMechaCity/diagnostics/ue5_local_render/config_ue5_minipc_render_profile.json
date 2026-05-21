@@ -28,6 +28,7 @@
   "comparison_shots": [
     "baseline",
     "pbr_road",
-    "pbr_road_building_props"
+    "pbr_road_building_props",
+    "cinematic_station_front_set"
   ]
 }

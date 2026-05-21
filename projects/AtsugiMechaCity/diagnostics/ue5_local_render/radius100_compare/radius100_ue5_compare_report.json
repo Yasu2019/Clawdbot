@@ -51,16 +51,16 @@
     15283.654296875,
     1915.000244140625
   ],
-  "surface_z_cm": 1835.000244140625,
+  "surface_z_cm": 1921.000244140625,
   "camera_location_cm": [
     -900.0,
     -5350.00048828125,
-    2000.000244140625
+    2086.000244140625
   ],
   "camera_target_cm": [
     180.0,
     949.99951171875,
-    2085.000244140625
+    2171.000244140625
   ],
   "camera_rotation": [
     0.7618788395765905,
@@ -69,25 +69,32 @@
   ],
   "props_count": 7,
   "proxy_building_count": 30,
+  "cinematic_set_count": 78,
   "foreground_road_count": 16,
   "sky_backdrop": true,
   "variants": [
     {
       "name": "baseline",
       "exr": "D:\\Clawdbot_Docker_20260125\\projects\\AtsugiMechaCity\\diagnostics\\ue5_local_render\\radius100_compare\\r100_baseline.exr",
-      "size": 1420647,
+      "size": 1414350,
       "ok": true
     },
     {
       "name": "pbr_road",
       "exr": "D:\\Clawdbot_Docker_20260125\\projects\\AtsugiMechaCity\\diagnostics\\ue5_local_render\\radius100_compare\\r100_pbr_road.exr",
-      "size": 1500015,
+      "size": 1746051,
       "ok": true
     },
     {
       "name": "pbr_road_building_props",
       "exr": "D:\\Clawdbot_Docker_20260125\\projects\\AtsugiMechaCity\\diagnostics\\ue5_local_render\\radius100_compare\\r100_pbr_road_building_props.exr",
-      "size": 1572408,
+      "size": 1896286,
+      "ok": true
+    },
+    {
+      "name": "cinematic_station_front_set",
+      "exr": "D:\\Clawdbot_Docker_20260125\\projects\\AtsugiMechaCity\\diagnostics\\ue5_local_render\\radius100_compare\\r100_cinematic_station_front_set.exr",
+      "size": 1962938,
       "ok": true
     }
   ],
