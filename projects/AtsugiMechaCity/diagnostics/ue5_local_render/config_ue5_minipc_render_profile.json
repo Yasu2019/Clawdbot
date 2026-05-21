@@ -1,0 +1,33 @@
+{
+  "profile": "ue5_minipc_radius100_static_compare",
+  "target_resolution": [1280, 720],
+  "fps": 24,
+  "duration_sec_first_test": 5,
+  "city_radius_m_first_test": 100,
+  "render_mode": "SceneCapture2D_RenderTarget_EXR",
+  "use_lumen_initially": false,
+  "use_nanite_initially": false,
+  "use_virtual_shadow_maps_initially": false,
+  "camera_height_cm": 150,
+  "camera_lens_mm": 35,
+  "asset_policy": {
+    "background_and_mecha_separate": true,
+    "combine_all_meshes": false,
+    "split_categories": [
+      "Terrain",
+      "Road",
+      "RoadMarkings",
+      "Sidewalk",
+      "Buildings",
+      "Windows",
+      "Signs",
+      "Rails"
+    ],
+    "pbr_first_targets": ["road", "sidewalk", "building", "window", "sign"]
+  },
+  "comparison_shots": [
+    "baseline",
+    "pbr_road",
+    "pbr_road_building_props"
+  ]
+}

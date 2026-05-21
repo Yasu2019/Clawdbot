@@ -1,0 +1,28 @@
+{
+  "ok": true,
+  "output": "D:\\Clawdbot_Docker_20260125\\projects\\AtsugiMechaCity\\diagnostics\\ue5_local_render\\Atsugi_UE5_capture2d.png",
+  "output_size": 4565271,
+  "city_actor": "StaticMeshActor_0",
+  "zaku_actor": "StaticMeshActor_1",
+  "city_origin": [
+    -423526.4375,
+    -142840.59375,
+    60342.7529296875
+  ],
+  "city_extent": [
+    673526.4375,
+    392840.59375,
+    65294.6611328125
+  ],
+  "camera_location": [
+    -247736.03731249998,
+    -353203.3579375,
+    64183.959291992185
+  ],
+  "camera_rotation": [
+    -0.839644786353797,
+    127.40535663140857,
+    1.446249291381799e-08
+  ],
+  "api_cost": "none_local_ue5_only"
+}

@@ -1,0 +1,49 @@
+{
+  "AutomationLibrary": [
+    "finish_loading_before_screenshot",
+    "get_default_screenshot_options_for_gameplay",
+    "get_default_screenshot_options_for_rendering",
+    "take_automation_screenshot",
+    "take_automation_screenshot_at_camera",
+    "take_automation_screenshot_of_ui",
+    "take_high_res_screenshot"
+  ],
+  "EditorLevelLibrary": [
+    "clear_actor_selection_set",
+    "convert_actors",
+    "create_proxy_mesh_actor",
+    "destroy_actor",
+    "eject_pilot_level_actor",
+    "get_actor_reference",
+    "get_all_level_actors",
+    "get_all_level_actors_components",
+    "get_level_viewport_camera_info",
+    "get_selected_level_actors",
+    "join_static_mesh_actors",
+    "load_level",
+    "merge_static_mesh_actors",
+    "new_level",
+    "new_level_from_template",
+    "pilot_level_actor",
+    "replace_mesh_components_materials_on_actors",
+    "replace_mesh_components_meshes_on_actors",
+    "replace_selected_actors",
+    "save_all_dirty_levels",
+    "save_current_level",
+    "set_actor_selection_state",
+    "set_current_level_by_name",
+    "set_level_viewport_camera_info",
+    "set_selected_level_actors",
+    "spawn_actor_from_class",
+    "spawn_actor_from_object"
+  ],
+  "SystemLibrary": [
+    "execute_console_command",
+    "get_console_variable_bool_value",
+    "get_console_variable_float_value",
+    "get_console_variable_int_value",
+    "get_console_variable_string_value",
+    "quit_editor",
+    "quit_game"
+  ]
+}

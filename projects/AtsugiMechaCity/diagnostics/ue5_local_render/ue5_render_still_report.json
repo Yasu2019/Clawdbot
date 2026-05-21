@@ -1,0 +1,12 @@
+{
+  "ok": false,
+  "status": "submitted",
+  "output_png": "D:\\Clawdbot_Docker_20260125\\projects\\AtsugiMechaCity\\diagnostics\\ue5_local_render\\Atsugi_UE5_local_still.png",
+  "output_size": 0,
+  "level": "/Game/Atsugi/Atsugi_Map",
+  "actor_count": 0,
+  "static_mesh_actor_count": 0,
+  "zaku_actor": null,
+  "task_type": "<class 'AutomationEditorTask'>",
+  "api_cost": "none_local_ue5_only"
+}

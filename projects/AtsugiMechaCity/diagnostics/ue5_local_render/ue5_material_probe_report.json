@@ -1,0 +1,95 @@
+{
+  "material_editing_library": [
+    "clear_all_material_instance_parameters",
+    "connect_material_expressions",
+    "connect_material_property",
+    "create_material_expression",
+    "create_material_expression_in_function",
+    "delete_all_material_expressions",
+    "delete_all_material_expressions_in_function",
+    "delete_material_expression",
+    "delete_material_expression_in_function",
+    "duplicate_material_expression",
+    "get_input_node_output_name_for_material_expression",
+    "get_inputs_for_material_expression",
+    "get_material_default_scalar_parameter_value",
+    "get_material_default_static_switch_parameter_value",
+    "get_material_default_texture_parameter_value",
+    "get_material_default_vector_parameter_value",
+    "get_material_expression_input_names",
+    "get_material_expression_input_types",
+    "get_material_expression_node_position",
+    "get_material_instance_runtime_virtual_texture_parameter_value",
+    "get_material_instance_scalar_parameter_value",
+    "get_material_instance_sparse_volume_texture_parameter_value",
+    "get_material_instance_static_switch_parameter_value",
+    "get_material_instance_texture_parameter_value",
+    "get_material_instance_vector_parameter_value",
+    "get_material_property_input_node",
+    "get_material_property_input_node_output_name",
+    "get_material_selected_nodes",
+    "get_nanite_override_material",
+    "get_num_material_expressions",
+    "get_num_material_expressions_in_function",
+    "has_material_usage",
+    "layout_material_expressions",
+    "layout_material_function_expressions",
+    "recompile_material",
+    "rename_material_function_parameter_group",
+    "rename_material_parameter_group",
+    "set_material_instance_parent",
+    "set_material_instance_runtime_virtual_texture_parameter_value",
+    "set_material_instance_scalar_parameter_value",
+    "set_material_instance_sparse_volume_texture_parameter_value",
+    "set_material_instance_static_switch_parameter_value",
+    "set_material_instance_texture_parameter_value",
+    "set_material_instance_vector_parameter_value",
+    "set_material_usage",
+    "update_material_function",
+    "update_material_instance"
+  ],
+  "has_create_material_expression": true,
+  "has_constant3": true,
+  "has_constant": true,
+  "material_property_members": [
+    "MP_BASE_COLOR",
+    "MP_EMISSIVE_COLOR",
+    "MP_METALLIC",
+    "MP_ROUGHNESS"
+  ],
+  "tests": {
+    "create_game_material": {
+      "ok": true,
+      "value": "<Object '/Game/CodexGenerated/CodexProbeMat.CodexProbeMat' (0x0000016FABCFD200) Class 'Material'>",
+      "type": "<class 'Material'>"
+    },
+    "create_base_expr_positional": {
+      "ok": true,
+      "value": "<Object '/Game/CodexGenerated/CodexProbeMat2.CodexProbeMat2:MaterialExpressionConstant3Vector_0' (0x0000016F8E1EF500) Class 'MaterialExpressionConstant3Vector'>",
+      "type": "<class 'MaterialExpressionConstant3Vector'>"
+    },
+    "create_base_expr_keyword": {
+      "ok": true,
+      "value": "<Object '/Game/CodexGenerated/CodexProbeMat2.CodexProbeMat2:MaterialExpressionConstant3Vector_1' (0x0000016F8E1EF420) Class 'MaterialExpressionConstant3Vector'>",
+      "type": "<class 'MaterialExpressionConstant3Vector'>"
+    },
+    "create_base_expr_new": {
+      "ok": true,
+      "value": "<Object '/Game/CodexGenerated/CodexProbeMat2.CodexProbeMat2:MaterialExpressionConstant3Vector_2' (0x0000016F8E1EFDC0) Class 'MaterialExpressionConstant3Vector'>",
+      "type": "<class 'MaterialExpressionConstant3Vector'>"
+    }
+  },
+  "mat_is_none": false,
+  "material_dir_sample": [
+    "fully_rough",
+    "get_base_material",
+    "get_nanite_overide_material",
+    "get_physical_material",
+    "get_physical_material_from_map",
+    "get_physical_material_mask",
+    "material_decal_response",
+    "material_domain",
+    "normal_curvature_to_roughness",
+    "substrate_roughness_tracking"
+  ]
+}

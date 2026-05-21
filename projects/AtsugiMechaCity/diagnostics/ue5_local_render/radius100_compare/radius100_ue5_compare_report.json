@@ -1,0 +1,95 @@
+{
+  "ok": true,
+  "output_dir": "D:\\Clawdbot_Docker_20260125\\projects\\AtsugiMechaCity\\diagnostics\\ue5_local_render\\radius100_compare",
+  "resolution": [
+    1280,
+    720
+  ],
+  "split_dir": "D:\\Clawdbot_Docker_20260125\\projects\\AtsugiMechaCity\\diagnostics\\ue5_local_render\\plateau_export\\radius100_split",
+  "destination": "/Game/CodexGenerated/PlateauRadius100Split",
+  "imports": {
+    "Terrain": [
+      "/Game/CodexGenerated/PlateauRadius100Split/R100_Terrain.R100_Terrain"
+    ],
+    "Road": [
+      "/Game/CodexGenerated/PlateauRadius100Split/R100_Road.R100_Road"
+    ],
+    "RoadMarkings": [
+      "/Game/CodexGenerated/PlateauRadius100Split/R100_RoadMarkings.R100_RoadMarkings"
+    ],
+    "Sidewalk": [
+      "/Game/CodexGenerated/PlateauRadius100Split/R100_Sidewalk.R100_Sidewalk"
+    ],
+    "Buildings": [
+      "/Game/CodexGenerated/PlateauRadius100Split/R100_Buildings.R100_Buildings"
+    ],
+    "Windows": [
+      "/Game/CodexGenerated/PlateauRadius100Split/R100_Windows.R100_Windows"
+    ],
+    "Signs": [],
+    "Rails": [
+      "/Game/CodexGenerated/PlateauRadius100Split/R100_Rails.R100_Rails"
+    ]
+  },
+  "bounds_min_cm": [
+    -18572.580078125,
+    -15283.6552734375,
+    -0.002364932792261243
+  ],
+  "bounds_max_cm": [
+    18572.580078125,
+    15283.654296875,
+    10208.6982421875
+  ],
+  "road_bounds_min_cm": [
+    -18572.580078125,
+    -15283.6552734375,
+    11.997509956359863
+  ],
+  "road_bounds_max_cm": [
+    18572.580078125,
+    15283.654296875,
+    1915.000244140625
+  ],
+  "surface_z_cm": 1835.000244140625,
+  "camera_location_cm": [
+    -900.0,
+    -5350.00048828125,
+    2000.000244140625
+  ],
+  "camera_target_cm": [
+    180.0,
+    949.99951171875,
+    2085.000244140625
+  ],
+  "camera_rotation": [
+    0.7618788395765905,
+    80.2724214485984,
+    -8.268274883388964e-09
+  ],
+  "props_count": 7,
+  "proxy_building_count": 30,
+  "foreground_road_count": 16,
+  "sky_backdrop": true,
+  "variants": [
+    {
+      "name": "baseline",
+      "exr": "D:\\Clawdbot_Docker_20260125\\projects\\AtsugiMechaCity\\diagnostics\\ue5_local_render\\radius100_compare\\r100_baseline.exr",
+      "size": 1420647,
+      "ok": true
+    },
+    {
+      "name": "pbr_road",
+      "exr": "D:\\Clawdbot_Docker_20260125\\projects\\AtsugiMechaCity\\diagnostics\\ue5_local_render\\radius100_compare\\r100_pbr_road.exr",
+      "size": 1500015,
+      "ok": true
+    },
+    {
+      "name": "pbr_road_building_props",
+      "exr": "D:\\Clawdbot_Docker_20260125\\projects\\AtsugiMechaCity\\diagnostics\\ue5_local_render\\radius100_compare\\r100_pbr_road_building_props.exr",
+      "size": 1572408,
+      "ok": true
+    }
+  ],
+  "api_cost": "none_local_ue5_only"
+}

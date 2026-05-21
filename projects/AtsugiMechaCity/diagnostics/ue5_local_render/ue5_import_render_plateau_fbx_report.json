@@ -1,0 +1,89 @@
+{
+  "ok": true,
+  "output": "D:\\Clawdbot_Docker_20260125\\projects\\AtsugiMechaCity\\diagnostics\\ue5_local_render\\Atsugi_UE5_plateau_city_real_asset_cmscale.exr",
+  "output_size": 6656136,
+  "fbx": "D:\\Clawdbot_Docker_20260125\\projects\\AtsugiMechaCity\\diagnostics\\ue5_local_render\\plateau_export\\Hon_Atsugi_Station_Plateau_CityOnly_UE5_CmScale.fbx",
+  "imported_paths": [
+    "/Game/CodexGenerated/PlateauHonAtsugiCityOnlyCmScale/Hon_Atsugi_Station_Plateau_CityOnly_UE5_CmScale.Hon_Atsugi_Station_Plateau_CityOnly_UE5_CmScale"
+  ],
+  "asset": "/Game/CodexGenerated/PlateauHonAtsugiCityOnlyCmScale/Hon_Atsugi_Station_Plateau_CityOnly_UE5_CmScale.Hon_Atsugi_Station_Plateau_CityOnly_UE5_CmScale",
+  "bounds_origin": [
+    0.0,
+    0.0,
+    5104.345623276196
+  ],
+  "bounds_extent": [
+    59129.96875,
+    58317.00390625,
+    5104.353595473804
+  ],
+  "camera_location": [
+    -22469.388125,
+    -24493.141640625,
+    5665.824518778315
+  ],
+  "camera_rotation": [
+    0.929100347932641,
+    34.93794248545582,
+    -4.3885025632494026e-09
+  ],
+  "material_assignments": [
+    {
+      "slot": 0,
+      "source": "HonAtsugi_Building_Grey",
+      "assigned": "building"
+    },
+    {
+      "slot": 1,
+      "source": "HonAtsugi_Dark_Window_Glass",
+      "assigned": "window"
+    },
+    {
+      "slot": 2,
+      "source": "HonAtsugi_Sign_Panels",
+      "assigned": "sign"
+    },
+    {
+      "slot": 3,
+      "source": "HonAtsugi_Road_Asphalt",
+      "assigned": "road"
+    },
+    {
+      "slot": 4,
+      "source": "HonAtsugi_Station_Plaza_Paving",
+      "assigned": "plaza"
+    },
+    {
+      "slot": 5,
+      "source": "HonAtsugi_Enhanced_Asphalt",
+      "assigned": "road"
+    },
+    {
+      "slot": 6,
+      "source": "HonAtsugi_Sidewalk_Concrete",
+      "assigned": "sidewalk"
+    },
+    {
+      "slot": 7,
+      "source": "HonAtsugi_Road_WhiteLine",
+      "assigned": "line"
+    },
+    {
+      "slot": 8,
+      "source": "HonAtsugi_Rail_Steel",
+      "assigned": "rail"
+    },
+    {
+      "slot": 9,
+      "source": "HonAtsugi_Rail_Bed",
+      "assigned": "rail"
+    },
+    {
+      "slot": 10,
+      "source": "HonAtsugi_Terrain_Matte",
+      "assigned": "terrain"
+    }
+  ],
+  "scale_strategy": "blender_global_scale_1_city_only",
+  "api_cost": "none_local_ue5_only"
+}

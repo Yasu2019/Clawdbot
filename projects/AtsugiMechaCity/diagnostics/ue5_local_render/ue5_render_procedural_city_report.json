@@ -1,0 +1,17 @@
+{
+  "ok": true,
+  "output": "D:\\Clawdbot_Docker_20260125\\projects\\AtsugiMechaCity\\diagnostics\\ue5_local_render\\Atsugi_UE5_procedural_city.exr",
+  "output_size": 4991178,
+  "building_count": 30,
+  "camera_location": [
+    -3900.0,
+    -360.0,
+    420.0
+  ],
+  "camera_rotation": [
+    1.7719287789772185,
+    3.9025032744908126,
+    -9.347505096013931e-10
+  ],
+  "api_cost": "none_local_ue5_only"
+}

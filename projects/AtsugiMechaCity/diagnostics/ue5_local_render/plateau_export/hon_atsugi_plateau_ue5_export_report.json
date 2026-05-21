@@ -1,0 +1,78 @@
+{
+  "ok": true,
+  "source_blend": "D:\\Clawdbot_Docker_20260125\\projects\\AtsugiMechaCity\\diagnostics\\hon_atsugi_station\\Hon_Atsugi_Station_Plateau_Mecha.blend",
+  "output_fbx": "D:\\Clawdbot_Docker_20260125\\projects\\AtsugiMechaCity\\diagnostics\\ue5_local_render\\plateau_export\\Hon_Atsugi_Station_Plateau_CityOnly_UE5_CmScale.fbx",
+  "output_size": 3637980,
+  "input_mesh_count": 1626,
+  "recenter_offset_m": [
+    -22.863555908203125,
+    18.301361083984375,
+    0.0
+  ],
+  "recentered_bounds_m": {
+    "min": [
+      -591.2996826171875,
+      -583.1700439453125,
+      0.0
+    ],
+    "max": [
+      591.2996826171875,
+      583.1700439453125,
+      102.08699798583984
+    ]
+  },
+  "final_bounds_m": {
+    "min": [
+      -591.2996826171875,
+      -583.1700439453125,
+      0.0
+    ],
+    "max": [
+      591.2996826171875,
+      583.1700439453125,
+      102.08699798583984
+    ]
+  },
+  "exported_meshes": [
+    {
+      "name": "UE5_HonAtsugi_Terrain",
+      "vertices": 248406,
+      "faces": 82802,
+      "materials": [
+        "HonAtsugi_Terrain_Matte"
+      ]
+    },
+    {
+      "name": "UE5_HonAtsugi_Infrastructure",
+      "vertices": 11942,
+      "faces": 10221,
+      "materials": [
+        "HonAtsugi_Road_Asphalt",
+        "HonAtsugi_Station_Plaza_Paving",
+        "HonAtsugi_Enhanced_Asphalt",
+        "HonAtsugi_Sidewalk_Concrete",
+        "HonAtsugi_Road_WhiteLine",
+        "HonAtsugi_Rail_Steel",
+        "HonAtsugi_Rail_Bed"
+      ]
+    },
+    {
+      "name": "UE5_HonAtsugi_Buildings",
+      "vertices": 12328,
+      "faces": 9246,
+      "materials": [
+        "HonAtsugi_Building_Grey"
+      ]
+    },
+    {
+      "name": "UE5_HonAtsugi_Facades",
+      "vertices": 26516,
+      "faces": 6629,
+      "materials": [
+        "HonAtsugi_Dark_Window_Glass",
+        "HonAtsugi_Sign_Panels"
+      ]
+    }
+  ],
+  "api_cost": "none_local_blender_only"
+}

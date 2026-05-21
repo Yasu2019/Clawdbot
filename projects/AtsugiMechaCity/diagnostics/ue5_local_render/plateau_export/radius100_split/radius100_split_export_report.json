@@ -1,0 +1,138 @@
+{
+  "ok": true,
+  "source_blend": "D:\\Clawdbot_Docker_20260125\\projects\\AtsugiMechaCity\\diagnostics\\hon_atsugi_station\\Hon_Atsugi_Station_Plateau_Mecha.blend",
+  "output_dir": "D:\\Clawdbot_Docker_20260125\\projects\\AtsugiMechaCity\\diagnostics\\ue5_local_render\\plateau_export\\radius100_split",
+  "radius_m": 100.0,
+  "origin_policy": "selected_bounds_center_xy_min_z",
+  "recenter_offset_m": [
+    -12.068069458007812,
+    -18.31519317626953,
+    0.0
+  ],
+  "bounds_m": {
+    "min": [
+      -185.72579956054688,
+      -152.8365478515625,
+      0.0
+    ],
+    "max": [
+      185.72579956054688,
+      152.8365478515625,
+      102.08699798583984
+    ]
+  },
+  "categories": [
+    {
+      "name": "UE5_R100_Terrain",
+      "source_objects": 1,
+      "faces": 6071,
+      "vertices": 18213,
+      "materials": [
+        "HonAtsugi_Terrain_Matte"
+      ],
+      "exported": true
+    },
+    {
+      "name": "UE5_R100_Road",
+      "source_objects": 5,
+      "faces": 402,
+      "vertices": 1209,
+      "materials": [
+        "HonAtsugi_Road_Asphalt",
+        "HonAtsugi_Enhanced_Asphalt"
+      ],
+      "exported": true
+    },
+    {
+      "name": "UE5_R100_RoadMarkings",
+      "source_objects": 62,
+      "faces": 36,
+      "vertices": 144,
+      "materials": [
+        "HonAtsugi_Road_WhiteLine"
+      ],
+      "exported": true
+    },
+    {
+      "name": "UE5_R100_Sidewalk",
+      "source_objects": 10,
+      "faces": 6,
+      "vertices": 24,
+      "materials": [
+        "HonAtsugi_Station_Plaza_Paving",
+        "HonAtsugi_Sidewalk_Concrete"
+      ],
+      "exported": true
+    },
+    {
+      "name": "UE5_R100_Buildings",
+      "source_objects": 37,
+      "faces": 222,
+      "vertices": 888,
+      "materials": [
+        "HonAtsugi_Building_Grey"
+      ],
+      "exported": true
+    },
+    {
+      "name": "UE5_R100_Windows",
+      "source_objects": 1,
+      "faces": 1178,
+      "vertices": 4712,
+      "materials": [
+        "HonAtsugi_Dark_Window_Glass"
+      ],
+      "exported": true
+    },
+    {
+      "name": "UE5_R100_Signs",
+      "source_objects": 1,
+      "faces": 0,
+      "vertices": 0,
+      "materials": [],
+      "exported": false
+    },
+    {
+      "name": "UE5_R100_Rails",
+      "source_objects": 3,
+      "faces": 3,
+      "vertices": 12,
+      "materials": [
+        "HonAtsugi_Rail_Steel",
+        "HonAtsugi_Rail_Bed"
+      ],
+      "exported": true
+    }
+  ],
+  "outputs": {
+    "Terrain": {
+      "fbx": "D:\\Clawdbot_Docker_20260125\\projects\\AtsugiMechaCity\\diagnostics\\ue5_local_render\\plateau_export\\radius100_split\\Terrain.fbx",
+      "size": 237708
+    },
+    "Road": {
+      "fbx": "D:\\Clawdbot_Docker_20260125\\projects\\AtsugiMechaCity\\diagnostics\\ue5_local_render\\plateau_export\\radius100_split\\Road.fbx",
+      "size": 28236
+    },
+    "RoadMarkings": {
+      "fbx": "D:\\Clawdbot_Docker_20260125\\projects\\AtsugiMechaCity\\diagnostics\\ue5_local_render\\plateau_export\\radius100_split\\RoadMarkings.fbx",
+      "size": 17692
+    },
+    "Sidewalk": {
+      "fbx": "D:\\Clawdbot_Docker_20260125\\projects\\AtsugiMechaCity\\diagnostics\\ue5_local_render\\plateau_export\\radius100_split\\Sidewalk.fbx",
+      "size": 16748
+    },
+    "Buildings": {
+      "fbx": "D:\\Clawdbot_Docker_20260125\\projects\\AtsugiMechaCity\\diagnostics\\ue5_local_render\\plateau_export\\radius100_split\\Buildings.fbx",
+      "size": 20828
+    },
+    "Windows": {
+      "fbx": "D:\\Clawdbot_Docker_20260125\\projects\\AtsugiMechaCity\\diagnostics\\ue5_local_render\\plateau_export\\radius100_split\\Windows.fbx",
+      "size": 42124
+    },
+    "Rails": {
+      "fbx": "D:\\Clawdbot_Docker_20260125\\projects\\AtsugiMechaCity\\diagnostics\\ue5_local_render\\plateau_export\\radius100_split\\Rails.fbx",
+      "size": 16316
+    }
+  },
+  "api_cost": "none_local_blender_only"
+}

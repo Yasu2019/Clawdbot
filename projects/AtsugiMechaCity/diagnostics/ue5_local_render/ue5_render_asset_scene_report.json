@@ -1,0 +1,28 @@
+{
+  "ok": false,
+  "screenshot": null,
+  "screenshot_size": 0,
+  "city_actor": "StaticMeshActor_UAID_04F0EE72EDC614DD02_1263294391",
+  "zaku_actor": "StaticMeshActor_UAID_04F0EE72EDC614DD02_1264150392",
+  "city_origin": [
+    -423526.4375,
+    -142840.59375,
+    60342.7529296875
+  ],
+  "city_extent": [
+    673526.4375,
+    392840.59375,
+    65294.6611328125
+  ],
+  "camera_location": [
+    311964.43224999995,
+    -1083528.531875,
+    78835.25804687501
+  ],
+  "camera_rotation": [
+    125.75389099121094,
+    0.0,
+    -0.9348421692848206
+  ],
+  "api_cost": "none_local_ue5_only"
+}
