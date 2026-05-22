@@ -86,7 +86,23 @@ def import_texture(path, name):
     task.set_editor_property("automated", True)
     task.set_editor_property("save", True)
     unreal.AssetToolsHelpers.get_asset_tools().import_asset_tasks([task])
-    return load_asset(asset_path)
+    tex = load_asset(asset_path)
+    if tex:
+        name_lower = name.lower()
+        if "normal" in name_lower:
+            try:
+                tex.set_editor_property("compression_settings", unreal.TextureCompressionSettings.TC_NORMALMAP)
+                tex.set_editor_property("srgb", False)
+            except Exception as e:
+                log("Failed to set normal map compression: {0}".format(e))
+        elif "rough" in name_lower or "ao" in name_lower or "ambient" in name_lower:
+            try:
+                tex.set_editor_property("compression_settings", unreal.TextureCompressionSettings.TC_MASKS)
+                tex.set_editor_property("srgb", False)
+            except Exception as e:
+                log("Failed to set mask compression: {0}".format(e))
+        unreal.EditorAssetLibrary.save_asset(asset_path, only_if_is_dirty=False)
+    return tex
 
 
 def import_lod2_buildings():
@@ -136,37 +152,127 @@ def import_lod2_buildings():
     return mesh, actor
 
 
-def create_color_material(name, color, roughness=0.85, emissive=None, texture=None):
+def create_color_material(name, color, roughness=0.85, emissive=None, texture=None, normal_tex=None, roughness_tex=None, ao_tex=None):
     unreal.EditorAssetLibrary.make_directory(MATERIAL_DIR)
     asset_path = MATERIAL_DIR + "/" + name
     existing = load_asset(asset_path)
     if existing is not None:
-        return existing
+        unreal.EditorAssetLibrary.delete_asset(asset_path)
+
     mat = unreal.AssetToolsHelpers.get_asset_tools().create_asset(name, MATERIAL_DIR, unreal.Material, unreal.MaterialFactoryNew())
     if mat is None:
         return None
 
+    # Base Color
     if texture is not None:
         tex = unreal.MaterialEditingLibrary.create_material_expression(mat, unreal.MaterialExpressionTextureSample, -560, 0)
         tex.set_editor_property("texture", texture)
-        unreal.MaterialEditingLibrary.connect_material_property(tex, "RGB", unreal.MaterialProperty.MP_BASE_COLOR)
+        mult = unreal.MaterialEditingLibrary.create_material_expression(mat, unreal.MaterialExpressionMultiply, -360, 0)
+        tint = unreal.MaterialEditingLibrary.create_material_expression(mat, unreal.MaterialExpressionConstant3Vector, -560, -150)
+        tint.set_editor_property("constant", color)
+        unreal.MaterialEditingLibrary.connect_material_expressions(tex, "RGB", mult, "A")
+        unreal.MaterialEditingLibrary.connect_material_expressions(tint, "", mult, "B")
+        unreal.MaterialEditingLibrary.connect_material_property(mult, "", unreal.MaterialProperty.MP_BASE_COLOR)
     else:
         base = unreal.MaterialEditingLibrary.create_material_expression(mat, unreal.MaterialExpressionConstant3Vector, -560, 0)
         base.set_editor_property("constant", color)
         unreal.MaterialEditingLibrary.connect_material_property(base, "", unreal.MaterialProperty.MP_BASE_COLOR)
 
-    rough = unreal.MaterialEditingLibrary.create_material_expression(mat, unreal.MaterialExpressionConstant, -560, 180)
-    rough.set_editor_property("r", roughness)
-    unreal.MaterialEditingLibrary.connect_material_property(rough, "", unreal.MaterialProperty.MP_ROUGHNESS)
+    # Roughness
+    if roughness_tex is not None:
+        r_tex = unreal.MaterialEditingLibrary.create_material_expression(mat, unreal.MaterialExpressionTextureSample, -560, 180)
+        r_tex.set_editor_property("texture", roughness_tex)
+        mult_r = unreal.MaterialEditingLibrary.create_material_expression(mat, unreal.MaterialExpressionMultiply, -360, 180)
+        scale_r = unreal.MaterialEditingLibrary.create_material_expression(mat, unreal.MaterialExpressionConstant, -560, 300)
+        scale_r.set_editor_property("r", roughness)
+        unreal.MaterialEditingLibrary.connect_material_expressions(r_tex, "RGB", mult_r, "A")
+        unreal.MaterialEditingLibrary.connect_material_expressions(scale_r, "", mult_r, "B")
+        unreal.MaterialEditingLibrary.connect_material_property(mult_r, "", unreal.MaterialProperty.MP_ROUGHNESS)
+    else:
+        rough = unreal.MaterialEditingLibrary.create_material_expression(mat, unreal.MaterialExpressionConstant, -560, 180)
+        rough.set_editor_property("r", roughness)
+        unreal.MaterialEditingLibrary.connect_material_property(rough, "", unreal.MaterialProperty.MP_ROUGHNESS)
 
+    # Normal Map
+    if normal_tex is not None:
+        n_tex = unreal.MaterialEditingLibrary.create_material_expression(mat, unreal.MaterialExpressionTextureSample, -560, 360)
+        n_tex.set_editor_property("texture", normal_tex)
+        try:
+            n_tex.set_editor_property("sampler_type", unreal.MaterialSamplerType.SAMPLERTYPE_NORMAL)
+        except Exception:
+            pass
+        unreal.MaterialEditingLibrary.connect_material_property(n_tex, "RGB", unreal.MaterialProperty.MP_NORMAL)
+
+    # Ambient Occlusion Map
+    if ao_tex is not None:
+        a_tex = unreal.MaterialEditingLibrary.create_material_expression(mat, unreal.MaterialExpressionTextureSample, -560, 540)
+        a_tex.set_editor_property("texture", ao_tex)
+        unreal.MaterialEditingLibrary.connect_material_property(a_tex, "RGB", unreal.MaterialProperty.MP_AMBIENT_OCCLUSION)
+
+    # Emissive
     if emissive is not None:
-        em = unreal.MaterialEditingLibrary.create_material_expression(mat, unreal.MaterialExpressionConstant3Vector, -560, 330)
+        em = unreal.MaterialEditingLibrary.create_material_expression(mat, unreal.MaterialExpressionConstant3Vector, -560, 720)
         em.set_editor_property("constant", emissive)
         unreal.MaterialEditingLibrary.connect_material_property(em, "", unreal.MaterialProperty.MP_EMISSIVE_COLOR)
 
     unreal.MaterialEditingLibrary.recompile_material(mat)
     unreal.EditorAssetLibrary.save_asset(asset_path, only_if_is_dirty=False)
     return mat
+
+
+
+def create_sky_gradient_material(name, zenith_color, horizon_color):
+    unreal.EditorAssetLibrary.make_directory(MATERIAL_DIR)
+    asset_path = MATERIAL_DIR + "/" + name
+    existing = load_asset(asset_path)
+    if existing is not None:
+        unreal.EditorAssetLibrary.delete_asset(asset_path)
+    mat = unreal.AssetToolsHelpers.get_asset_tools().create_asset(name, MATERIAL_DIR, unreal.Material, unreal.MaterialFactoryNew())
+    if mat is None:
+        return None
+
+    # Zenith to Horizon sunset linear gradient
+    tex_coord = unreal.MaterialEditingLibrary.create_material_expression(mat, unreal.MaterialExpressionTextureCoordinate, -800, 0)
+
+    mask = unreal.MaterialEditingLibrary.create_material_expression(mat, unreal.MaterialExpressionComponentMask, -600, 0)
+    mask.set_editor_property("r", False)
+    mask.set_editor_property("g", True)  # Use G channel (V coordinate)
+    mask.set_editor_property("b", False)
+    mask.set_editor_property("a", False)
+
+    unreal.MaterialEditingLibrary.connect_material_expressions(tex_coord, "", mask, "")
+
+    zenith = unreal.MaterialEditingLibrary.create_material_expression(mat, unreal.MaterialExpressionConstant3Vector, -600, -200)
+    zenith.set_editor_property("constant", zenith_color)
+
+    horizon = unreal.MaterialEditingLibrary.create_material_expression(mat, unreal.MaterialExpressionConstant3Vector, -600, 200)
+    horizon.set_editor_property("constant", horizon_color)
+
+    lerp = unreal.MaterialEditingLibrary.create_material_expression(mat, unreal.MaterialExpressionLinearInterpolate, -400, 0)
+
+    unreal.MaterialEditingLibrary.connect_material_expressions(zenith, "", lerp, "A")
+    unreal.MaterialEditingLibrary.connect_material_expressions(horizon, "", lerp, "B")
+    unreal.MaterialEditingLibrary.connect_material_expressions(mask, "", lerp, "Alpha")
+
+    # Beautiful glowing gradient emissive sky backdrop (intensity 2.5 multiplier)
+    mult = unreal.MaterialEditingLibrary.create_material_expression(mat, unreal.MaterialExpressionMultiply, -200, 100)
+    scale = unreal.MaterialEditingLibrary.create_material_expression(mat, unreal.MaterialExpressionConstant, -200, 200)
+    scale.set_editor_property("r", 2.5)
+
+    unreal.MaterialEditingLibrary.connect_material_expressions(lerp, "", mult, "A")
+    unreal.MaterialEditingLibrary.connect_material_expressions(scale, "", mult, "B")
+
+    unreal.MaterialEditingLibrary.connect_material_property(lerp, "", unreal.MaterialProperty.MP_BASE_COLOR)
+    unreal.MaterialEditingLibrary.connect_material_property(mult, "", unreal.MaterialProperty.MP_EMISSIVE_COLOR)
+
+    rough = unreal.MaterialEditingLibrary.create_material_expression(mat, unreal.MaterialExpressionConstant, -400, 300)
+    rough.set_editor_property("r", 1.0)
+    unreal.MaterialEditingLibrary.connect_material_property(rough, "", unreal.MaterialProperty.MP_ROUGHNESS)
+
+    unreal.MaterialEditingLibrary.recompile_material(mat)
+    unreal.EditorAssetLibrary.save_asset(asset_path, only_if_is_dirty=False)
+    return mat
+
 
 
 def set_actor_mat(actor, mat):
@@ -237,31 +343,117 @@ def setup_lighting(world, target):
     if fog_class is not None:
         fog = unreal.EditorLevelLibrary.spawn_actor_from_class(fog_class, target)
         fog.set_actor_label("Codex_R100_HeightFog")
+        # Enable premium Volumetric Fog for majestic sunset god rays
+        fog_comp = fog.get_component_by_class(unreal.ExponentialHeightFogComponent)
+        if fog_comp:
+            fog_comp.set_editor_property("b_enable_volumetric_fog", True)
+            fog_comp.set_editor_property("volumetric_fog_scattering_distribution", 0.78)
+            fog_comp.set_editor_property("fog_density", 0.040)
+            fog_comp.set_editor_property("volumetric_fog_extinction_scale", 2.0)
+            try:
+                fog_comp.set_editor_property("volumetric_fog_albedo", unreal.Color(255, 173, 107, 255))
+            except Exception:
+                try:
+                    fog_comp.set_editor_property("volumetric_fog_albedo", unreal.LinearColor(1.0, 0.68, 0.42, 1.0))
+                except Exception:
+                    pass
 
+    # Position sun low for dramatic long golden sunset shadows (angle -12.0 pitch, -135.0 yaw)
     sun = unreal.EditorLevelLibrary.spawn_actor_from_class(unreal.DirectionalLight, target + unreal.Vector(-3000.0, -5000.0, 9000.0))
     sun.set_actor_label("Codex_R100_Sun")
-    sun.set_actor_rotation(unreal.Rotator(-34.0, -42.0, 0.0), False)
-    sun.get_component_by_class(unreal.DirectionalLightComponent).set_editor_property("intensity", 5.0)
+    sun.set_actor_rotation(unreal.Rotator(-12.0, -135.0, 0.0), False)
+    sun_comp = sun.get_component_by_class(unreal.DirectionalLightComponent)
+    if sun_comp:
+        sun_comp.set_editor_property("intensity", 4.5)  # Muted from 6.5 to prevent washed-out overexposure
+        sun_comp.set_editor_property("light_color", unreal.LinearColor(1.0, 0.52, 0.22, 1.0))  # Rich warm sunset glow
+        sun_comp.set_editor_property("b_cast_volumetric_shadow", True)  # Casting light shafts through buildings
+        # Cinematic Light Shaft Bloom & Occlusion
+        try:
+            sun_comp.set_editor_property("b_enable_light_shaft_bloom", True)
+            sun_comp.set_editor_property("bloom_scale", 3.5)
+            sun_comp.set_editor_property("bloom_threshold", 0.7)
+            sun_comp.set_editor_property("bloom_tint", unreal.LinearColor(1.0, 0.6, 0.3, 1.0))
+            sun_comp.set_editor_property("b_enable_light_shaft_occlusion", True)
+            sun_comp.set_editor_property("occlusion_mask_darkness", 0.3)
+        except Exception as e:
+            log("Failed to set sun light shaft properties: {0}".format(e))
 
     sky = unreal.EditorLevelLibrary.spawn_actor_from_class(unreal.SkyLight, target + unreal.Vector(0.0, 0.0, 2600.0))
     sky.set_actor_label("Codex_R100_SkyLight")
-    sky.get_component_by_class(unreal.SkyLightComponent).set_editor_property("intensity", 1.8)
+    sky_comp = sky.get_component_by_class(unreal.SkyLightComponent)
+    if sky_comp:
+        sky_comp.set_editor_property("intensity", 1.2)  # Muted from 1.8 to allow atmospheric sunset depth
+        sky_comp.set_editor_property("real_time_capture", True)  # Reflect sky gradient colors dynamically
 
     pp = unreal.EditorLevelLibrary.spawn_actor_from_class(unreal.PostProcessVolume, target)
     pp.set_actor_label("Codex_R100_PostProcess")
     set_first_existing_property(pp, ["b_unbound", "unbound", "is_unbound"], True)
+    
+    # Configure filmic properties on the PostProcess settings struct safely
+    try:
+        settings = pp.get_editor_property("settings")
+        def pp_set(field, val):
+            try:
+                settings.set_editor_property("b_override_" + field, True)
+                settings.set_editor_property(field, val)
+            except Exception:
+                pass
+        pp_set("vignette_intensity", 0.52)
+        pp_set("scene_fringe_intensity", 0.30)
+        pp_set("bloom_intensity", 1.8)
+        pp_set("ambient_occlusion_intensity", 0.90)
+        pp_set("film_toe", 0.58)
+        pp_set("film_shoulder", 0.26)
+        pp_set("film_slope", 0.85)
+        pp_set("indirect_lighting_intensity", 1.5)
+        pp.set_editor_property("settings", settings)
+    except Exception as e:
+        log("Failed to set cinematic postprocess settings: {0}".format(e))
 
+    # Extreme UE5 visual settings pushing rendering limits to the absolute maximum
     for cmd in [
-        "r.Lumen.DiffuseIndirect.Allow 0",
-        "r.Lumen.Reflections.Allow 0",
-        "r.ScreenPercentage 100",
-        "r.Tonemapper.Sharpen 1",
-        "r.ViewDistanceScale 1",
-        "r.Shadow.Virtual.Enable 0",
+        "r.Lumen.DiffuseIndirect.Allow 1",
+        "r.Lumen.DiffuseIndirect.Quality 4",
+        "r.Lumen.Reflections.Allow 1",
+        "r.Lumen.Reflections.Quality 4",
+        "r.Lumen.Reflections.Bounces 2",
+        "r.Lumen.HardwareRayTracing 1",
+        "r.Lumen.Reflections.HardwareRayTracing 1",
+        "r.LumenScene.DirectLighting.ForceHardwareRayTracing 1",
+        "r.LumenScene.DirectLighting.HardwareRayTracing 1",
+        "r.LumenScene.Radiosity.HardwareRayTracing 1",
+        "r.LumenScene.ClipmapResolution 128",
+        "r.Lumen.HardwareRayTracing.MaxIterations 8192",
+        "r.Lumen.HardwareRayTracing.HitLighting.Force 1",
+        "r.Lumen.HardwareRayTracing.HitLighting.Allow 1",
+        "r.Lumen.TranslucencyReflections.FrontLayer.Allow 1",
+        "r.RayTracing.Reflections.MaxRoughness 0.6",
+        "r.Shadow.Virtual.Enable 1",
+        "r.Shadow.Virtual.ResolutionLodBias -3",
+        "r.Shadow.Virtual.ContactShadowLength 0.25",
+        "r.Shadow.Virtual.SMRT.SamplesPerRay.Local 16",
+        "r.Shadow.Virtual.SMRT.SamplesPerRay.Directional 16",
+        "r.Shadow.Virtual.MaxPhysicalPages 8192",
+        "r.VolumetricFog.GridPixelSize 1",
+        "r.VolumetricFog.GridSizeZ 256",
+        "r.VolumetricFog.HistoryWeight 0.99",
+        "r.BloomQuality 6",
+        "r.SSR.Quality 4",
+        "r.ScreenPercentage 200",
+        "r.Tonemapper.Sharpen 1.5",
+        "r.TSR.Quality 4",
+        "r.TSR.History.Frames 60",
+        "r.TSR.History.ScreenPercentage 200",
+        "r.MaxAnisotropy 16",
+        "r.Streaming.PoolSize 8192",
+        "r.Streaming.LimitPoolSizeToVRAM 0",
+        "r.DepthOfFieldQuality 4",
+        "r.ViewDistanceScale 2.0",
         "r.EyeAdaptation.MethodOverride -1",
         "r.ExposureOffset -1.5",
     ]:
         unreal.SystemLibrary.execute_console_command(world, cmd)
+
 
 
 def spawn_props(cube, mats):
@@ -1072,19 +1264,35 @@ def main():
     if hasattr(unreal, "SceneCaptureSource"):
         component.set_editor_property("capture_source", unreal.SceneCaptureSource.SCS_FINAL_COLOR_LDR)
 
-    asphalt_tex = import_texture(ROOT / "data" / "workspace" / "apps" / "blender_assets" / "polyhaven" / "textures" / "asphalt_floor" / "diffuse.png", "T_R100_Asphalt_Diffuse")
-    concrete_tex = import_texture(ROOT / "data" / "workspace" / "apps" / "blender_assets" / "polyhaven" / "textures" / "brushed_concrete" / "diffuse.png", "T_R100_Concrete_Diffuse")
-    sidewalk_tex = import_texture(ROOT / "data" / "workspace" / "apps" / "blender_assets" / "polyhaven" / "textures" / "concrete_floor" / "diffuse.png", "T_R100_Sidewalk_Diffuse")
+    # --- PBR Textures (Diffuse, Normals, Roughness, AO) ---
+    # Asphalt Floor maps (Road & Road Repair Patch)
+    asphalt_diff = import_texture(ROOT / "data" / "workspace" / "apps" / "blender_assets" / "polyhaven" / "textures" / "asphalt_floor" / "diffuse.png", "T_R100_Asphalt_Diffuse")
+    asphalt_norm = import_texture(ROOT / "data" / "workspace" / "apps" / "blender_assets" / "polyhaven" / "textures" / "asphalt_floor" / "normal_gl.png", "T_R100_Asphalt_Normal")
+    asphalt_rough = import_texture(ROOT / "data" / "workspace" / "apps" / "blender_assets" / "polyhaven" / "textures" / "asphalt_floor" / "roughness.png", "T_R100_Asphalt_Roughness")
+    asphalt_ao = import_texture(ROOT / "data" / "workspace" / "apps" / "blender_assets" / "polyhaven" / "textures" / "asphalt_floor" / "ao.png", "T_R100_Asphalt_AO")
+
+    # Concrete Floor maps (Sidewalk)
+    sidewalk_diff = import_texture(ROOT / "data" / "workspace" / "apps" / "blender_assets" / "polyhaven" / "textures" / "concrete_floor" / "diffuse.png", "T_R100_Sidewalk_Diffuse")
+    sidewalk_norm = import_texture(ROOT / "data" / "workspace" / "apps" / "blender_assets" / "polyhaven" / "textures" / "concrete_floor" / "normal_gl.png", "T_R100_Sidewalk_Normal")
+    sidewalk_rough = import_texture(ROOT / "data" / "workspace" / "apps" / "blender_assets" / "polyhaven" / "textures" / "concrete_floor" / "roughness.png", "T_R100_Sidewalk_Roughness")
+    sidewalk_ao = import_texture(ROOT / "data" / "workspace" / "apps" / "blender_assets" / "polyhaven" / "textures" / "concrete_floor" / "ao.png", "T_R100_Sidewalk_AO")
+
+    # Brushed Concrete maps (Buildings)
+    concrete_diff = import_texture(ROOT / "data" / "workspace" / "apps" / "blender_assets" / "polyhaven" / "textures" / "brushed_concrete" / "diffuse.png", "T_R100_Concrete_Diffuse")
+    concrete_norm = import_texture(ROOT / "data" / "workspace" / "apps" / "blender_assets" / "polyhaven" / "textures" / "brushed_concrete" / "normal_gl.png", "T_R100_Concrete_Normal")
+    concrete_rough = import_texture(ROOT / "data" / "workspace" / "apps" / "blender_assets" / "polyhaven" / "textures" / "brushed_concrete" / "roughness.png", "T_R100_Concrete_Roughness")
+    concrete_ao = import_texture(ROOT / "data" / "workspace" / "apps" / "blender_assets" / "polyhaven" / "textures" / "brushed_concrete" / "ao.png", "T_R100_Concrete_AO")
+
     mats = {
         "terrain": create_color_material("M_R100_Terrain_MutedGreen", unreal.LinearColor(0.14, 0.22, 0.14, 1.0), 0.92),
-        "road": create_color_material("M_R100_Road_Asphalt_Dark_v6_Tex", unreal.LinearColor(0.010, 0.011, 0.012, 1.0), 0.97, texture=asphalt_tex),
-        "road_patch": create_color_material("M_R100_Road_RepairPatch_v4_Tex", unreal.LinearColor(0.025, 0.026, 0.027, 1.0), 0.98, texture=asphalt_tex),
+        "road": create_color_material("M_R100_Road_Asphalt_Dark_v6_Tex", unreal.LinearColor(0.20, 0.20, 0.22, 1.0), 0.35, texture=asphalt_diff, normal_tex=asphalt_norm, roughness_tex=asphalt_rough, ao_tex=asphalt_ao),
+        "road_patch": create_color_material("M_R100_Road_RepairPatch_v4_Tex", unreal.LinearColor(0.12, 0.12, 0.14, 1.0), 0.40, texture=asphalt_diff, normal_tex=asphalt_norm, roughness_tex=asphalt_rough, ao_tex=asphalt_ao),
         "manhole": create_color_material("M_R100_Manhole_DarkMetal", unreal.LinearColor(0.075, 0.073, 0.066, 1.0), 0.55),
         "marking": create_color_material("M_R100_Road_Marking_Bright_v2", unreal.LinearColor(0.95, 0.90, 0.68, 1.0), 0.58),
-        "sidewalk": create_color_material("M_R100_Sidewalk_Concrete_v5_Tex", unreal.LinearColor(0.72, 0.70, 0.65, 1.0), 0.86, texture=sidewalk_tex),
+        "sidewalk": create_color_material("M_R100_Sidewalk_Concrete_v5_Tex", unreal.LinearColor(0.35, 0.33, 0.30, 1.0), 0.50, texture=sidewalk_diff, normal_tex=sidewalk_norm, roughness_tex=sidewalk_rough, ao_tex=sidewalk_ao),
         "paving_alt": create_color_material("M_R100_Paving_AltBlocks_v4", unreal.LinearColor(0.62, 0.60, 0.55, 1.0), 0.88),
-        "building": create_color_material("M_R100_Building_WarmConcrete_v2_Tex", unreal.LinearColor(0.50, 0.49, 0.44, 1.0), 0.84, texture=concrete_tex),
-        "building2": create_color_material("M_R100_Building_CoolConcrete_v2_Tex", unreal.LinearColor(0.32, 0.37, 0.39, 1.0), 0.82, texture=concrete_tex),
+        "building": create_color_material("M_R100_Building_WarmConcrete_v2_Tex", unreal.LinearColor(0.50, 0.47, 0.42, 1.0), 0.65, texture=concrete_diff, normal_tex=concrete_norm, roughness_tex=concrete_rough, ao_tex=concrete_ao),
+        "building2": create_color_material("M_R100_Building_CoolConcrete_v2_Tex", unreal.LinearColor(0.38, 0.40, 0.42, 1.0), 0.60, texture=concrete_diff, normal_tex=concrete_norm, roughness_tex=concrete_rough, ao_tex=concrete_ao),
         "window": create_color_material("M_R100_Window_DarkGlass", unreal.LinearColor(0.025, 0.10, 0.16, 1.0), 0.25, unreal.LinearColor(0.0, 0.045, 0.09, 1.0)),
         "sign": create_color_material("M_R100_Sign_Emissive", unreal.LinearColor(0.85, 0.12, 0.05, 1.0), 0.45, unreal.LinearColor(1.1, 0.08, 0.03, 1.0)),
         "shop_wall": create_color_material("M_R100_Shop_Wall_OffWhite", unreal.LinearColor(0.68, 0.65, 0.58, 1.0), 0.78),
@@ -1103,7 +1311,7 @@ def main():
         "van_white": create_color_material("M_R100_Van_White", unreal.LinearColor(0.80, 0.79, 0.74, 1.0), 0.42),
         "car_glass": create_color_material("M_R100_Car_Glass", unreal.LinearColor(0.012, 0.044, 0.065, 1.0), 0.20, unreal.LinearColor(0.0, 0.025, 0.045, 1.0)),
         "poster": create_color_material("M_R100_Poster_Mixed", unreal.LinearColor(0.92, 0.18, 0.44, 1.0), 0.44, unreal.LinearColor(0.32, 0.04, 0.12, 1.0)),
-        "sky": create_color_material("M_R100_Sky_Backdrop_Dusk_v1", unreal.LinearColor(0.04, 0.06, 0.13, 1.0), 0.95, unreal.LinearColor(0.01, 0.02, 0.07, 1.0)),
+        "sky": create_sky_gradient_material("M_R100_Sky_Backdrop_Dusk_Gradient_v35", unreal.LinearColor(0.015, 0.022, 0.05, 1.0), unreal.LinearColor(0.85, 0.36, 0.12, 1.0)),
         "tree_leaf": create_color_material("M_R100_Tree_Leaf", unreal.LinearColor(0.08, 0.28, 0.09, 1.0), 0.82),
         "tree_trunk": create_color_material("M_R100_Tree_Trunk", unreal.LinearColor(0.16, 0.09, 0.045, 1.0), 0.86),
     }
@@ -1227,6 +1435,25 @@ def main():
     capture.set_actor_rotation(road_v35_rot, False)
     component.set_editor_property("fov_angle", 50.0)
     results.append(capture_variant(world, component, render_target, "lod2_road_v35"))
+
+    # --- v38: LOD2特化 3カメラセット (Ultimate Epic Graphics limits) ---
+    # sealed_v38: FOV38°, 高度450cmで奥行きを出す
+    capture.set_actor_location(sealed_camera_loc, False, False)
+    capture.set_actor_rotation(sealed_camera_rot, False)
+    component.set_editor_property("fov_angle", 38.0)
+    results.append(capture_variant(world, component, render_target, "lod2_sealed_v38"))
+
+    # overview_v38: LOD2建物z_max=102m(10200cm)より高い高度から俯瞰
+    capture.set_actor_location(overview_v35_loc, False, False)
+    capture.set_actor_rotation(overview_v35_rot, False)
+    component.set_editor_property("fov_angle", 68.0)
+    results.append(capture_variant(world, component, render_target, "lod2_overview_v38"))
+
+    # road_v38: sealed_cameraと同一XY（LOD2除外ゾーン中心）Z=1200cm, FOV50°
+    capture.set_actor_location(road_v35_loc, False, False)
+    capture.set_actor_rotation(road_v35_rot, False)
+    component.set_editor_property("fov_angle", 50.0)
+    results.append(capture_variant(world, component, render_target, "lod2_road_v38"))
 
     report = {
         "ok": all(item["ok"] for item in results),
