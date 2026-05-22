@@ -1335,3 +1335,20 @@ un_command_with_heartbeat wrapper that utilizes subprocess.Popen to update the h
 | **Prevention** | Use `scripts/brv_safe_curate.ps1` for important memories and run `scripts/brv_sync_curate_queue.ps1` manually or from a scheduler after ByteRover quota resets. Keep retries bounded per invocation with `-MaxItems` and `-TimeoutSec`. |
 
 ---
+
+## INC-092: 本厚木駅LOD2モデル実写化における押し出しポリゴン症候群とローカルStable Diffusionによるハイブリッド肉付け手法の確立
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-05-22 JST |
+| **Detection** | ユーザーより本厚木LOD2（押し出し単純ポリゴン）モデルのUE5レンダリング出力が「実写とは程遠い」「CG感の脱却ができていない」との指摘を受けた。調査により、UE5のライティング（Lumen）やマテリアルの極限調整だけでは、現実世界の微細な不規則性（店舗看板、窓枠汚れ、アスファルトの濡れパッチ、電線等）＝「スケールキュー」を再現できないことが判明した（押し出しポリゴン症候群）。 |
+| **Impact** | LOD2データのままで都市モデルをフォトリアルに仕上げる手法が不足しており、手作業によるLOD3/4へのアップグレードモデリングは膨大なコストが発生し、プロジェクト進行を圧迫するリスクがあった。 |
+| **Root Cause (5 Why)** | **Why1**: レンダリング画像が実写に見えない。<br>**Why2**: モデルが極めて綺麗でシンプルな立方体（LOD2）で構成されており、現実の都市にあるノイズや汚れ、看板の文字などの「スケールキュー」が存在しない。<br>**Why3**: UE5のシェーダー調整だけでは直方体の輪郭を超えて有機的な微細構造を生成できない。<br>**Why4**: ローカルStable Diffusion (img2img OpenVINO LCM) を用いたハイブリッドディテール肉付けを導入したが、形状維持とディテール付与の最適なバランス（Strength）の調整手法が未確立だった。<br>**Why5**: 非同期推論および結果収集スクリプトをWindowsローカル環境で走らせる際、日本語Windowsのデフォルトエンコーディング（cp932）によって文字化けおよびスクリプトクラッシュ（P023基準違反）が発生しやすく、再現実験の効率が極めて悪かった。 |
+| **Fix** | (1) UE5のパース・大域照明をベースに、ローカル SD LCM (OpenVINO) img2img を走らせてディテールを上書き合成するハイブリッドレンダリングパイプラインを構築。<br>(2) 構造維持（Strength=0.38）とディテール付与（Strength=0.45）の2つの最適キャリブレーション閾値を確立。<br>(3) `run_img2img.py` 内に P023 エンコーディング強制対策（sys.stdoutのUTF-8再構成）を挿入し、Windows環境での動作を安定化。<br>(4) `ffmpeg` の `hstack` を用いて、Road, Sealed, Overview の3つのカメラアングルを横連結したコンタクトシート（比較シート）を自動作成する処理を追加。<br>(5) 成果物の管理パスを artifacts ディレクトリおよび `radius100_compare/` に整理し、Telegram APIを介した自動通知パイプラインを統合。<br>(6) 構築されたハイブリッドノウハウを `.brv/context-tree/design/atsugi-lod2-photoreal-hybrid-pattern.md` に形式知として保存。 |
+| **Files** | `D:\Clawdbot_Docker_20260125\.brv\context-tree\design\atsugi-lod2-photoreal-hybrid-pattern.md`, `C:\Users\yasu\.gemini\antigravity\brain\3d62300e-184c-4bd9-9d38-edb9a284c145\scratch\run_img2img.py`, `docs/INCIDENT_LOG.md` |
+| **Verification** | 3アングル×2強度（0.38/0.45）の画像6点、および結合コンタクトシート2点（s38, s45）の生成に完全成功。成果物はすべて artifacts とローカルディレクトリに同期保存された。Telegram API（curl経由）での送信が正常に機能することを確認。ByteRoverノウハウDBへの書き出しを確認。 |
+| **Lessons Learned** | 3Dモデル自体の精細度が低い（LOD2等）場合、レンダラーの極限調整だけでは限界がある。正確な3Dパースペクティブと光源環境をUE5で担保し、有機的・微細なテクスチャや看板等のディテールはAI（img2img）でブレンドする「ハイブリッド手法」が最も高い対費用効果と視覚的説得力を持つ。Windows I/Oのエンコーディング保護（P023）は、外部APIや画像連携スクリプトの全モジュールで必須である。 |
+| **Prevention** | 今後、押し出しポリゴンモデルからの高速な実写化要請に対しては、このハイブリッド img2img 手法を標準手順として採用する。Strengthは 0.38 を整合性基準、0.45 をテクスチャ肉付け基準とし、検証時は必ず `ffmpeg` でコンタクトシートを作成して並行評価を行う。 |
+
+
+---
