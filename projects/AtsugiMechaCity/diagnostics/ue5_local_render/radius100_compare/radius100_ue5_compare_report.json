@@ -67,34 +67,202 @@
     80.2724214485984,
     -8.268274883388964e-09
   ],
+  "angle_camera_location_cm": [
+    -4300.0,
+    -7600.00048828125,
+    2741.000244140625
+  ],
+  "angle_camera_target_cm": [
+    220.0,
+    -1250.00048828125,
+    2441.000244140625
+  ],
+  "angle_camera_rotation": [
+    -2.2041749465554448,
+    54.55631967397803,
+    1.625396846618278e-08
+  ],
+  "road_camera_location_cm": [
+    -2450.0,
+    -6550.00048828125,
+    2231.000244140625
+  ],
+  "road_camera_target_cm": [
+    260.0,
+    -1850.00048828125,
+    2171.000244140625
+  ],
+  "road_camera_rotation": [
+    -0.633622801646405,
+    60.032433895715805,
+    5.142606810430711e-09
+  ],
+  "overview_camera_location_cm": [
+    -5200.0,
+    -8500.00048828125,
+    4421.000244140625
+  ],
+  "overview_camera_target_cm": [
+    240.0,
+    -1700.00048828125,
+    2441.000244140625
+  ],
+  "overview_camera_rotation": [
+    -12.809599523143845,
+    51.34019174590991,
+    8.817480050357973e-08
+  ],
+  "ground_camera_location_cm": [
+    -2100.0,
+    -6200.00048828125,
+    2166.000244140625
+  ],
+  "ground_camera_target_cm": [
+    -40.0,
+    -2350.00048828125,
+    2131.000244140625
+  ],
+  "ground_camera_rotation": [
+    -0.45925135102946235,
+    61.85032628676322,
+    3.840282801695345e-09
+  ],
+  "ground_overview_location_cm": [
+    -4800.0,
+    -7800.00048828125,
+    2901.000244140625
+  ],
+  "ground_overview_target_cm": [
+    -40.0,
+    -2200.00048828125,
+    2271.000244140625
+  ],
+  "ground_overview_rotation": [
+    -4.899313568469117,
+    49.63546342690264,
+    3.2837747333045256e-08
+  ],
+  "terrain_enabled_after_baseline": false,
   "props_count": 7,
   "proxy_building_count": 30,
   "cinematic_set_count": 78,
+  "street_readability_count": 68,
+  "facade_density_count": 210,
+  "precision_street_assets_count": 98,
+  "explicit_ground_count": 52,
+  "peripheral_walls_count": 673,
+  "sealed_camera_location_cm": [
+    -1800.0,
+    -6400.00048828125,
+    2371.000244140625
+  ],
+  "sealed_camera_target_cm": [
+    -400.0,
+    -2600.00048828125,
+    2221.000244140625
+  ],
+  "sealed_overview_location_cm": [
+    200.0,
+    7499.99951171875,
+    4721.000244140625
+  ],
   "foreground_road_count": 16,
   "sky_backdrop": true,
   "variants": [
     {
       "name": "baseline",
       "exr": "D:\\Clawdbot_Docker_20260125\\projects\\AtsugiMechaCity\\diagnostics\\ue5_local_render\\radius100_compare\\r100_baseline.exr",
-      "size": 1414350,
+      "size": 1864034,
+      "ok": true
+    },
+    {
+      "name": "clean_city_terrain_off",
+      "exr": "D:\\Clawdbot_Docker_20260125\\projects\\AtsugiMechaCity\\diagnostics\\ue5_local_render\\radius100_compare\\r100_clean_city_terrain_off.exr",
+      "size": 1867030,
       "ok": true
     },
     {
       "name": "pbr_road",
       "exr": "D:\\Clawdbot_Docker_20260125\\projects\\AtsugiMechaCity\\diagnostics\\ue5_local_render\\radius100_compare\\r100_pbr_road.exr",
-      "size": 1746051,
+      "size": 1968244,
       "ok": true
     },
     {
       "name": "pbr_road_building_props",
       "exr": "D:\\Clawdbot_Docker_20260125\\projects\\AtsugiMechaCity\\diagnostics\\ue5_local_render\\radius100_compare\\r100_pbr_road_building_props.exr",
-      "size": 1896286,
+      "size": 2031575,
       "ok": true
     },
     {
       "name": "cinematic_station_front_set",
       "exr": "D:\\Clawdbot_Docker_20260125\\projects\\AtsugiMechaCity\\diagnostics\\ue5_local_render\\radius100_compare\\r100_cinematic_station_front_set.exr",
-      "size": 1962938,
+      "size": 2107654,
+      "ok": true
+    },
+    {
+      "name": "street_readability_v1",
+      "exr": "D:\\Clawdbot_Docker_20260125\\projects\\AtsugiMechaCity\\diagnostics\\ue5_local_render\\radius100_compare\\r100_street_readability_v1.exr",
+      "size": 2185423,
+      "ok": true
+    },
+    {
+      "name": "street_readability_angle_v1",
+      "exr": "D:\\Clawdbot_Docker_20260125\\projects\\AtsugiMechaCity\\diagnostics\\ue5_local_render\\radius100_compare\\r100_street_readability_angle_v1.exr",
+      "size": 2272434,
+      "ok": true
+    },
+    {
+      "name": "facade_density_road_camera_v2",
+      "exr": "D:\\Clawdbot_Docker_20260125\\projects\\AtsugiMechaCity\\diagnostics\\ue5_local_render\\radius100_compare\\r100_facade_density_road_camera_v2.exr",
+      "size": 2395477,
+      "ok": true
+    },
+    {
+      "name": "street_precision_overview_v2",
+      "exr": "D:\\Clawdbot_Docker_20260125\\projects\\AtsugiMechaCity\\diagnostics\\ue5_local_render\\radius100_compare\\r100_street_precision_overview_v2.exr",
+      "size": 2439128,
+      "ok": true
+    },
+    {
+      "name": "explicit_ground_road_sidewalk_v1",
+      "exr": "D:\\Clawdbot_Docker_20260125\\projects\\AtsugiMechaCity\\diagnostics\\ue5_local_render\\radius100_compare\\r100_explicit_ground_road_sidewalk_v1.exr",
+      "size": 2656286,
+      "ok": true
+    },
+    {
+      "name": "explicit_ground_overview_v1",
+      "exr": "D:\\Clawdbot_Docker_20260125\\projects\\AtsugiMechaCity\\diagnostics\\ue5_local_render\\radius100_compare\\r100_explicit_ground_overview_v1.exr",
+      "size": 2416997,
+      "ok": true
+    },
+    {
+      "name": "ground_sky_sealed_v1",
+      "exr": "D:\\Clawdbot_Docker_20260125\\projects\\AtsugiMechaCity\\diagnostics\\ue5_local_render\\radius100_compare\\r100_ground_sky_sealed_v1.exr",
+      "size": 2545016,
+      "ok": true
+    },
+    {
+      "name": "ground_sky_sealed_overview_v1",
+      "exr": "D:\\Clawdbot_Docker_20260125\\projects\\AtsugiMechaCity\\diagnostics\\ue5_local_render\\radius100_compare\\r100_ground_sky_sealed_overview_v1.exr",
+      "size": 2929140,
+      "ok": true
+    },
+    {
+      "name": "lod2_sealed_v35",
+      "exr": "D:\\Clawdbot_Docker_20260125\\projects\\AtsugiMechaCity\\diagnostics\\ue5_local_render\\radius100_compare\\r100_lod2_sealed_v35.exr",
+      "size": 2545016,
+      "ok": true
+    },
+    {
+      "name": "lod2_overview_v35",
+      "exr": "D:\\Clawdbot_Docker_20260125\\projects\\AtsugiMechaCity\\diagnostics\\ue5_local_render\\radius100_compare\\r100_lod2_overview_v35.exr",
+      "size": 2778357,
+      "ok": true
+    },
+    {
+      "name": "lod2_road_v35",
+      "exr": "D:\\Clawdbot_Docker_20260125\\projects\\AtsugiMechaCity\\diagnostics\\ue5_local_render\\radius100_compare\\r100_lod2_road_v35.exr",
+      "size": 2663494,
       "ok": true
     }
   ],

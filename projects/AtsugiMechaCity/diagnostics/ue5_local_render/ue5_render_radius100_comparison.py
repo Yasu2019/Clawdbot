@@ -20,6 +20,8 @@ REPORT = OUT_DIR / "radius100_ue5_compare_report.json"
 DESTINATION = "/Game/CodexGenerated/PlateauRadius100Split"
 MATERIAL_DIR = "/Game/CodexGenerated/PlateauRadius100Materials"
 TEXTURE_DIR = MATERIAL_DIR + "/Textures"
+LOD2_DEST = "/Game/CodexGenerated/PlateauLOD2Buildings"
+LOD2_FBX = BASE_DIR / "plateau_lod2_buildings_radius100.fbx"
 RESOLUTION = (1280, 720)
 
 
@@ -87,6 +89,53 @@ def import_texture(path, name):
     return load_asset(asset_path)
 
 
+def import_lod2_buildings():
+    """PLATEAU LOD2 FBX (テクスチャ付き建物) をインポートしてアクターを返す。"""
+    if not LOD2_FBX.exists():
+        log("LOD2 FBX not found, skipping: " + str(LOD2_FBX))
+        return None, None
+    unreal.EditorAssetLibrary.make_directory(LOD2_DEST)
+    existing = load_asset(LOD2_DEST + "/LOD2_Buildings")
+    if existing is not None:
+        log("Deleting cached LOD2 asset to force re-importing the 150m FBX")
+        unreal.EditorAssetLibrary.delete_asset(LOD2_DEST + "/LOD2_Buildings")
+        existing = None
+    options = unreal.FbxImportUI()
+    options.set_editor_property("import_mesh", True)
+    options.set_editor_property("import_textures", True)
+    options.set_editor_property("import_materials", True)
+    options.set_editor_property("import_as_skeletal", False)
+    options.set_editor_property("create_physics_asset", False)
+    options.static_mesh_import_data.set_editor_property("combine_meshes", True)
+    options.static_mesh_import_data.set_editor_property("generate_lightmap_u_vs", True)
+    options.static_mesh_import_data.set_editor_property("auto_generate_collision", False)
+    task = unreal.AssetImportTask()
+    task.set_editor_property("filename", str(LOD2_FBX))
+    task.set_editor_property("destination_path", LOD2_DEST)
+    task.set_editor_property("destination_name", "LOD2_Buildings")
+    task.set_editor_property("replace_existing", True)
+    task.set_editor_property("automated", True)
+    task.set_editor_property("save", True)
+    task.set_editor_property("options", options)
+    unreal.AssetToolsHelpers.get_asset_tools().import_asset_tasks([task])
+    imported = list(task.get_editor_property("imported_object_paths") or [])
+    mesh = None
+    for p in imported:
+        asset = load_asset(p)
+        if isinstance(asset, unreal.StaticMesh):
+            mesh = asset
+            break
+    if mesh is None:
+        mesh = load_asset(LOD2_DEST + "/LOD2_Buildings")
+    if mesh is None:
+        log("LOD2 import failed")
+        return None, None
+    actor = unreal.EditorLevelLibrary.spawn_actor_from_object(mesh, unreal.Vector(0.0, 0.0, 0.0))
+    actor.set_actor_label("Codex_LOD2_Buildings")
+    log("LOD2 Buildings spawned: " + str(len(imported)) + " assets imported")
+    return mesh, actor
+
+
 def create_color_material(name, color, roughness=0.85, emissive=None, texture=None):
     unreal.EditorAssetLibrary.make_directory(MATERIAL_DIR)
     asset_path = MATERIAL_DIR + "/" + name
@@ -142,6 +191,11 @@ def set_actor_visible(actor, visible):
         pass
 
 
+def set_actors_visible(actors, keys, visible):
+    for key in keys:
+        set_actor_visible(actors.get(key), visible)
+
+
 def actor_bounds(actors):
     found = False
     min_x = min_y = min_z = float("inf")
@@ -187,11 +241,11 @@ def setup_lighting(world, target):
     sun = unreal.EditorLevelLibrary.spawn_actor_from_class(unreal.DirectionalLight, target + unreal.Vector(-3000.0, -5000.0, 9000.0))
     sun.set_actor_label("Codex_R100_Sun")
     sun.set_actor_rotation(unreal.Rotator(-34.0, -42.0, 0.0), False)
-    sun.get_component_by_class(unreal.DirectionalLightComponent).set_editor_property("intensity", 9.0)
+    sun.get_component_by_class(unreal.DirectionalLightComponent).set_editor_property("intensity", 5.0)
 
     sky = unreal.EditorLevelLibrary.spawn_actor_from_class(unreal.SkyLight, target + unreal.Vector(0.0, 0.0, 2600.0))
     sky.set_actor_label("Codex_R100_SkyLight")
-    sky.get_component_by_class(unreal.SkyLightComponent).set_editor_property("intensity", 2.8)
+    sky.get_component_by_class(unreal.SkyLightComponent).set_editor_property("intensity", 1.8)
 
     pp = unreal.EditorLevelLibrary.spawn_actor_from_class(unreal.PostProcessVolume, target)
     pp.set_actor_label("Codex_R100_PostProcess")
@@ -204,6 +258,8 @@ def setup_lighting(world, target):
         "r.Tonemapper.Sharpen 1",
         "r.ViewDistanceScale 1",
         "r.Shadow.Virtual.Enable 0",
+        "r.EyeAdaptation.MethodOverride -1",
+        "r.ExposureOffset -1.5",
     ]:
         unreal.SystemLibrary.execute_console_command(world, cmd)
 
@@ -458,6 +514,480 @@ def spawn_foreground_road(cube, mats, surface_z, road_origin):
     return actors
 
 
+def spawn_street_readability_v1(cube, mats, surface_z, road_origin):
+    if cube is None:
+        return []
+    actors = []
+
+    tree_specs = [
+        (-1680.0, -3820.0), (-1680.0, -2750.0), (-1680.0, -1680.0), (-1680.0, -620.0), (-1680.0, 420.0),
+        (1680.0, -3600.0), (1680.0, -2520.0), (1680.0, -1450.0), (1680.0, -360.0), (1680.0, 720.0),
+    ]
+    for index, (x, y) in enumerate(tree_specs):
+        actors.append(spawn_box(
+            cube,
+            "Readability_Tree_{0:02d}_Trunk".format(index),
+            unreal.Vector(road_origin.x + x, road_origin.y + y, surface_z + 160.0),
+            unreal.Vector(0.12, 0.12, 1.6),
+            mats["tree_trunk"],
+        ))
+        actors.append(spawn_box(
+            cube,
+            "Readability_Tree_{0:02d}_Crown".format(index),
+            unreal.Vector(road_origin.x + x, road_origin.y + y, surface_z + 360.0),
+            unreal.Vector(0.78, 0.78, 0.72),
+            mats["tree_leaf"],
+        ))
+
+    car_specs = [
+        ("BlueCar_Close", -520.0, -4100.0, mats["car"]),
+        ("WhiteVan_Mid", 720.0, -3150.0, mats["van_white"]),
+        ("DarkCar_Mid", -740.0, -2140.0, mats["car_dark"]),
+        ("Taxi_Far", 620.0, -1040.0, mats["taxi"]),
+        ("WhiteCar_Far", -520.0, 140.0, mats["car2"]),
+    ]
+    for label, x, y, mat in car_specs:
+        actors.append(spawn_box(
+            cube,
+            "Readability_" + label + "_Body",
+            unreal.Vector(road_origin.x + x, road_origin.y + y, surface_z + 66.0),
+            unreal.Vector(1.72, 0.78, 0.34),
+            mat,
+        ))
+        actors.append(spawn_box(
+            cube,
+            "Readability_" + label + "_Cabin",
+            unreal.Vector(road_origin.x + x, road_origin.y + y + 12.0, surface_z + 122.0),
+            unreal.Vector(0.92, 0.56, 0.26),
+            mats["car_glass"],
+        ))
+
+    for index, y in enumerate([-4300.0, -3450.0, -2600.0, -1750.0, -900.0, -50.0, 800.0]):
+        for side, x in [("L", -1420.0), ("R", 1450.0)]:
+            actors.append(spawn_box(
+                cube,
+                "Readability_StreetLight_{0}_{1}".format(side, index),
+                unreal.Vector(road_origin.x + x, road_origin.y + y, surface_z + 240.0),
+                unreal.Vector(0.055, 0.055, 4.8),
+                mats["metal"],
+            ))
+            actors.append(spawn_box(
+                cube,
+                "Readability_StreetLight_{0}_{1}_Lamp".format(side, index),
+                unreal.Vector(road_origin.x + x, road_origin.y + y + 46.0, surface_z + 480.0),
+                unreal.Vector(0.46, 0.14, 0.16),
+                mats["lamp_emissive"],
+            ))
+
+    for x in [-1180.0, 1180.0]:
+        actors.append(spawn_box(
+            cube,
+            "Readability_TrafficSignal_Pole",
+            unreal.Vector(road_origin.x + x, road_origin.y - 3530.0, surface_z + 230.0),
+            unreal.Vector(0.065, 0.065, 4.6),
+            mats["metal"],
+        ))
+        actors.append(spawn_box(
+            cube,
+            "Readability_TrafficSignal_Box",
+            unreal.Vector(road_origin.x + x, road_origin.y - 3470.0, surface_z + 460.0),
+            unreal.Vector(0.38, 0.11, 0.48),
+            mats["sign"],
+        ))
+
+    for y in [-3900.0, -3000.0, -2100.0, -1200.0, -300.0, 600.0]:
+        actors.append(spawn_box(
+            cube,
+            "Readability_RoadSide_Sign",
+            unreal.Vector(road_origin.x - 1260.0, road_origin.y + y, surface_z + 235.0),
+            unreal.Vector(0.06, 0.46, 0.70),
+            mats["poster"],
+        ))
+    return actors
+
+
+def spawn_facade_density_v2(cube, mats, surface_z, road_origin):
+    if cube is None:
+        return []
+    actors = []
+
+    facade_specs = [
+        ("LeftA", -1510.0, -3880.0, 0.10, 8.0, 5, mats["shop_wall"], mats["storefront_red"]),
+        ("LeftB", -1510.0, -2550.0, 0.10, 7.2, 5, mats["shop_wall"], mats["storefront_blue"]),
+        ("LeftC", -1510.0, -1160.0, 0.10, 6.8, 4, mats["shop_wall"], mats["storefront_green"]),
+        ("RightA", 1510.0, -3640.0, 0.10, 7.6, 5, mats["shop_wall"], mats["storefront_yellow"]),
+        ("RightB", 1510.0, -2200.0, 0.10, 7.0, 5, mats["shop_wall"], mats["storefront_blue"]),
+        ("RightC", 1510.0, -760.0, 0.10, 6.5, 4, mats["shop_wall"], mats["storefront_red"]),
+    ]
+
+    for label, x, y, thickness, width, floors, wall_mat, accent_mat in facade_specs:
+        actors.append(spawn_box(
+            cube,
+            "FacadeDensity_{0}_Wall".format(label),
+            unreal.Vector(road_origin.x + x, road_origin.y + y, surface_z + 760.0),
+            unreal.Vector(thickness, width, 7.2),
+            wall_mat,
+        ))
+        for floor in range(floors):
+            z = surface_z + 300.0 + floor * 145.0
+            for bay in [-2, -1, 0, 1, 2]:
+                actors.append(spawn_box(
+                    cube,
+                    "FacadeDensity_{0}_Window_F{1}_B{2}".format(label, floor, bay),
+                    unreal.Vector(road_origin.x + x - (18.0 if x > 0 else -18.0), road_origin.y + y + bay * 105.0, z),
+                    unreal.Vector(0.035, 0.42, 0.38),
+                    mats["window"],
+                ))
+        for bay, mat in [(-2, accent_mat), (-1, mats["poster"]), (1, accent_mat), (2, mats["sign"])]:
+            actors.append(spawn_box(
+                cube,
+                "FacadeDensity_{0}_Sign_{1}".format(label, bay),
+                unreal.Vector(road_origin.x + x - (22.0 if x > 0 else -22.0), road_origin.y + y + bay * 125.0, surface_z + 150.0),
+                unreal.Vector(0.04, 0.58, 0.24),
+                mat,
+            ))
+        actors.append(spawn_box(
+            cube,
+            "FacadeDensity_{0}_Awning".format(label),
+            unreal.Vector(road_origin.x + x - (32.0 if x > 0 else -32.0), road_origin.y + y, surface_z + 238.0),
+            unreal.Vector(0.28, width * 0.46, 0.12),
+            accent_mat,
+        ))
+
+    for y in [-4200.0, -3700.0, -3200.0, -2700.0, -2200.0, -1700.0, -1200.0, -700.0, -200.0, 300.0]:
+        actors.append(spawn_box(
+            cube,
+            "RoadCamera_AsphaltWear",
+            unreal.Vector(road_origin.x - 240.0, road_origin.y + y, surface_z + 15.0),
+            unreal.Vector(5.2, 1.4, 0.010),
+            mats["road_patch"],
+        ))
+        actors.append(spawn_box(
+            cube,
+            "RoadCamera_CenterLane",
+            unreal.Vector(road_origin.x + 260.0, road_origin.y + y + 180.0, surface_z + 20.0),
+            unreal.Vector(0.11, 2.2, 0.011),
+            mats["marking"],
+        ))
+
+    for x in [-1320.0, 1320.0]:
+        for y in [-3950.0, -3150.0, -2350.0, -1550.0, -750.0, 50.0, 850.0]:
+            actors.append(spawn_box(
+                cube,
+                "RoadCamera_CurbGuide",
+                unreal.Vector(road_origin.x + x, road_origin.y + y, surface_z + 34.0),
+                unreal.Vector(0.16, 3.1, 0.08),
+                mats["sidewalk"],
+            ))
+
+    return actors
+
+
+def spawn_precision_street_assets_v2(cube, mats, surface_z, road_origin):
+    if cube is None:
+        return []
+    actors = []
+    # Assets follow curb lines and lanes instead of scattered foreground-only placement.
+    for index, y in enumerate([-4300.0, -3650.0, -3000.0, -2350.0, -1700.0, -1050.0, -400.0, 250.0, 900.0]):
+        side = -1 if index % 2 == 0 else 1
+        x = side * 1040.0
+        actors.append(spawn_box(
+            cube,
+            "Precision_Car_{0:02d}_Body".format(index),
+            unreal.Vector(road_origin.x + x, road_origin.y + y, surface_z + 68.0),
+            unreal.Vector(1.65, 0.72, 0.34),
+            [mats["car"], mats["car2"], mats["taxi"], mats["car_dark"], mats["van_white"]][index % 5],
+        ))
+        actors.append(spawn_box(
+            cube,
+            "Precision_Car_{0:02d}_Cabin".format(index),
+            unreal.Vector(road_origin.x + x, road_origin.y + y + 12.0, surface_z + 122.0),
+            unreal.Vector(0.92, 0.54, 0.25),
+            mats["car_glass"],
+        ))
+
+    for index, y in enumerate([-4380.0, -3720.0, -3060.0, -2400.0, -1740.0, -1080.0, -420.0, 240.0, 900.0]):
+        for side, x in [("L", -1540.0), ("R", 1540.0)]:
+            actors.append(spawn_box(
+                cube,
+                "Precision_Tree_{0}_{1}_Trunk".format(side, index),
+                unreal.Vector(road_origin.x + x, road_origin.y + y, surface_z + 150.0),
+                unreal.Vector(0.10, 0.10, 1.5),
+                mats["tree_trunk"],
+            ))
+            actors.append(spawn_box(
+                cube,
+                "Precision_Tree_{0}_{1}_Crown".format(side, index),
+                unreal.Vector(road_origin.x + x, road_origin.y + y, surface_z + 340.0),
+                unreal.Vector(0.66, 0.66, 0.66),
+                mats["tree_leaf"],
+            ))
+            actors.append(spawn_box(
+                cube,
+                "Precision_Lamp_{0}_{1}_Pole".format(side, index),
+                unreal.Vector(road_origin.x + x * 0.92, road_origin.y + y + 260.0, surface_z + 245.0),
+                unreal.Vector(0.05, 0.05, 4.9),
+                mats["metal"],
+            ))
+            actors.append(spawn_box(
+                cube,
+                "Precision_Lamp_{0}_{1}_Head".format(side, index),
+                unreal.Vector(road_origin.x + x * 0.92, road_origin.y + y + 310.0, surface_z + 492.0),
+                unreal.Vector(0.44, 0.12, 0.16),
+                mats["lamp_emissive"],
+            ))
+
+    for x, y in [(-1180.0, -3680.0), (1180.0, -3620.0), (-1180.0, -980.0), (1180.0, -900.0)]:
+        actors.append(spawn_box(
+            cube,
+            "Precision_Signal_Pole",
+            unreal.Vector(road_origin.x + x, road_origin.y + y, surface_z + 230.0),
+            unreal.Vector(0.065, 0.065, 4.6),
+            mats["metal"],
+        ))
+        actors.append(spawn_box(
+            cube,
+            "Precision_Signal_Box",
+            unreal.Vector(road_origin.x + x, road_origin.y + y + 60.0, surface_z + 465.0),
+            unreal.Vector(0.42, 0.12, 0.50),
+            mats["sign"],
+        ))
+
+    return actors
+
+
+def spawn_explicit_ground_road_sidewalk_v1(cube, mats, surface_z, road_origin):
+    if cube is None:
+        return []
+    actors = []
+
+    # Dark asphalt base — PLATEAU Sidewalk (road_patch) now dark too, so contrast shows.
+    actors.append(spawn_box(
+        cube,
+        "ExplicitGround_CityBase",
+        unreal.Vector(road_origin.x, road_origin.y - 1800.0, surface_z - 18.0),
+        unreal.Vector(62.0, 92.0, 0.045),
+        mats["road"],
+    ))
+
+    # Main road corridor — thicker so visible at oblique camera angle.
+    actors.append(spawn_box(
+        cube,
+        "ExplicitRoad_Main_Asphalt",
+        unreal.Vector(road_origin.x - 40.0, road_origin.y - 2400.0, surface_z + 7.0),
+        unreal.Vector(22.0, 86.0, 0.35),
+        mats["road"],
+    ))
+    actors.append(spawn_box(
+        cube,
+        "ExplicitRoad_Cross_Asphalt",
+        unreal.Vector(road_origin.x - 160.0, road_origin.y - 950.0, surface_z + 8.0),
+        unreal.Vector(62.0, 15.0, 0.30),
+        mats["road"],
+    ))
+
+    for x, label in [(-1540.0, "Left"), (1540.0, "Right")]:
+        actors.append(spawn_box(
+            cube,
+            "ExplicitSidewalk_{0}_Long".format(label),
+            unreal.Vector(road_origin.x + x, road_origin.y - 2400.0, surface_z + 18.0),
+            unreal.Vector(7.2, 86.0, 0.28),
+            mats["sidewalk"],
+        ))
+
+    for y, label in [(-950.0, "NearCross"), (-3600.0, "FarCross")]:
+        actors.append(spawn_box(
+            cube,
+            "ExplicitSidewalk_{0}_Cross".format(label),
+            unreal.Vector(road_origin.x - 120.0, road_origin.y + y, surface_z + 19.0),
+            unreal.Vector(62.0, 5.4, 0.28),
+            mats["sidewalk"],
+        ))
+
+    # Curbs as readable height breaks between road and sidewalk.
+    for x, label in [(-1140.0, "LeftRoadEdge"), (1080.0, "RightRoadEdge")]:
+        actors.append(spawn_box(
+            cube,
+            "ExplicitCurb_{0}".format(label),
+            unreal.Vector(road_origin.x + x, road_origin.y - 2400.0, surface_z + 42.0),
+            unreal.Vector(0.20, 86.0, 0.35),
+            mats["marking"],
+        ))
+
+    for y in [-4700.0, -3900.0, -3100.0, -2300.0, -1500.0, -700.0, 100.0, 900.0]:
+        actors.append(spawn_box(
+            cube,
+            "ExplicitLaneDash",
+            unreal.Vector(road_origin.x - 40.0, road_origin.y + y, surface_z + 34.0),
+            unreal.Vector(0.12, 2.8, 0.08),
+            mats["marking"],
+        ))
+
+    for x in [-980.0, -660.0, -340.0, -20.0, 300.0, 620.0, 940.0]:
+        actors.append(spawn_box(
+            cube,
+            "ExplicitCrosswalkStripe",
+            unreal.Vector(road_origin.x + x, road_origin.y - 3580.0, surface_z + 36.0),
+            unreal.Vector(0.18, 4.4, 0.08),
+            mats["marking"],
+        ))
+
+    for x in [-1780.0, -1280.0, 1280.0, 1780.0]:
+        for y in [-4600.0, -3600.0, -2600.0, -1600.0, -600.0, 400.0, 1200.0]:
+            actors.append(spawn_box(
+                cube,
+                "ExplicitPavingTile",
+                unreal.Vector(road_origin.x + x, road_origin.y + y, surface_z + 24.0),
+                unreal.Vector(2.0, 1.8, 0.010),
+                mats["paving_alt"],
+            ))
+
+    return actors
+
+
+def spawn_peripheral_building_walls(cube, mats, surface_z, road_origin):
+    if cube is None:
+        return []
+    actors = []
+
+    side_specs = [
+        (-5200.0, "WestBlock"),
+        (5200.0, "EastBlock"),
+    ]
+    for side_x, label_prefix in side_specs:
+        slab_params = [
+            (-4800.0, 9.0, 62.0),
+            (-3200.0, 10.5, 65.0),
+            (-1600.0, 8.0, 60.0),
+            (0.0, 11.0, 68.0),
+            (1600.0, 9.5, 58.0),
+        ]
+        for index, (y, width, height) in enumerate(slab_params):
+            actors.append(spawn_box(
+                cube,
+                "{0}_Slab_{1:02d}".format(label_prefix, index),
+                unreal.Vector(road_origin.x + side_x, road_origin.y + y, surface_z + height * 50.0),
+                unreal.Vector(5.2, width, height),
+                [mats["building"], mats["building2"]][index % 2],
+            ))
+            inner_x = side_x - 260.0 if side_x < 0 else side_x + 260.0
+            for floor in range(max(1, int(height / 3))):
+                for bay in range(-1, 2):
+                    actors.append(spawn_box(
+                        cube,
+                        "{0}_Win_{1:02d}_F{2}_B{3}".format(label_prefix, index, floor, bay),
+                        unreal.Vector(
+                            road_origin.x + inner_x,
+                            road_origin.y + y + bay * 280.0,
+                            surface_z + 420.0 + floor * 310.0,
+                        ),
+                        unreal.Vector(0.04, 0.82, 0.52),
+                        mats["window"],
+                    ))
+
+    back_slabs = [
+        (-7800.0, -4200.0, 4.8, 35.0),
+        (-7800.0, -2200.0, 4.2, 40.0),
+        (-7800.0, -200.0, 5.0, 32.0),
+        (-7800.0, 1800.0, 3.8, 38.0),
+        (-7800.0, 3600.0, 4.5, 30.0),
+        (-9500.0, -3000.0, 14.0, 42.0),
+        (-9500.0, 0.0, 16.0, 45.0),
+        (-9500.0, 3000.0, 12.0, 38.0),
+    ]
+    for index, (y, x_off, depth, height) in enumerate(back_slabs):
+        actors.append(spawn_box(
+            cube,
+            "BackFill_Slab_{0:02d}".format(index),
+            unreal.Vector(road_origin.x + x_off, road_origin.y + y, surface_z + height * 50.0),
+            unreal.Vector(depth, 16.0, height),
+            [mats["building"], mats["building2"]][index % 2],
+        ))
+
+    # Tall sky-blockers in the north direction — wide slabs (20-25m) give ~12deg angular coverage
+    # each; spaced at ~8deg intervals for continuous north-arc coverage across the full camera FOV.
+    north_sky_specs = [
+        (-3000.0, 2500.0, 22.0, 58.0),
+        (-3000.0, -500.0, 18.0, 62.0),
+        (-3000.0, -3000.0, 18.0, 55.0),
+        (3200.0, 2500.0, 22.0, 72.0),
+        (3200.0, -500.0, 22.0, 75.0),
+        (3200.0, -3000.0, 20.0, 68.0),
+        (3800.0, -750.0, 18.0, 78.0),
+        (4100.0, -200.0, 18.0, 76.0),
+        (-2200.0, 2600.0, 20.0, 55.0),
+        (-1800.0, 3500.0, 25.0, 60.0),
+        (-1000.0, 2500.0, 22.0, 58.0),
+        (500.0, 2400.0, 22.0, 62.0),
+        (1200.0, 2000.0, 22.0, 65.0),
+        (2000.0, 3500.0, 22.0, 68.0),
+        (2000.0, 1900.0, 22.0, 65.0),
+        (-4500.0, 1000.0, 15.0, 45.0),
+        (4700.0, 1000.0, 15.0, 58.0),
+        (-4500.0, -2000.0, 12.0, 42.0),
+        (4700.0, -2000.0, 15.0, 55.0),
+        # v35追加: 中央北側の隙間を埋める（road_camera視野外のみ）
+        (0.0, 2500.0, 24.0, 70.0),
+        (0.0, 1000.0, 24.0, 72.0),
+        (-1600.0, 3000.0, 22.0, 62.0),
+        (1600.0, 3000.0, 22.0, 68.0),
+        (-3000.0, 1000.0, 20.0, 60.0),
+        (3200.0, 1000.0, 20.0, 70.0),
+    ]
+    for index, (x_off, y_off, depth, height) in enumerate(north_sky_specs):
+        actors.append(spawn_box(
+            cube,
+            "NorthSkyBlock_{0:02d}".format(index),
+            unreal.Vector(road_origin.x + x_off, road_origin.y + y_off, surface_z + height * 50.0),
+            unreal.Vector(depth, 18.0, height),
+            [mats["building"], mats["building2"]][index % 2],
+        ))
+
+    # Northwest blockers — seal sky for explicit_ground camera upper-left corner.
+    nw_sky_specs = [
+        (-2500.0, -5000.0, 6.0, 52.0),
+        (-3500.0, -4500.0, 7.0, 58.0),
+        (-4200.0, -3500.0, 7.0, 55.0),
+        (-2000.0, -6000.0, 5.5, 50.0),
+        (-3000.0, -6500.0, 6.5, 48.0),
+    ]
+    for index, (x_off, y_off, depth, height) in enumerate(nw_sky_specs):
+        actors.append(spawn_box(
+            cube,
+            "NWSkyBlock_{0:02d}".format(index),
+            unreal.Vector(road_origin.x + x_off, road_origin.y + y_off, surface_z + height * 50.0),
+            unreal.Vector(depth, 18.0, height),
+            [mats["building"], mats["building2"]][index % 2],
+        ))
+
+    # East blockers — seal sky for overview left (east) side.
+    east_sky_specs = [
+        (3500.0, 3500.0, 9.0, 75.0),
+        (4500.0, 2000.0, 9.0, 72.0),
+        (4500.0, -1000.0, 9.0, 70.0),
+        (3500.0, -2500.0, 9.0, 68.0),
+        (5200.0, 500.0, 10.0, 65.0),
+        (5200.0, -3000.0, 10.0, 62.0),
+        (3000.0, 5000.0, 9.0, 78.0),
+        (4000.0, 5000.0, 9.0, 75.0),
+        (2500.0, 4500.0, 9.0, 80.0),
+        (3500.0, 4500.0, 9.0, 78.0),
+        (2500.0, 6500.0, 9.0, 72.0),
+        (3500.0, 6500.0, 9.0, 70.0),
+        (4500.0, 6000.0, 9.0, 68.0),
+    ]
+    for index, (x_off, y_off, depth, height) in enumerate(east_sky_specs):
+        actors.append(spawn_box(
+            cube,
+            "EastSkyBlock_{0:02d}".format(index),
+            unreal.Vector(road_origin.x + x_off, road_origin.y + y_off, surface_z + height * 50.0),
+            unreal.Vector(depth, 18.0, height),
+            [mats["building"], mats["building2"]][index % 2],
+        ))
+
+    return actors
+
+
 def capture_variant(world, capture_component, render_target, name):
     output_name = "r100_" + name + ".exr"
     output_path = OUT_DIR / output_name
@@ -493,6 +1023,15 @@ def main():
     if not actors:
         raise RuntimeError("No split FBX actors were imported.")
 
+    # PLATEAU LOD2 建物 (テクスチャ付き) をインポートして追加
+    lod2_mesh, lod2_actor = import_lod2_buildings()
+    lod2_bounds = None
+    if lod2_actor:
+        lod2_origin, lod2_extent, lod2_min, lod2_max = actor_bounds([lod2_actor])
+        lod2_bounds = (lod2_min, lod2_max)
+        log("LOD2 bounds min: {0}".format(lod2_min))
+        log("LOD2 bounds max: {0}".format(lod2_max))
+
     origin, extent, bounds_min, bounds_max = actor_bounds(list(actors.values()))
     road_actor_list = [
         actor for key, actor in actors.items()
@@ -500,6 +1039,19 @@ def main():
     ]
     road_origin, road_extent, road_bounds_min, road_bounds_max = actor_bounds(road_actor_list or list(actors.values()))
     surface_z = road_bounds_max[2] + 6.0
+    log("road_origin: {0}  surface_z: {1}".format(road_origin, surface_z))
+    log("road bounds: min={0}  max={1}".format(road_bounds_min, road_bounds_max))
+
+    # LOD2アクターをsurface_zに揃えるzオフセット（surface_z計算後に実行）
+    if lod2_actor and lod2_bounds:
+        lod2_min_z = lod2_bounds[0][2]
+        lod2_z_offset = surface_z - lod2_min_z
+        lod2_actor.set_actor_location(
+            unreal.Vector(road_origin.x, road_origin.y, lod2_z_offset),
+            False, False
+        )
+        log("LOD2 z_offset: {0}cm (lod2_min_z={1} surface_z={2})".format(
+            lod2_z_offset, lod2_min_z, surface_z))
     target = unreal.Vector(road_origin.x + 180.0, road_origin.y + 950.0, surface_z + 250.0)
     camera_loc = unreal.Vector(road_origin.x - 900.0, road_origin.y - 5350.0, surface_z + 165.0)
     camera_rot = unreal.MathLibrary.find_look_at_rotation(camera_loc, target)
@@ -521,16 +1073,18 @@ def main():
         component.set_editor_property("capture_source", unreal.SceneCaptureSource.SCS_FINAL_COLOR_LDR)
 
     asphalt_tex = import_texture(ROOT / "data" / "workspace" / "apps" / "blender_assets" / "polyhaven" / "textures" / "asphalt_floor" / "diffuse.png", "T_R100_Asphalt_Diffuse")
+    concrete_tex = import_texture(ROOT / "data" / "workspace" / "apps" / "blender_assets" / "polyhaven" / "textures" / "brushed_concrete" / "diffuse.png", "T_R100_Concrete_Diffuse")
+    sidewalk_tex = import_texture(ROOT / "data" / "workspace" / "apps" / "blender_assets" / "polyhaven" / "textures" / "concrete_floor" / "diffuse.png", "T_R100_Sidewalk_Diffuse")
     mats = {
         "terrain": create_color_material("M_R100_Terrain_MutedGreen", unreal.LinearColor(0.14, 0.22, 0.14, 1.0), 0.92),
-        "road": create_color_material("M_R100_Road_Asphalt_Dark_v3", unreal.LinearColor(0.014, 0.015, 0.016, 1.0), 0.96),
-        "road_patch": create_color_material("M_R100_Road_RepairPatch", unreal.LinearColor(0.030, 0.031, 0.032, 1.0), 0.98),
+        "road": create_color_material("M_R100_Road_Asphalt_Dark_v6_Tex", unreal.LinearColor(0.010, 0.011, 0.012, 1.0), 0.97, texture=asphalt_tex),
+        "road_patch": create_color_material("M_R100_Road_RepairPatch_v4_Tex", unreal.LinearColor(0.025, 0.026, 0.027, 1.0), 0.98, texture=asphalt_tex),
         "manhole": create_color_material("M_R100_Manhole_DarkMetal", unreal.LinearColor(0.075, 0.073, 0.066, 1.0), 0.55),
         "marking": create_color_material("M_R100_Road_Marking_Bright_v2", unreal.LinearColor(0.95, 0.90, 0.68, 1.0), 0.58),
-        "sidewalk": create_color_material("M_R100_Sidewalk_Concrete_v2", unreal.LinearColor(0.50, 0.48, 0.42, 1.0), 0.88),
-        "paving_alt": create_color_material("M_R100_Paving_AltBlocks", unreal.LinearColor(0.42, 0.40, 0.36, 1.0), 0.90),
-        "building": create_color_material("M_R100_Building_WarmConcrete_v2", unreal.LinearColor(0.50, 0.49, 0.44, 1.0), 0.84),
-        "building2": create_color_material("M_R100_Building_CoolConcrete_v2", unreal.LinearColor(0.32, 0.37, 0.39, 1.0), 0.82),
+        "sidewalk": create_color_material("M_R100_Sidewalk_Concrete_v5_Tex", unreal.LinearColor(0.72, 0.70, 0.65, 1.0), 0.86, texture=sidewalk_tex),
+        "paving_alt": create_color_material("M_R100_Paving_AltBlocks_v4", unreal.LinearColor(0.62, 0.60, 0.55, 1.0), 0.88),
+        "building": create_color_material("M_R100_Building_WarmConcrete_v2_Tex", unreal.LinearColor(0.50, 0.49, 0.44, 1.0), 0.84, texture=concrete_tex),
+        "building2": create_color_material("M_R100_Building_CoolConcrete_v2_Tex", unreal.LinearColor(0.32, 0.37, 0.39, 1.0), 0.82, texture=concrete_tex),
         "window": create_color_material("M_R100_Window_DarkGlass", unreal.LinearColor(0.025, 0.10, 0.16, 1.0), 0.25, unreal.LinearColor(0.0, 0.045, 0.09, 1.0)),
         "sign": create_color_material("M_R100_Sign_Emissive", unreal.LinearColor(0.85, 0.12, 0.05, 1.0), 0.45, unreal.LinearColor(1.1, 0.08, 0.03, 1.0)),
         "shop_wall": create_color_material("M_R100_Shop_Wall_OffWhite", unreal.LinearColor(0.68, 0.65, 0.58, 1.0), 0.78),
@@ -549,7 +1103,9 @@ def main():
         "van_white": create_color_material("M_R100_Van_White", unreal.LinearColor(0.80, 0.79, 0.74, 1.0), 0.42),
         "car_glass": create_color_material("M_R100_Car_Glass", unreal.LinearColor(0.012, 0.044, 0.065, 1.0), 0.20, unreal.LinearColor(0.0, 0.025, 0.045, 1.0)),
         "poster": create_color_material("M_R100_Poster_Mixed", unreal.LinearColor(0.92, 0.18, 0.44, 1.0), 0.44, unreal.LinearColor(0.32, 0.04, 0.12, 1.0)),
-        "sky": create_color_material("M_R100_Sky_Backdrop", unreal.LinearColor(0.16, 0.43, 0.82, 1.0), 0.95, unreal.LinearColor(0.03, 0.14, 0.32, 1.0)),
+        "sky": create_color_material("M_R100_Sky_Backdrop_Dusk_v1", unreal.LinearColor(0.04, 0.06, 0.13, 1.0), 0.95, unreal.LinearColor(0.01, 0.02, 0.07, 1.0)),
+        "tree_leaf": create_color_material("M_R100_Tree_Leaf", unreal.LinearColor(0.08, 0.28, 0.09, 1.0), 0.82),
+        "tree_trunk": create_color_material("M_R100_Tree_Trunk", unreal.LinearColor(0.16, 0.09, 0.045, 1.0), 0.86),
     }
 
     sky_actor = None
@@ -557,14 +1113,16 @@ def main():
     if cube is not None:
         sky_actor = unreal.EditorLevelLibrary.spawn_actor_from_object(
             cube,
-            unreal.Vector(target.x, target.y + 22000.0, surface_z + 6500.0),
+            unreal.Vector(target.x, target.y + 22000.0, surface_z + 12000.0),
         )
         sky_actor.set_actor_label("Codex_R100_Sky_Backdrop")
-        sky_actor.set_actor_scale3d(unreal.Vector(180.0, 0.10, 90.0))
+        sky_actor.set_actor_scale3d(unreal.Vector(260.0, 0.10, 240.0))
         set_actor_mat(sky_actor, mats["sky"])
 
     results = []
     results.append(capture_variant(world, component, render_target, "baseline"))
+    set_actors_visible(actors, ["Terrain"], False)
+    results.append(capture_variant(world, component, render_target, "clean_city_terrain_off"))
 
     cube = load_asset("/Engine/BasicShapes/Cube.Cube")
 
@@ -581,6 +1139,94 @@ def main():
     results.append(capture_variant(world, component, render_target, "pbr_road_building_props"))
     cinematic_set = spawn_cinematic_station_front_set(cube, mats, surface_z, road_origin)
     results.append(capture_variant(world, component, render_target, "cinematic_station_front_set"))
+    street_readability = spawn_street_readability_v1(cube, mats, surface_z, road_origin)
+    results.append(capture_variant(world, component, render_target, "street_readability_v1"))
+    angle_camera_loc = unreal.Vector(road_origin.x - 4300.0, road_origin.y - 7600.0, surface_z + 820.0)
+    angle_camera_target = unreal.Vector(road_origin.x + 220.0, road_origin.y - 1250.0, surface_z + 520.0)
+    angle_camera_rot = unreal.MathLibrary.find_look_at_rotation(angle_camera_loc, angle_camera_target)
+    capture.set_actor_location(angle_camera_loc, False, False)
+    capture.set_actor_rotation(angle_camera_rot, False)
+    component.set_editor_property("fov_angle", 58.0)
+    results.append(capture_variant(world, component, render_target, "street_readability_angle_v1"))
+    facade_density = spawn_facade_density_v2(cube, mats, surface_z, road_origin)
+    precision_street_assets = spawn_precision_street_assets_v2(cube, mats, surface_z, road_origin)
+    road_camera_loc = unreal.Vector(road_origin.x - 2450.0, road_origin.y - 6550.0, surface_z + 310.0)
+    road_camera_target = unreal.Vector(road_origin.x + 260.0, road_origin.y - 1850.0, surface_z + 250.0)
+    road_camera_rot = unreal.MathLibrary.find_look_at_rotation(road_camera_loc, road_camera_target)
+    capture.set_actor_location(road_camera_loc, False, False)
+    capture.set_actor_rotation(road_camera_rot, False)
+    component.set_editor_property("fov_angle", 35.0)
+    results.append(capture_variant(world, component, render_target, "facade_density_road_camera_v2"))
+    overview_camera_loc = unreal.Vector(road_origin.x - 5200.0, road_origin.y - 8500.0, surface_z + 2500.0)
+    overview_camera_target = unreal.Vector(road_origin.x + 240.0, road_origin.y - 1700.0, surface_z + 520.0)
+    overview_camera_rot = unreal.MathLibrary.find_look_at_rotation(overview_camera_loc, overview_camera_target)
+    capture.set_actor_location(overview_camera_loc, False, False)
+    capture.set_actor_rotation(overview_camera_rot, False)
+    component.set_editor_property("fov_angle", 52.0)
+    results.append(capture_variant(world, component, render_target, "street_precision_overview_v2"))
+    explicit_ground = spawn_explicit_ground_road_sidewalk_v1(cube, mats, surface_z, road_origin)
+    ground_camera_loc = unreal.Vector(road_origin.x - 2100.0, road_origin.y - 6200.0, surface_z + 245.0)
+    ground_camera_target = unreal.Vector(road_origin.x - 40.0, road_origin.y - 2350.0, surface_z + 210.0)
+    ground_camera_rot = unreal.MathLibrary.find_look_at_rotation(ground_camera_loc, ground_camera_target)
+    capture.set_actor_location(ground_camera_loc, False, False)
+    capture.set_actor_rotation(ground_camera_rot, False)
+    component.set_editor_property("fov_angle", 46.0)
+    results.append(capture_variant(world, component, render_target, "explicit_ground_road_sidewalk_v1"))
+    ground_overview_loc = unreal.Vector(road_origin.x - 4800.0, road_origin.y - 7800.0, surface_z + 980.0)
+    ground_overview_target = unreal.Vector(road_origin.x - 40.0, road_origin.y - 2200.0, surface_z + 350.0)
+    ground_overview_rot = unreal.MathLibrary.find_look_at_rotation(ground_overview_loc, ground_overview_target)
+    capture.set_actor_location(ground_overview_loc, False, False)
+    capture.set_actor_rotation(ground_overview_rot, False)
+    component.set_editor_property("fov_angle", 58.0)
+    results.append(capture_variant(world, component, render_target, "explicit_ground_overview_v1"))
+
+    peripheral_walls = spawn_peripheral_building_walls(cube, mats, surface_z, road_origin)
+    sealed_camera_loc = unreal.Vector(road_origin.x - 1800.0, road_origin.y - 6400.0, surface_z + 450.0)
+    sealed_camera_target = unreal.Vector(road_origin.x - 400.0, road_origin.y - 2600.0, surface_z + 300.0)
+    sealed_camera_rot = unreal.MathLibrary.find_look_at_rotation(sealed_camera_loc, sealed_camera_target)
+    capture.set_actor_location(sealed_camera_loc, False, False)
+    capture.set_actor_rotation(sealed_camera_rot, False)
+    component.set_editor_property("fov_angle", 38.0)
+    results.append(capture_variant(world, component, render_target, "ground_sky_sealed_v1"))
+    sealed_overview_loc = unreal.Vector(road_origin.x + 200.0, road_origin.y + 7500.0, surface_z + 2800.0)
+    sealed_overview_target = unreal.Vector(road_origin.x - 80.0, road_origin.y - 2800.0, surface_z + 400.0)
+    sealed_overview_rot = unreal.MathLibrary.find_look_at_rotation(sealed_overview_loc, sealed_overview_target)
+    capture.set_actor_location(sealed_overview_loc, False, False)
+    capture.set_actor_rotation(sealed_overview_rot, False)
+    component.set_editor_property("fov_angle", 58.0)
+    results.append(capture_variant(world, component, render_target, "ground_sky_sealed_overview_v1"))
+
+    # --- v35: LOD2特化 3カメラセット ---
+    # Hide procedural blocker walls and proxy buildings to let pure PLATEAU LOD2 shine
+    for wall in peripheral_walls:
+        set_actor_visible(wall, False)
+    for bldg in proxy_buildings:
+        set_actor_visible(bldg, False)
+
+    # sealed_v35: FOV38°, 高度450cmで奥行きを出す
+    capture.set_actor_location(sealed_camera_loc, False, False)
+    capture.set_actor_rotation(sealed_camera_rot, False)
+    component.set_editor_property("fov_angle", 38.0)
+    results.append(capture_variant(world, component, render_target, "lod2_sealed_v35"))
+
+    # overview_v35: LOD2建物z_max=102m(10200cm)より高い高度から俯瞰
+    overview_v35_loc = unreal.Vector(road_origin.x - 6000.0, road_origin.y - 10000.0, surface_z + 15000.0)
+    overview_v35_target = unreal.Vector(road_origin.x + 240.0, road_origin.y - 1700.0, surface_z + 2000.0)
+    overview_v35_rot = unreal.MathLibrary.find_look_at_rotation(overview_v35_loc, overview_v35_target)
+    capture.set_actor_location(overview_v35_loc, False, False)
+    capture.set_actor_rotation(overview_v35_rot, False)
+    component.set_editor_property("fov_angle", 68.0)
+    results.append(capture_variant(world, component, render_target, "lod2_overview_v35"))
+
+    # road_v35: sealed_cameraと同一XY（LOD2除外ゾーン中心）Z=1200cm, FOV50°
+    # Z=12mでsky-blockerスラブより低く、建物除外ゾーン内なので壁面干渉なし
+    road_v35_loc = unreal.Vector(road_origin.x - 1800.0, road_origin.y - 6400.0, surface_z + 1200.0)
+    road_v35_target = unreal.Vector(road_origin.x - 400.0, road_origin.y - 2600.0, surface_z + 300.0)
+    road_v35_rot = unreal.MathLibrary.find_look_at_rotation(road_v35_loc, road_v35_target)
+    capture.set_actor_location(road_v35_loc, False, False)
+    capture.set_actor_rotation(road_v35_rot, False)
+    component.set_editor_property("fov_angle", 50.0)
+    results.append(capture_variant(world, component, render_target, "lod2_road_v35"))
 
     report = {
         "ok": all(item["ok"] for item in results),
@@ -597,9 +1243,33 @@ def main():
         "camera_location_cm": [camera_loc.x, camera_loc.y, camera_loc.z],
         "camera_target_cm": [target.x, target.y, target.z],
         "camera_rotation": [camera_rot.pitch, camera_rot.yaw, camera_rot.roll],
+        "angle_camera_location_cm": [angle_camera_loc.x, angle_camera_loc.y, angle_camera_loc.z],
+        "angle_camera_target_cm": [angle_camera_target.x, angle_camera_target.y, angle_camera_target.z],
+        "angle_camera_rotation": [angle_camera_rot.pitch, angle_camera_rot.yaw, angle_camera_rot.roll],
+        "road_camera_location_cm": [road_camera_loc.x, road_camera_loc.y, road_camera_loc.z],
+        "road_camera_target_cm": [road_camera_target.x, road_camera_target.y, road_camera_target.z],
+        "road_camera_rotation": [road_camera_rot.pitch, road_camera_rot.yaw, road_camera_rot.roll],
+        "overview_camera_location_cm": [overview_camera_loc.x, overview_camera_loc.y, overview_camera_loc.z],
+        "overview_camera_target_cm": [overview_camera_target.x, overview_camera_target.y, overview_camera_target.z],
+        "overview_camera_rotation": [overview_camera_rot.pitch, overview_camera_rot.yaw, overview_camera_rot.roll],
+        "ground_camera_location_cm": [ground_camera_loc.x, ground_camera_loc.y, ground_camera_loc.z],
+        "ground_camera_target_cm": [ground_camera_target.x, ground_camera_target.y, ground_camera_target.z],
+        "ground_camera_rotation": [ground_camera_rot.pitch, ground_camera_rot.yaw, ground_camera_rot.roll],
+        "ground_overview_location_cm": [ground_overview_loc.x, ground_overview_loc.y, ground_overview_loc.z],
+        "ground_overview_target_cm": [ground_overview_target.x, ground_overview_target.y, ground_overview_target.z],
+        "ground_overview_rotation": [ground_overview_rot.pitch, ground_overview_rot.yaw, ground_overview_rot.roll],
+        "terrain_enabled_after_baseline": False,
         "props_count": len(props),
         "proxy_building_count": len(proxy_buildings),
         "cinematic_set_count": len(cinematic_set),
+        "street_readability_count": len(street_readability),
+        "facade_density_count": len(facade_density),
+        "precision_street_assets_count": len(precision_street_assets),
+        "explicit_ground_count": len(explicit_ground),
+        "peripheral_walls_count": len(peripheral_walls),
+        "sealed_camera_location_cm": [sealed_camera_loc.x, sealed_camera_loc.y, sealed_camera_loc.z],
+        "sealed_camera_target_cm": [sealed_camera_target.x, sealed_camera_target.y, sealed_camera_target.z],
+        "sealed_overview_location_cm": [sealed_overview_loc.x, sealed_overview_loc.y, sealed_overview_loc.z],
         "foreground_road_count": len(foreground_road),
         "sky_backdrop": sky_actor is not None,
         "variants": results,
