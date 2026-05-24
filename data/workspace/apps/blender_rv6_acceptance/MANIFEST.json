@@ -1,0 +1,20 @@
+{
+  "created": "2026-05-24T02:46:43.545630",
+  "files": [
+    "README.md",
+    "configs/acceptance_policy.yaml",
+    "docs/UE5非採用理由と代替改善策.md",
+    "docs/ミニPC側への提案文.md",
+    "docs/受入れ判定仕様.md",
+    "docs/現場投入チェックリスト.md",
+    "portal_cards/blender_rv6_acceptance_card.json",
+    "requirements.txt",
+    "run_examples.bat",
+    "run_examples.sh",
+    "scripts/blender_city_camera_rv6_prep.py",
+    "scripts/esrgan_ncnn_batch.py",
+    "scripts/freecad_dxf_to_step.py",
+    "scripts/task_gate.py",
+    "scripts/watchdog_repair_gate.py"
+  ]
+}

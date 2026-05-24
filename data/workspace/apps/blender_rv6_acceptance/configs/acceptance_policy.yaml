@@ -1,0 +1,65 @@
+version: 2
+encoding: utf-8
+
+decision_policy:
+  default: "prefer_stable_local_stack"
+  ue5:
+    status: "not_recommended"
+    reasons:
+      - "Blender+RV6 already reaches current satisfaction level"
+      - "UE5 headless startup has repeatedly failed around EditorFramework"
+      - "RV6 tends to normalize quality difference"
+      - "Cost-benefit is low for current mini PC workflow"
+  blender_rv6:
+    status: "recommended"
+    adoption_level: "primary"
+  freecad_headless:
+    status: "recommended"
+    adoption_level: "primary_for_dxf_to_step"
+
+quality_improvement_order:
+  - id: street_level_camera
+    priority: 1
+    expected_impact: "very_high"
+    risk: "low"
+  - id: rv6_strength_065
+    priority: 2
+    expected_impact: "high"
+    risk: "low"
+    default_strength: 0.65
+  - id: esrgan_ncnn_vulkan
+    priority: 3
+    expected_impact: "high"
+    risk: "medium"
+  - id: evening_or_night_hdri
+    priority: 4
+    expected_impact: "medium_high"
+    risk: "low"
+  - id: watchdog_and_repair_gate
+    priority: 5
+    expected_impact: "stability_high"
+    risk: "low"
+
+task_classes:
+  real_3d_video:
+    allowed_engines: ["blender", "rv6", "esrgan_ncnn_vulkan"]
+    blocked_engines: ["ue5_headless"]
+    preflight_required: true
+  dxf_to_step:
+    allowed_engines: ["freecad_headless"]
+    blocked_engines: ["manual_uncontrolled_conversion"]
+    preflight_required: true
+  scheduled_task:
+    allowed_engines: ["python", "powershell", "docker"]
+    watchdog_required: true
+    repair_limit: 2
+
+repair_policy:
+  max_repair_attempts: 2
+  stop_after_repeated_same_error: true
+  require_human_review_on:
+    - "file_delete"
+    - "database_migration"
+    - "large_directory_write"
+    - "credential_access"
+    - "external_api_cost"

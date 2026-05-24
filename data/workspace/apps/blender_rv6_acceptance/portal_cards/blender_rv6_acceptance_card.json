@@ -1,0 +1,12 @@
+{
+  "id": "blender_rv6_acceptance_harness",
+  "title": "Blender+RV6 Acceptance Harness",
+  "category": "quality_video_cae",
+  "description": "UE5を使わず、Blender+RV6中心で3D動画品質改善・DXF→STEP・停止監視を行う受入れ判定カード。",
+  "commands": [
+    {"label": "Preflight 3D Video", "command": "python scripts/task_gate.py --task real_3d_video --config configs/acceptance_policy.yaml"},
+    {"label": "Prepare Blender Scene", "command": "blender --background --python scripts/blender_city_camera_rv6_prep.py"},
+    {"label": "Watchdog Example", "command": "python scripts/watchdog_repair_gate.py --command "python your_task.py""}
+  ],
+  "adoption_policy": {"ue5": "do_not_adopt_by_default", "primary_route": "blender_rv6", "dxf_to_step": "freecad_headless"}
+}
