@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minutes Pro — Gennai × OpenClaw Premium Minutes automation</title>
+    <!-- Modern Typography & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --panel-bg: rgba(30, 41, 59, 0.7);
+            --border-color: rgba(255, 255, 255, 0.1);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-gold: #d97706;
+            --accent-gold-hover: #b45309;
+            --accent-green: #10b981;
+            --accent-green-hover: #059669;
+            --accent-purple: #8b5cf6;
+            --glow-color: rgba(217, 119, 6, 0.15);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Outfit', 'Noto Sans JP', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            min-height: 100vh;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(139, 92, 246, 0.1) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.1) 0px, transparent 50%),
+                radial-gradient(at 50% 50%, rgba(217, 119, 6, 0.05) 0px, transparent 50%);
+            overflow-x: hidden;
+            padding-bottom: 50px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 24px 5%;
+            border-bottom: 1px solid var(--border-color);
+            backdrop-filter: blur(12px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(15, 23, 42, 0.8);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            background: linear-gradient(135deg, #f59e0b, #10b981);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .logo i {
+            background: linear-gradient(135deg, #f59e0b, #10b981);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 16px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border: none;
+            outline: none;
+        }
+
+        .btn-gold {
+            background: linear-gradient(135deg, var(--accent-gold), #f59e0b);
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(217, 119, 6, 0.3);
+        }
+
+        .btn-gold:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(217, 119, 6, 0.4);
+            filter: brightness(1.1);
+        }
+
+        .btn-green {
+            background: linear-gradient(135deg, var(--accent-green), #34d399);
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-green:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+            filter: brightness(1.1);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-outline:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 40px auto 0 auto;
+            padding: 0 24px;
+        }
+
+        .grid-uploaders {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .card {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 32px;
+            backdrop-filter: blur(16px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: rgba(217, 119, 6, 0.3);
+            box-shadow: 0 15px 40px rgba(217, 119, 6, 0.08);
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-title i {
+            color: var(--accent-gold);
+        }
+
+        .card-desc {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+        }
+
+        .upload-area {
+            border: 2px dashed rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(15, 23, 42, 0.3);
+            position: relative;
+        }
+
+        .upload-area:hover, .upload-area.dragover {
+            border-color: var(--accent-gold);
+            background: rgba(217, 119, 6, 0.05);
+        }
+
+        .upload-icon {
+            font-size: 2.5rem;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .upload-area:hover .upload-icon {
+            color: var(--accent-gold);
+            transform: scale(1.1);
+        }
+
+        .upload-text {
+            font-size: 0.95rem;
+            margin-bottom: 8px;
+        }
+
+        .upload-hint {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .selected-file-badge {
+            margin-top: 16px;
+            padding: 10px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.88rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .selected-file-badge.active {
+            display: flex;
+            animation: fadeIn 0.3s ease forwards;
+        }
+
+        .file-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .file-info i {
+            color: var(--accent-green);
+        }
+
+        .remove-file-btn {
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: color 0.2s;
+        }
+
+        .remove-file-btn:hover {
+            color: #ef4444;
+        }
+
+        /* Supplementary Text Area */
+        .text-input-card {
+            margin-bottom: 32px;
+        }
+
+        .text-area-label {
+            font-size: 0.95rem;
+            font-weight: 500;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .text-input-field {
+            width: 100%;
+            height: 120px;
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 16px;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 0.95rem;
+            resize: vertical;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .text-input-field:focus {
+            border-color: var(--accent-gold);
+        }
+
+        /* Action bar */
+        .action-bar {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 40px;
+        }
+
+        .btn-process {
+            padding: 16px 48px;
+            font-size: 1.1rem;
+            border-radius: 12px;
+            letter-spacing: 1px;
+        }
+
+        /* Progress Dashboard */
+        .progress-card {
+            display: none;
+            margin-bottom: 40px;
+            animation: fadeIn 0.4s ease forwards;
+        }
+
+        .progress-steps {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+            margin-bottom: 24px;
+        }
+
+        .progress-line {
+            position: absolute;
+            top: 24px;
+            left: 5%;
+            width: 90%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            z-index: 1;
+        }
+
+        .progress-line-fill {
+            position: absolute;
+            top: 24px;
+            left: 5%;
+            width: 0%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-gold), var(--accent-green));
+            z-index: 2;
+            transition: width 0.5s ease;
+        }
+
+        .step-node {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 3;
+            width: 80px;
+            text-align: center;
+        }
+
+        .step-circle {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: #1e293b;
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .step-node.active .step-circle {
+            border-color: var(--accent-gold);
+            background: rgba(217, 119, 6, 0.15);
+            box-shadow: 0 0 15px rgba(217, 119, 6, 0.3);
+            color: var(--accent-gold);
+        }
+
+        .step-node.completed .step-circle {
+            border-color: var(--accent-green);
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--accent-green);
+        }
+
+        .step-title {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .step-node.active .step-title {
+            color: var(--text-primary);
+        }
+
+        .step-node.completed .step-title {
+            color: var(--accent-green);
+        }
+
+        .progress-status-text {
+            text-align: center;
+            font-size: 1rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .progress-status-text i {
+            color: var(--accent-gold);
+        }
+
+        /* Results Workspace */
+        .results-workspace {
+            display: none;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        .result-panel {
+            display: flex;
+            flex-direction: column;
+            height: 600px;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .panel-title {
+            font-size: 1.15rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .panel-body {
+            flex-grow: 1;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            overflow-y: auto;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            position: relative;
+        }
+
+        .panel-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-action-icon {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-action-icon:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+        }
+
+        /* Notifications */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: rgba(30, 41, 59, 0.9);
+            border: 1px solid var(--accent-green);
+            color: #fff;
+            padding: 16px 24px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast i {
+            color: var(--accent-green);
+            font-size: 1.2rem;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 968px) {
+            .grid-uploaders, .results-workspace {
+                grid-template-columns: 1fr;
+            }
+            .result-panel {
+                height: 400px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Section -->
+    <div class="header">
+        <div class="logo">
+            <i class="fa-solid fa-microphone-lines"></i>
+            <span>Minutes Pro <span style="font-weight: 300; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.2); padding: 2px 6px; border-radius: 4px; margin-left: 5px;">Gennai Fusion</span></span>
+        </div>
+        <div class="header-buttons">
+            <button class="btn btn-outline" onclick="window.close()"><i class="fa-solid fa-arrow-left"></i> ポータルへ</button>
+            <button class="btn btn-green" id="btn-download-glossary"><i class="fa-solid fa-file-excel"></i> 最新用語DBエクスポート</button>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container">
+        
+        <!-- Double Upload Grid -->
+        <div class="grid-uploaders">
+            
+            <!-- Card 1: Meeting Source Upload -->
+            <div class="card">
+                <div class="card-title">
+                    <i class="fa-solid fa-file-audio"></i>
+                    <span>① 会議データアップロード</span>
+                </div>
+                <p class="card-desc">会議の音声ファイル (MP3 / WAV) や、文字起こしされたテキストファイルを指定してください。</p>
+                <div class="upload-area" id="upload-area-meeting">
+                    <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
+                    <div class="upload-text">ファイルをドラッグ＆ドロップするか、クリックして選択</div>
+                    <div class="upload-hint">対応形式: MP3, WAV, TXT, MD (最大 200MB)</div>
+                    <input type="file" id="file-meeting" class="file-input" accept=".mp3,.wav,.txt,.md,.m4a">
+                </div>
+                <div class="selected-file-badge" id="badge-meeting">
+                    <div class="file-info">
+                        <i class="fa-solid fa-check-circle"></i>
+                        <span class="file-name" id="name-meeting">filename.mp3</span>
+                    </div>
+                    <i class="fa-solid fa-times remove-file-btn" id="remove-meeting"></i>
+                </div>
+            </div>
+
+            <!-- Card 2: Custom Template Upload -->
+            <div class="card">
+                <div class="card-title">
+                    <i class="fa-solid fa-file-invoice"></i>
+                    <span>② 指定ひな形レイアウト (任意)</span>
+                </div>
+                <p class="card-desc">議事録に適用したい指定のWord、Excel、PDF、またはTXTテンプレートをアップロードします。</p>
+                <div class="upload-area" id="upload-area-template">
+                    <i class="fa-solid fa-file-signature upload-icon"></i>
+                    <div class="upload-text">テンプレートをドラッグ＆ドロップするか、クリックして選択</div>
+                    <div class="upload-hint">対応形式: TXT, DOCX, XLSX, PDF (任意)</div>
+                    <input type="file" id="file-template" class="file-input" accept=".txt,.docx,.xlsx,.pdf">
+                </div>
+                <div class="selected-file-badge" id="badge-template">
+                    <div class="file-info">
+                        <i class="fa-solid fa-check-circle"></i>
+                        <span class="file-name" id="name-template">template.txt</span>
+                    </div>
+                    <i class="fa-solid fa-times remove-file-btn" id="remove-template"></i>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Supplementary text area -->
+        <div class="card text-input-card">
+            <label for="raw-text" class="text-area-label"><i class="fa-solid fa-keyboard" style="color: var(--accent-gold); margin-right: 8px;"></i>補足テキスト入力・メモ書き (任意)</label>
+            <textarea id="raw-text" class="text-input-field" placeholder="音声ファイルに含まれない補足情報、出席者名、決定事項などのメモ書きがあれば自由に入力してください。文字起こしと自動融合されます。"></textarea>
+        </div>
+
+        <!-- Run Action Button -->
+        <div class="action-bar">
+            <button class="btn btn-gold btn-process" id="btn-process-start">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> 議事録自動生成を開始
+            </button>
+        </div>
+
+        <!-- Loading Progress Center -->
+        <div class="card progress-card" id="progress-card">
+            <div class="progress-steps">
+                <div class="progress-line"></div>
+                <div class="progress-line-fill" id="progress-fill"></div>
+                
+                <div class="step-node" id="step-1">
+                    <div class="step-circle"><i class="fa-solid fa-upload"></i></div>
+                    <div class="step-title">アップロード</div>
+                </div>
+                <div class="step-node" id="step-2">
+                    <div class="step-circle"><i class="fa-solid fa-filter"></i></div>
+                    <div class="step-title">ノイズ除去</div>
+                </div>
+                <div class="step-node" id="step-3">
+                    <div class="step-circle"><i class="fa-solid fa-brain"></i></div>
+                    <div class="step-title">音声認識</div>
+                </div>
+                <div class="step-node" id="step-4">
+                    <div class="step-circle"><i class="fa-solid fa-shield-halved"></i></div>
+                    <div class="step-title">辞書補正</div>
+                </div>
+                <div class="step-node" id="step-5">
+                    <div class="step-circle"><i class="fa-solid fa-file-word"></i></div>
+                    <div class="step-title">議事録化</div>
+                </div>
+            </div>
+            <div class="progress-status-text" id="progress-status-text">
+                <i class="fa-solid fa-spinner fa-spin"></i> <span>ファイルをサーバーにアップロードしています...</span>
+            </div>
+        </div>
+
+        <!-- Output results panels -->
+        <div class="results-workspace" id="results-workspace">
+            
+            <!-- Left Result Panel: Denoised & Glossary Corrected Text -->
+            <div class="result-panel">
+                <div class="panel-header">
+                    <span class="panel-title"><i class="fa-solid fa-sparkles" style="color: var(--accent-green)"></i> Glossary Guard 補正済み文字起こし</span>
+                    <div class="panel-actions">
+                        <button class="btn-action-icon" id="btn-copy-trans" title="コピーする"><i class="fa-regular fa-copy"></i></button>
+                    </div>
+                </div>
+                <div class="panel-body" id="transcription-output">ここに補正済みの高精度文字起こしテキストが出力されます。</div>
+            </div>
+
+            <!-- Right Result Panel: Completed Populated Minutes -->
+            <div class="result-panel">
+                <div class="panel-header">
+                    <span class="panel-title"><i class="fa-solid fa-file-circle-check" style="color: var(--accent-gold)"></i> 生成された完成版議事録</span>
+                    <div class="panel-actions">
+                        <button class="btn-action-icon" id="btn-copy-minutes" title="コピーする"><i class="fa-regular fa-copy"></i></button>
+                        <button class="btn-action-icon" id="btn-download-minutes" title="Markdownとして保存"><i class="fa-solid fa-download"></i></button>
+                    </div>
+                </div>
+                <div class="panel-body" id="minutes-output" style="border-color: rgba(217, 119, 6, 0.2);">ここにひな形項目にマッピングされた高品質な議事録が出力されます。</div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Notification Toast -->
+    <div class="toast" id="toast">
+        <i class="fa-solid fa-circle-check"></i>
+        <span id="toast-text">完了しました！</span>
+    </div>
+
+    <!-- Interface Script -->
+    <script>
+        const API_BASE = "http://localhost:8795/api";
+
+        // DOM elements
+        const fileMeeting = document.getElementById('file-meeting');
+        const fileTemplate = document.getElementById('file-template');
+        const areaMeeting = document.getElementById('upload-area-meeting');
+        const areaTemplate = document.getElementById('upload-area-template');
+        const badgeMeeting = document.getElementById('badge-meeting');
+        const badgeTemplate = document.getElementById('badge-template');
+        const nameMeeting = document.getElementById('name-meeting');
+        const nameTemplate = document.getElementById('name-template');
+        const removeMeeting = document.getElementById('remove-meeting');
+        const removeTemplate = document.getElementById('remove-template');
+        const btnProcess = document.getElementById('btn-process-start');
+        const progressCard = document.getElementById('progress-card');
+        const progressFill = document.getElementById('progress-fill');
+        const resultsWorkspace = document.getElementById('results-workspace');
+        const transOutput = document.getElementById('transcription-output');
+        const minutesOutput = document.getElementById('minutes-output');
+        const btnDownloadGlossary = document.getElementById('btn-download-glossary');
+        const statusText = document.querySelector('#progress-status-text span');
+
+        // Drag & drop handlers
+        function setupDragDrop(area, input, badge, nameLabel) {
+            area.addEventListener('click', () => input.click());
+            area.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                area.classList.add('dragover');
+            });
+            area.addEventListener('dragleave', () => area.classList.remove('dragover'));
+            area.addEventListener('drop', (e) => {
+                e.preventDefault();
+                area.classList.remove('dragover');
+                if (e.dataTransfer.files.length > 0) {
+                    input.files = e.dataTransfer.files;
+                    handleFileSelect(input.files[0], badge, nameLabel);
+                }
+            });
+            input.addEventListener('change', () => {
+                if (input.files.length > 0) {
+                    handleFileSelect(input.files[0], badge, nameLabel);
+                }
+            });
+        }
+
+        function handleFileSelect(file, badge, nameLabel) {
+            nameLabel.textContent = `${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+            badge.classList.add('active');
+        }
+
+        setupDragDrop(areaMeeting, fileMeeting, badgeMeeting, nameMeeting);
+        setupDragDrop(areaTemplate, fileTemplate, badgeTemplate, nameTemplate);
+
+        removeMeeting.addEventListener('click', () => {
+            fileMeeting.value = '';
+            badgeMeeting.classList.remove('active');
+        });
+
+        removeTemplate.addEventListener('click', () => {
+            fileTemplate.value = '';
+            badgeTemplate.classList.remove('active');
+        });
+
+        // Toast notifications
+        function showToast(text, isError = false) {
+            const toast = document.getElementById('toast');
+            const toastText = document.getElementById('toast-text');
+            const toastIcon = toast.querySelector('i');
+            
+            toastText.textContent = text;
+            if (isError) {
+                toast.style.borderColor = '#ef4444';
+                toastIcon.className = 'fa-solid fa-circle-exclamation';
+                toastIcon.style.color = '#ef4444';
+            } else {
+                toast.style.borderColor = 'var(--accent-green)';
+                toastIcon.className = 'fa-solid fa-circle-check';
+                toastIcon.style.color = 'var(--accent-green)';
+            }
+            
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Export Excel Download Trigger
+        btnDownloadGlossary.addEventListener('click', () => {
+            showToast("最新用語DBを Excel エクスポート中...");
+            window.location.href = `${API_BASE}/download_glossary`;
+        });
+
+        // Process automation
+        btnProcess.addEventListener('click', async () => {
+            if (!fileMeeting.files[0]) {
+                showToast("会議データファイルを選択してください。", true);
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('meeting_file', fileMeeting.files[0]);
+            if (fileTemplate.files[0]) {
+                formData.append('template_file', fileTemplate.files[0]);
+            }
+            const rawText = document.getElementById('raw-text').value;
+            if (rawText.trim()) {
+                formData.append('raw_text', rawText);
+            }
+
+            // Show loading dashboard
+            progressCard.style.display = 'block';
+            resultsWorkspace.style.display = 'none';
+            btnProcess.disabled = true;
+
+            // Reset progress nodes
+            const steps = [
+                document.getElementById('step-1'),
+                document.getElementById('step-2'),
+                document.getElementById('step-3'),
+                document.getElementById('step-4'),
+                document.getElementById('step-5')
+            ];
+            
+            steps.forEach(s => s.className = 'step-node');
+            
+            // Step 1: Uploading
+            steps[0].classList.add('active');
+            progressFill.style.width = '0%';
+            statusText.textContent = "ファイルをサーバーにアップロードしています...";
+
+            try {
+                // Simulate progressive states with delay to show aesthetic premium workflow
+                setTimeout(() => {
+                    steps[0].className = 'step-node completed';
+                    steps[1].classList.add('active');
+                    progressFill.style.width = '25%';
+                    statusText.textContent = "FFmpeg を用いてデジタル音声ノイズ（空調・ファン音）を除去中...";
+                }, 2000);
+
+                setTimeout(() => {
+                    steps[1].className = 'step-node completed';
+                    steps[2].classList.add('active');
+                    progressFill.style.width = '50%';
+                    statusText.textContent = "世界最高峰 AI 音声認識モデル (Gemini 2.5 Flash / Whisper) による文字起こしを実行中...";
+                }, 5000);
+
+                setTimeout(() => {
+                    steps[2].className = 'step-node completed';
+                    steps[3].classList.add('active');
+                    progressFill.style.width = '75%';
+                    statusText.textContent = "Glossary Guard: 1,737件のミツイ専門用語辞書と照合し、型番・聞き間違いを自動表記補正中...";
+                }, 10000);
+
+                setTimeout(() => {
+                    steps[3].className = 'step-node completed';
+                    steps[4].classList.add('active');
+                    progressFill.style.width = '95%';
+                    statusText.textContent = "指定ひな形レイアウト解析 ＆ 議事録構造化ドキュメントを生成中...";
+                }, 14000);
+
+                const response = await fetch(`${API_BASE}/upload`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Server returned error: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                
+                // Completed State
+                setTimeout(() => {
+                    steps[4].className = 'step-node completed';
+                    progressFill.style.width = '100%';
+                    statusText.textContent = "すべての処理が完了しました！";
+                    showToast("議事録の生成が完了しました！");
+                    
+                    transOutput.textContent = data.corrected_text;
+                    minutesOutput.textContent = data.minutes;
+                    
+                    progressCard.style.display = 'none';
+                    resultsWorkspace.style.display = 'grid';
+                    btnProcess.disabled = false;
+                }, 16000);
+
+            } catch (err) {
+                console.error(err);
+                showToast(`エラーが発生しました: ${err.message}`, true);
+                statusText.textContent = `処理が失敗しました: ${err.message}`;
+                btnProcess.disabled = false;
+            }
+        });
+
+        // Helper button copy functions
+        function setupCopy(btn, targetEl) {
+            btn.addEventListener('click', () => {
+                navigator.clipboard.writeText(targetEl.textContent).then(() => {
+                    showToast("クリップボードにコピーしました！");
+                    const icon = btn.querySelector('i');
+                    icon.className = 'fa-solid fa-check';
+                    setTimeout(() => {
+                        icon.className = 'fa-regular fa-copy';
+                    }, 2000);
+                });
+            });
+        }
+        setupCopy(document.getElementById('btn-copy-trans'), transOutput);
+        setupCopy(document.getElementById('btn-copy-minutes'), minutesOutput);
+
+        // Download minutes as Markdown
+        document.getElementById('btn-download-minutes').addEventListener('click', () => {
+            const blob = new Blob([minutesOutput.textContent], { type: 'text/markdown;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `議事録_${new Date().toISOString().slice(0,10)}.md`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast("Markdownファイルを保存しました。");
+        });
+    </script>
+</body>
+</html>

@@ -278,9 +278,15 @@
                         <div id="gmail-progress-inner" style="width: 0%; height: 100%; background: var(--accent);"></div>
                     </div>
                 </div>
-                <div style="display: flex; gap: 10px; width: 100%;">
-                    <a href="http://localhost:8000" target="_blank" class="btn" style="flex: 1; font-size: 0.8rem; padding: 8px;">Paperless</a>
-                    <a href="data/workspace/apps/ingestion_rag_control_center/index.html" target="_blank" class="btn" style="flex: 1; font-size: 0.8rem; padding: 8px; background: #30363d;">Monitor</a>
+                <div style="display: flex; flex-direction: column; gap: 10px; width: 100%; margin-top: 15px;">
+                    <div style="display: flex; gap: 10px;">
+                        <a href="http://localhost:8000" target="_blank" class="btn" style="flex: 1; font-size: 0.8rem; padding: 8px; text-align: center;">Paperless</a>
+                        <a href="apps/ingestion_rag_control_center/index.html" target="_blank" class="btn" style="flex: 1; font-size: 0.8rem; padding: 8px; background: #30363d; text-align: center;">Monitor</a>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <a href="apps/minutes_pro/minutes_pro.html" target="_blank" class="btn" style="flex: 1; font-size: 0.8rem; padding: 8px; background: linear-gradient(135deg, #d97706, #f59e0b); color: #000; text-align: center; font-weight: 700;" title="Minutes Pro 議事録自動化">🎙️ Minutes Pro</a>
+                        <a href="http://localhost:8795/api/download_glossary" class="btn" style="flex: 1; font-size: 0.8rem; padding: 8px; background: linear-gradient(135deg, #10b981, #34d399); color: #000; text-align: center; font-weight: 700;" title="ミツイ最新専門用語DBのダウンロード (Excel)"><i class="fa-solid fa-file-excel"></i> 用語集 Excel ↗</a>
+                    </div>
                 </div>
             </div>
         </div>
