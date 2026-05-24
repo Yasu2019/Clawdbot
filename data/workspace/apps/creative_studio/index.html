@@ -160,6 +160,119 @@
             h1 { font-size: 2.5rem; }
             .container { grid-template-columns: 1fr; }
         }
+
+        /* 5-Forces Gate Styles */
+        .gate-card {
+            background: rgba(10, 10, 12, 0.6);
+            border: 2px solid #00d2ff;
+            box-shadow: 0 8px 32px rgba(0, 210, 255, 0.1);
+        }
+        .gate-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        .gate-form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .gate-label {
+            font-size: 0.85rem;
+            color: #888;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .gate-input, .gate-textarea, .gate-select {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: #fff;
+            padding: 0.8rem 1rem;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+        }
+        .gate-input:focus, .gate-textarea:focus, .gate-select:focus {
+            border-color: #00d2ff;
+            outline: none;
+            background: rgba(255, 255, 255, 0.05);
+            box-shadow: 0 0 10px rgba(0, 210, 255, 0.2);
+        }
+        .gate-textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        .gate-result-container {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            gap: 2rem;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .score-circle {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            border: 4px solid #333;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto;
+            position: relative;
+            background: radial-gradient(circle at center, rgba(255, 255, 255, 0.02) 0%, transparent 80%);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.05);
+            transition: all 0.5s;
+        }
+        .score-number {
+            font-size: 2.8rem;
+            font-weight: 800;
+            font-family: 'Outfit', sans-serif;
+            line-height: 1;
+        }
+        .score-lbl {
+            font-size: 0.75rem;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 0.2rem;
+        }
+        .gate-output-details {
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+        .gate-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        .badge-adopt { background: rgba(0, 255, 136, 0.1); color: #00ff88; border: 1px solid rgba(0, 255, 136, 0.3); }
+        .badge-hold { background: rgba(255, 136, 0, 0.1); color: #ff8800; border: 1px solid rgba(255, 136, 0, 0.3); }
+        .badge-discard { background: rgba(255, 68, 68, 0.1); color: #ff4444; border: 1px solid rgba(255, 68, 68, 0.3); }
+        
+        .list-unstyled {
+            list-style: none;
+            padding-left: 0;
+        }
+        .list-unstyled li {
+            position: relative;
+            padding-left: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .list-unstyled li::before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            color: #00d2ff;
+        }
     </style>
 </head>
 <body>
@@ -171,6 +284,105 @@
     </header>
 
     <main class="container" style="grid-template-columns: 1fr;">
+        <!-- Content 5-Forces Gate (Theme Decision Gate) -->
+        <section class="card gate-card" id="content-5forces-gate">
+            <span class="category" style="color: #00d2ff; font-weight: 600;">Theme Decision Gate</span>
+            <h2>Content 5-Forces Gate</h2>
+            <p class="description">note / Kindle / YouTube / TikTok / ミニゲーム生成前に、そのテーマが本当に「売れる」かを多角的に採点・判定します。</p>
+
+            <div class="gate-grid">
+                <div class="gate-form-group">
+                    <label class="gate-label">タイトル / テーマ名</label>
+                    <input id="gate-title" class="gate-input" value="NEXIV測定データをExcel VBAで検査成績書へ自動転記する方法" placeholder="例: NEXIV測定データを自動転記する方法" />
+                </div>
+                <div class="gate-form-group">
+                    <label class="gate-label">希望媒体 (Preferred Platform)</label>
+                    <select id="gate-platform" class="gate-select">
+                        <option value="auto" selected>自動判定 (auto)</option>
+                        <option value="note">note (実務ノウハウ・有料記事)</option>
+                        <option value="kindle">Kindle (体系化された技術解説本)</option>
+                        <option value="youtube">YouTube (画面操作・実演動画)</option>
+                        <option value="tiktok">TikTok (問題提起・1結論ショート)</option>
+                        <option value="minigame">ミニゲーム (品質監査・教育訓練ゲーム)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="gate-grid">
+                <div class="gate-form-group">
+                    <label class="gate-label">対象読者 / 視聴者</label>
+                    <input id="gate-audience" class="gate-input" value="製造業の品質保証担当者" placeholder="例: 製造業の品質保証担当者" />
+                </div>
+                <div class="gate-form-group">
+                    <label class="gate-label">読者の切実な困りごと (Pain)</label>
+                    <textarea id="gate-pain" class="gate-textarea" placeholder="手作業による転記ミス、作成工数、業務の属人化...">転記ミス、成績書作成時間、属人化</textarea>
+                </div>
+            </div>
+
+            <div class="gate-grid">
+                <div class="gate-form-group">
+                    <label class="gate-label">示せる証拠・実務経験・サンプル (Proof)</label>
+                    <textarea id="gate-proof" class="gate-textarea" placeholder="実務で使用しているExcelマクロ、NEXIV出力データ、監査実績...">NEXIV出力、検査成績書、VBA実務</textarea>
+                </div>
+                <div class="gate-form-group">
+                    <label class="gate-label">独自切り口 / 差別化アングル (Unique Angle)</label>
+                    <textarea id="gate-unique" class="gate-textarea" placeholder="現場目線の実装例、IATF監査基準への紐付け...">品質保証の現場で使える実装例</textarea>
+                </div>
+            </div>
+
+            <div style="margin-top: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                <div class="gate-form-group" style="flex-direction: row; align-items: center; gap: 0.8rem;">
+                    <label class="gate-label" style="margin-bottom: 0;">機密レベル:</label>
+                    <select id="gate-confidential" class="gate-select" style="width: auto; padding: 0.5rem 1rem;">
+                        <option value="public_sample" selected>一般公開用 (匿名サンプル)</option>
+                        <option value="internal_only">社内限り (実名/実数値含む)</option>
+                        <option value="secret">超機密 (外部クラウド利用禁止)</option>
+                    </select>
+                </div>
+                <button onclick="evaluateThemeGate()" class="btn" style="background: linear-gradient(135deg, #00c6ff, #0072ff); color: white; padding: 1rem 2.5rem; font-weight: bold; border: none; border-radius: 12px; cursor: pointer; box-shadow: 0 4px 15px rgba(0, 198, 255, 0.3);">テーマを採点する</button>
+            </div>
+
+            <!-- Result Box -->
+            <div id="gate-result-box" style="display: none;" class="gate-result-container">
+                <div>
+                    <div id="gate-score-circle" class="score-circle">
+                        <span id="gate-score" class="score-number">--</span>
+                        <span class="score-lbl">Score</span>
+                    </div>
+                </div>
+                <div class="gate-output-details">
+                    <span id="gate-decision-badge" class="gate-badge badge-adopt">--</span>
+                    <div style="margin-bottom: 1rem;">
+                        <strong>推奨媒体:</strong> <span id="gate-rec-platform" style="color: #00d2ff; font-weight: bold; text-transform: uppercase;">--</span>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                        <div>
+                            <h4 style="color: #ff4444; font-size: 0.9rem; margin-bottom: 0.5rem; text-transform: uppercase;">⚠️ 懸念・リスク (Risks)</h4>
+                            <ul id="gate-risks" class="list-unstyled" style="font-size: 0.85rem; color: #aaa;"></ul>
+                        </div>
+                        <div>
+                            <h4 style="color: #00ff88; font-size: 0.9rem; margin-bottom: 0.5rem; text-transform: uppercase;">✅ 次のアクション (Next Actions)</h4>
+                            <ul id="gate-actions" class="list-unstyled" style="font-size: 0.85rem; color: #aaa;"></ul>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px dashed rgba(255, 255, 255, 0.1);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem;">
+                            <h4 style="color: #bc8cff; font-size: 0.9rem; margin: 0; text-transform: uppercase;">📖 構成案 (Outline Template)</h4>
+                            <button onclick="applyOutlineToWorkbench()" class="btn" style="padding: 0.4rem 1rem; font-size: 0.75rem; background: rgba(188, 140, 255, 0.1); border: 1px solid rgba(188, 140, 255, 0.3); color: #bc8cff; cursor: pointer;">Workbenchに構成案を適用 ↙</button>
+                        </div>
+                        <pre id="gate-outline" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 1rem; color: #eee; font-family: monospace; font-size: 0.85rem; white-space: pre-wrap; max-height: 250px; overflow-y: auto;"></pre>
+                    </div>
+
+                    <div style="margin-top: 1rem;">
+                        <h4 style="color: #ffcc00; font-size: 0.9rem; margin-bottom: 0.5rem; text-transform: uppercase;">🔒 安全公開ガイド (Publication Guardrails)</h4>
+                        <ul id="gate-safety-notes" class="list-unstyled" style="font-size: 0.8rem; color: #999;"></ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- Production Workbench (New) -->
         <section class="card" id="production-workbench" style="border: 2px solid var(--secondary); background: rgba(112, 0, 255, 0.03);">
             <span class="category">Workbench</span>
@@ -358,6 +570,118 @@
                     }
 
                     alert(`V10+ Multi-Platform Engine Activated!\n\n種データ: ${seed}\nトレンド: ${trend}\nトリガー: ${selected.join(', ')}\n\n(Generated content will be scrubbed by Surgical Security Guard)`);
+                }
+
+                let lastScoredOutline = "";
+
+                async function evaluateThemeGate() {
+                    const payload = {
+                        title: document.getElementById("gate-title").value,
+                        target_audience: document.getElementById("gate-audience").value,
+                        pain: document.getElementById("gate-pain").value,
+                        proof: document.getElementById("gate-proof").value,
+                        unique_angle: document.getElementById("gate-unique").value,
+                        preferred_platform: document.getElementById("gate-platform").value,
+                        confidential_level: document.getElementById("gate-confidential").value
+                    };
+
+                    const resultBox = document.getElementById("gate-result-box");
+                    const scoreCircle = document.getElementById("gate-score-circle");
+                    const scoreNum = document.getElementById("gate-score");
+                    const badge = document.getElementById("gate-decision-badge");
+                    const recPlatform = document.getElementById("gate-rec-platform");
+                    const risksList = document.getElementById("gate-risks");
+                    const actionsList = document.getElementById("gate-actions");
+                    const outlinePre = document.getElementById("gate-outline");
+                    const safetyList = document.getElementById("gate-safety-notes");
+
+                    // Show loader / clear previous
+                    resultBox.style.display = "grid";
+                    scoreNum.textContent = "...";
+                    scoreCircle.style.borderColor = "#333";
+                    scoreCircle.style.boxShadow = "none";
+                    badge.textContent = "採点中...";
+                    badge.className = "gate-badge";
+
+                    try {
+                        const res = await fetch("http://localhost:18766/evaluate", {
+                            method: "POST",
+                            headers: {"Content-Type": "application/json; charset=utf-8"},
+                            body: JSON.stringify(payload)
+                        });
+                        if (!res.ok) throw new Error("Server responded with error status");
+                        const data = await res.json();
+
+                        // Set Score
+                        scoreNum.textContent = data.total_score;
+                        
+                        // Set Colors & Badges based on score/decision
+                        let color = "#ff4444";
+                        let badgeClass = "badge-discard";
+                        if (data.total_score >= 80) {
+                            color = "#00ff88";
+                            badgeClass = "badge-adopt";
+                        } else if (data.total_score >= 50) {
+                            color = "#ffcc00";
+                            badgeClass = "badge-hold";
+                        } else if (data.total_score >= 35) {
+                            color = "#ff8800";
+                            badgeClass = "badge-hold";
+                        }
+                        
+                        scoreCircle.style.borderColor = color;
+                        scoreCircle.style.boxShadow = `0 0 25px ${color}55`;
+                        scoreNum.style.color = color;
+
+                        badge.textContent = data.decision;
+                        badge.className = "gate-badge " + badgeClass;
+
+                        recPlatform.textContent = data.recommended_platform;
+
+                        // Risks
+                        risksList.innerHTML = data.risks.map(r => `<li>${escapeHtml(r)}</li>`).join("");
+                        
+                        // Next Actions
+                        actionsList.innerHTML = data.next_actions.map(a => `<li>${escapeHtml(a)}</li>`).join("");
+
+                        // Outline
+                        const outlineText = data.outline.join("\n");
+                        outlinePre.textContent = outlineText;
+                        lastScoredOutline = outlineText;
+
+                        // Safety Notes
+                        safetyList.innerHTML = data.safe_publication_notes.map(n => `<li>${escapeHtml(n)}</li>`).join("");
+
+                    } catch (e) {
+                        scoreNum.textContent = "Err";
+                        scoreCircle.style.borderColor = "#ff4444";
+                        scoreNum.style.color = "#ff4444";
+                        badge.textContent = "API未起動";
+                        badge.className = "gate-badge badge-discard";
+                        recPlatform.textContent = "N/A";
+                        risksList.innerHTML = "<li>FastAPIバックエンドサーバーに接続できません。</li><li>docker-compose.content-5forces.yml を起動するか、scripts/run_windows_utf8.ps1 を実行してください。</li>";
+                        actionsList.innerHTML = "<li>サーバーを起動して再試行してください。</li>";
+                        outlinePre.textContent = "サーバー未起動のため構成案を取得できません。";
+                        safetyList.innerHTML = "<li>機密データ保護のため、ローカルサーバーが起動していることを確認してください。</li>";
+                    }
+                }
+
+                function applyOutlineToWorkbench() {
+                    if (!lastScoredOutline) {
+                        alert("先にテーマを採点して構成案を生成してください。");
+                        return;
+                    }
+                    const workbenchInput = document.getElementById("protocol-input");
+                    workbenchInput.value = lastScoredOutline;
+                    
+                    // Smooth scroll to workbench
+                    document.getElementById("production-workbench").scrollIntoView({ behavior: "smooth" });
+                }
+
+                function escapeHtml(str) {
+                    return String(str).replace(/[&<>"']/g, s => ({
+                        "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#039;"
+                    }[s]));
                 }
             </script>
         </section>

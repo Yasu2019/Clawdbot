@@ -1,0 +1,15 @@
+services:
+  content-5forces-gate:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: minipc_content_5forces_gate
+    ports:
+      - "8765:8765"
+    environment:
+      - PYTHONUTF8=1
+      - LANG=C.UTF-8
+      - LC_ALL=C.UTF-8
+    volumes:
+      - ./configs:/app/configs:ro
+      - ./data:/app/data

@@ -1,0 +1,55 @@
+version: 1
+platforms:
+  note:
+    best_for:
+      - 実務ノウハウ
+      - 短めの有料記事
+      - テンプレート配布
+      - VBAコード解説
+    avoid:
+      - 薄いAIニュース
+      - 他者動画の焼き直し
+    min_score: 60
+
+  kindle:
+    best_for:
+      - 体系化された実務手順
+      - シリーズ記事の再編集
+      - 章立てがある技術解説
+    avoid:
+      - 1記事で終わる小ネタ
+      - 最新情報依存が強いネタ
+    min_score: 70
+
+  youtube:
+    best_for:
+      - 画面操作
+      - Excel実演
+      - Portalデモ
+      - 失敗から改善までの流れ
+    avoid:
+      - 量産テンプレ動画
+      - 画面変化が少ない説明だけの動画
+    min_score: 65
+
+  tiktok:
+    best_for:
+      - 入口コンテンツ
+      - 問題提起
+      - 小技
+      - noteやYouTubeへの導線
+    avoid:
+      - 長い技術説明
+      - 機密情報が映る画面録画
+    min_score: 55
+
+  minigame:
+    best_for:
+      - 教育
+      - 監査訓練
+      - 異常検出
+      - 若手教育
+    avoid:
+      - 収益化だけを目的にしたゲーム
+      - 完成までが重すぎる3Dゲーム
+    min_score: 65

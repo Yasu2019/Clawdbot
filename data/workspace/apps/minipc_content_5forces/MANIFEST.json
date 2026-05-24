@@ -1,0 +1,16 @@
+{
+  "name": "minipc_content_5forces_full",
+  "version": "1.0.1",
+  "generated_at": "2026-05-24T00:00:00+09:00",
+  "encoding": "utf-8",
+  "purpose": "Portal dashboard content generation 5-forces gate with sample code",
+  "entrypoints": [
+    "scripts/run_windows_utf8.ps1",
+    "scripts/run_windows_utf8.bat",
+    "docker-compose.yml",
+    "portal-card/content_5forces_card.html"
+  ],
+  "validated_by": [
+    "direct Python scorer execution in generation environment"
+  ]
+}

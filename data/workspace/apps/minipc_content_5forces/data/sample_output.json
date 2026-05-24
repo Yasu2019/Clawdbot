@@ -1,0 +1,89 @@
+{
+  "title": "NEXIV測定データをExcel VBAで検査成績書へ自動転記する方法",
+  "total_score": 97,
+  "decision": "本気実装・有料化候補",
+  "recommended_platform": "note",
+  "force_scores": [
+    {
+      "name": "buyer_pain",
+      "score": 25,
+      "max_score": 25,
+      "reason": "読者・購入者の困りごとの強さ"
+    },
+    {
+      "name": "user_moat",
+      "score": 19,
+      "max_score": 20,
+      "reason": "鈴木様の実務経験で差別化できる度合い"
+    },
+    {
+      "name": "competition_weakness",
+      "score": 13,
+      "max_score": 15,
+      "reason": "競合が強すぎない、または専門性で避けられる度合い"
+    },
+    {
+      "name": "substitute_resistance",
+      "score": 15,
+      "max_score": 15,
+      "reason": "無料情報や一般AI回答で代替されにくい度合い"
+    },
+    {
+      "name": "low_supplier_dependency",
+      "score": 10,
+      "max_score": 10,
+      "reason": "外部API・素材・クラウド依存の低さ"
+    },
+    {
+      "name": "platform_fit",
+      "score": 10,
+      "max_score": 10,
+      "reason": "媒体との相性"
+    },
+    {
+      "name": "production_feasibility",
+      "score": 5,
+      "max_score": 5,
+      "reason": "ミニパソコンで制作しやすい度合い"
+    }
+  ],
+  "risks": [
+    "大きな初期リスクは少ないですが、公開前に機密・著作権・最新規約を確認してください。"
+  ],
+  "next_actions": [
+    "有料noteまたはKindle化を前提に、章立てとサンプルコードを作る。",
+    "公開可能なサンプルデータだけで小さな試作品を作る。",
+    "同じテーマで既存記事・動画・Kindleが多すぎないか確認する。",
+    "読者の困りごとを1文で明確化する。",
+    "note無料記事 → 有料記事の2段階で検証する。"
+  ],
+  "outline": [
+    "タイトル: NEXIV測定データをExcel VBAで検査成績書へ自動転記する方法",
+    "対象読者: 製造業の品質保証担当者",
+    "読者の痛み: 転記ミス、成績書作成時間、属人化",
+    "結論: 何がどれだけ楽になるかを最初に書く。",
+    "現状の問題: 手作業、ミス、属人化、判断遅れを整理する。",
+    "解決方法: 手順、コード、テンプレート、Portal連携を示す。",
+    "サンプル: 公開可能なダミーデータで動作例を見せる。",
+    "注意点: 機密情報、著作権、最新規約、社内確認。",
+    "次の行動: テンプレ入手、チェックリスト、関連記事への導線。"
+  ],
+  "safe_publication_notes": [
+    "公開前に、会社名・顧客名・品番・図面・寸法・原価・個人情報を必ず削除またはダミー化してください。",
+    "他者の動画・記事・有料教材の丸写しではなく、自分の実務経験と公開可能なサンプルで再構成してください。",
+    "YouTube、TikTok、note、KDPなどの最新規約は変わるため、公開直前に確認してください。"
+  ],
+  "raw_features": {
+    "domain_hits": [
+      "品質保証",
+      "NEXIV",
+      "検査成績書",
+      "Excel",
+      "VBA",
+      "製造業"
+    ],
+    "weak_hits": [],
+    "external_dependency_hits": [],
+    "text_length": 104
+  }
+}

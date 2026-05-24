@@ -1,0 +1,63 @@
+version: 1
+name: Content 5-Forces Gate Scoring Rules
+
+weights:
+  buyer_pain: 25
+  user_moat: 20
+  competition_weakness: 15
+  substitute_resistance: 15
+  low_supplier_dependency: 10
+  platform_fit: 10
+  production_feasibility: 5
+
+decision_thresholds:
+  full_build: 80
+  validate_first: 65
+  free_or_lead_magnet: 50
+  hold: 35
+
+domain_boost_keywords:
+  - 品質保証
+  - 品証
+  - IATF
+  - APQP
+  - PPAP
+  - NEXIV
+  - 検査成績書
+  - Excel
+  - VBA
+  - 不良率
+  - 品質月報
+  - メンテナンス
+  - OpenClaw
+  - Portal
+  - FreeCAD
+  - Blender
+  - PrePoMax
+  - CAE
+  - 製造業
+  - 金型
+  - プレス
+  - めっき
+  - レベラー
+
+weak_keywords:
+  - 稼ぐ
+  - 副業
+  - AIニュース
+  - 雑学
+  - まとめ
+  - 誰でも
+  - 簡単に
+  - 完全自動
+
+external_dependency_keywords:
+  - 有料API
+  - 外部API
+  - クラウド
+  - 動画生成サービス
+  - 画像生成サービス
+  - スクレイピング
+  - 著作権素材
+  - BGM
+  - 商用素材

@@ -1,0 +1,16 @@
+services:
+  content-5forces-gate:
+    build:
+      context: ./data/workspace/apps/minipc_content_5forces
+      dockerfile: backend/Dockerfile
+    container_name: minipc_content_5forces_gate
+    ports:
+      - "127.0.0.1:18766:8765"
+    environment:
+      - PYTHONUTF8=1
+      - LANG=C.UTF-8
+      - LC_ALL=C.UTF-8
+    volumes:
+      - ./data/workspace/apps/minipc_content_5forces/configs:/app/configs:ro
+      - ./data/workspace/apps/minipc_content_5forces/data:/app/data
+    restart: unless-stopped

@@ -1,0 +1,15 @@
+{
+  "id": "content-5forces-gate",
+  "title": "Content 5-Forces Gate",
+  "description": "note/Kindle/YouTube/TikTok/ミニゲーム生成前に、売れるテーマかを判定するゲート",
+  "category": "content_strategy",
+  "api_base_url": "http://localhost:18766",
+  "entry": "content_5forces_card.html",
+  "encoding": "utf-8",
+  "recommended_position": "before_content_generators",
+  "routes": {
+    "health": "/health",
+    "evaluate": "/evaluate",
+    "sample": "/sample"
+  }
+}

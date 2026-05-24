@@ -1,0 +1,8 @@
+{
+  "title": "NEXIV測定データをExcel VBAで検査成績書へ自動転記する方法",
+  "target_audience": "製造業の品質保証担当者",
+  "pain": "転記ミス、成績書作成時間、属人化",
+  "proof": "NEXIV出力、検査成績書、VBA実務",
+  "unique_angle": "品質保証の現場で使える実装例",
+  "preferred_platform": "note"
+}

@@ -1,7 +1,49 @@
 # Incident Log 窶・繝医Λ繝悶Ν險倬鹸繝ｻ蜀咲匱髦ｲ豁｢蜿ｰ蟶ｳ
 
-譛ｬ繝輔ぃ繧､繝ｫ縺ｯ縲√す繧ｹ繝・Β縺ｫ逋ｺ逕溘＠縺滄囿螳ｳ繝ｻ荳榊・蜷医→縺昴・譬ｹ譛ｬ蜴溷屏繝ｻ菫ｮ豁｣蜀・ｮｹ繝ｻ蜀咲匱髦ｲ豁｢遲悶ｒ險倬鹸縺励∪縺吶・菫ｮ豁｣繧定｡後▲縺溷�ｴ蜷医・縲∝ｿ・★縺薙・繝輔ぃ繧､繝ｫ縺ｫ繧ｨ繝ｳ繝医Μ繧定ｿｽ蜉�縺励※縺上□縺輔＞縲・
+譛ｬ繝輔ぃ繧､繝ｫ縺ｯ縲√す繧ｹ繝・Β縺ｫ逋ｺ逕溘＠縺滄囿螳ｳ縺ｻ荳榊・蜷医→縺昴・譬ｹ譛ｬ蜴溷屏繝ｻ菫ｮ豁｣蜀・ｮｹ繝ｻ蜀咲匱髦ｲ豁｢遲悶ｒ險倬鹸縺励∪縺吶€・菫ｮ豁｣繧定｡後▲縺溷ｴ蜷医・縲∝ｿ・★縺薙・繝輔ぃ繧､繝ｫ縺ｫ繧ｨ繝ｳ繝医Μ繧定ｿｽ蜉縺励※縺上□縺輔＞縲・
 ------
+
+## INC-088: Content 5-Forces Gate container startup failure due to WSL/Hyper-V port conflicts and Docker root-path mismatch
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-05-24 JST |
+| **Detection** | Docker Compose up failed for `minipc_content_5forces_gate` with `Bind for 0.0.0.0:8765 failed: port is already allocated`. After shifting to port `8766`, the container failed again with uvicorn crash `FileNotFoundError: [Errno 2] No such file or directory: '/configs/scoring_rules.yaml'`. |
+| **Impact** | The newly integrated Content 5-Forces Gate API was completely unreachable on startup, preventing the Command Center and Creative Studio dashboard from querying the evaluation service. |
+| **Root Cause (5 Why)** | **Why1**: Container failed to startup successfully.<br>**Why2**: Port `8765` was allocated by the host-bound `openclaw-spice-lab` container, and port `8766` had Hyper-V port-range exclusions on standard interfaces. The uvicorn app crashed due to looking for `/configs` folder.<br>**Why3**: Path resolution `ROOT = Path(__file__).resolve().parents[2]` assumed the local nested structure (`backend/app/scorer.py`), which resolved to `/` instead of `/app` inside the simplified container directory structure.<br>**Why4**: No self-healing path resolution logic was present in `scorer.py` to identify running inside a container footprint.<br>**Why5**: Standard compose setups assumed standard single-interface bindings without explicit localhost configurations. |
+| **Fix** | (1) Changed port binding to `127.0.0.1:18766:8765` in `docker-compose.content-5forces.yml` to bypass Hyper-V exclusion zones and keep it in the safe Clawstack port range.<br>(2) Added self-healing ROOT path detection in `data/workspace/apps/minipc_content_5forces/backend/app/scorer.py` (L11-14) to fallback to parent directory if `/configs` does not exist.<br>(3) Updated manifest, standalone HTML card, and Creative Studio dashboard scripts to query the correct `18766` port. |
+| **Files** | `docker-compose.content-5forces.yml`, `data/workspace/apps/minipc_content_5forces/backend/app/scorer.py`, `data/workspace/apps/minipc_content_5forces/portal-card/portal_card_manifest.json`, `data/workspace/apps/minipc_content_5forces/portal-card/content_5forces_card.html`, `data/workspace/apps/creative_studio/index.html`, `data/workspace/apps/minipc_content_5forces/scripts/run_windows_utf8.ps1`, `docs/INCIDENT_LOG.md` |
+| **Verification** | Verified `docker logs minipc_content_5forces_gate` reports `Uvicorn running on http://0.0.0.0:8765`. Verified `curl.exe http://127.0.0.1:18766/health` returns `{"status":"ok","encoding":"utf-8"}`. Verified Python score request evaluates successfully with a real-world manufacturing VBA idea returning score **`97`**. |
+| **Lessons Learned** | (1) Paths inside container environments are flatter than nested local packages; always design self-healing path structures that verify folder existence.<br>(2) Docker on Windows is highly vulnerable to Hyper-V reserved port exclusions; binding explicitly to `127.0.0.1` and avoiding low standard ports provides excellent portability. |
+| **Prevention** | Mandate self-healing path patterns in Python microservices, and always specify explicit localhost (`127.0.0.1`) mappings for development sidecars. |
+
+## INC-087: CAD DXF-to-STEP solid generation failure due to missing LWPOLYLINE / POLYLINE support in preprocessors
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-05-24 JST |
+| **Detection** | CAD statistics block on the portal dashboard remained at `1` despite running trial-and-error generation challenges (`run_cad_trialtry.py`). FreeCAD logs from container executions showed that `Profile`, `OuterWall`, `Cavity`, `Base`, and `Fins` layers in custom DXFs were ignored and produced no STEP solids, only generating output for simple `CIRCLE` holes. |
+| **Impact** | Dynamic solid generation and multi-view 3D assembly from polylines were completely blocked, forcing users to rely on mock counts or manual CAD models. |
+| **Root Cause (5 Why)** | **Why1**: Only circles and simple lines were converted to 3D.<br>**Why2**: The T-junction boundary resolver `resolve_tjunctions` and bounding box calculation `_get_layer_bbox` in `dxf2step_worker.py` only parsed `LINE`, `ARC`, and `CIRCLE` DXF types.<br>**Why3**: Polylines (`LWPOLYLINE` and `POLYLINE`), which are the default output type of `ezdxf.add_lwpolyline`, were silently dropped.<br>**Why4**: No decomposition or explode logic existed to translate compound polylines into simple line segments during 2D preprocessing.<br>**Why5**: Historical design focused solely on simple point-to-point drawing loops and lacked robust native support for industry-standard compound polyline geometries. |
+| **Fix** | (1) Refactored `resolve_tjunctions` in `dxf2step_worker.py` to intercept `LWPOLYLINE` and `POLYLINE` and decompose them into lines using `e.get_points('xy')`.<br>(2) Refactored `_get_layer_bbox` to support `CIRCLE`, `LWPOLYLINE`, and `POLYLINE` vertex boundaries.<br>(3) Prepended Windows stdout CP932 encoding protection block (P023 standard) to prevent character encoding issues. |
+| **Files** | `data/workspace/apps/dxf2step/dxf2step_worker.py`, `docs/INCIDENT_LOG.md` |
+| **Verification** | Ran `python scratch/run_cad_trialtry.py` locally. All 3 challenges completed with **100% success** (`3/3 jobs successfully generated 3D STEP formats`), executing full multi-view 3D reconstruction and updating the live dashboard stats. Real-world CAD counts updated successfully to **`4`** on the growth dashboard page. |
+| **Lessons Learned** | Never assume standard geometries like polylines or circles are processed correctly without active type checking. All custom preprocessors and geometry-cleansing pipelines should explicitly decompose complex curves/polylines into standard primitives first. |
+| **Prevention** | Use standard polyline decomposition and bbox boundaries, and ensure Windows encoding standards (P023) are adhered to in all processing microservices. |
+
+## INC-086: Image generator container stopped after server restart causing img2img pipeline freeze
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-05-23 JST |
+| **Detection** | OpenVINO img2img connector reported API connection error to Port 8101. Render diagnostics showed only 1.8KB empty placeholder files for daylight renders. |
+| **Impact** | The v40 Extreme daytime photorealism pipeline was completely halted, blocking the visual verification of mecha grounding and Shadow Catcher integration. |
+| **Root Cause (5 Why)** | **Why1**: The local img2img script failed to generate photorealistic assets.<br>**Why2**: The backend image generator service `ai_image_gen` on Port 8101 was unresponsive.<br>**Why3**: The Docker container `ai_image_gen-1` was not running.<br>**Why4**: A server restart stopped all containers, and `ai_image_gen` was not configured as a standard auto-start service in the production stack.<br>**Why5**: It is located in a dedicated subdirectory `services/ai_image_gen` and required manual compose-up instantiation after system restaging. |
+| **Fix** | (1) Navigated to `services/ai_image_gen` and executed `docker compose up -d --build` to rebuild and launch the CPU OpenVINO container.<br>(2) Executed `comfy_multi_controlnet_connector.py` to process the 3 target views across strengths 0.38 and 0.45.<br>(3) Dispatched all 6 newly stitched comparison sheets to Telegram via `send_comparisons_to_telegram.py`. |
+| **Files** | `services/ai_image_gen/docker-compose.yml`, `projects/AtsugiMechaCity/diagnostics/ue5_local_render/comfy_multi_controlnet_connector.py`, `docs/INCIDENT_LOG.md` |
+| **Verification** | Verified `docker ps` shows `ai_image_gen-ai_image_gen-1` running healthily. Verified 6/6 high-res daylight comparison sheets are fully generated and successfully dispatched to Telegram (100% success). |
+| **Lessons Learned** | Dedicated local helper services that exist outside the main compose stack must have clear recovery procedures documented, and startup routines should gracefully verify container health before executing downstream render integrations. |
+| **Prevention** | Ensure the local image generator container is validated and started dynamically during system restaging scripts. |
 
 ## INC-085: CityCharacterPipeline walking video know-how was scattered and not reproducible by small local LLMs
 
@@ -1333,6 +1375,23 @@ un_command_with_heartbeat wrapper that utilizes subprocess.Popen to update the h
 | **Verification** | PowerShell parsing succeeded for both scripts. A scratch queue test with the current ByteRover daily limit wrote `queue_written=scratch/brv_test_queue.jsonl`; running the sync script processed 1 item, kept it pending, incremented `attempts` to 1, and wrote a future `next_attempt_after` instead of dropping it. |
 | **Lessons Learned** | Fallback storage and resync are separate controls. A human-readable mirror prevents data loss, while a JSONL queue makes recovery actionable after quota reset. |
 | **Prevention** | Use `scripts/brv_safe_curate.ps1` for important memories and run `scripts/brv_sync_curate_queue.ps1` manually or from a scheduler after ByteRover quota resets. Keep retries bounded per invocation with `-MaxItems` and `-TimeoutSec`. |
+
+---
+
+## INC-093: Unreal Engine 5 Headless Render Target Export Header Mismatch (OpenEXR Payload HTTP 500 Crash)
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-05-23 JST |
+| **Detection** | Automated execution of `comfy_multi_controlnet_connector.py` triggered a local OpenVINO image generation container payload crash (HTTP 500) when handling imported Color, Depth, and Normal G-Buffer maps exported from UE5, despite all files carrying standard `.png` extensions. |
+| **Impact** | The end-to-end photorealistic rendering pipeline failed immediately at the first frame, blocking automatic generation of both the high-res LCM outputs and the comparison sheets. |
+| **Root Cause (5 Why)** | **Why1**: The local OpenVINO container returned HTTP 500 when processing image payloads.<br>**Why2**: The input base64 payload represented an invalid or unsupported image format for the image generator's internal parser.<br>**Why3**: The files exported by UE5's `export_render_target` were actually high-dynamic-range 16-bit/32-bit float OpenEXR images, despite their `.png` file names.<br>**Why4**: UE5's render target exporter ignores the file extension in the output path and always saves raw render targets in HDR OpenEXR format to prevent dynamic range truncation.<br>**Why5**: The connector script blindly trusted file extensions and did not inspect binary magic headers or normalize G-Buffer passes before sending them as base64 strings to the inference API. |
+| **Fix** | Added binary magic signature validation and automatic in-flight normalization inside the connection pipeline (`comfy_multi_controlnet_connector.py`):<br>(1) Implemented `ensure_png_format()` to check the first 4 bytes of input files for the OpenEXR magic signature (`b'v/1\x01'` or `b'v/1\x02'`).<br>(2) If detected, the script runs a silent subprocess call `ffmpeg -y -i <EXR> <PNG>` to convert the 16-bit float EXR files into standard, LDR 8-bit PNG files in-place before Base64 encoding. |
+| **Files** | [comfy_multi_controlnet_connector.py](file:///d:/Clawdbot_Docker_20260125/projects/AtsugiMechaCity/diagnostics/ue5_local_render/comfy_multi_controlnet_connector.py) |
+| **Verification** | All G-Buffer files were successfully detected as EXRs and converted to standard PNGs on-the-fly. The pipeline executed successfully across all 3 views (`road`, `sealed`, `overview`) and 2 strengths (`0.38`, `0.45`), generating 6 high-res photorealistic outputs and all 6 comparison sheets perfectly. |
+| **Lessons Learned** | Never trust file extensions across engine borders, especially with headless rendering libraries that output HDR buffers (like Unreal Engine). Always verify binary signatures (magic numbers) and implement in-flight conversion safeguards (e.g. FFmpeg) to normalize payloads before pipeline ingress. |
+| **Prevention** | Standardize binary header checks (OpenEXR vs PNG/JPEG) in all future image-generation or asset pipeline connections. Ensure all headless rendering scripts convert raw buffers to web-safe standard formats before transmitting to external/local API containers. |
+
 
 ---
 
