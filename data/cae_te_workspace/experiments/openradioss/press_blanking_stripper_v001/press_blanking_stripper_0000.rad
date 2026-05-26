@@ -62,16 +62,20 @@ $  Two rows of nodes representing sheet of t=1.2mm in X-Y plane
          4         2         4         5        11        10
          5         2         5         6        12        11
 /BCS
-$  Clamp both ends of the sheet (left: 1, 7; right: 6, 12)
+$  Clamp both ends of the sheet (referencing group 1 and group 11)
          1         1         1         1         0         0         0
-         6         1         1         1         0         0         0
-         7         1         1         1         0         0         0
-        12         1         1         1         0         0         0
+        11         1         1         1         0         0         0
 /IMPDISP/2
 punch_blanking
 $                   Tstart              Tstop                 dir   grnd_id
                      0.001              0.003                  2         2
           2
+/GRNOD/NODE/1
+clamp_left_nodes
+       1       7
+/GRNOD/NODE/11
+clamp_right_nodes
+       6      12
 /GRNOD/NODE/2
 punch_contact_nodes
        9      10
