@@ -158,3 +158,8 @@ tmp_*/
 data/meshy_assets/
 data/iatf_videos/
 data/state/litellm_config.yaml
+
+# Beads / Dolt files (added by bd init)
+.dolt/
+*.db
+.beads-credential-key

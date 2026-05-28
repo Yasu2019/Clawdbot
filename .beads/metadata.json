@@ -1,0 +1,7 @@
+{
+  "database": "dolt",
+  "backend": "dolt",
+  "dolt_mode": "embedded",
+  "dolt_database": "Clawdbot_Docker_20260125",
+  "project_id": "2df7367b-9362-4b97-8260-8e47ce65ab84"
+}

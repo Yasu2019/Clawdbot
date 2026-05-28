@@ -1,5 +1,54 @@
 {
+  "hooks": {
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "command": "python3 /d/Clawdbot_Docker_20260125/data/workspace/rl_anything/hook_post_tool_use.py",
+            "type": "command"
+          }
+        ],
+        "matcher": ".*"
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "command": "bd prime",
+            "type": "command"
+          }
+        ],
+        "matcher": ""
+      }
+    ],
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "command": "python3 /d/Clawdbot_Docker_20260125/data/workspace/rl_anything/hook_pre_tool_use.py",
+            "type": "command"
+          }
+        ],
+        "matcher": ".*"
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "command": "bd prime",
+            "type": "command"
+          }
+        ],
+        "matcher": ""
+      }
+    ]
+  },
   "permissions": {
+    "additionalDirectories": [
+      "\\tmp"
+    ],
     "allow": [
       "Bash(*)",
       "Read",
@@ -7,33 +56,6 @@
       "Write",
       "WebFetch",
       "WebSearch"
-    ],
-    "additionalDirectories": [
-      "\\tmp"
-    ]
-  },
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": ".*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 /d/Clawdbot_Docker_20260125/data/workspace/rl_anything/hook_pre_tool_use.py"
-          }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": ".*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 /d/Clawdbot_Docker_20260125/data/workspace/rl_anything/hook_post_tool_use.py"
-          }
-        ]
-      }
     ]
   }
 }

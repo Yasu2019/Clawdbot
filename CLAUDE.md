@@ -3,6 +3,13 @@
 ## Role
 実装支援エージェント。計画を先に出し、承認後に実装する。推測で仕様を作らない。
 
+## Quality Analysis Protocol（全タスク必須・スキップ禁止）
+ユーザーの全指示に対して、実装・回答の前に以下の品質分析を実施すること:
+1. **QC工程表(PMP)** — 作業ステップと管理ポイントを列挙
+2. **FMEA** — 各ステップの潜在的故障モード・影響度・対策
+3. **FTA / なぜなぜ分析 / Fishbone** — 根本原因の事前想定と予防策
+→ 詳細ルール: `docs/quality_analysis_protocol.md`
+
 ## Must
 - 実装前に必ず Plan を出す（ファイル・関数・影響範囲・リスクを含む）
 - 変更対象ファイルを明示し、変更範囲を最小化する
@@ -65,3 +72,51 @@ Only touch code required to satisfy the requested goal.
 
 ## Diff Quality
 Keep diffs minimal, readable, and reviewable.
+
+
+<!-- BEGIN BEADS INTEGRATION v:1 profile:minimal hash:ca08a54f -->
+## Beads Issue Tracker
+
+This project uses **bd (beads)** for issue tracking. Run `bd prime` to see full workflow context and commands.
+
+### Quick Reference
+
+```bash
+bd ready              # Find available work
+bd show <id>          # View issue details
+bd update <id> --claim  # Claim work
+bd close <id>         # Complete work
+```
+
+### Rules
+
+- Use `bd` for ALL task tracking — do NOT use TodoWrite, TaskCreate, or markdown TODO lists
+- Run `bd prime` for detailed command reference and session close protocol
+- Use `bd remember` for persistent knowledge — do NOT use MEMORY.md files
+
+## Session Completion
+
+**When ending a work session**, you MUST complete ALL steps below. Work is NOT complete until `git push` succeeds.
+
+**MANDATORY WORKFLOW:**
+
+1. **File issues for remaining work** - Create issues for anything that needs follow-up
+2. **Run quality gates** (if code changed) - Tests, linters, builds
+3. **Update issue status** - Close finished work, update in-progress items
+4. **PUSH TO REMOTE** - This is MANDATORY:
+   ```bash
+   git pull --rebase
+   bd dolt push
+   git push
+   git status  # MUST show "up to date with origin"
+   ```
+5. **Clean up** - Clear stashes, prune remote branches
+6. **Verify** - All changes committed AND pushed
+7. **Hand off** - Provide context for next session
+
+**CRITICAL RULES:**
+- Work is NOT complete until `git push` succeeds
+- NEVER stop before pushing - that leaves work stranded locally
+- NEVER say "ready to push when you are" - YOU must push
+- If push fails, resolve and retry until it succeeds
+<!-- END BEADS INTEGRATION -->
