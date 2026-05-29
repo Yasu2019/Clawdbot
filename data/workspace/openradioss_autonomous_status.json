@@ -1,0 +1,48 @@
+{
+  "state": "active_force_holder_plus_contact_stiffness_fix",
+  "finished_at_jst": "2026-05-29T19:30:00+09:00",
+  "update_20260529_pm": {
+    "fix_forceholder_run101": "Replaced stripper /IMPVEL/5 imposed velocity with /CLOAD force-controlled blank holder (-5N ramped, /FUNCT/20) + freed stripper Z at 10ms. RESULT: energy CLEAN (ERR -1.9%) until stripper contact at ~10.5ms, then dove to -37% (deep penetration), ejecting MATERIAL top-surface node 5760 at 13.1ms. NORMAL_VELOCITY.",
+    "new_root_cause": "Die & Stripper contacts had Stfac=1.0E-4 (500x SOFTER than punch 5.0E-2). The soft contact lets the steel stripper sink INTO the aluminum (negative energy = penetration), then a surface element inverts -> node ejection. Prior Stfac tests reportedly never persisted (file revert), so this is the FIRST valid test.",
+    "fix_being_tested_run102": "Raised Die & Stripper Stfac 1.0E-4 -> 5.0E-2 (match proven-stable punch contact). Keeps force-holder. steel-on-aluminum -> all 3 tool contacts now consistent.",
+    "stfac_sweep_result": "Run102 (5e-2): +20% injection, fail 12.6ms. Run103 (5e-3): +20% injection, fail 12.3ms. Run101 (1e-4): -37% penetration, fail 13.1ms (longest). ALL fail 12-13ms at stripper contact -> contact-stiffness tuning is NOT the fix. Run104 (VC=1.0 damping): solver ran 40x slower (pathological), killed.",
+    "ROOT_CAUSE_FOUND_run105": "Measured material mesh: 43 Z-levels (~42 element layers) through 0.5mm -> mesh is FINE, NOT coarse. PRIOR 'needs remesh' conclusion was WRONG. Real cause = TETRA4 element FORMULATION: starter .out confirmed ITET4=1000 (linear 1-point tetra) for the aluminum -> severe VOLUMETRIC/SHEAR LOCKING -> material cannot plasticize (explains 'plastic work ~0' anomaly) -> builds elastic energy under stripper contact -> surface node ejects.",
+    "fix_itet3": "Rewrote /PROP/SOLID/2 (aluminum ONLY) in well-formed radioss2022 format with Itetra4=3 (linear TETRA4 + nodal pressure averaging = anti-locking). Verified via starter echo: Material Itetra4=3.",
+    "element_formulation_result": "Run105 (Itetra4=3): EXPLODED early at 3.4ms (ERR -99.9%), before any tool contact. Run106 (Itetra4=1, quadratic 4-int-pt): EXPLODED at 6.1ms (+99.9%), fail 8.9ms. BOTH anti-locking tet formulations blow up EARLIER than the locking 1-point default (stable to 13ms).",
+    "DEFINITIVE_CONCLUSION": "FUNDAMENTAL CONFLICT confirmed: (1) the fine unstructured TETRA4 mesh REQUIRES AMS to run at dt=1e-6 (without AMS, CST gave DM/M=3497, prior C2). (2) AMS at dt=1e-6 is ONLY stable with the locking-prone 1-point tetra (Itetra4=1000). (3) The anti-locking formulations (Itetra4=1/3) need a far smaller timestep and explode under AMS. => The TETRA4 volumetric/shear LOCKING that causes the ~13ms stripper-contact node ejection CANNOT be removed by any .rad parameter, because the only locking-free option is incompatible with the AMS the mesh requires. This is a genuine mesh-architecture limitation, not a tuning gap.",
+    "what_actually_fixes_it": [
+      "REMESH the workpiece with well-shaped HEXA (or sweep/structured) elements: a coarser, regular hex mesh has a far larger natural timestep -> no extreme AMS needed -> can use Isolid=14/24 (locking-free hexa) which plasticizes correctly. This is the single highest-value fix and requires HyperMesh/preprocessor on the CAD.",
+      "If staying with tets: regenerate as TETRA10 (quadratic) AND drop AMS for a proper /DT/NODA/CST, accepting longer runtime. Requires remesh.",
+      "Verify die slug-relief so the cut slug is not crushed (fix D) - only matters once the >13ms barrier is passed."
+    ],
+    "deck_final_state": "Force-controlled blank holder IMPLEMENTED (user-approved): /CLOAD/1 -5N ramped via /FUNCT/20 on stripper grnod 300; /IMPVEL/5 stripper-Z stopped at t=0.010 (freed for force). Stripper & Die contact Stfac reverted to 1.0E-4 (longest survival). /PROP/SOLID/2 reverted to default 1-point tetra (only AMS-stable option). VC=0.6, Eps_eff=0.3756, TSTOP=0.030. Verified: 0 starter errors, CLOAD active. Best survival 13.1ms (force-holder) vs 13.7ms (prior velocity stripper) - comparable; force-holder is physically correct + gives CLEAN energy to 10ms."
+  },
+  "state_final": "rad_parameter_fixes_exhausted_with_proof; force-holder implemented per user; root barrier = TETRA4-locking x AMS coupling -> requires remesh (HEXA/TETRA10).",
+  "cloud_api": false,
+  "method": "/TFILE T01 energy breakdown + staged single-variable experiments (Run89-98)",
+  "stage_A_B_kinematics_BC": {
+    "fix_B_breakthrough": "Removed IMPVEL/12 Material_Perimeter_Fixed_Z (kept X/Y). Sheet can now seat 0.1mm onto die as user described. Failure 9ms -> 13.7ms, energy CLEAN to 11.5ms, blank actually shears (ruptures from 9.07ms).",
+    "fix_A_stripper": "Stripper stop tested (Run95) -> made it WORSE (12.7ms). Stripper clamp is BENEFICIAL. Reverted.",
+    "verdict": "A&B done. B is the primary root-cause fix. Reached 13.7ms but not NORMAL_TSTOP."
+  },
+  "stage_C_erosion_fixes": {
+    "C3_reduce_velocity": "Punch -0.05 -> -0.025, TSTOP 0.030 (Run97). FAILED at 17.4ms = smaller punch displacement (0.41mm) than full-speed (0.635mm). WORSE. Reverted.",
+    "C2_CST_timestep": "Engine /DT/AMS -> /DT/NODA/CST (Run98). UNUSABLE: DM/M = 3497 (3500x mass added) because mesh natural dt << 1e-6. This is why AMS was required. Reverted to AMS.",
+    "C1_mesh_refinement": "NOT POSSIBLE for AI: TETRA4 solid mesh is baked into the .rad; remeshing requires HyperMesh/FE preprocessor on the original CAD.",
+    "verdict": "All AI-doable C fixes (C2,C3) failed or unusable. C1 needs HyperMesh."
+  },
+  "stage_D": "NOT POSSIBLE for AI: die slug-relief geometry requires CAD/mesh tools.",
+  "remaining_root_issue": {
+    "primary": "Element-EROSION instability: during blank shear (ruptures 9-12ms), a material surface node (e.g. 587) loses element support and is ejected by penalty contact at rel.vel 143 -> NODAL VELOCITY error. Independent of tool kinematics, gap, Idel, Stfac, velocity, timestep scheme.",
+    "secondary_anomaly": "PLASTIC WORK ~0 throughout even though elements rupture at 0.35 eff.strain. Suggests rupture may be hitting elastic skin/tool shells (LAW1, no plasticity) or material LAW2 not yielding in bulk. Needs material-model review.",
+    "constraint": "All robust fixes (mesh refinement, material damage model, die relief) require HyperMesh/CAD which the AI cannot operate on a baked .rad."
+  },
+  "what_user_should_do_in_hypermesh": [
+    "(C1) Refine mesh in the shear/cut zone; replace TETRA4 with finer/hex elements there (TETRA4 is locking-prone for shear).",
+    "(C2-model) Review /FAIL/GENE1 scope - ensure it applies to the aluminum workpiece (LAW2) not the elastic steel skins (LAW1); consider progressive damage instead of instant erosion; verify rupture strain vs ductility.",
+    "(D) Verify the die has a slug-relief opening so the cut slug passes instead of being crushed against a closed die.",
+    "Investigate why PLASTIC WORK ~0 (material should plasticize before fracture in ductile blanking)."
+  ],
+  "deck_state_best_validated": "Gap_max=0.01 (all 3 interfaces), Material perimeter Z FREED (fix B), Idel=2 (all 3), AMS + /TFILE, Stripper & Punch original full stroke, Stfac original (5e-2/1e-4/1e-4). Backup: 4mmx4mm_ASSY_20260105_0000_orig.preZfix.rad",
+  "energy_evidence": ["data/workspace/diag_energy_run90.csv", "data/workspace/diag_energy_run93.csv"]
+}

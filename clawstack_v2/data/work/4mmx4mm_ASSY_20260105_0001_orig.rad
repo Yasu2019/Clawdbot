@@ -1,0 +1,13 @@
+/RUN/Punch_Die_Shearing/1
+             0.0250000000
+/DT/AMS/0
+             0.67000             1.00000E-06
+/TFILE
+             5.00000E-05
+/RFILE/50000
+/ANIM/DT
+             0.0000000000         0.20000E-02
+/ANIM/ELEM/EPSP
+/ANIM/ELEM/VONM
+/ANIM/VECT/DISP
+/END
