@@ -277,3 +277,31 @@ Implemented ByteRover fallback automatic resync queue. brv_safe_curate now write
 - scripts/brv_sync_curate_queue.ps1
 - docs/INCIDENT_LOG.md
 
+## 2026-05-23 06:19:48 +09:00
+
+**Curate status:** failed
+
+**Reason:** brv curate failed
+
+**Context**
+
+Atsugi Mecha City LOD2 PBR and SD v40 photorealism integration pattern
+
+**Source files**
+
+- .brv/context-tree/design/atsugi-lod2-photoreal-hybrid-pattern.md
+
+## 2026-05-29 23:36:23 +09:00
+
+**Curate status:** timeout
+
+**Reason:** brv curate timed out after 30s
+
+**Context**
+
+GitHub backup method for repo Yasu2019/Clawdbot (2026-05-29). Use dated backup branches named backup/*. CRITICAL: CAE/simulation work lives in GITIGNORED paths - clawstack_v2/data/ (junction, .gitignore line 26) and data/workspace/** (line 74). Plain git add or push will NOT back them up; MUST force-add with 'git add -f PATH'. Steps: (1) force-add work artifacts - two .rad decks, doe_design_next.csv, openradioss_autonomous_status.json; (2) commit with -m message; (3) git push -u origin HEAD when branch has no upstream. Do NOT git add -A - pulls GBs of unrelated large binaries (.exr, PNG frames, .glb, .fbx up to 89MB). GitHub warns at 50MB, rejects over 100MB; consider Git LFS later. Env: PowerShell on Windows - no head/heredoc, avoid angle brackets in shell commands.
+
+**Source files**
+
+- none
+
