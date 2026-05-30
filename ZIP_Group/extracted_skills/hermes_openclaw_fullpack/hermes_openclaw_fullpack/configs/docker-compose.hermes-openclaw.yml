@@ -1,0 +1,50 @@
+services:
+  hermes-bridge:
+    build:
+      context: ..
+      dockerfile: configs/hermes-bridge.Dockerfile
+    container_name: hermes-openclaw-bridge
+    env_file: ../.env
+    ports:
+      - "28791:8791"
+    volumes:
+      - ../workspace:/workspace/hermes_sandbox
+      - ../src:/app/src:ro
+    depends_on:
+      - qa-postgres
+      - qdrant
+    networks:
+      - hermes_net
+
+  qa-postgres:
+    image: postgres:16
+    container_name: hermes-qa-postgres
+    environment:
+      POSTGRES_USER: qa_user
+      POSTGRES_PASSWORD: qa_pass
+      POSTGRES_DB: qa_memory
+      TZ: Asia/Tokyo
+    ports:
+      - "55432:5432"
+    volumes:
+      - qa_pgdata:/var/lib/postgresql/data
+    networks:
+      - hermes_net
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: hermes-qdrant
+    ports:
+      - "6633:6333"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    networks:
+      - hermes_net
+
+networks:
+  hermes_net:
+    name: hermes_openclaw_net
+
+volumes:
+  qa_pgdata:
+  qdrant_data:

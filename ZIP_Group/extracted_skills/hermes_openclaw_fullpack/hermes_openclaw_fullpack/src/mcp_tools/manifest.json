@@ -1,0 +1,22 @@
+{
+  "name": "openclaw-qa-hermes-tools",
+  "version": "0.1.0",
+  "description": "MCP-like tool definitions for Hermes/OpenClaw QA workflow sandbox.",
+  "tools": [
+    {
+      "name": "qa_memory_add",
+      "description": "Add a reusable QA know-how memory item.",
+      "endpoint": "http://hermes-bridge:8791/memory/add"
+    },
+    {
+      "name": "qa_memory_search",
+      "description": "Search QA memory before drafting reports or audit answers.",
+      "endpoint": "http://hermes-bridge:8791/memory/search"
+    },
+    {
+      "name": "guard_check_command",
+      "description": "Check if a shell command is safe before execution.",
+      "endpoint": "http://hermes-bridge:8791/guard/check-command"
+    }
+  ]
+}

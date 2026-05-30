@@ -1,0 +1,11 @@
+{
+  "id": "hermes-agent-qa-sandbox",
+  "title": "Hermes Agent QA Sandbox",
+  "category": "AI Agents",
+  "description": "Hermes AgentをOpenClaw品質保証業務向けに安全検証するPortalカード。",
+  "url": "http://localhost:8791/docs",
+  "healthcheck": "http://localhost:8791/health",
+  "tags": ["Hermes", "OpenClaw", "QA", "Ollama", "Safety Harness"],
+  "risk_level": "sandbox_only",
+  "recommended_action": "Codex/Claudeでレビュー後、既存OpenClawへ統合判断"
+}
