@@ -28,6 +28,9 @@ function Invoke-Step {
 }
 
 Invoke-Step "A1 live status" { python scripts\update_satellite_cae_live_status.py }
+Invoke-Step "A1b dxf2step api" {
+    powershell -NoProfile -ExecutionPolicy Bypass -File scripts\start_dxf2step_api.ps1 | Out-Host
+}
 Invoke-Step "A2 router probe" { python scripts\cae_workload_router.py --probe-lavie-jobs --json }
 Write-Host ""
 Write-Host "== A3 exec_bridge (optional; job worker is primary for SJP-2) =="
@@ -37,7 +40,13 @@ python scripts\k10_verify_satellite_node.py --node-id lavie --ip $LavieIp 2>&1 |
 $a3Exit = $LASTEXITCODE
 $ErrorActionPreference = $prevEap
 if ($a3Exit -ne 0) {
-    Write-Host "[WARN] A3 exec_bridge FAIL (n8n :5679). SJP-2 cae_trial may still PASS via :5680."
+    Write-Host "[WARN] A3 exec_bridge FAIL (n8n :5679). Attempting auto-recover..."
+    python scripts\k10_lavie_n8n_recover.py --node lavie 2>&1 | Out-Host
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host "[PASS] A3 exec_bridge (recovered)"
+    } else {
+        Write-Host "[WARN] A3 exec_bridge still FAIL. SJP-2 cae_trial may still PASS via :5680."
+    }
 } else {
     Write-Host "[PASS] A3 exec_bridge"
 }
@@ -52,6 +61,12 @@ if (-not $SkipDryRun) {
     }
     Invoke-Step "C3 parallel dry-run" {
         python scripts\k10_parallel_cae_orchestrator.py --dry-run --or-max-trials 1 --of-max-trials 1
+    }
+    Invoke-Step "C4 SJP-3 parallel dry-run" {
+        python scripts\k10_parallel_cae_orchestrator.py --dry-run --sjp3 --or-max-trials 1 --of-max-trials 1
+    }
+    Invoke-Step "C5 gap jobs only" {
+        python scripts\k10_gap_job_runner.py --jobs tolerance,dxf2step
     }
 }
 

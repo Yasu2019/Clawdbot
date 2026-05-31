@@ -33,6 +33,7 @@
 | F9 | Portal shows old maturity only | SJP not in Portal | Read `satellite_cae_live_status.json` on Portal |
 | F10 | OpenFOAM real run FAIL on LAVIE | `opencfd/openfoam-dev` image not pulled | On LAVIE: `docker pull opencfd/openfoam-dev:latest` (dry-run OK without) |
 | F11 | parallel FAIL WinError 5 | K10 OR + LAVIE OF write `cae_te_log.json` same time | Fixed: merge retry in `k10_satellite_cae_dispatch.py` |
+| F12 | DXF2STEP gap WARN api offline | Host API not running on `:8002` | `powershell -File scripts\start_dxf2step_api.ps1` |
 
 ---
 
@@ -188,6 +189,60 @@ satellites:
 
 ---
 
+## 10. SJP-3 (gap jobs on K10)
+
+While OpenRadioss@K10 + OpenFOAM@LAVIE run, K10 can execute **short gap jobs** in parallel:
+
+| Job | Domain | Script |
+|-----|--------|--------|
+| Cetol 6σ proxy | `TOLERANCE_ANALYSIS` | `k10_gap_job_runner.py --jobs tolerance` |
+| DXF→3D readiness | `DXF2STEP` | `k10_gap_job_runner.py --jobs dxf2step` |
+
+```powershell
+# Gap jobs only
+python scripts\k10_gap_job_runner.py --jobs tolerance,dxf2step
+
+# Full SJP-3 parallel (OR + OF + gap)
+python scripts\k10_parallel_cae_orchestrator.py --dry-run --sjp3 --or-max-trials 1 --of-max-trials 1
+```
+
+Log: `data/workspace/sjp3_gap_log.jsonl`
+
+**DXF2STEP API (K10 host, port 8002):**
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\start_dxf2step_api.ps1
+curl http://127.0.0.1:8002/api/dxf2step/health
+```
+
+Note: Docker `dxf3d_app` on `:8003` is Streamlit UI, not this REST API.
+
+---
+
+## 11. LAVIE n8n recovery (:5679 exec_bridge)
+
+If A3 fails but job worker `:5680` is OK:
+
+```powershell
+# Sync lavie_n8n_restart.ps1 to LAVIE first
+python scripts\k10_sync_lavie_scripts_to_lavie.py
+
+# Restart n8n docker + redeploy exec_bridge from K10
+python scripts\k10_lavie_n8n_recover.py
+
+# Or full verify (auto-recover on A3 fail)
+powershell -ExecutionPolicy Bypass -File scripts\k10_satellite_verify_all.ps1
+```
+
+**K10 Tailscale firewall (LAVIE -> K10 `k10_exec_bridge`, run once as Admin on K10):**
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\open_k10_n8n_tailscale_firewall.ps1
+python scripts\k10_verify_satellite_node.py --node-id lavie --ip 100.87.244.46
+```
+
+---
+
 ## 9. Related docs
 
 - [LAVIE_K10_INTEGRATION.md](LAVIE_K10_INTEGRATION.md)  
@@ -196,4 +251,4 @@ satellites:
 
 ---
 
-*Last updated: 2026-05-31 (SJP-2 + parallel orchestrator + Portal live status)*
+*Last updated: 2026-05-31 (SJP-2/3 + n8n recover + Portal live status)*

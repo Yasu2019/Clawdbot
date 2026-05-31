@@ -190,7 +190,7 @@
 
     <section class="sat-panel" id="satelliteCaeLivePortal">
         <h2>Satellite CAE Live (K10 / LAVIE)</h2>
-        <p class="bench-note" id="satPortalNote">SJP-2 parallel OpenRadioss@K10 + OpenFOAM@LAVIE. Loading...</p>
+        <p class="bench-note" id="satPortalNote">SJP-2/3: OpenRadioss@K10 + OpenFOAM@LAVIE + gap jobs (Cetol/DXF). Loading...</p>
         <div style="margin-bottom:8px"><span id="satOverallBadge" class="sat-badge">...</span></div>
         <div class="sat-grid" id="satPortalGrid"></div>
         <div class="sat-trials" id="satTrialList"></div>
@@ -590,9 +590,11 @@
                     const summary = d.cae_te_log_summary || {};
                     grid.innerHTML = [
                         { t: "LAVIE worker", v: lavie.online ? "online" : "offline", d: lavie.probe || "" },
+                        { t: "LAVIE n8n", v: lavie.n8n_online ? "online" : "offline", d: lavie.n8n_probe || "" },
                         { t: "K10 CAE busy", v: k10.cae_busy ? "yes" : "no", d: k10.busy_reason || "" },
                         { t: "resin_flow route", v: (route.resin_flow || {}).host || "?", d: (route.resin_flow || {}).reason || "" },
                         { t: "press_blanking route", v: (route.press_blanking || {}).host || "?", d: (route.press_blanking || {}).reason || "" },
+                        { t: "SJP-3 gap jobs", v: (d.sjp3 && d.sjp3.enabled) ? (d.sjp3.gap_jobs || []).join(", ") : "off", d: "K10 only" },
                         { t: "cae_te_log", v: (summary.total_trials || 0) + " trials", d: "success " + (summary.success_rate_pct || 0) + "%" },
                     ].map(c => `<div class="sat-card"><h4>${esc(c.t)}</h4><p><strong>${esc(c.v)}</strong><br>${esc(c.d)}</p></div>`).join("");
                     const latest = (d.latest_trials || []).map(t => `${esc(t.id)} ${esc(t.category)} ${esc(t.verdict)} @${esc(t.host)}`).join(" | ");

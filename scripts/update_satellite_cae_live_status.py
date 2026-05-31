@@ -15,6 +15,8 @@ if hasattr(sys.stdout, "reconfigure"):
     except Exception:
         pass
 
+import httpx
+
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "data" / "workspace" / "satellite_cae_live_status.json"
 TE_LOG = ROOT / "data" / "cae_te_workspace" / "results" / "cae_te_log.json"
@@ -54,9 +56,24 @@ def recent_trials_by_host(limit: int = 10) -> dict[str, int]:
     return counts
 
 
+def probe_lavie_n8n(cfg: dict[str, Any]) -> tuple[bool, str]:
+    lavie = cfg.get("lavie") or {}
+    ip = (lavie.get("ip") or "").strip()
+    port = int(lavie.get("port") or 5679)
+    if not ip:
+        return False, "lavie.ip missing"
+    url = f"http://{ip}:{port}/healthz"
+    try:
+        r = httpx.get(url, timeout=6)
+        return r.status_code == 200, f"{url} status={r.status_code}"
+    except Exception as exc:
+        return False, f"{url} {exc}"
+
+
 def build_status() -> dict[str, Any]:
     cfg = router.load_config()
     lavie_ok, lavie_detail = router.probe_lavie_job_worker(cfg)
+    n8n_ok, n8n_detail = probe_lavie_n8n(cfg)
     busy, busy_reason = router.k10_cae_busy(cfg)
     resin_decision = router.pick_host("resin_flow", cfg)
     blank_decision = router.pick_host("press_blanking", cfg)
@@ -100,6 +117,12 @@ def build_status() -> dict[str, Any]:
     elif not cfg.get("cae_workspace_sync", {}).get("enabled"):
         overall = "warning"
         issues.append("cae_workspace_sync disabled in router")
+    if lavie_ok and not n8n_ok:
+        if overall == "ok":
+            overall = "warning"
+        issues.append(f"lavie n8n offline: {n8n_detail}")
+
+    sjp3_cfg = cfg.get("sjp3") or {}
 
     return {
         "updated_at": datetime.now(JST).isoformat(),
@@ -110,6 +133,9 @@ def build_status() -> dict[str, Any]:
             "probe": lavie_detail,
             "ip": (cfg.get("lavie") or {}).get("ip"),
             "job_worker_port": (cfg.get("lavie") or {}).get("job_worker_port", 5680),
+            "n8n_online": n8n_ok,
+            "n8n_probe": n8n_detail,
+            "n8n_port": (cfg.get("lavie") or {}).get("port", 5679),
         },
         "k10": {
             "cae_busy": busy,
@@ -124,6 +150,10 @@ def build_status() -> dict[str, Any]:
         "recent_trials_by_host": recent_trials_by_host(20),
         "latest_trials": latest_trials,
         "parallel_last": parallel_last,
+        "sjp3": {
+            "enabled": bool(sjp3_cfg.get("enabled")),
+            "gap_jobs": sjp3_cfg.get("gap_jobs") or [],
+        },
         "runbook": "docs/SATELLITE_CAE_ONE_SHOT_RUNBOOK.md",
     }
 

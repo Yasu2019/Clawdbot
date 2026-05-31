@@ -64,6 +64,7 @@ foreach ($rel in @(
     "scripts\lavie_boost_apply.ps1",
     "scripts\lavie_restart_all.ps1",
     "scripts\lavie_restart_remote.ps1",
+    "scripts\lavie_n8n_restart.ps1",
     "scripts\satellite_deploy_exec_bridge.py"
 )) {
     Copy-Item -LiteralPath (Join-Path $RepoRoot $rel) -Destination (Join-Path $OutDir $rel) -Force
