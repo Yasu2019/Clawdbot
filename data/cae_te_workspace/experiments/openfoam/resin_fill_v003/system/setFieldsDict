@@ -1,0 +1,30 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| Seed polymer at center gate (inlet2) for visible fill front                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      setFieldsDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+defaultFieldValues
+(
+    volScalarFieldValue alpha.polymer 0
+);
+
+regions
+(
+    boxToCell
+    {
+        box (0 0.0025 0) (0.008 0.0075 0.002);
+        fieldValues
+        (
+            volScalarFieldValue alpha.polymer 1
+        );
+    }
+);
+
+// ************************************************************************* //

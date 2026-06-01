@@ -219,7 +219,7 @@ EXPERIMENTS = [
         "id": "OF-FLOW-001",
         "solver": "openfoam",
         "category": "resin_flow",
-        "description": "Duct Filling laminate SPCC - Non-Newtonian shear viscosity T&E",
+        "description": "Thin duct laminar Newtonian proxy (icoFoam) for 24/365 baseline",
         "input_dir": str(WORKSPACE / "experiments" / "openfoam" / "resin_flow_v001"),
         "input_file": "constant/transportProperties", # Parameter entry target
         "defect_targets": ["short_shot_risk", "pressure_drop_MPa", "flow_front_velocity_mms"],
@@ -233,6 +233,90 @@ EXPERIMENTS = [
         "lesson_template": (
             "Resin flow filling: viscosity={kinematic_viscosity}, inlet_U={inlet_velocity}. "
             "Status={status}. Dynamic 3D hex-meshed blockMesh + icoFoam pipeline complete."
+        ),
+    },
+    # ── OpenFOAM: Moldflow-class fill Phase 1 (non-Newtonian Power Law) ─
+    {
+        "id": "OF-FILL-002",
+        "solver": "openfoam",
+        "category": "resin_fill",
+        "description": "Moldflow proxy: Power-law non-Newtonian cavity flow (nonNewtonianIcoFoam)",
+        "input_dir": str(WORKSPACE / "experiments" / "openfoam" / "resin_fill_v002"),
+        "input_file": "constant/transportProperties",
+        "solver_binary": "nonNewtonianIcoFoam",
+        "defect_targets": [
+            "short_shot_risk",
+            "pressure_drop_MPa",
+            "flow_front_velocity_mms",
+            "effective_viscosity_ratio",
+        ],
+        "success_keyword": "End",
+        "failure_keywords": ["FOAM FATAL ERROR", "Fatal error", "divergence"],
+        "param_sweeps": [
+            {
+                "power_law_nu0": 0.01,
+                "power_law_k": 0.001,
+                "power_law_n": 0.6,
+                "inlet_velocity": 1.0,
+                "gate_position": "center",
+            },
+            {
+                "power_law_nu0": 0.008,
+                "power_law_k": 0.0008,
+                "power_law_n": 0.55,
+                "inlet_velocity": 1.2,
+                "gate_position": "center",
+            },
+            {
+                "power_law_nu0": 0.015,
+                "power_law_k": 0.002,
+                "power_law_n": 0.7,
+                "inlet_velocity": 0.8,
+                "gate_position": "center",
+            },
+        ],
+        "lesson_template": (
+            "Resin fill (PowerLaw): nu0={power_law_nu0}, k={power_law_k}, n={power_law_n}, "
+            "inlet_U={inlet_velocity}. Status={status}. nonNewtonianIcoFoam Moldflow Phase-1."
+        ),
+    },
+    # ── OpenFOAM: Moldflow Phase 2 VOF fill front (interFoam) ─────────────
+    {
+        "id": "OF-FILL-003",
+        "solver": "openfoam",
+        "category": "resin_fill_vof",
+        "description": "Moldflow proxy: VOF fill front polymer/air (interFoam)",
+        "input_dir": str(WORKSPACE / "experiments" / "openfoam" / "resin_fill_v003"),
+        "input_file": "constant/transportProperties",
+        "solver_binary": "interFoam",
+        "defect_targets": [
+            "fill_fraction_pct",
+            "fill_time_s",
+            "short_shot_risk",
+            "pressure_drop_MPa",
+        ],
+        "success_keyword": "End",
+        "failure_keywords": ["FOAM FATAL ERROR", "Fatal error", "divergence"],
+        "param_sweeps": [
+            {
+                "polymer_nu": 0.01,
+                "inlet_velocity": 1.0,
+                "gate_position": "center",
+            },
+            {
+                "polymer_nu": 0.008,
+                "inlet_velocity": 1.2,
+                "gate_position": "center",
+            },
+            {
+                "polymer_nu": 0.015,
+                "inlet_velocity": 0.7,
+                "gate_position": "center",
+            },
+        ],
+        "lesson_template": (
+            "VOF fill: polymer_nu={polymer_nu}, inlet_U={inlet_velocity}. "
+            "Status={status}. interFoam Moldflow Phase-2 (see defects fill_fraction_pct)."
         ),
     },
     # ── OpenFOAM: Resin Flow Multi-Gate Optimization ──────────────────────
@@ -514,9 +598,41 @@ def _inject_parameters(rad_content: str, params: dict, category: str) -> str:
 
 
 def _inject_parameters_openfoam(file_name: str, content: str, params: dict) -> str:
-    """Inject kinematic_viscosity and inlet_velocity into OpenFOAM dictionary files."""
+    """Inject transport and inlet_velocity into OpenFOAM dictionary files."""
     import re
-    if "transportProperties" in file_name and "kinematic_viscosity" in params:
+    if "transportProperties" in file_name and "phases" in content:
+        nu = params.get("polymer_nu", params.get("kinematic_viscosity"))
+        if nu is not None:
+            parts = content.split("polymer", 1)
+            if len(parts) == 2:
+                head, tail = parts
+                tail = re.sub(
+                    r"(nu\s+\[0\s+2\s+-1\s+0\s+0\s+0\s+0\]\s+)[0-9.eE+-]+;",
+                    f"\\g<1>{float(nu):.6f};",
+                    tail,
+                    count=1,
+                )
+                content = head + "polymer" + tail
+    if "transportProperties" in file_name and "power_law_nu0" in params:
+        nu0 = float(params["power_law_nu0"])
+        k = float(params.get("power_law_k", 0.001))
+        n = float(params.get("power_law_n", 0.6))
+        content = re.sub(
+            r"(nu0\s+\[0\s+2\s+-1\s+0\s+0\s+0\s+0\]\s+)[0-9.eE+-]+;",
+            f"\\g<1>{nu0:.6f};",
+            content,
+        )
+        content = re.sub(
+            r"(k\s+\[0\s+2\s+-1\s+0\s+0\s+0\s+0\]\s+)[0-9.eE+-]+;",
+            f"\\g<1>{k:.6f};",
+            content,
+        )
+        content = re.sub(
+            r"(n\s+\[0\s+0\s+0\s+0\s+0\s+0\s+0\]\s+)[0-9.eE+-]+;",
+            f"\\g<1>{n:.4f};",
+            content,
+        )
+    elif "transportProperties" in file_name and "kinematic_viscosity" in params:
         nu = params["kinematic_viscosity"]
         # Replace: nu              [0 2 -1 0 0 0 0] 0.01;
         content = re.sub(
@@ -578,6 +694,7 @@ def _clean_old_runs(runs_root: Path, keep_count: int = 50):
 def _run_openradioss(exp: dict, params: dict, dry_run: bool, timeout: int, trial_id: str = "TRIAL_TEMP") -> dict:
     template_dir = Path(exp["input_dir"])
     input_file = exp["input_file"]
+    category = exp.get("category", "")
 
     if GATES_ENABLED:
         pre = cae_gates.precheck_openradioss_case(template_dir)
@@ -605,6 +722,101 @@ def _run_openradioss(exp: dict, params: dict, dry_run: bool, timeout: int, trial
     # Use run_dir as execution environment path
     linux_path = str(run_dir).replace("\\", "/").replace("d:", "/mnt/d").replace("D:", "/mnt/d")
     docker_mount_path = str(run_dir).replace("\\", "/").replace("d:", "/d").replace("D:", "/d")
+
+    # Special: RD-E:2500 (Numisheet'93) springback decks contain multiple engine files already.
+    # For these, we copy the whole directory and run starter + engine chain as-is.
+    is_dbend44_springback = category in {"springback_dbend44_explicit", "springback_dbend44_implicit"}
+    if is_dbend44_springback:
+        starter_file = "DBEND_44_0000.rad"
+        engine_files = ["DBEND_44_0001.rad", "DBEND_44_0002.rad"]
+        if category == "springback_dbend44_explicit":
+            engine_files.append("DBEND_44_0003.rad")
+
+        missing = [name for name in [starter_file, *engine_files] if not (template_dir / name).exists()]
+        if missing:
+            return {"status": "ERROR", "log": f"Missing springback deck files: {missing}", "duration_sec": 0}
+
+        if dry_run:
+            print(f"  [DRY-RUN] Isolated Run Dir: {run_dir.name}")
+            print(f"  [DRY-RUN] Springback deck files detected: {starter_file}, {', '.join(engine_files)}")
+            return {
+                "status": "DRY_RUN",
+                "log": "Dry run springback deck presence check",
+                "duration_sec": 0,
+                "failure_tags": [],
+                "pregate": {"ok": True, "tags": ["precheck_ok"], "issues": []},
+                "gates_enabled": GATES_ENABLED,
+            }
+
+        try:
+            if run_dir.exists():
+                shutil.rmtree(run_dir, ignore_errors=True)
+            shutil.copytree(template_dir, run_dir)
+            for rad_path in run_dir.glob("*.rad"):
+                raw = rad_path.read_text(encoding="utf-8", errors="replace")
+                raw = raw.replace("\t", "        ")
+                raw = raw.replace("\r\n", "\n").replace("\r", "\n")
+                rad_path.write_bytes(raw.encode("utf-8"))
+        except Exception as e:
+            return {"status": "ERROR", "log": f"Copy springback deck failed: {e}", "duration_sec": 0}
+
+        cmd_str = (
+            f"starter_linux64_gf -i {starter_file} -nthread {_openradioss_nthread()} 2>&1 && "
+            + " && ".join(
+                f"engine_linux64_gf -i {eng} -nthread {_openradioss_nthread()} 2>&1" for eng in engine_files
+            )
+        )
+        cmd = [
+            "docker", "run", "--rm",
+            *_docker_resource_args(),
+            "-v", f"{docker_mount_path}:/workspace",
+            "-w", "/workspace",
+            OPENRADIOSS_IMAGE,
+            "bash", "-c", cmd_str,
+        ]
+
+        start = time.time()
+        try:
+            result = subprocess.run(
+                cmd, capture_output=True, text=True,
+                timeout=timeout, encoding="utf-8", errors="replace"
+            )
+            duration = time.time() - start
+            stdout = (result.stdout or "") + (result.stderr or "")
+            evidence = cae_gates.extract_openradioss_evidence(stdout) if GATES_ENABLED else {}
+            kpis, kpi_error, kpi_cmd = _extract_openradioss_kpis(
+                stdout, run_dir=run_dir, expected_kpis=exp.get("expected_kpis")
+            )
+            return {
+                "status": "DONE",
+                "log": stdout,
+                "duration_sec": duration,
+                "returncode": result.returncode,
+                "failure_tags": cae_gates.tag_openradioss_log(stdout) if GATES_ENABLED else [],
+                "pregate": {"ok": True, "tags": ["precheck_ok"], "issues": []},
+                "gates_enabled": GATES_ENABLED,
+                "failure_evidence": evidence,
+                "kpi": {"ok": bool(kpis), "values": kpis, "command": kpi_cmd, "error": kpi_error},
+                "run_dir": str(run_dir),
+            }
+        except subprocess.TimeoutExpired:
+            return {
+                "status": "TIMEOUT",
+                "log": f"Exceeded {timeout}s",
+                "duration_sec": timeout,
+                "failure_tags": ["timeout"] if GATES_ENABLED else [],
+                "pregate": {"ok": True, "tags": ["precheck_ok"], "issues": []},
+                "gates_enabled": GATES_ENABLED,
+            }
+        except Exception as e:
+            return {
+                "status": "ERROR",
+                "log": str(e),
+                "duration_sec": time.time() - start,
+                "failure_tags": ["runner_error"] if GATES_ENABLED else [],
+                "pregate": {"ok": True, "tags": ["precheck_ok"], "issues": []},
+                "gates_enabled": GATES_ENABLED,
+            }
 
     # 2. Inject parameters into copy of the .rad file
     src_rad = template_dir / input_file
@@ -799,6 +1011,8 @@ def _assess_openradioss(run_result: dict, exp: dict) -> dict:
     # Let's extract params from the log snippet or pass them. Wait, _assess_openradioss is called with run_result.
     # We can pass actual params by adding 'params' into run_result in run_engine, which is much cleaner!
     actual_params = run_result.get("params", {})
+    kpi_payload = run_result.get("kpi") if isinstance(run_result.get("kpi"), dict) else {}
+    kpi_values = kpi_payload.get("values") if isinstance(kpi_payload.get("values"), dict) else {}
 
     if status == "PREGATE_FAIL":
         return {
@@ -997,6 +1211,14 @@ def _assess_openradioss(run_result: dict, exp: dict) -> dict:
     if time_step_drops > 0:
         defects["solver_time_step_warnings"] = time_step_drops
 
+    expected_kpis = exp.get("expected_kpis")
+    if isinstance(expected_kpis, dict) and isinstance(kpi_values, dict) and kpi_values:
+        cmp = _compare_expected_kpis(expected_kpis, kpi_values, exp.get("expected_tolerances"))
+        if cmp:
+            defects["expected_kpi_comparison"] = cmp
+            if any(item.get("ok") is False for item in (cmp.get("items") or [])) and verdict in {"SUCCESS", "UNKNOWN"}:
+                verdict = "FAILED"
+
     return {
         "verdict": verdict,
         "convergence": {"eliminated": eliminated_count, "dt_warnings": time_step_drops},
@@ -1009,6 +1231,27 @@ def _assess_openradioss(run_result: dict, exp: dict) -> dict:
 
 # ─── OpenFOAM Runner ─────────────────────────────────────────────────────────
 
+def _maybe_paraview_capture_openfoam(run_dir: Path, *, returncode: int, log: str) -> str | None:
+    """Headless ParaView snapshot of latest |U| field (non-fatal on failure)."""
+    if os.environ.get("CAE_PARAVIEW_CAPTURE", "1") != "1":
+        return None
+    if returncode != 0:
+        return None
+    if "End" not in log and "FOAM exiting" not in log:
+        return None
+    try:
+        scripts_dir = Path(__file__).resolve().parent
+        if str(scripts_dir) not in sys.path:
+            sys.path.insert(0, str(scripts_dir))
+        import cae_te_paraview_capture as pvc
+
+        png = pvc.capture_openfoam_run_dir(run_dir)
+        return str(png) if png else None
+    except Exception as exc:
+        print(f"[paraview-capture] non-fatal: {exc}", flush=True)
+        return None
+
+
 def _run_openfoam(exp: dict, params: dict, dry_run: bool, timeout: int, trial_id: str = "TRIAL_TEMP") -> dict:
     template_dir = Path(exp["input_dir"])
     solver = exp.get("solver_binary", "icoFoam")
@@ -1019,7 +1262,10 @@ def _run_openfoam(exp: dict, params: dict, dry_run: bool, timeout: int, trial_id
     run_dir = runs_dir / trial_id
 
     if GATES_ENABLED:
-        pre = cae_gates.precheck_openfoam_case(template_dir)
+        if solver == "interFoam":
+            pre = cae_gates.precheck_openfoam_interfoam_case(template_dir)
+        else:
+            pre = cae_gates.precheck_openfoam_case(template_dir)
         if not pre.ok:
             return {
                 "status": "PREGATE_FAIL",
@@ -1066,11 +1312,23 @@ def _run_openfoam(exp: dict, params: dict, dry_run: bool, timeout: int, trial_id
         print(f"  [ERR] OpenFOAM preprocessor parameter injection failed: {e}")
         return {"status": "ERROR", "log": f"Preprocessor injection error: {e}", "duration_sec": 0, "run_dir": str(run_dir)}
 
-    docker_mount_path = str(run_dir).replace("\\", "/").replace("d:", "/d").replace("D:", "/d")
+    _posix = run_dir.resolve().as_posix()
+    docker_mount_path = (
+        f"/{_posix[0].lower()}{_posix[2:]}" if len(_posix) >= 2 and _posix[1] == ":" else _posix
+    )
     # Command: run blockMesh (mesh generator) first, then actual fluid solver
     checkmesh_cmd = ""
     if GATES_ENABLED and OPENFOAM_CHECKMESH_ENABLED:
         checkmesh_cmd = " && checkMesh -allGeometry -allTopology 2>&1"
+    setfields_cmd = ""
+    if (template_dir / "system" / "setFieldsDict").exists():
+        setfields_cmd = " && setFields 2>&1"
+    restore_ascii_cmd = ""
+    if solver == "interFoam":
+        restore_ascii_cmd = (
+            " && for f in fvSchemes fvSolution controlDict; do "
+            "if [ -f system/${f}.ascii ]; then cp -f system/${f}.ascii system/${f}; fi; done"
+        )
     cmd = [
         "docker", "run", "--rm",
         *_docker_resource_args(),
@@ -1078,7 +1336,8 @@ def _run_openfoam(exp: dict, params: dict, dry_run: bool, timeout: int, trial_id
         "-w", "/workspace",
         OPENFOAM_IMAGE,
         "bash", "-c",
-        f"source {OPENFOAM_BASHRC} && cd /workspace && blockMesh 2>&1{checkmesh_cmd} && {solver} 2>&1",
+        f"source {OPENFOAM_BASHRC} && cd /workspace && blockMesh 2>&1{checkmesh_cmd}"
+        f"{restore_ascii_cmd}{setfields_cmd}{restore_ascii_cmd} && {solver} 2>&1",
     ]
 
     if dry_run:
@@ -1102,13 +1361,22 @@ def _run_openfoam(exp: dict, params: dict, dry_run: bool, timeout: int, trial_id
         )
         duration = time.time() - start
         stdout = result.stdout + result.stderr
+        kpis: dict = {}
+        kpi_cmd = None
+        kpi_error = None
+        try:
+            kpis, kpi_cmd = _extract_openfoam_kpis(run_dir, docker_mount_path)
+            if solver == "interFoam" or (run_dir / "0" / "alpha.polymer").exists():
+                kpis.update(_extract_vof_fill_kpis(run_dir))
+        except Exception as exc:
+            kpi_error = str(exc)
         evidence = {}
         if GATES_ENABLED:
             # Keep evidence compact: final checkMesh verdict + FOAM FATAL block if present.
             if OPENFOAM_CHECKMESH_ENABLED and "checkMesh" in stdout:
                 evidence.update(cae_gates.extract_openfoam_checkmesh_evidence(stdout))
             evidence.update(cae_gates.extract_openfoam_fatal_evidence(stdout))
-        return {
+        out = {
             "status": "DONE",
             "log": stdout,
             "duration_sec": duration,
@@ -1118,7 +1386,17 @@ def _run_openfoam(exp: dict, params: dict, dry_run: bool, timeout: int, trial_id
             "gates_enabled": GATES_ENABLED,
             "failure_evidence": evidence,
             "run_dir": str(run_dir),
+            "kpi": {
+                "ok": bool(kpis),
+                "values": kpis,
+                "command": kpi_cmd,
+                "error": kpi_error,
+            },
         }
+        pv_png = _maybe_paraview_capture_openfoam(run_dir, returncode=result.returncode, log=stdout)
+        if pv_png:
+            out["paraview_png"] = pv_png
+        return out
     except subprocess.TimeoutExpired:
         return {
             "status": "TIMEOUT",
@@ -1139,11 +1417,158 @@ def _run_openfoam(exp: dict, params: dict, dry_run: bool, timeout: int, trial_id
         }
 
 
+def _parse_alpha_volume_fraction(alpha_path: Path) -> float:
+    """Mean alpha.polymer from OpenFOAM ascii field (small cavity meshes)."""
+    import re
+
+    text = alpha_path.read_text(encoding="utf-8", errors="replace")
+    m_uni = re.search(r"internalField\s+uniform\s+([0-9.eE+-]+)", text)
+    if m_uni:
+        return float(m_uni.group(1))
+    m = re.search(
+        r"internalField\s+nonuniform\s+List<scalar>\s*\n\s*(\d+)\s*\n\s*\("
+        r"([\s\S]*?)\)\s*;\s*\n\s*boundaryField",
+        text,
+    )
+    if not m:
+        return 0.0
+    count = int(m.group(1))
+    nums = re.findall(r"[-+]?\d*\.?\d+(?:[eE][-+]?\d+)?", m.group(2))
+    vals = [float(x) for x in nums[:count]]
+    if not vals:
+        return 0.0
+    return sum(vals) / len(vals)
+
+
+def _extract_vof_fill_kpis(run_dir: Path) -> dict:
+    """Fill fraction and first time fill threshold is reached (alpha mean >= 0.8)."""
+    alpha_name = "alpha.polymer"
+    times: list[float] = []
+    for child in run_dir.iterdir():
+        if not child.is_dir():
+            continue
+        try:
+            t = float(child.name)
+        except ValueError:
+            continue
+        if (child / alpha_name).exists():
+            times.append(t)
+    times.sort()
+    if not times:
+        return {}
+    fill_time = None
+    latest_frac = 0.0
+    for t in times:
+        frac = _parse_alpha_volume_fraction(run_dir / f"{t:g}" / alpha_name)
+        latest_frac = max(latest_frac, frac)
+        if fill_time is None and frac >= 0.80:
+            fill_time = t
+    out = {
+        "fill_fraction": round(latest_frac, 4),
+        "fill_fraction_pct": round(latest_frac * 100.0, 2),
+        "fill_complete": bool(fill_time is not None or latest_frac >= 0.85),
+    }
+    if fill_time is not None:
+        out["fill_time_s"] = float(fill_time)
+    else:
+        out["fill_time_s"] = float(times[-1])
+    try:
+        artifact = run_dir / "vof_fill_kpis.json"
+        artifact.write_text(json.dumps(out, ensure_ascii=False, indent=2), encoding="utf-8")
+    except Exception:
+        pass
+    return out
+
+
+def _extract_openfoam_kpis(run_dir: Path, docker_mount_path: str) -> tuple[dict, str]:
+    """Extract basic, case-derived KPIs from OpenFOAM results.
+
+    Goal: improve accuracy without external experimental data by grounding
+    key metrics (pressure levels, inlet/outlet deltas) in simulation outputs,
+    instead of heuristic-only estimates.
+    """
+    # We intentionally only rely on ubiquitous utilities.
+    # -latestTime avoids scanning large time folders.
+    p_field = "p_rgh" if (run_dir / "0" / "p_rgh").exists() else "p"
+    funcs = [
+        f'patchAverage(name=inlet1,{p_field})',
+        f'patchAverage(name=inlet2,{p_field})',
+        f'patchAverage(name=inlet3,{p_field})',
+        f'patchAverage(name=outlet,{p_field})',
+        'patchAverage(name=inlet1,U)',
+        'patchAverage(name=inlet2,U)',
+        'patchAverage(name=inlet3,U)',
+        'patchAverage(name=outlet,U)',
+    ]
+    joined = " ".join(f'-func "{f}"' for f in funcs)
+    script = f"source {OPENFOAM_BASHRC} && cd /workspace && postProcess -latestTime {joined} 2>&1"
+    cmd = [
+        "docker", "run", "--rm",
+        *_docker_resource_args(),
+        "-v", f"{docker_mount_path}:/workspace",
+        "-w", "/workspace",
+        OPENFOAM_IMAGE,
+        "bash", "-c", script,
+    ]
+    proc = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=90)
+    out = (proc.stdout or "") + (proc.stderr or "")
+
+    # Parse: "patchAverage(p) inlet1 ... = <value>" (format varies slightly by version)
+    import re
+
+    def _grab(field: str, patch: str) -> float | None:
+        patterns = [
+            rf"patchAverage\({re.escape(field)}\)\s+{re.escape(patch)}.*=\s*([-+0-9.eE]+)",
+            rf"patchAverage\({re.escape(field)}\)\s+{re.escape(patch)}.*?:\s*([-+0-9.eE]+)",
+            rf"patchAverage\({re.escape(p_field)}\)\s+{re.escape(patch)}.*=\s*([-+0-9.eE]+)",
+        ]
+        for pat in patterns:
+            m = re.search(pat, out)
+            if m:
+                try:
+                    return float(m.group(1))
+                except Exception:
+                    return None
+        return None
+
+    p_in = [v for v in (_grab(p_field, "inlet1"), _grab(p_field, "inlet2"), _grab(p_field, "inlet3")) if v is not None]
+    p_out = _grab(p_field, "outlet")
+    u_in = [v for v in (_grab("U", "inlet1"), _grab("U", "inlet2"), _grab("U", "inlet3")) if v is not None]
+    u_out = _grab("U", "outlet")
+
+    if p_out is None or not p_in:
+        return {}, " ".join(cmd)
+
+    p_in_avg = sum(p_in) / len(p_in)
+    pressure_drop_pa = max(0.0, p_in_avg - float(p_out))
+    kpis = {
+        "p_in_avg_pa": float(p_in_avg),
+        "p_out_pa": float(p_out),
+        "pressure_drop_pa": float(pressure_drop_pa),
+        "pressure_drop_mpa": float(pressure_drop_pa / 1e6),
+    }
+    if u_in:
+        kpis["u_in_avg"] = float(sum(u_in) / len(u_in))
+    if u_out is not None:
+        kpis["u_out"] = float(u_out)
+
+    # Persist a small artifact to help downstream patrols without re-running postProcess.
+    try:
+        artifact_path = run_dir / "openfoam_kpis.json"
+        artifact_path.write_text(json.dumps({"kpi_values": kpis}, ensure_ascii=False, indent=2), encoding="utf-8")
+    except Exception:
+        pass
+
+    return kpis, " ".join(cmd)
+
+
 def _assess_openfoam(run_result: dict, exp: dict) -> dict:
     log = run_result.get("log", "")
     status = run_result.get("status", "ERROR")
     category = exp.get("category", "unknown")
     actual_params = run_result.get("params", {})
+    kpi_payload = run_result.get("kpi") if isinstance(run_result.get("kpi"), dict) else {}
+    kpi_values = kpi_payload.get("values") if isinstance(kpi_payload.get("values"), dict) else {}
 
     if status == "PREGATE_FAIL":
         return {
@@ -1217,15 +1642,44 @@ def _assess_openfoam(run_result: dict, exp: dict) -> dict:
                 pass
 
     defects = {}
-    if category == "resin_flow":
-        viscosity = actual_params.get("kinematic_viscosity", 0.01)
+    if category in ("resin_flow", "resin_fill", "resin_fill_vof"):
+        if category == "resin_fill_vof":
+            defects_extra = {}
+            viscosity = float(actual_params.get("polymer_nu", 0.01))
+            fill_pct = float(kpi_values.get("fill_fraction_pct", 0.0) or 0.0)
+            fill_time = float(kpi_values.get("fill_time_s", 0.0) or 0.0)
+            defects_extra["fill_fraction_pct"] = fill_pct
+            defects_extra["fill_time_s"] = fill_time
+            defects_extra["fill_complete"] = bool(kpi_values.get("fill_complete"))
+            if fill_pct < 50.0:
+                verdict = "FAILED"
+        elif category == "resin_fill":
+            nu0 = float(actual_params.get("power_law_nu0", 0.01))
+            n_exp = float(actual_params.get("power_law_n", 0.6))
+            viscosity = nu0 * (1.0 + max(0.0, 0.5 - n_exp))
+            defects_extra = {
+                "power_law_n": n_exp,
+                "power_law_nu0": nu0,
+                "effective_viscosity_ratio": round(nu0 / max(1e-6, nu0 * n_exp), 3),
+            }
+        else:
+            defects_extra = {}
+            viscosity = actual_params.get("kinematic_viscosity", 0.01)
         velocity = actual_params.get("inlet_velocity", 1.0)
         gc = actual_params.get("gate_count", 1)
         gp = actual_params.get("gate_position", "center")
         
         # 1. 圧力損失 (Pressure Drop, MPa)
-        # Pressure loss is inversely proportional to square root of active gate count (larger total inlet area)
-        pressure_drop = (150.0 * viscosity * velocity) / math.sqrt(gc)
+        # Prefer simulated KPI if available; fallback to heuristic estimate.
+        pressure_drop = None
+        if "pressure_drop_mpa" in kpi_values:
+            try:
+                pressure_drop = float(kpi_values["pressure_drop_mpa"])
+            except Exception:
+                pressure_drop = None
+        if pressure_drop is None:
+            # Pressure loss is inversely proportional to square root of active gate count (larger total inlet area)
+            pressure_drop = (150.0 * viscosity * velocity) / math.sqrt(gc)
         
         # 2. ショートショットリスク (Short Shot Risk, scale 0.0 - 1.0)
         # Higher viscosity and lower velocity increases risk; more gates decrease flow resistance and risk
@@ -1252,16 +1706,34 @@ def _assess_openfoam(run_result: dict, exp: dict) -> dict:
         sink_mark = min(1.0, max(0.0, sink_mark))
         
         # Determine failure condition if pressure_drop or warpage exceed safety bounds
-        if pressure_drop >= 4.0 or warpage >= 1.5 or short_shot >= 0.8:
+        if float(pressure_drop) >= 4.0 or warpage >= 1.5 or short_shot >= 0.8:
             verdict = "FAILED"
             
-        defects["pressure_drop_MPa"] = float(f"{pressure_drop:.4f}")
+        defects["pressure_drop_MPa"] = float(f"{float(pressure_drop):.4f}")
+        if kpi_values:
+            defects["kpi_source"] = "openfoam_postprocess"
+            defects["kpi_pressure_drop_pa"] = float(kpi_values.get("pressure_drop_pa") or 0.0)
+            defects["kpi_p_in_avg_pa"] = float(kpi_values.get("p_in_avg_pa") or 0.0)
+            defects["kpi_p_out_pa"] = float(kpi_values.get("p_out_pa") or 0.0)
+        else:
+            defects["kpi_source"] = "heuristic_fallback"
         defects["short_shot_risk"] = float(f"{short_shot:.4f}")
         defects["burr_risk"] = "HIGH (型開きバリ発生)" if pressure_drop >= 3.5 else "LOW (適正型締め力)"
         defects["warpage_mm"] = float(f"{warpage:.4f}")
         defects["weldline_severity"] = float(f"{weldline:.4f}")
         defects["sink_mark_risk"] = float(f"{sink_mark:.4f}")
         defects["flow_front_velocity_mms"] = float(f"{velocity * 100.0:.2f}")
+        if category in ("resin_fill", "resin_fill_vof"):
+            defects.update(defects_extra)
+
+    expected_kpis = exp.get("expected_kpis")
+    if isinstance(expected_kpis, dict) and isinstance(kpi_values, dict) and kpi_values:
+        cmp = _compare_expected_kpis(expected_kpis, kpi_values, exp.get("expected_tolerances"))
+        if cmp:
+            defects["expected_kpi_comparison"] = cmp
+            # If an expected KPI explicitly fails its tolerance, mark FAILED unless already TIMEOUT/ERROR.
+            if any(item.get("ok") is False for item in (cmp.get("items") or [])) and verdict in {"SUCCESS", "UNKNOWN"}:
+                verdict = "FAILED"
 
     return {
         "verdict": verdict,
@@ -1271,6 +1743,94 @@ def _assess_openfoam(run_result: dict, exp: dict) -> dict:
         "failure_evidence": run_result.get("failure_evidence", {}),
         "pregate": run_result.get("pregate", {}),
     }
+
+
+def _compare_expected_kpis(expected: dict, actual: dict, tolerances: dict | None) -> dict:
+    """Compare expected KPI values to actual ones.
+
+    This is the bridge to *public benchmark* validation when the user has no private
+    experimental data. The benchmark spec provides expected values and tolerances.
+    """
+    tol = tolerances if isinstance(tolerances, dict) else {}
+    items = []
+    for key, exp_val in expected.items():
+        if key not in actual:
+            items.append({"kpi": key, "expected": exp_val, "actual": None, "ok": None, "reason": "missing_actual"})
+            continue
+        try:
+            act_val = float(actual[key])
+            exp_f = float(exp_val)
+        except Exception:
+            items.append({"kpi": key, "expected": exp_val, "actual": actual.get(key), "ok": None, "reason": "non_numeric"})
+            continue
+
+        abs_err = act_val - exp_f
+        rel_err = None if exp_f == 0 else abs(abs_err) / abs(exp_f)
+        t = tol.get(key, {})
+        abs_max = float(t.get("abs_max")) if isinstance(t, dict) and t.get("abs_max") is not None else None
+        rel_max = float(t.get("rel_max")) if isinstance(t, dict) and t.get("rel_max") is not None else None
+        ok_abs = True if abs_max is None else abs(abs_err) <= abs_max
+        ok_rel = True if rel_max is None or rel_err is None else rel_err <= rel_max
+        ok = bool(ok_abs and ok_rel)
+        items.append(
+            {
+                "kpi": key,
+                "expected": exp_f,
+                "actual": act_val,
+                "abs_err": abs_err,
+                "rel_err": rel_err,
+                "tolerance": {"abs_max": abs_max, "rel_max": rel_max},
+                "ok": ok,
+            }
+        )
+    return {"items": items}
+
+
+def _extract_openradioss_kpis(
+    log_text: str,
+    run_dir: Path | None = None,
+    expected_kpis: dict | None = None,
+) -> tuple[dict, str | None, str]:
+    """KPI extraction: log regex first, then geometry from VTK in run_dir (springback)."""
+    import re
+
+    kpis: dict[str, float] = {}
+    err = None
+    cmd = "log_parse"
+    try:
+        for key in ("theta1", "theta2"):
+            m = re.search(rf"{key}\s*[:=]\s*([-+0-9.]+)", log_text, flags=re.IGNORECASE)
+            if m:
+                kpis[f"{key}_deg"] = float(m.group(1))
+    except Exception as exc:
+        err = str(exc)
+
+    if run_dir is not None and run_dir.is_dir() and "theta1_deg" not in kpis:
+        try:
+            import springback_geometry_kpi as sb_geo
+
+            geo_kpis, geo_err = sb_geo.extract_springback_thetas_from_run_dir(
+                run_dir,
+                OPENRADIOSS_IMAGE,
+                _openradioss_nthread(),
+                blank_part_id=1,
+                expected_kpis=expected_kpis if isinstance(expected_kpis, dict) else None,
+            )
+            if geo_kpis:
+                kpi_filter = geo_kpis.pop("_filter", None)
+                geo_kpis.pop("_anim_index", None)
+                kpis.update(geo_kpis)
+                cmd = "geometry_vtk"
+                if kpi_filter:
+                    cmd = f"geometry_vtk:{kpi_filter}"
+                err = geo_err
+            elif geo_err and not err:
+                err = geo_err
+        except Exception as exc:
+            if not err:
+                err = str(exc)
+
+    return kpis, err, cmd
 
 
 # ─── Main T&E Loop ───────────────────────────────────────────────────────────
@@ -1761,6 +2321,35 @@ def run_single_trial(
         "timestamp": datetime.datetime.now().isoformat(),
         "host": host,
     }
+    run_dir = run_result.get("run_dir")
+    paraview_png = run_result.get("paraview_png")
+    if run_dir:
+        trial_entry["run_dir"] = run_dir
+    if paraview_png:
+        trial_entry["paraview_png"] = paraview_png
+
+    if (
+        verdict == "SUCCESS"
+        and paraview_png
+        and os.environ.get("CAE_PARAVIEW_TELEGRAM", "1") == "1"
+    ):
+        try:
+            scripts_dir = Path(__file__).resolve().parent
+            if str(scripts_dir) not in sys.path:
+                sys.path.insert(0, str(scripts_dir))
+            import cae_te_paraview_capture as pvc
+
+            cap = (
+                f"[ParaView] {resolved_trial_id}\n"
+                f"Category: {category_name}\n"
+                f"OpenFOAM |U| (latest time)\n"
+                f"Host: {host}"
+            )
+            if pvc.send_png_telegram(Path(paraview_png), cap):
+                trial_entry["paraview_telegram_sent"] = True
+        except Exception as tg_exc:
+            trial_entry["paraview_telegram_error"] = str(tg_exc)[:200]
+            print(f"[paraview-telegram] non-fatal: {tg_exc}", flush=True)
 
     if append_log:
         te_log = _load_json_safe(TE_LOG, {"trials": [], "summary": {}})
@@ -1788,10 +2377,16 @@ def run_single_trial(
             status=verdict,
             know_how=lesson,
             artifact_path=str(run_result.get("run_dir") or ""),
-            difficulty=1 if category_name in ("resin_flow", "press_blanking_stripper") else 2,
+                difficulty=1 if category_name in ("resin_flow", "resin_fill", "resin_fill_vof", "press_blanking_stripper") else 2,
             evidence=assessment.get("failure_evidence", {}),
         )
         _update_growth_stats(domain=growth_domain, challenge=growth_challenge, lesson=lesson)
+        try:
+            import cae_failure_analysis as failure_analysis
+
+            failure_analysis.record_from_trial(trial_entry)
+        except Exception as fa_exc:
+            print(f"[cae-failure-analysis] non-fatal: {fa_exc}", flush=True)
 
     _update_status("DONE", resolved_trial_id, verdict)
     return trial_entry
@@ -1808,7 +2403,8 @@ if __name__ == "__main__":
                         help=f"Per-trial timeout seconds (default: {DEFAULT_TIMEOUT_SEC})")
     parser.add_argument("--category", type=str, default=None,
                         choices=["press_bending", "press_blanking", "press_drawing",
-                                 "press_crushing", "press_blanking_stripper", "resin_flow", "resin_flow_opt", "progressive_strip_layout"],
+                                 "press_crushing", "press_blanking_stripper", "resin_flow", "resin_fill",
+                                 "resin_fill_vof", "resin_flow_opt", "progressive_strip_layout"],
                         help="Run only trials in this category")
     args = parser.parse_args()
 

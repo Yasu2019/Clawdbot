@@ -35,10 +35,37 @@ def main() -> int:
     parser.add_argument("--no-append-log", action="store_true", help="Do not write cae_te_log.json")
     parser.add_argument("--skip-resource-check", action="store_true")
     parser.add_argument("--output", default="", help="Write trial JSON to this file")
+    parser.add_argument(
+        "--capture-paraview-only",
+        action="store_true",
+        help="Only capture/send ParaView PNG for --trial-id (no solver run)",
+    )
     args = parser.parse_args()
 
     if args.workspace:
         os.environ["CAE_TE_WORKSPACE"] = str(Path(args.workspace).resolve())
+
+    if args.capture_paraview_only:
+        import cae_te_paraview_capture as pvc
+
+        ws = Path(args.workspace or os.environ.get("CAE_TE_WORKSPACE", ROOT / "data" / "cae_te_workspace"))
+        tid = args.trial_id.strip()
+        if not tid:
+            print(json.dumps({"ok": False, "error": "trial-id required"}, ensure_ascii=False))
+            return 1
+        trial = pvc.find_trial(trial_id=tid) or {"id": tid}
+        run_dir = pvc.resolve_run_dir(trial, ws)
+        if not run_dir:
+            print(json.dumps({"ok": False, "error": "run_dir not found"}, ensure_ascii=False))
+            return 1
+        png = pvc.capture_openfoam_run_dir(run_dir, skip_if_exists=False)
+        if not png:
+            print(json.dumps({"ok": False, "error": "capture_failed"}, ensure_ascii=False))
+            return 1
+        cap = f"[ParaView] {tid}\nOpenFOAM |U| snapshot"
+        sent = pvc.send_png_telegram(png, cap)
+        print(json.dumps({"ok": True, "paraview_png": str(png), "telegram_sent": sent}, ensure_ascii=False))
+        return 0
 
     import cae_te_engine as engine
 

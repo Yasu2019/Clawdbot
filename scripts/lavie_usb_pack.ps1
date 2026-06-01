@@ -59,6 +59,8 @@ foreach ($rel in @(
     "scripts\k10_satellite_cae_dispatch.py",
     "scripts\cae_te_remote_trial.py",
     "scripts\cae_te_engine.py",
+    "scripts\cae_te_paraview_capture.py",
+    "scripts\cae_te_visual_report.py",
     "scripts\cae_te_optimizer.py",
     "scripts\cae_self_growth_gates.py",
     "scripts\lavie_boost_apply.ps1",
@@ -71,6 +73,20 @@ foreach ($rel in @(
 }
 
 Copy-Item -LiteralPath (Join-Path $RepoRoot ".env") -Destination (Join-Path $OutDir ".env") -Force
+
+$pvScriptsSrc = Join-Path $RepoRoot "scripts\pv_scripts"
+$pvScriptsDst = Join-Path $OutDir "scripts\pv_scripts"
+if (Test-Path $pvScriptsSrc) {
+    New-Item -ItemType Directory -Path $pvScriptsDst -Force | Out-Null
+    Copy-Item -Path (Join-Path $pvScriptsSrc "*") -Destination $pvScriptsDst -Recurse -Force
+}
+
+$guardSrc = Join-Path $RepoRoot "data\workspace\outbound_delivery_guard.py"
+$guardDstDir = Join-Path $OutDir "data\workspace"
+if (Test-Path $guardSrc) {
+    New-Item -ItemType Directory -Path $guardDstDir -Force | Out-Null
+    Copy-Item -LiteralPath $guardSrc -Destination (Join-Path $guardDstDir "outbound_delivery_guard.py") -Force
+}
 
 $readme = @"
 LAVIE setup pack (minimal)

@@ -27,6 +27,7 @@ JST = timezone(timedelta(hours=9))
 if str(ROOT / "scripts") not in sys.path:
     sys.path.insert(0, str(ROOT / "scripts"))
 
+import cae_failure_analysis as failure_analysis
 import cae_workload_router as router
 import k10_satellite_dispatch as sjp
 
@@ -231,6 +232,7 @@ def main() -> int:
 
         if not args.no_merge_log and trial_entry.get("id"):
             merge_trial_into_log(trial_entry)
+            failure_analysis.record_from_trial(trial_entry)
 
         log_entry = {
             "category": args.category,
