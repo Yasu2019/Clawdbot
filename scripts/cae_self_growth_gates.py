@@ -101,6 +101,14 @@ def precheck_openfoam_thermo_case(case_dir: Path) -> PreGateResult:
             issues.append(f"Missing: {rel}")
     if any(t.startswith("precheck_missing_") for t in tags if t != "precheck_ok"):
         return _ng(tags, issues)
+    poly = case_dir / "constant" / "thermophysicalProperties.polymer"
+    if poly.exists():
+        ptxt = poly.read_text(encoding="utf-8", errors="replace")
+        if not re.search(r"mu\s+[0-9.eE+-]+\s*;", ptxt) and "MU_CONST_PLACEHOLDER" not in ptxt:
+            tags.append("precheck_thermo_missing_mu")
+            issues.append("const transport requires mu in thermophysicalProperties.polymer")
+    if any(t.startswith("precheck_") and t not in ("precheck_ok", "precheck_interfoam", "precheck_thermo") for t in tags):
+        return _ng(tags, issues)
     tags = [t for t in tags if t != "precheck_interfoam"]
     tags.append("precheck_thermo")
     return _ok(tags, [])

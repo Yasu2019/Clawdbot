@@ -341,14 +341,19 @@ EXPERIMENTS = [
             {
                 "T_melt": 513,
                 "T_mold": 323,
-                "polymer_nu": 0.01,
+                "viscosity_model": "wlf",
+                "wlf_mu0": 12000.0,
+                "wlf_Tr": 273.0,
+                "wlf_C1": 8.86,
+                "wlf_C2": 51.6,
+                "wlf_Pr": 0.7,
                 "inlet_velocity": 1.0,
                 "gate_position": "center",
             },
         ],
         "lesson_template": (
             "VOF thermo: T_melt={T_melt}, T_mold={T_mold}, inlet_U={inlet_velocity}. "
-            "Status={status}. Phase 3 compressibleInterFoam (kpi_source=thermo_const_mu)."
+            "Status={status}. Phase 3b WLF gate-mu injection (kpi_source=wlf_semi_coupled_proxy)."
         ),
     },
     # ── OpenFOAM: Resin Flow Multi-Gate Optimization ──────────────────────
@@ -629,6 +634,67 @@ def _inject_parameters(rad_content: str, params: dict, category: str) -> str:
     return content
 
 
+_WLF_MU_MIN = 1e-4
+_WLF_MU_MAX = 1.0e5
+
+
+def _wlf_dynamic_viscosity(mu0: float, tr: float, c1: float, c2: float, t_k: float) -> float:
+    """OpenFOAM WLF: mu = mu0 * exp(-C1*(T-Tr)/(C2+T-Tr)), clamped for T < Tr."""
+    dt = t_k - tr
+    denom = c2 + dt
+    if denom < 1.0:
+        return min(_WLF_MU_MAX, max(_WLF_MU_MIN, mu0 * 3.0))
+    mu = mu0 * math.exp(-c1 * dt / denom)
+    return min(_WLF_MU_MAX, max(_WLF_MU_MIN, mu))
+
+
+def _resolve_wlf_params(params: dict) -> dict:
+    """WLF coeffs (Williams-Landel-Ferry; not Moldflow Cross-WLF)."""
+    t_melt = float(params.get("T_melt", 513))
+    t_mold = float(params.get("T_mold", 323))
+    # Tr must be below T_mold/T_melt so (C2 + T - Tr) stays positive in the cavity.
+    t_ref = float(params.get("wlf_Tr", min(t_mold, 373.0) - 50.0))
+    return {
+        "mu0": float(params.get("wlf_mu0", 12000.0)),
+        "Tr": t_ref,
+        "C1": float(params.get("wlf_C1", 8.86)),
+        "C2": float(params.get("wlf_C2", params.get("cross_wlf_A2", 51.6))),
+        "Pr": float(params.get("wlf_Pr", 0.7)),
+    }
+
+
+def _wlf_mu_table_text(params: dict) -> tuple[str, str]:
+    """Build OpenFOAM tabulated mu(T) and kappa(T) from WLF proxy."""
+    w = _resolve_wlf_params(params)
+    cp = 1500.0
+    pr = max(w["Pr"], 0.1)
+    t_melt = float(params.get("T_melt", 513))
+    t_mold = float(params.get("T_mold", 323))
+    temps = sorted(
+        {
+            300.0,
+            t_mold,
+            350.0,
+            400.0,
+            450.0,
+            w["Tr"],
+            500.0,
+            t_melt,
+            530.0,
+        }
+    )
+    mu_lines = []
+    kappa_lines = []
+    for t_k in temps:
+        mu = max(1e-4, _wlf_dynamic_viscosity(w["mu0"], w["Tr"], w["C1"], w["C2"], t_k))
+        kappa = mu * cp / pr
+        mu_lines.append(f"            ({t_k:.2f} {mu:.6g})")
+        kappa_lines.append(f"            ({t_k:.2f} {kappa:.6g})")
+    mu_block = "mu\n        (\n" + "\n".join(mu_lines) + "\n        );"
+    kappa_block = "kappa\n        (\n" + "\n".join(kappa_lines) + "\n        );"
+    return mu_block, kappa_block
+
+
 def _inject_parameters_openfoam(file_name: str, content: str, params: dict) -> str:
     """Inject transport and inlet_velocity into OpenFOAM dictionary files."""
     import re
@@ -677,10 +743,18 @@ def _inject_parameters_openfoam(file_name: str, content: str, params: dict) -> s
         t_mold = float(params.get("T_mold", 323))
         content = content.replace("T_MELT_PLACEHOLDER", f"{t_melt:.2f}")
         content = content.replace("T_MOLD_PLACEHOLDER", f"{t_mold:.2f}")
-    elif "thermophysicalProperties.polymer" in fn and "polymer_nu" in params:
-        nu = float(params["polymer_nu"])
-        mu = max(1e-4, nu * 1200.0)
-        content = re.sub(r"(mu\s+)[0-9.eE+-]+;", f"\\g<1>{mu:.6f};", content, count=1)
+    elif "thermophysicalProperties.polymer" in fn:
+        vm = str(params.get("viscosity_model", "wlf")).lower()
+        if vm == "const" and "polymer_nu" in params:
+            nu = float(params["polymer_nu"])
+            mu = max(1e-4, nu * 1200.0)
+        elif vm == "wlf":
+            w = _resolve_wlf_params(params)
+            t_melt = float(params.get("T_melt", 513))
+            mu = _wlf_dynamic_viscosity(w["mu0"], w["Tr"], w["C1"], w["C2"], t_melt)
+        else:
+            mu = 12.0
+        content = content.replace("MU_CONST_PLACEHOLDER", f"{mu:.6f}")
     elif "U" in file_name:
         # Determine gate configuration (multi-gate variable gate injection)
         gc = params.get("gate_count", 1)
@@ -1360,7 +1434,11 @@ def _run_openfoam(exp: dict, params: dict, dry_run: bool, timeout: int, trial_id
                 t_path.write_bytes(t_content.encode("utf-8"))
 
             th_poly = run_dir / "constant" / "thermophysicalProperties.polymer"
-            if th_poly.exists() and "polymer_nu" in params:
+            if th_poly.exists() and (
+                "viscosity_model" in params
+                or "polymer_nu" in params
+                or any(k in params for k in ("wlf_mu0", "wlf_Tr", "wlf_C1", "wlf_C2"))
+            ):
                 th_content = th_poly.read_text(encoding="utf-8").replace("\r\n", "\n").replace("\r", "\n")
                 th_content = _inject_parameters_openfoam(
                     "constant/thermophysicalProperties.polymer", th_content, params
@@ -1427,7 +1505,7 @@ def _run_openfoam(exp: dict, params: dict, dry_run: bool, timeout: int, trial_id
             if solver in ("interFoam", "compressibleInterFoam") or (run_dir / "0" / "alpha.polymer").exists():
                 kpis.update(_extract_vof_fill_kpis(run_dir))
             if solver == "compressibleInterFoam" or (run_dir / "0" / "T").exists():
-                kpis.update(_extract_thermo_kpis(run_dir))
+                kpis.update(_extract_thermo_kpis(run_dir, params))
         except Exception as exc:
             kpi_error = str(exc)
         evidence = {}
@@ -1563,8 +1641,32 @@ def _parse_scalar_field_stats(field_path: Path) -> tuple[float, float]:
     return min(nums), max(nums)
 
 
-def _extract_thermo_kpis(run_dir: Path) -> dict:
+def _thermo_viscosity_kpi_source(run_dir: Path) -> str:
+    poly = run_dir / "constant" / "thermophysicalProperties.polymer"
+    if not poly.exists():
+        return "thermo_unknown"
+    text = poly.read_text(encoding="utf-8", errors="replace")
+    if "wlf_semi_coupled_proxy" in text:
+        return "wlf_semi_coupled_proxy"
+    return "thermo_const_mu"
+
+
+def _parse_wlf_coeffs_from_polymer(run_dir: Path, params: dict | None = None) -> dict | None:
+    """Return WLF coeffs from trial params or native WLF entries in polymer file."""
+    if params and str(params.get("viscosity_model", "wlf")).lower() != "const":
+        return _resolve_wlf_params(params)
+    poly = run_dir / "constant" / "thermophysicalProperties.polymer"
+    if not poly.exists():
+        return None
+    text = poly.read_text(encoding="utf-8", errors="replace")
+    return None
+
+
+def _extract_thermo_kpis(run_dir: Path, params: dict | None = None) -> dict:
     """Temperature KPIs from latest time directory (mixture T field)."""
+    kpi_source = _thermo_viscosity_kpi_source(run_dir)
+    if params and str(params.get("viscosity_model", "wlf")).lower() == "wlf":
+        kpi_source = "wlf_semi_coupled_proxy"
     times: list[float] = []
     for child in run_dir.iterdir():
         if not child.is_dir():
@@ -1579,19 +1681,40 @@ def _extract_thermo_kpis(run_dir: Path) -> dict:
         t0 = run_dir / "0" / "T"
         if t0.exists():
             t_min, t_max = _parse_scalar_field_stats(t0)
-            return {
+            out = {
                 "T_min": round(t_min, 2),
                 "T_max": round(t_max, 2),
-                "kpi_source": "thermo_const_mu",
+                "kpi_source": kpi_source,
             }
+            wlf = _parse_wlf_coeffs_from_polymer(run_dir, params)
+            t_melt = float((params or {}).get("T_melt", 513))
+            t_mold = float((params or {}).get("T_mold", 323))
+            if wlf and kpi_source == "wlf_semi_coupled_proxy":
+                out["mu_proxy_melt_Pa_s"] = round(
+                    _wlf_dynamic_viscosity(wlf["mu0"], wlf["Tr"], wlf["C1"], wlf["C2"], t_melt), 4
+                )
+                out["mu_proxy_mold_Pa_s"] = round(
+                    _wlf_dynamic_viscosity(wlf["mu0"], wlf["Tr"], wlf["C1"], wlf["C2"], t_mold), 4
+                )
+            return out
         return {}
     times.sort()
     t_min, t_max = _parse_scalar_field_stats(run_dir / f"{times[-1]:g}" / "T")
     out = {
         "T_min": round(t_min, 2),
         "T_max": round(t_max, 2),
-        "kpi_source": "thermo_const_mu",
+        "kpi_source": kpi_source,
     }
+    wlf = _parse_wlf_coeffs_from_polymer(run_dir, params)
+    t_melt = float((params or {}).get("T_melt", 513))
+    t_mold = float((params or {}).get("T_mold", 323))
+    if wlf and kpi_source == "wlf_semi_coupled_proxy":
+        out["mu_proxy_melt_Pa_s"] = round(
+            _wlf_dynamic_viscosity(wlf["mu0"], wlf["Tr"], wlf["C1"], wlf["C2"], t_melt), 4
+        )
+        out["mu_proxy_mold_Pa_s"] = round(
+            _wlf_dynamic_viscosity(wlf["mu0"], wlf["Tr"], wlf["C1"], wlf["C2"], t_mold), 4
+        )
     try:
         (run_dir / "thermo_fill_kpis.json").write_text(
             json.dumps(out, ensure_ascii=False, indent=2), encoding="utf-8"
@@ -1775,7 +1898,11 @@ def _assess_openfoam(run_result: dict, exp: dict) -> dict:
             if category == "resin_fill_thermo":
                 defects_extra["T_max"] = float(kpi_values.get("T_max", 0.0) or 0.0)
                 defects_extra["T_min"] = float(kpi_values.get("T_min", 0.0) or 0.0)
-                defects_extra["kpi_source"] = kpi_values.get("kpi_source", "thermo_const_mu")
+                defects_extra["kpi_source"] = kpi_values.get("kpi_source", "wlf_semi_coupled_proxy")
+                if kpi_values.get("mu_proxy_melt_Pa_s") is not None:
+                    defects_extra["mu_proxy_melt_Pa_s"] = kpi_values["mu_proxy_melt_Pa_s"]
+                if kpi_values.get("mu_proxy_mold_Pa_s") is not None:
+                    defects_extra["mu_proxy_mold_Pa_s"] = kpi_values["mu_proxy_mold_Pa_s"]
                 if fill_pct < 10.0:
                     verdict = "FAILED"
             elif fill_pct < 50.0:

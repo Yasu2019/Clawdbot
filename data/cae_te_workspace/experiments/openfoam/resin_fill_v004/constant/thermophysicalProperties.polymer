@@ -1,5 +1,5 @@
 /*--------------------------------*- C++ -*----------------------------------*\
-| Moldflow Phase 3: polymer phase (compressibleInterFoam / rhoThermo)       |
+| Moldflow Phase 3: polymer (const mu; WLF applied at injection when 3b)    |
 \*---------------------------------------------------------------------------*/
 FoamFile
 {
@@ -38,7 +38,7 @@ mixture
     }
     transport
     {
-        mu          12;
+        mu          MU_CONST_PLACEHOLDER;
         Pr          0.7;
     }
 }

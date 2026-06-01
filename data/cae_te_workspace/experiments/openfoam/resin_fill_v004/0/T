@@ -16,39 +16,39 @@ FoamFile
 
 dimensions      [0 0 0 1 0 0 0];
 
-internalField   uniform 323;
+internalField   uniform T_MOLD_PLACEHOLDER;
 
 boundaryField
 {
     inlet1
     {
         type            fixedValue;
-        value           uniform 323;
+        value           uniform T_MOLD_PLACEHOLDER;
     }
 
     inlet2
     {
         type            fixedValue;
-        value           uniform 513;
+        value           uniform T_MELT_PLACEHOLDER;
     }
 
     inlet3
     {
         type            fixedValue;
-        value           uniform 323;
+        value           uniform T_MOLD_PLACEHOLDER;
     }
 
     outlet
     {
         type            inletOutlet;
-        inletValue      uniform 323;
-        value           uniform 323;
+        inletValue      uniform T_MOLD_PLACEHOLDER;
+        value           uniform T_MOLD_PLACEHOLDER;
     }
 
     walls
     {
         type            fixedValue;
-        value           uniform 323;
+        value           uniform T_MOLD_PLACEHOLDER;
     }
 
     frontAndBack

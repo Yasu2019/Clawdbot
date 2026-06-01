@@ -40,7 +40,8 @@
 | Step | Model | Purpose |
 |------|--------|---------|
 | **3a (this sprint)** | **`Arrhenius`** (or temperature-tabulated `mu` via `thermophysicalProperties` if Arrhenius does not fit VoF setup) | Prove **T -> viscosity -> fill** pipeline on LAVIE with measurable KPI. |
-| **3b (later)** | Tabulated `mu(T)` or custom `strainRateFunction` / external Cross-WLF port | Moldflow-class correlation; needs benchmark material card. |
+| **3b (2026-06-01)** | **WLF semi-coupled proxy** -- `viscosity_model=wlf` injects `mu = WLF(T_melt)` into const transport; KPI `mu_proxy_melt/mold`, `kpi_source=wlf_semi_coupled_proxy`. Native OF `WLF` transport FPE on `twoPhaseMixtureThermo` (OF2512); full field-coupled WLF deferred. |
+| **3b+ (later)** | Tabulated `mu(T)` with registered `hConst+rhoConst` combo, or custom solver | Moldflow-class field-coupled viscosity. |
 
 Do **not** label `CrossPowerLaw` as "Cross-WLF" in docs or KPIs.
 
