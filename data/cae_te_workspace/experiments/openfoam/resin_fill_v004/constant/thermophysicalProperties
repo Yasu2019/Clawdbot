@@ -1,0 +1,19 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| Mixture thermo switch (compressibleInterFoam twoPhaseMixtureThermo)         |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      thermophysicalProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+phases          (polymer air);
+
+sigma           [1 0 -2 0 0 0 0] 0.04;
+
+pMin            10000;
+
+// ************************************************************************* //

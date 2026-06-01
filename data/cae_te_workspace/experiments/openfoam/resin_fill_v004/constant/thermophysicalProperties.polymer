@@ -1,0 +1,46 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| Moldflow Phase 3: polymer phase (compressibleInterFoam / rhoThermo)       |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      thermophysicalProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+thermoType
+{
+    type            heRhoThermo;
+    mixture         pureMixture;
+    transport       const;
+    thermo          hConst;
+    equationOfState rhoConst;
+    specie          specie;
+    energy          sensibleEnthalpy;
+}
+
+mixture
+{
+    specie
+    {
+        molWeight   42;
+    }
+    thermodynamics
+    {
+        Cp          1500;
+        Hf          0;
+    }
+    equationOfState
+    {
+        rho         1200;
+    }
+    transport
+    {
+        mu          12;
+        Pr          0.7;
+    }
+}
+
+// ************************************************************************* //
