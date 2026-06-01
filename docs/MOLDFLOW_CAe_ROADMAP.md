@@ -36,8 +36,8 @@ Router (LAVIE local, gitignored): `data/workspace/cae_workload_router.yaml` -> `
 | **0** | Categories + engine hooks + this doc | L2 | done |
 | **1** | Power Law + `nonNewtonianIcoFoam` | L3-L4 non-Newtonian | **verified LAVIE** |
 | **2** | `interFoam` VOF + fill % / time KPI | L5 VOF充填 | **verified K10+LAVIE** |
-| **3** | Temperature + Cross-WLF on VOF case | L5-L6 | planned |
-| **4** | Turbulence (runner/cooling only) | L5 | planned |
+| **3** | Temperature + WLF viscosity proxy on VOF | L5-L6 | **verified K10** (3b semi-coupled) |
+| **4** | Turbulence RAS k-omega SST (`resin_fill_turb` / v005) | L5 | **verified K10** (`local-p4-turb-003`) |
 | **5** | Pack / hold pressure | L6 保圧 | planned |
 | **6** | Cool + warpage proxy | L6-L7 冷却・収縮 | planned |
 | **7** | STEP cavity mesh (`snappyHexMesh`) | model_size L4+ | planned |

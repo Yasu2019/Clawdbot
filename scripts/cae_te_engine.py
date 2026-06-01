@@ -356,6 +356,39 @@ EXPERIMENTS = [
             "Status={status}. Phase 3b WLF gate-mu injection (kpi_source=wlf_semi_coupled_proxy)."
         ),
     },
+    # ── OpenFOAM: Moldflow Phase 4 VOF + RAS (interFoam k-omega SST) ─────
+    {
+        "id": "OF-FILL-005",
+        "solver": "openfoam",
+        "category": "resin_fill_turb",
+        "description": "Moldflow proxy: VOF fill with RAS k-omega SST (runner/cooling proxy)",
+        "input_dir": str(WORKSPACE / "experiments" / "openfoam" / "resin_fill_v005"),
+        "input_file": "constant/transportProperties",
+        "solver_binary": "interFoam",
+        "defect_targets": [
+            "fill_fraction_pct",
+            "fill_time_s",
+            "k_max",
+            "nut_max",
+            "short_shot_risk",
+        ],
+        "success_keyword": "End",
+        "failure_keywords": ["FOAM FATAL ERROR", "Fatal error", "divergence"],
+        "param_sweeps": [
+            {
+                "polymer_nu": 0.01,
+                "inlet_velocity": 1.0,
+                "gate_position": "center",
+                "use_turbulence": True,
+                "k_init": 0.01,
+                "omega_init": 50.0,
+            },
+        ],
+        "lesson_template": (
+            "VOF+RAS: polymer_nu={polymer_nu}, inlet_U={inlet_velocity}, k_init={k_init}. "
+            "Status={status}. interFoam k-omega SST Phase-4."
+        ),
+    },
     # ── OpenFOAM: Resin Flow Multi-Gate Optimization ──────────────────────
     {
         "id": "OF-FLOW-OPT-001",
@@ -743,6 +776,12 @@ def _inject_parameters_openfoam(file_name: str, content: str, params: dict) -> s
         t_mold = float(params.get("T_mold", 323))
         content = content.replace("T_MELT_PLACEHOLDER", f"{t_melt:.2f}")
         content = content.replace("T_MOLD_PLACEHOLDER", f"{t_mold:.2f}")
+    elif fn.endswith("/0/k") or fn.endswith("/k"):
+        k_init = float(params.get("k_init", 0.01))
+        content = content.replace("K_INIT_PLACEHOLDER", f"{k_init:.6g}")
+    elif fn.endswith("/0/omega") or fn.endswith("/omega"):
+        omega_init = float(params.get("omega_init", 50.0))
+        content = content.replace("OMEGA_INIT_PLACEHOLDER", f"{omega_init:.6g}")
     elif "thermophysicalProperties.polymer" in fn:
         vm = str(params.get("viscosity_model", "wlf")).lower()
         if vm == "const" and "polymer_nu" in params:
@@ -1380,6 +1419,8 @@ def _run_openfoam(exp: dict, params: dict, dry_run: bool, timeout: int, trial_id
     if GATES_ENABLED:
         if solver == "compressibleInterFoam":
             pre = cae_gates.precheck_openfoam_thermo_case(template_dir)
+        elif solver == "interFoam" and exp.get("category") == "resin_fill_turb":
+            pre = cae_gates.precheck_openfoam_interfoam_turb_case(template_dir)
         elif solver == "interFoam":
             pre = cae_gates.precheck_openfoam_interfoam_case(template_dir)
         else:
@@ -1426,6 +1467,13 @@ def _run_openfoam(exp: dict, params: dict, dry_run: bool, timeout: int, trial_id
             u_content = u_path.read_text(encoding="utf-8").replace("\r\n", "\n").replace("\r", "\n")
             u_content = _inject_parameters_openfoam("0/U", u_content, params)
             u_path.write_bytes(u_content.encode("utf-8"))
+
+            for turb_field in ("k", "omega"):
+                tf_path = run_dir / "0" / turb_field
+                if tf_path.exists():
+                    tf_content = tf_path.read_text(encoding="utf-8").replace("\r\n", "\n").replace("\r", "\n")
+                    tf_content = _inject_parameters_openfoam(f"0/{turb_field}", tf_content, params)
+                    tf_path.write_bytes(tf_content.encode("utf-8"))
 
             t_path = run_dir / "0" / "T"
             if t_path.exists():
@@ -1506,6 +1554,8 @@ def _run_openfoam(exp: dict, params: dict, dry_run: bool, timeout: int, trial_id
                 kpis.update(_extract_vof_fill_kpis(run_dir))
             if solver == "compressibleInterFoam" or (run_dir / "0" / "T").exists():
                 kpis.update(_extract_thermo_kpis(run_dir, params))
+            if (run_dir / "0" / "k").exists():
+                kpis.update(_extract_ras_kpis(run_dir))
         except Exception as exc:
             kpi_error = str(exc)
         evidence = {}
@@ -1576,6 +1626,40 @@ def _parse_alpha_volume_fraction(alpha_path: Path) -> float:
     if not vals:
         return 0.0
     return sum(vals) / len(vals)
+
+
+def _extract_ras_kpis(run_dir: Path) -> dict:
+    """RAS turbulence KPIs from latest time (k, nut)."""
+    times: list[float] = []
+    for child in run_dir.iterdir():
+        if not child.is_dir():
+            continue
+        try:
+            t = float(child.name)
+        except ValueError:
+            continue
+        if (child / "k").exists():
+            times.append(t)
+    out: dict = {"kpi_source": "ras_komega_sst"}
+    if not times:
+        k0 = run_dir / "0" / "k"
+        if k0.exists():
+            _, k_max = _parse_scalar_field_stats(k0)
+            out["k_max"] = round(k_max, 6)
+        nut0 = run_dir / "0" / "nut"
+        if nut0.exists():
+            _, nut_max = _parse_scalar_field_stats(nut0)
+            out["nut_max"] = round(nut_max, 6)
+        return out
+    times.sort()
+    latest = run_dir / f"{times[-1]:g}"
+    _, k_max = _parse_scalar_field_stats(latest / "k")
+    out["k_max"] = round(k_max, 6)
+    nut_path = latest / "nut"
+    if nut_path.exists():
+        _, nut_max = _parse_scalar_field_stats(nut_path)
+        out["nut_max"] = round(nut_max, 6)
+    return out
 
 
 def _extract_vof_fill_kpis(run_dir: Path) -> dict:
@@ -1886,8 +1970,8 @@ def _assess_openfoam(run_result: dict, exp: dict) -> dict:
                 pass
 
     defects = {}
-    if category in ("resin_flow", "resin_fill", "resin_fill_vof", "resin_fill_thermo"):
-        if category in ("resin_fill_vof", "resin_fill_thermo"):
+    if category in ("resin_flow", "resin_fill", "resin_fill_vof", "resin_fill_thermo", "resin_fill_turb"):
+        if category in ("resin_fill_vof", "resin_fill_thermo", "resin_fill_turb"):
             defects_extra = {}
             viscosity = float(actual_params.get("polymer_nu", 0.01))
             fill_pct = float(kpi_values.get("fill_fraction_pct", 0.0) or 0.0)
@@ -1895,7 +1979,13 @@ def _assess_openfoam(run_result: dict, exp: dict) -> dict:
             defects_extra["fill_fraction_pct"] = fill_pct
             defects_extra["fill_time_s"] = fill_time
             defects_extra["fill_complete"] = bool(kpi_values.get("fill_complete"))
-            if category == "resin_fill_thermo":
+            if category == "resin_fill_turb":
+                defects_extra["k_max"] = float(kpi_values.get("k_max", 0.0) or 0.0)
+                defects_extra["nut_max"] = float(kpi_values.get("nut_max", 0.0) or 0.0)
+                defects_extra["kpi_source"] = kpi_values.get("kpi_source", "ras_komega_sst")
+                if fill_pct < 50.0:
+                    verdict = "FAILED"
+            elif category == "resin_fill_thermo":
                 defects_extra["T_max"] = float(kpi_values.get("T_max", 0.0) or 0.0)
                 defects_extra["T_min"] = float(kpi_values.get("T_min", 0.0) or 0.0)
                 defects_extra["kpi_source"] = kpi_values.get("kpi_source", "wlf_semi_coupled_proxy")
@@ -1977,7 +2067,7 @@ def _assess_openfoam(run_result: dict, exp: dict) -> dict:
         defects["weldline_severity"] = float(f"{weldline:.4f}")
         defects["sink_mark_risk"] = float(f"{sink_mark:.4f}")
         defects["flow_front_velocity_mms"] = float(f"{velocity * 100.0:.2f}")
-        if category in ("resin_fill", "resin_fill_vof", "resin_fill_thermo"):
+        if category in ("resin_fill", "resin_fill_vof", "resin_fill_thermo", "resin_fill_turb"):
             defects.update(defects_extra)
 
     expected_kpis = exp.get("expected_kpis")
@@ -2632,7 +2722,8 @@ def run_single_trial(
             know_how=lesson,
             artifact_path=str(run_result.get("run_dir") or ""),
                 difficulty=1 if category_name in (
-                    "resin_flow", "resin_fill", "resin_fill_vof", "resin_fill_thermo", "press_blanking_stripper"
+                    "resin_flow", "resin_fill", "resin_fill_vof", "resin_fill_thermo", "resin_fill_turb",
+                    "press_blanking_stripper"
                 ) else 2,
             evidence=assessment.get("failure_evidence", {}),
         )
@@ -2660,7 +2751,8 @@ if __name__ == "__main__":
     parser.add_argument("--category", type=str, default=None,
                         choices=["press_bending", "press_blanking", "press_drawing",
                                  "press_crushing", "press_blanking_stripper", "resin_flow", "resin_fill",
-                                 "resin_fill_vof", "resin_fill_thermo", "resin_flow_opt", "progressive_strip_layout"],
+                                 "resin_fill_vof", "resin_fill_thermo", "resin_fill_turb", "resin_flow_opt",
+                                 "progressive_strip_layout"],
                         help="Run only trials in this category")
     args = parser.parse_args()
 

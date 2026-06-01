@@ -1,0 +1,56 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| Specific dissipation rate (Phase 4 RAS k-omega SST)                         |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    object      omega;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 0 -1 0 0 0 0];
+
+internalField   uniform OMEGA_INIT_PLACEHOLDER;
+
+boundaryField
+{
+    inlet1
+    {
+        type            fixedValue;
+        value           uniform OMEGA_INIT_PLACEHOLDER;
+    }
+
+    inlet2
+    {
+        type            fixedValue;
+        value           uniform OMEGA_INIT_PLACEHOLDER;
+    }
+
+    inlet3
+    {
+        type            fixedValue;
+        value           uniform OMEGA_INIT_PLACEHOLDER;
+    }
+
+    outlet
+    {
+        type            inletOutlet;
+        inletValue      uniform OMEGA_INIT_PLACEHOLDER;
+        value           uniform OMEGA_INIT_PLACEHOLDER;
+    }
+
+    walls
+    {
+        type            omegaWallFunction;
+        value           uniform OMEGA_INIT_PLACEHOLDER;
+    }
+
+    frontAndBack
+    {
+        type            empty;
+    }
+}
+
+// ************************************************************************* //

@@ -1,0 +1,56 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| Turbulent kinetic energy (Phase 4 RAS)                                      |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    object      k;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 2 -2 0 0 0 0];
+
+internalField   uniform K_INIT_PLACEHOLDER;
+
+boundaryField
+{
+    inlet1
+    {
+        type            fixedValue;
+        value           uniform K_INIT_PLACEHOLDER;
+    }
+
+    inlet2
+    {
+        type            fixedValue;
+        value           uniform K_INIT_PLACEHOLDER;
+    }
+
+    inlet3
+    {
+        type            fixedValue;
+        value           uniform K_INIT_PLACEHOLDER;
+    }
+
+    outlet
+    {
+        type            inletOutlet;
+        inletValue      uniform K_INIT_PLACEHOLDER;
+        value           uniform K_INIT_PLACEHOLDER;
+    }
+
+    walls
+    {
+        type            kqRWallFunction;
+        value           uniform K_INIT_PLACEHOLDER;
+    }
+
+    frontAndBack
+    {
+        type            empty;
+    }
+}
+
+// ************************************************************************* //

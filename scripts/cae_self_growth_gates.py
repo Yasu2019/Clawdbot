@@ -82,6 +82,36 @@ def precheck_openfoam_interfoam_case(case_dir: Path) -> PreGateResult:
     return _ok(["precheck_ok", "precheck_interfoam"], [])
 
 
+def precheck_openfoam_interfoam_turb_case(case_dir: Path) -> PreGateResult:
+    """VOF + RAS k-omega SST (Phase 4)."""
+    base = precheck_openfoam_interfoam_case(case_dir)
+    if not base.ok:
+        return base
+    tags: list[str] = list(base.tags)
+    issues: list[str] = list(base.issues)
+    for rel, tag in (
+        ("0/k", "precheck_missing_k"),
+        ("0/omega", "precheck_missing_omega"),
+        ("0/nut", "precheck_missing_nut"),
+    ):
+        if not (case_dir / rel).exists():
+            tags.append(tag)
+            issues.append(f"Missing: {rel}")
+    turb = case_dir / "constant" / "turbulenceProperties"
+    if turb.exists():
+        txt = turb.read_text(encoding="utf-8", errors="replace")
+        if "simulationType  RAS" not in txt and "simulationType  RAS;" not in txt:
+            tags.append("precheck_turb_not_ras")
+            issues.append("turbulenceProperties must set simulationType RAS for Phase 4")
+        if "kOmegaSST" not in txt:
+            tags.append("precheck_turb_not_kOmegaSST")
+            issues.append("RASModel must be kOmegaSST")
+    if any(t.startswith("precheck_") and t not in ("precheck_ok", "precheck_interfoam") for t in tags):
+        return _ng(tags, issues)
+    tags.append("precheck_turb")
+    return _ok(tags, issues)
+
+
 def precheck_openfoam_thermo_case(case_dir: Path) -> PreGateResult:
     """Thermo VOF / compressibleInterFoam (Phase 3)."""
     base = precheck_openfoam_interfoam_case(case_dir)
