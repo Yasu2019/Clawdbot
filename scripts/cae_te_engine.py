@@ -319,6 +319,38 @@ EXPERIMENTS = [
             "Status={status}. interFoam Moldflow Phase-2 (see defects fill_fraction_pct)."
         ),
     },
+    # ── OpenFOAM: Moldflow Phase 3 thermo VOF (compressibleInterFoam) ─────
+    {
+        "id": "OF-FILL-004",
+        "solver": "openfoam",
+        "category": "resin_fill_thermo",
+        "description": "Moldflow proxy: VOF + temperature (compressibleInterFoam, heRhoThermo)",
+        "input_dir": str(WORKSPACE / "experiments" / "openfoam" / "resin_fill_v004"),
+        "input_file": "constant/thermophysicalProperties",
+        "solver_binary": "compressibleInterFoam",
+        "defect_targets": [
+            "fill_fraction_pct",
+            "fill_time_s",
+            "T_max",
+            "T_min",
+            "short_shot_risk",
+        ],
+        "success_keyword": "End",
+        "failure_keywords": ["FOAM FATAL ERROR", "Fatal error", "divergence"],
+        "param_sweeps": [
+            {
+                "T_melt": 513,
+                "T_mold": 323,
+                "polymer_nu": 0.01,
+                "inlet_velocity": 1.0,
+                "gate_position": "center",
+            },
+        ],
+        "lesson_template": (
+            "VOF thermo: T_melt={T_melt}, T_mold={T_mold}, inlet_U={inlet_velocity}. "
+            "Status={status}. Phase 3 compressibleInterFoam (kpi_source=thermo_const_mu)."
+        ),
+    },
     # ── OpenFOAM: Resin Flow Multi-Gate Optimization ──────────────────────
     {
         "id": "OF-FLOW-OPT-001",
@@ -639,6 +671,16 @@ def _inject_parameters_openfoam(file_name: str, content: str, params: dict) -> s
             r"(nu\s+\[0\s+2\s+-1\s+0\s+0\s+0\s+0\]\s+)[0-9.]+;",
             f"\\g<1>{nu:.6f};", content
         )
+    fn = file_name.replace("\\", "/")
+    if fn.endswith("/0/T") or fn.endswith("/T"):
+        t_melt = float(params.get("T_melt", 513))
+        t_mold = float(params.get("T_mold", 323))
+        content = content.replace("T_MELT_PLACEHOLDER", f"{t_melt:.2f}")
+        content = content.replace("T_MOLD_PLACEHOLDER", f"{t_mold:.2f}")
+    elif "thermophysicalProperties.polymer" in fn and "polymer_nu" in params:
+        nu = float(params["polymer_nu"])
+        mu = max(1e-4, nu * 1200.0)
+        content = re.sub(r"(mu\s+)[0-9.eE+-]+;", f"\\g<1>{mu:.6f};", content, count=1)
     elif "U" in file_name:
         # Determine gate configuration (multi-gate variable gate injection)
         gc = params.get("gate_count", 1)
@@ -1262,7 +1304,9 @@ def _run_openfoam(exp: dict, params: dict, dry_run: bool, timeout: int, trial_id
     run_dir = runs_dir / trial_id
 
     if GATES_ENABLED:
-        if solver == "interFoam":
+        if solver == "compressibleInterFoam":
+            pre = cae_gates.precheck_openfoam_thermo_case(template_dir)
+        elif solver == "interFoam":
             pre = cae_gates.precheck_openfoam_interfoam_case(template_dir)
         else:
             pre = cae_gates.precheck_openfoam_case(template_dir)
@@ -1308,6 +1352,20 @@ def _run_openfoam(exp: dict, params: dict, dry_run: bool, timeout: int, trial_id
             u_content = u_path.read_text(encoding="utf-8").replace("\r\n", "\n").replace("\r", "\n")
             u_content = _inject_parameters_openfoam("0/U", u_content, params)
             u_path.write_bytes(u_content.encode("utf-8"))
+
+            t_path = run_dir / "0" / "T"
+            if t_path.exists():
+                t_content = t_path.read_text(encoding="utf-8").replace("\r\n", "\n").replace("\r", "\n")
+                t_content = _inject_parameters_openfoam("0/T", t_content, params)
+                t_path.write_bytes(t_content.encode("utf-8"))
+
+            th_poly = run_dir / "constant" / "thermophysicalProperties.polymer"
+            if th_poly.exists() and "polymer_nu" in params:
+                th_content = th_poly.read_text(encoding="utf-8").replace("\r\n", "\n").replace("\r", "\n")
+                th_content = _inject_parameters_openfoam(
+                    "constant/thermophysicalProperties.polymer", th_content, params
+                )
+                th_poly.write_bytes(th_content.encode("utf-8"))
     except Exception as e:
         print(f"  [ERR] OpenFOAM preprocessor parameter injection failed: {e}")
         return {"status": "ERROR", "log": f"Preprocessor injection error: {e}", "duration_sec": 0, "run_dir": str(run_dir)}
@@ -1324,7 +1382,7 @@ def _run_openfoam(exp: dict, params: dict, dry_run: bool, timeout: int, trial_id
     if (template_dir / "system" / "setFieldsDict").exists():
         setfields_cmd = " && setFields 2>&1"
     restore_ascii_cmd = ""
-    if solver == "interFoam":
+    if solver in ("interFoam", "compressibleInterFoam"):
         restore_ascii_cmd = (
             " && for f in fvSchemes fvSolution controlDict; do "
             "if [ -f system/${f}.ascii ]; then cp -f system/${f}.ascii system/${f}; fi; done"
@@ -1366,8 +1424,10 @@ def _run_openfoam(exp: dict, params: dict, dry_run: bool, timeout: int, trial_id
         kpi_error = None
         try:
             kpis, kpi_cmd = _extract_openfoam_kpis(run_dir, docker_mount_path)
-            if solver == "interFoam" or (run_dir / "0" / "alpha.polymer").exists():
+            if solver in ("interFoam", "compressibleInterFoam") or (run_dir / "0" / "alpha.polymer").exists():
                 kpis.update(_extract_vof_fill_kpis(run_dir))
+            if solver == "compressibleInterFoam" or (run_dir / "0" / "T").exists():
+                kpis.update(_extract_thermo_kpis(run_dir))
         except Exception as exc:
             kpi_error = str(exc)
         evidence = {}
@@ -1475,6 +1535,67 @@ def _extract_vof_fill_kpis(run_dir: Path) -> dict:
     try:
         artifact = run_dir / "vof_fill_kpis.json"
         artifact.write_text(json.dumps(out, ensure_ascii=False, indent=2), encoding="utf-8")
+    except Exception:
+        pass
+    return out
+
+
+def _parse_scalar_field_stats(field_path: Path) -> tuple[float, float]:
+    """Min/max from OpenFOAM volScalarField (uniform or nonuniform list)."""
+    import re
+
+    text = field_path.read_text(encoding="utf-8", errors="replace")
+    m_uni = re.search(r"internalField\s+uniform\s+([0-9.eE+-]+)", text)
+    if m_uni:
+        v = float(m_uni.group(1))
+        return v, v
+    m = re.search(
+        r"internalField\s+nonuniform\s+List<scalar>\s*\n\s*(\d+)\s*\n\s*\("
+        r"([\s\S]*?)\)\s*;\s*\n\s*boundaryField",
+        text,
+    )
+    if not m:
+        return 0.0, 0.0
+    count = int(m.group(1))
+    nums = [float(x) for x in re.findall(r"[-+]?\d*\.?\d+(?:[eE][-+]?\d+)?", m.group(2))[:count]]
+    if not nums:
+        return 0.0, 0.0
+    return min(nums), max(nums)
+
+
+def _extract_thermo_kpis(run_dir: Path) -> dict:
+    """Temperature KPIs from latest time directory (mixture T field)."""
+    times: list[float] = []
+    for child in run_dir.iterdir():
+        if not child.is_dir():
+            continue
+        try:
+            t = float(child.name)
+        except ValueError:
+            continue
+        if (child / "T").exists():
+            times.append(t)
+    if not times:
+        t0 = run_dir / "0" / "T"
+        if t0.exists():
+            t_min, t_max = _parse_scalar_field_stats(t0)
+            return {
+                "T_min": round(t_min, 2),
+                "T_max": round(t_max, 2),
+                "kpi_source": "thermo_const_mu",
+            }
+        return {}
+    times.sort()
+    t_min, t_max = _parse_scalar_field_stats(run_dir / f"{times[-1]:g}" / "T")
+    out = {
+        "T_min": round(t_min, 2),
+        "T_max": round(t_max, 2),
+        "kpi_source": "thermo_const_mu",
+    }
+    try:
+        (run_dir / "thermo_fill_kpis.json").write_text(
+            json.dumps(out, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
     except Exception:
         pass
     return out
@@ -1642,8 +1763,8 @@ def _assess_openfoam(run_result: dict, exp: dict) -> dict:
                 pass
 
     defects = {}
-    if category in ("resin_flow", "resin_fill", "resin_fill_vof"):
-        if category == "resin_fill_vof":
+    if category in ("resin_flow", "resin_fill", "resin_fill_vof", "resin_fill_thermo"):
+        if category in ("resin_fill_vof", "resin_fill_thermo"):
             defects_extra = {}
             viscosity = float(actual_params.get("polymer_nu", 0.01))
             fill_pct = float(kpi_values.get("fill_fraction_pct", 0.0) or 0.0)
@@ -1651,7 +1772,13 @@ def _assess_openfoam(run_result: dict, exp: dict) -> dict:
             defects_extra["fill_fraction_pct"] = fill_pct
             defects_extra["fill_time_s"] = fill_time
             defects_extra["fill_complete"] = bool(kpi_values.get("fill_complete"))
-            if fill_pct < 50.0:
+            if category == "resin_fill_thermo":
+                defects_extra["T_max"] = float(kpi_values.get("T_max", 0.0) or 0.0)
+                defects_extra["T_min"] = float(kpi_values.get("T_min", 0.0) or 0.0)
+                defects_extra["kpi_source"] = kpi_values.get("kpi_source", "thermo_const_mu")
+                if fill_pct < 10.0:
+                    verdict = "FAILED"
+            elif fill_pct < 50.0:
                 verdict = "FAILED"
         elif category == "resin_fill":
             nu0 = float(actual_params.get("power_law_nu0", 0.01))
@@ -1723,7 +1850,7 @@ def _assess_openfoam(run_result: dict, exp: dict) -> dict:
         defects["weldline_severity"] = float(f"{weldline:.4f}")
         defects["sink_mark_risk"] = float(f"{sink_mark:.4f}")
         defects["flow_front_velocity_mms"] = float(f"{velocity * 100.0:.2f}")
-        if category in ("resin_fill", "resin_fill_vof"):
+        if category in ("resin_fill", "resin_fill_vof", "resin_fill_thermo"):
             defects.update(defects_extra)
 
     expected_kpis = exp.get("expected_kpis")
@@ -2377,7 +2504,9 @@ def run_single_trial(
             status=verdict,
             know_how=lesson,
             artifact_path=str(run_result.get("run_dir") or ""),
-                difficulty=1 if category_name in ("resin_flow", "resin_fill", "resin_fill_vof", "press_blanking_stripper") else 2,
+                difficulty=1 if category_name in (
+                    "resin_flow", "resin_fill", "resin_fill_vof", "resin_fill_thermo", "press_blanking_stripper"
+                ) else 2,
             evidence=assessment.get("failure_evidence", {}),
         )
         _update_growth_stats(domain=growth_domain, challenge=growth_challenge, lesson=lesson)
@@ -2404,7 +2533,7 @@ if __name__ == "__main__":
     parser.add_argument("--category", type=str, default=None,
                         choices=["press_bending", "press_blanking", "press_drawing",
                                  "press_crushing", "press_blanking_stripper", "resin_flow", "resin_fill",
-                                 "resin_fill_vof", "resin_flow_opt", "progressive_strip_layout"],
+                                 "resin_fill_vof", "resin_fill_thermo", "resin_flow_opt", "progressive_strip_layout"],
                         help="Run only trials in this category")
     args = parser.parse_args()
 

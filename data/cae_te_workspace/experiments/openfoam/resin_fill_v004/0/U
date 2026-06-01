@@ -23,19 +23,19 @@ boundaryField
     inlet1
     {
         type            fixedValue;
-        value           uniform (1.0 0 0);
+        value           uniform (inlet1_velocity 0 0);
     }
 
     inlet2
     {
         type            fixedValue;
-        value           uniform (1.0 0 0);
+        value           uniform (inlet2_velocity 0 0);
     }
 
     inlet3
     {
         type            fixedValue;
-        value           uniform (0.0 0 0);
+        value           uniform (inlet3_velocity 0 0);
     }
 
     outlet

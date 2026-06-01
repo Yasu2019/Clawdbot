@@ -82,6 +82,30 @@ def precheck_openfoam_interfoam_case(case_dir: Path) -> PreGateResult:
     return _ok(["precheck_ok", "precheck_interfoam"], [])
 
 
+def precheck_openfoam_thermo_case(case_dir: Path) -> PreGateResult:
+    """Thermo VOF / compressibleInterFoam (Phase 3)."""
+    base = precheck_openfoam_interfoam_case(case_dir)
+    if not base.ok:
+        return base
+    tags: list[str] = list(base.tags)
+    issues: list[str] = list(base.issues)
+    for rel, tag in (
+        ("0/T", "precheck_missing_T"),
+        ("0/p", "precheck_missing_p"),
+        ("constant/thermophysicalProperties", "precheck_missing_thermophysicalProperties"),
+        ("constant/thermophysicalProperties.polymer", "precheck_missing_thermo_polymer"),
+        ("constant/thermophysicalProperties.air", "precheck_missing_thermo_air"),
+    ):
+        if not (case_dir / rel).exists():
+            tags.append(tag)
+            issues.append(f"Missing: {rel}")
+    if any(t.startswith("precheck_missing_") for t in tags if t != "precheck_ok"):
+        return _ng(tags, issues)
+    tags = [t for t in tags if t != "precheck_interfoam"]
+    tags.append("precheck_thermo")
+    return _ok(tags, [])
+
+
 def precheck_openradioss_case(case_dir: Path) -> PreGateResult:
     """Fail-fast checks for OpenRadioss template/case structure."""
     tags: list[str] = []
