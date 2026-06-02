@@ -55,6 +55,34 @@ def _get_optimizer():
 # ─── Paths ───────────────────────────────────────────────────────────────────
 ROOT = Path(__file__).resolve().parents[1]
 WORKSPACE = Path(os.environ.get("CAE_TE_WORKSPACE", str(ROOT / "data" / "cae_te_workspace")))
+
+# Legacy 2D OpenFOAM |U| ParaView is not used for moldflow / thin-duct proxy categories.
+_OPENFOAM_NO_PARAVIEW_CATEGORIES = frozenset(
+    {
+        "resin_flow",
+        "resin_flow_opt",
+        "resin_fill",
+        "resin_fill_vof",
+        "resin_fill_cad",
+        "resin_fill_doe",
+        "resin_fill_pack",
+        "resin_fill_cool",
+        "resin_fill_thermo",
+        "resin_fill_turb",
+    }
+)
+
+
+def _openfoam_skip_paraview(category: str, physics_category: str = "") -> bool:
+    cat = (category or "").strip()
+    phys = (physics_category or "").strip()
+    if cat in _OPENFOAM_NO_PARAVIEW_CATEGORIES:
+        return True
+    if cat.startswith("resin_fill") or cat.startswith("resin_flow"):
+        return True
+    if phys.startswith("resin_fill"):
+        return True
+    return False
 RESULTS_DIR = WORKSPACE / "results"
 STATUS_DIR = ROOT / "data" / "state" / "cae_te_engine"
 TE_LOG = RESULTS_DIR / "cae_te_log.json"
@@ -92,6 +120,18 @@ def _docker_resource_args() -> list[str]:
     cpus = os.environ.get("CAE_DOCKER_CPUS", "4").strip() or "4"
     memory = os.environ.get("CAE_DOCKER_MEMORY", "4g").strip() or "4g"
     return ["--memory=" + memory, "--cpus=" + cpus]
+
+
+def _docker_exe() -> str:
+    """Resolve docker CLI (Windows Store Python often lacks docker on PATH)."""
+    import shutil
+
+    return (
+        os.environ.get("DOCKER_EXE", "").strip()
+        or shutil.which("docker")
+        or shutil.which("docker.exe")
+        or "docker"
+    )
 
 
 def _openradioss_nthread() -> int:
@@ -387,6 +427,151 @@ EXPERIMENTS = [
         "lesson_template": (
             "VOF+RAS: polymer_nu={polymer_nu}, inlet_U={inlet_velocity}, k_init={k_init}. "
             "Status={status}. interFoam k-omega SST Phase-4."
+        ),
+    },
+    # ── OpenFOAM: Moldflow Phase 5 pack / hold (VOF + gate pressure) ─────
+    {
+        "id": "OF-FILL-006",
+        "solver": "openfoam",
+        "category": "resin_fill_pack",
+        "description": "Moldflow proxy: VOF fill + pack hold pressure at gate (interFoam)",
+        "input_dir": str(WORKSPACE / "experiments" / "openfoam" / "resin_fill_v006"),
+        "input_file": "constant/transportProperties",
+        "solver_binary": "interFoam",
+        "defect_targets": [
+            "fill_fraction_pct",
+            "fill_time_s",
+            "pack_pressure_MPa",
+            "pack_pressure_achieved_MPa",
+            "short_shot_risk",
+        ],
+        "success_keyword": "End",
+        "failure_keywords": ["FOAM FATAL ERROR", "Fatal error", "divergence"],
+        "param_sweeps": [
+            {
+                "polymer_nu": 0.01,
+                "inlet_velocity": 1.0,
+                "pack_pressure_MPa": 2.0,
+                "pack_end_time": 0.25,
+                "gate_position": "center",
+            },
+        ],
+        "lesson_template": (
+            "VOF+pack: pack_p={pack_pressure_MPa} MPa, fill_U={inlet_velocity}, "
+            "t_end={pack_end_time}. Status={status}. Phase-5 hold proxy."
+        ),
+    },
+    # ── OpenFOAM: Moldflow Phase 6 cool + warpage (thermo VOF + pack) ────
+    {
+        "id": "OF-FILL-007",
+        "solver": "openfoam",
+        "category": "resin_fill_cool",
+        "description": "Moldflow proxy: VOF thermo fill/pack + cooling warpage KPI",
+        "input_dir": str(WORKSPACE / "experiments" / "openfoam" / "resin_fill_v007"),
+        "input_file": "constant/thermophysicalProperties",
+        "solver_binary": "compressibleInterFoam",
+        "defect_targets": [
+            "fill_fraction_pct",
+            "cooling_time_s",
+            "warpage_mm",
+            "T_max",
+            "T_min",
+            "pack_pressure_achieved_MPa",
+        ],
+        "success_keyword": "End",
+        "failure_keywords": ["FOAM FATAL ERROR", "Fatal error", "divergence"],
+        "param_sweeps": [
+            {
+                "T_melt": 513,
+                "T_mold": 323,
+                "T_eject": 373,
+                "viscosity_model": "wlf",
+                "wlf_mu0": 12000.0,
+                "wlf_Tr": 273.0,
+                "wlf_C1": 8.86,
+                "wlf_C2": 51.6,
+                "wlf_Pr": 0.7,
+                "polymer_nu": 0.01,
+                "inlet_velocity": 1.0,
+                "pack_pressure_MPa": 2.0,
+                "cool_end_time": 0.5,
+                "thermal_shrink_alpha": 8e-5,
+                "mold_length_mm": 100.0,
+                "gate_position": "center",
+            },
+        ],
+        "lesson_template": (
+            "VOF+cool: T_eject={T_eject}, cool_t={cool_end_time}, L={mold_length_mm} mm. "
+            "Status={status}. Phase-6 thermal shrink proxy."
+        ),
+    },
+    # ── OpenFOAM: Moldflow Phase 7 CAD (STEP + gate_spec -> resin_fill_*) ─
+    {
+        "id": "OF-FILL-008",
+        "solver": "openfoam",
+        "category": "resin_fill_cad",
+        "description": "Moldflow Phase 7: STEP bbox + gate_spec case -> physics_category proxy",
+        "input_dir": str(WORKSPACE / "experiments" / "openfoam" / "resin_fill_v003"),
+        "input_file": "constant/transportProperties",
+        "solver_binary": "interFoam",
+        "defect_targets": [
+            "fill_fraction_pct",
+            "fill_time_s",
+            "short_shot_risk",
+            "cad_bbox_mm",
+        ],
+        "success_keyword": "End",
+        "failure_keywords": ["FOAM FATAL ERROR", "Fatal error", "divergence"],
+        "param_sweeps": [
+            {
+                "physics_category": "resin_fill_vof",
+                "gate_spec_path": str(
+                    WORKSPACE / "samples" / "moldflow" / "gate_spec_center.json"
+                ),
+                "step_path": str(
+                    WORKSPACE / "samples" / "moldflow" / "cavity_plate_100x10x2.step"
+                ),
+                "polymer_nu": 0.01,
+                "inlet_velocity": 1.0,
+            },
+        ],
+        "lesson_template": (
+            "CAD: physics={physics_category}, gate_spec applied. "
+            "Status={status}. Phase-7 STEP+gate proxy."
+        ),
+    },
+    # ── OpenFOAM: Moldflow Phase 8 VOF DOE + CAD gates ───────────────────
+    {
+        "id": "OF-FILL-009",
+        "solver": "openfoam",
+        "category": "resin_fill_doe",
+        "description": "Moldflow Phase 8: D-Optimal multi-gate DOE on STEP+VOF (resin_fill_cad)",
+        "input_dir": str(WORKSPACE / "experiments" / "openfoam" / "resin_fill_v003"),
+        "input_file": "constant/transportProperties",
+        "solver_binary": "interFoam",
+        "defect_targets": [
+            "fill_fraction_pct",
+            "short_shot_risk",
+            "gate_count",
+            "cad_bbox_length_mm",
+        ],
+        "success_keyword": "End",
+        "failure_keywords": ["FOAM FATAL ERROR", "Fatal error", "divergence"],
+        "param_sweeps": [
+            {
+                "physics_category": "resin_fill_vof",
+                "gate_count": 1,
+                "gate_position": "center",
+                "polymer_nu": 0.01,
+                "inlet_velocity": 1.0,
+                "step_path": str(
+                    WORKSPACE / "samples" / "moldflow" / "cavity_plate_100x10x2.step"
+                ),
+            },
+        ],
+        "lesson_template": (
+            "DOE: gates={gate_count} pos={gate_position}, fill_U={inlet_velocity}. "
+            "Status={status}. Phase-8 VOF DOE."
         ),
     },
     # ── OpenFOAM: Resin Flow Multi-Gate Optimization ──────────────────────
@@ -794,36 +979,77 @@ def _inject_parameters_openfoam(file_name: str, content: str, params: dict) -> s
         else:
             mu = 12.0
         content = content.replace("MU_CONST_PLACEHOLDER", f"{mu:.6f}")
+    elif "controlDict" in file_name.replace("\\", "/"):
+        if "cool_end_time" in params:
+            t_end = float(params["cool_end_time"])
+            content = content.replace("COOL_END_TIME_PLACEHOLDER", f"{t_end:.4f}")
+            content = content.replace("PACK_END_TIME_PLACEHOLDER", f"{t_end:.4f}")
+            content = re.sub(
+                r"endTime\s+[0-9.eE+-]+;",
+                f"endTime         {t_end:.4f};",
+                content,
+                count=1,
+            )
+        elif "pack_end_time" in params:
+            t_end = float(params["pack_end_time"])
+            content = content.replace("PACK_END_TIME_PLACEHOLDER", f"{t_end:.4f}")
+            content = re.sub(
+                r"endTime\s+[0-9.eE+-]+;",
+                f"endTime         {t_end:.4f};",
+                content,
+                count=1,
+            )
+    elif "p_rgh" in file_name.replace("\\", "/"):
+        if "pack_pressure_MPa" in params:
+            p_pa = max(0.0, float(params["pack_pressure_MPa"])) * 1e6
+            content = content.replace("PACK_P_GAUGE_PA", f"{p_pa:.6g}")
     elif "U" in file_name:
-        # Determine gate configuration (multi-gate variable gate injection)
-        gc = params.get("gate_count", 1)
-        gp = params.get("gate_position", "center")
-        u = params.get("inlet_velocity", 1.0)
-        
-        # Default all gates to zero
-        u1, u2, u3 = 0.0, 0.0, 0.0
-        
-        if gc == 1:
-            if gp == "left":
+        patch_vels = params.get("gate_patch_velocities")
+        if isinstance(patch_vels, dict) and patch_vels:
+            for patch, vel in patch_vels.items():
+                key = f"{patch}_velocity" if not str(patch).endswith("_velocity") else str(patch)
+                if key.endswith("_velocity"):
+                    content = content.replace(
+                        key.replace("_velocity", "") + "_velocity",
+                        f"{float(vel):.4f}",
+                    )
+            for patch, vel in patch_vels.items():
+                pname = str(patch)
+                placeholder = f"{pname}_velocity"
+                if placeholder in content:
+                    content = content.replace(placeholder, f"{float(vel):.4f}")
+            u1 = float(patch_vels.get("inlet1", patch_vels.get("inlet1_velocity", 0.0)))
+            u2 = float(patch_vels.get("inlet2", patch_vels.get("inlet2_velocity", 0.0)))
+            u3 = float(patch_vels.get("inlet3", patch_vels.get("inlet3_velocity", 0.0)))
+            content = content.replace("inlet1_velocity", f"{u1:.4f}")
+            content = content.replace("inlet2_velocity", f"{u2:.4f}")
+            content = content.replace("inlet3_velocity", f"{u3:.4f}")
+        else:
+            gc = params.get("gate_count", 1)
+            gp = params.get("gate_position", "center")
+            u_fill = float(params.get("inlet_velocity", 1.0))
+            if "pack_inlet_velocity" in params:
+                u = float(params["pack_inlet_velocity"])
+            else:
+                u = u_fill
+            u1, u2, u3 = 0.0, 0.0, 0.0
+            if gc == 1:
+                if gp == "left":
+                    u1 = u
+                elif gp == "right":
+                    u3 = u
+                else:
+                    u2 = u
+            elif gc == 2:
                 u1 = u
-            elif gp == "right":
                 u3 = u
-            else: # center
+            elif gc >= 3:
+                u1 = u
                 u2 = u
-        elif gc == 2:
-            # 2 gates at the outer boundaries for symmetric multi-point injection
-            u1 = u
-            u3 = u
-        elif gc >= 3:
-            # All 3 gates active
-            u1 = u
-            u2 = u
-            u3 = u
-            
-        # Replace placeholders: inletX_velocity in U boundary dictionary
-        content = content.replace("inlet1_velocity", f"{u1:.4f}")
-        content = content.replace("inlet2_velocity", f"{u2:.4f}")
-        content = content.replace("inlet3_velocity", f"{u3:.4f}")
+                u3 = u
+            content = content.replace("inlet1_velocity", f"{u1:.4f}")
+            content = content.replace("inlet2_velocity", f"{u2:.4f}")
+            content = content.replace("inlet3_velocity", f"{u3:.4f}")
     return content
 
 
@@ -1407,24 +1633,155 @@ def _maybe_paraview_capture_openfoam(run_dir: Path, *, returncode: int, log: str
         return None
 
 
+def _resolve_workspace_path(raw: str | Path) -> Path:
+    """Resolve CAE paths against WORKSPACE (LAVIE satellite) then repo ROOT (K10)."""
+    path = Path(raw)
+    if path.is_absolute():
+        return path
+    rel = path.as_posix().lstrip("./")
+    if rel.startswith("data/cae_te_workspace/"):
+        rel = rel.split("data/cae_te_workspace/", 1)[1]
+    lavie_repo = Path(os.environ.get("LAVIE_REPO_ROOT", "C:/lavie_usb_pack"))
+    for base in (WORKSPACE, lavie_repo / "data" / "cae_te_workspace", ROOT / "data" / "cae_te_workspace", ROOT):
+        candidate = (base / rel).resolve()
+        if candidate.exists():
+            return candidate
+    return (WORKSPACE / rel).resolve()
+
+
+def _uses_moldflow_cad(exp: dict, params: dict) -> bool:
+    if exp.get("category") in ("resin_fill_cad", "resin_fill_doe"):
+        return True
+    return bool(params.get("gate_spec_path"))
+
+
+def _openfoam_mesh_steps(run_dir: Path) -> list[str]:
+    """blockMesh or gmshToFoam unless polyMesh already present."""
+    poly = run_dir / "constant" / "polyMesh" / "points"
+    if poly.exists():
+        return []
+    manifest = run_dir / "cad_manifest.json"
+    mesh_mode = ""
+    if manifest.exists():
+        try:
+            mf = json.loads(manifest.read_text(encoding="utf-8"))
+            mesh_mode = str(mf.get("mesh_mode", ""))
+        except Exception:
+            pass
+    if mesh_mode == "gmsh_volume":
+        msh = run_dir / "cavity.msh"
+        if msh.exists():
+            return [
+                f"gmshToFoam {msh.name} 2>&1",
+                "topoSet -dict system/topoSetDict.splitInlets 2>&1",
+                "createPatch -overwrite -dict system/createPatchDict.splitInlets 2>&1",
+            ]
+        return []
+    return ["blockMesh 2>&1"]
+
+
+def _moldflow_cad_build(
+    exp: dict, params: dict, run_dir: Path, dry_run: bool
+) -> dict | None:
+    """Build or validate STEP+gate_spec case. Returns manifest or None."""
+    import moldflow_step_case_builder as mscb
+
+    import moldflow_gate_spec as mgs
+
+    gate_path: Path | None = None
+    gate_raw = params.get("gate_spec_path")
+    if gate_raw:
+        gate_path = _resolve_workspace_path(gate_raw)
+    elif "gate_count" in params:
+        spec = mgs.build_gate_spec_legacy(
+            int(params["gate_count"]),
+            str(params.get("gate_position", "center")),
+        )
+        gate_path = run_dir / "gate_spec.generated.json"
+        if not dry_run:
+            run_dir.mkdir(parents=True, exist_ok=True)
+            mgs.write_gate_spec(gate_path, spec)
+        else:
+            import tempfile
+
+            tmp = Path(tempfile.mkdtemp(prefix="moldflow_gate_"))
+            gate_path = tmp / "gate_spec.generated.json"
+            mgs.write_gate_spec(gate_path, spec)
+    else:
+        raise ValueError("gate_spec_path or gate_count required for CAD build")
+
+    step_path = None
+    if params.get("step_path"):
+        step_path = _resolve_workspace_path(params["step_path"])
+    if step_path is None or not step_path.exists():
+        step_path = mscb.ensure_sample_step()
+
+    physics = dict(params)
+    if exp.get("category") in ("resin_fill_cad", "resin_fill_doe") and not physics.get(
+        "physics_category"
+    ):
+        physics["physics_category"] = "resin_fill_vof"
+    tmpl = mscb.resolve_physics_template(physics)
+
+    if dry_run:
+        return mscb.validate_build(tmpl, gate_path, step_path, physics)
+
+    run_dir.parent.mkdir(parents=True, exist_ok=True)
+    return mscb.build_case(run_dir, tmpl, step_path, gate_path, physics)
+
+
 def _run_openfoam(exp: dict, params: dict, dry_run: bool, timeout: int, trial_id: str = "TRIAL_TEMP") -> dict:
     template_dir = Path(exp["input_dir"])
     solver = exp.get("solver_binary", "icoFoam")
+    uses_cad = _uses_moldflow_cad(exp, params)
+    physics_category = params.get("physics_category", exp.get("category"))
 
     # Configure isolated runs directory early so failures can still report artifact path.
     runs_dir = WORKSPACE / "runs"
     runs_dir.mkdir(parents=True, exist_ok=True)
     run_dir = runs_dir / trial_id
+    cad_manifest: dict | None = None
 
+    run_dir.mkdir(parents=True, exist_ok=True)
+    if not dry_run:
+        _clean_old_runs(runs_dir, keep_count=50)
+
+    if uses_cad:
+        try:
+            cad_manifest = _moldflow_cad_build(exp, params, run_dir, dry_run)
+        except Exception as exc:
+            return {
+                "status": "ERROR",
+                "log": f"Moldflow CAD build failed: {exc}",
+                "duration_sec": 0,
+                "run_dir": str(run_dir),
+            }
+        if not dry_run:
+            template_dir = run_dir
+            phys = params.get("physics_category", "resin_fill_vof")
+            if phys == "resin_fill_cool":
+                solver = "compressibleInterFoam"
+            elif phys == "resin_fill_thermo":
+                solver = "compressibleInterFoam"
+            elif phys == "resin_fill_turb":
+                solver = "interFoam"
+            else:
+                solver = "interFoam"
+
+    precheck_dir = run_dir if (uses_cad and not dry_run and (run_dir / "cad_manifest.json").exists()) else template_dir
     if GATES_ENABLED:
-        if solver == "compressibleInterFoam":
-            pre = cae_gates.precheck_openfoam_thermo_case(template_dir)
-        elif solver == "interFoam" and exp.get("category") == "resin_fill_turb":
-            pre = cae_gates.precheck_openfoam_interfoam_turb_case(template_dir)
+        if uses_cad and (precheck_dir / "cad_manifest.json").exists():
+            pre = cae_gates.precheck_moldflow_cad_case(precheck_dir)
+        elif solver == "compressibleInterFoam":
+            pre = cae_gates.precheck_openfoam_thermo_case(precheck_dir)
+        elif solver == "interFoam" and (
+            exp.get("category") == "resin_fill_turb" or physics_category == "resin_fill_turb"
+        ):
+            pre = cae_gates.precheck_openfoam_interfoam_turb_case(precheck_dir)
         elif solver == "interFoam":
-            pre = cae_gates.precheck_openfoam_interfoam_case(template_dir)
+            pre = cae_gates.precheck_openfoam_interfoam_case(precheck_dir)
         else:
-            pre = cae_gates.precheck_openfoam_case(template_dir)
+            pre = cae_gates.precheck_openfoam_case(precheck_dir)
         if not pre.ok:
             return {
                 "status": "PREGATE_FAIL",
@@ -1436,16 +1793,8 @@ def _run_openfoam(exp: dict, params: dict, dry_run: bool, timeout: int, trial_id
                 "run_dir": str(run_dir),
             }
 
-    # Create run directory regardless of dry_run for parameter validation
-    run_dir.mkdir(parents=True, exist_ok=True)
-    if not dry_run:
-        # Clean up very old run files to save disk space
-        _clean_old_runs(runs_dir, keep_count=50)
-
-    # Copy standard case files recursively
-    if not dry_run:
+    if not uses_cad and not dry_run:
         try:
-            # Overwrite if exists to clean environment
             if run_dir.exists():
                 shutil.rmtree(run_dir, ignore_errors=True)
             shutil.copytree(template_dir, run_dir)
@@ -1467,6 +1816,25 @@ def _run_openfoam(exp: dict, params: dict, dry_run: bool, timeout: int, trial_id
             u_content = u_path.read_text(encoding="utf-8").replace("\r\n", "\n").replace("\r", "\n")
             u_content = _inject_parameters_openfoam("0/U", u_content, params)
             u_path.write_bytes(u_content.encode("utf-8"))
+
+            for cd_name in ("controlDict", "controlDict.ascii"):
+                cd_path = run_dir / "system" / cd_name
+                cd_probe = cd_path.read_text(encoding="utf-8", errors="replace") if cd_path.exists() else ""
+                if cd_path.exists() and (
+                    "pack_end_time" in params
+                    or "cool_end_time" in params
+                    or "PACK_END_TIME_PLACEHOLDER" in cd_probe
+                    or "COOL_END_TIME_PLACEHOLDER" in cd_probe
+                ):
+                    cd_content = cd_path.read_text(encoding="utf-8").replace("\r\n", "\n").replace("\r", "\n")
+                    cd_content = _inject_parameters_openfoam(f"system/{cd_name}", cd_content, params)
+                    cd_path.write_bytes(cd_content.encode("utf-8"))
+
+            pr_path = run_dir / "0" / "p_rgh"
+            if pr_path.exists() and "pack_pressure_MPa" in params:
+                pr_content = pr_path.read_text(encoding="utf-8").replace("\r\n", "\n").replace("\r", "\n")
+                pr_content = _inject_parameters_openfoam("0/p_rgh", pr_content, params)
+                pr_path.write_bytes(pr_content.encode("utf-8"))
 
             for turb_field in ("k", "omega"):
                 tf_path = run_dir / "0" / turb_field
@@ -1501,27 +1869,33 @@ def _run_openfoam(exp: dict, params: dict, dry_run: bool, timeout: int, trial_id
         f"/{_posix[0].lower()}{_posix[2:]}" if len(_posix) >= 2 and _posix[1] == ":" else _posix
     )
     # Command: run blockMesh (mesh generator) first, then actual fluid solver
-    checkmesh_cmd = ""
+    mesh_steps = _openfoam_mesh_steps(run_dir if uses_cad else template_dir)
     if GATES_ENABLED and OPENFOAM_CHECKMESH_ENABLED:
-        checkmesh_cmd = " && checkMesh -allGeometry -allTopology 2>&1"
-    setfields_cmd = ""
-    if (template_dir / "system" / "setFieldsDict").exists():
-        setfields_cmd = " && setFields 2>&1"
-    restore_ascii_cmd = ""
+        mesh_steps.append("checkMesh -allGeometry -allTopology 2>&1")
+    shell_parts = [f"source {OPENFOAM_BASHRC}", "cd /workspace", *mesh_steps]
+    restore_ascii = (
+        "for f in fvSchemes fvSolution controlDict; do "
+        "if [ -f system/${f}.ascii ]; then cp -f system/${f}.ascii system/${f}; fi; done"
+    )
     if solver in ("interFoam", "compressibleInterFoam"):
-        restore_ascii_cmd = (
-            " && for f in fvSchemes fvSolution controlDict; do "
-            "if [ -f system/${f}.ascii ]; then cp -f system/${f}.ascii system/${f}; fi; done"
-        )
+        shell_parts.append(restore_ascii)
+    if (template_dir / "system" / "setFieldsDict").exists():
+        shell_parts.append("setFields 2>&1")
+    if solver in ("interFoam", "compressibleInterFoam"):
+        shell_parts.append(restore_ascii)
+    shell_parts.append(f"{solver} 2>&1")
+    shell_cmd = " && ".join(shell_parts)
     cmd = [
-        "docker", "run", "--rm",
+        _docker_exe(),
+        "run",
+        "--rm",
         *_docker_resource_args(),
-        "-v", f"{docker_mount_path}:/workspace",
-        "-w", "/workspace",
+        "-v",
+        f"{docker_mount_path}:/workspace",
         OPENFOAM_IMAGE,
-        "bash", "-c",
-        f"source {OPENFOAM_BASHRC} && cd /workspace && blockMesh 2>&1{checkmesh_cmd}"
-        f"{restore_ascii_cmd}{setfields_cmd}{restore_ascii_cmd} && {solver} 2>&1",
+        "bash",
+        "-c",
+        shell_cmd,
     ]
 
     if dry_run:
@@ -1556,6 +1930,24 @@ def _run_openfoam(exp: dict, params: dict, dry_run: bool, timeout: int, trial_id
                 kpis.update(_extract_thermo_kpis(run_dir, params))
             if (run_dir / "0" / "k").exists():
                 kpis.update(_extract_ras_kpis(run_dir))
+            if (run_dir / "0" / "p_rgh").exists() and params.get("pack_pressure_MPa") is not None:
+                kpis.update(_extract_pack_kpis(run_dir, params))
+            if (run_dir / "0" / "T").exists() and (
+                params.get("cool_end_time") is not None or params.get("T_eject") is not None
+            ):
+                kpis.update(_extract_cool_warpage_kpis(run_dir, params))
+            cad_mf = run_dir / "cad_manifest.json"
+            if cad_mf.exists():
+                try:
+                    cad_data = json.loads(cad_mf.read_text(encoding="utf-8"))
+                    kpis["cad_manifest"] = cad_data
+                    bb = cad_data.get("bbox_mm") or {}
+                    if isinstance(bb, dict):
+                        kpis["cad_bbox_length_mm"] = float(bb.get("length", 0))
+                        kpis["cad_bbox_width_mm"] = float(bb.get("width", 0))
+                        kpis["cad_bbox_height_mm"] = float(bb.get("height", 0))
+                except Exception:
+                    pass
         except Exception as exc:
             kpi_error = str(exc)
         evidence = {}
@@ -1581,9 +1973,17 @@ def _run_openfoam(exp: dict, params: dict, dry_run: bool, timeout: int, trial_id
                 "error": kpi_error,
             },
         }
-        pv_png = _maybe_paraview_capture_openfoam(run_dir, returncode=result.returncode, log=stdout)
-        if pv_png:
-            out["paraview_png"] = pv_png
+        cat = str(exp.get("category") or "")
+        phys = str(params.get("physics_category") or physics_category or "")
+        if (
+            not _openfoam_skip_paraview(cat, phys)
+            and os.environ.get("CAE_PARAVIEW_CAPTURE", "1") == "1"
+        ):
+            pv_png = _maybe_paraview_capture_openfoam(
+                run_dir, returncode=result.returncode, log=stdout
+            )
+            if pv_png:
+                out["paraview_png"] = pv_png
         return out
     except subprocess.TimeoutExpired:
         return {
@@ -1659,6 +2059,105 @@ def _extract_ras_kpis(run_dir: Path) -> dict:
     if nut_path.exists():
         _, nut_max = _parse_scalar_field_stats(nut_path)
         out["nut_max"] = round(nut_max, 6)
+    return out
+
+
+def _extract_pack_kpis(run_dir: Path, params: dict) -> dict:
+    """Pack/hold KPI from p_rgh field (gate gauge pressure proxy)."""
+    target_mpa = float(params.get("pack_pressure_MPa", 2.0))
+    times: list[float] = []
+    for child in run_dir.iterdir():
+        if not child.is_dir():
+            continue
+        try:
+            t = float(child.name)
+        except ValueError:
+            continue
+        if (child / "p_rgh").exists():
+            times.append(t)
+    p_min, p_max = 0.0, 0.0
+    if times:
+        times.sort()
+        p_min, p_max = _parse_scalar_field_stats(run_dir / f"{times[-1]:g}" / "p_rgh")
+    else:
+        p0 = run_dir / "0" / "p_rgh"
+        if p0.exists():
+            p_min, p_max = _parse_scalar_field_stats(p0)
+    achieved_mpa = max(0.0, p_max) / 1e6
+    ratio = achieved_mpa / max(target_mpa, 1e-6)
+    out = {
+        "pack_pressure_target_MPa": round(target_mpa, 4),
+        "pack_pressure_achieved_MPa": round(achieved_mpa, 4),
+        "pack_pressure_ratio": round(min(ratio, 9.99), 4),
+        "kpi_source": "vof_pack_proxy",
+    }
+    try:
+        (run_dir / "pack_kpis.json").write_text(
+            json.dumps(out, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
+    except Exception:
+        pass
+    return out
+
+
+def _extract_cool_warpage_kpis(run_dir: Path, params: dict) -> dict:
+    """Cooling time and warpage from T field time series (thermal shrinkage proxy)."""
+    t_eject = float(params.get("T_eject", 373.0))
+    t_mold = float(params.get("T_mold", 323.0))
+    alpha = float(params.get("thermal_shrink_alpha", 8e-5))
+    l_mm = float(params.get("mold_length_mm", 100.0))
+    cool_end = float(params.get("cool_end_time", 0.5))
+
+    times: list[float] = []
+    for child in run_dir.iterdir():
+        if not child.is_dir():
+            continue
+        try:
+            t = float(child.name)
+        except ValueError:
+            continue
+        if (child / "T").exists():
+            times.append(t)
+
+    cooling_time_s = cool_end
+    cool_start = float(params.get("cooling_start_time_s", 0.08))
+    t_max_final = t_mold
+    t_min_final = t_mold
+    if times:
+        times.sort()
+        for t in times:
+            if t < cool_start:
+                continue
+            t_min_step, t_max_step = _parse_scalar_field_stats(run_dir / f"{t:g}" / "T")
+            t_mean_step = 0.5 * (t_min_step + t_max_step)
+            if t_mean_step <= t_eject:
+                cooling_time_s = t
+                break
+        t_min_final, t_max_final = _parse_scalar_field_stats(run_dir / f"{times[-1]:g}" / "T")
+    else:
+        t0 = run_dir / "0" / "T"
+        if t0.exists():
+            t_min_final, t_max_final = _parse_scalar_field_stats(t0)
+
+    t_mean = 0.5 * (t_min_final + t_max_final)
+    delta_t = max(0.0, t_mean - t_mold)
+    warpage_mm = alpha * (l_mm / 1000.0) * delta_t * 1000.0
+    grad_mm = alpha * (l_mm / 1000.0) * max(0.0, t_max_final - t_min_final) * 1000.0
+    warpage_mm = max(warpage_mm, grad_mm * 0.5)
+
+    out = {
+        "cooling_time_s": round(cooling_time_s, 6),
+        "warpage_mm": round(warpage_mm, 4),
+        "T_mean_final": round(t_mean, 2),
+        "T_eject_target_K": round(t_eject, 2),
+        "kpi_source": "thermo_cool_warpage_proxy",
+    }
+    try:
+        (run_dir / "cool_warpage_kpis.json").write_text(
+            json.dumps(out, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
+    except Exception:
+        pass
     return out
 
 
@@ -1970,8 +2469,26 @@ def _assess_openfoam(run_result: dict, exp: dict) -> dict:
                 pass
 
     defects = {}
-    if category in ("resin_flow", "resin_fill", "resin_fill_vof", "resin_fill_thermo", "resin_fill_turb"):
-        if category in ("resin_fill_vof", "resin_fill_thermo", "resin_fill_turb"):
+    if category in (
+        "resin_flow",
+        "resin_fill",
+        "resin_fill_vof",
+        "resin_fill_thermo",
+        "resin_fill_turb",
+        "resin_fill_pack",
+        "resin_fill_cool",
+        "resin_fill_cad",
+        "resin_fill_doe",
+    ):
+        if category in (
+            "resin_fill_vof",
+            "resin_fill_thermo",
+            "resin_fill_turb",
+            "resin_fill_pack",
+            "resin_fill_cool",
+            "resin_fill_cad",
+            "resin_fill_doe",
+        ):
             defects_extra = {}
             viscosity = float(actual_params.get("polymer_nu", 0.01))
             fill_pct = float(kpi_values.get("fill_fraction_pct", 0.0) or 0.0)
@@ -1979,7 +2496,50 @@ def _assess_openfoam(run_result: dict, exp: dict) -> dict:
             defects_extra["fill_fraction_pct"] = fill_pct
             defects_extra["fill_time_s"] = fill_time
             defects_extra["fill_complete"] = bool(kpi_values.get("fill_complete"))
-            if category == "resin_fill_turb":
+            if category == "resin_fill_pack":
+                target_pack = float(actual_params.get("pack_pressure_MPa", 2.0))
+                achieved_pack = float(
+                    kpi_values.get("pack_pressure_achieved_MPa", 0.0) or 0.0
+                )
+                pack_ratio = float(kpi_values.get("pack_pressure_ratio", 0.0) or 0.0)
+                defects_extra["pack_pressure_MPa"] = target_pack
+                defects_extra["pack_pressure_achieved_MPa"] = achieved_pack
+                defects_extra["pack_pressure_ratio"] = pack_ratio
+                defects_extra["kpi_source"] = kpi_values.get("kpi_source", "vof_pack_proxy")
+                if fill_pct < 50.0:
+                    verdict = "FAILED"
+                elif pack_ratio < 0.5:
+                    verdict = "FAILED"
+                else:
+                    u_gate = float(actual_params.get("inlet_velocity", 1.0))
+                    ss = min(1.0, max(0.0, (5.0 * viscosity) / max(0.1, u_gate)))
+                    if fill_pct < 85.0:
+                        ss = min(1.0, ss + 0.15)
+                    if pack_ratio < 0.85:
+                        ss = min(1.0, ss + 0.1)
+                    defects_extra["short_shot_risk"] = round(ss, 4)
+            elif category == "resin_fill_cool":
+                defects_extra["T_max"] = float(kpi_values.get("T_max", 0.0) or 0.0)
+                defects_extra["T_min"] = float(kpi_values.get("T_min", 0.0) or 0.0)
+                defects_extra["cooling_time_s"] = float(
+                    kpi_values.get("cooling_time_s", 0.0) or 0.0
+                )
+                defects_extra["warpage_mm"] = float(kpi_values.get("warpage_mm", 0.0) or 0.0)
+                defects_extra["T_mean_final"] = float(
+                    kpi_values.get("T_mean_final", 0.0) or 0.0
+                )
+                if kpi_values.get("pack_pressure_achieved_MPa") is not None:
+                    defects_extra["pack_pressure_achieved_MPa"] = kpi_values[
+                        "pack_pressure_achieved_MPa"
+                    ]
+                defects_extra["kpi_source"] = kpi_values.get(
+                    "kpi_source", "thermo_cool_warpage_proxy"
+                )
+                if fill_pct < 50.0:
+                    verdict = "FAILED"
+                elif defects_extra["warpage_mm"] > 2.5:
+                    verdict = "FAILED"
+            elif category == "resin_fill_turb":
                 defects_extra["k_max"] = float(kpi_values.get("k_max", 0.0) or 0.0)
                 defects_extra["nut_max"] = float(kpi_values.get("nut_max", 0.0) or 0.0)
                 defects_extra["kpi_source"] = kpi_values.get("kpi_source", "ras_komega_sst")
@@ -1995,6 +2555,48 @@ def _assess_openfoam(run_result: dict, exp: dict) -> dict:
                     defects_extra["mu_proxy_mold_Pa_s"] = kpi_values["mu_proxy_mold_Pa_s"]
                 if fill_pct < 10.0:
                     verdict = "FAILED"
+            elif (
+                category in ("resin_fill_vof", "resin_fill_cad")
+                and fill_pct < 50.0
+            ):
+                verdict = "FAILED"
+            elif category == "resin_fill_doe" and fill_pct < 25.0:
+                verdict = "FAILED"
+            elif category in ("resin_fill_cad", "resin_fill_doe"):
+                bb = kpi_values.get("cad_bbox_length_mm")
+                if bb is not None:
+                    defects_extra["cad_bbox_length_mm"] = float(bb)
+                phys_cat = str(
+                    actual_params.get("physics_category", "resin_fill_vof")
+                )
+                defects_extra["physics_category"] = phys_cat
+                u_gate = float(actual_params.get("inlet_velocity", 1.0))
+                defects_extra["short_shot_risk"] = round(
+                    min(1.0, max(0.0, (5.0 * viscosity) / max(0.1, u_gate))), 4
+                )
+                if phys_cat in ("resin_fill_closed_pack", "resin_fill_pack"):
+                    target_pack = float(actual_params.get("pack_pressure_MPa", 50.0))
+                    achieved_pack = float(
+                        kpi_values.get("pack_pressure_achieved_MPa", 0.0) or 0.0
+                    )
+                    pack_ratio = float(kpi_values.get("pack_pressure_ratio", 0.0) or 0.0)
+                    defects_extra["pack_pressure_MPa"] = target_pack
+                    defects_extra["pack_pressure_achieved_MPa"] = achieved_pack
+                    defects_extra["pack_pressure_ratio"] = pack_ratio
+                    defects_extra["kpi_source"] = "cad_closed_pack_v008"
+                    if fill_pct < 85.0:
+                        verdict = "FAILED"
+                        defects_extra["short_shot_risk"] = round(
+                            min(1.0, defects_extra["short_shot_risk"] + 0.2), 4
+                        )
+                    elif pack_ratio < 0.5:
+                        verdict = "FAILED"
+                else:
+                    defects_extra["kpi_source"] = "cad_vof_proxy"
+                defects_extra["gate_count"] = int(actual_params.get("gate_count", 1))
+                defects_extra["gate_position"] = str(
+                    actual_params.get("gate_position", "center")
+                )
             elif fill_pct < 50.0:
                 verdict = "FAILED"
         elif category == "resin_fill":
@@ -2009,66 +2611,67 @@ def _assess_openfoam(run_result: dict, exp: dict) -> dict:
         else:
             defects_extra = {}
             viscosity = actual_params.get("kinematic_viscosity", 0.01)
-        velocity = actual_params.get("inlet_velocity", 1.0)
-        gc = actual_params.get("gate_count", 1)
-        gp = actual_params.get("gate_position", "center")
-        
-        # 1. 圧力損失 (Pressure Drop, MPa)
-        # Prefer simulated KPI if available; fallback to heuristic estimate.
-        pressure_drop = None
-        if "pressure_drop_mpa" in kpi_values:
-            try:
-                pressure_drop = float(kpi_values["pressure_drop_mpa"])
-            except Exception:
-                pressure_drop = None
-        if pressure_drop is None:
-            # Pressure loss is inversely proportional to square root of active gate count (larger total inlet area)
-            pressure_drop = (150.0 * viscosity * velocity) / math.sqrt(gc)
-        
-        # 2. ショートショットリスク (Short Shot Risk, scale 0.0 - 1.0)
-        # Higher viscosity and lower velocity increases risk; more gates decrease flow resistance and risk
-        short_shot = (5.0 * viscosity) / (velocity * math.sqrt(gc))
-        short_shot = min(1.0, max(0.0, short_shot))
-        
-        # 3. 反り・収縮量 (Warpage, mm)
-        # Warpage is proportional to pressure gradient and thermal contraction stress during cooling
-        # More gates ensure uniform packing pressure, significantly lowering warpage
-        warpage = (0.8 * pressure_drop) / math.sqrt(gc)
-        
-        # 4. ウエルドライン強度低下 (Weldline Severity, scale 0.0 - 100.0)
-        # Weldlines occur only in multi-gate configurations (gate_count >= 2) where flow fronts collide.
-        # High viscosity and low velocity reduces mixing energy at collision, increasing weldline visibility/weakness
-        if gc >= 2:
-            weldline = 40.0 * (viscosity / velocity) * (gc - 1)
-            weldline = min(100.0, max(0.0, weldline))
-        else:
-            weldline = 0.0
-            
-        # 5. ヒケ量リスク (Sink Mark Risk, scale 0.0 - 1.0)
-        # Severe in thick-thin transit zones when packing pressure (pressure_drop) is insufficient
-        sink_mark = (15.0 * viscosity * math.sqrt(velocity)) / (pressure_drop + 0.1)
-        sink_mark = min(1.0, max(0.0, sink_mark))
-        
-        # Determine failure condition if pressure_drop or warpage exceed safety bounds
-        if float(pressure_drop) >= 4.0 or warpage >= 1.5 or short_shot >= 0.8:
-            verdict = "FAILED"
-            
-        defects["pressure_drop_MPa"] = float(f"{float(pressure_drop):.4f}")
-        if kpi_values:
-            defects["kpi_source"] = "openfoam_postprocess"
-            defects["kpi_pressure_drop_pa"] = float(kpi_values.get("pressure_drop_pa") or 0.0)
-            defects["kpi_p_in_avg_pa"] = float(kpi_values.get("p_in_avg_pa") or 0.0)
-            defects["kpi_p_out_pa"] = float(kpi_values.get("p_out_pa") or 0.0)
-        else:
-            defects["kpi_source"] = "heuristic_fallback"
-        defects["short_shot_risk"] = float(f"{short_shot:.4f}")
-        defects["burr_risk"] = "HIGH (型開きバリ発生)" if pressure_drop >= 3.5 else "LOW (適正型締め力)"
-        defects["warpage_mm"] = float(f"{warpage:.4f}")
-        defects["weldline_severity"] = float(f"{weldline:.4f}")
-        defects["sink_mark_risk"] = float(f"{sink_mark:.4f}")
-        defects["flow_front_velocity_mms"] = float(f"{velocity * 100.0:.2f}")
-        if category in ("resin_fill", "resin_fill_vof", "resin_fill_thermo", "resin_fill_turb"):
+        if category in ("resin_fill_pack", "resin_fill_cool", "resin_fill_cad", "resin_fill_doe"):
             defects.update(defects_extra)
+        else:
+            velocity = actual_params.get("inlet_velocity", 1.0)
+            gc = actual_params.get("gate_count", 1)
+            gp = actual_params.get("gate_position", "center")
+
+            # 1. 圧力損失 (Pressure Drop, MPa)
+            # Prefer simulated KPI if available; fallback to heuristic estimate.
+            pressure_drop = None
+            if "pressure_drop_mpa" in kpi_values:
+                try:
+                    pressure_drop = float(kpi_values["pressure_drop_mpa"])
+                except Exception:
+                    pressure_drop = None
+            if pressure_drop is None:
+                pressure_drop = (150.0 * viscosity * velocity) / math.sqrt(gc)
+
+            # 2. ショートショットリスク (Short Shot Risk, scale 0.0 - 1.0)
+            short_shot = (5.0 * viscosity) / (velocity * math.sqrt(gc))
+            short_shot = min(1.0, max(0.0, short_shot))
+
+            # 3. 反り・収縮量 (Warpage, mm)
+            warpage = (0.8 * pressure_drop) / math.sqrt(gc)
+
+            # 4. ウエルドライン強度低下 (Weldline Severity, scale 0.0 - 100.0)
+            if gc >= 2:
+                weldline = 40.0 * (viscosity / velocity) * (gc - 1)
+                weldline = min(100.0, max(0.0, weldline))
+            else:
+                weldline = 0.0
+
+            # 5. ヒケ量リスク (Sink Mark Risk, scale 0.0 - 1.0)
+            sink_mark = (15.0 * viscosity * math.sqrt(velocity)) / (pressure_drop + 0.1)
+            sink_mark = min(1.0, max(0.0, sink_mark))
+
+            if float(pressure_drop) >= 4.0 or warpage >= 1.5 or short_shot >= 0.8:
+                verdict = "FAILED"
+
+            defects["pressure_drop_MPa"] = float(f"{float(pressure_drop):.4f}")
+            if kpi_values:
+                defects["kpi_source"] = "openfoam_postprocess"
+                defects["kpi_pressure_drop_pa"] = float(kpi_values.get("pressure_drop_pa") or 0.0)
+                defects["kpi_p_in_avg_pa"] = float(kpi_values.get("p_in_avg_pa") or 0.0)
+                defects["kpi_p_out_pa"] = float(kpi_values.get("p_out_pa") or 0.0)
+            else:
+                defects["kpi_source"] = "heuristic_fallback"
+            defects["short_shot_risk"] = float(f"{short_shot:.4f}")
+            defects["burr_risk"] = "HIGH (型開きバリ発生)" if pressure_drop >= 3.5 else "LOW (適正型締め力)"
+            defects["warpage_mm"] = float(f"{warpage:.4f}")
+            defects["weldline_severity"] = float(f"{weldline:.4f}")
+            defects["sink_mark_risk"] = float(f"{sink_mark:.4f}")
+            defects["flow_front_velocity_mms"] = float(f"{velocity * 100.0:.2f}")
+            if category in (
+                "resin_fill",
+                "resin_fill_vof",
+                "resin_fill_thermo",
+                "resin_fill_turb",
+                "resin_fill_cad",
+            ):
+                defects.update(defects_extra)
 
     expected_kpis = exp.get("expected_kpis")
     if isinstance(expected_kpis, dict) and isinstance(kpi_values, dict) and kpi_values:
@@ -2201,8 +2804,24 @@ def run_engine(dry_run: bool = False, max_trials: int = MAX_TRIALS_DEFAULT,
         if category_filter and category != category_filter:
             continue
 
+        # Phase 8: VOF + CAD multi-gate DOE
+        if category == "resin_fill_doe":
+            print("\n[OPTIMIZER] Category 'resin_fill_doe' detected. Generating VOF D-Optimal DOE...")
+            import moldflow_doe as mfdoe
+
+            n_doe_trials = min(6, max_trials)
+            base = (exp.get("param_sweeps") or [{}])[0]
+            doe_sweeps = mfdoe.generate_doe_sweeps(
+                n_doe_trials,
+                step_path=base.get("step_path"),
+                physics_category=base.get("physics_category", "resin_fill_vof"),
+                gate_spec_path=base.get("gate_spec_path"),
+            )
+            exp["param_sweeps"] = doe_sweeps
+            print(f"[OPTIMIZER] Generated {len(doe_sweeps)} VOF+CAD DOE points.")
+
         # D-Optimal DOE generation for injection molding optimization (INC-100)
-        if category == "resin_flow_opt":
+        elif category == "resin_flow_opt":
             print("\n[OPTIMIZER] Category 'resin_flow_opt' detected. Generating D-Optimal DOE...")
             factors = {
                 "gate_count": [1, 2, 3],
@@ -2364,6 +2983,46 @@ def run_engine(dry_run: bool = False, max_trials: int = MAX_TRIALS_DEFAULT,
 
     # ── Automated Multi-Objective Optimization Solver (RSM fit & Minimize) (INC-100) ──
     # If optimization was run, compile results and determine the absolute optimal config
+    if category_filter == "resin_fill_doe" and len(te_log["trials"]) > 0:
+        print("\n" + "=" * 70)
+        print("  [OPTIMIZER] VOF+CAD DOE: RSM fit & multi-gate recommendation")
+        print("=" * 70)
+        try:
+            import moldflow_doe as mfdoe
+
+            summary = mfdoe.summarize_trials(te_log["trials"])
+            if summary.get("ok"):
+                opt = summary.get("optimal_configuration") or {}
+                print("\n[OPTIMIZER] Recommended VOF molding configuration:")
+                for k, v in opt.items():
+                    print(f"  - {k}: {v}")
+                opt_file = RESULTS_DIR / "cae_te_optimal_vof_doe.json"
+                _atomic_write_json(
+                    opt_file,
+                    {
+                        "optimal_configuration": opt,
+                        "summary": summary,
+                        "timestamp": datetime.datetime.now().isoformat(),
+                    },
+                )
+                print(f"[OPTIMIZER] Saved to {opt_file.name}")
+                spec_path = WORKSPACE / "samples" / "moldflow" / "gate_spec_optimal.json"
+                if opt.get("gate_count") is not None:
+                    import moldflow_gate_spec as mgs
+
+                    mgs.write_gate_spec(
+                        spec_path,
+                        mgs.build_gate_spec_legacy(
+                            int(opt["gate_count"]),
+                            str(opt.get("gate_position", "center")),
+                        ),
+                    )
+                    print(f"[OPTIMIZER] Wrote recommended gate_spec -> {spec_path}")
+            else:
+                print(f"[OPTIMIZER] {summary.get('reason', 'skipped')}")
+        except Exception as ex:
+            print(f"[OPTIMIZER] VOF DOE optimization error: {ex}")
+
     if category_filter == "resin_flow_opt" and len(te_log["trials"]) > 0:
         print("\n" + "=" * 70)
         print("  [OPTIMIZER] Fitting Response Surfaces & Solving Multi-Objective")
@@ -2642,7 +3301,17 @@ def run_single_trial(
         assessment = {"verdict": "ERROR", "convergence": {}, "defects": {}}
 
     verdict = assessment["verdict"]
-    lesson = exp.get("lesson_template", "T&E trial completed.").format(status=verdict, **trial_params)
+    lesson_ctx: dict[str, Any] = {"status": verdict}
+    lesson_ctx.update(trial_params)
+    for sweep in exp.get("param_sweeps") or []:
+        if isinstance(sweep, dict):
+            for k, v in sweep.items():
+                lesson_ctx.setdefault(k, v)
+    tmpl = exp.get("lesson_template", "T&E trial completed.")
+    try:
+        lesson = tmpl.format(**lesson_ctx)
+    except KeyError:
+        lesson = f"{exp.get('description', category_name)}: {verdict} params={trial_params}"
     trial_entry = {
         "id": resolved_trial_id,
         "exp_id": exp["id"],
@@ -2672,9 +3341,73 @@ def run_single_trial(
     if paraview_png:
         trial_entry["paraview_png"] = paraview_png
 
+    phys_cat = str(trial_params.get("physics_category") or "")
+    skip_paraview_telegram = _openfoam_skip_paraview(category_name, phys_cat)
+    sent_fill_video = False
+    if (
+        verdict == "SUCCESS"
+        and run_dir
+        and os.environ.get("CAE_FILL_VIDEO_TELEGRAM", "1") == "1"
+        and str(host).lower() != "lavie"
+    ):
+        try:
+            scripts_dir = Path(__file__).resolve().parent
+            if str(scripts_dir) not in sys.path:
+                sys.path.insert(0, str(scripts_dir))
+            import moldflow_fill_video_telegram as mfv
+
+            rd = Path(run_dir)
+            if mfv.is_vof_run_dir(rd):
+                fill_pct = float(
+                    (assessment.get("defects") or {}).get("fill_fraction_pct")
+                    or 0.0
+                )
+                if mfv.send_fill_video_for_run(
+                    rd,
+                    resolved_trial_id,
+                    category=category_name,
+                    host=host,
+                    fill_pct=fill_pct if fill_pct > 0 else None,
+                    delete_after=True,
+                ):
+                    trial_entry["fill_video_telegram_sent"] = True
+                    sent_fill_video = True
+                    skip_paraview_telegram = True
+        except Exception as tg_exc:
+            trial_entry["fill_video_telegram_error"] = str(tg_exc)[:200]
+            print(f"[fill-video-telegram] non-fatal: {tg_exc}", flush=True)
+
+    if (
+        verdict == "SUCCESS"
+        and run_dir
+        and solver_type == "openradioss"
+        and os.environ.get("CAE_OPENRADIOSS_VIDEO_TELEGRAM", "1") == "1"
+        and not sent_fill_video
+    ):
+        try:
+            scripts_dir = Path(__file__).resolve().parent
+            if str(scripts_dir) not in sys.path:
+                sys.path.insert(0, str(scripts_dir))
+            import openradioss_vtk_video_telegram as orv
+
+            if orv.send_openradioss_video_for_run(
+                Path(run_dir),
+                resolved_trial_id,
+                category=category_name,
+                host=host,
+                delete_after=True,
+            ):
+                trial_entry["openradioss_video_telegram_sent"] = True
+                skip_paraview_telegram = True
+        except Exception as tg_exc:
+            trial_entry["openradioss_video_telegram_error"] = str(tg_exc)[:200]
+            print(f"[or-video-telegram] non-fatal: {tg_exc}", flush=True)
+
     if (
         verdict == "SUCCESS"
         and paraview_png
+        and not skip_paraview_telegram
+        and not sent_fill_video
         and os.environ.get("CAE_PARAVIEW_TELEGRAM", "1") == "1"
     ):
         try:
@@ -2723,7 +3456,11 @@ def run_single_trial(
             artifact_path=str(run_result.get("run_dir") or ""),
                 difficulty=1 if category_name in (
                     "resin_flow", "resin_fill", "resin_fill_vof", "resin_fill_thermo", "resin_fill_turb",
-                    "press_blanking_stripper"
+                    "resin_fill_pack",
+                    "resin_fill_cool",
+                    "resin_fill_cad",
+                    "resin_fill_doe",
+                    "press_blanking_stripper",
                 ) else 2,
             evidence=assessment.get("failure_evidence", {}),
         )
@@ -2751,8 +3488,9 @@ if __name__ == "__main__":
     parser.add_argument("--category", type=str, default=None,
                         choices=["press_bending", "press_blanking", "press_drawing",
                                  "press_crushing", "press_blanking_stripper", "resin_flow", "resin_fill",
-                                 "resin_fill_vof", "resin_fill_thermo", "resin_fill_turb", "resin_flow_opt",
-                                 "progressive_strip_layout"],
+                                 "resin_fill_vof", "resin_fill_thermo", "resin_fill_turb", "resin_fill_pack",
+                                 "resin_fill_cool", "resin_fill_cad", "resin_fill_doe",
+                                 "resin_flow_opt", "progressive_strip_layout"],
                         help="Run only trials in this category")
     args = parser.parse_args()
 

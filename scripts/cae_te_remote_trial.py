@@ -67,15 +67,26 @@ def main() -> int:
         print(json.dumps({"ok": True, "paraview_png": str(png), "telegram_sent": sent}, ensure_ascii=False))
         return 0
 
-    import cae_te_engine as engine
-
+    category = (args.category or "").strip()
     params: dict | None = None
     if args.params_file:
         params = json.loads(Path(args.params_file).read_text(encoding="utf-8-sig"))
     elif args.params_json:
         params = json.loads(args.params_json)
 
+    phys = str((params or {}).get("physics_category") or "")
+    if category in ("resin_flow", "resin_flow_opt") or category.startswith(
+        "resin_fill"
+    ) or phys.startswith("resin_fill"):
+        os.environ["CAE_PARAVIEW_TELEGRAM"] = "0"
+        os.environ["CAE_PARAVIEW_CAPTURE"] = "0"
+
+    import cae_te_engine as engine
+
     host = args.host or os.environ.get("SATELLITE_NODE_ID", "k10")
+    if str(host).lower() == "lavie":
+        # K10 continuous loop sends fill video via pull+render on K10 (INC-089).
+        os.environ["CAE_FILL_VIDEO_TELEGRAM"] = "0"
     try:
         trial_entry = engine.run_single_trial(
             category=args.category or None,

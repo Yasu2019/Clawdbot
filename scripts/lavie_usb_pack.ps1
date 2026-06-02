@@ -63,6 +63,17 @@ foreach ($rel in @(
     "scripts\cae_te_visual_report.py",
     "scripts\cae_te_optimizer.py",
     "scripts\cae_self_growth_gates.py",
+    "scripts\cae_failure_analysis.py",
+    "scripts\cae_workload_router.py",
+    "scripts\moldflow_step_case_builder.py",
+    "scripts\moldflow_gate_spec.py",
+    "scripts\moldflow_closed_cavity.py",
+    "scripts\moldflow_cavity_mesh.py",
+    "scripts\moldflow_fill_video_telegram.py",
+    "scripts\lavie_cae_video_support.py",
+    "scripts\lavie_bootstrap_cae_video.ps1",
+    "scripts\k10_send_lavie_fill_video.py",
+    "scripts\openradioss_vtk_video_telegram.py",
     "scripts\lavie_boost_apply.ps1",
     "scripts\lavie_restart_all.ps1",
     "scripts\lavie_restart_remote.ps1",
@@ -81,11 +92,41 @@ if (Test-Path $pvScriptsSrc) {
     Copy-Item -Path (Join-Path $pvScriptsSrc "*") -Destination $pvScriptsDst -Recurse -Force
 }
 
+$ppPlateSrc = Join-Path $RepoRoot "data\cae_te_workspace\samples\moldflow\pp_plate"
+$ppPlateDst = Join-Path $OutDir "data\cae_te_workspace\samples\moldflow\pp_plate"
+if (Test-Path $ppPlateSrc) {
+    New-Item -ItemType Directory -Path $ppPlateDst -Force | Out-Null
+    robocopy $ppPlateSrc $ppPlateDst /E /NFL /NDL /NJH /NJS /NC /NS | Out-Null
+    if ($LASTEXITCODE -ge 8) { throw "robocopy pp_plate samples failed: $LASTEXITCODE" }
+}
+
 $guardSrc = Join-Path $RepoRoot "data\workspace\outbound_delivery_guard.py"
 $guardDstDir = Join-Path $OutDir "data\workspace"
 if (Test-Path $guardSrc) {
     New-Item -ItemType Directory -Path $guardDstDir -Force | Out-Null
     Copy-Item -LiteralPath $guardSrc -Destination (Join-Path $guardDstDir "outbound_delivery_guard.py") -Force
+}
+
+# Optional ffmpeg for LAVIE-local fast path (~5MB essentials, not full winget pack)
+$toolsDst = Join-Path $OutDir "tools"
+New-Item -ItemType Directory -Path $toolsDst -Force | Out-Null
+$ffmpegDst = Join-Path $toolsDst "ffmpeg.exe"
+if (-not (Test-Path $ffmpegDst)) {
+    $ffmpegCandidates = @(
+        (Join-Path $env:LOCALAPPDATA "Microsoft\WinGet\Packages\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\ffmpeg-7.1-full_build\bin\ffmpeg.exe"),
+        (Join-Path $env:LOCALAPPDATA "Microsoft\WinGet\Packages\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\ffmpeg-7.0-full_build\bin\ffmpeg.exe"),
+        "C:\ffmpeg\bin\ffmpeg.exe"
+    )
+    foreach ($cand in $ffmpegCandidates) {
+        if ($cand -and (Test-Path $cand)) {
+            Copy-Item -LiteralPath $cand -Destination $ffmpegDst -Force
+            Write-Host "[pack] tools/ffmpeg.exe from $cand"
+            break
+        }
+    }
+    if (-not (Test-Path $ffmpegDst)) {
+        Write-Host "[pack] WARN tools/ffmpeg.exe not found on pack host; K10 pull path still works"
+    }
 }
 
 $readme = @"

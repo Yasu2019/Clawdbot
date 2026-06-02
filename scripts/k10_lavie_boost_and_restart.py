@@ -45,12 +45,13 @@ def main() -> int:
     token = sjp.load_token()
     node_info = sjp.load_node(args.node)
     base = sjp.worker_base_url(node_info)
+    # Never docker compose down on LAVIE (OpenFOAM/OpenRadioss must not stop). Worker only.
     cmd = (
         "powershell -NoProfile -ExecutionPolicy Bypass "
-        "-File C:\\lavie_usb_pack\\scripts\\lavie_restart_remote.ps1 "
+        "-File C:\\lavie_usb_pack\\scripts\\lavie_restart_job_worker_only.ps1 "
         "-RepoRoot C:\\lavie_usb_pack"
     )
-    print("[boost] queue LAVIE restart (detached)...")
+    print("[boost] queue LAVIE job worker restart (worker-only, no docker down)...")
     result = sync_base.dispatch_shell(args.node, cmd, 60, token)
     stdout = result.get("stdout_tail") or ""
     if "RESTART_QUEUED_OK" not in stdout:

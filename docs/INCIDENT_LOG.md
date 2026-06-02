@@ -3,6 +3,20 @@
 譛ｬ繝輔ぃ繧､繝ｫ縺ｯ縲√す繧ｹ繝・Β縺ｫ逋ｺ逕溘＠縺滄囿螳ｳ縺ｻ荳榊・蜷医→縺昴・譬ｹ譛ｬ蜴溷屏繝ｻ菫ｮ豁｣蜀・ｮｹ繝ｻ蜀咲匱髦ｲ豁｢遲悶ｒ險倬鹸縺励∪縺吶€・菫ｮ豁｣繧定｡後▲縺溷ｴ蜷医・縲∝ｿ・★縺薙・繝輔ぃ繧､繝ｫ縺ｫ繧ｨ繝ｳ繝医Μ繧定ｿｽ蜉縺励※縺上□縺輔＞縲・
 ------
 
+## INC-089: LAVIE moldflow fill video failed silently (missing ffmpeg/pyvista; worker timeout)
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-06-02 JST |
+| **Detection** | `lavie365-resin_fill_cad-live01` SUCCESS on LAVIE but no Telegram MP4; K10 loop dispatched `moldflow_fill_video_telegram.py` on LAVIE without ffmpeg on PATH; render stopped at 3 frames; job worker connect timeouts blocked zip/upload. |
+| **Impact** | User saw FEM success but no 3D fill video; false sense that pipeline was complete; duplicate local render attempts on LAVIE. |
+| **Root Cause (5 Why)** | **Why1**: No MP4 sent after SUCCESS.<br>**Why2**: LAVIE lacked ffmpeg; pyvista install intermittent.<br>**Why3**: Orchestrator assumed LAVIE had same toolchain as K10.<br>**Why4**: `maybe_notify` marked notification sent before verifying `telegram sent=True`.<br>**Why5**: No canonical cross-host path documented or enforced. |
+| **Fix** | (1) `scripts/lavie_cae_video_support.py`: worker probe, optional LAVIE local fast path, default **K10 pull** (zip PUT :5689 -> pyvista+ffmpeg on K10 -> Telegram, delete after send).<br>(2) `k10_lavie_continuous_te_loop.py`: dispatch via support module; remember notification only if `ok`.<br>(3) `cae_te_remote_trial.py` + `cae_te_engine.py`: `CAE_FILL_VIDEO_TELEGRAM=0` on `host=lavie`.<br>(4) `lavie_usb_pack.ps1`: bundle `tools/ffmpeg.exe` + bootstrap script; sync runs `lavie_bootstrap_cae_video.ps1`. |
+| **Files** | `scripts/lavie_cae_video_support.py`, `scripts/lavie_bootstrap_cae_video.ps1`, `scripts/k10_lavie_continuous_te_loop.py`, `scripts/k10_send_lavie_fill_video.py`, `scripts/cae_te_remote_trial.py`, `scripts/cae_te_engine.py`, `scripts/lavie_usb_pack.ps1`, `scripts/k10_sync_lavie_scripts_to_lavie.py`, `docs/cae_north_star_and_meaning_gate_protocol.md` |
+| **Verification** | `python -m py_compile scripts/lavie_cae_video_support.py`; after LAVIE worker healthy: `python scripts/k10_send_lavie_fill_video.py --trial-id lavie365-resin_fill_cad-live01` returns `ok=True`. |
+| **Lessons Learned** | Satellite nodes must not mirror K10 media toolchain; orchestration belongs on K10 with explicit worker health gates. |
+| **Prevention** | P025/T019: only VOF/OR MP4 to Telegram; never mark notify without send proof; read INC-089 before LAVIE video changes. |
+
 ## INC-088: Content 5-Forces Gate container startup failure due to WSL/Hyper-V port conflicts and Docker root-path mismatch
 
 | Field | Detail |

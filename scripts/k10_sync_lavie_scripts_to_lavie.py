@@ -28,8 +28,12 @@ import k10_sync_cae_experiments_to_lavie as sync_base
 def main() -> int:
     parser = argparse.ArgumentParser(description="Sync LAVIE scripts pack over Tailscale")
     parser.add_argument("--node", default="lavie")
-    parser.add_argument("--pack-dir", default=str(ROOT / "dist" / "lavie_usb_pack" / "scripts"))
-    parser.add_argument("--dest", default="C:/lavie_usb_pack/scripts")
+    parser.add_argument(
+        "--pack-dir",
+        default=str(ROOT / "dist" / "lavie_usb_pack"),
+        help="Full lavie_usb_pack (scripts + data samples)",
+    )
+    parser.add_argument("--dest", default="C:/lavie_usb_pack")
     parser.add_argument("--k10-ip", default="")
     parser.add_argument("--port", type=int, default=5683)
     parser.add_argument("--build-pack", action="store_true")
@@ -81,6 +85,15 @@ def main() -> int:
             if stdout:
                 print(stdout[-1500:])
             print(f"\nRESULT: {'PASS' if ok else 'FAIL'}")
+            if ok:
+                boot = (
+                    f'powershell -NoProfile -ExecutionPolicy Bypass -File '
+                    f'"{args.dest.replace("/", "\\")}\\scripts\\lavie_bootstrap_cae_video.ps1"'
+                )
+                br = sync_base.dispatch_shell(args.node, boot, 300, token)
+                tail = (br.get("stdout_tail") or "")[-500:]
+                if tail:
+                    print(tail)
             return 0 if ok else 1
         finally:
             server.shutdown()
