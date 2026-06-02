@@ -206,14 +206,16 @@ def send_fill_video_after_success(
     category: str,
     run_dir: str = "",
     cfg: dict[str, Any] | None = None,
+    k10_pull_only: bool = False,
 ) -> dict[str, Any]:
     """Try LAVIE local render; fallback K10 pull (always works if worker up)."""
     if category not in LAVIE_FILL_CATEGORIES and not category.startswith("resin_fill"):
         return {"ok": False, "error": "not_fill_category"}
 
-    local = try_lavie_local_fill_video(trial_id, run_dir, cfg=cfg)
-    if local and local.get("ok"):
-        return local
+    if not k10_pull_only:
+        local = try_lavie_local_fill_video(trial_id, run_dir, cfg=cfg, timeout_sec=120)
+        if local and local.get("ok"):
+            return local
 
     return send_fill_video_via_k10_pull(
         trial_id, run_dir=run_dir, category=category, cfg=cfg, delete_after=True

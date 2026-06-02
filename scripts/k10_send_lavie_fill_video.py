@@ -31,6 +31,7 @@ def main() -> int:
         args.trial_id,
         category=args.category,
         run_dir=args.run_dir,
+        k10_pull_only=True,
     )
     print(result, flush=True)
     return 0 if result.get("ok") else 1
