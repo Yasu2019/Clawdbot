@@ -113,6 +113,104 @@
         </div>
 
         <div class="card full-width">
+            <h2>Fleet Job & Performance History (過去24時間のフリート稼働実績・ジョブ実行履歴)</h2>
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th width="20%">Node / IP</th>
+                        <th width="15%">Status (24h)</th>
+                        <th width="45%">Activity & Execution Details (過去24時間の実績と実行タスク)</th>
+                        <th width="20%">Verification & Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <div style="font-weight:600; font-size:1.05rem;">NucBox K10</div>
+                            <div style="font-size:0.8rem; color:var(--text-dim);">100.119.18.40 (Main Host)</div>
+                        </td>
+                        <td>
+                            <div style="background: rgba(35, 134, 54, 0.1); border: 1px solid var(--accent); padding: 3px 8px; border-radius: 8px; display: inline-block; color: var(--accent); font-weight:600; font-size:0.8rem;">ACTIVE / ONLINE</div>
+                        </td>
+                        <td>
+                            <div class="know-how">
+                                <strong>【自律成長・コード改善】</strong><br>
+                                ・`universal_growth.db` を監視し、未適用の樹脂粘性理論（レコード ID 22）を検出。<br>
+                                ・ソルバー `cae_te_engine.py` 内の粘性モデルを <strong>Cross-WLF 非ニュートン粘性モデル</strong> へ自動書き換えし、静的文法チェックをパス。<br>
+                                ・改変前の Git 自動コミットおよび GitHub リモートへの安全なプッシュを完遂。<br>
+                                <strong>【メールインデックス】</strong><br>
+                                ・常時稼働し、社内メールを自動インデックス化（検索対象メール 8,029件、タスク 4,838件に正常拡張）。
+                            </div>
+                        </td>
+                        <td style="color: var(--primary); font-size: 0.85rem; font-weight: 600;">
+                            PASS (Build & Backup)<br>
+                            <span style="font-size:0.75rem; color:var(--text-dim); font-weight:normal;">Git Commit: 1aa39320</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div style="font-weight:600; font-size:1.05rem;">G3 Node</div>
+                            <div style="font-size:0.8rem; color:var(--text-dim);">100.121.241.128 (Satellite)</div>
+                        </td>
+                        <td>
+                            <div style="background: rgba(248, 81, 73, 0.1); border: 1px solid #f85149; padding: 3px 8px; border-radius: 8px; display: inline-block; color: #f85149; font-weight:600; font-size:0.8rem;">OFFLINE (TIMEOUT)</div>
+                        </td>
+                        <td>
+                            <div class="know-how" style="color: var(--text-dim);">
+                                ・Tailscale経由の接続がタイムアウトになり、n8nおよび要求動画作成などのアクティブタスクの実行は行われませんでした。
+                            </div>
+                        </td>
+                        <td style="color: #f85149; font-size: 0.85rem; font-weight: 600;">
+                            WAITING / OFFLINE<br>
+                            <span style="font-size:0.75rem; color:var(--text-dim); font-weight:normal;">Check Tailscale / WiFi</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div style="font-weight:600; font-size:1.05rem;">NEC LAVIE</div>
+                            <div style="font-size:0.8rem; color:var(--text-dim);">100.87.244.46 (CAE Worker)</div>
+                        </td>
+                        <td>
+                            <div style="background: rgba(210, 153, 34, 0.1); border: 1px solid #d29922; padding: 3px 8px; border-radius: 8px; display: inline-block; color: #d29922; font-weight:600; font-size:0.8rem;">OFFLINE (SERVICE)</div>
+                        </td>
+                        <td>
+                            <div class="know-how">
+                                ・Ping疎通および Windows 共有（SMB 445ポート）/ WinRM（5985ポート）は生存。<br>
+                                ・LAVIE 上の Docker サービス（n8n:5679, worker:5682）が応答せず接続タイムアウト。<br>
+                                ・K10 からの最新 Cross-WLF ソルバーコードの同期デプロイは保留（LAVIEが復帰次第同期予定）。<br>
+                                ・流動解析タスクは待機中となっています。
+                            </div>
+                        </td>
+                        <td style="color: #d29922; font-size: 0.85rem; font-weight: 600;">
+                            DEPLOY_PENDING<br>
+                            <span style="font-size:0.75rem; color:var(--text-dim); font-weight:normal;">Check Docker Desktop / WSL</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div style="font-weight:600; font-size:1.05rem;">Dynabook</div>
+                            <div style="font-size:0.8rem; color:var(--text-dim);">100.98.133.40 (Light Satellite)</div>
+                        </td>
+                        <td>
+                            <div style="background: rgba(210, 153, 34, 0.1); border: 1px solid #d29922; padding: 3px 8px; border-radius: 8px; display: inline-block; color: #d29922; font-weight:600; font-size:0.8rem;">REBOOTED / OFFLINE</div>
+                        </td>
+                        <td>
+                            <div class="know-how">
+                                ・ローカル Ollama（qwen3:14b）実行による極度のCPU高負荷のため、サーマルスロットリング制限が発生し、強制シャットダウン（電源落ち）が発生。<br>
+                                ・ユーザーによる手動再起動でOSは復帰しましたが、ジョブワーカー（5683ポート）は現在未起動状態。<br>
+                                ・負荷軽減対策として、重いLLM処理を LiteLLM (gemini-2.5-flash) に完全にルーティング変更したため、今後は安定動作する見込み。
+                            </div>
+                        </td>
+                        <td style="color: #d29922; font-size: 0.85rem; font-weight: 600;">
+                            WORKER_STOPPED<br>
+                            <span style="font-size:0.75rem; color:var(--text-dim); font-weight:normal;">Run start_job_worker on device</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card full-width">
             <h2>Distributed Nodes Status (G3 & Lavie 稼働状況)</h2>
             <div id="nodesBody" style="display: flex; gap: 15px; flex-wrap: wrap;">
                 <div style="color: var(--text-dim); font-size: 0.9rem;">Loading Node Status...</div>
