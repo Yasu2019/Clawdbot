@@ -158,6 +158,8 @@ tmp_*/
 data/meshy_assets/
 data/iatf_videos/
 data/state/litellm_config.yaml
+data/cae_te_workspace/
+services/ai_image_gen/outputs/
 
 # Beads / Dolt files (added by bd init)
 .dolt/
