@@ -903,21 +903,67 @@ _WLF_MU_MIN = 1e-4
 _WLF_MU_MAX = 1.0e5
 
 
-def _wlf_dynamic_viscosity(mu0: float, tr: float, c1: float, c2: float, t_k: float) -> float:
-    """OpenFOAM WLF: mu = mu0 * exp(-C1*(T-Tr)/(C2+T-Tr)), clamped for T < Tr."""
-    dt = t_k - tr
-    denom = c2 + dt
-    if denom < 1.0:
-        return min(_WLF_MU_MAX, max(_WLF_MU_MIN, mu0 * 3.0))
-    mu = mu0 * math.exp(-c1 * dt / denom)
-    return min(_WLF_MU_MAX, max(_WLF_MU_MIN, mu))
+def _wlf_dynamic_viscosity(mu0: float, tr: float, c1: float, c2: float, t_k: float, gdot: float = 1000.0, p_mpa: float = 0.0, params: dict | None = None) -> float:
+    """Cross-WLF viscosity model.
+    The mu0, tr, c1, c2 arguments are kept for compatibility but are not used
+    by the Cross-WLF calculation, which relies on parameters from the 'params' dict.
+    """
+    # Default Cross-WLF parameters
+    D1 = 1.0e10
+    D2 = 105.0  # Celsius
+    D3 = 0.0
+    A1 = 17.44
+    A2 = 51.6
+    tau_star = 50000.0
+    n = 0.35
+
+    # Override with parameters from the dict if provided
+    if params:
+        D1 = float(params.get("cross_wlf_D1", D1))
+        D2 = float(params.get("cross_wlf_D2", D2))
+        D3 = float(params.get("cross_wlf_D3", D3))
+        A1 = float(params.get("cross_wlf_A1", A1))
+        A2 = float(params.get("cross_wlf_A2", A2))
+        tau_star = float(params.get("cross_wlf_tau_star", tau_star))
+        n = float(params.get("cross_wlf_n", n))
+        # Allow gdot and p_mpa to be overridden from params as well
+        gdot = float(params.get("gdot", gdot))
+        p_mpa = float(params.get("p_mpa", p_mpa))
+
+    # 1. Convert temperature to Celsius
+    t_c = t_k - 273.15
+
+    # 2. Calculate Tg (Glass Transition Temperature)
+    Tg = D2 + D3 * p_mpa
+
+    # 3. Calculate zero-shear viscosity eta0 (using WLF form)
+    temp_diff = t_c - Tg
+    denom_eta0 = A2 + temp_diff
+    # Clamp denominator to prevent division by zero or very small numbers
+    denom_eta0 = max(denom_eta0, 1e-6)
+    
+    eta0 = D1 * math.exp(-A1 * temp_diff / denom_eta0)
+
+    # 4. Calculate final viscosity eta (using Cross model)
+    # Ensure the base of the power is positive
+    shear_rate_term = max(1e-12, eta0 * gdot / tau_star)
+    
+    eta = eta0 / (1.0 + shear_rate_term**(1.0 - n))
+    
+    # Apply global viscosity limits (assuming _WLF_MU_MAX and _WLF_MU_MIN are defined elsewhere)
+    return min(_WLF_MU_MAX, max(_WLF_MU_MIN, eta))
 
 
 def _resolve_wlf_params(params: dict) -> dict:
-    """WLF coeffs (Williams-Landel-Ferry; not Moldflow Cross-WLF)."""
+    """WLF coeffs (Williams-Landel-Ferry; not Moldflow Cross-WLF).
+    This function primarily resolves parameters for temperature range generation
+    and provides default values for legacy WLF parameters, which are now ignored
+    by the Cross-WLF viscosity calculation in _wlf_dynamic_viscosity.
+    """
     t_melt = float(params.get("T_melt", 513))
     t_mold = float(params.get("T_mold", 323))
     # Tr must be below T_mold/T_melt so (C2 + T - Tr) stays positive in the cavity.
+    # This Tr is used for temperature range generation, not for Cross-WLF calculation.
     t_ref = float(params.get("wlf_Tr", min(t_mold, 373.0) - 50.0))
     return {
         "mu0": float(params.get("wlf_mu0", 12000.0)),
@@ -929,7 +975,7 @@ def _resolve_wlf_params(params: dict) -> dict:
 
 
 def _wlf_mu_table_text(params: dict) -> tuple[str, str]:
-    """Build OpenFOAM tabulated mu(T) and kappa(T) from WLF proxy."""
+    """Build OpenFOAM tabulated mu(T) and kappa(T) from Cross-WLF proxy."""
     w = _resolve_wlf_params(params)
     cp = 1500.0
     pr = max(w["Pr"], 0.1)
@@ -942,7 +988,7 @@ def _wlf_mu_table_text(params: dict) -> tuple[str, str]:
             350.0,
             400.0,
             450.0,
-            w["Tr"],
+            w["Tr"], # Use Tr from resolved params for temperature range
             500.0,
             t_melt,
             530.0,
@@ -951,7 +997,9 @@ def _wlf_mu_table_text(params: dict) -> tuple[str, str]:
     mu_lines = []
     kappa_lines = []
     for t_k in temps:
-        mu = max(1e-4, _wlf_dynamic_viscosity(w["mu0"], w["Tr"], w["C1"], w["C2"], t_k))
+        # Pass the original params dict to _wlf_dynamic_viscosity
+        # The mu0, Tr, C1, C2 arguments are kept for compatibility but are ignored by the Cross-WLF logic.
+        mu = max(1e-4, _wlf_dynamic_viscosity(w["mu0"], w["Tr"], w["C1"], w["C2"], t_k, params=params))
         kappa = mu * cp / pr
         mu_lines.append(f"            ({t_k:.2f} {mu:.6g})")
         kappa_lines.append(f"            ({t_k:.2f} {kappa:.6g})")
