@@ -109,7 +109,7 @@ def query_llm(prompt: str) -> str:
     try:
         print("[LLM] Attempting LiteLLM query...")
         req_data = {
-            "model": "deepseek-v4-pro",
+            "model": "gemini-2.5-flash",
             "messages": [
                 {"role": "system", "content": "You are a professional Python engineer specializing in CAE/FEM solvers. Return ONLY the modified Python code block. No markdown, no comments outside code, no explanations."},
                 {"role": "user", "content": prompt}
