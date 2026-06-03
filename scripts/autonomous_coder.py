@@ -265,6 +265,8 @@ Return ONLY the updated python code block that will replace the target block. No
 """
     try:
         modified_block = query_llm(prompt)
+        print(f"[DEBUG] LLM Response length: {len(modified_block)}")
+        print(f"[DEBUG] LLM Response first 300 chars:\n{modified_block[:300]}\n")
     except Exception as e:
         print(f"[ERR] LLM query failed: {e}")
         return 1
