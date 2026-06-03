@@ -1,9 +1,9 @@
 {
-  "updated_at": "2026-06-03T22:37:14.603911",
+  "updated_at": "2026-06-03T22:42:45.397820",
   "domain_stats": {
     "3D_ANIMATION": 249,
     "CAD": 132,
-    "CAE_MATERIAL": 665,
+    "CAE_MATERIAL": 666,
     "DXF2STEP": 15,
     "GEOMETRY_AI": 127,
     "GMAIL_READING": 450,
@@ -147,6 +147,12 @@
   "recent_know_how": [
     {
       "domain": "CAE_MATERIAL",
+      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 6.343427, 'punch_speed_mms': 3559.62436, 'friction_mu': 0.117597}",
+      "know_how": "Blanking SPCC 1.2mm: clearance=6.343427%t, speed=3559.62436mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
+      "timestamp": "2026-06-03 22:42:45"
+    },
+    {
+      "domain": "CAE_MATERIAL",
       "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 6.518325, 'punch_speed_mms': 3310.343091, 'friction_mu': 0.107803}",
       "know_how": "Blanking SPCC 1.2mm: clearance=6.518325%t, speed=3310.343091mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
       "timestamp": "2026-06-03 22:37:14"
@@ -258,12 +264,6 @@
       "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 8.954446, 'punch_speed_mms': 3662.662984, 'friction_mu': 0.112305}",
       "know_how": "Blanking SPCC 1.2mm: clearance=8.954446%t, speed=3662.662984mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
       "timestamp": "2026-06-03 21:02:01"
-    },
-    {
-      "domain": "CAE_MATERIAL",
-      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 8.274481, 'punch_speed_mms': 3202.47117, 'friction_mu': 0.113444}",
-      "know_how": "Blanking SPCC 1.2mm: clearance=8.274481%t, speed=3202.47117mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
-      "timestamp": "2026-06-03 20:56:46"
     }
   ]
 }
