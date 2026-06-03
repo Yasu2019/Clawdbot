@@ -191,6 +191,7 @@ def main():
     parser = argparse.ArgumentParser(description="Autonomous System Self-Improvement Loop")
     parser.add_argument("--mock", action="store_true", help="Simulate a mock learned theory/algorithm run")
     parser.add_argument("--force", action="store_true", help="Re-apply even if already applied")
+    parser.add_argument("--allow-offline", action="store_true", help="Allow proceeding with commit even if satellite deploy fails")
     args = parser.parse_args()
 
     state = load_state()
@@ -301,19 +302,28 @@ Return ONLY the updated python code block that will replace the target block. No
     # 6. Satellite Sync & Deploy
     print("[DEPLOY] Synchronizing scripts to satellite worker (LAVIE)...")
     sync_script = ROOT / "scripts" / "k10_sync_lavie_scripts_to_lavie.py"
+    deploy_ok = True
     if sync_script.exists():
         sync_res = subprocess.run([sys.executable, str(sync_script), "--build-pack"], capture_output=True, text=True)
         if sync_res.returncode != 0:
             print(f"[DEPLOY] Sync failed: {sync_res.stderr}")
-            print("[DEPLOY] Rolling back script update for safety...")
-            run_git_command(["git", "checkout", "--", str(TARGET_FILE)])
-            return 1
-        print("[DEPLOY] Satellite deploy PASSED and worker container restarted.")
+            if args.allow_offline:
+                print("[DEPLOY] Proceeding anyway since --allow-offline is enabled.")
+                deploy_ok = False
+            else:
+                print("[DEPLOY] Rolling back script update for safety...")
+                run_git_command(["git", "checkout", "--", str(TARGET_FILE)])
+                return 1
+        else:
+            print("[DEPLOY] Satellite deploy PASSED and worker container restarted.")
     else:
         print("[DEPLOY] WARNING: Sync script not found. Skipped deploy.")
+        deploy_ok = False
 
     # 7. Commit changes
     git_msg = f"feat(cae): Autonomously integrated Cross-WLF Viscosity model [Record ID: {record['id']}]"
+    if not deploy_ok:
+        git_msg += " [LAVIE Offline - Commit Only]"
     print(f"[GIT] Staging {TARGET_FILE.name}...")
     ok_add, out_add = run_git_command(["git", "add", str(TARGET_FILE)])
     print(f"[GIT] Stage result: ok={ok_add}, out={out_add}")
@@ -332,13 +342,14 @@ Return ONLY the updated python code block that will replace the target block. No
         save_state(state)
 
     # 9. Send Telegram
+    tg_status = "LAVIEへの同期＆再起動完了" if deploy_ok else "LAVIEオフラインのため未適用（ローカル及びGitHubバックアップのみ完了）"
     tg_text = (
         f"【自動改善完了】\n"
         f"CAE流動解析スクリプトを自律更新しました。\n"
         f"・適用ID: {record['id']}\n"
         f"・理論: {record['challenge']}\n"
         f"・内容: Cross-WLF非ニュートン粘性モデル（せん断速度・温度依存性）の統合完了\n"
-        f"・デプロイ: LAVIEへの同期＆再起動完了"
+        f"・状況: {tg_status}"
     )
     send_telegram(tg_text)
     print("[SUCCESS] Self-improvement loop completed successfully!")
