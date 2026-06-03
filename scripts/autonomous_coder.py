@@ -232,6 +232,7 @@ def main():
     
     idx_start = content.find(start_marker)
     idx_end = content.find(end_marker)
+    print(f"[DEBUG] start_marker found at {idx_start}, end_marker found at {idx_end}")
     if idx_start == -1 or idx_end == -1:
         print("[ERR] Could not locate the target WLF block in cae_te_engine.py.")
         return 1
