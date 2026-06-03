@@ -311,11 +311,16 @@ Return ONLY the updated python code block that will replace the target block. No
 
     # 7. Commit changes
     git_msg = f"feat(cae): Autonomously integrated Cross-WLF Viscosity model [Record ID: {record['id']}]"
-    run_git_command(["git", "add", str(TARGET_FILE)])
+    print(f"[GIT] Staging {TARGET_FILE.name}...")
+    ok_add, out_add = run_git_command(["git", "add", str(TARGET_FILE)])
+    print(f"[GIT] Stage result: ok={ok_add}, out={out_add}")
+    print(f"[GIT] Committing modifications...")
     ok, out = run_git_command(["git", "commit", "-m", git_msg])
+    print(f"[GIT] Commit result: ok={ok}, out={out}")
     if ok:
         print(f"[GIT] Committed autonomous improvements: {git_msg}")
-        run_git_command(["git", "push"])
+        ok_push, out_push = run_git_command(["git", "push"])
+        print(f"[GIT] Push result: ok={ok_push}, out={out_push}")
     
     # 8. Record state
     if record["id"] not in applied_ids:
