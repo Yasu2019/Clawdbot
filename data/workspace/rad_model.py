@@ -116,6 +116,35 @@ class RadModel:
                     self._lines[di] = line
         return self
 
+    def set_inter_type25_contact(
+        self,
+        gap_max: float = 0.01,
+        stfac_punch: float = 0.05,
+        stfac_die: float = 1e-4,
+        stfac_strip: float = 1e-4,
+    ) -> "RadModel":
+        """Set Gap_max and Stfac on /INTER/TYPE25/1..3 blocks."""
+        stfac_map = {1: stfac_punch, 2: stfac_die, 3: stfac_strip}
+        for i, ln in enumerate(self._lines):
+            m = re.match(r"/INTER/TYPE25/(\d+)", ln.strip())
+            if not m:
+                continue
+            inter_id = int(m.group(1))
+            if inter_id not in stfac_map:
+                continue
+            gap_di = _find_data_line_after_comment(self._lines, i, "Gap_max")
+            if gap_di >= 0:
+                line = self._lines[gap_di]
+                # Gap_max_s / Gap_max_m are the 4th and 5th numbers (0-based index 3, 4)
+                line = _replace_nth_number(line, 3, f"{gap_max:.6g}")
+                line = _replace_nth_number(line, 4, f"{gap_max:.6g}")
+                self._lines[gap_di] = line
+            st_di = _find_data_line_after_comment(self._lines, i, "Stfac")
+            if st_di >= 0:
+                sf = stfac_map[inter_id]
+                self._lines[st_di] = _replace_nth_number(self._lines[st_di], 0, f"{sf:.6g}")
+        return self
+
     def write(self, path: Path | None = None) -> Path:
         out = Path(path) if path else self.path
         text = "\n".join(self._lines)
@@ -152,6 +181,23 @@ def set_engine_tstop(engine_path: Path, tstop: float) -> None:
         if ln.strip().startswith("/RUN/") and i + 1 < len(lines):
             lines[i + 1] = _replace_nth_number(lines[i + 1], 0, f"{tstop:.10f}")
             break
+    text = "\n".join(lines)
+    if crlf:
+        text = text.replace("\n", "\r\n")
+    engine_path.write_bytes(text.encode("utf-8"))
+
+
+def set_engine_ams_scale(engine_path: Path, scale: float) -> None:
+    """Set AMS scale on the data line after /DT/AMS/... in the engine file."""
+    raw = engine_path.read_bytes()
+    crlf = b"\r\n" in raw
+    lines = raw.decode("utf-8", errors="replace").replace("\r\n", "\n").split("\n")
+    for i, ln in enumerate(lines):
+        if ln.strip().startswith("/DT/AMS") and i + 1 < len(lines):
+            lines[i + 1] = _replace_nth_number(lines[i + 1], 0, f"{scale:.5f}")
+            break
+    else:
+        raise ValueError(f"/DT/AMS block not found in {engine_path}")
     text = "\n".join(lines)
     if crlf:
         text = text.replace("\n", "\r\n")

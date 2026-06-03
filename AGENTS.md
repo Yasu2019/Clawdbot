@@ -2,6 +2,12 @@
 
 この文書は、Antigravity (AIエージェント) がこのプロジェクト内で自律的に行動する際の「ハーネス（安全帯・制御機構）」を定義します。Dockerコンテナ群の整合性を保ちつつ、外部依存による停止や無限ループを防ぐことを目的とします。
 
+## 0. 北極星・意味ゲート（T019 / P025 — 全活動・最優先）
+
+**最終目標:** ユーザーのプレス部品3D → Moldflow級キャビティ充填 + Cetol 6 Sigma級公差 + OpenRadioss曲げ/打ち抜き → **順送金型開発**。  
+**毎タスク前:** 物理の真実・カテゴリ/ソルバ整合・KPI・無意味繰り返しでないか・記憶への還元（bd/ByteRover）を確認。  
+**必読:** `trouble_history.md` **[T019]** · `docs/cae_north_star_and_meaning_gate_protocol.md` · PROMISES **P025** · `bd remember --key cae-north-star-t019`
+
 ## 1. 外部依存の監視プロトコル (External Dependency Monitoring)
 
 ### 1-1. Ollama ダウンロード監視

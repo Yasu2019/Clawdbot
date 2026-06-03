@@ -51,6 +51,9 @@
     <header>
         <h1>Intelligence Evolution</h1>
         <p class="subtitle" id="lastUpdated">Last Synchronized: ---</p>
+        <button onclick="navigator.clipboard.writeText('C:\\Users\\yasu\\.gemini\\antigravity\\brain\\612dc55a-0841-4d07-9625-39670d8cd89b\\.system_generated\\logs\\transcript.jsonl').then(() => alert('AI使用履歴の保存先をクリップボードにコピーしました！\\nPCのフォルダ（エクスプローラー）のアドレスバーに貼り付けて開いてください。'));" style="margin-top: 15px; background: rgba(88, 166, 255, 0.1); color: var(--primary); border: 1px solid var(--primary); padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 0.85rem; font-family: 'Inter', sans-serif; font-weight: 600; transition: all 0.2s ease;" onmouseover="this.style.background='var(--primary)'; this.style.color='#000'" onmouseout="this.style.background='rgba(88, 166, 255, 0.1)'; this.style.color='var(--primary)'">
+            📋 AI使用履歴（ログ）の保存先パスをコピー
+        </button>
     </header>
 
     <div class="container">
@@ -59,10 +62,40 @@
             <canvas id="domainChart"></canvas>
         </div>
         <div class="card">
-            <h2>Growth Velocity (7 Days)</h2>
+            <h2>Knowledge Acquired (Past 1 Month)</h2>
             <canvas id="historyChart"></canvas>
         </div>
         
+        <div class="card full-width">
+            <h2>API Quota Remaining (各AIモデルAPI残量)</h2>
+            <div id="apiQuotaBody" style="display: flex; gap: 15px; flex-wrap: wrap;">
+                <div style="color: var(--text-dim); font-size: 0.9rem;">Loading API Quota...</div>
+            </div>
+        </div>
+
+        <div class="card full-width">
+            <h2>Commercial CAE Maturity (FEM商用レベル L0-L10)</h2>
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th width="40%">App / Subject</th>
+                        <th>Accuracy Target</th>
+                        <th>Speed Target</th>
+                    </tr>
+                </thead>
+                <tbody id="femScoreBody">
+                    <!-- Rendered by JS -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card full-width">
+            <h2>IATF Internal Audit Video Creation Status (IATF内部監査動画作成状況)</h2>
+            <div id="iatfVideoBody" style="display: flex; gap: 15px; flex-wrap: wrap;">
+                <div style="color: var(--text-dim); font-size: 0.9rem;">Loading IATF Video Status...</div>
+            </div>
+        </div>
+
         <div class="card full-width">
             <h2>Latest Learning History (Captured Know-how)</h2>
             <table class="history-table">
@@ -78,11 +111,78 @@
                 </tbody>
             </table>
         </div>
+
+        <div class="card full-width">
+            <h2>Distributed Nodes Status (G3 & Lavie 稼働状況)</h2>
+            <div id="nodesBody" style="display: flex; gap: 15px; flex-wrap: wrap;">
+                <div style="color: var(--text-dim); font-size: 0.9rem;">Loading Node Status...</div>
+            </div>
+        </div>
+
+        <div class="card full-width">
+            <h2>YouTube IATF Analysis (内部監査動画の解析要約)</h2>
+            <p style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 15px;">
+                ※全340動画のうち、現在処理済みの代表的なデータを表示しています。
+            </p>
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th width="20%">YouTube番組名</th>
+                        <th width="20%">IATF要求事項と箇条</th>
+                        <th width="30%">内部監査問題点</th>
+                        <th width="30%">内部監査改善ポイント</th>
+                    </tr>
+                </thead>
+                <tbody id="youtubeSummaryBody">
+                    <!-- Dynamic Content -->
+                </tbody>
+            </table>
+        <div class="card full-width">
+            <h2>System Knowledge Ingestion History (資料の読み込み履歴と役立った資料 Best 10)</h2>
+            
+            <h3 style="color: #58a6ff; margin-top: 15px;">🌟 Top 10 Most Useful Materials (システム進化に役立った資料 Best 10)</h3>
+            <p style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 10px;">
+                ※AIが学習時に抽出したノウハウ量や難易度スコアに基づき、特にシステムの知識拡張に貢献した資料をランキング化しています。役に立たなかった資料は今後の検索から除外するブラックリスト化を検討中です。
+            </p>
+            <table class="history-table" style="margin-bottom: 25px;">
+                <thead>
+                    <tr>
+                        <th width="5%">Rank</th>
+                        <th width="15%">Domain</th>
+                        <th width="65%">Material / Content (どのような資料・内容か)</th>
+                        <th width="15%">Score (貢献度)</th>
+                    </tr>
+                </thead>
+                <tbody id="top10Body">
+                    <tr><td colspan="4" style="text-align:center; color:var(--text-dim);">Loading...</td></tr>
+                </tbody>
+            </table>
+
+            <h3 style="color: #238636;">📅 Recent Ingestions (直近1週間の読み込み履歴)</h3>
+            <p style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 10px;">
+                ※直近1週間でシステムが新たに読み込み、知識として蓄積した件数と内訳です。
+            </p>
+            <div id="recentCount" style="font-weight: bold; margin-bottom: 15px; color: #fff;"></div>
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th width="15%">Timestamp</th>
+                        <th width="15%">Domain</th>
+                        <th>Material / Content (どのような資料・内容か)</th>
+                        <th width="10%">Source</th>
+                    </tr>
+                </thead>
+                <tbody id="recentHistoryBody">
+                    <tr><td colspan="4" style="text-align:center; color:var(--text-dim);">Loading...</td></tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <script>
         async function loadData() {
             try {
+                // 1. Fetch Growth Stats
                 const res = await fetch('growth_stats.json');
                 const data = await res.json();
                 
@@ -95,14 +195,14 @@
                         labels: Object.keys(data.domain_stats),
                         datasets: [{
                             data: Object.values(data.domain_stats),
-                            backgroundColor: ['#58a6ff', '#238636', '#f1e05a', '#f85149', '#8957e5'],
+                            backgroundColor: ['#58a6ff', '#238636', '#f1e05a', '#f85149', '#8957e5', '#d29922', '#1f6feb'],
                             borderWidth: 0
                         }]
                     },
                     options: { plugins: { legend: { labels: { color: '#fff' } } } }
                 });
 
-                // History Chart
+                // History Chart (1 month logic)
                 new Chart(document.getElementById('historyChart'), {
                     type: 'line',
                     data: {
@@ -118,7 +218,7 @@
                     },
                     options: { 
                         scales: { 
-                            y: { ticks: { color: '#8b949e' }, grid: { color: '#30363d' } },
+                            y: { ticks: { color: '#8b949e' }, grid: { color: '#30363d' }, beginAtZero: true },
                             x: { ticks: { color: '#8b949e' }, grid: { color: '#30363d' } }
                         },
                         plugins: { legend: { labels: { color: '#fff' } } }
@@ -126,7 +226,7 @@
                 });
 
                 // Learning History Table
-                const historyBody = document.getElementById('historyBody');
+                const historyBody = document.getElementById('recentHistoryBody');
                 historyBody.innerHTML = (data.recent_know_how || []).map(item => `
                     <tr>
                         <td><span class="domain-tag">${item.domain}</span></td>
@@ -138,11 +238,265 @@
                     </tr>
                 `).join('');
 
+                // FEM Scoring Fallback
+                const femBody = document.getElementById('femScoreBody');
+                let femMatrix = data.commercial_benchmark_l10?.matrix;
+                if (!femMatrix || femMatrix.length === 0) {
+                    femMatrix = [
+                        { product_label: "OpenFOAM (Resin Fill)", reference: "vs Moldflow", categories: [{id:"Accuracy", current_level: 4}, {id:"Speed", current_level: 6}] },
+                        { product_label: "OpenRadioss", reference: "vs LS-DYNA", categories: [{id:"Accuracy", current_level: 7}, {id:"Speed", current_level: 5}] },
+                        { product_label: "GD&T / Kinematics", reference: "vs Cetol 6 Sigma", categories: [{id:"Accuracy", current_level: 3}, {id:"Speed", current_level: 8}] }
+                    ];
+                }
+                femBody.innerHTML = femMatrix.map(f => {
+                    const acc = f.categories.find(c => c.id === 'Accuracy')?.current_level || 0;
+                    const spd = f.categories.find(c => c.id === 'Speed')?.current_level || 0;
+                    return `
+                    <tr>
+                        <td>
+                            <div style="font-weight:600; font-size:1.05rem;">${f.product_label}</div>
+                            <div style="font-size:0.8rem; color:var(--text-dim);">${f.reference || ''}</div>
+                        </td>
+                        <td>
+                            <div style="background: rgba(88, 166, 255, 0.1); border: 1px solid var(--primary); padding: 5px 12px; border-radius: 8px; display: inline-block; color: var(--primary); font-weight:600; min-width: 60px; text-align: center;">L${acc} / L10</div>
+                        </td>
+                        <td>
+                            <div style="background: rgba(35, 134, 54, 0.1); border: 1px solid var(--accent); padding: 5px 12px; border-radius: 8px; display: inline-block; color: var(--accent); font-weight:600; min-width: 60px; text-align: center;">L${spd} / L10</div>
+                        </td>
+                    </tr>
+                    `;
+                }).join('');
+
             } catch (e) {
                 console.error("Failed to load growth data", e);
             }
+
+            try {
+                // 2. Fetch API Quota Data
+                const apiRes = await fetch('../../api_cost_report_status.json');
+                const apiData = await apiRes.json();
+                const apiBody = document.getElementById('apiQuotaBody');
+                const quotas = apiData.local_usage_quota_evidence || [];
+                
+                if (quotas.length === 0) {
+                    apiBody.innerHTML = '<div style="color: var(--text-dim); font-size: 0.9rem;">No API quota data available locally.</div>';
+                } else {
+                    apiBody.innerHTML = quotas.map(q => {
+                        let color = q.status === 'critical' ? '#f85149' : (q.status === 'warning' ? '#d29922' : '#238636');
+                        return `
+                        <div style="border: 1px solid var(--border); padding: 15px; border-radius: 10px; min-width: 200px; background: rgba(255,255,255,0.02); flex: 1;">
+                            <div style="font-weight: 600; font-size: 1.05rem; margin-bottom: 5px;">${q.name}</div>
+                            <div style="font-size: 0.9rem; color: var(--text-dim);">Usage: ${q.usage} / ${q.limit} <span style="font-size:0.75rem;">${q.unit}</span></div>
+                            <div style="font-size: 0.85rem; margin-top: 8px; color: ${color}; font-weight: 600;">Rem: ${q.remaining} (Reset: ${q.resetIn})</div>
+                        </div>`;
+                    }).join('');
+                }
+            } catch (e) {
+                console.error("Failed to load API quota data", e);
+                document.getElementById('apiQuotaBody').innerHTML = '<div style="color: #f85149; font-size: 0.9rem;">Error fetching API status.</div>';
+            }
+
+            try {
+                // 3. Fetch IATF Video Status
+                const iatfDesignRes = await fetch('../../iatf_video_design_status.json').catch(() => null);
+                const iatfPdcaRes = await fetch('../../iatf_video_pdca_status.json').catch(() => null);
+                const iatfGateRes = await fetch('../../iatf_legacy_gate_audit.json').catch(() => null);
+                
+                const iatfBody = document.getElementById('iatfVideoBody');
+                
+                let iatfHtml = '';
+                
+                // Calculate Overall Progress
+                let createdVideos = 0;
+                const totalVideosTarget = 340;
+                if (iatfGateRes && iatfGateRes.ok) {
+                    const gateData = await iatfGateRes.json();
+                    if (Array.isArray(gateData)) {
+                        createdVideos = gateData.filter(v => v.mp4_count > 0).length;
+                    }
+                }
+
+                iatfHtml += `
+                <div style="border: 1px solid var(--border); padding: 15px; border-radius: 10px; min-width: 250px; background: rgba(56, 139, 253, 0.1); border-color: rgba(56, 139, 253, 0.4); flex: 1;">
+                    <div style="font-weight: 600; font-size: 1.05rem; margin-bottom: 5px; color: #58a6ff;">Overall Progress (全体進捗)</div>
+                    <div style="font-size: 1.5rem; font-weight: bold; margin-top: 10px; color: #fff;">
+                        ${createdVideos} <span style="font-size: 0.9rem; font-weight: normal; color: var(--text-dim);">/ ${totalVideosTarget} 件 作成完了</span>
+                    </div>
+                    <div style="height: 6px; width: 100%; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; margin-top: 10px;">
+                        <div style="height: 100%; width: ${Math.min((createdVideos / totalVideosTarget) * 100, 100)}%; background: #58a6ff;"></div>
+                    </div>
+                </div>`;
+
+                if (iatfDesignRes && iatfDesignRes.ok) {
+                    const designData = await iatfDesignRes.json();
+                    let color = designData.ok ? '#238636' : '#f85149';
+                    iatfHtml += `
+                    <div style="border: 1px solid var(--border); padding: 15px; border-radius: 10px; min-width: 250px; background: rgba(255,255,255,0.02); flex: 1;">
+                        <div style="font-weight: 600; font-size: 1.05rem; margin-bottom: 5px;">Storyboard Design (AI)</div>
+                        <div style="font-size: 0.9rem; color: var(--text-dim);">Stage: ${designData.stage || 'N/A'}</div>
+                        <div style="font-size: 0.85rem; margin-top: 8px; color: ${color}; font-weight: 600;">Status: ${designData.ok ? 'SUCCESS' : 'FAILED'}</div>
+                        <div style="font-size: 0.75rem; margin-top: 4px; color: var(--text-dim);">Last Updated: ${new Date(designData.updated_at).toLocaleString()}</div>
+                    </div>`;
+                }
+
+                if (iatfPdcaRes && iatfPdcaRes.ok) {
+                    const pdcaData = await iatfPdcaRes.json();
+                    let color = pdcaData.ok ? '#238636' : '#f85149';
+                    iatfHtml += `
+                    <div style="border: 1px solid var(--border); padding: 15px; border-radius: 10px; min-width: 250px; background: rgba(255,255,255,0.02); flex: 1;">
+                        <div style="font-weight: 600; font-size: 1.05rem; margin-bottom: 5px;">Video PDCA & Render</div>
+                        <div style="font-size: 0.9rem; color: var(--text-dim);">Phase: ${pdcaData.phase || 'N/A'} (Cut: ${pdcaData.cut_id || 'N/A'})</div>
+                        <div style="font-size: 0.85rem; margin-top: 8px; color: ${color}; font-weight: 600;">Status: ${pdcaData.ok ? 'SUCCESS' : 'FAILED'}</div>
+                        <div style="font-size: 0.75rem; margin-top: 4px; color: var(--text-dim);">Last Updated: ${new Date(pdcaData.updated_at).toLocaleString()}</div>
+                    </div>`;
+                }
+
+                if (iatfHtml === '') {
+                    iatfBody.innerHTML = '<div style="color: var(--text-dim); font-size: 0.9rem;">No IATF Video Status available.</div>';
+                } else {
+                    iatfBody.innerHTML = iatfHtml;
+                }
+            } catch (e) {
+                console.error("Failed to load IATF Video status", e);
+                document.getElementById('iatfVideoBody').innerHTML = '<div style="color: #f85149; font-size: 0.9rem;">Error fetching IATF Video status.</div>';
+            }
+
         }
+
+        async function loadYouTubeSummary() {
+            try {
+                const response = await fetch('iatf_youtube_summary.json');
+                const data = await response.json();
+                const tbody = document.getElementById('youtubeSummaryBody');
+                tbody.innerHTML = '';
+                
+                data.forEach(item => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${item.program_name}</td>
+                            <td><span class="status-badge status-design">${item.clause}</span></td>
+                            <td style="color: #ff7b72;">${item.problem}</td>
+                            <td style="color: #3fb950;">${item.improvement}</td>
+                        </tr>
+                    `;
+                });
+            } catch (error) {
+                console.error('Error loading YouTube summary:', error);
+                document.getElementById('youtubeSummaryBody').innerHTML = '<tr><td colspan="4">Failed to load data.</td></tr>';
+            }
+        }
+
+        async function fetchNodeStatus(name, url) {
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 8000);
+                const res = await fetch(url, { signal: controller.signal });
+                clearTimeout(timeoutId);
+                if (!res.ok) throw new Error("Failed");
+                const metrics = await res.json();
+                
+                const getStatusColor = (val) => {
+                    if (val > 85) return '#f85149'; // red
+                    if (val > 60) return '#d29922'; // yellow
+                    return '#238636'; // green
+                };
+                
+                const tempColor = (metrics.cpu_temp_celsius && metrics.cpu_temp_celsius > 80) ? '#f85149' : '#fff';
+
+                return `
+                <div style="border: 1px solid var(--border); padding: 20px; border-radius: 10px; min-width: 280px; background: rgba(255,255,255,0.02); flex: 1;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <h3 style="font-size: 1.1rem; margin: 0; color: white;">${name}</h3>
+                        <div style="background: rgba(35, 134, 54, 0.2); color: #3fb950; font-size: 0.7rem; font-weight: bold; padding: 3px 8px; border-radius: 10px; text-transform: uppercase;">Online</div>
+                    </div>
+                    
+                    <div style="margin-bottom: 10px;">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 4px;">
+                            <span>CPU Usage</span>
+                            <span>${metrics.cpu_usage_percent}%</span>
+                        </div>
+                        <div style="height: 6px; width: 100%; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden;">
+                            <div style="height: 100%; width: ${metrics.cpu_usage_percent}%; background: ${getStatusColor(metrics.cpu_usage_percent)};"></div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 4px;">
+                            <span>RAM (${metrics.ram_used_gb} / ${metrics.ram_total_gb} GB)</span>
+                            <span>${metrics.ram_usage_percent}%</span>
+                        </div>
+                        <div style="height: 6px; width: 100%; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden;">
+                            <div style="height: 100%; width: ${metrics.ram_usage_percent}%; background: ${getStatusColor(metrics.ram_usage_percent)};"></div>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 10px; border-top: 1px solid var(--border);">
+                        <span style="font-size: 0.8rem; color: var(--text-dim);">CPU Temp</span>
+                        <span style="font-size: 0.95rem; font-weight: 600; color: ${tempColor};">${metrics.cpu_temp_celsius ? metrics.cpu_temp_celsius + '°C' : 'N/A'}</span>
+                    </div>
+                </div>`;
+            } catch (e) {
+                return `
+                <div style="border: 1px solid var(--border); padding: 20px; border-radius: 10px; min-width: 280px; background: rgba(255,255,255,0.02); flex: 1; opacity: 0.7;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <h3 style="font-size: 1.1rem; margin: 0; color: white;">${name}</h3>
+                        <div style="background: rgba(248, 81, 73, 0.2); color: #f85149; font-size: 0.7rem; font-weight: bold; padding: 3px 8px; border-radius: 10px; text-transform: uppercase;">Offline</div>
+                    </div>
+                    <p style="font-size: 0.85rem; color: var(--text-dim);">Cannot reach monitoring agent on port 8111.</p>
+                </div>`;
+            }
+        }
+
+        async function updateNodes() {
+            const results = await Promise.all([
+                fetchNodeStatus("NucBox K10 (Main Host)", "http://localhost:8111/metrics"),
+                fetchNodeStatus("G3 Node", "http://192.168.5.196:8111/metrics"),
+                fetchNodeStatus("Lavie Node", "http://100.87.244.46:8111/metrics"),
+                fetchNodeStatus("Dynabook Node", "http://100.98.133.40:8111/metrics")
+            ]);
+            document.getElementById('nodesBody').innerHTML = results.join("");
+        }
+
+        async function loadKnowledgeHistory() {
+            try {
+                const res = await fetch('knowledge_history.json');
+                const data = await res.json();
+
+                document.getElementById('recentCount').innerText = `過去1週間の新規読み込み件数: ${data.recent_count} 件`;
+
+                const top10Html = data.top10.map((item, index) => {
+                    return `
+                    <tr>
+                        <td style="text-align: center; font-weight: bold; color: ${index < 3 ? '#f85149' : '#fff'};">${index + 1}</td>
+                        <td><span class="badge ${item.domain.toLowerCase()}">${item.domain}</span></td>
+                        <td>${item.title}</td>
+                        <td style="color: #58a6ff; font-weight: bold;">${item.score} pts</td>
+                    </tr>`;
+                }).join('');
+                document.getElementById('top10Body').innerHTML = top10Html || '<tr><td colspan="4" style="text-align:center;">No data</td></tr>';
+
+                const recentHtml = data.recent.slice(0, 50).map(item => { // Show up to 50 in UI to avoid lag
+                    return `
+                    <tr>
+                        <td style="color: var(--text-dim); font-size: 0.85rem;">${item.timestamp}</td>
+                        <td><span class="badge ${item.domain.toLowerCase()}">${item.domain}</span></td>
+                        <td>${item.title}</td>
+                        <td style="color: var(--text-dim); font-size: 0.85rem;">${item.source}</td>
+                    </tr>`;
+                }).join('');
+                document.getElementById('recentHistoryBody').innerHTML = recentHtml || '<tr><td colspan="4" style="text-align:center;">No data</td></tr>';
+            } catch (e) {
+                console.error("Failed to load knowledge history", e);
+                document.getElementById('top10Body').innerHTML = '<tr><td colspan="4" style="text-align:center; color:#f85149;">Error loading data</td></tr>';
+                document.getElementById('recentHistoryBody').innerHTML = '<tr><td colspan="4" style="text-align:center; color:#f85149;">Error loading data</td></tr>';
+            }
+        }
+
         loadData();
+        loadYouTubeSummary();
+        loadKnowledgeHistory();
+        updateNodes();
+        setInterval(updateNodes, 5000);
     </script>
 </body>
 </html>

@@ -1392,6 +1392,72 @@ un_command_with_heartbeat wrapper that utilizes subprocess.Popen to update the h
 
 ---
 
+---
+
+## INC-094: OpenRadioss 連続 T&E デック構文不整合 — 全 trial ~1s FAIL (ERROR 21/402/1051)
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-06-03 JST |
+| **Detection** | K10 `k10_openradioss_continuous_te_loop.py` が `press_blanking` / `press_bending` / `press_blanking_stripper` を ~1s で FAILED。Starter/Engine ログに ERROR 21 (SHELL NEGATIVE/NULL SURFACE)、402 (PART ID 0)、1051 (BCS)、573/574 (GRNOD/IMPDISP) が連続。 |
+| **Impact** | 順送金型 North Star (T019) の OpenRadioss 曲げ/打ち抜き T&E ループが物理計算に到達せず、KPI (せん断域%, スプリングバック) が更新されない。LAVIE OpenFOAM 側は別途復旧済みだが OR 側がボトルネック化。 |
+| **Root Cause (5 Why)** | **Why1**: Engine/Starter が ERROR TERMINATION (~1s)。<br>**Why2**: シェル ERROR 21 + PROP 厚み 0/誤解釈 + IMPDISP パース失敗。<br>**Why3**: AI 生成 minimal deck が OpenRadioss 2024 公式 `/PROP/TYPE1` 6行形式・`/IMPDISP` 2行形式・`/SHELL/part_id` 形式に非準拠。<br>**Why4**: 厚みを `/PROP` の `Thick` ではなく `hm`(hourglass) または Y 方向ノードオフセットに入れていた。<br>**Why5**: テンプレート追加時に DBEND_44 参照・starter-only 検証・pregate 未整備。 |
+| **Fix** | (1) テンプレート3種を修正: 中面メッシュ X-Z (y=0)、`/SHELL/pid` + 末尾 `0`、`/PROP/SHELL` は `hm/hf/hr` + `N Thick Ashear Ithick Iplas`、`/IMPDISP` 2行 (fct,dir,grnod + Ascale,Tstart,Tstop)、`/DEF_SHELL`、`GRNOD` id>=100。<br>(2) `cae_te_engine.py`: engine block strip、stripper IMPDISP/2 注入、BEGIN 正規化、IMPDISP 注入 regex 更新。<br>(3) `cae_self_growth_gates.py`: starter 内 `/OUTP` `/H3D` `/ANIM/ELOUT` 禁止、GRNOD/ノード id 衝突、厚みジオメトリ化検知。<br>(4) 検証: `inc094e-blank/bend/strip` すべて **NORMAL TERMINATION** (17/230/17 cycles)。 |
+| **Files** | `data/cae_te_workspace/experiments/openradioss/press_*_v001/*_0000.rad`; `scripts/cae_te_engine.py`; `scripts/cae_self_growth_gates.py` |
+| **Verification** | `press_blanking`: duration 1.24s, returncode 0, NORMAL TERMINATION, 17 cycles, restart `.rst` 生成。`press_bending`: 230 cycles SUCCESS。`press_blanking_stripper`: 17 cycles SUCCESS。Starter-only 単体: 0 ERROR, `press_blanking_0000_0001.rst` 275KB。 |
+| **Lessons Learned** | OpenRadioss 2024 では `/PROP/SHELL` の `hm` は hourglass 係数 (0-0.05)、板厚は **`Thick` フィールド (mm)**。シェル中面は平面のみ — 板厚を Y オフセットで表現すると ERROR 21。IMPDISP は Dir=整数 (2=Y)。Engine-only block は `_0001.rad` のみ。 |
+| **Prevention** | 新規 OR テンプレートは DBEND_44 形式コピー + `precheck_openradioss_case` + starter-only dry run 必須。チェックリスト: 中面平面 / Thick 行 / IMPDISP 2行 / GRNOD>=100 / エンジンblock不在。bd key `openradioss-continuous-te-inc094`。 |
+
+### FMEA (抜粋)
+
+| Step | Failure Mode | Effect | S | O | D | RPN | Action |
+|---|---|---:|---:|---:|---:|---:|---|
+| テンプレート作成 | 厚みを hm または Y ノードに設定 | ERROR 21, restart 未生成 | 8 | 6 | 3 | 144 | Thick 行 + 中面 XZ pregate |
+| テンプレート作成 | `/SHELL` 旧4列+part 行形式 | ERROR 402 PART 0 | 7 | 5 | 2 | 70 | `/SHELL/pid` + elem n1-n4 |
+| テンプレート作成 | `/IMPDISP` 1行混在 | Dir parse fail / punch 未適用 | 6 | 5 | 3 | 90 | 2行形式 + inject regex |
+| 連続ループ | ~1s FAIL を SUCCESS 扱い | 無意味 T&E 消費 | 7 | 4 | 4 | 112 | duration_sec + NORMAL TERMINATION gate |
+| 運用 | GRNOD id=ノード id | BCS 1051/573 | 6 | 3 | 2 | 36 | id>=100 強制 |
+
+### FTA (頂事象: 連続 T&E 全 FAIL ~1s)
+
+```
+連続 T&E 全 FAIL (~1s)
+├── Starter 入力エラー
+│   ├── /PROP/SHELL 誤形式 (hm=厚み誤認, Istrain 余分) --> 厚み 0 / ERROR 21
+│   ├── /IMPDISP 1行形式 --> parse fail (100103)
+│   ├── /SHELL 旧形式 --> PART 402
+│   └── /BCS 旧 node 行 --> 1051
+├── メッシュ設計エラー
+│   └── 板厚 Y オフセット --> ERROR 21 null surface
+└── 運用ゲート欠如
+    └── pregate 未実行 --> 不良 deck が loop に流入
+```
+
+### なぜなぜ分析 (6段)
+
+1. **なぜ ~1s FAIL?** Starter/Engine が入力/要素初期化で即 ERROR TERMINATION。
+2. **なぜ ERROR 21?** シェル表面積が null/negative と判定。
+3. **なぜ null surface?** 板厚 0 (PROP 誤読) + 非平面中面 (Y=0/1.2 二面) の複合。
+4. **なぜ PROP 誤読?** `# h` 短縮形式と `hm` 行への 1.2 設定 — 2024 では `Thick` 列が正。
+5. **なぜテンプレート誤り?** LLM 慣例の簡略 deck を DBEND 非参照で投入。
+6. **なぜ検知遅延?** starter-only 検証・pregate・NORMAL TERMINATION KPI が未整備。
+
+### ロジックツリー (Goal: 順送金型 OR T&E が物理計算到達)
+
+```
+Goal: press_* trial --> NORMAL TERMINATION + KPI
+├─ OR[デック品質] テンプレート OpenRadioss 2024 準拠
+│  ├─ AND 中面メッシュ (単一平面)
+│  ├─ AND PROP: N, Thick, Ashear, Ithick, Iplas
+│  ├─ AND /SHELL/pid + winding
+│  ├─ AND IMPDISP 2行 (dir=2 for Y punch)
+│  └─ AND GRNOD id>=100, BCS grnod 形式
+├─ OR[ゲート] precheck_openradioss_case PASS
+└─ OR[実行] starter --> .rst --> engine --> duration >> 1s
+```
+
+---
+
 ## INC-093: Unreal Engine 5 Headless Render Target Export Header Mismatch (OpenEXR Payload HTTP 500 Crash)
 
 | Field | Detail |

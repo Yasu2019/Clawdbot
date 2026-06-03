@@ -1,5 +1,6 @@
 import React from 'react';
 import HeroAurora from '@/components/hero/HeroAurora';
+import NodeMonitor from '@/components/NodeMonitor';
 
 const DOMAINS = [
   {
@@ -98,6 +99,14 @@ export default function LandingPage() {
             </div>
           </section>
         ))}
+
+        {/* System Monitoring Section */}
+        <section className="space-y-8">
+          <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-white/40 border-b border-white/5 pb-4">
+            7. Distributed Nodes Status
+          </h2>
+          <NodeMonitor />
+        </section>
       </div>
 
       <footer className="border-t border-white/5 py-12 px-6">

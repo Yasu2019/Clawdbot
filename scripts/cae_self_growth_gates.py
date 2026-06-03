@@ -112,6 +112,75 @@ def precheck_openfoam_interfoam_turb_case(case_dir: Path) -> PreGateResult:
     return _ok(tags, issues)
 
 
+def precheck_moldflow_cad_case(case_dir: Path) -> PreGateResult:
+    """Phase 7: CAD-built case (cad_manifest.json + interFoam VOF)."""
+    manifest = case_dir / "cad_manifest.json"
+    if not manifest.exists():
+        return _ng(
+            ["precheck_missing_cad_manifest"],
+            ["Missing cad_manifest.json (run moldflow_step_case_builder)"],
+        )
+    mesh_mode = ""
+    try:
+        import json
+
+        mesh_mode = str(json.loads(manifest.read_text(encoding="utf-8")).get("mesh_mode", ""))
+    except Exception:
+        pass
+
+    if mesh_mode == "gmsh_volume":
+        tags: list[str] = []
+        issues: list[str] = []
+        for rel, tag in (
+            ("system/controlDict", "precheck_missing_controlDict"),
+            ("constant/transportProperties", "precheck_missing_transportProperties"),
+            ("0/U", "precheck_missing_U"),
+            ("0/p_rgh", "precheck_missing_p_rgh"),
+            ("0/alpha.polymer", "precheck_missing_alpha_polymer"),
+            ("constant/g", "precheck_missing_g"),
+            ("constant/turbulenceProperties", "precheck_missing_turbulence_properties"),
+            ("cavity.msh", "precheck_missing_cavity_msh"),
+            ("system/topoSetDict.splitInlets", "precheck_missing_split_topo"),
+        ):
+            if not (case_dir / rel).exists():
+                tags.append(tag)
+                issues.append(f"Missing: {rel}")
+        if tags:
+            return _ng(tags, issues)
+        tags = ["precheck_ok"]
+        issues = []
+    else:
+        base = precheck_openfoam_interfoam_case(case_dir)
+        if not base.ok:
+            return base
+        tags = list(base.tags)
+        issues = list(base.issues)
+
+    gate_resolved = case_dir / "gate_spec.resolved.json"
+    if not gate_resolved.exists():
+        tags.append("precheck_missing_gate_spec_resolved")
+        issues.append("Missing gate_spec.resolved.json")
+        return _ng(tags, issues)
+    poly = case_dir / "constant" / "polyMesh" / "points"
+    bmd = case_dir / "system" / "blockMeshDict"
+    mesh_mode = ""
+    try:
+        import json
+
+        mf = json.loads(manifest.read_text(encoding="utf-8"))
+        mesh_mode = str(mf.get("mesh_mode", ""))
+    except Exception:
+        pass
+    if mesh_mode == "gmsh_volume":
+        pass
+    elif not bmd.exists():
+        tags.append("precheck_missing_blockMeshDict")
+        issues.append("Missing system/blockMeshDict")
+        return _ng(tags, issues)
+    tags.append("precheck_cad")
+    return _ok(tags, issues)
+
+
 def precheck_openfoam_thermo_case(case_dir: Path) -> PreGateResult:
     """Thermo VOF / compressibleInterFoam (Phase 3)."""
     base = precheck_openfoam_interfoam_case(case_dir)
@@ -157,6 +226,118 @@ def precheck_openradioss_case(case_dir: Path) -> PreGateResult:
     rad_files = sorted(case_dir.glob("*.rad"))
     if not rad_files:
         return _ng(["precheck_missing_rad_files"], [f"No .rad files under: {case_dir}"])
+
+    starter_files = [p for p in rad_files if p.name.endswith("_0000.rad")]
+    for starter in starter_files or rad_files:
+        text = starter.read_text(encoding="utf-8", errors="replace")
+        upper = text.upper()
+        for bad in ("/OUTP/", "/H3D/", "/ANIM/ELOUT"):
+            if bad in upper:
+                tags.append("precheck_engine_block_in_starter")
+                issues.append(f"{starter.name}: engine-only block {bad} must not be in starter deck")
+        node_ids: set[int] = set()
+        in_node = False
+        for line in text.splitlines():
+            if line.strip().startswith("/NODE"):
+                in_node = True
+                continue
+            if in_node and line.strip().startswith("/"):
+                in_node = False
+            if in_node:
+                parts = line.split()
+                if parts and parts[0].isdigit():
+                    node_ids.add(int(parts[0]))
+        for m in re.finditer(r"/GRNOD/NODE/(\d+)", text, flags=re.IGNORECASE):
+            gid = int(m.group(1))
+            if gid in node_ids and gid >= 10:
+                tags.append("precheck_grnod_id_clash")
+                issues.append(
+                    f"{starter.name}: /GRNOD/NODE/{gid} clashes with node id {gid} (use id>=100 or rename)"
+                )
+
+        # INC-094: shell thickness must live in /PROP/SHELL, not as node offset (ERROR 21).
+        prop_h: float | None = None
+        in_prop = False
+        expect_h = False
+        expect_hm = False
+        expect_thick = False
+        for line in text.splitlines():
+            if re.match(r"/PROP/SHELL/\d+", line.strip(), flags=re.IGNORECASE):
+                in_prop = True
+                expect_h = False
+                expect_hm = False
+                expect_thick = False
+                continue
+            if in_prop and line.strip().startswith("/"):
+                in_prop = False
+                expect_h = False
+                expect_hm = False
+                expect_thick = False
+            if not in_prop:
+                continue
+            if line.strip().startswith("#") and re.search(r"\bhm\b", line, flags=re.IGNORECASE):
+                expect_hm = True
+                continue
+            if line.strip().startswith("#") and re.search(r"\bThick\b", line, flags=re.IGNORECASE):
+                expect_thick = True
+                continue
+            if (expect_h or expect_hm or expect_thick) and prop_h is None:
+                parts = line.split()
+                if parts:
+                    try:
+                        if expect_thick and len(parts) >= 3:
+                            prop_h = float(parts[2])
+                        else:
+                            prop_h = float(parts[0])
+                        expect_h = False
+                        expect_hm = False
+                        expect_thick = False
+                    except ValueError:
+                        pass
+        imp_dir: int | None = None
+        in_imp = False
+        for line in text.splitlines():
+            if re.match(r"/IMPDISP/\d+", line.strip(), flags=re.IGNORECASE):
+                in_imp = True
+                continue
+            if in_imp and line.strip().startswith("/"):
+                in_imp = False
+            if in_imp and imp_dir is None and not line.strip().startswith(("#", "$")):
+                parts = line.split()
+                if len(parts) >= 4:
+                    try:
+                        imp_dir = int(parts[2])
+                    except ValueError:
+                        pass
+        node_coords: dict[int, tuple[float, float, float]] = {}
+        in_node = False
+        for line in text.splitlines():
+            if line.strip().startswith("/NODE"):
+                in_node = True
+                continue
+            if in_node and line.strip().startswith("/"):
+                in_node = False
+            if in_node:
+                parts = line.split()
+                if len(parts) >= 4 and parts[0].isdigit():
+                    node_coords[int(parts[0])] = (
+                        float(parts[1]),
+                        float(parts[2]),
+                        float(parts[3]),
+                    )
+        if prop_h and prop_h > 0 and node_coords and imp_dir in (1, 2, 3):
+            axis = imp_dir - 1
+            vals = [c[axis] for c in node_coords.values()]
+            spread = max(vals) - min(vals)
+            if spread > 1e-6 and abs(spread - prop_h) / prop_h < 0.05:
+                tags.append("precheck_shell_thickness_in_geometry")
+                issues.append(
+                    f"{starter.name}: node spread along punch axis ({spread:.4g} mm) "
+                    f"matches PROP thickness ({prop_h:.4g} mm); use mid-surface mesh only"
+                )
+
+    if issues:
+        return _ng(sorted(set(tags)), issues)
 
     # Minimal sanity: this repo often uses *_0000.rad, but not all templates follow it.
     # For v1, only require that at least one .rad exists (fail-fast but not over-strict).

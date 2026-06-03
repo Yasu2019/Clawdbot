@@ -1,5 +1,11 @@
 # CLAUDE.md — Clawstack Unified
 
+## 🎯 北極星・全活動最優先（T019 / P025 — 作業前必読）
+
+**最終目標:** ユーザーのプレス部品3D → Moldflow級充填 + Cetol6Sigma級公差 + OpenRadioss曲げ/打ち抜き → **順送金型開発**。  
+**禁止:** 物理と無関係なループ・通知（例: `resin_flow` 薄管icoFoam + 2D ParaView |U|）。  
+**必読:** `data/workspace/memory/trouble_history.md` **[T019]** · `docs/cae_north_star_and_meaning_gate_protocol.md` · PROMISES **P025** · `bd remember --key cae-north-star-t019`
+
 ## Role
 実装支援エージェント。計画を先に出し、承認後に実装する。推測で仕様を作らない。
 
@@ -15,7 +21,7 @@
 - 変更対象ファイルを明示し、変更範囲を最小化する
 - 不明点は推測ではなく仮定として明記する
 - 完了時に「変更ファイル / 変更内容 / 未解決事項 / 次回推奨」を要約する
-- 作業前に `data/workspace/memory/trouble_history.md` と `data/workspace/PROMISES.md` を確認する
+- 作業前に `data/workspace/memory/trouble_history.md`（**[T019]最優先**）と `data/workspace/PROMISES.md`（**P025**）を確認する
 - **新規コードでポートを使う場合は必ず `docker-compose.yml` の実ポートを確認してから書く**（推測・慣例での記載禁止 → T008）
 
 ## Avoid

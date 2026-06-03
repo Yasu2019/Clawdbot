@@ -197,6 +197,20 @@ def default_repo_root() -> Path:
     return Path("C:/lavie_usb_pack")
 
 
+def _in_docker_worker() -> bool:
+    return Path("/.dockerenv").exists() or Path("/repo/scripts/cae_te_remote_trial.py").exists()
+
+
+def _resolve_lavie_paths(repo_root: Path, workspace: Path) -> tuple[Path, Path]:
+    """Map Windows paths to container mounts when worker runs in Docker on LAVIE."""
+    if _in_docker_worker():
+        repo = Path("/repo")
+        ws = Path("/e/clawstack_satellite/data/work/cae_te_workspace")
+        if repo.is_dir():
+            return repo, ws
+    return repo_root, workspace
+
+
 def default_cae_workspace(install_root: Path | None = None) -> Path:
     env_ws = os.environ.get("CAE_TE_WORKSPACE", "").strip()
     if env_ws:
@@ -216,11 +230,14 @@ def run_cae_trial(payload: dict[str, Any], work_dir: Path, timeout_sec: int, hos
         raise ValueError("cae_trial payload.category required")
 
     repo_root = Path(str(payload.get("repo_root") or default_repo_root()))
+    workspace = Path(str(payload.get("workspace_root") or default_cae_workspace()))
+    repo_root, workspace = _resolve_lavie_paths(repo_root, workspace)
+    os.environ["CAE_TE_WORKSPACE"] = str(workspace)
+    os.environ.setdefault("SATELLITE_REPO_ROOT", str(repo_root))
+
     script_path = repo_root / "scripts" / "cae_te_remote_trial.py"
     if not script_path.exists():
         raise ValueError(f"cae_te_remote_trial.py not found under {repo_root}")
-
-    workspace = Path(str(payload.get("workspace_root") or default_cae_workspace()))
     trial_id = (payload.get("trial_id") or "").strip()
     dry_run = bool(payload.get("dry_run"))
     params = payload.get("params") or {}
@@ -282,12 +299,15 @@ def run_cae_trial(payload: dict[str, Any], work_dir: Path, timeout_sec: int, hos
     }
 
 
-def execute_job(job: dict[str, Any], jobs_root: Path, host: str) -> dict[str, Any]:
+def execute_job(job: dict[str, Any], jobs_root: Path, state: WorkerState) -> dict[str, Any]:
     job_id = str(job.get("job_id") or "").strip()
     job_type = str(job.get("type") or "").strip()
     timeout_sec = int(job.get("timeout_sec") or 600)
     timeout_sec = max(1, min(timeout_sec, 86400))
+    if state.max_job_timeout:
+        timeout_sec = min(timeout_sec, state.max_job_timeout)
     payload = job.get("payload") or {}
+    host = state.host
 
     started = _now_iso()
     base: dict[str, Any] = {
@@ -320,6 +340,30 @@ def execute_job(job: dict[str, Any], jobs_root: Path, host: str) -> dict[str, An
                 "finished_at": _now_iso(),
                 "error": f"unsupported type: {job_type}",
                 "failure_tags": ["unsupported_type"],
+            }
+        )
+        return base
+
+    if state.no_docker and job_type == "docker":
+        base.update(
+            {
+                "status": "pregate_fail",
+                "exit_code": 1,
+                "finished_at": _now_iso(),
+                "error": "docker jobs disabled on this worker profile",
+                "failure_tags": ["docker_disabled"],
+            }
+        )
+        return base
+
+    if state.cae_dry_run_only and job_type == "cae_trial" and not bool(payload.get("dry_run")):
+        base.update(
+            {
+                "status": "pregate_fail",
+                "exit_code": 1,
+                "finished_at": _now_iso(),
+                "error": "cae_trial requires dry_run on this worker profile",
+                "failure_tags": ["cae_dry_run_required"],
             }
         )
         return base
@@ -363,10 +407,22 @@ def execute_job(job: dict[str, Any], jobs_root: Path, host: str) -> dict[str, An
 
 
 class WorkerState:
-    def __init__(self, token: str, jobs_root: Path, host: str) -> None:
+    def __init__(
+        self,
+        token: str,
+        jobs_root: Path,
+        host: str,
+        *,
+        no_docker: bool = False,
+        cae_dry_run_only: bool = False,
+        max_job_timeout: int = 0,
+    ) -> None:
         self.token = token
         self.jobs_root = jobs_root
         self.host = host
+        self.no_docker = no_docker
+        self.cae_dry_run_only = cae_dry_run_only
+        self.max_job_timeout = max(0, int(max_job_timeout))
         self.lock = threading.Lock()
 
 
@@ -394,7 +450,18 @@ def make_handler(state: WorkerState):
         def do_GET(self) -> None:
             path = urlparse(self.path).path
             if path == "/healthz":
-                self._send_json(200, {"status": "ok", "host": state.host, "jobs_root": str(state.jobs_root)})
+                self._send_json(
+                    200,
+                    {
+                        "status": "ok",
+                        "host": state.host,
+                        "jobs_root": str(state.jobs_root),
+                        "profile": "light" if state.no_docker else "full",
+                        "no_docker": state.no_docker,
+                        "cae_dry_run_only": state.cae_dry_run_only,
+                        "max_job_timeout": state.max_job_timeout or None,
+                    },
+                )
                 return
             self._send_json(404, {"error": "not_found"})
 
@@ -414,7 +481,7 @@ def make_handler(state: WorkerState):
                 self._send_json(400, {"error": f"invalid json: {exc}"})
                 return
             with state.lock:
-                result = execute_job(job, state.jobs_root, state.host)
+                result = execute_job(job, state.jobs_root, state)
             code = 200 if result.get("status") in {"ok"} else 500
             self._send_json(code, result)
 
@@ -428,6 +495,18 @@ def main() -> int:
     parser.add_argument("--token", default="")
     parser.add_argument("--jobs-root", default="")
     parser.add_argument("--host", default="")
+    parser.add_argument("--no-docker", action="store_true", help="Reject docker jobs (light satellite)")
+    parser.add_argument(
+        "--cae-dry-run-only",
+        action="store_true",
+        help="Reject cae_trial unless payload.dry_run is true",
+    )
+    parser.add_argument(
+        "--max-timeout",
+        type=int,
+        default=0,
+        help="Cap per-job timeout_sec (0 = no extra cap)",
+    )
     args = parser.parse_args()
 
     try:
@@ -439,7 +518,15 @@ def main() -> int:
         print(f"[NG] {exc}", file=sys.stderr)
         return 1
 
-    handler = make_handler(WorkerState(token, jobs_root, host))
+    worker_state = WorkerState(
+        token,
+        jobs_root,
+        host,
+        no_docker=bool(args.no_docker),
+        cae_dry_run_only=bool(args.cae_dry_run_only),
+        max_job_timeout=int(args.max_timeout or 0),
+    )
+    handler = make_handler(worker_state)
     server = ThreadingHTTPServer((args.bind, args.port), handler)
     print(f"[OK] Satellite job worker listening on http://{args.bind}:{args.port}", flush=True)
     print(f"[OK] jobs_root={jobs_root} host={host}", flush=True)

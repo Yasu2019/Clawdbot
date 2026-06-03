@@ -753,6 +753,54 @@ def _update_growth_stats(domain: str, challenge: str, lesson: str):
 
 # ─── OpenRadioss Parameter Injector ──────────────────────────────────────────
 
+_ENGINE_ONLY_STARTER_BLOCKS = (
+    "/OUTP/",
+    "/H3D/",
+    "/ANIM/ELOUT",
+    "/ANIM/VECT",
+    "/SENSOR/",
+)
+
+
+def _strip_engine_output_blocks(rad_content: str) -> str:
+    """Remove engine-only output blocks mistakenly placed in starter *_0000.rad."""
+    import re
+
+    content = rad_content
+    for token in _ENGINE_ONLY_STARTER_BLOCKS:
+        if token.endswith("/"):
+            content = re.sub(rf"^{re.escape(token)}[^\n]*\n(?:.*\n)*?(?=^/|\Z)", "", content, flags=re.MULTILINE)
+        else:
+            content = re.sub(rf"^{re.escape(token)}\n(?:.*\n)*?(?=^/|\Z)", "", content, flags=re.MULTILINE)
+    return content
+
+
+def _normalize_press_begin_block(content: str, run_name: str) -> str:
+    """Keep a single /BEGIN unit pair; drop duplicate /UNIT rows (INC-093)."""
+    import re
+
+    unit_pair = "kg                    mm                    ms\nkg                    mm                    ms\n"
+    content = re.sub(
+        r"/BEGIN\n[^\n]+\n[^\n]+",
+        f"/BEGIN\n{run_name}\n      2024         0\n{unit_pair}",
+        content,
+        count=1,
+    )
+    # Remove duplicate unit rows accidentally left in template body.
+    lines = content.splitlines()
+    unit_hits = 0
+    cleaned: list[str] = []
+    for line in lines:
+        if re.match(r"^\s*(kg|g)\s+mm\s+ms", line):
+            unit_hits += 1
+            if unit_hits <= 2:
+                cleaned.append(line)
+            continue
+        cleaned.append(line)
+    content = "\n".join(cleaned) + ("\n" if content.endswith("\n") else "")
+    content = re.sub(r"^/UNIT\n[^\n]+\n", "", content, flags=re.MULTILINE)
+    return content
+
 def _inject_parameters(rad_content: str, params: dict, category: str) -> str:
     """Inject trial parameters into OpenRadioss .rad input file using robust regex."""
     import re
@@ -786,12 +834,10 @@ def _inject_parameters(rad_content: str, params: dict, category: str) -> str:
     # 2. Solver dynamic parameters (punch_speed_mms, reduction_pct, blankholder_force_kN)
     if category == "press_bending" and "punch_speed_mms" in params:
         t_stop = 20.0 / params["punch_speed_mms"]
-        # Replace Tstop in IMPDISP/1 (2nd row of parameters)
         content = re.sub(
-            r"(/IMPDISP/1\npunch_displacement\n\$.*\n\s*[0-9.]+)\s+[0-9.]+",
-            f"\\g<1>              {t_stop:.6f}", content
+            r"(/IMPDISP/1\npunch_displacement\n#[^\n]+\n\s*[0-9]+\s+[0-9]+[^\n]+\n#[^\n]+\n\s*[0-9.]+\s+[0-9.]+\s+[0-9.]+\s+)[0-9.]+",
+            f"\\g<1>{t_stop:.6f}", content
         )
-        # Replace stop Time in FUNCT/1
         content = re.sub(
             r"(/FUNCT/1\n#\s*Time\s+Displacement_mm\n\s*[0-9.]+\s+[0-9.]+\n\s*)[0-9.]+",
             f"\\g<1>{t_stop:.6f}", content
@@ -799,9 +845,10 @@ def _inject_parameters(rad_content: str, params: dict, category: str) -> str:
 
     elif category in ("press_blanking", "press_blanking_stripper") and "punch_speed_mms" in params:
         t_stop = 1.8 / params["punch_speed_mms"]
+        imp_id = "2" if category == "press_blanking_stripper" else "3"
         content = re.sub(
-            r"(/IMPDISP/2\npunch_blanking\n\$.*\n)[^\n]+",
-            f"\\g<1>{0.001:>10.3f}{t_stop:>10.6f}{2:>10}{2:>10}", content
+            rf"(/IMPDISP/{imp_id}\npunch_blanking\n#[^\n]+\n\s*[0-9]+\s+[0-9]+[^\n]+\n#[^\n]+\n\s*[0-9.]+\s+[0-9.]+\s+[0-9.]+\s+)[0-9.]+",
+            f"\\g<1>{t_stop:.6f}", content,
         )
         content = re.sub(
             r"(/FUNCT/2\n#\s*Time\s+Displacement_mm.*\n\s*[0-9.]+\s+[0-9.]+\n\s*)[0-9.]+",
@@ -1214,30 +1261,33 @@ def _run_openradioss(exp: dict, params: dict, dry_run: bool, timeout: int, trial
         
         # 2. Inject parameters
         injected_content = _inject_parameters(rad_content, params, exp["category"])
-        
-        # 3. Apply 100% Verified Golden Header to completely bypass title-length and column-parsing bugs in solver (INC-092)
-        title_row = f"{run_name}"
-        version_row = "      2024         0"
-        # Direct unit definition lines in /BEGIN block (20-character field width, left-aligned)
-        unit_line = f"{'kg':<20}{'mm':<20}{'ms':<20}"
-        golden_header = f"""#RADIOSS STARTER
+        injected_content = _strip_engine_output_blocks(injected_content)
+
+        # Keep template /BEGIN + /UNIT for press_* decks (golden header broke PART/MAT linkage).
+        import re
+
+        if not str(category).startswith("press_"):
+            title_row = f"{run_name}"
+            version_row = "      2024         0"
+            unit_line = f"{'kg':<20}{'mm':<20}{'ms':<20}"
+            golden_header = f"""#RADIOSS STARTER
 /BEGIN
 {title_row}
 {version_row}
 {unit_line}
-{unit_line}
 """
-        # Find where /MAT or other cards start
-        mat_pos = injected_content.find("/MAT")
-        if mat_pos != -1:
-            injected_content = golden_header + injected_content[mat_pos:]
+            mat_pos = injected_content.find("/MAT")
+            if mat_pos != -1:
+                injected_content = golden_header + injected_content[mat_pos:]
+            else:
+                injected_content = re.sub(
+                    r"/BEGIN\n[^\n]+\n[^\n]+",
+                    f"/BEGIN\n{title_row}\n{version_row}\n{unit_line}\n",
+                    injected_content,
+                )
+                injected_content = re.sub(r"/UNIT\n[^\n]+\n[^\n]+", "", injected_content)
         else:
-            # Fallback regex if /MAT is not found
-            import re
-            # Ensure the header has direct units
-            injected_content = re.sub(r"/BEGIN\n[^\n]+\n[^\n]+", f"/BEGIN\n{title_row}\n{version_row}\n{unit_line}\n{unit_line}", injected_content)
-            # Remove any loose /UNIT blocks if present
-            injected_content = re.sub(r"/UNIT\n[^\n]+\n[^\n]+", "", injected_content)
+            injected_content = _normalize_press_begin_block(injected_content, run_name)
         
         injected_content = injected_content.replace("\r\n", "\n").replace("\r", "\n")
         dest_rad.write_bytes(injected_content.encode("utf-8"))

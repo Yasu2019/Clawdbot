@@ -1,80 +1,269 @@
 {
-  "updated_at": "2026-05-05T07:01:58.105294",
+  "updated_at": "2026-06-03T22:31:41.170900",
   "domain_stats": {
-    "CAD": 5,
-    "CAE_MATERIAL": 1,
-    "GEOMETRY_AI": 4,
-    "IE": 1,
-    "MUSIC": 1,
-    "QUALITY": 2,
-    "TERMINOLOGY": 1
+    "3D_ANIMATION": 249,
+    "CAD": 132,
+    "CAE_MATERIAL": 664,
+    "DXF2STEP": 15,
+    "GEOMETRY_AI": 127,
+    "GMAIL_READING": 450,
+    "IATF_AUDITING_YT": 16,
+    "IE": 304,
+    "MUSIC": 123,
+    "MUSIC_THEORY": 95,
+    "PROGRESSIVE_DIE": 2,
+    "QUALITY": 151,
+    "RESIN_FLOW": 1,
+    "TERMINOLOGY": 151,
+    "TEST": 1,
+    "TOLERANCE_ANALYSIS": 48
   },
   "history": [
     {
+      "day": "2026-05-02",
+      "count": 27
+    },
+    {
+      "day": "2026-05-03",
+      "count": 29
+    },
+    {
       "day": "2026-05-04",
-      "count": 15
+      "count": 37
+    },
+    {
+      "day": "2026-05-05",
+      "count": 27
+    },
+    {
+      "day": "2026-05-06",
+      "count": 29
+    },
+    {
+      "day": "2026-05-07",
+      "count": 24
+    },
+    {
+      "day": "2026-05-08",
+      "count": 26
+    },
+    {
+      "day": "2026-05-09",
+      "count": 24
+    },
+    {
+      "day": "2026-05-10",
+      "count": 19
+    },
+    {
+      "day": "2026-05-11",
+      "count": 34
+    },
+    {
+      "day": "2026-05-12",
+      "count": 29
+    },
+    {
+      "day": "2026-05-13",
+      "count": 24
+    },
+    {
+      "day": "2026-05-14",
+      "count": 25
+    },
+    {
+      "day": "2026-05-15",
+      "count": 25
+    },
+    {
+      "day": "2026-05-16",
+      "count": 28
+    },
+    {
+      "day": "2026-05-17",
+      "count": 26
+    },
+    {
+      "day": "2026-05-18",
+      "count": 27
+    },
+    {
+      "day": "2026-05-19",
+      "count": 21
+    },
+    {
+      "day": "2026-05-20",
+      "count": 45
+    },
+    {
+      "day": "2026-05-21",
+      "count": 124
+    },
+    {
+      "day": "2026-05-22",
+      "count": 125
+    },
+    {
+      "day": "2026-05-23",
+      "count": 115
+    },
+    {
+      "day": "2026-05-24",
+      "count": 126
+    },
+    {
+      "day": "2026-05-25",
+      "count": 129
+    },
+    {
+      "day": "2026-05-26",
+      "count": 215
+    },
+    {
+      "day": "2026-05-27",
+      "count": 216
+    },
+    {
+      "day": "2026-05-28",
+      "count": 254
+    },
+    {
+      "day": "2026-05-29",
+      "count": 74
+    },
+    {
+      "day": "2026-05-30",
+      "count": 19
+    },
+    {
+      "day": "2026-05-31",
+      "count": 41
+    },
+    {
+      "day": "2026-06-01",
+      "count": 101
     }
   ],
   "recent_know_how": [
     {
       "domain": "CAE_MATERIAL",
-      "challenge": "Extract SS400 Material Data for OpenRadioss",
-      "know_how": "Extracted SS400 properties: Density 7.85g/cm3, Youngs Modulus 206GPa, Poissons Ratio 0.3. Formatted into /MAT/LAW1 for linear elastic analysis in OpenRadioss.",
-      "timestamp": "2026-05-04 22:01:53"
+      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 7.379617, 'punch_speed_mms': 3512.569121, 'friction_mu': 0.109748}",
+      "know_how": "Blanking SPCC 1.2mm: clearance=7.379617%t, speed=3512.569121mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
+      "timestamp": "2026-06-03 22:31:41"
     },
     {
-      "domain": "TERMINOLOGY",
-      "challenge": "Contextual Analysis of 4M\u7533\u8acb in Emails",
-      "know_how": "Learned that 4M applications at Mitsui are strictly tied to change management protocols: Found frequent mentions of material substitutions (Material) and equipment changes (Machine) requiring customer pre-approval.",
-      "timestamp": "2026-05-04 21:40:25"
+      "domain": "CAE_MATERIAL",
+      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 7.608031, 'punch_speed_mms': 3225.235747, 'friction_mu': 0.112403}",
+      "know_how": "Blanking SPCC 1.2mm: clearance=7.608031%t, speed=3225.235747mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
+      "timestamp": "2026-06-03 22:26:22"
     },
     {
-      "domain": "CAD",
-      "challenge": "Design a parametric mounting bracket.",
-      "know_how": "Learned optimal strategy for Design a parametric mounting bracket. using local-first inference.",
-      "timestamp": "2026-05-04 21:24:24"
+      "domain": "CAE_MATERIAL",
+      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 6.204399, 'punch_speed_mms': 3668.152564, 'friction_mu': 0.117586}",
+      "know_how": "Blanking SPCC 1.2mm: clearance=6.204399%t, speed=3668.152564mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
+      "timestamp": "2026-06-03 22:21:02"
     },
     {
-      "domain": "MUSIC",
-      "challenge": "Identify John Williams brass scoring and leitmotif usage in Star Wars",
-      "know_how": "Analyzed Star Wars score: Identified usage of Trumpets in perfect fifths for heroic themes and complex cluster chords for suspense.",
-      "timestamp": "2026-05-04 21:22:12"
+      "domain": "CAE_MATERIAL",
+      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 6.487006, 'punch_speed_mms': 3196.574799, 'friction_mu': 0.113878}",
+      "know_how": "Blanking SPCC 1.2mm: clearance=6.487006%t, speed=3196.574799mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
+      "timestamp": "2026-06-03 22:15:42"
     },
     {
-      "domain": "GEOMETRY_AI",
-      "challenge": "Algorithm Test: Reconstruct 3D volume from 2-view DXF projection.",
-      "know_how": "Learned optimal strategy for Algorithm Test: Reconstruct 3D volume from 2-view DXF projection. using local-first inference.",
-      "timestamp": "2026-05-04 21:21:57"
+      "domain": "CAE_MATERIAL",
+      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 5.995978, 'punch_speed_mms': 3033.361074, 'friction_mu': 0.11074}",
+      "know_how": "Blanking SPCC 1.2mm: clearance=5.995978%t, speed=3033.361074mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
+      "timestamp": "2026-06-03 22:10:24"
     },
     {
-      "domain": "CAD",
-      "challenge": "Generate a heat sink with custom fins.",
-      "know_how": "Learned optimal strategy for Generate a heat sink with custom fins. using local-first inference.",
-      "timestamp": "2026-05-04 19:45:30"
+      "domain": "CAE_MATERIAL",
+      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 7.118291, 'punch_speed_mms': 3606.300534, 'friction_mu': 0.108798}",
+      "know_how": "Blanking SPCC 1.2mm: clearance=7.118291%t, speed=3606.300534mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
+      "timestamp": "2026-06-03 22:05:07"
     },
     {
-      "domain": "CAD",
-      "challenge": "Design a parametric mounting bracket.",
-      "know_how": "Learned optimal strategy for Design a parametric mounting bracket. using local-first inference.",
-      "timestamp": "2026-05-04 19:41:14"
+      "domain": "CAE_MATERIAL",
+      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 6.706458, 'punch_speed_mms': 3353.189369, 'friction_mu': 0.115344}",
+      "know_how": "Blanking SPCC 1.2mm: clearance=6.706458%t, speed=3353.189369mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
+      "timestamp": "2026-06-03 21:59:52"
     },
     {
-      "domain": "IE",
-      "challenge": "Calculate the takt time for a custom production mix.",
-      "know_how": "Learned optimal strategy for Calculate the takt time for a custom production mix. using local-first inference.",
-      "timestamp": "2026-05-04 18:45:28"
+      "domain": "CAE_MATERIAL",
+      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 9.104609, 'punch_speed_mms': 3287.347393, 'friction_mu': 0.116825}",
+      "know_how": "Blanking SPCC 1.2mm: clearance=9.104609%t, speed=3287.347393mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
+      "timestamp": "2026-06-03 21:54:37"
     },
     {
-      "domain": "QUALITY",
-      "challenge": "Generate a Root Cause Analysis for a 'Missing Screw' defect.",
-      "know_how": "Learned optimal strategy for Generate a Root Cause Analysis for a 'Missing Screw' defect. using local-first inference.",
-      "timestamp": "2026-05-04 18:41:12"
+      "domain": "CAE_MATERIAL",
+      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 8.477303, 'punch_speed_mms': 3253.875989, 'friction_mu': 0.112861}",
+      "know_how": "Blanking SPCC 1.2mm: clearance=8.477303%t, speed=3253.875989mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
+      "timestamp": "2026-06-03 21:49:22"
     },
     {
-      "domain": "GEOMETRY_AI",
-      "challenge": "Algorithm Test: Reconstruct 3D volume from 2-view DXF projection.",
-      "know_how": "Learned optimal strategy for Algorithm Test: Reconstruct 3D volume from 2-view DXF projection. using local-first inference.",
-      "timestamp": "2026-05-04 17:45:26"
+      "domain": "CAE_MATERIAL",
+      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 6.192506, 'punch_speed_mms': 3545.972635, 'friction_mu': 0.115308}",
+      "know_how": "Blanking SPCC 1.2mm: clearance=6.192506%t, speed=3545.972635mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
+      "timestamp": "2026-06-03 21:44:07"
+    },
+    {
+      "domain": "CAE_MATERIAL",
+      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 7.314285, 'punch_speed_mms': 3407.704735, 'friction_mu': 0.115309}",
+      "know_how": "Blanking SPCC 1.2mm: clearance=7.314285%t, speed=3407.704735mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
+      "timestamp": "2026-06-03 21:38:51"
+    },
+    {
+      "domain": "CAE_MATERIAL",
+      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 8.683128, 'punch_speed_mms': 3257.768685, 'friction_mu': 0.114637}",
+      "know_how": "Blanking SPCC 1.2mm: clearance=8.683128%t, speed=3257.768685mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
+      "timestamp": "2026-06-03 21:33:35"
+    },
+    {
+      "domain": "CAE_MATERIAL",
+      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 7.726427, 'punch_speed_mms': 3374.222197, 'friction_mu': 0.109684}",
+      "know_how": "Blanking SPCC 1.2mm: clearance=7.726427%t, speed=3374.222197mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
+      "timestamp": "2026-06-03 21:28:18"
+    },
+    {
+      "domain": "CAE_MATERIAL",
+      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 6.917154, 'punch_speed_mms': 3267.07622, 'friction_mu': 0.114221}",
+      "know_how": "Blanking SPCC 1.2mm: clearance=6.917154%t, speed=3267.07622mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
+      "timestamp": "2026-06-03 21:23:03"
+    },
+    {
+      "domain": "CAE_MATERIAL",
+      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 5.694324, 'punch_speed_mms': 3248.322419, 'friction_mu': 0.114751}",
+      "know_how": "Blanking SPCC 1.2mm: clearance=5.694324%t, speed=3248.322419mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
+      "timestamp": "2026-06-03 21:17:47"
+    },
+    {
+      "domain": "CAE_MATERIAL",
+      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 8.314348, 'punch_speed_mms': 3408.836258, 'friction_mu': 0.11703}",
+      "know_how": "Blanking SPCC 1.2mm: clearance=8.314348%t, speed=3408.836258mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
+      "timestamp": "2026-06-03 21:12:32"
+    },
+    {
+      "domain": "CAE_MATERIAL",
+      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 8.602959, 'punch_speed_mms': 3643.071858, 'friction_mu': 0.117182}",
+      "know_how": "Blanking SPCC 1.2mm: clearance=8.602959%t, speed=3643.071858mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
+      "timestamp": "2026-06-03 21:07:16"
+    },
+    {
+      "domain": "CAE_MATERIAL",
+      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 8.954446, 'punch_speed_mms': 3662.662984, 'friction_mu': 0.112305}",
+      "know_how": "Blanking SPCC 1.2mm: clearance=8.954446%t, speed=3662.662984mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
+      "timestamp": "2026-06-03 21:02:01"
+    },
+    {
+      "domain": "CAE_MATERIAL",
+      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 8.274481, 'punch_speed_mms': 3202.47117, 'friction_mu': 0.113444}",
+      "know_how": "Blanking SPCC 1.2mm: clearance=8.274481%t, speed=3202.47117mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
+      "timestamp": "2026-06-03 20:56:46"
+    },
+    {
+      "domain": "CAE_MATERIAL",
+      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 8.098832, 'punch_speed_mms': 3084.242751, 'friction_mu': 0.107837}",
+      "know_how": "Blanking SPCC 1.2mm: clearance=8.098832%t, speed=3084.242751mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
+      "timestamp": "2026-06-03 20:51:32"
     }
   ]
 }

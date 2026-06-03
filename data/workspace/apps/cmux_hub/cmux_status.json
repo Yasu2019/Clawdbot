@@ -1,38 +1,210 @@
 {
-  "generatedAt": "2026-04-10T18:46:30.136681+09:00",
+  "generatedAt": "2026-06-03T21:33:00.621469+09:00",
   "runtime": {
-    "mode": null,
-    "roles": {},
-    "task_routes": {}
+    "mode": "local-first",
+    "roles": {
+      "coder": {
+        "primary": "gpt-5.4",
+        "fallback": [
+          "qwen2.5-coder:14b",
+          "qwen2.5-coder:7b"
+        ]
+      },
+      "reviewer": {
+        "primary": "claude-opus-class",
+        "fallback": [
+          "qwen3:14b",
+          "qwen3:8b"
+        ]
+      },
+      "tester": {
+        "primary": "local-tools",
+        "tools": [
+          "pytest",
+          "rspec",
+          "playwright",
+          "capybara"
+        ]
+      },
+      "security": {
+        "primary": "local-tools-plus-review",
+        "tools": [
+          "brakeman",
+          "bundler-audit",
+          "semgrep",
+          "bandit"
+        ]
+      },
+      "statistics": {
+        "primary": "r-container",
+        "packages": [
+          "DoE.base",
+          "FrF2",
+          "AlgDesign",
+          "rsm",
+          "ggplot2"
+        ]
+      },
+      "local_llm": {
+        "lightweight": "sam860/lfm2.5:1.2b",
+        "main": "qwen3:8b",
+        "high_accuracy": "qwen3:14b",
+        "code": "qwen2.5-coder:14b",
+        "vision": "minicpm-v:latest"
+      }
+    },
+    "task_routes": {
+      "code_implementation": {
+        "role": "coder",
+        "primary": "gpt-5.4",
+        "fallback": [
+          "qwen2.5-coder:14b",
+          "qwen2.5-coder:7b"
+        ],
+        "keywords": [
+          "implement",
+          "fix",
+          "refactor",
+          "script",
+          "code",
+          "patch",
+          "bug"
+        ]
+      },
+      "code_review": {
+        "role": "reviewer",
+        "primary": "claude-opus-class",
+        "fallback": [
+          "qwen3:14b",
+          "qwen3:8b"
+        ],
+        "keywords": [
+          "review",
+          "risk",
+          "regression",
+          "design review",
+          "code review"
+        ]
+      },
+      "testing_validation": {
+        "role": "tester",
+        "primary": "local-tools",
+        "fallback": [
+          "qwen3:8b"
+        ],
+        "keywords": [
+          "test",
+          "verify",
+          "playwright",
+          "pytest",
+          "rspec",
+          "validation"
+        ]
+      },
+      "security_scan": {
+        "role": "security",
+        "primary": "local-tools-plus-review",
+        "fallback": [
+          "qwen3:14b"
+        ],
+        "keywords": [
+          "security",
+          "vulnerability",
+          "audit",
+          "bandit",
+          "semgrep",
+          "brakeman"
+        ]
+      },
+      "statistics_doe": {
+        "role": "statistics",
+        "primary": "r-container",
+        "fallback": [
+          "gpt-5.4"
+        ],
+        "keywords": [
+          "doe",
+          "anova",
+          "statistics",
+          "rsm",
+          "d-optimal",
+          "design of experiments"
+        ]
+      },
+      "local_chat_fast": {
+        "role": "local_llm",
+        "primary": "sam860/lfm2.5:1.2b",
+        "fallback": [
+          "qwen3:8b"
+        ],
+        "keywords": [
+          "quick",
+          "fast",
+          "classify",
+          "router"
+        ]
+      },
+      "summary_orchestration": {
+        "role": "orchestrator",
+        "primary": "Antigravity",
+        "fallback": [
+          "qwen3:8b"
+        ],
+        "keywords": [
+          "summarize",
+          "orchestrate",
+          "plan",
+          "coordinate",
+          "cmux"
+        ]
+      }
+    }
   },
   "openclaw": {
-    "primary": null,
+    "primary": "openai/opencode-go/deepseek-v4-flash",
     "primary_installed": false,
-    "fallbacks": [],
+    "fallbacks": [
+      "google/gemini-2.5-flash",
+      "ollama/qwen3:8b"
+    ],
     "registered_local_models": []
   },
   "telegram": {
-    "reply_model": null,
+    "reply_model": "google/gemini-2.5-flash",
     "reply_model_installed": false,
-    "state": null,
-    "pid": null,
-    "updatedAt": null,
-    "lastChatId": null
+    "state": "idle",
+    "pid": 13472,
+    "updatedAt": "2026-06-03T12:32:52.511Z",
+    "lastChatId": "8173025084"
   },
   "ollama": {
-    "models": [],
-    "count": 0
+    "models": [
+      "nomic-embed-text:latest",
+      "qwen3:14b",
+      "qwen3-nothink:latest",
+      "qwen3:8b"
+    ],
+    "count": 4
   },
   "recentActivity": {
-    "files_scanned": 0,
+    "files_scanned": 3,
     "ollama_errors": 0,
-    "fallback_provider_calls": 0,
-    "providers_seen": [],
-    "models_seen": [],
+    "fallback_provider_calls": 10,
+    "providers_seen": [
+      "openai",
+      "google",
+      "ollama"
+    ],
+    "models_seen": [
+      "opencode-go/deepseek-v4-flash",
+      "opencode-go-research",
+      "gemini-2.5-flash",
+      "qwen3:8b"
+    ],
     "latest_error": null
   },
   "statusSummary": {
-    "fallback_mode": "not_observed_recently",
+    "fallback_mode": "active",
     "ollama_health": "ok"
   }
 }

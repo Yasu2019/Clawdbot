@@ -1,92 +1,83 @@
 #RADIOSS STARTER
 /BEGIN
 press_blanking_stripper_v001
-      2024       0
-$---+----1----+----2----+----3----+----4----+----5----+----6----+----7----+----8
-$  PRESS BLANKING WITH REAL STRIPPER & CONTACT OPTIMIZATION
-$  Resolves initial penetration and dynamic shock collapse (INC-092)
-$
-$  Material: SPCC cold-rolled steel t=1.2mm
-$  Stripper: Rigid clamp with smooth force ramp control (/CLOAD)
-$  Contact card: Type 7 with Istf=4 (auto-stiffness) and Igap=2 (thickness gap)
-$---+----1----+----2----+----3----+----4----+----5----+----6----+----7----+----8
-/UNIT
+      2024         0
 kg                    mm                    ms
+kg                    mm                    ms
+/DEF_SHELL
+#   ISHELL    ISMSTR    ITHICK     IPLAS   ISTRAIN                        I_SH3N     IDRIL
+         2         4         0         0         0                             0         0
+$  Stripper blanking minimal mesh (INC-094 deck fix)
 /MAT/PLAS_JOHNS/2
 Cold_Steel_SPCC_1t2
 #        Init. dens.
           7.85E-6
 #                  E                  nu
               210000                 0.3
-#   Johnson-Cook flow stress: A + B*eps^n * (1 + C*ln(epdot/ep0)) * (1 - Theta^m)
 #                  a                   b                   n                   c                   m
                300.0               500.0               0.25               0.014               1.03
 #               eps0              ref_temp             melt_temp
                0.001               293.15              1750.0
 /FAIL/JOHNSON/2
-$ BLANKING FAILURE: Fracture strain at high triaxiality (shear dominant)
 #               d1                  d2                  d3                  d4                  d5
               -0.09                0.25               -0.5               0.014                3.87
-$  Lode angle correction (shear-dominant blanking, eta_min=-1/3)
               -0.33
 /PROP/SHELL/2
 Blank_Sheet_12mm
-#   Ishell               Ismstr
-         24                    0
-#                  h
-               1.2
-#        N           Istrain
-         5                 1
+#   Ishell    Ismstr     Ish3n    Idrill                            P_thickfail
+         2         4         0         0                                       0
+#                 hm                  hf                  hr                  dm                  dn
+              0.010               0.010               0.010               0.010               0.010
+#        N                         Thick              Ashear              Ithick     Iplas
+         5                         1.2                   0                   2         1
 /PART/2
 Blank_Sheet_Part
          2         2
+$  Mid-surface in X-Z plane (y=0); thickness only in /PROP/SHELL (INC-094)
 /NODE
-$  Pre-gap optimized nodal positions (Z-offset for safety thickness gap)
-$  Two rows of nodes representing sheet of t=1.2mm in X-Y plane
        1        0.00       0.00       0.00
        2        4.00       0.00       0.00
        3        8.00       0.00       0.00
        4       12.00       0.00       0.00
        5       16.00       0.00       0.00
        6       20.00       0.00       0.00
-       7        0.00       1.20       0.00
-       8        4.00       1.20       0.00
-       9        8.00       1.20       0.00
-      10       12.00       1.20       0.00
-      11       16.00       1.20       0.00
-      12       20.00       1.20       0.00
-/SHELL
-         1         2         1         2         8         7
-         2         2         2         3         9         8
-         3         2         3         4        10         9
-         4         2         4         5        11        10
-         5         2         5         6        12        11
-/BCS
-$  Clamp both ends of the sheet (referencing group 1 and group 11)
-         1         1         1         1         0         0         0
-        11         1         1         1         0         0         0
-/IMPDISP/2
-punch_blanking
-$                   Tstart              Tstop                 dir   grnd_id
-                     0.001              0.003                  2         2
-          2
-/GRNOD/NODE/1
+       7        0.00       0.00       5.00
+       8        4.00       0.00       5.00
+       9        8.00       0.00       5.00
+      10       12.00       0.00       5.00
+      11       16.00       0.00       5.00
+      12       20.00       0.00       5.00
+/SHELL/2
+         1         1         2         8         7         0
+         2         2         3         9         8         0
+         3         3         4        10         9         0
+         4         4         5        11        10         0
+         5         5         6        12        11         0
+/GRNOD/NODE/101
 clamp_left_nodes
        1       7
-/GRNOD/NODE/11
+/GRNOD/NODE/102
 clamp_right_nodes
        6      12
-/GRNOD/NODE/2
+/GRNOD/NODE/103
 punch_contact_nodes
        9      10
+/BCS/1
+clamp_left
+#  Tra rot   skew_ID  grnod_ID
+   111 111         0       101
+/BCS/2
+clamp_right
+#  Tra rot   skew_ID  grnod_ID
+   111 111         0       102
 /FUNCT/2
-#     Time      Displacement_mm  (punch travel = 1.5 * t = 1.8mm for full blanking)
+#     Time      Displacement_mm
        0.0              0.0
        0.003             1.8
-/INTER/TYPE7/2
-Contact_PunchSheet
-$--- Friction: mu=0.08, contact stiffness flags: Istf=4, Igap=2, Idel=2
-               0.08
-#   Istf    Igap    Idel    Iako    Gapsmult
-       4       2       2       1        1.0
+/IMPDISP/2
+punch_blanking
+#  fct_IDT Dir   skew_ID  sens_ID  grnd_ID  icoor
+          2         2         0         0       103         0
+#  Ascalex FscaleY Tstart  Tstop
+      1.0       1.0    0.001   0.003
 /END
