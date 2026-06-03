@@ -78,8 +78,8 @@ def run_git_command(args: list[str], timeout: int = 30) -> tuple[bool, str]:
 
 def run_git_backup(record_id: int) -> bool:
     print(f"[GIT] Starting Git backup/push before modifying code...")
-    # Check if there are uncommitted changes
-    ok, out = run_git_command(["git", "status", "--porcelain"])
+    # Check if there are uncommitted changes (tracked files only)
+    ok, out = run_git_command(["git", "status", "--porcelain", "-uno"])
     if not ok:
         print(f"[GIT] Failed to get status: {out}")
         return False
