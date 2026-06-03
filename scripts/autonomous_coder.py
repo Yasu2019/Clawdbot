@@ -116,10 +116,14 @@ def query_llm(prompt: str) -> str:
             ],
             "temperature": 0.1
         }
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer yasu-fresh-token-2026-02-01"
+        }
         req = urllib.request.Request(
             LITELLM_URL,
             data=json.dumps(req_data).encode("utf-8"),
-            headers={"Content-Type": "application/json"}
+            headers=headers
         )
         with urllib.request.urlopen(req, timeout=120) as resp:
             body = json.loads(resp.read().decode("utf-8"))
