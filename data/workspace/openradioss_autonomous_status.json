@@ -1,6 +1,22 @@
 {
-  "state": "running",
-  "current_run": 190,
-  "label": "G:tetra VC=0.7 Eps=0.34",
-  "updated_at_jst": "2026-06-03T23:02:54.706514+09:00"
+  "state": "paused",
+  "gate_ms": 18.13,
+  "last_pdca": "Run48",
+  "run47": {
+    "t_final_ms": 13.7,
+    "termination": "NORMAL_VELOCITY",
+    "gate_passed": false,
+    "patch": "rad_model production deck Eps=0.35 VC=0.6 TSTOP=0.025 AMS=0.67",
+    "backup_dir": "/work/backup_run47_20260604_081312"
+  },
+  "run48": {
+    "t_final_ms": 13.2,
+    "termination": "NORMAL_VELOCITY",
+    "gate_passed": false,
+    "patch": "pre109 tetra restore TSTOP=0.020 AMS=0.67",
+    "backup_dir": "/work/backup_run48_20260604_082746",
+    "node_velocity_fail": 6133
+  },
+  "message": "Run42(T=19.99ms) not reproduced; velocity fail ~13ms on both decks. Next: compare backup_run47 vs Run42 boundary/IMPVEL or restore historical deck from container backup.",
+  "updated_at_jst": "2026-06-04T08:35:40+09:00"
 }

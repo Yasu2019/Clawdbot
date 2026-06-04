@@ -3,6 +3,20 @@
 譛ｬ繝輔ぃ繧､繝ｫ縺ｯ縲√す繧ｹ繝・Β縺ｫ逋ｺ逕溘＠縺滄囿螳ｳ縺ｻ荳榊・蜷医→縺昴・譬ｹ譛ｬ蜴溷屏繝ｻ菫ｮ豁｣蜀・ｮｹ繝ｻ蜀咲匱髦ｲ豁｢遲悶ｒ險倬鹸縺励∪縺吶€・菫ｮ豁｣繧定｡後▲縺溷ｴ蜷医・縲∝ｿ・★縺薙・繝輔ぃ繧､繝ｫ縺ｫ繧ｨ繝ｳ繝医Μ繧定ｿｽ蜉縺励※縺上□縺輔＞縲・
 ------
 
+## INC-095: Distributed Fleet PC node failures left unattended due to simple liveness monitoring and lack of automatic recovery watchdogs
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-06-04 JST |
+| **Detection** | Multiple node failures (K10 C-drive full, Dynabook power off/sleep, LAVIE WSL/Docker container freezes, 41-script batch queue stall) were visible in logs/ports but left unresolved for days. |
+| **Impact** | Entire distributed computational runs and automated mecha video pipelines were halted, requiring manual human recovery. |
+| **Root Cause (5 Why)** | **Why1**: Issues were left unattended despite being visible.<br>**Why2**: `monitor_agent` only probed port ping status (HTTP 200) without checking system resource state or semantic progress.<br>**Why3**: The system was designed assuming a "happy path" where remote nodes were dedicated stable servers, neglecting consumer-grade PC risks.<br>**Why4**: Implementing remote automatic recovery was delayed due to local security barriers (WinRM TrustedHosts, local account privileges).<br>**Why5**: No systematic FMEA/FTA analysis was performed at the fleet architecture level, prioritizing individual functionality over overall cluster reliability (Root Cause). |
+| **Fix** | (1) Registered full FMEA, FTA, Fishbone, Logic Tree, and 5 Whys analysis to `universal_growth.db`'s `growth_records` table (Record ID: 3054).<br>(2) Formulated fleet-wide recurrence prevention rules: mandatory sleep disables on remote nodes, startup trigger execution in Windows Task Scheduler, disk capacity relief guards (`clawstack_janitor.ps1`), and `--allow-offline` mode in deployment workflows (`autonomous_coder.py`). |
+| **Files** | `scratch/register_pc_neglect_fmea.py`, `data/workspace/memory/trouble_history.md`, `docs/INCIDENT_LOG.md` |
+| **Verification** | SQLite query on `universal_growth.db` confirms record insertion under domain `QUALITY` (ID 3054). |
+| **Lessons Learned** | A cluster is only as reliable as its weakest node. Death of a node must trigger active watchdogs and asynchronous queue fallbacks rather than freezing the entire workflow or masking failures behind static ping dashboards. |
+| **Prevention** | Mandate meaning gates before executions, enforce periodic disk cleanup, and ensure sleep/suspend states are disabled on all network participants. |
+
 ## INC-089: LAVIE moldflow fill video failed silently (missing ffmpeg/pyvista; worker timeout)
 
 | Field | Detail |

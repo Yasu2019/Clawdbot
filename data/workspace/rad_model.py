@@ -202,3 +202,40 @@ def set_engine_ams_scale(engine_path: Path, scale: float) -> None:
     if crlf:
         text = text.replace("\n", "\r\n")
     engine_path.write_bytes(text.encode("utf-8"))
+
+
+def set_engine_dt_min(engine_path: Path, dt_min: str | float) -> None:
+    """Set minimum timestep (2nd number) on the data line after /DT/AMS/..."""
+    raw = engine_path.read_bytes()
+    crlf = b"\r\n" in raw
+    lines = raw.decode("utf-8", errors="replace").replace("\r\n", "\n").split("\n")
+    dt_str = f"{dt_min}" if isinstance(dt_min, str) else f"{dt_min:.6E}"
+    for i, ln in enumerate(lines):
+        if ln.strip().startswith("/DT/AMS") and i + 1 < len(lines):
+            lines[i + 1] = _replace_nth_number(lines[i + 1], 1, dt_str)
+            break
+    else:
+        raise ValueError(f"/DT/AMS block not found in {engine_path}")
+    text = "\n".join(lines)
+    if crlf:
+        text = text.replace("\n", "\r\n")
+    engine_path.write_bytes(text.encode("utf-8"))
+
+
+def read_engine_params(engine_path: Path) -> dict[str, object]:
+    """Return TSTOP, AMS scale, and dt_min from engine file."""
+    raw = engine_path.read_bytes()
+    lines = raw.decode("utf-8", errors="replace").replace("\r\n", "\n").split("\n")
+    result: dict[str, object] = {}
+    for i, ln in enumerate(lines):
+        s = ln.strip()
+        if s.startswith("/RUN/") and i + 1 < len(lines):
+            toks = lines[i + 1].split()
+            if toks:
+                result["tstop"] = float(toks[0])
+        if s.startswith("/DT/AMS") and i + 1 < len(lines):
+            toks = lines[i + 1].split()
+            if len(toks) >= 2:
+                result["ams_scale"] = float(toks[0])
+                result["dt_min"] = toks[1]
+    return result

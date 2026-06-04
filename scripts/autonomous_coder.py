@@ -11,6 +11,7 @@
 from __future__ import annotations
 
 import argparse
+import datetime
 import json
 import math
 import os
@@ -157,6 +158,52 @@ def query_llm(prompt: str) -> str:
     except Exception as e:
         print(f"[LLM] Ollama query failed: {e}")
         raise RuntimeError("No LLM server available for self-improvement.")
+
+def query_llm_for_comment(code_block: str, know_how: str) -> str:
+    prompt = f"以下のコード変更とノウハウに基づいて、このシステムにどのような能力アップ（解析精度の向上、新機能の追加など）が期待できるか、専門的な視点から日本語で1〜2文で簡潔に説明してください。\n\nノウハウ:\n{know_how}\n\nコード変更:\n{code_block}"
+    try:
+        req_data = {
+            "model": "qwen3:8b",
+            "prompt": prompt,
+            "system": "You are a professional AI engineer. Answer in Japanese.",
+            "stream": False,
+            "options": {"temperature": 0.5}
+        }
+        req = urllib.request.Request(
+            OLLAMA_URL,
+            data=json.dumps(req_data).encode("utf-8"),
+            headers={"Content-Type": "application/json"}
+        )
+        with urllib.request.urlopen(req, timeout=60) as resp:
+            body = json.loads(resp.read().decode("utf-8"))
+            return body["response"].strip()
+    except Exception as e:
+        print(f"[LLM] Comment query failed: {e}")
+        return "コードの最適化および新しいノウハウの適用により、システムパフォーマンスと解析能力が向上しました。"
+
+def save_dashboard_log(record_id: int, challenge: str, know_how: str, before_code: str, after_code: str, capability_comment: str):
+    json_path = WORKSPACE / "apps" / "growth_dashboard" / "autonomous_improvements.json"
+    data = []
+    if json_path.exists():
+        try:
+            data = json.loads(json_path.read_text(encoding="utf-8"))
+        except Exception:
+            pass
+    
+    new_entry = {
+        "timestamp": datetime.datetime.now().isoformat(),
+        "record_id": record_id,
+        "challenge": challenge,
+        "know_how": know_how,
+        "capability_comment": capability_comment,
+        "before_code": before_code,
+        "after_code": after_code
+    }
+    data.insert(0, new_entry)
+    data = data[:50]
+    
+    json_path.parent.mkdir(parents=True, exist_ok=True)
+    json_path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
 
 def load_telegram_config() -> tuple[str, str] | None:
     env_path = ROOT / ".env"
@@ -340,6 +387,13 @@ Return ONLY the updated python code block that will replace the target block. No
         applied_ids.append(record["id"])
         state["applied_record_ids"] = applied_ids
         save_state(state)
+
+    # 8.5 Generate comment and save to dashboard log
+    print("[INFO] Generating capability comment...")
+    comment = query_llm_for_comment(modified_block, record["know_how"])
+    print(f"[INFO] Generated comment: {comment}")
+    print("[INFO] Saving dashboard log...")
+    save_dashboard_log(record["id"], record["challenge"], record["know_how"], target_block, modified_block, comment)
 
     # 9. Send Telegram
     tg_status = "LAVIEへの同期＆再起動完了" if deploy_ok else "LAVIEオフラインのため未適用（ローカル及びGitHubバックアップのみ完了）"

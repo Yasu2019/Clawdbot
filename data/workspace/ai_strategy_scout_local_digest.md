@@ -1,6 +1,6 @@
 # AI Strategy Scout: Architectural Sentinel Edition
 
-- Generated at: 2026-06-03 05:25:36 JST
+- Generated at: 2026-06-04 01:33:58 JST
 - Mode: local_no_api_cost
 
 ## 🏛️ [DECISION] Architectural Recommendations
@@ -11,28 +11,32 @@
   - https://mfem.org/particles/
   - https://mfem.org/about/
 
+### 🔌 ADOPT_INTEGRATE: Ops Toolbox
+- **Rationale**: Matches 1 new developments in this domain.
+  - v0.22.1rc1: [docker] Stop using extra-index-url for flashinfer-jit-cache (#44366)
+
 ---
 
 ## Local LLM / OSS
 
 ### Local LLM
-- b9482 [fresh]
-  Source: llama.cpp Releases | Published: 2026-06-03T04:44:48+09:00
-  https://github.com/ggml-org/llama.cpp/releases/tag/b9482
-- v0.22.0 [fresh]
-  Source: vLLM Releases | Published: 2026-06-03T03:14:39+09:00
-  https://github.com/vllm-project/vllm/releases/tag/v0.22.0
-- Holo3.1: Fast & Local Computer Use Agents [fresh]
-  Source: Hugging Face Blog | Published: 2026-06-02T23:13:23+09:00
-  https://huggingface.co/blog/Hcompany/holo31
+- b9493 [fresh]
+  Source: llama.cpp Releases | Published: 2026-06-04T00:45:14+09:00
+  https://github.com/ggml-org/llama.cpp/releases/tag/b9493
+- Direct Preference Optimization Beyond Chatbots [fresh]
+  Source: Hugging Face Blog | Published: 2026-06-03T21:55:11+09:00
+  https://huggingface.co/blog/Dharma-AI/direct-preference-optimization-beyond-chatbots
+- v0.22.1rc1: [docker] Stop using extra-index-url for flashinfer-jit-cache (#44366) [fresh]
+  Source: vLLM Releases | Published: 2026-06-03T11:02:03+09:00
+  https://github.com/vllm-project/vllm/releases/tag/v0.22.1rc1
 - OpenJarvis: a local-first personal AI is now available to run with Ollama May 28, 2026 OpenJarvis v1.0 is now available: an open-source framework for building personal AI agents that run on your own hardware, with Ollama support built-in. [reference]
   Source: Ollama Blog | Published: n/a
   https://ollama.com/blog/openjarvis
 
 ### Productivity OSS
-- n8n@2.25.1 [fresh]
-  Source: n8n Releases | Published: 2026-06-02T20:34:21+09:00
-  https://github.com/n8n-io/n8n/releases/tag/n8n%402.25.1
+- n8n@1.123.51 [fresh]
+  Source: n8n Releases | Published: 2026-06-03T19:23:15+09:00
+  https://github.com/n8n-io/n8n/releases/tag/n8n%401.123.51
 - v0.90.1 [fresh]
   Source: Docmost Releases | Published: 2026-05-29T06:01:10+09:00
   https://github.com/docmost/docmost/releases/tag/v0.90.1
@@ -108,7 +112,7 @@
 - xess.css?cachebuster=devel
   https://www.dealii.org/.within.website/x/xess/xess.css?cachebuster=devel
 - init
-  https://www.dealii.org/.within.website/x/cmd/anubis/api/honeypot/e23760ae-f7d7-4020-9194-b44482bb1a21/init
+  https://www.dealii.org/.within.website/x/cmd/anubis/api/honeypot/7d8e8ae2-376f-46da-acb1-0182a3d61c81/init
 
 ### SU2 Foundation
 - Newsletter Registration – SU2 Foundation
