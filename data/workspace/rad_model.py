@@ -222,6 +222,24 @@ def set_engine_dt_min(engine_path: Path, dt_min: str | float) -> None:
     engine_path.write_bytes(text.encode("utf-8"))
 
 
+def set_engine_noda_dt_min(engine_path: Path, dt_min: str | float) -> None:
+    """Set minimum timestep (2nd number) on the data line after /DT/NODA/..."""
+    raw = engine_path.read_bytes()
+    crlf = b"\r\n" in raw
+    lines = raw.decode("utf-8", errors="replace").replace("\r\n", "\n").split("\n")
+    dt_str = f"{dt_min}" if isinstance(dt_min, str) else f"{dt_min:.6E}"
+    for i, ln in enumerate(lines):
+        if ln.strip().startswith("/DT/NODA") and i + 1 < len(lines):
+            lines[i + 1] = _replace_nth_number(lines[i + 1], 1, dt_str)
+            break
+    else:
+        raise ValueError(f"/DT/NODA block not found in {engine_path}")
+    text = "\n".join(lines)
+    if crlf:
+        text = text.replace("\n", "\r\n")
+    engine_path.write_bytes(text.encode("utf-8"))
+
+
 def read_engine_params(engine_path: Path) -> dict[str, object]:
     """Return TSTOP, AMS scale, and dt_min from engine file."""
     raw = engine_path.read_bytes()

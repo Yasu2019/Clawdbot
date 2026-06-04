@@ -278,6 +278,16 @@
                 </tbody>
             </table>
         </div>
+
+        <div class="card full-width">
+            <h2>🚀 Autonomous Code Improvements (自律的コード改善履歴)</h2>
+            <p style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 15px;">
+                ※AIが取得した知識をもとに、自動的にシステムコードを改善・アップデートした履歴です。
+            </p>
+            <div id="autonomousImprovementsBody" style="display: flex; flex-direction: column; gap: 20px;">
+                <div style="color: var(--text-dim); font-size: 0.9rem; text-align: center;">Loading Autonomous Improvements...</div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -596,9 +606,60 @@
             }
         }
 
+        async function loadAutonomousImprovements() {
+            try {
+                const res = await fetch('autonomous_improvements.json');
+                const data = await res.json();
+                const container = document.getElementById('autonomousImprovementsBody');
+                
+                if (!data || data.length === 0) {
+                    container.innerHTML = '<div style="color: var(--text-dim); font-size: 0.9rem; text-align: center;">No autonomous improvements recorded yet.</div>';
+                    return;
+                }
+
+                container.innerHTML = data.map(item => `
+                    <div style="border: 1px solid var(--border); border-radius: 10px; background: rgba(255,255,255,0.02); overflow: hidden;">
+                        <div style="padding: 15px; border-bottom: 1px solid var(--border); background: rgba(88, 166, 255, 0.05);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <div style="font-weight: 600; font-size: 1.1rem; color: #58a6ff;">[Record ID: ${item.record_id}] ${item.challenge}</div>
+                                <div style="font-size: 0.8rem; color: var(--text-dim);">${new Date(item.timestamp).toLocaleString()}</div>
+                            </div>
+                            <div style="font-size: 0.95rem; color: #3fb950; font-weight: bold; margin-bottom: 5px;">
+                                💡 Expected Upgrade: ${item.capability_comment}
+                            </div>
+                        </div>
+                        <div style="display: flex; flex-direction: row; gap: 0;">
+                            <div style="flex: 1; padding: 15px; border-right: 1px solid var(--border);">
+                                <div style="font-size: 0.85rem; font-weight: bold; color: #f85149; margin-bottom: 8px;">BEFORE (改善前)</div>
+                                <pre style="margin: 0; background: #0d1117; padding: 10px; border-radius: 6px; font-size: 0.8rem; color: #c9d1d9; overflow-x: auto; max-height: 300px; overflow-y: auto;"><code>${escapeHtml(item.before_code)}</code></pre>
+                            </div>
+                            <div style="flex: 1; padding: 15px;">
+                                <div style="font-size: 0.85rem; font-weight: bold; color: #3fb950; margin-bottom: 8px;">AFTER (改善後)</div>
+                                <pre style="margin: 0; background: #0d1117; padding: 10px; border-radius: 6px; font-size: 0.8rem; color: #c9d1d9; overflow-x: auto; max-height: 300px; overflow-y: auto;"><code>${escapeHtml(item.after_code)}</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (e) {
+                console.error("Failed to load autonomous improvements", e);
+                document.getElementById('autonomousImprovementsBody').innerHTML = '<div style="color: #f85149; font-size: 0.9rem; text-align: center;">Error loading improvements.</div>';
+            }
+        }
+        
+        function escapeHtml(unsafe) {
+            if (!unsafe) return "";
+            return unsafe
+                 .replace(/&/g, "&amp;")
+                 .replace(/</g, "&lt;")
+                 .replace(/>/g, "&gt;")
+                 .replace(/"/g, "&quot;")
+                 .replace(/'/g, "&#039;");
+        }
+
         loadData();
         loadYouTubeSummary();
         loadKnowledgeHistory();
+        loadAutonomousImprovements();
         updateNodes();
         setInterval(updateNodes, 5000);
     </script>
