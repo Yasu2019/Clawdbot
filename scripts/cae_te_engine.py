@@ -957,9 +957,77 @@ def _cross_wlf_viscosity(mu0: float, tr: float, c1: float, c2: float, t_k: float
     # Apply global viscosity limits (assuming _WLF_MU_MAX and _WLF_MU_MIN are defined elsewhere)
     return min(_WLF_MU_MAX, max(_WLF_MU_MIN, eta))
 
+import math
+
+def _cross_wlf_viscosity(t_k: float, gdot: float, p_mpa: float, params: dict | None) -> float:
+    """
+    Computes viscosity using the Cross-WLF model.
+    Parameters are extracted from the 'params' dictionary or fall back to defaults.
+    """
+    t_c = t_k - 273.15  # Convert Kelvin to Celsius
+
+    # Default Cross-WLF parameters
+    D1 = 1.0e10
+    D2 = 105.0  # Tg at zero pressure in Celsius
+    D3 = 0.0    # Pressure coefficient for Tg
+    A1 = 17.44
+    A2 = 51.6
+    tau_star = 50000.0 # Shear stress at which shear thinning begins (Pa)
+    n = 0.35    # Power-law index
+
+    if params:
+        D1 = float(params.get("cross_wlf_D1", D1))
+        D2 = float(params.get("cross_wlf_D2", D2))
+        D3 = float(params.get("cross_wlf_D3", D3))
+        A1 = float(params.get("cross_wlf_A1", A1))
+        A2 = float(params.get("cross_wlf_A2", A2))
+        tau_star = float(params.get("cross_wlf_tau_star", tau_star))
+        n = float(params.get("cross_wlf_n", n))
+
+    # Calculate Glass Transition Temperature (Tg)
+    Tg = D2 + D3 * p_mpa
+
+    # Calculate zero-shear viscosity (eta0) using WLF equation
+    temp_diff = t_c - Tg
+    denom = A2 + temp_diff
+    # Clamp denominator to prevent division by zero or very small numbers
+    denom = max(denom, 1e-6)
+
+    try:
+        eta0 = D1 * math.exp(-A1 * temp_diff / denom)
+    except OverflowError:
+        # If viscosity is effectively infinite (e.g., far below Tg), return a very large number
+        eta0 = 1e18 # A practical large number for numerical stability
+
+    # Ensure eta0 is positive and not too small for the Cross model calculation
+    eta0 = max(eta0, 1e-12)
+
+    # Ensure tau_star is positive
+    tau_star = max(tau_star, 1e-6)
+
+    # Calculate the shear-thinning term
+    shear_thinning_base = (eta0 * gdot / tau_star)
+    # Ensure the base of the power is positive
+    shear_thinning_base = max(shear_thinning_base, 1e-12)
+
+    try:
+        eta = eta0 / (1.0 + shear_thinning_base**(1.0 - n))
+    except OverflowError:
+        # If the denominator becomes effectively infinite, eta approaches 0.
+        # For practical purposes, cap at a reasonable minimum.
+        eta = 1e-4
+    except ZeroDivisionError:
+        # This should be prevented by max clamps, but as a safeguard
+        eta = 1e-4
+
+    return max(eta, 1e-4) # Ensure viscosity is always positive and above a practical minimum
+
+
 def _wlf_dynamic_viscosity(mu0: float, tr: float, c1: float, c2: float, t_k: float, gdot: float = 1000.0, p_mpa: float = 0.0, params: dict | None = None) -> float:
-    """Wrapper for Cross-WLF viscosity model, maintaining original function signature."""
-    return _cross_wlf_viscosity(mu0, tr, c1, c2, t_k, gdot, p_mpa, params)
+    """Wrapper for Cross-WLF viscosity model, maintaining original function signature.
+    The mu0, tr, c1, c2 arguments are kept for compatibility but are ignored by the Cross-WLF logic.
+    """
+    return _cross_wlf_viscosity(t_k, gdot, p_mpa, params)
 
 
 def _resolve_wlf_params(params: dict) -> dict:
