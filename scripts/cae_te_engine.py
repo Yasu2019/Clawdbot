@@ -1023,11 +1023,50 @@ def _cross_wlf_viscosity(t_k: float, gdot: float, p_mpa: float, params: dict | N
     return max(eta, 1e-4) # Ensure viscosity is always positive and above a practical minimum
 
 
+import math
+
 def _wlf_dynamic_viscosity(mu0: float, tr: float, c1: float, c2: float, t_k: float, gdot: float = 1000.0, p_mpa: float = 0.0, params: dict | None = None) -> float:
-    """Wrapper for Cross-WLF viscosity model, maintaining original function signature.
+    """Calculates dynamic viscosity using the Cross-WLF model.
     The mu0, tr, c1, c2 arguments are kept for compatibility but are ignored by the Cross-WLF logic.
     """
-    return _cross_wlf_viscosity(t_k, gdot, p_mpa, params)
+    if params is None:
+        params = {}
+
+    # Convert temperature to Celsius
+    t_c = t_k - 273.15
+
+    # Extract Cross-WLF parameters with default fallbacks
+    D1 = float(params.get("cross_wlf_D1", 1.0e10))
+    D2 = float(params.get("cross_wlf_D2", 105.0)) # Tg fallback in Celsius
+    D3 = float(params.get("cross_wlf_D3", 0.0))
+    A1 = float(params.get("cross_wlf_A1", 17.44))
+    A2 = float(params.get("cross_wlf_A2", 51.6))
+    tau_star = float(params.get("cross_wlf_tau_star", 50000.0))
+    n = float(params.get("cross_wlf_n", 0.35))
+
+    # Calculate Glass Transition Temperature (Tg)
+    Tg = D2 + D3 * p_mpa
+
+    # Calculate zero-shear viscosity (eta0)
+    # Denominator for WLF part: A2 + (t_c - Tg)
+    denom_wlf = A2 + (t_c - Tg)
+    # Clamp denominator to prevent division by zero or very small numbers
+    denom_wlf = max(denom_wlf, 1e-6)
+
+    # WLF exponential term
+    wlf_exp_term = -A1 * (t_c - Tg) / denom_wlf
+    eta0 = D1 * math.exp(wlf_exp_term)
+
+    # Calculate viscosity (eta) using the Cross model
+    cross_term_base = (eta0 * gdot / tau_star)
+    
+    # Handle cases where gdot is zero or negative to prevent issues with power calculation
+    if cross_term_base <= 0:
+        eta = eta0
+    else:
+        eta = eta0 / (1.0 + cross_term_base**(1.0 - n))
+
+    return eta
 
 
 def _resolve_wlf_params(params: dict) -> dict:
