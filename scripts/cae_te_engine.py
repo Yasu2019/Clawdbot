@@ -903,6 +903,8 @@ _WLF_MU_MIN = 1e-4
 _WLF_MU_MAX = 1.0e5
 
 
+import math
+
 def _wlf_dynamic_viscosity(mu0: float, tr: float, c1: float, c2: float, t_k: float, gdot: float = 1000.0, p_mpa: float = 0.0, params: dict | None = None) -> float:
     """Cross-WLF viscosity model.
     The mu0, tr, c1, c2 arguments are kept for compatibility but are not used
