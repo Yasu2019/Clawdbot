@@ -337,8 +337,9 @@
                 });
 
                 // Learning History Table
-                const historyBody = document.getElementById('recentHistoryBody');
-                historyBody.innerHTML = (data.recent_know_how || []).map(item => `
+                const historyBody = document.getElementById('historyBody');
+                if (historyBody) {
+                    historyBody.innerHTML = (data.recent_know_how || []).map(item => `
                     <tr>
                         <td><span class="domain-tag">${item.domain}</span></td>
                         <td>
@@ -348,6 +349,7 @@
                         <td><span class="timestamp">${new Date(item.timestamp).toLocaleString()}</span></td>
                     </tr>
                 `).join('');
+                }
 
                 // FEM Scoring Fallback
                 const femBody = document.getElementById('femScoreBody');

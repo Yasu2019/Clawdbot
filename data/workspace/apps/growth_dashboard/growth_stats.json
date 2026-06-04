@@ -1,9 +1,9 @@
 {
-  "updated_at": "2026-06-04T20:54:49.543643",
+  "updated_at": "2026-06-04T21:43:27.652207",
   "domain_stats": {
     "3D_ANIMATION": 249,
     "CAD": 132,
-    "CAE_MATERIAL": 934,
+    "CAE_MATERIAL": 943,
     "DXF2STEP": 15,
     "GEOMETRY_AI": 127,
     "GMAIL_READING": 450,
@@ -148,6 +148,60 @@
   "recent_know_how": [
     {
       "domain": "CAE_MATERIAL",
+      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 7.238064, 'punch_speed_mms': 3578.732847, 'friction_mu': 0.115604}",
+      "know_how": "Blanking SPCC 1.2mm: clearance=7.238064%t, speed=3578.732847mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
+      "timestamp": "2026-06-04 21:43:27"
+    },
+    {
+      "domain": "CAE_MATERIAL",
+      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 6.343796, 'punch_speed_mms': 3311.980398, 'friction_mu': 0.106392}",
+      "know_how": "Blanking SPCC 1.2mm: clearance=6.343796%t, speed=3311.980398mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
+      "timestamp": "2026-06-04 21:38:00"
+    },
+    {
+      "domain": "CAE_MATERIAL",
+      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 7.613376, 'punch_speed_mms': 3095.262825, 'friction_mu': 0.108969}",
+      "know_how": "Blanking SPCC 1.2mm: clearance=7.613376%t, speed=3095.262825mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
+      "timestamp": "2026-06-04 21:32:35"
+    },
+    {
+      "domain": "CAE_MATERIAL",
+      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 7.126475, 'punch_speed_mms': 3502.044044, 'friction_mu': 0.111226}",
+      "know_how": "Blanking SPCC 1.2mm: clearance=7.126475%t, speed=3502.044044mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
+      "timestamp": "2026-06-04 21:27:11"
+    },
+    {
+      "domain": "CAE_MATERIAL",
+      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 7.700599, 'punch_speed_mms': 3026.080605, 'friction_mu': 0.112428}",
+      "know_how": "Blanking SPCC 1.2mm: clearance=7.700599%t, speed=3026.080605mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
+      "timestamp": "2026-06-04 21:21:46"
+    },
+    {
+      "domain": "CAE_MATERIAL",
+      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 8.032506, 'punch_speed_mms': 3403.617315, 'friction_mu': 0.106953}",
+      "know_how": "Blanking SPCC 1.2mm: clearance=8.032506%t, speed=3403.617315mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
+      "timestamp": "2026-06-04 21:16:21"
+    },
+    {
+      "domain": "CAE_MATERIAL",
+      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 8.688051, 'punch_speed_mms': 3359.798745, 'friction_mu': 0.109116}",
+      "know_how": "Blanking SPCC 1.2mm: clearance=8.688051%t, speed=3359.798745mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
+      "timestamp": "2026-06-04 21:11:04"
+    },
+    {
+      "domain": "CAE_MATERIAL",
+      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 6.771082, 'punch_speed_mms': 3741.753336, 'friction_mu': 0.107467}",
+      "know_how": "Blanking SPCC 1.2mm: clearance=6.771082%t, speed=3741.753336mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
+      "timestamp": "2026-06-04 21:05:40"
+    },
+    {
+      "domain": "CAE_MATERIAL",
+      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 7.558046, 'punch_speed_mms': 3382.063426, 'friction_mu': 0.115044}",
+      "know_how": "Blanking SPCC 1.2mm: clearance=7.558046%t, speed=3382.063426mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
+      "timestamp": "2026-06-04 21:00:15"
+    },
+    {
+      "domain": "CAE_MATERIAL",
       "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 7.431779, 'punch_speed_mms': 3438.514391, 'friction_mu': 0.116393}",
       "know_how": "Blanking SPCC 1.2mm: clearance=7.431779%t, speed=3438.514391mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
       "timestamp": "2026-06-04 20:54:49"
@@ -211,60 +265,6 @@
       "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 8.615286, 'punch_speed_mms': 3159.340108, 'friction_mu': 0.110026}",
       "know_how": "Blanking SPCC 1.2mm: clearance=8.615286%t, speed=3159.340108mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
       "timestamp": "2026-06-04 19:59:40"
-    },
-    {
-      "domain": "CAE_MATERIAL",
-      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 8.399829, 'punch_speed_mms': 3293.123789, 'friction_mu': 0.113421}",
-      "know_how": "Blanking SPCC 1.2mm: clearance=8.399829%t, speed=3293.123789mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
-      "timestamp": "2026-06-04 19:54:22"
-    },
-    {
-      "domain": "CAE_MATERIAL",
-      "challenge": "【Dynabook自動収集】Nano-PTFE Nickel Mold Enables Defect-Free Micro Molding | Newswise - Newswise",
-      "know_how": "window.WIZ_global_data = {\"AfY8Hf\":false,\"Dftppe\":\"%.@.]\",\"DpimGf\":false,\"EP1ykd\":[\"/_/*\",\"/_/SubscribewithgoogleClientU...",
-      "timestamp": "2026-06-04 19:51:12"
-    },
-    {
-      "domain": "CAE_MATERIAL",
-      "challenge": "【Dynabook自動収集】Injection molding tool design: Identifying and fixing costly deficiencies for OEMs - Today's Medical Developments",
-      "know_how": "window.WIZ_global_data = {\"AfY8Hf\":false,\"Dftppe\":\"%.@.]\",\"DpimGf\":false,\"EP1ykd\":[\"/_/*\",\"/_/SubscribewithgoogleClientU...",
-      "timestamp": "2026-06-04 19:51:00"
-    },
-    {
-      "domain": "CAE_MATERIAL",
-      "challenge": "【Dynabook自動収集】Elimination of halo gloss transition surface defects on injection-molded parts - Nature",
-      "know_how": "window.WIZ_global_data = {\"AfY8Hf\":false,\"Dftppe\":\"%.@.]\",\"DpimGf\":false,\"EP1ykd\":[\"/_/*\",\"/_/SubscribewithgoogleClientU...",
-      "timestamp": "2026-06-04 19:50:50"
-    },
-    {
-      "domain": "CAE_MATERIAL",
-      "challenge": "【Dynabook自動収集】OMG Auto Cuts Machining Time with Advanced Manufacturing Solutions - Autodesk",
-      "know_how": "window.WIZ_global_data = {\"AfY8Hf\":false,\"Dftppe\":\"%.@.]\",\"DpimGf\":false,\"EP1ykd\":[\"/_/*\",\"/_/SubscribewithgoogleClientU...",
-      "timestamp": "2026-06-04 19:50:33"
-    },
-    {
-      "domain": "CAE_MATERIAL",
-      "challenge": "【Dynabook自動収集】Autodesk cuts 1,000 jobs - Plastics News",
-      "know_how": "window.WIZ_global_data = {\"AfY8Hf\":false,\"Dftppe\":\"%.@.]\",\"DpimGf\":false,\"EP1ykd\":[\"/_/*\",\"/_/SubscribewithgoogleClientU...",
-      "timestamp": "2026-06-04 19:50:22"
-    },
-    {
-      "domain": "CAE_MATERIAL",
-      "challenge": "【Dynabook自動収集】Autodesk announces updates to AI expansion - develop3d",
-      "know_how": "window.WIZ_global_data = {\"AfY8Hf\":false,\"Dftppe\":\"%.@.]\",\"DpimGf\":false,\"EP1ykd\":[\"/_/*\",\"/_/SubscribewithgoogleClientU...",
-      "timestamp": "2026-06-04 19:50:11"
-    },
-    {
-      "domain": "IATF",
-      "challenge": "【Dynabook自動収集】Rulemaker status: BYD joins elite IATF body to help shape international EV rules - CarNewsChina.com",
-      "know_how": "window.WIZ_global_data = {\"AfY8Hf\":false,\"Dftppe\":\"%.@.]\",\"DpimGf\":false,\"EP1ykd\":[\"/_/*\",\"/_/SubscribewithgoogleClientU...",
-      "timestamp": "2026-06-04 19:49:59"
-    },
-    {
-      "domain": "IATF",
-      "challenge": "【Dynabook自動収集】Reyco Granning Receives IATF Certifications - Work Truck Online",
-      "know_how": "window.WIZ_global_data = {\"AfY8Hf\":false,\"Dftppe\":\"%.@.]\",\"DpimGf\":false,\"EP1ykd\":[\"/_/*\",\"/_/SubscribewithgoogleClientU...",
-      "timestamp": "2026-06-04 19:49:40"
     }
   ]
 }
