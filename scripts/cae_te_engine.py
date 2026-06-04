@@ -905,7 +905,9 @@ _WLF_MU_MAX = 1.0e5
 
 import math
 
-def _wlf_dynamic_viscosity(mu0: float, tr: float, c1: float, c2: float, t_k: float, gdot: float = 1000.0, p_mpa: float = 0.0, params: dict | None = None) -> float:
+import math
+
+def _cross_wlf_viscosity(mu0: float, tr: float, c1: float, c2: float, t_k: float, gdot: float = 1000.0, p_mpa: float = 0.0, params: dict | None = None) -> float:
     """Cross-WLF viscosity model.
     The mu0, tr, c1, c2 arguments are kept for compatibility but are not used
     by the Cross-WLF calculation, which relies on parameters from the 'params' dict.
@@ -954,6 +956,10 @@ def _wlf_dynamic_viscosity(mu0: float, tr: float, c1: float, c2: float, t_k: flo
     
     # Apply global viscosity limits (assuming _WLF_MU_MAX and _WLF_MU_MIN are defined elsewhere)
     return min(_WLF_MU_MAX, max(_WLF_MU_MIN, eta))
+
+def _wlf_dynamic_viscosity(mu0: float, tr: float, c1: float, c2: float, t_k: float, gdot: float = 1000.0, p_mpa: float = 0.0, params: dict | None = None) -> float:
+    """Wrapper for Cross-WLF viscosity model, maintaining original function signature."""
+    return _cross_wlf_viscosity(mu0, tr, c1, c2, t_k, gdot, p_mpa, params)
 
 
 def _resolve_wlf_params(params: dict) -> dict:
