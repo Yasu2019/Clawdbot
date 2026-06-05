@@ -1,9 +1,9 @@
 {
-  "updated_at": "2026-06-05T21:18:29.690449",
+  "updated_at": "2026-06-06T02:45:43.363227",
   "domain_stats": {
     "3D_ANIMATION": 249,
     "CAD": 132,
-    "CAE_MATERIAL": 1232,
+    "CAE_MATERIAL": 1310,
     "DXF2STEP": 15,
     "GEOMETRY_AI": 127,
     "GMAIL_READING": 450,
@@ -17,13 +17,9 @@
     "TERMINOLOGY": 151,
     "TEST": 1,
     "TOLERANCE_ANALYSIS": 48,
-    "IATF": 22
+    "IATF": 31
   },
   "history": [
-    {
-      "day": "2026-05-06",
-      "count": 29
-    },
     {
       "day": "2026-05-07",
       "count": 24
@@ -142,129 +138,129 @@
     },
     {
       "day": "2026-06-05",
-      "count": 353
+      "count": 560
     }
   ],
   "recent_know_how": [
     {
       "domain": "CAE_MATERIAL",
-      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 8.112877, 'punch_speed_mms': 3357.204902, 'friction_mu': 0.114068}",
-      "know_how": "Blanking SPCC 1.2mm: clearance=8.112877%t, speed=3357.204902mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
-      "timestamp": "2026-06-05 21:18:29"
+      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 5.798772, 'punch_speed_mms': 3077.398954, 'friction_mu': 0.106456}",
+      "know_how": "Blanking SPCC 1.2mm: clearance=5.798772%t, speed=3077.398954mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
+      "timestamp": "2026-06-06 02:45:43"
     },
     {
       "domain": "CAE_MATERIAL",
-      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 8.12552, 'punch_speed_mms': 3425.705725, 'friction_mu': 0.111397}",
-      "know_how": "Blanking SPCC 1.2mm: clearance=8.12552%t, speed=3425.705725mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
-      "timestamp": "2026-06-05 21:13:00"
+      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 6.86331, 'punch_speed_mms': 3454.047635, 'friction_mu': 0.11347}",
+      "know_how": "Blanking SPCC 1.2mm: clearance=6.86331%t, speed=3454.047635mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
+      "timestamp": "2026-06-06 02:40:11"
     },
     {
       "domain": "CAE_MATERIAL",
-      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 5.730106, 'punch_speed_mms': 3028.792149, 'friction_mu': 0.107409}",
-      "know_how": "Blanking SPCC 1.2mm: clearance=5.730106%t, speed=3028.792149mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
-      "timestamp": "2026-06-05 21:07:31"
+      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 7.381451, 'punch_speed_mms': 3672.247164, 'friction_mu': 0.10894}",
+      "know_how": "Blanking SPCC 1.2mm: clearance=7.381451%t, speed=3672.247164mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
+      "timestamp": "2026-06-06 02:34:43"
     },
     {
       "domain": "CAE_MATERIAL",
-      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 6.872499, 'punch_speed_mms': 3097.755776, 'friction_mu': 0.113202}",
-      "know_how": "Blanking SPCC 1.2mm: clearance=6.872499%t, speed=3097.755776mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
-      "timestamp": "2026-06-05 21:02:05"
+      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 8.85745, 'punch_speed_mms': 3554.022753, 'friction_mu': 0.115649}",
+      "know_how": "Blanking SPCC 1.2mm: clearance=8.85745%t, speed=3554.022753mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
+      "timestamp": "2026-06-06 02:29:13"
     },
     {
       "domain": "CAE_MATERIAL",
-      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 5.761427, 'punch_speed_mms': 3002.722873, 'friction_mu': 0.114369}",
-      "know_how": "Blanking SPCC 1.2mm: clearance=5.761427%t, speed=3002.722873mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
-      "timestamp": "2026-06-05 20:56:38"
+      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 6.923914, 'punch_speed_mms': 3174.37607, 'friction_mu': 0.109504}",
+      "know_how": "Blanking SPCC 1.2mm: clearance=6.923914%t, speed=3174.37607mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
+      "timestamp": "2026-06-06 02:23:46"
     },
     {
       "domain": "CAE_MATERIAL",
-      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 8.944746, 'punch_speed_mms': 3601.579261, 'friction_mu': 0.108429}",
-      "know_how": "Blanking SPCC 1.2mm: clearance=8.944746%t, speed=3601.579261mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
-      "timestamp": "2026-06-05 20:51:20"
+      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 7.479094, 'punch_speed_mms': 3325.967196, 'friction_mu': 0.10654}",
+      "know_how": "Blanking SPCC 1.2mm: clearance=7.479094%t, speed=3325.967196mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
+      "timestamp": "2026-06-06 02:18:19"
     },
     {
       "domain": "CAE_MATERIAL",
-      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 7.947435, 'punch_speed_mms': 3560.102855, 'friction_mu': 0.106826}",
-      "know_how": "Blanking SPCC 1.2mm: clearance=7.947435%t, speed=3560.102855mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
-      "timestamp": "2026-06-05 20:45:54"
+      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 7.981453, 'punch_speed_mms': 3505.935058, 'friction_mu': 0.109084}",
+      "know_how": "Blanking SPCC 1.2mm: clearance=7.981453%t, speed=3505.935058mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
+      "timestamp": "2026-06-06 02:12:52"
     },
     {
       "domain": "CAE_MATERIAL",
-      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 5.607904, 'punch_speed_mms': 3703.164882, 'friction_mu': 0.109337}",
-      "know_how": "Blanking SPCC 1.2mm: clearance=5.607904%t, speed=3703.164882mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
-      "timestamp": "2026-06-05 20:40:27"
+      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 6.229438, 'punch_speed_mms': 3059.802246, 'friction_mu': 0.11253}",
+      "know_how": "Blanking SPCC 1.2mm: clearance=6.229438%t, speed=3059.802246mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
+      "timestamp": "2026-06-06 02:07:25"
     },
     {
       "domain": "CAE_MATERIAL",
-      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 6.746038, 'punch_speed_mms': 3180.059796, 'friction_mu': 0.109233}",
-      "know_how": "Blanking SPCC 1.2mm: clearance=6.746038%t, speed=3180.059796mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
-      "timestamp": "2026-06-05 20:35:01"
+      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 7.885028, 'punch_speed_mms': 3410.735531, 'friction_mu': 0.116169}",
+      "know_how": "Blanking SPCC 1.2mm: clearance=7.885028%t, speed=3410.735531mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
+      "timestamp": "2026-06-06 02:01:58"
     },
     {
       "domain": "CAE_MATERIAL",
-      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 7.932049, 'punch_speed_mms': 3190.322296, 'friction_mu': 0.111133}",
-      "know_how": "Blanking SPCC 1.2mm: clearance=7.932049%t, speed=3190.322296mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
-      "timestamp": "2026-06-05 20:29:34"
+      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 6.972365, 'punch_speed_mms': 3418.265997, 'friction_mu': 0.11004}",
+      "know_how": "Blanking SPCC 1.2mm: clearance=6.972365%t, speed=3418.265997mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
+      "timestamp": "2026-06-06 01:56:31"
     },
     {
       "domain": "CAE_MATERIAL",
-      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 6.100753, 'punch_speed_mms': 3112.978742, 'friction_mu': 0.109441}",
-      "know_how": "Blanking SPCC 1.2mm: clearance=6.100753%t, speed=3112.978742mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
-      "timestamp": "2026-06-05 20:24:10"
+      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 9.092276, 'punch_speed_mms': 3156.644583, 'friction_mu': 0.111789}",
+      "know_how": "Blanking SPCC 1.2mm: clearance=9.092276%t, speed=3156.644583mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
+      "timestamp": "2026-06-06 01:51:05"
     },
     {
       "domain": "CAE_MATERIAL",
-      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 6.504225, 'punch_speed_mms': 3735.900172, 'friction_mu': 0.106979}",
-      "know_how": "Blanking SPCC 1.2mm: clearance=6.504225%t, speed=3735.900172mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
-      "timestamp": "2026-06-05 20:18:44"
+      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 6.132033, 'punch_speed_mms': 3155.291446, 'friction_mu': 0.109085}",
+      "know_how": "Blanking SPCC 1.2mm: clearance=6.132033%t, speed=3155.291446mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
+      "timestamp": "2026-06-06 01:45:38"
     },
     {
       "domain": "CAE_MATERIAL",
-      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 8.531085, 'punch_speed_mms': 3297.007453, 'friction_mu': 0.111013}",
-      "know_how": "Blanking SPCC 1.2mm: clearance=8.531085%t, speed=3297.007453mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
-      "timestamp": "2026-06-05 20:13:18"
+      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 8.146403, 'punch_speed_mms': 3702.042512, 'friction_mu': 0.108164}",
+      "know_how": "Blanking SPCC 1.2mm: clearance=8.146403%t, speed=3702.042512mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
+      "timestamp": "2026-06-06 01:40:13"
     },
     {
       "domain": "CAE_MATERIAL",
-      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 7.679423, 'punch_speed_mms': 3209.893732, 'friction_mu': 0.107403}",
-      "know_how": "Blanking SPCC 1.2mm: clearance=7.679423%t, speed=3209.893732mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
-      "timestamp": "2026-06-05 20:07:50"
+      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 8.956812, 'punch_speed_mms': 3183.916524, 'friction_mu': 0.106719}",
+      "know_how": "Blanking SPCC 1.2mm: clearance=8.956812%t, speed=3183.916524mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
+      "timestamp": "2026-06-06 01:34:46"
     },
     {
       "domain": "CAE_MATERIAL",
-      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 8.47767, 'punch_speed_mms': 3600.589595, 'friction_mu': 0.115319}",
-      "know_how": "Blanking SPCC 1.2mm: clearance=8.47767%t, speed=3600.589595mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
-      "timestamp": "2026-06-05 20:02:24"
+      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 6.948825, 'punch_speed_mms': 3539.618778, 'friction_mu': 0.110097}",
+      "know_how": "Blanking SPCC 1.2mm: clearance=6.948825%t, speed=3539.618778mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
+      "timestamp": "2026-06-06 01:29:22"
     },
     {
       "domain": "CAE_MATERIAL",
-      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 7.837542, 'punch_speed_mms': 3309.569525, 'friction_mu': 0.110585}",
-      "know_how": "Blanking SPCC 1.2mm: clearance=7.837542%t, speed=3309.569525mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
-      "timestamp": "2026-06-05 19:57:07"
+      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 7.116334, 'punch_speed_mms': 3647.867883, 'friction_mu': 0.107429}",
+      "know_how": "Blanking SPCC 1.2mm: clearance=7.116334%t, speed=3647.867883mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
+      "timestamp": "2026-06-06 01:23:56"
     },
     {
       "domain": "CAE_MATERIAL",
-      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 7.341988, 'punch_speed_mms': 3266.359847, 'friction_mu': 0.112659}",
-      "know_how": "Blanking SPCC 1.2mm: clearance=7.341988%t, speed=3266.359847mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
-      "timestamp": "2026-06-05 19:51:48"
+      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 7.095994, 'punch_speed_mms': 3696.180164, 'friction_mu': 0.114615}",
+      "know_how": "Blanking SPCC 1.2mm: clearance=7.095994%t, speed=3696.180164mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
+      "timestamp": "2026-06-06 01:18:28"
     },
     {
       "domain": "CAE_MATERIAL",
-      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 5.599193, 'punch_speed_mms': 3355.73355, 'friction_mu': 0.11703}",
-      "know_how": "Blanking SPCC 1.2mm: clearance=5.599193%t, speed=3355.73355mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
-      "timestamp": "2026-06-05 19:46:24"
+      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 7.314162, 'punch_speed_mms': 3365.120718, 'friction_mu': 0.108216}",
+      "know_how": "Blanking SPCC 1.2mm: clearance=7.314162%t, speed=3365.120718mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
+      "timestamp": "2026-06-06 01:13:01"
     },
     {
       "domain": "CAE_MATERIAL",
-      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 8.934854, 'punch_speed_mms': 3520.201104, 'friction_mu': 0.111784}",
-      "know_how": "Blanking SPCC 1.2mm: clearance=8.934854%t, speed=3520.201104mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
-      "timestamp": "2026-06-05 19:40:56"
+      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 7.294127, 'punch_speed_mms': 3295.612569, 'friction_mu': 0.111119}",
+      "know_how": "Blanking SPCC 1.2mm: clearance=7.294127%t, speed=3295.612569mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
+      "timestamp": "2026-06-06 01:07:33"
     },
     {
       "domain": "CAE_MATERIAL",
-      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 6.462151, 'punch_speed_mms': 3608.73443, 'friction_mu': 0.1175}",
-      "know_how": "Blanking SPCC 1.2mm: clearance=6.462151%t, speed=3608.73443mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
-      "timestamp": "2026-06-05 19:35:28"
+      "challenge": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clearance_pct': 7.737475, 'punch_speed_mms': 3581.310462, 'friction_mu': 0.116857}",
+      "know_how": "Blanking SPCC 1.2mm: clearance=7.737475%t, speed=3581.310462mm/s. Status=SUCCESS. Expected: clearance<5%=>tool_wear, >12%=>burr_increase.",
+      "timestamp": "2026-06-06 01:02:05"
     }
   ]
 }

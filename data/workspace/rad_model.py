@@ -180,6 +180,18 @@ class RadModel:
                 self._lines[surf_di] = _replace_nth_number(self._lines[surf_di], 5, str(idel))
         return self
 
+    def set_inter_type25_inacti(self, inter_id: int, inacti: int) -> "RadModel":
+        """Set Inacti on a single /INTER/TYPE25/{inter_id} block."""
+        pat = re.compile(rf"/INTER/TYPE25/{inter_id}\b")
+        for i, ln in enumerate(self._lines):
+            if not pat.match(ln.strip()):
+                continue
+            di = _find_data_line_after_comment(self._lines, i, "Inacti")
+            if di >= 0:
+                self._lines[di] = _replace_nth_number(self._lines[di], 2, str(inacti))
+            break
+        return self
+
     def set_prop_shell_ismstr(self, prop_id: int, ismstr: int) -> "RadModel":
         """Set Ismstr on /PROP/SHELL/{prop_id} data line."""
         pat = re.compile(rf"/PROP/SHELL/{prop_id}\b")

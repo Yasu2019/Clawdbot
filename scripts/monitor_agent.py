@@ -79,7 +79,7 @@ def get_cpu_temp():
 # サーマルスロットリング用変数
 THROTTLE_HIGH_C = 85.0
 THROTTLE_LOW_C = 70.0
-THROTTLE_PERCENT = 60
+THROTTLE_PERCENT = 30
 NORMAL_PERCENT = 100
 
 is_throttling = False

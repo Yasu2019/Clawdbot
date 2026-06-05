@@ -1,30 +1,30 @@
 # Continuous System Improvement Summary
 
-Updated: 2026-06-05 21:20:45 JST
+Updated: 2026-06-06 02:47:27 JST
 
 ## Strengths
 - Email watchdog is running: updated 1.3 minutes ago
-- Continuous email ingest is active: stage=full_backfill age=0.5 minutes
-- Auto repair patrol is recent: updated 28.6 minutes ago
-- Idle maintenance is recent: updated 104.9 minutes ago
-- Risk notification patrol is recent: updated 104.9 minutes ago
+- Continuous email ingest is active: stage=full_backfill age=0.6 minutes
+- Auto repair patrol is recent: updated 7.8 minutes ago
+- Idle maintenance is recent: updated 56.8 minutes ago
+- Risk notification patrol is recent: updated 56.8 minutes ago
 - Learning engine health endpoint is reachable: url=http://localhost:8110/health collections=16
-- Paperless RAG watchdog is active: updated 2.6 minutes ago
+- Paperless RAG watchdog is active: updated 2.5 minutes ago
 - Gateway ingest watchdog process count is healthy: processes=1
-- Paperless ingest heartbeat is fresh: stage=idle age=1.6 minutes
+- Paperless ingest heartbeat is fresh: stage=idle age=1.4 minutes
 - Paperless review artifacts are recent: age=2.5 minutes reason=ingest_progress
 - Paperless ingest audit confirms recent documents are indexed: age=2.2 minutes
 - Paperless ingest API authentication is valid: url=http://127.0.0.1:8000 status=200
 - n8n API authentication is valid: url=http://127.0.0.1:5679/rest/workflows status=200
-- Docker Desktop UI watchdog is active: stage=healthy age=0.7 minutes
-- Claudian watchdog is active: stage=warning age=2.7 minutes
-- Mini PC optimizer watchdog is active: stage=healthy age=2.4 minutes
+- Docker Desktop UI watchdog is active: stage=healthy age=0.6 minutes
+- Claudian watchdog is active: stage=warning age=2.0 minutes
+- Mini PC optimizer watchdog is active: stage=healthy age=6.3 minutes
 - Email blacklist hub API is reachable: blacklist=130 candidates=120
-- Email search API is reachable: emails=8064 tasks=4864
+- Email search API is reachable: emails=8066 tasks=4865
 - Email extraction quality snapshot is recent: deadline_detection_rate=75.1% reply_detail_detection_rate=100.0%
 - Email safety policy is present: draft_only=true auto_send=false
 - Outbound delivery allowlist guard is enforced: gmail=y.suzuki.hk@gmail.com telegram=8173025084 blocked=0
-- Email SQLite integrity check is recent: age=248.8 minutes
+- Email SQLite integrity check is recent: age=575.5 minutes
 - Gmail filter telemetry is visible in ingest summaries: skipped_by_filter=4
 
 ## Weaknesses
