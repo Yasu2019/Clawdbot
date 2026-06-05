@@ -1,22 +1,13 @@
 {
-  "state": "paused",
-  "gate_ms": 18.13,
-  "last_pdca": "Run48",
-  "run47": {
-    "t_final_ms": 13.7,
-    "termination": "NORMAL_VELOCITY",
-    "gate_passed": false,
-    "patch": "rad_model production deck Eps=0.35 VC=0.6 TSTOP=0.025 AMS=0.67",
-    "backup_dir": "/work/backup_run47_20260604_081312"
-  },
-  "run48": {
-    "t_final_ms": 13.2,
-    "termination": "NORMAL_VELOCITY",
-    "gate_passed": false,
-    "patch": "pre109 tetra restore TSTOP=0.020 AMS=0.67",
-    "backup_dir": "/work/backup_run48_20260604_082746",
-    "node_velocity_fail": 6133
-  },
-  "message": "Run42(T=19.99ms) not reproduced; velocity fail ~13ms on both decks. Next: compare backup_run47 vs Run42 boundary/IMPVEL or restore historical deck from container backup.",
-  "updated_at_jst": "2026-06-04T08:35:40+09:00"
+  "phase": "run60c",
+  "status": "physics_fail",
+  "last_run": "60c",
+  "t_final_ms": 20.0,
+  "termination": "NORMAL_TSTOP",
+  "gate_passed": false,
+  "part2_von_mises_mpa": 0.0,
+  "part2_disp_max_mm": 0.0,
+  "run60b_ams": "ERROR: ADVANCED MASS SCALING incompatible with HEX Isolid=24",
+  "run60c_brick_sh3n": "TYPE25 secondary switched SH3N400 -> BRICK/PART/EXT402; TYPE2 rejected (shared-node over-constraint)",
+  "at": "2026-06-05T08:28:59"
 }

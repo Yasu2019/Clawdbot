@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-04T20:41:33.735243+09:00",
+  "generatedAt": "2026-06-05T19:33:55.604992+09:00",
   "runtime": {
     "mode": "local-first",
     "roles": {
@@ -170,11 +170,11 @@
     "registered_local_models": []
   },
   "telegram": {
-    "reply_model": "google/gemini-2.5-flash",
-    "reply_model_installed": false,
+    "reply_model": "qwen3-nothink:latest",
+    "reply_model_installed": true,
     "state": "idle",
-    "pid": 13472,
-    "updatedAt": "2026-06-04T11:41:29.921Z",
+    "pid": 24528,
+    "updatedAt": "2026-06-05T10:33:51.367Z",
     "lastChatId": "8173025084"
   },
   "ollama": {

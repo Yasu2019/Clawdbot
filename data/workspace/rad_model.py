@@ -145,6 +145,77 @@ class RadModel:
                 self._lines[st_di] = _replace_nth_number(self._lines[st_di], 0, f"{sf:.6g}")
         return self
 
+    def set_inter_type25_penetration_fix(
+        self,
+        igap: int = 2,
+        irem_i2: int = 2,
+        igap0: int = 0,
+        ishape: int = 2,
+    ) -> "RadModel":
+        """Fix TYPE25 contact for brick+SH3N skin (Igap=2 thickness, Ishape=2)."""
+        for i, ln in enumerate(self._lines):
+            if not re.match(r"/INTER/TYPE25/\d", ln.strip()):
+                continue
+            surf_di = _find_data_line_after_comment(self._lines, i, "surf_ID1")
+            if surf_di >= 0:
+                line = self._lines[surf_di]
+                line = _replace_nth_number(line, 3, str(igap))
+                line = _replace_nth_number(line, 4, str(irem_i2))
+                self._lines[surf_di] = line
+            shape_di = _find_data_line_after_comment(self._lines, i, "Igap0")
+            if shape_di >= 0:
+                line = self._lines[shape_di]
+                line = _replace_nth_number(line, 0, str(igap0))
+                line = _replace_nth_number(line, 1, str(ishape))
+                self._lines[shape_di] = line
+        return self
+
+    def set_inter_type25_idel(self, idel: int = 2) -> "RadModel":
+        """Set Idel on every /INTER/TYPE25 block (INC-075: Idel=2 for shearing with /FAIL)."""
+        for i, ln in enumerate(self._lines):
+            if not re.match(r"/INTER/TYPE25/\d", ln.strip()):
+                continue
+            surf_di = _find_data_line_after_comment(self._lines, i, "surf_ID1")
+            if surf_di >= 0:
+                self._lines[surf_di] = _replace_nth_number(self._lines[surf_di], 5, str(idel))
+        return self
+
+    def set_prop_shell_ismstr(self, prop_id: int, ismstr: int) -> "RadModel":
+        """Set Ismstr on /PROP/SHELL/{prop_id} data line."""
+        pat = re.compile(rf"/PROP/SHELL/{prop_id}\b")
+        for i, ln in enumerate(self._lines):
+            if not pat.match(ln.strip()):
+                continue
+            di = _find_data_line_after_comment(self._lines, i, "Ishell")
+            if di >= 0:
+                self._lines[di] = _replace_nth_number(self._lines[di], 1, str(ismstr))
+            break
+        return self
+
+    def add_brick_part_ext_surf(self, surf_id: int = 402, part_id: int = 2) -> "RadModel":
+        """Append /SURF/PART/EXT/{surf_id} for external faces of solid material part."""
+        insert_at = len(self._lines)
+        for i, ln in enumerate(self._lines):
+            if ln.strip().startswith("/INTER/TYPE25/"):
+                insert_at = i
+        block = [
+            f"/SURF/PART/EXT/{surf_id}",
+            "Material_Brick_External",
+            f"{part_id:>10d}",
+        ]
+        self._lines[insert_at:insert_at] = block
+        return self
+
+    def set_inter_type25_secondary_surf(self, surf_id: int) -> "RadModel":
+        """Set surf_ID2 (secondary) on all /INTER/TYPE25 blocks."""
+        for i, ln in enumerate(self._lines):
+            if not re.match(r"/INTER/TYPE25/\d", ln.strip()):
+                continue
+            surf_di = _find_data_line_after_comment(self._lines, i, "surf_ID1")
+            if surf_di >= 0:
+                self._lines[surf_di] = _replace_nth_number(self._lines[surf_di], 1, str(surf_id))
+        return self
+
     def write(self, path: Path | None = None) -> Path:
         out = Path(path) if path else self.path
         text = "\n".join(self._lines)

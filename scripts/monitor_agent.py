@@ -79,46 +79,32 @@ def get_cpu_temp():
 # サーマルスロットリング用変数
 THROTTLE_HIGH_C = 85.0
 THROTTLE_LOW_C = 70.0
-POWER_SAVER_GUID = "a1841308-3541-4fab-bc81-f71556f20b4a"
-BALANCED_GUID = "381b4222-f694-41f0-9685-ff5bb260df2e"
+THROTTLE_PERCENT = 60
+NORMAL_PERCENT = 100
 
 is_throttling = False
-original_power_plan = None
 
-def get_current_power_plan():
+def set_cpu_limit(percent):
     try:
-        out = subprocess.check_output(["powercfg", "/getactivescheme"], text=True, creationflags=0x08000000, timeout=3)
-        if "GUID:" in out:
-            return out.split("GUID:")[1].split()[0].strip()
-    except:
-        pass
-    return None
-
-def set_power_plan(guid):
-    try:
-        subprocess.check_output(["powercfg", "/setactive", guid], text=True, creationflags=0x08000000, timeout=3)
+        # 電源プランを切り替えるのではなく、現在のプランの「CPU最大状態」を直接書き換えて確実に制限をかける
+        subprocess.check_output(["powercfg", "-setacvalueindex", "SCHEME_CURRENT", "SUB_PROCESSOR", "PROCTHROTTLEMAX", str(percent)], text=True, creationflags=0x08000000, timeout=3)
+        subprocess.check_output(["powercfg", "-setdcvalueindex", "SCHEME_CURRENT", "SUB_PROCESSOR", "PROCTHROTTLEMAX", str(percent)], text=True, creationflags=0x08000000, timeout=3)
+        subprocess.check_output(["powercfg", "-setactive", "SCHEME_CURRENT"], text=True, creationflags=0x08000000, timeout=3)
     except:
         pass
 
 def thermal_watchdog_loop():
-    global is_throttling, original_power_plan
+    global is_throttling
     while True:
         temp = get_cpu_temp()
         if temp is not None:
             if temp >= THROTTLE_HIGH_C and not is_throttling:
-                current_plan = get_current_power_plan()
-                if current_plan and current_plan != POWER_SAVER_GUID:
-                    original_power_plan = current_plan
-                print(f"[{datetime.now()}] Thermal Throttling ON: {temp}C (Saving plan {original_power_plan})")
-                set_power_plan(POWER_SAVER_GUID)
+                print(f"[{datetime.now()}] Thermal Throttling ON: {temp}C (Limiting CPU to {THROTTLE_PERCENT}%)")
+                set_cpu_limit(THROTTLE_PERCENT)
                 is_throttling = True
             elif temp <= THROTTLE_LOW_C and is_throttling:
-                if original_power_plan:
-                    set_power_plan(original_power_plan)
-                    print(f"[{datetime.now()}] Thermal Throttling OFF: {temp}C (Restoring plan {original_power_plan})")
-                else:
-                    set_power_plan(BALANCED_GUID)
-                    print(f"[{datetime.now()}] Thermal Throttling OFF: {temp}C (Restoring to Balanced fallback)")
+                set_cpu_limit(NORMAL_PERCENT)
+                print(f"[{datetime.now()}] Thermal Throttling OFF: {temp}C (Restoring CPU to {NORMAL_PERCENT}%)")
                 is_throttling = False
         time.sleep(15)
 

@@ -1,6 +1,6 @@
 # API Cost Report
 
-- Generated: 2026-06-04T20:38:38+09:00
+- Generated: 2026-06-05T16:07:44+09:00
 - USD/JPY used for optional USD conversion: 155.0
 - Rule: unknown billing must stay unknown; this report does not invent yen cost.
 - Known variable spend: 0.0000 JPY
@@ -12,12 +12,12 @@
 
 | Provider | Configured | Billing mode | Fixed monthly JPY | Known variable JPY | Total known JPY | Limit JPY | JPY Remaining | Billing status | Usage quota remaining |
 | --- | ---: | --- | ---: | ---: | ---: | ---: | ---: | --- | --- |
-| OpenAI | True | unknown | not set | unknown | unknown | not set | unknown | billing_amount_unknown | 4200 / 5000 Tokens/Min resets 1 minute (ok) |
-| Anthropic / Claude | False | unknown | not set | unknown | unknown | not set | unknown | not_configured | 188000 / 200000 Tokens/Day resets 6 hours (ok) |
-| Google Gemini | True | unknown | not set | unknown | unknown | not set | unknown | billing_amount_unknown | 5 / 50 RPM resets 15 minutes (warning) |
-| Kimi / Moonshot | True | unknown | not set | unknown | unknown | not set | unknown | billing_amount_unknown | unknown |
-| OpenRouter | True | unknown | not set | unknown | unknown | not set | unknown | billing_amount_unknown | unknown |
-| OpenCode GO | True | unknown | not set | unknown | unknown | not set | unknown | billing_amount_unknown | 5 / 100 Requests/Day resets 2 days (critical) |
+| OpenAI | True | unknown | not set | unknown | unknown | not set | unknown | billing_amount_unknown | None / 上限未設定 JPY resets API利用不可 (warning) |
+| Anthropic / Claude | False | unknown | not set | unknown | unknown | not set | unknown | not_configured | unknown |
+| Google Gemini | True | unknown | not set | unknown | unknown | not set | unknown | billing_amount_unknown | None / 上限未設定 JPY resets API利用不可 (warning) |
+| Kimi / Moonshot | True | unknown | not set | unknown | unknown | not set | unknown | billing_amount_unknown | None / - - resets HTTP Error 401: Unauthorized (critical) |
+| OpenRouter | True | unknown | not set | unknown | unknown | not set | unknown | billing_amount_unknown | None / No Limit USD resets API連動(正確) (ok) |
+| OpenCode GO | True | unknown | not set | unknown | unknown | not set | unknown | billing_amount_unknown | None / 上限未設定 JPY resets API利用不可 (warning) |
 | ByteRover | True | unknown | not set | unknown | unknown | not set | unknown | billing_amount_unknown | unknown |
 | Pexels | True | free | not set | 0.0000 | 0.0000 | not set | unknown | free_no_monetary_cost | unknown |
 | Pixabay | True | free | not set | 0.0000 | 0.0000 | not set | unknown | free_no_monetary_cost | unknown |

@@ -1,8 +1,8 @@
 {
   "policy_id": "P009",
   "status": "active",
-  "generated_at_jst": "2026-06-04T20:38:38+09:00",
-  "generated_at_utc": "2026-06-04T11:38:38+00:00",
+  "generated_at_jst": "2026-06-05T16:07:44+09:00",
+  "generated_at_utc": "2026-06-05T07:07:44+00:00",
   "usd_jpy": 155.0,
   "providers": [
     {
@@ -18,13 +18,13 @@
       "remaining_note": "unknown",
       "billing_status": "billing_amount_unknown",
       "usage_quota": {
-        "name": "Codex / GPT-4o",
-        "usage": 800,
-        "limit": 5000,
-        "remaining": 4200,
-        "unit": "Tokens/Min",
-        "resetIn": "1 minute",
-        "status": "ok"
+        "name": "OpenAI / GPT",
+        "usage": "???",
+        "limit": "上限未設定",
+        "remaining": null,
+        "unit": "JPY",
+        "resetIn": "API利用不可",
+        "status": "warning"
       },
       "cost_mode": "unknown_without_billing_export",
       "note": "No provider billing export or usage API result is available locally; do not invent yen cost."
@@ -41,15 +41,7 @@
       "remaining_to_limit_jpy": null,
       "remaining_note": "unknown",
       "billing_status": "not_configured",
-      "usage_quota": {
-        "name": "Claude 3.5 Sonnet",
-        "usage": 12000,
-        "limit": 200000,
-        "remaining": 188000,
-        "unit": "Tokens/Day",
-        "resetIn": "6 hours",
-        "status": "ok"
-      },
+      "usage_quota": null,
       "cost_mode": "unknown_without_billing_export",
       "note": "No provider billing export or usage API result is available locally; do not invent yen cost."
     },
@@ -66,12 +58,12 @@
       "remaining_note": "unknown",
       "billing_status": "billing_amount_unknown",
       "usage_quota": {
-        "name": "Gemini 1.5 Pro",
-        "usage": 45,
-        "limit": 50,
-        "remaining": 5,
-        "unit": "RPM",
-        "resetIn": "15 minutes",
+        "name": "Google Gemini",
+        "usage": "???",
+        "limit": "上限未設定",
+        "remaining": null,
+        "unit": "JPY",
+        "resetIn": "API利用不可",
         "status": "warning"
       },
       "cost_mode": "unknown_without_billing_export",
@@ -89,7 +81,15 @@
       "remaining_to_limit_jpy": null,
       "remaining_note": "unknown",
       "billing_status": "billing_amount_unknown",
-      "usage_quota": null,
+      "usage_quota": {
+        "name": "Kimi (Moonshot)",
+        "usage": "Error",
+        "limit": "-",
+        "remaining": null,
+        "unit": "-",
+        "resetIn": "HTTP Error 401: Unauthorized",
+        "status": "critical"
+      },
       "cost_mode": "unknown_without_billing_export",
       "note": "No provider billing export or usage API result is available locally; do not invent yen cost."
     },
@@ -105,7 +105,15 @@
       "remaining_to_limit_jpy": null,
       "remaining_note": "unknown",
       "billing_status": "billing_amount_unknown",
-      "usage_quota": null,
+      "usage_quota": {
+        "name": "OpenRouter",
+        "usage": 0.1923,
+        "limit": "No Limit",
+        "remaining": null,
+        "unit": "USD",
+        "resetIn": "API連動(正確)",
+        "status": "ok"
+      },
       "cost_mode": "unknown_without_billing_export",
       "note": "No provider billing export or usage API result is available locally; do not invent yen cost."
     },
@@ -122,13 +130,13 @@
       "remaining_note": "unknown",
       "billing_status": "billing_amount_unknown",
       "usage_quota": {
-        "name": "OpenCodeGO",
-        "usage": 95,
-        "limit": 100,
-        "remaining": 5,
-        "unit": "Requests/Day",
-        "resetIn": "2 days",
-        "status": "critical"
+        "name": "OpenCode GO",
+        "usage": "???",
+        "limit": "上限未設定",
+        "remaining": null,
+        "unit": "JPY",
+        "resetIn": "API利用不可",
+        "status": "warning"
       },
       "cost_mode": "local_status_when_available",
       "note": "No provider billing export or usage API result is available locally; do not invent yen cost."
@@ -272,40 +280,58 @@
   ],
   "local_usage_quota_evidence": [
     {
-      "name": "Gemini 1.5 Pro",
-      "usage": 45,
-      "limit": 50,
-      "remaining": 5,
-      "unit": "RPM",
-      "resetIn": "15 minutes",
-      "status": "warning"
-    },
-    {
-      "name": "Claude 3.5 Sonnet",
-      "usage": 12000,
-      "limit": 200000,
-      "remaining": 188000,
-      "unit": "Tokens/Day",
-      "resetIn": "6 hours",
+      "name": "OpenRouter",
+      "usage": 0.1923,
+      "limit": "No Limit",
+      "remaining": null,
+      "unit": "USD",
+      "resetIn": "API連動(正確)",
       "status": "ok"
     },
     {
-      "name": "OpenCodeGO",
-      "usage": 95,
-      "limit": 100,
-      "remaining": 5,
-      "unit": "Requests/Day",
-      "resetIn": "2 days",
+      "name": "Kimi (Moonshot)",
+      "usage": "Error",
+      "limit": "-",
+      "remaining": null,
+      "unit": "-",
+      "resetIn": "HTTP Error 401: Unauthorized",
       "status": "critical"
     },
     {
-      "name": "Codex / GPT-4o",
-      "usage": 800,
-      "limit": 5000,
-      "remaining": 4200,
-      "unit": "Tokens/Min",
-      "resetIn": "1 minute",
-      "status": "ok"
+      "name": "OpenAI / GPT",
+      "usage": "???",
+      "limit": "上限未設定",
+      "remaining": null,
+      "unit": "JPY",
+      "resetIn": "API利用不可",
+      "status": "warning"
+    },
+    {
+      "name": "Google Gemini",
+      "usage": "???",
+      "limit": "上限未設定",
+      "remaining": null,
+      "unit": "JPY",
+      "resetIn": "API利用不可",
+      "status": "warning"
+    },
+    {
+      "name": "Groq",
+      "usage": "???",
+      "limit": "上限未設定",
+      "remaining": null,
+      "unit": "JPY",
+      "resetIn": "API利用不可",
+      "status": "warning"
+    },
+    {
+      "name": "OpenCode GO",
+      "usage": "???",
+      "limit": "上限未設定",
+      "remaining": null,
+      "unit": "JPY",
+      "resetIn": "API利用不可",
+      "status": "warning"
     }
   ],
   "limitations": [

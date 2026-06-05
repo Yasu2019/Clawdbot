@@ -221,3 +221,25 @@ The goal: Be helpful without being annoying. Check in a few times a day, do usef
 ## Make It Yours
 
 This is a starting point. Add your own conventions, style, and rules as you figure out what works.
+
+## Failure Prevention & Architecture Guidelines (Lessons Learned)
+
+**For all Agents, Byterover, Beads, and Watchdogs:**
+
+### 1. Existing Systems First (No Duplicate Wheel-Building)
+Before proposing or creating new databases, log files, or management systems (e.g., creating a new `Failure_Analysis.md` or a new trouble tracker), **you MUST thoroughly search the workspace**.
+- Check `memory/trouble_history.md`, `incident_extract_for_fmea.json`, `TROUBLE_LOG.md`.
+- Append to existing records instead of scattering context. Fragmentation kills agent memory.
+
+### 2. Windows MAX_PATH Restrictions for Deep Archives
+When downloading and extracting large repositories (like Java projects) from GitHub or other sources:
+- **Rule:** Never extract directly into deep paths like `data/workspace/apps/...`.
+- **Fix:** Extract to a shallow temporary directory (e.g., `D:\tmp\extract`) first to avoid the 260-character Windows MAX_PATH crash, then move specific needed assets.
+
+### 3. Node Resource Throttling
+- **K10 (The Brain Node):** Must never be bogged down by unconstrained LLM tasks (e.g., continuous Ollama queries). Add explicit throttling or offload heavy compute to Lavie (The Muscle Node) via `cae_workload_router.yaml`.
+
+### 4. Application Integration Path Validation
+When fetching files meant for other applications (like Paperless-ngx):
+- Do not just leave them in your script's private data folder.
+- **Rule:** Actively identify the target application's ingest directory (e.g., `paperless/consume`) and write/copy the file there, ensuring the handoff actually occurs.

@@ -1,6 +1,6 @@
 # AI Strategy Scout: Architectural Sentinel Edition
 
-- Generated at: 2026-06-04 21:44:25 JST
+- Generated at: 2026-06-05 17:54:27 JST
 - Mode: local_no_api_cost
 
 ## 🏛️ [DECISION] Architectural Recommendations
@@ -16,18 +16,18 @@
 ## Local LLM / OSS
 
 ### Local LLM
-- EVA-Bench Data 2.0: 3 Domains, 121 Tools, 213 Scenarios [fresh]
-  Source: Hugging Face Blog | Published: 2026-06-04T21:24:58+09:00
-  https://huggingface.co/blog/ServiceNow-AI/eva-bench-data
-- b9505 [fresh]
-  Source: llama.cpp Releases | Published: 2026-06-04T20:33:09+09:00
-  https://github.com/ggml-org/llama.cpp/releases/tag/b9505
-- v0.22.1rc2: fix: resolve CUTLASS fmin compatibility for DeepSeek-V4 init [fresh]
+- b9523 [fresh]
+  Source: llama.cpp Releases | Published: 2026-06-05T17:44:29+09:00
+  https://github.com/ggml-org/llama.cpp/releases/tag/b9523
+- Nemotron 3.5 Content Safety: Customizable Multimodal Safety for Global Enterprise AI [fresh]
+  Source: Hugging Face Blog | Published: 2026-06-05T03:57:45+09:00
+  https://huggingface.co/blog/nvidia/nemotron-3-5-content-safety
+- v0.22.1: fix: resolve CUTLASS fmin compatibility for DeepSeek-V4 init [fresh]
   Source: vLLM Releases | Published: 2026-06-04T09:11:47+09:00
-  https://github.com/vllm-project/vllm/releases/tag/v0.22.1rc2
-- OpenJarvis: a local-first personal AI is now available to run with Ollama May 28, 2026 OpenJarvis v1.0 is now available: an open-source framework for building personal AI agents that run on your own hardware, with Ollama support built-in. [reference]
+  https://github.com/vllm-project/vllm/releases/tag/v0.22.1
+- NVIDIA Nemotron 3 Ultra June 4, 2026 NVIDIA Nemotron 3 Ultra is built for high-throughput reasoning and long-running agent workflows. [reference]
   Source: Ollama Blog | Published: n/a
-  https://ollama.com/blog/openjarvis
+  https://ollama.com/blog/nemotron-3-ultra
 
 ### Productivity OSS
 - v2.9.0 [fresh]
@@ -48,12 +48,12 @@
 ### OpenAI / News
 - OpenAI News | OpenAI
   https://openai.com/news
+- https://openai.com/index/chatgpt-memory-dreaming/
+  https://openai.com/index/chatgpt-memory-dreaming/
 - https://openai.com/index/introducing-new-capabilities-to-gpt-rosalind/
   https://openai.com/index/introducing-new-capabilities-to-gpt-rosalind/
 - https://openai.com/index/codex-for-every-role-tool-workflow/
   https://openai.com/index/codex-for-every-role-tool-workflow/
-- https://openai.com/index/advancing-youth-safety-and-opportunity-through-global-leadership/
-  https://openai.com/index/advancing-youth-safety-and-opportunity-through-global-leadership/
 
 ### Anthropic / News
 - Newsroom \ Anthropic
@@ -108,7 +108,7 @@
 - xess.css?cachebuster=devel
   https://www.dealii.org/.within.website/x/xess/xess.css?cachebuster=devel
 - init
-  https://www.dealii.org/.within.website/x/cmd/anubis/api/honeypot/7bf9a3e7-67fd-4814-a0c3-a91f3acb304f/init
+  https://www.dealii.org/.within.website/x/cmd/anubis/api/honeypot/eb4680de-c30b-4c2a-becb-745f1a963c5a/init
 
 ### SU2 Foundation
 - Newsletter Registration – SU2 Foundation
