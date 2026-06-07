@@ -3,6 +3,34 @@
 譛ｬ繝輔ぃ繧､繝ｫ縺ｯ縲√す繧ｹ繝・Β縺ｫ逋ｺ逕溘＠縺滄囿螳ｳ縺ｻ荳榊・蜷医→縺昴・譬ｹ譛ｬ蜴溷屏繝ｻ菫ｮ豁｣蜀・ｮｹ繝ｻ蜀咲匱髦ｲ豁｢遲悶ｒ險倬鹸縺励∪縺吶€・菫ｮ豁｣繧定｡後▲縺溷ｴ蜷医・縲∝ｿ・★縺薙・繝輔ぃ繧､繝ｫ縺ｫ繧ｨ繝ｳ繝医Μ繧定ｿｽ蜉縺励※縺上□縺輔＞縲・
 ------
 
+## INC-097: setup_monitor_node.ps1 reported success while monitor_agent was not started or registered
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-06-08 JST |
+| **Detection** | User ran the satellite setup command on `DESKTOP-UOVCG4T`. Output reached `=== Setup Complete ===`, but showed `[WARN] Process may have exited. Checking port...` and `-> Startup VBS:` with no path. Local inspection of `scripts/setup_monitor_node.ps1` showed the `Start-Process` assignment and `$vbsPath` assignment were accidentally embedded after mojibake comment text on the same commented lines. |
+| **Impact** | Fleet node bootstrap could falsely report completion while no new `monitor_agent.py` process was launched and no startup VBS was registered. This could leave satellite machines absent from `:8111/metrics`, break fleet thermal visibility, and cause repeated manual setup attempts. |
+| **Root Cause (5 Why)** | **Why1**: Setup showed warning and blank Startup VBS path.<br>**Why2**: `$proc` and `$vbsPath` were never assigned.<br>**Why3**: The executable statements were placed on lines that began with `#`, so PowerShell treated them as comments.<br>**Why4**: Earlier Japanese comments were mojibake-corrupted and lost clear line boundaries around code.<br>**Why5**: There was no syntax/behavior smoke test for `setup_monitor_node.ps1`, and the script printed `Setup Complete` without requiring `/metrics` success. |
+| **Fix** | Rewrote `scripts/setup_monitor_node.ps1` as ASCII-only PowerShell. Restored actual `Start-Process`, added bounded `/metrics` verification, restored `$vbsPath` assignment, creates the Startup directory if missing, writes a correctly quoted ASCII VBS, and rejects WindowsApps Python aliases for startup reliability. |
+| **Files** | `scripts/setup_monitor_node.ps1`, `docs/INCIDENT_LOG.md` |
+| **Verification** | K10 source `http://100.119.18.40:8123/monitor_agent.py` returned HTTP 200 and 41620 bytes before the fix. Code inspection after the fix confirms `Start-Process` and `$vbsPath` are executable statements, not comments. Full satellite verification requires rerunning the setup command on `DESKTOP-UOVCG4T` and confirming `/metrics` returns HTTP 200. |
+| **Lessons Learned** | Setup scripts for old Windows hosts must stay ASCII-only. A final success banner must not imply service readiness unless the readiness probe succeeded. Avoid WindowsApps `pythonw.exe` aliases for background/startup registration. |
+| **Prevention** | Keep fleet bootstrap scripts ASCII. Add/maintain a smoke check that rejects commented-out critical statements and requires `Metrics OK` for success. For future bootstrap changes, test on a real PowerShell host and inspect output for non-empty Startup VBS path. |
+
+## INC-096: K10 monitor_agent reported false CPU temperature (27.9C fallback) due to LHM web server off and JSON parser mismatch
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-06-07 JST |
+| **Detection** | After integrating LibreHardwareMonitor (LHM) HTTP into `monitor_agent.py`, K10 `/metrics` showed `cpu_temp_celsius: 27.9`, `temp_source: fallback`, empty `cpu_package_c` / `core_max_c`. Manual LHM GUI read showed **CPU Package 84C / Core Max 86C** on NUCBOX_K10 (i9-13900HK). User restarted `monitor_agent` twice; first LHM `:8085` unreachable, then `lhm_error: no_cpu_temperatures_in_json`. Third attempt after parser fix: **HTTP 200 (76376 bytes), `temp_source: lhm_http`, CPU Package 84C, Core Max 85C**. |
+| **Impact** | Thermal watchdog could not throttle correctly (85C WARNING / 95C CRITICAL thresholds useless). Dashboard and fleet monitors displayed **misleading idle-like 27.9C** while real silicon was **84-86C**. NVMe disk-full warning (`KIOXIA 99.2%`) also missing until LHM path worked. Risk of silent thermal damage during CAE/OpenRadioss if operators trust fallback. |
+| **Root Cause (5 Why)** | **Why1**: `/metrics` showed 27.9C instead of 84C.<br>**Why2**: `get_cpu_temp()` used WMI/ACPI fallback because LHM HTTP path failed.<br>**Why3a** (phase 1): LHM Remote Web Server on `:8085` was **not running** when `monitor_agent` started (`Invoke-WebRequest` -> connection refused).<br>**Why3b** (phase 2): After LHM HTTP returned 200, parser returned `no_cpu_temperatures_in_json` because code expected **`SensorType` + numeric `Value`**, but LHM web JSON uses **`Type: "Temperature"`** and **`Value: "86.0 °C"`** (formatted string).<br>**Why4**: Integration assumed same field names as WMI/CIM samples; no contract test against live `data.json`.<br>**Why5**: No `lhm_ok` / `lhm_error` visibility in first deploy; fallback silently accepted as truth (Root Cause). |
+| **Fix** | (1) **`scripts/monitor_agent.py`**: Added `get_lhm_metrics()` reading `http://127.0.0.1:8085/data.json` (env `LHM_HTTP_URL`). Parser handles `Type`, `SensorId`, string `Value`/`RawValue` (`"86.0 °C"`, `"99.2 %"`). Exposes `cpu_package_c`, `core_max_c`, `core_avg_c`, `nvme_temps`, `disk_warnings`, `lhm_ok`, `lhm_error`, `temp_source`. (2) Operational order documented: **LHM GUI + Options -> Remote Web Server -> Run (8085) BEFORE monitor_agent restart**. (3) Verify gate: `8085/data.json` HTTP 200 then `/metrics` must show `lhm_ok: True`. |
+| **Files** | `scripts/monitor_agent.py`, `docs/INCIDENT_LOG.md`, `data/workspace/memory/trouble_history.md` **[T029]**, `docs/troubleshooting/k10_lhm_monitor_agent_20260607.md` |
+| **Verification** | K10 PowerShell (2026-06-07): `8085/data.json` StatusCode 200, 76376 bytes. `/metrics`: `cpu_temp_celsius=84.0`, `cpu_package_c=84.0`, `core_max_c=85.0`, `core_avg_c=77.9`, `temp_source=lhm_http`, `lhm_ok=True`, `disk_warnings` includes KIOXIA 99.2% used. |
+| **Lessons Learned** | (1) **Never treat ACPI/WMI fallback as CPU temperature on consumer mini-PCs** -- 27.9C was thermal-zone noise, not i9 load. (2) LHM web JSON schema != C# property names in docs (`Type` not `SensorType`; values often strings). (3) Liveness of `monitor_agent :8111` does not imply LHM `:8085` is up. (4) Parallel alert: KIOXIA E: drive 99.2% full surfaced only via LHM path. |
+| **Prevention** | (1) Startup SOP: LHM + Remote Web Server Run -> verify 8085 -> start monitor_agent. (2) Alert if `lhm_ok=False` for >2 cycles or `temp_source=fallback` while CAE jobs active. (3) Add parser unit test with string-formatted LHM JSON sample. (4) Consider Windows Task Scheduler: LHM minimized at logon + Remote Web Server enabled. (5) Do not throttle or report fleet CPU temp without `temp_source=lhm_http`. (6) **Satellites (G3/LAVIE):** never use local repo paths; deploy from K10 `:8123` only. See `docs/troubleshooting/fleet_lhm_monitor_agent_runbook.md`. |
+
 ## INC-095: Distributed Fleet PC node failures left unattended due to simple liveness monitoring and lack of automatic recovery watchdogs
 
 | Field | Detail |
