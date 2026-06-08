@@ -584,6 +584,63 @@ def _collect_windows_shutdown_events():
     return events
 
 
+def _classify_windows_event(event):
+    provider = str(event.get("ProviderName") or "")
+    try:
+        event_id = int(event.get("Id") or 0)
+    except Exception:
+        event_id = 0
+    if event_id in {41, 42, 107, 109, 506, 507, 6005, 6006, 6008, 1074}:
+        return "power"
+    if "Power" in provider or "Kernel-General" in provider:
+        return "power"
+    if "Tailscale" in provider or event_id in {7031, 7034, 7035, 7036}:
+        return "service"
+    if "Tcpip" in provider or "Network" in provider or "WLAN" in provider:
+        return "network"
+    return "system"
+
+
+def _collect_windows_event_summary():
+    script = (
+        "$start=(Get-Date).AddHours(-6);"
+        "$providers=@('Microsoft-Windows-Kernel-Power','Microsoft-Windows-Power-Troubleshooter',"
+        "'Microsoft-Windows-Kernel-General','Service Control Manager','Tcpip','Netwtw10','Netwtw08',"
+        "'Microsoft-Windows-WLAN-AutoConfig','Tailscale');"
+        "$events=Get-WinEvent -FilterHashtable @{LogName='System'; StartTime=$start} "
+        "-MaxEvents 120 -ErrorAction SilentlyContinue | "
+        "Where-Object { $providers -contains $_.ProviderName -or $_.ProviderName -like '*Network*' } | "
+        "Select-Object -First 40 TimeCreated,Id,ProviderName,LevelDisplayName; "
+        "$events | ConvertTo-Json -Depth 4 -Compress"
+    )
+    events = _run_powershell_json(script, timeout=20)
+    if events is None:
+        rows = []
+    elif isinstance(events, dict):
+        if "error" in events:
+            return events
+        rows = [events]
+    else:
+        rows = events
+    counts = {}
+    compact = []
+    for event in rows[:40]:
+        if not isinstance(event, dict):
+            continue
+        category = _classify_windows_event(event)
+        counts[category] = counts.get(category, 0) + 1
+        compact.append(
+            {
+                "time": event.get("TimeCreated"),
+                "id": event.get("Id"),
+                "provider": event.get("ProviderName"),
+                "level": event.get("LevelDisplayName"),
+                "category": category,
+            }
+        )
+    return {"window_hours": 6, "counts": counts, "events": compact}
+
+
 def _collect_power_snapshot():
     script = (
         "$os=Get-CimInstance Win32_OperatingSystem | "
@@ -651,6 +708,7 @@ def _build_fleet_evidence(reason="periodic"):
         "metrics": metrics,
         "recent_agent_logs": list(updater_logs[-20:]),
         "windows_shutdown_events_48h": _collect_windows_shutdown_events(),
+        "windows_event_summary_6h": _collect_windows_event_summary(),
         "power_snapshot": _collect_power_snapshot(),
         "tailscale_status": _collect_tailscale_status(),
     }

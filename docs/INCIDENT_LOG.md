@@ -3,6 +3,19 @@
 譛ｬ繝輔ぃ繧､繝ｫ縺ｯ縲√す繧ｹ繝・Β縺ｫ逋ｺ逕溘＠縺滄囿螳ｳ縺ｻ荳榊・蜷医→縺昴・譬ｹ譛ｬ蜴溷屏繝ｻ菫ｮ豁｣蜀・ｮｹ繝ｻ蜀咲匱髦ｲ豁｢遲悶ｒ險倬鹸縺励∪縺吶€・菫ｮ豁｣繧定｡後▲縺溷ｴ蜷医・縲∝ｿ・★縺薙・繝輔ぃ繧､繝ｫ縺ｫ繧ｨ繝ｳ繝医Μ繧定ｿｽ蜉縺励※縺上□縺輔＞縲・
 ------
 
+## INC-101: LAVIE RCA logs lacked event categories and job resource snapshots
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-06-08 JST |
+| **Detection** | After INC-100, the user asked whether current log type and volume were sufficient. Review showed fleet evidence could detect offline status and TIMEOUTs, but could not reliably distinguish sleep, service failure, network drop, or resource exhaustion at job boundaries. |
+| **Impact** | Next LAVIE disconnect could still require manual local Windows inspection because K10 did not receive compact event category summaries, before/after CAE job resource snapshots, or durable workload-guard activation records. |
+| **Root Cause (5 Why)** | **Why1**: Logs showed symptoms but not enough transition context. **Why2**: Existing Windows event capture stored raw events, including message text that can mojibake on Japanese Windows. **Why3**: CAE job dispatch did not capture resource state before and after the job. **Why4**: Workload guard activation was visible in state JSON but not appended to an audit-style history. **Why5**: Logging was optimized for liveness, not post-incident root-cause classification. |
+| **Fix** | Added compact Windows event summaries to `scripts/monitor_agent.py`, preserving event ID, provider, level, category, and counts for the last 6 hours. Added before/after monitor-agent resource snapshots to `scripts/lavie_job_worker.py` and returned them through `scripts/k10_satellite_cae_dispatch.py`. Added durable guard activation/expiry JSONL logging to `scripts/k10_lavie_continuous_te_loop.py`. |
+| **Verification** | Static compile checks passed for all modified Python files. Targeted unit smoke checks verified event summary classification, resource snapshot failure-safe behavior, and guard log JSONL writing. |
+| **Lessons Learned** | For distributed Windows fleet RCA, store compact typed facts rather than verbose localized messages. Job-boundary snapshots and guard-action history provide high diagnostic value with low log volume. |
+| **Prevention** | Keep event summaries bounded by time and count, keep resource snapshots compact, and write guard changes as append-only JSONL so future disconnects can be reconstructed without excessive log volume. |
+
 ## INC-100: LAVIE disconnected after repeated resin_fill_cad TIMEOUTs and lacked a workload guard
 
 | Field | Detail |

@@ -30,6 +30,7 @@ JST = timezone(timedelta(hours=9))
 STATE_PATH = WORKSPACE / "lavie_continuous_te_state.json"
 STATUS_PATH = WORKSPACE / "lavie_continuous_te_status.json"
 ALLOC_OVERRIDES_PATH = WORKSPACE / "lavie_te_allocation_overrides.json"
+GUARD_LOG_PATH = WORKSPACE / "lavie_workload_guard_log.jsonl"
 TE_LOG = ROOT / "data" / "cae_te_workspace" / "results" / "cae_te_log.json"
 
 if str(ROOT / "scripts") not in sys.path:
@@ -391,6 +392,13 @@ def save_json(path: Path, payload: dict[str, Any]) -> None:
     tmp.replace(path)
 
 
+def append_jsonl(path: Path, payload: dict[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("a", encoding="utf-8", errors="replace") as f:
+        json.dump(payload, f, ensure_ascii=False, separators=(",", ":"))
+        f.write("\n")
+
+
 def load_allocation_overrides() -> dict[str, Any]:
     if not ALLOC_OVERRIDES_PATH.exists():
         return {}
@@ -569,15 +577,39 @@ def guard_until_dt(state: dict[str, Any], node: str) -> datetime | None:
     return parse_dt(rec.get("until"))
 
 
-def remember_workload_guard(state: dict[str, Any], node: str, reason: str) -> None:
+def remember_workload_guard(
+    state: dict[str, Any],
+    node: str,
+    reason: str,
+    *,
+    source: str = "unknown",
+    metrics: dict[str, Any] | None = None,
+) -> None:
     until = datetime.now(JST) + timedelta(minutes=LAVIE_GUARD_COOLDOWN_MINUTES)
+    previous = ((state.get("workload_guards") or {}).get(node) or {}).get("reason")
     state.setdefault("workload_guards", {})
     state["workload_guards"][node] = {
         "active": True,
         "until": until.isoformat(),
         "reason": reason[:300],
+        "source": source,
         "updated_at": now_iso(),
     }
+    if previous != reason:
+        append_jsonl(
+            GUARD_LOG_PATH,
+            {
+                "schema": "clawstack.lavie_workload_guard.v1",
+                "timestamp": now_iso(),
+                "node": node,
+                "action": "activate",
+                "reason": reason[:300],
+                "source": source,
+                "until": until.isoformat(),
+                "removed_categories": sorted(HEAVY_LAVIE_CATEGORIES),
+                "metrics": metrics or {},
+            },
+        )
 
 
 def clear_expired_workload_guard(state: dict[str, Any], node: str) -> None:
@@ -589,6 +621,17 @@ def clear_expired_workload_guard(state: dict[str, Any], node: str) -> None:
     if until is None or until.astimezone(JST) <= datetime.now(JST):
         rec["active"] = False
         rec["expired_at"] = now_iso()
+        append_jsonl(
+            GUARD_LOG_PATH,
+            {
+                "schema": "clawstack.lavie_workload_guard.v1",
+                "timestamp": now_iso(),
+                "node": node,
+                "action": "expire",
+                "reason": rec.get("reason"),
+                "until": rec.get("until"),
+            },
+        )
 
 
 def lavie_workload_guard(cfg: dict[str, Any], state: dict[str, Any], node: str) -> dict[str, Any]:
@@ -605,7 +648,7 @@ def lavie_workload_guard(cfg: dict[str, Any], state: dict[str, Any], node: str) 
 
     load_ok, load_reason, metrics = router.satellite_load_guard(cfg, node)
     if not load_ok:
-        remember_workload_guard(state, node, load_reason)
+        remember_workload_guard(state, node, load_reason, source="metrics", metrics=metrics)
         return {
             "active": True,
             "reason": load_reason,
@@ -622,7 +665,7 @@ def lavie_workload_guard(cfg: dict[str, Any], state: dict[str, Any], node: str) 
                 f"{category} unstable: streak={streak}, "
                 f"recent_failures_{LAVIE_GUARD_WINDOW_MINUTES}m={len(recent)}"
             )
-            remember_workload_guard(state, node, reason)
+            remember_workload_guard(state, node, reason, source="recent_failures")
             return {
                 "active": True,
                 "reason": reason,
@@ -720,7 +763,12 @@ def run_one_cycle(
     if not dry_run and verdict in {"ERROR", "PREGATE_FAIL", "TIMEOUT"}:
         fails[category] = int(fails.get(category) or 0) + 1
         if category in HEAVY_LAVIE_CATEGORIES and fails[category] >= LAVIE_GUARD_TIMEOUT_THRESHOLD:
-            remember_workload_guard(state, node, f"{category} fail streak={fails[category]} after {verdict}")
+            remember_workload_guard(
+                state,
+                node,
+                f"{category} fail streak={fails[category]} after {verdict}",
+                source="fail_streak",
+            )
     elif verdict in {"SUCCESS", "DRY_RUN", "FAILED"}:
         fails[category] = 0
 

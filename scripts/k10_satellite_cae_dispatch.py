@@ -162,6 +162,7 @@ def run_lavie_trial(
     base_url = sjp.worker_base_url(node_info)
     result = sjp.dispatch_job(base_url, token, job, timeout)
     trial_entry = (result.get("metrics") or {}).get("cae_trial")
+    resource_snapshots = (result.get("metrics") or {}).get("resource_snapshots")
     if not trial_entry and result.get("status") == "ok":
         trial_entry = result.get("metrics", {}).get("trial_entry")
     if not trial_entry:
@@ -171,6 +172,8 @@ def run_lavie_trial(
             "host": node,
             "worker_result": {k: result.get(k) for k in ("status", "exit_code", "failure_tags")},
         }
+    if resource_snapshots and isinstance(trial_entry, dict):
+        trial_entry["worker_resource_snapshots"] = resource_snapshots
     return {"job": job, "worker_result": result, "trial_entry": trial_entry}
 
 

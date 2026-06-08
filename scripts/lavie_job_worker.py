@@ -10,6 +10,7 @@ import secrets
 import subprocess
 import sys
 import threading
+import urllib.request
 from datetime import datetime, timedelta, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -33,6 +34,7 @@ DEFAULT_BIND = "0.0.0.0"
 DEFAULT_JOBS_ROOT_D = Path("D:/clawstack_satellite/data/work/jobs")
 DEFAULT_JOBS_ROOT_E = Path("E:/clawstack_satellite/data/work/jobs")
 DEFAULT_JOBS_ROOT_C = Path("C:/clawstack_satellite/data/work/jobs")
+LOCAL_MONITOR_METRICS_URL = os.environ.get("LOCAL_MONITOR_METRICS_URL", "http://127.0.0.1:8111/metrics")
 
 
 def _drive_exists(drive: str) -> bool:
@@ -60,6 +62,69 @@ def _tail(text: str, limit: int = TAIL_CHARS) -> str:
     if len(text) <= limit:
         return text
     return text[-limit:]
+
+
+def _as_text(value: Any) -> str:
+    if value is None:
+        return ""
+    if isinstance(value, bytes):
+        return value.decode("utf-8", errors="replace")
+    return str(value)
+
+
+def _compact_monitor_metrics(data: dict[str, Any]) -> dict[str, Any]:
+    keys = (
+        "hostname",
+        "cpu_usage_percent",
+        "cpu_current_clock_mhz",
+        "ram_usage_percent",
+        "ram_used_gb",
+        "ram_total_gb",
+        "cpu_temp_celsius",
+        "thermal_control_temp_c",
+        "core_max_c",
+        "lhm_ok",
+        "temp_source",
+        "thermal_throttle_label",
+        "cpu_limit_percent",
+        "is_throttling",
+    )
+    return {key: data.get(key) for key in keys if key in data}
+
+
+def collect_resource_snapshot(phase: str, job_id: str, category: str = "") -> dict[str, Any]:
+    snap: dict[str, Any] = {
+        "schema": "clawstack.lavie_job_resource_snapshot.v1",
+        "phase": phase,
+        "job_id": job_id,
+        "category": category,
+        "timestamp": _now_iso(),
+        "metrics_url": LOCAL_MONITOR_METRICS_URL,
+    }
+    try:
+        req = urllib.request.Request(LOCAL_MONITOR_METRICS_URL, headers={"User-Agent": "lavie_job_worker/1"})
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            data = json.loads(resp.read(256 * 1024).decode("utf-8", errors="replace"))
+        if isinstance(data, dict):
+            snap["ok"] = True
+            snap["metrics"] = _compact_monitor_metrics(data)
+        else:
+            snap["ok"] = False
+            snap["error"] = "metrics_json_not_object"
+    except Exception as exc:
+        snap["ok"] = False
+        snap["error"] = str(exc)[:300]
+    return snap
+
+
+def append_resource_snapshot(work_dir: Path, snapshot: dict[str, Any]) -> None:
+    try:
+        path = work_dir / "resource_snapshots.jsonl"
+        with path.open("a", encoding="utf-8", errors="replace") as f:
+            json.dump(snapshot, f, ensure_ascii=False, separators=(",", ":"))
+            f.write("\n")
+    except Exception:
+        pass
 
 
 def load_token(explicit: str = "") -> str:
@@ -242,6 +307,8 @@ def run_cae_trial(payload: dict[str, Any], work_dir: Path, timeout_sec: int, hos
     dry_run = bool(payload.get("dry_run"))
     params = payload.get("params") or {}
     output_path = work_dir / "cae_trial_result.json"
+    start_snapshot = collect_resource_snapshot("before", trial_id or "cae_trial", category)
+    append_resource_snapshot(work_dir, start_snapshot)
 
     cmd = [
         sys.executable,
@@ -265,21 +332,42 @@ def run_cae_trial(payload: dict[str, Any], work_dir: Path, timeout_sec: int, hos
     if params:
         cmd.extend(["--params-json", json.dumps(params, ensure_ascii=False)])
 
-    proc = subprocess.run(
-        cmd,
-        cwd=str(repo_root),
-        capture_output=True,
-        text=True,
-        timeout=timeout_sec + 60,
-        encoding="utf-8",
-        errors="replace",
-    )
+    timeout_hit = False
+    try:
+        proc = subprocess.run(
+            cmd,
+            cwd=str(repo_root),
+            capture_output=True,
+            text=True,
+            timeout=timeout_sec + 60,
+            encoding="utf-8",
+            errors="replace",
+        )
+    except subprocess.TimeoutExpired as exc:
+        timeout_hit = True
+        proc = subprocess.CompletedProcess(
+            cmd,
+            124,
+            stdout=_as_text(exc.stdout),
+            stderr=_as_text(exc.stderr) or f"worker timeout after {timeout_sec + 60}s",
+        )
+    end_snapshot = collect_resource_snapshot("after", trial_id or "cae_trial", category)
+    append_resource_snapshot(work_dir, end_snapshot)
 
     trial_entry: dict[str, Any] = {}
     if output_path.exists():
         trial_entry = json.loads(output_path.read_text(encoding="utf-8-sig"))
     elif proc.stdout.strip():
         trial_entry = json.loads(proc.stdout.strip().splitlines()[-1])
+
+    if timeout_hit and not trial_entry:
+        trial_entry = {
+            "id": trial_id,
+            "category": category,
+            "host": host,
+            "verdict": "TIMEOUT",
+            "error": f"worker timeout after {timeout_sec + 60}s",
+        }
 
     verdict = trial_entry.get("verdict", "ERROR")
     ok_verdict = verdict in {"SUCCESS", "DRY_RUN", "FAILED", "SKIPPED", "PREGATE_FAIL"}
@@ -295,6 +383,10 @@ def run_cae_trial(payload: dict[str, Any], work_dir: Path, timeout_sec: int, hos
             "workspace": str(workspace),
             "repo_root": str(repo_root),
             "verdict": verdict,
+            "resource_snapshots": {
+                "before": start_snapshot,
+                "after": end_snapshot,
+            },
         },
     }
 
