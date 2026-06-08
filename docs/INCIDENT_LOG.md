@@ -3,6 +3,19 @@
 譛ｬ繝輔ぃ繧､繝ｫ縺ｯ縲√す繧ｹ繝・Β縺ｫ逋ｺ逕溘＠縺滄囿螳ｳ縺ｻ荳榊・蜷医→縺昴・譬ｹ譛ｬ蜴溷屏繝ｻ菫ｮ豁｣蜀・ｮｹ繝ｻ蜀咲匱髦ｲ豁｢遲悶ｒ險倬鹸縺励∪縺吶€・菫ｮ豁｣繧定｡後▲縺溷ｴ蜷医・縲∝ｿ・★縺薙・繝輔ぃ繧､繝ｫ縺ｫ繧ｨ繝ｳ繝医Μ繧定ｿｽ蜉縺励※縺上□縺輔＞縲・
 ------
 
+## INC-102: Scribd pipeline mixed source scouting, downloading, ingestion, and autonomous code edits
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-06-08 JST |
+| **Detection** | User requested more active collection of related Scribd materials. Review found that `run_scribd_pipeline.ps1` invoked `scribd_downloader.py`, `scribd_ingestion.py`, and `autonomous_coder.py` in one scheduled flow. |
+| **Impact** | The pipeline could mix legitimate source discovery with browser-driven downloads and automatic code changes, increasing copyright/ToS risk and operational risk. It also lacked a metadata-first report for Moldflow, CETOL, press die, and IATF source discovery. |
+| **Root Cause (5 Why)** | **Why1**: Scribd collection was built as a direct download pipeline. **Why2**: The daily job had no safe metadata-only stage. **Why3**: Download and autonomous code modification were enabled by default in the same flow. **Why4**: The pipeline optimized for acquiring files rather than lawful source triage and evidence traceability. **Why5**: There was no explicit no-bypass/no-unauthorized-download safety policy in the script outputs. |
+| **Fix** | Added `scripts/scribd_related_source_scout.py` to inventory existing downloads, score them by target domain, and generate Scribd search URLs without downloading. Updated `scripts/run_scribd_pipeline.ps1` so downloads require `SCRIBD_ENABLE_AUTHORIZED_DOWNLOAD=1` and autonomous code edits require `SCRIBD_ENABLE_AUTONOMOUS_CODER=1`. Updated the scheduled task description via `scripts/install_scribd_pipeline_schedule.ps1`. |
+| **Verification** | `python -m py_compile scripts\scribd_related_source_scout.py` passed. Scout run wrote `data/workspace/scribd_related_source_scout_status.json` and `.md`, inventorying 38 local documents and 17 priority search candidates. Scheduled task `Clawstack_Scribd_Daily_Pipeline` was re-registered successfully. |
+| **Lessons Learned** | Source scouting, authorized downloading, ingestion, and autonomous code changes must be separate gates. Metadata-first collection gives useful direction without increasing legal or operational exposure. |
+| **Prevention** | Keep Scribd downloads and autonomous code edits opt-in. Use the scout report for active prioritization, then ingest only user-authorized/local documents. |
+
 ## INC-101: LAVIE RCA logs lacked event categories and job resource snapshots
 
 | Field | Detail |

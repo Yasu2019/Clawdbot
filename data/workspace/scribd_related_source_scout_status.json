@@ -1,0 +1,763 @@
+{
+  "schema": "clawstack.scribd_related_source_scout.v1",
+  "updated_at": "2026-06-08T15:48:59+09:00",
+  "mode": "search_url_inventory",
+  "safety_policy": {
+    "no_bypass": true,
+    "no_unauthorized_download": true,
+    "metadata_first": true,
+    "autonomous_code_change": false
+  },
+  "topics": {
+    "moldflow_self_solver": [
+      "Moldflow Insight training",
+      "mold flow analysis injection molding",
+      "injection molding simulation fill pack",
+      "polymer melt flow simulation",
+      "moldflow tutorial gate runner cooling warpage"
+    ],
+    "cetol_tolerance": [
+      "CETOL 6 Sigma tolerance analysis",
+      "3D tolerance stack up analysis",
+      "dimensional tolerance analysis monte carlo",
+      "assembly variation analysis GD&T"
+    ],
+    "press_progressive_die": [
+      "progressive die design press tool",
+      "sheet metal stamping springback analysis",
+      "blanking bending forming die design",
+      "strip layout progressive die"
+    ],
+    "iatf_audit_training": [
+      "IATF 16949 internal audit training",
+      "automotive quality audit checklist",
+      "process audit manufacturing quality",
+      "control plan PFMEA internal audit"
+    ]
+  },
+  "download_inventory": [
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\338530256-Mold-Flow-Insight-Training.docx",
+      "name": "338530256-Mold-Flow-Insight-Training.docx",
+      "extension": ".docx",
+      "size_bytes": 15814,
+      "modified_at": "2026-06-01T14:48:31+09:00",
+      "sha1": "57682e21cda5d5023a10a1bf294a93dc41adea0f",
+      "domain": "moldflow_self_solver",
+      "score": 20,
+      "scores": {
+        "moldflow_self_solver": 20,
+        "iatf_audit_training": 3
+      },
+      "matched_terms": {
+        "moldflow_self_solver": [
+          "flow",
+          "insight",
+          "mold",
+          "training"
+        ],
+        "iatf_audit_training": [
+          "training"
+        ]
+      }
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\705864056-NX-Mold-Flow-Analysis-solutions-1.pdf",
+      "name": "705864056-NX-Mold-Flow-Analysis-solutions-1.pdf",
+      "extension": ".pdf",
+      "size_bytes": 604953,
+      "modified_at": "2026-06-06T21:02:17+09:00",
+      "sha1": "549c888f6a00964cc31a91db26764d4a34ff8708",
+      "domain": "moldflow_self_solver",
+      "score": 15,
+      "scores": {
+        "moldflow_self_solver": 15,
+        "cetol_tolerance": 4,
+        "press_progressive_die": 4
+      },
+      "matched_terms": {
+        "moldflow_self_solver": [
+          "analysis",
+          "flow",
+          "mold"
+        ],
+        "cetol_tolerance": [
+          "analysis"
+        ],
+        "press_progressive_die": [
+          "analysis"
+        ]
+      }
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\239398105-Mold-flow-Analysis.pdf",
+      "name": "239398105-Mold-flow-Analysis.pdf",
+      "extension": ".pdf",
+      "size_bytes": 1789904,
+      "modified_at": "2026-06-06T21:01:35+09:00",
+      "sha1": "6826cf97af046eeac60504df50f4e212ce5911cc",
+      "domain": "moldflow_self_solver",
+      "score": 15,
+      "scores": {
+        "moldflow_self_solver": 15,
+        "cetol_tolerance": 4,
+        "press_progressive_die": 4
+      },
+      "matched_terms": {
+        "moldflow_self_solver": [
+          "analysis",
+          "flow",
+          "mold"
+        ],
+        "cetol_tolerance": [
+          "analysis"
+        ],
+        "press_progressive_die": [
+          "analysis"
+        ]
+      }
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\667773841-Mold-Flow-Analysis.pdf",
+      "name": "667773841-Mold-Flow-Analysis.pdf",
+      "extension": ".pdf",
+      "size_bytes": 1978164,
+      "modified_at": "2026-06-06T21:00:52+09:00",
+      "sha1": "9eeb8d0e88786229feb1fe6343ad1e6cd6ffc205",
+      "domain": "moldflow_self_solver",
+      "score": 15,
+      "scores": {
+        "moldflow_self_solver": 15,
+        "cetol_tolerance": 4,
+        "press_progressive_die": 4
+      },
+      "matched_terms": {
+        "moldflow_self_solver": [
+          "analysis",
+          "flow",
+          "mold"
+        ],
+        "cetol_tolerance": [
+          "analysis"
+        ],
+        "press_progressive_die": [
+          "analysis"
+        ]
+      }
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\moldflow_cetol_theory_pack\\docs\\02_theory_map_injection_molding_JA.md",
+      "name": "02_theory_map_injection_molding_JA.md",
+      "extension": ".md",
+      "size_bytes": 4545,
+      "modified_at": "2026-06-02T03:55:36+09:00",
+      "sha1": "8e2cb44bef0d0a1c9a8e61ab50dd58c40852989a",
+      "domain": "moldflow_self_solver",
+      "score": 15,
+      "scores": {
+        "moldflow_self_solver": 15
+      },
+      "matched_terms": {
+        "moldflow_self_solver": [
+          "injection",
+          "mold",
+          "molding"
+        ]
+      }
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\264186820-DIMENSIONAL-TOLERANCE-ANALYSIS.pdf",
+      "name": "264186820-DIMENSIONAL-TOLERANCE-ANALYSIS.pdf",
+      "extension": ".pdf",
+      "size_bytes": 219327,
+      "modified_at": "2026-06-06T02:01:23+09:00",
+      "sha1": "acb159f174a1f814ff2c2fa3cd2c3d411aa23142",
+      "domain": "cetol_tolerance",
+      "score": 12,
+      "scores": {
+        "moldflow_self_solver": 5,
+        "cetol_tolerance": 12,
+        "press_progressive_die": 4
+      },
+      "matched_terms": {
+        "moldflow_self_solver": [
+          "analysis"
+        ],
+        "cetol_tolerance": [
+          "analysis",
+          "dimensional",
+          "tolerance"
+        ],
+        "press_progressive_die": [
+          "analysis"
+        ]
+      }
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\moldflow_cetol_theory_pack\\docs\\03_tolerance_analysis_CETOL_JA.md",
+      "name": "03_tolerance_analysis_CETOL_JA.md",
+      "extension": ".md",
+      "size_bytes": 2904,
+      "modified_at": "2026-06-02T03:55:36+09:00",
+      "sha1": "bb77a121a0dad675e927a95779534589027ff6a1",
+      "domain": "cetol_tolerance",
+      "score": 12,
+      "scores": {
+        "moldflow_self_solver": 5,
+        "cetol_tolerance": 12,
+        "press_progressive_die": 4
+      },
+      "matched_terms": {
+        "moldflow_self_solver": [
+          "analysis"
+        ],
+        "cetol_tolerance": [
+          "analysis",
+          "cetol",
+          "tolerance"
+        ],
+        "press_progressive_die": [
+          "analysis"
+        ]
+      }
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\782809744-VISI-Analysis.pdf",
+      "name": "782809744-VISI-Analysis.pdf",
+      "extension": ".pdf",
+      "size_bytes": 1261277,
+      "modified_at": "2026-06-08T02:02:43+09:00",
+      "sha1": "10a407be412f2a9432ef36a4598d48aa5b758603",
+      "domain": "moldflow_self_solver",
+      "score": 5,
+      "scores": {
+        "moldflow_self_solver": 5,
+        "cetol_tolerance": 4,
+        "press_progressive_die": 4
+      },
+      "matched_terms": {
+        "moldflow_self_solver": [
+          "analysis"
+        ],
+        "cetol_tolerance": [
+          "analysis"
+        ],
+        "press_progressive_die": [
+          "analysis"
+        ]
+      }
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\385555145-An-introduction-to-Isogeometric-Analysis-pdf.pdf",
+      "name": "385555145-An-introduction-to-Isogeometric-Analysis-pdf.pdf",
+      "extension": ".pdf",
+      "size_bytes": 1570541,
+      "modified_at": "2026-06-07T02:02:12+09:00",
+      "sha1": "a1745901fcd37499d70a858e63ae59cc6fb5c956",
+      "domain": "moldflow_self_solver",
+      "score": 5,
+      "scores": {
+        "moldflow_self_solver": 5,
+        "cetol_tolerance": 4,
+        "press_progressive_die": 4
+      },
+      "matched_terms": {
+        "moldflow_self_solver": [
+          "analysis"
+        ],
+        "cetol_tolerance": [
+          "analysis"
+        ],
+        "press_progressive_die": [
+          "analysis"
+        ]
+      }
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\707074209-Isogeometric-AnalysisAn-Overview-and-Computer.pdf",
+      "name": "707074209-Isogeometric-AnalysisAn-Overview-and-Computer.pdf",
+      "extension": ".pdf",
+      "size_bytes": 1525228,
+      "modified_at": "2026-06-07T02:00:47+09:00",
+      "sha1": "d7dec645b06233fa7d5a7a463f9041a46e3aeac4",
+      "domain": "moldflow_self_solver",
+      "score": 5,
+      "scores": {
+        "moldflow_self_solver": 5,
+        "cetol_tolerance": 4,
+        "press_progressive_die": 4
+      },
+      "matched_terms": {
+        "moldflow_self_solver": [
+          "analysis"
+        ],
+        "cetol_tolerance": [
+          "analysis"
+        ],
+        "press_progressive_die": [
+          "analysis"
+        ]
+      }
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\174668943-Visi-Analysis.pdf",
+      "name": "174668943-Visi-Analysis.pdf",
+      "extension": ".pdf",
+      "size_bytes": 1427393,
+      "modified_at": "2026-06-05T02:03:10+09:00",
+      "sha1": "94e48a9240369312a7e95a15253d6502c36bd61b",
+      "domain": "moldflow_self_solver",
+      "score": 5,
+      "scores": {
+        "moldflow_self_solver": 5,
+        "cetol_tolerance": 4,
+        "press_progressive_die": 4
+      },
+      "matched_terms": {
+        "moldflow_self_solver": [
+          "analysis"
+        ],
+        "cetol_tolerance": [
+          "analysis"
+        ],
+        "press_progressive_die": [
+          "analysis"
+        ]
+      }
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\956695269-CETOL-Interview-Questions-Answers.pdf",
+      "name": "956695269-CETOL-Interview-Questions-Answers.pdf",
+      "extension": ".pdf",
+      "size_bytes": 4570,
+      "modified_at": "2026-06-06T02:00:42+09:00",
+      "sha1": "0e346c9fb653c43e4fd193aa540ca9c6e1b84d28",
+      "domain": "cetol_tolerance",
+      "score": 4,
+      "scores": {
+        "cetol_tolerance": 4
+      },
+      "matched_terms": {
+        "cetol_tolerance": [
+          "cetol"
+        ]
+      }
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\683064083-VISI-Brochure-VT-Eng-ebook-1.pdf",
+      "name": "683064083-VISI-Brochure-VT-Eng-ebook-1.pdf",
+      "extension": ".pdf",
+      "size_bytes": 7952345,
+      "modified_at": "2026-06-08T02:02:02+09:00",
+      "sha1": "045c3693307a3214053d05d589413e67bbf6c266",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\943012616-Project-We-Like-Presentation-Styled.pdf",
+      "name": "943012616-Project-We-Like-Presentation-Styled.pdf",
+      "extension": ".pdf",
+      "size_bytes": 73836,
+      "modified_at": "2026-06-07T21:02:45+09:00",
+      "sha1": "22bd57b59043c525b29bf4b674bc50a66ac4025f",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\966270920-Clinical-Data-Management.pdf",
+      "name": "966270920-Clinical-Data-Management.pdf",
+      "extension": ".pdf",
+      "size_bytes": 3084317,
+      "modified_at": "2026-06-07T21:01:04+09:00",
+      "sha1": "4bd860f6d9a15fecf34482983c9421745003d2ff",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\837169235-Auxetic-Core-in-Concrete.pdf",
+      "name": "837169235-Auxetic-Core-in-Concrete.pdf",
+      "extension": ".pdf",
+      "size_bytes": 6981806,
+      "modified_at": "2026-06-07T02:03:12+09:00",
+      "sha1": "8a8786c4679497663996a371d29ce0de636d936e",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\245813253-digimat-4-5-1-brochure.pdf",
+      "name": "245813253-digimat-4-5-1-brochure.pdf",
+      "extension": ".pdf",
+      "size_bytes": 2915913,
+      "modified_at": "2026-06-07T02:01:26+09:00",
+      "sha1": "6f26684307b5ce77c4cd6a2af1baf44f619f8b28",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\218127272-Acta-Arras-and-Van-Merode-Def.pdf",
+      "name": "218127272-Acta-Arras-and-Van-Merode-Def.pdf",
+      "extension": ".pdf",
+      "size_bytes": 219327,
+      "modified_at": "2026-06-06T02:02:45+09:00",
+      "sha1": "acb159f174a1f814ff2c2fa3cd2c3d411aa23142",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\653291655-CAD-15-5-2018-631-642.pdf",
+      "name": "653291655-CAD-15-5-2018-631-642.pdf",
+      "extension": ".pdf",
+      "size_bytes": 569654,
+      "modified_at": "2026-06-06T02:02:10+09:00",
+      "sha1": "9ffaa87f8ba2dcaa1c39fc76dd02f3cecf881513",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\242874331-Nuevo-Auto-radio-BECK-BE-1000-multimedia-pdf.pdf",
+      "name": "242874331-Nuevo-Auto-radio-BECK-BE-1000-multimedia-pdf.pdf",
+      "extension": ".pdf",
+      "size_bytes": 493705,
+      "modified_at": "2026-06-05T21:03:39+09:00",
+      "sha1": "d833431bf95fa5f2c82742f585d511495e0406d0",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\50788337-disney-guide-pdf.pdf",
+      "name": "50788337-disney-guide-pdf.pdf",
+      "extension": ".pdf",
+      "size_bytes": 246837,
+      "modified_at": "2026-06-05T21:02:56+09:00",
+      "sha1": "9a0ca9353ccaf55a9b95502126fbcdeca45e9ff9",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\497702830-Timon-SlidesCarnival.pdf",
+      "name": "497702830-Timon-SlidesCarnival.pdf",
+      "extension": ".pdf",
+      "size_bytes": 1705708,
+      "modified_at": "2026-06-05T21:01:25+09:00",
+      "sha1": "602cffe62599bd0dc95d48e19fe8e5169da47efa",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\708603900-Timon-Google-Search.pdf",
+      "name": "708603900-Timon-Google-Search.pdf",
+      "extension": ".pdf",
+      "size_bytes": 3334519,
+      "modified_at": "2026-06-05T21:00:46+09:00",
+      "sha1": "63827f3ce0d31e89e11633c43654e18fba81e782",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\580326503-Lista-de-Softwares-2020.pdf",
+      "name": "580326503-Lista-de-Softwares-2020.pdf",
+      "extension": ".pdf",
+      "size_bytes": 883405,
+      "modified_at": "2026-06-04T23:03:42+09:00",
+      "sha1": "9659fc42955617d7a79ea0fd725885cdadebbe3e",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\784878780-Attachment.pdf",
+      "name": "784878780-Attachment.pdf",
+      "extension": ".pdf",
+      "size_bytes": 3680459,
+      "modified_at": "2026-06-04T22:25:37+09:00",
+      "sha1": "6492ffdad0e9c56538a2cecf7f59fcbbebd2b2f9",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\791292193-CAB-Software.pdf",
+      "name": "791292193-CAB-Software.pdf",
+      "extension": ".pdf",
+      "size_bytes": 2494931,
+      "modified_at": "2026-06-04T22:24:47+09:00",
+      "sha1": "1d937ca70d63032a7d83ce2756e7c677075f0ce2",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\845342098-BPI-Software.pdf",
+      "name": "845342098-BPI-Software.pdf",
+      "extension": ".pdf",
+      "size_bytes": 6396338,
+      "modified_at": "2026-06-04T22:24:06+09:00",
+      "sha1": "dbaeb12a8d523b0d143906213231735b13360ddb",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\714970142-Whats-New.pdf",
+      "name": "714970142-Whats-New.pdf",
+      "extension": ".pdf",
+      "size_bytes": 94874,
+      "modified_at": "2026-06-04T22:23:13+09:00",
+      "sha1": "904b47a3a9684b48ee981ef85022e5866813f80b",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\369616874-Instalar-MagmaSoft.pdf",
+      "name": "369616874-Instalar-MagmaSoft.pdf",
+      "extension": ".pdf",
+      "size_bytes": 816280,
+      "modified_at": "2026-06-04T22:22:36+09:00",
+      "sha1": "f787ed44901c6aaef1447d1c03134e955cd09377",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\moldflow_cetol_theory_pack\\notes\\source_reliability_JA.md",
+      "name": "source_reliability_JA.md",
+      "extension": ".md",
+      "size_bytes": 870,
+      "modified_at": "2026-06-02T03:56:38+09:00",
+      "sha1": "5b05f68516949e95bcd121bada9fa9b0f893cffd",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\moldflow_cetol_theory_pack\\README_FOR_WINDOWS_JA.txt",
+      "name": "README_FOR_WINDOWS_JA.txt",
+      "extension": ".txt",
+      "size_bytes": 776,
+      "modified_at": "2026-06-02T03:56:38+09:00",
+      "sha1": "1421bbe962c5bed49154cdfcb2d2a03f9e9dd793",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\moldflow_cetol_theory_pack\\sample_code\\requirements.txt",
+      "name": "requirements.txt",
+      "extension": ".txt",
+      "size_bytes": 40,
+      "modified_at": "2026-06-02T03:56:12+09:00",
+      "sha1": "092925a1e3c3a8bca461c0d5d48f479b31c6bd41",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\moldflow_cetol_theory_pack\\docs\\04_build_roadmap_for_mini_pc_JA.md",
+      "name": "04_build_roadmap_for_mini_pc_JA.md",
+      "extension": ".md",
+      "size_bytes": 2997,
+      "modified_at": "2026-06-02T03:55:36+09:00",
+      "sha1": "55357b4988475d7478fa70323ddcb1f53574ebb4",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\moldflow_cetol_theory_pack\\docs\\05_comparison_table_JA.md",
+      "name": "05_comparison_table_JA.md",
+      "extension": ".md",
+      "size_bytes": 1241,
+      "modified_at": "2026-06-02T03:55:36+09:00",
+      "sha1": "874f8cbf5ac853682f08401aa25934a4e5563528",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\moldflow_cetol_theory_pack\\mini_pc_prompts\\CODEX_REQUEST_JA.md",
+      "name": "CODEX_REQUEST_JA.md",
+      "extension": ".md",
+      "size_bytes": 1445,
+      "modified_at": "2026-06-02T03:55:36+09:00",
+      "sha1": "becb19bfb2755524245183f59c1a41698d0910f5",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\moldflow_cetol_theory_pack\\notes\\implementation_cautions_JA.md",
+      "name": "implementation_cautions_JA.md",
+      "extension": ".md",
+      "size_bytes": 1200,
+      "modified_at": "2026-06-02T03:55:36+09:00",
+      "sha1": "1ddf39205f361d92c3f72e01eac64b647069955b",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\moldflow_cetol_theory_pack\\docs\\00_START_HERE_JA.md",
+      "name": "00_START_HERE_JA.md",
+      "extension": ".md",
+      "size_bytes": 2525,
+      "modified_at": "2026-06-02T03:55:34+09:00",
+      "sha1": "9c143ddf29a9e074f7f47425b96ba18d1321964a",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\moldflow_cetol_theory_pack\\docs\\01_sources_summary_JA.md",
+      "name": "01_sources_summary_JA.md",
+      "extension": ".md",
+      "size_bytes": 5189,
+      "modified_at": "2026-06-02T03:55:34+09:00",
+      "sha1": "099834db56c0cef348eb058ed5613d948c95a2e1",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    }
+  ],
+  "candidates": [
+    {
+      "domain_hint": "moldflow_self_solver",
+      "query": "Moldflow Insight training",
+      "search_url": "https://www.scribd.com/search?content_type=documents&query=Moldflow%20Insight%20training",
+      "source": "scribd_search_url"
+    },
+    {
+      "domain_hint": "moldflow_self_solver",
+      "query": "mold flow analysis injection molding",
+      "search_url": "https://www.scribd.com/search?content_type=documents&query=mold%20flow%20analysis%20injection%20molding",
+      "source": "scribd_search_url"
+    },
+    {
+      "domain_hint": "moldflow_self_solver",
+      "query": "injection molding simulation fill pack",
+      "search_url": "https://www.scribd.com/search?content_type=documents&query=injection%20molding%20simulation%20fill%20pack",
+      "source": "scribd_search_url"
+    },
+    {
+      "domain_hint": "moldflow_self_solver",
+      "query": "polymer melt flow simulation",
+      "search_url": "https://www.scribd.com/search?content_type=documents&query=polymer%20melt%20flow%20simulation",
+      "source": "scribd_search_url"
+    },
+    {
+      "domain_hint": "moldflow_self_solver",
+      "query": "moldflow tutorial gate runner cooling warpage",
+      "search_url": "https://www.scribd.com/search?content_type=documents&query=moldflow%20tutorial%20gate%20runner%20cooling%20warpage",
+      "source": "scribd_search_url"
+    },
+    {
+      "domain_hint": "cetol_tolerance",
+      "query": "CETOL 6 Sigma tolerance analysis",
+      "search_url": "https://www.scribd.com/search?content_type=documents&query=CETOL%206%20Sigma%20tolerance%20analysis",
+      "source": "scribd_search_url"
+    },
+    {
+      "domain_hint": "cetol_tolerance",
+      "query": "3D tolerance stack up analysis",
+      "search_url": "https://www.scribd.com/search?content_type=documents&query=3D%20tolerance%20stack%20up%20analysis",
+      "source": "scribd_search_url"
+    },
+    {
+      "domain_hint": "cetol_tolerance",
+      "query": "dimensional tolerance analysis monte carlo",
+      "search_url": "https://www.scribd.com/search?content_type=documents&query=dimensional%20tolerance%20analysis%20monte%20carlo",
+      "source": "scribd_search_url"
+    },
+    {
+      "domain_hint": "cetol_tolerance",
+      "query": "assembly variation analysis GD&T",
+      "search_url": "https://www.scribd.com/search?content_type=documents&query=assembly%20variation%20analysis%20GD%26T",
+      "source": "scribd_search_url"
+    },
+    {
+      "domain_hint": "press_progressive_die",
+      "query": "progressive die design press tool",
+      "search_url": "https://www.scribd.com/search?content_type=documents&query=progressive%20die%20design%20press%20tool",
+      "source": "scribd_search_url"
+    },
+    {
+      "domain_hint": "press_progressive_die",
+      "query": "sheet metal stamping springback analysis",
+      "search_url": "https://www.scribd.com/search?content_type=documents&query=sheet%20metal%20stamping%20springback%20analysis",
+      "source": "scribd_search_url"
+    },
+    {
+      "domain_hint": "press_progressive_die",
+      "query": "blanking bending forming die design",
+      "search_url": "https://www.scribd.com/search?content_type=documents&query=blanking%20bending%20forming%20die%20design",
+      "source": "scribd_search_url"
+    },
+    {
+      "domain_hint": "press_progressive_die",
+      "query": "strip layout progressive die",
+      "search_url": "https://www.scribd.com/search?content_type=documents&query=strip%20layout%20progressive%20die",
+      "source": "scribd_search_url"
+    },
+    {
+      "domain_hint": "iatf_audit_training",
+      "query": "IATF 16949 internal audit training",
+      "search_url": "https://www.scribd.com/search?content_type=documents&query=IATF%2016949%20internal%20audit%20training",
+      "source": "scribd_search_url"
+    },
+    {
+      "domain_hint": "iatf_audit_training",
+      "query": "automotive quality audit checklist",
+      "search_url": "https://www.scribd.com/search?content_type=documents&query=automotive%20quality%20audit%20checklist",
+      "source": "scribd_search_url"
+    },
+    {
+      "domain_hint": "iatf_audit_training",
+      "query": "process audit manufacturing quality",
+      "search_url": "https://www.scribd.com/search?content_type=documents&query=process%20audit%20manufacturing%20quality",
+      "source": "scribd_search_url"
+    },
+    {
+      "domain_hint": "iatf_audit_training",
+      "query": "control plan PFMEA internal audit",
+      "search_url": "https://www.scribd.com/search?content_type=documents&query=control%20plan%20PFMEA%20internal%20audit",
+      "source": "scribd_search_url"
+    }
+  ]
+}
