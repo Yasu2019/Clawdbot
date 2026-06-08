@@ -240,6 +240,23 @@ AI Strategy Scout およびエージェントによる提案は、以下の「�
 4. Goal-Driven Execution.
 5. Backup Before Large Change.
 
+## Global Web Knowledge Collection Rule
+
+The system should continuously improve by collecting useful public knowledge from the global web across CAE, Moldflow-class resin flow, CETOL/tolerance analysis, OpenRadioss press forming, IATF/QMS, visual inspection AI, manufacturing know-how, and related software engineering.
+
+This activity is valuable and should be broad and frequent, but legality is a hard requirement:
+
+- Use only legal, authorized, and terms-compliant access.
+- Do not bypass paywalls, login gates, DRM, rate limits, robots restrictions, or access controls.
+- Separate sources into `direct_free`, `free_registration`, `paid_or_subscription`, `manual_review`, and `no_go`.
+- Download immediately only when the source is clearly free/open and permits download.
+- For registration, paid, subscription, or unclear-license sources, create an acquisition queue and wait for user authorization or credential setup.
+- Preserve source URL, title, publisher/site, access date, license/cost label, local path, and hash where practical.
+- Keep raw facts, inferred usefulness, and implementation recommendations separate.
+- Prefer metadata-first scouting before bulk download.
+- Convert useful collected knowledge into traceable backlog items, benchmark candidates, or implementation proposals; do not let candidates sit idle.
+- If legality, license, privacy, or confidentiality is unclear, stop at metadata and ask or mark as `manual_review`.
+
 ## Mandatory Backup Rule
 Before any large change, refactor, layout/UI change, route change, or multi-file edit:
 
