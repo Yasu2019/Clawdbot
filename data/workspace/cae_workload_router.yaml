@@ -1,0 +1,100 @@
+# CAE workload routing (K10 orchestrator). Fill lavie.ip after first LAN connect.
+
+lavie:
+  enabled: true
+  ip: "100.87.244.46"
+  port: 5679
+  bridge_path: /webhook/exec_bridge
+  max_ram_percent: 80
+  max_cpu_percent: 85
+  max_temp_c: 78
+  monitor_agent_port: 8111
+  job_worker_port: 5682
+  job_worker_path: /healthz
+
+red_lavie:
+  enabled: true
+  ip: "100.99.145.3"
+  port: 5679
+  bridge_path: /webhook/exec_bridge
+  max_ram_percent: 80
+  max_cpu_percent: 85
+  max_temp_c: 78
+  monitor_agent_port: 8111
+  job_worker_port: 5682
+  job_worker_path: /healthz
+
+
+k10:
+  ip: 192.168.3.87
+  tailscale_ip: "100.119.18.40"
+  prefer_when_ram_below_percent: 70
+  force_when_ram_above_percent: 88
+
+# OpenRadioss heavy trials stay on K10
+heavy_categories:
+  - press_drawing
+  - progressive_strip_layout
+
+# OpenFOAM T&E -> LAVIE when K10 is busy (parallel mode)
+lavie_openfoam_categories:
+  - resin_fill_cad  # STEP+gate VOF fill (3D alpha video to Telegram; not resin_flow |U|)
+  - resin_fill_vof
+  - resin_fill
+
+moldflow_fill:
+  enabled: true
+  experiment_id: OF-FILL-002
+  template: resin_fill_v002
+  phase: 1
+  vof_experiment_id: OF-FILL-003
+  vof_template: resin_fill_v003
+  phase2: active
+
+light_categories:
+  - press_crushing
+  - press_blanking
+  - press_bending
+  - press_blanking_stripper
+
+parallel_mode:
+  enabled: true
+  openfoam_to_lavie: true
+  assume_k10_busy: false
+
+cae_workspace_sync:
+  enabled: true
+  lavie_work_dir: E:/clawstack_satellite/data/work/cae_te_workspace
+  lavie_repo_root: C:/lavie_usb_pack
+  k10_work_dir: D:/Clawdbot_Docker_20260125/data/cae_te_workspace
+
+lavie_boost:
+  docker_cpus: 6
+  docker_memory: 8g
+  openradioss_nthread: 4
+
+# SJP-3: K10 gap jobs while OR@K10 + OF@LAVIE run in parallel
+sjp3:
+  enabled: true
+  gap_jobs:
+    - tolerance_analysis
+    - dxf2step
+  host: k10
+  notes: "Cetol proxy + DXF2STEP readiness; not offloaded to LAVIE"
+
+# Dynabook: weak CPU light satellite (pregate dry-run + shell only)
+dynabook:
+  enabled: true
+  ip: ""
+  tailscale_ip: "100.98.133.40"
+  job_worker_port: 5683
+  profile: light
+  no_docker: true
+  cae_dry_run_only: true
+  max_timeout_sec: 180
+  dry_run_categories:
+    - press_blanking
+    - press_bending
+    - press_crushing
+    - press_blanking_stripper
+  notes: "Run dynabook_node_setup.ps1 then k10_dynabook_register.py --ip <addr>"

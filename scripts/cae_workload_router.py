@@ -83,6 +83,54 @@ def probe_satellite_job_worker(cfg: dict[str, Any], node_id: str) -> tuple[bool,
         return False, f"{url} -> {exc}"
 
 
+def probe_satellite_metrics(cfg: dict[str, Any], node_id: str) -> tuple[bool, dict[str, Any], str]:
+    sat = cfg.get(node_id) or {}
+    if not sat.get("enabled"):
+        return False, {}, f"{node_id} disabled in config"
+    ip = (sat.get("ip") or "").strip()
+    if not ip:
+        return False, {}, f"{node_id} ip empty"
+    port = int(sat.get("monitor_agent_port") or 8111)
+    url = f"http://{ip}:{port}/metrics"
+    try:
+        r = httpx.get(url, timeout=8)
+        if r.status_code != 200:
+            return False, {}, f"{url} -> {r.status_code}"
+        data = r.json()
+        if not isinstance(data, dict):
+            return False, {}, f"{url} -> non-object json"
+        return True, data, url
+    except Exception as exc:
+        return False, {}, f"{url} -> {exc}"
+
+
+def satellite_load_guard(cfg: dict[str, Any], node_id: str) -> tuple[bool, str, dict[str, Any]]:
+    sat = cfg.get(node_id) or {}
+    ok, metrics, detail = probe_satellite_metrics(cfg, node_id)
+    if not ok:
+        return False, f"metrics unavailable: {detail}", {}
+
+    def as_float(key: str, default: float = 0.0) -> float:
+        try:
+            return float(metrics.get(key) or default)
+        except (TypeError, ValueError):
+            return default
+
+    cpu = as_float("cpu_usage_percent")
+    ram = as_float("ram_usage_percent")
+    temp = as_float("thermal_control_temp_c", as_float("cpu_temp_celsius"))
+    max_cpu = float(sat.get("max_cpu_percent") or 85)
+    max_ram = float(sat.get("max_ram_percent") or 80)
+    max_temp = float(sat.get("max_temp_c") or 78)
+    if cpu >= max_cpu:
+        return False, f"cpu {cpu:.1f}% >= {max_cpu:.1f}%", metrics
+    if ram >= max_ram:
+        return False, f"ram {ram:.1f}% >= {max_ram:.1f}%", metrics
+    if temp >= max_temp:
+        return False, f"temp {temp:.1f}C >= {max_temp:.1f}C", metrics
+    return True, f"load ok cpu={cpu:.1f}% ram={ram:.1f}% temp={temp:.1f}C", metrics
+
+
 def k10_cae_busy(cfg: dict[str, Any] | None = None) -> tuple[bool, str]:
     cfg = cfg or load_config()
     if STATUS_PATH.exists():
@@ -136,7 +184,11 @@ def pick_host(category: str, cfg: dict[str, Any] | None = None) -> dict[str, Any
                 ok = True
                 reason = f"job_worker unavailable; bridge={bridge_reason}"
         if ok:
-            available_satellites.append((node_id, reason))
+            load_ok, load_reason, _metrics = satellite_load_guard(cfg, node_id)
+            if load_ok:
+                available_satellites.append((node_id, f"{reason}; {load_reason}"))
+            else:
+                available_satellites.append((f"{node_id}:guarded", f"{reason}; {load_reason}"))
 
     decision = {
         "host": "k10",
@@ -145,13 +197,17 @@ def pick_host(category: str, cfg: dict[str, Any] | None = None) -> dict[str, Any
         "k10_stats": stats,
         "k10_cae_busy": busy,
         "k10_busy_reason": busy_reason,
-        "satellites_online": len(available_satellites) > 0,
+        "satellites_online": any(not node_id.endswith(":guarded") for node_id, _ in available_satellites),
         "satellites_probe": available_satellites,
     }
 
-    if available_satellites and category in lavie_openfoam:
+    dispatchable_satellites = [
+        (node_id, reason) for node_id, reason in available_satellites if not node_id.endswith(":guarded")
+    ]
+
+    if dispatchable_satellites and category in lavie_openfoam:
         if busy or parallel.get("openfoam_to_lavie", True):
-            chosen_sat, _ = available_satellites[0]
+            chosen_sat, _ = dispatchable_satellites[0]
             decision["host"] = chosen_sat
             decision["reason"] = f"OpenFOAM offload -> {chosen_sat} ({busy_reason})"
             return decision
@@ -160,7 +216,7 @@ def pick_host(category: str, cfg: dict[str, Any] | None = None) -> dict[str, Any
     cpu = stats.get("cpu_percent", 0.0)
     force_k10 = float(k10_cfg.get("force_when_ram_above_percent") or 88)
     prefer_k10 = float(k10_cfg.get("prefer_when_ram_below_percent") or 70)
-    red_lavie_ready = any(node_id == "red_lavie" for node_id, _ in available_satellites)
+    red_lavie_ready = any(node_id == "red_lavie" for node_id, _ in dispatchable_satellites)
 
     if category in heavy:
         if red_lavie_ready and (busy or ram >= prefer_k10 or cpu >= 75):
@@ -175,8 +231,8 @@ def pick_host(category: str, cfg: dict[str, Any] | None = None) -> dict[str, Any
         return decision
 
     if ram >= force_k10:
-        if available_satellites and category in light:
-            chosen_sat, _ = available_satellites[0]
+        if dispatchable_satellites and category in light:
+            chosen_sat, _ = dispatchable_satellites[0]
             decision["host"] = chosen_sat
             decision["reason"] = f"k10 ram {ram:.1f}% >= {force_k10}, offload light trial to {chosen_sat}"
         else:
@@ -184,8 +240,8 @@ def pick_host(category: str, cfg: dict[str, Any] | None = None) -> dict[str, Any
             decision["reason"] = f"k10 ram high but satellites unavailable"
         return decision
 
-    if category in light and available_satellites and ram > prefer_k10:
-        chosen_sat, _ = available_satellites[0]
+    if category in light and dispatchable_satellites and ram > prefer_k10:
+        chosen_sat, _ = dispatchable_satellites[0]
         decision["host"] = chosen_sat
         decision["reason"] = f"light category, k10 ram {ram:.1f}% > {prefer_k10}, dispatch to {chosen_sat}"
         return decision

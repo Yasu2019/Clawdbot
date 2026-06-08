@@ -3,6 +3,19 @@
 譛ｬ繝輔ぃ繧､繝ｫ縺ｯ縲√す繧ｹ繝・Β縺ｫ逋ｺ逕溘＠縺滄囿螳ｳ縺ｻ荳榊・蜷医→縺昴・譬ｹ譛ｬ蜴溷屏繝ｻ菫ｮ豁｣蜀・ｮｹ繝ｻ蜀咲匱髦ｲ豁｢遲悶ｒ險倬鹸縺励∪縺吶€・菫ｮ豁｣繧定｡後▲縺溷ｴ蜷医・縲∝ｿ・★縺薙・繝輔ぃ繧､繝ｫ縺ｫ繧ｨ繝ｳ繝医Μ繧定ｿｽ蜉縺励※縺上□縺輔＞縲・
 ------
 
+## INC-100: LAVIE disconnected after repeated resin_fill_cad TIMEOUTs and lacked a workload guard
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-06-08 JST |
+| **Detection** | User reported that LAVIE became unreachable around 13:47. K10 logs showed Tailscale last seen at 13:50 JST, monitor evidence stopped at 12:44 JST, and `lavie365-resin_fill_cad-aac22e92` recorded TIMEOUT around 13:48 JST after repeated `resin_fill_cad` TIMEOUTs. |
+| **Impact** | LAVIE became unavailable for fleet CAE work. The 24/365 loop continued probing and reporting `probe_fail`, while the previous allocation policy had no automatic brake for repeated heavy OpenFOAM failures. |
+| **Root Cause (5 Why)** | **Why1**: LAVIE disappeared from Tailscale and worker probes timed out. **Why2**: The node was running repeated heavy `resin_fill_cad` trials with 1320s TIMEOUTs. **Why3**: The continuous loop only changed dry-run behavior after fail streaks and did not stop assigning heavy categories early. **Why4**: The router checked worker reachability but not monitor-agent CPU/RAM/temperature guardrails before dispatch. **Why5**: Fleet allocation treated online reachability as sufficient capacity evidence, so high load and repeated TIMEOUTs were not converted into an automatic cooldown. |
+| **Fix** | Added satellite metrics gating in `scripts/cae_workload_router.py` using each node's monitor agent (`/metrics`) with CPU/RAM/temperature thresholds. Added LAVIE workload cooldown logic in `scripts/k10_lavie_continuous_te_loop.py`: repeated heavy-category failures or unsafe metrics activate a 180-minute guard and remove heavy OpenFOAM categories from that cycle. Added explicit thresholds to `data/workspace/cae_workload_router.yaml`. |
+| **Verification** | Static compile checks passed for both Python files. A once-run while LAVIE is offline still exits with `probe_fail`, preserving existing behavior without dispatching new work to an unreachable node. |
+| **Lessons Learned** | Online probes are not enough for fleet scheduling. Heavy CAE assignment must require both liveness and capacity health, and repeated TIMEOUTs must demote the workload before the node becomes unstable. |
+| **Prevention** | Keep monitor-agent metrics available on all satellite nodes. Treat heavy-category TIMEOUT streaks as a scheduling signal, not only a solver result. Extend dashboard display later to show active `workload_guards` so guarded nodes are visible to the operator. |
+
 ## INC-099: Red LAVIE was underused while K10 was thermally constrained
 
 | Field | Detail |

@@ -49,6 +49,10 @@ from outbound_delivery_guard import (
 )
 
 OPENFOAM_CATEGORIES = {"resin_fill_cad", "resin_fill_vof"}
+HEAVY_LAVIE_CATEGORIES = {"resin_fill_cad", "resin_fill_vof", "resin_fill"}
+LAVIE_GUARD_TIMEOUT_THRESHOLD = 2
+LAVIE_GUARD_WINDOW_MINUTES = 120
+LAVIE_GUARD_COOLDOWN_MINUTES = 180
 PP_PLATE_STEP = "data/cae_te_workspace/samples/moldflow/pp_plate/pp_plate_100x60x2.step"
 PP_PLATE_GATE = "data/cae_te_workspace/samples/moldflow/pp_plate/gate_spec_pp_center.json"
 MOLDFLOW_CAD_BASE: dict[str, Any] = {
@@ -532,6 +536,109 @@ def rolling_lavie_summary(hours: int = 24) -> dict[str, Any]:
     }
 
 
+def recent_lavie_failures(category: str, hours: float = 2.0) -> list[dict[str, Any]]:
+    if not TE_LOG.exists():
+        return []
+    try:
+        data = json.loads(TE_LOG.read_text(encoding="utf-8-sig"))
+    except Exception:
+        return []
+    cutoff = datetime.now(JST) - timedelta(hours=hours)
+    rows = []
+    for trial in data.get("trials") or []:
+        if trial.get("host") != "lavie":
+            continue
+        if str(trial.get("category") or "") != category:
+            continue
+        if str(trial.get("verdict") or "") not in {"TIMEOUT", "ERROR", "PREGATE_FAIL"}:
+            continue
+        ts = trial.get("logged_at") or trial.get("timestamp") or ""
+        dt = parse_dt(str(ts))
+        if dt is None:
+            continue
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=JST)
+        if dt.astimezone(JST) >= cutoff:
+            rows.append(trial)
+    return rows
+
+
+def guard_until_dt(state: dict[str, Any], node: str) -> datetime | None:
+    guards = state.get("workload_guards") or {}
+    rec = guards.get(node) or {}
+    return parse_dt(rec.get("until"))
+
+
+def remember_workload_guard(state: dict[str, Any], node: str, reason: str) -> None:
+    until = datetime.now(JST) + timedelta(minutes=LAVIE_GUARD_COOLDOWN_MINUTES)
+    state.setdefault("workload_guards", {})
+    state["workload_guards"][node] = {
+        "active": True,
+        "until": until.isoformat(),
+        "reason": reason[:300],
+        "updated_at": now_iso(),
+    }
+
+
+def clear_expired_workload_guard(state: dict[str, Any], node: str) -> None:
+    guards = state.get("workload_guards") or {}
+    rec = guards.get(node)
+    if not rec:
+        return
+    until = parse_dt(rec.get("until"))
+    if until is None or until.astimezone(JST) <= datetime.now(JST):
+        rec["active"] = False
+        rec["expired_at"] = now_iso()
+
+
+def lavie_workload_guard(cfg: dict[str, Any], state: dict[str, Any], node: str) -> dict[str, Any]:
+    clear_expired_workload_guard(state, node)
+    guarded_until = guard_until_dt(state, node)
+    if guarded_until and guarded_until.astimezone(JST) > datetime.now(JST):
+        rec = ((state.get("workload_guards") or {}).get(node) or {})
+        return {
+            "active": True,
+            "reason": rec.get("reason") or "cooldown active",
+            "until": guarded_until.isoformat(),
+            "source": "cooldown",
+        }
+
+    load_ok, load_reason, metrics = router.satellite_load_guard(cfg, node)
+    if not load_ok:
+        remember_workload_guard(state, node, load_reason)
+        return {
+            "active": True,
+            "reason": load_reason,
+            "until": ((state.get("workload_guards") or {}).get(node) or {}).get("until"),
+            "source": "metrics",
+            "metrics": metrics,
+        }
+
+    for category in HEAVY_LAVIE_CATEGORIES:
+        streak = int((state.get("real_fail_streak") or {}).get(category) or 0)
+        recent = recent_lavie_failures(category, hours=LAVIE_GUARD_WINDOW_MINUTES / 60)
+        if streak >= LAVIE_GUARD_TIMEOUT_THRESHOLD or len(recent) >= LAVIE_GUARD_TIMEOUT_THRESHOLD:
+            reason = (
+                f"{category} unstable: streak={streak}, "
+                f"recent_failures_{LAVIE_GUARD_WINDOW_MINUTES}m={len(recent)}"
+            )
+            remember_workload_guard(state, node, reason)
+            return {
+                "active": True,
+                "reason": reason,
+                "until": ((state.get("workload_guards") or {}).get(node) or {}).get("until"),
+                "source": "recent_failures",
+            }
+
+    return {"active": False, "reason": load_reason, "source": "ok", "metrics": metrics}
+
+
+def filter_guarded_categories(categories: list[str], guard: dict[str, Any]) -> list[str]:
+    if not guard.get("active"):
+        return categories
+    return [cat for cat in categories if cat not in HEAVY_LAVIE_CATEGORIES]
+
+
 def should_use_dry_run(category: str, state: dict[str, Any], force_dry: bool, allow_openfoam_real: bool) -> bool:
     if force_dry:
         return True
@@ -563,7 +670,15 @@ def run_one_cycle(
     if not ok:
         return {"ok": False, "stage": "probe_fail", "detail": detail}
 
-    categories = lavie_categories(cfg)
+    guard = lavie_workload_guard(cfg, state, node)
+    categories = filter_guarded_categories(lavie_categories(cfg), guard)
+    if not categories:
+        return {
+            "ok": False,
+            "stage": "workload_guard",
+            "detail": guard.get("reason") or "all configured categories guarded",
+            "guard": guard,
+        }
     category = pick_category_ucb1(state, categories)
     params = suggest_params(category, state)
     if category in ("resin_fill_cad", "resin_fill_vof"):
@@ -604,6 +719,8 @@ def run_one_cycle(
     fails = state.setdefault("real_fail_streak", {})
     if not dry_run and verdict in {"ERROR", "PREGATE_FAIL", "TIMEOUT"}:
         fails[category] = int(fails.get(category) or 0) + 1
+        if category in HEAVY_LAVIE_CATEGORIES and fails[category] >= LAVIE_GUARD_TIMEOUT_THRESHOLD:
+            remember_workload_guard(state, node, f"{category} fail streak={fails[category]} after {verdict}")
     elif verdict in {"SUCCESS", "DRY_RUN", "FAILED"}:
         fails[category] = 0
 
@@ -617,6 +734,7 @@ def run_one_cycle(
         "params": params,
         "reward": state.get("last_reward"),
         "worker_status": (bundle.get("worker_result") or {}).get("status"),
+        "guard": guard,
     }
 
 
@@ -631,6 +749,7 @@ def write_status(state: dict[str, Any], last_cycle: dict[str, Any], poll_seconds
             "category_stats": state.get("category_stats"),
             "best_scores": state.get("best_scores"),
             "real_fail_streak": state.get("real_fail_streak"),
+            "workload_guards": state.get("workload_guards"),
         },
         "rolling_24h": rolling_lavie_summary(24),
         "last_telegram": state.get("last_telegram"),
@@ -680,6 +799,16 @@ def main() -> int:
             print(f"[lavie365] telegram startup warn: {exc}")
 
     while True:
+        try:
+            import psutil
+            cpu = psutil.cpu_percent(interval=2.0)
+            if cpu > 70.0:
+                print(f"[lavie365] CPU too high ({cpu}% > 70%). Cooling down for 60s...", flush=True)
+                time.sleep(60)
+                continue
+        except ImportError:
+            pass
+
         cycle: dict[str, Any]
         try:
             cycle = run_one_cycle(
