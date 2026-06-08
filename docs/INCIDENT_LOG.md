@@ -3,6 +3,20 @@
 譛ｬ繝輔ぃ繧､繝ｫ縺ｯ縲√す繧ｹ繝・Β縺ｫ逋ｺ逕溘＠縺滄囿螳ｳ縺ｻ荳榊・蜷医→縺昴・譬ｹ譛ｬ蜴溷屏繝ｻ菫ｮ豁｣蜀・ｮｹ繝ｻ蜀咲匱髦ｲ豁｢遲悶ｒ險倬鹸縺励∪縺吶€・菫ｮ豁｣繧定｡後▲縺溷ｴ蜷医・縲∝ｿ・★縺薙・繝輔ぃ繧､繝ｫ縺ｫ繧ｨ繝ｳ繝医Μ繧定ｿｽ蜉縺励※縺上□縺輔＞縲・
 ------
 
+## INC-098: Fleet workload allocation lacked CPU hardware fields and user-work-PC guardrails
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-06-08 JST |
+| **Detection** | User requested a dashboard summary showing each connected PC's CPU frequency, core count, thread count, RAM capacity, CPU usage, RAM usage, and whether the assigned work was appropriate. Existing `monitor_agent :8111/metrics` exposed CPU/RAM usage and temperature, but not CPU model, clock, physical cores, or logical threads. The growth dashboard also showed node health separately from workload suitability. |
+| **Impact** | Heavy jobs could be assigned based only on online/offline status, without enough visibility into hardware capacity, thermal throttling, RAM pressure, or whether `mhn15` is being used by the user during daytime business hours. |
+| **Root Cause (5 Why)** | **Why1**: Dashboard could not explain whether assignment was appropriate.<br>**Why2**: Metrics lacked CPU hardware fields and workload policy output.<br>**Why3**: Fleet monitoring originally focused on liveness/temperature, not allocation decisions.<br>**Why4**: Human usage context such as `mhn15` daytime business use was not encoded as a routing guardrail.<br>**Why5**: There was no hardware-aware allocation table tied to live monitor data. |
+| **Fix** | Added CPU model, physical core count, logical thread count, max clock MHz, and current clock MHz to `scripts/monitor_agent.py` metrics. Added a live `Fleet Workload Allocation` table to `data/workspace/apps/growth_dashboard/index.html`, including thermal/RAM/CPU checks and a hard daytime light-only rule for `mhn15` from 08:00 to 19:00. |
+| **Files** | `scripts/monitor_agent.py`, `data/workspace/apps/growth_dashboard/index.html`, `docs/INCIDENT_LOG.md` |
+| **Verification** | `python -m py_compile scripts/monitor_agent.py` passed. Local import of the updated agent on K10 returned `13th Gen Intel(R) Core(TM) i9-13900HK`, `14C / 20T`, and clock fields. Dashboard inline JavaScript passed syntax validation by extracting script blocks and compiling with Node `new Function`. |
+| **Lessons Learned** | Fleet assignment must distinguish "online" from "suitable for work." User-facing PCs need explicit human-use windows, not just resource thresholds. |
+| **Prevention** | Keep workload allocation based on CPU/RAM/thermal/user-context gates. Do not assign heavy CAE/video/LLM batch jobs to `mhn15` during daytime even if metrics look idle. |
+
 ## INC-097: setup_monitor_node.ps1 reported success while monitor_agent was not started or registered
 
 | Field | Detail |
