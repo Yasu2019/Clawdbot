@@ -24,6 +24,20 @@ red_lavie:
   job_worker_port: 5682
   job_worker_path: /healthz
 
+red_lavie_preferred_categories:
+  - resin_fill_cad
+  - resin_fill_vof
+  - resin_fill
+  - press_bending
+  - press_blanking
+  - press_blanking_stripper
+
+lavie_heavy_fallback_enabled: false
+lavie_fallback_categories:
+  - press_crushing
+  - press_bending
+  - press_blanking
+  - press_blanking_stripper
 
 k10:
   ip: 192.168.3.87

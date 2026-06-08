@@ -3,6 +3,19 @@
 譛ｬ繝輔ぃ繧､繝ｫ縺ｯ縲√す繧ｹ繝・Β縺ｫ逋ｺ逕溘＠縺滄囿螳ｳ縺ｻ荳榊・蜷医→縺昴・譬ｹ譛ｬ蜴溷屏繝ｻ菫ｮ豁｣蜀・ｮｹ繝ｻ蜀咲匱髦ｲ豁｢遲悶ｒ險倬鹸縺励∪縺吶€・菫ｮ豁｣繧定｡後▲縺溷ｴ蜷医・縲∝ｿ・★縺薙・繝輔ぃ繧､繝ｫ縺ｫ繧ｨ繝ｳ繝医Μ繧定ｿｽ蜉縺励※縺上□縺輔＞縲・
 ------
 
+## INC-103: Regular LAVIE continued receiving heavy CAE while Red LAVIE had spare capacity but worker entry was offline
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-06-08 JST |
+| **Detection** | User observed that work could be shifted from LAVIE to Red LAVIE. Live checks showed Red LAVIE monitor metrics were healthy (`:8111/metrics` HTTP 200, CPU about 8%, RAM about 23.6%, temp about 60.9C), but Red LAVIE CAE job worker `:5682/healthz` timed out. Regular LAVIE was still the only dispatchable worker and could receive `resin_fill_cad`. |
+| **Impact** | Heavy OpenFOAM/Moldflow-style CAE could keep landing on regular LAVIE, increasing timeout and disconnect risk, while Red LAVIE had capacity but lacked an active worker entry. |
+| **Root Cause (5 Why)** | **Why1**: Regular LAVIE still received heavy work. **Why2**: Red LAVIE priority existed only when its worker was reachable. **Why3**: When Red LAVIE was unavailable, the router allowed fallback to any dispatchable satellite, including regular LAVIE. **Why4**: Continuous T&E used a fixed `lavie` node path and did not honor `red_lavie` routing as a first-class satellite host. **Why5**: CAE dispatch used regular LAVIE workspace defaults instead of node-specific `cae_workspace` and `cae_repo_root`, making Red LAVIE promotion fragile. |
+| **Fix** | Added `red_lavie_preferred_categories`, `lavie_heavy_fallback_enabled: false`, and controlled `lavie_fallback_categories` to `data/workspace/cae_workload_router.yaml`. Updated `scripts/cae_workload_router.py` to route preferred categories to Red LAVIE first and block heavy fallback to regular LAVIE when Red LAVIE is unavailable. Updated `scripts/k10_satellite_cae_dispatch.py` to treat `red_lavie` as a valid satellite host and use node-specific workspace/repo paths. Updated `scripts/k10_lavie_continuous_te_loop.py` default node selection to `auto`, so continuous CAE honors router decisions and records the selected node. |
+| **Verification** | `python -m py_compile scripts\cae_workload_router.py scripts\k10_satellite_cae_dispatch.py scripts\k10_lavie_continuous_te_loop.py` passed. A mocked healthy Red LAVIE selected `red_lavie` for `resin_fill_cad` and `press_bending`. Live router with Red LAVIE worker offline returned `host=k10` for `resin_fill_cad` with reason `red_lavie preferred but unavailable; regular lavie heavy fallback disabled`. A once-run continuous loop stopped at `route_guard` rather than dispatching the heavy job to regular LAVIE. |
+| **Lessons Learned** | Capacity headroom is only useful if the execution entry is online and the scheduler treats the node as a first-class target. Heavy fallback should be explicit, not accidental. |
+| **Prevention** | Keep Red LAVIE as preferred for `resin_fill_*` and medium press categories, require monitor-agent and worker health before dispatch, and do not send heavy OpenFOAM jobs to regular LAVIE unless explicitly re-enabled. |
+
 ## INC-102: Scribd pipeline mixed source scouting, downloading, ingestion, and autonomous code edits
 
 | Field | Detail |

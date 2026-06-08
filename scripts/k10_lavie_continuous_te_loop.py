@@ -697,6 +697,25 @@ def should_use_dry_run(category: str, state: dict[str, Any], force_dry: bool, al
     return False
 
 
+def resolve_cycle_node(category: str, requested_node: str, cfg: dict[str, Any]) -> dict[str, Any]:
+    if requested_node and requested_node != "auto":
+        return {
+            "node": requested_node,
+            "blocked": False,
+            "decision": {"host": requested_node, "reason": "forced continuous loop node"},
+        }
+    decision = router.pick_host(category, cfg)
+    host = str(decision.get("host") or "")
+    if host in {"red_lavie", "lavie"}:
+        return {"node": host, "blocked": False, "decision": decision}
+    return {
+        "node": "",
+        "blocked": True,
+        "decision": decision,
+        "reason": decision.get("reason") or f"router selected non-satellite host {host}",
+    }
+
+
 def run_one_cycle(
     *,
     node: str,
@@ -706,31 +725,60 @@ def run_one_cycle(
     force_dry: bool,
     allow_openfoam_real: bool,
 ) -> dict[str, Any]:
+    categories = lavie_categories(cfg)
+    if not categories:
+        return {
+            "ok": False,
+            "stage": "no_categories",
+            "detail": "no configured satellite categories",
+        }
+    category = pick_category_ucb1(state, categories)
+    route = resolve_cycle_node(category, node, cfg)
+    if route.get("blocked"):
+        return {
+            "ok": False,
+            "stage": "route_guard",
+            "detail": route.get("reason"),
+            "category": category,
+            "route_decision": route.get("decision"),
+        }
+    selected_node = str(route.get("node") or node or "lavie")
+
     token = sjp.load_token()
-    node_info = sjp.load_node(node)
+    node_info = sjp.load_node(selected_node)
     base_url = sjp.worker_base_url(node_info)
     ok, detail = sjp.probe_worker(base_url, token)
     if not ok:
-        return {"ok": False, "stage": "probe_fail", "detail": detail}
+        return {
+            "ok": False,
+            "stage": "probe_fail",
+            "detail": detail,
+            "node": selected_node,
+            "route_decision": route.get("decision"),
+        }
 
-    guard = lavie_workload_guard(cfg, state, node)
-    categories = filter_guarded_categories(lavie_categories(cfg), guard)
-    if not categories:
+    guard = lavie_workload_guard(cfg, state, selected_node)
+    guarded_categories = filter_guarded_categories(categories, guard)
+    if not guarded_categories:
         return {
             "ok": False,
             "stage": "workload_guard",
             "detail": guard.get("reason") or "all configured categories guarded",
             "guard": guard,
+            "node": selected_node,
+            "route_decision": route.get("decision"),
         }
-    category = pick_category_ucb1(state, categories)
+    if category not in guarded_categories:
+        category = pick_category_ucb1(state, guarded_categories)
+        route = resolve_cycle_node(category, selected_node, cfg)
     params = suggest_params(category, state)
     if category in ("resin_fill_cad", "resin_fill_vof"):
         params = {**MOLDFLOW_CAD_BASE, **params}
     dry_run = should_use_dry_run(category, state, force_dry, allow_openfoam_real)
-    trial_id = f"lavie365-{category}-{uuid.uuid4().hex[:8]}"
+    trial_id = f"{selected_node}-{category}-{uuid.uuid4().hex[:8]}"
 
     bundle = cae_dispatch.run_lavie_trial(
-        node=node,
+        node=selected_node,
         category=category,
         params=params or None,
         trial_id=trial_id,
@@ -740,7 +788,7 @@ def run_one_cycle(
         cfg=cfg,
     )
     trial = dict(bundle.get("trial_entry") or {})
-    trial.setdefault("host", "lavie")
+    trial.setdefault("host", selected_node)
     if params and "params" not in trial:
         trial["params"] = params
 
@@ -750,10 +798,12 @@ def run_one_cycle(
     cae_dispatch.append_cae_log(
         {
             "source": "lavie_continuous_te_loop",
+            "node": selected_node,
             "category": category,
             "trial_id": trial_id,
             "dry_run": dry_run,
             "params": params,
+            "route_decision": route.get("decision"),
             "trial_entry": trial,
         }
     )
@@ -765,7 +815,7 @@ def run_one_cycle(
         if category in HEAVY_LAVIE_CATEGORIES and fails[category] >= LAVIE_GUARD_TIMEOUT_THRESHOLD:
             remember_workload_guard(
                 state,
-                node,
+                selected_node,
                 f"{category} fail streak={fails[category]} after {verdict}",
                 source="fail_streak",
             )
@@ -783,6 +833,8 @@ def run_one_cycle(
         "reward": state.get("last_reward"),
         "worker_status": (bundle.get("worker_result") or {}).get("status"),
         "guard": guard,
+        "node": selected_node,
+        "route_decision": route.get("decision"),
     }
 
 
@@ -808,7 +860,7 @@ def write_status(state: dict[str, Any], last_cycle: dict[str, Any], poll_seconds
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="K10->LAVIE continuous CAE T&E loop")
-    parser.add_argument("--node", default="lavie")
+    parser.add_argument("--node", default="auto")
     parser.add_argument("--poll-seconds", type=int, default=180)
     parser.add_argument("--timeout", type=int, default=600)
     parser.add_argument("--dry-run", action="store_true", help="Force dry-run only")
@@ -830,7 +882,7 @@ def main() -> int:
     )
     failure_analysis.seed_resin_best_params(state)
     save_json(STATE_PATH, state)
-    print(f"[lavie365] start poll={args.poll_seconds}s dry_run_force={args.dry_run}")
+    print(f"[lavie365] start node={args.node} poll={args.poll_seconds}s dry_run_force={args.dry_run}")
 
     if not args.no_telegram:
         try:
@@ -892,6 +944,7 @@ def main() -> int:
         if cycle.get("ok"):
             print(
                 f"[lavie365] cycle OK cat={cycle.get('category')} "
+                f"node={cycle.get('node')} "
                 f"verdict={cycle.get('verdict')} dry={cycle.get('dry_run')} "
                 f"reward={cycle.get('reward')}"
             )

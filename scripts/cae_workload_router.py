@@ -169,6 +169,9 @@ def pick_host(category: str, cfg: dict[str, Any] | None = None) -> dict[str, Any
     heavy = set(cfg.get("heavy_categories") or [])
     light = set(cfg.get("light_categories") or [])
     lavie_openfoam = set(cfg.get("lavie_openfoam_categories") or [])
+    red_preferred = set(cfg.get("red_lavie_preferred_categories") or [])
+    lavie_fallback = set(cfg.get("lavie_fallback_categories") or [])
+    lavie_heavy_fallback = bool(cfg.get("lavie_heavy_fallback_enabled", True))
     k10_cfg = cfg.get("k10") or {}
     parallel = cfg.get("parallel_mode") or {}
     stats = host_stats()
@@ -204,6 +207,24 @@ def pick_host(category: str, cfg: dict[str, Any] | None = None) -> dict[str, Any
     dispatchable_satellites = [
         (node_id, reason) for node_id, reason in available_satellites if not node_id.endswith(":guarded")
     ]
+    red_lavie_ready = any(node_id == "red_lavie" for node_id, _ in dispatchable_satellites)
+    lavie_ready = any(node_id == "lavie" for node_id, _ in dispatchable_satellites)
+
+    if category in red_preferred:
+        if red_lavie_ready:
+            decision["host"] = "red_lavie"
+            decision["reason"] = f"red_lavie preferred category -> red_lavie ({busy_reason})"
+            return decision
+        if category in lavie_openfoam and not lavie_heavy_fallback:
+            decision["host"] = "k10"
+            decision["reason"] = (
+                "red_lavie preferred but unavailable; regular lavie heavy fallback disabled"
+            )
+            return decision
+        if lavie_ready and (category in lavie_fallback or lavie_heavy_fallback):
+            decision["host"] = "lavie"
+            decision["reason"] = f"red_lavie unavailable; controlled fallback -> lavie ({busy_reason})"
+            return decision
 
     if dispatchable_satellites and category in lavie_openfoam:
         if busy or parallel.get("openfoam_to_lavie", True):
@@ -216,7 +237,6 @@ def pick_host(category: str, cfg: dict[str, Any] | None = None) -> dict[str, Any
     cpu = stats.get("cpu_percent", 0.0)
     force_k10 = float(k10_cfg.get("force_when_ram_above_percent") or 88)
     prefer_k10 = float(k10_cfg.get("prefer_when_ram_below_percent") or 70)
-    red_lavie_ready = any(node_id == "red_lavie" for node_id, _ in dispatchable_satellites)
 
     if category in heavy:
         if red_lavie_ready and (busy or ram >= prefer_k10 or cpu >= 75):

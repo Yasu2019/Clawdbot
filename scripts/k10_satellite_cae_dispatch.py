@@ -135,8 +135,19 @@ def run_lavie_trial(
     cfg: dict[str, Any],
 ) -> dict[str, Any]:
     sync_cfg = cfg.get("cae_workspace_sync") or {}
-    workspace = sync_cfg.get("lavie_work_dir") or "E:/clawstack_satellite/data/work/cae_te_workspace"
-    repo_root = sync_cfg.get("lavie_repo_root") or "C:/lavie_usb_pack"
+    node_info = sjp.load_node(node)
+    workspace = (
+        node_info.get("cae_workspace")
+        or sync_cfg.get(f"{node}_work_dir")
+        or sync_cfg.get("lavie_work_dir")
+        or "E:/clawstack_satellite/data/work/cae_te_workspace"
+    )
+    repo_root = (
+        node_info.get("cae_repo_root")
+        or sync_cfg.get(f"{node}_repo_root")
+        or sync_cfg.get("lavie_repo_root")
+        or "C:/lavie_usb_pack"
+    )
 
     payload: dict[str, Any] = {
         "category": category,
@@ -158,7 +169,6 @@ def run_lavie_trial(
         "report": {"mode": "sync"},
     }
 
-    node_info = sjp.load_node(node)
     base_url = sjp.worker_base_url(node_info)
     result = sjp.dispatch_job(base_url, token, job, timeout)
     trial_entry = (result.get("metrics") or {}).get("cae_trial")
@@ -183,8 +193,8 @@ def main() -> int:
     parser.add_argument("--params-json", default="", help="Optional JSON params")
     parser.add_argument("--params-file", default="")
     parser.add_argument("--trial-id", default="")
-    parser.add_argument("--node", default="lavie", help="Satellite node when routed to lavie")
-    parser.add_argument("--host", default="", choices=["", "k10", "lavie"], help="Force host")
+    parser.add_argument("--node", default="", help="Satellite node override when routed to a satellite")
+    parser.add_argument("--host", default="", choices=["", "k10", "lavie", "red_lavie"], help="Force host")
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--timeout", type=int, default=600)
     parser.add_argument("--no-merge-log", action="store_true")
@@ -207,10 +217,11 @@ def main() -> int:
     print(f"[cae-dispatch] category={args.category} host={decision['host']} reason={decision.get('reason')}")
 
     try:
-        if decision["host"] == "lavie":
+        if decision["host"] in {"lavie", "red_lavie"}:
+            node = args.node or decision["host"]
             token = sjp.load_token()
             bundle = run_lavie_trial(
-                node=args.node,
+                node=node,
                 category=args.category,
                 params=params,
                 trial_id=trial_id,
@@ -220,7 +231,7 @@ def main() -> int:
                 cfg=cfg,
             )
             trial_entry = bundle["trial_entry"]
-            trial_entry.setdefault("host", "lavie")
+            trial_entry.setdefault("host", node)
             worker_result = bundle["worker_result"]
         else:
             trial_entry = run_local_trial(
@@ -261,7 +272,10 @@ def main() -> int:
 
         verdict = trial_entry.get("verdict", "ERROR")
         ok = verdict in {"SUCCESS", "DRY_RUN", "FAILED", "SKIPPED", "PREGATE_FAIL"}
-        if args.dry_run and decision.get("host") == "lavie" and trial_entry.get("host") == "lavie":
+        if args.dry_run and decision.get("host") in {"lavie", "red_lavie"} and trial_entry.get("host") in {
+            "lavie",
+            "red_lavie",
+        }:
             ok = True
         print(f"\nRESULT: {'PASS' if ok else 'FAIL'}")
         return 0 if ok else 1
