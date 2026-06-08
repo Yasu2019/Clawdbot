@@ -3,6 +3,20 @@
 譛ｬ繝輔ぃ繧､繝ｫ縺ｯ縲√す繧ｹ繝・Β縺ｫ逋ｺ逕溘＠縺滄囿螳ｳ縺ｻ荳榊・蜷医→縺昴・譬ｹ譛ｬ蜴溷屏繝ｻ菫ｮ豁｣蜀・ｮｹ繝ｻ蜀咲匱髦ｲ豁｢遲悶ｒ險倬鹸縺励∪縺吶€・菫ｮ豁｣繧定｡後▲縺溷ｴ蜷医・縲∝ｿ・★縺薙・繝輔ぃ繧､繝ｫ縺ｫ繧ｨ繝ｳ繝医Μ繧定ｿｽ蜉縺励※縺上□縺輔＞縲・
 ------
 
+## INC-099: Red LAVIE was underused while K10 was thermally constrained
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-06-08 JST |
+| **Detection** | User noted that Red LAVIE is a Core i7 node with low CPU usage, about 17% RAM usage, and about 62C temperature, while K10 was often close to full CPU use and thermally throttled. Existing routing already probed `red_lavie` before `lavie`, but heavy categories still returned `k10` unconditionally. |
+| **Impact** | K10 could continue receiving heavy CAE-style categories even when it was hot, memory pressured, or busy, leaving Red LAVIE available but underused. This increased K10 thermal throttling risk and reduced fleet throughput. |
+| **Root Cause (5 Why)** | **Why1**: Red LAVIE did not receive enough work.<br>**Why2**: The router only prioritized Red LAVIE within the satellite probe order, not in heavy-category routing.<br>**Why3**: `category in heavy` returned K10 before considering K10 CPU/RAM/busy state.<br>**Why4**: Dashboard wording still described Red LAVIE as auxiliary, so operator intent and router behavior were not aligned.<br>**Why5**: Fleet policy had not been updated after Red LAVIE metrics showed medium-heavy headroom. |
+| **Fix** | Updated `scripts/cae_workload_router.py` so heavy categories route to `red_lavie` when Red LAVIE is reachable and K10 is busy, RAM is above the preferred threshold, or CPU is high. Updated `data/workspace/apps/growth_dashboard/index.html` to show Red LAVIE as `ACTIVE / MEDIUM-HEAVY READY` and to dynamically recommend `MEDIUM-HEAVY READY` when CPU/RAM/temperature headroom is stable. |
+| **Files** | `scripts/cae_workload_router.py`, `data/workspace/apps/growth_dashboard/index.html`, `docs/INCIDENT_LOG.md` |
+| **Verification** | `python -m py_compile scripts/cae_workload_router.py` passed. A mocked `press_drawing` dry-run with Red LAVIE reachable and K10 at CPU 82% / RAM 83% selected `host=red_lavie`. Dashboard inline JavaScript compiled with Node `new Function`. `http://127.0.0.1:8088/apps/growth_dashboard/index.html` returned HTTP 200 and contained `MEDIUM-HEAVY READY` plus the 75C guard text. Live Red LAVIE monitor metrics at `:8111` returned HTTP 200, but `:5682/healthz` and `:5679/webhook/exec_bridge` timed out, so actual dispatch will remain on K10/LAVIE until Red LAVIE job worker or bridge is restored. |
+| **Lessons Learned** | Candidate priority is not the same as routing policy. When K10 is thermally constrained, heavy and medium work must consider available satellite headroom before defaulting to K10. |
+| **Prevention** | Keep Red LAVIE as the preferred K10 offload target for guarded medium-heavy work while it remains under 75C with CPU/RAM headroom. Avoid unconditional K10 routing for heavy categories when a healthier node is online. |
+
 ## INC-098: Fleet workload allocation lacked CPU hardware fields and user-work-PC guardrails
 
 | Field | Detail |

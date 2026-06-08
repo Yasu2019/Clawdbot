@@ -178,9 +178,9 @@
                             <div style="font-weight:600; font-size:1.05rem;">Red LAVIE</div>
                             <div style="font-size:0.8rem; color:var(--text-dim);">100.99.145.3</div>
                         </td>
-                        <td><span style="background: rgba(35, 134, 54, 0.1); border: 1px solid var(--accent); padding: 3px 8px; border-radius: 8px; color: var(--accent); font-weight:600; font-size:0.8rem;">ACTIVE / ONLINE</span></td>
-                        <td><div class="know-how">Auxiliary node and medium-heavy candidate. Use for bounded background jobs after fresh metrics confirm stable temperature and RAM headroom.</div></td>
-                        <td><strong>VERIFIED 2026-06-08</strong><br><span class="timestamp">Same auxiliary role continues.</span></td>
+                        <td><span style="background: rgba(35, 134, 54, 0.1); border: 1px solid var(--accent); padding: 3px 8px; border-radius: 8px; color: var(--accent); font-weight:600; font-size:0.8rem;">ACTIVE / MEDIUM-HEAVY READY</span></td>
+                        <td><div class="know-how">Preferred K10 offload target for medium and guarded heavy jobs while CPU, RAM, and temperature stay stable. Start with bounded CAE batches, larger ingest, report generation, and render helper jobs after job_worker or exec_bridge is online.</div></td>
+                        <td><strong>VERIFIED 2026-06-08</strong><br><span class="timestamp">Promoted from auxiliary role; keep thermal guard at 75C and require worker reachability.</span></td>
                     </tr>
                     <tr>
                         <td>
@@ -909,7 +909,7 @@
             { name: "Dynabook", ip: "100.98.133.40", url: "http://100.98.133.40:8111/metrics", role: "Light satellite" },
             { name: "G3", ip: "100.121.241.128", url: "http://100.121.241.128:8111/metrics", role: "Stable satellite" },
             { name: "LAVIE", ip: "100.87.244.46", url: "http://100.87.244.46:8111/metrics", role: "CAE worker" },
-            { name: "red_lavie", ip: "100.99.145.3", url: "http://100.99.145.3:8111/metrics", role: "Auxiliary node" }
+            { name: "red_lavie", ip: "100.99.145.3", url: "http://100.99.145.3:8111/metrics", role: "Medium-heavy ready worker", mediumHeavyCandidate: true }
         ];
 
         function mhzText(value) {
@@ -955,6 +955,13 @@
                     level: "WAIT",
                     color: "#d29922",
                     text: "Already busy. Avoid additional work until CPU/RAM drops."
+                };
+            }
+            if (node.mediumHeavyCandidate && temp > 0 && temp < 75 && cpu < 70 && ram < 70) {
+                return {
+                    level: "MEDIUM-HEAVY READY",
+                    color: "#3fb950",
+                    text: "Preferred K10 offload target for medium and guarded heavy jobs: CAE batches, larger ingest, reports, and bounded render helpers. Keep thermal guard at 75C and confirm job_worker or exec_bridge before dispatch."
                 };
             }
             if ((metrics.ram_total_gb || 0) >= 32 && cpu < 70 && ram < 75) {
