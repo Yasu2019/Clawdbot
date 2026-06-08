@@ -1,0 +1,1481 @@
+{
+  "schema": "clawstack.quality_manufacturing_source_scout.v1",
+  "updated_at": "2026-06-08T16:55:13+09:00",
+  "mode": "metadata_only_reachability",
+  "sources": [
+    {
+      "name": "NIST/SEMATECH Engineering Statistics Handbook",
+      "url": "https://www.nist.gov/programs-projects/nistsematech-engineering-statistics-handbook",
+      "cost_label": "FREE",
+      "source_type": "official_handbook",
+      "domains": [
+        "spc",
+        "sqc",
+        "doe",
+        "msa",
+        "process_capability",
+        "quality_management"
+      ],
+      "priority": 1,
+      "why": "Strong free baseline for SPC, DOE, process monitoring, measurement, and statistical quality thinking.",
+      "next_query": "site:nist.gov SEMATECH engineering statistics handbook SPC MSA DOE process capability",
+      "reachability": {
+        "ok": true,
+        "status": 200,
+        "elapsed_ms": 587,
+        "content_type": "text/html; charset=UTF-8"
+      }
+    },
+    {
+      "name": "AIAG Quality Core Tools",
+      "url": "https://www.aiag.org/expertise-areas/quality/quality-core-tools",
+      "cost_label": "PAID",
+      "source_type": "official_standards_and_training",
+      "domains": [
+        "apqp",
+        "control_plan",
+        "ppap",
+        "fmea",
+        "msa",
+        "spc",
+        "iatf"
+      ],
+      "priority": 1,
+      "why": "Authoritative source for automotive core tools. Many manuals and courses are paid, so use as paid-reference candidate.",
+      "next_query": "site:aiag.org APQP Control Plan PPAP FMEA MSA SPC free overview",
+      "reachability": {
+        "ok": true,
+        "status": 200,
+        "elapsed_ms": 1194,
+        "content_type": "text/html; charset=utf-8"
+      }
+    },
+    {
+      "name": "AIAG Core Tools Key Terms and Self Assessment",
+      "url": "https://go.aiag.org/core-tools-terms",
+      "cost_label": "FREE_REG",
+      "source_type": "official_reference",
+      "domains": [
+        "apqp",
+        "fmea",
+        "msa",
+        "spc",
+        "ppap",
+        "training"
+      ],
+      "priority": 2,
+      "why": "Useful free or registration-gated glossary/self-assessment entry point before buying manuals.",
+      "next_query": "AIAG core tools terms self assessment APQP FMEA MSA SPC",
+      "reachability": {
+        "ok": true,
+        "status": 200,
+        "elapsed_ms": 333,
+        "content_type": "text/html; charset=UTF-8"
+      }
+    },
+    {
+      "name": "NASA Systems Engineering Handbook",
+      "url": "https://www.nasa.gov/reference/systems-engineering-handbook/",
+      "cost_label": "FREE",
+      "source_type": "official_handbook",
+      "domains": [
+        "requirements",
+        "risk",
+        "verification",
+        "fmea",
+        "systems_engineering",
+        "project_management"
+      ],
+      "priority": 1,
+      "why": "Good free framework for requirements, validation, verification, risk, interfaces, and complex app development discipline.",
+      "next_query": "NASA systems engineering handbook risk requirements verification FMEA PDF",
+      "reachability": {
+        "ok": true,
+        "status": 200,
+        "elapsed_ms": 53,
+        "content_type": "text/html; charset=UTF-8"
+      }
+    },
+    {
+      "name": "NASA Technical Reports Server",
+      "url": "https://ntrs.nasa.gov/",
+      "cost_label": "FREE",
+      "source_type": "official_repository",
+      "domains": [
+        "risk",
+        "failure_analysis",
+        "simulation",
+        "materials",
+        "systems_engineering"
+      ],
+      "priority": 2,
+      "why": "Large technical-report repository for failure analysis, verification, modelling, and engineering methods.",
+      "next_query": "site:ntrs.nasa.gov FMEA risk management verification manufacturing simulation",
+      "reachability": {
+        "ok": true,
+        "status": 200,
+        "elapsed_ms": 569,
+        "content_type": "text/html; charset=utf-8"
+      }
+    },
+    {
+      "name": "Autodesk Moldflow Insight Help",
+      "url": "https://help.autodesk.com/view/MFIA/2026/ENU/",
+      "cost_label": "FREE",
+      "source_type": "official_help",
+      "domains": [
+        "injection_molding",
+        "moldflow",
+        "resin_flow",
+        "warpage",
+        "cooling",
+        "materials"
+      ],
+      "priority": 1,
+      "why": "Best legitimate reference for Moldflow result terminology and benchmark interpretation.",
+      "next_query": "site:help.autodesk.com/view/MFIA injection molding filling packing cooling warpage material model",
+      "reachability": {
+        "ok": true,
+        "status": 200,
+        "elapsed_ms": 267,
+        "content_type": "text/html; charset=UTF-8"
+      }
+    },
+    {
+      "name": "openInjMoldSim Paper",
+      "url": "https://www.mdpi.com/2311-5521/5/2/84",
+      "cost_label": "FREE",
+      "source_type": "open_access_paper",
+      "domains": [
+        "injection_molding",
+        "openfoam",
+        "resin_flow",
+        "vof",
+        "non_newtonian",
+        "solver_design"
+      ],
+      "priority": 1,
+      "why": "Closest open paper pattern for building our own injection molding simulation and using Moldflow as benchmark.",
+      "next_query": "openInjMoldSim OpenFOAM injection molding Cross WLF Tait VOF",
+      "reachability": {
+        "ok": true,
+        "status": 200,
+        "elapsed_ms": 406,
+        "content_type": "text/html; charset=UTF-8"
+      }
+    },
+    {
+      "name": "OpenFOAM Documentation",
+      "url": "https://www.openfoam.com/documentation/overview",
+      "cost_label": "FREE",
+      "source_type": "official_docs",
+      "domains": [
+        "cfd",
+        "openfoam",
+        "mesh",
+        "solver_design",
+        "post_processing"
+      ],
+      "priority": 1,
+      "why": "Free CFD solver docs for file structure, meshing, numerical schemes, and post-processing foundations.",
+      "next_query": "OpenFOAM user guide multiphase non Newtonian polymer injection molding",
+      "reachability": {
+        "ok": true,
+        "status": 200,
+        "elapsed_ms": 1062,
+        "content_type": "text/html; charset=UTF-8"
+      }
+    },
+    {
+      "name": "OpenRadioss Documentation",
+      "url": "https://openradioss.atlassian.net/wiki/spaces/OPENRADIOSS/overview",
+      "cost_label": "FREE",
+      "source_type": "official_docs",
+      "domains": [
+        "openradioss",
+        "explicit_dynamics",
+        "press_forming",
+        "bending",
+        "blanking",
+        "springback"
+      ],
+      "priority": 1,
+      "why": "Primary reference for our bending and blanking solver work and deck correctness.",
+      "next_query": "OpenRadioss examples shell forming bending blanking springback",
+      "reachability": {
+        "ok": true,
+        "status": 200,
+        "elapsed_ms": 335,
+        "content_type": "text/html;charset=UTF-8"
+      }
+    },
+    {
+      "name": "MVTec Anomaly Detection Datasets",
+      "url": "https://www.mvtec.com/company/research/datasets",
+      "cost_label": "FREE_REG",
+      "source_type": "official_dataset",
+      "domains": [
+        "visual_inspection",
+        "anomaly_detection",
+        "dataset",
+        "deep_learning"
+      ],
+      "priority": 1,
+      "why": "Standard benchmark family for industrial anomaly detection. License is typically non-commercial, so confirm before business use.",
+      "next_query": "MVTec AD dataset license anomaly detection industrial inspection",
+      "reachability": {
+        "ok": true,
+        "status": 200,
+        "elapsed_ms": 1846,
+        "content_type": "text/html; charset=utf-8"
+      }
+    },
+    {
+      "name": "Kolektor Surface-Defect Dataset",
+      "url": "https://www.vicos.si/resources/kolektorsdd",
+      "cost_label": "FREE_REG",
+      "source_type": "academic_dataset",
+      "domains": [
+        "visual_inspection",
+        "surface_defect",
+        "segmentation",
+        "deep_learning"
+      ],
+      "priority": 1,
+      "why": "Real industrial surface-defect dataset with annotations, useful for small-defect segmentation experiments.",
+      "next_query": "KolektorSDD Kolektor surface defect dataset license paper",
+      "reachability": {
+        "ok": true,
+        "status": 200,
+        "elapsed_ms": 2758,
+        "content_type": "text/html"
+      }
+    },
+    {
+      "name": "CVF Open Access",
+      "url": "https://openaccess.thecvf.com/",
+      "cost_label": "FREE",
+      "source_type": "open_access_papers",
+      "domains": [
+        "computer_vision",
+        "visual_inspection",
+        "anomaly_detection",
+        "segmentation",
+        "3d_generation"
+      ],
+      "priority": 1,
+      "why": "Reliable open papers for CVPR/ICCV/ECCV methods, often with code links.",
+      "next_query": "site:openaccess.thecvf.com industrial anomaly detection manufacturing defect segmentation",
+      "reachability": {
+        "ok": true,
+        "status": 200,
+        "elapsed_ms": 3133,
+        "content_type": "text/html; charset=UTF-8"
+      }
+    },
+    {
+      "name": "arXiv",
+      "url": "https://arxiv.org/",
+      "cost_label": "FREE",
+      "source_type": "preprint_repository",
+      "domains": [
+        "deep_learning",
+        "visual_inspection",
+        "cae",
+        "tolerance_analysis",
+        "3d_generation"
+      ],
+      "priority": 1,
+      "why": "Fastest source for new theory, surveys, and implementation papers. Needs quality filtering.",
+      "next_query": "arXiv industrial visual inspection survey manufacturing defect detection tolerance analysis injection molding simulation",
+      "reachability": {
+        "ok": true,
+        "status": 200,
+        "elapsed_ms": 63,
+        "content_type": "text/html; charset=utf-8"
+      }
+    },
+    {
+      "name": "Papers with Code",
+      "url": "https://paperswithcode.com/",
+      "cost_label": "FREE",
+      "source_type": "paper_code_index",
+      "domains": [
+        "deep_learning",
+        "benchmarks",
+        "datasets",
+        "implementation"
+      ],
+      "priority": 1,
+      "why": "Good for finding papers with code and benchmark tables before investing implementation time.",
+      "next_query": "Papers with Code industrial anomaly detection MVTec AD VisA BTAD Real-IAD",
+      "reachability": {
+        "ok": true,
+        "status": 200,
+        "elapsed_ms": 440,
+        "content_type": "text/html; charset=utf-8"
+      }
+    },
+    {
+      "name": "Kaggle Datasets and Competitions",
+      "url": "https://www.kaggle.com/datasets",
+      "cost_label": "FREE_REG",
+      "source_type": "dataset_platform",
+      "domains": [
+        "visual_inspection",
+        "predictive_maintenance",
+        "process_data",
+        "deep_learning"
+      ],
+      "priority": 2,
+      "why": "Useful datasets such as Severstal steel defects and predictive maintenance examples. Registration and license checks required.",
+      "next_query": "site:kaggle.com manufacturing defect detection predictive maintenance quality dataset",
+      "reachability": {
+        "ok": false,
+        "status": 404,
+        "elapsed_ms": 300,
+        "error": "HTTP Error 404: Not Found"
+      }
+    },
+    {
+      "name": "Roboflow Universe",
+      "url": "https://universe.roboflow.com/",
+      "cost_label": "FREE_REG",
+      "source_type": "dataset_model_platform",
+      "domains": [
+        "visual_inspection",
+        "object_detection",
+        "segmentation",
+        "dataset_management"
+      ],
+      "priority": 2,
+      "why": "Large public CV dataset catalog. Quality varies, so use as candidate source, not ground truth.",
+      "next_query": "Roboflow Universe manufacturing defect detection surface scratch dataset license",
+      "reachability": {
+        "ok": true,
+        "status": 206,
+        "elapsed_ms": 190,
+        "content_type": "text/html; charset=utf-8",
+        "method": "GET_RANGE"
+      }
+    },
+    {
+      "name": "Zenodo",
+      "url": "https://zenodo.org/",
+      "cost_label": "FREE",
+      "source_type": "research_data_repository",
+      "domains": [
+        "datasets",
+        "papers",
+        "cae",
+        "manufacturing",
+        "quality"
+      ],
+      "priority": 2,
+      "why": "Good for DOI-backed datasets and supplementary material with explicit licenses.",
+      "next_query": "site:zenodo.org manufacturing defect dataset sheet metal forming injection molding tolerance analysis",
+      "reachability": {
+        "ok": true,
+        "status": 200,
+        "elapsed_ms": 1026,
+        "content_type": "text/html; charset=utf-8"
+      }
+    },
+    {
+      "name": "Figshare",
+      "url": "https://figshare.com/",
+      "cost_label": "FREE",
+      "source_type": "research_data_repository",
+      "domains": [
+        "datasets",
+        "materials",
+        "inspection",
+        "cae"
+      ],
+      "priority": 3,
+      "why": "Supplementary datasets with DOI and license metadata; useful after core sources.",
+      "next_query": "site:figshare.com manufacturing defect inspection dataset forming simulation",
+      "reachability": {
+        "ok": true,
+        "status": 202,
+        "elapsed_ms": 797,
+        "content_type": "text/html; charset=UTF-8"
+      }
+    },
+    {
+      "name": "Mendeley Data",
+      "url": "https://data.mendeley.com/",
+      "cost_label": "FREE",
+      "source_type": "research_data_repository",
+      "domains": [
+        "datasets",
+        "inspection",
+        "predictive_maintenance",
+        "materials"
+      ],
+      "priority": 3,
+      "why": "Often hosts dataset companions to engineering papers.",
+      "next_query": "site:data.mendeley.com manufacturing defect detection predictive maintenance dataset"
+    },
+    {
+      "name": "PubMed Central",
+      "url": "https://pmc.ncbi.nlm.nih.gov/",
+      "cost_label": "FREE",
+      "source_type": "open_access_papers",
+      "domains": [
+        "statistics",
+        "machine_learning",
+        "measurement",
+        "quality"
+      ],
+      "priority": 3,
+      "why": "Not manufacturing-specific, but strong for statistics, validation, and ML evaluation methods.",
+      "next_query": "site:pmc.ncbi.nlm.nih.gov machine learning anomaly detection measurement validation statistical process control"
+    },
+    {
+      "name": "DOAJ",
+      "url": "https://doaj.org/",
+      "cost_label": "FREE",
+      "source_type": "open_access_index",
+      "domains": [
+        "open_access",
+        "manufacturing",
+        "quality",
+        "cae"
+      ],
+      "priority": 3,
+      "why": "Open access journal index useful for screening non-paywalled engineering articles.",
+      "next_query": "DOAJ sheet metal forming injection molding simulation quality management manufacturing"
+    },
+    {
+      "name": "J-STAGE",
+      "url": "https://www.jstage.jst.go.jp/",
+      "cost_label": "FREE",
+      "source_type": "japanese_open_papers",
+      "domains": [
+        "japanese",
+        "manufacturing",
+        "quality",
+        "materials",
+        "forming"
+      ],
+      "priority": 2,
+      "why": "Japanese technical papers and society journals; useful for Japanese manufacturing terminology and practical framing.",
+      "next_query": "site:jstage.jst.go.jp resin flow analysis press forming tolerance analysis visual inspection deep learning"
+    },
+    {
+      "name": "AIST Research and DB",
+      "url": "https://www.aist.go.jp/",
+      "cost_label": "FREE",
+      "source_type": "official_research",
+      "domains": [
+        "japanese",
+        "manufacturing",
+        "ai",
+        "metrology",
+        "materials"
+      ],
+      "priority": 3,
+      "why": "Japanese industrial AI, measurement, materials, and manufacturing research gateway.",
+      "next_query": "site:aist.go.jp manufacturing AI visual inspection metrology materials dataset"
+    },
+    {
+      "name": "IPA Digital Skill and DX Materials",
+      "url": "https://www.ipa.go.jp/",
+      "cost_label": "FREE",
+      "source_type": "official_guidance",
+      "domains": [
+        "dx",
+        "security",
+        "ai_governance",
+        "training",
+        "software_quality"
+      ],
+      "priority": 3,
+      "why": "Useful for internal training apps, IT governance, security, and DX skill maps.",
+      "next_query": "site:ipa.go.jp AI quality DX skills security training material"
+    },
+    {
+      "name": "ISO, JIS, IATF Standard Texts",
+      "url": "https://www.iso.org/standards.html",
+      "cost_label": "PAID",
+      "source_type": "standards",
+      "domains": [
+        "iatf",
+        "iso",
+        "jis",
+        "audit",
+        "qms"
+      ],
+      "priority": 1,
+      "why": "Authoritative, but usually paid and license-restricted. Do not download from unofficial mirrors.",
+      "next_query": "ISO 9001 IATF 16949 internal audit guidance official paid standard"
+    },
+    {
+      "name": "SAE Mobilus",
+      "url": "https://saemobilus.sae.org/",
+      "cost_label": "PAID",
+      "source_type": "technical_papers",
+      "domains": [
+        "automotive",
+        "manufacturing",
+        "cae",
+        "materials",
+        "quality"
+      ],
+      "priority": 3,
+      "why": "Can contain high-value automotive manufacturing papers, but usually paid.",
+      "next_query": "SAE sheet metal forming tolerance analysis injection molding quality manufacturing"
+    },
+    {
+      "name": "IEEE Xplore",
+      "url": "https://ieeexplore.ieee.org/",
+      "cost_label": "PAID",
+      "source_type": "technical_papers",
+      "domains": [
+        "deep_learning",
+        "visual_inspection",
+        "factory_ai",
+        "sensors"
+      ],
+      "priority": 3,
+      "why": "Good for sensor/vision/AI papers, but many articles are paid. Prefer arXiv/CVF copy when available.",
+      "next_query": "IEEE industrial visual inspection deep learning manufacturing defect detection"
+    }
+  ],
+  "grouped_sources": {
+    "qms_core_tools": [
+      {
+        "name": "NASA Systems Engineering Handbook",
+        "url": "https://www.nasa.gov/reference/systems-engineering-handbook/",
+        "cost_label": "FREE",
+        "source_type": "official_handbook",
+        "domains": [
+          "requirements",
+          "risk",
+          "verification",
+          "fmea",
+          "systems_engineering",
+          "project_management"
+        ],
+        "priority": 1,
+        "why": "Good free framework for requirements, validation, verification, risk, interfaces, and complex app development discipline.",
+        "next_query": "NASA systems engineering handbook risk requirements verification FMEA PDF",
+        "reachability": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 53,
+          "content_type": "text/html; charset=UTF-8"
+        }
+      },
+      {
+        "name": "NIST/SEMATECH Engineering Statistics Handbook",
+        "url": "https://www.nist.gov/programs-projects/nistsematech-engineering-statistics-handbook",
+        "cost_label": "FREE",
+        "source_type": "official_handbook",
+        "domains": [
+          "spc",
+          "sqc",
+          "doe",
+          "msa",
+          "process_capability",
+          "quality_management"
+        ],
+        "priority": 1,
+        "why": "Strong free baseline for SPC, DOE, process monitoring, measurement, and statistical quality thinking.",
+        "next_query": "site:nist.gov SEMATECH engineering statistics handbook SPC MSA DOE process capability",
+        "reachability": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 587,
+          "content_type": "text/html; charset=UTF-8"
+        }
+      },
+      {
+        "name": "AIAG Quality Core Tools",
+        "url": "https://www.aiag.org/expertise-areas/quality/quality-core-tools",
+        "cost_label": "PAID",
+        "source_type": "official_standards_and_training",
+        "domains": [
+          "apqp",
+          "control_plan",
+          "ppap",
+          "fmea",
+          "msa",
+          "spc",
+          "iatf"
+        ],
+        "priority": 1,
+        "why": "Authoritative source for automotive core tools. Many manuals and courses are paid, so use as paid-reference candidate.",
+        "next_query": "site:aiag.org APQP Control Plan PPAP FMEA MSA SPC free overview",
+        "reachability": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 1194,
+          "content_type": "text/html; charset=utf-8"
+        }
+      },
+      {
+        "name": "ISO, JIS, IATF Standard Texts",
+        "url": "https://www.iso.org/standards.html",
+        "cost_label": "PAID",
+        "source_type": "standards",
+        "domains": [
+          "iatf",
+          "iso",
+          "jis",
+          "audit",
+          "qms"
+        ],
+        "priority": 1,
+        "why": "Authoritative, but usually paid and license-restricted. Do not download from unofficial mirrors.",
+        "next_query": "ISO 9001 IATF 16949 internal audit guidance official paid standard"
+      },
+      {
+        "name": "AIAG Core Tools Key Terms and Self Assessment",
+        "url": "https://go.aiag.org/core-tools-terms",
+        "cost_label": "FREE_REG",
+        "source_type": "official_reference",
+        "domains": [
+          "apqp",
+          "fmea",
+          "msa",
+          "spc",
+          "ppap",
+          "training"
+        ],
+        "priority": 2,
+        "why": "Useful free or registration-gated glossary/self-assessment entry point before buying manuals.",
+        "next_query": "AIAG core tools terms self assessment APQP FMEA MSA SPC",
+        "reachability": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 333,
+          "content_type": "text/html; charset=UTF-8"
+        }
+      }
+    ],
+    "visual_inspection_ai": [
+      {
+        "name": "CVF Open Access",
+        "url": "https://openaccess.thecvf.com/",
+        "cost_label": "FREE",
+        "source_type": "open_access_papers",
+        "domains": [
+          "computer_vision",
+          "visual_inspection",
+          "anomaly_detection",
+          "segmentation",
+          "3d_generation"
+        ],
+        "priority": 1,
+        "why": "Reliable open papers for CVPR/ICCV/ECCV methods, often with code links.",
+        "next_query": "site:openaccess.thecvf.com industrial anomaly detection manufacturing defect segmentation",
+        "reachability": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 3133,
+          "content_type": "text/html; charset=UTF-8"
+        }
+      },
+      {
+        "name": "Papers with Code",
+        "url": "https://paperswithcode.com/",
+        "cost_label": "FREE",
+        "source_type": "paper_code_index",
+        "domains": [
+          "deep_learning",
+          "benchmarks",
+          "datasets",
+          "implementation"
+        ],
+        "priority": 1,
+        "why": "Good for finding papers with code and benchmark tables before investing implementation time.",
+        "next_query": "Papers with Code industrial anomaly detection MVTec AD VisA BTAD Real-IAD",
+        "reachability": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 440,
+          "content_type": "text/html; charset=utf-8"
+        }
+      },
+      {
+        "name": "arXiv",
+        "url": "https://arxiv.org/",
+        "cost_label": "FREE",
+        "source_type": "preprint_repository",
+        "domains": [
+          "deep_learning",
+          "visual_inspection",
+          "cae",
+          "tolerance_analysis",
+          "3d_generation"
+        ],
+        "priority": 1,
+        "why": "Fastest source for new theory, surveys, and implementation papers. Needs quality filtering.",
+        "next_query": "arXiv industrial visual inspection survey manufacturing defect detection tolerance analysis injection molding simulation",
+        "reachability": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 63,
+          "content_type": "text/html; charset=utf-8"
+        }
+      },
+      {
+        "name": "Kolektor Surface-Defect Dataset",
+        "url": "https://www.vicos.si/resources/kolektorsdd",
+        "cost_label": "FREE_REG",
+        "source_type": "academic_dataset",
+        "domains": [
+          "visual_inspection",
+          "surface_defect",
+          "segmentation",
+          "deep_learning"
+        ],
+        "priority": 1,
+        "why": "Real industrial surface-defect dataset with annotations, useful for small-defect segmentation experiments.",
+        "next_query": "KolektorSDD Kolektor surface defect dataset license paper",
+        "reachability": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 2758,
+          "content_type": "text/html"
+        }
+      },
+      {
+        "name": "MVTec Anomaly Detection Datasets",
+        "url": "https://www.mvtec.com/company/research/datasets",
+        "cost_label": "FREE_REG",
+        "source_type": "official_dataset",
+        "domains": [
+          "visual_inspection",
+          "anomaly_detection",
+          "dataset",
+          "deep_learning"
+        ],
+        "priority": 1,
+        "why": "Standard benchmark family for industrial anomaly detection. License is typically non-commercial, so confirm before business use.",
+        "next_query": "MVTec AD dataset license anomaly detection industrial inspection",
+        "reachability": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 1846,
+          "content_type": "text/html; charset=utf-8"
+        }
+      },
+      {
+        "name": "Kaggle Datasets and Competitions",
+        "url": "https://www.kaggle.com/datasets",
+        "cost_label": "FREE_REG",
+        "source_type": "dataset_platform",
+        "domains": [
+          "visual_inspection",
+          "predictive_maintenance",
+          "process_data",
+          "deep_learning"
+        ],
+        "priority": 2,
+        "why": "Useful datasets such as Severstal steel defects and predictive maintenance examples. Registration and license checks required.",
+        "next_query": "site:kaggle.com manufacturing defect detection predictive maintenance quality dataset",
+        "reachability": {
+          "ok": false,
+          "status": 404,
+          "elapsed_ms": 300,
+          "error": "HTTP Error 404: Not Found"
+        }
+      },
+      {
+        "name": "Roboflow Universe",
+        "url": "https://universe.roboflow.com/",
+        "cost_label": "FREE_REG",
+        "source_type": "dataset_model_platform",
+        "domains": [
+          "visual_inspection",
+          "object_detection",
+          "segmentation",
+          "dataset_management"
+        ],
+        "priority": 2,
+        "why": "Large public CV dataset catalog. Quality varies, so use as candidate source, not ground truth.",
+        "next_query": "Roboflow Universe manufacturing defect detection surface scratch dataset license",
+        "reachability": {
+          "ok": true,
+          "status": 206,
+          "elapsed_ms": 190,
+          "content_type": "text/html; charset=utf-8",
+          "method": "GET_RANGE"
+        }
+      },
+      {
+        "name": "IEEE Xplore",
+        "url": "https://ieeexplore.ieee.org/",
+        "cost_label": "PAID",
+        "source_type": "technical_papers",
+        "domains": [
+          "deep_learning",
+          "visual_inspection",
+          "factory_ai",
+          "sensors"
+        ],
+        "priority": 3,
+        "why": "Good for sensor/vision/AI papers, but many articles are paid. Prefer arXiv/CVF copy when available.",
+        "next_query": "IEEE industrial visual inspection deep learning manufacturing defect detection"
+      }
+    ],
+    "resin_flow_moldflow": [
+      {
+        "name": "Autodesk Moldflow Insight Help",
+        "url": "https://help.autodesk.com/view/MFIA/2026/ENU/",
+        "cost_label": "FREE",
+        "source_type": "official_help",
+        "domains": [
+          "injection_molding",
+          "moldflow",
+          "resin_flow",
+          "warpage",
+          "cooling",
+          "materials"
+        ],
+        "priority": 1,
+        "why": "Best legitimate reference for Moldflow result terminology and benchmark interpretation.",
+        "next_query": "site:help.autodesk.com/view/MFIA injection molding filling packing cooling warpage material model",
+        "reachability": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 267,
+          "content_type": "text/html; charset=UTF-8"
+        }
+      },
+      {
+        "name": "OpenFOAM Documentation",
+        "url": "https://www.openfoam.com/documentation/overview",
+        "cost_label": "FREE",
+        "source_type": "official_docs",
+        "domains": [
+          "cfd",
+          "openfoam",
+          "mesh",
+          "solver_design",
+          "post_processing"
+        ],
+        "priority": 1,
+        "why": "Free CFD solver docs for file structure, meshing, numerical schemes, and post-processing foundations.",
+        "next_query": "OpenFOAM user guide multiphase non Newtonian polymer injection molding",
+        "reachability": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 1062,
+          "content_type": "text/html; charset=UTF-8"
+        }
+      },
+      {
+        "name": "openInjMoldSim Paper",
+        "url": "https://www.mdpi.com/2311-5521/5/2/84",
+        "cost_label": "FREE",
+        "source_type": "open_access_paper",
+        "domains": [
+          "injection_molding",
+          "openfoam",
+          "resin_flow",
+          "vof",
+          "non_newtonian",
+          "solver_design"
+        ],
+        "priority": 1,
+        "why": "Closest open paper pattern for building our own injection molding simulation and using Moldflow as benchmark.",
+        "next_query": "openInjMoldSim OpenFOAM injection molding Cross WLF Tait VOF",
+        "reachability": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 406,
+          "content_type": "text/html; charset=UTF-8"
+        }
+      }
+    ],
+    "press_progressive_die": [
+      {
+        "name": "OpenRadioss Documentation",
+        "url": "https://openradioss.atlassian.net/wiki/spaces/OPENRADIOSS/overview",
+        "cost_label": "FREE",
+        "source_type": "official_docs",
+        "domains": [
+          "openradioss",
+          "explicit_dynamics",
+          "press_forming",
+          "bending",
+          "blanking",
+          "springback"
+        ],
+        "priority": 1,
+        "why": "Primary reference for our bending and blanking solver work and deck correctness.",
+        "next_query": "OpenRadioss examples shell forming bending blanking springback",
+        "reachability": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 335,
+          "content_type": "text/html;charset=UTF-8"
+        }
+      }
+    ],
+    "tolerance_cetol_like": [
+      {
+        "name": "NIST/SEMATECH Engineering Statistics Handbook",
+        "url": "https://www.nist.gov/programs-projects/nistsematech-engineering-statistics-handbook",
+        "cost_label": "FREE",
+        "source_type": "official_handbook",
+        "domains": [
+          "spc",
+          "sqc",
+          "doe",
+          "msa",
+          "process_capability",
+          "quality_management"
+        ],
+        "priority": 1,
+        "why": "Strong free baseline for SPC, DOE, process monitoring, measurement, and statistical quality thinking.",
+        "next_query": "site:nist.gov SEMATECH engineering statistics handbook SPC MSA DOE process capability",
+        "reachability": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 587,
+          "content_type": "text/html; charset=UTF-8"
+        }
+      },
+      {
+        "name": "arXiv",
+        "url": "https://arxiv.org/",
+        "cost_label": "FREE",
+        "source_type": "preprint_repository",
+        "domains": [
+          "deep_learning",
+          "visual_inspection",
+          "cae",
+          "tolerance_analysis",
+          "3d_generation"
+        ],
+        "priority": 1,
+        "why": "Fastest source for new theory, surveys, and implementation papers. Needs quality filtering.",
+        "next_query": "arXiv industrial visual inspection survey manufacturing defect detection tolerance analysis injection molding simulation",
+        "reachability": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 63,
+          "content_type": "text/html; charset=utf-8"
+        }
+      },
+      {
+        "name": "AIAG Quality Core Tools",
+        "url": "https://www.aiag.org/expertise-areas/quality/quality-core-tools",
+        "cost_label": "PAID",
+        "source_type": "official_standards_and_training",
+        "domains": [
+          "apqp",
+          "control_plan",
+          "ppap",
+          "fmea",
+          "msa",
+          "spc",
+          "iatf"
+        ],
+        "priority": 1,
+        "why": "Authoritative source for automotive core tools. Many manuals and courses are paid, so use as paid-reference candidate.",
+        "next_query": "site:aiag.org APQP Control Plan PPAP FMEA MSA SPC free overview",
+        "reachability": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 1194,
+          "content_type": "text/html; charset=utf-8"
+        }
+      },
+      {
+        "name": "AIAG Core Tools Key Terms and Self Assessment",
+        "url": "https://go.aiag.org/core-tools-terms",
+        "cost_label": "FREE_REG",
+        "source_type": "official_reference",
+        "domains": [
+          "apqp",
+          "fmea",
+          "msa",
+          "spc",
+          "ppap",
+          "training"
+        ],
+        "priority": 2,
+        "why": "Useful free or registration-gated glossary/self-assessment entry point before buying manuals.",
+        "next_query": "AIAG core tools terms self assessment APQP FMEA MSA SPC",
+        "reachability": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 333,
+          "content_type": "text/html; charset=UTF-8"
+        }
+      },
+      {
+        "name": "PubMed Central",
+        "url": "https://pmc.ncbi.nlm.nih.gov/",
+        "cost_label": "FREE",
+        "source_type": "open_access_papers",
+        "domains": [
+          "statistics",
+          "machine_learning",
+          "measurement",
+          "quality"
+        ],
+        "priority": 3,
+        "why": "Not manufacturing-specific, but strong for statistics, validation, and ML evaluation methods.",
+        "next_query": "site:pmc.ncbi.nlm.nih.gov machine learning anomaly detection measurement validation statistical process control"
+      }
+    ],
+    "training_video_and_dx": [
+      {
+        "name": "CVF Open Access",
+        "url": "https://openaccess.thecvf.com/",
+        "cost_label": "FREE",
+        "source_type": "open_access_papers",
+        "domains": [
+          "computer_vision",
+          "visual_inspection",
+          "anomaly_detection",
+          "segmentation",
+          "3d_generation"
+        ],
+        "priority": 1,
+        "why": "Reliable open papers for CVPR/ICCV/ECCV methods, often with code links.",
+        "next_query": "site:openaccess.thecvf.com industrial anomaly detection manufacturing defect segmentation",
+        "reachability": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 3133,
+          "content_type": "text/html; charset=UTF-8"
+        }
+      },
+      {
+        "name": "arXiv",
+        "url": "https://arxiv.org/",
+        "cost_label": "FREE",
+        "source_type": "preprint_repository",
+        "domains": [
+          "deep_learning",
+          "visual_inspection",
+          "cae",
+          "tolerance_analysis",
+          "3d_generation"
+        ],
+        "priority": 1,
+        "why": "Fastest source for new theory, surveys, and implementation papers. Needs quality filtering.",
+        "next_query": "arXiv industrial visual inspection survey manufacturing defect detection tolerance analysis injection molding simulation",
+        "reachability": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 63,
+          "content_type": "text/html; charset=utf-8"
+        }
+      },
+      {
+        "name": "AIAG Core Tools Key Terms and Self Assessment",
+        "url": "https://go.aiag.org/core-tools-terms",
+        "cost_label": "FREE_REG",
+        "source_type": "official_reference",
+        "domains": [
+          "apqp",
+          "fmea",
+          "msa",
+          "spc",
+          "ppap",
+          "training"
+        ],
+        "priority": 2,
+        "why": "Useful free or registration-gated glossary/self-assessment entry point before buying manuals.",
+        "next_query": "AIAG core tools terms self assessment APQP FMEA MSA SPC",
+        "reachability": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 333,
+          "content_type": "text/html; charset=UTF-8"
+        }
+      },
+      {
+        "name": "IPA Digital Skill and DX Materials",
+        "url": "https://www.ipa.go.jp/",
+        "cost_label": "FREE",
+        "source_type": "official_guidance",
+        "domains": [
+          "dx",
+          "security",
+          "ai_governance",
+          "training",
+          "software_quality"
+        ],
+        "priority": 3,
+        "why": "Useful for internal training apps, IT governance, security, and DX skill maps.",
+        "next_query": "site:ipa.go.jp AI quality DX skills security training material"
+      }
+    ]
+  },
+  "recommended_first_reading": [
+    {
+      "name": "Autodesk Moldflow Insight Help",
+      "url": "https://help.autodesk.com/view/MFIA/2026/ENU/",
+      "cost_label": "FREE",
+      "source_type": "official_help",
+      "domains": [
+        "injection_molding",
+        "moldflow",
+        "resin_flow",
+        "warpage",
+        "cooling",
+        "materials"
+      ],
+      "priority": 1,
+      "why": "Best legitimate reference for Moldflow result terminology and benchmark interpretation.",
+      "next_query": "site:help.autodesk.com/view/MFIA injection molding filling packing cooling warpage material model",
+      "reachability": {
+        "ok": true,
+        "status": 200,
+        "elapsed_ms": 267,
+        "content_type": "text/html; charset=UTF-8"
+      }
+    },
+    {
+      "name": "CVF Open Access",
+      "url": "https://openaccess.thecvf.com/",
+      "cost_label": "FREE",
+      "source_type": "open_access_papers",
+      "domains": [
+        "computer_vision",
+        "visual_inspection",
+        "anomaly_detection",
+        "segmentation",
+        "3d_generation"
+      ],
+      "priority": 1,
+      "why": "Reliable open papers for CVPR/ICCV/ECCV methods, often with code links.",
+      "next_query": "site:openaccess.thecvf.com industrial anomaly detection manufacturing defect segmentation",
+      "reachability": {
+        "ok": true,
+        "status": 200,
+        "elapsed_ms": 3133,
+        "content_type": "text/html; charset=UTF-8"
+      }
+    },
+    {
+      "name": "NASA Systems Engineering Handbook",
+      "url": "https://www.nasa.gov/reference/systems-engineering-handbook/",
+      "cost_label": "FREE",
+      "source_type": "official_handbook",
+      "domains": [
+        "requirements",
+        "risk",
+        "verification",
+        "fmea",
+        "systems_engineering",
+        "project_management"
+      ],
+      "priority": 1,
+      "why": "Good free framework for requirements, validation, verification, risk, interfaces, and complex app development discipline.",
+      "next_query": "NASA systems engineering handbook risk requirements verification FMEA PDF",
+      "reachability": {
+        "ok": true,
+        "status": 200,
+        "elapsed_ms": 53,
+        "content_type": "text/html; charset=UTF-8"
+      }
+    },
+    {
+      "name": "NIST/SEMATECH Engineering Statistics Handbook",
+      "url": "https://www.nist.gov/programs-projects/nistsematech-engineering-statistics-handbook",
+      "cost_label": "FREE",
+      "source_type": "official_handbook",
+      "domains": [
+        "spc",
+        "sqc",
+        "doe",
+        "msa",
+        "process_capability",
+        "quality_management"
+      ],
+      "priority": 1,
+      "why": "Strong free baseline for SPC, DOE, process monitoring, measurement, and statistical quality thinking.",
+      "next_query": "site:nist.gov SEMATECH engineering statistics handbook SPC MSA DOE process capability",
+      "reachability": {
+        "ok": true,
+        "status": 200,
+        "elapsed_ms": 587,
+        "content_type": "text/html; charset=UTF-8"
+      }
+    },
+    {
+      "name": "OpenFOAM Documentation",
+      "url": "https://www.openfoam.com/documentation/overview",
+      "cost_label": "FREE",
+      "source_type": "official_docs",
+      "domains": [
+        "cfd",
+        "openfoam",
+        "mesh",
+        "solver_design",
+        "post_processing"
+      ],
+      "priority": 1,
+      "why": "Free CFD solver docs for file structure, meshing, numerical schemes, and post-processing foundations.",
+      "next_query": "OpenFOAM user guide multiphase non Newtonian polymer injection molding",
+      "reachability": {
+        "ok": true,
+        "status": 200,
+        "elapsed_ms": 1062,
+        "content_type": "text/html; charset=UTF-8"
+      }
+    },
+    {
+      "name": "OpenRadioss Documentation",
+      "url": "https://openradioss.atlassian.net/wiki/spaces/OPENRADIOSS/overview",
+      "cost_label": "FREE",
+      "source_type": "official_docs",
+      "domains": [
+        "openradioss",
+        "explicit_dynamics",
+        "press_forming",
+        "bending",
+        "blanking",
+        "springback"
+      ],
+      "priority": 1,
+      "why": "Primary reference for our bending and blanking solver work and deck correctness.",
+      "next_query": "OpenRadioss examples shell forming bending blanking springback",
+      "reachability": {
+        "ok": true,
+        "status": 200,
+        "elapsed_ms": 335,
+        "content_type": "text/html;charset=UTF-8"
+      }
+    },
+    {
+      "name": "Papers with Code",
+      "url": "https://paperswithcode.com/",
+      "cost_label": "FREE",
+      "source_type": "paper_code_index",
+      "domains": [
+        "deep_learning",
+        "benchmarks",
+        "datasets",
+        "implementation"
+      ],
+      "priority": 1,
+      "why": "Good for finding papers with code and benchmark tables before investing implementation time.",
+      "next_query": "Papers with Code industrial anomaly detection MVTec AD VisA BTAD Real-IAD",
+      "reachability": {
+        "ok": true,
+        "status": 200,
+        "elapsed_ms": 440,
+        "content_type": "text/html; charset=utf-8"
+      }
+    },
+    {
+      "name": "arXiv",
+      "url": "https://arxiv.org/",
+      "cost_label": "FREE",
+      "source_type": "preprint_repository",
+      "domains": [
+        "deep_learning",
+        "visual_inspection",
+        "cae",
+        "tolerance_analysis",
+        "3d_generation"
+      ],
+      "priority": 1,
+      "why": "Fastest source for new theory, surveys, and implementation papers. Needs quality filtering.",
+      "next_query": "arXiv industrial visual inspection survey manufacturing defect detection tolerance analysis injection molding simulation",
+      "reachability": {
+        "ok": true,
+        "status": 200,
+        "elapsed_ms": 63,
+        "content_type": "text/html; charset=utf-8"
+      }
+    },
+    {
+      "name": "openInjMoldSim Paper",
+      "url": "https://www.mdpi.com/2311-5521/5/2/84",
+      "cost_label": "FREE",
+      "source_type": "open_access_paper",
+      "domains": [
+        "injection_molding",
+        "openfoam",
+        "resin_flow",
+        "vof",
+        "non_newtonian",
+        "solver_design"
+      ],
+      "priority": 1,
+      "why": "Closest open paper pattern for building our own injection molding simulation and using Moldflow as benchmark.",
+      "next_query": "openInjMoldSim OpenFOAM injection molding Cross WLF Tait VOF",
+      "reachability": {
+        "ok": true,
+        "status": 200,
+        "elapsed_ms": 406,
+        "content_type": "text/html; charset=UTF-8"
+      }
+    },
+    {
+      "name": "Kolektor Surface-Defect Dataset",
+      "url": "https://www.vicos.si/resources/kolektorsdd",
+      "cost_label": "FREE_REG",
+      "source_type": "academic_dataset",
+      "domains": [
+        "visual_inspection",
+        "surface_defect",
+        "segmentation",
+        "deep_learning"
+      ],
+      "priority": 1,
+      "why": "Real industrial surface-defect dataset with annotations, useful for small-defect segmentation experiments.",
+      "next_query": "KolektorSDD Kolektor surface defect dataset license paper",
+      "reachability": {
+        "ok": true,
+        "status": 200,
+        "elapsed_ms": 2758,
+        "content_type": "text/html"
+      }
+    },
+    {
+      "name": "MVTec Anomaly Detection Datasets",
+      "url": "https://www.mvtec.com/company/research/datasets",
+      "cost_label": "FREE_REG",
+      "source_type": "official_dataset",
+      "domains": [
+        "visual_inspection",
+        "anomaly_detection",
+        "dataset",
+        "deep_learning"
+      ],
+      "priority": 1,
+      "why": "Standard benchmark family for industrial anomaly detection. License is typically non-commercial, so confirm before business use.",
+      "next_query": "MVTec AD dataset license anomaly detection industrial inspection",
+      "reachability": {
+        "ok": true,
+        "status": 200,
+        "elapsed_ms": 1846,
+        "content_type": "text/html; charset=utf-8"
+      }
+    },
+    {
+      "name": "AIAG Quality Core Tools",
+      "url": "https://www.aiag.org/expertise-areas/quality/quality-core-tools",
+      "cost_label": "PAID",
+      "source_type": "official_standards_and_training",
+      "domains": [
+        "apqp",
+        "control_plan",
+        "ppap",
+        "fmea",
+        "msa",
+        "spc",
+        "iatf"
+      ],
+      "priority": 1,
+      "why": "Authoritative source for automotive core tools. Many manuals and courses are paid, so use as paid-reference candidate.",
+      "next_query": "site:aiag.org APQP Control Plan PPAP FMEA MSA SPC free overview",
+      "reachability": {
+        "ok": true,
+        "status": 200,
+        "elapsed_ms": 1194,
+        "content_type": "text/html; charset=utf-8"
+      }
+    },
+    {
+      "name": "ISO, JIS, IATF Standard Texts",
+      "url": "https://www.iso.org/standards.html",
+      "cost_label": "PAID",
+      "source_type": "standards",
+      "domains": [
+        "iatf",
+        "iso",
+        "jis",
+        "audit",
+        "qms"
+      ],
+      "priority": 1,
+      "why": "Authoritative, but usually paid and license-restricted. Do not download from unofficial mirrors.",
+      "next_query": "ISO 9001 IATF 16949 internal audit guidance official paid standard"
+    }
+  ],
+  "paid_watchlist": [
+    {
+      "name": "AIAG Quality Core Tools",
+      "url": "https://www.aiag.org/expertise-areas/quality/quality-core-tools",
+      "cost_label": "PAID",
+      "source_type": "official_standards_and_training",
+      "domains": [
+        "apqp",
+        "control_plan",
+        "ppap",
+        "fmea",
+        "msa",
+        "spc",
+        "iatf"
+      ],
+      "priority": 1,
+      "why": "Authoritative source for automotive core tools. Many manuals and courses are paid, so use as paid-reference candidate.",
+      "next_query": "site:aiag.org APQP Control Plan PPAP FMEA MSA SPC free overview",
+      "reachability": {
+        "ok": true,
+        "status": 200,
+        "elapsed_ms": 1194,
+        "content_type": "text/html; charset=utf-8"
+      }
+    },
+    {
+      "name": "ISO, JIS, IATF Standard Texts",
+      "url": "https://www.iso.org/standards.html",
+      "cost_label": "PAID",
+      "source_type": "standards",
+      "domains": [
+        "iatf",
+        "iso",
+        "jis",
+        "audit",
+        "qms"
+      ],
+      "priority": 1,
+      "why": "Authoritative, but usually paid and license-restricted. Do not download from unofficial mirrors.",
+      "next_query": "ISO 9001 IATF 16949 internal audit guidance official paid standard"
+    },
+    {
+      "name": "IEEE Xplore",
+      "url": "https://ieeexplore.ieee.org/",
+      "cost_label": "PAID",
+      "source_type": "technical_papers",
+      "domains": [
+        "deep_learning",
+        "visual_inspection",
+        "factory_ai",
+        "sensors"
+      ],
+      "priority": 3,
+      "why": "Good for sensor/vision/AI papers, but many articles are paid. Prefer arXiv/CVF copy when available.",
+      "next_query": "IEEE industrial visual inspection deep learning manufacturing defect detection"
+    },
+    {
+      "name": "SAE Mobilus",
+      "url": "https://saemobilus.sae.org/",
+      "cost_label": "PAID",
+      "source_type": "technical_papers",
+      "domains": [
+        "automotive",
+        "manufacturing",
+        "cae",
+        "materials",
+        "quality"
+      ],
+      "priority": 3,
+      "why": "Can contain high-value automotive manufacturing papers, but usually paid.",
+      "next_query": "SAE sheet metal forming tolerance analysis injection molding quality manufacturing"
+    }
+  ],
+  "next_actions": [
+    "Read NIST statistics handbook sections for SPC, DOE, process monitoring, and measurement foundations.",
+    "Use Autodesk Moldflow Help plus openInjMoldSim paper to define resin-flow solver benchmark terminology.",
+    "Use OpenRadioss and existing project pregates for press bending/blanking deck improvement.",
+    "Use MVTec/Kolektor/CVF/arXiv/Papers with Code for visual inspection AI experiments after license checks.",
+    "Treat AIAG/ISO/IATF/SAE/IEEE as paid candidates and ask before purchase or subscription use."
+  ]
+}
