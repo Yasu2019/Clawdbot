@@ -456,6 +456,29 @@
         </div>
 
         <div class="card full-width">
+            <h2>Web Material Source Inventory (Web資料の取得元別件数)</h2>
+            <p style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 15px;">
+                Daily collected or scouted source counts are separated into acquired materials and candidate sources, so paid/registration sources are not mixed into downloaded evidence.
+            </p>
+            <div id="materialSourceSummary" style="font-weight: bold; margin-bottom: 15px; color: #fff;">Loading source inventory...</div>
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th width="24%">Source</th>
+                        <th width="12%">Acquired</th>
+                        <th width="12%">Candidates</th>
+                        <th width="14%">Status</th>
+                        <th width="20%">Latest / Evidence</th>
+                        <th width="18%">Examples / Note</th>
+                    </tr>
+                </thead>
+                <tbody id="materialSourceInventoryBody">
+                    <tr><td colspan="6" style="text-align:center; color:var(--text-dim);">Loading source inventory...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card full-width">
             <h2>YouTube IATF Analysis (内部監査動画の解析要約)</h2>
             <p style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 15px;">
                 ※全340動画のうち、現在処理済みの代表的なデータを表示しています。
@@ -765,6 +788,52 @@
                 document.getElementById('iatfVideoBody').innerHTML = '<div style="color: #f85149; font-size: 0.9rem;">Error fetching IATF Video status.</div>';
             }
 
+        }
+
+        async function loadMaterialSourceInventory() {
+            const tbody = document.getElementById('materialSourceInventoryBody');
+            const summary = document.getElementById('materialSourceSummary');
+            if (!tbody || !summary) return;
+            try {
+                const response = await fetch('material_source_inventory.json', { cache: 'no-store' });
+                if (!response.ok) throw new Error('Failed to fetch source inventory');
+                const data = await response.json();
+                const rows = Array.isArray(data.rows) ? data.rows : [];
+                summary.innerHTML = `
+                    Acquired materials: <span style="color:#3fb950;">${data.total_acquired_count || 0}</span>
+                    / Candidate sources: <span style="color:#d29922;">${data.total_candidate_count || 0}</span>
+                    <span class="timestamp" style="margin-left:10px;">Updated: ${escapeHtml(data.updated_at || 'unknown')}</span>
+                `;
+                if (rows.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--text-dim);">No source inventory available.</td></tr>';
+                    return;
+                }
+                const statusColor = {
+                    acquired: '#3fb950',
+                    candidate: '#d29922',
+                    not_acquired: '#8b949e'
+                };
+                tbody.innerHTML = rows.map(row => {
+                    const color = statusColor[row.status] || '#8b949e';
+                    const examples = Array.isArray(row.examples) && row.examples.length
+                        ? row.examples.slice(0, 3).map(escapeHtml).join('<br>')
+                        : escapeHtml(row.note || '');
+                    return `
+                        <tr>
+                            <td><strong>${escapeHtml(row.source)}</strong><br><span class="timestamp">${escapeHtml(row.category || '')}</span></td>
+                            <td style="font-size:1.2rem; font-weight:bold; color:#3fb950;">${row.acquired_count || 0}</td>
+                            <td style="font-size:1.2rem; font-weight:bold; color:#d29922;">${row.candidate_count || 0}</td>
+                            <td><span class="status-badge" style="background:rgba(255,255,255,0.06); color:${color}; border-color:${color};">${escapeHtml(row.status || 'unknown')}</span></td>
+                            <td><span class="timestamp">${escapeHtml(row.latest_at || 'no local file date')}</span><br>${escapeHtml(row.evidence || '')}</td>
+                            <td>${examples}<br><span class="timestamp">${escapeHtml(row.note || '')}</span></td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (error) {
+                console.error('Error loading material source inventory:', error);
+                summary.innerHTML = '<span style="color:#f85149;">Failed to load source inventory.</span>';
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#f85149;">Failed to load material_source_inventory.json.</td></tr>';
+            }
         }
 
         async function loadYouTubeSummary() {
@@ -1179,6 +1248,7 @@
         }
 
         loadData();
+        loadMaterialSourceInventory();
         loadYouTubeSummary();
         loadKnowledgeHistory();
         loadAutonomousImprovements();

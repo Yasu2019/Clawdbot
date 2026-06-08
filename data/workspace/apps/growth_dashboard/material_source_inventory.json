@@ -1,0 +1,124 @@
+{
+  "schema": "clawstack.material_source_inventory.v1",
+  "updated_at": "2026-06-09T03:47:27+09:00",
+  "total_acquired_count": 417,
+  "total_candidate_count": 22,
+  "rows": [
+    {
+      "source": "YouTube",
+      "category": "video_transcripts",
+      "acquired_count": 364,
+      "candidate_count": 0,
+      "status": "acquired",
+      "latest_at": "2026-05-01T08:52:50+09:00",
+      "evidence": "processed_youtube_videos.json / iatf_youtube_summary.json",
+      "note": "Processed video IDs: 364. Dashboard summaries: 20.",
+      "examples": [
+        "GL3wlY9xeM0",
+        "ypOrvSwIL5c",
+        "uk5gaqTgC1s",
+        "VT5Gkshr8PI",
+        "fOUOJUMiKAU"
+      ]
+    },
+    {
+      "source": "Scribd",
+      "category": "subscription_docs",
+      "acquired_count": 38,
+      "candidate_count": 17,
+      "status": "acquired",
+      "latest_at": "2026-06-08T02:02:43+09:00",
+      "evidence": "data/scribd_downloads + scribd_related_source_scout_status.json",
+      "note": "Classified relevant downloads. Local document files: 43.",
+      "examples": [
+        "338530256-Mold-Flow-Insight-Training.docx",
+        "705864056-NX-Mold-Flow-Analysis-solutions-1.pdf",
+        "239398105-Mold-flow-Analysis.pdf",
+        "667773841-Mold-Flow-Analysis.pdf",
+        "02_theory_map_injection_molding_JA.md"
+      ]
+    },
+    {
+      "source": "GitHub",
+      "category": "code_and_reference",
+      "acquired_count": 15,
+      "candidate_count": 0,
+      "status": "acquired",
+      "latest_at": "2020-12-29T03:19:06+09:00",
+      "evidence": "data/github_downloads",
+      "note": "Local files fetched from GitHub-related collection folders.",
+      "examples": [
+        ".eslintrc.json",
+        "About Project.pdf",
+        "bower.json",
+        "database.rules.json",
+        "firebase.json"
+      ]
+    },
+    {
+      "source": "Roboflow Universe",
+      "category": "vision_dataset_platform",
+      "acquired_count": 0,
+      "candidate_count": 1,
+      "status": "candidate",
+      "latest_at": "",
+      "evidence": "quality_manufacturing_source_scout_status.json",
+      "note": "Candidate source is tracked; download/registration is still separate.",
+      "examples": [
+        "Roboflow Universe"
+      ]
+    },
+    {
+      "source": "openInjMoldSim Paper",
+      "category": "injection_molding_paper",
+      "acquired_count": 0,
+      "candidate_count": 1,
+      "status": "candidate",
+      "latest_at": "",
+      "evidence": "quality_manufacturing_source_scout_status.json",
+      "note": "Candidate source is tracked; download/registration is still separate.",
+      "examples": [
+        "openInjMoldSim Paper"
+      ]
+    },
+    {
+      "source": "MVTec AD",
+      "category": "visual_inspection_dataset",
+      "acquired_count": 0,
+      "candidate_count": 1,
+      "status": "candidate",
+      "latest_at": "",
+      "evidence": "quality_manufacturing_source_scout_status.json",
+      "note": "Candidate source is tracked; download/registration is still separate.",
+      "examples": [
+        "MVTec Anomaly Detection Datasets"
+      ]
+    },
+    {
+      "source": "Kolektor Surface-Defect Dataset",
+      "category": "visual_inspection_dataset",
+      "acquired_count": 0,
+      "candidate_count": 1,
+      "status": "candidate",
+      "latest_at": "",
+      "evidence": "quality_manufacturing_source_scout_status.json",
+      "note": "Candidate source is tracked; download/registration is still separate.",
+      "examples": [
+        "Kolektor Surface-Defect Dataset"
+      ]
+    },
+    {
+      "source": "Kaggle datasets",
+      "category": "dataset_platform",
+      "acquired_count": 0,
+      "candidate_count": 1,
+      "status": "candidate",
+      "latest_at": "",
+      "evidence": "quality_manufacturing_source_scout_status.json",
+      "note": "Candidate source is tracked; download/registration is still separate.",
+      "examples": [
+        "Kaggle Datasets and Competitions"
+      ]
+    }
+  ]
+}
