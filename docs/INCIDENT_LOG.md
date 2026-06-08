@@ -3,6 +3,20 @@
 譛ｬ繝輔ぃ繧､繝ｫ縺ｯ縲√す繧ｹ繝・Β縺ｫ逋ｺ逕溘＠縺滄囿螳ｳ縺ｻ荳榊・蜷医→縺昴・譬ｹ譛ｬ蜴溷屏繝ｻ菫ｮ豁｣蜀・ｮｹ繝ｻ蜀咲匱髦ｲ豁｢遲悶ｒ險倬鹸縺励∪縺吶€・菫ｮ豁｣繧定｡後▲縺溷ｴ蜷医・縲∝ｿ・★縺薙・繝輔ぃ繧､繝ｫ縺ｫ繧ｨ繝ｳ繝医Μ繧定ｿｽ蜉縺励※縺上□縺輔＞縲・
 ------
 
+## INC-104: Growth Dashboard Autonomous Improvements Feed Did Not Reflect Recent AI Commits
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-06-09 JST |
+| **Detection** | User reported that the Growth Dashboard "Autonomous Code Improvements" section was not adding recent entries, creating concern that collected web knowledge was low-value. |
+| **Impact** | Recent AI implementation work, including dashboard source counts, fleet routing, source scouting, and LAVIE guard improvements, was invisible in the improvement-history panel. |
+| **Root Cause (5 Why)** | Why1: Recent improvements were not displayed. Why2: `autonomous_improvements.json` was only written by `scripts/autonomous_coder.py`. Why3: That flow only covers a narrow Moldflow/Cross-WLF automation path. Why4: Normal AI implementation commits were not exported to the dashboard. Why5: The dashboard wording implied broad AI improvement tracking while the data feed was narrow. |
+| **Fix** | Added `scripts/export_autonomous_improvements_from_git.py` to generate dashboard entries from recent Git implementation commits while preserving legacy autonomous-coder entries. Regenerated `data/workspace/apps/growth_dashboard/autonomous_improvements.json`. |
+| **Files** | `scripts/export_autonomous_improvements_from_git.py`, `data/workspace/apps/growth_dashboard/autonomous_improvements.json`, `quality_incident_report_20260609_autonomous_improvements_not_updating.md` |
+| **Verification** | `python -m py_compile scripts\export_autonomous_improvements_from_git.py`; `python scripts\export_autonomous_improvements_from_git.py` produced `git_records=16 total_records=20`. |
+| **Lessons Learned** | A dashboard panel must reflect the real operational path. If AI coding happens through normal commits, Git history must be part of the evidence feed. |
+| **Prevention** | Keep source collection, implementation commits, and dashboard evidence connected through explicit exporters and freshness checks. |
+
 ## INC-103: Regular LAVIE continued receiving heavy CAE while Red LAVIE had spare capacity but worker entry was offline
 
 | Field | Detail |
