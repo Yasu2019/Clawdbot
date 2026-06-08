@@ -13,6 +13,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 DASHBOARD_DIR = ROOT / "data" / "workspace" / "apps" / "growth_dashboard"
 OUTPUT_PATH = DASHBOARD_DIR / "material_source_inventory.json"
+ACQUIRED_DIR = ROOT / "data" / "web_acquired_materials"
+QUEUE_PATH = DASHBOARD_DIR / "material_acquisition_queue.json"
 
 DOC_EXTENSIONS = {
     ".pdf",
@@ -153,7 +155,7 @@ def scout_backed_row(source, category, patterns, local_paths=None, local_keyword
         "source": source,
         "category": category,
         "acquired_count": len(items),
-        "candidate_count": candidates,
+        "candidate_count": 0 if items else candidates,
         "status": "acquired" if items else ("candidate" if candidates else "not_acquired"),
         "latest_at": items[0]["modified_at"] if items else "",
         "evidence": "quality_manufacturing_source_scout_status.json" if candidates else "",
@@ -177,7 +179,7 @@ def build_inventory():
         scout_backed_row("MVTec AD", "visual_inspection_dataset", ["mvtec"], dataset_paths, ["mvtec"]),
         scout_backed_row("Kolektor Surface-Defect Dataset", "visual_inspection_dataset", ["kolektor"], dataset_paths, ["kolektor"]),
         scout_backed_row("Roboflow Universe", "vision_dataset_platform", ["roboflow"], dataset_paths, ["roboflow"]),
-        scout_backed_row("openInjMoldSim Paper", "injection_molding_paper", ["openinjmoldsim", "2311-5521/5/2/84"], [ROOT / "data" / "workspace"], ["openinjmoldsim"]),
+        scout_backed_row("openInjMoldSim Paper", "injection_molding_paper", ["openinjmoldsim", "2311-5521/5/2/84"], [ACQUIRED_DIR, ROOT / "data" / "workspace"], ["openinjmoldsim", "fluids-05-02-00084"]),
         {
             "source": "GitHub",
             "category": "code_and_reference",
@@ -197,6 +199,7 @@ def build_inventory():
         "updated_at": now_jst(),
         "total_acquired_count": sum(row["acquired_count"] for row in rows),
         "total_candidate_count": sum(row["candidate_count"] for row in rows),
+        "acquisition_queue": QUEUE_PATH.relative_to(ROOT).as_posix(),
         "rows": rows,
     }
 

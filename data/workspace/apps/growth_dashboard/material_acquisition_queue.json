@@ -1,0 +1,57 @@
+{
+  "schema": "clawstack.material_acquisition_queue.v1",
+  "updated_at": "2026-06-09T05:49:12+09:00",
+  "policy": {
+    "direct_free": "download immediately from official/open pages",
+    "free_reg": "queue until registration/API token/license acceptance is available",
+    "paid": "queue until user explicitly approves paid/subscription use",
+    "no_bypass": true
+  },
+  "acquired_now": [
+    {
+      "source": "openInjMoldSim Paper",
+      "title": "Verification and Validation of openInjMoldSim, an Open-Source Solver to Model the Filling Stage of Thermoplastic Injection Molding",
+      "status": "acquired",
+      "url": "https://mdpi-res.com/d_attachment/fluids/fluids-05-00084/article_deploy/fluids-05-00084-v2.pdf",
+      "landing_url": "https://www.mdpi.com/2311-5521/5/2/84",
+      "path": "data/web_acquired_materials/openinjmoldsim/fluids-05-02-00084-openInjMoldSim.pdf",
+      "size_bytes": 9758234,
+      "sha256": "4ff22c67e5bafafb34108489e3f52d865951e30197935c27124e3838f2e62e9b",
+      "acquired_at": "2026-06-09T05:49:12+09:00",
+      "license_note": "MDPI open-access article. Downloaded from the publisher mdpi-res PDF endpoint."
+    }
+  ],
+  "pending": [
+    {
+      "source": "Scribd",
+      "action": "authorized_subscription_download",
+      "priority": 1,
+      "reason": "Subscription/login source. Use only authorized access and existing paid account; no bypass."
+    },
+    {
+      "source": "Kaggle datasets",
+      "action": "registration_and_license_check",
+      "priority": 1,
+      "reason": "Kaggle requires account/API token and per-dataset license review before download."
+    },
+    {
+      "source": "MVTec AD",
+      "action": "registration_and_license_check",
+      "priority": 1,
+      "reason": "Dataset is valuable for visual inspection, but registration/license acceptance is required."
+    },
+    {
+      "source": "Kolektor Surface-Defect Dataset",
+      "action": "registration_and_license_check",
+      "priority": 1,
+      "reason": "Industrial defect dataset; confirm access terms before mirroring locally."
+    },
+    {
+      "source": "Roboflow Universe",
+      "action": "project_license_selection",
+      "priority": 2,
+      "reason": "Public dataset platform; each project has its own license and quality level."
+    }
+  ],
+  "errors": []
+}

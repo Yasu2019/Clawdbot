@@ -1,8 +1,9 @@
 {
   "schema": "clawstack.material_source_inventory.v1",
-  "updated_at": "2026-06-09T03:47:27+09:00",
-  "total_acquired_count": 417,
-  "total_candidate_count": 22,
+  "updated_at": "2026-06-09T05:50:26+09:00",
+  "total_acquired_count": 418,
+  "total_candidate_count": 21,
+  "acquisition_queue": "data/workspace/apps/growth_dashboard/material_acquisition_queue.json",
   "rows": [
     {
       "source": "YouTube",
@@ -56,6 +57,19 @@
       ]
     },
     {
+      "source": "openInjMoldSim Paper",
+      "category": "injection_molding_paper",
+      "acquired_count": 1,
+      "candidate_count": 0,
+      "status": "acquired",
+      "latest_at": "2026-06-09T05:49:12+09:00",
+      "evidence": "quality_manufacturing_source_scout_status.json",
+      "note": "",
+      "examples": [
+        "fluids-05-02-00084-openInjMoldSim.pdf"
+      ]
+    },
+    {
       "source": "Roboflow Universe",
       "category": "vision_dataset_platform",
       "acquired_count": 0,
@@ -66,19 +80,6 @@
       "note": "Candidate source is tracked; download/registration is still separate.",
       "examples": [
         "Roboflow Universe"
-      ]
-    },
-    {
-      "source": "openInjMoldSim Paper",
-      "category": "injection_molding_paper",
-      "acquired_count": 0,
-      "candidate_count": 1,
-      "status": "candidate",
-      "latest_at": "",
-      "evidence": "quality_manufacturing_source_scout_status.json",
-      "note": "Candidate source is tracked; download/registration is still separate.",
-      "examples": [
-        "openInjMoldSim Paper"
       ]
     },
     {
