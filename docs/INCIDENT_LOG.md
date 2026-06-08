@@ -3,6 +3,20 @@
 譛ｬ繝輔ぃ繧､繝ｫ縺ｯ縲√す繧ｹ繝・Β縺ｫ逋ｺ逕溘＠縺滄囿螳ｳ縺ｻ荳榊・蜷医→縺昴・譬ｹ譛ｬ蜴溷屏繝ｻ菫ｮ豁｣蜀・ｮｹ繝ｻ蜀咲匱髦ｲ豁｢遲悶ｒ險倬鹸縺励∪縺吶€・菫ｮ豁｣繧定｡後▲縺溷ｴ蜷医・縲∝ｿ・★縺薙・繝輔ぃ繧､繝ｫ縺ｫ繧ｨ繝ｳ繝医Μ繧定ｿｽ蜉縺励※縺上□縺輔＞縲・
 ------
 
+## INC-105: YouTube IATF Analysis Dashboard Showed Samples Without Pipeline Progress
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-06-09 JST |
+| **Detection** | User reported that the Growth Dashboard "YouTube IATF Analysis" section had no visible progress. |
+| **Impact** | The dashboard hid actual pipeline status: indexed videos, analyzed DB summaries, summary failures, and transcript-missing cases were not visible. |
+| **Root Cause (5 Why)** | Why1: The section only showed representative rows. Why2: `iatf_youtube_summary.json` used a legacy list-only format. Why3: `export_knowledge_history.py` could overwrite the summary with the old 20-row export. Why4: The dashboard did not reconcile channel index, processed IDs, and DB records. Why5: No freshness/progress metrics were required for recurring data pipelines. |
+| **Fix** | Rebuilt `scripts/export_iatf_dashboard.py` to export v2 JSON with progress counts, missing summary examples, and up to 80 rows. Updated `scripts/export_knowledge_history.py` to delegate YouTube export to the new script. Updated `data/workspace/apps/growth_dashboard/index.html` to show indexed/analyzed/processed/failed/missing counts. Refreshed the YouTube index. |
+| **Files** | `scripts/export_iatf_dashboard.py`, `scripts/export_knowledge_history.py`, `data/workspace/apps/growth_dashboard/index.html`, `data/workspace/apps/growth_dashboard/iatf_youtube_summary.json`, `data/workspace/iatf_auditing_youtube_index.json`, `quality_incident_report_20260609_iatf_youtube_dashboard_stale.md` |
+| **Verification** | `python -m py_compile scripts\export_iatf_dashboard.py scripts\export_knowledge_history.py`; `python scripts\update_iatf_auditing_youtube_index.py` produced `videos=349 total=349`; `python scripts\export_iatf_dashboard.py` produced `items=80 analyzed=346 indexed=349 failed=28`; HTTP checks returned 200 for dashboard page and JSON. |
+| **Lessons Learned** | A recurring analysis panel must show freshness and progress, not just sample content. Otherwise working pipelines look idle. |
+| **Prevention** | Require pipeline dashboards to expose indexed, processed, analyzed, failed, missing, and generated-at fields. |
+
 ## INC-104: Growth Dashboard Autonomous Improvements Feed Did Not Reflect Recent AI Commits
 
 | Field | Detail |

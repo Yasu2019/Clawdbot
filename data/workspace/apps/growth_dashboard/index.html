@@ -481,8 +481,11 @@
         <div class="card full-width">
             <h2>YouTube IATF Analysis (内部監査動画の解析要約)</h2>
             <p style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 15px;">
-                ※全340動画のうち、現在処理済みの代表的なデータを表示しています。
+                ※IATF Auditingチャンネルの動画index、字幕解析、要約生成の進捗を表示しています。
             </p>
+            <div id="youtubeSummaryStats" style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:15px; color:var(--text-dim); font-size:0.85rem;">
+                Loading YouTube IATF progress...
+            </div>
             <table class="history-table">
                 <thead>
                     <tr>
@@ -838,18 +841,33 @@
 
         async function loadYouTubeSummary() {
             try {
-                const response = await fetch('iatf_youtube_summary.json');
-                const data = await response.json();
+                const response = await fetch('iatf_youtube_summary.json', { cache: 'no-store' });
+                const payload = await response.json();
+                const data = Array.isArray(payload) ? payload : (payload.items || []);
+                const stats = document.getElementById('youtubeSummaryStats');
+                if (stats && !Array.isArray(payload)) {
+                    const indexed = payload.indexed_video_count || payload.estimated_total_videos || 0;
+                    const analyzed = payload.unique_analyzed_video_count || payload.analyzed_record_count || 0;
+                    const pct = indexed ? Math.round((analyzed / indexed) * 1000) / 10 : 0;
+                    stats.innerHTML = `
+                        <span><strong style="color:#3fb950;">${analyzed}</strong> analyzed / <strong>${indexed}</strong> indexed (${pct}%)</span>
+                        <span>Processed IDs: <strong>${payload.processed_video_count || 0}</strong></span>
+                        <span>Summary failed: <strong style="color:#d29922;">${payload.summary_failed_count || 0}</strong></span>
+                        <span>Missing summaries: <strong style="color:#f85149;">${payload.index_without_summary_count || 0}</strong></span>
+                        <span>Latest DB: ${escapeHtml(payload.latest_db_timestamp || 'N/A')}</span>
+                        <span>Generated: ${escapeHtml(payload.generated_at || 'N/A')}</span>
+                    `;
+                }
                 const tbody = document.getElementById('youtubeSummaryBody');
                 tbody.innerHTML = '';
                 
                 data.forEach(item => {
                     tbody.innerHTML += `
                         <tr>
-                            <td>${item.program_name}</td>
-                            <td><span class="status-badge status-design">${item.clause}</span></td>
-                            <td style="color: #ff7b72;">${item.problem}</td>
-                            <td style="color: #3fb950;">${item.improvement}</td>
+                            <td>${escapeHtml(item.program_name)}<br><span class="timestamp">${escapeHtml(item.timestamp || item.video_id || '')}</span></td>
+                            <td><span class="status-badge status-design">${escapeHtml(item.clause)}</span></td>
+                            <td style="color: #ff7b72;">${escapeHtml(item.problem)}</td>
+                            <td style="color: #3fb950;">${escapeHtml(item.improvement)}</td>
                         </tr>
                     `;
                 });
