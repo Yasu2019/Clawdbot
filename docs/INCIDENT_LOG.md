@@ -3,6 +3,20 @@
 譛ｬ繝輔ぃ繧､繝ｫ縺ｯ縲√す繧ｹ繝・Β縺ｫ逋ｺ逕溘＠縺滄囿螳ｳ縺ｻ荳榊・蜷医→縺昴・譬ｹ譛ｬ蜴溷屏繝ｻ菫ｮ豁｣蜀・ｮｹ繝ｻ蜀咲匱髦ｲ豁｢遲悶ｒ險倬鹸縺励∪縺吶€・菫ｮ豁｣繧定｡後▲縺溷ｴ蜷医・縲∝ｿ・★縺薙・繝輔ぃ繧､繝ｫ縺ｫ繧ｨ繝ｳ繝医Μ繧定ｿｽ蜉縺励※縺上□縺輔＞縲・
 ------
 
+## INC-107: ThinkPad GNOME RDP Connection Required Credential, Desktop Path, and Lock-State Fixes
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-06-09 JST |
+| **Detection** | User reported that the ThinkPad RDP window either did not appear, was not on the visible desktop, or opened briefly and closed immediately before finally displaying successfully. |
+| **Impact** | User could not access the Ubuntu ThinkPad screen through Windows Remote Desktop despite SSH and TCP 3389 being reachable. Repeated manual attempts could have led to unnecessary Chrome Remote Desktop installation or unsafe display-manager changes. |
+| **Root Cause (5 Why)** | Why1: The RDP window closed immediately or did not appear to the user. Why2: The shortcut was initially created under `C:\Users\yasu\Desktop`, while the actual visible desktop was `C:\Users\yasu\OneDrive\デスクトップ`. Why3: After the shortcut was visible, Windows saved TERMSRV credentials and RDP settings caused GNOME RDP errors: `NTLM MIC verification failed` and `client authentication failure`. Why4: After clearing credentials, GNOME still rejected sessions with `Session creation inhibited`. Why5: The active GNOME Wayland session had screen lock/idle lock state that inhibited remote desktop session creation. |
+| **Fix** | Created backups and rollback script first. Enabled GNOME Remote Desktop RDP over Tailscale without installing Chrome Remote Desktop or changing GDM/GRUB. Recreated `ThinkPad-L590.rdp` on the actual OneDrive desktop. Cleared Windows saved `TERMSRV/100.66.63.9` credentials. Disabled GNOME screen lock/idle lock temporarily, unlocked the local session, and restarted `gnome-remote-desktop`. |
+| **DB Record** | Stored full structured trial history in `data/workspace/universal_growth.db` table `ops_trial_history` with `record_id=ops-thinkpad-rdp-20260609`; also mirrored to `data/workspace/ops_trial_history.jsonl`. |
+| **Verification** | `grdctl status` showed RDP enabled and active; `ss` showed port 3389 listening; K10 `Test-NetConnection 100.66.63.9 -Port 3389` succeeded; user confirmed the ThinkPad screen displayed successfully. |
+| **Lessons Learned** | For Ubuntu GNOME Wayland, prefer GNOME Remote Desktop RDP before Chrome Remote Desktop. Always resolve the actual Windows desktop folder before creating visible shortcuts. Clear saved RDP credentials when GNOME reports NTLM MIC failures. If GNOME logs `Session creation inhibited`, unlock the session and disable idle/screen lock before retrying. |
+| **Prevention** | Keep SSH as recovery path, create rollback scripts before remote-desktop changes, avoid GDM/GRUB edits for first-pass screen sharing, and persist all remote-access trial-and-error records into `ops_trial_history`. |
+
 ## INC-106: ThinkPad L590 Ubuntu Added as SSH-Controlled Medium Fleet Node
 
 | Field | Detail |
