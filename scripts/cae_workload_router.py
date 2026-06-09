@@ -199,6 +199,7 @@ def pick_host(category: str, cfg: dict[str, Any] | None = None) -> dict[str, Any
     heavy = set(cfg.get("heavy_categories") or [])
     light = set(cfg.get("light_categories") or [])
     lavie_openfoam = set(cfg.get("lavie_openfoam_categories") or [])
+    red_dedicated = set(cfg.get("red_lavie_dedicated_categories") or [])
     red_preferred = set(cfg.get("red_lavie_preferred_categories") or [])
     lavie_fallback = set(cfg.get("lavie_fallback_categories") or [])
     lavie_heavy_fallback = bool(cfg.get("lavie_heavy_fallback_enabled", True))
@@ -254,6 +255,22 @@ def pick_host(category: str, cfg: dict[str, Any] | None = None) -> dict[str, Any
     ]
     red_lavie_ready = any(node_id == "red_lavie" for node_id, _ in dispatchable_satellites)
     lavie_ready = any(node_id == "lavie" for node_id, _ in dispatchable_satellites)
+
+    if category in red_dedicated:
+        if red_lavie_ready:
+            decision["host"] = "red_lavie"
+            decision["reason"] = (
+                "red_lavie dedicated category and user_business_use=false "
+                "-> red_lavie"
+            )
+            return decision
+        if category in heavy or category in lavie_openfoam:
+            decision["host"] = "k10"
+            decision["reason"] = (
+                "red_lavie dedicated category but red_lavie unavailable; "
+                "regular lavie heavy fallback disabled"
+            )
+            return decision
 
     if category in red_preferred:
         if red_lavie_ready:

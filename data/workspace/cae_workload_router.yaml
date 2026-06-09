@@ -17,12 +17,24 @@ red_lavie:
   ip: "100.99.145.3"
   port: 5679
   bridge_path: /webhook/exec_bridge
-  max_ram_percent: 80
-  max_cpu_percent: 85
-  max_temp_c: 78
+  profile: dedicated_medium_heavy
+  user_business_use: false
+  max_ram_percent: 85
+  max_cpu_percent: 90
+  max_temp_c: 76
   monitor_agent_port: 8111
   job_worker_port: 5682
   job_worker_path: /healthz
+
+red_lavie_dedicated_categories:
+  - resin_fill_cad
+  - resin_fill_vof
+  - resin_fill
+  - press_bending
+  - press_blanking
+  - press_blanking_stripper
+  - press_drawing
+  - progressive_strip_layout
 
 red_lavie_preferred_categories:
   - resin_fill_cad

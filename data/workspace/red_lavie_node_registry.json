@@ -1,0 +1,22 @@
+{
+  "lan_ip": "100.99.145.3",
+  "tailscale_ip": "100.99.145.3",
+  "node_name": "NEC Red LAVIE",
+  "hostname": "DESKTOP-DERCN1N",
+  "node_id": "red_lavie",
+  "profile": "dedicated_medium_heavy",
+  "user_business_use": false,
+  "install_root": "C:\\clawstack_satellite",
+  "jobs_root": "C:\\clawstack_satellite\\data\\work\\jobs",
+  "cae_repo_root": "C:\\lavie_usb_pack",
+  "cae_workspace": "C:\\clawstack_satellite\\data\\work\\cae_te_workspace",
+  "monitor_agent_url": "http://100.99.145.3:8111",
+  "job_worker_port": 5682,
+  "job_worker_url": "http://100.99.145.3:5682",
+  "exec_bridge": "http://100.99.145.3:5679/webhook/exec_bridge",
+  "k10_bridge": "http://100.119.18.40:5679/webhook/k10_exec_bridge",
+  "status": "registered_worker_pending",
+  "trial_phase": 2,
+  "updated_at": "2026-06-10 05:45:00",
+  "notes": "Dedicated Red LAVIE worker policy. Monitor agent is reachable, but job_worker :5682 and n8n exec_bridge :5679 must be started before real dispatch."
+}

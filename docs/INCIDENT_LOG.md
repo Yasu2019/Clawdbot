@@ -3,6 +3,22 @@
 譛ｬ繝輔ぃ繧､繝ｫ縺ｯ縲√す繧ｹ繝・Β縺ｫ逋ｺ逕溘＠縺滄囿螳ｳ縺ｻ荳榊・蜷医→縺昴・譬ｹ譛ｬ蜴溷屏繝ｻ菫ｮ豁｣蜀・ｮｹ繝ｻ蜀咲匱髦ｲ豁｢遲悶ｒ險倬鹸縺励∪縺吶€・菫ｮ豁｣繧定｡後▲縺溷ｴ蜷医・縲∝ｿ・★縺薙・繝輔ぃ繧､繝ｫ縺ｫ繧ｨ繝ｳ繝医Μ繧定ｿｽ蜉縺励※縺上□縺輔＞縲・
 ------
 
+## INC-112: Red LAVIE promoted to unrestricted dedicated medium-heavy worker policy
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-06-10 JST |
+| **Detection** | User clarified that Red LAVIE is not used for business work and can be used freely by K10. |
+| **Impact** | Before this policy update, Red LAVIE was preferred for several categories but heavy routing still depended on K10 being busy or resource pressured. This left a dedicated Core i7-class node underused while K10 could remain CPU-bound. |
+| **Root Cause (5 Why)** | **Why1**: Red LAVIE did not always receive work first. **Why2**: The router treated it as a preferred candidate, not a dedicated worker. **Why3**: Previous assumptions protected user-facing PCs from daytime heavy load. **Why4**: Red LAVIE's user context was not explicitly encoded. **Why5**: Fleet policy mixed hardware capacity with human-usage assumptions instead of storing both separately. |
+| **Fix** | Added `red_lavie.user_business_use: false`, `profile: dedicated_medium_heavy`, and `red_lavie_dedicated_categories` to `data/workspace/cae_workload_router.yaml`. Added `data/workspace/red_lavie_node_registry.json` so dispatch can resolve the Red LAVIE worker URL once the worker is started. Updated `scripts/cae_workload_router.py` so healthy Red LAVIE receives dedicated medium/heavy CAE categories first, while preserving CPU/RAM/temperature guards and blocking fallback to regular LAVIE for heavy work when Red LAVIE is unavailable. |
+| **Files** | `data/workspace/cae_workload_router.yaml`, `data/workspace/red_lavie_node_registry.json`, `scripts/cae_workload_router.py`, `docs/INCIDENT_LOG.md` |
+| **Verification** | `python -m py_compile scripts\cae_workload_router.py` passed. Mocked router checks selected `red_lavie` for `press_drawing` and `resin_fill_cad` when Red LAVIE was dispatchable, and selected `k10` instead of regular LAVIE when Red LAVIE was unavailable. |
+| **Lessons Learned** | Fleet routing must encode both machine capability and human-usage constraints. Dedicated PCs should be promoted explicitly, but thermal/load guards remain non-negotiable. |
+| **Prevention** | Keep business-use metadata per node. Do not send heavy work to regular LAVIE as a fallback unless explicitly re-enabled after stability evidence. |
+
+---
+
 ## INC-109: Fleet nodes needed 24-hour local diagnostics for post-outage RCA
 
 | Field | Detail |
