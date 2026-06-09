@@ -1701,3 +1701,18 @@ Goal: press_* trial --> NORMAL TERMINATION + KPI
 
 
 ---
+# INC-110: ThinkPad SSH node needed safe 24x7 job allocation instead of manual operation
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-06-10 JST |
+| **Detection** | User requested that K10 assign recommended work to the Ubuntu ThinkPad and have it work 24 hours a day, 365 days a year. |
+| **Impact** | The ThinkPad was reachable over SSH and had metrics collection, but K10 only had one-shot probe dispatch. Without a guarded loop, the node would remain mostly idle or require manual commands. Without guards, a future loop could overheat or assign heavy solver/render work to an unproven laptop. |
+| **Root Cause (5 Why)** | **Why1**: ThinkPad had no always-on assignment loop. **Why2**: Existing `k10_thinkpad_ssh_dispatch.py` was intentionally one-shot and probe-only. **Why3**: Safety policy required SSH metrics and thermal history before real heavy jobs. **Why4**: The fleet recently had LAVIE stability incidents after long jobs, so new 24x7 work must start with guarded medium/light workloads. **Why5**: The dashboard/registry distinguished allowed and blocked work, but there was no scheduler enforcing that distinction continuously. |
+| **Fix** | Added `scripts/k10_thinkpad_continuous_loop.py`, a K10-side guarded loop that collects ThinkPad SSH metrics, checks CPU/RAM/temperature thresholds from `thinkpad_node_registry.json`, dispatches only allow-listed probe/light jobs, writes status/log JSONL, and backs off after repeated failures. Added `scripts/start_k10_thinkpad_continuous_loop.ps1` to start the loop hidden and register current-user startup. Hardened existing ThinkPad SSH metrics/dispatch scripts by sending `bash -lc` as one shell-quoted remote command. |
+| **Files** | `scripts/k10_thinkpad_continuous_loop.py`; `scripts/start_k10_thinkpad_continuous_loop.ps1`; `scripts/k10_thinkpad_ssh_dispatch.py`; `scripts/thinkpad_ssh_metrics.py`; `docs/INCIDENT_LOG.md` |
+| **Verification** | `python -m py_compile scripts\k10_thinkpad_continuous_loop.py scripts\k10_thinkpad_ssh_dispatch.py scripts\thinkpad_ssh_metrics.py` passed. Direct `qms_iatf_probe` dispatch completed successfully. A one-cycle guarded dispatch completed and wrote `data/workspace/thinkpad_continuous_loop_status.json`. The PowerShell starter launched the hidden loop and registered `StartThinkPadContinuousLoop.vbs`. |
+| **Lessons Learned** | A new always-on node should begin with guarded, observable, reversible work. The correct first production step is not maximum throughput, but an allow-listed loop with explicit thermal and RAM gates. |
+| **Prevention** | Keep heavy solvers, video rendering, and unbounded downloads blocked on ThinkPad until sustained temperature history and a real worker payload prove stable. Use the loop status JSON and SSH job log for RCA if the node becomes unstable. |
+
+---

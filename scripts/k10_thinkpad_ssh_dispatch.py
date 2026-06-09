@@ -11,6 +11,7 @@ if hasattr(sys.stdout, "reconfigure"):
 
 import argparse
 import json
+import shlex
 import subprocess
 import uuid
 from datetime import datetime, timedelta, timezone
@@ -53,6 +54,7 @@ def run_job(job_type: str, timeout: int) -> dict[str, Any]:
     target = f"{ssh_user}@{ssh_host}"
     job_id = f"thinkpad-{job_type}-{uuid.uuid4().hex[:8]}"
     started = datetime.now(JST).isoformat()
+    remote_command = f"bash -lc {shlex.quote(JOB_COMMANDS[job_type])}"
     proc = subprocess.run(
         [
             "ssh",
@@ -65,9 +67,7 @@ def run_job(job_type: str, timeout: int) -> dict[str, Any]:
             "-o",
             "StrictHostKeyChecking=accept-new",
             target,
-            "bash",
-            "-lc",
-            JOB_COMMANDS[job_type],
+            remote_command,
         ],
         capture_output=True,
         text=True,

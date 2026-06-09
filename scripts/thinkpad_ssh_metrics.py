@@ -12,6 +12,7 @@ if hasattr(sys.stdout, "reconfigure"):
 import argparse
 import json
 import re
+import shlex
 import subprocess
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -62,6 +63,7 @@ def run_ssh(registry: dict[str, Any], timeout: int = 12) -> subprocess.Completed
     ssh_user = registry.get("ssh_user") or "yasu"
     key_path = registry.get("ssh_key_path") or str(Path.home() / ".ssh" / "id_ed25519")
     target = f"{ssh_user}@{ssh_host}"
+    remote_command = f"bash -lc {shlex.quote(REMOTE_SCRIPT)}"
     return subprocess.run(
         [
             "ssh",
@@ -74,9 +76,7 @@ def run_ssh(registry: dict[str, Any], timeout: int = 12) -> subprocess.Completed
             "-o",
             "StrictHostKeyChecking=accept-new",
             target,
-            "bash",
-            "-lc",
-            REMOTE_SCRIPT,
+            remote_command,
         ],
         capture_output=True,
         text=True,
