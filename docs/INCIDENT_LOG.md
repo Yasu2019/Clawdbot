@@ -3,6 +3,22 @@
 譛ｬ繝輔ぃ繧､繝ｫ縺ｯ縲√す繧ｹ繝・Β縺ｫ逋ｺ逕溘＠縺滄囿螳ｳ縺ｻ荳榊・蜷医→縺昴・譬ｹ譛ｬ蜴溷屏繝ｻ菫ｮ豁｣蜀・ｮｹ繝ｻ蜀咲匱髦ｲ豁｢遲悶ｒ險倬鹸縺励∪縺吶€・菫ｮ豁｣繧定｡後▲縺溷ｴ蜷医・縲∝ｿ・★縺薙・繝輔ぃ繧､繝ｫ縺ｫ繧ｨ繝ｳ繝医Μ繧定ｿｽ蜉縺励※縺上□縺輔＞縲・
 ------
 
+## INC-109: Fleet nodes needed 24-hour local diagnostics for post-outage RCA
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-06-09 JST |
+| **Detection** | User requested that LAVIE and other PCs keep detailed local logs for root cause analysis and stable continuous operation after LAVIE was found stopped at BIOS. |
+| **Impact** | K10-side logs can show loss of connectivity, worker timeouts, and uploaded evidence, but if a node reboots, loses Tailscale, or stops before upload, the last local facts may remain only on the affected PC. This weakens RCA and delays safe workload recovery. |
+| **Root Cause (5 Why)** | **Why1**: BIOS/power/thermal failures can stop Windows services and upload paths. **Why2**: Existing fleet evidence was useful but centered on periodic K10 uplink and 6-hour event summaries. **Why3**: Nodes did not expose a first-class local 24-hour diagnostic endpoint. **Why4**: Metrics, thermal actions, agent lifecycle, upload failure, and Windows event summaries were not all tied together in a bounded local JSONL stream. **Why5**: Logging design optimized for dashboard visibility more than node-side black-box recovery. |
+| **Fix** | Extended `scripts/monitor_agent.py` with node-local diagnostics under `%ProgramData%\Clawstack\monitor_agent\node_diagnostics\<hostname>\diagnostic_YYYYMMDD.jsonl` by default. Added 24-hour retention pruning, `agent_start`/`agent_stop`, periodic metrics snapshots, high CPU/RAM/temp/disk/LHM alerts, thermal throttle events, harvester watchdog events, fleet evidence upload status, and `/diagnostics` HTTP output. |
+| **Files** | `scripts/monitor_agent.py`, `docs/INCIDENT_LOG.md` |
+| **Verification** | `python -m py_compile scripts\monitor_agent.py` passed. A local scratch test with `NODE_DIAGNOSTIC_DIR=scratch\node_diag_test` wrote one `self_test` event, reported one diagnostic file, read one recent record, and then cleaned up the scratch directory. |
+| **Lessons Learned** | For remote fleet stability, every node needs its own short-retention black-box log. K10 upload is valuable, but local evidence must survive transient network/service loss. |
+| **Prevention** | Keep 24-hour diagnostics enabled by default on all monitor-agent nodes. During incident recovery, check both `http://localhost:8111/diagnostics` on the affected PC and the uploaded K10 fleet evidence. |
+
+---
+
 ## INC-107: ThinkPad GNOME RDP Connection Required Credential, Desktop Path, and Lock-State Fixes
 
 | Field | Detail |

@@ -17,7 +17,7 @@ import urllib.error
 import urllib.request
 import re
 import winreg
-from datetime import datetime
+from datetime import datetime, timedelta
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 LHM_DATA_URL = os.environ.get("LHM_HTTP_URL", "http://127.0.0.1:8085/data.json")
@@ -34,6 +34,20 @@ FLEET_EVIDENCE_UPLOAD_ENABLED = os.environ.get("FLEET_EVIDENCE_UPLOAD", "1").str
     "no",
 )
 FLEET_EVIDENCE_MAX_POST_BYTES = 2 * 1024 * 1024
+NODE_DIAGNOSTIC_ROOT = os.environ.get(
+    "NODE_DIAGNOSTIC_DIR",
+    os.path.join(PROGRAMDATA_ROOT, "Clawstack", "monitor_agent", "node_diagnostics"),
+)
+NODE_DIAGNOSTIC_RETENTION_HOURS = max(1, int(os.environ.get("NODE_DIAGNOSTIC_RETENTION_HOURS", "24")))
+NODE_DIAGNOSTIC_METRICS_INTERVAL_SEC = max(
+    15,
+    int(os.environ.get("NODE_DIAGNOSTIC_METRICS_INTERVAL_SEC", "60")),
+)
+NODE_DIAGNOSTIC_ENABLED = os.environ.get("NODE_DIAGNOSTIC_LOG", "1").strip().lower() not in (
+    "0",
+    "false",
+    "no",
+)
 
 # RAM取得のためのctypes構造体
 class MEMORYSTATUSEX(ctypes.Structure):
@@ -547,6 +561,204 @@ def log_debug(msg):
         updater_logs.pop(0)
 
 
+diagnostic_lock = threading.Lock()
+last_diagnostic_prune_at = 0.0
+last_diagnostic_metrics_at = 0.0
+last_diagnostic_alert_key = ""
+
+
+def _diagnostic_host_dir():
+    host = _safe_hostname(socket.gethostname())
+    return os.path.join(NODE_DIAGNOSTIC_ROOT, host)
+
+
+def _diagnostic_path_for_now():
+    day = datetime.now().strftime("%Y%m%d")
+    return os.path.join(_diagnostic_host_dir(), f"diagnostic_{day}.jsonl")
+
+
+def _parse_record_time(record):
+    raw = record.get("timestamp") if isinstance(record, dict) else None
+    if not raw:
+        return None
+    try:
+        return datetime.fromisoformat(str(raw))
+    except Exception:
+        return None
+
+
+def _prune_node_diagnostics(force=False):
+    global last_diagnostic_prune_at
+    now = time.time()
+    if not force and now - last_diagnostic_prune_at < 3600:
+        return
+    last_diagnostic_prune_at = now
+    cutoff = datetime.now() - timedelta(hours=NODE_DIAGNOSTIC_RETENTION_HOURS)
+    root = _diagnostic_host_dir()
+    if not os.path.isdir(root):
+        return
+    for name in os.listdir(root):
+        if not name.startswith("diagnostic_") or not name.endswith(".jsonl"):
+            continue
+        path = os.path.join(root, name)
+        try:
+            kept = []
+            with open(path, "r", encoding="utf-8", errors="replace") as f:
+                for line in f:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        record = json.loads(line)
+                    except Exception:
+                        continue
+                    ts = _parse_record_time(record)
+                    if ts is None or ts >= cutoff:
+                        kept.append(record)
+            if not kept:
+                os.remove(path)
+                continue
+            tmp_path = path + ".tmp"
+            try:
+                with open(tmp_path, "w", encoding="utf-8", errors="replace") as f:
+                    for record in kept:
+                        json.dump(record, f, ensure_ascii=False, separators=(",", ":"))
+                        f.write("\n")
+                os.replace(tmp_path, path)
+            finally:
+                if os.path.exists(tmp_path):
+                    try:
+                        os.remove(tmp_path)
+                    except Exception:
+                        pass
+        except Exception as exc:
+            log_debug(f"diagnostic prune error {path}: {exc}")
+
+
+def _append_node_diagnostic(event, payload=None, severity="info"):
+    if not NODE_DIAGNOSTIC_ENABLED:
+        return None
+    record = {
+        "schema": "clawstack.node_diagnostic.v1",
+        "timestamp": datetime.now().isoformat(timespec="seconds"),
+        "hostname": socket.gethostname(),
+        "event": str(event),
+        "severity": str(severity),
+        "payload": payload or {},
+    }
+    with diagnostic_lock:
+        path = _diagnostic_path_for_now()
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "a", encoding="utf-8", errors="replace") as f:
+            json.dump(record, f, ensure_ascii=False, separators=(",", ":"))
+            f.write("\n")
+        _prune_node_diagnostics()
+    return path
+
+
+def _diagnostic_status():
+    root = _diagnostic_host_dir()
+    files = []
+    total_bytes = 0
+    if os.path.isdir(root):
+        for name in os.listdir(root):
+            if not name.endswith(".jsonl"):
+                continue
+            path = os.path.join(root, name)
+            try:
+                size = os.path.getsize(path)
+                total_bytes += size
+                files.append({"name": name, "bytes": size, "modified": datetime.fromtimestamp(os.path.getmtime(path)).isoformat(timespec="seconds")})
+            except Exception:
+                pass
+    return {
+        "enabled": NODE_DIAGNOSTIC_ENABLED,
+        "root": root,
+        "retention_hours": NODE_DIAGNOSTIC_RETENTION_HOURS,
+        "metrics_interval_sec": NODE_DIAGNOSTIC_METRICS_INTERVAL_SEC,
+        "files": sorted(files, key=lambda item: item["name"]),
+        "total_bytes": total_bytes,
+    }
+
+
+def _read_recent_node_diagnostics(limit=200):
+    root = _diagnostic_host_dir()
+    if not os.path.isdir(root):
+        return []
+    paths = [
+        os.path.join(root, name)
+        for name in os.listdir(root)
+        if name.startswith("diagnostic_") and name.endswith(".jsonl")
+    ]
+    records = []
+    for path in sorted(paths)[-3:]:
+        try:
+            with open(path, "r", encoding="utf-8", errors="replace") as f:
+                for line in f:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        records.append(json.loads(line))
+                    except Exception:
+                        pass
+        except Exception:
+            pass
+    return records[-limit:]
+
+
+def _metrics_alerts(metrics):
+    alerts = []
+    cpu = metrics.get("cpu_usage_percent")
+    ram = metrics.get("ram_usage_percent")
+    temp = metrics.get("thermal_control_temp_c")
+    if isinstance(cpu, (int, float)) and cpu >= 90:
+        alerts.append(f"cpu_high:{round(float(cpu), 1)}")
+    if isinstance(ram, (int, float)) and ram >= 85:
+        alerts.append(f"ram_high:{round(float(ram), 1)}")
+    if isinstance(temp, (int, float)) and temp >= 80:
+        alerts.append(f"temp_high:{round(float(temp), 1)}")
+    if metrics.get("disk_warnings"):
+        alerts.append("disk_warning")
+    if not metrics.get("lhm_ok") and metrics.get("lhm_error"):
+        alerts.append("lhm_error")
+    return alerts
+
+
+def _maybe_log_metrics_diagnostic(metrics):
+    global last_diagnostic_metrics_at, last_diagnostic_alert_key
+    now = time.time()
+    alerts = _metrics_alerts(metrics)
+    alert_key = "|".join(alerts)
+    should_log = now - last_diagnostic_metrics_at >= NODE_DIAGNOSTIC_METRICS_INTERVAL_SEC
+    if alert_key and alert_key != last_diagnostic_alert_key:
+        should_log = True
+    if not should_log:
+        return
+    last_diagnostic_metrics_at = now
+    last_diagnostic_alert_key = alert_key
+    payload = {
+        "cpu_usage_percent": metrics.get("cpu_usage_percent"),
+        "cpu_current_clock_mhz": metrics.get("cpu_current_clock_mhz"),
+        "ram_usage_percent": metrics.get("ram_usage_percent"),
+        "ram_used_gb": metrics.get("ram_used_gb"),
+        "ram_total_gb": metrics.get("ram_total_gb"),
+        "thermal_control_temp_c": metrics.get("thermal_control_temp_c"),
+        "cpu_package_c": metrics.get("cpu_package_c"),
+        "core_max_c": metrics.get("core_max_c"),
+        "temp_source": metrics.get("temp_source"),
+        "lhm_ok": metrics.get("lhm_ok"),
+        "lhm_error": metrics.get("lhm_error"),
+        "is_throttling": metrics.get("is_throttling"),
+        "cpu_limit_percent": metrics.get("cpu_limit_percent"),
+        "thermal_throttle_label": metrics.get("thermal_throttle_label"),
+        "disk_warnings": metrics.get("disk_warnings"),
+        "alerts": alerts,
+    }
+    severity = "warn" if alerts else "info"
+    _append_node_diagnostic("metrics_snapshot", payload, severity=severity)
+
+
 def _run_powershell_json(script, timeout=15):
     try:
         out = subprocess.check_output(
@@ -601,16 +813,16 @@ def _classify_windows_event(event):
     return "system"
 
 
-def _collect_windows_event_summary():
+def _collect_windows_event_summary(window_hours=6, max_events=120, max_compact=40):
     script = (
-        "$start=(Get-Date).AddHours(-6);"
+        f"$start=(Get-Date).AddHours(-{int(window_hours)});"
         "$providers=@('Microsoft-Windows-Kernel-Power','Microsoft-Windows-Power-Troubleshooter',"
         "'Microsoft-Windows-Kernel-General','Service Control Manager','Tcpip','Netwtw10','Netwtw08',"
         "'Microsoft-Windows-WLAN-AutoConfig','Tailscale');"
         "$events=Get-WinEvent -FilterHashtable @{LogName='System'; StartTime=$start} "
-        "-MaxEvents 120 -ErrorAction SilentlyContinue | "
+        f"-MaxEvents {int(max_events)} -ErrorAction SilentlyContinue | "
         "Where-Object { $providers -contains $_.ProviderName -or $_.ProviderName -like '*Network*' } | "
-        "Select-Object -First 40 TimeCreated,Id,ProviderName,LevelDisplayName; "
+        f"Select-Object -First {int(max_compact)} TimeCreated,Id,ProviderName,LevelDisplayName; "
         "$events | ConvertTo-Json -Depth 4 -Compress"
     )
     events = _run_powershell_json(script, timeout=20)
@@ -624,7 +836,7 @@ def _collect_windows_event_summary():
         rows = events
     counts = {}
     compact = []
-    for event in rows[:40]:
+    for event in rows[:max_compact]:
         if not isinstance(event, dict):
             continue
         category = _classify_windows_event(event)
@@ -638,7 +850,7 @@ def _collect_windows_event_summary():
                 "category": category,
             }
         )
-    return {"window_hours": 6, "counts": counts, "events": compact}
+    return {"window_hours": int(window_hours), "counts": counts, "events": compact}
 
 
 def _collect_power_snapshot():
@@ -709,6 +921,7 @@ def _build_fleet_evidence(reason="periodic"):
         "recent_agent_logs": list(updater_logs[-20:]),
         "windows_shutdown_events_48h": _collect_windows_shutdown_events(),
         "windows_event_summary_6h": _collect_windows_event_summary(),
+        "node_diagnostic_status": _diagnostic_status(),
         "power_snapshot": _collect_power_snapshot(),
         "tailscale_status": _collect_tailscale_status(),
     }
@@ -738,6 +951,16 @@ def fleet_evidence_loop():
             snapshot = _build_fleet_evidence("periodic")
             local_path = _write_evidence_jsonl(snapshot, subdir="local")
             upload_status = _upload_fleet_evidence(snapshot)
+            severity = "info" if upload_status.get("ok") or upload_status.get("enabled") is False else "warn"
+            _append_node_diagnostic(
+                "fleet_evidence",
+                {
+                    "local_path": local_path,
+                    "upload": upload_status,
+                    "windows_event_summary_24h": _collect_windows_event_summary(24, 200, 60),
+                },
+                severity=severity,
+            )
             cached_metrics["fleet_evidence"] = {
                 "last_local_path": local_path,
                 "last_upload": upload_status,
@@ -747,6 +970,7 @@ def fleet_evidence_loop():
             log_debug(f"Fleet evidence saved: {local_path}; upload={upload_status}")
         except Exception as exc:
             cached_metrics["fleet_evidence"] = {"error": str(exc), "last_at": datetime.now().isoformat()}
+            _append_node_diagnostic("fleet_evidence_error", {"error": str(exc)}, severity="error")
             log_debug(f"Fleet evidence loop error: {exc}")
         time.sleep(max(60, FLEET_EVIDENCE_INTERVAL_SEC))
 
@@ -792,8 +1016,11 @@ def metrics_updater_loop():
             cached_metrics["cpu_limit_percent"] = current_cpu_limit
             cached_metrics["thermal_throttle_label"] = thermal_throttle_label
             cached_metrics["thermal_control_temp_c"] = _thermal_control_temp_from_cache(cached_metrics)
+            cached_metrics["node_diagnostic"] = _diagnostic_status()
+            _maybe_log_metrics_diagnostic(cached_metrics)
         except Exception as e:
             log_debug(f"Loop error: {e}")
+            _append_node_diagnostic("metrics_loop_error", {"error": str(e)}, severity="error")
             print("Error in metrics updater:", e)
         time.sleep(15)
 
@@ -848,6 +1075,11 @@ def thermal_watchdog_loop():
                         f"{temp:.1f}C -> CPU max {target_limit}% (lhm_http)"
                     )
                     log_debug(f"Thermal throttle {target_label} {temp}C -> {target_limit}%")
+                    _append_node_diagnostic(
+                        "thermal_throttle",
+                        {"label": target_label, "temp_c": temp, "cpu_limit_percent": target_limit},
+                        severity="warn" if target_limit < NORMAL_PERCENT else "info",
+                    )
 
         time.sleep(THERMAL_POLL_SEC)
 
@@ -862,9 +1094,12 @@ def harvester_watchdog_loop():
         try:
             if os.path.exists(becky_script) and (becky_proc is None or becky_proc.poll() is not None):
                 becky_proc = subprocess.Popen(["python", becky_script])
+                _append_node_diagnostic("harvester_started", {"script": becky_script}, severity="info")
             if os.path.exists(gmail_script) and (gmail_proc is None or gmail_proc.poll() is not None):
                 gmail_proc = subprocess.Popen(["python", gmail_script])
+                _append_node_diagnostic("harvester_started", {"script": gmail_script}, severity="info")
         except Exception as e:
+            _append_node_diagnostic("harvester_watchdog_error", {"error": str(e)}, severity="error")
             print("Error in harvester watchdog:", e)
         time.sleep(600)
 
@@ -893,9 +1128,22 @@ class MetricsHandler(BaseHTTPRequestHandler):
         elif self.path == "/debug":
             debug_info = {
                 "cached_metrics": cached_metrics,
-                "updater_logs": updater_logs
+                "updater_logs": updater_logs,
+                "node_diagnostic": _diagnostic_status(),
             }
             response = json.dumps(debug_info).encode('utf-8')
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.send_header('Content-Length', str(len(response)))
+            self.end_headers()
+            self.wfile.write(response)
+        elif self.path == "/diagnostics":
+            payload = {
+                "status": _diagnostic_status(),
+                "recent": _read_recent_node_diagnostics(200),
+            }
+            response = json.dumps(payload, ensure_ascii=False).encode('utf-8')
             self.send_response(200)
             self.send_header('Content-Type', 'application/json')
             self.send_header('Access-Control-Allow-Origin', '*')
@@ -1129,6 +1377,17 @@ class MetricsHandler(BaseHTTPRequestHandler):
 def run(server_class=ThreadingHTTPServer, handler_class=MetricsHandler, port=8111):
     server_address = ('0.0.0.0', port)
     httpd = server_class(server_address, handler_class)
+    _append_node_diagnostic(
+        "agent_start",
+        {
+            "port": port,
+            "pid": os.getpid(),
+            "programdata_root": PROGRAMDATA_ROOT,
+            "fleet_evidence_url": FLEET_EVIDENCE_URL,
+            "diagnostic_retention_hours": NODE_DIAGNOSTIC_RETENTION_HOURS,
+        },
+        severity="info",
+    )
     
     # Start metrics updater thread
     updater_thread = threading.Thread(target=metrics_updater_loop, daemon=True)
@@ -1151,6 +1410,7 @@ def run(server_class=ThreadingHTTPServer, handler_class=MetricsHandler, port=811
         httpd.serve_forever()
     except KeyboardInterrupt:
         pass
+    _append_node_diagnostic("agent_stop", {"port": port, "pid": os.getpid()}, severity="warn")
     httpd.server_close()
 
 if __name__ == "__main__":
