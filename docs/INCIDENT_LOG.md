@@ -1716,3 +1716,18 @@ Goal: press_* trial --> NORMAL TERMINATION + KPI
 | **Prevention** | Keep heavy solvers, video rendering, and unbounded downloads blocked on ThinkPad until sustained temperature history and a real worker payload prove stable. Use the loop status JSON and SSH job log for RCA if the node becomes unstable. |
 
 ---
+# INC-111: LAVIE dashboard temperature showed 要LHM because the node had an old monitor agent and LHM web server was off
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-06-10 JST |
+| **Detection** | User reported that the Growth Dashboard showed `Lavie Node` online but `CPU Temp` as `要LHM`. K10 probe to `http://100.87.244.46:8111/metrics` returned only old fields with `cpu_temp_celsius: null`; `/diagnostics` returned 404; `http://100.87.244.46:8085/data.json` timed out. |
+| **Impact** | LAVIE load and RAM were visible, but thermal routing and dashboard temperature could not be trusted. Heavy or medium jobs should not use LAVIE temperature gates until LHM HTTP and the latest monitor agent are restored. |
+| **Root Cause (5 Why)** | **Why1**: Dashboard showed `要LHM` because `cpu_temp_celsius` was null. **Why2**: LAVIE monitor agent was old and did not expose `lhm_ok`, `temp_source`, or `/diagnostics`. **Why3**: LibreHardwareMonitor Remote Web Server on port 8085 was not reachable. **Why4**: Existing `lhm_setup.ps1` installed/started LHM but still required a manual GUI step to enable Remote Web Server. **Why5**: The fleet setup relied on manual LHM GUI state, which is fragile after reboot or recovery from BIOS/offline incidents. |
+| **Fix** | Updated `scripts/lhm_setup.ps1` to write `%APPDATA%\LibreHardwareMonitor\LibreHardwareMonitor.config` with `IsHttpServerEnabled=true`, `MinimizeToTray=true`, and `HttpPort=8085` before restarting LHM. The repair path is to run the updated LHM setup and then rerun `setup_monitor_node.ps1` so LAVIE gets the latest agent with `/diagnostics` and LHM parsing. |
+| **Files** | `scripts/lhm_setup.ps1`; `docs/INCIDENT_LOG.md` |
+| **Verification** | K10 confirmed both `http://100.119.18.40:8123/lhm_setup.ps1` and `setup_monitor_node.ps1` are served. Local PowerShell parse check passed. Live LAVIE verification still requires running the repair command on the LAVIE desktop because LAVIE exec_bridge and LHM HTTP ports are currently unreachable from K10. |
+| **Lessons Learned** | LHM GUI state is a hidden dependency. For fleet nodes, the setup script should write the web server config directly and restart LHM, then monitor_agent should be redeployed from K10. |
+| **Prevention** | Treat `lhm_ok=false` or missing `lhm_ok` on Windows satellites as a repair condition. Do not assign thermally sensitive LAVIE jobs until `:8111/metrics` shows `lhm_ok:true` and a real `temp_source`. |
+
+---
