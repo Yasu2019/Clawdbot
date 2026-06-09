@@ -3,6 +3,22 @@
 譛ｬ繝輔ぃ繧､繝ｫ縺ｯ縲√す繧ｹ繝・Β縺ｫ逋ｺ逕溘＠縺滄囿螳ｳ縺ｻ荳榊・蜷医→縺昴・譬ｹ譛ｬ蜴溷屏繝ｻ菫ｮ豁｣蜀・ｮｹ繝ｻ蜀咲匱髦ｲ豁｢遲悶ｒ險倬鹸縺励∪縺吶€・菫ｮ豁｣繧定｡後▲縺溷ｴ蜷医・縲∝ｿ・★縺薙・繝輔ぃ繧､繝ｫ縺ｫ繧ｨ繝ｳ繝医Μ繧定ｿｽ蜉縺励※縺上□縺輔＞縲・
 ------
 
+## INC-113: Red LAVIE job worker could not be started remotely because execution ingress was closed
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-06-10 JST |
+| **Detection** | User requested starting Red LAVIE `job_worker :5682`. K10 probes showed Red LAVIE monitor-agent `:8111` was reachable and healthy, but `:5682` worker and `:5679` exec_bridge timed out. |
+| **Impact** | K10 could classify Red LAVIE as a dedicated medium-heavy worker, but could not actually dispatch jobs until a worker process was started on Red LAVIE. |
+| **Root Cause (5 Why)** | **Why1**: K10 could not start the worker remotely. **Why2**: The existing remote execution paths (`exec_bridge :5679`, `job_worker :5682`) were not listening. **Why3**: SMB/RPC/remote task attempts returned Access Denied, WinRM/SSH were unavailable, and `monitor_agent :8111` intentionally exposes metrics/diagnostics only. **Why4**: The fleet bootstrap relied on one-time local PowerShell setup for command-ingress services. **Why5**: Red LAVIE's monitor path was restored before its command-ingress path, leaving an observable but not controllable node. |
+| **Fix** | Added `scripts/red_lavie_start_job_worker.ps1`, a one-time Red LAVIE bootstrap that downloads `lavie_job_worker.py` from K10, writes the satellite token to Red LAVIE local `.env`, opens firewall TCP `5682`, starts the worker hidden, and registers startup VBS. |
+| **Files** | `scripts/red_lavie_start_job_worker.ps1`, `docs/INCIDENT_LOG.md` |
+| **Verification** | K10 served `http://100.119.18.40:8123/red_lavie_start_job_worker.ps1` with HTTP 200. PowerShell parser check passed. Live worker verification remains pending until the command is run once on the Red LAVIE desktop. |
+| **Lessons Learned** | A monitor-only node is visible but not controllable. Every dedicated worker needs both health telemetry and a command ingress bootstrap path. |
+| **Prevention** | Keep node bootstrap scripts available from K10 `:8123`. For future Windows workers, install monitor-agent and job-worker startup in the same setup pass, then verify both `:8111/metrics` and `:5682/healthz`. |
+
+---
+
 ## INC-112: Red LAVIE promoted to unrestricted dedicated medium-heavy worker policy
 
 | Field | Detail |
