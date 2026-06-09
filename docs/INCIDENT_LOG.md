@@ -253,6 +253,22 @@
 
 ---
 
+## INC-108: LAVIE disconnected and was found stopped at BIOS screen
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-06-09 JST |
+| **Detection** | User physically checked NEC LAVIE and found it at the BIOS screen after K10 lost connection. K10 also showed LAVIE worker/n8n offline and Tailscale unavailable. |
+| **Impact** | LAVIE could not run monitor_agent, Tailscale, n8n, or job worker. Fleet workload routing lost one Windows satellite node and any LAVIE CAE jobs became unavailable. |
+| **Root Cause (5 Why)** | **Why1**: K10 could not reach LAVIE because Windows services were not running. **Why2**: Windows services were not running because the physical machine was at BIOS. **Why3**: BIOS state implies abnormal reboot, boot interruption, firmware prompt, or boot-device issue rather than a simple dashboard/network false positive. **Why4**: Immediately before loss, LAVIE had repeated heavy `resin_fill_cad` CAE timeouts and probe failures, increasing thermal/power/driver stress risk. **Why5**: The workload guard did not hard-quarantine normal LAVIE after combined heavy timeout streak plus probe failure. |
+| **Evidence** | `data/workspace/lavie_continuous_te_status.json`: probe warning at 2026-06-09 02:58:36 JST and final `resin_fill_cad` `TIMEOUT` at 2026-06-09 03:30:41 JST. `data/workspace/satellite_cae_log.jsonl`: trial `lavie365-resin_fill_cad-4302dca7` timed out after 1320 seconds. `data/workspace/fleet_operations_status.json`: LAVIE job worker and n8n offline. `tailscale status`: `desktop-tfdripe-lavie` offline from K10. |
+| **Fix / Current Action** | Created RCA report `quality_incident_report_20260609_lavie_bios_disconnect.md`. Recommended holding normal LAVIE from heavy CAE until Windows boots and local Event Viewer logs are collected. |
+| **Verification** | K10-side evidence confirms the sequence: heavy job timeout -> probe timeout -> worker/n8n offline -> Tailscale offline. Exact BIOS trigger remains unverified until LAVIE local Windows event logs and BIOS boot/SSD state are checked. |
+| **Lessons Learned** | BIOS screen is a different class of outage from agent/network failure. K10 can detect loss of OS-level services, but the final firmware-level reason needs local event logs after reboot. |
+| **Prevention** | Add or enforce a node quarantine rule: repeated heavy-job timeouts plus monitor probe failures must place the node in a recovery hold before more heavy assignments. Resume only after boot confirmation and event-log review. |
+
+---
+
 ## INC-084: CityCharacterPipeline walking render lower-body burial caused by OSM occluders and grounding blind spots
 
 | Field | Detail |
