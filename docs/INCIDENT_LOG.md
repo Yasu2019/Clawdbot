@@ -3,6 +3,19 @@
 譛ｬ繝輔ぃ繧､繝ｫ縺ｯ縲√す繧ｹ繝・Β縺ｫ逋ｺ逕溘＠縺滄囿螳ｳ縺ｻ荳榊・蜷医→縺昴・譬ｹ譛ｬ蜴溷屏繝ｻ菫ｮ豁｣蜀・ｮｹ繝ｻ蜀咲匱髦ｲ豁｢遲悶ｒ險倬鹸縺励∪縺吶€・菫ｮ豁｣繧定｡後▲縺溷ｴ蜷医・縲∝ｿ・★縺薙・繝輔ぃ繧､繝ｫ縺ｫ繧ｨ繝ｳ繝医Μ繧定ｿｽ蜉縺励※縺上□縺輔＞縲・
 ------
 
+## INC-106: ThinkPad L590 Ubuntu Added as SSH-Controlled Medium Fleet Node
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-06-09 JST |
+| **Detection** | User requested that the newly SSH-connected Ubuntu ThinkPad be added to the Growth Dashboard and receive work from K10. |
+| **Impact** | Before this change, ThinkPad was visible on Tailscale and SSH-reachable but not part of K10 fleet status, workload allocation, or guarded job dispatch. K10 could not safely use its spare CPU/RAM capacity. |
+| **Root Cause (5 Why)** | Why1: ThinkPad did not appear in the dashboard or router. Why2: Existing fleet nodes were modeled as Windows monitor-agent or HTTP job-worker nodes. Why3: Ubuntu SSH control was not represented as a first-class transport. Why4: The dashboard expected `:8111/metrics` rather than K10-collected SSH metrics. Why5: No registry or guarded dispatch path existed for Linux SSH satellites. |
+| **Fix** | Added `data/workspace/thinkpad_node_registry.json`; added `scripts/thinkpad_ssh_metrics.py` to collect CPU/RAM/temperature over SSH and write dashboard JSON; added `scripts/k10_thinkpad_ssh_dispatch.py` for allow-listed SSH jobs; updated `scripts/fleet_node_registry.py`, `scripts/update_fleet_operations_status.py`, `scripts/cae_workload_router.py`, `data/workspace/cae_workload_router.yaml`, and `data/workspace/apps/growth_dashboard/index.html` to include ThinkPad as a guarded medium SSH node. |
+| **Verification** | `python -m py_compile` passed for modified Python files. `python scripts\thinkpad_ssh_metrics.py --json` returned ThinkPad metrics: i7-8565U, 4C/8T, RAM 14.79GB, CPU about 0.4%, RAM 13.8%, temp about 40C. `python scripts\k10_thinkpad_ssh_dispatch.py --job-type health_snapshot --json` completed successfully. `python scripts\cae_workload_router.py --category qms_iatf_analysis --json` selected `host=thinkpad` with SSH load guard OK. |
+| **Lessons Learned** | Linux SSH satellites need a distinct transport model. Treating every node as a Windows monitor-agent endpoint hides usable capacity. |
+| **Prevention** | Keep SSH nodes behind registry metadata, load guards, allow-listed jobs, and explicit blocked workload lists. Do not send heavy solvers or long renders until a real worker and thermal history are proven. |
+
 ## INC-105: YouTube IATF Analysis Dashboard Showed Samples Without Pipeline Progress
 
 | Field | Detail |

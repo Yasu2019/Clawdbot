@@ -17,6 +17,7 @@ if hasattr(sys.stdout, "reconfigure"):
 
 import httpx
 import yaml
+import thinkpad_ssh_metrics
 
 ROOT = Path(__file__).resolve().parents[1]
 CONFIG_PATH = ROOT / "data" / "workspace" / "cae_workload_router.yaml"
@@ -131,6 +132,35 @@ def satellite_load_guard(cfg: dict[str, Any], node_id: str) -> tuple[bool, str, 
     return True, f"load ok cpu={cpu:.1f}% ram={ram:.1f}% temp={temp:.1f}C", metrics
 
 
+def thinkpad_load_guard(cfg: dict[str, Any]) -> tuple[bool, str, dict[str, Any]]:
+    sat = cfg.get("thinkpad") or {}
+    if not sat.get("enabled"):
+        return False, "thinkpad disabled in config", {}
+    metrics = thinkpad_ssh_metrics.collect_metrics()
+    if not metrics.get("ok"):
+        return False, f"ssh metrics unavailable: {metrics.get('error', 'unknown')}", metrics
+
+    def as_float(key: str, default: float = 0.0) -> float:
+        try:
+            return float(metrics.get(key) or default)
+        except (TypeError, ValueError):
+            return default
+
+    cpu = as_float("cpu_usage_percent")
+    ram = as_float("ram_usage_percent")
+    temp = as_float("thermal_control_temp_c", as_float("cpu_temp_celsius"))
+    max_cpu = float(sat.get("max_cpu_percent") or 80)
+    max_ram = float(sat.get("max_ram_percent") or 75)
+    max_temp = float(sat.get("max_temp_c") or 75)
+    if cpu >= max_cpu:
+        return False, f"cpu {cpu:.1f}% >= {max_cpu:.1f}%", metrics
+    if ram >= max_ram:
+        return False, f"ram {ram:.1f}% >= {max_ram:.1f}%", metrics
+    if temp >= max_temp:
+        return False, f"temp {temp:.1f}C >= {max_temp:.1f}C", metrics
+    return True, f"ssh load ok cpu={cpu:.1f}% ram={ram:.1f}% temp={temp:.1f}C", metrics
+
+
 def k10_cae_busy(cfg: dict[str, Any] | None = None) -> tuple[bool, str]:
     cfg = cfg or load_config()
     if STATUS_PATH.exists():
@@ -176,6 +206,7 @@ def pick_host(category: str, cfg: dict[str, Any] | None = None) -> dict[str, Any
     parallel = cfg.get("parallel_mode") or {}
     stats = host_stats()
     busy, busy_reason = k10_cae_busy(cfg)
+    thinkpad_ok, thinkpad_reason, thinkpad_metrics = thinkpad_load_guard(cfg)
     
     available_satellites = []
     # Prioritize red_lavie (newer/more ram) over lavie
@@ -202,7 +233,21 @@ def pick_host(category: str, cfg: dict[str, Any] | None = None) -> dict[str, Any
         "k10_busy_reason": busy_reason,
         "satellites_online": any(not node_id.endswith(":guarded") for node_id, _ in available_satellites),
         "satellites_probe": available_satellites,
+        "thinkpad_ssh_ready": thinkpad_ok,
+        "thinkpad_probe": thinkpad_reason,
+        "thinkpad_metrics": {
+            "cpu_usage_percent": thinkpad_metrics.get("cpu_usage_percent"),
+            "ram_usage_percent": thinkpad_metrics.get("ram_usage_percent"),
+            "thermal_control_temp_c": thinkpad_metrics.get("thermal_control_temp_c"),
+            "hostname": thinkpad_metrics.get("hostname"),
+        } if thinkpad_metrics else {},
     }
+
+    medium_ssh_categories = set((cfg.get("thinkpad") or {}).get("medium_job_categories") or [])
+    if category in medium_ssh_categories and thinkpad_ok:
+        decision["host"] = "thinkpad"
+        decision["reason"] = f"medium SSH category -> thinkpad ({thinkpad_reason})"
+        return decision
 
     dispatchable_satellites = [
         (node_id, reason) for node_id, reason in available_satellites if not node_id.endswith(":guarded")

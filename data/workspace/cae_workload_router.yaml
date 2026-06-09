@@ -112,3 +112,31 @@ dynabook:
     - press_crushing
     - press_blanking_stripper
   notes: "Run dynabook_node_setup.ps1 then k10_dynabook_register.py --ip <addr>"
+
+# ThinkPad L590 Ubuntu: SSH-controlled medium satellite.
+# No Docker/job_worker yet; K10 may assign guarded shell jobs and CAE pregate dry-runs only.
+thinkpad:
+  enabled: true
+  ip: "100.66.63.9"
+  tailscale_ip: "100.66.63.9"
+  ssh_user: "yasu"
+  ssh_key_path: "C:/Users/yasu/.ssh/id_ed25519"
+  profile: medium_ssh
+  job_transport: ssh
+  max_ram_percent: 75
+  max_cpu_percent: 80
+  max_temp_c: 75
+  no_docker: true
+  cae_dry_run_only: true
+  medium_job_categories:
+    - web_research
+    - dataset_download
+    - document_parse
+    - rag_indexing
+    - qms_iatf_analysis
+    - cae_pregate_dry_run
+  blocked_categories:
+    - openradioss_real_solver
+    - openfoam_real_solver
+    - long_video_render
+  notes: "Use SSH metrics guard before dispatch. Keep real CAE solvers on K10/LAVIE until job_worker and thermal history are proven."

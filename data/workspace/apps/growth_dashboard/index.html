@@ -981,6 +981,7 @@
                 fetchNodeStatus("Lavie Node", "http://100.87.244.46:8111/metrics"),
                 fetchNodeStatus("Red Lavie Node", "http://100.99.145.3:8111/metrics", true),
                 fetchNodeStatus("Dynabook Node", "http://100.98.133.40:8111/metrics"),
+                fetchNodeStatus("ThinkPad L590 (Ubuntu SSH)", "thinkpad_metrics.json"),
                 fetchNodeStatus("ASUS Vivobook (Work PC)", "http://100.65.182.27:8111/metrics", true),
                 fetchNodeStatus("HP Node (Watchdog)", "http://100.103.176.50:8111/metrics")
             ]);
@@ -994,6 +995,7 @@
             { name: "K10", ip: "127.0.0.1", url: "http://localhost:8111/metrics", role: "Main host / orchestration" },
             { name: "mhn15", ip: "100.65.182.27", url: "http://100.65.182.27:8111/metrics", role: "User work PC", daytimeLightOnly: true },
             { name: "Dynabook", ip: "100.98.133.40", url: "http://100.98.133.40:8111/metrics", role: "Light satellite" },
+            { name: "ThinkPad L590", ip: "100.66.63.9", url: "thinkpad_metrics.json", role: "Ubuntu SSH medium satellite", mediumSshCandidate: true },
             { name: "G3", ip: "100.121.241.128", url: "http://100.121.241.128:8111/metrics", role: "Stable satellite" },
             { name: "LAVIE", ip: "100.87.244.46", url: "http://100.87.244.46:8111/metrics", role: "CAE worker" },
             { name: "red_lavie", ip: "100.99.145.3", url: "http://100.99.145.3:8111/metrics", role: "Medium-heavy ready worker", mediumHeavyCandidate: true }
@@ -1049,6 +1051,13 @@
                     level: "MEDIUM-HEAVY READY",
                     color: "#3fb950",
                     text: "Preferred K10 offload target for medium and guarded heavy jobs: CAE batches, larger ingest, reports, and bounded render helpers. Keep thermal guard at 75C and confirm job_worker or exec_bridge before dispatch."
+                };
+            }
+            if (node.mediumSshCandidate && temp > 0 && temp < 75 && cpu < 80 && ram < 75) {
+                return {
+                    level: "MEDIUM SSH READY",
+                    color: "#3fb950",
+                    text: "K10 can assign guarded SSH jobs: web research, dataset downloads, document parsing, RAG indexing, IATF/QMS analysis, and CAE pregate dry-runs. Keep real solvers/render jobs blocked until a worker is installed."
                 };
             }
             if ((metrics.ram_total_gb || 0) >= 32 && cpu < 70 && ram < 75) {
