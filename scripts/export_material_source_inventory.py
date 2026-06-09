@@ -15,6 +15,7 @@ DASHBOARD_DIR = ROOT / "data" / "workspace" / "apps" / "growth_dashboard"
 OUTPUT_PATH = DASHBOARD_DIR / "material_source_inventory.json"
 ACQUIRED_DIR = ROOT / "data" / "web_acquired_materials"
 QUEUE_PATH = DASHBOARD_DIR / "material_acquisition_queue.json"
+ROBOFLOW_CANDIDATES_PATH = DASHBOARD_DIR / "roboflow_candidate_datasets.json"
 
 DOC_EXTENSIONS = {
     ".pdf",
@@ -164,6 +165,32 @@ def scout_backed_row(source, category, patterns, local_paths=None, local_keyword
     }
 
 
+def roboflow_row(dataset_paths):
+    data = load_json(ROBOFLOW_CANDIDATES_PATH, {})
+    candidates = data.get("items", []) if isinstance(data.get("items"), list) else []
+    items = file_inventory(dataset_paths, ["roboflow"])
+    examples = []
+    for item in candidates[:5]:
+        name = str(item.get("dataset") or item.get("slug") or item.get("url") or "Roboflow dataset")
+        category = str(item.get("category") or "")
+        images = item.get("images")
+        examples.append(f"{name} ({category}, images={images})")
+    if not candidates:
+        sources = source_names_from_quality_scout()
+        _, examples = candidate_count(sources, ["roboflow"])
+    return {
+        "source": "Roboflow Universe",
+        "category": "vision_dataset_platform",
+        "acquired_count": len(items),
+        "candidate_count": 0 if items else len(candidates),
+        "status": "acquired" if items else ("candidate" if candidates else "not_acquired"),
+        "latest_at": items[0]["modified_at"] if items else "",
+        "evidence": ROBOFLOW_CANDIDATES_PATH.relative_to(ROOT).as_posix() if candidates else "quality_manufacturing_source_scout_status.json",
+        "note": "User-registered workspace candidates. License/export review required before download." if candidates and not items else "",
+        "examples": [item["name"] for item in items[:5]] or examples,
+    }
+
+
 def build_inventory():
     dataset_paths = [
         ROOT / "data" / "datasets",
@@ -178,7 +205,7 @@ def build_inventory():
         scout_backed_row("Kaggle datasets", "dataset_platform", ["kaggle"], dataset_paths, ["kaggle"]),
         scout_backed_row("MVTec AD", "visual_inspection_dataset", ["mvtec"], dataset_paths, ["mvtec"]),
         scout_backed_row("Kolektor Surface-Defect Dataset", "visual_inspection_dataset", ["kolektor"], dataset_paths, ["kolektor"]),
-        scout_backed_row("Roboflow Universe", "vision_dataset_platform", ["roboflow"], dataset_paths, ["roboflow"]),
+        roboflow_row(dataset_paths),
         scout_backed_row("openInjMoldSim Paper", "injection_molding_paper", ["openinjmoldsim", "2311-5521/5/2/84"], [ACQUIRED_DIR, ROOT / "data" / "workspace"], ["openinjmoldsim", "fluids-05-02-00084"]),
         {
             "source": "GitHub",

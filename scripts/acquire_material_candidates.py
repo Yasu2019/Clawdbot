@@ -16,6 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DASHBOARD_DIR = ROOT / "data" / "workspace" / "apps" / "growth_dashboard"
 ACQUIRED_DIR = ROOT / "data" / "web_acquired_materials"
 QUEUE_PATH = DASHBOARD_DIR / "material_acquisition_queue.json"
+ROBOFLOW_CANDIDATES_PATH = DASHBOARD_DIR / "roboflow_candidate_datasets.json"
 JST = timezone(timedelta(hours=9))
 
 
@@ -64,6 +65,37 @@ REGISTERED_OR_MANUAL_SOURCES = [
 ]
 
 
+def load_json(path, default):
+    if not path.exists():
+        return default
+    try:
+        return json.loads(path.read_text(encoding="utf-8-sig"))
+    except Exception:
+        return default
+
+
+def roboflow_pending_items():
+    data = load_json(ROBOFLOW_CANDIDATES_PATH, {})
+    items = data.get("items", []) if isinstance(data.get("items"), list) else []
+    pending = []
+    for item in items:
+        pending.append(
+            {
+                "source": "Roboflow Universe",
+                "dataset": item.get("dataset"),
+                "category": item.get("category"),
+                "url": item.get("url"),
+                "action": "user_export_after_license_review",
+                "priority": item.get("priority", 2),
+                "reason": "Requires logged-in Roboflow access, dataset license check, and export format selection before local download.",
+                "recommended_export": ["YOLOv8", "COCO"],
+                "images": item.get("images"),
+                "downloads": item.get("downloads"),
+            }
+        )
+    return pending
+
+
 def now_jst():
     return datetime.now(JST).replace(microsecond=0).isoformat()
 
@@ -108,6 +140,13 @@ def main():
         except Exception as exc:
             errors.append({"source": source["source"], "status": "error", "error": str(exc)})
 
+    roboflow_items = roboflow_pending_items()
+    base_pending = [
+        source
+        for source in REGISTERED_OR_MANUAL_SOURCES
+        if not (roboflow_items and source.get("source") == "Roboflow Universe")
+    ]
+    pending = base_pending + roboflow_items
     queue = {
         "schema": "clawstack.material_acquisition_queue.v1",
         "updated_at": now_jst(),
@@ -118,11 +157,11 @@ def main():
             "no_bypass": True,
         },
         "acquired_now": acquired,
-        "pending": REGISTERED_OR_MANUAL_SOURCES,
+        "pending": pending,
         "errors": errors,
     }
     QUEUE_PATH.write_text(json.dumps(queue, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    print(f"[OK] acquired_now={len(acquired)} pending={len(REGISTERED_OR_MANUAL_SOURCES)} errors={len(errors)}")
+    print(f"[OK] acquired_now={len(acquired)} pending={len(pending)} errors={len(errors)}")
     print(f"[OK] wrote {QUEUE_PATH}")
 
 

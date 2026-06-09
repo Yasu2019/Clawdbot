@@ -1,6 +1,6 @@
 {
   "schema": "clawstack.material_acquisition_queue.v1",
-  "updated_at": "2026-06-09T05:49:12+09:00",
+  "updated_at": "2026-06-10T03:46:19+09:00",
   "policy": {
     "direct_free": "download immediately from official/open pages",
     "free_reg": "queue until registration/API token/license acceptance is available",
@@ -17,7 +17,7 @@
       "path": "data/web_acquired_materials/openinjmoldsim/fluids-05-02-00084-openInjMoldSim.pdf",
       "size_bytes": 9758234,
       "sha256": "4ff22c67e5bafafb34108489e3f52d865951e30197935c27124e3838f2e62e9b",
-      "acquired_at": "2026-06-09T05:49:12+09:00",
+      "acquired_at": "2026-06-10T03:46:19+09:00",
       "license_note": "MDPI open-access article. Downloaded from the publisher mdpi-res PDF endpoint."
     }
   ],
@@ -48,9 +48,198 @@
     },
     {
       "source": "Roboflow Universe",
-      "action": "project_license_selection",
+      "dataset": "Surface",
+      "category": "General surface defects",
+      "url": "https://universe.roboflow.com/test-zrgdr/surface-op2vw",
+      "action": "user_export_after_license_review",
+      "priority": 1,
+      "reason": "Requires logged-in Roboflow access, dataset license check, and export format selection before local download.",
+      "recommended_export": [
+        "YOLOv8",
+        "COCO"
+      ],
+      "images": 2682,
+      "downloads": 5
+    },
+    {
+      "source": "Roboflow Universe",
+      "dataset": "metal surface defect",
+      "category": "Metal surface defects",
+      "url": "https://universe.roboflow.com/sohee-lefxr/metal-surface-defect-xqe4n",
+      "action": "user_export_after_license_review",
+      "priority": 1,
+      "reason": "Requires logged-in Roboflow access, dataset license check, and export format selection before local download.",
+      "recommended_export": [
+        "YOLOv8",
+        "COCO"
+      ],
+      "images": 1198,
+      "downloads": 0
+    },
+    {
+      "source": "Roboflow Universe",
+      "dataset": "NEU surface defect",
+      "category": "Steel surface defects",
+      "url": "https://universe.roboflow.com/data-set-fptet/neu-surface-defect",
+      "action": "user_export_after_license_review",
+      "priority": 1,
+      "reason": "Requires logged-in Roboflow access, dataset license check, and export format selection before local download.",
+      "recommended_export": [
+        "YOLOv8",
+        "COCO"
+      ],
+      "images": 388,
+      "downloads": 0
+    },
+    {
+      "source": "Roboflow Universe",
+      "dataset": "Scratch detection",
+      "category": "Scratch detection",
+      "url": "https://universe.roboflow.com/uniud-g3oa7/scratch-detection-hnk3o",
+      "action": "user_export_after_license_review",
+      "priority": 1,
+      "reason": "Requires logged-in Roboflow access, dataset license check, and export format selection before local download.",
+      "recommended_export": [
+        "YOLOv8",
+        "COCO"
+      ],
+      "images": 809,
+      "downloads": 34
+    },
+    {
+      "source": "Roboflow Universe",
+      "dataset": "Metal Defect Detection",
+      "category": "Scratch detection",
+      "url": "https://universe.roboflow.com/capjamesg/metal-defect-detection-d3wl6",
+      "action": "user_export_after_license_review",
       "priority": 2,
-      "reason": "Public dataset platform; each project has its own license and quality level."
+      "reason": "Requires logged-in Roboflow access, dataset license check, and export format selection before local download.",
+      "recommended_export": [
+        "YOLOv8",
+        "COCO"
+      ],
+      "images": 264,
+      "downloads": 17
+    },
+    {
+      "source": "Roboflow Universe",
+      "dataset": "Plastic Defect",
+      "category": "Plastic molding defects",
+      "url": "https://universe.roboflow.com/qc5/plastic-defect-lbdqh",
+      "action": "user_export_after_license_review",
+      "priority": 1,
+      "reason": "Requires logged-in Roboflow access, dataset license check, and export format selection before local download.",
+      "recommended_export": [
+        "YOLOv8",
+        "COCO"
+      ],
+      "images": 285,
+      "downloads": 0
+    },
+    {
+      "source": "Roboflow Universe",
+      "dataset": "plastic defect detection",
+      "category": "Plastic surface defects",
+      "url": "https://universe.roboflow.com/grey2020/plastic-defect-detection-7nnwf",
+      "action": "user_export_after_license_review",
+      "priority": 1,
+      "reason": "Requires logged-in Roboflow access, dataset license check, and export format selection before local download.",
+      "recommended_export": [
+        "YOLOv8",
+        "COCO"
+      ],
+      "images": 606,
+      "downloads": 6
+    },
+    {
+      "source": "Roboflow Universe",
+      "dataset": "Welding",
+      "category": "Welding defects",
+      "url": "https://universe.roboflow.com/celebal/welding-aiu6l",
+      "action": "user_export_after_license_review",
+      "priority": 2,
+      "reason": "Requires logged-in Roboflow access, dataset license check, and export format selection before local download.",
+      "recommended_export": [
+        "YOLOv8",
+        "COCO"
+      ],
+      "images": 525,
+      "downloads": 86
+    },
+    {
+      "source": "Roboflow Universe",
+      "dataset": "Welding",
+      "category": "Welding defects",
+      "url": "https://universe.roboflow.com/aiml-an4ak/welding-vy1bq",
+      "action": "user_export_after_license_review",
+      "priority": 2,
+      "reason": "Requires logged-in Roboflow access, dataset license check, and export format selection before local download.",
+      "recommended_export": [
+        "YOLOv8",
+        "COCO"
+      ],
+      "images": 381,
+      "downloads": 22
+    },
+    {
+      "source": "Roboflow Universe",
+      "dataset": "welding defect",
+      "category": "Welding defects",
+      "url": "https://universe.roboflow.com/delvin-9qaxw/welding-defect-9umix",
+      "action": "user_export_after_license_review",
+      "priority": 2,
+      "reason": "Requires logged-in Roboflow access, dataset license check, and export format selection before local download.",
+      "recommended_export": [
+        "YOLOv8",
+        "COCO"
+      ],
+      "images": 909,
+      "downloads": 0
+    },
+    {
+      "source": "Roboflow Universe",
+      "dataset": "pcb defect",
+      "category": "PCB defects",
+      "url": "https://universe.roboflow.com/pcbdefect-eftc9/pcb-defect-djz4r",
+      "action": "user_export_after_license_review",
+      "priority": 3,
+      "reason": "Requires logged-in Roboflow access, dataset license check, and export format selection before local download.",
+      "recommended_export": [
+        "YOLOv8",
+        "COCO"
+      ],
+      "images": 693,
+      "downloads": 64
+    },
+    {
+      "source": "Roboflow Universe",
+      "dataset": "PCB Defect",
+      "category": "PCB defects",
+      "url": "https://universe.roboflow.com/nbmachinevision/pcb-defect-vagef",
+      "action": "user_export_after_license_review",
+      "priority": 3,
+      "reason": "Requires logged-in Roboflow access, dataset license check, and export format selection before local download.",
+      "recommended_export": [
+        "YOLOv8",
+        "COCO"
+      ],
+      "images": 4400,
+      "downloads": 31
+    },
+    {
+      "source": "Roboflow Universe",
+      "dataset": "PCB Defect",
+      "category": "PCB defects",
+      "url": "https://universe.roboflow.com/university-of-strathclyde-m436x/pcb-defect-94yfu",
+      "action": "user_export_after_license_review",
+      "priority": 3,
+      "reason": "Requires logged-in Roboflow access, dataset license check, and export format selection before local download.",
+      "recommended_export": [
+        "YOLOv8",
+        "COCO"
+      ],
+      "images": 693,
+      "downloads": 31
     }
   ],
   "errors": []

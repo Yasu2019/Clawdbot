@@ -1,25 +1,25 @@
 {
   "schema": "clawstack.material_source_inventory.v1",
-  "updated_at": "2026-06-09T05:50:26+09:00",
-  "total_acquired_count": 418,
-  "total_candidate_count": 21,
+  "updated_at": "2026-06-10T03:46:22+09:00",
+  "total_acquired_count": 419,
+  "total_candidate_count": 33,
   "acquisition_queue": "data/workspace/apps/growth_dashboard/material_acquisition_queue.json",
   "rows": [
     {
       "source": "YouTube",
       "category": "video_transcripts",
-      "acquired_count": 364,
+      "acquired_count": 365,
       "candidate_count": 0,
       "status": "acquired",
       "latest_at": "2026-05-01T08:52:50+09:00",
       "evidence": "processed_youtube_videos.json / iatf_youtube_summary.json",
-      "note": "Processed video IDs: 364. Dashboard summaries: 20.",
+      "note": "Processed video IDs: 365. Dashboard summaries: 0.",
       "examples": [
-        "GL3wlY9xeM0",
-        "ypOrvSwIL5c",
-        "uk5gaqTgC1s",
-        "VT5Gkshr8PI",
-        "fOUOJUMiKAU"
+        "wN9_mbM7O-0",
+        "8VjMGk0e8EM",
+        "_hCFGXO7MAs",
+        "8X1_Tz3bUtA",
+        "Jv9H1L0KJzk"
       ]
     },
     {
@@ -73,13 +73,17 @@
       "source": "Roboflow Universe",
       "category": "vision_dataset_platform",
       "acquired_count": 0,
-      "candidate_count": 1,
+      "candidate_count": 13,
       "status": "candidate",
       "latest_at": "",
-      "evidence": "quality_manufacturing_source_scout_status.json",
-      "note": "Candidate source is tracked; download/registration is still separate.",
+      "evidence": "data/workspace/apps/growth_dashboard/roboflow_candidate_datasets.json",
+      "note": "User-registered workspace candidates. License/export review required before download.",
       "examples": [
-        "Roboflow Universe"
+        "Surface (General surface defects, images=2682)",
+        "metal surface defect (Metal surface defects, images=1198)",
+        "NEU surface defect (Steel surface defects, images=388)",
+        "Scratch detection (Scratch detection, images=809)",
+        "Metal Defect Detection (Scratch detection, images=264)"
       ]
     },
     {

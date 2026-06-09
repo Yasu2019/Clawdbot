@@ -1,0 +1,170 @@
+{
+  "schema": "clawstack.roboflow_candidate_datasets.v1",
+  "updated_at": "2026-06-10T03:44:00+09:00",
+  "source": "Roboflow Universe",
+  "status": "candidate_license_review_required",
+  "policy": {
+    "classification": "FREE_REG",
+    "no_bypass": true,
+    "download_rule": "Download only after user login, dataset license review, and explicit export choice such as YOLOv8 or COCO.",
+    "confidentiality_rule": "Do not upload customer drawings, internal defect photos, or confidential manufacturing images to Roboflow."
+  },
+  "items": [
+    {
+      "category": "General surface defects",
+      "dataset": "Surface",
+      "slug": "surface-op2vw",
+      "version": "2",
+      "why": "Large, defect taxonomy is detailed",
+      "classes": ["SCRATCH", "DENT", "PITS", "CORROSION", "surface discontinuity"],
+      "images": 2682,
+      "downloads": 5,
+      "url": "https://universe.roboflow.com/test-zrgdr/surface-op2vw",
+      "priority": 1
+    },
+    {
+      "category": "Metal surface defects",
+      "dataset": "metal surface defect",
+      "slug": "metal-surface-defect-xqe4n",
+      "version": "3",
+      "why": "Good size, industrial surface classes",
+      "classes": ["crescent_gap", "oil_spot", "punching_hole", "water_spot", "welding_line"],
+      "images": 1198,
+      "downloads": 0,
+      "url": "https://universe.roboflow.com/sohee-lefxr/metal-surface-defect-xqe4n",
+      "priority": 1
+    },
+    {
+      "category": "Steel surface defects",
+      "dataset": "NEU surface defect",
+      "slug": "neu-surface-defect",
+      "version": "2",
+      "why": "Classic steel defect categories, clean labels",
+      "classes": ["crazing", "inclusion", "patches", "scratches", "pittedsurface", "rolled-in_scale"],
+      "images": 388,
+      "downloads": 0,
+      "url": "https://universe.roboflow.com/data-set-fptet/neu-surface-defect",
+      "priority": 1
+    },
+    {
+      "category": "Scratch detection",
+      "dataset": "Scratch detection",
+      "slug": "scratch-detection-hnk3o",
+      "version": "14",
+      "why": "Good download signal for scratches",
+      "classes": ["scratch", "Defect"],
+      "images": 809,
+      "downloads": 34,
+      "url": "https://universe.roboflow.com/uniud-g3oa7/scratch-detection-hnk3o",
+      "priority": 1
+    },
+    {
+      "category": "Scratch detection",
+      "dataset": "Metal Defect Detection",
+      "slug": "metal-defect-detection-d3wl6",
+      "version": "11",
+      "why": "Simple labels and some community usage",
+      "classes": ["scratch", "scratches"],
+      "images": 264,
+      "downloads": 17,
+      "url": "https://universe.roboflow.com/capjamesg/metal-defect-detection-d3wl6",
+      "priority": 2
+    },
+    {
+      "category": "Plastic molding defects",
+      "dataset": "Plastic Defect",
+      "slug": "plastic-defect-lbdqh",
+      "version": "4",
+      "why": "Best match for injection molding style defects",
+      "classes": ["crack", "defect", "good", "burn mark", "flash", "short shot"],
+      "images": 285,
+      "downloads": 0,
+      "url": "https://universe.roboflow.com/qc5/plastic-defect-lbdqh",
+      "priority": 1
+    },
+    {
+      "category": "Plastic surface defects",
+      "dataset": "plastic defect detection",
+      "slug": "plastic-defect-detection-7nnwf",
+      "version": "1",
+      "why": "Useful for plastic scratches, specks, dirt",
+      "classes": ["dirty", "good", "scratch", "blackspeck", "blackspeck_dirty"],
+      "images": 606,
+      "downloads": 6,
+      "url": "https://universe.roboflow.com/grey2020/plastic-defect-detection-7nnwf",
+      "priority": 1
+    },
+    {
+      "category": "Welding defects",
+      "dataset": "Welding",
+      "slug": "welding-aiu6l",
+      "version": "1",
+      "why": "Strong download/views signal",
+      "classes": ["crack", "bad_welding", "good_welding", "pores"],
+      "images": 525,
+      "downloads": 86,
+      "url": "https://universe.roboflow.com/celebal/welding-aiu6l",
+      "priority": 2
+    },
+    {
+      "category": "Welding defects",
+      "dataset": "Welding",
+      "slug": "welding-vy1bq",
+      "version": "4",
+      "why": "Broader welding defect taxonomy",
+      "classes": ["overlap", "undercut", "burn-through", "cracks", "porosity", "spatter"],
+      "images": 381,
+      "downloads": 22,
+      "url": "https://universe.roboflow.com/aiml-an4ak/welding-vy1bq",
+      "priority": 2
+    },
+    {
+      "category": "Welding defects",
+      "dataset": "welding defect",
+      "slug": "welding-defect-9umix",
+      "version": "1",
+      "why": "Good label clarity",
+      "classes": ["crack", "bad weld", "good weld", "porosity", "spatter"],
+      "images": 909,
+      "downloads": 0,
+      "url": "https://universe.roboflow.com/delvin-9qaxw/welding-defect-9umix",
+      "priority": 2
+    },
+    {
+      "category": "PCB defects",
+      "dataset": "pcb defect",
+      "slug": "pcb-defect-djz4r",
+      "version": "3",
+      "why": "Strong download signal and standard PCB classes",
+      "classes": ["short", "spur", "missing_hole", "mouse_bite", "open_circuit", "spurious_copper"],
+      "images": 693,
+      "downloads": 64,
+      "url": "https://universe.roboflow.com/pcbdefect-eftc9/pcb-defect-djz4r",
+      "priority": 3
+    },
+    {
+      "category": "PCB defects",
+      "dataset": "PCB Defect",
+      "slug": "pcb-defect-vagef",
+      "version": "2",
+      "why": "Large PCB dataset, practical electronic assembly labels",
+      "classes": ["Short_circuit", "damaged", "lack_of_part", "miss_welding", "redundant", "slug", "spillover"],
+      "images": 4400,
+      "downloads": 31,
+      "url": "https://universe.roboflow.com/nbmachinevision/pcb-defect-vagef",
+      "priority": 3
+    },
+    {
+      "category": "PCB defects",
+      "dataset": "PCB Defect",
+      "slug": "pcb-defect-94yfu",
+      "version": "1",
+      "why": "Standard six-class PCB defect taxonomy",
+      "classes": ["short", "spur", "missing_hole", "mouse_bite", "open_circuit", "spurious_copper"],
+      "images": 693,
+      "downloads": 31,
+      "url": "https://universe.roboflow.com/university-of-strathclyde-m436x/pcb-defect-94yfu",
+      "priority": 3
+    }
+  ]
+}
