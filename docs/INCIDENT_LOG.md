@@ -1763,3 +1763,19 @@ Goal: press_* trial --> NORMAL TERMINATION + KPI
 | **Prevention** | Treat `lhm_ok=false` or missing `lhm_ok` on Windows satellites as a repair condition. Do not assign thermally sensitive LAVIE jobs until `:8111/metrics` shows `lhm_ok:true` and a real `temp_source`. |
 
 ---
+
+# INC-112: Fleet diagnostics were partially blind because old Windows monitor agents kept port 8111
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-06-10 JST |
+| **Detection** | User reported frequent offline events and asked whether logs were being captured sufficiently. A K10 fleet audit showed Red LAVIE and Dynabook had metrics but old or missing `/diagnostics`; K10 itself had `/diagnostics` returning 404; LAVIE timed out; Vivobook refused `:8111`. |
+| **Impact** | Root-cause analysis after node offline events was unreliable on several PCs. Some nodes could show basic CPU/RAM metrics while still lacking the 24-hour node-local diagnostic log needed for power, thermal, startup, and process RCA. |
+| **Root Cause (5 Why)** | **Why1**: Offline RCA lacked full node-local logs. **Why2**: Several nodes were still running old monitor_agent processes that did not expose `/diagnostics`. **Why3**: Existing setup verified only `/metrics`, so a metrics-only old agent could be treated as complete. **Why4**: On Windows, multiple Python listeners could bind to port 8111, and some old listeners were access-denied from the current user, so normal refresh could not replace them. **Why5**: The remote refresh script originally sent a long encoded command and later matched its own script name, causing command-line length failures and self-termination before a robust refresh path existed. |
+| **Fix** | Added `scripts/k10_fleet_diagnostics_audit.py` to audit `/metrics` plus `/diagnostics` and write `data/workspace/fleet_diagnostics_status.json`. Added `scripts/refresh_monitor_agent_node.ps1`, fetched from K10 by `scripts/k10_refresh_monitor_agent_via_worker.py`, so remote nodes execute a short update command. Updated `scripts/setup_monitor_node.ps1` to verify downloaded `/diagnostics`. Added fallback diagnostic port `8112` when an access-denied old `8111` listener cannot be removed. |
+| **Files** | `scripts/k10_fleet_diagnostics_audit.py`; `scripts/k10_refresh_monitor_agent_via_worker.py`; `scripts/refresh_monitor_agent_node.ps1`; `scripts/setup_monitor_node.ps1`; `docs/INCIDENT_LOG.md` |
+| **Verification** | `python -m py_compile scripts\\k10_refresh_monitor_agent_via_worker.py scripts\\k10_fleet_diagnostics_audit.py` passed. PowerShell parse checks passed for `setup_monitor_node.ps1` and `refresh_monitor_agent_node.ps1`. Red LAVIE returned `/diagnostics` 200 on `:8111`. Dynabook could not kill old PID 13816 due access denied, but fallback `http://100.98.133.40:8112/diagnostics` returned 200. K10 fallback `http://127.0.0.1:8112/diagnostics` returned 200. Final audit: diagnostics OK for `k10`, `red_lavie`, `dynabook`; manual check still needed for `lavie` and `vivobook`. |
+| **Lessons Learned** | Basic `/metrics` is not enough to prove a node is RCA-ready. For Windows fleet nodes, a stale elevated listener can survive normal user refreshes, so the diagnostic plane needs a verified endpoint and a fallback port instead of assuming 8111 can always be reclaimed. |
+| **Prevention** | Treat diagnostics absence as a failed setup even if `/metrics` works. Keep `8112` as a diagnostic fallback for nodes with unkillable old `8111` listeners. Use the fleet audit before assigning long jobs, and require manual power/startup checks for nodes where both metrics and diagnostics are unreachable. |
+
+---
