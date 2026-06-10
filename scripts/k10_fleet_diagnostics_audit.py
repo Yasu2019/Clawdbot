@@ -23,11 +23,11 @@ JST = timezone(timedelta(hours=9))
 
 
 NODES = [
-    {"node_id": "k10", "name": "K10", "metrics": "http://127.0.0.1:8111/metrics", "diagnostics": "http://127.0.0.1:8111/diagnostics", "diagnostics_alt": ["http://127.0.0.1:8112/diagnostics"]},
-    {"node_id": "red_lavie", "name": "Red LAVIE", "metrics": "http://100.99.145.3:8111/metrics", "diagnostics": "http://100.99.145.3:8111/diagnostics", "diagnostics_alt": ["http://100.99.145.3:8112/diagnostics"]},
-    {"node_id": "lavie", "name": "LAVIE", "metrics": "http://100.87.244.46:8111/metrics", "diagnostics": "http://100.87.244.46:8111/diagnostics", "diagnostics_alt": ["http://100.87.244.46:8112/diagnostics"]},
-    {"node_id": "vivobook", "name": "Vivobook mhn15", "metrics": "http://100.65.182.27:8111/metrics", "diagnostics": "http://100.65.182.27:8111/diagnostics", "diagnostics_alt": ["http://100.65.182.27:8112/diagnostics"]},
-    {"node_id": "dynabook", "name": "Dynabook", "metrics": "http://100.98.133.40:8111/metrics", "diagnostics": "http://100.98.133.40:8111/diagnostics", "diagnostics_alt": ["http://100.98.133.40:8112/diagnostics"]},
+    {"node_id": "k10", "name": "K10", "metrics": "http://127.0.0.1:8111/metrics", "metrics_alt": ["http://127.0.0.1:8112/metrics"], "diagnostics": "http://127.0.0.1:8111/diagnostics", "diagnostics_alt": ["http://127.0.0.1:8112/diagnostics"]},
+    {"node_id": "red_lavie", "name": "Red LAVIE", "metrics": "http://100.99.145.3:8111/metrics", "metrics_alt": ["http://100.99.145.3:8112/metrics"], "diagnostics": "http://100.99.145.3:8111/diagnostics", "diagnostics_alt": ["http://100.99.145.3:8112/diagnostics"]},
+    {"node_id": "lavie", "name": "LAVIE", "metrics": "http://100.87.244.46:8111/metrics", "metrics_alt": ["http://100.87.244.46:8112/metrics"], "diagnostics": "http://100.87.244.46:8111/diagnostics", "diagnostics_alt": ["http://100.87.244.46:8112/diagnostics"]},
+    {"node_id": "vivobook", "name": "Vivobook mhn15", "metrics": "http://100.65.182.27:8111/metrics", "metrics_alt": ["http://100.65.182.27:8112/metrics"], "diagnostics": "http://100.65.182.27:8111/diagnostics", "diagnostics_alt": ["http://100.65.182.27:8112/diagnostics"]},
+    {"node_id": "dynabook", "name": "Dynabook", "metrics": "http://100.98.133.40:8111/metrics", "metrics_alt": ["http://100.98.133.40:8112/metrics"], "diagnostics": "http://100.98.133.40:8111/diagnostics", "diagnostics_alt": ["http://100.98.133.40:8112/diagnostics"]},
 ]
 
 
@@ -63,6 +63,14 @@ def compact_metrics(data: dict[str, Any]) -> dict[str, Any]:
 
 def audit_node(node: dict[str, str]) -> dict[str, Any]:
     metrics_result = fetch_json(node["metrics"])
+    active_metrics_url = node["metrics"]
+    if not metrics_result.get("online"):
+        for alt_url in node.get("metrics_alt", []):
+            alt_result = fetch_json(alt_url)
+            if alt_result.get("online"):
+                metrics_result = alt_result
+                active_metrics_url = alt_url
+                break
     diag_result = fetch_json(node["diagnostics"])
     active_diag_url = node["diagnostics"]
     if not diag_result.get("online"):
@@ -76,6 +84,7 @@ def audit_node(node: dict[str, str]) -> dict[str, Any]:
         "node_id": node["node_id"],
         "name": node["name"],
         "metrics_url": node["metrics"],
+        "active_metrics_url": active_metrics_url,
         "diagnostics_url": node["diagnostics"],
         "active_diagnostics_url": active_diag_url,
         "metrics_online": metrics_result.get("online", False),
