@@ -1,8 +1,8 @@
 {
   "schema": "clawstack.material_source_inventory.v1",
-  "updated_at": "2026-06-10T03:46:22+09:00",
+  "updated_at": "2026-06-10T17:24:41+09:00",
   "total_acquired_count": 419,
-  "total_candidate_count": 33,
+  "total_candidate_count": 102,
   "acquisition_queue": "data/workspace/apps/growth_dashboard/material_acquisition_queue.json",
   "rows": [
     {
@@ -70,6 +70,23 @@
       ]
     },
     {
+      "source": "Broad legal source scout",
+      "category": "manufacturing_research_watchlist",
+      "acquired_count": 0,
+      "candidate_count": 44,
+      "status": "candidate",
+      "latest_at": "",
+      "evidence": "quality_manufacturing_source_scout_status.json",
+      "note": "Watchlist sources: 44 total, 30 free, 14 login/paid/check. Download is separate after license review.",
+      "examples": [
+        "PAID - AIAG Quality Core Tools",
+        "FREE - Autodesk Moldflow Insight Help",
+        "FREE - CVF Open Access",
+        "FREE - Google Dataset Search",
+        "FREE - Google Patents"
+      ]
+    },
+    {
       "source": "Roboflow Universe",
       "category": "vision_dataset_platform",
       "acquired_count": 0,
@@ -84,6 +101,71 @@
         "NEU surface defect (Steel surface defects, images=388)",
         "Scratch detection (Scratch detection, images=809)",
         "Metal Defect Detection (Scratch detection, images=264)"
+      ]
+    },
+    {
+      "source": "Materials data sources",
+      "category": "materials_data",
+      "acquired_count": 0,
+      "candidate_count": 13,
+      "status": "candidate",
+      "latest_at": "",
+      "evidence": "quality_manufacturing_source_scout_status.json",
+      "note": "Source candidates tracked for legal review and targeted acquisition.",
+      "examples": [
+        "FREE - Autodesk Moldflow Insight Help",
+        "FREE - Google Dataset Search",
+        "FREE - DataCite Commons",
+        "FREE - J-STAGE",
+        "FREE - NASA Technical Reports Server"
+      ]
+    },
+    {
+      "source": "CAD and standard-part sources",
+      "category": "cad_reference",
+      "acquired_count": 0,
+      "candidate_count": 5,
+      "status": "candidate",
+      "latest_at": "",
+      "evidence": "quality_manufacturing_source_scout_status.json",
+      "note": "Source candidates tracked for legal review and targeted acquisition.",
+      "examples": [
+        "FREE - FreeCAD Documentation",
+        "FREE_REG - 3D ContentCentral",
+        "FREE_REG - GrabCAD Library",
+        "FREE - MIT OpenCourseWare",
+        "FREE_REG - TraceParts"
+      ]
+    },
+    {
+      "source": "Video/training production sources",
+      "category": "training_video_sources",
+      "acquired_count": 0,
+      "candidate_count": 4,
+      "status": "candidate",
+      "latest_at": "",
+      "evidence": "quality_manufacturing_source_scout_status.json",
+      "note": "Source candidates tracked for legal review and targeted acquisition.",
+      "examples": [
+        "FREE - CVF Open Access",
+        "FREE - arXiv",
+        "FREE - Blender Manual",
+        "FREE - Remotion Documentation"
+      ]
+    },
+    {
+      "source": "Patent idea sources",
+      "category": "patent_search",
+      "acquired_count": 0,
+      "candidate_count": 3,
+      "status": "candidate",
+      "latest_at": "",
+      "evidence": "quality_manufacturing_source_scout_status.json",
+      "note": "Source candidates tracked for legal review and targeted acquisition.",
+      "examples": [
+        "FREE - Google Patents",
+        "FREE - J-PlatPat",
+        "FREE - Espacenet"
       ]
     },
     {

@@ -17,6 +17,7 @@ DASHBOARD_DIR = ROOT / "data" / "workspace" / "apps" / "growth_dashboard"
 ACQUIRED_DIR = ROOT / "data" / "web_acquired_materials"
 QUEUE_PATH = DASHBOARD_DIR / "material_acquisition_queue.json"
 ROBOFLOW_CANDIDATES_PATH = DASHBOARD_DIR / "roboflow_candidate_datasets.json"
+QUALITY_SCOUT_PATH = ROOT / "data" / "workspace" / "quality_manufacturing_source_scout_status.json"
 JST = timezone(timedelta(hours=9))
 
 
@@ -96,6 +97,40 @@ def roboflow_pending_items():
     return pending
 
 
+def scout_login_or_review_items(existing_sources):
+    data = load_json(QUALITY_SCOUT_PATH, {})
+    sources = data.get("sources", []) if isinstance(data.get("sources"), list) else []
+    pending = []
+    seen = {str(source).lower() for source in existing_sources}
+    for item in sources:
+        cost_label = str(item.get("cost_label") or "").upper()
+        name = str(item.get("name") or "")
+        if not name or name.lower() in seen:
+            continue
+        if cost_label not in {"FREE_REG", "PAID", "CHECK"}:
+            continue
+        action = "registration_and_license_check"
+        if cost_label == "PAID":
+            action = "user_purchase_or_subscription_approval"
+        elif cost_label == "CHECK":
+            action = "source_legality_check"
+        pending.append(
+            {
+                "source": name,
+                "url": item.get("url"),
+                "action": action,
+                "priority": item.get("priority", 3),
+                "cost_label": cost_label,
+                "domains": item.get("domains", []),
+                "reason": item.get("why") or "Review access terms before downloading or reusing material.",
+                "next_query": item.get("next_query"),
+                "recommended_user_action": "Open the URL, create/login to an account if needed, review license/export terms, then tell K10 which files or dataset export to acquire.",
+            }
+        )
+    pending.sort(key=lambda row: (int(row.get("priority") or 9), row.get("cost_label", ""), row.get("source", "")))
+    return pending
+
+
 def now_jst():
     return datetime.now(JST).replace(microsecond=0).isoformat()
 
@@ -146,7 +181,9 @@ def main():
         for source in REGISTERED_OR_MANUAL_SOURCES
         if not (roboflow_items and source.get("source") == "Roboflow Universe")
     ]
-    pending = base_pending + roboflow_items
+    pending = base_pending + roboflow_items + scout_login_or_review_items(
+        [source.get("source") for source in base_pending] + ["Roboflow Universe"]
+    )
     queue = {
         "schema": "clawstack.material_acquisition_queue.v1",
         "updated_at": now_jst(),

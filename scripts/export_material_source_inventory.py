@@ -92,6 +92,49 @@ def source_names_from_quality_scout():
     return data.get("sources", []) if isinstance(data.get("sources"), list) else []
 
 
+def scout_coverage_row():
+    sources = source_names_from_quality_scout()
+    free_count = sum(1 for row in sources if str(row.get("cost_label", "")).upper() == "FREE")
+    gated_count = sum(1 for row in sources if str(row.get("cost_label", "")).upper() in {"FREE_REG", "PAID", "CHECK"})
+    examples = [
+        f"{row.get('cost_label', 'CHECK')} - {row.get('name')}"
+        for row in sorted(sources, key=lambda item: (int(item.get("priority", 9)), str(item.get("name", ""))))[:5]
+    ]
+    return {
+        "source": "Broad legal source scout",
+        "category": "manufacturing_research_watchlist",
+        "acquired_count": 0,
+        "candidate_count": len(sources),
+        "status": "candidate" if sources else "not_acquired",
+        "latest_at": "",
+        "evidence": "quality_manufacturing_source_scout_status.json",
+        "note": f"Watchlist sources: {len(sources)} total, {free_count} free, {gated_count} login/paid/check. Download is separate after license review.",
+        "examples": examples,
+    }
+
+
+def scout_domain_row(source, category, domain_terms):
+    sources = source_names_from_quality_scout()
+    terms = set(domain_terms)
+    matches = []
+    for row in sources:
+        domains = set(row.get("domains", []))
+        if domains.intersection(terms):
+            matches.append(row)
+    matches.sort(key=lambda item: (int(item.get("priority", 9)), str(item.get("name", ""))))
+    return {
+        "source": source,
+        "category": category,
+        "acquired_count": 0,
+        "candidate_count": len(matches),
+        "status": "candidate" if matches else "not_acquired",
+        "latest_at": "",
+        "evidence": "quality_manufacturing_source_scout_status.json",
+        "note": "Source candidates tracked for legal review and targeted acquisition.",
+        "examples": [f"{row.get('cost_label', 'CHECK')} - {row.get('name')}" for row in matches[:5]],
+    }
+
+
 def scribd_row():
     scout = load_json(ROOT / "data" / "workspace" / "scribd_related_source_scout_status.json", {})
     inventory = scout.get("download_inventory", [])
@@ -200,12 +243,17 @@ def build_inventory():
     github_items = file_inventory([ROOT / "data" / "github_downloads"])
 
     rows = [
+        scout_coverage_row(),
         scribd_row(),
         youtube_row(),
         scout_backed_row("Kaggle datasets", "dataset_platform", ["kaggle"], dataset_paths, ["kaggle"]),
         scout_backed_row("MVTec AD", "visual_inspection_dataset", ["mvtec"], dataset_paths, ["mvtec"]),
         scout_backed_row("Kolektor Surface-Defect Dataset", "visual_inspection_dataset", ["kolektor"], dataset_paths, ["kolektor"]),
         roboflow_row(dataset_paths),
+        scout_domain_row("Patent idea sources", "patent_search", ["patents"]),
+        scout_domain_row("CAD and standard-part sources", "cad_reference", ["cad", "3d_model", "standard_parts", "mechanical_design"]),
+        scout_domain_row("Materials data sources", "materials_data", ["materials", "simulation"]),
+        scout_domain_row("Video/training production sources", "training_video_sources", ["training_video", "3d_generation", "content_generation"]),
         scout_backed_row("openInjMoldSim Paper", "injection_molding_paper", ["openinjmoldsim", "2311-5521/5/2/84"], [ACQUIRED_DIR, ROOT / "data" / "workspace"], ["openinjmoldsim", "fluids-05-02-00084"]),
         {
             "source": "GitHub",

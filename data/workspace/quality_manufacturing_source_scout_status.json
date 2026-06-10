@@ -1,6 +1,6 @@
 {
   "schema": "clawstack.quality_manufacturing_source_scout.v1",
-  "updated_at": "2026-06-08T16:55:13+09:00",
+  "updated_at": "2026-06-10T17:23:42+09:00",
   "mode": "metadata_only_reachability",
   "sources": [
     {
@@ -22,7 +22,7 @@
       "reachability": {
         "ok": true,
         "status": 200,
-        "elapsed_ms": 587,
+        "elapsed_ms": 1109,
         "content_type": "text/html; charset=UTF-8"
       }
     },
@@ -46,7 +46,7 @@
       "reachability": {
         "ok": true,
         "status": 200,
-        "elapsed_ms": 1194,
+        "elapsed_ms": 1321,
         "content_type": "text/html; charset=utf-8"
       }
     },
@@ -69,7 +69,7 @@
       "reachability": {
         "ok": true,
         "status": 200,
-        "elapsed_ms": 333,
+        "elapsed_ms": 452,
         "content_type": "text/html; charset=UTF-8"
       }
     },
@@ -92,7 +92,7 @@
       "reachability": {
         "ok": true,
         "status": 200,
-        "elapsed_ms": 53,
+        "elapsed_ms": 595,
         "content_type": "text/html; charset=UTF-8"
       }
     },
@@ -114,7 +114,7 @@
       "reachability": {
         "ok": true,
         "status": 200,
-        "elapsed_ms": 569,
+        "elapsed_ms": 590,
         "content_type": "text/html; charset=utf-8"
       }
     },
@@ -137,7 +137,7 @@
       "reachability": {
         "ok": true,
         "status": 200,
-        "elapsed_ms": 267,
+        "elapsed_ms": 284,
         "content_type": "text/html; charset=UTF-8"
       }
     },
@@ -160,7 +160,7 @@
       "reachability": {
         "ok": true,
         "status": 200,
-        "elapsed_ms": 406,
+        "elapsed_ms": 838,
         "content_type": "text/html; charset=UTF-8"
       }
     },
@@ -182,7 +182,7 @@
       "reachability": {
         "ok": true,
         "status": 200,
-        "elapsed_ms": 1062,
+        "elapsed_ms": 1091,
         "content_type": "text/html; charset=UTF-8"
       }
     },
@@ -205,7 +205,7 @@
       "reachability": {
         "ok": true,
         "status": 200,
-        "elapsed_ms": 335,
+        "elapsed_ms": 289,
         "content_type": "text/html;charset=UTF-8"
       }
     },
@@ -226,7 +226,7 @@
       "reachability": {
         "ok": true,
         "status": 200,
-        "elapsed_ms": 1846,
+        "elapsed_ms": 2080,
         "content_type": "text/html; charset=utf-8"
       }
     },
@@ -247,7 +247,7 @@
       "reachability": {
         "ok": true,
         "status": 200,
-        "elapsed_ms": 2758,
+        "elapsed_ms": 2472,
         "content_type": "text/html"
       }
     },
@@ -267,10 +267,15 @@
       "why": "Reliable open papers for CVPR/ICCV/ECCV methods, often with code links.",
       "next_query": "site:openaccess.thecvf.com industrial anomaly detection manufacturing defect segmentation",
       "reachability": {
-        "ok": true,
-        "status": 200,
-        "elapsed_ms": 3133,
-        "content_type": "text/html; charset=UTF-8"
+        "ok": false,
+        "elapsed_ms": 20031,
+        "error": "<urlopen error timed out>",
+        "fallback": {
+          "ok": false,
+          "elapsed_ms": 20031,
+          "error": "<urlopen error timed out>",
+          "method": "GET_RANGE"
+        }
       }
     },
     {
@@ -291,7 +296,7 @@
       "reachability": {
         "ok": true,
         "status": 200,
-        "elapsed_ms": 63,
+        "elapsed_ms": 68,
         "content_type": "text/html; charset=utf-8"
       }
     },
@@ -312,7 +317,7 @@
       "reachability": {
         "ok": true,
         "status": 200,
-        "elapsed_ms": 440,
+        "elapsed_ms": 430,
         "content_type": "text/html; charset=utf-8"
       }
     },
@@ -333,7 +338,7 @@
       "reachability": {
         "ok": false,
         "status": 404,
-        "elapsed_ms": 300,
+        "elapsed_ms": 322,
         "error": "HTTP Error 404: Not Found"
       }
     },
@@ -352,10 +357,10 @@
       "why": "Large public CV dataset catalog. Quality varies, so use as candidate source, not ground truth.",
       "next_query": "Roboflow Universe manufacturing defect detection surface scratch dataset license",
       "reachability": {
-        "ok": true,
-        "status": 206,
-        "elapsed_ms": 190,
-        "content_type": "text/html; charset=utf-8",
+        "ok": false,
+        "status": 403,
+        "elapsed_ms": 153,
+        "error": "HTTP Error 403: Forbidden",
         "method": "GET_RANGE"
       }
     },
@@ -377,7 +382,7 @@
       "reachability": {
         "ok": true,
         "status": 200,
-        "elapsed_ms": 1026,
+        "elapsed_ms": 956,
         "content_type": "text/html; charset=utf-8"
       }
     },
@@ -398,7 +403,7 @@
       "reachability": {
         "ok": true,
         "status": 202,
-        "elapsed_ms": 797,
+        "elapsed_ms": 763,
         "content_type": "text/html; charset=UTF-8"
       }
     },
@@ -415,7 +420,280 @@
       ],
       "priority": 3,
       "why": "Often hosts dataset companions to engineering papers.",
-      "next_query": "site:data.mendeley.com manufacturing defect detection predictive maintenance dataset"
+      "next_query": "site:data.mendeley.com manufacturing defect detection predictive maintenance dataset",
+      "reachability": {
+        "ok": true,
+        "status": 200,
+        "elapsed_ms": 1075,
+        "content_type": "text/html; charset=utf-8"
+      }
+    },
+    {
+      "name": "Google Dataset Search",
+      "url": "https://datasetsearch.research.google.com/",
+      "cost_label": "FREE",
+      "source_type": "dataset_search",
+      "domains": [
+        "datasets",
+        "visual_inspection",
+        "manufacturing",
+        "materials",
+        "predictive_maintenance"
+      ],
+      "priority": 1,
+      "why": "Broad cross-repository search for datasets; use it to discover official landing pages before downloading anything.",
+      "next_query": "manufacturing defect detection dataset injection molding dataset tolerance analysis dataset",
+      "reachability": {
+        "ok": true,
+        "status": 200,
+        "elapsed_ms": 985,
+        "content_type": "text/html; charset=utf-8"
+      }
+    },
+    {
+      "name": "Hugging Face Datasets",
+      "url": "https://huggingface.co/datasets",
+      "cost_label": "FREE_REG",
+      "source_type": "dataset_model_platform",
+      "domains": [
+        "datasets",
+        "deep_learning",
+        "computer_vision",
+        "nlp",
+        "training"
+      ],
+      "priority": 1,
+      "why": "Useful for vision, OCR, document AI, and local model training. Requires per-dataset license review.",
+      "next_query": "site:huggingface.co/datasets industrial defect anomaly detection manufacturing OCR quality"
+    },
+    {
+      "name": "DataCite Commons",
+      "url": "https://commons.datacite.org/",
+      "cost_label": "FREE",
+      "source_type": "research_data_index",
+      "domains": [
+        "datasets",
+        "papers",
+        "manufacturing",
+        "materials"
+      ],
+      "priority": 2,
+      "why": "DOI-backed dataset discovery across repositories, useful when papers mention a DOI but not a direct file page.",
+      "next_query": "DataCite manufacturing defect dataset sheet metal forming injection molding"
+    },
+    {
+      "name": "DOE Data Explorer",
+      "url": "https://www.osti.gov/dataexplorer/",
+      "cost_label": "FREE",
+      "source_type": "official_repository",
+      "domains": [
+        "datasets",
+        "materials",
+        "simulation",
+        "energy",
+        "manufacturing"
+      ],
+      "priority": 3,
+      "why": "US DOE dataset search for materials, simulation, and engineering datasets.",
+      "next_query": "site:osti.gov/dataexplorer manufacturing simulation materials dataset"
+    },
+    {
+      "name": "NIMS Materials Data Repository",
+      "url": "https://mdr.nims.go.jp/",
+      "cost_label": "FREE",
+      "source_type": "materials_repository",
+      "domains": [
+        "materials",
+        "datasets",
+        "japanese",
+        "simulation"
+      ],
+      "priority": 2,
+      "why": "Materials data from NIMS; useful for resin, metal, and material-property grounding.",
+      "next_query": "site:mdr.nims.go.jp material property dataset polymer steel forming"
+    },
+    {
+      "name": "Materials Project",
+      "url": "https://materialsproject.org/",
+      "cost_label": "FREE_REG",
+      "source_type": "materials_database",
+      "domains": [
+        "materials",
+        "datasets",
+        "simulation"
+      ],
+      "priority": 3,
+      "why": "High-quality materials database; account/API terms may apply. More useful for material-learning foundations than immediate mold/press work.",
+      "next_query": "Materials Project API license materials property dataset"
+    },
+    {
+      "name": "Google Patents",
+      "url": "https://patents.google.com/",
+      "cost_label": "FREE",
+      "source_type": "patent_search",
+      "domains": [
+        "patents",
+        "progressive_die",
+        "injection_molding",
+        "fixture",
+        "mechanism"
+      ],
+      "priority": 1,
+      "why": "Fast patent search for progressive dies, injection molds, gates, cooling channels, press tooling, and inspection fixtures.",
+      "next_query": "progressive die strip layout injection mold cooling channel gate design patent"
+    },
+    {
+      "name": "J-PlatPat",
+      "url": "https://www.j-platpat.inpit.go.jp/",
+      "cost_label": "FREE",
+      "source_type": "patent_search",
+      "domains": [
+        "patents",
+        "japanese",
+        "progressive_die",
+        "injection_molding",
+        "quality"
+      ],
+      "priority": 1,
+      "why": "Official Japanese patent search; important for domestic tooling and manufacturing ideas.",
+      "next_query": "J-PlatPat 順送金型 射出成形 金型 品質検査 特許"
+    },
+    {
+      "name": "Espacenet",
+      "url": "https://worldwide.espacenet.com/",
+      "cost_label": "FREE",
+      "source_type": "patent_search",
+      "domains": [
+        "patents",
+        "automotive",
+        "mold_design",
+        "forming"
+      ],
+      "priority": 2,
+      "why": "International patent search to compare global mold, forming, and inspection mechanisms.",
+      "next_query": "Espacenet progressive die injection mold warpage inspection fixture patent"
+    },
+    {
+      "name": "GrabCAD Library",
+      "url": "https://grabcad.com/library",
+      "cost_label": "FREE_REG",
+      "source_type": "cad_model_platform",
+      "domains": [
+        "cad",
+        "3d_model",
+        "mechanism",
+        "fixture",
+        "training"
+      ],
+      "priority": 3,
+      "why": "Useful for reference CAD and training models. Every model needs license and attribution review.",
+      "next_query": "GrabCAD progressive die injection mold fixture press tool CAD model"
+    },
+    {
+      "name": "TraceParts",
+      "url": "https://www.traceparts.com/",
+      "cost_label": "FREE_REG",
+      "source_type": "cad_parts_catalog",
+      "domains": [
+        "cad",
+        "standard_parts",
+        "mechanical_design"
+      ],
+      "priority": 3,
+      "why": "Standard-part CAD catalog for building realistic tooling examples; registration may be required.",
+      "next_query": "TraceParts mold components guide pins die springs CAD"
+    },
+    {
+      "name": "3D ContentCentral",
+      "url": "https://www.3dcontentcentral.com/",
+      "cost_label": "FREE_REG",
+      "source_type": "cad_parts_catalog",
+      "domains": [
+        "cad",
+        "standard_parts",
+        "mechanical_design"
+      ],
+      "priority": 3,
+      "why": "Mechanical CAD parts and supplier models for fixtures and training examples. Check download terms.",
+      "next_query": "3D ContentCentral mold base die spring press fixture CAD"
+    },
+    {
+      "name": "Blender Manual",
+      "url": "https://docs.blender.org/manual/en/latest/",
+      "cost_label": "FREE",
+      "source_type": "official_docs",
+      "domains": [
+        "3d_generation",
+        "rendering",
+        "training_video",
+        "visualization"
+      ],
+      "priority": 2,
+      "why": "Official reference for 3D video generation, rendering, and CAE result visualization pipelines.",
+      "next_query": "Blender manual camera animation materials lighting python rendering"
+    },
+    {
+      "name": "Remotion Documentation",
+      "url": "https://www.remotion.dev/docs/",
+      "cost_label": "FREE",
+      "source_type": "official_docs",
+      "domains": [
+        "training_video",
+        "automation",
+        "3d_generation",
+        "content_generation"
+      ],
+      "priority": 2,
+      "why": "Useful for scripted educational videos, audit training videos, and dashboard-to-video workflows.",
+      "next_query": "Remotion data driven video captions charts animation documentation"
+    },
+    {
+      "name": "FreeCAD Documentation",
+      "url": "https://wiki.freecad.org/",
+      "cost_label": "FREE",
+      "source_type": "official_docs",
+      "domains": [
+        "cad",
+        "dxf",
+        "step",
+        "automation",
+        "mechanical_design"
+      ],
+      "priority": 2,
+      "why": "Reference for DXF/STEP automation and geometry prep before CAE or mold design.",
+      "next_query": "FreeCAD python API DXF STEP automation part design"
+    },
+    {
+      "name": "GitHub Topics",
+      "url": "https://github.com/topics",
+      "cost_label": "FREE",
+      "source_type": "code_search",
+      "domains": [
+        "implementation",
+        "open_source",
+        "deep_learning",
+        "cae",
+        "automation"
+      ],
+      "priority": 2,
+      "why": "Find code candidates for anomaly detection, OpenFOAM utilities, CAD automation, and reporting tools. License review required before reuse.",
+      "next_query": "github topics industrial anomaly detection openfoam injection molding freecad dxf step"
+    },
+    {
+      "name": "MIT OpenCourseWare",
+      "url": "https://ocw.mit.edu/",
+      "cost_label": "FREE",
+      "source_type": "education_material",
+      "domains": [
+        "training",
+        "statistics",
+        "mechanical_design",
+        "manufacturing",
+        "simulation"
+      ],
+      "priority": 3,
+      "why": "Free education material for engineering math, statistics, manufacturing, and mechanics foundations.",
+      "next_query": "MIT OCW manufacturing design statistics finite element method quality"
     },
     {
       "name": "PubMed Central",
@@ -564,7 +842,7 @@
         "reachability": {
           "ok": true,
           "status": 200,
-          "elapsed_ms": 53,
+          "elapsed_ms": 595,
           "content_type": "text/html; charset=UTF-8"
         }
       },
@@ -587,7 +865,7 @@
         "reachability": {
           "ok": true,
           "status": 200,
-          "elapsed_ms": 587,
+          "elapsed_ms": 1109,
           "content_type": "text/html; charset=UTF-8"
         }
       },
@@ -611,7 +889,7 @@
         "reachability": {
           "ok": true,
           "status": 200,
-          "elapsed_ms": 1194,
+          "elapsed_ms": 1321,
           "content_type": "text/html; charset=utf-8"
         }
       },
@@ -650,7 +928,7 @@
         "reachability": {
           "ok": true,
           "status": 200,
-          "elapsed_ms": 333,
+          "elapsed_ms": 452,
           "content_type": "text/html; charset=UTF-8"
         }
       }
@@ -672,10 +950,37 @@
         "why": "Reliable open papers for CVPR/ICCV/ECCV methods, often with code links.",
         "next_query": "site:openaccess.thecvf.com industrial anomaly detection manufacturing defect segmentation",
         "reachability": {
+          "ok": false,
+          "elapsed_ms": 20031,
+          "error": "<urlopen error timed out>",
+          "fallback": {
+            "ok": false,
+            "elapsed_ms": 20031,
+            "error": "<urlopen error timed out>",
+            "method": "GET_RANGE"
+          }
+        }
+      },
+      {
+        "name": "Google Dataset Search",
+        "url": "https://datasetsearch.research.google.com/",
+        "cost_label": "FREE",
+        "source_type": "dataset_search",
+        "domains": [
+          "datasets",
+          "visual_inspection",
+          "manufacturing",
+          "materials",
+          "predictive_maintenance"
+        ],
+        "priority": 1,
+        "why": "Broad cross-repository search for datasets; use it to discover official landing pages before downloading anything.",
+        "next_query": "manufacturing defect detection dataset injection molding dataset tolerance analysis dataset",
+        "reachability": {
           "ok": true,
           "status": 200,
-          "elapsed_ms": 3133,
-          "content_type": "text/html; charset=UTF-8"
+          "elapsed_ms": 985,
+          "content_type": "text/html; charset=utf-8"
         }
       },
       {
@@ -695,7 +1000,7 @@
         "reachability": {
           "ok": true,
           "status": 200,
-          "elapsed_ms": 440,
+          "elapsed_ms": 430,
           "content_type": "text/html; charset=utf-8"
         }
       },
@@ -717,9 +1022,25 @@
         "reachability": {
           "ok": true,
           "status": 200,
-          "elapsed_ms": 63,
+          "elapsed_ms": 68,
           "content_type": "text/html; charset=utf-8"
         }
+      },
+      {
+        "name": "Hugging Face Datasets",
+        "url": "https://huggingface.co/datasets",
+        "cost_label": "FREE_REG",
+        "source_type": "dataset_model_platform",
+        "domains": [
+          "datasets",
+          "deep_learning",
+          "computer_vision",
+          "nlp",
+          "training"
+        ],
+        "priority": 1,
+        "why": "Useful for vision, OCR, document AI, and local model training. Requires per-dataset license review.",
+        "next_query": "site:huggingface.co/datasets industrial defect anomaly detection manufacturing OCR quality"
       },
       {
         "name": "Kolektor Surface-Defect Dataset",
@@ -738,7 +1059,7 @@
         "reachability": {
           "ok": true,
           "status": 200,
-          "elapsed_ms": 2758,
+          "elapsed_ms": 2472,
           "content_type": "text/html"
         }
       },
@@ -759,9 +1080,25 @@
         "reachability": {
           "ok": true,
           "status": 200,
-          "elapsed_ms": 1846,
+          "elapsed_ms": 2080,
           "content_type": "text/html; charset=utf-8"
         }
+      },
+      {
+        "name": "GitHub Topics",
+        "url": "https://github.com/topics",
+        "cost_label": "FREE",
+        "source_type": "code_search",
+        "domains": [
+          "implementation",
+          "open_source",
+          "deep_learning",
+          "cae",
+          "automation"
+        ],
+        "priority": 2,
+        "why": "Find code candidates for anomaly detection, OpenFOAM utilities, CAD automation, and reporting tools. License review required before reuse.",
+        "next_query": "github topics industrial anomaly detection openfoam injection molding freecad dxf step"
       },
       {
         "name": "Kaggle Datasets and Competitions",
@@ -780,7 +1117,7 @@
         "reachability": {
           "ok": false,
           "status": 404,
-          "elapsed_ms": 300,
+          "elapsed_ms": 322,
           "error": "HTTP Error 404: Not Found"
         }
       },
@@ -799,10 +1136,10 @@
         "why": "Large public CV dataset catalog. Quality varies, so use as candidate source, not ground truth.",
         "next_query": "Roboflow Universe manufacturing defect detection surface scratch dataset license",
         "reachability": {
-          "ok": true,
-          "status": 206,
-          "elapsed_ms": 190,
-          "content_type": "text/html; charset=utf-8",
+          "ok": false,
+          "status": 403,
+          "elapsed_ms": 153,
+          "error": "HTTP Error 403: Forbidden",
           "method": "GET_RANGE"
         }
       },
@@ -842,9 +1179,41 @@
         "reachability": {
           "ok": true,
           "status": 200,
-          "elapsed_ms": 267,
+          "elapsed_ms": 284,
           "content_type": "text/html; charset=UTF-8"
         }
+      },
+      {
+        "name": "Google Patents",
+        "url": "https://patents.google.com/",
+        "cost_label": "FREE",
+        "source_type": "patent_search",
+        "domains": [
+          "patents",
+          "progressive_die",
+          "injection_molding",
+          "fixture",
+          "mechanism"
+        ],
+        "priority": 1,
+        "why": "Fast patent search for progressive dies, injection molds, gates, cooling channels, press tooling, and inspection fixtures.",
+        "next_query": "progressive die strip layout injection mold cooling channel gate design patent"
+      },
+      {
+        "name": "J-PlatPat",
+        "url": "https://www.j-platpat.inpit.go.jp/",
+        "cost_label": "FREE",
+        "source_type": "patent_search",
+        "domains": [
+          "patents",
+          "japanese",
+          "progressive_die",
+          "injection_molding",
+          "quality"
+        ],
+        "priority": 1,
+        "why": "Official Japanese patent search; important for domestic tooling and manufacturing ideas.",
+        "next_query": "J-PlatPat 順送金型 射出成形 金型 品質検査 特許"
       },
       {
         "name": "OpenFOAM Documentation",
@@ -864,7 +1233,7 @@
         "reachability": {
           "ok": true,
           "status": 200,
-          "elapsed_ms": 1062,
+          "elapsed_ms": 1091,
           "content_type": "text/html; charset=UTF-8"
         }
       },
@@ -887,7 +1256,7 @@
         "reachability": {
           "ok": true,
           "status": 200,
-          "elapsed_ms": 406,
+          "elapsed_ms": 838,
           "content_type": "text/html; charset=UTF-8"
         }
       }
@@ -912,7 +1281,7 @@
         "reachability": {
           "ok": true,
           "status": 200,
-          "elapsed_ms": 335,
+          "elapsed_ms": 289,
           "content_type": "text/html;charset=UTF-8"
         }
       }
@@ -937,7 +1306,7 @@
         "reachability": {
           "ok": true,
           "status": 200,
-          "elapsed_ms": 587,
+          "elapsed_ms": 1109,
           "content_type": "text/html; charset=UTF-8"
         }
       },
@@ -959,7 +1328,7 @@
         "reachability": {
           "ok": true,
           "status": 200,
-          "elapsed_ms": 63,
+          "elapsed_ms": 68,
           "content_type": "text/html; charset=utf-8"
         }
       },
@@ -983,7 +1352,7 @@
         "reachability": {
           "ok": true,
           "status": 200,
-          "elapsed_ms": 1194,
+          "elapsed_ms": 1321,
           "content_type": "text/html; charset=utf-8"
         }
       },
@@ -1006,9 +1375,25 @@
         "reachability": {
           "ok": true,
           "status": 200,
-          "elapsed_ms": 333,
+          "elapsed_ms": 452,
           "content_type": "text/html; charset=UTF-8"
         }
+      },
+      {
+        "name": "MIT OpenCourseWare",
+        "url": "https://ocw.mit.edu/",
+        "cost_label": "FREE",
+        "source_type": "education_material",
+        "domains": [
+          "training",
+          "statistics",
+          "mechanical_design",
+          "manufacturing",
+          "simulation"
+        ],
+        "priority": 3,
+        "why": "Free education material for engineering math, statistics, manufacturing, and mechanics foundations.",
+        "next_query": "MIT OCW manufacturing design statistics finite element method quality"
       },
       {
         "name": "PubMed Central",
@@ -1043,10 +1428,15 @@
         "why": "Reliable open papers for CVPR/ICCV/ECCV methods, often with code links.",
         "next_query": "site:openaccess.thecvf.com industrial anomaly detection manufacturing defect segmentation",
         "reachability": {
-          "ok": true,
-          "status": 200,
-          "elapsed_ms": 3133,
-          "content_type": "text/html; charset=UTF-8"
+          "ok": false,
+          "elapsed_ms": 20031,
+          "error": "<urlopen error timed out>",
+          "fallback": {
+            "ok": false,
+            "elapsed_ms": 20031,
+            "error": "<urlopen error timed out>",
+            "method": "GET_RANGE"
+          }
         }
       },
       {
@@ -1067,9 +1457,55 @@
         "reachability": {
           "ok": true,
           "status": 200,
-          "elapsed_ms": 63,
+          "elapsed_ms": 68,
           "content_type": "text/html; charset=utf-8"
         }
+      },
+      {
+        "name": "Hugging Face Datasets",
+        "url": "https://huggingface.co/datasets",
+        "cost_label": "FREE_REG",
+        "source_type": "dataset_model_platform",
+        "domains": [
+          "datasets",
+          "deep_learning",
+          "computer_vision",
+          "nlp",
+          "training"
+        ],
+        "priority": 1,
+        "why": "Useful for vision, OCR, document AI, and local model training. Requires per-dataset license review.",
+        "next_query": "site:huggingface.co/datasets industrial defect anomaly detection manufacturing OCR quality"
+      },
+      {
+        "name": "Blender Manual",
+        "url": "https://docs.blender.org/manual/en/latest/",
+        "cost_label": "FREE",
+        "source_type": "official_docs",
+        "domains": [
+          "3d_generation",
+          "rendering",
+          "training_video",
+          "visualization"
+        ],
+        "priority": 2,
+        "why": "Official reference for 3D video generation, rendering, and CAE result visualization pipelines.",
+        "next_query": "Blender manual camera animation materials lighting python rendering"
+      },
+      {
+        "name": "Remotion Documentation",
+        "url": "https://www.remotion.dev/docs/",
+        "cost_label": "FREE",
+        "source_type": "official_docs",
+        "domains": [
+          "training_video",
+          "automation",
+          "3d_generation",
+          "content_generation"
+        ],
+        "priority": 2,
+        "why": "Useful for scripted educational videos, audit training videos, and dashboard-to-video workflows.",
+        "next_query": "Remotion data driven video captions charts animation documentation"
       },
       {
         "name": "AIAG Core Tools Key Terms and Self Assessment",
@@ -1090,7 +1526,7 @@
         "reachability": {
           "ok": true,
           "status": 200,
-          "elapsed_ms": 333,
+          "elapsed_ms": 452,
           "content_type": "text/html; charset=UTF-8"
         }
       },
@@ -1109,6 +1545,457 @@
         "priority": 3,
         "why": "Useful for internal training apps, IT governance, security, and DX skill maps.",
         "next_query": "site:ipa.go.jp AI quality DX skills security training material"
+      },
+      {
+        "name": "MIT OpenCourseWare",
+        "url": "https://ocw.mit.edu/",
+        "cost_label": "FREE",
+        "source_type": "education_material",
+        "domains": [
+          "training",
+          "statistics",
+          "mechanical_design",
+          "manufacturing",
+          "simulation"
+        ],
+        "priority": 3,
+        "why": "Free education material for engineering math, statistics, manufacturing, and mechanics foundations.",
+        "next_query": "MIT OCW manufacturing design statistics finite element method quality"
+      },
+      {
+        "name": "GrabCAD Library",
+        "url": "https://grabcad.com/library",
+        "cost_label": "FREE_REG",
+        "source_type": "cad_model_platform",
+        "domains": [
+          "cad",
+          "3d_model",
+          "mechanism",
+          "fixture",
+          "training"
+        ],
+        "priority": 3,
+        "why": "Useful for reference CAD and training models. Every model needs license and attribution review.",
+        "next_query": "GrabCAD progressive die injection mold fixture press tool CAD model"
+      }
+    ],
+    "patents_cad_assets": [
+      {
+        "name": "Google Patents",
+        "url": "https://patents.google.com/",
+        "cost_label": "FREE",
+        "source_type": "patent_search",
+        "domains": [
+          "patents",
+          "progressive_die",
+          "injection_molding",
+          "fixture",
+          "mechanism"
+        ],
+        "priority": 1,
+        "why": "Fast patent search for progressive dies, injection molds, gates, cooling channels, press tooling, and inspection fixtures.",
+        "next_query": "progressive die strip layout injection mold cooling channel gate design patent"
+      },
+      {
+        "name": "J-PlatPat",
+        "url": "https://www.j-platpat.inpit.go.jp/",
+        "cost_label": "FREE",
+        "source_type": "patent_search",
+        "domains": [
+          "patents",
+          "japanese",
+          "progressive_die",
+          "injection_molding",
+          "quality"
+        ],
+        "priority": 1,
+        "why": "Official Japanese patent search; important for domestic tooling and manufacturing ideas.",
+        "next_query": "J-PlatPat 順送金型 射出成形 金型 品質検査 特許"
+      },
+      {
+        "name": "Espacenet",
+        "url": "https://worldwide.espacenet.com/",
+        "cost_label": "FREE",
+        "source_type": "patent_search",
+        "domains": [
+          "patents",
+          "automotive",
+          "mold_design",
+          "forming"
+        ],
+        "priority": 2,
+        "why": "International patent search to compare global mold, forming, and inspection mechanisms.",
+        "next_query": "Espacenet progressive die injection mold warpage inspection fixture patent"
+      },
+      {
+        "name": "FreeCAD Documentation",
+        "url": "https://wiki.freecad.org/",
+        "cost_label": "FREE",
+        "source_type": "official_docs",
+        "domains": [
+          "cad",
+          "dxf",
+          "step",
+          "automation",
+          "mechanical_design"
+        ],
+        "priority": 2,
+        "why": "Reference for DXF/STEP automation and geometry prep before CAE or mold design.",
+        "next_query": "FreeCAD python API DXF STEP automation part design"
+      },
+      {
+        "name": "MIT OpenCourseWare",
+        "url": "https://ocw.mit.edu/",
+        "cost_label": "FREE",
+        "source_type": "education_material",
+        "domains": [
+          "training",
+          "statistics",
+          "mechanical_design",
+          "manufacturing",
+          "simulation"
+        ],
+        "priority": 3,
+        "why": "Free education material for engineering math, statistics, manufacturing, and mechanics foundations.",
+        "next_query": "MIT OCW manufacturing design statistics finite element method quality"
+      },
+      {
+        "name": "3D ContentCentral",
+        "url": "https://www.3dcontentcentral.com/",
+        "cost_label": "FREE_REG",
+        "source_type": "cad_parts_catalog",
+        "domains": [
+          "cad",
+          "standard_parts",
+          "mechanical_design"
+        ],
+        "priority": 3,
+        "why": "Mechanical CAD parts and supplier models for fixtures and training examples. Check download terms.",
+        "next_query": "3D ContentCentral mold base die spring press fixture CAD"
+      },
+      {
+        "name": "GrabCAD Library",
+        "url": "https://grabcad.com/library",
+        "cost_label": "FREE_REG",
+        "source_type": "cad_model_platform",
+        "domains": [
+          "cad",
+          "3d_model",
+          "mechanism",
+          "fixture",
+          "training"
+        ],
+        "priority": 3,
+        "why": "Useful for reference CAD and training models. Every model needs license and attribution review.",
+        "next_query": "GrabCAD progressive die injection mold fixture press tool CAD model"
+      },
+      {
+        "name": "TraceParts",
+        "url": "https://www.traceparts.com/",
+        "cost_label": "FREE_REG",
+        "source_type": "cad_parts_catalog",
+        "domains": [
+          "cad",
+          "standard_parts",
+          "mechanical_design"
+        ],
+        "priority": 3,
+        "why": "Standard-part CAD catalog for building realistic tooling examples; registration may be required.",
+        "next_query": "TraceParts mold components guide pins die springs CAD"
+      }
+    ],
+    "materials_data": [
+      {
+        "name": "Autodesk Moldflow Insight Help",
+        "url": "https://help.autodesk.com/view/MFIA/2026/ENU/",
+        "cost_label": "FREE",
+        "source_type": "official_help",
+        "domains": [
+          "injection_molding",
+          "moldflow",
+          "resin_flow",
+          "warpage",
+          "cooling",
+          "materials"
+        ],
+        "priority": 1,
+        "why": "Best legitimate reference for Moldflow result terminology and benchmark interpretation.",
+        "next_query": "site:help.autodesk.com/view/MFIA injection molding filling packing cooling warpage material model",
+        "reachability": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 284,
+          "content_type": "text/html; charset=UTF-8"
+        }
+      },
+      {
+        "name": "Google Dataset Search",
+        "url": "https://datasetsearch.research.google.com/",
+        "cost_label": "FREE",
+        "source_type": "dataset_search",
+        "domains": [
+          "datasets",
+          "visual_inspection",
+          "manufacturing",
+          "materials",
+          "predictive_maintenance"
+        ],
+        "priority": 1,
+        "why": "Broad cross-repository search for datasets; use it to discover official landing pages before downloading anything.",
+        "next_query": "manufacturing defect detection dataset injection molding dataset tolerance analysis dataset",
+        "reachability": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 985,
+          "content_type": "text/html; charset=utf-8"
+        }
+      },
+      {
+        "name": "Papers with Code",
+        "url": "https://paperswithcode.com/",
+        "cost_label": "FREE",
+        "source_type": "paper_code_index",
+        "domains": [
+          "deep_learning",
+          "benchmarks",
+          "datasets",
+          "implementation"
+        ],
+        "priority": 1,
+        "why": "Good for finding papers with code and benchmark tables before investing implementation time.",
+        "next_query": "Papers with Code industrial anomaly detection MVTec AD VisA BTAD Real-IAD",
+        "reachability": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 430,
+          "content_type": "text/html; charset=utf-8"
+        }
+      },
+      {
+        "name": "Hugging Face Datasets",
+        "url": "https://huggingface.co/datasets",
+        "cost_label": "FREE_REG",
+        "source_type": "dataset_model_platform",
+        "domains": [
+          "datasets",
+          "deep_learning",
+          "computer_vision",
+          "nlp",
+          "training"
+        ],
+        "priority": 1,
+        "why": "Useful for vision, OCR, document AI, and local model training. Requires per-dataset license review.",
+        "next_query": "site:huggingface.co/datasets industrial defect anomaly detection manufacturing OCR quality"
+      },
+      {
+        "name": "DataCite Commons",
+        "url": "https://commons.datacite.org/",
+        "cost_label": "FREE",
+        "source_type": "research_data_index",
+        "domains": [
+          "datasets",
+          "papers",
+          "manufacturing",
+          "materials"
+        ],
+        "priority": 2,
+        "why": "DOI-backed dataset discovery across repositories, useful when papers mention a DOI but not a direct file page.",
+        "next_query": "DataCite manufacturing defect dataset sheet metal forming injection molding"
+      },
+      {
+        "name": "J-STAGE",
+        "url": "https://www.jstage.jst.go.jp/",
+        "cost_label": "FREE",
+        "source_type": "japanese_open_papers",
+        "domains": [
+          "japanese",
+          "manufacturing",
+          "quality",
+          "materials",
+          "forming"
+        ],
+        "priority": 2,
+        "why": "Japanese technical papers and society journals; useful for Japanese manufacturing terminology and practical framing.",
+        "next_query": "site:jstage.jst.go.jp resin flow analysis press forming tolerance analysis visual inspection deep learning"
+      },
+      {
+        "name": "NASA Technical Reports Server",
+        "url": "https://ntrs.nasa.gov/",
+        "cost_label": "FREE",
+        "source_type": "official_repository",
+        "domains": [
+          "risk",
+          "failure_analysis",
+          "simulation",
+          "materials",
+          "systems_engineering"
+        ],
+        "priority": 2,
+        "why": "Large technical-report repository for failure analysis, verification, modelling, and engineering methods.",
+        "next_query": "site:ntrs.nasa.gov FMEA risk management verification manufacturing simulation",
+        "reachability": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 590,
+          "content_type": "text/html; charset=utf-8"
+        }
+      },
+      {
+        "name": "NIMS Materials Data Repository",
+        "url": "https://mdr.nims.go.jp/",
+        "cost_label": "FREE",
+        "source_type": "materials_repository",
+        "domains": [
+          "materials",
+          "datasets",
+          "japanese",
+          "simulation"
+        ],
+        "priority": 2,
+        "why": "Materials data from NIMS; useful for resin, metal, and material-property grounding.",
+        "next_query": "site:mdr.nims.go.jp material property dataset polymer steel forming"
+      },
+      {
+        "name": "Zenodo",
+        "url": "https://zenodo.org/",
+        "cost_label": "FREE",
+        "source_type": "research_data_repository",
+        "domains": [
+          "datasets",
+          "papers",
+          "cae",
+          "manufacturing",
+          "quality"
+        ],
+        "priority": 2,
+        "why": "Good for DOI-backed datasets and supplementary material with explicit licenses.",
+        "next_query": "site:zenodo.org manufacturing defect dataset sheet metal forming injection molding tolerance analysis",
+        "reachability": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 956,
+          "content_type": "text/html; charset=utf-8"
+        }
+      },
+      {
+        "name": "AIST Research and DB",
+        "url": "https://www.aist.go.jp/",
+        "cost_label": "FREE",
+        "source_type": "official_research",
+        "domains": [
+          "japanese",
+          "manufacturing",
+          "ai",
+          "metrology",
+          "materials"
+        ],
+        "priority": 3,
+        "why": "Japanese industrial AI, measurement, materials, and manufacturing research gateway.",
+        "next_query": "site:aist.go.jp manufacturing AI visual inspection metrology materials dataset"
+      },
+      {
+        "name": "DOE Data Explorer",
+        "url": "https://www.osti.gov/dataexplorer/",
+        "cost_label": "FREE",
+        "source_type": "official_repository",
+        "domains": [
+          "datasets",
+          "materials",
+          "simulation",
+          "energy",
+          "manufacturing"
+        ],
+        "priority": 3,
+        "why": "US DOE dataset search for materials, simulation, and engineering datasets.",
+        "next_query": "site:osti.gov/dataexplorer manufacturing simulation materials dataset"
+      },
+      {
+        "name": "Figshare",
+        "url": "https://figshare.com/",
+        "cost_label": "FREE",
+        "source_type": "research_data_repository",
+        "domains": [
+          "datasets",
+          "materials",
+          "inspection",
+          "cae"
+        ],
+        "priority": 3,
+        "why": "Supplementary datasets with DOI and license metadata; useful after core sources.",
+        "next_query": "site:figshare.com manufacturing defect inspection dataset forming simulation",
+        "reachability": {
+          "ok": true,
+          "status": 202,
+          "elapsed_ms": 763,
+          "content_type": "text/html; charset=UTF-8"
+        }
+      },
+      {
+        "name": "MIT OpenCourseWare",
+        "url": "https://ocw.mit.edu/",
+        "cost_label": "FREE",
+        "source_type": "education_material",
+        "domains": [
+          "training",
+          "statistics",
+          "mechanical_design",
+          "manufacturing",
+          "simulation"
+        ],
+        "priority": 3,
+        "why": "Free education material for engineering math, statistics, manufacturing, and mechanics foundations.",
+        "next_query": "MIT OCW manufacturing design statistics finite element method quality"
+      },
+      {
+        "name": "Mendeley Data",
+        "url": "https://data.mendeley.com/",
+        "cost_label": "FREE",
+        "source_type": "research_data_repository",
+        "domains": [
+          "datasets",
+          "inspection",
+          "predictive_maintenance",
+          "materials"
+        ],
+        "priority": 3,
+        "why": "Often hosts dataset companions to engineering papers.",
+        "next_query": "site:data.mendeley.com manufacturing defect detection predictive maintenance dataset",
+        "reachability": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 1075,
+          "content_type": "text/html; charset=utf-8"
+        }
+      },
+      {
+        "name": "Materials Project",
+        "url": "https://materialsproject.org/",
+        "cost_label": "FREE_REG",
+        "source_type": "materials_database",
+        "domains": [
+          "materials",
+          "datasets",
+          "simulation"
+        ],
+        "priority": 3,
+        "why": "High-quality materials database; account/API terms may apply. More useful for material-learning foundations than immediate mold/press work.",
+        "next_query": "Materials Project API license materials property dataset"
+      },
+      {
+        "name": "SAE Mobilus",
+        "url": "https://saemobilus.sae.org/",
+        "cost_label": "PAID",
+        "source_type": "technical_papers",
+        "domains": [
+          "automotive",
+          "manufacturing",
+          "cae",
+          "materials",
+          "quality"
+        ],
+        "priority": 3,
+        "why": "Can contain high-value automotive manufacturing papers, but usually paid.",
+        "next_query": "SAE sheet metal forming tolerance analysis injection molding quality manufacturing"
       }
     ]
   },
@@ -1132,7 +2019,7 @@
       "reachability": {
         "ok": true,
         "status": 200,
-        "elapsed_ms": 267,
+        "elapsed_ms": 284,
         "content_type": "text/html; charset=UTF-8"
       }
     },
@@ -1152,11 +2039,70 @@
       "why": "Reliable open papers for CVPR/ICCV/ECCV methods, often with code links.",
       "next_query": "site:openaccess.thecvf.com industrial anomaly detection manufacturing defect segmentation",
       "reachability": {
+        "ok": false,
+        "elapsed_ms": 20031,
+        "error": "<urlopen error timed out>",
+        "fallback": {
+          "ok": false,
+          "elapsed_ms": 20031,
+          "error": "<urlopen error timed out>",
+          "method": "GET_RANGE"
+        }
+      }
+    },
+    {
+      "name": "Google Dataset Search",
+      "url": "https://datasetsearch.research.google.com/",
+      "cost_label": "FREE",
+      "source_type": "dataset_search",
+      "domains": [
+        "datasets",
+        "visual_inspection",
+        "manufacturing",
+        "materials",
+        "predictive_maintenance"
+      ],
+      "priority": 1,
+      "why": "Broad cross-repository search for datasets; use it to discover official landing pages before downloading anything.",
+      "next_query": "manufacturing defect detection dataset injection molding dataset tolerance analysis dataset",
+      "reachability": {
         "ok": true,
         "status": 200,
-        "elapsed_ms": 3133,
-        "content_type": "text/html; charset=UTF-8"
+        "elapsed_ms": 985,
+        "content_type": "text/html; charset=utf-8"
       }
+    },
+    {
+      "name": "Google Patents",
+      "url": "https://patents.google.com/",
+      "cost_label": "FREE",
+      "source_type": "patent_search",
+      "domains": [
+        "patents",
+        "progressive_die",
+        "injection_molding",
+        "fixture",
+        "mechanism"
+      ],
+      "priority": 1,
+      "why": "Fast patent search for progressive dies, injection molds, gates, cooling channels, press tooling, and inspection fixtures.",
+      "next_query": "progressive die strip layout injection mold cooling channel gate design patent"
+    },
+    {
+      "name": "J-PlatPat",
+      "url": "https://www.j-platpat.inpit.go.jp/",
+      "cost_label": "FREE",
+      "source_type": "patent_search",
+      "domains": [
+        "patents",
+        "japanese",
+        "progressive_die",
+        "injection_molding",
+        "quality"
+      ],
+      "priority": 1,
+      "why": "Official Japanese patent search; important for domestic tooling and manufacturing ideas.",
+      "next_query": "J-PlatPat 順送金型 射出成形 金型 品質検査 特許"
     },
     {
       "name": "NASA Systems Engineering Handbook",
@@ -1177,7 +2123,7 @@
       "reachability": {
         "ok": true,
         "status": 200,
-        "elapsed_ms": 53,
+        "elapsed_ms": 595,
         "content_type": "text/html; charset=UTF-8"
       }
     },
@@ -1200,7 +2146,7 @@
       "reachability": {
         "ok": true,
         "status": 200,
-        "elapsed_ms": 587,
+        "elapsed_ms": 1109,
         "content_type": "text/html; charset=UTF-8"
       }
     },
@@ -1222,7 +2168,7 @@
       "reachability": {
         "ok": true,
         "status": 200,
-        "elapsed_ms": 1062,
+        "elapsed_ms": 1091,
         "content_type": "text/html; charset=UTF-8"
       }
     },
@@ -1245,7 +2191,7 @@
       "reachability": {
         "ok": true,
         "status": 200,
-        "elapsed_ms": 335,
+        "elapsed_ms": 289,
         "content_type": "text/html;charset=UTF-8"
       }
     },
@@ -1266,7 +2212,7 @@
       "reachability": {
         "ok": true,
         "status": 200,
-        "elapsed_ms": 440,
+        "elapsed_ms": 430,
         "content_type": "text/html; charset=utf-8"
       }
     },
@@ -1288,7 +2234,7 @@
       "reachability": {
         "ok": true,
         "status": 200,
-        "elapsed_ms": 63,
+        "elapsed_ms": 68,
         "content_type": "text/html; charset=utf-8"
       }
     },
@@ -1311,9 +2257,25 @@
       "reachability": {
         "ok": true,
         "status": 200,
-        "elapsed_ms": 406,
+        "elapsed_ms": 838,
         "content_type": "text/html; charset=UTF-8"
       }
+    },
+    {
+      "name": "Hugging Face Datasets",
+      "url": "https://huggingface.co/datasets",
+      "cost_label": "FREE_REG",
+      "source_type": "dataset_model_platform",
+      "domains": [
+        "datasets",
+        "deep_learning",
+        "computer_vision",
+        "nlp",
+        "training"
+      ],
+      "priority": 1,
+      "why": "Useful for vision, OCR, document AI, and local model training. Requires per-dataset license review.",
+      "next_query": "site:huggingface.co/datasets industrial defect anomaly detection manufacturing OCR quality"
     },
     {
       "name": "Kolektor Surface-Defect Dataset",
@@ -1332,7 +2294,7 @@
       "reachability": {
         "ok": true,
         "status": 200,
-        "elapsed_ms": 2758,
+        "elapsed_ms": 2472,
         "content_type": "text/html"
       }
     },
@@ -1353,7 +2315,7 @@
       "reachability": {
         "ok": true,
         "status": 200,
-        "elapsed_ms": 1846,
+        "elapsed_ms": 2080,
         "content_type": "text/html; charset=utf-8"
       }
     },
@@ -1377,7 +2339,7 @@
       "reachability": {
         "ok": true,
         "status": 200,
-        "elapsed_ms": 1194,
+        "elapsed_ms": 1321,
         "content_type": "text/html; charset=utf-8"
       }
     },
@@ -1419,7 +2381,7 @@
       "reachability": {
         "ok": true,
         "status": 200,
-        "elapsed_ms": 1194,
+        "elapsed_ms": 1321,
         "content_type": "text/html; charset=utf-8"
       }
     },
@@ -1476,6 +2438,9 @@
     "Use Autodesk Moldflow Help plus openInjMoldSim paper to define resin-flow solver benchmark terminology.",
     "Use OpenRadioss and existing project pregates for press bending/blanking deck improvement.",
     "Use MVTec/Kolektor/CVF/arXiv/Papers with Code for visual inspection AI experiments after license checks.",
+    "Use Google Dataset Search, DataCite, Zenodo, Figshare, Mendeley, NIMS, and DOE Data Explorer as the broad legal data-discovery loop.",
+    "Use Google Patents, J-PlatPat, and Espacenet for tooling and mold-design idea mining before implementation.",
+    "Use Blender, Remotion, FreeCAD, and GitHub documentation/code only after license checks for derivative reuse.",
     "Treat AIAG/ISO/IATF/SAE/IEEE as paid candidates and ask before purchase or subscription use."
   ]
 }

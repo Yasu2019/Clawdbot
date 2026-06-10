@@ -1,6 +1,6 @@
 {
   "schema": "clawstack.material_acquisition_queue.v1",
-  "updated_at": "2026-06-10T03:46:19+09:00",
+  "updated_at": "2026-06-10T17:23:52+09:00",
   "policy": {
     "direct_free": "download immediately from official/open pages",
     "free_reg": "queue until registration/API token/license acceptance is available",
@@ -17,7 +17,7 @@
       "path": "data/web_acquired_materials/openinjmoldsim/fluids-05-02-00084-openInjMoldSim.pdf",
       "size_bytes": 9758234,
       "sha256": "4ff22c67e5bafafb34108489e3f52d865951e30197935c27124e3838f2e62e9b",
-      "acquired_at": "2026-06-10T03:46:19+09:00",
+      "acquired_at": "2026-06-10T17:23:52+09:00",
       "license_note": "MDPI open-access article. Downloaded from the publisher mdpi-res PDF endpoint."
     }
   ],
@@ -240,6 +240,204 @@
       ],
       "images": 693,
       "downloads": 31
+    },
+    {
+      "source": "Hugging Face Datasets",
+      "url": "https://huggingface.co/datasets",
+      "action": "registration_and_license_check",
+      "priority": 1,
+      "cost_label": "FREE_REG",
+      "domains": [
+        "datasets",
+        "deep_learning",
+        "computer_vision",
+        "nlp",
+        "training"
+      ],
+      "reason": "Useful for vision, OCR, document AI, and local model training. Requires per-dataset license review.",
+      "next_query": "site:huggingface.co/datasets industrial defect anomaly detection manufacturing OCR quality",
+      "recommended_user_action": "Open the URL, create/login to an account if needed, review license/export terms, then tell K10 which files or dataset export to acquire."
+    },
+    {
+      "source": "MVTec Anomaly Detection Datasets",
+      "url": "https://www.mvtec.com/company/research/datasets",
+      "action": "registration_and_license_check",
+      "priority": 1,
+      "cost_label": "FREE_REG",
+      "domains": [
+        "visual_inspection",
+        "anomaly_detection",
+        "dataset",
+        "deep_learning"
+      ],
+      "reason": "Standard benchmark family for industrial anomaly detection. License is typically non-commercial, so confirm before business use.",
+      "next_query": "MVTec AD dataset license anomaly detection industrial inspection",
+      "recommended_user_action": "Open the URL, create/login to an account if needed, review license/export terms, then tell K10 which files or dataset export to acquire."
+    },
+    {
+      "source": "AIAG Quality Core Tools",
+      "url": "https://www.aiag.org/expertise-areas/quality/quality-core-tools",
+      "action": "user_purchase_or_subscription_approval",
+      "priority": 1,
+      "cost_label": "PAID",
+      "domains": [
+        "apqp",
+        "control_plan",
+        "ppap",
+        "fmea",
+        "msa",
+        "spc",
+        "iatf"
+      ],
+      "reason": "Authoritative source for automotive core tools. Many manuals and courses are paid, so use as paid-reference candidate.",
+      "next_query": "site:aiag.org APQP Control Plan PPAP FMEA MSA SPC free overview",
+      "recommended_user_action": "Open the URL, create/login to an account if needed, review license/export terms, then tell K10 which files or dataset export to acquire."
+    },
+    {
+      "source": "ISO, JIS, IATF Standard Texts",
+      "url": "https://www.iso.org/standards.html",
+      "action": "user_purchase_or_subscription_approval",
+      "priority": 1,
+      "cost_label": "PAID",
+      "domains": [
+        "iatf",
+        "iso",
+        "jis",
+        "audit",
+        "qms"
+      ],
+      "reason": "Authoritative, but usually paid and license-restricted. Do not download from unofficial mirrors.",
+      "next_query": "ISO 9001 IATF 16949 internal audit guidance official paid standard",
+      "recommended_user_action": "Open the URL, create/login to an account if needed, review license/export terms, then tell K10 which files or dataset export to acquire."
+    },
+    {
+      "source": "AIAG Core Tools Key Terms and Self Assessment",
+      "url": "https://go.aiag.org/core-tools-terms",
+      "action": "registration_and_license_check",
+      "priority": 2,
+      "cost_label": "FREE_REG",
+      "domains": [
+        "apqp",
+        "fmea",
+        "msa",
+        "spc",
+        "ppap",
+        "training"
+      ],
+      "reason": "Useful free or registration-gated glossary/self-assessment entry point before buying manuals.",
+      "next_query": "AIAG core tools terms self assessment APQP FMEA MSA SPC",
+      "recommended_user_action": "Open the URL, create/login to an account if needed, review license/export terms, then tell K10 which files or dataset export to acquire."
+    },
+    {
+      "source": "Kaggle Datasets and Competitions",
+      "url": "https://www.kaggle.com/datasets",
+      "action": "registration_and_license_check",
+      "priority": 2,
+      "cost_label": "FREE_REG",
+      "domains": [
+        "visual_inspection",
+        "predictive_maintenance",
+        "process_data",
+        "deep_learning"
+      ],
+      "reason": "Useful datasets such as Severstal steel defects and predictive maintenance examples. Registration and license checks required.",
+      "next_query": "site:kaggle.com manufacturing defect detection predictive maintenance quality dataset",
+      "recommended_user_action": "Open the URL, create/login to an account if needed, review license/export terms, then tell K10 which files or dataset export to acquire."
+    },
+    {
+      "source": "3D ContentCentral",
+      "url": "https://www.3dcontentcentral.com/",
+      "action": "registration_and_license_check",
+      "priority": 3,
+      "cost_label": "FREE_REG",
+      "domains": [
+        "cad",
+        "standard_parts",
+        "mechanical_design"
+      ],
+      "reason": "Mechanical CAD parts and supplier models for fixtures and training examples. Check download terms.",
+      "next_query": "3D ContentCentral mold base die spring press fixture CAD",
+      "recommended_user_action": "Open the URL, create/login to an account if needed, review license/export terms, then tell K10 which files or dataset export to acquire."
+    },
+    {
+      "source": "GrabCAD Library",
+      "url": "https://grabcad.com/library",
+      "action": "registration_and_license_check",
+      "priority": 3,
+      "cost_label": "FREE_REG",
+      "domains": [
+        "cad",
+        "3d_model",
+        "mechanism",
+        "fixture",
+        "training"
+      ],
+      "reason": "Useful for reference CAD and training models. Every model needs license and attribution review.",
+      "next_query": "GrabCAD progressive die injection mold fixture press tool CAD model",
+      "recommended_user_action": "Open the URL, create/login to an account if needed, review license/export terms, then tell K10 which files or dataset export to acquire."
+    },
+    {
+      "source": "Materials Project",
+      "url": "https://materialsproject.org/",
+      "action": "registration_and_license_check",
+      "priority": 3,
+      "cost_label": "FREE_REG",
+      "domains": [
+        "materials",
+        "datasets",
+        "simulation"
+      ],
+      "reason": "High-quality materials database; account/API terms may apply. More useful for material-learning foundations than immediate mold/press work.",
+      "next_query": "Materials Project API license materials property dataset",
+      "recommended_user_action": "Open the URL, create/login to an account if needed, review license/export terms, then tell K10 which files or dataset export to acquire."
+    },
+    {
+      "source": "TraceParts",
+      "url": "https://www.traceparts.com/",
+      "action": "registration_and_license_check",
+      "priority": 3,
+      "cost_label": "FREE_REG",
+      "domains": [
+        "cad",
+        "standard_parts",
+        "mechanical_design"
+      ],
+      "reason": "Standard-part CAD catalog for building realistic tooling examples; registration may be required.",
+      "next_query": "TraceParts mold components guide pins die springs CAD",
+      "recommended_user_action": "Open the URL, create/login to an account if needed, review license/export terms, then tell K10 which files or dataset export to acquire."
+    },
+    {
+      "source": "IEEE Xplore",
+      "url": "https://ieeexplore.ieee.org/",
+      "action": "user_purchase_or_subscription_approval",
+      "priority": 3,
+      "cost_label": "PAID",
+      "domains": [
+        "deep_learning",
+        "visual_inspection",
+        "factory_ai",
+        "sensors"
+      ],
+      "reason": "Good for sensor/vision/AI papers, but many articles are paid. Prefer arXiv/CVF copy when available.",
+      "next_query": "IEEE industrial visual inspection deep learning manufacturing defect detection",
+      "recommended_user_action": "Open the URL, create/login to an account if needed, review license/export terms, then tell K10 which files or dataset export to acquire."
+    },
+    {
+      "source": "SAE Mobilus",
+      "url": "https://saemobilus.sae.org/",
+      "action": "user_purchase_or_subscription_approval",
+      "priority": 3,
+      "cost_label": "PAID",
+      "domains": [
+        "automotive",
+        "manufacturing",
+        "cae",
+        "materials",
+        "quality"
+      ],
+      "reason": "Can contain high-value automotive manufacturing papers, but usually paid.",
+      "next_query": "SAE sheet metal forming tolerance analysis injection molding quality manufacturing",
+      "recommended_user_action": "Open the URL, create/login to an account if needed, review license/export terms, then tell K10 which files or dataset export to acquire."
     }
   ],
   "errors": []
