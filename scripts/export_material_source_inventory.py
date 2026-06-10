@@ -16,6 +16,7 @@ OUTPUT_PATH = DASHBOARD_DIR / "material_source_inventory.json"
 ACQUIRED_DIR = ROOT / "data" / "web_acquired_materials"
 QUEUE_PATH = DASHBOARD_DIR / "material_acquisition_queue.json"
 ROBOFLOW_CANDIDATES_PATH = DASHBOARD_DIR / "roboflow_candidate_datasets.json"
+MATERIALS_PROJECT_STATUS_PATH = ROOT / "data" / "workspace" / "materials_project_api_status.json"
 
 DOC_EXTENSIONS = {
     ".pdf",
@@ -234,6 +235,27 @@ def roboflow_row(dataset_paths):
     }
 
 
+def materials_project_api_row():
+    status = load_json(MATERIALS_PROJECT_STATUS_PATH, {})
+    api_ready = status.get("status") == "api_ready"
+    sample_materials = status.get("sample_materials", []) if isinstance(status.get("sample_materials"), list) else []
+    examples = []
+    for row in sample_materials[:5]:
+        if isinstance(row, dict):
+            examples.append(f"{row.get('material_id')} {row.get('formula_pretty')} stable={row.get('is_stable')}")
+    return {
+        "source": "Materials Project API",
+        "category": "materials_database_api",
+        "acquired_count": 1 if api_ready else 0,
+        "candidate_count": 0 if api_ready else 1,
+        "status": "api_ready" if api_ready else ("candidate" if status.get("key_present") else "not_configured"),
+        "latest_at": status.get("updated_at", ""),
+        "evidence": MATERIALS_PROJECT_STATUS_PATH.relative_to(ROOT).as_posix(),
+        "note": "API key configured; targeted queries are available. Key value is not stored in status output." if api_ready else status.get("next_action", ""),
+        "examples": examples or [status.get("status", "not_configured")],
+    }
+
+
 def build_inventory():
     dataset_paths = [
         ROOT / "data" / "datasets",
@@ -250,6 +272,7 @@ def build_inventory():
         scout_backed_row("MVTec AD", "visual_inspection_dataset", ["mvtec"], dataset_paths, ["mvtec"]),
         scout_backed_row("Kolektor Surface-Defect Dataset", "visual_inspection_dataset", ["kolektor"], dataset_paths, ["kolektor"]),
         roboflow_row(dataset_paths),
+        materials_project_api_row(),
         scout_domain_row("Patent idea sources", "patent_search", ["patents"]),
         scout_domain_row("CAD and standard-part sources", "cad_reference", ["cad", "3d_model", "standard_parts", "mechanical_design"]),
         scout_domain_row("Materials data sources", "materials_data", ["materials", "simulation"]),

@@ -18,6 +18,7 @@ ACQUIRED_DIR = ROOT / "data" / "web_acquired_materials"
 QUEUE_PATH = DASHBOARD_DIR / "material_acquisition_queue.json"
 ROBOFLOW_CANDIDATES_PATH = DASHBOARD_DIR / "roboflow_candidate_datasets.json"
 QUALITY_SCOUT_PATH = ROOT / "data" / "workspace" / "quality_manufacturing_source_scout_status.json"
+MATERIALS_PROJECT_STATUS_PATH = ROOT / "data" / "workspace" / "materials_project_api_status.json"
 JST = timezone(timedelta(hours=9))
 
 
@@ -99,6 +100,8 @@ def roboflow_pending_items():
 
 def scout_login_or_review_items(existing_sources):
     data = load_json(QUALITY_SCOUT_PATH, {})
+    materials_project_status = load_json(MATERIALS_PROJECT_STATUS_PATH, {})
+    materials_project_ready = materials_project_status.get("status") == "api_ready"
     sources = data.get("sources", []) if isinstance(data.get("sources"), list) else []
     pending = []
     seen = {str(source).lower() for source in existing_sources}
@@ -106,6 +109,21 @@ def scout_login_or_review_items(existing_sources):
         cost_label = str(item.get("cost_label") or "").upper()
         name = str(item.get("name") or "")
         if not name or name.lower() in seen:
+            continue
+        if name == "Materials Project" and materials_project_ready:
+            pending.append(
+                {
+                    "source": name,
+                    "url": item.get("url"),
+                    "action": "api_ready_for_targeted_queries",
+                    "priority": item.get("priority", 3),
+                    "cost_label": cost_label,
+                    "domains": item.get("domains", []),
+                    "reason": "API key is configured and probe succeeded. Use targeted queries after selecting material systems.",
+                    "next_query": item.get("next_query"),
+                    "status_evidence": MATERIALS_PROJECT_STATUS_PATH.relative_to(ROOT).as_posix(),
+                }
+            )
             continue
         if cost_label not in {"FREE_REG", "PAID", "CHECK"}:
             continue

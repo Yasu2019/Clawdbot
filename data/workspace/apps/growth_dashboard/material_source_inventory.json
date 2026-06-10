@@ -1,7 +1,7 @@
 {
   "schema": "clawstack.material_source_inventory.v1",
-  "updated_at": "2026-06-10T17:24:41+09:00",
-  "total_acquired_count": 419,
+  "updated_at": "2026-06-10T19:17:48+09:00",
+  "total_acquired_count": 420,
   "total_candidate_count": 102,
   "acquisition_queue": "data/workspace/apps/growth_dashboard/material_acquisition_queue.json",
   "rows": [
@@ -67,6 +67,19 @@
       "note": "",
       "examples": [
         "fluids-05-02-00084-openInjMoldSim.pdf"
+      ]
+    },
+    {
+      "source": "Materials Project API",
+      "category": "materials_database_api",
+      "acquired_count": 1,
+      "candidate_count": 0,
+      "status": "api_ready",
+      "latest_at": "2026-06-10T19:17:32+09:00",
+      "evidence": "data/workspace/materials_project_api_status.json",
+      "note": "API key configured; targeted queries are available. Key value is not stored in status output.",
+      "examples": [
+        "mp-aaaaaaft Si stable=True"
       ]
     },
     {

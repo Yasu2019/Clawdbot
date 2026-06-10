@@ -1,0 +1,33 @@
+{
+  "schema": "clawstack.materials_project_api_status.v1",
+  "updated_at": "2026-06-10T19:17:32+09:00",
+  "source": "Materials Project",
+  "api_base": "https://api.materialsproject.org",
+  "docs": "https://docs.materialsproject.org/downloading-data/using-the-api/getting-started",
+  "key_present": true,
+  "key_name": "Materials_Project",
+  "key_value_stored": false,
+  "api_ok": true,
+  "sample_count": 1,
+  "sample_materials": [
+    {
+      "material_id": "mp-aaaaaaft",
+      "formula_pretty": "Si",
+      "band_gap": 0.6102999999999996,
+      "is_stable": true,
+      "energy_above_hull": 0.0
+    }
+  ],
+  "recommended_use": [
+    "materials property lookup for CAE grounding",
+    "screening candidate material systems",
+    "education and validation examples for material-data pipelines"
+  ],
+  "limits": [
+    "Do not store or print API key values.",
+    "Review Materials Project terms before bulk download or redistribution.",
+    "Use small, targeted queries first; do not mirror the database."
+  ],
+  "status": "api_ready",
+  "next_action": "Use targeted materials queries after selecting a CAE/material question."
+}
