@@ -19,6 +19,7 @@ if hasattr(sys.stdout, "reconfigure"):
 ROOT = Path(__file__).resolve().parents[1]
 WORKSPACE = ROOT / "data" / "workspace"
 OUT_PATH = WORKSPACE / "fleet_diagnostics_status.json"
+APP_OUT_PATH = WORKSPACE / "apps" / "growth_dashboard" / "fleet_diagnostics_status.json"
 JST = timezone(timedelta(hours=9))
 
 
@@ -122,8 +123,11 @@ def main() -> int:
         "needs_refresh": [row["node_id"] for row in rows if row.get("action") == "refresh_monitor_agent"],
         "needs_manual": [row["node_id"] for row in rows if row.get("action") == "manual_power_network_or_startup_check"],
     }
-    OUT_PATH.write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(json.dumps(summary, ensure_ascii=False, indent=2))
+    body = json.dumps(summary, ensure_ascii=False, indent=2)
+    OUT_PATH.write_text(body, encoding="utf-8")
+    APP_OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
+    APP_OUT_PATH.write_text(body, encoding="utf-8")
+    print(body)
     return 0 if not summary["needs_manual"] and not summary["needs_refresh"] else 1
 
 

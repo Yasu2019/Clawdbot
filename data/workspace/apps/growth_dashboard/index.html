@@ -435,6 +435,31 @@
         </div>
 
         <div class="card full-width">
+            <h2>Fleet Diagnostics Monitor (24h Node Logs)</h2>
+            <p style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 15px;">
+                Metrics and diagnostics are checked separately. A node is RCA-ready only when diagnostics is online.
+            </p>
+            <div id="fleetDiagnosticsSummary" style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:15px;">
+                <div style="color: var(--text-dim); font-size: 0.9rem;">Loading fleet diagnostics...</div>
+            </div>
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th width="16%">Node</th>
+                        <th width="14%">Metrics</th>
+                        <th width="14%">Diagnostics</th>
+                        <th width="18%">Active Endpoint</th>
+                        <th width="18%">Last Event</th>
+                        <th width="20%">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="fleetDiagnosticsBody">
+                    <tr><td colspan="6" style="text-align:center; color:var(--text-dim);">Loading fleet diagnostics...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card full-width">
             <h2>Fleet Workload Allocation (CPU / RAM / Thermal Fit)</h2>
             <p style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 15px;">
                 Current hardware and load are read from each monitor_agent. Heavy jobs are blocked on overheated or daytime work PCs.
@@ -970,6 +995,88 @@
             }
         }
 
+        function escapeDiagHtml(value) {
+            return String(value ?? '').replace(/[&<>"']/g, (ch) => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            }[ch]));
+        }
+
+        function diagBadge(ok, label) {
+            const color = ok ? '#3fb950' : '#f85149';
+            const bg = ok ? 'rgba(35,134,54,0.15)' : 'rgba(248,81,73,0.15)';
+            return `<span style="display:inline-block; border:1px solid ${color}; color:${color}; background:${bg}; padding:3px 8px; border-radius:8px; font-size:0.72rem; font-weight:700;">${label}</span>`;
+        }
+
+        function actionText(action) {
+            if (action === 'ok') return 'Monitor normally';
+            if (action === 'refresh_monitor_agent') return 'Refresh monitor_agent';
+            if (action === 'manual_power_network_or_startup_check') return 'Local power/startup check';
+            return action || 'Check';
+        }
+
+        async function loadFleetDiagnosticsStatus() {
+            try {
+                const response = await fetch('fleet_diagnostics_status.json', { cache: 'no-store' });
+                if (!response.ok) throw new Error('fleet_diagnostics_status.json not found');
+                const data = await response.json();
+                const nodes = Array.isArray(data.nodes) ? data.nodes : [];
+                const okCount = Number(data.ok_count || nodes.filter((node) => node.diagnostics_online).length);
+                const manual = Array.isArray(data.needs_manual) ? data.needs_manual : [];
+                const refresh = Array.isArray(data.needs_refresh) ? data.needs_refresh : [];
+                const summaryCards = [
+                    ['Updated', escapeDiagHtml(data.updated_at || '---'), '#58a6ff'],
+                    ['RCA-ready nodes', `${okCount} / ${nodes.length}`, okCount === nodes.length ? '#3fb950' : '#d29922'],
+                    ['Manual check', manual.length ? escapeDiagHtml(manual.join(', ')) : 'none', manual.length ? '#f85149' : '#3fb950'],
+                    ['Refresh needed', refresh.length ? escapeDiagHtml(refresh.join(', ')) : 'none', refresh.length ? '#d29922' : '#3fb950']
+                ].map(([label, value, color]) => `
+                    <div style="border:1px solid ${color}; background:${color}14; border-radius:8px; padding:12px 14px; min-width:170px;">
+                        <div style="font-size:0.72rem; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.5px;">${label}</div>
+                        <div style="font-size:1rem; color:#fff; font-weight:700; margin-top:4px;">${value}</div>
+                    </div>
+                `).join('');
+                document.getElementById('fleetDiagnosticsSummary').innerHTML = summaryCards;
+
+                document.getElementById('fleetDiagnosticsBody').innerHTML = nodes.map((node) => {
+                    const lastEvent = node.last_recent_event || {};
+                    const payload = lastEvent.payload || {};
+                    const endpoint = (node.active_diagnostics_url || node.diagnostics_url || '').replace(/^https?:\/\//, '');
+                    const isFallback = /:8112\//.test(node.active_diagnostics_url || '');
+                    const eventText = lastEvent.timestamp
+                        ? `${escapeDiagHtml(lastEvent.timestamp)}<br><span class="timestamp">${escapeDiagHtml(lastEvent.event || '')} / ${escapeDiagHtml(lastEvent.severity || '')}</span>`
+                        : '<span class="timestamp">No recent diagnostic event</span>';
+                    const tempValue = payload.thermal_control_temp_c || payload.cpu_package_c;
+                    const tempText = tempValue ? `<br><span class="timestamp">Temp: ${escapeDiagHtml(tempValue)}C</span>` : '';
+                    return `
+                        <tr>
+                            <td>
+                                <div style="font-weight:700;">${escapeDiagHtml(node.name || node.node_id)}</div>
+                                <span class="timestamp">${escapeDiagHtml(node.node_id)}</span>
+                            </td>
+                            <td>${diagBadge(!!node.metrics_online, node.metrics_online ? 'ONLINE' : 'OFFLINE')}</td>
+                            <td>${diagBadge(!!node.diagnostics_online, node.diagnostics_online ? 'LOG OK' : 'NO LOG')}</td>
+                            <td>
+                                <code style="font-size:0.72rem; color:${isFallback ? '#d29922' : '#58a6ff'};">${escapeDiagHtml(endpoint)}</code>
+                                ${isFallback ? '<br><span class="timestamp">fallback port</span>' : ''}
+                            </td>
+                            <td>${eventText}${tempText}</td>
+                            <td>
+                                <span style="color:${node.action === 'ok' ? '#3fb950' : '#d29922'}; font-weight:700;">${escapeDiagHtml(actionText(node.action))}</span>
+                                ${node.node_id === 'vivobook' && node.diagnostics_online ? '<br><span class="timestamp">Vivobook restored on 2026-06-10</span>' : ''}
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (e) {
+                console.error('Failed to load fleet diagnostics', e);
+                document.getElementById('fleetDiagnosticsSummary').innerHTML = '<div style="color:#f85149; font-size:0.9rem;">Failed to load fleet diagnostics.</div>';
+                document.getElementById('fleetDiagnosticsBody').innerHTML = '<tr><td colspan="6" style="text-align:center; color:#f85149;">Failed to load fleet_diagnostics_status.json.</td></tr>';
+            }
+        }
+
         let nodesUpdateInFlight = false;
         async function updateNodes() {
             if (nodesUpdateInFlight) return;
@@ -1280,8 +1387,10 @@
         loadKnowledgeHistory();
         loadAutonomousImprovements();
         loadEmailCoverage();
+        loadFleetDiagnosticsStatus();
         updateWorkloadAllocation();
         updateNodes();
+        setInterval(loadFleetDiagnosticsStatus, 15000);
         setInterval(updateWorkloadAllocation, 15000);
         setInterval(updateNodes, 15000);
     </script>
