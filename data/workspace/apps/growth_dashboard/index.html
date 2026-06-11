@@ -1088,7 +1088,7 @@
                 fetchNodeStatus("Lavie Node", "http://100.87.244.46:8111/metrics"),
                 fetchNodeStatus("Red Lavie Node", "http://100.99.145.3:8111/metrics", true),
                 fetchNodeStatus("Dynabook Node", "http://100.98.133.40:8111/metrics"),
-                fetchNodeStatus("ThinkPad L590 (Ubuntu SSH)", "thinkpad_metrics.json"),
+                fetchNodeStatus("ThinkPad L590 (Ubuntu)", "http://100.66.63.9:8111/metrics", true),
                 fetchNodeStatus("ASUS Vivobook (Work PC)", "http://100.65.182.27:8111/metrics", true),
                 fetchNodeStatus("HP Node (Watchdog)", "http://100.103.176.50:8111/metrics")
             ]);
@@ -1102,7 +1102,7 @@
             { name: "K10", ip: "127.0.0.1", url: "http://localhost:8111/metrics", role: "Main host / orchestration" },
             { name: "mhn15", ip: "100.65.182.27", url: "http://100.65.182.27:8111/metrics", role: "User work PC", daytimeLightOnly: true },
             { name: "Dynabook", ip: "100.98.133.40", url: "http://100.98.133.40:8111/metrics", role: "Light satellite" },
-            { name: "ThinkPad L590", ip: "100.66.63.9", url: "thinkpad_metrics.json", role: "Ubuntu SSH medium satellite", mediumSshCandidate: true },
+            { name: "ThinkPad L590", ip: "100.66.63.9", url: "http://100.66.63.9:8111/metrics", role: "Ubuntu SSH medium satellite", mediumSshCandidate: true },
             { name: "G3", ip: "100.121.241.128", url: "http://100.121.241.128:8111/metrics", role: "Stable satellite" },
             { name: "LAVIE", ip: "100.87.244.46", url: "http://100.87.244.46:8111/metrics", role: "CAE worker" },
             { name: "red_lavie", ip: "100.99.145.3", url: "http://100.99.145.3:8111/metrics", role: "Medium-heavy ready worker", mediumHeavyCandidate: true }
