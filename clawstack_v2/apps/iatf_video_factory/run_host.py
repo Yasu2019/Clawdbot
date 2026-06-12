@@ -324,6 +324,33 @@ def compose_mp4(timeline: list, frames_dir: Path, video_dir: Path, pdf_stem: str
     return output_mp4
 
 
+# ── 品質事前分析 (QC工程表・FMEA・FTA・なぜなぜ・Fishbone・ロジカルツリー) ──
+def _run_quality_preflight(pdf_text: str, clause: str, topic: str, video_dir: Path) -> dict:
+    """7ツール品質事前分析。既存有効JSONがあればスキップ（resume対応）。"""
+    save_path = video_dir / "quality_preflight.json"
+    try:
+        from quality_preflight import run_quality_preflight, load_valid_preflight
+        existing = load_valid_preflight(save_path)
+        if existing:
+            log(f"  [QualityPreflight] 既存OK → スキップ: {save_path.name}")
+            return existing
+        result = run_quality_preflight(
+            pdf_text, clause, topic,
+            save_path=save_path,
+            minimal=(os.getenv("IATF_VIDEO_RENDER_MODE", "blender").strip().lower() == "slides"),
+            raise_on_fail=False,
+        )
+        ok = result.get("_validation", {}).get("ok", False)
+        log(f"  [QualityPreflight] 完了 ok={ok} model={result.get('_model_used', '?')}")
+        return result
+    except Exception as e:
+        log(f"  [QualityPreflight] WARN: {e} — 分析スキップ（生成は継続）")
+        stub = {"_skipped": True, "_reason": str(e)}
+        save_path.parent.mkdir(parents=True, exist_ok=True)
+        save_path.write_text(json.dumps(stub, ensure_ascii=False, indent=2), encoding="utf-8")
+        return stub
+
+
 # ── メインパイプライン ───────────────────────────────────────────
 def process_pdf(pdf_path: Path) -> bool:
     stem   = pdf_path.stem
@@ -363,6 +390,9 @@ def process_pdf(pdf_path: Path) -> bool:
             log("[1/6] PDF抽出...")
             pdf_text = extract_pdf(pdf_path)
             log(f"      {len(pdf_text):,} 文字")
+
+            log("[1.5/6] 品質事前分析 (QC工程表・FMEA・FTA・なぜなぜ・Fishbone・ロジカルツリー)...")
+            _run_quality_preflight(pdf_text, clause, topic, video_dir)
 
             log("[2/6] 台本生成 (Kimi K2.6 / max_tokens=8000)...")
             script = generate_script(pdf_text, clause, topic)
