@@ -1,0 +1,211 @@
+{
+  "updated_at_jst": "2026-06-01T17:37:14.832261+09:00",
+  "period_days": 7,
+  "period_label": "Last 7 days (JST)",
+  "source_note": "Assistant-turn counts (proxy for API usage): Claude Code (~/.claude/projects), Cursor agent transcripts (~/.cursor/projects/.../agent-transcripts), OpenClaw sessions, Telegram bridge fallbacks. Cursor model name defaults to composer-auto unless CURSOR_DEFAULT_MODEL is set. Local/Ollama appears only when actually invoked (OpenClaw/Telegram/direct).",
+  "sources": {
+    "claude_projects_dir": "C:\\Users\\yasu\\.claude\\projects",
+    "cursor_projects_dir": "C:\\Users\\yasu\\.cursor\\projects",
+    "openclaw_sessions_dir": "D:\\Clawdbot_Docker_20260125\\data\\state\\agents\\main\\sessions",
+    "telegram_events_log": "D:\\Clawdbot_Docker_20260125\\data\\state\\telegram_fast\\events.log",
+    "claude_code_scan": {
+      "files": 13,
+      "lines": 42132,
+      "events": 1441
+    },
+    "cursor_scan": {
+      "files": 2,
+      "lines": 3676,
+      "events": 3277
+    },
+    "session_scan": {
+      "files": 1,
+      "lines": 23,
+      "events": 0
+    },
+    "telegram_scan": {
+      "lines": 156293,
+      "events": 156
+    }
+  },
+  "total_events": 4874,
+  "top_family": "Cursor IDE",
+  "top_model": "composer-auto",
+  "families_ranked": [
+    {
+      "family": "Cursor IDE",
+      "count": 3277,
+      "share_pct": 67.2
+    },
+    {
+      "family": "Claude Code",
+      "count": 1441,
+      "share_pct": 29.6
+    },
+    {
+      "family": "Gemini / Google",
+      "count": 78,
+      "share_pct": 1.6
+    },
+    {
+      "family": "OpenCode GO (DeepSeek etc.)",
+      "count": 42,
+      "share_pct": 0.9
+    },
+    {
+      "family": "ChatGPT / OpenAI",
+      "count": 36,
+      "share_pct": 0.7
+    },
+    {
+      "family": "Local / Ollama",
+      "count": 0,
+      "share_pct": 0.0
+    },
+    {
+      "family": "Other",
+      "count": 0,
+      "share_pct": 0.0
+    }
+  ],
+  "models_ranked": [
+    {
+      "family": "Cursor IDE",
+      "model": "composer-auto",
+      "count": 3277,
+      "share_pct": 67.2
+    },
+    {
+      "family": "Claude Code",
+      "model": "claude-sonnet-4-6",
+      "count": 1433,
+      "share_pct": 29.4
+    },
+    {
+      "family": "Gemini / Google",
+      "model": "gemini-2.5-flash",
+      "count": 78,
+      "share_pct": 1.6
+    },
+    {
+      "family": "OpenCode GO (DeepSeek etc.)",
+      "model": "deepseek-v4-flash",
+      "count": 42,
+      "share_pct": 0.9
+    },
+    {
+      "family": "ChatGPT / OpenAI",
+      "model": "gpt-4o-mini",
+      "count": 36,
+      "share_pct": 0.7
+    },
+    {
+      "family": "Claude Code",
+      "model": "claude-haiku-4-5-20251001",
+      "count": 8,
+      "share_pct": 0.2
+    }
+  ],
+  "by_day_family": [
+    {
+      "day": "2026-05-26",
+      "families": {
+        "Claude Code": 601,
+        "Cursor IDE": 0,
+        "ChatGPT / OpenAI": 36,
+        "Gemini / Google": 78,
+        "OpenCode GO (DeepSeek etc.)": 42,
+        "Local / Ollama": 0,
+        "Other": 0
+      },
+      "total": 757
+    },
+    {
+      "day": "2026-05-27",
+      "families": {
+        "Claude Code": 333,
+        "Cursor IDE": 62,
+        "ChatGPT / OpenAI": 0,
+        "Gemini / Google": 0,
+        "OpenCode GO (DeepSeek etc.)": 0,
+        "Local / Ollama": 0,
+        "Other": 0
+      },
+      "total": 395
+    },
+    {
+      "day": "2026-05-28",
+      "families": {
+        "Claude Code": 357,
+        "Cursor IDE": 934,
+        "ChatGPT / OpenAI": 0,
+        "Gemini / Google": 0,
+        "OpenCode GO (DeepSeek etc.)": 0,
+        "Local / Ollama": 0,
+        "Other": 0
+      },
+      "total": 1291
+    },
+    {
+      "day": "2026-05-29",
+      "families": {
+        "Claude Code": 0,
+        "Cursor IDE": 2266,
+        "ChatGPT / OpenAI": 0,
+        "Gemini / Google": 0,
+        "OpenCode GO (DeepSeek etc.)": 0,
+        "Local / Ollama": 0,
+        "Other": 0
+      },
+      "total": 2266
+    },
+    {
+      "day": "2026-05-30",
+      "families": {
+        "Claude Code": 0,
+        "Cursor IDE": 0,
+        "ChatGPT / OpenAI": 0,
+        "Gemini / Google": 0,
+        "OpenCode GO (DeepSeek etc.)": 0,
+        "Local / Ollama": 0,
+        "Other": 0
+      },
+      "total": 0
+    },
+    {
+      "day": "2026-05-31",
+      "families": {
+        "Claude Code": 0,
+        "Cursor IDE": 15,
+        "ChatGPT / OpenAI": 0,
+        "Gemini / Google": 0,
+        "OpenCode GO (DeepSeek etc.)": 0,
+        "Local / Ollama": 0,
+        "Other": 0
+      },
+      "total": 15
+    },
+    {
+      "day": "2026-06-01",
+      "families": {
+        "Claude Code": 2,
+        "Cursor IDE": 0,
+        "ChatGPT / OpenAI": 0,
+        "Gemini / Google": 0,
+        "OpenCode GO (DeepSeek etc.)": 0,
+        "Local / Ollama": 0,
+        "Other": 0
+      },
+      "total": 2
+    }
+  ],
+  "family_columns": [
+    "Claude Code",
+    "Cursor IDE",
+    "ChatGPT / OpenAI",
+    "Gemini / Google",
+    "OpenCode GO (DeepSeek etc.)",
+    "Local / Ollama",
+    "Other"
+  ]
+}

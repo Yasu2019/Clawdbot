@@ -1,0 +1,42 @@
+{
+  "schema": "clawstack.content_proposals.v1",
+  "updated_at": "2026-06-12T05:03:57.365539+09:00",
+  "scout_digest": "data/workspace/ai_strategy_scout_local_digest.json",
+  "host": "K10",
+  "load_profile": "light_cpu",
+  "total_candidates": 4,
+  "proposals": [
+    {
+      "hub": "3D Fab-Forge (CAE)",
+      "title": "openfoam-v2512",
+      "url": "https://www.openfoam.com/news/main-news/openfoam-v2512",
+      "source": null,
+      "score": 40,
+      "action": "watch"
+    },
+    {
+      "hub": "3D Fab-Forge (CAE)",
+      "title": "https://mfem.org/particles/",
+      "url": "https://mfem.org/particles/",
+      "source": null,
+      "score": 40,
+      "action": "watch"
+    },
+    {
+      "hub": "3D Fab-Forge (CAE)",
+      "title": "https://mfem.org/about/",
+      "url": "https://mfem.org/about/",
+      "source": null,
+      "score": 40,
+      "action": "watch"
+    },
+    {
+      "hub": "3D Fab-Forge (CAE)",
+      "title": "SimScale Blog | CFD, FEA, Thermal Simulation and CAE | SimScale",
+      "url": "https://www.simscale.com/blog/",
+      "source": null,
+      "score": 40,
+      "action": "watch"
+    }
+  ]
+}

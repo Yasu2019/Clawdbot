@@ -689,3 +689,133 @@ function initInpConverter() {
     show('inp-result-panel');
   }
 }
+
+// ════════════════════════════════════════════════
+// Step 8: 公差スタックアップ解析 (Cetol6Sigma style)
+// ════════════════════════════════════════════════
+
+let tolRowCount = 0;
+
+function addTolRow(nominal = '', upper = '', lower = '') {
+  const id = ++tolRowCount;
+  const div = document.createElement('div');
+  div.id = `tol-row-${id}`;
+  div.style.cssText = 'display:flex;gap:8px;align-items:center;margin-bottom:6px;flex-wrap:wrap';
+  div.innerHTML = `
+    <input type="number" id="tol-nom-${id}" placeholder="公称値" title="公称値 (mm)" value="${nominal}" step="0.01"
+           style="width:100px;padding:5px;border:1px solid var(--border);border-radius:4px;background:var(--surface);color:var(--text);font-size:.9em">
+    <input type="number" id="tol-upr-${id}" placeholder="+上許容差" title="上許容差 (mm)" value="${upper}" step="0.001"
+           style="width:110px;padding:5px;border:1px solid var(--border);border-radius:4px;background:var(--surface);color:var(--text);font-size:.9em">
+    <input type="number" id="tol-lwr-${id}" placeholder="-下許容差" title="下許容差 (mm)" value="${lower}" step="0.001"
+           style="width:110px;padding:5px;border:1px solid var(--border);border-radius:4px;background:var(--surface);color:var(--text);font-size:.9em">
+    <button class="btn btn-ghost btn-sm" onclick="document.getElementById('tol-row-${id}').remove()"
+            style="padding:4px 10px;font-size:.85em">✕</button>`;
+  $('tol-rows').appendChild(div);
+}
+
+async function runTolStack() {
+  const rows = [];
+  for (let i = 1; i <= tolRowCount; i++) {
+    const nomEl = document.getElementById(`tol-nom-${i}`);
+    if (!nomEl) continue;
+    const nom = parseFloat(nomEl.value);
+    const upr = parseFloat(document.getElementById(`tol-upr-${i}`).value);
+    const lwr = parseFloat(document.getElementById(`tol-lwr-${i}`).value);
+    if (!isNaN(nom)) rows.push({ nominal: nom, upper: isNaN(upr) ? 0 : upr, lower: isNaN(lwr) ? 0 : lwr });
+  }
+  if (rows.length === 0) { setMsg('tol-msg', 'warn', '少なくとも1つの寸法を入力してください'); return; }
+
+  const target = parseFloat($('tol-target').value) || 0.05;
+  const mc_n = parseInt($('tol-mc-n').value) || 10000;
+  const loop_name = $('tol-loop-name').value || '公差ループ';
+
+  setMsg('tol-msg', 'info', '解析中...');
+  $('btn-tol-run').disabled = true;
+  try {
+    const res = await apiPost('/api/tolerance-stack', { loop_name, rows, target, mc_n });
+    renderTolResult(res);
+    hide('tol-msg');
+  } catch (e) {
+    setMsg('tol-msg', 'error', `エラー: ${e.message}`);
+  } finally {
+    $('btn-tol-run').disabled = false;
+  }
+}
+
+function renderTolResult(r) {
+  const wc = r.worst_case, rss = r.rss, mc = r.monte_carlo;
+  const fmt = v => (v === null || v === undefined) ? '—' : (typeof v === 'number' ? v.toFixed(4) : v);
+  const cpkClass = cpk => cpk >= 1.67 ? 'color:#27ae60' : cpk >= 1.33 ? 'color:#e67e22' : 'color:#c0392b';
+
+  $('tol-result-table').innerHTML = `
+    <h3 style="margin-bottom:8px">${r.loop_name || ''} — 解析サマリー</h3>
+    <table style="width:100%;border-collapse:collapse;font-size:.92em">
+      <thead>
+        <tr style="background:var(--surface-alt,#2a2a2a);text-align:left">
+          <th style="padding:8px;border-bottom:1px solid var(--border)">手法</th>
+          <th style="padding:8px;border-bottom:1px solid var(--border)">公称合計 (mm)</th>
+          <th style="padding:8px;border-bottom:1px solid var(--border)">累積上許容差 (mm)</th>
+          <th style="padding:8px;border-bottom:1px solid var(--border)">累積下許容差 (mm)</th>
+          <th style="padding:8px;border-bottom:1px solid var(--border)">目標 ±${r.target_mm}mm</th>
+          <th style="padding:8px;border-bottom:1px solid var(--border)">Cpk</th>
+          <th style="padding:8px;border-bottom:1px solid var(--border)">Sigma</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rowTol('最悪条件 WC', wc)}
+        ${rowTol('二乗和平方根 RSS', rss)}
+        ${rowTol('モンテカルロ MC', mc)}
+      </tbody>
+    </table>
+    <div style="margin-top:12px;font-size:.85em;color:var(--muted)">
+      入力寸法: ${r.n_dims}個 | MC試行: ${(r.mc_n||10000).toLocaleString()}回
+    </div>`;
+
+  if (mc && mc.histogram) {
+    renderHistogram(mc.histogram, r.target_mm);
+  }
+  show('tol-result-panel');
+}
+
+function rowTol(label, d) {
+  if (!d) return '';
+  const ok = Math.abs(d.cum_upper) <= parseFloat($('tol-target').value) ? '✅' : '⚠️';
+  const cpk = d.cpk !== null && d.cpk !== undefined ? d.cpk.toFixed(3) : '—';
+  const sig = d.sigma !== null && d.sigma !== undefined ? d.sigma.toFixed(2) + 'σ' : '—';
+  return `<tr style="border-bottom:1px solid var(--border)">
+    <td style="padding:8px">${label}</td>
+    <td style="padding:8px">${d.nominal_total.toFixed(4)}</td>
+    <td style="padding:8px;color:#e8b86d">+${d.cum_upper.toFixed(4)}</td>
+    <td style="padding:8px;color:#e8b86d">-${Math.abs(d.cum_lower).toFixed(4)}</td>
+    <td style="padding:8px;font-size:1.1em">${ok}</td>
+    <td style="padding:8px">${cpk}</td>
+    <td style="padding:8px">${sig}</td>
+  </tr>`;
+}
+
+function renderHistogram(hist, target) {
+  const max_h = Math.max(...hist.counts);
+  const bars = hist.counts.map((c, i) => {
+    const h = Math.round((c / max_h) * 80);
+    const inRange = Math.abs(hist.edges[i]) <= target;
+    return `<div title="${hist.edges[i].toFixed(4)}mm: ${c}回" style="
+      display:inline-block;width:${Math.max(3, Math.floor(320 / hist.counts.length))}px;
+      height:${h}px;background:${inRange ? '#27ae60' : '#c0392b'};
+      margin:0 1px;vertical-align:bottom"></div>`;
+  }).join('');
+  $('tol-mc-chart').innerHTML = `
+    <h4 style="margin-bottom:6px">モンテカルロ 分布ヒストグラム（緑=目標内/赤=外）</h4>
+    <div style="border:1px solid var(--border);padding:12px 8px 4px;border-radius:4px;background:var(--surface);overflow-x:auto">
+      <div style="height:90px;display:flex;align-items:flex-end;min-width:${hist.counts.length * 5}px">${bars}</div>
+      <div style="font-size:.8em;color:var(--muted);margin-top:4px">
+        範囲: [${hist.edges[0].toFixed(4)}, ${hist.edges[hist.edges.length-1].toFixed(4)}] mm
+      </div>
+    </div>`;
+}
+
+// 初期行3つ追加
+document.addEventListener('DOMContentLoaded', () => {
+  addTolRow(10, 0.02, -0.02);
+  addTolRow(5, 0.015, -0.015);
+  addTolRow(3, 0.01, -0.01);
+});

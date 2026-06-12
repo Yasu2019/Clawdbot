@@ -1,6 +1,6 @@
 {
   "schema": "clawstack.material_acquisition_queue.v1",
-  "updated_at": "2026-06-10T19:17:41+09:00",
+  "updated_at": "2026-06-11T08:45:50+09:00",
   "policy": {
     "direct_free": "download immediately from official/open pages",
     "free_reg": "queue until registration/API token/license acceptance is available",
@@ -17,7 +17,7 @@
       "path": "data/web_acquired_materials/openinjmoldsim/fluids-05-02-00084-openInjMoldSim.pdf",
       "size_bytes": 9758234,
       "sha256": "4ff22c67e5bafafb34108489e3f52d865951e30197935c27124e3838f2e62e9b",
-      "acquired_at": "2026-06-10T19:17:41+09:00",
+      "acquired_at": "2026-06-11T08:45:50+09:00",
       "license_note": "MDPI open-access article. Downloaded from the publisher mdpi-res PDF endpoint."
     }
   ],

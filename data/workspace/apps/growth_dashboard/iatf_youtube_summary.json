@@ -1,13 +1,13 @@
 {
   "schema": "clawstack.iatf_youtube_summary.v2",
-  "generated_at": "2026-06-09T06:21:13+09:00",
+  "generated_at": "2026-06-12T10:00:02+09:00",
   "channel_url": "https://www.youtube.com/@IATFAuditing/videos",
   "index_fetched_at": "2026-06-09T06:17:50.796768",
   "estimated_total_videos": 349,
   "indexed_video_count": 349,
-  "processed_video_count": 364,
-  "analyzed_record_count": 346,
-  "unique_analyzed_video_count": 346,
+  "processed_video_count": 365,
+  "analyzed_record_count": 347,
+  "unique_analyzed_video_count": 347,
   "summary_failed_count": 28,
   "index_without_summary_count": 3,
   "processed_without_summary_count": 18,
@@ -31,9 +31,20 @@
       "reason": "No DB summary. Transcript may be disabled, unavailable in en/ja, or previous analysis was skipped."
     }
   ],
-  "latest_db_timestamp": "2026-06-04 21:40:41",
+  "latest_db_timestamp": "2026-06-09 14:03:24",
   "display_limit": 80,
   "items": [
+    {
+      "record_id": 7120,
+      "timestamp": "2026-06-09 14:03:24",
+      "video_id": "TQ8v5IL_UKA",
+      "video_url": "https://www.youtube.com/watch?v=TQ8v5IL_UKA",
+      "program_name": "Auditing Internal Laboratory Scope and Environment",
+      "clause": "IATF 7.1.4, 7.1.5.3",
+      "problem": "IATF 7.1.5.3.1および7.1.",
+      "improvement": "4に基づき、内部ラボのスコープと環境を検証。内部ラボのスコープに温度・湿度計の測定が含まれるべきだが、外部校正機器のスコープ外とされており、測定活動の範囲が不完全。内部ラボ環境管理のための測定活動（温度・湿度日常チェック）がスコープに反映されていない。対策として、外部校正機器の測定活動をスコープに明記し、MSA検証を含む全測定プロセスを文書化・記録化する必要。非適合点は、測定活動のスコープ外に機器を含めることで、環境管理の不備を生じる。是正処置として、スコープ更新と測定プロセスの明確化が求められる。",
+      "status": "analyzed"
+    },
     {
       "record_id": 3519,
       "timestamp": "2026-06-04 21:40:41",
@@ -901,17 +912,6 @@
       "clause": "IATF 8.5.1.6",
       "problem": "IATF 16949 要求事項は IATF 8.5.1.6（ツールの識別・資産番号）に該当。監査トレースは、KPIの確認から物理的ツール管理への移行を含む。非適合点は、ツールに資産番号が記載されていないこと（IATF 8.",
       "improvement": "5.1.6の要件未達）および顧客所有ツールの劣化状態を顧客に通知していないこと。是正措置として、資産番号の記載義務を文書化し、ツール管理プロセスに統合。顧客所有ツールの点検・保守計画を確立し、劣化状況を定期的に顧客に報告する体制を整える。監査者は要件の明確化と実践的な対応を促す必要がある。",
-      "status": "analyzed"
-    },
-    {
-      "record_id": 2587,
-      "timestamp": "2026-06-02 10:28:38",
-      "video_id": "QDP_rvd0VR4",
-      "video_url": "https://www.youtube.com/watch?v=QDP_rvd0VR4",
-      "program_name": "How do 3rd Party IATF 16949 audits drive continual improvements?",
-      "clause": "IATF 8.2.3",
-      "problem": "IATF 16949 8.2.3 条項に基づき、第三者監査は品質マネジメントシステムの非適合性を非バイアスで特定・記録し、継続的改善を促すメカニズムとして機能すべき。",
-      "improvement": "監査トレースは非適合性の明確な証拠を収集し、改善機会と捉えるべき。非適合性の認識が否定的とされる現状は、組織が改善を阻害する要因。対策は、供給チェーン全体での教育を通じた非適合性の価値認識の向上と、システム的な是正措置の実施により、業務改善と顧客要望への応答を強化する。",
       "status": "analyzed"
     }
   ],

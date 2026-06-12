@@ -39,6 +39,9 @@
   <button class="step-btn" id="step-7" onclick="gotoStep(7)" style="border-left:2px solid #4ecdc4;margin-left:8px">
     <span class="badge" style="background:#4ecdc4">📊</span>ANIM → VTK
   </button>
+  <button class="step-btn" id="step-8" onclick="gotoStep(8)" style="border-left:2px solid #e8b86d;margin-left:8px">
+    <span class="badge" style="background:#e8b86d">σ</span>公差解析
+  </button>
 </nav>
 
 <main>
@@ -312,10 +315,60 @@
   </div>
 </div>
 
+<!-- ══════════════════ Step 8: 公差スタックアップ (Cetol6Sigma style) ══════════════════ -->
+<div class="tab-content" id="tab-8">
+  <div class="panel">
+    <h2>σ 公差スタックアップ解析</h2>
+    <p style="color:var(--muted);font-size:.88em;margin-bottom:16px">
+      各寸法の公称値・上許容差・下許容差を入力し、<strong>最悪条件 (Worst Case)</strong>・<strong>二乗和平方根 (RSS)</strong>・<strong>モンテカルロ (N=10,000)</strong> で累積公差を解析します。<br>
+      Cpk・Sigma水準も自動計算。順送金型の穴ピッチ・断面高さなど任意のループに適用可能。
+    </p>
+
+    <div style="margin-bottom:14px">
+      <label style="font-size:.88em;color:var(--muted)">解析ループ名</label>
+      <input id="tol-loop-name" type="text" placeholder="例: 穴ピッチ累積" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:4px;background:var(--surface);color:var(--text);font-size:.95em">
+    </div>
+
+    <div style="margin-bottom:10px">
+      <label style="font-size:.88em;color:var(--muted)">設計寸法リスト（公称値 [mm]・上許容差 [mm]・下許容差 [mm]）</label>
+      <div id="tol-rows"></div>
+      <button class="btn btn-ghost btn-sm" onclick="addTolRow()" style="margin-top:8px">＋ 寸法を追加</button>
+    </div>
+
+    <div style="margin-bottom:14px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+      <div class="field">
+        <label>閉ループ目標公差 ± [mm]</label>
+        <input id="tol-target" type="number" value="0.05" step="0.005" min="0.001"
+               title="閉ループ目標公差 (mm)" placeholder="0.05"
+               style="width:120px;padding:6px;border:1px solid var(--border);border-radius:4px;background:var(--surface);color:var(--text)">
+      </div>
+      <div class="field">
+        <label>モンテカルロ 試行数</label>
+        <select id="tol-mc-n" title="モンテカルロ試行数" style="padding:6px;border:1px solid var(--border);border-radius:4px;background:var(--surface);color:var(--text)">
+          <option value="10000">10,000</option>
+          <option value="50000">50,000</option>
+          <option value="100000">100,000</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="btn-group">
+      <button class="btn btn-primary" id="btn-tol-run" onclick="runTolStack()">解析実行</button>
+    </div>
+    <div id="tol-msg" style="margin-top:10px"></div>
+  </div>
+
+  <div class="panel hidden" id="tol-result-panel">
+    <h2>解析結果</h2>
+    <div id="tol-result-table" style="overflow-x:auto"></div>
+    <div id="tol-mc-chart" style="margin-top:16px"></div>
+  </div>
+</div>
+
 </main>
 
 <footer>
-  Progressive Die Hub v1.0 — Clawstack / OpenRadioss / CalculiX
+  Progressive Die Hub v1.1 — Clawstack / OpenRadioss / CalculiX / 公差解析
 </footer>
 
 <script src="/static/app.js"></script>

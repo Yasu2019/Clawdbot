@@ -546,3 +546,126 @@ async def delete_all_vtk_jobs():
 @app.get("/api/health")
 async def health():
     return {"status": "ok", "service": "progressive_die_hub"}
+
+
+# ── 公差スタックアップ解析 (Cetol6Sigma style) ────────────────────────────────
+
+import math
+import random
+
+
+def _cpk_sigma(nominal_total: float, cum_upper: float, cum_lower: float, target: float):
+    """Cpk and sigma from worst-case or RSS tolerance vs target."""
+    if target <= 0:
+        return None, None
+    half_range = (abs(cum_upper) + abs(cum_lower)) / 2.0
+    if half_range <= 0:
+        return None, None
+    cpk = target / (3.0 * (half_range / 3.0))  # = target / half_range
+    cpk = round(target / half_range, 4)
+    sigma = round(cpk * 3.0, 3)
+    return cpk, sigma
+
+
+class ToleranceStackRequest:
+    pass
+
+
+from pydantic import BaseModel
+from typing import List
+
+
+class TolDim(BaseModel):
+    nominal: float
+    upper: float  # positive, e.g. +0.02
+    lower: float  # negative or positive magnitude; treated as abs for lower bound
+
+
+class ToleranceStackBody(BaseModel):
+    loop_name: str = "公差ループ"
+    rows: List[TolDim]
+    target: float = 0.05  # ± target in mm
+    mc_n: int = 10000
+
+
+@app.post("/api/tolerance-stack")
+async def tolerance_stack(body: ToleranceStackBody):
+    dims = body.rows
+    target = abs(body.target)
+    n = body.mc_n
+
+    if not dims:
+        raise HTTPException(400, "rows required")
+    n = max(1000, min(n, 200000))
+
+    nominal_total = sum(d.nominal for d in dims)
+
+    # Worst Case
+    wc_upper = sum(abs(d.upper) for d in dims)
+    wc_lower = -sum(abs(d.lower) for d in dims)
+    wc_cpk, wc_sig = _cpk_sigma(nominal_total, wc_upper, wc_lower, target)
+
+    # RSS
+    rss_upper = math.sqrt(sum(d.upper ** 2 for d in dims))
+    rss_lower = -math.sqrt(sum(d.lower ** 2 for d in dims))
+    rss_cpk, rss_sig = _cpk_sigma(nominal_total, rss_upper, rss_lower, target)
+
+    # Monte Carlo
+    samples = []
+    for _ in range(n):
+        s = 0.0
+        for d in dims:
+            lo = -abs(d.lower)
+            hi = abs(d.upper)
+            s += random.uniform(lo, hi)
+        samples.append(s)
+
+    mc_mean = sum(samples) / n
+    mc_std = math.sqrt(sum((x - mc_mean) ** 2 for x in samples) / n)
+    mc_upper = max(samples) - 0
+    mc_lower = min(samples)
+    mc_cpk = round(target / (3.0 * mc_std), 4) if mc_std > 0 else None
+    mc_sig = round(mc_cpk * 3.0, 3) if mc_cpk is not None else None
+    mc_pct_ok = round(100.0 * sum(1 for x in samples if abs(x) <= target) / n, 2)
+
+    # Histogram (30 bins)
+    n_bins = 30
+    mn, mx = min(samples), max(samples)
+    bw = (mx - mn) / n_bins if mx > mn else 1e-9
+    counts = [0] * n_bins
+    edges = [round(mn + i * bw, 5) for i in range(n_bins)]
+    for x in samples:
+        idx = min(int((x - mn) / bw), n_bins - 1)
+        counts[idx] += 1
+
+    return {
+        "loop_name": body.loop_name,
+        "n_dims": len(dims),
+        "mc_n": n,
+        "target_mm": target,
+        "worst_case": {
+            "nominal_total": round(nominal_total, 6),
+            "cum_upper": round(wc_upper, 6),
+            "cum_lower": round(wc_lower, 6),
+            "cpk": wc_cpk,
+            "sigma": wc_sig,
+        },
+        "rss": {
+            "nominal_total": round(nominal_total, 6),
+            "cum_upper": round(rss_upper, 6),
+            "cum_lower": round(rss_lower, 6),
+            "cpk": rss_cpk,
+            "sigma": rss_sig,
+        },
+        "monte_carlo": {
+            "nominal_total": round(nominal_total, 6),
+            "cum_upper": round(mc_upper, 6),
+            "cum_lower": round(mc_lower, 6),
+            "mean": round(mc_mean, 6),
+            "std": round(mc_std, 6),
+            "pct_ok": mc_pct_ok,
+            "cpk": mc_cpk,
+            "sigma": mc_sig,
+            "histogram": {"counts": counts, "edges": edges},
+        },
+    }
