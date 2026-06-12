@@ -1,0 +1,163 @@
+{
+  "version": "1.0.0",
+  "updated": "2026-06-12",
+  "standard": "IATF動画生成標準 — Mixamo FBXリグを使用すること（2026-06-12取り決め）",
+  "assets_root": "data/workspace/apps/motion_lab/assets",
+  "characters": {
+    "bulma": {
+      "display_name": "ブルマ（司会・解説役）",
+      "rig_fbx": "characters/raw/bulma_Rig.fbx",
+      "mesh_fbx": "characters/raw/bulma.fbx",
+      "role": "narrator_female",
+      "preferred_scenes": ["intro", "summary", "qa_gate"],
+      "iatf_roles": ["Internal Auditor", "Quality Manager", "Training Presenter"]
+    },
+    "goku": {
+      "display_name": "ゴクウ（現場作業者役）",
+      "rig_fbx": "characters/raw/goku_Rig.fbx",
+      "mesh_fbx": "characters/raw/goku.fbx",
+      "role": "worker_male",
+      "preferred_scenes": ["process_demo", "inspection"],
+      "iatf_roles": ["Production Operator", "Process Owner"]
+    },
+    "krillin": {
+      "display_name": "クリリン（品質担当役）",
+      "rig_fbx": "characters/raw/krillin_Rig.fbx",
+      "mesh_fbx": "characters/raw/krillin.fbx",
+      "role": "quality_male",
+      "preferred_scenes": ["inspection", "audit"],
+      "iatf_roles": ["Quality Inspector", "Auditor"]
+    },
+    "kamesennin": {
+      "display_name": "亀仙人（管理職・ベテラン役）",
+      "rig_fbx": "characters/raw/kamesennin_Rig.fbx",
+      "mesh_fbx": "characters/raw/kamesennin.fbx",
+      "role": "manager_male",
+      "preferred_scenes": ["intro", "explanation"],
+      "iatf_roles": ["Plant Manager", "Senior Auditor", "Trainer"]
+    },
+    "android_17": {
+      "display_name": "人造人間17号（技術担当役）",
+      "rig_fbx": "characters/raw/android_17_Rig.fbx",
+      "mesh_fbx": "characters/raw/android_17.fbx",
+      "role": "engineer_male",
+      "preferred_scenes": ["technical_demo", "measurement"],
+      "iatf_roles": ["Process Engineer", "Measurement Specialist"]
+    },
+    "android_18": {
+      "display_name": "人造人間18号（文書管理・監査役）",
+      "rig_fbx": "characters/raw/android_18_Rig.fbx",
+      "mesh_fbx": "characters/raw/android_18.fbx",
+      "role": "document_female",
+      "preferred_scenes": ["document_review", "audit"],
+      "iatf_roles": ["Document Controller", "Lead Auditor"]
+    },
+    "trunks": {
+      "display_name": "トランクス（若手エンジニア役）",
+      "rig_fbx": "characters/raw/trunks_Rig.fbx",
+      "mesh_fbx": "characters/raw/trunks_.fbx",
+      "role": "junior_engineer_male",
+      "preferred_scenes": ["learning", "process_demo"],
+      "iatf_roles": ["Junior Engineer", "Process Operator"]
+    },
+    "frieza": {
+      "display_name": "フリーザ（審査機関・外部監査役）",
+      "rig_fbx": "characters/raw/Frieza_Rig.fbx",
+      "mesh_fbx": "characters/raw/Frieza.fbx",
+      "role": "external_auditor",
+      "preferred_scenes": ["audit", "nonconformance"],
+      "iatf_roles": ["External Auditor", "Certification Body"]
+    }
+  },
+  "motions": {
+    "idle": {
+      "files": [
+        "motions/raw/mixamo/idle/Idle.fbx",
+        "motions/raw/mixamo/idle/Idle (1).fbx",
+        "motions/raw/mixamo/idle/Kneeling Idle.fbx",
+        "motions/raw/mixamo/idle/Ninja Idle.fbx",
+        "motions/raw/mixamo/idle/Dwarf Idle.fbx",
+        "motions/raw/mixamo/idle/Fight Idle To Standing Idle.fbx",
+        "motions/raw/mixamo/idle/Standing Idle To Fight Idle.fbx",
+        "motions/raw/mixamo/idle/Sad Idle.fbx",
+        "motions/raw/mixamo/idle/Laying Idle.fbx"
+      ],
+      "use_for": ["waiting", "background", "between_scenes"]
+    },
+    "walking": {
+      "files": [
+        "motions/raw/mixamo/Walking.fbx",
+        "motions/raw/mixamo/Walking (1).fbx",
+        "motions/raw/mixamo/Walking (2).fbx",
+        "motions/raw/mixamo/Walker Walk.fbx",
+        "motions/raw/mixamo/Happy Walk Backward.fbx",
+        "motions/raw/mixamo/Walking Left Turn.fbx",
+        "motions/raw/mixamo/Walk In Circle.fbx"
+      ],
+      "use_for": ["entering_scene", "process_walkthrough", "patrol"]
+    },
+    "talking": {
+      "files": [
+        "motions/raw/mixamo/talking/Talking.fbx",
+        "motions/raw/mixamo/talking/Talking (1).fbx",
+        "motions/raw/mixamo/talking/Talking (2).fbx",
+        "motions/raw/mixamo/talking/Talking (3).fbx",
+        "motions/raw/mixamo/talking/Talking On A Cell Phone.fbx",
+        "motions/raw/mixamo/talking/Talking On Phone.fbx",
+        "motions/raw/mixamo/talking/Talking Phone Pacing.fbx",
+        "motions/raw/mixamo/talking/Talking At Watercooler.fbx",
+        "motions/raw/mixamo/talking/Pacing And Talking On A Phone.fbx",
+        "motions/raw/mixamo/talking/Sitting Talking.fbx",
+        "motions/raw/mixamo/talking/Sitting Talking (1).fbx"
+      ],
+      "use_for": ["narration", "explanation", "discussion"]
+    },
+    "pointing": {
+      "files": [
+        "motions/raw/mixamo/Pointing/Pointing.fbx",
+        "motions/raw/mixamo/Pointing/Pointing (1).fbx",
+        "motions/raw/mixamo/Pointing/Pointing (2).fbx",
+        "motions/raw/mixamo/Pointing/Pointing Forward.fbx",
+        "motions/raw/mixamo/Pointing/Kneeling Pointing.fbx",
+        "motions/raw/mixamo/Pointing/Sitting And Pointing.fbx",
+        "motions/raw/mixamo/Pointing/Angry Point.fbx"
+      ],
+      "use_for": ["highlighting", "directing_attention", "inspection"]
+    },
+    "meeting": {
+      "files": [
+        "motions/raw/mixamo/meeting/Having A Meeting, Male.fbx",
+        "motions/raw/mixamo/meeting/Having A Meeting, Female.fbx",
+        "motions/raw/mixamo/meeting/Having A Meeting, Female (1).fbx"
+      ],
+      "use_for": ["audit_meeting", "discussion", "review"]
+    },
+    "thinking": {
+      "files": [
+        "motions/raw/mixamo/Thinking/Thinking.fbx"
+      ],
+      "use_for": ["analysis", "decision_making", "problem_solving"]
+    },
+    "cheering": {
+      "files": [
+        "motions/raw/mixamo/Cheering While Sitting.fbx"
+      ],
+      "use_for": ["success", "achievement", "positive_result"]
+    }
+  },
+  "scene_defaults": {
+    "narration":      { "character": "bulma",       "motion": "talking" },
+    "inspection":     { "character": "krillin",     "motion": "pointing" },
+    "audit":          { "character": "android_18",  "motion": "meeting" },
+    "process_demo":   { "character": "goku",        "motion": "pointing" },
+    "explanation":    { "character": "kamesennin",  "motion": "talking" },
+    "technical":      { "character": "android_17",  "motion": "pointing" },
+    "learning":       { "character": "trunks",      "motion": "talking" },
+    "nonconformance": { "character": "frieza",      "motion": "meeting" }
+  },
+  "enforcement": {
+    "rule": "動画生成時は必ずこのrosterからキャラクターとモーションを選択すること（2026-06-12標準化）",
+    "fallback": "roster未登録モーションはUUID名でmotions/raw/mixamo/に保存後、手動でrosterに追加する",
+    "new_downloads": "scripts/mixamo_fbx_watcher.py で自動処理"
+  }
+}
