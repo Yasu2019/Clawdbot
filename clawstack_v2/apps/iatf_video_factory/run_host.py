@@ -98,8 +98,10 @@ def _try_db_update(row_id, status, output_mp4=None, model_used=None, error_msg=N
 
 # ── 生成済みチェック ─────────────────────────────────────────────
 def _is_done(pdf_name):
-    mp4 = OUTPUT_DIR / Path(pdf_name).stem / f"{Path(pdf_name).stem}.mp4"
-    return mp4.exists()
+    stem = Path(pdf_name).stem
+    mp4 = OUTPUT_DIR / stem / f"{stem}.mp4"
+    slide_mp4 = OUTPUT_DIR / stem / f"{stem}_slide_reviewed.mp4"
+    return mp4.exists() or slide_mp4.exists()
 
 
 def _normalize_name(value: str) -> str:
