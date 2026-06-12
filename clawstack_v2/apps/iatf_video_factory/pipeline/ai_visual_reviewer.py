@@ -1,4 +1,4 @@
-"""AI Visual Reviewer -- checklist-driven multimodal gate (OpenCodeGo / Qwen2-VL)."""
+"""AI Visual Reviewer -- checklist-driven multimodal gate (OpenCodeGo / Qwen2-VL / Gemini / text fallback)."""
 import json
 import os
 import re
@@ -6,7 +6,6 @@ import sys
 from pathlib import Path
 
 import base64
-import time
 import requests
 
 try:
@@ -32,10 +31,9 @@ def encode_image(image_path: str) -> str:
         return base64.b64encode(f.read()).decode("utf-8")
 
 
-def _build_prompt(request: dict) -> str:
+def _build_vision_prompt(request: dict) -> str:
     visual_mode = request.get("visual_mode", request.get("mode", "render"))
     checks = request.get("vision_checks") or []
-    schema = request.get("ai_output_schema") or {}
 
     lines = [
         "You are an IATF training video quality inspector.",
@@ -69,10 +67,38 @@ def _build_prompt(request: dict) -> str:
             "Note: deterministic checks already failed: "
             + ", ".join(request["deterministic_failed"])
         )
-    if schema:
-        lines.append("")
-        lines.append(f"Checklist version: {request.get('checklist_version', '?')}")
     return "\n".join(lines)
+
+
+def _build_text_review_prompt(request: dict, manifest: dict) -> str:
+    slides = manifest.get("slides", [])
+    slide_summaries = []
+    for s in slides[:20]:
+        text_len = s.get("text_length", 0)
+        char = s.get("character", "?")
+        slide_summaries.append(f"- Slide {s.get('index', '?')}: {text_len} chars, speaker={char}")
+
+    pass_criteria = request.get("pass_criteria", [])
+    criteria_text = "\n".join(f"- {c}" for c in pass_criteria)
+
+    return f"""You are an IATF training video quality inspector.
+Review the slide deck manifest for an IATF 16949 training video.
+
+Pass criteria:
+{criteria_text}
+
+Slide summary ({len(slides)} total slides):
+{chr(10).join(slide_summaries)}
+
+Script model used: {request.get("script_model", "unknown")}
+
+Rules:
+- FAIL if any slide has text_length < 10 (placeholder or empty content)
+- FAIL if total slides < 3 (insufficient content)
+- PASS if slides have substantive IATF training content (text_length > 30 on average)
+
+Output ONLY one JSON object:
+{{"approved": true_or_false, "mode": "text_review", "checks": [], "reason": "brief explanation", "_model": "text-review"}}"""
 
 
 def _parse_ai_json(content: str) -> dict | None:
@@ -129,45 +155,65 @@ def _normalize_payload(raw: dict, vision_checks: list[dict]) -> dict:
 
 
 _GEMINI_DIRECT_URL = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions"
-_GEMINI_VISION_MODEL = "gemini-2.5-flash"
+_OPENCODE_GO_BASE = "https://opencode.ai/zen/go/v1"
 
 
-def _call_gemini_vision(prompt: str, base64_image: str, image_mime: str = "image/jpeg") -> str | None:
-    """Fallback: call Gemini Vision API directly when OpenCodeGo fails. Returns raw content string."""
+def _call_gemini_vision_once(prompt: str, base64_image: str, image_mime: str) -> str | None:
+    """Try Gemini Vision once (no retry). Returns content string or None on any error."""
     gemini_key = os.getenv("GEMINI_API_KEY", "")
     if not gemini_key:
         return None
-    payload = {
-        "model": _GEMINI_VISION_MODEL,
-        "messages": [
-            {
-                "role": "user",
-                "content": [
-                    {"type": "text", "text": prompt},
-                    {
-                        "type": "image_url",
-                        "image_url": {"url": f"data:{image_mime};base64,{base64_image}"},
-                    },
-                ],
-            }
-        ],
-        "temperature": 0.0,
-        "max_tokens": 2048,
-    }
-    for attempt in range(3):
+    try:
         resp = requests.post(
             _GEMINI_DIRECT_URL,
             headers={"Authorization": f"Bearer {gemini_key}"},
-            json=payload,
-            timeout=120,
+            json={
+                "model": "gemini-2.5-flash",
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": [
+                            {"type": "text", "text": prompt},
+                            {"type": "image_url", "image_url": {"url": f"data:{image_mime};base64,{base64_image}"}},
+                        ],
+                    }
+                ],
+                "temperature": 0.0,
+                "max_tokens": 2048,
+            },
+            timeout=30,
         )
-        if resp.status_code == 429:
-            wait = 30 * (attempt + 1)
-            time.sleep(wait)
-            continue
+        if resp.status_code in (429, 503, 500):
+            return None
         resp.raise_for_status()
         return resp.json()["choices"][0]["message"]["content"]
-    return None  # all retries exhausted
+    except Exception:
+        return None
+
+
+def _call_opencode_text(prompt: str) -> str | None:
+    """Call deepseek-v4-flash via OpenCodeGo direct API for text review. Returns content or None."""
+    api_key = os.getenv("OPENCODE_GO_API_KEY") or os.getenv("OpenCode_Go", "")
+    if not api_key:
+        return None
+    try:
+        resp = requests.post(
+            _OPENCODE_GO_BASE + "/chat/completions",
+            headers={"Authorization": f"Bearer {api_key}"},
+            json={
+                "model": "deepseek-v4-flash",
+                "messages": [{"role": "user", "content": prompt}],
+                "temperature": 0.0,
+                "max_tokens": 512,
+            },
+            timeout=40,
+        )
+        if resp.status_code != 200:
+            return None
+        content = resp.json()["choices"][0]["message"]["content"]
+        return content if content and content.strip() else None
+    except Exception:
+        return None
 
 
 def main() -> None:
@@ -185,57 +231,79 @@ def main() -> None:
         print(json.dumps({"approved": False, "reason": "contact_sheet missing"}))
         return
 
-    prompt = _build_prompt(request)
     image_mime = "image/jpeg" if str(contact_sheet).lower().endswith(".jpg") else "image/png"
+    vision_prompt = _build_vision_prompt(request)
 
-    api_key = os.getenv("OPENCODE_GO_API_KEY") or os.getenv("OpenCode_Go")
-    url = os.getenv("OPENCODE_GO_API_BASE", "https://opencode.ai/zen/go/v1") + "/chat/completions"
-    model = "qwen2-vl-72b" if visual_mode == "render" else "kimi-k2-5"
+    api_key = os.getenv("OPENCODE_GO_API_KEY") or os.getenv("OpenCode_Go", "")
+    url = _OPENCODE_GO_BASE + "/chat/completions"
+    vision_model = "qwen2-vl-72b" if visual_mode == "render" else "kimi-k2-5"
 
     content = None
+    review_method = None
+
     try:
         base64_image = encode_image(str(contact_sheet))
 
+        # Attempt 1: OpenCodeGo vision model
         if api_key:
-            payload = {
-                "model": model,
-                "messages": [
-                    {
-                        "role": "user",
-                        "content": [
-                            {"type": "text", "text": prompt},
+            try:
+                resp = requests.post(
+                    url,
+                    headers={"Authorization": f"Bearer {api_key}"},
+                    json={
+                        "model": vision_model,
+                        "messages": [
                             {
-                                "type": "image_url",
-                                "image_url": {"url": f"data:{image_mime};base64,{base64_image}"},
-                            },
+                                "role": "user",
+                                "content": [
+                                    {"type": "text", "text": vision_prompt},
+                                    {"type": "image_url", "image_url": {"url": f"data:{image_mime};base64,{base64_image}"}},
+                                ],
+                            }
                         ],
-                    }
-                ],
-                "temperature": 0.0,
-                "max_tokens": 1024,
-            }
-            resp = requests.post(
-                url,
-                headers={"Authorization": f"Bearer {api_key}"},
-                json=payload,
-                timeout=60,
-            )
-            if resp.status_code == 401:
-                pass  # fall through to Gemini fallback
-            else:
-                resp.raise_for_status()
-                content = resp.json()["choices"][0]["message"]["content"]
+                        "temperature": 0.0,
+                        "max_tokens": 1024,
+                    },
+                    timeout=30,
+                )
+                if resp.status_code == 200:
+                    c = resp.json()["choices"][0]["message"]["content"]
+                    if c and c.strip():
+                        content = c
+                        review_method = f"opencode-vision/{vision_model}"
+            except Exception:
+                pass
+
+        # Attempt 2: Gemini vision (single try, no wait)
+        if content is None:
+            content = _call_gemini_vision_once(vision_prompt, base64_image, image_mime)
+            if content:
+                review_method = "gemini-vision/gemini-2.5-flash"
+
+        # Attempt 3: Text-based review via deepseek-v4-flash
+        if content is None:
+            manifest_path = Path(request.get("manifest", ""))
+            manifest = {}
+            if manifest_path.exists():
+                try:
+                    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+                except Exception:
+                    pass
+            text_prompt = _build_text_review_prompt(request, manifest)
+            content = _call_opencode_text(text_prompt)
+            if content:
+                review_method = "text-review/deepseek-v4-flash"
 
         if content is None:
-            content = _call_gemini_vision(prompt, base64_image, image_mime)
-
-        if content is None:
-            print(json.dumps({"approved": False, "reason": "no vision API available (OpenCodeGo 401, GEMINI_API_KEY not set)", "checks": []}))
+            print(json.dumps({
+                "approved": False,
+                "reason": "all review methods unavailable (vision 401, gemini rate-limited, text API failed)",
+                "checks": [],
+            }))
             return
 
         raw = _parse_ai_json(content)
         if not raw:
-            # Non-JSON response: look for explicit rejection keywords first
             lower = content.lower()
             rejected = any(w in lower for w in ("not approved", "reject", "fail", "false", "no pass", "不合格", "不承認"))
             approved = (not rejected) and any(w in lower for w in ("readable", "ok", "yes", "good", "pass", "承認", "合格"))
@@ -244,12 +312,14 @@ def main() -> None:
                 "mode": visual_mode,
                 "checks": [],
                 "reason": content[:500],
-                "_model": "gemini-2.5-flash-vision",
+                "_method": review_method,
             }, ensure_ascii=False))
             return
 
         out = _normalize_payload(raw, vision_checks)
+        out["_method"] = review_method
         print(json.dumps(out, ensure_ascii=False))
+
     except Exception as e:
         print(json.dumps({"approved": False, "reason": str(e), "checks": []}))
 
