@@ -171,10 +171,18 @@ def run_lavie_trial(
 
     base_url = sjp.worker_base_url(node_info)
     result = sjp.dispatch_job(base_url, token, job, timeout)
-    trial_entry = (result.get("metrics") or {}).get("cae_trial")
-    resource_snapshots = (result.get("metrics") or {}).get("resource_snapshots")
+    metrics = result.get("metrics") or {}
+    trial_entry = metrics.get("cae_trial")
+    if isinstance(trial_entry, dict) and not trial_entry and metrics.get("verdict"):
+        trial_entry = {
+            "verdict": metrics.get("verdict"),
+            "category": metrics.get("category") or category,
+            "host": node,
+            "error": result.get("stderr_tail") or metrics.get("error"),
+        }
+    resource_snapshots = metrics.get("resource_snapshots")
     if not trial_entry and result.get("status") == "ok":
-        trial_entry = result.get("metrics", {}).get("trial_entry")
+        trial_entry = metrics.get("trial_entry")
     if not trial_entry:
         trial_entry = {
             "verdict": "ERROR",

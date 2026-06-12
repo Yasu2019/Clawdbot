@@ -320,6 +320,7 @@ def analyze_attachment_visually(mime_type: str, data_bytes: bytes, filename: str
     if not is_vision_enabled():
         return ""
 
+    import os
     router_url = os.getenv("ROUTER_URL", "http://localhost:18092/execute")
     prompt = f"Analyze this attachment: {filename} ({mime_type}). "
     if "pdf" in mime_type or "spreadsheet" in mime_type or "excel" in mime_type:
@@ -337,7 +338,12 @@ def analyze_attachment_visually(mime_type: str, data_bytes: bytes, filename: str
 
     try:
         import requests as sync_requests
+        import time
         r = sync_requests.post(router_url, json=payload, timeout=60)
+        
+        # CPU負荷を下げるため、Vision解析後は必ずスリープする（品質優先・ゆっくり処理）
+        time.sleep(15)
+        
         if r.status_code == 200:
             data = r.json()
             return data.get("response", {}).get("choices", [{}])[0].get("message", {}).get("content", "")
@@ -384,23 +390,39 @@ def extract_attachment_text(mime_type: str, data_bytes: bytes) -> str:
     return ""
 
 
-def extract_body_and_attachments(msg: Message) -> Tuple[str, List[str]]:
+def extract_body_and_attachments(msg: Message) -> Tuple[str, List[str], str, str]:
+    import os
     plain_parts: List[str] = []
     html_parts: List[str] = []
     attachments: List[str] = []
+    attachment_texts: List[str] = []
+    vision_analyses: List[str] = []
 
     if msg.is_multipart():
         for part in msg.walk():
             filename = decode_mime_words(part.get_filename())
-            if filename:
-                attachments.append(filename)
             content_type = part.get_content_type()
             disposition = str(part.get("Content-Disposition", "")).lower()
-            if "attachment" in disposition:
-                continue
+            
             payload = part.get_payload(decode=True)
             if not payload:
                 continue
+
+            if filename and ("attachment" in disposition or "inline" in disposition):
+                attachments.append(filename)
+                
+                extracted_text = extract_attachment_text(content_type, payload)
+                if extracted_text:
+                    attachment_texts.append(f"[{filename} Text]\n{extracted_text}")
+                    
+                vision_text = analyze_attachment_visually(content_type, payload, filename)
+                if vision_text:
+                    vision_analyses.append(f"[{filename} Vision]\n{vision_text}")
+                continue
+
+            if "attachment" in disposition:
+                continue
+                
             if content_type == "text/plain":
                 plain_parts.append(decode_bytes(payload, part.get_content_charset()))
             elif content_type == "text/html":
@@ -417,7 +439,11 @@ def extract_body_and_attachments(msg: Message) -> Tuple[str, List[str]]:
     body = "\n\n".join([p.strip() for p in plain_parts if p.strip()]).strip()
     if not body:
         body = "\n\n".join([p.strip() for p in html_parts if p.strip()]).strip()
-    return body, attachments
+        
+    attachment_text_out = "\n\n".join(attachment_texts)
+    vision_analysis_out = "\n\n".join(vision_analyses)
+    
+    return body, attachments, attachment_text_out, vision_analysis_out
 
 
 def normalize_space(value: str) -> str:
@@ -889,7 +915,7 @@ def parse_eml(path: Path) -> EmailRecord:
     parts = rel.parts
     category = parts[0] if len(parts) > 1 else ""
     person = parts[1] if len(parts) > 2 else ""
-    body, attachments = extract_body_and_attachments(msg)
+    body, attachments, attachment_text, vision_analysis = extract_body_and_attachments(msg)
     source_id = str(rel).replace("\\", "/")
     return EmailRecord(
         source="eml",
@@ -908,6 +934,8 @@ def parse_eml(path: Path) -> EmailRecord:
         snippet=body[:280],
         body_hash=hashlib.sha1(body.encode("utf-8", errors="ignore")).hexdigest(),
         raw_sha1=hashlib.sha1(raw).hexdigest(),
+        attachment_text=attachment_text,
+        vision_analysis=vision_analysis,
     )
 
 
@@ -1447,6 +1475,10 @@ def index_eml(con: sqlite3.Connection, state: dict, limit: Optional[int]) -> dic
             upsert_record(con, parse_eml(path))
             file_state[rel] = signature
             indexed += 1
+            
+            import time
+            time.sleep(1) # B案（品質優先・ゆっくり処理）のためのスリープ
+            
             if indexed % 200 == 0:
                 con.commit()
             if idx % 250 == 0:
@@ -1560,6 +1592,10 @@ def index_gmail(
             latest_ts = max(latest_ts, record.internal_ts)
             upsert_record(con, record)
             indexed += 1
+            
+            import time
+            time.sleep(1) # B案（品質優先・ゆっくり処理）のためのスリープ
+
             if indexed % 50 == 0:
                 con.commit()
             if idx % 25 == 0:

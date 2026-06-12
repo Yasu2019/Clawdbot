@@ -18,6 +18,7 @@ const DOMAINS = [
       { name: "視覚AI品質検査", href: "http://localhost:8095", description: "外観検査・不良候補検出 (Gemini Vision)." },
       { name: "IATF動画工場", href: "http://localhost:8088/apps/iatf_video_factory/status.html", description: "内部監査教材3D動画 自律生成 (Blender+VoiceVox)." },
       { name: "IATF動画エディタ", href: "http://localhost:8096", description: "AI生成動画をタイムスタンプ指定で自然言語編集." },
+      { name: "Codex Video Studio", href: "http://localhost:3000", description: "品質・開発エージェント搭載 AI動画生成UI (Next.js/FastAPI)" },
     ]
   },
   {

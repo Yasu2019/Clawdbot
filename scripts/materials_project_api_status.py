@@ -23,6 +23,7 @@ JST = timezone(timedelta(hours=9))
 
 KEY_NAMES = [
     "MP_API_KEY",
+    "Materials_Project_API",
     "Materials_Project",
     "MATERIALS_PROJECT_API_KEY",
     "MAPI_KEY",

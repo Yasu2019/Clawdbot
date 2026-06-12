@@ -6,6 +6,7 @@ if hasattr(sys.stdout, "reconfigure"):
         pass
 
 import json
+import sqlite3
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
@@ -17,6 +18,31 @@ ACQUIRED_DIR = ROOT / "data" / "web_acquired_materials"
 QUEUE_PATH = DASHBOARD_DIR / "material_acquisition_queue.json"
 ROBOFLOW_CANDIDATES_PATH = DASHBOARD_DIR / "roboflow_candidate_datasets.json"
 MATERIALS_PROJECT_STATUS_PATH = ROOT / "data" / "workspace" / "materials_project_api_status.json"
+GROWTH_DB = ROOT / "data" / "workspace" / "universal_growth.db"
+HARVEST_STATUS_PATH = ROOT / "data" / "workspace" / "public_api_harvest_status.json"
+PUBLIC_API_DOWNLOADS = ROOT / "data" / "public_api_downloads"
+MATERIALS_PROJECT_DIR = ROOT / "data" / "cae_downloads" / "materials_project"
+
+PUBLIC_API_SOURCE_LABELS = {
+    "openalex": ("OpenAlex", "scholarly_metadata"),
+    "crossref": ("Crossref", "scholarly_metadata"),
+    "datacite": ("DataCite", "scholarly_metadata"),
+    "europe_pmc": ("Europe PMC", "open_research_assets"),
+    "semantic_scholar": ("Semantic Scholar", "scholarly_metadata"),
+    "doaj": ("DOAJ", "open_research_assets"),
+    "unpaywall": ("Unpaywall (OA PDF)", "open_research_assets"),
+    "arxiv": ("arXiv", "open_research_assets"),
+    "zenodo": ("Zenodo", "open_research_assets"),
+    "figshare": ("Figshare", "open_research_assets"),
+    "github": ("GitHub (API harvest)", "code_and_reference"),
+    "huggingface_datasets": ("Hugging Face Datasets", "dataset_platform"),
+    "ambientcg": ("AmbientCG (PBR materials)", "3d_assets"),
+    "patentsview": ("USPTO PatentsView", "patent_metadata"),
+    "kaggle": ("Kaggle (API harvest)", "dataset_platform"),
+    "materials_project": ("Materials Project (API harvest)", "materials_database_api"),
+    "roboflow": ("Roboflow (API harvest)", "vision_dataset_platform"),
+    "roboflow_candidate": ("Roboflow candidates (API)", "vision_dataset_platform"),
+}
 
 DOC_EXTENSIONS = {
     ".pdf",
@@ -238,21 +264,172 @@ def roboflow_row(dataset_paths):
 def materials_project_api_row():
     status = load_json(MATERIALS_PROJECT_STATUS_PATH, {})
     api_ready = status.get("status") == "api_ready"
+    local_items = file_inventory([MATERIALS_PROJECT_DIR])
     sample_materials = status.get("sample_materials", []) if isinstance(status.get("sample_materials"), list) else []
-    examples = []
-    for row in sample_materials[:5]:
-        if isinstance(row, dict):
-            examples.append(f"{row.get('material_id')} {row.get('formula_pretty')} stable={row.get('is_stable')}")
+    examples = [item["name"] for item in local_items[:5]]
+    if not examples:
+        for row in sample_materials[:5]:
+            if isinstance(row, dict):
+                examples.append(f"{row.get('material_id')} {row.get('formula_pretty')} stable={row.get('is_stable')}")
+    acquired = len(local_items)
     return {
         "source": "Materials Project API",
         "category": "materials_database_api",
-        "acquired_count": 1 if api_ready else 0,
-        "candidate_count": 0 if api_ready else 1,
-        "status": "api_ready" if api_ready else ("candidate" if status.get("key_present") else "not_configured"),
-        "latest_at": status.get("updated_at", ""),
-        "evidence": MATERIALS_PROJECT_STATUS_PATH.relative_to(ROOT).as_posix(),
-        "note": "API key configured; targeted queries are available. Key value is not stored in status output." if api_ready else status.get("next_action", ""),
+        "acquired_count": acquired if acquired else (1 if api_ready else 0),
+        "candidate_count": 0 if acquired or api_ready else 1,
+        "status": "acquired" if acquired else ("api_ready" if api_ready else ("candidate" if status.get("key_present") else "not_configured")),
+        "latest_at": local_items[0]["modified_at"] if local_items else status.get("updated_at", ""),
+        "evidence": MATERIALS_PROJECT_DIR.relative_to(ROOT).as_posix() if local_items else MATERIALS_PROJECT_STATUS_PATH.relative_to(ROOT).as_posix(),
+        "note": f"Local JSON records: {acquired}. API key configured for targeted queries." if api_ready else status.get("next_action", ""),
         "examples": examples or [status.get("status", "not_configured")],
+    }
+
+
+def public_api_db_rows():
+    if not GROWTH_DB.exists():
+        return []
+    harvest_status = load_json(HARVEST_STATUS_PATH, {})
+    con = sqlite3.connect(GROWTH_DB)
+    downloaded_total = con.execute(
+        """
+        SELECT COUNT(*) FROM public_api_acquisitions
+        WHERE local_path IS NOT NULL AND local_path != ''
+        """
+    ).fetchone()[0]
+    metadata_total = con.execute(
+        """
+        SELECT COUNT(*) FROM public_api_acquisitions
+        WHERE local_path IS NULL OR local_path = ''
+        """
+    ).fetchone()[0]
+    stats = con.execute(
+        """
+        SELECT source,
+               COUNT(*) AS total,
+               SUM(CASE WHEN local_path IS NOT NULL AND local_path != '' THEN 1 ELSE 0 END) AS downloaded,
+               MAX(acquired_at) AS latest_at
+        FROM public_api_acquisitions
+        GROUP BY source
+        ORDER BY total DESC
+        """
+    ).fetchall()
+    rows = []
+    if harvest_status or stats:
+        rows.append(
+            {
+                "source": "Public API bulk harvest (summary)",
+                "category": "public_api_harvest",
+                "acquired_count": int(downloaded_total or 0),
+                "candidate_count": int(metadata_total or 0) + len(harvest_status.get("errors") or []),
+                "status": "acquired" if downloaded_total else "metadata",
+                "latest_at": harvest_status.get("updated_at", ""),
+                "evidence": HARVEST_STATUS_PATH.relative_to(ROOT).as_posix(),
+                "note": (
+                    f"DB: {downloaded_total or 0} downloaded, {metadata_total or 0} metadata-only. "
+                    f"Last run by_source={json.dumps(harvest_status.get('by_source') or {}, ensure_ascii=False)}. "
+                    "Per-source detail rows below."
+                ),
+                "examples": [str(err)[:100] for err in (harvest_status.get("errors") or [])[:3]],
+                "_exclude_from_totals": True,
+            }
+        )
+    for source, total, downloaded, latest_at in stats:
+        label, category = PUBLIC_API_SOURCE_LABELS.get(
+            source,
+            (source.replace("_", " ").title(), "public_api_harvest"),
+        )
+        examples = [
+            (title or "item")[:100]
+            for (title,) in con.execute(
+                """
+                SELECT title FROM public_api_acquisitions
+                WHERE source = ?
+                ORDER BY acquired_at DESC
+                LIMIT 5
+                """,
+                (source,),
+            ).fetchall()
+        ]
+        metadata_only = max(total - (downloaded or 0), 0)
+        if downloaded:
+            status = "acquired"
+        elif "candidate" in source:
+            status = "candidate"
+        else:
+            status = "metadata"
+        rows.append(
+            {
+                "source": label,
+                "category": category,
+                "acquired_count": int(downloaded or 0),
+                "candidate_count": int(metadata_only),
+                "status": status,
+                "latest_at": latest_at or harvest_status.get("updated_at", ""),
+                "evidence": "universal_growth.db/public_api_acquisitions + public_api_harvest_status.json",
+                "note": f"DB records: {total} total, {downloaded or 0} with local files. Harvest script: public_api_bulk_harvest.py.",
+                "examples": examples,
+            }
+        )
+    con.close()
+    return rows
+
+
+def github_download_row():
+    doc_items = file_inventory([ROOT / "data" / "github_downloads"])
+    zip_items = []
+    base = ROOT / "data" / "github_downloads"
+    if base.exists():
+        for path in base.rglob("*.zip"):
+            stat = path.stat()
+            zip_items.append(
+                {
+                    "name": path.name,
+                    "path": path.relative_to(ROOT).as_posix(),
+                    "modified_at": datetime.fromtimestamp(stat.st_mtime, JST).replace(microsecond=0).isoformat(),
+                    "size_bytes": stat.st_size,
+                }
+            )
+        zip_items.sort(key=lambda item: item["modified_at"], reverse=True)
+    all_items = sorted(doc_items + zip_items, key=lambda item: item["modified_at"], reverse=True)
+    return {
+        "source": "GitHub",
+        "category": "code_and_reference",
+        "acquired_count": len(all_items),
+        "candidate_count": 0,
+        "status": "acquired" if all_items else "not_acquired",
+        "latest_at": all_items[0]["modified_at"] if all_items else "",
+        "evidence": "data/github_downloads",
+        "note": f"Local files: {len(doc_items)} docs + {len(zip_items)} zip archives.",
+        "examples": [item["name"] for item in all_items[:5]],
+    }
+
+
+def harvest_learned_queries_row():
+    path = DASHBOARD_DIR / "harvest_learned_queries.json"
+    data = load_json(path, {})
+    domains = data.get("domains") or {}
+    examples = []
+    query_count = 0
+    for domain_id, payload in domains.items():
+        if not isinstance(payload, dict):
+            continue
+        for item in payload.get("prioritized_queries") or []:
+            query_count += 1
+            if len(examples) < 5:
+                examples.append(f"{domain_id}: {item}")
+    return {
+        "source": "Harvest query optimizer (learned)",
+        "category": "search_efficiency",
+        "acquired_count": int(data.get("scored_total") or 0),
+        "candidate_count": query_count,
+        "status": "active" if query_count else "pending",
+        "latest_at": data.get("updated_at", ""),
+        "evidence": path.relative_to(ROOT).as_posix(),
+        "note": (
+            "Scores downloaded/public API materials; promotes high-yield queries and similar terms first. "
+            f"Domains with learned queries: {len(domains)}."
+        ),
+        "examples": examples,
     }
 
 
@@ -261,13 +438,14 @@ def build_inventory():
         ROOT / "data" / "datasets",
         ROOT / "data" / "kaggle",
         ROOT / "data" / "workspace" / "datasets",
+        PUBLIC_API_DOWNLOADS / "kaggle",
     ]
-    github_items = file_inventory([ROOT / "data" / "github_downloads"])
 
     rows = [
         scout_coverage_row(),
         scribd_row(),
         youtube_row(),
+        *public_api_db_rows(),
         scout_backed_row("Kaggle datasets", "dataset_platform", ["kaggle"], dataset_paths, ["kaggle"]),
         scout_backed_row("MVTec AD", "visual_inspection_dataset", ["mvtec"], dataset_paths, ["mvtec"]),
         scout_backed_row("Kolektor Surface-Defect Dataset", "visual_inspection_dataset", ["kolektor"], dataset_paths, ["kolektor"]),
@@ -278,25 +456,19 @@ def build_inventory():
         scout_domain_row("Materials data sources", "materials_data", ["materials", "simulation"]),
         scout_domain_row("Video/training production sources", "training_video_sources", ["training_video", "3d_generation", "content_generation"]),
         scout_backed_row("openInjMoldSim Paper", "injection_molding_paper", ["openinjmoldsim", "2311-5521/5/2/84"], [ACQUIRED_DIR, ROOT / "data" / "workspace"], ["openinjmoldsim", "fluids-05-02-00084"]),
-        {
-            "source": "GitHub",
-            "category": "code_and_reference",
-            "acquired_count": len(github_items),
-            "candidate_count": 0,
-            "status": "acquired" if github_items else "not_acquired",
-            "latest_at": github_items[0]["modified_at"] if github_items else "",
-            "evidence": "data/github_downloads",
-            "note": "Local files fetched from GitHub-related collection folders.",
-            "examples": [item["name"] for item in github_items[:5]],
-        },
+        github_download_row(),
+        harvest_learned_queries_row(),
     ]
 
     rows.sort(key=lambda row: (row["acquired_count"], row["candidate_count"], row["source"].lower()), reverse=True)
+    countable_rows = [row for row in rows if not row.get("_exclude_from_totals")]
+    for row in rows:
+        row.pop("_exclude_from_totals", None)
     return {
         "schema": "clawstack.material_source_inventory.v1",
         "updated_at": now_jst(),
-        "total_acquired_count": sum(row["acquired_count"] for row in rows),
-        "total_candidate_count": sum(row["candidate_count"] for row in rows),
+        "total_acquired_count": sum(row["acquired_count"] for row in countable_rows),
+        "total_candidate_count": sum(row["candidate_count"] for row in countable_rows),
         "acquisition_queue": QUEUE_PATH.relative_to(ROOT).as_posix(),
         "rows": rows,
     }

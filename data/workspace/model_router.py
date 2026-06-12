@@ -17,14 +17,22 @@ import sys
 import json
 import os
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Literal
+
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
 
 # ---------------------------------------------------------------------------
 # Task Classification Definitions
 # ---------------------------------------------------------------------------
 ModelTier = Literal[
-    "local_light",   # Fast, free, local (Qwen/Gemma)
+    "local_light",   # Fast, free, local (Qwen no-think)
     "local_codex",   # Coding specialized, local
+    "local_quality", # IATF / audit local (Gemma4 eval or no-think fallback)
     "local_judge",   # Fast internal reasoning/routing (Gemma4)
     "cloud_medium",  # Balanced cloud (Gemini Flash / GPT-4o-mini)
     "cloud_heavy",   # Deep reasoning cloud (GPT-4o / Gemini Pro)
@@ -33,14 +41,37 @@ ModelTier = Literal[
 ]
 
 LITELLM_MODEL_MAP: dict[ModelTier, str] = {
-    "local_light":  "local_fast",                  # qwen3:8b
-    "local_codex":  "codex",                       # qwen3 / qwen-coder
-    "local_judge":  "openai/gemma4",                # Gemma 4
-    "cloud_medium": "openai/gpt-4o-mini",           # GPT-4o-mini
-    "cloud_heavy":  "openai/gpt-4o",                # GPT-4o
-    "cloud_batch":  "openai/kimi-agent-primary",    # Kimi K2.6
-    "security_lock": "local_fast",                  # Forced local
+    "local_light":  "local_fast_nothink",
+    "local_codex":  "codex",
+    "local_quality": "local_fast_nothink",
+    "local_judge":  "openai/gemma4",
+    "cloud_medium": "openai/gpt-4o-mini",
+    "cloud_heavy":  "openai/gpt-4o",
+    "cloud_batch":  "openai/kimi-agent-primary",
+    "security_lock": "local_fast_nothink",
 }
+
+
+def _load_api_routing_hints() -> dict:
+    path = Path(__file__).resolve().parent / "api_routing_insights.json"
+    if not path.exists():
+        try:
+            import api_routing_insights as ari
+
+            return ari.build_insights()
+        except Exception:
+            return {}
+    try:
+        with open(path, encoding="utf-8") as handle:
+            return json.load(handle)
+    except Exception:
+        return {}
+
+
+_API_HINTS = _load_api_routing_hints()
+if _API_HINTS.get("gemma4_eval_ready"):
+    LITELLM_MODEL_MAP["local_quality"] = "openai/gemma4"
+    LITELLM_MODEL_MAP["local_judge"] = "openai/gemma4"
 
 # ── Production Override (DeepSeek V4 Integration) ──────────────────────────
 ROUTING_CONFIG_PATH = os.path.join(os.path.dirname(__file__), "routing.json")
@@ -109,7 +140,17 @@ _ROUTING_RULES: list[tuple[ModelTier, list[str], str]] = [
         "[CLOUD HEAVY] 高度な推論: 複雑な設計思考が必要なため、高性能モデル (GPT-4o) へルーティング"
     ),
 
-    # 4. LOCAL CODEX (Implementation)
+    # 4. LOCAL QUALITY (IATF / audit -- API benchmark: Gemma4 eval > qwen3:8b for JA)
+    (
+        "local_quality",
+        [
+            "iatf", "監査", "是正", "再発防止", "効果確認", "fmea", "品質保証",
+            "内部監査", "不適合", "nc ", "capa", "クレーム", "8d", "qc工程",
+        ],
+        "[LOCAL QUALITY] IATF/品質: eval Gemma4 when ready, else qwen3-nothink (API bench)"
+    ),
+
+    # 5. LOCAL CODEX (Implementation)
     (
         "local_codex",
         [
@@ -119,7 +160,7 @@ _ROUTING_RULES: list[tuple[ModelTier, list[str], str]] = [
         "[LOCAL CODE] コード実装: ローカルのプログラミング特化モデル (Codex/Qwen) で処理"
     ),
 
-    # 5. LOCAL LIGHT (Simple tasks)
+    # 6. LOCAL LIGHT (Simple tasks)
     (
         "local_light",
         [

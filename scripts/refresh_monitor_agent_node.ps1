@@ -78,6 +78,13 @@ try {
     Start-Sleep -Seconds 2
 } catch {}
 
+try {
+    Get-NetTCPConnection -LocalPort 8112 -State Listen -ErrorAction SilentlyContinue |
+        Select-Object -ExpandProperty OwningProcess -Unique |
+        ForEach-Object { Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue }
+    Start-Sleep -Seconds 2
+} catch {}
+
 Write-Output "[4/5] start monitor_agent"
 $env:NODE_DIAGNOSTIC_LOG = "1"
 $env:NODE_DIAGNOSTIC_RETENTION_HOURS = "24"

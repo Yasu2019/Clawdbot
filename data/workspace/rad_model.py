@@ -228,6 +228,82 @@ class RadModel:
                 self._lines[surf_di] = _replace_nth_number(self._lines[surf_di], 1, str(surf_id))
         return self
 
+    def _collect_block_node_ids(self, block_prefix: str) -> set[int]:
+        ids: set[int] = set()
+        in_block = False
+        for ln in self._lines:
+            s = ln.strip()
+            if s.startswith(block_prefix):
+                in_block = True
+                continue
+            if in_block:
+                if s.startswith("/") and not s.startswith("#"):
+                    break
+                parts = s.split()
+                if parts and parts[0].isdigit():
+                    for tok in parts[1:]:
+                        if tok.isdigit():
+                            ids.add(int(tok))
+        return ids
+
+    def translate_element_nodes_z(self, block_prefixes: list[str], dz_m: float) -> "RadModel":
+        """Translate nodes referenced by element blocks (e.g. /TETRA4/1, /SH3N/101)."""
+        node_ids: set[int] = set()
+        for pref in block_prefixes:
+            node_ids |= self._collect_block_node_ids(pref)
+        if not node_ids:
+            raise ValueError(f"no nodes found for blocks {block_prefixes}")
+        in_node = False
+        for i, ln in enumerate(self._lines):
+            s = ln.strip()
+            if s.startswith("/NODE"):
+                in_node = True
+                continue
+            if in_node:
+                if s.startswith("/") and not s.startswith("#"):
+                    in_node = False
+                    continue
+                parts = s.split()
+                if len(parts) >= 4 and parts[0].isdigit() and int(parts[0]) in node_ids:
+                    z_new = float(parts[3]) + dz_m
+                    self._lines[i] = f"{parts[0]:>10s}  {parts[1]} {parts[2]} {z_new:.12E}"
+        return self
+
+    def set_funct_y_plateau(self, func_id: int, y_m_s: float) -> "RadModel":
+        """Set Y value on all FUNCT/{func_id} points except t=0."""
+        pat = re.compile(rf"/FUNCT/{func_id}\b")
+        for i, ln in enumerate(self._lines):
+            if not pat.match(ln.strip()):
+                continue
+            j = i + 1
+            while j < len(self._lines):
+                s = self._lines[j].strip()
+                if s.startswith("/") and not s.startswith("#"):
+                    break
+                if s.startswith("#") or not s:
+                    j += 1
+                    continue
+                parts = s.split()
+                if len(parts) >= 2:
+                    t_val = float(parts[0])
+                    if t_val > 0.0:
+                        self._lines[j] = _replace_nth_number(self._lines[j], 1, f"{y_m_s:.5f}")
+                j += 1
+            break
+        return self
+
+    def set_impvel_fscale_y(self, impvel_id: int, fscale: float) -> "RadModel":
+        """Set Fscale_y on /IMPVEL/{impvel_id} second data line."""
+        pat = re.compile(rf"/IMPVEL/{impvel_id}\b")
+        for i, ln in enumerate(self._lines):
+            if not pat.match(ln.strip()):
+                continue
+            di = _find_data_line_after_comment(self._lines, i, "Fscale_y")
+            if di >= 0:
+                self._lines[di] = _replace_nth_number(self._lines[di], 1, f"{fscale:.5f}")
+            break
+        return self
+
     def write(self, path: Path | None = None) -> Path:
         out = Path(path) if path else self.path
         text = "\n".join(self._lines)

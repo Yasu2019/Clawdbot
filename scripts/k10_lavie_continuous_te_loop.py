@@ -31,6 +31,7 @@ STATE_PATH = WORKSPACE / "lavie_continuous_te_state.json"
 STATUS_PATH = WORKSPACE / "lavie_continuous_te_status.json"
 ALLOC_OVERRIDES_PATH = WORKSPACE / "lavie_te_allocation_overrides.json"
 GUARD_LOG_PATH = WORKSPACE / "lavie_workload_guard_log.jsonl"
+LOOP_MODE = "24x7_lavie_te"
 TE_LOG = ROOT / "data" / "cae_te_workspace" / "results" / "cae_te_log.json"
 
 if str(ROOT / "scripts") not in sys.path:
@@ -399,6 +400,27 @@ def append_jsonl(path: Path, payload: dict[str, Any]) -> None:
         f.write("\n")
 
 
+def configure_loop_paths(
+    *,
+    state_path: Path | None = None,
+    status_path: Path | None = None,
+    alloc_path: Path | None = None,
+    guard_log_path: Path | None = None,
+    mode: str | None = None,
+) -> None:
+    global STATE_PATH, STATUS_PATH, ALLOC_OVERRIDES_PATH, GUARD_LOG_PATH, LOOP_MODE
+    if state_path:
+        STATE_PATH = state_path
+    if status_path:
+        STATUS_PATH = status_path
+    if alloc_path:
+        ALLOC_OVERRIDES_PATH = alloc_path
+    if guard_log_path:
+        GUARD_LOG_PATH = guard_log_path
+    if mode:
+        LOOP_MODE = mode
+
+
 def load_allocation_overrides() -> dict[str, Any]:
     if not ALLOC_OVERRIDES_PATH.exists():
         return {}
@@ -458,6 +480,13 @@ def pick_category_ucb1(state: dict[str, Any], categories: list[str]) -> str:
     total = sum(int((stats.get(c) or {}).get("n", 0)) for c in categories) + 1
     best_cat = categories[0]
     best_score = -1.0
+    ns_bonus = None
+    try:
+        import north_star_knowledge_bridge as nsb
+
+        ns_bonus = nsb.ucb_exploration_bonus
+    except Exception:
+        ns_bonus = None
     for cat in categories:
         rec = stats.setdefault(cat, {"n": 0, "reward_sum": 0.0, "avg_reward": 0.0})
         n = int(rec.get("n") or 0)
@@ -465,6 +494,8 @@ def pick_category_ucb1(state: dict[str, Any], categories: list[str]) -> str:
         if n == 0:
             return cat
         ucb = avg + math.sqrt(2.0 * math.log(max(total, 2)) / n)
+        if ns_bonus:
+            ucb += ns_bonus(cat, n)
         if ucb > best_score:
             best_score = ucb
             best_cat = cat
@@ -646,6 +677,19 @@ def lavie_workload_guard(cfg: dict[str, Any], state: dict[str, Any], node: str) 
             "source": "cooldown",
         }
 
+    if node == "thinkpad":
+        load_ok, load_reason, metrics = router.thinkpad_load_guard(cfg)
+        if not load_ok:
+            remember_workload_guard(state, node, load_reason, source="ssh_metrics", metrics=metrics)
+            return {
+                "active": True,
+                "reason": load_reason,
+                "until": ((state.get("workload_guards") or {}).get(node) or {}).get("until"),
+                "source": "ssh_metrics",
+                "metrics": metrics,
+            }
+        return {"active": False, "reason": load_reason, "source": "ok", "metrics": metrics}
+
     load_ok, load_reason, metrics = router.satellite_load_guard(cfg, node)
     if not load_ok:
         remember_workload_guard(state, node, load_reason, source="metrics", metrics=metrics)
@@ -706,7 +750,7 @@ def resolve_cycle_node(category: str, requested_node: str, cfg: dict[str, Any]) 
         }
     decision = router.pick_host(category, cfg)
     host = str(decision.get("host") or "")
-    if host in {"red_lavie", "lavie"}:
+    if host in {"red_lavie", "lavie", "thinkpad"}:
         return {"node": host, "blocked": False, "decision": decision}
     return {
         "node": "",
@@ -823,6 +867,13 @@ def run_one_cycle(
         fails[category] = 0
 
     update_stats(state, category, trial)
+    north_star_context: dict[str, Any] = {}
+    try:
+        import north_star_knowledge_bridge as nsb
+
+        north_star_context = nsb.context_for_category(category, limit=3)
+    except Exception:
+        north_star_context = {}
     return {
         "ok": True,
         "category": category,
@@ -835,13 +886,14 @@ def run_one_cycle(
         "guard": guard,
         "node": selected_node,
         "route_decision": route.get("decision"),
+        "north_star_context": north_star_context,
     }
 
 
 def write_status(state: dict[str, Any], last_cycle: dict[str, Any], poll_seconds: int) -> None:
     payload = {
         "updated_at": now_iso(),
-        "mode": "24x7_lavie_te",
+        "mode": LOOP_MODE,
         "poll_seconds": poll_seconds,
         "last_cycle": last_cycle,
         "state_summary": {
@@ -853,6 +905,8 @@ def write_status(state: dict[str, Any], last_cycle: dict[str, Any], poll_seconds
         },
         "rolling_24h": rolling_lavie_summary(24),
         "last_telegram": state.get("last_telegram"),
+        "north_star_brief_at": state.get("north_star_brief_at"),
+        "north_star_active_categories": (load_allocation_overrides().get("active_categories") or []),
         "runbook": "docs/SATELLITE_CAE_ONE_SHOT_RUNBOOK.md",
     }
     save_json(STATUS_PATH, payload)
@@ -861,6 +915,10 @@ def write_status(state: dict[str, Any], last_cycle: dict[str, Any], poll_seconds
 def main() -> int:
     parser = argparse.ArgumentParser(description="K10->LAVIE continuous CAE T&E loop")
     parser.add_argument("--node", default="auto")
+    parser.add_argument("--state-path", default="", help="Override state json path")
+    parser.add_argument("--status-path", default="", help="Override status json path")
+    parser.add_argument("--allocation-overrides", default="", help="Override allocation overrides json")
+    parser.add_argument("--loop-mode", default="", help="Status mode label")
     parser.add_argument("--poll-seconds", type=int, default=180)
     parser.add_argument("--timeout", type=int, default=600)
     parser.add_argument("--dry-run", action="store_true", help="Force dry-run only")
@@ -875,12 +933,25 @@ def main() -> int:
     args = parser.parse_args()
 
     initialize_guard_status("lavie_continuous_te_loop.startup")
+    configure_loop_paths(
+        state_path=Path(args.state_path) if args.state_path else None,
+        status_path=Path(args.status_path) if args.status_path else None,
+        alloc_path=Path(args.allocation_overrides) if args.allocation_overrides else None,
+        mode=args.loop_mode or None,
+    )
     cfg = router.load_config()
     state = load_json(
         STATE_PATH,
         {"total_cycles": 0, "category_stats": {}, "best_params": {}, "best_scores": {}},
     )
     failure_analysis.seed_resin_best_params(state)
+    try:
+        import north_star_knowledge_bridge as nsb
+
+        nsb.write_brief()
+        state["north_star_brief_at"] = nsb.now_iso()
+    except Exception as exc:
+        print(f"[lavie365] north_star brief warn: {exc}")
     save_json(STATE_PATH, state)
     print(f"[lavie365] start node={args.node} poll={args.poll_seconds}s dry_run_force={args.dry_run}")
 

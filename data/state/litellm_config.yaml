@@ -145,10 +145,11 @@ model_list:
   # ── Local (Ollama via OpenAI-compat /v1) ────────────────────────
   # LiteLLM v1.10.1: model_name must use a recognized provider prefix
   # so the router can validate it before routing to litellm_params.
+  # Gemma4 eval container (API tags 2026-06-11: gemma4:12b-it-qat on :11435)
   - model_name: openai/gemma4
     litellm_params:
-      model: ollama/gemma4:e2b
-      api_base: http://ollama:11434
+      model: ollama/gemma4:12b-it-qat
+      api_base: http://host.docker.internal:11435
       api_key: ollama
   - model_name: openai/qwen3
     litellm_params:

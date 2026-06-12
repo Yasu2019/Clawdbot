@@ -41,6 +41,20 @@ def main() -> int:
         template.replace("REPLACE_WITH_GEMMA4_SMALL_TAG", args.small_tag)
         .replace("REPLACE_WITH_GEMMA4_MAIN_TAG", args.main_tag)
     )
+    if "gemma4" in args.main_tag.lower():
+        lines: list[str] = []
+        after_main_model = False
+        for line in rendered.splitlines():
+            if f"openai/{args.main_tag}" in line:
+                after_main_model = True
+            if after_main_model and "api_base: http://ollama:11434/v1" in line:
+                line = line.replace(
+                    "http://ollama:11434/v1",
+                    "http://host.docker.internal:11435/v1",
+                )
+                after_main_model = False
+            lines.append(line)
+        rendered = "\n".join(lines) + "\n"
     RENDERED_PATH.write_text(rendered, encoding="utf-8")
 
     status = {

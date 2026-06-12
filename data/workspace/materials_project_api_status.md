@@ -1,9 +1,9 @@
 # Materials Project API Status
 
-- Updated: 2026-06-10T19:17:32+09:00
+- Updated: 2026-06-10T21:22:02+09:00
 - Status: api_ready
 - API key present: True
-- Key name: Materials_Project
+- Key name: MP_API_KEY
 - API OK: True
 - Sample count: 1
 

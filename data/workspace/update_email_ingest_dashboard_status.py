@@ -88,6 +88,18 @@ def sqlite_counts() -> dict[str, int]:
                 result[key] = int(cur.execute(query, (window_start_ts, window_end_exclusive_ts)).fetchone()[0])
             else:
                 result[key] = int(cur.execute(query).fetchone()[0])
+                
+        # Add Date Coverage
+        try:
+            gmail_dates = cur.execute("SELECT MIN(email_date), MAX(email_date) FROM emails WHERE source='gmail'").fetchone()
+            eml_dates = cur.execute("SELECT MIN(email_date), MAX(email_date) FROM emails WHERE source='eml'").fetchone()
+            result["gmail_min_date"] = str(gmail_dates[0]) if gmail_dates and gmail_dates[0] else "N/A"
+            result["gmail_max_date"] = str(gmail_dates[1]) if gmail_dates and gmail_dates[1] else "N/A"
+            result["eml_min_date"] = str(eml_dates[0]) if eml_dates and eml_dates[0] else "N/A"
+            result["eml_max_date"] = str(eml_dates[1]) if eml_dates and eml_dates[1] else "N/A"
+        except Exception:
+            pass
+
         result["window_start"] = window_start
         result["window_end_inclusive"] = window_end
         return result

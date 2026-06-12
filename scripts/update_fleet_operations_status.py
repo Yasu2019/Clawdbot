@@ -21,7 +21,7 @@ ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "data" / "workspace" / "fleet_operations_status.json"
 JST = timezone(timedelta(hours=9))
 
-from fleet_node_registry import g3_endpoints, dynabook_endpoints, thinkpad_endpoints, load_registry
+from fleet_node_registry import g3_endpoints, dynabook_endpoints, thinkpad_endpoints, red_lavie_endpoints, load_registry
 import thinkpad_ssh_metrics
 
 G3 = g3_endpoints()
@@ -47,6 +47,11 @@ try:
     _thinkpad = thinkpad_endpoints()
 except FileNotFoundError:
     _thinkpad = {}
+
+try:
+    _red_lavie = red_lavie_endpoints()
+except FileNotFoundError:
+    _red_lavie = {}
 
 
 def probe_url(url: str, timeout: float = 6.0) -> dict[str, Any]:
@@ -146,6 +151,20 @@ def build_status() -> dict[str, Any]:
         ] if thinkpad_metrics.get("ok") else [],
     }
 
+    red_lavie: dict[str, Any] = {
+        "node_id": "red_lavie",
+        "profile": _red_lavie.get("profile") or "interim_non_cae_offload",
+        "registry": read_json(ROOT / "data" / "workspace" / "red_lavie_node_registry.json"),
+        "continuous_loop": read_json(ROOT / "data" / "workspace" / "red_lavie_continuous_loop_status.json"),
+        "docker_ready": bool(_red_lavie.get("docker_ready")),
+    }
+    if _red_lavie.get("job_worker_healthz"):
+        red_lavie["job_worker"] = probe_url(_red_lavie["job_worker_healthz"])
+        red_lavie["monitor_agent"] = probe_url(_red_lavie.get("monitor_agent_url") or "")
+    else:
+        red_lavie["job_worker"] = {"online": False, "url": "", "error": "not registered"}
+    red_lavie["assigned_work"] = _red_lavie.get("allowed_workloads") or []
+
     fleet_start = read_json(ROOT / "data" / "workspace" / "fleet_24x7_startup_log.json")
 
     issues: list[str] = []
@@ -167,6 +186,8 @@ def build_status() -> dict[str, Any]:
         issues.append("Dynabook pending setup (run dynabook_node_setup.ps1 + k10_dynabook_register.py)")
     if _thinkpad and not thinkpad["ssh"].get("online"):
         issues.append("ThinkPad SSH metrics unavailable")
+    if _red_lavie and not red_lavie.get("job_worker", {}).get("online"):
+        issues.append("Red LAVIE job worker offline (:5682)")
 
     overall = "ok"
     if any("offline" in i or "unreachable" in i for i in issues):
@@ -183,6 +204,7 @@ def build_status() -> dict[str, Any]:
         "lavie": lavie,
         "dynabook": dynabook,
         "thinkpad": thinkpad,
+        "red_lavie": red_lavie,
         "last_startup": fleet_start,
         "runbook": "docs/FLEET_24X7_OPERATIONS.md",
     }

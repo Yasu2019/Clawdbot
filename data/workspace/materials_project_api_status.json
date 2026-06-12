@@ -1,11 +1,11 @@
 {
   "schema": "clawstack.materials_project_api_status.v1",
-  "updated_at": "2026-06-10T19:17:32+09:00",
+  "updated_at": "2026-06-10T21:22:02+09:00",
   "source": "Materials Project",
   "api_base": "https://api.materialsproject.org",
   "docs": "https://docs.materialsproject.org/downloading-data/using-the-api/getting-started",
   "key_present": true,
-  "key_name": "Materials_Project",
+  "key_name": "MP_API_KEY",
   "key_value_stored": false,
   "api_ok": true,
   "sample_count": 1,

@@ -73,13 +73,35 @@ def probe_bridge(base: str, label: str) -> bool:
 
 
 def probe_k10_from_satellite_worker(node_id: str, label: str, k10_bridge: str) -> bool:
-    """Use job worker (:5680); LAVIE exec_bridge rejects powershell/curl in n8n workflow."""
+    """LAVIE: Windows host via exec_bridge. Other nodes: job worker shell."""
     if str(ROOT / "scripts") not in sys.path:
         sys.path.insert(0, str(ROOT / "scripts"))
+
+    inner_cmd = f"echo K10_FROM_{label}"
+    if node_id == "lavie":
+        import k10_lavie_exec_bridge as lavie_bridge
+
+        body = json.dumps({"cmd": inner_cmd}).replace("'", "''")
+        cmd = (
+            f"$r=Invoke-RestMethod -Uri '{k10_bridge}' -Method Post "
+            f"-ContentType 'application/json' -Body '{body}'; "
+            f"Write-Output $r.stdout"
+        )
+        try:
+            result = lavie_bridge.exec_powershell(cmd, timeout=90.0)
+        except Exception as exc:
+            print(f"[{label} -> K10 bridge] exec_bridge error: {exc}")
+            return False
+        stdout = (result.get("stdout_tail") or "") + (result.get("stdout") or "")
+        ok_dispatch = result.get("ok") or "K10_FROM_" in stdout
+        print(f"[{label} -> K10 bridge via exec_bridge] status={result.get('status')} exit={result.get('exit_code')}")
+        print(stdout[:400])
+        return ok_dispatch and "K10_FROM_" in stdout
+
     import k10_satellite_dispatch as sjp
     import k10_sync_cae_experiments_to_lavie as sync
 
-    payload = json.dumps({"cmd": f"echo K10_FROM_{label}"})
+    payload = json.dumps({"cmd": inner_cmd})
     payload_escaped = payload.replace('"', '\\"')
     cmd = (
         f'curl.exe -s -X POST -H "Content-Type: application/json" '

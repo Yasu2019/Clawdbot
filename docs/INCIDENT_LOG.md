@@ -3,6 +3,70 @@
 譛ｬ繝輔ぃ繧､繝ｫ縺ｯ縲√す繧ｹ繝・Β縺ｫ逋ｺ逕溘＠縺滄囿螳ｳ縺ｻ荳榊・蜷医→縺昴・譬ｹ譛ｬ蜴溷屏繝ｻ菫ｮ豁｣蜀・ｮｹ繝ｻ蜀咲匱髦ｲ豁｢遲悶ｒ險倬鹸縺励∪縺吶€・菫ｮ豁｣繧定｡後▲縺溷ｴ蜷医・縲∝ｿ・★縺薙・繝輔ぃ繧､繝ｫ縺ｫ繧ｨ繝ｳ繝医Μ繧定ｿｽ蜉縺励※縺上□縺輔＞縲・
 ------
 
+## INC-117: Gemma4 7PC Honki ZIP partially adopted into fleet role planner
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-06-11 JST |
+| **Detection** | User requested adoption of `Gemma4_7PC_AI_Company_FullStack_Honki.zip` if valuable. |
+| **Impact** | Without mapping, 7PC kit docs were disconnected from live K10/LAVIE/Red LAVIE/ThinkPad fleet. |
+| **Root Cause (5 Why)** | **Why1**: Kit was generic 7-PC template. **Why2**: Clawstack already has LiteLLM, n8n, RAG. **Why3**: Full zip deploy would duplicate ai_gateway and obsidian_rag. **Why4**: No fleet-specific role map existed. **Why5**: Gemma4 remains eval-only per prior bd decision. |
+| **Fix** | ADOPT_PARTIAL: `fleet_7pc_role_map.yaml`, `k10_fleet_7pc_role_plan.py`, prompts under `data/workspace/prompts/gemma4_7pc/`, reference at `protocols/gemma4_7pc_honki/`, `k10_fleet.ps1 7pc plan`. Skipped ai_gateway, obsidian_rag sample, default Gemma4 promotion. |
+| **Files** | `data/workspace/fleet_7pc_role_map.yaml`, `scripts/k10_fleet_7pc_role_plan.py`, `docs/adoption/gemma4_7pc_fullstack_ADOPTION.md`, `protocols/gemma4_7pc_honki/` |
+| **Verification** | `k10_fleet.ps1 7pc plan` writes `fleet_7pc_role_plan.json` from K10 any cwd. |
+| **Lessons Learned** | Honki ZIPs: extract role/policy/prompts; wire to fleet; never duplicate LiteLLM gateway. |
+| **Prevention** | Adoption doc lists skipped duplicates; model_policy keeps gpu_buy_now false. |
+
+---
+
+## INC-116: Red LAVIE lacked K10-side stability enforce and connectivity watch
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-06-11 JST |
+| **Detection** | User requested Red LAVIE connection stabilization and stronger monitoring. Monitor `:8111` was healthy but `/host_stability/apply` returned 404 (old agent). `exec_bridge :5679` timed out while worker `:5682` was OK. |
+| **Impact** | Sleep/reboot could drop Red LAVIE from fleet; no 24h RCA log or auto-recovery on return. |
+| **Root Cause (5 Why)** | **Why1**: No Red LAVIE-specific stability/watch scripts. **Why2**: Main LAVIE pattern not replicated. **Why3**: Red LAVIE monitor_agent not refreshed with host_stability endpoint. **Why4**: exec_bridge unreliable on Red LAVIE. **Why5**: Red LAVIE Windows job worker was not used as stability channel (unlike main LAVIE Linux worker). |
+| **Fix** | Added `red_lavie_host_stability.ps1`, `k10_red_lavie_stability_enforce.py` (monitor -> refresh -> worker PS1 fallback), `k10_red_lavie_connectivity_watch.py`, `k10_red_lavie_auto_recovery.py`, fleet watchdog. |
+| **Files** | `scripts/red_lavie_host_stability.ps1`, `scripts/k10_red_lavie_common.py`, `scripts/k10_red_lavie_stability_enforce.py`, `scripts/k10_red_lavie_connectivity_watch.py`, `scripts/k10_red_lavie_auto_recovery.py`, `scripts/start_k10_red_lavie_connectivity_watchdog.ps1`, `docs/troubleshooting/red_lavie_stability_why_offline.md` |
+| **Verification** | `python scripts/k10_red_lavie_stability_enforce.py` -> `RED_LAVIE_HOST_STABILITY_OK`; connectivity summary `overall_now=online`. |
+| **Lessons Learned** | Windows satellites: job_worker is a valid host-ops channel when exec_bridge is down. Label channel in artifacts. |
+| **Prevention** | Fleet 24x7 start includes Red LAVIE connectivity watchdog; 6h stability re-enforce; offline->online auto-recovery (30m cooldown). |
+
+---
+
+## INC-115: ThinkPad L590 lid-close suspend broke SSH/Tailscale/RDP fleet access
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-06-11 JST |
+| **Detection** | User clarified Gemini RCA targeted ThinkPad (`100.66.63.9`), not main LAVIE. Lid-close suspend and GNOME RDP conflicts caused recurring SSH loss. |
+| **Impact** | K10 could not dispatch CAE/jobs to ThinkPad during suspend; RDP unreliable when lid closed. |
+| **Root Cause (5 Why)** | **Why1**: SSH dropped when lid closed. **Why2**: systemd-logind default suspends on lid. **Why3**: No fleet-wide enforce from K10. **Why4**: Existing `thinkpad_lid_no_sleep.sh` was not wired to watchdog/recovery. **Why5**: GNOME Remote Desktop competed with xrdp on 3389. |
+| **Fix** | Added `thinkpad_host_stability.sh`, `k10_thinkpad_stability_enforce.py`, `k10_thinkpad_connectivity_watch.py`, `k10_thinkpad_auto_recovery.py`, fleet watchdog starter. Masks sleep targets, xrdp+XFCE, disables gnome-remote-desktop, 5-min heartbeat timer, 6h re-enforce while online. |
+| **Files** | `scripts/thinkpad_host_stability.sh`, `scripts/thinkpad_ssh_common.py`, `scripts/k10_thinkpad_stability_enforce.py`, `scripts/k10_thinkpad_connectivity_watch.py`, `scripts/k10_thinkpad_auto_recovery.py`, `scripts/start_k10_thinkpad_connectivity_watchdog.ps1`, `docs/troubleshooting/thinkpad_stability_why_offline.md` |
+| **Verification** | `python scripts/k10_thinkpad_stability_enforce.py` prints `THINKPAD_HOST_STABILITY_OK`; connectivity summary shows `overall_now=online`. |
+| **Lessons Learned** | Ubuntu fleet nodes need the same K10-side enforce + watch pattern as Windows LAVIE, via SSH not exec_bridge. |
+| **Prevention** | Fleet 24x7 start includes ThinkPad connectivity watchdog; recovery runs on offline->online transition with 30m cooldown. |
+
+---
+
+## INC-114: Main LAVIE recovery applied power settings to Linux job worker instead of Windows host
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-06-11 JST |
+| **Detection** | Auto-recovery reported 401 on monitor/docker steps; stability enforce returned `/bin/sh: powershell: not found`. |
+| **Impact** | Anti-sleep powercfg and scheduled keepalive never reached Windows host; outages continued (~28% 24h uptime). |
+| **Root Cause (5 Why)** | **Why1**: powercfg did not run on LAVIE. **Why2**: Commands went to job worker `:5682`. **Why3**: Worker container is Linux (`/bin/sh`). **Why4**: Recovery used `dispatch_shell` with wrong token source (`router.auth` empty -> 401) and wrong execution plane. **Why5**: Windows host control path (`exec_bridge :5679`) was not used for stability scripts. |
+| **Fix** | Added `k10_lavie_exec_bridge.py`, `lavie_host_stability.ps1`, `k10_lavie_stability_enforce.py` (HTTP deploy + inline powercfg fallback). `k10_lavie_auto_recovery.py` uses exec_bridge for host ops + `SATELLITE_JOB_TOKEN` for worker ops. Connectivity watch enforces stability every 6h while online. |
+| **Files** | `scripts/k10_lavie_exec_bridge.py`, `scripts/lavie_host_stability.ps1`, `scripts/k10_lavie_stability_enforce.py`, `scripts/k10_lavie_auto_recovery.py`, `scripts/k10_lavie_connectivity_watch.py`, `scripts/k10_verify_satellite_node.py` |
+| **Verification** | Pending LAVIE online window: `python scripts/k10_lavie_stability_enforce.py` should print `LAVIE_HOST_STABILITY_OK` and create scheduled task `ClawstackLavieKeepalive`. |
+| **Lessons Learned** | Satellite has two execution planes: Linux job worker vs Windows exec_bridge. Power/network stability must target Windows host. |
+| **Prevention** | All host stability/recovery docs and scripts label channel explicitly (`exec_bridge_windows_host` vs `job_worker_linux`). |
+
+---
+
 ## INC-113: Red LAVIE job worker could not be started remotely because execution ingress was closed
 
 | Field | Detail |

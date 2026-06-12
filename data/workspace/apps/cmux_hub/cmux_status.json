@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-06T01:48:47.501867+09:00",
+  "generatedAt": "2026-06-12T18:37:58.065228+09:00",
   "runtime": {
     "mode": "local-first",
     "roles": {
@@ -174,7 +174,7 @@
     "reply_model_installed": true,
     "state": "idle",
     "pid": 24528,
-    "updatedAt": "2026-06-05T16:48:41.711Z",
+    "updatedAt": "2026-06-12T09:37:56.708Z",
     "lastChatId": "8173025084"
   },
   "ollama": {

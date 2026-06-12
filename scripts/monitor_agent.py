@@ -38,7 +38,7 @@ NODE_DIAGNOSTIC_ROOT = os.environ.get(
     "NODE_DIAGNOSTIC_DIR",
     os.path.join(PROGRAMDATA_ROOT, "Clawstack", "monitor_agent", "node_diagnostics"),
 )
-NODE_DIAGNOSTIC_RETENTION_HOURS = max(1, int(os.environ.get("NODE_DIAGNOSTIC_RETENTION_HOURS", "24")))
+NODE_DIAGNOSTIC_RETENTION_HOURS = max(1, int(os.environ.get("NODE_DIAGNOSTIC_RETENTION_HOURS", "72")))
 NODE_DIAGNOSTIC_METRICS_INTERVAL_SEC = max(
     15,
     int(os.environ.get("NODE_DIAGNOSTIC_METRICS_INTERVAL_SEC", "60")),
@@ -565,6 +565,9 @@ diagnostic_lock = threading.Lock()
 last_diagnostic_prune_at = 0.0
 last_diagnostic_metrics_at = 0.0
 last_diagnostic_alert_key = ""
+last_wlan_diagnostic_at = 0.0
+last_wlan_signature = ""
+WLAN_TELEMETRY_ROOT = os.path.join(PROGRAMDATA_ROOT, "Clawstack", "stability")
 
 
 def _diagnostic_host_dir():
@@ -707,6 +710,235 @@ def _read_recent_node_diagnostics(limit=200):
     return records[-limit:]
 
 
+def _parse_netsh_wlan_interfaces(text: str) -> dict:
+    snapshot = {
+        "connected": False,
+        "state_text": "",
+        "ssid": "",
+        "profile": "",
+        "signal_percent": None,
+        "rssi_dbm": None,
+        "band": "",
+        "rx_mbps": None,
+        "tx_mbps": None,
+        "interface_name": "",
+    }
+    if not text:
+        return snapshot
+    block: dict[str, str] = {}
+    for raw in text.splitlines():
+        line = raw.strip()
+        if not line:
+            if block:
+                break
+            continue
+        if ":" in line:
+            key, val = line.split(":", 1)
+            block[key.strip().lower()] = val.strip()
+    key_map = {
+        "state": "state_text",
+        "状態": "state_text",
+        "ssid": "ssid",
+        "profile": "profile",
+        "プロファイル": "profile",
+        "signal": "signal_percent",
+        "シグナル": "signal_percent",
+        "rssi": "rssi_dbm",
+        "band": "band",
+        "バンド": "band",
+        "receive rate (mbps)": "rx_mbps",
+        "受信速度 (mbps)": "rx_mbps",
+        "transmit rate (mbps)": "tx_mbps",
+        "送信速度 (mbps)": "tx_mbps",
+        "name": "interface_name",
+        "名前": "interface_name",
+    }
+    for src, dst in key_map.items():
+        if src in block and not snapshot.get(dst):
+            snapshot[dst] = block[src]
+    state = str(snapshot.get("state_text") or "").lower()
+    snapshot["connected"] = _wlan_is_connected(text)
+    sig = str(snapshot.get("signal_percent") or "")
+    m = re.search(r"(\d+)", sig)
+    if m:
+        snapshot["signal_percent"] = int(m.group(1))
+    rssi = str(snapshot.get("rssi_dbm") or "")
+    m = re.search(r"-?\d+", rssi)
+    if m:
+        snapshot["rssi_dbm"] = int(m.group(0))
+    for rate_key in ("rx_mbps", "tx_mbps"):
+        m = re.search(r"(\d+(?:\.\d+)?)", str(snapshot.get(rate_key) or ""))
+        if m:
+            snapshot[rate_key] = float(m.group(1))
+    if snapshot.get("ssid") and not snapshot.get("profile"):
+        snapshot["profile"] = snapshot["ssid"]
+    snapshot["band_label"] = "5g" if "-5G" in str(snapshot.get("ssid") or "").upper() else (
+        "2g" if "-2G" in str(snapshot.get("ssid") or "").upper() else "unknown"
+    )
+    return snapshot
+
+
+def _collect_wlan_snapshot() -> dict:
+    try:
+        proc = subprocess.run(
+            ["netsh", "wlan", "show", "interfaces"],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=15,
+            creationflags=0x08000000,
+        )
+        text = proc.stdout or ""
+        snap = _parse_netsh_wlan_interfaces(text)
+        snap["raw_len"] = len(text)
+        snap["exit_code"] = proc.returncode
+        return snap
+    except Exception as exc:
+        return {"connected": False, "error": str(exc)[:200]}
+
+
+def _collect_wlan_recent_events(max_events: int = 20) -> list[dict]:
+    script = (
+        f"$max={int(max_events)};"
+        "$start=(Get-Date).AddHours(-48);"
+        "$events=Get-WinEvent -LogName 'Microsoft-Windows-WLAN-AutoConfig/Operational' "
+        "-MaxEvents $max -ErrorAction SilentlyContinue | "
+        "Where-Object { $_.TimeCreated -ge $start } | "
+        "Select-Object TimeCreated,Id,LevelDisplayName,Message;"
+        "if (-not $events) { '[]' } else { $events | ConvertTo-Json -Depth 3 -Compress }"
+    )
+    data = _run_powershell_json(script, timeout=25)
+    if data is None:
+        return []
+    if isinstance(data, dict):
+        if "error" in data:
+            return [data]
+        return [data]
+    if isinstance(data, list):
+        return data
+    return []
+
+
+def _append_wlan_telemetry_file(snapshot: dict) -> str | None:
+    try:
+        os.makedirs(WLAN_TELEMETRY_ROOT, exist_ok=True)
+        day = datetime.now().strftime("%Y%m%d")
+        path = os.path.join(WLAN_TELEMETRY_ROOT, f"wlan_telemetry_{day}.jsonl")
+        record = {
+            "schema": "clawstack.lavie_wlan_telemetry.v1",
+            "timestamp": datetime.now().isoformat(timespec="seconds"),
+            "hostname": socket.gethostname(),
+            **snapshot,
+        }
+        with open(path, "a", encoding="utf-8", errors="replace") as handle:
+            json.dump(record, handle, ensure_ascii=False, separators=(",", ":"))
+            handle.write("\n")
+        return path
+    except Exception:
+        return None
+
+
+def _read_wlan_telemetry_tail(limit: int = 120) -> list[dict]:
+    if not os.path.isdir(WLAN_TELEMETRY_ROOT):
+        return []
+    paths = sorted(
+        [
+            os.path.join(WLAN_TELEMETRY_ROOT, name)
+            for name in os.listdir(WLAN_TELEMETRY_ROOT)
+            if name.startswith("wlan_telemetry_") and name.endswith(".jsonl")
+        ]
+    )
+    records: list[dict] = []
+    for path in paths[-3:]:
+        try:
+            with open(path, "r", encoding="utf-8", errors="replace") as handle:
+                for line in handle:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        records.append(json.loads(line))
+                    except Exception:
+                        pass
+        except Exception:
+            pass
+    return records[-limit:]
+
+
+def _maybe_log_wlan_diagnostic(force: bool = False) -> dict | None:
+    global last_wlan_diagnostic_at, last_wlan_signature
+    now = time.time()
+    interval = max(30, NODE_DIAGNOSTIC_METRICS_INTERVAL_SEC)
+    if not force and now - last_wlan_diagnostic_at < interval:
+        return None
+    last_wlan_diagnostic_at = now
+    wlan = _collect_wlan_snapshot()
+    tailscale = _collect_tailscale_status()
+    payload = {
+        **wlan,
+        "tailscale_online": bool((tailscale or {}).get("Self", {}).get("Online"))
+        if isinstance(tailscale, dict) and "Self" in tailscale
+        else None,
+        "tailscale_tun": (tailscale or {}).get("Self", {}).get("TUN")
+        if isinstance(tailscale, dict) and isinstance(tailscale.get("Self"), dict)
+        else None,
+    }
+    signature = "|".join(
+        [
+            str(payload.get("ssid") or ""),
+            str(payload.get("band_label") or ""),
+            "1" if payload.get("connected") else "0",
+            str(payload.get("signal_percent") or ""),
+        ]
+    )
+    severity = "info"
+    if not payload.get("connected"):
+        severity = "warn"
+    elif last_wlan_signature and signature != last_wlan_signature:
+        prev_ssid = (last_wlan_signature.split("|") or [""])[0]
+        cur_ssid = str(payload.get("ssid") or "")
+        if prev_ssid and cur_ssid and prev_ssid != cur_ssid:
+            _append_node_diagnostic(
+                "wlan_band_or_ssid_switch",
+                {"from": last_wlan_signature, "to": signature, "snapshot": payload},
+                severity="warn",
+            )
+    last_wlan_signature = signature
+    _append_node_diagnostic("wlan_snapshot", payload, severity=severity)
+    _append_wlan_telemetry_file(payload)
+    return payload
+
+
+def build_outage_forensics_report() -> dict:
+    recent = _read_recent_node_diagnostics(400)
+    wlan_tail = _read_wlan_telemetry_tail(200)
+    wlan_events = _collect_wlan_recent_events(30)
+    keepalive = os.path.join(WLAN_TELEMETRY_ROOT, "lavie_keepalive_heartbeat.txt")
+    keepalive_text = ""
+    if os.path.isfile(keepalive):
+        try:
+            with open(keepalive, encoding="utf-8", errors="replace") as handle:
+                keepalive_text = handle.read().strip()
+        except Exception:
+            pass
+    return {
+        "schema": "clawstack.lavie_outage_forensics.v1",
+        "timestamp": datetime.now().isoformat(timespec="seconds"),
+        "hostname": socket.gethostname(),
+        "diagnostic_status": _diagnostic_status(),
+        "wlan_snapshot_now": _collect_wlan_snapshot(),
+        "wlan_telemetry_tail": wlan_tail[-80:],
+        "wlan_recent_events_48h": wlan_events,
+        "keepalive_heartbeat": keepalive_text,
+        "tailscale_status": _collect_tailscale_status(),
+        "power_snapshot": _collect_power_snapshot(),
+        "windows_event_summary_6h": _collect_windows_event_summary(window_hours=6),
+        "windows_shutdown_events_48h": _collect_windows_shutdown_events(),
+        "recent_diagnostics": recent,
+    }
+
+
 def _metrics_alerts(metrics):
     alerts = []
     cpu = metrics.get("cpu_usage_percent")
@@ -720,6 +952,9 @@ def _metrics_alerts(metrics):
         alerts.append(f"temp_high:{round(float(temp), 1)}")
     if metrics.get("disk_warnings"):
         alerts.append("disk_warning")
+    wlan = metrics.get("wlan") or {}
+    if wlan and not wlan.get("connected"):
+        alerts.append("wlan_disconnected")
     if not metrics.get("lhm_ok") and metrics.get("lhm_error"):
         alerts.append("lhm_error")
     return alerts
@@ -921,6 +1156,8 @@ def _build_fleet_evidence(reason="periodic"):
         "recent_agent_logs": list(updater_logs[-20:]),
         "windows_shutdown_events_48h": _collect_windows_shutdown_events(),
         "windows_event_summary_6h": _collect_windows_event_summary(),
+        "wlan_snapshot": _collect_wlan_snapshot(),
+        "wlan_recent_events_48h": _collect_wlan_recent_events(20),
         "node_diagnostic_status": _diagnostic_status(),
         "power_snapshot": _collect_power_snapshot(),
         "tailscale_status": _collect_tailscale_status(),
@@ -1017,12 +1254,309 @@ def metrics_updater_loop():
             cached_metrics["thermal_throttle_label"] = thermal_throttle_label
             cached_metrics["thermal_control_temp_c"] = _thermal_control_temp_from_cache(cached_metrics)
             cached_metrics["node_diagnostic"] = _diagnostic_status()
+            wlan = _maybe_log_wlan_diagnostic()
+            if wlan:
+                cached_metrics["wlan"] = wlan
             _maybe_log_metrics_diagnostic(cached_metrics)
         except Exception as e:
             log_debug(f"Loop error: {e}")
             _append_node_diagnostic("metrics_loop_error", {"error": str(e)}, severity="error")
             print("Error in metrics updater:", e)
         time.sleep(15)
+
+def _run_powercfg(args: list[str]) -> None:
+    subprocess.check_output(
+        ["powercfg", *args],
+        text=True,
+        creationflags=0x08000000,
+        timeout=15,
+    )
+
+
+def _wlan_is_connected(wlan_out: str) -> bool:
+    text = wlan_out or ""
+    lower = text.lower()
+    if "disconnected" in lower or "切断" in text or "未接続" in text:
+        for line in text.splitlines():
+            if "state" in line.lower() or "状態" in line:
+                if "disconnected" in line.lower() or "切断" in line or "未接続" in line:
+                    return False
+                if "connected" in line.lower() or "接続" in line:
+                    return True
+        return False
+    if "connected" in lower or "接続され" in text or "接続済" in text:
+        return True
+    for line in text.splitlines():
+        if "state" in line.lower() or "状態" in line:
+            if "connected" in line.lower() or "接続" in line:
+                return True
+    return False
+
+
+def apply_host_stability() -> dict:
+    """Anti-sleep / keepalive on Windows host (K10 calls GET /host_stability/apply)."""
+    reload = _maybe_reload_monitor_from_disk()
+    if reload:
+        return {
+            "ok": True,
+            "schema": "clawstack.lavie_host_stability.v1",
+            "hostname": socket.gethostname(),
+            "steps": [reload],
+            "message": "MONITOR_RELOADING",
+        }
+    steps: list[dict] = []
+    ok = True
+    power_cmds = [
+        ["/change", "standby-timeout-ac", "0"],
+        ["/change", "standby-timeout-dc", "0"],
+        ["/change", "hibernate-timeout-ac", "0"],
+        ["/change", "hibernate-timeout-dc", "0"],
+        ["/change", "disk-timeout-ac", "0"],
+        ["/change", "disk-timeout-dc", "0"],
+        ["/change", "monitor-timeout-ac", "45"],
+        ["/SETACVALUEINDEX", "SCHEME_CURRENT", "SUB_BUTTONS", "LIDACTION", "0"],
+        ["/SETDCVALUEINDEX", "SCHEME_CURRENT", "SUB_BUTTONS", "LIDACTION", "0"],
+        ["/SETACTIVE", "SCHEME_CURRENT"],
+    ]
+    for args in power_cmds:
+        label = " ".join(args)
+        try:
+            _run_powercfg(args)
+            steps.append({"step": label, "ok": True})
+        except Exception as exc:
+            ok = False
+            steps.append({"step": label, "ok": False, "error": str(exc)[:200]})
+    try:
+        key = winreg.OpenKey(
+            winreg.HKEY_LOCAL_MACHINE,
+            r"SYSTEM\CurrentControlSet\Control\Session Manager\Power",
+            0,
+            winreg.KEY_SET_VALUE,
+        )
+        winreg.SetValueEx(key, "HiberbootEnabled", 0, winreg.REG_DWORD, 0)
+        winreg.CloseKey(key)
+        steps.append({"step": "fast_startup_off", "ok": True})
+    except Exception as exc:
+        ok = False
+        steps.append({"step": "fast_startup_off", "ok": False, "error": str(exc)[:200]})
+    try:
+        subprocess.run(
+            ["sc", "config", "Tailscale", "start=", "auto"],
+            capture_output=True,
+            text=True,
+            timeout=15,
+            creationflags=0x08000000,
+        )
+        subprocess.run(
+            ["sc", "start", "Tailscale"],
+            capture_output=True,
+            text=True,
+            timeout=15,
+            creationflags=0x08000000,
+        )
+        steps.append({"step": "tailscale_service", "ok": True})
+    except Exception as exc:
+        steps.append({"step": "tailscale_service", "ok": False, "error": str(exc)[:200]})
+    try:
+        default_wifi_2g = "E440973A1E43-2G"
+        profile_file = os.path.join(PROGRAMDATA_ROOT, "Clawstack", "stability", "wifi_profile.txt")
+        os.makedirs(os.path.dirname(profile_file), exist_ok=True)
+        if not os.path.isfile(profile_file):
+            with open(profile_file, "w", encoding="utf-8") as pf:
+                pf.write(default_wifi_2g)
+        preferred = os.environ.get("LAVIE_WIFI_PROFILE", "").strip()
+        if not preferred and os.path.isfile(profile_file):
+            with open(profile_file, encoding="utf-8") as pf:
+                preferred = pf.read().strip()
+        if not preferred:
+            preferred = default_wifi_2g
+        wlan = subprocess.run(
+            ["netsh", "wlan", "show", "interfaces"],
+            capture_output=True,
+            text=True,
+            timeout=15,
+            creationflags=0x08000000,
+        )
+        wlan_out = wlan.stdout or ""
+        wifi_ok = _wlan_is_connected(wlan_out)
+        current_ssid = ""
+        for line in wlan_out.splitlines():
+            if line.strip().startswith("SSID") and "BSSID" not in line and ":" in line:
+                current_ssid = line.split(":", 1)[1].strip()
+                break
+        prefer_2g = os.environ.get("LAVIE_PREFER_WIFI_2G", "1") != "0"
+        if prefer_2g and current_ssid.endswith("-5G"):
+            preferred = default_wifi_2g
+            subprocess.run(
+                ["netsh", "wlan", "connect", f"name={preferred}"],
+                capture_output=True,
+                text=True,
+                timeout=20,
+                creationflags=0x08000000,
+            )
+            time.sleep(4)
+            wlan = subprocess.run(
+                ["netsh", "wlan", "show", "interfaces"],
+                capture_output=True,
+                text=True,
+                timeout=15,
+                creationflags=0x08000000,
+            )
+            wlan_out = wlan.stdout or ""
+            wifi_ok = _wlan_is_connected(wlan_out)
+        if not wifi_ok:
+            if prefer_2g and preferred.endswith("-5G"):
+                preferred = default_wifi_2g
+            subprocess.run(
+                ["netsh", "wlan", "connect", f"name={preferred}"],
+                capture_output=True,
+                text=True,
+                timeout=20,
+                creationflags=0x08000000,
+            )
+            wlan = subprocess.run(
+                ["netsh", "wlan", "show", "interfaces"],
+                capture_output=True,
+                text=True,
+                timeout=15,
+                creationflags=0x08000000,
+            )
+            wlan_out = wlan.stdout or ""
+            wifi_ok = _wlan_is_connected(wlan_out)
+        if wifi_ok:
+            for line in wlan_out.splitlines():
+                if line.strip().startswith("SSID") and "BSSID" not in line and ":" in line:
+                    ssid = line.split(":", 1)[1].strip()
+                    if ssid:
+                        with open(profile_file, "w", encoding="utf-8") as pf:
+                            pf.write(ssid)
+                        break
+        realtek_ps = (
+            "Get-PnpDevice -Class Net -EA SilentlyContinue | Where-Object { $_.FriendlyName -match 'Realtek|8822BE' } | "
+            "ForEach-Object { $p = 'HKLM:\\SYSTEM\\CurrentControlSet\\Enum\\' + $_.InstanceId + '\\Device Parameters'; "
+            "if (Test-Path $p) { Set-ItemProperty -Path $p -Name PnPCapabilities -Value 24 -Type DWord -Force -EA SilentlyContinue } }; "
+            "Get-NetAdapter -EA SilentlyContinue | Where-Object { $_.InterfaceDescription -match 'Realtek|8822BE' } | "
+            "ForEach-Object { Disable-NetAdapterPowerManagement -Name $_.Name -EA SilentlyContinue | Out-Null }"
+        )
+        rt = subprocess.run(
+            ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", realtek_ps],
+            capture_output=True,
+            text=True,
+            timeout=45,
+            creationflags=0x08000000,
+        )
+        steps.append(
+            {
+                "step": "realtek_wifi_power_save_off",
+                "ok": rt.returncode == 0,
+                "detail": (rt.stdout or rt.stderr or "")[:120],
+            }
+        )
+        steps.append({"step": "wifi_reconnect", "ok": wifi_ok, "detail": wlan_out[:200], "profile": preferred})
+        if not wifi_ok:
+            ok = False
+    except Exception as exc:
+        ok = False
+        steps.append({"step": "wifi_reconnect", "ok": False, "error": str(exc)[:200]})
+    stab_root = os.path.join(PROGRAMDATA_ROOT, "Clawstack", "stability")
+    os.makedirs(stab_root, exist_ok=True)
+    heartbeat = os.path.join(stab_root, "host_keepalive_heartbeat.txt")
+    for hb_name in (
+        "dynabook_keepalive_heartbeat.txt",
+        "g3_keepalive_heartbeat.txt",
+        "red_lavie_keepalive_heartbeat.txt",
+        "lavie_keepalive_heartbeat.txt",
+    ):
+        hb_path = os.path.join(stab_root, hb_name)
+        if os.path.isfile(hb_path):
+            heartbeat = hb_path
+            break
+    with open(heartbeat, "w", encoding="utf-8") as handle:
+        handle.write(f"{datetime.now().isoformat(timespec='seconds')} host={socket.gethostname()}\n")
+    steps.append({"step": "heartbeat", "ok": True, "path": heartbeat})
+    ps1_candidates = [
+        os.environ.get("CLAWSTACK_STABILITY_PS1", "").strip(),
+        os.path.join(stab_root, "lavie_host_stability.ps1"),
+        os.path.join(stab_root, "red_lavie_host_stability.ps1"),
+        os.path.join(stab_root, "g3_host_stability.ps1"),
+        os.path.join(stab_root, "dynabook_host_stability.ps1"),
+    ]
+    ps1_path = next((p for p in ps1_candidates if p and os.path.isfile(p)), None)
+    ps1_ok_token = "HOST_STABILITY_OK"
+    if ps1_path:
+        try:
+            ps1 = subprocess.run(
+                [
+                    "powershell",
+                    "-NoProfile",
+                    "-ExecutionPolicy",
+                    "Bypass",
+                    "-File",
+                    ps1_path,
+                ],
+                capture_output=True,
+                text=True,
+                timeout=180,
+                creationflags=0x08000000,
+            )
+            ps1_out = ps1.stdout or ""
+            ps1_ok = ps1.returncode == 0 and ps1_ok_token in ps1_out
+            steps.append(
+                {
+                    "step": "host_stability_ps1",
+                    "ok": ps1_ok,
+                    "path": ps1_path,
+                    "detail": ps1_out[-400:],
+                }
+            )
+            ok = ok and ps1_ok
+        except Exception as exc:
+            steps.append({"step": "host_stability_ps1", "ok": False, "error": str(exc)[:200]})
+            ok = False
+    return {
+        "ok": ok,
+        "schema": "clawstack.lavie_host_stability.v1",
+        "hostname": socket.gethostname(),
+        "steps": steps,
+        "message": "HOST_STABILITY_OK" if ok else "HOST_STABILITY_PARTIAL",
+    }
+
+
+def _monitor_deploy_paths() -> list[str]:
+    return [
+        os.path.join("C:\\", "clawstack_satellite", "scripts", "monitor_agent.py"),
+        os.path.join("C:\\", "lavie_usb_pack", "scripts", "monitor_agent.py"),
+        os.path.join(PROGRAMDATA_ROOT, "Clawstack", "monitor_agent", "monitor_agent.py"),
+    ]
+
+
+def _maybe_reload_monitor_from_disk():
+    try:
+        this_mtime = os.path.getmtime(__file__)
+    except OSError:
+        return None
+    for path in _monitor_deploy_paths():
+        if not os.path.isfile(path):
+            continue
+        try:
+            if os.path.getmtime(path) <= this_mtime + 2:
+                continue
+        except OSError:
+            continue
+        subprocess.Popen(
+            ["pythonw.exe", path],
+            creationflags=0x08000000,
+            close_fds=True,
+        )
+
+        def _exit_later() -> None:
+            time.sleep(2)
+            os._exit(0)
+
+        threading.Thread(target=_exit_later, daemon=True).start()
+        return {"ok": True, "step": "monitor_reload", "path": path}
+    return None
+
 
 def set_cpu_limit(percent):
     """Windows 電源設定で CPU 最大動作状態 (PROCTHROTTLEMAX) を強制変更."""
@@ -1142,12 +1676,33 @@ class MetricsHandler(BaseHTTPRequestHandler):
             payload = {
                 "status": _diagnostic_status(),
                 "recent": _read_recent_node_diagnostics(200),
+                "wlan_snapshot": _collect_wlan_snapshot(),
+                "wlan_telemetry_tail": _read_wlan_telemetry_tail(80),
+                "wlan_recent_events_48h": _collect_wlan_recent_events(20),
             }
             response = json.dumps(payload, ensure_ascii=False).encode('utf-8')
             self.send_response(200)
             self.send_header('Content-Type', 'application/json')
             self.send_header('Access-Control-Allow-Origin', '*')
             self.send_header('Content-Length', str(len(response)))
+            self.end_headers()
+            self.wfile.write(response)
+        elif self.path in ("/diagnostics/outage_forensics", "/outage_forensics"):
+            payload = build_outage_forensics_report()
+            response = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.send_header("Content-Length", str(len(response)))
+            self.end_headers()
+            self.wfile.write(response)
+        elif self.path in ("/host_stability/apply", "/host_stability"):
+            payload = apply_host_stability()
+            response = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+            self.send_response(200 if payload.get("ok") else 207)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.send_header("Content-Length", str(len(response)))
             self.end_headers()
             self.wfile.write(response)
         elif self.path == "/download_db":

@@ -378,3 +378,16 @@ bd close <id>         # Complete work
 - NEVER say "ready to push when you are" - YOU must push
 - If push fails, resolve and retry until it succeeds
 <!-- END BEADS INTEGRATION -->
+
+## Incident & Failure Management Rule (RCA Protocol)
+If a past instruction is missed, a code failure occurs, or the user points out a quality incident, the AI MUST immediately:
+1. Conduct a deep Root Cause Analysis (RCA) using frameworks such as:
+   - 5 Whys (なぜなぜ分析)
+   - Fishbone Diagram / Ishikawa (特性要因図)
+   - Fault Tree Analysis (FTA)
+   - Logical Tree (ロジカルツリー)
+   - FMEA (Failure Mode and Effects Analysis)
+2. Document the findings in a persistent .md artifact (e.g., quality_incident_report_XXX.md).
+3. Explicitly define countermeasures and strict rules to prevent recurrence.
+4. Record the rule in the relevant core files (like Beads, Byterover, or this MD file).
+5. Always confirm the countermeasure implementation plan with the user before resuming execution.

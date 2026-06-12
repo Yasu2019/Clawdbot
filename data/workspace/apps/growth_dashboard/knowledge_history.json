@@ -1,6 +1,830 @@
 {
-  "recent_count": 3864,
+  "recent_count": 3671,
   "recent": [
+    {
+      "id": 7897,
+      "timestamp": "2026-06-12 09:55:31",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 136
+    },
+    {
+      "id": 7896,
+      "timestamp": "2026-06-12 09:50:17",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7895,
+      "timestamp": "2026-06-12 09:45:03",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7894,
+      "timestamp": "2026-06-12 09:39:50",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 136
+    },
+    {
+      "id": 7893,
+      "timestamp": "2026-06-12 09:34:36",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 136
+    },
+    {
+      "id": 7892,
+      "timestamp": "2026-06-12 09:29:22",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 136
+    },
+    {
+      "id": 7891,
+      "timestamp": "2026-06-12 09:24:08",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7890,
+      "timestamp": "2026-06-12 09:18:54",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 136
+    },
+    {
+      "id": 7889,
+      "timestamp": "2026-06-12 09:13:40",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7888,
+      "timestamp": "2026-06-12 09:08:26",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 136
+    },
+    {
+      "id": 7887,
+      "timestamp": "2026-06-12 09:03:12",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 136
+    },
+    {
+      "id": 7886,
+      "timestamp": "2026-06-12 08:57:59",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7885,
+      "timestamp": "2026-06-12 08:52:44",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7884,
+      "timestamp": "2026-06-12 08:47:30",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7883,
+      "timestamp": "2026-06-12 08:42:16",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7882,
+      "timestamp": "2026-06-12 08:37:01",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7881,
+      "timestamp": "2026-06-12 08:31:47",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 136
+    },
+    {
+      "id": 7880,
+      "timestamp": "2026-06-12 08:26:32",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7879,
+      "timestamp": "2026-06-12 08:21:17",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7878,
+      "timestamp": "2026-06-12 08:16:04",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7877,
+      "timestamp": "2026-06-12 08:10:50",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7876,
+      "timestamp": "2026-06-12 08:05:36",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7875,
+      "timestamp": "2026-06-12 08:00:22",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7874,
+      "timestamp": "2026-06-12 07:55:08",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7873,
+      "timestamp": "2026-06-12 07:49:54",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 136
+    },
+    {
+      "id": 7872,
+      "timestamp": "2026-06-12 07:44:40",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7871,
+      "timestamp": "2026-06-12 07:39:26",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 136
+    },
+    {
+      "id": 7870,
+      "timestamp": "2026-06-12 07:34:12",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 136
+    },
+    {
+      "id": 7869,
+      "timestamp": "2026-06-12 07:28:58",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 136
+    },
+    {
+      "id": 7868,
+      "timestamp": "2026-06-12 07:23:45",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7867,
+      "timestamp": "2026-06-12 07:18:31",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7866,
+      "timestamp": "2026-06-12 07:13:17",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7865,
+      "timestamp": "2026-06-12 07:08:03",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7864,
+      "timestamp": "2026-06-12 07:02:49",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7863,
+      "timestamp": "2026-06-12 06:57:35",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7862,
+      "timestamp": "2026-06-12 06:52:20",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7861,
+      "timestamp": "2026-06-12 06:47:05",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7860,
+      "timestamp": "2026-06-12 06:41:51",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 136
+    },
+    {
+      "id": 7859,
+      "timestamp": "2026-06-12 06:36:37",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7858,
+      "timestamp": "2026-06-12 06:31:23",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7857,
+      "timestamp": "2026-06-12 06:26:10",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7856,
+      "timestamp": "2026-06-12 06:20:56",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7855,
+      "timestamp": "2026-06-12 06:15:42",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7854,
+      "timestamp": "2026-06-12 06:10:28",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7853,
+      "timestamp": "2026-06-12 06:05:14",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7852,
+      "timestamp": "2026-06-12 06:00:00",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 135
+    },
+    {
+      "id": 7851,
+      "timestamp": "2026-06-12 05:54:47",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7850,
+      "timestamp": "2026-06-12 05:49:33",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7849,
+      "timestamp": "2026-06-12 05:44:19",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7848,
+      "timestamp": "2026-06-12 05:39:05",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7847,
+      "timestamp": "2026-06-12 05:33:51",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7846,
+      "timestamp": "2026-06-12 05:28:37",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7845,
+      "timestamp": "2026-06-12 05:23:23",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7844,
+      "timestamp": "2026-06-12 05:18:08",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7843,
+      "timestamp": "2026-06-12 05:12:52",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7842,
+      "timestamp": "2026-06-12 05:07:39",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7841,
+      "timestamp": "2026-06-12 05:02:24",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7840,
+      "timestamp": "2026-06-12 04:57:10",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7839,
+      "timestamp": "2026-06-12 04:51:57",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 136
+    },
+    {
+      "id": 7838,
+      "timestamp": "2026-06-12 04:46:42",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7837,
+      "timestamp": "2026-06-12 04:41:28",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7836,
+      "timestamp": "2026-06-12 04:36:15",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7835,
+      "timestamp": "2026-06-12 04:31:00",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7834,
+      "timestamp": "2026-06-12 04:25:47",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7833,
+      "timestamp": "2026-06-12 04:20:33",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7832,
+      "timestamp": "2026-06-12 04:15:18",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 136
+    },
+    {
+      "id": 7831,
+      "timestamp": "2026-06-12 04:10:04",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7830,
+      "timestamp": "2026-06-12 04:04:50",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7829,
+      "timestamp": "2026-06-12 03:59:36",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7828,
+      "timestamp": "2026-06-12 03:54:22",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 136
+    },
+    {
+      "id": 7827,
+      "timestamp": "2026-06-12 03:49:07",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7826,
+      "timestamp": "2026-06-12 03:43:51",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 136
+    },
+    {
+      "id": 7825,
+      "timestamp": "2026-06-12 03:38:36",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 136
+    },
+    {
+      "id": 7824,
+      "timestamp": "2026-06-12 03:33:22",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7823,
+      "timestamp": "2026-06-12 03:28:07",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7822,
+      "timestamp": "2026-06-12 03:22:53",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7821,
+      "timestamp": "2026-06-12 03:17:38",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7820,
+      "timestamp": "2026-06-12 03:12:24",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7819,
+      "timestamp": "2026-06-12 03:07:10",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7818,
+      "timestamp": "2026-06-12 03:01:55",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7817,
+      "timestamp": "2026-06-12 02:56:40",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7816,
+      "timestamp": "2026-06-12 02:51:25",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7815,
+      "timestamp": "2026-06-12 02:46:10",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7814,
+      "timestamp": "2026-06-12 02:40:55",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7813,
+      "timestamp": "2026-06-12 02:35:39",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7812,
+      "timestamp": "2026-06-12 02:30:24",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 136
+    },
+    {
+      "id": 7811,
+      "timestamp": "2026-06-12 02:25:08",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 135
+    },
+    {
+      "id": 7810,
+      "timestamp": "2026-06-12 02:19:53",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7809,
+      "timestamp": "2026-06-12 02:14:38",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 136
+    },
+    {
+      "id": 7808,
+      "timestamp": "2026-06-12 02:09:23",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 136
+    },
+    {
+      "id": 7807,
+      "timestamp": "2026-06-12 02:04:08",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7806,
+      "timestamp": "2026-06-12 01:58:53",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 136
+    },
+    {
+      "id": 7805,
+      "timestamp": "2026-06-12 01:53:38",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7804,
+      "timestamp": "2026-06-12 01:48:23",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7803,
+      "timestamp": "2026-06-12 01:43:08",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7802,
+      "timestamp": "2026-06-12 01:37:52",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 136
+    },
+    {
+      "id": 7801,
+      "timestamp": "2026-06-12 01:32:24",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7800,
+      "timestamp": "2026-06-12 01:27:07",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7799,
+      "timestamp": "2026-06-12 01:21:51",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7798,
+      "timestamp": "2026-06-12 01:16:34",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7797,
+      "timestamp": "2026-06-12 01:11:17",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
+    {
+      "id": 7796,
+      "timestamp": "2026-06-12 01:06:00",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 136
+    },
+    {
+      "id": 7795,
+      "timestamp": "2026-06-12 01:00:45",
+      "domain": "CAE_MATERIAL",
+      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
+      "source": "cae_te_engine",
+      "score": 137
+    },
     {
       "id": 7794,
       "timestamp": "2026-06-12 00:55:27",
@@ -28544,2374 +29368,6 @@
       "title": "369616874-Instalar-MagmaSoft.pdf (Part 1/4)",
       "source": "Scribd",
       "score": 666
-    },
-    {
-      "id": 4226,
-      "timestamp": "2026-06-05 18:58:32",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "845342098-BPI-Software.pdf (Part 31/40)",
-      "source": "Scribd",
-      "score": 968
-    },
-    {
-      "id": 4225,
-      "timestamp": "2026-06-05 18:57:41",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "580326503-Lista-de-Softwares-2020.pdf (Part 74/149)",
-      "source": "Scribd",
-      "score": 945
-    },
-    {
-      "id": 4224,
-      "timestamp": "2026-06-05 18:56:15",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "264186820-DIMENSIONAL-TOLERANCE-ANALYSIS.pdf (Part 6/6)",
-      "source": "Scribd",
-      "score": 587
-    },
-    {
-      "id": 4223,
-      "timestamp": "2026-06-05 18:56:09",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 4222,
-      "timestamp": "2026-06-05 18:53:50",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "845342098-BPI-Software.pdf (Part 30/40)",
-      "source": "Scribd",
-      "score": 710
-    },
-    {
-      "id": 4221,
-      "timestamp": "2026-06-05 18:51:41",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "264186820-DIMENSIONAL-TOLERANCE-ANALYSIS.pdf (Part 5/6)",
-      "source": "Scribd",
-      "score": 886
-    },
-    {
-      "id": 4220,
-      "timestamp": "2026-06-05 18:50:24",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 4219,
-      "timestamp": "2026-06-05 18:49:43",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "845342098-BPI-Software.pdf (Part 29/40)",
-      "source": "Scribd",
-      "score": 706
-    },
-    {
-      "id": 4218,
-      "timestamp": "2026-06-05 18:44:34",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 136
-    },
-    {
-      "id": 4217,
-      "timestamp": "2026-06-05 18:38:40",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 136
-    },
-    {
-      "id": 4216,
-      "timestamp": "2026-06-05 18:33:59",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "845342098-BPI-Software.pdf (Part 26/40)",
-      "source": "Scribd",
-      "score": 753
-    },
-    {
-      "id": 4215,
-      "timestamp": "2026-06-05 18:32:50",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 4214,
-      "timestamp": "2026-06-05 18:30:50",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "264186820-DIMENSIONAL-TOLERANCE-ANALYSIS.pdf (Part 1/6)",
-      "source": "Scribd",
-      "score": 937
-    },
-    {
-      "id": 4213,
-      "timestamp": "2026-06-05 18:29:00",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "845342098-BPI-Software.pdf (Part 25/40)",
-      "source": "Scribd",
-      "score": 787
-    },
-    {
-      "id": 4212,
-      "timestamp": "2026-06-05 18:27:01",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 136
-    },
-    {
-      "id": 4211,
-      "timestamp": "2026-06-05 18:25:52",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "218127272-Acta-Arras-and-Van-Merode-Def.pdf (Part 6/6)",
-      "source": "Scribd",
-      "score": 409
-    },
-    {
-      "id": 4210,
-      "timestamp": "2026-06-05 18:21:01",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 136
-    },
-    {
-      "id": 4209,
-      "timestamp": "2026-06-05 18:15:08",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 4208,
-      "timestamp": "2026-06-05 18:12:09",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "218127272-Acta-Arras-and-Van-Merode-Def.pdf (Part 3/6)",
-      "source": "Scribd",
-      "score": 851
-    },
-    {
-      "id": 4207,
-      "timestamp": "2026-06-05 18:09:20",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 4206,
-      "timestamp": "2026-06-05 18:03:28",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 4205,
-      "timestamp": "2026-06-05 17:57:34",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 4204,
-      "timestamp": "2026-06-05 17:51:41",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 4203,
-      "timestamp": "2026-06-05 17:45:43",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 4202,
-      "timestamp": "2026-06-05 17:40:11",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 136
-    },
-    {
-      "id": 4201,
-      "timestamp": "2026-06-05 17:34:43",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 4200,
-      "timestamp": "2026-06-05 17:30:53",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "845342098-BPI-Software.pdf (Part 14/40)",
-      "source": "Scribd",
-      "score": 640
-    },
-    {
-      "id": 4199,
-      "timestamp": "2026-06-05 17:29:13",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 136
-    },
-    {
-      "id": 4198,
-      "timestamp": "2026-06-05 17:23:46",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 136
-    },
-    {
-      "id": 4197,
-      "timestamp": "2026-06-05 17:20:12",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "845342098-BPI-Software.pdf (Part 12/40)",
-      "source": "Scribd",
-      "score": 692
-    },
-    {
-      "id": 4196,
-      "timestamp": "2026-06-05 17:18:19",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 4195,
-      "timestamp": "2026-06-05 17:15:01",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "845342098-BPI-Software.pdf (Part 11/40)",
-      "source": "Scribd",
-      "score": 736
-    },
-    {
-      "id": 4194,
-      "timestamp": "2026-06-05 17:12:52",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 4193,
-      "timestamp": "2026-06-05 17:09:42",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "845342098-BPI-Software.pdf (Part 10/40)",
-      "source": "Scribd",
-      "score": 621
-    },
-    {
-      "id": 4192,
-      "timestamp": "2026-06-05 17:07:25",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 4191,
-      "timestamp": "2026-06-05 17:04:27",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "845342098-BPI-Software.pdf (Part 9/40)",
-      "source": "Scribd",
-      "score": 588
-    },
-    {
-      "id": 4190,
-      "timestamp": "2026-06-05 17:01:58",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 4189,
-      "timestamp": "2026-06-05 16:56:31",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 4188,
-      "timestamp": "2026-06-05 16:51:05",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 4187,
-      "timestamp": "2026-06-05 16:49:46",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "580326503-Lista-de-Softwares-2020.pdf (Part 50/149)",
-      "source": "Scribd",
-      "score": 607
-    },
-    {
-      "id": 4186,
-      "timestamp": "2026-06-05 16:49:44",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "845342098-BPI-Software.pdf (Part 6/40)",
-      "source": "Scribd",
-      "score": 593
-    },
-    {
-      "id": 4185,
-      "timestamp": "2026-06-05 16:45:38",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 4184,
-      "timestamp": "2026-06-05 16:41:39",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "580326503-Lista-de-Softwares-2020.pdf (Part 48/149)",
-      "source": "Scribd",
-      "score": 696
-    },
-    {
-      "id": 4183,
-      "timestamp": "2026-06-05 16:41:37",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "845342098-BPI-Software.pdf (Part 4/40)",
-      "source": "Scribd",
-      "score": 723
-    },
-    {
-      "id": 4182,
-      "timestamp": "2026-06-05 16:40:13",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 4181,
-      "timestamp": "2026-06-05 16:34:46",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 4180,
-      "timestamp": "2026-06-05 16:29:22",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 4179,
-      "timestamp": "2026-06-05 16:26:49",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "845342098-BPI-Software.pdf (Part 1/40)",
-      "source": "Scribd",
-      "score": 569
-    },
-    {
-      "id": 4178,
-      "timestamp": "2026-06-05 16:26:35",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "580326503-Lista-de-Softwares-2020.pdf (Part 45/149)",
-      "source": "Scribd",
-      "score": 1165
-    },
-    {
-      "id": 4177,
-      "timestamp": "2026-06-05 16:25:40",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "791292193-CAB-Software.pdf (Part 41/41)",
-      "source": "Scribd",
-      "score": 699
-    },
-    {
-      "id": 4176,
-      "timestamp": "2026-06-05 16:23:56",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 4175,
-      "timestamp": "2026-06-05 16:18:28",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 4174,
-      "timestamp": "2026-06-05 16:17:42",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "580326503-Lista-de-Softwares-2020.pdf (Part 43/149)",
-      "source": "Scribd",
-      "score": 909
-    },
-    {
-      "id": 4173,
-      "timestamp": "2026-06-05 16:17:32",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "791292193-CAB-Software.pdf (Part 39/41)",
-      "source": "Scribd",
-      "score": 671
-    },
-    {
-      "id": 4172,
-      "timestamp": "2026-06-05 16:13:01",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 4171,
-      "timestamp": "2026-06-05 16:08:15",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "791292193-CAB-Software.pdf (Part 37/41)",
-      "source": "Scribd",
-      "score": 934
-    },
-    {
-      "id": 4170,
-      "timestamp": "2026-06-05 16:08:09",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "580326503-Lista-de-Softwares-2020.pdf (Part 41/149)",
-      "source": "Scribd",
-      "score": 722
-    },
-    {
-      "id": 4169,
-      "timestamp": "2026-06-05 16:07:33",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 4168,
-      "timestamp": "2026-06-05 16:02:05",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 4167,
-      "timestamp": "2026-06-05 15:59:19",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "791292193-CAB-Software.pdf (Part 35/41)",
-      "source": "Scribd",
-      "score": 701
-    },
-    {
-      "id": 4166,
-      "timestamp": "2026-06-05 15:59:11",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "580326503-Lista-de-Softwares-2020.pdf (Part 39/149)",
-      "source": "Scribd",
-      "score": 487
-    },
-    {
-      "id": 4165,
-      "timestamp": "2026-06-05 15:56:40",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 4164,
-      "timestamp": "2026-06-05 15:51:14",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 4163,
-      "timestamp": "2026-06-05 15:51:04",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "580326503-Lista-de-Softwares-2020.pdf (Part 37/149)",
-      "source": "Scribd",
-      "score": 791
-    },
-    {
-      "id": 4162,
-      "timestamp": "2026-06-05 15:51:01",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "791292193-CAB-Software.pdf (Part 33/41)",
-      "source": "Scribd",
-      "score": 733
-    },
-    {
-      "id": 4161,
-      "timestamp": "2026-06-05 15:45:54",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 4160,
-      "timestamp": "2026-06-05 15:41:58",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "580326503-Lista-de-Softwares-2020.pdf (Part 35/149)",
-      "source": "Scribd",
-      "score": 691
-    },
-    {
-      "id": 4159,
-      "timestamp": "2026-06-05 15:41:55",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "791292193-CAB-Software.pdf (Part 31/41)",
-      "source": "Scribd",
-      "score": 676
-    },
-    {
-      "id": 4158,
-      "timestamp": "2026-06-05 15:40:28",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 136
-    },
-    {
-      "id": 4157,
-      "timestamp": "2026-06-05 15:35:01",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 4156,
-      "timestamp": "2026-06-05 15:33:52",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "791292193-CAB-Software.pdf (Part 29/41)",
-      "source": "Scribd",
-      "score": 1131
-    },
-    {
-      "id": 4155,
-      "timestamp": "2026-06-05 15:33:38",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "580326503-Lista-de-Softwares-2020.pdf (Part 33/149)",
-      "source": "Scribd",
-      "score": 670
-    },
-    {
-      "id": 4154,
-      "timestamp": "2026-06-05 15:29:34",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 4153,
-      "timestamp": "2026-06-05 15:24:08",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 4152,
-      "timestamp": "2026-06-05 15:20:10",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "791292193-CAB-Software.pdf (Part 26/41)",
-      "source": "Scribd",
-      "score": 632
-    },
-    {
-      "id": 4151,
-      "timestamp": "2026-06-05 15:20:09",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "580326503-Lista-de-Softwares-2020.pdf (Part 30/149)",
-      "source": "Scribd",
-      "score": 549
-    },
-    {
-      "id": 4150,
-      "timestamp": "2026-06-05 15:18:42",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 4149,
-      "timestamp": "2026-06-05 15:13:15",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 4148,
-      "timestamp": "2026-06-05 15:11:46",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "580326503-Lista-de-Softwares-2020.pdf (Part 28/149)",
-      "source": "Scribd",
-      "score": 772
-    },
-    {
-      "id": 4147,
-      "timestamp": "2026-06-05 15:11:41",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "791292193-CAB-Software.pdf (Part 24/41)",
-      "source": "Scribd",
-      "score": 672
-    },
-    {
-      "id": 4146,
-      "timestamp": "2026-06-05 15:07:46",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 4145,
-      "timestamp": "2026-06-05 15:02:20",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 4144,
-      "timestamp": "2026-06-05 15:01:57",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "580326503-Lista-de-Softwares-2020.pdf (Part 26/149)",
-      "source": "Scribd",
-      "score": 827
-    },
-    {
-      "id": 4143,
-      "timestamp": "2026-06-05 15:01:54",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "791292193-CAB-Software.pdf (Part 22/41)",
-      "source": "Scribd",
-      "score": 853
-    },
-    {
-      "id": 4142,
-      "timestamp": "2026-06-05 14:57:01",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 4141,
-      "timestamp": "2026-06-05 14:52:43",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "580326503-Lista-de-Softwares-2020.pdf (Part 24/149)",
-      "source": "Scribd",
-      "score": 906
-    },
-    {
-      "id": 4140,
-      "timestamp": "2026-06-05 14:52:37",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "791292193-CAB-Software.pdf (Part 20/41)",
-      "source": "Scribd",
-      "score": 673
-    },
-    {
-      "id": 4139,
-      "timestamp": "2026-06-05 14:51:35",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 4138,
-      "timestamp": "2026-06-05 14:46:08",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 4137,
-      "timestamp": "2026-06-05 14:40:41",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 4136,
-      "timestamp": "2026-06-05 14:38:52",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "791292193-CAB-Software.pdf (Part 17/41)",
-      "source": "Scribd",
-      "score": 682
-    },
-    {
-      "id": 4135,
-      "timestamp": "2026-06-05 14:38:48",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "580326503-Lista-de-Softwares-2020.pdf (Part 21/149)",
-      "source": "Scribd",
-      "score": 921
-    },
-    {
-      "id": 4134,
-      "timestamp": "2026-06-05 14:37:54",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "956695269-CETOL-Interview-Questions-Answers.pdf (Part 2/2)",
-      "source": "Scribd",
-      "score": 1207
-    },
-    {
-      "id": 4133,
-      "timestamp": "2026-06-05 14:36:11",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "791292193-CAB-Software.pdf (Part 16/41)",
-      "source": "Scribd",
-      "score": 774
-    },
-    {
-      "id": 4132,
-      "timestamp": "2026-06-05 14:35:29",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "580326503-Lista-de-Softwares-2020.pdf (Part 20/149)",
-      "source": "Scribd",
-      "score": 652
-    },
-    {
-      "id": 4131,
-      "timestamp": "2026-06-05 14:35:16",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 4130,
-      "timestamp": "2026-06-05 14:34:49",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "956695269-CETOL-Interview-Questions-Answers.pdf (Part 1/2)",
-      "source": "Scribd",
-      "score": 943
-    },
-    {
-      "id": 4129,
-      "timestamp": "2026-06-05 14:33:00",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "791292193-CAB-Software.pdf (Part 15/41)",
-      "source": "Scribd",
-      "score": 636
-    },
-    {
-      "id": 4128,
-      "timestamp": "2026-06-05 14:32:19",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "580326503-Lista-de-Softwares-2020.pdf (Part 19/149)",
-      "source": "Scribd",
-      "score": 796
-    },
-    {
-      "id": 4127,
-      "timestamp": "2026-06-05 14:31:28",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "845342098-BPI-Software.pdf (Part 40/40)",
-      "source": "Scribd",
-      "score": 578
-    },
-    {
-      "id": 4126,
-      "timestamp": "2026-06-05 14:29:51",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "791292193-CAB-Software.pdf (Part 14/41)",
-      "source": "Scribd",
-      "score": 894
-    },
-    {
-      "id": 4125,
-      "timestamp": "2026-06-05 14:29:48",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 4124,
-      "timestamp": "2026-06-05 14:29:07",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "580326503-Lista-de-Softwares-2020.pdf (Part 18/149)",
-      "source": "Scribd",
-      "score": 688
-    },
-    {
-      "id": 4123,
-      "timestamp": "2026-06-05 14:28:14",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "845342098-BPI-Software.pdf (Part 39/40)",
-      "source": "Scribd",
-      "score": 792
-    },
-    {
-      "id": 4122,
-      "timestamp": "2026-06-05 14:26:53",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "791292193-CAB-Software.pdf (Part 13/41)",
-      "source": "Scribd",
-      "score": 938
-    },
-    {
-      "id": 4121,
-      "timestamp": "2026-06-05 14:25:56",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "580326503-Lista-de-Softwares-2020.pdf (Part 17/149)",
-      "source": "Scribd",
-      "score": 959
-    },
-    {
-      "id": 4120,
-      "timestamp": "2026-06-05 14:24:59",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "845342098-BPI-Software.pdf (Part 38/40)",
-      "source": "Scribd",
-      "score": 912
-    },
-    {
-      "id": 4119,
-      "timestamp": "2026-06-05 14:24:21",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 4118,
-      "timestamp": "2026-06-05 14:23:13",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "791292193-CAB-Software.pdf (Part 12/41)",
-      "source": "Scribd",
-      "score": 800
-    },
-    {
-      "id": 4117,
-      "timestamp": "2026-06-05 14:22:31",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "580326503-Lista-de-Softwares-2020.pdf (Part 16/149)",
-      "source": "Scribd",
-      "score": 855
-    },
-    {
-      "id": 4116,
-      "timestamp": "2026-06-05 14:21:36",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "845342098-BPI-Software.pdf (Part 37/40)",
-      "source": "Scribd",
-      "score": 664
-    },
-    {
-      "id": 4115,
-      "timestamp": "2026-06-05 14:20:14",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "791292193-CAB-Software.pdf (Part 11/41)",
-      "source": "Scribd",
-      "score": 585
-    },
-    {
-      "id": 4114,
-      "timestamp": "2026-06-05 14:19:25",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "580326503-Lista-de-Softwares-2020.pdf (Part 15/149)",
-      "source": "Scribd",
-      "score": 547
-    },
-    {
-      "id": 4113,
-      "timestamp": "2026-06-05 14:18:54",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 4112,
-      "timestamp": "2026-06-05 14:18:50",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "845342098-BPI-Software.pdf (Part 36/40)",
-      "source": "Scribd",
-      "score": 613
-    },
-    {
-      "id": 4111,
-      "timestamp": "2026-06-05 14:17:06",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "791292193-CAB-Software.pdf (Part 10/41)",
-      "source": "Scribd",
-      "score": 633
-    },
-    {
-      "id": 4110,
-      "timestamp": "2026-06-05 14:16:29",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "580326503-Lista-de-Softwares-2020.pdf (Part 14/149)",
-      "source": "Scribd",
-      "score": 686
-    },
-    {
-      "id": 4109,
-      "timestamp": "2026-06-05 14:15:43",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "845342098-BPI-Software.pdf (Part 35/40)",
-      "source": "Scribd",
-      "score": 627
-    },
-    {
-      "id": 4108,
-      "timestamp": "2026-06-05 14:14:26",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "791292193-CAB-Software.pdf (Part 9/41)",
-      "source": "Scribd",
-      "score": 695
-    },
-    {
-      "id": 4107,
-      "timestamp": "2026-06-05 14:13:37",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "580326503-Lista-de-Softwares-2020.pdf (Part 13/149)",
-      "source": "Scribd",
-      "score": 676
-    },
-    {
-      "id": 4106,
-      "timestamp": "2026-06-05 14:13:28",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 4105,
-      "timestamp": "2026-06-05 14:12:58",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "845342098-BPI-Software.pdf (Part 34/40)",
-      "source": "Scribd",
-      "score": 676
-    },
-    {
-      "id": 4104,
-      "timestamp": "2026-06-05 14:11:31",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "791292193-CAB-Software.pdf (Part 8/41)",
-      "source": "Scribd",
-      "score": 582
-    },
-    {
-      "id": 4103,
-      "timestamp": "2026-06-05 14:10:49",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "580326503-Lista-de-Softwares-2020.pdf (Part 12/149)",
-      "source": "Scribd",
-      "score": 579
-    },
-    {
-      "id": 4102,
-      "timestamp": "2026-06-05 14:10:09",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "845342098-BPI-Software.pdf (Part 33/40)",
-      "source": "Scribd",
-      "score": 744
-    },
-    {
-      "id": 4101,
-      "timestamp": "2026-06-05 14:08:45",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "791292193-CAB-Software.pdf (Part 7/41)",
-      "source": "Scribd",
-      "score": 590
-    },
-    {
-      "id": 4100,
-      "timestamp": "2026-06-05 14:08:03",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 4099,
-      "timestamp": "2026-06-05 14:07:57",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "580326503-Lista-de-Softwares-2020.pdf (Part 11/149)",
-      "source": "Scribd",
-      "score": 869
-    },
-    {
-      "id": 4098,
-      "timestamp": "2026-06-05 14:07:24",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "845342098-BPI-Software.pdf (Part 32/40)",
-      "source": "Scribd",
-      "score": 642
-    },
-    {
-      "id": 4097,
-      "timestamp": "2026-06-05 14:06:25",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "791292193-CAB-Software.pdf (Part 6/41)",
-      "source": "Scribd",
-      "score": 610
-    },
-    {
-      "id": 4096,
-      "timestamp": "2026-06-05 14:05:01",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "845342098-BPI-Software.pdf (Part 31/40)",
-      "source": "Scribd",
-      "score": 970
-    },
-    {
-      "id": 4095,
-      "timestamp": "2026-06-05 14:04:26",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "580326503-Lista-de-Softwares-2020.pdf (Part 10/149)",
-      "source": "Scribd",
-      "score": 843
-    },
-    {
-      "id": 4094,
-      "timestamp": "2026-06-05 14:03:24",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "791292193-CAB-Software.pdf (Part 5/41)",
-      "source": "Scribd",
-      "score": 533
-    },
-    {
-      "id": 4093,
-      "timestamp": "2026-06-05 14:02:37",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 4092,
-      "timestamp": "2026-06-05 14:02:01",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "845342098-BPI-Software.pdf (Part 30/40)",
-      "source": "Scribd",
-      "score": 753
-    },
-    {
-      "id": 4091,
-      "timestamp": "2026-06-05 14:01:27",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "580326503-Lista-de-Softwares-2020.pdf (Part 9/149)",
-      "source": "Scribd",
-      "score": 688
-    },
-    {
-      "id": 4090,
-      "timestamp": "2026-06-05 14:00:34",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "791292193-CAB-Software.pdf (Part 4/41)",
-      "source": "Scribd",
-      "score": 680
-    },
-    {
-      "id": 4089,
-      "timestamp": "2026-06-05 13:59:18",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "845342098-BPI-Software.pdf (Part 29/40)",
-      "source": "Scribd",
-      "score": 612
-    },
-    {
-      "id": 4088,
-      "timestamp": "2026-06-05 13:58:34",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "580326503-Lista-de-Softwares-2020.pdf (Part 8/149)",
-      "source": "Scribd",
-      "score": 819
-    },
-    {
-      "id": 4087,
-      "timestamp": "2026-06-05 13:57:58",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "791292193-CAB-Software.pdf (Part 3/41)",
-      "source": "Scribd",
-      "score": 508
-    },
-    {
-      "id": 4086,
-      "timestamp": "2026-06-05 13:57:14",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "845342098-BPI-Software.pdf (Part 28/40)",
-      "source": "Scribd",
-      "score": 723
-    },
-    {
-      "id": 4085,
-      "timestamp": "2026-06-05 13:57:10",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 4084,
-      "timestamp": "2026-06-05 13:55:46",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "791292193-CAB-Software.pdf (Part 2/41)",
-      "source": "Scribd",
-      "score": 497
-    },
-    {
-      "id": 4083,
-      "timestamp": "2026-06-05 13:54:55",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "580326503-Lista-de-Softwares-2020.pdf (Part 7/149)",
-      "source": "Scribd",
-      "score": 547
-    },
-    {
-      "id": 4082,
-      "timestamp": "2026-06-05 13:54:27",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "845342098-BPI-Software.pdf (Part 27/40)",
-      "source": "Scribd",
-      "score": 732
-    },
-    {
-      "id": 4081,
-      "timestamp": "2026-06-05 13:52:56",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "791292193-CAB-Software.pdf (Part 1/41)",
-      "source": "Scribd",
-      "score": 790
-    },
-    {
-      "id": 4080,
-      "timestamp": "2026-06-05 13:52:11",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "580326503-Lista-de-Softwares-2020.pdf (Part 6/149)",
-      "source": "Scribd",
-      "score": 756
-    },
-    {
-      "id": 4079,
-      "timestamp": "2026-06-05 13:51:43",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 4078,
-      "timestamp": "2026-06-05 13:51:15",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "845342098-BPI-Software.pdf (Part 26/40)",
-      "source": "Scribd",
-      "score": 878
-    },
-    {
-      "id": 4077,
-      "timestamp": "2026-06-05 13:49:47",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "784878780-Attachment.pdf (Part 64/64)",
-      "source": "Scribd",
-      "score": 1053
-    },
-    {
-      "id": 4076,
-      "timestamp": "2026-06-05 13:48:57",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "580326503-Lista-de-Softwares-2020.pdf (Part 5/149)",
-      "source": "Scribd",
-      "score": 706
-    },
-    {
-      "id": 4075,
-      "timestamp": "2026-06-05 13:48:12",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "845342098-BPI-Software.pdf (Part 25/40)",
-      "source": "Scribd",
-      "score": 815
-    },
-    {
-      "id": 4074,
-      "timestamp": "2026-06-05 13:46:52",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "784878780-Attachment.pdf (Part 63/64)",
-      "source": "Scribd",
-      "score": 1191
-    },
-    {
-      "id": 4073,
-      "timestamp": "2026-06-05 13:46:16",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 4072,
-      "timestamp": "2026-06-05 13:45:54",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "580326503-Lista-de-Softwares-2020.pdf (Part 4/149)",
-      "source": "Scribd",
-      "score": 862
-    },
-    {
-      "id": 4071,
-      "timestamp": "2026-06-05 13:44:49",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "845342098-BPI-Software.pdf (Part 24/40)",
-      "source": "Scribd",
-      "score": 629
-    },
-    {
-      "id": 4070,
-      "timestamp": "2026-06-05 13:43:22",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "784878780-Attachment.pdf (Part 62/64)",
-      "source": "Scribd",
-      "score": 543
-    },
-    {
-      "id": 4069,
-      "timestamp": "2026-06-05 13:42:30",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "580326503-Lista-de-Softwares-2020.pdf (Part 3/149)",
-      "source": "Scribd",
-      "score": 829
-    },
-    {
-      "id": 4068,
-      "timestamp": "2026-06-05 13:41:45",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "845342098-BPI-Software.pdf (Part 23/40)",
-      "source": "Scribd",
-      "score": 755
-    },
-    {
-      "id": 4067,
-      "timestamp": "2026-06-05 13:40:50",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 4066,
-      "timestamp": "2026-06-05 13:39:58",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "784878780-Attachment.pdf (Part 61/64)",
-      "source": "Scribd",
-      "score": 1081
-    },
-    {
-      "id": 4065,
-      "timestamp": "2026-06-05 13:39:20",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "580326503-Lista-de-Softwares-2020.pdf (Part 2/149)",
-      "source": "Scribd",
-      "score": 906
-    },
-    {
-      "id": 4064,
-      "timestamp": "2026-06-05 13:37:19",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "845342098-BPI-Software.pdf (Part 22/40)",
-      "source": "Scribd",
-      "score": 625
-    },
-    {
-      "id": 4063,
-      "timestamp": "2026-06-05 13:36:30",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "580326503-Lista-de-Softwares-2020.pdf (Part 1/149)",
-      "source": "Scribd",
-      "score": 822
-    },
-    {
-      "id": 4062,
-      "timestamp": "2026-06-05 13:35:36",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "784878780-Attachment.pdf (Part 60/64)",
-      "source": "Scribd",
-      "score": 824
-    },
-    {
-      "id": 4061,
-      "timestamp": "2026-06-05 13:35:23",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 4060,
-      "timestamp": "2026-06-05 13:34:20",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "845342098-BPI-Software.pdf (Part 21/40)",
-      "source": "Scribd",
-      "score": 826
-    },
-    {
-      "id": 4059,
-      "timestamp": "2026-06-05 13:33:16",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "369616874-Instalar-MagmaSoft.pdf (Part 4/4)",
-      "source": "Scribd",
-      "score": 658
-    },
-    {
-      "id": 4058,
-      "timestamp": "2026-06-05 13:32:36",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "784878780-Attachment.pdf (Part 59/64)",
-      "source": "Scribd",
-      "score": 973
-    },
-    {
-      "id": 4057,
-      "timestamp": "2026-06-05 13:31:55",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "845342098-BPI-Software.pdf (Part 20/40)",
-      "source": "Scribd",
-      "score": 809
-    },
-    {
-      "id": 4056,
-      "timestamp": "2026-06-05 13:30:54",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "369616874-Instalar-MagmaSoft.pdf (Part 3/4)",
-      "source": "Scribd",
-      "score": 556
-    },
-    {
-      "id": 4055,
-      "timestamp": "2026-06-05 13:29:59",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "784878780-Attachment.pdf (Part 58/64)",
-      "source": "Scribd",
-      "score": 784
-    },
-    {
-      "id": 4054,
-      "timestamp": "2026-06-05 13:29:55",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 4053,
-      "timestamp": "2026-06-05 13:28:52",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "845342098-BPI-Software.pdf (Part 19/40)",
-      "source": "Scribd",
-      "score": 623
-    },
-    {
-      "id": 4052,
-      "timestamp": "2026-06-05 13:27:49",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "369616874-Instalar-MagmaSoft.pdf (Part 2/4)",
-      "source": "Scribd",
-      "score": 725
-    },
-    {
-      "id": 4051,
-      "timestamp": "2026-06-05 13:27:11",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "784878780-Attachment.pdf (Part 57/64)",
-      "source": "Scribd",
-      "score": 891
-    },
-    {
-      "id": 4050,
-      "timestamp": "2026-06-05 13:26:04",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "845342098-BPI-Software.pdf (Part 18/40)",
-      "source": "Scribd",
-      "score": 527
-    },
-    {
-      "id": 4049,
-      "timestamp": "2026-06-05 13:25:10",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "369616874-Instalar-MagmaSoft.pdf (Part 1/4)",
-      "source": "Scribd",
-      "score": 676
-    },
-    {
-      "id": 4047,
-      "timestamp": "2026-06-05 13:24:27",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 4048,
-      "timestamp": "2026-06-05 13:24:27",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "784878780-Attachment.pdf (Part 56/64)",
-      "source": "Scribd",
-      "score": 1025
-    },
-    {
-      "id": 4046,
-      "timestamp": "2026-06-05 13:23:15",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "845342098-BPI-Software.pdf (Part 17/40)",
-      "source": "Scribd",
-      "score": 622
-    },
-    {
-      "id": 4045,
-      "timestamp": "2026-06-05 13:22:19",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "264186820-DIMENSIONAL-TOLERANCE-ANALYSIS.pdf (Part 6/6)",
-      "source": "Scribd",
-      "score": 431
-    },
-    {
-      "id": 4044,
-      "timestamp": "2026-06-05 13:21:36",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "845342098-BPI-Software.pdf (Part 16/40)",
-      "source": "Scribd",
-      "score": 716
-    },
-    {
-      "id": 4043,
-      "timestamp": "2026-06-05 13:21:11",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "784878780-Attachment.pdf (Part 55/64)",
-      "source": "Scribd",
-      "score": 942
-    },
-    {
-      "id": 4042,
-      "timestamp": "2026-06-05 13:20:28",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "264186820-DIMENSIONAL-TOLERANCE-ANALYSIS.pdf (Part 5/6)",
-      "source": "Scribd",
-      "score": 775
-    },
-    {
-      "id": 4041,
-      "timestamp": "2026-06-05 13:19:22",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "845342098-BPI-Software.pdf (Part 15/40)",
-      "source": "Scribd",
-      "score": 687
-    },
-    {
-      "id": 4040,
-      "timestamp": "2026-06-05 13:18:59",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 4039,
-      "timestamp": "2026-06-05 13:18:30",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "264186820-DIMENSIONAL-TOLERANCE-ANALYSIS.pdf (Part 4/6)",
-      "source": "Scribd",
-      "score": 891
-    },
-    {
-      "id": 4038,
-      "timestamp": "2026-06-05 13:17:38",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "784878780-Attachment.pdf (Part 54/64)",
-      "source": "Scribd",
-      "score": 969
-    },
-    {
-      "id": 4037,
-      "timestamp": "2026-06-05 13:16:46",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "845342098-BPI-Software.pdf (Part 14/40)",
-      "source": "Scribd",
-      "score": 920
-    },
-    {
-      "id": 4036,
-      "timestamp": "2026-06-05 13:15:42",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "264186820-DIMENSIONAL-TOLERANCE-ANALYSIS.pdf (Part 3/6)",
-      "source": "Scribd",
-      "score": 776
-    },
-    {
-      "id": 4035,
-      "timestamp": "2026-06-05 13:14:58",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "784878780-Attachment.pdf (Part 53/64)",
-      "source": "Scribd",
-      "score": 816
-    },
-    {
-      "id": 4034,
-      "timestamp": "2026-06-05 13:14:06",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "845342098-BPI-Software.pdf (Part 13/40)",
-      "source": "Scribd",
-      "score": 587
-    },
-    {
-      "id": 4033,
-      "timestamp": "2026-06-05 13:13:30",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 4032,
-      "timestamp": "2026-06-05 13:13:03",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "264186820-DIMENSIONAL-TOLERANCE-ANALYSIS.pdf (Part 2/6)",
-      "source": "Scribd",
-      "score": 774
-    },
-    {
-      "id": 4031,
-      "timestamp": "2026-06-05 13:12:14",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "784878780-Attachment.pdf (Part 52/64)",
-      "source": "Scribd",
-      "score": 801
-    },
-    {
-      "id": 4030,
-      "timestamp": "2026-06-05 13:11:22",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "845342098-BPI-Software.pdf (Part 12/40)",
-      "source": "Scribd",
-      "score": 779
-    },
-    {
-      "id": 4029,
-      "timestamp": "2026-06-05 13:10:31",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "264186820-DIMENSIONAL-TOLERANCE-ANALYSIS.pdf (Part 1/6)",
-      "source": "Scribd",
-      "score": 854
-    },
-    {
-      "id": 4028,
-      "timestamp": "2026-06-05 13:09:36",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "784878780-Attachment.pdf (Part 51/64)",
-      "source": "Scribd",
-      "score": 974
-    },
-    {
-      "id": 4027,
-      "timestamp": "2026-06-05 13:08:57",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "845342098-BPI-Software.pdf (Part 11/40)",
-      "source": "Scribd",
-      "score": 715
-    },
-    {
-      "id": 4026,
-      "timestamp": "2026-06-05 13:08:02",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "218127272-Acta-Arras-and-Van-Merode-Def.pdf (Part 6/6)",
-      "source": "Scribd",
-      "score": 369
-    },
-    {
-      "id": 4025,
-      "timestamp": "2026-06-05 13:08:01",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 4024,
-      "timestamp": "2026-06-05 13:07:08",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "845342098-BPI-Software.pdf (Part 10/40)",
-      "source": "Scribd",
-      "score": 630
-    },
-    {
-      "id": 4023,
-      "timestamp": "2026-06-05 13:06:50",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "784878780-Attachment.pdf (Part 50/64)",
-      "source": "Scribd",
-      "score": 993
-    },
-    {
-      "id": 4022,
-      "timestamp": "2026-06-05 13:06:09",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "218127272-Acta-Arras-and-Van-Merode-Def.pdf (Part 5/6)",
-      "source": "Scribd",
-      "score": 725
-    },
-    {
-      "id": 4021,
-      "timestamp": "2026-06-05 13:05:08",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "845342098-BPI-Software.pdf (Part 9/40)",
-      "source": "Scribd",
-      "score": 571
-    },
-    {
-      "id": 4020,
-      "timestamp": "2026-06-05 13:04:24",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "784878780-Attachment.pdf (Part 49/64)",
-      "source": "Scribd",
-      "score": 1008
-    },
-    {
-      "id": 4019,
-      "timestamp": "2026-06-05 13:03:38",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "218127272-Acta-Arras-and-Van-Merode-Def.pdf (Part 4/6)",
-      "source": "Scribd",
-      "score": 943
-    },
-    {
-      "id": 4018,
-      "timestamp": "2026-06-05 13:02:33",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "845342098-BPI-Software.pdf (Part 8/40)",
-      "source": "Scribd",
-      "score": 439
-    },
-    {
-      "id": 4017,
-      "timestamp": "2026-06-05 13:02:30",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 4016,
-      "timestamp": "2026-06-05 13:01:33",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "784878780-Attachment.pdf (Part 48/64)",
-      "source": "Scribd",
-      "score": 1129
-    },
-    {
-      "id": 4015,
-      "timestamp": "2026-06-05 13:01:01",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "218127272-Acta-Arras-and-Van-Merode-Def.pdf (Part 3/6)",
-      "source": "Scribd",
-      "score": 929
-    },
-    {
-      "id": 4014,
-      "timestamp": "2026-06-05 12:59:55",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "845342098-BPI-Software.pdf (Part 7/40)",
-      "source": "Scribd",
-      "score": 551
-    },
-    {
-      "id": 4013,
-      "timestamp": "2026-06-05 12:58:43",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "218127272-Acta-Arras-and-Van-Merode-Def.pdf (Part 2/6)",
-      "source": "Scribd",
-      "score": 724
-    },
-    {
-      "id": 4012,
-      "timestamp": "2026-06-05 12:58:16",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "784878780-Attachment.pdf (Part 47/64)",
-      "source": "Scribd",
-      "score": 687
-    },
-    {
-      "id": 4011,
-      "timestamp": "2026-06-05 12:57:21",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "845342098-BPI-Software.pdf (Part 6/40)",
-      "source": "Scribd",
-      "score": 645
-    },
-    {
-      "id": 4010,
-      "timestamp": "2026-06-05 12:57:02",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 4009,
-      "timestamp": "2026-06-05 12:56:22",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "218127272-Acta-Arras-and-Van-Merode-Def.pdf (Part 1/6)",
-      "source": "Scribd",
-      "score": 952
-    },
-    {
-      "id": 4008,
-      "timestamp": "2026-06-05 12:55:37",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "784878780-Attachment.pdf (Part 46/64)",
-      "source": "Scribd",
-      "score": 749
-    },
-    {
-      "id": 4007,
-      "timestamp": "2026-06-05 12:54:49",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "845342098-BPI-Software.pdf (Part 5/40)",
-      "source": "Scribd",
-      "score": 514
-    },
-    {
-      "id": 4006,
-      "timestamp": "2026-06-05 12:53:45",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "174668943-Visi-Analysis.pdf (Part 10/10)",
-      "source": "Scribd",
-      "score": 767
-    },
-    {
-      "id": 4005,
-      "timestamp": "2026-06-05 12:53:18",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "784878780-Attachment.pdf (Part 45/64)",
-      "source": "Scribd",
-      "score": 704
-    },
-    {
-      "id": 4004,
-      "timestamp": "2026-06-05 12:51:32",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 4003,
-      "timestamp": "2026-06-05 12:45:57",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 4002,
-      "timestamp": "2026-06-05 12:40:28",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 4001,
-      "timestamp": "2026-06-05 12:39:16",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "174668943-Visi-Analysis.pdf (Part 7/10)",
-      "source": "Scribd",
-      "score": 733
-    },
-    {
-      "id": 4000,
-      "timestamp": "2026-06-05 12:34:59",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 3999,
-      "timestamp": "2026-06-05 12:33:20",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "784878780-Attachment.pdf (Part 41/64)",
-      "source": "Scribd",
-      "score": 982
-    },
-    {
-      "id": 3998,
-      "timestamp": "2026-06-05 12:29:42",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "791292193-CAB-Software.pdf (Part 41/41)",
-      "source": "Scribd",
-      "score": 707
-    },
-    {
-      "id": 3997,
-      "timestamp": "2026-06-05 12:29:26",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 3996,
-      "timestamp": "2026-06-05 12:28:41",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "174668943-Visi-Analysis.pdf (Part 5/10)",
-      "source": "Scribd",
-      "score": 817
-    },
-    {
-      "id": 3995,
-      "timestamp": "2026-06-05 12:27:59",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "784878780-Attachment.pdf (Part 40/64)",
-      "source": "Scribd",
-      "score": 658
-    },
-    {
-      "id": 3994,
-      "timestamp": "2026-06-05 12:24:38",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "791292193-CAB-Software.pdf (Part 40/41)",
-      "source": "Scribd",
-      "score": 685
-    },
-    {
-      "id": 3993,
-      "timestamp": "2026-06-05 12:23:57",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 3992,
-      "timestamp": "2026-06-05 12:22:42",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "784878780-Attachment.pdf (Part 39/64)",
-      "source": "Scribd",
-      "score": 719
-    },
-    {
-      "id": 3991,
-      "timestamp": "2026-06-05 12:18:29",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 3990,
-      "timestamp": "2026-06-05 12:17:39",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "784878780-Attachment.pdf (Part 38/64)",
-      "source": "Scribd",
-      "score": 1024
-    },
-    {
-      "id": 3989,
-      "timestamp": "2026-06-05 12:13:08",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "174668943-Visi-Analysis.pdf (Part 2/10)",
-      "source": "Scribd",
-      "score": 760
-    },
-    {
-      "id": 3988,
-      "timestamp": "2026-06-05 12:13:00",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 136
-    },
-    {
-      "id": 3987,
-      "timestamp": "2026-06-05 12:08:50",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "791292193-CAB-Software.pdf (Part 37/41)",
-      "source": "Scribd",
-      "score": 839
-    },
-    {
-      "id": 3986,
-      "timestamp": "2026-06-05 12:08:05",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "174668943-Visi-Analysis.pdf (Part 1/10)",
-      "source": "Scribd",
-      "score": 563
-    },
-    {
-      "id": 3985,
-      "timestamp": "2026-06-05 12:07:31",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 3984,
-      "timestamp": "2026-06-05 12:04:03",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "791292193-CAB-Software.pdf (Part 36/41)",
-      "source": "Scribd",
-      "score": 723
-    },
-    {
-      "id": 3983,
-      "timestamp": "2026-06-05 12:02:05",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 3982,
-      "timestamp": "2026-06-05 11:56:38",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 3981,
-      "timestamp": "2026-06-05 11:56:18",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "784878780-Attachment.pdf (Part 34/64)",
-      "source": "Scribd",
-      "score": 876
-    },
-    {
-      "id": 3980,
-      "timestamp": "2026-06-05 11:56:14",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "791292193-CAB-Software.pdf (Part 34/41)",
-      "source": "Scribd",
-      "score": 837
-    },
-    {
-      "id": 3979,
-      "timestamp": "2026-06-05 11:51:20",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 3978,
-      "timestamp": "2026-06-05 11:46:11",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "784878780-Attachment.pdf (Part 32/64)",
-      "source": "Scribd",
-      "score": 748
-    },
-    {
-      "id": 3977,
-      "timestamp": "2026-06-05 11:46:03",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "791292193-CAB-Software.pdf (Part 32/41)",
-      "source": "Scribd",
-      "score": 632
-    },
-    {
-      "id": 3976,
-      "timestamp": "2026-06-05 11:45:54",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 3975,
-      "timestamp": "2026-06-05 11:40:27",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 3974,
-      "timestamp": "2026-06-05 11:38:27",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "784878780-Attachment.pdf (Part 30/64)",
-      "source": "Scribd",
-      "score": 1012
-    },
-    {
-      "id": 3973,
-      "timestamp": "2026-06-05 11:38:16",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "791292193-CAB-Software.pdf (Part 30/41)",
-      "source": "Scribd",
-      "score": 612
-    },
-    {
-      "id": 3972,
-      "timestamp": "2026-06-05 11:35:01",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 3971,
-      "timestamp": "2026-06-05 11:29:34",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 3970,
-      "timestamp": "2026-06-05 11:24:37",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "791292193-CAB-Software.pdf (Part 27/41)",
-      "source": "Scribd",
-      "score": 641
-    },
-    {
-      "id": 3969,
-      "timestamp": "2026-06-05 11:24:22",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "784878780-Attachment.pdf (Part 27/64)",
-      "source": "Scribd",
-      "score": 1322
-    },
-    {
-      "id": 3968,
-      "timestamp": "2026-06-05 11:24:10",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 3967,
-      "timestamp": "2026-06-05 11:23:19",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "791292193-CAB-Software.pdf (Part 26/41)",
-      "source": "Scribd",
-      "score": 745
-    },
-    {
-      "id": 3966,
-      "timestamp": "2026-06-05 11:18:43",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 3965,
-      "timestamp": "2026-06-05 11:14:22",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "784878780-Attachment.pdf (Part 25/64)",
-      "source": "Scribd",
-      "score": 1160
-    },
-    {
-      "id": 3964,
-      "timestamp": "2026-06-05 11:14:04",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "791292193-CAB-Software.pdf (Part 24/41)",
-      "source": "Scribd",
-      "score": 710
-    },
-    {
-      "id": 3963,
-      "timestamp": "2026-06-05 11:13:18",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 3962,
-      "timestamp": "2026-06-05 11:07:50",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 3961,
-      "timestamp": "2026-06-05 11:04:30",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "791292193-CAB-Software.pdf (Part 22/41)",
-      "source": "Scribd",
-      "score": 954
-    },
-    {
-      "id": 3960,
-      "timestamp": "2026-06-05 11:04:25",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "784878780-Attachment.pdf (Part 23/64)",
-      "source": "Scribd",
-      "score": 825
-    },
-    {
-      "id": 3959,
-      "timestamp": "2026-06-05 11:02:24",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 136
-    },
-    {
-      "id": 3958,
-      "timestamp": "2026-06-05 10:57:07",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 3957,
-      "timestamp": "2026-06-05 10:56:57",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "791292193-CAB-Software.pdf (Part 20/41)",
-      "source": "Scribd",
-      "score": 600
-    },
-    {
-      "id": 3956,
-      "timestamp": "2026-06-05 10:56:42",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "784878780-Attachment.pdf (Part 21/64)",
-      "source": "Scribd",
-      "score": 919
-    },
-    {
-      "id": 3955,
-      "timestamp": "2026-06-05 10:55:36",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "791292193-CAB-Software.pdf (Part 19/41)",
-      "source": "Scribd",
-      "score": 1079
-    },
-    {
-      "id": 3954,
-      "timestamp": "2026-06-05 10:54:37",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "784878780-Attachment.pdf (Part 20/64)",
-      "source": "Scribd",
-      "score": 1456
-    },
-    {
-      "id": 3953,
-      "timestamp": "2026-06-05 10:53:31",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "791292193-CAB-Software.pdf (Part 18/41)",
-      "source": "Scribd",
-      "score": 541
-    },
-    {
-      "id": 3952,
-      "timestamp": "2026-06-05 10:51:48",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 3951,
-      "timestamp": "2026-06-05 10:46:24",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 136
-    },
-    {
-      "id": 3950,
-      "timestamp": "2026-06-05 10:45:01",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "784878780-Attachment.pdf (Part 18/64)",
-      "source": "Scribd",
-      "score": 956
-    },
-    {
-      "id": 3949,
-      "timestamp": "2026-06-05 10:44:48",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "791292193-CAB-Software.pdf (Part 16/41)",
-      "source": "Scribd",
-      "score": 656
-    },
-    {
-      "id": 3948,
-      "timestamp": "2026-06-05 10:40:56",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 3947,
-      "timestamp": "2026-06-05 10:37:18",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "784878780-Attachment.pdf (Part 16/64)",
-      "source": "Scribd",
-      "score": 900
-    },
-    {
-      "id": 3946,
-      "timestamp": "2026-06-05 10:37:13",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "791292193-CAB-Software.pdf (Part 14/41)",
-      "source": "Scribd",
-      "score": 718
-    },
-    {
-      "id": 3945,
-      "timestamp": "2026-06-05 10:35:28",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 136
-    },
-    {
-      "id": 3944,
-      "timestamp": "2026-06-05 10:30:08",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 136
-    },
-    {
-      "id": 3943,
-      "timestamp": "2026-06-05 10:26:49",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "784878780-Attachment.pdf (Part 14/64)",
-      "source": "Scribd",
-      "score": 846
-    },
-    {
-      "id": 3942,
-      "timestamp": "2026-06-05 10:26:43",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "791292193-CAB-Software.pdf (Part 12/41)",
-      "source": "Scribd",
-      "score": 608
-    },
-    {
-      "id": 3941,
-      "timestamp": "2026-06-05 10:24:42",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 3940,
-      "timestamp": "2026-06-05 10:19:17",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 3939,
-      "timestamp": "2026-06-05 10:19:00",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "784878780-Attachment.pdf (Part 12/64)",
-      "source": "Scribd",
-      "score": 842
-    },
-    {
-      "id": 3938,
-      "timestamp": "2026-06-05 10:18:57",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "791292193-CAB-Software.pdf (Part 10/41)",
-      "source": "Scribd",
-      "score": 792
-    },
-    {
-      "id": 3937,
-      "timestamp": "2026-06-05 10:14:00",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 3936,
-      "timestamp": "2026-06-05 10:10:31",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "784878780-Attachment.pdf (Part 10/64)",
-      "source": "Scribd",
-      "score": 1052
-    },
-    {
-      "id": 3935,
-      "timestamp": "2026-06-05 10:10:20",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "791292193-CAB-Software.pdf (Part 8/41)",
-      "source": "Scribd",
-      "score": 634
-    },
-    {
-      "id": 3934,
-      "timestamp": "2026-06-05 10:08:32",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 3933,
-      "timestamp": "2026-06-05 10:03:05",
-      "domain": "CAE_MATERIAL",
-      "title": "Press press_blanking: Blanking SPCC 1.2mm - Shear zone vs Fracture zone ratio analysis params={'clea...",
-      "source": "cae_te_engine",
-      "score": 137
-    },
-    {
-      "id": 3932,
-      "timestamp": "2026-06-05 10:01:52",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "784878780-Attachment.pdf (Part 8/64)",
-      "source": "Scribd",
-      "score": 772
-    },
-    {
-      "id": 3931,
-      "timestamp": "2026-06-05 10:01:45",
-      "domain": "SCRIBD_DOCUMENT",
-      "title": "791292193-CAB-Software.pdf (Part 6/41)",
-      "source": "Scribd",
-      "score": 600
     }
   ],
   "top10": [
@@ -30996,5 +29452,5 @@
       "score": 1479
     }
   ],
-  "generated_at": "2026-06-12T10:00:01.924126"
+  "generated_at": "2026-06-12T19:00:02.370437"
 }

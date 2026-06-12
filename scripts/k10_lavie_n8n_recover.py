@@ -95,7 +95,7 @@ def main() -> int:
     port = int((cfg.get("lavie") or {}).get("port") or 5679)
     base_url = f"http://{ip}:{port}"
 
-    worker_ok, worker_detail = router.probe_lavie_job_worker(cfg)
+    worker_ok, worker_detail = router.probe_satellite_job_worker(cfg, args.node)
     if not worker_ok:
         print(f"[NG] LAVIE job worker offline: {worker_detail}", file=sys.stderr)
         return 1

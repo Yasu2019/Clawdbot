@@ -82,3 +82,26 @@ def thinkpad_endpoints() -> dict[str, Any]:
         "blocked_workloads": reg.get("blocked_workloads") or [],
         "status": reg.get("status") or "unknown",
     }
+
+
+def red_lavie_endpoints() -> dict[str, Any]:
+    reg = load_registry("red_lavie")
+    ip = (reg.get("tailscale_ip") or reg.get("lan_ip") or "").strip()
+    port = int(reg.get("job_worker_port") or 5682)
+    base_url = (reg.get("job_worker_url") or "").strip().rstrip("/")
+    if not base_url and ip:
+        base_url = f"http://{ip}:{port}"
+    return {
+        "node_id": "red_lavie",
+        "node_name": reg.get("node_name") or "NEC Red LAVIE",
+        "ip": ip,
+        "port": port,
+        "job_worker_url": base_url,
+        "job_worker_healthz": f"{base_url}/healthz" if base_url else "",
+        "monitor_agent_url": reg.get("monitor_agent_url") or (f"http://{ip}:8111/metrics" if ip else ""),
+        "profile": reg.get("profile") or "interim_non_cae_offload",
+        "docker_ready": bool(reg.get("docker_ready")),
+        "allowed_workloads": reg.get("allowed_workloads") or [],
+        "blocked_workloads": reg.get("blocked_workloads") or [],
+        "status": reg.get("status") or "unknown",
+    }

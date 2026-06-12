@@ -39,8 +39,9 @@ POLICY_PATH = ROOT / "data" / "workspace" / "gemma4_adoption_policy.json"
 OVERLAY_PATH = ROOT / "data" / "state" / "litellm_config.gemma4.experimental.yaml"
 
 OLLAMA_TAG_URLS = [
-    "http://127.0.0.1:11434/api/tags",
-    "http://host.docker.internal:11434/api/tags",
+    ("main", "http://127.0.0.1:11434/api/tags"),
+    ("eval", "http://127.0.0.1:11435/api/tags"),
+    ("main_docker", "http://host.docker.internal:11434/api/tags"),
 ]
 
 
@@ -85,44 +86,71 @@ def fetch_tags_via_wsl(url: str) -> tuple[bool, object]:
 def main() -> int:
     attempts = []
     gemma4_tags: list[str] = []
+    eval_gemma4_tags: list[str] = []
     reachable = False
+    eval_reachable = False
 
-    for url in OLLAMA_TAG_URLS:
+    for channel, url in OLLAMA_TAG_URLS:
         ok, payload = fetch_tags(url)
-        attempts.append({"url": url, "ok": ok, "result": payload})
-        if ok:
+        attempts.append({"channel": channel, "url": url, "ok": ok, "result": payload})
+        if not ok:
+            continue
+        tags = [name for name in payload if "gemma4" in name.lower()]
+        if channel == "eval":
+            eval_reachable = True
+            eval_gemma4_tags = tags
+        else:
             reachable = True
-            gemma4_tags = [name for name in payload if "gemma4" in name.lower()]
-            if gemma4_tags:
-                break
+            if tags:
+                gemma4_tags = tags
 
-    if not reachable:
-        for url in OLLAMA_TAG_URLS:
+    if not reachable and not eval_reachable:
+        for channel, url in OLLAMA_TAG_URLS:
             ok, payload = fetch_tags_via_wsl(url)
-            attempts.append({"url": f"wsl:{url}", "ok": ok, "result": payload})
-            if ok:
+            attempts.append({"channel": f"wsl_{channel}", "url": url, "ok": ok, "result": payload})
+            if not ok:
+                continue
+            tags = [name for name in payload if "gemma4" in name.lower()]
+            if channel == "eval":
+                eval_reachable = True
+                eval_gemma4_tags = tags
+            else:
                 reachable = True
-                gemma4_tags = [name for name in payload if "gemma4" in name.lower()]
-                if gemma4_tags:
-                    break
+                if tags:
+                    gemma4_tags = tags
+
+    all_gemma4 = sorted(set(gemma4_tags + eval_gemma4_tags))
 
     policy = {}
     if POLICY_PATH.exists():
         policy = json.loads(POLICY_PATH.read_text(encoding="utf-8"))
 
+    has_eval = bool(eval_gemma4_tags)
+    has_any = bool(all_gemma4)
     status = {
         "updatedAt": iso_now(),
         "ollamaReachable": reachable,
-        "gemma4Detected": bool(gemma4_tags),
-        "detectedTags": gemma4_tags,
+        "evalOllamaReachable": eval_reachable,
+        "evalOllamaUrl": "http://127.0.0.1:11435",
+        "evalContainer": "clawstack-gemma4-eval",
+        "gemma4Detected": has_any,
+        "gemma4OnMainOllama": bool(gemma4_tags),
+        "gemma4OnEvalOllama": has_eval,
+        "detectedTags": all_gemma4,
+        "detectedTagsMain": gemma4_tags,
+        "detectedTagsEval": eval_gemma4_tags,
         "liteLLMOverlayReady": OVERLAY_PATH.exists(),
-        "policyStatus": policy.get("status", "unknown"),
-        "policyMode": policy.get("mode", "unknown"),
-        "activationState": "ready_to_enable" if gemma4_tags else "ready_when_pulled",
+        "policyStatus": policy.get("status", "evaluation_only"),
+        "policyMode": policy.get("mode", "ADOPT_PARTIAL"),
+        "activationState": "eval_ready" if has_eval else ("ready_to_enable" if gemma4_tags else "ready_when_pulled"),
         "recommendedNextStep": (
-            "Run activate_gemma4_local_aliases.py after verifying the exact Gemma 4 Ollama tags."
-            if gemma4_tags
-            else "Start or restore Ollama, then pull a real Gemma 4 tag before enabling aliases."
+            "python scripts/k10_gemma4_eval_next_step.py --bench"
+            if has_eval
+            else (
+                "Run activate_gemma4_local_aliases.py after verifying Gemma4 tags on main Ollama."
+                if gemma4_tags
+                else "Start clawstack-gemma4-eval or pull gemma4:12b-it-qat on eval Ollama :11435."
+            )
         ),
         "checks": attempts,
     }
@@ -133,7 +161,7 @@ def main() -> int:
     )
 
     print(json.dumps(status, ensure_ascii=False, indent=2))
-    return 0 if gemma4_tags else 1
+    return 0 if has_any else 1
 
 
 if __name__ == "__main__":

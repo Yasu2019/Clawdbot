@@ -116,7 +116,29 @@ def lavie_dest_dir(cfg: dict[str, Any], override: str = "") -> str:
     return str(Path(work)).replace("/", "\\")
 
 
-def build_download_command(k10_ip: str, port: int, zip_name: str, dest_dir: str) -> str:
+def thinkpad_dest_dir(cfg: dict[str, Any], override: str = "") -> str:
+    if override:
+        return override.replace("\\", "/").rstrip("/")
+    tp = cfg.get("thinkpad") or {}
+    if tp.get("cae_workspace"):
+        return str(tp["cae_workspace"]).replace("\\", "/")
+    return "/home/yasu/clawstack_satellite/data/work/cae_te_workspace"
+
+
+def build_download_command_linux(k10_ip: str, port: int, zip_name: str, dest_dir: str) -> str:
+    url = f"http://{k10_ip}:{port}/{zip_name}"
+    return (
+        f"mkdir -p '{dest_dir}' /tmp && "
+        f"curl -fsSL '{url}' -o /tmp/{zip_name} && "
+        f"python3 -c \"import zipfile; zipfile.ZipFile('/tmp/{zip_name}').extractall('{dest_dir}')\" && "
+        f"test -d '{dest_dir}/experiments' && "
+        f"echo SYNC_OK experiments=$(find '{dest_dir}/experiments' -type f | wc -l)"
+    )
+
+
+def build_download_command(k10_ip: str, port: int, zip_name: str, dest_dir: str, *, linux: bool = False) -> str:
+    if linux:
+        return build_download_command_linux(k10_ip, port, zip_name, dest_dir)
     url = f"http://{k10_ip}:{port}/{zip_name}"
     ps = (
         f"$dest='{dest_dir}'; "
@@ -168,14 +190,20 @@ def main() -> int:
             return 0
 
         k10_ip = detect_k10_tailscale_ip(args.k10_ip)
-        dest_dir = lavie_dest_dir(cfg, args.dest)
+        node_id = args.node
+        if node_id == "thinkpad":
+            dest_dir = thinkpad_dest_dir(cfg, args.dest)
+            linux = True
+        else:
+            dest_dir = lavie_dest_dir(cfg, args.dest)
+            linux = False
         print(f"[sync] serve http://{k10_ip}:{args.port}/{zip_name}")
-        print(f"[sync] lavie dest={dest_dir}")
+        print(f"[sync] {node_id} dest={dest_dir}")
 
         server, _thread = serve_zip(zip_path, args.port)
         try:
             token = sjp.load_token()
-            command = build_download_command(k10_ip, args.port, zip_name, dest_dir)
+            command = build_download_command(k10_ip, args.port, zip_name, dest_dir, linux=linux)
             result = dispatch_shell(args.node, command, args.timeout, token)
             stdout = (result.get("stdout_tail") or "").strip()
             stderr = (result.get("stderr_tail") or "").strip()

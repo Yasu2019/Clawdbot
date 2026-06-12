@@ -1,13 +1,51 @@
 {
-  "phase": "run60c",
-  "status": "physics_fail",
-  "last_run": "60c",
-  "t_final_ms": 20.0,
-  "termination": "NORMAL_TSTOP",
+  "phase": "run58b11",
+  "run_id": "58b11",
+  "label": "58b9 + stripper delay t>=13ms",
+  "result": {
+    "nc_final": 10600,
+    "t_final_ms": 10.6,
+    "err_final_pct": -99.9,
+    "termination": "NORMAL_VELOCITY",
+    "velocity_note": " NODE WITH HIGHEST RELATIVE VELOCITY:        3194   72.983526386267485"
+  },
+  "physics_check_A010": {
+    "part2_von_mises_mpa": 10.0,
+    "part2_disp_max_mm": 4.4874330051243305,
+    "disp_max_mm": 4.4874330051243305,
+    "ok": true
+  },
+  "physics_check_A020": {
+    "ok": false,
+    "skipped": true
+  },
   "gate_passed": false,
-  "part2_von_mises_mpa": 0.0,
-  "part2_disp_max_mm": 0.0,
-  "run60b_ams": "ERROR: ADVANCED MASS SCALING incompatible with HEX Isolid=24",
-  "run60c_brick_sh3n": "TYPE25 secondary switched SH3N400 -> BRICK/PART/EXT402; TYPE2 rejected (shared-node over-constraint)",
-  "at": "2026-06-05T08:28:59"
+  "verify": {
+    "Idel": 2,
+    "punch_dz_mm": -0.7,
+    "punch_vel_m_s": -0.06,
+    "eps_eff": 0.4,
+    "tstop": 0.025,
+    "delay_stripper": true,
+    "soft_contact": {
+      "gap_max": 0.1,
+      "stfac_punch": 0.2,
+      "VC": 0.6
+    },
+    "initial_gaps_mm": {
+      "punch_to_mat_skin_mm": 0.0,
+      "punch_to_mat_solid_mm": null,
+      "die_to_mat_bottom_mm": null
+    },
+    "deck": {
+      "Eps_eff": 0.4,
+      "Inacti": 6,
+      "VC": 0.6
+    },
+    "starter": "errors=0 ERROR(S) penetrations=6 rc=0",
+    "engine": {
+      "tstop": 0.025
+    }
+  },
+  "at": "2026-06-07T01:27:28"
 }

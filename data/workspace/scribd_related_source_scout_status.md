@@ -1,6 +1,6 @@
 # Scribd Related Source Scout
 
-- Updated: 2026-06-08T15:48:59+09:00
+- Updated: 2026-06-12T04:00:02+09:00
 - Mode: search_url_inventory
 - Download inventory count: 38
 - Candidate count: 17

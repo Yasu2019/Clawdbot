@@ -10,12 +10,13 @@ import tempfile
 import time
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
+import psutil
 
 from email_db_lock import EmailDbLock, read_lock_owner
 
 
 JST = timezone(timedelta(hours=9))
-START_DATE = date(2019, 1, 1)
+START_DATE = date(2004, 4, 1)
 MAX_MESSAGES_PER_CHUNK = 500
 TIMEOUT_SECONDS = 3600
 
@@ -127,6 +128,15 @@ def run_backfill(chunks: list[dict], max_messages_per_chunk: int) -> dict:
         try:
             con = mod.connect_db()
             for chunk in chunks:
+                # リソース監視 (CPU < 20%, RAM < 80%)
+                while True:
+                    try:
+                        if psutil.cpu_percent(interval=2) < 20.0 and psutil.virtual_memory().percent < 80.0:
+                            break
+                        time.sleep(30)
+                    except:
+                        break # psutilが無い場合等は抜ける
+                        
                 gmail_result = mod.index_gmail(con, state, max_messages_per_chunk, 30, chunk["query"])
                 con.commit()
                 rebuilt = mod.rebuild_tasks(con)
@@ -188,9 +198,10 @@ def main() -> None:
     args = parser.parse_args()
 
     yesterday = datetime.now(JST).date() - timedelta(days=1)
-    end_date = args.end_date or yesterday
-    if end_date > yesterday:
-        end_date = yesterday
+    target_end_date = date(2013, 5, 31)
+    end_date = args.end_date or target_end_date
+    if end_date > target_end_date:
+        end_date = target_end_date
     if args.start_date > end_date:
         raise SystemExit("start-date must be on or before end-date")
 

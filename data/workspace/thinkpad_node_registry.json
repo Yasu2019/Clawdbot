@@ -8,8 +8,15 @@
   "ssh_user": "yasu",
   "ssh_host": "100.66.63.9",
   "ssh_key_path": "C:\\Users\\yasu\\.ssh\\id_ed25519",
-  "profile": "medium_ssh",
-  "job_transport": "ssh",
+  "profile": "dedicated_medium",
+  "job_transport": "worker",
+  "job_worker_port": 5683,
+  "job_worker_url": "http://100.66.63.9:5683",
+  "monitor_agent_port": 8111,
+  "install_root": "/home/yasu/clawstack_satellite",
+  "jobs_root": "/home/yasu/clawstack_satellite/data/work/jobs",
+  "cae_repo_root": "/home/yasu/clawstack_satellite/cae_repo",
+  "cae_workspace": "/home/yasu/clawstack_satellite/data/work/cae_te_workspace",
   "max_cpu_percent": 80,
   "max_ram_percent": 75,
   "max_temp_c": 75,
@@ -20,15 +27,19 @@
     "rag_indexing",
     "qms_iatf_analysis",
     "small_batch_scripts",
-    "cae_pregate_dry_run"
+    "cae_pregate_dry_run",
+    "openfoam_real_solver",
+    "openradioss_real_solver",
+    "press_blanking",
+    "press_bending"
   ],
   "blocked_workloads": [
-    "openradioss_real_solver",
-    "openfoam_real_solver",
     "long_video_render",
-    "unbounded_download_loop"
+    "unbounded_download_loop",
+    "resin_fill_cad",
+    "progressive_strip_layout"
   ],
-  "status": "registered",
-  "updated_at": "2026-06-09T20:16:43+09:00",
-  "notes": "Ubuntu ThinkPad L590 controlled from K10 over SSH. Use guarded medium/light jobs first; no heavy solver until worker and thermal history are proven."
+  "status": "cae_te_active",
+  "updated_at": "2026-06-10T12:00:00+09:00",
+  "notes": "OpenRadioss/OpenFOAM verified. CAE TE loop via k10_lavie_continuous_te_loop.py --node thinkpad."
 }

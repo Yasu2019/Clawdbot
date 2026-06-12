@@ -84,6 +84,11 @@ def probe_satellite_job_worker(cfg: dict[str, Any], node_id: str) -> tuple[bool,
         return False, f"{url} -> {exc}"
 
 
+def probe_lavie_job_worker(cfg: dict[str, Any]) -> tuple[bool, str]:
+    """Backward-compatible alias for LAVIE job worker probe."""
+    return probe_satellite_job_worker(cfg, "lavie")
+
+
 def probe_satellite_metrics(cfg: dict[str, Any], node_id: str) -> tuple[bool, dict[str, Any], str]:
     sat = cfg.get(node_id) or {}
     if not sat.get("enabled"):

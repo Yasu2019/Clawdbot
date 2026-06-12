@@ -25,6 +25,9 @@ red_lavie:
   monitor_agent_port: 8111
   job_worker_port: 5682
   job_worker_path: /healthz
+  no_docker: false
+  docker_backend: wsl2
+  notes: "PC-NS700JAR-YC i7-8550U 32GB. VT-x ON (firmware). Docker Desktop 4.77 WSL2. CAE tools via k10_red_lavie_cae_install_all.ps1 resume."
 
 red_lavie_dedicated_categories:
   - resin_fill_cad
@@ -114,6 +117,7 @@ dynabook:
   ip: ""
   tailscale_ip: "100.98.133.40"
   job_worker_port: 5683
+  monitor_agent_port: 8111
   profile: light
   no_docker: true
   cae_dry_run_only: true
@@ -133,13 +137,17 @@ thinkpad:
   tailscale_ip: "100.66.63.9"
   ssh_user: "yasu"
   ssh_key_path: "C:/Users/yasu/.ssh/id_ed25519"
-  profile: medium_ssh
-  job_transport: ssh
+  job_worker_port: 5683
+  job_worker_path: /healthz
+  monitor_agent_port: 8111
+  cae_workspace: /home/yasu/clawstack_satellite/data/work/cae_te_workspace
+  profile: medium_worker
+  job_transport: worker
   max_ram_percent: 75
   max_cpu_percent: 80
   max_temp_c: 75
-  no_docker: true
-  cae_dry_run_only: true
+  no_docker: false
+  cae_dry_run_only: false
   medium_job_categories:
     - web_research
     - dataset_download
@@ -148,7 +156,7 @@ thinkpad:
     - qms_iatf_analysis
     - cae_pregate_dry_run
   blocked_categories:
-    - openradioss_real_solver
-    - openfoam_real_solver
     - long_video_render
-  notes: "Use SSH metrics guard before dispatch. Keep real CAE solvers on K10/LAVIE until job_worker and thermal history are proven."
+    - progressive_strip_layout
+    - resin_fill_cad
+  notes: "Docker CAE via job_worker :5683. Light press categories on continuous TE loop."

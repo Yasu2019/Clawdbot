@@ -1,6 +1,6 @@
 # AI Strategy Scout: Architectural Sentinel Edition
 
-- Generated at: 2026-06-05 17:54:27 JST
+- Generated at: 2026-06-12 10:39:11 JST
 - Mode: local_no_api_cost
 
 ## 🏛️ [DECISION] Architectural Recommendations
@@ -11,59 +11,63 @@
   - https://mfem.org/particles/
   - https://mfem.org/about/
 
+### 🔌 ADOPT_INTEGRATE: Ops Toolbox
+- **Rationale**: Matches 1 new developments in this domain.
+  - v0.23.0rc2: [Docker] Fix CUTLASS DSL cu13 install order in Dockerfile (#45204)
+
 ---
 
 ## Local LLM / OSS
 
 ### Local LLM
-- b9523 [fresh]
-  Source: llama.cpp Releases | Published: 2026-06-05T17:44:29+09:00
-  https://github.com/ggml-org/llama.cpp/releases/tag/b9523
-- Nemotron 3.5 Content Safety: Customizable Multimodal Safety for Global Enterprise AI [fresh]
-  Source: Hugging Face Blog | Published: 2026-06-05T03:57:45+09:00
-  https://huggingface.co/blog/nvidia/nemotron-3-5-content-safety
-- v0.22.1: fix: resolve CUTLASS fmin compatibility for DeepSeek-V4 init [fresh]
-  Source: vLLM Releases | Published: 2026-06-04T09:11:47+09:00
-  https://github.com/vllm-project/vllm/releases/tag/v0.22.1
-- NVIDIA Nemotron 3 Ultra June 4, 2026 NVIDIA Nemotron 3 Ultra is built for high-throughput reasoning and long-running agent workflows. [reference]
+- v0.23.0rc2: [Docker] Fix CUTLASS DSL cu13 install order in Dockerfile (#45204) [fresh]
+  Source: vLLM Releases | Published: 2026-06-12T08:24:31+09:00
+  https://github.com/vllm-project/vllm/releases/tag/v0.23.0rc2
+- b9601 [fresh]
+  Source: llama.cpp Releases | Published: 2026-06-12T03:58:37+09:00
+  https://github.com/ggml-org/llama.cpp/releases/tag/b9601
+- Profiling in PyTorch (Part 2): From nn.Linear to a Fused MLP [fresh]
+  Source: Hugging Face Blog | Published: 2026-06-11T09:00:00+09:00
+  https://huggingface.co/blog/torch-mlp-fusion
+- Ollama's highest performance on Apple Silicon yet with MLX June 11, 2026 Ollama's MLX engine has been updated to deliver its highest performance on Apple Silicon yet. Models output higher quality responses, respond faster, and use less memory. [reference]
   Source: Ollama Blog | Published: n/a
-  https://ollama.com/blog/nemotron-3-ultra
+  https://ollama.com/blog/mlx-performance
 
 ### Productivity OSS
-- v2.9.0 [fresh]
-  Source: Twenty Releases | Published: 2026-06-04T20:55:11+09:00
-  https://github.com/twentyhq/twenty/releases/tag/v2.9.0
-- n8n@2.25.3 [fresh]
-  Source: n8n Releases | Published: 2026-06-04T19:18:11+09:00
-  https://github.com/n8n-io/n8n/releases/tag/n8n%402.25.3
-- v0.90.1 [fresh]
+- n8n@2.26.3 [fresh]
+  Source: n8n Releases | Published: 2026-06-12T00:06:42+09:00
+  https://github.com/n8n-io/n8n/releases/tag/n8n%402.26.3
+- twenty/v2.11.2 [fresh]
+  Source: Twenty Releases | Published: 2026-06-11T00:06:58+09:00
+  https://github.com/twentyhq/twenty/releases/tag/twenty%2Fv2.11.2
+- v0.12.2 [fresh]
+  Source: AppFlowy Releases | Published: 2026-06-08T14:20:00+09:00
+  https://github.com/AppFlowy-IO/AppFlowy/releases/tag/0.12.2
+- v0.90.1 [reference]
   Source: Docmost Releases | Published: 2026-05-29T06:01:10+09:00
   https://github.com/docmost/docmost/releases/tag/v0.90.1
-- v0.12.1 [fresh]
-  Source: AppFlowy Releases | Published: 2026-05-28T16:20:05+09:00
-  https://github.com/AppFlowy-IO/AppFlowy/releases/tag/0.12.1
 
 ## Global Corporate Intel (US)
 
 ### OpenAI / News
 - OpenAI News | OpenAI
   https://openai.com/news
-- https://openai.com/index/chatgpt-memory-dreaming/
-  https://openai.com/index/chatgpt-memory-dreaming/
-- https://openai.com/index/introducing-new-capabilities-to-gpt-rosalind/
-  https://openai.com/index/introducing-new-capabilities-to-gpt-rosalind/
-- https://openai.com/index/codex-for-every-role-tool-workflow/
-  https://openai.com/index/codex-for-every-role-tool-workflow/
+- https://openai.com/index/openai-to-acquire-ona/
+  https://openai.com/index/openai-to-acquire-ona/
+- https://openai.com/index/using-codex-to-simulate-black-holes/
+  https://openai.com/index/using-codex-to-simulate-black-holes/
+- https://openai.com/index/openai-on-oracle-cloud/
+  https://openai.com/index/openai-on-oracle-cloud/
 
 ### Anthropic / News
 - Newsroom \ Anthropic
   https://www.anthropic.com/news
-- claude-opus-4-8
-  https://www.anthropic.com/news/claude-opus-4-8
-- claude-design-anthropic-labs
-  https://www.anthropic.com/news/claude-design-anthropic-labs
-- claude-is-a-space-to-think
-  https://www.anthropic.com/news/claude-is-a-space-to-think
+- claude-fable-5-mythos-5
+  https://www.anthropic.com/news/claude-fable-5-mythos-5
+- claude-corps
+  https://www.anthropic.com/news/claude-corps
+- expanding-project-glasswing
+  https://www.anthropic.com/news/expanding-project-glasswing
 
 ### DeepMind / Blog
 - News — Google DeepMind
@@ -78,8 +82,8 @@
   https://sakana.ai/blog/
 - ?label=inside-sakana
   https://sakana.ai/blog/?label=inside-sakana
-- ?label=finance
-  https://sakana.ai/blog/?label=finance
+- ?label=research
+  https://sakana.ai/blog/?label=research
 
 ## Global FEM & Simulation Intel
 
@@ -108,7 +112,7 @@
 - xess.css?cachebuster=devel
   https://www.dealii.org/.within.website/x/xess/xess.css?cachebuster=devel
 - init
-  https://www.dealii.org/.within.website/x/cmd/anubis/api/honeypot/eb4680de-c30b-4c2a-becb-745f1a963c5a/init
+  https://www.dealii.org/.within.website/x/cmd/anubis/api/honeypot/58ede25e-1fb8-45a8-8eca-1bdb2be775a3/init
 
 ### SU2 Foundation
 - Newsletter Registration – SU2 Foundation
