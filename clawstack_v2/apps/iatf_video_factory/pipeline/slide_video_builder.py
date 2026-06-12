@@ -150,13 +150,35 @@ def _run_ffmpeg_concat(concat_path: Path, audio_path: Path, output_mp4: Path) ->
     subprocess.run(command, check=True, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=3600)
 
 
+def _regen_missing_wav(entry: dict, wav_path: str) -> str | None:
+    """Regenerate a missing WAV using VoiceVox tts_renderer.synthesize()."""
+    try:
+        from tts_renderer import synthesize
+        char = entry.get("character", "bulma")
+        text = entry.get("text", "")
+        if not text or text.strip() in ("...", ""):
+            return None
+        out_dir = Path(wav_path).parent
+        out_dir.mkdir(parents=True, exist_ok=True)
+        regenerated = synthesize(char, text, out_dir)
+        return str(regenerated)
+    except Exception as e:
+        return None
+
+
 def _build_master_audio(timeline: list[dict], audio_path: Path) -> None:
     inputs: list[str] = []
     filters: list[str] = []
     for index, entry in enumerate(timeline):
         wav = entry.get("wav")
         if not wav or not Path(wav).exists():
-            raise FileNotFoundError(f"missing timeline wav for slide {index + 1}: {wav}")
+            regenerated = _regen_missing_wav(entry, wav or "")
+            if regenerated and Path(regenerated).exists():
+                entry["wav"] = regenerated
+                wav = regenerated
+                print(f"  [slide_video_builder] regenerated wav for slide {index + 1}: {Path(wav).name}")
+            else:
+                raise FileNotFoundError(f"missing timeline wav for slide {index + 1}: {wav}")
         inputs += ["-i", str(wav)]
         delay_ms = int(float(entry.get("start_sec", 0.0)) * 1000)
         filters.append(f"[{index}]adelay={delay_ms}|{delay_ms}[a{index}]")
