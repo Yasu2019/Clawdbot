@@ -22,6 +22,57 @@ if hasattr(sys.stdout, "reconfigure"):
 SCHEMA = "clawstack.part_manifest.v1"
 MANIFEST_FILENAME = "part_manifest.json"
 
+# Material registry: physical properties for the press/sheet + polymer materials
+# the North Star covers. Material cannot be derived from geometry, so it must be
+# set explicitly (job plan / --set-material); an unresolved material is flagged,
+# never silently treated as a real one. Properties feed OpenRadioss (density/E/
+# yield) and Moldflow (kinematic viscosity nu) downstream.
+MATERIAL_REGISTRY: dict[str, dict[str, Any]] = {
+    "SPCC": {"type": "steel", "density_kg_m3": 7850, "youngs_modulus_GPa": 206, "yield_MPa": 215, "label": "冷間圧延鋼板 (JIS G3141)"},
+    "SPHC": {"type": "steel", "density_kg_m3": 7850, "youngs_modulus_GPa": 206, "yield_MPa": 235, "label": "熱間圧延鋼板 (JIS G3131)"},
+    "SECC": {"type": "steel", "density_kg_m3": 7850, "youngs_modulus_GPa": 206, "yield_MPa": 225, "label": "電気亜鉛めっき鋼板"},
+    "SS400": {"type": "steel", "density_kg_m3": 7850, "youngs_modulus_GPa": 206, "yield_MPa": 245, "label": "一般構造用圧延鋼材 (JIS G3101)"},
+    "S45C": {"type": "steel", "density_kg_m3": 7850, "youngs_modulus_GPa": 205, "yield_MPa": 490, "label": "機械構造用炭素鋼 (JIS G4051)"},
+    "SUS304": {"type": "stainless", "density_kg_m3": 7930, "youngs_modulus_GPa": 193, "yield_MPa": 205, "label": "オーステナイト系ステンレス"},
+    "AL5052": {"type": "aluminum", "density_kg_m3": 2680, "youngs_modulus_GPa": 70, "yield_MPa": 195, "label": "Al-Mg合金 (A5052)"},
+    "PP": {"type": "polymer", "density_kg_m3": 905, "kinematic_viscosity_nu": 0.01, "label": "ポリプロピレン (射出)"},
+    "ABS": {"type": "polymer", "density_kg_m3": 1050, "kinematic_viscosity_nu": 0.015, "label": "ABS樹脂 (射出)"},
+}
+
+
+def resolve_material(material_id: str | None) -> dict[str, Any] | None:
+    """Return registry properties for a material id (case-insensitive), or None."""
+    if not material_id:
+        return None
+    key = str(material_id).strip().upper()
+    props = MATERIAL_REGISTRY.get(key)
+    if props is None:
+        return None
+    return {"id": key, **props}
+
+
+def _build_material_block(material_id: str, material_source: str) -> dict[str, Any]:
+    """Build the manifest material block, resolving registry properties.
+
+    An unresolved material is flagged resolved=False with empty properties so
+    downstream never mistakes a default for a measured/specified material.
+    """
+    resolved = resolve_material(material_id)
+    if resolved is None:
+        return {
+            "id": material_id or "unknown",
+            "source": material_source,
+            "resolved": False,
+            "properties": {},
+        }
+    rid = resolved.pop("id")
+    return {
+        "id": rid,
+        "source": material_source if material_source != "default" else "registry",
+        "resolved": True,
+        "properties": resolved,
+    }
+
 
 def _now_iso() -> str:
     return datetime.now(timezone.utc).astimezone().isoformat()
@@ -182,6 +233,9 @@ def build_part_manifest(
         bbox, layer_thicknesses, default_thickness_mm, has_real_bbox=has_real_bbox
     )
 
+    material = _build_material_block(material_id, material_source)
+    mat_type = (material.get("properties") or {}).get("type")
+
     has_step = bool(step_full and step_full.exists())
     has_fcstd = bool(fcstd_full and fcstd_full.exists())
     step_abs = os.path.basename(str(step_full)) if step_full and step_full.exists() else None
@@ -205,7 +259,7 @@ def build_part_manifest(
         "bbox_mm": bbox,
         "sheet_thickness_mm": _round_mm(sheet_thickness),
         "thickness_source": thickness_source,
-        "material": {"id": material_id, "source": material_source},
+        "material": material,
         "features": {
             "closed_loops": closed_loops,
             "holes": [],
@@ -217,6 +271,7 @@ def build_part_manifest(
                 "ready": has_step,
                 "gate_seed": "center",
                 "step_path": step_abs,
+                "material_ready": mat_type == "polymer",
             },
             "tolerance": {
                 "ready": len(nominal_dims) > 0,
@@ -225,6 +280,7 @@ def build_part_manifest(
             "openradioss": {
                 "ready": sheet_thickness > 0,
                 "thickness_mm": _round_mm(sheet_thickness),
+                "material_ready": mat_type in ("steel", "stainless", "aluminum"),
             },
         },
         "build_log_ref": "build_log.json",
@@ -489,6 +545,31 @@ def recompute_thickness_from_bbox(manifest: dict[str, Any]) -> tuple[dict[str, A
     return manifest, True
 
 
+def set_material_in_manifest(
+    manifest: dict[str, Any], material_id: str, *, source: str = "user"
+) -> tuple[dict[str, Any], bool]:
+    """Assign a material to an existing manifest, resolving registry properties.
+
+    Updates the material block and the moldflow/openradioss handoff material_ready
+    flags. Returns (manifest, changed).
+    """
+    material = _build_material_block(material_id, source)
+    if manifest.get("material") == material:
+        return manifest, False
+    manifest["material"] = material
+    mat_type = (material.get("properties") or {}).get("type")
+    handoff = manifest.get("physics_handoff") or {}
+    if isinstance(handoff.get("moldflow"), dict):
+        handoff["moldflow"]["material_ready"] = mat_type == "polymer"
+    if isinstance(handoff.get("openradioss"), dict):
+        handoff["openradioss"]["material_ready"] = mat_type in (
+            "steel",
+            "stainless",
+            "aluminum",
+        )
+    return manifest, True
+
+
 def write_part_manifest(manifest: dict[str, Any], output_dir: str | Path) -> Path:
     out = Path(output_dir)
     out.mkdir(parents=True, exist_ok=True)
@@ -620,7 +701,36 @@ def main() -> int:
         "--recompute-thickness",
         help="Recompute sheet_thickness_mm from stored bbox (min-bbox rule) and write back",
     )
+    parser.add_argument(
+        "--set-material",
+        nargs=2,
+        metavar=("MANIFEST", "MATERIAL_ID"),
+        help="Assign a registry material to a manifest and write back",
+    )
     args = parser.parse_args()
+
+    if args.set_material:
+        path = Path(args.set_material[0])
+        material_id = args.set_material[1]
+        manifest = json.loads(path.read_text(encoding="utf-8-sig"))
+        manifest, changed = set_material_in_manifest(manifest, material_id)
+        if changed:
+            path.write_text(
+                json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+            )
+        print(
+            json.dumps(
+                {
+                    "path": str(path),
+                    "changed": changed,
+                    "material": manifest.get("material"),
+                    "available_ids": sorted(MATERIAL_REGISTRY),
+                },
+                ensure_ascii=False,
+                indent=2,
+            )
+        )
+        return 0
 
     if args.recompute_thickness:
         path = Path(args.recompute_thickness)
