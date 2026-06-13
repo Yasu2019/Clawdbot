@@ -1,5 +1,11 @@
 import os
 import sys
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 import argparse
 import json
 import ezdxf
@@ -98,11 +104,14 @@ class DXFProcessor:
             print(f"[FreeCAD] STEP generation for {layer_name} ...", flush=True)
             rc, msg = self.execute_freecad(script_path)
             step_exists = os.path.exists(step_path)
+            fcstd_path = os.path.join(self.output_dir, f"{layer_name}.FCStd")
             layer_log = {
                 "entities": len(cleaned_entities),
                 "thickness": thickness,
                 "status": "done" if step_exists else "failed",
-                "freecad_msg": msg[:500] if not step_exists else ""
+                "freecad_msg": msg[:500] if not step_exists else "",
+                "step": os.path.basename(step_path) if step_exists else None,
+                "fcstd": os.path.basename(fcstd_path) if os.path.exists(fcstd_path) else None,
             }
 
             # Generate third-angle projection PNG if STEP was created
@@ -123,6 +132,27 @@ class DXFProcessor:
         # Multi-view 3D reconstruction: intersect front/top/right slabs
         if len(successful_steps) >= 2:
             self.reconstruct_multiview(processed_layers)
+
+        self._emit_part_manifest(default_thickness)
+
+    def _emit_part_manifest(self, default_thickness: float) -> None:
+        try:
+            from part_geometry_contract import emit_part_manifest
+
+            path = emit_part_manifest(
+                source_dxf=self.input_path,
+                output_dir=self.output_dir,
+                build_log=self.log_data,
+                default_thickness_mm=default_thickness,
+            )
+            self.log_data["part_manifest"] = os.path.basename(str(path))
+            print(f"[manifest] wrote {path}", flush=True)
+        except Exception as exc:
+            err = str(exc)[:300]
+            self.log_data["part_manifest_error"] = err
+            print(f"[manifest] error: {err}", flush=True)
+        with open(os.path.join(self.output_dir, "build_log.json"), "w", encoding="utf-8") as f:
+            json.dump(self.log_data, f, indent=2)
 
     def process_manual(self, view_assignments):
         """Reconstruct 3D from 2D views using intersection."""
@@ -199,6 +229,38 @@ else:
                 unique.append(e) # Basic passthrough for ARCs etc.
         return unique
 
+    def _polyline_to_line_segments(self, entity, tol=0.02):
+        """Expand LWPOLYLINE / POLYLINE into (x1,y1,x2,y2) segments; auto-close if nearly closed."""
+        dxftype = entity.dxftype()
+        if dxftype == "LWPOLYLINE":
+            pts = [(float(x), float(y)) for x, y, *_ in entity.get_points("xy")]
+            closed_flag = bool(entity.closed)
+        elif dxftype == "POLYLINE":
+            pts = [(float(v.dxf.location.x), float(v.dxf.location.y)) for v in entity.vertices()]
+            closed_flag = bool(entity.is_closed)
+        else:
+            return []
+
+        if len(pts) < 2:
+            return []
+
+        if len(pts) >= 3 and math.hypot(pts[0][0] - pts[-1][0], pts[0][1] - pts[-1][1]) <= tol:
+            pts = pts[:-1]
+
+        if closed_flag and pts:
+            pts = pts + [pts[0]]
+        elif len(pts) >= 3:
+            pts = pts + [pts[0]]
+
+        segs = []
+        for i in range(len(pts) - 1):
+            x1, y1 = pts[i]
+            x2, y2 = pts[i + 1]
+            if math.hypot(x2 - x1, y2 - y1) <= tol:
+                continue
+            segs.append((x1, y1, x2, y2))
+        return segs
+
     def resolve_tjunctions(self, entities, tol=0.02):
         """
         Fix T-junction topology: when a DXF profile is drawn as overlapping
@@ -224,6 +286,8 @@ else:
             if e.dxftype() == 'LINE':
                 s, en = e.dxf.start, e.dxf.end
                 line_raw.append((float(s.x), float(s.y), float(en.x), float(en.y)))
+            elif e.dxftype() in ('LWPOLYLINE', 'POLYLINE'):
+                line_raw.extend(self._polyline_to_line_segments(e, tol=tol))
             elif e.dxftype() == 'ARC':
                 arc_entities.append(e)
             elif e.dxftype() == 'CIRCLE':
@@ -293,6 +357,14 @@ else:
             if e.dxftype() == 'LINE':
                 xs.extend([e.dxf.start[0], e.dxf.end[0]])
                 ys.extend([e.dxf.start[1], e.dxf.end[1]])
+            elif e.dxftype() == 'LWPOLYLINE':
+                for x, y, *_ in e.get_points('xy'):
+                    xs.append(float(x))
+                    ys.append(float(y))
+            elif e.dxftype() == 'POLYLINE':
+                for v in e.vertices():
+                    xs.append(float(v.dxf.location.x))
+                    ys.append(float(v.dxf.location.y))
             elif e.dxftype() == 'ARC':
                 xs.extend([e.dxf.center[0] - e.dxf.radius, e.dxf.center[0] + e.dxf.radius])
                 ys.extend([e.dxf.center[1] - e.dxf.radius, e.dxf.center[1] + e.dxf.radius])
@@ -364,9 +436,12 @@ else:
         return view_map
 
     def _to_container_path(self, windows_path):
-        """Convert Windows host path to Linux container path."""
-        p = windows_path.replace('\\', '/')
-        p = p.replace('D:/Clawdbot_Docker_20260125/data/workspace', '/home/node/clawd')
+        """Convert host path for FreeCAD (docker container or native Linux)."""
+        mode = os.environ.get("DXF2STEP_FREECAD_MODE", "docker").strip().lower()
+        p = windows_path.replace("\\", "/")
+        if mode in ("native", "linux"):
+            return p
+        p = p.replace("D:/Clawdbot_Docker_20260125/data/workspace", "/home/node/clawd")
         return p
 
     def generate_freecad_script(self, dxf_path, step_path, thickness):
@@ -432,19 +507,9 @@ if edges:
                     dim_x = bbox.XMax - bbox.XMin
                     dim_y = bbox.YMax - bbox.YMin
                     dim_z = bbox.ZMax - bbox.ZMin
-                    self.log_data["layers"][layer_name]["metrics"] = {
-                        "faces": len(result.Faces),
-                        "area": round(area, 2),
-                        "volume": round(volume, 2),
-                        "dimensions": {
-                            "length": round(dim_x, 2),
-                            "width": round(dim_y, 2),
-                            "depth": round(dim_z, 2)
-                        }
-                    }
-                    print(f"Metrics for {layer_name}: V={volume:.1f} A={area:.1f} D={dim_x:.1f}x{dim_y:.1f}x{dim_z:.1f}")
+                    print(f"Metrics: V={{volume:.1f}} A={{area:.1f}} D={{dim_x:.1f}}x{{dim_y:.1f}}x{{dim_z:.1f}}")
                 except Exception as me:
-                    print(f"Metrics error: {me}")
+                    print(f"Metrics error: {{me}}")
                 
                 result.exportStep("{step_path}")
                 try:
@@ -805,7 +870,15 @@ else:
             print("[FreeCAD] Reconstruction STEP done - rendering combined preview ...", flush=True)
             combined_png = os.path.join(self.output_dir, "combined_views.png")
             self.render_step_views(combined_step, combined_png, "Combined 3D Reconstruction")
+            combined_fcstd = (
+                combined_step[:-5] + ".FCStd"
+                if combined_step.lower().endswith(".step")
+                else combined_step + ".FCStd"
+            )
             self.log_data["combined_step"] = os.path.basename(combined_step)
+            self.log_data["combined_fcstd"] = (
+                os.path.basename(combined_fcstd) if os.path.exists(combined_fcstd) else None
+            )
             self.log_data["combined_png"] = (
                 os.path.basename(combined_png) if os.path.exists(combined_png) else None
             )
@@ -819,20 +892,25 @@ else:
             json.dump(self.log_data, f, indent=2)
 
     def execute_freecad(self, script_path):
-        container_name = "clawstack-unified-clawdbot-gateway-1"
+        mode = os.environ.get("DXF2STEP_FREECAD_MODE", "docker").strip().lower()
         linux_script_path = self._to_container_path(script_path)
-
-        # Use bash -c to avoid MSYS/Git Bash path conversion on Windows host
-        cmd = ["docker", "exec", container_name, "bash", "-c", f"FreeCADCmd '{linux_script_path}'"]
+        if mode in ("native", "linux"):
+            fc_cmd = os.environ.get("FREECAD_CMD", "FreeCADCmd")
+            cmd = [fc_cmd, linux_script_path]
+            timeout_sec = int(os.environ.get("DXF2STEP_FREECAD_TIMEOUT_SEC", "180"))
+        else:
+            container_name = "clawstack-unified-clawdbot-gateway-1"
+            cmd = ["docker", "exec", container_name, "bash", "-c", f"FreeCADCmd '{linux_script_path}'"]
+            timeout_sec = 120
         try:
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout_sec)
             if result.returncode != 0:
                 print(f"FreeCAD exited with code {result.returncode}: {result.stderr}")
                 return result.returncode, result.stderr
             print(result.stdout)
             return 0, result.stdout
         except subprocess.TimeoutExpired:
-            print("FreeCAD timed out after 120s")
+            print(f"FreeCAD timed out after {timeout_sec}s")
             return -1, "Timeout"
         except Exception as e:
             print(f"FreeCAD launch error: {e}")

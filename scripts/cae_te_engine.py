@@ -1200,8 +1200,8 @@ def _inject_parameters_openfoam(file_name: str, content: str, params: dict) -> s
                 content,
                 count=1,
             )
-        elif "pack_end_time" in params:
-            t_end = float(params["pack_end_time"])
+        elif "pack_end_time" in params or "PACK_END_TIME_PLACEHOLDER" in content:
+            t_end = float(params.get("pack_end_time", 0.32))
             content = content.replace("PACK_END_TIME_PLACEHOLDER", f"{t_end:.4f}")
             content = re.sub(
                 r"endTime\s+[0-9.eE+-]+;",
@@ -1306,6 +1306,8 @@ def _run_openradioss(exp: dict, params: dict, dry_run: bool, timeout: int, trial
     
     # Create run directory regardless of dry_run for parameter validation
     run_dir.mkdir(parents=True, exist_ok=True)
+    _manifest = _enrich_params_from_part_manifest(params)
+    _write_openradioss_handoff(run_dir, params, _manifest)
     if not dry_run:
         # Clean up very old run files to save disk space
         _clean_old_runs(runs_dir, keep_count=50)
@@ -1358,7 +1360,7 @@ def _run_openradioss(exp: dict, params: dict, dry_run: bool, timeout: int, trial
             )
         )
         cmd = [
-            "docker", "run", "--rm",
+            _docker_exe(), "run", "--rm",
             *_docker_resource_args(),
             "-v", f"{docker_mount_path}:/workspace",
             "-w", "/workspace",
@@ -1421,6 +1423,36 @@ def _run_openradioss(exp: dict, params: dict, dry_run: bool, timeout: int, trial
         
         # 1. Force Unix LF line endings FIRST to guarantee safe regex matching
         rad_content = rad_content.replace("\r\n", "\n").replace("\r", "\n")
+
+        if _manifest and str(category).startswith("press_"):
+            try:
+                deck_mod = _import_openradioss_manifest_deck()
+                mf_path = None
+                raw_mf = params.get("part_manifest_path") or params.get("manifest_path")
+                if raw_mf:
+                    mf_path = _resolve_workspace_path(raw_mf)
+                rad_content, deck_meta, geo_src = deck_mod.apply_manifest_deck_with_step(
+                    rad_content,
+                    _manifest,
+                    category,
+                    mf_path if mf_path and mf_path.exists() else None,
+                    prefer_step_shell=True,
+                    run_dir=run_dir,
+                    starter_input_file=input_file,
+                    docker_exe=_docker_exe(),
+                    docker_image=OPENRADIOSS_IMAGE,
+                )
+                if deck_meta:
+                    params["manifest_deck_applied"] = True
+                    params["geometry_source"] = geo_src
+                    if geo_src == "step_shell":
+                        import step_to_openradioss_shell as sts_mod
+
+                        sts_mod.write_step_shell_meta(run_dir, deck_meta)
+                    else:
+                        deck_mod.write_deck_meta(run_dir, deck_meta)
+            except Exception as exc:
+                print(f"[openradioss] WARN manifest deck scale failed: {exc}", flush=True)
         
         # 2. Inject parameters
         injected_content = _inject_parameters(rad_content, params, exp["category"])
@@ -1510,7 +1542,7 @@ def _run_openradioss(exp: dict, params: dict, dry_run: bool, timeout: int, trial
     # Docker run command (Runs Starter and then runs Engine to calculate transient deformation steps)
     # Using the optimized, rebuilt openradioss image which has libgomp1, PATH, and env variables pre-baked.
     cmd = [
-        "docker", "run", "--rm",
+        _docker_exe(), "run", "--rm",
         *_docker_resource_args(),
         "-v", f"{docker_mount_path}:/workspace",
         "-w", "/workspace",
@@ -1545,7 +1577,7 @@ def _run_openradioss(exp: dict, params: dict, dry_run: bool, timeout: int, trial
                     
                     # Convert via container anim_to_vtk utility
                     conv_cmd = [
-                        "docker", "run", "--rm",
+                        _docker_exe(), "run", "--rm",
                         "-v", f"{docker_mount_path}:/workspace",
                         "-w", "/workspace",
                         OPENRADIOSS_IMAGE,
@@ -1868,6 +1900,223 @@ def _uses_moldflow_cad(exp: dict, params: dict) -> bool:
     return bool(params.get("gate_spec_path"))
 
 
+MOLDFLOW_KPI_SCHEMA = "clawstack.moldflow_kpi.v1"
+_MOLDFLOW_KPI_CATEGORIES = frozenset(
+    {
+        "resin_fill",
+        "resin_fill_vof",
+        "resin_fill_thermo",
+        "resin_fill_turb",
+        "resin_fill_pack",
+        "resin_fill_cool",
+        "resin_fill_cad",
+        "resin_fill_doe",
+    }
+)
+
+
+def _import_part_geometry_contract():
+    apps = ROOT / "data" / "workspace" / "apps" / "dxf2step"
+    apps_str = str(apps)
+    if apps_str not in sys.path:
+        sys.path.insert(0, apps_str)
+    import part_geometry_contract as pgc
+
+    return pgc
+
+
+def _import_openradioss_manifest_deck():
+    apps = ROOT / "data" / "workspace" / "apps" / "dxf2step"
+    apps_str = str(apps)
+    if apps_str not in sys.path:
+        sys.path.insert(0, apps_str)
+    import openradioss_manifest_deck as omd
+
+    return omd
+
+
+def _load_part_manifest_dict(params: dict) -> dict | None:
+    manifest_raw = params.get("part_manifest_path") or params.get("manifest_path")
+    inline = params.get("part_manifest")
+    if isinstance(inline, dict):
+        return inline
+    if not manifest_raw:
+        return None
+    mf_path = _resolve_workspace_path(manifest_raw)
+    try:
+        pgc = _import_part_geometry_contract()
+        return pgc.load_part_manifest(mf_path) if mf_path.exists() else None
+    except Exception as exc:
+        print(f"[part_manifest] WARN load failed: {exc}", flush=True)
+        return None
+
+
+def _enrich_params_from_part_manifest(params: dict) -> dict | None:
+    """Apply manifest handoff fields for Moldflow / Tolerance / OpenRadioss (geometry audit)."""
+    manifest = _load_part_manifest_dict(params)
+    if not manifest:
+        return None
+    params["part_manifest_loaded"] = True
+    thickness = float(manifest.get("sheet_thickness_mm") or 0)
+    if thickness > 0:
+        params.setdefault("sheet_thickness_mm", thickness)
+    or_handoff = (manifest.get("physics_handoff") or {}).get("openradioss") or {}
+    if or_handoff.get("thickness_mm"):
+        params["openradioss_thickness_mm"] = float(or_handoff["thickness_mm"])
+    params.setdefault(
+        "_part_manifest_resolved",
+        str(manifest.get("source_dxf") or manifest.get("source_dxf_path") or ""),
+    )
+    # Material: surface what the manifest specifies; never let an unresolved
+    # material flow silently as if it were real (audit only -- deck injection
+    # is deferred; solver still uses its template material for now).
+    material = manifest.get("material") or {}
+    if material.get("resolved"):
+        params["material_id"] = material.get("id")
+        params["material_properties"] = material.get("properties") or {}
+        params["material_source"] = "manifest_registry"
+    else:
+        params["material_source"] = "unresolved"
+        print(
+            f"[part_manifest] WARN material unresolved (id={material.get('id')!r}); "
+            "solver will use template material default -- set via "
+            "part_geometry_contract.py --set-material",
+            flush=True,
+        )
+    mf_handoff = (manifest.get("physics_handoff") or {}).get("moldflow") or {}
+    if mf_handoff.get("ready"):
+        if "gate_spec_path" not in params and "gate_count" not in params:
+            seed = str(mf_handoff.get("gate_seed") or "center").lower()
+            params.setdefault("gate_count", 1)
+            params.setdefault("gate_position", seed)
+        params.setdefault("physics_category", "resin_fill_vof")
+        params.setdefault("mesh_mode", "blockmesh_bbox")
+        params.setdefault("pack_end_time", 0.32)
+    bbox = manifest.get("bbox_mm") or {}
+    if isinstance(bbox, dict):
+        lx = float(bbox.get("Lx") or bbox.get("length") or 0)
+        ly = float(bbox.get("Ly") or bbox.get("width") or 0)
+        lz = float(bbox.get("Lz") or bbox.get("height") or 0)
+        if lx > 0 and ly > 0 and lz > 0:
+            params.setdefault(
+                "_manifest_bbox_mm",
+                {"length": lx, "width": ly, "height": lz},
+            )
+    if params.get("geometry_source") not in ("manifest", "params"):
+        params.setdefault("geometry_source", "manifest")
+    return manifest
+
+
+def _write_openradioss_handoff(run_dir: Path, params: dict, manifest: dict | None) -> None:
+    if manifest is None:
+        return
+    payload = {
+        "schema": "clawstack.openradioss_handoff.v1",
+        "geometry_source": str(params.get("geometry_source") or "manifest"),
+        "part_id": params.get("_part_manifest_resolved"),
+        "sheet_thickness_mm": params.get("sheet_thickness_mm"),
+        "openradioss_thickness_mm": params.get("openradioss_thickness_mm"),
+        "material_id": (manifest.get("material") or {}).get("id"),
+        "material_resolved": bool((manifest.get("material") or {}).get("resolved")),
+        "material_source": params.get("material_source"),
+        "note": "Full .rad from user STEP deferred; thickness+material from part_manifest (material injection deferred)",
+        "manifest_schema": manifest.get("schema"),
+    }
+    try:
+        (run_dir / "openradioss_handoff.json").write_text(
+            json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
+    except Exception:
+        pass
+
+
+def _resolve_step_from_part_manifest(params: dict) -> tuple[Path | None, str, dict | None]:
+    """Resolve STEP from part_manifest (priority) or params. Returns (path, geometry_source, manifest)."""
+    manifest_raw = params.get("part_manifest_path") or params.get("manifest_path")
+    manifest_dict: dict | None = (
+        params["part_manifest"] if isinstance(params.get("part_manifest"), dict) else None
+    )
+    manifest_attempted = bool(manifest_raw or manifest_dict)
+
+    if manifest_raw and manifest_dict is None:
+        manifest_dict = _load_part_manifest_dict(params)
+
+    if manifest_dict:
+        step_raw = manifest_dict.get("step_path")
+        mf_path = _resolve_workspace_path(manifest_raw) if manifest_raw else None
+        if step_raw:
+            step_p = Path(str(step_raw))
+            candidates: list[Path] = []
+            if step_p.is_absolute():
+                candidates.append(step_p)
+            if mf_path is not None:
+                candidates.append(mf_path.parent / step_p.name)
+                candidates.append(mf_path.parent / "combined.step")
+                fcstd = manifest_dict.get("fcstd_path")
+                if fcstd:
+                    candidates.append(mf_path.parent / Path(str(fcstd)).with_suffix(".step").name)
+            if not step_p.is_absolute():
+                candidates.append(_resolve_workspace_path(step_raw))
+            for cand in candidates:
+                if cand.exists():
+                    step_p = cand
+                    params["geometry_source"] = "manifest"
+                    params["_part_manifest_resolved"] = str(
+                        manifest_dict.get("source_dxf") or manifest_dict.get("source_dxf_path") or ""
+                    )
+                    return step_p, "manifest", manifest_dict
+        if manifest_attempted:
+            print(
+                "[moldflow] WARN manifest present but step_path missing/invalid",
+                flush=True,
+            )
+
+    if params.get("step_path"):
+        step_p = _resolve_workspace_path(params["step_path"])
+        if step_p.exists():
+            src = "sample" if manifest_attempted else "params"
+            params["geometry_source"] = src
+            return step_p, src, manifest_dict
+
+    return None, "sample", manifest_dict
+
+
+def _write_moldflow_kpi_json(
+    run_dir: Path,
+    *,
+    verdict: str,
+    defects: dict,
+    params: dict,
+    category: str,
+) -> Path | None:
+    if category not in _MOLDFLOW_KPI_CATEGORIES:
+        return None
+    kpi_source = str(defects.get("kpi_source") or "vof_fill")
+    if "pack" in kpi_source or category in ("resin_fill_pack",):
+        kpi_source = "vof_pack_proxy"
+    payload = {
+        "schema": MOLDFLOW_KPI_SCHEMA,
+        "geometry_source": str(params.get("geometry_source") or "sample"),
+        "part_id": str(params.get("_part_manifest_resolved") or params.get("part_id") or ""),
+        "part_manifest_path": params.get("part_manifest_path") or params.get("manifest_path"),
+        "fill_fraction_pct": float(defects.get("fill_fraction_pct") or 0.0),
+        "fill_complete": bool(defects.get("fill_complete")),
+        "fill_time_s": float(defects.get("fill_time_s") or 0.0),
+        "pack_pressure_target_MPa": float(
+            defects.get("pack_pressure_MPa") or params.get("pack_pressure_MPa") or 0.0
+        ),
+        "pack_pressure_achieved_MPa": float(defects.get("pack_pressure_achieved_MPa") or 0.0),
+        "pack_pressure_ratio": float(defects.get("pack_pressure_ratio") or 0.0),
+        "short_shot_risk": float(defects.get("short_shot_risk") or 0.0),
+        "verdict": verdict,
+        "kpi_source": kpi_source,
+    }
+    path = run_dir / "moldflow_kpi.json"
+    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    return path
+
+
 def _openfoam_mesh_steps(run_dir: Path) -> list[str]:
     """blockMesh or gmshToFoam unless polyMesh already present."""
     poly = run_dir / "constant" / "polyMesh" / "points"
@@ -1906,9 +2155,21 @@ def _moldflow_cad_build(
     if gate_raw:
         gate_path = _resolve_workspace_path(gate_raw)
     elif "gate_count" in params:
+        bbox_mm = params.get("_manifest_bbox_mm")
+        if not bbox_mm:
+            manifest = _load_part_manifest_dict(params)
+            if manifest:
+                bb = manifest.get("bbox_mm") or {}
+                if isinstance(bb, dict):
+                    lx = float(bb.get("Lx") or bb.get("length") or 0)
+                    ly = float(bb.get("Ly") or bb.get("width") or 0)
+                    lz = float(bb.get("Lz") or bb.get("height") or 0)
+                    if lx > 0 and ly > 0 and lz > 0:
+                        bbox_mm = {"length": lx, "width": ly, "height": lz}
         spec = mgs.build_gate_spec_legacy(
             int(params["gate_count"]),
             str(params.get("gate_position", "center")),
+            bbox_mm=bbox_mm,
         )
         gate_path = run_dir / "gate_spec.generated.json"
         if not dry_run:
@@ -1924,9 +2185,29 @@ def _moldflow_cad_build(
         raise ValueError("gate_spec_path or gate_count required for CAD build")
 
     step_path = None
-    if params.get("step_path"):
+    resolved, geom_src, _manifest = _resolve_step_from_part_manifest(params)
+    manifest_attempted = bool(
+        params.get("part_manifest_path")
+        or params.get("manifest_path")
+        or params.get("part_manifest")
+    )
+    if resolved is not None:
+        step_path = resolved
+        params["geometry_source"] = geom_src
+    elif params.get("step_path"):
         step_path = _resolve_workspace_path(params["step_path"])
+        if step_path.exists():
+            params["geometry_source"] = "sample" if manifest_attempted else "params"
+        else:
+            step_path = None
     if step_path is None or not step_path.exists():
+        if manifest_attempted:
+            print(
+                "[moldflow] WARN manifest provided but no valid STEP; ensure_sample_step() "
+                "(geometry_source=sample)",
+                flush=True,
+            )
+        params["geometry_source"] = "sample"
         step_path = mscb.ensure_sample_step()
 
     physics = dict(params)
@@ -2895,6 +3176,20 @@ def _assess_openfoam(run_result: dict, exp: dict) -> dict:
             if any(item.get("ok") is False for item in (cmp.get("items") or [])) and verdict in {"SUCCESS", "UNKNOWN"}:
                 verdict = "FAILED"
 
+    run_dir_str = run_result.get("run_dir")
+    if run_dir_str and category in _MOLDFLOW_KPI_CATEGORIES:
+        try:
+            _write_moldflow_kpi_json(
+                Path(run_dir_str),
+                verdict=verdict,
+                defects=defects,
+                params=actual_params,
+                category=category,
+            )
+            defects["geometry_source"] = str(actual_params.get("geometry_source") or "sample")
+        except Exception as kpi_exc:
+            defects["moldflow_kpi_error"] = str(kpi_exc)[:200]
+
     return {
         "verdict": verdict,
         "convergence": {"residuals": residuals, "residuals_history": history},
@@ -3444,6 +3739,8 @@ def run_single_trial(
 
     category_name = exp.get("category", "unknown")
     trial_params = dict(params) if params is not None else dict((exp.get("param_sweeps") or [{}])[0])
+    if trial_params.get("part_manifest_path") or trial_params.get("manifest_path"):
+        _enrich_params_from_part_manifest(trial_params)
     resolved_trial_id = trial_id or f"{exp['id']}-S{sweep_index + 1:02d}"
 
     if not dry_run and not skip_resource_check:
@@ -3705,7 +4002,39 @@ if __name__ == "__main__":
                                  "resin_fill_cool", "resin_fill_cad", "resin_fill_doe",
                                  "resin_flow_opt", "progressive_strip_layout"],
                         help="Run only trials in this category")
+    parser.add_argument("--once", action="store_true", help="Run a single trial and exit (SJP/Fable5 verify)")
+    parser.add_argument(
+        "--part-manifest",
+        dest="part_manifest",
+        default=None,
+        help="part_manifest.json path for geometry handoff (Moldflow / OpenRadioss / tolerance audit)",
+    )
     args = parser.parse_args()
+
+    if args.once:
+        if not args.category:
+            parser.error("--once requires --category")
+        params: dict = {}
+        if args.part_manifest:
+            params["part_manifest_path"] = str(Path(args.part_manifest).resolve())
+        exp = find_experiment(category=args.category)
+        if exp:
+            base = dict((exp.get("param_sweeps") or [{}])[0])
+            base.update(params)
+            params = base
+        entry = run_single_trial(
+            category=args.category,
+            params=params,
+            dry_run=args.dry_run,
+            timeout=args.timeout,
+        )
+        print(json.dumps(entry, ensure_ascii=False, indent=2))
+        run_dir = entry.get("run_dir")
+        if run_dir:
+            kpi_path = Path(run_dir) / "moldflow_kpi.json"
+            if kpi_path.exists():
+                print(f"[OK] moldflow_kpi.json: {kpi_path}", flush=True)
+        raise SystemExit(0 if entry.get("verdict") in ("SUCCESS", "DRY_RUN") else 1)
 
     run_engine(
         dry_run=args.dry_run,
