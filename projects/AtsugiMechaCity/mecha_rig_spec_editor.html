@@ -6,146 +6,168 @@
 <title>Mecha Rig Spec Editor</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3/dist/tabler-icons.min.css"/>
 <style>
-  :root{
-    --bg:#fafaf7; --surface:#fff; --txt:#1a1a18; --muted:#5f5e5a; --hint:#888780;
-    --border:rgba(0,0,0,.14); --warn-bg:#faeeda; --warn:#854f0b; --ok-bg:#e1f5ee; --ok:#0f6e56;
-    --danger:#a32d2d; --info:#185fa5; --r:8px;
-  }
+  :root{--bg:#fafaf7;--surface:#fff;--txt:#1a1a18;--muted:#5f5e5a;--hint:#888780;
+    --border:rgba(0,0,0,.14);--warn-bg:#faeeda;--warn:#854f0b;--ok-bg:#e1f5ee;--ok:#0f6e56;
+    --danger:#a32d2d;--info:#185fa5;--sel:#185fa5;--r:8px;}
   *{box-sizing:border-box;}
-  body{margin:0; padding:24px; background:var(--bg); color:var(--txt);
-       font-family:system-ui,-apple-system,"Segoe UI",sans-serif; line-height:1.6;}
-  .wrap{max-width:820px; margin:0 auto;}
-  h1{font-size:20px; font-weight:500; margin:0 0 4px;}
-  .sub{font-size:13px; color:var(--muted); margin:0 0 20px;}
-  .bar{display:flex; align-items:center; gap:12px; margin-bottom:20px; flex-wrap:wrap;}
-  .badge{font-size:13px; font-weight:500; padding:6px 12px; border-radius:var(--r); background:var(--warn-bg); color:var(--warn);}
-  .badge.ok{background:var(--ok-bg); color:var(--ok);}
-  h2{font-size:14px; font-weight:500; margin:24px 0 8px;}
-  .card{background:var(--surface); border:.5px solid var(--border); border-radius:var(--r); padding:10px 12px;}
-  .row{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:8px;}
-  .flag{border-left:3px solid var(--warn); border-radius:0;}
-  .flag.done{border-left-color:var(--ok);}
-  code{font-family:ui-monospace,Consolas,monospace; font-size:13px;}
-  select,input,button{font:inherit; padding:6px 8px; border:.5px solid var(--border);
-       border-radius:var(--r); background:var(--surface); color:var(--txt);}
-  button{cursor:pointer;} button:hover{background:#f0efe8;} button:disabled{opacity:.5; cursor:default;}
-  .strike{text-decoration:line-through; color:var(--danger); font-size:12px;}
-  .right{font-weight:500; color:var(--ok);}
-  .muted{color:var(--muted);} .hint{color:var(--hint); font-size:12px;}
-  .primary{width:100%; justify-content:center; margin-top:8px; padding:10px;}
+  body{margin:0;padding:20px;background:var(--bg);color:var(--txt);
+    font-family:system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.5;}
+  .wrap{max-width:980px;margin:0 auto;}
+  h1{font-size:20px;font-weight:500;margin:0 0 4px;}
+  .sub{font-size:13px;color:var(--muted);margin:0 0 16px;}
+  .bar{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
+  .badge{font-size:13px;font-weight:500;padding:6px 12px;border-radius:var(--r);background:var(--warn-bg);color:var(--warn);}
+  .badge.ok{background:var(--ok-bg);color:var(--ok);}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start;}
+  @media(max-width:760px){.grid{grid-template-columns:1fr;}}
+  #view{width:100%;height:420px;background:#f0efe8;border:.5px solid var(--border);border-radius:var(--r);position:relative;overflow:hidden;}
+  #view canvas{display:block;}
+  .vhint{position:absolute;left:8px;bottom:6px;font-size:11px;color:var(--hint);}
+  .tablewrap{max-height:420px;overflow:auto;border:.5px solid var(--border);border-radius:var(--r);background:var(--surface);}
+  table{width:100%;border-collapse:collapse;font-size:12.5px;}
+  th{position:sticky;top:0;background:var(--surface);text-align:left;font-weight:500;color:var(--muted);
+    padding:7px 8px;border-bottom:.5px solid var(--border);font-size:11.5px;z-index:1;}
+  td{padding:5px 8px;border-bottom:.5px solid var(--border);vertical-align:middle;}
+  tr.sel td{background:#e6f1fb;}
+  tr.flag td:first-child{border-left:3px solid var(--warn);}
+  tr.flag.done td:first-child{border-left-color:var(--ok);}
+  code{font-family:ui-monospace,Consolas,monospace;}
+  .sw{display:inline-block;width:11px;height:11px;border-radius:3px;vertical-align:-1px;margin-right:5px;}
+  select,input,button{font:inherit;font-size:12px;padding:4px 6px;border:.5px solid var(--border);border-radius:6px;background:var(--surface);color:var(--txt);}
+  button{cursor:pointer;}button:hover{background:#f0efe8;}button:disabled{opacity:.5;cursor:default;}
+  .mini{padding:3px 6px;}
+  h2{font-size:14px;font-weight:500;margin:22px 0 8px;}
+  .jrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 10px;border:.5px solid var(--border);border-radius:var(--r);background:var(--surface);margin-bottom:6px;}
+  .hint{color:var(--hint);font-size:11.5px;}
+  .primary{width:100%;justify-content:center;margin-top:10px;padding:10px;font-size:14px;}
+  .legend{font-size:11px;color:var(--muted);margin-top:6px;display:flex;gap:10px;flex-wrap:wrap;}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>Mecha Rig Spec Editor</h1>
-  <p class="sub">自動分類器の提案を人が確定する human-in-the-loop ツール。分類器→<code>rig_spec.json</code>→[本エディタ]→Blender。</p>
-
+  <h1>Mecha Rig Spec Editor — Zaku</h1>
+  <p class="sub">自動分類の提案を、3Dビューと一覧表（相互リンク）で確認しながら人が確定する。パーツをクリック⇄行をハイライト。</p>
   <div class="bar">
-    <label class="card" style="cursor:pointer;"><i class="ti ti-upload"></i> rig_spec.json を読込
-      <input type="file" id="file" accept="application/json" style="display:none;"/></label>
-    <span id="ready" class="badge"><i class="ti ti-lock"></i> 仕様未読込</span>
-    <button id="export" disabled onclick="exportSpec()"><i class="ti ti-download"></i> 編集済み仕様を保存</button>
+    <span id="ready" class="badge"><i class="ti ti-lock"></i> 未確定 <span id="left">6</span></span>
+    <button id="export" onclick="exportSpec()"><i class="ti ti-download"></i> 編集済み仕様を保存</button>
+    <span class="hint">パーツ色 = 割当ボーン / 太枠 = 要確認</span>
   </div>
 
-  <div id="content" class="hint">rig_spec.json を読み込むか、デモ（Zaku）で開始します。<button onclick="loadDemo()" style="margin-left:8px;">デモを読込</button></div>
+  <div class="grid">
+    <div>
+      <div id="view"><div class="vhint">ドラッグで回転・ホイールでズーム</div></div>
+      <div class="legend" id="legend"></div>
+    </div>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>セグメント</th><th>ボーン</th><th>特性</th><th></th></tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <h2><i class="ti ti-settings-2"></i> 関節の動作拘束（甲冑のヒンジ位置・制限角）</h2>
+  <div id="joints"></div>
+
+  <button class="primary" id="build" disabled onclick="doBuild()"><i class="ti ti-player-play"></i> このリグ仕様でビルド (Blenderへ)</button>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 <script>
+const DATA={"bmin":[-9.8458,-2.8947,-0.0],"bmax":[9.8841,3.1497,18.0],"segs":[{"n":"part_0","c":[0.241,-0.002,0.238],"s":[0.168,0.604,0.383],"b":"UpperLeg_R","f":true,"pt":"structural"},{"n":"part_1","c":[-0.234,0.117,0.233],"s":[0.168,0.605,0.396],"b":"UpperLeg_L","f":true,"pt":"structural"},{"n":"part_2","c":[0.006,0.585,0.728],"s":[0.14,0.333,0.179],"b":"Chest","f":false,"pt":"structural"},{"n":"part_3","c":[0.005,0.002,0.694],"s":[0.236,0.82,0.247],"b":"Chest","f":false,"pt":"armor_fixed"},{"n":"part_4","c":[0.025,0.73,0.66],"s":[0.116,0.27,0.092],"b":"Chest","f":true,"pt":"structural"},{"n":"part_5","c":[-0.593,0.212,0.778],"s":[0.407,0.413,0.165],"b":"Chest","f":false,"pt":"armor_fixed"},{"n":"part_6","c":[0.006,-0.124,0.893],"s":[0.153,0.655,0.213],"b":"Head","f":true,"pt":"structural"},{"n":"part_7","c":[-0.29,0.124,0.856],"s":[0.055,0.159,0.03],"b":"Head","f":false,"pt":"structural"},{"n":"part_8","c":[0.006,-0.189,0.426],"s":[0.273,0.707,0.361],"b":"Hips","f":true,"pt":"armor_fixed"},{"n":"part_9","c":[0.498,-0.091,0.772],"s":[0.294,0.364,0.15],"b":"UpperArm_R","f":false,"pt":"structural"},{"n":"part_10","c":[-0.49,0.189,0.844],"s":[0.345,0.486,0.154],"b":"UpperArm_L","f":true,"pt":"structural"},{"n":"part_11","c":[0.885,-0.273,0.724],"s":[0.115,0.261,0.069],"b":"LowerArm_R","f":false,"pt":"structural"},{"n":"part_12","c":[-0.242,-0.152,0.08],"s":[0.14,0.733,0.159],"b":"LowerLeg_L","f":false,"pt":"structural"},{"n":"part_14","c":[0.327,-0.026,0.854],"s":[0.178,0.771,0.206],"b":"UpperArm_R","f":false,"pt":"structural"},{"n":"part_15","c":[0.248,-0.275,0.082],"s":[0.14,0.725,0.154],"b":"LowerLeg_R","f":false,"pt":"structural"},{"n":"part_16","c":[-0.298,0.163,0.858],"s":[0.017,0.113,0.023],"b":"Head","f":false,"pt":"structural"},{"n":"part_13_thigh","c":[0.15,-0.1,0.44],"s":[0.16,0.42,0.18],"b":"UpperLeg_R","f":false,"pt":"structural"},{"n":"part_13_shin","c":[0.2,-0.2,0.36],"s":[0.12,0.3,0.13],"b":"LowerLeg_R","f":false,"pt":"structural"}],
+"joints":[{"n":"Root_Hips","p":"Root","ch":"Hips","t":"hinge","lim":{"min":-45,"max":45}},{"n":"spine","p":"Hips","ch":"Chest","t":"revolute","lim":{"min":-20,"max":20}},{"n":"head","p":"Neck","ch":"Head","t":"revolute","lim":{"min":-30,"max":30}},{"n":"shoulder_L","p":"Chest","ch":"UpperArm_L","t":"ball","lim":{"min":-90,"max":90}},{"n":"shoulder_R","p":"Chest","ch":"UpperArm_R","t":"ball","lim":{"min":-90,"max":90}},{"n":"elbow_R","p":"UpperArm_R","ch":"LowerArm_R","t":"hinge","lim":{"min":-150,"max":0}},{"n":"hip_L","p":"Hips","ch":"UpperLeg_L","t":"ball","lim":{"min":-90,"max":60}},{"n":"hip_R","p":"Hips","ch":"UpperLeg_R","t":"ball","lim":{"min":-90,"max":60}},{"n":"knee_L","p":"UpperLeg_L","ch":"LowerLeg_L","t":"hinge","lim":{"min":0,"max":150}},{"n":"knee_R","p":"UpperLeg_R","ch":"LowerLeg_R","t":"hinge","lim":{"min":0,"max":150}}]};
 const BONES=["Root","Hips","Chest","Neck","Head","UpperArm_L","UpperArm_R","LowerArm_L","LowerArm_R","Hand_L","Hand_R","UpperLeg_L","UpperLeg_R","LowerLeg_L","LowerLeg_R","Foot_L","Foot_R"];
-const JTYPES=["hinge","revolute","ball","fixed"];
-let spec=null;
+const PTYPES=["structural","armor_fixed","armor_follower"];
+const COLOR={Head:"#d4a017",Neck:"#c08a14",Chest:"#4a90d9",Hips:"#2f6ca5",
+ UpperArm_L:"#639922",LowerArm_L:"#97c459",Hand_L:"#c0dd97",
+ UpperArm_R:"#1d9e75",LowerArm_R:"#5dcaa5",Hand_R:"#9fe1cb",
+ UpperLeg_L:"#7f77dd",LowerLeg_L:"#afa9ec",Foot_L:"#cecbf6",
+ UpperLeg_R:"#d85a30",LowerLeg_R:"#f0997b",Foot_R:"#f5c4b3",Root:"#888780"};
+const segs=DATA.segs.map(x=>({...x,bone:x.b,locked:!x.f,part_type:x.pt}));
+let left=segs.filter(s=>s.f).length;
+let meshes={}, selected=null;
 
-const DEMO={schema:"clawstack.mecha_rig_spec.v1", model:"zaku",
- segments:[
-  {name:"part_0",proposed_bone:"UpperLeg_R",confidence:0.07,flagged:true,bone:"UpperLeg_R",locked:false,proposal_source:"heuristic"},
-  {name:"part_1",proposed_bone:"UpperLeg_L",confidence:0.03,flagged:true,bone:"UpperLeg_L",locked:false,proposal_source:"heuristic"},
-  {name:"part_4",proposed_bone:"Chest",confidence:0.00,flagged:true,bone:"Chest",locked:false,proposal_source:"heuristic"},
-  {name:"part_6",proposed_bone:"Head",confidence:1.0,flagged:true,bone:"Head",locked:false,proposal_source:"heuristic"},
-  {name:"part_8",proposed_bone:"Hips",confidence:0.03,flagged:true,bone:"Hips",locked:false,proposal_source:"heuristic"},
-  {name:"part_10",proposed_bone:"UpperArm_L",confidence:0.14,flagged:true,bone:"UpperArm_L",locked:false,proposal_source:"heuristic"},
-  {name:"part_5",proposed_bone:"LowerArm_L",confidence:0.11,flagged:false,bone:"Chest",locked:true,proposal_source:"override"},
-  {name:"part_14",proposed_bone:"Head",confidence:0.79,flagged:false,bone:"UpperArm_R",locked:true,proposal_source:"override"},
-  {name:"part_11",proposed_bone:"Hand_R",confidence:0.87,flagged:false,bone:"LowerArm_R",locked:true,proposal_source:"override"},
-  {name:"part_12",proposed_bone:"Foot_L",confidence:0.17,flagged:false,bone:"LowerLeg_L",locked:true,proposal_source:"override"}
- ],
- joints:[
-  {name:"elbow_R",parent_bone:"UpperArm_R",child_bone:"LowerArm_R",type:"hinge",limits_deg:{min:-150,max:0}},
-  {name:"knee_L",parent_bone:"UpperLeg_L",child_bone:"LowerLeg_L",type:"hinge",limits_deg:{min:0,max:150}},
-  {name:"shoulder_L",parent_bone:"Chest",child_bone:"UpperArm_L",type:"ball",limits_deg:{min:-90,max:90}},
-  {name:"head",parent_bone:"Neck",child_bone:"Head",type:"revolute",limits_deg:{min:-30,max:30}}
- ]};
-
-document.getElementById("file").addEventListener("change",e=>{
-  const f=e.target.files[0]; if(!f)return;
-  const r=new FileReader();
-  r.onload=()=>{ try{ render(JSON.parse(r.result)); }catch(err){ alert("JSON読込失敗: "+err); } };
-  r.readAsText(f);
-});
-function loadDemo(){ render(JSON.parse(JSON.stringify(DEMO))); }
-
-function opt(sel){return BONES.map(b=>`<option ${b===sel?"selected":""}>${b}</option>`).join("");}
-
-function render(s){
-  spec=s;
-  const flagged=s.segments.filter(x=>x.flagged);
-  const armor=s.segments.filter(x=>x.proposal_source==="override");
-  let h=`<h2><i class="ti ti-alert-triangle"></i> 要確認 (${flagged.length}) — マウスで確定</h2>`;
-  h+=flagged.map((x,i)=>`<div class="card row flag" id="f${i}">
-     <div style="flex:1; min-width:150px;"><code>${x.name}</code> <span class="hint">conf ${x.confidence.toFixed(2)}</span>
-       <div class="hint">${x.confidence>=0.99?"サイズ異常・小ボーンに過大":"低信頼度・境界付近"}</div></div>
-     <select id="s${i}">${opt(x.bone)}</select>
-     <button id="b${i}" onclick="confirmRow(${i})"><i class="ti ti-check"></i> 確定</button></div>`).join("");
-
-  h+=`<h2><i class="ti ti-shield-check"></i> 装甲の帰属（自動補正済み）</h2>`;
-  h+=armor.map(a=>`<div class="card row" style="margin-bottom:6px;">
-     <code style="min-width:64px;">${a.name}</code>
-     <span class="strike">${a.proposed_bone}</span><i class="ti ti-arrow-right hint"></i>
-     <span class="right">${a.bone}</span></div>`).join("");
-
-  h+=`<h2><i class="ti ti-settings-2"></i> 関節の動作拘束</h2>`;
-  h+=s.joints.map((j,i)=>`<div class="card row">
-     <div style="flex:1; min-width:150px;"><b style="font-weight:500;">${j.name}</b>
-       <div class="hint">${j.parent_bone} → ${j.child_bone}</div></div>
-     <select id="jt${i}" onchange="jtype(${i})">${JTYPES.map(t=>`<option ${t===j.type?"selected":""}>${t}</option>`).join("")}</select>
-     <input id="jn${i}" type="number" value="${j.limits_deg.min}" style="width:64px;"/>
-     <span class="hint">–</span>
-     <input id="jx${i}" type="number" value="${j.limits_deg.max}" style="width:64px;"/><span class="hint">°</span></div>`).join("");
-
-  h+=`<button class="primary" id="build" disabled onclick="doBuild()"><i class="ti ti-player-play"></i> このリグ仕様でビルド</button>`;
-  document.getElementById("content").innerHTML=h;
-  document.getElementById("export").disabled=false;
-  updateReady();
+const sx=DATA.bmax[0]-DATA.bmin[0], sy=DATA.bmax[1]-DATA.bmin[1], sz=DATA.bmax[2]-DATA.bmin[2];
+function init3D(){
+ if(typeof THREE==="undefined"){document.getElementById("view").innerHTML='<div style="padding:20px;font-size:13px;color:var(--muted)">3Dビューアの読込に失敗（オフライン）。一覧表は使用できます。</div>';return;}
+ const el=document.getElementById("view"), W=el.clientWidth, H=el.clientHeight;
+ const scene=new THREE.Scene();
+ const cam=new THREE.PerspectiveCamera(40,W/H,0.1,200); cam.position.set(26,4,30);
+ const rnd=new THREE.WebGLRenderer({antialias:true,alpha:true}); rnd.setSize(W,H); rnd.setPixelRatio(devicePixelRatio); el.appendChild(rnd.domElement);
+ scene.add(new THREE.AmbientLight(0xffffff,0.75));
+ const dl=new THREE.DirectionalLight(0xffffff,0.7); dl.position.set(20,30,20); scene.add(dl);
+ const ctrl=new THREE.OrbitControls(cam,rnd.domElement); ctrl.target.set(0,1,0);
+ segs.forEach(s=>{
+   const w=Math.max(s.s[0]*sx,0.4), h=Math.max(s.s[2]*sz,0.4), d=Math.max(s.s[1]*sy,0.4);
+   const g=new THREE.BoxGeometry(w,h,d);
+   const m=new THREE.MeshLambertMaterial({color:new THREE.Color(COLOR[s.bone]||"#888")});
+   const mesh=new THREE.Mesh(g,m);
+   mesh.position.set(s.c[0]*sx/2, s.c[2]*sz-sz/2, s.c[1]*sy/2);
+   mesh.userData.name=s.n; scene.add(mesh); meshes[s.n]=mesh;
+   if(s.f){const e=new THREE.LineSegments(new THREE.EdgesGeometry(g),new THREE.LineBasicMaterial({color:0x854f0b})); mesh.add(e); mesh.userData.edge=e;}
+ });
+ const ray=new THREE.Raycaster(), mouse=new THREE.Vector2();
+ rnd.domElement.addEventListener("click",ev=>{
+   const r=rnd.domElement.getBoundingClientRect();
+   mouse.x=((ev.clientX-r.left)/W)*2-1; mouse.y=-((ev.clientY-r.top)/H)*2+1;
+   ray.setFromCamera(mouse,cam); const hit=ray.intersectObjects(Object.values(meshes));
+   if(hit.length) select(hit[0].object.userData.name,false);
+ });
+ (function loop(){requestAnimationFrame(loop); ctrl.update(); rnd.render(scene,cam);})();
 }
+function select(name,fromTable){
+ if(selected&&meshes[selected]) meshes[selected].material.emissive&&meshes[selected].material.emissive.setHex(0x000000);
+ selected=name;
+ const mesh=meshes[name]; if(mesh&&mesh.material.emissive) mesh.material.emissive.setHex(0x333333);
+ document.querySelectorAll("#tbody tr").forEach(tr=>tr.classList.toggle("sel",tr.dataset.name===name));
+ if(!fromTable){const tr=document.querySelector('#tbody tr[data-name="'+name+'"]'); if(tr) tr.scrollIntoView({block:"nearest"});}
+}
+function boneOpt(sel){return BONES.map(b=>`<option ${b===sel?"selected":""}>${b}</option>`).join("");}
+function ptOpt(sel){return PTYPES.map(b=>`<option ${b===sel?"selected":""}>${b}</option>`).join("");}
+
+function renderTable(){
+ const order=[...segs].sort((a,b)=>(b.f?1:0)-(a.f?1:0));
+ document.getElementById("tbody").innerHTML=order.map(s=>{
+  const i=segs.indexOf(s);
+  return `<tr data-name="${s.n}" class="${s.f?'flag':''}" onclick="select('${s.n}',true)">
+   <td><span class="sw" style="background:${COLOR[s.bone]||'#888'}"></span><code>${s.n}</code></td>
+   <td><select class="mini" onchange="setBone(${i},this.value)" onclick="event.stopPropagation()">${boneOpt(s.bone)}</select></td>
+   <td><select class="mini" onchange="segs[${i}].part_type=this.value" onclick="event.stopPropagation()">${ptOpt(s.part_type)}</select></td>
+   <td>${s.f?`<button class="mini" id="ok${i}" onclick="event.stopPropagation();confirmRow(${i})"><i class="ti ti-check"></i></button>`:`<span class="hint">確定済</span>`}</td>
+  </tr>`;}).join("");
+}
+function setBone(i,v){segs[i].bone=v; if(meshes[segs[i].n]) meshes[segs[i].n].material.color.set(COLOR[v]||"#888");
+ document.querySelector('#tbody tr[data-name="'+segs[i].n+'"] .sw').style.background=COLOR[v]||"#888";}
 function confirmRow(i){
-  const flagged=spec.segments.filter(x=>x.flagged);
-  flagged[i].bone=document.getElementById("s"+i).value; flagged[i].locked=true;
-  const r=document.getElementById("f"+i); r.classList.add("done");
-  const b=document.getElementById("b"+i); b.disabled=true; b.innerHTML='<i class="ti ti-check"></i> 確定済';
-  updateReady();
+ segs[i].locked=true; const tr=document.querySelector('#tbody tr[data-name="'+segs[i].n+'"]'); tr.classList.add("done");
+ const b=document.getElementById("ok"+i); b.disabled=true; b.innerHTML='<i class="ti ti-check" style="color:var(--ok)"></i>';
+ if(meshes[segs[i].n]&&meshes[segs[i].n].userData.edge) meshes[segs[i].n].userData.edge.material.color.setHex(0x0f6e56);
+ left--; document.getElementById("left").textContent=left;
+ if(left<=0){const bd=document.getElementById("ready"); bd.className="badge ok"; bd.innerHTML='<i class="ti ti-circle-check"></i> ビルド可';
+   document.getElementById("build").disabled=false;}
 }
-function jtype(i){
-  const t=document.getElementById("jt"+i).value;
-  document.getElementById("jn"+i).disabled=document.getElementById("jx"+i).disabled=(t==="fixed");
-  spec.joints[i].type=t;
+function renderJoints(){
+ document.getElementById("joints").innerHTML=DATA.joints.map((j,i)=>`<div class="jrow">
+   <div style="flex:1;min-width:150px;"><b style="font-weight:500;">${j.n}</b> <span class="hint">${j.p} → ${j.ch}</span></div>
+   <select id="jt${i}" onchange="jtype(${i})">${["hinge","revolute","ball","fixed"].map(t=>`<option ${t===j.t?"selected":""}>${t}</option>`).join("")}</select>
+   <input id="jn${i}" type="number" value="${j.lim.min}" style="width:60px;"/><span class="hint">–</span>
+   <input id="jx${i}" type="number" value="${j.lim.max}" style="width:60px;"/><span class="hint">°</span></div>`).join("");
 }
-function updateReady(){
-  const left=spec.segments.filter(x=>x.flagged&&!x.locked).length;
-  const badge=document.getElementById("ready"), build=document.getElementById("build");
-  if(left===0){ badge.className="badge ok"; badge.innerHTML='<i class="ti ti-circle-check"></i> ビルド可';
-    if(build){build.disabled=false;} }
-  else{ badge.className="badge"; badge.innerHTML='<i class="ti ti-lock"></i> 未確定 '+left; if(build){build.disabled=true;} }
-}
-function collect(){
-  spec.joints.forEach((j,i)=>{ const mn=document.getElementById("jn"+i),mx=document.getElementById("jx"+i);
-    if(mn){ j.type=document.getElementById("jt"+i).value; j.limits_deg={min:+mn.value,max:+mx.value}; }});
-  return spec;
+function jtype(i){const t=document.getElementById("jt"+i).value;document.getElementById("jn"+i).disabled=document.getElementById("jx"+i).disabled=(t==="fixed");DATA.joints[i].t=t;}
+function renderLegend(){
+ const used=[...new Set(segs.map(s=>s.bone))];
+ document.getElementById("legend").innerHTML=used.map(b=>`<span><span class="sw" style="background:${COLOR[b]}"></span>${b}</span>`).join("");
 }
 function exportSpec(){
-  const s=collect(); const blob=new Blob([JSON.stringify(s,null,2)],{type:"application/json"});
-  const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
-  a.download=(s.model||"mecha")+"_rig_spec_edited.json"; a.click();
+ DATA.joints.forEach((j,i)=>{const mn=document.getElementById("jn"+i);if(mn){j.t=document.getElementById("jt"+i).value;j.lim={min:+mn.value,max:+document.getElementById("jx"+i).value};}});
+ const spec={schema:"clawstack.mecha_rig_spec.v1",model:"zaku",
+  segments:segs.map(s=>({name:s.n,bone:s.bone,part_type:s.part_type,locked:s.locked,flagged:s.f})),joints:DATA.joints};
+ const blob=new Blob([JSON.stringify(spec,null,2)],{type:"application/json"});
+ const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="zaku_rig_spec_edited.json";a.click();
 }
-function doBuild(){ collect(); alert("rig_spec 確定。次は Blender ビルダーが本 JSON を読み armature + LIMIT_ROTATION を生成します（別スクリプト）。"); }
+function doBuild(){alert("rig_spec 確定。次は Blender ビルダーが本JSONを読み armature + LIMIT_ROTATION を生成します（別スクリプト・要Blender）。");}
+renderTable(); renderJoints(); renderLegend(); init3D();
 </script>
 </body>
 </html>

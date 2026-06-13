@@ -60,6 +60,23 @@ _JOINT_DEFAULTS: dict[str, dict[str, Any]] = {
 
 VALID_JOINT_TYPES = {"hinge", "revolute", "ball", "fixed"}
 
+# Part characteristic, auto-set then user-confirmed:
+#   structural     -> primary limb/torso mass, moves rigidly with its bone
+#   armor_fixed    -> broad shell pinned to a bone (shoulder shield, backpack)
+#   armor_follower -> partially follows an adjacent bone (skirt armor that opens
+#                     when a leg lifts) -- needs a driver_bone + influence; NOT
+#                     auto-detected (the hard case), left for the user to set.
+VALID_PART_TYPES = {"structural", "armor_fixed", "armor_follower"}
+
+
+def _infer_part_type(bone: str, size_norm: list[float] | tuple, source: str) -> str:
+    """Auto-set the basic part characteristic (user confirms in the GUI)."""
+    wide = max(float(s) for s in size_norm)
+    # A broad segment pinned to the torso is shell armor, not structural mass.
+    if bone in ("Chest", "Hips") and wide >= 0.40:
+        return "armor_fixed"
+    return "structural"
+
 
 def _mean_centroid(segments: list[dict[str, Any]]) -> list[float] | None:
     pts = [s.get("centroid_norm") for s in segments if s.get("centroid_norm")]
@@ -102,6 +119,10 @@ def build_rig_spec(
             # user-editable decision (defaults to the proposal):
             "bone": a.bone,
             "locked": a.source == "override",  # overrides are pre-confirmed
+            # basic part characteristic, auto-set then user-confirmed:
+            "part_type": _infer_part_type(a.bone, size, a.source),
+            "driver_bone": None,   # for armor_follower (e.g. skirt -> UpperLeg_*)
+            "follow_influence": 0.0,
         }
         seg_rows.append(row)
         bone_segments.setdefault(a.bone, []).append({"centroid_norm": centroid})
@@ -162,6 +183,11 @@ def validate_rig_spec(spec: dict[str, Any]) -> tuple[bool, list[str]]:
     for s in segs:
         if not s.get("bone"):
             issues.append(f"segment_no_bone:{s.get('name')}")
+        pt = s.get("part_type")
+        if pt and pt not in VALID_PART_TYPES:
+            issues.append(f"bad_part_type:{s.get('name')}={pt}")
+        if pt == "armor_follower" and not s.get("driver_bone"):
+            issues.append(f"follower_without_driver:{s.get('name')}")
     for j in spec.get("joints") or []:
         if j.get("type") not in VALID_JOINT_TYPES:
             issues.append(f"bad_joint_type:{j.get('name')}={j.get('type')}")
