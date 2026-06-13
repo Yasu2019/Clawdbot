@@ -1,0 +1,17 @@
+{
+  "_comment": "Data-driven mecha bone overrides for Zaku (ported from zaku_segmentation_rigid_rig.MANUAL_BONE_OVERRIDES). Segments the spatial heuristic misclassifies; confirmed by review of zaku_segmentation_rigid_rig_audit.json. 'exact' keys are MeshyAI segment names; 'prefix' matches split sub-segments.",
+  "model": "zaku",
+  "exact": {
+    "part_2": ["Chest", "manual_upper_pipe_to_chest"],
+    "part_3": ["Chest", "manual_upper_torso_to_chest"],
+    "part_5": ["Chest", "manual_shoulder_shield_to_chest_no_arm_bend"],
+    "part_11": ["LowerArm_R", "manual_hand_to_forearm_no_wrist_stretch"],
+    "part_14": ["UpperArm_R", "manual_right_shoulder_shell_to_upper_arm"],
+    "part_12": ["LowerLeg_L", "manual_left_lower_leg_no_ankle_split"],
+    "part_15": ["LowerLeg_R", "manual_right_lower_leg_no_ankle_split"]
+  },
+  "prefix": {
+    "part_13_shin_": ["LowerLeg_R", "manual_right_knee_protector_split_to_shin"],
+    "part_13_thigh_": ["UpperLeg_R", "manual_right_thigh_shell_split_from_knee"]
+  }
+}
