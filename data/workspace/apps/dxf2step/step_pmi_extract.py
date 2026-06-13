@@ -3,11 +3,18 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 from pathlib import Path
 from typing import Any
 
 SCHEMA = "clawstack.part_manifest.v1"
+
+# A STEP CYLINDRICAL_SURFACE below this diameter is an edge fillet/blend, not a
+# drilled/pierced hole. For press/sheet-metal parts the smallest real pierced
+# hole is >= material thickness; 0.5mm is a conservative floor that drops blend
+# artifacts (e.g. dia 0.02mm) while keeping genuine holes. Env-overridable.
+MIN_HOLE_DIAMETER_MM = float(os.getenv("DXF2STEP_PMI_MIN_HOLE_DIAMETER_MM", "0.5"))
 
 
 def parse_step_pmi(step_path: Path) -> dict[str, Any]:
@@ -16,10 +23,11 @@ def parse_step_pmi(step_path: Path) -> dict[str, Any]:
 
     holes: list[dict[str, Any]] = []
     seen_r: set[float] = set()
+    filtered_sub_min_diameter = 0
     cyl_radii = re.findall(
         r"CYLINDRICAL_SURFACE\s*\([^,]+,[^,]+,\s*([\d.eE+\-]+)\)", content
     )
-    for idx, r_str in enumerate(cyl_radii):
+    for r_str in cyl_radii:
         try:
             r = round(float(r_str), 4)
         except ValueError:
@@ -27,10 +35,15 @@ def parse_step_pmi(step_path: Path) -> dict[str, Any]:
         if r <= 0 or r in seen_r:
             continue
         seen_r.add(r)
+        diameter = round(r * 2, 4)
+        # Skip fillet/blend cylinders: a sub-threshold "hole" is not a real hole.
+        if diameter < MIN_HOLE_DIAMETER_MM:
+            filtered_sub_min_diameter += 1
+            continue
         holes.append(
             {
-                "name": f"hole_{idx + 1}",
-                "diameter_mm": round(r * 2, 4),
+                "name": f"hole_{len(holes) + 1}",
+                "diameter_mm": diameter,
                 "position_tol_mm": 0.05,
                 "source": "gdt_pmi_step_cylinder",
             }
@@ -90,6 +103,8 @@ def parse_step_pmi(step_path: Path) -> dict[str, Any]:
         "hole_count": len(holes),
         "datum_count": len(datums),
         "gdt_annotation_count": len(gdt_annotations),
+        "filtered_sub_min_diameter": filtered_sub_min_diameter,
+        "min_hole_diameter_mm": MIN_HOLE_DIAMETER_MM,
         "maturity_level": maturity,
     }
 
