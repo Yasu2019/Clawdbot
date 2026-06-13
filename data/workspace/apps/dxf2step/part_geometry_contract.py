@@ -50,6 +50,32 @@ def _estimate_bbox_from_layers(build_log: dict[str, Any], sheet_thickness: float
     return {"Lx": float(n_done), "Ly": 1.0, "Lz": _round_mm(lz)}
 
 
+def _derive_sheet_thickness(
+    bbox: dict[str, float] | None,
+    layer_thicknesses: list[float],
+    default_thickness_mm: float,
+    *,
+    has_real_bbox: bool,
+) -> tuple[float, str]:
+    """Sheet thickness, preferring the measured geometry over the extrude default.
+
+    Domain assumption (progressive-die / sheet-metal North Star): a press part's
+    thickness is its smallest bounding-box extent. When a real STEP BoundBox is
+    available, min(Lx,Ly,Lz) is far better grounded than the dxf2step Pad/extrude
+    thickness (a guessed grid default, e.g. 10mm, not measured from the part).
+    Returns (thickness_mm, source) where source is one of:
+    "min_bbox" | "layer_extrude" | "default".
+    """
+    if has_real_bbox and bbox:
+        dims = [float(bbox.get(a) or 0) for a in ("Lx", "Ly", "Lz")]
+        positive = [d for d in dims if d > 0]
+        if positive:
+            return float(min(positive)), "min_bbox"
+    if layer_thicknesses:
+        return float(max(layer_thicknesses)), "layer_extrude"
+    return float(default_thickness_mm), "default"
+
+
 def _freecad_bbox_script(step_path: str) -> str:
     safe = step_path.replace("\\", "/").replace("'", "\\'")
     return (
@@ -131,22 +157,30 @@ def build_part_manifest(
     """Build manifest dict from worker output_dir + build_log."""
     out = Path(output_dir)
     layers = build_log.get("layers") or {}
-    thicknesses = [
+    layer_thicknesses = [
         float((info or {}).get("thickness") or default_thickness_mm)
         for info in layers.values()
         if (info or {}).get("status") == "done"
     ]
-    sheet_thickness = max(thicknesses) if thicknesses else float(default_thickness_mm)
     closed_loops = sum(1 for info in layers.values() if (info or {}).get("status") == "done")
 
     step_raw, fcstd_raw = _resolve_paths(out, build_log)
     step_full = Path(step_raw) if step_raw else None
     fcstd_full = Path(fcstd_raw) if fcstd_raw else None
-    bbox = _estimate_bbox_from_layers(build_log, sheet_thickness)
+    # Placeholder bbox (uses extrude thickness) until a real STEP BoundBox overwrites.
+    bbox = _estimate_bbox_from_layers(
+        build_log, max(layer_thicknesses) if layer_thicknesses else float(default_thickness_mm)
+    )
+    has_real_bbox = False
     if step_full and step_full.exists():
         step_bbox = extract_bbox_from_step(step_full)
         if step_bbox and step_bbox.get("Lx", 0) > 0:
             bbox = step_bbox
+            has_real_bbox = True
+
+    sheet_thickness, thickness_source = _derive_sheet_thickness(
+        bbox, layer_thicknesses, default_thickness_mm, has_real_bbox=has_real_bbox
+    )
 
     has_step = bool(step_full and step_full.exists())
     has_fcstd = bool(fcstd_full and fcstd_full.exists())
@@ -157,7 +191,7 @@ def build_part_manifest(
         nominal_dims = [
             {"name": "bbox_Lx", "nominal_mm": bbox["Lx"], "source": "step_bbox" if has_step else "estimate"},
             {"name": "bbox_Ly", "nominal_mm": bbox["Ly"], "source": "step_bbox" if has_step else "estimate"},
-            {"name": "sheet_thickness", "nominal_mm": sheet_thickness, "source": "layer_thickness"},
+            {"name": "sheet_thickness", "nominal_mm": sheet_thickness, "source": thickness_source},
         ]
 
     manifest: dict[str, Any] = {
@@ -170,6 +204,7 @@ def build_part_manifest(
         "units": "mm",
         "bbox_mm": bbox,
         "sheet_thickness_mm": _round_mm(sheet_thickness),
+        "thickness_source": thickness_source,
         "material": {"id": material_id, "source": material_source},
         "features": {
             "closed_loops": closed_loops,
@@ -415,6 +450,45 @@ def merged_tolerance_dims(
     return base
 
 
+def recompute_thickness_from_bbox(manifest: dict[str, Any]) -> tuple[dict[str, Any], bool]:
+    """Recompute sheet_thickness_mm from the manifest's stored real bbox (no FreeCAD).
+
+    Corrects manifests emitted before the min-bbox thickness rule (where thickness
+    was the extrude default). Updates dependent fields: nominal_dims sheet_thickness,
+    openradioss handoff thickness. Returns (manifest, changed).
+    """
+    bbox = manifest.get("bbox_mm") or {}
+    dims = [float(bbox.get(a) or 0) for a in ("Lx", "Ly", "Lz")]
+    positive = [d for d in dims if d > 0]
+    # Only act on a real (placeholder bboxes use Ly==1.0 sentinel); require all axes > 0.
+    if len(positive) != 3:
+        return manifest, False
+    new_thickness = _round_mm(min(positive))
+    old_thickness = manifest.get("sheet_thickness_mm")
+    if old_thickness == new_thickness and manifest.get("thickness_source") == "min_bbox":
+        return manifest, False
+
+    manifest["sheet_thickness_mm"] = new_thickness
+    manifest["thickness_source"] = "min_bbox"
+
+    feats = manifest.get("features") or {}
+    for dim in feats.get("nominal_dims_mm") or []:
+        if isinstance(dim, dict) and dim.get("name") == "sheet_thickness":
+            dim["nominal_mm"] = new_thickness
+            dim["source"] = "min_bbox"
+    handoff = (manifest.get("physics_handoff") or {}).get("openradioss")
+    if isinstance(handoff, dict):
+        handoff["thickness_mm"] = new_thickness
+        handoff["ready"] = new_thickness > 0
+    tol = (manifest.get("physics_handoff") or {}).get("tolerance")
+    if isinstance(tol, dict):
+        for dim in tol.get("nominal_dims_mm") or []:
+            if isinstance(dim, dict) and dim.get("name") == "sheet_thickness":
+                dim["nominal_mm"] = new_thickness
+                dim["source"] = "min_bbox"
+    return manifest, True
+
+
 def write_part_manifest(manifest: dict[str, Any], output_dir: str | Path) -> Path:
     out = Path(output_dir)
     out.mkdir(parents=True, exist_ok=True)
@@ -542,7 +616,35 @@ def main() -> int:
     parser.add_argument("--validate", help="Validate single part_manifest.json path")
     parser.add_argument("--validate-archive", help="Scan job archive root for manifests")
     parser.add_argument("--backfill-archive", help="Emit missing manifests from build_log.json")
+    parser.add_argument(
+        "--recompute-thickness",
+        help="Recompute sheet_thickness_mm from stored bbox (min-bbox rule) and write back",
+    )
     args = parser.parse_args()
+
+    if args.recompute_thickness:
+        path = Path(args.recompute_thickness)
+        manifest = json.loads(path.read_text(encoding="utf-8-sig"))
+        old = manifest.get("sheet_thickness_mm")
+        manifest, changed = recompute_thickness_from_bbox(manifest)
+        if changed:
+            path.write_text(
+                json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+            )
+        print(
+            json.dumps(
+                {
+                    "path": str(path),
+                    "changed": changed,
+                    "old_thickness_mm": old,
+                    "new_thickness_mm": manifest.get("sheet_thickness_mm"),
+                    "thickness_source": manifest.get("thickness_source"),
+                },
+                ensure_ascii=False,
+                indent=2,
+            )
+        )
+        return 0
 
     if args.backfill_archive:
         report = backfill_missing_manifests(Path(args.backfill_archive))
