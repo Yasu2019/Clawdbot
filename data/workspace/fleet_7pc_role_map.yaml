@@ -1,0 +1,71 @@
+# Gemma4 7PC Honki kit mapped onto Clawstack fleet (ADOPT_PARTIAL INC-117)
+# Canonical kit: protocols/gemma4_7pc_honki/README.md
+schema: clawstack.fleet_7pc_role_map.v1
+updated_at: "2026-06-14"
+
+node_primary_role:
+  K10: pc1_president_ai
+  RED_LAVIE: pc2_quality_ai
+  LAVIE: pc3_engineering_ai
+  thinkpad: pc3_engineering_ai
+  G3: pc6_n8n_automation
+  dynabook: pc7_backup
+  vivobook: pc7_backup
+  LAVIE_CORE_I3: pc7_backup
+
+model_policy:
+  heavy_gemma4_host: K10
+  heavy_model_tag: gemma4:12b-it-qat
+  heavy_model_mode: evaluation_only
+  gpu_buy_now: false
+  notes: "12B only in isolated eval container; production routing unchanged."
+
+roles:
+  pc1_president_ai:
+    kit_role: "社長AI / Gemma4 12B Q4候補"
+    kit_role_en: "President AI / Gemma4 12B candidate"
+    fleet_nodes: [K10]
+    services: [litellm, model_router, ollama, portal]
+    model_hint: gemma4:12b-it-qat
+
+  pc2_quality_ai:
+    kit_role: "品質保証 / IATF"
+    kit_role_en: "Quality / IATF"
+    fleet_nodes: [RED_LAVIE, K10]
+    services: [qms_iatf_analysis, iatf_video_pipeline]
+    model_hint: local_fast
+
+  pc3_engineering_ai:
+    kit_role: "技術解析 / OpenFOAM / OpenRadioss"
+    kit_role_en: "Engineering / OpenFOAM / OpenRadioss"
+    fleet_nodes: [LAVIE, RED_LAVIE, thinkpad]
+    services: [cae_te_loop, openfoam, openradioss]
+    model_hint: local_codex
+
+  pc4_research_ai:
+    kit_role: "情報収集"
+    kit_role_en: "Research / web harvest"
+    fleet_nodes: [K10, RED_LAVIE]
+    services: [ai_strategy_scout, web_research, email_search]
+    model_hint: local_fast
+
+  pc5_obsidian_memory:
+    kit_role: "記憶 / RAG"
+    kit_role_en: "Memory / RAG"
+    fleet_nodes: [K10]
+    services: [paperless_rag, qdrant, obsidian_bases]
+    model_hint: embedding
+
+  pc6_n8n_automation:
+    kit_role: "自動化"
+    kit_role_en: "Automation / n8n"
+    fleet_nodes: [K10, G3, LAVIE]
+    services: [n8n, fleet_24x7_start]
+    model_hint: none
+
+  pc7_backup:
+    kit_role: "バックアップ / ログ"
+    kit_role_en: "Backup / logs"
+    fleet_nodes: [K10, LAVIE_CORE_I3]
+    services: [git, obsidian_backup_zip, connectivity_logs]
+    model_hint: none
