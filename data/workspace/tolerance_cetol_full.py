@@ -85,14 +85,15 @@ def analyze_cetol_full(
         ecn_id=ecn_id,
     )
 
-    maturity = MATURITY_CETOL_FULL
     fk_pass = l10_report.get("factory_kpi", {}).get("verdict") == "PASS"
     meas_pass = measurement is None or measurement.get("verdict") == "PASS"
-    if not freecad_loop.get("ok") and not freecad_loop.get("skipped"):
-        maturity = "L10_assembly_6sigma"
-    if fk_pass and meas_pass and freecad_loop.get("ok"):
+    # fail-closed: a non-capable part is not L10 regardless of how much of the
+    # pipeline ran (factory KPI / measurement must pass first -- T019 honesty).
+    if not (fk_pass and meas_pass):
+        maturity = "L10_assembly_blocked_not_capable"
+    elif freecad_loop.get("ok"):
         maturity = MATURITY_CETOL_FULL
-    elif fk_pass and meas_pass:
+    else:
         maturity = "L10_assembly_6sigma"
 
     tol = (manifest.get("physics_handoff") or {}).get("tolerance") or {}

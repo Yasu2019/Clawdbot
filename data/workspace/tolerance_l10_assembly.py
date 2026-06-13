@@ -103,10 +103,23 @@ def factory_kpi_assessment(
     wc = float(mc.get("worst_case_tol") or 0.0)
     engineering_pass = wc <= target_mm
     checks["worst_case_within_target"] = engineering_pass
-    verdict = "PASS" if engineering_pass else "FAIL"
+    # fail-closed: a factory KPI "PASS" must be statistically capable, not only
+    # worst-case fit. Cpk/yield below threshold => FAIL (no false-PASS / T019).
+    capable = checks["cpk_ge_min"] and checks["yield_ge_min"]
+    verdict = "PASS" if (engineering_pass and capable) else "FAIL"
+    reasons = []
+    if not engineering_pass:
+        reasons.append(f"worst_case {round(wc, 4)} > target {target_mm}")
+    if not checks["cpk_ge_min"]:
+        reasons.append(f"Cpk {round(cpk, 4)} < {cpk_min}")
+    if not checks["yield_ge_min"]:
+        reasons.append(f"yield {round(yield_rate, 6)} < {yield_min}")
+    verdict_reason = "; ".join(reasons) if reasons else "all checks pass"
     return {
         "schema": "clawstack.tolerance_factory_kpi.v1",
         "verdict": verdict,
+        "verdict_reason": verdict_reason,
+        "engineering_worst_case_pass": engineering_pass,
         "Cp": round(cp, 4),
         "Cpk": round(cpk, 4),
         "yield_rate": round(yield_rate, 6),
@@ -154,7 +167,13 @@ def analyze_l10_assembly_from_manifest(
         {
             "schema": "clawstack.tolerance_l10_assembly.v1",
             "assembly_model": "progressive_die_3station_v1",
-            "maturity_level": "L10_assembly_6sigma",
+            # fail-closed: only claim 6sigma maturity if the factory KPI passes
+            # (Cpk/yield capable). A non-capable part is not L10 (T019 honesty).
+            "maturity_level": (
+                "L10_assembly_6sigma"
+                if factory_kpi["verdict"] == "PASS"
+                else "L10_assembly_blocked_not_capable"
+            ),
             "base_maturity_level": base_maturity,
             "factory_kpi": factory_kpi,
             "gdt_included": include_gdt,
