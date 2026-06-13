@@ -295,7 +295,7 @@ def main() -> None:
                 review_method = "text-review/deepseek-v4-flash"
 
         if content is None:
-            # All AI methods unavailable — fall back to deterministic manifest check
+            # All AI methods unavailable — fail closed (T018: no auto-approve on 401/429)
             manifest_path = Path(request.get("manifest", ""))
             manifest = {}
             if manifest_path.exists():
@@ -306,18 +306,16 @@ def main() -> None:
             slides = manifest.get("slides", [])
             manifest_ok = manifest.get("ok", False)
             avg_text = sum(s.get("text_length", 0) for s in slides) / max(len(slides), 1) if slides else 0
-            # Approve if deterministic checks passed and slides have substantive content
-            auto_approve = manifest_ok and len(slides) >= 3 and avg_text >= 20
             print(json.dumps({
-                "approved": auto_approve,
+                "approved": False,
                 "mode": visual_mode,
                 "checks": [],
                 "reason": (
                     f"AI review unavailable (vision 401, gemini 429, text empty); "
                     f"deterministic={manifest_ok}, slides={len(slides)}, avg_text={avg_text:.0f} chars — "
-                    f"{'AUTO-APPROVED by manifest' if auto_approve else 'REJECTED: insufficient content'}"
+                    "REJECTED: fail-closed (no auto-approve on auth/rate-limit errors)"
                 ),
-                "_method": "manifest-fallback",
+                "_method": "manifest-fallback-fail-closed",
             }))
             return
 

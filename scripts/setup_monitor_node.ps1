@@ -69,25 +69,12 @@ Write-Host "  -> Python: $pythonw"
 Write-Host "[2/4] Stopping existing agent..."
 try {
     Get-CimInstance Win32_Process -ErrorAction SilentlyContinue |
-        Where-Object { $_.CommandLine -match 'monitor_agent' } |
+        Where-Object { $_.CommandLine -and ($_.CommandLine -match 'monitor_agent') } |
         ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
-    Get-NetTCPConnection -LocalPort 8111 -State Listen -ErrorAction SilentlyContinue |
-        Select-Object -ExpandProperty OwningProcess -Unique |
-        ForEach-Object { Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue }
-    netstat -ano |
-        Select-String ":8111" |
-        ForEach-Object {
-            $parts = ($_.Line -split "\s+") | Where-Object { $_ }
-            if ($parts.Length -ge 5 -and $parts[3] -eq "LISTENING") {
-                $pidText = $parts[4]
-                if ($pidText -match "^\d+$") {
-                    Stop-Process -Id ([int]$pidText) -Force -ErrorAction SilentlyContinue
-                    & taskkill.exe /PID $pidText /F | Out-Null
-                }
-            }
-        }
     Start-Sleep -Seconds 1
-} catch {}
+} catch {
+    Write-Host "  [WARN] stop existing agent: $_"
+}
 
 # [3/4] Download monitor_agent.py. WebClient works on older Windows hosts.
 Write-Host "[3/4] Downloading monitor_agent.py..."

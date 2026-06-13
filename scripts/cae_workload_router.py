@@ -227,6 +227,11 @@ def pick_host(category: str, cfg: dict[str, Any] | None = None) -> dict[str, Any
             load_ok, load_reason, _metrics = satellite_load_guard(cfg, node_id)
             if load_ok:
                 available_satellites.append((node_id, f"{reason}; {load_reason}"))
+            elif "metrics unavailable" in load_reason:
+                # Worker healthz OK but monitor_agent down -- still dispatch (INC-116 pattern)
+                available_satellites.append(
+                    (node_id, f"{reason}; {load_reason} (worker-only dispatch)")
+                )
             else:
                 available_satellites.append((f"{node_id}:guarded", f"{reason}; {load_reason}"))
 
@@ -288,13 +293,22 @@ def pick_host(category: str, cfg: dict[str, Any] | None = None) -> dict[str, Any
                 "red_lavie preferred but unavailable; regular lavie heavy fallback disabled"
             )
             return decision
-        if lavie_ready and (category in lavie_fallback or lavie_heavy_fallback):
+        if lavie_ready and category in lavie_fallback and lavie_heavy_fallback:
             decision["host"] = "lavie"
             decision["reason"] = f"red_lavie unavailable; controlled fallback -> lavie ({busy_reason})"
+            return decision
+        if category in red_preferred or category in red_dedicated:
+            decision["host"] = "k10"
+            decision["reason"] = f"red_lavie unavailable; OpenRadioss fallback -> k10 ({busy_reason})"
             return decision
 
     if dispatchable_satellites and category in lavie_openfoam:
         if busy or parallel.get("openfoam_to_lavie", True):
+            primary = (cfg.get("lavie_openfoam_primary") or "lavie").strip()
+            if primary == "lavie" and lavie_ready:
+                decision["host"] = "lavie"
+                decision["reason"] = f"OpenFOAM primary -> lavie ({busy_reason})"
+                return decision
             chosen_sat, _ = dispatchable_satellites[0]
             decision["host"] = chosen_sat
             decision["reason"] = f"OpenFOAM offload -> {chosen_sat} ({busy_reason})"

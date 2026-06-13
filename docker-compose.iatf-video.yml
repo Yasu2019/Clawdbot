@@ -17,6 +17,10 @@ services:
       IATF_AUDIO_CACHE:    /tmp/iatf_audio
       BLENDER_BIN:         /usr/local/bin/blender
       RHUBARB_BIN:         /usr/local/bin/rhubarb
+      IATF_VISION_QA_ENABLED: ${IATF_VISION_QA_ENABLED:-0}
+      IATF_VISION_QA_CONSENT: ${IATF_VISION_QA_CONSENT:-0}
+      IATF_VISION_QA_TIMEOUT_SEC: ${IATF_VISION_QA_TIMEOUT_SEC:-120}
+      IATF_VIDEO_AI_REVIEW_CMD: ${IATF_VIDEO_AI_REVIEW_CMD:-}
     volumes:
       - iatf_pdfs:/iatf_docs:ro
       - iatf_videos:/data/iatf_videos

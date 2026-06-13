@@ -63,17 +63,7 @@ def main() -> int:
         print(f"[sync] packed scripts -> {zip_path.stat().st_size} bytes")
 
         k10_ip = sync_base.detect_k10_tailscale_ip(args.k10_ip)
-        dest_parent = str(Path(args.dest).parent).replace("/", "\\")
-        url = f"http://{k10_ip}:{args.port}/{zip_name}"
-        ps = (
-            f"$destParent='{dest_parent}'; $dest='{args.dest.replace('/', '\\')}'; "
-            f"New-Item -ItemType Directory -Force -Path $dest | Out-Null; "
-            f"$zip=Join-Path $env:TEMP '{zip_name}'; "
-            f"Invoke-WebRequest -Uri '{url}' -OutFile $zip -UseBasicParsing; "
-            f"Expand-Archive -Path $zip -DestinationPath $dest -Force; "
-            f"Write-Host SYNC_SCRIPTS_OK dest=$dest"
-        )
-        command = f'powershell -NoProfile -ExecutionPolicy Bypass -Command "{ps}"'
+        command = sync_base.build_lavie_pack_sync_command(k10_ip, args.port, zip_name, args.dest)
 
         server, _ = sync_base.serve_zip(zip_path, args.port)
         try:
@@ -90,10 +80,13 @@ def main() -> int:
                     f'powershell -NoProfile -ExecutionPolicy Bypass -File '
                     f'"{args.dest.replace("/", "\\")}\\scripts\\lavie_bootstrap_cae_video.ps1"'
                 )
-                br = sync_base.dispatch_shell(args.node, boot, 300, token)
-                tail = (br.get("stdout_tail") or "")[-500:]
-                if tail:
-                    print(tail)
+                try:
+                    br = sync_base.dispatch_shell(args.node, boot, 300, token)
+                    tail = (br.get("stdout_tail") or "")[-500:]
+                    if tail:
+                        print(tail)
+                except Exception as exc:
+                    print(f"[WARN] bootstrap optional step skipped: {exc}")
             return 0 if ok else 1
         finally:
             server.shutdown()

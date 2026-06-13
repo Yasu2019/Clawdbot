@@ -152,6 +152,21 @@ def build_download_command(k10_ip: str, port: int, zip_name: str, dest_dir: str,
     return f'powershell -NoProfile -ExecutionPolicy Bypass -Command "{ps}"'
 
 
+def build_lavie_pack_sync_command(k10_ip: str, port: int, zip_name: str, dest_dir: str) -> str:
+    """Sync lavie_usb_pack (no experiments/ folder check)."""
+    url = f"http://{k10_ip}:{port}/{zip_name}"
+    dest = dest_dir.replace("/", "\\")
+    ps = (
+        f"$dest='{dest}'; "
+        f"New-Item -ItemType Directory -Force -Path $dest | Out-Null; "
+        f"$zip=Join-Path $env:TEMP '{zip_name}'; "
+        f"Invoke-WebRequest -Uri '{url}' -OutFile $zip -UseBasicParsing; "
+        f"Expand-Archive -Path $zip -DestinationPath $dest -Force; "
+        f"Write-Host SYNC_SCRIPTS_OK dest=$dest"
+    )
+    return f'powershell -NoProfile -ExecutionPolicy Bypass -Command "{ps}"'
+
+
 def dispatch_shell(node: str, command: str, timeout: int, token: str) -> dict[str, Any]:
     node_info = sjp.load_node(node)
     base_url = sjp.worker_base_url(node_info)

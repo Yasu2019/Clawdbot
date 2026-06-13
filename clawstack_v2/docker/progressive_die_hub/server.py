@@ -19,6 +19,7 @@ import radioss_generator as rg
 import calculix_generator as cg
 import report_generator as rep
 import inp_converter as ic
+import manifest_tolerance as mt
 
 # ── 定数 ─────────────────────────────────────────────────────────────────────
 JOBS_DIR = Path("/tmp/pdie_jobs")
@@ -588,16 +589,21 @@ class ToleranceStackBody(BaseModel):
     mc_n: int = 10000
 
 
-@app.post("/api/tolerance-stack")
-async def tolerance_stack(body: ToleranceStackBody):
-    dims = body.rows
-    target = abs(body.target)
-    n = body.mc_n
+class ManifestStackBody(BaseModel):
+    manifest_path: Optional[str] = None
+    manifest: Optional[dict] = None
+    loop_name: Optional[str] = None
+    target: float = 0.05
+    mc_n: int = 10000
+    run_stack: bool = True
+    include_gdt: bool = True
 
+
+def _compute_tolerance_stack(loop_name: str, dims: List[TolDim], target: float, mc_n: int) -> dict:
     if not dims:
-        raise HTTPException(400, "rows required")
-    n = max(1000, min(n, 200000))
-
+        raise ValueError("rows required")
+    n = max(1000, min(mc_n, 200000))
+    target = abs(target)
     nominal_total = sum(d.nominal for d in dims)
 
     # Worst Case
@@ -639,7 +645,7 @@ async def tolerance_stack(body: ToleranceStackBody):
         counts[idx] += 1
 
     return {
-        "loop_name": body.loop_name,
+        "loop_name": loop_name,
         "n_dims": len(dims),
         "mc_n": n,
         "target_mm": target,
@@ -669,3 +675,95 @@ async def tolerance_stack(body: ToleranceStackBody):
             "histogram": {"counts": counts, "edges": edges},
         },
     }
+
+
+@app.post("/api/tolerance-stack")
+async def tolerance_stack(body: ToleranceStackBody):
+    if not body.rows:
+        raise HTTPException(400, "rows required")
+    return _compute_tolerance_stack(
+        body.loop_name,
+        body.rows,
+        abs(body.target),
+        max(1000, min(body.mc_n, 200000)),
+    )
+
+
+def _manifest_to_tol_dims(manifest: dict, *, include_gdt: bool = True) -> tuple[str, List[TolDim]]:
+    rows = mt.manifest_to_stack_rows(manifest, include_gdt=include_gdt)
+    part_id = manifest.get("source_dxf") or "part"
+    loop_name = f"manifest_{part_id}"
+    dims = [TolDim(nominal=r["nominal"], upper=r["upper"], lower=r["lower"]) for r in rows]
+    return loop_name, dims
+
+
+@app.post("/api/tolerance-stack/preview-manifest")
+async def tolerance_stack_preview_manifest(body: ManifestStackBody):
+    manifest = body.manifest
+    if manifest is None:
+        if not body.manifest_path:
+            raise HTTPException(400, "manifest or manifest_path required")
+        try:
+            manifest = mt.load_manifest_from_workspace_path(body.manifest_path)
+        except FileNotFoundError as exc:
+            raise HTTPException(404, str(exc)) from exc
+    loop_name, _dims = _manifest_to_tol_dims(manifest, include_gdt=body.include_gdt)
+    if body.loop_name:
+        loop_name = body.loop_name
+    rows = mt.manifest_to_stack_rows(manifest, include_gdt=body.include_gdt)
+    merged = mt.merged_tolerance_dims(manifest, include_gdt=body.include_gdt)
+    gdt_count = sum(1 for r in merged if str(r.get("source", "")).startswith("gdt"))
+    sources = {str(r.get("source") or "") for r in merged}
+    geo = "measured" if "measured" in sources or "step_bbox" in sources else "synthetic"
+    return {
+        "loop_name": loop_name,
+        "rows": rows,
+        "target": body.target,
+        "mc_n": body.mc_n,
+        "geometry_source": geo,
+        "manifest_path": body.manifest_path,
+        "include_gdt": body.include_gdt,
+        "gdt_dim_count": gdt_count,
+        "maturity_level": mt.detect_maturity_level(manifest, include_gdt=body.include_gdt),
+    }
+
+
+@app.post("/api/tolerance-stack/from-manifest")
+async def tolerance_stack_from_manifest(body: ManifestStackBody):
+    preview = await tolerance_stack_preview_manifest(body)
+    if not body.run_stack:
+        return preview
+    dims = [
+        TolDim(nominal=r["nominal"], upper=r["upper"], lower=r["lower"])
+        for r in preview["rows"]
+    ]
+    stack = _compute_tolerance_stack(
+        preview["loop_name"],
+        dims,
+        abs(body.target),
+        max(1000, min(body.mc_n, 200000)),
+    )
+    return {**preview, **stack}
+
+
+@app.post("/api/tolerance-stack/upload-manifest")
+async def tolerance_stack_upload_manifest(
+    file: UploadFile = File(...),
+    target: float = Form(0.05),
+    mc_n: int = Form(10000),
+    run_stack: bool = Form(True),
+):
+    import json as _json
+
+    raw = await file.read()
+    try:
+        manifest = _json.loads(raw.decode("utf-8-sig"))
+    except _json.JSONDecodeError as exc:
+        raise HTTPException(400, f"invalid JSON: {exc}") from exc
+    body = ManifestStackBody(
+        manifest=manifest,
+        target=target,
+        mc_n=mc_n,
+        run_stack=run_stack,
+    )
+    return await tolerance_stack_from_manifest(body)
