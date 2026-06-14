@@ -39,7 +39,7 @@ _WIDE_LOWER = 0.40
 # A large segment assigned here is "confidently wrong" (e.g. a torso pipe landing
 # on Neck, a shoulder shell on Head) -- confidence alone misses these, so size
 # plausibility is a second, independent flag.
-_SMALL_BONES = {"Head", "Neck", "Hand_L", "Hand_R", "Foot_L", "Foot_R"}
+_SMALL_BONES = {"Head", "Neck", "Hand_L", "Hand_R", "Foot_L", "Foot_R", "MonoEye"}
 _SMALL_BONE_MAX_SIZE = 0.25
 
 

@@ -213,7 +213,8 @@ def create_armature(lo, hi):
     hips = _eb(ad, "Hips", p(0, 0, 0.14), p(0, 0, 0.42), root)
     chest = _eb(ad, "Chest", p(0, 0, 0.42), p(0, 0, 0.68), hips)
     neck = _eb(ad, "Neck", p(0, 0, 0.68), p(0, 0, 0.78), chest)
-    _eb(ad, "Head", p(0, 0, 0.78), p(0, 0, 0.98), neck)
+    head = _eb(ad, "Head", p(0, 0, 0.78), p(0, 0, 0.98), neck)
+    _eb(ad, "MonoEye", p(0, -0.08, 0.90), p(0, -0.14, 0.90), head)
     lu = _eb(ad, "UpperArm_L", p(-0.25, 0, 0.63), p(-0.57, 0, 0.56), chest)
     ll = _eb(ad, "LowerArm_L", p(-0.57, 0, 0.56), p(-0.84, 0, 0.47), lu)
     _eb(ad, "Hand_L", p(-0.84, 0, 0.47), p(-1.0, 0, 0.42), ll)
@@ -368,6 +369,12 @@ def _selftest() -> int:
     assert all(b[a] == {"use": True, "min": -90.0, "max": 90.0} for a in AXIS_NAMES), b
     z = joint_constraint_params("hinge", [0, 0, 1], {"min": -30, "max": 30})
     assert z["z"]["min"] == -30.0 and z["x"]["max"] == 0.0, z  # hinge on Z, X/Y locked
+    # MonoEye: Zaku = revolute on Z (yaw ±60°), Dom = ball ±45°
+    me_zaku = joint_constraint_params("revolute", [0, 0, 1], {"min": -60, "max": 60})
+    assert me_zaku["z"] == {"use": True, "min": -60.0, "max": 60.0}, me_zaku
+    assert me_zaku["x"]["min"] == -10.0, me_zaku  # revolute play on off-axes
+    me_dom = joint_constraint_params("ball", [0, 0, 1], {"min": -45, "max": 45})
+    assert all(me_dom[a] == {"use": True, "min": -45.0, "max": 45.0} for a in AXIS_NAMES), me_dom
     # plan_from_spec: follower needs a driver; structural binds.
     spec = {"schema": "clawstack.mecha_rig_spec.v1",
             "segments": [

@@ -8,7 +8,8 @@
     "part_11": ["LowerArm_R", "manual_hand_to_forearm_no_wrist_stretch"],
     "part_14": ["UpperArm_R", "manual_right_shoulder_shell_to_upper_arm"],
     "part_12": ["LowerLeg_L", "manual_left_lower_leg_no_ankle_split"],
-    "part_15": ["LowerLeg_R", "manual_right_lower_leg_no_ankle_split"]
+    "part_15": ["LowerLeg_R", "manual_right_lower_leg_no_ankle_split"],
+    "part_16": ["MonoEye", "manual_zaku_mono_eye_lens_revolute_yaw"]
   },
   "prefix": {
     "part_13_shin_": ["LowerLeg_R", "manual_right_knee_protector_split_to_shin"],
