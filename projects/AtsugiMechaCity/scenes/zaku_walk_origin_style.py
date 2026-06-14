@@ -30,7 +30,7 @@ _VERIFY = "--verify" in _user_args
 
 # ===== CONFIG =====
 PROJECT_ROOT = Path("D:/Clawdbot_Docker_20260125")
-RIGGED_BLEND = Path("D:/Temp/Zaku_AutoRig_v2.blend")
+RIGGED_BLEND = Path("D:/Temp/Zaku_AutoRig_v3.blend")  # v3 = RULE① pivots fixed (no detach)
 HDRI_PATH = PROJECT_ROOT / "data/workspace/apps/blender_assets/polyhaven/hdri/abandoned_factory_canteen_01_1k.hdr"
 OUT_DIR = PROJECT_ROOT / "projects/AtsugiMechaCity/output/zaku_walk_origin"
 FRAMES_DIR = OUT_DIR / "frames"
@@ -66,11 +66,20 @@ HIP_ROLL_DEG = 2.5
 #  -> Until the rig is fixed we leave the arms AT REST (attached, but T-posed) and
 #     apply only a tiny fore/aft swing well within the no-gap range. Set
 #     ARM_POSE_ENABLED=True only after the rig provides proper shoulder joints.
-ARM_POSE_ENABLED = False   # rig detaches arms when posed — keep at rest for now
-ARM_DOWN_DEG = 0.0         # (disabled) base adduction — detaches arm if non-zero
-ARM_NEUTRAL_DEG = 0.0      # (disabled) fore/aft neutral
-# Arm swing: ±3° only — small enough to stay within the shoulder socket (no detach)
-ARM_SWING_DEG = 3.0
+# With v3 (RULE① geometry-derived pivots), the arm rotates about the REAL shoulder
+# so it can be lowered without detaching (verified: gate JOINTS OK, -50° stays
+# attached). On v3, local X=-30° hangs the arm essentially straight down (side 0.35m).
+# Arms-down aiming WORKS (hand hangs down, swings, attached) — but exposes 2 more
+# rig-level issues: (a) shoulder shield (part_14) is rigidly bound to UpperArm_R, so
+# it swings OUT when the arm lowers; (b) L/R bone rolls are inconsistent. Until the
+# rig makes shoulder armor a follower + normalizes rolls, posing the arm flings the
+# shield. Keep arms at REST (attached) for a clean deliverable; flip True after the
+# rig-level shoulder/roll fix.
+ARM_POSE_ENABLED = False
+ARM_DOWN_DEG = -30.0
+ARM_NEUTRAL_DEG = 0.0
+# Arm swing: ±12° fore/aft (mirrored bones -> verified via --verify "Arms alternate")
+ARM_SWING_DEG = 12.0
 # Walk distance: 12m forward (-Y) in 96 frames
 WALK_DIST = 12.0
 
@@ -234,6 +243,33 @@ if armature.animation_data:
 # splayed rest pose on frame 1. Set the mode up front so every keyframe sticks.
 for pbone in pb:
     pbone.rotation_mode = "XYZ"
+# Arms are posed via matrix aiming (below) -> need QUATERNION mode for keyframing.
+for _an in ("UpperArm_L", "UpperArm_R", "LowerArm_L", "LowerArm_R"):
+    if pb.get(_an):
+        pb[_an].rotation_mode = "QUATERNION"
+
+import mathutils  # noqa: E402
+
+
+def aim_bone_world(pbone, arm_obj, world_dir):
+    """Aim a pose bone's length-axis (+Y) along a WORLD direction, axis-agnostic.
+    Robust to inconsistent bone roll / mirrored L-R bones — the same world target
+    gives the same visual result on either side, unlike raw euler angles. Pivots at
+    the bone head (RULE① real joint center), so the part stays attached. Keyframes
+    rotation only (location stays at rest)."""
+    bpy.context.view_layer.update()
+    head = pbone.matrix.translation.copy()
+    d = (arm_obj.matrix_world.to_3x3().inverted() @ world_dir).normalized()  # -> armature space
+    up = mathutils.Vector((1.0, 0.0, 0.0))
+    x = up.cross(d)
+    if x.length < 1e-4:
+        up = mathutils.Vector((0.0, 0.0, 1.0))
+        x = up.cross(d)
+    x.normalize()
+    z = x.cross(d).normalized()
+    m = mathutils.Matrix((x, d, z)).transposed().to_4x4()  # columns = x, +Y(d), z
+    m.translation = head
+    pbone.matrix = m
 
 # Capture armature object's base world position. Forward travel + body bob are
 # applied to the ARMATURE OBJECT (true world space), NOT a pose bone — pose-bone
@@ -319,25 +355,30 @@ for f in range(1, TOTAL_FRAMES + 1):
     upper_arm_l = pb.get("UpperArm_L")
     upper_arm_r = pb.get("UpperArm_R")
     if ARM_POSE_ENABLED:
-        # Lowered-arm pose (requires a FIXED rig — currently detaches the arm).
-        # Arm bones are MIRRORED (L/R local-Y flipped), so the right arm's neutral is
-        # the mirror of the left's; both use the same swing term so they hang down and
-        # swing OPPOSITE each other.
+        # Aim each arm straight DOWN in world space, tilted fore/aft by the swing.
+        # World-space aiming is axis-agnostic, so the L/R bones (different rolls) both
+        # hang down correctly and swing OPPOSITE each other (contralateral to legs).
+        swing = math.sin(phase + math.pi) * arm_rad   # +fwd / -back over the stride
+        # down (-Z) with fore/aft tilt in -Y (walk dir); L and R get opposite tilt.
+        dir_l = mathutils.Vector((0.0, -math.sin(swing), -math.cos(swing)))
+        dir_r = mathutils.Vector((0.0, math.sin(swing), -math.cos(swing)))
+        lower_arm_l = pb.get("LowerArm_L")
+        lower_arm_r = pb.get("LowerArm_R")
+        # Aim upper arm first, then the forearm to the SAME world dir (straight arm,
+        # hanging down). Forearm aiming removes the rest elbow bend that otherwise
+        # left the hand splayed out and L/R asymmetric.
         if upper_arm_l:
-            upper_arm_l.rotation_euler = (base_x, neutral_y + math.sin(phase + math.pi) * arm_rad, 0)
-            upper_arm_l.keyframe_insert(data_path="rotation_euler", frame=f)
+            aim_bone_world(upper_arm_l, armature, dir_l)
+            upper_arm_l.keyframe_insert(data_path="rotation_quaternion", frame=f)
+        if lower_arm_l:
+            aim_bone_world(lower_arm_l, armature, dir_l)
+            lower_arm_l.keyframe_insert(data_path="rotation_quaternion", frame=f)
         if upper_arm_r:
-            upper_arm_r.rotation_euler = (base_x, -neutral_y + math.sin(phase + math.pi) * arm_rad, 0)
-            upper_arm_r.keyframe_insert(data_path="rotation_euler", frame=f)
-    else:
-        # SAFE MODE: arms stay at rest (attached T-pose). Only a tiny local-X swing,
-        # small enough to stay inside the shoulder socket (no detachment).
-        if upper_arm_l:
-            upper_arm_l.rotation_euler = (-math.sin(phase) * arm_rad, 0, 0)
-            upper_arm_l.keyframe_insert(data_path="rotation_euler", frame=f)
-        if upper_arm_r:
-            upper_arm_r.rotation_euler = (-math.sin(phase + math.pi) * arm_rad, 0, 0)
-            upper_arm_r.keyframe_insert(data_path="rotation_euler", frame=f)
+            aim_bone_world(upper_arm_r, armature, dir_r)
+            upper_arm_r.keyframe_insert(data_path="rotation_quaternion", frame=f)
+        if lower_arm_r:
+            aim_bone_world(lower_arm_r, armature, dir_r)
+            lower_arm_r.keyframe_insert(data_path="rotation_quaternion", frame=f)
 
     # --- CHEST: subtle counter-rotation to hips ---
     chest_bone = pb.get("Chest")
