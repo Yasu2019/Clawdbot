@@ -311,6 +311,118 @@ def apply_follower_constraints(arm_obj, followers: list[dict[str, Any]]) -> list
     return applied
 
 
+_PROJECT_ROOT = Path(__file__).resolve().parents[2]  # D:\Clawdbot_Docker_20260125
+
+
+def render_preview(arm_obj, out_png: str, resolution: tuple[int, int] = (960, 540)) -> str | None:
+    """Render a 3-point-lit turntable-front preview of the rigged model.
+    Returns the output path on success, None on failure."""
+    _require_bpy()
+    try:
+        scene = bpy.context.scene
+        for eng in ("BLENDER_EEVEE_NEXT", "BLENDER_EEVEE"):
+            try:
+                scene.render.engine = eng
+                break
+            except TypeError:
+                continue
+        scene.render.resolution_x, scene.render.resolution_y = resolution
+        scene.render.resolution_percentage = 100
+        scene.render.film_transparent = False
+        scene.render.image_settings.file_format = "PNG"
+
+        # Camera
+        cam_data = bpy.data.cameras.new("Preview_Cam")
+        cam_data.lens = 50
+        cam_obj = bpy.data.objects.new("Preview_Cam", cam_data)
+        bpy.context.collection.objects.link(cam_obj)
+        scene.camera = cam_obj
+        lo, hi = _bounds([o for o in scene.objects if o.type == "MESH"])
+        center = (lo + hi) / 2
+        height = max(hi.z - lo.z, 1.0)
+        cam_obj.location = (center.x + height * 1.8, center.y - height * 2.8, center.z + height * 0.5)
+        direction = center - cam_obj.location
+        rot_quat = direction.to_track_quat("-Z", "Y")
+        cam_obj.rotation_euler = rot_quat.to_euler()
+
+        # Default gray material for unshaded meshes
+        mat = bpy.data.materials.new("Preview_Gray")
+        mat.diffuse_color = (0.45, 0.50, 0.48, 1.0)
+        for o in scene.objects:
+            if o.type == "MESH" and not o.data.materials:
+                o.data.materials.append(mat)
+
+        # 3-point lighting (EEVEE watts, not Cycles)
+        def _add_light(name, loc, energy, light_type="POINT"):
+            ld = bpy.data.lights.new(name, light_type)
+            ld.energy = energy
+            obj = bpy.data.objects.new(name, ld)
+            obj.location = loc
+            bpy.context.collection.objects.link(obj)
+            return obj
+
+        _add_light("Key", (center.x + height, center.y - height * 1.5, center.z + height * 0.8), 5000)
+        _add_light("Fill", (center.x - height, center.y - height * 0.5, center.z + height * 0.4), 2000)
+        _add_light("Rim", (center.x - height * 0.3, center.y + height, center.z + height * 0.6), 3000)
+
+        # Background
+        world = bpy.data.worlds.get("World") or bpy.data.worlds.new("World")
+        scene.world = world
+        if hasattr(world, "use_nodes"):
+            try:
+                world.use_nodes = True
+            except Exception:
+                pass
+        if world.node_tree:
+            bg = world.node_tree.nodes.get("Background")
+            if bg:
+                bg.inputs["Color"].default_value = (0.12, 0.14, 0.18, 1.0)
+                bg.inputs["Strength"].default_value = 0.5
+
+        Path(out_png).parent.mkdir(parents=True, exist_ok=True)
+        scene.render.filepath = str(out_png)
+        bpy.ops.render.render(write_still=True)
+        print(f"[mecha_rig_builder] preview rendered: {out_png}")
+        return str(out_png)
+    except Exception as e:
+        print(f"[mecha_rig_builder] WARN: preview render failed: {e}")
+        return None
+
+
+def notify_telegram(image_path: str | None, report: dict[str, Any]) -> bool:
+    """Send preview PNG + build summary to Telegram via project notify_image.py."""
+    workspace = str(_PROJECT_ROOT / "data" / "workspace")
+    if workspace not in sys.path:
+        sys.path.insert(0, workspace)
+    try:
+        from notify_image import send_telegram, send_telegram_text
+    except ImportError as e:
+        print(f"[mecha_rig_builder] WARN: notify_image import failed: {e}")
+        return False
+
+    model = report.get("model", "unknown")
+    segs = report.get("segments_bound", 0)
+    joints = report.get("joints_constrained", [])
+    mono = report.get("mono_eye_scan") or "none"
+    ok = report.get("ok", False)
+    verdict = "ALL PASS" if ok else "ISSUES FOUND"
+
+    caption = (
+        f"Mecha Auto-Rig: {model}\n"
+        f"Verdict: {verdict}\n"
+        f"Segments: {segs} | Joints: {len(joints)}\n"
+        f"MonoEye: {mono}\n"
+        f"Missing: {report.get('segments_missing', [])}"
+    )
+
+    sent = False
+    if image_path and Path(image_path).exists():
+        sent = send_telegram(image_path, caption)
+    else:
+        sent = send_telegram_text(caption)
+    return sent
+
+
 def _try_bake_mono_eye_scan(arm_obj, profile_name: str | None) -> str | None:
     """Bake a MonoEye scan animation using mono_eye_rig_addon profiles.
     Returns the action name on success, None on skip/failure."""
@@ -335,7 +447,8 @@ def _try_bake_mono_eye_scan(arm_obj, profile_name: str | None) -> str | None:
 
 
 def build(spec_path, fbx_path, out_fbx, report_path, upright_deg, target_height,
-          mono_eye_profile: str | None = None, out_blend: str | None = None) -> dict[str, Any]:
+          mono_eye_profile: str | None = None, out_blend: str | None = None,
+          notify: bool = False) -> dict[str, Any]:
     _require_bpy()
     spec = load_spec(spec_path)
     plan = plan_from_spec(spec)
@@ -371,6 +484,11 @@ def build(spec_path, fbx_path, out_fbx, report_path, upright_deg, target_height,
         bpy.ops.object.select_all(action="SELECT")
         bpy.ops.export_scene.fbx(filepath=str(out_fbx), add_leaf_bones=False)
 
+    # Preview render (before report, so path goes into report)
+    preview_png = None
+    if out_fbx:
+        preview_png = render_preview(arm, str(Path(out_fbx).with_suffix(".png")))
+
     report = {
         "schema": "clawstack.mecha_rig_build_report.v1",
         "model": spec.get("model"),
@@ -382,8 +500,15 @@ def build(spec_path, fbx_path, out_fbx, report_path, upright_deg, target_height,
         "plan_issues": plan["issues"],
         "out_fbx": str(out_fbx) if out_fbx else None,
         "out_blend": str(out_blend) if out_blend else None,
+        "preview_png": preview_png,
         "ok": not missing and not plan["issues"],
     }
+
+    if notify and report["ok"]:
+        report["telegram_sent"] = notify_telegram(preview_png, report)
+    elif notify and not report["ok"]:
+        report["telegram_sent"] = notify_telegram(None, report)
+
     if report_path:
         Path(report_path).write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
     print("[mecha_rig_builder]", json.dumps(report, ensure_ascii=False))
@@ -443,6 +568,8 @@ def main() -> int:
     parser.add_argument("--mono-eye-profile", dest="mono_eye_profile",
                         help="Bake MonoEye scan animation (zaku_1dof | dom_2dof)")
     parser.add_argument("--out-blend", dest="out_blend", help="Save .blend (preserves constraints)")
+    parser.add_argument("--notify", action="store_true",
+                        help="Send preview PNG + report to Telegram on success")
     a = parser.parse_args(args)
 
     if a.selftest:
@@ -451,7 +578,8 @@ def main() -> int:
         parser.error("--spec and --fbx required (or --selftest)")
     upright = tuple(float(v) for v in a.upright.split(","))
     build(a.spec, a.fbx, a.out_fbx, a.report, upright, a.target_height,
-          mono_eye_profile=a.mono_eye_profile, out_blend=a.out_blend)
+          mono_eye_profile=a.mono_eye_profile, out_blend=a.out_blend,
+          notify=a.notify)
     return 0
 
 
