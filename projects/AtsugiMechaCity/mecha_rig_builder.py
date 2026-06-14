@@ -30,9 +30,11 @@ try:
 except ImportError:
     HAS_BPY = False
 
-# Proven Zaku normalization (matches zaku_segmentation_rigid_rig.py).
 DEFAULT_UPRIGHT_DEG = (90.0, 0.0, 0.0)
 DEFAULT_TARGET_HEIGHT = 18.0
+# Height/width ratio floor for a humanoid mecha standing upright.
+# T-pose arm span can exceed height, so 0.7 allows ~1.4:1 width:height.
+_UPRIGHT_ASPECT_MIN = 0.7
 
 AXIS_NAMES = ("x", "y", "z")
 
@@ -158,16 +160,37 @@ def _bounds(objs: list):
 def import_and_normalize(fbx_path: str, upright_deg, target_height: float):
     clear_scene()
     bpy.ops.import_scene.fbx(filepath=str(fbx_path))
-    # Remove any armature imported from the FBX (we create our own).
+    # Unparent meshes from FBX armature using CLEAR_KEEP_TRANSFORM
+    # (preserves bone-parent transforms). Direct parent=None loses them.
+    bpy.ops.object.select_all(action="DESELECT")
+    arm_children = [o for o in bpy.context.scene.objects
+                    if o.type == "MESH" and o.parent and o.parent.type == "ARMATURE"]
+    for o in arm_children:
+        o.select_set(True)
+    if arm_children:
+        bpy.context.view_layer.objects.active = arm_children[0]
+        bpy.ops.object.parent_clear(type="CLEAR_KEEP_TRANSFORM")
+    bpy.context.view_layer.update()
     for o in list(bpy.context.scene.objects):
         if o.type == "ARMATURE":
             bpy.data.objects.remove(o, do_unlink=True)
     ms = _meshes()
     if not ms:
         raise RuntimeError("No mesh found in FBX.")
+    # Auto-detect orientation: if model is already upright (Z-up) based on
+    # world-space bounds, skip any rotation. After parent_clear(KEEP_TRANSFORM)
+    # meshes carry inherited rotation — setting rotation_euler=(0,0,0)
+    # would REMOVE that inherited rotation and break the model.
+    lo_raw, hi_raw = _bounds(ms)
+    raw_height = hi_raw.z - lo_raw.z
+    raw_width = max(hi_raw.x - lo_raw.x, hi_raw.y - lo_raw.y)
+    already_upright = raw_height > raw_width * 0.8
     roots = [o for o in bpy.context.scene.objects if o.parent is None]
-    for o in roots:
-        o.rotation_euler = tuple(math.radians(v) for v in upright_deg)
+    if already_upright:
+        print(f"[mecha_rig_builder] FBX already Z-up (H={raw_height:.1f} > W={raw_width:.1f}), keeping existing transforms")
+    else:
+        for o in roots:
+            o.rotation_euler = tuple(math.radians(v) for v in upright_deg)
     bpy.context.view_layer.update()
     lo, hi = _bounds(ms)
     scale = target_height / max(hi.z - lo.z, 1e-4)
@@ -314,6 +337,54 @@ def apply_follower_constraints(arm_obj, followers: list[dict[str, Any]]) -> list
 _PROJECT_ROOT = Path(__file__).resolve().parents[2]  # D:\Clawdbot_Docker_20260125
 
 
+def _geometric_quality_gate(meshes: list) -> dict[str, Any]:
+    """Check visual plausibility of the assembled model.
+    Returns {"pass": bool, "checks": [...], "verdict": str}.
+    This prevents the false-PASS problem where a technically-complete
+    but visually broken model is declared ok."""
+    lo, hi = _bounds(meshes)
+    sz = hi - lo
+    height, width, depth = sz.z, sz.x, sz.y
+    checks = []
+
+    aspect = height / max(width, 0.01)
+    upright = aspect >= _UPRIGHT_ASPECT_MIN
+    checks.append({
+        "name": "upright_aspect",
+        "value": round(aspect, 2),
+        "threshold": _UPRIGHT_ASPECT_MIN,
+        "pass": upright,
+        "detail": f"H/W={aspect:.2f} ({'upright' if upright else 'FLAT/TOPPLED'})",
+    })
+
+    grounded = lo.z < height * 0.05
+    checks.append({
+        "name": "grounded",
+        "value": round(float(lo.z), 2),
+        "pass": grounded,
+        "detail": f"z_min={lo.z:.2f} ({'grounded' if grounded else 'FLOATING'})",
+    })
+
+    symmetry = abs((lo.x + hi.x) / 2) / max(width, 0.01)
+    sym_ok = symmetry < 0.15
+    checks.append({
+        "name": "center_symmetry",
+        "value": round(symmetry, 3),
+        "threshold": 0.15,
+        "pass": sym_ok,
+        "detail": f"center_offset_ratio={symmetry:.3f} ({'centered' if sym_ok else 'OFF-CENTER'})",
+    })
+
+    all_pass = all(c["pass"] for c in checks)
+    return {
+        "pass": all_pass,
+        "checks": checks,
+        "verdict": "GEOMETRY OK" if all_pass else "GEOMETRY FAILED: " + ", ".join(
+            c["name"] for c in checks if not c["pass"]
+        ),
+    }
+
+
 def render_preview(arm_obj, out_png: str, resolution: tuple[int, int] = (960, 540)) -> str | None:
     """Render a 3-point-lit turntable-front preview of the rigged model.
     Returns the output path on success, None on failure."""
@@ -405,11 +476,14 @@ def notify_telegram(image_path: str | None, report: dict[str, Any]) -> bool:
     joints = report.get("joints_constrained", [])
     mono = report.get("mono_eye_scan") or "none"
     ok = report.get("ok", False)
-    verdict = "ALL PASS" if ok else "ISSUES FOUND"
+    geo = report.get("geometry_qa", {})
+    geo_verdict = geo.get("verdict", "NOT CHECKED")
+    verdict = "ALL PASS" if ok else f"FAILED ({geo_verdict})"
 
     caption = (
         f"Mecha Auto-Rig: {model}\n"
         f"Verdict: {verdict}\n"
+        f"Geometry QA: {geo_verdict}\n"
         f"Segments: {segs} | Joints: {len(joints)}\n"
         f"MonoEye: {mono}\n"
         f"Missing: {report.get('segments_missing', [])}"
@@ -484,11 +558,16 @@ def build(spec_path, fbx_path, out_fbx, report_path, upright_deg, target_height,
         bpy.ops.object.select_all(action="SELECT")
         bpy.ops.export_scene.fbx(filepath=str(out_fbx), add_leaf_bones=False)
 
+    # Geometry quality gate — catches visually broken models (false-PASS prevention)
+    geo_gate = _geometric_quality_gate(_meshes())
+
     # Preview render (before report, so path goes into report)
     preview_png = None
     if out_fbx:
         preview_png = render_preview(arm, str(Path(out_fbx).with_suffix(".png")))
 
+    tech_ok = not missing and not plan["issues"]
+    visual_ok = geo_gate["pass"]
     report = {
         "schema": "clawstack.mecha_rig_build_report.v1",
         "model": spec.get("model"),
@@ -498,10 +577,11 @@ def build(spec_path, fbx_path, out_fbx, report_path, upright_deg, target_height,
         "followers": followers_applied,
         "mono_eye_scan": scan_action,
         "plan_issues": plan["issues"],
+        "geometry_qa": geo_gate,
         "out_fbx": str(out_fbx) if out_fbx else None,
         "out_blend": str(out_blend) if out_blend else None,
         "preview_png": preview_png,
-        "ok": not missing and not plan["issues"],
+        "ok": tech_ok and visual_ok,
     }
 
     if notify and report["ok"]:
