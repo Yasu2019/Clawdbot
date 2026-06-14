@@ -75,13 +75,12 @@ HIP_ROLL_DEG = 2.5
 # rig makes shoulder armor a follower + normalizes rolls, posing the arm flings the
 # shield. Keep arms at REST (attached) for a clean deliverable; flip True after the
 # rig-level shoulder/roll fix.
-# v5 re-segments the left arm and the RIGHT arm now lowers cleanly, but the LEFT arm
-# still contorts UP (part_10 reaches z=16.4 above the shoulder) instead of hanging —
-# its mesh/pivot asymmetry survives re-segmentation + ① + world-aiming. Rather than
-# ship a broken/“missing” left arm, keep BOTH arms at attached rest (symmetric, clean).
-# Arm-down posing works on well-segmented arms; this model's left arm needs manual
-# mesh/weight cleanup (out of automated scope). Legs/walk + ①/④ joint fixes unaffected.
-ARM_POSE_ENABLED = False
+# RIGHT arm lowers+swings cleanly via world-space aiming; the LEFT arm's mesh
+# asymmetry makes it contort, so we pose the RIGHT arm only and leave the LEFT at rest
+# (user decision). Asymmetric, but no longer a full T-pose. Left-arm down-posing needs
+# manual mesh/weight cleanup (out of automated scope).
+ARM_POSE_ENABLED = True
+ARM_POSE_LEFT = False      # left arm contorts on this model -> keep at rest
 ARM_DOWN_DEG = -30.0
 ARM_NEUTRAL_DEG = 0.0
 # Arm swing: ±12° fore/aft (mirrored bones -> verified via --verify "Arms alternate")
@@ -373,10 +372,10 @@ for f in range(1, TOTAL_FRAMES + 1):
         # Aim upper arm first, then the forearm to the SAME world dir (straight arm,
         # hanging down). Forearm aiming removes the rest elbow bend that otherwise
         # left the hand splayed out and L/R asymmetric.
-        if upper_arm_l:
+        if ARM_POSE_LEFT and upper_arm_l:
             aim_bone_world(upper_arm_l, armature, dir_l)
             upper_arm_l.keyframe_insert(data_path="rotation_quaternion", frame=f)
-        if lower_arm_l:
+        if ARM_POSE_LEFT and lower_arm_l:
             aim_bone_world(lower_arm_l, armature, dir_l)
             lower_arm_l.keyframe_insert(data_path="rotation_quaternion", frame=f)
         if upper_arm_r:
