@@ -30,7 +30,7 @@ _VERIFY = "--verify" in _user_args
 
 # ===== CONFIG =====
 PROJECT_ROOT = Path("D:/Clawdbot_Docker_20260125")
-RIGGED_BLEND = Path("D:/Temp/Zaku_AutoRig_v4.blend")  # v4 = ①pivots + roll norm + shoulder-shield follower
+RIGGED_BLEND = Path("D:/Temp/Zaku_AutoRig_v5.blend")  # v5 = left-arm re-segmented + ①pivots + shoulder-shield follower
 HDRI_PATH = PROJECT_ROOT / "data/workspace/apps/blender_assets/polyhaven/hdri/abandoned_factory_canteen_01_1k.hdr"
 OUT_DIR = PROJECT_ROOT / "projects/AtsugiMechaCity/output/zaku_walk_origin"
 FRAMES_DIR = OUT_DIR / "frames"
@@ -75,13 +75,10 @@ HIP_ROLL_DEG = 2.5
 # rig makes shoulder armor a follower + normalizes rolls, posing the arm flings the
 # shield. Keep arms at REST (attached) for a clean deliverable; flip True after the
 # rig-level shoulder/roll fix.
-# BLOCKED by source segmentation: the LEFT arm is ONE merged segment (part_10) with
-# no clean shoulder contact, so ①'s pivot snap lands badly and aiming it down flings
-# the whole arm UP (z=19.2, above the head). The RIGHT arm is cleanly split
-# (upper/forearm/shield) and poses fine. Posing arms down requires RE-SEGMENTING the
-# left arm mesh (source-data fix), not a rig rule. Keep arms at attached rest until
-# then; the walk (legs) + joint-separation fixes (①/④) are unaffected.
-ARM_POSE_ENABLED = False
+# v5 RE-SEGMENTS the left arm (part_10 -> upper + part_10_forearm) so both arms now
+# have a clean upper/forearm split and proper shoulder+elbow pivots. World-space arm
+# aiming (axis-agnostic) lowers both arms; shoulder shield is a Chest follower.
+ARM_POSE_ENABLED = True
 ARM_DOWN_DEG = -30.0
 ARM_NEUTRAL_DEG = 0.0
 # Arm swing: ±12° fore/aft (mirrored bones -> verified via --verify "Arms alternate")
