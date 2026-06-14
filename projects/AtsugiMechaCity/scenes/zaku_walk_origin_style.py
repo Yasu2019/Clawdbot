@@ -75,10 +75,13 @@ HIP_ROLL_DEG = 2.5
 # rig makes shoulder armor a follower + normalizes rolls, posing the arm flings the
 # shield. Keep arms at REST (attached) for a clean deliverable; flip True after the
 # rig-level shoulder/roll fix.
-# v5 RE-SEGMENTS the left arm (part_10 -> upper + part_10_forearm) so both arms now
-# have a clean upper/forearm split and proper shoulder+elbow pivots. World-space arm
-# aiming (axis-agnostic) lowers both arms; shoulder shield is a Chest follower.
-ARM_POSE_ENABLED = True
+# v5 re-segments the left arm and the RIGHT arm now lowers cleanly, but the LEFT arm
+# still contorts UP (part_10 reaches z=16.4 above the shoulder) instead of hanging —
+# its mesh/pivot asymmetry survives re-segmentation + ① + world-aiming. Rather than
+# ship a broken/“missing” left arm, keep BOTH arms at attached rest (symmetric, clean).
+# Arm-down posing works on well-segmented arms; this model's left arm needs manual
+# mesh/weight cleanup (out of automated scope). Legs/walk + ①/④ joint fixes unaffected.
+ARM_POSE_ENABLED = False
 ARM_DOWN_DEG = -30.0
 ARM_NEUTRAL_DEG = 0.0
 # Arm swing: ±12° fore/aft (mirrored bones -> verified via --verify "Arms alternate")
