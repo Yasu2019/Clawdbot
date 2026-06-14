@@ -260,6 +260,87 @@ def create_armature(lo, hi):
     return ao
 
 
+def _seg_world_verts(obj, cap=1500):
+    import mathutils as mu
+    mw = obj.matrix_world
+    vs = obj.data.vertices
+    step = max(1, len(vs) // cap)
+    return [mw @ mu.Vector(vs[i].co) for i in range(0, len(vs), step)]
+
+
+def _joint_center(child_objs, parent_objs):
+    """RULE ①: real joint pivot = midpoint of the closest contact point between the
+    child segment(s) and parent segment(s). This is where the two parts actually meet,
+    unlike the hardcoded bounding-box proportions in create_armature()."""
+    from mathutils import kdtree
+    import mathutils as mu
+    ppts = []
+    for o in parent_objs:
+        ppts.extend(_seg_world_verts(o))
+    if not ppts:
+        return None
+    kd = kdtree.KDTree(len(ppts))
+    for i, p in enumerate(ppts):
+        kd.insert(p, i)
+    kd.balance()
+    best = (1e9, None, None)
+    for o in child_objs:
+        for v in _seg_world_verts(o):
+            co, _idx, dist = kd.find(v)
+            if dist < best[0]:
+                best = (dist, mu.Vector(v), mu.Vector(co))
+    if best[1] is None:
+        return None
+    return (best[1] + best[2]) * 0.5
+
+
+def snap_bones_to_joint_centers(arm_obj, bind: dict[str, str], by_name: dict) -> list[str]:
+    """RULE ①: move each bone's HEAD (rotation pivot) to the geometry-derived joint
+    center, BEFORE binding (meshes keep their world transform; only the pivot moves).
+    The bone is TRANSLATED (direction/length preserved) so local axes — and any
+    animation tuned to them — stay valid. Returns list of 'bone:dx,dy,dz' moved."""
+    import mathutils as mu
+    # invert bind: bone -> [mesh objs]
+    bone_objs: dict[str, list] = {}
+    for seg, bone in bind.items():
+        o = by_name.get(seg) or by_name.get(seg.replace(" ", "_"))
+        if o:
+            bone_objs.setdefault(bone, []).append(o)
+
+    lo, hi = _bounds(list(by_name.values()))
+    max_move = (hi - lo).z * 0.30  # guard against outlier verts flinging a bone
+
+    bpy.context.view_layer.objects.active = arm_obj
+    bpy.ops.object.mode_set(mode="EDIT")
+    eb = arm_obj.data.edit_bones
+    moved = []
+    for bone in eb:
+        child_objs = bone_objs.get(bone.name)
+        if not child_objs or bone.parent is None:
+            continue
+        # climb to a parent bone that has bound geometry
+        par = bone.parent
+        parent_objs = None
+        while par is not None:
+            if bone_objs.get(par.name):
+                parent_objs = bone_objs[par.name]
+                break
+            par = par.parent
+        if not parent_objs:
+            continue
+        jc = _joint_center(child_objs, parent_objs)
+        if jc is None:
+            continue
+        delta = jc - bone.head
+        if delta.length > max_move:
+            continue  # reject implausible jump (robustness, see FMEA)
+        bone.head = bone.head + delta
+        bone.tail = bone.tail + delta  # translate -> preserve orientation/length
+        moved.append(f"{bone.name}:{delta.length:.2f}m")
+    bpy.ops.object.mode_set(mode="OBJECT")
+    return moved
+
+
 def add_follower_bones(arm_obj, followers: list[dict[str, Any]]) -> None:
     """Create one helper bone per follower armor, parented to its base bone,
     copying the base bone's rest position (pivot ~ base joint)."""
@@ -529,10 +610,14 @@ def build(spec_path, fbx_path, out_fbx, report_path, upright_deg, target_height,
     meshes = import_and_normalize(fbx_path, upright_deg, target_height)
     lo, hi = _bounds(meshes)
     arm = create_armature(lo, hi)
-    add_follower_bones(arm, plan["followers"])
 
     bound, missing = [], []
     by_name = {o.name: o for o in meshes}
+    # RULE ①: snap bone pivots to real joint centers BEFORE binding (meshes unaffected).
+    pivots_moved = snap_bones_to_joint_centers(arm, plan["bind"], by_name)
+    print(f"[mecha_rig_builder] RULE① pivots snapped: {pivots_moved}")
+    add_follower_bones(arm, plan["followers"])
+
     for seg, bone in plan["bind"].items():
         o = by_name.get(seg) or by_name.get(seg.replace(" ", "_"))
         if o:

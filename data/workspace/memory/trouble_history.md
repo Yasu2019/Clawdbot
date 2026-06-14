@@ -4,6 +4,8 @@
 
 | ID | 日付 | 事象 | 対策 |
 | --- | --- | --- | --- |
+| **[T034]** | **2026-06-14** | **サテライトPC（LAVIE, Red LAVIE, G3）の24時間稼働率が70%以下に低下（LAVIE: 41.7%, Red LAVIE: 0.8%, G3: 0.0%）。ホスト再起動後のサービス自動起動の不備およびVBS起動スクリプトの構文バグ、Tailscaleの切断が真因。** | **①Red LAVIEのVBS構文バグ（Chr(34)二重括りによるファイル不在エラー）を修正し、スタートアップ登録を再定義。②G3およびLAVIEのスタートアップにDocker compose/n8n自動起動用のタスクスケジューラを恒久化。③Tailscale接続の定期監視スクリプトを有効化。** |
+| **[T033]** | **2026-06-14** | **メカ自動リグに「関節分離防止ルール」が存在しない: 腕がT字内転で完全脱離・腿が股で割れる。剛体ボーンペアレント＋pivotがBB比率ハードコード(実関節軸でない)＋LIMIT_ROTATIONのみ→回転で隙間、大回転で脱離** | **設計ルール①〜④をリグビルダーに実装中**: ①pivot=実形状の関節中心(メッシュ算出) ②オーバーラップ・ジョイントコア(ball球/hinge円柱を子ボーンにバインドし隙間を物理的に埋める) ③可動域=無隙間レンジに自動制限 ④分離QCゲート`qc_joint_separation.py`(親子セグメント最小距離の成長を可動域スイープで計測しFAIL判定)。目視は**5フレーム毎×前/横/後**`qc_multiview.py`必須(hero1枚禁止)。bd `Clawdbot_Docker_20260125-exs`/`bd recall mecha-rig-joint-integrity-t033`。T031/T032系統 |
 | **[T032]** | **2026-06-14** | **ザク歩行アニメ false-PASS リスク: ①前進を Root pose-bone.location に書き床に沈下（pose-bone はボーン rest ローカル空間／Root は鉛直→ローカルY=世界Z）②股関節が大角スイングで剛体ヒンジ隙間を露出** | **①前進・bobは`armature.location`（世界空間オブジェクト）にキー、pose-boneは回転のみ ②数値ゲート強化(前進>WALK*0.5 + 接地min z>-0.5) ③視覚QA必須(沈下/裂け目確認) ④HIP18°→11°/KNEE35°→22°で剛体隙間縮小。完全除去はリグ側(境界分割/スカート重なり)。T031/T015同系統** |
 | **[T031]** | **2026-06-14** | **メカ自動リグ false-PASS: 形状崩壊ザクに "ALL PASS" 判定しTelegram送信** | **3根本原因修正**: ①`remove(armature)`→`parent_clear(KEEP_TRANSFORM)` ②auto-detect直立時rotation上書き禁止 ③`_geometric_quality_gate()`追加(直立比/接地/対称)でvisual QA必須化。T019/T018同系統 |
 | **[T030]** | **2026-06-07** | **G3 `monitor_agent` 27.9°C fallback — repo パス不在・8112 旧 agent・LHM :8085 Run 未設定** | **INC-096 拡張** + `fleet_lhm_monitor_agent_runbook.md` + G3 検証 63°C lhm_http + サーマル制御共通化 |
