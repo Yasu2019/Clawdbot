@@ -158,6 +158,10 @@ def _bounds(objs: list):
 def import_and_normalize(fbx_path: str, upright_deg, target_height: float):
     clear_scene()
     bpy.ops.import_scene.fbx(filepath=str(fbx_path))
+    # Remove any armature imported from the FBX (we create our own).
+    for o in list(bpy.context.scene.objects):
+        if o.type == "ARMATURE":
+            bpy.data.objects.remove(o, do_unlink=True)
     ms = _meshes()
     if not ms:
         raise RuntimeError("No mesh found in FBX.")
@@ -307,7 +311,31 @@ def apply_follower_constraints(arm_obj, followers: list[dict[str, Any]]) -> list
     return applied
 
 
-def build(spec_path, fbx_path, out_fbx, report_path, upright_deg, target_height) -> dict[str, Any]:
+def _try_bake_mono_eye_scan(arm_obj, profile_name: str | None) -> str | None:
+    """Bake a MonoEye scan animation using mono_eye_rig_addon profiles.
+    Returns the action name on success, None on skip/failure."""
+    if not profile_name:
+        return None
+    pb = arm_obj.pose.bones.get("MonoEye") if arm_obj.pose else None
+    if not pb:
+        print("[mecha_rig_builder] WARN: MonoEye bone not found, skipping scan animation")
+        return None
+    try:
+        _here = str(Path(__file__).resolve().parent)
+        if _here not in sys.path:
+            sys.path.insert(0, _here)
+        from mono_eye_rig_addon import load_profile, bake_scan_action
+        profile = load_profile(profile_name)
+        scan_pitch = profile_name == "dom_2dof"
+        bake_scan_action(arm_obj, "MonoEye", profile, scan_pitch=scan_pitch)
+        return f"MonoEye_Scan_1s({profile_name})"
+    except Exception as e:
+        print(f"[mecha_rig_builder] WARN: mono_eye scan bake failed: {e}")
+        return None
+
+
+def build(spec_path, fbx_path, out_fbx, report_path, upright_deg, target_height,
+          mono_eye_profile: str | None = None, out_blend: str | None = None) -> dict[str, Any]:
     _require_bpy()
     spec = load_spec(spec_path)
     plan = plan_from_spec(spec)
@@ -332,6 +360,11 @@ def build(spec_path, fbx_path, out_fbx, report_path, upright_deg, target_height)
 
     joints_applied = apply_joint_constraints(arm, plan["joints"])
     followers_applied = apply_follower_constraints(arm, plan["followers"])
+    scan_action = _try_bake_mono_eye_scan(arm, mono_eye_profile)
+
+    if out_blend:
+        Path(out_blend).parent.mkdir(parents=True, exist_ok=True)
+        bpy.ops.wm.save_as_mainfile(filepath=str(out_blend))
 
     if out_fbx:
         Path(out_fbx).parent.mkdir(parents=True, exist_ok=True)
@@ -345,8 +378,10 @@ def build(spec_path, fbx_path, out_fbx, report_path, upright_deg, target_height)
         "segments_missing": missing,
         "joints_constrained": joints_applied,
         "followers": followers_applied,
+        "mono_eye_scan": scan_action,
         "plan_issues": plan["issues"],
         "out_fbx": str(out_fbx) if out_fbx else None,
+        "out_blend": str(out_blend) if out_blend else None,
         "ok": not missing and not plan["issues"],
     }
     if report_path:
@@ -405,6 +440,9 @@ def main() -> int:
     parser.add_argument("--report")
     parser.add_argument("--upright", default="90,0,0")
     parser.add_argument("--target-height", type=float, default=DEFAULT_TARGET_HEIGHT)
+    parser.add_argument("--mono-eye-profile", dest="mono_eye_profile",
+                        help="Bake MonoEye scan animation (zaku_1dof | dom_2dof)")
+    parser.add_argument("--out-blend", dest="out_blend", help="Save .blend (preserves constraints)")
     a = parser.parse_args(args)
 
     if a.selftest:
@@ -412,7 +450,8 @@ def main() -> int:
     if not a.spec or not a.fbx:
         parser.error("--spec and --fbx required (or --selftest)")
     upright = tuple(float(v) for v in a.upright.split(","))
-    build(a.spec, a.fbx, a.out_fbx, a.report, upright, a.target_height)
+    build(a.spec, a.fbx, a.out_fbx, a.report, upright, a.target_height,
+          mono_eye_profile=a.mono_eye_profile, out_blend=a.out_blend)
     return 0
 
 
