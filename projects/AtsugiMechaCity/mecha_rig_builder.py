@@ -318,14 +318,10 @@ def snap_bones_to_joint_centers(arm_obj, bind: dict[str, str], by_name: dict) ->
         child_objs = bone_objs.get(bone.name)
         if not child_objs or bone.parent is None:
             continue
-        # climb to a parent bone that has bound geometry
-        par = bone.parent
-        parent_objs = None
-        while par is not None:
-            if bone_objs.get(par.name):
-                parent_objs = bone_objs[par.name]
-                break
-            par = par.parent
+        # Only snap when the IMMEDIATE parent bone has bound geometry. Climbing to a
+        # distant ancestor (e.g. Head's parent Neck has no mesh -> Chest) computes a
+        # wrong pivot and REGRESSES that joint; the original BB pivot is better there.
+        parent_objs = bone_objs.get(bone.parent.name)
         if not parent_objs:
             continue
         jc = _joint_center(child_objs, parent_objs)
