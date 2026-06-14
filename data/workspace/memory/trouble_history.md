@@ -4,6 +4,7 @@
 
 | ID | 日付 | 事象 | 対策 |
 | --- | --- | --- | --- |
+| **[T032]** | **2026-06-14** | **ザク歩行アニメ false-PASS リスク: ①前進を Root pose-bone.location に書き床に沈下（pose-bone はボーン rest ローカル空間／Root は鉛直→ローカルY=世界Z）②股関節が大角スイングで剛体ヒンジ隙間を露出** | **①前進・bobは`armature.location`（世界空間オブジェクト）にキー、pose-boneは回転のみ ②数値ゲート強化(前進>WALK*0.5 + 接地min z>-0.5) ③視覚QA必須(沈下/裂け目確認) ④HIP18°→11°/KNEE35°→22°で剛体隙間縮小。完全除去はリグ側(境界分割/スカート重なり)。T031/T015同系統** |
 | **[T031]** | **2026-06-14** | **メカ自動リグ false-PASS: 形状崩壊ザクに "ALL PASS" 判定しTelegram送信** | **3根本原因修正**: ①`remove(armature)`→`parent_clear(KEEP_TRANSFORM)` ②auto-detect直立時rotation上書き禁止 ③`_geometric_quality_gate()`追加(直立比/接地/対称)でvisual QA必須化。T019/T018同系統 |
 | **[T030]** | **2026-06-07** | **G3 `monitor_agent` 27.9°C fallback — repo パス不在・8112 旧 agent・LHM :8085 Run 未設定** | **INC-096 拡張** + `fleet_lhm_monitor_agent_runbook.md` + G3 検証 63°C lhm_http + サーマル制御共通化 |
 | **[T029]** | **2026-06-07** | **K10 `monitor_agent` が CPU 27.9°C（fallback 誤値）を報告 — LHM Remote Web Server 未起動 + `data.json` パーサが `Type`/文字列 `Value` 非対応** | **INC-096** + `monitor_agent.py` LHM HTTP パーサ修正 + `lhm_ok`/`temp_source` 可視化 + 起動順 SOP（LHM 8085 → monitor_agent 8111）+ `docs/troubleshooting/k10_lhm_monitor_agent_20260607.md` |
