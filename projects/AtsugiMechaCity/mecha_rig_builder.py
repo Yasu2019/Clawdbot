@@ -337,6 +337,59 @@ def snap_bones_to_joint_centers(arm_obj, bind: dict[str, str], by_name: dict) ->
     return moved
 
 
+def normalize_bone_rolls(arm_obj) -> None:
+    """RULE (roll): give every bone a consistent roll (local Z toward global +Z) so
+    L/R bones become mirror-symmetric and procedural posing behaves predictably.
+    Meshes are rigid-bone-parented with world transform preserved, so re-binding
+    after this is required by callers; rest geometry is unchanged visually."""
+    bpy.context.view_layer.objects.active = arm_obj
+    bpy.ops.object.mode_set(mode="EDIT")
+    for b in arm_obj.data.edit_bones:
+        b.select = b.select_head = b.select_tail = True
+    try:
+        bpy.ops.armature.calculate_roll(type="GLOBAL_POS_Z")
+    except Exception as e:
+        print(f"[mecha_rig_builder] WARN: calculate_roll failed: {e}")
+    bpy.ops.object.mode_set(mode="OBJECT")
+
+
+def reassign_plate_armor_to_parent(arm_obj, bind: dict[str, str], by_name: dict,
+                                   limb_bones=("UpperArm_L", "UpperArm_R",
+                                               "LowerArm_L", "LowerArm_R",
+                                               "UpperLeg_L", "UpperLeg_R")) -> list[str]:
+    """RULE (armor follower): a PLATE-shaped armor segment bound to a LIMB bone (e.g.
+    a shoulder shield on UpperArm) swings out when the limb rotates. Detect segments
+    whose extent ALONG the bone is smaller than their cross-section (plates, not
+    limbs) and reassign them to the limb's PARENT body bone so they stay put.
+    Returns reassigned 'segment:old->new'. Caller must (re)bind afterwards."""
+    import mathutils as mu
+    moved = []
+    # bone rest directions (head->tail) in world space
+    for seg, bone in list(bind.items()):
+        if bone not in limb_bones:
+            continue
+        o = by_name.get(seg) or by_name.get(seg.replace(" ", "_"))
+        b = arm_obj.data.bones.get(bone)
+        if not o or not b or not b.parent:
+            continue
+        axis = (arm_obj.matrix_world.to_3x3() @ (b.tail_local - b.head_local)).normalized()
+        # segment extent along bone axis vs max perpendicular extent
+        vs = o.data.vertices
+        step = max(1, len(vs) // 500)
+        verts = [o.matrix_world @ mu.Vector(vs[i].co) for i in range(0, len(vs), step)]
+        if not verts:
+            continue
+        along = [v.dot(axis) for v in verts]
+        along_ext = max(along) - min(along)
+        # perpendicular extent: project out the axis component, take bbox of remainder
+        perp = [(v - axis * v.dot(axis)) for v in verts]
+        perp_ext = max((max(p[i] for p in perp) - min(p[i] for p in perp)) for i in range(3))
+        if along_ext < 0.85 * perp_ext:   # plate, not limb
+            bind[seg] = b.parent.name
+            moved.append(f"{seg}:{bone}->{b.parent.name}")
+    return moved
+
+
 def add_follower_bones(arm_obj, followers: list[dict[str, Any]]) -> None:
     """Create one helper bone per follower armor, parented to its base bone,
     copying the base bone's rest position (pivot ~ base joint)."""
