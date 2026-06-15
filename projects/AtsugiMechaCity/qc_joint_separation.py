@@ -36,26 +36,26 @@ def _arg(flag, default=None):
 
 # Test sweep: degrees per axis we probe (covers a typical walking range).
 SWEEP_DEG = [-20, -12, -6, 6, 12, 20]
-TOL_RATIO = 0.04           # gap > 4% of model height = separation FAIL
-MAX_VERTS = 1200           # subsample meshes for speed
+# BUGFIX (was 'min closest distance' -> missed visible gaps): we now measure how far
+# the CONTACT PATCH opens. A rigid hinge keeps ONE edge touching (min dist ~0) while
+# the opposite edge opens a visible gap; the old metric saw the touching edge and
+# falsely PASSED. We instead track the verts that touch at rest and measure their
+# MAX separation across the sweep (the opening), plus a rest-gap check.
+CONTACT_RATIO = 0.018      # verts within 1.8% of height at rest = the contact patch
+TOL_RATIO = 0.022          # contact-patch opening > 2.2% of height = visible gap FAIL
+MAX_VERTS = 1500           # subsample meshes for speed
+
+
+def _sample_indices(obj, cap=MAX_VERTS):
+    n = len(obj.data.vertices)
+    step = max(1, n // cap)
+    return list(range(0, n, step))
 
 
 def _world_verts(obj, cap=MAX_VERTS):
     mw = obj.matrix_world
     vs = obj.data.vertices
-    step = max(1, len(vs) // cap)
-    return [mw @ vs[i].co for i in range(0, len(vs), step)]
-
-
-def _min_surface_dist(child_objs, parent_kd):
-    """min distance from any child vertex to the parent vertex cloud."""
-    best = 1e9
-    for obj in child_objs:
-        for v in _world_verts(obj):
-            _co, _idx, dist = parent_kd.find(v)
-            if dist < best:
-                best = dist
-    return best
+    return [mw @ vs[i].co for i in _sample_indices(obj, cap)]
 
 
 def _build_kd(objs):
@@ -69,8 +69,43 @@ def _build_kd(objs):
     return kd
 
 
+def _min_dist(child_objs, parent_kd):
+    """Global closest approach child<->parent (used only for the rest-gap check)."""
+    best = 1e9
+    for obj in child_objs:
+        for v in _world_verts(obj):
+            d = parent_kd.find(v)[2]
+            if d < best:
+                best = d
+    return best
+
+
+def _contact_patch(child_objs, parent_kd, thresh):
+    """Verts (obj, vertex_index) of the child that TOUCH the parent at the current
+    pose (within thresh). This is the face that must stay closed as the joint moves."""
+    patch = []
+    for obj in child_objs:
+        mw = obj.matrix_world
+        for i in _sample_indices(obj):
+            if parent_kd.find(mw @ obj.data.vertices[i].co)[2] < thresh:
+                patch.append((obj, i))
+    return patch
+
+
+def _patch_max_open(patch, parent_kd):
+    """Max distance of the (rest-)contact verts to the parent now — i.e. how far the
+    contact face has OPENED. Re-reads the same vertex indices after posing."""
+    m = 0.0
+    for obj, i in patch:
+        d = parent_kd.find(obj.matrix_world @ obj.data.vertices[i].co)[2]
+        if d > m:
+            m = d
+    return m
+
+
 def joint_separation_gate(arm_obj, meshes, tol_ratio=TOL_RATIO):
-    """Return {"pass": bool, "checks": [...], "verdict": str} for joint integrity."""
+    """Return {"pass": bool, "checks": [...], "verdict": str} for joint integrity.
+    Measures CONTACT-PATCH OPENING (visible gap), not closest distance."""
     # model height for tolerance
     lo = mathutils.Vector((1e9,) * 3)
     hi = mathutils.Vector((-1e9,) * 3)
@@ -81,6 +116,7 @@ def joint_separation_gate(arm_obj, meshes, tol_ratio=TOL_RATIO):
                 lo[i] = min(lo[i], w[i]); hi[i] = max(hi[i], w[i])
     height = (hi - lo).z
     tol = tol_ratio * height
+    contact_thresh = CONTACT_RATIO * height
 
     # group meshes by the bone they're parented to
     by_bone = {}
@@ -121,12 +157,27 @@ def joint_separation_gate(arm_obj, meshes, tol_ratio=TOL_RATIO):
         pbone.rotation_mode = "XYZ"
         rest = pbone.rotation_euler.copy()
 
-        # rest distance
+        # REST: does the joint even touch? + capture the contact patch.
         pbone.rotation_euler = rest
         bpy.context.view_layer.update()
-        d0 = _min_surface_dist(child_objs, parent_kd)
+        rest_min = _min_dist(child_objs, parent_kd)
+        patch = _contact_patch(child_objs, parent_kd, contact_thresh)
 
-        dmax = d0
+        if rest_min > contact_thresh:
+            # parts don't touch at rest -> a STATIC gap already exists
+            pbone.rotation_euler = rest
+            for c in muted:
+                c.mute = False
+            checks.append({
+                "joint": bone.name, "parent": parent.name,
+                "rest_gap": round(rest_min, 3), "open": 0.0,
+                "worst": "rest (static gap)", "tol": round(tol, 3),
+                "n_patch": 0, "pass": False,
+            })
+            continue
+
+        # SWEEP: how far does the contact face OPEN? (max separation of patch verts)
+        opening = 0.0
         worst = (0, "x", 0.0)
         for ax_i, ax in enumerate("xyz"):
             for deg in SWEEP_DEG:
@@ -134,23 +185,25 @@ def joint_separation_gate(arm_obj, meshes, tol_ratio=TOL_RATIO):
                 e[ax_i] = rest[ax_i] + math.radians(deg)
                 pbone.rotation_euler = e
                 bpy.context.view_layer.update()
-                d = _min_surface_dist(child_objs, parent_kd)
-                if d > dmax:
-                    dmax = d
-                    worst = (deg, ax, d)
+                op = _patch_max_open(patch, parent_kd)
+                if op > opening:
+                    opening = op
+                    worst = (deg, ax, op)
         pbone.rotation_euler = rest
         for c in muted:
             c.mute = False
 
-        gap_growth = dmax - d0
-        ok = gap_growth <= tol
+        # opening beyond the contact band = the visible gap
+        gap = max(0.0, opening - contact_thresh)
+        ok = gap <= tol
         checks.append({
             "joint": bone.name,
             "parent": parent.name,
-            "d0": round(d0, 3),
-            "gap_growth": round(gap_growth, 3),
+            "rest_gap": round(rest_min, 3),
+            "open": round(gap, 3),
             "worst": f"{worst[1]}{worst[0]:+d}deg->{worst[2]:.2f}m",
             "tol": round(tol, 3),
+            "n_patch": len(patch),
             "pass": ok,
         })
 
@@ -173,11 +226,11 @@ def main():
     if not arm:
         print("[QC4] no armature"); return
     res = joint_separation_gate(arm, meshes)
-    print(f"[QC4] model joint-separation gate (tol={res['tol']}m)", flush=True)
-    print(f"[QC4] {'JOINT':14s} {'PARENT':10s} {'d0':>6s} {'gap_growth':>11s} {'worst':>22s}  PASS")
-    for c in sorted(res["checks"], key=lambda x: -x["gap_growth"]):
-        print(f"[QC4] {c['joint']:14s} {c['parent']:10s} {c['d0']:6.2f} "
-              f"{c['gap_growth']:11.2f} {c['worst']:>22s}  {'OK' if c['pass'] else 'FAIL'}",
+    print(f"[QC4] contact-patch-opening gate (tol={res['tol']}m = visible gap)", flush=True)
+    print(f"[QC4] {'JOINT':14s} {'PARENT':10s} {'rest_gap':>8s} {'open':>6s} {'worst':>22s} {'patch':>6s}  PASS")
+    for c in sorted(res["checks"], key=lambda x: -x["open"]):
+        print(f"[QC4] {c['joint']:14s} {c['parent']:10s} {c['rest_gap']:8.2f} "
+              f"{c['open']:6.2f} {c['worst']:>22s} {c['n_patch']:6d}  {'OK' if c['pass'] else 'FAIL'}",
               flush=True)
     print(f"[QC4] VERDICT: {res['verdict']}", flush=True)
 
