@@ -88,14 +88,13 @@ ARM_SWING_DEG = 12.0
 # Walk distance: 12m forward (-Y) in 96 frames
 WALK_DIST = 12.0
 
-# Camera — low angle like ORIGIN (foot-level looking up)
-CAM_LENS_MM = 35
-# Camera starts at side-front, low. Ends close to passing legs.
-CAM_HEIGHT = 5.0  # 5m off ground — knee level for 18m mecha
-# Camera at side, dolly tracking mecha as it walks past
-# X=20 keeps safe distance, Y moves with the mecha
-CAM_START = (20.0, 2.0, CAM_HEIGHT)     # side, slightly ahead of start pos
-CAM_END = (16.0, -10.0, CAM_HEIGHT)     # follows mecha walk direction
+# Camera — FULL-BODY side profile that tracks the walk, so hip/knee/ankle bending is
+# clearly visible (the previous low-angle framed only the upper body).
+CAM_LENS_MM = 50
+CAM_HEIGHT = 9.0  # mid-body height for an 18m mecha
+# Side camera at +X, follows the mecha in -Y as it walks past (keeps it framed).
+CAM_START = (46.0, 6.0, CAM_HEIGHT)     # side, ahead of start
+CAM_END = (46.0, -18.0, CAM_HEIGHT)     # tracks the full walk distance
 
 # Render
 RENDER_W = 1080   # vertical format like the ORIGIN YouTube short
