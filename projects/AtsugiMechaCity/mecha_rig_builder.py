@@ -268,6 +268,70 @@ def _seg_world_verts(obj, cap=1500):
     return [mw @ mu.Vector(vs[i].co) for i in range(0, len(vs), step)]
 
 
+def add_joint_cores(arm_obj, bind: dict[str, str], by_name: dict,
+                    specs=(("LowerLeg_L", "hinge"), ("LowerLeg_R", "hinge"),
+                           ("UpperLeg_L", "ball"), ("UpperLeg_R", "ball"),
+                           ("LowerArm_L", "hinge"), ("LowerArm_R", "hinge"))) -> list[str]:
+    """RULE ②: add an overlapping joint CORE (cylinder for a hinge, sphere for a ball)
+    at each joint pivot, bound to the CHILD bone, so it rotates with the limb and
+    physically fills the gap that a rigid segment opens when it bends (knee/elbow/hip)
+    — like the visible cylinder in a real Gunpla joint. Sized from the child segment's
+    cross-section. Returns created core names. Caller binds via parent_bone already set."""
+    import mathutils as mu
+    # invert bind: bone -> [objs]
+    bone_objs: dict[str, list] = {}
+    for seg, bone in bind.items():
+        o = by_name.get(seg) or by_name.get(seg.replace(" ", "_"))
+        if o:
+            bone_objs.setdefault(bone, []).append(o)
+
+    created = []
+    mat = bpy.data.materials.get("JointCore") or bpy.data.materials.new("JointCore")
+    mat.diffuse_color = (0.30, 0.30, 0.33, 1.0)
+
+    for child_bone, kind in specs:
+        db = arm_obj.data.bones.get(child_bone)
+        objs = bone_objs.get(child_bone)
+        if not db or not objs:
+            continue
+        # pivot = child bone head (the real joint center after RULE①)
+        pivot = arm_obj.matrix_world @ db.head_local
+        # world axes of the bone
+        bm = arm_obj.matrix_world.to_3x3() @ db.matrix_local.to_3x3()
+        x_axis = bm.col[0].normalized()  # local X = hinge bend axis for knees/elbows
+        # radius from the child segment's cross-section (perp to bone Y)
+        y_axis = bm.col[1].normalized()
+        pts = []
+        for o in objs:
+            pts.extend(_seg_world_verts(o, cap=400))
+        if not pts:
+            continue
+        perp = [(p - pivot) - y_axis * (p - pivot).dot(y_axis) for p in pts]
+        cross = max((q.length for q in perp), default=1.0)
+        radius = max(0.4, 0.55 * cross)
+
+        if kind == "hinge":
+            bpy.ops.mesh.primitive_cylinder_add(radius=radius, depth=radius * 2.4,
+                                                location=pivot, vertices=20)
+            core = bpy.context.active_object
+            # align cylinder's +Z (default axis) to the hinge axis (bone local X)
+            z = mu.Vector((0, 0, 1))
+            core.rotation_mode = "QUATERNION"
+            core.rotation_quaternion = z.rotation_difference(x_axis)
+        else:  # ball
+            bpy.ops.mesh.primitive_uv_sphere_add(radius=radius * 1.05, location=pivot,
+                                                 segments=20, ring_count=12)
+            core = bpy.context.active_object
+
+        core.name = f"JointCore_{child_bone}"
+        core.data.materials.clear()
+        core.data.materials.append(mat)
+        # bind to the CHILD bone so it rotates with the limb
+        bind_segment(core, arm_obj, child_bone)
+        created.append(core.name)
+    return created
+
+
 def _joint_center(child_objs, parent_objs):
     """RULE ①: real joint pivot = midpoint of the closest contact point between the
     child segment(s) and parent segment(s). This is where the two parts actually meet,

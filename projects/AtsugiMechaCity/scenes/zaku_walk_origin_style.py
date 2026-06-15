@@ -30,7 +30,7 @@ _VERIFY = "--verify" in _user_args
 
 # ===== CONFIG =====
 PROJECT_ROOT = Path("D:/Clawdbot_Docker_20260125")
-RIGGED_BLEND = Path("D:/Temp/Zaku_AutoRig_v5.blend")  # v5 = left-arm re-segmented + ①pivots + shoulder-shield follower
+RIGGED_BLEND = Path("D:/Temp/Zaku_AutoRig_v6.blend")  # v6 = + ② joint cores (knee/hip/elbow gap fill)
 HDRI_PATH = PROJECT_ROOT / "data/workspace/apps/blender_assets/polyhaven/hdri/abandoned_factory_canteen_01_1k.hdr"
 OUT_DIR = PROJECT_ROOT / "projects/AtsugiMechaCity/output/zaku_walk_origin"
 FRAMES_DIR = OUT_DIR / "frames"
