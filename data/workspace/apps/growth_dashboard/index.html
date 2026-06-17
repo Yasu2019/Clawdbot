@@ -56,6 +56,17 @@
         </button>
     </header>
 
+    <div style="max-width: 1200px; margin: 20px auto 0 auto; padding: 0 20px;">
+        <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 8px; padding: 15px; display: flex; flex-wrap: wrap; gap: 15px; align-items: center;">
+            <span style="font-weight: bold; color: var(--primary); font-size: 0.9rem;">📁 クイックリンク & ダウンロード:</span>
+            <a href="../../../../docs/INCIDENT_LOG.md" style="color: #58a6ff; text-decoration: none; font-size: 0.85rem;" target="_blank">📄 過去トラブルDB (INCIDENT_LOG.md)</a>
+            <span style="color: var(--text-dim);">|</span>
+            <a href="../../../../quality_incident_report_20260615_thinkpad_sleep_outage.md" style="color: #58a6ff; text-decoration: none; font-size: 0.85rem;" target="_blank">⚠️ ThinkPadスリープ障害レポート (2026-06-15)</a>
+            <span style="color: var(--text-dim);">|</span>
+            <a href="../../../../quality_incident_report_20260609_lavie_bios_disconnect.md" style="color: #58a6ff; text-decoration: none; font-size: 0.85rem;" target="_blank">🔧 LAVIE BIOS切断レポート (2026-06-09)</a>
+        </div>
+    </div>
+
     <div class="container">
         <div class="card">
             <h2>Domain Distribution</h2>
@@ -74,25 +85,45 @@
         </div>
 
         <div class="card full-width">
-            <h2>Commercial CAE Maturity (FEM商用レベル L0-L10)</h2>
+            <h2>Commercial Engineering Maturity (商用エンジニアリング L0-L10)</h2>
+            <p id="femMaturityNote" style="font-size:0.8rem; color:var(--text-dim); margin:0 0 12px;">
+                CAE (FEM/充填/公差) · CAD (DXF→STEP) · 動画 (Sora/Seedance2級) — L levels rise from <strong>executable evidence</strong>, not document/RAG ingest volume.
+            </p>
+            <div id="femVideoHeadline" style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:12px;"></div>
             <table class="history-table">
                 <thead>
                     <tr>
                         <th width="40%">App / Subject</th>
-                        <th>Accuracy Target</th>
-                        <th>Speed Target</th>
+                        <th>精度 / 画質</th>
+                        <th>機能 / 量産・QA</th>
                     </tr>
                 </thead>
                 <tbody id="femScoreBody">
                     <!-- Rendered by JS -->
                 </tbody>
             </table>
+            <ul id="femVideoGapList" style="font-size:0.78rem; color:var(--text-dim); margin:12px 0 0; padding-left:1.2rem;"></ul>
         </div>
 
         <div class="card full-width">
             <h2>IATF Internal Audit Video Creation Status (IATF内部監査動画作成状況)</h2>
             <div id="iatfVideoBody" style="display: flex; gap: 15px; flex-wrap: wrap;">
                 <div style="color: var(--text-dim); font-size: 0.9rem;">Loading IATF Video Status...</div>
+            </div>
+        </div>
+
+        <div class="card full-width">
+            <h2>IATF動画 サムネ・QAギャラリー</h2>
+            <div id="iatfQaSummary" style="margin-bottom:12px; font-size:0.85rem; color:var(--text-dim);">Loading...</div>
+            <div style="margin-bottom:10px; display:flex; gap:8px; flex-wrap:wrap;">
+                <button onclick="filterQa('all')" style="padding:4px 12px;border-radius:20px;border:1px solid var(--primary);background:transparent;color:var(--primary);cursor:pointer;font-size:0.8rem;">全て</button>
+                <button onclick="filterQa('pass')" style="padding:4px 12px;border-radius:20px;border:1px solid #3fb950;background:transparent;color:#3fb950;cursor:pointer;font-size:0.8rem;">PASS</button>
+                <button onclick="filterQa('fail')" style="padding:4px 12px;border-radius:20px;border:1px solid #f85149;background:transparent;color:#f85149;cursor:pointer;font-size:0.8rem;">FAIL</button>
+                <button onclick="filterQa('rate_limited')" style="padding:4px 12px;border-radius:20px;border:1px solid #d29922;background:transparent;color:#d29922;cursor:pointer;font-size:0.8rem;">QA待ち</button>
+                <button onclick="filterQa('broken')" style="padding:4px 12px;border-radius:20px;border:1px solid #8b949e;background:transparent;color:#8b949e;cursor:pointer;font-size:0.8rem;">要確認</button>
+            </div>
+            <div id="iatfQaGallery" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;">
+                <div style="color:var(--text-dim);font-size:0.9rem;">Loading thumbnails...</div>
             </div>
         </div>
 
@@ -350,79 +381,25 @@
         </div>
 
         <div class="card full-width" style="border-left: 4px solid #8957e5;">
-            <h2 style="color: #8957e5;">✍️ Content Generation & Publishing Hub (Kindle / note 生成実績)</h2>
-            <p style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 15px;">
-                ※AIが取得した知識（ナレッジベース）をもとに、Kindle出版やnote向けの記事を自動生成・検証した結果です。今後の知識統合により、執筆レベルは指数関数的に向上します。
+            <h2 style="color: #8957e5;">Content Generation & Publishing Hub</h2>
+            <p style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 10px;">
+                Kindle / note / Brain / BOOTH / YouTube / Udemy / セミナー / ミニゲーム — IoT・IATF・動画生成・著者実務経験に基づく販売可能ネタとアウトライン。
             </p>
+            <div id="authorExperienceMoat" style="font-size: 0.8rem; color: var(--text-dim); margin-bottom: 12px; padding: 10px 12px; background: rgba(137,87,229,0.08); border-radius: 8px; border: 1px solid rgba(137,87,229,0.25);">
+                Loading author experience...
+            </div>
+            <div id="contentFunnelHint" style="font-size: 0.75rem; color: var(--text-dim); margin-bottom: 12px;"></div>
             <table class="history-table">
                 <thead>
                     <tr>
-                        <th width="15%">Platform</th>
-                        <th width="45%">Generated Content Outline (生成された執筆案)</th>
-                        <th width="20%">Quality Score & Moat</th>
-                        <th width="20%">Status</th>
+                        <th width="14%">Platform / ID</th>
+                        <th width="46%">Outline (執筆アウトライン)</th>
+                        <th width="18%">Score & Moat</th>
+                        <th width="22%">Status</th>
                     </tr>
                 </thead>
                 <tbody id="contentGenerationBody">
-                    <tr>
-                        <td>
-                            <div style="font-weight:600; font-size:1.05rem;">Kindle / note</div>
-                            <div style="font-size:0.8rem; color:var(--text-dim);">Market Proposal (AI 提案)</div>
-                            <div style="margin-top:5px; background: rgba(210, 153, 34, 0.1); border: 1px solid #d29922; padding: 2px 6px; border-radius: 4px; display: inline-block; color: #d29922; font-size:0.75rem; font-weight:bold;">NEW</div>
-                        </td>
-                        <td>
-                            <div class="know-how">
-                                <strong>タイトル案:</strong> 製造現場のリアルDX：AIとPythonで古い測定器・生産設備を蘇らせる実践ガイド<br>
-                                <span style="font-size:0.75rem; color:var(--text-dim); margin-top:4px; display:inline-block;">
-                                    ・対象読者: 人手不足や古い設備に悩む製造業の中間管理職、生産技術エンジニア<br>
-                                    ・読者の痛み: 「IT企業のDX本は現場で使えない」「古い機械が最新システムと繋がらない」<br>
-                                    ・高い需要の理由: 生成AIの波が来ているが、物理的な「泥臭い現場」と「最新AI」を繋ぐノウハウ本は市場に極めて少なく、ブルーオーシャンであるため。<br>
-                                    ・独自性（モート）: 著者が持つ実務でのCAE/測定器の知見と最新AIの融合は、一般のWebエンジニアには絶対に模倣できない圧倒的な参入障壁となる。
-                                </span>
-                            </div>
-                        </td>
-                        <td>
-                            <div style="font-size:1.2rem; font-weight:bold; color:#3fb950;">99 <span style="font-size:0.8rem; color:var(--text-dim);">/ 100</span></div>
-                            <div style="font-size:0.75rem; color:var(--text-dim); margin-top:4px;">
-                                <strong>Buyer Pain:</strong> 25/25 (MAX)<br>
-                                <strong>User Moat:</strong> 20/20 (Unbeatable)<br>
-                                <strong>Market Timing:</strong> 25/25 (MAX)
-                            </div>
-                        </td>
-                        <td style="color: var(--primary); font-size: 0.85rem; font-weight: 600;">
-                            PROPOSED<br>
-                            <span style="font-size:0.75rem; color:var(--text-dim); font-weight:normal;">AI Market Analysis</span>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <div style="font-weight:600; font-size:1.05rem;">note / Kindle</div>
-                            <div style="font-size:0.8rem; color:var(--text-dim);">Technical Guide</div>
-                        </td>
-                        <td>
-                            <div class="know-how">
-                                <strong>タイトル案:</strong> NEXIV測定データをExcel VBAで検査成績書へ自動転記する方法<br>
-                                <span style="font-size:0.75rem; color:var(--text-dim); margin-top:4px; display:inline-block;">
-                                    ・対象読者: 製造業の品質保証担当者<br>
-                                    ・読者の痛み: 転記ミス、成績書作成時間、属人化<br>
-                                    ・結論: 何がどれだけ楽になるかを最初に書く<br>
-                                    ・現状の問題: 手作業、ミス、属人化、判断遅れを整理する<br>
-                                    ・解決方法: 手順、コード、テンプレート、Portal連携を示す
-                                </span>
-                            </div>
-                        </td>
-                        <td>
-                            <div style="font-size:1.2rem; font-weight:bold; color:#3fb950;">97 <span style="font-size:0.8rem; color:var(--text-dim);">/ 100</span></div>
-                            <div style="font-size:0.75rem; color:var(--text-dim); margin-top:4px;">
-                                <strong>Buyer Pain:</strong> 25/25 (MAX)<br>
-                                <strong>User Moat:</strong> 19/20 (Very High)
-                            </div>
-                        </td>
-                        <td style="color: var(--primary); font-size: 0.85rem; font-weight: 600;">
-                            GENERATED<br>
-                            <span style="font-size:0.75rem; color:var(--text-dim); font-weight:normal;">minipc_content_5forces</span>
-                        </td>
-                    </tr>
+                    <tr><td colspan="4" style="text-align:center; color:var(--text-dim);">Loading content catalog...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -457,6 +434,42 @@
                     <tr><td colspan="6" style="text-align:center; color:var(--text-dim);">Loading fleet diagnostics...</td></tr>
                 </tbody>
             </table>
+        </div>
+
+        <div class="card full-width">
+            <h2>各PC稼働率 &amp; K10 Idle Dispatch (CPU70%以下・低温でジョブ配信)</h2>
+            <p style="font-size:0.85rem; color:var(--text-dim); margin:0 0 10px;">
+                <strong>ルール（<code>fleet_idle_dispatch_policy.yaml</code>）:</strong>
+                K10が中央監視し、<strong>CPU &lt; 70%</strong>・<strong>RAM &lt; 75%</strong>・<strong>温度 &lt; 75°C</strong>・スロットルなしのノードにのみ軽量ジョブを配信します。
+                昼間（8–19時）は Vivobook は配信対象外。K10 / G3 / HP は配信元または保留。
+            </p>
+            <div id="fleetUtilizationSummary" style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:12px;">
+                <div style="color:var(--text-dim); font-size:0.9rem;">Loading utilization...</div>
+            </div>
+            <div id="fleetCpuLowNote" style="display:none; margin-bottom:12px; font-size:0.82rem; color:var(--text-dim); padding:10px 12px; background:rgba(210,153,34,0.08); border-radius:8px; border:1px solid rgba(210,153,34,0.25);"></div>
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th width="12%">Node</th>
+                        <th width="22%">現在の業務</th>
+                        <th width="14%">CPU稼働率</th>
+                        <th width="10%">RAM</th>
+                        <th width="8%">温度</th>
+                        <th width="12%">K10配信判定</th>
+                        <th width="12%">直近サイクル</th>
+                        <th width="10%">配信対象</th>
+                    </tr>
+                </thead>
+                <tbody id="fleetUtilizationBody">
+                    <tr><td colspan="8" style="text-align:center; color:var(--text-dim);">Loading...</td></tr>
+                </tbody>
+            </table>
+            <div id="fleetIdleDispatchStatus" style="margin-top:14px; font-size:0.8rem; color:var(--text-dim); padding:10px 12px; background:rgba(56,139,253,0.06); border-radius:8px; border:1px solid rgba(56,139,253,0.2);">
+                Loading central idle dispatch...
+            </div>
+            <div id="triTrackCaeStatus" style="margin-top:10px; font-size:0.8rem; color:var(--text-dim); padding:10px 12px; background:rgba(35,134,54,0.06); border-radius:8px; border:1px solid rgba(35,134,54,0.25);">
+                Loading tri-track CAE (OpenFOAM@lavie / OpenRadioss@red_lavie / Impact@thinkpad)...
+            </div>
         </div>
 
         <div class="card full-width">
@@ -693,34 +706,84 @@
                 `).join('');
                 }
 
-                // FEM Scoring Fallback
+                // FEM Commercial Maturity (evidence-based L0-L10)
                 const femBody = document.getElementById('femScoreBody');
-                let femMatrix = data.commercial_benchmark_l10?.matrix;
-                if (!femMatrix || femMatrix.length === 0) {
-                    femMatrix = [
-                        { product_label: "OpenFOAM (Resin Fill)", reference: "vs Moldflow", categories: [{id:"Accuracy", current_level: 4}, {id:"Speed", current_level: 6}] },
-                        { product_label: "OpenRadioss", reference: "vs LS-DYNA", categories: [{id:"Accuracy", current_level: 7}, {id:"Speed", current_level: 5}] },
-                        { product_label: "GD&T / Kinematics", reference: "vs Cetol 6 Sigma", categories: [{id:"Accuracy", current_level: 3}, {id:"Speed", current_level: 8}] }
-                    ];
+                const femNote = document.getElementById('femMaturityNote');
+                let bench = data.commercial_benchmark_l10;
+                if (!bench || !bench.matrix || bench.matrix.length === 0) {
+                    try {
+                        const benchRes = await fetch('commercial_benchmark_maturity_latest.json', { cache: 'no-store' });
+                        if (benchRes.ok) bench = await benchRes.json();
+                    } catch (_) {}
                 }
+                const femMatrix = bench?.matrix || [];
+                const femHeadline = document.getElementById('femVideoHeadline');
+                const femGaps = document.getElementById('femVideoGapList');
+                if (femNote && bench?.updated_note) {
+                    let noteHtml = bench.updated_note + '<br><span class="timestamp">Assessed: ' + escapeHtml(bench.assessed_at || data.updated_at || '') + '</span>';
+                    femNote.innerHTML = noteHtml;
+                }
+                const vhl = bench?.video_headline || {};
+                if (femHeadline && vhl.overall_vs_sora_seedance != null) {
+                    femHeadline.innerHTML = `
+                        <div style="background:rgba(248,81,73,0.08); border:1px solid #f85149; padding:8px 14px; border-radius:8px;">
+                            <div style="font-size:0.75rem; color:var(--text-dim);">動画 vs Sora/Seedance2 (L10)</div>
+                            <div style="font-size:1.3rem; font-weight:700; color:#f85149;">L${vhl.overall_vs_sora_seedance}</div>
+                        </div>
+                        <div style="background:rgba(88,166,255,0.08); border:1px solid var(--primary); padding:8px 14px; border-radius:8px;">
+                            <div style="font-size:0.75rem; color:var(--text-dim);">生成AI動画</div>
+                            <div style="font-size:1.1rem; font-weight:700; color:var(--primary);">L${vhl.generative_ai_track ?? '?'}</div>
+                        </div>
+                        <div style="background:rgba(35,134,54,0.08); border:1px solid var(--accent); padding:8px 14px; border-radius:8px;">
+                            <div style="font-size:0.75rem; color:var(--text-dim);">Blender/IATF/CAE可視化</div>
+                            <div style="font-size:1.1rem; font-weight:700; color:var(--accent);">L${vhl.procedural_engine_track ?? '?'}</div>
+                        </div>
+                    `;
+                } else if (femHeadline) {
+                    femHeadline.innerHTML = '';
+                }
+                if (femGaps && bench?.video_gap_summary?.length) {
+                    femGaps.innerHTML = bench.video_gap_summary.map(g => `<li>${escapeHtml(g)}</li>`).join('');
+                }
+                if (femMatrix.length === 0) {
+                    femBody.innerHTML = '<tr><td colspan="3" style="color:#d29922;">No maturity assessment yet. Run: python data/workspace/commercial_benchmark_maturity.py</td></tr>';
+                } else {
                 femBody.innerHTML = femMatrix.map(f => {
-                    const acc = f.categories.find(c => c.id === 'Accuracy')?.current_level || 0;
-                    const spd = f.categories.find(c => c.id === 'Speed')?.current_level || 0;
+                    const cats = f.categories || [];
+                    const isVideo = f.track === 'video' || ['GENERATIVE_AI_VIDEO', 'PROCEDURAL_ENGINE_VIDEO'].includes(f.product_id);
+                    const acc = isVideo
+                        ? (cats.find(c => c.id === 'visual_fidelity')?.current_level ?? 0)
+                        : (cats.find(c => c.id === 'accuracy')?.current_level ?? 0);
+                    const spd = isVideo
+                        ? (cats.find(c => c.id === 'production_readiness')?.current_level ?? 0)
+                        : (cats.find(c => c.id === 'functionality')?.current_level ?? 0);
+                    const accLabel = isVideo ? '画質' : '精度';
+                    const spdLabel = isVideo ? '量産・QA' : '機能';
+                    const avg = f.avg_level ?? (cats.reduce((s,c)=>s+(c.current_level||0),0) / Math.max(cats.length,1));
+                    const catSummary = cats.map(c => `${c.label || c.id}: L${c.current_level}`).join(' / ');
+                    const trackBadge = isVideo
+                        ? '<span style="font-size:0.65rem; background:rgba(248,81,73,0.15); color:#f85149; padding:2px 6px; border-radius:6px; margin-left:6px;">VIDEO</span>'
+                        : '<span style="font-size:0.65rem; background:rgba(88,166,255,0.15); color:var(--primary); padding:2px 6px; border-radius:6px; margin-left:6px;">CAE</span>';
                     return `
                     <tr>
                         <td>
-                            <div style="font-weight:600; font-size:1.05rem;">${f.product_label}</div>
-                            <div style="font-size:0.8rem; color:var(--text-dim);">${f.reference || ''}</div>
+                            <div style="font-weight:600; font-size:1.05rem;">${escapeHtml(f.product_label)}${trackBadge}</div>
+                            <div style="font-size:0.8rem; color:var(--text-dim);">${escapeHtml(f.reference || '')}</div>
+                            <div style="font-size:0.72rem; color:var(--text-dim); margin-top:4px;">${escapeHtml(f.clawstack_stack || '')}</div>
+                            <div style="font-size:0.72rem; color:var(--text-dim); margin-top:4px;">${escapeHtml(catSummary)}</div>
                         </td>
                         <td>
                             <div style="background: rgba(88, 166, 255, 0.1); border: 1px solid var(--primary); padding: 5px 12px; border-radius: 8px; display: inline-block; color: var(--primary); font-weight:600; min-width: 60px; text-align: center;">L${acc} / L10</div>
+                            <div style="font-size:0.7rem; color:var(--text-dim); margin-top:4px;">${accLabel} avg L${avg.toFixed ? avg.toFixed(1) : avg}</div>
                         </td>
                         <td>
                             <div style="background: rgba(35, 134, 54, 0.1); border: 1px solid var(--accent); padding: 5px 12px; border-radius: 8px; display: inline-block; color: var(--accent); font-weight:600; min-width: 60px; text-align: center;">L${spd} / L10</div>
+                            <div style="font-size:0.7rem; color:var(--text-dim); margin-top:4px;">${spdLabel}</div>
                         </td>
                     </tr>
                     `;
                 }).join('');
+                }
 
             } catch (e) {
                 console.error("Failed to load growth data", e);
@@ -766,9 +829,8 @@
                 const totalVideosTarget = 340;
                 if (iatfGateRes && iatfGateRes.ok) {
                     const gateData = await iatfGateRes.json();
-                    if (Array.isArray(gateData)) {
-                        createdVideos = gateData.filter(v => v.mp4_count > 0).length;
-                    }
+                    const folders = Array.isArray(gateData) ? gateData : (gateData.folders || []);
+                    createdVideos = folders.filter(v => v.mp4_count > 0).length;
                 }
 
                 iatfHtml += `
@@ -816,6 +878,82 @@
                 document.getElementById('iatfVideoBody').innerHTML = '<div style="color: #f85149; font-size: 0.9rem;">Error fetching IATF Video status.</div>';
             }
 
+        }
+
+        // ── IATF QA Gallery ─────────────────────────────────────────────────
+        let _qaData = null;
+        function filterQa(status) {
+            if (!_qaData) return;
+            renderQaGallery(_qaData, status);
+        }
+        function qaStatusBadge(qa, broken) {
+            if (broken) return { label: '要確認', color: '#8b949e' };
+            const s = qa && qa.status;
+            if (s === 'pass') return { label: 'PASS', color: '#3fb950' };
+            if (s === 'fail') return { label: 'FAIL', color: '#f85149' };
+            if (s === 'rate_limited') return { label: 'QA待ち', color: '#d29922' };
+            return { label: s || 'unknown', color: '#8b949e' };
+        }
+        function renderQaGallery(data, filter) {
+            const gallery = document.getElementById('iatfQaGallery');
+            if (!gallery) return;
+            let videos = data.videos || [];
+            if (filter === 'broken') videos = videos.filter(v => v.broken);
+            else if (filter && filter !== 'all') videos = videos.filter(v => !v.broken && v.qa && v.qa.status === filter);
+            if (videos.length === 0) {
+                gallery.innerHTML = '<div style="color:var(--text-dim);font-size:0.85rem;">該当動画なし</div>';
+                return;
+            }
+            gallery.innerHTML = videos.map(v => {
+                const badge = qaStatusBadge(v.qa, v.broken);
+                const imgSrc = v.contact_sheet_url || v.thumbnail_url || '';
+                const score = v.qa && v.qa.score != null ? ` ${v.qa.score}pt` : '';
+                const reason = v.qa && v.qa.reason ? escapeHtml(v.qa.reason.substring(0, 80)) : '';
+                const issues = v.qa && v.qa.issues && v.qa.issues.length > 0
+                    ? `<div style="color:#f85149;font-size:0.72rem;margin-top:4px;">${v.qa.issues.map(i => escapeHtml(i)).join('<br>')}</div>` : '';
+                const title = escapeHtml((v.topic || v.title || '').substring(0, 40));
+                const clause = v.clause ? escapeHtml(v.clause.toString().substring(0, 15)) : '';
+                const sizeMb = v.file_size_mb ? `${v.file_size_mb}MB` : '';
+                return `<div style="background:rgba(15,23,42,0.8);border:1px solid rgba(56,189,248,0.15);border-radius:8px;overflow:hidden;position:relative;">
+                    <div style="position:absolute;top:6px;right:6px;background:${badge.color};color:#000;font-size:0.65rem;font-weight:700;padding:2px 7px;border-radius:10px;">${badge.label}${score}</div>
+                    ${imgSrc ? `<img src="${imgSrc}" style="width:100%;height:130px;object-fit:cover;display:block;" loading="lazy" onerror="this.style.display='none'">` : '<div style="height:130px;background:#1a2332;display:flex;align-items:center;justify-content:center;color:#555;font-size:0.75rem;">No image</div>'}
+                    <div style="padding:8px;">
+                        <div style="font-size:0.75rem;color:var(--primary);font-weight:600;">箇条${clause}</div>
+                        <div style="font-size:0.78rem;color:var(--text);margin-top:2px;line-height:1.3;">${title}</div>
+                        <div style="font-size:0.7rem;color:var(--text-dim);margin-top:4px;">${sizeMb}</div>
+                        ${reason ? `<div style="font-size:0.7rem;color:#94a3b8;margin-top:3px;">${reason}</div>` : ''}
+                        ${issues}
+                    </div>
+                </div>`;
+            }).join('');
+        }
+        async function loadIatfQaGallery() {
+            const gallery = document.getElementById('iatfQaGallery');
+            const summary = document.getElementById('iatfQaSummary');
+            if (!gallery) return;
+            try {
+                const res = await fetch('iatf_video_qa_status.json', { cache: 'no-store' });
+                if (!res.ok) throw new Error('not found');
+                _qaData = await res.json();
+                const total = _qaData.total || 0;
+                const processed = _qaData.processed || total;
+                const passed = _qaData.passed || 0;
+                const failed = _qaData.failed || 0;
+                const skipped = _qaData.skipped || 0;
+                const broken = _qaData.broken_count || 0;
+                summary.innerHTML = `
+                    完成動画: <span style="color:#38bdf8;font-weight:700;">${total}本</span> &nbsp;|&nbsp;
+                    QA PASS: <span style="color:#3fb950;font-weight:700;">${passed}</span> &nbsp;
+                    FAIL: <span style="color:#f85149;font-weight:700;">${failed}</span> &nbsp;
+                    QA待ち: <span style="color:#d29922;">${skipped}</span> &nbsp;
+                    要確認(小ファイル): <span style="color:#8b949e;">${broken}</span> &nbsp;|&nbsp;
+                    <span style="color:var(--text-dim);">更新: ${(_qaData.generated_at||'').substring(0,16)}</span>
+                `;
+                renderQaGallery(_qaData, 'all');
+            } catch(e) {
+                gallery.innerHTML = '<div style="color:#f85149;font-size:0.85rem;">iatf_video_qa_status.json が見つかりません。QAスクリプトを実行してください。</div>';
+                if (summary) summary.textContent = '';
+            }
         }
 
         async function loadMaterialSourceInventory() {
@@ -887,12 +1025,41 @@
                 tbody.innerHTML = '';
                 
                 data.forEach(item => {
+                    const videoUrl = item.video_url || (item.video_id ? `https://www.youtube.com/watch?v=${item.video_id}` : '');
+                    const linkHtml = videoUrl 
+                        ? `<br><a href="${escapeHtml(videoUrl)}" target="_blank" style="color: #58a6ff; font-size: 0.75rem; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; margin-top: 4px;">
+                            📺 YouTubeで見る
+                           </a>`
+                        : '';
+                    
+                    let detailHtml = '';
+                    if (item.clause_explain || item.audit_trail) {
+                        detailHtml = `
+                            <details style="margin-top: 8px; font-size: 0.8rem; background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 6px; padding: 8px;">
+                                <summary style="cursor: pointer; color: #c4b5fd; font-weight: 600;">🔍 IATF要求事項と監査プロセスの深掘り解説を表示</summary>
+                                <div style="margin-top: 8px; color: var(--text-dim); line-height: 1.5; text-align: left;">
+                                    ${item.clause_explain ? `<div style="margin-bottom: 8px;"><strong style="color: #f088ff;">【該当箇条と要求事項の背景意図】</strong><br>${escapeHtml(item.clause_explain)}</div>` : ''}
+                                    ${item.audit_trail ? `<div><strong style="color: #58a6ff;">【内部監査の進め方と着眼点】</strong><br>${escapeHtml(item.audit_trail)}</div>` : ''}
+                                </div>
+                            </details>
+                        `;
+                    }
+                    
                     tbody.innerHTML += `
                         <tr>
-                            <td>${escapeHtml(item.program_name)}<br><span class="timestamp">${escapeHtml(item.timestamp || item.video_id || '')}</span></td>
+                            <td>
+                                <strong>${escapeHtml(item.program_name)}</strong>
+                                ${linkHtml}
+                                <br><span class="timestamp">${escapeHtml(item.timestamp || item.video_id || '')}</span>
+                            </td>
                             <td><span class="status-badge status-design">${escapeHtml(item.clause)}</span></td>
-                            <td style="color: #ff7b72;">${escapeHtml(item.problem)}</td>
-                            <td style="color: #3fb950;">${escapeHtml(item.improvement)}</td>
+                            <td style="color: #ff7b72; font-size: 0.85rem;">
+                                <strong>不適合のポイント:</strong><br>${escapeHtml(item.problem)}
+                                ${detailHtml}
+                            </td>
+                            <td style="color: #3fb950; font-size: 0.85rem; vertical-align: top;">
+                                <strong>是正・改善策:</strong><br>${escapeHtml(item.improvement)}
+                            </td>
                         </tr>
                     `;
                 });
@@ -979,9 +1146,9 @@
                                 <div style="background: rgba(210,153,34,0.2); color: #d29922; font-size: 0.7rem; font-weight: bold; padding: 3px 8px; border-radius: 10px;">Agent: 未起動</div>
                             </div>
                         </div>
-                        <p style="font-size: 0.8rem; color: var(--text-dim); margin: 0;">Monitor Agent (port 8111) が未インストールです。<br>
+                        <p style="font-size: 0.8rem; color: var(--text-dim); margin: 0;">Monitor Agent (port 8111) が未起動です。<br>
                         ノード上のPowerShellで実行:<br>
-                        <code style="font-size:0.72rem; color:#58a6ff;">iwr 'http://100.119.18.40:8123/setup_monitor_node.ps1' -UseBasicParsing -OutFile "$env:TEMP\\s.ps1"; &amp; "$env:TEMP\\s.ps1"</code></p>
+                        <code style="font-size:0.72rem; color:#58a6ff;">${name.includes('HP') ? "iwr 'http://100.119.18.40:8123/hp_local_bringup.ps1' -UseBasicParsing -OutFile \"$env:TEMP\\hp.ps1\"; powershell -NoProfile -ExecutionPolicy Bypass -File \"$env:TEMP\\hp.ps1\"" : "iwr 'http://100.119.18.40:8123/setup_monitor_node.ps1' -UseBasicParsing -OutFile \"$env:TEMP\\s.ps1\"; &amp; \"$env:TEMP\\s.ps1\""}</code></p>
                     </div>`;
                 }
                 return `
@@ -1090,7 +1257,7 @@
                 fetchNodeStatus("Dynabook Node", "http://100.98.133.40:8111/metrics"),
                 fetchNodeStatus("ThinkPad L590 (Ubuntu)", "http://100.66.63.9:8111/metrics", true),
                 fetchNodeStatus("ASUS Vivobook (Work PC)", "http://100.65.182.27:8111/metrics", true),
-                fetchNodeStatus("HP Node (Watchdog)", "http://100.103.176.50:8111/metrics")
+                fetchNodeStatus("HP Node (Watchdog)", "http://100.103.176.50:8111/metrics", true)
             ]);
             document.getElementById('nodesBody').innerHTML = results.join("");
             } finally {
@@ -1099,14 +1266,207 @@
         }
 
         const fleetAllocationNodes = [
-            { name: "K10", ip: "127.0.0.1", url: "http://localhost:8111/metrics", role: "Main host / orchestration" },
-            { name: "mhn15", ip: "100.65.182.27", url: "http://100.65.182.27:8111/metrics", role: "User work PC", daytimeLightOnly: true },
-            { name: "Dynabook", ip: "100.98.133.40", url: "http://100.98.133.40:8111/metrics", role: "Light satellite" },
-            { name: "ThinkPad L590", ip: "100.66.63.9", url: "http://100.66.63.9:8111/metrics", role: "Ubuntu SSH medium satellite", mediumSshCandidate: true },
-            { name: "G3", ip: "100.121.241.128", url: "http://100.121.241.128:8111/metrics", role: "Stable satellite" },
-            { name: "LAVIE", ip: "100.87.244.46", url: "http://100.87.244.46:8111/metrics", role: "CAE worker" },
-            { name: "red_lavie", ip: "100.99.145.3", url: "http://100.99.145.3:8111/metrics", role: "Medium-heavy ready worker", mediumHeavyCandidate: true }
+            { name: "K10", ip: "127.0.0.1", url: "http://localhost:8111/metrics", role: "Main host / orchestration", registryId: "k10", dispatchRole: "dispatcher" },
+            { name: "mhn15", ip: "100.65.182.27", url: "http://100.65.182.27:8111/metrics", role: "User work PC", daytimeLightOnly: true, registryId: "vivobook", dispatchRole: "excluded" },
+            { name: "Dynabook", ip: "100.98.133.40", url: "http://100.98.133.40:8111/metrics", role: "Light satellite", registryId: "dynabook", dispatchRole: "target" },
+            { name: "ThinkPad L590", ip: "100.66.63.9", url: "http://100.66.63.9:8111/metrics", role: "Ubuntu SSH medium satellite", mediumSshCandidate: true, registryId: "thinkpad", dispatchRole: "target" },
+            { name: "G3", ip: "100.121.241.128", url: "http://100.121.241.128:8111/metrics", role: "Stable satellite", registryId: "g3", dispatchRole: "excluded" },
+            { name: "LAVIE", ip: "100.87.244.46", url: "http://100.87.244.46:8111/metrics", role: "CAE worker", registryId: "lavie", dispatchRole: "target" },
+            { name: "red_lavie", ip: "100.99.145.3", url: "http://100.99.145.3:8111/metrics", role: "Medium-heavy ready worker", mediumHeavyCandidate: true, registryId: "red_lavie", dispatchRole: "target" },
+            { name: "HP / YNS-PC", ip: "100.103.176.50", url: "http://100.103.176.50:8111/metrics", role: "Watchdog (hold)", registryId: "hp_watchdog", dispatchRole: "excluded" }
         ];
+
+        const idleDispatchThresholds = {
+            max_cpu_percent: 70,
+            max_ram_percent: 75,
+            max_temp_c: 75,
+            block_when_throttling: true,
+            block_cpu_limit_at_or_below: 10
+        };
+
+        function utilizationBar(pct, maxOk, label) {
+            const v = Number(pct || 0);
+            const ok = v < maxOk;
+            const color = ok ? "#3fb950" : "#f85149";
+            const w = Math.min(100, Math.max(0, v));
+            return `
+                <div style="font-size:0.82rem; margin-bottom:2px;">${label} <strong style="color:${color}">${v.toFixed ? v.toFixed(1) : v}%</strong></div>
+                <div style="background:#21262d; border-radius:4px; height:8px; overflow:hidden;">
+                    <div style="width:${w}%; height:100%; background:${color};"></div>
+                </div>
+                <div style="font-size:0.68rem; color:var(--text-dim);">閾値 &lt; ${maxOk}%</div>
+            `;
+        }
+
+        function evaluateIdleDispatchRule(metrics, thresholds, node) {
+            if (node.dispatchRole === "dispatcher" || node.dispatchRole === "excluded") {
+                return { eligible: false, reason: node.dispatchRole === "dispatcher" ? "K10は配信元" : "ポリシー除外" };
+            }
+            const hour = new Date().getHours();
+            if (node.daytimeLightOnly && hour >= 8 && hour < 19) {
+                return { eligible: false, reason: "昼間ビジネスPC（8-19時除外）" };
+            }
+            const cpu = Number(metrics.cpu_usage_percent ?? 100);
+            const ram = Number(metrics.ram_usage_percent ?? 100);
+            const temp = Number(metrics.thermal_control_temp_c ?? metrics.cpu_temp_celsius ?? 0);
+            const maxCpu = Number(thresholds.max_cpu_percent || 70);
+            const maxRam = Number(thresholds.max_ram_percent || 75);
+            const maxTemp = Number(thresholds.max_temp_c || 75);
+            const limit = Number(metrics.cpu_limit_percent ?? 100);
+            if (cpu >= maxCpu) return { eligible: false, reason: `CPU ${cpu}% >= ${maxCpu}%` };
+            if (ram >= maxRam) return { eligible: false, reason: `RAM ${ram}% >= ${maxRam}%` };
+            if (temp > 0 && temp >= maxTemp) return { eligible: false, reason: `温度 ${temp}C >= ${maxTemp}C` };
+            if (thresholds.block_when_throttling && (metrics.is_throttling || limit <= (thresholds.block_cpu_limit_at_or_below || 10))) {
+                return { eligible: false, reason: `スロットル (cap ${limit}%)` };
+            }
+            return { eligible: true, reason: `idle OK cpu=${cpu}% ram=${ram}% temp=${temp}C` };
+        }
+
+        function workloadStateBadge(state) {
+            const map = {
+                running: ["稼働中", "#3fb950"],
+                idle: ["待機", "#8b949e"],
+                light: ["軽負荷", "#58a6ff"],
+                offline: ["オフライン", "#f85149"],
+                blocked: ["ブロック", "#d29922"],
+            };
+            const [text, color] = map[state] || ["不明", "#8b949e"];
+            return usageBadge(text, color);
+        }
+
+        function shouldShowCpuLowReason(workload, metrics, thresholds) {
+            if (!workload?.cpu_low_reason || !metrics) return false;
+            const cpu = Number(metrics.cpu_usage_percent ?? NaN);
+            const maxCpu = Number(thresholds?.max_cpu_percent ?? 70);
+            const suspiciousZero = cpu <= 0 || metrics.cpu_usage_source === "zero_or_unavailable";
+            if (suspiciousZero) return true;
+            if (Number.isNaN(cpu) || cpu >= maxCpu) return false;
+            return true;
+        }
+
+        function formatWorkloadCell(workload, metrics, thresholds) {
+            if (!workload) {
+                return `<span class="timestamp">業務情報未取得</span>`;
+            }
+            const label = escapeHtml(workload.label || "—");
+            const detail = workload.detail ? `<br><span class="timestamp">${escapeHtml(workload.detail)}</span>` : "";
+            let reason = "";
+            if (shouldShowCpuLowReason(workload, metrics, thresholds)) {
+                let reasonText = workload.cpu_low_reason;
+                if (Number(metrics?.cpu_usage_percent ?? 0) <= 0
+                    || metrics?.cpu_usage_source === "zero_or_unavailable") {
+                    reasonText = "Win32のCPU計測が失敗し0%表示になっている可能性がある（LHM導入で改善）";
+                }
+                reason = `<br><span class="timestamp" style="color:#d29922;">CPUが低い理由は、${escapeHtml(reasonText)}の為です。</span>`;
+            }
+            const src = metrics?.cpu_usage_source;
+            const srcNote = src && src !== "cim_load_percentage"
+                ? `<br><span class="timestamp">計測: ${escapeHtml(src)}</span>`
+                : "";
+            return `${workloadStateBadge(workload.state || "idle")}<br><strong style="font-size:0.82rem;">${label}</strong>${detail}${reason}${srcNote}`;
+        }
+
+        async function updateFleetUtilizationBoard() {
+            const body = document.getElementById("fleetUtilizationBody");
+            const summary = document.getElementById("fleetUtilizationSummary");
+            const cpuLowNote = document.getElementById("fleetCpuLowNote");
+            if (!body) return;
+
+            let idleData = {};
+            let workloadSnap = {};
+            let thresholds = { ...idleDispatchThresholds };
+            try {
+                const res = await fetch("fleet_idle_dispatch_status.json", { cache: "no-store" });
+                if (res.ok) {
+                    idleData = await res.json();
+                    thresholds = { ...thresholds, ...(idleData.thresholds || {}) };
+                }
+            } catch (_) {}
+            try {
+                const wres = await fetch("fleet_node_workload_snapshot.json", { cache: "no-store" });
+                if (wres.ok) workloadSnap = await wres.json();
+            } catch (_) {}
+
+            const workloadByNode = workloadSnap.nodes || {};
+            if (cpuLowNote) {
+                const note = workloadSnap.cpu_low_fleet_note;
+                if (note) {
+                    cpuLowNote.style.display = "block";
+                    cpuLowNote.innerHTML = `<strong>CPUが低く見える理由:</strong> ${escapeHtml(note)}`;
+                } else {
+                    cpuLowNote.style.display = "none";
+                }
+            }
+
+            const lastByNode = {};
+            (idleData.last_cycle?.node_results || []).forEach(r => {
+                lastByNode[(r.node_id || r.registry_id || "").toLowerCase()] = r;
+            });
+
+            const rows = await Promise.all(fleetAllocationNodes.map(fetchAllocationMetric));
+            let eligibleCount = 0;
+            let onlineCount = 0;
+
+            body.innerHTML = rows.map(({ node, metrics, ok }) => {
+                const reg = (node.registryId || node.name || "").toLowerCase();
+                const workload = workloadByNode[reg] || workloadByNode[node.name.toLowerCase()] || null;
+                const workCell = formatWorkloadCell(workload, ok ? metrics : null, thresholds);
+                const last = lastByNode[reg] || lastByNode[node.name.toLowerCase()] || null;
+                if (!ok) {
+                    return `
+                    <tr>
+                        <td><strong>${escapeHtml(node.name)}</strong><br><span class="timestamp">${escapeHtml(node.ip)}</span></td>
+                        <td>${workCell}</td>
+                        <td colspan="3" style="color:#f85149;">オフライン / metrics未取得</td>
+                        <td>${usageBadge("不可", "#f85149")}</td>
+                        <td>${last ? escapeHtml(last.decision + " " + (last.reason || "")) : "-"}</td>
+                        <td>${node.dispatchRole === "target" ? usageBadge("対象", "#58a6ff") : usageBadge("対象外", "#8b949e")}</td>
+                    </tr>`;
+                }
+                onlineCount += 1;
+                const rule = evaluateIdleDispatchRule(metrics, thresholds, node);
+                if (rule.eligible) eligibleCount += 1;
+                const temp = metrics.thermal_control_temp_c ?? metrics.cpu_temp_celsius;
+                const dispatchBadge = rule.eligible
+                    ? usageBadge("配信可", "#3fb950")
+                    : usageBadge("待機", "#d29922");
+                const targetBadge = node.dispatchRole === "target"
+                    ? usageBadge("K10配信対象", "#58a6ff")
+                    : (node.dispatchRole === "dispatcher" ? usageBadge("配信元", "#8b949e") : usageBadge("対象外", "#8b949e"));
+                const lastText = last
+                    ? `<span style="color:${last.decision === "dispatch" ? "#3fb950" : "#d29922"}; font-weight:600;">${escapeHtml(last.decision || "skip")}</span><br><span class="timestamp">${escapeHtml(last.reason || "")}</span>`
+                    : "<span class='timestamp'>サイクル未記録</span>";
+                return `
+                <tr>
+                    <td><strong>${escapeHtml(node.name)}</strong><br><span class="timestamp">${escapeHtml(metrics.hostname || node.ip)}<br>${escapeHtml(node.role || "")}</span></td>
+                    <td>${workCell}</td>
+                    <td>${utilizationBar(metrics.cpu_usage_percent, thresholds.max_cpu_percent, "CPU")}</td>
+                    <td>${utilizationBar(metrics.ram_usage_percent, thresholds.max_ram_percent, "RAM")}</td>
+                    <td><div style="font-weight:600; color:${temp && temp < thresholds.max_temp_c ? "#3fb950" : "#f85149"}">${temp != null ? temp + "C" : "N/A"}</div><span class="timestamp">&lt; ${thresholds.max_temp_c}C</span></td>
+                    <td>${dispatchBadge}<br><span class="timestamp">${escapeHtml(rule.reason)}</span></td>
+                    <td>${lastText}</td>
+                    <td>${targetBadge}</td>
+                </tr>`;
+            }).join("");
+
+            if (summary) {
+                const running = idleData.running ? usageBadge("DISPATCH RUNNING", "#3fb950") : usageBadge("DISPATCH STOPPED", "#f85149");
+                summary.innerHTML = `
+                    <div style="border:1px solid #30363d; border-radius:8px; padding:10px 14px; min-width:140px;">
+                        <div style="font-size:0.75rem; color:var(--text-dim);">オンライン</div>
+                        <div style="font-size:1.2rem; font-weight:700;">${onlineCount} / ${fleetAllocationNodes.length}</div>
+                    </div>
+                    <div style="border:1px solid #3fb95044; border-radius:8px; padding:10px 14px; min-width:140px;">
+                        <div style="font-size:0.75rem; color:var(--text-dim);">配信可能（ルール適合）</div>
+                        <div style="font-size:1.2rem; font-weight:700; color:#3fb950;">${eligibleCount}</div>
+                    </div>
+                    <div style="border:1px solid #58a6ff44; border-radius:8px; padding:10px 14px; min-width:180px; align-self:center;">
+                        ${running}
+                        <div class="timestamp" style="margin-top:4px;">Poll ${idleData.poll_interval_sec || 300}s · 更新 ${escapeHtml(idleData.updated_at || "N/A")}</div>
+                    </div>
+                `;
+            }
+        }
 
         function mhzText(value) {
             if (!value) return "pending";
@@ -1245,6 +1605,57 @@
             }).join("");
         }
 
+        async function loadTriTrackCaeStatus() {
+            const el = document.getElementById("triTrackCaeStatus");
+            if (!el) return;
+            try {
+                const res = await fetch("k10_tri_track_cae_status.json", { cache: "no-store" });
+                if (!res.ok) throw new Error("HTTP " + res.status);
+                const data = await res.json();
+                const pol = data.policy || {};
+                const tracks = data.tracks || {};
+                const rows = Object.entries(tracks).map(([k, v]) => {
+                    const last = v.last || {};
+                    return `<span style="margin-right:12px;"><strong>${escapeHtml(k)}</strong>: n=${v.n || 0} last=${escapeHtml(last.verdict || "?")}</span>`;
+                }).join("");
+                el.innerHTML = `
+                    <strong style="color:#3fb950;">Tri-Track CAE</strong>
+                    ${data.running ? usageBadge("RUNNING", "#3fb950") : usageBadge("STOPPED", "#f85149")}
+                    <br><span class="timestamp">${escapeHtml(pol.openfoam || "")} | ${escapeHtml(pol.openradioss || "")} | ${escapeHtml(pol.fem_impact || "")}</span><br>
+                    ${rows || "<span class='timestamp'>No trials yet.</span>"}
+                    <br><span class="timestamp">Updated: ${escapeHtml(data.updated_at || "")}</span>
+                `;
+            } catch (e) {
+                el.textContent = "Tri-track CAE not running. Start: scripts\\start_k10_tri_track_cae_watchdog.ps1";
+            }
+        }
+
+        async function loadFleetIdleDispatchStatus() {
+            const el = document.getElementById("fleetIdleDispatchStatus");
+            if (!el) return;
+            try {
+                const res = await fetch("fleet_idle_dispatch_status.json", { cache: "no-store" });
+                if (!res.ok) throw new Error("HTTP " + res.status);
+                const data = await res.json();
+                const th = data.thresholds || {};
+                const lc = data.last_cycle || {};
+                const sum = lc.summary || {};
+                const nodes = (lc.node_results || []).map(r => {
+                    const color = r.decision === "dispatch" ? "#3fb950" : (r.decision === "error" ? "#f85149" : "#d29922");
+                    return `<span style="color:${color}; margin-right:10px;"><strong>${escapeHtml(r.node_id || "?")}</strong>: ${escapeHtml(r.decision || "skip")} ${escapeHtml(r.reason || "")}</span>`;
+                }).join("");
+                el.innerHTML = `
+                    <strong style="color:#58a6ff;">Central Idle Dispatch</strong>
+                    <span style="margin-left:8px;">${data.running ? usageBadge("RUNNING", "#3fb950") : usageBadge("STOPPED", "#f85149")}</span><br>
+                    <span class="timestamp">Rule: CPU &lt; ${th.max_cpu_percent || 70}% and RAM &lt; ${th.max_ram_percent || 75}% and temp &lt; ${th.max_temp_c || 75}C (no throttle). Poll ${data.poll_interval_sec || 300}s.</span><br>
+                    <span class="timestamp">Last cycle: nodes=${sum.nodes_polled || 0}, dispatched=${sum.nodes_dispatched || 0}, jobs=${sum.jobs_dispatched || 0} @ ${escapeHtml(data.updated_at || "N/A")}</span><br>
+                    ${nodes || "<span class='timestamp'>No cycle data yet.</span>"}
+                `;
+            } catch (e) {
+                el.textContent = "Central idle dispatch status not available (run start_k10_fleet_idle_dispatch.ps1).";
+            }
+        }
+
         async function loadKnowledgeHistory() {
             try {
                 const res = await fetch('knowledge_history.json');
@@ -1322,7 +1733,7 @@
                 document.getElementById('autonomousImprovementsBody').innerHTML = '<div style="color: #f85149; font-size: 0.9rem; text-align: center;">Error loading improvements.</div>';
             }
         }
-        
+
         function escapeHtml(unsafe) {
             if (!unsafe) return "";
             return unsafe
@@ -1381,16 +1792,142 @@
             }
         }
 
+        const PLATFORM_LABELS = {
+            note_free: "note 無料",
+            note_paid: "note 有料",
+            kindle: "Kindle",
+            brain: "Brain",
+            booth: "BOOTH",
+            youtube: "YouTube",
+            udemy: "Udemy",
+            seminar: "セミナー B2B",
+            coco_nara: "ココナラ",
+            tiktok: "TikTok",
+            minigame: "ミニゲーム"
+        };
+
+        const CATEGORY_COLORS = {
+            IATF: "#f85149",
+            "動画生成": "#a371f7",
+            IoT: "#58a6ff",
+            CAE: "#3fb950",
+            品質: "#d29922",
+            DX: "#f0883e",
+            経験: "#8957e5"
+        };
+
+        function renderPlatformBadges(platforms) {
+            return (platforms || []).map(p => {
+                const label = PLATFORM_LABELS[p] || p;
+                return `<span style="display:inline-block; margin:2px 3px 2px 0; padding:2px 6px; border-radius:4px; font-size:0.7rem; background:rgba(255,255,255,0.06); border:1px solid var(--border);">${escapeHtml(label)}</span>`;
+            }).join("");
+        }
+
+        function renderCategoryBadges(categories) {
+            return (categories || []).map(c => {
+                const color = CATEGORY_COLORS[c] || "#8b949e";
+                return `<span style="display:inline-block; margin:2px 4px 2px 0; padding:1px 6px; border-radius:4px; font-size:0.65rem; color:${color}; border:1px solid ${color};">${escapeHtml(c)}</span>`;
+            }).join("");
+        }
+
+        async function loadContentPublishingCatalog() {
+            const body = document.getElementById("contentGenerationBody");
+            const moatEl = document.getElementById("authorExperienceMoat");
+            const funnelEl = document.getElementById("contentFunnelHint");
+            try {
+                const res = await fetch("content_publishing_catalog.json", { cache: "no-store" });
+                const data = await res.json();
+                const moat = data.author_experience_moat || {};
+                const domains = moat.domains || [];
+                moatEl.innerHTML = `
+                    <strong style="color:#c4b5fd;">著者モート:</strong> ${escapeHtml(moat.summary || "")}
+                    <div style="margin-top:8px; display:flex; flex-wrap:wrap; gap:8px;">
+                        ${domains.map(d => `
+                            <div style="flex:1 1 280px; min-width:240px; padding:8px; background:rgba(0,0,0,0.2); border-radius:6px;">
+                                <span style="font-weight:600; color:${CATEGORY_COLORS[d.tag] || "#fff"};">[${escapeHtml(d.tag)}]</span>
+                                <span style="font-size:0.75rem;"> ${escapeHtml(d.experience)}</span>
+                            </div>
+                        `).join("")}
+                    </div>
+                `;
+                const funnels = data.funnel_recommended || [];
+                funnelEl.innerHTML = funnels.length
+                    ? `<strong>推奨漏斗:</strong> ${funnels.map(f => escapeHtml(f)).join(" | ")}`
+                    : "";
+                const items = (data.items || []).slice().sort((a, b) => (b.score || 0) - (a.score || 0));
+                body.innerHTML = items.map(item => {
+                    const sb = item.score_breakdown || {};
+                    const outlineHtml = (item.outline || []).map(line => `<li style="margin:2px 0;">${escapeHtml(line)}</li>`).join("");
+                    const pains = (item.pain_points || []).map(p => escapeHtml(p)).join(" / ");
+                    const statusColor = item.status === "ASSET_READY" ? "#a371f7"
+                        : item.status === "OUTLINE_READY" ? "#3fb950"
+                        : item.status === "GENERATED" ? "#58a6ff" : "#d29922";
+                    const assets = item.asset_paths || [];
+                    const assetsHtml = assets.length
+                        ? `<div style="margin-top:8px; font-size:0.7rem;"><strong style="color:#a371f7;">Assets:</strong> ${assets.map(p => `<a href="${escapeHtml(p)}" style="color:#58a6ff; display:block;">${escapeHtml(p)}</a>`).join("")}</div>`
+                        : "";
+                    return `
+                        <tr>
+                            <td style="vertical-align:top;">
+                                <div style="font-weight:600; font-size:0.95rem;">${escapeHtml(item.id)}</div>
+                                <div style="margin-top:6px;">${renderPlatformBadges(item.platforms)}</div>
+                                <div style="margin-top:6px;">${renderCategoryBadges(item.category)}</div>
+                                <div style="font-size:0.7rem; color:var(--text-dim); margin-top:6px;">${escapeHtml(item.price_hint || "")}</div>
+                            </td>
+                            <td style="vertical-align:top;">
+                                <div class="know-how">
+                                    <strong>${escapeHtml(item.title)}</strong>
+                                    <div style="font-size:0.75rem; color:var(--text-dim); margin-top:6px;">
+                                        <strong>読者:</strong> ${escapeHtml(item.target_reader || "")}<br>
+                                        <strong>痛み:</strong> ${pains}<br>
+                                        <strong>モート:</strong> ${escapeHtml(item.moat || "")}
+                                    </div>
+                                    <details style="margin-top:8px; font-size:0.75rem;">
+                                        <summary style="cursor:pointer; color:#58a6ff;">章立て (${(item.outline || []).length})</summary>
+                                        <ol style="margin:6px 0 0 18px; color:var(--text-dim);">${outlineHtml}</ol>
+                                    </details>
+                                    ${assetsHtml}
+                                </div>
+                            </td>
+                            <td style="vertical-align:top;">
+                                <div style="font-size:1.2rem; font-weight:bold; color:#3fb950;">${item.score || "-"} <span style="font-size:0.8rem; color:var(--text-dim);">/ 100</span></div>
+                                <div style="font-size:0.7rem; color:var(--text-dim); margin-top:4px;">
+                                    Pain: ${sb.buyer_pain ?? "-"} / Moat: ${sb.user_moat ?? "-"}<br>
+                                    Timing: ${sb.market_timing ?? "-"} / Channel: ${sb.multi_channel ?? "-"}
+                                </div>
+                            </td>
+                            <td style="vertical-align:top; color:${statusColor}; font-size:0.85rem; font-weight:600;">
+                                ${escapeHtml(item.status || "PROPOSED")}<br>
+                                <span style="font-size:0.7rem; color:var(--text-dim); font-weight:normal;">content_publishing_catalog</span>
+                            </td>
+                        </tr>
+                    `;
+                }).join("");
+            } catch (e) {
+                console.error("Failed to load content catalog", e);
+                body.innerHTML = `<tr><td colspan="4" style="color:#f85149;">Error loading content_publishing_catalog.json</td></tr>`;
+                moatEl.textContent = "Failed to load author experience.";
+            }
+        }
+
         loadData();
+        loadIatfQaGallery();
         loadMaterialSourceInventory();
         loadYouTubeSummary();
         loadKnowledgeHistory();
         loadAutonomousImprovements();
         loadEmailCoverage();
+        loadContentPublishingCatalog();
+        loadFleetIdleDispatchStatus();
+        loadTriTrackCaeStatus();
         loadFleetDiagnosticsStatus();
+        updateFleetUtilizationBoard();
         updateWorkloadAllocation();
         updateNodes();
         setInterval(loadFleetDiagnosticsStatus, 15000);
+        setInterval(loadFleetIdleDispatchStatus, 15000);
+        setInterval(loadTriTrackCaeStatus, 15000);
+        setInterval(updateFleetUtilizationBoard, 15000);
         setInterval(updateWorkloadAllocation, 15000);
         setInterval(updateNodes, 15000);
     </script>
