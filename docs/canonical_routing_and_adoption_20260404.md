@@ -194,6 +194,42 @@ Avoid sending:
 
 Prefer diffs, summaries, and narrowed file sets over broad context dumps.
 
+## Memory Storage Routing Rule
+
+Treat long documents and compact agent memory as different storage classes.
+
+### Full artifacts
+
+Store full documents, PDFs, downloads, reports, and large Markdown notes in durable artifact stores:
+
+- GitHub or the repository for versioned project artifacts
+- Obsidian vaults for human-readable knowledge notes
+- SQLite, Qdrant, or app databases for queryable structured knowledge
+- acquisition queues for paid, login-gated, unclear-license, or manual-review sources
+
+Do not use ByteRover as the primary full-text archive for long documents.
+
+### ByteRover index cards
+
+Use ByteRover for compact index cards only. A ByteRover memory should normally contain:
+
+- stable path or URL of the full artifact
+- one-line purpose
+- when to use it
+- 3-5 key conclusions or rules
+- search keywords
+- owner or related app/module when helpful
+
+Do not attach long Markdown files, PDFs, raw scrape outputs, or large reports to ByteRover when a short index card plus path is enough.
+
+If ByteRover ingestion fails due context size or tool errors, keep the full artifact in the durable store, record the compact index in Beads memory, and retry ByteRover later only with a shorter index-card summary.
+
+### Routing shorthand
+
+Full text belongs in GitHub/Obsidian/DB.
+Retrieval metadata belongs in ByteRover/Beads.
+Operational evidence belongs in reports, logs, or incident records.
+
 ## Do-Not-Duplicate List
 
 Do not create new active documents that duplicate:
