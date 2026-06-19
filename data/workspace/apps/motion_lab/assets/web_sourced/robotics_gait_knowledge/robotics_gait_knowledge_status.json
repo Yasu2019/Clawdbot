@@ -1,0 +1,181 @@
+{
+  "generated_at": "2026-06-19T21:13:18.242994+00:00",
+  "db_path": "D:\\Clawdbot_Docker_20260125\\data\\workspace\\apps\\motion_lab\\assets\\web_sourced\\robotics_gait_knowledge\\robotics_gait_knowledge.db",
+  "report_path": "D:\\Clawdbot_Docker_20260125\\data\\workspace\\apps\\motion_lab\\assets\\web_sourced\\robotics_gait_knowledge\\robotics_gait_knowledge_report.md",
+  "download_dir": "D:\\Clawdbot_Docker_20260125\\data\\workspace\\apps\\motion_lab\\assets\\web_sourced\\robotics_gait_knowledge\\downloads",
+  "source_count": 10,
+  "downloaded_count": 10,
+  "failed_count": 0,
+  "algorithm_rule_count": 6,
+  "downloaded": [
+    {
+      "id": "mit_underactuated_humanoids",
+      "category": "course_notes",
+      "bytes": 39151,
+      "local_path": "downloads\\mit_underactuated_humanoids.html",
+      "sha256": "1592e58f129a4957f2986e595b4a89666981e4d386ad86d284bb9a7623030a5a"
+    },
+    {
+      "id": "kajita_preview_control_zmp",
+      "category": "paper",
+      "bytes": 581476,
+      "local_path": "downloads\\kajita_preview_control_zmp.pdf",
+      "sha256": "ddc30ab1e2c6b8ed1f375d53bfd3b16c2eee7f9906a8b1ca9c99d5057a77b683"
+    },
+    {
+      "id": "dekker_zmp_stable_biped",
+      "category": "thesis_report",
+      "bytes": 4719311,
+      "local_path": "downloads\\dekker_zmp_stable_biped.pdf",
+      "sha256": "766a2e07359d3ddd6c29a03ca541dcd448b93e8624b1d2a739011fa9ae13e4d6"
+    },
+    {
+      "id": "sardain_bessonnet_cop_zmp",
+      "category": "paper",
+      "bytes": 334274,
+      "local_path": "downloads\\sardain_bessonnet_cop_zmp.pdf",
+      "sha256": "d7260a6dbcf68fee2e39d7e304e58a857a60c1f538ddbb8159e81f39d90cb5e3"
+    },
+    {
+      "id": "auxiliary_zmp_walking_generator",
+      "category": "paper",
+      "bytes": 465744,
+      "local_path": "downloads\\auxiliary_zmp_walking_generator.pdf",
+      "sha256": "438c7ac86c46af26bf38b1324da2b15f69180bc2051823c6c23fc20ca045f442"
+    },
+    {
+      "id": "durus_dynamic_efficient_bipedal_locomotion",
+      "category": "paper",
+      "bytes": 3834317,
+      "local_path": "downloads\\durus_dynamic_efficient_bipedal_locomotion.pdf",
+      "sha256": "2aed9836965a185d9c302db0b223a28d939d652327948f71b0e860e1e45cdc62"
+    },
+    {
+      "id": "rss_multicontact_feasibility",
+      "category": "paper",
+      "bytes": 2877951,
+      "local_path": "downloads\\rss_multicontact_feasibility.pdf",
+      "sha256": "efb7d247271ccd01daef83df05e294b8b81c03d745c82687a308868dd990a2d0"
+    },
+    {
+      "id": "pmc_heel_contact_toe_off",
+      "category": "paper_html",
+      "bytes": 198962,
+      "local_path": "downloads\\pmc_heel_contact_toe_off.html",
+      "sha256": "49e3b70ba03caf2c89f94d726f071f82bbdf751c0a66ec027894a26afd2149a3"
+    },
+    {
+      "id": "pmc_omnidirectional_walking_generator",
+      "category": "paper_html",
+      "bytes": 228934,
+      "local_path": "downloads\\pmc_omnidirectional_walking_generator.html",
+      "sha256": "0a2987801a106af18d17cbb94252c67bb915e066c4de3de105b377e060f53e2b"
+    },
+    {
+      "id": "mit_littledog_dynamic_ik",
+      "category": "paper",
+      "bytes": 731366,
+      "local_path": "downloads\\mit_littledog_dynamic_ik.pdf",
+      "sha256": "d7728b624f6b8822c533422381fff28359fd794241af59fa4765f88ac6f26410"
+    }
+  ],
+  "failed": [],
+  "acquisition_queue": [
+    {
+      "id": "ieee_recent_humanoid_foot_placement",
+      "title": "Recent IEEE humanoid foot placement papers",
+      "url": "https://ieeexplore.ieee.org/",
+      "status": "paid_or_subscription",
+      "next_action": "Use metadata only unless institutional access/licensing is confirmed."
+    },
+    {
+      "id": "springer_zmp_chapters",
+      "title": "Springer ZMP and humanoid walking chapters",
+      "url": "https://link.springer.com/",
+      "status": "paid_or_subscription",
+      "next_action": "Queue for manual review; do not download chapters behind access control."
+    },
+    {
+      "id": "robotis_op3_walking_source",
+      "title": "ROBOTIS OP3 walking module source and docs",
+      "url": "https://github.com/ROBOTIS-GIT/ROBOTIS-OP3",
+      "status": "manual_review",
+      "next_action": "Review license and extract implementation notes separately if useful."
+    },
+    {
+      "id": "drake_humanoid_examples",
+      "title": "Drake humanoid/legged examples",
+      "url": "https://drake.mit.edu/",
+      "status": "manual_review",
+      "next_action": "Review current examples and license before importing code or formulas."
+    }
+  ],
+  "algorithm_rules": [
+    {
+      "id": "support_polygon_gate",
+      "priority": 1,
+      "metric": "projected_com_inside_support_polygon",
+      "rule": "During stance or double support, projected CoM should remain within the support polygon plus a small visual tolerance.",
+      "motion_use": "Reject or correct frames where the character appears to tip despite planted feet.",
+      "source_ids": [
+        "mit_underactuated_humanoids",
+        "sardain_bessonnet_cop_zmp",
+        "dekker_zmp_stable_biped"
+      ]
+    },
+    {
+      "id": "foot_contact_lock",
+      "priority": 1,
+      "metric": "stance_foot_world_velocity",
+      "rule": "When a foot is in stance phase, world-space foot translation should be near zero unless intentional slip is authored.",
+      "motion_use": "Lock planted foot, solve pelvis/knee with IK, and release at toe-off.",
+      "source_ids": [
+        "pmc_heel_contact_toe_off",
+        "durus_dynamic_efficient_bipedal_locomotion"
+      ]
+    },
+    {
+      "id": "heel_toe_phase",
+      "priority": 2,
+      "metric": "heel_strike_toe_off_timing",
+      "rule": "A walking step reads more naturally when heel contact, flat support, and toe-off phases are distinguishable.",
+      "motion_use": "Add keyframe markers or foot roll constraints around contact transitions.",
+      "source_ids": [
+        "pmc_heel_contact_toe_off"
+      ]
+    },
+    {
+      "id": "root_com_smoothing",
+      "priority": 2,
+      "metric": "root_speed_variation",
+      "rule": "Root/CoM path should be smooth and coherent with step cadence; abrupt root speed changes break walking weight.",
+      "motion_use": "Low-pass smooth pelvis/root travel and keep stride distance consistent with footfall timing.",
+      "source_ids": [
+        "kajita_preview_control_zmp",
+        "pmc_omnidirectional_walking_generator"
+      ]
+    },
+    {
+      "id": "swing_foot_clearance",
+      "priority": 2,
+      "metric": "swing_foot_clearance",
+      "rule": "Swing foot should clear the ground enough to avoid visual scraping but not float excessively.",
+      "motion_use": "Clamp swing arc to model scale and terrain height.",
+      "source_ids": [
+        "auxiliary_zmp_walking_generator",
+        "mit_littledog_dynamic_ik"
+      ]
+    },
+    {
+      "id": "ik_continuity_gate",
+      "priority": 1,
+      "metric": "joint_angle_delta",
+      "rule": "IK corrections must preserve temporal continuity; knee/ankle/hip jumps are worse than mild pose error.",
+      "motion_use": "Use bounded per-frame joint deltas and smooth correction weights across contact phases.",
+      "source_ids": [
+        "rss_multicontact_feasibility",
+        "mit_littledog_dynamic_ik"
+      ]
+    }
+  ]
+}

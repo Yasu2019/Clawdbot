@@ -1,0 +1,68 @@
+[
+  {
+    "id": "support_polygon_gate",
+    "priority": 1,
+    "metric": "projected_com_inside_support_polygon",
+    "rule": "During stance or double support, projected CoM should remain within the support polygon plus a small visual tolerance.",
+    "motion_use": "Reject or correct frames where the character appears to tip despite planted feet.",
+    "source_ids": [
+      "mit_underactuated_humanoids",
+      "sardain_bessonnet_cop_zmp",
+      "dekker_zmp_stable_biped"
+    ]
+  },
+  {
+    "id": "foot_contact_lock",
+    "priority": 1,
+    "metric": "stance_foot_world_velocity",
+    "rule": "When a foot is in stance phase, world-space foot translation should be near zero unless intentional slip is authored.",
+    "motion_use": "Lock planted foot, solve pelvis/knee with IK, and release at toe-off.",
+    "source_ids": [
+      "pmc_heel_contact_toe_off",
+      "durus_dynamic_efficient_bipedal_locomotion"
+    ]
+  },
+  {
+    "id": "heel_toe_phase",
+    "priority": 2,
+    "metric": "heel_strike_toe_off_timing",
+    "rule": "A walking step reads more naturally when heel contact, flat support, and toe-off phases are distinguishable.",
+    "motion_use": "Add keyframe markers or foot roll constraints around contact transitions.",
+    "source_ids": [
+      "pmc_heel_contact_toe_off"
+    ]
+  },
+  {
+    "id": "root_com_smoothing",
+    "priority": 2,
+    "metric": "root_speed_variation",
+    "rule": "Root/CoM path should be smooth and coherent with step cadence; abrupt root speed changes break walking weight.",
+    "motion_use": "Low-pass smooth pelvis/root travel and keep stride distance consistent with footfall timing.",
+    "source_ids": [
+      "kajita_preview_control_zmp",
+      "pmc_omnidirectional_walking_generator"
+    ]
+  },
+  {
+    "id": "swing_foot_clearance",
+    "priority": 2,
+    "metric": "swing_foot_clearance",
+    "rule": "Swing foot should clear the ground enough to avoid visual scraping but not float excessively.",
+    "motion_use": "Clamp swing arc to model scale and terrain height.",
+    "source_ids": [
+      "auxiliary_zmp_walking_generator",
+      "mit_littledog_dynamic_ik"
+    ]
+  },
+  {
+    "id": "ik_continuity_gate",
+    "priority": 1,
+    "metric": "joint_angle_delta",
+    "rule": "IK corrections must preserve temporal continuity; knee/ankle/hip jumps are worse than mild pose error.",
+    "motion_use": "Use bounded per-frame joint deltas and smooth correction weights across contact phases.",
+    "source_ids": [
+      "rss_multicontact_feasibility",
+      "mit_littledog_dynamic_ik"
+    ]
+  }
+]

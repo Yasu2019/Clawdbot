@@ -15,6 +15,30 @@ Build a reusable experience base for IATF character animation so each render att
 5. Score the result and update the registry.
 6. Only compose MP4 after identity, motion, mouth, blink, and slide-content checks pass.
 
+## Robotics Gait Gate
+
+For walking or mecha locomotion cuts, run the robotics-informed gait gate before final MP4 composition.
+
+Inputs should come from Blender/render QA metrics when available:
+
+- stance foot world velocity
+- foot ground penetration
+- projected CoM/support margin
+- root speed variation
+- swing foot clearance
+- maximum hip/knee/ankle angle delta per frame
+- lateral CoM sway ratio
+
+Use:
+
+`data/workspace/apps/motion_lab/05_quality_check/robotics_gait_motion_algorithm.py`
+
+Knowledge DB:
+
+`data/workspace/apps/motion_lab/assets/web_sourced/robotics_gait_knowledge/robotics_gait_knowledge.db`
+
+The gate is observation-first. It reports PASS/REVIEW/FAIL and correction suggestions; it must not destructively rewrite animation data without an explicit later implementation step.
+
 ## Quality Score
 
 Use `0` to `5`.
