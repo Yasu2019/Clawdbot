@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-12T18:37:58.065228+09:00",
+  "generatedAt": "2026-06-19T18:55:46.478213+09:00",
   "runtime": {
     "mode": "local-first",
     "roles": {
@@ -173,8 +173,8 @@
     "reply_model": "qwen3-nothink:latest",
     "reply_model_installed": true,
     "state": "idle",
-    "pid": 24528,
-    "updatedAt": "2026-06-12T09:37:56.708Z",
+    "pid": 24152,
+    "updatedAt": "2026-06-19T09:55:37.959Z",
     "lastChatId": "8173025084"
   },
   "ollama": {

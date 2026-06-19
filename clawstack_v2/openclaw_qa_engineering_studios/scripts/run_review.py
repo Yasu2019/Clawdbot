@@ -11,11 +11,12 @@ HOOKS = {
     'iatf_evidence': 'check_iatf_evidence.py',
     'vba_destructive': 'check_vba_destructive.py',
     'act_updated': 'check_act_updated.py',
+    'dashboard_freshness': 'check_dashboard_freshness.py',
 }
 MODES = {
     'solo': ['sql_readonly','secret_leak','act_updated'],
-    'lean': ['sql_readonly','secret_leak','port_conflict','portal_duplicate','iatf_evidence','act_updated'],
-    'full': ['sql_readonly','secret_leak','port_conflict','portal_duplicate','iatf_evidence','vba_destructive','act_updated'],
+    'lean': ['sql_readonly','secret_leak','port_conflict','portal_duplicate','iatf_evidence','act_updated','dashboard_freshness'],
+    'full': ['sql_readonly','secret_leak','port_conflict','portal_duplicate','iatf_evidence','vba_destructive','act_updated','dashboard_freshness'],
 }
 
 def main():

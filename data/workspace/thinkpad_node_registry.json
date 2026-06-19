@@ -28,18 +28,21 @@
     "qms_iatf_analysis",
     "small_batch_scripts",
     "cae_pregate_dry_run",
-    "openfoam_real_solver",
-    "openradioss_real_solver",
-    "press_blanking",
-    "press_bending"
+    "dxf2step_te",
+    "fem_impact"
   ],
   "blocked_workloads": [
     "long_video_render",
     "unbounded_download_loop",
     "resin_fill_cad",
-    "progressive_strip_layout"
+    "progressive_strip_layout",
+    "openfoam_real_solver",
+    "openradioss_real_solver",
+    "press_blanking",
+    "press_bending",
+    "press_drawing"
   ],
-  "status": "cae_te_active",
-  "updated_at": "2026-06-10T12:00:00+09:00",
-  "notes": "OpenRadioss/OpenFOAM verified. CAE TE loop via k10_lavie_continuous_te_loop.py --node thinkpad."
+  "status": "dxf2step_te_active",
+  "updated_at": "2026-06-13T06:00:00+09:00",
+  "notes": "DXF->3D T&E + fem_impact (160um panel) via tri-track orchestrator. Other CAE solvers blocked."
 }

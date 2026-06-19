@@ -4,6 +4,15 @@
 
 | ID | 日付 | 事象 | 対策 |
 | --- | --- | --- | --- |
+| **tri-thinkpad-fem_impact-917a60f8** | 2026-06-18 | unknown attempt=1 | Run --sync-script before trial; Use test.in_* VTK glob in png shell |
+| **tri-thinkpad-fem_impact-ae19be33** | 2026-06-18 | unknown attempt=2 | Run --sync-script before trial; Use test.in_* VTK glob in png shell |
+| **tri-thinkpad-fem_impact-e4fa6e39** | 2026-06-18 | unknown attempt=3 | Run --sync-script before trial; Use test.in_* VTK glob in png shell |
+| **tri-thinkpad-fem_impact-af65ace5** | 2026-06-18 | unknown attempt=1 | Run --sync-script before trial; Use test.in_* VTK glob in png shell |
+| **tri-thinkpad-fem_impact-16846e12** | 2026-06-18 | unknown attempt=2 | Run --sync-script before trial; Use test.in_* VTK glob in png shell |
+| **tri-thinkpad-fem_impact-d2f2a4eb** | 2026-06-18 | unknown attempt=3 | Run --sync-script before trial; Use test.in_* VTK glob in png shell |
+| **[T038]** | **2026-06-18** | **ThinkPad fem_impact Rough_Mesh tri-track: ①`test.in` Impactは44分でSUCCESS(42 VTK)だが`thinkpad_fem_impact_png.sh`未配置でexit127 ②`auto_revised_mesh.in`は3hタイムアウト(exit124)でjava孤児化・重複実行 ③PNGシェルは`test.in`→PREFIX=`test`で`test.in_*.vtk`を見逃しVTK_MISSING ④Docker vtkがbulk VTKでmunmapクラッシュ(surface+host venvで3 PNG成功) ⑤INC-123: worker `bash -lc`ネストクォートで`test: unbound variable`/exit1→heredoc化で両本番ケースSUCCESS** | **INC-122/123**: watchdog `--sync-script` / PNG `test.in_*`+surface VTK / production_only variants / Impact dispatch heredoc `FEMIMPACT_EOF` / java-only pkill / `thinkpad_fem_impact_autonomous_loop.py` |
+| **[T037]** | **2026-06-07** | **リセット後フリート復旧が各PCで何度も失敗: ①INC-120系monitor不具合が全ノードに横展開リスク ②workerがコンソール束縛・ArgumentList誤り ③HPはDefenderが%TEMP%ps1ブロック ④ThinkPadはCRLFでsystemd失敗 ⑤G3はmonitor稼働中にpythonw再spawn失敗 ⑥cmd+プレースホルダURLで404 ⑦ノード毎に手順がバラバラで膨大な手作業** | **INC-121**: `fleet_satellite_setup.ps1`+`satellite_*_daemon.ps1`統一（logon+5分watchdog+pythonw）/ HPは`C:\clawstack_hp`+patrolのみ / ThinkPad CRLF sed / `k10_fleet_satellite_setup_all.ps1 -ProbeOnly` / CAEは**Main LAVIE+Red LAVIE+ThinkPad**のみ（`cae_tri_track_dispatch_policy.md`）/ bd `fleet-post-reset-recovery-inc121` + growth DB `FLEET_OPS` |
+| **[T036]** | **2026-06-15** | **Red LAVIE monitor 復旧が何度も失敗: ①K10配信 `monitor_agent.py` SyntaxError（get_cpu_usage try 欠落）②`setup_monitor_node.ps1` が標準ユーザーで `C:\monitor_agent.py` 書込拒否 ③`red_lavie_start_monitor.ps1` が `-AgentPath ...monitor_agent.py` 付き PowerShell 自身を Stop-Process（Saved 直後に無言終了）④ExecutionPolicy で ps1 ブロック ⑤pythonw 起動で SyntaxError 不可視** | **INC-120**: `monitor_agent.py` except+return 修正 / AgentPath 既定を `clawstack_satellite\scripts` / kill フィルタを python(w)+`monitor_agent.py` のみ / Startup VBS 登録 / `:8123` 起動前 `verify_fleet_script_server_gate.ps1`（py_compile 必須）/ SOP: Red LAVIE は必ず `ExecutionPolicy Bypass` + `red_lavie_start_monitor.ps1`。bd `red-lavie-monitor-recovery-inc120` |
 | **[T035]** | **2026-06-15** | **④関節分離ゲートのfalse-PASSバグ: 「最接近距離」のみ計測 → 剛体ヒンジで1辺が接触したまま反対辺に開く“見える隙間”を見逃し、太もも装甲の裂け目等をOK判定（2回false-PASS: 腕→腿装甲）** | **`qc_joint_separation.py` を「接触パッチの開き量」方式に書換**: 安静時に接触する子頂点群を記録→可動域スイープでその頂点群の最大離隔を計測（＋安静時の静的隙間チェック）。tol=2.2%×身長。検証: v6を旧ゲート"JOINTS OK"→新ゲートが UpperLeg/膝/肩等の隙間を正しくFAIL。**教訓: 最小値メトリクスは“見える破綻”を保証しない。視覚的欠陥は視覚的指標で測る（T031系統）** |
 | **[T034]** | **2026-06-14** | **サテライトPC（LAVIE, Red LAVIE, G3）の24時間稼働率が70%以下に低下（LAVIE: 41.7%, Red LAVIE: 0.8%, G3: 0.0%）。ホスト再起動後のサービス自動起動の不備およびVBS起動スクリプトの構文バグ、Tailscaleの切断が真因。** | **①Red LAVIEのVBS構文バグ（Chr(34)二重括りによるファイル不在エラー）を修正し、スタートアップ登録を再定義。②G3およびLAVIEのスタートアップにDocker compose/n8n自動起動用のタスクスケジューラを恒久化。③Tailscale接続の定期監視スクリプトを有効化。** |
 | **[T033]** | **2026-06-14** | **メカ自動リグに「関節分離防止ルール」が存在しない: 腕がT字内転で完全脱離・腿が股で割れる。剛体ボーンペアレント＋pivotがBB比率ハードコード(実関節軸でない)＋LIMIT_ROTATIONのみ→回転で隙間、大回転で脱離** | **設計ルール①〜④をリグビルダーに実装中**: ①pivot=実形状の関節中心(メッシュ算出) ②オーバーラップ・ジョイントコア(ball球/hinge円柱を子ボーンにバインドし隙間を物理的に埋める) ③可動域=無隙間レンジに自動制限 ④分離QCゲート`qc_joint_separation.py`(親子セグメント最小距離の成長を可動域スイープで計測しFAIL判定)。目視は**5フレーム毎×前/横/後**`qc_multiview.py`必須(hero1枚禁止)。bd `Clawdbot_Docker_20260125-exs`/`bd recall mecha-rig-joint-integrity-t033`。T031/T032系統 |
@@ -485,3 +494,143 @@
 **成功:** `lhm_ok: True`, CPU Package 63°C, サーマル制御フィールドあり（80°C 以上で powercfg 制限）
 
 **LAVIE/red_lavie  tonight:** 同一手順 — `docs/troubleshooting/fleet_lhm_monitor_agent_runbook.md`
+
+---
+
+## [T036] 2026-06-15 Red LAVIE monitor 復旧多段失敗（INC-120）
+
+**対象:** Red LAVIE `DESKTOP-DERCN1N` / `100.99.145.3` / monitor `:8111` / worker `:5682` / ユーザー `yns-lavie`（非管理者）
+
+### 症状（ユーザー体験）
+
+1. `setup_monitor_node.ps1` → WebClient DownloadFile 失敗（実際は `C:\` 書込拒否）
+2. `monitor_agent.py` 手動起動 → `SyntaxError: expected 'except' or 'finally' block` line 155
+3. `red_lavie_start_monitor.ps1` → `Saved: ...90693 bytes` の直後に無言終了、`8111` 不通
+4. worker `:5682` のみ OK、monitor だけ落ちる（手動 python.exe ウィンドウを閉じた場合も同様）
+
+### 根本原因（5 Why × 5 件）
+
+| # | 故障 | Why5 |
+|---|------|------|
+| A | K10 配信 agent が SyntaxError | `get_cpu_usage()` 第3 try に except 未実装のまま `:8123` 配信 |
+| B | setup ダウンロード失敗 | 既定 `-AgentPath C:\monitor_agent.py` → 標準ユーザー Access Denied |
+| C | start_monitor 無言終了 | `CommandLine -match 'monitor_agent'` が `-AgentPath ...monitor_agent.py` 付き **実行中 PowerShell 自身** にマッチ → Stop-Process 自爆 |
+| D | ps1 実行不可 | Red LAVIE 既定 ExecutionPolicy が Restricted、`& script.ps1` 不可 |
+| E | 原因が見えない | `pythonw.exe` バックグラウンド起動で SyntaxError がコンソールに出ない |
+
+### 恒久対策
+
+| 対策 | ファイル |
+|------|----------|
+| SyntaxError 修正 + py_compile ゲート | `scripts/monitor_agent.py`, `scripts/verify_fleet_script_server_gate.ps1`, `scripts/start_k10_fleet_script_server.ps1` |
+| kill フィルタ厳密化（python(w) + monitor_agent.py のみ） | `scripts/red_lavie_start_monitor.ps1`, `scripts/setup_monitor_node.ps1`, `scripts/k10_red_lavie_auto_recovery.py` |
+| Startup VBS 登録 | `scripts/red_lavie_start_monitor.ps1` |
+| Red LAVIE SOP 追記 | `docs/troubleshooting/red_lavie_stability_why_offline.md` |
+
+### Red LAVIE 正しい復旧手順（1 行セット）
+
+```powershell
+$K10 = "http://100.119.18.40:8123"
+Invoke-WebRequest "$K10/red_lavie_start_monitor.ps1" -OutFile "$env:TEMP\mon.ps1" -UseBasicParsing
+powershell -ExecutionPolicy Bypass -File "$env:TEMP\mon.ps1" -AgentPath "C:\clawstack_satellite\scripts\monitor_agent.py"
+```
+
+成功マーカー: `RED_LAVIE_MONITOR_OK` + `Startup VBS:`
+
+### 禁止パターン
+
+- `C:\monitor_agent.py` への書込（非管理者 Red LAVIE）
+- `CommandLine -match 'monitor_agent'` 単独（PowerShell 自爆）
+- `:8123` 配信前に `py_compile` 未実行
+- Red LAVIE で `& script.ps1` のみ（Bypass なし）
+
+**記録:** INC-120, bd `red-lavie-monitor-recovery-inc120`, ByteRover curate
+
+---
+
+## [T037] 2026-06-07 リセット後フリート復旧の多段失敗（INC-121）
+
+**事象:** Windows Update 再起動後、Red LAVIE / Main LAVIE / G3 / Dynabook / HP / ThinkPad それぞれでセットアップが何度も失敗。ユーザーがノード毎に手順を再発見し、膨大な手作業になった。
+
+### 根本原因（7系統）
+
+1. **配信品質:** K10 `:8123` が SyntaxError 入り `monitor_agent.py` を配信（INC-120 系）
+2. **プロセス起動:** `Start-Process -ArgumentList` 単一文字列、コンソール束縛 python
+3. **セキュリティ:** HP で Defender が `%TEMP%\*.ps1` と子 PowerShell をブロック
+4. **デプロイ:** ThinkPad へ CRLF 付き `.sh` を SCP → `set -o pipefail` 失敗
+5. **ロジック:** G3 monitor 稼働中に不要な `pythonw` 再 spawn
+6. **運用:** cmd.exe やプレースホルダ URL で 404
+7. **設計:** ノード別バラバラ手順、watchdog 未統一、K10 プローブ未実施
+
+### 対策
+
+| 項目 | 内容 |
+|------|------|
+| 統一デーモン | `fleet_satellite_setup.ps1` + `satellite_*_daemon.ps1`（logon + 5分 watchdog + pythonw） |
+| HP | `C:\clawstack_hp` 恒久ディレクトリ、`hp_watchdog.py` パトロールのみ（CAE なし） |
+| ThinkPad | `thinkpad_ssh_common.py` で CRLF 除去、systemd `Restart=always` |
+| ゲート | `verify_fleet_script_server_gate.ps1`、`-ProbeOnly` |
+| CAE 振分 | Main LAVIE=OpenFOAM、Red LAVIE=OpenRadioss、ThinkPad=fem_impact/dxf2step（`cae_tri_track_dispatch_policy.md`） |
+
+### CAE 商用化ゲート（自律進化）
+
+G1 py_compile → G2 `fleet_satellite_setup_auto.ps1` → G3 K10 probe → G4 再起動 5 分以内復旧 → G5 Meaning Gate (T019)
+
+**記録:** INC-121, bd `fleet-post-reset-recovery-inc121`, bd `Clawdbot_Docker_20260125-a83`, universal_growth.db `FLEET_OPS`, ByteRover `fleet-post-reset-inc121`
+
+---
+
+## [T039] 2026-06-19 DXF2STEP S11 false SUCCESS -- TOP VIEW 二重輪郭 (INC-124)
+
+**事象:** ThinkPad DXF2STEP `tp-dxf-9d04f260` (S11, t=10mm) が `layers=2/2 combined=True verdict=SUCCESS` だが、`combined_views.png` の TOP VIEW に **無関係な2つの外形（矩形枠+バスバー）が重なって表示**。下流 CAE / 金型用途に **NG**。
+
+### 症状
+
+| 項目 | 内容 |
+|------|------|
+| NG trial | `tp-dxf-9d04f260` |
+| OK trial (修正後) | `tp-dxf-dc852457` |
+| Telegram | 誤って SUCCESS 報告 |
+
+### レイヤ実態 (S11.dxf)
+
+| Layer | 役割 | BBox (mm) |
+|-------|------|-----------|
+| **1** | 図面枠（部品ではない） | 208 x 293 |
+| **3** | バスバー平面図（正） | 12 x 17.6 |
+
+自動割当: layer1=**front**, layer3=**top** -> multiview 交差/compound -> TOP VIEW 二重輪郭。
+
+### 根本原因（5 Why）
+
+| Why | 内容 |
+|-----|------|
+| Why1 | TOP VIEW に2外形 |
+| Why2 | 枠層を front、部品を top として slab 合成 |
+| Why3 | `_assign_views_auto` がシート上Y位置のみで判定 |
+| Why4 | 枠層フィルタなし、compound でも SUCCESS |
+| Why5 | KPI が `layers_done` + `has_combined_step` のみ |
+
+### 対策（実装済み）
+
+| 対策 | ファイル |
+|------|----------|
+| 枠層除外 (>20x面積) | `dxf2step_worker._filter_frame_layers` |
+| 単一層 combined | `_export_single_layer_combined` |
+| compound -> FAILED | `evaluate_build_log`, `reconstruction_status` |
+| QCチェックリスト | `dxf2step_combined_geometry_qc_checklist.md` |
+| 全DB記録 | `register_dxf2step_s11_multiview_overlap_inc124.py` |
+
+### 禁止
+
+- TOP VIEW 二重輪郭の `combined.FCStd` を出荷・Telegram SUCCESS
+- `tp-dxf-9d04f260` 系成果物の再利用
+- 枠層 `1.FCStd` を primary_fcstd として handoff
+
+### QC工程表 / FMEA / チェックリスト
+
+- QC: DXF-QC10..14 (`dxf2step_combined_geometry_qc_checklist.md`)
+- FMEA: `multiview_compound_fallback`, `combined_geometry_ng`, `wrong_primary_fcstd` (sample=S11)
+- 蓄積: universal_growth.db, thinkpad_dxf2step_quality_analysis.jsonl, fmea_registry, Turso, Obsidian, Beads, ByteRover
+
+**記録:** INC-124, bd `dxf2step-s11-multiview-overlap-inc124`, ByteRover curate, `docs/INCIDENT_LOG.md`

@@ -1,6 +1,6 @@
 {
   "schema": "clawstack.scribd_related_source_scout.v1",
-  "updated_at": "2026-06-12T04:00:02+09:00",
+  "updated_at": "2026-06-19T04:00:03+09:00",
   "mode": "search_url_inventory",
   "safety_policy": {
     "no_bypass": true,
@@ -62,6 +62,130 @@
       }
     },
     {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\481236831-Injection-Molding-the-Definitive-Engineering-Guide.pdf",
+      "name": "481236831-Injection-Molding-the-Definitive-Engineering-Guide.pdf",
+      "extension": ".pdf",
+      "size_bytes": 2561453,
+      "modified_at": "2026-06-19T02:36:40+09:00",
+      "sha1": "acfd8cda5d61b03cc1ef5535ed05313eebd854d1",
+      "domain": "moldflow_self_solver",
+      "score": 15,
+      "scores": {
+        "moldflow_self_solver": 15
+      },
+      "matched_terms": {
+        "moldflow_self_solver": [
+          "injection",
+          "mold",
+          "molding"
+        ]
+      }
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\742397008-Injection-Mold-Analysis-of-Safety-Helmet.pdf",
+      "name": "742397008-Injection-Mold-Analysis-of-Safety-Helmet.pdf",
+      "extension": ".pdf",
+      "size_bytes": 5850817,
+      "modified_at": "2026-06-18T04:03:20+09:00",
+      "sha1": "4eb124d10a7d636f9308b1657e430912d9606726",
+      "domain": "moldflow_self_solver",
+      "score": 15,
+      "scores": {
+        "moldflow_self_solver": 15,
+        "cetol_tolerance": 4,
+        "press_progressive_die": 4
+      },
+      "matched_terms": {
+        "moldflow_self_solver": [
+          "analysis",
+          "injection",
+          "mold"
+        ],
+        "cetol_tolerance": [
+          "analysis"
+        ],
+        "press_progressive_die": [
+          "analysis"
+        ]
+      }
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\690839277-MoldFlow使用经验.pdf",
+      "name": "690839277-MoldFlow使用经验.pdf",
+      "extension": ".pdf",
+      "size_bytes": 999696,
+      "modified_at": "2026-06-18T02:02:34+09:00",
+      "sha1": "9d6f29043178fd94fccd21c714e0ccc518e5527f",
+      "domain": "moldflow_self_solver",
+      "score": 15,
+      "scores": {
+        "moldflow_self_solver": 15
+      },
+      "matched_terms": {
+        "moldflow_self_solver": [
+          "flow",
+          "mold",
+          "moldflow"
+        ]
+      }
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\667773841-Mold-Flow-Analysis.pdf",
+      "name": "667773841-Mold-Flow-Analysis.pdf",
+      "extension": ".pdf",
+      "size_bytes": 1978164,
+      "modified_at": "2026-06-18T02:02:00+09:00",
+      "sha1": "9eeb8d0e88786229feb1fe6343ad1e6cd6ffc205",
+      "domain": "moldflow_self_solver",
+      "score": 15,
+      "scores": {
+        "moldflow_self_solver": 15,
+        "cetol_tolerance": 4,
+        "press_progressive_die": 4
+      },
+      "matched_terms": {
+        "moldflow_self_solver": [
+          "analysis",
+          "flow",
+          "mold"
+        ],
+        "cetol_tolerance": [
+          "analysis"
+        ],
+        "press_progressive_die": [
+          "analysis"
+        ]
+      }
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\175902597-Mold-Flow-Analysis.pdf",
+      "name": "175902597-Mold-Flow-Analysis.pdf",
+      "extension": ".pdf",
+      "size_bytes": 2284444,
+      "modified_at": "2026-06-16T23:03:02+09:00",
+      "sha1": "640d1b82454cee00c119c2728f836bb4c0e230de",
+      "domain": "moldflow_self_solver",
+      "score": 15,
+      "scores": {
+        "moldflow_self_solver": 15,
+        "cetol_tolerance": 4,
+        "press_progressive_die": 4
+      },
+      "matched_terms": {
+        "moldflow_self_solver": [
+          "analysis",
+          "flow",
+          "mold"
+        ],
+        "cetol_tolerance": [
+          "analysis"
+        ],
+        "press_progressive_die": [
+          "analysis"
+        ]
+      }
+    },
+    {
       "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\705864056-NX-Mold-Flow-Analysis-solutions-1.pdf",
       "name": "705864056-NX-Mold-Flow-Analysis-solutions-1.pdf",
       "extension": ".pdf",
@@ -96,34 +220,6 @@
       "size_bytes": 1789904,
       "modified_at": "2026-06-06T21:01:35+09:00",
       "sha1": "6826cf97af046eeac60504df50f4e212ce5911cc",
-      "domain": "moldflow_self_solver",
-      "score": 15,
-      "scores": {
-        "moldflow_self_solver": 15,
-        "cetol_tolerance": 4,
-        "press_progressive_die": 4
-      },
-      "matched_terms": {
-        "moldflow_self_solver": [
-          "analysis",
-          "flow",
-          "mold"
-        ],
-        "cetol_tolerance": [
-          "analysis"
-        ],
-        "press_progressive_die": [
-          "analysis"
-        ]
-      }
-    },
-    {
-      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\667773841-Mold-Flow-Analysis.pdf",
-      "name": "667773841-Mold-Flow-Analysis.pdf",
-      "extension": ".pdf",
-      "size_bytes": 1978164,
-      "modified_at": "2026-06-06T21:00:52+09:00",
-      "sha1": "9eeb8d0e88786229feb1fe6343ad1e6cd6ffc205",
       "domain": "moldflow_self_solver",
       "score": 15,
       "scores": {
@@ -222,11 +318,173 @@
       }
     },
     {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\425392239-Introduction-to-Injection-Mold-Design.pdf",
+      "name": "425392239-Introduction-to-Injection-Mold-Design.pdf",
+      "extension": ".pdf",
+      "size_bytes": 6863019,
+      "modified_at": "2026-06-15T23:03:13+09:00",
+      "sha1": "0edb1a90c64b268c7d15231737e264b5baa130d4",
+      "domain": "moldflow_self_solver",
+      "score": 10,
+      "scores": {
+        "moldflow_self_solver": 10,
+        "press_progressive_die": 4
+      },
+      "matched_terms": {
+        "moldflow_self_solver": [
+          "injection",
+          "mold"
+        ],
+        "press_progressive_die": [
+          "design"
+        ]
+      }
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\637778273-Validation-phase-and-simulation-injection-moulding.pdf",
+      "name": "637778273-Validation-phase-and-simulation-injection-moulding.pdf",
+      "extension": ".pdf",
+      "size_bytes": 971043,
+      "modified_at": "2026-06-14T23:00:59+09:00",
+      "sha1": "5fbd805e12e74c786c17a97d68ca330ac1b6e557",
+      "domain": "moldflow_self_solver",
+      "score": 10,
+      "scores": {
+        "moldflow_self_solver": 10
+      },
+      "matched_terms": {
+        "moldflow_self_solver": [
+          "injection",
+          "simulation"
+        ]
+      }
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\619802022-Mold.pdf",
+      "name": "619802022-Mold.pdf",
+      "extension": ".pdf",
+      "size_bytes": 5231937,
+      "modified_at": "2026-06-19T02:36:05+09:00",
+      "sha1": "322de2de189ec35e51d6b475445f765ffb7e696d",
+      "domain": "moldflow_self_solver",
+      "score": 5,
+      "scores": {
+        "moldflow_self_solver": 5
+      },
+      "matched_terms": {
+        "moldflow_self_solver": [
+          "mold"
+        ]
+      }
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\271010398-Brochura-moldex3d.pdf",
+      "name": "271010398-Brochura-moldex3d.pdf",
+      "extension": ".pdf",
+      "size_bytes": 1331440,
+      "modified_at": "2026-06-18T04:00:47+09:00",
+      "sha1": "003029ce10aebfe42b52da72064337551e6e7ae8",
+      "domain": "moldflow_self_solver",
+      "score": 5,
+      "scores": {
+        "moldflow_self_solver": 5
+      },
+      "matched_terms": {
+        "moldflow_self_solver": [
+          "mold"
+        ]
+      }
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\341942038-Moldex3D-Approved.pdf",
+      "name": "341942038-Moldex3D-Approved.pdf",
+      "extension": ".pdf",
+      "size_bytes": 6555518,
+      "modified_at": "2026-06-15T23:02:17+09:00",
+      "sha1": "8fb36ccff733fc0e3fc1d174ba2652405c5f358e",
+      "domain": "moldflow_self_solver",
+      "score": 5,
+      "scores": {
+        "moldflow_self_solver": 5
+      },
+      "matched_terms": {
+        "moldflow_self_solver": [
+          "mold"
+        ]
+      }
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\156754599-Injection-Mould-Design.pdf",
+      "name": "156754599-Injection-Mould-Design.pdf",
+      "extension": ".pdf",
+      "size_bytes": 8891391,
+      "modified_at": "2026-06-15T23:01:27+09:00",
+      "sha1": "ae85709d96c197ef8f5d0a7c6a4ecfd4a084abe8",
+      "domain": "moldflow_self_solver",
+      "score": 5,
+      "scores": {
+        "moldflow_self_solver": 5,
+        "press_progressive_die": 4
+      },
+      "matched_terms": {
+        "moldflow_self_solver": [
+          "injection"
+        ],
+        "press_progressive_die": [
+          "design"
+        ]
+      }
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\909707001-Moldmaking-July-24.pdf",
+      "name": "909707001-Moldmaking-July-24.pdf",
+      "extension": ".pdf",
+      "size_bytes": 16036847,
+      "modified_at": "2026-06-14T23:03:50+09:00",
+      "sha1": "f8142c1e54e48211445873cbdf99a26e5690ecf3",
+      "domain": "moldflow_self_solver",
+      "score": 5,
+      "scores": {
+        "moldflow_self_solver": 5
+      },
+      "matched_terms": {
+        "moldflow_self_solver": [
+          "mold"
+        ]
+      }
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\174668943-Visi-Analysis.pdf",
+      "name": "174668943-Visi-Analysis.pdf",
+      "extension": ".pdf",
+      "size_bytes": 1427393,
+      "modified_at": "2026-06-14T04:03:26+09:00",
+      "sha1": "94e48a9240369312a7e95a15253d6502c36bd61b",
+      "domain": "moldflow_self_solver",
+      "score": 5,
+      "scores": {
+        "moldflow_self_solver": 5,
+        "cetol_tolerance": 4,
+        "press_progressive_die": 4
+      },
+      "matched_terms": {
+        "moldflow_self_solver": [
+          "analysis"
+        ],
+        "cetol_tolerance": [
+          "analysis"
+        ],
+        "press_progressive_die": [
+          "analysis"
+        ]
+      }
+    },
+    {
       "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\782809744-VISI-Analysis.pdf",
       "name": "782809744-VISI-Analysis.pdf",
       "extension": ".pdf",
       "size_bytes": 1261277,
-      "modified_at": "2026-06-08T02:02:43+09:00",
+      "modified_at": "2026-06-14T04:02:38+09:00",
       "sha1": "10a407be412f2a9432ef36a4598d48aa5b758603",
       "domain": "moldflow_self_solver",
       "score": 5,
@@ -300,32 +558,6 @@
       }
     },
     {
-      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\174668943-Visi-Analysis.pdf",
-      "name": "174668943-Visi-Analysis.pdf",
-      "extension": ".pdf",
-      "size_bytes": 1427393,
-      "modified_at": "2026-06-05T02:03:10+09:00",
-      "sha1": "94e48a9240369312a7e95a15253d6502c36bd61b",
-      "domain": "moldflow_self_solver",
-      "score": 5,
-      "scores": {
-        "moldflow_self_solver": 5,
-        "cetol_tolerance": 4,
-        "press_progressive_die": 4
-      },
-      "matched_terms": {
-        "moldflow_self_solver": [
-          "analysis"
-        ],
-        "cetol_tolerance": [
-          "analysis"
-        ],
-        "press_progressive_die": [
-          "analysis"
-        ]
-      }
-    },
-    {
       "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\956695269-CETOL-Interview-Questions-Answers.pdf",
       "name": "956695269-CETOL-Interview-Questions-Answers.pdf",
       "extension": ".pdf",
@@ -344,12 +576,414 @@
       }
     },
     {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\631198540-2014-Work-Area-Traffic-Control-Handbook-WATCH.pdf",
+      "name": "631198540-2014-Work-Area-Traffic-Control-Handbook-WATCH.pdf",
+      "extension": ".pdf",
+      "size_bytes": 6473692,
+      "modified_at": "2026-06-15T02:02:19+09:00",
+      "sha1": "e75dcc808d3cfde5706c8eb8abcff9adeb1d25ba",
+      "domain": "iatf_audit_training",
+      "score": 3,
+      "scores": {
+        "iatf_audit_training": 3
+      },
+      "matched_terms": {
+        "iatf_audit_training": [
+          "control"
+        ]
+      }
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\412513437-bmfcic361p.pdf",
+      "name": "412513437-bmfcic361p.pdf",
+      "extension": ".pdf",
+      "size_bytes": 4385783,
+      "modified_at": "2026-06-18T21:25:31+09:00",
+      "sha1": "d8286972eec056896df14d318db219154af71d93",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\425290518-Sistemas-de-Gobierno-Diseno-de-Un-Autopiloto-Para-Una-Embarcacion-de-Pequena-Eslora-maricha.pdf",
+      "name": "425290518-Sistemas-de-Gobierno-Diseno-de-Un-Autopiloto-Para-Una-Embarcacion-de-Pequena-Eslora-maricha.pdf",
+      "extension": ".pdf",
+      "size_bytes": 2837445,
+      "modified_at": "2026-06-18T21:24:39+09:00",
+      "sha1": "b40269911993e65ec7f07952c936c5ca8857df4b",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\388891762-diseno-y-construccion-de-velero.pdf",
+      "name": "388891762-diseno-y-construccion-de-velero.pdf",
+      "extension": ".pdf",
+      "size_bytes": 2155235,
+      "modified_at": "2026-06-18T21:23:56+09:00",
+      "sha1": "bd0e5c0e19321954186b67a601d84630ec8cfc4d",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\954295358-1-s2-0-S1359835X1730204X-main.pdf",
+      "name": "954295358-1-s2-0-S1359835X1730204X-main.pdf",
+      "extension": ".pdf",
+      "size_bytes": 3795130,
+      "modified_at": "2026-06-18T04:02:33+09:00",
+      "sha1": "c35545ae510b65987fea6c91930d14989a1f4198",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\357945150-24215-s12-01-b-ghs-sds-english-visijet-m2-cast-visijet-m3-cast.pdf",
+      "name": "357945150-24215-s12-01-b-ghs-sds-english-visijet-m2-cast-visijet-m3-cast.pdf",
+      "extension": ".pdf",
+      "size_bytes": 337720,
+      "modified_at": "2026-06-17T23:02:14+09:00",
+      "sha1": "a38d18dc3e499ae0097a2485e36659a87e346ee0",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\58479665-Queuing-Theory.pdf",
+      "name": "58479665-Queuing-Theory.pdf",
+      "extension": ".pdf",
+      "size_bytes": 231444,
+      "modified_at": "2026-06-17T23:01:28+09:00",
+      "sha1": "f13d7a7e82073f87eafdc35be2e36801746520bf",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\412231082-Cluster-Theory.pdf",
+      "name": "412231082-Cluster-Theory.pdf",
+      "extension": ".pdf",
+      "size_bytes": 81657,
+      "modified_at": "2026-06-17T23:00:44+09:00",
+      "sha1": "9126ee8a1ab97b18e33c70794b953d5f3365382d",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\714970142-Whats-New.pdf",
+      "name": "714970142-Whats-New.pdf",
+      "extension": ".pdf",
+      "size_bytes": 94874,
+      "modified_at": "2026-06-17T21:02:25+09:00",
+      "sha1": "904b47a3a9684b48ee981ef85022e5866813f80b",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\784878780-Attachment.pdf",
+      "name": "784878780-Attachment.pdf",
+      "extension": ".pdf",
+      "size_bytes": 3680459,
+      "modified_at": "2026-06-17T21:01:33+09:00",
+      "sha1": "6492ffdad0e9c56538a2cecf7f59fcbbebd2b2f9",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\245813253-digimat-4-5-1-brochure.pdf",
+      "name": "245813253-digimat-4-5-1-brochure.pdf",
+      "extension": ".pdf",
+      "size_bytes": 2915913,
+      "modified_at": "2026-06-17T21:00:49+09:00",
+      "sha1": "6f26684307b5ce77c4cd6a2af1baf44f619f8b28",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\421751362-C16-NX11.pdf",
+      "name": "421751362-C16-NX11.pdf",
+      "extension": ".pdf",
+      "size_bytes": 6138878,
+      "modified_at": "2026-06-16T02:03:47+09:00",
+      "sha1": "d9491bd789af7e6826cc0cbfda871f681066d9d9",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\798459944-제7판-기초이동현상론.pdf",
+      "name": "798459944-제7판-기초이동현상론.pdf",
+      "extension": ".pdf",
+      "size_bytes": 536958731,
+      "modified_at": "2026-06-15T21:09:19+09:00",
+      "sha1": null,
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\370066918-Visi-Mould.pdf",
+      "name": "370066918-Visi-Mould.pdf",
+      "extension": ".pdf",
+      "size_bytes": 1253963,
+      "modified_at": "2026-06-15T21:02:27+09:00",
+      "sha1": "5bec8fc038dccf7084114b5f4d63fb8767bee45b",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\283433166-Users-Guide-VisiMix-LAMINAR.pdf",
+      "name": "283433166-Users-Guide-VisiMix-LAMINAR.pdf",
+      "extension": ".pdf",
+      "size_bytes": 735537,
+      "modified_at": "2026-06-15T21:01:47+09:00",
+      "sha1": "4fbe5f896979b28ac94a68314df2f4f405fe809a",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\733713290-English-Handbook-and-Study-Guide-210812-070421.pdf",
+      "name": "733713290-English-Handbook-and-Study-Guide-210812-070421.pdf",
+      "extension": ".pdf",
+      "size_bytes": 42390392,
+      "modified_at": "2026-06-15T02:04:22+09:00",
+      "sha1": "43a9ceca5145dacfe716243c0d914a323c8519fd",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\297590808-UsersGuide-VisiMix-DI.pdf",
+      "name": "297590808-UsersGuide-VisiMix-DI.pdf",
+      "extension": ".pdf",
+      "size_bytes": 786984,
+      "modified_at": "2026-06-15T02:03:10+09:00",
+      "sha1": "4f3629043362b999cd3586cfbbdcd479528b1c3d",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\798181492-323246105.pdf",
+      "name": "798181492-323246105.pdf",
+      "extension": ".pdf",
+      "size_bytes": 1665411,
+      "modified_at": "2026-06-15T02:01:32+09:00",
+      "sha1": "9bc9d260e794234bd14b796b299db2d81d1c2db2",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\705175313-Latest-Form-2-Physics-Notes.pdf",
+      "name": "705175313-Latest-Form-2-Physics-Notes.pdf",
+      "extension": ".pdf",
+      "size_bytes": 2610460,
+      "modified_at": "2026-06-15T02:00:46+09:00",
+      "sha1": "561a126493ae14c125f138c5ed58929adce48a76",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\1047972983-PRF-Software.pdf",
+      "name": "1047972983-PRF-Software.pdf",
+      "extension": ".pdf",
+      "size_bytes": 2774252,
+      "modified_at": "2026-06-14T21:03:28+09:00",
+      "sha1": "b9278ee9a9065b1248bc6793cf662bb84e89de41",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\791292193-CAB-Software.pdf",
+      "name": "791292193-CAB-Software.pdf",
+      "extension": ".pdf",
+      "size_bytes": 2494931,
+      "modified_at": "2026-06-14T21:02:49+09:00",
+      "sha1": "1d937ca70d63032a7d83ce2756e7c677075f0ce2",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\845342098-BPI-Software.pdf",
+      "name": "845342098-BPI-Software.pdf",
+      "extension": ".pdf",
+      "size_bytes": 6396338,
+      "modified_at": "2026-06-14T21:01:34+09:00",
+      "sha1": "dbaeb12a8d523b0d143906213231735b13360ddb",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\369616874-Instalar-MagmaSoft.pdf",
+      "name": "369616874-Instalar-MagmaSoft.pdf",
+      "extension": ".pdf",
+      "size_bytes": 816280,
+      "modified_at": "2026-06-14T21:00:47+09:00",
+      "sha1": "f787ed44901c6aaef1447d1c03134e955cd09377",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
       "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\683064083-VISI-Brochure-VT-Eng-ebook-1.pdf",
       "name": "683064083-VISI-Brochure-VT-Eng-ebook-1.pdf",
       "extension": ".pdf",
       "size_bytes": 7952345,
-      "modified_at": "2026-06-08T02:02:02+09:00",
+      "modified_at": "2026-06-14T04:01:49+09:00",
       "sha1": "045c3693307a3214053d05d589413e67bbf6c266",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\634603411-Untitled.pdf",
+      "name": "634603411-Untitled.pdf",
+      "extension": ".pdf",
+      "size_bytes": 586673,
+      "modified_at": "2026-06-14T02:02:40+09:00",
+      "sha1": "02d5ecd93c5e8866d3a0b1fba337d660a3fe5791",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\702465852-Art-as-Language-Wittgenstein-Meaning-Adn-Aesthetic-Theory.pdf",
+      "name": "702465852-Art-as-Language-Wittgenstein-Meaning-Adn-Aesthetic-Theory.pdf",
+      "extension": ".pdf",
+      "size_bytes": 20584943,
+      "modified_at": "2026-06-14T02:01:52+09:00",
+      "sha1": "f8a22cbf336b2974f0a5007388a632cf702a889f",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\850973007-2025-Architecture-Principles.pdf",
+      "name": "850973007-2025-Architecture-Principles.pdf",
+      "extension": ".pdf",
+      "size_bytes": 3854324,
+      "modified_at": "2026-06-13T23:03:58+09:00",
+      "sha1": "f810674263e48ebf66b64181c22087057cf9add3",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\52072480-VISI-Modelling.pdf",
+      "name": "52072480-VISI-Modelling.pdf",
+      "extension": ".pdf",
+      "size_bytes": 7646607,
+      "modified_at": "2026-06-13T23:03:22+09:00",
+      "sha1": "241e4a04e0ba1114386843f2fb21fbd7376b9d19",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\446870646-CS101-FinalTerm-MCQs-With-Reference-Solved-By-Arslan-pdf.pdf",
+      "name": "446870646-CS101-FinalTerm-MCQs-With-Reference-Solved-By-Arslan-pdf.pdf",
+      "extension": ".pdf",
+      "size_bytes": 926062,
+      "modified_at": "2026-06-13T23:02:30+09:00",
+      "sha1": "fbefc047b2ba70974e1d8461b4ec61fba90bcbc2",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\50788337-disney-guide-pdf.pdf",
+      "name": "50788337-disney-guide-pdf.pdf",
+      "extension": ".pdf",
+      "size_bytes": 246837,
+      "modified_at": "2026-06-13T21:03:35+09:00",
+      "sha1": "9a0ca9353ccaf55a9b95502126fbcdeca45e9ff9",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\242874331-Nuevo-Auto-radio-BECK-BE-1000-multimedia-pdf.pdf",
+      "name": "242874331-Nuevo-Auto-radio-BECK-BE-1000-multimedia-pdf.pdf",
+      "extension": ".pdf",
+      "size_bytes": 493705,
+      "modified_at": "2026-06-13T21:03:03+09:00",
+      "sha1": "d833431bf95fa5f2c82742f585d511495e0406d0",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\497702830-Timon-SlidesCarnival.pdf",
+      "name": "497702830-Timon-SlidesCarnival.pdf",
+      "extension": ".pdf",
+      "size_bytes": 1705708,
+      "modified_at": "2026-06-13T21:01:22+09:00",
+      "sha1": "602cffe62599bd0dc95d48e19fe8e5169da47efa",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\708603900-Timon-Google-Search.pdf",
+      "name": "708603900-Timon-Google-Search.pdf",
+      "extension": ".pdf",
+      "size_bytes": 3334519,
+      "modified_at": "2026-06-13T21:00:45+09:00",
+      "sha1": "63827f3ce0d31e89e11633c43654e18fba81e782",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\966270920-Clinical-Data-Management.pdf",
+      "name": "966270920-Clinical-Data-Management.pdf",
+      "extension": ".pdf",
+      "size_bytes": 3084317,
+      "modified_at": "2026-06-13T06:05:17+09:00",
+      "sha1": "4bd860f6d9a15fecf34482983c9421745003d2ff",
       "domain": "unknown",
       "score": 0,
       "scores": {},
@@ -368,36 +1002,12 @@
       "matched_terms": {}
     },
     {
-      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\966270920-Clinical-Data-Management.pdf",
-      "name": "966270920-Clinical-Data-Management.pdf",
-      "extension": ".pdf",
-      "size_bytes": 3084317,
-      "modified_at": "2026-06-07T21:01:04+09:00",
-      "sha1": "4bd860f6d9a15fecf34482983c9421745003d2ff",
-      "domain": "unknown",
-      "score": 0,
-      "scores": {},
-      "matched_terms": {}
-    },
-    {
       "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\837169235-Auxetic-Core-in-Concrete.pdf",
       "name": "837169235-Auxetic-Core-in-Concrete.pdf",
       "extension": ".pdf",
       "size_bytes": 6981806,
       "modified_at": "2026-06-07T02:03:12+09:00",
       "sha1": "8a8786c4679497663996a371d29ce0de636d936e",
-      "domain": "unknown",
-      "score": 0,
-      "scores": {},
-      "matched_terms": {}
-    },
-    {
-      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\245813253-digimat-4-5-1-brochure.pdf",
-      "name": "245813253-digimat-4-5-1-brochure.pdf",
-      "extension": ".pdf",
-      "size_bytes": 2915913,
-      "modified_at": "2026-06-07T02:01:26+09:00",
-      "sha1": "6f26684307b5ce77c4cd6a2af1baf44f619f8b28",
       "domain": "unknown",
       "score": 0,
       "scores": {},
@@ -428,120 +1038,12 @@
       "matched_terms": {}
     },
     {
-      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\242874331-Nuevo-Auto-radio-BECK-BE-1000-multimedia-pdf.pdf",
-      "name": "242874331-Nuevo-Auto-radio-BECK-BE-1000-multimedia-pdf.pdf",
-      "extension": ".pdf",
-      "size_bytes": 493705,
-      "modified_at": "2026-06-05T21:03:39+09:00",
-      "sha1": "d833431bf95fa5f2c82742f585d511495e0406d0",
-      "domain": "unknown",
-      "score": 0,
-      "scores": {},
-      "matched_terms": {}
-    },
-    {
-      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\50788337-disney-guide-pdf.pdf",
-      "name": "50788337-disney-guide-pdf.pdf",
-      "extension": ".pdf",
-      "size_bytes": 246837,
-      "modified_at": "2026-06-05T21:02:56+09:00",
-      "sha1": "9a0ca9353ccaf55a9b95502126fbcdeca45e9ff9",
-      "domain": "unknown",
-      "score": 0,
-      "scores": {},
-      "matched_terms": {}
-    },
-    {
-      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\497702830-Timon-SlidesCarnival.pdf",
-      "name": "497702830-Timon-SlidesCarnival.pdf",
-      "extension": ".pdf",
-      "size_bytes": 1705708,
-      "modified_at": "2026-06-05T21:01:25+09:00",
-      "sha1": "602cffe62599bd0dc95d48e19fe8e5169da47efa",
-      "domain": "unknown",
-      "score": 0,
-      "scores": {},
-      "matched_terms": {}
-    },
-    {
-      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\708603900-Timon-Google-Search.pdf",
-      "name": "708603900-Timon-Google-Search.pdf",
-      "extension": ".pdf",
-      "size_bytes": 3334519,
-      "modified_at": "2026-06-05T21:00:46+09:00",
-      "sha1": "63827f3ce0d31e89e11633c43654e18fba81e782",
-      "domain": "unknown",
-      "score": 0,
-      "scores": {},
-      "matched_terms": {}
-    },
-    {
       "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\580326503-Lista-de-Softwares-2020.pdf",
       "name": "580326503-Lista-de-Softwares-2020.pdf",
       "extension": ".pdf",
       "size_bytes": 883405,
       "modified_at": "2026-06-04T23:03:42+09:00",
       "sha1": "9659fc42955617d7a79ea0fd725885cdadebbe3e",
-      "domain": "unknown",
-      "score": 0,
-      "scores": {},
-      "matched_terms": {}
-    },
-    {
-      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\784878780-Attachment.pdf",
-      "name": "784878780-Attachment.pdf",
-      "extension": ".pdf",
-      "size_bytes": 3680459,
-      "modified_at": "2026-06-04T22:25:37+09:00",
-      "sha1": "6492ffdad0e9c56538a2cecf7f59fcbbebd2b2f9",
-      "domain": "unknown",
-      "score": 0,
-      "scores": {},
-      "matched_terms": {}
-    },
-    {
-      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\791292193-CAB-Software.pdf",
-      "name": "791292193-CAB-Software.pdf",
-      "extension": ".pdf",
-      "size_bytes": 2494931,
-      "modified_at": "2026-06-04T22:24:47+09:00",
-      "sha1": "1d937ca70d63032a7d83ce2756e7c677075f0ce2",
-      "domain": "unknown",
-      "score": 0,
-      "scores": {},
-      "matched_terms": {}
-    },
-    {
-      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\845342098-BPI-Software.pdf",
-      "name": "845342098-BPI-Software.pdf",
-      "extension": ".pdf",
-      "size_bytes": 6396338,
-      "modified_at": "2026-06-04T22:24:06+09:00",
-      "sha1": "dbaeb12a8d523b0d143906213231735b13360ddb",
-      "domain": "unknown",
-      "score": 0,
-      "scores": {},
-      "matched_terms": {}
-    },
-    {
-      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\714970142-Whats-New.pdf",
-      "name": "714970142-Whats-New.pdf",
-      "extension": ".pdf",
-      "size_bytes": 94874,
-      "modified_at": "2026-06-04T22:23:13+09:00",
-      "sha1": "904b47a3a9684b48ee981ef85022e5866813f80b",
-      "domain": "unknown",
-      "score": 0,
-      "scores": {},
-      "matched_terms": {}
-    },
-    {
-      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\369616874-Instalar-MagmaSoft.pdf",
-      "name": "369616874-Instalar-MagmaSoft.pdf",
-      "extension": ".pdf",
-      "size_bytes": 816280,
-      "modified_at": "2026-06-04T22:22:36+09:00",
-      "sha1": "f787ed44901c6aaef1447d1c03134e955cd09377",
       "domain": "unknown",
       "score": 0,
       "scores": {},

@@ -24,8 +24,10 @@ COPY Gemfile /myapp/Gemfile
 COPY Gemfile.lock /myapp/Gemfile.lock
 
 # Bundlerの指定されたバージョンをインストールし、bundle installを実行
-RUN gem install bundler -v '2.1.4' && \
-    bundle _2.1.4_ install
+RUN gem install psych -v 5.1.2 && \
+    gem update --system 3.4.22 && \
+    gem install bundler -v '2.3.7' && \
+    bundle _2.3.7_ install
 
 # アプリケーションのソースコードをコピー
 COPY . /myapp

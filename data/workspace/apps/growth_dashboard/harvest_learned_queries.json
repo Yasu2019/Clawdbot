@@ -1,9 +1,325 @@
 {
   "schema": "clawstack.harvest_learned_queries.v1",
-  "updated_at": "2026-06-11T14:00:02.752939+09:00",
+  "updated_at": "2026-06-19T12:27:13.139579+09:00",
   "min_score": 40.0,
-  "scored_total": 2331,
+  "scored_total": 5000,
   "domains": {
+    "general": {
+      "high_score_materials": [
+        {
+          "id": 1396,
+          "title": "A distributed MQTT message broker based on Erlang/OTP. Built for high quality & Industrial use cases. The VerneMQ mission is active & the project maintained. Thank you for your support!",
+          "source": "github",
+          "status": "downloaded",
+          "domain_id": "general",
+          "query": "manufacturing quality",
+          "score": 68.0,
+          "reasons": [
+            "downloaded",
+            "local_file",
+            "size_ok",
+            "preferred_source",
+            "github_stars=3590"
+          ]
+        },
+        {
+          "id": 5285,
+          "title": "Review on Investigation and Optimization of Blanking Process using FEM and DOE technique to Analyze the Influence of Process Parameters on the Burr Height",
+          "source": "zenodo",
+          "status": "downloaded_existing",
+          "domain_id": "general",
+          "query": "blanking simulation",
+          "score": 66.0,
+          "reasons": [
+            "downloaded",
+            "pdf",
+            "size_ok",
+            "preferred_source"
+          ]
+        },
+        {
+          "id": 5286,
+          "title": "THE RESEARCH AND IMPLEMENTATION OF PASSENGER CAR'S TRANSPORTATION PLANNING PROBLEM",
+          "source": "zenodo",
+          "status": "downloaded_existing",
+          "domain_id": "general",
+          "query": "blanking simulation",
+          "score": 66.0,
+          "reasons": [
+            "downloaded",
+            "pdf",
+            "size_ok",
+            "preferred_source"
+          ]
+        },
+        {
+          "id": 5289,
+          "title": "Variations of autonomic arousal mediate the reportability of mind blanking occurrences",
+          "source": "zenodo",
+          "status": "downloaded_existing",
+          "domain_id": "general",
+          "query": "blanking simulation",
+          "score": 66.0,
+          "reasons": [
+            "downloaded",
+            "pdf",
+            "size_ok",
+            "preferred_source"
+          ]
+        },
+        {
+          "id": 5278,
+          "title": "Why Machine Learning Integrated Patient Flow Simulation?",
+          "source": "arxiv",
+          "status": "downloaded",
+          "domain_id": "general",
+          "query": "blanking simulation",
+          "score": 66.0,
+          "reasons": [
+            "downloaded",
+            "pdf",
+            "size_ok",
+            "preferred_source"
+          ]
+        },
+        {
+          "id": 5279,
+          "title": "Modelling and simulating retail management practices: a first approach",
+          "source": "arxiv",
+          "status": "downloaded",
+          "domain_id": "general",
+          "query": "blanking simulation",
+          "score": 66.0,
+          "reasons": [
+            "downloaded",
+            "pdf",
+            "size_ok",
+            "preferred_source"
+          ]
+        },
+        {
+          "id": 5277,
+          "title": "Simulating Customer Experience and Word Of Mouth in Retail - A Case Study",
+          "source": "arxiv",
+          "status": "downloaded",
+          "domain_id": "general",
+          "query": "blanking simulation",
+          "score": 66.0,
+          "reasons": [
+            "downloaded",
+            "pdf",
+            "size_ok",
+            "preferred_source"
+          ]
+        },
+        {
+          "id": 5246,
+          "title": "ORIENTATION, DISPERSION AND LENGTH REDUCTION OF FIBRES IN LONG GLASS FIBRE REINFORCED INJECTION MOULDING",
+          "source": "zenodo",
+          "status": "downloaded_existing",
+          "domain_id": "general",
+          "query": "moldflow",
+          "score": 66.0,
+          "reasons": [
+            "downloaded",
+            "pdf",
+            "size_ok",
+            "preferred_source"
+          ]
+        },
+        {
+          "id": 5249,
+          "title": "Design and Analysis of Plastic Injection Parts by Using Moldflow",
+          "source": "zenodo",
+          "status": "downloaded_existing",
+          "domain_id": "general",
+          "query": "moldflow",
+          "score": 66.0,
+          "reasons": [
+            "downloaded",
+            "pdf",
+            "size_ok",
+            "preferred_source"
+          ]
+        },
+        {
+          "id": 5250,
+          "title": "INJECTION MOULDING PROCESS OPTIMIZATION OF CITRUS WASTE BIOCOMPOSITES BY SIMULATIONS AND TAGUCHI DOE",
+          "source": "zenodo",
+          "status": "downloaded_existing",
+          "domain_id": "general",
+          "query": "moldflow",
+          "score": 66.0,
+          "reasons": [
+            "downloaded",
+            "pdf",
+            "size_ok",
+            "preferred_source"
+          ]
+        }
+      ],
+      "winning_queries": [
+        {
+          "domain_id": "general",
+          "query": "injection molding simulation",
+          "hits": 292,
+          "downloaded": 91,
+          "score_sum": 5772.0,
+          "max_score": 66.0,
+          "examples": [
+            "Open source injection molding simulation. A solver for OpenFOAM.",
+            "Parameters required in DEM simulation.",
+            "3D-printed Laryngeal Injection Task Trainer (LITT<b>)</b> Data Set.xlsx"
+          ],
+          "avg_score": 19.77,
+          "yield": 0.312
+        },
+        {
+          "domain_id": "general",
+          "query": "progressive die",
+          "hits": 288,
+          "downloaded": 86,
+          "score_sum": 5495.0,
+          "max_score": 66.0,
+          "examples": [
+            "A plain language summary of the SAPPHIRE clinical trial of apitegromab in children and young adults with spinal muscular",
+            "Finite Element Simulation Dataset for DTCAE Process",
+            "Table 1_Case Report: Malignant transformation of deep infiltrating endometriosis: a report of two cases and literature r"
+          ],
+          "avg_score": 19.08,
+          "yield": 0.299
+        },
+        {
+          "domain_id": "general",
+          "query": "press forming FEA",
+          "hits": 196,
+          "downloaded": 78,
+          "score_sum": 4943.0,
+          "max_score": 66.0,
+          "examples": [
+            "STUDY ON REAL-TIME FINITE ELEMENT ANALYSIS SIMULATION AS A VISUALIZATION AND INTERACTION TOOL FOR SHEET METAL FORMING PR",
+            "Design and simulation of mechanical press for testing of coining tools with nanostructured coatings",
+            "METAL FORMING PROCESS SIMULATION BY FEA SOFTWARE"
+          ],
+          "avg_score": 25.22,
+          "yield": 0.398
+        },
+        {
+          "domain_id": "general",
+          "query": "plastic mold general",
+          "hits": 236,
+          "downloaded": 73,
+          "score_sum": 4685.0,
+          "max_score": 66.0,
+          "examples": [
+            "Data used in the experiment.",
+            "Nanopore PCR-cDNA sequencing of Aspergillus flavus AF36 (NRRL 18543)",
+            "Data Sheet 1_Development and characterization of sustainable active films incorporated with free and microencapsulated t"
+          ],
+          "avg_score": 19.85,
+          "yield": 0.309
+        },
+        {
+          "domain_id": "general",
+          "query": "thermoplastic injection general",
+          "hits": 212,
+          "downloaded": 67,
+          "score_sum": 4327.0,
+          "max_score": 66.0,
+          "examples": [
+            "A comparative study between PETG and PLA for 3D Printing through thermal, chemical and mechanical characterization",
+            "FORM CLOSURE CREATED BY INJECTION OVERMOLDING OF THERMOPLASTIC AIRCRAFT COMPONENTS – A CHALLENGING APPROACH",
+            "FORM CLOSURE CREATED BY INJECTION OVERMOLDING OF THERMOPLASTIC AIRCRAFT COMPONENTS – A CHALLENGING APPROACH"
+          ],
+          "avg_score": 20.41,
+          "yield": 0.316
+        },
+        {
+          "domain_id": "general",
+          "query": "surface defect detection",
+          "hits": 236,
+          "downloaded": 52,
+          "score_sum": 3423.0,
+          "max_score": 66.0,
+          "examples": [
+            "m-abbasi-m/Car-Gear-Surface-Defect-Detection",
+            "缺陷检测文献记录",
+            "📈 目前最大的工业缺陷检测数据库及论文集 Constantly summarizing open source dataset and critical papers in the field of surface defect resea"
+          ],
+          "avg_score": 14.5,
+          "yield": 0.22
+        },
+        {
+          "domain_id": "general",
+          "query": "プレス成形 有限要素法",
+          "hits": 5,
+          "downloaded": 5,
+          "score_sum": 305.0,
+          "max_score": 61.0,
+          "examples": [
+            "燃料電池用金属セパレータの強度設計手法",
+            "冷間プレス成形角形鋼管柱の局部座屈による耐力劣化挙動の解析モデル",
+            "局部座屈と破断をともなう冷間プレス成形角形鋼管柱の塑性変形能力"
+          ],
+          "avg_score": 61.0,
+          "yield": 1.0
+        },
+        {
+          "domain_id": "general",
+          "query": "strip layout general",
+          "hits": 105,
+          "downloaded": 41,
+          "score_sum": 2588.0,
+          "max_score": 66.0,
+          "examples": [
+            "#!bash # # bash completion support for core Git. # # Copyright (C) 2006,2007 Shawn O. Pearce <spearce@spearce.org> # Con",
+            "Oral-Facial-Digital Syndrome Type II (Mohr Syndrome) in Palestine",
+            "Designing strip intercropping systems"
+          ],
+          "avg_score": 24.65,
+          "yield": 0.39
+        },
+        {
+          "domain_id": "general",
+          "query": "表面粗さ 切削加工",
+          "hits": 9,
+          "downloaded": 8,
+          "score_sum": 488.0,
+          "max_score": 61.0,
+          "examples": [
+            "耐熱金属材料における疲労強度と加工面性状との関係",
+            "低周波振動切削を用いたチタン合金のドライ加工による仕上げ面形状の予測",
+            "マイクロレンズアレイ金型の超精密切削加工(第1報)"
+          ],
+          "avg_score": 54.22,
+          "yield": 0.889
+        },
+        {
+          "domain_id": "general",
+          "query": "応力集中 疲労破壊",
+          "hits": 1,
+          "downloaded": 1,
+          "score_sum": 61.0,
+          "max_score": 61.0,
+          "examples": [
+            "溶接構造物の疲労破壊と疲労強度因子(1)"
+          ],
+          "avg_score": 61.0,
+          "yield": 1.0
+        }
+      ],
+      "prioritized_queries": [
+        "injection molding simulation",
+        "progressive die",
+        "press forming FEA",
+        "plastic mold general",
+        "thermoplastic injection general",
+        "surface defect detection",
+        "プレス成形 有限要素法",
+        "strip layout general",
+        "progressive die general"
+      ]
+    },
     "iatf_audit_video": {
       "high_score_materials": [
         {
@@ -913,6 +1229,18 @@
         }
       ],
       "prioritized_queries": [
+        "shape fidelity metrics image conditioned 3D generation chamfer silhouette",
+        "TripoSR Unique3D CRM image to 3D robot hard surface comparison",
+        "PartCrafter HoloPart robot mesh segmentation reference image fidelity",
+        "robot CAD-like mesh retopology from generated 3D model",
+        "hard surface character rigging non deforming armor plates",
+        "CLIP silhouette score image to 3D reconstruction evaluation",
+        "3D generated mesh silhouette consistency reference image evaluation",
+        "mecha model auto rigging separate armor parts Blender",
+        "Blender rigid body robot armature hard surface rigging",
+        "robot mesh segmentation for mechanical rigging",
+        "single image 3D reconstruction hard surface robot parts segmentation",
+        "image to 3D hard surface robot reference fidelity",
         "mecha robot auto rigging blender",
         "character rigging inverse kinematics",
         "hair cloth simulation blender open source",
@@ -924,6 +1252,80 @@
         "skeletal animation rigging animation 3d",
         "inverse kinematics rigging animation 3d",
         "hair cloth simulation manufacturing"
+      ],
+      "manual_candidate_queries": [
+        {
+          "query": "image to 3D hard surface robot reference fidelity",
+          "reason": "Needed after mecha rig v1/v2: rig works partly, but reference robot shape fidelity is NG; search for hard-surface image-to-3D segmentation, silhouette fidelity, and rigid armor rigging know-how.",
+          "added_at": "2026-06-19T11:58:00.563814+09:00",
+          "source": "codex_mecha_rig_feedback_20260619"
+        },
+        {
+          "query": "single image 3D reconstruction hard surface robot parts segmentation",
+          "reason": "Needed after mecha rig v1/v2: rig works partly, but reference robot shape fidelity is NG; search for hard-surface image-to-3D segmentation, silhouette fidelity, and rigid armor rigging know-how.",
+          "added_at": "2026-06-19T11:58:00.563814+09:00",
+          "source": "codex_mecha_rig_feedback_20260619"
+        },
+        {
+          "query": "robot mesh segmentation for mechanical rigging",
+          "reason": "Needed after mecha rig v1/v2: rig works partly, but reference robot shape fidelity is NG; search for hard-surface image-to-3D segmentation, silhouette fidelity, and rigid armor rigging know-how.",
+          "added_at": "2026-06-19T11:58:00.563814+09:00",
+          "source": "codex_mecha_rig_feedback_20260619"
+        },
+        {
+          "query": "Blender rigid body robot armature hard surface rigging",
+          "reason": "Needed after mecha rig v1/v2: rig works partly, but reference robot shape fidelity is NG; search for hard-surface image-to-3D segmentation, silhouette fidelity, and rigid armor rigging know-how.",
+          "added_at": "2026-06-19T11:58:00.563814+09:00",
+          "source": "codex_mecha_rig_feedback_20260619"
+        },
+        {
+          "query": "mecha model auto rigging separate armor parts Blender",
+          "reason": "Needed after mecha rig v1/v2: rig works partly, but reference robot shape fidelity is NG; search for hard-surface image-to-3D segmentation, silhouette fidelity, and rigid armor rigging know-how.",
+          "added_at": "2026-06-19T11:58:00.563814+09:00",
+          "source": "codex_mecha_rig_feedback_20260619"
+        },
+        {
+          "query": "3D generated mesh silhouette consistency reference image evaluation",
+          "reason": "Needed after mecha rig v1/v2: rig works partly, but reference robot shape fidelity is NG; search for hard-surface image-to-3D segmentation, silhouette fidelity, and rigid armor rigging know-how.",
+          "added_at": "2026-06-19T11:58:00.563814+09:00",
+          "source": "codex_mecha_rig_feedback_20260619"
+        },
+        {
+          "query": "CLIP silhouette score image to 3D reconstruction evaluation",
+          "reason": "Needed after mecha rig v1/v2: rig works partly, but reference robot shape fidelity is NG; search for hard-surface image-to-3D segmentation, silhouette fidelity, and rigid armor rigging know-how.",
+          "added_at": "2026-06-19T11:58:00.563814+09:00",
+          "source": "codex_mecha_rig_feedback_20260619"
+        },
+        {
+          "query": "hard surface character rigging non deforming armor plates",
+          "reason": "Needed after mecha rig v1/v2: rig works partly, but reference robot shape fidelity is NG; search for hard-surface image-to-3D segmentation, silhouette fidelity, and rigid armor rigging know-how.",
+          "added_at": "2026-06-19T11:58:00.563814+09:00",
+          "source": "codex_mecha_rig_feedback_20260619"
+        },
+        {
+          "query": "robot CAD-like mesh retopology from generated 3D model",
+          "reason": "Needed after mecha rig v1/v2: rig works partly, but reference robot shape fidelity is NG; search for hard-surface image-to-3D segmentation, silhouette fidelity, and rigid armor rigging know-how.",
+          "added_at": "2026-06-19T11:58:00.563814+09:00",
+          "source": "codex_mecha_rig_feedback_20260619"
+        },
+        {
+          "query": "PartCrafter HoloPart robot mesh segmentation reference image fidelity",
+          "reason": "Needed after mecha rig v1/v2: rig works partly, but reference robot shape fidelity is NG; search for hard-surface image-to-3D segmentation, silhouette fidelity, and rigid armor rigging know-how.",
+          "added_at": "2026-06-19T11:58:00.563814+09:00",
+          "source": "codex_mecha_rig_feedback_20260619"
+        },
+        {
+          "query": "TripoSR Unique3D CRM image to 3D robot hard surface comparison",
+          "reason": "Needed after mecha rig v1/v2: rig works partly, but reference robot shape fidelity is NG; search for hard-surface image-to-3D segmentation, silhouette fidelity, and rigid armor rigging know-how.",
+          "added_at": "2026-06-19T11:58:00.563814+09:00",
+          "source": "codex_mecha_rig_feedback_20260619"
+        },
+        {
+          "query": "shape fidelity metrics image conditioned 3D generation chamfer silhouette",
+          "reason": "Needed after mecha rig v1/v2: rig works partly, but reference robot shape fidelity is NG; search for hard-surface image-to-3D segmentation, silhouette fidelity, and rigid armor rigging know-how.",
+          "added_at": "2026-06-19T11:58:00.563814+09:00",
+          "source": "codex_mecha_rig_feedback_20260619"
+        }
       ]
     },
     "cetol_tolerance": {
@@ -2022,324 +2424,296 @@
         "mould moldflow injection mold design",
         "tooling moldflow injection mold design"
       ]
+    }
+  },
+  "urgent_search_policy": {
+    "enabled": true,
+    "trigger": "When a user or agent identifies a high-priority knowledge gap, add only the needed search words and run a bounded immediate scout instead of waiting for the scheduled harvest.",
+    "scope": "Use focused queries for the current bottleneck; do not run unlimited broad crawling.",
+    "limits": {
+      "max_queries_per_urgent_run": 12,
+      "max_results_per_query": 20,
+      "timeout_minutes": 30,
+      "download_mode": "metadata_first_then_direct_free_only"
     },
-    "general": {
-      "high_score_materials": [
-        {
-          "id": 1396,
-          "title": "A distributed MQTT message broker based on Erlang/OTP. Built for high quality & Industrial use cases. The VerneMQ mission is active & the project maintained. Thank you for your support!",
-          "source": "github",
-          "status": "downloaded",
-          "domain_id": "general",
-          "query": "manufacturing quality",
-          "score": 68.0,
-          "reasons": [
-            "downloaded",
-            "local_file",
-            "size_ok",
-            "preferred_source",
-            "github_stars=3590"
-          ]
-        },
-        {
-          "id": 1679,
-          "title": "Review on Investigation and Optimization of Blanking Process using FEM and DOE technique to Analyze the Influence of Process Parameters on the Burr Height",
-          "source": "zenodo",
-          "status": "downloaded_existing",
-          "domain_id": "general",
-          "query": "blanking simulation",
-          "score": 66.0,
-          "reasons": [
-            "downloaded",
-            "pdf",
-            "size_ok",
-            "preferred_source"
-          ]
-        },
-        {
-          "id": 1680,
-          "title": "THE RESEARCH AND IMPLEMENTATION OF PASSENGER CAR'S TRANSPORTATION PLANNING PROBLEM",
-          "source": "zenodo",
-          "status": "downloaded_existing",
-          "domain_id": "general",
-          "query": "blanking simulation",
-          "score": 66.0,
-          "reasons": [
-            "downloaded",
-            "pdf",
-            "size_ok",
-            "preferred_source"
-          ]
-        },
-        {
-          "id": 1648,
-          "title": "ORIENTATION, DISPERSION AND LENGTH REDUCTION OF FIBRES IN LONG GLASS FIBRE REINFORCED INJECTION MOULDING",
-          "source": "zenodo",
-          "status": "downloaded_existing",
-          "domain_id": "general",
-          "query": "moldflow",
-          "score": 66.0,
-          "reasons": [
-            "downloaded",
-            "pdf",
-            "size_ok",
-            "preferred_source"
-          ]
-        },
-        {
-          "id": 1650,
-          "title": "Design and Analysis of Plastic Injection Parts by Using Moldflow",
-          "source": "zenodo",
-          "status": "downloaded_existing",
-          "domain_id": "general",
-          "query": "moldflow",
-          "score": 66.0,
-          "reasons": [
-            "downloaded",
-            "pdf",
-            "size_ok",
-            "preferred_source"
-          ]
-        },
-        {
-          "id": 1652,
-          "title": "INJECTION MOULDING PROCESS OPTIMIZATION OF CITRUS WASTE BIOCOMPOSITES BY SIMULATIONS AND TAGUCHI DOE",
-          "source": "zenodo",
-          "status": "downloaded_existing",
-          "domain_id": "general",
-          "query": "moldflow",
-          "score": 66.0,
-          "reasons": [
-            "downloaded",
-            "pdf",
-            "size_ok",
-            "preferred_source"
-          ]
-        },
-        {
-          "id": 1610,
-          "title": "Defect Segmentation of Magnetic Tiles with the Novel Ardise-U-Net",
-          "source": "zenodo",
-          "status": "downloaded_existing",
-          "domain_id": "general",
-          "query": "surface defect detection",
-          "score": 66.0,
-          "reasons": [
-            "downloaded",
-            "pdf",
-            "size_ok",
-            "preferred_source"
-          ]
-        },
-        {
-          "id": 1611,
-          "title": "Deep Learning-Driven Automated Inspection for Defect Detection in Leather and Footwear Manufacturing: A Comprehensive Review",
-          "source": "zenodo",
-          "status": "downloaded_existing",
-          "domain_id": "general",
-          "query": "surface defect detection",
-          "score": 66.0,
-          "reasons": [
-            "downloaded",
-            "pdf",
-            "size_ok",
-            "preferred_source"
-          ]
-        },
-        {
-          "id": 1612,
-          "title": "Fault Detection in Printed Circuit Board (PCB) using Image Subtraction Method",
-          "source": "zenodo",
-          "status": "downloaded_existing",
-          "domain_id": "general",
-          "query": "surface defect detection",
-          "score": 66.0,
-          "reasons": [
-            "downloaded",
-            "pdf",
-            "size_ok",
-            "preferred_source"
-          ]
-        },
-        {
-          "id": 1580,
-          "title": "Design and simulation of mechanical press for testing of coining tools with nanostructured coatings",
-          "source": "zenodo",
-          "status": "downloaded_existing",
-          "domain_id": "general",
-          "query": "press forming FEA",
-          "score": 66.0,
-          "reasons": [
-            "downloaded",
-            "pdf",
-            "size_ok",
-            "preferred_source"
-          ]
-        }
-      ],
-      "winning_queries": [
-        {
-          "domain_id": "general",
-          "query": "steel defect detection",
-          "hits": 2,
-          "downloaded": 2,
-          "score_sum": 98.0,
-          "max_score": 53.0,
-          "examples": [
-            "severstal-steel-defect-detection-masks",
-            "Severstal-Steel-Defect-Detection-TFRecord"
-          ],
-          "avg_score": 49.0,
-          "yield": 1.0
-        },
-        {
-          "domain_id": "general",
-          "query": "press forming FEA",
-          "hits": 76,
-          "downloaded": 29,
-          "score_sum": 1857.0,
-          "max_score": 66.0,
-          "examples": [
-            "Design and simulation of mechanical press for testing of coining tools with nanostructured coatings",
-            "STUDY ON REAL-TIME FINITE ELEMENT ANALYSIS SIMULATION AS A VISUALIZATION AND INTERACTION TOOL FOR SHEET METAL FORMING PR",
-            "METAL FORMING PROCESS SIMULATION BY FEA SOFTWARE"
-          ],
-          "avg_score": 24.43,
-          "yield": 0.382
-        },
-        {
-          "domain_id": "general",
-          "query": "injection molding simulation",
-          "hits": 93,
-          "downloaded": 31,
-          "score_sum": 1999.0,
-          "max_score": 66.0,
-          "examples": [
-            "Open source injection molding simulation. A solver for OpenFOAM.",
-            "Parameters required in DEM simulation.",
-            "3D-printed Laryngeal Injection Task Trainer (LITT<b>)</b> Data Set.xlsx"
-          ],
-          "avg_score": 21.49,
-          "yield": 0.333
-        },
-        {
-          "domain_id": "general",
-          "query": "progressive die",
-          "hits": 89,
-          "downloaded": 26,
-          "score_sum": 1706.0,
-          "max_score": 66.0,
-          "examples": [
-            "Epigenetic synthetic lethality as a cancer therapeutic strategy: synergy of experimental and computational approaches",
-            "IMP characteristics.",
-            "Circulating histones as potential biomarkers of MASLD-MASH-HCC progression"
-          ],
-          "avg_score": 19.17,
-          "yield": 0.292
-        },
-        {
-          "domain_id": "general",
-          "query": "manufacturing quality",
-          "hits": 50,
-          "downloaded": 19,
-          "score_sum": 1167.25,
-          "max_score": 68.0,
-          "examples": [
-            "I have built the computer vision models in 3 different ways addressing different personas, because not all companies wil",
-            "A distributed MQTT message broker based on Erlang/OTP. Built for high quality & Industrial use cases. The VerneMQ missio",
-            "<p>Characteristics of respondents (N = 31).</p>"
-          ],
-          "avg_score": 23.34,
-          "yield": 0.38
-        },
-        {
-          "domain_id": "general",
-          "query": "surface defect detection",
-          "hits": 98,
-          "downloaded": 25,
-          "score_sum": 1701.0,
-          "max_score": 66.0,
-          "examples": [
-            "m-abbasi-m/Car-Gear-Surface-Defect-Detection",
-            "缺陷检测文献记录",
-            "📈 目前最大的工业缺陷检测数据库及论文集 Constantly summarizing open source dataset and critical papers in the field of surface defect resea"
-          ],
-          "avg_score": 17.36,
-          "yield": 0.255
-        },
-        {
-          "domain_id": "general",
-          "query": "resin fill cavity",
-          "hits": 54,
-          "downloaded": 18,
-          "score_sum": 1193.0,
-          "max_score": 66.0,
-          "examples": [
-            "One-year clinical evaluation of class II bulk-fill restorations in primary molars: a randomized clinical trial",
-            "Effect of gastric acid on the surface roughness and bacterial adhesion of bulk-fill composite resins",
-            "Can composite packaging and selective enamel etching affect the clinical behavior of bulk-fill composite resin in poster"
-          ],
-          "avg_score": 22.09,
-          "yield": 0.333
-        },
-        {
-          "domain_id": "general",
-          "query": "OpenRadioss",
-          "hits": 49,
-          "downloaded": 17,
-          "score_sum": 1053.1999999999998,
-          "max_score": 66.0,
-          "examples": [
-            "This repository will host all Tools related to OpenRadioss like the userlib_sdk",
-            "OpenRadioss is a powerful, industry-proven finite element solver for dynamic event analysis ",
-            "SANDBOX – for material modelling of Dry Sand with OpenRadioss and python"
-          ],
-          "avg_score": 21.49,
-          "yield": 0.347
-        },
-        {
-          "domain_id": "general",
-          "query": "surface defect manufacturing",
-          "hits": 43,
-          "downloaded": 16,
-          "score_sum": 908.4,
-          "max_score": 66.0,
-          "examples": [
-            "surface-defect-detection-dataset",
-            "Manufacturing Defects",
-            "This project aims to automatically detect surface defects in Hot-Rolled Steel Strips such as rolled-in scale, patches, c"
-          ],
-          "avg_score": 21.13,
-          "yield": 0.372
-        },
-        {
-          "domain_id": "general",
-          "query": "thermoplastic injection general",
-          "hits": 34,
-          "downloaded": 13,
-          "score_sum": 833.0,
-          "max_score": 66.0,
-          "examples": [
-            "A comparative study between PETG and PLA for 3D Printing through thermal, chemical and mechanical characterization",
-            "The Potential of Cassava Starch as Binder in Injection Molding of 316L Stainless Steel Powder for Biomedical Application",
-            "FLAX FILLED THERMOPLASTIC BIOCOMPOSITE DEVELOPMENT FOR AUTOMOTIVE APPLICATIONS"
-          ],
-          "avg_score": 24.5,
-          "yield": 0.382
-        }
-      ],
-      "prioritized_queries": [
-        "steel defect detection",
-        "press forming FEA",
-        "injection molding simulation",
-        "progressive die",
-        "manufacturing quality",
-        "surface defect detection",
-        "resin fill cavity",
-        "OpenRadioss",
-        "thermoplastic injection general",
-        "plastic mold general"
+    "safety": [
+      "Use legal and terms-compliant access only.",
+      "Do not bypass paywalls, login gates, DRM, robots restrictions, or rate limits.",
+      "Classify each source as direct_free, free_registration, paid_or_subscription, manual_review, or no_go.",
+      "Download only direct_free sources with clear permission; queue all unclear sources for manual review.",
+      "Keep raw facts, inferred usefulness, and implementation recommendations separate."
+    ]
+  },
+  "new_site_discovery_policy": {
+    "enabled": true,
+    "intent": "Actively discover useful public websites beyond the currently registered source list, especially for CAE, Moldflow-class resin flow, tolerance/CETOL, OpenRadioss press forming, visual inspection AI, and hard-surface 3D/mecha rigging.",
+    "preferred_source_types": [
+      "official project documentation",
+      "university and lab pages",
+      "open benchmark datasets",
+      "arXiv or institutional repositories",
+      "conference/workshop pages",
+      "GitHub repositories with active maintenance",
+      "vendor technical blogs with public examples",
+      "standards-adjacent public guidance pages"
+    ],
+    "candidate_handling": {
+      "new_site_default_status": "manual_review",
+      "promote_to_registered_when": "license/access is clear, relevance is high, and at least one successful metadata or direct_free acquisition is recorded",
+      "record_required_fields": [
+        "source_url",
+        "title",
+        "publisher_or_site",
+        "access_date",
+        "license_or_cost_label",
+        "domain_tags",
+        "local_path_or_queue_id",
+        "hash_if_downloaded"
       ]
     }
+  },
+  "immediate_search_queue": [
+    {
+      "query": "hard surface robot image to 3D reference fidelity benchmark",
+      "domain_id": "rigging_animation_3d",
+      "priority": 1,
+      "reason": "Urgent mecha pipeline gap: reference shape fidelity before mechanical rigging.",
+      "mode": "immediate_bounded_scout",
+      "download_mode": "metadata_first_then_direct_free_only",
+      "status": "queued"
+    },
+    {
+      "query": "robot mesh part segmentation mechanical rigging dataset",
+      "domain_id": "rigging_animation_3d",
+      "priority": 2,
+      "reason": "Urgent mecha pipeline gap: reference shape fidelity before mechanical rigging.",
+      "mode": "immediate_bounded_scout",
+      "download_mode": "metadata_first_then_direct_free_only",
+      "status": "queued"
+    },
+    {
+      "query": "mecha hard surface auto rigging separate armor parts",
+      "domain_id": "rigging_animation_3d",
+      "priority": 3,
+      "reason": "Urgent mecha pipeline gap: reference shape fidelity before mechanical rigging.",
+      "mode": "immediate_bounded_scout",
+      "download_mode": "metadata_first_then_direct_free_only",
+      "status": "queued"
+    },
+    {
+      "query": "single image to 3D robot silhouette consistency metric",
+      "domain_id": "rigging_animation_3d",
+      "priority": 4,
+      "reason": "Urgent mecha pipeline gap: reference shape fidelity before mechanical rigging.",
+      "mode": "immediate_bounded_scout",
+      "download_mode": "metadata_first_then_direct_free_only",
+      "status": "queued"
+    },
+    {
+      "query": "3D generation reference fidelity chamfer silhouette CLIP score",
+      "domain_id": "rigging_animation_3d",
+      "priority": 5,
+      "reason": "Urgent mecha pipeline gap: reference shape fidelity before mechanical rigging.",
+      "mode": "immediate_bounded_scout",
+      "download_mode": "metadata_first_then_direct_free_only",
+      "status": "queued"
+    },
+    {
+      "query": "CAD like robot mesh retopology generated 3D model",
+      "domain_id": "rigging_animation_3d",
+      "priority": 6,
+      "reason": "Urgent mecha pipeline gap: reference shape fidelity before mechanical rigging.",
+      "mode": "immediate_bounded_scout",
+      "download_mode": "metadata_first_then_direct_free_only",
+      "status": "queued"
+    },
+    {
+      "query": "non deforming armor plate rigging Blender armature",
+      "domain_id": "rigging_animation_3d",
+      "priority": 7,
+      "reason": "Urgent mecha pipeline gap: reference shape fidelity before mechanical rigging.",
+      "mode": "immediate_bounded_scout",
+      "download_mode": "metadata_first_then_direct_free_only",
+      "status": "queued"
+    },
+    {
+      "query": "image conditioned 3D reconstruction hard surface object parts",
+      "domain_id": "rigging_animation_3d",
+      "priority": 8,
+      "reason": "Urgent mecha pipeline gap: reference shape fidelity before mechanical rigging.",
+      "mode": "immediate_bounded_scout",
+      "download_mode": "metadata_first_then_direct_free_only",
+      "status": "queued"
+    }
+  ],
+  "new_site_discovery_seed_queries": [
+    {
+      "query": "site:edu hard surface robot 3D reconstruction segmentation",
+      "domain_id": "rigging_animation_3d",
+      "priority": 1,
+      "goal": "Discover new legal/public source websites beyond the current registered list.",
+      "status": "seeded"
+    },
+    {
+      "query": "site:ac.jp robot 3D reconstruction segmentation rigging",
+      "domain_id": "rigging_animation_3d",
+      "priority": 2,
+      "goal": "Discover new legal/public source websites beyond the current registered list.",
+      "status": "seeded"
+    },
+    {
+      "query": "site:github.com robot mesh segmentation rigging hard surface",
+      "domain_id": "rigging_animation_3d",
+      "priority": 3,
+      "goal": "Discover new legal/public source websites beyond the current registered list.",
+      "status": "seeded"
+    },
+    {
+      "query": "site:arxiv.org image to 3D hard surface object reconstruction",
+      "domain_id": "rigging_animation_3d",
+      "priority": 4,
+      "goal": "Discover new legal/public source websites beyond the current registered list.",
+      "status": "seeded"
+    },
+    {
+      "query": "site:openaccess.thecvf.com 3D reconstruction part segmentation robot",
+      "domain_id": "rigging_animation_3d",
+      "priority": 5,
+      "goal": "Discover new legal/public source websites beyond the current registered list.",
+      "status": "seeded"
+    },
+    {
+      "query": "site:paperswithcode.com image to 3D reconstruction benchmark hard surface",
+      "domain_id": "rigging_animation_3d",
+      "priority": 6,
+      "goal": "Discover new legal/public source websites beyond the current registered list.",
+      "status": "seeded"
+    },
+    {
+      "query": "site:blenderartists.org hard surface robot rigging separate parts",
+      "domain_id": "rigging_animation_3d",
+      "priority": 7,
+      "goal": "Discover new legal/public source websites beyond the current registered list.",
+      "status": "seeded"
+    },
+    {
+      "query": "site:docs.blender.org armature parent rigid mesh objects robot rig",
+      "domain_id": "rigging_animation_3d",
+      "priority": 8,
+      "goal": "Discover new legal/public source websites beyond the current registered list.",
+      "status": "seeded"
+    }
+  ],
+  "new_site_discovery_candidates": [
+    {
+      "source_url": "https://arxiv.org/html/2506.05573v1",
+      "title": "PartCrafter: Structured 3D Mesh Generation via Compositional Latent Diffusion Transformers",
+      "publisher_or_site": "arXiv",
+      "access_date": "2026-06-19",
+      "license_or_cost_label": "direct_free_metadata",
+      "domain_tags": [
+        "image_to_3d",
+        "part_segmentation",
+        "mecha_reference_fidelity"
+      ],
+      "usefulness": "Primary reference for part-aware single-image 3D generation; compare against current Kaggle PartCrafter behavior and artifacts.",
+      "status": "manual_review"
+    },
+    {
+      "source_url": "https://github.com/VAST-AI-Research/HoloPart",
+      "title": "HoloPart: Generative 3D Part Amodal Segmentation",
+      "publisher_or_site": "GitHub",
+      "access_date": "2026-06-19",
+      "license_or_cost_label": "manual_review",
+      "domain_tags": [
+        "part_segmentation",
+        "mesh_completion",
+        "robot_parts"
+      ],
+      "usefulness": "Potential fallback or comparison path for complete semantic parts when PartCrafter shape fidelity is low.",
+      "status": "manual_review"
+    },
+    {
+      "source_url": "https://openreview.net/forum?id=2VsBJwefDC",
+      "title": "HoloPart: Generative 3D Part Amodal Segmentation",
+      "publisher_or_site": "OpenReview",
+      "access_date": "2026-06-19",
+      "license_or_cost_label": "direct_free_metadata",
+      "domain_tags": [
+        "part_segmentation",
+        "robot_example",
+        "amodal_completion"
+      ],
+      "usefulness": "Paper metadata and claims mention robot examples; useful for judging segmentation completeness.",
+      "status": "manual_review"
+    },
+    {
+      "source_url": "https://segeval.cs.princeton.edu/",
+      "title": "A Benchmark for 3D Mesh Segmentation",
+      "publisher_or_site": "Princeton Shape Benchmark / segeval",
+      "access_date": "2026-06-19",
+      "license_or_cost_label": "manual_review",
+      "domain_tags": [
+        "mesh_segmentation_benchmark",
+        "part_metrics",
+        "evaluation"
+      ],
+      "usefulness": "Provides quantitative segmentation evaluation concepts for deciding whether generated robot parts are mechanically meaningful.",
+      "status": "manual_review"
+    },
+    {
+      "source_url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC4281271/",
+      "title": "Multiview stereo and silhouette fusion via minimizing generalized reprojection error",
+      "publisher_or_site": "PubMed Central",
+      "access_date": "2026-06-19",
+      "license_or_cost_label": "direct_free",
+      "domain_tags": [
+        "silhouette_consistency",
+        "3d_reconstruction_metrics",
+        "shape_fidelity"
+      ],
+      "usefulness": "Useful background for a silhouette-based fidelity gate before rigging.",
+      "status": "candidate"
+    },
+    {
+      "source_url": "https://blenderartists.org/t/how-to-rig-character-with-separate-geo-for-limbs/1514095",
+      "title": "How to Rig Character with Separate Geo for Limbs?",
+      "publisher_or_site": "Blender Artists",
+      "access_date": "2026-06-19",
+      "license_or_cost_label": "direct_free_metadata",
+      "domain_tags": [
+        "mechanical_rigging",
+        "separate_mesh_parts",
+        "hard_surface"
+      ],
+      "usefulness": "Practical confirmation that mechanical rigs should often use separate mesh objects parented to bones instead of soft weights.",
+      "status": "candidate"
+    },
+    {
+      "source_url": "https://blender.stackexchange.com/questions/221830/how-would-i-combine-hard-surfaces-and-soft-surfaces-for-rigging-a-robot",
+      "title": "How would I combine hard surfaces and soft surfaces for rigging a robot?",
+      "publisher_or_site": "Blender StackExchange",
+      "access_date": "2026-06-19",
+      "license_or_cost_label": "direct_free_metadata",
+      "domain_tags": [
+        "robot_rigging",
+        "hard_surface",
+        "vertex_groups"
+      ],
+      "usefulness": "Practical rigging notes for mixed hard/soft robot components; useful for avoiding arm collapse artifacts.",
+      "status": "candidate"
+    }
+  ],
+  "last_immediate_search_run": {
+    "ran_at": "2026-06-19T12:27:13.139579+09:00",
+    "reason": "User approved urgent targeted searches and broader new-site discovery for the current mecha reference-fidelity/rigging bottleneck.",
+    "queries_run": [
+      "hard surface robot image to 3D reference fidelity benchmark mesh segmentation mechanical rigging",
+      "image to 3D reconstruction hard surface object part segmentation silhouette consistency metric",
+      "robot mesh segmentation mechanical rigging hard surface Blender separate parts",
+      "PartCrafter HoloPart image to 3D part segmentation robot mesh"
+    ],
+    "candidate_count_added_or_seen": 7,
+    "verdict": "ADOPT_PARTIAL: keep metadata-first candidates; use direct-free material only after license/access check."
   }
 }

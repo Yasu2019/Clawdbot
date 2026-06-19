@@ -20,6 +20,21 @@ if hasattr(sys.stdout, "reconfigure"):
         pass
 
 ROOT = Path(__file__).resolve().parents[4]
+
+# 手動でROOTの.envをロードする (python-dotenv不要の非侵襲ロジック)
+def _load_root_env() -> None:
+    env_path = ROOT / ".env"
+    if not env_path.exists():
+        return
+    for raw in env_path.read_text(encoding="utf-8", errors="replace").splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, _, value = line.partition("=")
+        os.environ.setdefault(key.strip(), value.strip().strip('"').strip("'"))
+
+_load_root_env()
+
 TROUBLE_HISTORY = ROOT / "data" / "workspace" / "memory" / "trouble_history.md"
 LESSONS_DB = ROOT / "data" / "workspace" / "iatf_generation_lessons.json"
 QUALITY_KNOWLEDGE = ROOT / "data" / "workspace" / "quality_manufacturing_knowledge_inject.md"
@@ -359,6 +374,47 @@ def _extract_json_from_text(text: str) -> dict:
     return json.loads(text)  # 最終フォールバック（失敗時はそのまま例外を投げる）
 
 
+def _call_llm_direct_opencode(prompt: str) -> dict | None:
+    """LiteLLM迂回: 直接OpenCode GO API を呼ぶ。"""
+    import urllib.request
+    base_url = os.getenv("OPENCODE_GO_API_BASE", "").rstrip("/")
+    key = os.getenv("OPENCODE_GO_API_KEY", "")
+    if not base_url or not key:
+        return None
+    models = ["kimi-k2.6", "deepseek-v4-flash"]
+    for model in models:
+        try:
+            payload = json.dumps({
+                "model": model,
+                "messages": [{"role": "user", "content": prompt}],
+                "temperature": 0.2,
+                "max_tokens": 4096,
+            }).encode("utf-8")
+            req = urllib.request.Request(
+                base_url + "/chat/completions",
+                data=payload,
+                headers={
+                    "Content-Type": "application/json",
+                    "Authorization": f"Bearer {key}",
+                    "User-Agent": "OpenCode/1.0",
+                },
+                method="POST",
+            )
+            # タイムアウトを120秒に引き上げ
+            with urllib.request.urlopen(req, timeout=120) as resp:
+                body = resp.read().decode("utf-8", "replace")
+            data = json.loads(body)
+            raw = data["choices"][0]["message"]["content"]
+            result = _extract_json_from_text(raw)
+            result["_model_used"] = f"direct/{model}"
+            result["_completed_at"] = time.strftime("%Y-%m-%dT%H:%M:%S")
+            print(f"  [QualityPreflight] OpenCode direct OK (model={model})", flush=True)
+            return result
+        except Exception as e:
+            print(f"  [QualityPreflight] OpenCode direct {model} failed: {e}", flush=True)
+    return None
+
+
 def _call_llm_direct_gemini(prompt: str) -> dict | None:
     """LiteLLM迂回: 直接Gemini APIを呼ぶ。成功したらdictを返し、失敗したらNone。"""
     import urllib.request
@@ -397,7 +453,13 @@ def _call_llm_direct_gemini(prompt: str) -> dict | None:
 def _call_llm(prompt: str) -> dict:
     import urllib.request
 
-    timeout = int(os.getenv("IATF_QUALITY_PREFLIGHT_TIMEOUT_SEC", "15"))
+    # OpenCode直接API (DeepSeek-v4-flash) を最優先で試みます (24x7 安定軌道用)
+    print("  [QualityPreflight] OpenCode直接APIを最優先で試みます...", flush=True)
+    result = _call_llm_direct_opencode(prompt)
+    if result is not None:
+        return result
+
+    timeout = int(os.getenv("IATF_QUALITY_PREFLIGHT_TIMEOUT_SEC", "60"))
     models = [
         "google/gemini-2.5-flash",
         "opencode-go/deepseek-v4-flash",
@@ -428,7 +490,7 @@ def _call_llm(prompt: str) -> dict:
             with urllib.request.urlopen(req, timeout=timeout) as resp:
                 data = json.loads(resp.read())
                 raw = data["choices"][0]["message"]["content"]
-                result = json.loads(raw)
+                result = _extract_json_from_text(raw)
                 result["_model_used"] = model
                 result["_completed_at"] = time.strftime("%Y-%m-%dT%H:%M:%S")
                 print(f"  [QualityPreflight] LLM OK via LiteLLM (model={model})", flush=True)
@@ -438,8 +500,13 @@ def _call_llm(prompt: str) -> dict:
             print(f"  [QualityPreflight] LiteLLM {model} failed: {e}", flush=True)
             time.sleep(0.5)
 
-    # LiteLLM全滅時は直接Gemini APIを試みる
-    print("  [QualityPreflight] LiteLLM全ルート失敗 → Gemini直接APIを試みます", flush=True)
+    # LiteLLM全滅時は直接OpenCode / Gemini APIを試みる
+    print("  [QualityPreflight] LiteLLM全ルート失敗 → OpenCode直接APIを試みます", flush=True)
+    result = _call_llm_direct_opencode(prompt)
+    if result is not None:
+        return result
+
+    print("  [QualityPreflight] OpenCode直接失敗 → Gemini直接APIを試みます", flush=True)
     result = _call_llm_direct_gemini(prompt)
     if result is not None:
         return result

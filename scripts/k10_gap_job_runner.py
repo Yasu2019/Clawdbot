@@ -94,6 +94,14 @@ def run_tolerance_gap(out_dir: Path, difficulty: int = 1) -> dict[str, Any]:
     job_dir = out_dir / run_id
     job_dir.mkdir(parents=True, exist_ok=True)
     params = {"chain_length": 3, "gdt_feature_count": 2, "spec_limit_mm": 0.5}
+    hist = ROOT / "data" / "workspace" / "thinkpad_dxf2step_history"
+    manifests = sorted(
+        hist.glob("*/part_manifest.json"),
+        key=lambda p: p.stat().st_mtime,
+        reverse=True,
+    )
+    if manifests:
+        params["part_manifest_path"] = str(manifests[0].resolve())
     result = growth.run_tolerance_analysis_proxy(job_dir, difficulty, params)
     return {
         "job": "tolerance_analysis",

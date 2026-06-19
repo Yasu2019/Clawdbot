@@ -50,6 +50,20 @@ def lavie_run_dir(trial_id: str, cfg: dict[str, Any] | None = None) -> str:
     return f"{ws}\\runs\\{trial_id}".replace("/", "\\")
 
 
+def normalize_lavie_run_dir(run_dir: str, trial_id: str, cfg: dict[str, Any] | None = None) -> str:
+    """Accept /e/... or E:\\... from trial_entry; return Windows path on LAVIE."""
+    if not run_dir:
+        return lavie_run_dir(trial_id, cfg)
+    rd = run_dir.strip().replace("/", "\\")
+    if rd.lower().startswith("\\e\\"):
+        rd = "E:" + rd[2:]
+    elif len(rd) >= 2 and rd[1] == ":":
+        pass
+    elif rd.lower().startswith("e\\"):
+        rd = "E:" + rd[1:]
+    return rd
+
+
 def probe_lavie_worker(cfg: dict[str, Any] | None = None) -> tuple[bool, str]:
     cfg = cfg or router.load_config()
     try:
@@ -61,26 +75,47 @@ def probe_lavie_worker(cfg: dict[str, Any] | None = None) -> tuple[bool, str]:
         return False, str(exc)[:200]
 
 
-def zip_run_on_lavie(trial_id: str, lavie_run_dir: str, *, timeout: int = 600) -> bool:
-    lavie_temp = r"C:\lavie_usb_pack\temp"
-    lavie_zip = f"{lavie_temp}\\{trial_id}.zip"
-    zip_ps = (
-        f"powershell -NoProfile -Command \""
-        f"New-Item -ItemType Directory -Force -Path '{lavie_temp}' | Out-Null; "
-        f"if (Test-Path '{lavie_zip}') {{ Remove-Item '{lavie_zip}' -Force }}; "
-        f"Compress-Archive -LiteralPath '{lavie_run_dir}' -DestinationPath '{lavie_zip}' -Force; "
-        f"Write-Host ZIP_DONE\""
-    )
-    r = sync.dispatch_shell("lavie", zip_ps, timeout, sjp.load_token())
-    out = (r.get("stdout_tail") or "") + (r.get("stderr_tail") or "")
-    return r.get("status") == "ok" and "ZIP_DONE" in out
+LAVIE_RUN_VOL = "e:/clawstack_satellite/data/work/cae_te_workspace/runs"
+LAVIE_TEMP_VOL = "c:/lavie_usb_pack/temp"
 
 
-def pull_zip_from_lavie(trial_id: str, *, timeout: int = 900) -> Path | None:
-    """LAVIE PUT zip to K10 upload server; return local zip path."""
-    k10_ip = sync.detect_k10_tailscale_ip()
+def lavie_bridge_ip(cfg: dict[str, Any] | None = None) -> str:
+    cfg = cfg or router.load_config()
+    return str((cfg.get("lavie") or {}).get("ip") or "100.87.244.46")
+
+
+def bridge_cmd(ip: str, cmd: str, timeout: int = 600) -> tuple[bool, str]:
+    import httpx
+
+    url = f"http://{ip}:5679/webhook/exec_bridge"
+    try:
+        resp = httpx.post(url, json={"cmd": cmd}, timeout=timeout)
+        if resp.status_code != 200:
+            return False, f"http {resp.status_code} {resp.text[:300]}"
+        body = resp.json()
+        out = (body.get("stdout") or "") + (body.get("stderr") or "")
+        ok = int(body.get("exitCode", 1)) == 0
+        return ok, out
+    except Exception as exc:
+        return False, str(exc)[:300]
+
+
+def satellite_bridge_ip(cfg: dict[str, Any], node: str) -> str:
+    return str((cfg.get(node) or {}).get("ip") or "")
+
+
+def pull_zip_from_satellite(
+    node_ip: str,
+    trial_id: str,
+    *,
+    zip_host_path: str = "",
+    timeout: int = 900,
+) -> Path | None:
+    """Remote node PUT zip to K10 upload server; return local zip path."""
+    import k10_sync_cae_experiments_to_lavie as sync
+
     zip_name = f"{trial_id}.zip"
-    lavie_zip = f"C:\\lavie_usb_pack\\temp\\{zip_name}"
+    k10_ip = sync.detect_k10_tailscale_ip()
     received: dict[str, Path] = {}
 
     class UploadHandler(BaseHTTPRequestHandler):
@@ -104,19 +139,117 @@ def pull_zip_from_lavie(trial_id: str, *, timeout: int = 900) -> Path | None:
     thread.start()
     try:
         upload_url = f"http://{k10_ip}:{UPLOAD_PORT}/{zip_name}"
-        put_ps = (
-            f"powershell -NoProfile -Command \""
-            f"Invoke-WebRequest -Uri '{upload_url}' -Method Put -InFile '{lavie_zip}' "
-            f"-UseBasicParsing; Write-Host UPLOAD_OK\""
-        )
-        r = sync.dispatch_shell("lavie", put_ps, timeout, sjp.load_token())
-        out = (r.get("stdout_tail") or "") + (r.get("stderr_tail") or "")
-        if "UPLOAD_OK" not in out or "path" not in received:
-            print(f"[NG] upload: {out[-400:]}", flush=True)
+        if zip_host_path.startswith("/tmp/"):
+            curl_sh = f"bash -lc 'curl -sS -T {zip_host_path} -X PUT {upload_url} && echo UPLOAD_OK'"
+            ok, out = bridge_cmd(node_ip, curl_sh, timeout)
+        else:
+            curl_sh = (
+                f"docker run --rm -v {LAVIE_TEMP_VOL}:/t curlimages/curl:latest "
+                f"curl -sS -T /t/{zip_name} -X PUT {upload_url} && echo UPLOAD_OK"
+            )
+            ok, out = bridge_cmd(node_ip, curl_sh, timeout)
+        if not ok or "UPLOAD_OK" not in out:
+            print(f"[NG] satellite upload from {node_ip}: {out[-400:]}", flush=True)
+            return None
+        if "path" not in received:
+            print("[NG] upload: K10 did not receive zip", flush=True)
             return None
         return received["path"]
     finally:
         server.shutdown()
+
+
+def zip_run_on_node(
+    node: str,
+    trial_id: str,
+    run_dir: str,
+    cfg: dict[str, Any] | None = None,
+    *,
+    timeout: int = 600,
+) -> bool:
+    cfg = cfg or router.load_config()
+    ip = satellite_bridge_ip(cfg, node)
+    if not ip:
+        return False
+    zip_name = f"{trial_id}.zip"
+    zip_sh = (
+        f"docker run --rm -v {LAVIE_RUN_VOL}:/runs -v {LAVIE_TEMP_VOL}:/out alpine "
+        f"sh -c \"apk add -q zip >/dev/null 2>&1; rm -f /out/{zip_name}; "
+        f"cd /runs && zip -r -q /out/{zip_name} {trial_id} && echo ZIP_DONE\""
+    )
+    ok, out = bridge_cmd(ip, zip_sh, timeout)
+    if ok and "ZIP_DONE" in out:
+        return True
+    ws_unix = "/e/clawstack_satellite/data/work/cae_te_workspace/runs"
+    bash_zip = (
+        f"bash -lc 'mkdir -p /tmp/lavie_fill_zip && rm -f /tmp/lavie_fill_zip/{zip_name} && "
+        f"cd {ws_unix} && zip -r -q /tmp/lavie_fill_zip/{zip_name} {trial_id} && echo ZIP_DONE'"
+    )
+    r = sync.dispatch_shell(node, bash_zip, timeout, sjp.load_token())
+    out2 = (r.get("stdout_tail") or "") + (r.get("stderr_tail") or "")
+    return r.get("status") == "ok" and "ZIP_DONE" in out2
+
+
+def zip_run_on_lavie(trial_id: str, lavie_run_dir: str, *, timeout: int = 600) -> bool:
+    return zip_run_on_node("lavie", trial_id, lavie_run_dir, timeout=timeout)
+
+
+def pull_zip_via_worker(
+    node: str,
+    trial_id: str,
+    zip_path_on_node: str,
+    *,
+    timeout: int = 900,
+) -> Path | None:
+    import k10_sync_cae_experiments_to_lavie as sync
+
+    zip_name = f"{trial_id}.zip"
+    k10_ip = sync.detect_k10_tailscale_ip()
+    received: dict[str, Path] = {}
+
+    class UploadHandler(BaseHTTPRequestHandler):
+        def do_PUT(self):
+            name = self.path.lstrip("/") or zip_name
+            dest = INCOMING / name
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            length = int(self.headers.get("Content-Length", 0))
+            dest.write_bytes(self.rfile.read(length))
+            received["path"] = dest
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(b"OK")
+
+        def log_message(self, fmt, *args):
+            print(f"[upload] {fmt % args}", flush=True)
+
+    INCOMING.mkdir(parents=True, exist_ok=True)
+    server = HTTPServer(("0.0.0.0", UPLOAD_PORT), UploadHandler)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    try:
+        upload_url = f"http://{k10_ip}:{UPLOAD_PORT}/{zip_name}"
+        put_cmd = (
+            f"bash -lc 'curl -sS -T {zip_path_on_node} -X PUT {upload_url} && echo UPLOAD_OK'"
+        )
+        r = sync.dispatch_shell(node, put_cmd, timeout, sjp.load_token())
+        out = (r.get("stdout_tail") or "") + (r.get("stderr_tail") or "")
+        if "UPLOAD_OK" not in out:
+            print(f"[NG] worker upload from {node}: {out[-400:]}", flush=True)
+            return None
+        return received.get("path")
+    finally:
+        server.shutdown()
+
+
+def pull_zip_from_lavie(trial_id: str, *, timeout: int = 900) -> Path | None:
+    """LAVIE PUT zip to K10 upload server; return local zip path."""
+    cfg = router.load_config()
+    ip = lavie_bridge_ip(cfg)
+    zpath = pull_zip_from_satellite(ip, trial_id, timeout=timeout)
+    if zpath:
+        return zpath
+    zip_name = f"{trial_id}.zip"
+    return pull_zip_via_worker("lavie", trial_id, f"/tmp/lavie_fill_zip/{zip_name}", timeout=timeout)
 
 
 def extract_run_zip(zip_path: Path, trial_id: str) -> Path:
@@ -151,7 +284,7 @@ def send_fill_video_via_k10_pull(
     if not ok:
         return {"ok": False, "error": f"lavie_worker_offline: {detail}"}
 
-    rd = run_dir.replace("/", "\\") if run_dir else lavie_run_dir(trial_id, cfg)
+    rd = normalize_lavie_run_dir(run_dir, trial_id, cfg) if run_dir else lavie_run_dir(trial_id, cfg)
     if not zip_run_on_lavie(trial_id, rd):
         return {"ok": False, "error": "lavie_zip_failed"}
 
@@ -160,20 +293,21 @@ def send_fill_video_via_k10_pull(
         return {"ok": False, "error": "k10_pull_failed"}
 
     local_run = extract_run_zip(zpath, trial_id)
-    import moldflow_fill_video_telegram as mfv
+    import cae_paraview_video_delivery as cpvd
 
-    sent = mfv.send_fill_video_for_run(
+    result = cpvd.deliver_local_run(
+        "openfoam",
         local_run,
         trial_id,
         category=category,
         host="lavie",
-        delete_after=delete_after,
+        delete_after=True,
     )
     try:
         zpath.unlink(missing_ok=True)
     except OSError:
         pass
-    return {"ok": sent, "source": "k10_pull_render", "trial_id": trial_id, "run_dir": str(local_run)}
+    return {"ok": bool(result.get("ok")), "source": "k10_pull_paraview", "trial_id": trial_id, "run_dir": str(local_run), "detail": result}
 
 
 def try_lavie_local_fill_video(
@@ -186,7 +320,7 @@ def try_lavie_local_fill_video(
     """Optional fast path when LAVIE has tools\\ffmpeg.exe + pyvista."""
     cfg = cfg or router.load_config()
     repo = (cfg.get("cae_workspace_sync") or {}).get("lavie_repo_root", "C:/lavie_usb_pack")
-    rd = run_dir.replace("/", "\\") if run_dir else lavie_run_dir(trial_id, cfg)
+    rd = normalize_lavie_run_dir(run_dir, trial_id, cfg) if run_dir else lavie_run_dir(trial_id, cfg)
     py = r"C:\Users\ysuzu\AppData\Local\Programs\Python\Python311\python.exe"
     cmd = (
         f'cmd.exe /c "set PATH={repo}\\tools;%PATH%&& cd /d \"{repo}\"&& '

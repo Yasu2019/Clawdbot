@@ -257,6 +257,18 @@ This activity is valuable and should be broad and frequent, but legality is a ha
 - Convert useful collected knowledge into traceable backlog items, benchmark candidates, or implementation proposals; do not let candidates sit idle.
 - If legality, license, privacy, or confidentiality is unclear, stop at metadata and ask or mark as `manual_review`.
 
+### Urgent Knowledge Gap Rule
+
+When the user or agent identifies an urgent bottleneck, do not wait for the next scheduled download/scout window. Add only the needed search words to the immediate search queue and run a bounded, focused search immediately.
+
+- Treat user time as a scarce resource. Prefer the fastest safe path to useful evidence over waiting for routine batch schedules.
+- Search beyond the currently registered websites when the existing source list is insufficient. Actively discover new global public websites, repositories, papers, benchmark pages, forums, and official documentation.
+- Keep urgent searches bounded: focused queries, explicit timeout/result limits, no unlimited crawling, and no duplicate workflow creation.
+- Use metadata-first scouting for new websites. Promote a new site only after relevance, access legality, and license/cost status are clear.
+- Download immediately only for clearly legal `direct_free` sources. Put `free_registration`, `paid_or_subscription`, unclear, or sensitive sources into an acquisition/review queue.
+- Record every urgent run with query, reason, source URL, title, access date, license/cost label, status, and next action.
+- Convert high-value findings into backlog items, benchmark candidates, or implementation proposals during the same work session where practical.
+
 ## Mandatory Backup Rule
 Before any large change, refactor, layout/UI change, route change, or multi-file edit:
 
@@ -380,14 +392,20 @@ bd close <id>         # Complete work
 <!-- END BEADS INTEGRATION -->
 
 ## Incident & Failure Management Rule (RCA Protocol)
-If a past instruction is missed, a code failure occurs, or the user points out a quality incident, the AI MUST immediately:
+If any job fails, a past instruction is missed, a code failure occurs, or the user points out a quality incident, the AI MUST immediately:
 1. Conduct a deep Root Cause Analysis (RCA) using frameworks such as:
    - 5 Whys (なぜなぜ分析)
    - Fishbone Diagram / Ishikawa (特性要因図)
    - Fault Tree Analysis (FTA)
    - Logical Tree (ロジカルツリー)
    - FMEA (Failure Mode and Effects Analysis)
-2. Document the findings in a persistent .md artifact (e.g., quality_incident_report_XXX.md).
-3. Explicitly define countermeasures and strict rules to prevent recurrence.
-4. Record the rule in the relevant core files (like Beads, Byterover, or this MD file).
-5. Always confirm the countermeasure implementation plan with the user before resuming execution.
+2. For every failed job type (build, test, simulation, render, download, scraper, CI, model run, batch job, API job, or automation), explicitly consider whether global web knowledge collection is needed to identify the root cause, find known fixes, compare alternative approaches, or improve the countermeasure.
+   - If web knowledge may help, run a bounded metadata-first search under the Urgent Knowledge Gap Rule.
+   - Search beyond registered sites when needed, but use only legal, authorized, and terms-compliant access.
+   - Download only clearly legal `direct_free` sources; queue unclear, registration-only, paid, or sensitive sources for review.
+   - Record the search queries, candidate sources, access/legal status, extracted lesson, and whether the finding changed the countermeasure.
+   - If web search is not useful or safe, record the reason in the RCA.
+3. Document the findings in a persistent .md artifact (e.g., quality_incident_report_XXX.md).
+4. Explicitly define countermeasures and strict rules to prevent recurrence.
+5. Record the rule in the relevant core files (like Beads, Byterover, or this MD file).
+6. Always confirm the countermeasure implementation plan with the user before resuming execution.

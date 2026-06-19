@@ -243,6 +243,13 @@ RUN pip3 install --no-cache-dir --break-system-packages mujoco pybullet
 RUN pip3 install --no-cache-dir --break-system-packages pfta
 
 # ============================================================
+# LAYER 44b: R package build deps (AlgDesign / DoE.wrapper need gmp + gfortran)
+# ============================================================
+RUN apt-get update && apt-get install -y --no-install-recommends -o Acquire::Retries=5 \
+    r-base-dev libgmp-dev gfortran libcurl4-openssl-dev libssl-dev libxml2-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# ============================================================
 # LAYER 45-49: R packages (each package separate)
 # If one package fails, all previous ones are cached
 # ============================================================

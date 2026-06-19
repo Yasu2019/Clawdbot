@@ -16,11 +16,11 @@
 | **Dynabook** | 100.98.133.40 | ✅ ONLINE | 4% | 40% | 72.0°C (LHM) | 軽監視・小ジョブ（温度高め注意） |
 | **G3** | 100.121.241.128 | ✅ ONLINE | - | - | - | n8n自動化・スクレイピング |
 | **ThinkPad L590** | 100.66.63.9 | ❌ OFFLINE | - | - | - | SSH接続タイムアウト中 |
-| **Lavie Core i3** | 100.67.36.121 | ⏳ PENDING | - | - | - | 新規追加・monitor_agent未起動 |
+| **Lavie Core i3** | 100.67.36.121 | ✅ ACTIVE | - | - | - | 新規追加・K10管理サテライト |
 
 > **Dynabook 注意:** 温度72°C → 熱的マージン薄い。重タスク禁止。  
 > **ThinkPad:** SSH疎通なし（2026-06-15 18:33時点）。原因調査が必要。  
-> **Lavie Core i3:** 本日フリート登録完了。Python/monitor_agent導入待ち。
+> **Lavie Core i3:** フリート登録・制御設定完了。
 
 ---
 
@@ -117,7 +117,7 @@
 | 🟡 中 | **LAVIE temp_source=fallback**（LHM未設定） | → `lhm_setup.ps1` 実行で修正可 |
 | 🟡 中 | **K10 temp_source=fallback** | → LHM HTTP設定が必要 |
 | 🟡 中 | **Email締切検出率 74.3%**（目標未達） | → quality_eval再実行で改善 |
-| 🟢 低 | **Lavie Core i3 monitor_agent未起動** | → Python + monitor_agent インストール待ち |
+| 🟢 低 | **Lavie Core i3 monitor_agent未起動** | → monitor_agent 起動待ち |
 | 🟢 低 | **箇条8.5.1.5 IATF動画** | → LLM API復旧後に run_host.py 再実行 |
 
 ---
@@ -148,7 +148,7 @@ K10 (統括・オーケストレーション)
 ├─── Vivobook (100.65.182.27) ← 軽ジョブ（昼間制限）
 ├─── G3 (100.121.241.128)     ← n8n自動化・スクレイピング
 ├─── ThinkPad (100.66.63.9)   ← [OFFLINE] CAE候補
-└─── Lavie Core i3 (100.67.36.121) ← [PENDING] 新規追加
+└─── Lavie Core i3 (100.67.36.121) ← [ACTIVE] K10編集・制御可能
 ```
 
 ---

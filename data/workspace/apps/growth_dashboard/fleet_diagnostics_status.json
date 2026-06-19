@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-06-11T09:01:12+09:00",
+  "updated_at": "2026-06-18T06:03:24+09:00",
   "schema": "clawstack.fleet_diagnostics_status.v1",
   "nodes": [
     {
@@ -8,7 +8,7 @@
       "metrics_url": "http://127.0.0.1:8111/metrics",
       "active_metrics_url": "http://127.0.0.1:8111/metrics",
       "diagnostics_url": "http://127.0.0.1:8111/diagnostics",
-      "active_diagnostics_url": "http://127.0.0.1:8112/diagnostics",
+      "active_diagnostics_url": "http://127.0.0.1:8111/diagnostics",
       "metrics_online": true,
       "diagnostics_online": true,
       "metrics_status": 200,
@@ -17,212 +17,109 @@
       "diagnostics_error": null,
       "metrics": {
         "hostname": "NucBox_K10",
-        "cpu_usage_percent": 0.0,
-        "ram_usage_percent": 67.9,
-        "ram_used_gb": 32.45,
+        "cpu_usage_percent": 6.0,
+        "ram_usage_percent": 49.1,
+        "ram_used_gb": 23.45,
         "ram_total_gb": 47.77,
         "cpu_temp_celsius": 27.9,
         "thermal_control_temp_c": null,
         "lhm_ok": false,
-        "temp_source": "fallback"
+        "temp_source": "fallback",
+        "node_diagnostic": {
+          "enabled": true,
+          "root": "C:\\ProgramData\\Clawstack\\monitor_agent\\node_diagnostics\\NucBox_K10",
+          "retention_hours": 72,
+          "metrics_interval_sec": 60,
+          "files": [
+            {
+              "name": "diagnostic_20260615.jsonl",
+              "bytes": 1323926,
+              "modified": "2026-06-18T05:07:51"
+            },
+            {
+              "name": "diagnostic_20260616.jsonl",
+              "bytes": 1837103,
+              "modified": "2026-06-18T05:07:51"
+            },
+            {
+              "name": "diagnostic_20260617.jsonl",
+              "bytes": 1624191,
+              "modified": "2026-06-18T05:07:51"
+            },
+            {
+              "name": "diagnostic_20260618.jsonl",
+              "bytes": 384754,
+              "modified": "2026-06-18T06:02:04"
+            }
+          ],
+          "total_bytes": 5169974
+        },
+        "fleet_evidence": {
+          "last_local_path": "C:\\ProgramData\\Clawstack\\monitor_agent\\fleet_evidence\\local\\NucBox_K10\\evidence_20260618.jsonl",
+          "last_upload": {
+            "ok": false,
+            "error": "<urlopen error [WinError 10061] 対象のコンピューターによって拒否されたため、接続できませんでした。>",
+            "url": "http://100.119.18.40:8113/fleet_evidence"
+          },
+          "last_at": "2026-06-18T06:01:55",
+          "url": "http://100.119.18.40:8113/fleet_evidence"
+        }
       },
       "diagnostic_status": {
         "enabled": true,
         "root": "C:\\ProgramData\\Clawstack\\monitor_agent\\node_diagnostics\\NucBox_K10",
-        "retention_hours": 24,
+        "retention_hours": 72,
         "metrics_interval_sec": 60,
         "files": [
           {
-            "name": "diagnostic_20260610.jsonl",
-            "bytes": 2426382,
-            "modified": "2026-06-11T08:20:18"
+            "name": "diagnostic_20260615.jsonl",
+            "bytes": 1323926,
+            "modified": "2026-06-18T05:07:51"
           },
           {
-            "name": "diagnostic_20260611.jsonl",
-            "bytes": 1630598,
-            "modified": "2026-06-11T09:00:33"
+            "name": "diagnostic_20260616.jsonl",
+            "bytes": 1837103,
+            "modified": "2026-06-18T05:07:51"
+          },
+          {
+            "name": "diagnostic_20260617.jsonl",
+            "bytes": 1624191,
+            "modified": "2026-06-18T05:07:51"
+          },
+          {
+            "name": "diagnostic_20260618.jsonl",
+            "bytes": 385814,
+            "modified": "2026-06-18T06:02:41"
           }
         ],
-        "total_bytes": 4056980
+        "total_bytes": 5171034
       },
       "recent_count": 200,
       "last_recent_event": {
         "schema": "clawstack.node_diagnostic.v1",
-        "timestamp": "2026-06-11T09:00:33",
+        "timestamp": "2026-06-18T06:02:41",
         "hostname": "NucBox_K10",
-        "event": "fleet_evidence",
-        "severity": "info",
+        "event": "metrics_snapshot",
+        "severity": "warn",
         "payload": {
-          "local_path": "C:\\ProgramData\\Clawstack\\monitor_agent\\fleet_evidence\\local\\NucBox_K10\\evidence_20260611.jsonl",
-          "upload": {
-            "ok": true,
-            "status": 200,
-            "body": "{\"ok\": true, \"saved_path\": \"C:\\\\ProgramData\\\\Clawstack\\\\monitor_agent\\\\fleet_evidence\\\\received\\\\NucBox_K10\\\\evidence_20260611.jsonl\"}"
-          },
-          "windows_event_summary_24h": {
-            "window_hours": 24,
-            "counts": {
-              "system": 7,
-              "power": 14,
-              "network": 1
-            },
-            "events": [
-              {
-                "time": "/Date(1781134216541)/",
-                "id": 7040,
-                "provider": "Service Control Manager",
-                "level": "���",
-                "category": "system"
-              },
-              {
-                "time": "/Date(1781133611022)/",
-                "id": 7040,
-                "provider": "Service Control Manager",
-                "level": "���",
-                "category": "system"
-              },
-              {
-                "time": "/Date(1781133083989)/",
-                "id": 16,
-                "provider": "Microsoft-Windows-Kernel-General",
-                "level": "���",
-                "category": "power"
-              },
-              {
-                "time": "/Date(1781115048719)/",
-                "id": 4266,
-                "provider": "Tcpip",
-                "level": "�x��",
-                "category": "network"
-              },
-              {
-                "time": "/Date(1781092078219)/",
-                "id": 7040,
-                "provider": "Service Control Manager",
-                "level": "���",
-                "category": "system"
-              },
-              {
-                "time": "/Date(1781092067133)/",
-                "id": 7040,
-                "provider": "Service Control Manager",
-                "level": "���",
-                "category": "system"
-              },
-              {
-                "time": "/Date(1781091852418)/",
-                "id": 7040,
-                "provider": "Service Control Manager",
-                "level": "���",
-                "category": "system"
-              },
-              {
-                "time": "/Date(1781091832322)/",
-                "id": 7040,
-                "provider": "Service Control Manager",
-                "level": "���",
-                "category": "system"
-              },
-              {
-                "time": "/Date(1781091828647)/",
-                "id": 7040,
-                "provider": "Service Control Manager",
-                "level": "���",
-                "category": "system"
-              },
-              {
-                "time": "/Date(1781091548814)/",
-                "id": 16,
-                "provider": "Microsoft-Windows-Kernel-General",
-                "level": "���",
-                "category": "power"
-              },
-              {
-                "time": "/Date(1781091537144)/",
-                "id": 16,
-                "provider": "Microsoft-Windows-Kernel-General",
-                "level": "���",
-                "category": "power"
-              },
-              {
-                "time": "/Date(1781091537081)/",
-                "id": 16,
-                "provider": "Microsoft-Windows-Kernel-General",
-                "level": "���",
-                "category": "power"
-              },
-              {
-                "time": "/Date(1781091537066)/",
-                "id": 16,
-                "provider": "Microsoft-Windows-Kernel-General",
-                "level": "���",
-                "category": "power"
-              },
-              {
-                "time": "/Date(1781091537017)/",
-                "id": 16,
-                "provider": "Microsoft-Windows-Kernel-General",
-                "level": "���",
-                "category": "power"
-              },
-              {
-                "time": "/Date(1781091536984)/",
-                "id": 15,
-                "provider": "Microsoft-Windows-Kernel-General",
-                "level": "���",
-                "category": "power"
-              },
-              {
-                "time": "/Date(1781091536407)/",
-                "id": 16,
-                "provider": "Microsoft-Windows-Kernel-General",
-                "level": "���",
-                "category": "power"
-              },
-              {
-                "time": "/Date(1781091536397)/",
-                "id": 16,
-                "provider": "Microsoft-Windows-Kernel-General",
-                "level": "���",
-                "category": "power"
-              },
-              {
-                "time": "/Date(1781091536385)/",
-                "id": 15,
-                "provider": "Microsoft-Windows-Kernel-General",
-                "level": "���",
-                "category": "power"
-              },
-              {
-                "time": "/Date(1781091535915)/",
-                "id": 15,
-                "provider": "Microsoft-Windows-Kernel-General",
-                "level": "���",
-                "category": "power"
-              },
-              {
-                "time": "/Date(1781091466134)/",
-                "id": 16,
-                "provider": "Microsoft-Windows-Kernel-General",
-                "level": "���",
-                "category": "power"
-              },
-              {
-                "time": "/Date(1781091464767)/",
-                "id": 16,
-                "provider": "Microsoft-Windows-Kernel-General",
-                "level": "���",
-                "category": "power"
-              },
-              {
-                "time": "/Date(1781091454475)/",
-                "id": 16,
-                "provider": "Microsoft-Windows-Kernel-General",
-                "level": "���",
-                "category": "power"
-              }
-            ]
-          }
+          "cpu_usage_percent": 6.0,
+          "cpu_current_clock_mhz": 2600,
+          "ram_usage_percent": 49.1,
+          "ram_used_gb": 23.45,
+          "ram_total_gb": 47.77,
+          "thermal_control_temp_c": null,
+          "cpu_package_c": null,
+          "core_max_c": null,
+          "temp_source": "fallback",
+          "lhm_ok": false,
+          "lhm_error": "<urlopen error [WinError 10061] 対象のコンピューターによって拒否されたため、接続できませんでした。>",
+          "is_throttling": false,
+          "cpu_limit_percent": 100,
+          "thermal_throttle_label": "NORMAL",
+          "disk_warnings": [],
+          "alerts": [
+            "lhm_error"
+          ]
         }
       },
       "action": "ok"
@@ -242,87 +139,106 @@
       "diagnostics_error": null,
       "metrics": {
         "hostname": "DESKTOP-DERCN1N",
-        "cpu_usage_percent": 1.0,
-        "ram_usage_percent": 22.3,
-        "ram_used_gb": 7.13,
+        "cpu_usage_percent": 48.0,
+        "ram_usage_percent": 32.6,
+        "ram_used_gb": 10.39,
         "ram_total_gb": 31.92,
-        "cpu_temp_celsius": 56.0,
-        "thermal_control_temp_c": 56.0,
+        "cpu_temp_celsius": 48.0,
+        "thermal_control_temp_c": 48.0,
         "lhm_ok": true,
         "temp_source": "lhm_http",
         "node_diagnostic": {
           "enabled": true,
           "root": "C:\\ProgramData\\Clawstack\\monitor_agent\\node_diagnostics\\DESKTOP-DERCN1N",
-          "retention_hours": 24,
+          "retention_hours": 72,
           "metrics_interval_sec": 60,
           "files": [
             {
-              "name": "diagnostic_20260610.jsonl",
-              "bytes": 676353,
-              "modified": "2026-06-10T22:48:08"
+              "name": "diagnostic_20260615.jsonl",
+              "bytes": 2866595,
+              "modified": "2026-06-18T05:19:56"
             },
             {
-              "name": "diagnostic_20260611.jsonl",
-              "bytes": 436645,
-              "modified": "2026-06-11T09:00:34"
+              "name": "diagnostic_20260616.jsonl",
+              "bytes": 1778530,
+              "modified": "2026-06-18T05:19:57"
+            },
+            {
+              "name": "diagnostic_20260617.jsonl",
+              "bytes": 1720673,
+              "modified": "2026-06-18T05:19:59"
+            },
+            {
+              "name": "diagnostic_20260618.jsonl",
+              "bytes": 390413,
+              "modified": "2026-06-18T06:01:45"
             }
           ],
-          "total_bytes": 1112998
+          "total_bytes": 6756211
         },
         "fleet_evidence": {
-          "last_local_path": "C:\\ProgramData\\Clawstack\\monitor_agent\\fleet_evidence\\local\\DESKTOP-DERCN1N\\evidence_20260611.jsonl",
+          "last_local_path": "C:\\ProgramData\\Clawstack\\monitor_agent\\fleet_evidence\\local\\DESKTOP-DERCN1N\\evidence_20260618.jsonl",
           "last_upload": {
-            "ok": true,
-            "status": 200,
-            "body": "{\"ok\": true, \"saved_path\": \"C:\\\\ProgramData\\\\Clawstack\\\\monitor_agent\\\\fleet_evidence\\\\received\\\\DESKTOP-DERCN1N\\\\evidence_20260611.jsonl\"}"
+            "ok": false,
+            "error": "<urlopen error timed out>",
+            "url": "http://100.119.18.40:8113/fleet_evidence"
           },
-          "last_at": "2026-06-11T08:56:18",
+          "last_at": "2026-06-18T05:57:08",
           "url": "http://100.119.18.40:8113/fleet_evidence"
         }
       },
       "diagnostic_status": {
         "enabled": true,
         "root": "C:\\ProgramData\\Clawstack\\monitor_agent\\node_diagnostics\\DESKTOP-DERCN1N",
-        "retention_hours": 24,
+        "retention_hours": 72,
         "metrics_interval_sec": 60,
         "files": [
           {
-            "name": "diagnostic_20260610.jsonl",
-            "bytes": 676353,
-            "modified": "2026-06-10T22:48:08"
+            "name": "diagnostic_20260615.jsonl",
+            "bytes": 2866595,
+            "modified": "2026-06-18T05:19:56"
           },
           {
-            "name": "diagnostic_20260611.jsonl",
-            "bytes": 436645,
-            "modified": "2026-06-11T09:00:34"
+            "name": "diagnostic_20260616.jsonl",
+            "bytes": 1778530,
+            "modified": "2026-06-18T05:19:57"
+          },
+          {
+            "name": "diagnostic_20260617.jsonl",
+            "bytes": 1720673,
+            "modified": "2026-06-18T05:19:59"
+          },
+          {
+            "name": "diagnostic_20260618.jsonl",
+            "bytes": 390824,
+            "modified": "2026-06-18T06:02:33"
           }
         ],
-        "total_bytes": 1112998
+        "total_bytes": 6756622
       },
       "recent_count": 200,
       "last_recent_event": {
         "schema": "clawstack.node_diagnostic.v1",
-        "timestamp": "2026-06-11T09:00:34",
+        "timestamp": "2026-06-18T06:02:33",
         "hostname": "DESKTOP-DERCN1N",
-        "event": "metrics_snapshot",
-        "severity": "info",
+        "event": "wlan_snapshot",
+        "severity": "warn",
         "payload": {
-          "cpu_usage_percent": 0.0,
-          "cpu_current_clock_mhz": 1792,
-          "ram_usage_percent": 22.3,
-          "ram_used_gb": 7.12,
-          "ram_total_gb": 31.92,
-          "thermal_control_temp_c": 59.0,
-          "cpu_package_c": 59.0,
-          "core_max_c": 59.0,
-          "temp_source": "lhm_http",
-          "lhm_ok": true,
-          "lhm_error": null,
-          "is_throttling": false,
-          "cpu_limit_percent": 100,
-          "thermal_throttle_label": "NORMAL",
-          "disk_warnings": [],
-          "alerts": []
+          "connected": false,
+          "state_text": "",
+          "ssid": "",
+          "profile": "",
+          "signal_percent": null,
+          "rssi_dbm": null,
+          "band": "",
+          "rx_mbps": null,
+          "tx_mbps": null,
+          "interface_name": "",
+          "band_label": "unknown",
+          "raw_len": 816,
+          "exit_code": 0,
+          "tailscale_online": true,
+          "tailscale_tun": null
         }
       },
       "action": "ok"
@@ -335,99 +251,112 @@
       "diagnostics_url": "http://100.87.244.46:8111/diagnostics",
       "active_diagnostics_url": "http://100.87.244.46:8111/diagnostics",
       "metrics_online": true,
-      "diagnostics_online": true,
+      "diagnostics_online": false,
       "metrics_status": 200,
-      "diagnostics_status": 200,
+      "diagnostics_status": null,
       "metrics_error": null,
-      "diagnostics_error": null,
+      "diagnostics_error": "timed out",
       "metrics": {
         "hostname": "DESKTOP-TFDRIPE",
-        "cpu_usage_percent": 0.0,
-        "ram_usage_percent": 33.8,
-        "ram_used_gb": 13.49,
+        "cpu_usage_percent": 99.1,
+        "ram_usage_percent": 97.0,
+        "ram_used_gb": 38.71,
         "ram_total_gb": 39.89,
-        "cpu_temp_celsius": 50.9,
-        "thermal_control_temp_c": null,
-        "lhm_ok": false,
-        "temp_source": "fallback",
+        "cpu_temp_celsius": 61.0,
+        "thermal_control_temp_c": 61.0,
+        "lhm_ok": true,
+        "temp_source": "lhm_http",
         "node_diagnostic": {
           "enabled": true,
           "root": "C:\\ProgramData\\Clawstack\\monitor_agent\\node_diagnostics\\DESKTOP-TFDRIPE",
-          "retention_hours": 24,
+          "retention_hours": 72,
           "metrics_interval_sec": 60,
           "files": [
             {
-              "name": "diagnostic_20260610.jsonl",
-              "bytes": 1269117,
-              "modified": "2026-06-10T14:25:26"
+              "name": "diagnostic_20260615.jsonl",
+              "bytes": 2078250,
+              "modified": "2026-06-18T05:53:57"
             },
             {
-              "name": "diagnostic_20260611.jsonl",
-              "bytes": 281568,
-              "modified": "2026-06-11T08:59:39"
+              "name": "diagnostic_20260616.jsonl",
+              "bytes": 2848249,
+              "modified": "2026-06-18T05:53:58"
+            },
+            {
+              "name": "diagnostic_20260617.jsonl",
+              "bytes": 3601016,
+              "modified": "2026-06-18T05:54:00"
+            },
+            {
+              "name": "diagnostic_20260618.jsonl",
+              "bytes": 917553,
+              "modified": "2026-06-18T06:02:16"
             }
           ],
-          "total_bytes": 1550685
+          "total_bytes": 9445068
         },
         "fleet_evidence": {
-          "last_local_path": "C:\\ProgramData\\Clawstack\\monitor_agent\\fleet_evidence\\local\\DESKTOP-TFDRIPE\\evidence_20260611.jsonl",
+          "last_local_path": "C:\\ProgramData\\Clawstack\\monitor_agent\\fleet_evidence\\local\\DESKTOP-TFDRIPE\\evidence_20260618.jsonl",
           "last_upload": {
-            "ok": true,
-            "status": 200,
-            "body": "{\"ok\": true, \"saved_path\": \"C:\\\\ProgramData\\\\Clawstack\\\\monitor_agent\\\\fleet_evidence\\\\received\\\\DESKTOP-TFDRIPE\\\\evidence_20260611.jsonl\"}"
+            "ok": false,
+            "error": "<urlopen error timed out>",
+            "url": "http://100.119.18.40:8113/fleet_evidence"
           },
-          "last_at": "2026-06-11T08:58:40",
+          "last_at": "2026-06-18T05:57:47",
           "url": "http://100.119.18.40:8113/fleet_evidence"
         }
       },
-      "diagnostic_status": {
-        "enabled": true,
-        "root": "C:\\ProgramData\\Clawstack\\monitor_agent\\node_diagnostics\\DESKTOP-TFDRIPE",
-        "retention_hours": 24,
-        "metrics_interval_sec": 60,
-        "files": [
-          {
-            "name": "diagnostic_20260610.jsonl",
-            "bytes": 1269117,
-            "modified": "2026-06-10T14:25:26"
-          },
-          {
-            "name": "diagnostic_20260611.jsonl",
-            "bytes": 282228,
-            "modified": "2026-06-11T09:00:50"
-          }
-        ],
-        "total_bytes": 1551345
-      },
-      "recent_count": 200,
-      "last_recent_event": {
-        "schema": "clawstack.node_diagnostic.v1",
-        "timestamp": "2026-06-11T09:00:50",
+      "action": "refresh_monitor_agent"
+    },
+    {
+      "node_id": "lavie_i3",
+      "name": "Lavie Core i3",
+      "metrics_url": "http://100.67.36.121:8111/metrics",
+      "active_metrics_url": "http://100.67.36.121:8111/metrics",
+      "diagnostics_url": "http://100.67.36.121:8111/diagnostics",
+      "active_diagnostics_url": "http://100.67.36.121:8111/diagnostics",
+      "metrics_online": true,
+      "diagnostics_online": false,
+      "metrics_status": 200,
+      "diagnostics_status": null,
+      "metrics_error": null,
+      "diagnostics_error": "timed out",
+      "metrics": {
         "hostname": "DESKTOP-TFDRIPE",
-        "event": "metrics_snapshot",
-        "severity": "warn",
-        "payload": {
-          "cpu_usage_percent": 0.0,
-          "cpu_current_clock_mhz": 1304,
-          "ram_usage_percent": 33.8,
-          "ram_used_gb": 13.49,
-          "ram_total_gb": 39.89,
-          "thermal_control_temp_c": null,
-          "cpu_package_c": null,
-          "core_max_c": null,
-          "temp_source": "fallback",
-          "lhm_ok": false,
-          "lhm_error": "<urlopen error [WinError 10061] 対象のコンピューターによって拒否されたため、接続できませんでした。>",
-          "is_throttling": false,
-          "cpu_limit_percent": 100,
-          "thermal_throttle_label": "NORMAL",
-          "disk_warnings": [],
-          "alerts": [
-            "lhm_error"
-          ]
+        "cpu_usage_percent": 2.3,
+        "ram_usage_percent": 97.5,
+        "ram_used_gb": 3.83,
+        "ram_total_gb": 3.93,
+        "cpu_temp_celsius": 53.0,
+        "thermal_control_temp_c": 53.0,
+        "lhm_ok": true,
+        "temp_source": "lhm_http",
+        "node_diagnostic": {
+          "enabled": true,
+          "root": "C:\\ProgramData\\Clawstack\\monitor_agent\\node_diagnostics\\DESKTOP-TFDRIPE",
+          "retention_hours": 72,
+          "metrics_interval_sec": 60,
+          "files": [
+            {
+              "name": "diagnostic_20260618.jsonl",
+              "bytes": 1195189,
+              "modified": "2026-06-18T06:54:03"
+            }
+          ],
+          "total_bytes": 1195189
+        },
+        "fleet_evidence": {
+          "last_local_path": "C:\\ProgramData\\Clawstack\\monitor_agent\\fleet_evidence\\local\\DESKTOP-TFDRIPE\\evidence_20260618.jsonl",
+          "last_upload": {
+            "ok": false,
+            "error": "<urlopen error timed out>",
+            "url": "http://100.119.18.40:8113/fleet_evidence"
+          },
+          "last_at": "2026-06-18T06:47:45",
+          "url": "http://100.119.18.40:8113/fleet_evidence"
         }
       },
-      "action": "ok"
+      "action": "refresh_monitor_agent"
     },
     {
       "node_id": "vivobook",
@@ -444,12 +373,12 @@
       "diagnostics_error": null,
       "metrics": {
         "hostname": "mhn15",
-        "cpu_usage_percent": 11.0,
-        "ram_usage_percent": 52.4,
-        "ram_used_gb": 8.19,
+        "cpu_usage_percent": 18.0,
+        "ram_usage_percent": 62.6,
+        "ram_used_gb": 9.78,
         "ram_total_gb": 15.63,
-        "cpu_temp_celsius": 49.0,
-        "thermal_control_temp_c": 49.0,
+        "cpu_temp_celsius": 60.0,
+        "thermal_control_temp_c": 60.0,
         "lhm_ok": true,
         "temp_source": "lhm_http",
         "node_diagnostic": {
@@ -464,21 +393,26 @@
               "modified": "2026-06-10T14:34:57"
             },
             {
-              "name": "diagnostic_20260611.jsonl",
-              "bytes": 67167,
-              "modified": "2026-06-11T09:00:05"
+              "name": "diagnostic_20260617.jsonl",
+              "bytes": 740231,
+              "modified": "2026-06-18T05:15:25"
+            },
+            {
+              "name": "diagnostic_20260618.jsonl",
+              "bytes": 446754,
+              "modified": "2026-06-18T06:02:40"
             }
           ],
-          "total_bytes": 521810
+          "total_bytes": 1641628
         },
         "fleet_evidence": {
-          "last_local_path": "C:\\ProgramData\\Clawstack\\monitor_agent\\fleet_evidence\\local\\mhn15\\evidence_20260611.jsonl",
+          "last_local_path": "C:\\ProgramData\\Clawstack\\monitor_agent\\fleet_evidence\\local\\mhn15\\evidence_20260618.jsonl",
           "last_upload": {
-            "ok": true,
-            "status": 200,
-            "body": "{\"ok\": true, \"saved_path\": \"C:\\\\ProgramData\\\\Clawstack\\\\monitor_agent\\\\fleet_evidence\\\\received\\\\mhn15\\\\evidence_20260611.jsonl\"}"
+            "ok": false,
+            "error": "<urlopen error timed out>",
+            "url": "http://100.119.18.40:8113/fleet_evidence"
           },
-          "last_at": "2026-06-11T08:56:51",
+          "last_at": "2026-06-18T06:01:01",
           "url": "http://100.119.18.40:8113/fleet_evidence"
         }
       },
@@ -494,29 +428,34 @@
             "modified": "2026-06-10T14:34:57"
           },
           {
-            "name": "diagnostic_20260611.jsonl",
-            "bytes": 67167,
-            "modified": "2026-06-11T09:00:05"
+            "name": "diagnostic_20260617.jsonl",
+            "bytes": 740231,
+            "modified": "2026-06-18T05:15:25"
+          },
+          {
+            "name": "diagnostic_20260618.jsonl",
+            "bytes": 446754,
+            "modified": "2026-06-18T06:02:40"
           }
         ],
-        "total_bytes": 521810
+        "total_bytes": 1641628
       },
       "recent_count": 200,
       "last_recent_event": {
         "schema": "clawstack.node_diagnostic.v1",
-        "timestamp": "2026-06-11T09:00:05",
+        "timestamp": "2026-06-18T06:02:40",
         "hostname": "mhn15",
         "event": "metrics_snapshot",
         "severity": "warn",
         "payload": {
-          "cpu_usage_percent": 20.0,
+          "cpu_usage_percent": 12.0,
           "cpu_current_clock_mhz": 2600,
-          "ram_usage_percent": 51.2,
-          "ram_used_gb": 8.01,
+          "ram_usage_percent": 63.6,
+          "ram_used_gb": 9.94,
           "ram_total_gb": 15.63,
-          "thermal_control_temp_c": 49.0,
-          "cpu_package_c": 49.0,
-          "core_max_c": 48.0,
+          "thermal_control_temp_c": 58.0,
+          "cpu_package_c": 58.0,
+          "core_max_c": 57.0,
           "temp_source": "lhm_http",
           "lhm_ok": true,
           "lhm_error": null,
@@ -526,7 +465,7 @@
           "disk_warnings": [
             {
               "device": "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
-              "used_pct": 97.6
+              "used_pct": 97.1
             }
           ],
           "alerts": [
@@ -542,7 +481,7 @@
       "metrics_url": "http://100.98.133.40:8111/metrics",
       "active_metrics_url": "http://100.98.133.40:8111/metrics",
       "diagnostics_url": "http://100.98.133.40:8111/diagnostics",
-      "active_diagnostics_url": "http://100.98.133.40:8112/diagnostics",
+      "active_diagnostics_url": "http://100.98.133.40:8111/diagnostics",
       "metrics_online": true,
       "diagnostics_online": true,
       "metrics_status": 200,
@@ -551,61 +490,211 @@
       "diagnostics_error": null,
       "metrics": {
         "hostname": "DESKTOP-UOVCG4T",
-        "cpu_usage_percent": 2.0,
-        "ram_usage_percent": 43.2,
-        "ram_used_gb": 6.88,
+        "cpu_usage_percent": 46.0,
+        "ram_usage_percent": 40.3,
+        "ram_used_gb": 6.42,
         "ram_total_gb": 15.91,
-        "cpu_temp_celsius": 75.0,
-        "thermal_control_temp_c": 75.0,
+        "cpu_temp_celsius": 104.0,
+        "thermal_control_temp_c": 104.0,
         "lhm_ok": true,
         "temp_source": "lhm_http",
+        "node_diagnostic": {
+          "enabled": true,
+          "root": "C:\\ProgramData\\Clawstack\\monitor_agent\\node_diagnostics\\DESKTOP-UOVCG4T",
+          "retention_hours": 72,
+          "metrics_interval_sec": 60,
+          "files": [
+            {
+              "name": "diagnostic_20260614.jsonl",
+              "bytes": 156964,
+              "modified": "2026-06-17T22:12:01"
+            },
+            {
+              "name": "diagnostic_20260615.jsonl",
+              "bytes": 1971820,
+              "modified": "2026-06-17T22:12:03"
+            },
+            {
+              "name": "diagnostic_20260616.jsonl",
+              "bytes": 1851288,
+              "modified": "2026-06-17T22:12:05"
+            },
+            {
+              "name": "diagnostic_20260617.jsonl",
+              "bytes": 118351,
+              "modified": "2026-06-17T22:52:06"
+            }
+          ],
+          "total_bytes": 4098423
+        },
         "fleet_evidence": {
-          "last_local_path": "C:\\ProgramData\\Clawstack\\monitor_agent\\fleet_evidence\\local\\DESKTOP-UOVCG4T\\evidence_20260611.jsonl",
-          "last_upload": {
-            "ok": true,
-            "status": 200,
-            "body": "{\"ok\": true, \"saved_path\": \"C:\\\\ProgramData\\\\Clawstack\\\\monitor_agent\\\\fleet_evidence\\\\received\\\\DESKTOP-UOVCG4T\\\\evidence_20260611.jsonl\"}"
-          },
-          "last_at": "2026-06-11T08:57:33",
-          "url": "http://100.119.18.40:8113/fleet_evidence"
+          "error": "[Errno 28] No space left on device",
+          "last_at": "2026-06-17T22:55:03.981458"
         }
       },
       "diagnostic_status": {
         "enabled": true,
         "root": "C:\\ProgramData\\Clawstack\\monitor_agent\\node_diagnostics\\DESKTOP-UOVCG4T",
-        "retention_hours": 24,
+        "retention_hours": 72,
         "metrics_interval_sec": 60,
         "files": [
           {
-            "name": "diagnostic_20260610.jsonl",
-            "bytes": 1215987,
-            "modified": "2026-06-11T08:21:01"
+            "name": "diagnostic_20260614.jsonl",
+            "bytes": 156964,
+            "modified": "2026-06-17T22:12:01"
           },
           {
-            "name": "diagnostic_20260611.jsonl",
-            "bytes": 983987,
-            "modified": "2026-06-11T09:01:12"
+            "name": "diagnostic_20260615.jsonl",
+            "bytes": 1971820,
+            "modified": "2026-06-17T22:12:03"
+          },
+          {
+            "name": "diagnostic_20260616.jsonl",
+            "bytes": 1851288,
+            "modified": "2026-06-17T22:12:05"
+          },
+          {
+            "name": "diagnostic_20260617.jsonl",
+            "bytes": 118762,
+            "modified": "2026-06-17T22:52:26"
           }
         ],
-        "total_bytes": 2199974
+        "total_bytes": 4098834
       },
       "recent_count": 200,
       "last_recent_event": {
         "schema": "clawstack.node_diagnostic.v1",
-        "timestamp": "2026-06-11T09:01:12",
+        "timestamp": "2026-06-17T22:52:26",
         "hostname": "DESKTOP-UOVCG4T",
-        "event": "thermal_throttle",
+        "event": "wlan_snapshot",
         "severity": "warn",
         "payload": {
-          "label": "CRITICAL",
-          "temp_c": 95.0,
-          "cpu_limit_percent": 10
+          "connected": false,
+          "state_text": "",
+          "ssid": "",
+          "profile": "",
+          "signal_percent": null,
+          "rssi_dbm": null,
+          "band": "",
+          "rx_mbps": null,
+          "tx_mbps": null,
+          "interface_name": "",
+          "band_label": "unknown",
+          "raw_len": 805,
+          "exit_code": 0,
+          "tailscale_online": true,
+          "tailscale_tun": null
+        }
+      },
+      "action": "ok"
+    },
+    {
+      "node_id": "hp",
+      "name": "HP Laptop",
+      "metrics_url": "http://100.103.176.50:8111/metrics",
+      "active_metrics_url": "http://100.103.176.50:8111/metrics",
+      "diagnostics_url": "http://100.103.176.50:8111/diagnostics",
+      "active_diagnostics_url": "http://100.103.176.50:8111/diagnostics",
+      "metrics_online": true,
+      "diagnostics_online": true,
+      "metrics_status": 200,
+      "diagnostics_status": 200,
+      "metrics_error": null,
+      "diagnostics_error": null,
+      "metrics": {
+        "hostname": "YNS-PC",
+        "cpu_usage_percent": 10.0,
+        "ram_usage_percent": 66.0,
+        "ram_used_gb": 3.9,
+        "ram_total_gb": 5.9,
+        "cpu_temp_celsius": 49.0,
+        "thermal_control_temp_c": 49.0,
+        "lhm_ok": true,
+        "temp_source": "lhm_http",
+        "node_diagnostic": {
+          "enabled": true,
+          "root": "C:\\ProgramData\\Clawstack\\monitor_agent\\node_diagnostics\\YNS-PC",
+          "retention_hours": 72,
+          "metrics_interval_sec": 60,
+          "files": [
+            {
+              "name": "diagnostic_20260616.jsonl",
+              "bytes": 1140365,
+              "modified": "2026-06-18T05:17:50"
+            },
+            {
+              "name": "diagnostic_20260618.jsonl",
+              "bytes": 591549,
+              "modified": "2026-06-18T06:02:38"
+            }
+          ],
+          "total_bytes": 1731914
+        },
+        "fleet_evidence": {
+          "last_local_path": "C:\\ProgramData\\Clawstack\\monitor_agent\\fleet_evidence\\local\\YNS-PC\\evidence_20260618.jsonl",
+          "last_upload": {
+            "ok": false,
+            "error": "<urlopen error timed out>",
+            "url": "http://100.119.18.40:8113/fleet_evidence"
+          },
+          "last_at": "2026-06-18T06:00:21",
+          "url": "http://100.119.18.40:8113/fleet_evidence"
+        }
+      },
+      "diagnostic_status": {
+        "enabled": true,
+        "root": "C:\\ProgramData\\Clawstack\\monitor_agent\\node_diagnostics\\YNS-PC",
+        "retention_hours": 72,
+        "metrics_interval_sec": 60,
+        "files": [
+          {
+            "name": "diagnostic_20260616.jsonl",
+            "bytes": 1140365,
+            "modified": "2026-06-18T05:17:50"
+          },
+          {
+            "name": "diagnostic_20260618.jsonl",
+            "bytes": 591549,
+            "modified": "2026-06-18T06:02:38"
+          }
+        ],
+        "total_bytes": 1731914
+      },
+      "recent_count": 200,
+      "last_recent_event": {
+        "schema": "clawstack.node_diagnostic.v1",
+        "timestamp": "2026-06-18T06:02:38",
+        "hostname": "YNS-PC",
+        "event": "metrics_snapshot",
+        "severity": "warn",
+        "payload": {
+          "cpu_usage_percent": 17.0,
+          "cpu_current_clock_mhz": 2095,
+          "ram_usage_percent": 66.3,
+          "ram_used_gb": 3.92,
+          "ram_total_gb": 5.9,
+          "thermal_control_temp_c": 52.0,
+          "cpu_package_c": null,
+          "core_max_c": null,
+          "temp_source": "lhm_http",
+          "lhm_ok": true,
+          "lhm_error": null,
+          "is_throttling": false,
+          "cpu_limit_percent": 100,
+          "thermal_throttle_label": "NORMAL",
+          "disk_warnings": [],
+          "alerts": [
+            "wlan_disconnected"
+          ]
         }
       },
       "action": "ok"
     }
   ],
   "ok_count": 5,
-  "needs_refresh": [],
+  "needs_refresh": [
+    "lavie",
+    "lavie_i3"
+  ],
   "needs_manual": []
 }

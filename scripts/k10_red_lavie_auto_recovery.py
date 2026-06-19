@@ -27,6 +27,10 @@ import k10_red_lavie_stability_enforce as stability
 import k10_satellite_dispatch as sjp
 import k10_sync_cae_experiments_to_lavie as sync_base
 
+import httpx
+
+import k10_red_lavie_common as red_common
+
 
 def now_iso() -> str:
     return datetime.now(JST).isoformat()
@@ -68,7 +72,8 @@ def restart_monitor_agent() -> dict[str, Any]:
         f"try {{ $pyw = (& where.exe pythonw 2>$null | Select-Object -First 1) }} catch {{}}; "
         f"if (-not $pyw) {{ $pyw = Join-Path $env:LOCALAPPDATA 'Programs/Python/Python311/pythonw.exe' }}; "
         f"Get-CimInstance Win32_Process -ErrorAction SilentlyContinue | "
-        f"Where-Object {{ $_.CommandLine -and ($_.CommandLine -match 'monitor_agent') }} | "
+        f"Where-Object {{ $_.CommandLine -and ($_.CommandLine -match '[\\\\/]monitor_agent\\.py') "
+        f"-and ($_.Name -match '^(python|pythonw)\\.exe$') }} | "
         f"ForEach-Object {{ Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }}; "
         f"Start-Process -FilePath $pyw -ArgumentList ('\"' + $agent + '\"') -WindowStyle Hidden; "
         f"Start-Sleep -Seconds 5; "
@@ -101,6 +106,31 @@ def restart_job_worker() -> dict[str, Any]:
     )
 
 
+def recover_via_monitor_agent(timeout: float = 180.0) -> dict[str, Any]:
+    """Use monitor :8111 when job worker :5682 is down (INC-116)."""
+    ip = red_common.red_lavie_ip()
+    port = red_common.monitor_port()
+    url = f"http://{ip}:{port}/satellite/recover_worker"
+    try:
+        resp = httpx.get(url, timeout=timeout)
+    except Exception as exc:
+        return {"ok": False, "channel": "monitor_recover_worker", "url": url, "error": str(exc)[:300]}
+    body: dict[str, Any] = {}
+    if resp.status_code in (200, 207, 503):
+        try:
+            body = resp.json()
+        except json.JSONDecodeError:
+            body = {"raw": resp.text[:500]}
+    ok = resp.status_code == 200 and bool(body.get("ok"))
+    return {
+        "ok": ok,
+        "channel": "monitor_recover_worker",
+        "url": url,
+        "http_status": resp.status_code,
+        "body": body,
+    }
+
+
 def run_full_recovery(*, skip_power: bool = False) -> dict[str, Any]:
     reg = sjp.load_node("red_lavie")
     worker_url = sjp.worker_base_url(reg)
@@ -119,10 +149,36 @@ def run_full_recovery(*, skip_power: bool = False) -> dict[str, Any]:
         "detail": (pre_detail or "")[:300],
     }
     if not pre_ok:
+        result["steps"]["monitor_recover_worker"] = recover_via_monitor_agent()
+        pre_ok, pre_detail = sjp.probe_worker(worker_url, token)
+        result["steps"]["post_monitor_recover_probe"] = {
+            "ok": pre_ok,
+            "url": worker_url,
+            "detail": (pre_detail or "")[:300],
+        }
+    if not pre_ok:
+        try:
+            import k10_red_lavie_remote_recovery as remote_rec
+
+            result["steps"]["remote_recovery"] = remote_rec.run_remote_recovery(
+                try_smb=True, try_wmi=True, try_relay=True
+            )
+            pre_ok, pre_detail = sjp.probe_worker(worker_url, token)
+            result["steps"]["post_remote_recovery_probe"] = {
+                "ok": pre_ok,
+                "url": worker_url,
+                "detail": (pre_detail or "")[:300],
+            }
+        except Exception as exc:
+            result["steps"]["remote_recovery"] = {"ok": False, "error": str(exc)[:300]}
+    if not pre_ok:
         result["finished_at"] = now_iso()
         result["ok"] = False
         result["skipped_remote"] = True
-        result["message"] = "red_lavie unreachable; remote recovery skipped (fail-fast)"
+        result["message"] = (
+            "red_lavie worker still down after remote recovery; "
+            "set RED_LAVIE_SMB_USER/PASSWORD in .env or run bootstrap on red_lavie"
+        )
         save_json(
             RECOVERY_STATUS,
             {

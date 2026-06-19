@@ -713,6 +713,82 @@ function addTolRow(nominal = '', upper = '', lower = '') {
   $('tol-rows').appendChild(div);
 }
 
+function clearTolRows() {
+  $('tol-rows').innerHTML = '';
+  tolRowCount = 0;
+}
+
+async function applyTolManifestPreview(preview) {
+  clearTolRows();
+  (preview.rows || []).forEach(r => addTolRow(r.nominal, r.upper, r.lower));
+  if (preview.loop_name) $('tol-loop-name').value = preview.loop_name;
+  if (preview.target != null) $('tol-target').value = preview.target;
+  if (preview.mc_n != null) $('tol-mc-n').value = String(preview.mc_n);
+  const geo = preview.geometry_source || '?';
+  const gdt = preview.gdt_dim_count != null ? ` gdt_dims=${preview.gdt_dim_count}` : '';
+  const mat = preview.maturity_level ? ` ${preview.maturity_level}` : '';
+  $('tol-manifest-info').textContent =
+    `manifest loaded: ${preview.rows?.length || 0} dims, geometry_source=${geo}${gdt}${mat}` +
+    (preview.manifest_path ? ` path=${preview.manifest_path}` : '');
+}
+
+async function loadTolManifestGolden() {
+  setMsg('tol-msg', 'info', 'Golden manifest 読込中...');
+  try {
+    const preview = await apiPost('/api/tolerance-stack/preview-manifest', {
+      manifest_path: 'thinkpad_dxf2step_history/tp-dxf-44920df6/part_manifest.json',
+      run_stack: false,
+    });
+    await applyTolManifestPreview(preview);
+    hide('tol-msg');
+  } catch (e) {
+    setMsg('tol-msg', 'error', `manifest load failed: ${e.message}`);
+  }
+}
+
+async function loadTolManifestFile(input) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+  setMsg('tol-msg', 'info', `${file.name} 読込中...`);
+  try {
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('target', $('tol-target').value || '0.05');
+    fd.append('mc_n', $('tol-mc-n').value || '10000');
+    fd.append('run_stack', 'false');
+    const res = await fetch('/api/tolerance-stack/upload-manifest', { method: 'POST', body: fd });
+    if (!res.ok) throw new Error(await res.text());
+    const preview = await res.json();
+    await applyTolManifestPreview(preview);
+    hide('tol-msg');
+  } catch (e) {
+    setMsg('tol-msg', 'error', `upload failed: ${e.message}`);
+  } finally {
+    input.value = '';
+  }
+}
+
+async function runTolStackFromManifest() {
+  setMsg('tol-msg', 'info', 'manifest から解析中...');
+  $('btn-tol-run').disabled = true;
+  try {
+    const body = {
+      manifest_path: 'thinkpad_dxf2step_history/tp-dxf-44920df6/part_manifest.json',
+      target: parseFloat($('tol-target').value) || 0.05,
+      mc_n: parseInt($('tol-mc-n').value) || 10000,
+      run_stack: true,
+    };
+    const res = await apiPost('/api/tolerance-stack/from-manifest', body);
+    if (res.rows) await applyTolManifestPreview(res);
+    renderTolResult(res);
+    hide('tol-msg');
+  } catch (e) {
+    setMsg('tol-msg', 'error', `エラー: ${e.message}`);
+  } finally {
+    $('btn-tol-run').disabled = false;
+  }
+}
+
 async function runTolStack() {
   const rows = [];
   for (let i = 1; i <= tolRowCount; i++) {

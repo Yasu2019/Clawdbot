@@ -464,11 +464,36 @@ def build_inventory():
     countable_rows = [row for row in rows if not row.get("_exclude_from_totals")]
     for row in rows:
         row.pop("_exclude_from_totals", None)
+
+    # Calculate Gemini decoding wait count from universal_growth.db
+    gemini_wait_count = 0
+    try:
+        if GROWTH_DB.exists():
+            con = sqlite3.connect(str(GROWTH_DB))
+            con.row_factory = sqlite3.Row
+            con.execute("""
+                CREATE TABLE IF NOT EXISTS ai_summaries_tracking (
+                    external_id TEXT PRIMARY KEY,
+                    summarized_at TEXT
+                )
+            """)
+            con.commit()
+            processed = set(str(r[0]) for r in con.execute("SELECT external_id FROM ai_summaries_tracking").fetchall() if r[0])
+            all_downloaded = con.execute("""
+                SELECT id, external_id FROM public_api_acquisitions 
+                WHERE status = 'downloaded' AND local_path IS NOT NULL AND local_path != ''
+            """).fetchall()
+            gemini_wait_count = sum(1 for r in all_downloaded if str(r[0]) not in processed and str(r[1] or '') not in processed)
+            con.close()
+    except Exception as exc:
+        print(f"Failed to calculate Gemini wait count: {exc}")
+
     return {
         "schema": "clawstack.material_source_inventory.v1",
         "updated_at": now_jst(),
         "total_acquired_count": sum(row["acquired_count"] for row in countable_rows),
         "total_candidate_count": sum(row["candidate_count"] for row in countable_rows),
+        "gemini_decoding_wait_count": gemini_wait_count,
         "acquisition_queue": QUEUE_PATH.relative_to(ROOT).as_posix(),
         "rows": rows,
     }

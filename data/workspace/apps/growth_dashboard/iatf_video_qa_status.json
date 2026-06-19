@@ -1,11 +1,12 @@
 {
-  "generated_at": "2026-06-17T10:24:15.935115",
+  "generated_at": "2026-06-18T21:04:57.445414",
   "total": 42,
-  "passed": 1,
+  "processed": 34,
+  "passed": 0,
   "failed": 0,
-  "skipped": 41,
+  "skipped": 34,
   "errors": 0,
-  "broken_count": 2,
+  "broken_count": 1,
   "videos": [
     {
       "id": "IATF_16949_内部監査資料_箇条10_2_4ポカヨケ",
@@ -15,7 +16,7 @@
       "mp4_path": "data/iatf_videos/IATF 16949 内部監査資料_ 箇条10.2.4ポカヨケ/IATF 16949 内部監査資料_ 箇条10.2.4ポカヨケ_slide_reviewed.mp4",
       "thumbnail_url": "/apps/growth_dashboard/iatf_thumbnails/IATF_16949_%E5%86%85%E9%83%A8%E7%9B%A3%E6%9F%BB%E8%B3%87%E6%96%99_%E7%AE%87%E6%9D%A110_2_4%E3%83%9D%E3%82%AB%E3%83%A8%E3%82%B1.jpg",
       "contact_sheet_url": "/apps/growth_dashboard/iatf_thumbnails/IATF_16949_%E5%86%85%E9%83%A8%E7%9B%A3%E6%9F%BB%E8%B3%87%E6%96%99_%E7%AE%87%E6%9D%A110_2_4%E3%83%9D%E3%82%AB%E3%83%A8%E3%82%B1_cs.jpg",
-      "file_size_mb": 15.26,
+      "file_size_mb": 19.21,
       "duration_sec": 849.652,
       "scene_count": 7,
       "script_summary": "皆さん、こんにちは！ブルマです。IATF 16949内部監査教育動画へようこそ！ / 今日のテーマは、箇条10.2.4「ポカヨケ」です。品質管理において非常に重要な要素ですね。 / 亀仙人、今日のテーマ「ポカヨケ」について、IATF 16949の要求事項を詳しく教えてください！ / うむ、ブルマよ。ポカヨケは品質の要じゃ。箇条10.2.4にはいくつかの重要な要求があるぞ。",
@@ -23,7 +24,7 @@
       "qa": {
         "status": "rate_limited",
         "reason": "Gemini 429 - skip for now",
-        "checked_at": "2026-06-17T10:21:52.885793"
+        "checked_at": "2026-06-18T21:03:00.236262"
       }
     },
     {
@@ -33,7 +34,7 @@
       "topic": "9.1.1.2_工程管理と工程能力",
       "mp4_path": "data/iatf_videos/IATF 16949 内部監査資料_ 箇条7.1.5.1.1_9.1.1.2_工程管理と工程能力/IATF 16949 内部監査資料_ 箇条7.1.5.1.1_9.1.1.2_工程管理と工程能力_slide_reviewed.mp4",
       "thumbnail_url": "/apps/growth_dashboard/iatf_thumbnails/IATF_16949_%E5%86%85%E9%83%A8%E7%9B%A3%E6%9F%BB%E8%B3%87%E6%96%99_%E7%AE%87%E6%9D%A17_1_5_1_1_9_1_1_2_%E5%B7%A5%E7%A8%8B%E7%AE%A1%E7%90%86%E3%81%A8%E5%B7%A5%E7%A8%8B%E8%83%BD%E5%8A%9B.jpg",
-      "contact_sheet_url": null,
+      "contact_sheet_url": "/apps/growth_dashboard/iatf_thumbnails/IATF_16949_%E5%86%85%E9%83%A8%E7%9B%A3%E6%9F%BB%E8%B3%87%E6%96%99_%E7%AE%87%E6%9D%A17_1_5_1_1_9_1_1_2_%E5%B7%A5%E7%A8%8B%E7%AE%A1%E7%90%86%E3%81%A8%E5%B7%A5%E7%A8%8B%E8%83%BD%E5%8A%9B_cs.jpg",
       "file_size_mb": 14.39,
       "duration_sec": 729.503,
       "scene_count": 7,
@@ -42,7 +43,7 @@
       "qa": {
         "status": "rate_limited",
         "reason": "Gemini 429 - skip for now",
-        "checked_at": "2026-06-17T10:21:56.118190"
+        "checked_at": "2026-06-18T21:03:03.769567"
       }
     },
     {
@@ -52,7 +53,7 @@
       "topic": "校正_検証の記録_7.3.1認識_補足",
       "mp4_path": "data/iatf_videos/IATF 16949 内部監査資料_ 箇条7.1.5.2.1_校正_検証の記録_7.3.1認識_補足/IATF 16949 内部監査資料_ 箇条7.1.5.2.1_校正_検証の記録_7.3.1認識_補足_slide_reviewed.mp4",
       "thumbnail_url": "/apps/growth_dashboard/iatf_thumbnails/IATF_16949_%E5%86%85%E9%83%A8%E7%9B%A3%E6%9F%BB%E8%B3%87%E6%96%99_%E7%AE%87%E6%9D%A17_1_5_2_1_%E6%A0%A1%E6%AD%A3_%E6%A4%9C%E8%A8%BC%E3%81%AE%E8%A8%98%E9%8C%B2_7_3_1%E8%AA%8D%E8%AD%98_%E8%A3%9C%E8%B6%B3.jpg",
-      "contact_sheet_url": null,
+      "contact_sheet_url": "/apps/growth_dashboard/iatf_thumbnails/IATF_16949_%E5%86%85%E9%83%A8%E7%9B%A3%E6%9F%BB%E8%B3%87%E6%96%99_%E7%AE%87%E6%9D%A17_1_5_2_1_%E6%A0%A1%E6%AD%A3_%E6%A4%9C%E8%A8%BC%E3%81%AE%E8%A8%98%E9%8C%B2_7_3_1%E8%AA%8D%E8%AD%98_%E8%A3%9C%E8%B6%B3_cs.jpg",
       "file_size_mb": 16.39,
       "duration_sec": 824.4,
       "scene_count": 7,
@@ -61,7 +62,7 @@
       "qa": {
         "status": "rate_limited",
         "reason": "Gemini 429 - skip for now",
-        "checked_at": "2026-06-17T10:21:59.511302"
+        "checked_at": "2026-06-18T21:03:07.190189"
       }
     },
     {
@@ -71,7 +72,7 @@
       "topic": "標準作業-作業者指示書及び目視標準",
       "mp4_path": "data/iatf_videos/IATF 16949 内部監査資料_ 箇条8.5.1.2標準作業-作業者指示書及び目視標準/IATF 16949 内部監査資料_ 箇条8.5.1.2標準作業-作業者指示書及び目視標準_slide_reviewed.mp4",
       "thumbnail_url": "/apps/growth_dashboard/iatf_thumbnails/IATF_16949_%E5%86%85%E9%83%A8%E7%9B%A3%E6%9F%BB%E8%B3%87%E6%96%99_%E7%AE%87%E6%9D%A18_5_1_2%E6%A8%99%E6%BA%96%E4%BD%9C%E6%A5%AD_%E4%BD%9C%E6%A5%AD%E8%80%85%E6%8C%87%E7%A4%BA%E6%9B%B8%E5%8F%8A%E3%81%B3%E7%9B%AE%E8%A6%96%E6%A8%99%E6%BA%96.jpg",
-      "contact_sheet_url": null,
+      "contact_sheet_url": "/apps/growth_dashboard/iatf_thumbnails/IATF_16949_%E5%86%85%E9%83%A8%E7%9B%A3%E6%9F%BB%E8%B3%87%E6%96%99_%E7%AE%87%E6%9D%A18_5_1_2%E6%A8%99%E6%BA%96%E4%BD%9C%E6%A5%AD_%E4%BD%9C%E6%A5%AD%E8%80%85%E6%8C%87%E7%A4%BA%E6%9B%B8%E5%8F%8A%E3%81%B3%E7%9B%AE%E8%A6%96%E6%A8%99%E6%BA%96_cs.jpg",
       "file_size_mb": 11.2,
       "duration_sec": 634.963,
       "scene_count": 7,
@@ -80,7 +81,7 @@
       "qa": {
         "status": "rate_limited",
         "reason": "Gemini 429 - skip for now",
-        "checked_at": "2026-06-17T10:22:02.901157"
+        "checked_at": "2026-06-18T21:03:10.674433"
       }
     },
     {
@@ -90,7 +91,7 @@
       "topic": "作業の段取り設定検証_箇条8.5.1.4シャットダウン後の検証",
       "mp4_path": "data/iatf_videos/IATF 16949 内部監査資料_ 箇条8.5.1.3作業の段取り設定検証_箇条8.5.1.4シャットダウン後の検証/IATF 16949 内部監査資料_ 箇条8.5.1.3作業の段取り設定検証_箇条8.5.1.4シャットダウン後の検証_slide_reviewed.mp4",
       "thumbnail_url": "/apps/growth_dashboard/iatf_thumbnails/IATF_16949_%E5%86%85%E9%83%A8%E7%9B%A3%E6%9F%BB%E8%B3%87%E6%96%99_%E7%AE%87%E6%9D%A18_5_1_3%E4%BD%9C%E6%A5%AD%E3%81%AE%E6%AE%B5%E5%8F%96%E3%82%8A%E8%A8%AD%E5%AE%9A%E6%A4%9C%E8%A8%BC_%E7%AE%87%E6%9D%A18_5_1_4%E3%82%B7%E3%83%A3%E3%83%83%E3%83%88%E3%83%80%E3%82%A6%E3%83%B3%E5%BE%8C%E3%81%AE%E6%A4%9C%E8%A8%BC.jpg",
-      "contact_sheet_url": null,
+      "contact_sheet_url": "/apps/growth_dashboard/iatf_thumbnails/IATF_16949_%E5%86%85%E9%83%A8%E7%9B%A3%E6%9F%BB%E8%B3%87%E6%96%99_%E7%AE%87%E6%9D%A18_5_1_3%E4%BD%9C%E6%A5%AD%E3%81%AE%E6%AE%B5%E5%8F%96%E3%82%8A%E8%A8%AD%E5%AE%9A%E6%A4%9C%E8%A8%BC_%E7%AE%87%E6%9D%A18_5_1_4%E3%82%B7%E3%83%A3%E3%83%83%E3%83%88%E3%83%80%E3%82%A6%E3%83%B3%E5%BE%8C%E3%81%AE%E6%A4%9C%E8%A8%BC_cs.jpg",
       "file_size_mb": 16.91,
       "duration_sec": 831.8,
       "scene_count": 7,
@@ -99,7 +100,7 @@
       "qa": {
         "status": "rate_limited",
         "reason": "Gemini 429 - skip for now",
-        "checked_at": "2026-06-17T10:22:06.128491"
+        "checked_at": "2026-06-18T21:03:14.236827"
       }
     },
     {
@@ -109,20 +110,16 @@
       "topic": "生産治工具並びに製造_試験_検査の治工具及び設備の運用管理",
       "mp4_path": "data/iatf_videos/IATF 16949 内部監査資料_ 箇条8.5.1.6生産治工具並びに製造_試験_検査の治工具及び設備の運用管理/IATF 16949 内部監査資料_ 箇条8.5.1.6生産治工具並びに製造_試験_検査の治工具及び設備の運用管理_slide_reviewed.mp4",
       "thumbnail_url": "/apps/growth_dashboard/iatf_thumbnails/IATF_16949_%E5%86%85%E9%83%A8%E7%9B%A3%E6%9F%BB%E8%B3%87%E6%96%99_%E7%AE%87%E6%9D%A18_5_1_6%E7%94%9F%E7%94%A3%E6%B2%BB%E5%B7%A5%E5%85%B7%E4%B8%A6%E3%81%B3%E3%81%AB%E8%A3%BD%E9%80%A0_%E8%A9%A6%E9%A8%93_%E6%A4%9C%E6%9F%BB%E3%81%AE%E6%B2%BB%E5%B7%A5%E5%85%B7%E5%8F%8A%E3%81%B3%E8%A8%AD%E5%82%99%E3%81%AE%E9%81%8B%E7%94%A8%E7%AE%A1%E7%90%86.jpg",
-      "contact_sheet_url": null,
+      "contact_sheet_url": "/apps/growth_dashboard/iatf_thumbnails/IATF_16949_%E5%86%85%E9%83%A8%E7%9B%A3%E6%9F%BB%E8%B3%87%E6%96%99_%E7%AE%87%E6%9D%A18_5_1_6%E7%94%9F%E7%94%A3%E6%B2%BB%E5%B7%A5%E5%85%B7%E4%B8%A6%E3%81%B3%E3%81%AB%E8%A3%BD%E9%80%A0_%E8%A9%A6%E9%A8%93_%E6%A4%9C%E6%9F%BB%E3%81%AE%E6%B2%BB%E5%B7%A5%E5%85%B7%E5%8F%8A%E3%81%B3%E8%A8%AD%E5%82%99%E3%81%AE%E9%81%8B%E7%94%A8%E7%AE%A1%E7%90%86_cs.jpg",
       "file_size_mb": 15.87,
       "duration_sec": 896.173,
       "scene_count": 7,
       "script_summary": "皆さん、こんにちは！ブルマです。IATF 16949内部監査教育動画へようこそ！ / 今日のテーマは、箇条8.5.1.6「生産治工具並びに製造、試験、検査の治工具及び設備の運用管理」です。 / それでは、亀仙人先生、今日の箇条8.5.1.6について、詳しくご説明いただけますか？ / うむ、ブルマ君。この箇条は、生産治工具、製造、試験、検査の治工具及び設備の運用管理について定めておるぞ。",
       "broken": false,
       "qa": {
-        "status": "pass",
-        "score": 95,
-        "issues": [],
-        "reason": "The",
-        "slide_text_found": "",
-        "raw_match": true,
-        "checked_at": "2026-06-17T10:22:13.129710"
+        "status": "rate_limited",
+        "reason": "Gemini 429 - skip for now",
+        "checked_at": "2026-06-18T21:03:17.753203"
       }
     },
     {
@@ -132,7 +129,7 @@
       "topic": "IATF 16949 内部監査資料_箇条 8.6 製品のリリース（製品の検査や最終リリース）IATF 16949  Final inspection",
       "mp4_path": "data/iatf_videos/IATF 16949 内部監査資料_箇条 8.6 製品のリリース（製品の検査や最終リリース）IATF 16949  Final inspection/IATF 16949 内部監査資料_箇条 8.6 製品のリリース（製品の検査や最終リリース）IATF 16949  Final inspection_slide_reviewed.mp4",
       "thumbnail_url": "/apps/growth_dashboard/iatf_thumbnails/IATF_16949_%E5%86%85%E9%83%A8%E7%9B%A3%E6%9F%BB%E8%B3%87%E6%96%99_%E7%AE%87%E6%9D%A1_8_6_%E8%A3%BD%E5%93%81%E3%81%AE%E3%83%AA%E3%83%AA%E3%83%BC%E3%82%B9_%E8%A3%BD%E5%93%81%E3%81%AE%E6%A4%9C%E6%9F%BB%E3%82%84%E6%9C%80%E7%B5%82%E3%83%AA%E3%83%AA%E3%83%BC%E3%82%B9_IATF_16949_Fin.jpg",
-      "contact_sheet_url": null,
+      "contact_sheet_url": "/apps/growth_dashboard/iatf_thumbnails/IATF_16949_%E5%86%85%E9%83%A8%E7%9B%A3%E6%9F%BB%E8%B3%87%E6%96%99_%E7%AE%87%E6%9D%A1_8_6_%E8%A3%BD%E5%93%81%E3%81%AE%E3%83%AA%E3%83%AA%E3%83%BC%E3%82%B9_%E8%A3%BD%E5%93%81%E3%81%AE%E6%A4%9C%E6%9F%BB%E3%82%84%E6%9C%80%E7%B5%82%E3%83%AA%E3%83%AA%E3%83%BC%E3%82%B9_IATF_16949_Fin_cs.jpg",
       "file_size_mb": 16.88,
       "duration_sec": 805.663,
       "scene_count": 7,
@@ -141,7 +138,7 @@
       "qa": {
         "status": "rate_limited",
         "reason": "Gemini 429 - skip for now",
-        "checked_at": "2026-06-17T10:22:16.430231"
+        "checked_at": "2026-06-18T21:03:21.288496"
       }
     },
     {
@@ -160,7 +157,7 @@
       "qa": {
         "status": "rate_limited",
         "reason": "Gemini 429 - skip for now",
-        "checked_at": "2026-06-17T10:22:19.881187"
+        "checked_at": "2026-06-18T21:03:24.853018"
       }
     },
     {
@@ -170,7 +167,7 @@
       "topic": "ポカヨケ",
       "mp4_path": "data/iatf_videos/IATF 16949 内部監査資料_箇条10.2.4_ポカヨケ/IATF 16949 内部監査資料_箇条10.2.4_ポカヨケ_slide_reviewed.mp4",
       "thumbnail_url": "/apps/growth_dashboard/iatf_thumbnails/IATF_16949_%E5%86%85%E9%83%A8%E7%9B%A3%E6%9F%BB%E8%B3%87%E6%96%99_%E7%AE%87%E6%9D%A110_2_4_%E3%83%9D%E3%82%AB%E3%83%A8%E3%82%B1.jpg",
-      "contact_sheet_url": null,
+      "contact_sheet_url": "/apps/growth_dashboard/iatf_thumbnails/IATF_16949_%E5%86%85%E9%83%A8%E7%9B%A3%E6%9F%BB%E8%B3%87%E6%96%99_%E7%AE%87%E6%9D%A110_2_4_%E3%83%9D%E3%82%AB%E3%83%A8%E3%82%B1_cs.jpg",
       "file_size_mb": 16.31,
       "duration_sec": 826.675,
       "scene_count": 7,
@@ -179,7 +176,7 @@
       "qa": {
         "status": "rate_limited",
         "reason": "Gemini 429 - skip for now",
-        "checked_at": "2026-06-17T10:22:23.113182"
+        "checked_at": "2026-06-18T21:03:28.243239"
       }
     },
     {
@@ -198,7 +195,7 @@
       "qa": {
         "status": "rate_limited",
         "reason": "Gemini 429 - skip for now",
-        "checked_at": "2026-06-17T10:22:26.555452"
+        "checked_at": "2026-06-18T21:03:31.861004"
       }
     },
     {
@@ -208,7 +205,7 @@
       "topic": "6.1リスク及び機会への取り組み",
       "mp4_path": "data/iatf_videos/IATF 16949 内部監査資料_箇条4.4.1品質マネジメントシステム及びそのプロセス_箇条6.1リスク及び機会への取り組み/IATF 16949 内部監査資料_箇条4.4.1品質マネジメントシステム及びそのプロセス_箇条6.1リスク及び機会への取り組み_slide_reviewed.mp4",
       "thumbnail_url": "/apps/growth_dashboard/iatf_thumbnails/IATF_16949_%E5%86%85%E9%83%A8%E7%9B%A3%E6%9F%BB%E8%B3%87%E6%96%99_%E7%AE%87%E6%9D%A14_4_1%E5%93%81%E8%B3%AA%E3%83%9E%E3%83%8D%E3%82%B8%E3%83%A1%E3%83%B3%E3%83%88%E3%82%B7%E3%82%B9%E3%83%86%E3%83%A0%E5%8F%8A%E3%81%B3%E3%81%9D%E3%81%AE%E3%83%97%E3%83%AD%E3%82%BB%E3%82%B9_%E7%AE%87%E6%9D%A16_1%E3%83%AA%E3%82%B9%E3%82%AF%E5%8F%8A%E3%81%B3%E6%A9%9F%E4%BC%9A%E3%81%B8%E3%81%AE.jpg",
-      "contact_sheet_url": null,
+      "contact_sheet_url": "/apps/growth_dashboard/iatf_thumbnails/IATF_16949_%E5%86%85%E9%83%A8%E7%9B%A3%E6%9F%BB%E8%B3%87%E6%96%99_%E7%AE%87%E6%9D%A14_4_1%E5%93%81%E8%B3%AA%E3%83%9E%E3%83%8D%E3%82%B8%E3%83%A1%E3%83%B3%E3%83%88%E3%82%B7%E3%82%B9%E3%83%86%E3%83%A0%E5%8F%8A%E3%81%B3%E3%81%9D%E3%81%AE%E3%83%97%E3%83%AD%E3%82%BB%E3%82%B9_%E7%AE%87%E6%9D%A16_1%E3%83%AA%E3%82%B9%E3%82%AF%E5%8F%8A%E3%81%B3%E6%A9%9F%E4%BC%9A%E3%81%B8%E3%81%AE_cs.jpg",
       "file_size_mb": 19.73,
       "duration_sec": 851.281,
       "scene_count": 7,
@@ -217,7 +214,7 @@
       "qa": {
         "status": "rate_limited",
         "reason": "Gemini 429 - skip for now",
-        "checked_at": "2026-06-17T10:22:29.779212"
+        "checked_at": "2026-06-18T21:03:35.265224"
       }
     },
     {
@@ -227,7 +224,7 @@
       "topic": "IATF 16949 内部監査資料_箇条6.2品質目標及びそれを達成するための計画策定",
       "mp4_path": "data/iatf_videos/IATF 16949 内部監査資料_箇条6.2品質目標及びそれを達成するための計画策定/IATF 16949 内部監査資料_箇条6.2品質目標及びそれを達成するための計画策定_slide_reviewed.mp4",
       "thumbnail_url": "/apps/growth_dashboard/iatf_thumbnails/IATF_16949_%E5%86%85%E9%83%A8%E7%9B%A3%E6%9F%BB%E8%B3%87%E6%96%99_%E7%AE%87%E6%9D%A16_2%E5%93%81%E8%B3%AA%E7%9B%AE%E6%A8%99%E5%8F%8A%E3%81%B3%E3%81%9D%E3%82%8C%E3%82%92%E9%81%94%E6%88%90%E3%81%99%E3%82%8B%E3%81%9F%E3%82%81%E3%81%AE%E8%A8%88%E7%94%BB%E7%AD%96%E5%AE%9A.jpg",
-      "contact_sheet_url": null,
+      "contact_sheet_url": "/apps/growth_dashboard/iatf_thumbnails/IATF_16949_%E5%86%85%E9%83%A8%E7%9B%A3%E6%9F%BB%E8%B3%87%E6%96%99_%E7%AE%87%E6%9D%A16_2%E5%93%81%E8%B3%AA%E7%9B%AE%E6%A8%99%E5%8F%8A%E3%81%B3%E3%81%9D%E3%82%8C%E3%82%92%E9%81%94%E6%88%90%E3%81%99%E3%82%8B%E3%81%9F%E3%82%81%E3%81%AE%E8%A8%88%E7%94%BB%E7%AD%96%E5%AE%9A_cs.jpg",
       "file_size_mb": 16.47,
       "duration_sec": 762.687,
       "scene_count": 7,
@@ -236,7 +233,7 @@
       "qa": {
         "status": "rate_limited",
         "reason": "Gemini 429 - skip for now",
-        "checked_at": "2026-06-17T10:22:33.002361"
+        "checked_at": "2026-06-18T21:03:38.828005"
       }
     },
     {
@@ -246,7 +243,7 @@
       "topic": "IATF 16949 内部監査資料_箇条7.1.3.1",
       "mp4_path": "data/iatf_videos/IATF 16949 内部監査資料_箇条7.1.3.1/IATF 16949 内部監査資料_箇条7.1.3.1_slide_reviewed.mp4",
       "thumbnail_url": "/apps/growth_dashboard/iatf_thumbnails/IATF_16949_%E5%86%85%E9%83%A8%E7%9B%A3%E6%9F%BB%E8%B3%87%E6%96%99_%E7%AE%87%E6%9D%A17_1_3_1.jpg",
-      "contact_sheet_url": null,
+      "contact_sheet_url": "/apps/growth_dashboard/iatf_thumbnails/IATF_16949_%E5%86%85%E9%83%A8%E7%9B%A3%E6%9F%BB%E8%B3%87%E6%96%99_%E7%AE%87%E6%9D%A17_1_3_1_cs.jpg",
       "file_size_mb": 21.12,
       "duration_sec": 952.933333,
       "scene_count": 7,
@@ -255,7 +252,7 @@
       "qa": {
         "status": "rate_limited",
         "reason": "Gemini 429 - skip for now",
-        "checked_at": "2026-06-17T10:22:36.220245"
+        "checked_at": "2026-06-18T21:03:42.397774"
       }
     },
     {
@@ -265,7 +262,7 @@
       "topic": "MSAの外観検査",
       "mp4_path": "data/iatf_videos/IATF 16949 内部監査資料_箇条7.1.5.1.1_MSAの外観検査/IATF 16949 内部監査資料_箇条7.1.5.1.1_MSAの外観検査_slide_reviewed.mp4",
       "thumbnail_url": "/apps/growth_dashboard/iatf_thumbnails/IATF_16949_%E5%86%85%E9%83%A8%E7%9B%A3%E6%9F%BB%E8%B3%87%E6%96%99_%E7%AE%87%E6%9D%A17_1_5_1_1_MSA%E3%81%AE%E5%A4%96%E8%A6%B3%E6%A4%9C%E6%9F%BB.jpg",
-      "contact_sheet_url": null,
+      "contact_sheet_url": "/apps/growth_dashboard/iatf_thumbnails/IATF_16949_%E5%86%85%E9%83%A8%E7%9B%A3%E6%9F%BB%E8%B3%87%E6%96%99_%E7%AE%87%E6%9D%A17_1_5_1_1_MSA%E3%81%AE%E5%A4%96%E8%A6%B3%E6%A4%9C%E6%9F%BB_cs.jpg",
       "file_size_mb": 20.77,
       "duration_sec": 1031.365,
       "scene_count": 7,
@@ -274,7 +271,7 @@
       "qa": {
         "status": "rate_limited",
         "reason": "Gemini 429 - skip for now",
-        "checked_at": "2026-06-17T10:22:39.486632"
+        "checked_at": "2026-06-18T21:03:46.194235"
       }
     },
     {
@@ -284,7 +281,7 @@
       "topic": "生産と検査",
       "mp4_path": "data/iatf_videos/IATF 16949 内部監査資料_箇条7.1.5.1.1_生産と検査/IATF 16949 内部監査資料_箇条7.1.5.1.1_生産と検査_slide_reviewed.mp4",
       "thumbnail_url": "/apps/growth_dashboard/iatf_thumbnails/IATF_16949_%E5%86%85%E9%83%A8%E7%9B%A3%E6%9F%BB%E8%B3%87%E6%96%99_%E7%AE%87%E6%9D%A17_1_5_1_1_%E7%94%9F%E7%94%A3%E3%81%A8%E6%A4%9C%E6%9F%BB.jpg",
-      "contact_sheet_url": null,
+      "contact_sheet_url": "/apps/growth_dashboard/iatf_thumbnails/IATF_16949_%E5%86%85%E9%83%A8%E7%9B%A3%E6%9F%BB%E8%B3%87%E6%96%99_%E7%AE%87%E6%9D%A17_1_5_1_1_%E7%94%9F%E7%94%A3%E3%81%A8%E6%A4%9C%E6%9F%BB_cs.jpg",
       "file_size_mb": 16.93,
       "duration_sec": 819.533333,
       "scene_count": 7,
@@ -293,7 +290,7 @@
       "qa": {
         "status": "rate_limited",
         "reason": "Gemini 429 - skip for now",
-        "checked_at": "2026-06-17T10:22:42.692961"
+        "checked_at": "2026-06-18T21:03:49.674364"
       }
     },
     {
@@ -303,7 +300,7 @@
       "topic": "計測機器選定",
       "mp4_path": "data/iatf_videos/IATF 16949 内部監査資料_箇条7.1.5.1.1_計測機器選定/IATF 16949 内部監査資料_箇条7.1.5.1.1_計測機器選定_slide_reviewed.mp4",
       "thumbnail_url": "/apps/growth_dashboard/iatf_thumbnails/IATF_16949_%E5%86%85%E9%83%A8%E7%9B%A3%E6%9F%BB%E8%B3%87%E6%96%99_%E7%AE%87%E6%9D%A17_1_5_1_1_%E8%A8%88%E6%B8%AC%E6%A9%9F%E5%99%A8%E9%81%B8%E5%AE%9A.jpg",
-      "contact_sheet_url": null,
+      "contact_sheet_url": "/apps/growth_dashboard/iatf_thumbnails/IATF_16949_%E5%86%85%E9%83%A8%E7%9B%A3%E6%9F%BB%E8%B3%87%E6%96%99_%E7%AE%87%E6%9D%A17_1_5_1_1_%E8%A8%88%E6%B8%AC%E6%A9%9F%E5%99%A8%E9%81%B8%E5%AE%9A_cs.jpg",
       "file_size_mb": 21.65,
       "duration_sec": 1042.821,
       "scene_count": 7,
@@ -312,7 +309,7 @@
       "qa": {
         "status": "rate_limited",
         "reason": "Gemini 429 - skip for now",
-        "checked_at": "2026-06-17T10:22:45.924533"
+        "checked_at": "2026-06-18T21:03:53.281393"
       }
     },
     {
@@ -322,7 +319,7 @@
       "topic": "IATF 16949 内部監査資料_箇条7.1.5.1.1測定システム解析",
       "mp4_path": "data/iatf_videos/IATF 16949 内部監査資料_箇条7.1.5.1.1測定システム解析/IATF 16949 内部監査資料_箇条7.1.5.1.1測定システム解析_slide_reviewed.mp4",
       "thumbnail_url": "/apps/growth_dashboard/iatf_thumbnails/IATF_16949_%E5%86%85%E9%83%A8%E7%9B%A3%E6%9F%BB%E8%B3%87%E6%96%99_%E7%AE%87%E6%9D%A17_1_5_1_1%E6%B8%AC%E5%AE%9A%E3%82%B7%E3%82%B9%E3%83%86%E3%83%A0%E8%A7%A3%E6%9E%90.jpg",
-      "contact_sheet_url": null,
+      "contact_sheet_url": "/apps/growth_dashboard/iatf_thumbnails/IATF_16949_%E5%86%85%E9%83%A8%E7%9B%A3%E6%9F%BB%E8%B3%87%E6%96%99_%E7%AE%87%E6%9D%A17_1_5_1_1%E6%B8%AC%E5%AE%9A%E3%82%B7%E3%82%B9%E3%83%86%E3%83%A0%E8%A7%A3%E6%9E%90_cs.jpg",
       "file_size_mb": 22.98,
       "duration_sec": 1088.066667,
       "scene_count": 7,
@@ -331,7 +328,7 @@
       "qa": {
         "status": "rate_limited",
         "reason": "Gemini 429 - skip for now",
-        "checked_at": "2026-06-17T10:22:49.130538"
+        "checked_at": "2026-06-18T21:03:56.829118"
       }
     },
     {
@@ -341,7 +338,7 @@
       "topic": "IATF 16949 内部監査資料_箇条7.1.5.1.1測定システム解析 (2)",
       "mp4_path": "data/iatf_videos/IATF 16949 内部監査資料_箇条7.1.5.1.1測定システム解析 (2)/IATF 16949 内部監査資料_箇条7.1.5.1.1測定システム解析 (2)_slide_reviewed.mp4",
       "thumbnail_url": "/apps/growth_dashboard/iatf_thumbnails/IATF_16949_%E5%86%85%E9%83%A8%E7%9B%A3%E6%9F%BB%E8%B3%87%E6%96%99_%E7%AE%87%E6%9D%A17_1_5_1_1%E6%B8%AC%E5%AE%9A%E3%82%B7%E3%82%B9%E3%83%86%E3%83%A0%E8%A7%A3%E6%9E%90_2.jpg",
-      "contact_sheet_url": null,
+      "contact_sheet_url": "/apps/growth_dashboard/iatf_thumbnails/IATF_16949_%E5%86%85%E9%83%A8%E7%9B%A3%E6%9F%BB%E8%B3%87%E6%96%99_%E7%AE%87%E6%9D%A17_1_5_1_1%E6%B8%AC%E5%AE%9A%E3%82%B7%E3%82%B9%E3%83%86%E3%83%A0%E8%A7%A3%E6%9E%90_2_cs.jpg",
       "file_size_mb": 20.35,
       "duration_sec": 983.827,
       "scene_count": 7,
@@ -350,7 +347,7 @@
       "qa": {
         "status": "rate_limited",
         "reason": "Gemini 429 - skip for now",
-        "checked_at": "2026-06-17T10:22:52.360501"
+        "checked_at": "2026-06-18T21:04:00.408061"
       }
     },
     {
@@ -369,7 +366,7 @@
       "qa": {
         "status": "rate_limited",
         "reason": "Gemini 429 - skip for now",
-        "checked_at": "2026-06-17T10:22:55.812171"
+        "checked_at": "2026-06-18T21:04:03.810804"
       }
     },
     {
@@ -388,7 +385,7 @@
       "qa": {
         "status": "rate_limited",
         "reason": "Gemini 429 - skip for now",
-        "checked_at": "2026-06-17T10:22:59.207290"
+        "checked_at": "2026-06-18T21:04:07.565539"
       }
     },
     {
@@ -398,7 +395,7 @@
       "topic": "測定器の校正",
       "mp4_path": "data/iatf_videos/IATF 16949 内部監査資料_箇条7.1.5.2.1_測定器の校正/IATF 16949 内部監査資料_箇条7.1.5.2.1_測定器の校正_slide_reviewed.mp4",
       "thumbnail_url": "/apps/growth_dashboard/iatf_thumbnails/IATF_16949_%E5%86%85%E9%83%A8%E7%9B%A3%E6%9F%BB%E8%B3%87%E6%96%99_%E7%AE%87%E6%9D%A17_1_5_2_1_%E6%B8%AC%E5%AE%9A%E5%99%A8%E3%81%AE%E6%A0%A1%E6%AD%A3.jpg",
-      "contact_sheet_url": null,
+      "contact_sheet_url": "/apps/growth_dashboard/iatf_thumbnails/IATF_16949_%E5%86%85%E9%83%A8%E7%9B%A3%E6%9F%BB%E8%B3%87%E6%96%99_%E7%AE%87%E6%9D%A17_1_5_2_1_%E6%B8%AC%E5%AE%9A%E5%99%A8%E3%81%AE%E6%A0%A1%E6%AD%A3_cs.jpg",
       "file_size_mb": 17.97,
       "duration_sec": 886.186,
       "scene_count": 7,
@@ -407,7 +404,7 @@
       "qa": {
         "status": "rate_limited",
         "reason": "Gemini 429 - skip for now",
-        "checked_at": "2026-06-17T10:23:02.408673"
+        "checked_at": "2026-06-18T21:04:11.019586"
       }
     },
     {
@@ -417,7 +414,7 @@
       "topic": "業務を通じた教育訓練(OJT)_7.4内部_外部のコミュニケーション",
       "mp4_path": "data/iatf_videos/IATF 16949 内部監査資料_箇条7.2.2力量_業務を通じた教育訓練(OJT)_箇条7.4内部_外部のコミュニケーション/IATF 16949 内部監査資料_箇条7.2.2力量_業務を通じた教育訓練(OJT)_箇条7.4内部_外部のコミュニケーション_slide_reviewed.mp4",
       "thumbnail_url": "/apps/growth_dashboard/iatf_thumbnails/IATF_16949_%E5%86%85%E9%83%A8%E7%9B%A3%E6%9F%BB%E8%B3%87%E6%96%99_%E7%AE%87%E6%9D%A17_2_2%E5%8A%9B%E9%87%8F_%E6%A5%AD%E5%8B%99%E3%82%92%E9%80%9A%E3%81%98%E3%81%9F%E6%95%99%E8%82%B2%E8%A8%93%E7%B7%B4_OJT_%E7%AE%87%E6%9D%A17_4%E5%86%85%E9%83%A8_%E5%A4%96%E9%83%A8%E3%81%AE%E3%82%B3%E3%83%9F%E3%83%A5%E3%83%8B%E3%82%B1%E3%83%BC.jpg",
-      "contact_sheet_url": null,
+      "contact_sheet_url": "/apps/growth_dashboard/iatf_thumbnails/IATF_16949_%E5%86%85%E9%83%A8%E7%9B%A3%E6%9F%BB%E8%B3%87%E6%96%99_%E7%AE%87%E6%9D%A17_2_2%E5%8A%9B%E9%87%8F_%E6%A5%AD%E5%8B%99%E3%82%92%E9%80%9A%E3%81%98%E3%81%9F%E6%95%99%E8%82%B2%E8%A8%93%E7%B7%B4_OJT_%E7%AE%87%E6%9D%A17_4%E5%86%85%E9%83%A8_%E5%A4%96%E9%83%A8%E3%81%AE%E3%82%B3%E3%83%9F%E3%83%A5%E3%83%8B%E3%82%B1%E3%83%BC_cs.jpg",
       "file_size_mb": 22.77,
       "duration_sec": 977.266667,
       "scene_count": 7,
@@ -426,7 +423,7 @@
       "qa": {
         "status": "rate_limited",
         "reason": "Gemini 429 - skip for now",
-        "checked_at": "2026-06-17T10:23:05.655362"
+        "checked_at": "2026-06-18T21:04:14.690260"
       }
     },
     {
@@ -445,7 +442,7 @@
       "qa": {
         "status": "rate_limited",
         "reason": "Gemini 429 - skip for now",
-        "checked_at": "2026-06-17T10:23:09.044788"
+        "checked_at": "2026-06-18T21:04:18.225606"
       }
     },
     {
@@ -455,7 +452,7 @@
       "topic": "組織の製造フィージビリティ",
       "mp4_path": "data/iatf_videos/IATF 16949 内部監査資料_箇条8.2.3.1.3_組織の製造フィージビリティ/IATF 16949 内部監査資料_箇条8.2.3.1.3_組織の製造フィージビリティ_slide_reviewed.mp4",
       "thumbnail_url": "/apps/growth_dashboard/iatf_thumbnails/IATF_16949_%E5%86%85%E9%83%A8%E7%9B%A3%E6%9F%BB%E8%B3%87%E6%96%99_%E7%AE%87%E6%9D%A18_2_3_1_3_%E7%B5%84%E7%B9%94%E3%81%AE%E8%A3%BD%E9%80%A0%E3%83%95%E3%82%A3%E3%83%BC%E3%82%B8%E3%83%93%E3%83%AA%E3%83%86%E3%82%A3.jpg",
-      "contact_sheet_url": null,
+      "contact_sheet_url": "/apps/growth_dashboard/iatf_thumbnails/IATF_16949_%E5%86%85%E9%83%A8%E7%9B%A3%E6%9F%BB%E8%B3%87%E6%96%99_%E7%AE%87%E6%9D%A18_2_3_1_3_%E7%B5%84%E7%B9%94%E3%81%AE%E8%A3%BD%E9%80%A0%E3%83%95%E3%82%A3%E3%83%BC%E3%82%B8%E3%83%93%E3%83%AA%E3%83%86%E3%82%A3_cs.jpg",
       "file_size_mb": 20.83,
       "duration_sec": 931.354,
       "scene_count": 7,
@@ -464,7 +461,7 @@
       "qa": {
         "status": "rate_limited",
         "reason": "Gemini 429 - skip for now",
-        "checked_at": "2026-06-17T10:23:12.240159"
+        "checked_at": "2026-06-18T21:04:21.803169"
       }
     },
     {
@@ -474,7 +471,7 @@
       "topic": "IATF 16949 内部監査資料_箇条8.3.4.4製品承認プロセス",
       "mp4_path": "data/iatf_videos/IATF 16949 内部監査資料_箇条8.3.4.4製品承認プロセス/IATF 16949 内部監査資料_箇条8.3.4.4製品承認プロセス_slide_reviewed.mp4",
       "thumbnail_url": "/apps/growth_dashboard/iatf_thumbnails/IATF_16949_%E5%86%85%E9%83%A8%E7%9B%A3%E6%9F%BB%E8%B3%87%E6%96%99_%E7%AE%87%E6%9D%A18_3_4_4%E8%A3%BD%E5%93%81%E6%89%BF%E8%AA%8D%E3%83%97%E3%83%AD%E3%82%BB%E3%82%B9.jpg",
-      "contact_sheet_url": null,
+      "contact_sheet_url": "/apps/growth_dashboard/iatf_thumbnails/IATF_16949_%E5%86%85%E9%83%A8%E7%9B%A3%E6%9F%BB%E8%B3%87%E6%96%99_%E7%AE%87%E6%9D%A18_3_4_4%E8%A3%BD%E5%93%81%E6%89%BF%E8%AA%8D%E3%83%97%E3%83%AD%E3%82%BB%E3%82%B9_cs.jpg",
       "file_size_mb": 12.96,
       "duration_sec": 719.455,
       "scene_count": 7,
@@ -483,7 +480,7 @@
       "qa": {
         "status": "rate_limited",
         "reason": "Gemini 429 - skip for now",
-        "checked_at": "2026-06-17T10:23:15.459519"
+        "checked_at": "2026-06-18T21:04:25.308353"
       }
     },
     {
@@ -502,7 +499,7 @@
       "qa": {
         "status": "rate_limited",
         "reason": "Gemini 429 - skip for now",
-        "checked_at": "2026-06-17T10:23:18.828774"
+        "checked_at": "2026-06-18T21:04:28.844601"
       }
     },
     {
@@ -512,7 +509,7 @@
       "topic": "IATF 16949  Filter wash and dry process",
       "mp4_path": "data/iatf_videos/IATF 16949 内部監査資料_箇条8.5.1.2 標準作業オペレーター指示書と視覚的標準_IATF 16949  Filter wash and dry process/IATF 16949 内部監査資料_箇条8.5.1.2 標準作業オペレーター指示書と視覚的標準_IATF 16949  Filter wash and dry process_slide_reviewed.mp4",
       "thumbnail_url": "/apps/growth_dashboard/iatf_thumbnails/IATF_16949_%E5%86%85%E9%83%A8%E7%9B%A3%E6%9F%BB%E8%B3%87%E6%96%99_%E7%AE%87%E6%9D%A18_5_1_2_%E6%A8%99%E6%BA%96%E4%BD%9C%E6%A5%AD%E3%82%AA%E3%83%9A%E3%83%AC%E3%83%BC%E3%82%BF%E3%83%BC%E6%8C%87%E7%A4%BA%E6%9B%B8%E3%81%A8%E8%A6%96%E8%A6%9A%E7%9A%84%E6%A8%99%E6%BA%96_IATF_16949_F.jpg",
-      "contact_sheet_url": null,
+      "contact_sheet_url": "/apps/growth_dashboard/iatf_thumbnails/IATF_16949_%E5%86%85%E9%83%A8%E7%9B%A3%E6%9F%BB%E8%B3%87%E6%96%99_%E7%AE%87%E6%9D%A18_5_1_2_%E6%A8%99%E6%BA%96%E4%BD%9C%E6%A5%AD%E3%82%AA%E3%83%9A%E3%83%AC%E3%83%BC%E3%82%BF%E3%83%BC%E6%8C%87%E7%A4%BA%E6%9B%B8%E3%81%A8%E8%A6%96%E8%A6%9A%E7%9A%84%E6%A8%99%E6%BA%96_IATF_16949_F_cs.jpg",
       "file_size_mb": 0.16,
       "duration_sec": 6.304,
       "scene_count": 1,
@@ -521,7 +518,7 @@
       "qa": {
         "status": "rate_limited",
         "reason": "Gemini 429 - skip for now",
-        "checked_at": "2026-06-17T10:23:22.065728"
+        "checked_at": "2026-06-18T21:04:32.253796"
       }
     },
     {
@@ -531,7 +528,7 @@
       "topic": "IATF 16949 Total Productive Maintenance (TPM) Process",
       "mp4_path": "data/iatf_videos/IATF 16949 内部監査資料_箇条8.5.1.5 TPM_IATF 16949  Total Productive Maintenance (TPM) Process/IATF 16949 内部監査資料_箇条8.5.1.5 TPM_IATF 16949  Total Productive Maintenance (TPM) Process_slide_reviewed.mp4",
       "thumbnail_url": "/apps/growth_dashboard/iatf_thumbnails/IATF_16949_%E5%86%85%E9%83%A8%E7%9B%A3%E6%9F%BB%E8%B3%87%E6%96%99_%E7%AE%87%E6%9D%A18_5_1_5_TPM_IATF_16949_Total_Productive_.jpg",
-      "contact_sheet_url": null,
+      "contact_sheet_url": "/apps/growth_dashboard/iatf_thumbnails/IATF_16949_%E5%86%85%E9%83%A8%E7%9B%A3%E6%9F%BB%E8%B3%87%E6%96%99_%E7%AE%87%E6%9D%A18_5_1_5_TPM_IATF_16949_Total_Productive__cs.jpg",
       "file_size_mb": 15.17,
       "duration_sec": 754.0,
       "scene_count": 7,
@@ -540,7 +537,7 @@
       "qa": {
         "status": "rate_limited",
         "reason": "Gemini 429 - skip for now",
-        "checked_at": "2026-06-17T10:23:25.477228"
+        "checked_at": "2026-06-18T21:04:35.841307"
       }
     },
     {
@@ -550,7 +547,7 @@
       "topic": "",
       "mp4_path": "data/iatf_videos/IATF 16949 内部監査資料_箇条8.5.1.5 設備の保全_IATF 16949  Auditing Total productive maintenance/IATF 16949 内部監査資料_箇条8.5.1.5 設備の保全_IATF 16949  Auditing Total productive maintenance_slide_reviewed.mp4",
       "thumbnail_url": "/apps/growth_dashboard/iatf_thumbnails/IATF_16949_%E5%86%85%E9%83%A8%E7%9B%A3%E6%9F%BB%E8%B3%87%E6%96%99_%E7%AE%87%E6%9D%A18_5_1_5_%E8%A8%AD%E5%82%99%E3%81%AE%E4%BF%9D%E5%85%A8_IATF_16949_Auditing_Total_.jpg",
-      "contact_sheet_url": null,
+      "contact_sheet_url": "/apps/growth_dashboard/iatf_thumbnails/IATF_16949_%E5%86%85%E9%83%A8%E7%9B%A3%E6%9F%BB%E8%B3%87%E6%96%99_%E7%AE%87%E6%9D%A18_5_1_5_%E8%A8%AD%E5%82%99%E3%81%AE%E4%BF%9D%E5%85%A8_IATF_16949_Auditing_Total__cs.jpg",
       "file_size_mb": 13.39,
       "duration_sec": 602.533333,
       "scene_count": 0,
@@ -559,7 +556,7 @@
       "qa": {
         "status": "rate_limited",
         "reason": "Gemini 429 - skip for now",
-        "checked_at": "2026-06-17T10:23:28.891759"
+        "checked_at": "2026-06-18T21:04:39.492652"
       }
     },
     {
@@ -569,7 +566,7 @@
       "topic": "TPM（Total productive maintenance）",
       "mp4_path": "data/iatf_videos/IATF 16949 内部監査資料_箇条8.5.1.5_TPM( Total productive main)/IATF 16949 内部監査資料_箇条8.5.1.5_TPM( Total productive main)_slide_reviewed.mp4",
       "thumbnail_url": "/apps/growth_dashboard/iatf_thumbnails/IATF_16949_%E5%86%85%E9%83%A8%E7%9B%A3%E6%9F%BB%E8%B3%87%E6%96%99_%E7%AE%87%E6%9D%A18_5_1_5_TPM_Total_productive_main.jpg",
-      "contact_sheet_url": null,
+      "contact_sheet_url": "/apps/growth_dashboard/iatf_thumbnails/IATF_16949_%E5%86%85%E9%83%A8%E7%9B%A3%E6%9F%BB%E8%B3%87%E6%96%99_%E7%AE%87%E6%9D%A18_5_1_5_TPM_Total_productive_main_cs.jpg",
       "file_size_mb": 18.48,
       "duration_sec": 851.066667,
       "scene_count": 7,
@@ -578,7 +575,7 @@
       "qa": {
         "status": "rate_limited",
         "reason": "Gemini 429 - skip for now",
-        "checked_at": "2026-06-17T10:23:32.224391"
+        "checked_at": "2026-06-18T21:04:43.008701"
       }
     },
     {
@@ -588,7 +585,7 @@
       "topic": "IATF 16949 内部監査資料_箇条8.5.2.1識別及びトレーサビリティ",
       "mp4_path": "data/iatf_videos/IATF 16949 内部監査資料_箇条8.5.2.1識別及びトレーサビリティ/IATF 16949 内部監査資料_箇条8.5.2.1識別及びトレーサビリティ_slide_reviewed.mp4",
       "thumbnail_url": "/apps/growth_dashboard/iatf_thumbnails/IATF_16949_%E5%86%85%E9%83%A8%E7%9B%A3%E6%9F%BB%E8%B3%87%E6%96%99_%E7%AE%87%E6%9D%A18_5_2_1%E8%AD%98%E5%88%A5%E5%8F%8A%E3%81%B3%E3%83%88%E3%83%AC%E3%83%BC%E3%82%B5%E3%83%93%E3%83%AA%E3%83%86%E3%82%A3.jpg",
-      "contact_sheet_url": null,
+      "contact_sheet_url": "/apps/growth_dashboard/iatf_thumbnails/IATF_16949_%E5%86%85%E9%83%A8%E7%9B%A3%E6%9F%BB%E8%B3%87%E6%96%99_%E7%AE%87%E6%9D%A18_5_2_1%E8%AD%98%E5%88%A5%E5%8F%8A%E3%81%B3%E3%83%88%E3%83%AC%E3%83%BC%E3%82%B5%E3%83%93%E3%83%AA%E3%83%86%E3%82%A3_cs.jpg",
       "file_size_mb": 18.79,
       "duration_sec": 934.744,
       "scene_count": 7,
@@ -597,7 +594,7 @@
       "qa": {
         "status": "rate_limited",
         "reason": "Gemini 429 - skip for now",
-        "checked_at": "2026-06-17T10:23:35.588218"
+        "checked_at": "2026-06-18T21:04:46.523447"
       }
     },
     {
@@ -616,7 +613,7 @@
       "qa": {
         "status": "rate_limited",
         "reason": "Gemini 429 - skip for now",
-        "checked_at": "2026-06-17T10:23:39.078235"
+        "checked_at": "2026-06-18T21:04:50.165481"
       }
     },
     {
@@ -626,7 +623,7 @@
       "topic": "IATF 16949 内部監査資料_箇条8.5.6.1.1工程管理の一時的変更",
       "mp4_path": "data/iatf_videos/IATF 16949 内部監査資料_箇条8.5.6.1.1工程管理の一時的変更/IATF 16949 内部監査資料_箇条8.5.6.1.1工程管理の一時的変更_slide_reviewed.mp4",
       "thumbnail_url": "/apps/growth_dashboard/iatf_thumbnails/IATF_16949_%E5%86%85%E9%83%A8%E7%9B%A3%E6%9F%BB%E8%B3%87%E6%96%99_%E7%AE%87%E6%9D%A18_5_6_1_1%E5%B7%A5%E7%A8%8B%E7%AE%A1%E7%90%86%E3%81%AE%E4%B8%80%E6%99%82%E7%9A%84%E5%A4%89%E6%9B%B4.jpg",
-      "contact_sheet_url": null,
+      "contact_sheet_url": "/apps/growth_dashboard/iatf_thumbnails/IATF_16949_%E5%86%85%E9%83%A8%E7%9B%A3%E6%9F%BB%E8%B3%87%E6%96%99_%E7%AE%87%E6%9D%A18_5_6_1_1%E5%B7%A5%E7%A8%8B%E7%AE%A1%E7%90%86%E3%81%AE%E4%B8%80%E6%99%82%E7%9A%84%E5%A4%89%E6%9B%B4_cs.jpg",
       "file_size_mb": 19.65,
       "duration_sec": 932.6,
       "scene_count": 7,
@@ -635,7 +632,7 @@
       "qa": {
         "status": "rate_limited",
         "reason": "Gemini 429 - skip for now",
-        "checked_at": "2026-06-17T10:23:42.390638"
+        "checked_at": "2026-06-18T21:04:53.860477"
       }
     },
     {
@@ -645,7 +642,7 @@
       "topic": "IATF 16949 Auditing 4M change control",
       "mp4_path": "data/iatf_videos/IATF 16949 内部監査資料_箇条8.5.6変更管理_IATF 16949  Auditing 4M change control/IATF 16949 内部監査資料_箇条8.5.6変更管理_IATF 16949  Auditing 4M change control_slide_reviewed.mp4",
       "thumbnail_url": "/apps/growth_dashboard/iatf_thumbnails/IATF_16949_%E5%86%85%E9%83%A8%E7%9B%A3%E6%9F%BB%E8%B3%87%E6%96%99_%E7%AE%87%E6%9D%A18_5_6%E5%A4%89%E6%9B%B4%E7%AE%A1%E7%90%86_IATF_16949_Auditing_4M_change_.jpg",
-      "contact_sheet_url": null,
+      "contact_sheet_url": "/apps/growth_dashboard/iatf_thumbnails/IATF_16949_%E5%86%85%E9%83%A8%E7%9B%A3%E6%9F%BB%E8%B3%87%E6%96%99_%E7%AE%87%E6%9D%A18_5_6%E5%A4%89%E6%9B%B4%E7%AE%A1%E7%90%86_IATF_16949_Auditing_4M_change__cs.jpg",
       "file_size_mb": 14.99,
       "duration_sec": 618.4,
       "scene_count": 7,
@@ -654,159 +651,7 @@
       "qa": {
         "status": "rate_limited",
         "reason": "Gemini 429 - skip for now",
-        "checked_at": "2026-06-17T10:23:45.820457"
-      }
-    },
-    {
-      "id": "IATF_16949_内部監査資料_箇条8_6_3_外観検査項目の管理",
-      "title": "IATF 16949 内部監査資料_箇条8.6.3_外観検査項目の管理",
-      "clause": "8.6.3",
-      "topic": "外観検査項目の管理",
-      "mp4_path": "data/iatf_videos/IATF 16949 内部監査資料_箇条8.6.3_外観検査項目の管理/IATF 16949 内部監査資料_箇条8.6.3_外観検査項目の管理_slide_reviewed.mp4",
-      "thumbnail_url": "/apps/growth_dashboard/iatf_thumbnails/IATF_16949_%E5%86%85%E9%83%A8%E7%9B%A3%E6%9F%BB%E8%B3%87%E6%96%99_%E7%AE%87%E6%9D%A18_6_3_%E5%A4%96%E8%A6%B3%E6%A4%9C%E6%9F%BB%E9%A0%85%E7%9B%AE%E3%81%AE%E7%AE%A1%E7%90%86.jpg",
-      "contact_sheet_url": null,
-      "file_size_mb": 20.06,
-      "duration_sec": 968.133333,
-      "scene_count": 7,
-      "script_summary": "",
-      "broken": false,
-      "qa": {
-        "status": "rate_limited",
-        "reason": "Gemini 429 - skip for now",
-        "checked_at": "2026-06-17T10:23:49.152572"
-      }
-    },
-    {
-      "id": "IATF_16949_内部監査資料_箇条8_7_1_7不適合製品の廃棄",
-      "title": "IATF 16949 内部監査資料_箇条8.7.1.7不適合製品の廃棄",
-      "clause": "8.7.1.7不適合製品の廃棄",
-      "topic": "IATF 16949 内部監査資料_箇条8.7.1.7不適合製品の廃棄",
-      "mp4_path": "data/iatf_videos/IATF 16949 内部監査資料_箇条8.7.1.7不適合製品の廃棄/IATF 16949 内部監査資料_箇条8.7.1.7不適合製品の廃棄_slide_reviewed.mp4",
-      "thumbnail_url": "/apps/growth_dashboard/iatf_thumbnails/IATF_16949_%E5%86%85%E9%83%A8%E7%9B%A3%E6%9F%BB%E8%B3%87%E6%96%99_%E7%AE%87%E6%9D%A18_7_1_7%E4%B8%8D%E9%81%A9%E5%90%88%E8%A3%BD%E5%93%81%E3%81%AE%E5%BB%83%E6%A3%84.jpg",
-      "contact_sheet_url": null,
-      "file_size_mb": 18.07,
-      "duration_sec": 854.465,
-      "scene_count": 7,
-      "script_summary": "",
-      "broken": false,
-      "qa": {
-        "status": "rate_limited",
-        "reason": "Gemini 429 - skip for now",
-        "checked_at": "2026-06-17T10:23:52.479936"
-      }
-    },
-    {
-      "id": "IATF_16949_内部監査資料_箇条9_1_1_1製造工程の監視及び測定",
-      "title": "IATF 16949 内部監査資料_箇条9.1.1.1製造工程の監視及び測定",
-      "clause": "9.1.1.1製造工程の監視及び測定",
-      "topic": "IATF 16949 内部監査資料_箇条9.1.1.1製造工程の監視及び測定",
-      "mp4_path": "data/iatf_videos/IATF 16949 内部監査資料_箇条9.1.1.1製造工程の監視及び測定/IATF 16949 内部監査資料_箇条9.1.1.1製造工程の監視及び測定_slide_reviewed.mp4",
-      "thumbnail_url": "/apps/growth_dashboard/iatf_thumbnails/IATF_16949_%E5%86%85%E9%83%A8%E7%9B%A3%E6%9F%BB%E8%B3%87%E6%96%99_%E7%AE%87%E6%9D%A19_1_1_1%E8%A3%BD%E9%80%A0%E5%B7%A5%E7%A8%8B%E3%81%AE%E7%9B%A3%E8%A6%96%E5%8F%8A%E3%81%B3%E6%B8%AC%E5%AE%9A.jpg",
-      "contact_sheet_url": null,
-      "file_size_mb": 19.79,
-      "duration_sec": 962.2,
-      "scene_count": 7,
-      "script_summary": "",
-      "broken": false,
-      "qa": {
-        "status": "rate_limited",
-        "reason": "Gemini 429 - skip for now",
-        "checked_at": "2026-06-17T10:23:55.865378"
-      }
-    },
-    {
-      "id": "IATF_16949_内部監査資料_箇条9_1_1_3統計概念の適用",
-      "title": "IATF 16949 内部監査資料_箇条9.1.1.3統計概念の適用",
-      "clause": "9.1.1.3統計概念の適用",
-      "topic": "IATF 16949 内部監査資料_箇条9.1.1.3統計概念の適用",
-      "mp4_path": "data/iatf_videos/IATF 16949 内部監査資料_箇条9.1.1.3統計概念の適用/IATF 16949 内部監査資料_箇条9.1.1.3統計概念の適用_slide_reviewed.mp4",
-      "thumbnail_url": "/apps/growth_dashboard/iatf_thumbnails/IATF_16949_%E5%86%85%E9%83%A8%E7%9B%A3%E6%9F%BB%E8%B3%87%E6%96%99_%E7%AE%87%E6%9D%A19_1_1_3%E7%B5%B1%E8%A8%88%E6%A6%82%E5%BF%B5%E3%81%AE%E9%81%A9%E7%94%A8.jpg",
-      "contact_sheet_url": null,
-      "file_size_mb": 17.1,
-      "duration_sec": 843.55,
-      "scene_count": 7,
-      "script_summary": "",
-      "broken": false,
-      "qa": {
-        "status": "rate_limited",
-        "reason": "Gemini 429 - skip for now",
-        "checked_at": "2026-06-17T10:23:59.268361"
-      }
-    },
-    {
-      "id": "IATF_16949_内部監査資料_箇条9_3マネジメントレビュー",
-      "title": "IATF 16949 内部監査資料_箇条9.3マネジメントレビュー",
-      "clause": "9.3",
-      "topic": "マネジメントレビュー",
-      "mp4_path": "data/iatf_videos/IATF 16949 内部監査資料_箇条9.3マネジメントレビュー/IATF 16949 内部監査資料_箇条9.3マネジメントレビュー_slide_reviewed.mp4",
-      "thumbnail_url": "/apps/growth_dashboard/iatf_thumbnails/IATF_16949_%E5%86%85%E9%83%A8%E7%9B%A3%E6%9F%BB%E8%B3%87%E6%96%99_%E7%AE%87%E6%9D%A19_3%E3%83%9E%E3%83%8D%E3%82%B8%E3%83%A1%E3%83%B3%E3%83%88%E3%83%AC%E3%83%93%E3%83%A5%E3%83%BC.jpg",
-      "contact_sheet_url": null,
-      "file_size_mb": 15.76,
-      "duration_sec": 797.666667,
-      "scene_count": 7,
-      "script_summary": "皆さん、こんにちは！IATF 16949 内部監査教育動画へようこそ！ / 今日は、品質マネジメントシステムの要であり、トップマネジメントの関与が不可欠な箇条9.3、「マネジメントレビュー」に焦点を当てていきます。 / それでは、亀仙人、箇条9.3「マネジメントレビュー」の要求事項について、詳しく教えていただけますか？ / おう、ブルマ！任せておくれ！マネジメントレビューは、品質マネジメントシステムが引き続き適切で、妥当かつ有効であることを確実にするために、トップマネジメントが定期的にレビューしなければならないんじゃ。",
-      "broken": false,
-      "qa": {
-        "status": "rate_limited",
-        "reason": "Gemini 429 - skip for now",
-        "checked_at": "2026-06-17T10:24:02.606447"
-      }
-    },
-    {
-      "id": "IATF_16949内部監査資料_7_1_4プロセスの運用に関する環境",
-      "title": "IATF 16949内部監査資料_7.1.4プロセスの運用に関する環境",
-      "clause": "7.1.4プロセスの運用に関する環境",
-      "topic": "IATF 16949内部監査資料_7.1.4プロセスの運用に関する環境",
-      "mp4_path": "data/iatf_videos/IATF 16949内部監査資料_7.1.4プロセスの運用に関する環境/IATF 16949内部監査資料_7.1.4プロセスの運用に関する環境_slide_reviewed.mp4",
-      "thumbnail_url": "/apps/growth_dashboard/iatf_thumbnails/IATF_16949%E5%86%85%E9%83%A8%E7%9B%A3%E6%9F%BB%E8%B3%87%E6%96%99_7_1_4%E3%83%97%E3%83%AD%E3%82%BB%E3%82%B9%E3%81%AE%E9%81%8B%E7%94%A8%E3%81%AB%E9%96%A2%E3%81%99%E3%82%8B%E7%92%B0%E5%A2%83.jpg",
-      "contact_sheet_url": null,
-      "file_size_mb": 20.18,
-      "duration_sec": 997.6,
-      "scene_count": 7,
-      "script_summary": "",
-      "broken": false,
-      "qa": {
-        "status": "rate_limited",
-        "reason": "Gemini 429 - skip for now",
-        "checked_at": "2026-06-17T10:24:06.000135"
-      }
-    },
-    {
-      "id": "IATF_16949内部監査資料_箇条7_2_3　内部監査員の力量",
-      "title": "IATF 16949内部監査資料_箇条7.2.3　内部監査員の力量",
-      "clause": "7.2.3　内部監査員の力量",
-      "topic": "IATF 16949内部監査資料_箇条7.2.3　内部監査員の力量",
-      "mp4_path": "data/iatf_videos/IATF 16949内部監査資料_箇条7.2.3　内部監査員の力量/IATF 16949内部監査資料_箇条7.2.3　内部監査員の力量_slide_reviewed.mp4",
-      "thumbnail_url": "/apps/growth_dashboard/iatf_thumbnails/IATF_16949%E5%86%85%E9%83%A8%E7%9B%A3%E6%9F%BB%E8%B3%87%E6%96%99_%E7%AE%87%E6%9D%A17_2_3%E3%80%80%E5%86%85%E9%83%A8%E7%9B%A3%E6%9F%BB%E5%93%A1%E3%81%AE%E5%8A%9B%E9%87%8F.jpg",
-      "contact_sheet_url": "/apps/growth_dashboard/iatf_thumbnails/IATF_16949%E5%86%85%E9%83%A8%E7%9B%A3%E6%9F%BB%E8%B3%87%E6%96%99_%E7%AE%87%E6%9D%A17_2_3%E3%80%80%E5%86%85%E9%83%A8%E7%9B%A3%E6%9F%BB%E5%93%A1%E3%81%AE%E5%8A%9B%E9%87%8F_cs.jpg",
-      "file_size_mb": 19.06,
-      "duration_sec": 1118.4,
-      "scene_count": 7,
-      "script_summary": "",
-      "broken": false,
-      "qa": {
-        "status": "rate_limited",
-        "reason": "Gemini 429 - skip for now",
-        "checked_at": "2026-06-17T10:24:09.542367"
-      }
-    },
-    {
-      "id": "IATF_16949内部監査資料_箇条8_4_1_2供給者選定プロセス",
-      "title": "IATF 16949内部監査資料_箇条8.4.1.2供給者選定プロセス",
-      "clause": "8.4.1.2供給者選定プロセス",
-      "topic": "IATF 16949内部監査資料_箇条8.4.1.2供給者選定プロセス",
-      "mp4_path": "data/iatf_videos/IATF 16949内部監査資料_箇条8.4.1.2供給者選定プロセス/IATF 16949内部監査資料_箇条8.4.1.2供給者選定プロセス_slide_reviewed.mp4",
-      "thumbnail_url": "/apps/growth_dashboard/iatf_thumbnails/IATF_16949%E5%86%85%E9%83%A8%E7%9B%A3%E6%9F%BB%E8%B3%87%E6%96%99_%E7%AE%87%E6%9D%A18_4_1_2%E4%BE%9B%E7%B5%A6%E8%80%85%E9%81%B8%E5%AE%9A%E3%83%97%E3%83%AD%E3%82%BB%E3%82%B9.jpg",
-      "contact_sheet_url": null,
-      "file_size_mb": 0.15,
-      "duration_sec": 6.304,
-      "scene_count": 1,
-      "script_summary": "",
-      "broken": true,
-      "qa": {
-        "status": "rate_limited",
-        "reason": "Gemini 429 - skip for now",
-        "checked_at": "2026-06-17T10:24:12.931900"
+        "checked_at": "2026-06-18T21:04:57.444602"
       }
     }
   ]

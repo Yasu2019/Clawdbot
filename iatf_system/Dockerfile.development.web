@@ -25,7 +25,9 @@ COPY Gemfile /myapp/Gemfile
 COPY Gemfile.lock /myapp/Gemfile.lock
 
 # Bundlerの指定されたバージョンをインストールし、bundle installを実行
-RUN gem install bundler -v '2.3.7' && \
+RUN gem install psych -v 5.1.2 && \
+    gem update --system 3.4.22 && \
+    gem install bundler -v '2.3.7' && \
     bundle config build.nokogiri --use-system-libraries && \
     bundle _2.3.7_ install
 

@@ -43,20 +43,25 @@ class DXFProcessor:
             return float(match.group(1))
         return default
 
-    def process(self, default_thickness=10.0, layer_configs=None):
+    def process(self, default_thickness=10.0, layer_configs=None, t_junction_tol=0.02):
         if layer_configs is None:
             layer_configs = {}
 
         os.makedirs(self.output_dir, exist_ok=True)
         layers = self.group_by_layer()
+        skip_layers = self._frame_layers_to_skip(layers)
+        if skip_layers:
+            self.log_data["extrude_frame_layers_skipped"] = sorted(skip_layers)
+            print(f"[process] skip frame layers before extrude: {sorted(skip_layers)}", flush=True)
         processed_layers = []   # tracks {name, dxf_path, entities} for reconstruction
         successful_steps = []   # tracks step paths for layers that produced STEP files
 
-        layer_names = list(layers.keys())
+        layer_names = [n for n in layers.keys() if n not in skip_layers]
         n_layers = len(layer_names)
-        print(f"[DXF loaded] {n_layers} layers: {', '.join(layer_names)}", flush=True)
+        print(f"[DXF loaded] {len(layers)} layers ({n_layers} after frame skip): {', '.join(layer_names)}", flush=True)
 
-        for layer_idx, (layer_name, entities) in enumerate(layers.items(), 1):
+        for layer_idx, layer_name in enumerate(layer_names, 1):
+            entities = layers[layer_name]
             # Get thickness for this layer
             thickness = layer_configs.get(layer_name)
             if thickness is None:
@@ -69,7 +74,10 @@ class DXFProcessor:
 
             # Resolve T-junctions: split overlapping collinear segments and
             # remove shared internal edges, leaving only the outer boundary.
-            outer_lines, arc_entities, circle_entities = self.resolve_tjunctions(cleaned_entities)
+            outer_lines, arc_entities, circle_entities = self.resolve_tjunctions(cleaned_entities, tol=t_junction_tol)
+            outer_lines, arc_entities, circle_entities, n_drop = self._keep_largest_connected_cluster(
+                outer_lines, arc_entities, circle_entities, tol=t_junction_tol
+            )
             if not outer_lines and not arc_entities and not circle_entities:
                 continue
 
@@ -94,8 +102,18 @@ class DXFProcessor:
                 'entities': entities,
             })
 
-            # Generate FreeCAD Script
+            # Clean up old output files to prevent stale success readings on new failure
             step_path = os.path.join(self.output_dir, f"{layer_name}.step")
+            fcstd_path = os.path.join(self.output_dir, f"{layer_name}.FCStd")
+            png_path = os.path.join(self.output_dir, f"{layer_name}_views.png")
+            for old_file in [step_path, fcstd_path, png_path]:
+                if os.path.exists(old_file):
+                    try:
+                        os.remove(old_file)
+                    except Exception:
+                        pass
+
+            # Generate FreeCAD Script
             fc_script = self.generate_freecad_script(layer_dxf, step_path, thickness)
             script_path = os.path.join(self.output_dir, f"{layer_name}.py")
             with open(script_path, 'w', encoding='utf-8') as f:
@@ -104,7 +122,6 @@ class DXFProcessor:
             print(f"[FreeCAD] STEP generation for {layer_name} ...", flush=True)
             rc, msg = self.execute_freecad(script_path)
             step_exists = os.path.exists(step_path)
-            fcstd_path = os.path.join(self.output_dir, f"{layer_name}.FCStd")
             layer_log = {
                 "entities": len(cleaned_entities),
                 "thickness": thickness,
@@ -113,6 +130,8 @@ class DXFProcessor:
                 "step": os.path.basename(step_path) if step_exists else None,
                 "fcstd": os.path.basename(fcstd_path) if os.path.exists(fcstd_path) else None,
             }
+            if n_drop:
+                layer_log["auxiliary_clusters_dropped"] = n_drop
 
             # Generate third-angle projection PNG if STEP was created
             if step_exists:
@@ -126,12 +145,21 @@ class DXFProcessor:
 
             self.log_data["layers"][layer_name] = layer_log
 
-        with open(os.path.join(self.output_dir, "build_log.json"), 'w') as f:
-            json.dump(self.log_data, f, indent=2)
-
         # Multi-view 3D reconstruction: intersect front/top/right slabs
+        self._processed_layers_cache = processed_layers
         if len(successful_steps) >= 2:
             self.reconstruct_multiview(processed_layers)
+        elif len(successful_steps) == 1:
+            lone_layer = self._pick_part_layer_for_combined(processed_layers, successful_steps)
+            if lone_layer:
+                self._export_single_layer_combined(lone_layer)
+            else:
+                self.log_data["reconstruction_status"] = "frame_only_no_part"
+                self.log_data["combined_quality_ok"] = False
+                print("[process] only frame-like layer succeeded; no combined export", flush=True)
+
+        with open(os.path.join(self.output_dir, "build_log.json"), 'w') as f:
+            json.dump(self.log_data, f, indent=2)
 
         self._emit_part_manifest(default_thickness)
 
@@ -350,6 +378,112 @@ else:
 
         return outer_segs, arc_entities, circle_entities
 
+    def _point_key(self, x, y, tol):
+        g = tol
+        return (round(x / g) * g, round(y / g) * g)
+
+    def _cluster_line_segments(self, line_segs, tol=0.02):
+        from collections import defaultdict
+
+        parent: dict[int, int] = {}
+
+        def find(a: int) -> int:
+            parent.setdefault(a, a)
+            if parent[a] != a:
+                parent[a] = find(parent[a])
+            return parent[a]
+
+        def union(a: int, b: int) -> None:
+            ra, rb = find(a), find(b)
+            if ra != rb:
+                parent[rb] = ra
+
+        pt_id: dict[tuple[float, float], int] = {}
+        next_id = 0
+        clusters: dict[int, list] = defaultdict(list)
+        for seg in line_segs:
+            x1, y1, x2, y2 = seg
+            p1 = self._point_key(x1, y1, tol)
+            p2 = self._point_key(x2, y2, tol)
+            for p in (p1, p2):
+                if p not in pt_id:
+                    pt_id[p] = next_id
+                    next_id += 1
+            union(pt_id[p1], pt_id[p2])
+            clusters[find(pt_id[p1])].append(seg)
+        return clusters
+
+    def _bbox_of_line_segs(self, segs):
+        xs, ys = [], []
+        for x1, y1, x2, y2 in segs:
+            xs.extend([x1, x2])
+            ys.extend([y1, y2])
+        return min(xs), min(ys), max(xs), max(ys)
+
+    def _merge_nearby_line_clusters(self, clusters, gap=5.0):
+        items = []
+        for segs in clusters.values():
+            xmin, ymin, xmax, ymax = self._bbox_of_line_segs(segs)
+            items.append({"segs": list(segs), "bbox": (xmin, ymin, xmax, ymax)})
+
+        def bboxes_near(b1, b2):
+            x1min, y1min, x1max, y1max = b1
+            x2min, y2min, x2max, y2max = b2
+            dx = max(0.0, max(x2min - x1max, x1min - x2max))
+            dy = max(0.0, max(y2min - y1max, y1min - y2max))
+            return dx <= gap and dy <= gap
+
+        merged = True
+        while merged and len(items) > 1:
+            merged = False
+            for i in range(len(items)):
+                for j in range(i + 1, len(items)):
+                    if not bboxes_near(items[i]["bbox"], items[j]["bbox"]):
+                        continue
+                    items[i]["segs"].extend(items[j]["segs"])
+                    items[i]["bbox"] = self._bbox_of_line_segs(items[i]["segs"])
+                    items.pop(j)
+                    merged = True
+                    break
+                if merged:
+                    break
+        return [item["segs"] for item in items]
+
+    def _keep_largest_connected_cluster(self, line_segs, arc_entities, circle_entities, tol=0.02):
+        """Drop auxiliary multiview clusters on the same layer (e.g. P38 layer 7 side view)."""
+        if len(line_segs) < 2:
+            return line_segs, arc_entities, circle_entities, 0
+        raw_clusters = self._cluster_line_segments(line_segs, tol=tol)
+        merged = self._merge_nearby_line_clusters(raw_clusters, gap=max(tol * 5, 2.0))
+        if len(merged) <= 1:
+            return line_segs, arc_entities, circle_entities, 0
+
+        def cluster_area(segs):
+            xmin, ymin, xmax, ymax = self._bbox_of_line_segs(segs)
+            return max(xmax - xmin, 0.0) * max(ymax - ymin, 0.0)
+
+        kept_segs = max(merged, key=cluster_area)
+        xmin, ymin, xmax, ymax = self._bbox_of_line_segs(kept_segs)
+        margin = max(xmax - xmin, ymax - ymin, 1.0) * 0.05
+
+        def in_window(cx, cy):
+            return (xmin - margin <= cx <= xmax + margin) and (ymin - margin <= cy <= ymax + margin)
+
+        kept_arcs = [
+            a for a in arc_entities
+            if in_window(float(a.dxf.center.x), float(a.dxf.center.y))
+        ]
+        kept_circles = [
+            c for c in circle_entities
+            if in_window(float(c.dxf.center.x), float(c.dxf.center.y))
+        ]
+        dropped = len(merged) - 1
+        print(
+            f"[cluster-filter] dropped {dropped} auxiliary island(s); kept {len(kept_segs)} segments",
+            flush=True,
+        )
+        return kept_segs, kept_arcs, kept_circles, dropped
+
     def _get_layer_bbox(self, entities):
         """Calculate bounding box (cx, cy, xspan, yspan) from ezdxf entities."""
         xs, ys = [], []
@@ -378,6 +512,127 @@ else:
             'xspan': xmax - xmin,
             'yspan': ymax - ymin,
         }
+
+    def _layer_bbox_area(self, bb: dict) -> float:
+        return max(float(bb.get("xspan") or 0), 0.0) * max(float(bb.get("yspan") or 0), 0.0)
+
+    def _is_standard_drawing_frame(self, bb: dict) -> bool:
+        """ISO A4-ish title block frame (~208x293 mm) -- not the press part."""
+        w = float(bb.get("xspan") or 0)
+        h = float(bb.get("yspan") or 0)
+        if w > h:
+            w, h = h, w
+        return (200.0 <= w <= 220.0) and (285.0 <= h <= 300.0)
+
+    def _frame_layers_to_skip(self, layers: dict) -> set[str]:
+        skip: set[str] = set()
+        sized: list[tuple[str, float]] = []
+        for name, entities in layers.items():
+            bb = self._get_layer_bbox(entities)
+            if not bb:
+                continue
+            if self._is_standard_drawing_frame(bb):
+                skip.add(name)
+                continue
+            sized.append((name, self._layer_bbox_area(bb)))
+        if len(sized) < 2:
+            return skip
+        sized.sort(key=lambda item: item[1])
+        min_area = sized[0][1]
+        if min_area <= 0:
+            return skip
+        for name, area in sized:
+            if area > min_area * 20:
+                skip.add(name)
+        return skip
+
+    def _filter_frame_layers(self, layer_data: list) -> list:
+        """Drop drawing-frame layers that dwarf the real part profile (e.g. S11 layer 1)."""
+        if len(layer_data) < 2:
+            return layer_data
+        kept = [d for d in layer_data if not self._is_standard_drawing_frame(d["bb"])]
+        if len(kept) < len(layer_data):
+            dropped = [d["name"] for d in layer_data if d not in kept]
+            self.log_data["reconstruction_frame_layers_dropped"] = dropped
+            print(f"[reconstruct] dropped standard frame layers: {dropped}", flush=True)
+            if kept:
+                return kept
+        sized = [(d, self._layer_bbox_area(d["bb"])) for d in layer_data]
+        sized.sort(key=lambda item: item[1])
+        min_area = sized[0][1]
+        if min_area <= 0:
+            return layer_data
+        kept: list = []
+        dropped: list[str] = []
+        for d, area in sized:
+            if area > min_area * 20:
+                dropped.append(d["name"])
+            else:
+                kept.append(d)
+        if dropped and kept:
+            self.log_data["reconstruction_frame_layers_dropped"] = dropped
+            print(
+                f"[reconstruct] dropped frame-like layers (area>{min_area * 20:.1f}mm^2): {dropped}",
+                flush=True,
+            )
+            return kept
+        return layer_data
+
+    def _pick_part_layer_for_combined(self, processed_layers: list, successful_steps: list) -> str | None:
+        """Pick a successful non-frame layer for combined export."""
+        ok_names = {os.path.basename(p).replace(".step", "") for p in successful_steps}
+        candidates: list[tuple[str, float]] = []
+        for pl in processed_layers:
+            name = pl["name"]
+            if name not in ok_names:
+                continue
+            bb = self._get_layer_bbox(pl["entities"])
+            if not bb or self._is_standard_drawing_frame(bb):
+                continue
+            candidates.append((name, self._layer_bbox_area(bb)))
+        if not candidates:
+            return None
+        candidates.sort(key=lambda item: item[1], reverse=True)
+        return candidates[0][0]
+
+    def _export_single_layer_combined(self, layer_name: str) -> None:
+        """Use one profile layer as combined output when multiview pairing is invalid."""
+        import shutil
+
+        src_step = os.path.join(self.output_dir, f"{layer_name}.step")
+        src_fcstd = os.path.join(self.output_dir, f"{layer_name}.FCStd")
+        combined_step = os.path.join(self.output_dir, "combined.step")
+        combined_fcstd = os.path.join(self.output_dir, "combined.FCStd")
+        combined_png = os.path.join(self.output_dir, "combined_views.png")
+        if not os.path.exists(src_step):
+            self.log_data["reconstruction_status"] = "single_layer_missing_step"
+            self.log_data["combined_quality_ok"] = False
+            return
+        pl = next((p for p in getattr(self, "_processed_layers_cache", []) if p["name"] == layer_name), None)
+        if pl:
+            bb = self._get_layer_bbox(pl["entities"])
+            if bb and self._is_standard_drawing_frame(bb):
+                self.log_data["reconstruction_status"] = "frame_layer_rejected"
+                self.log_data["combined_quality_ok"] = False
+                print(f"[reconstruct] refuse combined from frame layer {layer_name}", flush=True)
+                return
+        shutil.copy2(src_step, combined_step)
+        if os.path.exists(src_fcstd):
+            shutil.copy2(src_fcstd, combined_fcstd)
+        self.log_data["combined_step"] = os.path.basename(combined_step)
+        self.log_data["combined_fcstd"] = (
+            os.path.basename(combined_fcstd) if os.path.exists(combined_fcstd) else None
+        )
+        self.log_data["reconstruction_status"] = "single_profile_extrude"
+        self.log_data["combined_quality_ok"] = True
+        self.log_data["reconstruction_note"] = (
+            f"Multiview skipped; promoted layer {layer_name} as combined solid (frame layers removed)."
+        )
+        print(f"[reconstruct] single-layer combined from {layer_name}", flush=True)
+        self.render_step_views(combined_step, combined_png, "Combined 3D Reconstruction")
+        self.log_data["combined_png"] = (
+            os.path.basename(combined_png) if os.path.exists(combined_png) else None
+        )
 
     def _assign_views_auto(self, layer_data):
         """Assign front/top/right view roles based on 2D bounding box layout.
@@ -467,63 +722,153 @@ for obj in doc.Objects:
 if edges:
     try:
         sorted_edge_groups = Part.sortEdges(edges)
-        faces = []
+        wires = []
         for edge_group in sorted_edge_groups:
             try:
                 wire = Part.Wire(edge_group)
                 if wire.isClosed():
-                    face = Part.Face(wire)
-                    faces.append(face)
+                    wires.append(wire)
             except Exception as we:
-                print(f"Wire/Face error: {{we}}")
+                print(f"Wire error: {{we}}")
 
-        if faces:
-            # Extrude each closed face to a solid, then fuse all solids.
-            # Using makeCompound().extrude() is WRONG: it creates separate
-            # unjoined shells instead of a unified solid (e.g. L-shape from
-            # two overlapping rectangles would give two separate boxes).
-            solids = []
-            for f in faces:
+        if wires:
+            # Detect circles and find concentric pairs (counterbores)
+            circles = []
+            for w in wires:
+                if len(w.Edges) == 1 and "Circle" in type(w.Edges[0].Curve).__name__:
+                    circles.append({{
+                        "wire": w,
+                        "center": (round(w.Edges[0].Curve.Center.x, 3), round(w.Edges[0].Curve.Center.y, 3)),
+                        "radius": w.Edges[0].Curve.Radius
+                    }})
+            
+            concentric_pairs = []
+            skip_wires = set()
+            for i in range(len(circles)):
+                for j in range(i + 1, len(circles)):
+                    c1 = circles[i]
+                    c2 = circles[j]
+                    dist = ((c1["center"][0] - c2["center"][0])**2 + (c1["center"][1] - c2["center"][1])**2)**0.5
+                    if dist < 0.05:
+                        inner = c1 if c1["radius"] < c2["radius"] else c2
+                        outer = c2 if c1["radius"] < c2["radius"] else c1
+                        concentric_pairs.append((inner, outer))
+                        skip_wires.add(outer["wire"])
+            
+            # Filter out outer wires of counterbores
+            wires = [w for w in wires if w not in skip_wires]
+
+            # Sort wires by the area of their face descending
+            try:
+                wires.sort(key=lambda w: Part.Face(w).Area, reverse=True)
+            except Exception as se:
+                print(f"Wire sorting error: {{se}}")
+
+            base_faces = []
+            for w in wires:
                 try:
-                    solids.append(f.extrude(App.Vector(0, 0, {thickness})))
-                except Exception as se:
-                    print(f"Extrude error: {{se}}")
-            if solids:
-                result = solids[0]
-                for s in solids[1:]:
-                    result = result.fuse(s)
-                # Clean up coplanar face splits from Boolean fuse
-                try:
-                    cleaned = result.removeSplitter()
-                    if cleaned.isValid() and getattr(cleaned, "Volume", 0) > 0:
-                        result = cleaned
-                        print(f"removeSplitter: {{len(result.Faces)}} faces")
-                except Exception as rse:
-                    print(f"removeSplitter skipped: {{rse}}")
-                try:
-                    area = result.Area
-                    volume = result.Volume
-                    bbox = result.BoundBox
-                    dim_x = bbox.XMax - bbox.XMin
-                    dim_y = bbox.YMax - bbox.YMin
-                    dim_z = bbox.ZMax - bbox.ZMin
-                    print(f"Metrics: V={{volume:.1f}} A={{area:.1f}} D={{dim_x:.1f}}x{{dim_y:.1f}}x{{dim_z:.1f}}")
-                except Exception as me:
-                    print(f"Metrics error: {{me}}")
-                
-                result.exportStep("{step_path}")
-                try:
-                    out_doc = App.newDocument("LayerModel")
-                    obj = out_doc.addObject("Part::Feature", "LayerSolid")
-                    obj.Shape = result
-                    out_doc.recompute()
-                    out_doc.saveAs("{fcstd_path}")
-                    print(f"Saved FCStd: {fcstd_path}")
-                except Exception as fce:
-                    print(f"FCStd save failed: {{fce}}")
-                print(f"Exported: {step_path}  faces={{len(result.Faces)}}")
+                    test_face = Part.Face(w)
+                    contained = False
+                    for i, base_face in enumerate(base_faces):
+                        cut_face = base_face.cut(test_face)
+                        # If the cut reduces the base_face area, test_face is inside it.
+                        if base_face.Area - cut_face.Area > 0.1:
+                            base_faces[i] = cut_face
+                            contained = True
+                            break
+                    if not contained:
+                        base_faces.append(test_face)
+                except Exception as fe:
+                    print(f"Face/containment error: {{fe}}")
+
+            if len(base_faces) > 1:
+                base_faces.sort(key=lambda f: f.Area, reverse=True)
+                max_area = float(base_faces[0].Area)
+                kept = [base_faces[0]]
+                for f in base_faces[1:]:
+                    if float(f.Area) * 10.0 >= max_area:
+                        kept.append(f)
+                if len(kept) > 1:
+                    print(f"[profile-filter] multiple outers on one layer; keeping largest only area={{max_area}}", flush=True)
+                    base_faces = [base_faces[0]]
+                elif len(kept) < len(base_faces):
+                    print(f"[profile-filter] dropped auxiliary profiles; kept area={{max_area}}", flush=True)
+                base_faces = kept
+
+            if base_faces:
+                # Extrude each outer face (with its cut holes) to a solid, then fuse them.
+                solids = []
+                for f in base_faces:
+                    try:
+                        solids.append(f.extrude(App.Vector(0, 0, {thickness})))
+                    except Exception as se:
+                        print(f"Extrude error: {{se}}")
+                if solids:
+                    result = solids[0]
+                    for s in solids[1:]:
+                        result = result.fuse(s)
+                    # Clean up coplanar face splits from Boolean fuse
+                    try:
+                        cleaned = result.removeSplitter()
+                        if cleaned.isValid() and getattr(cleaned, "Volume", 0) > 0:
+                            result = cleaned
+                            print(f"removeSplitter: {{len(result.Faces)}} faces")
+                    except Exception as rse:
+                        print(f"removeSplitter skipped: {{rse}}")
+
+                    # Apply counterbore pockets
+                    for inner, outer in concentric_pairs:
+                        try:
+                            cx, cy = inner["center"]
+                            R1 = inner["radius"]
+                            R2 = outer["radius"]
+                            d1 = R1 * 2.0
+                            d2 = R2 * 2.0
+                            h = min(5.0, {thickness} * 0.5)
+                            jis_table = [
+                                (3.2, 3.8,  5.8, 6.5,   3.3), # M3
+                                (4.2, 4.8,  7.8, 8.5,   4.4), # M4
+                                (5.2, 5.8,  9.2, 10.0,  5.4), # M5
+                                (6.2, 6.8,  10.8, 11.5, 6.5), # M6
+                                (8.2, 9.2,  13.8, 14.5, 8.6), # M8
+                            ]
+                            for j_d1_min, j_d1_max, j_d2_min, j_d2_max, j_h in jis_table:
+                                if j_d1_min <= d1 <= j_d1_max and j_d2_min <= d2 <= j_d2_max:
+                                    h = j_h
+                                    break
+                            
+                            pocket = Part.makeCylinder(R2, h, App.Vector(cx, cy, {thickness} - h), App.Vector(0, 0, 1))
+                            result = result.cut(pocket)
+                            print(f"[Counterbore] Created M-type pocket at ({{cx}}, {{cy}}) outer radius {{R2}} depth {{h}}")
+                        except Exception as cbe:
+                            print(f"Counterbore pocket build failed: {{cbe}}")
+
+                    try:
+                        area = result.Area
+                        volume = result.Volume
+                        bbox = result.BoundBox
+                        dim_x = bbox.XMax - bbox.XMin
+                        dim_y = bbox.YMax - bbox.YMin
+                        dim_z = bbox.ZMax - bbox.ZMin
+                        print(f"Metrics: V={{volume:.1f}} A={{area:.1f}} D={{dim_x:.1f}}x{{dim_y:.1f}}x{{dim_z:.1f}}")
+                    except Exception as me:
+                        print(f"Metrics error: {{me}}")
+                    
+                    result.exportStep("{step_path}")
+                    try:
+                        out_doc = App.newDocument("LayerModel")
+                        obj = out_doc.addObject("Part::Feature", "LayerSolid")
+                        obj.Shape = result
+                        out_doc.recompute()
+                        out_doc.saveAs("{fcstd_path}")
+                        print(f"Saved FCStd: {fcstd_path}")
+                    except Exception as fce:
+                        print(f"FCStd save failed: {{fce}}")
+                    print(f"Exported: {step_path}  faces={{len(result.Faces)}}")
+                else:
+                    print("Extrusion failed for all faces")
             else:
-                print("Extrusion failed for all faces")
+                print("No faces built after containment analysis")
         else:
             print("No closed faces found — check if DXF outlines form closed loops")
     except Exception as e:
@@ -606,27 +951,55 @@ else:
             "        return None\n"
             "    ev_pos = App.Vector(ev_pos.x * ext, ev_pos.y * ext, ev_pos.z * ext)\n"
             "    ev_neg = App.Vector(ev_neg.x * ext, ev_neg.y * ext, ev_neg.z * ext)\n"
-            "    # Sort edges into closed loops then build analytical faces\n"
+            "    # Sort edges into closed loops then build analytical faces with holes\n"
             "    try:\n"
             "        sorted_groups = Part.sortEdges(edges)\n"
             "    except Exception as e:\n"
             "        print('sortEdges failed:', e)\n"
             "        return None\n"
-            "    solids = []\n"
+            "    wires = []\n"
             "    for group in sorted_groups:\n"
             "        try:\n"
             "            wire = Part.Wire(group)\n"
-            "            if not wire.isClosed():\n"
-            "                continue\n"
-            "            # Build face in the original DXF XY-plane\n"
-            "            face_2d = Part.Face(wire)\n"
-            "            # Map to correct 3D view plane (keeps LINE as plane, ARC as cylinder)\n"
-            "            face_3d = face_2d.transformGeometry(m)\n"
+            "            if wire.isClosed():\n"
+            "                wires.append(wire)\n"
+            "        except Exception as e:\n"
+            "            pass\n"
+            "    if not wires:\n"
+            "        print('No closed wires for', view_type)\n"
+            "        return None\n"
+            "    try:\n"
+            "        wires.sort(key=lambda w: Part.Face(w).Area, reverse=True)\n"
+            "    except Exception as e:\n"
+            "        print('Wire sort error in build_slab:', e)\n"
+            "    base_faces = []\n"
+            "    for w in wires:\n"
+            "        try:\n"
+            "            test_face = Part.Face(w)\n"
+            "            contained = False\n"
+            "            for i, base_face in enumerate(base_faces):\n"
+            "                cut_face = base_face.cut(test_face)\n"
+            "                if base_face.Area - cut_face.Area > 0.1:\n"
+            "                    base_faces[i] = cut_face\n"
+            "                    contained = True\n"
+            "                    break\n"
+            "            if not contained:\n"
+            "                base_faces.append(test_face)\n"
+            "        except Exception as e:\n"
+            "            print('Face build error in build_slab:', e)\n"
+            "\n"
+            "    if len(base_faces) > 1:\n"
+            "        raise Exception('NG_MULTIPLE_PROFILES: 1つの面（レイヤー）に複数の独立した外形プロファイルが検出されました。基本DXFは部品単体の図面であるため、複数部品やバラ図はNG（未対応）対象となります。')\n"
+            "\n"
+            "    solids = []\n"
+            "    for f in base_faces:\n"
+            "        try:\n"
+            "            face_3d = f.transformGeometry(m)\n"
             "            sol_pos = face_3d.extrude(ev_pos)\n"
             "            sol_neg = face_3d.extrude(ev_neg)\n"
             "            solids.append(sol_pos.fuse(sol_neg))\n"
             "        except Exception as e:\n"
-            "            print('Group error for', view_type, ':', e)\n"
+            "            print('Extrusion/fuse error in build_slab:', e)\n"
             "    if not solids:\n"
             "        print('No solids built for', view_type)\n"
             "        return None\n"
@@ -716,9 +1089,17 @@ else:
             "                  '- faces:', len(result.Faces))\n"
             "        else:\n"
             "            print('Intersection empty, falling back to compound')\n"
+            "            try:\n"
+            "                with open('" + c_combined.replace("combined.step", "reconstruct_warning.txt") + "', 'w', encoding='utf-8') as wf:\n"
+            "                    wf.write('WARNING: 3D views intersection was empty (possible height mismatch or alignment discrepancy). Fell back to raw slabs compound.')\n"
+            "            except Exception: pass\n"
             "            Part.makeCompound(slabs).exportStep('" + c_combined + "')\n"
             "    except Exception as e:\n"
             "        print('Intersection failed, compound fallback:', e)\n"
+            "        try:\n"
+            "            with open('" + c_combined.replace("combined.step", "reconstruct_warning.txt") + "', 'w', encoding='utf-8') as wf:\n"
+            "                wf.write('WARNING: 3D views intersection failed (' + str(e) + '). Fell back to raw slabs compound.')\n"
+            "        except Exception: pass\n"
             "        Part.makeCompound(slabs).exportStep('" + c_combined + "')\n"
             "elif len(slabs) == 1:\n"
             "    slabs[0].exportStep('" + c_combined + "')\n"
@@ -738,6 +1119,7 @@ else:
         script = (
             "import FreeCAD as App\n"
             "import Part\n"
+            "import TechDraw\n"
             "import matplotlib\n"
             "matplotlib.use('Agg')\n"
             "import matplotlib.pyplot as plt\n"
@@ -745,18 +1127,124 @@ else:
             "\n"
             "shape = Part.read('" + c_step + "')\n"
             "bb = shape.BoundBox\n"
-            "cx = (bb.XMax + bb.XMin) / 2\n"
-            "cy = (bb.YMax + bb.YMin) / 2\n"
-            "cz = (bb.ZMax + bb.ZMin) / 2\n"
+            "oc = App.Vector((bb.XMax + bb.XMin) / 2, (bb.YMax + bb.YMin) / 2, (bb.ZMax + bb.ZMin) / 2)\n"
+            "dx = bb.XMax - bb.XMin\n"
+            "dy = bb.YMax - bb.YMin\n"
+            "dz = bb.ZMax - bb.ZMin\n"
+            "max_span = max(dx, dy, dz, 1.0)\n"
+            "half = max_span * 0.6\n"
             "\n"
-            "segments = []\n"
-            "for edge in shape.Edges:\n"
+            "def _coord(p, idx):\n"
+            "    return (p.x, p.y, p.z)[idx]\n"
+            "\n"
+            "def hlr_side_view(shape, direction, map_pt):\n"
+            "    \"\"\"Orthographic side view: visible HLR edges (outline + face features, no hidden).\"\"\"\n"
+            "    out = []\n"
             "    try:\n"
-            "        pts = edge.discretize(50)\n"
-            "        if pts:\n"
-            "            segments.append([(p.x - cx, p.y - cy, p.z - cz) for p in pts])\n"
-            "    except Exception:\n"
-            "        pass\n"
+            "        compounds = TechDraw.projectEx(shape, direction)\n"
+            "        # projectEx: 0-6 visible (V..V6), 7-9 hidden (H..H2) -- skip hidden\n"
+            "        for i in range(min(7, len(compounds))):\n"
+            "            comp = compounds[i]\n"
+            "            if comp is None or comp.isNull():\n"
+            "                continue\n"
+            "            for edge in comp.Edges:\n"
+            "                try:\n"
+            "                    pts = edge.discretize(40)\n"
+            "                except Exception:\n"
+            "                    continue\n"
+            "                if len(pts) < 2:\n"
+            "                    continue\n"
+            "                out.append([map_pt(p) for p in pts])\n"
+            "    except Exception as ex:\n"
+            "        print('HLR projectEx failed:', direction, ex)\n"
+            "    return out\n"
+            "\n"
+            "def map_front_pt(p):\n"
+            "    # projectEx front: p.x=Z, p.y=-world_X\n"
+            "    return (p.y - oc.x, p.x - oc.z)\n"
+            "\n"
+            "def map_right_pt(p):\n"
+            "    # projectEx right: p.x=Z, p.y=-world_Y\n"
+            "    return (-p.y - oc.y, p.x - oc.z)\n"
+            "\n"
+            "def outline_view(shape, direction, flip_u, oc_u, oc_v):\n"
+            "    \"\"\"Exterior silhouette fallback via TechDraw.findShapeOutline.\"\"\"\n"
+            "    out = []\n"
+            "    try:\n"
+            "        outline = TechDraw.findShapeOutline(shape, 1.0, direction)\n"
+            "        if outline is None or outline.isNull():\n"
+            "            return out\n"
+            "        for edge in outline.Edges:\n"
+            "            try:\n"
+            "                pts = edge.discretize(40)\n"
+            "            except Exception:\n"
+            "                continue\n"
+            "            if len(pts) < 2:\n"
+            "                continue\n"
+            "            out.append([(flip_u * p.x - oc_u, p.y - oc_v) for p in pts])\n"
+            "    except Exception as ex:\n"
+            "        print('Outline projection failed:', direction, ex)\n"
+            "    return out\n"
+            "\n"
+            "def top_profile_view(shape, oc_u, oc_v):\n"
+            "    \"\"\"Top view: all wires on +Z faces (outer profile + holes).\"\"\"\n"
+            "    out = []\n"
+            "    for face in shape.Faces:\n"
+            "        try:\n"
+            "            n = face.normalAt(0.5, 0.5)\n"
+            "        except Exception:\n"
+            "            continue\n"
+            "        if n.z < 0.9:\n"
+            "            continue\n"
+            "        for wire in face.Wires:\n"
+            "            for edge in wire.Edges:\n"
+            "                try:\n"
+            "                    pts = edge.discretize(40)\n"
+            "                except Exception:\n"
+            "                    continue\n"
+            "                if len(pts) < 2:\n"
+            "                    continue\n"
+            "                out.append([(p.x - oc_u, p.y - oc_v) for p in pts])\n"
+            "    return out\n"
+            "\n"
+            "def bbox_silhouette(oc_u, oc_v, umin, umax, vmin, vmax):\n"
+            "    \"\"\"Last-resort side view: axis-aligned bbox outline (no internal edges).\"\"\"\n"
+            "    corners = [\n"
+            "        (umin - oc_u, vmin - oc_v), (umax - oc_u, vmin - oc_v),\n"
+            "        (umax - oc_u, vmax - oc_v), (umin - oc_u, vmax - oc_v), (umin - oc_u, vmin - oc_v),\n"
+            "    ]\n"
+            "    return [corners]\n"
+            "\n"
+            "def wireframe_fallback(shape, u_idx, v_idx):\n"
+            "    \"\"\"Legacy fallback: all edges projected (shows internal lines -- avoid if possible).\"\"\"\n"
+            "    out = []\n"
+            "    for edge in shape.Edges:\n"
+            "        try:\n"
+            "            pts = edge.discretize(40)\n"
+            "        except Exception:\n"
+            "            continue\n"
+            "        if len(pts) < 2:\n"
+            "            continue\n"
+            "        out.append([\n"
+            "            (_coord(p, u_idx) - _coord(oc, u_idx), _coord(p, v_idx) - _coord(oc, v_idx))\n"
+            "            for p in pts\n"
+            "        ])\n"
+            "    return out\n"
+            "\n"
+            "# Third-angle: Top=XY profile, Front/Right=HLR visible edges only\n"
+            "top_segs   = top_profile_view(shape, oc.x, oc.y)\n"
+            "front_segs = hlr_side_view(shape, App.Vector(0, -1, 0), map_front_pt)\n"
+            "right_segs = hlr_side_view(shape, App.Vector(1, 0, 0), map_right_pt)\n"
+            "if not top_segs:\n"
+            "    top_segs = outline_view(shape, App.Vector(0, 0, 1), 1, oc.x, oc.y)\n"
+            "if not front_segs:\n"
+            "    front_segs = outline_view(shape, App.Vector(0, -1, 0), -1, oc.x, oc.z)\n"
+            "if not front_segs:\n"
+            "    front_segs = bbox_silhouette(oc.x, oc.z, bb.XMin, bb.XMax, bb.ZMin, bb.ZMax)\n"
+            "if not right_segs:\n"
+            "    right_segs = outline_view(shape, App.Vector(1, 0, 0), 1, oc.y, oc.z)\n"
+            "if not right_segs:\n"
+            "    right_segs = bbox_silhouette(oc.y, oc.z, bb.YMin, bb.YMax, bb.ZMin, bb.ZMax)\n"
             "\n"
             "def draw_view(ax, segs_2d, title, flip_y=False):\n"
             "    for seg in segs_2d:\n"
@@ -764,17 +1252,9 @@ else:
             "            xs = [p[0] for p in seg]\n"
             "            ys = [p[1] for p in seg]\n"
             "            ax.plot(xs, ys, 'k-', linewidth=0.8, solid_capstyle='round')\n"
-            "    ax.set_aspect('equal', adjustable='datalim')\n"
-            "    ax.margins(0.12)\n"
-            "    # Ensure minimum visible height (for thin extruded plates)\n"
-            "    ax.autoscale()\n"
-            "    xlim = ax.get_xlim()\n"
-            "    ylim = ax.get_ylim()\n"
-            "    xspan = max(xlim[1] - xlim[0], 1e-6)\n"
-            "    yspan = ylim[1] - ylim[0]\n"
-            "    if yspan < xspan * 0.08:\n"
-            "        mid_y = (ylim[0] + ylim[1]) / 2\n"
-            "        ax.set_ylim(mid_y - xspan * 0.12, mid_y + xspan * 0.12)\n"
+            "    ax.set_aspect('equal')\n"
+            "    ax.set_xlim(-half, half)\n"
+            "    ax.set_ylim(-half, half)\n"
             "    ax.set_title(title, fontsize=9, pad=5)\n"
             "    ax.set_facecolor('#F5F5F5')\n"
             "    ax.tick_params(left=False, bottom=False, labelleft=False, labelbottom=False)\n"
@@ -783,11 +1263,6 @@ else:
             "        spine.set_linewidth(0.5)\n"
             "    if flip_y:\n"
             "        ax.invert_yaxis()\n"
-            "\n"
-            "# Third-angle projection: Top=XY(flip Y), Front=XZ, Right=YZ\n"
-            "top_segs   = [[(p[0],  p[1]) for p in s] for s in segments]\n"
-            "front_segs = [[(p[0],  p[2]) for p in s] for s in segments]\n"
-            "right_segs = [[(p[1],  p[2]) for p in s] for s in segments]\n"
             "\n"
             "fig = plt.figure(figsize=(14, 10), facecolor='white')\n"
             "gs = gridspec.GridSpec(2, 2, figure=fig, hspace=0.4, wspace=0.3)\n"
@@ -837,11 +1312,18 @@ else:
             if bb:
                 layer_data.append({'name': pl['name'], 'bb': bb})
 
+        layer_data = self._filter_frame_layers(layer_data)
         if len(layer_data) < 2:
-            print("Not enough layers with bounding boxes for view assignment")
+            if len(layer_data) == 1:
+                self._export_single_layer_combined(layer_data[0]["name"])
+                with open(os.path.join(self.output_dir, "build_log.json"), 'w') as f:
+                    json.dump(self.log_data, f, indent=2)
+            else:
+                print("Not enough layers with bounding boxes for view assignment")
             return
 
         view_assignments = self._assign_views_auto(layer_data)
+        self.log_data["view_assignments"] = view_assignments
         print(f"View assignments: {view_assignments}")
 
         # Build {view_type: dxf_path} — first assigned layer wins per view type
@@ -857,7 +1339,17 @@ else:
 
         print(f"View map: {view_map}")
 
+        # Clean up old combined files to prevent stale success readings on failure
         combined_step = os.path.join(self.output_dir, "combined.step")
+        combined_fcstd = os.path.join(self.output_dir, "combined.FCStd")
+        combined_png = os.path.join(self.output_dir, "combined_views.png")
+        for old_file in [combined_step, combined_fcstd, combined_png]:
+            if os.path.exists(old_file):
+                try:
+                    os.remove(old_file)
+                except Exception:
+                    pass
+
         script = self.generate_reconstruction_script(view_map, combined_step)
         script_path = os.path.join(self.output_dir, "reconstruct_multiview.py")
         with open(script_path, 'w', encoding='utf-8') as f:
@@ -865,9 +1357,26 @@ else:
 
         print("[FreeCAD] Running multi-view reconstruction script ...", flush=True)
         rc, msg = self.execute_freecad(script_path)
+        msg_l = (msg or "").lower()
+        if "falling back to compound" in msg_l or "compound fallback" in msg_l:
+            self.log_data["reconstruction_status"] = "compound_fallback"
+            self.log_data["combined_quality_ok"] = False
+            self.log_data["reconstruction_warning"] = (
+                "3D view intersection failed or was empty; exported compound of misaligned slabs "
+                "(TOP VIEW may show overlapping profiles)."
+            )
+        elif "intersection ok" in msg_l and "reconstruction complete" in msg_l:
+            self.log_data["reconstruction_status"] = "intersection_ok"
+            self.log_data["combined_quality_ok"] = True
+        elif os.path.exists(combined_step):
+            self.log_data["reconstruction_status"] = "combined_exported"
+            self.log_data["combined_quality_ok"] = True
 
         if os.path.exists(combined_step):
-            print("[FreeCAD] Reconstruction STEP done - rendering combined preview ...", flush=True)
+            if self.log_data.get("reconstruction_status") == "compound_fallback":
+                print("[NG] Combined STEP is compound fallback (overlapping views)", flush=True)
+            else:
+                print("[FreeCAD] Reconstruction STEP done - rendering combined preview ...", flush=True)
             combined_png = os.path.join(self.output_dir, "combined_views.png")
             self.render_step_views(combined_step, combined_png, "Combined 3D Reconstruction")
             combined_fcstd = (
@@ -885,7 +1394,20 @@ else:
         else:
             print(f"Combined STEP not generated. rc={rc}")
             self.log_data["combined_step"] = None
+            self.log_data["combined_quality_ok"] = False
+            self.log_data["reconstruction_status"] = "failed"
             self.log_data["combined_error"] = msg[:300] if msg else "Unknown error"
+
+        # Check and load reconstruction warning from the FreeCAD script run
+        warning_file = os.path.join(self.output_dir, "reconstruct_warning.txt")
+        if os.path.exists(warning_file):
+            try:
+                with open(warning_file, 'r', encoding='utf-8') as wf:
+                    self.log_data["reconstruction_warning"] = wf.read().strip()
+                os.remove(warning_file)
+                print(f"[warning] loaded reconstruction warning: {self.log_data['reconstruction_warning']}")
+            except Exception as wex:
+                print(f"Failed to read warning file: {wex}")
 
         # Re-save build_log.json with combined step info
         with open(os.path.join(self.output_dir, "build_log.json"), 'w') as f:
@@ -903,12 +1425,14 @@ else:
             cmd = ["docker", "exec", container_name, "bash", "-c", f"FreeCADCmd '{linux_script_path}'"]
             timeout_sec = 120
         try:
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout_sec)
+            result = subprocess.run(cmd, capture_output=True, timeout=timeout_sec)
+            stdout = result.stdout.decode('utf-8', errors='replace') if result.stdout else ""
+            stderr = result.stderr.decode('utf-8', errors='replace') if result.stderr else ""
             if result.returncode != 0:
-                print(f"FreeCAD exited with code {result.returncode}: {result.stderr}")
-                return result.returncode, result.stderr
-            print(result.stdout)
-            return 0, result.stdout
+                print(f"FreeCAD exited with code {result.returncode}: {stderr}")
+                return result.returncode, stderr
+            print(stdout)
+            return 0, stdout
         except subprocess.TimeoutExpired:
             print(f"FreeCAD timed out after {timeout_sec}s")
             return -1, "Timeout"
@@ -924,9 +1448,11 @@ if __name__ == "__main__":
     parser.add_argument("--layer-configs", type=str, default="{}")
     parser.add_argument("--manual-mode", action="store_true")
     parser.add_argument("--view-assignments", type=str, default="[]")
+    parser.add_argument("--t-junction-tol", type=float, default=0.02)
+    parser.add_argument("--snap-tol", type=float, default=0.02)
     args = parser.parse_args()
     
-    processor = DXFProcessor(args.input, args.output)
+    processor = DXFProcessor(args.input, args.output, snap_tol=args.snap_tol)
     
     if args.manual_mode:
         assignments = json.loads(args.view_assignments)
@@ -937,4 +1463,4 @@ if __name__ == "__main__":
             layer_configs = json.loads(args.layer_configs)
         except:
             print(f"Warning: Failed to parse layer-configs: {args.layer_configs}")
-        processor.process(args.thickness, layer_configs)
+        processor.process(args.thickness, layer_configs, t_junction_tol=args.t_junction_tol)

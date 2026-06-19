@@ -1,7 +1,7 @@
 # Gemma4 7PC Honki kit mapped onto Clawstack fleet (ADOPT_PARTIAL INC-117)
 # Canonical kit: protocols/gemma4_7pc_honki/README.md
 schema: clawstack.fleet_7pc_role_map.v1
-updated_at: "2026-06-14"
+updated_at: "2026-06-07"
 
 node_primary_role:
   K10: pc1_president_ai
@@ -10,8 +10,27 @@ node_primary_role:
   thinkpad: pc3_engineering_ai
   G3: pc6_n8n_automation
   dynabook: pc7_backup
-  vivobook: pc7_backup
-  LAVIE_CORE_I3: pc7_backup
+  vivobook: pc7_backup  # ON HOLD — not in active fleet (see node_status)
+  LAVIE_CORE_I3: pc7_backup  # Registered satellite node
+
+node_status:
+  VIVOBOOK:
+    status: on_hold
+    since: "2026-06-07"
+    hostname: mhn15
+    tailscale_ip: "100.65.182.27"
+    reason: "Weak laptop; disk 97%+. CAE not routed. monitor optional — fleet ops via K10+dynabook."
+    cae_routing: excluded
+    reactivate_when: "Free disk space then optional monitor only; no CAE."
+
+  LAVIE_CORE_I3:
+    status: active
+    since: "2026-06-17"
+    hostname: desktop-tfdripe-lavie-i3
+    tailscale_ip: "100.67.36.121"
+    reason: "Core i3 satellite node registered for remote control/editing."
+    cae_routing: dry_run_pregate_only
+    reactivate_when: "Setup completed on 2026-06-17."
 
 model_policy:
   heavy_gemma4_host: K10
@@ -66,6 +85,7 @@ roles:
   pc7_backup:
     kit_role: "バックアップ / ログ"
     kit_role_en: "Backup / logs"
-    fleet_nodes: [K10, LAVIE_CORE_I3]
+    fleet_nodes: [K10, dynabook]
     services: [git, obsidian_backup_zip, connectivity_logs]
     model_hint: none
+    notes: "LAVIE_CORE_I3 + VIVOBOOK on_hold 2026-06-07 — active pc7: K10 + dynabook only."

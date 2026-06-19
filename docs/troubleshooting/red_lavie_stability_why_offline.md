@@ -1,4 +1,5 @@
-# Red LAVIE (DESKTOP-DERCN1N) -- why Tailscale/worker goes offline
+#Requires -Version 5.1
+# INC-120: Red LAVIE monitor bringup pitfalls (SyntaxError gate, non-admin paths, self-kill filter).
 
 ## Node
 
@@ -53,7 +54,73 @@ Expected marker: `RED_LAVIE_LOCAL_BRINGUP_OK`
 
 ---
 
-## Fix path (K10 only)
+## Monitor only (`:8111` down, worker `:5682` OK) — INC-120 / T036
+
+**Symptoms:** `8111/metrics` connection refused; worker health OK; `red_lavie_start_monitor.ps1` stops after `Saved:` with no `RED_LAVIE_MONITOR_OK`.
+
+**Root causes (fixed 2026-06-15):**
+
+| Cause | Fix |
+|-------|-----|
+| K10 served broken `monitor_agent.py` (SyntaxError) | `verify_fleet_script_server_gate.ps1` before `:8123` |
+| Write to `C:\monitor_agent.py` as standard user | Use `C:\clawstack_satellite\scripts\monitor_agent.py` |
+| Start script killed own PowerShell (`-AgentPath ...monitor_agent.py`) | Kill only `python(w).exe` running `monitor_agent.py` |
+| Execution policy blocks `.ps1` | Always `powershell -ExecutionPolicy Bypass -File ...` |
+
+**Correct one-shot on Red LAVIE:**
+
+```powershell
+$K10 = "http://100.119.18.40:8123"
+Invoke-WebRequest "$K10/red_lavie_start_monitor.ps1" -OutFile "$env:TEMP\mon.ps1" -UseBasicParsing
+powershell -ExecutionPolicy Bypass -File "$env:TEMP\mon.ps1" -K10 $K10
+```
+
+Expected: `RED_LAVIE_MONITOR_OK` + scheduled tasks `ClawstackRedLavieMonitor` / `ClawstackRedLavieMonitorWatchdog` + Startup VBS.
+
+Daemon only (already installed):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File C:\clawstack_satellite\scripts\red_lavie_monitor_daemon.ps1 -RegisterScheduledTasks
+```
+
+Logs: `C:\clawstack_satellite\logs\red_lavie_monitor.log`
+
+**Debug (show errors):**
+
+```powershell
+cd C:\clawstack_satellite\scripts
+& "$env:LOCALAPPDATA\Programs\Python\Python311\python.exe" .\monitor_agent.py
+```
+
+Do **not** close this window until scheduled tasks are registered (one-time setup; reboot-safe after that).
+
+---
+
+## Job worker (`:5682`) — window-close safe daemon (INC-120+)
+
+**Problem:** `python.exe` in PowerShell dies when the window closes. `pythonw` via broken `ArgumentList` also exited silently.
+
+**Fix:** `red_lavie_job_worker_daemon.ps1` — detached `pythonw` with array args + scheduled tasks.
+
+```powershell
+$K10 = "http://100.119.18.40:8123"
+Invoke-WebRequest "$K10/red_lavie_start_job_worker.ps1" -OutFile "$env:TEMP\jw.ps1" -UseBasicParsing
+$Token = ""
+Get-Content C:\clawstack_satellite\.env | ForEach-Object { if ($_ -match '^SATELLITE_JOB_TOKEN=(.+)$') { $Token = $Matches[1].Trim() } }
+powershell -ExecutionPolicy Bypass -File "$env:TEMP\jw.ps1" -K10 $K10 -Token $Token
+```
+
+Registers `ClawstackRedLavieJobWorker` (logon) + `ClawstackRedLavieJobWorkerWatchdog` (5 min).
+
+Daemon only (already installed):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File C:\clawstack_satellite\scripts\red_lavie_job_worker_daemon.ps1 -RegisterScheduledTasks
+```
+
+Logs: `C:\clawstack_satellite\logs\red_lavie_job_worker.log`
+
+---
 
 Run on **K10** (`D:\Clawdbot_Docker_20260125`). Any working directory is OK.
 

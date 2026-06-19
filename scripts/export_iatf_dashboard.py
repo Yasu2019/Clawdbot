@@ -72,6 +72,50 @@ def split_summary(text):
     return text[:midpoint], text[midpoint:midpoint + 450]
 
 
+def parse_structured_summary(text):
+    text = (text or "").strip()
+    sections = {
+        "clause_explain": "",
+        "audit_trail": "",
+        "problem": "",
+        "improvement": ""
+    }
+    
+    tags = [
+        ("clause_explain", "【該当箇条と要求事項の背景意図】"),
+        ("audit_trail", "【内部監査の進め方と着眼点】"),
+        ("problem", "【不適合事例の詳細解説】"),
+        ("improvement", "【是正処置・予防処置の実務】")
+    ]
+    
+    has_any = any(tag in text for _, tag in tags)
+    if not has_any:
+        # Fallback to legacy split
+        p, imp = split_summary(text)
+        sections["problem"] = p
+        sections["improvement"] = imp
+        return sections
+        
+    positions = []
+    for key, tag in tags:
+        pos = text.find(tag)
+        if pos != -1:
+            positions.append((pos, key, tag))
+            
+    positions.sort()
+    
+    for i, (pos, key, tag) in enumerate(positions):
+        start = pos + len(tag)
+        end = positions[i+1][0] if i + 1 < len(positions) else len(text)
+        val = text[start:end].strip()
+        # Clean potential leading/trailing colons or empty lines
+        if val.startswith(":") or val.startswith("："):
+            val = val[1:].strip()
+        sections[key] = val
+        
+    return sections
+
+
 def clause_label(text):
     clauses = sorted(set(CLAUSE_RE.findall(text or "")))
     if clauses:
@@ -111,7 +155,10 @@ def export_dashboard_json():
         video_id, video_url = extract_video_id(row["evidence"])
         if video_id:
             db_video_ids.add(video_id)
-        problem, improvement = split_summary(row["know_how"])
+        
+        parsed = parse_structured_summary(row["know_how"])
+        problem = parsed["problem"]
+        improvement = parsed["improvement"]
         if problem == "要約生成失敗":
             failed_count += 1
         title = clean_title(row["challenge"])
@@ -125,6 +172,8 @@ def export_dashboard_json():
                 "clause": clause_label(row["know_how"]),
                 "problem": problem,
                 "improvement": improvement,
+                "clause_explain": parsed["clause_explain"],
+                "audit_trail": parsed["audit_trail"],
                 "status": "summary_failed" if problem == "要約生成失敗" else "analyzed",
             }
         )

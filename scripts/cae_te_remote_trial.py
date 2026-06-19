@@ -84,8 +84,11 @@ def main() -> int:
     import cae_te_engine as engine
 
     host = args.host or os.environ.get("SATELLITE_NODE_ID", "k10")
-    if str(host).lower() == "lavie":
-        # K10 continuous loop sends fill video via pull+render on K10 (INC-089).
+    # Satellites render fill MP4 on K10 (lavie_cae_video_support pull path, INC-089 / T019).
+    if str(host).lower() not in ("k10", ""):
+        os.environ["CAE_FILL_VIDEO_TELEGRAM"] = "0"
+    elif str(host).lower() == "lavie":
+        # Back-compat if host label is lavie on K10 local test
         os.environ["CAE_FILL_VIDEO_TELEGRAM"] = "0"
     try:
         trial_entry = engine.run_single_trial(

@@ -115,28 +115,95 @@ def _render_one_slide(
     index: int,
     count: int,
 ) -> None:
-    image = Image.new("RGB", SLIDE_SIZE, "#f8fafc")
+    # 1. Base dark background with a sleek industrial gradient
+    image = Image.new("RGB", SLIDE_SIZE)
     draw = ImageDraw.Draw(image)
+    
+    # Procedural vertical linear gradient from deep navy to slate black
+    for y_coord in range(SLIDE_SIZE[1]):
+        r = int(11 + (2 - 11) * (y_coord / SLIDE_SIZE[1]))
+        g = int(21 + (6 - 21) * (y_coord / SLIDE_SIZE[1]))
+        b = int(40 + (18 - 40) * (y_coord / SLIDE_SIZE[1]))
+        draw.line([(0, y_coord), (SLIDE_SIZE[0], y_coord)], fill=(r, g, b))
+
+    # 2. Subtle technical grid lines (~5% opacity-like dark blue)
+    for gx in range(0, SLIDE_SIZE[0], 80):
+        draw.line([(gx, 0), (gx, SLIDE_SIZE[1])], fill=(12, 28, 50))
+    for gy in range(0, SLIDE_SIZE[1], 80):
+        draw.line([(0, gy), (SLIDE_SIZE[0], gy)], fill=(12, 28, 50))
+
+    # 3. Check for character asset (for futuristic hologram projection)
+    has_char = False
+    factory_dir = Path(__file__).resolve().parent.parent
+    char_path = factory_dir / "assets" / "characters" / f"{speaker.lower()}.png"
+    if char_path.exists():
+        has_char = True
+        card_right = 840  # Narrower card to fit character on right side
+    else:
+        card_right = 1232
+
+    # Draw circular hologram HUD ring on the right if character is present
+    if has_char:
+        cx, cy = 1040, 410
+        draw.ellipse([cx - 160, cy - 160, cx + 160, cy + 160], outline=(14, 116, 144), width=1) # cyan-700
+        draw.ellipse([cx - 120, cy - 120, cx + 120, cy + 120], outline=(8, 145, 178), width=1)  # cyan-600
+        for angle_start in range(0, 360, 45):
+            draw.arc([cx - 140, cy - 140, cx + 140, cy + 140], angle_start, angle_start + 20, fill=(14, 165, 233), width=2) # sky-500
 
     title_font = _font(38, bold=True)
     sub_font = _font(22, bold=True)
     body_font = _font(28)
     small_font = _font(18)
 
-    draw.rectangle((0, 0, 1280, 82), fill="#102033")
-    draw.text((48, 22), "IATF 16949 Training", font=title_font, fill="#ffffff")
-    draw.text((48, 105), title[:72], font=sub_font, fill="#102033")
-    if scene_label:
-        draw.text((48, 142), str(scene_label)[:96], font=small_font, fill="#64748b")
+    # 4. Sleek glassmorphism header banner
+    draw.rectangle((0, 0, 1280, 80), fill="#050a15")
+    draw.line([(0, 80), (1280, 80)], fill="#0ea5e9", width=2) # Neon blue glowing line
+    draw.text((48, 22), "IATF 16949 QUALITY ASSURANCE FACTORY", font=title_font, fill="#f8fafc")
 
-    draw.rounded_rectangle((48, 184, 1232, 588), radius=8, fill="#ffffff", outline="#dbe3ee", width=2)
-    _draw_wrapped(draw, body, (86, 226), body_font, 1080, "#1e293b")
+    # 5. Adaptive glassmorphic content panel
+    draw.rounded_rectangle((48, 184, card_right, 588), radius=12, fill="#070c18", outline="#1e293b", width=1)
+    draw.rounded_rectangle((49, 185, card_right - 1, 587), radius=11, fill=None, outline="#0ea5e9", width=1) # Glow inner border
 
-    draw.text((86, 606), f"speaker: {speaker}", font=small_font, fill="#64748b")
-    draw.text((1110, 606), f"{index + 1}/{count}", font=small_font, fill="#64748b")
-    draw.rectangle((48, 660, 1232, 674), fill="#e2e8f0")
+    # 6. Clause Badge (bright cyan pill capsule)
+    badge_text = f"Clause {scene_label or 'QMS'}"
+    badge_bbox = draw.textbbox((0, 0), badge_text, font=sub_font)
+    badge_w = badge_bbox[2] - badge_bbox[0] + 24
+    badge_h = badge_bbox[3] - badge_bbox[1] + 10
+    draw.rounded_rectangle((48, 110, 48 + badge_w, 110 + badge_h), radius=6, fill="#0369a1", outline="#38bdf8", width=1)
+    draw.text((60, 113), badge_text, font=sub_font, fill="#ffffff")
+
+    # Title Text (light blue)
+    draw.text((48 + badge_w + 16, 112), title[:60], font=sub_font, fill="#38bdf8")
+
+    # 7. Draw wrapped body text inside the panel
+    _draw_wrapped(draw, body, (80, 215), body_font, card_right - 48 - 64, "#e2e8f0")
+
+    # 8. Footer indicators
+    draw.text((86, 606), f"Speaker: {speaker.capitalize()}", font=small_font, fill="#64748b")
+    draw.text((1110, 606), f"Slide {index + 1} / {count}", font=small_font, fill="#64748b")
+
+    # Neon progress bar at the bottom
+    draw.rectangle((48, 660, 1232, 668), fill="#1e293b")
     progress_w = int(1184 * ((index + 1) / max(count, 1)))
-    draw.rectangle((48, 660, 48 + progress_w, 674), fill="#2563eb")
+    draw.rectangle((48, 660, 48 + progress_w, 668), fill="#0ea5e9")
+
+    # 9. Paste character avatar on top of the hologram HUD ring if available
+    if has_char:
+        try:
+            char_img = Image.open(char_path).convert("RGBA")
+            target_height = 420
+            w, h = char_img.size
+            aspect = w / h
+            target_width = int(target_height * aspect)
+            char_img = char_img.resize((target_width, target_height), Image.Resampling.LANCZOS)
+            
+            # Position character perfectly centered on hologram
+            char_x = 1040 - (target_width // 2)
+            char_y = 410 - (target_height // 2) + 20 # minor height offset
+            image.paste(char_img, (char_x, char_y), char_img)
+        except Exception as e:
+            print(f"Error loading character image: {e}")
+
     image.save(slide_path, quality=94)
 
 

@@ -14,7 +14,7 @@ from pathlib import Path
 DB_FILE = Path("D:/Clawdbot_Docker_20260125/data/workspace/universal_growth.db")
 OUTPUT_FILE = Path("D:/Clawdbot_Docker_20260125/data/workspace/apps/growth_dashboard/knowledge_history.json")
 
-def export_data():
+def export_knowledge_history():
     conn = sqlite3.connect(DB_FILE)
     conn.row_factory = sqlite3.Row
     
@@ -61,11 +61,21 @@ def export_data():
             "score": r["know_how_len"] or 0
         })
         
+    # 3. Unprocessed Count (Gemini Analysis Queue)
+    processed = conn.execute("SELECT external_id FROM ai_summaries_tracking").fetchall()
+    processed_ids = set(str(r[0]) for r in processed if r[0])
     
+    all_rows = conn.execute("SELECT id, external_id FROM public_api_acquisitions WHERE status = 'downloaded' AND local_path IS NOT NULL AND local_path != ''").fetchall()
+    unprocessed_count = 0
+    for row in all_rows:
+        if str(row[0]) not in processed_ids and str(row[1] or '') not in processed_ids:
+            unprocessed_count += 1
+            
     output_data = {
         "recent_count": len(recent_list),
         "recent": recent_list,
         "top10": top10_list,
+        "unprocessed_count": unprocessed_count,
         "generated_at": datetime.datetime.now().isoformat()
     }
     
@@ -82,4 +92,4 @@ def export_data():
     print(f"Exported {len(recent_list)} recent records and {len(top10_list)} top records to {OUTPUT_FILE}")
 
 if __name__ == "__main__":
-    export_data()
+    export_knowledge_history()

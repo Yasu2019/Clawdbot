@@ -40,6 +40,14 @@
   "blocked_workloads": [],
   "status": "online_docker_ready_cae_install_resume",
   "trial_phase": 2,
-  "updated_at": "2026-06-10T09:30:00+09:00",
-  "notes": "VT-x firmware ON. WSL2 Ubuntu + Docker Desktop OK. CAE image pull/build via k10_red_lavie_cae_install_all.ps1 -Step resume."
+  "updated_at": "2026-06-19T12:45:00+09:00",
+  "cae_resource_limits": {
+    "docker_cpus": 3,
+    "docker_memory": "8g",
+    "openradioss_nthread": 2,
+    "profile": "conservative_3cpu_2thread",
+    "apply_script": "scripts/red_lavie_cae_resource_limits_apply.ps1",
+    "updated_at": "2026-06-19T12:45:00+09:00"
+  },
+  "notes": "VT-x firmware ON. WSL2 Ubuntu + Docker Desktop OK. CAE limits 3 CPU / 2 OR threads for worker headroom on 4C/8T laptop."
 }

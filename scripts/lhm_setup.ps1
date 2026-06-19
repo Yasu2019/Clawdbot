@@ -56,10 +56,18 @@ $json = @"
 "@
 Set-Content -Path $cfg -Value $json -Encoding UTF8
 
+# Also write to system profile AppData just in case it runs under SYSTEM account later
+$sysCfgDir = "C:\Windows\System32\config\systemprofile\AppData\Roaming\LibreHardwareMonitor"
+try {
+    if (-not (Test-Path $sysCfgDir)) { New-Item -ItemType Directory $sysCfgDir -Force | Out-Null }
+    Set-Content -Path (Join-Path $sysCfgDir 'LibreHardwareMonitor.config') -Value $json -Encoding UTF8
+} catch {}
+
 $a  = New-ScheduledTaskAction -Execute $t
 $tr = New-ScheduledTaskTrigger -AtLogOn
-$s  = New-ScheduledTaskSettingsSet -ExecutionTimeLimit 0 -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1)
-Register-ScheduledTask -TaskName 'LibreHardwareMonitor' -Action $a -Trigger $tr -Settings $s -Force | Out-Null
+$s  = New-ScheduledTaskSettingsSet -ExecutionTimeLimit 0 -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1) -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries
+$p  = New-ScheduledTaskPrincipal -GroupId "BUILTIN\Administrators" -RunLevel Highest
+Register-ScheduledTask -TaskName 'LibreHardwareMonitor' -Action $a -Trigger $tr -Principal $p -Settings $s -Force | Out-Null
 
 Get-Process -Name LibreHardwareMonitor -ErrorAction SilentlyContinue |
     Stop-Process -Force -ErrorAction SilentlyContinue

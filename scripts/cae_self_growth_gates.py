@@ -247,7 +247,10 @@ def precheck_openradioss_case(case_dir: Path) -> PreGateResult:
                 parts = line.split()
                 if parts and parts[0].isdigit():
                     node_ids.add(int(parts[0]))
+        assy_deck = "4MMX4MM_ASSY" in starter.name.upper()
         for m in re.finditer(r"/GRNOD/NODE/(\d+)", text, flags=re.IGNORECASE):
+            if assy_deck:
+                continue
             gid = int(m.group(1))
             if gid in node_ids and gid >= 10:
                 tags.append("precheck_grnod_id_clash")

@@ -1,4 +1,47 @@
 # CAE workload routing (K10 orchestrator). Fill lavie.ip after first LAN connect.
+#
+# CAE compute policy: docs/cae_tri_track_dispatch_policy.md (T037 / INC-121)
+# Production: python scripts/k10_tri_track_cae_orchestrator.py --once --json
+
+cae_compute_policy:
+  version: "2026-06-07"
+  orchestrator: k10
+  mandatory_compute_nodes:
+    lavie:
+      tailscale_ip: "100.87.244.46"
+      solver_family: openfoam_vof
+      categories:
+        - resin_fill_vof
+        - resin_fill_cad
+        - resin_fill
+    red_lavie:
+      tailscale_ip: "100.99.145.3"
+      solver_family: openradioss_press
+      categories:
+        - press_blanking
+        - press_bending
+        - press_blanking_stripper
+        - press_drawing
+        - progressive_strip_layout
+    thinkpad:
+      tailscale_ip: "100.66.63.9"
+      solver_family: fem_impact_dxf2step
+      categories:
+        - fem_impact
+        - dxf2step_te
+  excluded_from_heavy_cae:
+    hp:
+      role: k10_patrol_only
+      tailscale_ip: "100.103.176.50"
+    g3:
+      role: monitor_hub_only
+      tailscale_ip: "100.121.241.128"
+    dynabook:
+      role: dry_run_pregate_only
+      tailscale_ip: "100.98.133.40"
+    lavie_i3:
+      role: dry_run_pregate_only
+      tailscale_ip: "100.67.36.121"
 
 lavie:
   enabled: true
@@ -27,22 +70,21 @@ red_lavie:
   job_worker_path: /healthz
   no_docker: false
   docker_backend: wsl2
-  notes: "PC-NS700JAR-YC i7-8550U 32GB. VT-x ON (firmware). Docker Desktop 4.77 WSL2. CAE tools via k10_red_lavie_cae_install_all.ps1 resume."
+  cae_docker_cpus: 3
+  cae_docker_memory: "8g"
+  cae_openradioss_nthread: 2
+  cae_resource_profile: conservative_3cpu_2thread
+  notes: "PC-NS700JAR-YC i7-8550U 4C/8T 32GB. CAE limits: Docker 3 CPU + OpenRadioss 2 threads (worker/monitor headroom). Apply: red_lavie_cae_resource_limits_apply.ps1"
 
 red_lavie_dedicated_categories:
-  - resin_fill_cad
-  - resin_fill_vof
-  - resin_fill
   - press_bending
   - press_blanking
+  - press_blanking_assy
   - press_blanking_stripper
   - press_drawing
   - progressive_strip_layout
 
 red_lavie_preferred_categories:
-  - resin_fill_cad
-  - resin_fill_vof
-  - resin_fill
   - press_bending
   - press_blanking
   - press_blanking_stripper
@@ -50,9 +92,7 @@ red_lavie_preferred_categories:
 lavie_heavy_fallback_enabled: false
 lavie_fallback_categories:
   - press_crushing
-  - press_bending
-  - press_blanking
-  - press_blanking_stripper
+  # press_blanking/bending -> k10 when red_lavie offline (2026-06-13 policy)
 
 k10:
   ip: 192.168.3.87
@@ -65,7 +105,8 @@ heavy_categories:
   - press_drawing
   - progressive_strip_layout
 
-# OpenFOAM T&E -> LAVIE when K10 is busy (parallel mode)
+# OpenFOAM T&E -> main LAVIE (red_lavie is OpenRadioss-first per 2026-06-13 policy)
+lavie_openfoam_primary: lavie
 lavie_openfoam_categories:
   - resin_fill_cad  # STEP+gate VOF fill (3D alpha video to Telegram; not resin_flow |U|)
   - resin_fill_vof
@@ -90,6 +131,81 @@ parallel_mode:
   enabled: true
   openfoam_to_lavie: true
   assume_k10_busy: false
+
+# K10 tri-track parallel CAE (OpenFOAM@lavie + OpenRadioss@red_lavie + FEM Impact@thinkpad)
+tri_track_parallel:
+  enabled: true
+  poll_interval_sec: 60
+  trial_timeout_sec: 10800
+  openfoam:
+    host: lavie
+    category: resin_fill_vof
+  openradioss:
+    host: red_lavie
+    category: press_blanking_assy
+    case_label: 4mmx4mm_ASSY
+    param_ranges:
+      clearance_pct: [4.0, 12.0]
+      punch_speed_mms: [3000.0, 7000.0]
+      friction_mu: [0.08, 0.12]
+  fem_impact:
+    host: thinkpad
+    # T038/INC-122: production_only skips unbenchmarked long cases unless bench_schedule fires.
+    production_only: true
+    poll_interval_sec: 180
+    skip_if_png_count: 3
+    reuse_vtk_for_png: true
+    bench_schedule:
+      enabled: true
+      every_n_cycles: 24
+      only_when_thinkpad_idle: true
+      variants:
+        - subdir: Rough_Mesh
+          input: auto_revised_mesh.in
+          max_timeout_sec: 21600
+          tier: bench
+        - subdir: Normal_Mesh
+          input: 160um_rev00.in
+          max_timeout_sec: 14400
+          tier: bench
+    categories:
+      - fem_impact
+    bundle_local: "D:/Clawdbot_Docker_20260125/完全成功_永久保存版_AUTO_FIX_ORIENTATION_20250804"
+    remote_bundle_root: "/home/yasu/clawstack_satellite/impact_bundle/AUTO_FIX_ORIENTATION_20250804"
+    sample_case:
+      subdir: no_solid_reqtangle_sample_20250806
+      input: test.in
+    case_root: "D:/Clawdbot_Docker_20260125/完全成功_永久保存版_AUTO_FIX_ORIENTATION_20250804/Impact/160um_Panel_20250725"
+    variants:
+      - subdir: no_solid_reqtangle_sample_20250806
+        input: test.in
+        enabled: true
+        max_timeout_sec: 5400
+        tier: production
+      - subdir: Rough_Mesh
+        input: test.in
+        enabled: true
+        max_timeout_sec: 7200
+        tier: production
+      - subdir: Rough_Mesh
+        input: auto_revised_mesh.in
+        enabled: false
+        max_timeout_sec: 21600
+        tier: bench
+        hold_reason: "INC-122 needs >3h; enable after benchmark"
+      - subdir: Rough_Mesh
+        input: auto_revised_mesh_improved.in
+        enabled: false
+        max_timeout_sec: 21600
+        tier: bench
+        hold_reason: "INC-122 bench hold"
+      - subdir: Normal_Mesh
+        input: 160um_rev00.in
+        enabled: false
+        max_timeout_sec: 14400
+        tier: bench
+        hold_reason: "enable after Normal_Mesh timing benchmark"
+    remote_root: "/home/yasu/clawstack_satellite/impact_bundle/AUTO_FIX_ORIENTATION_20250804/Impact/160um_Panel_20250725"
 
 cae_workspace_sync:
   enabled: true
@@ -129,8 +245,20 @@ dynabook:
     - press_blanking_stripper
   notes: "Run dynabook_node_setup.ps1 then k10_dynabook_register.py --ip <addr>"
 
-# ThinkPad L590 Ubuntu: SSH-controlled medium satellite.
-# No Docker/job_worker yet; K10 may assign guarded shell jobs and CAE pregate dry-runs only.
+# Lavie Core i3: backup/control satellite node
+lavie_i3:
+  enabled: true
+  ip: "100.67.36.121"
+  port: 5679
+  bridge_path: /webhook/exec_bridge
+  max_ram_percent: 80
+  max_cpu_percent: 85
+  max_temp_c: 78
+  monitor_agent_port: 8111
+  job_worker_port: 5683
+  job_worker_path: /healthz
+
+# ThinkPad L590 Ubuntu: SSH medium satellite + native FreeCAD DXF2STEP T&E.
 thinkpad:
   enabled: true
   ip: "100.66.63.9"
@@ -141,6 +269,7 @@ thinkpad:
   job_worker_path: /healthz
   monitor_agent_port: 8111
   cae_workspace: /home/yasu/clawstack_satellite/data/work/cae_te_workspace
+  dxf2step_jobs_root: /home/yasu/clawstack_satellite/dxf2step/jobs
   profile: medium_worker
   job_transport: worker
   max_ram_percent: 75
@@ -148,6 +277,7 @@ thinkpad:
   max_temp_c: 75
   no_docker: false
   cae_dry_run_only: false
+  dxf2step_loop: scripts/k10_thinkpad_dxf2step_loop.py
   medium_job_categories:
     - web_research
     - dataset_download
@@ -155,8 +285,15 @@ thinkpad:
     - rag_indexing
     - qms_iatf_analysis
     - cae_pregate_dry_run
+    - dxf2step_te
+    - fem_impact
   blocked_categories:
     - long_video_render
     - progressive_strip_layout
     - resin_fill_cad
-  notes: "Docker CAE via job_worker :5683. Light press categories on continuous TE loop."
+    - resin_flow
+    - resin_fill
+    - press_blanking
+    - press_bending
+    - press_drawing
+  notes: "FEM impact + DXF2STEP T&E on ThinkPad. OpenRadioss/OpenFOAM heavy solvers blocked here; tri-track fem_impact host."

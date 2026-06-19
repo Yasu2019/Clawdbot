@@ -189,9 +189,63 @@ def visual_qa_frames(frames_dir: Path, video_dir: Path) -> dict:
     from visual_qa import assert_visual_quality
 
     report_dir = video_dir / "visual_qa"
-    report = assert_visual_quality(frames_dir, report_dir)
-    log(f"  Visual QA OK: {report['frame_count']} frames / {report.get('contact_sheet')}")
+    report = assert_visual_quality(
+        frames_dir,
+        report_dir,
+        mode="render",
+        stage="pre_mp4",
+    )
+    log(f"  Visual QA OK: {report['frame_count']} frames / checklist_pass / {report.get('contact_sheet')}")
     return report
+
+
+def _pipeline_gate(video_dir: Path, stage: str) -> None:
+    from gate_registry import GateBlockedError, assert_pipeline_stage
+
+    try:
+        rows = assert_pipeline_stage(video_dir, stage)
+        log(f"  Pipeline gate [{stage}] OK ({len(rows)} gates)")
+    except GateBlockedError as exc:
+        raise RuntimeError(str(exc)) from exc
+
+
+def _assert_script_and_production_gates(
+    script: dict,
+    video_dir: Path,
+    clause: str,
+    topic: str,
+    pdf_text: str = "",
+) -> None:
+    from production_design_gate import assert_production_design_plan, assert_still_integrity
+    from script_qa_gate import ScriptQAError, assert_script_qa_pass
+
+    render_mode = os.getenv("IATF_VIDEO_RENDER_MODE", "blender").strip().lower()
+    qa_path = video_dir / "qa_report.json"
+    try:
+        assert_script_qa_pass(
+            video_dir / "script.json",
+            qa_path,
+            video_title=topic,
+        )
+        log(f"  Script QA PASS: {qa_path.name}")
+    except ScriptQAError as exc:
+        raise RuntimeError(f"Script QA gate blocked TTS: {exc}") from exc
+
+    plan = assert_production_design_plan(
+        script,
+        video_dir,
+        clause,
+        topic,
+        pdf_text=pdf_text,
+        render_mode=render_mode,
+    )
+    log(f"  Production design OK: cast={len(plan.get('cast') or [])} props")
+
+    frames_dir = video_dir / "frames"
+    still_required = os.getenv("IATF_PRODUCTION_STILL_QA_REQUIRED", "0").strip() == "1"
+    if render_mode == "blender" and frames_dir.exists():
+        assert_still_integrity(frames_dir, video_dir, required=still_required)
+        log("  Still-frame integrity check recorded (production_still_qa.json)")
 
 
 def _quarantine_existing_frames(frames_dir: Path) -> Path:
@@ -386,6 +440,7 @@ def process_pdf(pdf_path: Path) -> bool:
             timeline = json.loads(timeline_json_path.read_text(encoding="utf-8"))
             total_sec = max(e["start_sec"] + e["duration_sec"] for e in timeline) + 2.0
             model = script.get("model_used", "resume")
+            _pipeline_gate(video_dir, "before_tts")
         else:
             log("[1/6] PDF抽出...")
             pdf_text = extract_pdf(pdf_path)
@@ -402,6 +457,10 @@ def process_pdf(pdf_path: Path) -> bool:
             script_json_path.write_text(
                 json.dumps(script, ensure_ascii=False, indent=2), encoding="utf-8")
 
+            log("[2.5/6] Script QA + Production design gates (fail-closed)...")
+            _assert_script_and_production_gates(script, video_dir, clause, topic, pdf_text)
+            _pipeline_gate(video_dir, "before_tts")
+
             log("[3/6] TTS音声生成 (VoiceVox)...")
             timeline = render_audio(script, audio_dir)
             total_sec = max(e["start_sec"] + e["duration_sec"] for e in timeline) + 2.0
@@ -409,8 +468,9 @@ def process_pdf(pdf_path: Path) -> bool:
             timeline_json_path.write_text(
                 json.dumps(timeline, ensure_ascii=False, indent=2), encoding="utf-8")
 
-        log("[3.5/6] Slide preflight: generate check slides + AI visual review gate...")
+        log("[3.5/6] Slide preflight + before_render gates...")
         slide_preflight_gate(script, timeline, video_dir, stem)
+        _pipeline_gate(video_dir, "before_render")
 
         render_mode = os.getenv("IATF_VIDEO_RENDER_MODE", "blender").strip().lower()
         if render_mode == "slides":
@@ -425,11 +485,14 @@ def process_pdf(pdf_path: Path) -> bool:
 
         existing_frames = len(list(frames_dir.glob("frame_*.png")))
         expected_frames = int(total_sec * 30)
+        frames_qa_done = False
         if existing_frames >= expected_frames * 0.95:
             log(f"[5/6] Blenderレンダリング skip: {existing_frames}フレーム既存 (期待値{expected_frames}の95%以上)")
             try:
                 log("[5.5/6] Visual QA: existing frames...")
                 visual_qa_frames(frames_dir, video_dir)
+                _pipeline_gate(video_dir, "before_mp4")
+                frames_qa_done = True
             except Exception as e:
                 quarantine_dir = _quarantine_existing_frames(frames_dir)
                 log(f"  Existing frames failed Visual QA and were quarantined: {quarantine_dir} / {e}")
@@ -443,13 +506,15 @@ def process_pdf(pdf_path: Path) -> bool:
             if not ok:
                 raise RuntimeError("Blenderレンダリング失敗")
 
-        log("[5.5/6] Visual QA: sample frames + contact sheet...")
-        try:
-            visual_qa_frames(frames_dir, video_dir)
-        except Exception as qa_err:
-            ec = "visual_qa_identical_frames" if "identical" in str(qa_err) else "visual_qa_failed"
-            _try_db_update(row_id, "error", error_msg=str(qa_err), error_code=ec)
-            raise
+        if not frames_qa_done:
+            log("[5.5/6] Visual QA: sample frames + contact sheet...")
+            try:
+                visual_qa_frames(frames_dir, video_dir)
+                _pipeline_gate(video_dir, "before_mp4")
+            except Exception as qa_err:
+                ec = "visual_qa_identical_frames" if "identical" in str(qa_err) else "visual_qa_failed"
+                _try_db_update(row_id, "error", error_msg=str(qa_err), error_code=ec)
+                raise
 
         log("[6/6] FFmpeg MP4合成 + 字幕焼き込み...")
         output_mp4 = compose_mp4(timeline, frames_dir, video_dir, stem, total_sec)

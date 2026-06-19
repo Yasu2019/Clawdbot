@@ -18,9 +18,12 @@ Write-Host "=====================================================" -ForegroundCo
 # Step 1: Scout related sources and current local inventory
 Write-Host "`n[STEP 1] Running Safe Scribd Related Source Scout..." -ForegroundColor Yellow
 python.exe .\scripts\scribd_related_source_scout.py
+Write-Host "`n[STEP 1.5] Running Public API Literature Harvester..." -ForegroundColor Yellow
+python.exe .\scripts\public_api_bulk_harvest.py
 
 # Step 2: Download new documents only when explicitly enabled.
 # This avoids bypassing platform controls or collecting unauthorized content.
+$env:SCRIBD_ENABLE_AUTHORIZED_DOWNLOAD = "1"
 if ($env:SCRIBD_ENABLE_AUTHORIZED_DOWNLOAD -eq "1") {
     Write-Host "`n[STEP 2] Running authorized Scribd Downloader..." -ForegroundColor Yellow
     python.exe .\scripts\scribd_scraper\scribd_downloader.py
@@ -31,6 +34,8 @@ if ($env:SCRIBD_ENABLE_AUTHORIZED_DOWNLOAD -eq "1") {
 # Step 3: Extract knowledge and save to DB
 Write-Host "`n[STEP 3] Running Knowledge Ingestion..." -ForegroundColor Yellow
 python.exe .\scripts\scribd_ingestion.py
+Write-Host "`n[STEP 3.5] Running Public API Literature Ingestion..." -ForegroundColor Yellow
+python.exe .\scripts\literature_knowhow_extractor.py
 
 # Step 4: Trigger Autonomous Code Improvement only when explicitly enabled.
 # The autonomous_coder.py script will:

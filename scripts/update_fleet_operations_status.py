@@ -38,6 +38,12 @@ except FileNotFoundError:
     LAVIE_N8N = "http://100.87.244.46:5679/healthz"
 
 try:
+    _lavie_i3 = load_registry("lavie_i3")
+    LAVIE_I3_WORKER = f"{_lavie_i3.get('job_worker_url', 'http://100.67.36.121:5683')}/healthz"
+except FileNotFoundError:
+    LAVIE_I3_WORKER = "http://100.67.36.121:5683/healthz"
+
+try:
     _dynabook = dynabook_endpoints()
     DYNABOOK_WORKER = _dynabook.get("job_worker_healthz") or ""
 except FileNotFoundError:
@@ -96,6 +102,11 @@ def build_status() -> dict[str, Any]:
     k10["balanced_stack"] = read_json(ROOT / "data" / "state" / "minipc_balanced_stack" / "startup_status.json")
     k10["email_watchdog"] = read_json(ROOT / "data" / "workspace" / "email_continuous_watchdog_status.json")
     k10["satellite_cae"] = read_json(ROOT / "data" / "workspace" / "satellite_cae_live_status.json")
+    k10["tri_track_cae"] = read_json(ROOT / "data" / "workspace" / "k10_tri_track_cae_status.json")
+    k10["fleet_revolutionary_evolution"] = read_json(
+        ROOT / "data" / "workspace" / "fleet_revolutionary_evolution_status.json"
+    )
+    k10["dxf2step_status_file"] = read_json(ROOT / "data" / "workspace" / "dxf2step_api_status.json")
 
     g3 = {
         "node_id": "g3",
@@ -103,12 +114,21 @@ def build_status() -> dict[str, Any]:
         "n8n": probe_url(G3_N8N),
         "exec_bridge": probe_g3_bridge(),
         "iatf": probe_url(G3_IATF, timeout=12.0),
+        "recovery": read_json(ROOT / "data" / "workspace" / "g3_recovery_status.json"),
     }
 
     lavie = {
         "job_worker": probe_url(LAVIE_WORKER),
         "n8n": probe_url(LAVIE_N8N),
         "verify": read_json(ROOT / "data" / "workspace" / "lavie_node_verify_status.json"),
+    }
+
+    lavie_i3 = {
+        "node_id": "lavie_i3",
+        "profile": "light",
+        "job_worker": probe_url(LAVIE_I3_WORKER),
+        "verify": read_json(ROOT / "data" / "workspace" / "lavie_i3_node_verify_status.json"),
+        "registry": read_json(ROOT / "data" / "workspace" / "lavie_i3_node_registry.json"),
     }
 
     dynabook: dict[str, Any] = {
@@ -122,6 +142,13 @@ def build_status() -> dict[str, Any]:
         dynabook["job_worker"] = probe_url(DYNABOOK_WORKER)
     else:
         dynabook["job_worker"] = {"online": False, "url": "", "error": "ip not registered"}
+
+    hp: dict[str, Any] = {
+        "node_id": "hp",
+        "profile": "light",
+        "verify": read_json(ROOT / "data" / "workspace" / "hp_node_verify_status.json"),
+        "registry": read_json(ROOT / "data" / "workspace" / "hp_node_registry.json"),
+    }
 
     thinkpad_metrics = thinkpad_ssh_metrics.collect_metrics() if _thinkpad else {
         "ok": False,
@@ -202,7 +229,9 @@ def build_status() -> dict[str, Any]:
         "g3": g3,
         "k3": g3,
         "lavie": lavie,
+        "lavie_i3": lavie_i3,
         "dynabook": dynabook,
+        "hp": hp,
         "thinkpad": thinkpad,
         "red_lavie": red_lavie,
         "last_startup": fleet_start,

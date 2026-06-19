@@ -34,6 +34,9 @@ FLEET_EVIDENCE_UPLOAD_ENABLED = os.environ.get("FLEET_EVIDENCE_UPLOAD", "1").str
     "no",
 )
 FLEET_EVIDENCE_MAX_POST_BYTES = 2 * 1024 * 1024
+K10_SCRIPTS_BASE = os.environ.get("CLAWSTACK_K10_SCRIPTS", "http://100.119.18.40:8123").rstrip("/")
+_last_lhm_bootstrap_at = 0.0
+LHM_BOOTSTRAP_COOLDOWN_SEC = 600
 NODE_DIAGNOSTIC_ROOT = os.environ.get(
     "NODE_DIAGNOSTIC_DIR",
     os.path.join(PROGRAMDATA_ROOT, "Clawstack", "monitor_agent", "node_diagnostics"),
@@ -63,22 +66,96 @@ class MEMORYSTATUSEX(ctypes.Structure):
         ("sullAvailExtendedVirtual", ctypes.c_ulonglong),
     ]
 
-def get_cpu_usage():
+def _parse_cpu_percent_text(raw: str) -> float | None:
+    text = (raw or "").strip().replace(",", ".")
+    if not text:
+        return None
     try:
-        # wmic is deprecated/removed in newer Windows 11. Use Get-CimInstance via PowerShell.
-        # CREATE_NO_WINDOW (0x08000000) を指定して裏側でのフリーズを完全に防ぐ
+        value = float(text)
+    except ValueError:
+        return None
+    if 0.0 <= value <= 100.0:
+        return round(value, 1)
+    return None
+
+
+_last_cpu_usage_source = "unknown"
+
+
+def get_cpu_usage():
+    """Windows CPU usage with CIM -> typeperf -> PDH fallbacks (INC-096 / main LAVIE 0% bug)."""
+    global _last_cpu_usage_source
+    _last_cpu_usage_source = "zero_or_unavailable"
+    if platform.system() != "Windows":
+        return 0.0
+
+    ps_flags = 0x08000000
+
+    try:
         out = subprocess.check_output(
-            ["powershell", "-NoProfile", "-Command", "Get-CimInstance Win32_Processor | Measure-Object -Property LoadPercentage -Average | Select-Object -ExpandProperty Average"],
+            [
+                "powershell",
+                "-NoProfile",
+                "-Command",
+                "Get-CimInstance Win32_Processor | "
+                "Measure-Object -Property LoadPercentage -Average | "
+                "Select-Object -ExpandProperty Average",
+            ],
             text=True,
-            creationflags=0x08000000,
-            timeout=5
+            creationflags=ps_flags,
+            timeout=6,
         )
-        val = out.strip()
-        if val.isdigit() or val.replace('.', '', 1).isdigit():
-            return float(val)
-    except:
+        parsed = _parse_cpu_percent_text(out)
+        if parsed is not None:
+            _last_cpu_usage_source = "cim_load_percentage"
+            return parsed
+    except Exception:
         pass
+
+    try:
+        out = subprocess.check_output(
+            ["typeperf", r"\Processor(_Total)\% Processor Time", "-sc", "1"],
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            creationflags=ps_flags,
+            timeout=8,
+        )
+        for line in reversed((out or "").splitlines()):
+            line = line.strip()
+            if not line or not line.startswith('"'):
+                continue
+            parts = [p.strip().strip('"') for p in line.split(",")]
+            if len(parts) >= 2:
+                parsed = _parse_cpu_percent_text(parts[-1])
+                if parsed is not None:
+                    _last_cpu_usage_source = "typeperf_processor_time"
+                    return parsed
+    except Exception:
+        pass
+
+    try:
+        out = subprocess.check_output(
+            [
+                "powershell",
+                "-NoProfile",
+                "-Command",
+                "(Get-Counter '\\Processor(_Total)\\% Processor Time' -SampleInterval 1 -MaxSamples 1)"
+                ".CounterSamples.CookedValue",
+            ],
+            text=True,
+            creationflags=ps_flags,
+            timeout=10,
+        )
+        parsed = _parse_cpu_percent_text(out)
+        if parsed is not None:
+            _last_cpu_usage_source = "pdh_processor_time"
+            return parsed
+    except Exception:
+        pass
+
     return 0.0
+
 
 def get_ram_info():
     try:
@@ -246,7 +323,7 @@ def _lhm_is_load(node, parent_text=""):
     return "/load/" in sid.lower()
 
 
-def _lhm_walk_sensors(node, temps, disk_warnings, ctx_device="", parent_text=""):
+def _lhm_walk_sensors(node, temps, disk_warnings, loads, ctx_device="", parent_text=""):
     text = (node.get("Text") or "").strip()
     st = _lhm_sensor_type(node)
     val = _lhm_parse_number(node.get("Value"))
@@ -264,12 +341,17 @@ def _lhm_walk_sensors(node, temps, disk_warnings, ctx_device="", parent_text="")
         if "Distance to TjMax" not in text and "Resolution" not in text and "Limit" not in text:
             temps.append({"name": text, "c": round(float(val), 1), "device": ctx_device})
 
-    if text == "Used Space" and _lhm_is_load(node, parent_text) and val is not None and val >= 90:
-        disk_warnings.append({"device": ctx_device, "used_pct": round(float(val), 1)})
+    if _lhm_is_load(node, parent_text) and val is not None and 0.0 <= float(val) <= 100.0:
+        if text == "Used Space" and val >= 90:
+            disk_warnings.append({"device": ctx_device, "used_pct": round(float(val), 1)})
+        elif text in ("CPU Total", "Total CPU Load") or (
+            parent_text == "Load" and ctx_device and "cpu" in ctx_device.lower()
+        ):
+            loads.append({"name": text, "pct": round(float(val), 1), "device": ctx_device})
 
     next_parent = text if text in ("Temperatures", "Load") else parent_text
     for child in children:
-        _lhm_walk_sensors(child, temps, disk_warnings, ctx_device, next_parent)
+        _lhm_walk_sensors(child, temps, disk_warnings, loads, ctx_device, next_parent)
 
 
 def get_lhm_metrics():
@@ -283,8 +365,9 @@ def get_lhm_metrics():
 
     temps = []
     disk_warnings = []
+    loads: list[dict] = []
     for top in data.get("Children") or []:
-        _lhm_walk_sensors(top, temps, disk_warnings)
+        _lhm_walk_sensors(top, temps, disk_warnings, loads)
 
     by_name = {t["name"]: t["c"] for t in temps}
     cpu_package = by_name.get("CPU Package")
@@ -315,6 +398,13 @@ def get_lhm_metrics():
         if any(k in t["name"] for k in ("Composite", "Temperature #"))
         or (t.get("device") and "SSD" in str(t.get("device")))
     ]
+    cpu_total_load = None
+    for item in loads:
+        if item.get("name") == "CPU Total":
+            cpu_total_load = item.get("pct")
+            break
+    if cpu_total_load is None and loads:
+        cpu_total_load = max(item.get("pct") or 0 for item in loads)
 
     return {
         "ok": True,
@@ -322,11 +412,57 @@ def get_lhm_metrics():
         "cpu_package_c": cpu_package,
         "core_max_c": core_max,
         "core_avg_c": core_avg,
+        "cpu_total_load_pct": cpu_total_load,
         "nvme_temps": nvme_temps[:8],
         "disk_warnings": disk_warnings,
         "source": "lhm_http",
         "url": LHM_DATA_URL,
     }
+
+
+def ensure_lhm_running() -> dict | None:
+    """Best-effort LHM install/start on Windows host (monitor runs on host, not Docker)."""
+    global _last_lhm_bootstrap_at
+    if platform.system() != "Windows":
+        return None
+    k10_base = os.environ.get("CLAWSTACK_K10_SCRIPTS", "http://100.119.18.40:8123").rstrip("/")
+    try:
+        req = urllib.request.Request(LHM_DATA_URL, headers={"User-Agent": "monitor_agent/lhm-probe"})
+        with urllib.request.urlopen(req, timeout=3) as resp:
+            if resp.status == 200 and len(resp.read()) > 200:
+                return {"step": "lhm_bootstrap", "ok": True, "skipped": "already_up"}
+    except Exception:
+        pass
+    now = time.time()
+    if now - _last_lhm_bootstrap_at < LHM_BOOTSTRAP_COOLDOWN_SEC:
+        return None
+    _last_lhm_bootstrap_at = now
+    ps1_dest = os.path.join(os.environ.get("TEMP", "."), "lhm_setup_monitor_agent.ps1")
+    try:
+        url = f"{k10_base}/lhm_setup.ps1"
+        req = urllib.request.Request(url, headers={"User-Agent": "monitor_agent/lhm-bootstrap"})
+        with urllib.request.urlopen(req, timeout=45) as resp:
+            data = resp.read()
+        if len(data) < 200:
+            return {"step": "lhm_bootstrap", "ok": False, "error": "lhm_setup.ps1 too small"}
+        with open(ps1_dest, "wb") as handle:
+            handle.write(data)
+    except Exception as exc:
+        return {"step": "lhm_bootstrap", "ok": False, "error": str(exc)[:200]}
+    try:
+        proc = subprocess.run(
+            f'powershell -NoProfile -ExecutionPolicy Bypass -File "{ps1_dest}"',
+            shell=True,
+            capture_output=True,
+            text=True,
+            timeout=180,
+            creationflags=0x08000000,
+        )
+        out = (proc.stdout or "") + (proc.stderr or "")
+        ok = proc.returncode == 0 or "Remote Web Server is UP" in out or "already on :8085" in out
+        return {"step": "lhm_bootstrap", "ok": ok, "exit_code": proc.returncode, "detail": out[-400:]}
+    except Exception as exc:
+        return {"step": "lhm_bootstrap", "ok": False, "error": str(exc)[:200]}
 
 
 def get_cpu_temp():
@@ -1229,9 +1365,19 @@ def metrics_updater_loop():
     while True:
         try:
             used_gb, total_gb, ram_percent = get_ram_info()
-            cpu_usage = get_cpu_usage()
             lhm = get_lhm_metrics()
             lhm_ok = bool(lhm.get("ok"))
+            if not lhm_ok:
+                ensure_lhm_running()
+                lhm = get_lhm_metrics()
+                lhm_ok = bool(lhm.get("ok"))
+            cpu_usage = get_cpu_usage()
+            cached_metrics["cpu_usage_source"] = _last_cpu_usage_source
+            if (cpu_usage is None or cpu_usage <= 0.0) and lhm_ok:
+                lhm_cpu = lhm.get("cpu_total_load_pct")
+                if isinstance(lhm_cpu, (int, float)) and lhm_cpu > 0:
+                    cpu_usage = float(lhm_cpu)
+                    cached_metrics["cpu_usage_source"] = "lhm_cpu_total_load"
             cpu_temp = lhm["cpu_temp_c"] if lhm_ok else _get_cpu_temp_fallback()
             log_debug(f"Metrics check: cpu_usage={cpu_usage}, cpu_temp={cpu_temp}, lhm_ok={lhm_ok}")
 
@@ -1306,6 +1452,9 @@ def apply_host_stability() -> dict:
         }
     steps: list[dict] = []
     ok = True
+    sync_step = _sync_stability_scripts_from_k10()
+    if sync_step:
+        steps.append(sync_step)
     power_cmds = [
         ["/change", "standby-timeout-ac", "0"],
         ["/change", "standby-timeout-dc", "0"],
@@ -1513,12 +1662,141 @@ def apply_host_stability() -> dict:
         except Exception as exc:
             steps.append({"step": "host_stability_ps1", "ok": False, "error": str(exc)[:200]})
             ok = False
+    worker_step = ensure_satellite_job_worker()
+    if worker_step:
+        steps.append(worker_step)
+        if not worker_step.get("ok"):
+            ok = False
     return {
         "ok": ok,
         "schema": "clawstack.lavie_host_stability.v1",
         "hostname": socket.gethostname(),
         "steps": steps,
         "message": "HOST_STABILITY_OK" if ok else "HOST_STABILITY_PARTIAL",
+    }
+
+
+RED_LAVIE_WORKER_PORT = int(os.environ.get("SATELLITE_JOB_WORKER_PORT", "5682"))
+
+
+def _is_red_lavie_host() -> bool:
+    node_id = os.environ.get("SATELLITE_NODE_ID", "").strip().lower()
+    if node_id == "red_lavie":
+        return True
+    host = socket.gethostname().upper()
+    return "DERCN1N" in host or host.startswith("DESKTOP-DERCN1N")
+
+
+def _load_satellite_job_token() -> str:
+    token = os.environ.get("SATELLITE_JOB_TOKEN", "").strip()
+    if token:
+        return token
+    for env_path in (
+        r"C:\clawstack_satellite\.env",
+        os.path.join(PROGRAMDATA_ROOT, "Clawstack", "satellite.env"),
+    ):
+        if not os.path.isfile(env_path):
+            continue
+        try:
+            with open(env_path, encoding="utf-8", errors="replace") as handle:
+                for line in handle:
+                    if line.startswith("SATELLITE_JOB_TOKEN="):
+                        return line.split("=", 1)[1].strip()
+        except OSError:
+            continue
+    return ""
+
+
+def _worker_health_ok(port: int = RED_LAVIE_WORKER_PORT) -> bool:
+    try:
+        with urllib.request.urlopen(f"http://127.0.0.1:{port}/healthz", timeout=2) as resp:
+            return resp.status == 200
+    except Exception:
+        return False
+
+
+def _sync_stability_scripts_from_k10() -> dict | None:
+    if not _is_red_lavie_host():
+        return None
+    dest_root = os.path.join(PROGRAMDATA_ROOT, "Clawstack", "stability")
+    os.makedirs(dest_root, exist_ok=True)
+    synced: list[str] = []
+    errors: list[str] = []
+    for name in ("clawstack_windows_host_stability.ps1", "red_lavie_host_stability.ps1"):
+        try:
+            url = f"{K10_SCRIPTS_BASE}/{name}"
+            dest = os.path.join(dest_root, name)
+            req = urllib.request.Request(url, headers={"User-Agent": "monitor_agent/sync"})
+            with urllib.request.urlopen(req, timeout=30) as resp:
+                data = resp.read()
+            if len(data) < 200:
+                raise ValueError(f"script too small: {name}")
+            with open(dest, "wb") as handle:
+                handle.write(data)
+            synced.append(name)
+        except Exception as exc:
+            errors.append(f"{name}:{str(exc)[:120]}")
+    return {"step": "sync_stability_scripts", "ok": bool(synced), "synced": synced, "errors": errors}
+
+
+def ensure_satellite_job_worker() -> dict | None:
+    """Start lavie_job_worker on red_lavie when monitor is up but :5682 is down."""
+    if not _is_red_lavie_host():
+        return None
+    if _worker_health_ok():
+        return {"step": "job_worker", "ok": True, "skipped": "already_up", "port": RED_LAVIE_WORKER_PORT}
+    token = _load_satellite_job_token()
+    if not token:
+        return {"step": "job_worker", "ok": False, "error": "SATELLITE_JOB_TOKEN missing"}
+    ps1_dest = os.path.join(os.environ.get("TEMP", "."), "red_lavie_start_job_worker.ps1")
+    try:
+        url = f"{K10_SCRIPTS_BASE}/red_lavie_start_job_worker.ps1"
+        req = urllib.request.Request(url, headers={"User-Agent": "monitor_agent/recover"})
+        with urllib.request.urlopen(req, timeout=45) as resp:
+            data = resp.read()
+        if len(data) < 200:
+            raise ValueError("worker script too small")
+        with open(ps1_dest, "wb") as handle:
+            handle.write(data)
+    except Exception as exc:
+        return {"step": "job_worker", "ok": False, "error": f"download_failed: {exc}"[:200]}
+    cmd = (
+        f'powershell -NoProfile -ExecutionPolicy Bypass -File "{ps1_dest}" '
+        f'-K10 "{K10_SCRIPTS_BASE}" -Token "{token}" -Port {RED_LAVIE_WORKER_PORT}'
+    )
+    try:
+        proc = subprocess.run(
+            cmd,
+            shell=True,
+            capture_output=True,
+            text=True,
+            timeout=150,
+            creationflags=0x08000000,
+        )
+        out = (proc.stdout or "") + (proc.stderr or "")
+        ok = proc.returncode == 0 and _worker_health_ok()
+        return {
+            "step": "job_worker",
+            "ok": ok,
+            "exit_code": proc.returncode,
+            "detail": out[-500:],
+            "port": RED_LAVIE_WORKER_PORT,
+        }
+    except Exception as exc:
+        return {"step": "job_worker", "ok": False, "error": str(exc)[:200]}
+
+
+def recover_satellite_worker_endpoint() -> dict:
+    sync = _sync_stability_scripts_from_k10()
+    worker = ensure_satellite_job_worker() or {"step": "job_worker", "ok": False, "error": "not_red_lavie"}
+    steps = [item for item in (sync, worker) if item]
+    ok = all(step.get("ok") for step in steps if step)
+    return {
+        "ok": ok,
+        "schema": "clawstack.satellite_recover_worker.v1",
+        "hostname": socket.gethostname(),
+        "steps": steps,
+        "message": "SATELLITE_WORKER_RECOVERED" if ok else "SATELLITE_WORKER_RECOVER_FAILED",
     }
 
 
@@ -1700,6 +1978,15 @@ class MetricsHandler(BaseHTTPRequestHandler):
             payload = apply_host_stability()
             response = json.dumps(payload, ensure_ascii=False).encode("utf-8")
             self.send_response(200 if payload.get("ok") else 207)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.send_header("Content-Length", str(len(response)))
+            self.end_headers()
+            self.wfile.write(response)
+        elif self.path in ("/satellite/recover_worker", "/recover_worker"):
+            payload = recover_satellite_worker_endpoint()
+            response = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+            self.send_response(200 if payload.get("ok") else 503)
             self.send_header("Content-Type", "application/json")
             self.send_header("Access-Control-Allow-Origin", "*")
             self.send_header("Content-Length", str(len(response)))

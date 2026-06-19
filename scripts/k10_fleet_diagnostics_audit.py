@@ -27,8 +27,10 @@ NODES = [
     {"node_id": "k10", "name": "K10", "metrics": "http://127.0.0.1:8111/metrics", "metrics_alt": ["http://127.0.0.1:8112/metrics"], "diagnostics": "http://127.0.0.1:8111/diagnostics", "diagnostics_alt": ["http://127.0.0.1:8112/diagnostics"]},
     {"node_id": "red_lavie", "name": "Red LAVIE", "metrics": "http://100.99.145.3:8111/metrics", "metrics_alt": ["http://100.99.145.3:8112/metrics"], "diagnostics": "http://100.99.145.3:8111/diagnostics", "diagnostics_alt": ["http://100.99.145.3:8112/diagnostics"]},
     {"node_id": "lavie", "name": "LAVIE", "metrics": "http://100.87.244.46:8111/metrics", "metrics_alt": ["http://100.87.244.46:8112/metrics"], "diagnostics": "http://100.87.244.46:8111/diagnostics", "diagnostics_alt": ["http://100.87.244.46:8112/diagnostics"]},
+    {"node_id": "lavie_i3", "name": "Lavie Core i3", "metrics": "http://100.67.36.121:8111/metrics", "metrics_alt": ["http://100.67.36.121:8112/metrics"], "diagnostics": "http://100.67.36.121:8111/diagnostics", "diagnostics_alt": ["http://100.67.36.121:8112/diagnostics"]},
     {"node_id": "vivobook", "name": "Vivobook mhn15", "metrics": "http://100.65.182.27:8111/metrics", "metrics_alt": ["http://100.65.182.27:8112/metrics"], "diagnostics": "http://100.65.182.27:8111/diagnostics", "diagnostics_alt": ["http://100.65.182.27:8112/diagnostics"]},
     {"node_id": "dynabook", "name": "Dynabook", "metrics": "http://100.98.133.40:8111/metrics", "metrics_alt": ["http://100.98.133.40:8112/metrics"], "diagnostics": "http://100.98.133.40:8111/diagnostics", "diagnostics_alt": ["http://100.98.133.40:8112/diagnostics"]},
+    {"node_id": "hp", "name": "HP Laptop", "metrics": "http://100.103.176.50:8111/metrics", "metrics_alt": ["http://100.103.176.50:8112/metrics"], "diagnostics": "http://100.103.176.50:8111/diagnostics", "diagnostics_alt": ["http://100.103.176.50:8112/diagnostics"]},
 ]
 
 

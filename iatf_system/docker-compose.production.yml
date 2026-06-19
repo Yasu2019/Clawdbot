@@ -68,12 +68,8 @@ services:
     ports:
       - "3004:3004"
     volumes:
-      - .:/myapp:delegated
       - shared_data:/myapp/db/record
       - storage-data:/myapp/storage
-      - /myapp/node_modules
-      - /myapp/public/assets
-      - /myapp/tmp
     networks:
       - app_network
     extra_hosts:
@@ -99,12 +95,8 @@ services:
       - DB_PORT=5436
       - REDIS_URL=redis://host.docker.internal:6381/0
     volumes:
-      - .:/myapp:delegated
       - shared_data:/myapp/db/record
       - storage-data:/myapp/storage
-      - /myapp/node_modules
-      - /myapp/public/assets
-      - /myapp/tmp
     networks:
       - app_network
     extra_hosts:
@@ -149,6 +141,6 @@ networks:
     driver: bridge
     ipam:
       config:
-        - subnet: 172.24.0.0/16
+        - subnet: 172.30.0.0/16
   default:
     driver: bridge

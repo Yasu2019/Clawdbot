@@ -80,6 +80,11 @@ DOMAINS = {
         "Solver Formatting: Convert NIMS material data into OpenRadioss /MAT/LAW2 (Johnson-Cook) format.",
         "CFD Constants: Compile a table of temperature-dependent viscosity for common industrial fluids in OpenFoam.",
         "Validation: Cross-check material properties between three different open sources to ensure data reliability."
+    ],
+    "ENGINEERING_THEORY": [
+        "Read the latest J-STAGE engineering papers and extract progressive die theories.",
+        "Examine FEM sheet metal simulation benchmarks from Europe PMC records.",
+        "Compare tolerance stackup calculation methodologies from OpenAlex materials."
     ]
 }
 
@@ -99,7 +104,9 @@ def init_db():
             challenge TEXT,
             status TEXT,
             know_how TEXT,
-            artifact_path TEXT
+            artifact_path TEXT,
+            source TEXT,
+            evidence TEXT
         )
     """)
     conn.close()
@@ -180,6 +187,38 @@ def export_stats_json():
         """).fetchall()
         history = [{"day": r["day"], "count": r["count"]} for r in rows]
         
+        # Email ingestion history (past 1 month)
+        email_history = []
+        try:
+            email_db_path = WORKSPACE / "email_search.db"
+            if email_db_path.exists():
+                email_conn = sqlite3.connect(str(email_db_path))
+                email_conn.row_factory = sqlite3.Row
+                since_date = (datetime.date.today() - datetime.timedelta(days=30)).isoformat()
+                email_rows = email_conn.execute("""
+                    SELECT source, substr(indexed_at, 1, 10) as day, COUNT(*) as count 
+                    FROM emails 
+                    WHERE substr(indexed_at, 1, 10) >= ?
+                    GROUP BY source, day 
+                    ORDER BY day ASC
+                """, (since_date,)).fetchall()
+                
+                daily_map = {}
+                for r in email_rows:
+                    day = r["day"]
+                    src = r["source"]
+                    cnt = r["count"]
+                    if day not in daily_map:
+                        daily_map[day] = {"day": day, "gmail": 0, "eml": 0}
+                    if src == "gmail":
+                        daily_map[day]["gmail"] = cnt
+                    elif src == "eml":
+                        daily_map[day]["eml"] = cnt
+                email_history = sorted(daily_map.values(), key=lambda x: x["day"])
+                email_conn.close()
+        except Exception as ee:
+            log_event(f"Failed to fetch email history: {ee}")
+        
         # Recent Know-how (last 10 items)
         rows = conn.execute("""
             SELECT domain, challenge, know_how, timestamp 
@@ -192,8 +231,37 @@ def export_stats_json():
             "updated_at": datetime.datetime.now().isoformat(),
             "domain_stats": domain_stats,
             "history": history,
-            "recent_know_how": recent_know_how
+            "email_history": email_history,
+            "recent_know_how": recent_know_how,
         }
+
+        # Commercial CAE L0-L10 (executable evidence only -- not document ingest counts)
+        try:
+            import sys
+            if str(WORKSPACE) not in sys.path:
+                sys.path.insert(0, str(WORKSPACE))
+            from commercial_benchmark_maturity import build_commercial_benchmark_table
+
+            bench = build_commercial_benchmark_table()
+            bench["assessed_at"] = stats["updated_at"]
+            stats["commercial_benchmark_l10"] = bench
+            latest_path = WORKSPACE / "apps" / "growth_dashboard" / "commercial_benchmark_maturity_latest.json"
+            with open(latest_path, "w", encoding="utf-8") as bf:
+                json.dump(bench, bf, ensure_ascii=False, indent=2)
+        except Exception as exc:
+            stats["commercial_benchmark_l10_error"] = str(exc)[:300]
+
+        try:
+            from ai_video_generation_maturity import build_ai_video_maturity_table
+
+            video_bench = build_ai_video_maturity_table()
+            video_bench["assessed_at"] = stats["updated_at"]
+            stats["ai_video_generation_l10"] = video_bench
+            video_latest = WORKSPACE / "apps" / "growth_dashboard" / "ai_video_generation_maturity_latest.json"
+            with open(video_latest, "w", encoding="utf-8") as vf:
+                json.dump(video_bench, vf, ensure_ascii=False, indent=2)
+        except Exception as exc:
+            stats["ai_video_generation_l10_error"] = str(exc)[:300]
         
         # Sync Music DNA to Harmony Hub if Music was updated
         sync_music_dna_to_hub()

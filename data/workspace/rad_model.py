@@ -180,7 +180,32 @@ class RadModel:
                 self._lines[surf_di] = _replace_nth_number(self._lines[surf_di], 5, str(idel))
         return self
 
-    def set_inter_type25_inacti(self, inter_id: int, inacti: int) -> "RadModel":
+    def set_inter_type25_fric_all(self, fric: float) -> "RadModel":
+        """Set Fric on Stfac line for every /INTER/TYPE25 block."""
+        for i, ln in enumerate(self._lines):
+            if not re.match(r"/INTER/TYPE25/\d", ln.strip()):
+                continue
+            di = _find_data_line_after_comment(self._lines, i, "Fric")
+            if di < 0:
+                di = _find_data_line_after_comment(self._lines, i, "Stfac")
+            if di >= 0:
+                self._lines[di] = _replace_nth_number(self._lines[di], 1, f"{fric:.6g}")
+        return self
+
+    def set_inter_type25_gap_punch(self, gap_m: float) -> "RadModel":
+        """Set Gap_max_s/m on /INTER/TYPE25/1 (punch-material contact)."""
+        for i, ln in enumerate(self._lines):
+            if not re.match(r"/INTER/TYPE25/1\b", ln.strip()):
+                continue
+            di = _find_data_line_after_comment(self._lines, i, "Gap_max")
+            if di >= 0:
+                line = self._lines[di]
+                line = _replace_nth_number(line, 3, f"{gap_m:.6g}")
+                line = _replace_nth_number(line, 4, f"{gap_m:.6g}")
+                self._lines[di] = line
+            break
+        return self
+
         """Set Inacti on a single /INTER/TYPE25/{inter_id} block."""
         pat = re.compile(rf"/INTER/TYPE25/{inter_id}\b")
         for i, ln in enumerate(self._lines):

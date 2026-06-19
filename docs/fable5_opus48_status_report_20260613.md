@@ -1,5 +1,7 @@
 # Fable5 Sprint Status Report (Opus 4.8 Handover)
 
+> **Superseded for Opus 4.8 consultation:** use `docs/fable5_opus48_implementation_gaps_consultation.md` (L4/L10/Cetol full + gap list with paths).
+
 **Date:** 2026-06-13 (JST)  
 **Author:** Cursor Agent (Composer) — implementation session  
 **Audience:** Opus 4.8 / user  

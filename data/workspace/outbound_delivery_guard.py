@@ -117,3 +117,12 @@ def ensure_allowed_telegram_chat_id(chat_id: str | int, source: str) -> str:
 
 def initialize_guard_status(source: str = "startup") -> None:
     _record_attempt("system", "policy_loaded", True, source, "outbound delivery allowlist is active")
+
+
+def prepare_telegram_message(text: str, _source: str = "") -> str:
+    """Sanitize outbound Telegram text (P023: avoid cp932-unsafe chars in logs)."""
+    if not text:
+        return ""
+    out = str(text)
+    out = out.replace("\u2014", "--").replace("\u2192", "->")
+    return out[:4096]

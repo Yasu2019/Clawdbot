@@ -20,6 +20,7 @@ db/record/
 
 # Ignore local config/assets/backups
 .env*
+!.env
 !.env.production
 public/assets/
 backups/

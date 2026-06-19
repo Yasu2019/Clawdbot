@@ -191,6 +191,26 @@ EXPERIMENTS = [
             "Status={status}. Expected: clearance<5%=>tool_wear, >12%=>burr_increase."
         ),
     },
+    {
+        "id": "OR-BLANK-ASSY-001",
+        "solver": "openradioss",
+        "category": "press_blanking_assy",
+        "description": "4mmx4mm ASSY blanking - Punch/Die/Stripper/Material (TYPE25)",
+        "input_dir": str(WORKSPACE / "experiments" / "openradioss" / "4mmx4mm_assy_v001"),
+        "input_file": "4mmx4mm_ASSY_20260105_0000.rad",
+        "engine_file": "4mmx4mm_ASSY_20260105_0001.rad",
+        "assy_deck": True,
+        "defect_targets": ["shear_zone_pct", "fracture_zone_pct", "burr_height_mm", "rollover_mm"],
+        "success_keyword": "NORMAL TERMINATION",
+        "failure_keywords": ["ERROR", "STOPPED", "ABORT"],
+        "param_sweeps": [
+            {"case_label": "4mmx4mm_ASSY", "clearance_pct": 8.0, "punch_speed_mms": 5000, "friction_mu": 0.10},
+        ],
+        "lesson_template": (
+            "4mmx4mm ASSY blanking: clearance={clearance_pct}%t, speed={punch_speed_mms}mm/s, mu={friction_mu}. "
+            "Status={status}. Punch/Die/Stripper/Material TYPE25."
+        ),
+    },
     # ── OpenRadioss: Deep Drawing ─────────────────────────────────────────
     {
         "id": "OR-DRAW-001",
@@ -1282,7 +1302,174 @@ def _clean_old_runs(runs_root: Path, keep_count: int = 50):
 
 # ─── OpenRadioss Runner ───────────────────────────────────────────────────────
 
+def _run_openradioss_assy_deck(
+    exp: dict, params: dict, dry_run: bool, timeout: int, trial_id: str
+) -> dict:
+    """4mmx4mm ASSY: Punch/Die/Stripper/Material solid+skin TYPE25 deck."""
+    import openradioss_4mmx4mm_assy_params as assy
+
+    template_dir = Path(exp["input_dir"])
+    input_file = exp["input_file"]
+    engine_file = exp.get("engine_file") or input_file.replace("_0000.rad", "_0001.rad")
+    category = exp.get("category", "press_blanking_assy")
+
+    if GATES_ENABLED:
+        pre = cae_gates.precheck_openradioss_case(template_dir)
+        if not pre.ok:
+            return {
+                "status": "PREGATE_FAIL",
+                "log": "Pre-gate failed: " + "; ".join(pre.issues),
+                "duration_sec": 0,
+                "failure_tags": pre.tags,
+                "pregate": {"ok": False, "tags": pre.tags, "issues": pre.issues},
+                "gates_enabled": True,
+            }
+
+    runs_dir = WORKSPACE / "runs"
+    runs_dir.mkdir(parents=True, exist_ok=True)
+    run_dir = runs_dir / trial_id
+    run_dir.mkdir(parents=True, exist_ok=True)
+    if not dry_run:
+        _clean_old_runs(runs_dir, keep_count=30)
+
+    src_starter = template_dir / input_file
+    src_engine = template_dir / engine_file
+    if not src_starter.is_file() or not src_engine.is_file():
+        return {
+            "status": "ERROR",
+            "log": f"Missing ASSY deck: starter={src_starter.exists()} engine={src_engine.exists()}",
+            "duration_sec": 0,
+        }
+
+    dest_starter = run_dir / input_file
+    dest_engine = run_dir / engine_file
+    shutil.copy2(src_starter, dest_starter)
+    shutil.copy2(src_engine, dest_engine)
+
+    try:
+        verify = assy.apply_assy_params(dest_starter, dest_engine, params)
+        print(f"  [ASSY] params applied: {verify}", flush=True)
+    except Exception as exc:
+        return {"status": "ERROR", "log": f"ASSY param inject failed: {exc}", "duration_sec": 0}
+
+    docker_mount_path = str(run_dir).replace("\\", "/").replace("d:", "/d").replace("D:", "/d")
+
+    if dry_run:
+        return {
+            "status": "DRY_RUN",
+            "log": "Dry run ASSY deck copy+inject OK",
+            "duration_sec": 0,
+            "failure_tags": [],
+            "pregate": {"ok": True, "tags": ["precheck_ok"], "issues": []},
+            "gates_enabled": GATES_ENABLED,
+            "params_verify": verify,
+        }
+
+    cmd = [
+        _docker_exe(),
+        "run",
+        "--rm",
+        *_docker_resource_args(),
+        "-v",
+        f"{docker_mount_path}:/workspace",
+        "-w",
+        "/workspace",
+        OPENRADIOSS_IMAGE,
+        "bash",
+        "-c",
+        f"starter_linux64_gf -i {input_file} -nthread {_openradioss_nthread()} 2>&1 && "
+        f"engine_linux64_gf -i {engine_file} -nthread {_openradioss_nthread()} 2>&1",
+    ]
+
+    start = time.time()
+    try:
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+            encoding="utf-8",
+            errors="replace",
+        )
+        duration = time.time() - start
+        stdout = (result.stdout or "") + (result.stderr or "")
+
+        if result.returncode == 0 and "NORMAL TERMINATION" in stdout:
+            print("  [POST-PROCESS] Converting ASSY animations to VTK...", flush=True)
+            try:
+                anim_files = [
+                    f.name
+                    for f in run_dir.iterdir()
+                    if f.is_file() and "A" in f.name and f.name.split("A")[-1].isdigit()
+                ]
+                anim_files.sort()
+                converted_count = 0
+                for anim in anim_files:
+                    num = anim.split("A")[-1]
+                    base = anim.rsplit("A", 1)[0]
+                    vtk_name = f"{base}_{num}.vtk"
+                    dest_vtk = run_dir / vtk_name
+                    conv_cmd = [
+                        _docker_exe(),
+                        "run",
+                        "--rm",
+                        "-v",
+                        f"{docker_mount_path}:/workspace",
+                        "-w",
+                        "/workspace",
+                        OPENRADIOSS_IMAGE,
+                        "anim_to_vtk_linux64_gf",
+                        anim,
+                    ]
+                    conv_res = subprocess.run(conv_cmd, capture_output=True)
+                    if conv_res.returncode == 0:
+                        dest_vtk.write_bytes(conv_res.stdout)
+                        converted_count += 1
+                print(f"  [POST-PROCESS] VTK converted: {converted_count}", flush=True)
+            except Exception as ex:
+                print(f"  [WARN] ASSY VTK conversion failed: {ex}", flush=True)
+
+        evidence = cae_gates.extract_openradioss_evidence(stdout) if GATES_ENABLED else {}
+        kpis, kpi_error, kpi_cmd = _extract_openradioss_kpis(
+            stdout, run_dir=run_dir, expected_kpis=exp.get("expected_kpis")
+        )
+        return {
+            "status": "DONE",
+            "log": stdout,
+            "duration_sec": duration,
+            "returncode": result.returncode,
+            "failure_tags": cae_gates.tag_openradioss_log(stdout) if GATES_ENABLED else [],
+            "pregate": {"ok": True, "tags": ["precheck_ok"], "issues": []},
+            "gates_enabled": GATES_ENABLED,
+            "failure_evidence": evidence,
+            "kpi": {"ok": bool(kpis), "values": kpis, "command": kpi_cmd, "error": kpi_error},
+            "run_dir": str(run_dir),
+            "assy_verify": verify,
+        }
+    except subprocess.TimeoutExpired:
+        return {
+            "status": "TIMEOUT",
+            "log": f"Exceeded {timeout}s",
+            "duration_sec": timeout,
+            "failure_tags": ["timeout"] if GATES_ENABLED else [],
+            "pregate": {"ok": True, "tags": ["precheck_ok"], "issues": []},
+            "gates_enabled": GATES_ENABLED,
+        }
+    except Exception as e:
+        return {
+            "status": "ERROR",
+            "log": str(e),
+            "duration_sec": time.time() - start,
+            "failure_tags": ["runner_error"] if GATES_ENABLED else [],
+            "pregate": {"ok": True, "tags": ["precheck_ok"], "issues": []},
+            "gates_enabled": GATES_ENABLED,
+        }
+
+
 def _run_openradioss(exp: dict, params: dict, dry_run: bool, timeout: int, trial_id: str = "TRIAL_TEMP") -> dict:
+    if exp.get("assy_deck") or exp.get("id") == "OR-BLANK-ASSY-001":
+        return _run_openradioss_assy_deck(exp, params, dry_run, timeout, trial_id)
+
     template_dir = Path(exp["input_dir"])
     input_file = exp["input_file"]
     category = exp.get("category", "")
@@ -3708,9 +3895,18 @@ def run_engine(dry_run: bool = False, max_trials: int = MAX_TRIALS_DEFAULT,
             print(f"[VISUAL] Image report failed (non-fatal): {ve}")
 
 
-def find_experiment(*, category: str | None = None, exp_id: str | None = None) -> dict | None:
+def find_experiment(*, category: str | None = None, exp_id: str | None = None, params: dict | None = None) -> dict | None:
     if not category and not exp_id:
         return None
+    try:
+        import openradioss_4mmx4mm_assy_params as assy
+
+        if assy.is_assy_trial(params, category=category or "", exp_id=exp_id or ""):
+            for exp in EXPERIMENTS:
+                if exp.get("id") == assy.ASSY_EXP_ID:
+                    return exp
+    except Exception:
+        pass
     for exp in EXPERIMENTS:
         if exp_id and exp.get("id") == exp_id:
             return exp
@@ -3733,7 +3929,7 @@ def run_single_trial(
     host: str = "k10",
 ) -> dict:
     """Run one CAE trial and return a trial_entry dict (SJP-2)."""
-    exp = find_experiment(category=category, exp_id=exp_id)
+    exp = find_experiment(category=category, exp_id=exp_id, params=params)
     if not exp:
         raise ValueError(f"experiment not found category={category!r} exp_id={exp_id!r}")
 

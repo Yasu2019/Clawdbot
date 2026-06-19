@@ -3,7 +3,7 @@
 # Compatible with Windows PowerShell 5.0-era hosts. Run as a normal user.
 param(
     [string]$K10Url = "http://100.119.18.40:8123/monitor_agent.py",
-    [string]$AgentPath = "C:\monitor_agent.py"
+    [string]$AgentPath = "C:\clawstack_satellite\scripts\monitor_agent.py"
 )
 
 $ErrorActionPreference = "SilentlyContinue"
@@ -69,7 +69,11 @@ Write-Host "  -> Python: $pythonw"
 Write-Host "[2/4] Stopping existing agent..."
 try {
     Get-CimInstance Win32_Process -ErrorAction SilentlyContinue |
-        Where-Object { $_.CommandLine -and ($_.CommandLine -match 'monitor_agent') } |
+        Where-Object {
+            $_.CommandLine -and
+            ($_.CommandLine -match '[\\/]monitor_agent\.py') -and
+            ($_.Name -match '^(python|pythonw)\.exe$')
+        } |
         ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
     Start-Sleep -Seconds 1
 } catch {

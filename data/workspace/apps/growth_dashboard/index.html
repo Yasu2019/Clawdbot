@@ -45,7 +45,63 @@
         .timestamp { font-size: 0.75rem; color: var(--text-dim); }
 
         canvas { max-height: 400px; }
+
+        /* DXF2STEP progress */
+        .dxf-project-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-bottom: 20px; }
+        .dxf-project-card { background: rgba(0,0,0,0.25); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+        .dxf-progress-bar { height: 10px; background: rgba(255,255,255,0.08); border-radius: 999px; overflow: hidden; margin: 10px 0; }
+        .dxf-progress-fill { height: 100%; background: linear-gradient(90deg, #238636, #3fb950); border-radius: 999px; }
+        .dxf-badge { font-size: 0.72rem; padding: 2px 8px; border-radius: 999px; font-weight: 600; display: inline-block; }
+        .dxf-badge.ok { background: rgba(63,185,80,0.15); color: #3fb950; }
+        .dxf-badge.ng { background: rgba(248,81,73,0.15); color: #f85149; }
+        .dxf-badge.pending { background: rgba(210,153,34,0.15); color: #d29922; }
+        .dxf-badge.muted { background: rgba(139,148,158,0.15); color: #8b949e; }
+        .dxf-preview { width: 120px; height: 90px; object-fit: contain; background: #0d1117; border: 1px solid var(--border); border-radius: 6px; }
+        .dxf-3d-thumb {
+            width: 140px; height: 105px; position: relative;
+            background: #0d1117; border: 1px solid var(--border); border-radius: 6px;
+            overflow: hidden; cursor: pointer;
+        }
+        .dxf-3d-thumb-poster { width: 100%; height: 100%; object-fit: contain; display: block; background: #0d1117; }
+        .dxf-3d-thumb-placeholder {
+            width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
+            color: var(--text-dim); font-size: 0.8rem;
+        }
+        .dxf-3d-thumb-open {
+            position: absolute; left: 4px; right: 4px; bottom: 4px;
+            border: none; border-radius: 4px; padding: 3px 6px;
+            background: rgba(88,166,255,0.92); color: #0b0f19;
+            font-size: 0.68rem; font-weight: 700; cursor: pointer;
+        }
+        .dxf-3d-thumb-open:hover { background: #58a6ff; }
+        .dxf3d-modal-canvas-wrap { position: relative; }
+        .dxf3d-modal-loading {
+            position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+            background: rgba(13,17,23,0.85); color: var(--primary); font-size: 0.9rem;
+            border-radius: 8px;
+        }
+        .dxf3d-modal-loading.err { color: #f85149; }
+        #dxf3dModal { display: none; position: fixed; inset: 0; z-index: 9999; }
+        .dxf3d-modal-backdrop { width: 100%; height: 100%; background: rgba(0,0,0,0.72); display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .dxf3d-modal-panel { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; max-width: 96vw; }
+        .dxf3d-modal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .dxf3d-modal-head button { background: transparent; border: 1px solid var(--border); color: var(--text-main); border-radius: 6px; cursor: pointer; padding: 2px 10px; }
+        #dxf3dModalCanvas { width: min(720px, 90vw); height: min(480px, 60vh); display: block; border-radius: 8px; background: #0d1117; }
+        .dxf3d-modal-hint { font-size: 0.72rem; color: var(--text-dim); margin-top: 8px; text-align: center; }
+        .dxf-link { color: #58a6ff; text-decoration: none; font-size: 0.78rem; margin-right: 8px; white-space: nowrap; }
+        .dxf-link:hover { text-decoration: underline; }
+        .dxf-filter-btn { padding: 4px 12px; border-radius: 20px; border: 1px solid var(--border); background: transparent; color: var(--text-dim); cursor: pointer; font-size: 0.8rem; }
+        .dxf-filter-btn.active { border-color: var(--primary); color: var(--primary); background: rgba(88,166,255,0.08); }
     </style>
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script src="./vendor/occt-import-js.js"></script>
 </head>
 <body>
     <header>
@@ -105,6 +161,38 @@
             <ul id="femVideoGapList" style="font-size:0.78rem; color:var(--text-dim); margin:12px 0 0; padding-left:1.2rem;"></ul>
         </div>
 
+        <div class="card full-width" style="border-left: 4px solid #3fb950; background: rgba(35,134,54,0.04);">
+            <h2>DXF to 3D Model Progress (ThinkPad DXF2STEP)</h2>
+            <p style="font-size:0.85rem; color:var(--text-dim); margin:0 0 12px;">
+                380D順送金型ほか各プロジェクトの図面変換進捗。<strong>3D列</strong>は静止2Dプレビュー、<strong>「3Dで開く」</strong>で手動操作の3Dビューア（ドラッグ回転・ズーム）。
+            </p>
+            <div id="dxf2stepSummary" style="margin-bottom:12px; font-size:0.85rem; color:var(--text-dim);">Loading DXF2STEP status...</div>
+            <div id="dxf2stepProjectGrid" class="dxf-project-grid"></div>
+            <div style="margin-bottom:12px; display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+                <a id="dxf2stepExcelLink" href="#" style="display:none; color:#58a6ff; font-weight:600; font-size:0.9rem;" download>Excel 部品トライ一覧をダウンロード</a>
+                <span style="color:var(--text-dim);">|</span>
+                <button class="dxf-filter-btn active" data-dxf-filter="all" onclick="filterDxfParts('all')">全て</button>
+                <button class="dxf-filter-btn" data-dxf-filter="成功" onclick="filterDxfParts('成功')">成功</button>
+                <button class="dxf-filter-btn" data-dxf-filter="失敗" onclick="filterDxfParts('失敗')">失敗/形状NG</button>
+                <button class="dxf-filter-btn" data-dxf-filter="未トライ" onclick="filterDxfParts('未トライ')">未トライ</button>
+            </div>
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th width="8%">部品</th>
+                        <th width="7%">状態</th>
+                        <th width="12%">最終トライ</th>
+                        <th width="14%">3D (STEP)</th>
+                        <th width="12%">Telegram</th>
+                        <th width="47%">ダウンロード / 備考</th>
+                    </tr>
+                </thead>
+                <tbody id="dxf2stepPartsBody">
+                    <tr><td colspan="6" style="text-align:center; color:var(--text-dim);">Loading...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
         <div class="card full-width">
             <h2>IATF Internal Audit Video Creation Status (IATF内部監査動画作成状況)</h2>
             <div id="iatfVideoBody" style="display: flex; gap: 15px; flex-wrap: wrap;">
@@ -125,6 +213,83 @@
             <div id="iatfQaGallery" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;">
                 <div style="color:var(--text-dim);font-size:0.9rem;">Loading thumbnails...</div>
             </div>
+        </div>
+
+        <div class="card full-width" style="border-left: 4px solid #f85149; background: rgba(248, 81, 73, 0.05);">
+            <h2 style="color: #f85149;">🚀 革命的資料 (Revolutionary Insights Found)</h2>
+            <p style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 15px;">
+                Gemini 2.5 Flashマルチモーダル抽出によって発見された、アプリ進化の起爆剤となる超高度ノウハウです。
+            </p>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 25px;">
+                <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; border: 1px solid var(--border);">
+                    <h3 style="color: #58a6ff; font-size: 0.95rem; margin-top: 0;">1. 3Dモデル・アバター動画生成</h3>
+                    <div class="domain-tag" style="display: inline-block; margin-bottom: 10px;">Generative AI</div>
+                    <p class="know-how" style="font-size: 0.8rem;">
+                        <strong>論文:</strong> Talking Head Generation Through Generative Models<br><br>
+                        Transformerベースと3D再構成ベースのアーキテクチャ比較、FID/LPIPS等の多角的な評価指標、そしてリアリズムを極限まで高めるためのオプティマイザやバッチサイズの制御パラメーター最適化戦略。
+                    </p>
+                </div>
+                <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; border: 1px solid var(--border);">
+                    <h3 style="color: #58a6ff; font-size: 0.95rem; margin-top: 0;">2. IoTデータ トラサビリティ</h3>
+                    <div class="domain-tag" style="display: inline-block; margin-bottom: 10px;">Blockchain / Smart Factory</div>
+                    <p class="know-how" style="font-size: 0.8rem;">
+                        <strong>論文:</strong> Data Component Method Based on Dual-Factor Ownership<br><br>
+                        CAD図面や検査画像の所有権を証明するデュアルファクター検証。メタデータのみをオンチェーン化し、検証遅延を10.8msに抑えつつスループットを4.7倍に引き上げる次世代アーキテクチャ。
+                    </p>
+                </div>
+                <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; border: 1px solid var(--border);">
+                    <h3 style="color: #58a6ff; font-size: 0.95rem; margin-top: 0;">3. IATF監査対応 ERP・リーン統合</h3>
+                    <div class="domain-tag" style="display: inline-block; margin-bottom: 10px;">ERP / Quality Assurance</div>
+                    <p class="know-how" style="font-size: 0.8rem;">
+                        <strong>論文:</strong> Integrated ERP lean model for quality enhancement<br><br>
+                        ERPのデジタル強制力とSMED（段取り替え迅速化）を統合し、金型交換時間を420分から20分へ激減（95.2%減）。ISO 9001要件の自動順守をシステムレベルで保証するロジック。
+                    </p>
+                </div>
+            </div>
+
+            <h3 style="color: #3fb950; font-size: 1.1rem; margin-bottom: 10px;">🛠 コード改善 (Before / After)</h3>
+            <p style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 10px;">
+                革命的資料（図表・数式）を正確に読み取るため、ノウハウ抽出エンジンのソースコード（<code>gemini_multimodal_extractor.py</code>）を劇的に進化させました。
+            </p>
+            <table class="history-table" style="background: #0d1117; border-radius: 8px; overflow: hidden;">
+                <thead>
+                    <tr>
+                        <th width="50%" style="background: rgba(248, 81, 73, 0.1); color: #f85149;">Before (以前のテキスト依存コード)</th>
+                        <th width="50%" style="background: rgba(63, 185, 80, 0.1); color: #3fb950;">After (現在のマルチモーダル対応コード)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="font-family: monospace; font-size: 0.8rem; color: #8b949e;">
+<pre style="margin: 0; white-space: pre-wrap;">
+# 旧モデル: Gemini 1.5 Flash
+model = genai.GenerativeModel('gemini-1.5-flash')
+
+# 単なるテキストとしてPDFの文字を解析
+response = model.generate_content([
+    "Extract engineering know-how from this text:",
+    pdf_text
+])
+</pre>
+                        </td>
+                        <td style="font-family: monospace; font-size: 0.8rem; color: #c9d1d9;">
+<pre style="margin: 0; white-space: pre-wrap;">
+# 新モデル: Gemini 2.5 Flash
+model = genai.GenerativeModel('gemini-2.5-flash')
+
+# File APIによるPDFアップロードと視覚情報（図・表・数式）の完全解析
+uploaded_file = genai.upload_file(pdf_path)
+response = model.generate_content([
+    uploaded_file,
+    "Extract deep engineering know-how, paying "
+    "special attention to diagrams, equations..."
+])
+</pre>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
 
         <div class="card full-width">
@@ -197,12 +362,12 @@
                     </tr>
                     <tr>
                         <td>
-                            <div style="font-weight:600; font-size:1.05rem;">LAVIE High-RAM Node</div>
-                            <div style="font-size:0.8rem; color:var(--text-dim);">100.87.244.46</div>
+                            <div style="font-weight:600; font-size:1.05rem;">LAVIE i3 Node (Upgraded)</div>
+                            <div style="font-size:0.8rem; color:var(--text-dim);">100.87.244.46 / 16GB RAM (NEW)</div>
                         </td>
-                        <td><span style="background: rgba(210, 153, 34, 0.1); border: 1px solid #d29922; padding: 3px 8px; border-radius: 8px; color: #d29922; font-weight:600; font-size:0.8rem;">ACTIVE / BUSY</span></td>
-                        <td><div class="know-how">Primary CAE worker candidate, but load-aware. Continue OpenRadioss/Moldflow-style batches only when CPU and RAM headroom are available.</div></td>
-                        <td><strong>VERIFIED 2026-06-08</strong><br><span class="timestamp">Same CAE role continues with load guard.</span></td>
+                        <td><span style="background: rgba(35, 134, 54, 0.1); border: 1px solid var(--accent); padding: 3px 8px; border-radius: 8px; color: var(--accent); font-weight:600; font-size:0.8rem;">ACTIVE / HEAVY CAE READY</span></td>
+                        <td><div class="know-how">Primary CAE worker. <strong>16GB RAM Upgrade Confirmed!</strong> Now fully capable of executing heavy OpenRadioss, Moldflow-style batches, and Generative AI (GAN/Talking Head) processing without memory bottleneck.</div></td>
+                        <td><strong>VERIFIED 2026-06-18</strong><br><span class="timestamp">RAM upgraded to 16GB. Restrictions lifted.</span></td>
                     </tr>
                     <tr>
                         <td>
@@ -218,9 +383,9 @@
                             <div style="font-weight:600; font-size:1.05rem;">HP / YNS-PC</div>
                             <div style="font-size:0.8rem; color:var(--text-dim);">100.103.176.50</div>
                         </td>
-                        <td><span style="background: rgba(248, 81, 73, 0.1); border: 1px solid var(--danger); padding: 3px 8px; border-radius: 8px; color: var(--danger); font-weight:600; font-size:0.8rem;">OFFLINE / HOLD</span></td>
-                        <td><div class="know-how">No job assignment while offline. Resume only after monitor_agent metrics respond and the node is confirmed reachable.</div></td>
-                        <td><strong>NOT VERIFIED 2026-06-08</strong><br><span class="timestamp">Previously timed out; keep on hold.</span></td>
+                        <td><span style="background: rgba(35, 134, 54, 0.1); border: 1px solid var(--accent); padding: 3px 8px; border-radius: 8px; color: var(--accent); font-weight:600; font-size:0.8rem;">ACTIVE / WATCHDOG</span></td>
+                        <td><div class="know-how">Watchdog node active. monitor_agent metrics are responding. Excluded from compute workloads but active for monitoring and safety checks.</div></td>
+                        <td><strong>VERIFIED 2026-06-18</strong><br><span class="timestamp">Satellite installation completed, agent is reporting metrics.</span></td>
                     </tr>
                 </tbody>
             </table>
@@ -349,12 +514,13 @@
                         <td>
                             <div class="know-how">
                                 <span style="font-size:0.75rem; color:var(--text-dim); margin-right:4px;">[06/06 11:30]</span>・スマホテザリングの不安定な回線を考慮し、自身のアウトバウンド通信を確認した上でK10の死活監視を行うスマートウォッチドッグとして稼働開始。<br>
-                                <span style="font-size:0.75rem; color:var(--text-dim); margin-right:4px;">[06/06 11:40]</span>・誤報を抑制しつつ、安定して死活監視を継続中。
+                                <span style="font-size:0.75rem; color:var(--text-dim); margin-right:4px;">[06/18 00:30]</span>・サテライトセットアップスクリプトをデプロイし、常時稼働監視エージェント (monitor_agent:8111, LHM:8085) が正常にオンライン復旧。<br>
+                                <span style="font-size:0.75rem; color:var(--text-dim); margin-right:4px;">[06/18 00:38]</span>・再起動後の自動起動と、K10のテレメトリ監査ループへの追加を確認。
                             </div>
                         </td>
                         <td style="color: var(--primary); font-size: 0.85rem; font-weight: 600;">
                             ACTIVE / ONLINE<br>
-                            <span style="font-size:0.75rem; color:var(--text-dim); font-weight:normal;">Watchdog Running</span>
+                            <span style="font-size:0.75rem; color:var(--text-dim); font-weight:normal;">Metrics Online</span>
                         </td>
                     </tr>
                     <tr>
@@ -516,6 +682,95 @@
             </table>
         </div>
 
+        <div class="card full-width" style="border-left: 4px solid var(--primary);">
+            <h2>Recommended Literature Databases & Search Methods (推奨文献データベースと検索・閲覧方法)</h2>
+            <p style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 15px;">
+                工学・製造技術文献の収集と、自律進化のために活用する推奨情報源データベースの一覧です。
+            </p>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px; font-size: 0.9rem; line-height: 1.6; color: #d1d5db;">
+                <div>
+                    <h3 style="color: #fff; font-size: 1rem; margin-top: 0; border-bottom: 1px solid var(--border); padding-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+                        <span>🇯🇵</span> 1. 国内の論文・日本語の論文を探す場合
+                    </h3>
+                    <ul style="padding-left: 20px; margin: 10px 0;">
+                        <li>
+                            <strong style="color: var(--primary);">J-STAGE（科学技術情報発信・流通総合システム）</strong><br>
+                            <span style="font-size: 0.8rem; color: var(--text-dim);">
+                                <strong>特徴:</strong> 科学技術振興機構（JST）が運営する、日本最大級 of 電子ジャーナルプラットフォームです。オープンアクセス（無料公開）論文が多く、日本のプレス成形・めっき・金型設計などの実務的な論文が多数存在します。<br>
+                                <strong>閲覧方法:</strong> 登録不要で誰でも検索・閲覧できます。マイページ機能（無料）で検索条件の保存なども可能です。
+                            </span>
+                        </li>
+                        <li style="margin-top: 12px;">
+                            <strong style="color: var(--primary);">CiNii Research（サイニィ リサーチ）</strong><br>
+                            <span style="font-size: 0.8rem; color: var(--text-dim);">
+                                <strong>特徴:</strong> 国立情報学研究所（NII）が提供する、日本の学術論文や研究データを網羅した国内最大級のデータベースです。<br>
+                                <strong>閲覧方法:</strong> ログインなしでも検索や一部のオープンアクセス論文、抄録（要約）の閲覧が可能です。個人ID（無料）を登録してログインすることも可能です。
+                            </span>
+                        </li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 style="color: #fff; font-size: 1rem; margin-top: 0; border-bottom: 1px solid var(--border); padding-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+                        <span>🌐</span> 2. 海外・世界の最先端論文（英語など）を探す場合
+                    </h3>
+                    <ul style="padding-left: 20px; margin: 10px 0;">
+                        <li>
+                            <strong style="color: var(--primary);">Google Scholar（グーグル・スカラー）</strong><br>
+                            <span style="font-size: 0.8rem; color: var(--text-dim);">
+                                <strong>特徴:</strong> 言わずと知れた学術論文特化型の検索エンジンです。<br>
+                                <strong>閲覧方法:</strong> Googleアカウントでログインして使用します。世界中の論文から、インターネット上に無料公開されているPDFへの直リンクを自動で探して提示してくれるため、実質的に誰でも閲覧できる論文を見つける最強のツールです。
+                            </span>
+                        </li>
+                        <li style="margin-top: 12px;">
+                            <strong style="color: var(--primary);">ResearchGate（リサーチゲート）</strong><br>
+                            <span style="font-size: 0.8rem; color: var(--text-dim);">
+                                <strong>特徴:</strong> 「研究者のためのFacebook」と呼ばれる学術SNS・共有プラットフォームです。<br>
+                                <strong>閲覧方法:</strong> 無料でアカウントを作成してログインすることで、世界中の研究者が自らアップロードした論文（プレプリントや公開済みのもの）を閲覧・ダウンロードできます。もし読めない有料論文であっても、ログインしていれば「著者に直接閲覧リクエストを送る」機能が使えます。
+                            </span>
+                        </li>
+                        <li style="margin-top: 12px;">
+                            <strong style="color: var(--primary);">Academia.edu（アカデミア・ドット・エデュ）</strong><br>
+                            <span style="font-size: 0.8rem; color: var(--text-dim);">
+                                <strong>特徴:</strong> ResearchGateと並ぶ、研究者が論文を共有するための巨大プラットフォームです。<br>
+                                <strong>閲覧方法:</strong> Googleアカウントなどで簡単に無料登録・ログインでき、何千万本もの研究論文が公開されています。
+                            </span>
+                        </li>
+                    </ul>
+                </div>
+                <div style="grid-column: 1 / -1; display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 25px; border-top: 1px solid var(--border); padding-top: 20px;">
+                    <div>
+                        <h3 style="color: #fff; font-size: 1rem; margin-top: 0; border-bottom: 1px solid var(--border); padding-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+                            <span>⚡</span> 3. 分野特化・速報版（プレプリント）を探す場合
+                        </h3>
+                        <ul style="padding-left: 20px; margin: 10px 0;">
+                            <li>
+                                <strong style="color: var(--primary);">arXiv（アーカイブ）</strong><br>
+                                <span style="font-size: 0.8rem; color: var(--text-dim);">
+                                    <strong>特徴:</strong> 物理学、数学、コンピュータサイエンス、統計学などの分野で世界標準となっている論文投稿・閲覧サイトです。<br>
+                                    <strong>閲覧方法:</strong> 査読（審査）前のプレプリントが中心ですが、最先端の論文がログインすら不要（または無料登録）で完全に無料公開されています。
+                                </span>
+                            </li>
+                            <li style="margin-top: 12px;">
+                                <strong style="color: var(--primary);">PubMed Central (PMC)</strong><br>
+                                <span style="font-size: 0.8rem; color: var(--text-dim);">
+                                    <strong>特徴:</strong> 医学・生物学系に特化した、アメリカ国立医学図書館が運営するデジタルアーカイブです。<br>
+                                    <strong>閲覧方法:</strong> 一般の人でも登録なし、あるいは無料のアカウントでログインし、数百万本の公開論文（フルテキスト）を自由に閲覧できます。
+                                </span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div style="background: rgba(88, 166, 255, 0.04); padding: 20px; border-radius: 12px; border: 1px solid rgba(88, 166, 255, 0.15); display: flex; flex-direction: column; justify-content: center;">
+                        <h4 style="color: #fff; font-size: 1rem; margin: 0 0 10px 0; display: flex; align-items: center; gap: 8px;">
+                            <span style="font-size: 1.2rem;">💡</span> 探すときのアドバイス
+                        </h4>
+                        <p style="margin: 0; font-size: 0.82rem; color: #cbd5e1; line-height: 1.6;">
+                            特定のサイトにログインするだけでなく、ブラウザの拡張機能（プラグイン）である <strong>Unpaywall</strong> や <strong>Kopernio（EndNote Click）</strong> を入れておくと、通常は有料の論文ページを開いた際にも「だれでも合法的に読める無料公開バージョン」を自動で探して緑色の鍵マークなどで教えてくれるので非常に便利です。
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="card full-width">
             <h2>YouTube IATF Analysis (内部監査動画の解析要約)</h2>
             <p style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 15px;">
@@ -571,7 +826,8 @@
             <p style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 10px;">
                 ※直近1週間でシステムが新たに読み込み、知識として蓄積した件数と内訳です。
             </p>
-            <div id="recentCount" style="font-weight: bold; margin-bottom: 15px; color: #fff;"></div>
+            <div id="recentCount" style="font-weight: bold; margin-bottom: 5px; color: #fff;"></div>
+            <div id="queueCount" style="font-weight: bold; margin-bottom: 15px; color: #f85149; background: rgba(248, 81, 73, 0.1); padding: 5px 10px; border-radius: 5px; display: inline-block;"></div>
             <table class="history-table">
                 <thead>
                     <tr>
@@ -668,19 +924,58 @@
                     options: { plugins: { legend: { labels: { color: '#fff' } } } }
                 });
 
-                // History Chart (1 month logic)
+                // History Chart (1 month logic with multi-datasets)
+                // Collect and sort all unique dates from both histories to align X-axis
+                const allDaysSet = new Set([
+                    ...data.history.map(h => h.day),
+                    ...(data.email_history || []).map(h => h.day)
+                ]);
+                const allLabels = Array.from(allDaysSet).sort();
+
+                // Map datasets to aligned labels
+                const dailyLearningsData = allLabels.map(day => {
+                    const found = data.history.find(h => h.day === day);
+                    return found ? found.count : 0;
+                });
+
+                const gmailData = allLabels.map(day => {
+                    const found = (data.email_history || []).find(h => h.day === day);
+                    return found ? found.gmail : 0;
+                });
+
+                const beckyData = allLabels.map(day => {
+                    const found = (data.email_history || []).find(h => h.day === day);
+                    return found ? found.eml : 0;
+                });
+
                 new Chart(document.getElementById('historyChart'), {
                     type: 'line',
                     data: {
-                        labels: data.history.map(h => h.day),
-                        datasets: [{
-                            label: 'Daily Learnings',
-                            data: data.history.map(h => h.count),
-                            borderColor: '#58a6ff',
-                            tension: 0.3,
-                            fill: true,
-                            backgroundColor: 'rgba(88, 166, 255, 0.1)'
-                        }]
+                        labels: allLabels,
+                        datasets: [
+                            {
+                                label: 'Daily Learnings',
+                                data: dailyLearningsData,
+                                borderColor: '#58a6ff',
+                                tension: 0.3,
+                                fill: true,
+                                backgroundColor: 'rgba(88, 166, 255, 0.05)'
+                            },
+                            {
+                                label: 'Gmail Ingested',
+                                data: gmailData,
+                                borderColor: '#f85149',
+                                tension: 0.3,
+                                fill: false
+                            },
+                            {
+                                label: 'Becky! Ingested',
+                                data: beckyData,
+                                borderColor: '#d29922',
+                                tension: 0.3,
+                                fill: false
+                            }
+                        ]
                     },
                     options: { 
                         scales: { 
@@ -916,7 +1211,7 @@
                 const sizeMb = v.file_size_mb ? `${v.file_size_mb}MB` : '';
                 return `<div style="background:rgba(15,23,42,0.8);border:1px solid rgba(56,189,248,0.15);border-radius:8px;overflow:hidden;position:relative;">
                     <div style="position:absolute;top:6px;right:6px;background:${badge.color};color:#000;font-size:0.65rem;font-weight:700;padding:2px 7px;border-radius:10px;">${badge.label}${score}</div>
-                    ${imgSrc ? `<img src="${imgSrc}" style="width:100%;height:130px;object-fit:cover;display:block;" loading="lazy" onerror="this.style.display='none'">` : '<div style="height:130px;background:#1a2332;display:flex;align-items:center;justify-content:center;color:#555;font-size:0.75rem;">No image</div>'}
+                    ${imgSrc ? `<a href="${(v.mp4_path || '').replace('data/iatf_videos', 'http://localhost:40404')}" target="_blank" style="display:block;cursor:pointer;"><img src="${imgSrc}" style="width:100%;height:130px;object-fit:cover;display:block;" loading="lazy" onerror="this.style.display='none'"></a>` : '<div style="height:130px;background:#1a2332;display:flex;align-items:center;justify-content:center;color:#555;font-size:0.75rem;">No image</div>'}
                     <div style="padding:8px;">
                         <div style="font-size:0.75rem;color:var(--primary);font-weight:600;">箇条${clause}</div>
                         <div style="font-size:0.78rem;color:var(--text);margin-top:2px;line-height:1.3;">${title}</div>
@@ -968,6 +1263,7 @@
                 summary.innerHTML = `
                     Acquired materials: <span style="color:#3fb950;">${data.total_acquired_count || 0}</span>
                     / Candidate sources: <span style="color:#d29922;">${data.total_candidate_count || 0}</span>
+                    / Gemini解読待ち: <span style="color:#38bdf8; font-weight:700;">${data.gemini_decoding_wait_count || 0} 件</span>
                     <span class="timestamp" style="margin-left:10px;">Updated: ${escapeHtml(data.updated_at || 'unknown')}</span>
                 `;
                 if (rows.length === 0) {
@@ -1257,7 +1553,8 @@
                 fetchNodeStatus("Dynabook Node", "http://100.98.133.40:8111/metrics"),
                 fetchNodeStatus("ThinkPad L590 (Ubuntu)", "http://100.66.63.9:8111/metrics", true),
                 fetchNodeStatus("ASUS Vivobook (Work PC)", "http://100.65.182.27:8111/metrics", true),
-                fetchNodeStatus("HP Node (Watchdog)", "http://100.103.176.50:8111/metrics", true)
+                fetchNodeStatus("HP Node (Watchdog)", "http://100.103.176.50:8111/metrics", true),
+                fetchNodeStatus("Lavie Core i3 Node", "http://100.67.36.121:8111/metrics", true)
             ]);
             document.getElementById('nodesBody').innerHTML = results.join("");
             } finally {
@@ -1273,7 +1570,8 @@
             { name: "G3", ip: "100.121.241.128", url: "http://100.121.241.128:8111/metrics", role: "Stable satellite", registryId: "g3", dispatchRole: "excluded" },
             { name: "LAVIE", ip: "100.87.244.46", url: "http://100.87.244.46:8111/metrics", role: "CAE worker", registryId: "lavie", dispatchRole: "target" },
             { name: "red_lavie", ip: "100.99.145.3", url: "http://100.99.145.3:8111/metrics", role: "Medium-heavy ready worker", mediumHeavyCandidate: true, registryId: "red_lavie", dispatchRole: "target" },
-            { name: "HP / YNS-PC", ip: "100.103.176.50", url: "http://100.103.176.50:8111/metrics", role: "Watchdog (hold)", registryId: "hp_watchdog", dispatchRole: "excluded" }
+            { name: "HP / YNS-PC", ip: "100.103.176.50", url: "http://100.103.176.50:8111/metrics", role: "Watchdog (hold)", registryId: "hp_watchdog", dispatchRole: "excluded" },
+            { name: "Lavie Core i3", ip: "100.67.36.121", url: "http://100.67.36.121:8111/metrics", role: "Light satellite (boost)", registryId: "lavie_i3", dispatchRole: "target" }
         ];
 
         const idleDispatchThresholds = {
@@ -1662,6 +1960,8 @@
                 const data = await res.json();
 
                 document.getElementById('recentCount').innerText = `過去1週間の新規読み込み件数: ${data.recent_count} 件`;
+                const qCount = data.unprocessed_count || 0;
+                document.getElementById('queueCount').innerHTML = `⏳ Gemini分析待ち（未処理PDF）: <span style="font-size: 1.2rem;">${qCount}</span> 件`;
 
                 const top10Html = data.top10.map((item, index) => {
                     return `
@@ -1910,6 +2210,131 @@
             }
         }
 
+        let dxfProjectPayload = null;
+        let dxfActiveProjectId = "380D_busbar";
+        let dxfPartFilter = "all";
+
+        function dxfStatusBadge(status) {
+            const s = status || "未トライ";
+            if (s === "成功") return `<span class="dxf-badge ok">${escapeHtml(s)}</span>`;
+            if (s === "一部成功") return `<span class="dxf-badge pending">${escapeHtml(s)}</span>`;
+            if (s === "形状NG" || s === "失敗") return `<span class="dxf-badge ng">${escapeHtml(s)}</span>`;
+            if (s === "未トライ") return `<span class="dxf-badge muted">${escapeHtml(s)}</span>`;
+            return `<span class="dxf-badge pending">${escapeHtml(s)}</span>`;
+        }
+
+        function dxfAssetLinks(assets, note) {
+            const parts = [];
+            if (assets && assets.dxf) parts.push(`<a class="dxf-link" href="${escapeHtml(assets.dxf)}" target="_blank" rel="noopener">DXF</a>`);
+            if (assets && assets.step) parts.push(`<a class="dxf-link" href="${escapeHtml(assets.step)}" target="_blank" rel="noopener">STEP (3D)</a>`);
+            if (assets && assets.fcstd) parts.push(`<a class="dxf-link" href="${escapeHtml(assets.fcstd)}" target="_blank" rel="noopener">FCStd</a>`);
+            if (assets && assets.layer_preview) parts.push(`<a class="dxf-link" href="${escapeHtml(assets.layer_preview)}" target="_blank" rel="noopener">layer PNG</a>`);
+            const noteHtml = note ? `<div style="font-size:0.72rem;color:#d29922;margin-top:4px;">${escapeHtml(note)}</div>` : "";
+            return (parts.join("") || '<span style="color:var(--text-dim);font-size:0.78rem;">-</span>') + noteHtml;
+        }
+
+        function renderDxfProjectCards(projects) {
+            const grid = document.getElementById("dxf2stepProjectGrid");
+            if (!grid) return;
+            grid.innerHTML = (projects || []).map((p) => {
+                const pct = p.total_parts ? Math.round((p.done_parts / p.total_parts) * 100) : 0;
+                const active = p.id === dxfActiveProjectId ? "border-color:#3fb950;" : "";
+                return `
+                    <div class="dxf-project-card" style="cursor:pointer;${active}" onclick="selectDxfProject('${escapeHtml(p.id)}')">
+                        <div style="font-weight:600;font-size:1rem;">${escapeHtml(p.label)}</div>
+                        <div style="font-size:1.6rem;font-weight:bold;margin-top:6px;color:#3fb950;">${escapeHtml(p.progress_text)}</div>
+                        <div class="dxf-progress-bar"><div class="dxf-progress-fill" style="width:${pct}%;"></div></div>
+                        <div style="font-size:0.78rem;color:var(--text-dim);">
+                            失敗/形状NG: ${p.failed_parts} · 未トライ: ${p.untried_parts} · 基準板厚: ${p.reference_thickness_mm || 10}mm
+                        </div>
+                    </div>`;
+            }).join("");
+        }
+
+        function renderDxfPartsTable() {
+            const body = document.getElementById("dxf2stepPartsBody");
+            if (!body || !dxfProjectPayload) return;
+            if (window.disposeDxf3dThumbs) window.disposeDxf3dThumbs(body);
+            const project = (dxfProjectPayload.projects || []).find((p) => p.id === dxfActiveProjectId);
+            if (!project) {
+                body.innerHTML = `<tr><td colspan="6" style="color:var(--text-dim);">No project data</td></tr>`;
+                return;
+            }
+            let parts = project.parts || [];
+            if (dxfPartFilter === "失敗") {
+                parts = parts.filter((p) => p.status === "失敗" || p.status === "形状NG");
+            } else if (dxfPartFilter !== "all") {
+                parts = parts.filter((p) => p.status === dxfPartFilter);
+            }
+            if (!parts.length) {
+                body.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--text-dim);">該当部品なし</td></tr>`;
+                return;
+            }
+            body.innerHTML = parts.map((p) => {
+                const preview = p.assets && p.assets.telegram_preview
+                    ? `<a href="${escapeHtml(p.assets.telegram_preview)}" target="_blank" rel="noopener"><img class="dxf-preview" src="${escapeHtml(p.assets.telegram_preview)}" alt="preview"></a>`
+                    : `<span style="color:var(--text-dim);font-size:0.78rem;">未生成</span>`;
+                const stepUrl = p.assets && p.assets.step;
+                const previewUrl = p.assets && p.assets.telegram_preview;
+                const thumb3d = stepUrl
+                    ? `<div class="dxf-3d-thumb" data-step-url="${escapeHtml(stepUrl)}" data-part-name="${escapeHtml(p.name)}"${previewUrl ? ` data-preview-url="${escapeHtml(previewUrl)}"` : ""}></div>`
+                    : `<span style="color:var(--text-dim);font-size:0.78rem;">-</span>`;
+                const when = p.last_trial_at ? escapeHtml(String(p.last_trial_at).replace("T", " ").slice(0, 19)) : "-";
+                const thick = p.thickness_mm != null ? `${p.thickness_mm}mm` : "-";
+                const trial = p.trial_id ? `<div style="font-size:0.7rem;color:var(--text-dim);">${escapeHtml(p.trial_id)}</div>` : "";
+                return `
+                    <tr>
+                        <td><strong>${escapeHtml(p.name)}</strong>${trial}</td>
+                        <td>${dxfStatusBadge(p.status)}</td>
+                        <td><div>${when}</div><div style="font-size:0.72rem;color:var(--text-dim);">${thick}</div></td>
+                        <td>${thumb3d}</td>
+                        <td>${preview}</td>
+                        <td>${dxfAssetLinks(p.assets, p.note)}</td>
+                    </tr>`;
+            }).join("");
+            if (window.mountDxf3dThumbs) window.mountDxf3dThumbs(body);
+        }
+
+        function selectDxfProject(projectId) {
+            dxfActiveProjectId = projectId;
+            if (dxfProjectPayload) renderDxfProjectCards(dxfProjectPayload.projects);
+            renderDxfPartsTable();
+        }
+
+        function filterDxfParts(filter) {
+            dxfPartFilter = filter;
+            document.querySelectorAll(".dxf-filter-btn").forEach((btn) => {
+                btn.classList.toggle("active", btn.getAttribute("data-dxf-filter") === filter);
+            });
+            renderDxfPartsTable();
+        }
+
+        async function loadDxf2stepProjectStatus() {
+            const summary = document.getElementById("dxf2stepSummary");
+            const excelLink = document.getElementById("dxf2stepExcelLink");
+            const body = document.getElementById("dxf2stepPartsBody");
+            try {
+                const res = await fetch("dxf2step_project_status.json", { cache: "no-store" });
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                dxfProjectPayload = await res.json();
+                const totals = dxfProjectPayload.totals || {};
+                if (summary) {
+                    summary.textContent = `更新: ${(dxfProjectPayload.updated_at || "").replace("T", " ").slice(0, 19)} JST · 全${totals.all_parts || 0}部品 · トライ済 ${totals.tried_parts || 0} · アーカイブ ${totals.archive_trials || 0}件`;
+                }
+                if (excelLink && dxfProjectPayload.excel_url) {
+                    excelLink.href = dxfProjectPayload.excel_url;
+                    excelLink.textContent = dxfProjectPayload.excel_download_label || "Excel ダウンロード";
+                    excelLink.style.display = "inline";
+                }
+                renderDxfProjectCards(dxfProjectPayload.projects || []);
+                renderDxfPartsTable();
+            } catch (e) {
+                console.error("DXF2STEP status load failed", e);
+                if (summary) summary.textContent = "DXF2STEP status not found. Run: python scripts/export_dxf2step_dashboard_status.py";
+                if (body) body.innerHTML = `<tr><td colspan="6" style="color:#f85149;">Run export_dxf2step_dashboard_status.py</td></tr>`;
+            }
+        }
+
         loadData();
         loadIatfQaGallery();
         loadMaterialSourceInventory();
@@ -1918,6 +2343,7 @@
         loadAutonomousImprovements();
         loadEmailCoverage();
         loadContentPublishingCatalog();
+        loadDxf2stepProjectStatus();
         loadFleetIdleDispatchStatus();
         loadTriTrackCaeStatus();
         loadFleetDiagnosticsStatus();
@@ -1930,6 +2356,13 @@
         setInterval(updateFleetUtilizationBoard, 15000);
         setInterval(updateWorkloadAllocation, 15000);
         setInterval(updateNodes, 15000);
+    </script>
+    <script type="module">
+        import { mountDxf3dThumbs, disposeDxf3dThumbs } from "./dxf2step_model_thumb.js?v=4";
+        window.mountDxf3dThumbs = mountDxf3dThumbs;
+        window.disposeDxf3dThumbs = disposeDxf3dThumbs;
+        const body = document.getElementById("dxf2stepPartsBody");
+        if (body && body.querySelector(".dxf-3d-thumb")) mountDxf3dThumbs(body);
     </script>
 </body>
 </html>

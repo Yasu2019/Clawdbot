@@ -352,6 +352,15 @@
       </div>
     </div>
 
+    <div class="btn-group" style="margin-bottom:12px;flex-wrap:wrap;gap:8px">
+      <label class="btn btn-ghost" style="cursor:pointer;margin:0">
+        part_manifest.json を読込
+        <input type="file" id="tol-manifest-file" accept=".json,application/json" style="display:none" onchange="loadTolManifestFile(this)">
+      </label>
+      <button class="btn btn-ghost" type="button" onclick="loadTolManifestGolden()">Golden manifest (tp-dxf-44920df6)</button>
+    </div>
+    <div id="tol-manifest-info" style="font-size:.85em;color:var(--muted);margin-bottom:10px"></div>
+
     <div class="btn-group">
       <button class="btn btn-primary" id="btn-tol-run" onclick="runTolStack()">解析実行</button>
     </div>

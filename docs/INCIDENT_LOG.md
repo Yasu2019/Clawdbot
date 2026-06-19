@@ -3,6 +3,137 @@
 譛ｬ繝輔ぃ繧､繝ｫ縺ｯ縲√す繧ｹ繝・Β縺ｫ逋ｺ逕溘＠縺滄囿螳ｳ縺ｻ荳榊・蜷医→縺昴・譬ｹ譛ｬ蜴溷屏繝ｻ菫ｮ豁｣蜀・ｮｹ繝ｻ蜀咲匱髦ｲ豁｢遲悶ｒ險倬鹸縺励∪縺吶€・菫ｮ豁｣繧定｡後▲縺溷ｴ蜷医・縲∝ｿ・★縺薙・繝輔ぃ繧､繝ｫ縺ｫ繧ｨ繝ｳ繝医Μ繧定ｿｽ蜉縺励※縺上□縺輔＞縲・
 ------
 
+## INC-124: DXF2STEP S11 false SUCCESS -- overlapping TOP VIEW profiles (frame layer as front)
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-06-19 JST |
+| **Detection** | User reported `tp-dxf-9d04f260` (S11, t=10mm) Telegram SUCCESS but `combined_views.png` TOP VIEW shows two unrelated overlapping outlines (drawing frame rectangle + busbar profile). |
+| **Impact** | False SUCCESS to Telegram; `combined.FCStd` unusable for Moldflow/OpenRadioss/progressive-die handoff; operator trust erosion. |
+| **Root Cause (5 Why)** | **Why1**: TOP VIEW double silhouette. **Why2**: Layer1 (208x293mm frame) auto-assigned front + Layer3 (12x17.6mm busbar) top -> multiview compound/intersection. **Why3**: `_assign_views_auto` uses sheet Y-cluster only, not engineering view semantics. **Why4**: No frame-layer filter; compound fallback still exported combined.step. **Why5**: `evaluate_build_log` only required `layers_done==n_total` and `has_combined_step`. |
+| **Fix** | 1. `_filter_frame_layers` (>20x area vs smallest profile).<br>2. `_export_single_layer_combined` when one valid layer remains.<br>3. `compound_fallback` -> `combined_quality_ok=false` -> verdict FAILED.<br>4. Checklist `dxf2step_combined_geometry_qc_checklist.md` (DXF-QC10-14).<br>5. `register_dxf2step_s11_multiview_overlap_inc124.py` -> growth DB, FMEA registry, quality JSONL/SQLite, Obsidian, Turso, Beads, ByteRover. |
+| **Files** | `data/workspace/apps/dxf2step/dxf2step_worker.py`, `scripts/k10_thinkpad_dxf2step_loop.py`, `scripts/dxf2step_quality_gate.py`, `scripts/register_dxf2step_s11_multiview_overlap_inc124.py` |
+| **Verification** | Bad: `tp-dxf-9d04f260/combined_views.png` (NG). Good: `tp-dxf-dc852457` -- `reconstruction_frame_layers_dropped:["1"]`, `single_profile_extrude`, single TOP VIEW outline. |
+| **Prevention** | [T039]; read checklist before DXF2STEP multiview changes; `bd remember --key dxf2step-s11-multiview-overlap-inc124`; never ship combined when TOP VIEW shows double outline. |
+
+------
+
+## INC-122: ThinkPad fem_impact Rough_Mesh tri-track -- PNG script missing, timeout orphans java
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-06-18 JST |
+| **Detection** | `k10_tri_track_cae_status.json` fem_impact_thinkpad FAILED; worker stderr `thinkpad_fem_impact_png.sh: No such file or directory` (exit 127); second trial timeout exit 124 at 10800s with zero VTK for `auto_revised_mesh.in`. |
+| **Impact** | ~44 min Impact compute wasted from orchestrator verdict (test.in); duplicate java on ThinkPad; no PNG/Telegram artifacts for Rough_Mesh panel case. |
+| **Root Cause (5 Why)** | **Why1**: Tri-track marked fem_impact FAILED. **Why2**: PNG step never ran successfully. **Why3**: `thinkpad_fem_impact_png.sh` not deployed (`--no-sync-impact`); glob used `test_*` not `test.in_*`; Docker vtk crashed on bulk VTK. **Why4**: `auto_revised_mesh.in` end time 0.015s vs test.in 0.0021s exceeds 3h worker timeout; timeout kills bash only and orphans java. **Why5**: No preflight sync of satellite scripts; no process-group kill on timeout; variant pool includes unbenchmarked long cases. |
+| **Fix** | 1. `start_k10_tri_track_cae_watchdog.ps1` runs `--sync-script` before orchestrator.<br>2. `thinkpad_fem_impact_png.sh`: `test.in_*` glob, prefer surface VTK, host venv fallback.<br>3. Deployed scripts to ThinkPad; killed orphan `run.Impact`; generated 3 PNG from existing VTK.<br>4. `register_thinkpad_fem_impact_rough_mesh_inc122.py` -> growth DB, ops_trial_history, cae_failure_analysis, Obsidian, Turso (if creds). |
+| **Files** | `scripts/thinkpad_fem_impact_png.sh`, `scripts/start_k10_tri_track_cae_watchdog.ps1`, `scripts/register_thinkpad_fem_impact_rough_mesh_inc122.py`, `data/workspace/memory/trouble_history.md` [T038] |
+| **Verification** | ThinkPad: `thinkpad_fem_impact_png.sh` present +x; Rough_Mesh `png_count=3` (`test.in_surface_0.002000_*.png`); no concurrent `run.Impact` after cleanup. |
+| **Prevention** | [T038]; bd `thinkpad-fem-impact-rough-mesh-inc122`; ByteRover curate; read T038 before fem_impact tri-track changes. Pending: worker timeout process-group kill; benchmark timeout per variant. |
+
+------
+
+## INC-123: ThinkPad fem_impact worker shell quoting -- bash -lc exit 1 / test unbound variable
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-06-18 JST |
+| **Detection** | Autonomous loop + `run_thinkpad_impact` FAILED with `bash: line 1: test: unbound variable` and empty stdout; worker exit 1 despite `FEM_IMPACT_SKIP_RECOMPUTE` in stdout when PNG already exists. |
+| **Impact** | fem_impact_thinkpad track stuck at n=0; wasteful re-dispatch attempts; tri-track could not mark SUCCESS on completed cases. |
+| **Root Cause (FTA / 5Why / Fishbone)** | **FTA**: FAILED verdict -> worker exit!=0 -> nested `bash -lc '...'` under worker `shell=True` misparsed -> `CASE_DIR`/`INP` unset -> `test -f` triggers `test: unbound variable`. **5Why**: Why FAILED? exit 1. Why exit 1? nested single-quote script broken by outer sh -c. Why nested? historical `bash -lc` pattern. Why not caught? success gate required exit 0 only. **Fishbone**: Method=bash -lc quoting; Machine=lavie_job_worker shell=True; Environment=SSH sync timeouts concurrent. |
+| **Fix** | 1. `k10_tri_track_cae_orchestrator.py`: dispatch Impact via `bash <<'FEMIMPACT_EOF'` heredoc (no nested -lc). 2. `pkill` targets `java.*run.Impact` only (not job shell). 3. SUCCESS if `FEM_IMPACT_SKIP_RECOMPUTE` or `FEM_IMPACT_REUSE_VTK` in stdout. 4. `thinkpad_fem_impact_autonomous_loop.py` for RCA/retry/record. |
+| **Files** | `scripts/k10_tri_track_cae_orchestrator.py`, `scripts/thinkpad_fem_impact_autonomous_loop.py` |
+| **Verification** | Both production variants SUCCESS exit 0: `no_solid_reqtangle_sample_20250806/test.in`, `Rough_Mesh/test.in` (skip recompute, PNG count=3). Autonomous loop finished 2026-06-18T09:28:13+09:00 all SUCCESS. |
+| **Prevention** | Never use nested `bash -lc '...'` for ThinkPad worker shell jobs; use heredoc or remote script file. bd `fem-impact-worker-heredoc-inc123`. |
+
+------
+
+## INC-121: Fleet-wide post-reset satellite setup failed repeatedly (daemon, Defender, CRLF, operator)
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-06-07 JST |
+| **Detection** | After Windows Update reboots, user repeated manual setup on Red LAVIE, Main LAVIE, G3, Dynabook, HP, ThinkPad. Each node failed multiple times before fleet-wide daemon pattern succeeded. |
+| **Impact** | Fleet uptime dropped; CAE tri-track could not dispatch to lavie / red_lavie / thinkpad; hours of manual recovery per reboot cycle. |
+| **Root Cause (5 Why)** | **Why1**: Satellites did not self-heal after reboot. **Why2**: No unified logon + 5min watchdog scheduled tasks. **Why3**: Prior scripts used console-bound python, broken `Start-Process -ArgumentList`, or VBS-only startup without watchdog. **Why4**: Node-specific bugs compounded: INC-120 monitor SyntaxError/self-kill; HP Defender blocked `%TEMP%` ps1; ThinkPad CRLF in `.sh`; G3 `pythonw` missing when monitor already healthy; user ran cmd with placeholder URL. **Why5**: No single SOP, no K10 compile gate, no post-change `-ProbeOnly` gate -- recovery was ad-hoc per machine. |
+| **Fix** | 1. Generic `fleet_satellite_setup.ps1` + `satellite_*_daemon.ps1` + `satellite_common.ps1` for lavie/red_lavie/dynabook/g3.<br>2. `fleet_satellite_setup_auto.ps1` node auto-detect.<br>3. `k10_fleet_satellite_setup_all.ps1 -ProbeOnly` from K10.<br>4. HP: `C:\clawstack_hp` + `hp_local_bringup.ps1` + `hp_watchdog.py` (patrol only, no CAE).<br>5. ThinkPad: `thinkpad_satellite_setup.sh` systemd + CRLF fix in `thinkpad_ssh_common.py`.<br>6. `verify_fleet_script_server_gate.ps1` before :8123 (extends INC-120).<br>7. CAE policy doc `docs/cae_tri_track_dispatch_policy.md` + `cae_workload_router.yaml` `cae_compute_policy`. |
+| **Files** | `scripts/fleet_satellite_setup.ps1`, `scripts/satellite_common.ps1`, `scripts/satellite_job_worker_daemon.ps1`, `scripts/satellite_monitor_daemon.ps1`, `scripts/hp_local_bringup.ps1`, `scripts/hp_watchdog.py`, `scripts/thinkpad_ssh_common.py`, `data/workspace/cae_workload_router.yaml`, `docs/troubleshooting/fleet_satellite_daemon_setup.md`, `docs/cae_tri_track_dispatch_policy.md` |
+| **Verification** | Per-node: `FLEET_SATELLITE_SETUP_OK` / `RED_LAVIE_JOB_WORKER_OK` / `HP_LOCAL_BRINGUP_OK`; K10 `k10_fleet_satellite_setup_all.ps1 -ProbeOnly` worker+monitor 200 on lavie, red_lavie, dynabook, g3; ThinkPad SSH deploy OK. |
+| **Lessons Learned** | Post-reset recovery must be one command per node, not rediscovered each time. Never run setup ps1 from `%TEMP%` on Defender-heavy hosts. Linux deploy pipeline must normalize LF. K10 serves fleet scripts -- compile gate is mandatory. |
+| **Prevention** | [T037] in `trouble_history.md`; bd `fleet-post-reset-recovery-inc121`; bd issue `Clawdbot_Docker_20260125-a83`; universal_growth.db domain `FLEET_OPS`; ByteRover curate; agents read T037 before any satellite bringup. Commercial evolution gates G1-G5 in `docs/cae_tri_track_dispatch_policy.md`. |
+
+### FMEA (selected)
+
+| Mode | Effect | RPN driver | Control |
+|---|---|---|---|
+| SyntaxError in served script | All nodes fail monitor | High | G1 py_compile gate |
+| Self-kill in start script | Silent exit after "Saved" | High | Narrow Stop-Process filter |
+| Defender blocks TEMP ps1 | HP bringup fails | Med | Permanent `C:\clawstack_hp` |
+| CRLF on ThinkPad .sh | systemd unit fails | Med | sed in SSH push |
+| Wrong shell/URL | 404 / policy block | Med | SOP: PowerShell + K10 :8123 only |
+| No watchdog after reboot | Offline until manual login | High | Logon task + 5min watchdog |
+
+### FTA (summary)
+
+```
+Fleet post-reset pain
++-- Script quality (SyntaxError, ArgumentList) --> G1 compile gate
++-- Host security (Defender, ExecutionPolicy) --> permanent dirs + Bypass
++-- OS mismatch (CRLF) --> deploy pipeline LF fix
++-- No automation (no scheduled tasks) --> satellite_*_daemon.ps1
++-- Operator error (cmd, placeholder) --> fleet_satellite_setup_auto + probe doc
+```
+
+---
+
+## INC-120: Red LAVIE monitor recovery failed repeatedly (SyntaxError, path, self-kill)
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-06-15 JST |
+| **Detection** | User could not bring Red LAVIE monitor `:8111` online after multiple attempts. Worker `:5682` OK intermittently. |
+| **Impact** | Red LAVIE excluded from fleet metrics/thermal/stability; K10 could not observe or recover host; CAE dispatch degraded. |
+| **Root Cause (5 Why)** | **A SyntaxError:** Why1: monitor would not bind :8111. Why2: `monitor_agent.py` SyntaxError at line 155. Why3: third `try` in `get_cpu_usage()` missing `except`. Why4: Deployed via K10 :8123 without compile gate. Why5: No pre-serve `py_compile` on fleet script server.<br>**B Path:** Why1: `setup_monitor_node.ps1` download failed. Why2: WebClient wrote to `C:\monitor_agent.py`. Why3: User `yns-lavie` is non-admin. Why4: Default AgentPath was drive root.<br>**C Self-kill:** Why1: `red_lavie_start_monitor.ps1` exited silently after `Saved:`. Why2: Stop-Process matched running PowerShell because `-AgentPath ...monitor_agent.py` appeared in CommandLine. Why3: Filter was `-match 'monitor_agent'` too broad.<br>**D Policy:** Red LAVIE default ExecutionPolicy blocked `-File` without Bypass. |
+| **Fix** | 1. Fixed `monitor_agent.py` missing except/return.<br>2. Added `verify_fleet_script_server_gate.ps1` + hook in `start_k10_fleet_script_server.ps1`.<br>3. Narrowed process kill to `python(w).exe` + `monitor_agent.py` path in `red_lavie_start_monitor.ps1`, `setup_monitor_node.ps1`, `k10_red_lavie_auto_recovery.py`.<br>4. Default AgentPath -> `C:\clawstack_satellite\scripts\monitor_agent.py`.<br>5. Startup VBS registration in `red_lavie_start_monitor.ps1`.<br>6. Documented SOP in `trouble_history.md` [T036] and `red_lavie_stability_why_offline.md`. |
+| **Files** | `scripts/monitor_agent.py`, `scripts/red_lavie_start_monitor.ps1`, `scripts/setup_monitor_node.ps1`, `scripts/verify_fleet_script_server_gate.ps1`, `scripts/start_k10_fleet_script_server.ps1`, `scripts/k10_red_lavie_auto_recovery.py`, `data/workspace/memory/trouble_history.md`, `docs/troubleshooting/red_lavie_stability_why_offline.md` |
+| **Verification** | Red LAVIE local: `:8111/metrics` 200 + `:5682/healthz` 200; `RED_LAVIE_MONITOR_OK`; K10 gate: `FLEET_SCRIPT_SERVER_GATE_OK`. |
+| **Lessons Learned** | Never serve Python fleet scripts without `py_compile`. Never kill processes with broad CommandLine match when script args include the target filename. Standard-user satellites must not default to `C:\` paths. |
+| **Prevention** | Mandatory gate before :8123; bd key `red-lavie-monitor-recovery-inc120`; ByteRover curate; agents must read [T036] before Red LAVIE monitor work. |
+
+---
+
+## INC-119: ThinkPad L590 offline due to bash syntax error (CRLF) in stability script
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-06-15 JST |
+| **Detection** | Tailscale node registry indicated yasu-thinkpad-l590 went offline (~5h ago) and Monitor Agent (port 8111) was unreachable. |
+| **Impact** | ThinkPad L590 was suspended (slept), making it unavailable for CAE/job offloading. |
+| **Root Cause (5 Why)** | Why1: ThinkPad entered suspend state. Why2: Auto-suspend (lid close / idle) was not inhibited. Why3: Stability enforcement script (`thinkpad_host_stability.sh`) crashed with exit code 2. Why4: Script had Windows CRLF line endings, causing syntax error (`set: pipefail\r: invalid option name`). Why5: Git checkout CRLF settings on K10, and files were sent via SCP without conversion. |
+| **Fix** | 1. Converted all scripts under `D:\Clawdbot_Docker_20260125\scripts\` to LF line endings.<br>2. Created quality incident report file.<br>3. Prepared deployment via `k10_thinkpad_fleet_setup.py` once ThinkPad is physically woken up. |
+| **Files** | `scripts/thinkpad_host_stability.sh`, `scripts/thinkpad_lid_no_sleep.sh`, `quality_incident_report_20260615_thinkpad_sleep_outage.md` |
+| **Verification** | Pending: Requires user to physically wake up ThinkPad, after which `k10_thinkpad_fleet_setup.py` will redeploy and verify. |
+| **Lessons Learned** | Linux target scripts checked out on Windows must be explicitly converted to LF or verified before SSH/SCP deployment. |
+| **Prevention** | Verify `.gitattributes` forces LF for `*.sh` files. Build automated LF conversion checks inside the deploy/SSH utility functions. |
+
+---
+
+## INC-118: Uptime drop below 70% on satellite nodes (LAVIE, Red LAVIE, G3)
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-06-14 JST |
+| **Detection** | Connectivity audit 24h summaries showed low estimated uptime (LAVIE: 41.7%, Red LAVIE: 0.8%, G3: 0.0%). |
+| **Impact** | Dedicated compute power from core worker nodes was unavailable for heavy CAE simulations and DXF-to-3D reconstructions, causing K10 to handle workloads sequentially or queue them. |
+| **Root Cause (5 Why)** | **LAVIE**: Why1: Monitor agent stopped for 86h. Why2: Host rebooted/slept. Why3: Startup task scheduler missing or misconfigured.<br>**Red LAVIE**: Why1: Job worker port offline. Why2: Host rebooted and worker process not running. Why3: VBS startup script StartRedLavieJobWorker.vbs crashed on launch. Why4: Script used Chr(34) executable wrapping with arguments which fails under WScript.Shell.Run. Why5: Remote setup script red_lavie_start_job_worker.ps1 was not boot-tested.<br>**G3**: Why1: n8n and IATF offline. Why2: Docker containers not running. Why3: Docker engine didn't start containers at boot (Docker Desktop requires user login or quiet/service mode). Why4: G3 node lacks persistent keepalive/startup scheduler for compose. |
+| **Fix** | 1. Corrected `red_lavie_start_job_worker.ps1` VBScript runner generation to use powershell-mediated hidden execution (resolves quoting syntax error).<br>2. Deployed corrected Startup scripts for Red LAVIE and Main LAVIE.<br>3. Scheduled keepalive watchdogs on K10 reboot to automatically recover offline nodes.<br>4. Prepared local startup tasks for G3 docker compose up. |
+| **Files** | `scripts/red_lavie_start_job_worker.ps1`, `data/workspace/memory/trouble_history.md` |
+| **Verification** | 1. PowerShell syntax verification passed on `red_lavie_start_job_worker.ps1`.<br>2. Connectivity summaries updated on K10 showing monitor metrics online. |
+| **Lessons Learned** | 1. Windows startup scripts using WScript.Shell.Run should wrap executable and arguments cleanly, preferably calling powershell.exe to handle complex paths.<br>2. Every node needs both local service auto-start (Scheduled Tasks) and remote watchdog auto-recovery. |
+| **Prevention** | Run connectivity watchdogs as startup tasks on K10 boot (registered via `register_cae_loops_startup_tasks.ps1`). Enforce 6h host-stability sweeps. |
+
+---
+
 ## INC-117: Gemma4 7PC Honki ZIP partially adopted into fleet role planner
 
 | Field | Detail |

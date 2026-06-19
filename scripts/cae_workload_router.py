@@ -214,6 +214,29 @@ def pick_host(category: str, cfg: dict[str, Any] | None = None) -> dict[str, Any
     busy, busy_reason = k10_cae_busy(cfg)
     thinkpad_ok, thinkpad_reason, thinkpad_metrics = thinkpad_load_guard(cfg)
     
+    tri = cfg.get("tri_track_parallel") or {}
+    fem_cfg = tri.get("fem_impact") or {}
+    fem_categories = set(fem_cfg.get("categories") or ["fem_impact"])
+    if category in fem_categories:
+        if thinkpad_ok:
+            decision = {
+                "host": "thinkpad",
+                "reason": f"tri_track fem_impact -> thinkpad ({thinkpad_reason})",
+                "category": category,
+                "k10_stats": host_stats(),
+                "thinkpad_ssh_ready": True,
+                "thinkpad_probe": thinkpad_reason,
+            }
+            return decision
+        decision = {
+            "host": "k10",
+            "reason": f"fem_impact blocked: thinkpad unavailable ({thinkpad_reason})",
+            "category": category,
+            "thinkpad_ssh_ready": False,
+            "thinkpad_probe": thinkpad_reason,
+        }
+        return decision
+
     available_satellites = []
     # Prioritize red_lavie (newer/more ram) over lavie
     for node_id in ["red_lavie", "lavie"]:
