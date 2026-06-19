@@ -1,0 +1,38 @@
+[
+  {
+    "rule_id": "mapek_phase_separation",
+    "name": "MAPE-K phase separation",
+    "raw_fact": "Self-adaptive systems commonly separate Monitor, Analyze, Plan, Execute, and Knowledge.",
+    "implementation_recommendation": "Keep this harness read-only until monitor/analyze evidence and a rollback plan exist."
+  },
+  {
+    "rule_id": "docker_health_is_signal_not_repair",
+    "name": "Docker healthcheck is a signal",
+    "raw_fact": "Docker documents health and restart controls separately; unhealthy state should be treated as evidence, not direct permission to mutate.",
+    "implementation_recommendation": "Use health status to propose actions. Do not auto-restart unhealthy containers without an explicit gated executor."
+  },
+  {
+    "rule_id": "restart_policy_scope",
+    "name": "Restart policy scope",
+    "raw_fact": "Docker restart policies control behavior after container exits or daemon restarts.",
+    "implementation_recommendation": "Prefer checking whether existing restart policy is appropriate before adding external restart loops."
+  },
+  {
+    "rule_id": "operator_reconciliation_idempotence",
+    "name": "Operator-style reconciliation",
+    "raw_fact": "Kubernetes operators encode operational knowledge as controllers that reconcile desired and actual state.",
+    "implementation_recommendation": "Make any future executor idempotent and bounded: same input should yield the same proposed minimal action."
+  },
+  {
+    "rule_id": "human_in_loop_for_high_risk",
+    "name": "Human approval for high-risk changes",
+    "raw_fact": "Human-in-the-loop self-adaptive systems address trust and control boundaries.",
+    "implementation_recommendation": "Require approval for compose edits, destructive operations, cloud spend, data deletion, or replacing stable workflows."
+  },
+  {
+    "rule_id": "knowledge_after_action",
+    "name": "Record outcomes",
+    "raw_fact": "Self-healing loops depend on a knowledge base of observations, actions, and outcomes.",
+    "implementation_recommendation": "Record source, evidence, proposed action, execution result, and lesson in DB/Beads/ByteRover index cards."
+  }
+]

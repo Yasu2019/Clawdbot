@@ -1,0 +1,16 @@
+{
+  "verdict": "PROPOSE_ONLY",
+  "score": 90,
+  "reasons": [
+    "1 unhealthy container signal(s) observed."
+  ],
+  "proposed_actions": [
+    "Prepare a minimal service-specific recovery proposal; do not restart automatically."
+  ],
+  "required_evidence": [
+    "docker ps with health status",
+    "container logs tail",
+    "service endpoint check"
+  ],
+  "no_go": []
+}
