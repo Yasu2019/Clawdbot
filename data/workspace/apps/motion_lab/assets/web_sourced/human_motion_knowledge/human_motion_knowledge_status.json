@@ -1,0 +1,120 @@
+{
+  "generated_at": "2026-06-19T19:00:27.847567+00:00",
+  "db_path": "D:\\Clawdbot_Docker_20260125\\data\\workspace\\apps\\motion_lab\\assets\\web_sourced\\human_motion_knowledge\\human_motion_knowledge.db",
+  "report_path": "D:\\Clawdbot_Docker_20260125\\data\\workspace\\apps\\motion_lab\\assets\\web_sourced\\human_motion_knowledge\\human_motion_knowledge_report.md",
+  "download_dir": "D:\\Clawdbot_Docker_20260125\\data\\workspace\\apps\\motion_lab\\assets\\web_sourced\\human_motion_knowledge\\downloads",
+  "source_count": 10,
+  "downloaded_count": 10,
+  "failed_count": 0,
+  "downloaded": [
+    {
+      "id": "cmu_bvh_readme",
+      "category": "dataset_notes",
+      "bytes": 13248,
+      "local_path": "downloads\\cmu_bvh_readme.txt",
+      "sha256": "8e6fe2e640b3728ef2e43e722cb5ae9cdf0010028c0517c4226ed165f9037930"
+    },
+    {
+      "id": "cmu_bvh_index",
+      "category": "dataset_index",
+      "bytes": 68400,
+      "local_path": "downloads\\cmu_bvh_index.txt",
+      "sha256": "b611669b7e8e4cb653cbda3b47ebc42c4151d019e4d28f2ed3e052e4e240ffbd"
+    },
+    {
+      "id": "mwni_blender_retargeting_readme",
+      "category": "tooling",
+      "bytes": 2759,
+      "local_path": "downloads\\mwni_blender_retargeting_readme.md",
+      "sha256": "e3b61ef3fcf7527b62f62ce6d20eff1cdb77c01ebd195e005ea5646cc6b7cf22"
+    },
+    {
+      "id": "contact_aware_retargeting_iccv2021",
+      "category": "paper",
+      "bytes": 5134509,
+      "local_path": "downloads\\contact_aware_retargeting_iccv2021.pdf",
+      "sha256": "6214afd59514f7cf54a2ae60039261926bfc1c8ae24dc3423678595982551404"
+    },
+    {
+      "id": "non_humanoid_human_motion_disney2010",
+      "category": "paper",
+      "bytes": 3034499,
+      "local_path": "downloads\\non_humanoid_human_motion_disney2010.pdf",
+      "sha256": "0363df8f702aae76efd94245494bc04b6e4e7f10f6e27c1a1a797a0d6c14b9d9"
+    },
+    {
+      "id": "correspondence_free_online_retargeting_3dv",
+      "category": "paper",
+      "bytes": 3736218,
+      "local_path": "downloads\\correspondence_free_online_retargeting_3dv.pdf",
+      "sha256": "0a52ed3d349fc4b2c5fe7039c4868b480f3a5069cffd07f80635066fc1fa1d92"
+    },
+    {
+      "id": "dense_geometric_interaction_retargeting_neurips2024",
+      "category": "paper",
+      "bytes": 17019611,
+      "local_path": "downloads\\dense_geometric_interaction_retargeting_neurips2024.pdf",
+      "sha256": "7323fffb37a88104441d745e049820c185027a25391666bf624ae06256a42ed0"
+    },
+    {
+      "id": "general_motion_retargeting_humanoid_icra",
+      "category": "paper",
+      "bytes": 781075,
+      "local_path": "downloads\\general_motion_retargeting_humanoid_icra.pdf",
+      "sha256": "4a70eb5f4f9468efb427d9dd7273b02fc6262ecdabffbc84afce6bb0984196af"
+    },
+    {
+      "id": "rokoko_blender_retargeting",
+      "category": "tooling",
+      "bytes": 39906,
+      "local_path": "downloads\\rokoko_blender_retargeting.html",
+      "sha256": "7a20d6921c17dda9ff2fed2936979e7ce1b32aafa1da0f9a1fccb26c22cac97b"
+    },
+    {
+      "id": "sidefx_cmu_kinefx_retargeting",
+      "category": "tooling",
+      "bytes": 62863,
+      "local_path": "downloads\\sidefx_cmu_kinefx_retargeting.html",
+      "sha256": "23f203845c951eb6bea4df0d9d8b7c3a25c220942ab0275449eebef3b5164496"
+    }
+  ],
+  "failed": [],
+  "acquisition_queue": [
+    {
+      "id": "amass_dataset",
+      "title": "AMASS human motion archive",
+      "url": "https://amass.is.tue.mpg.de/",
+      "status": "free_registration",
+      "next_action": "Review license and register/authorize before download."
+    },
+    {
+      "id": "smpl_model",
+      "title": "SMPL body model",
+      "url": "https://smpl.is.tue.mpg.de/",
+      "status": "free_registration",
+      "next_action": "Review license; needed only if SMPL-based retargeting pipeline is adopted."
+    },
+    {
+      "id": "mixamo",
+      "title": "Adobe Mixamo motions",
+      "url": "https://www.mixamo.com/",
+      "status": "free_registration",
+      "next_action": "Use only through authorized account and current Adobe terms; avoid bulk scraping."
+    },
+    {
+      "id": "mocap_online_free_pack",
+      "title": "MoCap Online Free Pack",
+      "url": "https://mocaponline.com/",
+      "status": "manual_review",
+      "next_action": "Review current checkout/license terms before asset download."
+    },
+    {
+      "id": "makehuman_makewalk_wiki",
+      "title": "MakeWalk Blender BVH Retargeting Documentation",
+      "url": "https://www.makehumancommunity.org/wiki/Documentation%3AMakeWalk",
+      "status": "manual_review",
+      "next_action": "Useful source, but direct download from this host returned connection refused in the bounded run; retry later or capture metadata only."
+    }
+  ],
+  "cmu_locomotion_candidate_count": 420
+}

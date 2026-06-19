@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html dir="ltr" lang="en-US">
+<head>
+  <meta charset="utf-8" />
+  <!-- v27518 -->
+
+
+  <title>Retarget an animation in Blender &ndash; Rokoko</title>
+
+  
+
+  <meta name="description" content="Who is this article relevant to? This article is for anyone who wants to know how to retarget their exported Rokoko Studio Body and Face..." /><meta property="og:image" content="https://support.rokoko.com/hc/theming_assets/01HZPQM1PM6BZBTFRSB1BT5WX4" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Rokoko" />
+<meta property="og:title" content="Retarget an animation in Blender" />
+<meta property="og:description" content="Who is this article relevant to?
+This article is for anyone who wants to know how to retarget their exported Rokoko Studio Body and Face animations to their custom characters in Blender
+Which plans..." />
+<meta property="og:url" content="https://support.rokoko.com/hc/en-us/articles/4410463481489-Retarget-an-animation-in-Blender" />
+<link rel="canonical" href="https://support.rokoko.com/hc/en-us/articles/4410463481489-Retarget-an-animation-in-Blender">
+<link rel="alternate" hreflang="en-us" href="https://support.rokoko.com/hc/en-us/articles/4410463481489-Retarget-an-animation-in-Blender">
+<link rel="alternate" hreflang="x-default" href="https://support.rokoko.com/hc/en-us/articles/4410463481489-Retarget-an-animation-in-Blender">
+
+  <link rel="stylesheet" href="//static.zdassets.com/hc/assets/application-9728c5319eba0423daea7e82ae8a1641.css" media="all" id="stylesheet" />
+  <link rel="stylesheet" type="text/css" href="/hc/theming_assets/11445707/1900000359433/style.css?digest=35230646888721">
+
+  <link rel="icon" type="image/x-icon" href="/hc/theming_assets/01HZPQM2124X4KCP6YJN02MGBX">
+
+    
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta content="Empowering 3D digital creators with high quality sensor based motion capture systems for body, finger and face animations" name="description"/>
+<meta content="Intuitive and affordable motion capture tools for character animation" property="og:title"/>
+<meta content="Empowering 3D digital creators with high quality sensor based motion capture systems for body, finger and face animations" property="og:description"/>
+<meta content="https://assets-global.website-files.com/5e6b63ac3b6e253f11889f39/63931d110aa6200b7694a3ec_rokoko.com%20homepage.jpg" property="og:image"/>
+<meta content="Intuitive and affordable motion capture tools for character animation" property="twitter:title"/>
+<meta content="Empowering 3D digital creators with high quality sensor based motion capture systems for body, finger and face animations" property="twitter:description"/>
+<meta content="https://assets-global.website-files.com/5e6b63ac3b6e253f11889f39/63931d110aa6200b7694a3ec_rokoko.com%20homepage.jpg" property="twitter:image"/>
+<meta property="og:type" content="website"/>
+<meta content="summary_large_image" name="twitter:card"/>
+
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <style>
+    @font-face {
+      font-family: 'Rokoko Grotesque';
+      src: url('/hc/theming_assets/01HZPQKKTCQZ21A5FRA3M0QSVY');
+      src: url('') format('embedded-opentype'),
+          url('/hc/theming_assets/01HZPQKV146AQ02KHX980P7VMQ') format('woff2'),
+          url('/hc/theming_assets/01HZPQKEH0166P2KMZ106BP1T3') format('woff'),
+          url('/hc/theming_assets/01HZPQKMS8HFCRND1DA1RBB3J9') format('truetype'),
+          url('') format('svg');
+      font-weight: normal;
+      font-style: normal;
+      font-display: swap;
+    }
+  </style>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <style>
+    @font-face {
+      font-family: 'Rokoko Grotesque';
+      src: url('/hc/theming_assets/01HZPQKTFBMJX411SWV2W3YTCD');
+      src: url('') format('embedded-opentype'),
+          url('/hc/theming_assets/01HZPQKDKH5VK4HKY73HKBY8HA') format('woff2'),
+          url('/hc/theming_assets/01HZPQKJQ0Y0515N69T6BCX4PP') format('woff'),
+          url('/hc/theming_assets/01HZPQM10Y15V1D365BDQD30D7') format('truetype'),
+          url('') format('svg');
+      font-weight: 500;
+      font-style: normal;
+      font-display: swap;
+    }
+  </style>
+
+
+
+
+
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css">
+<link rel="stylesheet" href="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@10.7.2/build/styles/github.min.css">
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/magnific-popup@1.1.0/dist/magnific-popup.min.css">
+<link rel="stylesheet" href="/hc/theming_assets/01HZPQKPDBW1VQVC19D3WJGNTB" />
+<script src="//cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/magnific-popup@1.1.0/dist/jquery.magnific-popup.min.js"></script>
+<script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@10.7.2/build/highlight.min.js"></script>
+<script>
+  window.LotusConfig = {};
+  LotusConfig.css = {
+    activeClass: 'is-active',
+    hiddenClass: 'is-hidden'
+  };
+  LotusConfig.signedIn = false;
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@ryangjchandler/spruce@2.x.x/dist/spruce.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.8.2/dist/alpine.min.js"></script>
+<script>
+  window.Spruce.store('mobileMenu', {
+    isOpen: false,
+  });
+</script>
+<script src="/hc/theming_assets/01HZPQKSFDQZQVB01NQMN1ZN04"></script>
+<script src="/hc/theming_assets/01HZPQKH1YA9NG5XYPXK643G7Z"></script>
+<script src="/hc/theming_assets/01HZPQKJTHWH552SXC01ARMCA0"></script>
+<script src="/hc/theming_assets/01HZPQKD86TEBT9H20SFDH14R0"></script>
+<script src="/hc/theming_assets/01HZPQKTQQ6JN0BJKAH4TER637"></script>
+<script src="/hc/theming_assets/01HZPQKXY38QZ4SBNMYC4QWXMY"></script>
+<script src="/hc/theming_assets/01HZPQKGXW8BNHYZSXJR60E73M"></script>
+<script src="/hc/theming_assets/01HZPQKDDYA336C18BEPEPQWTV"></script>
+<script src="/hc/theming_assets/01HZPQKTKEBXNV42R02N6VG3A7"></script>
+<script src="/hc/theming_assets/01HZPQKFTSN1H5NGMYE3GWDXZR"></script>
+
+
+<script>
+  $(document).ready(function() {
+  $("#query").focus();
+});
+</script>
+  
+</head>
+<body class="">
+  
+  
+  
+
+  <a class="lt-skip-navigation" tabindex="1" href="#main-content">Skip to main content</a>
+<div class="lt-layout">
+  <header class="lt-topbar lt-container lt-py-4 lt-mb-8 lt-d-print-none" data-topbar>
+    <div class="lt-container-inner lt-d-flex lt-align-items-center lt-justify-content-between lt-w-100">
+      <div class="lt-d-flex lt-align-items-center lt-logo">
+        <a title="Home" href="/hc/en-us">
+          <img class="lt-topbar__logo" src="/hc/theming_assets/01HZPQM1PM6BZBTFRSB1BT5WX4" alt="Logo">
+          <img class="lt-topbar__logo" src="/hc/theming_assets/01HZPQM1WDSRM4S9KQ2NP1MFXP" alt="Logo">
+        </a> 
+        
+      </div>
+
+      <div class="lt-mobile-menu-header lt-d-lg-none">        
+        
+          
+            <a class="lt-topbar__link" rel="nofollow" data-auth-action="signin" title="Opens a dialog" role="button" href="/hc/en-us/signin?return_to=https%3A%2F%2Fsupport.rokoko.com%2Fhc%2Fen-us%2Farticles%2F4410463481489-Retarget-an-animation-in-Blender">
+              <img src="/hc/theming_assets/01HZPQKV6G7S31RR7Y5NM7JJ1P">
+            </a>
+          
+        
+        <a href="/hc/search/" class='lt-topbar__link'>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M14.4584 8.96988C14.4584 11.5138 12.3961 13.576 9.8522 13.576C7.30829 13.576 5.24605 11.5138 5.24605 8.96988C5.24605 6.42597 7.30829 4.36373 9.8522 4.36373C12.3961 4.36373 14.4584 6.42597 14.4584 8.96988ZM13.6094 17.1173C12.4665 17.6452 11.1938 17.9398 9.8522 17.9398C4.89828 17.9398 0.882324 13.9238 0.882324 8.96988C0.882324 4.01595 4.89828 0 9.8522 0C14.8061 0 18.8221 4.01595 18.8221 8.96988C18.8221 10.9935 18.152 12.8607 17.0215 14.3615L23.5238 20.9301L20.4226 24L13.6094 17.1173Z" fill="#18181B"/>
+          </svg>
+        </a>
+        <button 
+          class="lt-menu-toggle"
+          aria-label="Toggle navigation menu"
+          aria-controls="user-nav"
+          x-data="{}"
+          x-bind:aria-expanded="$store.mobileMenu.isOpen" 
+          x-bind:class="{'is-active': $store.mobileMenu.isOpen}"
+          x-on:click="$store.mobileMenu.isOpen = !$store.mobileMenu.isOpen"
+          x-on:keydown.escape="$store.mobileMenu.isOpen = false"
+          >
+          <span></span>
+        </button>
+      </div>
+
+      <nav 
+        class="lt-topbar__controls lt-d-flex lt-flex-column lt-align-items-start lt-flex-lg-row lt-align-items-lg-center"
+        id="user-nav"
+        x-data="{}"
+        x-bind:class="{'is-active': $store.mobileMenu.isOpen}"
+        x-on:keydown.escape="$store.mobileMenu.isOpen = false">
+        
+        
+          <a class="lt-btn lt-topbar__btn" onclick="zE('messenger', 'open')"
+              href="javascript:void(0)">
+            
+              Contact us
+            
+          </a>
+        
+        
+        
+          <a class="lt-topbar__link"
+              href="https://rokoko.zendesk.com/hc/en-us/requests/new?ticket_form_id=35011333467537">
+            
+              Submit a ticket
+            
+          </a>
+        
+        
+        
+                
+        
+        <a href="/hc/search/" class='lt-topbar__link lt-d-none lt-d-lg-block'>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M14.4584 8.96988C14.4584 11.5138 12.3961 13.576 9.8522 13.576C7.30829 13.576 5.24605 11.5138 5.24605 8.96988C5.24605 6.42597 7.30829 4.36373 9.8522 4.36373C12.3961 4.36373 14.4584 6.42597 14.4584 8.96988ZM13.6094 17.1173C12.4665 17.6452 11.1938 17.9398 9.8522 17.9398C4.89828 17.9398 0.882324 13.9238 0.882324 8.96988C0.882324 4.01595 4.89828 0 9.8522 0C14.8061 0 18.8221 4.01595 18.8221 8.96988C18.8221 10.9935 18.152 12.8607 17.0215 14.3615L23.5238 20.9301L20.4226 24L13.6094 17.1173Z" fill="#18181B"/>
+          </svg>
+        </a>
+        
+          
+            <a class="lt-topbar__link  lt-d-none lt-d-lg-block" rel="nofollow" data-auth-action="signin" title="Opens a dialog" role="button" href="/hc/en-us/signin?return_to=https%3A%2F%2Fsupport.rokoko.com%2Fhc%2Fen-us%2Farticles%2F4410463481489-Retarget-an-animation-in-Blender">
+              <img src="/hc/theming_assets/01HZPQKV6G7S31RR7Y5NM7JJ1P">
+            </a>
+          
+        
+        <!-- Elfsight Website Translator | Untitled Website Translator -->
+<script src="https://static.elfsight.com/platform/platform.js" async></script>
+<div class="elfsight-app-b254ead2-6f3b-472a-a9b1-ccb7171a2dca" data-elfsight-app-lazy></div>
+        
+      </nav>
+    </div>
+  </header>
+  <div class="lt-layout__main">
+
+  <main role="main">
+    <div class="lt-container article-page">
+  <div class="lt-container-inner">
+    <div class="lt-article-container lt-row" id="main-content">
+      <div class="lt-col-lg-2">
+        <div data-sidenav='{"mobileBreakpoint": 991}'></div>
+      </div>
+      <div class="lt-col-lg-7">
+        <div class="article-inner">
+          <div class="article-breadcrumbs lt-mb-3">
+            <ol class="breadcrumbs">
+  
+    <li title="Rokoko">
+      
+        <a href="/hc/en-us">Rokoko</a>
+      
+    </li>
+  
+    <li title="Rokoko Plugins">
+      
+        <a href="/hc/en-us/categories/4410420388113-Rokoko-Plugins">Rokoko Plugins</a>
+      
+    </li>
+  
+    <li title="Blender">
+      
+        <a href="/hc/en-us/sections/4410471640465-Blender">Blender</a>
+      
+    </li>
+  
+</ol>
+
+          </div>
+        <article class="lt-article lt-mb-6" data-article itemscope itemtype="http://schema.org/Article">
+          <header>
+            <h1 class="lt-article__title lt-mb-4" itemprop="name">
+              
+              Retarget an animation in Blender
+            </h1>
+
+            <div class="lt-d-sm-flex lt-mb-4 lt-align-items-start">
+                <div class="lt-entry-info ">
+                  
+                </div>
+
+              <div class="lt-article-subscribe lt-d-flex lt-d-print-none lt-align-items-center">
+                
+                
+
+                
+              </div>
+            </div>
+          </header>
+
+          <div class="lt-article__body" itemprop="articleBody">
+            <div class="callout callout--dashed">
+<p><strong>Who is this article relevant to?</strong></p>
+<p>This article is for anyone who wants to know how to retarget their exported Rokoko Studio Body and Face animations to their custom characters in Blender</p>
+<p><strong>Which plans is this article relevant for?</strong></p>
+<p>Starter Plus Pro Enterprise</p>
+</div><h4 class="wysiwyg-text-align-left" id="h_01HF9148ZTS4EV7R640GXKNF97">Requirements</h4><p>Install the Rokoko Studio Blender plugin. Instructions for doing this can be found <a href="https://support.rokoko.com/hc/en-us/articles/4410463492241-Getting-Started-Installing-the-Blender-plugin" target="_self" rel="undefined">here</a>. Please note that the retargeting feature is not a paid feature and does not need a premium account.</p><h4 class="wysiwyg-text-align-left" id="h_01HF9148ZTZ6VJ38F4FQ6681BM">Useful - Face animations retargeting</h4><p>The retargeting of face capture animations is done in a different way. You basically need to select the face data, copy them, select all the keyframes of the custom character and paste them. A useful video showing the whole process is attached at the end of the guide.</p><h4 class="wysiwyg-text-align-left" id="video-tutorial-live-streaming-to-blender-2-8-0-1">Video Tutorial - Retarget animations in Blender</h4><h1 id="h_01HF9148ZTXSNTB145JRKN6FR8" class="wysiwyg-text-align-center" data-identifyelement="456"><span data-identifyelement="459"><span class="fr-video fr-fvc fr-dvb fr-draggable" data-identifyelement="460"><iframe class="fr-draggable" src="https://www.youtube.com/embed/HitTDDCfhJg??t=140&amp;wmode=opaque" width="640" height="360" frameborder="0" sandbox="allow-scripts allow-forms allow-same-origin allow-presentation" allowfullscreen="" data-identifyelement="461"></iframe></span></span></h1><h4 id="h_01HF9198CNSQ9EQR02EYZ8ZKMW">Process</h4><ul>
+  <li>
+    We start with importing the FBX animation into Blender.<img src="/hc/article_attachments/20156754675473" alt="ew.PNG"><br>
+    <br>
+    Select your animation. Make sure the Automatic Bone orientation is ticked
+    upon importing your FBX file.<br>
+    <br>
+     
+  </li>
+</ul><p> </p><p> </p><p> </p><p data-identifyelement="465"><span data-identifyelement="466">In order to retarget an animation in Blender you will need to do the following:</span></p><ul><li data-identifyelement="467" data-list-item-id="e3899e38fd1a007727baaac421e9ee4dd"><span data-identifyelement="468">Open the Retargeting panel.</span></li></ul><figure class="wysiwyg-image"><img style="aspect-ratio: 474/410;" src="/hc/article_attachments/39354616940689" alt="ret.PNG" width="474" height="410"></figure><ul><li class="wysiwyg-text-align-left" data-identifyelement="469" data-list-item-id="eec1de2274387da08ce2c9d88215f8c1f"><span data-identifyelement="474">Select an <strong>armature with animation as the source armature</strong>, select an <strong>armature that should receive the animation as the target armature</strong> and then press "<strong>Build Bone List</strong>".</span></li></ul><p class="wysiwyg-text-align-center"><img src="/hc/article_attachments/39354641674385" alt="re.PNG" width="474" height="530"><br> </p><ul>
+<li class="wysiwyg-text-align-left" data-list-item-id="e79fbb7d47425436a634bff9333abe35f"><span data-identifyelement="480">Check if the bones got filled in correctly and fix any incorrect or missing bones.</span></li>
+<li class="wysiwyg-text-align-left" data-identifyelement="469" data-list-item-id="ec6b37a7aaada4a3981067aed06ffea7f"><span data-identifyelement="486">Select "Auto Scale" if the armatures differ in size or resize them manually.</span></li>
+</ul><figure class="wysiwyg-image"><img style="aspect-ratio: 499/644;" src="/hc/article_attachments/39354616943633" alt="Cap555ture - Copy.PNG" width="499" height="644"></figure><ul><li data-identifyelement="487" data-list-item-id="ed65031fc786bd6b02ca553eb67792481"><span data-identifyelement="488">In "Use Pose:" select the pose that should be used for retargeting.</span></li></ul><p data-identifyelement="489"><span data-identifyelement="490"><span class="wysiwyg-underline">Important</span>: Make sure that both armature are in the same pose for correct retargeting.</span></p><ul><li data-identifyelement="491" data-list-item-id="ec22e9a353a37513baf95c8cf283c8374"><span data-identifyelement="492">Press "Retarget Animation".</span></li></ul><figure class="wysiwyg-image"><img style="aspect-ratio: 511/734;" src="/hc/article_attachments/39354641675921" alt="Cap555ture.PNG" width="511" height="734"></figure><ul><li data-identifyelement="491" data-list-item-id="e1d77d16b22b9e865aa608aee07d3d72b"><span data-identifyelement="492">If you come across weird results such as feet going over the ground, or if the hips are staying in place, try <strong>disabling</strong> "<strong>Auto scale</strong>" and/or using the "<strong>Current</strong>" option in the <strong>Use Pose</strong>.</span></li></ul>
+          </div>
+
+          
+            <ul class="lt-list-unstyled lt-attachment-list lt-mb-4">
+              
+                <li class="lt-attachment-list__item">
+                  <span class="fa fa-paperclip lt-attachment-list__icon" aria-hidden="true"></span>
+                  <a href="/hc/en-us/article_attachments/16869982660753" target="_blank">RetargetBody_FaceBlender.mp4</a>
+                  <div class="lt-meta">(2 MB)</div>
+                </li>
+              
+            </ul>
+          
+
+          <div data-prevnext></div>
+        </article>
+
+        
+          <footer class="lt-article-vote lt-d-print-none lt-mb-6 lt-py-sm-6 lt-py-4">
+            <div class="h5 lt-article-vote__question lt-mb-3">Was this article helpful?</div>
+            <div class="lt-article-vote__controls lt-mb-4">
+              <button type="button" class="lt-btn lt-btn--default lt-article-vote__item lt-article-vote__item--up lt-me-3" data-helper="vote" data-item="article" data-type="up" data-id="4410463481489" data-upvote-count="18" data-vote-count="42" data-vote-sum="-6" data-vote-url="/hc/en-us/articles/4410463481489/vote" data-value="null" data-label="18 out of 42 found this helpful" data-selected-class="lt-article-vote__item--voted" aria-label="This article was helpful" aria-pressed="false">Yes</button>
+              <button type="button" class="lt-btn lt-btn--default lt-article-vote__item lt-article-vote__item--down" data-helper="vote" data-item="article" data-type="down" data-id="4410463481489" data-upvote-count="18" data-vote-count="42" data-vote-sum="-6" data-vote-url="/hc/en-us/articles/4410463481489/vote" data-value="null" data-label="18 out of 42 found this helpful" data-selected-class="lt-article-vote__item--voted" aria-label="This article was not helpful" aria-pressed="false">No</button>
+            </div>
+            <small class="lt-article-vote__count">
+              Have more questions? <a href="/hc/en-us/requests/new">Submit a request</a>
+            </small>
+          </footer>
+        
+
+        
+
+        
+        </div>
+
+      </div>
+      <div class="lt-article-container__column lt-article-container__toc lt-d-print-none">
+        <div data-toc='{"mobileBreakpoint": 991}'></div>
+      </div>
+      
+      <div class="lt-col-lg-3 lt-article-container__sidebar lt-d-print-none">
+        
+          <section class="lt-section-articles">
+            <h3 class="lt-section-articles__title">Articles in this section</h3>
+            <ul class="lt-section-articles__list">
+              
+                <li class="lt-section-articles__item">
+                  <a href="/hc/en-us/articles/12644862322321-Release-Notes-Blender-Plugin-1-4-1"
+                    class="lt-section-articles__link ">Release Notes - Blender Plugin 1.4.1</a>
+                </li>
+              
+                <li class="lt-section-articles__item">
+                  <a href="/hc/en-us/articles/4410463492241-How-to-install-the-Blender-plugin"
+                    class="lt-section-articles__link ">How to install the Blender plugin</a>
+                </li>
+              
+                <li class="lt-section-articles__item">
+                  <a href="/hc/en-us/articles/4410463505937-Livestream-to-Custom-Characters-in-Blender"
+                    class="lt-section-articles__link ">Livestream to Custom Characters in Blender</a>
+                </li>
+              
+                <li class="lt-section-articles__item">
+                  <a href="/hc/en-us/articles/4410463481489-Retarget-an-animation-in-Blender"
+                    class="lt-section-articles__link is-active">Retarget an animation in Blender</a>
+                </li>
+              
+                <li class="lt-section-articles__item">
+                  <a href="/hc/en-us/articles/4410479886609-Custom-Naming-Schemes"
+                    class="lt-section-articles__link ">Custom Naming Schemes</a>
+                </li>
+              
+            </ul>
+            
+          </section>
+        
+        
+      </div>
+    </div>
+  </div>
+</div>
+<div class="lt-container lt-mb-9 lt-home-container"></div>
+<div class="lt-container lt-mb-9 lt-home-container" id="promoted-articles">
+  <div class="lt-container-inner">
+    <h3 class="lt-mb-2 lt-mb-sm-5 promoted-articles-title">Promoted articles</h3>
+
+    
+      <section class="lt-promoted-articles" id="promoted-articles-list">
+        
+          <ul class="lt-list-unstyled lt-row lt-row-cols-lg-2 lt-gy-5">
+            
+              <li class="lt-promoted-articles-item">
+                <a class="lt-d-block " href="/hc/en-us/articles/4410409192849-How-to-get-started-with-your-Smartsuit-Pro-II">
+                    <h5 class="lt-promoted-articles-item__title lt-mb-3">How to get started with your Smartsuit Pro II</h5>                      
+                  <div class="lt-meta lt-mb-0">
+Who is this article relevant to?
+This article is for anyone who recently purchased a Smartsuit P...</div>
+                </a>
+                
+              </li>
+            
+              <li class="lt-promoted-articles-item">
+                <a class="lt-d-block " href="/hc/en-us/articles/47554716752657-How-to-assign-a-static-IP-to-your-computer">
+                    <h5 class="lt-promoted-articles-item__title lt-mb-3">How to assign a static IP to your computer</h5>                      
+                  <div class="lt-meta lt-mb-0">
+Who is this article relevant to?
+This article is for anyone who wants to know how to assign a st...</div>
+                </a>
+                
+              </li>
+            
+              <li class="lt-promoted-articles-item">
+                <a class="lt-d-block " href="/hc/en-us/articles/5142116069393-How-to-setup-your-Smartsuit-Pro-II-in-Rokoko-Studio">
+                    <h5 class="lt-promoted-articles-item__title lt-mb-3">How to setup your Smartsuit Pro II in Rokoko Studio</h5>                      
+                  <div class="lt-meta lt-mb-0">
+Who is this article relevant to?
+This is for anyone who wants to learn how to set up their Smart...</div>
+                </a>
+                
+              </li>
+            
+              <li class="lt-promoted-articles-item">
+                <a class="lt-d-block " href="/hc/en-us/articles/4410470876689-Smartsuit-Pro-%CE%99%CE%99-is-not-appearing-in-Rokoko-Studio">
+                    <h5 class="lt-promoted-articles-item__title lt-mb-3">Smartsuit Pro ΙΙ is not appearing in Rokoko Studio</h5>                      
+                  <div class="lt-meta lt-mb-0">
+Who is this article relevant to?
+This article is for customers who have successfully applied the...</div>
+                </a>
+                
+              </li>
+            
+          </ul>
+        
+      </section>
+    
+  </div>
+</div>
+
+<div class="lt-container lt-mb-9 lt-block-list-container lt-home-container"  x-data="window.Theme.categoryList()" x-init="fetchCategories()" x-cloak>
+  <div class="lt-container-inner">
+    <div class="h3 lt-mb-5">Knowledge base</div>
+    <ul class="lt-block-list lt-list-unstyled lt-row lt-gy-5 lt-row-cols-lg-3 lt-mb-0">
+      <template x-for="(category, index) in categories" :key="index">
+        <li class="lt-block-list-item lt-d-flex">
+          <a class="lt-block-list-item__link lt-d-flex lt-align-items-start" :href="category.html_url">
+            <div class="lt-block-list-item__content">
+              <div class="h5 lt-block-list-item__title" x-text="category.name"></div>                    
+            </div>
+          </a>
+        </li>
+      </template>     
+    </ul>
+  </div>
+</div>
+  </main>
+
+  <div>
+  <footer class="lt-footer lt-container lt-py-5 lt-d-print-none">
+    <div class="lt-container-inner lt-d-flex lt-flex-column lt-flex-sm-row lt-justify-content-start">
+      <div>
+        <p>
+          <a class="lt-footer-link" href="https://www.rokoko.com/">rokoko.com</a>
+        </p>
+        
+          <a href="https://discord.gg/AfCJBBQqRm" target="_blank" class="lt-footer__social-link fab fa-discord">
+            <span class="sr-only">discord</span>
+          </a>
+        
+        
+          <a href="https://www.instagram.com/hellorokoko/?hl=en" target="_blank" class="lt-footer__social-link fab fa-instagram">
+            <span class="sr-only">Instagram</span>
+          </a>
+        
+        
+          <a href="https://www.facebook.com/hellorokoko/" target="_blank" class="lt-footer__social-link fab fa-facebook-f">
+            <span class="sr-only">Facebook</span>
+          </a>
+        
+        
+          <a href="https://twitter.com/hellorokoko" target="_blank" class="lt-footer__social-link fab fa-twitter">
+            <span class="sr-only">Twitter</span>
+          </a>
+        
+        
+          <a href="https://www.linkedin.com/company/rokoko" target="_blank" class="lt-footer__social-link fab fa-linkedin-in">
+            <span class="sr-only">LinkedIn</span>
+          </a>
+        
+        
+          <a href="https://www.tiktok.com/@hellorokoko?lang=en" target="_blank" class="lt-footer__social-link fab fa-tiktok">
+            <span class="sr-only">tiktok</span>
+          </a>
+        
+      </div>
+    </div>
+  </footer>
+</div>
+
+
+
+<div 
+  class="lt-backdrop"
+  x-data=""
+  x-bind:class="{'is-active': $store.mobileMenu.isOpen}"
+  x-on:click="$store.mobileMenu.isOpen = false">
+</div>
+
+
+
+
+
+  <div data-custom-blocks-data hidden>
+    <div data-field="type">custom</div>
+    <div data-field="url">
+      
+        
+          #
+        
+      
+    </div>
+    <div data-field="imageUrl">/hc/theming_assets/01HZPQM3F65AWHKPWEC4EFMAWP</div>
+    <div data-field="title">
+      
+        Guides
+      
+    </div>
+    <div data-field="text">
+      
+        Instructions related to themes installation and usage
+      
+    </div>
+  </div>
+
+
+
+
+
+  <div data-custom-blocks-data hidden>
+    <div data-field="type">new_request</div>
+    <div data-field="url">
+      
+        /hc/en-us/requests/new
+      
+    </div>
+    <div data-field="imageUrl">/hc/theming_assets/01HZPQM4G2V67NA6PFVZFRAW0H</div>
+    <div data-field="title">
+      
+        Submit a request
+      
+    </div>
+    <div data-field="text">
+      
+        Contact us through a specially prepared form
+      
+    </div>
+  </div>
+
+
+
+
+
+<div hidden data-popular-searches>
+  
+    Wi-Fi, Repair Kit, Unreal Engine, Warranty
+  
+</div>
+<script src="/hc/theming_assets/01HZPQKHVZ0DFE25S5Y87GXYM5"></script>
+<script src="/hc/theming_assets/01HZPQKFZ5F5JE9FDE5K8MD405"></script>
+<script src="/hc/theming_assets/01HZPQKRKR42BPVPZK7MDRFZ5K"></script>
+<script src="/hc/theming_assets/01HZPQKQ8QG64AX6PCMSTG8TJF"></script>
+
+<!-- Start of rokoko Zendesk Widget script -->
+<script id="ze-snippet" src="https://static.zdassets.com/ekr/snippet.js?key=548a229d-8c22-4838-a660-3376dc7925b5"> </script>
+<!-- End of rokoko Zendesk Widget script -->
+
+
+
+  <!-- / -->
+
+  
+  <script src="//static.zdassets.com/hc/assets/en-us.02b443b9c55b82e01396.js"></script>
+  
+
+  <script type="text/javascript">
+  /*
+
+    Greetings sourcecode lurker!
+
+    This is for internal Zendesk and legacy usage,
+    we don't support or guarantee any of these values
+    so please don't build stuff on top of them.
+
+  */
+
+  HelpCenter = {};
+  HelpCenter.account = {"subdomain":"rokoko","environment":"production","name":"Rokoko"};
+  HelpCenter.user = {"identifier":"da39a3ee5e6b4b0d3255bfef95601890afd80709","email":null,"name":"","role":"anonymous","avatar_url":"https://assets.zendesk.com/hc/assets/default_avatar.png","is_admin":false,"organizations":[],"groups":[]};
+  HelpCenter.internal = {"asset_url":"//static.zdassets.com/hc/assets/","web_widget_asset_composer_url":"https://static.zdassets.com/ekr/snippet.js","current_session":{"locale":"en-us","csrf_token":null,"shared_csrf_token":null},"usage_tracking":{"event":"article_viewed","data":"BAh7CDoLbG9jYWxlSSIKZW4tdXMGOgZFVDoPYXJ0aWNsZV9pZGwrCJHuG+QCBDoKX21ldGF7DDoPYWNjb3VudF9pZGkDy6WuOhNoZWxwX2NlbnRlcl9pZGwrCBG4i00CBDoNYnJhbmRfaWRsKwgJtNhgugE6DHVzZXJfaWQwOhN1c2VyX3JvbGVfbmFtZUkiDkFOT05ZTU9VUwY7BlQ7AEkiCmVuLXVzBjsGVDoaYW5vbnltb3VzX3RyYWNraW5nX2lkMA==--9b3f160e430a2906a5aec0d7a3c5533af6be22d0","url":"https://support.rokoko.com/hc/activity"},"current_record_id":"4410463481489","current_record_url":"/hc/en-us/articles/4410463481489-Retarget-an-animation-in-Blender","current_record_title":"Retarget an animation in Blender","current_text_direction":"ltr","current_brand_id":1900000359433,"current_brand_name":"Rokoko","current_brand_url":"https://rokoko.zendesk.com","current_brand_active":true,"current_path":"/hc/en-us/articles/4410463481489-Retarget-an-animation-in-Blender","show_autocomplete_breadcrumbs":true,"user_info_changing_enabled":false,"has_user_profiles_enabled":true,"has_end_user_attachments":true,"user_aliases_enabled":false,"has_anonymous_kb_voting":true,"has_multi_language_help_center":true,"show_at_mentions":false,"embeddables_config":{"embeddables_web_widget":false,"embeddables_help_center_auth_enabled":false,"embeddables_connect_ipms":false},"answer_bot_subdomain":"static","gather_plan_state":"cancelled","has_article_verification":false,"has_gather":false,"has_ckeditor":false,"has_community_enabled":false,"has_community_badges":false,"has_community_post_content_tagging":false,"has_gather_content_tags":false,"has_guide_content_tags":true,"has_user_segments":true,"has_answer_bot_web_form_enabled":true,"has_garden_modals":false,"theming_cookie_key":"hc-da39a3ee5e6b4b0d3255bfef95601890afd80709-2-preview","is_preview":false,"has_search_settings_in_plan":true,"theming_api_version":2,"theming_settings":{"toggle_translations":false,"body_bg":"#F5F5F5","brand_primary":"#039afe","text_color":"#18181B","link_color":"#039afe","button_color":"#18181B","border_color":"#eceeef","block_bg":"#f2f4fa","block_hover_bg":"#ff6f48","brand_info":"#5bc0de","brand_success":"#0c9","brand_warning":"#f7b637","brand_danger":"#ff5252","font_size_base":"16px","heading_font":"'Rokoko Grotesque', sans-serif","heading_font_weight":"500","font_family_base":"'Rokoko Grotesque', sans-serif","line_height_base":"1.5","logo":"/hc/theming_assets/01HZPQM1PM6BZBTFRSB1BT5WX4","logo_text":"/hc/theming_assets/01HZPQM1WDSRM4S9KQ2NP1MFXP","logo_height":"24px","favicon":"/hc/theming_assets/01HZPQM2124X4KCP6YJN02MGBX","border_radius_base":"8px","border_width":"1px","topbar_bg":"#F5F5F5","topbar_text_color":"#000","topbar_link_color":"#000","topbar_button_color":"#4B98FF","show_help_center_name":false,"help_center_name":"Help Center","show_category_menu":false,"show_sign_in":true,"show_submit_a_request":false,"topbar_link_1_toggle":true,"topbar_link_1_title":"Contact us","topbar_link_1_url":"javascript:void(0)","topbar_link_2_toggle":true,"topbar_link_2_title":"Submit a ticket","topbar_link_2_url":"https://rokoko.zendesk.com/hc/en-us/requests/new?ticket_form_id=35011333467537","topbar_link_3_toggle":false,"topbar_link_3_title":"Link 3","topbar_link_3_url":"#link3","footer_bg":"#f7f7f9","footer_text_color":"#121325","footer_link_color":"#101010","footer_social_link_color":"#101010","toggle_footer_creator_text":true,"footer_social_icon_height":"20px","show_info_block":false,"toggle_custom_blocks":false,"toggle_promoted_articles":false,"promoted_articles_type":"list","category_tree_type":"boxes","toggle_recent_activities":false,"toggle_contact_boxes":true,"toggle_bottom_cta":false,"categories_per_line":3,"promoted_articles_per_line":2,"hero_button_bg":"#2E82F2","hero_title":"Hi 👋  How can we help?","search_placeholder":"Search our articles","show_hero_unit_button":true,"show_popular_searches":true,"popular_searches_label":"Popular","popular_searches_keywords":"Wi-Fi, Repair Kit, Unreal Engine, Warranty","info_block_title":"","info_block_text":"","custom_blocks_per_line":4,"custom_blocks_bg":"rgba(30, 26, 33, 1)","custom_blocks_text_color":"#ffffff","icon_height":"46px","custom_block_1_toggle":false,"custom_block_1_type":"custom","custom_block_1_icon":"/hc/theming_assets/01HZPQM2Q01AVZXH43CY2BA2TF","custom_block_1_title":"Smartsuit Pro II","custom_block_1_text":"Frequently Asked Questions","custom_block_1_url":"#","custom_block_2_toggle":true,"custom_block_2_type":"custom","custom_block_2_icon":"/hc/theming_assets/01HZPQM3F65AWHKPWEC4EFMAWP","custom_block_2_title":"Guides","custom_block_2_text":"Instructions related to themes installation and usage","custom_block_2_url":"#","custom_block_3_toggle":false,"custom_block_3_type":"new_request","custom_block_3_icon":"/hc/theming_assets/01HZPQM3SWGPA49BRJD3MAWE2Y","custom_block_3_title":"Community","custom_block_3_text":"","custom_block_3_url":"#","custom_block_4_toggle":true,"custom_block_4_type":"new_request","custom_block_4_icon":"/hc/theming_assets/01HZPQM4G2V67NA6PFVZFRAW0H","custom_block_4_title":"Submit a request","custom_block_4_text":"Contact us through a specially prepared form","custom_block_4_url":"#","custom_block_5_toggle":false,"custom_block_5_type":"custom","custom_block_5_icon":"/hc/theming_assets/01HZPQM56PS46GP6PHKVRGNH56","custom_block_5_title":"Hidden","custom_block_5_text":"Custom block text","custom_block_5_url":"#","custom_block_6_toggle":false,"custom_block_6_type":"custom","custom_block_6_icon":"/hc/theming_assets/01HZPQM5XSY26B6GX3YV94MNNN","custom_block_6_title":"Hidden","custom_block_6_text":"Custom block text","custom_block_6_url":"#","bottom_cta_bg":"#000","bottom_cta_title_color":"rgba(6, 6, 6, 0)","bottom_cta_subtitle_color":"#fff","bottom_cta_button_color":"#039afe","bottom_cta_title":"Can't find what you're looking for?","bottom_cta_subtitle":"Let us help you!","contact_boxes_title":"","contact_boxes_per_line":4,"contact_boxes_icon_size":"2rem","contact_box_1_toggle":false,"contact_box_1_link_toggle":false,"contact_box_1_url":"#","contact_box_1_icon":"/hc/theming_assets/01HZPQM6P997P2MK52QNSRY3Y7","contact_box_1_title":"Register your product","contact_box_1_text":"You can get support that’s tailored to you, owner exclusives and more","contact_box_2_toggle":true,"contact_box_2_link_toggle":false,"contact_box_2_url":"","contact_box_2_icon":"/hc/theming_assets/01HZPQM6VTC8CMRA7BR8N65K8A","contact_box_2_title":"Customer Support Hours","contact_box_2_text":"We are online weekdays between 09:00AM-05:00PM (GMT+2),  based in Greece. Please note we also observe official Greek public holidays.","contact_box_3_toggle":true,"contact_box_3_link_toggle":false,"contact_box_3_url":"#","contact_box_3_icon":"/hc/theming_assets/01JV4Q3E30EX2NWS9V5J1MYMHT","contact_box_3_title":"Guide translations","contact_box_3_text":"In the top right corner of the page, you can translate our guides into a series of different languages. Please note that these translations are powered by AI.","contact_box_4_toggle":true,"contact_box_4_link_toggle":true,"contact_box_4_url":"https://www.youtube.com/@RokokoMotion","contact_box_4_icon":"/hc/theming_assets/01HZPQM87GM1SBD2WRJ7T6GHKK","contact_box_4_title":"Tutorials \u0026 Workflows","contact_box_4_text":"Tutorials, how-to's, you name it. We've got it all on our YouTube channel!","toggle_facebook_icon":true,"facebook_url":"https://www.facebook.com/hellorokoko/","toggle_twitter_icon":true,"twitter_url":"https://twitter.com/hellorokoko","toggle_tiktok_icon":true,"tiktok_url":"https://www.tiktok.com/@hellorokoko?lang=en","toggle_linkedin_icon":true,"linkedin_url":"https://www.linkedin.com/company/rokoko","toggle_instagram_icon":true,"instagram_url":"https://www.instagram.com/hellorokoko/?hl=en","toggle_discord_icon":true,"discord_url":"https://discord.gg/AfCJBBQqRm","show_articles_in_section":true,"show_article_author":false,"show_article_comments":false,"show_follow_article":false,"show_print_article":false,"show_article_sharing":false,"show_article_boxes":false,"article_boxes_icon_size":"1rem","article_box_1_toggle":false,"article_box_1_link_toggle":true,"article_box_1_url":"#","article_box_1_icon":"/hc/theming_assets/01HZPQM8BS2PST1G227YXQ6TFC","article_box_1_title":"Register your product","article_box_1_text":"You can get support that’s tailored to you, owner exclusives and more","article_box_2_toggle":false,"article_box_2_link_toggle":true,"article_box_2_url":"#","article_box_2_icon":"/hc/theming_assets/01HZPQM939EK580ZRQ487VTGPV","article_box_2_title":"Our helpline hours:","article_box_2_text":"8:00am - 8:00pm CST Monday to Friday; 9:00am - 6:00pm CST Saturday","article_box_3_toggle":false,"article_box_3_link_toggle":true,"article_box_3_url":"#","article_box_3_icon":"/hc/theming_assets/01HZPQM97JP5ZJCYXR8SE7B6RP","article_box_3_title":"Follow us on Twitter","article_box_3_text":"Get the latest news and updates first","article_box_4_toggle":false,"article_box_4_link_toggle":true,"article_box_4_url":"#","article_box_4_icon":"/hc/theming_assets/01HZPQM9ZCQWG1TXC97M3QPH8H","article_box_4_title":"YouTube Support","article_box_4_text":"Fow how-to and support videos please visit our channel","show_follow_section":false,"show_follow_community_post":true,"show_print_post":true,"show_community_post_sharing":true,"show_follow_community_topic":true,"show_new_request_tip":false,"new_request_tip_background":"#f3fafc","new_request_tip_text":"Aim to include as much information and detail in your request as possible to reduce delays between replies","error_page_articles_title":"These articles might be helpful."},"has_pci_credit_card_custom_field":false,"help_center_restricted":false,"is_assuming_someone_else":false,"flash_messages":[],"user_photo_editing_enabled":true,"user_preferred_locale":"en-us","base_locale":"en-us","login_url":"https://rokoko.zendesk.com/access?locale=en-us\u0026brand_id=1900000359433\u0026return_to=https%3A%2F%2Fsupport.rokoko.com%2Fhc%2Fen-us%2Farticles%2F4410463481489-Retarget-an-animation-in-Blender","has_alternate_templates":false,"has_custom_statuses_enabled":true,"has_hc_generative_answers_setting_enabled":true,"has_suggested_initial_questions_enabled":false,"has_contentful_eap":false,"has_contentful_eap_eligible":false,"has_pdf_ingestion_eap":true,"has_pdf_ingestion_eap_eligible":true,"has_guide_service_catalog":true,"has_service_catalog_search_poc":true,"has_service_catalog_itam":false,"has_service_catalog_multibranding":false,"has_csat_reverse_2_scale_in_mobile":false,"has_trial_presumptive_setup":true,"has_unified_navigation":true,"has_unified_navigation_eap_access":true,"has_csat_bet365_branding":false,"has_csat_theming_integration_phase_1":false,"has_help_center_gen_search_follow_up_conversation":true,"version":"v27518","dev_mode":false};
+</script>
+
+  
+  
+  <script src="//static.zdassets.com/hc/assets/hc_enduser-51777e251fb3d84937711c2ab27f0a1b.js"></script>
+  <script type="text/javascript" src="/hc/theming_assets/11445707/1900000359433/script.js?digest=35230646888721"></script>
+  
+</body>
+</html>

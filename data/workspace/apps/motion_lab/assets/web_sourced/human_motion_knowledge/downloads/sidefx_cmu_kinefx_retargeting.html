@@ -1,0 +1,1567 @@
+
+<!doctype html>
+<html lang="en">
+
+
+<head>
+
+    
+    <script nonce="c08mBhBufHccQ+Z/eAdFVg==">(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;var n=d.querySelector('[nonce]');
+    n&&j.setAttribute('nonce',n.nonce||n.getAttribute('nonce'));f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-5TNSHCK');</script>
+    
+
+<meta http-equiv="Content-type" content="text/html; charset=utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="keywords" content="">
+<meta name="description" property="og:description" content="Learn how to use Houdini’s KineFX character tools and a TOP network to retarget the Carnegie Mellon University Graphics Lab Motion Capture Database to match a rig of our choosing. This lesson includes a workflow for procedurally removing noise from the mocap data and a description on how to turn your KineFX rig into an agent for crowd simulations. This workflow provides a template for converting old crowd animations onto a new skeleton.">
+<meta name="google-site-verification" content="CpSfgl412XOtwVzYMOp3ZfFPcZ6B7tp2zVo-bFP5W34" />
+<title>Retarget the CMU Motion Capture Database | SideFX</title>
+<meta property="og:image" content="https://media.sidefx.com/images/multi_video_tutorial/retarget-the-cmu-motion-capture-database-1/luca_cmu_thmb.png">
+<link rel="icon" href="https://static.sidefx.com/images/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="https://static.sidefx.com/images/favicon.ico" type="image/x-icon">
+<link rel="apple-touch-icon" sizes="180x180" href="https://static.sidefx.com/images/apple-touch-icon.png">
+<link rel="icon" sizes="180x180" href="https://static.sidefx.com/images/apple-touch-icon.png">
+<link rel="mask-icon" href="https://static.sidefx.com/images/safari-pinned-tab.svg" color="#ff6600">
+
+
+<script src="https://static.sidefx.com/js/jquery-1.12.0.min.js"></script>
+
+<link href="https://static.sidefx.com/bundles/common-66b572bbe16ef493469d.min.css" rel="stylesheet" />
+
+
+
+<link rel="stylesheet" href="https://static.sidefx.com/cartridge/css/cartridge.css">
+
+
+
+<link rel="stylesheet" type="text/css" media="all" href="https://static.sidefx.com/css/jbox.css" />
+
+
+<script src="https://static.sidefx.com/bundles/common-66b572bbe16ef493469d.min.js" ></script>
+
+
+<script src="https://static.sidefx.com/js/bootstrap.min.js"></script>
+<script src="https://static.sidefx.com/js/flat-ui-pro.min.js"></script>
+
+  
+  <script src="https://static.sidefx.com/js/vue.min.js"></script>
+  
+
+ <script src="https://static.sidefx.com/js/keyboard-acc.min.js"></script>
+
+  <script src="https://static.sidefx.com/js/jbox.js"></script>
+
+
+<!--[if lt IE 9]>
+<script src="https://static.sidefx.com/js/html5shiv.js"></script>
+<script src="https://static.sidefx.com/js/respond.min.js"></script>
+<![endif]-->
+
+
+</head>
+
+<body id="tutorial">
+
+
+  
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-5TNSHCK"
+  height="0" width="0" style="display:none;visibility:hidden" title="Google Tag Manager"></iframe></noscript>
+  
+
+
+<nav class="navbar navbar-inverse navbar-fixed-top" aria-label="SideFX Menu">
+    
+    <noscript>
+      <div class="offline-warning">
+        <img alt="This website requires a browser with javascript activated. Please enable javascript before continuing." src="https://static.sidefx.com/images/noscript-warning.png" />
+      </div>
+    </noscript>
+
+    
+      
+      <div id="sfx-login-dialog" class="collapse dialog dialog-default">
+          
+<div class="container">
+  <form method="post" id="top-login-form" class="form-inline login-form" action="/login/?next=/tutorials/retarget-the-cmu-motion-capture-database-19_5/">
+    <input type="hidden" name="csrfmiddlewaretoken" value="vHqZ5OwzkNdVcAaeJNMsi8vTSUveeAYdk0W45ecdDr7uskOKesZmWmBORHHuxa8B">
+    <div class="form-group form-group">
+      <input type="text" name="username" class="form-control login-field" id="sfx-login-username" placeholder="Username">
+      <label class="login-field-icon fui-user" for="sfx-login-username"></label>
+    </div>
+    <div class="form-group form-group">
+      <input type="password" name="password" class="form-control login-field" id="sfx-login-password" placeholder="Password" maxlength="4096">
+      <label class="login-field-icon fui-lock" for="sfx-login-password"></label>
+    </div>
+    <input type="hidden" name="next" value="/tutorials/retarget-the-cmu-motion-capture-database-19_5/" />
+    <input class="btn btn-primary-outline btn-wide" type="submit" value="Login" />
+  </form>
+  <div class="other">
+    <small>
+      <span >Forgot your password? &nbsp;&nbsp;<a href="/password/reset/">Click here</a></span> &nbsp;&nbsp;•&nbsp;&nbsp;
+      <span >No account yet? &nbsp;&nbsp;<a href="/register/" class="register">Please Register</a></span> &nbsp;&nbsp;
+      
+        •&nbsp;&nbsp;
+        <span >Or login using &nbsp;
+            <a class="social-auth" href="/login/google-oauth2/?next=/tutorials/retarget-the-cmu-motion-capture-database-19_5/"><img src="https://static.sidefx.com/images/accounts/login/ico_google.svg"></a>
+            <a class="social-auth" href="/login/microsoft-graph/?next=/tutorials/retarget-the-cmu-motion-capture-database-19_5/"><img src="https://static.sidefx.com/images/accounts/login/ico_microsoft.png"></a>
+            <a class="social-auth" href="/login/yahoo-oauth2/?next=/tutorials/retarget-the-cmu-motion-capture-database-19_5/"><img src="https://static.sidefx.com/images/accounts/login/ico_yahoo.png"></a>
+        </span>
+      
+    </small>
+  </div>
+</div>
+
+      </div>
+      <div id="sfx-login" class="navbar-text pull-right">
+      <span id="language_selector" data-toggle="modal" data-target="#languageModal" tabindex="4"><i class="fa fa-lg fa-globe" aria-hidden="true"></i> EN</span>
+        <a class="text" href="#sfx-login-dialog" data-toggle="collapse" tabindex="5"><i class="fui-user"></i> Login</a>
+      </div>
+      
+      
+
+    <button type="button" class="navbar-toggle pull-left collapsed" data-toggle="collapse" data-target="#js-bootstrap-collapse">
+      <span class="sr-only">Toggle Navigation</span>
+      <span class="icon-bar top-bar"></span>
+      <span class="icon-bar middle-bar"></span>
+      <span class="icon-bar bottom-bar"></span>
+    </button>
+
+    <div class="container">
+    <div class="navbar-header">
+      
+      <a class="navbar-left" href="/" tabindex="1"><img src="https://static.sidefx.com/images/ui/sfx_logo.svg" alt="SideFX Homepage"></a>
+      
+    </div>
+
+    <div class="navbar-collapse collapse" id="js-bootstrap-collapse">
+      
+
+<form class="navbar-form navbar-right" action="/search/" name="searchform" id="search" role="search">
+<div class="form-group">
+    <div class="input-group">
+        <input class="form-control" name="q" id="navbar_search_input" type="search" placeholder="Search">
+        <span class="input-group-btn">
+            <button type="submit" class="btn"><span class="fui-search"></span></button>
+        </span>
+    </div>
+</div>
+</form>
+      
+        
+<ul id="acc-menubar"class="nav navbar-nav" role="menubar"><li id="top_menu_143" class="dropdown" role="none"><a role="menuitem" tabindex="3" aria-haspopup="true" aria-expanded="false"
+        
+        class="dropdown-toggle disabled" data-toggle="dropdown"
+        >
+            Products
+        </a><ul class="dropdown-menu" role="menubar"><li id="top_menu_3633" class="dropdown dropdown-hover" role="none"><a role="menuitem" tabindex="-1"
+        
+        class="sub_active" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+        >What&#x27;s New in H21</a><ul class="submenu" role="menu"><li id="top_menu_3633" role="none"><a role="menuitem" href="/products/whats-new-in-h21/" tabindex="-1" aria-haspopup="true" aria-expanded="false">
+        Overview
+    </a><li id="top_menu_3636"><a role="menuitem" href="/products/whats-new-in-h21/animation/">Animation</a></li><li id="top_menu_3637"><a role="menuitem" href="/products/whats-new-in-h21/rigging/">Rigging</a></li><li id="top_menu_3642"><a role="menuitem" href="/products/whats-new-in-h21/cfx/">CFX</a></li><li id="top_menu_3638"><a role="menuitem" href="/products/whats-new-in-h21/vfx/">VFX</a></li><li id="top_menu_3639"><a role="menuitem" href="/products/whats-new-in-h21/lookdev/">Lookdev</a></li><li id="top_menu_3640"><a role="menuitem" href="/products/whats-new-in-h21/copernicus/">Copernicus</a></li><li id="top_menu_3641"><a role="menuitem" href="/products/whats-new-in-h21/terrain-modeling/">Terrain &amp; Modeling</a></li></ul></li><li id="top_menu_3576" class="dropdown dropdown-hover" role="none"><a role="menuitem" tabindex="-1"
+        
+        class="sub_active" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+        >Houdini</a><ul class="submenu" role="menu"><li id="top_menu_3576" role="none"><a role="menuitem" href="/products/houdini/" tabindex="-1" aria-haspopup="true" aria-expanded="false">
+        Overview
+    </a><li id="top_menu_3577"><a role="menuitem" href="/products/houdini/vfx/">VFX</a></li><li id="top_menu_3578"><a role="menuitem" href="/products/houdini/world-building/">World Building</a></li><li id="top_menu_3579"><a role="menuitem" href="/products/houdini/lookdev/">Lookdev</a></li><li id="top_menu_3580"><a role="menuitem" href="/products/houdini/characters/">Characters</a></li><li id="top_menu_3581"><a role="menuitem" href="/products/houdini/modeling/">Modeling</a></li><li id="top_menu_3582"><a role="menuitem" href="/products/houdini/pipeline-ai/">Pipeline &amp; AI</a></li></ul></li><li id="top_menu_1884" class="dropdown dropdown-hover" role="none"><a role="menuitem" tabindex="-1"
+        
+        class="sub_active" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+        >Houdini Engine</a><ul class="submenu" role="menu"><li id="top_menu_1884" role="none"><a role="menuitem" href="/products/houdini-engine/" tabindex="-1" aria-haspopup="true" aria-expanded="false">
+        Overview
+    </a><li id="top_menu_1886"><a role="menuitem" href="/products/houdini-engine/plug-ins/">Engine Plug-Ins</a></li><li id="top_menu_1887"><a role="menuitem" href="/products/houdini-engine/batch/">Batch</a></li></ul></li><li id="top_menu_3481" class="dropdown dropdown-hover" role="none"><a role="menuitem" tabindex="-1"
+        
+        class="sub_active" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+        >Karma Renderer</a><ul class="submenu" role="menu"><li id="top_menu_3481" role="none"><a role="menuitem" href="/products/karma/" tabindex="-1" aria-haspopup="true" aria-expanded="false">
+        Overview
+    </a><li id="top_menu_3509"><a role="menuitem" href="/products/karma/compare-karma/">Compare</a></li></ul></li><li id="top_menu_3465" class="dropdown dropdown-hover" role="none"><a role="menuitem" tabindex="-1"
+        
+        href="/products/compare/" role="menuitem"
+        >Compare</a></li><li id="top_menu_3612" class="dropdown dropdown-hover" role="none"><a role="menuitem" tabindex="-1"
+        
+        href="/products/sidefx-labs/" role="menuitem"
+        >SideFX Labs</a></li><li id="top_menu_3124" class="dropdown dropdown-hover" role="none"><a role="menuitem" tabindex="-1"
+        
+        href="/products/partners/" role="menuitem"
+        >Partners</a></li></ul></li><li id="top_menu_1186" class="dropdown" role="none"><a role="menuitem" tabindex="3" aria-haspopup="true" aria-expanded="false"
+        
+        class="dropdown-toggle disabled" data-toggle="dropdown"
+        >
+            Industries
+        </a><ul class="dropdown-menu" role="menubar"><li id="top_menu_1839" class="dropdown dropdown-hover" role="none"><a role="menuitem" tabindex="-1"
+        
+        href="/industries/filmtv/" role="menuitem"
+        >Film &amp; TV</a></li><li id="top_menu_1853" class="dropdown dropdown-hover" role="none"><a role="menuitem" tabindex="-1"
+        
+        href="/industries/games/" role="menuitem"
+        >Game Development</a></li><li id="top_menu_1854" class="dropdown dropdown-hover" role="none"><a role="menuitem" tabindex="-1"
+        
+        href="/industries/motion-graphics/" role="menuitem"
+        >Motion Graphics</a></li><li id="top_menu_1855" class="dropdown dropdown-hover" role="none"><a role="menuitem" tabindex="-1"
+        
+        href="/industries/virtual-reality/" role="menuitem"
+        >Virtual Reality</a></li><li id="top_menu_3563" class="dropdown dropdown-hover" role="none"><a role="menuitem" tabindex="-1"
+        
+        href="/industries/synthetic-data/" role="menuitem"
+        >Synthetic Data for AI/ML</a></li></ul></li><li id="top_menu_2" class="dropdown" role="none"><a role="menuitem" tabindex="3" aria-haspopup="true" aria-expanded="false"
+        
+        class="dropdown-toggle disabled" data-toggle="dropdown"
+        >
+            Community
+        </a><ul class="dropdown-menu" role="menubar"><li id="top_menu_1008" class="dropdown dropdown-hover" role="none"><a role="menuitem" tabindex="-1"
+        
+        href="/forum/" role="menuitem"
+        >Forum</a></li><li id="top_menu_1018" class="dropdown dropdown-hover" role="none"><a role="menuitem" tabindex="-1"
+        
+        class="sub_active" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+        >News Feed</a><ul class="submenu" role="menu"><li id="top_menu_1018" role="none"><a role="menuitem" href="/community/" tabindex="-1" aria-haspopup="true" aria-expanded="false">
+        Overview
+    </a><li id="top_menu_1377"><a role="menuitem" href="/community/section/stories/">Project Profiles</a></li><li id="top_menu_2652"><a role="menuitem" href="/community/section/event/">Houdini HIVE Events</a></li><li id="top_menu_3106"><a role="menuitem" href="/community/section/contest/">Contests &amp; Jams</a></li></ul></li><li id="top_menu_1007" class="dropdown dropdown-hover" role="none"><a role="menuitem" tabindex="-1"
+        
+        href="/gallery/" role="menuitem"
+        >Gallery</a></li><li id="top_menu_1233" class="dropdown dropdown-hover" role="none"><a role="menuitem" tabindex="-1"
+        
+        href="/events/calendar/" role="menuitem"
+        >Event Calendar</a></li><li id="top_menu_1314" class="dropdown dropdown-hover" role="none"><a role="menuitem" tabindex="-1"
+        
+        href="/user-groups/" role="menuitem"
+        >User Groups</a></li><li id="top_menu_3456" class="dropdown dropdown-hover" role="none"><a role="menuitem" tabindex="-1"
+        
+        href="/profile/directory/" role="menuitem"
+        >Artist Directory</a></li><li id="top_menu_3575" class="dropdown dropdown-hover" role="none"><a role="menuitem" tabindex="-1"
+        
+        href="https://sidefxhoudini.myshopify.com/" role="menuitem"
+        >Houdini Merch Store</a></li></ul></li><li id="top_menu_231" class="dropdown" role="none"><a role="menuitem" tabindex="3" aria-haspopup="true" aria-expanded="false"
+        
+        class="dropdown-toggle disabled" data-toggle="dropdown"
+        >
+            Learn
+        </a><ul class="dropdown-menu" role="menubar"><li id="top_menu_3441" class="dropdown dropdown-hover" role="none"><a role="menuitem" tabindex="-1"
+        
+        href="/learn-main-menu/start-here/" role="menuitem"
+        >Start Here</a></li><li id="top_menu_1037" class="dropdown dropdown-hover" role="none"><a role="menuitem" tabindex="-1"
+        
+        href="/learn/learning-library/tutorials/" role="menuitem"
+        >Learning Portal | Tutorials</a></li><li id="top_menu_2450" class="dropdown dropdown-hover" role="none"><a role="menuitem" tabindex="-1"
+        
+        href="/learn/learning-library/content/" role="menuitem"
+        >Learning Portal | Content</a></li><li id="top_menu_1375" class="dropdown dropdown-hover" role="none"><a role="menuitem" tabindex="-1"
+        
+        href="/learn/learning-library/talks_webinars/" role="menuitem"
+        >Learning Portal | Talks</a></li><li id="top_menu_3392" class="dropdown dropdown-hover" role="none"><a role="menuitem" tabindex="-1"
+        
+        href="/learn-main-menu/production-projects/" role="menuitem"
+        >Production Projects</a></li><li id="top_menu_2102" class="dropdown dropdown-hover" role="none"><a role="menuitem" tabindex="-1"
+        
+        class="sub_active" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+        >Academic Programs</a><ul class="submenu" role="menu"><li id="top_menu_2102" role="none"><a role="menuitem" href="/learn-main-menu/academic-programs/" tabindex="-1" aria-haspopup="true" aria-expanded="false">
+        Overview
+    </a><li id="top_menu_2104"><a role="menuitem" href="/learn-main-menu/academic-programs/students/">Students</a></li><li id="top_menu_2105"><a role="menuitem" href="/learn-main-menu/academic-programs/instructors/">Instructors</a></li><li id="top_menu_2106"><a role="menuitem" href="/learn-main-menu/academic-programs/administrators/">Administrators</a></li><li id="top_menu_3554"><a role="menuitem" href="/schools/">List of Schools</a></li><li id="top_menu_3537"><a role="menuitem" href="/learn-main-menu/academic-programs/resources/">Resources</a></li></ul></li><li id="top_menu_3667" class="dropdown dropdown-hover" role="none"><a role="menuitem" tabindex="-1"
+        
+        href="/learn-main-menu/certification/" role="menuitem"
+        >Certification</a></li></ul></li><li id="top_menu_118" class="dropdown" role="none"><a role="menuitem" tabindex="3" aria-haspopup="true" aria-expanded="false"
+        
+        class="dropdown-toggle disabled" data-toggle="dropdown"
+        >
+            Support
+        </a><ul class="dropdown-menu" role="menubar"><li id="top_menu_3553" class="dropdown dropdown-hover" role="none"><a role="menuitem" tabindex="-1"
+        
+        href="/support-programs/" role="menuitem"
+        >Customer Support</a></li><li id="top_menu_3569" class="dropdown dropdown-hover" role="none"><a role="menuitem" tabindex="-1"
+        
+        class="sub_active" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+        >Licensing</a><ul class="submenu" role="menu"><li id="top_menu_3569" role="none"><a role="menuitem" href="/Support/licensing/" tabindex="-1" aria-haspopup="true" aria-expanded="false">
+        Overview
+    </a><li id="top_menu_3573"><a role="menuitem" href="/Support/licensing/commercial/">Commercial</a></li><li id="top_menu_3572"><a role="menuitem" href="/Support/licensing/indie/">Indie</a></li><li id="top_menu_3574"><a role="menuitem" href="/Support/licensing/education/">Education</a></li></ul></li><li id="top_menu_1004" class="dropdown dropdown-hover" role="none"><a role="menuitem" tabindex="-1"
+        
+        href="/faq/" role="menuitem"
+        >Help Desk | FAQ</a></li><li id="top_menu_3654" class="dropdown dropdown-hover" role="none"><a role="menuitem" tabindex="-1"
+        
+        href="/Support/system-requirements/" role="menuitem"
+        >H21 System Requirements</a></li><li id="top_menu_1006" class="dropdown dropdown-hover" role="none"><a role="menuitem" tabindex="-1"
+        
+        href="/docs/" role="menuitem"
+        >Documentation</a></li><li id="top_menu_1005" class="dropdown dropdown-hover" role="none"><a role="menuitem" tabindex="-1"
+        
+        href="/changelog/" role="menuitem"
+        >Changelog / Journal</a></li><li id="top_menu_491" class="dropdown dropdown-hover" role="none"><a role="menuitem" tabindex="-1"
+        
+        href="/bugs/submit/" role="menuitem"
+        >Report a Bug/RFE</a></li></ul></li><li id="top_menu_168" class="dropdown" role="none"><a role="menuitem" tabindex="3" aria-haspopup="true" aria-expanded="false"
+        
+        class="dropdown-toggle disabled" data-toggle="dropdown"
+        >
+            Try | Buy
+        </a><ul class="dropdown-menu" role="menubar"><li id="top_menu_3551" class="dropdown dropdown-hover" role="none"><a role="menuitem" tabindex="-1"
+        
+        href="/get/try-houdini/" role="menuitem"
+        >Try</a></li><li id="top_menu_557" class="dropdown dropdown-hover" role="none"><a role="menuitem" tabindex="-1"
+        
+        href="/buy/" role="menuitem"
+        >Buy</a></li><li id="top_menu_3352" class="dropdown dropdown-hover" role="none"><a role="menuitem" tabindex="-1"
+        
+        href="/download/" role="menuitem"
+        >Download</a></li><li id="top_menu_1638" class="dropdown dropdown-hover" role="none"><a role="menuitem" tabindex="-1"
+        
+        href="/contact/" role="menuitem"
+        >Contact Info</a></li></ul></li></ul>
+      
+    </div>
+
+    </div>
+</nav>
+
+
+
+
+
+
+
+<div id="flex-main-content" class="">
+ 
+    
+      <div class="banner-pusher">&nbsp;</div>
+    
+    <div class="container">
+
+        
+
+        
+        <ul class="breadcrumb">
+        <li><a href="/"><i class="fui-home"></i></a></li>
+        </ul>
+        
+
+    </div>
+
+    <div class="container main-container">
+        
+</div> <!-- end main-container (required to get full
+width video player)-->
+<div id="app">
+
+<div class="row ">
+    <div class="player-block col-lg-8 sticky-top">
+        <div id="multivideo-player">
+            <div class="prev-button player-button hidden-xs">
+                <a @click="prevVideo()"
+                   v-if="!isFirstVideo()">
+                    <i class="fa fa-arrow-left fa-4x"></i>
+                </a>
+                <span v-else>
+                    <i class="fa fa-arrow-left fa-4x fa-hidden"></i>
+                </span>
+            </div>
+            <div class="container">
+                <div class="embed-responsive embed-responsive-16by9">
+                    <div id="player" ></div>
+                </div>
+            </div>
+            <div class="next-button player-button hidden-xs">
+                <a @click="nextVideo()"
+                   v-if="!isLastVideo()">
+                   <i class="fa fa-arrow-right fa-4x"></i>
+                </a>
+                <span v-else>
+                    <i class="fa fa-arrow-right fa-4x fa-hidden"></i>
+                </span>
+            </div>
+        </div>
+
+        
+        <div class="container alert alert-warning alert-dismissible">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <i class="fas fa-check-circle"></i>
+            <a href="/login/">Log into your account</a> to keep track of your progress. You can work through the lessons without logging in but your progress will be lost when you refresh the page.
+        </div>
+        
+        
+        <div class="tutorial-summary" v-pre>
+            
+
+<div id="header">
+    <div class="title-block">
+        <h1 class="">RETARGET THE CMU MOTION CAPTURE DATABASE</h1>
+        
+            
+            <div class="tutorial-info">
+                made in <a class="label label-primary" href="/tutorials/version/houdini-195/">Houdini 19.5</a> for <a class="label label-primary" href="/tutorials/level/intermediate/">Intermediate</a>  by <a class="label label-primary" href="/profile/lucap1/">Luca Pataracchia</a> at <a class="label label-primary" href="/profile/SideFX/">SideFX</a>
+            </div>
+            
+        
+
+        
+
+
+<div class="box">
+    <div class="rating" 
+        data-toggle="collapse" data-target="#vote" aria-expanded="false" aria-controls="vote"
+        authenticated= 
+    >
+        <!-- All filled stars -->
+         
+            <i class="fas fa-star" fill="fill"></i>
+         
+            <i class="fas fa-star" fill="fill"></i>
+         
+            <i class="fas fa-star" fill="fill"></i>
+         
+            <i class="fas fa-star" fill="fill"></i>
+         
+            <i class="fas fa-star" fill="fill"></i>
+        
+
+        <!-- Partial star (if exists) -->
+        
+
+        <!-- All empty stars -->
+        
+
+        <!-- Numerical display of average rating if there are 1+ responses -->
+        
+            <p class="average-rating">5/5</p>
+        
+    </div>
+
+    <p class="num-ratings">(2 responses)</p>
+
+    
+</div>
+
+
+<script type="text/javascript" nonce="c08mBhBufHccQ+Z/eAdFVg==">
+
+// Collapse #vote if user clicks anywhere else on the screen
+$(document).click(function(e) {
+	if (!$(e.target).is('#vote') && $('#vote').hasClass('in')) {
+    	$('#vote').collapse('toggle');	    
+    }
+});
+
+// Attach a submit handler to the form
+function submitRating(value) {
+    $('#vote').collapse('toggle')
+
+    // Get some values from elements on the page:
+    var url = /rating/;
+    // get the form data
+    // there are many ways to get this data using jQuery (you can use the class or id also)
+    var formData = {
+        'value': value,//$form.find('input[name=3]').val(),
+        'csrfmiddlewaretoken': 'vHqZ5OwzkNdVcAaeJNMsi8vTSUveeAYdk0W45ecdDr7uskOKesZmWmBORHHuxa8B',
+        
+            'content_type':'learn.multivideotutorial',
+        
+            'object_pk':'5542',
+        
+            'timestamp':'1781895629',
+        
+            'security_hash':'9d8e6584a515919fdcf5d03c1de3c10500656a49',
+        
+    };
+
+    // Send the data using post
+    var posting = $.post( url, formData, null, 'json' );
+
+    // Updating the DOM with most recent user rating input; data will update properly on page refresh
+    var userRatingVal = document.getElementById("user-rating-val")
+    if (userRatingVal) {
+        // User has previously rated this content; update their rating
+        userRatingVal.textContent=value;
+    } else {
+        // User is rating this content for the first time
+        var userRating = document.getElementById("user-rating")
+        userRating.textContent=`Your rating: ${value}/5`
+    }
+
+    // Fill stars based on user rating input
+    for (let i = 0; i < 5; i ++) {
+        const label = document.getElementById(`id_value_${i}`).labels[0]
+        
+        if (i < value) {
+            label.children[0].setAttribute("fill", "fill")
+        }
+        else {
+            label.children[0].setAttribute("fill", "none")
+        }
+    }
+
+}
+</script>
+
+
+    </div>
+
+   
+    <div class="author-rating-block">
+        <div class="tutorial-secondary-info">
+            <div class="col-mod-6">
+            
+                
+                    <span class="meta-label">Category</span>
+                    
+                        <a href="/tutorials/category/animation/">Animation</a>,&nbsp;
+                    
+                        <a href="/tutorials/category/character/">Character</a>,&nbsp;
+                    
+                        <a href="/tutorials/category/crowds/">Crowds</a>,&nbsp;
+                    
+                        <a href="/tutorials/category/kinefx/">Rigging</a>
+                    
+                
+            
+            </div>
+            <div class="pull-right">
+                
+            </div>
+            <div>
+                <span class="meta-label">Posted</span>April 04, 2023
+            </div>
+        </div>
+        <div class="bookmark-lesson-block">
+            
+    
+            <div class="lesson-status">
+                
+            </div>
+
+            <!-- I found this confusing and couldn't guess that it was a share button - commented out for visual layout -->
+            <!-- <div class="">
+                <a target="_blank" rel="noopener noreferrer" class="facebook" href="http://www.facebook.com/sharer/sharer.php?u=https%3A//www.sidefx.com/tutorials/retarget-the-cmu-motion-capture-database-19_5/&title=Retarget%20the%20CMU%20Motion%20Capture%20Database" onclick="javascript:window.open(this.href,
+  '', 'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=600,width=600');return false;">
+	<i class="fab fa-facebook" style="color:#3b5998; background-color:#fff;"></i>
+</a>
+
+<a target="_blank" rel="noopener noreferrer" class="twitter" href="http://twitter.com/intent/tweet?status=Retarget%20the%20CMU%20Motion%20Capture%20Database+https%3A//www.sidefx.com/tutorials/retarget-the-cmu-motion-capture-database-19_5/" onclick="javascript:window.open(this.href,
+  '', 'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=600,width=600');return false;">
+		<i class="fab fa-x-twitter" style="color:#000; background-color:#fff"></i>
+</a>
+
+<a target="_blank" rel="noopener noreferrer" class="linkedin" href="http://www.linkedin.com/shareArticle?mini=true&url=https%3A//www.sidefx.com/tutorials/retarget-the-cmu-motion-capture-database-19_5/&title=Retarget%20the%20CMU%20Motion%20Capture%20Database" onclick="javascript:window.open(this.href,
+  '', 'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=600,width=600');return false;">
+		<i class="fab fa-linkedin" style="color:#0077b5; background-color:#fff"></i>
+</a>
+            </div> -->
+    
+        </div>
+    </div>
+
+    <hr/>
+</div>
+
+            <div><p><strong>TOTAL DURATION: </strong><i>1h 1m 59s</i></p>
+
+<p>Learn how to use Houdini’s KineFX character tools and a TOP network to retarget the Carnegie Mellon University Graphics Lab Motion Capture Database to match a rig of our choosing. This lesson includes a workflow for procedurally removing noise from the mocap data and a description on how to turn your KineFX rig into an agent for crowd simulations. This workflow provides a template for converting old crowd animations onto a new skeleton.</p></div>
+            
+            
+
+
+
+            
+        </div>
+        
+    </div>
+
+    
+    <div id="section-list" class="col-lg-4">
+      <div class="section section-files" v-for="item in files">
+        <div class="section-heading">
+            <a role="button" :href="item.url" target="_blank">
+              <i class="fal fa-arrow-circle-down fa-2x"></i><span>${item.title}</span>
+            </a>
+        </div>
+      </div>
+      <div class="section" v-for="item in playlist" v-bind:class="{ active: item.id == currentVideoId }">
+        <div class="section-heading">
+            <a role="button" @click="playSelectedItem(item)">
+              <span v-show="iconStatus(item)=='COMPLETE'"><i
+                class="fal fa-check-circle fa-2x"></i></span>
+              <span v-show="iconStatus(item)=='INCOMPLETE'"><i
+                class="fal fa-circle fa-2x"></i></span>
+              <span v-show="iconStatus(item)=='PLAY'"><i
+                class="fal fa-play-circle fa-2x"></i></span>
+              <span>${item.title}</span>
+            </a>
+        </div>
+        <div class="section-description">
+            <div class="description">${item.description}</div>
+        </div>
+      </div>
+    </div>
+    
+</div>
+
+
+<div class="container description-block" v-pre>
+    
+    
+<div id="about-author">
+    <h4>CREATED BY</h4>
+    <div class="author">
+        <div class="author-img">
+            <a href="/profile/lucap1/">
+                
+                <img alt="lucap1" src="https://media.sidefx.com/accounts/avatars/272955/resized/80/80/cornell_box_of_blood_small.png" class="avatar">
+                
+            </a>
+        </div>
+        <div class="author-meta">
+            <h5 class="author-name"><a class="text-info" href="/profile/lucap1/">LUCA PATARACCHIA</a></h5>
+            <p>Senior Production Consultant</p>
+            <p><small><em><a class="text-info" href="/tutorials/author/lucap1/">More from Luca Pataracchia</em> <i class="fui-exit"></i></a></small></p>
+        </div>
+    </div>
+</div>
+    
+    
+    
+
+    
+
+    
+    
+<div id="comments">
+<h3>COMMENTS</h3>
+<script type="text/javascript" nonce="c08mBhBufHccQ+Z/eAdFVg==">
+$(function() {
+    $('.reply').click(function() {
+        $('.comment-reply-form').hide();
+        $('.comment-reply-form .input_id_comment label').text('Reply');
+        $($(this).attr("href")).toggle();
+    });
+});
+</script>
+<style>.input_id_honeypot {display:none !important;}</style>
+
+
+
+<ul class="list-unstyled comment-thread">
+
+<li id="comment-12613"
+    class="comment ">
+
+    
+    
+        
+            <img class="pull-left avatar hidden-xs" src="https://www.gravatar.com/avatar/cd6891974b7303806318988ba5e4aec3/?s=32&amp;d=mp" />
+        
+        <div class="comment-bubble">
+            <p class="comment-meta">
+                
+                    <a href="/profile/rookyspooky/">rookyspooky</a>
+                
+                <small class="timespan">
+                    3 years, 2 months ago
+                </small>
+                 &nbsp;|&nbsp;
+                    <a class="text-info" href="/tutorials/retarget-the-cmu-motion-capture-database-19_5/#comment-12613"><i class="fui-link"></i></a>
+                    <a class="reply text-info" href="#reply-12613"><i class="fa fa-reply"></i></a>
+                
+            </p>
+
+            <p class="comment-comment">Great explanation! Somehow I am stuck at the &quot;make videos&quot; part.  FFmpeg is installed is there a version which is mandatory?<br><br>Cheers.</p>
+        </div>
+    
+
+    
+    <div class="comment-links">
+        <form class="comment-reply-form" method="post" id="reply-12613"
+            action="/comment/#reply-12613"
+            style="display:none;">
+            
+            
+
+
+<input type="hidden" name="referrer" value="">
+<input type="hidden" name="csrfmiddlewaretoken" value="vHqZ5OwzkNdVcAaeJNMsi8vTSUveeAYdk0W45ecdDr7uskOKesZmWmBORHHuxa8B">
+
+
+
+
+<input type="hidden" name="content_type" value="learn.multivideotutorial" id="id_content_type">
+
+
+
+<input type="hidden" name="object_pk" value="5542" id="id_object_pk">
+
+
+
+<input type="hidden" name="timestamp" value="1781895629" id="id_timestamp">
+
+
+
+<input type="hidden" name="security_hash" value="9d8e6584a515919fdcf5d03c1de3c10500656a49" id="id_security_hash">
+
+
+
+<input type="hidden" name="name" id="id_name">
+
+
+
+<input type="hidden" name="email" id="id_email">
+
+
+
+<input type="hidden" name="url" id="id_url">
+
+
+
+<div class="form-group input_id_comment 
+    ">
+    <label class="control-label" for="id_comment">Comment</label>
+    
+    <textarea name="comment" cols="40" rows="10" maxlength="3000" class="form-control" required id="id_comment">
+</textarea>
+    
+</div>
+
+
+
+<div class="form-group input_id_honeypot 
+    ">
+    <label class="control-label" for="id_honeypot">If you enter anything in this field your comment will be treated as spam</label>
+    
+    <input type="text" name="honeypot" class="form-control" id="id_honeypot">
+    
+</div>
+
+
+
+            
+            <input type="hidden" name="replied_to" value="12613">
+            <input class="btn btn-xs btn-info" type="submit" value="REPLY">
+        </form>
+    </div>
+    
+
+    
+
+<ul class="list-unstyled comment-thread">
+
+<li id="comment-12629"
+    class="comment  comment-author">
+
+    
+    
+        
+            <img class="pull-left avatar hidden-xs" src="https://media.sidefx.com/accounts/avatars/272955/resized/32/32/cornell_box_of_blood_small.png" />
+        
+        <div class="comment-bubble">
+            <p class="comment-meta">
+                
+                    <a href="/profile/lucap1/">lucap1</a>
+                
+                <small class="timespan">
+                    3 years, 2 months ago
+                </small>
+                 &nbsp;|&nbsp;
+                    <a class="text-info" href="/tutorials/retarget-the-cmu-motion-capture-database-19_5/#comment-12629"><i class="fui-link"></i></a>
+                    <a class="reply text-info" href="#reply-12629"><i class="fa fa-reply"></i></a>
+                
+            </p>
+
+            <p class="comment-comment">There are some notes on installation in the help: <a href="https://www.sidefx.com/docs/houdini/nodes/top/ffmpegencodevideo.html" rel="nofollow">https://www.sidefx.com/docs/houdini/nodes/top/ffmpegencodevideo.html</a><br><br>setting this up with packages is probably the way to go: <a href="https://www.sidefx.com/docs/houdini/ref/plugins.html#using_packages" rel="nofollow">https://www.sidefx.com/docs/houdini/ref/plugins.html#using_packages</a><br><br>I&#x27;m launching houdini from cygwin on windows which seems to find ffmpeg automatically.</p>
+        </div>
+    
+
+    
+    <div class="comment-links">
+        <form class="comment-reply-form" method="post" id="reply-12629"
+            action="/comment/#reply-12629"
+            style="display:none;">
+            
+            
+
+
+<input type="hidden" name="referrer" value="">
+<input type="hidden" name="csrfmiddlewaretoken" value="vHqZ5OwzkNdVcAaeJNMsi8vTSUveeAYdk0W45ecdDr7uskOKesZmWmBORHHuxa8B">
+
+
+
+
+<input type="hidden" name="content_type" value="learn.multivideotutorial" id="id_content_type">
+
+
+
+<input type="hidden" name="object_pk" value="5542" id="id_object_pk">
+
+
+
+<input type="hidden" name="timestamp" value="1781895629" id="id_timestamp">
+
+
+
+<input type="hidden" name="security_hash" value="9d8e6584a515919fdcf5d03c1de3c10500656a49" id="id_security_hash">
+
+
+
+<input type="hidden" name="name" id="id_name">
+
+
+
+<input type="hidden" name="email" id="id_email">
+
+
+
+<input type="hidden" name="url" id="id_url">
+
+
+
+<div class="form-group input_id_comment 
+    ">
+    <label class="control-label" for="id_comment">Comment</label>
+    
+    <textarea name="comment" cols="40" rows="10" maxlength="3000" class="form-control" required id="id_comment">
+</textarea>
+    
+</div>
+
+
+
+<div class="form-group input_id_honeypot 
+    ">
+    <label class="control-label" for="id_honeypot">If you enter anything in this field your comment will be treated as spam</label>
+    
+    <input type="text" name="honeypot" class="form-control" id="id_honeypot">
+    
+</div>
+
+
+
+            
+            <input type="hidden" name="replied_to" value="12629">
+            <input class="btn btn-xs btn-info" type="submit" value="REPLY">
+        </form>
+    </div>
+    
+
+    
+
+<ul class="list-unstyled comment-thread">
+
+
+
+</ul>
+
+
+    
+</li>
+
+
+
+</ul>
+
+
+    
+</li>
+
+<li id="comment-12628"
+    class="comment  comment-author">
+
+    
+    
+        
+            <img class="pull-left avatar hidden-xs" src="https://media.sidefx.com/accounts/avatars/272955/resized/32/32/cornell_box_of_blood_small.png" />
+        
+        <div class="comment-bubble">
+            <p class="comment-meta">
+                
+                    <a href="/profile/lucap1/">lucap1</a>
+                
+                <small class="timespan">
+                    3 years, 2 months ago
+                </small>
+                 &nbsp;|&nbsp;
+                    <a class="text-info" href="/tutorials/retarget-the-cmu-motion-capture-database-19_5/#comment-12628"><i class="fui-link"></i></a>
+                    <a class="reply text-info" href="#reply-12628"><i class="fa fa-reply"></i></a>
+                
+            </p>
+
+            <p class="comment-comment">There are some notes on installation in the help: <a href="https://www.sidefx.com/docs/houdini/nodes/top/ffmpegencodevideo.html" rel="nofollow">https://www.sidefx.com/docs/houdini/nodes/top/ffmpegencodevideo.html</a><br><br>setting this up with packages is probably the way to go:  <a href="https://www.sidefx.com/docs/houdini/ref/plugins.html#using_packages" rel="nofollow">https://www.sidefx.com/docs/houdini/ref/plugins.html#using_packages</a><br><br>I&#x27;m launching houdini from cygwin on windows which seems to find ffmpeg automatically.</p>
+        </div>
+    
+
+    
+    <div class="comment-links">
+        <form class="comment-reply-form" method="post" id="reply-12628"
+            action="/comment/#reply-12628"
+            style="display:none;">
+            
+            
+
+
+<input type="hidden" name="referrer" value="">
+<input type="hidden" name="csrfmiddlewaretoken" value="vHqZ5OwzkNdVcAaeJNMsi8vTSUveeAYdk0W45ecdDr7uskOKesZmWmBORHHuxa8B">
+
+
+
+
+<input type="hidden" name="content_type" value="learn.multivideotutorial" id="id_content_type">
+
+
+
+<input type="hidden" name="object_pk" value="5542" id="id_object_pk">
+
+
+
+<input type="hidden" name="timestamp" value="1781895629" id="id_timestamp">
+
+
+
+<input type="hidden" name="security_hash" value="9d8e6584a515919fdcf5d03c1de3c10500656a49" id="id_security_hash">
+
+
+
+<input type="hidden" name="name" id="id_name">
+
+
+
+<input type="hidden" name="email" id="id_email">
+
+
+
+<input type="hidden" name="url" id="id_url">
+
+
+
+<div class="form-group input_id_comment 
+    ">
+    <label class="control-label" for="id_comment">Comment</label>
+    
+    <textarea name="comment" cols="40" rows="10" maxlength="3000" class="form-control" required id="id_comment">
+</textarea>
+    
+</div>
+
+
+
+<div class="form-group input_id_honeypot 
+    ">
+    <label class="control-label" for="id_honeypot">If you enter anything in this field your comment will be treated as spam</label>
+    
+    <input type="text" name="honeypot" class="form-control" id="id_honeypot">
+    
+</div>
+
+
+
+            
+            <input type="hidden" name="replied_to" value="12628">
+            <input class="btn btn-xs btn-info" type="submit" value="REPLY">
+        </form>
+    </div>
+    
+
+    
+
+<ul class="list-unstyled comment-thread">
+
+
+
+</ul>
+
+
+    
+</li>
+
+<li id="comment-13046"
+    class="comment ">
+
+    
+    
+        
+            <img class="pull-left avatar hidden-xs" src="https://www.gravatar.com/avatar/abf0bb20a8c02b1adf81f7c75ee6818f/?s=32&amp;d=mp" />
+        
+        <div class="comment-bubble">
+            <p class="comment-meta">
+                
+                    <a href="/profile/thomas_english/">thomas_english</a>
+                
+                <small class="timespan">
+                    2 years, 11 months ago
+                </small>
+                 &nbsp;|&nbsp;
+                    <a class="text-info" href="/tutorials/retarget-the-cmu-motion-capture-database-19_5/#comment-13046"><i class="fui-link"></i></a>
+                    <a class="reply text-info" href="#reply-13046"><i class="fa fa-reply"></i></a>
+                
+            </p>
+
+            <p class="comment-comment">Unable to download the project file unfortunately<br><br>504 ERROR<br>The request could not be satisfied.<br>CloudFront attempted to establish a connection with the origin, but either the attempt failed or the origin closed the connection. We can&#x27;t connect to the server for this app or website at this time. There might be too much traffic or a configuration error. Try again later, or contact the app or website owner.<br>If you provide content to customers through CloudFront, you can find steps to troubleshoot and help prevent this error by reviewing the CloudFront documentation.<br>Generated by cloudfront (CloudFront)<br>Request ID: FWDjO3Cq8ARKEr0kH06oPyXTFlBaSxlMpC93jsP1vkpU1C4vylrr-A==</p>
+        </div>
+    
+
+    
+    <div class="comment-links">
+        <form class="comment-reply-form" method="post" id="reply-13046"
+            action="/comment/#reply-13046"
+            style="display:none;">
+            
+            
+
+
+<input type="hidden" name="referrer" value="">
+<input type="hidden" name="csrfmiddlewaretoken" value="vHqZ5OwzkNdVcAaeJNMsi8vTSUveeAYdk0W45ecdDr7uskOKesZmWmBORHHuxa8B">
+
+
+
+
+<input type="hidden" name="content_type" value="learn.multivideotutorial" id="id_content_type">
+
+
+
+<input type="hidden" name="object_pk" value="5542" id="id_object_pk">
+
+
+
+<input type="hidden" name="timestamp" value="1781895629" id="id_timestamp">
+
+
+
+<input type="hidden" name="security_hash" value="9d8e6584a515919fdcf5d03c1de3c10500656a49" id="id_security_hash">
+
+
+
+<input type="hidden" name="name" id="id_name">
+
+
+
+<input type="hidden" name="email" id="id_email">
+
+
+
+<input type="hidden" name="url" id="id_url">
+
+
+
+<div class="form-group input_id_comment 
+    ">
+    <label class="control-label" for="id_comment">Comment</label>
+    
+    <textarea name="comment" cols="40" rows="10" maxlength="3000" class="form-control" required id="id_comment">
+</textarea>
+    
+</div>
+
+
+
+<div class="form-group input_id_honeypot 
+    ">
+    <label class="control-label" for="id_honeypot">If you enter anything in this field your comment will be treated as spam</label>
+    
+    <input type="text" name="honeypot" class="form-control" id="id_honeypot">
+    
+</div>
+
+
+
+            
+            <input type="hidden" name="replied_to" value="13046">
+            <input class="btn btn-xs btn-info" type="submit" value="REPLY">
+        </form>
+    </div>
+    
+
+    
+
+<ul class="list-unstyled comment-thread">
+
+
+
+</ul>
+
+
+    
+</li>
+
+<li id="comment-17101"
+    class="comment ">
+
+    
+    
+        
+            <img class="pull-left avatar hidden-xs" src="https://www.gravatar.com/avatar/ec5fa98245e39977ea33d34e4880e941/?s=32&amp;d=mp" />
+        
+        <div class="comment-bubble">
+            <p class="comment-meta">
+                
+                    <a href="/profile/Artheaduck41/">Artheaduck41</a>
+                
+                <small class="timespan">
+                    1 year, 5 months ago
+                </small>
+                 &nbsp;|&nbsp;
+                    <a class="text-info" href="/tutorials/retarget-the-cmu-motion-capture-database-19_5/#comment-17101"><i class="fui-link"></i></a>
+                    <a class="reply text-info" href="#reply-17101"><i class="fa fa-reply"></i></a>
+                
+            </p>
+
+            <p class="comment-comment">What is this Carnegie Mellon University? I&#x27;ve never heard of it. Do they teach online courses? Studying online is difficult, especially at university, so I even sometimes looked for a writing service and <a href="https://edubirdie.com/" rel="nofollow">https://edubirdie.com/</a> helped me with this. In fact, I would like to find a full course somewhere and take it. But I can&#x27;t find it yet. I like your videos, but I want something else in addition.</p>
+        </div>
+    
+
+    
+    <div class="comment-links">
+        <form class="comment-reply-form" method="post" id="reply-17101"
+            action="/comment/#reply-17101"
+            style="display:none;">
+            
+            
+
+
+<input type="hidden" name="referrer" value="">
+<input type="hidden" name="csrfmiddlewaretoken" value="vHqZ5OwzkNdVcAaeJNMsi8vTSUveeAYdk0W45ecdDr7uskOKesZmWmBORHHuxa8B">
+
+
+
+
+<input type="hidden" name="content_type" value="learn.multivideotutorial" id="id_content_type">
+
+
+
+<input type="hidden" name="object_pk" value="5542" id="id_object_pk">
+
+
+
+<input type="hidden" name="timestamp" value="1781895629" id="id_timestamp">
+
+
+
+<input type="hidden" name="security_hash" value="9d8e6584a515919fdcf5d03c1de3c10500656a49" id="id_security_hash">
+
+
+
+<input type="hidden" name="name" id="id_name">
+
+
+
+<input type="hidden" name="email" id="id_email">
+
+
+
+<input type="hidden" name="url" id="id_url">
+
+
+
+<div class="form-group input_id_comment 
+    ">
+    <label class="control-label" for="id_comment">Comment</label>
+    
+    <textarea name="comment" cols="40" rows="10" maxlength="3000" class="form-control" required id="id_comment">
+</textarea>
+    
+</div>
+
+
+
+<div class="form-group input_id_honeypot 
+    ">
+    <label class="control-label" for="id_honeypot">If you enter anything in this field your comment will be treated as spam</label>
+    
+    <input type="text" name="honeypot" class="form-control" id="id_honeypot">
+    
+</div>
+
+
+
+            
+            <input type="hidden" name="replied_to" value="17101">
+            <input class="btn btn-xs btn-info" type="submit" value="REPLY">
+        </form>
+    </div>
+    
+
+    
+
+<ul class="list-unstyled comment-thread">
+
+
+
+</ul>
+
+
+    
+</li>
+
+
+
+</ul>
+
+
+<!--<h3>New Comment</h3>-->
+
+<p>Please <a href="/login/">log in</a> to leave a comment.</p>
+
+</div>
+
+    
+</div>
+
+<!-- Start Multivideo Container -->
+<div class="">
+
+</div><!-- End Multivideo Container -->
+</div><!-- End app -->
+<div class="container"> <!-- start footer container -->
+
+    </div>
+
+
+
+  
+</div>
+
+  
+
+
+  
+
+<footer class="bottom-menu bottom-menu-inverse is-section">
+
+<div class="container">
+    <div class="row">
+        
+          
+
+<div class="col-md-2 col-sm-2"><h5 class="title">PRODUCTS <i class="visible-xs pull-right fui-plus"></i></h5><ul class="hidden-xs bottom-menu-list"><li><a href="/products/houdini/">Houdini</a></li><li><a href="/products/houdini-engine/">Houdini Engine</a></li><li><a href="/products/karma/">Karma Renderer</a></li><li><a href="/products/sidefx-labs/">SideFX Labs</a></li><li><a href="/products/partners/">Partners</a></li></ul></div><div class="col-md-2 col-sm-2"><h5 class="title">LEARN <i class="visible-xs pull-right fui-plus"></i></h5><ul class="hidden-xs bottom-menu-list"><li><a href="/learn/learning-library/tutorials/">Learning Portal | Tutorials</a></li><li><a href="/learn/learning-library/content/">Learning Portal | Content</a></li><li><a href="/learn/learning-library/talks_webinars/">Learning Portal | Talks</a></li><li><a href="/learn-main-menu/production-projects/">Production Projects</a></li><li><a href="/learn-main-menu/academic-programs/">Academic Programs</a></li></ul></div><div class="col-md-2 col-sm-2"><h5 class="title">SUPPORT <i class="visible-xs pull-right fui-plus"></i></h5><ul class="hidden-xs bottom-menu-list"><li><a href="/support-programs/">Customer Support</a></li><li><a href="/faq/">Help Desk | FAQ</a></li><li><a href="/Support/system-requirements/">H21 System Requirements</a></li><li><a href="/docs/">Documentation</a></li><li><a href="/bugs/submit/">Report a Bug/RFE</a></li></ul></div><div class="col-md-2 col-sm-2"><h5 class="title">LEGAL <i class="visible-xs pull-right fui-plus"></i></h5><ul class="hidden-xs bottom-menu-list"><li><a href="/legal/terms-and-conditions/">Terms of Use</a></li><li><a href="/legal/privacy-policy/">Privacy Policy</a></li><li><a href="/legal/license-agreement/">License Agreement</a></li><li><a href="/legal/accessibility/">Accessibility</a></li><li><a href="/responsible-disclosure-program/">Responsible Disclosure Program</a></li></ul></div><div class="col-md-2 col-sm-2"><h5 class="title">COMPANY <i class="visible-xs pull-right fui-plus"></i></h5><ul class="hidden-xs bottom-menu-list"><li><a href="/company/about-sidefx/">About SideFX</a></li><li><a href="/company/careers/">Careers</a></li><li><a href="/company/press/">Press</a></li><li><a href="https://sidefxhoudini.myshopify.com/">Houdini Merch Store</a></li><li><a href="/company/internships/">Internships</a></li><li><a href="/company/contact-us/">Contact Info</a></li></ul></div>
+        
+    </div>
+</div>
+
+<div class="footnote row">
+      <span class="copyright col-md-6">Copyright © SideFX 2026. All Rights Reserved.</span>
+      
+      <ul class="bottom-menu-iconic-list col-md-6 text-right">
+          <li><a href="https://www.facebook.com/Houdini3D/" aria-label="SideFX on Facebook"><i aria-hidden="true" role="presentation" class="fab fa-facebook fa-lg"></i></a></li>
+          <li><a href="https://twitter.com/sidefx" aria-label="SideFX on Twitter"><i aria-hidden="true" role="presentation" class="fab fa-x-twitter fa-lg"></i></a></li>
+          <li><a href="https://www.instagram.com/sidefxhoudini/" aria-label="SideFX on Instagram"><i aria-hidden="true" role="presentation" class="fab fa-instagram fa-lg"></i></a></li>
+          <li><a href="https://bsky.app/profile/sidefx.bsky.social" aria-label="SideFX on Bluesky"><i aria-hidden="true" role="presentation" class="fab fa-bluesky fa-lg"></i></a></li>
+          <li><a href="https://www.meetup.com/pro/houdini/" aria-label="SideFX Meetups"><i aria-hidden="true" role="presentation" class="fab fa-meetup fa-lg"></i></a></li>
+          <li><a href="https://vimeo.com/goprocedural" aria-label="SideFX on Vimeo"><i aria-hidden="true" role="presentation" class="fab fa-vimeo fa-lg"></i></a></li>
+          <li><a href="https://www.youtube.com/user/houdini3d" aria-label="SideFX on Youtube"><i aria-hidden="true" role="presentation" class="fab fa-youtube fa-lg"></i></a></li>
+          <li><a href="https://www.linkedin.com/company/side-effects-software" aria-label="SideFX on Linkedin"><i aria-hidden="true" role="presentation" class="fab fa-linkedin fa-lg"></i></a></li>
+      </ul>
+      
+</div>
+
+</footer>
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-168H7NMCYC"></script>
+    <script nonce="c08mBhBufHccQ+Z/eAdFVg==">
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-168H7NMCYC', {
+        'custom_map': {'dimension1': 'Author'},
+        
+        'allow_google_signals': false,
+        'allow_ad_personalization_signals': false,
+      });
+      
+    </script>
+
+    <!-- Vimeo Analytics -->
+    <script type="text/javascript" defer="defer" src="https://extend.vimeocdn.com/ga/1723479.js"></script>
+    <!-- End of Vimeo Analysitcs -->
+
+    <!-- Facebook Pixel Code -->
+    <script nonce="c08mBhBufHccQ+Z/eAdFVg==">
+    !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+    n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
+    document,'script','https://connect.facebook.net/en_US/fbevents.js');
+
+    fbq('init', '364163793745190');
+    fbq('track', "PageView");</script>
+    <noscript><img height="1" width="1" style="display:none"
+    src="https://www.facebook.com/tr?id=364163793745190&ev=PageView&noscript=1"
+    /></noscript>
+    <!-- End Facebook Pixel Code -->
+
+
+
+<script type="text/javascript" nonce="c08mBhBufHccQ+Z/eAdFVg==">
+  
+  const csrftoken = 'vHqZ5OwzkNdVcAaeJNMsi8vTSUveeAYdk0W45ecdDr7uskOKesZmWmBORHHuxa8B';
+	// top menu highlight
+    
+    page_parent = null;
+    
+
+    if (page_parent != null) {
+        item = $('#top_menu_'+page_parent);
+        item.addClass('active');
+    }
+
+    // jQuery plugin to prevent double submission of forms
+    jQuery.fn.preventDoubleSubmission = function() {
+      $(this).on('submit',function(e){
+        var $form = $(this);
+        if ($form.data('submitted') === true) {
+          // Previously submitted - don't submit again
+          e.preventDefault();
+        } else {
+          // Mark it so that the next submit can be ignored
+          $form.data('submitted', true);
+        }
+      });
+      // Keep chainability
+      return this;
+    };
+</script>
+<script type="text/javascript" nonce="c08mBhBufHccQ+Z/eAdFVg==">
+$(function() {
+    // Header: top menu highlight
+    
+
+    // Footer
+    $("footer .title").click(function(e) {
+        if (!$(e.target).closest("ul").length) {
+            $(this).next().toggleClass("hidden-xs")
+        }
+    })
+    ////////
+    // Flat-ui checkboxes
+    $('[data-toggle="checkbox"]').radiocheck();
+    $('[data-toggle="radio"]').radiocheck();
+    // Flat-ui selects
+    $(".select").select2();
+    $('.select-search').select2({dropdownCssClass: 'show-select-search'});
+    // Focus state for append/prepend inputs
+    $('.input-group').on('focus', '.form-control', function () {
+      $(this).closest('.input-group, .form-group').addClass('focus');
+    }).on('blur', '.form-control', function () {
+      $(this).closest('.input-group, .form-group').removeClass('focus');
+    });
+    // When removing uploaded file, check the deletion checkbox for
+    // crispy-flat-ui/image-upload-field.html
+    $('.clear-file').click(function() {
+      delete_input_id = $(this).attr('data-delete-input-id');
+      $('#'+delete_input_id).prop('checked', true);
+    });
+    $('.file-selector').change(function() {
+      if ($(this).val() != ''){
+        delete_input_id = $(this).attr('data-delete-input-id');
+        $('#'+delete_input_id).prop('checked', false);
+      }
+    });
+    /////////
+
+    
+});
+
+
+  // Prevent double submit of login form
+  $('#top-login-form').preventDoubleSubmission();
+
+</script>
+
+<script type="text/javascript" nonce="c08mBhBufHccQ+Z/eAdFVg==">
+  var menubar = new Menubar(document.getElementById('acc-menubar'));
+  menubar.init();
+
+</script>
+
+
+<script type="text/javascript" nonce="c08mBhBufHccQ+Z/eAdFVg==">
+    $('.carousel').carousel({
+      interval: 3000
+    })
+    $(document).on('lity:open', function(event, instance) {
+        $(window).scroll(function() {
+            instance.close();
+        });
+    });
+    $(document).ready(function () {
+        if (typeof gtag !== 'undefined' ) {
+            gtag('event', 'author_dimension', {'Author': 'lucap1'});
+        }
+    });
+</script>
+
+<script type="text/javascript" nonce="c08mBhBufHccQ+Z/eAdFVg==">
+    window.get_current_video_time_url="/tutorials/get-current-video-time/";
+    window.save_current_video_time_url="/tutorials/save-current-video-time/";
+    window.playlist = [
+        
+        
+        {
+            "id": 1152,
+            "title": "1 | Introduction and Prerequisites [6:47]",
+            "url": "https://player.vimeo.com/video/814657226",
+            "description": "Learn what is going to happen in this lesson and required prerequisites and resources.\u000D\u000AThere will also be a quick overview of the scene file.",
+            "complete": false,
+            "open": false,
+            "backend": "VimeoBackend"
+        },
+        
+        
+        
+        {
+            "id": 1153,
+            "title": "2 | Manual Retarget [9:22]",
+            "url": "https://player.vimeo.com/video/814657312",
+            "description": "The goal in this lesson is to set up a sop network to retarget a single mocap clip. This will act as testing ground before you use PDG to retarget the entire database.",
+            "complete": false,
+            "open": false,
+            "backend": "VimeoBackend"
+        },
+        
+        
+        
+        {
+            "id": 1154,
+            "title": "3 | PDG | Create TOP attributes [13:04]",
+            "url": "https://player.vimeo.com/video/814657484",
+            "description": "Here you will use a topnet to drive the retargeting sop network. In order to iterate over all the motion clips in the database, you need to create the attributes that will drive the retargeting sop network. You will review the TOPs required to download and decompress the CMU archive.",
+            "complete": false,
+            "open": false,
+            "backend": "VimeoBackend"
+        },
+        
+        
+        
+        {
+            "id": 1155,
+            "title": "4 | PDG | Cache, Render and Make Videos [12:58]",
+            "url": "https://player.vimeo.com/video/814657660",
+            "description": "Now that you have created attributes to drive the retargeting network you can cache and render each motion clip. Once the rendering is complete, make videos of each clip. There is also an optional section exploring how to clean up your source and temporary data.",
+            "complete": false,
+            "open": false,
+            "backend": "VimeoBackend"
+        },
+        
+        
+        
+        {
+            "id": 1156,
+            "title": "5 | Motion Clips and the Smooth SOP[6:48]",
+            "url": "https://player.vimeo.com/video/814657816",
+            "description": "Often when processing motion capture data there can be noise in the motion of the skeleton. \u000D\u000AAfter converting mocap data to a motion clip, you can smooth selected joints in the animation in an effort to remove unwanted noise from the incoming mocap.",
+            "complete": false,
+            "open": false,
+            "backend": "VimeoBackend"
+        },
+        
+        
+        
+        {
+            "id": 1157,
+            "title": "6 | Smooth Motion SOP [3:10]",
+            "url": "https://player.vimeo.com/video/814657909",
+            "description": "Learn how to use a new technique to smooth the motion of our animation. A new feature in Houdini 19.5, the smooth motion SOP gives you another means of removing noise from mocap.",
+            "complete": false,
+            "open": false,
+            "backend": "VimeoBackend"
+        },
+        
+        
+        
+        {
+            "id": 1158,
+            "title": "7 | Retarget Animation for a Crowd Sim [9:50]",
+            "url": "https://player.vimeo.com/video/814657959",
+            "description": "One of the obvious applications of retargeting an existing animation library is to reuse the animation for a new crowd simulation. Learn how to take one of the clips you’ve retargeted and use it in a crowds system. In older versions of Houdini, you were limited to importing your animation as .fbx, .usd or from /obj. Now you are able to use kinefx as a means of importing this animation to crowds, which gives you much more flexibility to edit and modify your animation in sops.",
+            "complete": false,
+            "open": false,
+            "backend": "VimeoBackend"
+        },
+        
+        
+    ];
+    window.files = [
+        
+        {
+            "id": 150,
+            "title": "Download Project File",
+            "url": "https://media.sidefx.com/files/tutorials/retarget-the-cmu-motion-capture-database-1/cmu_database_retarget.zip",
+        },
+        
+    ];
+
+    $(document).ready(function () {
+        $('.info-tooltip').jBox('Tooltip', {
+            maxWidth: 600,
+            maxHeight: 175,
+            theme: 'TooltipInfo',
+            closeOnMouseleave: true,
+            outside: 'x',
+            position: {
+                    x: 'left',
+                    y: 'center'
+                },
+            closeOnClick: 'body',
+            closeOnEsc: true,
+        });
+    });
+</script>
+<script src="https://static.sidefx.com/bundles/videoTutorialApp-156aa0730d69cdd5b07d.min.js" ></script>
+
+
+
+
+
+
+<script type="text/javascript" nonce="c08mBhBufHccQ+Z/eAdFVg==">
+$(document).ready(function(){$('#language_selector_form').change(function(){this.submit();});$('#language_selector_form .modal-footer').hide();});
+</script>
+<!-- Modal -->
+<div class="modal fade" id="languageModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close fui-cross" data-dismiss="modal" aria-hidden="true"></button>
+        <h4 class="modal-title" id="myModalLabel">Choose language</h4>
+      </div>
+
+      <form action="/i18n/" method="post" id="language_selector_form">
+        <div class="modal-body">
+            <input type="hidden" name="csrfmiddlewaretoken" value="vHqZ5OwzkNdVcAaeJNMsi8vTSUveeAYdk0W45ecdDr7uskOKesZmWmBORHHuxa8B">
+            <div class="form-group">
+              
+              <select name="language" class="form-control select select-sidefx">
+                
+                <option value="en"
+                selected="selected">
+                English
+                </option>
+                
+                <option value="ja"
+                >
+                日本語
+                </option>
+                
+              </select>
+            </div>
+        </div>
+
+        <div class="modal-footer">
+          <input type="submit" class="btn btn-primary" value="Change" />
+        </div>
+
+      </form>
+
+    </div>
+  </div>
+</div>
+
+
+</body>
+</html>

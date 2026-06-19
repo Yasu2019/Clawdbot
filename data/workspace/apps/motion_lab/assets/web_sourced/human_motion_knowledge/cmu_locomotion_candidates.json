@@ -1,0 +1,2942 @@
+[
+  {
+    "clip_id": "02_01",
+    "subject": "Subject #2 (various expressions and human behaviors)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "02_02",
+    "subject": "Subject #2 (various expressions and human behaviors)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "02_03",
+    "subject": "Subject #2 (various expressions and human behaviors)",
+    "description": "run/jog",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "03_01",
+    "subject": "Subject #3 (walk on uneven terrain)",
+    "description": "walk on uneven terrain",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "03_02",
+    "subject": "Subject #3 (walk on uneven terrain)",
+    "description": "walk on uneven terrain",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "03_03",
+    "subject": "Subject #3 (walk on uneven terrain)",
+    "description": "walk on uneven terrain",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "03_04",
+    "subject": "Subject #3 (walk on uneven terrain)",
+    "description": "walk on uneven terrain",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "05_01",
+    "subject": "Subject #5 (modern dance)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "06_01",
+    "subject": "Subject #6 (dribble, shoot basketball)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "07_01",
+    "subject": "Subject #7 (walk)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "07_02",
+    "subject": "Subject #7 (walk)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "07_03",
+    "subject": "Subject #7 (walk)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "07_04",
+    "subject": "Subject #7 (walk)",
+    "description": "slow walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "07_05",
+    "subject": "Subject #7 (walk)",
+    "description": "slow walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "07_06",
+    "subject": "Subject #7 (walk)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "07_07",
+    "subject": "Subject #7 (walk)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "07_08",
+    "subject": "Subject #7 (walk)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "07_09",
+    "subject": "Subject #7 (walk)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "07_10",
+    "subject": "Subject #7 (walk)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "07_11",
+    "subject": "Subject #7 (walk)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "07_12",
+    "subject": "Subject #7 (walk)",
+    "description": "brisk walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "08_01",
+    "subject": "Subject #8 (walk)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "08_02",
+    "subject": "Subject #8 (walk)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "08_03",
+    "subject": "Subject #8 (walk)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "08_04",
+    "subject": "Subject #8 (walk)",
+    "description": "slow walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "08_05",
+    "subject": "Subject #8 (walk)",
+    "description": "walk/stride",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "08_06",
+    "subject": "Subject #8 (walk)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "08_07",
+    "subject": "Subject #8 (walk)",
+    "description": "walk, exaggerated stride",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "08_08",
+    "subject": "Subject #8 (walk)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "08_09",
+    "subject": "Subject #8 (walk)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "08_10",
+    "subject": "Subject #8 (walk)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "08_11",
+    "subject": "Subject #8 (walk)",
+    "description": "slow walk/stride",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "09_01",
+    "subject": "Subject #9 (run)",
+    "description": "run",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "09_02",
+    "subject": "Subject #9 (run)",
+    "description": "run",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "09_03",
+    "subject": "Subject #9 (run)",
+    "description": "run",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "09_04",
+    "subject": "Subject #9 (run)",
+    "description": "run",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "09_05",
+    "subject": "Subject #9 (run)",
+    "description": "run",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "09_06",
+    "subject": "Subject #9 (run)",
+    "description": "run",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "09_07",
+    "subject": "Subject #9 (run)",
+    "description": "run",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "09_08",
+    "subject": "Subject #9 (run)",
+    "description": "run",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "09_09",
+    "subject": "Subject #9 (run)",
+    "description": "run",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "09_10",
+    "subject": "Subject #9 (run)",
+    "description": "run",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "09_11",
+    "subject": "Subject #9 (run)",
+    "description": "run",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "09_12",
+    "subject": "Subject #9 (run)",
+    "description": "navigate - walk forward, backward, sideways",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "10_04",
+    "subject": "Subject #10 (kick soccer ball)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "12_01",
+    "subject": "Subject #12 (tai chi, walk)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "12_02",
+    "subject": "Subject #12 (tai chi, walk)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "12_03",
+    "subject": "Subject #12 (tai chi, walk)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "13_30",
+    "subject": "Subject #13 (various everyday behaviors)",
+    "description": "jumping jacks, side twists, squats, jog",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "13_31",
+    "subject": "Subject #13 (various everyday behaviors)",
+    "description": "jumping jacks, side twists, bend over, jog",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "14_06",
+    "subject": "Subject #14 (various everyday behaviors)",
+    "description": "jumping jacks, jog, squats, side twists, stretches",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "14_14",
+    "subject": "Subject #14 (various everyday behaviors)",
+    "description": "jumping jacks, jog, squats, side twists, stretches",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "15_01",
+    "subject": "Subject #15 (various everyday behaviors, dance moves)",
+    "description": "walk/wander",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "15_03",
+    "subject": "Subject #15 (various everyday behaviors, dance moves)",
+    "description": "walk/wander",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "15_04",
+    "subject": "Subject #15 (various everyday behaviors, dance moves)",
+    "description": "wash windows, paint; hand signals; dance - Egyptian walk, the Dive, the Twist, the Cabbage Patch; boxing",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "15_05",
+    "subject": "Subject #15 (various everyday behaviors, dance moves)",
+    "description": "wash windows, paint; hand signals; dance - Egyptian walk, the Dive, the Twist, the Cabbage Patch; boxing",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "15_09",
+    "subject": "Subject #15 (various everyday behaviors, dance moves)",
+    "description": "walk/wander",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "15_12",
+    "subject": "Subject #15 (various everyday behaviors, dance moves)",
+    "description": "wash windows; basketball - dribble, lay-up shot, pass; throw ball; dance - Egyptian walk, the Dive, the Twist; strew",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "15_14",
+    "subject": "Subject #15 (various everyday behaviors, dance moves)",
+    "description": "walk/wander",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "16_08",
+    "subject": "Subject #16 (run, jump, walk)",
+    "description": "run/jog, sudden stop",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "16_11",
+    "subject": "Subject #16 (run, jump, walk)",
+    "description": "walk, veer left",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "16_12",
+    "subject": "Subject #16 (run, jump, walk)",
+    "description": "walk, veer left",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "16_13",
+    "subject": "Subject #16 (run, jump, walk)",
+    "description": "walk, veer right",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "16_14",
+    "subject": "Subject #16 (run, jump, walk)",
+    "description": "walk, veer right",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "16_15",
+    "subject": "Subject #16 (run, jump, walk)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "16_16",
+    "subject": "Subject #16 (run, jump, walk)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "16_17",
+    "subject": "Subject #16 (run, jump, walk)",
+    "description": "walk, 90-degree left turn",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "16_18",
+    "subject": "Subject #16 (run, jump, walk)",
+    "description": "walk, 90-degree left turn",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "16_19",
+    "subject": "Subject #16 (run, jump, walk)",
+    "description": "walk, 90-degree right turn",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "16_20",
+    "subject": "Subject #16 (run, jump, walk)",
+    "description": "walk, 90-degree right turn",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "16_21",
+    "subject": "Subject #16 (run, jump, walk)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "16_22",
+    "subject": "Subject #16 (run, jump, walk)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "16_23",
+    "subject": "Subject #16 (run, jump, walk)",
+    "description": "walk, veer left",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "16_24",
+    "subject": "Subject #16 (run, jump, walk)",
+    "description": "walk, veer left",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "16_25",
+    "subject": "Subject #16 (run, jump, walk)",
+    "description": "walk, veer right",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "16_26",
+    "subject": "Subject #16 (run, jump, walk)",
+    "description": "walk, veer right",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "16_27",
+    "subject": "Subject #16 (run, jump, walk)",
+    "description": "walk, 90-degree left turn",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "16_28",
+    "subject": "Subject #16 (run, jump, walk)",
+    "description": "walk, 90-degree left turn",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "16_29",
+    "subject": "Subject #16 (run, jump, walk)",
+    "description": "walk, 90-degree right turn",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "16_30",
+    "subject": "Subject #16 (run, jump, walk)",
+    "description": "walk, 90-degree right turn",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "16_31",
+    "subject": "Subject #16 (run, jump, walk)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "16_32",
+    "subject": "Subject #16 (run, jump, walk)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "16_33",
+    "subject": "Subject #16 (run, jump, walk)",
+    "description": "slow walk, stop",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "16_34",
+    "subject": "Subject #16 (run, jump, walk)",
+    "description": "slow walk, stop",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "16_35",
+    "subject": "Subject #16 (run, jump, walk)",
+    "description": "run/jog",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "16_36",
+    "subject": "Subject #16 (run, jump, walk)",
+    "description": "run/jog",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "16_37",
+    "subject": "Subject #16 (run, jump, walk)",
+    "description": "run/jog, veer left",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "16_38",
+    "subject": "Subject #16 (run, jump, walk)",
+    "description": "run/jog, veer left",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "16_39",
+    "subject": "Subject #16 (run, jump, walk)",
+    "description": "run/jog, veer right",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "16_40",
+    "subject": "Subject #16 (run, jump, walk)",
+    "description": "run/jog, veer right",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "16_41",
+    "subject": "Subject #16 (run, jump, walk)",
+    "description": "run/jog, 90-degree left turn",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "16_42",
+    "subject": "Subject #16 (run, jump, walk)",
+    "description": "run/jog, 90-degree left turn",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "16_43",
+    "subject": "Subject #16 (run, jump, walk)",
+    "description": "run/jog, 90-degree right turn",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "16_44",
+    "subject": "Subject #16 (run, jump, walk)",
+    "description": "run/jog, 90-degree right turn",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "16_45",
+    "subject": "Subject #16 (run, jump, walk)",
+    "description": "run/jog",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "16_46",
+    "subject": "Subject #16 (run, jump, walk)",
+    "description": "run/jog",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "16_47",
+    "subject": "Subject #16 (run, jump, walk)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "16_48",
+    "subject": "Subject #16 (run, jump, walk)",
+    "description": "run, veer left",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "16_49",
+    "subject": "Subject #16 (run, jump, walk)",
+    "description": "run, veer right",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "16_50",
+    "subject": "Subject #16 (run, jump, walk)",
+    "description": "run, veer right",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "16_51",
+    "subject": "Subject #16 (run, jump, walk)",
+    "description": "run, 90-degree left turn",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "16_52",
+    "subject": "Subject #16 (run, jump, walk)",
+    "description": "run, 90-degree left turn",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "16_53",
+    "subject": "Subject #16 (run, jump, walk)",
+    "description": "run, 90-degree right turn",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "16_54",
+    "subject": "Subject #16 (run, jump, walk)",
+    "description": "run, 90-degree right turn",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "16_55",
+    "subject": "Subject #16 (run, jump, walk)",
+    "description": "run",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "16_56",
+    "subject": "Subject #16 (run, jump, walk)",
+    "description": "run/jog",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "16_57",
+    "subject": "Subject #16 (run, jump, walk)",
+    "description": "run/jog, sudden stop",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "16_58",
+    "subject": "Subject #16 (run, jump, walk)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "17_01",
+    "subject": "Subject #17 (different walking styles)",
+    "description": "walk with anger, frustration",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "17_02",
+    "subject": "Subject #17 (different walking styles)",
+    "description": "walk with anger, frustration",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "17_03",
+    "subject": "Subject #17 (different walking styles)",
+    "description": "walk stealthily",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "17_04",
+    "subject": "Subject #17 (different walking styles)",
+    "description": "walk stealthily",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "17_05",
+    "subject": "Subject #17 (different walking styles)",
+    "description": "walk/hobble",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "17_06",
+    "subject": "Subject #17 (different walking styles)",
+    "description": "whistle, walk jauntily",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "17_07",
+    "subject": "Subject #17 (different walking styles)",
+    "description": "whistle, walk jauntily",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "17_08",
+    "subject": "Subject #17 (different walking styles)",
+    "description": "muscular, heavyset person's walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "17_09",
+    "subject": "Subject #17 (different walking styles)",
+    "description": "muscular, heavyset person's walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "18_01",
+    "subject": "Subject #18 (human interaction and communication (2 subjects - subject A))",
+    "description": "walk, shake hands (2 subjects - subject A)",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "18_02",
+    "subject": "Subject #18 (human interaction and communication (2 subjects - subject A))",
+    "description": "walk, shake hands (2 subjects - subject A)",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "18_09",
+    "subject": "Subject #18 (human interaction and communication (2 subjects - subject A))",
+    "description": "conversation - explain with hand gestures, walk (2 subjects - subject A)",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "18_13",
+    "subject": "Subject #18 (human interaction and communication (2 subjects - subject A))",
+    "description": "run, scramble for last seat (2 subjects - subject A)",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "18_14",
+    "subject": "Subject #18 (human interaction and communication (2 subjects - subject A))",
+    "description": "run, scramble for last seat (2 subjects - subject A)",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "19_01",
+    "subject": "Subject #19 (human interaction and communication (2 subjects - subject B))",
+    "description": "walk, shake hands (2 subjects - subject B)",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "19_02",
+    "subject": "Subject #19 (human interaction and communication (2 subjects - subject B))",
+    "description": "walk, shake hands (2 subjects - subject B)",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "19_09",
+    "subject": "Subject #19 (human interaction and communication (2 subjects - subject B))",
+    "description": "conversation - explain with hand gestures, walk (2 subjects - subject B)",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "19_13",
+    "subject": "Subject #19 (human interaction and communication (2 subjects - subject B))",
+    "description": "run, scramble for last seat (2 subjects - subject B)",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "19_14",
+    "subject": "Subject #19 (human interaction and communication (2 subjects - subject B))",
+    "description": "run, scramble for last seat (2 subjects - subject B)",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "20_02",
+    "subject": "Subject #20 (human interaction - at play, formations (2 subjects - subject A))",
+    "description": "link arms, walk (2 subjects - subject A)",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "20_03",
+    "subject": "Subject #20 (human interaction - at play, formations (2 subjects - subject A))",
+    "description": "link arms, walk (2 subjects - subject A)",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "20_04",
+    "subject": "Subject #20 (human interaction - at play, formations (2 subjects - subject A))",
+    "description": "synchronized walk (2 subjects - subject A)",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "20_05",
+    "subject": "Subject #20 (human interaction - at play, formations (2 subjects - subject A))",
+    "description": "synchronized walk (2 subjects - subject A)",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "20_06",
+    "subject": "Subject #20 (human interaction - at play, formations (2 subjects - subject A))",
+    "description": "soldiers march (2 subjects - subject A)",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "20_07",
+    "subject": "Subject #20 (human interaction - at play, formations (2 subjects - subject A))",
+    "description": "soldiers march (2 subjects - subject A)",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "20_08",
+    "subject": "Subject #20 (human interaction - at play, formations (2 subjects - subject A))",
+    "description": "zombie march (2 subjects - subject A)",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "20_11",
+    "subject": "Subject #20 (human interaction - at play, formations (2 subjects - subject A))",
+    "description": "high-five, walk (2 subjects - subject A)",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "20_12",
+    "subject": "Subject #20 (human interaction - at play, formations (2 subjects - subject A))",
+    "description": "low-five, walk (2 subjects - subject A)",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "21_02",
+    "subject": "Subject #21 (human interaction - at play, formations (2 subjects - subject B))",
+    "description": "link arms, walk (2 subjects - subject B)",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "21_03",
+    "subject": "Subject #21 (human interaction - at play, formations (2 subjects - subject B))",
+    "description": "link arms, walk (2 subjects - subject B)",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "21_04",
+    "subject": "Subject #21 (human interaction - at play, formations (2 subjects - subject B))",
+    "description": "synchronized walk (2 subjects - subject B)",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "21_05",
+    "subject": "Subject #21 (human interaction - at play, formations (2 subjects - subject B))",
+    "description": "synchronized walk (2 subjects - subject B)",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "21_06",
+    "subject": "Subject #21 (human interaction - at play, formations (2 subjects - subject B))",
+    "description": "soldiers march (2 subjects - subject B)",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "21_07",
+    "subject": "Subject #21 (human interaction - at play, formations (2 subjects - subject B))",
+    "description": "soldiers march (2 subjects - subject B)",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "21_08",
+    "subject": "Subject #21 (human interaction - at play, formations (2 subjects - subject B))",
+    "description": "zombie march (2 subjects - subject B)",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "21_11",
+    "subject": "Subject #21 (human interaction - at play, formations (2 subjects - subject B))",
+    "description": "high-five, walk (2 subjects - subject B)",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "21_12",
+    "subject": "Subject #21 (human interaction - at play, formations (2 subjects - subject B))",
+    "description": "low-five, walk (2 subjects - subject B)",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "22_08",
+    "subject": "Subject #22 (human interaction (2 subjects - subject A))",
+    "description": "hold hands, swing arms, walk (2 subjects - subject A)",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "22_22",
+    "subject": "Subject #22 (human interaction (2 subjects - subject A))",
+    "description": "walk; B catches keys thrown by A (2 subjects - subject A)",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "22_23",
+    "subject": "Subject #22 (human interaction (2 subjects - subject A))",
+    "description": "walk; A catches keys thrown by B (2 subjects - subject A)",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "22_24",
+    "subject": "Subject #22 (human interaction (2 subjects - subject A))",
+    "description": "walk; B catches wallet thrown by A (2 subjects - subject A)",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "22_25",
+    "subject": "Subject #22 (human interaction (2 subjects - subject A))",
+    "description": "walk; A catches wallet thrown by B (2 subjects - subject A)",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "23_08",
+    "subject": "Subject #23 (human interaction (2 subjects - subject B))",
+    "description": "hold hands, swing arms, walk (2 subjects - subject B)",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "23_22",
+    "subject": "Subject #23 (human interaction (2 subjects - subject B))",
+    "description": "walk; B catches keys thrown by A (2 subjects - subject B)",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "23_23",
+    "subject": "Subject #23 (human interaction (2 subjects - subject B))",
+    "description": "walk; A catches keys thrown by B (2 subjects - subject B)",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "23_24",
+    "subject": "Subject #23 (human interaction (2 subjects - subject B))",
+    "description": "walk; B catches wallet thrown by A (2 subjects - subject B)",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "23_25",
+    "subject": "Subject #23 (human interaction (2 subjects - subject B))",
+    "description": "walk; A catches wallet thrown by B (2 subjects - subject B)",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "26_01",
+    "subject": "Subject #26 (nursery rhymes, basketball, bending)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "27_01",
+    "subject": "Subject #27 (recreation, nursery rhymes)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "29_01",
+    "subject": "Subject #29 (recreation, nursery rhymes, animal behaviors (pantomime - human subject))",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "32_01",
+    "subject": "Subject #32 (recreation, nursery rhymes, animal behaviors (pantomime - human subject))",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "32_02",
+    "subject": "Subject #32 (recreation, nursery rhymes, animal behaviors (pantomime - human subject))",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "35_01",
+    "subject": "Subject #35 (walk, run)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "35_02",
+    "subject": "Subject #35 (walk, run)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "35_03",
+    "subject": "Subject #35 (walk, run)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "35_04",
+    "subject": "Subject #35 (walk, run)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "35_05",
+    "subject": "Subject #35 (walk, run)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "35_06",
+    "subject": "Subject #35 (walk, run)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "35_07",
+    "subject": "Subject #35 (walk, run)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "35_08",
+    "subject": "Subject #35 (walk, run)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "35_09",
+    "subject": "Subject #35 (walk, run)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "35_10",
+    "subject": "Subject #35 (walk, run)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "35_11",
+    "subject": "Subject #35 (walk, run)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "35_12",
+    "subject": "Subject #35 (walk, run)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "35_13",
+    "subject": "Subject #35 (walk, run)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "35_14",
+    "subject": "Subject #35 (walk, run)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "35_15",
+    "subject": "Subject #35 (walk, run)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "35_16",
+    "subject": "Subject #35 (walk, run)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "35_17",
+    "subject": "Subject #35 (walk, run)",
+    "description": "run/jog",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "35_18",
+    "subject": "Subject #35 (walk, run)",
+    "description": "run/jog",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "35_19",
+    "subject": "Subject #35 (walk, run)",
+    "description": "run/jog",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "35_20",
+    "subject": "Subject #35 (walk, run)",
+    "description": "run/jog",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "35_21",
+    "subject": "Subject #35 (walk, run)",
+    "description": "run/jog",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "35_22",
+    "subject": "Subject #35 (walk, run)",
+    "description": "run/jog",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "35_23",
+    "subject": "Subject #35 (walk, run)",
+    "description": "run/jog",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "35_24",
+    "subject": "Subject #35 (walk, run)",
+    "description": "run/jog",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "35_25",
+    "subject": "Subject #35 (walk, run)",
+    "description": "run/jog",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "35_26",
+    "subject": "Subject #35 (walk, run)",
+    "description": "run/jog",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "35_28",
+    "subject": "Subject #35 (walk, run)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "35_29",
+    "subject": "Subject #35 (walk, run)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "35_30",
+    "subject": "Subject #35 (walk, run)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "35_31",
+    "subject": "Subject #35 (walk, run)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "35_32",
+    "subject": "Subject #35 (walk, run)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "35_33",
+    "subject": "Subject #35 (walk, run)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "35_34",
+    "subject": "Subject #35 (walk, run)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "36_01",
+    "subject": "Subject #36 (walk on uneven terrain)",
+    "description": "walk on uneven terrain",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "36_02",
+    "subject": "Subject #36 (walk on uneven terrain)",
+    "description": "walk forward, turn around, walk back",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "36_03",
+    "subject": "Subject #36 (walk on uneven terrain)",
+    "description": "walk forward, turn around, walk back",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "36_04",
+    "subject": "Subject #36 (walk on uneven terrain)",
+    "description": "walk on uneven terrain",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "36_05",
+    "subject": "Subject #36 (walk on uneven terrain)",
+    "description": "walk on uneven terrain",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "36_06",
+    "subject": "Subject #36 (walk on uneven terrain)",
+    "description": "walk on uneven terrain",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "36_07",
+    "subject": "Subject #36 (walk on uneven terrain)",
+    "description": "walk on uneven terrain",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "36_08",
+    "subject": "Subject #36 (walk on uneven terrain)",
+    "description": "walk on uneven terrain",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "36_09",
+    "subject": "Subject #36 (walk on uneven terrain)",
+    "description": "walk forward, turn around, walk back",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "36_10",
+    "subject": "Subject #36 (walk on uneven terrain)",
+    "description": "walk on uneven terrain",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "36_11",
+    "subject": "Subject #36 (walk on uneven terrain)",
+    "description": "walk on uneven terrain",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "36_12",
+    "subject": "Subject #36 (walk on uneven terrain)",
+    "description": "walk on uneven terrain",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "36_13",
+    "subject": "Subject #36 (walk on uneven terrain)",
+    "description": "walk on uneven terrain",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "36_14",
+    "subject": "Subject #36 (walk on uneven terrain)",
+    "description": "walk on uneven terrain",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "36_15",
+    "subject": "Subject #36 (walk on uneven terrain)",
+    "description": "walk on uneven terrain",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "36_16",
+    "subject": "Subject #36 (walk on uneven terrain)",
+    "description": "walk on uneven terrain",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "36_17",
+    "subject": "Subject #36 (walk on uneven terrain)",
+    "description": "walk on uneven terrain",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "36_18",
+    "subject": "Subject #36 (walk on uneven terrain)",
+    "description": "walk on uneven terrain",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "36_19",
+    "subject": "Subject #36 (walk on uneven terrain)",
+    "description": "walk on uneven terrain",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "36_20",
+    "subject": "Subject #36 (walk on uneven terrain)",
+    "description": "walk on uneven terrain",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "36_21",
+    "subject": "Subject #36 (walk on uneven terrain)",
+    "description": "walk on uneven terrain",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "36_22",
+    "subject": "Subject #36 (walk on uneven terrain)",
+    "description": "walk on uneven terrain",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "36_23",
+    "subject": "Subject #36 (walk on uneven terrain)",
+    "description": "walk on uneven terrain",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "36_24",
+    "subject": "Subject #36 (walk on uneven terrain)",
+    "description": "walk on uneven terrain",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "36_25",
+    "subject": "Subject #36 (walk on uneven terrain)",
+    "description": "walk on uneven terrain",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "36_26",
+    "subject": "Subject #36 (walk on uneven terrain)",
+    "description": "walk on uneven terrain",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "36_27",
+    "subject": "Subject #36 (walk on uneven terrain)",
+    "description": "walk on uneven terrain",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "36_28",
+    "subject": "Subject #36 (walk on uneven terrain)",
+    "description": "walk on uneven terrain",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "36_29",
+    "subject": "Subject #36 (walk on uneven terrain)",
+    "description": "walk on uneven terrain",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "36_30",
+    "subject": "Subject #36 (walk on uneven terrain)",
+    "description": "walk on uneven terrain",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "36_31",
+    "subject": "Subject #36 (walk on uneven terrain)",
+    "description": "walk on uneven terrain",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "36_32",
+    "subject": "Subject #36 (walk on uneven terrain)",
+    "description": "walk on uneven terrain",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "36_33",
+    "subject": "Subject #36 (walk on uneven terrain)",
+    "description": "walk on uneven terrain",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "36_34",
+    "subject": "Subject #36 (walk on uneven terrain)",
+    "description": "walk on uneven terrain",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "36_35",
+    "subject": "Subject #36 (walk on uneven terrain)",
+    "description": "walk on uneven terrain",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "36_36",
+    "subject": "Subject #36 (walk on uneven terrain)",
+    "description": "walk on uneven terrain",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "37_01",
+    "subject": "Subject #37 (walk)",
+    "description": "slow walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "38_01",
+    "subject": "Subject #38 (walk, run)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "38_02",
+    "subject": "Subject #38 (walk, run)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "38_03",
+    "subject": "Subject #38 (walk, run)",
+    "description": "run around in a circle",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "38_04",
+    "subject": "Subject #38 (walk, run)",
+    "description": "walk around, frequent turns, cyclic walk along a line",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "39_01",
+    "subject": "Subject #39 (climb, swing, hang on playground equipment)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "39_02",
+    "subject": "Subject #39 (climb, swing, hang on playground equipment)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "39_03",
+    "subject": "Subject #39 (climb, swing, hang on playground equipment)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "39_04",
+    "subject": "Subject #39 (climb, swing, hang on playground equipment)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "39_05",
+    "subject": "Subject #39 (climb, swing, hang on playground equipment)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "39_06",
+    "subject": "Subject #39 (climb, swing, hang on playground equipment)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "39_07",
+    "subject": "Subject #39 (climb, swing, hang on playground equipment)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "39_08",
+    "subject": "Subject #39 (climb, swing, hang on playground equipment)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "39_09",
+    "subject": "Subject #39 (climb, swing, hang on playground equipment)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "39_10",
+    "subject": "Subject #39 (climb, swing, hang on playground equipment)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "39_11",
+    "subject": "Subject #39 (climb, swing, hang on playground equipment)",
+    "description": "walk forward, turn around, walk back",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "39_12",
+    "subject": "Subject #39 (climb, swing, hang on playground equipment)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "39_13",
+    "subject": "Subject #39 (climb, swing, hang on playground equipment)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "39_14",
+    "subject": "Subject #39 (climb, swing, hang on playground equipment)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "40_02",
+    "subject": "Subject #40 (navigate from corner to corner, interact with stepstool)",
+    "description": "navigate - walk forward, backward, on a diagonal",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "40_03",
+    "subject": "Subject #40 (navigate from corner to corner, interact with stepstool)",
+    "description": "navigate - walk forward, backward, on a diagonal",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "40_04",
+    "subject": "Subject #40 (navigate from corner to corner, interact with stepstool)",
+    "description": "navigate - walk forward, backward, on a diagonal",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "40_05",
+    "subject": "Subject #40 (navigate from corner to corner, interact with stepstool)",
+    "description": "navigate - walk forward, backward, on a diagonal",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "41_02",
+    "subject": "Subject #41 (navigate from corner to corner, interact with stepstool)",
+    "description": "navigate - walk forward, backward, sideways, on a diagonal",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "41_03",
+    "subject": "Subject #41 (navigate from corner to corner, interact with stepstool)",
+    "description": "navigate - walk forward, backward, sideways, on a diagonal",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "41_04",
+    "subject": "Subject #41 (navigate from corner to corner, interact with stepstool)",
+    "description": "navigate - walk forward, backward, on a diagonal",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "41_05",
+    "subject": "Subject #41 (navigate from corner to corner, interact with stepstool)",
+    "description": "navigate - walk forward, backward, on a diagonal",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "41_06",
+    "subject": "Subject #41 (navigate from corner to corner, interact with stepstool)",
+    "description": "navigate - walk forward, backward, on a diagonal",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "43_01",
+    "subject": "Subject #43 (swing on playground equipment)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "45_01",
+    "subject": "Subject #45 (walk)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "46_01",
+    "subject": "Subject #46 (walk)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "47_01",
+    "subject": "Subject #47 (walk)",
+    "description": "walk forward, turn around, walk back",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "49_01",
+    "subject": "Subject #49 (modern dance, gymnastics)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "49_04",
+    "subject": "Subject #49 (modern dance, gymnastics)",
+    "description": "run, leap",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "49_05",
+    "subject": "Subject #49 (modern dance, gymnastics)",
+    "description": "run, leap",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "54_20",
+    "subject": "Subject #54 (animal behaviors (pantomime - human subject))",
+    "description": "follow path, walk around obstacles",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "54_21",
+    "subject": "Subject #54 (animal behaviors (pantomime - human subject))",
+    "description": "follow path, walk around obstacles",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "54_22",
+    "subject": "Subject #54 (animal behaviors (pantomime - human subject))",
+    "description": "follow path, walk around obstacles",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "55_04",
+    "subject": "Subject #55 (animal behaviors (pantomime - human subject))",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "56_01",
+    "subject": "Subject #56 (vignettes - locomotion, upper-body motions (focus: motion transitions))",
+    "description": "walk around",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "56_04",
+    "subject": "Subject #56 (vignettes - locomotion, upper-body motions (focus: motion transitions))",
+    "description": "vignettes - fists up, wipe window, grab, lift open window, throw punches, yawn, stretch, walk, jump",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "56_05",
+    "subject": "Subject #56 (vignettes - locomotion, upper-body motions (focus: motion transitions))",
+    "description": "vignettes - walk, drink water, run/jog, jump, wipe window, lift open window, throw punches, yawn, stretch",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "56_06",
+    "subject": "Subject #56 (vignettes - locomotion, upper-body motions (focus: motion transitions))",
+    "description": "vignettes - throw punches, grab, skip, yawn, stretch, leap, lift open window, walk, jump/bound",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "56_07",
+    "subject": "Subject #56 (vignettes - locomotion, upper-body motions (focus: motion transitions))",
+    "description": "vignettes - yawn, stretch, walk, run/jog, angrily grab, jump, skip, halt",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "56_08",
+    "subject": "Subject #56 (vignettes - locomotion, upper-body motions (focus: motion transitions))",
+    "description": "vignettes - lift open window, smash against wall, hop, walk, run/jog, yawn, stretch",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_01",
+    "subject": "Subject #69 (walking)",
+    "description": "walk forward",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_02",
+    "subject": "Subject #69 (walking)",
+    "description": "walk forward",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_03",
+    "subject": "Subject #69 (walking)",
+    "description": "walk forward",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_04",
+    "subject": "Subject #69 (walking)",
+    "description": "walk forward",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_05",
+    "subject": "Subject #69 (walking)",
+    "description": "walk forward",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_06",
+    "subject": "Subject #69 (walking)",
+    "description": "walk and turn (repeated)",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_07",
+    "subject": "Subject #69 (walking)",
+    "description": "walk and turn (repeated)",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_08",
+    "subject": "Subject #69 (walking)",
+    "description": "walk and turn (repeated)",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_09",
+    "subject": "Subject #69 (walking)",
+    "description": "walk and turn (repeated)",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_10",
+    "subject": "Subject #69 (walking)",
+    "description": "walk and turn (repeated)",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_11",
+    "subject": "Subject #69 (walking)",
+    "description": "walk and turn (repeated)",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_12",
+    "subject": "Subject #69 (walking)",
+    "description": "walk and turn both directions (repeated)",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_13",
+    "subject": "Subject #69 (walking)",
+    "description": "walk, turn in place (repeated)",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_14",
+    "subject": "Subject #69 (walking)",
+    "description": "walk, turn in place (repeated)",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_15",
+    "subject": "Subject #69 (walking)",
+    "description": "walk, turn in place (repeated)",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_20",
+    "subject": "Subject #69 (walking)",
+    "description": "walk forward 90 degree right turn",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_21",
+    "subject": "Subject #69 (walking)",
+    "description": "walk forward 90 degree right turn",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_22",
+    "subject": "Subject #69 (walking)",
+    "description": "walk forward 90 degree right turn",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_23",
+    "subject": "Subject #69 (walking)",
+    "description": "walk forward 90 degree right turn",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_24",
+    "subject": "Subject #69 (walking)",
+    "description": "walk forward 90 degree left turn",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_25",
+    "subject": "Subject #69 (walking)",
+    "description": "walk forward 90 degree left turn",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_26",
+    "subject": "Subject #69 (walking)",
+    "description": "walk forward 90 degree left turn",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_27",
+    "subject": "Subject #69 (walking)",
+    "description": "walk forward 90 degree left turn",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_28",
+    "subject": "Subject #69 (walking)",
+    "description": "walk forward 90 degree smooth right turn",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_29",
+    "subject": "Subject #69 (walking)",
+    "description": "walk forward 90 degree smooth right turn",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_30",
+    "subject": "Subject #69 (walking)",
+    "description": "walk forward 90 degree smooth right turn",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_31",
+    "subject": "Subject #69 (walking)",
+    "description": "walk forward 90 degree smooth left turn",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_32",
+    "subject": "Subject #69 (walking)",
+    "description": "walk forward 90 degree smooth left turn",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_33",
+    "subject": "Subject #69 (walking)",
+    "description": "walk forward 90 degree smooth left turn",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_34",
+    "subject": "Subject #69 (walking)",
+    "description": "walk backwards and turn",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_35",
+    "subject": "Subject #69 (walking)",
+    "description": "walk backwards and turn",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_36",
+    "subject": "Subject #69 (walking)",
+    "description": "walk backwards and turn",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_37",
+    "subject": "Subject #69 (walking)",
+    "description": "walk backwards and turn",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_38",
+    "subject": "Subject #69 (walking)",
+    "description": "walk backwards and turn (repeated)",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_39",
+    "subject": "Subject #69 (walking)",
+    "description": "walk backward, turn in place",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_40",
+    "subject": "Subject #69 (walking)",
+    "description": "walk backward, turn in place",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_41",
+    "subject": "Subject #69 (walking)",
+    "description": "walk backward, turn in place",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_42",
+    "subject": "Subject #69 (walking)",
+    "description": "walk sideways and turn (repeated)",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_43",
+    "subject": "Subject #69 (walking)",
+    "description": "walk sideways and turn (repeated)",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_44",
+    "subject": "Subject #69 (walking)",
+    "description": "walk sideways and turn (repeated)",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_45",
+    "subject": "Subject #69 (walking)",
+    "description": "walk sideways and turn (repeated)",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_46",
+    "subject": "Subject #69 (walking)",
+    "description": "walk sideways and turn (repeated)",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_47",
+    "subject": "Subject #69 (walking)",
+    "description": "walk sideways and turn (repeated)",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_48",
+    "subject": "Subject #69 (walking)",
+    "description": "walk sideways and turn (opposite direction)",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_49",
+    "subject": "Subject #69 (walking)",
+    "description": "walk sideways and turn (opposite direction)",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_50",
+    "subject": "Subject #69 (walking)",
+    "description": "walk sideways and backwards",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_51",
+    "subject": "Subject #69 (walking)",
+    "description": "walk backwards and turn",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_52",
+    "subject": "Subject #69 (walking)",
+    "description": "walk backwards and turn",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_53",
+    "subject": "Subject #69 (walking)",
+    "description": "walk backwards and turn",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_54",
+    "subject": "Subject #69 (walking)",
+    "description": "walk backwards and turn",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_55",
+    "subject": "Subject #69 (walking)",
+    "description": "walk backwards and turn",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_56",
+    "subject": "Subject #69 (walking)",
+    "description": "walk sideways and turn (opposite direction)",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_57",
+    "subject": "Subject #69 (walking)",
+    "description": "walk sideways and turn (opposite direction)",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_58",
+    "subject": "Subject #69 (walking)",
+    "description": "walk sideways and turn (opposite direction)",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_59",
+    "subject": "Subject #69 (walking)",
+    "description": "walk sideways and turn",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_60",
+    "subject": "Subject #69 (walking)",
+    "description": "walk sideways and turn",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_61",
+    "subject": "Subject #69 (walking)",
+    "description": "walk sideways and turn",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_62",
+    "subject": "Subject #69 (walking)",
+    "description": "walk sideways and turn (opposite direction)",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_63",
+    "subject": "Subject #69 (walking)",
+    "description": "walk sideways and turn (opposite direction)",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_64",
+    "subject": "Subject #69 (walking)",
+    "description": "walk sideways and turn (opposite direction)",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_65",
+    "subject": "Subject #69 (walking)",
+    "description": "walk sideways and turn",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_66",
+    "subject": "Subject #69 (walking)",
+    "description": "walk sideways and turn",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_67",
+    "subject": "Subject #69 (walking)",
+    "description": "walk sideways and turn",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_68",
+    "subject": "Subject #69 (walking)",
+    "description": "walk forward and pick up object, set down object",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_69",
+    "subject": "Subject #69 (walking)",
+    "description": "walk forward and pick up object, carry back object",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_70",
+    "subject": "Subject #69 (walking)",
+    "description": "walk up to object, squat, pick up object, set down in another place.",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_71",
+    "subject": "Subject #69 (walking)",
+    "description": "walk up to object, squat, pick up object, set down in another place",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_72",
+    "subject": "Subject #69 (walking)",
+    "description": "walk up to object, pick up object, set down in another place",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_73",
+    "subject": "Subject #69 (walking)",
+    "description": "walk up to object, lean over, pick up object, set down in another place",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_74",
+    "subject": "Subject #69 (walking)",
+    "description": "walk up to object, lean over, pick up object, set down in another place",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "69_75",
+    "subject": "Subject #69 (walking)",
+    "description": "walk up to object, squat, pick up object, set down in another place",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "74_01",
+    "subject": "Subject #74 (kicks and walking on slopes)",
+    "description": "stiff walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "74_02",
+    "subject": "Subject #74 (kicks and walking on slopes)",
+    "description": "stiff walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "74_20",
+    "subject": "Subject #74 (kicks and walking on slopes)",
+    "description": "stiff walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "75_01",
+    "subject": "Subject #75 (jumps; hopscotch; sits)",
+    "description": "run jump",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "75_02",
+    "subject": "Subject #75 (jumps; hopscotch; sits)",
+    "description": "run jump",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "75_03",
+    "subject": "Subject #75 (jumps; hopscotch; sits)",
+    "description": "run jump",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "75_04",
+    "subject": "Subject #75 (jumps; hopscotch; sits)",
+    "description": "wide leg run",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "75_05",
+    "subject": "Subject #75 (jumps; hopscotch; sits)",
+    "description": "cross leg run",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "76_01",
+    "subject": "Subject #76 (avoidance)",
+    "description": "walk backwards then attack with a punch",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "76_02",
+    "subject": "Subject #76 (avoidance)",
+    "description": "walk backwards, feign a few attacks, then attack",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "76_09",
+    "subject": "Subject #76 (avoidance)",
+    "description": "walking backwards",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "77_10",
+    "subject": "Subject #77 (careful actions)",
+    "description": "careful run",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "77_11",
+    "subject": "Subject #77 (careful actions)",
+    "description": "careful run",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "77_12",
+    "subject": "Subject #77 (careful actions)",
+    "description": "careful run in circle",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "77_13",
+    "subject": "Subject #77 (careful actions)",
+    "description": "careful run in figure eight",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "77_25",
+    "subject": "Subject #77 (careful actions)",
+    "description": "careful walk and search",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "77_26",
+    "subject": "Subject #77 (careful actions)",
+    "description": "careful walk and search",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "77_27",
+    "subject": "Subject #77 (careful actions)",
+    "description": "careful walk and search",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "77_28",
+    "subject": "Subject #77 (careful actions)",
+    "description": "careful walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "77_29",
+    "subject": "Subject #77 (careful actions)",
+    "description": "creeping walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "77_30",
+    "subject": "Subject #77 (careful actions)",
+    "description": "creeping walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "77_31",
+    "subject": "Subject #77 (careful actions)",
+    "description": "silent walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "77_32",
+    "subject": "Subject #77 (careful actions)",
+    "description": "creeping walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "77_33",
+    "subject": "Subject #77 (careful actions)",
+    "description": "creeping with limp",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "81_01",
+    "subject": "Subject #81 (pushing a box; jumping off a ledge; walks)",
+    "description": "fix hair and walk forward",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "81_02",
+    "subject": "Subject #81 (pushing a box; jumping off a ledge; walks)",
+    "description": "walk forward",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "81_03",
+    "subject": "Subject #81 (pushing a box; jumping off a ledge; walks)",
+    "description": "walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "81_04",
+    "subject": "Subject #81 (pushing a box; jumping off a ledge; walks)",
+    "description": "walk at a brisk pace",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "81_17",
+    "subject": "Subject #81 (pushing a box; jumping off a ledge; walks)",
+    "description": "walk forward",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "81_18",
+    "subject": "Subject #81 (pushing a box; jumping off a ledge; walks)",
+    "description": "adjust hair walk forward",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "82_08",
+    "subject": "Subject #82 (jumping; pushing; emotional walks)",
+    "description": "stand still; casual walk forward",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "82_09",
+    "subject": "Subject #82 (jumping; pushing; emotional walks)",
+    "description": "confident walk forward",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "82_10",
+    "subject": "Subject #82 (jumping; pushing; emotional walks)",
+    "description": "sad walk forward",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "82_11",
+    "subject": "Subject #82 (jumping; pushing; emotional walks)",
+    "description": "normal walk forward",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "82_12",
+    "subject": "Subject #82 (jumping; pushing; emotional walks)",
+    "description": "happy or fast walk forward",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "82_13",
+    "subject": "Subject #82 (jumping; pushing; emotional walks)",
+    "description": "normal walk forward",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "82_14",
+    "subject": "Subject #82 (jumping; pushing; emotional walks)",
+    "description": "walk forward and slow down",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "82_15",
+    "subject": "Subject #82 (jumping; pushing; emotional walks)",
+    "description": "walk forward and turn sideways",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "83_27",
+    "subject": "Subject #83 (steps)",
+    "description": "walk forward stepping up stairs",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "83_28",
+    "subject": "Subject #83 (steps)",
+    "description": "walk forward stepping up stairs",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "83_29",
+    "subject": "Subject #83 (steps)",
+    "description": "walk forward stepping up stairs",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "83_30",
+    "subject": "Subject #83 (steps)",
+    "description": "walk forward stepping up stairs",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "83_31",
+    "subject": "Subject #83 (steps)",
+    "description": "walk forward stepping up stairs",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "83_32",
+    "subject": "Subject #83 (steps)",
+    "description": "walk forward stepping up stairs",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "83_34",
+    "subject": "Subject #83 (steps)",
+    "description": "walk forward and up stairs",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "83_35",
+    "subject": "Subject #83 (steps)",
+    "description": "walk forward and stepping up stairs",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "83_36",
+    "subject": "Subject #83 (steps)",
+    "description": "walk forward turn 90 degrees left walk forward",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "83_37",
+    "subject": "Subject #83 (steps)",
+    "description": "walk forward turn 90 degrees right walk forward",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "83_38",
+    "subject": "Subject #83 (steps)",
+    "description": "walk forward turn 90 degrees left walk forward",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "83_39",
+    "subject": "Subject #83 (steps)",
+    "description": "walk forward turn 90 degrees right walk forward",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "86_02",
+    "subject": "Subject #86 (sports and various activities)",
+    "description": "walk, squats, run, stretch, jumps, punches, and drinking",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "86_03",
+    "subject": "Subject #86 (sports and various activities)",
+    "description": "walking, running, jumping, kicking, and stretching",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "86_04",
+    "subject": "Subject #86 (sports and various activities)",
+    "description": "walking, stretching, punching, chopping, and drinking",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "86_05",
+    "subject": "Subject #86 (sports and various activities)",
+    "description": "walking, jumping, jumping jacks,  jumping on one foot, punching, chopping,",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "86_06",
+    "subject": "Subject #86 (sports and various activities)",
+    "description": "walking, running, kicking, punching, knee kicking, and stretching",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "86_07",
+    "subject": "Subject #86 (sports and various activities)",
+    "description": "walking, swinging arms, stretching, jumping on one leg, and jumping",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "86_08",
+    "subject": "Subject #86 (sports and various activities)",
+    "description": "walking, squats, stretching, kicking, and punching",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "86_09",
+    "subject": "Subject #86 (sports and various activities)",
+    "description": "walking, sitting, looking, stand up",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "86_10",
+    "subject": "Subject #86 (sports and various activities)",
+    "description": "walk around, sit, stand up, and running",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "86_11",
+    "subject": "Subject #86 (sports and various activities)",
+    "description": "walking, stretching, walking and turning",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "86_12",
+    "subject": "Subject #86 (sports and various activities)",
+    "description": "walking, dragging, sweeping, dustpan, wipe window, and wipe mirror",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "86_13",
+    "subject": "Subject #86 (sports and various activities)",
+    "description": "walking around, walk up ladder, step down ladder",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "86_15",
+    "subject": "Subject #86 (sports and various activities)",
+    "description": "walking, sitting, hand motions",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "90_22",
+    "subject": "Subject #90 (cartwheels; acrobatics; dances)",
+    "description": "straight walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "90_23",
+    "subject": "Subject #90 (cartwheels; acrobatics; dances)",
+    "description": "straight walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "90_25",
+    "subject": "Subject #90 (cartwheels; acrobatics; dances)",
+    "description": "fwd ball walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "90_26",
+    "subject": "Subject #90 (cartwheels; acrobatics; dances)",
+    "description": "fwd ball walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "90_27",
+    "subject": "Subject #90 (cartwheels; acrobatics; dances)",
+    "description": "bwk ball walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "91_01",
+    "subject": "Subject #91 (walks and turns)",
+    "description": "Walk digital figure eight",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "91_03",
+    "subject": "Subject #91 (walks and turns)",
+    "description": "Walk figure eight",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "91_04",
+    "subject": "Subject #91 (walks and turns)",
+    "description": "Walking",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "91_05",
+    "subject": "Subject #91 (walks and turns)",
+    "description": "Mummy Walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "91_16",
+    "subject": "Subject #91 (walks and turns)",
+    "description": "Limp",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  },
+  {
+    "clip_id": "91_19",
+    "subject": "Subject #91 (walks and turns)",
+    "description": "March",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "run"
+  },
+  {
+    "clip_id": "93_07",
+    "subject": "Subject #93 (Charleston Dance)",
+    "description": "Casual Walk",
+    "source_id": "cmu_bvh_index",
+    "candidate_type": "walk"
+  }
+]
