@@ -1,0 +1,467 @@
+{
+  "schema": "clawstack.fleet_growth_compound_plan.v1",
+  "updated_at": "2026-06-20T07:01:47+09:00",
+  "adoption": "ADOPT_PARTIAL_READ_ONLY",
+  "non_duplication": {
+    "uses_existing": [
+      "scripts/k10_fleet_idle_dispatch.py",
+      "scripts/k10_growth_allocation.py",
+      "scripts/fleet_revolutionary_evolution_loop.py"
+    ],
+    "does_not_replace": true,
+    "does_not_execute_jobs": true
+  },
+  "growth_model": {
+    "target": "compound/exponential-like improvement through reusable capability gains",
+    "guardrail": "No unbounded self-modification; every execution remains gated by evidence, tests, rollback, and approval.",
+    "score_terms": [
+      "impact",
+      "parallelism",
+      "learning",
+      "growth_pressure",
+      "risk"
+    ]
+  },
+  "knowledge_db": {
+    "sources": 12,
+    "rules": 6
+  },
+  "growth_pressure": {
+    "top_domains": [],
+    "avg_top_priority": 0.0,
+    "dxf2step_success_pct": null,
+    "stats_updated_at": "2026-06-20T07:00:14.248065"
+  },
+  "node_snapshot": {
+    "red_lavie": {
+      "decision": "error",
+      "reason": "timed out",
+      "metrics": {},
+      "availability": 0.1,
+      "capabilities": [
+        "openradioss",
+        "qms",
+        "rag",
+        "web_research",
+        "document_parse"
+      ]
+    },
+    "dynabook": {
+      "decision": "skip",
+      "reason": "thermal throttle (cpu_limit=50%)",
+      "metrics": {
+        "cpu_usage_percent": 8.0,
+        "ram_usage_percent": 41.5,
+        "cpu_temp_celsius": 72.0,
+        "thermal_control_temp_c": 72.0,
+        "cpu_limit_percent": 50,
+        "is_throttling": true
+      },
+      "availability": 0.25,
+      "capabilities": [
+        "light_probe",
+        "dry_run",
+        "brv_sync",
+        "qms"
+      ]
+    },
+    "thinkpad": {
+      "decision": "skip",
+      "reason": "cpu 100.0% >= 70.0%",
+      "metrics": {
+        "cpu_usage_percent": 0.0,
+        "ram_usage_percent": 16.8,
+        "cpu_temp_celsius": 53.0,
+        "thermal_control_temp_c": 53.0,
+        "cpu_limit_percent": 100,
+        "is_throttling": null
+      },
+      "availability": 0.35,
+      "capabilities": [
+        "fem_impact",
+        "dxf2step",
+        "qms",
+        "ssh_worker",
+        "document_parse"
+      ]
+    },
+    "lavie": {
+      "decision": "skip",
+      "reason": "cpu 100.0% >= 70.0%",
+      "metrics": {
+        "cpu_usage_percent": 100.0,
+        "ram_usage_percent": 99.5,
+        "cpu_temp_celsius": 60.0,
+        "thermal_control_temp_c": 60.0,
+        "cpu_limit_percent": 100,
+        "is_throttling": false
+      },
+      "availability": 0.35,
+      "capabilities": [
+        "openfoam",
+        "cae",
+        "qms",
+        "light_probe"
+      ]
+    },
+    "lavie_i3": {
+      "decision": "dispatch",
+      "reason": "idle ok cpu=4.0% ram=73.9% temp=51.0C",
+      "metrics": {
+        "cpu_usage_percent": 4.0,
+        "ram_usage_percent": 73.9,
+        "cpu_temp_celsius": 51.0,
+        "thermal_control_temp_c": 51.0,
+        "cpu_limit_percent": 100,
+        "is_throttling": false
+      },
+      "availability": 1.0,
+      "capabilities": [
+        "light_probe",
+        "health_snapshot",
+        "monitoring"
+      ]
+    },
+    "k10": {
+      "decision": "not_seen_current_cycle",
+      "reason": "no current metrics in fleet_idle_dispatch_status",
+      "metrics": {},
+      "availability": 0.8,
+      "capabilities": [
+        "orchestrator",
+        "repo_write",
+        "heavy_coordination",
+        "security_policy",
+        "dashboard"
+      ]
+    },
+    "g3": {
+      "decision": "not_seen_current_cycle",
+      "reason": "no current metrics in fleet_idle_dispatch_status",
+      "metrics": {},
+      "availability": 0.2,
+      "capabilities": [
+        "n8n",
+        "legacy_probe"
+      ]
+    },
+    "vivobook": {
+      "decision": "not_seen_current_cycle",
+      "reason": "no current metrics in fleet_idle_dispatch_status",
+      "metrics": {},
+      "availability": 0.2,
+      "capabilities": [
+        "daytime_light_only"
+      ]
+    },
+    "hp": {
+      "decision": "not_seen_current_cycle",
+      "reason": "no current metrics in fleet_idle_dispatch_status",
+      "metrics": {},
+      "availability": 0.2,
+      "capabilities": [
+        "manual_review"
+      ]
+    }
+  },
+  "ranked_investments": [
+    {
+      "id": "fleet_security_posture",
+      "title": "Fleet security posture visibility",
+      "category": "security",
+      "impact": 9.0,
+      "parallelism": 7.0,
+      "learning": 7.0,
+      "risk": 3.0,
+      "preferred_capabilities": [
+        "light_probe",
+        "monitoring",
+        "security_policy",
+        "qms"
+      ],
+      "safe_next_action": "Generate read-only OS/package/security posture snapshots; do not patch automatically.",
+      "compound_score": 27.9,
+      "recommended_nodes": [
+        {
+          "node": "lavie_i3",
+          "fit": 0.5,
+          "reason": "idle ok cpu=4.0% ram=73.9% temp=51.0C",
+          "decision": "dispatch"
+        },
+        {
+          "node": "k10",
+          "fit": 0.2,
+          "reason": "no current metrics in fleet_idle_dispatch_status",
+          "decision": "not_seen_current_cycle"
+        },
+        {
+          "node": "lavie",
+          "fit": 0.175,
+          "reason": "cpu 100.0% >= 70.0%",
+          "decision": "skip"
+        },
+        {
+          "node": "dynabook",
+          "fit": 0.125,
+          "reason": "thermal throttle (cpu_limit=50%)",
+          "decision": "skip"
+        }
+      ],
+      "usable_parallelism": 1.0,
+      "no_go": [
+        "Read-only posture collection first; no automatic patching."
+      ]
+    },
+    {
+      "id": "distributed_test_and_benchmark",
+      "title": "Distributed tests and benchmarks",
+      "category": "app_development",
+      "impact": 8.0,
+      "parallelism": 8.0,
+      "learning": 8.0,
+      "risk": 2.0,
+      "preferred_capabilities": [
+        "repo_write",
+        "dxf2step",
+        "fem_impact",
+        "light_probe"
+      ],
+      "safe_next_action": "Split tests and benchmarks by node capability, then record duration/failure tags.",
+      "compound_score": 27.896,
+      "recommended_nodes": [
+        {
+          "node": "lavie_i3",
+          "fit": 0.25,
+          "reason": "idle ok cpu=4.0% ram=73.9% temp=51.0C",
+          "decision": "dispatch"
+        },
+        {
+          "node": "k10",
+          "fit": 0.2,
+          "reason": "no current metrics in fleet_idle_dispatch_status",
+          "decision": "not_seen_current_cycle"
+        },
+        {
+          "node": "thinkpad",
+          "fit": 0.175,
+          "reason": "cpu 100.0% >= 70.0%",
+          "decision": "skip"
+        },
+        {
+          "node": "lavie",
+          "fit": 0.087,
+          "reason": "cpu 100.0% >= 70.0%",
+          "decision": "skip"
+        }
+      ],
+      "usable_parallelism": 0.712,
+      "no_go": []
+    },
+    {
+      "id": "knowledge_scout_db_pipeline",
+      "title": "Knowledge scout -> DB -> rule cards",
+      "category": "self_evolution",
+      "impact": 8.5,
+      "parallelism": 6.0,
+      "learning": 9.0,
+      "risk": 2.0,
+      "preferred_capabilities": [
+        "web_research",
+        "rag",
+        "document_parse",
+        "orchestrator"
+      ],
+      "safe_next_action": "Run bounded metadata-first scouting and direct-free downloads only.",
+      "compound_score": 26.672,
+      "recommended_nodes": [
+        {
+          "node": "k10",
+          "fit": 0.2,
+          "reason": "no current metrics in fleet_idle_dispatch_status",
+          "decision": "not_seen_current_cycle"
+        },
+        {
+          "node": "thinkpad",
+          "fit": 0.087,
+          "reason": "cpu 100.0% >= 70.0%",
+          "decision": "skip"
+        },
+        {
+          "node": "red_lavie",
+          "fit": 0.075,
+          "reason": "timed out",
+          "decision": "error"
+        }
+      ],
+      "usable_parallelism": 0.362,
+      "no_go": []
+    },
+    {
+      "id": "agent_policy_gate_hardening",
+      "title": "Agent policy gate hardening",
+      "category": "safety",
+      "impact": 8.0,
+      "parallelism": 5.0,
+      "learning": 6.5,
+      "risk": 2.0,
+      "preferred_capabilities": [
+        "security_policy",
+        "orchestrator",
+        "qms"
+      ],
+      "safe_next_action": "Convert repeated incident lessons into policy-as-code checks and dry-run gates.",
+      "compound_score": 24.35,
+      "recommended_nodes": [
+        {
+          "node": "k10",
+          "fit": 0.533,
+          "reason": "no current metrics in fleet_idle_dispatch_status",
+          "decision": "not_seen_current_cycle"
+        },
+        {
+          "node": "thinkpad",
+          "fit": 0.117,
+          "reason": "cpu 100.0% >= 70.0%",
+          "decision": "skip"
+        },
+        {
+          "node": "lavie",
+          "fit": 0.117,
+          "reason": "cpu 100.0% >= 70.0%",
+          "decision": "skip"
+        },
+        {
+          "node": "dynabook",
+          "fit": 0.083,
+          "reason": "thermal throttle (cpu_limit=50%)",
+          "decision": "skip"
+        }
+      ],
+      "usable_parallelism": 0.85,
+      "no_go": []
+    },
+    {
+      "id": "idle_work_stealing_backlog",
+      "title": "Bounded idle work-stealing backlog",
+      "category": "utilization",
+      "impact": 7.0,
+      "parallelism": 8.0,
+      "learning": 6.0,
+      "risk": 3.0,
+      "preferred_capabilities": [
+        "light_probe",
+        "web_research",
+        "document_parse",
+        "qms"
+      ],
+      "safe_next_action": "Let idle nodes pull only low-risk read-only jobs from a capped backlog.",
+      "compound_score": 21.7,
+      "recommended_nodes": [
+        {
+          "node": "lavie_i3",
+          "fit": 0.25,
+          "reason": "idle ok cpu=4.0% ram=73.9% temp=51.0C",
+          "decision": "dispatch"
+        },
+        {
+          "node": "thinkpad",
+          "fit": 0.175,
+          "reason": "cpu 100.0% >= 70.0%",
+          "decision": "skip"
+        },
+        {
+          "node": "lavie",
+          "fit": 0.175,
+          "reason": "cpu 100.0% >= 70.0%",
+          "decision": "skip"
+        },
+        {
+          "node": "dynabook",
+          "fit": 0.125,
+          "reason": "thermal throttle (cpu_limit=50%)",
+          "decision": "skip"
+        }
+      ],
+      "usable_parallelism": 0.725,
+      "no_go": []
+    },
+    {
+      "id": "cae_north_star_gap_closure",
+      "title": "North-star CAE gap closure",
+      "category": "cae",
+      "impact": 9.5,
+      "parallelism": 4.0,
+      "learning": 8.0,
+      "risk": 5.0,
+      "preferred_capabilities": [
+        "openfoam",
+        "openradioss",
+        "fem_impact"
+      ],
+      "safe_next_action": "Use existing k10_growth_allocation and tri-track CAE loops; do not create a parallel solver loop.",
+      "compound_score": 20.868,
+      "recommended_nodes": [
+        {
+          "node": "thinkpad",
+          "fit": 0.117,
+          "reason": "cpu 100.0% >= 70.0%",
+          "decision": "skip"
+        },
+        {
+          "node": "lavie",
+          "fit": 0.117,
+          "reason": "cpu 100.0% >= 70.0%",
+          "decision": "skip"
+        },
+        {
+          "node": "red_lavie",
+          "fit": 0.033,
+          "reason": "timed out",
+          "decision": "error"
+        }
+      ],
+      "usable_parallelism": 0.267,
+      "no_go": [
+        "Not enough current CAE node headroom; use existing CAE loops only."
+      ]
+    }
+  ],
+  "recommended_next_action": {
+    "investment_id": "fleet_security_posture",
+    "title": "Fleet security posture visibility",
+    "action": "Generate read-only OS/package/security posture snapshots; do not patch automatically.",
+    "nodes": [
+      {
+        "node": "lavie_i3",
+        "fit": 0.5,
+        "reason": "idle ok cpu=4.0% ram=73.9% temp=51.0C",
+        "decision": "dispatch"
+      },
+      {
+        "node": "k10",
+        "fit": 0.2,
+        "reason": "no current metrics in fleet_idle_dispatch_status",
+        "decision": "not_seen_current_cycle"
+      },
+      {
+        "node": "lavie",
+        "fit": 0.175,
+        "reason": "cpu 100.0% >= 70.0%",
+        "decision": "skip"
+      },
+      {
+        "node": "dynabook",
+        "fit": 0.125,
+        "reason": "thermal throttle (cpu_limit=50%)",
+        "decision": "skip"
+      }
+    ],
+    "verdict": "PROPOSE_ONLY"
+  },
+  "strict_no_go": [
+    "Do not modify docker-compose or core routing from this planner.",
+    "Do not auto-patch OS or dependencies without an approved plan.",
+    "Do not send company-file-server credentials or direct company access to K10.",
+    "Do not run infinite self-improvement loops; every loop needs bounds and status output."
+  ]
+}

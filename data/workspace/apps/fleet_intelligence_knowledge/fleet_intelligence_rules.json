@@ -1,0 +1,38 @@
+[
+  {
+    "rule_id": "meta_layer_no_replacement",
+    "name": "Meta layer only",
+    "raw_fact": "Existing project already has idle dispatch, growth allocation, and recovery loops.",
+    "implementation_recommendation": "Generate plans from their outputs; do not replace or duplicate those loops."
+  },
+  {
+    "rule_id": "compound_growth_score",
+    "name": "Compound growth scoring",
+    "raw_fact": "Fleet productivity grows fastest when reusable capability improvements unlock many future tasks.",
+    "implementation_recommendation": "Prioritize tasks with high impact, high parallelism, high learning value, and low safety risk."
+  },
+  {
+    "rule_id": "heterogeneous_capability_matching",
+    "name": "Heterogeneous capability matching",
+    "raw_fact": "Distributed scheduling and multi-agent allocation assign work based on resource and capability fit.",
+    "implementation_recommendation": "Match job class to node role, live resource state, thermal headroom, and historic success."
+  },
+  {
+    "rule_id": "work_stealing_fallback",
+    "name": "Work stealing fallback",
+    "raw_fact": "Work-stealing improves utilization when central planning leaves workers idle.",
+    "implementation_recommendation": "Use bounded low-risk backlog pulling for idle nodes after K10 assigns protected priorities."
+  },
+  {
+    "rule_id": "security_as_growth_multiplier",
+    "name": "Security posture as multiplier",
+    "raw_fact": "Security failures erase growth gains; posture must be measured continuously.",
+    "implementation_recommendation": "Score CVSS/EPSS/OpenSSF/secret risk before adopting code or sending jobs to a node."
+  },
+  {
+    "rule_id": "bounded_self_evolution",
+    "name": "Bounded self evolution",
+    "raw_fact": "Self-adaptive systems need feedback loops, but execution requires gates.",
+    "implementation_recommendation": "Keep autonomous evolution in propose/dry-run mode until tests, rollback, approval, and evidence are present."
+  }
+]
