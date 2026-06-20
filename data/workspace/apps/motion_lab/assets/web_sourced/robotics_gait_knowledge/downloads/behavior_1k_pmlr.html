@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Search Engine Info --><title>BEHAVIOR-1K: A Benchmark for Embodied AI with 1,000 Everyday Activities and Realistic Simulation</title><meta name="description" content="BEHAVIOR-1K: A Benchmark for Embodied AI with 1,000 Everyday Activities and Realistic SimulationChengshu Li,&nbsp;Ruohan Zhang,&nbsp;Josiah Wong,&nbsp;Cem Go..."><!-- Solution from http://stackoverflow.com/questions/31593297/using-execcommand-javascript-to-copy-hidden-text-to-clipboard -->
+<script src="https://proceedings.mlr.press/v205/assets/js/copy_input.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<script src="https://proceedings.mlr.press/v205/assets/js/download.js"></script>
+<meta name="citation_publisher" content="PMLR"/><meta name="citation_title" content="BEHAVIOR-1K: A Benchmark for Embodied AI with 1,000 Everyday Activities and Realistic Simulation"/><meta name="citation_language" content="en"/>
+<meta name="citation_abstract_html_url" content="https://proceedings.mlr.press/v205/li23a.html"/><meta name="citation_pdf_url" content="https://proceedings.mlr.press/v205/li23a/li23a.pdf"><meta name="citation_firstpage" content="80"><meta name="citation_lastpage" content="93"><meta name="citation_author" content="Chengshu Li"><meta name="citation_author" content="Ruohan Zhang"><meta name="citation_author" content="Josiah Wong"><meta name="citation_author" content="Cem Gokmen"><meta name="citation_author" content="Sanjana Srivastava"><meta name="citation_author" content="Roberto Martín-Martín"><meta name="citation_author" content="Chen Wang"><meta name="citation_author" content="Gabrael Levine"><meta name="citation_author" content="Michael Lingelbach"><meta name="citation_author" content="Jiankai Sun"><meta name="citation_author" content="Mona Anvari"><meta name="citation_author" content="Minjune Hwang"><meta name="citation_author" content="Manasi Sharma"><meta name="citation_author" content="Arman Aydin"><meta name="citation_author" content="Dhruva Bansal"><meta name="citation_author" content="Samuel Hunter"><meta name="citation_author" content="Kyu-Young Kim"><meta name="citation_author" content="Alan Lou"><meta name="citation_author" content="Caleb R Matthews"><meta name="citation_author" content="Ivan Villa-Renteria"><meta name="citation_author" content="Jerry Huayang Tang"><meta name="citation_author" content="Claire Tang"><meta name="citation_author" content="Fei Xia"><meta name="citation_author" content="Silvio Savarese"><meta name="citation_author" content="Hyowon Gweon"><meta name="citation_author" content="Karen Liu"><meta name="citation_author" content="Jiajun Wu"><meta name="citation_author" content="Li Fei-Fei"><meta name="citation_publication_date" content="2023/03/06"><meta name="citation_inbook_title" content="Conference on Robot Learning"/><meta name="citation_conference_title" content="Conference on Robot Learning"/><meta name="citation_issn" content="2640-3498"><meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="BEHAVIOR-1K: A Benchmark for Embodied AI with 1,000 Everyday Activities and Realistic Simulation"/><meta name="twitter:site" content="@MLResearchPress" /><meta name="twitter:description" content="We present BEHAVIOR-1K, a comprehensive simulation benchmark for human-centered robotics. BEHAVIOR-1K includes two components, guided and motivated by the re..."/><meta name="twitter:image" content="https://proceedings.mlr.press/v205/assets/images/logo-pmlr.png"/>
+<meta name="twitter:image:alt" content="PMLR Logo"/><meta property="og:title" content="BEHAVIOR-1K: A Benchmark for Embodied AI with 1,000 Everyday Activities and Realistic Simulation"/>
+<meta property="og:description" content="We present BEHAVIOR-1K, a comprehensive simulation benchmark for human-centered robotics. BEHAVIOR-1K includes two components, guided and motivated by the results of an extensive survey on "what do..."/>
+<meta property="og:type" content="article"/><meta property="article:published_time" content="2023-03-06T00:00:00+00:00"><meta property="og:url" content="https://proceedings.mlr.press/v205/li23a.html"/><meta property="og:image" content="https://proceedings.mlr.press/v205/assets/images/logo-pmlr.png"/><meta property="og:site_name" content="PMLR"/><!-- Style Info -->
+  <link rel="stylesheet" type="text/css" href="https://proceedings.mlr.press/v205/assets/css/pmlr.css" />
+  <style>.hero-text {
+    color: #303030;
+  }</style>
+
+  <!-- Icon Info -->
+  <link rel="shortcut icon" href="https://proceedings.mlr.press/v205/assets/images/favicon-pmlr.ico" type="image/x-icon">
+  <link rel="icon" href="https://proceedings.mlr.press/v205/assets/images/favicon-pmlr.ico" type="image/x-icon">
+
+  <!-- Feed Info --><link type="application/atom+xml" rel="alternate" href="https://proceedings.mlr.press/v205/feed.xml" title="Proceedings of Machine Learning Research" /><!-- Scripting info --><!-- Solution from http://stackoverflow.com/questions/31593297/using-execcommand-javascript-to-copy-hidden-text-to-clipboard -->
+<script src="https://proceedings.mlr.press/v205/assets/js/copy_input.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<script src="https://proceedings.mlr.press/v205/assets/js/download.js"></script>
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-92432422-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    TeX: {
+      equationNumbers: {
+          autoNumber: "AMS"
+        }
+      },
+      tex2jax: {
+      inlineMath: [ ['$','$'], ['\\(', '\\)'] ],
+      displayMath: [ ['$$','$$'], ['\\[', '\\]'] ],
+      processEscapes: true,
+    }
+  });
+</script>
+<script  async
+  src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  <!-- User custom header -->
+</head>
+
+
+
+
+
+
+<body>
+
+
+<header class="site-header">
+  <div class="wrapper">
+    
+
+
+<div class="hero-image">
+  <div class="hero-text">
+    <a href="/" target="_top"><img src="/v205/assets/images/logo-pmlr.svg" alt="[Conference on Robot Learning Logo]"></a>
+    Proceedings of Machine Learning Research
+  </div>
+</div>
+
+
+    <nav class="site-nav">
+  <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+  <label for="nav-trigger">
+  <span class="menu-icon"><svg viewBox="0 0 18 15" width="18px" height="15px">
+  <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+</svg>
+</span>
+  </label>
+  <div class="trigger"><a class="page-link" href="https://proceedings.mlr.press/v205/">Volume 205</a><a class="page-link" href="https://www.jmlr.org/">JMLR</a> 
+    <a class="page-link" href="https://data.mlr.press/">DMLR</a> 
+    <a class="page-link" href="https://jmlr.org/tmlr/">TMLR</a> 
+    <a class="page-link" href="https://www.jmlr.org/mloss">MLOSS</a>
+    <a class="page-link" href="/faq.html">FAQ</a>
+    <a class="page-link" href="/spec.html">Submission Format</a>
+    <a class="page-link" href="https://proceedings.mlr.press//v205/assets/rss/feed.xml">
+      <img src="https://proceedings.mlr.press/v205/assets/images/RSS.gif" class="rss" alt="RSS Feed">
+    </a>
+  </div>
+</nav>
+
+  </div>
+</header>
+
+
+
+
+
+<main class="page-content" aria-label="Content"><div class="wrapper">
+
+
+<p style="text-align:right">[<a href="https://github.com/mlresearch/v205/edit/gh-pages/_posts/2023-03-06-li23a.md" target="_blank" onclick="ga('send', 'event', 'Edit Page', 'Edit', 'https://github.com/mlresearch/v205/edit/gh-pages/_posts/2023-03-06-li23a.md', 13);">edit</a>]</p>
+
+
+<article class="post-content">
+  <h1>BEHAVIOR-1K: A Benchmark for Embodied AI with 1,000 Everyday Activities and Realistic Simulation</h1><span class="authors">Chengshu Li,&nbsp;Ruohan Zhang,&nbsp;Josiah Wong,&nbsp;Cem Gokmen,&nbsp;Sanjana Srivastava,&nbsp;Roberto Martín-Martín,&nbsp;Chen Wang,&nbsp;Gabrael Levine,&nbsp;Michael Lingelbach,&nbsp;Jiankai Sun,&nbsp;Mona Anvari,&nbsp;Minjune Hwang,&nbsp;Manasi Sharma,&nbsp;Arman Aydin,&nbsp;Dhruva Bansal,&nbsp;Samuel Hunter,&nbsp;Kyu-Young Kim,&nbsp;Alan Lou,&nbsp;Caleb R Matthews,&nbsp;Ivan Villa-Renteria,&nbsp;Jerry Huayang Tang,&nbsp;Claire Tang,&nbsp;Fei Xia,&nbsp;Silvio Savarese,&nbsp;Hyowon Gweon,&nbsp;Karen Liu,&nbsp;Jiajun Wu,&nbsp;Li Fei-Fei</span>
+<div id="info"><i>Proceedings of The 6th Conference on Robot Learning</i>,&nbsp;PMLR 205:80-93,&nbsp;2023.
+  </div> <!-- info -->
+  
+  <h4>Abstract</h4>
+  <div id="abstract" class="abstract">
+    We present BEHAVIOR-1K, a comprehensive simulation benchmark for human-centered robotics. BEHAVIOR-1K includes two components, guided and motivated by the results of an extensive survey on "what do you want robots to do for you?". The first is the definition of 1,000 everyday activities, grounded in 50 scenes (houses, gardens, restaurants, offices, etc.) with more than 5,000 objects annotated with rich physical and semantic properties. The second is OmniGibson, a novel simulation environment that supports these activities via realistic physics simulation and rendering of rigid bodies, deformable bodies, and liquids. Our experiments indicate that the activities in BEHAVIOR-1K are long-horizon and dependent on complex manipulation skills, both of which remain a challenge for even state-of-the-art robot learning solutions. To calibrate the simulation-to-reality gap of BEHAVIOR-1K, we provide an initial study on transferring solutions learned with a mobile manipulator in a simulated apartment to its real-world counterpart. We hope that BEHAVIOR-1K’s human-grounded nature, diversity, and realism make it valuable for embodied AI and robot learning research. Project website: https://behavior.stanford.edu.
+  </div>
+  <h4>Cite this Paper</h4>
+<hr class="bibhr">
+
+<div class="bibbuttongroup row row--justified">
+  <div class="bibbuttontext column">
+    BibTeX
+  </div>
+  <div class="column">
+  <div class="codebox">
+    <code class="citecode" id="bibtex">
+@InProceedings{pmlr-v205-li23a,
+  title = 	 {BEHAVIOR-1K: A Benchmark for Embodied AI with 1,000 Everyday Activities and Realistic Simulation},
+  author =       {Li, Chengshu and Zhang, Ruohan and Wong, Josiah and Gokmen, Cem and Srivastava, Sanjana and Mart\'in-Mart\'in, Roberto and Wang, Chen and Levine, Gabrael and Lingelbach, Michael and Sun, Jiankai and Anvari, Mona and Hwang, Minjune and Sharma, Manasi and Aydin, Arman and Bansal, Dhruva and Hunter, Samuel and Kim, Kyu-Young and Lou, Alan and Matthews, Caleb R and Villa-Renteria, Ivan and Tang, Jerry Huayang and Tang, Claire and Xia, Fei and Savarese, Silvio and Gweon, Hyowon and Liu, Karen and Wu, Jiajun and Fei-Fei, Li},
+  booktitle = 	 {Proceedings of The 6th Conference on Robot Learning},
+  pages = 	 {80--93},
+  year = 	 {2023},
+  editor = 	 {Liu, Karen and Kulic, Dana and Ichnowski, Jeff},
+  volume = 	 {205},
+  series = 	 {Proceedings of Machine Learning Research},
+  month = 	 {14--18 Dec},
+  publisher =    {PMLR},
+  pdf = 	 {https://proceedings.mlr.press/v205/li23a/li23a.pdf},
+  url = 	 {https://proceedings.mlr.press/v205/li23a.html},
+  abstract = 	 {We present BEHAVIOR-1K, a comprehensive simulation benchmark for human-centered robotics. BEHAVIOR-1K includes two components, guided and motivated by the results of an extensive survey on "what do you want robots to do for you?". The first is the definition of 1,000 everyday activities, grounded in 50 scenes (houses, gardens, restaurants, offices, etc.) with more than 5,000 objects annotated with rich physical and semantic properties. The second is OmniGibson, a novel simulation environment that supports these activities via realistic physics simulation and rendering of rigid bodies, deformable bodies, and liquids. Our experiments indicate that the activities in BEHAVIOR-1K are long-horizon and dependent on complex manipulation skills, both of which remain a challenge for even state-of-the-art robot learning solutions. To calibrate the simulation-to-reality gap of BEHAVIOR-1K, we provide an initial study on transferring solutions learned with a mobile manipulator in a simulated apartment to its real-world counterpart. We hope that BEHAVIOR-1K’s human-grounded nature, diversity, and realism make it valuable for embodied AI and robot learning research. Project website: https://behavior.stanford.edu.}
+}
+</code>
+  </div>
+  <button class="button"  id="button-bibtex1" onclick="CopyToClipboard('bibtex');  ga('send', 'event', 'Ref Copy', 'CopyToClipboard', '/v205/pmlr-v205-li23a.bib', 15);">Copy to Clipboard</button>
+  <button class="button" id="button-bibtex2" onclick="DownloadTexToFile('pmlr-v205-li23a.bib', 'bibtex'); ga('send', 'event', 'Ref Downloads', 'Download', '/v205/pmlr-v205-li23a.bib', 16);">Download</button>
+  </div>
+</div>
+
+
+<div class="bibbuttongroup row row--justified">
+  <div class="bibbuttontext column">
+    Endnote
+  </div>
+  <div class="column">
+  <div class="codebox">
+    <code class="citecode" id="endnote">%0 Conference Paper
+%T BEHAVIOR-1K: A Benchmark for Embodied AI with 1,000 Everyday Activities and Realistic Simulation
+%A Chengshu Li
+%A Ruohan Zhang
+%A Josiah Wong
+%A Cem Gokmen
+%A Sanjana Srivastava
+%A Roberto Martín-Martín
+%A Chen Wang
+%A Gabrael Levine
+%A Michael Lingelbach
+%A Jiankai Sun
+%A Mona Anvari
+%A Minjune Hwang
+%A Manasi Sharma
+%A Arman Aydin
+%A Dhruva Bansal
+%A Samuel Hunter
+%A Kyu-Young Kim
+%A Alan Lou
+%A Caleb R Matthews
+%A Ivan Villa-Renteria
+%A Jerry Huayang Tang
+%A Claire Tang
+%A Fei Xia
+%A Silvio Savarese
+%A Hyowon Gweon
+%A Karen Liu
+%A Jiajun Wu
+%A Li Fei-Fei
+%B Proceedings of The 6th Conference on Robot Learning
+%C Proceedings of Machine Learning Research
+%D 2023
+%E Karen Liu
+%E Dana Kulic
+%E Jeff Ichnowski	
+%F pmlr-v205-li23a
+%I PMLR
+%P 80--93
+%U https://proceedings.mlr.press/v205/li23a.html
+%V 205
+%X We present BEHAVIOR-1K, a comprehensive simulation benchmark for human-centered robotics. BEHAVIOR-1K includes two components, guided and motivated by the results of an extensive survey on "what do you want robots to do for you?". The first is the definition of 1,000 everyday activities, grounded in 50 scenes (houses, gardens, restaurants, offices, etc.) with more than 5,000 objects annotated with rich physical and semantic properties. The second is OmniGibson, a novel simulation environment that supports these activities via realistic physics simulation and rendering of rigid bodies, deformable bodies, and liquids. Our experiments indicate that the activities in BEHAVIOR-1K are long-horizon and dependent on complex manipulation skills, both of which remain a challenge for even state-of-the-art robot learning solutions. To calibrate the simulation-to-reality gap of BEHAVIOR-1K, we provide an initial study on transferring solutions learned with a mobile manipulator in a simulated apartment to its real-world counterpart. We hope that BEHAVIOR-1K’s human-grounded nature, diversity, and realism make it valuable for embodied AI and robot learning research. Project website: https://behavior.stanford.edu.
+</code>
+  </div>
+  <button class="button"  id="button-endnote1" onclick="CopyToClipboard('endnote');  ga('send', 'event', 'Ref Copy', 'CopyToClipboard', '/v205/pmlr-v205-li23a.enw', 15);">Copy to Clipboard</button>
+  <button class="button" id="button-endnote2" onclick="DownloadTexToFile('pmlr-v205-li23a.enw', 'endnote'); ga('send', 'event', 'Ref Downloads', 'Download', '/v205/pmlr-v205-li23a.enw', 16);">Download</button>
+  </div>
+</div>
+
+
+
+<div class="bibbuttongroup row row--justified">
+  <div class="bibbuttontext column">
+    APA
+  </div>
+  <div class="column">
+  <div class="codebox">
+    <code class="citecode" id="apa">
+Li, C., Zhang, R., Wong, J., Gokmen, C., Srivastava, S., Martín-Martín, R., Wang, C., Levine, G., Lingelbach, M., Sun, J., Anvari, M., Hwang, M., Sharma, M., Aydin, A., Bansal, D., Hunter, S., Kim, K., Lou, A., Matthews, C.R., Villa-Renteria, I., Tang, J.H., Tang, C., Xia, F., Savarese, S., Gweon, H., Liu, K., Wu, J. & Fei-Fei, L.. (2023). BEHAVIOR-1K: A Benchmark for Embodied AI with 1,000 Everyday Activities and Realistic Simulation. <i>Proceedings of The 6th Conference on Robot Learning</i>, in <i>Proceedings of Machine Learning Research</i> 205:80-93 Available from https://proceedings.mlr.press/v205/li23a.html.
+
+</code>
+  </div>
+  <button class="button"  id="button-apa1" onclick="CopyToClipboard('apa');  ga('send', 'event', 'Ref Copy', 'CopyToClipboard', '/v205/pmlr-v205-li23a.txt', 15);">Copy to Clipboard</button>
+  <button class="button" id="button-apa2" onclick="DownloadTexToFile('pmlr-v205-li23a.txt', 'apa'); ga('send', 'event', 'Ref Downloads', 'Download', '/v205/pmlr-v205-li23a.txt', 16);">Download</button>
+  </div>
+</div>
+
+<hr class="bibhr">
+
+
+  
+  <h4>Related Material</h4>
+  <div id="extras">
+    <ul>
+      <li><a href="https://proceedings.mlr.press/v205/li23a/li23a.pdf" target="_blank" onclick="ga('send', 'event', 'PDF Downloads', 'Download', 'https://proceedings.mlr.press/v205/li23a/li23a.pdf', 10);">Download PDF</a></li>
+      <li><a href="https://openreview.net/forum?id=_8DoIe8G3t" target="_blank" onclick="ga('send', 'event', 'OpenReview site', 'Openreview', 'https://openreview.net/forum?id=_8DoIe8G3t', 10);">OpenReview</a></li>
+      <li><a href="https://proceedings.mlr.press/v205/li23a/li23a-supp.pdf" target="_blank" onclick="ga('send', 'event', 'Extra Downloads', 'Download', 'https://proceedings.mlr.press/v205/li23a/li23a-supp.pdf', 12);">Supplementary PDF</a></li>
+    </ul>
+  </div>
+  
+
+</article>
+
+
+
+
+
+
+
+
+
+      </div>
+    </main>
+
+
+<footer class="site-footer">
+  <div class="wrapper">
+    <p>This site last compiled Wed, 23 Aug 2023 06:06:50 +0000</p>
+      <div class="footer-left"><i><a href="https://github.com/mlresearch/v205">Github Account</a></i>
+      </div>
+      <div class="footer-right">Copyright &copy; <a href="https://proceedings.mlr.press">The authors and PMLR</a> 2023.<a href="https://twitter.com/MLResearchPress"><i class="icon-twitter"></i>&nbsp;MLResearchPress</a></div>
+  </div>
+</footer>
+
+
+
+
+
+</body>
+
+</html>

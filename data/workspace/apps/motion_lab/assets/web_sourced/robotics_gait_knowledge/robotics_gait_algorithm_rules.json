@@ -64,5 +64,50 @@
       "rss_multicontact_feasibility",
       "mit_littledog_dynamic_ik"
     ]
+  },
+  {
+    "id": "vectorized_experience_collection",
+    "priority": 1,
+    "metric": "parallel_rollout_count",
+    "rule": "Many robots/environments should collect short rollouts in parallel, while only selected episodes are rendered for human review.",
+    "motion_use": "Train headless at scale, then export score, success/NG, collision, energy, and GIF/GLB evidence for dashboard inspection.",
+    "source_ids": [
+      "isaac_lab_robot_learning_docs",
+      "unity_ml_agents_docs"
+    ]
+  },
+  {
+    "id": "household_task_curriculum",
+    "priority": 1,
+    "metric": "task_success_by_curriculum_stage",
+    "rule": "Household autonomy should progress from approach and posture tasks to long-horizon object-state tasks.",
+    "motion_use": "Score simple robot tasks as walk -> reach -> open/close -> sit/stand -> multi-step kitchen or care assistance.",
+    "source_ids": [
+      "behavior_1k_project",
+      "behavior_1k_pmlr",
+      "robocasa_project"
+    ]
+  },
+  {
+    "id": "factory_task_curriculum",
+    "priority": 1,
+    "metric": "cycle_success_safety_and_alignment",
+    "rule": "Factory robot policies must track task success together with safety-zone, collision, force, alignment, and cycle-time constraints.",
+    "motion_use": "Add separate factory reward terms for fixture alignment, part handling, safety-zone avoidance, and failed-grasp recovery.",
+    "source_ids": [
+      "ros_industrial_home",
+      "ros_industrial_training_docs"
+    ]
+  },
+  {
+    "id": "sim_to_edge_deployment_gate",
+    "priority": 1,
+    "metric": "edge_policy_safety_readiness",
+    "rule": "Real robot deployment requires a restricted edge controller, emergency stop, speed/force limits, and simulator-to-hardware validation.",
+    "motion_use": "Convert learned behaviors into Raspberry Pi/ROS 2/microcontroller profiles only after offline replay and safety gates pass.",
+    "source_ids": [
+      "micro_ros_overview",
+      "raspberry_pi_ai_kit"
+    ]
   }
 ]

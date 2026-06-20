@@ -34,6 +34,17 @@ DEFAULT_THRESHOLDS = {
 }
 
 
+DEFAULT_ROBOT_LEARNING_THRESHOLDS = {
+    "parallel_rollout_count": 16,
+    "household_task_success_rate": 0.55,
+    "factory_task_success_rate": 0.55,
+    "collision_rate": 0.12,
+    "unsafe_event_count": 0,
+    "edge_latency_ms": 80.0,
+    "real_robot_gate_passed": 1.0,
+}
+
+
 def load_algorithm_rules(db_path: Path = DEFAULT_DB) -> list[dict[str, Any]]:
     if not db_path.exists():
         return []
@@ -204,17 +215,149 @@ def evaluate_gait_metrics(metrics: dict[str, Any], thresholds: dict[str, float] 
     }
 
 
+def evaluate_robot_learning_metrics(metrics: dict[str, Any], thresholds: dict[str, float] | None = None) -> dict[str, Any]:
+    """Score embodied robot-learning readiness using DB-backed web knowledge.
+
+    This complements single-walk QA. It checks whether the system is ready for
+    many parallel robots, household tasks, factory tasks, and safe edge deployment.
+    """
+    limits = dict(DEFAULT_ROBOT_LEARNING_THRESHOLDS)
+    if thresholds:
+        limits.update(thresholds)
+
+    violations: list[dict[str, Any]] = []
+    corrections: list[str] = []
+
+    parallel = _finite_number(metrics.get("parallel_rollout_count"))
+    if parallel is not None and parallel < limits["parallel_rollout_count"]:
+        violations.append(
+            {
+                "rule_id": "vectorized_experience_collection",
+                "severity": "medium",
+                "metric": "parallel_rollout_count",
+                "value": parallel,
+                "limit": limits["parallel_rollout_count"],
+            }
+        )
+        corrections.append("Increase headless rollout count before judging curriculum progress; render only sampled episodes.")
+
+    household = _finite_number(metrics.get("household_task_success_rate"))
+    if household is not None and household < limits["household_task_success_rate"]:
+        violations.append(
+            {
+                "rule_id": "household_task_curriculum",
+                "severity": "medium",
+                "metric": "household_task_success_rate",
+                "value": household,
+                "limit": limits["household_task_success_rate"],
+            }
+        )
+        corrections.append("Train household curriculum in small stages: approach, reach, open/close, sit/stand, then long-horizon tasks.")
+
+    factory = _finite_number(metrics.get("factory_task_success_rate"))
+    if factory is not None and factory < limits["factory_task_success_rate"]:
+        violations.append(
+            {
+                "rule_id": "factory_task_curriculum",
+                "severity": "medium",
+                "metric": "factory_task_success_rate",
+                "value": factory,
+                "limit": limits["factory_task_success_rate"],
+            }
+        )
+        corrections.append("Separate factory reward terms for fixture alignment, cycle time, failed-grasp recovery, and safety zones.")
+
+    collision = _finite_number(metrics.get("collision_rate"))
+    if collision is not None and collision > limits["collision_rate"]:
+        violations.append(
+            {
+                "rule_id": "factory_task_curriculum",
+                "severity": "high",
+                "metric": "collision_rate",
+                "value": collision,
+                "limit": limits["collision_rate"],
+            }
+        )
+        corrections.append("Add collision penalties, slower approach speed, larger clearance margins, and replay failing contacts.")
+
+    unsafe = _finite_number(metrics.get("unsafe_event_count"))
+    if unsafe is not None and unsafe > limits["unsafe_event_count"]:
+        violations.append(
+            {
+                "rule_id": "sim_to_edge_deployment_gate",
+                "severity": "high",
+                "metric": "unsafe_event_count",
+                "value": unsafe,
+                "limit": limits["unsafe_event_count"],
+            }
+        )
+        corrections.append("Block real-robot promotion until unsafe events are eliminated in offline replay.")
+
+    latency = _finite_number(metrics.get("edge_latency_ms"))
+    if latency is not None and latency > limits["edge_latency_ms"]:
+        violations.append(
+            {
+                "rule_id": "sim_to_edge_deployment_gate",
+                "severity": "medium",
+                "metric": "edge_latency_ms",
+                "value": latency,
+                "limit": limits["edge_latency_ms"],
+            }
+        )
+        corrections.append("Keep Raspberry Pi deployment to lightweight policy inference and push heavy training to K10/GPU.")
+
+    real_gate = _finite_number(metrics.get("real_robot_gate_passed"))
+    if real_gate is not None and real_gate < limits["real_robot_gate_passed"]:
+        violations.append(
+            {
+                "rule_id": "sim_to_edge_deployment_gate",
+                "severity": "high",
+                "metric": "real_robot_gate_passed",
+                "value": real_gate,
+                "limit": limits["real_robot_gate_passed"],
+            }
+        )
+        corrections.append("Require emergency stop, speed/force limits, and hardware-in-loop dry run before real-world task trials.")
+
+    score = 100
+    for item in violations:
+        if item["severity"] == "high":
+            score -= 24
+        elif item["severity"] == "medium":
+            score -= 11
+        else:
+            score -= 5
+    score = max(0, score)
+    verdict = "PASS" if score >= 82 and not any(v["severity"] == "high" for v in violations) else "REVIEW"
+    if score < 60 or any(v["severity"] == "high" for v in violations):
+        verdict = "HOLD"
+
+    return {
+        "score": score,
+        "verdict": verdict,
+        "violations": violations,
+        "corrections": list(dict.fromkeys(corrections)),
+        "rules_loaded": load_algorithm_rules(),
+        "thresholds": limits,
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Robotics-informed gait QA for generated 3D motion.")
     parser.add_argument("--metrics-json", help="Path to measured gait metrics JSON.")
+    parser.add_argument("--robot-learning-json", help="Path to embodied robot-learning readiness metrics JSON.")
     parser.add_argument("--print-rules", action="store_true", help="Print DB-backed algorithm rules.")
     args = parser.parse_args()
 
     if args.print_rules:
         print(json.dumps(load_algorithm_rules(), ensure_ascii=False, indent=2))
         return 0
+    if args.robot_learning_json:
+        metrics = json.loads(Path(args.robot_learning_json).read_text(encoding="utf-8"))
+        print(json.dumps(evaluate_robot_learning_metrics(metrics), ensure_ascii=False, indent=2))
+        return 0
     if not args.metrics_json:
-        parser.error("--metrics-json is required unless --print-rules is used")
+        parser.error("--metrics-json or --robot-learning-json is required unless --print-rules is used")
     metrics = json.loads(Path(args.metrics_json).read_text(encoding="utf-8"))
     print(json.dumps(evaluate_gait_metrics(metrics), ensure_ascii=False, indent=2))
     return 0

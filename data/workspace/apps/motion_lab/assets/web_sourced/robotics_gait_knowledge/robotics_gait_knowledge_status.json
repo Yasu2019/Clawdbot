@@ -1,12 +1,12 @@
 {
-  "generated_at": "2026-06-19T21:13:18.242994+00:00",
+  "generated_at": "2026-06-20T03:04:17.431197+00:00",
   "db_path": "D:\\Clawdbot_Docker_20260125\\data\\workspace\\apps\\motion_lab\\assets\\web_sourced\\robotics_gait_knowledge\\robotics_gait_knowledge.db",
   "report_path": "D:\\Clawdbot_Docker_20260125\\data\\workspace\\apps\\motion_lab\\assets\\web_sourced\\robotics_gait_knowledge\\robotics_gait_knowledge_report.md",
   "download_dir": "D:\\Clawdbot_Docker_20260125\\data\\workspace\\apps\\motion_lab\\assets\\web_sourced\\robotics_gait_knowledge\\downloads",
-  "source_count": 10,
-  "downloaded_count": 10,
+  "source_count": 21,
+  "downloaded_count": 21,
   "failed_count": 0,
-  "algorithm_rule_count": 6,
+  "algorithm_rule_count": 10,
   "downloaded": [
     {
       "id": "mit_underactuated_humanoids",
@@ -62,14 +62,14 @@
       "category": "paper_html",
       "bytes": 198962,
       "local_path": "downloads\\pmc_heel_contact_toe_off.html",
-      "sha256": "49e3b70ba03caf2c89f94d726f071f82bbdf751c0a66ec027894a26afd2149a3"
+      "sha256": "72d9f63b2c7db4f2ced95b498f41d3c5fe12ef92d4819baec19710e5d2cb1239"
     },
     {
       "id": "pmc_omnidirectional_walking_generator",
       "category": "paper_html",
       "bytes": 228934,
       "local_path": "downloads\\pmc_omnidirectional_walking_generator.html",
-      "sha256": "0a2987801a106af18d17cbb94252c67bb915e066c4de3de105b377e060f53e2b"
+      "sha256": "0574d1c001db3666cf187ee69f21c33b725d783da4e531e379e7ddc553eeb206"
     },
     {
       "id": "mit_littledog_dynamic_ik",
@@ -77,6 +77,83 @@
       "bytes": 731366,
       "local_path": "downloads\\mit_littledog_dynamic_ik.pdf",
       "sha256": "d7728b624f6b8822c533422381fff28359fd794241af59fa4765f88ac6f26410"
+    },
+    {
+      "id": "isaac_lab_robot_learning_docs",
+      "category": "robot_learning_framework",
+      "bytes": 213,
+      "local_path": "downloads\\isaac_lab_robot_learning_docs.html",
+      "sha256": "d1db02ec5de92e2daba0ef8a3e98830d547feb1b366608e41c67c8e6a6c22e32"
+    },
+    {
+      "id": "isaac_lab_imitation_learning_docs",
+      "category": "imitation_learning",
+      "bytes": 43238,
+      "local_path": "downloads\\isaac_lab_imitation_learning_docs.html",
+      "sha256": "b4601eabe097d397f95425b8ef5905a7634c804278dccde6d955876a42cf32ef"
+    },
+    {
+      "id": "behavior_1k_project",
+      "category": "household_embodied_ai",
+      "bytes": 208136,
+      "local_path": "downloads\\behavior_1k_project.html",
+      "sha256": "d3f54d80e4b05d3e4f3a056de60d8da0b6b6bb717dad8960ed362a055d964544"
+    },
+    {
+      "id": "behavior_1k_pmlr",
+      "category": "household_embodied_ai_paper",
+      "bytes": 18907,
+      "local_path": "downloads\\behavior_1k_pmlr.html",
+      "sha256": "3d57b688176cbc49464484fd17a5f24a09195eaf4e7250a87b0c92bc795dd2c1"
+    },
+    {
+      "id": "robocasa_project",
+      "category": "kitchen_robot_learning",
+      "bytes": 32450,
+      "local_path": "downloads\\robocasa_project.html",
+      "sha256": "c1ceda760a05e357caa8e9deaba1016bdf49c3c7f86999a2bb7cf7b5100faecb"
+    },
+    {
+      "id": "robocasa_github",
+      "category": "kitchen_robot_learning_source",
+      "bytes": 313703,
+      "local_path": "downloads\\robocasa_github.html",
+      "sha256": "7d75b06b205938f5a92f5fafa1d92399e7316ff2d8ecea87a7fd751a509d7dd4"
+    },
+    {
+      "id": "ros_industrial_home",
+      "category": "factory_robotics",
+      "bytes": 162785,
+      "local_path": "downloads\\ros_industrial_home.html",
+      "sha256": "4c1b3227deb7a0830e933aec6eb4a5423178e7829970bbccf6653f774c7ca4b8"
+    },
+    {
+      "id": "ros_industrial_training_docs",
+      "category": "factory_robotics_training",
+      "bytes": 26248,
+      "local_path": "downloads\\ros_industrial_training_docs.html",
+      "sha256": "865247c46f83cc4e45a9e77aea18a30cd17cc59645328da358d88152b66ad2bc"
+    },
+    {
+      "id": "unity_ml_agents_docs",
+      "category": "multi_agent_visual_training",
+      "bytes": 40043,
+      "local_path": "downloads\\unity_ml_agents_docs.html",
+      "sha256": "1346d184dc8ba3ac6ffb17fbc4b8368fe80c4da8972f0793530479a9f6c02276"
+    },
+    {
+      "id": "unreal_learning_agents_docs",
+      "category": "high_fidelity_agent_training",
+      "bytes": 25778,
+      "local_path": "downloads\\unreal_learning_agents_docs.html",
+      "sha256": "6c2165727db749f63c332096f421d6ef40769fee5163a0e969e50a86398dd84e"
+    },
+    {
+      "id": "micro_ros_overview",
+      "category": "edge_robot_control",
+      "bytes": 686,
+      "local_path": "downloads\\micro_ros_overview.html",
+      "sha256": "1b08935280ded0b838fde015a458818f1ef7b214fc80088a2fca47777fb8977a"
     }
   ],
   "failed": [],
@@ -108,6 +185,34 @@
       "url": "https://drake.mit.edu/",
       "status": "manual_review",
       "next_action": "Review current examples and license before importing code or formulas."
+    },
+    {
+      "id": "behavior_1k_dataset_assets",
+      "title": "BEHAVIOR-1K / OmniGibson assets",
+      "url": "https://github.com/StanfordVL/BEHAVIOR-1K",
+      "status": "manual_review",
+      "next_action": "Review license, disk size, simulator requirements, and access rules before downloading assets."
+    },
+    {
+      "id": "robocasa_kitchen_assets",
+      "title": "RoboCasa kitchen assets and demonstration data",
+      "url": "https://github.com/robocasa/robocasa",
+      "status": "manual_review",
+      "next_action": "Review license/terms and size before downloading kitchen assets or demonstrations."
+    },
+    {
+      "id": "isaac_sim_installation",
+      "title": "Isaac Sim / Isaac Lab installation assets",
+      "url": "https://developer.nvidia.com/isaac/sim",
+      "status": "manual_review",
+      "next_action": "Install only after GPU/driver compatibility check and user approval for large downloads."
+    },
+    {
+      "id": "raspberry_pi_ai_kit",
+      "title": "Raspberry Pi AI Kit",
+      "url": "https://www.raspberrypi.com/products/ai-kit/",
+      "status": "manual_review",
+      "next_action": "Official site returned HTTP 403 to automated fetch; keep metadata only and review manually in browser."
     }
   ],
   "algorithm_rules": [
@@ -175,6 +280,51 @@
       "source_ids": [
         "rss_multicontact_feasibility",
         "mit_littledog_dynamic_ik"
+      ]
+    },
+    {
+      "id": "vectorized_experience_collection",
+      "priority": 1,
+      "metric": "parallel_rollout_count",
+      "rule": "Many robots/environments should collect short rollouts in parallel, while only selected episodes are rendered for human review.",
+      "motion_use": "Train headless at scale, then export score, success/NG, collision, energy, and GIF/GLB evidence for dashboard inspection.",
+      "source_ids": [
+        "isaac_lab_robot_learning_docs",
+        "unity_ml_agents_docs"
+      ]
+    },
+    {
+      "id": "household_task_curriculum",
+      "priority": 1,
+      "metric": "task_success_by_curriculum_stage",
+      "rule": "Household autonomy should progress from approach and posture tasks to long-horizon object-state tasks.",
+      "motion_use": "Score simple robot tasks as walk -> reach -> open/close -> sit/stand -> multi-step kitchen or care assistance.",
+      "source_ids": [
+        "behavior_1k_project",
+        "behavior_1k_pmlr",
+        "robocasa_project"
+      ]
+    },
+    {
+      "id": "factory_task_curriculum",
+      "priority": 1,
+      "metric": "cycle_success_safety_and_alignment",
+      "rule": "Factory robot policies must track task success together with safety-zone, collision, force, alignment, and cycle-time constraints.",
+      "motion_use": "Add separate factory reward terms for fixture alignment, part handling, safety-zone avoidance, and failed-grasp recovery.",
+      "source_ids": [
+        "ros_industrial_home",
+        "ros_industrial_training_docs"
+      ]
+    },
+    {
+      "id": "sim_to_edge_deployment_gate",
+      "priority": 1,
+      "metric": "edge_policy_safety_readiness",
+      "rule": "Real robot deployment requires a restricted edge controller, emergency stop, speed/force limits, and simulator-to-hardware validation.",
+      "motion_use": "Convert learned behaviors into Raspberry Pi/ROS 2/microcontroller profiles only after offline replay and safety gates pass.",
+      "source_ids": [
+        "micro_ros_overview",
+        "raspberry_pi_ai_kit"
       ]
     }
   ]

@@ -1,0 +1,4618 @@
+<!doctype html>
+<html xmlns:og="http://opengraphprotocol.org/schema/" xmlns:fb="http://www.facebook.com/2008/fbml" lang="en-US" >
+  <head>
+	  
+	  <meta name="viewport" content="width=device-width, initial-scale=1">
+	  
+    <!-- This is Squarespace. --><!-- rosindustrial -->
+<base href="">
+<meta charset="utf-8" />
+<title>ROS-Industrial</title>
+<meta http-equiv="Accept-CH" content="Sec-CH-UA-Platform-Version, Sec-CH-UA-Model" /><link rel="icon" type="image/x-icon" href="https://images.squarespace-cdn.com/content/v1/51df34b1e4b08840dcfd2841/1398461831093-53ZNUUDU3QL3FZUYTN6G/favicon.ico?format=100w"/>
+<link rel="canonical" href="https://rosindustrial.org"/>
+<meta property="og:site_name" content="ROS-Industrial"/>
+<meta property="og:title" content="ROS-Industrial"/>
+<meta property="og:url" content="https://rosindustrial.org"/>
+<meta property="og:type" content="website"/>
+<meta property="og:description" content="ROS-Industrial is an Open Source robotics software project that extends the advanced capabilities of ROS to new manufacturing applications. Supported by ROS-I Consortium which is led by SwRI, Fraunhofer IPA and ARTC."/>
+<meta itemprop="name" content="ROS-Industrial"/>
+<meta itemprop="url" content="https://rosindustrial.org"/>
+<meta itemprop="description" content="ROS-Industrial is an Open Source robotics software project that extends the advanced capabilities of ROS to new manufacturing applications. Supported by ROS-I Consortium which is led by SwRI, Fraunhofer IPA and ARTC."/>
+<meta name="twitter:title" content="ROS-Industrial"/>
+<meta name="twitter:url" content="https://rosindustrial.org"/>
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:description" content="ROS-Industrial is an Open Source robotics software project that extends the advanced capabilities of ROS to new manufacturing applications. Supported by ROS-I Consortium which is led by SwRI, Fraunhofer IPA and ARTC."/>
+<meta name="description" content="ROS-Industrial is an Open Source robotics software project that extends the advanced capabilities of ROS to new manufacturing applications. Supported by ROS-I Consortium which is led by SwRI, Fraunhofer IPA and ARTC." />
+<link rel="preconnect" href="https://images.squarespace-cdn.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=PT+Serif:ital,wght@1,400&family=Allerta+Stencil:ital,wght@0,400&family=Open+Sans:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700"><script type="text/javascript" crossorigin="anonymous" defer="true" nomodule="nomodule" src="//assets.squarespace.com/@sqs/polyfiller/1.6/legacy.js"></script>
+<script type="text/javascript" crossorigin="anonymous" defer="true" src="//assets.squarespace.com/@sqs/polyfiller/1.6/modern.js"></script>
+<script data-name="static-context">Static = window.Static || {}; Static.SQUARESPACE_CONTEXT = {"betaFeatureFlags":["campaigns_table_v2","enable_modernized_pdp_m3_fluid","marketing_landing_page","campaigns_new_image_layout_picker","output_template_css_assets","enable_form_submission_trigger","enable_modernized_pdp_m3_layout_ux","campaigns_thumbnail_layout","commerce_product_payment_plan_editing","contacts_and_campaigns_redesign","modernized-pdp-m2-enabled","campaigns_merch_state","campaigns_discount_section_in_automations","i18n_beta_website_locales","campaigns_discount_section_in_blasts","campaigns_import_discounts","marketing_automations","order_status_page_checkout_landing_enabled"],"facebookAppId":"314192535267336","facebookApiVersion":"v6.0","rollups":{"squarespace-announcement-bar":{"js":"//assets.squarespace.com/universal/scripts-compressed/announcement-bar-0d42d1862159c4e6-min.en-US.js"},"squarespace-audio-player":{"css":"//assets.squarespace.com/universal/styles-compressed/audio-player-b05f5197a871c566-min.en-US.css","js":"//assets.squarespace.com/universal/scripts-compressed/audio-player-5b804831f1e69672-min.en-US.js"},"squarespace-blog-collection-list":{"css":"//assets.squarespace.com/universal/styles-compressed/blog-collection-list-b4046463b72f34e2-min.en-US.css","js":"//assets.squarespace.com/universal/scripts-compressed/blog-collection-list-d5bd5d2a1524b858-min.en-US.js"},"squarespace-calendar-block-renderer":{"css":"//assets.squarespace.com/universal/styles-compressed/calendar-block-renderer-c3fef2a497c8e56b-min.en-US.css","js":"//assets.squarespace.com/universal/scripts-compressed/calendar-block-renderer-eb449d66ffd023be-min.en-US.js"},"squarespace-chartjs-helpers":{"css":"//assets.squarespace.com/universal/styles-compressed/chartjs-helpers-96b256171ee039c1-min.en-US.css","js":"//assets.squarespace.com/universal/scripts-compressed/chartjs-helpers-0f6610ea3f198027-min.en-US.js"},"squarespace-comments":{"css":"//assets.squarespace.com/universal/styles-compressed/comments-1909adba615d1267-min.en-US.css","js":"//assets.squarespace.com/universal/scripts-compressed/comments-22e133c4dc8842c4-min.en-US.js"},"squarespace-custom-css-popup":{"css":"//assets.squarespace.com/universal/styles-compressed/custom-css-popup-f387ac693a6f379a-min.en-US.css","js":"//assets.squarespace.com/universal/scripts-compressed/custom-css-popup-c462f0abc4c9779c-min.en-US.js"},"squarespace-dialog":{"css":"//assets.squarespace.com/universal/styles-compressed/dialog-86aacd645d83874c-min.en-US.css","js":"//assets.squarespace.com/universal/scripts-compressed/dialog-f53da749b97dee38-min.en-US.js"},"squarespace-events-collection":{"css":"//assets.squarespace.com/universal/styles-compressed/events-collection-c3fef2a497c8e56b-min.en-US.css","js":"//assets.squarespace.com/universal/scripts-compressed/events-collection-36e982b07d060c96-min.en-US.js"},"squarespace-form-rendering-utils":{"js":"//assets.squarespace.com/universal/scripts-compressed/form-rendering-utils-1239f63dd6098d64-min.en-US.js"},"squarespace-forms":{"css":"//assets.squarespace.com/universal/styles-compressed/forms-0afd3c6ac30bbab1-min.en-US.css","js":"//assets.squarespace.com/universal/scripts-compressed/forms-93a072eb173475ab-min.en-US.js"},"squarespace-gallery-collection-list":{"css":"//assets.squarespace.com/universal/styles-compressed/gallery-collection-list-b4046463b72f34e2-min.en-US.css","js":"//assets.squarespace.com/universal/scripts-compressed/gallery-collection-list-9f7aecddb0723bd7-min.en-US.js"},"squarespace-image-zoom":{"css":"//assets.squarespace.com/universal/styles-compressed/image-zoom-b4046463b72f34e2-min.en-US.css","js":"//assets.squarespace.com/universal/scripts-compressed/image-zoom-52dbe9048953f4ac-min.en-US.js"},"squarespace-pinterest":{"css":"//assets.squarespace.com/universal/styles-compressed/pinterest-b4046463b72f34e2-min.en-US.css","js":"//assets.squarespace.com/universal/scripts-compressed/pinterest-62ef3cd44d2c3736-min.en-US.js"},"squarespace-popup-overlay":{"css":"//assets.squarespace.com/universal/styles-compressed/popup-overlay-b742b752f5880972-min.en-US.css","js":"//assets.squarespace.com/universal/scripts-compressed/popup-overlay-b63a4b86cd036d89-min.en-US.js"},"squarespace-product-quick-view":{"css":"//assets.squarespace.com/universal/styles-compressed/product-quick-view-0afd3c6ac30bbab1-min.en-US.css","js":"//assets.squarespace.com/universal/scripts-compressed/product-quick-view-2b7547f1201e14b2-min.en-US.js"},"squarespace-products-collection-item-v2":{"css":"//assets.squarespace.com/universal/styles-compressed/products-collection-item-v2-b4046463b72f34e2-min.en-US.css","js":"//assets.squarespace.com/universal/scripts-compressed/products-collection-item-v2-c2ab0e31b1585540-min.en-US.js"},"squarespace-products-collection-list-v2":{"css":"//assets.squarespace.com/universal/styles-compressed/products-collection-list-v2-b4046463b72f34e2-min.en-US.css","js":"//assets.squarespace.com/universal/scripts-compressed/products-collection-list-v2-c476cb19fc080a16-min.en-US.js"},"squarespace-search-page":{"css":"//assets.squarespace.com/universal/styles-compressed/search-page-90a67fc09b9b32c6-min.en-US.css","js":"//assets.squarespace.com/universal/scripts-compressed/search-page-ceba448b3f1e31a7-min.en-US.js"},"squarespace-search-preview":{"js":"//assets.squarespace.com/universal/scripts-compressed/search-preview-5f4cebfd0bfdcca2-min.en-US.js"},"squarespace-simple-liking":{"css":"//assets.squarespace.com/universal/styles-compressed/simple-liking-701bf8bbc05ec6aa-min.en-US.css","js":"//assets.squarespace.com/universal/scripts-compressed/simple-liking-a5d16f553c1269c6-min.en-US.js"},"squarespace-social-buttons":{"css":"//assets.squarespace.com/universal/styles-compressed/social-buttons-95032e5fa98e47a5-min.en-US.css","js":"//assets.squarespace.com/universal/scripts-compressed/social-buttons-47746ee59e9cf20f-min.en-US.js"},"squarespace-tourdates":{"css":"//assets.squarespace.com/universal/styles-compressed/tourdates-b4046463b72f34e2-min.en-US.css","js":"//assets.squarespace.com/universal/scripts-compressed/tourdates-20b473f1d1e43c1d-min.en-US.js"},"squarespace-website-overlays-manager":{"css":"//assets.squarespace.com/universal/styles-compressed/website-overlays-manager-07ea5a4e004e6710-min.en-US.css","js":"//assets.squarespace.com/universal/scripts-compressed/website-overlays-manager-62ad7f8ae9b90855-min.en-US.js"}},"pageType":2,"website":{"id":"51df34b1e4b08840dcfd2841","captchaSettings":{"siteKey":"6Leh7_MZAAAAAOcWjSJY7-W6BCuzzgJVc4-IjwtO","enabledForDonations":false},"cloneable":false,"contentModifiedOn":1781547764264,"formattingLocale":"en-US","fullSiteTitle":"ROS-Industrial","identifier":"rosindustrial","imageMetadataProcessingEnabled":false,"isHstsEnabled":false,"language":"en-US","location":{"mapZoom":9.0,"mapLat":29.202917304526938,"mapLng":-98.54564632226561,"markerLat":29.4521704,"markerLng":-98.61547769999999,"addressTitle":"Southwest Research Institute","addressLine1":"6220 Culebra Rd.","addressLine2":"San Antonio, TX 78238","addressCountry":"USA"},"primaryDomain":"rosindustrial.org","screenshotId":"723faf44a7eb2270e069fe568f66e733239ace1fe6fbba0e089d62afd8892e09","shareButtonOptions":{"4":true,"1":true},"showOwnerLogin":false,"siteDescription":"<p>ROS-Industrial is an open source project that extends the advanced capabilities of the <a target=\"_blank\" href=\"http://ros.org\">Robot Operating System</a> (ROS) software to manufacturing.</p>","siteStatus":{},"siteTagLine":"the open solution for manufacturing automation","siteTitle":"ROS-Industrial","sslSetting":3,"timeZone":"America/Chicago","translationLocale":"en-US","typekitId":"","websiteType":1,"hasBeenCloneable":false,"statsMigrated":true,"authenticUrl":"https://rosindustrial.org","baseUrl":"https://rosindustrial.org","internalUrl":"https://rosindustrial.squarespace.com","machineTimeZoneOffset":-18000000,"socialAccounts":[{"serviceId":62,"userId":"569137571","userName":"ROSIndustrial","screenname":"ROS-Industrial","addedOn":1373583168200,"profileUrl":"https://twitter.com/ROSIndustrial","iconUrl":"http://pbs.twimg.com/profile_images/2185185497/ROS_industrial_Logo_Square_normal.png","collectionId":"51df3740e4b06e89f6306c2f","iconEnabled":true,"serviceName":"twitter-unauth"},{"serviceId":11,"userId":"Lhe-wmEPPDeaf8se-WJ1UA","userName":"Paul Hvass","screenname":"Paul Hvass","addedOn":1373945318224,"profileUrl":"http://www.youtube.com/channel/UCXyGVRiCwUMc1gav-G7z2ew","iconUrl":"http://lh3.googleusercontent.com/-ctcTh86f4f8/AAAAAAAAAAI/AAAAAAAAAAA/DxdsUXNkBt4/s88-c-k/photo.jpg","iconEnabled":true,"serviceName":"youtube"},{"serviceId":65,"screenname":"LinkedIn","addedOn":1565352714944,"profileUrl":"https://www.linkedin.com/company/ros-industrial","iconEnabled":true,"serviceName":"linkedin-unauth"}],"timeZoneAbbr":"CDT","timeZoneOffset":-18000000},"websiteSettings":{"id":"51df34b1e4b08840dcfd2842","websiteId":"51df34b1e4b08840dcfd2841","type":"Non-Profit","subjects":[{"systemSubject":"tech"}],"country":"US","state":"TX","simpleLikingEnabled":true,"mobileInfoBarSettings":{"isContactEmailEnabled":false,"isContactPhoneNumberEnabled":false,"isLocationEnabled":false,"isBusinessHoursEnabled":false},"commentLikesAllowed":true,"commentAnonAllowed":false,"commentThreaded":true,"commentApprovalRequired":false,"commentAvatarsOn":true,"commentSortType":2,"commentFlagThreshold":0,"commentFlagsAllowed":true,"commentEnableByDefault":true,"commentDisableAfterDaysDefault":0,"disqusShortname":"","commentsEnabled":true,"contactPhoneNumber":"2105225823","storeSettings":{"returnPolicy":null,"termsOfService":null,"privacyPolicy":null,"expressCheckout":false,"continueShoppingLinkUrl":"/","useLightCart":false,"showNoteField":false,"shippingCountryDefaultValue":"US","billToShippingDefaultValue":false,"showShippingPhoneNumber":true,"isShippingPhoneRequired":false,"showBillingPhoneNumber":true,"isBillingPhoneRequired":false,"currenciesSupported":["CHF","HKD","MXN","EUR","DKK","USD","CAD","MYR","NOK","THB","AUD","SGD","ILS","PLN","GBP","CZK","SEK","NZD","PHP","RUB"],"defaultCurrency":"USD","selectedCurrency":"USD","measurementStandard":1,"showCustomCheckoutForm":false,"checkoutPageMarketingOptInEnabled":false,"enableMailingListOptInByDefault":true,"sameAsRetailLocation":false,"merchandisingSettings":{"scarcityEnabledOnProductItems":false,"scarcityEnabledOnProductBlocks":false,"scarcityMessageType":"DEFAULT_SCARCITY_MESSAGE","scarcityThreshold":10,"multipleQuantityAllowedForServices":true,"restockNotificationsEnabled":false,"restockNotificationsSuccessText":"","restockNotificationsMailingListSignUpEnabled":false,"relatedProductsEnabled":false,"relatedProductsOrdering":"random","soldOutVariantsDropdownDisabled":false,"productComposerOptedIn":false,"productComposerABTestOptedOut":false,"productReviewsEnabled":false,"displayImportedProductReviewsEnabled":false,"hasOptedToCollectNativeReviews":false},"minimumOrderSubtotalEnabled":false,"addToCartConfirmationType":2,"isLive":false,"multipleQuantityAllowedForServices":true},"useEscapeKeyToLogin":false,"ssBadgeType":1,"ssBadgePosition":4,"ssBadgeVisibility":1,"ssBadgeDevices":1,"pinterestOverlayOptions":{"mode":"disabled","size":"small","shape":"rect","color":"white"},"userAccountsSettings":{"loginAllowed":false,"signupAllowed":false}},"cookieSettings":{"isCookieBannerEnabled":false,"isRestrictiveCookiePolicyEnabled":false,"cookieBannerText":"","cookieBannerTheme":"","cookieBannerVariant":"","cookieBannerPosition":"","cookieBannerCtaVariant":"","cookieBannerCtaText":"","cookieBannerAcceptType":"OPT_IN","cookieBannerOptOutCtaText":"","cookieBannerHasOptOut":false,"cookieBannerHasManageCookies":true,"cookieBannerManageCookiesLabel":"","cookieBannerSavedPreferencesText":"","cookieBannerSavedPreferencesLayout":"PILL"},"websiteCloneable":false,"collection":{"title":"Home","id":"51df34b1e4b08840dcfd2844","fullUrl":"/","publicCommentCount":0,"type":10,"permissionType":1},"subscribed":false,"appDomain":"squarespace.com","templateTweakable":true,"tweakJSON":{"aspect-ratio":"Auto","gallery-arrow-style":"Round Corners","gallery-aspect-ratio":"3:2 Standard","gallery-auto-crop":"true","gallery-autoplay":"false","gallery-design":"Slideshow","gallery-info-overlay":"Always Show","gallery-loop":"false","gallery-navigation":"Thumbnails","gallery-show-arrows":"true","gallery-transitions":"Fade","galleryArrowBackground":"rgba(34,34,34,1)","galleryArrowColor":"rgba(255,255,255,1)","galleryAutoplaySpeed":"3","galleryCircleColor":"rgba(255,255,255,1)","galleryInfoBackground":"rgba(0, 0, 0, .7)","galleryThumbnailSize":"100px","gridSize":"350px","gridSpacing":"20px","hdr-bg-image":"{background-image:none;background-position:center center;background-size:auto;background-attachment:fixed;background-repeat:repeat}","product-gallery-auto-crop":"true","product-image-auto-crop":"true","tweak-v1-related-products-title-spacing":"50px"},"templateId":"503ba86de4b04953d0f49846","templateVersion":"7","pageFeatures":[1,2,4],"gmRenderKey":"QUl6YVN5Q0JUUk9xNkx1dkZfSUUxcjQ2LVQ0QWVUU1YtMGQ3bXk4","templateScriptsRootUrl":"https://static1.squarespace.com/static/ta/5016d42984ae3ecc9e018d91/1673/scripts/","impersonatedSession":false,"tzData":{"zones":[[-360,"US","C%sT",null]],"rules":{"US":[[1967,2006,null,"Oct","lastSun","2:00","0","S"],[1987,2006,null,"Apr","Sun>=1","2:00","1:00","D"],[2007,"max",null,"Mar","Sun>=8","2:00","1:00","D"],[2007,"max",null,"Nov","Sun>=1","2:00","0","S"]]}},"showAnnouncementBar":false,"recaptchaEnterpriseContext":{"recaptchaEnterpriseSiteKey":"6LdDFQwjAAAAAPigEvvPgEVbb7QBm-TkVJdDTlAv"},"i18nContext":{"timeZoneData":{"id":"America/Chicago","name":"Central Time"}},"env":"PRODUCTION","visitorFormContext":{"formFieldFormats":{"initialAddressFormat":{"id":0,"type":"ADDRESS","country":"US","labelLocale":"en","fields":[{"type":"FIELD","label":"Address Line 1","identifier":"Line1","length":0,"required":true,"metadata":{"autocomplete":"address-line1"}},{"type":"SEPARATOR","label":"\n","identifier":"Newline","length":0,"required":false,"metadata":{}},{"type":"FIELD","label":"Address Line 2","identifier":"Line2","length":0,"required":false,"metadata":{"autocomplete":"address-line2"}},{"type":"SEPARATOR","label":"\n","identifier":"Newline","length":0,"required":false,"metadata":{}},{"type":"FIELD","label":"City","identifier":"City","length":0,"required":true,"metadata":{"autocomplete":"address-level2"}},{"type":"SEPARATOR","label":",","identifier":"Comma","length":0,"required":false,"metadata":{}},{"type":"SEPARATOR","label":" ","identifier":"Space","length":0,"required":false,"metadata":{}},{"type":"FIELD","label":"State","identifier":"State","length":0,"required":true,"metadata":{"autocomplete":"address-level1"}},{"type":"SEPARATOR","label":" ","identifier":"Space","length":0,"required":false,"metadata":{}},{"type":"FIELD","label":"ZIP Code","identifier":"Zip","length":0,"required":true,"metadata":{"autocomplete":"postal-code"}}]},"countries":[{"name":"Afghanistan","code":"AF","phoneCode":"+93"},{"name":"\u00C5land Islands","code":"AX","phoneCode":"+358"},{"name":"Albania","code":"AL","phoneCode":"+355"},{"name":"Algeria","code":"DZ","phoneCode":"+213"},{"name":"American Samoa","code":"AS","phoneCode":"+1"},{"name":"Andorra","code":"AD","phoneCode":"+376"},{"name":"Angola","code":"AO","phoneCode":"+244"},{"name":"Anguilla","code":"AI","phoneCode":"+1"},{"name":"Antigua & Barbuda","code":"AG","phoneCode":"+1"},{"name":"Argentina","code":"AR","phoneCode":"+54"},{"name":"Armenia","code":"AM","phoneCode":"+374"},{"name":"Aruba","code":"AW","phoneCode":"+297"},{"name":"Ascension Island","code":"AC","phoneCode":"+247"},{"name":"Australia","code":"AU","phoneCode":"+61"},{"name":"Austria","code":"AT","phoneCode":"+43"},{"name":"Azerbaijan","code":"AZ","phoneCode":"+994"},{"name":"Bahamas","code":"BS","phoneCode":"+1"},{"name":"Bahrain","code":"BH","phoneCode":"+973"},{"name":"Bangladesh","code":"BD","phoneCode":"+880"},{"name":"Barbados","code":"BB","phoneCode":"+1"},{"name":"Belarus","code":"BY","phoneCode":"+375"},{"name":"Belgium","code":"BE","phoneCode":"+32"},{"name":"Belize","code":"BZ","phoneCode":"+501"},{"name":"Benin","code":"BJ","phoneCode":"+229"},{"name":"Bermuda","code":"BM","phoneCode":"+1"},{"name":"Bhutan","code":"BT","phoneCode":"+975"},{"name":"Bolivia","code":"BO","phoneCode":"+591"},{"name":"Bosnia & Herzegovina","code":"BA","phoneCode":"+387"},{"name":"Botswana","code":"BW","phoneCode":"+267"},{"name":"Brazil","code":"BR","phoneCode":"+55"},{"name":"British Indian Ocean Territory","code":"IO","phoneCode":"+246"},{"name":"British Virgin Islands","code":"VG","phoneCode":"+1"},{"name":"Brunei","code":"BN","phoneCode":"+673"},{"name":"Bulgaria","code":"BG","phoneCode":"+359"},{"name":"Burkina Faso","code":"BF","phoneCode":"+226"},{"name":"Burundi","code":"BI","phoneCode":"+257"},{"name":"Cambodia","code":"KH","phoneCode":"+855"},{"name":"Cameroon","code":"CM","phoneCode":"+237"},{"name":"Canada","code":"CA","phoneCode":"+1"},{"name":"Cape Verde","code":"CV","phoneCode":"+238"},{"name":"Caribbean Netherlands","code":"BQ","phoneCode":"+599"},{"name":"Cayman Islands","code":"KY","phoneCode":"+1"},{"name":"Central African Republic","code":"CF","phoneCode":"+236"},{"name":"Chad","code":"TD","phoneCode":"+235"},{"name":"Chile","code":"CL","phoneCode":"+56"},{"name":"China","code":"CN","phoneCode":"+86"},{"name":"Christmas Island","code":"CX","phoneCode":"+61"},{"name":"Cocos (Keeling) Islands","code":"CC","phoneCode":"+61"},{"name":"Colombia","code":"CO","phoneCode":"+57"},{"name":"Comoros","code":"KM","phoneCode":"+269"},{"name":"Congo - Brazzaville","code":"CG","phoneCode":"+242"},{"name":"Congo - Kinshasa","code":"CD","phoneCode":"+243"},{"name":"Cook Islands","code":"CK","phoneCode":"+682"},{"name":"Costa Rica","code":"CR","phoneCode":"+506"},{"name":"C\u00F4te d\u2019Ivoire","code":"CI","phoneCode":"+225"},{"name":"Croatia","code":"HR","phoneCode":"+385"},{"name":"Cuba","code":"CU","phoneCode":"+53"},{"name":"Cura\u00E7ao","code":"CW","phoneCode":"+599"},{"name":"Cyprus","code":"CY","phoneCode":"+357"},{"name":"Czechia","code":"CZ","phoneCode":"+420"},{"name":"Denmark","code":"DK","phoneCode":"+45"},{"name":"Djibouti","code":"DJ","phoneCode":"+253"},{"name":"Dominica","code":"DM","phoneCode":"+1"},{"name":"Dominican Republic","code":"DO","phoneCode":"+1"},{"name":"Ecuador","code":"EC","phoneCode":"+593"},{"name":"Egypt","code":"EG","phoneCode":"+20"},{"name":"El Salvador","code":"SV","phoneCode":"+503"},{"name":"Equatorial Guinea","code":"GQ","phoneCode":"+240"},{"name":"Eritrea","code":"ER","phoneCode":"+291"},{"name":"Estonia","code":"EE","phoneCode":"+372"},{"name":"Eswatini","code":"SZ","phoneCode":"+268"},{"name":"Ethiopia","code":"ET","phoneCode":"+251"},{"name":"Falkland Islands","code":"FK","phoneCode":"+500"},{"name":"Faroe Islands","code":"FO","phoneCode":"+298"},{"name":"Fiji","code":"FJ","phoneCode":"+679"},{"name":"Finland","code":"FI","phoneCode":"+358"},{"name":"France","code":"FR","phoneCode":"+33"},{"name":"French Guiana","code":"GF","phoneCode":"+594"},{"name":"French Polynesia","code":"PF","phoneCode":"+689"},{"name":"Gabon","code":"GA","phoneCode":"+241"},{"name":"Gambia","code":"GM","phoneCode":"+220"},{"name":"Georgia","code":"GE","phoneCode":"+995"},{"name":"Germany","code":"DE","phoneCode":"+49"},{"name":"Ghana","code":"GH","phoneCode":"+233"},{"name":"Gibraltar","code":"GI","phoneCode":"+350"},{"name":"Greece","code":"GR","phoneCode":"+30"},{"name":"Greenland","code":"GL","phoneCode":"+299"},{"name":"Grenada","code":"GD","phoneCode":"+1"},{"name":"Guadeloupe","code":"GP","phoneCode":"+590"},{"name":"Guam","code":"GU","phoneCode":"+1"},{"name":"Guatemala","code":"GT","phoneCode":"+502"},{"name":"Guernsey","code":"GG","phoneCode":"+44"},{"name":"Guinea","code":"GN","phoneCode":"+224"},{"name":"Guinea-Bissau","code":"GW","phoneCode":"+245"},{"name":"Guyana","code":"GY","phoneCode":"+592"},{"name":"Haiti","code":"HT","phoneCode":"+509"},{"name":"Honduras","code":"HN","phoneCode":"+504"},{"name":"Hong Kong SAR China","code":"HK","phoneCode":"+852"},{"name":"Hungary","code":"HU","phoneCode":"+36"},{"name":"Iceland","code":"IS","phoneCode":"+354"},{"name":"India","code":"IN","phoneCode":"+91"},{"name":"Indonesia","code":"ID","phoneCode":"+62"},{"name":"Iran","code":"IR","phoneCode":"+98"},{"name":"Iraq","code":"IQ","phoneCode":"+964"},{"name":"Ireland","code":"IE","phoneCode":"+353"},{"name":"Isle of Man","code":"IM","phoneCode":"+44"},{"name":"Israel","code":"IL","phoneCode":"+972"},{"name":"Italy","code":"IT","phoneCode":"+39"},{"name":"Jamaica","code":"JM","phoneCode":"+1"},{"name":"Japan","code":"JP","phoneCode":"+81"},{"name":"Jersey","code":"JE","phoneCode":"+44"},{"name":"Jordan","code":"JO","phoneCode":"+962"},{"name":"Kazakhstan","code":"KZ","phoneCode":"+7"},{"name":"Kenya","code":"KE","phoneCode":"+254"},{"name":"Kiribati","code":"KI","phoneCode":"+686"},{"name":"Kosovo","code":"XK","phoneCode":"+383"},{"name":"Kuwait","code":"KW","phoneCode":"+965"},{"name":"Kyrgyzstan","code":"KG","phoneCode":"+996"},{"name":"Laos","code":"LA","phoneCode":"+856"},{"name":"Latvia","code":"LV","phoneCode":"+371"},{"name":"Lebanon","code":"LB","phoneCode":"+961"},{"name":"Lesotho","code":"LS","phoneCode":"+266"},{"name":"Liberia","code":"LR","phoneCode":"+231"},{"name":"Libya","code":"LY","phoneCode":"+218"},{"name":"Liechtenstein","code":"LI","phoneCode":"+423"},{"name":"Lithuania","code":"LT","phoneCode":"+370"},{"name":"Luxembourg","code":"LU","phoneCode":"+352"},{"name":"Macao SAR China","code":"MO","phoneCode":"+853"},{"name":"Madagascar","code":"MG","phoneCode":"+261"},{"name":"Malawi","code":"MW","phoneCode":"+265"},{"name":"Malaysia","code":"MY","phoneCode":"+60"},{"name":"Maldives","code":"MV","phoneCode":"+960"},{"name":"Mali","code":"ML","phoneCode":"+223"},{"name":"Malta","code":"MT","phoneCode":"+356"},{"name":"Marshall Islands","code":"MH","phoneCode":"+692"},{"name":"Martinique","code":"MQ","phoneCode":"+596"},{"name":"Mauritania","code":"MR","phoneCode":"+222"},{"name":"Mauritius","code":"MU","phoneCode":"+230"},{"name":"Mayotte","code":"YT","phoneCode":"+262"},{"name":"Mexico","code":"MX","phoneCode":"+52"},{"name":"Micronesia","code":"FM","phoneCode":"+691"},{"name":"Moldova","code":"MD","phoneCode":"+373"},{"name":"Monaco","code":"MC","phoneCode":"+377"},{"name":"Mongolia","code":"MN","phoneCode":"+976"},{"name":"Montenegro","code":"ME","phoneCode":"+382"},{"name":"Montserrat","code":"MS","phoneCode":"+1"},{"name":"Morocco","code":"MA","phoneCode":"+212"},{"name":"Mozambique","code":"MZ","phoneCode":"+258"},{"name":"Myanmar (Burma)","code":"MM","phoneCode":"+95"},{"name":"Namibia","code":"NA","phoneCode":"+264"},{"name":"Nauru","code":"NR","phoneCode":"+674"},{"name":"Nepal","code":"NP","phoneCode":"+977"},{"name":"Netherlands","code":"NL","phoneCode":"+31"},{"name":"New Caledonia","code":"NC","phoneCode":"+687"},{"name":"New Zealand","code":"NZ","phoneCode":"+64"},{"name":"Nicaragua","code":"NI","phoneCode":"+505"},{"name":"Niger","code":"NE","phoneCode":"+227"},{"name":"Nigeria","code":"NG","phoneCode":"+234"},{"name":"Niue","code":"NU","phoneCode":"+683"},{"name":"Norfolk Island","code":"NF","phoneCode":"+672"},{"name":"Northern Mariana Islands","code":"MP","phoneCode":"+1"},{"name":"North Korea","code":"KP","phoneCode":"+850"},{"name":"North Macedonia","code":"MK","phoneCode":"+389"},{"name":"Norway","code":"NO","phoneCode":"+47"},{"name":"Oman","code":"OM","phoneCode":"+968"},{"name":"Pakistan","code":"PK","phoneCode":"+92"},{"name":"Palau","code":"PW","phoneCode":"+680"},{"name":"Palestinian Territories","code":"PS","phoneCode":"+970"},{"name":"Panama","code":"PA","phoneCode":"+507"},{"name":"Papua New Guinea","code":"PG","phoneCode":"+675"},{"name":"Paraguay","code":"PY","phoneCode":"+595"},{"name":"Peru","code":"PE","phoneCode":"+51"},{"name":"Philippines","code":"PH","phoneCode":"+63"},{"name":"Poland","code":"PL","phoneCode":"+48"},{"name":"Portugal","code":"PT","phoneCode":"+351"},{"name":"Puerto Rico","code":"PR","phoneCode":"+1"},{"name":"Qatar","code":"QA","phoneCode":"+974"},{"name":"R\u00E9union","code":"RE","phoneCode":"+262"},{"name":"Romania","code":"RO","phoneCode":"+40"},{"name":"Russia","code":"RU","phoneCode":"+7"},{"name":"Rwanda","code":"RW","phoneCode":"+250"},{"name":"Samoa","code":"WS","phoneCode":"+685"},{"name":"San Marino","code":"SM","phoneCode":"+378"},{"name":"S\u00E3o Tom\u00E9 & Pr\u00EDncipe","code":"ST","phoneCode":"+239"},{"name":"Saudi Arabia","code":"SA","phoneCode":"+966"},{"name":"Senegal","code":"SN","phoneCode":"+221"},{"name":"Serbia","code":"RS","phoneCode":"+381"},{"name":"Seychelles","code":"SC","phoneCode":"+248"},{"name":"Sierra Leone","code":"SL","phoneCode":"+232"},{"name":"Singapore","code":"SG","phoneCode":"+65"},{"name":"Sint Maarten","code":"SX","phoneCode":"+1"},{"name":"Slovakia","code":"SK","phoneCode":"+421"},{"name":"Slovenia","code":"SI","phoneCode":"+386"},{"name":"Solomon Islands","code":"SB","phoneCode":"+677"},{"name":"Somalia","code":"SO","phoneCode":"+252"},{"name":"South Africa","code":"ZA","phoneCode":"+27"},{"name":"South Korea","code":"KR","phoneCode":"+82"},{"name":"South Sudan","code":"SS","phoneCode":"+211"},{"name":"Spain","code":"ES","phoneCode":"+34"},{"name":"Sri Lanka","code":"LK","phoneCode":"+94"},{"name":"St. Barth\u00E9lemy","code":"BL","phoneCode":"+590"},{"name":"St. Helena","code":"SH","phoneCode":"+290"},{"name":"St. Kitts & Nevis","code":"KN","phoneCode":"+1"},{"name":"St. Lucia","code":"LC","phoneCode":"+1"},{"name":"St. Martin","code":"MF","phoneCode":"+590"},{"name":"St. Pierre & Miquelon","code":"PM","phoneCode":"+508"},{"name":"St. Vincent & Grenadines","code":"VC","phoneCode":"+1"},{"name":"Sudan","code":"SD","phoneCode":"+249"},{"name":"Suriname","code":"SR","phoneCode":"+597"},{"name":"Svalbard & Jan Mayen","code":"SJ","phoneCode":"+47"},{"name":"Sweden","code":"SE","phoneCode":"+46"},{"name":"Switzerland","code":"CH","phoneCode":"+41"},{"name":"Syria","code":"SY","phoneCode":"+963"},{"name":"Taiwan","code":"TW","phoneCode":"+886"},{"name":"Tajikistan","code":"TJ","phoneCode":"+992"},{"name":"Tanzania","code":"TZ","phoneCode":"+255"},{"name":"Thailand","code":"TH","phoneCode":"+66"},{"name":"Timor-Leste","code":"TL","phoneCode":"+670"},{"name":"Togo","code":"TG","phoneCode":"+228"},{"name":"Tokelau","code":"TK","phoneCode":"+690"},{"name":"Tonga","code":"TO","phoneCode":"+676"},{"name":"Trinidad & Tobago","code":"TT","phoneCode":"+1"},{"name":"Tristan da Cunha","code":"TA","phoneCode":"+290"},{"name":"Tunisia","code":"TN","phoneCode":"+216"},{"name":"T\u00FCrkiye","code":"TR","phoneCode":"+90"},{"name":"Turkmenistan","code":"TM","phoneCode":"+993"},{"name":"Turks & Caicos Islands","code":"TC","phoneCode":"+1"},{"name":"Tuvalu","code":"TV","phoneCode":"+688"},{"name":"U.S. Virgin Islands","code":"VI","phoneCode":"+1"},{"name":"Uganda","code":"UG","phoneCode":"+256"},{"name":"Ukraine","code":"UA","phoneCode":"+380"},{"name":"United Arab Emirates","code":"AE","phoneCode":"+971"},{"name":"United Kingdom","code":"GB","phoneCode":"+44"},{"name":"United States","code":"US","phoneCode":"+1"},{"name":"Uruguay","code":"UY","phoneCode":"+598"},{"name":"Uzbekistan","code":"UZ","phoneCode":"+998"},{"name":"Vanuatu","code":"VU","phoneCode":"+678"},{"name":"Vatican City","code":"VA","phoneCode":"+39"},{"name":"Venezuela","code":"VE","phoneCode":"+58"},{"name":"Vietnam","code":"VN","phoneCode":"+84"},{"name":"Wallis & Futuna","code":"WF","phoneCode":"+681"},{"name":"Western Sahara","code":"EH","phoneCode":"+212"},{"name":"Yemen","code":"YE","phoneCode":"+967"},{"name":"Zambia","code":"ZM","phoneCode":"+260"},{"name":"Zimbabwe","code":"ZW","phoneCode":"+263"}],"initialPhoneFormat":{"id":0,"type":"PHONE_NUMBER","country":"US","labelLocale":"en-US","fields":[{"type":"SEPARATOR","label":"(","identifier":"LeftParen","length":0,"required":false,"metadata":{}},{"type":"FIELD","label":"1","identifier":"1","length":3,"required":false,"metadata":{}},{"type":"SEPARATOR","label":")","identifier":"RightParen","length":0,"required":false,"metadata":{}},{"type":"SEPARATOR","label":" ","identifier":"Space","length":0,"required":false,"metadata":{}},{"type":"FIELD","label":"2","identifier":"2","length":3,"required":false,"metadata":{}},{"type":"SEPARATOR","label":"-","identifier":"Dash","length":0,"required":false,"metadata":{}},{"type":"FIELD","label":"3","identifier":"3","length":14,"required":false,"metadata":{}}]},"initialNameOrder":"GIVEN_FIRST"},"localizedStrings":{"validation":{"noValidSelection":"A valid selection must be made.","invalidUrl":"Must be a valid URL.","stringTooLong":"Value should have a length no longer than {0}.","containsInvalidKey":"{0} contains an invalid key.","invalidTwitterUsername":"Must be a valid Twitter username.","valueOutsideRange":"Value must be in the range {0} to {1}.","invalidPassword":"Passwords should not contain whitespace.","missingRequiredSubfields":"{0} is missing required subfields: {1}","invalidCurrency":"Currency value should be formatted like 1234 or 123.99.","invalidMapSize":"Value should contain exactly {0} elements.","subfieldsRequired":"All fields in {0} are required.","formSubmissionFailed":"Form submission failed. Review the following information: {0}.","invalidCountryCode":"Country code should have an optional plus and up to 4 digits.","invalidDate":"This is not a real date.","required":"{0} is required.","invalidStringLength":"Value should be {0} characters long.","invalidEmail":"Email addresses should follow the format user@domain.com.","invalidListLength":"Value should be {0} elements long.","allEmpty":"Please fill out at least one form field.","missingRequiredQuestion":"Missing a required question.","invalidQuestion":"Contained an invalid question.","captchaFailure":"Captcha validation failed. Please try again.","stringTooShort":"Value should have a length of at least {0}.","invalid":"{0} is not valid.","formErrors":"Form Errors","containsInvalidValue":"{0} contains an invalid value.","invalidUnsignedNumber":"Numbers must contain only digits and no other characters.","invalidName":"Valid names contain only letters, numbers, spaces, ', or - characters."},"submit":"Submit","status":{"title":"{@} Block","learnMore":"Learn more"},"name":{"firstName":"First Name","lastName":"Last Name"},"lightbox":{"openForm":"Open Form"},"likert":{"agree":"Agree","stronglyDisagree":"Strongly Disagree","disagree":"Disagree","stronglyAgree":"Strongly Agree","neutral":"Neutral"},"time":{"am":"AM","second":"Second","pm":"PM","minute":"Minute","amPm":"AM/PM","hour":"Hour"},"notFound":"Form not found.","date":{"yyyy":"YYYY","year":"Year","mm":"MM","day":"Day","month":"Month","dd":"DD"},"phone":{"country":"Country","number":"Number","prefix":"Prefix","areaCode":"Area Code","line":"Line"},"submitError":"Unable to submit form. Please try again later.","address":{"stateProvince":"State/Province","country":"Country","zipPostalCode":"Zip/Postal Code","address2":"Address 2","address1":"Address 1","city":"City"},"email":{"signUp":"Sign up for news and updates"},"required":"(required)","invalidData":"Invalid form data."}}};</script><script type="text/javascript">SQUARESPACE_ROLLUPS = {};</script>
+<script>(function(rollups, name) { if (!rollups[name]) { rollups[name] = {}; } rollups[name].js = ["//assets.squarespace.com/universal/scripts-compressed/visitor-site-error-reporter-fdfb276a20173335-min.en-US.js"]; })(SQUARESPACE_ROLLUPS, 'squarespace-visitor_site_error_reporter');</script>
+<script crossorigin="anonymous" src="//assets.squarespace.com/universal/scripts-compressed/visitor-site-error-reporter-fdfb276a20173335-min.en-US.js" defer ></script><script>(function(rollups, name) { if (!rollups[name]) { rollups[name] = {}; } rollups[name].js = ["//assets.squarespace.com/universal/scripts-compressed/extract-css-runtime-03f30a1cab11a0b4-min.en-US.js"]; })(SQUARESPACE_ROLLUPS, 'squarespace-extract_css_runtime');</script>
+<script crossorigin="anonymous" src="//assets.squarespace.com/universal/scripts-compressed/extract-css-runtime-03f30a1cab11a0b4-min.en-US.js" defer ></script><script>(function(rollups, name) { if (!rollups[name]) { rollups[name] = {}; } rollups[name].js = ["//assets.squarespace.com/universal/scripts-compressed/extract-css-moment-js-vendor-bdf89e58ccd909c7-min.en-US.js"]; })(SQUARESPACE_ROLLUPS, 'squarespace-extract_css_moment_js_vendor');</script>
+<script crossorigin="anonymous" src="//assets.squarespace.com/universal/scripts-compressed/extract-css-moment-js-vendor-bdf89e58ccd909c7-min.en-US.js" defer ></script><script>(function(rollups, name) { if (!rollups[name]) { rollups[name] = {}; } rollups[name].js = ["//assets.squarespace.com/universal/scripts-compressed/cldr-resource-pack-7809c22ce1c64b20-min.en-US.js"]; })(SQUARESPACE_ROLLUPS, 'squarespace-cldr_resource_pack');</script>
+<script crossorigin="anonymous" src="//assets.squarespace.com/universal/scripts-compressed/cldr-resource-pack-7809c22ce1c64b20-min.en-US.js" defer ></script><script>(function(rollups, name) { if (!rollups[name]) { rollups[name] = {}; } rollups[name].js = ["//assets.squarespace.com/universal/scripts-compressed/common-vendors-stable-219c33e5378d8300-min.en-US.js"]; })(SQUARESPACE_ROLLUPS, 'squarespace-common_vendors_stable');</script>
+<script crossorigin="anonymous" src="//assets.squarespace.com/universal/scripts-compressed/common-vendors-stable-219c33e5378d8300-min.en-US.js" defer ></script><script>(function(rollups, name) { if (!rollups[name]) { rollups[name] = {}; } rollups[name].js = ["//assets.squarespace.com/universal/scripts-compressed/common-vendors-f006011644dd19e2-min.en-US.js"]; })(SQUARESPACE_ROLLUPS, 'squarespace-common_vendors');</script>
+<script crossorigin="anonymous" src="//assets.squarespace.com/universal/scripts-compressed/common-vendors-f006011644dd19e2-min.en-US.js" defer ></script><script>(function(rollups, name) { if (!rollups[name]) { rollups[name] = {}; } rollups[name].js = ["//assets.squarespace.com/universal/scripts-compressed/common-785314f42539b9b4-min.en-US.js"]; })(SQUARESPACE_ROLLUPS, 'squarespace-common');</script>
+<script crossorigin="anonymous" src="//assets.squarespace.com/universal/scripts-compressed/common-785314f42539b9b4-min.en-US.js" defer ></script><script>(function(rollups, name) { if (!rollups[name]) { rollups[name] = {}; } rollups[name].js = ["//assets.squarespace.com/universal/scripts-compressed/performance-ebdd8dedee2a8a9a-min.en-US.js"]; })(SQUARESPACE_ROLLUPS, 'squarespace-performance');</script>
+<script crossorigin="anonymous" src="//assets.squarespace.com/universal/scripts-compressed/performance-ebdd8dedee2a8a9a-min.en-US.js" defer ></script><link rel="stylesheet" type="text/css" href="https://definitions.sqspcdn.com/website-component-definition/static-assets/website.components.summary/a48f48f3-0bea-42e4-99dd-21645ba7bdac_396/website.components.summary.styles.css"/><link rel="stylesheet" type="text/css" href="https://definitions.sqspcdn.com/website-component-definition/static-assets/website.components.video/0bd75d33-c6e9-428f-851e-4a51af4dd121_423/website.components.video.styles.css"/><script defer src="https://definitions.sqspcdn.com/website-component-definition/static-assets/website.components.summary/a48f48f3-0bea-42e4-99dd-21645ba7bdac_396/gallery-layout-autogrid.js"></script><script defer src="https://definitions.sqspcdn.com/website-component-definition/static-assets/website.components.summary/a48f48f3-0bea-42e4-99dd-21645ba7bdac_396/gallery-layout-stacked.js"></script><script defer src="https://definitions.sqspcdn.com/website-component-definition/static-assets/website.components.summary/a48f48f3-0bea-42e4-99dd-21645ba7bdac_396/gallery-layout-grid.js"></script><script defer src="https://definitions.sqspcdn.com/website-component-definition/static-assets/website.components.summary/a48f48f3-0bea-42e4-99dd-21645ba7bdac_396/gallery-layout-list.js"></script><script defer src="https://definitions.sqspcdn.com/website-component-definition/static-assets/website.components.summary/a48f48f3-0bea-42e4-99dd-21645ba7bdac_396/gallery-layout-autocolumns.js"></script><script defer src="https://definitions.sqspcdn.com/website-component-definition/static-assets/website.components.summary/a48f48f3-0bea-42e4-99dd-21645ba7bdac_396/gallery-layout-strip.js"></script><script defer src="https://definitions.sqspcdn.com/website-component-definition/static-assets/website.components.summary/a48f48f3-0bea-42e4-99dd-21645ba7bdac_396/gallery-manager.js"></script><script defer src="https://definitions.sqspcdn.com/website-component-definition/static-assets/website.components.video/0bd75d33-c6e9-428f-851e-4a51af4dd121_423/website.components.video.visitor.js"></script><script defer src="https://definitions.sqspcdn.com/website-component-definition/static-assets/website.components.video/0bd75d33-c6e9-428f-851e-4a51af4dd121_423/4032.js"></script><script defer src="https://definitions.sqspcdn.com/website-component-definition/static-assets/website.components.summary/a48f48f3-0bea-42e4-99dd-21645ba7bdac_396/gallery-layout-slideshow.js"></script><script defer src="https://definitions.sqspcdn.com/website-component-definition/static-assets/website.components.summary/a48f48f3-0bea-42e4-99dd-21645ba7bdac_396/website.components.summary.visitor.js"></script><script defer src="https://definitions.sqspcdn.com/website-component-definition/static-assets/website.components.summary/a48f48f3-0bea-42e4-99dd-21645ba7bdac_396/8018.js"></script><script defer src="https://definitions.sqspcdn.com/website-component-definition/static-assets/website.components.summary/a48f48f3-0bea-42e4-99dd-21645ba7bdac_396/gallery-layout-carousel.js"></script><script defer src="https://definitions.sqspcdn.com/website-component-definition/static-assets/website.components.summary/a48f48f3-0bea-42e4-99dd-21645ba7bdac_396/embed-video-player.js"></script><script type="module">Squarespace.load(window);</script>
+<script data-sqs-type="imageloader-bootstrapper" type="module">if(window.ImageLoader) window.ImageLoader.bootstrap({}, document);</script>
+<script type="module">Squarespace.afterBodyLoad(Y);</script>
+<script type="application/ld+json">{"url":"https://rosindustrial.org","name":"ROS-Industrial","description":"<p>ROS-Industrial is an open source project that extends the advanced capabilities of the <a target=\"_blank\" href=\"http://ros.org\">Robot Operating System</a> (ROS) software to manufacturing.</p>","@context":"http://schema.org","@type":"WebSite"}</script><script type="application/ld+json">{"legalName":"Southwest Research Institute","address":"6220 Culebra Rd.\nSan Antonio, TX 78238\nUSA","email":"paul.hvass@swri.org","telephone":"2105225823","sameAs":["https://twitter.com/ROSIndustrial","http://www.youtube.com/channel/UCXyGVRiCwUMc1gav-G7z2ew","https://www.linkedin.com/company/ros-industrial"],"@context":"http://schema.org","@type":"Organization"}</script><script type="application/ld+json">{"address":"6220 Culebra Rd.\nSan Antonio, TX 78238\nUSA","name":"Southwest Research Institute","@context":"http://schema.org","@type":"LocalBusiness"}</script><link rel="stylesheet" type="text/css" href="https://static1.squarespace.com/static/sitecss/51df34b1e4b08840dcfd2841/111/503ba86de4b04953d0f49846/51df34b2e4b08840dcfd296c/1673/site.css?nocustom=true"/><link rel="stylesheet" type="text/css" href="https://static1.squarespace.com/static/custom-css/51df34b1e4b08840dcfd2841/51df34b2e4b08840dcfd296c/0/custom.css"/><meta name="google-site-verification" content="jvRCvQ3Jau3BtFBjwTGNHeIATFGyYfEpCGNE-sJQuoI" /><script>Static.COOKIE_BANNER_CAPABLE = true;</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-84739794-2"></script><script>window.dataLayer = window.dataLayer || [];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());gtag('set', 'developer_id.dZjQwMz', true);gtag('config', 'UA-84739794-2');</script><!-- End of Squarespace Headers -->
+    <script defer="true" src="https://static1.squarespace.com/static/ta/5016d42984ae3ecc9e018d91/1673/scripts/site-bundle.js" type="text/javascript"></script>
+  </head>
+  
+  <body class="canvas-setting-full-width hide-delimiter  banner-content-empty banner-alignment-left page-thumbnail-as-banner  top-navigation-position-below-banner top-navigation-alignment-left disable-navigation-border  sidebar-position-right   footer-alignment-center disable-footer-border social-icon-style-normal social-icon-placement-hide  blog-list-display-full blog-byline-bottom blog-dateline-top disable-pagination-border hide-excerpt-thumbnail  hide-tags-categories     event-thumbnails event-thumbnail-size-32-standard event-date-label event-date-label-time event-list-show-cats event-list-date event-list-time event-list-address   event-icalgcal-links  event-excerpts  event-item-back-link    gallery-design-slideshow aspect-ratio-auto lightbox-style-dark gallery-navigation-thumbnails gallery-info-overlay-always-show gallery-aspect-ratio-32-standard gallery-arrow-style-round-corners gallery-transitions-fade gallery-show-arrows gallery-auto-crop   product-list-titles-under product-list-alignment-center product-item-size-43-four-thirds product-image-auto-crop product-gallery-size-11-square product-gallery-auto-crop show-product-price show-product-item-nav product-social-sharing tweak-v1-related-products-image-aspect-ratio-11-square tweak-v1-related-products-details-alignment-center newsletter-style-dark  opentable-style-light small-button-style-solid small-button-shape-square medium-button-style-solid medium-button-shape-square large-button-style-solid large-button-shape-square image-block-poster-text-alignment-center image-block-card-dynamic-font-sizing image-block-card-content-position-center image-block-card-text-alignment-left image-block-overlap-dynamic-font-sizing image-block-overlap-content-position-center image-block-overlap-text-alignment-left image-block-collage-dynamic-font-sizing image-block-collage-content-position-top image-block-collage-text-alignment-left image-block-stack-dynamic-font-sizing image-block-stack-text-alignment-left button-style-default button-corner-style-square tweak-product-quick-view-button-style-floating tweak-product-quick-view-button-position-bottom tweak-product-quick-view-lightbox-excerpt-display-truncate tweak-product-quick-view-lightbox-show-arrows tweak-product-quick-view-lightbox-show-close-button tweak-product-quick-view-lightbox-controls-weight-light native-currency-code-usd collection-51df34b1e4b08840dcfd2844 collection-type-page collection-layout-default homepage mobile-style-available no-logo-image has-page-thumbnail" id="collection-51df34b1e4b08840dcfd2844" ontouchstart="">
+
+		
+		
+<!--MOBILE-->
+<nav id="mobile-navigation">
+  <span id="mobile-navigation-title"><a href="/">ROS-Industrial</a></span>
+  <span id="mobile-navigation-label"></span>
+  <ul>
+    
+      <li class=" active-folder">
+        
+          <input type="checkbox" name="folder-toggle-51df34b1e4b08840dcfd284c" id="folder-toggle-51df34b1e4b08840dcfd284c" class="folder-toggle-box hidden" />
+          <label for="folder-toggle-51df34b1e4b08840dcfd284c" class="folder-toggle-label">About</label>
+          
+            
+                <a href="/" class=" active-link">Home</a>
+            
+            
+          
+            
+                <a href="/the-challenge" class="">The Challenge</a>
+            
+            
+          
+            
+                <a href="/history" class="">History</a>
+            
+            
+          
+            
+                <a href="/contributors" class="">Contributors</a>
+            
+            
+          
+            
+                <a href="/contact-us" class="">Contact</a>
+            
+            
+          
+            
+                <a href="/about/description" class="">Description</a>
+            
+            
+          
+            
+                <a href="/about/faq" class="">FAQ</a>
+            
+            
+          
+            
+                <a href="/about/press" class="">Press</a>
+            
+            
+          
+            
+                <a href="/about/publications" class="">Publications</a>
+            
+            
+          
+        
+      </li>
+    
+      <li class="">
+        
+          
+            <a href="/news">Blog</a>
+          
+          
+        
+      </li>
+    
+      <li class="">
+        
+          <input type="checkbox" name="folder-toggle-5463ec67e4b0f2a48d5a6082" id="folder-toggle-5463ec67e4b0f2a48d5a6082" class="folder-toggle-box hidden" />
+          <label for="folder-toggle-5463ec67e4b0f2a48d5a6082" class="folder-toggle-label">Consortium</label>
+          
+            
+                <a href="/ric-americas" class="">Americas - Consortium</a>
+            
+            
+          
+            
+                <a href="/ric-eu" class="">Europe - Consortium</a>
+            
+            
+          
+            
+                <a href="/ric-apac" class="">Asia-Pacific Consortium</a>
+            
+            
+          
+            
+                <a href="/current-members" class="">Current Members</a>
+            
+            
+          
+        
+      </li>
+    
+      <li class="">
+        
+          <input type="checkbox" name="folder-toggle-51e1746ae4b0c483a83f73e2" id="folder-toggle-51e1746ae4b0c483a83f73e2" class="folder-toggle-box hidden" />
+          <label for="folder-toggle-51e1746ae4b0c483a83f73e2" class="folder-toggle-label">Software</label>
+          
+            
+            
+                <a href="https://github.com/ros-industrial" target="_blank">ROS-I Repo</a>
+            
+          
+            
+            
+                <a href="https://github.com/ros-industrial-consortium">Consortium Repo</a>
+            
+          
+            
+            
+                <a href="https://github.com/ros-industrial-attic">ROS-I Attic</a>
+            
+          
+            
+                <a href="/tesseract-robotics" class="">Tesseract Robotics</a>
+            
+            
+          
+            
+                <a href="/developmentprocess" class="">Development Process</a>
+            
+            
+          
+            
+                <a href="/roadmapping" class="">Roadmapping</a>
+            
+            
+          
+            
+            
+                <a href="http://wiki.ros.org/Industrial/supported_hardware" target="_blank">ROS 1 Supported Hardware</a>
+            
+          
+            
+            
+                <a href="http://wiki.ros.org/Industrial" target="_blank">ROS 1 Wiki</a>
+            
+          
+            
+                <a href="/3d-camera-survey" class="">3D Camera Survey</a>
+            
+            
+          
+        
+      </li>
+    
+      <li class="">
+        
+          <input type="checkbox" name="folder-toggle-6a19c113ad9102430d376242" id="folder-toggle-6a19c113ad9102430d376242" class="folder-toggle-box hidden" />
+          <label for="folder-toggle-6a19c113ad9102430d376242" class="folder-toggle-label">Training & Support</label>
+          
+            
+            
+                <a href="http://industrial-training-master.readthedocs.io/" target="_blank">Training Curriculum</a>
+            
+          
+            
+            
+                <a href="http://wiki.ros.org/Industrial/Tutorials">Tutorials</a>
+            
+          
+            
+            
+                <a href="https://discourse.ros.org/c/ros-industrial/39" target="_blank">Discussion Forum</a>
+            
+          
+            
+                <a href="/tech-support" class="">Tech Support</a>
+            
+            
+          
+            
+                <a href="/developers-meeting" class="">Developers Meeting</a>
+            
+            
+          
+            
+                <a href="/videos" class="">Videos</a>
+            
+            
+          
+        
+      </li>
+    
+      <li class="">
+        
+          
+            <a href="/events-summary">Events</a>
+          
+          
+        
+      </li>
+    
+    
+  </ul>
+</nav>
+
+
+		
+
+	  <div id="canvas-wrapper">
+	  	<div id="canvas">
+
+
+				<div id="page-header-wrapper">
+					<div id="page-header">
+
+				    <div id="navigation-top">
+				    	<div class="horizontal-navigation-bar clear with-title">
+
+				    		<!-- // logo or site title markup in nav area -->
+					      
+					      	
+									<div id="site-title-wrapper" data-content-field="site-title">
+										<h1 id="site-title" class="page-title"><a href="/" rel="bookmark">ROS-Industrial</a></h1>
+									</div>
+					        
+
+					    		
+<nav id="main-navigation" class="main-nav" data-content-field="navigation">
+  <ul>
+  
+
+    
+
+    <li aria-haspopup="true" class="folder-collection folder"><a href="#" onClick="return false;" class="active-folder">About</a><span class="delimiter">/</span><div class="subnav"><ul><li class="page-collection active-link"><a href="/">Home</a></li><li class="page-collection"><a href="/the-challenge">The Challenge</a></li><li class="page-collection"><a href="/history">History</a></li><li class="page-collection"><a href="/contributors">Contributors</a></li><li class="page-collection"><a href="/contact-us">Contact</a></li><li class="page-collection"><a href="/about/description">Description</a></li><li class="page-collection"><a href="/about/faq">FAQ</a></li><li class="page-collection"><a href="/about/press">Press</a></li><li class="page-collection"><a href="/about/publications">Publications</a></li></ul></div></li>
+  
+
+    
+
+    <li class="blog-collection"><a href="/news">Blog</a><span class="delimiter">/</span></li>
+  
+
+    
+
+    <li aria-haspopup="true" class="folder-collection folder"><a href="#" onClick="return false;">Consortium</a><span class="delimiter">/</span><div class="subnav"><ul><li class="page-collection"><a href="/ric-americas">Americas - Consortium</a></li><li class="page-collection"><a href="/ric-eu">Europe - Consortium</a></li><li class="page-collection"><a href="/ric-apac">Asia-Pacific Consortium</a></li><li class="page-collection"><a href="/current-members">Current Members</a></li></ul></div></li>
+  
+
+    
+
+    <li aria-haspopup="true" class="folder-collection folder"><a href="#" onClick="return false;">Software</a><span class="delimiter">/</span><div class="subnav"><ul><li class="external-link"><a href="https://github.com/ros-industrial" target="_blank">ROS-I Repo</a></li><li class="external-link"><a href="https://github.com/ros-industrial-consortium">Consortium Repo</a></li><li class="external-link"><a href="https://github.com/ros-industrial-attic">ROS-I Attic</a></li><li class="page-collection"><a href="/tesseract-robotics">Tesseract Robotics</a></li><li class="page-collection"><a href="/developmentprocess">Development Process</a></li><li class="page-collection"><a href="/roadmapping">Roadmapping</a></li><li class="external-link"><a href="http://wiki.ros.org/Industrial/supported_hardware" target="_blank">ROS 1 Supported Hardware</a></li><li class="external-link"><a href="http://wiki.ros.org/Industrial" target="_blank">ROS 1 Wiki</a></li><li class="page-collection"><a href="/3d-camera-survey">3D Camera Survey</a></li></ul></div></li>
+  
+
+    
+
+    <li aria-haspopup="true" class="folder-collection folder"><a href="#" onClick="return false;">Training & Support</a><span class="delimiter">/</span><div class="subnav"><ul><li class="external-link"><a href="http://industrial-training-master.readthedocs.io/" target="_blank">Training Curriculum</a></li><li class="external-link"><a href="http://wiki.ros.org/Industrial/Tutorials">Tutorials</a></li><li class="external-link"><a href="https://discourse.ros.org/c/ros-industrial/39" target="_blank">Discussion Forum</a></li><li class="page-collection"><a href="/tech-support">Tech Support</a></li><li class="page-collection"><a href="/developers-meeting">Developers Meeting</a></li><li class="page-collection"><a href="/videos">Videos</a></li></ul></div></li>
+  
+
+    
+
+    <li class="page-collection"><a href="/events-summary">Events</a><span class="delimiter">/</span></li>
+  
+     
+  </ul>
+</nav>
+
+
+				          
+			            <div id="sqs-social" class="social-links sqs-svg-icon--list" data-content-field="connected-accounts">
+        						
+
+
+  <a href="https://twitter.com/ROSIndustrial" target="_blank" class="sqs-svg-icon--wrapper twitter-unauth">
+    <div>
+      <svg class="sqs-svg-icon--social" viewBox="0 0 64 64">
+        <use class="sqs-use--icon" xlink:href="#twitter-unauth-icon"></use>
+        <use class="sqs-use--mask" xlink:href="#twitter-unauth-mask"></use>
+      </svg>
+    </div>
+  </a>
+
+  <a href="http://www.youtube.com/channel/UCXyGVRiCwUMc1gav-G7z2ew" target="_blank" class="sqs-svg-icon--wrapper youtube">
+    <div>
+      <svg class="sqs-svg-icon--social" viewBox="0 0 64 64">
+        <use class="sqs-use--icon" xlink:href="#youtube-icon"></use>
+        <use class="sqs-use--mask" xlink:href="#youtube-mask"></use>
+      </svg>
+    </div>
+  </a>
+
+  <a href="https://www.linkedin.com/company/ros-industrial" target="_blank" class="sqs-svg-icon--wrapper linkedin-unauth">
+    <div>
+      <svg class="sqs-svg-icon--social" viewBox="0 0 64 64">
+        <use class="sqs-use--icon" xlink:href="#linkedin-unauth-icon"></use>
+        <use class="sqs-use--mask" xlink:href="#linkedin-unauth-mask"></use>
+      </svg>
+    </div>
+  </a>
+
+
+			            </div>
+				          
+					      
+
+				    	</div>
+				    </div><!-- navigation-top -->
+
+						<div id="banner-area-wrapper">
+							<div id="banner-area">
+
+							<!-- // page thumbnail image as banner image -->
+							
+                
+                  
+                    <div id="page-thumb" class="content-fill">
+                      <img data-src="https://images.squarespace-cdn.com/content/v1/51df34b1e4b08840dcfd2841/1519075178084-479FWHBRQDTDYUA5J9X1/ROS-I-Web-banner1-980x150.jpg" data-image="https://images.squarespace-cdn.com/content/v1/51df34b1e4b08840dcfd2841/1519075178084-479FWHBRQDTDYUA5J9X1/ROS-I-Web-banner1-980x150.jpg" data-image-dimensions="2500x383" data-image-focal-point="0.5,0.5" alt="ROS-I-Web-banner1-980x150.jpg"  />
+                    </div>
+                  
+                
+							
+
+							<div class="banner-overlay"></div>
+
+				      <!-- // logo or site title markup in banner area -->
+				      
+				      	
+					      <div id="site-title-wrapper" class="js-text-shrink" data-content-field="site-title">
+				          <h1 id="site-title" class="page-title"><a href="/" rel="bookmark">ROS-Industrial</a></h1>
+				          <p id="site-tagline" class="site-subtitle">the open solution for manufacturing automation</p>
+				        </div>
+				        
+				      
+
+							<!-- // page title markup in banner area -->
+				      
+					      <div id="page-title-wrapper" class="js-text-shrink" data-collection-id="51df34b1e4b08840dcfd2844" data-edit-main-image="Page Banner">
+				          <h1 id="page-title" class="page-title">Home</h1>
+				      		<div id="page-description" class="page-description"><p>ROS-Industrial: Open Source Software for Manufacturing Automation</p><p>ROS (Robot Operating System), Europe, Americas, Asia Pacific</p><p>SwRI (San Antonio), Fraunhofer IPA (Stuttgart) , ARTC (Singapore)</p></div>
+				        </div>
+				      
+
+				      </div>
+				    </div><!-- banner-area-wrapper -->
+
+				    <div id="navigation-bottom">
+				    	<div class="horizontal-navigation-bar clear with-title">
+
+				    		<!-- // logo or site title markup in nav area -->
+					      
+					      	
+						      <div id="site-title-wrapper" data-content-field="site-title">
+					          <h1 id="site-title" class="page-title"><a href="/" rel="bookmark">ROS-Industrial</a></h1>
+					        </div>
+					        
+
+									
+<nav id="main-navigation" class="main-nav" data-content-field="navigation">
+  <ul>
+  
+
+    
+
+    <li aria-haspopup="true" class="folder-collection folder"><a href="#" onClick="return false;" class="active-folder">About</a><span class="delimiter">/</span><div class="subnav"><ul><li class="page-collection active-link"><a href="/">Home</a></li><li class="page-collection"><a href="/the-challenge">The Challenge</a></li><li class="page-collection"><a href="/history">History</a></li><li class="page-collection"><a href="/contributors">Contributors</a></li><li class="page-collection"><a href="/contact-us">Contact</a></li><li class="page-collection"><a href="/about/description">Description</a></li><li class="page-collection"><a href="/about/faq">FAQ</a></li><li class="page-collection"><a href="/about/press">Press</a></li><li class="page-collection"><a href="/about/publications">Publications</a></li></ul></div></li>
+  
+
+    
+
+    <li class="blog-collection"><a href="/news">Blog</a><span class="delimiter">/</span></li>
+  
+
+    
+
+    <li aria-haspopup="true" class="folder-collection folder"><a href="#" onClick="return false;">Consortium</a><span class="delimiter">/</span><div class="subnav"><ul><li class="page-collection"><a href="/ric-americas">Americas - Consortium</a></li><li class="page-collection"><a href="/ric-eu">Europe - Consortium</a></li><li class="page-collection"><a href="/ric-apac">Asia-Pacific Consortium</a></li><li class="page-collection"><a href="/current-members">Current Members</a></li></ul></div></li>
+  
+
+    
+
+    <li aria-haspopup="true" class="folder-collection folder"><a href="#" onClick="return false;">Software</a><span class="delimiter">/</span><div class="subnav"><ul><li class="external-link"><a href="https://github.com/ros-industrial" target="_blank">ROS-I Repo</a></li><li class="external-link"><a href="https://github.com/ros-industrial-consortium">Consortium Repo</a></li><li class="external-link"><a href="https://github.com/ros-industrial-attic">ROS-I Attic</a></li><li class="page-collection"><a href="/tesseract-robotics">Tesseract Robotics</a></li><li class="page-collection"><a href="/developmentprocess">Development Process</a></li><li class="page-collection"><a href="/roadmapping">Roadmapping</a></li><li class="external-link"><a href="http://wiki.ros.org/Industrial/supported_hardware" target="_blank">ROS 1 Supported Hardware</a></li><li class="external-link"><a href="http://wiki.ros.org/Industrial" target="_blank">ROS 1 Wiki</a></li><li class="page-collection"><a href="/3d-camera-survey">3D Camera Survey</a></li></ul></div></li>
+  
+
+    
+
+    <li aria-haspopup="true" class="folder-collection folder"><a href="#" onClick="return false;">Training & Support</a><span class="delimiter">/</span><div class="subnav"><ul><li class="external-link"><a href="http://industrial-training-master.readthedocs.io/" target="_blank">Training Curriculum</a></li><li class="external-link"><a href="http://wiki.ros.org/Industrial/Tutorials">Tutorials</a></li><li class="external-link"><a href="https://discourse.ros.org/c/ros-industrial/39" target="_blank">Discussion Forum</a></li><li class="page-collection"><a href="/tech-support">Tech Support</a></li><li class="page-collection"><a href="/developers-meeting">Developers Meeting</a></li><li class="page-collection"><a href="/videos">Videos</a></li></ul></div></li>
+  
+
+    
+
+    <li class="page-collection"><a href="/events-summary">Events</a><span class="delimiter">/</span></li>
+  
+     
+  </ul>
+</nav>
+
+
+
+				          
+                  <div id="sqs-social" class="social-links sqs-svg-icon--list" data-content-field="connected-accounts">
+        						
+
+
+  <a href="https://twitter.com/ROSIndustrial" target="_blank" class="sqs-svg-icon--wrapper twitter-unauth">
+    <div>
+      <svg class="sqs-svg-icon--social" viewBox="0 0 64 64">
+        <use class="sqs-use--icon" xlink:href="#twitter-unauth-icon"></use>
+        <use class="sqs-use--mask" xlink:href="#twitter-unauth-mask"></use>
+      </svg>
+    </div>
+  </a>
+
+  <a href="http://www.youtube.com/channel/UCXyGVRiCwUMc1gav-G7z2ew" target="_blank" class="sqs-svg-icon--wrapper youtube">
+    <div>
+      <svg class="sqs-svg-icon--social" viewBox="0 0 64 64">
+        <use class="sqs-use--icon" xlink:href="#youtube-icon"></use>
+        <use class="sqs-use--mask" xlink:href="#youtube-mask"></use>
+      </svg>
+    </div>
+  </a>
+
+  <a href="https://www.linkedin.com/company/ros-industrial" target="_blank" class="sqs-svg-icon--wrapper linkedin-unauth">
+    <div>
+      <svg class="sqs-svg-icon--social" viewBox="0 0 64 64">
+        <use class="sqs-use--icon" xlink:href="#linkedin-unauth-icon"></use>
+        <use class="sqs-use--mask" xlink:href="#linkedin-unauth-mask"></use>
+      </svg>
+    </div>
+  </a>
+
+
+			            </div>
+				          
+					      
+
+				    	</div>
+				    </div><!-- navigation-bottom -->
+
+				  </div>
+				</div><!-- page-header-wrapper -->
+				<div id="page-body-wrapper" class="one-sidebar">
+					<div id="page-body">
+
+						<div id="content-wrapper">
+							<div id="content">
+
+								<div id="page-body-header" class="extra-wrapper">
+									<div class="sqs-layout sqs-grid-12 columns-12 empty" data-layout-label="Home Header Content" data-type="block-field" data-updated-on="1779918066418" id="page-header-51df34b1e4b08840dcfd2844"><div class="row sqs-row"><div class="col sqs-col-12 span-12"></div></div></div>
+								</div>
+
+						    <!-- // CATEGORY NAV -->
+						    
+
+						    <div class="main-content" data-content-field="main-content" data-collection-id="51df34b1e4b08840dcfd2844" data-edit-main-image="Page Banner">
+									<div class="sqs-layout sqs-grid-12 columns-12" data-type="page" data-updated-on="1733160153206" id="page-51df34b1e4b08840dcfd2844"><div class="row sqs-row"><div class="col sqs-col-12 span-12"><div class="sqs-block html-block sqs-block-html" data-block-type="2" data-border-radii="&#123;&quot;topLeft&quot;:&#123;&quot;unit&quot;:&quot;px&quot;,&quot;value&quot;:0.0&#125;,&quot;topRight&quot;:&#123;&quot;unit&quot;:&quot;px&quot;,&quot;value&quot;:0.0&#125;,&quot;bottomLeft&quot;:&#123;&quot;unit&quot;:&quot;px&quot;,&quot;value&quot;:0.0&#125;,&quot;bottomRight&quot;:&#123;&quot;unit&quot;:&quot;px&quot;,&quot;value&quot;:0.0&#125;&#125;" data-sqsp-block="text" id="block-yui_3_17_2_1_1580491991528_14863"><div class="sqs-block-content">
+
+<div class="sqs-html-content" data-sqsp-text-block-content>
+  <p class="" style="white-space:pre-wrap;"><strong>ROS-Industrial is an open-source project that extends the advanced capabilities of ROS software to industrial relevant hardware and applications.</strong></p><p class="" style="white-space:pre-wrap;">You can check out the software repositories over at GitHub for both <a href="https://github.com/ros-industrial">community &amp; partner developed</a> and <a href="https://github.com/ros-industrial-consortium">Consortium</a> developed.</p><p class="" style="white-space:pre-wrap;">The mission of the Consortium is to accelerate the development of ROS-Industrial by: </p><ul data-rte-list="default"><li><p class="" style="white-space:pre-wrap;">Managing a roadmap to identify and prioritize ROS-Industrial capabilities for industrial robotics and automation as defined by the user community to address its current and future applications problems.</p></li></ul><ul data-rte-list="default"><li><p class="" style="white-space:pre-wrap;">Instituting and enforcing <a href="https://rosin-project.eu/software-quality-assurance">code quality standards</a> appropriate for an industrial software product. These include rating/tracking code quality metrics, multi-level testing and documentation.</p></li><li><p class="" style="white-space:pre-wrap;">Providing a wide range of user services, including <a href="https://discourse.ros.org/c/ros-industrial/39">technical support</a> and <a href="https://industrial-training-master.readthedocs.io/en/latest/index.html">training</a>, to facilitate the continued adoption of ROS-Industrial by industry.</p></li></ul><p class="" style="white-space:pre-wrap;">Interested in learning more about or even <a href="https://rosindustrial.org/join-now">joining</a> the ROS-Industrial Consortium? Start over at the <a href="https://rosindustrial.org/ric/consortium-faq/" target="_blank">Consortium FAQ</a>, or you can find the respective region agreements below "Consortium" in the banner above!</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+
+
+
+</div></div><div class="sqs-block horizontalrule-block sqs-block-horizontalrule" data-block-type="47" data-sqsp-block="line" id="block-yui_3_17_2_1_1665557966042_17630"><div class="sqs-block-content"><hr /></div></div><div class="sqs-block website-component-block sqs-block-website-component sqs-block-video video-block" data-block-css="[&quot;https://definitions.sqspcdn.com/website-component-definition/static-assets/website.components.video/0bd75d33-c6e9-428f-851e-4a51af4dd121_423/website.components.video.styles.css&quot;]" data-block-scripts="[&quot;https://definitions.sqspcdn.com/website-component-definition/static-assets/website.components.video/0bd75d33-c6e9-428f-851e-4a51af4dd121_423/4032.js&quot;,&quot;https://definitions.sqspcdn.com/website-component-definition/static-assets/website.components.video/0bd75d33-c6e9-428f-851e-4a51af4dd121_423/website.components.video.visitor.js&quot;]" data-block-type="1337" data-definition-name="website.components.video" data-sqsp-block="video" data-website-component-id="yui_3_17_2_1_1733159878847_5738" id="block-yui_3_17_2_1_1733159878847_5738"><div class="sqs-block-content">
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <div class="intrinsic" style="max-width:100%">
+    
+      
+    
+    <div
+      class="embed-block-wrapper"
+      style="padding-bottom:56.49999999999999%;"
+    >
+      <div
+        class="sqs-video-wrapper"
+        data-provider-name="YouTube"
+        data-html="&lt;iframe width=&quot;200&quot; height=&quot;113&quot; src=&quot;https://www.youtube.com/embed/ZXxll0hqFuE?feature=oembed&quot; frameborder=&quot;0&quot; allow=&quot;accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share&quot; referrerpolicy=&quot;strict-origin-when-cross-origin&quot; allowfullscreen title=&quot;Robotic Blending Milestone 5 - Highlight Video&quot;&gt;&lt;/iframe&gt;"
+        data-localized="{&quot;invalidVideo&quot;:&quot;Invalid video embed.&quot;,&quot;playButton&quot;:&quot;Play&quot;}"
+      >
+        
+      </div>
+    </div>
+    <div class="video-caption-wrapper">
+  <div class="video-caption">
+    <p>Robotic Blending Milestone 5, championed by Steel Founders’ Society of America, resulted in numerous capability enhancements and refinements to scan_n_plan_workshop and showcased open source delivering value on the foundry floor.</p>
+  </div>
+</div>
+
+  </div>
+
+</div></div><div class="row sqs-row"><div class="col sqs-col-6 span-6"><div class="sqs-block website-component-block sqs-block-website-component sqs-block-video video-block" data-block-css="[&quot;https://definitions.sqspcdn.com/website-component-definition/static-assets/website.components.video/0bd75d33-c6e9-428f-851e-4a51af4dd121_423/website.components.video.styles.css&quot;]" data-block-scripts="[&quot;https://definitions.sqspcdn.com/website-component-definition/static-assets/website.components.video/0bd75d33-c6e9-428f-851e-4a51af4dd121_423/4032.js&quot;,&quot;https://definitions.sqspcdn.com/website-component-definition/static-assets/website.components.video/0bd75d33-c6e9-428f-851e-4a51af4dd121_423/website.components.video.visitor.js&quot;]" data-block-type="1337" data-definition-name="website.components.video" data-sqsp-block="video" data-website-component-id="yui_3_17_2_1_1543896472065_8928" id="block-yui_3_17_2_1_1543896472065_8928"><div class="sqs-block-content">
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <div class="intrinsic" style="max-width:100%">
+    
+      
+    
+    <div
+      class="embed-block-wrapper"
+      style="padding-bottom:56.20608899297424%;"
+    >
+      <div
+        class="sqs-video-wrapper"
+        data-provider-name="YouTube"
+        data-html="&lt;iframe class=&quot;embedly-embed&quot; src=&quot;//cdn.embedly.com/widgets/media.html?src=https%3A%2F%2Fwww.youtube.com%2Fembed%2F-6yAk05et1Q%3Ffeature%3Doembed&amp;display_name=YouTube&amp;url=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3D-6yAk05et1Q&amp;image=https%3A%2F%2Fi.ytimg.com%2Fvi%2F-6yAk05et1Q%2Fhqdefault.jpg&amp;key=61d05c9d54e8455ea7a9677c366be814&amp;type=text%2Fhtml&amp;schema=youtube&quot; width=&quot;854&quot; height=&quot;480&quot; scrolling=&quot;no&quot; title=&quot;YouTube embed&quot; frameborder=&quot;0&quot; allow=&quot;autoplay; fullscreen&quot; allowfullscreen=&quot;true&quot;&gt;&lt;/iframe&gt;"
+        data-localized="{&quot;invalidVideo&quot;:&quot;Invalid video embed.&quot;,&quot;playButton&quot;:&quot;Play&quot;}"
+      >
+        
+      </div>
+    </div>
+    <div class="video-caption-wrapper">
+  <div class="video-caption">
+    <p class="" style="white-space:pre-wrap;">The ROS-Industrial open source project is now over 10 years strong! In honor of this milestone we reached out to the community to share some of the great applications they are building for industry with open source and ROS and of course ROS 2. Thanks to all those that contributed and making ROS-Industrial the place to start relative to open source for industry!</p>
+  </div>
+</div>
+
+  </div>
+
+</div></div></div><div class="col sqs-col-6 span-6"><div class="sqs-block website-component-block sqs-block-website-component sqs-block-video video-block" data-block-css="[&quot;https://definitions.sqspcdn.com/website-component-definition/static-assets/website.components.video/0bd75d33-c6e9-428f-851e-4a51af4dd121_423/website.components.video.styles.css&quot;]" data-block-scripts="[&quot;https://definitions.sqspcdn.com/website-component-definition/static-assets/website.components.video/0bd75d33-c6e9-428f-851e-4a51af4dd121_423/4032.js&quot;,&quot;https://definitions.sqspcdn.com/website-component-definition/static-assets/website.components.video/0bd75d33-c6e9-428f-851e-4a51af4dd121_423/website.components.video.visitor.js&quot;]" data-block-type="1337" data-definition-name="website.components.video" data-sqsp-block="video" data-website-component-id="yui_3_17_2_2_1492808026780_7209" id="block-yui_3_17_2_2_1492808026780_7209"><div class="sqs-block-content">
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <div class="intrinsic" style="max-width:100%">
+    
+      
+    
+    <div
+      class="embed-block-wrapper"
+      style="padding-bottom:56.20608899297424%;"
+    >
+      <div
+        class="sqs-video-wrapper"
+        data-provider-name="YouTube"
+        data-html="&lt;iframe class=&quot;embedly-embed&quot; src=&quot;//cdn.embedly.com/widgets/media.html?src=https%3A%2F%2Fwww.youtube.com%2Fembed%2FfAUTJa7Nrdc%3Ffeature%3Doembed&amp;display_name=YouTube&amp;url=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DfAUTJa7Nrdc&amp;image=https%3A%2F%2Fi.ytimg.com%2Fvi%2FfAUTJa7Nrdc%2Fhqdefault.jpg&amp;key=61d05c9d54e8455ea7a9677c366be814&amp;type=text%2Fhtml&amp;schema=youtube&quot; width=&quot;854&quot; height=&quot;480&quot; scrolling=&quot;no&quot; title=&quot;YouTube embed&quot; frameborder=&quot;0&quot; allow=&quot;autoplay; fullscreen&quot; allowfullscreen=&quot;true&quot;&gt;&lt;/iframe&gt;"
+        data-localized="{&quot;invalidVideo&quot;:&quot;Invalid video embed.&quot;,&quot;playButton&quot;:&quot;Play&quot;}"
+      >
+        
+      </div>
+    </div>
+    <div class="video-caption-wrapper">
+  <div class="video-caption">
+    <p class="" style="white-space:pre-wrap;">Ros-industrial had the opportunity to collaborate with Microsoft and BMW to address a burning need for agile and flexible logistics automation solutions that can interoperate efficiently and be deployed at scale. We hope you find this a compelling example of open-source delivering end user value and how researchers and for-profits can work together to solve big problems!</p>
+  </div>
+</div>
+
+  </div>
+
+</div></div></div><div class="col sqs-col-0 span-0"></div></div><div class="row sqs-row"><div class="col sqs-col-6 span-6"><div class="sqs-block website-component-block sqs-block-website-component sqs-block-video video-block" data-block-css="[&quot;https://definitions.sqspcdn.com/website-component-definition/static-assets/website.components.video/0bd75d33-c6e9-428f-851e-4a51af4dd121_423/website.components.video.styles.css&quot;]" data-block-scripts="[&quot;https://definitions.sqspcdn.com/website-component-definition/static-assets/website.components.video/0bd75d33-c6e9-428f-851e-4a51af4dd121_423/4032.js&quot;,&quot;https://definitions.sqspcdn.com/website-component-definition/static-assets/website.components.video/0bd75d33-c6e9-428f-851e-4a51af4dd121_423/website.components.video.visitor.js&quot;]" data-block-type="1337" data-definition-name="website.components.video" data-sqsp-block="video" data-website-component-id="yui_3_17_2_2_1504789603806_5947" id="block-yui_3_17_2_2_1504789603806_5947"><div class="sqs-block-content">
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <div class="intrinsic" style="max-width:100%">
+    
+      
+    
+    <div
+      class="embed-block-wrapper"
+      style="padding-bottom:56.20608899297424%;"
+    >
+      <div
+        class="sqs-video-wrapper"
+        data-provider-name="YouTube"
+        data-html="&lt;iframe src=&quot;//www.youtube.com/embed/PWCpehyKnTY?wmode=opaque&amp;amp;enablejsapi=1&quot; height=&quot;480&quot; width=&quot;854&quot; scrolling=&quot;no&quot; frameborder=&quot;0&quot; allowfullscreen=&quot;&quot;&gt;
+&lt;/iframe&gt;"
+        data-localized="{&quot;invalidVideo&quot;:&quot;Invalid video embed.&quot;,&quot;playButton&quot;:&quot;Play&quot;}"
+      >
+        
+      </div>
+    </div>
+    <div class="video-caption-wrapper">
+  <div class="video-caption">
+    <p>Highlights from Robotic Blending M4 FTP Technology Demonstration hosted by Wolf Robotics.</p>
+  </div>
+</div>
+
+  </div>
+
+</div></div></div><div class="col sqs-col-6 span-6"><div class="sqs-block website-component-block sqs-block-website-component sqs-block-video video-block" data-block-css="[&quot;https://definitions.sqspcdn.com/website-component-definition/static-assets/website.components.video/0bd75d33-c6e9-428f-851e-4a51af4dd121_423/website.components.video.styles.css&quot;]" data-block-scripts="[&quot;https://definitions.sqspcdn.com/website-component-definition/static-assets/website.components.video/0bd75d33-c6e9-428f-851e-4a51af4dd121_423/4032.js&quot;,&quot;https://definitions.sqspcdn.com/website-component-definition/static-assets/website.components.video/0bd75d33-c6e9-428f-851e-4a51af4dd121_423/website.components.video.visitor.js&quot;]" data-block-type="1337" data-definition-name="website.components.video" data-sqsp-block="video" data-website-component-id="yui_3_17_2_3_1435764318718_7066" id="block-yui_3_17_2_3_1435764318718_7066"><div class="sqs-block-content">
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <div class="intrinsic" style="max-width:100%">
+    
+      
+    
+    <div
+      class="embed-block-wrapper"
+      style="padding-bottom:56.20608899297424%;"
+    >
+      <div
+        class="sqs-video-wrapper"
+        data-provider-name="YouTube"
+        data-html="&lt;iframe src=&quot;//www.youtube.com/embed/GoAS9bmlenA?wmode=opaque&amp;amp;enablejsapi=1&quot; height=&quot;480&quot; width=&quot;854&quot; scrolling=&quot;no&quot; frameborder=&quot;0&quot; allowfullscreen=&quot;&quot;&gt;
+&lt;/iframe&gt;"
+        data-localized="{&quot;invalidVideo&quot;:&quot;Invalid video embed.&quot;,&quot;playButton&quot;:&quot;Play&quot;}"
+      >
+        
+      </div>
+    </div>
+    <div class="video-caption-wrapper">
+  <div class="video-caption">
+    <p>The ROS-I project is supported by the ROS-I Consortium</p>
+  </div>
+</div>
+
+  </div>
+
+</div></div></div></div><div class="sqs-block markdown-block sqs-block-markdown" data-block-type="44" id="block-yui_3_17_2_15_1453219862360_9472"><div class="sqs-block-content"><h1 id="featurednews">Featured News</h1>
+</div></div><div class="sqs-block website-component-block sqs-block-website-component sqs-block-summary-v2 summary-block summary-v2-block" data-block-css="[&quot;https://definitions.sqspcdn.com/website-component-definition/static-assets/website.components.summary/a48f48f3-0bea-42e4-99dd-21645ba7bdac_396/website.components.summary.styles.css&quot;]" data-block-scripts="[&quot;https://definitions.sqspcdn.com/website-component-definition/static-assets/website.components.summary/a48f48f3-0bea-42e4-99dd-21645ba7bdac_396/8018.js&quot;,&quot;https://definitions.sqspcdn.com/website-component-definition/static-assets/website.components.summary/a48f48f3-0bea-42e4-99dd-21645ba7bdac_396/embed-video-player.js&quot;,&quot;https://definitions.sqspcdn.com/website-component-definition/static-assets/website.components.summary/a48f48f3-0bea-42e4-99dd-21645ba7bdac_396/gallery-layout-autocolumns.js&quot;,&quot;https://definitions.sqspcdn.com/website-component-definition/static-assets/website.components.summary/a48f48f3-0bea-42e4-99dd-21645ba7bdac_396/gallery-layout-autogrid.js&quot;,&quot;https://definitions.sqspcdn.com/website-component-definition/static-assets/website.components.summary/a48f48f3-0bea-42e4-99dd-21645ba7bdac_396/gallery-layout-carousel.js&quot;,&quot;https://definitions.sqspcdn.com/website-component-definition/static-assets/website.components.summary/a48f48f3-0bea-42e4-99dd-21645ba7bdac_396/gallery-layout-grid.js&quot;,&quot;https://definitions.sqspcdn.com/website-component-definition/static-assets/website.components.summary/a48f48f3-0bea-42e4-99dd-21645ba7bdac_396/gallery-layout-list.js&quot;,&quot;https://definitions.sqspcdn.com/website-component-definition/static-assets/website.components.summary/a48f48f3-0bea-42e4-99dd-21645ba7bdac_396/gallery-layout-slideshow.js&quot;,&quot;https://definitions.sqspcdn.com/website-component-definition/static-assets/website.components.summary/a48f48f3-0bea-42e4-99dd-21645ba7bdac_396/gallery-layout-stacked.js&quot;,&quot;https://definitions.sqspcdn.com/website-component-definition/static-assets/website.components.summary/a48f48f3-0bea-42e4-99dd-21645ba7bdac_396/gallery-layout-strip.js&quot;,&quot;https://definitions.sqspcdn.com/website-component-definition/static-assets/website.components.summary/a48f48f3-0bea-42e4-99dd-21645ba7bdac_396/gallery-manager.js&quot;,&quot;https://definitions.sqspcdn.com/website-component-definition/static-assets/website.components.summary/a48f48f3-0bea-42e4-99dd-21645ba7bdac_396/website.components.summary.visitor.js&quot;]" data-block-type="1337" data-definition-name="website.components.summary" data-sqsp-block="summary" data-website-component-id="yui_3_17_2_11_1453219862360_8377" id="block-yui_3_17_2_11_1453219862360_8377"><div class="sqs-block-content">
+
+<div class="
+  summary-block-wrapper
+  summary-block-collection-type-blog
+  summary-block-setting-text-size-medium
+  summary-block-setting-text-align-left
+  summary-block-setting-design-list
+  summary-block-setting-design-list-thumbnail-left
+  summary-block-setting-metadata-position-below-content
+  summary-block-setting-primary-metadata-date
+  summary-block-setting-secondary-metadata-none
+  summary-block-setting-show-thumbnail
+  summary-block-setting-show-title
+  summary-block-setting-show-price
+  summary-block-setting-show-excerpt
+  summary-block-setting-show-read-more-link
+  
+  sqs-gallery-design-list
+  
+  "
+  
+  data-design=list
+  data-image-aspect-ratio=1.5
+  data-slides-per-row=3
+  
+  data-mixed-content=true
+  data-column-width=270
+  data-gutter="60"
+  data-list-image-size="30"
+  data-active-alignment=""
+  data-square-thumbs=""
+  data-auto-crop="true"
+>
+  <div class="summary-item-list-container sqs-gallery-container">
+    <header class="summary-block-header">
+      
+      <div class="summary-heading" data-animation-role="content">
+        
+          <span class="summary-header-text">Featured</span>
+        
+      </div>
+      
+      <div class="summary-carousel-pager sqs-gallery-controls" data-animation-role="content">
+        <span
+          class="summary-carousel-pager-prev previous"
+          tabindex="0"
+          role="button"
+          aria-label="Previous"
+        ></span>
+        <span
+          class="summary-carousel-pager-next next"
+          tabindex="0"
+          role="button"
+          aria-label="Next"
+        ></span>
+      </div>
+    </header>
+    <div class="summary-item-list sqs-gallery">
+      
+        <div class="
+          summary-item
+          positioned
+          summary-item-record-type-text
+          sqs-gallery-design-list-slide
+          
+          
+            summary-item-has-thumbnail
+          
+          
+          
+          
+          summary-item-has-author
+          summary-item-has-comments-enabled
+          summary-item-has-location"
+          >
+          
+            
+            
+
+
+  
+    <div class="summary-thumbnail-outer-container">
+      <a
+        
+          
+            href="/news/2026/6/15/bringing-the-ros-community-together-meetups-in-heilbronn-and-karlsruhe"
+          
+        
+        class="
+          summary-thumbnail-container
+          sqs-gallery-image-container
+          
+        "
+        data-title="Bringing the ROS Community Together: Meetups in Heilbronn and Karlsruhe"
+        data-description=""
+        aria-label="Bringing the ROS Community Together: Meetups in Heilbronn and Karlsruhe"
+      >
+        <div class="summary-thumbnail img-wrapper" data-animation-role="image">
+  
+
+  
+
+    
+
+      
+          <!-- First Image in Post -->
+          <img data-src="https://images.squarespace-cdn.com/content/v1/51df34b1e4b08840dcfd2841/1781547282672-RSHD7DU9R0RPB8NEYYXV/Image.png" data-image="https://images.squarespace-cdn.com/content/v1/51df34b1e4b08840dcfd2841/1781547282672-RSHD7DU9R0RPB8NEYYXV/Image.png" data-image-dimensions="1024x576" data-image-focal-point="0.5,0.5" alt="Image.png"  data-load="false" class="summary-thumbnail-image" elementtiming="summary-thumbnail-image-list" />
+      
+
+      
+    
+  
+
+  
+
+    
+
+    
+
+    </div>
+  </a>
+
+    <!-- Products: Quick View -->
+    
+
+    </div>
+  
+
+
+          
+          <div class="summary-content sqs-gallery-meta-container" data-animation-role="content">
+            
+            <div class="summary-metadata-container summary-metadata-container--above-title">
+              
+              <div class="summary-metadata summary-metadata--primary">
+
+
+
+<!-- Timestamp -->
+<time class="summary-metadata-item summary-metadata-item--date" datetime="2026-06-15">June 15, 2026</time>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+              
+              <div class="summary-metadata summary-metadata--secondary">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+            </div>
+            
+              
+              <div class="summary-title">
+                <a
+                
+                  
+                    href="/news/2026/6/15/bringing-the-ros-community-together-meetups-in-heilbronn-and-karlsruhe"
+                  
+                
+                class="summary-title-link">
+                  Bringing the ROS Community Together: Meetups in Heilbronn and Karlsruhe
+                </a>
+              </div>
+            
+            
+            <div class="summary-metadata-container summary-metadata-container--below-title">
+            
+              <div class="summary-metadata summary-metadata--primary">
+
+
+
+<!-- Timestamp -->
+<time class="summary-metadata-item summary-metadata-item--date" datetime="2026-06-15">June 15, 2026</time>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+              
+              <div class="summary-metadata summary-metadata--secondary">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+            </div>
+            
+              
+            
+            
+              
+              
+              
+                
+                <a href="/news/2026/6/15/bringing-the-ros-community-together-meetups-in-heilbronn-and-karlsruhe" class="summary-read-more-link">Read more &#8594;</a>
+              
+            
+            
+            <div class="summary-metadata-container summary-metadata-container--below-content">
+              
+              <div class="summary-metadata summary-metadata--primary">
+
+
+
+<!-- Timestamp -->
+<time class="summary-metadata-item summary-metadata-item--date" datetime="2026-06-15">June 15, 2026</time>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+              
+              <div class="summary-metadata summary-metadata--secondary">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+            </div>
+          </div>
+        </div>
+      
+        <div class="
+          summary-item
+          positioned
+          summary-item-record-type-text
+          sqs-gallery-design-list-slide
+          
+          
+            summary-item-has-thumbnail
+          
+          
+          
+          summary-item-has-tags
+          summary-item-has-author
+          summary-item-has-comments-enabled
+          "
+          >
+          
+            
+            
+
+
+  
+    <div class="summary-thumbnail-outer-container">
+      <a
+        
+          
+            href="/news/2026/4/17/tesseract-amp-ros-i-developer-monthly-meeting-revisit"
+          
+        
+        class="
+          summary-thumbnail-container
+          sqs-gallery-image-container
+          
+        "
+        data-title="Tesseract &amp;amp; ROS-I Developer Monthly Meeting Revisit"
+        data-description=""
+        aria-label="Tesseract &amp;amp; ROS-I Developer Monthly Meeting Revisit"
+      >
+        <div class="summary-thumbnail img-wrapper" data-animation-role="image">
+  
+
+  
+
+    
+
+      
+          <!-- First Image in Post -->
+          <img data-src="https://images.squarespace-cdn.com/content/v1/51df34b1e4b08840dcfd2841/374b0260-8aa7-47df-be1b-f1341d8fef22/Screenshot+2026-04-17+130543.jpg" data-image="https://images.squarespace-cdn.com/content/v1/51df34b1e4b08840dcfd2841/374b0260-8aa7-47df-be1b-f1341d8fef22/Screenshot+2026-04-17+130543.jpg" data-image-dimensions="1638x957" data-image-focal-point="0.5,0.5" alt="Screenshot 2026-04-17 130543.jpg"  data-load="false" class="summary-thumbnail-image" elementtiming="summary-thumbnail-image-list" />
+      
+
+      
+    
+  
+
+  
+
+    
+
+    
+
+    </div>
+  </a>
+
+    <!-- Products: Quick View -->
+    
+
+    </div>
+  
+
+
+          
+          <div class="summary-content sqs-gallery-meta-container" data-animation-role="content">
+            
+            <div class="summary-metadata-container summary-metadata-container--above-title">
+              
+              <div class="summary-metadata summary-metadata--primary">
+
+
+
+<!-- Timestamp -->
+<time class="summary-metadata-item summary-metadata-item--date" datetime="2026-04-17">April 17, 2026</time>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+              
+              <div class="summary-metadata summary-metadata--secondary">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+            </div>
+            
+              
+              <div class="summary-title">
+                <a
+                
+                  
+                    href="/news/2026/4/17/tesseract-amp-ros-i-developer-monthly-meeting-revisit"
+                  
+                
+                class="summary-title-link">
+                  Tesseract &amp; ROS-I Developer Monthly Meeting Revisit
+                </a>
+              </div>
+            
+            
+            <div class="summary-metadata-container summary-metadata-container--below-title">
+            
+              <div class="summary-metadata summary-metadata--primary">
+
+
+
+<!-- Timestamp -->
+<time class="summary-metadata-item summary-metadata-item--date" datetime="2026-04-17">April 17, 2026</time>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+              
+              <div class="summary-metadata summary-metadata--secondary">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+            </div>
+            
+              
+            
+            
+              
+              
+              
+                
+                <a href="/news/2026/4/17/tesseract-amp-ros-i-developer-monthly-meeting-revisit" class="summary-read-more-link">Read more &#8594;</a>
+              
+            
+            
+            <div class="summary-metadata-container summary-metadata-container--below-content">
+              
+              <div class="summary-metadata summary-metadata--primary">
+
+
+
+<!-- Timestamp -->
+<time class="summary-metadata-item summary-metadata-item--date" datetime="2026-04-17">April 17, 2026</time>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+              
+              <div class="summary-metadata summary-metadata--secondary">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+            </div>
+          </div>
+        </div>
+      
+        <div class="
+          summary-item
+          positioned
+          summary-item-record-type-text
+          sqs-gallery-design-list-slide
+          
+          
+            summary-item-has-thumbnail
+          
+          
+          
+          
+          summary-item-has-author
+          summary-item-has-comments-enabled
+          summary-item-has-location"
+          >
+          
+            
+            
+
+
+  
+    <div class="summary-thumbnail-outer-container">
+      <a
+        
+          
+            href="/news/2026/3/27/plcnext-ros-bridge-enabling-hardware-interoperability-between-industrial-plcs-and-ros"
+          
+        
+        class="
+          summary-thumbnail-container
+          sqs-gallery-image-container
+          
+        "
+        data-title="PLCnext ROS Bridge: Enabling Hardware Interoperability Between Industrial PLCs and ROS"
+        data-description=""
+        aria-label="PLCnext ROS Bridge: Enabling Hardware Interoperability Between Industrial PLCs and ROS"
+      >
+        <div class="summary-thumbnail img-wrapper" data-animation-role="image">
+  
+
+  
+      <!-- Main Image -->
+      <img data-src="https://images.squarespace-cdn.com/content/v1/51df34b1e4b08840dcfd2841/1774603133551-Y6POWQI069M96BPRZXVI/Picture1.png" data-image="https://images.squarespace-cdn.com/content/v1/51df34b1e4b08840dcfd2841/1774603133551-Y6POWQI069M96BPRZXVI/Picture1.png" data-image-dimensions="1404x543" data-image-focal-point="0.5,0.5" alt="PLCnext ROS Bridge: Enabling Hardware Interoperability Between Industrial PLCs and ROS"  data-load="false" class="summary-thumbnail-image" elementtiming="summary-thumbnail-image-list" />
+
+  
+
+  
+
+    
+
+    
+
+    </div>
+  </a>
+
+    <!-- Products: Quick View -->
+    
+
+    </div>
+  
+
+
+          
+          <div class="summary-content sqs-gallery-meta-container" data-animation-role="content">
+            
+            <div class="summary-metadata-container summary-metadata-container--above-title">
+              
+              <div class="summary-metadata summary-metadata--primary">
+
+
+
+<!-- Timestamp -->
+<time class="summary-metadata-item summary-metadata-item--date" datetime="2026-03-28">March 28, 2026</time>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+              
+              <div class="summary-metadata summary-metadata--secondary">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+            </div>
+            
+              
+              <div class="summary-title">
+                <a
+                
+                  
+                    href="/news/2026/3/27/plcnext-ros-bridge-enabling-hardware-interoperability-between-industrial-plcs-and-ros"
+                  
+                
+                class="summary-title-link">
+                  PLCnext ROS Bridge: Enabling Hardware Interoperability Between Industrial PLCs and ROS
+                </a>
+              </div>
+            
+            
+            <div class="summary-metadata-container summary-metadata-container--below-title">
+            
+              <div class="summary-metadata summary-metadata--primary">
+
+
+
+<!-- Timestamp -->
+<time class="summary-metadata-item summary-metadata-item--date" datetime="2026-03-28">March 28, 2026</time>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+              
+              <div class="summary-metadata summary-metadata--secondary">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+            </div>
+            
+              
+            
+            
+              
+              
+              
+                
+                <a href="/news/2026/3/27/plcnext-ros-bridge-enabling-hardware-interoperability-between-industrial-plcs-and-ros" class="summary-read-more-link">Read more &#8594;</a>
+              
+            
+            
+            <div class="summary-metadata-container summary-metadata-container--below-content">
+              
+              <div class="summary-metadata summary-metadata--primary">
+
+
+
+<!-- Timestamp -->
+<time class="summary-metadata-item summary-metadata-item--date" datetime="2026-03-28">March 28, 2026</time>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+              
+              <div class="summary-metadata summary-metadata--secondary">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+            </div>
+          </div>
+        </div>
+      
+        <div class="
+          summary-item
+          positioned
+          summary-item-record-type-text
+          sqs-gallery-design-list-slide
+          
+          
+            summary-item-has-thumbnail
+          
+          
+          
+          
+          summary-item-has-author
+          summary-item-has-comments-enabled
+          "
+          >
+          
+            
+            
+
+
+  
+    <div class="summary-thumbnail-outer-container">
+      <a
+        
+          
+            href="/news/2026/2/17/ros-2-in-industry-key-takeaways-from-the-ros-industrial-conference-2025"
+          
+        
+        class="
+          summary-thumbnail-container
+          sqs-gallery-image-container
+          
+        "
+        data-title="ROS 2 in Industry: Key Takeaways from the ROS-Industrial Conference 2025"
+        data-description=""
+        aria-label="ROS 2 in Industry: Key Takeaways from the ROS-Industrial Conference 2025"
+      >
+        <div class="summary-thumbnail img-wrapper" data-animation-role="image">
+  
+
+  
+
+    
+
+      
+          <!-- First Image in Post -->
+          <img data-src="https://images.squarespace-cdn.com/content/v1/51df34b1e4b08840dcfd2841/5dcd31e6-e4a9-4969-aadb-42f1ee78c715/RIC-EU25_20.jpg" data-image="https://images.squarespace-cdn.com/content/v1/51df34b1e4b08840dcfd2841/5dcd31e6-e4a9-4969-aadb-42f1ee78c715/RIC-EU25_20.jpg" data-image-dimensions="2048x1252" data-image-focal-point="0.5,0.5" alt="RIC-EU25_20.jpg"  data-load="false" class="summary-thumbnail-image" elementtiming="summary-thumbnail-image-list" />
+      
+
+      
+    
+  
+
+  
+
+    
+
+    
+
+    </div>
+  </a>
+
+    <!-- Products: Quick View -->
+    
+
+    </div>
+  
+
+
+          
+          <div class="summary-content sqs-gallery-meta-container" data-animation-role="content">
+            
+            <div class="summary-metadata-container summary-metadata-container--above-title">
+              
+              <div class="summary-metadata summary-metadata--primary">
+
+
+
+<!-- Timestamp -->
+<time class="summary-metadata-item summary-metadata-item--date" datetime="2026-02-17">February 17, 2026</time>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+              
+              <div class="summary-metadata summary-metadata--secondary">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+            </div>
+            
+              
+              <div class="summary-title">
+                <a
+                
+                  
+                    href="/news/2026/2/17/ros-2-in-industry-key-takeaways-from-the-ros-industrial-conference-2025"
+                  
+                
+                class="summary-title-link">
+                  ROS 2 in Industry: Key Takeaways from the ROS-Industrial Conference 2025
+                </a>
+              </div>
+            
+            
+            <div class="summary-metadata-container summary-metadata-container--below-title">
+            
+              <div class="summary-metadata summary-metadata--primary">
+
+
+
+<!-- Timestamp -->
+<time class="summary-metadata-item summary-metadata-item--date" datetime="2026-02-17">February 17, 2026</time>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+              
+              <div class="summary-metadata summary-metadata--secondary">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+            </div>
+            
+              
+            
+            
+              
+              
+              
+                
+                <a href="/news/2026/2/17/ros-2-in-industry-key-takeaways-from-the-ros-industrial-conference-2025" class="summary-read-more-link">Read more &#8594;</a>
+              
+            
+            
+            <div class="summary-metadata-container summary-metadata-container--below-content">
+              
+              <div class="summary-metadata summary-metadata--primary">
+
+
+
+<!-- Timestamp -->
+<time class="summary-metadata-item summary-metadata-item--date" datetime="2026-02-17">February 17, 2026</time>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+              
+              <div class="summary-metadata summary-metadata--secondary">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+            </div>
+          </div>
+        </div>
+      
+        <div class="
+          summary-item
+          positioned
+          summary-item-record-type-text
+          sqs-gallery-design-list-slide
+          
+          
+            summary-item-has-thumbnail
+          
+          
+          
+          
+          summary-item-has-author
+          summary-item-has-comments-enabled
+          "
+          >
+          
+            
+            
+
+
+  
+    <div class="summary-thumbnail-outer-container">
+      <a
+        
+          
+            href="/news/2026/1/16/first-ros-i-developers-meeting-looks-at-upcoming-releases-and-collaboration"
+          
+        
+        class="
+          summary-thumbnail-container
+          sqs-gallery-image-container
+          
+        "
+        data-title="First of 2026 ROS-I Developers' Meeting Looks at Upcoming Releases and Collaboration"
+        data-description=""
+        aria-label="First of 2026 ROS-I Developers' Meeting Looks at Upcoming Releases and Collaboration"
+      >
+        <div class="summary-thumbnail img-wrapper" data-animation-role="image">
+  
+
+  
+      <!-- Main Image -->
+      <img data-src="https://images.squarespace-cdn.com/content/v1/51df34b1e4b08840dcfd2841/1768593123194-CO0N73MWSJPYGRPRSMYE/community+meeting+1+2024.png" data-image="https://images.squarespace-cdn.com/content/v1/51df34b1e4b08840dcfd2841/1768593123194-CO0N73MWSJPYGRPRSMYE/community+meeting+1+2024.png" data-image-dimensions="1436x952" data-image-focal-point="0.5,0.5" alt="First of 2026 ROS-I Developers' Meeting Looks at Upcoming Releases and Collaboration"  data-load="false" class="summary-thumbnail-image" elementtiming="summary-thumbnail-image-list" />
+
+  
+
+  
+
+    
+
+    
+
+    </div>
+  </a>
+
+    <!-- Products: Quick View -->
+    
+
+    </div>
+  
+
+
+          
+          <div class="summary-content sqs-gallery-meta-container" data-animation-role="content">
+            
+            <div class="summary-metadata-container summary-metadata-container--above-title">
+              
+              <div class="summary-metadata summary-metadata--primary">
+
+
+
+<!-- Timestamp -->
+<time class="summary-metadata-item summary-metadata-item--date" datetime="2026-01-16">January 16, 2026</time>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+              
+              <div class="summary-metadata summary-metadata--secondary">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+            </div>
+            
+              
+              <div class="summary-title">
+                <a
+                
+                  
+                    href="/news/2026/1/16/first-ros-i-developers-meeting-looks-at-upcoming-releases-and-collaboration"
+                  
+                
+                class="summary-title-link">
+                  First of 2026 ROS-I Developers' Meeting Looks at Upcoming Releases and Collaboration
+                </a>
+              </div>
+            
+            
+            <div class="summary-metadata-container summary-metadata-container--below-title">
+            
+              <div class="summary-metadata summary-metadata--primary">
+
+
+
+<!-- Timestamp -->
+<time class="summary-metadata-item summary-metadata-item--date" datetime="2026-01-16">January 16, 2026</time>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+              
+              <div class="summary-metadata summary-metadata--secondary">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+            </div>
+            
+              
+            
+            
+              
+              
+              
+                
+                <a href="/news/2026/1/16/first-ros-i-developers-meeting-looks-at-upcoming-releases-and-collaboration" class="summary-read-more-link">Read more &#8594;</a>
+              
+            
+            
+            <div class="summary-metadata-container summary-metadata-container--below-content">
+              
+              <div class="summary-metadata summary-metadata--primary">
+
+
+
+<!-- Timestamp -->
+<time class="summary-metadata-item summary-metadata-item--date" datetime="2026-01-16">January 16, 2026</time>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+              
+              <div class="summary-metadata summary-metadata--secondary">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+            </div>
+          </div>
+        </div>
+      
+        <div class="
+          summary-item
+          positioned
+          summary-item-record-type-text
+          sqs-gallery-design-list-slide
+          
+          
+            summary-item-has-thumbnail
+          
+          
+          
+          
+          summary-item-has-author
+          summary-item-has-comments-enabled
+          "
+          >
+          
+            
+            
+
+
+  
+    <div class="summary-thumbnail-outer-container">
+      <a
+        
+          
+            href="/news/2026/1/6/roscon-2025-amp-ric-ap-summit-2025-blog-series-singapores-defining-week-for-open-source-robotics"
+          
+        
+        class="
+          summary-thumbnail-container
+          sqs-gallery-image-container
+          
+        "
+        data-title="ROSCon 2025 &amp;amp; RIC-AP Summit 2025 Blog Series:  Singapore’s Defining Week for Open-Source Robotics"
+        data-description=""
+        aria-label="ROSCon 2025 &amp;amp; RIC-AP Summit 2025 Blog Series:  Singapore’s Defining Week for Open-Source Robotics"
+      >
+        <div class="summary-thumbnail img-wrapper" data-animation-role="image">
+  
+
+  
+
+    
+
+      
+          <!-- First Image in Post -->
+          <img data-src="https://images.squarespace-cdn.com/content/v1/51df34b1e4b08840dcfd2841/5265c46d-563a-4c3f-a18e-4407b0abf600/e45f7f13-d4b3-4cee-a4f0-cd83a6ae3e2e.jpg" data-image="https://images.squarespace-cdn.com/content/v1/51df34b1e4b08840dcfd2841/5265c46d-563a-4c3f-a18e-4407b0abf600/e45f7f13-d4b3-4cee-a4f0-cd83a6ae3e2e.jpg" data-image-dimensions="1600x1200" data-image-focal-point="0.6350084380273767,0.5520690086260782" alt="e45f7f13-d4b3-4cee-a4f0-cd83a6ae3e2e.jpg"  data-load="false" class="summary-thumbnail-image" elementtiming="summary-thumbnail-image-list" />
+      
+
+      
+    
+  
+
+  
+
+    
+
+    
+
+    </div>
+  </a>
+
+    <!-- Products: Quick View -->
+    
+
+    </div>
+  
+
+
+          
+          <div class="summary-content sqs-gallery-meta-container" data-animation-role="content">
+            
+            <div class="summary-metadata-container summary-metadata-container--above-title">
+              
+              <div class="summary-metadata summary-metadata--primary">
+
+
+
+<!-- Timestamp -->
+<time class="summary-metadata-item summary-metadata-item--date" datetime="2026-01-06">January 6, 2026</time>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+              
+              <div class="summary-metadata summary-metadata--secondary">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+            </div>
+            
+              
+              <div class="summary-title">
+                <a
+                
+                  
+                    href="/news/2026/1/6/roscon-2025-amp-ric-ap-summit-2025-blog-series-singapores-defining-week-for-open-source-robotics"
+                  
+                
+                class="summary-title-link">
+                  ROSCon 2025 &amp; RIC-AP Summit 2025 Blog Series:  Singapore’s Defining Week for Open-Source Robotics
+                </a>
+              </div>
+            
+            
+            <div class="summary-metadata-container summary-metadata-container--below-title">
+            
+              <div class="summary-metadata summary-metadata--primary">
+
+
+
+<!-- Timestamp -->
+<time class="summary-metadata-item summary-metadata-item--date" datetime="2026-01-06">January 6, 2026</time>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+              
+              <div class="summary-metadata summary-metadata--secondary">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+            </div>
+            
+              
+            
+            
+              
+              
+              
+                
+                <a href="/news/2026/1/6/roscon-2025-amp-ric-ap-summit-2025-blog-series-singapores-defining-week-for-open-source-robotics" class="summary-read-more-link">Read more &#8594;</a>
+              
+            
+            
+            <div class="summary-metadata-container summary-metadata-container--below-content">
+              
+              <div class="summary-metadata summary-metadata--primary">
+
+
+
+<!-- Timestamp -->
+<time class="summary-metadata-item summary-metadata-item--date" datetime="2026-01-06">January 6, 2026</time>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+              
+              <div class="summary-metadata summary-metadata--secondary">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+            </div>
+          </div>
+        </div>
+      
+        <div class="
+          summary-item
+          positioned
+          summary-item-record-type-text
+          sqs-gallery-design-list-slide
+          
+          
+            summary-item-has-thumbnail
+          
+          
+          
+          
+          summary-item-has-author
+          summary-item-has-comments-enabled
+          "
+          >
+          
+            
+            
+
+
+  
+    <div class="summary-thumbnail-outer-container">
+      <a
+        
+          
+            href="/news/2025/12/21/roscon-2025-amp-ric-ap-summit-2025-blog-series-singapores-defining-week-for-open-source-robotics"
+          
+        
+        class="
+          summary-thumbnail-container
+          sqs-gallery-image-container
+          
+        "
+        data-title="ROSCon 2025 &amp;amp; RIC-AP Summit 2025 Blog Series:  Singapore’s Defining Week for Open-Source Robotics"
+        data-description=""
+        aria-label="ROSCon 2025 &amp;amp; RIC-AP Summit 2025 Blog Series:  Singapore’s Defining Week for Open-Source Robotics"
+      >
+        <div class="summary-thumbnail img-wrapper" data-animation-role="image">
+  
+
+  
+
+    
+
+      
+          <!-- First Image in Post -->
+          <img data-src="https://images.squarespace-cdn.com/content/v1/51df34b1e4b08840dcfd2841/94251212-9971-4025-bf25-9c0281be509d/f0780616-a086-4c80-a9d6-83d18e94c99d.jpg" data-image="https://images.squarespace-cdn.com/content/v1/51df34b1e4b08840dcfd2841/94251212-9971-4025-bf25-9c0281be509d/f0780616-a086-4c80-a9d6-83d18e94c99d.jpg" data-image-dimensions="1280x853" data-image-focal-point="0.5,0.5" alt="f0780616-a086-4c80-a9d6-83d18e94c99d.jpg"  data-load="false" class="summary-thumbnail-image" elementtiming="summary-thumbnail-image-list" />
+      
+
+      
+    
+  
+
+  
+
+    
+
+    
+
+    </div>
+  </a>
+
+    <!-- Products: Quick View -->
+    
+
+    </div>
+  
+
+
+          
+          <div class="summary-content sqs-gallery-meta-container" data-animation-role="content">
+            
+            <div class="summary-metadata-container summary-metadata-container--above-title">
+              
+              <div class="summary-metadata summary-metadata--primary">
+
+
+
+<!-- Timestamp -->
+<time class="summary-metadata-item summary-metadata-item--date" datetime="2025-12-21">December 21, 2025</time>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+              
+              <div class="summary-metadata summary-metadata--secondary">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+            </div>
+            
+              
+              <div class="summary-title">
+                <a
+                
+                  
+                    href="/news/2025/12/21/roscon-2025-amp-ric-ap-summit-2025-blog-series-singapores-defining-week-for-open-source-robotics"
+                  
+                
+                class="summary-title-link">
+                  ROSCon 2025 &amp; RIC-AP Summit 2025 Blog Series:  Singapore’s Defining Week for Open-Source Robotics
+                </a>
+              </div>
+            
+            
+            <div class="summary-metadata-container summary-metadata-container--below-title">
+            
+              <div class="summary-metadata summary-metadata--primary">
+
+
+
+<!-- Timestamp -->
+<time class="summary-metadata-item summary-metadata-item--date" datetime="2025-12-21">December 21, 2025</time>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+              
+              <div class="summary-metadata summary-metadata--secondary">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+            </div>
+            
+              
+            
+            
+              
+              
+              
+                
+                <a href="/news/2025/12/21/roscon-2025-amp-ric-ap-summit-2025-blog-series-singapores-defining-week-for-open-source-robotics" class="summary-read-more-link">Read more &#8594;</a>
+              
+            
+            
+            <div class="summary-metadata-container summary-metadata-container--below-content">
+              
+              <div class="summary-metadata summary-metadata--primary">
+
+
+
+<!-- Timestamp -->
+<time class="summary-metadata-item summary-metadata-item--date" datetime="2025-12-21">December 21, 2025</time>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+              
+              <div class="summary-metadata summary-metadata--secondary">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+            </div>
+          </div>
+        </div>
+      
+        <div class="
+          summary-item
+          positioned
+          summary-item-record-type-text
+          sqs-gallery-design-list-slide
+          
+          
+            summary-item-has-thumbnail
+          
+          
+          
+          
+          summary-item-has-author
+          summary-item-has-comments-enabled
+          "
+          >
+          
+            
+            
+
+
+  
+    <div class="summary-thumbnail-outer-container">
+      <a
+        
+          
+            href="/news/2025/12/9/one-attendees-observations-from-roscon-2025"
+          
+        
+        class="
+          summary-thumbnail-container
+          sqs-gallery-image-container
+          
+        "
+        data-title="One Attendees Observations from ROSCon 2025"
+        data-description=""
+        aria-label="One Attendees Observations from ROSCon 2025"
+      >
+        <div class="summary-thumbnail img-wrapper" data-animation-role="image">
+  
+
+  
+
+    
+
+      
+          <!-- First Image in Post -->
+          <img data-src="https://images.squarespace-cdn.com/content/v1/51df34b1e4b08840dcfd2841/ce62045d-a7af-492c-baae-791ebdf38c4b/IMG-20251029-WA0017.jpg" data-image="https://images.squarespace-cdn.com/content/v1/51df34b1e4b08840dcfd2841/ce62045d-a7af-492c-baae-791ebdf38c4b/IMG-20251029-WA0017.jpg" data-image-dimensions="2048x1536" data-image-focal-point="0.5,0.5" alt="IMG-20251029-WA0017.jpg"  data-load="false" class="summary-thumbnail-image" elementtiming="summary-thumbnail-image-list" />
+      
+
+      
+    
+  
+
+  
+
+    
+
+    
+
+    </div>
+  </a>
+
+    <!-- Products: Quick View -->
+    
+
+    </div>
+  
+
+
+          
+          <div class="summary-content sqs-gallery-meta-container" data-animation-role="content">
+            
+            <div class="summary-metadata-container summary-metadata-container--above-title">
+              
+              <div class="summary-metadata summary-metadata--primary">
+
+
+
+<!-- Timestamp -->
+<time class="summary-metadata-item summary-metadata-item--date" datetime="2025-12-09">December 9, 2025</time>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+              
+              <div class="summary-metadata summary-metadata--secondary">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+            </div>
+            
+              
+              <div class="summary-title">
+                <a
+                
+                  
+                    href="/news/2025/12/9/one-attendees-observations-from-roscon-2025"
+                  
+                
+                class="summary-title-link">
+                  One Attendees Observations from ROSCon 2025
+                </a>
+              </div>
+            
+            
+            <div class="summary-metadata-container summary-metadata-container--below-title">
+            
+              <div class="summary-metadata summary-metadata--primary">
+
+
+
+<!-- Timestamp -->
+<time class="summary-metadata-item summary-metadata-item--date" datetime="2025-12-09">December 9, 2025</time>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+              
+              <div class="summary-metadata summary-metadata--secondary">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+            </div>
+            
+              
+            
+            
+              
+              
+              
+                
+                <a href="/news/2025/12/9/one-attendees-observations-from-roscon-2025" class="summary-read-more-link">Read more &#8594;</a>
+              
+            
+            
+            <div class="summary-metadata-container summary-metadata-container--below-content">
+              
+              <div class="summary-metadata summary-metadata--primary">
+
+
+
+<!-- Timestamp -->
+<time class="summary-metadata-item summary-metadata-item--date" datetime="2025-12-09">December 9, 2025</time>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+              
+              <div class="summary-metadata summary-metadata--secondary">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+            </div>
+          </div>
+        </div>
+      
+        <div class="
+          summary-item
+          positioned
+          summary-item-record-type-text
+          sqs-gallery-design-list-slide
+          
+          
+            summary-item-has-thumbnail
+          
+          
+          
+          
+          summary-item-has-author
+          summary-item-has-comments-enabled
+          "
+          >
+          
+            
+            
+
+
+  
+    <div class="summary-thumbnail-outer-container">
+      <a
+        
+          
+            href="/news/2025/11/27/roscon-2025-amp-ric-ap-summit-2025-blog-series-singapores-defining-week-for-open-source-robotics"
+          
+        
+        class="
+          summary-thumbnail-container
+          sqs-gallery-image-container
+          
+        "
+        data-title="ROSCon 2025 &amp;amp; RIC-AP Summit 2025 Blog Series:  Singapore’s Defining Week for Open-Source Robotics"
+        data-description=""
+        aria-label="ROSCon 2025 &amp;amp; RIC-AP Summit 2025 Blog Series:  Singapore’s Defining Week for Open-Source Robotics"
+      >
+        <div class="summary-thumbnail img-wrapper" data-animation-role="image">
+  
+
+  
+
+    
+
+      
+          <!-- First Image in Post -->
+          <img data-src="https://images.squarespace-cdn.com/content/v1/51df34b1e4b08840dcfd2841/8dea286e-b07c-4ff4-8a84-c9ac9ffa1073/roscon+week.png" data-image="https://images.squarespace-cdn.com/content/v1/51df34b1e4b08840dcfd2841/8dea286e-b07c-4ff4-8a84-c9ac9ffa1073/roscon+week.png" data-image-dimensions="602x339" data-image-focal-point="0.5,0.5" alt="roscon week.png"  data-load="false" class="summary-thumbnail-image" elementtiming="summary-thumbnail-image-list" />
+      
+
+      
+    
+  
+
+  
+
+    
+
+    
+
+    </div>
+  </a>
+
+    <!-- Products: Quick View -->
+    
+
+    </div>
+  
+
+
+          
+          <div class="summary-content sqs-gallery-meta-container" data-animation-role="content">
+            
+            <div class="summary-metadata-container summary-metadata-container--above-title">
+              
+              <div class="summary-metadata summary-metadata--primary">
+
+
+
+<!-- Timestamp -->
+<time class="summary-metadata-item summary-metadata-item--date" datetime="2025-11-27">November 27, 2025</time>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+              
+              <div class="summary-metadata summary-metadata--secondary">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+            </div>
+            
+              
+              <div class="summary-title">
+                <a
+                
+                  
+                    href="/news/2025/11/27/roscon-2025-amp-ric-ap-summit-2025-blog-series-singapores-defining-week-for-open-source-robotics"
+                  
+                
+                class="summary-title-link">
+                  ROSCon 2025 &amp; RIC-AP Summit 2025 Blog Series:  Singapore’s Defining Week for Open-Source Robotics
+                </a>
+              </div>
+            
+            
+            <div class="summary-metadata-container summary-metadata-container--below-title">
+            
+              <div class="summary-metadata summary-metadata--primary">
+
+
+
+<!-- Timestamp -->
+<time class="summary-metadata-item summary-metadata-item--date" datetime="2025-11-27">November 27, 2025</time>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+              
+              <div class="summary-metadata summary-metadata--secondary">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+            </div>
+            
+              
+            
+            
+              
+              
+              
+                
+                <a href="/news/2025/11/27/roscon-2025-amp-ric-ap-summit-2025-blog-series-singapores-defining-week-for-open-source-robotics" class="summary-read-more-link">Read more &#8594;</a>
+              
+            
+            
+            <div class="summary-metadata-container summary-metadata-container--below-content">
+              
+              <div class="summary-metadata summary-metadata--primary">
+
+
+
+<!-- Timestamp -->
+<time class="summary-metadata-item summary-metadata-item--date" datetime="2025-11-27">November 27, 2025</time>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+              
+              <div class="summary-metadata summary-metadata--secondary">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+            </div>
+          </div>
+        </div>
+      
+        <div class="
+          summary-item
+          positioned
+          summary-item-record-type-text
+          sqs-gallery-design-list-slide
+          
+          
+            summary-item-has-thumbnail
+          
+          
+          
+          
+          summary-item-has-author
+          summary-item-has-comments-enabled
+          "
+          >
+          
+            
+            
+
+
+  
+    <div class="summary-thumbnail-outer-container">
+      <a
+        
+          
+            href="/news/2025/11/24/scan-n-plan-workshop-documentation-refresh"
+          
+        
+        class="
+          summary-thumbnail-container
+          sqs-gallery-image-container
+          
+        "
+        data-title="Scan-N-Plan Workshop Documentation Refresh"
+        data-description=""
+        aria-label="Scan-N-Plan Workshop Documentation Refresh"
+      >
+        <div class="summary-thumbnail img-wrapper" data-animation-role="image">
+  
+
+  
+
+    
+
+      
+          <!-- First Image in Post -->
+          <img data-src="https://images.squarespace-cdn.com/content/v1/51df34b1e4b08840dcfd2841/8a6652c5-a266-4271-86b6-463f624a8486/front+page-1.jpg" data-image="https://images.squarespace-cdn.com/content/v1/51df34b1e4b08840dcfd2841/8a6652c5-a266-4271-86b6-463f624a8486/front+page-1.jpg" data-image-dimensions="1082x903" data-image-focal-point="0.5,0.5" alt="front page-1.jpg"  data-load="false" class="summary-thumbnail-image" elementtiming="summary-thumbnail-image-list" />
+      
+
+      
+    
+  
+
+  
+
+    
+
+    
+
+    </div>
+  </a>
+
+    <!-- Products: Quick View -->
+    
+
+    </div>
+  
+
+
+          
+          <div class="summary-content sqs-gallery-meta-container" data-animation-role="content">
+            
+            <div class="summary-metadata-container summary-metadata-container--above-title">
+              
+              <div class="summary-metadata summary-metadata--primary">
+
+
+
+<!-- Timestamp -->
+<time class="summary-metadata-item summary-metadata-item--date" datetime="2025-11-24">November 24, 2025</time>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+              
+              <div class="summary-metadata summary-metadata--secondary">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+            </div>
+            
+              
+              <div class="summary-title">
+                <a
+                
+                  
+                    href="/news/2025/11/24/scan-n-plan-workshop-documentation-refresh"
+                  
+                
+                class="summary-title-link">
+                  Scan-N-Plan Workshop Documentation Refresh
+                </a>
+              </div>
+            
+            
+            <div class="summary-metadata-container summary-metadata-container--below-title">
+            
+              <div class="summary-metadata summary-metadata--primary">
+
+
+
+<!-- Timestamp -->
+<time class="summary-metadata-item summary-metadata-item--date" datetime="2025-11-24">November 24, 2025</time>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+              
+              <div class="summary-metadata summary-metadata--secondary">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+            </div>
+            
+              
+            
+            
+              
+              
+              
+                
+                <a href="/news/2025/11/24/scan-n-plan-workshop-documentation-refresh" class="summary-read-more-link">Read more &#8594;</a>
+              
+            
+            
+            <div class="summary-metadata-container summary-metadata-container--below-content">
+              
+              <div class="summary-metadata summary-metadata--primary">
+
+
+
+<!-- Timestamp -->
+<time class="summary-metadata-item summary-metadata-item--date" datetime="2025-11-24">November 24, 2025</time>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+              
+              <div class="summary-metadata summary-metadata--secondary">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+            </div>
+          </div>
+        </div>
+      
+    </div>
+  </div>
+</div>
+<style>.fe-block-yui_3_17_2_11_1453219862360_8377 {mix-blend-mode: ;
+    }</style>
+</div></div></div></div></div>
+								</div>
+
+								<div id="page-body-footer" class="extra-wrapper">
+									<div class="sqs-layout sqs-grid-12 columns-12 empty" data-layout-label="Home Footer Content" data-type="block-field" id="page-footer-51df34b1e4b08840dcfd2844"><div class="row sqs-row"><div class="col sqs-col-12 span-12"></div></div></div>
+								</div>
+
+							</div>
+						</div> <!-- content-wrapper -->
+
+						<div id="sidebar-one-wrapper" class="vertical-navigation-bar-wrapper">
+							<div id="sidebar-one" class="vertical-navigation-bar">
+								
+<nav id="main-navigation" class="main-nav" data-content-field="navigation">
+  <ul>
+  
+
+    
+
+    <li aria-haspopup="true" class="folder-collection folder"><a href="#" onClick="return false;" class="active-folder">About</a><span class="delimiter">/</span><div class="subnav"><ul><li class="page-collection active-link"><a href="/">Home</a></li><li class="page-collection"><a href="/the-challenge">The Challenge</a></li><li class="page-collection"><a href="/history">History</a></li><li class="page-collection"><a href="/contributors">Contributors</a></li><li class="page-collection"><a href="/contact-us">Contact</a></li><li class="page-collection"><a href="/about/description">Description</a></li><li class="page-collection"><a href="/about/faq">FAQ</a></li><li class="page-collection"><a href="/about/press">Press</a></li><li class="page-collection"><a href="/about/publications">Publications</a></li></ul></div></li>
+  
+
+    
+
+    <li class="blog-collection"><a href="/news">Blog</a><span class="delimiter">/</span></li>
+  
+
+    
+
+    <li aria-haspopup="true" class="folder-collection folder"><a href="#" onClick="return false;">Consortium</a><span class="delimiter">/</span><div class="subnav"><ul><li class="page-collection"><a href="/ric-americas">Americas - Consortium</a></li><li class="page-collection"><a href="/ric-eu">Europe - Consortium</a></li><li class="page-collection"><a href="/ric-apac">Asia-Pacific Consortium</a></li><li class="page-collection"><a href="/current-members">Current Members</a></li></ul></div></li>
+  
+
+    
+
+    <li aria-haspopup="true" class="folder-collection folder"><a href="#" onClick="return false;">Software</a><span class="delimiter">/</span><div class="subnav"><ul><li class="external-link"><a href="https://github.com/ros-industrial" target="_blank">ROS-I Repo</a></li><li class="external-link"><a href="https://github.com/ros-industrial-consortium">Consortium Repo</a></li><li class="external-link"><a href="https://github.com/ros-industrial-attic">ROS-I Attic</a></li><li class="page-collection"><a href="/tesseract-robotics">Tesseract Robotics</a></li><li class="page-collection"><a href="/developmentprocess">Development Process</a></li><li class="page-collection"><a href="/roadmapping">Roadmapping</a></li><li class="external-link"><a href="http://wiki.ros.org/Industrial/supported_hardware" target="_blank">ROS 1 Supported Hardware</a></li><li class="external-link"><a href="http://wiki.ros.org/Industrial" target="_blank">ROS 1 Wiki</a></li><li class="page-collection"><a href="/3d-camera-survey">3D Camera Survey</a></li></ul></div></li>
+  
+
+    
+
+    <li aria-haspopup="true" class="folder-collection folder"><a href="#" onClick="return false;">Training & Support</a><span class="delimiter">/</span><div class="subnav"><ul><li class="external-link"><a href="http://industrial-training-master.readthedocs.io/" target="_blank">Training Curriculum</a></li><li class="external-link"><a href="http://wiki.ros.org/Industrial/Tutorials">Tutorials</a></li><li class="external-link"><a href="https://discourse.ros.org/c/ros-industrial/39" target="_blank">Discussion Forum</a></li><li class="page-collection"><a href="/tech-support">Tech Support</a></li><li class="page-collection"><a href="/developers-meeting">Developers Meeting</a></li><li class="page-collection"><a href="/videos">Videos</a></li></ul></div></li>
+  
+
+    
+
+    <li class="page-collection"><a href="/events-summary">Events</a><span class="delimiter">/</span></li>
+  
+     
+  </ul>
+</nav>
+
+
+								
+								<div class="site-info">
+									<h3 class="site-title">ROS-Industrial</h3>
+							    <div data-content-field="site-description" class="site-description"><p>ROS-Industrial is an open source project that extends the advanced capabilities of the <a target="_blank" href="http://ros.org">Robot Operating System</a> (ROS) software to manufacturing.</p></div>
+							  </div>
+							  
+								<div class="sqs-layout sqs-grid-1 columns-1" data-layout-label="Sidebar One Content" data-type="block-field" data-updated-on="1780071545764" id="sidebar-one-blocks"><div class="row sqs-row"><div class="col sqs-col-1 span-1"><div class="sqs-block markdown-block sqs-block-markdown" data-block-type="44" id="block-yui_3_17_2_10_1453219862360_8930"><div class="sqs-block-content"><h2 id="upcomingevents">Upcoming Events</h2>
+</div></div><div class="sqs-block website-component-block sqs-block-website-component sqs-block-summary-v2 summary-block summary-v2-block" data-block-css="[&quot;https://definitions.sqspcdn.com/website-component-definition/static-assets/website.components.summary/a48f48f3-0bea-42e4-99dd-21645ba7bdac_396/website.components.summary.styles.css&quot;]" data-block-scripts="[&quot;https://definitions.sqspcdn.com/website-component-definition/static-assets/website.components.summary/a48f48f3-0bea-42e4-99dd-21645ba7bdac_396/8018.js&quot;,&quot;https://definitions.sqspcdn.com/website-component-definition/static-assets/website.components.summary/a48f48f3-0bea-42e4-99dd-21645ba7bdac_396/embed-video-player.js&quot;,&quot;https://definitions.sqspcdn.com/website-component-definition/static-assets/website.components.summary/a48f48f3-0bea-42e4-99dd-21645ba7bdac_396/gallery-layout-autocolumns.js&quot;,&quot;https://definitions.sqspcdn.com/website-component-definition/static-assets/website.components.summary/a48f48f3-0bea-42e4-99dd-21645ba7bdac_396/gallery-layout-autogrid.js&quot;,&quot;https://definitions.sqspcdn.com/website-component-definition/static-assets/website.components.summary/a48f48f3-0bea-42e4-99dd-21645ba7bdac_396/gallery-layout-carousel.js&quot;,&quot;https://definitions.sqspcdn.com/website-component-definition/static-assets/website.components.summary/a48f48f3-0bea-42e4-99dd-21645ba7bdac_396/gallery-layout-grid.js&quot;,&quot;https://definitions.sqspcdn.com/website-component-definition/static-assets/website.components.summary/a48f48f3-0bea-42e4-99dd-21645ba7bdac_396/gallery-layout-list.js&quot;,&quot;https://definitions.sqspcdn.com/website-component-definition/static-assets/website.components.summary/a48f48f3-0bea-42e4-99dd-21645ba7bdac_396/gallery-layout-slideshow.js&quot;,&quot;https://definitions.sqspcdn.com/website-component-definition/static-assets/website.components.summary/a48f48f3-0bea-42e4-99dd-21645ba7bdac_396/gallery-layout-stacked.js&quot;,&quot;https://definitions.sqspcdn.com/website-component-definition/static-assets/website.components.summary/a48f48f3-0bea-42e4-99dd-21645ba7bdac_396/gallery-layout-strip.js&quot;,&quot;https://definitions.sqspcdn.com/website-component-definition/static-assets/website.components.summary/a48f48f3-0bea-42e4-99dd-21645ba7bdac_396/gallery-manager.js&quot;,&quot;https://definitions.sqspcdn.com/website-component-definition/static-assets/website.components.summary/a48f48f3-0bea-42e4-99dd-21645ba7bdac_396/website.components.summary.visitor.js&quot;]" data-block-type="1337" data-definition-name="website.components.summary" data-sqsp-block="summary" data-website-component-id="yui_3_17_2_3_1453219862360_28589" id="block-yui_3_17_2_3_1453219862360_28589"><div class="sqs-block-content">
+
+<div class="
+  summary-block-wrapper
+  summary-block-collection-type-events
+  summary-block-setting-text-size-small
+  summary-block-setting-text-align-left
+  summary-block-setting-design-list
+  summary-block-setting-design-list-thumbnail-left
+  summary-block-setting-metadata-position-above-title
+  summary-block-setting-primary-metadata-date
+  summary-block-setting-secondary-metadata-none
+  summary-block-setting-show-thumbnail
+  summary-block-setting-show-title
+  summary-block-setting-show-price
+  summary-block-setting-hide-excerpt
+  
+  
+  sqs-gallery-design-list
+  
+  "
+  
+  data-design=list
+  data-image-aspect-ratio=1
+  data-slides-per-row=3
+  
+  data-mixed-content=true
+  data-column-width=270
+  data-gutter="60"
+  data-list-image-size="30"
+  data-active-alignment=""
+  data-square-thumbs=""
+  data-auto-crop="true"
+>
+  <div class="summary-item-list-container sqs-gallery-container">
+    <header class="summary-block-header">
+      
+      <div class="summary-heading" data-animation-role="content">
+        
+          <span class="summary-header-text">Featured</span>
+        
+      </div>
+      
+      <div class="summary-carousel-pager sqs-gallery-controls" data-animation-role="content">
+        <span
+          class="summary-carousel-pager-prev previous"
+          tabindex="0"
+          role="button"
+          aria-label="Previous"
+        ></span>
+        <span
+          class="summary-carousel-pager-next next"
+          tabindex="0"
+          role="button"
+          aria-label="Next"
+        ></span>
+      </div>
+    </header>
+    <div class="summary-item-list sqs-gallery">
+      
+        <div class="
+          summary-item
+          positioned
+          summary-item-record-type-event
+          sqs-gallery-design-list-slide
+          
+          
+            summary-item-has-thumbnail
+          
+          
+          
+          
+          
+          
+          summary-item-has-location"
+          >
+          
+            
+            
+
+
+  
+    <div class="summary-thumbnail-outer-container">
+      <a
+        
+          
+            href="/events/2024/5/6/automate-2024-ftkh9"
+          
+        
+        class="
+          summary-thumbnail-container
+          sqs-gallery-image-container
+          
+        "
+        data-title="Automate 2026"
+        data-description=""
+        aria-label="Automate 2026"
+      >
+        <div class="summary-thumbnail img-wrapper" data-animation-role="image">
+  
+
+  
+      <!-- Main Image -->
+      <img data-src="https://images.squarespace-cdn.com/content/v1/51df34b1e4b08840dcfd2841/1629753591892-4Y6C28EAN255YR8YMD9S/auto+floor.png" data-image="https://images.squarespace-cdn.com/content/v1/51df34b1e4b08840dcfd2841/1629753591892-4Y6C28EAN255YR8YMD9S/auto+floor.png" data-image-dimensions="400x230" data-image-focal-point="0.5,0.5" alt="Automate 2026"  data-load="false" class="summary-thumbnail-image" elementtiming="summary-thumbnail-image-list" />
+
+  
+
+  
+
+    
+
+    
+      <!-- Events: Date Box -->
+      <div class="summary-thumbnail-event-date">
+        <div class="summary-thumbnail-event-date-inner">
+          <span class="summary-thumbnail-event-date-month">Jun</span>
+          <span class="summary-thumbnail-event-date-day">22</span>
+        </div>
+      </div>
+    
+
+    </div>
+  </a>
+
+    <!-- Products: Quick View -->
+    
+
+    </div>
+  
+
+
+          
+          <div class="summary-content sqs-gallery-meta-container" data-animation-role="content">
+            
+            <div class="summary-metadata-container summary-metadata-container--above-title">
+              
+              <div class="summary-metadata summary-metadata--primary">
+
+
+<!-- Events: Date -->
+<time class="summary-metadata-item summary-metadata-item--date">June 22, 2026 &ndash; June 25, 2026</time>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+              
+              <div class="summary-metadata summary-metadata--secondary">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+            </div>
+            
+              
+              <div class="summary-title">
+                <a
+                
+                  
+                    href="/events/2024/5/6/automate-2024-ftkh9"
+                  
+                
+                class="summary-title-link">
+                  Automate 2026
+                </a>
+              </div>
+            
+            
+            <div class="summary-metadata-container summary-metadata-container--below-title">
+            
+              <div class="summary-metadata summary-metadata--primary">
+
+
+<!-- Events: Date -->
+<time class="summary-metadata-item summary-metadata-item--date">June 22, 2026 &ndash; June 25, 2026</time>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+              
+              <div class="summary-metadata summary-metadata--secondary">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+            </div>
+            
+              
+            
+            
+            
+            <div class="summary-metadata-container summary-metadata-container--below-content">
+              
+              <div class="summary-metadata summary-metadata--primary">
+
+
+<!-- Events: Date -->
+<time class="summary-metadata-item summary-metadata-item--date">June 22, 2026 &ndash; June 25, 2026</time>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+              
+              <div class="summary-metadata summary-metadata--secondary">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+            </div>
+          </div>
+        </div>
+      
+        <div class="
+          summary-item
+          positioned
+          summary-item-record-type-event
+          sqs-gallery-design-list-slide
+          
+          
+            summary-item-has-thumbnail
+          
+           summary-item-has-excerpt
+          
+          summary-item-has-tags
+          
+          
+          summary-item-has-location"
+          >
+          
+            
+            
+
+
+  
+    <div class="summary-thumbnail-outer-container">
+      <a
+        
+          
+            href="/events/2026/6/23/ros-meetup-automate"
+          
+        
+        class="
+          summary-thumbnail-container
+          sqs-gallery-image-container
+          
+        "
+        data-title="ROS Meetup @ Automate Chicago"
+        data-description=""
+        aria-label="ROS Meetup @ Automate Chicago"
+      >
+        <div class="summary-thumbnail img-wrapper" data-animation-role="image">
+  
+
+  
+      <!-- Main Image -->
+      <img data-src="https://images.squarespace-cdn.com/content/v1/51df34b1e4b08840dcfd2841/1779232285905-VHORRTNYM8XVQMYBKSPK/Automate26+%281200+x+1200+px%29.png" data-image="https://images.squarespace-cdn.com/content/v1/51df34b1e4b08840dcfd2841/1779232285905-VHORRTNYM8XVQMYBKSPK/Automate26+%281200+x+1200+px%29.png" data-image-dimensions="1200x1200" data-image-focal-point="0.5,0.5" alt="ROS Meetup @ Automate Chicago"  data-load="false" class="summary-thumbnail-image" elementtiming="summary-thumbnail-image-list" />
+
+  
+
+  
+
+    
+
+    
+      <!-- Events: Date Box -->
+      <div class="summary-thumbnail-event-date">
+        <div class="summary-thumbnail-event-date-inner">
+          <span class="summary-thumbnail-event-date-month">Jun</span>
+          <span class="summary-thumbnail-event-date-day">23</span>
+        </div>
+      </div>
+    
+
+    </div>
+  </a>
+
+    <!-- Products: Quick View -->
+    
+
+    </div>
+  
+
+
+          
+          <div class="summary-content sqs-gallery-meta-container" data-animation-role="content">
+            
+            <div class="summary-metadata-container summary-metadata-container--above-title">
+              
+              <div class="summary-metadata summary-metadata--primary">
+
+
+<!-- Events: Date -->
+<time class="summary-metadata-item summary-metadata-item--date">June 23, 2026</time>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+              
+              <div class="summary-metadata summary-metadata--secondary">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+            </div>
+            
+              
+              <div class="summary-title">
+                <a
+                
+                  
+                    href="/events/2026/6/23/ros-meetup-automate"
+                  
+                
+                class="summary-title-link">
+                  ROS Meetup @ Automate Chicago
+                </a>
+              </div>
+            
+            
+            <div class="summary-metadata-container summary-metadata-container--below-title">
+            
+              <div class="summary-metadata summary-metadata--primary">
+
+
+<!-- Events: Date -->
+<time class="summary-metadata-item summary-metadata-item--date">June 23, 2026</time>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+              
+              <div class="summary-metadata summary-metadata--secondary">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+            </div>
+            
+              
+            
+            
+            
+            <div class="summary-metadata-container summary-metadata-container--below-content">
+              
+              <div class="summary-metadata summary-metadata--primary">
+
+
+<!-- Events: Date -->
+<time class="summary-metadata-item summary-metadata-item--date">June 23, 2026</time>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+              
+              <div class="summary-metadata summary-metadata--secondary">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+            </div>
+          </div>
+        </div>
+      
+        <div class="
+          summary-item
+          positioned
+          summary-item-record-type-event
+          sqs-gallery-design-list-slide
+          
+          
+            summary-item-has-thumbnail
+          
+          
+          
+          
+          
+          
+          summary-item-has-location"
+          >
+          
+            
+            
+
+
+  
+    <div class="summary-thumbnail-outer-container">
+      <a
+        
+          
+            href="/events/2026/ros-industrial-consortium-americas-2026-annual-meeting"
+          
+        
+        class="
+          summary-thumbnail-container
+          sqs-gallery-image-container
+          
+        "
+        data-title="ROS-Industrial Consortium Americas 2026 Annual Meeting"
+        data-description=""
+        aria-label="ROS-Industrial Consortium Americas 2026 Annual Meeting"
+      >
+        <div class="summary-thumbnail img-wrapper" data-animation-role="image">
+  
+
+  
+      <!-- Main Image -->
+      <img data-src="https://images.squarespace-cdn.com/content/v1/51df34b1e4b08840dcfd2841/644e5d22-2ca0-49cb-ae9a-00e93f9b9221/ROS-Chicago-2026logo.png" data-image="https://images.squarespace-cdn.com/content/v1/51df34b1e4b08840dcfd2841/644e5d22-2ca0-49cb-ae9a-00e93f9b9221/ROS-Chicago-2026logo.png" data-image-dimensions="3452x2928" data-image-focal-point="0.5,0.5" alt="ROS-Industrial Consortium Americas 2026 Annual Meeting"  data-load="false" class="summary-thumbnail-image" elementtiming="summary-thumbnail-image-list" />
+
+  
+
+  
+
+    
+
+    
+      <!-- Events: Date Box -->
+      <div class="summary-thumbnail-event-date">
+        <div class="summary-thumbnail-event-date-inner">
+          <span class="summary-thumbnail-event-date-month">Jun</span>
+          <span class="summary-thumbnail-event-date-day">25</span>
+        </div>
+      </div>
+    
+
+    </div>
+  </a>
+
+    <!-- Products: Quick View -->
+    
+
+    </div>
+  
+
+
+          
+          <div class="summary-content sqs-gallery-meta-container" data-animation-role="content">
+            
+            <div class="summary-metadata-container summary-metadata-container--above-title">
+              
+              <div class="summary-metadata summary-metadata--primary">
+
+
+<!-- Events: Date -->
+<time class="summary-metadata-item summary-metadata-item--date">June 25, 2026</time>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+              
+              <div class="summary-metadata summary-metadata--secondary">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+            </div>
+            
+              
+              <div class="summary-title">
+                <a
+                
+                  
+                    href="/events/2026/ros-industrial-consortium-americas-2026-annual-meeting"
+                  
+                
+                class="summary-title-link">
+                  ROS-Industrial Consortium Americas 2026 Annual Meeting
+                </a>
+              </div>
+            
+            
+            <div class="summary-metadata-container summary-metadata-container--below-title">
+            
+              <div class="summary-metadata summary-metadata--primary">
+
+
+<!-- Events: Date -->
+<time class="summary-metadata-item summary-metadata-item--date">June 25, 2026</time>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+              
+              <div class="summary-metadata summary-metadata--secondary">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+            </div>
+            
+              
+            
+            
+            
+            <div class="summary-metadata-container summary-metadata-container--below-content">
+              
+              <div class="summary-metadata summary-metadata--primary">
+
+
+<!-- Events: Date -->
+<time class="summary-metadata-item summary-metadata-item--date">June 25, 2026</time>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+              
+              <div class="summary-metadata summary-metadata--secondary">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+            </div>
+          </div>
+        </div>
+      
+        <div class="
+          summary-item
+          positioned
+          summary-item-record-type-event
+          sqs-gallery-design-list-slide
+          
+          
+            summary-item-has-thumbnail
+          
+          
+          
+          
+          
+          
+          summary-item-has-location"
+          >
+          
+            
+            
+
+
+  
+    <div class="summary-thumbnail-outer-container">
+      <a
+        
+          
+            href="/events/2025/10/ros-industrial-developers-meeting-2025-oct-mfelr-xn8e9-9ypcr-5hfft-txed9"
+          
+        
+        class="
+          summary-thumbnail-container
+          sqs-gallery-image-container
+          
+        "
+        data-title="ROS-Industrial Developers Meeting (Jun) - 2026 (Asia-Pacific) "
+        data-description=""
+        aria-label="ROS-Industrial Developers Meeting (Jun) - 2026 (Asia-Pacific) "
+      >
+        <div class="summary-thumbnail img-wrapper" data-animation-role="image">
+  
+
+  
+      <!-- Main Image -->
+      <img data-src="https://images.squarespace-cdn.com/content/v1/51df34b1e4b08840dcfd2841/1654160248648-A1NEXKWDSAX3VYKIFGSS/Squarespace+Size.png" data-image="https://images.squarespace-cdn.com/content/v1/51df34b1e4b08840dcfd2841/1654160248648-A1NEXKWDSAX3VYKIFGSS/Squarespace+Size.png" data-image-dimensions="1280x720" data-image-focal-point="0.5,0.5" alt="ROS-Industrial Developers Meeting (Jun) - 2026 (Asia-Pacific) "  data-load="false" class="summary-thumbnail-image" elementtiming="summary-thumbnail-image-list" />
+
+  
+
+  
+
+    
+
+    
+      <!-- Events: Date Box -->
+      <div class="summary-thumbnail-event-date">
+        <div class="summary-thumbnail-event-date-inner">
+          <span class="summary-thumbnail-event-date-month">Jun</span>
+          <span class="summary-thumbnail-event-date-day">30</span>
+        </div>
+      </div>
+    
+
+    </div>
+  </a>
+
+    <!-- Products: Quick View -->
+    
+
+    </div>
+  
+
+
+          
+          <div class="summary-content sqs-gallery-meta-container" data-animation-role="content">
+            
+            <div class="summary-metadata-container summary-metadata-container--above-title">
+              
+              <div class="summary-metadata summary-metadata--primary">
+
+
+<!-- Events: Date -->
+<time class="summary-metadata-item summary-metadata-item--date">June 30, 2026</time>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+              
+              <div class="summary-metadata summary-metadata--secondary">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+            </div>
+            
+              
+              <div class="summary-title">
+                <a
+                
+                  
+                    href="/events/2025/10/ros-industrial-developers-meeting-2025-oct-mfelr-xn8e9-9ypcr-5hfft-txed9"
+                  
+                
+                class="summary-title-link">
+                  ROS-Industrial Developers Meeting (Jun) - 2026 (Asia-Pacific) 
+                </a>
+              </div>
+            
+            
+            <div class="summary-metadata-container summary-metadata-container--below-title">
+            
+              <div class="summary-metadata summary-metadata--primary">
+
+
+<!-- Events: Date -->
+<time class="summary-metadata-item summary-metadata-item--date">June 30, 2026</time>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+              
+              <div class="summary-metadata summary-metadata--secondary">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+            </div>
+            
+              
+            
+            
+            
+            <div class="summary-metadata-container summary-metadata-container--below-content">
+              
+              <div class="summary-metadata summary-metadata--primary">
+
+
+<!-- Events: Date -->
+<time class="summary-metadata-item summary-metadata-item--date">June 30, 2026</time>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+              
+              <div class="summary-metadata summary-metadata--secondary">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+            </div>
+          </div>
+        </div>
+      
+        <div class="
+          summary-item
+          positioned
+          summary-item-record-type-event
+          sqs-gallery-design-list-slide
+          
+          
+            summary-item-has-thumbnail
+          
+          
+          
+          
+          
+          
+          summary-item-has-location"
+          >
+          
+            
+            
+
+
+  
+    <div class="summary-thumbnail-outer-container">
+      <a
+        
+          
+            href="/events/2026/ros-industrial-training-americas-2026-jul"
+          
+        
+        class="
+          summary-thumbnail-container
+          sqs-gallery-image-container
+          
+        "
+        data-title="ROS-Industrial Training (Americas) July 2026"
+        data-description=""
+        aria-label="ROS-Industrial Training (Americas) July 2026"
+      >
+        <div class="summary-thumbnail img-wrapper" data-animation-role="image">
+  
+
+  
+      <!-- Main Image -->
+      <img data-src="https://images.squarespace-cdn.com/content/v1/51df34b1e4b08840dcfd2841/1673031059822-UW8ZAX2B57FALG39OC1V/image-asset.jpeg" data-image="https://images.squarespace-cdn.com/content/v1/51df34b1e4b08840dcfd2841/1673031059822-UW8ZAX2B57FALG39OC1V/image-asset.jpeg" data-image-dimensions="1000x563" data-image-focal-point="0.5,0.5" alt="ROS-Industrial Training (Americas) July 2026"  data-load="false" class="summary-thumbnail-image" elementtiming="summary-thumbnail-image-list" />
+
+  
+
+  
+
+    
+
+    
+      <!-- Events: Date Box -->
+      <div class="summary-thumbnail-event-date">
+        <div class="summary-thumbnail-event-date-inner">
+          <span class="summary-thumbnail-event-date-month">Jul</span>
+          <span class="summary-thumbnail-event-date-day">14</span>
+        </div>
+      </div>
+    
+
+    </div>
+  </a>
+
+    <!-- Products: Quick View -->
+    
+
+    </div>
+  
+
+
+          
+          <div class="summary-content sqs-gallery-meta-container" data-animation-role="content">
+            
+            <div class="summary-metadata-container summary-metadata-container--above-title">
+              
+              <div class="summary-metadata summary-metadata--primary">
+
+
+<!-- Events: Date -->
+<time class="summary-metadata-item summary-metadata-item--date">July 14, 2026 &ndash; July 16, 2026</time>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+              
+              <div class="summary-metadata summary-metadata--secondary">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+            </div>
+            
+              
+              <div class="summary-title">
+                <a
+                
+                  
+                    href="/events/2026/ros-industrial-training-americas-2026-jul"
+                  
+                
+                class="summary-title-link">
+                  ROS-Industrial Training (Americas) July 2026
+                </a>
+              </div>
+            
+            
+            <div class="summary-metadata-container summary-metadata-container--below-title">
+            
+              <div class="summary-metadata summary-metadata--primary">
+
+
+<!-- Events: Date -->
+<time class="summary-metadata-item summary-metadata-item--date">July 14, 2026 &ndash; July 16, 2026</time>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+              
+              <div class="summary-metadata summary-metadata--secondary">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+            </div>
+            
+              
+            
+            
+            
+            <div class="summary-metadata-container summary-metadata-container--below-content">
+              
+              <div class="summary-metadata summary-metadata--primary">
+
+
+<!-- Events: Date -->
+<time class="summary-metadata-item summary-metadata-item--date">July 14, 2026 &ndash; July 16, 2026</time>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+              
+              <div class="summary-metadata summary-metadata--secondary">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+            </div>
+          </div>
+        </div>
+      
+        <div class="
+          summary-item
+          positioned
+          summary-item-record-type-event
+          sqs-gallery-design-list-slide
+          
+          
+            summary-item-has-thumbnail
+          
+          
+          
+          
+          
+          
+          summary-item-has-location"
+          >
+          
+            
+            
+
+
+  
+    <div class="summary-thumbnail-outer-container">
+      <a
+        
+          
+            href="/events/2025/10/ros-industrial-developers-meeting-2025-oct-mfelr-xn8e9-9ypcr"
+          
+        
+        class="
+          summary-thumbnail-container
+          sqs-gallery-image-container
+          
+        "
+        data-title="ROS-Industrial Developers Meeting (Jul) - 2026 (Americas)"
+        data-description=""
+        aria-label="ROS-Industrial Developers Meeting (Jul) - 2026 (Americas)"
+      >
+        <div class="summary-thumbnail img-wrapper" data-animation-role="image">
+  
+
+  
+      <!-- Main Image -->
+      <img data-src="https://images.squarespace-cdn.com/content/v1/51df34b1e4b08840dcfd2841/1654160248648-A1NEXKWDSAX3VYKIFGSS/Squarespace+Size.png" data-image="https://images.squarespace-cdn.com/content/v1/51df34b1e4b08840dcfd2841/1654160248648-A1NEXKWDSAX3VYKIFGSS/Squarespace+Size.png" data-image-dimensions="1280x720" data-image-focal-point="0.5,0.5" alt="ROS-Industrial Developers Meeting (Jul) - 2026 (Americas)"  data-load="false" class="summary-thumbnail-image" elementtiming="summary-thumbnail-image-list" />
+
+  
+
+  
+
+    
+
+    
+      <!-- Events: Date Box -->
+      <div class="summary-thumbnail-event-date">
+        <div class="summary-thumbnail-event-date-inner">
+          <span class="summary-thumbnail-event-date-month">Jul</span>
+          <span class="summary-thumbnail-event-date-day">14</span>
+        </div>
+      </div>
+    
+
+    </div>
+  </a>
+
+    <!-- Products: Quick View -->
+    
+
+    </div>
+  
+
+
+          
+          <div class="summary-content sqs-gallery-meta-container" data-animation-role="content">
+            
+            <div class="summary-metadata-container summary-metadata-container--above-title">
+              
+              <div class="summary-metadata summary-metadata--primary">
+
+
+<!-- Events: Date -->
+<time class="summary-metadata-item summary-metadata-item--date">July 14, 2026</time>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+              
+              <div class="summary-metadata summary-metadata--secondary">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+            </div>
+            
+              
+              <div class="summary-title">
+                <a
+                
+                  
+                    href="/events/2025/10/ros-industrial-developers-meeting-2025-oct-mfelr-xn8e9-9ypcr"
+                  
+                
+                class="summary-title-link">
+                  ROS-Industrial Developers Meeting (Jul) - 2026 (Americas)
+                </a>
+              </div>
+            
+            
+            <div class="summary-metadata-container summary-metadata-container--below-title">
+            
+              <div class="summary-metadata summary-metadata--primary">
+
+
+<!-- Events: Date -->
+<time class="summary-metadata-item summary-metadata-item--date">July 14, 2026</time>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+              
+              <div class="summary-metadata summary-metadata--secondary">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+            </div>
+            
+              
+            
+            
+            
+            <div class="summary-metadata-container summary-metadata-container--below-content">
+              
+              <div class="summary-metadata summary-metadata--primary">
+
+
+<!-- Events: Date -->
+<time class="summary-metadata-item summary-metadata-item--date">July 14, 2026</time>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+              
+              <div class="summary-metadata summary-metadata--secondary">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+            </div>
+          </div>
+        </div>
+      
+    </div>
+  </div>
+</div>
+<style>.fe-block-yui_3_17_2_3_1453219862360_28589 {mix-blend-mode: ;
+    }</style>
+</div></div><div class="sqs-block markdown-block sqs-block-markdown" data-block-type="44" id="block-yui_3_17_2_10_1453219862360_14355"><div class="sqs-block-content"><h2 id="news">News</h2>
+</div></div><div class="sqs-block summary-block sqs-block-summary" data-block-type="20" id="block-b829a04437470b4c595e"><div class="sqs-block-content">
+
+<div class="summary-item-list">
+  <div class="summary-collection-title">Blog</div>
+
+    
+    <div class="summary-item">
+      
+      <div class="summary-content">
+        
+          <div class="summary-title"><a href="/news/2026/6/15/bringing-the-ros-community-together-meetups-in-heilbronn-and-karlsruhe">Bringing the ROS Community Together: Meetups in Heilbronn and Karlsruhe</a></div>
+        
+        
+          <time class="timestamp" datetime="2026-06-15"><span class="timesince" data-date="1781547625198">about 3 days ago</span></time>
+        
+        
+      </div>
+    </div>
+    
+    <div class="summary-item">
+      
+      <div class="summary-content">
+        
+          <div class="summary-title"><a href="/news/2026/4/17/tesseract-amp-ros-i-developer-monthly-meeting-revisit">Tesseract &amp; ROS-I Developer Monthly Meeting Revisit</a></div>
+        
+        
+          <time class="timestamp" datetime="2026-04-17"><span class="timesince" data-date="1776452339141">about 2 months ago</span></time>
+        
+        
+      </div>
+    </div>
+    
+    <div class="summary-item">
+      
+      <div class="summary-content">
+        
+          <div class="summary-title"><a href="/news/2026/3/27/plcnext-ros-bridge-enabling-hardware-interoperability-between-industrial-plcs-and-ros">PLCnext ROS Bridge: Enabling Hardware Interoperability Between Industrial PLCs and ROS</a></div>
+        
+        
+          <time class="timestamp" datetime="2026-03-28"><span class="timesince" data-date="1774674000432">about 2 months ago</span></time>
+        
+        
+      </div>
+    </div>
+    
+</div>
+</div></div></div></div></div>
+							</div>
+						</div><!-- sidebar-one-wrapper -->
+
+					<div class="clearer" id="body-clearer"></div>
+
+		      </div>
+		    </div> <!-- page-body-wrapper -->
+		    <div id="page-footer-wrapper">
+		      <div id="page-footer">
+		        
+		          
+							<div id="sqs-social"class="social-links sqs-svg-icon--list" data-content-field="connected-accounts">
+								
+
+
+  <a href="https://twitter.com/ROSIndustrial" target="_blank" class="sqs-svg-icon--wrapper twitter-unauth">
+    <div>
+      <svg class="sqs-svg-icon--social" viewBox="0 0 64 64">
+        <use class="sqs-use--icon" xlink:href="#twitter-unauth-icon"></use>
+        <use class="sqs-use--mask" xlink:href="#twitter-unauth-mask"></use>
+      </svg>
+    </div>
+  </a>
+
+  <a href="http://www.youtube.com/channel/UCXyGVRiCwUMc1gav-G7z2ew" target="_blank" class="sqs-svg-icon--wrapper youtube">
+    <div>
+      <svg class="sqs-svg-icon--social" viewBox="0 0 64 64">
+        <use class="sqs-use--icon" xlink:href="#youtube-icon"></use>
+        <use class="sqs-use--mask" xlink:href="#youtube-mask"></use>
+      </svg>
+    </div>
+  </a>
+
+  <a href="https://www.linkedin.com/company/ros-industrial" target="_blank" class="sqs-svg-icon--wrapper linkedin-unauth">
+    <div>
+      <svg class="sqs-svg-icon--social" viewBox="0 0 64 64">
+        <use class="sqs-use--icon" xlink:href="#linkedin-unauth-icon"></use>
+        <use class="sqs-use--mask" xlink:href="#linkedin-unauth-mask"></use>
+      </svg>
+    </div>
+  </a>
+
+
+							</div>
+		          
+		        
+		        <div class="sqs-layout sqs-grid-12 columns-12 empty" data-layout-label="Footer Content" data-type="block-field" id="footer-blocks"><div class="row sqs-row"><div class="col sqs-col-12 span-12"></div></div></div>
+		      </div>
+		    </div><!-- page-footer-wrapper -->
+
+
+		  </div>
+		</div> <!-- canvas-wrapper -->
+
+		<svg xmlns="http://www.w3.org/2000/svg" version="1.1" style="display:none" data-usage="social-icons-svg"><symbol id="twitter-unauth-icon" viewBox="0 0 64 64"><path d="M48,22.1c-1.2,0.5-2.4,0.9-3.8,1c1.4-0.8,2.4-2.1,2.9-3.6c-1.3,0.8-2.7,1.3-4.2,1.6 C41.7,19.8,40,19,38.2,19c-3.6,0-6.6,2.9-6.6,6.6c0,0.5,0.1,1,0.2,1.5c-5.5-0.3-10.3-2.9-13.5-6.9c-0.6,1-0.9,2.1-0.9,3.3 c0,2.3,1.2,4.3,2.9,5.5c-1.1,0-2.1-0.3-3-0.8c0,0,0,0.1,0,0.1c0,3.2,2.3,5.8,5.3,6.4c-0.6,0.1-1.1,0.2-1.7,0.2c-0.4,0-0.8,0-1.2-0.1 c0.8,2.6,3.3,4.5,6.1,4.6c-2.2,1.8-5.1,2.8-8.2,2.8c-0.5,0-1.1,0-1.6-0.1c2.9,1.9,6.4,2.9,10.1,2.9c12.1,0,18.7-10,18.7-18.7 c0-0.3,0-0.6,0-0.8C46,24.5,47.1,23.4,48,22.1z"/></symbol><symbol id="twitter-unauth-mask" viewBox="0 0 64 64"><path d="M0,0v64h64V0H0z M44.7,25.5c0,0.3,0,0.6,0,0.8C44.7,35,38.1,45,26.1,45c-3.7,0-7.2-1.1-10.1-2.9 c0.5,0.1,1,0.1,1.6,0.1c3.1,0,5.9-1,8.2-2.8c-2.9-0.1-5.3-2-6.1-4.6c0.4,0.1,0.8,0.1,1.2,0.1c0.6,0,1.2-0.1,1.7-0.2 c-3-0.6-5.3-3.3-5.3-6.4c0,0,0-0.1,0-0.1c0.9,0.5,1.9,0.8,3,0.8c-1.8-1.2-2.9-3.2-2.9-5.5c0-1.2,0.3-2.3,0.9-3.3 c3.2,4,8.1,6.6,13.5,6.9c-0.1-0.5-0.2-1-0.2-1.5c0-3.6,2.9-6.6,6.6-6.6c1.9,0,3.6,0.8,4.8,2.1c1.5-0.3,2.9-0.8,4.2-1.6 c-0.5,1.5-1.5,2.8-2.9,3.6c1.3-0.2,2.6-0.5,3.8-1C47.1,23.4,46,24.5,44.7,25.5z"/></symbol><symbol id="youtube-icon" viewBox="0 0 64 64"><path d="M46.7,26c0,0-0.3-2.1-1.2-3c-1.1-1.2-2.4-1.2-3-1.3C38.3,21.4,32,21.4,32,21.4h0 c0,0-6.3,0-10.5,0.3c-0.6,0.1-1.9,0.1-3,1.3c-0.9,0.9-1.2,3-1.2,3S17,28.4,17,30.9v2.3c0,2.4,0.3,4.9,0.3,4.9s0.3,2.1,1.2,3 c1.1,1.2,2.6,1.2,3.3,1.3c2.4,0.2,10.2,0.3,10.2,0.3s6.3,0,10.5-0.3c0.6-0.1,1.9-0.1,3-1.3c0.9-0.9,1.2-3,1.2-3s0.3-2.4,0.3-4.9 v-2.3C47,28.4,46.7,26,46.7,26z M28.9,35.9l0-8.4l8.1,4.2L28.9,35.9z"/></symbol><symbol id="youtube-mask" viewBox="0 0 64 64"><path d="M0,0v64h64V0H0z M47,33.1c0,2.4-0.3,4.9-0.3,4.9s-0.3,2.1-1.2,3c-1.1,1.2-2.4,1.2-3,1.3 C38.3,42.5,32,42.6,32,42.6s-7.8-0.1-10.2-0.3c-0.7-0.1-2.2-0.1-3.3-1.3c-0.9-0.9-1.2-3-1.2-3S17,35.6,17,33.1v-2.3 c0-2.4,0.3-4.9,0.3-4.9s0.3-2.1,1.2-3c1.1-1.2,2.4-1.2,3-1.3c4.2-0.3,10.5-0.3,10.5-0.3h0c0,0,6.3,0,10.5,0.3c0.6,0.1,1.9,0.1,3,1.3 c0.9,0.9,1.2,3,1.2,3s0.3,2.4,0.3,4.9V33.1z M28.9,35.9l8.1-4.2l-8.1-4.2L28.9,35.9z"/></symbol><symbol id="linkedin-unauth-icon" viewBox="0 0 64 64"><path d="M20.4,44h5.4V26.6h-5.4V44z M23.1,18c-1.7,0-3.1,1.4-3.1,3.1c0,1.7,1.4,3.1,3.1,3.1 c1.7,0,3.1-1.4,3.1-3.1C26.2,19.4,24.8,18,23.1,18z M39.5,26.2c-2.6,0-4.4,1.4-5.1,2.8h-0.1v-2.4h-5.2V44h5.4v-8.6 c0-2.3,0.4-4.5,3.2-4.5c2.8,0,2.8,2.6,2.8,4.6V44H46v-9.5C46,29.8,45,26.2,39.5,26.2z"/></symbol><symbol id="linkedin-unauth-mask" viewBox="0 0 64 64"><path d="M0,0v64h64V0H0z M25.8,44h-5.4V26.6h5.4V44z M23.1,24.3c-1.7,0-3.1-1.4-3.1-3.1c0-1.7,1.4-3.1,3.1-3.1 c1.7,0,3.1,1.4,3.1,3.1C26.2,22.9,24.8,24.3,23.1,24.3z M46,44h-5.4v-8.4c0-2,0-4.6-2.8-4.6c-2.8,0-3.2,2.2-3.2,4.5V44h-5.4V26.6 h5.2V29h0.1c0.7-1.4,2.5-2.8,5.1-2.8c5.5,0,6.5,3.6,6.5,8.3V44z"/></symbol></svg>
+
+	</body>
+</html>

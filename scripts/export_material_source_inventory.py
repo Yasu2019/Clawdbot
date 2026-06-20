@@ -433,6 +433,43 @@ def harvest_learned_queries_row():
     }
 
 
+def robotics_knowledge_row():
+    base = ROOT / "data" / "workspace" / "apps" / "motion_lab" / "assets" / "web_sourced" / "robotics_gait_knowledge"
+    db_path = base / "robotics_gait_knowledge.db"
+    status_path = base / "robotics_gait_knowledge_status.json"
+    report_path = base / "robotics_gait_knowledge_report.md"
+    status = load_json(status_path, {})
+    examples = []
+    acquired_count = int(status.get("downloaded_count") or 0)
+    candidate_count = len(status.get("acquisition_queue") or [])
+    latest_at = status.get("generated_at", "")
+    if db_path.exists():
+        try:
+            con = sqlite3.connect(str(db_path))
+            rows = con.execute(
+                "SELECT title FROM sources WHERE status = 'downloaded' ORDER BY access_date DESC LIMIT 5"
+            ).fetchall()
+            examples = [row[0] for row in rows]
+            con.close()
+        except Exception as exc:
+            examples = [f"DB read failed: {exc}"]
+    return {
+        "source": "Embodied robotics learning knowledge DB",
+        "category": "robotics_learning",
+        "acquired_count": acquired_count,
+        "candidate_count": candidate_count,
+        "status": "acquired" if acquired_count else "pending",
+        "latest_at": latest_at,
+        "evidence": report_path.relative_to(ROOT).as_posix(),
+        "note": (
+            "Legal web-sourced robotics knowledge for gait, household tasks, factory tasks, "
+            "multi-robot learning, and edge deployment. DB: "
+            f"{db_path.relative_to(ROOT).as_posix()}"
+        ),
+        "examples": examples,
+    }
+
+
 def build_inventory():
     dataset_paths = [
         ROOT / "data" / "datasets",
@@ -458,6 +495,7 @@ def build_inventory():
         scout_backed_row("openInjMoldSim Paper", "injection_molding_paper", ["openinjmoldsim", "2311-5521/5/2/84"], [ACQUIRED_DIR, ROOT / "data" / "workspace"], ["openinjmoldsim", "fluids-05-02-00084"]),
         github_download_row(),
         harvest_learned_queries_row(),
+        robotics_knowledge_row(),
     ]
 
     rows.sort(key=lambda row: (row["acquired_count"], row["candidate_count"], row["source"].lower()), reverse=True)
