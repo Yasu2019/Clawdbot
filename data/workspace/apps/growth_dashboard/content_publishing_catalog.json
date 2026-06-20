@@ -1,0 +1,821 @@
+{
+  "schema": "clawstack.content_publishing_catalog.v1",
+  "updated_at": "2026-06-20",
+  "author_experience_moat": {
+    "summary": "製造業QA・IATF16949・NEXIV/Excel・順送金型・CAE(OpenFOAM/OpenRadioss)・7PC IoTフリート・AI動画ゲートを現場で統合した実装者",
+    "domains": [
+      {
+        "tag": "IATF",
+        "experience": "IATF 16949 内部監査教材の動画化。Script QA / Visual QA / production_design の fail-closed ゲート運用(T018)。QC工程表・FMEA・FTA・5Why・Fishbone の試行前必須化。"
+      },
+      {
+        "tag": "動画生成",
+        "experience": "clawstack_v2/apps/iatf_video_factory — PDF→脚本→TTS→Blender→MP4。FIB(ザク/ドム等)3Dキャラで教育動画。Vision QA consent-gated。厚木PLATEAU+メカシーン。"
+      },
+      {
+        "tag": "IoT",
+        "experience": "7PCフリート(Tailscale): K10オーケ、LAVIE OpenFOAM、赤LAVIE OpenRadioss、ThinkPad DXF2STEP。monitor_agent :8111、job_worker、thermal policy、fleet_evidence 24hログ。"
+      },
+      {
+        "tag": "CAE/金型",
+        "experience": "北極星: プレス部品3D→Moldflow級充填+OpenRadioss打ち抜き/曲げ+Cetol級公差→順送金型。part_manifest.json 横断契約。Fable5 E2E verified。"
+      },
+      {
+        "tag": "品質実務",
+        "experience": "NEXIV測定→検査成績書、不良分析、APQP/PPAP、QMS監査UI、Paperless/Gmail RAG、Obsidianナレッジ基盤。"
+      },
+      {
+        "tag": "DX/AI",
+        "experience": "OpenClaw/Portal、ローカルLLM+クラウドルーティング、古い設備とPython/Dockerの接続。弱PC(on_hold)判断含む運用現実。"
+      }
+    ]
+  },
+  "platform_legend": {
+    "note_free": "note 無料記事(集客)",
+    "note_paid": "note 有料(300-980円)",
+    "kindle": "Amazon Kindle (KDP)",
+    "brain": "Brain ノウハウ",
+    "booth": "BOOTH デジタルDL",
+    "youtube": "YouTube(広告/会員/導線)",
+    "udemy": "Udemy / ストアカー",
+    "seminar": "社内研修・オンラインセミナー(B2B)",
+    "coco_nara": "ココナラ/個別レビュー",
+    "tiktok": "TikTok/Shorts",
+    "minigame": "HTMLミニゲーム教材"
+  },
+  "items": [
+    {
+      "id": "CP-001",
+      "category": [
+        "CAE",
+        "IATF",
+        "経験"
+      ],
+      "platforms": [
+        "note_paid",
+        "kindle",
+        "brain",
+        "booth",
+        "seminar"
+      ],
+      "title": "part_manifest.json でつなぐ製造CAE — 樹脂充填・打ち抜き・公差の現場入門",
+      "target_reader": "生技・QA・金型設計。CAD/CAE/公差が別システムで困っている中間管理職",
+      "pain_points": [
+        "CAE結果が現場KPIと無関係",
+        "ソルバは動くが金型開発が進まない",
+        "データが個人Excelに散在"
+      ],
+      "moat": "Fable5 E2E実ログ、T019 Meaning Gate、実フリート配分を著者が運用",
+      "price_hint": "note 580-780円 / Kindle 980円 / BOOTHテンプレ880円",
+      "score": 98,
+      "score_breakdown": {
+        "buyer_pain": 25,
+        "user_moat": 20,
+        "market_timing": 24,
+        "multi_channel": 29
+      },
+      "status": "ASSET_READY",
+      "outline": [
+        "第0章(無料): なぜCAE通知が現場に意味を持たないか(T019/resin_flow禁止)",
+        "第1章: part_manifest.json 契約 — bbox/板厚/STEP/handoff",
+        "第2章: OpenFOAM resin_fill_cad @ LAVIE — できている/未達",
+        "第3章: OpenRadioss press_blanking @ 赤LAVIE — フォールバック政策",
+        "第4章: 公差 L2-L10_cetol_full — 商用Cetolとの境界",
+        "第5章: Fable5 E2E 4ステップと policy_degraded の読み方",
+        "第6章: note/Kindle/BOOTH/セミナーへの展開と付録JSON"
+      ],
+      "asset_paths": [
+        "cp-001_book_draft.html",
+        "cp-001_book_draft.md"
+      ]
+    },
+    {
+      "id": "CP-002",
+      "category": [
+        "DX",
+        "IoT",
+        "経験"
+      ],
+      "platforms": [
+        "kindle",
+        "note_paid",
+        "udemy",
+        "seminar"
+      ],
+      "title": "製造現場のリアルDX — AIとPythonで古い測定器・生産設備を蘇らせる実践ガイド",
+      "target_reader": "人手不足・レガシー設備に悩む製造業エンジニア",
+      "pain_points": [
+        "IT企業DX本が現場で使えない",
+        "最新AIと物理設備が繋がらない"
+      ],
+      "moat": "CAE/測定器実務+7PC IoT+OpenClaw Portalを同一著者が構築",
+      "price_hint": "Kindle 1280円 / Udemy 4980円 / セミナー5万〜",
+      "score": 99,
+      "score_breakdown": {
+        "buyer_pain": 25,
+        "user_moat": 20,
+        "market_timing": 25,
+        "multi_channel": 29
+      },
+      "status": "ASSET_READY",
+      "outline": [
+        "第1章: 現場で起きている問題(属人化・古い機械・Excel地獄)",
+        "第2章: データ構造の整理(manifest/DB/Portal)",
+        "第3章: Python/VBA/Dockerでの接続パターン",
+        "第4章: 7PC IoTフリート — 誰に何を投げるか",
+        "第5章: 監査・IATF対応の証跡設計",
+        "第6章: 失敗例(T008ポート推測/incident)と復旧",
+        "付録: サンプルコード・チェックリスト"
+      ],
+      "asset_paths": [
+        "cp-002_book_draft.html",
+        "cp-002_book_draft.md"
+      ]
+    },
+    {
+      "id": "CP-003",
+      "category": [
+        "品質",
+        "経験"
+      ],
+      "platforms": [
+        "note_paid",
+        "booth",
+        "brain",
+        "youtube"
+      ],
+      "title": "NEXIV測定データをExcel VBAで検査成績書へ自動転記する方法",
+      "target_reader": "品質保証・検査担当・係長",
+      "pain_points": [
+        "転記ミス",
+        "成績書作成時間",
+        "属人化",
+        "監査時の根拠説明"
+      ],
+      "moat": "著者のNEXIV/QA現場経験+Portal連携の実装知",
+      "price_hint": "note 498-780円 / BOOTH VBA+テンプレ1200円",
+      "score": 97,
+      "score_breakdown": {
+        "buyer_pain": 25,
+        "user_moat": 19,
+        "market_timing": 23,
+        "multi_channel": 30
+      },
+      "status": "ASSET_READY",
+      "outline": [
+        "結論先出し: 何時間→何分、ミス率のBefore/After",
+        "現状: 手作業フロー図",
+        "データ構造: NEXIV出力→正規化",
+        "VBA実装: 転記・検証・例外処理",
+        "Portal/OpenClaw連携(任意)",
+        "監査対応: ログと版管理",
+        "付録: ダミーデータ+マクロ"
+      ],
+      "asset_paths": [
+        "cp-003_book_draft.html",
+        "cp-003_book_draft.md"
+      ]
+    },
+    {
+      "id": "CP-004",
+      "category": [
+        "IATF",
+        "動画生成"
+      ],
+      "platforms": [
+        "note_paid",
+        "kindle",
+        "seminar",
+        "youtube",
+        "minigame"
+      ],
+      "title": "Telegram「合格」= 本当に合格にする — IATF動画 fail-closed ゲート設計",
+      "target_reader": "IATF内部監査担当、動画教材制作者、QAマネージャ",
+      "pain_points": [
+        "Script QA PASS後も映像崩れ",
+        "401でVisual QA自動合格",
+        "resumeでゲートスキップ"
+      ],
+      "moat": "gate_registry G00-G55実装+T018再発防止プロトコル著者運用",
+      "price_hint": "note 680円 / セミナー3万 / ミニゲーム980円",
+      "score": 96,
+      "score_breakdown": {
+        "buyer_pain": 24,
+        "user_moat": 20,
+        "market_timing": 22,
+        "multi_channel": 30
+      },
+      "status": "ASSET_READY",
+      "outline": [
+        "第1章: T018インシデント — 何が起きたか",
+        "第2章: G15 quality_preflight / G25 Script QA / G55 Visual QA",
+        "第3章: production_design(cast/bg/light/camera)",
+        "第4章: Vision QA consent — 自動化の限界",
+        "第5章: FIB(ザク)キャラで若手を離さない設計",
+        "第6章: 運用: 1 PDF E2E量産までのチェックリスト",
+        "付録: gate_registry 対応表"
+      ],
+      "asset_paths": [
+        "cp-004_book_draft.html",
+        "cp-004_book_draft.md"
+      ]
+    },
+    {
+      "id": "CP-005",
+      "category": [
+        "IoT",
+        "経験"
+      ],
+      "platforms": [
+        "note_free",
+        "note_paid",
+        "youtube",
+        "udemy",
+        "coco_nara"
+      ],
+      "title": "製造CAEの7PC IoTフリート — LAVIE/赤LAVIE/K10に何を投げるか",
+      "target_reader": "CAE担当、情シス、小規模製造のDX推進者",
+      "pain_points": [
+        "1台PCでOpenFOAM+ORが競合",
+        "サテライト落ちで夜間停止",
+        "弱PCに時間を溶かす"
+      ],
+      "moat": "fleet_job_allocation実運用、red_lavie bootstrap、on_hold判断(i3/Vivobook)",
+      "price_hint": "note無料+有料780円 / Udemy 3980円",
+      "score": 94,
+      "score_breakdown": {
+        "buyer_pain": 22,
+        "user_moat": 20,
+        "market_timing": 23,
+        "multi_channel": 29
+      },
+      "status": "ASSET_READY",
+      "outline": [
+        "第1章: 北極星とソルバ混同禁止(OpenFOAM vs OpenRadioss)",
+        "第2章: ノード一覧 — K10/LAVIE/赤LAVIE/ThinkPad/G3/Dynabook",
+        "第3章: cae_workload_router.yaml 読み方",
+        "第4章: monitor :8111 / worker :5682 / Tailscale",
+        "第5章: 赤LAVIE offline時 — require-red-lavie vs K10 fallback",
+        "第6章: 弱PC保留 — いつセットアップを止めるか",
+        "付録: fable5_fleet_health_check コマンド"
+      ],
+      "asset_paths": [
+        "cp-005_book_draft.html",
+        "cp-005_book_draft.md"
+      ]
+    },
+    {
+      "id": "CP-006",
+      "category": [
+        "動画生成",
+        "IATF"
+      ],
+      "platforms": [
+        "youtube",
+        "note_free",
+        "tiktok",
+        "seminar"
+      ],
+      "title": "FIB(ザク/ドム)3DキャラでIATFを教える — Blender→厚木PLATEAU→UE5",
+      "target_reader": "品質教育担当、動画クリエイター、製造業広報",
+      "pain_points": [
+        "監査動画が退屈",
+        "スライドだけでは定着しない",
+        "3Dリグ未統合"
+      ],
+      "moat": "CityCharacterPipeline、MonoEyeリグ実装、Atsugiシーン実績",
+      "price_hint": "YouTube無料→note有料 / セミナー体験版",
+      "score": 91,
+      "score_breakdown": {
+        "buyer_pain": 20,
+        "user_moat": 19,
+        "market_timing": 24,
+        "multi_channel": 28
+      },
+      "status": "ASSET_READY",
+      "outline": [
+        "第1章: FIBキャラ定義(ザク=現場/Dom=物流/IATF監査主任)",
+        "第2章: Segmentation剛体リグ vs Mixamo",
+        "第3章: モノアイ1秒スキャン(ザクY軸/ドムXY)",
+        "第4章: IATF PDF→脚本→ゲート→レンダ",
+        "第5章: 厚木PLATEAU配置 — 足元接地・カメラ",
+        "第6章: UE5/Blender使い分け",
+        "付録: Zaku_MonoEye_Rig.blend パス"
+      ],
+      "asset_paths": [
+        "cp-006_book_draft.html",
+        "cp-006_book_draft.md"
+      ]
+    },
+    {
+      "id": "CP-007",
+      "category": [
+        "IATF",
+        "品質"
+      ],
+      "platforms": [
+        "minigame",
+        "booth",
+        "note_paid",
+        "seminar"
+      ],
+      "title": "IATF内部監査NG発見ゲーム — 記録漏れ・根拠不足を探す",
+      "target_reader": "若手QA、監査員研修、工場長",
+      "pain_points": [
+        "監査準備が属人化",
+        "若手が典型NGを学べない"
+      ],
+      "moat": "QMS監査UI+iatf_gate実務+著者監査経験",
+      "price_hint": "BOOTH 980円 / セミナー体験付き",
+      "score": 90,
+      "score_breakdown": {
+        "buyer_pain": 23,
+        "user_moat": 18,
+        "market_timing": 21,
+        "multi_channel": 28
+      },
+      "status": "ASSET_READY",
+      "outline": [
+        "ステージ1: 記録漏れを探す",
+        "ステージ2: 根拠不足を探す",
+        "ステージ3: 是正処置の弱点",
+        "ステージ4: 再発防止策の妥当性",
+        "結果画面: 点数+改善チェックリスト",
+        "note: ゲーム設計意図とIATF条項対応表"
+      ],
+      "asset_paths": [
+        "cp-007_book_draft.html",
+        "cp-007_book_draft.md"
+      ]
+    },
+    {
+      "id": "CP-008",
+      "category": [
+        "CAE",
+        "IoT"
+      ],
+      "platforms": [
+        "note_free",
+        "brain",
+        "youtube"
+      ],
+      "title": "樹脂充填でParaView 2D |U|をTelegramに送ってはいけない — Meaning Gate入門",
+      "target_reader": "CAE担当、生技、データサイエンス寄りエンジニア",
+      "pain_points": [
+        "通知は来るが現場が使えない",
+        "resin_flow薄管とキャビティ充填の混同"
+      ],
+      "moat": "T019プロトコル+実際に止めたアンチパターン",
+      "price_hint": "note無料 / Brain 550円(1枚チートシート)",
+      "score": 95,
+      "score_breakdown": {
+        "buyer_pain": 24,
+        "user_moat": 20,
+        "market_timing": 22,
+        "multi_channel": 29
+      },
+      "status": "ASSET_READY",
+      "outline": [
+        "第1章: T019インシデント概要",
+        "第2章: 物理の真実 — キャビティVOF vs 薄管icoFoam",
+        "第3章: KPI — fill%/3D MP4 vs |U|ヒートマップ",
+        "第4章: Meaning Gate 5問チェック",
+        "第5章: resin_fill_cad E2E SUCCESSの見方",
+        "付録: 禁止パターン一覧"
+      ],
+      "asset_paths": [
+        "cp-008_book_draft.html",
+        "cp-008_book_draft.md"
+      ]
+    },
+    {
+      "id": "CP-009",
+      "category": [
+        "CAE",
+        "経験"
+      ],
+      "platforms": [
+        "note_paid",
+        "kindle",
+        "seminar"
+      ],
+      "title": "OpenRadioss順送金型入門 — 打ち抜き・曲げとmanifestデッキ",
+      "target_reader": "金型設計、生技CAE、順送開発者",
+      "pain_points": [
+        "LS-DYNA/Radioss参入障壁",
+        "STEPとデッキが別管理"
+      ],
+      "moat": "press_blanking E2E on red_lavie、step_to_openradioss_shell実装",
+      "price_hint": "note 780円 / Kindle章として統合可",
+      "score": 92,
+      "score_breakdown": {
+        "buyer_pain": 22,
+        "user_moat": 19,
+        "market_timing": 22,
+        "multi_channel": 29
+      },
+      "status": "ASSET_READY",
+      "outline": [
+        "第1章: 順送金型CAEの位置づけ",
+        "第2章: press_blanking vs press_bending(未E2E)",
+        "第3章: manifest bboxスケール vs STEPシェル",
+        "第4章: 赤LAVIE運用と--require-red-lavie",
+        "第5章: せん断域KPI — 現状と商用ギャップ",
+        "付録: openradioss_manifest_deck.py 概要"
+      ],
+      "asset_paths": [
+        "cp-009_book_draft.html",
+        "cp-009_book_draft.md"
+      ]
+    },
+    {
+      "id": "CP-010",
+      "category": [
+        "品質",
+        "CAE"
+      ],
+      "platforms": [
+        "note_paid",
+        "kindle",
+        "brain",
+        "coco_nara"
+      ],
+      "title": "Cetol6σの代わりに今できること — L2からL10_cetol_fullまで",
+      "target_reader": "設計QA、公差担当、ツール導入検討者",
+      "pain_points": [
+        "Cetol高額",
+        "DXFから入りたい",
+        "PMI/計測相関"
+      ],
+      "moat": "tolerance_cetol_full実装+FreeCAD loop+measured_lot_golden",
+      "price_hint": "note 680円 / 個別manifestレビュー 1万〜",
+      "score": 93,
+      "score_breakdown": {
+        "buyer_pain": 23,
+        "user_moat": 19,
+        "market_timing": 21,
+        "multi_channel": 30
+      },
+      "status": "ASSET_READY",
+      "outline": [
+        "第1章: 商用Cetol vs Clawstack proxyの境界",
+        "第2章: L2 GD&T proxy → L4 STEP PMI",
+        "第3章: L10 assembly Cp/Cpk",
+        "第4章: L10_cetol_full — FreeCAD/PLM handoff",
+        "第5章: 曲げスプリングバック連成(未達)",
+        "付録: tolerance_l10_assembly_run コマンド"
+      ],
+      "asset_paths": [
+        "cp-010_book_draft.html",
+        "cp-010_book_draft.md"
+      ]
+    },
+    {
+      "id": "CP-011",
+      "category": [
+        "IoT",
+        "DX"
+      ],
+      "platforms": [
+        "note_paid",
+        "youtube",
+        "brain"
+      ],
+      "title": "Gmail・Paperless・Obsidian — 製造QAナレッジRAGの組み方",
+      "target_reader": "QAリーダー、文書管理、AI導入担当",
+      "pain_points": [
+        "メール埋もれ",
+        "監査根拠検索に時間",
+        "属人ノウハウ"
+      ],
+      "moat": "ingestion_rag_control_center+email_search+Scribd/Paperless実装",
+      "price_hint": "note 580円 / YouTubeデモ",
+      "score": 88,
+      "score_breakdown": {
+        "buyer_pain": 22,
+        "user_moat": 17,
+        "market_timing": 20,
+        "multi_channel": 29
+      },
+      "status": "ASSET_READY",
+      "outline": [
+        "第1章: なぜ製造QAにRAGか",
+        "第2章: Gmail ingest → SQLite/Qdrant",
+        "第3章: Paperless OCR + タグ",
+        "第4章: Obsidian Bases / 監査テンプレ",
+        "第5章: 幻覚を防ぐ引用ルール",
+        "付録: ingest_dashboard 見方"
+      ],
+      "asset_paths": [
+        "cp-011_book_draft.html",
+        "cp-011_book_draft.md"
+      ]
+    },
+    {
+      "id": "CP-012",
+      "category": [
+        "IATF",
+        "品質"
+      ],
+      "platforms": [
+        "note_paid",
+        "seminar",
+        "booth"
+      ],
+      "title": "QC工程表・FMEA・5Whyを「動画の前」に必ず通す — 品質分析プロトコル",
+      "target_reader": "QAエンジニア、動画/AI導入チーム",
+      "pain_points": [
+        "AIがいきなりレンダ",
+        "markdownだけでゲートスキップ"
+      ],
+      "moat": "quality_analysis_protocol.md + gate_registry 統合運用",
+      "price_hint": "セミナー2万 / BOOTH PDF500円",
+      "score": 94,
+      "score_breakdown": {
+        "buyer_pain": 24,
+        "user_moat": 19,
+        "market_timing": 21,
+        "multi_channel": 30
+      },
+      "status": "ASSET_READY",
+      "outline": [
+        "第1章: PMP/QC工程表の書き方(動画パイプライン版)",
+        "第2章: FMEA — Script QA失敗モード",
+        "第3章: FTA/5Why/Fishbone — T018再発例",
+        "第4章: production_design ゲート",
+        "第5章: 記録義務 — INCIDENT_LOG",
+        "付録: テンプレJSON"
+      ],
+      "asset_paths": [
+        "cp-012_book_draft.html",
+        "cp-012_book_draft.md"
+      ]
+    },
+    {
+      "id": "CP-013",
+      "category": [
+        "動画生成",
+        "DX"
+      ],
+      "platforms": [
+        "youtube",
+        "tiktok",
+        "note_free"
+      ],
+      "title": "AI動画量産の現実 — ComfyUI/Blender/ローカルLLMの使い分け",
+      "target_reader": "動画クリエイター、社内広報、エンジニア",
+      "pain_points": [
+        "APIコスト",
+        "品質ばらつき",
+        "著作権/ゲート"
+      ],
+      "moat": "iatf_video_factory+model_router+Cloud API Consent Protocol",
+      "price_hint": "YouTube→note有料導線",
+      "score": 87,
+      "score_breakdown": {
+        "buyer_pain": 20,
+        "user_moat": 18,
+        "market_timing": 22,
+        "multi_channel": 27
+      },
+      "status": "ASSET_READY",
+      "outline": [
+        "第1章: ステージ表(run_host.py)",
+        "第2章: ローカル vs クラウドルーティング",
+        "第3章: Blender/Cycles vs EEVEE",
+        "第4章: Rhubarbリップシンク",
+        "第5章: コスト管理(api_cost_report)",
+        "第6章: IATF以外(ガンダム)はゲート後"
+      ],
+      "asset_paths": [
+        "cp-013_book_draft.html",
+        "cp-013_book_draft.md"
+      ]
+    },
+    {
+      "id": "CP-014",
+      "category": [
+        "経験",
+        "IoT"
+      ],
+      "platforms": [
+        "note_free",
+        "note_paid"
+      ],
+      "title": "弱いサテライトPCをフリートから外す — i3/Vivobook on_hold 記録",
+      "target_reader": "小規模DX、自宅ラボ運用者",
+      "pain_points": [
+        "古PCにPython/monitor無理",
+        "時間だけ消える"
+      ],
+      "moat": "著者が今週判断した実ログ(fleet_7pc_role_map)",
+      "price_hint": "note無料(信頼構築)",
+      "score": 85,
+      "score_breakdown": {
+        "buyer_pain": 18,
+        "user_moat": 19,
+        "market_timing": 19,
+        "multi_channel": 29
+      },
+      "status": "ASSET_READY",
+      "outline": [
+        "第1章: Windows Store pythonスタブの罠",
+        "第2章: pc7_backupの役割",
+        "第3章: on_hold vs 稼働(Dynabook dry-run)",
+        "第4章: 北極星に不要なノードの切り方",
+        "付録: node_status YAML"
+      ],
+      "asset_paths": [
+        "cp-014_book_draft.html",
+        "cp-014_book_draft.md"
+      ]
+    },
+    {
+      "id": "CP-015",
+      "category": [
+        "IATF",
+        "経験",
+        "CAE"
+      ],
+      "platforms": [
+        "seminar",
+        "coco_nara",
+        "kindle"
+      ],
+      "title": "【B2B】順送金型デジタルツイン半日セミナー — manifest→CAE→公差デモ",
+      "target_reader": "企業QA・生技部門(5-20名)",
+      "pain_points": [
+        "ツール導入前に全体像が欲しい",
+        "ベンダー資料だけでは現場イメージが湧かない"
+      ],
+      "moat": "著者がデモ環境(Fable5 E2E)を保有 — ライブ or 録画",
+      "price_hint": "5万-15万/回",
+      "score": 97,
+      "score_breakdown": {
+        "buyer_pain": 25,
+        "user_moat": 20,
+        "market_timing": 22,
+        "multi_channel": 30
+      },
+      "status": "ASSET_READY",
+      "outline": [
+        "午前: 北極星+part_manifest+Meaning Gate",
+        "午前: DXF→STEP live(ThinkPad)",
+        "午後: resin_fill + press_blanking ログ読解",
+        "午後: 公差L10デモ+未達ロードマップ",
+        "Q&A: 自社適用可否",
+        "配布: チェックリスト+サンプルmanifest"
+      ],
+      "asset_paths": [
+        "cp-015_book_draft.html",
+        "cp-015_book_draft.md"
+      ]
+    },
+    {
+      "id": "CP-016",
+      "category": [
+        "IATF",
+        "品質",
+        "経験"
+      ],
+      "platforms": [
+        "booth",
+        "note_paid",
+        "brain",
+        "seminar",
+        "coco_nara"
+      ],
+      "title": "IATF16949 内部監査チェックシート3種セット（システム・製造工程・製品）",
+      "target_reader": "QA責任者、内部監査員、製造/検査リーダー、監査準備担当",
+      "pain_points": [
+        "市販の汎用チェックシートが少ない",
+        "3種の使い分けが属人化",
+        "不適合記録と是正がバラバラ"
+      ],
+      "moat": "著者のIATF監査実務+Clawstack QMS/ゲート運用。条文転載なしオリジナル質問項目",
+      "price_hint": "BOOTH 1,480-2,980円 / note 780円 / セミナー同梱",
+      "score": 96,
+      "score_breakdown": {
+        "buyer_pain": 25,
+        "user_moat": 20,
+        "market_timing": 22,
+        "multi_channel": 29
+      },
+      "status": "ASSET_READY",
+      "asset_paths": [
+        "publishing/iatf_audit_sheets/README.md",
+        "publishing/iatf_audit_sheets/USAGE_guide.md",
+        "publishing/iatf_audit_sheets/01_system_audit_checklist.md",
+        "publishing/iatf_audit_sheets/02_manufacturing_process_audit_checklist.md",
+        "publishing/iatf_audit_sheets/03_product_audit_checklist.md",
+        "publishing/iatf_audit_sheets/04_corrective_action_worksheet.md"
+      ],
+      "outline": [
+        "同梱: システム監査(A-G) — 9.2/9.3/文書/リスク/CSR/力量",
+        "同梱: 製造工程監査(H-N) — PFMEA/CP/WI/設備/4M/NC",
+        "同梱: 製品監査(O-T) — 8.6/検査/包装/トレース",
+        "同梱: 是正処置ワークシート — 封じ込め/原因/横展開/有効性",
+        "USAGE: 3種の使い分けと判定基準(OK/OBS/NC)",
+        "販売: BOOTH PDF+ZIP / note解説 / セミナー記入ワーク",
+        "免責: 非公式テンプレ・認証結果非保証"
+      ]
+    },
+    {
+      "id": "CP-017",
+      "category": [
+        "CAE",
+        "金型",
+        "経験"
+      ],
+      "platforms": [
+        "kindle",
+        "note_paid",
+        "booth"
+      ],
+      "title": "PrepoMaxで実践する2D順送金型曲げ解析 — ポアソン比調整による『減肉』シミュレーションの実測フィッティング極意",
+      "target_reader": "プレス金型設計者、生技・CAE担当者、CalculiX導入検討者",
+      "pain_points": [
+        "カタログ値のポアソン比(0.33)では減肉量が実測と合わない",
+        "2D曲げ解析での板厚測定のやり方がわからない（斜め測定トラップ）"
+      ],
+      "moat": "実機測定値とのフィッティングデータ、PrepoMax v2.1.7プロジェクトファイル(.pmx)実物、Distanceクエリ手順の図説ドラフト",
+      "price_hint": "note 有料 580円 / Kindle 980円 / BOOTHデータセット 1200円",
+      "score": 96,
+      "score_breakdown": {
+        "buyer_pain": 25,
+        "user_moat": 20,
+        "market_timing": 23,
+        "multi_channel": 28
+      },
+      "status": "ASSET_READY",
+      "asset_paths": [
+        "prepomax_2d_bending_book_draft.html",
+        "prepomax_2d_bending_book_draft.md"
+      ],
+      "outline": [
+        "第1章: なぜ今、オープンソースCAE「PrepoMax」による金型曲げ解析なのか？",
+        "第2章: 2D平面ひずみ（Plane Strain）モデルの選定と境界条件の基本",
+        "第3章: 解析精度を決めるメッシュ分割戦略（板厚方向レイヤー数）",
+        "第4章: 【核心】カタログスペックの罠 — ポアソン比調整による「減肉（板厚減少）」のキャリブレーション",
+        "第5章: PrepoMaxでの計測・評価プロセス（Distanceクエリによるデフォーメーション解析）",
+        "第6章: CAEを金型設計に活かす実務のアドバイス"
+      ]
+    },
+    {
+      "id": "CP-018",
+      "category": [
+        "AIロボット",
+        "強化学習",
+        "DX"
+      ],
+      "platforms": [
+        "kindle",
+        "note_paid",
+        "booth",
+        "youtube"
+      ],
+      "title": "AIロボット育成日誌 — 簡易3D歩行ロボットから家庭・介助・工場ロボットの自己学習へ",
+      "target_reader": "AIロボット開発に興味がある個人開発者、中小製造業DX担当者、介助・家事支援ロボットを将来作りたい読者",
+      "pain_points": [
+        "ロボットの自然な歩行や腕振りをどう評価すればよいかわからない",
+        "Unity/UE5/Blender/Three.jsのどれで可視化すべきか迷う",
+        "家庭・工場タスクを1個1個手でプログラムする限界を感じている",
+        "Raspberry Piや実機ロボットへ知識を移す道筋が見えない"
+      ],
+      "moat": "v7簡易3Dロボット歩行、L1-L30ロボット成長ロードマップ、16-64体の同時学習デモ、21件の合法Web収集済みロボット知識DBを同じプロジェクト内で接続している実験記録",
+      "price_hint": "note 680-980円 / Kindle 980-1480円 / BOOTH 実験ログ+テンプレZIP 1280円",
+      "score": 97,
+      "score_breakdown": {
+        "buyer_pain": 24,
+        "user_moat": 20,
+        "market_timing": 25,
+        "multi_channel": 28
+      },
+      "status": "OUTLINE_READY",
+      "asset_paths": [
+        "robot_learning_swarm_demo.html",
+        "material_source_inventory.json",
+        "../motion_lab/assets/web_sourced/robotics_gait_knowledge/robotics_gait_knowledge_report.md",
+        "../motion_lab/assets/web_sourced/robotics_gait_knowledge/robotics_gait_knowledge.db"
+      ],
+      "outline": [
+        "第1章: 胴体なし・腕破綻から始まったロボット歩行改善の失敗記録",
+        "第2章: 人間らしい歩行の評価軸 — 右脚前なら左腕前、膝・肘・足首角度、足裏ロック",
+        "第3章: Mixamo風サンプルから簡易アーマチュアへ動きを移す考え方",
+        "第4章: 世界中の合法Web資料をロボット知識DBへ入れる — Isaac Lab、Unity ML-Agents、ROS-Industrial、RoboCasa、BEHAVIOR-1K",
+        "第5章: 1体では遅い — 16体、64体、さらに多数のロボットを仮想空間で同時教育する",
+        "第6章: 家庭・介助・工場タスクのスコア設計 — 座る、立つ、ドアを開ける、階段、ピッキング",
+        "第7章: Raspberry Piと実機へ移す前の安全ゲート — シミュレーション合格、低速実機、緊急停止",
+        "付録: ダッシュボードL1-L30、収集ソース件数、Gemini DB取り込み待ち、BOOTH向けテンプレ構成"
+      ]
+    }
+  ],
+  "funnel_recommended": [
+    "note_free(CP-008, CP-014) -> note_paid(CP-001, CP-003)",
+    "YouTube(CP-006, CP-013) -> note_paid -> Kindle(CP-001+CP-002)",
+    "BOOTH(manifest/VBAテンプレ) -> セミナー(CP-015)",
+    "minigame(CP-007) -> セミナー研修",
+    "CP-016(3種チェックシート) -> CP-007(監査NGゲーム) -> セミナー/B2B",
+    "CP-018(ロボット育成日誌) -> YouTube短尺デモ -> note有料 -> Kindle -> BOOTH実験ログZIP"
+  ]
+}
