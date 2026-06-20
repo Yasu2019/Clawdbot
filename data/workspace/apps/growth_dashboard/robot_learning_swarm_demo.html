@@ -1,0 +1,580 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Robot Learning Swarm Demo</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: Arial, Helvetica, sans-serif;
+      --bg: #eef2f4;
+      --ink: #1d252b;
+      --muted: #5d6972;
+      --panel: #ffffff;
+      --line: #cfd7dd;
+      --good: #2c9a5b;
+      --warn: #d89021;
+      --bad: #c94f4f;
+      --cyan: #24b8c5;
+      --green: #9db5a3;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 16px 20px;
+      background: #18232b;
+      color: white;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 0;
+    }
+
+    .sub {
+      color: #d5dde3;
+      font-size: 13px;
+      margin-top: 4px;
+    }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    button, select {
+      border: 1px solid #52606b;
+      background: #263540;
+      color: white;
+      border-radius: 6px;
+      padding: 8px 10px;
+      font-size: 13px;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    main {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 320px;
+      min-height: calc(100vh - 73px);
+    }
+
+    .stage-wrap {
+      min-width: 0;
+      padding: 16px;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: calc(100vh - 105px);
+      min-height: 620px;
+      background: #dce4e8;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+
+    aside {
+      border-left: 1px solid var(--line);
+      background: #f8fafb;
+      padding: 16px;
+      overflow: auto;
+      max-height: calc(100vh - 73px);
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .metric {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+    }
+
+    .metric strong {
+      display: block;
+      font-size: 22px;
+      margin-bottom: 2px;
+    }
+
+    .metric span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .robot-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .robot-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 9px;
+    }
+
+    .robot-card .top {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 7px;
+    }
+
+    .bar {
+      height: 7px;
+      background: #e1e6ea;
+      border-radius: 999px;
+      overflow: hidden;
+      margin: 6px 0;
+    }
+
+    .fill {
+      height: 100%;
+      border-radius: 999px;
+      background: var(--good);
+    }
+
+    .details {
+      display: flex;
+      justify-content: space-between;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .legend {
+      margin: 14px 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 980px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+
+      aside {
+        border-left: 0;
+        border-top: 1px solid var(--line);
+        max-height: none;
+      }
+
+      canvas {
+        height: 640px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Robot Learning Swarm Demo</h1>
+      <div class="sub">Prototype: multi-robot gait, door task, score feedback, and visual rollout review</div>
+    </div>
+    <div class="controls">
+      <select id="robotCount">
+        <option value="16">16 robots</option>
+        <option value="24" selected>24 robots</option>
+        <option value="32">32 robots</option>
+        <option value="48">48 robots</option>
+        <option value="64">64 robots</option>
+      </select>
+      <button id="pauseBtn">Pause</button>
+      <button id="resetBtn">Reset generation</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="stage-wrap">
+      <canvas id="stage" width="1500" height="900"></canvas>
+    </section>
+    <aside>
+      <div class="metric-grid">
+        <div class="metric">
+          <strong id="avgScore">0</strong>
+          <span>average score</span>
+        </div>
+        <div class="metric">
+          <strong id="successCount">0</strong>
+          <span>successful tasks</span>
+        </div>
+        <div class="metric">
+          <strong id="bestScore">0</strong>
+          <span>best robot</span>
+        </div>
+        <div class="metric">
+          <strong id="generation">1</strong>
+          <span>generation</span>
+        </div>
+      </div>
+      <div class="legend">
+        The robots use the current v7 idea: contralateral arms, swing-leg knee flexion, ankle cue, straighter support leg, and door-task reward. This is not full physics RL yet; it is the first visible scaffold for user review.
+      </div>
+      <div class="robot-list" id="robotList"></div>
+    </aside>
+  </main>
+
+  <script>
+    const canvas = document.getElementById('stage');
+    const ctx = canvas.getContext('2d');
+    const robotCountSelect = document.getElementById('robotCount');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const robotList = document.getElementById('robotList');
+    const avgScore = document.getElementById('avgScore');
+    const successCount = document.getElementById('successCount');
+    const bestScore = document.getElementById('bestScore');
+    const generationEl = document.getElementById('generation');
+
+    let robots = [];
+    let paused = false;
+    let generation = 1;
+    let lastTime = performance.now();
+
+    const tasks = [
+      { name: 'walk', color: '#4c8bd6' },
+      { name: 'open door', color: '#d8913b' },
+      { name: 'sit/stand', color: '#7a9f68' },
+      { name: 'factory pick', color: '#9b7ac7' }
+    ];
+
+    function resizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = Math.max(900, Math.floor(rect.width * dpr));
+      canvas.height = Math.max(620, Math.floor(rect.height * dpr));
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    function rand(seed) {
+      const x = Math.sin(seed * 999.13) * 10000;
+      return x - Math.floor(x);
+    }
+
+    function initRobots() {
+      const count = Number(robotCountSelect.value);
+      robots = [];
+      const cols = Math.ceil(Math.sqrt(count * 1.45));
+      const rows = Math.ceil(count / cols);
+      for (let i = 0; i < count; i++) {
+        const task = tasks[i % tasks.length];
+        robots.push({
+          id: i + 1,
+          task,
+          seed: generation * 71 + i * 13,
+          phase: rand(i + generation) * Math.PI * 2,
+          speed: 0.75 + rand(i * 4 + generation) * 0.5,
+          skill: 0.25 + rand(i * 9 + generation) * 0.38 + generation * 0.015,
+          score: 0,
+          success: false,
+          collisions: 0,
+          energy: 0,
+          laneX: i % cols,
+          laneY: Math.floor(i / cols),
+          cols,
+          rows
+        });
+      }
+    }
+
+    function roundedRect(x, y, w, h, r, fill, stroke) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.arcTo(x + w, y, x + w, y + h, r);
+      ctx.arcTo(x + w, y + h, x, y + h, r);
+      ctx.arcTo(x, y + h, x, y, r);
+      ctx.arcTo(x, y, x + w, y, r);
+      ctx.closePath();
+      if (fill) {
+        ctx.fillStyle = fill;
+        ctx.fill();
+      }
+      if (stroke) {
+        ctx.strokeStyle = stroke;
+        ctx.stroke();
+      }
+    }
+
+    function drawEnvironment(x, y, w, h, task, progress, success) {
+      roundedRect(x, y, w, h, 10, '#f5f7f8', '#c8d0d6');
+      ctx.save();
+      ctx.translate(x, y);
+
+      ctx.fillStyle = '#dde6ea';
+      ctx.fillRect(12, h - 38, w - 24, 18);
+
+      ctx.strokeStyle = task.color;
+      ctx.globalAlpha = 0.18;
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      for (let i = 0; i < 5; i++) {
+        const px = 18 + i * (w - 36) / 4;
+        const py = h - 48 - Math.sin(i * 1.8 + progress * 6) * 8;
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+
+      if (task.name === 'open door') {
+        const hingeX = w - 48;
+        const hingeY = h - 112;
+        const open = Math.min(1, Math.max(0, (progress - 0.42) * 2.4));
+        ctx.strokeStyle = '#6a4a2f';
+        ctx.lineWidth = 5;
+        ctx.beginPath();
+        ctx.moveTo(hingeX, hingeY);
+        ctx.lineTo(hingeX + Math.cos(open * 1.05) * 42, hingeY + Math.sin(open * 1.05) * 18 + 60);
+        ctx.stroke();
+        ctx.fillStyle = '#6a4a2f';
+        ctx.fillRect(hingeX - 2, hingeY, 4, 66);
+      } else if (task.name === 'sit/stand') {
+        ctx.fillStyle = '#91a4ad';
+        ctx.fillRect(w - 70, h - 78, 42, 9);
+        ctx.fillRect(w - 64, h - 104, 9, 35);
+        ctx.fillRect(w - 63, h - 69, 6, 28);
+        ctx.fillRect(w - 35, h - 69, 6, 28);
+      } else if (task.name === 'factory pick') {
+        ctx.fillStyle = 'rgba(220, 140, 60, 0.16)';
+        ctx.fillRect(w - 95, h - 132, 70, 84);
+        ctx.strokeStyle = '#d8913b';
+        ctx.strokeRect(w - 95, h - 132, 70, 84);
+        ctx.fillStyle = '#8a99a5';
+        ctx.fillRect(w - 90, h - 70, 74, 12);
+        ctx.fillStyle = '#48535d';
+        ctx.fillRect(w - 42, h - 112, 16, 16);
+      } else {
+        ctx.fillStyle = '#b6c4c9';
+        ctx.fillRect(w - 80, h - 98, 62, 14);
+        ctx.fillRect(w - 76, h - 84, 8, 42);
+        ctx.fillRect(w - 28, h - 84, 8, 42);
+      }
+
+      ctx.fillStyle = success ? 'rgba(44,154,91,0.16)' : 'rgba(216,144,33,0.12)';
+      ctx.fillRect(10, 10, 64, 18);
+      ctx.fillStyle = success ? '#2c9a5b' : '#d89021';
+      ctx.font = '11px Arial';
+      ctx.fillText(success ? 'success' : 'training', 16, 23);
+      ctx.restore();
+    }
+
+    function drawRobot(cx, cy, scale, phase, taskProgress, skill) {
+      const gait = Math.sin(phase);
+      const lift = Math.max(0, Math.sin(phase + Math.PI / 2));
+      const torsoTilt = gait * 0.035;
+      const shoulder = -gait * 0.75;
+      const hip = gait * 0.55;
+      const elbowBend = 0.35 + Math.abs(gait) * 0.12;
+      const kneeBend = 0.18 + lift * 0.62 * (0.8 + skill * 0.3);
+      const ankle = -lift * 0.22 + Math.max(0, -Math.sin(phase + Math.PI / 2)) * 0.12;
+
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.scale(scale, scale);
+      ctx.rotate(torsoTilt);
+
+      const white = '#f4f6f3';
+      const shade = '#c6d0c9';
+      const dark = '#182026';
+      const accent = '#20b8c8';
+      const green = '#aebead';
+
+      function limb(x, y, len, width, angle, color) {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(angle);
+        roundedRect(-width / 2, 0, width, len, width * 0.25, color, '#88939a');
+        ctx.restore();
+      }
+
+      function arm(side) {
+        const x = side * 30;
+        const a = side < 0 ? shoulder : -shoulder;
+        limb(x, -34, 38, 13, a, white);
+        ctx.save();
+        ctx.translate(x + Math.sin(a) * -38, -34 + Math.cos(a) * 38);
+        ctx.rotate(a + side * 0.05 + elbowBend);
+        roundedRect(-6, 0, 12, 34, 4, white, '#88939a');
+        ctx.fillStyle = dark;
+        ctx.fillRect(-5, 30, 10, 8);
+        ctx.restore();
+      }
+
+      function leg(side) {
+        const x = side * 13;
+        const a = side < 0 ? hip : -hip;
+        const swing = side < 0 ? lift : Math.max(0, -Math.sin(phase + Math.PI / 2));
+        const k = kneeBend * (0.6 + swing);
+        limb(x, 28, 38, 15, a, green);
+        ctx.save();
+        ctx.translate(x + Math.sin(a) * -38, 28 + Math.cos(a) * 38);
+        ctx.rotate(a - k);
+        roundedRect(-7, 0, 14, 36, 4, white, '#88939a');
+        ctx.translate(0, 34);
+        ctx.rotate(ankle * (side < 0 ? 1 : -1));
+        roundedRect(-18, 0, 36, 8, 3, white, '#88939a');
+        ctx.restore();
+      }
+
+      ctx.fillStyle = dark;
+      ctx.fillRect(-26, 18, 52, 15);
+      roundedRect(-28, -42, 56, 66, 7, white, '#9aa5a9');
+      roundedRect(-20, -34, 40, 52, 4, '#dfe8dd', null);
+      roundedRect(-20, -70, 40, 25, 6, white, '#9aa5a9');
+      ctx.fillStyle = dark;
+      ctx.fillRect(-9, -63, 18, 7);
+      ctx.fillStyle = '#e15645';
+      ctx.fillRect(-3, -81, 6, 10);
+      ctx.fillStyle = accent;
+      ctx.fillRect(-21, -22, 3, 25);
+      ctx.fillRect(18, -22, 3, 25);
+      arm(-1);
+      arm(1);
+      leg(-1);
+      leg(1);
+
+      if (taskProgress > 0.52) {
+        ctx.strokeStyle = 'rgba(32,184,200,0.55)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(0, -24, 48 + taskProgress * 14, -0.5, 0.9);
+        ctx.stroke();
+      }
+
+      ctx.restore();
+    }
+
+    function update(dt) {
+      const cycle = 5.2;
+      robots.forEach((robot) => {
+        robot.phase += dt * robot.speed * 2.8;
+        const progress = (robot.phase / (Math.PI * 2 * cycle) + robot.seed * 0.017) % 1;
+        const gaitQuality = 1 - Math.abs(Math.sin(robot.phase) * 0.08);
+        const taskBonus = progress > 0.72 ? 26 : progress * 24;
+        const stability = robot.skill * 44 * gaitQuality;
+        robot.energy = 18 + Math.abs(Math.sin(robot.phase)) * 8;
+        robot.collisions = Math.max(0, Math.floor((0.85 - robot.skill) * 4 - progress * 1.8));
+        robot.score = Math.round(stability + taskBonus - robot.collisions * 5 - robot.energy * 0.15);
+        robot.success = robot.score > 52 && progress > 0.62;
+        robot.progress = progress;
+      });
+    }
+
+    function render() {
+      const rect = canvas.getBoundingClientRect();
+      ctx.clearRect(0, 0, rect.width, rect.height);
+      ctx.fillStyle = '#dce4e8';
+      ctx.fillRect(0, 0, rect.width, rect.height);
+
+      const margin = 18;
+      const count = robots.length;
+      const cols = robots[0]?.cols || 1;
+      const rows = Math.ceil(count / cols);
+      const cellW = (rect.width - margin * 2) / cols;
+      const cellH = (rect.height - margin * 2) / rows;
+
+      robots.forEach((robot, index) => {
+        const col = index % cols;
+        const row = Math.floor(index / cols);
+        const x = margin + col * cellW + 6;
+        const y = margin + row * cellH + 6;
+        const w = Math.max(120, cellW - 12);
+        const h = Math.max(120, cellH - 12);
+        drawEnvironment(x, y, w, h, robot.task, robot.progress || 0, robot.success);
+        const walkX = x + 35 + (w - 85) * (robot.progress || 0);
+        const walkY = y + h - 62;
+        drawRobot(walkX, walkY, Math.max(0.46, Math.min(0.72, h / 225)), robot.phase, robot.progress || 0, robot.skill);
+        ctx.fillStyle = '#1d252b';
+        ctx.font = '12px Arial';
+        ctx.fillText(`R${robot.id} ${robot.task.name}`, x + 12, y + h - 14);
+        ctx.fillStyle = robot.success ? '#2c9a5b' : '#5d6972';
+        ctx.fillText(String(robot.score), x + w - 34, y + h - 14);
+      });
+    }
+
+    function updatePanel() {
+      const scores = robots.map((robot) => robot.score);
+      const avg = Math.round(scores.reduce((a, b) => a + b, 0) / Math.max(1, scores.length));
+      const best = Math.max(...scores);
+      const success = robots.filter((robot) => robot.success).length;
+      avgScore.textContent = String(avg);
+      successCount.textContent = `${success}/${robots.length}`;
+      bestScore.textContent = String(best);
+      generationEl.textContent = String(generation);
+
+      const topRobots = [...robots].sort((a, b) => b.score - a.score).slice(0, 8);
+      robotList.innerHTML = topRobots.map((robot) => {
+        const pct = Math.max(0, Math.min(100, robot.score));
+        const color = robot.success ? 'var(--good)' : robot.score > 42 ? 'var(--warn)' : 'var(--bad)';
+        return `
+          <div class="robot-card">
+            <div class="top"><span>Robot ${robot.id}</span><span>${robot.task.name}</span></div>
+            <div class="bar"><div class="fill" style="width:${pct}%;background:${color}"></div></div>
+            <div class="details"><span>score ${robot.score}</span><span>${robot.success ? 'PASS' : 'TRAIN'}</span></div>
+            <div class="details"><span>collisions ${robot.collisions}</span><span>energy ${robot.energy.toFixed(1)}</span></div>
+          </div>`;
+      }).join('');
+    }
+
+    function tick(now) {
+      const dt = Math.min(0.05, (now - lastTime) / 1000);
+      lastTime = now;
+      if (!paused) update(dt);
+      render();
+      updatePanel();
+      requestAnimationFrame(tick);
+    }
+
+    function resetGeneration() {
+      generation += 1;
+      initRobots();
+    }
+
+    window.addEventListener('resize', () => {
+      resizeCanvas();
+      render();
+    });
+
+    pauseBtn.addEventListener('click', () => {
+      paused = !paused;
+      pauseBtn.textContent = paused ? 'Resume' : 'Pause';
+    });
+
+    resetBtn.addEventListener('click', resetGeneration);
+    robotCountSelect.addEventListener('change', initRobots);
+
+    resizeCanvas();
+    initRobots();
+    requestAnimationFrame(tick);
+  </script>
+</body>
+</html>
