@@ -1,0 +1,37 @@
+{
+  "schema": "clawstack.robot_l20_autonomous_loop.v1",
+  "state": "running",
+  "updated_at": "2026-06-20T04:03:19.641290+00:00",
+  "cycles_requested": 200,
+  "cycles_completed": 2,
+  "sleep_sec": 60.0,
+  "count": 128,
+  "refine_top": 16,
+  "last_cycle": {
+    "cycle": 2,
+    "started_at": "2026-06-20T04:03:19.567322+00:00",
+    "finished_at": "2026-06-20T04:03:19.641290+00:00",
+    "seed_base": 20262638,
+    "best_score": 100,
+    "best_verdict": "L20_CANDIDATE",
+    "l20_candidate_count": 33,
+    "task_floor": 80.7,
+    "improved": false
+  },
+  "best_summary": {
+    "best_score": 100,
+    "best_verdict": "L20_CANDIDATE",
+    "l20_candidate_count": 25,
+    "task_floor": 85.2,
+    "seed_base": 20261629
+  },
+  "telegram_notified": false,
+  "outputs": {
+    "status": "D:\\Clawdbot_Docker_20260125\\data\\workspace\\apps\\growth_dashboard\\robot_l20_autonomous_status.json",
+    "history": "D:\\Clawdbot_Docker_20260125\\data\\workspace\\apps\\growth_dashboard\\robot_l20_autonomous_history.jsonl",
+    "best": "D:\\Clawdbot_Docker_20260125\\data\\workspace\\apps\\growth_dashboard\\robot_l20_autonomous_best.json",
+    "trial_status": "D:\\Clawdbot_Docker_20260125\\data\\workspace\\apps\\growth_dashboard\\robot_l20_motion_trial_status.json",
+    "trial_html": "D:\\Clawdbot_Docker_20260125\\data\\workspace\\apps\\growth_dashboard\\robot_l20_motion_trials.html"
+  },
+  "safety_note": "Bounded proxy loop only. It does not edit robot model geometry or deploy to real hardware."
+}

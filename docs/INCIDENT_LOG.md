@@ -5,6 +5,21 @@
 
 ------
 
+## INC-128: Robot L20 autonomous launcher used same stdout/stderr redirect path
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-06-20 JST |
+| **Detection** | First run of `start_robot_l20_autonomous_loop.ps1` failed with PowerShell error: `RedirectStandardOutput` and `RedirectStandardError` are same. |
+| **Impact** | Bounded autonomous Robot L20 loop did not start on the first launcher attempt. |
+| **Root Cause (5 Why)** | **Why1**: `Start-Process` rejected the command. **Why2**: stdout and stderr were redirected to the same log file. **Why3**: Windows PowerShell requires distinct redirect files. **Why4**: The launcher had no smoke execution before use. **Why5**: The urgency to start self-running development compressed validation. |
+| **Fix** | Split logs into `robot_l20_autonomous_loop_stdout.log` and `robot_l20_autonomous_loop_stderr.log`, then relaunched successfully. |
+| **Files** | `data/workspace/apps/motion_lab/05_quality_check/start_robot_l20_autonomous_loop.ps1`; `quality_incident_report_20260620_robot_l20_launcher_redirect_bug.md` |
+| **Verification** | Launcher created `robot_l20_autonomous_launcher_status.json` with PID `19316`; autonomous status reached `state=running`, `cycles_completed=1`. |
+| **Prevention** | PowerShell launchers must use separate stdout/stderr log paths when both redirect parameters are supplied. |
+
+------
+
 ## INC-127: Robot L20 trial generator wrote to nested data/data path on first run
 
 | Field | Detail |

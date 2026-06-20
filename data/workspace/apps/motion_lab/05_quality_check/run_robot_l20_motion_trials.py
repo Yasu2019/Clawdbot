@@ -5,6 +5,7 @@ if hasattr(sys.stdout, "reconfigure"):
     except Exception:
         pass
 
+import argparse
 import json
 import math
 import random
@@ -29,9 +30,9 @@ def clamp(value: float, low: float, high: float) -> float:
     return max(low, min(high, value))
 
 
-def trial_metrics(seed: int, iteration: int) -> dict[str, Any]:
+def trial_metrics(seed: int, iteration: int, count: int = 96) -> dict[str, Any]:
     rng = random.Random(seed)
-    maturity = iteration / 95.0
+    maturity = iteration / max(1.0, float(count - 1))
     smooth = 0.35 + maturity * 0.48 + rng.uniform(-0.06, 0.08)
     contact = 0.30 + maturity * 0.54 + rng.uniform(-0.08, 0.07)
     task_phase = 0.28 + maturity * 0.56 + rng.uniform(-0.07, 0.09)
@@ -95,7 +96,7 @@ def refine_metrics(metrics: dict[str, Any], pass_id: int) -> dict[str, Any]:
     return refined
 
 
-def run_trials(count: int = 96) -> dict[str, Any]:
+def run_trials(count: int = 96, seed_base: int = 20260620, refine_top: int = 12) -> dict[str, Any]:
     trials = []
     def append_trial(trial_id: str, metrics: dict[str, Any], strategy: str) -> None:
         verdict = evaluate_task_motion_metrics(metrics)
@@ -112,10 +113,10 @@ def run_trials(count: int = 96) -> dict[str, Any]:
         )
 
     for i in range(count):
-        metrics = trial_metrics(20260620 + i * 17, i)
+        metrics = trial_metrics(seed_base + i * 17, i, count)
         append_trial(f"l20-motion-{i + 1:03d}", metrics, "baseline_random")
 
-    baseline_top = sorted(trials, key=lambda item: item["score"], reverse=True)[:12]
+    baseline_top = sorted(trials, key=lambda item: item["score"], reverse=True)[:refine_top]
     for i, item in enumerate(baseline_top):
         refined_1 = refine_metrics(item["metrics"], 1)
         append_trial(f"l20-refine-a-{i + 1:02d}", refined_1, "phase_lock_foot_ik_task_contact")
@@ -129,6 +130,9 @@ def run_trials(count: int = 96) -> dict[str, Any]:
     payload = {
         "schema": "clawstack.robot_l20_motion_trials.v1",
         "generated_at": datetime.now(timezone.utc).isoformat(),
+        "seed_base": seed_base,
+        "baseline_count": count,
+        "refine_top": refine_top,
         "target_level": "L20",
         "current_level_estimate": "L20_PROXY_CANDIDATE" if l20_candidates else "L15_REVIEW",
         "trials_run": len(trials),
@@ -241,7 +245,13 @@ def write_html(payload: dict[str, Any]) -> None:
 
 
 def main() -> int:
-    payload = run_trials()
+    parser = argparse.ArgumentParser(description="Run robot L20 natural motion proxy trials.")
+    parser.add_argument("--count", type=int, default=96, help="Baseline random trials before refinement.")
+    parser.add_argument("--seed-base", type=int, default=20260620, help="Seed base for trial generation.")
+    parser.add_argument("--refine-top", type=int, default=12, help="Top baseline trials to refine twice.")
+    args = parser.parse_args()
+
+    payload = run_trials(count=args.count, seed_base=args.seed_base, refine_top=args.refine_top)
     OUT_JSON.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
     write_report(payload)
     write_html(payload)

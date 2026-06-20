@@ -1,0 +1,12 @@
+{
+    "schema":  "clawstack.robot_l20_autonomous_launcher.v1",
+    "started_at":  "2026-06-20T04:02:19.4129897Z",
+    "pid":  19316,
+    "cycles":  200,
+    "sleep_sec":  60,
+    "count":  128,
+    "refine_top":  16,
+    "stdout_log":  "D:\\Clawdbot_Docker_20260125\\data\\workspace\\apps\\growth_dashboard\\robot_l20_autonomous_loop_stdout.log",
+    "stderr_log":  "D:\\Clawdbot_Docker_20260125\\data\\workspace\\apps\\growth_dashboard\\robot_l20_autonomous_loop_stderr.log",
+    "status":  "D:\\Clawdbot_Docker_20260125\\data\\workspace\\apps\\growth_dashboard\\robot_l20_autonomous_status.json"
+}

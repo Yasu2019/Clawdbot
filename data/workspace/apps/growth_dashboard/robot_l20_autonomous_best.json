@@ -1,0 +1,303 @@
+{
+  "schema": "clawstack.robot_l20_motion_trials.v1",
+  "generated_at": "2026-06-20T04:01:56.634831+00:00",
+  "seed_base": 20261629,
+  "baseline_count": 96,
+  "refine_top": 12,
+  "target_level": "L20",
+  "current_level_estimate": "L20_PROXY_CANDIDATE",
+  "trials_run": 120,
+  "best_score": 100,
+  "best_verdict": "L20_CANDIDATE",
+  "l20_candidate_count": 25,
+  "tasks": [
+    "walk",
+    "door",
+    "sit_stand",
+    "stairs",
+    "factory_pick"
+  ],
+  "best_trial": {
+    "trial_id": "l20-refine-a-01",
+    "strategy": "phase_lock_foot_ik_task_contact",
+    "metrics": {
+      "motion_naturalness_mean": 0.924,
+      "task_success_rate": 0.98,
+      "walk_arm_leg_phase_error_deg": 7.45,
+      "walk_foot_sliding_m": 0.0121,
+      "door_hand_target_error_m": 0.0261,
+      "door_torso_twist_deg": 15.23,
+      "sit_knee_hip_sync_error": 0.106,
+      "sit_com_support_margin_m": 0.0182,
+      "stair_foot_clearance_m": 0.0662,
+      "factory_pick_hand_target_error_m": 0.0279,
+      "factory_pick_clearance_m": 0.0661,
+      "jerk_norm": 0.248,
+      "collision_rate": 0.025,
+      "task_scores": {
+        "walk": 85.2,
+        "door": 89.0,
+        "sit_stand": 87.0,
+        "stairs": 100.0,
+        "factory_pick": 94.5
+      }
+    },
+    "score": 100,
+    "verdict": "L20_CANDIDATE",
+    "violations": [],
+    "corrections": []
+  },
+  "top_trials": [
+    {
+      "trial_id": "l20-refine-a-01",
+      "strategy": "phase_lock_foot_ik_task_contact",
+      "metrics": {
+        "motion_naturalness_mean": 0.924,
+        "task_success_rate": 0.98,
+        "walk_arm_leg_phase_error_deg": 7.45,
+        "walk_foot_sliding_m": 0.0121,
+        "door_hand_target_error_m": 0.0261,
+        "door_torso_twist_deg": 15.23,
+        "sit_knee_hip_sync_error": 0.106,
+        "sit_com_support_margin_m": 0.0182,
+        "stair_foot_clearance_m": 0.0662,
+        "factory_pick_hand_target_error_m": 0.0279,
+        "factory_pick_clearance_m": 0.0661,
+        "jerk_norm": 0.248,
+        "collision_rate": 0.025,
+        "task_scores": {
+          "walk": 85.2,
+          "door": 89.0,
+          "sit_stand": 87.0,
+          "stairs": 100.0,
+          "factory_pick": 94.5
+        }
+      },
+      "score": 100,
+      "verdict": "L20_CANDIDATE",
+      "violations": [],
+      "corrections": []
+    },
+    {
+      "trial_id": "l20-refine-b-01",
+      "strategy": "whole_body_smoothing_contact_replay",
+      "metrics": {
+        "motion_naturalness_mean": 0.96,
+        "task_success_rate": 0.98,
+        "walk_arm_leg_phase_error_deg": 4.32,
+        "walk_foot_sliding_m": 0.006,
+        "door_hand_target_error_m": 0.0172,
+        "door_torso_twist_deg": 11.27,
+        "sit_knee_hip_sync_error": 0.07,
+        "sit_com_support_margin_m": 0.0402,
+        "stair_foot_clearance_m": 0.0842,
+        "factory_pick_hand_target_error_m": 0.0184,
+        "factory_pick_clearance_m": 0.075,
+        "jerk_norm": 0.174,
+        "collision_rate": 0.011,
+        "task_scores": {
+          "walk": 91.9,
+          "door": 92.8,
+          "sit_stand": 95.9,
+          "stairs": 100.0,
+          "factory_pick": 100.0
+        }
+      },
+      "score": 100,
+      "verdict": "L20_CANDIDATE",
+      "violations": [],
+      "corrections": []
+    },
+    {
+      "trial_id": "l20-refine-a-02",
+      "strategy": "phase_lock_foot_ik_task_contact",
+      "metrics": {
+        "motion_naturalness_mean": 0.885,
+        "task_success_rate": 0.98,
+        "walk_arm_leg_phase_error_deg": 7.59,
+        "walk_foot_sliding_m": 0.0114,
+        "door_hand_target_error_m": 0.0384,
+        "door_torso_twist_deg": 15.18,
+        "sit_knee_hip_sync_error": 0.132,
+        "sit_com_support_margin_m": 0.0226,
+        "stair_foot_clearance_m": 0.0678,
+        "factory_pick_hand_target_error_m": 0.0204,
+        "factory_pick_clearance_m": 0.0665,
+        "jerk_norm": 0.23,
+        "collision_rate": 0.029,
+        "task_scores": {
+          "walk": 85.3,
+          "door": 83.9,
+          "sit_stand": 83.8,
+          "stairs": 100.0,
+          "factory_pick": 98.2
+        }
+      },
+      "score": 100,
+      "verdict": "L20_CANDIDATE",
+      "violations": [],
+      "corrections": []
+    },
+    {
+      "trial_id": "l20-refine-b-02",
+      "strategy": "whole_body_smoothing_contact_replay",
+      "metrics": {
+        "motion_naturalness_mean": 0.96,
+        "task_success_rate": 0.98,
+        "walk_arm_leg_phase_error_deg": 4.4,
+        "walk_foot_sliding_m": 0.0057,
+        "door_hand_target_error_m": 0.0253,
+        "door_torso_twist_deg": 11.23,
+        "sit_knee_hip_sync_error": 0.087,
+        "sit_com_support_margin_m": 0.0446,
+        "stair_foot_clearance_m": 0.0858,
+        "factory_pick_hand_target_error_m": 0.0135,
+        "factory_pick_clearance_m": 0.075,
+        "jerk_norm": 0.161,
+        "collision_rate": 0.012,
+        "task_scores": {
+          "walk": 91.9,
+          "door": 89.4,
+          "sit_stand": 94.1,
+          "stairs": 100.0,
+          "factory_pick": 100.0
+        }
+      },
+      "score": 100,
+      "verdict": "L20_CANDIDATE",
+      "violations": [],
+      "corrections": []
+    },
+    {
+      "trial_id": "l20-refine-b-03",
+      "strategy": "whole_body_smoothing_contact_replay",
+      "metrics": {
+        "motion_naturalness_mean": 0.96,
+        "task_success_rate": 0.98,
+        "walk_arm_leg_phase_error_deg": 7.66,
+        "walk_foot_sliding_m": 0.0065,
+        "door_hand_target_error_m": 0.0238,
+        "door_torso_twist_deg": 12.8,
+        "sit_knee_hip_sync_error": 0.079,
+        "sit_com_support_margin_m": 0.0319,
+        "stair_foot_clearance_m": 0.0908,
+        "factory_pick_hand_target_error_m": 0.016,
+        "factory_pick_clearance_m": 0.075,
+        "jerk_norm": 0.175,
+        "collision_rate": 0.012,
+        "task_scores": {
+          "walk": 87.3,
+          "door": 90.0,
+          "sit_stand": 93.3,
+          "stairs": 100.0,
+          "factory_pick": 100.0
+        }
+      },
+      "score": 100,
+      "verdict": "L20_CANDIDATE",
+      "violations": [],
+      "corrections": []
+    },
+    {
+      "trial_id": "l20-refine-a-04",
+      "strategy": "phase_lock_foot_ik_task_contact",
+      "metrics": {
+        "motion_naturalness_mean": 0.953,
+        "task_success_rate": 0.98,
+        "walk_arm_leg_phase_error_deg": 12.14,
+        "walk_foot_sliding_m": 0.0112,
+        "door_hand_target_error_m": 0.0392,
+        "door_torso_twist_deg": 15.97,
+        "sit_knee_hip_sync_error": 0.112,
+        "sit_com_support_margin_m": 0.0174,
+        "stair_foot_clearance_m": 0.0817,
+        "factory_pick_hand_target_error_m": 0.028,
+        "factory_pick_clearance_m": 0.0633,
+        "jerk_norm": 0.226,
+        "collision_rate": 0.019,
+        "task_scores": {
+          "walk": 79.5,
+          "door": 83.5,
+          "sit_stand": 86.0,
+          "stairs": 100.0,
+          "factory_pick": 94.2
+        }
+      },
+      "score": 100,
+      "verdict": "L20_CANDIDATE",
+      "violations": [],
+      "corrections": []
+    },
+    {
+      "trial_id": "l20-refine-b-04",
+      "strategy": "whole_body_smoothing_contact_replay",
+      "metrics": {
+        "motion_naturalness_mean": 0.96,
+        "task_success_rate": 0.98,
+        "walk_arm_leg_phase_error_deg": 7.04,
+        "walk_foot_sliding_m": 0.0056,
+        "door_hand_target_error_m": 0.0259,
+        "door_torso_twist_deg": 11.82,
+        "sit_knee_hip_sync_error": 0.074,
+        "sit_com_support_margin_m": 0.0394,
+        "stair_foot_clearance_m": 0.095,
+        "factory_pick_hand_target_error_m": 0.0185,
+        "factory_pick_clearance_m": 0.075,
+        "jerk_norm": 0.158,
+        "collision_rate": 0.008,
+        "task_scores": {
+          "walk": 88.5,
+          "door": 89.1,
+          "sit_stand": 95.2,
+          "stairs": 100.0,
+          "factory_pick": 100.0
+        }
+      },
+      "score": 100,
+      "verdict": "L20_CANDIDATE",
+      "violations": [],
+      "corrections": []
+    },
+    {
+      "trial_id": "l20-refine-a-05",
+      "strategy": "phase_lock_foot_ik_task_contact",
+      "metrics": {
+        "motion_naturalness_mean": 0.861,
+        "task_success_rate": 0.98,
+        "walk_arm_leg_phase_error_deg": 12.1,
+        "walk_foot_sliding_m": 0.0144,
+        "door_hand_target_error_m": 0.0445,
+        "door_torso_twist_deg": 15.79,
+        "sit_knee_hip_sync_error": 0.113,
+        "sit_com_support_margin_m": 0.0195,
+        "stair_foot_clearance_m": 0.0663,
+        "factory_pick_hand_target_error_m": 0.0239,
+        "factory_pick_clearance_m": 0.0683,
+        "jerk_norm": 0.237,
+        "collision_rate": 0.04,
+        "task_scores": {
+          "walk": 78.2,
+          "door": 81.3,
+          "sit_stand": 86.2,
+          "stairs": 100.0,
+          "factory_pick": 96.7
+        }
+      },
+      "score": 100,
+      "verdict": "L20_CANDIDATE",
+      "violations": [],
+      "corrections": []
+    }
+  ],
+  "next_actions": [
+    "Render the best L20 candidate as sampled PNG frames for visual review.",
+    "Promote task-specific IK phases: approach, align, contact, act, release, recover.",
+    "Add failure replay for foot slide, door over-twist, low stair clearance, and factory fixture collision.",
+    "Keep real robot deployment blocked until L20 task motion is stable in simulation."
+  ],
+  "score_summary": {
+    "max": 100,
+    "min": 0,
+    "mean": 29.05
+  }
+}
