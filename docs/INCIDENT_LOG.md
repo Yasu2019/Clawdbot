@@ -3,6 +3,38 @@
 譛ｬ繝輔ぃ繧､繝ｫ縺ｯ縲√す繧ｹ繝・Β縺ｫ逋ｺ逕溘＠縺滄囿螳ｳ縺ｻ荳榊・蜷医→縺昴・譬ｹ譛ｬ蜴溷屏繝ｻ菫ｮ豁｣蜀・ｮｹ繝ｻ蜀咲匱髦ｲ豁｢遲悶ｒ險倬鹸縺励∪縺吶€・菫ｮ豁｣繧定｡後▲縺溷ｴ蜷医・縲∝ｿ・★縺薙・繝輔ぃ繧､繝ｫ縺ｫ繧ｨ繝ｳ繝医Μ繧定ｿｽ蜉縺励※縺上□縺輔＞縲・
 ------
 
+------
+
+## INC-126: CP-018 publishing catalog item had no concrete Kindle/note/BOOTH pages
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-06-20 JST |
+| **Detection** | User reported that KindleUnlimited, note, and BOOTH book pages could not be found after CP-018 robot publishing topic was added. |
+| **Impact** | Growth Dashboard could list the publishing idea, but the user had no concrete page drafts to open or reuse for publishing. |
+| **Root Cause (5 Why)** | **Why1**: Only the catalog item was added. **Why2**: The work was interpreted as topic registration rather than page creation. **Why3**: Existing CP items use `cp-*_book_draft.html` and `.md`, but CP-018 did not follow that asset pattern. **Why4**: There was no validation requiring Kindle/note/BOOTH items to have concrete page assets. **Why5**: Final verification checked JSON validity, not asset completeness. |
+| **Fix** | Added `cp-018_book_draft.html`, `cp-018_book_draft.md`, and platform drafts under `publishing/cp018_robot_training/` for Kindle Unlimited, note, and BOOTH. Updated CP-018 `asset_paths`. |
+| **Files** | `data/workspace/apps/growth_dashboard/content_publishing_catalog.json`; `data/workspace/apps/growth_dashboard/cp-018_book_draft.html`; `data/workspace/apps/growth_dashboard/cp-018_book_draft.md`; `data/workspace/apps/growth_dashboard/publishing/cp018_robot_training/*`; `quality_incident_report_20260620_cp018_book_pages_missing.md` |
+| **Verification** | CP-018 asset existence validation PASS. HTML structure validation PASS. `localhost:8088` route check timed out, which is separate dashboard server availability. |
+| **Prevention** | When adding a publishing catalog item with Kindle/note/BOOTH platforms, create concrete page assets and validate that every non-external `asset_paths` entry exists. |
+
+------
+
+## INC-125: DXF2STEP combined geometry false SUCCESS -- P38 / A3 sheet / auxiliary views (extends INC-124)
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-06-19 -- 2026-06-20 JST |
+| **Detection** | User: P38 TOP multiple outlines (`tp-dxf-5941a119`). Full audit: 21+ trials SUSPECT_NG; PARTIAL P4,P5,P6,P7,P9,P47,S1; FAILED P46. |
+| **Impact** | False SUCCESS on Growth Dashboard; unusable combined.step for progressive-die / Moldflow handoff; operator re-work. |
+| **Root Cause (5 Why)** | **Why1**: TOP double/multiple silhouettes. **Why2**: Layout layers (A4 208x293, A3 420x297, A2 594x420) extruded; same-layer side views on P38 L7. **Why3**: INC-124 fix used 20x-only frame rule; no A3 skip; no island filter; multiview fail -> PARTIAL. **Why4**: No mandatory PNG silhouette audit; old trials remained dashboard best. **Why5**: KPI layers_done + has_combined_step only. |
+| **Fix** | 1. `_is_layout_layer_bbox` (A4+A3+A2) extrude skip.<br>2. `_keep_largest_connected_cluster` X-column filter.<br>3. multiview fail -> `_pick_part_layer_for_combined` fallback.<br>4. Smallest non-layout layer preferred for combined.<br>5. Batch rescan 8 PARTIAL + P46; audit + NG registry sync.<br>6. Full QC record: `quality_incident_report_20260620_dxf2step_combined_geometry_inc125.md`. |
+| **Files** | `dxf2step_worker.py`, `dxf2step_combined_geometry_qc_checklist.md`, `dxf2step_geometry_ng_trials.json`, `register_dxf2step_combined_geometry_inc125.py` |
+| **Verification** | P38 `tp-dxf-8e205f0e` single TOP; P4 `tp-dxf-1c5a1c9d`; P46 `tp-dxf-fcf3cc4c` SUCCESS; audit archives=166. |
+| **Prevention** | [T040]; DXF-QC02/04/07/09; read checklist before worker changes; `bd remember --key dxf2step-combined-geometry-inc125`; never ship double TOP outline. |
+
+------
+
 ## INC-124: DXF2STEP S11 false SUCCESS -- overlapping TOP VIEW profiles (frame layer as front)
 
 | Field | Detail |

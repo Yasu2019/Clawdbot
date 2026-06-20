@@ -793,6 +793,12 @@
       },
       "status": "OUTLINE_READY",
       "asset_paths": [
+        "cp-018_book_draft.html",
+        "cp-018_book_draft.md",
+        "publishing/cp018_robot_training/kindle_unlimited_page.md",
+        "publishing/cp018_robot_training/note_page.md",
+        "publishing/cp018_robot_training/booth_page.md",
+        "publishing/cp018_robot_training/README.md",
         "robot_learning_swarm_demo.html",
         "material_source_inventory.json",
         "../motion_lab/assets/web_sourced/robotics_gait_knowledge/robotics_gait_knowledge_report.md",
