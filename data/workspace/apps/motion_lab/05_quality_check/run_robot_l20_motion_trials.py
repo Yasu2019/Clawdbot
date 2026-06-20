@@ -123,7 +123,22 @@ def run_trials(count: int = 96, seed_base: int = 20260620, refine_top: int = 12)
         refined_2 = refine_metrics(refined_1, 2)
         append_trial(f"l20-refine-b-{i + 1:02d}", refined_2, "whole_body_smoothing_contact_replay")
 
-    trials.sort(key=lambda item: item["score"], reverse=True)
+    # Walk-targeted: refine trials with lowest baseline phase_error regardless of overall score
+    walk_top = sorted(
+        [t for t in trials if t["strategy"] == "baseline_random"],
+        key=lambda t: t["metrics"]["walk_arm_leg_phase_error_deg"],
+    )[:3]
+    for i, item in enumerate(walk_top):
+        refined_1 = refine_metrics(item["metrics"], 1)
+        append_trial(f"l20-walk-a-{i + 1:02d}", refined_1, "walk_targeted_phase_lock")
+        refined_2 = refine_metrics(refined_1, 2)
+        append_trial(f"l20-walk-b-{i + 1:02d}", refined_2, "walk_targeted_smoothing")
+
+    def _trial_floor(item: dict) -> float:
+        ts = item["metrics"].get("task_scores") or {}
+        return min(float(v) for v in ts.values()) if ts else 0.0
+
+    trials.sort(key=lambda item: (item["score"], _trial_floor(item)), reverse=True)
     best = trials[0]
     scores = [item["score"] for item in trials]
     l20_candidates = [item for item in trials if item["verdict"] == "L20_CANDIDATE"]

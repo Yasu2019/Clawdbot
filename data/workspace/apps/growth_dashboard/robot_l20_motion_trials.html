@@ -27,24 +27,24 @@
     <section class="grid">
       <div class="card"><strong>best score</strong><span>100</span></div>
       <div class="card"><strong>best verdict</strong><span>L20_CANDIDATE</span></div>
-      <div class="card"><strong>trials</strong><span>120</span></div>
-      <div class="card"><strong>L20 candidates</strong><span>24</span></div>
+      <div class="card"><strong>trials</strong><span>166</span></div>
+      <div class="card"><strong>L20 candidates</strong><span>40</span></div>
     </section>
     <h2>Best Task Scores</h2>
-    <section class="grid"><div class='card'><strong>walk</strong><span>82.4</span></div>
-<div class='card'><strong>door</strong><span>83.9</span></div>
-<div class='card'><strong>sit_stand</strong><span>88.2</span></div>
+    <section class="grid"><div class='card'><strong>walk</strong><span>92.6</span></div>
+<div class='card'><strong>door</strong><span>92.5</span></div>
+<div class='card'><strong>sit_stand</strong><span>96.9</span></div>
 <div class='card'><strong>stairs</strong><span>100.0</span></div>
-<div class='card'><strong>factory_pick</strong><span>96.0</span></div></section>
+<div class='card'><strong>factory_pick</strong><span>100.0</span></div></section>
     <h2>Top Trials</h2>
-    <table><thead><tr><th>Trial</th><th>Score</th><th>Verdict</th><th>Violations</th></tr></thead><tbody><tr><td>l20-refine-a-01</td><td>100</td><td>L20_CANDIDATE</td><td>0</td></tr>
-<tr><td>l20-refine-b-01</td><td>100</td><td>L20_CANDIDATE</td><td>0</td></tr>
-<tr><td>l20-refine-a-02</td><td>100</td><td>L20_CANDIDATE</td><td>0</td></tr>
-<tr><td>l20-refine-b-02</td><td>100</td><td>L20_CANDIDATE</td><td>0</td></tr>
-<tr><td>l20-refine-a-03</td><td>100</td><td>L20_CANDIDATE</td><td>0</td></tr>
-<tr><td>l20-refine-b-03</td><td>100</td><td>L20_CANDIDATE</td><td>0</td></tr>
+    <table><thead><tr><th>Trial</th><th>Score</th><th>Verdict</th><th>Violations</th></tr></thead><tbody><tr><td>l20-refine-b-01</td><td>100</td><td>L20_CANDIDATE</td><td>0</td></tr>
+<tr><td>l20-walk-b-01</td><td>100</td><td>L20_CANDIDATE</td><td>0</td></tr>
 <tr><td>l20-refine-b-04</td><td>100</td><td>L20_CANDIDATE</td><td>0</td></tr>
-<tr><td>l20-refine-a-05</td><td>100</td><td>L20_CANDIDATE</td><td>0</td></tr></tbody></table>
+<tr><td>l20-refine-b-09</td><td>100</td><td>L20_CANDIDATE</td><td>0</td></tr>
+<tr><td>l20-refine-b-05</td><td>100</td><td>L20_CANDIDATE</td><td>0</td></tr>
+<tr><td>l20-refine-b-07</td><td>100</td><td>L20_CANDIDATE</td><td>0</td></tr>
+<tr><td>l20-refine-b-02</td><td>100</td><td>L20_CANDIDATE</td><td>0</td></tr>
+<tr><td>l20-refine-b-10</td><td>100</td><td>L20_CANDIDATE</td><td>0</td></tr></tbody></table>
     <h2>Next Actions</h2>
     <ul><li>Render the best L20 candidate as sampled PNG frames for visual review.</li><li>Promote task-specific IK phases: approach, align, contact, act, release, recover.</li><li>Add failure replay for foot slide, door over-twist, low stair clearance, and factory fixture collision.</li><li>Keep real robot deployment blocked until L20 task motion is stable in simulation.</li></ul>
     <p class="warn">Real robot deployment remains blocked until simulation task motion is stable and safety gates pass.</p>
