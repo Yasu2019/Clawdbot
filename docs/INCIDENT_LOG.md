@@ -5,6 +5,21 @@
 
 ------
 
+## INC-127: Robot L20 trial generator wrote to nested data/data path on first run
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-06-20 JST |
+| **Detection** | First execution of `run_robot_l20_motion_trials.py` failed with `FileNotFoundError` while writing `robot_l20_motion_trial_status.json`. |
+| **Impact** | The urgent L20 trial loop produced no dashboard evidence on the first attempt, delaying the robot natural-motion iteration. |
+| **Root Cause (5 Why)** | **Why1**: Output path was `D:\Clawdbot_Docker_20260125\data\data\workspace\...`. **Why2**: `ROOT = parents[4]` resolved to the repo `data` directory. **Why3**: The script lives under `data/workspace/apps/motion_lab/05_quality_check`, so repo root is `parents[5]`. **Why4**: `py_compile` only checked syntax and did not verify runtime output paths. **Why5**: No smoke test existed for generated dashboard-output scripts. |
+| **Fix** | Changed `ROOT` to `Path(__file__).resolve().parents[5]`. Re-ran the L20 trial loop successfully and generated JSON, HTML, and Markdown evidence. |
+| **Files** | `data/workspace/apps/motion_lab/05_quality_check/run_robot_l20_motion_trials.py`; `quality_incident_report_20260620_robot_l20_trial_path_bug.md`; `data/workspace/apps/growth_dashboard/robot_l20_motion_trial_status.json`; `data/workspace/apps/growth_dashboard/robot_l20_motion_trials.html` |
+| **Verification** | `py_compile` passed. `run_robot_l20_motion_trials.py` completed successfully: 120 trials, best score 100, 24 L20 proxy candidates, all best-task scores >= 82.4. Telegram text and HTML document delivery succeeded. |
+| **Prevention** | For generated dashboard-output scripts, run a smoke execution after syntax checks and verify absolute output paths stay under repo root, never nested `data/data`. |
+
+------
+
 ## INC-126: CP-018 publishing catalog item had no concrete Kindle/note/BOOTH pages
 
 | Field | Detail |

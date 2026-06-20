@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Robot Learning Swarm Demo</title>
+  <title>Robot Learning Swarm Demo - L20 Motion Trial</title>
   <style>
     :root {
       color-scheme: light;
@@ -197,8 +197,8 @@
 <body>
   <header>
     <div>
-      <h1>Robot Learning Swarm Demo</h1>
-      <div class="sub">Prototype: multi-robot gait, door task, score feedback, and visual rollout review</div>
+      <h1>Robot Learning Swarm Demo - L20 Motion Trial</h1>
+      <div class="sub">Prototype: multi-robot gait, door, sit/stand, stairs, factory pick, score feedback, and visual rollout review</div>
     </div>
     <div class="controls">
       <select id="robotCount">
@@ -237,7 +237,7 @@
         </div>
       </div>
       <div class="legend">
-        The robots use the current v7 idea: contralateral arms, swing-leg knee flexion, ankle cue, straighter support leg, and door-task reward. This is not full physics RL yet; it is the first visible scaffold for user review.
+        The robots use the current L20 trial idea: contralateral arms, stance foot lock, swing-leg knee flexion, ankle cue, door reach phases, sit/stand CoM support, stair clearance, and factory pick clearance. This is still visual/proxy motion, not final physics RL.
       </div>
       <div class="robot-list" id="robotList"></div>
     </aside>
@@ -264,6 +264,7 @@
       { name: 'walk', color: '#4c8bd6' },
       { name: 'open door', color: '#d8913b' },
       { name: 'sit/stand', color: '#7a9f68' },
+      { name: 'stairs', color: '#589c88' },
       { name: 'factory pick', color: '#9b7ac7' }
     ];
 
@@ -372,6 +373,12 @@
         ctx.fillRect(w - 90, h - 70, 74, 12);
         ctx.fillStyle = '#48535d';
         ctx.fillRect(w - 42, h - 112, 16, 16);
+      } else if (task.name === 'stairs') {
+        ctx.fillStyle = '#a7b6ba';
+        for (let i = 0; i < 4; i++) {
+          ctx.fillRect(w - 105 + i * 24, h - 45 - i * 18, 28, 10);
+          ctx.fillRect(w - 105 + i * 24, h - 35 - i * 18, 10, 18);
+        }
       } else {
         ctx.fillStyle = '#b6c4c9';
         ctx.fillRect(w - 80, h - 98, 62, 14);
@@ -387,15 +394,18 @@
       ctx.restore();
     }
 
-    function drawRobot(cx, cy, scale, phase, taskProgress, skill) {
+    function drawRobot(cx, cy, scale, phase, taskProgress, skill, taskName) {
       const gait = Math.sin(phase);
       const lift = Math.max(0, Math.sin(phase + Math.PI / 2));
-      const torsoTilt = gait * 0.035;
-      const shoulder = -gait * 0.75;
+      const reach = taskName === 'open door' || taskName === 'factory pick' ? Math.min(1, Math.max(0, (taskProgress - 0.35) * 2.4)) : 0;
+      const sit = taskName === 'sit/stand' ? Math.sin(Math.min(1, taskProgress) * Math.PI) : 0;
+      const stair = taskName === 'stairs' ? 1 : 0;
+      const torsoTilt = gait * 0.035 + sit * 0.10 - reach * 0.05;
+      const shoulder = -gait * 0.75 - reach * 0.42;
       const hip = gait * 0.55;
       const elbowBend = 0.35 + Math.abs(gait) * 0.12;
-      const kneeBend = 0.18 + lift * 0.62 * (0.8 + skill * 0.3);
-      const ankle = -lift * 0.22 + Math.max(0, -Math.sin(phase + Math.PI / 2)) * 0.12;
+      const kneeBend = 0.18 + lift * (0.62 + stair * 0.22) * (0.8 + skill * 0.3) + sit * 0.45;
+      const ankle = -lift * (0.22 + stair * 0.08) + Math.max(0, -Math.sin(phase + Math.PI / 2)) * 0.12 + sit * 0.10;
 
       ctx.save();
       ctx.translate(cx, cy);
@@ -418,11 +428,12 @@
 
       function arm(side) {
         const x = side * 30;
-        const a = side < 0 ? shoulder : -shoulder;
+        const reachArm = reach && side > 0 ? -0.95 * reach : 0;
+        const a = side < 0 ? shoulder : -shoulder + reachArm;
         limb(x, -34, 38, 13, a, white);
         ctx.save();
         ctx.translate(x + Math.sin(a) * -38, -34 + Math.cos(a) * 38);
-        ctx.rotate(a + side * 0.05 + elbowBend);
+        ctx.rotate(a + side * 0.05 + elbowBend * (1 - reach * 0.35));
         roundedRect(-6, 0, 12, 34, 4, white, '#88939a');
         ctx.fillStyle = dark;
         ctx.fillRect(-5, 30, 10, 8);
@@ -431,9 +442,9 @@
 
       function leg(side) {
         const x = side * 13;
-        const a = side < 0 ? hip : -hip;
+        const a = (side < 0 ? hip : -hip) - sit * 0.18;
         const swing = side < 0 ? lift : Math.max(0, -Math.sin(phase + Math.PI / 2));
-        const k = kneeBend * (0.6 + swing);
+        const k = kneeBend * (0.6 + swing + stair * 0.16);
         limb(x, 28, 38, 15, a, green);
         ctx.save();
         ctx.translate(x + Math.sin(a) * -38, 28 + Math.cos(a) * 38);
@@ -445,6 +456,7 @@
         ctx.restore();
       }
 
+      ctx.translate(0, sit * 18 - stair * lift * 6);
       ctx.fillStyle = dark;
       ctx.fillRect(-26, 18, 52, 15);
       roundedRect(-28, -42, 56, 66, 7, white, '#9aa5a9');
@@ -512,7 +524,7 @@
         drawEnvironment(x, y, w, h, robot.task, robot.progress || 0, robot.success);
         const walkX = x + 35 + (w - 85) * (robot.progress || 0);
         const walkY = y + h - 62;
-        drawRobot(walkX, walkY, Math.max(0.46, Math.min(0.72, h / 225)), robot.phase, robot.progress || 0, robot.skill);
+        drawRobot(walkX, walkY, Math.max(0.46, Math.min(0.72, h / 225)), robot.phase, robot.progress || 0, robot.skill, robot.task.name);
         ctx.fillStyle = '#1d252b';
         ctx.font = '12px Arial';
         ctx.fillText(`R${robot.id} ${robot.task.name}`, x + 12, y + h - 14);

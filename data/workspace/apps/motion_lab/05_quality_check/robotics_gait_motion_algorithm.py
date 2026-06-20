@@ -45,6 +45,24 @@ DEFAULT_ROBOT_LEARNING_THRESHOLDS = {
 }
 
 
+DEFAULT_TASK_MOTION_THRESHOLDS = {
+    "motion_naturalness_mean": 0.78,
+    "task_success_rate": 0.70,
+    "task_score_min": 78.0,
+    "walk_arm_leg_phase_error_deg": 22.0,
+    "walk_foot_sliding_m": 0.025,
+    "door_hand_target_error_m": 0.055,
+    "door_torso_twist_deg": 22.0,
+    "sit_knee_hip_sync_error": 0.18,
+    "sit_com_support_margin_m": -0.010,
+    "stair_foot_clearance_m": 0.045,
+    "factory_pick_hand_target_error_m": 0.045,
+    "factory_pick_clearance_m": 0.040,
+    "jerk_norm": 0.35,
+    "collision_rate": 0.08,
+}
+
+
 def load_algorithm_rules(db_path: Path = DEFAULT_DB) -> list[dict[str, Any]]:
     if not db_path.exists():
         return []
@@ -342,10 +360,181 @@ def evaluate_robot_learning_metrics(metrics: dict[str, Any], thresholds: dict[st
     }
 
 
+def evaluate_task_motion_metrics(metrics: dict[str, Any], thresholds: dict[str, float] | None = None) -> dict[str, Any]:
+    """Score L11-L20 natural task motion readiness.
+
+    L10 focuses on natural locomotion. L20 requires natural task movements:
+    reaching a door handle, sit/stand transitions, stair clearance, and
+    factory pick/place motions. This evaluator keeps the loop measurable before
+    expensive Blender/physics rendering.
+    """
+    limits = dict(DEFAULT_TASK_MOTION_THRESHOLDS)
+    if thresholds:
+        limits.update(thresholds)
+
+    violations: list[dict[str, Any]] = []
+    corrections: list[str] = []
+
+    def above(metric: str, rule_id: str, severity: str, message: str) -> None:
+        value = _finite_number(metrics.get(metric))
+        if value is not None and value > limits[metric]:
+            violations.append(
+                {
+                    "rule_id": rule_id,
+                    "severity": severity,
+                    "metric": metric,
+                    "value": value,
+                    "limit": limits[metric],
+                }
+            )
+            corrections.append(message)
+
+    def below(metric: str, rule_id: str, severity: str, message: str) -> None:
+        value = _finite_number(metrics.get(metric))
+        if value is not None and value < limits[metric]:
+            violations.append(
+                {
+                    "rule_id": rule_id,
+                    "severity": severity,
+                    "metric": metric,
+                    "value": value,
+                    "limit": limits[metric],
+                }
+            )
+            corrections.append(message)
+
+    below(
+        "motion_naturalness_mean",
+        "l20_motion_naturalness_gate",
+        "high",
+        "Raise overall naturalness by smoothing pelvis/root timing and adding task-specific anticipation/follow-through.",
+    )
+    below(
+        "task_success_rate",
+        "l20_task_success_gate",
+        "high",
+        "Split long tasks into approach, align, contact, act, release, and recover phases before full task scoring.",
+    )
+    above(
+        "walk_arm_leg_phase_error_deg",
+        "contralateral_limb_phase",
+        "high",
+        "Keep right-leg-forward with left-arm-forward and left-leg-forward with right-arm-forward within one gait beat.",
+    )
+    above(
+        "walk_foot_sliding_m",
+        "foot_contact_lock",
+        "high",
+        "Lock stance foot in world space; solve pelvis and ankle over stance frames rather than sliding the foot.",
+    )
+    above(
+        "door_hand_target_error_m",
+        "door_reach_contact_gate",
+        "medium",
+        "Add approach-align-reach-contact-open phases and slow wrist motion near the handle.",
+    )
+    above(
+        "door_torso_twist_deg",
+        "door_reach_contact_gate",
+        "medium",
+        "Rotate torso and shoulder together; avoid opening a door with an isolated arm swing.",
+    )
+    above(
+        "sit_knee_hip_sync_error",
+        "sit_stand_support_gate",
+        "medium",
+        "Synchronize hip descent, knee flexion, and ankle counter-rotation during sit/stand.",
+    )
+    below(
+        "sit_com_support_margin_m",
+        "sit_stand_support_gate",
+        "high",
+        "Keep projected CoM inside foot support while sitting or standing; slow the transition when margin is low.",
+    )
+    below(
+        "stair_foot_clearance_m",
+        "stair_clearance_gate",
+        "high",
+        "Lift swing foot higher on stairs and place the foot flat before shifting pelvis weight.",
+    )
+    above(
+        "factory_pick_hand_target_error_m",
+        "factory_pick_place_gate",
+        "medium",
+        "Separate reach, grasp, lift, carry, place, and release phases; slow near fixture targets.",
+    )
+    below(
+        "factory_pick_clearance_m",
+        "factory_pick_place_gate",
+        "medium",
+        "Increase clearance around fixtures and bins before optimizing cycle time.",
+    )
+    above(
+        "jerk_norm",
+        "whole_body_smoothness_gate",
+        "medium",
+        "Limit frame-to-frame acceleration changes; blend task IK corrections over several frames.",
+    )
+    above(
+        "collision_rate",
+        "l20_task_safety_gate",
+        "high",
+        "Block L20 promotion until collisions are rare in all task families, not just walking.",
+    )
+
+    task_scores = metrics.get("task_scores") or {}
+    if isinstance(task_scores, dict):
+        for task_name, raw_score in task_scores.items():
+            value = _finite_number(raw_score)
+            if value is not None and value < limits["task_score_min"]:
+                violations.append(
+                    {
+                        "rule_id": "l20_all_task_floor_gate",
+                        "severity": "high" if value < 65 else "medium",
+                        "metric": f"task_scores.{task_name}",
+                        "value": value,
+                        "limit": limits["task_score_min"],
+                    }
+                )
+                corrections.append(
+                    "Do not promote to L20 until every task family clears the minimum naturalness floor."
+                )
+
+    score = 100
+    for item in violations:
+        if item["severity"] == "high":
+            score -= 18
+        elif item["severity"] == "medium":
+            score -= 9
+        else:
+            score -= 4
+    score = max(0, score)
+
+    high_count = sum(1 for v in violations if v["severity"] == "high")
+    if score >= 86 and high_count == 0:
+        verdict = "L20_CANDIDATE"
+    elif score >= 72 and high_count <= 1:
+        verdict = "L15_REVIEW"
+    elif score >= 58:
+        verdict = "L12_TRAIN"
+    else:
+        verdict = "HOLD"
+
+    return {
+        "score": score,
+        "verdict": verdict,
+        "violations": violations,
+        "corrections": list(dict.fromkeys(corrections)),
+        "rules_loaded": load_algorithm_rules(),
+        "thresholds": limits,
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Robotics-informed gait QA for generated 3D motion.")
     parser.add_argument("--metrics-json", help="Path to measured gait metrics JSON.")
     parser.add_argument("--robot-learning-json", help="Path to embodied robot-learning readiness metrics JSON.")
+    parser.add_argument("--task-motion-json", help="Path to L20 natural task motion metrics JSON.")
     parser.add_argument("--print-rules", action="store_true", help="Print DB-backed algorithm rules.")
     args = parser.parse_args()
 
@@ -356,8 +545,12 @@ def main() -> int:
         metrics = json.loads(Path(args.robot_learning_json).read_text(encoding="utf-8"))
         print(json.dumps(evaluate_robot_learning_metrics(metrics), ensure_ascii=False, indent=2))
         return 0
+    if args.task_motion_json:
+        metrics = json.loads(Path(args.task_motion_json).read_text(encoding="utf-8"))
+        print(json.dumps(evaluate_task_motion_metrics(metrics), ensure_ascii=False, indent=2))
+        return 0
     if not args.metrics_json:
-        parser.error("--metrics-json or --robot-learning-json is required unless --print-rules is used")
+        parser.error("--metrics-json, --robot-learning-json, or --task-motion-json is required unless --print-rules is used")
     metrics = json.loads(Path(args.metrics_json).read_text(encoding="utf-8"))
     print(json.dumps(evaluate_gait_metrics(metrics), ensure_ascii=False, indent=2))
     return 0
