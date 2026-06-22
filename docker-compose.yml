@@ -161,8 +161,9 @@ services:
     ports:
       - "127.0.0.1:11434:11434"
     environment:
+      - NVIDIA_VISIBLE_DEVICES=all
       - OLLAMA_NUM_PARALLEL=2       # 並列2件（エージェント+ブラウザ同時対応）
-      - OLLAMA_MAX_LOADED_MODELS=1  # 1モデル常駐（VRAM/RAMの圧迫回避）
+      - OLLAMA_MAX_LOADED_MODELS=1  # 1モデル常駐（16GB VRAM / RTX 5060 Ti）
       - OLLAMA_FLASH_ATTENTION=1    # Flash Attention有効（推論高速化）
       - OLLAMA_KEEP_ALIVE=5m        # 5分間常駐（アイドル時にメモリ完全開放）
       - OLLAMA_KV_CACHE_TYPE=q8_0   # KVキャッシュをint8量子化（メモリ半減・高速）
@@ -171,7 +172,12 @@ services:
       resources:
         limits:
           cpus: "18"    # 20スレッド中18（Windows+WSL最低限2スレッド確保）
-          memory: 32g   # 48GB中32GB（2モデル+KVキャッシュ+余裕）
+          memory: 16g   # 重みはGPU VRAM; ホストRAMはKV/バッファ用
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
     restart: unless-stopped
 
   qdrant:
