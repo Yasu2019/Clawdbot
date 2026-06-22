@@ -1,0 +1,38 @@
+{
+  "schema": "clawstack.jpeg_to_mecha_rig.config.v1",
+  "model": "robot_from_jpeg",
+  "input_image": "D:/Clawdbot_Docker_20260125/projects/AtsugiMechaCity/input/reference_robot.jpg",
+  "work_root": "D:/Clawdbot_Docker_20260125/projects/AtsugiMechaCity/diagnostics/jpeg_to_mecha_rig",
+  "generator": {
+    "provider": "partpacker",
+    "enabled": false,
+    "partpacker_root": "D:/AI/PartPacker",
+    "partpacker_python": "D:/AI/PartPacker/.venv/Scripts/python.exe",
+    "checkpoint": "pretrained/flow.pt",
+    "grid_res": 256,
+    "num_steps": 30,
+    "num_repeats": 3,
+    "timeout_minutes": 90
+  },
+  "candidate": {
+    "manual_model": "",
+    "partpacker_inventory": "",
+    "preferred_parts": 24
+  },
+  "blender": {
+    "exe": "C:/Program Files/Blender Foundation/Blender 5.1/blender.exe",
+    "target_height": 18.0,
+    "upright": "90,0,0"
+  },
+  "qa": {
+    "require_visual_review": true,
+    "require_joint_separation": true,
+    "max_flagged_ratio": 0.3
+  },
+  "runtime": {
+    "dry_run": true,
+    "allow_external_downloads": false,
+    "allow_cloud_generation": false,
+    "allow_telegram": false
+  }
+}
