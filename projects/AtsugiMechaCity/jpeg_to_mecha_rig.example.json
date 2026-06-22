@@ -1,7 +1,7 @@
 {
   "schema": "clawstack.jpeg_to_mecha_rig.config.v1",
   "model": "robot_from_jpeg",
-  "input_image": "D:/Clawdbot_Docker_20260125/projects/AtsugiMechaCity/input/reference_robot.jpg",
+  "input_image": "D:/Clawdbot_Docker_20260125/projects/AtsugiMechaCity/partcrafter/mecha_src.png",
   "work_root": "D:/Clawdbot_Docker_20260125/projects/AtsugiMechaCity/diagnostics/jpeg_to_mecha_rig",
   "generator": {
     "provider": "partpacker",
