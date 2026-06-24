@@ -5,6 +5,21 @@
 
 ------
 
+## INC-129: FEM Impact mesh explosion false SUCCESS -- stale PNG/VTK accepted
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-06-24 JST |
+| **Detection** | User visually inspected Fem_Impact PNGs and reported mesh explosion. K10 tri-track had repeatedly logged `SUCCESS` with `FEM_IMPACT_SKIP_RECOMPUTE=png_exists` and `FEM_IMPACT_PNG_COUNT=3`. |
+| **Impact** | ThinkPad `fem_impact` produced false CAE success evidence. Existing PNG/video artifacts for `Rough_Mesh/test.in` and `no_solid_reqtangle_sample_20250806/test.in` are invalid until revalidated. |
+| **Root Cause (5 Why)** | **Why1**: Bad FEM output was marked SUCCESS. **Why2**: Success only required exit status plus PNG/count markers. **Why3**: Cached PNG path skipped recompute and did not validate the source VTK. **Why4**: INC-122/123 fixed script sync and shell quoting but did not add a mesh plausibility gate. **Why5**: The operator checked logs/counts without opening the rendered images. |
+| **Fix** | Added `scripts/impact_vtk_quality_gate.py`, a pure-Python legacy VTK QC gate. Updated `scripts/k10_tri_track_cae_orchestrator.py` so cached PNG, reused VTK, and fresh solve paths all run QC before PNG success is accepted. Updated `scripts/k10_thinkpad_fem_impact_deploy.py` to sync the QC script to ThinkPad with the PNG/render helpers. |
+| **Files** | `scripts/impact_vtk_quality_gate.py`; `scripts/k10_tri_track_cae_orchestrator.py`; `scripts/k10_thinkpad_fem_impact_deploy.py`; `quality_incident_report_20260624_fem_impact_mesh_explosion.md`; `data/state/Obsidian Vault/60_PC_Logs/FEM_Impact_INC129_mesh_explosion_false_success_20260624.md` |
+| **Verification** | `py_compile` passed for the changed Python files. Synthetic exploded VTK failed with `FAILED_MESH_EXPLOSION`; synthetic small VTK passed. ThinkPad known-bad `Rough_Mesh/test.in_surface_0.002000.vtk` failed with bbox `52376491.47`, coordinate max `26836835.69`, displacement max `26993307.77`. ThinkPad known-bad sample VTK failed with bbox `1668049955.59`, coordinate max `807003989.11`, displacement max `863948636.94`. Live `run_thinkpad_impact` returned `FAILED_MESH_EXPLOSION` before recompute. |
+| **Prevention** | Fem_Impact success now requires `FEM_IMPACT_QC_VERDICT=PASS`; `FAILED_MESH_EXPLOSION` cannot be reported as SUCCESS. Cached PNGs are no longer trusted without source VTK numeric QC. Beads issue `Clawdbot_Docker_20260125-g3k`; rule captured with `bd remember --key fem-impact-mesh-explosion-inc129`. |
+
+------
+
 ## INC-128: Robot L20 autonomous launcher used same stdout/stderr redirect path
 
 | Field | Detail |

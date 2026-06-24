@@ -76,16 +76,35 @@ No external web search was run for this first containment step. The root cause i
 - Do not resume `fem_impact` continuous mode until a gate exists.
 - Treat current ThinkPad FEM Impact PNG/video artifacts from 2026-06-24 as invalid unless revalidated.
 
-## Countermeasure Plan Requiring User Confirmation
+## Implemented Countermeasures
 
-1. Add a FEM Impact QC gate before `SUCCESS`:
-   - Parse VTK bbox diagonal and coordinate min/max.
-   - Parse displacement magnitude max.
-   - Fail if bbox or displacement exceeds a conservative threshold.
-   - Emit `FAILED_MESH_EXPLOSION` with numeric evidence.
-2. Disable `FEM_IMPACT_SKIP_RECOMPUTE=png_exists` as a success path unless a sidecar QC JSON exists and passes.
-3. Temporarily disable the ThinkPad `fem_impact` track in tri-track, or add a `--disable-fem-impact` option, so Main LAVIE and Red LAVIE can continue while FEM is repaired.
-4. Add incident entries after implementation:
-   - `docs/INCIDENT_LOG.md`
-   - Obsidian mirror under `data/state/Obsidian Vault/60_PC_Logs/`
-5. Resume CAE only after the gate is implemented and one known-bad image is correctly rejected.
+1. Added `scripts/impact_vtk_quality_gate.py`:
+   - Parses legacy ASCII VTK `POINTS`.
+   - Computes bbox diagonal and coordinate absolute maximum.
+   - Parses displacement magnitude when available.
+   - Emits `FAILED_MESH_EXPLOSION` with numeric evidence.
+2. Updated `scripts/k10_tri_track_cae_orchestrator.py`:
+   - Cached PNG path now runs QC before accepting `FEM_IMPACT_SKIP_RECOMPUTE=png_exists`.
+   - Reused VTK path now runs QC before PNG rendering.
+   - Fresh solve path now runs QC before PNG rendering.
+   - Success requires `FEM_IMPACT_QC_VERDICT=PASS`.
+3. Updated `scripts/k10_thinkpad_fem_impact_deploy.py`:
+   - Syncs `impact_vtk_quality_gate.py` to ThinkPad with the PNG/render helpers.
+4. Added persistent records:
+   - `docs/INCIDENT_LOG.md` INC-129.
+   - `data/state/Obsidian Vault/60_PC_Logs/FEM_Impact_INC129_mesh_explosion_false_success_20260624.md`.
+
+## Verification After Fix
+
+- Python compile check passed for changed scripts.
+- Synthetic exploded VTK failed with `FAILED_MESH_EXPLOSION`.
+- Synthetic small VTK passed.
+- ThinkPad `Rough_Mesh/test.in_surface_0.002000.vtk` failed with:
+  - bbox diagonal: `52376491.474604234`
+  - coordinate absolute max: `26836835.687484697`
+  - displacement absolute max: `26993307.7709796`
+- ThinkPad `no_solid_reqtangle_sample_20250806/test.in_surface_0.014600.vtk` failed with:
+  - bbox diagonal: `1668049955.5859363`
+  - coordinate absolute max: `807003989.1101981`
+  - displacement absolute max: `863948636.9433417`
+- Live `run_thinkpad_impact` returned `FAILED_MESH_EXPLOSION`, proving stale PNG success is blocked.

@@ -32,6 +32,7 @@ DASHBOARD_STATUS = WORKSPACE / "apps" / "growth_dashboard" / "k10_tri_track_cae_
 FEM_VARIANT_INDEX = WORKSPACE / "thinkpad_fem_impact_variant_index.json"
 PNG_SHELL_LOCAL = ROOT / "scripts" / "thinkpad_fem_impact_png.sh"
 RENDER_SCRIPT_LOCAL = ROOT / "scripts" / "impact_vtk_to_png.py"
+QC_SCRIPT_LOCAL = ROOT / "scripts" / "impact_vtk_quality_gate.py"
 
 if str(ROOT / "scripts") not in sys.path:
     sys.path.insert(0, str(ROOT / "scripts"))
@@ -241,7 +242,7 @@ def _pick_fem_variant(variants: list[dict[str, Any]]) -> dict[str, Any]:
 
 def _ensure_fem_png_scripts() -> bool:
     """Fast scp of PNG helpers (60s cap). Skip when ThinkPad offline."""
-    if not PNG_SHELL_LOCAL.exists() or not RENDER_SCRIPT_LOCAL.exists():
+    if not PNG_SHELL_LOCAL.exists() or not RENDER_SCRIPT_LOCAL.exists() or not QC_SCRIPT_LOCAL.exists():
         return False
     try:
         import k10_thinkpad_fem_impact_deploy as fem_deploy
@@ -284,6 +285,10 @@ def run_thinkpad_impact(tri: dict[str, Any], dry_run: bool, timeout: int) -> dic
     job_timeout = _fem_job_timeout(fem, variant, timeout)
     skip_png_n = int(fem.get("skip_if_png_count") or 3)
     reuse_vtk = bool(fem.get("reuse_vtk_for_png", True))
+    qc = fem.get("quality_gate") or {}
+    qc_max_bbox = float(qc.get("max_bbox_diag") or 100000.0)
+    qc_max_coord = float(qc.get("max_coordinate_abs") or 100000.0)
+    qc_max_disp = float(qc.get("max_displacement_abs") or 100000.0)
     remote_bundle = str(
         fem.get("remote_bundle_root")
         or "/home/yasu/clawstack_satellite/impact_bundle/AUTO_FIX_ORIENTATION_20250804"
@@ -314,6 +319,7 @@ def run_thinkpad_impact(tri: dict[str, Any], dry_run: bool, timeout: int) -> dic
 
     lib_path = f"{impact_home}/lib_j3d/linux_amd64:{impact_home}/lib"
     png_shell = "/home/yasu/clawstack_satellite/scripts/thinkpad_fem_impact_png.sh"
+    qc_script = "/home/yasu/clawstack_satellite/scripts/impact_vtk_quality_gate.py"
     # Heredoc avoids nested bash -lc quoting bugs under worker shell=True (INC-122).
     impact_script = (
         f"set -euo pipefail\n"
@@ -326,12 +332,24 @@ def run_thinkpad_impact(tri: dict[str, Any], dry_run: bool, timeout: int) -> dic
         f'test -f "$CASE_DIR/$INP"\n'
         f'pkill -f "java.*run.Impact.*$CASE_DIR/$INP" 2>/dev/null || true\n'
         f"sleep 1\n"
+        f"latest_vtk() {{\n"
+        f'  VTK="$(ls -1 "$CASE_DIR/${{INP}}"_surface_*.vtk 2>/dev/null | sort -V | tail -1 || true)"\n'
+        f'  if [ -z "$VTK" ]; then VTK="$(ls -1 "$CASE_DIR/${{INP}}"_*.vtk 2>/dev/null | grep -v surface | sort -V | tail -1 || true)"; fi\n'
+        f'  if [ -z "$VTK" ]; then echo FEM_IMPACT_QC_VTK_MISSING; return 6; fi\n'
+        f'  echo "$VTK"\n'
+        f"}}\n"
+        f"run_qc() {{\n"
+        f"  VTK_QC=$(latest_vtk)\n"
+        f'  echo "FEM_IMPACT_QC_VTK=$VTK_QC"\n'
+        f'  python3 "{qc_script}" "$VTK_QC" --max-bbox-diag {qc_max_bbox:g} --max-coordinate-abs {qc_max_coord:g} --max-displacement-abs {qc_max_disp:g}\n'
+        f"}}\n"
     )
     if reuse_vtk:
         impact_script += (
             f'VTK_N=$(ls -1 "$CASE_DIR/{inp}"_*.vtk 2>/dev/null | wc -l)\n'
             f'PNG_N=$(ls -1 "$CASE_DIR/{inp}"*.png 2>/dev/null | wc -l)\n'
             f'if [ "$PNG_N" -ge {skip_png_n} ]; then\n'
+            f"  run_qc\n"
             f"  echo FEM_IMPACT_SKIP_RECOMPUTE=png_exists\n"
             f"  echo FEM_IMPACT_PNG_COUNT=$PNG_N\n"
             f'  ls -1 "$CASE_DIR/{inp}"*.png 2>/dev/null | tail -3 || true\n'
@@ -339,6 +357,7 @@ def run_thinkpad_impact(tri: dict[str, Any], dry_run: bool, timeout: int) -> dic
             f"fi\n"
             f'if [ "$VTK_N" -gt 0 ]; then\n'
             f"  echo FEM_IMPACT_REUSE_VTK count=$VTK_N\n"
+            f"  run_qc\n"
             f'  pkill -f "java.*run.Impact.*$CASE_DIR/$INP" 2>/dev/null || true\n'
             f'  bash {png_shell} "$CASE_DIR" "$INP"\n'
             f"  exit $?\n"
@@ -346,6 +365,7 @@ def run_thinkpad_impact(tri: dict[str, Any], dry_run: bool, timeout: int) -> dic
         )
     impact_script += (
         f'java -Xmx4096m -Xss2m -cp .:doc:bin run.Impact "$CASE_DIR/$INP"\n'
+        f"run_qc\n"
         f'bash {png_shell} "$CASE_DIR" "$INP"\n'
     )
     run_cmd = "bash <<'FEMIMPACT_EOF'\n" + impact_script + "FEMIMPACT_EOF\n"
@@ -379,8 +399,10 @@ def run_thinkpad_impact(tri: dict[str, Any], dry_run: bool, timeout: int) -> dic
             or "FEM_IMPACT_SKIP_RECOMPUTE" in stdout
             or "FEM_IMPACT_REUSE_VTK" in stdout
         )
+        and "FEM_IMPACT_QC_VERDICT=PASS" in stdout
+        and "FAILED_MESH_EXPLOSION" not in stdout
     )
-    verdict = "SUCCESS" if ok else "FAILED"
+    verdict = "SUCCESS" if ok else ("FAILED_MESH_EXPLOSION" if "FAILED_MESH_EXPLOSION" in stdout else "FAILED")
     entry = {
         "id": trial_id,
         "category": "fem_impact",
