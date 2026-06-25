@@ -1,0 +1,74 @@
+{
+  "updated_at": "2026-06-25T18:29:13.260457",
+  "transfer": {
+    "b64_received": 836,
+    "b64_saved": 836,
+    "bytes_total": 694796102,
+    "mb_total": 662.6,
+    "bmf_backup": 15139,
+    "date_range": "2024-04-01 ~ 2025-01-31",
+    "blocked_dangerous": 0,
+    "bmf_scanned": 15139,
+    "emails_with_attachments": 474,
+    "decoded_final": 756,
+    "skipped_dup": 28
+  },
+  "consume": {
+    "email_bodies_txt": 824,
+    "attachments_decoded": 822,
+    "attachments_pdf": 252,
+    "attachments_image": 150,
+    "attachments_excel": 297,
+    "attachments_pptx": 51,
+    "attachments_word": 11,
+    "attachments_txt": 60
+  },
+  "paperless": {
+    "docs_before": 321,
+    "docs_after": 395,
+    "docs_added": 74
+  },
+  "key_documents": [
+    {
+      "name": "THH-241126-01_NT3785-P53_P54_PFMEA_Rev3.pdf",
+      "type": "PFMEA",
+      "status": "ingested"
+    },
+    {
+      "name": "THH-241126-01_NT3785-P53_P54_QC工程表_Rev1.pdf",
+      "type": "QC工程表",
+      "status": "ingested"
+    },
+    {
+      "name": "THH-241018-01_バスバーB寸法NG調査報告書_Rev00.pdf",
+      "type": "調査報告書",
+      "status": "ingested"
+    },
+    {
+      "name": "THH-240926-01_NT3785-P54-02_HalfBusbarB.pdf",
+      "type": "調査報告書",
+      "status": "ingested"
+    },
+    {
+      "name": "THH-240723-01_バスバーB寸法NG_Rev0.pdf",
+      "type": "調査報告書",
+      "status": "ingested"
+    },
+    {
+      "name": "NT3785 MP 修正版.pdf",
+      "type": "MP",
+      "status": "ingested"
+    },
+    {
+      "name": "NT3785-P54_測定データ_20240724.xlsx",
+      "type": "測定データ",
+      "status": "ingested"
+    }
+  ],
+  "pipeline_health": {
+    "b64_receiver_port": 8114,
+    "paperless_port": 8000,
+    "postgres_status": "healthy_after_resetwal",
+    "celery_status": "running"
+  }
+}

@@ -92,6 +92,24 @@
         .dxf-link:hover { text-decoration: underline; }
         .dxf-filter-btn { padding: 4px 12px; border-radius: 20px; border: 1px solid var(--border); background: transparent; color: var(--text-dim); cursor: pointer; font-size: 0.8rem; }
         .dxf-filter-btn.active { border-color: var(--primary); color: var(--primary); background: rgba(88,166,255,0.08); }
+        .robot-roadmap-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 14px; align-items: flex-start; margin-bottom: 18px; }
+        .robot-level-badge { background: rgba(88,166,255,0.1); border: 1px solid var(--primary); color: var(--primary); border-radius: 10px; padding: 10px 14px; min-width: 130px; text-align: center; }
+        .robot-level-badge strong { display: block; font-size: 1.7rem; color: #fff; line-height: 1; margin-bottom: 4px; }
+        .robot-progress-track { height: 12px; background: rgba(255,255,255,0.08); border: 1px solid var(--border); border-radius: 999px; overflow: hidden; margin: 12px 0 18px; }
+        .robot-progress-fill { height: 100%; width: 10%; background: linear-gradient(90deg, #58a6ff, #3fb950); border-radius: 999px; }
+        .robot-stage-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+        .robot-stage-card { background: rgba(0,0,0,0.22); border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
+        .robot-stage-card.active { border-color: var(--primary); background: rgba(88,166,255,0.08); }
+        .robot-stage-card h3 { margin: 0 0 8px; font-size: 0.98rem; color: #fff; }
+        .robot-stage-card p { margin: 0; color: var(--text-dim); font-size: 0.8rem; line-height: 1.5; }
+        .robot-milestone-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; margin-top: 14px; }
+        .robot-milestone { border: 1px solid var(--border); border-radius: 8px; padding: 10px; background: rgba(255,255,255,0.03); }
+        .robot-milestone .level { color: var(--primary); font-weight: 700; font-size: 0.82rem; margin-bottom: 4px; }
+        .robot-milestone .status { color: #d1d5db; font-size: 0.78rem; line-height: 1.45; }
+        .robot-link { color: #58a6ff; text-decoration: none; font-size: 0.82rem; font-weight: 600; }
+        .robot-link:hover { text-decoration: underline; }
+        @media (max-width: 1100px) { .robot-stage-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+        @media (max-width: 860px) { .robot-stage-grid { grid-template-columns: 1fr; } }
     </style>
     <script type="importmap">
     {
@@ -132,11 +150,110 @@
             <h2>Knowledge Acquired (Past 1 Month)</h2>
             <canvas id="historyChart"></canvas>
         </div>
+        <div class="card full-width">
+            <h2>GPU Utilization (Past 1 Week)</h2>
+            <p id="gpuUtilizationNote" style="font-size: 0.85rem; color: var(--text-dim); margin: 8px 0 12px;">
+                Loading GPU utilization history...
+            </p>
+            <canvas id="gpuUtilizationChart"></canvas>
+        </div>
         
         <div class="card full-width">
             <h2>API Quota Remaining (各AIモデルAPI残量)</h2>
             <div id="apiQuotaBody" style="display: flex; gap: 15px; flex-wrap: wrap;">
                 <div style="color: var(--text-dim); font-size: 0.9rem;">Loading API Quota...</div>
+            </div>
+        </div>
+
+        <div class="card full-width" style="border-left: 4px solid #58a6ff; background: rgba(88,166,255,0.04);">
+            <div class="robot-roadmap-head">
+                <div>
+                    <h2 style="margin-bottom: 8px;">AI Robot Development Roadmap (人工知能ロボット L1-L40)</h2>
+                    <p style="font-size:0.85rem; color:var(--text-dim); margin:0;">
+                        家庭内の家事・介助ロボットと、工場内作業ロボットを同じ基盤で育成します。
+                        L10は「限定タスクで実機が役に立ち始める入口」、L30は「実環境で自然に働く量産級」、
+                        L31-L40はサーブリッグ18要素とMOST標準時間のIE習得トラックです。
+                    </p>
+                </div>
+                <div class="robot-level-badge">
+                    <strong>L3</strong>
+                    <span style="font-size:0.75rem;">current evidence</span>
+                </div>
+            </div>
+            <div class="robot-progress-track" aria-label="AI robot development progress L1 to L40">
+                <div class="robot-progress-fill" style="width: 32%;"></div>
+            </div>
+            <div class="robot-stage-grid">
+                <div class="robot-stage-card active">
+                    <h3>L1-L10: 自然な身体動作</h3>
+                    <p>
+                        歩行、腕振り、膝・肘・足首、姿勢安定、ドアに手を伸ばすなど。
+                        現在はv7歩行と複数ロボット可視化まで到達。L10で簡易実機の限定タスク支援を狙います。
+                    </p>
+                </div>
+                <div class="robot-stage-card">
+                    <h3>L11-L20: 各種タスク動作</h3>
+                    <p>
+                        椅子に座る・立つ、階段、ドア、冷蔵庫、キッチン、工場ピック、治具投入、検査。
+                        報酬スコアと失敗リプレイで動作を増やします。
+                    </p>
+                </div>
+                <div class="robot-stage-card">
+                    <h3>L21-L30: 実機で自然な動作</h3>
+                    <p>
+                        Raspberry Pi/ROS 2/実機センサーへ移植し、安全制限、力制限、緊急停止、実環境の再学習を入れます。
+                        L30は家庭・介助・工場で安定して働く段階です。
+                    </p>
+                </div>
+                <div class="robot-stage-card active" style="border-color:#3fb950; background:rgba(63,185,80,0.06);">
+                    <h3>L31-L40: IE動作習得（サーブリッグ/MOST）</h3>
+                    <p>
+                        18サーブリッグ分解、ECRS改善、MOSTシーケンス標準時間、WorkStudy AI連携。
+                        船井総研コラム + Sandin MOST教科書をナレッジソースに、工場ピック/家庭タスクへ接続します。
+                    </p>
+                </div>
+            </div>
+            <div class="robot-milestone-grid">
+                <div class="robot-milestone">
+                    <div class="level">L1-L3 現在</div>
+                    <div class="status">簡易3Dロボット、v7歩行、腕脚反対位相、複数ロボット学習ビューア。</div>
+                </div>
+                <div class="robot-milestone">
+                    <div class="level">L4-L6 次</div>
+                    <div class="status">足裏IK、ドア開閉・椅子・工場ピックのタスク別モーションを追加。</div>
+                </div>
+                <div class="robot-milestone">
+                    <div class="level">L7-L10 実機入口</div>
+                    <div class="status">小型実機で歩行/停止/押す/近づく等の限定タスクを安全に実行。</div>
+                </div>
+                <div class="robot-milestone">
+                    <div class="level">L11-L20 タスク拡張</div>
+                    <div class="status">家庭・介助・工場タスクを仮想環境で学習し、成功率と自然さを改善。</div>
+                </div>
+                <div class="robot-milestone">
+                    <div class="level">L21-L30 実環境</div>
+                    <div class="status">センサー融合、力制御、障害物回避、実機ログからの継続学習。</div>
+                </div>
+                <div class="robot-milestone" style="border-color:#3fb950;">
+                    <div class="level">L31-L33 サーブリッグ</div>
+                    <div class="status">18要素の認識、有効/非有効比率、ECRS（排除・結合・再編成・単純化）でムダ削減。</div>
+                </div>
+                <div class="robot-milestone" style="border-color:#3fb950;">
+                    <div class="level">L34-L36 MOST</div>
+                    <div class="status">MOSTシーケンス符号化、標準時間ベンチマーク、WorkStudy AI(7870)へエクスポート。</div>
+                </div>
+                <div class="robot-milestone" style="border-color:#3fb950;">
+                    <div class="level">L37-L40 IE統合</div>
+                    <div class="status">16-64台並列therblig学習、家庭/工場タスクフロア、継続的サイクルタイム改善。</div>
+                </div>
+            </div>
+            <div style="margin-top: 14px; display:flex; gap:14px; flex-wrap:wrap;">
+                <a class="robot-link" href="./robot_learning_swarm_demo.html" target="_blank">複数ロボット学習ビューアを開く</a>
+                <a class="robot-link" href="http://localhost:7870" target="_blank" rel="noopener">WorkStudy AI (7870)</a>
+                <a class="robot-link" href="./factory_workcell_mock.html" target="_blank">工場ワークセルモック</a>
+                <a class="robot-link" href="./factory_robotics_learning_status.json" target="_blank">工場ロボット学習トラック</a>
+                <a class="robot-link" href="./workstudy_therblig_export.json" target="_blank">WorkStudy Therblig Export</a>
+                <span style="color:var(--text-dim); font-size:0.82rem;">Evidence: v7 gait, swarm demo, therblig_most_reference.json, MOST Sandin PDF registered.</span>
             </div>
         </div>
 
@@ -555,7 +672,14 @@ response = model.generate_content([
                 Loading author experience...
             </div>
             <div id="contentFunnelHint" style="font-size: 0.75rem; color: var(--text-dim); margin-bottom: 12px;"></div>
-            <table class="history-table">
+            <div id="contentPlatformFilters" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px; align-items:center;">
+                <span style="font-size:0.8rem; color:var(--text-dim); margin-right:4px;">Platform:</span>
+                <button class="dxf-filter-btn active" data-content-filter="all" onclick="filterContentPlatform('all')">全て</button>
+                <button class="dxf-filter-btn" data-content-filter="kindle" onclick="filterContentPlatform('kindle')">Kindle</button>
+                <button class="dxf-filter-btn" data-content-filter="note" onclick="filterContentPlatform('note')">note</button>
+                <button class="dxf-filter-btn" data-content-filter="booth" onclick="filterContentPlatform('booth')">BOOTH</button>
+                <span id="contentPlatformCount" style="font-size:0.75rem; color:var(--text-dim); margin-left:8px;"></span>
+            </div>
                 <thead>
                     <tr>
                         <th width="14%">Platform / ID</th>
@@ -801,6 +925,13 @@ response = model.generate_content([
             </div>
         </div>
 
+        <div class="card full-width" id="beckyPipelineCard">
+            <h2>📧 Becky! Email Pipeline (Vivobook → Paperless 取り込み状況)</h2>
+            <div id="beckyPipelineBody">
+                <div style="color: var(--text-dim); font-size: 0.9rem;">Loading...</div>
+            </div>
+        </div>
+
         <div class="card full-width">
             <h2>System Knowledge Ingestion History (資料の読み込み履歴と役立った資料 Best 10)</h2>
             
@@ -902,6 +1033,147 @@ response = model.generate_content([
     </div>
 
     <script>
+        function lastSevenDayLabels() {
+            const labels = [];
+            const today = new Date();
+            for (let i = 6; i >= 0; i--) {
+                const d = new Date(today);
+                d.setDate(today.getDate() - i);
+                labels.push(d.toISOString().slice(0, 10));
+            }
+            return labels;
+        }
+
+        function percentOrNull(value) {
+            const n = Number(value);
+            if (!Number.isFinite(n)) return null;
+            return Math.max(0, Math.min(100, n));
+        }
+
+        function normalizeGpuWeeklyPayload(payload) {
+            const labels = lastSevenDayLabels();
+            const byDay = new Map(labels.map((day) => [day, { total: 0, count: 0, max: null }]));
+            const samples = Array.isArray(payload?.samples) ? payload.samples : [];
+            const daily = Array.isArray(payload?.daily) ? payload.daily : [];
+
+            daily.forEach((item) => {
+                const day = String(item.day || item.date || "").slice(0, 10);
+                if (!byDay.has(day)) return;
+                const avg = percentOrNull(item.avg_gpu_utilization_percent ?? item.avg ?? item.utilization_gpu_percent);
+                const max = percentOrNull(item.max_gpu_utilization_percent ?? item.max);
+                if (avg != null) byDay.set(day, { total: avg, count: 1, max });
+            });
+
+            samples.forEach((item) => {
+                const timestamp = item.timestamp || item.checked_at || item.time;
+                const day = timestamp ? String(timestamp).slice(0, 10) : "";
+                if (!byDay.has(day)) return;
+                const util = percentOrNull(item.gpu_utilization_percent ?? item.utilization_gpu_percent ?? item.gpu_util ?? item.utilization);
+                if (util == null) return;
+                const current = byDay.get(day);
+                current.total += util;
+                current.count += 1;
+                current.max = current.max == null ? util : Math.max(current.max, util);
+            });
+
+            return {
+                labels,
+                avg: labels.map((day) => {
+                    const item = byDay.get(day);
+                    return item.count ? Number((item.total / item.count).toFixed(1)) : null;
+                }),
+                max: labels.map((day) => {
+                    const item = byDay.get(day);
+                    return item.max == null ? null : Number(item.max.toFixed(1));
+                })
+            };
+        }
+
+        async function loadGpuUtilizationHistory() {
+            const canvas = document.getElementById("gpuUtilizationChart");
+            const note = document.getElementById("gpuUtilizationNote");
+            if (!canvas || !note) return;
+
+            let gpuName = "GPU";
+            try {
+                const statusRes = await fetch("../../clawstack_gpu_status.json", { cache: "no-store" });
+                if (statusRes.ok) {
+                    const status = await statusRes.json();
+                    gpuName = (status.gpus && status.gpus[0]) || status.detail || gpuName;
+                }
+            } catch (_) {}
+
+            try {
+                const res = await fetch("gpu_weekly_utilization.json", { cache: "no-store" });
+                if (!res.ok) throw new Error("gpu_weekly_utilization.json not found");
+                const payload = await res.json();
+                const series = normalizeGpuWeeklyPayload(payload);
+                const hasData = series.avg.some((v) => v != null) || series.max.some((v) => v != null);
+                if (!hasData) throw new Error("GPU history has no samples in the past week");
+
+                note.innerHTML = `${escapeHtml(gpuName)} / source: read-only history JSON / updated: ${escapeHtml(payload.updated_at || "-")}`;
+                new Chart(canvas, {
+                    type: "line",
+                    data: {
+                        labels: series.labels,
+                        datasets: [
+                            {
+                                label: "Average GPU Utilization %",
+                                data: series.avg,
+                                borderColor: "#3fb950",
+                                backgroundColor: "rgba(63,185,80,0.08)",
+                                tension: 0.3,
+                                fill: true,
+                                spanGaps: true
+                            },
+                            {
+                                label: "Peak GPU Utilization %",
+                                data: series.max,
+                                borderColor: "#d29922",
+                                tension: 0.25,
+                                fill: false,
+                                spanGaps: true
+                            }
+                        ]
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                min: 0,
+                                max: 100,
+                                ticks: { color: "#8b949e", callback: (value) => `${value}%` },
+                                grid: { color: "#30363d" }
+                            },
+                            x: { ticks: { color: "#8b949e" }, grid: { color: "#30363d" } }
+                        },
+                        plugins: { legend: { labels: { color: "#fff" } } }
+                    }
+                });
+            } catch (e) {
+                note.innerHTML = `${escapeHtml(gpuName)} detected. Weekly utilization history is not collected yet, so no GPU polling was started from this dashboard.`;
+                new Chart(canvas, {
+                    type: "line",
+                    data: {
+                        labels: lastSevenDayLabels(),
+                        datasets: [{
+                            label: "GPU Utilization %",
+                            data: [null, null, null, null, null, null, null],
+                            borderColor: "#3fb950",
+                            tension: 0.3,
+                            spanGaps: true
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            y: { min: 0, max: 100, ticks: { color: "#8b949e", callback: (value) => `${value}%` }, grid: { color: "#30363d" } },
+                            x: { ticks: { color: "#8b949e" }, grid: { color: "#30363d" } }
+                        },
+                        plugins: { legend: { labels: { color: "#fff" } } }
+                    }
+                });
+            }
+        }
+
         async function loadData() {
             try {
                 // 1. Fetch Growth Stats
@@ -2092,6 +2364,69 @@ response = model.generate_content([
             }
         }
 
+        async function loadBeckyPipeline() {
+            const container = document.getElementById('beckyPipelineBody');
+            try {
+                const res = await fetch('becky_pipeline_status.json');
+                const d = await res.json();
+                const tr = d.transfer || {};
+                const cs = d.consume || {};
+                const pl = d.paperless || {};
+                const statusColor = d.pipeline_health ? '#3fb950' : '#d29922';
+                const statusLabel = (d.pipeline_health && d.pipeline_health.celery_status === 'running') ? 'RUNNING' : 'STOPPED';
+
+                const keyDocs = (d.key_documents || []).map(doc => `
+                    <tr>
+                        <td style="font-size:0.8rem;">${escapeHtml(doc.name)}</td>
+                        <td style="font-size:0.8rem; color:var(--text-dim);">${escapeHtml(doc.type)}</td>
+                        <td style="font-size:0.8rem;"><span style="color:#3fb950; font-weight:600;">✓ ${escapeHtml(doc.status)}</span></td>
+                    </tr>`).join('');
+
+                container.innerHTML = `
+                    <div style="display:flex; gap:15px; flex-wrap:wrap; margin-bottom:15px;">
+                        <div style="border:1px solid var(--border); padding:14px; border-radius:10px; min-width:200px; flex:1; background:rgba(255,255,255,0.02);">
+                            <div style="font-weight:600; color:#58a6ff; margin-bottom:8px;">転送実績 (Vivobook → K10)</div>
+                            <div style="font-size:0.9rem; color:var(--text-dim);">添付ファイル受信: <span style="color:#fff; font-weight:600;">${tr.b64_received || 0} 件</span></div>
+                            <div style="font-size:0.9rem; color:var(--text-dim);">データ量: <span style="color:#fff; font-weight:600;">${tr.b64_mb || 0} MB</span></div>
+                            <div style="font-size:0.9rem; color:var(--text-dim);">.bmf バックアップ: <span style="color:#fff; font-weight:600;">${(tr.bmf_backup || 0).toLocaleString()} 件</span></div>
+                            <div style="font-size:0.9rem; color:var(--text-dim);">対象期間: <span style="color:#fff; font-weight:600;">${tr.date_range || 'N/A'}</span></div>
+                            <div style="font-size:0.9rem; margin-top:6px; color:#3fb950;">危険ファイルブロック: <strong>0 件</strong></div>
+                        </div>
+                        <div style="border:1px solid var(--border); padding:14px; border-radius:10px; min-width:200px; flex:1; background:rgba(255,255,255,0.02);">
+                            <div style="font-weight:600; color:#a371f7; margin-bottom:8px;">Paperless consume</div>
+                            <div style="font-size:0.9rem; color:var(--text-dim);">メール本文 .txt: <span style="color:#fff; font-weight:600;">${cs.email_bodies_txt || 0} 件</span></div>
+                            <div style="font-size:0.9rem; color:var(--text-dim);">添付デコード済み: <span style="color:#fff; font-weight:600;">${cs.attachments_decoded || 0} 件</span></div>
+                            <div style="font-size:0.85rem; color:var(--text-dim); padding-left:10px;">
+                                PDF: ${cs.attachments_pdf || 0} 件 /
+                                画像: ${cs.attachments_image || 0} 件 /
+                                Excel: ${cs.attachments_excel || 0} 件 /
+                                PPT: ${cs.attachments_pptx || 0} 件
+                            </div>
+                        </div>
+                        <div style="border:1px solid var(--border); padding:14px; border-radius:10px; min-width:200px; flex:1; background:rgba(255,255,255,0.02);">
+                            <div style="font-weight:600; color:#3fb950; margin-bottom:8px;">Paperless ドキュメント</div>
+                            <div style="font-size:0.9rem; color:var(--text-dim);">取り込み前: <span style="color:#fff; font-weight:600;">${pl.docs_before || 0} 件</span></div>
+                            <div style="font-size:0.9rem; color:var(--text-dim);">現在: <span style="color:#3fb950; font-weight:700; font-size:1.1rem;">${pl.docs_after || 0} 件</span></div>
+                            <div style="font-size:0.9rem; color:var(--text-dim);">増加: <span style="color:#3fb950; font-weight:600;">+${pl.docs_added || 0} 件</span></div>
+                            <div style="margin-top:8px; padding:4px 8px; border-radius:4px; display:inline-block; font-size:0.8rem; font-weight:700; background:rgba(63,185,80,0.15); border:1px solid #3fb950; color:#3fb950;">
+                                ${statusLabel}
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <div style="font-weight:600; color:#d29922; margin-bottom:8px;">松下様 (matsushita.02.sojiro) 重要文書 — NT3785-P54 MMCS</div>
+                        <table class="history-table" style="font-size:0.85rem;">
+                            <thead><tr><th>ファイル名</th><th>種別</th><th>状態</th></tr></thead>
+                            <tbody>${keyDocs}</tbody>
+                        </table>
+                        <div style="margin-top:8px; font-size:0.8rem; color:var(--text-dim);">更新: ${d.updated_at ? d.updated_at.substring(0,16).replace('T',' ') : 'N/A'} / 全バックグラウンド取り込み継続中</div>
+                    </div>`;
+            } catch (e) {
+                console.error('loadBeckyPipeline error', e);
+                container.innerHTML = '<div style="color:#f85149; font-size:0.9rem;">Error loading Becky pipeline status.</div>';
+            }
+        }
+
         const PLATFORM_LABELS = {
             note_free: "note 無料",
             note_paid: "note 有料",
@@ -2130,6 +2465,89 @@ response = model.generate_content([
             }).join("");
         }
 
+        function contentMatchesPlatformFilter(platforms, filter) {
+            const ps = platforms || [];
+            if (filter === "all") return true;
+            if (filter === "kindle") return ps.includes("kindle");
+            if (filter === "note") return ps.includes("note_free") || ps.includes("note_paid");
+            if (filter === "booth") return ps.includes("booth");
+            return ps.includes(filter);
+        }
+
+        let contentCatalogPayload = null;
+        let contentPlatformFilter = "all";
+
+        function renderContentCatalogRows(items) {
+            const body = document.getElementById("contentGenerationBody");
+            const countEl = document.getElementById("contentPlatformCount");
+            if (!items.length) {
+                body.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-dim);">該当するコンテンツがありません。</td></tr>`;
+                if (countEl) countEl.textContent = "0 件";
+                return;
+            }
+            if (countEl) countEl.textContent = `${items.length} 件`;
+            body.innerHTML = items.map(item => {
+                const sb = item.score_breakdown || {};
+                const outlineHtml = (item.outline || []).map(line => `<li style="margin:2px 0;">${escapeHtml(line)}</li>`).join("");
+                const pains = (item.pain_points || []).map(p => escapeHtml(p)).join(" / ");
+                const statusColor = item.status === "ASSET_READY" ? "#a371f7"
+                    : item.status === "OUTLINE_READY" ? "#3fb950"
+                    : item.status === "GENERATED" ? "#58a6ff" : "#d29922";
+                const assets = item.asset_paths || [];
+                const assetsHtml = assets.length
+                    ? `<div style="margin-top:8px; font-size:0.7rem;"><strong style="color:#a371f7;">Assets:</strong> ${assets.map(p => `<a href="${escapeHtml(p)}" style="color:#58a6ff; display:block;">${escapeHtml(p)}</a>`).join("")}</div>`
+                    : "";
+                return `
+                    <tr>
+                        <td style="vertical-align:top;">
+                            <div style="font-weight:600; font-size:0.95rem;">${escapeHtml(item.id)}</div>
+                            <div style="margin-top:6px;">${renderPlatformBadges(item.platforms)}</div>
+                            <div style="margin-top:6px;">${renderCategoryBadges(item.category)}</div>
+                            <div style="font-size:0.7rem; color:var(--text-dim); margin-top:6px;">${escapeHtml(item.price_hint || "")}</div>
+                        </td>
+                        <td style="vertical-align:top;">
+                            <div class="know-how">
+                                <strong>${escapeHtml(item.title)}</strong>
+                                <div style="font-size:0.75rem; color:var(--text-dim); margin-top:6px;">
+                                    <strong>読者:</strong> ${escapeHtml(item.target_reader || "")}<br>
+                                    <strong>痛み:</strong> ${pains}<br>
+                                    <strong>モート:</strong> ${escapeHtml(item.moat || "")}
+                                </div>
+                                <details style="margin-top:8px; font-size:0.75rem;">
+                                    <summary style="cursor:pointer; color:#58a6ff;">章立て (${(item.outline || []).length})</summary>
+                                    <ol style="margin:6px 0 0 18px; color:var(--text-dim);">${outlineHtml}</ol>
+                                </details>
+                                ${assetsHtml}
+                            </div>
+                        </td>
+                        <td style="vertical-align:top;">
+                            <div style="font-size:1.2rem; font-weight:bold; color:#3fb950;">${item.score || "-"} <span style="font-size:0.8rem; color:var(--text-dim);">/ 100</span></div>
+                            <div style="font-size:0.7rem; color:var(--text-dim); margin-top:4px;">
+                                Pain: ${sb.buyer_pain ?? "-"} / Moat: ${sb.user_moat ?? "-"}<br>
+                                Timing: ${sb.market_timing ?? "-"} / Channel: ${sb.multi_channel ?? "-"}
+                            </div>
+                        </td>
+                        <td style="vertical-align:top; color:${statusColor}; font-size:0.85rem; font-weight:600;">
+                            ${escapeHtml(item.status || "PROPOSED")}<br>
+                            <span style="font-size:0.7rem; color:var(--text-dim); font-weight:normal;">content_publishing_catalog</span>
+                        </td>
+                    </tr>
+                `;
+            }).join("");
+        }
+
+        function filterContentPlatform(filter) {
+            contentPlatformFilter = filter;
+            document.querySelectorAll("[data-content-filter]").forEach((btn) => {
+                btn.classList.toggle("active", btn.getAttribute("data-content-filter") === filter);
+            });
+            if (!contentCatalogPayload) return;
+            const items = (contentCatalogPayload.items || [])
+                .filter((item) => contentMatchesPlatformFilter(item.platforms, filter))
+                .sort((a, b) => (b.score || 0) - (a.score || 0));
+            renderContentCatalogRows(items);
+        }
+
         async function loadContentPublishingCatalog() {
             const body = document.getElementById("contentGenerationBody");
             const moatEl = document.getElementById("authorExperienceMoat");
@@ -2137,6 +2555,7 @@ response = model.generate_content([
             try {
                 const res = await fetch("content_publishing_catalog.json", { cache: "no-store" });
                 const data = await res.json();
+                contentCatalogPayload = data;
                 const moat = data.author_experience_moat || {};
                 const domains = moat.domains || [];
                 moatEl.innerHTML = `
@@ -2154,55 +2573,7 @@ response = model.generate_content([
                 funnelEl.innerHTML = funnels.length
                     ? `<strong>推奨漏斗:</strong> ${funnels.map(f => escapeHtml(f)).join(" | ")}`
                     : "";
-                const items = (data.items || []).slice().sort((a, b) => (b.score || 0) - (a.score || 0));
-                body.innerHTML = items.map(item => {
-                    const sb = item.score_breakdown || {};
-                    const outlineHtml = (item.outline || []).map(line => `<li style="margin:2px 0;">${escapeHtml(line)}</li>`).join("");
-                    const pains = (item.pain_points || []).map(p => escapeHtml(p)).join(" / ");
-                    const statusColor = item.status === "ASSET_READY" ? "#a371f7"
-                        : item.status === "OUTLINE_READY" ? "#3fb950"
-                        : item.status === "GENERATED" ? "#58a6ff" : "#d29922";
-                    const assets = item.asset_paths || [];
-                    const assetsHtml = assets.length
-                        ? `<div style="margin-top:8px; font-size:0.7rem;"><strong style="color:#a371f7;">Assets:</strong> ${assets.map(p => `<a href="${escapeHtml(p)}" style="color:#58a6ff; display:block;">${escapeHtml(p)}</a>`).join("")}</div>`
-                        : "";
-                    return `
-                        <tr>
-                            <td style="vertical-align:top;">
-                                <div style="font-weight:600; font-size:0.95rem;">${escapeHtml(item.id)}</div>
-                                <div style="margin-top:6px;">${renderPlatformBadges(item.platforms)}</div>
-                                <div style="margin-top:6px;">${renderCategoryBadges(item.category)}</div>
-                                <div style="font-size:0.7rem; color:var(--text-dim); margin-top:6px;">${escapeHtml(item.price_hint || "")}</div>
-                            </td>
-                            <td style="vertical-align:top;">
-                                <div class="know-how">
-                                    <strong>${escapeHtml(item.title)}</strong>
-                                    <div style="font-size:0.75rem; color:var(--text-dim); margin-top:6px;">
-                                        <strong>読者:</strong> ${escapeHtml(item.target_reader || "")}<br>
-                                        <strong>痛み:</strong> ${pains}<br>
-                                        <strong>モート:</strong> ${escapeHtml(item.moat || "")}
-                                    </div>
-                                    <details style="margin-top:8px; font-size:0.75rem;">
-                                        <summary style="cursor:pointer; color:#58a6ff;">章立て (${(item.outline || []).length})</summary>
-                                        <ol style="margin:6px 0 0 18px; color:var(--text-dim);">${outlineHtml}</ol>
-                                    </details>
-                                    ${assetsHtml}
-                                </div>
-                            </td>
-                            <td style="vertical-align:top;">
-                                <div style="font-size:1.2rem; font-weight:bold; color:#3fb950;">${item.score || "-"} <span style="font-size:0.8rem; color:var(--text-dim);">/ 100</span></div>
-                                <div style="font-size:0.7rem; color:var(--text-dim); margin-top:4px;">
-                                    Pain: ${sb.buyer_pain ?? "-"} / Moat: ${sb.user_moat ?? "-"}<br>
-                                    Timing: ${sb.market_timing ?? "-"} / Channel: ${sb.multi_channel ?? "-"}
-                                </div>
-                            </td>
-                            <td style="vertical-align:top; color:${statusColor}; font-size:0.85rem; font-weight:600;">
-                                ${escapeHtml(item.status || "PROPOSED")}<br>
-                                <span style="font-size:0.7rem; color:var(--text-dim); font-weight:normal;">content_publishing_catalog</span>
-                            </td>
-                        </tr>
-                    `;
-                }).join("");
+                filterContentPlatform(contentPlatformFilter);
             } catch (e) {
                 console.error("Failed to load content catalog", e);
                 body.innerHTML = `<tr><td colspan="4" style="color:#f85149;">Error loading content_publishing_catalog.json</td></tr>`;
@@ -2336,12 +2707,14 @@ response = model.generate_content([
         }
 
         loadData();
+        loadGpuUtilizationHistory();
         loadIatfQaGallery();
         loadMaterialSourceInventory();
         loadYouTubeSummary();
         loadKnowledgeHistory();
         loadAutonomousImprovements();
         loadEmailCoverage();
+        loadBeckyPipeline();
         loadContentPublishingCatalog();
         loadDxf2stepProjectStatus();
         loadFleetIdleDispatchStatus();

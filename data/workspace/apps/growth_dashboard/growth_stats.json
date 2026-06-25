@@ -1,12 +1,12 @@
 {
-  "updated_at": "2026-06-19T19:00:05.628684",
+  "updated_at": "2026-06-25T18:02:10.506898",
   "domain_stats": {
     "3D_ANIMATION": 369,
     "CAD": 132,
     "CAE_FEM_IMPACT": 1,
-    "CAE_MATERIAL": 3338,
+    "CAE_MATERIAL": 3326,
     "DATASET": 3,
-    "DXF2STEP": 15,
+    "DXF2STEP": 17,
     "ENGINEERING_THEORY": 275,
     "FLEET_OPS": 1,
     "GEOMETRY_AI": 127,
@@ -19,37 +19,12 @@
     "PROGRESSIVE_DIE": 2,
     "QUALITY": 152,
     "RESIN_FLOW": 1,
-    "SCRIBD_DOCUMENT": 3849,
+    "SCRIBD_DOCUMENT": 4181,
     "TERMINOLOGY": 151,
     "TEST": 1,
-    "TOLERANCE_ANALYSIS": 48,
-    "IATF": 6
+    "TOLERANCE_ANALYSIS": 48
   },
   "history": [
-    {
-      "day": "2026-05-20",
-      "count": 77
-    },
-    {
-      "day": "2026-05-21",
-      "count": 150
-    },
-    {
-      "day": "2026-05-22",
-      "count": 158
-    },
-    {
-      "day": "2026-05-23",
-      "count": 142
-    },
-    {
-      "day": "2026-05-24",
-      "count": 150
-    },
-    {
-      "day": "2026-05-25",
-      "count": 158
-    },
     {
       "day": "2026-05-26",
       "count": 236
@@ -148,35 +123,30 @@
     },
     {
       "day": "2026-06-19",
-      "count": 22
+      "count": 177
+    },
+    {
+      "day": "2026-06-20",
+      "count": 1
+    },
+    {
+      "day": "2026-06-22",
+      "count": 52
+    },
+    {
+      "day": "2026-06-23",
+      "count": 7
+    },
+    {
+      "day": "2026-06-24",
+      "count": 13
+    },
+    {
+      "day": "2026-06-25",
+      "count": 36
     }
   ],
   "email_history": [
-    {
-      "day": "2026-05-20",
-      "gmail": 297,
-      "eml": 0
-    },
-    {
-      "day": "2026-05-21",
-      "gmail": 79,
-      "eml": 0
-    },
-    {
-      "day": "2026-05-22",
-      "gmail": 65,
-      "eml": 0
-    },
-    {
-      "day": "2026-05-23",
-      "gmail": 52,
-      "eml": 0
-    },
-    {
-      "day": "2026-05-24",
-      "gmail": 3491,
-      "eml": 0
-    },
     {
       "day": "2026-05-25",
       "gmail": 95,
@@ -259,17 +229,12 @@
     },
     {
       "day": "2026-06-11",
-      "gmail": 336,
-      "eml": 0
-    },
-    {
-      "day": "2026-06-12",
-      "gmail": 1,
+      "gmail": 333,
       "eml": 0
     },
     {
       "day": "2026-06-13",
-      "gmail": 35,
+      "gmail": 2,
       "eml": 0
     },
     {
@@ -278,151 +243,96 @@
       "eml": 0
     },
     {
-      "day": "2026-06-15",
-      "gmail": 97,
-      "eml": 0
-    },
-    {
       "day": "2026-06-16",
-      "gmail": 129,
+      "gmail": 14,
       "eml": 0
     },
     {
       "day": "2026-06-17",
-      "gmail": 12,
+      "gmail": 6,
       "eml": 0
     },
     {
       "day": "2026-06-18",
-      "gmail": 24,
+      "gmail": 100,
       "eml": 0
     },
     {
       "day": "2026-06-19",
-      "gmail": 2,
+      "gmail": 163,
       "eml": 0
+    },
+    {
+      "day": "2026-06-20",
+      "gmail": 5,
+      "eml": 0
+    },
+    {
+      "day": "2026-06-25",
+      "gmail": 0,
+      "eml": 824
     }
   ],
   "recent_know_how": [
     {
-      "domain": "CAE_MATERIAL",
-      "challenge": "【Dynabook自動収集】Injection molding tool design: Identifying and fixing costly deficiencies for OEMs - Today's Medical Developments",
-      "know_how": "window.WIZ_global_data = {\"AfY8Hf\":false,\"Dftppe\":\"%.@.]\",\"DpimGf\":false,\"EP1ykd\":[\"/_/*\",\"/_/SubscribewithgoogleClientU...",
-      "timestamp": "2026-06-19 18:02:49"
+      "domain": "SCRIBD_DOCUMENT",
+      "challenge": "761047626-MANITOU-LOC-E18-E20AC.pdf (Part 12/12)",
+      "know_how": "The text provides a detailed schematic and wiring diagram for a variator (controller) system, including components such as the drive motor, pump motor, speed controller, and various electrical components like fuses, contactors, and diodes. It also includes multilingual labels for components, indicating that the system is designed for international use. The schematic includes connectors, switches, and sensors for controlling and monitoring the system's operation. The document appears to be a technical manual or wiring diagram for a specific industrial or automotive application, possibly related to electric vehicles or heavy machinery.",
+      "timestamp": "2026-06-22 13:27:51"
     },
     {
-      "domain": "CAE_MATERIAL",
-      "challenge": "【Dynabook自動収集】How Small and Midsized Injection Molders Can Increase Efficiency and Protect Margins - Plastics Technology",
-      "know_how": "window.WIZ_global_data = {\"AfY8Hf\":false,\"Dftppe\":\"%.@.]\",\"DpimGf\":false,\"EP1ykd\":[\"/_/*\",\"/_/SubscribewithgoogleClientU...",
-      "timestamp": "2026-06-19 18:02:42"
+      "domain": "SCRIBD_DOCUMENT",
+      "challenge": "761047626-MANITOU-LOC-E18-E20AC.pdf (Part 11/12)",
+      "know_how": "The text chunk provides a technical reference guide for electrical components and wiring harnesses in a vehicle, primarily in French, with English, German, and Spanish translations. It includes terminology for various electrical systems such as motor harnesses, sensor harnesses, fuses (F2, F3), connectors (C1, J1, J2), contactors (CL, CP), and components like the variator (VA), solenoid valve (EV), and key switch (S3). It also includes a wiring diagram schematic for the variator plate, detailing connections for power lines, control circuits, and signals (e.g., ACCEL, COUPURE FH, 0 V, + B, – B). The document likely serves as a technical manual for automotive electrical systems, aiding in installation, troubleshooting, and maintenance by providing multilingual terminology and a schematic layout of the electrical connections.",
+      "timestamp": "2026-06-22 13:27:14"
     },
     {
-      "domain": "CAE_MATERIAL",
-      "challenge": "【Dynabook自動収集】Elimination of halo gloss transition surface defects on injection-molded parts - Nature",
-      "know_how": "window.WIZ_global_data = {\"AfY8Hf\":false,\"Dftppe\":\"%.@.]\",\"DpimGf\":false,\"EP1ykd\":[\"/_/*\",\"/_/SubscribewithgoogleClientU...",
-      "timestamp": "2026-06-19 18:02:35"
+      "domain": "SCRIBD_DOCUMENT",
+      "challenge": "761047626-MANITOU-LOC-E18-E20AC.pdf (Part 10/12)",
+      "know_how": "The text chunk provides a detailed list of components and their corresponding translations, likely from a technical manual or parts catalog. It includes part numbers, quantities, descriptions, and multilingual labels for electrical components such as buttons, switches, fuses, nuts, screws, and wiring harnesses. Key learnings include the importance of multilingual documentation for international maintenance, the standardization of component labeling, and the necessity of precise part numbering for equipment repair and assembly. The document emphasizes the use of specific terminology for electrical systems, such as 'PLATINE ELECTRIQUE' for electrical panels and 'CABLAGE' for wiring diagrams, which are critical for ensuring correct installation and troubleshooting.",
+      "timestamp": "2026-06-22 13:26:05"
     },
     {
-      "domain": "CAE_MATERIAL",
-      "challenge": "【Dynabook自動収集】Autodesk cuts 1,000 jobs - Plastics News",
-      "know_how": "window.WIZ_global_data = {\"AfY8Hf\":true,\"Dftppe\":\"%.@.]\",\"DpimGf\":false,\"EP1ykd\":[\"/_/*\",\"/_/SubscribewithgoogleClientUi...",
-      "timestamp": "2026-06-19 18:02:25"
+      "domain": "SCRIBD_DOCUMENT",
+      "challenge": "761047626-MANITOU-LOC-E18-E20AC.pdf (Part 9/12)",
+      "know_how": "The text provides a detailed inventory of mechanical and hydraulic components used in industrial or automotive systems, including parts like crown wheel, bearings, driving pinion, screws, hydraulic units, pump motors, solenoid valves, and control systems. It includes part numbers, quantities, and multilingual descriptions, indicating a technical manual or parts list for equipment maintenance or assembly. Key principles involve standardization of terminology across languages, systematic part numbering, and the integration of mechanical and hydraulic systems for precise control and operation.",
+      "timestamp": "2026-06-22 13:25:05"
     },
     {
-      "domain": "CAE_MATERIAL",
-      "challenge": "【Dynabook自動収集】Autodesk announces updates to AI expansion - develop3d",
-      "know_how": "window.WIZ_global_data = {\"AfY8Hf\":false,\"Dftppe\":\"%.@.]\",\"DpimGf\":false,\"EP1ykd\":[\"/_/*\",\"/_/SubscribewithgoogleClientU...",
-      "timestamp": "2026-06-19 18:02:17"
+      "domain": "SCRIBD_DOCUMENT",
+      "challenge": "761047626-MANITOU-LOC-E18-E20AC.pdf (Part 8/12)",
+      "know_how": "The text chunk contains a technical parts list for a drive motor and gear box assembly, with multilingual annotations (French, English, German, Spanish). Key elements include:\n\n1. **Component Inventory**: Detailed list of parts such as drive motors, bearings, seals, gears, and fasteners with part numbers and quantities.\n\n2. **Multilingual Technical Documentation**: Annotations in four languages provide cross-referencing for international manufacturing and maintenance.\n\n3. **Assembly Instructions**: The structure suggests a systematic approach to assembly, with part numbers and quantities indicating the need for precise part identification and organization.\n\n4. **Maintenance and Repair**: The inclusion of seals, bearings, and fasteners indicates the importance of these components in maintaining mechanical efficiency and preventing wear.\n\n5. **Engineering Standards**: The use of standardized part numbering and quantities reflects adherence to engineering best practices for manufacturing and quality control.\n\n6. **Cross-Referencing**: The presence of multiple language annotations and part numbers allows for accurate identification of components across different regions and industries.",
+      "timestamp": "2026-06-22 13:24:12"
     },
     {
-      "domain": "CAE_MATERIAL",
-      "challenge": "【Dynabook自動収集】How Autodesk is expanding AI across Design and Manufacturing - Autodesk News",
-      "know_how": "window.WIZ_global_data = {\"AfY8Hf\":false,\"Dftppe\":\"%.@.]\",\"DpimGf\":false,\"EP1ykd\":[\"/_/*\",\"/_/SubscribewithgoogleClientU...",
-      "timestamp": "2026-06-19 18:02:08"
+      "domain": "SCRIBD_DOCUMENT",
+      "challenge": "761047626-MANITOU-LOC-E18-E20AC.pdf (Part 7/12)",
+      "know_how": "This text chunk appears to be a technical parts list for automotive or industrial equipment, containing part numbers, quantities, descriptions in multiple languages (French, German, Spanish), and assembly instructions. It includes information about chassis components, steering systems, and various fasteners. The document provides detailed part specifications for items like chassis fixe, polyurethane wheels, motor harnesses, and steering arm covers. It also includes options for different wheel types and additional components for support and sealing. The structure suggests it's a parts catalog or repair manual for a specific vehicle or machinery model.",
+      "timestamp": "2026-06-22 13:22:59"
     },
     {
-      "domain": "IATF",
-      "challenge": "【Dynabook自動収集】Rulemaker status: BYD joins elite IATF body to help shape international EV rules - CarNewsChina.com",
-      "know_how": "window.WIZ_global_data = {\"AfY8Hf\":false,\"Dftppe\":\"%.@.]\",\"DpimGf\":false,\"EP1ykd\":[\"/_/*\",\"/_/SubscribewithgoogleClientU...",
-      "timestamp": "2026-06-19 18:01:59"
+      "domain": "SCRIBD_DOCUMENT",
+      "challenge": "761047626-MANITOU-LOC-E18-E20AC.pdf (Part 6/12)",
+      "know_how": "This text chunk contains a comprehensive parts list and technical terminology for a mechanical system, likely a vehicle or machinery component. It includes: 1) A detailed inventory of components with part numbers, quantities, and multiple language descriptions (French, English, German, Spanish), 2) Technical terms related to mechanical systems such as bearings, bushings, springs, and levers, 3) Specific components like stabilizing wheels, torsion bars, and pivot mechanisms, 4) Assembly information through part numbering and quantity specifications, 5) Internationalization of technical documentation through multilingual labeling. The document serves as a technical reference for maintenance, repair, and assembly of complex mechanical systems, emphasizing precision in component identification and international compatibility.",
+      "timestamp": "2026-06-22 13:22:00"
     },
     {
-      "domain": "IATF",
-      "challenge": "【Dynabook自動収集】ISO 9001 in 2026: What’s Changing—and How AS9100 (IA9100), IATF 16949, NIST & CMMC Fit Together - Quality Magazine",
-      "know_how": "window.WIZ_global_data = {\"AfY8Hf\":false,\"Dftppe\":\"%.@.]\",\"DpimGf\":false,\"EP1ykd\":[\"/_/*\",\"/_/SubscribewithgoogleClientU...",
-      "timestamp": "2026-06-19 18:01:51"
+      "domain": "SCRIBD_DOCUMENT",
+      "challenge": "761047626-MANITOU-LOC-E18-E20AC.pdf (Part 5/12)",
+      "know_how": "The text chunk provides a detailed inventory list of components for a vehicle or machinery system, including part numbers, quantities, and multilingual descriptions (French, German, Spanish). Key insights include: 1) The system involves electrical components like connectors (female/male), battery covers, and a key switch for battery access. 2) There are multiple battery options (180 A/h and 250 A/h at 24V) and associated wiring components (battery connectors, cable clamps). 3) The system includes mechanical parts such as screws, nuts, spacers, and support brackets for structural assembly. 4) Two versions of the system are described: one with a built-in charger and another with a simple roller configuration, suggesting modularity or customization options. 5) The presence of multiple language translations (French, German, Spanish) indicates the system is likely used in international contexts or multilingual environments. The document emphasizes precise part identification for assembly or maintenance.",
+      "timestamp": "2026-06-22 13:20:56"
     },
     {
-      "domain": "IATF",
-      "challenge": "【Dynabook自動収集】IATF 16949 News: 2025 Rules and 2026 Changes - Smithers",
-      "know_how": "window.WIZ_global_data = {\"AfY8Hf\":false,\"Dftppe\":\"%.@.]\",\"DpimGf\":false,\"EP1ykd\":[\"/_/*\",\"/_/SubscribewithgoogleClientU...",
-      "timestamp": "2026-06-19 18:01:44"
+      "domain": "SCRIBD_DOCUMENT",
+      "challenge": "761047626-MANITOU-LOC-E18-E20AC.pdf (Part 4/12)",
+      "know_how": "The text chunk provides detailed specifications of a forklift or similar industrial vehicle, including measurements such as distances between axes, turning radius, wheel dimensions, and weight. It outlines performance metrics like translation and lifting speeds, maximum gradient, and storage aisle width. Technical details about the power system, including motor types (24V ABM AC and HALDEX), battery capacity, and energy consumption are included. Additionally, it mentions acoustic pressure levels and references to identification plates for model specifics. The data is presented in multiple languages (French, English, German, Spanish), indicating a multilingual technical manual or spec sheet.",
+      "timestamp": "2026-06-22 13:19:47"
     },
     {
-      "domain": "CAE_MATERIAL",
-      "challenge": "【Dynabook自動収集】Injection molding tool design: Identifying and fixing costly deficiencies for OEMs - Today's Medical Developments",
-      "know_how": "window.WIZ_global_data = {\"AfY8Hf\":false,\"Dftppe\":\"%.@.]\",\"DpimGf\":false,\"EP1ykd\":[\"/_/*\",\"/_/SubscribewithgoogleClientU...",
-      "timestamp": "2026-06-19 12:01:33"
-    },
-    {
-      "domain": "CAE_MATERIAL",
-      "challenge": "【Dynabook自動収集】How Small and Midsized Injection Molders Can Increase Efficiency and Protect Margins - Plastics Technology",
-      "know_how": "window.WIZ_global_data = {\"AfY8Hf\":false,\"Dftppe\":\"%.@.]\",\"DpimGf\":false,\"EP1ykd\":[\"/_/*\",\"/_/SubscribewithgoogleClientU...",
-      "timestamp": "2026-06-19 12:01:26"
-    },
-    {
-      "domain": "CAE_MATERIAL",
-      "challenge": "【Dynabook自動収集】Elimination of halo gloss transition surface defects on injection-molded parts - Nature",
-      "know_how": "window.WIZ_global_data = {\"AfY8Hf\":false,\"Dftppe\":\"%.@.]\",\"DpimGf\":false,\"EP1ykd\":[\"/_/*\",\"/_/SubscribewithgoogleClientU...",
-      "timestamp": "2026-06-19 12:01:18"
-    },
-    {
-      "domain": "CAE_MATERIAL",
-      "challenge": "【Dynabook自動収集】Autodesk cuts 1,000 jobs - Plastics News",
-      "know_how": "window.WIZ_global_data = {\"AfY8Hf\":true,\"Dftppe\":\"%.@.]\",\"DpimGf\":false,\"EP1ykd\":[\"/_/*\",\"/_/SubscribewithgoogleClientUi...",
-      "timestamp": "2026-06-19 12:01:10"
-    },
-    {
-      "domain": "CAE_MATERIAL",
-      "challenge": "【Dynabook自動収集】Autodesk announces updates to AI expansion - develop3d",
-      "know_how": "window.WIZ_global_data = {\"AfY8Hf\":false,\"Dftppe\":\"%.@.]\",\"DpimGf\":false,\"EP1ykd\":[\"/_/*\",\"/_/SubscribewithgoogleClientU...",
-      "timestamp": "2026-06-19 12:01:03"
-    },
-    {
-      "domain": "CAE_MATERIAL",
-      "challenge": "【Dynabook自動収集】How Autodesk is expanding AI across Design and Manufacturing - Autodesk News",
-      "know_how": "window.WIZ_global_data = {\"AfY8Hf\":false,\"Dftppe\":\"%.@.]\",\"DpimGf\":false,\"EP1ykd\":[\"/_/*\",\"/_/SubscribewithgoogleClientU...",
-      "timestamp": "2026-06-19 12:00:56"
-    },
-    {
-      "domain": "IATF",
-      "challenge": "【Dynabook自動収集】Rulemaker status: BYD joins elite IATF body to help shape international EV rules - CarNewsChina.com",
-      "know_how": "window.WIZ_global_data = {\"AfY8Hf\":false,\"Dftppe\":\"%.@.]\",\"DpimGf\":false,\"EP1ykd\":[\"/_/*\",\"/_/SubscribewithgoogleClientU...",
-      "timestamp": "2026-06-19 12:00:48"
-    },
-    {
-      "domain": "IATF",
-      "challenge": "【Dynabook自動収集】ISO 9001 in 2026: What’s Changing—and How AS9100 (IA9100), IATF 16949, NIST & CMMC Fit Together - Quality Magazine",
-      "know_how": "window.WIZ_global_data = {\"AfY8Hf\":false,\"Dftppe\":\"%.@.]\",\"DpimGf\":false,\"EP1ykd\":[\"/_/*\",\"/_/SubscribewithgoogleClientU...",
-      "timestamp": "2026-06-19 12:00:41"
-    },
-    {
-      "domain": "IATF",
-      "challenge": "【Dynabook自動収集】IATF 16949 News: 2025 Rules and 2026 Changes - Smithers",
-      "know_how": "window.WIZ_global_data = {\"AfY8Hf\":false,\"Dftppe\":\"%.@.]\",\"DpimGf\":false,\"EP1ykd\":[\"/_/*\",\"/_/SubscribewithgoogleClientU...",
-      "timestamp": "2026-06-19 12:00:33"
-    },
-    {
-      "domain": "ENGINEERING_THEORY",
-      "challenge": "Paper: A Review of Wafer-Level Packaging Technology for S",
-      "know_how": "SAW（表面弾性波）フィルタの高性能化と小型化を実現するためには、周波数決定の基本原理に基づく温度補償設計と、IDT（櫛形電極）の保護のためのキャビティ構造の信頼性確保が不可欠である。論文3.1節の数式F=V÷λは、フィルタの動作周波数（F）が圧電材料中の音響波の伝播速度（V）とIDT電極の間隔（λ）によって決定されることを示している。電極間隔が微細化され高周波化するにつれて、電子移動や発熱の問題が生じる。この課題に対し、IDT表面に誘電体層を追加することで、高温時の剛性を高め、フィルタの特性（低挿入損失、広帯域幅、良好な帯域外除去）を改善する「温度補償型SAWフィルタ」が設計可能となる。また、IDTの腐食を防ぎ、デバイスの長期信頼性を確保するためには、図4に示すように、機能領域上に適切なキャビティ構造を設けることが必須である。このキャビティ構造は、高湿・高温環境下での耐腐食性、温度サイクルや熱衝撃に対する安定性を持ち、小型化、低製造コスト、および優れた電気性能を維持するように設計されなければならない。したがって、SAWフィルタの設計者は、周波数要求に応じたIDT設計と共に、誘電体層による温度補償と、過酷な環境下でもデバイスを保護する堅牢なキャビティ構造の材料選定と構造設計を統合的に考慮する必要がある。",
-      "timestamp": "2026-06-19 06:01:06"
-    },
-    {
-      "domain": "ENGINEERING_THEORY",
-      "challenge": "Paper: A Review of Wafer-Level Packaging Technology for S",
-      "know_how": "SAWおよびBAW（バルク音響波）フィルタのWLP（ウェハーレベルパッケージング）は、小型化と高性能化の主要な推進力である。論文の図12「Evolution of SAW packaging and miniaturization trends」は、1996年のSMDセラミックパッケージから2020年のWLPまで、SAWフィルタのパッケージング面積が33.8 mm³から0.26 mm³へと大幅に縮小した歴史を示している。この小型化は、フリップチップ実装、ポリマー膜によるキャビティ形成、無機パッシベーション層によるIDT保護、そして銅ピラーバンプ（CPB）相互接続（図13）といった技術革新によって実現された。特に、DSSP（Die-Sized SAW Packaging、図10）やTFAP（Thin-Film Acoustic Package、図11）は、パッケージ厚を削減し、RDL（再配線層）技術による高密度相互接続を可能にした。BAWフィルタにおいては、圧電層を湿気や腐食から保護するため、より厳格なハーメチックシールが必要となる。TSV（Through Silicon Via）やTGV（Through Glass Via、図22, 図23）を用いたウェハー対ウェハー接合は、BAWフィルタのWLPにおいて気密性と高周波性能を両立させる鍵となる。図13(b)に示すCPBは、従来のはんだバンプと比較してより細かいピッチでの実装を可能にし、デバイスのさらなる小型化とRFフィルタ設計の自由度を高める。表1「Comparison of SAW and BAW filters' WLP solutions」が示すように、SAW WLPは小型化とコスト効率に優れるが、高周波での寄生損失がある一方、BAW WLPは高周波性能に優れるものの、プロセスが複雑で高コストである。したがって、次世代の無線通信デバイス開発においては、要求される周波数帯、性能、サイズ、コスト要件に基づき、SAWとBAWそれぞれのWLP技術の利点と課題を考慮した上で、最適なパッケージング戦略を選択する必要がある。",
-      "timestamp": "2026-06-19 06:01:06"
+      "domain": "SCRIBD_DOCUMENT",
+      "challenge": "761047626-MANITOU-LOC-E18-E20AC.pdf (Part 3/12)",
+      "know_how": "The text chunk provides detailed specifications for two models of a forklift or similar industrial equipment (EP18AC and EP20AC), including load capacities, dimensions, and operational parameters. Key insights include: 1) Nominal load capacities of 1800 kg and 2000 kg for the respective models. 2) Standard fork lengths (800-950-1150 mm) and widths (540-680 mm) with specific internal widths (190-330 mm). 3) Fork dimensions (175 x 45 mm) and ground clearance (85/210 mm). 4) Overall dimensions, including length (1739 mm), chassis dimensions (680 mm), and height (845/970 mm). 5) The equipment meets acoustic pressure standards of less than 65 dB(A), indicating noise control compliance. These specifications are essential for understanding the operational capabilities, design, and safety compliance of the equipment.",
+      "timestamp": "2026-06-22 13:18:53"
     }
   ],
   "commercial_benchmark_l10": {
@@ -461,9 +371,9 @@
     ],
     "evidence_snapshot": {
       "resin": {
-        "trials": 312,
-        "success": 312,
-        "failed": 0,
+        "trials": 89,
+        "success": 87,
+        "failed": 2,
         "has_real_residuals": false,
         "has_vof_fill_kpi": true,
         "categories": [
@@ -484,9 +394,9 @@
         "has_kpi": true
       },
       "dxf2step": {
-        "total": 389,
-        "success": 383,
-        "success_rate_pct": 98.5,
+        "total": 596,
+        "success": 548,
+        "success_rate_pct": 91.9,
         "fcstd_jobs": 9,
         "step_jobs": 9,
         "parametric_jobs": 0,
@@ -501,11 +411,11 @@
       "dashboard_or_progress": true,
       "video": {
         "mp4_counts": {
-          "iatf": 45,
-          "cae_viz": 6,
+          "iatf": 90,
+          "cae_viz": 7,
           "projects": 52,
           "other": 11,
-          "total": 114
+          "total": 160
         },
         "has_generative_api": false,
         "has_prompt_studio": true,
@@ -1213,10 +1123,10 @@
       "CAE VOF/OpenRadioss MP4s are scientific visualization, not cinematic gen-AI (separate track).",
       "Document/RAG ingest (3D_ANIMATION domain) does not raise video L levels."
     ],
-    "assessed_at": "2026-06-19T06:12:12.966128"
+    "assessed_at": "2026-06-24T07:34:30.986532"
   },
   "ai_video_generation_l10": {
-    "assessed_at": "2026-06-19T06:12:12.966128",
+    "assessed_at": "2026-06-24T07:34:30.986532",
     "updated_note": "L0-L10 vs commercial generative video (OpenAI Sora/Image-to-Video, ByteDance Seedance 2, Runway Gen-3/4, Kling). L10 = photoreal text/image-to-video, long coherent motion, character consistency, production API at scale. Clawstack levels are capped by measured pipeline evidence (honest assessment).",
     "commercial_l10_reference": [
       "OpenAI Sora / Image-to-Video (Image 2.0 class)",
@@ -1232,11 +1142,11 @@
     },
     "evidence_snapshot": {
       "mp4_counts": {
-        "iatf": 45,
-        "cae_viz": 6,
+        "iatf": 90,
+        "cae_viz": 7,
         "projects": 52,
         "other": 11,
-        "total": 114
+        "total": 160
       },
       "has_generative_api": false,
       "has_prompt_studio": true,
