@@ -348,7 +348,7 @@ services:
     image: ghcr.io/paperless-ngx/paperless-ngx:latest
     user: "1000:1000"
     restart: unless-stopped
-    depends_on: [ postgres, redis ]
+    depends_on: [ postgres, redis, gotenberg, tika ]
     ports:
       - "127.0.0.1:8000:8000"
     volumes:
@@ -369,13 +369,29 @@ services:
       PAPERLESS_URL: http://localhost:8000
       PAPERLESS_CONSUMER_RECURSIVE: "true"
       PAPERLESS_CONSUMER_SUBDIRS_AS_TAGS: "true"
-      PAPERLESS_TASK_WORKERS: "2"       # OCRワーカー2（48GB RAM・20コアで余裕あり）
+      PAPERLESS_CONSUMER_POLLING: "30"  # Windows Docker Volumeではinotify無効→30秒ポーリング
+      PAPERLESS_TASK_WORKERS: "4"       # Becky一括取り込み期間: 4ワーカー（通常は2に戻す）
       PAPERLESS_THREADS_PER_WORKER: "4" # スレッド数4（高速OCR並列処理）
+      PAPERLESS_TIKA_ENABLED: "true"
+      PAPERLESS_TIKA_ENDPOINT: "http://tika:9998"
+      PAPERLESS_TIKA_GOTENBERG_ENDPOINT: "http://gotenberg:3000"
     deploy:
       resources:
         limits:
-          cpus: "8"
-          memory: 4g
+          cpus: "12"
+          memory: 8g
+
+  gotenberg:
+    image: gotenberg/gotenberg:8
+    restart: unless-stopped
+    command:
+      - "gotenberg"
+      - "--chromium-disable-javascript=true"
+      - "--chromium-allow-list=file:///tmp/.*"
+
+  tika:
+    image: apache/tika:latest
+    restart: unless-stopped
 
   open_notebook_db:
     image: surrealdb/surrealdb:v2
