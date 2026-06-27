@@ -1,32 +1,41 @@
 {
-  "updated_at": "2026-06-25T18:29:13.260457",
+  "updated_at": "2026-06-27T23:45:00",
+  "status_note": "全件取込中 — eml変換 479/15,943件 + b64 Pull 待機中 (Vivobook /list 取得中)",
   "transfer": {
-    "b64_received": 836,
-    "b64_saved": 836,
+    "b64_received": 769,
+    "b64_mb": 662.6,
     "bytes_total": 694796102,
     "mb_total": 662.6,
-    "bmf_backup": 15139,
-    "date_range": "2024-04-01 ~ 2025-01-31",
+    "bmf_backup": 15943,
+    "bmf_vivobook_total": 18620,
+    "bmf_remaining": 2677,
+    "b64_vivobook_total": 283731,
+    "date_range": "2013-06 ~ 2026-06",
     "blocked_dangerous": 0,
-    "bmf_scanned": 15139,
+    "bmf_scanned": 15943,
     "emails_with_attachments": 474,
-    "decoded_final": 756,
+    "decoded_final": 769,
     "skipped_dup": 28
   },
   "consume": {
-    "email_bodies_txt": 824,
-    "attachments_decoded": 822,
-    "attachments_pdf": 252,
-    "attachments_image": 150,
-    "attachments_excel": 297,
-    "attachments_pptx": 51,
-    "attachments_word": 11,
-    "attachments_txt": 60
+    "email_bodies_txt": 479,
+    "email_bodies_total": 15943,
+    "attachments_decoded": 769,
+    "attachments_pdf": 247,
+    "attachments_image": 139,
+    "attachments_excel": 291,
+    "attachments_pptx": 92,
+    "attachments_word": 0,
+    "attachments_txt": 0
   },
   "paperless": {
     "docs_before": 321,
-    "docs_after": 395,
-    "docs_added": 74
+    "docs_after": 12320,
+    "docs_added": 11999,
+    "consume_pending": 15503,
+    "processing_speed_per_hr": 13680,
+    "task_workers": 4,
+    "eml_convert_speed_per_min": 228
   },
   "key_documents": [
     {
@@ -68,7 +77,13 @@
   "pipeline_health": {
     "b64_receiver_port": 8114,
     "paperless_port": 8000,
-    "postgres_status": "healthy_after_resetwal",
-    "celery_status": "running"
+    "postgres_status": "healthy_t039_fixed",
+    "celery_status": "running",
+    "wal_protection": "stop_grace_period_60s",
+    "shutdown_hook": "registered",
+    "active_pids": {
+      "eml_preprocess": 24260,
+      "b64_puller_all": 10332
+    }
   }
 }

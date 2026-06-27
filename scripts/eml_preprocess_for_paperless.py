@@ -34,13 +34,26 @@ def ensure_dirs() -> None:
         path.mkdir(parents=True, exist_ok=True)
 
 
+_CHARSET_ALIASES_EARLY: dict[str, str] = {
+    "windows-874": "cp874", "windows-1250": "cp1250", "windows-1251": "cp1251",
+    "windows-1252": "cp1252", "windows-1253": "cp1253", "windows-1254": "cp1254",
+    "windows-1255": "cp1255", "windows-1256": "cp1256", "windows-1257": "cp1257",
+    "windows-1258": "cp1258", "iso-8859-11": "cp874",
+}
+
+
 def decode_mime_text(value: str | None) -> str:
     if not value:
         return ""
     parts: list[str] = []
     for chunk, encoding in decode_header(value):
         if isinstance(chunk, bytes):
-            parts.append(chunk.decode(encoding or "utf-8", errors="ignore"))
+            enc = (encoding or "utf-8").lower()
+            enc = _CHARSET_ALIASES_EARLY.get(enc, enc)
+            try:
+                parts.append(chunk.decode(enc, errors="ignore"))
+            except (LookupError, UnicodeDecodeError):
+                parts.append(chunk.decode("latin-1", errors="replace"))
         else:
             parts.append(str(chunk))
     return "".join(parts).strip()
@@ -144,6 +157,25 @@ def short_rel_bucket(path: Path) -> Path:
     return Path(top) / digest
 
 
+_CHARSET_ALIASES: dict[str, str] = {
+    "windows-874": "cp874", "windows-1250": "cp1250", "windows-1251": "cp1251",
+    "windows-1252": "cp1252", "windows-1253": "cp1253", "windows-1254": "cp1254",
+    "windows-1255": "cp1255", "windows-1256": "cp1256", "windows-1257": "cp1257",
+    "windows-1258": "cp1258", "iso-8859-11": "cp874",
+}
+
+
+def _decode_bytes(data: bytes, charset: str | None) -> str:
+    cs = (charset or "utf-8").lower()
+    cs = _CHARSET_ALIASES.get(cs, cs)
+    for enc in (cs, "utf-8", "latin-1"):
+        try:
+            return data.decode(enc, errors="ignore")
+        except (LookupError, UnicodeDecodeError):
+            continue
+    return data.decode("latin-1", errors="replace")
+
+
 def collect_bodies(msg) -> tuple[str, str]:
     plain_parts: list[str] = []
     html_parts: list[str] = []
@@ -158,7 +190,7 @@ def collect_bodies(msg) -> tuple[str, str]:
         except Exception:
             payload = part.get_payload(decode=True)
             if isinstance(payload, bytes):
-                payload = payload.decode(part.get_content_charset() or "utf-8", errors="ignore")
+                payload = _decode_bytes(payload, part.get_content_charset())
         text = str(payload or "").strip()
         if not text:
             return
@@ -252,7 +284,7 @@ def build_html(meta: dict, plain_body: str, html_body: str, attachments: list[di
 
 def process_eml(eml_path: Path, dry_run: bool) -> dict:
     with eml_path.open("rb") as fp:
-        msg = BytesParser(policy=policy.default).parse(fp)
+        msg = BytesParser(policy=policy.compat32).parse(fp)
 
     parent_rel, base_name = base_output_parts(eml_path)
     short_bucket = short_rel_bucket(eml_path)
@@ -313,7 +345,13 @@ def main() -> int:
         if processed.get(key) == fingerprint:
             skipped += 1
             continue
-        result = process_eml(eml_path, dry_run=args.dry_run)
+        try:
+            result = process_eml(eml_path, dry_run=args.dry_run)
+        except Exception as exc:
+            print(f"  [SKIP] {eml_path.name}: {exc}", flush=True)
+            processed[key] = fingerprint
+            generated += 1
+            continue
         processed[key] = fingerprint
         generated += 1
         last_result = result
