@@ -2410,36 +2410,65 @@ response = model.generate_content([
                         <td style="font-size:0.8rem;"><span style="color:#3fb950; font-weight:600;">✓ ${escapeHtml(doc.status)}</span></td>
                     </tr>`).join('');
 
+                const gm = d.gmail_pipeline || {};
+                const bmfPct = tr.bmf_backup && tr.bmf_vivobook_total
+                    ? Math.round(tr.bmf_backup / tr.bmf_vivobook_total * 100) : 0;
+                const b64Pct = tr.b64_received && tr.b64_vivobook_total
+                    ? (tr.b64_received / tr.b64_vivobook_total * 100).toFixed(1) : 0;
+                const emlPct = cs.email_bodies_eml && cs.email_bodies_total
+                    ? Math.round(cs.email_bodies_eml / cs.email_bodies_total * 100) : 0;
+                const gmailColor = gm.status === 'running' ? '#3fb950'
+                    : gm.status === 'waiting_app_password' ? '#d29922' : '#8b949e';
+                const gmailLabel = gm.status === 'running' ? 'RUNNING'
+                    : gm.status === 'waiting_app_password' ? 'App Password 待ち'
+                    : gm.status === 'done' ? '完了' : '待機中';
+
                 container.innerHTML = `
                     <div style="display:flex; gap:15px; flex-wrap:wrap; margin-bottom:15px;">
                         <div style="border:1px solid var(--border); padding:14px; border-radius:10px; min-width:200px; flex:1; background:rgba(255,255,255,0.02);">
-                            <div style="font-weight:600; color:#58a6ff; margin-bottom:8px;">転送実績 (Vivobook → K10)</div>
-                            <div style="font-size:0.9rem; color:var(--text-dim);">添付ファイル受信: <span style="color:#fff; font-weight:600;">${tr.b64_received || 0} 件</span></div>
-                            <div style="font-size:0.9rem; color:var(--text-dim);">データ量: <span style="color:#fff; font-weight:600;">${tr.b64_mb || 0} MB</span></div>
-                            <div style="font-size:0.9rem; color:var(--text-dim);">.bmf バックアップ: <span style="color:#fff; font-weight:600;">${(tr.bmf_backup || 0).toLocaleString()} 件</span></div>
+                            <div style="font-weight:600; color:#58a6ff; margin-bottom:8px;">Becky Pull 進捗 (Vivobook → K10)</div>
+                            <div style="font-size:0.9rem; color:var(--text-dim);">.bmf メール本文: <span style="color:#fff; font-weight:600;">${(tr.bmf_backup||0).toLocaleString()} / ${(tr.bmf_vivobook_total||0).toLocaleString()} 件 (${bmfPct}%)</span></div>
+                            <div style="background:#30363d; border-radius:4px; height:6px; margin:4px 0 8px;">
+                                <div style="background:#58a6ff; height:6px; border-radius:4px; width:${bmfPct}%;"></div>
+                            </div>
+                            <div style="font-size:0.9rem; color:var(--text-dim);">.b64 添付: <span style="color:#fff; font-weight:600;">${(tr.b64_received||0).toLocaleString()} / ${(tr.b64_vivobook_total||0).toLocaleString()} 件 (${b64Pct}%)</span></div>
+                            <div style="background:#30363d; border-radius:4px; height:6px; margin:4px 0 8px;">
+                                <div style="background:#a371f7; height:6px; border-radius:4px; width:${b64Pct}%;"></div>
+                            </div>
                             <div style="font-size:0.9rem; color:var(--text-dim);">対象期間: <span style="color:#fff; font-weight:600;">${tr.date_range || 'N/A'}</span></div>
-                            <div style="font-size:0.9rem; margin-top:6px; color:#3fb950;">危険ファイルブロック: <strong>0 件</strong></div>
+                            <div style="font-size:0.85rem; margin-top:4px; color:#3fb950;">ブロック済み危険ファイル: <strong>${tr.blocked_dangerous || 0} 件</strong></div>
                         </div>
                         <div style="border:1px solid var(--border); padding:14px; border-radius:10px; min-width:200px; flex:1; background:rgba(255,255,255,0.02);">
                             <div style="font-weight:600; color:#a371f7; margin-bottom:8px;">Paperless consume</div>
-                            <div style="font-size:0.9rem; color:var(--text-dim);">メール本文 .txt: <span style="color:#fff; font-weight:600;">${cs.email_bodies_txt || 0} 件</span></div>
-                            <div style="font-size:0.9rem; color:var(--text-dim);">添付デコード済み: <span style="color:#fff; font-weight:600;">${cs.attachments_decoded || 0} 件</span></div>
-                            <div style="font-size:0.85rem; color:var(--text-dim); padding-left:10px;">
-                                PDF: ${cs.attachments_pdf || 0} 件 /
-                                画像: ${cs.attachments_image || 0} 件 /
-                                Excel: ${cs.attachments_excel || 0} 件 /
-                                PPT: ${cs.attachments_pptx || 0} 件
+                            <div style="font-size:0.9rem; color:var(--text-dim);">メール本文 .eml: <span style="color:#fff; font-weight:600;">${(cs.email_bodies_eml||cs.email_bodies_txt||0).toLocaleString()} 件 (${emlPct}%)</span></div>
+                            <div style="background:#30363d; border-radius:4px; height:6px; margin:4px 0 8px;">
+                                <div style="background:#a371f7; height:6px; border-radius:4px; width:${emlPct}%;"></div>
                             </div>
+                            <div style="font-size:0.9rem; color:var(--text-dim);">添付デコード済み: <span style="color:#fff; font-weight:600;">${(cs.attachments_decoded||0).toLocaleString()} 件</span></div>
+                            <div style="font-size:0.9rem; color:var(--text-dim);">consume 待ち: <span style="color:#d29922; font-weight:600;">${(cs.attachments_consume_pending||0).toLocaleString()} 件</span></div>
                         </div>
                         <div style="border:1px solid var(--border); padding:14px; border-radius:10px; min-width:200px; flex:1; background:rgba(255,255,255,0.02);">
                             <div style="font-weight:600; color:#3fb950; margin-bottom:8px;">Paperless ドキュメント</div>
-                            <div style="font-size:0.9rem; color:var(--text-dim);">取り込み前: <span style="color:#fff; font-weight:600;">${pl.docs_before || 0} 件</span></div>
-                            <div style="font-size:0.9rem; color:var(--text-dim);">現在: <span style="color:#3fb950; font-weight:700; font-size:1.1rem;">${pl.docs_after || 0} 件</span></div>
-                            <div style="font-size:0.9rem; color:var(--text-dim);">増加: <span style="color:#3fb950; font-weight:600;">+${pl.docs_added || 0} 件</span></div>
+                            <div style="font-size:0.9rem; color:var(--text-dim);">取り込み前: <span style="color:#fff; font-weight:600;">${(pl.docs_before||0).toLocaleString()} 件</span></div>
+                            <div style="font-size:0.9rem; color:var(--text-dim);">現在: <span style="color:#3fb950; font-weight:700; font-size:1.1rem;">${(pl.docs_after||0).toLocaleString()} 件</span></div>
+                            <div style="font-size:0.9rem; color:var(--text-dim);">増加: <span style="color:#3fb950; font-weight:600;">+${(pl.docs_added||0).toLocaleString()} 件</span></div>
                             <div style="margin-top:8px; padding:4px 8px; border-radius:4px; display:inline-block; font-size:0.8rem; font-weight:700; background:rgba(63,185,80,0.15); border:1px solid #3fb950; color:#3fb950;">
                                 ${statusLabel}
                             </div>
                         </div>
+                    </div>
+                    <div style="border:1px solid ${gmailColor}33; padding:12px 14px; border-radius:10px; margin-bottom:12px; background:rgba(255,255,255,0.01);">
+                        <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
+                            <div style="font-weight:600; color:#58a6ff;">Gmail 取り込みパイプライン</div>
+                            <span style="padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:700; background:${gmailColor}22; border:1px solid ${gmailColor}; color:${gmailColor};">${gmailLabel}</span>
+                        </div>
+                        <div style="font-size:0.9rem; color:var(--text-dim);">対象期間: <span style="color:#fff;">${gm.email_range || 'before 2013-06-01'}</span></div>
+                        <div style="font-size:0.9rem; color:var(--text-dim);">スクリプト: <span style="color:#58a6ff; font-family:monospace;">${gm.script || 'scripts/gmail_imap_downloader.py'}</span></div>
+                        ${gm.status === 'waiting_app_password' ? `
+                        <div style="margin-top:8px; padding:8px 10px; background:#d2992222; border-left:3px solid #d29922; border-radius:4px; font-size:0.85rem; color:#d29922;">
+                            <strong>設定が必要:</strong> <a href="${gm.setup_url||'#'}" style="color:#58a6ff;">${gm.setup_url||''}</a> で App Password を発行し、以下を実行:<br>
+                            <code style="color:#fff; background:#161b22; padding:3px 6px; border-radius:3px; margin-top:4px; display:inline-block;">python scripts/gmail_imap_downloader.py --user y.suzuki.hk@gmail.com --app-password XXXX-XXXX-XXXX-XXXX</code>
+                        </div>` : `<div style="font-size:0.85rem; color:#3fb950; margin-top:4px;">${gm.note||''}</div>`}
                     </div>
                     <div>
                         <div style="font-weight:600; color:#d29922; margin-bottom:8px;">松下様 (matsushita.02.sojiro) 重要文書 — NT3785-P54 MMCS</div>
@@ -2447,7 +2476,7 @@ response = model.generate_content([
                             <thead><tr><th>ファイル名</th><th>種別</th><th>状態</th></tr></thead>
                             <tbody>${keyDocs}</tbody>
                         </table>
-                        <div style="margin-top:8px; font-size:0.8rem; color:var(--text-dim);">更新: ${d.updated_at ? d.updated_at.substring(0,16).replace('T',' ') : 'N/A'} / ${pl.consume_pending ? `consume 残: <span style="color:#d29922; font-weight:600;">${pl.consume_pending.toLocaleString()} 件</span> | 速度: ${(pl.processing_speed_per_hr||0).toLocaleString()} 件/時 (worker ×${pl.task_workers||2}) | ${d.status_note || '取り込み継続中'}` : '全バックグラウンド取り込み継続中'}</div>
+                        <div style="margin-top:8px; font-size:0.8rem; color:var(--text-dim);">更新: ${d.updated_at ? d.updated_at.substring(0,16).replace('T',' ') : 'N/A'} / ${pl.consume_pending ? `consume 残: <span style="color:#d29922; font-weight:600;">${pl.consume_pending.toLocaleString()} 件</span> | ${d.status_note || '取り込み継続中'}` : d.status_note || '全バックグラウンド取り込み継続中'}</div>
                     </div>`;
             } catch (e) {
                 console.error('loadBeckyPipeline error', e);

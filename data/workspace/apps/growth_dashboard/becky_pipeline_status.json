@@ -1,41 +1,42 @@
 {
-  "updated_at": "2026-06-27T23:45:00",
-  "status_note": "全件取込中 — eml変換 479/15,943件 + b64 Pull 待機中 (Vivobook /list 取得中)",
+  "updated_at": "2026-06-28T04:10:00",
+  "status_note": "Becky全件Pull中 (puller稼働) | Gmail取込スクリプト準備完了 — App Password設定後に起動",
   "transfer": {
-    "b64_received": 769,
-    "b64_mb": 662.6,
-    "bytes_total": 694796102,
-    "mb_total": 662.6,
-    "bmf_backup": 15943,
+    "b64_received": 18896,
+    "b64_mb": 8200,
+    "bmf_backup": 16138,
     "bmf_vivobook_total": 18620,
-    "bmf_remaining": 2677,
+    "bmf_remaining": 2482,
     "b64_vivobook_total": 283731,
+    "b64_pull_pct": 6.7,
     "date_range": "2013-06 ~ 2026-06",
-    "blocked_dangerous": 0,
-    "bmf_scanned": 15943,
-    "emails_with_attachments": 474,
-    "decoded_final": 769,
-    "skipped_dup": 28
+    "blocked_dangerous": 3,
+    "emails_with_attachments": 13118,
+    "decoded_final": 13259,
+    "skipped_dup": 4013
   },
   "consume": {
-    "email_bodies_txt": 479,
-    "email_bodies_total": 15943,
-    "attachments_decoded": 769,
-    "attachments_pdf": 247,
-    "attachments_image": 139,
-    "attachments_excel": 291,
-    "attachments_pptx": 92,
-    "attachments_word": 0,
-    "attachments_txt": 0
+    "email_bodies_eml": 16138,
+    "email_bodies_total": 18620,
+    "email_bodies_pct": 86.7,
+    "attachments_decoded": 13259,
+    "attachments_consume_pending": 13118
   },
   "paperless": {
     "docs_before": 321,
-    "docs_after": 12320,
-    "docs_added": 11999,
-    "consume_pending": 15503,
-    "processing_speed_per_hr": 13680,
+    "docs_after": 13891,
+    "docs_added": 13570,
+    "consume_pending": 13118,
+    "processing_speed_per_hr": 0,
     "task_workers": 4,
     "eml_convert_speed_per_min": 228
+  },
+  "gmail_pipeline": {
+    "status": "waiting_app_password",
+    "email_range": "before 2013-06-01",
+    "script": "scripts/gmail_imap_downloader.py",
+    "setup_url": "https://myaccount.google.com/apppasswords",
+    "note": "Gmail App Password を発行してスクリプトを実行してください"
   },
   "key_documents": [
     {
@@ -82,8 +83,8 @@
     "wal_protection": "stop_grace_period_60s",
     "shutdown_hook": "registered",
     "active_pids": {
-      "eml_preprocess": 24260,
-      "b64_puller_all": 10332
+      "b64_puller_all": 10332,
+      "auto_pipeline_watcher": 36112
     }
   }
 }
