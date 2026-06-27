@@ -18,9 +18,11 @@ Usage:
 import argparse
 import base64
 import email
+import email.message
 import hashlib
 import imaplib
 import io
+import os
 import pathlib
 import re
 import sqlite3
@@ -31,6 +33,22 @@ from email.header import decode_header
 from email.utils import parsedate_to_datetime
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+
+def _load_dotenv(env_path: pathlib.Path) -> None:
+    """Simple .env loader — sets os.environ without overwriting existing vars."""
+    if not env_path.exists():
+        return
+    for line in env_path.read_text(encoding="utf-8", errors="replace").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, _, val = line.partition("=")
+        key = key.strip()
+        if key and key not in os.environ:
+            os.environ[key] = val.strip()
+
+_REPO_ROOT_ENV = pathlib.Path(__file__).resolve().parents[1]
+_load_dotenv(_REPO_ROOT_ENV / ".env")
 
 # ── パス設定 ──────────────────────────────────────────────────────────
 REPO_ROOT      = pathlib.Path(__file__).resolve().parents[1]
@@ -166,19 +184,52 @@ def connect_imap(user: str, app_password: str) -> imaplib.IMAP4_SSL:
     return imap
 
 
+_ALLMAIL_PATTERN = re.compile(rb"\\All\b")
+_SUBETE_BYTES = "すべて".encode("utf-8")
+
+def _find_allmail_folder(imap: imaplib.IMAP4_SSL) -> bytes | None:
+    """LIST で All Mail フォルダのバイト列名を返す。"""
+    typ, data = imap.list()
+    if typ != "OK":
+        return None
+    for item in data:
+        if not isinstance(item, bytes):
+            continue
+        if _ALLMAIL_PATTERN.search(item) or b"All Mail" in item or _SUBETE_BYTES in item:
+            m = re.search(rb'"([^"]+)"$', item) or re.search(rb'(\S+)$', item)
+            if m:
+                return m.group(1)
+    return None
+
+
 def search_uids_before(imap: imaplib.IMAP4_SSL, before_date: str) -> list[str]:
     """
     Gmail [Gmail]/All Mail フォルダから before_date (YYYY-MM-DD) 以前の UID 一覧を取得。
     """
-    # [Gmail]/All Mail を選択 (日本語環境では [Gmail]/すべてのメール の場合あり)
-    folders_to_try = ['"[Gmail]/All Mail"', '"[Gmail]/すべてのメール"', 'INBOX']
+    # LIST でフォルダ名を動的検索
+    allmail = _find_allmail_folder(imap)
     selected = None
-    for folder in folders_to_try:
-        typ, data = imap.select(folder, readonly=True)
-        if typ == "OK":
-            selected = folder
-            log(f"フォルダ選択: {folder} ({data[0].decode()} 件)")
-            break
+    if allmail:
+        try:
+            typ, data = imap.select(allmail, readonly=True)
+            if typ == "OK":
+                selected = allmail.decode("utf-8", errors="replace")
+                log(f"フォルダ選択: {selected} ({data[0].decode()} 件)")
+        except Exception as e:
+            log(f"  [WARN] フォルダ選択失敗: {e}")
+
+    if not selected:
+        # フォールバック: ASCII フォルダ名のみ試行
+        for folder in (b'"[Gmail]/All Mail"', b'INBOX'):
+            try:
+                typ, data = imap.select(folder, readonly=True)
+                if typ == "OK":
+                    selected = folder.decode()
+                    log(f"フォルダ選択 (fallback): {selected} ({data[0].decode()} 件)")
+                    break
+            except Exception:
+                continue
+
     if not selected:
         raise RuntimeError("All Mail フォルダが見つかりません。Gmail IMAP 設定を確認してください。")
 
@@ -197,8 +248,10 @@ def search_uids_before(imap: imaplib.IMAP4_SSL, before_date: str) -> list[str]:
 
 def main():
     parser = argparse.ArgumentParser(description="Gmail IMAP → Paperless downloader")
-    parser.add_argument("--user",         required=True, help="Gmail アドレス")
-    parser.add_argument("--app-password", required=True, help="App Password (スペースなし16文字)")
+    _default_user = os.environ.get("Gmail_Apri_Name") or os.environ.get("GMAIL_USER") or "y.suzuki.hk@gmail.com"
+    _default_pw   = os.environ.get("Gmail_PW", "")
+    parser.add_argument("--user",         default=_default_user, help="Gmail アドレス (.env: Gmail_Apri_Name)")
+    parser.add_argument("--app-password", default=_default_pw,   help="App Password (.env: Gmail_PW)")
     parser.add_argument("--before",       default="2013-06-01", help="この日付以前を取得 (YYYY-MM-DD)")
     parser.add_argument("--dry-run",      action="store_true", help="ファイル書き込みなし")
     parser.add_argument("--limit",        type=int, default=0, help="取得上限件数 (0=無制限)")

@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-06-28T04:10:00",
-  "status_note": "Becky全件Pull中 (puller稼働) | Gmail取込スクリプト準備完了 — App Password設定後に起動",
+  "updated_at": "2026-06-28T04:20:00",
+  "status_note": "Becky全件Pull中 (puller稼働) | Gmail IMAP DL 稼働中 (10,031件 / ~14分で完了)",
   "transfer": {
     "b64_received": 18896,
     "b64_mb": 8200,
@@ -32,11 +32,15 @@
     "eml_convert_speed_per_min": 228
   },
   "gmail_pipeline": {
-    "status": "waiting_app_password",
+    "status": "running",
     "email_range": "before 2013-06-01",
     "script": "scripts/gmail_imap_downloader.py",
-    "setup_url": "https://myaccount.google.com/apppasswords",
-    "note": "Gmail App Password を発行してスクリプトを実行してください"
+    "total": 10031,
+    "downloaded_start": 0,
+    "rate_per_sec": 12,
+    "eta_min": 12,
+    "pid": 33972,
+    "note": "Gmail IMAP DL 稼働中 — 10,031件 ÷ 12件/秒 ≈ 14分で完了予定"
   },
   "key_documents": [
     {
