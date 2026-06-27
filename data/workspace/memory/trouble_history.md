@@ -4,6 +4,7 @@
 
 | ID | 日付 | 事象 | 対策 |
 | --- | --- | --- | --- |
+| **[T039]** | **2026-06-25/27** | **PostgreSQL WAL破損 繰り返し再発 — Windows再起動時にDockerのデフォルト stop_grace_period=10秒でSIGKILL → checkpoint書けずWAL破損。6/20(14:22JST)・6/25・6/27(9:01+10:18JST 予期しないシャットダウン×2)の3回発生。Windows Event ID 1074/6008でパターン確認済** | **①docker-compose.yml に `stop_grace_period: 60s` + `-c checkpoint_timeout=1min` 追加(メイン対策) ②backup_infra_daily.ps1の pg_dump出力先を /tmp に変更(データディレクトリ直接書き込み禁止) ③シャットダウンフックスクリプト `scripts/k10_graceful_docker_shutdown.ps1` 作成(要管理者でTask Scheduler登録) ④復旧手順: `pg_resetwal -f` + VACUUM + REINDEX。詳細: T-WAL-001** |
 | **tri-thinkpad-fem_impact-917a60f8** | 2026-06-18 | unknown attempt=1 | Run --sync-script before trial; Use test.in_* VTK glob in png shell |
 | **tri-thinkpad-fem_impact-ae19be33** | 2026-06-18 | unknown attempt=2 | Run --sync-script before trial; Use test.in_* VTK glob in png shell |
 | **tri-thinkpad-fem_impact-e4fa6e39** | 2026-06-18 | unknown attempt=3 | Run --sync-script before trial; Use test.in_* VTK glob in png shell |
@@ -580,7 +581,106 @@ G1 py_compile → G2 `fleet_satellite_setup_auto.ps1` → G3 K10 probe → G4 �
 
 ---
 
-## [T039] 2026-06-19 DXF2STEP S11 false SUCCESS -- TOP VIEW 二重輪郭 (INC-124)
+## [T040] 2026-06-20 DXF2STEP 全図面 combined 偽 SUCCESS 拡張 (INC-125)
+
+**事象:** INC-124 (S11) 対策後も **P38** (`tp-dxf-5941a119`) および **PARTIAL 8件** で TOP 二重輪郭 / multiview 失敗 / 偽 SUCCESS が継続。全109図面監査で **21+ 試行要再スキャン**。
+
+### 症状（3系統）
+
+| 系統 | 例 | 症状 |
+|------|-----|------|
+| A4 枠 | P38 L1 | 208x293mm; 面積比4.5x -> 20xフィルタ未発動 |
+| A3/A2 シート | P4--P9,S1 L1 | 420x297 / 594x420; extrude + multiview 失敗 |
+| 同一層副ビュー | P38 L7 | 平面+側面が同一レイヤー -> TOP 二重 |
+
+### 根本原因（5 Why -- P38）
+
+| Why | 内容 |
+|-----|------|
+| Why1 | TOP に部品が複数 |
+| Why2 | L1 枠 + L7 部品+側面が combined |
+| Why3 | 20x のみ / A3 未対応 / 島フィルタなし |
+| Why4 | multiview 失敗で PARTIAL 止まり |
+| Why5 | PNG 幾何監査・NG registry 不足 |
+
+### 対策（2026-06-20 実装済）
+
+| 対策 | 実装 |
+|------|------|
+| A4/A3/A2 レイアウト層スキップ | `_is_layout_layer_bbox`, `_frame_layers_to_skip` |
+| 副ビュー島除去 (X列保持) | `_keep_largest_connected_cluster` |
+| multiview 失敗 fallback | `process()` -> `single_profile_extrude` |
+| combined 小面積部品優先 | `_pick_part_layer_for_combined` |
+| 全件監査 + NG registry | `audit_dxf2step_combined_geometry.py` |
+
+### 採用試行 (10mm)
+
+| 部品 | trial_id |
+|------|----------|
+| P38 | `tp-dxf-8e205f0e` |
+| P4--P9,S1,P46,P47 | `tp-dxf-1c5a1c9d` 等 (handover MD 参照) |
+
+### 禁止
+
+- `tp-dxf-5941a119`, `tp-dxf-a9422cc7` (P38 NG)
+- TOP 二重輪郭の combined を SUCCESS / Telegram 合格
+- DXF2STEP worker 変更時に checklist 未読
+
+### QC / 記録
+
+- **QC工程表/FMEA/FTA/Fishbone/ロジカルツリー:** `quality_incident_report_20260620_dxf2step_combined_geometry_inc125.md`
+- **Checklist:** DXF-QC02,04,07,09 追加 (`dxf2step_combined_geometry_qc_checklist.md`)
+- **登録:** `register_dxf2step_combined_geometry_inc125.py`, bd `dxf2step-combined-geometry-inc125`
+- **関連:** [T039] INC-124 (S11 初回)
+
+---
+
+## [T041] 2026-06-27 DXF2STEP D3 同一層マルチレイアウト偽 SUCCESS (INC-130)
+
+**事象:** D3 (`tp-dxf-959d5e60`, t=15mm) が manifest `SUCCESS` だが TOP VIEW に **3独立輪郭**（ネスト帯 + H型プロファイル + 8板2x4グリッド）。INC-125 X列クラスタが過結合。
+
+### 症状
+
+| 項目 | 内容 |
+|------|------|
+| NG trial | `tp-dxf-959d5e60` |
+| PARTIAL_OK | `tp-dxf-0430c2ca` (ネスト帯除去、2群残存) |
+| FAILED retry | `tp-dxf-998a6e44` (`smallest_part_cluster` 開ループ) |
+| 判定 | DXF-QC09 FAIL -> `GEOMETRY_NG` / `false_success: true` |
+
+### 根本原因（5 Why）
+
+| Why | 内容 |
+|-----|------|
+| Why1 | TOP に部品が3つ |
+| Why2 | layer5 全島が single_profile_extrude |
+| Why3 | X列クラスタがネスト帯+プロファイル+8板を1塊化 |
+| Why4 | 細長ストリップ/ピッチグリッド除外なし |
+| Why5 | KPI のみで DXF-QC09 監査未実施 |
+
+### 対策（2026-06-27 実装済）
+
+| 対策 | 実装 |
+|------|------|
+| ストリップ除外クラスタ | `_pick_part_cluster_segs` / `largest_non_strip_cluster` |
+| NG registry | `dxf2step_geometry_ng_trials.json` |
+| 試行別監査 | `combined_geometry_audit.json` |
+| ThinkPad 同期 | `k10_thinkpad_dxf2step_setup.scp_file` |
+
+### 禁止
+
+- `tp-dxf-959d5e60` の combined を CAE 入力に使用
+- DXF-QC09 未監査の Telegram SUCCESS
+- D3 で `smallest_part_cluster` 採用
+
+### QC / 記録
+
+- **Report:** `quality_incident_report_20260627_dxf2step_d3_multi_layout_inc130.md`
+- **登録:** `register_dxf2step_d3_multi_layout_inc130.py`, bd `dxf2step-d3-multi-layout-inc130`
+- **関連:** [T040] INC-125
+
+---
+
 
 **事象:** ThinkPad DXF2STEP `tp-dxf-9d04f260` (S11, t=10mm) が `layers=2/2 combined=True verdict=SUCCESS` だが、`combined_views.png` の TOP VIEW に **無関係な2つの外形（矩形枠+バスバー）が重なって表示**。下流 CAE / 金型用途に **NG**。
 

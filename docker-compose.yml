@@ -115,6 +115,9 @@ services:
   # ============================================================
   postgres:
     image: postgres:16
+    # stop_grace_period: Windows再起動時にDockerがSIGKILL送るまでの猶予。
+    # デフォルト10秒ではcheckpoint書けずWAL破損→60秒に延長(T-WAL-001)
+    stop_grace_period: 60s
     command: >
       postgres
       -c shared_buffers=1GB
@@ -130,6 +133,7 @@ services:
       -c max_parallel_workers_per_gather=4
       -c max_parallel_workers=8
       -c synchronous_commit=off
+      -c checkpoint_timeout=1min
     environment:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     volumes:
@@ -161,23 +165,18 @@ services:
     ports:
       - "127.0.0.1:11434:11434"
     environment:
-      - NVIDIA_VISIBLE_DEVICES=all
-      - OLLAMA_NUM_PARALLEL=2       # 並列2件（エージェント+ブラウザ同時対応）
-      - OLLAMA_MAX_LOADED_MODELS=1  # 1モデル常駐（16GB VRAM / RTX 5060 Ti）
-      - OLLAMA_FLASH_ATTENTION=1    # Flash Attention有効（推論高速化）
-      - OLLAMA_KEEP_ALIVE=5m        # 5分間常駐（アイドル時にメモリ完全開放）
-      - OLLAMA_KV_CACHE_TYPE=q8_0   # KVキャッシュをint8量子化（メモリ半減・高速）
-      - OLLAMA_MAX_QUEUE=512        # リクエストキュー上限（ドロップ防止）
+      - OLLAMA_NUM_GPU=0
+      - OLLAMA_NUM_PARALLEL=1
+      - OLLAMA_MAX_LOADED_MODELS=1
+      - OLLAMA_FLASH_ATTENTION=0
+      - OLLAMA_KEEP_ALIVE=5m
+      - OLLAMA_KV_CACHE_TYPE=q8_0
+      - OLLAMA_MAX_QUEUE=512
     deploy:
       resources:
         limits:
-          cpus: "18"    # 20スレッド中18（Windows+WSL最低限2スレッド確保）
-          memory: 16g   # 重みはGPU VRAM; ホストRAMはKV/バッファ用
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
+          cpus: "8"
+          memory: 8g
     restart: unless-stopped
 
   qdrant:
@@ -526,7 +525,7 @@ services:
     image: michaelf34/infinity:latest
     platform: linux/amd64
     command: [ "v2", "--model-id", "mixedbread-ai/mxbai-embed-large-v1", "--port", "7997",
-               "--batch-size", "32" ]
+               "--batch-size", "32", "--device", "cpu" ]
     ports:
       - "127.0.0.1:7997:7997"
     deploy:
@@ -1022,6 +1021,7 @@ services:
     image: ghcr.io/immich-app/immich-machine-learning:${IMMICH_VERSION:-release}
     environment:
       - TZ=${TZ}
+      - MACHINE_LEARNING_DEVICE=cpu
     volumes:
       - immich_model_cache:/cache
     restart: unless-stopped

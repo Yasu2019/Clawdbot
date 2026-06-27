@@ -13,8 +13,14 @@ Write-Host "Starting Clawstack V2 Infrastructure Backup..." -ForegroundColor Cya
 # 1. Postgres Database Dump
 $DbDumpFile = "$BackupDir\postgres_dump_$Timestamp.sql"
 Write-Host "Dumping Postgres database..."
-docker exec $PostgresContainer pg_dumpall -U postgres > $DbDumpFile
-if ($LASTEXITCODE -eq 0) {
+
+# T-WAL-001修正: pg_dump結果を /tmp に書いてからホストにコピー
+# 旧実装はPostgreSQLデータディレクトリ(/var/lib/postgresql/data)に直接書き込んでいた(危険)
+docker exec $PostgresContainer sh -c "pg_dumpall -U postgres --globals-only > /tmp/temp_dump.sql && pg_dump -U postgres -d postgres >> /tmp/temp_dump.sql && pg_dump -U postgres -d sim_trials >> /tmp/temp_dump.sql"
+docker cp "${PostgresContainer}:/tmp/temp_dump.sql" $DbDumpFile
+docker exec $PostgresContainer rm -f /tmp/temp_dump.sql
+
+if (Test-Path $DbDumpFile) {
     Write-Host "Postgres dump successful: $DbDumpFile" -ForegroundColor Green
 } else {
     Write-Host "Postgres dump FAILED!" -ForegroundColor Red
