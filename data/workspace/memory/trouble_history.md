@@ -682,6 +682,84 @@ G1 py_compile → G2 `fleet_satellite_setup_auto.ps1` → G3 K10 probe → G4 �
 ---
 
 
+## [T043] 2026-06-29 DXF2STEP P20 パンチ状押し出し / 閉ループQC漏れ (INC-132)
+
+**事象:** `tp-dxf-4fa7ebf5` (P20) で穴形状のはずが板外形なしのパンチ状3D。layer 13 の CIRCLE のみ立体化。ユーザー: 枠と穴は同じレイヤーに見えるが、実際は layer1 外周 + layer13 穴。
+
+### 症状
+| 項目 | 内容 |
+|------|------|
+| NG trial | `tp-dxf-4fa7ebf5` |
+| line_to_hole_bbox_ratio | 0.979 (layer13単体) |
+| 修正後 QC | merge L1->L13 で ratio 2.605 PASS |
+
+### 対策（2026-06-29 実装）
+| 対策 | 実装 |
+|------|------|
+| DXF-QC04c | `_evaluate_closed_loop_qc` 押し出し前ゲート |
+| DXF-QC04d | `profile_hole_layer_merge` |
+| DXF-QC18b | `dxf_vs_3d_compare.png` Telegram |
+| verdict | `closed_loop_qc_failures` -> FAILED |
+
+### 禁止
+- CIRCLE>=3 で `line_to_hole_bbox_ratio<1.20` のまま押し出し
+- frame skip 後に outline マージなしで hole layer のみ処理
+- 原図DXFなし Telegram SUCCESS
+
+### QC / 記録
+- **Report:** `quality_incident_report_20260629_dxf2step_p20_closed_loop_inc132.md`
+- **登録:** `register_dxf2step_p20_closed_loop_inc132.py`, bd `dxf2step-p20-closed-loop-inc132`
+- **関連:** [T042] INC-131, [T041] INC-130
+
+---
+## [T042] 2026-06-28 DXF2STEP 穴加工 vs 島 監査誤判定 (INC-131)
+
+**事象:** `tp-dxf-0430c2ca` (D3 busbar) を `GEOMETRY_PARTIAL_OK` と判定したが、ユーザー指摘: 2D上の「島」は **別部品ではなく穴・切欠き加工**（124 CIRCLE、1枚板 338x200mm）。エージェントは `original_dxf.png` を目視せず Telegram 合格を報告。
+
+### 症状
+
+| 項目 | 内容 |
+|------|------|
+| 誤判定 trial | `tp-dxf-0430c2ca` (PARTIAL_OK -> **GEOMETRY_OK** 修正) |
+| 真の NG (変更なし) | `tp-dxf-959d5e60` (3 外周輪郭 -- INC-130) |
+| 横断監査 | 443 archives; 誤 adjudication ファイル **1件のみ** |
+| 別問題 | 82 SUCCESS が frame+part 監査 SUSPECT/NG (INC-124/125 系) |
+
+### 根本原因（5 Why）
+
+| Why | 内容 |
+|-----|------|
+| Why1 | 2D 密集形状を「複数島」と誤読 |
+| Why2 | 124 穴 + H型切欠きがシルエット上密集 |
+| Why3 | INC-130「8板グリッド」文言を穴配列に転用 |
+| Why4 | DXF-QC09 が外周輪郭と内側穴を分離していない |
+| Why5 | original_dxf.png 目視ゲートなし |
+
+### 対策（2026-06-28 実装済）
+
+| 対策 | 実装 |
+|------|------|
+| 判定修正 | `combined_geometry_audit.json` -> GEOMETRY_OK |
+| DXF-QC17 | 外周輪郭 vs 穴加工 |
+| DXF-QC18 | original_dxf.png 目視必須 |
+| 横断監査 | `audit_dxf2step_hole_vs_island_misclass.py` |
+
+### 禁止
+
+- 穴・CIRCLE 密集を「別部品島」と adjudication すること
+- `original_dxf.png` 未目視の formal_adjudication / Telegram OK
+- INC-130 真 NG (`959d5e60`) と穴加工を混同すること
+
+### QC / 記録
+
+- **Report:** `quality_incident_report_20260628_dxf2step_hole_vs_island_audit_inc131.md`
+- **登録:** `register_dxf2step_hole_vs_island_inc131.py`, bd `dxf2step-hole-vs-island-inc131`
+- **Scan:** `data/workspace/dxf2step_hole_vs_island_audit_20260628.json`
+- **関連:** [T041] INC-130
+
+---
+
+
 **事象:** ThinkPad DXF2STEP `tp-dxf-9d04f260` (S11, t=10mm) が `layers=2/2 combined=True verdict=SUCCESS` だが、`combined_views.png` の TOP VIEW に **無関係な2つの外形（矩形枠+バスバー）が重なって表示**。下流 CAE / 金型用途に **NG**。
 
 ### 症状
@@ -734,3 +812,74 @@ G1 py_compile → G2 `fleet_satellite_setup_auto.ps1` → G3 K10 probe → G4 �
 - 蓄積: universal_growth.db, thinkpad_dxf2step_quality_analysis.jsonl, fmea_registry, Turso, Obsidian, Beads, ByteRover
 
 **記録:** INC-124, bd `dxf2step-s11-multiview-overlap-inc124`, ByteRover curate, `docs/INCIDENT_LOG.md`
+
+---
+
+## [T044] Robot walk thigh mesh misidentified as knee pads -- INC-133
+
+**Date:** 2026-06-29 JST
+
+**Symptom:** Robot walk V19/V20/V21/V23 still showed no visible thigh swing even when numeric checks suggested leg motion.
+
+**User evidence:** `C:\Users\yasu\OneDrive\デスクトップ\太もも.jpg` clarified the intended thigh region: the long upper-leg shell from pelvis/hip to knee, not the small knee-pad shapes.
+
+**Wrong assumption:** `robot_0_part34.glb` and `robot_0_part35.glb` were treated as thighs. They are knee-pad / near-knee decorative parts.
+
+**Correct mapping after review:**
+
+| Part | Meaning |
+|---|---|
+| `robot_0_part25.glb` | Combined pelvis + left/right upper-leg shells |
+| `robot_0_part34.glb`, `robot_0_part35.glb` | Knee-pad candidates, not thighs |
+| `robot_0_part23.glb`, `robot_0_part24.glb` | Lower-leg / shin shell candidates |
+
+**Root cause:** PartPacker grouped pelvis and both visible upper-leg shells in one GLB. QA measured nearby skeleton/keypoint/root motion instead of visible thigh mesh axis swing.
+
+**Countermeasure implemented:** Preserve-first split of `robot_0_part25.glb` into three GLBs:
+
+- `robot_0_part25_pelvis_center.glb`
+- `robot_0_part25_upperleg_l.glb`
+- `robot_0_part25_upperleg_r.glb`
+
+**Verification artifact:** `D:\AI\PartPacker\output\flow_big_parts_strict_pvae_20260628_025827\part25_split_pelvis_thighs\part25_split_pelvis_thighs_review.png`
+
+**Strict prevention rule:** Before V24 or later walk animation, require a labeled anatomical part-identification gate. The thigh must be the long hip-to-knee visible shell, and rendered-video QA must prove that this visible mesh swings around the hip joint.
+
+---
+
+## [T045] Robot walk target box (Cube) disappearance and walk IK axis mapping calibration error -- INC-134
+
+**Date:** 2026-06-29 JST
+
+**Symptom:** 
+1. The target Box (Cube) disappears/falls through the floor on episode reset, suspending learning.
+2. Unity logs are flooded with Animator not initialized and setting angular velocity warnings, causing Editor hang/slowdowns.
+3. C# script compiles silent watchdog disable on assembly load.
+4. Python ML-Agents environment throws AttributeError on np.bool and StrictVersion version checks.
+5. Robot walk knee-bending and foot-sliding evaluation failed QA test (Verdict: FAIL, Score: 48).
+
+**Root Causes:**
+1. targetBox configuration (isKinematic=true, useGravity=false) was skipped when pre-assigned in the Inspector.
+2. Speed parameter updates in FixedUpdate did not check animator initialization/active state, throwing unhandled exceptions.
+3. static watchdog flags reset to default on assembly reload.
+4. Python 3.10+ and numpy 1.24+ incompatibilities with legacy ML-Agents library.
+5. Incorrect IK target world-local coordinate mapping (Y and Z axes swap/sign issues) in preview script.
+
+**Countermeasures Implemented:**
+1. Separated pre-assignment null check from physical attribute assignment in `RobotMLAgent.cs`.
+2. Added `isActiveAndEnabled` check and try-catch around `anim.SetFloat("Speed")` in `RobotMLAgent.cs`.
+3. Restored watchdog active state using static constructor checks in `AutoPlayLoop.cs`.
+4. Patched `mlagents_envs/base_env.py` to use `bool` instead of `np.bool`.
+5. Reverted the incorrect Y/Z coordinate swap and corrected local Y sign (`-(foot_y - head_local.y)`) and local Z mapping for `IK_Foot` and `IK_Pole` targets in `robot_parts_walk_preview_v16.py`.
+
+**Verification Artifacts:**
+*   Blender Walk Blend: `D:\AI\PartPacker\output\flow_big_parts_strict_pvae_20260628_025827_v16\robot_walk.blend`
+*   Gait QA Report: `D:\AI\PartPacker\output\flow_big_parts_strict_pvae_20260628_025827_v16\robot_walk_keypoint_qa.md` (Verdict: PASS, Score: 100)
+
+**Strict Prevention Rules:**
+1. Always verify targetBox physical properties outside null checks.
+2. Apply full exception handling and active check for Unity Animator updates inside Agent steps.
+3. Validate IK axis orientations with Rest Pose local joint axes before baking animations.
+
+**記録:** INC-134, bd `robot-walk-ik-axis-disappearance-inc134`, ByteRover curate
+
