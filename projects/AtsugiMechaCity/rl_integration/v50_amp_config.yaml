@@ -1,0 +1,140 @@
+# v50_amp_config.yaml — AMP / Isaac Lab training config for V50 mecha
+#
+# Compatible frameworks:
+#   - Isaac Lab (BSD-3) — https://github.com/isaac-sim/IsaacLab
+#   - AMP / ASE (NVIDIA, BSD-3) — https://github.com/nv-tlabs/ASE
+#   - Genesis RL (Apache-2.0) — https://github.com/Genesis-Embodied-AI/Genesis
+#   - PHC / PULSE (MIT) — https://github.com/ZhengyiLuo/PHC
+#
+# Before training:
+#   1. Run: python v50_urdf_exporter.py --out v50_mecha.urdf
+#   2. Run: python v50_mjcf_builder.py  --out v50_mecha.xml
+#   3. Run: python v50_reference_motion_exporter.py --frames 96 --fps 24
+
+# ── Robot ─────────────────────────────────────────────────────────────────────
+robot:
+  name: V50_Mecha
+  urdf_path: ./v50_mecha.urdf          # for Isaac Lab / ROS
+  mjcf_path: ./v50_mecha.xml           # for MuJoCo / PHC / DiffMimic
+  total_mass_kg: 280.0
+  height_m: 1.94
+  # DOF order must match v50_reference_motion_exporter.py DOFOrder
+  dof_order:
+    - hip_L
+    - knee_L
+    - ankle_L
+    - hip_R
+    - knee_R
+    - ankle_R
+    - shoulder_L
+    - elbow_L
+    - wrist_L
+    - shoulder_R
+    - elbow_R
+    - wrist_R
+
+# ── Reference motion ─────────────────────────────────────────────────────────
+reference_motion:
+  path: ./v50_ref_motion.json           # AMP JSON format
+  bvh_path: ./v50_ref_motion.bvh        # for Cascadeur / Auto-Rig Pro import
+  loop: wrap                            # cyclic gait
+  fps: 24
+  frames: 96
+  cycles: 2
+  source: sinwave_v50_final_walk_preview   # hand-crafted baseline → upgrade with MoMask
+
+# ── Simulation ────────────────────────────────────────────────────────────────
+simulation:
+  # Genesis (fastest, recommended for initial training)
+  backend: genesis                      # or "isaaclab" | "mujoco" | "brax"
+  dt: 0.002                             # seconds
+  substeps: 2
+  gravity: [0.0, 0.0, -9.81]
+  num_envs: 4096                        # Genesis supports 43M FPS on RTX 4090
+
+  # Ground plane
+  floor_friction: 1.0
+  floor_restitution: 0.0
+
+# ── AMP training ─────────────────────────────────────────────────────────────
+amp:
+  # Discriminator
+  disc_hidden_dims: [1024, 512]
+  disc_lr: 1.0e-5
+  disc_grad_penalty: 10.0
+
+  # Task reward (forward locomotion + motion style)
+  task_reward_w: 0.5
+  style_reward_w: 0.5
+
+  # PPO
+  algo: ppo
+  num_steps_per_env: 24
+  num_mini_batches: 4
+  update_epochs: 5
+  gamma: 0.99
+  lam: 0.95
+  lr: 3.0e-4
+  entropy_coef: 0.01
+  clip_param: 0.2
+  value_loss_coef: 1.0
+  max_grad_norm: 1.0
+  total_timesteps: 500_000_000
+
+# ── Reward shaping ────────────────────────────────────────────────────────────
+reward:
+  alive_bonus: 0.5
+  vel_target_x: 0.8                    # m/s forward velocity target
+  vel_reward_w: 1.0
+  torso_height_min: 0.8
+  torso_height_max: 1.1
+  energy_penalty_w: 0.01               # penalise large torques
+
+# ── Observation space ─────────────────────────────────────────────────────────
+observation:
+  # 12 joint positions + 12 joint velocities + 6 root state + 3 gravity = 33
+  dims: 33
+  include_joint_pos: true
+  include_joint_vel: true
+  include_root_vel: true
+  include_projected_gravity: true
+
+# ── Action space ─────────────────────────────────────────────────────────────
+action:
+  type: target_position                # PD target positions (not raw torques)
+  dims: 12
+  pd_kp: [400, 300, 200, 400, 300, 200, 200, 150, 80, 200, 150, 80]
+  pd_kd: [40,  30,  20,  40,  30,  20,  20,  15,  8,  20,  15,  8]
+  action_scale: 1.0
+
+# ── Style upgrade roadmap ─────────────────────────────────────────────────────
+# Priority order for replacing the sin-wave reference motion:
+#
+# 1. 100STYLES (CC BY 4.0, Zenodo) — https://zenodo.org/record/6778383
+#    BVH, 4M+ frames, 100 walk styles. Retarget to V50 via Auto-Rig Pro or smpl2bvh.
+#    → reference_motion.path: ./reference_clips/100styles_walk_*.bvh
+#
+# 2. PHUMA (Apache-2.0, HuggingFace: caisar/phuma)
+#    73h physically-validated humanoid robot locomotion. Closest to actual robot physics.
+#    → Best for training stability — no foot-sliding by design.
+#
+# 3. CMU MoCap (public domain, mocap.cs.cmu.edu)
+#    Subject 35 (walk), 09 (run). BVH. Use smpl2bvh + Auto-Rig Pro.
+#
+# 4. MoMask → CLoSD pipeline (generate then track):
+#    a. Text prompt → MoMask 196-frame clip (FID=0.045)
+#    b. CLoSD (closed-loop diffusion) → physics-valid tracking in simulation
+#    c. Export tracked joint angles as new reference_motion
+#
+# 5. DiffMimic (Apache-2.0, ICLR 2023):
+#    Use existing Blender keyframes directly — no motion capture needed.
+#    10-20× faster convergence than standard RL from scratch.
+#    GitHub: https://github.com/diffmimic/diffmimic
+
+# ── Output / checkpoint ───────────────────────────────────────────────────────
+training:
+  checkpoint_dir: ./checkpoints/v50_amp
+  log_dir: ./logs/v50_amp
+  save_interval: 1000                  # iterations
+  eval_interval: 200
+  resume: false
