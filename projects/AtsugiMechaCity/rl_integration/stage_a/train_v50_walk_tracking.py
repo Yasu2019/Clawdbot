@@ -62,6 +62,19 @@ def gait_reference(phase):
                         sh_l, elb, wr, sh_r, elb, wr], dim=1)
 
 
+def quat_angvel(q, q_prev, dt):
+    """Approximate world-frame angular velocity from consecutive quats (wxyz)."""
+    # r = q * conj(q_prev); omega ~= 2 * r.xyz / dt  (small-angle)
+    w1, x1, y1, z1 = q[:, 0], q[:, 1], q[:, 2], q[:, 3]
+    w2, x2, y2, z2 = q_prev[:, 0], -q_prev[:, 1], -q_prev[:, 2], -q_prev[:, 3]
+    rw = w1 * w2 - x1 * x2 - y1 * y2 - z1 * z2
+    rx = w1 * x2 + x1 * w2 + y1 * z2 - z1 * y2
+    ry = w1 * y2 - x1 * z2 + y1 * w2 + z1 * x2
+    rz = w1 * z2 + x1 * y2 - y1 * x2 + z1 * w2
+    sign = torch.where(rw < 0, -1.0, 1.0).unsqueeze(1)
+    return sign * 2.0 * torch.stack([rx, ry, rz], dim=1) / dt
+
+
 def quat_gravity(quat):
     """(N,4) wxyz -> gravity direction in body frame (N,3); upright => (0,0,-1)."""
     w, x, y, z = quat[:, 0], quat[:, 1], quat[:, 2], quat[:, 3]
@@ -100,6 +113,14 @@ class Env:
         self.phase = torch.rand(n_envs, device=dev)
         self.steps = torch.zeros(n_envs, device=dev, dtype=torch.long)
         self.x0 = torch.zeros(n_envs, device=dev)           # root x at episode start
+        # INC-141 trap #4: get_vel()/get_ang() (and links_vel) return zeros for this
+        # MJCF articulated entity in genesis 1.2.1 — all three runs trained with a
+        # blind/zero velocity signal. Velocities are now finite-differenced from
+        # get_qpos() (the only getter verified to report true world state).
+        self.lin_vel = torch.zeros(n_envs, 3, device=dev)
+        self.ang_vel = torch.zeros(n_envs, 3, device=dev)
+        self.prev_pos = torch.zeros(n_envs, 3, device=dev)
+        self.prev_quat = torch.zeros(n_envs, 4, device=dev)
         self.reset(torch.arange(n_envs, device=dev))
 
     def reset(self, idx):
@@ -111,7 +132,12 @@ class Env:
         self.robot.set_dofs_position(ref, dofs_idx_local=self.dof_idx, envs_idx=idx,
                                      zero_velocity=True)
         self.steps[idx] = 0
-        self.x0[idx] = self.robot.get_qpos()[idx, 0]
+        qpos = self.robot.get_qpos()
+        self.x0[idx] = qpos[idx, 0]
+        self.prev_pos[idx] = qpos[idx, :3]
+        self.prev_quat[idx] = qpos[idx, 3:7]
+        self.lin_vel[idx] = 0.0
+        self.ang_vel[idx] = 0.0
 
     def root_state(self):
         qpos = self.robot.get_qpos()
@@ -121,8 +147,8 @@ class Env:
         q = self.robot.get_dofs_position(self.dof_idx)
         qd = self.robot.get_dofs_velocity(self.dof_idx)
         pos, quat = self.root_state()
-        vel = self.robot.get_vel()
-        ang = self.robot.get_ang()
+        vel = self.lin_vel
+        ang = self.ang_vel
         grav = quat_gravity(quat)
         ref = gait_reference(self.phase)
         two_pi = 2.0 * math.pi
@@ -152,8 +178,13 @@ class Env:
 
         q = self.robot.get_dofs_position(self.dof_idx)
         pos, quat = self.root_state()
-        vel = self.robot.get_vel()
-        ang = self.robot.get_ang()
+        dt_c = DT_SIM * DECIMATION
+        self.lin_vel = (pos - self.prev_pos) / dt_c
+        self.ang_vel = quat_angvel(quat, self.prev_quat, dt_c)
+        self.prev_pos = pos.clone()
+        self.prev_quat = quat.clone()
+        vel = self.lin_vel
+        ang = self.ang_vel
         grav = quat_gravity(quat)
 
         pose_err = ((q - ref) ** 2).mean(dim=1)
