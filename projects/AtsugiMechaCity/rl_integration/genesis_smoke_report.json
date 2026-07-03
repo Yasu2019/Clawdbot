@@ -1,0 +1,47 @@
+{
+  "schema": "clawstack.genesis_v50_smoke.v1",
+  "mjcf": "D:\\Clawdbot_Docker_20260125\\projects\\AtsugiMechaCity\\rl_integration\\artifacts\\v50_mecha.xml",
+  "n_envs": 64,
+  "n_steps": 300,
+  "stages": {
+    "torch_cuda": {
+      "ok": true,
+      "sec": 1.94
+    },
+    "import_genesis": {
+      "ok": true,
+      "sec": 2.38
+    },
+    "gs_init_gpu": {
+      "ok": true,
+      "sec": 0.94
+    },
+    "scene_and_mjcf_load": {
+      "ok": true,
+      "sec": 14.87
+    },
+    "build_batched": {
+      "ok": true,
+      "sec": 345.38
+    },
+    "resolve_dofs": {
+      "ok": true,
+      "sec": 0.0
+    },
+    "sim_steps": {
+      "ok": true,
+      "sec": 3.43
+    }
+  },
+  "ok": true,
+  "torch": {
+    "torch": "2.11.0+cu128",
+    "cuda_available": true,
+    "device": "NVIDIA GeForce RTX 5060 Ti",
+    "capability": "12.0"
+  },
+  "genesis_version": "1.2.1",
+  "controlled_dofs": 12,
+  "steps_sec": 3.43,
+  "env_steps_per_sec": 5605
+}
