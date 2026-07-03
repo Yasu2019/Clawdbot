@@ -15,3 +15,5 @@
 (原本バックアップ: 同ディレクトリ `*.PRE_WELD_BACKUP_20260702.blend`)
 
 次フェーズ(30体×5スキル)の設計判断: `docs/troubleshooting/fable5_mecha_multirobot_scaleup_decision_20260703.md`
+
+**ローカルAI向け再現手順(QC三点セット):** `../qc/` — `mecha_rig_qc_process_chart.md`(工程表) / `mecha_rig_fmea.md`(FMEA・全行実インシデント由来) / `mecha_rig_checksheet.md`(コマンド+数値基準の実行チェックシート)。本フォルダのスクリプト群はこのQC工程の実行ツール。
