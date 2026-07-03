@@ -11,8 +11,10 @@ bd issue: `Clawdbot_Docker_20260125-6li`(キュー⑤) / 前提知識ゼロで�
 | ② カメラ修正 | ✅ 完了 | `v50_final_walk_preview.py`(sensor_fit=VERTICAL) |
 | ③ 強化ゲートPASS | ✅ 完了 | `inc140_repair/joint_gate_final_full_restore.json` |
 | ④ Genesis GPUスモーク | ✅ 完了 | `rl_integration/genesis_smoke_report.json`(5,605 env-steps/s) |
-| ⑤ 骨格+マニフェスト+スキル拡張設計 | ✅ **設計文書完了・ユーザー凍結承認待ち** | 本フォルダの4文書 |
-| Stage A(DiffMimicトラッキング) | ⬜ 未着手 | 次の実装対象 |
+| ⑤ 骨格+マニフェスト+スキル拡張設計 | ✅ 完了・**骨格v1.0凍結済(2026-07-03ユーザー承認)** | 本フォルダの4文書 |
+| Stage A(歩行トラッキング学習) | 🟡 **実装完了・学習ラン実行中** | `rl_integration/stage_a/train_v50_walk_tracking.py` / 進捗: `C:\v50_work\stage_a_run1\status.json`(10イテレーションごと更新, 1200予定) / 独立プロセス(セッション非依存) |
+
+**Stage A引継ぎメモ:** Genesis実装の罠3つ(アクチュエータ衝突/スポーン高/座標系)は trouble_history **[T047]** に記録済み — Stage B/Cでも必ず読むこと。学習完了後の次手順: ①`eval.json`のforward_travel確認(目標: 8秒で数m前進) ②方策のロールアウトをBlenderで可視化(qpos軌跡→ARMFIX blendに適用するコンバータは未作成・次セッションのタスク) ③オリジナル比較ゲートで motion比>0.55 確認(bd `1wr`クローズ条件)。
 
 ## 2. ⑤の設計文書(このフォルダ)— 読む順序
 

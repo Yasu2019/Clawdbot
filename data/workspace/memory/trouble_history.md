@@ -1014,3 +1014,25 @@ G1 py_compile → G2 `fleet_satellite_setup_auto.ps1` → G3 K10 probe → G4 �
 
 **記録:** INC-140, 関連 [T035]/[T033]/[T045], bd `Clawdbot_Docker_20260125-sbj`（旧キー `v50-robot-unwelded-mesh-and-loose-joint-gate-inc140`）
 
+---
+
+## [T047] Genesis 1.2.1 でV50 RL学習環境を組む際の3つの罠（Stage A実装時） -- INC-141
+
+**Date:** 2026-07-03 JST | bd: `Clawdbot_Docker_20260125-6li`
+
+**症状:** Stage Aトレーナのdevランで、ロボットが完全静止（vx=0.00固定・up=1.00固定・転倒0・pose_err≈1.0）。学習が成立しない。
+
+**根本原因3つ（すべてプローブで実証・解決済み）:**
+1. **MJCFの`<actuator>`(gear 400等)が「非PD還元型アクチュエータ」としてインポートされ、`control_dofs_position`と衝突**。`get_dofs_kp`が `act_gain != -act_bias` 例外を出すのがサイン。→ **対処: XMLから`<actuator>`セクションをストリップし、`set_dofs_kp/kv`(1Dテンソル・全env共有)で明示PD設定**。
+2. **スポーン高の推測ミスで足が床に8cmめり込み**、接触ソルバに保持されて静止。→ **対処: 追加Plane()をやめ、MJCF自前の床+`get_qpos()`キャッシュ(ネイティブスポーン)+`set_qpos(envs_idx=)`でリセット**。高さのハードコード全廃(INC-140教訓8と同型)。
+3. **「重力が効かない」は誤診だった**: +1.0持ち上げテストの静止位置(z≈1.35)が偶然「追加平面上の立位高さ」と一致していただけ。重力・接触は正常。→ **教訓: 浮遊疑いの検証は「立てない高さ」まで持ち上げて落下速度を確認する**。
+
+**その他の実測知見:**
+- `get_pos()`は相対系(スポーン=0)、`get_qpos()[:, :3]`が絶対系。**混用禁止**。
+- `set_pos`はデフォルト`relative=True`。絶対指定は明示的に`relative=False`。
+- 関節可動域はMJCFのdegree指定が正しくrad変換される(±40°→±0.7rad確認)。
+- 参照モーションJSON `v50_ref_motion.json` は**壊れている**(root前進0.0・股振幅0.5°、DOFOrder 18に対しframe長19)。Stage Aはトレーナ内生成の解析sin歩容(股11°+前進0.8m/s目標)で代替。エクスポータ修理はStage B(100STYLES置換)で無用化されるため行わない。
+- 検証ずみ健全状態: pose_err 0.005〜0.02・転倒が発生する・立位z≈0.44。
+
+**成果物:** `rl_integration/stage_a/train_v50_walk_tracking.py`(自己完結PPO・外部RLライブラリ非依存)、プローブ群 `C:\v50_work\probe2-8.py`、本番ラン `C:\v50_work\stage_a_run1\status.json`(10イテレーションごと更新)。
+
