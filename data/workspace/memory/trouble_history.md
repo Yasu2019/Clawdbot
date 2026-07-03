@@ -883,3 +883,113 @@ G1 py_compile → G2 `fleet_satellite_setup_auto.ps1` → G3 K10 probe → G4 �
 
 **記録:** INC-134, bd `robot-walk-ik-axis-disappearance-inc134`, ByteRover curate
 
+---
+
+## [T046] V50 robot walk: 「胴/肩の脱離・左前腕手の脱離・左脚破損」の真因は"未溶接メッシュ＋甘すぎる接合ゲート"であって形状破損ではない -- INC-140
+
+**Date:** 2026-07-02 JST
+
+**Symptom (ユーザー目視):**
+1. 胴体と両肩が外れて見える
+2. 左腕の前腕と手が外れて見える（空中に破片が浮く）
+3. 左脚のメッシュが破損して見える
+
+**当初の誤った結論（要修正）:** 比較ゲートの `candidate_has_more_large_disconnected_components_than_original`(component比 7.27×) を「カメラ構図(寄り)によるスケール・アーチファクト」とだけ解釈した。実際にはNORM(前景2%基準)で3.84×の分離が残っており、**本物の分離信号を過小評価していた**。ユーザー目視が正しかった。
+
+**検証（すべて再現可能・read-only）:**
+- 実フレーム目視: `scratch/v50_preview_shoulder_socket_180/frames/frame_0001..0180.png` → 空中に浮く破片・上半身が画面外・巨大な低ポリ球状の胴を確認。
+- 接合ゲートレポート `scratch/v50_preview_shoulder_socket_180/v50_joint_attachment_gate_report.json`:
+  - `shoulder_R` rest距離 = **0.326** に対し許容 `rest_tol = 0.3296`(=身長2.746の**12%**)。**わずか0.003差で"PASS"**。身長比12%の隙間は明確に見える脱離。→ **T035と同系統のfalse-PASS（甘い閾値で"見える破綻"を見逃す）の再発**。
+  - `wrist_L` child距離 最大 **0.227**(身長の8%)= 左手・前腕の分離と一致。
+- Blenderヘッドレス メッシュ検査 (`D:\tmp\v50_mesh_inspect.py` → `v50_mesh_inspect_report.json`):
+  - `Torso_Core` v=223,426 / f=74,586 / 境界エッジ=**223,428** / DEGEN。verts≈faces×3 = **未溶接(各三角形が独立頂点)の兆候**。
+  - `Pelvis_Center` 島=38,386、`UpperLeg_L` 島=38,372、`UpperLeg_R` 島=38,083、`UpperLegCore_L/R` 島=22,905/22,988。全て未溶接パターン。
+  - 対照: 腕部品 `geometry_0.001/0.005` は境界=0・島=1(**溶接済み・健全**)。
+- Merge by Distance 検証 (`D:\tmp\v50_weld_test.py` → `v50_weld_test_report.json`, 閾値=最大寸法の0.1%):
+  - `UpperLeg_L`: 38,372島 → **1島**、非多様体=0
+  - `Torso_Core`: 74,419島 → **1島**、境界 223,428→272
+  - `Pelvis_Center`/`UpperLeg_R`/`UpperLegCore_L/R`: いずれも1〜2島へ収束、非多様体ほぼ0
+
+**Root cause:**
+1. **胴・骨盤・脚メッシュが未溶接**（頂点マージ未実施）。未溶接はスムーズシェーディングが割れ、"破損したように"見える。腕だけ溶接済みで胴・脚が未溶接という非対称が真因。→ **「左脚破損」はメッシュ破損ではなく未溶接**。
+2. **接合ゲートの許容値が身長の12%と過大**。0.33の可視隙間を"PASS"にしていた（T035の教訓の再発）。→ 「胴/肩の脱離」がゲートを素通り。
+3. 健全な肩・腕シェル部品が**関節ピボットから離れた位置**に置かれている（rest 0.326等）。=位置合わせ/リグの問題。
+4. **左手の実体メッシュが存在しない**（`V50_PROXY_Hand_L_*` は24頂点の粗プロキシのみ）。右手は `geometry_0.006`(健全)が存在。
+
+**修正方針（未実施・承認後着手）:**
+1. 胴/骨盤/両脚に Merge by Distance（最大寸法の~0.05〜0.1%）を適用し法線再計算 → 「破損」表示を解消（決定的・高確度）。
+2. 接合ゲート `v50_joint_attachment_gate.py` の `rest_tol` を身長の12%から**2〜3%**へ厳格化し、"見える脱離"を正しくFAILさせる（T035系統の恒久対策）。
+3. 健全な肩・腕シェルを関節ピボットに接触するよう再配置。浮遊破片(`geometry_0.003/0.004` 等 bone=None、プロキシ)を適切なボーンへ割当 or 削除。
+4. 左手は右手 `geometry_0.006` のX軸ミラーで生成（生成AI再抽選より決定的）。
+
+**Strict prevention rules:**
+1. **PartPacker由来メッシュはリグ前に必ず溶接検査**（境界エッジ数・島数）。verts≈faces×3 は未溶接のサイン。
+2. **接合ゲートの許容値は「見える隙間」基準で設定**（身長比12%は無効）。最小値/緩い閾値メトリクスは視覚的破綻を保証しない（[T035]再掲）。
+3. 比較ゲートの component_count 等は**構図を揃えてから**評価する（寄り構図はスケール・アーチファクトで数値を歪める）。
+
+### 実施結果（2026-07-02 追記・着手分）
+
+**バックアップ（先に取得）:**
+- ソースblend: `scratch/v50_armature_builder_smoke4/robot_walk_v50_armature_build.PRE_WELD_BACKUP_20260702.blend`
+- ゲート: `projects/AtsugiMechaCity/v50_joint_attachment_gate.PRE_INC140_BACKUP.py`
+
+**(1) 溶接 実施・検証済み ✅** — `D:\tmp\v50_weld_apply.py` で未溶接7メッシュ(Torso_Core/Pelvis_Center/UpperLeg_L/R/UpperLegCore_L/R + Ground)にMerge by Distance+法線再計算+スムーズシェード。境界エッジ 115k–223k → 数百に収束。出力: `scratch/v50_armature_builder_smoke4/robot_walk_v50_armature_build_WELDED.blend`(原本は非破壊)。**フルボディ描画で胴・骨盤・脚が健全なソリッドと確認**(`scratch/v50_weld_smoke/fullbody_front.png` 他)。
+
+**⚠️ 診断の重要な訂正:** 「左脚破損」は溶接で解消（=未溶接シェーディング割れが真因、メッシュ自体は健全）。だが**本当の主欠陥は"腕の脱離"だった**。フルボディ描画で判明:
+- **胴体コア(頭・胸・骨盤・脚)は良好・接続済み**。
+- **両腕(上腕/前腕/手シェル)が左右外側へ大きく離れて浮遊**。肘キャップ片(geometry_0.003/0.004/0.023/0.024/0.032/0.033)が隙間に散乱。
+- 位置データ(`D:\tmp\v50_arm_positions.py`): 腕**メッシュ**は X≈±0.62〜0.73 / 胴と同じ奥行 Y−1.331。しかし腕**ボーン**は X≈±0.318 / Y−2.049。**腕が自分のボーンから X約0.3 外・Y約0.7 後ろにオフセットして剛体ペアレント**されている → 描画上は脱離、ボーン中心も腕から外れる。
+- ユーザーの「胴と両肩が外れて見える」= このカメラでは寄りすぎて上半身が画面外(下記カメラバグ)+腕脱離の複合。
+
+**(2) 接合ゲート修正 実施・検証済み ✅** — `v50_joint_attachment_gate.py`:
+- `rest-ratio` 0.12→**0.06** に厳格化（0.33の可視隙間を通していた甘さを是正）。
+- **マーカー非依存の直接接触チェック `parent_child_meshes_detached_at_rest` を新設**（`min_pair_distance`: 関節近傍で親メッシュ↔子メッシュの最小距離を測る）。旧方式は「隙間に置いたマーカーへの各片の距離」を測るため、親子が離れていても両方"近い"と誤判定していた（[T035]接触パッチ方式をこのゲートにも適用）。
+- 溶接blendで再実行 → **verdict `HOLD_JOINT_DETACHMENT`**、失敗関節 shoulder_L/elbow_L/wrist_L/shoulder_R を正しく検出（旧: 誤PASS）。shoulder_R pair=0.269 = ソケットhackで隠せなかった真の胴↔腕隙間。出力: `D:\tmp\v50_joint_gate_after_inc140.json`。
+
+**(3) 追加で判明した別バグ（未修正・要対応）:**
+- **カメラ アスペクト比クロップ**: `v50_final_walk_preview.py:229` の ortho カメラは `ortho_scale=size.z*1.08` を 16:9 横フレームの**幅**に適用 → 縦は身長の約61%しか映らず**上半身(頭・肩)が画面外**。`sensor_fit="VERTICAL"` 等で身長基準に要修正。
+- **接合ゲートの盲点(構造)**: shoulder系は親=胴/子=上腕だが、旧実装は腕内関節しか実質見ておらず**腕根↔胴の接続**を測っていなかった。(2)の直接チェックで一部是正済みだが、腕根専用チェックの明示化が望ましい。
+
+**残タスク（未着手・要判断）:**
+- **腕の再接合**: 腕メッシュ群を X約0.3 内側・Y約0.7 前へ寄せてボーン/肩に接続。ただし「正しい腕位置」は設計仕様（肩幅・A/Tポーズ意図）に依存し、かつアーマチュア(リグ)改変を伴うため、**推測で動かさず**方針承認が必要（CLAUDE.md「推測で仕様を作らない」/ Surgical Changes）。ボーン基準にメッシュをスナップ→ボーンYを胴奥行に補正、が有力案。
+- カメラ修正、浮遊シャード除去、左手ミラー生成（右手 geometry_0.006）。
+
+**検証成果物:** `D:\tmp\v50_mesh_inspect_report.json` / `v50_weld_test_report.json` / `v50_weld_apply_report.json` / `v50_arm_positions.py` / `v50_joint_gate_after_inc140.json`、`scratch/v50_weld_smoke/{fullbody_front,fullbody_side,upper_front_zoom}.png`、`scratch/v50_preview_shoulder_socket_180/frames/`
+
+### 腕再接合 実施結果（2026-07-03 追記・承認後実装分）
+
+**方針:** ユーザー指定の保護済みオリジナル `KEEP_ORIGINAL_..._v50_BASELINE\robot_walk.blend` を正解参照とし、全46メッシュのワールド行列をダンプ(`C:\v50_work\orig_matrices.json`)→現行ビルドの腕14メッシュへ復元。
+
+**重要発見: 現行ビルドは全メッシュのY(奥行)が-1.331に平坦化されていた。** 腕は単純な平行移動ではなく部品ごとに姿勢復元が必要だった（オリジナルは前腕が前方に自然に出るポーズ）。
+
+**実施内容 (`C:\v50_work\v50_arm_reattach.py`, 非破壊 → `..._WELDED_ARMFIX.blend`):**
+1. **アーマチュアが2体存在**（`Robot_Mechanical_Armature`=レガシーAction保持 / `V50_Generic_Armature`=腕メッシュの実際の親・previewが操作）。**両方**の腕ボーン(UpperArm/LowerArm/Hand L/R)をオリジナルメッシュ群から導出した関節ピボット（shoulder=肩ボールシェル0.012/0.022中心、elbow=肘キャップ0.023/0.024中心、wrist=前腕端0.005/手0.006から導出）へ移動。※初回実行は片方のみ編集し腕アニメが旧ピボットで回る失敗→両方編集で解決。
+2. 腕メッシュ14個のmatrix_worldをオリジナルからコピー（ボーン編集**後**に実施、順序重要）。
+3. マーカー/SHARED_CORE/左手プロキシを新ピボットへ。
+4. 検証: 全幅 1.749→**1.150(オリジナルと一致)**、フルボディ描画でオリジナルと目視一致。
+
+**preview/gateで追加発見した3バグ（すべて修正済み）:**
+- **(a) 巨大球バグ** `v50_final_walk_preview.py create_shoulder_sockets`: 半径1.0で球生成→`obj.scale`設定のみ→depsgraph未更新のまま`base_matrices()`が**スケール未反映の行列をコピー**→`set_torso_motion`が毎フレーム上書き→**半径1.0の巨大球がレンダーに出る**（これが以前の寄り構図で「球状の胴」に見えていたものの正体）。修正: matrix_worldにスケールを直接焼き込み+view_layer.update()。
+- **(b) カメラ縦クロップ** 同 `setup_camera`: 16:9横フレームでAUTO sensor fit→ortho_scaleが横幅に適用され**縦は身長の61%しか映らず上半身が画面外**。修正: `sensor_fit="VERTICAL"` + `ortho_scale=size.z*1.52`（baseline構図=ロボット66%を再現）。
+- **(c) プロキシ手の空間取り違え** 同 `update_left_hand_proxy`: プロキシは`geometry_0.005`に親付けされているのに**ワールド座標を`.location`(親ローカル空間)へ直書き**→変位。修正: `matrix_world.translation`経由で設定。
+
+**gate側の追加修正:**
+- `geometry_0.005` を HAND_L→LOWER_ARM_L へ再分類（リグ意味論と一致、wrist_L親の誤「遠方」判定を解消）。
+- `attach-ratio` 0.05→0.06 に校正: **正解基準のオリジナル自体が wrist_R に 0.115 の隙間を持つ**ため（オリジナルを落とすゲートは校正過剰）。修正前の脱離0.27-0.28は2.3倍マージンで依然検出。
+- **hidden測定バグ**: `hide_viewport=True`のオブジェクトはdepsgraph除外でmatrix_worldが恒等行列のまま→**原点にあると誤測定**（wrist_L子距離1.376の正体）。`unhide_measured_objects()`を追加。
+
+**ゲート推移:** 修正前 HOLD(shoulder_L/elbow_L/wrist_L/shoulder_R) → 腕再接合後 HOLD(wrist_L/wrist_R) → 校正+バグ修正後 wrist_R PASS → プロキシ空間修正後 **PASS_JOINT_ATTACHMENT(failed joints: none, 強化基準で全12関節PASS)**。
+
+**最終確認(2026-07-03):**
+- 目視: 180フレーム全身レンダーで腕接合・破片なし・歩行動作を確認(`C:\v50_work\preview_full180b/`)。
+- オリジナル比較ゲート: **component_count比 7.27→1.12**(ユーザー指摘の分離問題は構図を揃えた状態で解消)。verdict は HOLD_REGRESSION_RISK だが hard flags は foreground(bbox幅0.22: baselineはロボットが画面横断、候補はその場歩き)と **motion比0.17** のみ = リグ欠陥ではなく**参照モーション品質(歩行振幅・前進量)の問題**。これは30体スケールアップ計画のStage A(DiffMimic/100STYLES)の担当領域(→ `docs/troubleshooting/fable5_mecha_multirobot_scaleup_decision_20260703.md`)。
+- 修復ツール保全: `projects/AtsugiMechaCity/inc140_repair/`(スクリプト3本+最終ゲートレポート2本+README)。
+
+**教訓(追加):**
+1. **Blenderの`obj.scale`/`obj.location`直接代入は親子・depsgraph状態に依存**。オブジェクト配置は`matrix_world`経由が安全（バグa,c共通根因）。
+2. **同名ボーンを持つアーマチュアが複数ある場合、メッシュの実際の親を確認してから編集**（`o.parent`/`parent_bone`）。
+3. **ゲート校正は「正解基準が通る最小の厳しさ」に合わせる**。基準自体を落とす閾値は過剰校正。
+4. **viewport-hiddenオブジェクトの測定は評価前にunhide必須**（depsgraph除外→恒等行列）。
+
+**記録:** INC-140, 関連 [T035]/[T033]/[T045], bd `Clawdbot_Docker_20260125-sbj`（旧キー `v50-robot-unwelded-mesh-and-loose-joint-gate-inc140`）
+

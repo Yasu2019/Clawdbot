@@ -24,6 +24,7 @@ RIGHT_FOOT = ["geometry_0.014", "geometry_0.031", "geometry_0.026", "geometry_0.
 TORSO_NAMES = [
     "Torso_Core", "Pelvis_Center", "geometry_0", "geometry_0.001", "geometry_0.003",
     "geometry_0.004", "geometry_0.007", "geometry_0.010", "geometry_0.011", "geometry_0.015",
+    "V50_RENDER_ShoulderSocket_L", "V50_RENDER_ShoulderSocket_R",
 ]
 LEFT_HAND_PROXY = [
     "V50_PROXY_Hand_L_Palm", "V50_PROXY_Hand_L_Palm_Core",
@@ -40,6 +41,8 @@ ARM_JOINT_MARKERS = {
     "V50_RIG_MARKER_wrist_R": ("Hand_R", "head"),
 }
 JOINT_LOCK_OBJECT_PREFIX = "V50_PREVIEW_LOCK_"
+RENDER_CONNECTOR_OBJECT_PREFIX = "V50_RENDER_"
+SHOULDER_SOCKET_NAMES = ["V50_RENDER_ShoulderSocket_L", "V50_RENDER_ShoulderSocket_R"]
 LEG_JOINT_LINKS = {
     "L_upper_leg": ("hip_L", "knee_L"),
     "L_lower_leg": ("knee_L", "ankle_L"),
@@ -53,14 +56,18 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--blend", required=True)
     parser.add_argument("--out-dir", required=True)
-    parser.add_argument("--frames", type=int, default=96)
+    parser.add_argument("--frames", type=int, default=180)
     parser.add_argument("--fps", type=int, default=24)
     parser.add_argument("--candidate-json")
+    parser.add_argument("--show-joint-locks", action="store_true")
     return parser.parse_args(argv)
 
 
 def all_mesh_objects():
-    return [obj for obj in bpy.context.scene.objects if obj.type == "MESH" and obj.name != "Ground"]
+    return [
+        obj for obj in bpy.context.scene.objects
+        if obj.type == "MESH" and obj.name != "Ground" and not obj.hide_render
+    ]
 
 
 def bounds_for(objects):
@@ -87,6 +94,8 @@ def hide_diagnostics():
             obj.type == "ARMATURE"
             or obj.name.startswith("V50_RIG_MARKER_")
             or obj.name.endswith("_SHARED_CORE")
+            or obj.name in LEFT_HAND_PROXY
+            or obj.name.startswith("V50_RENDER_Hand_L_")
         ):
             obj.hide_render = True
             obj.hide_viewport = True
@@ -104,6 +113,44 @@ def material(name, color):
             bsdf.inputs["Metallic"].default_value = 0.35
             bsdf.inputs["Roughness"].default_value = 0.45
     return mat
+
+
+def delete_previous_render_connectors():
+    for obj in list(bpy.data.objects):
+        if obj.name.startswith(RENDER_CONNECTOR_OBJECT_PREFIX):
+            bpy.data.objects.remove(obj, do_unlink=True)
+
+
+def create_shoulder_sockets(armature):
+    delete_previous_render_connectors()
+    mat = material("V50_render_shoulder_socket", (0.60, 0.62, 0.64, 1.0))
+    created = []
+    for side, bone_name in (("L", "UpperArm_L"), ("R", "UpperArm_R")):
+        point = bone_point(armature, bone_name, "head")
+        if point is None:
+            continue
+        bpy.ops.mesh.primitive_uv_sphere_add(segments=32, ring_count=16, radius=1.0, location=point)
+        obj = bpy.context.object
+        obj.name = f"V50_RENDER_ShoulderSocket_{side}"
+        obj.data.name = f"{obj.name}_Mesh"
+        # INC-140: bake location+scale into matrix_world explicitly. Setting obj.scale
+        # alone leaves matrix_world stale until a depsgraph update, and base_matrices()
+        # then captures the UNSCALED matrix -> set_torso_motion() re-applies it every
+        # frame and the socket renders as a giant radius-1.0 sphere.
+        obj.matrix_world = (
+            Matrix.Translation(point)
+            @ Matrix.Diagonal((0.105, 0.070, 0.092, 1.0))
+        )
+        obj.data.materials.append(mat)
+        obj["v50_render_role"] = "shoulder_socket_attachment_surface"
+        created.append(obj.name)
+    bpy.context.view_layer.update()
+    return created
+
+
+def create_render_connectors(armature):
+    shoulder_sockets = create_shoulder_sockets(armature)
+    return shoulder_sockets
 
 
 def delete_previous_joint_locks():
@@ -178,6 +225,7 @@ def create_joint_locks():
 
 
 def setup_camera(out_dir, frames, fps):
+    out_dir = Path(out_dir).resolve()
     meshes = all_mesh_objects()
     lo, hi = bounds_for(meshes)
     center = (lo + hi) * 0.5
@@ -186,7 +234,12 @@ def setup_camera(out_dir, frames, fps):
     cam = bpy.data.objects.new("V50_Final_Walk_Camera", cam_data)
     bpy.context.collection.objects.link(cam)
     cam.data.type = "ORTHO"
-    cam.data.ortho_scale = max(float(size.z) * 1.08, 2.35)
+    # INC-140: fit the FULL body height. With the default AUTO sensor fit on a 16:9
+    # frame, ortho_scale maps to the horizontal extent and crops ~40% of the robot
+    # vertically (upper body off-screen). VERTICAL fit + 1.52 factor reproduces the
+    # original V50 baseline framing (robot ~66% of frame height).
+    cam.data.sensor_fit = "VERTICAL"
+    cam.data.ortho_scale = max(float(size.z) * 1.52, 2.35)
     cam.location = center + Vector((0.0, -max(float(size.z) * 3.2, 8.5), float(size.z) * 0.20))
     direction = center + Vector((0.0, 0.0, 0.05)) - cam.location
     cam.rotation_euler = direction.to_track_quat("-Z", "Y").to_euler()
@@ -316,7 +369,13 @@ def update_left_hand_proxy(armature, offsets, frame):
         obj = bpy.data.objects.get(name)
         if obj is None:
             continue
-        obj.location = target_center + offset
+        # INC-140: proxies are parented (to geometry_0.005), so .location is in
+        # PARENT space. Writing world coordinates into it displaced the proxies.
+        # Set the world translation via matrix_world, then key the resulting local
+        # location.
+        mw = obj.matrix_world.copy()
+        mw.translation = target_center + offset
+        obj.matrix_world = mw
         obj.keyframe_insert(data_path="location", frame=frame)
 
 
@@ -396,15 +455,18 @@ def set_torso_motion(torso_bases, frame, frames):
             obj.matrix_world = transform @ base
 
 
-def animate(frames, candidate):
+def animate(frames, candidate, show_joint_locks: bool):
     armature = bpy.data.objects.get("V50_Generic_Armature")
     if armature is None:
         raise RuntimeError("V50_Generic_Armature not found")
+    render_connectors = create_render_connectors(armature)
     leg_names = LEFT_UPPER_LEG + LEFT_LOWER_LEG + LEFT_FOOT + RIGHT_UPPER_LEG + RIGHT_LOWER_LEG + RIGHT_FOOT
     leg_bases = base_matrices(leg_names)
     torso_bases = base_matrices(TORSO_NAMES)
     hand_offsets = hand_proxy_offsets(armature)
-    lock_cores, lock_links = create_joint_locks()
+    lock_cores, lock_links = ({}, {})
+    if show_joint_locks:
+        lock_cores, lock_links = create_joint_locks()
     y = center_of(TORSO_NAMES).y
     pivots = {
         "hip_L": Vector((-0.20, y, 0.02)),
@@ -441,11 +503,12 @@ def animate(frames, candidate):
         pose_armature(armature, frame, frames, candidate)
         update_arm_joint_markers(armature, frame)
         update_left_hand_proxy(armature, hand_offsets, frame)
-        update_visible_joint_locks(armature, lock_cores, lock_links, pivots, frame)
+        if show_joint_locks:
+            update_visible_joint_locks(armature, lock_cores, lock_links, pivots, frame)
         bpy.context.view_layer.update()
 
-        lock_names = [obj.name for obj in list(lock_cores.values()) + list(lock_links.values())]
-        for name in set(leg_names + TORSO_NAMES + HIDDEN_SOURCE_HANDS + lock_names):
+        lock_names = [obj.name for obj in list(lock_cores.values()) + list(lock_links.values())] if show_joint_locks else []
+        for name in set(leg_names + TORSO_NAMES + HIDDEN_SOURCE_HANDS + lock_names + render_connectors):
             obj = bpy.data.objects.get(name)
             if obj:
                 obj.keyframe_insert(data_path="location", frame=frame)
@@ -459,14 +522,16 @@ def animate(frames, candidate):
             "bounds_min": [round(float(lo[i]), 6) for i in range(3)],
             "bounds_max": [round(float(hi[i]), 6) for i in range(3)],
         })
-    return frame_audits
+    return frame_audits, render_connectors
 
 
 def encode_mp4(out_dir, frames_dir, fps):
+    out_dir = Path(out_dir).resolve()
+    frames_dir = Path(frames_dir).resolve()
     mp4 = out_dir / "v50_fullbody_normalized_final_walk_preview.mp4"
     cmd = [
         "ffmpeg", "-y", "-framerate", str(fps), "-i", str(frames_dir / "frame_%04d.png"),
-        "-c:v", "libx264", "-pix_fmt", "yuv420p", str(mp4),
+        "-c:v", "libx264", "-pix_fmt", "yuv420p", str(mp4.resolve()),
     ]
     result = subprocess.run(cmd, capture_output=True, text=True)
     if result.returncode != 0:
@@ -477,13 +542,13 @@ def encode_mp4(out_dir, frames_dir, fps):
 
 def main():
     args = parse_args()
-    out_dir = Path(args.out_dir)
+    out_dir = Path(args.out_dir).resolve()
     out_dir.mkdir(parents=True, exist_ok=True)
     candidate = load_candidate(args.candidate_json)
     bpy.ops.wm.open_mainfile(filepath=str(Path(args.blend)))
     hidden = hide_diagnostics()
     frames_dir = setup_camera(out_dir, args.frames, args.fps)
-    frame_audits = animate(args.frames, candidate)
+    frame_audits, render_connectors = animate(args.frames, candidate, args.show_joint_locks)
     bpy.ops.wm.save_as_mainfile(filepath=str(out_dir / "v50_final_walk_preview.blend"))
     bpy.ops.render.render(animation=True)
     mp4, ffmpeg_returncode = encode_mp4(out_dir, frames_dir, args.fps)
@@ -497,6 +562,7 @@ def main():
         "fps": args.fps,
         "ffmpeg_returncode": ffmpeg_returncode,
         "hidden_diagnostics": hidden,
+        "render_connectors": render_connectors,
         "method": "candidate-scaled rigid-object leg pivots plus existing armature arms",
         "candidate": candidate,
         "frame_audits": frame_audits,

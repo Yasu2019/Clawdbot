@@ -1,0 +1,1694 @@
+{
+  "schema": "clawstack.v50_joint_attachment_gate.v1",
+  "source_blend": "C:\\v50_work\\preview_full180b\\v50_final_walk_preview.blend",
+  "frames_sampled": [
+    1,
+    9,
+    17,
+    25,
+    33,
+    41,
+    49,
+    57,
+    65,
+    73,
+    81,
+    89,
+    97,
+    105,
+    113,
+    121,
+    129,
+    137,
+    145,
+    153,
+    161,
+    169,
+    177,
+    180
+  ],
+  "model_height": 1.935985,
+  "growth_tol": 0.067759,
+  "rest_tol": 0.116159,
+  "attach_tol": 0.116159,
+  "verdict": "PASS_JOINT_ATTACHMENT",
+  "telegram_allowed": true,
+  "checks": [
+    {
+      "joint": "shoulder_L",
+      "parent_object_count": 12,
+      "child_object_count": 4,
+      "rest_parent_distance": 0.06999993389203786,
+      "rest_child_distance": 0.023597878658447133,
+      "max_parent_distance": 0.06999993389203786,
+      "max_child_distance": 0.02359793057362279,
+      "parent_growth": 0.0,
+      "child_growth": 5.191517565839021e-08,
+      "rest_pair_distance": 0.0016782625985938837,
+      "worst_parent_frame": 1,
+      "worst_child_frame": 57,
+      "samples": [
+        {
+          "frame": 1,
+          "parent_distance": 0.06999993389203786,
+          "child_distance": 0.023597878658447133
+        },
+        {
+          "frame": 9,
+          "parent_distance": 0.0636884251345626,
+          "child_distance": 0.0235979080654983
+        },
+        {
+          "frame": 17,
+          "parent_distance": 0.05198907946421544,
+          "child_distance": 0.02359785653568724
+        },
+        {
+          "frame": 25,
+          "parent_distance": 0.04704620610700178,
+          "child_distance": 0.02359789885411924
+        },
+        {
+          "frame": 33,
+          "parent_distance": 0.057101752161511025,
+          "child_distance": 0.02359786990955328
+        },
+        {
+          "frame": 41,
+          "parent_distance": 0.06680042655282975,
+          "child_distance": 0.023597870641839675
+        },
+        {
+          "frame": 49,
+          "parent_distance": 0.06776581713285078,
+          "child_distance": 0.023597821732766897
+        },
+        {
+          "frame": 57,
+          "parent_distance": 0.05947532155481136,
+          "child_distance": 0.02359793057362279
+        },
+        {
+          "frame": 65,
+          "parent_distance": 0.04797771337485508,
+          "child_distance": 0.023597856188814534
+        },
+        {
+          "frame": 73,
+          "parent_distance": 0.049765520424160097,
+          "child_distance": 0.02359784647637667
+        },
+        {
+          "frame": 81,
+          "parent_distance": 0.06175868565983318,
+          "child_distance": 0.023597781649605666
+        },
+        {
+          "frame": 89,
+          "parent_distance": 0.06894892127950185,
+          "child_distance": 0.02359787006371884
+        },
+        {
+          "frame": 97,
+          "parent_distance": 0.06506023771939264,
+          "child_distance": 0.02359780535263712
+        },
+        {
+          "frame": 105,
+          "parent_distance": 0.054447761667410124,
+          "child_distance": 0.023597833449370397
+        },
+        {
+          "frame": 113,
+          "parent_distance": 0.04660226039654487,
+          "child_distance": 0.023597811904690395
+        },
+        {
+          "frame": 121,
+          "parent_distance": 0.05479422678883799,
+          "child_distance": 0.023597831368132042
+        },
+        {
+          "frame": 129,
+          "parent_distance": 0.0653053953917951,
+          "child_distance": 0.02359786960122216
+        },
+        {
+          "frame": 137,
+          "parent_distance": 0.06877610563546274,
+          "child_distance": 0.02359786482208928
+        },
+        {
+          "frame": 145,
+          "parent_distance": 0.06141273718348499,
+          "child_distance": 0.02359784801803374
+        },
+        {
+          "frame": 153,
+          "parent_distance": 0.04946335368559878,
+          "child_distance": 0.023597841311824748
+        },
+        {
+          "frame": 161,
+          "parent_distance": 0.04818418937264271,
+          "child_distance": 0.023597849251359323
+        },
+        {
+          "frame": 169,
+          "parent_distance": 0.059775216897015176,
+          "child_distance": 0.0235978806240572
+        },
+        {
+          "frame": 177,
+          "parent_distance": 0.06792807486127607,
+          "child_distance": 0.02359784065662032
+        },
+        {
+          "frame": 180,
+          "parent_distance": 0.06999993389203786,
+          "child_distance": 0.023597878658447133
+        }
+      ],
+      "pass": true,
+      "fail_reasons": []
+    },
+    {
+      "joint": "elbow_L",
+      "parent_object_count": 4,
+      "child_object_count": 3,
+      "rest_parent_distance": 0.025507039427537744,
+      "rest_child_distance": 0.041180155858405565,
+      "max_parent_distance": 0.025507039427537744,
+      "max_child_distance": 0.04118032423983311,
+      "parent_growth": 0.0,
+      "child_growth": 1.6838142754410645e-07,
+      "rest_pair_distance": 0.0014401028674852637,
+      "worst_parent_frame": 1,
+      "worst_child_frame": 9,
+      "samples": [
+        {
+          "frame": 1,
+          "parent_distance": 0.025507039427537744,
+          "child_distance": 0.041180155858405565
+        },
+        {
+          "frame": 9,
+          "parent_distance": 0.025506984516290507,
+          "child_distance": 0.04118032423983311
+        },
+        {
+          "frame": 17,
+          "parent_distance": 0.025506996265167958,
+          "child_distance": 0.041180319115959325
+        },
+        {
+          "frame": 25,
+          "parent_distance": 0.025506933010146286,
+          "child_distance": 0.04118024534977466
+        },
+        {
+          "frame": 33,
+          "parent_distance": 0.025506898155635237,
+          "child_distance": 0.04118022520760785
+        },
+        {
+          "frame": 41,
+          "parent_distance": 0.025507013130770133,
+          "child_distance": 0.041180276093062886
+        },
+        {
+          "frame": 49,
+          "parent_distance": 0.025506989490398615,
+          "child_distance": 0.041180186690103544
+        },
+        {
+          "frame": 57,
+          "parent_distance": 0.02550696132160153,
+          "child_distance": 0.04118025701102462
+        },
+        {
+          "frame": 65,
+          "parent_distance": 0.025506987620651102,
+          "child_distance": 0.04118020276851569
+        },
+        {
+          "frame": 73,
+          "parent_distance": 0.025506973074946756,
+          "child_distance": 0.041180267435472546
+        },
+        {
+          "frame": 81,
+          "parent_distance": 0.02550690441786228,
+          "child_distance": 0.04118020153171498
+        },
+        {
+          "frame": 89,
+          "parent_distance": 0.025506984436062946,
+          "child_distance": 0.04118027379615134
+        },
+        {
+          "frame": 97,
+          "parent_distance": 0.02550696790026642,
+          "child_distance": 0.04118016009886969
+        },
+        {
+          "frame": 105,
+          "parent_distance": 0.02550695037498465,
+          "child_distance": 0.04118025603925391
+        },
+        {
+          "frame": 113,
+          "parent_distance": 0.025507022633266235,
+          "child_distance": 0.041180226267722136
+        },
+        {
+          "frame": 121,
+          "parent_distance": 0.02550700262988383,
+          "child_distance": 0.0411802501202864
+        },
+        {
+          "frame": 129,
+          "parent_distance": 0.02550693486429797,
+          "child_distance": 0.04118025224051367
+        },
+        {
+          "frame": 137,
+          "parent_distance": 0.02550690736400557,
+          "child_distance": 0.041180228387950636
+        },
+        {
+          "frame": 145,
+          "parent_distance": 0.02550699918455814,
+          "child_distance": 0.041180235632063834
+        },
+        {
+          "frame": 153,
+          "parent_distance": 0.025506929466755073,
+          "child_distance": 0.04118019075387864
+        },
+        {
+          "frame": 161,
+          "parent_distance": 0.025506938385402956,
+          "child_distance": 0.041180182626328055
+        },
+        {
+          "frame": 169,
+          "parent_distance": 0.02550690752446117,
+          "child_distance": 0.041180149055993445
+        },
+        {
+          "frame": 177,
+          "parent_distance": 0.02550699538266521,
+          "child_distance": 0.04118019923479927
+        },
+        {
+          "frame": 180,
+          "parent_distance": 0.025507039427537744,
+          "child_distance": 0.041180155858405565
+        }
+      ],
+      "pass": true,
+      "fail_reasons": []
+    },
+    {
+      "joint": "wrist_L",
+      "parent_object_count": 3,
+      "child_object_count": 5,
+      "rest_parent_distance": 0.02735332790653884,
+      "rest_child_distance": 0.03709543434340941,
+      "max_parent_distance": 0.027353439492887814,
+      "max_child_distance": 0.037095493970406,
+      "parent_growth": 1.1158634897340258e-07,
+      "child_growth": 5.962699659023407e-08,
+      "rest_pair_distance": 0.0006430799016824814,
+      "worst_parent_frame": 169,
+      "worst_child_frame": 65,
+      "samples": [
+        {
+          "frame": 1,
+          "parent_distance": 0.02735332790653884,
+          "child_distance": 0.03709543434340941
+        },
+        {
+          "frame": 9,
+          "parent_distance": 0.027353389352236666,
+          "child_distance": 0.03709541433696145
+        },
+        {
+          "frame": 17,
+          "parent_distance": 0.02735343044895753,
+          "child_distance": 0.0370953858912324
+        },
+        {
+          "frame": 25,
+          "parent_distance": 0.027353369269350614,
+          "child_distance": 0.0370952856792761
+        },
+        {
+          "frame": 33,
+          "parent_distance": 0.02735326227120915,
+          "child_distance": 0.03709533608189557
+        },
+        {
+          "frame": 41,
+          "parent_distance": 0.027353344930468943,
+          "child_distance": 0.037095378246871175
+        },
+        {
+          "frame": 49,
+          "parent_distance": 0.02735337608556359,
+          "child_distance": 0.037095294298047095
+        },
+        {
+          "frame": 57,
+          "parent_distance": 0.02735329668488949,
+          "child_distance": 0.03709534764872365
+        },
+        {
+          "frame": 65,
+          "parent_distance": 0.027353400258168608,
+          "child_distance": 0.037095493970406
+        },
+        {
+          "frame": 73,
+          "parent_distance": 0.02735324877172465,
+          "child_distance": 0.0370952923366237
+        },
+        {
+          "frame": 81,
+          "parent_distance": 0.02735332245355899,
+          "child_distance": 0.03709537256431072
+        },
+        {
+          "frame": 89,
+          "parent_distance": 0.027353311547596022,
+          "child_distance": 0.03709541669066177
+        },
+        {
+          "frame": 97,
+          "parent_distance": 0.027353344132472455,
+          "child_distance": 0.0370953329328951
+        },
+        {
+          "frame": 105,
+          "parent_distance": 0.027353341871482285,
+          "child_distance": 0.03709536294780057
+        },
+        {
+          "frame": 113,
+          "parent_distance": 0.02735342965096354,
+          "child_distance": 0.03709537275489783
+        },
+        {
+          "frame": 121,
+          "parent_distance": 0.027353344996968648,
+          "child_distance": 0.03709542610546156
+        },
+        {
+          "frame": 129,
+          "parent_distance": 0.027353367507109906,
+          "child_distance": 0.037095372956594555
+        },
+        {
+          "frame": 137,
+          "parent_distance": 0.027353323334680806,
+          "child_distance": 0.03709539530604
+        },
+        {
+          "frame": 145,
+          "parent_distance": 0.027353310849348247,
+          "child_distance": 0.03709538060057378
+        },
+        {
+          "frame": 153,
+          "parent_distance": 0.027353341139985422,
+          "child_distance": 0.03709542119674859
+        },
+        {
+          "frame": 161,
+          "parent_distance": 0.027353409169109773,
+          "child_distance": 0.03709547553312124
+        },
+        {
+          "frame": 169,
+          "parent_distance": 0.027353439492887814,
+          "child_distance": 0.03709537981600626
+        },
+        {
+          "frame": 177,
+          "parent_distance": 0.027353409568107074,
+          "child_distance": 0.037095341563147824
+        },
+        {
+          "frame": 180,
+          "parent_distance": 0.02735332790653884,
+          "child_distance": 0.03709543434340941
+        }
+      ],
+      "pass": true,
+      "fail_reasons": []
+    },
+    {
+      "joint": "shoulder_R",
+      "parent_object_count": 12,
+      "child_object_count": 4,
+      "rest_parent_distance": 0.06999993389203786,
+      "rest_child_distance": 0.02166069851853749,
+      "max_parent_distance": 0.06999993389203786,
+      "max_child_distance": 0.021660787617408712,
+      "parent_growth": 0.0,
+      "child_growth": 8.909887122196536e-08,
+      "rest_pair_distance": 0.0012367523656620057,
+      "worst_parent_frame": 1,
+      "worst_child_frame": 81,
+      "samples": [
+        {
+          "frame": 1,
+          "parent_distance": 0.06999993389203786,
+          "child_distance": 0.02166069851853749
+        },
+        {
+          "frame": 9,
+          "parent_distance": 0.06365815014264592,
+          "child_distance": 0.02166076441898672
+        },
+        {
+          "frame": 17,
+          "parent_distance": 0.05191277810125616,
+          "child_distance": 0.02166076813493472
+        },
+        {
+          "frame": 25,
+          "parent_distance": 0.046967085826117506,
+          "child_distance": 0.021660742501178772
+        },
+        {
+          "frame": 33,
+          "parent_distance": 0.05703544308714638,
+          "child_distance": 0.02166072763736536
+        },
+        {
+          "frame": 41,
+          "parent_distance": 0.06678661807649361,
+          "child_distance": 0.02166071233266547
+        },
+        {
+          "frame": 49,
+          "parent_distance": 0.06777043446092167,
+          "child_distance": 0.021660770496765742
+        },
+        {
+          "frame": 57,
+          "parent_distance": 0.059527055403277004,
+          "child_distance": 0.02166078516110638
+        },
+        {
+          "frame": 65,
+          "parent_distance": 0.04806651736582793,
+          "child_distance": 0.02166071830548859
+        },
+        {
+          "frame": 73,
+          "parent_distance": 0.049847863197796216,
+          "child_distance": 0.02166071719804963
+        },
+        {
+          "frame": 81,
+          "parent_distance": 0.061800852551456426,
+          "child_distance": 0.021660787617408712
+        },
+        {
+          "frame": 89,
+          "parent_distance": 0.06895053982168904,
+          "child_distance": 0.021660774118239478
+        },
+        {
+          "frame": 97,
+          "parent_distance": 0.06503990535481448,
+          "child_distance": 0.021660731878171923
+        },
+        {
+          "frame": 105,
+          "parent_distance": 0.05437033004361786,
+          "child_distance": 0.02166074092662275
+        },
+        {
+          "frame": 113,
+          "parent_distance": 0.04652196776299525,
+          "child_distance": 0.02166072595783778
+        },
+        {
+          "frame": 121,
+          "parent_distance": 0.054714745529567746,
+          "child_distance": 0.021660673472535266
+        },
+        {
+          "frame": 129,
+          "parent_distance": 0.06528276997780219,
+          "child_distance": 0.021660740590717452
+        },
+        {
+          "frame": 137,
+          "parent_distance": 0.06877693655106612,
+          "child_distance": 0.02166073196214828
+        },
+        {
+          "frame": 145,
+          "parent_distance": 0.06145220758169052,
+          "child_distance": 0.021660771787899928
+        },
+        {
+          "frame": 153,
+          "parent_distance": 0.04954445574790132,
+          "child_distance": 0.021660695017767337
+        },
+        {
+          "frame": 161,
+          "parent_distance": 0.04827364662431371,
+          "child_distance": 0.021660766623362727
+        },
+        {
+          "frame": 169,
+          "parent_distance": 0.059829751160234694,
+          "child_distance": 0.021660705373117293
+        },
+        {
+          "frame": 177,
+          "parent_distance": 0.06793405848048176,
+          "child_distance": 0.021660773698358497
+        },
+        {
+          "frame": 180,
+          "parent_distance": 0.06999993389203786,
+          "child_distance": 0.02166069851853749
+        }
+      ],
+      "pass": true,
+      "fail_reasons": []
+    },
+    {
+      "joint": "elbow_R",
+      "parent_object_count": 4,
+      "child_object_count": 2,
+      "rest_parent_distance": 0.0241124919266088,
+      "rest_child_distance": 0.04101153633445567,
+      "max_parent_distance": 0.024112528400678512,
+      "max_child_distance": 0.041011558577537015,
+      "parent_growth": 3.647406971243883e-08,
+      "child_growth": 2.2243081342077087e-08,
+      "rest_pair_distance": 0.0006462520851972725,
+      "worst_parent_frame": 177,
+      "worst_child_frame": 129,
+      "samples": [
+        {
+          "frame": 1,
+          "parent_distance": 0.0241124919266088,
+          "child_distance": 0.04101153633445567
+        },
+        {
+          "frame": 9,
+          "parent_distance": 0.02411237849171079,
+          "child_distance": 0.04101149251355425
+        },
+        {
+          "frame": 17,
+          "parent_distance": 0.024112386657871986,
+          "child_distance": 0.041011514634688225
+        },
+        {
+          "frame": 25,
+          "parent_distance": 0.0241122686042386,
+          "child_distance": 0.041011504023198385
+        },
+        {
+          "frame": 33,
+          "parent_distance": 0.024112401968238058,
+          "child_distance": 0.041011515621545556
+        },
+        {
+          "frame": 41,
+          "parent_distance": 0.024112298513162544,
+          "child_distance": 0.04101151424659826
+        },
+        {
+          "frame": 49,
+          "parent_distance": 0.024112343389444825,
+          "child_distance": 0.04101155425311038
+        },
+        {
+          "frame": 57,
+          "parent_distance": 0.024112362475276903,
+          "child_distance": 0.04101154946297573
+        },
+        {
+          "frame": 65,
+          "parent_distance": 0.024112355459538014,
+          "child_distance": 0.041011530834669
+        },
+        {
+          "frame": 73,
+          "parent_distance": 0.024112348217482826,
+          "child_distance": 0.041011476502059364
+        },
+        {
+          "frame": 81,
+          "parent_distance": 0.024112480912711343,
+          "child_distance": 0.041011513182122906
+        },
+        {
+          "frame": 89,
+          "parent_distance": 0.02411222785571587,
+          "child_distance": 0.041011461155856174
+        },
+        {
+          "frame": 97,
+          "parent_distance": 0.024112391236013112,
+          "child_distance": 0.04101151572134012
+        },
+        {
+          "frame": 105,
+          "parent_distance": 0.02411236467741932,
+          "child_distance": 0.041011460712324206
+        },
+        {
+          "frame": 113,
+          "parent_distance": 0.02411239036965537,
+          "child_distance": 0.04101151970203403
+        },
+        {
+          "frame": 121,
+          "parent_distance": 0.024112299174425873,
+          "child_distance": 0.04101152298416577
+        },
+        {
+          "frame": 129,
+          "parent_distance": 0.02411239800656832,
+          "child_distance": 0.041011558577537015
+        },
+        {
+          "frame": 137,
+          "parent_distance": 0.024112270629286326,
+          "child_distance": 0.041011508746808624
+        },
+        {
+          "frame": 145,
+          "parent_distance": 0.024112424108078123,
+          "child_distance": 0.04101150040841647
+        },
+        {
+          "frame": 153,
+          "parent_distance": 0.024112440704399142,
+          "child_distance": 0.04101151207329438
+        },
+        {
+          "frame": 161,
+          "parent_distance": 0.024112329810582762,
+          "child_distance": 0.04101154076976697
+        },
+        {
+          "frame": 169,
+          "parent_distance": 0.02411239038733614,
+          "child_distance": 0.04101153702192896
+        },
+        {
+          "frame": 177,
+          "parent_distance": 0.024112528400678512,
+          "child_distance": 0.04101151806096806
+        },
+        {
+          "frame": 180,
+          "parent_distance": 0.0241124919266088,
+          "child_distance": 0.04101153633445567
+        }
+      ],
+      "pass": true,
+      "fail_reasons": []
+    },
+    {
+      "joint": "wrist_R",
+      "parent_object_count": 2,
+      "child_object_count": 1,
+      "rest_parent_distance": 0.11136974903701638,
+      "rest_child_distance": 0.04948606320156795,
+      "max_parent_distance": 0.11137026943421104,
+      "max_child_distance": 0.0494861450974549,
+      "parent_growth": 5.203971946560193e-07,
+      "child_growth": 8.189588695389771e-08,
+      "rest_pair_distance": 0.11511143720555758,
+      "worst_parent_frame": 177,
+      "worst_child_frame": 113,
+      "samples": [
+        {
+          "frame": 1,
+          "parent_distance": 0.11136974903701638,
+          "child_distance": 0.04948606320156795
+        },
+        {
+          "frame": 9,
+          "parent_distance": 0.11137014278953354,
+          "child_distance": 0.04948611554437667
+        },
+        {
+          "frame": 17,
+          "parent_distance": 0.11137015931835441,
+          "child_distance": 0.049485986157557754
+        },
+        {
+          "frame": 25,
+          "parent_distance": 0.11137019835380106,
+          "child_distance": 0.04948610289977065
+        },
+        {
+          "frame": 33,
+          "parent_distance": 0.11136986545776621,
+          "child_distance": 0.049486044749244375
+        },
+        {
+          "frame": 41,
+          "parent_distance": 0.11137000366915985,
+          "child_distance": 0.049486079963035196
+        },
+        {
+          "frame": 49,
+          "parent_distance": 0.11136997840766329,
+          "child_distance": 0.04948601390958861
+        },
+        {
+          "frame": 57,
+          "parent_distance": 0.11136995561516563,
+          "child_distance": 0.049486042948120784
+        },
+        {
+          "frame": 65,
+          "parent_distance": 0.11137004295507671,
+          "child_distance": 0.04948609804776981
+        },
+        {
+          "frame": 73,
+          "parent_distance": 0.11137002299481381,
+          "child_distance": 0.04948610289977065
+        },
+        {
+          "frame": 81,
+          "parent_distance": 0.11137006648253428,
+          "child_distance": 0.04948605614410636
+        },
+        {
+          "frame": 89,
+          "parent_distance": 0.11137003848804412,
+          "child_distance": 0.04948613789297477
+        },
+        {
+          "frame": 97,
+          "parent_distance": 0.11137010261076905,
+          "child_distance": 0.0494860879026756
+        },
+        {
+          "frame": 105,
+          "parent_distance": 0.11136990139007183,
+          "child_distance": 0.049485997331887285
+        },
+        {
+          "frame": 113,
+          "parent_distance": 0.11137013860832946,
+          "child_distance": 0.0494861450974549
+        },
+        {
+          "frame": 121,
+          "parent_distance": 0.11137026211711211,
+          "child_distance": 0.04948600637427051
+        },
+        {
+          "frame": 129,
+          "parent_distance": 0.11137002317421593,
+          "child_distance": 0.0494859992432855
+        },
+        {
+          "frame": 137,
+          "parent_distance": 0.11136997139678624,
+          "child_distance": 0.049486036074444455
+        },
+        {
+          "frame": 145,
+          "parent_distance": 0.11137002321683445,
+          "child_distance": 0.049486070663362185
+        },
+        {
+          "frame": 153,
+          "parent_distance": 0.11136995015999172,
+          "child_distance": 0.049486028722917914
+        },
+        {
+          "frame": 161,
+          "parent_distance": 0.111370029047405,
+          "child_distance": 0.04948605379161894
+        },
+        {
+          "frame": 169,
+          "parent_distance": 0.11136991072430295,
+          "child_distance": 0.049485923669484295
+        },
+        {
+          "frame": 177,
+          "parent_distance": 0.11137026943421104,
+          "child_distance": 0.049486043499485155
+        },
+        {
+          "frame": 180,
+          "parent_distance": 0.11136974903701638,
+          "child_distance": 0.04948606320156795
+        }
+      ],
+      "pass": true,
+      "fail_reasons": []
+    },
+    {
+      "joint": "hip_L",
+      "parent_object_count": 12,
+      "child_object_count": 2,
+      "rest_parent_distance": 0.06478055145665215,
+      "rest_child_distance": 0.09205025530409303,
+      "max_parent_distance": 0.06478055145665215,
+      "max_child_distance": 0.09735736011970889,
+      "parent_growth": 0.0,
+      "child_growth": 0.0053071048156158596,
+      "rest_pair_distance": 0.0021599727197226097,
+      "worst_parent_frame": 1,
+      "worst_child_frame": 73,
+      "samples": [
+        {
+          "frame": 1,
+          "parent_distance": 0.06478055145665215,
+          "child_distance": 0.09205025530409303
+        },
+        {
+          "frame": 9,
+          "parent_distance": 0.06390863622395368,
+          "child_distance": 0.08717801232249309
+        },
+        {
+          "frame": 17,
+          "parent_distance": 0.06414992455275942,
+          "child_distance": 0.08365259227497557
+        },
+        {
+          "frame": 25,
+          "parent_distance": 0.06448175858684986,
+          "child_distance": 0.08282685821708141
+        },
+        {
+          "frame": 33,
+          "parent_distance": 0.06450136997032746,
+          "child_distance": 0.08475969860788812
+        },
+        {
+          "frame": 41,
+          "parent_distance": 0.06420474255986208,
+          "child_distance": 0.08932769844149505
+        },
+        {
+          "frame": 49,
+          "parent_distance": 0.06450785303367947,
+          "child_distance": 0.09321478216810822
+        },
+        {
+          "frame": 57,
+          "parent_distance": 0.06477329576481274,
+          "child_distance": 0.09650301022143543
+        },
+        {
+          "frame": 65,
+          "parent_distance": 0.06458953757860007,
+          "child_distance": 0.09734326296891824
+        },
+        {
+          "frame": 73,
+          "parent_distance": 0.06450483702292022,
+          "child_distance": 0.09735736011970889
+        },
+        {
+          "frame": 81,
+          "parent_distance": 0.06420379588416339,
+          "child_distance": 0.09580166217951107
+        },
+        {
+          "frame": 89,
+          "parent_distance": 0.0647215559183705,
+          "child_distance": 0.09256057977910245
+        },
+        {
+          "frame": 97,
+          "parent_distance": 0.06396080216933302,
+          "child_distance": 0.08812509428202712
+        },
+        {
+          "frame": 105,
+          "parent_distance": 0.06417542119793485,
+          "child_distance": 0.08410707993953107
+        },
+        {
+          "frame": 113,
+          "parent_distance": 0.06450796463403115,
+          "child_distance": 0.08276749773663213
+        },
+        {
+          "frame": 121,
+          "parent_distance": 0.06420013167821728,
+          "child_distance": 0.08419231590573732
+        },
+        {
+          "frame": 129,
+          "parent_distance": 0.06398576847515955,
+          "child_distance": 0.08829071455200493
+        },
+        {
+          "frame": 137,
+          "parent_distance": 0.06469939229501875,
+          "child_distance": 0.09265038963475647
+        },
+        {
+          "frame": 145,
+          "parent_distance": 0.06426302723736906,
+          "child_distance": 0.09590418955203747
+        },
+        {
+          "frame": 153,
+          "parent_distance": 0.06453714094224115,
+          "child_distance": 0.097354548640419
+        },
+        {
+          "frame": 161,
+          "parent_distance": 0.06458122278681107,
+          "child_distance": 0.09734460448946561
+        },
+        {
+          "frame": 169,
+          "parent_distance": 0.06466793703468657,
+          "child_distance": 0.09640553043497267
+        },
+        {
+          "frame": 177,
+          "parent_distance": 0.06454466877254127,
+          "child_distance": 0.09311798888774664
+        },
+        {
+          "frame": 180,
+          "parent_distance": 0.06478055145665215,
+          "child_distance": 0.09205025530409303
+        }
+      ],
+      "pass": true,
+      "fail_reasons": []
+    },
+    {
+      "joint": "knee_L",
+      "parent_object_count": 2,
+      "child_object_count": 2,
+      "rest_parent_distance": 0.009711463686073929,
+      "rest_child_distance": 0.018428461244006183,
+      "max_parent_distance": 0.016627642701327584,
+      "max_child_distance": 0.018428461244006183,
+      "parent_growth": 0.006916179015253656,
+      "child_growth": 0.0,
+      "rest_pair_distance": 0.001432331139824373,
+      "worst_parent_frame": 65,
+      "worst_child_frame": 1,
+      "samples": [
+        {
+          "frame": 1,
+          "parent_distance": 0.009711463686073929,
+          "child_distance": 0.018428461244006183
+        },
+        {
+          "frame": 9,
+          "parent_distance": 0.00698517354992065,
+          "child_distance": 0.018428461244006183
+        },
+        {
+          "frame": 17,
+          "parent_distance": 0.005752572982467822,
+          "child_distance": 0.018428461244006183
+        },
+        {
+          "frame": 25,
+          "parent_distance": 0.006081337009380461,
+          "child_distance": 0.018428461244006183
+        },
+        {
+          "frame": 33,
+          "parent_distance": 0.005881914107253717,
+          "child_distance": 0.018428461244006183
+        },
+        {
+          "frame": 41,
+          "parent_distance": 0.007923748845241472,
+          "child_distance": 0.018428461244006183
+        },
+        {
+          "frame": 49,
+          "parent_distance": 0.010975066719815284,
+          "child_distance": 0.012175429517450643
+        },
+        {
+          "frame": 57,
+          "parent_distance": 0.015392456148470453,
+          "child_distance": 0.005103334130796106
+        },
+        {
+          "frame": 65,
+          "parent_distance": 0.016627642701327584,
+          "child_distance": 0.01281555714831725
+        },
+        {
+          "frame": 73,
+          "parent_distance": 0.01645255804507428,
+          "child_distance": 0.011010577961271603
+        },
+        {
+          "frame": 81,
+          "parent_distance": 0.014325735869530547,
+          "child_distance": 0.0030633357241931923
+        },
+        {
+          "frame": 89,
+          "parent_distance": 0.010537424845265162,
+          "child_distance": 0.015928586473145913
+        },
+        {
+          "frame": 97,
+          "parent_distance": 0.007235108811954339,
+          "child_distance": 0.018428461244006183
+        },
+        {
+          "frame": 105,
+          "parent_distance": 0.005727270613237,
+          "child_distance": 0.018428461244006183
+        },
+        {
+          "frame": 113,
+          "parent_distance": 0.006117118656163445,
+          "child_distance": 0.018428461244006183
+        },
+        {
+          "frame": 121,
+          "parent_distance": 0.005735131728314592,
+          "child_distance": 0.018428461244006183
+        },
+        {
+          "frame": 129,
+          "parent_distance": 0.007307722499842614,
+          "child_distance": 0.018428461244006183
+        },
+        {
+          "frame": 137,
+          "parent_distance": 0.010578596686595833,
+          "child_distance": 0.015549091666805447
+        },
+        {
+          "frame": 145,
+          "parent_distance": 0.014480263713361887,
+          "child_distance": 0.002839245415856136
+        },
+        {
+          "frame": 153,
+          "parent_distance": 0.016480811510060586,
+          "child_distance": 0.011292948219678424
+        },
+        {
+          "frame": 161,
+          "parent_distance": 0.016606275804028323,
+          "child_distance": 0.012590244273651404
+        },
+        {
+          "frame": 169,
+          "parent_distance": 0.015243048894191008,
+          "child_distance": 0.004530162153936969
+        },
+        {
+          "frame": 177,
+          "parent_distance": 0.010892194564875316,
+          "child_distance": 0.012741893807842132
+        },
+        {
+          "frame": 180,
+          "parent_distance": 0.009711463686073929,
+          "child_distance": 0.018428461244006183
+        }
+      ],
+      "pass": true,
+      "fail_reasons": []
+    },
+    {
+      "joint": "ankle_L",
+      "parent_object_count": 2,
+      "child_object_count": 4,
+      "rest_parent_distance": 0.04572016961931212,
+      "rest_child_distance": 0.03828397619961201,
+      "max_parent_distance": 0.08384681950895241,
+      "max_child_distance": 0.03828397619961201,
+      "parent_growth": 0.03812664988964029,
+      "child_growth": 0.0,
+      "rest_pair_distance": 0.0012553373730067882,
+      "worst_parent_frame": 65,
+      "worst_child_frame": 1,
+      "samples": [
+        {
+          "frame": 1,
+          "parent_distance": 0.04572016961931212,
+          "child_distance": 0.03828397619961201
+        },
+        {
+          "frame": 9,
+          "parent_distance": 0.04572016961931212,
+          "child_distance": 0.03828397619961201
+        },
+        {
+          "frame": 17,
+          "parent_distance": 0.04572016961931212,
+          "child_distance": 0.03828397619961201
+        },
+        {
+          "frame": 25,
+          "parent_distance": 0.04572016961931212,
+          "child_distance": 0.03828397619961201
+        },
+        {
+          "frame": 33,
+          "parent_distance": 0.04572016961931212,
+          "child_distance": 0.03828397619961201
+        },
+        {
+          "frame": 41,
+          "parent_distance": 0.04572016961931212,
+          "child_distance": 0.03828397619961201
+        },
+        {
+          "frame": 49,
+          "parent_distance": 0.05484691151825511,
+          "child_distance": 0.036950124988462334
+        },
+        {
+          "frame": 57,
+          "parent_distance": 0.07330362539593661,
+          "child_distance": 0.022342745712629387
+        },
+        {
+          "frame": 65,
+          "parent_distance": 0.08384681950895241,
+          "child_distance": 0.016039771467619292
+        },
+        {
+          "frame": 73,
+          "parent_distance": 0.08223014478610545,
+          "child_distance": 0.016753456997289494
+        },
+        {
+          "frame": 81,
+          "parent_distance": 0.07097105000787075,
+          "child_distance": 0.025370072565605185
+        },
+        {
+          "frame": 89,
+          "parent_distance": 0.04923337446860027,
+          "child_distance": 0.03740022832785115
+        },
+        {
+          "frame": 97,
+          "parent_distance": 0.04572016961931212,
+          "child_distance": 0.03828397619961201
+        },
+        {
+          "frame": 105,
+          "parent_distance": 0.04572016961931212,
+          "child_distance": 0.03828397619961201
+        },
+        {
+          "frame": 113,
+          "parent_distance": 0.04572016961931212,
+          "child_distance": 0.03828397619961201
+        },
+        {
+          "frame": 121,
+          "parent_distance": 0.04572016961931212,
+          "child_distance": 0.03828397619961201
+        },
+        {
+          "frame": 129,
+          "parent_distance": 0.04572016961931212,
+          "child_distance": 0.03828397619961201
+        },
+        {
+          "frame": 137,
+          "parent_distance": 0.049948830770514624,
+          "child_distance": 0.03740488687764706
+        },
+        {
+          "frame": 145,
+          "parent_distance": 0.07127084176686012,
+          "child_distance": 0.02482891007671205
+        },
+        {
+          "frame": 153,
+          "parent_distance": 0.08249836585582249,
+          "child_distance": 0.016609802605033582
+        },
+        {
+          "frame": 161,
+          "parent_distance": 0.08365476935619047,
+          "child_distance": 0.016105510170284904
+        },
+        {
+          "frame": 169,
+          "parent_distance": 0.07294219793651516,
+          "child_distance": 0.022664703181322476
+        },
+        {
+          "frame": 177,
+          "parent_distance": 0.05396782285014247,
+          "child_distance": 0.0371160621758708
+        },
+        {
+          "frame": 180,
+          "parent_distance": 0.04572016961931212,
+          "child_distance": 0.03828397619961201
+        }
+      ],
+      "pass": true,
+      "fail_reasons": []
+    },
+    {
+      "joint": "hip_R",
+      "parent_object_count": 12,
+      "child_object_count": 2,
+      "rest_parent_distance": 0.06156802761253938,
+      "rest_child_distance": 0.024279389125256158,
+      "max_parent_distance": 0.06262447362325844,
+      "max_child_distance": 0.030002698182727217,
+      "parent_growth": 0.001056446010719067,
+      "child_growth": 0.0057233090574710585,
+      "rest_pair_distance": 0.003983763512825939,
+      "worst_parent_frame": 57,
+      "worst_child_frame": 113,
+      "samples": [
+        {
+          "frame": 1,
+          "parent_distance": 0.06156802761253938,
+          "child_distance": 0.024279389125256158
+        },
+        {
+          "frame": 9,
+          "parent_distance": 0.061509194081210146,
+          "child_distance": 0.02765041625192873
+        },
+        {
+          "frame": 17,
+          "parent_distance": 0.06171139625235073,
+          "child_distance": 0.029646193359434244
+        },
+        {
+          "frame": 25,
+          "parent_distance": 0.062122309072482375,
+          "child_distance": 0.02997263390429346
+        },
+        {
+          "frame": 33,
+          "parent_distance": 0.06222330444811604,
+          "child_distance": 0.02951228113961243
+        },
+        {
+          "frame": 41,
+          "parent_distance": 0.061320217703652,
+          "child_distance": 0.026191834975344854
+        },
+        {
+          "frame": 49,
+          "parent_distance": 0.061348833807421274,
+          "child_distance": 0.021930742852633463
+        },
+        {
+          "frame": 57,
+          "parent_distance": 0.06262447362325844,
+          "child_distance": 0.01886784793829342
+        },
+        {
+          "frame": 65,
+          "parent_distance": 0.061659493518167546,
+          "child_distance": 0.017276492172499557
+        },
+        {
+          "frame": 73,
+          "parent_distance": 0.06148142559307214,
+          "child_distance": 0.017536919801339597
+        },
+        {
+          "frame": 81,
+          "parent_distance": 0.06175678073045613,
+          "child_distance": 0.019554269252907874
+        },
+        {
+          "frame": 89,
+          "parent_distance": 0.061505520590947486,
+          "child_distance": 0.023040261010331926
+        },
+        {
+          "frame": 97,
+          "parent_distance": 0.06131434773574248,
+          "child_distance": 0.026879666545839852
+        },
+        {
+          "frame": 105,
+          "parent_distance": 0.06180268555391633,
+          "child_distance": 0.02954909115839142
+        },
+        {
+          "frame": 113,
+          "parent_distance": 0.062183692011195266,
+          "child_distance": 0.030002698182727217
+        },
+        {
+          "frame": 121,
+          "parent_distance": 0.061839530440886914,
+          "child_distance": 0.029537569391912565
+        },
+        {
+          "frame": 129,
+          "parent_distance": 0.061301854522685745,
+          "child_distance": 0.026765662639784776
+        },
+        {
+          "frame": 137,
+          "parent_distance": 0.06148740253236336,
+          "child_distance": 0.02285825696138005
+        },
+        {
+          "frame": 145,
+          "parent_distance": 0.06185689607120534,
+          "child_distance": 0.01943587629787954
+        },
+        {
+          "frame": 153,
+          "parent_distance": 0.061503635526217265,
+          "child_distance": 0.017490364395010564
+        },
+        {
+          "frame": 161,
+          "parent_distance": 0.06163247082436763,
+          "child_distance": 0.01730496231475365
+        },
+        {
+          "frame": 169,
+          "parent_distance": 0.06247603131001713,
+          "child_distance": 0.018946174017161588
+        },
+        {
+          "frame": 177,
+          "parent_distance": 0.061373588531363196,
+          "child_distance": 0.022065094544880613
+        },
+        {
+          "frame": 180,
+          "parent_distance": 0.06156802761253938,
+          "child_distance": 0.024279389125256158
+        }
+      ],
+      "pass": true,
+      "fail_reasons": []
+    },
+    {
+      "joint": "knee_R",
+      "parent_object_count": 2,
+      "child_object_count": 2,
+      "rest_parent_distance": 0.014055091957575403,
+      "rest_child_distance": 0.05331866491919737,
+      "max_parent_distance": 0.049716352287809,
+      "max_child_distance": 0.08715168911639497,
+      "parent_growth": 0.03566126033023359,
+      "child_growth": 0.033833024197197595,
+      "rest_pair_distance": 0.0011233763539034037,
+      "worst_parent_frame": 65,
+      "worst_child_frame": 17,
+      "samples": [
+        {
+          "frame": 1,
+          "parent_distance": 0.014055091957575403,
+          "child_distance": 0.05331866491919737
+        },
+        {
+          "frame": 9,
+          "parent_distance": 0.0050826199518244665,
+          "child_distance": 0.08272431876665588
+        },
+        {
+          "frame": 17,
+          "parent_distance": 0.011557076367774984,
+          "child_distance": 0.08715168911639497
+        },
+        {
+          "frame": 25,
+          "parent_distance": 0.011819978211176427,
+          "child_distance": 0.08375124339384021
+        },
+        {
+          "frame": 33,
+          "parent_distance": 0.00702543567851809,
+          "child_distance": 0.08531810122627483
+        },
+        {
+          "frame": 41,
+          "parent_distance": 0.004624466516521171,
+          "child_distance": 0.0757769132385893
+        },
+        {
+          "frame": 49,
+          "parent_distance": 0.021009376792432744,
+          "child_distance": 0.05331866491919737
+        },
+        {
+          "frame": 57,
+          "parent_distance": 0.03922264911250193,
+          "child_distance": 0.05331866491919737
+        },
+        {
+          "frame": 65,
+          "parent_distance": 0.049716352287809,
+          "child_distance": 0.05331866491919737
+        },
+        {
+          "frame": 73,
+          "parent_distance": 0.04836598332866315,
+          "child_distance": 0.05331866491919737
+        },
+        {
+          "frame": 81,
+          "parent_distance": 0.035649025503899576,
+          "child_distance": 0.05331866491919737
+        },
+        {
+          "frame": 89,
+          "parent_distance": 0.017014589058777504,
+          "child_distance": 0.05331866491919737
+        },
+        {
+          "frame": 97,
+          "parent_distance": 0.00402996266139687,
+          "child_distance": 0.08094916226484278
+        },
+        {
+          "frame": 105,
+          "parent_distance": 0.009621762375516256,
+          "child_distance": 0.08624711596779576
+        },
+        {
+          "frame": 113,
+          "parent_distance": 0.011728903342773364,
+          "child_distance": 0.08353060467853318
+        },
+        {
+          "frame": 121,
+          "parent_distance": 0.009269151094392278,
+          "child_distance": 0.08610146300964538
+        },
+        {
+          "frame": 129,
+          "parent_distance": 0.0038050185143591367,
+          "child_distance": 0.08052437431467332
+        },
+        {
+          "frame": 137,
+          "parent_distance": 0.01755956485974983,
+          "child_distance": 0.05331866491919737
+        },
+        {
+          "frame": 145,
+          "parent_distance": 0.036181101778106746,
+          "child_distance": 0.05331866491919737
+        },
+        {
+          "frame": 153,
+          "parent_distance": 0.048593950881731574,
+          "child_distance": 0.05331866491919737
+        },
+        {
+          "frame": 161,
+          "parent_distance": 0.04955872442213767,
+          "child_distance": 0.05331866491919737
+        },
+        {
+          "frame": 169,
+          "parent_distance": 0.03873473742662515,
+          "child_distance": 0.05331866491919737
+        },
+        {
+          "frame": 177,
+          "parent_distance": 0.020418515440719362,
+          "child_distance": 0.05331866491919737
+        },
+        {
+          "frame": 180,
+          "parent_distance": 0.014055091957575403,
+          "child_distance": 0.05331866491919737
+        }
+      ],
+      "pass": true,
+      "fail_reasons": []
+    },
+    {
+      "joint": "ankle_R",
+      "parent_object_count": 2,
+      "child_object_count": 5,
+      "rest_parent_distance": 0.06140889701131397,
+      "rest_child_distance": 0.02563723469946029,
+      "max_parent_distance": 0.06140889701131397,
+      "max_child_distance": 0.02563723469946029,
+      "parent_growth": 0.0,
+      "child_growth": 0.0,
+      "rest_pair_distance": 0.001728653151465484,
+      "worst_parent_frame": 1,
+      "worst_child_frame": 1,
+      "samples": [
+        {
+          "frame": 1,
+          "parent_distance": 0.06140889701131397,
+          "child_distance": 0.02563723469946029
+        },
+        {
+          "frame": 9,
+          "parent_distance": 0.05049115806634592,
+          "child_distance": 0.017925865768391492
+        },
+        {
+          "frame": 17,
+          "parent_distance": 0.04262887037145153,
+          "child_distance": 0.009726165023713278
+        },
+        {
+          "frame": 25,
+          "parent_distance": 0.04364441187131971,
+          "child_distance": 0.005637887401671012
+        },
+        {
+          "frame": 33,
+          "parent_distance": 0.043202940218200064,
+          "child_distance": 0.010485709694569805
+        },
+        {
+          "frame": 41,
+          "parent_distance": 0.0524404100771009,
+          "child_distance": 0.022285431388774663
+        },
+        {
+          "frame": 49,
+          "parent_distance": 0.06140889701131397,
+          "child_distance": 0.02563723469946029
+        },
+        {
+          "frame": 57,
+          "parent_distance": 0.06140889701131397,
+          "child_distance": 0.02563723469946029
+        },
+        {
+          "frame": 65,
+          "parent_distance": 0.06140889701131397,
+          "child_distance": 0.02563723469946029
+        },
+        {
+          "frame": 73,
+          "parent_distance": 0.06140889701131397,
+          "child_distance": 0.02563723469946029
+        },
+        {
+          "frame": 81,
+          "parent_distance": 0.06140889701131397,
+          "child_distance": 0.02563723469946029
+        },
+        {
+          "frame": 89,
+          "parent_distance": 0.06140889701131397,
+          "child_distance": 0.02563723469946029
+        },
+        {
+          "frame": 97,
+          "parent_distance": 0.05132835170218222,
+          "child_distance": 0.021366598685442224
+        },
+        {
+          "frame": 105,
+          "parent_distance": 0.042602496365741656,
+          "child_distance": 0.009138852601172243
+        },
+        {
+          "frame": 113,
+          "parent_distance": 0.04376115645560156,
+          "child_distance": 0.005502023770946378
+        },
+        {
+          "frame": 121,
+          "parent_distance": 0.04263941342660563,
+          "child_distance": 0.009176213350702327
+        },
+        {
+          "frame": 129,
+          "parent_distance": 0.05138948944762319,
+          "child_distance": 0.02209216423746684
+        },
+        {
+          "frame": 137,
+          "parent_distance": 0.06140889701131397,
+          "child_distance": 0.02563723469946029
+        },
+        {
+          "frame": 145,
+          "parent_distance": 0.06140889701131397,
+          "child_distance": 0.02563723469946029
+        },
+        {
+          "frame": 153,
+          "parent_distance": 0.06140889701131397,
+          "child_distance": 0.02563723469946029
+        },
+        {
+          "frame": 161,
+          "parent_distance": 0.06140889701131397,
+          "child_distance": 0.02563723469946029
+        },
+        {
+          "frame": 169,
+          "parent_distance": 0.06140889701131397,
+          "child_distance": 0.02563723469946029
+        },
+        {
+          "frame": 177,
+          "parent_distance": 0.06140889701131397,
+          "child_distance": 0.02563723469946029
+        },
+        {
+          "frame": 180,
+          "parent_distance": 0.06140889701131397,
+          "child_distance": 0.02563723469946029
+        }
+      ],
+      "pass": true,
+      "fail_reasons": []
+    }
+  ]
+}

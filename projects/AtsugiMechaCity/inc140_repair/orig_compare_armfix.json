@@ -1,0 +1,73 @@
+{
+  "schema": "clawstack.v50_original_compare_gate.v1",
+  "baseline_label": "original_v50",
+  "candidate_label": "candidate",
+  "candidate_score": null,
+  "baseline_meta": {
+    "path": "D:\\AI\\PartPacker\\output\\KEEP_ORIGINAL_flow_big_parts_strict_pvae_20260628_025827_v50_BASELINE\\robot_walk_v50_arm_chain_joint_core.mp4",
+    "file_size": 464734,
+    "width": 960,
+    "height": 540,
+    "frames": 180,
+    "fps": 24.0,
+    "duration": 7.5
+  },
+  "candidate_meta": {
+    "path": "C:\\v50_work\\preview_full180b\\v50_fullbody_normalized_final_walk_preview.mp4",
+    "file_size": 180220,
+    "width": 960,
+    "height": 540,
+    "frames": 180,
+    "fps": 24.0,
+    "duration": 7.5
+  },
+  "baseline_metrics": {
+    "foreground_ratio": 0.10496,
+    "contrast_std": 30.024872,
+    "edge_density": 0.013141,
+    "component_count": 1.03125,
+    "bbox_width_ratio": 1.0,
+    "bbox_height_ratio": 0.658912,
+    "center_x_ratio": 0.499479,
+    "center_y_ratio": 0.526968,
+    "motion_mean_absdiff": 0.012223
+  },
+  "candidate_metrics": {
+    "foreground_ratio": 0.068198,
+    "contrast_std": 21.294344,
+    "edge_density": 0.011225,
+    "component_count": 1.15625,
+    "bbox_width_ratio": 0.222298,
+    "bbox_height_ratio": 0.63287,
+    "center_x_ratio": 0.497347,
+    "center_y_ratio": 0.497454,
+    "motion_mean_absdiff": 0.002124
+  },
+  "comparison": {
+    "verdict": "HOLD_REGRESSION_RISK",
+    "visual_compare_score": 0.677385,
+    "hard_flags": [
+      "candidate_visible_robot_area_is_smaller_than_original",
+      "candidate_motion_amount_is_lower_than_original"
+    ],
+    "soft_flags": [],
+    "ratios_candidate_over_baseline": {
+      "duration": 1.0,
+      "frames": 1.0,
+      "file_size": 0.387792,
+      "foreground_ratio": 0.649758,
+      "bbox_width_ratio": 0.222298,
+      "bbox_height_ratio": 0.960478,
+      "contrast_std": 0.709223,
+      "edge_density": 0.854187,
+      "motion_mean_absdiff": 0.173756,
+      "component_count": 1.121212
+    },
+    "policy": {
+      "telegram_allowed": false,
+      "promotion_allowed": false,
+      "reason": "A candidate must not be promoted if it regresses against the original V50 reference video."
+    }
+  },
+  "next_action": "Do not send or promote this candidate automatically."
+}

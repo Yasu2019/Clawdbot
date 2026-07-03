@@ -16,10 +16,17 @@ from mathutils import Vector
 TORSO = [
     "Torso_Core", "Pelvis_Center", "geometry_0", "geometry_0.001", "geometry_0.003",
     "geometry_0.004", "geometry_0.007", "geometry_0.010", "geometry_0.011", "geometry_0.015",
+    "V50_RENDER_ShoulderSocket_L", "V50_RENDER_ShoulderSocket_R",
 ]
 UPPER_ARM_L = ["geometry_0.012", "geometry_0.018", "geometry_0.020", "geometry_0.034"]
-LOWER_ARM_L = ["geometry_0.005", "geometry_0.023", "geometry_0.032"]
+# INC-140: geometry_0.005 moved from HAND_L to LOWER_ARM_L to match rig semantics
+# (it is the distal forearm mesh spanning elbow->wrist). Keeping it on the child
+# side made the wrist_L parent look detached even in the accepted original layout.
+LOWER_ARM_L = ["geometry_0.023", "geometry_0.032", "geometry_0.005"]
 HAND_L = [
+    # V50 has no stable independent left-hand mesh; QA uses proxies/render hands.
+    "V50_RENDER_Hand_L_Palm", "V50_RENDER_Hand_L_Core",
+    "V50_RENDER_Hand_L_Finger_A", "V50_RENDER_Hand_L_Finger_B", "V50_RENDER_Hand_L_Finger_C",
     "V50_PROXY_Hand_L_Palm", "V50_PROXY_Hand_L_Palm_Core",
     "V50_PROXY_Hand_L_Finger_A", "V50_PROXY_Hand_L_Finger_B", "V50_PROXY_Hand_L_Finger_C",
 ]
@@ -51,7 +58,16 @@ def parse_args():
     parser.add_argument("--out", required=True)
     parser.add_argument("--sample-stride", type=int, default=8)
     parser.add_argument("--growth-ratio", type=float, default=0.035)
-    parser.add_argument("--rest-ratio", type=float, default=0.12)
+    # rest-ratio tightened 0.12 -> 0.06 (INC-140/T046): 0.12*height (~0.33) let a
+    # visibly detached shoulder pass. See trouble_history [T046].
+    parser.add_argument("--rest-ratio", type=float, default=0.06)
+    # attach-ratio: direct parent<->child mesh proximity at rest. Marker-to-side
+    # distances are blind to a marker parked in the gap; this measures whether the
+    # two segments' meshes actually meet near the joint (T035 contact-patch lesson).
+    # Calibrated 0.05 -> 0.06 against the accepted KEEP_ORIGINAL V50 layout: its own
+    # wrist_R gap is 0.115 (0.0593*h). Pre-fix detached shoulders (0.27-0.28) still
+    # fail at this tolerance by a 2.3x margin.
+    parser.add_argument("--attach-ratio", type=float, default=0.06)
     parser.add_argument("--max-verts", type=int, default=1200)
     return parser.parse_args(argv)
 
@@ -135,6 +151,30 @@ def min_distance(point, objs, max_verts):
     return best
 
 
+def min_pair_distance(parent_objs, child_objs, point, radius, max_verts):
+    """Smallest distance between any parent vertex and any child vertex, restricted
+    to vertices within `radius` of the joint `point`. Marker-independent: directly
+    measures whether the two segments meet near the joint (INC-140/T046)."""
+    def near_verts(objs):
+        out = []
+        for obj in objs:
+            for v in sampled_world_vertices(obj, max_verts):
+                if (v - point).length <= radius:
+                    out.append(v)
+        return out
+    pv = near_verts(parent_objs)
+    cv = near_verts(child_objs)
+    if not pv or not cv:
+        return None  # nothing near the joint on one side -> cannot confirm contact
+    best = None
+    for p in pv:
+        for c in cv:
+            d = (p - c).length
+            if best is None or d < best:
+                best = d
+    return best
+
+
 def frame_range(stride):
     start = int(bpy.context.scene.frame_start)
     end = int(bpy.context.scene.frame_end)
@@ -144,7 +184,7 @@ def frame_range(stride):
     return frames
 
 
-def check_joint(spec, frames, max_verts):
+def check_joint(spec, frames, max_verts, attach_radius):
     parent_objs = objects(spec["parent"])
     child_objs = objects(spec["child"])
     if not parent_objs or not child_objs:
@@ -157,12 +197,17 @@ def check_joint(spec, frames, max_verts):
         }
 
     rows = []
-    for frame in frames:
+    rest_pair_distance = None
+    for idx, frame in enumerate(frames):
         bpy.context.scene.frame_set(frame)
         bpy.context.view_layer.update()
         point = resolve_point(spec["point"])
         parent_dist = min_distance(point, parent_objs, max_verts)
         child_dist = min_distance(point, child_objs, max_verts)
+        if idx == 0:
+            rest_pair_distance = min_pair_distance(
+                parent_objs, child_objs, point, attach_radius, max_verts
+            )
         rows.append({
             "frame": frame,
             "parent_distance": float(parent_dist) if parent_dist is not None else None,
@@ -181,25 +226,45 @@ def check_joint(spec, frames, max_verts):
         "max_child_distance": max_child,
         "parent_growth": max_parent - rest["parent_distance"],
         "child_growth": max_child - rest["child_distance"],
+        "rest_pair_distance": float(rest_pair_distance) if rest_pair_distance is not None else None,
         "worst_parent_frame": max(rows, key=lambda row: row["parent_distance"] or -1)["frame"],
         "worst_child_frame": max(rows, key=lambda row: row["child_distance"] or -1)["frame"],
         "samples": rows,
     }
 
 
+def unhide_measured_objects():
+    """INC-140: viewport-hidden objects are excluded from depsgraph evaluation, so
+    their matrix_world stays identity and sampled vertices are measured at the
+    origin (seen as a bogus 1.38 wrist_L child distance). Un-hide every mesh for
+    measurement; this gate never renders, so visibility side effects don't matter."""
+    for obj in bpy.data.objects:
+        if obj.type == "MESH":
+            obj.hide_render = False
+            obj.hide_viewport = False
+            try:
+                obj.hide_set(False)
+            except RuntimeError:
+                pass  # not in current view layer
+    bpy.context.view_layer.update()
+
+
 def main():
     args = parse_args()
     bpy.ops.wm.open_mainfile(filepath=str(Path(args.blend)))
+    unhide_measured_objects()
     meshes = all_robot_meshes()
     lo, hi = bounds_for(meshes)
     model_height = float((hi - lo).z)
     growth_tol = model_height * args.growth_ratio
     rest_tol = model_height * args.rest_ratio
+    attach_tol = model_height * args.attach_ratio
+    attach_radius = model_height * 0.30  # neighborhood around the joint to look for contact
     frames = frame_range(args.sample_stride)
 
     checks = []
     for spec in joint_specs():
-        check = check_joint(spec, frames, args.max_verts)
+        check = check_joint(spec, frames, args.max_verts, attach_radius)
         if "reason" not in check:
             fail_reasons = []
             if check["rest_parent_distance"] > rest_tol:
@@ -210,6 +275,13 @@ def main():
                 fail_reasons.append("parent_joint_gap_growth")
             if check["child_growth"] > growth_tol:
                 fail_reasons.append("child_joint_gap_growth")
+            # Direct parent<->child attachment test (marker-independent). None means
+            # one side has no mesh near the joint -> also a detachment signal.
+            rpd = check.get("rest_pair_distance")
+            if rpd is None:
+                fail_reasons.append("no_parent_child_contact_near_joint")
+            elif rpd > attach_tol:
+                fail_reasons.append("parent_child_meshes_detached_at_rest")
             check["pass"] = not fail_reasons
             check["fail_reasons"] = fail_reasons
         checks.append(check)
@@ -222,6 +294,7 @@ def main():
         "model_height": round(model_height, 6),
         "growth_tol": round(growth_tol, 6),
         "rest_tol": round(rest_tol, 6),
+        "attach_tol": round(attach_tol, 6),
         "verdict": "PASS_JOINT_ATTACHMENT" if not failed else "HOLD_JOINT_DETACHMENT",
         "telegram_allowed": not failed,
         "checks": checks,
