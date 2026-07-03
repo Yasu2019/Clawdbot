@@ -31,8 +31,12 @@ KP = [400., 300., 200., 400., 300., 200., 200., 150., 80., 200., 150., 80.]
 KV = [40., 30., 20., 40., 30., 20., 20., 15., 8., 20., 15., 8.]
 DT_SIM = 0.002
 DECIMATION = 10         # control at 50 Hz
-GAIT_PERIOD = 1.6       # seconds per gait cycle
-TARGET_VX = 0.8         # m/s forward (+x is model forward per preview root drift)
+# run3 (INC-141): 0.8 m/s was kinematically unreachable for the 11-deg sin gait
+# (stride-limited max ~0.24 m/s) -> the travel reward died within 2 s and the
+# policy settled into marching in place (run1, run2). Curriculum: reachable
+# target with a longer/faster stride first; raise speed later.
+GAIT_PERIOD = 1.2       # seconds per gait cycle
+TARGET_VX = 0.25        # m/s forward (+x)
 ACTION_SCALE = 0.35
 EP_LEN = 400            # 8 s
 OBS_DIM = 38
@@ -44,14 +48,14 @@ def gait_reference(phase):
     Amplitudes mirror v50_final_walk_preview.py (11/10/5 deg) + arm counterswing."""
     two_pi = 2.0 * math.pi
     s = torch.sin(phase * two_pi)
-    hip_l = 0.192 * s                                # 11 deg
-    hip_r = -0.192 * s
-    knee_l = 0.175 * torch.clamp(-s, min=0.0)        # 10 deg, stance-flex
-    knee_r = 0.175 * torch.clamp(s, min=0.0)
-    ank_l = -0.087 * torch.clamp(-s, min=0.0)        # 5 deg
-    ank_r = -0.087 * torch.clamp(s, min=0.0)
-    sh_l = -0.12 * s                                 # counter-phase arm swing
-    sh_r = 0.12 * s
+    hip_l = 0.30 * s                                 # 17 deg (run3: longer stride)
+    hip_r = -0.30 * s
+    knee_l = 0.26 * torch.clamp(-s, min=0.0)         # 15 deg, stance-flex
+    knee_r = 0.26 * torch.clamp(s, min=0.0)
+    ank_l = -0.12 * torch.clamp(-s, min=0.0)         # 7 deg
+    ank_r = -0.12 * torch.clamp(s, min=0.0)
+    sh_l = -0.18 * s                                 # counter-phase arm swing
+    sh_r = 0.18 * s
     elb = torch.full_like(s, -0.15)                  # slight constant elbow bend
     wr = torch.zeros_like(s)
     return torch.stack([hip_l, knee_l, ank_l, hip_r, knee_r, ank_r,
@@ -166,7 +170,7 @@ class Env:
         r_up = upright
         pen_act = (action ** 2).mean(dim=1)
         pen_ang = (ang ** 2).sum(dim=1)
-        reward = 0.8 * r_pose + 1.0 * r_vel + 1.0 * r_travel + 0.5 * r_up + 0.25 \
+        reward = 0.8 * r_pose + 1.5 * r_vel + 1.0 * r_travel + 0.5 * r_up + 0.25 \
                  - 0.01 * pen_act - 0.02 * pen_ang
 
         fallen = (pos[:, 2] < self.stand_z - 0.25) | (upright < 0.5)
