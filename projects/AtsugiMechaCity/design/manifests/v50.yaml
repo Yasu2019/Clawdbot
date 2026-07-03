@@ -1,0 +1,90 @@
+# V50 リグ・マニフェスト v1.0-draft — マニフェスト第1号(正解データ)
+# 全数値は INC-140/[T046] 修復セッションの実測値(推測ゼロ)。
+# 出典: inc140_repair/{orig_matrices.json由来のピボット, joint_gate_final_full_restore.json}
+
+schema: clawstack.mecha_rig_manifest.v1
+
+robot:
+  name: v50
+  height_m: 1.936
+  total_mass_kg: 280.0
+  source_blend: scratch/v50_armature_builder_smoke4/robot_walk_v50_armature_build_WELDED_ARMFIX.blend
+  reference_blend: D:\AI\PartPacker\output\KEEP_ORIGINAL_flow_big_parts_strict_pvae_20260628_025827_v50_BASELINE\robot_walk.blend
+  intake_status: approved          # 2026-07-03 ユーザー目視承認(形状OK)+強化ゲート全12関節PASS
+  intake_record: projects/AtsugiMechaCity/inc140_repair/joint_gate_final_full_restore.json
+
+skeleton:
+  spec: canonical_skeleton_spec.md@v1.0-draft
+  dof_locks:                       # 現リグは矢状面構成。肩3DOF化改修後にshoulder_*_roll/yawを解除
+    [waist_yaw,
+     hip_L_roll, hip_L_yaw, ankle_L_roll,
+     hip_R_roll, hip_R_yaw, ankle_R_roll,
+     shoulder_L_roll, shoulder_L_yaw, wrist_L_pitch, wrist_L_roll, wrist_L_yaw, gripper_L,
+     shoulder_R_roll, shoulder_R_yaw, wrist_R_pitch, wrist_R_roll, wrist_R_yaw, gripper_R]
+  joints:
+    shoulder_L: {pivot: [-0.305, -1.291, 0.493], source: mesh_cluster}   # 肩ボールシェルgeometry_0.012中心
+    elbow_L:    {pivot: [-0.438, -1.170, 0.205], source: shared_core}    # L_ELBOW_SHARED_CORE
+    wrist_L:    {pivot: [-0.460, -1.130, -0.165], source: shared_core}   # L_WRIST_SHARED_CORE
+    shoulder_R: {pivot: [0.332, -1.297, 0.490], source: mesh_cluster}    # geometry_0.022中心
+    elbow_R:    {pivot: [0.455, -1.240, 0.190], source: shared_core}
+    wrist_R:    {pivot: [0.480, -1.240, -0.135], source: shared_core}
+    # 脚ピボット: XZは実績値、Yは隣接セグメント実測中点から実行時導出(ハードコード禁止・INC-140教訓8)
+    hip_L:   {pivot: [-0.20, derive, 0.02], source: mesh_cluster}
+    knee_L:  {pivot: [-0.24, derive, -0.50], source: mesh_cluster}
+    ankle_L: {pivot: [-0.25, derive, -0.88], source: mesh_cluster}
+    hip_R:   {pivot: [0.22, derive, 0.02], source: mesh_cluster}
+    knee_R:  {pivot: [0.25, derive, -0.50], source: mesh_cluster}
+    ankle_R: {pivot: [0.26, derive, -0.88], source: mesh_cluster}
+
+meshes:                            # 出典: v50_joint_attachment_gate.py(INC-140校正済みリスト)
+  torso: [Torso_Core, Pelvis_Center, geometry_0, geometry_0.001, geometry_0.003,
+          geometry_0.004, geometry_0.007, geometry_0.010, geometry_0.011, geometry_0.015,
+          V50_RENDER_ShoulderSocket_L, V50_RENDER_ShoulderSocket_R]
+  upper_arm_L: [geometry_0.012, geometry_0.018, geometry_0.020, geometry_0.034]
+  lower_arm_L: [geometry_0.023, geometry_0.032, geometry_0.005]   # 0.005はINC-140でHAND_Lから再分類
+  hand_L: [V50_PROXY_Hand_L_Palm, V50_PROXY_Hand_L_Palm_Core,
+           V50_PROXY_Hand_L_Finger_A, V50_PROXY_Hand_L_Finger_B, V50_PROXY_Hand_L_Finger_C]  # プロキシのみ(実体なし→右手ミラー生成が残タスク)
+  upper_arm_R: [geometry_0.002, geometry_0.019, geometry_0.021, geometry_0.022]
+  lower_arm_R: [geometry_0.024, geometry_0.033]
+  hand_R: [geometry_0.006]
+  upper_leg_L: [UpperLeg_L, UpperLegCore_L]
+  lower_leg_L: [geometry_0.016, geometry_0.027]
+  foot_L: [geometry_0.013, geometry_0.030, geometry_0.025, geometry_0.008]
+  upper_leg_R: [UpperLeg_R, UpperLegCore_R]
+  lower_leg_R: [geometry_0.017, geometry_0.028]
+  foot_R: [geometry_0.014, geometry_0.031, geometry_0.026, geometry_0.029, geometry_0.009]
+
+physics:
+  mass_distribution:               # 出典: v50_urdf_exporter.py既定値
+    torso: 0.40
+    upper_leg_L: 0.08
+    upper_leg_R: 0.08
+    lower_leg_L: 0.05
+    lower_leg_R: 0.05
+    foot_L: 0.02
+    foot_R: 0.02
+    upper_arm_L: 0.04
+    upper_arm_R: 0.04
+    lower_arm_L: 0.025
+    lower_arm_R: 0.025
+    hand_L: 0.01
+    hand_R: 0.01
+  pd_gains:
+    hip_L_pitch: {kp: 400, kd: 40}
+    hip_R_pitch: {kp: 400, kd: 40}
+    knee_L_pitch: {kp: 300, kd: 30}
+    knee_R_pitch: {kp: 300, kd: 30}
+    ankle_L_pitch: {kp: 200, kd: 20}
+    ankle_R_pitch: {kp: 200, kd: 20}
+    shoulder_L_pitch: {kp: 200, kd: 20}
+    shoulder_R_pitch: {kp: 200, kd: 20}
+    elbow_L_pitch: {kp: 150, kd: 15}
+    elbow_R_pitch: {kp: 150, kd: 15}
+
+qa:
+  gate_overrides:
+    wrist_R: {rest_ratio: 0.11, attach_ratio: 0.07,
+              reason: "正解基準(KEEP_ORIGINAL)自体の形状: 前腕板が手首上0.191で終端、手と0.133の横隙間"}
+  known_gaps:
+    - {joint: wrist_R, value: 0.115, note: "オリジナル由来。修正するならカノニカル骨格移行時"}
+    - {joint: hand_L, value: null, note: "実体メッシュなし。geometry_0.006のX軸ミラーで生成予定"}

@@ -1,0 +1,44 @@
+# mecha_rig_manifest.schema.yaml v1.0-draft
+# 機体1体につきYAML1枚。パイプライン(exporter/gate/preview)はこのマニフェストのみを
+# 参照し、機体固有のオブジェクト名・座標のハードコードを禁止する(INC-140教訓8/FMEA#10)。
+# 検証: インテークゲート(qc/mecha_rig_checksheet.md)PASS+人間承認で intake_status: approved
+#
+# ---- スキーマ(コメントが仕様) ----
+
+schema: clawstack.mecha_rig_manifest.v1
+
+robot:
+  name: string                 # 一意ID(例: v50)
+  height_m: float              # 全身バウンディング高(実測)
+  total_mass_kg: float
+  source_blend: path           # 検収済みblend(溶接+復元済み)
+  reference_blend: path        # 正解基準(KEEP_ORIGINAL)。無い機体は null + 人間判断の記録必須
+  intake_status: enum          # pending | approved | rejected
+  intake_record: path          # チェックシート記入結果へのパス
+
+skeleton:
+  spec: canonical_skeleton_spec.md   # 準拠する骨格仕様(バージョン込み)
+  dof_locks: [string]          # ロックするDOF名リスト(仕様§2)
+  joints:                      # カノニカル関節名 -> ワールド座標ピボット(レスト時・実測)
+    # 座標は「メッシュ実測 or 正解基準のSHARED_CORE」由来のみ許可。手入力の推測値禁止。
+    <joint_name>:
+      pivot: [x, y, z]
+      source: enum             # shared_core | mesh_cluster | human  (由来の記録必須)
+
+meshes:
+  # カノニカル部位名 -> その機体の実メッシュオブジェクト名リスト
+  # 部位語彙(固定): torso, pelvis, upper_arm_L/R, lower_arm_L/R, hand_L/R,
+  #                upper_leg_L/R, lower_leg_L/R, foot_L/R, accessory(装飾・非構造)
+  <segment_name>: [string]
+
+physics:
+  mass_distribution:           # 部位名 -> 質量比(合計1.0)
+    <segment_name>: float
+  pd_gains:                    # DOF名 -> {kp, kd}(未指定はTierデフォルト)
+    <dof_name>: {kp: float, kd: float}
+
+qa:
+  gate_overrides:              # 関節別許容値(正解基準で校正した場合のみ。理由必須)
+    <joint_name>: {rest_ratio: float, attach_ratio: float, reason: string}
+  known_gaps:                  # 正解基準自体が持つ既知の隙間等(例: V50 wrist_R 0.115)
+    - {joint: string, value: float, note: string}
