@@ -37,11 +37,17 @@ shoulder_L = orig_center("geometry_0.012")            # shoulder ball shell L
 shoulder_R = orig_center("geometry_0.022")            # shoulder ball shell R
 elbow_L    = orig_center("geometry_0.023")            # elbow cap L
 elbow_R    = orig_center("geometry_0.024")            # elbow cap R
-# wrist: distal end between forearm shells and hand region
+# wrist/elbow: prefer the ORIGINAL SHARED_CORE positions when present — they are
+# the original build's own ground-truth joint centers (user-reported knee-pad
+# review revealed my mesh-cluster wrist estimate was 0.12 off the original core).
+def core_or(name, fallback):
+    return orig_center(name) if name in ORIG else fallback
+elbow_L = core_or("L_ELBOW_SHARED_CORE", elbow_L)
+elbow_R = core_or("R_ELBOW_SHARED_CORE", elbow_R)
 g5c=orig_center("geometry_0.005"); g5d=Vector(ORIG["geometry_0.005"]["dims"])
-wrist_L = Vector((g5c.x, g5c.y, g5c.z + g5d.z*0.25))  # upper quarter of forearm-end mesh
+wrist_L = core_or("L_WRIST_SHARED_CORE", Vector((g5c.x, g5c.y, g5c.z + g5d.z*0.25)))
 g6c=orig_center("geometry_0.006"); g6d=Vector(ORIG["geometry_0.006"]["dims"])
-wrist_R = Vector((g6c.x, g6c.y, g6c.z + g6d.z*0.55))  # just above hand mesh top
+wrist_R = core_or("R_WRIST_SHARED_CORE", Vector((g6c.x, g6c.y, g6c.z + g6d.z*0.55)))
 
 PIVOTS = {
     "shoulder_L": shoulder_L, "elbow_L": elbow_L, "wrist_L": wrist_L,
@@ -87,14 +93,18 @@ for arm_obj in targets:
     bpy.ops.object.mode_set(mode="OBJECT")
 bpy.context.view_layer.update()
 
-# --- 2) restore arm mesh world matrices from ORIGINAL (after bone edit) ---
+# --- 2) restore mesh world matrices from ORIGINAL (after bone edit) ---
+# Extended from arms-only to ALL body meshes (INC-140 knee-pad review): the build
+# had flattened every part to Y=-1.331, burying front-protruding parts (knee pads
+# geometry_0.008/0.009 orig Y=-1.513, foot layers up to 0.53 off) inside the legs.
+SKIP = {"Ground"}  # keep floor; markers/proxies/cores handled separately below
 moved=0
-for name in ARM_MESHES:
+for name in ORIG:
+    if name in SKIP or "SHARED_CORE" in name:
+        continue
     o=bpy.data.objects.get(name)
     if o is None:
         print(f"  WARN mesh missing: {name}"); continue
-    if name not in ORIG:
-        print(f"  WARN not in orig dump: {name}"); continue
     o.matrix_world = Matrix(ORIG[name]["matrix_world"])
     moved+=1
 print(f"MESHES_RESTORED={moved}")

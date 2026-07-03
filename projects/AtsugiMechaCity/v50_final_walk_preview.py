@@ -467,14 +467,20 @@ def animate(frames, candidate, show_joint_locks: bool):
     lock_cores, lock_links = ({}, {})
     if show_joint_locks:
         lock_cores, lock_links = create_joint_locks()
-    y = center_of(TORSO_NAMES).y
+    # INC-140: pivot depth (Y) is derived per joint from the adjacent segment
+    # clusters instead of a single flattened torso Y. After restoring the original
+    # stride pose (legs staggered in depth), a torso-Y axis line sits up to 0.5 in
+    # front of the real joint and produces wrong swing arcs.
+    def leg_pivot_y(parent_names, child_names):
+        return (center_of(parent_names).y + center_of(child_names).y) * 0.5
+
     pivots = {
-        "hip_L": Vector((-0.20, y, 0.02)),
-        "knee_L": Vector((-0.24, y, -0.50)),
-        "ankle_L": Vector((-0.25, y, -0.88)),
-        "hip_R": Vector((0.22, y, 0.02)),
-        "knee_R": Vector((0.25, y, -0.50)),
-        "ankle_R": Vector((0.26, y, -0.88)),
+        "hip_L": Vector((-0.20, leg_pivot_y(TORSO_NAMES, LEFT_UPPER_LEG), 0.02)),
+        "knee_L": Vector((-0.24, leg_pivot_y(LEFT_UPPER_LEG, LEFT_LOWER_LEG), -0.50)),
+        "ankle_L": Vector((-0.25, leg_pivot_y(LEFT_LOWER_LEG, LEFT_FOOT), -0.88)),
+        "hip_R": Vector((0.22, leg_pivot_y(TORSO_NAMES, RIGHT_UPPER_LEG), 0.02)),
+        "knee_R": Vector((0.25, leg_pivot_y(RIGHT_UPPER_LEG, RIGHT_LOWER_LEG), -0.50)),
+        "ankle_R": Vector((0.26, leg_pivot_y(RIGHT_LOWER_LEG, RIGHT_FOOT), -0.88)),
     }
 
     frame_audits = []
