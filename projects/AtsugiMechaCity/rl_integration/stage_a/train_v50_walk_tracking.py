@@ -95,6 +95,7 @@ class Env:
         self.stand_z = float(self.robot.get_qpos()[:, 2].mean())
         self.phase = torch.rand(n_envs, device=dev)
         self.steps = torch.zeros(n_envs, device=dev, dtype=torch.long)
+        self.x0 = torch.zeros(n_envs, device=dev)           # root x at episode start
         self.reset(torch.arange(n_envs, device=dev))
 
     def reset(self, idx):
@@ -106,6 +107,7 @@ class Env:
         self.robot.set_dofs_position(ref, dofs_idx_local=self.dof_idx, envs_idx=idx,
                                      zero_velocity=True)
         self.steps[idx] = 0
+        self.x0[idx] = self.robot.get_qpos()[idx, 0]
 
     def root_state(self):
         qpos = self.robot.get_qpos()
@@ -120,6 +122,8 @@ class Env:
         grav = quat_gravity(quat)
         ref = gait_reference(self.phase)
         two_pi = 2.0 * math.pi
+        dt_ctrl = DT_SIM * DECIMATION
+        x_err = (pos[:, 0] - (self.x0 + self.steps.float() * dt_ctrl * TARGET_VX))
         return torch.cat([
             q - ref,                       # 12 pose error
             qd * 0.05,                     # 12
@@ -129,7 +133,8 @@ class Env:
             grav,                          # 3
             torch.sin(self.phase * two_pi).unsqueeze(1),
             torch.cos(self.phase * two_pi).unsqueeze(1),
-            torch.zeros(self.n, 2, device="cuda"),  # reserved (skill embed slot)
+            (x_err * 0.5).clamp(-2, 2).unsqueeze(1),  # forward-progress error
+            torch.zeros(self.n, 1, device="cuda"),    # reserved (skill embed slot)
         ], dim=1)
 
     def step(self, action):
@@ -149,12 +154,19 @@ class Env:
 
         pose_err = ((q - ref) ** 2).mean(dim=1)
         r_pose = torch.exp(-8.0 * pose_err)
-        r_vel = torch.exp(-4.0 * (vel[:, 0] - TARGET_VX) ** 2)
+        # INC-141 follow-up: exp velocity reward let the policy settle into
+        # marching-in-place (vx=0 local optimum, run1). Linear velocity reward has
+        # a clear forward gradient at vx=0, and root-position tracking (DeepMimic
+        # convention) pays continuously for actual travel.
+        r_vel = vel[:, 0].clamp(-0.5, 1.0)
+        dt_ctrl = DT_SIM * DECIMATION
+        x_expect = self.x0 + self.steps.float() * dt_ctrl * TARGET_VX
+        r_travel = torch.exp(-2.0 * (pos[:, 0] - x_expect) ** 2)
         upright = (-grav[:, 2]).clamp(0.0, 1.0)          # 1 when upright
         r_up = upright
         pen_act = (action ** 2).mean(dim=1)
         pen_ang = (ang ** 2).sum(dim=1)
-        reward = 1.2 * r_pose + 1.5 * r_vel + 0.5 * r_up + 0.25 \
+        reward = 0.8 * r_pose + 1.0 * r_vel + 1.0 * r_travel + 0.5 * r_up + 0.25 \
                  - 0.01 * pen_act - 0.02 * pen_ang
 
         fallen = (pos[:, 2] < self.stand_z - 0.25) | (upright < 0.5)
