@@ -54,6 +54,21 @@ bd issue: `Clawdbot_Docker_20260125-6li`(キュー⑤) / 前提知識ゼロで�
 - 文字化け: `PYTHONIOENCODING=utf-8` 推奨(cp932絵文字ログエラー回避)
 - **ゲート許容値を勝手に緩めるな**(FMEA#2, RPN432)。緩和は正解基準での校正+人間承認+記録
 
+## 4.4 Stage B-1 実装計画(2026-07-04 ユーザーB案承認 — 中断時はここから再開)
+
+**背景**: Stage B(実モーション参照)3サイクル自律実行→エスカレーション。ペース追従は完璧(vx=クリップ値一致)だが必ず数秒で完全転倒。**根本原因仮説: 12DOF矢状面のみ=hip/ankle rollロックで横バランス制御が物理的に不可能**。
+
+**B-1スコープ(1セッション)**: hip_L/R_roll + ankle_L/R_roll の4DOF解錠(12→16DOF)。
+実装箇所(すべて `rl_integration/stage_a/train_v50_walk_tracking.py` と関連):
+1. Env内XML書換に**roll関節追加**: upper_legボディに `<joint name="hip_?_roll" axis="0 1 0" range="-20 20">`、footボディに `<joint name="ankle_?_roll" axis="0 1 0" range="-15 15">`(既存書換=アクチュエータ除去/足向き/かかと、と同じ場所)
+2. `DOF_NAMES` 末尾に4DOF追加(末尾追加ルール)、KP/KV拡張(roll: hip 400/40, ankle 200/20)
+3. `gait_reference`/`_sin_gait`: 12列出力の末尾にゼロ4列をパディング(rollの参照は0=直立中立、バランスはRLが使う)
+4. `OBS_DIM` 38→46(q-ref 16 + qd 16 + 既存14)、`ACT_DIM` 12→16
+5. **旧チェックポイント(run1-10, cycle1-3)は次元非互換で再利用不可** — フレッシュ学習。playbook.yaml の best_walker を空にする
+6. devラン(5it)→supervisor経由でtier1サイクル起動(--ref-json ref_neutral_fw.json)
+
+**B-2(後日)**: マニフェスト駆動カノニカルエクスポータ(29DOF+ロックマスク、肩3DOF) — canonical_skeleton_spec.md v1.0準拠。
+
 ## 4.5 API燃費の運用ルール(2026-07-03 ユーザー承認・全AI遵守)
 
 1. **Tier1を完全に終えてからTier2へ**。並行着手禁止(デバッグの掛け算でAPI燃費悪化)。
