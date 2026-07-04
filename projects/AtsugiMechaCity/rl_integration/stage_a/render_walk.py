@@ -29,7 +29,7 @@ robot.set_dofs_kv(torch.tensor(T.KV, device="cuda"), dof_idx)
 
 ac = T.ActorCritic().cuda()
 import glob
-ckpt = r"C:\v50_work\stage_a_run7\latest.pt"
+ckpt = r"C:\v50_work\stage_a_run8\latest.pt"
 if not os.path.exists(ckpt): ckpt = r"C:\v50_work\stage_a_run6\best.pt"
 ac.load_state_dict(torch.load(ckpt, weights_only=True))
 print("policy:", ckpt)
