@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>Mecha Motion Lab — 自律モーション学習</title>
+<style>
+  :root { --bg:#020617; --primary:#38bdf8; --card:rgba(15,23,42,.7); --text:#f8fafc; --muted:#94a3b8; --ok:#34d399; --warn:#fbbf24; --bad:#f87171; }
+  body { background:var(--bg); color:var(--text); font-family:"Segoe UI",sans-serif; margin:0; padding:32px; }
+  h1 { font-size:1.5rem; margin:0 0 4px; } .sub { color:var(--muted); font-size:.9rem; margin-bottom:24px; }
+  .panel { background:var(--card); border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:20px 24px; max-width:960px; margin-bottom:20px; }
+  .kv { display:grid; grid-template-columns:180px 1fr; gap:6px 16px; font-size:.95rem; }
+  .kv b { color:var(--muted); font-weight:500; }
+  .state { display:inline-block; padding:2px 12px; border-radius:999px; font-weight:600; }
+  .state.running,.state.training,.state.checking { background:rgba(56,189,248,.15); color:var(--primary); }
+  .state.learned { background:rgba(52,211,153,.15); color:var(--ok); }
+  .state.escalated { background:rgba(248,113,113,.15); color:var(--bad); }
+  table { width:100%; border-collapse:collapse; font-size:.85rem; }
+  th,td { text-align:left; padding:6px 10px; border-bottom:1px solid rgba(255,255,255,.06); }
+  th { color:var(--muted); font-weight:500; }
+  .muted { color:var(--muted); } code { color:var(--primary); }
+</style>
+</head>
+<body>
+<h1>🦿 Mecha Motion Lab — 自律モーション学習ループ</h1>
+<p class="sub">Genesis GPU上でロボットがモーションを自律学習。判断はプレイブック(決定表)+ローカルLLM、行き詰まりは人間へエスカレーション。
+基盤: <code>projects/AtsugiMechaCity/rl_integration/autonomy/</code></p>
+
+<div class="panel">
+  <h3 style="margin-top:0">現在の学習状態</h3>
+  <div class="kv" id="kv"><b>状態</b><span id="st" class="state">読込中…</span></div>
+</div>
+
+<div class="panel">
+  <h3 style="margin-top:0">PDCAサイクル履歴</h3>
+  <table><thead><tr><th>#</th><th>前進[m/8s]</th><th>転倒</th><th>vx[m/s]</th><th>適用ルール</th><th>ローカルLLMノート</th></tr></thead>
+  <tbody id="hist"><tr><td colspan="6" class="muted">supervisor_status.json 待ち</td></tr></tbody></table>
+</div>
+
+<div class="panel muted" style="font-size:.85rem">
+  習得ゲート: 前進≥1.5m/8s かつ 転倒なし(walk_check.jsonの機械判定=目視チェックの自動化) ·
+  エスカレーション時はTelegram通知+escalation.md生成 · スキル待ち行列と獲得パイプライン設計:
+  <code>design/skill_acquisition_pipeline.md</code>
+</div>
+
+<script>
+async function load(){
+  try{
+    const r = await fetch('supervisor_status.json?t='+Date.now());
+    const s = await r.json();
+    const kv = document.getElementById('kv');
+    kv.innerHTML = `
+      <b>状態</b><span class="state ${s.state}">${s.state}</span>
+      <b>スキル</b><span>${s.skill}</span>
+      <b>サイクル</b><span>${s.cycle}</span>
+      <b>最終更新</b><span>${s.updated_at||'-'}</span>
+      <b>直近メトリクス</b><span>${s.last_metrics?`travel ${s.last_metrics.travel}m / vx ${s.last_metrics.vx} / 転倒 ${s.last_metrics.fell?'あり':'なし'}`:'-'}</span>
+      ${s.escalation_reason?`<b>エスカレーション</b><span style="color:var(--bad)">${s.escalation_reason}</span>`:''}`;
+    const hist = document.getElementById('hist');
+    if(s.history && s.history.length){
+      hist.innerHTML = s.history.map(h=>`<tr><td>${h.cycle}</td><td>${h.metrics.travel}</td>
+        <td>${h.metrics.fell?'❌':'✅'}</td><td>${h.metrics.vx}</td><td>${h.rule}</td>
+        <td class="muted">${h.llm_note||''}</td></tr>`).join('');
+    }
+  }catch(e){
+    document.getElementById('st').textContent = '未稼働(supervisor未起動)';
+  }
+}
+load(); setInterval(load, 30000);
+</script>
+</body>
+</html>

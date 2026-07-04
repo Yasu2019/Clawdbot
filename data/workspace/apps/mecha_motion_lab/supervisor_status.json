@@ -1,0 +1,9 @@
+{
+  "schema": "clawstack.motion_learning_supervisor.v1",
+  "skill": "walk",
+  "state": "idle",
+  "cycle": 0,
+  "history": [],
+  "note": "Supervisor implemented (2026-07-04). Launch: genesis_venv python rl_integration/autonomy/motion_learning_supervisor.py --skill walk. Current best checkpoint: stage_a_run8 (2s genuine walk). Stage B (real mocap reference) approved and pending - see bd e6h.",
+  "updated_at": "2026-07-04T15:30:00"
+}

@@ -1,0 +1,46 @@
+# Motion Learning Playbook v1 — Stage A の10ラン(run1-10)から抽出した判断決定表。
+# ローカルLLM/ルールエンジンはこの表の範囲でのみ自律判断する。表に無い状況は人間へエスカレーション。
+# 教訓の出典: data/workspace/memory/trouble_history.md [T047] 罠#1〜#7
+
+schema: clawstack.motion_learning_playbook.v1
+
+success_gate:                # 「習得」判定(全条件AND)
+  min_travel_m_8s: 1.5       # レンダーロールアウト(リセットなし)の実前進
+  max_fall: false            # ロールアウト中に転倒しない(root zがstand_z-0.2を下回らない)
+  min_upright: 0.90
+
+rules:                       # 上から順に最初に一致したものを適用
+  - name: learned
+    when: "travel >= 1.5 and not fell"
+    action: {type: success}
+
+  - name: dive_hack          # 罠#7: 数値は良いが転倒して這っている
+    when: "travel >= 1.0 and fell"
+    action: {type: escalate, reason: "travel is fall-and-crawl; reward gating may be insufficient"}
+
+  - name: conservative_freeze  # run9/10型: 安全静止に収束
+    when: "vx < 0.10 and not fell"
+    action: {type: retrain, resume: best_walker, entropy: 0.002, init_log_std: -1.0, iterations: 800}
+
+  - name: sprint_and_fall    # run8型: 速すぎて転倒
+    when: "vx >= 0.30 and fell"
+    action: {type: retrain, resume: latest, entropy: 0.001, init_log_std: -1.3, iterations: 800}
+
+  - name: partial_progress   # 歩いているが距離不足
+    when: "travel >= 0.5"
+    action: {type: retrain, resume: latest, entropy: 0.001, init_log_std: -1.2, iterations: 1000}
+
+  - name: default_stall
+    when: "true"
+    action: {type: retrain, resume: best_walker, entropy: 0.0015, init_log_std: -1.1, iterations: 800}
+
+limits:
+  max_cycles_per_skill: 6            # これを超えたら人間へエスカレーション(無限ループ禁止)
+  max_consecutive_no_improve: 2      # travelが2サイクル連続で改善しなければエスカレーション
+
+escalation:
+  file: escalation.md                # 出力先(サイクルディレクトリ内)
+  telegram: true
+
+known_good_checkpoints:
+  best_walker: C:\v50_work\stage_a_run8\latest.pt   # 2秒歩行の実績(目視確認済み)
