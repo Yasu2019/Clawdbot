@@ -193,6 +193,11 @@ def main():
     ap.add_argument("--max-cycles", type=int, default=None)
     args = ap.parse_args()
 
+    try:  # 学習ループ生存中はPCスリープを抑止(スリープで学習が停止した実績への対策)
+        from keep_awake import hold_awake
+        hold_awake()
+    except Exception:
+        pass
     pb = load_playbook()
     max_cycles = args.max_cycles or pb["limits"].get("max_cycles_per_skill", 6)
     state = {"schema": "clawstack.motion_learning_supervisor.v1", "skill": args.skill,
