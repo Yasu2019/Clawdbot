@@ -215,21 +215,25 @@ class Env:
         # marching-in-place (vx=0 local optimum, run1). Linear velocity reward has
         # a clear forward gradient at vx=0, and root-position tracking (DeepMimic
         # convention) pays continuously for actual travel.
-        r_vel = (FWD_SIGN * vel[:, FWD_AXIS]).clamp(-0.5, 1.0)
+        upright = (-grav[:, 2]).clamp(0.0, 1.0)          # 1 when upright
+        # trap #7 (reward hacking, run7 visual check): ungated velocity reward let
+        # the policy dive forward and CRAWL for speed. Velocity/travel only pay
+        # while upright (x upright^2), and falling costs more (-5, tighter tilt cut).
+        gate = upright ** 2
+        r_vel = (FWD_SIGN * vel[:, FWD_AXIS]).clamp(-0.5, 1.0) * gate
         dt_ctrl = DT_SIM * DECIMATION
         x_expect = self.x0 + self.steps.float() * dt_ctrl * TARGET_VX
-        r_travel = torch.exp(-2.0 * (FWD_SIGN * pos[:, FWD_AXIS] - x_expect) ** 2)
-        upright = (-grav[:, 2]).clamp(0.0, 1.0)          # 1 when upright
+        r_travel = torch.exp(-2.0 * (FWD_SIGN * pos[:, FWD_AXIS] - x_expect) ** 2) * gate
         r_up = upright
         pen_act = (action ** 2).mean(dim=1)
         pen_ang = (ang ** 2).sum(dim=1)
         reward = 0.8 * r_pose + 1.5 * r_vel + 1.0 * r_travel + 0.5 * r_up + 0.25 \
                  - 0.01 * pen_act - 0.02 * pen_ang
 
-        fallen = (pos[:, 2] < self.stand_z - 0.25) | (upright < 0.5)
+        fallen = (pos[:, 2] < self.stand_z - 0.25) | (upright < 0.65)
         timeout = self.steps >= EP_LEN
         done = fallen | timeout
-        reward = torch.where(fallen, reward - 2.0, reward)
+        reward = torch.where(fallen, reward - 5.0, reward)
 
         idx = torch.nonzero(done).squeeze(-1)
         metrics = {"vx": (FWD_SIGN * vel[:, FWD_AXIS]).mean().item(), "up": upright.mean().item(),
