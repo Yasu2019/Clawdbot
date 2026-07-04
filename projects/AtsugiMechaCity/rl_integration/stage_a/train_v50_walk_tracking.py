@@ -52,9 +52,45 @@ OBS_DIM = 38
 ACT_DIM = 12
 
 
+# Stage B: retargeted real-mocap reference (set via load_reference / --ref-json).
+# None のときは従来の解析sin歩容にフォールバック。
+REF_TABLE = None            # torch (P,12) on cuda, lazily converted
+_REF_TABLE_NP = None
+
+
+def load_reference(path):
+    """bvh_retarget.py が出力した参照JSONを読み、周期・目標速度・テーブルを差し替える。"""
+    global _REF_TABLE_NP, GAIT_PERIOD, TARGET_VX
+    import json as _json
+    d = _json.load(open(path, encoding="utf-8"))
+    assert d["dof_order"] == DOF_NAMES, "DOF order mismatch with retargeted reference"
+    import numpy as _np
+    _REF_TABLE_NP = _np.array(d["frames"], dtype=_np.float32)
+    GAIT_PERIOD = float(d["period_sec"])
+    TARGET_VX = min(float(d["clip_vx_mps"]), 0.6)   # 安定側にキャップ
+    print(f"REF loaded: {path} period={GAIT_PERIOD}s target_vx={TARGET_VX} "
+          f"samples={_REF_TABLE_NP.shape[0]}", flush=True)
+
+
 def gait_reference(phase):
     """phase (N,) in [0,1) -> reference joint targets (N,12) in radians.
-    Amplitudes mirror v50_final_walk_preview.py (11/10/5 deg) + arm counterswing."""
+    REF_TABLE があれば実モーション参照を線形補間、無ければ解析sin歩容。"""
+    global REF_TABLE
+    if _REF_TABLE_NP is not None:
+        if REF_TABLE is None:
+            REF_TABLE = torch.tensor(_REF_TABLE_NP, device=phase.device)
+        n = REF_TABLE.shape[0]
+        x = phase * n
+        i0 = x.long() % n
+        i1 = (i0 + 1) % n
+        w = (x - x.floor()).unsqueeze(1)
+        return REF_TABLE[i0] * (1 - w) + REF_TABLE[i1] * w
+    return _sin_gait(phase)
+
+
+def _sin_gait(phase):
+    """従来の解析sin歩容(Stage Aフォールバック)。
+    Amplitudes mirror v50_final_walk_preview.py + arm counterswing."""
     two_pi = 2.0 * math.pi
     s = torch.sin(phase * two_pi)
     hip_l = 0.30 * s                                 # 17 deg (run3: longer stride)
@@ -273,8 +309,12 @@ def main():
     # noise-driven propulsion).
     ap.add_argument("--entropy", type=float, default=0.005)
     ap.add_argument("--init-log-std", type=float, default=None)
+    # Stage B: retargeted real-mocap reference JSON (bvh_retarget.py output)
+    ap.add_argument("--ref-json", default=None)
     args = ap.parse_args()
     os.makedirs(args.out, exist_ok=True)
+    if args.ref_json:
+        load_reference(args.ref_json)
 
     env = Env(args.n_envs, args.out)
     ac = ActorCritic().cuda()

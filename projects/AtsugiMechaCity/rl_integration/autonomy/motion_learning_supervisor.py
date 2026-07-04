@@ -124,6 +124,8 @@ def run_training(cycle_dir, cfg, resume_path):
             "--n-envs", "512", "--out", cycle_dir,
             "--entropy", str(cfg.get("entropy", 0.001)),
             "--init-log-std", str(cfg.get("init_log_std", -1.2))]
+    if cfg.get("ref_json"):
+        args += ["--ref-json", cfg["ref_json"]]
     if resume_path:
         args += ["--resume", resume_path]
     print("TRAIN:", " ".join(args), flush=True)
@@ -131,10 +133,12 @@ def run_training(cycle_dir, cfg, resume_path):
                           encoding="utf-8", errors="replace").returncode
 
 
-def run_render_check(cycle_dir):
+def run_render_check(cycle_dir, ref_json=None):
     """render_walk.py をこのサイクルのチェックポイントで実行し walk_check.json を得る。"""
     env = dict(os.environ, WALK_CKPT=os.path.join(cycle_dir, "latest.pt"),
                WALK_OUT=os.path.join(cycle_dir, "frames"), PYTHONIOENCODING="utf-8")
+    if ref_json:
+        env["WALK_REF_JSON"] = ref_json
     r = subprocess.run([PY, RENDERER], cwd=STAGE_A, capture_output=True, text=True,
                        encoding="utf-8", errors="replace", env=env)
     check_path = os.path.join(cycle_dir, "frames", "walk_check.json")
@@ -185,6 +189,7 @@ def escalate(state, reason, cycle_dir):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--skill", default="walk")
+    ap.add_argument("--ref-json", default=None, help="retargeted reference motion (Stage B)")
     ap.add_argument("--max-cycles", type=int, default=None)
     args = ap.parse_args()
 
@@ -193,7 +198,8 @@ def main():
     state = {"schema": "clawstack.motion_learning_supervisor.v1", "skill": args.skill,
              "state": "running", "cycle": 0, "history": [], "playbook_version": "v1"}
     resume = pb["known_good_checkpoints"].get("best_walker")
-    cfg = {"iterations": 800, "entropy": 0.001, "init_log_std": -1.2}
+    cfg = {"iterations": 800, "entropy": 0.001, "init_log_std": -1.2,
+           "ref_json": args.ref_json}
     best_travel, no_improve = -1e9, 0
 
     for cycle in range(1, max_cycles + 1):
@@ -211,7 +217,7 @@ def main():
 
         state["state"] = "checking"
         write_status(state)
-        check = run_render_check(cycle_dir)
+        check = run_render_check(cycle_dir, args.ref_json)
         m = gather_metrics(cycle_dir, check)
         state["last_metrics"] = m
 
@@ -244,7 +250,8 @@ def main():
         # retrain: playbook のパラメータで次サイクルへ
         cfg = {"iterations": int(act.get("iterations", 800)),
                "entropy": float(act.get("entropy", 0.001)),
-               "init_log_std": float(act.get("init_log_std", -1.2))}
+               "init_log_std": float(act.get("init_log_std", -1.2)),
+               "ref_json": args.ref_json}
         resume = (pb["known_good_checkpoints"].get("best_walker")
                   if act.get("resume") == "best_walker"
                   else os.path.join(cycle_dir, "latest.pt"))

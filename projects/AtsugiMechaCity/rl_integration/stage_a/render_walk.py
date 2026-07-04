@@ -18,6 +18,8 @@ import genesis as gs
 CKPT = os.environ.get("WALK_CKPT", r"C:\v50_work\stage_a_run8\latest.pt")
 OUT = os.environ.get("WALK_OUT", r"C:\v50_work\walk_frames")
 STEPS = int(os.environ.get("WALK_STEPS", "400"))
+if os.environ.get("WALK_REF_JSON"):        # Stage B: 実モーション参照で評価
+    T.load_reference(os.environ["WALK_REF_JSON"])
 os.makedirs(OUT, exist_ok=True)
 
 xml = open(T.MJCF_SRC, encoding="utf-8").read()
