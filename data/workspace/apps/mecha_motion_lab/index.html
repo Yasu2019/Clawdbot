@@ -25,6 +25,19 @@
 <p class="sub">Genesis GPU上でロボットがモーションを自律学習。判断はプレイブック(決定表)+ローカルLLM、行き詰まりは人間へエスカレーション。
 基盤: <code>projects/AtsugiMechaCity/rl_integration/autonomy/</code></p>
 
+<div class="panel" style="border-color: rgba(52,211,153,.4)">
+  <h3 style="margin-top:0">🎓 覚えてほしい動作をリクエスト</h3>
+  <form id="reqForm" style="display:flex; gap:10px;">
+    <input id="reqText" type="text" placeholder="例: 斜面を登る / 階段を降りる / 箱を持ち上げる / 介助で人を支える"
+           style="flex:1; padding:10px 14px; border-radius:10px; border:1px solid rgba(255,255,255,.15); background:rgba(0,0,0,.25); color:var(--text); font-size:.95rem;">
+    <button type="submit" style="padding:10px 22px; border-radius:10px; border:none; background:linear-gradient(135deg,#34d399,#38bdf8); color:#04121f; font-weight:700; cursor:pointer;">依頼する</button>
+  </form>
+  <div id="reqMsg" class="muted" style="margin-top:8px; font-size:.85rem;"></div>
+  <table style="margin-top:12px"><thead><tr><th>依頼</th><th>状態</th><th>受付日時</th></tr></thead>
+    <tbody id="reqList"><tr><td colspan="3" class="muted">—</td></tr></tbody></table>
+  <p class="muted" style="font-size:.8rem; margin-bottom:0">依頼はスキル獲得パイプライン(解釈→お手本探索→ライセンス確認[人間]→学習→検収[人間])のキューに入ります。地形が必要な動作(階段・斜面)は仮想環境の地形生成も自動計画されます。</p>
+</div>
+
 <div class="panel">
   <h3 style="margin-top:0">現在の学習状態</h3>
   <div class="kv" id="kv"><b>状態</b><span id="st" class="state">読込中…</span></div>
@@ -43,6 +56,35 @@
 </div>
 
 <script>
+const API = 'http://127.0.0.1:8118';
+document.getElementById('reqForm').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const t = document.getElementById('reqText').value.trim();
+  if(!t) return;
+  const msg = document.getElementById('reqMsg');
+  try{
+    const r = await fetch(API+'/requests', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({text:t})});
+    const j = await r.json();
+    msg.textContent = j.ok ? `受付けました: ${j.request.id}` : '受付エラー';
+    document.getElementById('reqText').value = '';
+    loadRequests();
+  }catch(err){
+    msg.textContent = '受付APIに接続できません(skill_request_api.py 127.0.0.1:8118 が未起動の可能性)';
+  }
+});
+async function loadRequests(){
+  try{
+    const r = await fetch(API+'/requests?t='+Date.now());
+    const d = await r.json();
+    const tb = document.getElementById('reqList');
+    if(d.requests && d.requests.length){
+      tb.innerHTML = d.requests.slice().reverse().map(q=>
+        `<tr><td>${q.text}</td><td>${q.status}</td><td class="muted">${q.created_at}</td></tr>`).join('');
+    }
+  }catch(e){ /* API未起動時は静かに */ }
+}
+loadRequests(); setInterval(loadRequests, 30000);
+
 async function load(){
   try{
     const r = await fetch('supervisor_status.json?t='+Date.now());
