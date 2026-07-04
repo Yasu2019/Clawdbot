@@ -22,13 +22,19 @@ import torch
 import torch.nn as nn
 
 MJCF_SRC = r"D:\Clawdbot_Docker_20260125\projects\AtsugiMechaCity\rl_integration\artifacts\v50_mecha.xml"
+# B-1: 12 sagittal DOFs + 4 roll DOFs appended at the END (canonical append-only
+# rule). Roll joints are injected into the MJCF at load (see Env XML rewrite).
 DOF_NAMES = ["hip_L","knee_L","ankle_L","hip_R","knee_R","ankle_R",
-             "shoulder_L","elbow_L","wrist_L","shoulder_R","elbow_R","wrist_R"]
+             "shoulder_L","elbow_L","wrist_L","shoulder_R","elbow_R","wrist_R",
+             "hip_L_roll","ankle_L_roll","hip_R_roll","ankle_R_roll"]
+N_SAGITTAL = 12
 # PD gains per DOF (v50_amp_config.yaml). MJCF <actuator> is stripped at load:
 # Genesis imports MJCF position actuators as non-PD-reducible act_gain/act_bias that
 # FIGHT control_dofs_position (probe finding, 2026-07-03); explicit kp/kv instead.
-KP = [400., 300., 200., 400., 300., 200., 200., 150., 80., 200., 150., 80.]
-KV = [40., 30., 20., 40., 30., 20., 20., 15., 8., 20., 15., 8.]
+KP = [400., 300., 200., 400., 300., 200., 200., 150., 80., 200., 150., 80.,
+      400., 200., 400., 200.]
+KV = [40., 30., 20., 40., 30., 20., 20., 15., 8., 20., 15., 8.,
+      40., 20., 40., 20.]
 DT_SIM = 0.002
 DECIMATION = 10         # control at 50 Hz
 # run3 (INC-141): 0.8 m/s was kinematically unreachable for the 11-deg sin gait
@@ -48,8 +54,8 @@ FWD_AXIS = 1            # 0=x, 1=y
 FWD_SIGN = -1.0
 ACTION_SCALE = 0.35
 EP_LEN = 400            # 8 s
-OBS_DIM = 38
-ACT_DIM = 12
+OBS_DIM = 46          # B-1: +8 (4 roll pose-err + 4 roll vel)
+ACT_DIM = 16          # B-1: +4 roll DOFs
 
 
 # Stage B: retargeted real-mocap reference (set via load_reference / --ref-json).
@@ -63,7 +69,8 @@ def load_reference(path):
     global _REF_TABLE_NP, GAIT_PERIOD, TARGET_VX
     import json as _json
     d = _json.load(open(path, encoding="utf-8"))
-    assert d["dof_order"] == DOF_NAMES, "DOF order mismatch with retargeted reference"
+    # 参照は矢状面12DOF。roll4DOFはゼロパディング(_pad_rolls)される。
+    assert d["dof_order"] == DOF_NAMES[:N_SAGITTAL], "DOF order mismatch with retargeted reference"
     import numpy as _np
     _REF_TABLE_NP = _np.array(d["frames"], dtype=_np.float32)
     GAIT_PERIOD = float(d["period_sec"])
@@ -84,8 +91,16 @@ def gait_reference(phase):
         i0 = x.long() % n
         i1 = (i0 + 1) % n
         w = (x - x.floor()).unsqueeze(1)
-        return REF_TABLE[i0] * (1 - w) + REF_TABLE[i1] * w
-    return _sin_gait(phase)
+        sag = REF_TABLE[i0] * (1 - w) + REF_TABLE[i1] * w   # (N,12)
+        return _pad_rolls(sag)
+    return _pad_rolls(_sin_gait(phase))
+
+
+def _pad_rolls(sag):
+    """(N,12)矢状面参照の末尾にroll 4DOFのゼロ(直立中立)を付ける。
+    rollの使い方(バランス)は参照ではなくRLが発見する。"""
+    return torch.cat([sag, torch.zeros(sag.shape[0], len(DOF_NAMES) - N_SAGITTAL,
+                                       device=sag.device)], dim=1)
 
 
 def _sin_gait(phase):
@@ -150,6 +165,15 @@ class Env:
                      r'\1<geom name="foot_\2_heel" type="sphere" size="0.04" '
                      r'pos="0 0.06 -0.08" condim="6" friction="1.5 0.01 0.001"/>',
                      xml)
+        # B-1 (Tier1-lite): unlock lateral balance. The sagittal-only 12-DOF robot
+        # cannot control roll — every Stage A/B policy face-planted within seconds.
+        # Add hip/ankle roll hinges (axis Y is the forward axis => roll axis).
+        xml = re.sub(r'(<joint name="hip_(L|R)"[^/]*/>)',
+                     r'\1<joint name="hip_\2_roll" type="hinge" axis="0 1 0" pos="0 0 0" '
+                     r'limited="true" range="-20.0 20.0" damping="5" stiffness="0"/>', xml)
+        xml = re.sub(r'(<joint name="ankle_(L|R)"[^/]*/>)',
+                     r'\1<joint name="ankle_\2_roll" type="hinge" axis="0 1 0" pos="0 0 0" '
+                     r'limited="true" range="-15.0 15.0" damping="3" stiffness="0"/>', xml)
         noact = os.path.join(out_dir, "v50_mecha_noact.xml")
         with open(noact, "w", encoding="utf-8") as f:
             f.write(xml)

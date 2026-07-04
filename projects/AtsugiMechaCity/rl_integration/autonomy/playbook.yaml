@@ -43,4 +43,6 @@ escalation:
   telegram: true
 
 known_good_checkpoints:
-  best_walker: C:\v50_work\stage_a_run8\latest.pt   # 2秒歩行の実績(目視確認済み)
+  # B-1(16DOF化)で旧12DOFチェックポイントは次元非互換になった。tier1の
+  # 良質チェックポイントが得られたらここに登録する。空=フレッシュ学習。
+  best_walker: ""
