@@ -1,0 +1,10 @@
+{
+  "schema": "clawstack.license_decision.v1",
+  "dataset": "100STYLE Dataset",
+  "source_url": "https://zenodo.org/records/8127870",
+  "license": "CC-BY-4.0 (verified at source, zenodo API metadata, 2026-07-04)",
+  "use": "RL training reference motion for V50 mecha walk (Stage B)",
+  "attribution_required": "Mason et al., Real-Time Style Modelling of Human Locomotion via Feature-Wise Transformations and Local Motion Phases (2022) - include in derived-work credits",
+  "approved_by": "user (repeated approvals: scale-up decision doc 2026-07-03, bd e6h approval 2026-07-04)",
+  "note": "Old handover pointed to zenodo 6778383 which is a DIFFERENT dataset - corrected to 8127870."
+}
