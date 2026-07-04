@@ -259,6 +259,11 @@ def main():
     ap.add_argument("--rollout", type=int, default=32)
     ap.add_argument("--out", default=r"C:\v50_work\stage_a_smoke")
     ap.add_argument("--resume", default=None)
+    # run6: anneal exploration so the walk consolidates into the deterministic
+    # mean (run5 walked at +0.14 stochastically but +0.02 deterministically —
+    # noise-driven propulsion).
+    ap.add_argument("--entropy", type=float, default=0.005)
+    ap.add_argument("--init-log-std", type=float, default=None)
     args = ap.parse_args()
     os.makedirs(args.out, exist_ok=True)
 
@@ -266,6 +271,9 @@ def main():
     ac = ActorCritic().cuda()
     if args.resume:
         ac.load_state_dict(torch.load(args.resume, weights_only=True))
+    if args.init_log_std is not None:
+        with torch.no_grad():
+            ac.log_std.fill_(args.init_log_std)
     opt = torch.optim.Adam(ac.parameters(), lr=3e-4)
     obs = env.obs()
     N, T = args.n_envs, args.rollout
@@ -314,7 +322,7 @@ def main():
                 s2 = torch.clamp(ratio, 1 - clip, 1 + clip) * b_adv[mb]
                 loss_pi = -torch.min(s1, s2).mean()
                 loss_v = ((ac.critic(b_obs[mb]).squeeze(-1) - b_ret[mb]) ** 2).mean()
-                loss = loss_pi + 0.5 * loss_v - 0.005 * dist.entropy().sum(-1).mean()
+                loss = loss_pi + 0.5 * loss_v - args.entropy * dist.entropy().sum(-1).mean()
                 opt.zero_grad(); loss.backward()
                 nn.utils.clip_grad_norm_(ac.parameters(), 1.0)
                 opt.step()
@@ -338,21 +346,25 @@ def main():
                            "elapsed_sec": round(time.time() - t_start, 1),
                            "n_envs": N}, f, indent=2)
 
-    # deterministic eval: forward travel over 400 control steps (8 s)
-    with torch.no_grad():
-        env.reset(torch.arange(N, device="cuda"))
-        obs_e = env.obs()
-        x0 = (FWD_SIGN * env.robot.get_qpos()[:, FWD_AXIS]).clone()
-        vx_acc = 0.0
-        for _ in range(EP_LEN):
-            act = ac.actor(obs_e)
-            obs_e, _, _, m = env.step(act)
-            vx_acc += m["vx"] / EP_LEN
-        travel = (FWD_SIGN * env.robot.get_qpos()[:, FWD_AXIS] - x0).mean().item()
-    eval_res = {"eval_forward_travel_m_8s": round(travel, 3),
-                "eval_vx_mean": round(vx_acc, 3),
-                "target_vx": TARGET_VX,
+    # eval: forward travel over 400 control steps (8 s), deterministic AND
+    # stochastic (run5 walked only with exploration noise — measure both).
+    eval_res = {"target_vx": TARGET_VX,
                 "note": "travel is lower bound (env auto-resets on falls)"}
+    with torch.no_grad():
+        for mode in ("deterministic", "stochastic"):
+            env.reset(torch.arange(N, device="cuda"))
+            obs_e = env.obs()
+            x0 = (FWD_SIGN * env.robot.get_qpos()[:, FWD_AXIS]).clone()
+            vx_acc = 0.0
+            for _ in range(EP_LEN):
+                act = ac.actor(obs_e) if mode == "deterministic" else ac.dist(obs_e).sample()
+                obs_e, _, _, m = env.step(act)
+                vx_acc += m["vx"] / EP_LEN
+            travel = (FWD_SIGN * env.robot.get_qpos()[:, FWD_AXIS] - x0).mean().item()
+            eval_res[f"{mode}_travel_m_8s"] = round(travel, 3)
+            eval_res[f"{mode}_vx_mean"] = round(vx_acc, 3)
+    eval_res["eval_forward_travel_m_8s"] = eval_res["deterministic_travel_m_8s"]
+    eval_res["eval_vx_mean"] = eval_res["deterministic_vx_mean"]
     with open(os.path.join(args.out, "eval.json"), "w", encoding="utf-8") as f:
         json.dump(eval_res, f, indent=2)
     print("EVAL:", json.dumps(eval_res))
