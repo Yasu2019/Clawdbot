@@ -36,7 +36,16 @@ DECIMATION = 10         # control at 50 Hz
 # policy settled into marching in place (run1, run2). Curriculum: reachable
 # target with a longer/faster stride first; raise speed later.
 GAIT_PERIOD = 1.2       # seconds per gait cycle
-TARGET_VX = 0.25        # m/s forward (+x)
+TARGET_VX = 0.25        # m/s forward along FWD_AXIS
+# INC-141 trap #6 (user caught it): hips are separated along X => X is the
+# LATERAL axis and sagittal hip swing (about X) moves the legs in the Y-Z plane,
+# so walking direction is +Y. Runs 1-4 rewarded velocity along X (sideways).
+# The exporter also put the TOES along +X (sideways feet); the XML rewrite in
+# Env.__init__ rotates foot geoms to point +Y.
+FWD_AXIS = 1            # 0=x, 1=y
+# Dev probe: the gait naturally propels at -0.5..-1.0 m/s along -Y, and the
+# Blender V50 also faces -Y (front camera sits at -Y). Forward = -Y.
+FWD_SIGN = -1.0
 ACTION_SCALE = 0.35
 EP_LEN = 400            # 8 s
 OBS_DIM = 38
@@ -92,9 +101,22 @@ class Env:
         # strip <actuator> (see KP/KV comment); robot stands on the MJCF's own floor
         # plane at z=-0.92 — do NOT add another plane (feet-buried-spawn bug).
         xml = open(MJCF_SRC, encoding="utf-8").read()
+        xml = re.sub(r"<actuator>.*?</actuator>", "", xml, flags=re.S)
+        # trap #6 fix: exporter put toes on +X (sideways). Anatomical forward is -Y
+        # (Blender front camera sits at -Y; hips separate along X). Foot becomes a
+        # flat heel-to-toe capsule along Y plus toe AND heel contact spheres —
+        # dev5/dev6 showed the untrained robot always tips toward the side with no
+        # foot lever (heel), so a heel kills that fall bias.
+        xml = xml.replace('fromto="0 0 0 0.15 0 -0.05"',
+                          'fromto="0 0.06 -0.05 0 -0.15 -0.05"')
+        xml = xml.replace('pos="0.15 0 -0.08"', 'pos="0 -0.15 -0.08"')
+        xml = re.sub(r'(<geom name="foot_(L|R)_contact"[^>]*/>)',
+                     r'\1<geom name="foot_\2_heel" type="sphere" size="0.04" '
+                     r'pos="0 0.06 -0.08" condim="6" friction="1.5 0.01 0.001"/>',
+                     xml)
         noact = os.path.join(out_dir, "v50_mecha_noact.xml")
         with open(noact, "w", encoding="utf-8") as f:
-            f.write(re.sub(r"<actuator>.*?</actuator>", "", xml, flags=re.S))
+            f.write(xml)
         gs.init(backend=gs.gpu, logging_level="warning")
         self.scene = gs.Scene(show_viewer=False,
                               sim_options=gs.options.SimOptions(dt=DT_SIM, substeps=2))
@@ -133,7 +155,7 @@ class Env:
                                      zero_velocity=True)
         self.steps[idx] = 0
         qpos = self.robot.get_qpos()
-        self.x0[idx] = qpos[idx, 0]
+        self.x0[idx] = FWD_SIGN * qpos[idx, FWD_AXIS]
         self.prev_pos[idx] = qpos[idx, :3]
         self.prev_quat[idx] = qpos[idx, 3:7]
         self.lin_vel[idx] = 0.0
@@ -153,7 +175,7 @@ class Env:
         ref = gait_reference(self.phase)
         two_pi = 2.0 * math.pi
         dt_ctrl = DT_SIM * DECIMATION
-        x_err = (pos[:, 0] - (self.x0 + self.steps.float() * dt_ctrl * TARGET_VX))
+        x_err = (FWD_SIGN * pos[:, FWD_AXIS] - (self.x0 + self.steps.float() * dt_ctrl * TARGET_VX))
         return torch.cat([
             q - ref,                       # 12 pose error
             qd * 0.05,                     # 12
@@ -193,10 +215,10 @@ class Env:
         # marching-in-place (vx=0 local optimum, run1). Linear velocity reward has
         # a clear forward gradient at vx=0, and root-position tracking (DeepMimic
         # convention) pays continuously for actual travel.
-        r_vel = vel[:, 0].clamp(-0.5, 1.0)
+        r_vel = (FWD_SIGN * vel[:, FWD_AXIS]).clamp(-0.5, 1.0)
         dt_ctrl = DT_SIM * DECIMATION
         x_expect = self.x0 + self.steps.float() * dt_ctrl * TARGET_VX
-        r_travel = torch.exp(-2.0 * (pos[:, 0] - x_expect) ** 2)
+        r_travel = torch.exp(-2.0 * (FWD_SIGN * pos[:, FWD_AXIS] - x_expect) ** 2)
         upright = (-grav[:, 2]).clamp(0.0, 1.0)          # 1 when upright
         r_up = upright
         pen_act = (action ** 2).mean(dim=1)
@@ -210,7 +232,7 @@ class Env:
         reward = torch.where(fallen, reward - 2.0, reward)
 
         idx = torch.nonzero(done).squeeze(-1)
-        metrics = {"vx": vel[:, 0].mean().item(), "up": upright.mean().item(),
+        metrics = {"vx": (FWD_SIGN * vel[:, FWD_AXIS]).mean().item(), "up": upright.mean().item(),
                    "pose_err": pose_err.mean().item(), "falls": fallen.float().sum().item()}
         self.reset(idx)
         return self.obs(), reward, done, metrics
@@ -320,13 +342,13 @@ def main():
     with torch.no_grad():
         env.reset(torch.arange(N, device="cuda"))
         obs_e = env.obs()
-        x0 = env.robot.get_qpos()[:, 0].clone()
+        x0 = (FWD_SIGN * env.robot.get_qpos()[:, FWD_AXIS]).clone()
         vx_acc = 0.0
         for _ in range(EP_LEN):
             act = ac.actor(obs_e)
             obs_e, _, _, m = env.step(act)
             vx_acc += m["vx"] / EP_LEN
-        travel = (env.robot.get_qpos()[:, 0] - x0).mean().item()
+        travel = (FWD_SIGN * env.robot.get_qpos()[:, FWD_AXIS] - x0).mean().item()
     eval_res = {"eval_forward_travel_m_8s": round(travel, 3),
                 "eval_vx_mean": round(vx_acc, 3),
                 "target_vx": TARGET_VX,
