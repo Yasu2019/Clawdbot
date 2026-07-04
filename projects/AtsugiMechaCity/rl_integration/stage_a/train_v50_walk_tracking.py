@@ -220,10 +220,12 @@ class Env:
         # the policy dive forward and CRAWL for speed. Velocity/travel only pay
         # while upright (x upright^2), and falling costs more (-5, tighter tilt cut).
         gate = upright ** 2
-        # run9: cap the speed incentive near the target pace — the linear reward up
-        # to 1.0 m/s pushed the policy to ~0.4 m/s where it pitches over at ~2 s
-        # (visual check). Sustainable pace beats sprint-and-fall.
-        r_vel = (FWD_SIGN * vel[:, FWD_AXIS]).clamp(-0.5, TARGET_VX * 1.3) * gate
+        # run10: plateau-shaped velocity reward peaking AT the target pace.
+        # History: linear->sprint 0.4 & fall at 2s (run8); hard cap->freeze at
+        # 0.05 (run9). A peak at 0.25 penalizes both idling and overspeed while
+        # keeping a dense gradient from either side.
+        fwd_v = FWD_SIGN * vel[:, FWD_AXIS]
+        r_vel = torch.exp(-10.0 * (fwd_v - TARGET_VX) ** 2) * gate
         dt_ctrl = DT_SIM * DECIMATION
         x_expect = self.x0 + self.steps.float() * dt_ctrl * TARGET_VX
         r_travel = torch.exp(-2.0 * (FWD_SIGN * pos[:, FWD_AXIS] - x_expect) ** 2) * gate
