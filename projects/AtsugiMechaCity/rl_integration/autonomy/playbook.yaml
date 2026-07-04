@@ -18,21 +18,25 @@ rules:                       # 上から順に最初に一致したものを適�
     when: "travel >= 1.0 and fell"
     action: {type: escalate, reason: "travel is fall-and-crawl; reward gating may be insufficient"}
 
+  # v2 (2026-07-05 ユーザー承認): 全retrainを resume: latest(前サイクル継続)へ変更。
+  # tier1初回3サイクルは best_walker が空で毎回フレッシュ学習となり、計2400
+  # イテレーションの積み上げを捨てていた(エスカレーション診断)。iterationsも
+  # 800→1500(「8秒転ばない」までの熟成時間)。
   - name: conservative_freeze  # run9/10型: 安全静止に収束
     when: "vx < 0.10 and not fell"
-    action: {type: retrain, resume: best_walker, entropy: 0.002, init_log_std: -1.0, iterations: 800}
+    action: {type: retrain, resume: best_walker, entropy: 0.002, init_log_std: -1.0, iterations: 1500}
 
   - name: sprint_and_fall    # run8型: 速すぎて転倒
     when: "vx >= 0.30 and fell"
-    action: {type: retrain, resume: latest, entropy: 0.001, init_log_std: -1.3, iterations: 800}
+    action: {type: retrain, resume: latest, entropy: 0.001, init_log_std: -1.3, iterations: 1500}
 
   - name: partial_progress   # 歩いているが距離不足
     when: "travel >= 0.5"
-    action: {type: retrain, resume: latest, entropy: 0.001, init_log_std: -1.2, iterations: 1000}
+    action: {type: retrain, resume: latest, entropy: 0.001, init_log_std: -1.2, iterations: 1500}
 
   - name: default_stall
     when: "true"
-    action: {type: retrain, resume: best_walker, entropy: 0.0015, init_log_std: -1.1, iterations: 800}
+    action: {type: retrain, resume: latest, entropy: 0.0015, init_log_std: -1.1, iterations: 1500}
 
 limits:
   max_cycles_per_skill: 6            # これを超えたら人間へエスカレーション(無限ループ禁止)
@@ -43,6 +47,5 @@ escalation:
   telegram: true
 
 known_good_checkpoints:
-  # B-1(16DOF化)で旧12DOFチェックポイントは次元非互換になった。tier1の
-  # 良質チェックポイントが得られたらここに登録する。空=フレッシュ学習。
-  best_walker: ""
+  # v2: tier1初回3サイクルのベスト(travel 0.187m, walk_tier1_cycle03)を登録。
+  best_walker: C:\v50_work\autonomy\walk_tier1_cycle03\latest.pt

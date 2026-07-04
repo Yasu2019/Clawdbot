@@ -198,7 +198,7 @@ def main():
     state = {"schema": "clawstack.motion_learning_supervisor.v1", "skill": args.skill,
              "state": "running", "cycle": 0, "history": [], "playbook_version": "v1"}
     resume = pb["known_good_checkpoints"].get("best_walker")
-    cfg = {"iterations": 800, "entropy": 0.001, "init_log_std": -1.2,
+    cfg = {"iterations": 1500, "entropy": 0.001, "init_log_std": -1.2,
            "ref_json": args.ref_json}
     best_travel, no_improve = -1e9, 0
 
@@ -238,11 +238,15 @@ def main():
             escalate(state, act.get("reason", rule["name"]), cycle_dir)
             return 2
 
-        # 改善停滞の監視
-        if m["travel"] <= best_travel + 0.05:
+        # 改善停滞の監視 — v2: 相対15%(v1の固定+0.05mはcycle3の23%改善を
+        # 「停滞」と誤判定した)。ベストが小さい/負のうちは絶対+0.05mで判定。
+        threshold = best_travel * 1.15 if best_travel > 0.3 else best_travel + 0.05
+        if m["travel"] <= threshold:
             no_improve += 1
         else:
-            best_travel, no_improve = m["travel"], 0
+            no_improve = 0
+        if m["travel"] > best_travel:
+            best_travel = m["travel"]
         if no_improve >= pb["limits"].get("max_consecutive_no_improve", 2):
             escalate(state, f"no improvement for {no_improve} cycles (best={best_travel:.2f}m)", cycle_dir)
             return 2
