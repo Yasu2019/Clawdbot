@@ -104,7 +104,48 @@
 - 受け入れゲート実績: 各featコミットメッセージ「acceptance PASS」+ `inc140_repair/` ゲートレポート
 - **ゲート許容値を勝手に緩めるな**（FMEA#2 RPN432）
 
-## 7. ロードマップ
+## 7. アプリ別進捗クロスチェック（2026-07-05・Beads/ByteRover/Obsidian/過去トラDB 4ソース照合）
+
+> 知識ソースの所在: Beads=`bd list`/`bd memories`(482件) / ByteRover=`.brv/context-tree/`(cae・dxf2step・design配下) / Obsidian=`data/workspace/obsidian_vault/`(トラブルシューティング・API_Summaries) / 過去トラ=`data/workspace/memory/trouble_history.md`(T001〜T048)
+> **brvルール `atsugi-mecha-joint-gate-preflight`**: メカ系ジョブは Beads・ByteRover・Obsidian 60_PC_Logs・trouble_history・INCIDENT_LOG の事前照合必須（本節はその全アプリ版）
+
+### 7.1 3Dロボット機械学習 — 🟡 学習中（最活発）
+- **bd**: in_progress 12件超（`e6h` Stage B実モーション化 / `dot` MJX PPO AMP / `x4o` 30体ビューア / `qao` 自律ハーネス 等）
+- **brv**: `robot-walk-part25-thigh-split-inc133.md` / `robot-walk-v50-joint-attachment-gate-inc136.md`。bd memories に100STYLES(4M+フレームCC BY)/AMP/MoMaskのデータセット・手法調査済み
+- **Obsidian**: `20260628_cube_disappearance_incident.md`(T045) / `20260628_mlagents_setup_incident.md`
+- **過去トラ**: T031(false-PASS) T044〜T047(INC-133/134/140/141)
+- **現在**: walk_tier1c supervisor **cycle3学習中**（cycle1/2転倒・最終防衛線）
+
+### 7.2 CETOL 6σ風 公差解析 — 🟠 知識蓄積は進行・**bd追跡ゼロ（ギャップ）**
+- **bd**: open/closedとも専用issueなし → `bd memories cetol`にマッピング知識のみ
+- **brv**: `cae/cetol_progressive_die_freecad_mapping_20260617.md` — **成熟度L1→L10マップ**、Progressive Die Hub(:8004)`/api/tolerance-stack`にWC+RSS+モンテカルロ+簡易Cpk実装済、FreeCAD `tolerance_analysis`エンジン(antigravityコンテナ`/work/freecad/tolerance_analysis/`)
+- **知識**: `clawstack_v2/docs/knowledge/Cetol_Knowledge.md` 継続更新中（セミナー事例: 04富士ゼロックス/03東芝ITC/U2Uクライスラー）
+- **現在地**: L1-L2+Hub連携済み / L4(STEP PMI)・L10(FreeCAD 3Dループ)未完 → bd `azrr`配下でissue化(2026-07-05)
+
+### 7.3 DXF→3Dモデル生成 — 🟠 稼働中だが再発防止未完
+- **bd**: `ip4`(P1 bug **未着手**: T048意味ゲート自動停止・3度目の暴走) / `0wf`(P2 INC-131監査修正)
+- **brv**: `dxf2step/dxf2step_p20_closed_loop_qc_inc132.md` + context-tree直下にINC-124/130/131個票
+- **過去トラ**: **T040〜T043の偽SUCCESS4連発 + T048暴走(D:毎分1GB消費)** — 品質ゲート系が最大の負債
+- **現在**: worker稼働(:8003)。`ip4`着手が最優先の再発防止
+
+### 7.4 OpenRadioss せん断加工 — 🟢 blanking成熟・stripper/bending初期
+- **bd**: `tq1`(**P0** blanking+crack TSTOP完走) / `b41` `uj2` `erw`(DOE自律)
+- **brv**: `cae/inc094_openradioss_continuous_te_deck.md`(T020デック構文教訓)
+- **過去トラ**: T020 / T037(tri-track: OpenRadioss=red_lavie担当)
+- **K10実績**(`k10_openradioss_te_state.json`): 総3069サイクル。**press_blanking n=2903 avg_reward 0.973（成熟）** / stripper・bending 各n=83 avg 0.15（未成熟=次の重点）
+- **現在**: run37 10hチューニング(Tstop 1.4ms目標)。red_lavie CPU99%=エンジン計算中(正常)
+
+### 7.5 Moldflow風 簡易解析 — 🔴 自動レポート停止中（当日インシデント）
+- **bd**: `3qu`(Phase7) / `kwr`(epic v002) / `3z1`(**P0** T019意味ゲート)
+- **brv**: `cae/inc089_lavie_fill_video_k10_pull.md`
+- **過去トラ/個票**: `quality_incident_report_20260705_moldflow_reports_stopped.md`（当日）
+- **現在**(`k10_tri_track_cae_status.json` 21:14時点): **openfoam_lavie = SKIP_OFFLINE fail_streak 43**（LAVIE計算サービスプレーン:8111/:5682停止、Tailscale ping自体は生存）。K10フォールバックタスクの0x80070002は修理済みだがLAVIE実機側は**人間による起動が必要**
+
+### 7.6 横断アラート
+- **fem_impact_thinkpad**: FAILED_NO_EVOLUTION streak 4 — P026(KPIデルタ必須)違反パターン。T048同系統の空回り前兆 → bd `e3dn`(意味ゲート自動停止を全trackへ拡張)
+- CETOLのbd未追跡は解消済み → bd `iy63`(L4/L10実装)
+
+## 8. ロードマップ
 
 - CAE北極星: プレス部品3D → Moldflow級充填 + CETOL 6σ級公差 + OpenRadioss曲げ/打ち抜き → **順送金型開発**（T019/P025）
 - メカRL: walk習得 → run/stairs_climb（`skill_requests.json`投入待ち・U5自動）→ 30体×5スキル
