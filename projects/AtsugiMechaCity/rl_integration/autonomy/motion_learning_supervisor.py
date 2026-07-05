@@ -126,6 +126,8 @@ def run_training(cycle_dir, cfg, resume_path):
             "--init-log-std", str(cfg.get("init_log_std", -1.2))]
     if cfg.get("ref_json"):
         args += ["--ref-json", cfg["ref_json"]]
+    if cfg.get("terrain") and cfg["terrain"] != "none":
+        args += ["--terrain", cfg["terrain"]]
     if resume_path:
         args += ["--resume", resume_path]
     print("TRAIN:", " ".join(args), flush=True)
@@ -133,12 +135,14 @@ def run_training(cycle_dir, cfg, resume_path):
                           encoding="utf-8", errors="replace").returncode
 
 
-def run_render_check(cycle_dir, ref_json=None):
+def run_render_check(cycle_dir, ref_json=None, terrain=None):
     """render_walk.py をこのサイクルのチェックポイントで実行し walk_check.json を得る。"""
     env = dict(os.environ, WALK_CKPT=os.path.join(cycle_dir, "latest.pt"),
                WALK_OUT=os.path.join(cycle_dir, "frames"), PYTHONIOENCODING="utf-8")
     if ref_json:
         env["WALK_REF_JSON"] = ref_json
+    if terrain and terrain != "none":
+        env["WALK_TERRAIN"] = terrain
     r = subprocess.run([PY, RENDERER], cwd=STAGE_A, capture_output=True, text=True,
                        encoding="utf-8", errors="replace", env=env)
     check_path = os.path.join(cycle_dir, "frames", "walk_check.json")
@@ -191,6 +195,7 @@ def main():
     ap.add_argument("--skill", default="walk")
     ap.add_argument("--ref-json", default=None, help="retargeted reference motion (Stage B)")
     ap.add_argument("--iterations", type=int, default=1500, help="initial cycle iterations")
+    ap.add_argument("--terrain", default="none", help="U6: stairs|slope_up|slope_down")
     ap.add_argument("--entropy", type=float, default=0.001)
     ap.add_argument("--init-log-std", type=float, default=-1.2)
     ap.add_argument("--max-cycles", type=int, default=None)
@@ -207,7 +212,8 @@ def main():
              "state": "running", "cycle": 0, "history": [], "playbook_version": "v1"}
     resume = pb["known_good_checkpoints"].get("best_walker")
     cfg = {"iterations": args.iterations, "entropy": args.entropy,
-           "init_log_std": args.init_log_std, "ref_json": args.ref_json}
+           "init_log_std": args.init_log_std, "ref_json": args.ref_json,
+           "terrain": args.terrain}
     best_travel, no_improve = -1e9, 0
 
     for cycle in range(1, max_cycles + 1):
@@ -225,7 +231,7 @@ def main():
 
         state["state"] = "checking"
         write_status(state)
-        check = run_render_check(cycle_dir, args.ref_json)
+        check = run_render_check(cycle_dir, args.ref_json, args.terrain)
         m = gather_metrics(cycle_dir, check)
         state["last_metrics"] = m
 
@@ -263,7 +269,7 @@ def main():
         cfg = {"iterations": int(act.get("iterations", 800)),
                "entropy": float(act.get("entropy", 0.001)),
                "init_log_std": float(act.get("init_log_std", -1.2)),
-               "ref_json": args.ref_json}
+               "ref_json": args.ref_json, "terrain": args.terrain}
         resume = (pb["known_good_checkpoints"].get("best_walker")
                   if act.get("resume") == "best_walker"
                   else os.path.join(cycle_dir, "latest.pt"))

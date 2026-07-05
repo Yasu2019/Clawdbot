@@ -58,6 +58,57 @@ OBS_DIM = 46          # B-1: +8 (4 roll pose-err + 4 roll vel)
 ACT_DIM = 16          # B-1: +4 roll DOFs
 
 
+# ---- U6: 地形生成(spec: skill_pipeline_implementation_spec.md) ----
+TERRAIN_STAIR_H = 0.10      # 段高(人間比0.17より低いカリキュラム開始点)
+TERRAIN_STAIR_D = 0.30      # 段奥行
+TERRAIN_SLOPE_DEG = 8.0
+TERRAIN_FLAT_RUNUP = 0.6    # 平地助走(m)。前方=-Y
+
+
+def terrain_xml(terrain):
+    """worldbodyに挿入する地形geom文字列。noneは空。"""
+    import math as _m
+    if terrain in (None, "", "none"):
+        return ""
+    g = []
+    if terrain == "stairs":
+        h, d = TERRAIN_STAIR_H, TERRAIN_STAIR_D
+        for i in range(10):
+            yc = -(TERRAIN_FLAT_RUNUP + d * i + d / 2)
+            zc = -0.92 + h * (i + 0.5)
+            g.append(f'<geom name="stair_{i}" type="box" size="0.8 {d/2:.3f} {h/2:.3f}" '
+                     f'pos="0 {yc:.3f} {zc:.3f}" friction="1.2 0.01 0.001"/>')
+        top_y = -(TERRAIN_FLAT_RUNUP + d * 10 + 1.0)
+        g.append(f'<geom name="stair_top" type="box" size="0.8 1.0 {h/2:.3f}" '
+                 f'pos="0 {top_y:.3f} {-0.92 + h*10 - h/2:.3f}" friction="1.2 0.01 0.001"/>')
+    elif terrain in ("slope_up", "slope_down"):
+        th = _m.radians(TERRAIN_SLOPE_DEG)
+        half = 1.5
+        sign = 1.0 if terrain == "slope_up" else -1.0
+        yc = -(TERRAIN_FLAT_RUNUP + half * _m.cos(th))
+        zc = -0.92 + sign * half * _m.sin(th)
+        g.append(f'<geom name="slope" type="box" size="0.8 {half} 0.05" '
+                 f'pos="0 {yc:.3f} {zc:.3f}" euler="{-sign * TERRAIN_SLOPE_DEG} 0 0" '
+                 f'friction="1.2 0.01 0.001"/>')
+    else:
+        raise ValueError(f"unknown terrain: {terrain}")
+    return "".join(g)
+
+
+def terrain_dz(y, terrain):
+    """前方位置y(tensor)における期待地面上昇量。転倒判定の基準補正に必須
+    (これを怠ると登った時点でfallen誤判定 — spec U6の必読事項)。"""
+    import math as _m
+    if terrain in (None, "", "none"):
+        return torch.zeros_like(y)
+    prog = (-y - TERRAIN_FLAT_RUNUP).clamp(min=0.0)
+    if terrain == "stairs":
+        steps = (prog / TERRAIN_STAIR_D).floor().clamp(0, 10)
+        return steps * TERRAIN_STAIR_H
+    sign = 1.0 if terrain == "slope_up" else -1.0
+    return sign * _m.tan(_m.radians(TERRAIN_SLOPE_DEG)) * prog.clamp(max=3.0)
+
+
 # Stage B: retargeted real-mocap reference (set via load_reference / --ref-json).
 # None のときは従来の解析sin歩容にフォールバック。
 REF_TABLE = None            # torch (P,12) on cuda, lazily converted
@@ -145,45 +196,44 @@ def quat_gravity(quat):
     return torch.stack([gx, gy, gz], dim=1)
 
 
+def build_model_xml(terrain="none"):
+    """V50 MJCF -> 学習/評価共通のシムモデルXML。
+    **唯一の正**: render_walk.py も必ずこれを使う。二重管理禁止
+    (INC-141 罠#8: レンダー側の複製XMLがB-1のroll注入を持たず、レンダーチェックが
+    静かに失敗→フォールバックのfell=true固定で習得判定が構造的に不可能になっていた)。
+    含む処理: actuator除去(罠#1) / 足を前方向き+かかと(罠#6) / 接地面を四角形化(v3) /
+    hip・ankle roll注入(B-1) / 地形(U6)。"""
+    xml = open(MJCF_SRC, encoding="utf-8").read()
+    xml = re.sub(r"<actuator>.*?</actuator>", "", xml, flags=re.S)
+    xml = xml.replace('fromto="0 0 0 0.15 0 -0.05"',
+                      'fromto="0 0.06 -0.05 0 -0.15 -0.05"')
+    xml = xml.replace('pos="0.15 0 -0.08"', 'pos="0 -0.15 -0.08"')
+    xml = re.sub(r'(<geom name="foot_(L|R)_contact"[^>]*/>)',
+                 r'\1<geom name="foot_\2_heel" type="sphere" size="0.04" '
+                 r'pos="0 0.06 -0.08" condim="6" friction="1.5 0.01 0.001"/>'
+                 r'<geom name="foot_\2_out" type="sphere" size="0.04" '
+                 r'pos="0.06 -0.045 -0.08" condim="6" friction="1.5 0.01 0.001"/>'
+                 r'<geom name="foot_\2_in" type="sphere" size="0.04" '
+                 r'pos="-0.06 -0.045 -0.08" condim="6" friction="1.5 0.01 0.001"/>',
+                 xml)
+    xml = re.sub(r'(<joint name="hip_(L|R)"[^/]*/>)',
+                 r'\1<joint name="hip_\2_roll" type="hinge" axis="0 1 0" pos="0 0 0" '
+                 r'limited="true" range="-20.0 20.0" damping="5" stiffness="0"/>', xml)
+    xml = re.sub(r'(<joint name="ankle_(L|R)"[^/]*/>)',
+                 r'\1<joint name="ankle_\2_roll" type="hinge" axis="0 1 0" pos="0 0 0" '
+                 r'limited="true" range="-15.0 15.0" damping="3" stiffness="0"/>', xml)
+    xml = xml.replace("</worldbody>", terrain_xml(terrain) + "</worldbody>")
+    return xml
+
+
 class Env:
-    def __init__(self, n_envs, out_dir):
+    def __init__(self, n_envs, out_dir, terrain="none"):
         import genesis as gs
         self.gs = gs
-        # strip <actuator> (see KP/KV comment); robot stands on the MJCF's own floor
-        # plane at z=-0.92 — do NOT add another plane (feet-buried-spawn bug).
-        xml = open(MJCF_SRC, encoding="utf-8").read()
-        xml = re.sub(r"<actuator>.*?</actuator>", "", xml, flags=re.S)
-        # trap #6 fix: exporter put toes on +X (sideways). Anatomical forward is -Y
-        # (Blender front camera sits at -Y; hips separate along X). Foot becomes a
-        # flat heel-to-toe capsule along Y plus toe AND heel contact spheres —
-        # dev5/dev6 showed the untrained robot always tips toward the side with no
-        # foot lever (heel), so a heel kills that fall bias.
-        xml = xml.replace('fromto="0 0 0 0.15 0 -0.05"',
-                          'fromto="0 0.06 -0.05 0 -0.15 -0.05"')
-        xml = xml.replace('pos="0.15 0 -0.08"', 'pos="0 -0.15 -0.08"')
-        # v3 (16ラン診断): 280kg/1.94mのロボットが幅3-4cmの線状接地で立っていた=
-        # 支持基底面が線。横±6cmの接地球を足し「四角形の面」にする(シム専用、
-        # V50の見た目には無影響)。
-        xml = re.sub(r'(<geom name="foot_(L|R)_contact"[^>]*/>)',
-                     r'\1<geom name="foot_\2_heel" type="sphere" size="0.04" '
-                     r'pos="0 0.06 -0.08" condim="6" friction="1.5 0.01 0.001"/>'
-                     r'<geom name="foot_\2_out" type="sphere" size="0.04" '
-                     r'pos="0.06 -0.045 -0.08" condim="6" friction="1.5 0.01 0.001"/>'
-                     r'<geom name="foot_\2_in" type="sphere" size="0.04" '
-                     r'pos="-0.06 -0.045 -0.08" condim="6" friction="1.5 0.01 0.001"/>',
-                     xml)
-        # B-1 (Tier1-lite): unlock lateral balance. The sagittal-only 12-DOF robot
-        # cannot control roll — every Stage A/B policy face-planted within seconds.
-        # Add hip/ankle roll hinges (axis Y is the forward axis => roll axis).
-        xml = re.sub(r'(<joint name="hip_(L|R)"[^/]*/>)',
-                     r'\1<joint name="hip_\2_roll" type="hinge" axis="0 1 0" pos="0 0 0" '
-                     r'limited="true" range="-20.0 20.0" damping="5" stiffness="0"/>', xml)
-        xml = re.sub(r'(<joint name="ankle_(L|R)"[^/]*/>)',
-                     r'\1<joint name="ankle_\2_roll" type="hinge" axis="0 1 0" pos="0 0 0" '
-                     r'limited="true" range="-15.0 15.0" damping="3" stiffness="0"/>', xml)
+        self.terrain = terrain
         noact = os.path.join(out_dir, "v50_mecha_noact.xml")
         with open(noact, "w", encoding="utf-8") as f:
-            f.write(xml)
+            f.write(build_model_xml(terrain))
         gs.init(backend=gs.gpu, logging_level="warning")
         self.scene = gs.Scene(show_viewer=False,
                               sim_options=gs.options.SimOptions(dt=DT_SIM, substeps=2))
@@ -302,7 +352,8 @@ class Env:
         reward = 0.8 * r_pose + 1.5 * r_vel + 1.0 * r_travel + 0.5 * r_up + 0.25 \
                  - 0.01 * pen_act - 0.02 * pen_ang
 
-        fallen = (pos[:, 2] < self.stand_z - 0.25) | (upright < 0.65)
+        expected_z = self.stand_z + terrain_dz(pos[:, FWD_AXIS], self.terrain)
+        fallen = (pos[:, 2] < expected_z - 0.25) | (upright < 0.65)
         timeout = self.steps >= EP_LEN
         done = fallen | timeout
         reward = torch.where(fallen, reward - 5.0, reward)
@@ -342,12 +393,15 @@ def main():
     ap.add_argument("--init-log-std", type=float, default=None)
     # Stage B: retargeted real-mocap reference JSON (bvh_retarget.py output)
     ap.add_argument("--ref-json", default=None)
+    # U6: 地形カリキュラム
+    ap.add_argument("--terrain", default="none",
+                    choices=["none", "stairs", "slope_up", "slope_down"])
     args = ap.parse_args()
     os.makedirs(args.out, exist_ok=True)
     if args.ref_json:
         load_reference(args.ref_json)
 
-    env = Env(args.n_envs, args.out)
+    env = Env(args.n_envs, args.out, args.terrain)
     ac = ActorCritic().cuda()
     if args.resume:
         ac.load_state_dict(torch.load(args.resume, weights_only=True))

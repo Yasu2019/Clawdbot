@@ -1,0 +1,23 @@
+{
+  "schema": "clawstack.u7_queue_daemon.v1",
+  "cycles": 1,
+  "units": {
+    "u1_interpreter.py": {
+      "rc": 0,
+      "last": "U1 done: 0 request(s) processed"
+    },
+    "u2_reference_finder.py": {
+      "rc": 0,
+      "last": "U2 done: 0 request(s) processed"
+    },
+    "u4_retarget_runner.py": {
+      "rc": 0,
+      "last": "U4 done: 0 request(s) processed"
+    },
+    "u5_train_dispatcher.py": {
+      "rc": 0,
+      "last": "U5 done"
+    }
+  },
+  "updated_at": "2026-07-05T18:20:52"
+}

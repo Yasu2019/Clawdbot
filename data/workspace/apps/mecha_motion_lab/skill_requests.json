@@ -75,6 +75,36 @@
         "note": "",
         "at": "2026-07-05T15:29:01"
       }
+    },
+    {
+      "id": "req_1783243012",
+      "text": "走る",
+      "status": "retargeted",
+      "created_at": "2026-07-05T18:16:52",
+      "notes": null,
+      "interpreted_at": "2026-07-05T18:19:34",
+      "reference_at": "2026-07-05T18:19:35",
+      "retargeted_at": "2026-07-05T18:19:37",
+      "interpretation": {
+        "skill_name": "run",
+        "taxonomy": "locomotion",
+        "required_tier": 1,
+        "needs_terrain": null,
+        "search_keywords": [
+          "run"
+        ],
+        "source": "fallback_dictionary"
+      },
+      "reference": {
+        "bvh": "C:\\v50_work\\datasets\\100style\\100STYLE\\Neutral\\Neutral_FR.bvh",
+        "registry_note": "neutral forward run",
+        "license": "CC-BY-4.0 100STYLE (decision on file)"
+      },
+      "ref_path": "C:\\v50_work\\refs\\run.json",
+      "ref_stats": {
+        "period_sec": 0.7667,
+        "clip_vx_mps": 1.2792
+      }
     }
   ]
 }

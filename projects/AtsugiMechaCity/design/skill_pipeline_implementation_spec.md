@@ -85,6 +85,6 @@ queued → interpreted → reference_found → license_pending →(人間承認)
 | U3 | ✅ PASS(approve→retarget_ready遷移/不正遷移409/reject。※Content-Length過剰readのハングバグを発見・修正済) | 本commit | 2026-07-05 |
 | U4 | ✅ PASS(walk/stairs_climb両方 retargeted、period 1.3s=範囲内) | 本commit | 2026-07-05 |
 | U5 | ✅ PASS(dry-run正引数/GPU占有時スキップ実動作/needs_terrainはU6まで保留を確認) | 本commit | 2026-07-05 |
-| U6 | ⬜ | | |
-| U7 | ⬜ | | |
-| U8 | ⬜ | | |
+| U6 | ✅ PASS(--terrain stairs実行/階段11geom生成/レンダー目視で階段確認/物理発散なし。※罠#8=レンダーXML複製の乖離を発見しbuild_model_xmlに統一) | 本commit | 2026-07-05 |
+| U7 | ✅ PASS(E2E:「走る」がqueued→retargetedまで1パス全自動、GPU占有時dispatch正スキップ。※LLM誤分類対策で辞書優先化) | 本commit | 2026-07-05 |
+| U8 | ✅ 登録済(schtasksは権限拒否→Startup VBS方式: mecha_motion_lab_autostart.vbs。API+U7デーモン稼働中) | 本commit | 2026-07-05 |

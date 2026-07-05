@@ -20,21 +20,12 @@ OUT = os.environ.get("WALK_OUT", r"C:\v50_work\walk_frames")
 STEPS = int(os.environ.get("WALK_STEPS", "400"))
 if os.environ.get("WALK_REF_JSON"):        # Stage B: 実モーション参照で評価
     T.load_reference(os.environ["WALK_REF_JSON"])
+TERRAIN = os.environ.get("WALK_TERRAIN", "none")   # U6: 学習時と同じ地形で評価
 os.makedirs(OUT, exist_ok=True)
 
-xml = open(T.MJCF_SRC, encoding="utf-8").read()
-xml = re.sub(r"<actuator>.*?</actuator>", "", xml, flags=re.S)
-xml = xml.replace('fromto="0 0 0 0.15 0 -0.05"', 'fromto="0 0.06 -0.05 0 -0.15 -0.05"')
-xml = xml.replace('pos="0.15 0 -0.08"', 'pos="0 -0.15 -0.08"')
-xml = re.sub(r'(<geom name="foot_(L|R)_contact"[^>]*/>)',
-             r'\1<geom name="foot_\2_heel" type="sphere" size="0.04" pos="0 0.06 -0.08" '
-             r'condim="6" friction="1.5 0.01 0.001"/>'
-             r'<geom name="foot_\2_out" type="sphere" size="0.04" pos="0.06 -0.045 -0.08" '
-             r'condim="6" friction="1.5 0.01 0.001"/>'
-             r'<geom name="foot_\2_in" type="sphere" size="0.04" pos="-0.06 -0.045 -0.08" '
-             r'condim="6" friction="1.5 0.01 0.001"/>', xml)
+# 罠#8対策: モデルXMLはトレーナの build_model_xml が唯一の正(複製XML禁止)
 noact = os.path.join(OUT, "model.xml")
-open(noact, "w", encoding="utf-8").write(xml)
+open(noact, "w", encoding="utf-8").write(T.build_model_xml(TERRAIN))
 
 gs.init(backend=gs.gpu, logging_level="warning")
 sc = gs.Scene(show_viewer=False, sim_options=gs.options.SimOptions(dt=T.DT_SIM, substeps=2))
@@ -91,7 +82,8 @@ with torch.no_grad():
         prev_pos = qp[:, :3].clone(); prev_quat = qp[:, 3:7].clone()
         grav = T.quat_gravity(qp[:, 3:7])
         min_upright = min(min_upright, float((-grav[0, 2]).clamp(0, 1)))
-        min_z = min(min_z, float(qp[0, 2]))
+        dz = float(T.terrain_dz(qp[:, T.FWD_AXIS], TERRAIN)[0])
+        min_z = min(min_z, float(qp[0, 2]) - dz)   # 地形期待高さ差し引きの実効高
         o = obs()
         if step % 24 == 0 or step == STEPS - 1:
             y = qp[0, 1].item()
@@ -102,7 +94,7 @@ with torch.no_grad():
 
 travel = float(T.FWD_SIGN * (qp[0, T.FWD_AXIS] - qpos0[0, T.FWD_AXIS]))
 fell = (min_z < stand_z - 0.20) or (min_upright < 0.5)
-check = {"schema": "clawstack.walk_check.v1", "ckpt": CKPT,
+check = {"schema": "clawstack.walk_check.v1", "ckpt": CKPT, "terrain": TERRAIN,
          "final_travel": round(travel, 3), "fell": fell,
          "min_z": round(min_z, 3), "min_upright": round(min_upright, 3),
          "steps": STEPS, "seconds": STEPS * T.DT_SIM * T.DECIMATION}

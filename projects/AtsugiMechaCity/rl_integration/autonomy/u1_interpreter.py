@@ -84,13 +84,14 @@ def fallback_interpret(text):
 
 
 def interpret(text):
+    # 既知ケースは辞書を最優先(精度が確実)。LLMは辞書に無い長尾ケースのみ。
+    # 実測根拠: qwen3:8bが「走る」をwalkと誤分類(2026-07-05)。
+    d = fallback_interpret(text)
+    if d is not None:
+        return d
     try:
         return llm_interpret(text)
-    except Exception as e:
-        d = fallback_interpret(text)
-        if d is not None:
-            d["llm_error"] = f"{type(e).__name__}"
-            return d
+    except Exception:
         return None
 
 
