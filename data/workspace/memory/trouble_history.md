@@ -1039,3 +1039,63 @@ G1 py_compile → G2 `fleet_satellite_setup_auto.ps1` → G3 K10 probe → G4 �
 **追記(2026-07-04) 罠#4 — 最重要:** **`get_vel()`/`get_ang()`(および`get_links_vel`)がこのMJCF関節体で常に0を返す**。run1〜run3(計3ラン・約4時間)は速度報酬が常時0・観測の速度が全盲のまま学習していた(足踏み収束の真の根本原因)。発見手法: ロールアウトプローブでqposの有限差分(実測±0.7m/s)とget_vel(0.000)の不一致を直接照合。**対処: 速度は`get_qpos()`の有限差分で自前計算**(线速度=Δpos/dt、角速度=連続quat差分)。**教訓: 物理量のゼロ張り付きは「動いていない」ではなく「計器が死んでいる」を先に疑い、独立した計測(有限差分)と突き合わせる**。run4(2026-07-04 08:11起動)で速度信号の復活を確認済み(未学習時vx≈-0.4の実値)。
 また run2 の途中診断として: 目標速度0.8m/sは11°歩容の理論最大(~0.24m/s)を超え**運動学的に到達不能**だった(罠#5: 参照モーションの到達可能性を先に検算する)。run3以降は目標0.25m/s+股17°+周期1.2sのカリキュラム式。
 
+---
+
+## [T048] 2026-07-01〜07-05 Becky/Gmail添付ファイル消失 + Postgres WAL繰り返し破損 + email_db_lock無限スタック（INC-142）
+
+**Date:** 2026-07-01〜2026-07-05 JST
+
+**発端:** ユーザー報告「今日の朝までK10にBecky等180GB相当のデータがあったが消えている」。セッション開始前の削除であり、**直接の原因はコード調査からは特定できず**（push型`becky_b64_receiver.py`・pull型`k10_becky_puller.py`いずれも削除ロジックなし）。プロジェクトにBecky/Gmail取り込みパイプラインが**複数系統並行稼働**していたことが判明:
+1. Push型: Vivobook `becky_b64_uploader.py` → K10 `becky_b64_receiver.py`(旧D:\tmp\becky_attachments、現在はF:外付けHDD)
+2. Pull型: K10 `k10_becky_puller.py` ← Vivobook `vivobook_becky_fileserver.py`（`D:\tmp\becky_attachments\{mailbox}.mb\...`に生ミラー保存、**デコード/取込スクリプトが存在せず未処理のまま23,027ファイル滞留**）
+3. Gmail一括: `gmail_imap_downloader.py`（デフォルト`--before 2013-06-01`のため2013年6月以降13年分が未取得のまま放置されていた）
+4. Gmail継続RAG索引: `continuous_email_ingest_daemon.py`（Paperlessとは別系統、`email_search.db`用）
+
+**誘発した二次障害（本セッション中に発生・私の操作が引き金）:**
+- Eドライブ(Docker/WSL vhdx)が容量ゼロ→Becky取込全件`No space left on device`失敗。`docker image prune`後もWindows側vhdxが自動縮小せず、diskpart compactが必要と判断
+- コンパクトのためDocker Desktopを`Stop-Process -Force`で強制終了 → **コンテナ内PostgresがSIGKILL相当を受けWAL破損**（`PANIC: could not locate a valid checkpoint record`、既知[T039]と同型）
+- `pg_resetwal -f`で復旧するも、**トランザクションID巻き戻りにより複数テーブルで`uncommitted xmin needs to be frozen`/TOAST欠損が多発**（django_celery_results_taskresult, documents_tag, documents_document）。`pg_surgery`拡張の`heap_force_freeze`/`heap_force_kill`で該当タプルのみ安全に修復（該当4行のみ実損失）
+- 上記とは独立に、Postgresが**自動再起動9,068回**のクラッシュループに突入していたことが判明（`docker inspect --format '{{.RestartCount}}'`で検出）。手動stop→resetwal→startでカウンタリセットし収束
+- `continuous_email_ingest_daemon.py`のGmail増分索引が**2026-06-20から2週間"error"状態でスタック**。真因は`email_db_lock.py`のロックファイル(`email_search_ops.lock`)が28バイトのNULLバイトに破損し、`parse_lock_pid`がpidを解析できず`_clear_stale_lock`が何もせず早期returnする設計バグ（破損ロックは永久に自己解除されない）
+- D:ドライブが空き0GBまで枯渇（`data/workspace`80.5GB, PLATEAU 44GB等）。Bashツールの出力キャプチャ自体が失敗する事態に。**未解決、要フォローアップ**
+
+**対処済み:**
+- `heap_force_freeze`/`heap_force_kill`でPostgres破損4行を除去・全70テーブルREINDEX完了
+- `chown -R 1000:1000`でPaperlessパーミッション修復（T039既知手順）
+- `email_db_lock.py`に**ロック年齢ベースの孤立ロック検出**を追加（pid解析不能でも30分以上古ければ自動削除）→ コード修正済み・動作確認済み
+- Becky添付を外付けHDD(F:)へ再送信・Paperless consumeへ展開（`becky_ingest_attachments.py --all`, デコード468件成功）
+- Gmail(2013年6月以前)を`data/workspace/email_rag_sender_filters.json`のblacklist_patternsで事前フィルタ（1,021通・添付67件を隔離、削除はせず`data/workspace/gmail_blacklist_excluded/`へ退避）
+- n8nに`Becky/Gmail DB Ingest Report (30min)`ワークフロー新設（documents_tagのサブディレクトリ由来タグで分類・Telegram通知）
+
+**教訓:**
+1. **同一データソースに対して複数の独立パイプラインが無documentationのまま並存すると、削除・移行判断を誤る**（本セッションでも「F:に移行済みのはず」と誤って22GBのpull型データを削除しかけた。ユーザーの「本当に確認したか」という指摘で回避）。**削除前は必ず実データ突合（ファイル形式・処理スクリプトの有無）で検証すること**
+2. **Docker Desktop/WSLを強制終了する前に、必ずコンテナ側を`docker stop`等でgracefulに止める**（vhdxコンパクト等ホスト側操作が必要な場合でも同様）
+3. **ロック/状態ファイルの自己修復ロジックは「解析失敗」と「解析成功だが無効」を区別し、前者も時間ベースでタイムアウトさせること**（さもないと壊れたロックは無限に居座る）
+4. **`docker inspect --format '{{.RestartCount}}'`は無停止クラッシュループの検出に有効**（ログのtailだけでは気づきにくい）
+
+**記録:** INC-142, bd `Clawdbot_Docker_20260125`（本エントリ作成時点でbd issue番号は未採番、次回セッションで補完）
+
+
+---
+
+## [T048] DXF2STEP暴走ループ(3度目)がD:を毎分1GB消費 — 全件失敗のまま巨大FMEA記録を無限生成 -- INC-142
+
+**Date:** 2026-07-05 JST
+
+**症状:** D:空きが126G→51Gへ約1時間で減少(毎分約1GB)。放置なら約50分で枯渇=T039(PostgreSQL WAL破損)の再現条件。
+
+**犯人(実測特定):**
+- `data/workspace/universal_growth.db` = **37.8GB**(膨張中)
+- `data/workspace/thinkpad_dxf2step_quality_analysis.jsonl` = **13.8GB**(膨張中)
+- 書き込み元: `k10_thinkpad_dxf2step_loop.py --daemon`(PID 16272) + `k10_tri_track_cae_orchestrator.py --continuous`(PID 30316)
+
+**根本原因:** ThinkPadのDXF2STEP試行が**全件FAILED(`all_layers_failed`)のまま回り続け**、失敗のたびにFMEA/FTA/なぜなぜ/fishboneの巨大レコードをjsonlとgrowth.dbへ書き込み。「失敗→分析→同じ失敗」の無意味ループ=**[T019]意味ゲート違反、[T041]-[T043]系統の3度目の再発**。
+
+**対処(2026-07-05 ユーザー承認のうえ実施):**
+1. 両プロセスをStop-Process(全件失敗中のため損失なし)→ growth.db膨張の停止を実測確認(45秒で増分0MB)
+2. jsonl 13.8GBを `F:\runaway_quarantine_20260705\` へ隔離(D:空き47Gへ回復)
+3. growth.db(37.8GB)は後日診断: 中身の異常レコード確認→クリーニング→VACUUM
+
+**恒久対策(未実装・bd起票):** 両スクリプトに**意味ゲート**を実装 — 「連続N回(例:10回)同一failure_classで失敗したら自動停止+Telegram報告」。失敗の分析記録は要約1件のみとし、同一根本原因の重複FMEA生成を禁止する。**教訓: 品質分析の自動生成は、失敗が止まらない限り、それ自体がディスク攻撃になる。**
+
+**関連:** [T019][T039][T041][T042][T043]、INC-142
