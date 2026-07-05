@@ -82,9 +82,9 @@ queued → interpreted → reference_found → license_pending →(人間承認)
 | U0(受付) | ✅ 実装済 | c1435251c | 2026-07-04 |
 | U1 | ✅ 合格判定PASS(「階段を登る」→stairs/tier1。LLMタイムアウト時のフォールバック辞書経路も実証) | 本commit | 2026-07-05 |
 | U2 | ✅ 合格判定PASS(walk→Neutral_FW.bvh実パス取得、zip自動展開、stairs_climbも同時解決) | 本commit | 2026-07-05 |
-| U3 | ⬜ | | |
-| U4 | ⬜ | | |
-| U5 | ⬜ | | |
+| U3 | ✅ PASS(approve→retarget_ready遷移/不正遷移409/reject。※Content-Length過剰readのハングバグを発見・修正済) | 本commit | 2026-07-05 |
+| U4 | ✅ PASS(walk/stairs_climb両方 retargeted、period 1.3s=範囲内) | 本commit | 2026-07-05 |
+| U5 | ✅ PASS(dry-run正引数/GPU占有時スキップ実動作/needs_terrainはU6まで保留を確認) | 本commit | 2026-07-05 |
 | U6 | ⬜ | | |
 | U7 | ⬜ | | |
 | U8 | ⬜ | | |

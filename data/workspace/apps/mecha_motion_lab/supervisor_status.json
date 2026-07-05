@@ -1,10 +1,10 @@
 {
   "schema": "clawstack.motion_learning_supervisor.v1",
-  "skill": "walk_tier1",
+  "skill": "walk_tier1c",
   "state": "training",
   "cycle": 1,
   "history": [],
   "playbook_version": "v1",
-  "current_dir": "C:\\v50_work\\autonomy\\walk_tier1_cycle01",
-  "updated_at": "2026-07-04T22:26:42"
+  "current_dir": "C:\\v50_work\\autonomy\\walk_tier1c_cycle01",
+  "updated_at": "2026-07-05T13:06:20"
 }

@@ -72,14 +72,24 @@ document.getElementById('reqForm').addEventListener('submit', async (e)=>{
     msg.textContent = '受付APIに接続できません(skill_request_api.py 127.0.0.1:8118 が未起動の可能性)';
   }
 });
+async function gate(id, act){
+  try{
+    await fetch(`${API}/requests/${id}/${act}`, {method:'POST', headers:{'Content-Type':'application/json'}, body:'{"by":"dashboard"}'});
+    loadRequests();
+  }catch(e){ document.getElementById('reqMsg').textContent = 'ゲート操作失敗(API未起動?)'; }
+}
 async function loadRequests(){
   try{
     const r = await fetch(API+'/requests?t='+Date.now());
     const d = await r.json();
     const tb = document.getElementById('reqList');
     if(d.requests && d.requests.length){
-      tb.innerHTML = d.requests.slice().reverse().map(q=>
-        `<tr><td>${q.text}</td><td>${q.status}</td><td class="muted">${q.created_at}</td></tr>`).join('');
+      tb.innerHTML = d.requests.slice().reverse().map(q=>{
+        const gate = q.status==='license_pending'
+          ? ` <button onclick="gate('${q.id}','approve')" style="padding:2px 10px;border-radius:6px;border:none;background:#34d399;color:#04121f;cursor:pointer">承認</button>
+              <button onclick="gate('${q.id}','reject')" style="padding:2px 10px;border-radius:6px;border:none;background:#f87171;color:#04121f;cursor:pointer">却下</button>` : '';
+        return `<tr><td>${q.text}</td><td>${q.status}${gate}</td><td class="muted">${q.created_at}</td></tr>`;
+      }).join('');
     }
   }catch(e){ /* API未起動時は静かに */ }
 }

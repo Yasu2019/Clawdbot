@@ -47,6 +47,38 @@ class H(BaseHTTPRequestHandler):
             self.wfile.write(b'{"error":"not found"}')
 
     def do_POST(self):
+        # U3: 人間ライセンスゲート/検収 — /requests/<id>/approve | /reject
+        import re as _re
+        m = _re.match(r"^/requests/([^/]+)/(approve|reject)$", self.path)
+        if m:
+            rid, act = m.group(1), m.group(2)
+            # ボディ無しPOST対応: Content-Lengthちょうどだけ読む(過剰readはブロックする)
+            n = int(self.headers.get("Content-Length") or 0)
+            try:
+                body = json.loads(self.rfile.read(n)) if n else {}
+            except Exception:
+                body = {}
+            d = load()
+            req = next((r for r in d["requests"] if r["id"] == rid), None)
+            if req is None:
+                self._hdr(404); self.wfile.write(b'{"error":"unknown id"}'); return
+            if act == "approve":
+                if req.get("status") != "license_pending":
+                    self._hdr(409)
+                    self.wfile.write(json.dumps({"error": f"approve requires license_pending, got {req.get('status')}"}).encode())
+                    return
+                req["status"] = "retarget_ready"
+            else:
+                if req.get("status") in ("training", "learned"):
+                    self._hdr(409); self.wfile.write(b'{"error":"cannot reject active/finished"}'); return
+                req["status"] = "rejected"
+            req["gate_decision"] = {"action": act, "by": str(body.get("by", "human")),
+                                    "note": str(body.get("note", ""))[:200],
+                                    "at": time.strftime("%Y-%m-%dT%H:%M:%S")}
+            save(d)
+            self._hdr()
+            self.wfile.write(json.dumps({"ok": True, "request": req}, ensure_ascii=False).encode())
+            return
         if not self.path.startswith("/requests"):
             self._hdr(404); self.wfile.write(b'{"error":"not found"}'); return
         try:
