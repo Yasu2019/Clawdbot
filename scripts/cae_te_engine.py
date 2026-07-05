@@ -210,6 +210,7 @@ EXPERIMENTS = [
             "4mmx4mm ASSY blanking: clearance={clearance_pct}%t, speed={punch_speed_mms}mm/s, mu={friction_mu}. "
             "Status={status}. Punch/Die/Stripper/Material TYPE25."
         ),
+        "meaning_gate": {"min_t_final_ms": 18.13, "require_normal_tstop": True},
     },
     # ── OpenRadioss: Deep Drawing ─────────────────────────────────────────
     {
@@ -1377,8 +1378,10 @@ def _run_openradioss_assy_deck(
         OPENRADIOSS_IMAGE,
         "bash",
         "-c",
-        f"starter_linux64_gf -i {input_file} -nthread {_openradioss_nthread()} 2>&1 && "
-        f"engine_linux64_gf -i {engine_file} -nthread {_openradioss_nthread()} 2>&1",
+        # T050: subprocess timeoutはdocker runクライアントしか殺せずコンテナが孤児化する。
+        # コンテナ内timeoutで自己終了させ--rmで確実に消す(red_lavie 4コンテナ積み上げ事故)
+        f"timeout -k 30 {int(timeout)} starter_linux64_gf -i {input_file} -nthread {_openradioss_nthread()} 2>&1 && "
+        f"timeout -k 30 {int(timeout)} engine_linux64_gf -i {engine_file} -nthread {_openradioss_nthread()} 2>&1",
     ]
 
     start = time.time()
@@ -1540,10 +1543,12 @@ def _run_openradioss(exp: dict, params: dict, dry_run: bool, timeout: int, trial
         except Exception as e:
             return {"status": "ERROR", "log": f"Copy springback deck failed: {e}", "duration_sec": 0}
 
+        # T050: コンテナ内timeoutで自己終了(孤児コンテナ積み上げ防止)
         cmd_str = (
-            f"starter_linux64_gf -i {starter_file} -nthread {_openradioss_nthread()} 2>&1 && "
+            f"timeout -k 30 {int(timeout)} starter_linux64_gf -i {starter_file} -nthread {_openradioss_nthread()} 2>&1 && "
             + " && ".join(
-                f"engine_linux64_gf -i {eng} -nthread {_openradioss_nthread()} 2>&1" for eng in engine_files
+                f"timeout -k 30 {int(timeout)} engine_linux64_gf -i {eng} -nthread {_openradioss_nthread()} 2>&1"
+                for eng in engine_files
             )
         )
         cmd = [
@@ -1735,8 +1740,9 @@ def _run_openradioss(exp: dict, params: dict, dry_run: bool, timeout: int, trial
         "-w", "/workspace",
         OPENRADIOSS_IMAGE,
         "bash", "-c",
-        f"starter_linux64_gf -i {input_file} -nthread {_openradioss_nthread()} 2>&1 && "
-        f"engine_linux64_gf -i {engine_file} -nthread {_openradioss_nthread()} 2>&1",
+        # T050: コンテナ内timeoutで自己終了(孤児コンテナ積み上げ防止)
+        f"timeout -k 30 {int(timeout)} starter_linux64_gf -i {input_file} -nthread {_openradioss_nthread()} 2>&1 && "
+        f"timeout -k 30 {int(timeout)} engine_linux64_gf -i {engine_file} -nthread {_openradioss_nthread()} 2>&1",
     ]
 
     start = time.time()
@@ -1858,14 +1864,17 @@ def _assess_openradioss(run_result: dict, exp: dict) -> dict:
     else:
         verdict = "UNKNOWN"
 
-    # Real Log Parsing for Physics
-    # OpenRadioss outputs number of failed elements (ELIMINATED / FAIL)
-    eliminated_count = log.count("ELIMINATED") + log.count("FAIL")
+    run_metrics = cae_gates.parse_openradioss_run_metrics(log)
+    total_deleted = int(run_metrics.get("total_deleted_elements") or 0)
+    mesh_events = int(run_metrics.get("failure_start_count") or 0) + int(
+        run_metrics.get("deleted_element_events") or 0
+    )
+    eliminated_count = total_deleted if total_deleted > 0 else mesh_events
     time_step_drops = log.count("WARNING: TIME STEP")
-    
-    defects = {}
 
-    if category in ("press_blanking", "press_blanking_stripper"):
+    defects = {"run_metrics": run_metrics}
+
+    if category in ("press_blanking", "press_blanking_stripper", "press_blanking_assy"):
         clearance = actual_params.get("clearance_pct", 8.0)
         speed = actual_params.get("punch_speed_mms", 5000)
         mu = actual_params.get("friction_mu", 0.08)
@@ -1879,8 +1888,16 @@ def _assess_openradioss(run_result: dict, exp: dict) -> dict:
         elif clearance >= 15.0:
             crack_risk = "HIGH (過大クリアランスによる遅延引張破断)"
             verdict = "FAILED"
-        elif eliminated_count > 2: # 実際のソルバーで要素が破断した場合
+        elif eliminated_count > cae_gates.OPENRADIOSS_ASSY_MAX_DELETED_ELEMENTS:
+            crack_risk = "HIGH (mass element deletion / mesh instability)"
+            verdict = "FAILED"
+        elif eliminated_count > 3:
             crack_risk = "MEDIUM (要素破断開始)"
+            if category != "press_blanking_assy":
+                verdict = "FAILED"
+            elif eliminated_count > 500:
+                crack_risk = "MEDIUM (ASSY element deletion elevated)"
+                verdict = "FAILED"
         else:
             crack_risk = "LOW (正常なせん断破断移行)"
 
@@ -1913,6 +1930,7 @@ def _assess_openradioss(run_result: dict, exp: dict) -> dict:
         defects["shear_zone_pct"] = f"{shear_pct:.1f}%"
         defects["fracture_zone_pct"] = f"{fracture_pct:.1f}%"
         defects["crack_risk"] = crack_risk
+        defects["kpi_source"] = "parametric_estimate"
 
     elif category == "press_bending":
         r_t = actual_params.get("bend_radius_t_ratio", 1.0)
@@ -2018,11 +2036,25 @@ def _assess_openradioss(run_result: dict, exp: dict) -> dict:
         else:
             verdict = "SUCCESS"
 
-    # Save physical details in output metrics
     if eliminated_count > 0:
-        defects["solver_eliminated_elements"] = eliminated_count
+        if total_deleted > 0:
+            defects["solver_eliminated_elements"] = total_deleted
+        else:
+            defects["solver_mesh_failure_events"] = eliminated_count
     if time_step_drops > 0:
         defects["solver_time_step_warnings"] = time_step_drops
+
+    verdict, defects, meaning_reasons = cae_gates.apply_openradioss_meaning_gate(
+        verdict=verdict,
+        category=category,
+        exp=exp,
+        log_text=log,
+        failure_tags=run_result.get("failure_tags", []),
+        defects=defects,
+        kpi_values=kpi_values if isinstance(kpi_values, dict) else None,
+    )
+    if meaning_reasons:
+        defects["meaning_gate_reasons"] = meaning_reasons
 
     expected_kpis = exp.get("expected_kpis")
     if isinstance(expected_kpis, dict) and isinstance(kpi_values, dict) and kpi_values:
@@ -3241,6 +3273,9 @@ def _assess_openfoam(run_result: dict, exp: dict) -> dict:
                 and fill_pct < 50.0
             ):
                 verdict = "FAILED"
+            elif category in ("resin_fill_vof", "resin_fill_cad", "resin_fill_doe") and verdict == "SUCCESS":
+                if not defects_extra.get("fill_complete"):
+                    verdict = "FAILED_SHORT_SHOT"
             elif category == "resin_fill_doe" and fill_pct < 25.0:
                 verdict = "FAILED"
             elif category in ("resin_fill_cad", "resin_fill_doe"):
