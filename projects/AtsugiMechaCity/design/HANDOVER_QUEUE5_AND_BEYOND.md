@@ -69,6 +69,19 @@ bd issue: `Clawdbot_Docker_20260125-6li`(キュー⑤) / 前提知識ゼロで�
 
 **B-2(後日)**: マニフェスト駆動カノニカルエクスポータ(29DOF+ロックマスク、肩3DOF) — canonical_skeleton_spec.md v1.0準拠。
 
+## 4.6 API保全モード移行時点の状態(2026-07-05 — 復帰時はここから)
+
+**状況**: ユーザーのAPIリミット目前(Fable5は7/7まで使用不可)のため、チャット報告を停止し無音自律運転へ移行。**学習・キュー処理・通知はAPI非依存で継続中**。
+
+**稼働中(放置OK)**: walk_tier1c supervisor(サイクル3=最終防衛線、fresh 3000it)/ u7キューデーモン(5分巡回)/ 受付API(8118)/ keep_awake / Startup VBS自動起動。結果はTelegramへ自動通知。
+
+**復帰時の最初の確認**:
+1. `data/workspace/apps/mecha_motion_lab/supervisor_status.json` — learned なら可視化(qpos→ARMFIX焼き込み)へ。escalated なら↓の処方から人間承認を取って適用
+2. **エスカレーション時の処方候補(優先順・事前整理済み)**: (a) 質量再配分=胴40%(112kg)のトップヘビーを脚側へ(シム専用・`v50_mecha.xml`のinertial) (b) 脚PDゲイン2〜3倍(KP/KV) (c) 参照モーションの脚長スケール補正(bvh_retarget側)
+3. `skill_requests.json` — walk/run/stairs_climbが投入待ち。walkが習得でき次第、U5が自動で次を流す
+4. 全実装の仕様と進捗: `design/skill_pipeline_implementation_spec.md`(U0〜U8全PASS済み)
+5. 罠#8(レンダーXML複製)が2026-07-05に根治済み — tier1c cycle2以降の判定のみが「本物」。それ以前の全サイクルのfell=trueはフォールバック強制値なので比較に使わないこと
+
 ## 4.5 API燃費の運用ルール(2026-07-03 ユーザー承認・全AI遵守)
 
 1. **Tier1を完全に終えてからTier2へ**。並行着手禁止(デバッグの掛け算でAPI燃費悪化)。
