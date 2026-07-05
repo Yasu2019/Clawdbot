@@ -5,6 +5,7 @@
 
 ## 2026-07-05
 
+- [Fable5+ユーザー] **red_lavie復旧完了**(bd `cttj` CLOSED): 孤児コンテナ4本停止+電源プランprocthrottlemax=100でクロック597→1792MHz+ワーカー再起動(echo 0.8秒)。T050修正版cae_te_engine.pyをSHA256検証付き分割転送でred_lavieへ配布(バックアップ.bak_t050)
 - [Fable5] **CETOL/OpenRadioss検証**: CETOL tolerance-stack API(:8004)を既知解で定量検証PASS(WC/RSS/MC全一致)。OpenRadiossはred_lavieが7/1 TIMEOUT以降CPU100%固着で4日停止と判明(bd `cttj`・要人間介入)、消失していたローカルコンテナをキャッシュから再作成し代替実行経路を復旧
 - [Fable5] **T049修正**: fem_impact@thinkpadサイレント即死の根本原因(`set -euo pipefail`下の`ls|wc -l`代入でexit2伝播)を特定・修正。QC実測値のKPI化・入力欠如の顕在化(exit7)・意味ゲート自動停止(全track, 連続8失敗でTelegram通知)・爆発デッキ無効化・practicalデッキ2本デプロイ。オーケストレータ再起動済(bd `e3dn`)
 - [Fable5] 5アプリ進捗を4ソース(Beads/ByteRover/Obsidian/過去トラDB)横断照合し `HANDOVER_MASTER_INDEX.md` §7に反映。CETOL bd未追跡ギャップ解消(bd `iy63`)、fem_impact空回り前兆を検知しbd `e3dn`起票、Moldflow自動レポート停止(LAVIE要人間起動)を明記
