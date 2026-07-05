@@ -80,7 +80,7 @@ queued → interpreted → reference_found → license_pending →(人間承認)
 | ユニット | 状態 | commit | 日付 |
 |---|---|---|---|
 | U0(受付) | ✅ 実装済 | c1435251c | 2026-07-04 |
-| U1 | ⬜ | | |
+| U1 | ✅ 合格判定PASS(「階段を登る」→stairs/tier1。LLMタイムアウト時のフォールバック辞書経路も実証) | 本commit | 2026-07-05 |
 | U2 | ⬜ | | |
 | U3 | ⬜ | | |
 | U4 | ⬜ | | |

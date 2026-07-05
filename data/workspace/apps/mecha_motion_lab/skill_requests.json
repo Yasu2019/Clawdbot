@@ -1,1 +1,24 @@
-{"schema": "clawstack.skill_requests.v1", "requests": []}
+{
+  "schema": "clawstack.skill_requests.v1",
+  "requests": [
+    {
+      "id": "req_1783231231",
+      "text": "階段を登る",
+      "status": "interpreted",
+      "created_at": "2026-07-05T15:00:31",
+      "notes": null,
+      "interpretation": {
+        "skill_name": "stairs_climb",
+        "taxonomy": "locomotion",
+        "required_tier": 1,
+        "needs_terrain": "stairs",
+        "search_keywords": [
+          "stairs climb"
+        ],
+        "source": "fallback_dictionary",
+        "llm_error": "TimeoutError"
+      },
+      "interpreted_at": "2026-07-05T15:01:53"
+    }
+  ]
+}
