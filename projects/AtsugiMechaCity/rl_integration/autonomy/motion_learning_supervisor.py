@@ -190,6 +190,9 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--skill", default="walk")
     ap.add_argument("--ref-json", default=None, help="retargeted reference motion (Stage B)")
+    ap.add_argument("--iterations", type=int, default=1500, help="initial cycle iterations")
+    ap.add_argument("--entropy", type=float, default=0.001)
+    ap.add_argument("--init-log-std", type=float, default=-1.2)
     ap.add_argument("--max-cycles", type=int, default=None)
     args = ap.parse_args()
 
@@ -203,8 +206,8 @@ def main():
     state = {"schema": "clawstack.motion_learning_supervisor.v1", "skill": args.skill,
              "state": "running", "cycle": 0, "history": [], "playbook_version": "v1"}
     resume = pb["known_good_checkpoints"].get("best_walker")
-    cfg = {"iterations": 1500, "entropy": 0.001, "init_log_std": -1.2,
-           "ref_json": args.ref_json}
+    cfg = {"iterations": args.iterations, "entropy": args.entropy,
+           "init_log_std": args.init_log_std, "ref_json": args.ref_json}
     best_travel, no_improve = -1e9, 0
 
     for cycle in range(1, max_cycles + 1):

@@ -28,6 +28,10 @@ xml = xml.replace('fromto="0 0 0 0.15 0 -0.05"', 'fromto="0 0.06 -0.05 0 -0.15 -
 xml = xml.replace('pos="0.15 0 -0.08"', 'pos="0 -0.15 -0.08"')
 xml = re.sub(r'(<geom name="foot_(L|R)_contact"[^>]*/>)',
              r'\1<geom name="foot_\2_heel" type="sphere" size="0.04" pos="0 0.06 -0.08" '
+             r'condim="6" friction="1.5 0.01 0.001"/>'
+             r'<geom name="foot_\2_out" type="sphere" size="0.04" pos="0.06 -0.045 -0.08" '
+             r'condim="6" friction="1.5 0.01 0.001"/>'
+             r'<geom name="foot_\2_in" type="sphere" size="0.04" pos="-0.06 -0.045 -0.08" '
              r'condim="6" friction="1.5 0.01 0.001"/>', xml)
 noact = os.path.join(OUT, "model.xml")
 open(noact, "w", encoding="utf-8").write(xml)

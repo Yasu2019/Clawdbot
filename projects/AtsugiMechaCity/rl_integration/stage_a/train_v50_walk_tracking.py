@@ -161,9 +161,16 @@ class Env:
         xml = xml.replace('fromto="0 0 0 0.15 0 -0.05"',
                           'fromto="0 0.06 -0.05 0 -0.15 -0.05"')
         xml = xml.replace('pos="0.15 0 -0.08"', 'pos="0 -0.15 -0.08"')
+        # v3 (16ラン診断): 280kg/1.94mのロボットが幅3-4cmの線状接地で立っていた=
+        # 支持基底面が線。横±6cmの接地球を足し「四角形の面」にする(シム専用、
+        # V50の見た目には無影響)。
         xml = re.sub(r'(<geom name="foot_(L|R)_contact"[^>]*/>)',
                      r'\1<geom name="foot_\2_heel" type="sphere" size="0.04" '
-                     r'pos="0 0.06 -0.08" condim="6" friction="1.5 0.01 0.001"/>',
+                     r'pos="0 0.06 -0.08" condim="6" friction="1.5 0.01 0.001"/>'
+                     r'<geom name="foot_\2_out" type="sphere" size="0.04" '
+                     r'pos="0.06 -0.045 -0.08" condim="6" friction="1.5 0.01 0.001"/>'
+                     r'<geom name="foot_\2_in" type="sphere" size="0.04" '
+                     r'pos="-0.06 -0.045 -0.08" condim="6" friction="1.5 0.01 0.001"/>',
                      xml)
         # B-1 (Tier1-lite): unlock lateral balance. The sagittal-only 12-DOF robot
         # cannot control roll — every Stage A/B policy face-planted within seconds.

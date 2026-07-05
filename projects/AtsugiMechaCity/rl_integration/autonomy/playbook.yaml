@@ -18,25 +18,25 @@ rules:                       # 上から順に最初に一致したものを適�
     when: "travel >= 1.0 and fell"
     action: {type: escalate, reason: "travel is fall-and-crawl; reward gating may be insufficient"}
 
-  # v2 (2026-07-05 ユーザー承認): 全retrainを resume: latest(前サイクル継続)へ変更。
-  # tier1初回3サイクルは best_walker が空で毎回フレッシュ学習となり、計2400
-  # イテレーションの積み上げを捨てていた(エスカレーション診断)。iterationsも
-  # 800→1500(「8秒転ばない」までの熟成時間)。
-  - name: conservative_freeze  # run9/10型: 安全静止に収束
+  # v3 (2026-07-05 ユーザー承認): tier1bの教訓=「ノイズ収束後のチェックポイントを
+  # 継承すると探索が死んだ保守の谷に沈む」(travel 0.067→0.028→0.028)。
+  # 停滞系はフレッシュ+高探索+長時間へ。sprint/partial(良い挙動が出ている)のみ
+  # latest継続だが、探索を殺さないinit_log_std(-1.1以上)を維持する。
+  - name: conservative_freeze  # 安全静止に収束 → フレッシュ・高探索でやり直し
     when: "vx < 0.10 and not fell"
-    action: {type: retrain, resume: best_walker, entropy: 0.002, init_log_std: -1.0, iterations: 1500}
+    action: {type: retrain, resume: best_walker, entropy: 0.003, init_log_std: -0.8, iterations: 3000}
 
-  - name: sprint_and_fall    # run8型: 速すぎて転倒
+  - name: sprint_and_fall    # 速すぎて転倒 → 直近を継続、探索は殺さない
     when: "vx >= 0.30 and fell"
-    action: {type: retrain, resume: latest, entropy: 0.001, init_log_std: -1.3, iterations: 1500}
+    action: {type: retrain, resume: latest, entropy: 0.0015, init_log_std: -1.1, iterations: 2000}
 
-  - name: partial_progress   # 歩いているが距離不足
+  - name: partial_progress   # 歩いているが距離不足 → 継続熟成
     when: "travel >= 0.5"
-    action: {type: retrain, resume: latest, entropy: 0.001, init_log_std: -1.2, iterations: 1500}
+    action: {type: retrain, resume: latest, entropy: 0.001, init_log_std: -1.1, iterations: 2000}
 
-  - name: default_stall
+  - name: default_stall      # 停滞 → フレッシュ・高探索・長時間
     when: "true"
-    action: {type: retrain, resume: latest, entropy: 0.0015, init_log_std: -1.1, iterations: 1500}
+    action: {type: retrain, resume: best_walker, entropy: 0.002, init_log_std: -0.9, iterations: 3000}
 
 limits:
   max_cycles_per_skill: 6            # これを超えたら人間へエスカレーション(無限ループ禁止)
@@ -47,5 +47,7 @@ escalation:
   telegram: true
 
 known_good_checkpoints:
-  # v2: tier1初回3サイクルのベスト(travel 0.187m, walk_tier1_cycle03)を登録。
-  best_walker: C:\v50_work\autonomy\walk_tier1_cycle03\latest.pt
+  # v3: 空=フレッシュ学習。教訓: ノイズ収束後(init_log_std<-1.2で焼き締めた)
+  # チェックポイントをbest_walkerに登録してはならない — 探索が死んでいる。
+  # 登録してよいのは「歩行が成立し(travel>1m)かつ探索が生きている」もののみ。
+  best_walker: ""
