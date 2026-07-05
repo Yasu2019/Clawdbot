@@ -42,6 +42,7 @@
 
 | 資産 | 所在 |
 |---|---|
+| **計算エンジン(検証済2026-07-05)** | Progressive Die Hub `:8004` `POST /api/tolerance-stack`（WC/RSS/MC/Cpk — 既知解で定量検証PASS、bd `iy63` NOTES参照）|
 | 理論知識ベース | `clawstack_v2/docs/knowledge/Cetol_Knowledge.md` |
 | GD&T設計 | `docs/fable5_gdt_l10_design.md` / `data/workspace/apps/gdt_overlay_studio/` `gdt_step_face_viewer_v2/` |
 | 理論パック | `ZIP_Group/moldflow_cetol_theory_pack_20260602.zip` |
@@ -128,12 +129,12 @@
 - **過去トラ**: **T040〜T043の偽SUCCESS4連発 + T048暴走(D:毎分1GB消費)** — 品質ゲート系が最大の負債
 - **現在**: worker稼働(:8003)。`ip4`着手が最優先の再発防止
 
-### 7.4 OpenRadioss せん断加工 — 🟢 blanking成熟・stripper/bending初期
-- **bd**: `tq1`(**P0** blanking+crack TSTOP完走) / `b41` `uj2` `erw`(DOE自律)
+### 7.4 OpenRadioss せん断加工 — 🔴 red_lavie停止中（2026-07-05検証で判明・要人間介入）
+- **bd**: `tq1`(**P0** blanking+crack TSTOP完走・**red_lavie停止でブロック中**) / `cttj`(**bug** red_lavie復旧・要人間) / `b41` `uj2` `erw`
 - **brv**: `cae/inc094_openradioss_continuous_te_deck.md`(T020デック構文教訓)
 - **過去トラ**: T020 / T037(tri-track: OpenRadioss=red_lavie担当)
-- **K10実績**(`k10_openradioss_te_state.json`): 総3069サイクル。**press_blanking n=2903 avg_reward 0.973（成熟）** / stripper・bending 各n=83 avg 0.15（未成熟=次の重点）
-- **現在**: run37 10hチューニング(Tstop 1.4ms目標)。red_lavie CPU99%=エンジン計算中(正常)
+- **K10実績**(`k10_openradioss_te_state.json` **6/13時点の歴史値**): 総3069サイクル。press_blanking n=2903 avg_reward 0.973（成熟）/ stripper・bending 各n=83 avg 0.15（未成熟）
+- **2026-07-05検証結果**: ①red_lavieは**7/1の2連続TIMEOUT以降CPU100%+クロック597MHz固着**、echoジョブすら完了不能=4日間実質停止（孤児エンジン残存疑い・実機での掃除+電源プラン確認が必要 → bd `cttj`） ②ローカルコンテナは消失していたが**7/5にイメージキャッシュから再作成済み**（starter/engine/デッキ健在・`docker exec ... bash /work/start_engine.sh <N>`可） ③run37「10hチューニング実行中」表記は4/30の古いstatusで**現在は動いていない**
 
 ### 7.5 Moldflow風 簡易解析 — 🔴 自動レポート停止中（当日インシデント）
 - **bd**: `3qu`(Phase7) / `kwr`(epic v002) / `3z1`(**P0** T019意味ゲート)
