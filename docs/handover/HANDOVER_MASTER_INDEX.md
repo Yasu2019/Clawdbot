@@ -142,7 +142,7 @@
 - **現在**(`k10_tri_track_cae_status.json` 21:14時点): **openfoam_lavie = SKIP_OFFLINE fail_streak 43**（LAVIE計算サービスプレーン:8111/:5682停止、Tailscale ping自体は生存）。K10フォールバックタスクの0x80070002は修理済みだがLAVIE実機側は**人間による起動が必要**
 
 ### 7.6 横断アラート
-- **fem_impact_thinkpad**: FAILED_NO_EVOLUTION streak 4 — P026(KPIデルタ必須)違反パターン。T048同系統の空回り前兆 → bd `e3dn`(意味ゲート自動停止を全trackへ拡張)
+- **fem_impact_thinkpad**: ~~FAILED_NO_EVOLUTION streak 4~~ → **2026-07-05夜 T049として根治**（pipefail+ls無言即死・詳細はtrouble_history [T049]）。QC実測値KPI化・意味ゲート自動停止(全track・連続8失敗で停止+Telegram)実装済。bd `e3dn`
 - CETOLのbd未追跡は解消済み → bd `iy63`(L4/L10実装)
 
 ## 8. ロードマップ

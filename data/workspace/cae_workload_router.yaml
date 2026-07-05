@@ -137,17 +137,30 @@ tri_track_parallel:
   enabled: true
   poll_interval_sec: 60
   trial_timeout_sec: 10800
+  # T019/P026: 実行トライアルがこの回数連続失敗したらトラック自動停止+Telegram通知 (0=無効)
+  meaning_gate_max_fail_streak: 8
+  # K10 load guard: skip dead satellites fast; backoff on errors; breathe between successes.
+  connect_timeout_sec: 12
+  skip_dispatch_if_offline: true
+  skip_dispatch_if_overloaded: true
+  error_backoff_sec: [60, 120, 300, 600]
   openfoam:
     host: lavie
-    category: resin_fill_vof
+    category: resin_fill_cad
+    poll_interval_sec: 90
   openradioss:
     host: red_lavie
     category: press_blanking_assy
+    poll_interval_sec: 120
     case_label: 4mmx4mm_ASSY
     param_ranges:
       clearance_pct: [4.0, 12.0]
-      punch_speed_mms: [3000.0, 7000.0]
+      punch_speed_mms: [1500.0, 2800.0]
       friction_mu: [0.08, 0.12]
+    quality_gate:
+      max_bbox_diag: 80
+      max_coordinate_abs: 60
+      min_points: 50
   fem_impact:
     host: thinkpad
     # T038/INC-122: production_only skips unbenchmarked long cases unless bench_schedule fires.
@@ -155,6 +168,11 @@ tri_track_parallel:
     poll_interval_sec: 180
     skip_if_png_count: 3
     reuse_vtk_for_png: true
+    quality_gate:
+      max_bbox_diag: 200
+      max_coordinate_abs: 200
+      max_displacement_abs: 100
+      min_points: 10
     bench_schedule:
       enabled: true
       every_n_cycles: 24
@@ -173,20 +191,39 @@ tri_track_parallel:
     bundle_local: "D:/Clawdbot_Docker_20260125/完全成功_永久保存版_AUTO_FIX_ORIENTATION_20250804"
     remote_bundle_root: "/home/yasu/clawstack_satellite/impact_bundle/AUTO_FIX_ORIENTATION_20250804"
     sample_case:
-      subdir: no_solid_reqtangle_sample_20250806
+      subdir: reqtangle_sample_20250806
       input: test.in
     case_root: "D:/Clawdbot_Docker_20260125/完全成功_永久保存版_AUTO_FIX_ORIENTATION_20250804/Impact/160um_Panel_20250725"
     variants:
-      - subdir: no_solid_reqtangle_sample_20250806
-        input: test.in
-        enabled: true
-        max_timeout_sec: 5400
-        tier: production
-      - subdir: Rough_Mesh
+      - subdir: reqtangle_sample_20250806
         input: test.in
         enabled: true
         max_timeout_sec: 7200
         tier: production
+      - subdir: no_solid_reqtangle_sample_20250806
+        input: test.in
+        enabled: false
+        max_timeout_sec: 5400
+        tier: production
+        hold_reason: "superseded by reqtangle_sample_20250806 (solid ON press blanking)"
+      - subdir: Rough_Mesh
+        input: test.in
+        enabled: false
+        max_timeout_sec: 7200
+        tier: production
+        hold_reason: "INC-123系メッシュ爆発デッキ (bbox_diag 5.2e7, 2026-06-24 quality_incident参照)。デッキ修正まで無効"
+      - subdir: Rough_Mesh
+        input: test_practical_doe01.in
+        enabled: true
+        max_timeout_sec: 7200
+        tier: production
+        note: "Phase-2 short: DOE01 stable (SOLID ON, punch vz=-200)"
+      - subdir: Rough_Mesh
+        input: test_practical_forming.in
+        enabled: true
+        max_timeout_sec: 21600
+        tier: production
+        note: "Phase-2 forming 15ms table BC from auto_revised_mesh_improved.in"
       - subdir: Rough_Mesh
         input: auto_revised_mesh.in
         enabled: false

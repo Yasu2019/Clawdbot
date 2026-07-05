@@ -4,6 +4,7 @@
 
 | ID | 日付 | 事象 | 対策 |
 | --- | --- | --- | --- |
+| **[T049]** | **2026-07-05** | **fem_impact@thinkpad サイレント即死 — `set -euo pipefail`下の `VTK_N=$(ls ...該当0件... \| wc -l)` でls exit2がpipefail経由で代入文に伝播し、echo到達前に無言でexit 2。stdout/stderr空のため診断不能なまま6/27頃から全practical系デッキが空回り（当初はデッキ未デプロイでtest -f exit1、デプロイ後this bugでexit2）** | **①`\|\| true`を代入内パイプ末尾に追加(k10_tri_track_cae_orchestrator.py) ②`test -f`を明示echo+exit 7化(FEM_IMPACT_INPUT_MISSING) ③QC実測値をdefects_detectedへ抽出しKPI空問題解消 ④意味ゲート自動停止(meaning_gate_max_fail_streak=8)+Telegram通知を全trackへ追加 ⑤爆発デッキRough_Mesh/test.in無効化。教訓: heredoc/set -e配下の`VAR=$(cmd\|cmd)`は必ず失敗時挙動を確認。bd `e3dn`** |
 | **[T039]** | **2026-06-25/27** | **PostgreSQL WAL破損 繰り返し再発 — Windows再起動時にDockerのデフォルト stop_grace_period=10秒でSIGKILL → checkpoint書けずWAL破損。6/20(14:22JST)・6/25・6/27(9:01+10:18JST 予期しないシャットダウン×2)の3回発生。Windows Event ID 1074/6008でパターン確認済** | **①docker-compose.yml に `stop_grace_period: 60s` + `-c checkpoint_timeout=1min` 追加(メイン対策) ②backup_infra_daily.ps1の pg_dump出力先を /tmp に変更(データディレクトリ直接書き込み禁止) ③シャットダウンフックスクリプト `scripts/k10_graceful_docker_shutdown.ps1` 作成(要管理者でTask Scheduler登録) ④復旧手順: `pg_resetwal -f` + VACUUM + REINDEX。詳細: T-WAL-001** |
 | **tri-thinkpad-fem_impact-917a60f8** | 2026-06-18 | unknown attempt=1 | Run --sync-script before trial; Use test.in_* VTK glob in png shell |
 | **tri-thinkpad-fem_impact-ae19be33** | 2026-06-18 | unknown attempt=2 | Run --sync-script before trial; Use test.in_* VTK glob in png shell |

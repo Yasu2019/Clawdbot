@@ -38,6 +38,9 @@ if str(ROOT / "scripts") not in sys.path:
     sys.path.insert(0, str(ROOT / "scripts"))
 
 import cae_workload_router as router
+import cae_trial_evolution_gate as evolution_gate
+import cae_tri_track_openfoam_params as of_params
+import impact_vtk_quality_gate as fem_qc
 import k10_satellite_cae_dispatch as cae_dispatch
 import k10_satellite_dispatch as sjp
 import yaml
@@ -191,6 +194,25 @@ def run_satellite_trial(
     return {"trial_id": trial_id, "verdict": trial_entry.get("verdict"), "trial_entry": trial_entry}
 
 
+def run_satellite_trial_gated(
+    track: str,
+    *,
+    node: str,
+    category: str,
+    params: dict | None,
+    dry_run: bool,
+    timeout: int,
+) -> dict[str, Any]:
+    result = run_satellite_trial(
+        node=node,
+        category=category,
+        params=params,
+        dry_run=dry_run,
+        timeout=timeout,
+    )
+    return evolution_gate.apply_evolution_gate(track, result)
+
+
 def _fem_bench_variant(fem: dict[str, Any], cycle_n: int) -> dict[str, Any] | None:
     sched = fem.get("bench_schedule") or {}
     if not sched.get("enabled"):
@@ -285,10 +307,10 @@ def run_thinkpad_impact(tri: dict[str, Any], dry_run: bool, timeout: int) -> dic
     job_timeout = _fem_job_timeout(fem, variant, timeout)
     skip_png_n = int(fem.get("skip_if_png_count") or 3)
     reuse_vtk = bool(fem.get("reuse_vtk_for_png", True))
-    qc = fem.get("quality_gate") or {}
-    qc_max_bbox = float(qc.get("max_bbox_diag") or 100000.0)
-    qc_max_coord = float(qc.get("max_coordinate_abs") or 100000.0)
-    qc_max_disp = float(qc.get("max_displacement_abs") or 100000.0)
+    qc_limits = fem_qc.limits_from_fem_cfg(fem)
+    qc_max_bbox = float(qc_limits["max_bbox_diag"])
+    qc_max_coord = float(qc_limits["max_coordinate_abs"])
+    qc_max_disp = float(qc_limits["max_displacement_abs"])
     remote_bundle = str(
         fem.get("remote_bundle_root")
         or "/home/yasu/clawstack_satellite/impact_bundle/AUTO_FIX_ORIENTATION_20250804"
@@ -329,7 +351,7 @@ def run_thinkpad_impact(tri: dict[str, Any], dry_run: bool, timeout: int) -> dic
         f"export LD_LIBRARY_PATH={lib_path}:${{LD_LIBRARY_PATH:-}}\n"
         f'cd "$IMPACT_HOME"\n'
         f"if [ ! -f bin/run/Impact.class ]; then ant -q compile; fi\n"
-        f'test -f "$CASE_DIR/$INP"\n'
+        f'if [ ! -f "$CASE_DIR/$INP" ]; then echo "FEM_IMPACT_INPUT_MISSING=$CASE_DIR/$INP"; exit 7; fi\n'
         f'pkill -f "java.*run.Impact.*$CASE_DIR/$INP" 2>/dev/null || true\n'
         f"sleep 1\n"
         f"latest_vtk() {{\n"
@@ -346,8 +368,9 @@ def run_thinkpad_impact(tri: dict[str, Any], dry_run: bool, timeout: int) -> dic
     )
     if reuse_vtk:
         impact_script += (
-            f'VTK_N=$(ls -1 "$CASE_DIR/{inp}"_*.vtk 2>/dev/null | wc -l)\n'
-            f'PNG_N=$(ls -1 "$CASE_DIR/{inp}"*.png 2>/dev/null | wc -l)\n'
+            # T049: set -euo pipefail下で対象0件だとls exit2が代入文に伝播し無言即死する。|| true必須
+            f'VTK_N=$(ls -1 "$CASE_DIR/{inp}"_*.vtk 2>/dev/null | wc -l || true)\n'
+            f'PNG_N=$(ls -1 "$CASE_DIR/{inp}"*.png 2>/dev/null | wc -l || true)\n'
             f'if [ "$PNG_N" -ge {skip_png_n} ]; then\n'
             f"  run_qc\n"
             f"  echo FEM_IMPACT_SKIP_RECOMPUTE=png_exists\n"
@@ -381,6 +404,11 @@ def run_thinkpad_impact(tri: dict[str, Any], dry_run: bool, timeout: int) -> dic
     }
     result = sjp.dispatch_job(base_url, token, job, job_timeout)
     stdout = result.get("stdout_tail") or ""
+
+    def _worker_exit_ok(res: dict[str, Any]) -> bool:
+        ec = res.get("exit_code")
+        return ec is not None and int(ec) == 0
+
     ok = (
         (
             result.get("status") == "ok"
@@ -388,7 +416,7 @@ def run_thinkpad_impact(tri: dict[str, Any], dry_run: bool, timeout: int) -> dic
             or "FEM_IMPACT_REUSE_VTK" in stdout
         )
         and (
-            int(result.get("exit_code") or 1) == 0
+            _worker_exit_ok(result)
             or "FEM_IMPACT_SKIP_RECOMPUTE" in stdout
             or "FEM_IMPACT_REUSE_VTK" in stdout
         )
@@ -402,7 +430,11 @@ def run_thinkpad_impact(tri: dict[str, Any], dry_run: bool, timeout: int) -> dic
         and "FEM_IMPACT_QC_VERDICT=PASS" in stdout
         and "FAILED_MESH_EXPLOSION" not in stdout
     )
-    verdict = "SUCCESS" if ok else ("FAILED_MESH_EXPLOSION" if "FAILED_MESH_EXPLOSION" in stdout else "FAILED")
+    if "FEM_IMPACT_INPUT_MISSING=" in stdout:
+        verdict = "FAILED_INPUT_MISSING"
+    else:
+        verdict = "SUCCESS" if ok else ("FAILED_MESH_EXPLOSION" if "FAILED_MESH_EXPLOSION" in stdout else "FAILED")
+    qc_metrics = fem_qc.parse_qc_stdout(stdout).get("metrics") or {}
     entry = {
         "id": trial_id,
         "category": "fem_impact",
@@ -410,18 +442,123 @@ def run_thinkpad_impact(tri: dict[str, Any], dry_run: bool, timeout: int) -> dic
         "host": "thinkpad",
         "variant": variant,
         "case_dir": case_dir,
+        "params": {"subdir": variant.get("subdir"), "input": variant.get("input")},
+        "defects_detected": {
+            f"qc_{k}": v for k, v in qc_metrics.items() if isinstance(v, (int, float))
+        },
         "worker_result": {k: result.get(k) for k in ("status", "exit_code", "stdout_tail", "stderr_tail")},
     }
-    cae_dispatch.merge_trial_into_log(entry)
-    append_log({"track": "fem_impact", "trial": entry})
-    _maybe_cae_paraview_video_delivery(
-        entry,
-        node="thinkpad",
-        category="fem_impact",
-        dry_run=False,
-        cfg=router.load_config(),
+    gated = evolution_gate.apply_evolution_gate(
+        "fem_impact_thinkpad",
+        {"trial_id": trial_id, "verdict": verdict, "trial_entry": entry},
     )
-    return {"trial_id": trial_id, "verdict": verdict, "trial_entry": entry}
+    entry = gated.get("trial_entry") or entry
+    verdict = str(gated.get("verdict") or entry.get("verdict") or verdict)
+    try:
+        cae_dispatch.merge_trial_into_log(entry)
+    except Exception as exc:
+        print(f"[fem_impact] merge_trial_into_log skipped: {exc}", flush=True)
+    append_log({"track": "fem_impact", "trial": entry})
+    if verdict == "SUCCESS":
+        try:
+            _maybe_cae_paraview_video_delivery(
+                entry,
+                node="thinkpad",
+                category="fem_impact",
+                dry_run=False,
+                cfg=router.load_config(),
+            )
+        except Exception as exc:
+            entry["cae_video_paraview_error"] = str(exc)[:200]
+            print(f"[fem_impact] paraview video non-fatal: {exc}", flush=True)
+    return gated
+
+
+def _backoff_list(tri: dict[str, Any]) -> list[int]:
+    raw = tri.get("error_backoff_sec") or [60, 120, 300, 600]
+    out: list[int] = []
+    for item in raw:
+        try:
+            sec = int(item)
+        except (TypeError, ValueError):
+            continue
+        if sec > 0:
+            out.append(sec)
+    return out or [60, 120, 300, 600]
+
+
+def _track_poll_seconds(tri: dict[str, Any], track_key: str, track_cfg: dict[str, Any]) -> int:
+    if track_cfg.get("poll_interval_sec") is not None:
+        return max(0, int(track_cfg.get("poll_interval_sec") or 0))
+    return max(0, int(tri.get("poll_interval_sec") or 60))
+
+
+def _preflight_satellite(
+    node_id: str,
+    tri: dict[str, Any],
+    *,
+    thinkpad_idle_only: bool = False,
+) -> tuple[bool, str, str]:
+    """Return (may_dispatch, verdict_label, detail)."""
+    cfg = router.load_config()
+    skip_offline = bool(tri.get("skip_dispatch_if_offline", True))
+    skip_overloaded = bool(tri.get("skip_dispatch_if_overloaded", True))
+
+    if node_id == "thinkpad":
+        if not skip_offline and not skip_overloaded:
+            return True, "OK", "preflight disabled"
+        ok, reason, _metrics = router.thinkpad_load_guard(cfg)
+        if not ok:
+            if "unavailable" in reason.lower() or "ssh" in reason.lower():
+                return False, "SKIP_OFFLINE", reason
+            if skip_overloaded or thinkpad_idle_only:
+                return False, "SKIP_LOAD", reason
+        return True, "OK", reason
+
+    if skip_offline:
+        online, _metrics, detail = router.probe_satellite_metrics(cfg, node_id)
+        if not online:
+            return False, "SKIP_OFFLINE", detail
+    if skip_overloaded:
+        load_ok, load_reason, _metrics = router.satellite_load_guard(cfg, node_id)
+        if not load_ok:
+            if "metrics unavailable" in load_reason:
+                return False, "SKIP_OFFLINE", load_reason
+            return False, "SKIP_LOAD", load_reason
+    return True, "OK", "preflight passed"
+
+
+def _sleep_for_track(
+    tri: dict[str, Any],
+    *,
+    poll_seconds: int,
+    fail_streak: int,
+    last_verdict: str,
+) -> int:
+    backoffs = _backoff_list(tri)
+    if last_verdict in ("SKIP_OFFLINE", "ERROR"):
+        idx = min(max(fail_streak, 1) - 1, len(backoffs) - 1)
+        return backoffs[idx]
+    if last_verdict == "SKIP_LOAD":
+        return max(poll_seconds, 30)
+    if poll_seconds > 0:
+        return poll_seconds
+    return 0
+
+
+def _notify_meaning_gate_stop(track: str, streak: int, threshold: int) -> None:
+    msg = (
+        f"⛔ tri-track meaning gate: {track} を自動停止しました\n"
+        f"実行トライアル連続失敗 {streak} 回 (しきい値 {threshold})。\n"
+        f"T019/P026: 無進化の再試行によるリソース空回りを防止。\n"
+        f"復旧: デッキ/KPIを修正後にオーケストレータ再起動。"
+    )
+    try:
+        import cae_telegram_video_notify as tg
+
+        tg.send_telegram_message(msg)
+    except Exception as exc:
+        print(f"[meaning_gate] telegram notify failed: {exc}", flush=True)
 
 
 def track_loop(
@@ -432,27 +569,98 @@ def track_loop(
     dry_run: bool,
     continuous: bool,
     poll_seconds: int = 0,
+    node_id: str | None = None,
+    tri_cfg: dict[str, Any] | None = None,
+    thinkpad_idle_only: bool = False,
 ) -> None:
-    track_state = state.setdefault("tracks", {}).setdefault(name, {"n": 0, "last": None})
+    tri = tri_cfg or {}
+    track_state = state.setdefault("tracks", {}).setdefault(
+        name,
+        {"n": 0, "last": None, "fail_streak": 0, "poll_seconds": poll_seconds},
+    )
+    track_state["poll_seconds"] = poll_seconds
+    fail_streak = int(track_state.get("fail_streak") or 0)
+    last_verdict = "OK"
+
     while not _stop.is_set():
+        if node_id and not dry_run:
+            may_dispatch, pre_verdict, detail = _preflight_satellite(
+                node_id,
+                tri,
+                thinkpad_idle_only=thinkpad_idle_only,
+            )
+            if not may_dispatch:
+                fail_streak = fail_streak + 1 if pre_verdict == "SKIP_OFFLINE" else fail_streak
+                track_state["fail_streak"] = fail_streak
+                track_state["last"] = {
+                    "at": now_iso(),
+                    "verdict": pre_verdict,
+                    "error": detail[:300],
+                    "fail_streak": fail_streak,
+                }
+                append_log({"track": name, "skip": pre_verdict, "detail": detail, "node": node_id})
+                write_status(state)
+                last_verdict = pre_verdict
+                if not continuous:
+                    break
+                delay = _sleep_for_track(tri, poll_seconds=poll_seconds, fail_streak=fail_streak, last_verdict=last_verdict)
+                if delay > 0:
+                    time.sleep(delay)
+                continue
+
         try:
             result = fn()
             track_state["n"] = int(track_state.get("n") or 0) + 1
+            verdict = str(result.get("verdict") or "UNKNOWN")
             track_state["last"] = {
                 "at": now_iso(),
-                "verdict": result.get("verdict"),
+                "verdict": verdict,
                 "trial_id": result.get("trial_id"),
+                "fail_streak": fail_streak,
             }
             append_log({"track": name, "result": result})
             write_status(state)
+            if verdict in ("ERROR", "FAILED", "FAILED_MESH_EXPLOSION", "FAILED_NO_EVOLUTION", "FAILED_SHORT_SHOT", "FAILED_MEANING_GATE", "FAILED_INPUT_MISSING"):
+                fail_streak += 1
+                last_verdict = "ERROR" if verdict == "ERROR" else verdict
+            else:
+                fail_streak = 0
+                last_verdict = "OK"
+            track_state["fail_streak"] = fail_streak
+            track_state["last"]["fail_streak"] = fail_streak
+            # T019/P026 meaning gate: 実行トライアルの連続失敗がしきい値到達でトラック自動停止
+            # (SKIP_OFFLINE等のpreflightスキップはカウント外)
+            meaning_gate_max = int(tri.get("meaning_gate_max_fail_streak") or 0)
+            if meaning_gate_max > 0 and fail_streak >= meaning_gate_max:
+                track_state["meaning_gate"] = {
+                    "stopped": True,
+                    "at": now_iso(),
+                    "fail_streak": fail_streak,
+                    "threshold": meaning_gate_max,
+                }
+                track_state["last"]["verdict"] = "STOPPED_MEANING_GATE"
+                append_log({"track": name, "meaning_gate_stop": fail_streak, "threshold": meaning_gate_max})
+                write_status(state)
+                _notify_meaning_gate_stop(name, fail_streak, meaning_gate_max)
+                break
         except Exception as exc:
-            track_state["last"] = {"at": now_iso(), "verdict": "ERROR", "error": str(exc)[:300]}
+            fail_streak += 1
+            last_verdict = "ERROR"
+            track_state["fail_streak"] = fail_streak
+            track_state["last"] = {
+                "at": now_iso(),
+                "verdict": "ERROR",
+                "error": str(exc)[:300],
+                "fail_streak": fail_streak,
+            }
             append_log({"track": name, "error": str(exc)})
             write_status(state)
+
         if not continuous:
             break
-        if poll_seconds > 0:
-            time.sleep(poll_seconds)
+        delay = _sleep_for_track(tri, poll_seconds=poll_seconds, fail_streak=fail_streak, last_verdict=last_verdict)
+        if delay > 0:
+            time.sleep(delay)
 
 
 def run_parallel_session(
@@ -488,16 +696,31 @@ def run_parallel_session(
     write_status(state)
 
     def of_fn():
-        return run_satellite_trial(
+        cycle_n = 0
+        if STATUS_PATH.exists():
+            try:
+                cycle_n = int(
+                    json.loads(STATUS_PATH.read_text(encoding="utf-8"))
+                    .get("tracks", {})
+                    .get("openfoam_lavie", {})
+                    .get("n")
+                    or 0
+                )
+            except Exception:
+                cycle_n = 0
+        params = of_params.build_openfoam_cad_params(cycle_n + 1)
+        return run_satellite_trial_gated(
+            "openfoam_lavie",
             node=str(of_cfg.get("host") or "lavie"),
-            category=str(of_cfg.get("category") or "resin_fill_vof"),
-            params=None,
+            category=str(of_cfg.get("category") or "resin_fill_cad"),
+            params=params,
             dry_run=dry_run,
             timeout=timeout,
         )
 
     def or_fn():
-        return run_satellite_trial(
+        return run_satellite_trial_gated(
+            "openradioss_red_lavie",
             node=str(or_cfg.get("host") or "red_lavie"),
             category=str(or_cfg.get("category") or "press_blanking"),
             params=random_or_params(tri),
@@ -508,14 +731,48 @@ def run_parallel_session(
     def impact_fn():
         return run_thinkpad_impact(tri, dry_run=dry_run, timeout=timeout)
 
-    fem_poll = int((tri.get("fem_impact") or {}).get("poll_interval_sec") or 0)
+    fem_poll = _track_poll_seconds(tri, "fem_impact", tri.get("fem_impact") or {})
+    of_poll = _track_poll_seconds(tri, "openfoam", of_cfg)
+    or_poll = _track_poll_seconds(tri, "openradioss", or_cfg)
+    fem_idle_only = bool(((tri.get("fem_impact") or {}).get("bench_schedule") or {}).get("only_when_thinkpad_idle"))
+    of_node = str(of_cfg.get("host") or "lavie")
+    or_node = str(or_cfg.get("host") or "red_lavie")
     threads = [
-        threading.Thread(target=track_loop, args=("openfoam_lavie", of_fn, state), kwargs={"dry_run": dry_run, "continuous": continuous}, daemon=True),
-        threading.Thread(target=track_loop, args=("openradioss_red_lavie", or_fn, state), kwargs={"dry_run": dry_run, "continuous": continuous}, daemon=True),
+        threading.Thread(
+            target=track_loop,
+            args=("openfoam_lavie", of_fn, state),
+            kwargs={
+                "dry_run": dry_run,
+                "continuous": continuous,
+                "poll_seconds": of_poll,
+                "node_id": of_node,
+                "tri_cfg": tri,
+            },
+            daemon=True,
+        ),
+        threading.Thread(
+            target=track_loop,
+            args=("openradioss_red_lavie", or_fn, state),
+            kwargs={
+                "dry_run": dry_run,
+                "continuous": continuous,
+                "poll_seconds": or_poll,
+                "node_id": or_node,
+                "tri_cfg": tri,
+            },
+            daemon=True,
+        ),
         threading.Thread(
             target=track_loop,
             args=("fem_impact_thinkpad", impact_fn, state),
-            kwargs={"dry_run": dry_run, "continuous": continuous, "poll_seconds": fem_poll},
+            kwargs={
+                "dry_run": dry_run,
+                "continuous": continuous,
+                "poll_seconds": fem_poll,
+                "node_id": "thinkpad",
+                "tri_cfg": tri,
+                "thinkpad_idle_only": fem_idle_only,
+            },
             daemon=True,
         ),
     ]
