@@ -1,5 +1,7 @@
 # 引継ぎ文書: メカ30体×スキル拡張RL — キュー⑤設計完了時点
 
+> **2026-07-05追記**: 全体の引き継ぎ入口は `docs/handover/HANDOVER_MASTER_INDEX.md`（プロトコルv2.0 = `docs/handover/FABLE5_CONTINUATION_PROTOCOL_V2.md`）。本書はメカRL領域の現在地文書。
+
 作成日: 2026-07-03 | 作成: Claude (Opus 4.8) | 想定引継ぎ先: **任意のAIモデル**(Claude/Gemini/Codex/ローカルLLM)
 bd issue: `Clawdbot_Docker_20260125-6li`(キュー⑤) / 前提知識ゼロで再開できるよう書く
 
