@@ -1,0 +1,34 @@
+# reference_registry.yaml — スキル名→お手本クリップ対応表(U2が参照)
+# パスは 100STYLE zip (C:\v50_work\datasets\100style\100STYLE.zip) 内の相対パス。
+# ライセンス: CC-BY-4.0(判断記録: rl_integration/stage_b/license_decision.json —
+# 同一データセット内のクリップはS5ライセンスゲートをスキップしてよい)
+#
+# 設計判断(spec U2): stairs/slopeは専用モーキャップを探さず、walk参照+地形
+# カリキュラム(U6)で学習させる。人間の階段登行は歩行の変形であり、バランスと
+# 脚上げはRLが地形から学ぶ。
+
+skills:
+  walk:
+    clip: 100STYLE/Neutral/Neutral_FW.bvh
+    note: neutral forward walk
+  run:
+    clip: 100STYLE/Neutral/Neutral_FR.bvh
+    note: neutral forward run
+  walk_backwards:
+    clip: 100STYLE/Neutral/Neutral_BW.bvh
+    note: neutral backwards walk
+  idle:
+    clip: 100STYLE/Neutral/Neutral_ID.bvh
+    note: neutral idle
+  stand:
+    clip: 100STYLE/Neutral/Neutral_ID.bvh
+    note: idleを立位参照として流用
+  stairs_climb:
+    clip: 100STYLE/Neutral/Neutral_FW.bvh
+    note: walk参照+U6地形(stairs)で学習
+  slope_ascend:
+    clip: 100STYLE/Neutral/Neutral_FW.bvh
+    note: walk参照+U6地形(slope_up)で学習
+  slope_descend:
+    clip: 100STYLE/Neutral/Neutral_FW.bvh
+    note: walk参照+U6地形(slope_down)で学習

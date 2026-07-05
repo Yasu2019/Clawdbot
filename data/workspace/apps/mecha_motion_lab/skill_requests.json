@@ -4,7 +4,7 @@
     {
       "id": "req_1783231231",
       "text": "階段を登る",
-      "status": "interpreted",
+      "status": "retarget_ready",
       "created_at": "2026-07-05T15:00:31",
       "notes": null,
       "interpretation": {
@@ -18,7 +18,38 @@
         "source": "fallback_dictionary",
         "llm_error": "TimeoutError"
       },
-      "interpreted_at": "2026-07-05T15:01:53"
+      "interpreted_at": "2026-07-05T15:01:53",
+      "reference": {
+        "bvh": "C:\\v50_work\\datasets\\100style\\100STYLE\\Neutral\\Neutral_FW.bvh",
+        "registry_note": "walk参照+U6地形(stairs)で学習",
+        "license": "CC-BY-4.0 100STYLE (decision on file)"
+      },
+      "reference_at": "2026-07-05T15:11:25"
+    },
+    {
+      "id": "req_1783231803",
+      "text": "歩く",
+      "status": "retarget_ready",
+      "created_at": "2026-07-05T15:10:03",
+      "notes": null,
+      "interpretation": {
+        "skill_name": "walk",
+        "taxonomy": "locomotion",
+        "required_tier": 1,
+        "needs_terrain": null,
+        "search_keywords": [
+          "walk"
+        ],
+        "source": "fallback_dictionary",
+        "llm_error": "TimeoutError"
+      },
+      "interpreted_at": "2026-07-05T15:11:25",
+      "reference": {
+        "bvh": "C:\\v50_work\\datasets\\100style\\100STYLE\\Neutral\\Neutral_FW.bvh",
+        "registry_note": "neutral forward walk",
+        "license": "CC-BY-4.0 100STYLE (decision on file)"
+      },
+      "reference_at": "2026-07-05T15:11:25"
     }
   ]
 }

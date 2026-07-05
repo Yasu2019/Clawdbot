@@ -81,7 +81,7 @@ queued → interpreted → reference_found → license_pending →(人間承認)
 |---|---|---|---|
 | U0(受付) | ✅ 実装済 | c1435251c | 2026-07-04 |
 | U1 | ✅ 合格判定PASS(「階段を登る」→stairs/tier1。LLMタイムアウト時のフォールバック辞書経路も実証) | 本commit | 2026-07-05 |
-| U2 | ⬜ | | |
+| U2 | ✅ 合格判定PASS(walk→Neutral_FW.bvh実パス取得、zip自動展開、stairs_climbも同時解決) | 本commit | 2026-07-05 |
 | U3 | ⬜ | | |
 | U4 | ⬜ | | |
 | U5 | ⬜ | | |
