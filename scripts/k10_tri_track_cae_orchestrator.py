@@ -415,11 +415,9 @@ def run_thinkpad_impact(tri: dict[str, Any], dry_run: bool, timeout: int) -> dic
             or "FEM_IMPACT_SKIP_RECOMPUTE" in stdout
             or "FEM_IMPACT_REUSE_VTK" in stdout
         )
-        and (
-            _worker_exit_ok(result)
-            or "FEM_IMPACT_SKIP_RECOMPUTE" in stdout
-            or "FEM_IMPACT_REUSE_VTK" in stdout
-        )
+        # T049追補: kill(-15)/timeout中断ジョブがREUSE/SKIPマーカーだけでSUCCESS化する偽PASS防止。
+        # 正規のSKIP/REUSEパスは必ずexit 0なので厳格チェックで問題ない
+        and _worker_exit_ok(result)
         and (
             ".png" in stdout
             or "impact-vtk-png" in stdout
