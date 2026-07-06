@@ -1,0 +1,106 @@
+{
+  "schema": "clawstack.part_manifest.v1",
+  "created_at": "2026-06-19T10:12:20.001879+09:00",
+  "source_dxf": "test_counterbore.dxf",
+  "source_dxf_path": "D:\\Clawdbot_Docker_20260125\\data\\workspace\\apps\\dxf2step\\test_counterbore.dxf",
+  "step_path": "0.step",
+  "fcstd_path": "0.FCStd",
+  "units": "mm",
+  "bbox_mm": {
+    "Lx": 1.0,
+    "Ly": 1.0,
+    "Lz": 10.0
+  },
+  "sheet_thickness_mm": 10.0,
+  "thickness_source": "layer_extrude",
+  "material": {
+    "id": "unknown",
+    "source": "default",
+    "resolved": false,
+    "properties": {}
+  },
+  "features": {
+    "closed_loops": 1,
+    "holes": [
+      {
+        "name": "hole_1",
+        "diameter_mm": 4.5,
+        "position_tol_mm": 0.05,
+        "source": "gdt_pmi_step_cylinder"
+      },
+      {
+        "name": "hole_2",
+        "diameter_mm": 8.0,
+        "position_tol_mm": 0.05,
+        "source": "gdt_pmi_step_cylinder"
+      }
+    ],
+    "datums": [],
+    "nominal_dims_mm": [
+      {
+        "name": "bbox_Lx",
+        "nominal_mm": 1.0,
+        "source": "step_bbox"
+      },
+      {
+        "name": "bbox_Ly",
+        "nominal_mm": 1.0,
+        "source": "step_bbox"
+      },
+      {
+        "name": "sheet_thickness",
+        "nominal_mm": 10.0,
+        "source": "layer_extrude"
+      }
+    ]
+  },
+  "physics_handoff": {
+    "moldflow": {
+      "ready": true,
+      "gate_seed": "center",
+      "step_path": "0.step",
+      "material_ready": false
+    },
+    "tolerance": {
+      "ready": true,
+      "nominal_dims_mm": [
+        {
+          "name": "bbox_Lx",
+          "nominal_mm": 1.0,
+          "source": "step_bbox"
+        },
+        {
+          "name": "bbox_Ly",
+          "nominal_mm": 1.0,
+          "source": "step_bbox"
+        },
+        {
+          "name": "sheet_thickness",
+          "nominal_mm": 10.0,
+          "source": "layer_extrude"
+        }
+      ],
+      "pmi_ready": true,
+      "maturity_level": "L4_pmi_step_read"
+    },
+    "openradioss": {
+      "ready": true,
+      "thickness_mm": 10.0,
+      "material_ready": false
+    }
+  },
+  "build_log_ref": "build_log.json",
+  "layers_done": 1,
+  "has_combined_step": false,
+  "pmi_enrichment": {
+    "parse_method": "step_text_v1",
+    "maturity_level": "L4_pmi_step_read",
+    "hole_count": 2,
+    "datum_count": 0,
+    "gdt_annotation_count": 0
+  },
+  "_validation": {
+    "ok": true,
+    "issues": []
+  }
+}

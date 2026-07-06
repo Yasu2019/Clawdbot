@@ -1,0 +1,15 @@
+{
+  "layers": {
+    "0": {
+      "entities": 6,
+      "thickness": 10.0,
+      "status": "done",
+      "freecad_msg": "",
+      "step": "0.step",
+      "fcstd": "0.FCStd",
+      "png": "0_views.png"
+    }
+  },
+  "timestamp": "2026-06-19T10:12:18.015984",
+  "part_manifest": "part_manifest.json"
+}
