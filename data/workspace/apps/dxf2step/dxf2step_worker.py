@@ -581,6 +581,33 @@ else:
                 seen_keys.add(k)
                 outer_segs.append(s)
 
+        # T043/5yk-5 (2026-07-06): the count>=2 removal above also deletes
+        # OVERDRAWN boundary spans (S1: a 25mm outline span had a duplicate short
+        # line on top of it and vanished, breaking the outer loop). A removed span
+        # is a true internal shared wall only if the boundary stays connected
+        # without it. If its removal leaves an endpoint dangling (degree<=1),
+        # restore exactly one copy.
+        removed_by_key = {}
+        for s in split_segs:
+            k = seg_key(*s)
+            if counts[k] >= 2 and k not in removed_by_key:
+                removed_by_key[k] = s
+        if removed_by_key:
+            deg = Counter()
+            for sx1, sy1, sx2, sy2 in outer_segs:
+                deg[(round(sx1 / tol) * tol, round(sy1 / tol) * tol)] += 1
+                deg[(round(sx2 / tol) * tol, round(sy2 / tol) * tol)] += 1
+            restored = 0
+            for k, s in removed_by_key.items():
+                a, b = k
+                if deg[a] <= 1 or deg[b] <= 1:
+                    outer_segs.append(s)
+                    deg[a] += 1
+                    deg[b] += 1
+                    restored += 1
+            if restored:
+                print(f"[T-junction] restored {restored} overdrawn boundary span(s) (5yk-5)", flush=True)
+
         return outer_segs, arc_entities, circle_entities
 
     def _point_key(self, x, y, tol):
