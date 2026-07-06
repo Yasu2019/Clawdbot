@@ -119,9 +119,12 @@ def main() -> int:
     for name in FILES:
         dst = f"{target}\\{name}"
         rl.run(f'cmd /c if exist "{dst}" copy /Y "{dst}" "{dst}.bak_t051" >nul & echo BACKUP_DONE')
+        # certutil (WinINet) fails silently under the worker's service context;
+        # use Invoke-WebRequest + Get-FileHash instead (T051 deploy attempt #2).
         pull = rl.run(
-            f'cmd /c certutil -urlcache -split -f {K10_HTTP}/{name} "{dst}" >nul 2>&1 & '
-            f'certutil -hashfile "{dst}" SHA256',
+            'powershell -NoProfile -ExecutionPolicy Bypass -Command '
+            f"\"Invoke-WebRequest -Uri {K10_HTTP}/{name} -OutFile '{dst}' -UseBasicParsing; "
+            f"(Get-FileHash -LiteralPath '{dst}' -Algorithm SHA256).Hash\"",
             timeout=180,
         )
         remote_hash = ""
