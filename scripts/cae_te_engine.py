@@ -1864,6 +1864,17 @@ def _assess_openradioss(run_result: dict, exp: dict) -> dict:
     else:
         verdict = "UNKNOWN"
 
+    # T051: fail fast with an actionable tag when the satellite's cae_self_growth_gates.py
+    # is stale (engine and gates MUST be deployed as a pair; see handover/t051 doc).
+    if not hasattr(cae_gates, "parse_openradioss_run_metrics"):
+        return {
+            "verdict": "ERROR",
+            "convergence": {},
+            "defects": {"assessment_error": "T051_GATES_VERSION_MISMATCH: cae_self_growth_gates.py lacks parse_openradioss_run_metrics - redeploy latest gates module to this node"},
+            "failure_tags": list(run_result.get("failure_tags", [])) + ["T051_GATES_VERSION_MISMATCH"],
+            "failure_evidence": run_result.get("failure_evidence", {}),
+            "pregate": run_result.get("pregate", {}),
+        }
     run_metrics = cae_gates.parse_openradioss_run_metrics(log)
     total_deleted = int(run_metrics.get("total_deleted_elements") or 0)
     mesh_events = int(run_metrics.get("failure_start_count") or 0) + int(

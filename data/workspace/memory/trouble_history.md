@@ -4,6 +4,8 @@
 
 | ID | 日付 | 事象 | 対策 |
 | --- | --- | --- | --- |
+| **[T051]** | **2026-07-06** | **red_lavie gates版数不整合で偽ERROR — T050でcae_te_engine.pyのみ配布しcae_self_growth_gates.py(7/4追加のparse_openradioss_run_metrics)未配布 → blanking 2試行(01:47/02:55)がNORMAL TERMINATION到達済みなのにassessment_errorでverdict=ERROR。併発: tri-trackオーケストレータ03:29停止** | **①engine:1867にhasattrガード追加(T051_GATES_VERSION_MISMATCHタグでfail-fast) ②恒久ルール: 衛星へのengine配布は必ずgatesとペア+双方SHA256照合 ③残: red_lavieペア配布+オーケストレータ再起動 → `docs/handover/T051_GATES_VERSION_MISMATCH_20260706.md`。bd `tq1`** |
+| **[T050]** | **2026-07-05** | **red_lavie OpenRadiossコンテナ4本孤児化積み上げ(2h/5h/8h/11h) → CPU100%+クロック597MHz固着で衛星4日間実質停止。真因: `subprocess.run(docker run, timeout=)` はタイムアウト時にdocker runクライアントのみkillし**コンテナは走り続ける**。--rmはexitしないと発動せず、3h毎(trial_timeout=10800s)の再ディスパッチで累積** | **①cae_te_engine.pyの全OpenRadioss起動コマンドをコンテナ内 `timeout -k 30 <sec>` でラップ(自己終了→--rm発動) ②滞留時の手動掃除: `docker ps` → `docker stop <OR系コンテナ>` ③教訓: docker runをsubprocess timeoutで管理する場合は必ずコンテナ内timeoutまたは`docker kill --name`のfinally句を併用 ④**併発問題: クロック597MHz固着はコンテナとは別原因=電源プランprocthrottlemax。`powercfg /setacvalueindex scheme_current sub_processor procthrottlemax 100`(+dc版)+`/setactive scheme_current`で1792MHzに復旧** ⑤修正版はSHA256検証付き分割base64転送でred_lavieへ配布済(2026-07-05 23:30、バックアップ`.bak_t050`)。bd `cttj`** |
 | **[T049]** | **2026-07-05** | **fem_impact@thinkpad サイレント即死 — `set -euo pipefail`下の `VTK_N=$(ls ...該当0件... \| wc -l)` でls exit2がpipefail経由で代入文に伝播し、echo到達前に無言でexit 2。stdout/stderr空のため診断不能なまま6/27頃から全practical系デッキが空回り（当初はデッキ未デプロイでtest -f exit1、デプロイ後this bugでexit2）** | **①`\|\| true`を代入内パイプ末尾に追加(k10_tri_track_cae_orchestrator.py) ②`test -f`を明示echo+exit 7化(FEM_IMPACT_INPUT_MISSING) ③QC実測値をdefects_detectedへ抽出しKPI空問題解消 ④意味ゲート自動停止(meaning_gate_max_fail_streak=8)+Telegram通知を全trackへ追加 ⑤爆発デッキRough_Mesh/test.in無効化。教訓: heredoc/set -e配下の`VAR=$(cmd\|cmd)`は必ず失敗時挙動を確認。bd `e3dn`** |
 | **[T039]** | **2026-06-25/27** | **PostgreSQL WAL破損 繰り返し再発 — Windows再起動時にDockerのデフォルト stop_grace_period=10秒でSIGKILL → checkpoint書けずWAL破損。6/20(14:22JST)・6/25・6/27(9:01+10:18JST 予期しないシャットダウン×2)の3回発生。Windows Event ID 1074/6008でパターン確認済** | **①docker-compose.yml に `stop_grace_period: 60s` + `-c checkpoint_timeout=1min` 追加(メイン対策) ②backup_infra_daily.ps1の pg_dump出力先を /tmp に変更(データディレクトリ直接書き込み禁止) ③シャットダウンフックスクリプト `scripts/k10_graceful_docker_shutdown.ps1` 作成(要管理者でTask Scheduler登録) ④復旧手順: `pg_resetwal -f` + VACUUM + REINDEX。詳細: T-WAL-001** |
 | **tri-thinkpad-fem_impact-917a60f8** | 2026-06-18 | unknown attempt=1 | Run --sync-script before trial; Use test.in_* VTK glob in png shell |
@@ -1093,10 +1095,4 @@ G1 py_compile → G2 `fleet_satellite_setup_auto.ps1` → G3 K10 probe → G4 �
 **根本原因:** ThinkPadのDXF2STEP試行が**全件FAILED(`all_layers_failed`)のまま回り続け**、失敗のたびにFMEA/FTA/なぜなぜ/fishboneの巨大レコードをjsonlとgrowth.dbへ書き込み。「失敗→分析→同じ失敗」の無意味ループ=**[T019]意味ゲート違反、[T041]-[T043]系統の3度目の再発**。
 
 **対処(2026-07-05 ユーザー承認のうえ実施):**
-1. 両プロセスをStop-Process(全件失敗中のため損失なし)→ growth.db膨張の停止を実測確認(45秒で増分0MB)
-2. jsonl 13.8GBを `F:\runaway_quarantine_20260705\` へ隔離(D:空き47Gへ回復)
-3. growth.db(37.8GB)は後日診断: 中身の異常レコード確認→クリーニング→VACUUM
-
-**恒久対策(未実装・bd起票):** 両スクリプトに**意味ゲート**を実装 — 「連続N回(例:10回)同一failure_classで失敗したら自動停止+Telegram報告」。失敗の分析記録は要約1件のみとし、同一根本原因の重複FMEA生成を禁止する。**教訓: 品質分析の自動生成は、失敗が止まらない限り、それ自体がディスク攻撃になる。**
-
-**関連:** [T019][T039][T041][T042][T043]、INC-142
+1. 両プロセスをStop-Process(全件失敗中のため損失なし)→ growth.db膨張の停止を実測確認(45秒
