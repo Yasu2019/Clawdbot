@@ -401,7 +401,43 @@ else:
             layers[e.dxf.layer].append(e)
         return layers
 
+    # T043/5yk-2: annotation linetypes never represent cutting geometry
+    # (centerlines, pitch circles, phantom/hidden). DASHED is intentionally
+    # NOT listed (can be real hidden edges); BYLAYER/BYBLOCK are kept.
+    ANNOTATION_LINETYPES = {
+        "CENTER", "CENTERX2", "CENTER2",
+        "DASHDOT", "DASHDOTX2", "DASHDOT2",
+        "DOT", "DOTX2", "DOT2",
+        "DIVIDE", "DIVIDEX2", "DIVIDE2",
+        "PHANTOM", "PHANTOMX2", "PHANTOM2",
+        "HIDDEN", "HIDDENX2", "HIDDEN2",
+        "BORDER", "BORDERX2", "BORDER2",
+    }
+
+    def _entity_linetype(self, e) -> str:
+        try:
+            lt = str(getattr(e.dxf, "linetype", "") or "").upper()
+        except Exception:
+            return ""
+        if lt in ("BYLAYER", "BYBLOCK"):
+            return ""
+        return lt
+
     def clean_geometry(self, entities):
+        # 0. T043/5yk-2 (2026-07-06): drop annotation-linetype geometry before
+        #    topology/QC. S1 evidence: open_endpoints 108->29, part outline
+        #    (33600mm2) recovered as closed loop, 23 pitch circles removed.
+        filtered = []
+        dropped = 0
+        for e in entities:
+            if e.dxftype() in ("LINE", "ARC", "CIRCLE") and self._entity_linetype(e) in self.ANNOTATION_LINETYPES:
+                dropped += 1
+                continue
+            filtered.append(e)
+        if dropped:
+            print(f"[linetype-filter] dropped {dropped} annotation-linetype entities (centerlines/pitch circles etc.)", flush=True)
+            self.log_data["annotation_linetype_dropped"] = int(self.log_data.get("annotation_linetype_dropped") or 0) + dropped
+        entities = filtered
         # 1. Dedup
         seen = set()
         unique = []
