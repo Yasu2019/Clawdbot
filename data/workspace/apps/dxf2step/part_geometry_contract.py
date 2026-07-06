@@ -362,7 +362,28 @@ def to_tolerance_dims(
         mean = float(row.get("nominal_mm") or 0.0)
         if mean <= 0:
             continue
-        tol = sheet_tol if "thickness" in name.lower() else per_dim_tol
+        # T-iy63/L4 (2026-07-07): honour real drawing tolerances from AP242 PMI.
+        # Asymmetric +p/-m becomes mid-shifted symmetric: mean+=(p+m)/2, tol=(p-m)/2.
+        tol_pmi = row.get("tol_mm") or row.get("tolerance_mm")
+        plus = row.get("plus_mm")
+        minus = row.get("minus_mm")
+        source = "measured"
+        if plus is not None and minus is not None:
+            try:
+                p, mnu = float(plus), float(minus)
+                mean = mean + (p + mnu) / 2.0
+                tol = max((p - mnu) / 2.0, 0.001)
+                source = "pmi"
+            except (TypeError, ValueError):
+                tol = sheet_tol if "thickness" in name.lower() else per_dim_tol
+        elif tol_pmi:
+            try:
+                tol = max(float(tol_pmi), 0.001)
+                source = "pmi" if str(row.get("source", "")).startswith("gdt_pmi") else "measured"
+            except (TypeError, ValueError):
+                tol = sheet_tol if "thickness" in name.lower() else per_dim_tol
+        else:
+            tol = sheet_tol if "thickness" in name.lower() else per_dim_tol
         dims.append(
             {
                 "name": name,
@@ -370,7 +391,7 @@ def to_tolerance_dims(
                 "tolerance": tol,
                 "coef": 1.0 if idx % 2 == 0 else -1.0,
                 "distribution": "normal",
-                "source": "measured",
+                "source": source,
             }
         )
     return dims

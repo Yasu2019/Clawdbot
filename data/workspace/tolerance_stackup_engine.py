@@ -131,6 +131,12 @@ def analyze_stack(
             "measured": sum(1 for d in dims if d.source == "measured"),
             "synthetic": sum(1 for d in dims if d.source != "measured"),
             "gdt": sum(1 for d in dims if str(d.source).startswith("gdt")),
+            # T-iy63/L4: drawing-driven dims from AP242 PMI (+/- tolerances)
+            "pmi": sum(
+                1
+                for d in dims
+                if str(d.source) == "pmi" or str(d.source).startswith("gdt_pmi")
+            ),
         },
     }
 

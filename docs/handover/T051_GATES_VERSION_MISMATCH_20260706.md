@@ -1,5 +1,7 @@
 # T051: red_lavie gates版数不整合による偽ERROR + tri-trackループ停止 (2026-07-06)
 
+> **追記(7/7): CETOL L4実装完了(bd iy63)** — AP242セマンティックPMIパーサを実装。STEPの±公差(PLUS_MINUS_TOLERANCE)・幾何公差(POSITION等16種+magnitude)・データム記号を読み、実図面公差が公差スタック(WC/RSS/MC/Cpk)まで貫通。非対称公差は中央シフト対称化。変更: `apps/dxf2step/step_pmi_extract.py`(parse_step_ap242_pmi) / `part_geometry_contract.py`(to_tolerance_dimsのPMI公差優先) / `tolerance_stackup_engine.py`(pmiソース集計)。テスト: `apps/dxf2step/test_ap242_pmi_l4.py` + フィクスチャ `test_data/ap242_pmi_sample.step`(A〜D全PASS・S1回帰OK)。残: L10 FreeCADループ実機(antigravity)確認、実PMI付きSTEPでの実証
+
 bd: `tq1`(P0, blanking完走) 関連 / 系統: T049→T050の追補
 
 ## 事象
