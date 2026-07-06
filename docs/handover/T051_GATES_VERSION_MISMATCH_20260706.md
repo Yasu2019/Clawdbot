@@ -19,7 +19,10 @@ bd: `tq1`(P0, blanking完走) 関連 / 系統: T049→T050の追補
 
 ## 残作業 (次セッション / ユーザー実施)
 
-### 1. red_lavie へペア配布 (T050と同方式: SHA256検証+py_compile必須)
+### 1. red_lavie へペア配布 — ✅ **完了(2026-07-07未明)** `k10_t051_deploy_all_in_one.ps1` でSHA256照合付き配布成功。以下は記録として保持。
+**配布時の3つの罠(恒久教訓):** ①certutilはワーカーのサービス文脈でWinINet起因の無言失敗→Invoke-WebRequestを使う ②ワーカーは単線・syncジョブ実行中は/jobsが全ブロック→配布前にorchestrator全停止が必須 ③watchdogは2重起動を検知しない(pid複数表示が兆候)
+
+(旧手順: T050と同方式: SHA256検証+py_compile必須)
 | ファイル | SHA256 (K10正) |
 |---|---|
 | `scripts/cae_te_engine.py` (T051ガード入り) | `f63f174f334b46e92c68a184de047084cec770c16ca7ae3378b1e4c9cbee3e09` |
