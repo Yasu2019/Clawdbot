@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CETOL 6σ — 図面駆動 公差解析</title>
+<style>
+:root{--bg:#12141a;--panel:#1b1f2a;--panel2:#232838;--tx:#dde3f0;--dim:#8b93a7;--acc:#4da3ff;--ok:#3ddc84;--warn:#ffb84d;--ng:#ff5f6b;--pmi:#b48cff}
+*{box-sizing:border-box}body{margin:0;font-family:"Segoe UI",Meiryo,sans-serif;background:var(--bg);color:var(--tx)}
+header{padding:14px 22px;background:var(--panel);border-bottom:1px solid #2c3348;display:flex;gap:16px;align-items:baseline;flex-wrap:wrap}
+h1{font-size:19px;margin:0}h1 small{color:var(--dim);font-weight:normal;font-size:12px;margin-left:10px}
+#meta{color:var(--dim);font-size:12px;margin-left:auto}
+main{padding:18px 22px;max-width:1200px;margin:0 auto}
+select{background:var(--panel2);color:var(--tx);border:1px solid #3a4258;border-radius:6px;padding:6px 10px;font-size:14px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:16px 0}
+.card{background:var(--panel);border:1px solid #2c3348;border-radius:10px;padding:12px 14px}
+.card .k{font-size:11px;color:var(--dim)}.card .v{font-size:22px;margin-top:4px;font-weight:600}
+.card .v.ok{color:var(--ok)}.card .v.warn{color:var(--warn)}.card .v.ng{color:var(--ng)}
+.card .sub{font-size:11px;color:var(--dim);margin-top:2px}
+section{background:var(--panel);border:1px solid #2c3348;border-radius:10px;padding:14px 16px;margin:14px 0}
+section h2{font-size:14px;margin:0 0 10px;color:var(--acc)}
+.bar-row{display:flex;align-items:center;gap:8px;margin:4px 0;font-size:12px}
+.bar-name{width:220px;text-align:right;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar-track{flex:1;background:var(--panel2);border-radius:4px;height:16px;position:relative}
+.bar-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--acc),#7cc0ff)}
+.bar-fill.pmi{background:linear-gradient(90deg,var(--pmi),#d0b5ff)}
+.bar-val{width:60px;font-variant-numeric:tabular-nums}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th,td{padding:6px 8px;text-align:left;border-bottom:1px solid #2c3348}
+th{color:var(--dim);font-weight:normal;font-size:11px}
+td.num{font-variant-numeric:tabular-nums}
+.tag{display:inline-block;padding:1px 8px;border-radius:10px;font-size:11px}
+.tag.tighten{background:#4d2a2f;color:var(--ng)}.tag.loosen_candidate{background:#1e3c2c;color:var(--ok)}
+.tag.keep{background:#2a3146;color:var(--dim)}.tag.fixed{background:#3a3320;color:var(--warn)}
+.tag.pmi{background:#33265c;color:var(--pmi)}
+.note{font-size:12px;color:var(--dim);margin-top:6px}
+#empty{padding:40px;text-align:center;color:var(--dim)}
+</style>
+</head>
+<body>
+<header>
+  <h1>CETOL 6σ <small>図面駆動 公差解析 — WC / RSS / Monte Carlo / MSM / 再配分 (bd iy63)</small></h1>
+  <select id="partSel"></select>
+  <div id="meta"></div>
+</header>
+<main>
+  <div id="empty">cetol_reports.json がありません。K10で <code>python scripts/cetol_app_report_builder.py</code> を実行してください。</div>
+  <div id="content" style="display:none">
+    <div class="cards" id="cards"></div>
+    <section><h2>感度・寄与度 (MSM解析解)</h2><div id="contrib"></div>
+      <div class="note">紫=図面PMI由来の寸法。contribution = (aᵢσᵢ)² / σ_Y²</div></section>
+    <section><h2>公差再配分の推奨 (目標Cpk 1.33)</h2><div id="allocSummary" class="note"></div>
+      <table id="allocTbl"><thead><tr><th>寸法</th><th>ソース</th><th>現公差 [mm]</th><th>推奨公差 [mm]</th><th>寄与度</th><th>アクション</th></tr></thead><tbody></tbody></table></section>
+    <section><h2>スタック寸法一覧</h2>
+      <table id="dimTbl"><thead><tr><th>寸法</th><th>mean [mm]</th><th>公差 [mm]</th><th>係数</th><th>ソース</th></tr></thead><tbody></tbody></table></section>
+  </div>
+</main>
+<script>
+const fmt=(v,d=3)=>(v==null||isNaN(v))?"—":Number(v).toFixed(d);
+const cls=(cpk)=>cpk==null?"":(cpk>=1.33?"ok":(cpk>=1.0?"warn":"ng"));
+let DATA=null;
+function card(k,v,c,sub){return `<div class="card"><div class="k">${k}</div><div class="v ${c||""}">${v}</div><div class="sub">${sub||""}</div></div>`;}
+function render(r){
+  const mc=r.mc||{},msm=r.msm||{},al=r.allocation||{};
+  document.getElementById("cards").innerHTML=[
+    card("成熟度",(r.maturity_level||"—").replace("L10_assembly_",""),"",`PMI寸法:${r.pmi?.dims??0} 穴:${r.pmi?.holes??0} データム:${r.pmi?.datums??0}`),
+    card("Cpk (MSM解析解)",fmt(msm.Cpk,3),cls(msm.Cpk),`歩留まり ${fmt((msm.yield_rate||0)*100,2)}%`),
+    card("Cpk (Monte Carlo)",fmt(mc.Cpk,3),cls(mc.Cpk),`n=${mc.n||"—"} / 歩留まり ${fmt((mc.yield_rate||0)*100,2)}%`),
+    card("Worst Case",fmt(r.worst_case_mm,3)+" mm","",`RSS 3σ: ${fmt(r.rss_3sigma_mm,3)} mm`),
+    card("σ (MSM)",fmt(msm.sigma,4),"",`歪度 ${fmt(msm.skewness,3)} / 尖度 ${fmt(msm.excess_kurtosis,3)}`),
+    card("判定",r.factory_kpi||"—",r.factory_kpi==="PASS"?"ok":"ng",al.reason||"")
+  ].join("");
+  const sens=Object.entries(r.sensitivity||{}).sort((a,b)=>b[1].contribution-a[1].contribution).slice(0,12);
+  const srcOf=n=>{const d=(r.dimensions||[]).find(x=>x.name===n);return d?d.source:"";};
+  document.getElementById("contrib").innerHTML=sens.map(([n,s])=>{
+    const pmi=(srcOf(n)==="pmi"||String(srcOf(n)).startsWith("gdt_pmi"));
+    return `<div class="bar-row"><div class="bar-name">${n}</div><div class="bar-track"><div class="bar-fill ${pmi?"pmi":""}" style="width:${Math.max(1,s.contribution*100)}%"></div></div><div class="bar-val">${(s.contribution*100).toFixed(1)}%</div></div>`;}).join("");
+  const reasonJa={already_capable:"能力十分 — 緩和候補あり(コストダウン余地)",tighten_by_common_scale:`能力不足 — 調整可能な公差を一律 k=${fmt(al.common_tighten_scale,3)} 倍に締めると目標達成`,fixed_die_set_variance_exceeds_budget:"実現不能 — 金型セット(assembly_l10)のばらつきだけで予算超過。金型側の改善が必要"};
+  document.getElementById("allocSummary").textContent=`現状Cpk ${fmt(al.current_cpk,3)} → 目標 ${fmt(al.target_cpk,2)} : ${reasonJa[al.reason]||al.reason||"—"}`;
+  document.querySelector("#allocTbl tbody").innerHTML=(al.recommendations||[]).map(x=>
+    `<tr><td>${x.name}</td><td><span class="tag ${x.source==="pmi"?"pmi":"keep"}">${x.source}</span></td><td class="num">${fmt(x.tolerance_mm)}</td><td class="num">${fmt(x.recommended_tolerance_mm)}${x.cpk_if_loosened_x2?` <span class="note">(×2でCpk ${x.cpk_if_loosened_x2})</span>`:""}</td><td class="num">${(x.contribution*100).toFixed(1)}%</td><td><span class="tag ${x.action}">${x.action}</span></td></tr>`).join("");
+  document.querySelector("#dimTbl tbody").innerHTML=(r.dimensions||[]).map(d=>
+    `<tr><td>${d.name}</td><td class="num">${fmt(d.mean)}</td><td class="num">${fmt(d.tolerance)}</td><td class="num">${d.coef}</td><td><span class="tag ${d.source==="pmi"?"pmi":"keep"}">${d.source}</span></td></tr>`).join("");
+}
+fetch("cetol_reports.json?ts="+Date.now()).then(r=>r.json()).then(j=>{
+  DATA=j;const reps=j.reports||[];
+  document.getElementById("meta").textContent=`生成: ${j.generated_at||"—"} / ${reps.length}件`;
+  if(!reps.length)return;
+  document.getElementById("empty").style.display="none";
+  document.getElementById("content").style.display="block";
+  const sel=document.getElementById("partSel");
+  sel.innerHTML=reps.map((r,i)=>`<option value="${i}">${r.job_id} (${r.source_dxf||"?"} / Cpk ${fmt((r.msm||{}).Cpk,2)})</option>`).join("");
+  sel.onchange=()=>render(reps[sel.value]);
+  render(reps[0]);
+}).catch(()=>{});
+</script>
+</body>
+</html>
