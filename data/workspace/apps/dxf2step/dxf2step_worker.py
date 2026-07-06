@@ -213,6 +213,12 @@ class DXFProcessor:
             pw_m = re.search(r"\[hole-cut\] profile_wires=(\d+)", msg or "")
             if pw_m:
                 profile_wires = int(pw_m.group(1))
+            # T043/5yk-6: base_faces = nesting-resolved outer profile count from the
+            # FreeCAD script. 0 = marker absent (stale script -> fail-closed below).
+            base_faces_count = 0
+            bf_m = re.search(r"\[hole-cut\] base_faces=(\d+)", msg or "")
+            if bf_m:
+                base_faces_count = int(bf_m.group(1))
             ng_multi = "NG_MULTIPLE_PROFILES" in (msg or "")
             layer_log = {
                 "entities": len(cleaned_entities),
@@ -240,13 +246,17 @@ class DXFProcessor:
                     os.remove(step_path)
                 except Exception:
                     pass
-            elif step_exists and profile_wires > 1:
+            elif step_exists and profile_wires > 1 and base_faces_count != 1:
+                # T043/5yk-6: fail only when nesting did NOT resolve to a single
+                # outer profile (base_faces_count>1 is caught by NG earlier; 0 means
+                # stale FreeCAD script without the marker -> keep fail-closed).
                 layer_log["status"] = "failed"
                 layer_log["profile_qc"] = {
                     "gate": "DXF-QC04g",
                     "pass": False,
-                    "reason": f"profile_wires={profile_wires}>1 (island-risk)",
+                    "reason": f"profile_wires={profile_wires}>1 with base_faces={base_faces_count}!=1 (island-risk)",
                     "profile_wires": profile_wires,
+                    "base_faces": base_faces_count,
                 }
                 self.log_data.setdefault("profile_qc_failures", []).append(
                     {"layer": layer_name, "profile_wires": profile_wires}
@@ -1625,6 +1635,9 @@ if edges:
                 except Exception as fe:
                     print(f"Face/containment error: {{fe}}")
 
+            # T043/5yk-6: report nesting result. Nested cutout wires (slots) are
+            # legitimate; only DISJOINT outer profiles (base_faces>1) are NG (T041).
+            print(f"[hole-cut] base_faces={{len(base_faces)}}", flush=True)
             if len(base_faces) > 1:
                 raise Exception('NG_MULTIPLE_PROFILES: 1つの面（レイヤー）に複数の独立した外形プロファイルが検出されました。基本DXFは部品単体の図面であるため、複数部品やバラ図はNG（未対応）対象となります。')
 
