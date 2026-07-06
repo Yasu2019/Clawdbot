@@ -132,6 +132,16 @@ class DXFProcessor:
             if not outer_lines and not arc_entities and not circle_entities:
                 continue
 
+            # T043/5yk-4 (2026-07-06): heal small drawing gaps (S1: outline broken at
+            # one ~1-2mm gap -> no cycle -> QC fail AND FreeCAD face would fail too).
+            # Bridges mutually-nearest true-open endpoints within DXF2STEP_GAP_HEAL_TOL.
+            outer_lines, healed_n = self._heal_endpoint_gaps(
+                outer_lines, arc_entities, tol=t_junction_tol
+            )
+            if healed_n:
+                print(f"[gap-heal] layer {layer_name}: bridged {healed_n} small endpoint gap(s)", flush=True)
+                self.log_data["gap_healed_segments"] = int(self.log_data.get("gap_healed_segments") or 0) + healed_n
+
             loop_qc = self._evaluate_closed_loop_qc(
                 outer_lines,
                 circle_entities,
@@ -871,6 +881,98 @@ else:
                 picked.append(e)
         return picked
 
+    def _heal_endpoint_gaps(self, line_segs, arc_entities, *, tol: float = 0.02):
+        """T043/5yk-4: bridge small drawing gaps between true-open endpoints.
+
+        Bridges only endpoints that (a) have topology degree 1 (arc chords count),
+        (b) do NOT touch another segment's interior (not a T-junction), and
+        (c) are mutually nearest within heal_tol (env DXF2STEP_GAP_HEAL_TOL, mm,
+        default 2.5). Returns (new_line_segs, healed_count). The bridge segments
+        are real geometry: they also flow into the cleaned sub-DXF so FreeCAD
+        can build a closed face.
+        """
+        try:
+            heal_tol = float(os.environ.get("DXF2STEP_GAP_HEAL_TOL", "2.5"))
+        except Exception:
+            heal_tol = 2.5
+        if heal_tol <= 0 or not line_segs:
+            return list(line_segs), 0
+
+        segs = list(line_segs)
+        chords = []
+        for e in arc_entities:
+            try:
+                cx = float(e.dxf.center.x)
+                cy = float(e.dxf.center.y)
+                r = float(e.dxf.radius)
+                a0 = math.radians(float(e.dxf.start_angle))
+                a1 = math.radians(float(e.dxf.end_angle))
+                chords.append(
+                    (cx + r * math.cos(a0), cy + r * math.sin(a0),
+                     cx + r * math.cos(a1), cy + r * math.sin(a1))
+                )
+            except Exception:
+                continue
+        topo = segs + chords
+        adj = defaultdict(list)
+        for x1, y1, x2, y2 in topo:
+            a = self._point_key(x1, y1, tol)
+            b = self._point_key(x2, y2, tol)
+            if a == b:
+                continue
+            adj[a].append(b)
+            adj[b].append(a)
+
+        def _touches(px: float, py: float) -> bool:
+            for x1, y1, x2, y2 in topo:
+                if (abs(px - x1) <= tol and abs(py - y1) <= tol) or (
+                    abs(px - x2) <= tol and abs(py - y2) <= tol
+                ):
+                    continue
+                dx, dy = x2 - x1, y2 - y1
+                seg_len2 = dx * dx + dy * dy
+                if seg_len2 <= 0:
+                    continue
+                t = ((px - x1) * dx + (py - y1) * dy) / seg_len2
+                if t < 0.0 or t > 1.0:
+                    continue
+                if math.hypot(px - (x1 + t * dx), py - (y1 + t * dy)) <= tol:
+                    return True
+            return False
+
+        opens = [n for n, v in adj.items() if len(v) == 1 and not _touches(n[0], n[1])]
+        if len(opens) < 2:
+            return segs, 0
+        healed = 0
+        used: set[int] = set()
+        for i, p in enumerate(opens):
+            if i in used:
+                continue
+            best_j = None
+            best_d = heal_tol
+            for j, q in enumerate(opens):
+                if j == i or j in used:
+                    continue
+                d = math.hypot(p[0] - q[0], p[1] - q[1])
+                if d <= best_d:
+                    best_j, best_d = j, d
+            if best_j is None:
+                continue
+            q = opens[best_j]
+            # mutual-nearest guard: skip if q has a closer open endpoint than p
+            back_d = min(
+                (math.hypot(q[0] - r_[0], q[1] - r_[1])
+                 for k, r_ in enumerate(opens) if k != best_j and k not in used),
+                default=1e18,
+            )
+            if back_d < best_d - 1e-9:
+                continue
+            segs.append((p[0], p[1], q[0], q[1]))
+            used.add(i)
+            used.add(best_j)
+            healed += 1
+        return segs, healed
+
     def _wire_graph_stats(self, line_segs, tol: float = 0.02) -> dict:
         """Topology stats for DXF-QC04c closed outer loop gate."""
         adj: dict[tuple[float, float], list[tuple[float, float]]] = defaultdict(list)
@@ -882,7 +984,29 @@ else:
             adj[a].append(b)
             adj[b].append(a)
 
-        open_endpoints = sum(1 for n, v in adj.items() if len(v) == 1)
+        # T043/5yk-3 (2026-07-06): an endpoint that lands on the INTERIOR of another
+        # segment is a T-junction, not an open end (S1: all 29 "open" endpoints had
+        # segment distance 0.000). Count only endpoints that touch nothing.
+        def _touches_other_segment(px: float, py: float) -> bool:
+            for x1, y1, x2, y2 in line_segs:
+                if (abs(px - x1) <= tol and abs(py - y1) <= tol) or (
+                    abs(px - x2) <= tol and abs(py - y2) <= tol
+                ):
+                    continue  # own/shared endpoint, not an interior touch
+                dx, dy = x2 - x1, y2 - y1
+                seg_len2 = dx * dx + dy * dy
+                if seg_len2 <= 0:
+                    continue
+                t = ((px - x1) * dx + (py - y1) * dy) / seg_len2
+                if t < 0.0 or t > 1.0:
+                    continue
+                if math.hypot(px - (x1 + t * dx), py - (y1 + t * dy)) <= tol:
+                    return True
+            return False
+
+        degree_one = [n for n, v in adj.items() if len(v) == 1]
+        t_junction_endpoints = sum(1 for n in degree_one if _touches_other_segment(n[0], n[1]))
+        open_endpoints = len(degree_one) - t_junction_endpoints
         odd_degree_nodes = sum(1 for n, v in adj.items() if len(v) % 2 == 1)
 
         visited: set[tuple[float, float]] = set()
@@ -904,7 +1028,11 @@ else:
                         stack.append(nb)
             if len(comp_nodes) < 3:
                 continue
-            if all(len(adj[n]) == 2 for n in comp_nodes):
+            # T043/5yk-3: a component with T-branches is still "closed" if it contains
+            # at least one cycle (edges >= nodes). The strict all-degree-2 test missed
+            # the S1 outline (deg-3 T-nodes) and reported only tiny slot loops.
+            comp_edges = sum(len(adj[n]) for n in comp_nodes) // 2
+            if comp_edges >= len(comp_nodes):
                 xs = [n[0] for n in comp_nodes]
                 ys = [n[1] for n in comp_nodes]
                 area = max(max(xs) - min(xs), 0.0) * max(max(ys) - min(ys), 0.0)
@@ -915,6 +1043,7 @@ else:
             "nodes": len(adj),
             "segments": len(line_segs),
             "open_endpoints": open_endpoints,
+            "t_junction_endpoints": t_junction_endpoints,
             "odd_degree_nodes": odd_degree_nodes,
             "closed_component_count": closed_component_count,
             "closed_component_max_area": closed_component_max_area,

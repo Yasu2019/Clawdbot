@@ -57,7 +57,18 @@ bd create --title "[bug] T051 red_lavie gates版数不整合で偽ERROR + engine
 - **bd:** `bd update Clawdbot_Docker_20260125-5yk --comment "QC04c弧無視の偽FAIL修正+単体テストPASS。ThinkPad配布後にS1再試行で実機確認"` / 0wf はT042対策実装済+監査スクリプト存在確認済 → `audit_dxf2step_hole_vs_island_misclass.py` 再実行でクリーンなら close 可
 - **注意:** ThinkPad dxf2stepループは現在旧コードで稼働中(7/6 15:57確認)。worker配布は次回試行から自動反映されるが、K10側ループの意味ゲート(ip4)はループ再起動まで無効
 
-## 備考 (tq1本体)
+## 追記2 (2026-07-06 夕): 5yk-2/5yk-3 — S1偽FAILの完全解明(3層の原因)
+
+S1 (`tp-dxf-963a5926`→`af3eda2b`) の QC04c 偽FAILは3つの実装漏れの複合だった:
+
+1. **5yk-1: 弧無視** — 位相グラフがLINEのみ。弧の弦を追加(open 174→108)
+2. **5yk-2: 注記線種混入** — DASHDOT/DOT/DIVIDE等の中心線・ピッチ円が形状扱い。`clean_geometry`冒頭に`ANNOTATION_LINETYPES`フィルタ追加(open 108→28、注記円23個除去、外形線復活)
+3. **5yk-3: T字接合誤カウント** — 開放端点28個は全て他セグメント内部に着地(距離0.000)=T-junction。①内部接触端点をopenから除外 ②閉成分判定を「全節点次数2」→「サイクル保有(edges≥nodes)」に変更(T分岐込みの外形33600mm²を閉と認識)
+- **検証:** 実S1データのオフライン再現で pass=True (open=0, t_junction=28, closed_max=33600, ratio=1.224 — 実機trial値と一致)。回帰3件PASS(真の開輪郭FAIL維持・円のみパンチFAIL維持)
+- **教訓:** 実図面は「注記幾何の混在」「T字接合」「線-弧混成輪郭」が常態。位相QCはこの3つを前提に設計すること
+- **残確認:** QC04c通過後のFreeCAD押し出し・穴カットQC(QC04d以降)は未踏。S1再試行の実機結果で判断
+
+4. **5yk-4: 外形の実ギャップ** — 5yk-3後の実機で open=2 が残存 = 外形が1箇所実際に切れている(図面由来1-2mm級ギャップ)→ サイクル不成立で閉成分205mm²のまま。`_heal_endpoint_gaps` を実装: 真の開放端点(次数1・T接触なし)の相互最近傍ペアを `DXF2STEP_GAP_HEAL_TOL`(既定2.5mm)以内で橋渡し。橋はsub-DXFにも書かれFreeCADの面生成にも効く。テスト: 1.5mmギャップ修復→QC PASS / 5mm非修復→FAIL維持 / T字スタブ誤修復なし / env上書き動作
 - 2試行のパラメータ: clearance 10.7% / 11.7%, punch_speed 2039 / 2475 mm/s, μ 0.107 / 0.095
 - engineログに `NODAL VELOCITY IS TOO HIGH FOR INTERFACE 1` あり → 再開後、KPI評価が正常化したら
   punch_speed 低め側の探索を優先する余地あり
