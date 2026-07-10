@@ -44,15 +44,27 @@ from inspection_ai.detection.reference_model import (  # noqa: E402
 from inspection_ai.preprocessing.image_ops import apply_roi  # noqa: E402
 
 
-def collect_scores(det, folder: Path, recipe: dict) -> list[float]:
-    """pipeline.pyと同一の前処理(ROI切り出し)でスコア収集する。"""
+def collect_scores(det, folder: Path, recipe: dict, augment_shift_px: int = 0) -> list[float]:
+    """pipeline.pyと同一の前処理(ROI切り出し)でスコア収集する。
+
+    augment_shift_px>0 の場合、±shiftの平行移動変種も良品分布に含める
+    (実治具の位置ズレを校正に織り込む=ズレ良品の偽REVIEW防止)。"""
+    import numpy as np
     scores = []
     for p in sorted(glob.glob(str(folder / "**" / "*.png"), recursive=True)):
         img = cv2.imread(p)
         if img is None:
             continue
-        roi, offset = apply_roi(img, recipe.get("image", {}).get("roi"))
-        scores.append(float(det.predict(roi, offset=offset)[0].anomaly_score))
+        variants = [img]
+        if augment_shift_px > 0:
+            s = augment_shift_px
+            for dx, dy in ((s, 0), (-s, 0), (0, s), (s, -s)):
+                M = np.float32([[1, 0, dx], [0, 1, dy]])
+                variants.append(cv2.warpAffine(img, M, (img.shape[1], img.shape[0]),
+                                               borderMode=cv2.BORDER_REPLICATE))
+        for v in variants:
+            roi, offset = apply_roi(v, recipe.get("image", {}).get("roi"))
+            scores.append(float(det.predict(roi, offset=offset)[0].anomaly_score))
     return scores
 
 
@@ -68,6 +80,7 @@ def main() -> int:
     ap.add_argument("--bad", default=None, help="不良画像フォルダ(再帰)")
     ap.add_argument("--model", default=None, help="基準モデルnpz。省略時は--goodで一時学習(検証用途)")
     ap.add_argument("--train-good", default=None, help="一時学習に使う良品フォルダ(省略時=--good)")
+    ap.add_argument("--augment-shift-px", type=int, default=0, help="良品に±Npxズレ変種を加えて校正(治具ズレ耐性)")
     ap.add_argument("--apply", action="store_true")
     ap.add_argument("--force", action="store_true", help="分離不足でも適用(非推奨)")
     args = ap.parse_args()
@@ -87,7 +100,7 @@ def main() -> int:
                                       roi=recipe.get("image", {}).get("roi"))
     det = ReferenceDifferenceDetector(model_path, recipe)
 
-    good_scores = collect_scores(det, Path(args.good), recipe)
+    good_scores = collect_scores(det, Path(args.good), recipe, augment_shift_px=args.augment_shift_px)
     if len(good_scores) < 5:
         print(f"[NG] 良品検証画像が{len(good_scores)}枚(最低5枚)"); return 2
     bad_scores = collect_scores(det, Path(args.bad), recipe) if args.bad else []

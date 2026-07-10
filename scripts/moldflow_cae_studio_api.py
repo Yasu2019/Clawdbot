@@ -164,7 +164,17 @@ def _load_maturity_snapshot() -> dict:
     if not MATURITY_LATEST.exists():
         return {"available": False, "product": None,
                 "note": "commercial_benchmark_maturity_latest.json not found"}
-    doc = json.loads(MATURITY_LATEST.read_text(encoding="utf-8-sig"))
+    doc = None
+    for _ in range(3):  # 全体書き換え方式JSONのためリトライ読込(検証メモ2026-07-07)
+        try:
+            doc = json.loads(MATURITY_LATEST.read_text(encoding="utf-8-sig"))
+            break
+        except (json.JSONDecodeError, OSError):
+            import time as _time
+            _time.sleep(0.5)
+    if doc is None:
+        return {"available": False, "product": None,
+                "note": "maturity json 読込失敗(書き換え中の可能性・リトライ超過)"}
     product = None
     for row in doc.get("matrix") or []:
         if "MOLDFLOW" in str(row.get("product_id", "")).upper():
