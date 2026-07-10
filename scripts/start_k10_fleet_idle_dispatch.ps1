@@ -1,18 +1,17 @@
 param(
-    [int]$PollSeconds = 900,
+    [int]$PollSeconds = 300,
     [switch]$NoStartup
 )
 
 $ErrorActionPreference = "Stop"
 $Root = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
-$Script = Join-Path $Root "scripts\k10_thinkpad_continuous_loop.py"
-$Workspace = Join-Path $Root "data\workspace"
-$StatusPath = Join-Path $Workspace "thinkpad_continuous_loop_status.json"
+$Script = Join-Path $Root "scripts\k10_fleet_idle_dispatch.py"
+$PolicyPath = Join-Path $Root "data\workspace\fleet_idle_dispatch_policy.yaml"
 $StartupDir = [Environment]::GetFolderPath("Startup")
-$StartupVbs = Join-Path $StartupDir "StartThinkPadContinuousLoop.vbs"
+$StartupVbs = Join-Path $StartupDir "StartFleetIdleDispatch.vbs"
 
 if (-not (Test-Path $Script)) {
-    throw "Loop script not found: $Script"
+    throw "Script not found: $Script"
 }
 
 $Python = Join-Path $Root ".venv\Scripts\pythonw.exe"
@@ -23,9 +22,16 @@ if (-not (Test-Path $Python)) {
     $Python = "python"
 }
 
-$existing = Get-CimInstance Win32_Process |
+if (Test-Path $PolicyPath) {
+    $policyText = Get-Content $PolicyPath -Raw
+    if ($policyText -match 'poll_interval_sec:\s*(\d+)') {
+        $PollSeconds = [int]$Matches[1]
+    }
+}
+
+$existing = Get-CimInstance Win32_Process -ErrorAction SilentlyContinue |
     Where-Object {
-        $_.CommandLine -like "*k10_thinkpad_continuous_loop.py*" -and
+        $_.CommandLine -like "*k10_fleet_idle_dispatch.py*" -and
         $_.Name -match "^pythonw?\.exe$"
     }
 
@@ -38,12 +44,11 @@ if ($existing.Count -gt 1 -or ($existing.Count -ge 1 -and $env:WATCHDOG_RESTART 
     $existing = @()
 }
 if ($existing.Count -ge 1) {
-    Write-Host "[OK] ThinkPad continuous loop already running: PID=$($existing[0].ProcessId)"
+    Write-Host "[OK] Fleet idle dispatch already running: PID=$($existing[0].ProcessId)"
 } else {
-    New-Item -ItemType Directory -Force -Path $Workspace | Out-Null
     $Args = "`"$Script`" --poll-seconds $PollSeconds"
     $proc = Start-Process -FilePath $Python -ArgumentList $Args -WorkingDirectory $Root -WindowStyle Hidden -PassThru
-    Write-Host "[OK] Started ThinkPad continuous loop: PID=$($proc.Id)"
+    Write-Host "[OK] Started fleet idle dispatch: PID=$($proc.Id) poll=${PollSeconds}s"
 }
 
 if (-not $NoStartup) {
@@ -55,10 +60,4 @@ if (-not $NoStartup) {
     )
     Set-Content -Path $StartupVbs -Value $vbs -Encoding ASCII
     Write-Host "[OK] Startup registered: $StartupVbs"
-}
-
-if (Test-Path $StatusPath) {
-    Write-Host "[OK] Status: $StatusPath"
-} else {
-    Write-Host "[WARN] Status will be created after the first loop cycle: $StatusPath"
 }

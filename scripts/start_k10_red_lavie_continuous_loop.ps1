@@ -1,15 +1,15 @@
 param(
-    [int]$PollSeconds = 900,
+    [int]$PollSeconds = 240,
     [switch]$NoStartup
 )
 
 $ErrorActionPreference = "Stop"
 $Root = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
-$Script = Join-Path $Root "scripts\k10_thinkpad_continuous_loop.py"
+$Script = Join-Path $Root "scripts\k10_red_lavie_continuous_loop.py"
 $Workspace = Join-Path $Root "data\workspace"
-$StatusPath = Join-Path $Workspace "thinkpad_continuous_loop_status.json"
+$StatusPath = Join-Path $Workspace "red_lavie_continuous_loop_status.json"
 $StartupDir = [Environment]::GetFolderPath("Startup")
-$StartupVbs = Join-Path $StartupDir "StartThinkPadContinuousLoop.vbs"
+$StartupVbs = Join-Path $StartupDir "StartRedLavieContinuousLoop.vbs"
 
 if (-not (Test-Path $Script)) {
     throw "Loop script not found: $Script"
@@ -25,7 +25,7 @@ if (-not (Test-Path $Python)) {
 
 $existing = Get-CimInstance Win32_Process |
     Where-Object {
-        $_.CommandLine -like "*k10_thinkpad_continuous_loop.py*" -and
+        $_.CommandLine -like "*k10_red_lavie_continuous_loop.py*" -and
         $_.Name -match "^pythonw?\.exe$"
     }
 
@@ -38,12 +38,12 @@ if ($existing.Count -gt 1 -or ($existing.Count -ge 1 -and $env:WATCHDOG_RESTART 
     $existing = @()
 }
 if ($existing.Count -ge 1) {
-    Write-Host "[OK] ThinkPad continuous loop already running: PID=$($existing[0].ProcessId)"
+    Write-Host "[OK] Red LAVIE continuous loop already running: PID=$($existing[0].ProcessId)"
 } else {
     New-Item -ItemType Directory -Force -Path $Workspace | Out-Null
     $Args = "`"$Script`" --poll-seconds $PollSeconds"
     $proc = Start-Process -FilePath $Python -ArgumentList $Args -WorkingDirectory $Root -WindowStyle Hidden -PassThru
-    Write-Host "[OK] Started ThinkPad continuous loop: PID=$($proc.Id)"
+    Write-Host "[OK] Started Red LAVIE non-CAE offload loop: PID=$($proc.Id)"
 }
 
 if (-not $NoStartup) {

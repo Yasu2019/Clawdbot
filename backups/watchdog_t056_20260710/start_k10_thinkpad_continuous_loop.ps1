@@ -29,15 +29,7 @@ $existing = Get-CimInstance Win32_Process |
         $_.Name -match "^pythonw?\.exe$"
     }
 
-# T056: 多重起動は全掃除。WATCHDOG_RESTART=1 で強制再起動。
-$existing = @($existing)
-if ($existing.Count -gt 1 -or ($existing.Count -ge 1 -and $env:WATCHDOG_RESTART -eq "1")) {
-    Write-Host "T056 cleanup: stopping $($existing.Count) instance(s): $($existing.ProcessId -join ', ')"
-    $existing | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
-    Start-Sleep -Seconds 3
-    $existing = @()
-}
-if ($existing.Count -ge 1) {
+if ($existing) {
     Write-Host "[OK] ThinkPad continuous loop already running: PID=$($existing[0].ProcessId)"
 } else {
     New-Item -ItemType Directory -Force -Path $Workspace | Out-Null
