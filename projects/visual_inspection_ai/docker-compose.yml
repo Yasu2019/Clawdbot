@@ -1,0 +1,11 @@
+services:
+  inspection-api:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+      - ./models:/app/models
+      - ./configs:/app/configs:ro
+    environment:
+      INSPECTION_DISABLE_EXTERNAL_API: "1"

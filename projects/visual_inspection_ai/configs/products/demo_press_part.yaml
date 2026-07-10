@@ -1,0 +1,55 @@
+product:
+  id: demo_press_part
+  name: デモ用金属プレス部品
+  revision: A
+  inspection_faces:
+  - front
+image:
+  expected_width: 640
+  expected_height: 480
+  grayscale: true
+  alignment: none
+  roi:
+  - 80
+  - 70
+  - 560
+  - 410
+quality:
+  blur_min_laplacian_var: 25.0
+  brightness_min: 35.0
+  brightness_max: 230.0
+model:
+  kind: reference_difference
+  input_size:
+  - 480
+  - 640
+  review_threshold: 0.001199
+  ng_threshold: 0.006574
+  pixel_z_threshold: 4.0
+  min_region_area_px: 18
+  morphology_kernel: 3
+  max_regions: 20
+  alignment: ecc
+  alignment_max_shift_px: 24
+measurement:
+  enabled: true
+  mm_per_pixel: 0.02
+  calibration_id: demo_nominal_scale
+  object_threshold: 100
+  expected:
+    width_mm:
+      nominal: 8.8
+      lower: 8.5
+      upper: 9.1
+    height_mm:
+      nominal: 5.8
+      lower: 5.5
+      upper: 6.1
+    hole_diameter_mm:
+      nominal: 1.6
+      lower: 1.4
+      upper: 1.8
+review:
+  require_review_on_quality_failure: true
+  require_review_on_measurement_failure: true
+  save_all_images: true

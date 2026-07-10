@@ -1,0 +1,10 @@
+product:
+  id: "solder_example"
+  name: "半田状態サンプル"
+  revision: "DRAFT"
+  defect_modes: ["insufficient_solder", "excess_solder", "bridge", "non_wetting", "solder_ball", "pin_shift", "foreign_material"]
+image: {expected_width: 2048, expected_height: 2048, grayscale: false, alignment: "template", roi: null}
+quality: {blur_min_laplacian_var: 80.0, brightness_min: 25.0, brightness_max: 240.0}
+model: {kind: "reference_difference", input_size: [512, 512], review_threshold: 0.01, ng_threshold: 0.05, pixel_z_threshold: 4.0, min_region_area_px: 10, morphology_kernel: 3, max_regions: 40}
+measurement: {enabled: false, mm_per_pixel: 1.0, calibration_id: "UNVALIDATED", object_threshold: 100, expected: {}}
+review: {require_review_on_quality_failure: true, require_review_on_measurement_failure: true, save_all_images: true}

@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.env
+data/inspection.db
+data/runtime/
+data/reports/
+models/champion/*
+models/challenger/*
+models/archived/*
+!models/**/.gitkeep

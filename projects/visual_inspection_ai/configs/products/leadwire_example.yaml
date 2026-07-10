@@ -1,0 +1,10 @@
+product:
+  id: "leadwire_example"
+  name: "リード線・端子サンプル"
+  revision: "DRAFT"
+  defect_modes: ["strip_length", "broken_strand", "strand_fanout", "terminal_deformation", "crimp_position", "wire_color"]
+image: {expected_width: 1920, expected_height: 1080, grayscale: false, alignment: "template", roi: null}
+quality: {blur_min_laplacian_var: 50.0, brightness_min: 30.0, brightness_max: 235.0}
+model: {kind: "reference_difference", input_size: [512, 512], review_threshold: 0.01, ng_threshold: 0.05, pixel_z_threshold: 4.0, min_region_area_px: 12, morphology_kernel: 3, max_regions: 30}
+measurement: {enabled: true, mm_per_pixel: 1.0, calibration_id: "UNVALIDATED", object_threshold: 100, expected: {}}
+review: {require_review_on_quality_failure: true, require_review_on_measurement_failure: true, save_all_images: true}
