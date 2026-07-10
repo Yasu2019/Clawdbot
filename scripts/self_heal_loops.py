@@ -145,6 +145,12 @@ def execute(action: dict, dry: bool) -> bool:
     if action["action"].startswith("restart_") and action.get("ps1"):
         subprocess.run(["powershell", "-ExecutionPolicy", "Bypass", "-File", action["ps1"]], timeout=120)
         return True
+    if action["action"] == "restart_progressive_die_hub":
+        subprocess.run(["docker", "compose", "up", "-d", "progressive_die_hub"],
+                       cwd=str(ROOT), timeout=300)
+        # 起動後にゴールデン回帰を再実行して結果を残す
+        subprocess.run([sys.executable, str(ROOT / "scripts" / "cetol_golden_regression.py")], timeout=300)
+        return True
     if action["action"] == "run_checker":
         subprocess.run([sys.executable, action["script"], *action.get("args", [])], timeout=600)
         return True
@@ -191,6 +197,15 @@ def main() -> int:
                                 "ps1": str(ps1)})
             else:
                 actions.append({"action": "escalate_human", "target": name, "reason": "24h内の自動復旧上限到達"})
+    # CETOLゴールデンがAPI_OFFLINE→Hubコンテナを冪等起動(docker compose up -d)
+    cg = read_json_tolerant(WS / "cetol_golden_status.json")
+    if cg and cg.get("verdict") == "API_OFFLINE":
+        if counts.get("restart_progressive_die_hub", 0) < MAX_ACTIONS_PER_24H:
+            actions.append({"action": "restart_progressive_die_hub",
+                            "reason": "cetol golden = API_OFFLINE (Hub :8004停止)"})
+        else:
+            actions.append({"action": "escalate_human", "target": "progressive_die_hub",
+                            "reason": "24h内の自動復旧上限到達"})
     # 監視役の監視(T-P016教訓): 監査/死活チェッカー自身がstaleなら直接実行して蘇生
     for name, status_path, script, extra_args in CHECKERS:
         st = read_json_tolerant(status_path)
