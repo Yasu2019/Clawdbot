@@ -65,6 +65,34 @@ TERRAIN_SLOPE_DEG = 8.0
 TERRAIN_FLAT_RUNUP = 0.6    # 平地助走(m)。前方=-Y
 
 
+# --- (a)質量再配分 2026-07-10 ユーザー承認 (HANDOVER_QUEUE5 §4.6 処方a) ---
+# 実測47%トップヘビー(torso 112/238kg)が fall-and-crawl の根本原因仮説。
+# シム専用: torso x0.7 / 脚系 x1.4 → 総質量238.0kg厳密保存・胴比33%へ(重心低下)。
+# diaginertia も同倍率(同一形状仮定 I∝m)。正解基準XML(artifacts/)は不変更。
+# 不足なら次段 0.6/1.6 を人間承認のうえ適用。報酬・ゲートは一切変更しない。
+MASS_REDIST = {
+    "torso": 0.7,
+    "upper_leg_L": 1.4, "lower_leg_L": 1.4, "foot_L": 1.4,
+    "upper_leg_R": 1.4, "lower_leg_R": 1.4, "foot_R": 1.4,
+}
+
+
+def apply_mass_redistribution(xml: str) -> str:
+    """body毎のinertial mass/diaginertiaをMASS_REDIST倍率でスケール(純関数)。"""
+    def _redist(m):
+        blk = m.group(0)
+        f = MASS_REDIST.get(m.group(1))
+        if not f:
+            return blk
+        def _scale(mm):
+            vals = " ".join(str(round(float(v) * f, 6)) for v in mm.group(2).split())
+            return f'{mm.group(1)}"{vals}"'
+        blk = re.sub(r'(mass=)"([^"]+)"', _scale, blk, count=1)
+        blk = re.sub(r'(diaginertia=)"([^"]+)"', _scale, blk, count=1)
+        return blk
+    return re.sub(r'<body name="([^"]+)"[^>]*>\s*<inertial[^/]*/>', _redist, xml)
+
+
 def terrain_xml(terrain):
     """worldbodyに挿入する地形geom文字列。noneは空。"""
     import math as _m
@@ -204,6 +232,7 @@ def build_model_xml(terrain="none"):
     含む処理: actuator除去(罠#1) / 足を前方向き+かかと(罠#6) / 接地面を四角形化(v3) /
     hip・ankle roll注入(B-1) / 地形(U6)。"""
     xml = open(MJCF_SRC, encoding="utf-8").read()
+    xml = apply_mass_redistribution(xml)  # (a)質量再配分 2026-07-10
     xml = re.sub(r"<actuator>.*?</actuator>", "", xml, flags=re.S)
     xml = xml.replace('fromto="0 0 0 0.15 0 -0.05"',
                       'fromto="0 0.06 -0.05 0 -0.15 -0.05"')

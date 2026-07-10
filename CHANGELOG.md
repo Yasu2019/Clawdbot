@@ -5,6 +5,7 @@
 
 ## 2026-07-10
 
+- [Fable5] **メカRL処方(a)質量再配分適用(ユーザー承認)**: fall-and-crawl根本原因仮説=47%トップヘビーに対し、シム専用でtorso x0.7/脚x1.4(総質量238.0kg厳密保存・胴比33%・diaginertia同倍率)。build_model_xmlに純関数注入・正解基準XML不変更・報酬/ゲート不変。walk request retargeted化でu7/U5自動再学習へ。設計書§4.7参照
 - [Fable5] **Gate Advisor MVP(STEP4・ユーザー要望)**: ゲート位置の決定論スクリーニング実装。`scripts/moldflow_gate_advisor.py`(7組合せ×最大流動長/L/t限界/ウェルド推定/バランスCV、充填不成立は常に下位=テストが暴いた順位欠陥を修正)+`POST /api/gate-advice`+UIパネル(全メトリクス開示+Apply)。解析解テスト12件(計22件PASS)。平板近似・L/t限界は実測未校正の目安(L6で校正要)。発効はAPI再起動後。引継ぎ: docs/handover/MOLDFLOW_STUDIO_REFACTOR_STEP4_20260710.md
 - [Fable5] **Moldflow CAE Studio 機能追加(STEP3/3)**: ①API 2本新設=`/api/maturity`(commercial_benchmark_maturity_latest.jsonのMOLDFLOW行+26h鮮度判定・読み取り専用) / `/api/golden-error-trend`(golden_error_log.jsonl直近N件・壊れ行スキップ・未生成時は安全応答) ②UI=Maturity & Golden Trendパネル(L0-L10プログレスバー+誤差スパークライン+ローカルフォールバック)。テスト3件追加(計10件PASS)。**発見**: maturity_latest.jsonが7/8 05:31から更新停止(26h超stale)→日次実行の死活確認要(bd起票要)。引継ぎ: docs/handover/MOLDFLOW_STUDIO_REFACTOR_STEP3_20260710.md
 - [Fable5] **Moldflow CAE Studio cgi脱却(STEP2/3)**: `moldflow_cae_studio_api.py`のimport cgi(Py3.13削除済みモジュール)を自前`_parse_multipart`へ置換(512MB上限の安全弁新設・応答スキーマ不変)。テスト新設`data/workspace/tests/test_moldflow_studio_api_multipart.py`(バイナリ完全一致/引用符boundary/異常系)。**発効はAPI再起動後**。SYNC_TMP(本体と同一md5確認済み)はユーザー手動削除待ち。引継ぎ: docs/handover/MOLDFLOW_STUDIO_REFACTOR_STEP2_20260710.md
@@ -26,4 +27,14 @@
 - [Fable5] **商用成熟度評価リファクタ** `data/workspace/commercial_benchmark_maturity.py`: せん断/順送金型(OPENRADIOSS_BLANKING)と樹脂充填(MOLDFLOW)のL0-L10判定を宣言的ルール関数(_LEVEL_RULES)へ分離。①鮮度ゲート追加(openradioss_progress.jsonが24h超stale時はdoe_running無効=5/29の古いrunningフラグで機能L4に過大評価していた是正)、tri-track/cae_te_logのpress_blanking_assy試行を新鮮証拠として併合 ②樹脂充填verdict分類修正(ERROR/TIMEOUT/FAILED_*をfailedに計上。従来failed=0誤集計、DRY_RUNをsuccessから除外) ③has_real_residualsは直近50件走査(従来最古1件のみ) ④書込み途中JSONへのリトライ読込。出力スキーマはgrowth_dashboard互換のまま。単体テスト18件新設・全PASS: `data/workspace/tests/test_commercial_benchmark_maturity.py`（bd起票は次セッションで: bdコマンド本環境から実行不可）
 - [Fable5] **Mecha Motion Lab改善** `apps/mecha_motion_lab/index.html`: 受付API(8118)未起動時にskill_requests.jsonスナップショットへ読み取り専用フォールバック、supervisor_status 3h超未更新の停滞警告表示
 - [Fable5] **CETOL 6σアプリ改善** `apps/cetol6sigma/index.html`: cetol_reports.json 24h超stale警告(再生成コマンド提示)、読込失敗時に原因(不存在/JSON破損)を明示
-- [Fable5] **red_lavie連敗の原因調査完了**(09:59時点fail_streak=5): 実機は健全(1〜1.6h完走/returncode 0)。直接原因は既知の物理発散モード(接触不安定→要素破断≈32k→NODAL VELOCITY停止, t≈1ms, DM/M 36〜59=質量スケーリング暴走)。連敗背景=�
+- [Fable5] **red_lavie連敗の原因調査完了**(09:59時点fail_streak=5): 実機は健全(1〜1.6h完走/returncode 0)。直接原因は既知の物理発散モード(接触不安定→要素破断≈32k→NODAL VELOCITY停止, t≈1ms, DM/M 36〜59=質量スケーリング暴走)。連敗背景=①DOEが低速域1851〜2709mm/s抽選中(SUCCESS実績は4602/6096mm/s) ②T050/T051の意味ゲート厳格化 ③7/6〜7/7未明のERROR4件はT051偽ERROR(ペア配布済で解消)。約80分/試行→14時頃8連敗自動停止+Telegram発火見込み。対策提案はHANDOVER_MASTER_INDEX §7.5.1(DOE高速側誘導+低速域デッキ対策、ゲート緩和禁止)。T051文書の「低速優先」推奨を撤回
+- [Fable5] 検証メモ: cae_te_log.jsonは全体書き換え方式のため読取側は必ずリトライ読込を使うこと
+
+## 2026-07-05
+
+- [Fable5+ユーザー] **red_lavie復旧完了**(bd `cttj` CLOSED): 孤児コンテナ4本停止+電源プランprocthrottlemax=100でクロック597→1792MHz+ワーカー再起動(echo 0.8秒)。T050修正版cae_te_engine.pyをSHA256検証付き分割転送でred_lavieへ配布(バックアップ.bak_t050)
+- [Fable5] **CETOL/OpenRadioss検証**: CETOL tolerance-stack API(:8004)を既知解で定量検証PASS(WC/RSS/MC全一致)。OpenRadiossはred_lavieが7/1 TIMEOUT以降CPU100%固着で4日停止と判明(bd `cttj`・要人間介入)、消失していたローカルコンテナをキャッシュから再作成し代替実行経路を復旧
+- [Fable5] **T049修正**: fem_impact@thinkpadサイレント即死の根本原因(`set -euo pipefail`下の`ls|wc -l`代入でexit2伝播)を特定・修正。QC実測値のKPI化・入力欠如の顕在化(exit7)・意味ゲート自動停止(全track, 連続8失敗でTelegram通知)・爆発デッキ無効化・practicalデッキ2本デプロイ。オーケストレータ再起動済(bd `e3dn`)
+- [Fable5] 5アプリ進捗を4ソース(Beads/ByteRover/Obsidian/過去トラDB)横断照合し `HANDOVER_MASTER_INDEX.md` §7に反映。CETOL bd未追跡ギャップ解消(bd `iy63`)、fem_impact空回り前兆を検知しbd `e3dn`起票、Moldflow自動レポート停止(LAVIE要人間起動)を明記
+- [Fable5] Fable5終了後継続開発プロトコルv2.0を恒久化（`docs/handover/FABLE5_CONTINUATION_PROTOCOL_V2.md`）。引き継ぎ資産マスターインデックス新設（`docs/handover/HANDOVER_MASTER_INDEX.md`）。ルートCHANGELOG運用開始（bd `azrr`）
+- [Fable5] （既存・参考）API保全モード移行: walk_tier1c supervisor cycle3学習中、u7キューデーモン+受付API(8118)+自動起動 稼働（commit ad49c904b）
