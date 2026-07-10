@@ -5,6 +5,7 @@
 
 ## 2026-07-10
 
+- [Fable5] **自己修復ハーネス導入(ユーザー指示)**: 監査でtri-track 7/8停止(58h)+監視役自身の死亡(77h)を発見→`self_heal_loops.py`(毎時: tri-track再起動/supervisor T054型2点セット/監視役蘇生。MAINTENANCE_LOCKガード・24h2回上限・全行動jsonl監査)+audit **G3実績検証強化**(verify_log・resin_fill 25%適用)+**CETOLゴールデン回帰**(日次・既知解3ケース・偽PASSなし)。テスト16件PASS・dry-run実測で停止2件正検知。要ユーザー: register bat×2ダブルクリック。引継ぎ: docs/handover/SELF_HEAL_AND_GOLDEN_LOOPS_20260710.md
 - [Fable5] **Visual Inspection AI 展開+実用化改修(ユーザー依頼)**: ChatGPT土台を実走監査し誤校正しきい値(バリ素通り)と位置ズレ脆弱性(6pxで偽NG238倍)を定量特定。①ECCアライメント前段(3重安全ゲート付き) ②決定論しきい値校正CLI(適用済み: review0.001199/ng0.006574) ③mm/pixel校正CLI を追加し projects/visual_inspection_ai へ展開。テスト新規6件+pipeline E2E PASS。ポータルカード追加。ホストE2E手順: RUN_VERIFICATION_JA.md / 引継ぎ: docs/handover/VISUAL_INSPECTION_AI_DEPLOY_20260710.md
 - [Fable5] **メカRL処方(a)質量再配分適用(ユーザー承認)**: fall-and-crawl根本原因仮説=47%トップヘビーに対し、シム専用でtorso x0.7/脚x1.4(総質量238.0kg厳密保存・胴比33%・diaginertia同倍率)。build_model_xmlに純関数注入・正解基準XML不変更・報酬/ゲート不変。walk request retargeted化でu7/U5自動再学習へ。設計書§4.7参照
 - [Fable5] **Gate Advisor MVP(STEP4・ユーザー要望)**: ゲート位置の決定論スクリーニング実装。`scripts/moldflow_gate_advisor.py`(7組合せ×最大流動長/L/t限界/ウェルド推定/バランスCV、充填不成立は常に下位=テストが暴いた順位欠陥を修正)+`POST /api/gate-advice`+UIパネル(全メトリクス開示+Apply)。解析解テスト12件(計22件PASS)。平板近似・L/t限界は実測未校正の目安(L6で校正要)。発効はAPI再起動後。引継ぎ: docs/handover/MOLDFLOW_STUDIO_REFACTOR_STEP4_20260710.md

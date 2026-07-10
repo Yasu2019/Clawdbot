@@ -1,0 +1,121 @@
+{
+  "schema": "clawstack.growth_loop_manifest.v1",
+  "note": "成長ループ登録簿。T&Eでノウハウ蓄積する仕組みは稼働前にここへ登録必須 (docs/growth_loop_quality_protocol.md 第1条)。しきい値の緩和はFMEA#2により禁止。",
+  "loops": [
+    {
+      "name": "resin_fill_cad",
+      "description": "Moldflow級 樹脂充填 (OpenFOAM VOF, lavie)",
+      "log": {
+        "path": "data/cae_te_workspace/results/cae_te_log.json",
+        "format": "cae_te_log",
+        "categories": [
+          "resin_fill_cad",
+          "resin_fill_vof",
+          "resin_fill",
+          "resin_fill_cavity"
+        ]
+      },
+      "kpi": {
+        "fields": [
+          "defects_detected.fill_fraction_pct",
+          "kpi.fill_fraction_pct",
+          "defects_detected.fill_pct",
+          "kpi.fill_pct"
+        ],
+        "physical_min": 0.0,
+        "physical_max": 110.0,
+        "violation_tol_pct": 20.0
+      },
+      "params": [
+        "params.inlet_velocity",
+        "params.pack_pressure_MPa",
+        "params.polymer_nu"
+      ],
+      "stagnation": {
+        "window": 100,
+        "min_rel_change_pct": 2.0
+      },
+      "golden": {
+        "status": "定義済み(2026-07-07): plate_v1 2変種を25サイクル毎に自動投入。評価: scripts/moldflow_golden_case.py",
+        "spec_path": "data/cae_te_workspace/samples/moldflow/golden_plate_case.json",
+        "error_log_path": "data/workspace/moldflow_golden_error_log.jsonl",
+        "verify_log": true,
+        "max_err_pct": 25.0
+      }
+    },
+    {
+      "name": "press_blanking_assy",
+      "description": "せん断/順送金型 顕式FEM (OpenRadioss, red_lavie)",
+      "log": {
+        "path": "data/cae_te_workspace/results/cae_te_log.json",
+        "format": "cae_te_log",
+        "categories": [
+          "press_blanking_assy",
+          "press_blanking"
+        ]
+      },
+      "kpi": {
+        "fields": [
+          "defects_detected.run_metrics.t_final_ms"
+        ],
+        "physical_min": 0.0,
+        "physical_max": 100.0,
+        "violation_tol_pct": 20.0
+      },
+      "goal": {
+        "field": "defects_detected.run_metrics.t_final_ms",
+        "direction": "increase",
+        "target": 18.13
+      },
+      "params": [
+        "params.clearance_pct",
+        "params.punch_speed_mms",
+        "params.friction_mu"
+      ],
+      "stagnation": {
+        "window": 40,
+        "min_rel_change_pct": 2.0
+      },
+      "golden": {
+        "status": "5月DOE best TSTOP 30.15ms が事実上の基準。正式なゴールデン定義は未",
+        "error_log_path": null
+      }
+    },
+    {
+      "name": "robot_l20_autonomous_loop",
+      "description": "Robot L20 歩行・把持モーション自律学習ループ (motion_lab)",
+      "log": {
+        "path": "data/workspace/apps/growth_dashboard/robot_l20_autonomous_history.jsonl",
+        "format": "jsonl",
+        "categories": [
+          "robot_l20",
+          "gait_motion",
+          "factory_pick"
+        ]
+      },
+      "kpi": {
+        "fields": [
+          "best_score",
+          "task_floor"
+        ],
+        "physical_min": 0.0,
+        "physical_max": 100.0,
+        "violation_tol_pct": 5.0
+      },
+      "params": [
+        "seed_base",
+        "refine_top",
+        "count"
+      ],
+      "stagnation": {
+        "window": 50,
+        "min_rel_change_pct": 1.0
+      },
+      "golden": {
+        "status": "定義済み(2026-07-09): robot_l20_autonomous_best.json を基準とし、過去最高スコア 100 / task_floor 93.4 をキープ",
+        "spec_path": "data/workspace/apps/growth_dashboard/robot_l20_autonomous_best.json",
+        "error_log_path": null
+      }
+    }
+  ]
+}
