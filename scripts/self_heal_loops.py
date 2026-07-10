@@ -40,6 +40,11 @@ TRITRACK_STATUS = WS / "k10_tri_track_cae_status.json"
 SUPERVISOR_STATUS = WS / "apps" / "mecha_motion_lab" / "supervisor_status.json"
 SKILL_REQUESTS = WS / "apps" / "mecha_motion_lab" / "skill_requests.json"
 WATCHDOG_PS1 = ROOT / "scripts" / "start_k10_tri_track_cae_watchdog.ps1"
+# ps1で復旧する常駐のホワイトリスト(name, statusファイル, stale閾値h, 復旧ps1)
+PS1_RECOVERABLES = (
+    ("robot_l20_watchdog", WS / "apps" / "growth_dashboard" / "robot_l20_watchdog_status.json", 3.0,
+     ROOT / "scripts" / "start_robot_l20_autonomous_watchdog.ps1"),
+)
 LOCK = WS / "MAINTENANCE_LOCK"
 STATUS_OUT = WS / "self_heal_status.json"
 LOG_OUT = WS / "self_heal_log.jsonl"
@@ -47,8 +52,13 @@ LOG_OUT = WS / "self_heal_log.jsonl"
 TRITRACK_STALE_H = 2.0
 CHECKER_STALE_H = 26.0  # 死活再チェック/成長監査自身のstale閾値(プロトコル§9)
 CHECKERS = (
-    ("growth_loop_audit", WS / "growth_loop_audit_status.json", ROOT / "scripts" / "growth_loop_audit.py"),
-    ("dead_project_recheck", WS / "dead_project_recheck_status.json", ROOT / "scripts" / "dead_project_recheck.py"),
+    ("growth_loop_audit", WS / "growth_loop_audit_status.json",
+     ROOT / "scripts" / "growth_loop_audit.py", ()),
+    ("dead_project_recheck", WS / "dead_project_recheck_status.json",
+     ROOT / "scripts" / "dead_project_recheck.py", ()),
+    ("commercial_benchmark_maturity", WS / "apps" / "growth_dashboard" / "commercial_benchmark_maturity_latest.json",
+     WS / "commercial_benchmark_maturity.py",
+     ("--out", str(WS / "apps" / "growth_dashboard" / "commercial_benchmark_maturity_latest.json"))),
 )
 SUPERVISOR_STALE_H = 4.0
 MAX_ACTIONS_PER_24H = 2
@@ -132,8 +142,11 @@ def load_recent_action_counts(now: datetime) -> dict:
 def execute(action: dict, dry: bool) -> bool:
     if dry:
         return False
+    if action["action"].startswith("restart_") and action.get("ps1"):
+        subprocess.run(["powershell", "-ExecutionPolicy", "Bypass", "-File", action["ps1"]], timeout=120)
+        return True
     if action["action"] == "run_checker":
-        subprocess.run([sys.executable, action["script"]], timeout=300)
+        subprocess.run([sys.executable, action["script"], *action.get("args", [])], timeout=600)
         return True
     if action["action"] == "restart_tritrack":
         subprocess.run(["powershell", "-ExecutionPolicy", "Bypass", "-File", str(WATCHDOG_PS1)],
@@ -168,14 +181,24 @@ def main() -> int:
     counts = load_recent_action_counts(now)
     trainer_alive = trainer_process_running()
     actions = decide_actions(now, tri, sup, trainer_alive, counts)
+    for name, spath, stale_h, ps1 in PS1_RECOVERABLES:
+        st = read_json_tolerant(spath)
+        p_age = age_hours((st or {}).get("checked_at") or (st or {}).get("updated_at"), now)
+        if (st is None or p_age is None or p_age > stale_h) and ps1.exists():
+            key = f"restart_{name}"
+            if counts.get(key, 0) < MAX_ACTIONS_PER_24H:
+                actions.append({"action": key, "reason": f"{name} stale ({p_age if p_age is not None else 'unreadable'}h > {stale_h}h)",
+                                "ps1": str(ps1)})
+            else:
+                actions.append({"action": "escalate_human", "target": name, "reason": "24h内の自動復旧上限到達"})
     # 監視役の監視(T-P016教訓): 監査/死活チェッカー自身がstaleなら直接実行して蘇生
-    for name, status_path, script in CHECKERS:
+    for name, status_path, script, extra_args in CHECKERS:
         st = read_json_tolerant(status_path)
-        c_age = age_hours((st or {}).get("checked_at"), now)
+        c_age = age_hours((st or {}).get("checked_at") or (st or {}).get("assessed_at"), now)
         if st is None or c_age is None or c_age > CHECKER_STALE_H:
             actions.append({"action": "run_checker", "target": name,
                             "reason": f"checker stale ({c_age if c_age is not None else 'unreadable'}h > {CHECKER_STALE_H}h)",
-                            "script": str(script)})
+                            "script": str(script), "args": list(extra_args)})
     results = []
     with LOG_OUT.open("a", encoding="utf-8") as f:
         for a in actions:
