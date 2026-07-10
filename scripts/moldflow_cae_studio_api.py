@@ -419,6 +419,18 @@ class CaeStudioHandler(BaseHTTPRequestHandler):
         except json.JSONDecodeError:
             self._json(400, {"error": "invalid json"})
             return
+        if parsed.path == "/api/gate-advice":
+            try:
+                import moldflow_gate_advisor as advisor
+
+                self._json(200, advisor.advise_gates(
+                    dict(payload.get("bbox_mm") or {}),
+                    payload.get("thickness_mm"),
+                    payload.get("material_id"),
+                ))
+            except Exception as exc:
+                self._json(500, {"error": str(exc)})
+            return
         if parsed.path == "/api/preview":
             self._handle_preview(payload)
         elif parsed.path == "/api/defect-preview":

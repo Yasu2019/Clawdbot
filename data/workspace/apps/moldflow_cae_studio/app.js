@@ -774,6 +774,81 @@ async function loadMaturity() {
   }
 }
 
+function ensureGateAdvisorPanel() {
+  if ($("gateAdvisorPanel")) return;
+  const exportSection = [...document.querySelectorAll(".section")]
+    .find((section) => section.querySelector("h2")?.textContent?.trim() === "Export");
+  if (!exportSection) return;
+  const panel = document.createElement("div");
+  panel.className = "section";
+  panel.id = "gateAdvisorPanel";
+  panel.innerHTML = `
+    <h2>Gate Advisor</h2>
+    <div class="golden-banner">
+      <div>
+        <div class="verdict pending" id="gateAdvisorVerdict">NOT RUN</div>
+        <div class="note" id="gateAdvisorNote">平板近似の決定論スクリーニング(7候補)。Moldflow BGA相当ではない — 最終判断は人間。</div>
+      </div>
+      <div class="pill" id="gateAdvisorBest">--</div>
+    </div>
+    <div id="gateAdvisorList"></div>
+    <div class="tool-row" style="margin-top:10px;">
+      <button type="button" class="btn" id="btnAdviseGates">Advise Gates</button>
+    </div>`;
+  exportSection.parentNode.insertBefore(panel, exportSection);
+  $("btnAdviseGates").addEventListener("click", () => adviseGates().catch((err) => setStatus(String(err), "warn")));
+}
+
+function applyAdvisedGates(gates) {
+  for (const patch of ["inlet1", "inlet2", "inlet3"]) state.gates[patch] = gates.includes(patch);
+  syncGateUi();
+  updateOverlays();
+  updateReadinessPanel();
+  setStatus(`Gate advisor applied: ${gates.join(" + ")}`, "ok");
+}
+
+function renderGateAdvice(data) {
+  ensureGateAdvisorPanel();
+  const cands = data?.candidates || [];
+  $("gateAdvisorVerdict").className = `verdict ${cands.length ? "pass" : "pending"}`;
+  $("gateAdvisorVerdict").textContent = cands.length ? "RANKED" : "NO DATA";
+  $("gateAdvisorBest").textContent = data?.best ? `best: ${data.best.join("+")}` : "--";
+  $("gateAdvisorNote").textContent = (data?.assumptions || []).join(" / ") || "";
+  $("gateAdvisorList").innerHTML = cands.map((c, idx) => {
+    const riskTag = c.short_shot_risk
+      ? '<span class="status-tag status-fail">SHORT SHOT RISK</span>'
+      : '<span class="status-tag status-ok">FILL OK</span>';
+    return `
+      <div class="check-card">
+        <div style="display:flex; justify-content:space-between; gap:10px; align-items:center;">
+          <strong>#${idx + 1} ${c.gates.join(" + ")}</strong>
+          <span>${riskTag} <span class="pill">score ${fmt(c.score, 1)}</span></span>
+        </div>
+        <div class="note">maxL ${fmt(c.max_flow_length_mm, 1)}mm | L/t ${fmt(c.flow_ratio_Lt, 1)}/${fmt(c.flow_ratio_limit, 0)} (margin ${fmt(c.fill_margin_pct, 1)}%) | weld ${c.weld_count}${c.weld_lines.length ? " @x=" + c.weld_lines.map((w) => fmt(w.x_mm, 0)).join(",") : ""} | balance cv ${fmt(c.balance_cv, 2)}</div>
+        <div class="tool-row" style="margin-top:6px;">
+          <button type="button" class="btn" data-gates="${c.gates.join(",")}">Apply</button>
+        </div>
+      </div>`;
+  }).join("");
+  $("gateAdvisorList").querySelectorAll("button[data-gates]").forEach((btn) => {
+    btn.addEventListener("click", () => applyAdvisedGates(btn.dataset.gates.split(",")));
+  });
+}
+
+async function adviseGates() {
+  const res = await fetch(`${state.apiBase}/api/gate-advice`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      bbox_mm: { length: state.bbox.length, width: state.bbox.width, height: state.bbox.height },
+      material_id: $("materialPreset")?.value || null,
+    }),
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  renderGateAdvice(await res.json());
+  setStatus("Gate advice ranked (deterministic screening)", "ok");
+}
+
 function applySafeThermalProxyDefaults() {
   const defaults = state.solverLandscape?.current_internal_proxy?.safe_demo_defaults || {
     bounded_alpha: true,
@@ -1171,6 +1246,7 @@ function initApp() {
     .catch((err) => setStatus(String(err), "warn"));
   loadSolverLandscape().catch(() => {});
   loadMaturity().catch(() => {});
+  ensureGateAdvisorPanel();
 }
 
 initApp();
