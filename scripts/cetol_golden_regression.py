@@ -39,40 +39,56 @@ GOLDEN_CASES = [
     {"id": "g2_five_stack", "dims": [(5.0, 0.05)] * 5},
     {"id": "g3_asym_mix", "dims": [(12.5, 0.15), (3.2, 0.02), (8.0, 0.08)]},
 ]
-MC_TOL_PCT = 15.0  # モンテカルロはRSSの±15%以内を要求(サンプリング誤差許容)
+MC_TOL_PCT = 10.0  # MCはstdの理論値(RSS/√3, 一様分布和)との相対誤差±10%を要求
 EXACT_TOL_PCT = 0.5  # WC/RSSは解析解一致(0.5%以内)を要求
 
 
 def analytic(dims):
+    """WC=Σt, RSS=sqrt(Σt²), MC理論std=sqrt(Σt²/3)(一様±t和の標準偏差)。"""
     wc = sum(t for _, t in dims)
     rss = math.sqrt(sum(t * t for _, t in dims))
-    return wc, rss
+    mc_std = math.sqrt(sum(t * t / 3.0 for _, t in dims))
+    return wc, rss, mc_std
 
 
-def call_api(case) -> dict | None:
+def call_api(case):
+    """Hub実スキーマ(server.py ToleranceStackBody): rows=[{nominal,upper,lower}]。
+    戻り: (dict|None, note)。HTTPエラーは接続不能と区別してAPI_ERRORにする。"""
     payload = json.dumps({
-        "stack": [{"nominal": n, "tolerance": t} for n, t in case["dims"]],
-        "method": "all",
+        "loop_name": f"golden_{case['id']}",
+        "rows": [{"nominal": n, "upper": t, "lower": -t} for n, t in case["dims"]],
+        "target": sum(t for _, t in case["dims"]),
+        "mc_n": 20000,
     }).encode("utf-8")
     req = urllib.request.Request(API, data=payload, headers={"Content-Type": "application/json"})
     try:
-        with urllib.request.urlopen(req, timeout=30) as r:
-            return json.loads(r.read().decode("utf-8"))
-    except (urllib.error.URLError, OSError, json.JSONDecodeError):
-        return None
+        with urllib.request.urlopen(req, timeout=60) as r:
+            return json.loads(r.read().decode("utf-8")), "ok"
+    except urllib.error.HTTPError as e:
+        body = ""
+        try:
+            body = e.read().decode("utf-8", errors="replace")[:200]
+        except Exception:
+            pass
+        return None, f"API_ERROR HTTP{e.code}: {body}"
+    except (urllib.error.URLError, OSError, json.JSONDecodeError) as e:
+        return None, f"API_OFFLINE: {str(e)[:100]}"
 
 
 def evaluate(case, resp: dict) -> dict:
-    wc_ref, rss_ref = analytic(case["dims"])
-    out = {"case": case["id"], "wc_ref": round(wc_ref, 6), "rss_ref": round(rss_ref, 6)}
+    wc_ref, rss_ref, mc_std_ref = analytic(case["dims"])
+    out = {"case": case["id"], "wc_ref": round(wc_ref, 6), "rss_ref": round(rss_ref, 6),
+           "mc_std_ref": round(mc_std_ref, 6)}
     errs = []
-    for key, ref, tol_pct in (("wc", wc_ref, EXACT_TOL_PCT), ("rss", rss_ref, EXACT_TOL_PCT),
-                              ("mc", rss_ref, MC_TOL_PCT)):
-        got = resp.get(key) or resp.get(f"{key}_result") or resp.get(f"{key}_tolerance")
-        if isinstance(got, dict):
-            got = got.get("tolerance") or got.get("value") or got.get("total")
+    checks = (
+        ("wc", ((resp.get("worst_case") or {}).get("cum_upper")), wc_ref, EXACT_TOL_PCT),
+        ("rss", ((resp.get("rss") or {}).get("cum_upper")), rss_ref, EXACT_TOL_PCT),
+        ("mc", ((resp.get("monte_carlo") or {}).get("std")), mc_std_ref, MC_TOL_PCT),
+    )
+    for key, got, ref, tol_pct in checks:
         if got is None:
             out[f"{key}_err_pct"] = None
+            out[f"{key}_ok"] = False
             continue
         err = abs(float(got) - ref) / ref * 100.0
         out[key] = float(got)
@@ -87,10 +103,10 @@ def main() -> int:
     now = datetime.now(JST).isoformat()
     results, offline = [], False
     for case in GOLDEN_CASES:
-        resp = call_api(case)
+        resp, note = call_api(case)
         if resp is None:
             offline = True
-            results.append({"case": case["id"], "verdict": "API_OFFLINE"})
+            results.append({"case": case["id"], "verdict": note.split(":")[0], "note": note})
             continue
         results.append(evaluate(case, resp))
     all_ok = (not offline) and all(
