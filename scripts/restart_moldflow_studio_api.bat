@@ -2,9 +2,9 @@
 setlocal enabledelayedexpansion
 chcp 65001 >nul
 REM ============================================================
-REM Moldflow CAE Studio API 再起動 v2
-REM 修正(2026-07-10): if内%OLDPID%未展開で旧プロセスをkillできていなかった
-REM  → 遅延展開+ポート8776リスナー全掃除方式(孤児プロセス対策=T050教訓)
+REM Moldflow CAE Studio API restart v2
+REM fix(2026-07-10): kill-by-port-8776 (orphan cleanup, T050 lesson)
+REM comments are ASCII-only: cmd misparses multibyte chars in REM lines
 REM ============================================================
 set ROOT=D:\Clawdbot_Docker_20260125
 set APPDIR=%ROOT%\data\workspace\apps\moldflow_cae_studio
