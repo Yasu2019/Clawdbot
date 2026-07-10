@@ -197,6 +197,12 @@ def main() -> int:
                                 "ps1": str(ps1)})
             else:
                 actions.append({"action": "escalate_human", "target": name, "reason": "24h内の自動復旧上限到達"})
+    # 意味ゲート停止の可視化: streak高止まりは自動リセットせず人間へ(T019/T049の趣旨保持)
+    for tname, tv in ((tri or {}).get("tracks") or {}).items():
+        streak = int((tv or {}).get("fail_streak") or 0)
+        if streak >= 8:
+            actions.append({"action": "escalate_human", "target": f"track:{tname}",
+                            "reason": f"意味ゲート水準の連敗(streak={streak}) — 原因是正+人間承認が必要(自動リセット禁止)"})
     # CETOLゴールデンがAPI_OFFLINE→Hubコンテナを冪等起動(docker compose up -d)
     cg = read_json_tolerant(WS / "cetol_golden_status.json")
     if cg and cg.get("verdict") == "API_OFFLINE":
