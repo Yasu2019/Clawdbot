@@ -133,6 +133,16 @@
       "max_age_hours": 26,
       "owner": "scripts/cetol_golden_regression.py (毎日07:40: Clawstack\\CetolGoldenRegression)",
       "recovery": "scripts/register_cetol_golden_task.bat 再実行。API_OFFLINE続きならProgressive Die Hub(:8004)を起動"
+    },
+    {
+      "name": "self_heal_pulse",
+      "path": "data/workspace/self_heal_pulse_status.json",
+      "ts_fields": [
+        "checked_at"
+      ],
+      "max_age_hours": 3,
+      "owner": "scripts/self_heal_pulse.py (常駐・スタートアップVBS起動=Task Scheduler非依存の第2経路)",
+      "recovery": "scripts/install_self_heal_pulse.bat 再実行。SchedulerタスクClawstack\\SelfHealLoopsと相互に独立"
     }
   ],
   "http_probes": [

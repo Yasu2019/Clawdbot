@@ -37,3 +37,17 @@ dry-run実測: tri-track 58.7h stale → restart検知 / dead_project_recheck 77
 ## bd起票要(次のbd可能セッション)
 
 self-heal導入 / tri-track 7/8停止の根本原因調査(T054関連疑い) / スケジュールタスク07:30/07:35が実行されていない原因確認(register_*.logを見る)
+
+## 追記(同日夜): 多重化v2 — 「必ず復帰」への3層構造
+
+**動機(ユーザー指摘)**: 再発防止ハーネス自体が死ぬ(日次タスク3日間無実行=Task Scheduler層が単一障害点)。
+
+| 層 | 経路 | 死んだ時に誰が救うか |
+|---|---|---|
+| 1 | Task Scheduler毎時(Clawstack\SelfHealLoops) | パルス(層2)がself_heal実行で穴埋め |
+| 2 | **常駐パルス** `self_heal_pulse.py`(スタートアップVBS起動・Scheduler非依存・管理者不要) | Schedulerのself_healがheartbeat監視(相互監視) |
+| 3 | **LLM一次診断医** `self_heal_diagnose_llm.py`(qwen3:14bローカル) | escalate_human発行時に診断書生成→人間が最終層 |
+
+- LLMの役割制約: **診断・助言のみ。実行・状態変更・ゲート判定は禁止**(growth_loop_quality_protocol)。Ollama停止時は静かにスキップ(復旧系に影響なし)
+- 導入: `scripts\install_self_heal_pulse.bat` 1回ダブルクリック(スタートアップVBS+即時起動)
+- 正直な限界: 「必ず」の数学的保証は不可能。達成水準=単一障害は自動復旧/二重障害は診断書付きで人間へ/PC電源断は起動時に両経路が自動再開

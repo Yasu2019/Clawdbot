@@ -5,6 +5,7 @@
 
 ## 2026-07-10
 
+- [Fable5] **自己修復の多重化v2(ユーザー指示「必ず復帰」)**: Task Scheduler層自体の死(日次タスク3日無実行)を単一障害点と特定→①常駐パルス`self_heal_pulse.py`(スタートアップVBS起動=Scheduler非依存・管理者不要・T056単一化内蔵) ②**ローカルLLM一次診断医**`self_heal_diagnose_llm.py`(qwen3:14b・escalate_human時に診断書生成。診断のみ・実行禁止=プロトコル遵守・Ollama停止時は安全スキップ) ③相互監視(Scheduler⇔パルス)。テスト4件PASS。導入: install_self_heal_pulse.bat
 - [Fable5] **T056横展開: watchdog 29本一括修正(ユーザー承認)**: 「プロセス存在=生存」欠陥のwatchdogを標準型24本+if/else型4本+自己参照型1本の計29本修正(多重検知→全掃除→単一化、WATCHDOG_RESTART=1で強制再起動)。対象外3本=minipc(docker管理)/native_cutover×2(ワンショット)。全ファイルbackups/watchdog_t056_20260710/へ退避。**検証はホストで scripts\verify_watchdogs_t056.ps1 実行**(PowerShellパーサ全数検査)。トラブル系譜: T050→T051→本日Moldflow孤児→tri-track4重起動
 - [Fable5] **OpenRadioss 8連敗の根本原因是正(ユーザー指示・7/7処方(a)の実装)**: cae_workload_router.yamlのpunch_speed_mms [1500,2800]が全域物理発散ゾーンだった(SUCCESS実績4602/6096は範囲外=サンプラが成功域を引けない構造) → [3000,6100]へ是正。red_lavie初回試行前(n=0)に間に合い無駄撃ちゼロ。self_heal v1.3=意味ゲート水準連敗(streak>=8)の可視化(自動リセットは設計上禁止・人間承認必須を堅持)。FEM Impact/Moldflowはtri-track再開で自走中(openfoam n=8 SUCCESS)。**発効はオーケストレータ再起動後**
 - [Fable5] **自己修復ハーネス導入(ユーザー指示)**: 監査でtri-track 7/8停止(58h)+監視役自身の死亡(77h)を発見→`self_heal_loops.py`(毎時: tri-track再起動/supervisor T054型2点セット/監視役蘇生。MAINTENANCE_LOCKガード・24h2回上限・全行動jsonl監査)+audit **G3実績検証強化**(verify_log・resin_fill 25%適用)+**CETOLゴールデン回帰**(日次・既知解3ケース・偽PASSなし)。テスト16件PASS・dry-run実測で停止2件正検知。要ユーザー: register bat×2ダブルクリック。引継ぎ: docs/handover/SELF_HEAL_AND_GOLDEN_LOOPS_20260710.md
