@@ -1,0 +1,130 @@
+{
+  "schema": "clawstack.moldflow_solver_landscape.v1",
+  "updated_at": "2026-07-08",
+  "purpose": "Track public solver landscape and convert it into Moldflow CAE Studio benchmark targets without copying proprietary solver behavior.",
+  "legal_access_policy": {
+    "direct_free": "Use official public pages, manuals, papers, and open-source repositories that are legally accessible without bypassing access controls.",
+    "manual_review": "Queue ambiguous, registration-only, or license-unclear material before download or ingestion.",
+    "paid_or_subscription": "Use only as benchmark metadata unless the user provides authorized access.",
+    "no_go": "No paywall bypass, credential sharing, DRM bypass, scraping against terms, or copying proprietary material cards/databases."
+  },
+  "solvers": [
+    {
+      "name": "Autodesk Moldflow",
+      "kind": "commercial",
+      "access_class": "paid_or_subscription",
+      "official_url": "https://www.autodesk.com/products/moldflow/overview",
+      "public_claims": [
+        "Plastic injection molding and compression molding simulation",
+        "Warpage, cooling channel efficiency, material selection, cycle time reduction"
+      ],
+      "how_we_use_it": "L10 benchmark target and terminology reference; do not claim equivalence without correlation data."
+    },
+    {
+      "name": "Moldex3D",
+      "kind": "commercial",
+      "access_class": "paid_or_subscription",
+      "official_url": "https://www.moldex3d.com/products/software/moldex3d/flow/",
+      "public_claims": [
+        "True-3D molding simulation",
+        "Flow behavior, weldline, short shot, air trap, temperature, warpage"
+      ],
+      "how_we_use_it": "Alternative commercial benchmark target for flow-front and defect KPI terminology."
+    },
+    {
+      "name": "SIGMASOFT Virtual Molding",
+      "kind": "commercial",
+      "access_class": "paid_or_subscription",
+      "official_url": "https://www.sigmasoft.de/",
+      "public_claims": [
+        "3D simulation of flow, heat flux, and warpage",
+        "Process and mold optimization across injection molding cycles"
+      ],
+      "how_we_use_it": "Reference for full-mold thermal-cycle scope; useful for defining what our OpenFOAM proxy does not yet cover."
+    },
+    {
+      "name": "OpenFOAM interFoam / compressibleInterFoam",
+      "kind": "open_source_toolbox",
+      "access_class": "direct_free",
+      "official_url": "https://doc.openfoam.com/2306/tools/processing/solvers/rtm/multiphase/interFoam/",
+      "public_claims": [
+        "VOF two-phase flow foundation",
+        "Open numerical toolbox requiring case-specific modeling and validation"
+      ],
+      "how_we_use_it": "Internal proxy solver foundation; requires our own material model, boundary conditions, meshing, validation, and KPI layer."
+    }
+  ],
+  "current_internal_proxy": {
+    "name": "Clawstack Moldflow CAE Studio",
+    "solver_family": "OpenFOAM proxy",
+    "latest_verified_proxy_run": {
+      "trial_id": "demo_spread_plate_pointgate_cool_const_20260708",
+      "physics_category": "resin_fill_cool",
+      "scope": "partial-fill thermal proxy",
+      "fill_fraction_pct": 40.09,
+      "alpha_max": 1.0,
+      "T_min_K": 333.87,
+      "T_max_K": 511.21,
+      "status_note": "Solver completed with returncode 0, but this is not full Moldflow-grade solidification validation."
+    },
+    "safe_demo_defaults": {
+      "bounded_alpha": true,
+      "viscosity_model": "const",
+      "closed_cavity": false,
+      "reason": "Avoid WLF thermo instability until a dedicated benchmark validates the coupled rheology path."
+    }
+  },
+  "benchmark_kpis": [
+    {
+      "id": "fill_front_pattern",
+      "target": "Straight initial advance from gate followed by lateral spreading",
+      "evidence_required": "Time-resolved alpha field and visual frame review"
+    },
+    {
+      "id": "bounded_alpha",
+      "target": "0 <= alpha.polymer <= 1.05",
+      "evidence_required": "vof_fill_kpis.json alpha_max and solver log"
+    },
+    {
+      "id": "thermal_gradient",
+      "target": "Mold wall region cooler than injected melt/front proxy",
+      "evidence_required": "T field, thermo_fill_kpis.json, temperature-color MP4"
+    },
+    {
+      "id": "mass_balance",
+      "target": "mass_balance_err_pct <= 5 for VOF proxy runs",
+      "evidence_required": "mass_balance_kpi.json"
+    },
+    {
+      "id": "commercial_correlation",
+      "target": "Compare at least one geometry/process case with authorized commercial or measured reference",
+      "evidence_required": "moldflow_correlation_records.json"
+    }
+  ],
+  "implementation_backlog": [
+    {
+      "id": "MF-BENCH-001",
+      "priority": "high",
+      "title": "Add precheck for generated cooling cases",
+      "done_when": "Reject stale nonuniform alpha arrays, unresolved placeholders, and invalid T_melt/T_mold before Docker run."
+    },
+    {
+      "id": "MF-BENCH-002",
+      "priority": "high",
+      "title": "Make safe thermal proxy defaults visible in CAE Studio",
+      "done_when": "UI shows bounded alpha and constant-viscosity recommendation for resin_fill_cool demos."
+    },
+    {
+      "id": "MF-BENCH-003",
+      "priority": "medium",
+      "title": "Define commercial correlation record schema",
+      "done_when": "Authorized Moldflow/Moldex/SIGMASOFT or measured case can be logged without mixing inferred and factual data."
+    },
+    {
+      "id": "MF-BENCH-004",
+      "priority": "medium",
+      "title": "Benchmark WLF thermo path separately",
+      "done_when": "WLF resin_fill_cool case completes without negative temperature and alpha overshoot on a fixed golden mesh."
+    }
+  ]
+}

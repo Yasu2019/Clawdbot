@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Moldflow CAE Studio | Clawstack</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2308111f'/%3E%3Cpath d='M12 42h40V22H12v20zm5-15h30v10H17V27z' fill='%2338bdf8'/%3E%3Ccircle cx='20' cy='32' r='3' fill='%2314b8a6'/%3E%3Ccircle cx='32' cy='32' r='3' fill='%23f59e0b'/%3E%3Ccircle cx='44' cy='32' r='3' fill='%23fb7185'/%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg0: #08111f;
+      --bg1: #0d1730;
+      --panel: rgba(13, 20, 35, 0.86);
+      --panel-strong: #101a2c;
+      --panel-soft: #15223a;
+      --border: rgba(148, 163, 184, 0.18);
+      --text: #e8f0fb;
+      --muted: #8ea3bf;
+      --accent: #38bdf8;
+      --accent-2: #14b8a6;
+      --good: #22c55e;
+      --warn: #f59e0b;
+      --bad: #fb7185;
+      --shadow: 0 18px 60px rgba(0, 0, 0, 0.32);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; }
+    body {
+      font-family: "IBM Plex Sans JP", "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 20% 15%, rgba(56, 189, 248, 0.18), transparent 24%),
+        radial-gradient(circle at 80% 10%, rgba(20, 184, 166, 0.15), transparent 20%),
+        radial-gradient(circle at 50% 100%, rgba(59, 130, 246, 0.12), transparent 32%),
+        linear-gradient(160deg, var(--bg0), var(--bg1));
+      overflow: hidden;
+    }
+    .shell {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      height: 100%;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(90deg, rgba(10, 18, 32, 0.94), rgba(15, 25, 42, 0.86));
+      backdrop-filter: blur(10px);
+      box-shadow: var(--shadow);
+      z-index: 2;
+    }
+    .brand {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .brand h1 {
+      margin: 0;
+      font-size: 1.02rem;
+      line-height: 1.2;
+      letter-spacing: 0.03em;
+    }
+    .brand p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.76rem;
+    }
+    .header-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid var(--border);
+      background: rgba(17, 24, 39, 0.74);
+      color: var(--muted);
+      border-radius: 999px;
+      padding: 7px 11px;
+      font-size: 0.76rem;
+      white-space: nowrap;
+    }
+    .pill strong { color: var(--text); font-weight: 600; }
+    .pill.ok { color: var(--good); }
+    .pill.warn { color: var(--warn); }
+    .actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    button, select, input[type="text"], input[type="number"] {
+      font: inherit;
+    }
+    .btn {
+      appearance: none;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: linear-gradient(180deg, #162238, #111a2c);
+      color: var(--text);
+      padding: 9px 13px;
+      cursor: pointer;
+      transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+    }
+    .btn:hover { transform: translateY(-1px); border-color: rgba(56, 189, 248, 0.5); }
+    .btn.primary {
+      background: linear-gradient(135deg, #2563eb, #0ea5e9);
+      border-color: rgba(37, 99, 235, 0.9);
+    }
+    .btn.good {
+      background: linear-gradient(135deg, #16a34a, #15803d);
+      border-color: rgba(34, 197, 94, 0.8);
+      font-weight: 600;
+    }
+    .layout {
+      display: grid;
+      grid-template-columns: 300px 1fr 360px;
+      min-height: 0;
+      min-width: 0;
+    }
+    .panel {
+      min-height: 0;
+      overflow-y: auto;
+      background: var(--panel);
+      border-right: 1px solid var(--border);
+      padding: 14px;
+      backdrop-filter: blur(8px);
+    }
+    .panel.right {
+      border-right: none;
+      border-left: 1px solid var(--border);
+    }
+    .section {
+      margin-bottom: 18px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+    }
+    .section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+    .section h2 {
+      margin: 0 0 8px;
+      color: #7dd3fc;
+      font-size: 0.76rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+    .note {
+      margin: 6px 0 10px;
+      color: var(--muted);
+      font-size: 0.78rem;
+      line-height: 1.55;
+    }
+    .field {
+      display: block;
+      margin: 8px 0 4px;
+      color: var(--muted);
+      font-size: 0.74rem;
+    }
+    input[type="text"], input[type="number"], select {
+      width: 100%;
+      background: var(--panel-soft);
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      border-radius: 9px;
+      color: var(--text);
+      padding: 9px 10px;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      border-radius: 999px;
+      padding: 7px 10px;
+      background: rgba(17, 24, 39, 0.56);
+      cursor: pointer;
+      font-size: 0.76rem;
+      color: var(--text);
+    }
+    .chip input { accent-color: var(--accent); }
+    .tool-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+    .tool-row .btn { flex: 1 1 88px; }
+    .stat-box {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .stat {
+      border: 1px solid rgba(148, 163, 184, 0.14);
+      border-radius: 12px;
+      padding: 10px 11px;
+      background: rgba(8, 15, 28, 0.58);
+    }
+    .stat .k {
+      color: var(--muted);
+      font-size: 0.7rem;
+      letter-spacing: 0.04em;
+    }
+    .stat .v {
+      margin-top: 6px;
+      font-size: 0.96rem;
+      font-weight: 600;
+    }
+    #viewport {
+      position: relative;
+      min-width: 0;
+      min-height: 0;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 50% 30%, rgba(56, 189, 248, 0.12), transparent 30%),
+        radial-gradient(circle at 25% 70%, rgba(20, 184, 166, 0.08), transparent 26%),
+        linear-gradient(180deg, rgba(9, 14, 25, 0.5), rgba(4, 10, 20, 0.95));
+    }
+    #canvasHost {
+      width: 100%;
+      height: 100%;
+    }
+    .hud {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      max-width: 360px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      background: rgba(5, 10, 18, 0.6);
+      backdrop-filter: blur(8px);
+      box-shadow: var(--shadow);
+      pointer-events: none;
+    }
+    .hud strong {
+      display: block;
+      color: #7dd3fc;
+      margin-bottom: 4px;
+      font-size: 0.82rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .hud span {
+      color: var(--muted);
+      font-size: 0.8rem;
+      line-height: 1.45;
+    }
+    .dock {
+      position: absolute;
+      bottom: 14px;
+      left: 14px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .dock .btn { pointer-events: auto; }
+    .golden-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+    .golden-banner .verdict {
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+    }
+    .verdict.pass { color: var(--good); }
+    .verdict.fail { color: var(--bad); }
+    .verdict.pending { color: var(--warn); }
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.76rem;
+      margin-top: 8px;
+    }
+    .table th, .table td {
+      text-align: left;
+      padding: 8px 6px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+      vertical-align: top;
+    }
+    .table th { color: #7dd3fc; font-weight: 600; }
+    .status-tag {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 52px;
+      border-radius: 999px;
+      padding: 4px 8px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+    }
+    .status-ok { color: #86efac; background: rgba(34, 197, 94, 0.13); }
+    .status-fail { color: #fda4af; background: rgba(244, 63, 94, 0.13); }
+    .status-unknown { color: #fde68a; background: rgba(245, 158, 11, 0.12); }
+    #analysisList, #goldenChecks, #variantCards {
+      display: grid;
+      gap: 10px;
+    }
+    .analysis-card, .check-card, .variant-card {
+      border: 1px solid rgba(148, 163, 184, 0.14);
+      border-radius: 14px;
+      background: rgba(8, 15, 28, 0.58);
+      padding: 11px 12px;
+    }
+    .analysis-card {
+      display: grid;
+      gap: 8px;
+    }
+    .analysis-title {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 0.8rem;
+      align-items: center;
+    }
+    .analysis-title strong { font-weight: 600; }
+    .coef-wrap {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+      color: var(--muted);
+      font-size: 0.72rem;
+    }
+    .coef-wrap input[type="range"] { width: 100%; }
+    .coef-value { min-width: 34px; text-align: right; color: var(--text); }
+    .legend {
+      margin: 0;
+      padding-left: 16px;
+      color: var(--muted);
+      font-size: 0.76rem;
+      line-height: 1.5;
+    }
+    #jobOut {
+      margin: 0;
+      min-height: 120px;
+      max-height: 240px;
+      overflow: auto;
+      padding: 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(148, 163, 184, 0.14);
+      background: rgba(8, 15, 28, 0.68);
+      color: #dbeafe;
+      font-size: 0.72rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    a.back {
+      color: #7dd3fc;
+      text-decoration: none;
+      font-size: 0.76rem;
+    }
+    a.back:hover { text-decoration: underline; }
+    @media (max-width: 1260px) {
+      .layout { grid-template-columns: 280px 1fr; }
+      .panel.right { grid-column: 1 / -1; border-left: none; border-top: 1px solid var(--border); }
+    }
+    @media (max-width: 920px) {
+      body { overflow: auto; }
+      .shell { height: auto; min-height: 100%; }
+      .layout { grid-template-columns: 1fr; }
+      .panel { border-right: none; border-bottom: 1px solid var(--border); }
+      .panel.right { border-top: 1px solid var(--border); }
+      #viewport { min-height: 68vh; }
+    }
+  </style>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div class="brand">
+        <h1>Moldflow CAE Studio</h1>
+        <p>STEP preview, gate editing, golden-case QC, and job export in one cockpit.</p>
+      </div>
+      <div class="header-meta">
+        <div id="statusBar" class="pill warn"><strong>BOOT</strong> waiting</div>
+        <a class="back" href="../../portal.html">Portal</a>
+        <div class="actions">
+          <button type="button" class="btn" id="btnRefreshGolden">Golden Refresh</button>
+          <button type="button" class="btn" id="btnDownloadGate">gate_spec.json</button>
+          <button type="button" class="btn good" id="btnExportJob">Export Job</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="layout">
+      <aside class="panel">
+        <div class="section">
+          <h2>Scene / API</h2>
+          <p class="note">STEP をアップロードして、ゲートとプロセス条件をその場で調整します。API が落ちていても sample STL で継続できます。</p>
+          <label class="field">API Base</label>
+          <input type="text" id="apiBase" value="http://127.0.0.1:8776" />
+          <div class="tool-row">
+            <button type="button" class="btn primary" id="btnUpload">STEP Upload</button>
+            <input type="file" id="stepFile" accept=".step,.stp,.STEP,.STP" />
+            <button type="button" class="btn" id="btnReload">Reload Mesh</button>
+          </div>
+          <label class="field">Current STEP</label>
+          <input type="text" id="stepPath" value="" placeholder="not uploaded" readonly />
+          <label class="field">BBox</label>
+          <div class="pill" id="bboxInfo">--</div>
+        </div>
+
+        <div class="section">
+          <h2>Gates</h2>
+          <p class="note">下端面をクリックしてゲートを切り替えます。Center / Dual / Triple のプリセットも用意しています。</p>
+          <div class="chip-row">
+            <label class="chip"><input type="checkbox" id="gate_inlet1" /> inlet1</label>
+            <label class="chip"><input type="checkbox" id="gate_inlet2" checked /> inlet2</label>
+            <label class="chip"><input type="checkbox" id="gate_inlet3" /> inlet3</label>
+          </div>
+          <div class="tool-row">
+            <button type="button" class="btn" id="btnPresetCenter">1 gate</button>
+            <button type="button" class="btn" id="btnPresetDual">2 gates</button>
+            <button type="button" class="btn" id="btnPresetTriple">3 gates</button>
+          </div>
+        </div>
+
+        <div class="section">
+          <h2>Process</h2>
+          <label class="field">Material Preset</label>
+          <select id="materialPreset">
+            <option value="pp_generic">PP (generic)</option>
+            <option value="abs_generic">ABS (generic)</option>
+            <option value="pc_generic">PC (generic)</option>
+          </select>
+          <div class="grid-2">
+            <div>
+              <label class="field">Polymer nu</label>
+              <input type="number" id="polymerNu" value="0.01" step="0.001" />
+            </div>
+            <div>
+              <label class="field">Shrink alpha</label>
+              <input type="number" id="shrinkAlpha" value="0.00015" step="0.00001" />
+            </div>
+          </div>
+          <div class="grid-2">
+            <div>
+              <label class="field">T_melt K</label>
+              <input type="number" id="tMelt" value="513" />
+            </div>
+            <div>
+              <label class="field">T_mold K</label>
+              <input type="number" id="tMold" value="323" />
+            </div>
+          </div>
+          <label class="field">T_eject K</label>
+          <input type="number" id="tEject" value="353" />
+          <div class="grid-2">
+            <div>
+              <label class="field">Inlet velocity</label>
+              <input type="number" id="inletVelocity" value="1" step="0.1" />
+            </div>
+            <div>
+              <label class="field">Pack pressure MPa</label>
+              <input type="number" id="packPressure" value="0" step="1" />
+            </div>
+          </div>
+          <div class="grid-2">
+            <div>
+              <label class="field">Mesh mode</label>
+              <select id="meshMode">
+                <option value="blockmesh_bbox">blockMesh (BBox)</option>
+                <option value="gmsh_volume">gmsh volume</option>
+              </select>
+            </div>
+            <div>
+              <label class="field">Mesh size mm</label>
+              <input type="number" id="meshSize" value="3" step="0.5" />
+            </div>
+          </div>
+          <label class="field">Physics category</label>
+          <select id="physicsCategory">
+            <option value="resin_fill_vof">resin_fill_vof</option>
+            <option value="resin_fill_pack">resin_fill_pack</option>
+            <option value="resin_fill_cool">resin_fill_cool</option>
+          </select>
+          <label class="field">Job ID</label>
+          <input type="text" id="jobId" placeholder="studio_20260707_001" />
+        </div>
+      </aside>
+
+      <main id="viewport">
+        <div class="hud">
+          <strong>View</strong>
+          <span>3D preview, gate toggles, and analytic overlays use the same scene. Click the lower edge to flip inlet patches.</span>
+        </div>
+        <div id="canvasHost"></div>
+        <div class="dock">
+          <button type="button" class="btn" id="btnResetCam">Reset Cam</button>
+          <button type="button" class="btn" id="btnLoadSample">Load Sample</button>
+        </div>
+      </main>
+
+      <aside class="panel right">
+        <div class="section">
+          <h2>Golden Case</h2>
+          <div class="golden-banner">
+            <div>
+              <div class="verdict pending" id="goldenVerdict">Loading...</div>
+              <div class="note" id="goldenMeta">Reading spec and CAE log.</div>
+            </div>
+            <div class="pill" id="goldenCount">-- results</div>
+          </div>
+          <div class="stat-box" id="goldenStats">
+            <div class="stat"><div class="k">Fill range</div><div class="v">--</div></div>
+            <div class="stat"><div class="k">Repro tol</div><div class="v">--</div></div>
+            <div class="stat"><div class="k">Scale ratio</div><div class="v">--</div></div>
+            <div class="stat"><div class="k">Schedule</div><div class="v">--</div></div>
+          </div>
+        </div>
+
+        <div class="section">
+          <h2>Checks</h2>
+          <div id="goldenChecks"></div>
+        </div>
+
+        <div class="section">
+          <h2>Variant Summary</h2>
+          <div id="variantCards"></div>
+        </div>
+
+        <div class="section">
+          <h2>Analysis Overlays</h2>
+          <div id="analysisList"></div>
+          <h2 style="margin-top: 14px;">Legend</h2>
+          <ul class="legend" id="legendList"></ul>
+        </div>
+
+        <div class="section">
+          <h2>Defect KPI Preview</h2>
+          <div class="tool-row">
+            <button type="button" class="btn primary" id="btnPreviewDefects">Preview KPI</button>
+          </div>
+          <div class="stat-box" id="defectPreviewStats" style="margin-top: 10px;">
+            <div class="stat"><div class="k">Sink risk</div><div class="v">--</div></div>
+            <div class="stat"><div class="k">Flash risk</div><div class="v">--</div></div>
+            <div class="stat"><div class="k">Flash label</div><div class="v">--</div></div>
+            <div class="stat"><div class="k">Clamp req.</div><div class="v">--</div></div>
+          </div>
+        </div>
+
+        <div class="section">
+          <h2>Export</h2>
+          <p class="note">`Export Job` で gate_spec と process パラメータを `data/cae_te_workspace/jobs/moldflow_studio/` に書き出します。</p>
+          <pre id="jobOut">{}</pre>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
