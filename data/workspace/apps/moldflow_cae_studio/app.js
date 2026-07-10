@@ -10,6 +10,7 @@ const LOCAL_GOLDEN_SPEC = new URL("../../cae_te_workspace/samples/moldflow/golde
 const LOCAL_CAE_LOG = new URL("../../cae_te_workspace/results/cae_te_log.json", import.meta.url).href;
 const LOCAL_SAMPLE_STL = new URL("../../cae_te_workspace/samples/moldflow/cavity_preview.stl", import.meta.url).href;
 const LOCAL_SOLVER_LANDSCAPE = new URL("../../moldflow_solver_landscape.json", import.meta.url).href;
+const LOCAL_MATURITY = new URL("../growth_dashboard/commercial_benchmark_maturity_latest.json", import.meta.url).href;
 
 const ANALYSIS_DEFS = [
   { id: "warpage", label: "Warpage", color: 0xff6b35, category: "resin_fill_cool" },
@@ -668,6 +669,111 @@ async function loadSolverLandscape() {
   setStatus("Solver benchmark map loaded", "ok");
 }
 
+function ensureMaturityPanel() {
+  if ($("maturityPanel")) return;
+  const exportSection = [...document.querySelectorAll(".section")]
+    .find((section) => section.querySelector("h2")?.textContent?.trim() === "Export");
+  if (!exportSection) return;
+  const panel = document.createElement("div");
+  panel.className = "section";
+  panel.id = "maturityPanel";
+  panel.innerHTML = `
+    <h2>Maturity & Golden Trend</h2>
+    <div class="golden-banner">
+      <div>
+        <div class="verdict pending" id="maturityVerdict">NOT LOADED</div>
+        <div class="note" id="maturitySummary">L0-L10 maturity (commercial_benchmark_maturity) + golden case error trend.</div>
+      </div>
+      <div class="pill" id="maturityAge">--</div>
+    </div>
+    <div id="maturityBars"></div>
+    <div id="goldenTrend" class="note" style="margin-top:8px;"></div>
+    <div class="tool-row" style="margin-top:10px;">
+      <button type="button" class="btn" id="btnLoadMaturity">Reload Maturity</button>
+    </div>`;
+  exportSection.parentNode.insertBefore(panel, exportSection);
+  $("btnLoadMaturity").addEventListener("click", () => loadMaturity().catch((err) => setStatus(String(err), "warn")));
+}
+
+function normalizeMaturity(data) {
+  if (!data) return null;
+  if (data.product !== undefined || data.available !== undefined) return data;
+  const product = (data.matrix || []).find((row) => String(row.product_id || "").toUpperCase().includes("MOLDFLOW")) || null;
+  let ageH = null;
+  if (data.assessed_at) {
+    const t = Date.parse(data.assessed_at);
+    if (Number.isFinite(t)) ageH = (Date.now() - t) / 3600000;
+  }
+  return { available: !!product, product, assessed_at: data.assessed_at, age_hours: ageH, stale: ageH != null && ageH > 26, source: "local snapshot" };
+}
+
+function maturitySpark(values) {
+  if (!values || values.length < 2) return "";
+  const w = 220, h = 30;
+  const max = Math.max(...values, 1e-9);
+  const y = (v) => h - 2 - (v / max) * (h - 6);
+  const pts = values.map((v, i) => `${(i / (values.length - 1)) * w},${y(v).toFixed(1)}`).join(" ");
+  return `<svg width="${w}" height="${h}" style="vertical-align:middle"><polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="1.5"/></svg>`;
+}
+
+function renderMaturity(data) {
+  ensureMaturityPanel();
+  const norm = normalizeMaturity(data);
+  const product = norm?.product;
+  if (!$("maturityVerdict")) return;
+  $("maturityVerdict").className = `verdict ${product ? "pass" : "pending"}`;
+  $("maturityVerdict").textContent = product ? (product.product_label || product.product_id) : "NO DATA";
+  $("maturityAge").textContent = norm?.age_hours != null
+    ? `assessed ${fmt(norm.age_hours, 1)}h ago${norm.stale ? " (STALE>26h)" : ""}`
+    : "--";
+  $("maturitySummary").textContent = product ? `source: ${norm.source}` : (norm?.note || "maturity snapshot not found");
+  $("maturityBars").innerHTML = (product?.categories || []).map((cat) => {
+    const pct = Math.min(100, Math.max(0, Number(cat.progress_pct) || 0));
+    return `
+      <div class="check-card">
+        <div style="display:flex; justify-content:space-between; gap:10px; align-items:center;">
+          <strong>${cat.label || cat.id}</strong>
+          <span class="pill">${cat.current_label || "--"}${cat.current_stage ? " | " + cat.current_stage : ""}</span>
+        </div>
+        <div style="height:6px; border-radius:4px; background:rgba(148,163,184,.2); margin-top:6px;">
+          <div style="height:6px; border-radius:4px; width:${pct}%; background:var(--accent-2);"></div>
+        </div>
+        <div class="note">${fmt(pct, 0)}% | ${cat.l10_target || ""}</div>
+      </div>`;
+  }).join("");
+}
+
+function renderGoldenTrend(data) {
+  const host = $("goldenTrend");
+  if (!host) return;
+  const records = data?.records || [];
+  if (!records.length) {
+    host.textContent = data?.note || "golden error log: 0 records";
+    return;
+  }
+  const values = records.map((r) => {
+    const flat = r.max_err_pct ?? r.err_pct ?? r.error_pct;
+    if (Number.isFinite(Number(flat))) return Number(flat);
+    const pv = r.per_variant || {};
+    const errs = Object.values(pv).map((v) => Number(v?.err_pct ?? v?.max_err_pct)).filter(Number.isFinite);
+    return errs.length ? Math.max(...errs) : NaN;
+  }).filter(Number.isFinite);
+  host.innerHTML = values.length
+    ? `Golden error trend (${values.length} pts, last=${fmt(values[values.length - 1], 2)}%): ${maturitySpark(values)}`
+    : `Golden records: ${records.length} (numeric error field not found)`;
+}
+
+async function loadMaturity() {
+  const data = await fetchJsonWithFallback(`${state.apiBase}/api/maturity`, LOCAL_MATURITY);
+  renderMaturity(data);
+  try {
+    renderGoldenTrend(await tryFetchJson(`${state.apiBase}/api/golden-error-trend?limit=60`));
+  } catch (err) {
+    const host = $("goldenTrend");
+    if (host) host.textContent = `golden trend: API not reachable (${err.message})`;
+  }
+}
+
 function applySafeThermalProxyDefaults() {
   const defaults = state.solverLandscape?.current_internal_proxy?.safe_demo_defaults || {
     bounded_alpha: true,
@@ -1064,6 +1170,7 @@ function initApp() {
     })
     .catch((err) => setStatus(String(err), "warn"));
   loadSolverLandscape().catch(() => {});
+  loadMaturity().catch(() => {});
 }
 
 initApp();

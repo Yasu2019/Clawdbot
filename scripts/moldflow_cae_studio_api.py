@@ -9,10 +9,8 @@ if hasattr(sys.stdout, "reconfigure"):
     except Exception:
         pass
 
-import cgi
 import json
 import re
-import shutil
 from datetime import datetime
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
@@ -148,6 +146,106 @@ def _load_learned_params_snapshot(cycle_n: int | None = None, trials: list | Non
         "golden_due": golden_due,
         "golden_variant": golden_variant,
     }
+
+
+def _rel_or_str(path) -> str:
+    try:
+        return path.relative_to(ROOT).as_posix()
+    except ValueError:
+        return str(path)
+
+
+MATURITY_LATEST = ROOT / "data" / "workspace" / "apps" / "growth_dashboard" / "commercial_benchmark_maturity_latest.json"
+GOLDEN_ERROR_LOG = ROOT / "data" / "workspace" / "moldflow_golden_error_log.jsonl"
+
+
+def _load_maturity_snapshot() -> dict:
+    """成熟度評価(commercial_benchmark_maturity)のMOLDFLOW行を返す(読み取り専用・再計算しない)。"""
+    if not MATURITY_LATEST.exists():
+        return {"available": False, "product": None,
+                "note": "commercial_benchmark_maturity_latest.json not found"}
+    doc = json.loads(MATURITY_LATEST.read_text(encoding="utf-8-sig"))
+    product = None
+    for row in doc.get("matrix") or []:
+        if "MOLDFLOW" in str(row.get("product_id", "")).upper():
+            product = row
+            break
+    assessed_at = doc.get("assessed_at")
+    age_h = None
+    if assessed_at:
+        try:
+            ts = datetime.fromisoformat(str(assessed_at).replace("Z", "+00:00"))
+            now = datetime.now(ts.tzinfo) if ts.tzinfo else datetime.now()
+            age_h = round((now - ts).total_seconds() / 3600.0, 1)
+        except (ValueError, TypeError):
+            pass
+    return {
+        "available": product is not None,
+        "assessed_at": assessed_at,
+        "age_hours": age_h,
+        "stale": bool(age_h is not None and age_h > 26),
+        "product": product,
+        "source": _rel_or_str(MATURITY_LATEST),
+    }
+
+
+def _load_golden_error_trend(limit: int = 50) -> dict:
+    """ゴールデンケース誤差推移(moldflow_golden_case.pyがjsonl追記)。未発生ならrecords空+note。"""
+    limit = max(1, min(int(limit), 500))
+    if not GOLDEN_ERROR_LOG.exists():
+        return {"available": False, "records": [], "count_total": 0,
+                "note": "moldflow_golden_error_log.jsonl 未生成(ゴールデンケース未実行。発効条件はFABLE5_FINAL_SESSION_HANDOVER_20260707.md §0参照)"}
+    records = []
+    for line in GOLDEN_ERROR_LOG.read_text(encoding="utf-8", errors="replace").splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            records.append(json.loads(line))
+        except json.JSONDecodeError:
+            continue  # 追記途中の行は無視(安全側)
+    return {"available": True, "records": records[-limit:], "count_total": len(records),
+            "source": _rel_or_str(GOLDEN_ERROR_LOG)}
+
+
+MAX_UPLOAD_BYTES = 512 * 1024 * 1024  # 512MB上限(cgi版には無かった安全弁)
+
+
+def _parse_multipart(headers, rfile) -> dict:
+    """multipart/form-data の自前パース(cgiモジュール代替・Python3.13対応)。
+
+    返り値: {field_name: (filename, content_bytes)}。
+    旧cgi版と異なり全体をメモリに読むため MAX_UPLOAD_BYTES で上限を設ける。
+    """
+    ctype = headers.get("Content-Type", "")
+    m = re.search(r'boundary="?([^";]+)"?', ctype)
+    if not m:
+        raise ValueError("multipart boundary not found")
+    boundary = m.group(1).encode("utf-8")
+    length = int(headers.get("Content-Length", "0") or 0)
+    if length <= 0:
+        raise ValueError("empty body")
+    if length > MAX_UPLOAD_BYTES:
+        raise ValueError(f"upload too large (>{MAX_UPLOAD_BYTES} bytes)")
+    body = rfile.read(length)
+    fields = {}
+    for part in body.split(b"--" + boundary):
+        if part in (b"", b"--", b"--\r\n") or part == b"\r\n":
+            continue
+        if part.startswith(b"\r\n"):
+            part = part[2:]
+        head, sep, content = part.partition(b"\r\n\r\n")
+        if not sep:
+            continue
+        if content.endswith(b"\r\n"):
+            content = content[:-2]
+        head_text = head.decode("utf-8", errors="replace")
+        nm = re.search(r'name="([^"]*)"', head_text)
+        if not nm:
+            continue
+        fn = re.search(r'filename="([^"]*)"', head_text)
+        fields[nm.group(1)] = ((fn.group(1) if fn else ""), content)
+    return fields
 
 
 def _safe_name(name: str) -> str:
@@ -292,6 +390,20 @@ class CaeStudioHandler(BaseHTTPRequestHandler):
             except Exception as exc:
                 self._json(500, {"error": str(exc)})
             return
+        if parsed.path == "/api/maturity":
+            try:
+                self._json(200, _load_maturity_snapshot())
+            except Exception as exc:
+                self._json(500, {"error": str(exc)})
+            return
+        if parsed.path == "/api/golden-error-trend":
+            try:
+                qs = parse_qs(parsed.query)
+                limit = int(qs.get("limit", ["50"])[0])
+                self._json(200, _load_golden_error_trend(limit))
+            except Exception as exc:
+                self._json(500, {"error": str(exc)})
+            return
         self._json(404, {"error": "not found"})
 
     def do_POST(self) -> None:
@@ -372,27 +484,18 @@ class CaeStudioHandler(BaseHTTPRequestHandler):
     def _handle_upload_step(self) -> None:
         try:
             UPLOADS.mkdir(parents=True, exist_ok=True)
-            form = cgi.FieldStorage(
-                fp=self.rfile,
-                headers=self.headers,
-                environ={
-                    "REQUEST_METHOD": "POST",
-                    "CONTENT_TYPE": self.headers.get("Content-Type", ""),
-                    "CONTENT_LENGTH": self.headers.get("Content-Length", "0"),
-                },
-            )
-            if "file" not in form:
+            fields = _parse_multipart(self.headers, self.rfile)
+            if "file" not in fields:
                 self._json(400, {"error": "missing file field"})
                 return
-            item = form["file"]
-            if not getattr(item, "file", None):
+            filename, content = fields["file"]
+            if not content:
                 self._json(400, {"error": "empty upload"})
                 return
-            fname = _safe_name(getattr(item, "filename", "upload.step"))
+            fname = _safe_name(filename or "upload.step")
             stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             dest = UPLOADS / f"{stamp}_{fname}"
-            with dest.open("wb") as out:
-                shutil.copyfileobj(item.file, out)
+            dest.write_bytes(content)
             import moldflow_step_case_builder as mscb
 
             bbox = mscb.step_bbox_mm(dest)
