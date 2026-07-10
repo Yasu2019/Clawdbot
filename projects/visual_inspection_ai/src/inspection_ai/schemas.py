@@ -52,6 +52,7 @@ class InspectionResult(BaseModel):
     regions: list[Region]
     original_image_url: str
     annotated_image_url: str
+    heatmap_image_url: str | None = None
     model_version: str
     elapsed_ms: dict[str, float]
     created_at: str

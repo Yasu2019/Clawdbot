@@ -113,6 +113,7 @@ class InspectionPipeline:
         }
         rel_original = original_path.relative_to(self.config.paths.root).as_posix()
         rel_annotated = annotated_path.relative_to(self.config.paths.root).as_posix()
+        rel_heatmap = heatmap_path.relative_to(self.config.paths.root).as_posix()
         self.db.execute(
             """INSERT INTO inspections(id, product_id, decision, anomaly_score, reasons_json, quality_json,
                measurements_json, regions_json, original_path, annotated_path, model_version, elapsed_json,
@@ -141,6 +142,7 @@ class InspectionPipeline:
             regions=detection.regions,
             original_image_url="/" + rel_original,
             annotated_image_url="/" + rel_annotated,
+            heatmap_image_url="/" + rel_heatmap,
             model_version=detection.model_version,
             elapsed_ms=elapsed,
             created_at=created_at,
