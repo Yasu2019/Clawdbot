@@ -17,3 +17,6 @@
 - マウント上の大きめファイル(>11.7KB)はcp先も同一位置で切断され、それをhash-objectすると**切断blobがコミットされる**(CHANGELOG.mdで実発生・同日修復済み)
 - 対策: コミット前に必ず `python3 -c "open(f,encoding='utf-8').read()"` でデコード完全性を検証。切断時はホスト側Read/Editツールで全文取得→サンドボックス/tmpに再構築→hash-object
 - 履歴上の中間コミット2本(4509bd1/8fba84e)には切断CHANGELOG blobが残存(HEADは修復済み・実害なし)
+
+## 関連: T056(同日採番) — 「プロセス存在=生存」の系統疾患
+watchdog 33本が「already running素通り」設計。T050/T051/Moldflow孤児/tri-track4重起動の共通根本原因。設計ルール=①鮮度で死活判定 ②健全な1体の保証(全掃除→単一起動) ③pidファイル単独管理禁止。参照実装3本はT056行参照。
