@@ -33,18 +33,11 @@ def _load_server():
 
     fastmcp = types.ModuleType("mcp.server.fastmcp")
     fastmcp.FastMCP = _FastMCP
-    class _TransportSecuritySettings:
-        def __init__(self, **kwargs):
-            self.__dict__.update(kwargs)
-
-    transport_security = types.ModuleType("mcp.server.transport_security")
-    transport_security.TransportSecuritySettings = _TransportSecuritySettings
     server_package = types.ModuleType("mcp.server")
     mcp_package = types.ModuleType("mcp")
     _sys.modules.setdefault("mcp", mcp_package)
     _sys.modules.setdefault("mcp.server", server_package)
     _sys.modules.setdefault("mcp.server.fastmcp", fastmcp)
-    _sys.modules.setdefault("mcp.server.transport_security", transport_security)
     spec = importlib.util.spec_from_file_location("moldflow_mcp_server", SERVER)
     assert spec and spec.loader
     module = importlib.util.module_from_spec(spec)

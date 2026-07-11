@@ -2,8 +2,7 @@ param(
     [string]$InstallRoot = 'G:\moldflow_bridge',
     [string]$BindHost = '100.98.133.40',
     [int]$Port = 8765,
-    [string]$AllowedRemoteAddress = '100.119.18.40',
-    [switch]$SkipFirewall
+    [string]$AllowedRemoteAddress = '100.119.18.40'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -30,14 +29,10 @@ $envFile = Join-Path $InstallRoot 'moldflow_mcp.env.ps1'
 `$env:MOLDFLOW_WORK_ROOT='$InstallRoot\work'
 "@ | Set-Content -Encoding UTF8 $envFile
 
-if (-not $SkipFirewall) {
-    $ruleName = 'Clawstack Moldflow MCP (Tailscale K10 only)'
-    Get-NetFirewallRule -DisplayName $ruleName -ErrorAction SilentlyContinue | Remove-NetFirewallRule
-    New-NetFirewallRule -DisplayName $ruleName -Direction Inbound -Action Allow -Protocol TCP `
-        -LocalPort $Port -RemoteAddress $AllowedRemoteAddress -Profile Any | Out-Null
-} else {
-    Write-Warning 'Firewall rule skipped. Run this installer once as administrator without -SkipFirewall.'
-}
+$ruleName = 'Clawstack Moldflow MCP (Tailscale K10 only)'
+Get-NetFirewallRule -DisplayName $ruleName -ErrorAction SilentlyContinue | Remove-NetFirewallRule
+New-NetFirewallRule -DisplayName $ruleName -Direction Inbound -Action Allow -Protocol TCP `
+    -LocalPort $Port -RemoteAddress $AllowedRemoteAddress -Profile Any | Out-Null
 
 Write-Output '[OK] Moldflow MCP files and Python environment installed.'
 Write-Output "Start with: powershell -ExecutionPolicy Bypass -File $InstallRoot\start_moldflow_mcp.ps1"
