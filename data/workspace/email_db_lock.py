@@ -3,10 +3,16 @@ from __future__ import annotations
 
 import atexit
 import os
+import time
 from pathlib import Path
 
 
 LOCK_PATH = Path(__file__).resolve().parent / "email_search_ops.lock"
+
+# ロックファイルの所有者情報が壊れている(pid解析不能)場合、この秒数より
+# 古ければ孤立ロックとみなして削除する。通常のロック保持時間(数分オーダー)
+# より十分長く取り、誤って稼働中のロックを消さないようにする。
+STALE_UNPARSEABLE_LOCK_SECONDS = 30 * 60
 
 
 class EmailDbLock:
@@ -28,12 +34,30 @@ class EmailDbLock:
             return False
 
     def _clear_stale_lock(self) -> None:
+        if not LOCK_PATH.exists():
+            return
         owner = read_lock_owner()
         pid = parse_lock_pid(owner)
         if pid is None:
+            # 所有者情報が破損/不明な形式(例: NULLバイト埋めなど)で
+            # pidを読み取れないケース。以前はここで無条件に諦めて
+            # おり、壊れたロックが永久に残るバグがあった。
+            # ファイルが十分古ければ孤立ロックとみなして削除する。
+            if self._lock_age_seconds() >= STALE_UNPARSEABLE_LOCK_SECONDS:
+                self._unlink_lock()
             return
         if process_exists(pid):
             return
+        self._unlink_lock()
+
+    def _lock_age_seconds(self) -> float:
+        try:
+            return time.time() - LOCK_PATH.stat().st_mtime
+        except Exception:
+            # stat に失敗する = 実体がないなど。古いものとして扱い削除対象にする。
+            return STALE_UNPARSEABLE_LOCK_SECONDS
+
+    def _unlink_lock(self) -> None:
         try:
             LOCK_PATH.unlink(missing_ok=True)
         except Exception:
