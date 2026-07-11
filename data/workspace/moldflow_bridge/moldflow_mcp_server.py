@@ -14,6 +14,7 @@ import os
 import platform
 import shutil
 import subprocess
+import tempfile
 import time
 import re
 from datetime import datetime, timezone
@@ -27,11 +28,27 @@ BRIDGE_VERSION = "0.2.0"
 PROG_IDS = ("synergy.Synergy", "Synergy.Synergy", "synergy.Synergy.2010")
 ROOT = Path(__file__).resolve().parent
 PROBE_SCRIPT = ROOT / "check_synergy_com.vbs"
+STATE_INSPECT_SCRIPT = ROOT / "inspect_synergy_state.vbs"
 DEFAULT_WORK_ROOT = Path(os.environ.get("MOLDFLOW_WORK_ROOT", r"G:\moldflow_bridge\work"))
 
 mcp = FastMCP("dynabook-moldflow-operations")
 
 # --- Helper functions ---
+
+def _write_operations_enabled() -> bool:
+    return os.environ.get("MOLDFLOW_ENABLE_WRITE_OPERATIONS", "").strip() == "1"
+
+
+def _write_operation_blocked() -> str:
+    return json.dumps(
+        {
+            "ok": False,
+            "error": "write operations are disabled pending scratch-study COM validation",
+            "required_env": "MOLDFLOW_ENABLE_WRITE_OPERATIONS=1",
+        },
+        ensure_ascii=False,
+        indent=2,
+    )
 
 def _run(command: list[str], timeout_sec: int = 30) -> dict[str, Any]:
     """Run a bounded local diagnostic command without invoking a shell."""
@@ -65,26 +82,17 @@ def _cscript_path(bitness: int = 32) -> Path:
 
 def _run_vbs_code(vbs_code: str, timeout_sec: int = 45) -> dict[str, Any]:
     """Write temporary VBScript code and run it via 32-bit cscript.exe."""
-    temp_dir = DEFAULT_WORK_ROOT / "temp"
-    temp_dir.mkdir(parents=True, exist_ok=True)
-    temp_vbs = temp_dir / f"temp_macro_{int(time.time())}.vbs"
-    
-    # VBScript must be saved in Shift-JIS/ANSI/ASCII because 2010 cscript doesn't support UTF-8 well
+    temp_parent = DEFAULT_WORK_ROOT / "temp"
+    temp_parent.mkdir(parents=True, exist_ok=True)
     try:
-        temp_vbs.write_text(vbs_code, encoding="mbcs")
+        with tempfile.TemporaryDirectory(prefix="moldflow_vbs_", dir=str(temp_parent)) as temp_dir:
+            temp_vbs = Path(temp_dir) / "macro.vbs"
+            # Moldflow 2010 cscript requires an ANSI-compatible script.
+            temp_vbs.write_text(vbs_code, encoding="mbcs")
+            cscript = _cscript_path(32)
+            return _run([str(cscript), "//nologo", str(temp_vbs)], timeout_sec)
     except Exception as exc:
-        return {"ok": False, "error": f"failed to write VBS macro: {exc}"}
-        
-    cscript = _cscript_path(32)
-    res = _run([str(cscript), "//nologo", str(temp_vbs)], timeout_sec)
-    
-    # Cleanup macro file
-    try:
-        temp_vbs.unlink()
-    except Exception:
-        pass
-        
-    return res
+        return {"ok": False, "error": f"temporary VBS execution failed: {exc}"}
 
 
 def collect_status() -> dict[str, Any]:
@@ -92,14 +100,15 @@ def collect_status() -> dict[str, Any]:
     disk = shutil.disk_usage(work_drive) if work_drive.exists() else None
     return {
         "bridge_version": BRIDGE_VERSION,
-        "mode": "operations_active",
-        "analysis_enabled": True,
+        "mode": "operation_validation",
+        "analysis_enabled": _write_operations_enabled(),
         "hostname": platform.node(),
         "python_bitness": platform.architecture()[0],
         "work_root": str(DEFAULT_WORK_ROOT),
         "work_root_exists": DEFAULT_WORK_ROOT.exists(),
         "work_drive_free_gb": round(disk.free / (1024 ** 3), 2) if disk else None,
         "probe_script_exists": PROBE_SCRIPT.exists(),
+        "state_inspect_script_exists": STATE_INSPECT_SCRIPT.exists(),
         "cscript_64_exists": _cscript_path(64).exists(),
         "cscript_32_exists": _cscript_path(32).exists(),
         "timestamp_utc": datetime.now(timezone.utc).isoformat(),
@@ -131,6 +140,23 @@ def moldflow_probe_com(bitness: int = 32, timeout_sec: int = 30) -> str:
 
 
 @mcp.tool()
+def moldflow_inspect_state(bitness: int = 32, timeout_sec: int = 30) -> str:
+    """Read Synergy version and active object availability without creating a study."""
+    if bitness not in (32, 64):
+        return json.dumps({"ok": False, "error": "bitness must be 32 or 64"})
+    if not STATE_INSPECT_SCRIPT.exists():
+        return json.dumps({"ok": False, "error": f"missing {STATE_INSPECT_SCRIPT}"})
+    cscript = _cscript_path(bitness)
+    if not cscript.exists():
+        return json.dumps({"ok": False, "error": f"missing {cscript}"})
+    result = _run([str(cscript), "//nologo", str(STATE_INSPECT_SCRIPT)], timeout_sec)
+    result["bitness"] = bitness
+    result["analysis_started"] = False
+    result["study_created"] = False
+    return json.dumps(result, ensure_ascii=False, indent=2)
+
+
+@mcp.tool()
 def moldflow_readiness_gate() -> str:
     """Evaluate readiness for both preflight and full operations."""
     status = collect_status()
@@ -144,9 +170,9 @@ def moldflow_readiness_gate() -> str:
     return json.dumps(
         {
             "ready_for_mcp_preflight": not blockers,
-            "ready_for_analysis": not blockers,
+            "ready_for_analysis": False,
             "blockers": blockers,
-            "next_action": "Ready to accept operations tools.",
+            "next_action": "Validate each Moldflow 2010 COM operation on an isolated scratch study.",
         },
         ensure_ascii=False,
         indent=2,
@@ -158,6 +184,8 @@ def moldflow_new_study(
     project_name: str, study_name: str, cad_path: str, mesh_size_mm: float = 3.0
 ) -> str:
     """Create a new project/study and import STEP or STL CAD file, performing mesh generation."""
+    if not _write_operations_enabled():
+        return _write_operation_blocked()
     work_dir = DEFAULT_WORK_ROOT / project_name
     work_dir.mkdir(parents=True, exist_ok=True)
     
@@ -165,7 +193,7 @@ def moldflow_new_study(
     vbs_project_dir = str(work_dir).replace("\\", "\\\\")
     vbs_cad_path = str(Path(cad_path).resolve()).replace("\\", "\\\\")
     
-    vbs = f"""Option Explicit
+    vbs = f'''Option Explicit
 Dim Synergy, Project, StudyDoc, ImportOpts, MeshGenerator
 Set Synergy = CreateObject("synergy.Synergy")
 If (Synergy is Nothing) Then
@@ -206,7 +234,7 @@ End If
 
 StudyDoc.Save
 WScript.Echo "[OK] Study created and meshed successfully."
-"""
+'''
     res = _run_vbs_code(vbs, timeout_sec=90)
     sdy_file = work_dir / f"{study_name}.sdy"
     res["study_path"] = str(sdy_file)
@@ -222,6 +250,8 @@ def moldflow_configure_study(
     injection_node_id: int,
 ) -> str:
     """Configure material property and injection node location for the study."""
+    if not _write_operations_enabled():
+        return _write_operation_blocked()
     sdy = Path(study_path)
     if not sdy.exists():
         return json.dumps({"ok": False, "error": f"study file not found: {study_path}"})
@@ -295,6 +325,8 @@ WScript.Echo "[OK] Study configured."
 @mcp.tool()
 def moldflow_start_analysis(study_path: str) -> str:
     """Launch analysis solver asynchronously using runstudy.exe."""
+    if not _write_operations_enabled():
+        return _write_operation_blocked()
     sdy = Path(study_path)
     if not sdy.exists():
         return json.dumps({"ok": False, "error": f"study file not found: {study_path}"})
@@ -394,6 +426,8 @@ def moldflow_analysis_status(study_path: str, pid: int = 0) -> str:
 @mcp.tool()
 def moldflow_export_results(study_path: str, output_image_dir: str) -> str:
     """Export fill time analysis visual result to PNG and extract KPIs from solver log."""
+    if not _write_operations_enabled():
+        return _write_operation_blocked()
     sdy = Path(study_path)
     if not sdy.exists():
         return json.dumps({"ok": False, "error": f"study file not found: {study_path}"})
@@ -470,11 +504,13 @@ WScript.Echo "[OK] Image exported."
 @mcp.tool()
 def moldflow_export_materials(output_json_path: str) -> str:
     """Traverse and export the full thermoplastic materials database to a JSON file."""
+    if not _write_operations_enabled():
+        return _write_operation_blocked()
     out_path = Path(output_json_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     vbs_out_path = str(out_path).replace("\\", "\\\\")
     
-    vbs = f"""Option Explicit
+    vbs = f'''Option Explicit
 Dim Synergy, Finder, Mat, FS, File
 Set Synergy = CreateObject("synergy.Synergy")
 Set Finder = Synergy.MaterialFinder()
@@ -494,8 +530,8 @@ Do While Not (Mat Is Nothing)
     first = False
     
     Dim manufacturer, tradeName
-    manufacturer = Replace(Mat.Manufacturer, """", "\\""")
-    tradeName = Replace(Mat.TradeName, """", "\\""")
+    manufacturer = Replace(CStr(Mat.Manufacturer), Chr(34), Chr(92) & Chr(34))
+    tradeName = Replace(CStr(Mat.TradeName), Chr(34), Chr(92) & Chr(34))
     
     File.Write "  {{"
     File.Write """id"": " & Mat.ID & ", "
@@ -509,7 +545,7 @@ File.WriteLine ""
 File.WriteLine "]"
 File.Close
 WScript.Echo "[OK] Materials exported."
-"""
+'''
     res = _run_vbs_code(vbs, timeout_sec=180)  # Database might be large
     res["output_path"] = output_json_path
     res["output_exists"] = out_path.exists()
