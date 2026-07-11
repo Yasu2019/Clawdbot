@@ -2847,6 +2847,17 @@ response = model.generate_content([
         setInterval(updateWorkloadAllocation, 15000);
         setInterval(updateNodes, 15000);
         setInterval(updateRobotAutonomyStatus, 30000);
+
+        // ── 自動更新: Becky/Gmail/メール取り込みカード (60秒ごと) ──────────
+        setInterval(loadBeckyPipeline, 60000);
+        setInterval(loadEmailCoverage, 60000);
+        setInterval(loadData, 120000);  // growth_stats.json / Domain Chart
+
+        // Last Synchronized ラベルを毎分更新
+        setInterval(() => {
+            const el = document.getElementById('lastUpdated');
+            if (el) el.innerText = 'Last Synchronized: ' + new Date().toLocaleString('ja-JP');
+        }, 60000);
     </script>
     <script type="module">
         import { mountDxf3dThumbs, disposeDxf3dThumbs } from "./dxf2step_model_thumb.js?v=4";
