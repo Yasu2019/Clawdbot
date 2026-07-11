@@ -55,6 +55,8 @@ powershell -ExecutionPolicy Bypass -File G:\moldflow_bridge\start_moldflow_mcp.p
 
 既定endpointは `http://100.98.133.40:8765/mcp`。Windows FirewallはK10の
 Tailscale IP `100.119.18.40` だけを許可する。公開ツールは以下のread-only診断のみ。
+FastMCPのDNS rebinding保護は有効のまま、Host/OriginもDynabookのTailscale endpoint
+とlocalhostだけを許可する。
 
 - `moldflow_bridge_status`
 - `moldflow_probe_com` (32/64bit、最大60秒)

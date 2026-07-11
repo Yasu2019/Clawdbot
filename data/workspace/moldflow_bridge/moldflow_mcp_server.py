@@ -19,9 +19,10 @@ from pathlib import Path
 from typing import Any
 
 from mcp.server.fastmcp import FastMCP
+from mcp.server.transport_security import TransportSecuritySettings
 
 
-BRIDGE_VERSION = "0.1.0"
+BRIDGE_VERSION = "0.1.1"
 PROG_IDS = ("synergy.Synergy", "Synergy.Synergy", "synergy.Synergy.2010")
 ROOT = Path(__file__).resolve().parent
 PROBE_SCRIPT = ROOT / "check_synergy_com.vbs"
@@ -134,6 +135,13 @@ def main() -> int:
     DEFAULT_WORK_ROOT.mkdir(parents=True, exist_ok=True)
     mcp.settings.host = host
     mcp.settings.port = port
+    allowed_host_values = [f"{host}:{port}", f"127.0.0.1:{port}", f"localhost:{port}"]
+    allowed_origin_values = [f"http://{value}" for value in allowed_host_values]
+    mcp.settings.transport_security = TransportSecuritySettings(
+        enable_dns_rebinding_protection=True,
+        allowed_hosts=allowed_host_values,
+        allowed_origins=allowed_origin_values,
+    )
     print(f"[moldflow-mcp] host={host} port={port} mode=read_only_preflight", flush=True)
     mcp.run(transport="streamable-http")
     return 0
