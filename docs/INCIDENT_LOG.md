@@ -5,6 +5,36 @@
 
 ------
 
+## INC-131: DXF2STEP hole-vs-island audit misclassification on D3 busbar (extends INC-130)
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-06-28 JST |
+| **Detection** | User manufacturing review: 2D "islands" on `tp-dxf-0430c2ca` are **hole machining** (124 CIRCLE), not separate parts. Agent had labeled GEOMETRY_PARTIAL_OK without visual PNG inspection. |
+| **Impact** | False downgrade blocked CAE confidence; user distrust of automated TOP VIEW narrative. |
+| **Root Cause (5 Why)** | **Why1**: User corrected island reading. **Why2**: Dense holes/cutouts look like blobs in 2D. **Why3**: INC-130 "8-plate grid" wording reused for hole arrays. **Why4**: DXF-QC09 lacked outer-profile-only rule. **Why5**: No mandatory visual gate on `original_dxf.png`. |
+| **Fix** | Revise `tp-dxf-0430c2ca` -> GEOMETRY_OK. Add DXF-QC17/18 to checklist. Cross-audit `audit_dxf2step_hole_vs_island_misclass.py`. Register INC-131/T042. |
+| **Files** | `quality_incident_report_20260628_dxf2step_hole_vs_island_audit_inc131.md`; `scripts/register_dxf2step_hole_vs_island_inc131.py`; `scripts/audit_dxf2step_hole_vs_island_misclass.py`; `data/workspace/dxf2step_hole_vs_island_audit_20260628.json`; `combined_geometry_audit.json` (0430c2ca) |
+| **Verification** | Cross-scan 443 archives: **1** mis-adjudication file (0430c2ca, corrected); **28** hole-heavy SUCCESS (heuristic OK); **82** separate frame+part SUSPECT/NG (INC-124/125 class, not hole confusion). |
+| **Prevention** | DXF-QC17 outer profile vs holes. DXF-QC18 visual PNG gate. bd remember `dxf2step-hole-vs-island-inc131`. trouble_history [T042]. |
+
+------
+
+## INC-130: DXF2STEP D3 multi-layout false SUCCESS -- nest strip + profile + pitch grid (extends INC-125)
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-06-27 JST |
+| **Detection** | Formal audit `audit_dxf2step_combined_geometry.py` + DXF-QC09 manual TOP VIEW review on `tp-dxf-959d5e60` (D3 @ 15mm). Manifest SUCCESS but three separate outline groups on TOP. |
+| **Impact** | False SUCCESS shipped to Telegram/dashboard. Combined STEP unusable for Moldflow/OpenRadioss until geometry gate passes. |
+| **Root Cause (5 Why)** | **Why1**: TOP shows 3 outline groups. **Why2**: Layer5 nest strip + H-profile + 8-plate grid all extruded via single_profile_extrude. **Why3**: INC-125 `_keep_largest_connected_cluster` X-column rule over-merged layout islands. **Why4**: No nest-strip / pitch-grid filter for progressive-die layouts. **Why5**: Success KPI (layers_done + has_combined_step) without mandatory DXF-QC09 audit. |
+| **Fix** | `dxf2step_worker.py`: `_pick_part_cluster_segs` + `largest_non_strip_cluster` (drop aspect>10 strips >120mm, fragments <8% max area). NG registry entry for `tp-dxf-959d5e60`. Per-trial `combined_geometry_audit.json`. Retry `tp-dxf-0430c2ca` -> GEOMETRY_PARTIAL_OK (2 groups). |
+| **Files** | `data/workspace/apps/dxf2step/dxf2step_worker.py`; `data/workspace/dxf2step_geometry_ng_trials.json`; `data/workspace/thinkpad_dxf2step_history/tp-dxf-959d5e60/combined_geometry_audit.json`; `data/workspace/thinkpad_dxf2step_history/tp-dxf-0430c2ca/combined_geometry_audit.json`; `quality_incident_report_20260627_dxf2step_d3_multi_layout_inc130.md`; `scripts/register_dxf2step_d3_multi_layout_inc130.py` |
+| **Verification** | `tp-dxf-0430c2ca` SUCCESS with `cluster_pick_mode=largest_non_strip_cluster`, bbox 298x188x15mm. Audit adjudication GEOMETRY_PARTIAL_OK vs prior GEOMETRY_NG. Failed retry `tp-dxf-998a6e44` (smallest_part_cluster) documented as anti-pattern. |
+| **Prevention** | Mandatory DXF-QC09 before CAE handoff. Do not trust manifest SUCCESS without `combined_geometry_audit.json`. bd remember `dxf2step-d3-multi-layout-inc130`. trouble_history [T041]. Remaining: filter 8-plate pitch grid for single-part GEOMETRY_OK. |
+
+------
+
 ## INC-129: FEM Impact mesh explosion false SUCCESS -- stale PNG/VTK accepted
 
 | Field | Detail |
@@ -2049,5 +2079,213 @@ Goal: press_* trial --> NORMAL TERMINATION + KPI
 | **Verification** | `python -m py_compile scripts\\k10_refresh_monitor_agent_via_worker.py scripts\\k10_fleet_diagnostics_audit.py` passed. PowerShell parse checks passed for `setup_monitor_node.ps1` and `refresh_monitor_agent_node.ps1`. Red LAVIE returned `/diagnostics` 200 on `:8111`. Dynabook could not kill old PID 13816 due access denied, but fallback `http://100.98.133.40:8112/diagnostics` returned 200. K10 fallback `http://127.0.0.1:8112/diagnostics` returned 200. After user reran setup on Vivobook, K10 audit showed `k10`, `red_lavie`, `dynabook`, and `vivobook` diagnostics OK; only `lavie` still needs manual check. Dashboard JS extracted from `index.html` passed `node --check`. |
 | **Lessons Learned** | Basic `/metrics` is not enough to prove a node is RCA-ready. For Windows fleet nodes, a stale elevated listener can survive normal user refreshes, so the diagnostic plane needs a verified endpoint and a fallback port instead of assuming 8111 can always be reclaimed. |
 | **Prevention** | Treat diagnostics absence as a failed setup even if `/metrics` works. Keep `8112` as a diagnostic fallback for nodes with unkillable old `8111` listeners. Use the fleet audit before assigning long jobs, and require manual power/startup checks for nodes where both metrics and diagnostics are unreachable. |
+
+---
+
+# INC-133: Robot walk thigh mesh was misidentified as knee pads, causing no visible thigh swing
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-06-29 JST |
+| **Detection** | User reported repeatedly that the thigh did not swing in V19/V20/V21/V23 walk outputs, then supplied `C:\Users\yasu\OneDrive\デスクトップ\太もも.jpg`. Review showed that `robot_0_part34.glb` and `robot_0_part35.glb` had been treated as thighs, but they are knee-pad / knee-cap parts. |
+| **Impact** | The animation QA claimed thigh motion even though the visible upper-leg shell was not the animated object. Robot walk versions could pass numeric bone/keypoint checks while failing the user's visual ergonomic requirement: the thigh must swing around the hip joint. |
+| **Root Cause (5 Why)** | **Why1**: The visible thigh did not move because the actual upper-leg mesh was not isolated as the thigh control target. **Why2**: Part labels were inferred from position and small candidate renders, so knee pads were mapped as thighs. **Why3**: QA measured skeleton/keypoint/root motion and not per-visible-mesh angular motion of the upper-leg shell. **Why4**: PartPacker output grouped pelvis and both upper-leg shells into `robot_0_part25.glb`, hiding the true thigh mesh inside a combined shell. **Why5**: The rig pipeline lacked a mandatory user-facing part identification gate before rebuilding IK/FK walk animation. |
+| **Fix** | Chose the preserve-first option: do not rerun full PartPacker yet. Split existing `robot_0_part25.glb` into three exported GLBs: `Pelvis_Center`, `UpperLeg_L`, and `UpperLeg_R`, using face-center X/Z thresholds and preserving the original source output. Marked `robot_0_part34.glb` and `robot_0_part35.glb` as knee-pad candidates, not thigh candidates. |
+| **Files / Artifacts** | `D:\AI\PartPacker\output\flow_big_parts_strict_pvae_20260628_025827\part25_split_pelvis_thighs\robot_0_part25_pelvis_center.glb`; `D:\AI\PartPacker\output\flow_big_parts_strict_pvae_20260628_025827\part25_split_pelvis_thighs\robot_0_part25_upperleg_l.glb`; `D:\AI\PartPacker\output\flow_big_parts_strict_pvae_20260628_025827\part25_split_pelvis_thighs\robot_0_part25_upperleg_r.glb`; `D:\AI\PartPacker\output\flow_big_parts_strict_pvae_20260628_025827\part25_split_pelvis_thighs\part25_split_report.json`; `quality_incident_report_20260629_robot_part25_thigh_misidentification_inc133.md` |
+| **Verification** | Blender 5.1 export succeeded. Split report shows `Pelvis_Center` with 63,054 faces, `UpperLeg_L` with 26,137 faces, and `UpperLeg_R` with 25,929 faces. Review image `part25_split_pelvis_thighs_review.png` shows three separated objects: left upper leg, pelvis center, and right upper leg. |
+| **Lessons Learned** | In segmented robot assets, a small visually leg-adjacent part can be a pad or cover, not the anatomical segment. Motion QA must confirm that the visible mesh named "thigh" rotates around the hip, not just that a nearby joint or child bone moves. |
+| **Prevention** | Add a part-identification gate before V24: render isolated pelvis/thigh/shin/foot candidates with labels, require thigh mesh to be the long upper-leg shell from hip to knee, and measure per-frame upper-leg mesh axis swing. Do not call a walk "passed" until the visible thigh part swings around the hip in the rendered video. |
+
+---
+
+# INC-134: Robot walk V49 arm swing separated upper arm, forearm, and hand at elbow/wrist joints
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-06-29 JST |
+| **Detection** | User reported that when both arms swing, the upper arm separates from the elbow joint, the elbow joint separates from the forearm, and the forearm separates from the wrist/hand. |
+| **Impact** | V49 was mechanically unacceptable for humanoid robot motion because arm parts moved without a visible shared hinge/parent-child relationship. |
+| **Root Cause (5 Why)** | **Why1**: Upper arm, forearm, and hand were moved as independent mesh groups. **Why2**: The transform aligned abstract segment axes but did not make each child segment start from the parent end joint. **Why3**: V49 did not include a hand segment or shared wrist connector. **Why4**: Existing gates checked forward direction and foot lock, but not arm joint continuity. **Why5**: The rigging rule "anatomy first, armor second; joints require shared pivots or parent-child constraints" was not enforced automatically before delivery. |
+| **Fix** | V50 added shared elbow and wrist joint-core objects, added hand source parts as a separate segment, and added `tools/check_v50_arm_chain.py` to verify shared elbow/wrist cores and hand `source_part` objects after generation. |
+| **Files** | `tools/check_v50_arm_chain.py`; `docs/quality_incident_report_v49_arm_joint_separation.md`; `docs/INCIDENT_LOG.md` |
+| **Verification** | Foot lock PASS: max XY `0.000644`, max Z `0.003509`. Forward direction PASS: direction score `2.100000`. Arm chain core check PASS: elbow/wrist shared cores existed and were animated across frames `1, 36, 72, 108, 144, 180`. MP4 `robot_walk_v50_arm_chain_joint_core.mp4` was sent to Telegram with `status_code=200`, `ok=True`. |
+| **Lessons Learned** | For humanoid/mecha limbs, visible armor pads cannot substitute for anatomy. Upper arm -> elbow -> forearm -> wrist -> hand must be represented as a connected chain before arm swing is increased. |
+| **Prevention** | Any future humanoid walk MP4 must run a joint-continuity gate for arms as well as legs. Do not deliver if upper arm/forearm/hand are only independently posed without shared pivots, connector cores, or parent-child/bone constraints. |
+
+---
+
+# INC-135: V50 diagnostic motion QA MP4 failed because Blender 5.1 rejected direct FFMPEG image format
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-06-30 JST |
+| **Detection** | `projects/AtsugiMechaCity/v50_armature_motion_qa.py` failed in Blender 5.1 with `enum "FFMPEG" not found in ('AVIF', 'JPEG', 'OPEN_EXR', 'PNG', ...)` while generating a diagnostic MP4. |
+| **Impact** | No source V50, KEEP baseline, or generated rig blend was modified. Only the diagnostic MP4 generation step failed. |
+| **Root Cause (5 Why)** | **Why1**: The job failed because Blender rejected `image_settings.file_format = "FFMPEG"`. **Why2**: The script assumed direct movie output was available through that enum. **Why3**: `py_compile` cannot validate Blender runtime enum values. **Why4**: The QA pipeline needed a repeatable movie path but had only been checked with still PNG renders. **Why5**: The render pipeline did not isolate Blender rendering from video encoding. |
+| **Fix** | Updated `projects/AtsugiMechaCity/v50_armature_motion_qa.py` to render PNG frames first and then call external `ffmpeg` to create MP4. If encoding fails, the script preserves the PNG frames and writes `ffmpeg_error.txt`. |
+| **Files** | `projects/AtsugiMechaCity/v50_armature_motion_qa.py`; `quality_incident_report_20260630_v50_motion_qa_ffmpeg.md`; `docs/INCIDENT_LOG.md` |
+| **Verification** | `python -m py_compile projects\AtsugiMechaCity\v50_armature_motion_qa.py` passed. Blender 5.1 rendered 72 PNG frames and external `ffmpeg` encoded `projects/AtsugiMechaCity/diagnostics/v50_armature_motion_qa_fullbody_norm/v50_fullbody_normalized_motion_qa.mp4` with return code 0. Sample frames 1, 36, and 72 were visually inspected. |
+| **Lessons Learned** | For Blender version drift, still-image rendering is the stable boundary. Treat MP4 encoding as a separate step so diagnostic frames survive even if codec settings change. |
+| **Prevention** | Use PNG-sequence-first rendering for generated QA videos and verify the external encoder return code before treating a movie as available. |
+
+---
+
+# INC-136: V50 promotion loop lacked mandatory joint attachment gate before Telegram
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-07-01 JST |
+| **Detection** | User pointed out that robot limbs and hands had repeatedly separated at joints and that past trouble records should have been checked before starting related jobs. Local review found T033/T035 and INC-134 already required joint-continuity or joint-separation gates. |
+| **Impact** | A high-score V50 candidate could still be visually invalid if shoulder, elbow, wrist, hip, knee, or ankle attachment failed. The old overnight loop could render and compare candidates without enforcing explicit joint attachment before Telegram delivery. |
+| **Root Cause (5 Why)** | **Why1**: The loop promoted on motion score, local render bounds, and original compare. **Why2**: Those checks do not prove rigid limb endpoints stay attached. **Why3**: Known lessons from INC-134/T033/T035 were documented but not mandatory at job start. **Why4**: The gate was not part of the V50 promotion harness. **Why5**: The workflow treated RL improvement and media QA as enough without enforcing anatomy-first mechanical continuity. |
+| **Fix** | Added fail-closed `projects/AtsugiMechaCity/v50_joint_attachment_gate.py` and integrated it into `projects/AtsugiMechaCity/rl_integration/v50_overnight_autonomy.py` before original compare and Telegram send. Added Beads task `Clawdbot_Docker_20260125-eaf`, an Obsidian mirror, and this RCA report. |
+| **Files** | `projects/AtsugiMechaCity/v50_joint_attachment_gate.py`; `projects/AtsugiMechaCity/rl_integration/v50_overnight_autonomy.py`; `quality_incident_report_20260701_v50_joint_attachment_gate.md`; `data/state/Obsidian Vault/60_PC_Logs/Robot_Walk_INC-136_V50_joint_attachment_gate_20260701.md`; `docs/INCIDENT_LOG.md` |
+| **Verification** | `py_compile` passed for the modified autonomy script and gate. Running the new gate on the latest promoted candidate returned `HOLD_JOINT_DETACHMENT`: arms failed at shoulder_L/elbow_L/wrist_L/shoulder_R/elbow_R/wrist_R; legs passed at hip/knee/ankle. Telegram is now blocked unless this gate passes. |
+| **Lessons Learned** | Score improvement and broad visual bounds are not physical attachment. Humanoid/mecha jobs must check prior incidents and enforce shoulder/elbow/wrist plus hip/knee/ankle continuity before delivery. |
+| **Prevention** | Before any AtsugiMechaCity mecha generation, rigging, RL loop, or media delivery job, run a preflight against Beads, ByteRover, Obsidian `60_PC_Logs`, `data/workspace/memory/trouble_history.md`, and `docs/INCIDENT_LOG.md`. Do not send humanoid/mecha walk MP4s unless the joint attachment gate passes. |
+
+---
+
+# INC-137: Postgres WAL repair restored startup, but Paperless still needed primary-key reindex after recovery
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-07-02 JST |
+| **Detection** | `clawstack-unified-postgres-1` logged `PANIC: could not find redo location ... referenced by checkpoint record`, and `clawstack-unified-paperless-1` could not connect or later raised `IndexCorrupted` on `documents_paperlesstask_pkey` while starting. |
+| **Impact** | Paperless startup was blocked after the WAL repair. The DB came back online, but the consumer/workers hit a corrupted primary-key index until the table was repaired. |
+| **Root Cause (5 Why)** | **Why1**: Postgres could not replay a valid WAL chain after the prior crash. **Why2**: The data directory needed `pg_resetwal` to recover to a mountable state. **Why3**: Once the server booted, a corrupted `documents_paperlesstask_pkey` still caused `IndexCorrupted` during Paperless task inserts. **Why4**: The affected table had survived the crash with a damaged index structure even though the cluster itself could start. **Why5**: Crash recovery and logical index health are separate; clearing WAL does not guarantee all table indexes are valid. |
+| **Fix** | Backed up `clawstack_v2\data\postgres` to `clawstack_v2\data\postgres_backup_20260702`, ran `pg_resetwal -f` against the mounted data dir, recreated the known-bad secondary indexes, then ran `REINDEX INDEX CONCURRENTLY documents_paperlesstask_pkey;` after stopping Paperless. |
+| **Files** | `clawstack_v2/data/postgres`; `clawstack_v2/data/postgres_backup_20260702`; `docs/INCIDENT_LOG.md` |
+| **Verification** | `docker exec clawstack-unified-postgres-1 psql -U postgres -d postgres -c \"SELECT now(), pg_is_in_recovery();\"` returned `pg_is_in_recovery = f`. `clawstack-unified-paperless-1` later returned to `healthy`, and `docker ps` showed both `paperless` and `postgres` up. |
+| **Lessons Learned** | WAL recovery can resurrect the cluster without fully repairing table indexes. After a crash, expect a second pass for index health, especially on hot task tables. |
+| **Prevention** | After any future WAL reset or crash recovery, check application logs for `IndexCorrupted`, then reindex only the damaged relation before re-enabling consumers. Keep the service stopped while doing the final reindex to avoid noisy concurrent inserts. |
+
+---
+
+# INC-138: V50 preview quality regressed because diagnostic joint locks were visible and the candidate preview was shorter than the original
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-07-02 JST |
+| **Detection** | Local smoke renders showed the preview candidate with visible lock spheres/cylinders in front of the robot, and the original-compare gate for the promoted walk candidate flagged the candidate as much shorter than the original V50 baseline video. |
+| **Impact** | The preview looked more broken than the source V50 because diagnostic scaffolding was rendered as part of the candidate video. The compare gate also had a structural disadvantage because the candidate preview used 96 frames while the original baseline video was 180 frames. |
+| **Root Cause (5 Why)** | **Why1**: Diagnostic joint locks were always created and rendered. **Why2**: The preview script did not distinguish diagnostic scaffolding from a promotion candidate. **Why3**: The render length was set to a short fixed preview window rather than matching the baseline. **Why4**: The promotion harness treated the candidate as a quick preview instead of a comparison artifact. **Why5**: The pipeline did not encode "no visual scaffolding by default" and "baseline-length parity" as defaults. |
+| **Fix** | Default-disabled visible joint locks in `projects/AtsugiMechaCity/v50_final_walk_preview.py` via `--show-joint-locks`, and changed the overnight promotion render to use 180 frames at 24 fps so the candidate matches the original V50 baseline duration more closely. |
+| **Files / Artifacts** | `projects/AtsugiMechaCity/v50_final_walk_preview.py`; `projects/AtsugiMechaCity/rl_integration/v50_overnight_autonomy.py`; `docs/INCIDENT_LOG.md`; `data/state/Obsidian Vault/60_PC_Logs/Robot_Walk_INC-138_V50_preview_scaffold_and_duration_20260702.md` |
+| **Verification** | Blender smoke runs succeeded after the code change. The preview script rendered frames with joint locks hidden by default, and the armature builder smoke output created a full-body armature with Root, Hips, Chest, Neck, Head, both arm chains, and both leg chains. |
+| **Lessons Learned** | Diagnostic scaffolding belongs in an opt-in path. For video comparison, duration parity matters as much as pose quality because short clips can fail promotion even when the motion itself is acceptable. |
+| **Prevention** | Keep visible joint locks behind an explicit flag, and keep promotion renders at baseline-like duration unless a shorter diagnostic clip is intentionally requested. Re-run the original-compare gate after any render-length or scaffold change. |
+
+---
+
+# INC-139: V50 shoulder attachment gate failed because the torso had no visible shoulder contact surface
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-07-02 JST |
+| **Detection** | The updated V50 preview passed duration parity but `v50_joint_attachment_gate.py` still returned `HOLD_JOINT_DETACHMENT` for `shoulder_L` and `shoulder_R`. Visual smoke frames also showed a gap-like read between the torso shell and upper arms. |
+| **Impact** | The candidate could not be promoted or sent to Telegram even though elbow, wrist, hip, knee, and ankle checks were already within tolerance. The original V50 baseline was not modified. |
+| **Root Cause (5 Why)** | **Why1**: Both shoulder checks failed because the torso-side mesh was too far from the shoulder marker at rest. **Why2**: The armature had shoulder pivots, but the rendered torso mesh lacked a socket/contact surface at those pivots. **Why3**: Earlier fixes focused on bone constraints and visible diagnostic locks rather than final-render attachment surfaces. **Why4**: The left hand had no independent stable mesh, so the gate could confuse hidden proxy remnants with the visible distal forearm/hand surface. **Why5**: The V50 source inventory contains mixed armor/limb parts, so QA must distinguish rig semantics from visible contact surfaces. |
+| **Fix** | Added final-render shoulder socket meshes in `projects/AtsugiMechaCity/v50_final_walk_preview.py`, hid unstable left-hand proxy fragments from the final render, excluded hidden meshes from preview camera bounds, and updated `projects/AtsugiMechaCity/v50_joint_attachment_gate.py` so shoulder sockets count as torso contact surfaces and `geometry_0.005` is used only as the visible left wrist contact surface. |
+| **Files / Artifacts** | `projects/AtsugiMechaCity/v50_final_walk_preview.py`; `projects/AtsugiMechaCity/v50_joint_attachment_gate.py`; `scratch/v50_preview_shoulder_socket_180/v50_joint_attachment_gate_report.json`; `scratch/v50_preview_shoulder_socket_180/v50_original_compare_gate_report.json` |
+| **Verification** | `py_compile` passed for the preview and gate scripts. A 24-frame smoke preview rendered successfully. The 180-frame candidate rendered successfully and `v50_joint_attachment_gate.py` returned `PASS_JOINT_ATTACHMENT` with no failed joints. The original V50 compare gate returned `REVIEW_REQUIRED`, `visual_compare_score=0.887500`, no hard flags, and one soft flag: `candidate_has_more_large_disconnected_components_than_original`. Telegram delivery remained blocked. |
+| **Lessons Learned** | Passing rig constraints is not enough when the visible shell lacks a contact surface. Shoulder sockets should be final-render geometry, while diagnostic locks remain opt-in. Mixed forearm/hand meshes should be documented as contact surfaces rather than silently reclassified as full hand bones. |
+| **Prevention** | Keep `v50_joint_attachment_gate.py` in the promotion path before Telegram. Do not promote V50 candidates unless both joint attachment and original compare pass, or unless a human explicitly accepts a `REVIEW_REQUIRED` visual comparison. |
+
+---
+
+# INC-140: Moldflow VOF video delivery stopped on system Python because PyVista was only installed in the repo venv
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-07-04 JST |
+| **Detection** | Running `python scripts/moldflow_fill_video_telegram.py --trial-id tri-lavie-resin_fill_vof-2b7ce003 --run-dir data/cae_te_workspace/runs/tri-lavie-resin_fill_vof-2b7ce003 --fps 6` failed immediately with `ModuleNotFoundError: No module named 'pyvista'`. |
+| **Impact** | The OpenFOAM VOF animation could not be built from the default interpreter, so the Moldflow-like calculation report path appeared stopped even though the run data already existed. No source case files were modified. |
+| **Root Cause (5 Why)** | **Why1**: The script imported `pyvista` inside the render path and the active Python did not have it installed. **Why2**: The project keeps visualization dependencies in `.venv`, not in the system interpreter. **Why3**: The script assumed operators would remember to launch it with the repo venv. **Why4**: There was no self-healing interpreter fallback. **Why5**: The delivery path was written for a known-good environment, but the current runbook did not guard against the common "wrong Python" case. |
+| **Fix** | Updated [`scripts/moldflow_fill_video_telegram.py`](/D:/Clawdbot_Docker_20260125/scripts/moldflow_fill_video_telegram.py) to detect missing `pyvista` and transparently re-run itself under `.\.venv\Scripts\python.exe` when available. |
+| **Files** | [`scripts/moldflow_fill_video_telegram.py`](/D:/Clawdbot_Docker_20260125/scripts/moldflow_fill_video_telegram.py); [`docs/INCIDENT_LOG.md`](/D:/Clawdbot_Docker_20260125/docs/INCIDENT_LOG.md); [`quality_incident_report_20260704_moldflow_fill_video_telegram_pyvista_venv.md`](/D:/Clawdbot_Docker_20260125/quality_incident_report_20260704_moldflow_fill_video_telegram_pyvista_venv.md); [`data/state/Obsidian Vault/60_PC_Logs/Moldflow_INC-140_PyVista_venv_fallback_20260704.md`](/D:/Clawdbot_Docker_20260125/data/state/Obsidian%20Vault/60_PC_Logs/Moldflow_INC-140_PyVista_venv_fallback_20260704.md) |
+| **Verification** | `python scripts/moldflow_fill_video_telegram.py --trial-id tri-lavie-resin_fill_vof-2b7ce003 --run-dir data/cae_te_workspace/runs/tri-lavie-resin_fill_vof-2b7ce003 --fps 6 --no-telegram` completed successfully after the fallback, rendering 3 frames and encoding `tri-lavie-resin_fill_vof-2b7ce003_fill.mp4`. A second run without `--no-telegram` returned `[telegram] sent=True`. One frame was visually inspected and confirmed to show the closed-cavity 3D alpha.polymer fill view. |
+| **Lessons Learned** | Visualization and delivery scripts should fail closed, but they should also recover from a missing optional dependency when the repository already ships the correct environment. Interpreter selection is part of operational reliability. |
+| **Prevention** | Keep render-and-send utilities self-contained: if they rely on repo-local visualization packages, they should automatically use the repo venv or emit a precise one-line recovery hint. |
+
+---
+
+# INC-141: Moldflow/OpenFOAM automatic reports stopped because LAVIE services were down and the scheduled task had an invalid launch action
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-07-05 JST |
+| **Detection** | User reported no Telegram reports from the Moldflow/OpenFOAM app. `k10_tri_track_cae_status.json` showed `openfoam_lavie` at `SKIP_OFFLINE`, `fail_streak=45`, with `http://100.87.244.46:8111/metrics -> timed out`. Windows Task Scheduler showed `ClawstackCAETrialEngine` last result `0x80070002`. |
+| **Impact** | Automatic OpenFOAM dispatch to LAVIE did not run. Telegram itself was healthy, but no new Moldflow calculation reports could be generated from the normal LAVIE route. |
+| **Root Cause (5 Why)** | **Why1**: No Telegram reports arrived because no new OpenFOAM job completed on the normal route. **Why2**: `openfoam_lavie` skipped dispatch because LAVIE `monitor_agent :8111` and `job_worker :5682` timed out. **Why3**: LAVIE Tailscale ping was healthy, so the host was reachable but its CAE service plane was down. **Why4**: K10's fallback scheduled task also failed because it used `python` without a stable working directory or the `cae_te_engine.py` script argument. **Why5**: The reporting chain depended on both a remote service plane and a scheduled local fallback, but only Telegram delivery was being checked directly. |
+| **Fix** | Updated [`scripts/install_cae_te_engine_schedule.ps1`](/D:/Clawdbot_Docker_20260125/scripts/install_cae_te_engine_schedule.ps1) to use the repo venv Python, pass [`scripts/cae_te_engine.py`](/D:/Clawdbot_Docker_20260125/scripts/cae_te_engine.py), set the working directory, and log through `cmd.exe /c`. Re-registered `ClawstackCAETrialEngine` as a normal user scheduled task after elevated registration was denied. Sent a Telegram status notice and ran one K10-local `resin_fill_vof` rescue calculation. |
+| **Files** | [`scripts/install_cae_te_engine_schedule.ps1`](/D:/Clawdbot_Docker_20260125/scripts/install_cae_te_engine_schedule.ps1); [`docs/INCIDENT_LOG.md`](/D:/Clawdbot_Docker_20260125/docs/INCIDENT_LOG.md); [`quality_incident_report_20260705_moldflow_reports_stopped.md`](/D:/Clawdbot_Docker_20260125/quality_incident_report_20260705_moldflow_reports_stopped.md); [`data/state/Obsidian Vault/60_PC_Logs/Moldflow_INC-141_reports_stopped_20260705.md`](</D:/Clawdbot_Docker_20260125/data/state/Obsidian Vault/60_PC_Logs/Moldflow_INC-141_reports_stopped_20260705.md>) |
+| **Verification** | `tailscale ping 100.87.244.46` returned 4 ms, but TCP probes to `:8111` and `:5682` timed out. Telegram text send returned `ok=True`. `ClawstackCAETrialEngine` was re-created with `cmd.exe` executing `.venv\Scripts\python.exe scripts\cae_te_engine.py`. `.\.venv\Scripts\python.exe scripts\cae_te_engine.py --category resin_fill_vof --dry-run --max-trials 1` passed. A K10-local real `resin_fill_vof` run completed as `FAILED_SHORT_SHOT` with `fill_fraction_pct=51.59`, and `scripts\moldflow_fill_video_telegram.py --trial-id OF-FILL-003-S01 ...` returned `[telegram] sent=True`. |
+| **Lessons Learned** | Telegram health is not enough to prove the reporting chain. For Moldflow/OpenFOAM, the status check must include LAVIE service-plane health, K10 scheduled-task launch validity, and an actual VOF artifact send. |
+| **Prevention** | Add scheduled task action checks to the CAE health preflight, keep K10 local rescue execution available, and require `:8111`, `:5682`, and task action validation before declaring the Moldflow automation healthy. |
+
+---
+
+# INC-145: Moldflow CAE Studio API restart briefly failed due unsupported host argument
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-07-08 JST |
+| **Detection** | After adding `/api/solver-landscape`, a restart command launched `scripts/moldflow_cae_studio_api.py --host 127.0.0.1 --port 8776`; endpoint validation returned connection failure. `api.err.log` showed `error: unrecognized arguments: --host 127.0.0.1`. |
+| **Impact** | Moldflow CAE Studio API on `:8776` was briefly unavailable during this maintenance action. No data, Docker containers, run directories, or `.env` files were modified. |
+| **Root Cause (5 Why)** | **Why1**: Endpoint check failed because the API was not running. **Why2**: The API process exited on startup. **Why3**: `argparse` rejected unsupported `--host`. **Why4**: I assumed a common host/port CLI pattern instead of checking this script's actual CLI. **Why5**: There is no restart helper that validates launch args before stopping the current API. |
+| **Fix** | Restarted with `.venv\\Scripts\\python.exe scripts\\moldflow_cae_studio_api.py --port 8776` and updated `api.pid`. |
+| **Files / Artifacts** | `quality_incident_report_20260708_moldflow_api_restart_arg.md`; `data/workspace/apps/moldflow_cae_studio/api.err.log`; `data/workspace/apps/moldflow_cae_studio/api.pid` |
+| **Verification** | `Invoke-RestMethod http://127.0.0.1:8776/api/solver-landscape` returned schema `clawstack.moldflow_solver_landscape.v1`, `solvers=4`, `backlog=4`, latest proxy run `demo_spread_plate_pointgate_cool_const_20260708`. |
+| **Lessons Learned** | Local service restarts need the same care as production restarts: validate supported CLI arguments before stopping a working process. |
+| **Prevention** | Check `--help` or reuse the existing launch command before restart. Consider adding a dedicated restart script for Moldflow CAE Studio API. |
+
+---
+
+# INC-142: Moldflow demo run pruned historical run directories because no no-cleanup option existed
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-07-08 JST |
+| **Detection** | A simple Moldflow demo calculation printed many `[Cleanup] Removed old run directory: ...` lines while executing `scripts/cae_te_remote_trial.py`. |
+| **Impact** | The demo calculation completed, but historical run directories under `data/cae_te_workspace/runs` were pruned by the existing CAE engine cleanup path. Source files, `.env`, Docker files, DB files, and the current demo output JSONs were not deleted. |
+| **Root Cause (5 Why)** | **Why1**: Old run folders were removed because `_clean_old_runs()` is called before real solver execution. **Why2**: `cae_te_remote_trial.py` did not expose a way to suppress this cleanup for demos. **Why3**: The standard runner was used to validate real OpenFOAM integration. **Why4**: The cleanup behavior is useful for long-running automation but too invasive for ad hoc demos. **Why5**: Demo-safe execution was not encoded as a first-class runner option. |
+| **Fix** | Added `--no-cleanup-runs` to `scripts/cae_te_remote_trial.py`, which sets `CAE_SKIP_RUN_CLEANUP=1`. Added a guard in `scripts/cae_te_engine.py::_clean_old_runs()` so cleanup is skipped when that environment flag is set. Added `data/workspace/tests/test_no_cleanup_runs.py` to verify both the default pruning behavior and the preservation behavior. |
+| **Files** | `scripts/cae_te_remote_trial.py`; `scripts/cae_te_engine.py`; `data/workspace/tests/test_no_cleanup_runs.py`; `quality_incident_report_20260708_demo_run_cleanup_side_effect.md`; `data/state/Obsidian Vault/60_PC_Logs/Moldflow_INC-142_no_cleanup_runs_20260708.md`; `docs/INCIDENT_LOG.md` |
+| **Verification** | `python -m py_compile scripts\cae_te_engine.py scripts\cae_te_remote_trial.py data\workspace\tests\test_no_cleanup_runs.py` passed. `python -m unittest data.workspace.tests.test_no_cleanup_runs -v` passed two tests. `python scripts\cae_te_remote_trial.py --help` shows `--no-cleanup-runs`. |
+| **Lessons Learned** | A production cleanup policy should not be inseparable from a demonstration or investigation run. Disk protection and evidence preservation need separate switches. |
+| **Prevention** | Use `--no-cleanup-runs` for future demonstrations or forensic reruns. Consider making demo launchers default to no cleanup and requiring explicit cleanup for long-running autonomous schedules. |
+
+---
+
+# INC-143: Moldflow fill animation hard-coded the cavity width and could imply unsupported cooling physics
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-07-08 JST |
+| **Detection** | User observed that the demo fill animation looked like resin advancing as a straight band rather than spreading, and noted that wall-adjacent resin should cool/solidify earlier than the flow front. Code inspection found `scripts/moldflow_fill_video_telegram.py` hard-coded a `100 x 60 x 2 mm` cavity in the renderer while the actual demo blockMesh was `100 x 10 x 2 mm`. |
+| **Impact** | The rendered MP4s visually overstated the cavity width and did not clearly disclose that the current `resin_fill_vof` demo is isothermal alpha-only VOF without cooling/solidification. The OpenFOAM run data itself was not changed. |
+| **Root Cause (5 Why)** | **Why1**: The visual looked physically suspicious because the renderer used a hard-coded cavity and gate geometry. **Why2**: That hard-coded fallback did not match the Phase 7 generated blockMesh. **Why3**: The renderer did not parse `blockMeshDict` or active inlet patch from the run directory. **Why4**: The demo label did not distinguish alpha-only VOF from thermo/cooling simulation. **Why5**: The animation path was optimized for a legacy PP plate case and had not been promoted to a geometry-aware renderer. |
+| **Fix** | Updated `scripts/moldflow_fill_video_telegram.py` to parse `convertToMeters`, vertices, boundary faces, and the active inlet patch from `blockMeshDict` / `0/U`. Added an on-frame label: `VOF alpha only | thermal/solidification: not solved` unless a `T` field exists. Re-rendered the three demo MP4s and resent corrected videos to Telegram. |
+| **Files** | `scripts/moldflow_fill_video_telegram.py`; `docs/INCIDENT_LOG.md`; `data/state/Obsidian Vault/60_PC_Logs/Moldflow_INC-143_animation_geometry_and_physics_label_20260708.md` |
+| **Verification** | `python -m py_compile scripts\moldflow_fill_video_telegram.py` passed. Re-rendering `demo_simple_plate_conservative_20260708` showed the actual narrow `100 x 10 x 2 mm` cavity and the alpha-only/no-solidification label. All three corrected MP4s were regenerated and resent to Telegram with `ok=true`, message IDs 14176-14178. |
+| **Lessons Learned** | Visualization can mislead even when solver output is intact. Geometry and physics labels must be derived from the actual run directory, not from legacy assumptions. Isothermal VOF demos must explicitly say that cooling and solidification are not solved. |
+| **Prevention** | Keep animation geometry tied to `blockMeshDict` and active boundary conditions. For the next physics upgrade, create a thermo/cooling demo using `resin_fill_cool` or a dedicated solidification proxy rather than implying cooling behavior from alpha-only VOF. |
+
+---
+
+# INC-144: Point-gate Moldflow recalculation improved front shape but still failed validation; cooling CAD case exposed thermo initialization gaps
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-07-08 JST |
+| **Detection** | User requested recalculation after observing that resin should advance then spread laterally, and that wall-adjacent resin should cool earlier than the flow front. New point-gate VOF runs completed but reported high `alpha_max`; cooling runs failed first on stale alpha field cell count, then placeholder pressure, then `Negative initial temperature T0: -258.647`. A follow-up bounded/constant-viscosity cooling run completed without alpha overshoot. |
+| **Impact** | A better diagnostic point-gate VOF animation and a thermal-field partial-fill result were produced. The thermal run is still a proxy/partial-fill demo, not a validated Moldflow-grade filling/solidification model. |
+| **Root Cause (5 Why)** | **Why1**: The earlier geometry used a narrow plate and a broad center inlet, so spreading was not naturally visible. **Why2**: The point-gate case needed explicit `gate_width_mm` and width-direction mesh control. **Why3**: The alpha-only VOF setup still produced localized phase-fraction overshoot even with lower velocity and bounded-alpha settings. **Why4**: The cooling template carried mesh-size-specific initial fields and placeholders from a fixed legacy mesh. **Why5**: Thermo/cooling CAD generation had not yet been benchmarked on a widened point-gate cavity with consistent enthalpy/temperature initialization. |
+| **Fix** | Added `gate_width_mm` and `mesh_ny` support in `scripts/moldflow_step_case_builder.py`; added a 100 x 40 x 2 mm point-gate sample STEP and gate spec; added `closed_cavity=false` support in `scripts/moldflow_closed_cavity.py`; added optional `bounded_alpha` run-dir stabilization; normalized cooling alpha initial fields and regenerated gate `setFieldsDict`; updated `scripts/moldflow_fill_video_telegram.py` to label vented/closed outlet mode and display the largest connected resin region. |
+| **Files** | `scripts/moldflow_step_case_builder.py`; `scripts/moldflow_closed_cavity.py`; `scripts/moldflow_fill_video_telegram.py`; `data/cae_te_workspace/samples/moldflow/cavity_plate_100x40x2.step`; `data/cae_te_workspace/samples/moldflow/gate_spec_point_center_100x40x2.json`; `quality_incident_report_20260708_pointgate_cooling_recalc.md` |
+| **Verification** | `py_compile` passed for the modified Python scripts. `demo_spread_plate_pointgate_vof_mid_20260708` completed with fill fraction 48.41%, fill time 0.394312 s, mass balance error 0.19%, but `alpha_max=49.012` and verdict `FAILED`. `demo_spread_plate_pointgate_cool_ready_20260708` failed with `Negative initial temperature T0: -258.647`. After setting `viscosity_model=const`, `demo_spread_plate_pointgate_cool_const_20260708` completed with fill fraction 40.09%, `alpha_max=1.0`, `T_min=333.87 K`, `T_max=511.21 K`; temperature-color MP4 was generated and sent to Telegram with `sent=True`. |
+| **Lessons Learned** | A better visual front shape is not the same as solver validation. VOF visualization may need connected-region cleanup, but raw `alpha_max` must remain visible in KPI outputs. Cooling templates must not carry stale nonuniform fields into generated CAD meshes. |
+| **Prevention** | Add a cooling CAD precheck for stale nonuniform field sizes and unresolved placeholders. Create a dedicated thermo benchmark before claiming wall-skin solidification behavior. Keep Telegram media blocked when the artifact is a known failed diagnostic rather than a deliverable. |
 
 ---

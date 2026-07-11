@@ -1,6 +1,0 @@
-# PyTorchは、使用中のNVIDIAドライバー/CUDAに合う公式手順で導入してください。
-# 例としてPyPI版を記載しますが、環境により専用index-urlが必要です。
-torch>=2.4
-torchvision>=0.19
-onnx>=1.16
-onnxruntime-gpu>=1.19
