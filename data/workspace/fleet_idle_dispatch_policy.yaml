@@ -1,0 +1,122 @@
+# Central K10 idle dispatch: assign light jobs when CPU/RAM below threshold and temp OK.
+schema: clawstack.fleet_idle_dispatch.v1
+updated_at: "2026-06-15"
+
+poll_interval_sec: 300
+supersedes_red_lavie_continuous_loop: true
+
+idle_thresholds:
+  max_cpu_percent: 70
+  max_ram_percent: 75
+  max_temp_c: 75
+  block_when_throttling: true
+  block_cpu_limit_at_or_below: 10
+
+daytime_light_only:
+  enabled: true
+  start_hour: 8
+  end_hour: 19
+  node_ids:
+    - vivobook
+
+nodes:
+  red_lavie:
+    enabled: true
+    registry_id: red_lavie
+    transport: job_worker
+    jobs_per_cycle: 2
+    job_sequence:
+      - health_snapshot
+      - monitor_local_probe
+      - document_parse_probe
+      - rag_index_probe
+      - qms_iatf_probe
+      - web_research_probe
+      - fleet_self_probe
+
+  dynabook:
+    enabled: true
+    registry_id: dynabook
+    transport: job_worker
+    jobs_per_cycle: 1
+    cae_dry_run_categories:
+      - press_blanking
+      - press_bending
+    shell_job_sequence:
+      - brv_sync_probe
+
+  thinkpad:
+    enabled: true
+    registry_id: thinkpad
+    transport: job_worker
+    jobs_per_cycle: 1
+    job_sequence:
+      - health_snapshot
+      - monitor_local_probe
+      - qms_iatf_probe
+      - document_parse_probe
+      - fleet_self_probe
+
+  lavie:
+    enabled: true
+    registry_id: lavie
+    transport: job_worker
+    skip_when_cae_loop_active: true
+    cae_status_path: lavie_continuous_te_loop_status.json
+    jobs_per_cycle: 1
+    job_sequence:
+      - monitor_local_probe
+      - qms_iatf_probe
+      - fleet_self_probe
+
+  lavie_i3:
+    enabled: true
+    registry_id: lavie_i3
+    transport: job_worker
+    jobs_per_cycle: 1
+    job_sequence:
+      - health_snapshot
+      - monitor_local_probe
+      - fleet_self_probe
+
+excluded_node_ids:
+  - hp_watchdog
+  - g3
+  - k10
+  - vivobook
+
+k10_local_idle_harvest:
+  enabled: true
+  min_idle_cycles: 2
+  script: scripts/harvest_idle_slice.py
+
+email_postprocess_offload:
+  enabled: true
+  dispatch_enabled: false
+  k10_max_cpu_percent: 70
+  k10_max_ram_percent: 80
+  candidate_node_ids:
+    - vivobook
+    - red_lavie
+    - lavie
+    - thinkpad
+  candidate_thresholds:
+    max_cpu_percent: 55
+    max_ram_percent: 70
+    max_temp_c: 72
+    block_when_throttling: true
+    block_cpu_limit_at_or_below: 10
+  allowed_work:
+    - attachment_text_extraction
+    - pdf_ocr
+    - email_classification
+    - task_candidate_extraction
+    - temporary_sqlite_build
+  forbidden_transfer:
+    - gmail_access_token
+    - gmail_refresh_token
+    - oauth_client_secret
+    - raw_email_body
+    - raw_attachment
+    - production_email_search_db
+  rollout: observe_only

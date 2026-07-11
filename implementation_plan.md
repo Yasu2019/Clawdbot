@@ -80,6 +80,33 @@ without directly modifying the core `docker-compose.yml` yet.
 - Extend the CAE sync harness to normalize OpenRadioss logs and OpenFOAM case directories
 - Let `idle_ingest_maintenance.py` trigger CAE learning sync when the status file is stale
 
+## 2026-07-12 Gmail Postprocess Fleet Offload - Phase 1
+
+Adoption: `ADOPT_PARTIAL`, integrate into the existing K10 fleet idle dispatcher.
+
+Goal: when K10 CPU or RAM is above the configured threshold, rank trusted idle fleet
+nodes for email postprocessing without copying Gmail OAuth credentials, raw mail,
+attachments, or the production email database.
+
+Phase 1 is observation-only. It writes a placement recommendation into the existing
+fleet status and dashboard snapshot. `dispatch_enabled` remains false. No remote file
+transfer or job submission is authorized in this phase.
+
+Allowed candidate work is derived data only: attachment text extraction, OCR,
+classification, task-candidate extraction, and temporary SQLite construction.
+K10 retains Gmail acquisition, OAuth refresh, deduplication, integrity checks, and the
+final production DB merge.
+
+Promotion gate for Phase 2:
+
+- at least three observed placement cycles with a reachable, idle allowlisted node;
+- no credential, raw-mail, or production-DB path in any generated job payload;
+- benchmark shows lower K10 RAM pressure or shorter backlog time;
+- signed/hashed work package and return-manifest contract is reviewed;
+- explicit user approval before enabling remote dispatch.
+
+Rollback: set `email_postprocess_offload.enabled=false` or revert the feature commit.
+
 ## 2026-03-28 Operational Hardening Notes
 
 - Clarify that `clawstack_v2/docker-compose.yml` remains the active base compose for the current stack, with additive patch files layered on top.
