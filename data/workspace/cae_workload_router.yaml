@@ -50,7 +50,7 @@ lavie:
   bridge_path: /webhook/exec_bridge
   max_ram_percent: 80
   max_cpu_percent: 85
-  max_temp_c: 96
+  max_temp_c: 78
   monitor_agent_port: 8111
   job_worker_port: 5682
   job_worker_path: /healthz
@@ -155,7 +155,7 @@ tri_track_parallel:
     case_label: 4mmx4mm_ASSY
     param_ranges:
       clearance_pct: [4.0, 12.0]
-      punch_speed_mms: [3000.0, 6100.0]  # 2026-07-10是正: 旧[1500,2800]は全域が物理発散ゾーン(8連敗の根本原因)。SUCCESS実績4602/6096mm/sを包含、上限は実績最大に丸め。低速域再開はデッキ対策(質量スケーリング目標DT等)とセットで(HANDOVER_MASTER_INDEX §7.5.1)
+      punch_speed_mms: [1500.0, 2800.0]
       friction_mu: [0.08, 0.12]
     quality_gate:
       max_bbox_diag: 80
