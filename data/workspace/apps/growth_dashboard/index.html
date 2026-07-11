@@ -2346,12 +2346,31 @@ response = model.generate_content([
 
         async function loadEmailCoverage() {
             try {
-                const res = await fetch('../../email_ingest_dashboard_status.json');
-                const data = await res.json();
+                const [coverageRes, harnessRes] = await Promise.all([
+                    fetch('../../email_ingest_dashboard_status.json', { cache: 'no-store' }),
+                    fetch('../../email_search_harness_status.json', { cache: 'no-store' }).catch(() => null)
+                ]);
+                if (!coverageRes.ok) throw new Error('Email coverage HTTP ' + coverageRes.status);
+                const data = await coverageRes.json();
+                const harness = harnessRes && harnessRes.ok ? await harnessRes.json() : null;
                 const container = document.getElementById('emailCoverageBody');
                 
                 const formatCount = (num) => new Intl.NumberFormat('ja-JP').format(num) + ' 件';
                 const sqlite = data.sqlite || {};
+                const total = Number(harness && harness.totalMessages) || 0;
+                const processed = Number(harness && harness.processed) || 0;
+                const progressPct = total ? Math.min(100, Math.round(processed / total * 100)) : 0;
+                const updatedAt = harness && harness.updatedAt ? new Date(harness.updatedAt) : null;
+                const ageSeconds = updatedAt && !isNaN(updatedAt.getTime())
+                    ? Math.max(0, Math.round((Date.now() - updatedAt.getTime()) / 1000)) : null;
+                const isRunning = harness && harness.stage === 'gmail' && ageSeconds !== null && ageSeconds < 180;
+                const liveColor = isRunning ? '#3fb950' : '#d29922';
+                const liveLabel = isRunning ? 'RUNNING' : (harness ? 'STALE / IDLE' : 'STATUS UNAVAILABLE');
+                const formatDateTime = (value) => {
+                    if (!value) return 'N/A';
+                    const date = new Date(value);
+                    return isNaN(date.getTime()) ? String(value) : date.toLocaleString('ja-JP');
+                };
                 
                 // Format dates safely
                 const formatDate = (dateStr) => {
@@ -2383,6 +2402,28 @@ response = model.generate_content([
                         </div>
                         <div style="font-size: 0.95rem; color: var(--text-dim); margin-top: 5px;">
                             Count: <span style="color: #fff; font-weight: 600;">${formatCount(sqlite.eml_total || 0)}</span>
+                        </div>
+                    </div>
+
+                    <div style="border: 1px solid ${liveColor}; padding: 15px; border-radius: 10px; min-width: 320px; background: rgba(255,255,255,0.02); flex: 1.4;">
+                        <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+                            <div style="font-weight:600; font-size:1.1rem; color:#f85149;">Gmail DB Live Ingestion</div>
+                            <span style="color:${liveColor}; font-weight:700; font-size:0.8rem;">${liveLabel}</span>
+                        </div>
+                        <div style="margin-top:10px; height:8px; border-radius:999px; overflow:hidden; background:rgba(255,255,255,0.08);">
+                            <div style="width:${progressPct}%; height:100%; background:${liveColor};"></div>
+                        </div>
+                        <div style="margin-top:8px; color:var(--text-dim); font-size:0.9rem;">
+                            Progress: <span style="color:#fff; font-weight:600;">${processed.toLocaleString('ja-JP')} / ${total.toLocaleString('ja-JP')} (${progressPct}%)</span>
+                        </div>
+                        <div style="margin-top:5px; color:var(--text-dim); font-size:0.85rem;">
+                            Indexed ${Number(harness && harness.indexed || 0).toLocaleString('ja-JP')} / Skipped ${Number(harness && harness.skipped || 0).toLocaleString('ja-JP')} / Errors <span style="color:${Number(harness && harness.errors || 0) ? '#f85149' : '#3fb950'}; font-weight:600;">${Number(harness && harness.errors || 0).toLocaleString('ja-JP')}</span>
+                        </div>
+                        <div style="margin-top:5px; color:var(--text-dim); font-size:0.78rem; overflow-wrap:anywhere;">
+                            Query: ${escapeHtml(harness && harness.query || 'N/A')}
+                        </div>
+                        <div style="margin-top:4px; color:var(--text-dim); font-size:0.75rem;">
+                            Updated: ${formatDateTime(harness && harness.updatedAt)}${ageSeconds !== null ? ' (' + ageSeconds + 's ago)' : ''}
                         </div>
                     </div>
                 `;
@@ -2847,6 +2888,17 @@ response = model.generate_content([
         setInterval(updateWorkloadAllocation, 15000);
         setInterval(updateNodes, 15000);
         setInterval(updateRobotAutonomyStatus, 30000);
+
+        // ── 自動更新: Becky/Gmail/メール取り込みカード (60秒ごと) ──────────
+        setInterval(loadBeckyPipeline, 60000);
+        setInterval(loadEmailCoverage, 60000);
+        setInterval(loadData, 120000);  // growth_stats.json / Domain Chart
+
+        // Last Synchronized ラベルを毎分更新
+        setInterval(() => {
+            const el = document.getElementById('lastUpdated');
+            if (el) el.innerText = 'Last Synchronized: ' + new Date().toLocaleString('ja-JP');
+        }, 60000);
     </script>
     <script type="module">
         import { mountDxf3dThumbs, disposeDxf3dThumbs } from "./dxf2step_model_thumb.js?v=4";
