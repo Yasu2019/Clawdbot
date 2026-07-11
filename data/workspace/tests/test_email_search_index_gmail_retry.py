@@ -6,6 +6,9 @@ if hasattr(sys.stdout, "reconfigure"):
         pass
 
 import unittest
+import tempfile
+import time
+from pathlib import Path
 from unittest.mock import Mock, patch
 
 import requests
@@ -24,6 +27,36 @@ def response(status_code, payload=None):
 
 
 class GmailRequestRetryTests(unittest.TestCase):
+    def test_save_json_replaces_file_and_cleans_temp_file(self):
+        with tempfile.TemporaryDirectory() as tempdir:
+            path = Path(tempdir) / "state.json"
+            path.write_text('{"old": true}', encoding="utf-8")
+            module.save_json(path, {"new": True})
+            self.assertEqual(module.load_json(path), {"new": True})
+            self.assertEqual(list(Path(tempdir).glob("*.tmp")), [])
+
+    @patch.object(module, "refresh_gmail_token")
+    def test_refresh_session_adopts_newer_disk_token(self, refresh_token):
+        with tempfile.TemporaryDirectory() as tempdir:
+            root = Path(tempdir)
+            token_path = root / "token.json"
+            creds_path = root / "credentials.json"
+            module.save_json(token_path, {
+                "access_token": "newer-token",
+                "refresh_token": "refresh-token",
+                "expiry_date": int((time.time() + 3600) * 1000),
+            })
+            module.save_json(creds_path, {"installed": {}})
+            session = requests.Session()
+            session.headers["Authorization"] = "Bearer older-token"
+            session._gmail_token_path = token_path
+            session._gmail_creds_path = creds_path
+
+            module.refresh_gmail_session(session)
+
+            self.assertEqual(session.headers["Authorization"], "Bearer newer-token")
+            refresh_token.assert_not_called()
+
     @patch.object(module, "refresh_gmail_session")
     def test_refreshes_once_and_replays_after_401(self, refresh):
         session = Mock()

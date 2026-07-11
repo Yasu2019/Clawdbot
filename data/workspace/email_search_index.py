@@ -25,6 +25,7 @@ import base64
 import email
 import hashlib
 import json
+import os
 import re
 import sqlite3
 import time
@@ -38,6 +39,11 @@ from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Tuple
 
 import requests
+
+try:
+    from email_db_lock import EmailDbLock
+except ModuleNotFoundError:
+    from .email_db_lock import EmailDbLock
 
 
 WORKSPACE_ROOT = Path(__file__).resolve().parent
@@ -53,6 +59,7 @@ LEGACY_CREDS_PATH = WORKSPACE_ROOT / ".." / "workspace" / "credentials.json"
 TIMEOUT = 30
 GMAIL_MAX_ATTEMPTS = 3
 GMAIL_RETRYABLE_STATUSES = frozenset({429, 500, 502, 503, 504})
+GMAIL_TOKEN_LOCK_TIMEOUT = 30
 USER_AGENT = "claw-email-search-index/1.0"
 MISSION_CONTROL_PATH = WORKSPACE_ROOT / "MISSION_CONTROL.md"
 TASK_FILTER_CACHE: Optional[dict] = None
@@ -253,7 +260,14 @@ def load_json(path: Path) -> dict:
 
 
 def save_json(path: Path, payload: dict) -> None:
-    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    temp_path = path.with_name(f".{path.name}.{os.getpid()}.{time.time_ns()}.tmp")
+    try:
+        temp_path.write_text(
+            json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
+        os.replace(temp_path, path)
+    finally:
+        temp_path.unlink(missing_ok=True)
 
 
 def write_status(payload: dict) -> None:
@@ -1007,9 +1021,27 @@ def refresh_gmail_session(session: requests.Session) -> None:
     if not token_path or not creds_path:
         raise RuntimeError("Gmail session cannot refresh because credential paths are missing")
 
-    token = refresh_gmail_token(load_json(token_path), load_json(creds_path))
-    save_json(token_path, token)
-    session.headers["Authorization"] = f"Bearer {token['access_token']}"
+    lock = EmailDbLock("gmail_token_refresh", token_path.with_suffix(".refresh.lock"))
+    deadline = time.monotonic() + GMAIL_TOKEN_LOCK_TIMEOUT
+    while not lock.acquire():
+        if time.monotonic() >= deadline:
+            raise RuntimeError("Timed out waiting for Gmail token refresh lock")
+        time.sleep(0.25)
+
+    try:
+        token = load_json(token_path)
+        current_header = session.headers.get("Authorization", "")
+        disk_header = f"Bearer {token.get('access_token', '')}"
+        expiry_ms = int(token.get("expiry_date", 0) or 0)
+        if disk_header != current_header and token.get("access_token") and expiry_ms > int(time.time() * 1000):
+            session.headers["Authorization"] = disk_header
+            return
+
+        token = refresh_gmail_token(token, load_json(creds_path))
+        save_json(token_path, token)
+        session.headers["Authorization"] = f"Bearer {token['access_token']}"
+    finally:
+        lock.release()
 
 
 def gmail_request(session: requests.Session, method: str, url: str, **kwargs) -> dict:
