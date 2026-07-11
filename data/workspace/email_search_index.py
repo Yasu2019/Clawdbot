@@ -13,6 +13,13 @@ Search:
 
 from __future__ import annotations
 
+import sys
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 import argparse
 import base64
 import email
@@ -20,7 +27,6 @@ import hashlib
 import json
 import re
 import sqlite3
-import sys
 import time
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
@@ -45,6 +51,8 @@ LEGACY_TOKEN_PATH = WORKSPACE_ROOT / ".." / "work" / "token.json"
 CREDS_PATH = WORKSPACE_ROOT / "credentials.json"
 LEGACY_CREDS_PATH = WORKSPACE_ROOT / ".." / "workspace" / "credentials.json"
 TIMEOUT = 30
+GMAIL_MAX_ATTEMPTS = 3
+GMAIL_RETRYABLE_STATUSES = frozenset({429, 500, 502, 503, 504})
 USER_AGENT = "claw-email-search-index/1.0"
 MISSION_CONTROL_PATH = WORKSPACE_ROOT / "MISSION_CONTROL.md"
 TASK_FILTER_CACHE: Optional[dict] = None
@@ -988,15 +996,53 @@ def gmail_session() -> Tuple[requests.Session, dict]:
             "User-Agent": USER_AGENT,
         }
     )
+    session._gmail_token_path = token_path
+    session._gmail_creds_path = creds_path
     return session, token
 
 
+def refresh_gmail_session(session: requests.Session) -> None:
+    token_path = getattr(session, "_gmail_token_path", None)
+    creds_path = getattr(session, "_gmail_creds_path", None)
+    if not token_path or not creds_path:
+        raise RuntimeError("Gmail session cannot refresh because credential paths are missing")
+
+    token = refresh_gmail_token(load_json(token_path), load_json(creds_path))
+    save_json(token_path, token)
+    session.headers["Authorization"] = f"Bearer {token['access_token']}"
+
+
 def gmail_request(session: requests.Session, method: str, url: str, **kwargs) -> dict:
-    response = session.request(method, url, timeout=TIMEOUT, **kwargs)
-    if response.status_code == 401:
-        raise RuntimeError("Gmail access token was rejected")
-    response.raise_for_status()
-    return response.json()
+    method = method.upper()
+    max_attempts = GMAIL_MAX_ATTEMPTS if method in {"GET", "HEAD", "OPTIONS"} else 1
+    refreshed = False
+    transient_attempt = 0
+
+    while True:
+        try:
+            response = session.request(method, url, timeout=TIMEOUT, **kwargs)
+        except (requests.ConnectionError, requests.Timeout):
+            transient_attempt += 1
+            if transient_attempt >= max_attempts:
+                raise
+            time.sleep(0.5 * (2 ** (transient_attempt - 1)))
+            continue
+
+        if response.status_code == 401:
+            if refreshed:
+                raise RuntimeError("Gmail access token was rejected after refresh")
+            refresh_gmail_session(session)
+            refreshed = True
+            continue
+
+        if response.status_code in GMAIL_RETRYABLE_STATUSES:
+            transient_attempt += 1
+            if transient_attempt < max_attempts:
+                time.sleep(0.5 * (2 ** (transient_attempt - 1)))
+                continue
+
+        response.raise_for_status()
+        return response.json()
 
 
 def parse_gmail_headers(payload: dict) -> Dict[str, str]:
