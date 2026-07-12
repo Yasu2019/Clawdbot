@@ -32,7 +32,10 @@ KEYWORDS = (
 
 
 def inspect_typelib(executable: Path) -> dict[str, object]:
-    library = pythoncom.LoadTypeLibEx(str(executable))
+    loader = getattr(pythoncom, "LoadTypeLibEx", None) or getattr(pythoncom, "LoadTypeLib", None)
+    if loader is None:
+        raise RuntimeError("pywin32 exposes neither LoadTypeLibEx nor LoadTypeLib")
+    library = loader(str(executable))
     types: list[dict[str, object]] = []
     for type_index in range(library.GetTypeInfoCount()):
         type_info = library.GetTypeInfo(type_index)
