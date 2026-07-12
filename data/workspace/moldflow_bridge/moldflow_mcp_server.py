@@ -29,6 +29,7 @@ PROG_IDS = ("synergy.Synergy", "Synergy.Synergy", "synergy.Synergy.2010")
 ROOT = Path(__file__).resolve().parent
 PROBE_SCRIPT = ROOT / "check_synergy_com.vbs"
 STATE_INSPECT_SCRIPT = ROOT / "inspect_synergy_state.vbs"
+MEMBER_INSPECT_SCRIPT = ROOT / "inspect_synergy_members.vbs"
 DEFAULT_WORK_ROOT = Path(os.environ.get("MOLDFLOW_WORK_ROOT", r"G:\moldflow_bridge\work"))
 
 mcp = FastMCP("dynabook-moldflow-operations")
@@ -90,7 +91,13 @@ def _run_vbs_code(vbs_code: str, timeout_sec: int = 45) -> dict[str, Any]:
             # Moldflow 2010 cscript requires an ANSI-compatible script.
             temp_vbs.write_text(vbs_code, encoding="mbcs")
             cscript = _cscript_path(32)
-            return _run([str(cscript), "//nologo", str(temp_vbs)], timeout_sec)
+            result = _run([str(cscript), "//nologo", str(temp_vbs)], timeout_sec)
+            stderr = str(result.get("stderr") or "")
+            if "Microsoft VBScript" in stderr:
+                result["ok"] = False
+                result["exit_code"] = 1
+                result["failure_tag"] = "vbscript_runtime_error"
+            return result
     except Exception as exc:
         return {"ok": False, "error": f"temporary VBS execution failed: {exc}"}
 
@@ -109,6 +116,7 @@ def collect_status() -> dict[str, Any]:
         "work_drive_free_gb": round(disk.free / (1024 ** 3), 2) if disk else None,
         "probe_script_exists": PROBE_SCRIPT.exists(),
         "state_inspect_script_exists": STATE_INSPECT_SCRIPT.exists(),
+        "member_inspect_script_exists": MEMBER_INSPECT_SCRIPT.exists(),
         "cscript_64_exists": _cscript_path(64).exists(),
         "cscript_32_exists": _cscript_path(32).exists(),
         "timestamp_utc": datetime.now(timezone.utc).isoformat(),
@@ -153,6 +161,21 @@ def moldflow_inspect_state(bitness: int = 32, timeout_sec: int = 30) -> str:
     result["bitness"] = bitness
     result["analysis_started"] = False
     result["study_created"] = False
+    return json.dumps(result, ensure_ascii=False, indent=2)
+
+
+@mcp.tool()
+def moldflow_inspect_members(timeout_sec: int = 30) -> str:
+    """List relevant Synergy COM members through TLI without changing a study."""
+    if not MEMBER_INSPECT_SCRIPT.exists():
+        return json.dumps({"ok": False, "error": f"missing {MEMBER_INSPECT_SCRIPT}"})
+    cscript = _cscript_path(32)
+    result = _run([str(cscript), "//nologo", str(MEMBER_INSPECT_SCRIPT)], timeout_sec)
+    stderr = str(result.get("stderr") or "")
+    if "Microsoft VBScript" in stderr:
+        result["ok"] = False
+        result["failure_tag"] = "vbscript_runtime_error"
+    result["read_only"] = True
     return json.dumps(result, ensure_ascii=False, indent=2)
 
 

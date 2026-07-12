@@ -77,6 +77,7 @@ class MoldflowMcpContractTests(unittest.TestCase):
             "moldflow_bridge_status",
             "moldflow_probe_com",
             "moldflow_inspect_state",
+            "moldflow_inspect_members",
             "moldflow_readiness_gate",
             "moldflow_new_study",
             "moldflow_configure_study",

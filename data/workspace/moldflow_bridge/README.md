@@ -61,6 +61,7 @@ FastMCPのDNS rebinding保護は有効のまま、Host/OriginもDynabookのTails
 - `moldflow_bridge_status`
 - `moldflow_probe_com` (32/64bit、最大60秒)
 - `moldflow_inspect_state` (read-only COM object/state inspection)
+- `moldflow_inspect_members` (read-only COM type information inspection)
 - `moldflow_readiness_gate`
 
 K10またはDynabook自身からMCPプロトコルを確認する。

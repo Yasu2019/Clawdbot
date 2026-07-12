@@ -15,6 +15,7 @@ New-Item -ItemType Directory -Force -Path (Join-Path $InstallRoot 'work') | Out-
 Copy-Item -Force (Join-Path $SourceRoot 'moldflow_mcp_server.py') $InstallRoot
 Copy-Item -Force (Join-Path $SourceRoot 'check_synergy_com.vbs') $InstallRoot
 Copy-Item -Force (Join-Path $SourceRoot 'inspect_synergy_state.vbs') $InstallRoot
+Copy-Item -Force (Join-Path $SourceRoot 'inspect_synergy_members.vbs') $InstallRoot
 Copy-Item -Force (Join-Path $SourceRoot 'requirements-mcp.txt') $InstallRoot
 Copy-Item -Force (Join-Path $SourceRoot 'start_moldflow_mcp.ps1') $InstallRoot
 Copy-Item -Force (Join-Path $SourceRoot 'mcp_smoke_client.py') $InstallRoot
