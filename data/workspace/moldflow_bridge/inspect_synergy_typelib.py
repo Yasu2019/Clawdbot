@@ -31,7 +31,7 @@ KEYWORDS = (
 )
 
 
-def inspect_typelib(executable: Path) -> dict[str, object]:
+def inspect_typelib(executable: Path, include_all: bool = False) -> dict[str, object]:
     loader = getattr(pythoncom, "LoadTypeLibEx", None) or getattr(pythoncom, "LoadTypeLib", None)
     if loader is None:
         raise RuntimeError("pywin32 exposes neither LoadTypeLibEx nor LoadTypeLib")
@@ -50,7 +50,7 @@ def inspect_typelib(executable: Path) -> dict[str, object]:
                 continue
             member_name = str(names[0])
             searchable = f"{type_name}.{member_name}".upper()
-            if not any(keyword in searchable for keyword in KEYWORDS):
+            if not include_all and not any(keyword in searchable for keyword in KEYWORDS):
                 continue
             members.append(
                 {
@@ -59,7 +59,7 @@ def inspect_typelib(executable: Path) -> dict[str, object]:
                     "memid": int(descriptor[0]),
                 }
             )
-        if members:
+        if members or include_all:
             types.append({"type": str(type_name), "members": members})
     return {
         "ok": True,
@@ -76,13 +76,14 @@ def main() -> int:
         "--exe",
         default=r"C:\Program Files\Autodesk\Moldflow Insight 2010\bin\synergy.exe",
     )
+    parser.add_argument("--all", action="store_true", help="Include every type-library member")
     args = parser.parse_args()
     executable = Path(args.exe)
     if not executable.is_file():
         print(json.dumps({"ok": False, "error": f"not found: {executable}"}))
         return 1
     try:
-        result = inspect_typelib(executable)
+        result = inspect_typelib(executable, include_all=args.all)
     except Exception as exc:
         result = {"ok": False, "error": str(exc), "read_only": True}
     print(json.dumps(result, ensure_ascii=True, indent=2))
