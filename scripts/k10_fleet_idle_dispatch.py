@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import argparse
+import base64
+import hashlib
 import json
 import subprocess
 import sys
@@ -11,6 +13,12 @@ import uuid
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
+
+import os
+if sys.stdout is None:
+    sys.stdout = open(os.devnull, "w")
+if sys.stderr is None:
+    sys.stderr = open(os.devnull, "w")
 
 if hasattr(sys.stdout, "reconfigure"):
     try:
@@ -30,6 +38,9 @@ STATUS_PATH = WORKSPACE / "fleet_idle_dispatch_status.json"
 DASHBOARD_STATUS_PATH = WORKSPACE / "apps" / "growth_dashboard" / "fleet_idle_dispatch_status.json"
 LOG_PATH = WORKSPACE / "fleet_idle_dispatch_log.jsonl"
 EMAIL_OFFLOAD_STATUS_PATH = WORKSPACE / "email_postprocess_offload_status.json"
+EMAIL_OFFLOAD_HISTORY_PATH = WORKSPACE / "email_postprocess_offload_history.jsonl"
+EMAIL_OFFLOAD_RETURN_PATH = WORKSPACE / "email_postprocess_offload_return_manifest.json"
+EMAIL_OFFLOAD_STATE_PATH = WORKSPACE / "email_postprocess_offload_state.json"
 DASHBOARD_EMAIL_OFFLOAD_STATUS_PATH = (
     WORKSPACE / "apps" / "growth_dashboard" / "email_postprocess_offload_status.json"
 )
@@ -198,7 +209,7 @@ def build_email_offload_plan(
     elif not selected:
         decision = "no_capacity"
     elif dispatch_enabled:
-        decision = "dispatch_enabled_no_sender_implemented"
+        decision = "dispatch"
     else:
         decision = "recommend"
 
@@ -270,6 +281,152 @@ def write_email_offload_status(plan: dict[str, Any]) -> None:
     payload["updated_at"] = now_iso()
     write_json_atomic(EMAIL_OFFLOAD_STATUS_PATH, payload)
     write_json_atomic(DASHBOARD_EMAIL_OFFLOAD_STATUS_PATH, payload)
+    history = []
+    if EMAIL_OFFLOAD_HISTORY_PATH.exists():
+        history = EMAIL_OFFLOAD_HISTORY_PATH.read_text(encoding="utf-8").splitlines()[-99:]
+    history.append(json.dumps(payload, ensure_ascii=False, separators=(",", ":")))
+    EMAIL_OFFLOAD_HISTORY_PATH.write_text("\n".join(history) + "\n", encoding="utf-8")
+
+
+def canonical_json_bytes(payload: dict[str, Any]) -> bytes:
+    return json.dumps(
+        payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+    ).encode("utf-8")
+
+
+def build_email_work_package(node_id: str, work_types: list[str], ttl_seconds: int = 600) -> dict[str, Any]:
+    issued = datetime.now(JST)
+    package = {
+        "schema": "clawstack.email_postprocess_work_package.v1",
+        "job_id": f"email-offload-{uuid.uuid4().hex[:12]}",
+        "target_node": node_id,
+        "issued_at": issued.isoformat(timespec="seconds"),
+        "expires_at": (issued + timedelta(seconds=ttl_seconds)).isoformat(timespec="seconds"),
+        "work_types": work_types,
+        "payload_class": "derived_metadata_only",
+        "records": [],
+        "constraints": {
+            "no_credentials": True,
+            "no_raw_mail": True,
+            "no_raw_attachments": True,
+            "no_production_db": True,
+            "return_manifest_required": True,
+        },
+    }
+    raw = canonical_json_bytes(package)
+    return {
+        "package": package,
+        "package_sha256": hashlib.sha256(raw).hexdigest(),
+        "package_base64": base64.b64encode(raw).decode("ascii"),
+    }
+
+
+def build_windows_canary_command(envelope: dict[str, Any]) -> str:
+    encoded_package = envelope["package_base64"]
+    expected = envelope["package_sha256"]
+    script = f"""
+$raw=[Convert]::FromBase64String('{encoded_package}')
+$sha=[Security.Cryptography.SHA256]::Create()
+$actual=[BitConverter]::ToString($sha.ComputeHash($raw)).Replace('-','').ToLowerInvariant()
+$pkg=[Text.Encoding]::UTF8.GetString($raw) | ConvertFrom-Json
+$notExpired=([DateTimeOffset]::Parse($pkg.expires_at) -gt [DateTimeOffset]::Now)
+$status=if(($actual -eq '{expected}') -and $notExpired){{'verified'}}else{{'rejected'}}
+[ordered]@{{schema='clawstack.email_postprocess_return_manifest.v1';job_id=$pkg.job_id;package_sha256=$actual;status=$status;node=$env:COMPUTERNAME;completed_at=[DateTimeOffset]::Now.ToString('o')}} | ConvertTo-Json -Compress
+if($status -ne 'verified'){{exit 3}}
+""".strip()
+    encoded_command = base64.b64encode(script.encode("utf-16le")).decode("ascii")
+    return f"powershell -NoProfile -NonInteractive -EncodedCommand {encoded_command}"
+
+
+def parse_return_manifest(result: dict[str, Any]) -> dict[str, Any]:
+    stdout = str(result.get("stdout_tail") or result.get("stdout") or "").strip()
+    for line in reversed(stdout.splitlines()):
+        try:
+            value = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if isinstance(value, dict) and value.get("schema") == "clawstack.email_postprocess_return_manifest.v1":
+            return value
+    return {}
+
+
+def validate_return_manifest(
+    envelope: dict[str, Any], manifest: dict[str, Any]
+) -> tuple[bool, str]:
+    if not manifest:
+        return False, "return_manifest_missing"
+    if manifest.get("job_id") != envelope["package"]["job_id"]:
+        return False, "job_id_mismatch"
+    if manifest.get("package_sha256") != envelope["package_sha256"]:
+        return False, "package_sha256_mismatch"
+    if manifest.get("status") != "verified":
+        return False, f"remote_status_{manifest.get('status') or 'missing'}"
+    return True, "verified"
+
+
+def dispatch_email_offload_canary(
+    node_id: str, cfg: dict[str, Any], token: str
+) -> dict[str, Any]:
+    envelope = build_email_work_package(node_id, list(cfg.get("allowed_work") or []))
+    command = build_windows_canary_command(envelope)
+    result = dispatch_shell(node_id, "email_postprocess_canary", command, 120, token)
+    manifest = parse_return_manifest(result)
+    verified, reason = validate_return_manifest(envelope, manifest)
+    record = {
+        "schema": "clawstack.email_postprocess_offload_result.v1",
+        "at": now_iso(),
+        "node_id": node_id,
+        "job_id": envelope["package"]["job_id"],
+        "package_sha256": envelope["package_sha256"],
+        "verified": verified,
+        "reason": reason,
+        "return_manifest": manifest,
+        "worker_http_status": result.get("_http_status"),
+        "worker_status": result.get("status"),
+        "worker_exit_code": result.get("exit_code"),
+    }
+    write_json_atomic(EMAIL_OFFLOAD_RETURN_PATH, record)
+    return record
+
+
+def email_offload_cooldown_remaining(
+    state: dict[str, Any], now: datetime, cooldown_seconds: int
+) -> int:
+    last_text = str(state.get("last_dispatch_at") or "")
+    if not last_text:
+        return 0
+    try:
+        last = datetime.fromisoformat(last_text)
+        if last.tzinfo is None:
+            last = last.replace(tzinfo=JST)
+    except ValueError:
+        return 0
+    return max(0, int(cooldown_seconds - (now - last).total_seconds()))
+
+
+def run_email_offload_only_cycle(policy: dict[str, Any], token: str) -> dict[str, Any]:
+    cfg = policy.get("email_postprocess_offload") or {}
+    plan = evaluate_email_offload(policy, token)
+    write_email_offload_status(plan)
+    outcome: dict[str, Any] = {"plan": plan, "dispatch": None}
+    if plan.get("decision") != "dispatch" or not plan.get("selected_node"):
+        return outcome
+
+    state = read_json(EMAIL_OFFLOAD_STATE_PATH)
+    cooldown = int(cfg.get("dispatch_cooldown_seconds") or 3600)
+    remaining = email_offload_cooldown_remaining(state, datetime.now(JST), cooldown)
+    if remaining:
+        outcome["dispatch"] = {"decision": "cooldown", "remaining_seconds": remaining}
+        return outcome
+
+    result = dispatch_email_offload_canary(str(plan["selected_node"]), cfg, token)
+    outcome["dispatch"] = result
+    if result.get("verified"):
+        state["last_dispatch_at"] = now_iso()
+        state["last_node"] = plan["selected_node"]
+        state["last_job_id"] = result.get("job_id")
+        write_json_atomic(EMAIL_OFFLOAD_STATE_PATH, state)
+    return outcome
 
 
 def next_sequence_items(sequence: list[str], state: dict[str, Any], node_id: str, count: int) -> list[str]:
@@ -498,6 +655,12 @@ def run_cycle(policy: dict[str, Any] | None = None) -> dict[str, Any]:
     try:
         cycle["email_postprocess_offload"] = evaluate_email_offload(policy, token)
         write_email_offload_status(cycle["email_postprocess_offload"])
+        email_cfg = policy.get("email_postprocess_offload") or {}
+        email_plan = cycle["email_postprocess_offload"]
+        if email_plan.get("decision") == "dispatch" and email_plan.get("selected_node"):
+            cycle["email_postprocess_offload_result"] = dispatch_email_offload_canary(
+                str(email_plan["selected_node"]), email_cfg, token
+            )
     except Exception as exc:
         cycle["email_postprocess_offload"] = {
             "decision": "error",
@@ -550,6 +713,9 @@ def main() -> int:
     parser.add_argument("--poll-seconds", type=int, default=0)
     parser.add_argument("--json", action="store_true")
     parser.add_argument("--observe-email-offload", action="store_true")
+    parser.add_argument("--phase2-canary", action="store_true")
+    parser.add_argument("--canary-node", default="")
+    parser.add_argument("--email-offload-only", action="store_true")
     args = parser.parse_args()
 
     policy = load_policy()
@@ -560,6 +726,37 @@ def main() -> int:
         write_email_offload_status(plan)
         print(json.dumps(plan, ensure_ascii=False, indent=2))
         return 0
+
+    if args.phase2_canary:
+        plan = evaluate_email_offload(policy, sjp.load_token())
+        write_email_offload_status(plan)
+        candidates = [row for row in plan.get("candidates") or [] if row.get("eligible")]
+        selected = args.canary_node or (candidates[0].get("node_id") if candidates else "")
+        allowlist = set((policy.get("email_postprocess_offload") or {}).get("candidate_node_ids") or [])
+        if not selected or selected not in allowlist:
+            raise RuntimeError("No eligible allowlisted node for Phase 2 canary")
+        result = dispatch_email_offload_canary(
+            selected, policy.get("email_postprocess_offload") or {}, sjp.load_token()
+        )
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return 0 if result.get("verified") else 1
+
+    if args.email_offload_only:
+        token = sjp.load_token()
+        print(f"[email-offload] observer every {poll}s", flush=True)
+        while True:
+            try:
+                outcome = run_email_offload_only_cycle(policy, token)
+                plan = outcome.get("plan") or {}
+                dispatch = outcome.get("dispatch") or {}
+                print(
+                    f"[{now_iso()}] decision={plan.get('decision')} "
+                    f"node={plan.get('selected_node')} dispatch={dispatch.get('decision') or dispatch.get('verified')}",
+                    flush=True,
+                )
+            except Exception as exc:
+                print(f"[NG] email offload cycle: {exc}", file=sys.stderr, flush=True)
+            time.sleep(max(60, poll))
 
     if args.once:
         cycle = run_cycle(policy)

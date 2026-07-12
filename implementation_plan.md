@@ -107,6 +107,24 @@ Promotion gate for Phase 2:
 
 Rollback: set `email_postprocess_offload.enabled=false` or revert the feature commit.
 
+### Phase 2 signed canary
+
+Phase 2 adds a bounded real dispatch that carries only an expiring, SHA256-bound work
+contract with an empty `records` list. The remote node verifies the exact package bytes
+and expiry, then returns a hash-bound manifest. K10 verifies job ID, package hash, and
+remote status before accepting the result.
+
+Automatic Phase 2 dispatch is allowed only when K10 crosses its configured CPU/RAM
+pressure threshold and an allowlisted node passes live CPU/RAM/temperature and worker
+health gates. The only enabled remote action is this contract canary; actual mail-derived
+records remain blocked until a separately reviewed redaction/export contract exists.
+
+Phase 2 verification on 2026-07-12: three observation cycles completed, Red LAVIE was
+the only consistently eligible node, and signed canary
+`email-offload-52bfbaf3e37f` returned HTTP 200 / exit 0 with matching SHA256
+`85018e592e0b388b2940358c495a1c1c4582ac865df5c94eed9ef4c06b29752d`.
+The email-only daemon uses a one-hour cooldown and does not execute other fleet jobs.
+
 ## 2026-03-28 Operational Hardening Notes
 
 - Clarify that `clawstack_v2/docker-compose.yml` remains the active base compose for the current stack, with additive patch files layered on top.

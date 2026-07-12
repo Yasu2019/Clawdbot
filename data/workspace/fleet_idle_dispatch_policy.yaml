@@ -92,9 +92,10 @@ k10_local_idle_harvest:
 
 email_postprocess_offload:
   enabled: true
-  dispatch_enabled: false
+  dispatch_enabled: true
   k10_max_cpu_percent: 70
   k10_max_ram_percent: 80
+  dispatch_cooldown_seconds: 3600
   candidate_node_ids:
     - vivobook
     - red_lavie
@@ -119,4 +120,4 @@ email_postprocess_offload:
     - raw_email_body
     - raw_attachment
     - production_email_search_db
-  rollout: observe_only
+  rollout: phase2_verified_canary_only
