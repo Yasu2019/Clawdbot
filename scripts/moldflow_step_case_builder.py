@@ -585,16 +585,21 @@ def apply_compressible_closed_cavity_options(
     if not params.get("compressible_closed_cavity"):
         return
 
+    initial_pressure_pa = float(params.get("initial_cavity_pressure_pa", 101325.0))
+    if not 50000.0 <= initial_pressure_pa <= 200000.0:
+        raise ValueError("initial_cavity_pressure_pa must be between 50000 and 200000 Pa")
+    initial_pressure = f"{initial_pressure_pa:g}"
+
     replacements = {
         "U": "        type            noSlip;\n",
         "alpha.polymer": "        type            zeroGradient;\n",
         "p": (
             "        type            calculated;\n"
-            "        value           uniform 101325;\n"
+            f"        value           uniform {initial_pressure};\n"
         ),
         "p_rgh": (
             "        type            fixedFluxPressure;\n"
-            "        value           uniform 0;\n"
+            f"        value           uniform {initial_pressure};\n"
         ),
     }
     for field_name, body in replacements.items():
@@ -610,6 +615,28 @@ def apply_compressible_closed_cavity_options(
         )
         if count != 1:
             raise ValueError(f"outlet boundary not found in {path}")
+        path.write_text(text, encoding="utf-8")
+
+    # With g=(0 0 0), p_rgh=p.  Keeping the template's p_rgh=0 while p is
+    # atmospheric creates an inconsistent compressible initial state.
+    for field_name in ("p", "p_rgh"):
+        path = run_dir / "0" / field_name
+        if not path.exists():
+            continue
+        text = path.read_text(encoding="utf-8", errors="replace")
+        text, count = re.subn(
+            r"internalField\s+uniform\s+[-+0-9.eE]+\s*;",
+            f"internalField   uniform {initial_pressure};",
+            text,
+            count=1,
+        )
+        if count != 1:
+            raise ValueError(f"uniform initial pressure not found in {path}")
+        text = re.sub(
+            r"(value\s+uniform\s+)[-+0-9.eE]+(\s*;)",
+            rf"\g<1>{initial_pressure}\2",
+            text,
+        )
         path.write_text(text, encoding="utf-8")
 
 

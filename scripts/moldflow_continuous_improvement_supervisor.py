@@ -61,6 +61,16 @@ def reproducibility_evidence(cfg: dict) -> dict:
     trials = doc.get("trials", []) if isinstance(doc, dict) else []
     prefix = str(cfg.get("promotion_trial_prefix", ""))
     hard = cfg["hard_gates"]
+    pressure_reference = float(cfg["reference"]["max_injection_pressure_mpa"])
+    pressure_tolerance = float(
+        cfg.get("calibration_tolerances", {}).get(
+            "max_injection_pressure_absolute_error_pct", 10.0
+        )
+    )
+    weight_reference = float(cfg["reference"]["part_weight_g"])
+    weight_tolerance = float(
+        cfg.get("calibration_tolerances", {}).get("part_weight_absolute_error_pct", 5.0)
+    )
     qualifying = []
     for trial in trials:
         if not prefix or not str(trial.get("id", "")).startswith(prefix):
@@ -70,12 +80,18 @@ def reproducibility_evidence(cfg: dict) -> dict:
             fill = float(defects.get("fill_fraction_pct"))
             alpha = float(defects.get("alpha_max"))
             fill_time = float(defects.get("fill_time_s"))
+            pressure = float(defects.get("max_injection_pressure_proxy_mpa"))
+            weight = float(defects.get("part_weight_proxy_g"))
         except (TypeError, ValueError):
             continue
+        pressure_error_pct = abs(pressure - pressure_reference) / pressure_reference * 100.0
+        weight_error_pct = abs(weight - weight_reference) / weight_reference * 100.0
         if (
             trial.get("verdict") == "SUCCESS"
             and fill >= float(hard["fill_fraction_min_pct"])
             and float(hard["alpha_polymer_min"]) <= alpha <= float(hard["alpha_polymer_max"])
+            and pressure_error_pct <= pressure_tolerance
+            and weight_error_pct <= weight_tolerance
         ):
             qualifying.append(
                 {
@@ -83,10 +99,20 @@ def reproducibility_evidence(cfg: dict) -> dict:
                     "fill_fraction_pct": fill,
                     "fill_time_s": fill_time,
                     "alpha_max": alpha,
+                    "max_injection_pressure_proxy_mpa": pressure,
+                    "max_injection_pressure_error_pct": pressure_error_pct,
+                    "part_weight_proxy_g": weight,
+                    "part_weight_error_pct": weight_error_pct,
                 }
             )
     fills = [row["fill_fraction_pct"] for row in qualifying]
     times = [row["fill_time_s"] for row in qualifying]
+    pressures = [
+        float(row["max_injection_pressure_proxy_mpa"])
+        for row in qualifying
+        if row.get("max_injection_pressure_proxy_mpa") is not None
+    ]
+    weights = [row["part_weight_proxy_g"] for row in qualifying]
     fill_spread = (max(fills) - min(fills)) if fills else None
     time_spread = (max(times) - min(times)) if times else None
     required = int(cfg["promotion"]["minimum_repeated_passes"])
@@ -102,6 +128,10 @@ def reproducibility_evidence(cfg: dict) -> dict:
         "required_passes": required,
         "fill_spread_percentage_points": fill_spread,
         "fill_time_spread_s": time_spread,
+        "injection_pressure_spread_mpa": (
+            max(pressures) - min(pressures) if pressures else None
+        ),
+        "part_weight_spread_g": max(weights) - min(weights) if weights else None,
         "reproducible": reproducible,
         "production_promotion_allowed": False,
         "trials": qualifying[:10],
@@ -114,12 +144,25 @@ def observed_defects(trial: dict) -> dict:
     nonphysical = defects.get("nonphysical") or {}
     if nonphysical.get("alpha_max") is not None:
         defects["alpha_max"] = nonphysical["alpha_max"]
-        return defects
     run_dir_raw = trial.get("run_dir")
     if run_dir_raw:
-        kpi = load_json(Path(str(run_dir_raw)) / "vof_fill_kpis.json", {})
+        run_dir = Path(str(run_dir_raw))
+        kpi = load_json(run_dir / "vof_fill_kpis.json", {})
         if kpi.get("alpha_max") is not None:
             defects["alpha_max"] = kpi["alpha_max"]
+        pressure = load_json(run_dir / "injection_pressure_kpi.json", {})
+        if pressure.get("maximum_injection_pressure_proxy_mpa") is not None:
+            defects["max_injection_pressure_proxy_mpa"] = pressure[
+                "maximum_injection_pressure_proxy_mpa"
+            ]
+            defects["max_injection_pressure_error_pct"] = pressure.get(
+                "absolute_error_pct"
+            )
+            defects["max_injection_pressure_peak_time_s"] = pressure.get("peak_time_s")
+        weight = load_json(run_dir / "part_weight_kpi.json", {})
+        if weight.get("part_weight_proxy_g") is not None:
+            defects["part_weight_proxy_g"] = weight["part_weight_proxy_g"]
+            defects["part_weight_error_pct"] = weight.get("absolute_error_pct")
     return defects
 
 
@@ -142,11 +185,53 @@ def decide(trial: dict, cfg: dict) -> dict:
             "decision_rule": "IF bounded fill < 99% THEN calibrate inlet/end-time before adding downstream physics BECAUSE pressure and thermal KPIs are not comparable on a short shot.",
             "next_experiment": "Calibrate gate flow and vent topology against the 0.9 s commercial reference without permitting polymer loss.",
         }
+    pressure = defects.get("max_injection_pressure_proxy_mpa")
+    if pressure is None:
+        return {
+            "priority": "P2",
+            "capability": "injection_pressure_observability",
+            "decision_rule": "IF fill is bounded and complete but gate pressure is absent THEN extract a defined gate gauge-pressure KPI before tuning BECAUSE an unmeasured KPI cannot be calibrated.",
+            "next_experiment": "Extract written-time gate-face-average gauge pressure and compare it with 10.8794 MPa.",
+        }
+    reference = float(cfg["reference"]["max_injection_pressure_mpa"])
+    error_pct = abs(float(pressure) - reference) / reference * 100.0
+    tolerance = float(
+        cfg.get("calibration_tolerances", {}).get(
+            "max_injection_pressure_absolute_error_pct", 10.0
+        )
+    )
+    if error_pct > tolerance:
+        return {
+            "priority": "P2",
+            "capability": "injection_pressure_calibration",
+            "decision_rule": f"IF gate pressure error ({error_pct:.2f}%) exceeds {tolerance:.2f}% THEN tune one pressure-driving parameter while preserving the fill hard gates BECAUSE fill-time agreement alone is insufficient.",
+            "next_experiment": "Separate trapped-air backpressure from polymer flow resistance, then vary only the validated vent/backpressure parameter toward 10.8794 MPa.",
+        }
+    weight = defects.get("part_weight_proxy_g")
+    if weight is None:
+        return {
+            "priority": "P3",
+            "capability": "part_weight_observability",
+            "decision_rule": "IF fill and injection pressure pass but weight is absent THEN extract alpha-volume times material density before tuning BECAUSE weight must be independently observable.",
+            "next_experiment": "Extract polymer volume and density-based part weight and compare it with 9.0911 g.",
+        }
+    weight_reference = float(cfg["reference"]["part_weight_g"])
+    weight_error_pct = abs(float(weight) - weight_reference) / weight_reference * 100.0
+    weight_tolerance = float(
+        cfg.get("calibration_tolerances", {}).get("part_weight_absolute_error_pct", 5.0)
+    )
+    if weight_error_pct > weight_tolerance:
+        return {
+            "priority": "P3",
+            "capability": "part_weight_calibration",
+            "decision_rule": f"IF part-weight error ({weight_error_pct:.2f}%) exceeds {weight_tolerance:.2f}% THEN calibrate polymer melt density while preserving fill and pressure gates BECAUSE density directly maps filled volume to mass.",
+            "next_experiment": "Set the measured effective melt density near 765.07 kg/m3, rerun once, and reject it if pressure or fill regresses.",
+        }
     return {
-        "priority": "P2",
-        "capability": "commercial_kpi_calibration",
-        "decision_rule": "IF fill is bounded and complete THEN add and calibrate one commercial KPI at a time BECAUSE coupled tuning obscures causality.",
-        "next_experiment": "Add injection-pressure extraction and compare it with 10.8794 MPa.",
+        "priority": "P4",
+        "capability": "bulk_temperature_calibration",
+        "decision_rule": "IF fill, pressure, and part weight pass THEN calibrate the next commercial thermal KPI one at a time.",
+        "next_experiment": "Define and extract maximum bulk temperature and compare it with 241.0592 C.",
     }
 
 

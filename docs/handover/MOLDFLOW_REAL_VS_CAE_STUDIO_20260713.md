@@ -165,3 +165,65 @@ Durable rules from this stage:
 4. A candidate is not reproducible merely because it succeeded once. Candidate
    16 required three identical hard-gate passes and the supervisor now records
    their spread explicitly.
+
+## P2 injection-pressure calibration (candidates 17-20)
+
+Pressure is now defined as the maximum, over synchronized written times, of
+the enabled injection-gate patch face-average absolute pressure minus the
+initial atmospheric pressure. This remains an OpenFOAM gate-pressure proxy,
+not a claim of complete commercial equivalence.
+
+| candidate | change | fill | fill time | gate pressure | error vs 10.8794 MPa | result |
+|---|---|---:|---:|---:|---:|---|
+| 17 | 0.001 s synchronized writes | 99.12% | 0.976 s | 13.712825 MPa | 26.0439% | rejects misleading coarse sampling |
+| 18 | velocity 1.5085 m/s | 99.02% | 0.976 s | 12.316075 MPa | 13.2055% | fill passes, pressure fails |
+| 19 | Cross-WLF D1=2.6e9, mu=293.293 Pa s | 99.02% | 0.976 s | 12.224275 MPa | 12.3617% | trapped air dominates |
+| 20 | consistent p=p_rgh=101325 Pa initially | 99.02% | 0.976 s | 11.227875 MPa | 3.2031% | passes all current gates |
+
+Candidate 20 was repeated three times. Fill, time, alpha maximum, and pressure
+were identical in all three runs, so their observed spreads are zero. The
+supervisor now requires the injection-pressure tolerance as well as bounded
+fill for all three promotion-evidence runs. Automatic production promotion
+remains disabled.
+
+Durable pressure-calibration rules:
+
+1. Write the final pressure field at the commercial comparison time; a coarse
+   0.005 s interval missed the steep end-of-fill pressure rise.
+2. With zero gravity, initialize `p_rgh` consistently with absolute `p`.
+3. Pass Cross-WLF parameters into the generated OpenFOAM polymer viscosity;
+   a parameter present only in trial JSON is not evidence it affected the solver.
+4. Tune one pressure driver at a time and preserve fill, alpha, mesh, and
+   convergence gates.
+
+## P3 part-weight calibration (candidate 21)
+
+The STEP and generated mesh both describe a 100 x 60 x 2 mm cavity, or
+12,000 mm3. Candidate 20 still used the template's fixed polymer density of
+1,200 kg/m3 and therefore predicted 14.259284 g at 99.02% fill, 56.8488%
+above the commercial 9.0911 g result.
+
+Candidate 21 introduced an explicit `polymer_density_kg_m3` material parameter
+of 765.067862 kg/m3. This is an effective melt-density calibration at the fill
+state, not a solid room-temperature density claim. Results were:
+
+- fill: 99.02% at 0.976 s;
+- alpha maximum: 1.0;
+- maximum gate-pressure proxy: 11.224775 MPa, 3.1746% from commercial;
+- part-weight proxy: 9.091128 g, 0.0003% from commercial.
+
+Three independent Candidate 21 runs produced identical fill, time, pressure,
+and weight values. The supervisor promotion evidence now requires all four KPI
+families and records the part-weight spread explicitly. The next sequential KPI
+is maximum bulk temperature versus 241.0592 C.
+
+Durable weight-calibration rules:
+
+1. Verify STEP/mesh cavity volume before treating a mass difference as a
+   material-density difference.
+2. Compute weight from the written alpha field, cavity volume, and the same
+   density actually supplied to the solver.
+3. Distinguish effective melt density at filling temperature from solid PP
+   density; retain the calibration provenance.
+4. Recheck pressure and fill after density changes, even when the mass formula
+   itself is deterministic.

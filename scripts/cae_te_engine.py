@@ -1199,6 +1199,17 @@ def _inject_parameters_openfoam(file_name: str, content: str, params: dict) -> s
         omega_init = float(params.get("omega_init", 50.0))
         content = content.replace("OMEGA_INIT_PLACEHOLDER", f"{omega_init:.6g}")
     elif "thermophysicalProperties.polymer" in fn:
+        if "polymer_density_kg_m3" in params:
+            rho = float(params["polymer_density_kg_m3"])
+            if not 500.0 <= rho <= 2000.0:
+                raise ValueError("polymer_density_kg_m3 must be between 500 and 2000")
+            content = re.sub(
+                r"(equationOfState\s*\{[^}]*\brho\s+)[-+0-9.eE]+(\s*;)",
+                rf"\g<1>{rho:g}\2",
+                content,
+                count=1,
+                flags=re.DOTALL,
+            )
         vm = str(params.get("viscosity_model", "wlf")).lower()
         if vm == "const" and "polymer_nu" in params:
             nu = float(params["polymer_nu"])
@@ -1206,7 +1217,9 @@ def _inject_parameters_openfoam(file_name: str, content: str, params: dict) -> s
         elif vm == "wlf":
             w = _resolve_wlf_params(params)
             t_melt = float(params.get("T_melt", 513))
-            mu = _wlf_dynamic_viscosity(w["mu0"], w["Tr"], w["C1"], w["C2"], t_melt)
+            mu = _wlf_dynamic_viscosity(
+                w["mu0"], w["Tr"], w["C1"], w["C2"], t_melt, params=params
+            )
         else:
             mu = 12.0
         content = content.replace("MU_CONST_PLACEHOLDER", f"{mu:.6f}")
@@ -2577,6 +2590,7 @@ def _run_openfoam(exp: dict, params: dict, dry_run: bool, timeout: int, trial_id
             if th_poly.exists() and (
                 "viscosity_model" in params
                 or "polymer_nu" in params
+                or "polymer_density_kg_m3" in params
                 or any(k in params for k in ("wlf_mu0", "wlf_Tr", "wlf_C1", "wlf_C2"))
             ):
                 th_content = th_poly.read_text(encoding="utf-8").replace("\r\n", "\n").replace("\r", "\n")
