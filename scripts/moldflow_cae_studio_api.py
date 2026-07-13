@@ -11,6 +11,7 @@ if hasattr(sys.stdout, "reconfigure"):
 
 import json
 import re
+import sqlite3
 from datetime import datetime
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
@@ -25,6 +26,7 @@ DEFAULT_STEP = SAMPLES / "cavity_plate_100x10x2.step"
 PREVIEW_STL = SAMPLES / "cavity_preview.stl"
 SOLVER_LANDSCAPE = ROOT / "data" / "workspace" / "moldflow_solver_landscape.json"
 DEFAULT_PORT = 8776
+MATERIAL_DB = ROOT / "data" / "workspace" / "moldflow_materials.db"
 
 MATERIAL_PRESETS = {
     "pp_generic": {
@@ -49,6 +51,25 @@ MATERIAL_PRESETS = {
         "thermal_shrink_alpha": 6e-5,
     },
 }
+
+
+def _load_material_inventory(limit: int = 100) -> dict:
+    limit = max(1, min(limit, 1000))
+    if not MATERIAL_DB.exists():
+        return {"ok": True, "database": str(MATERIAL_DB), "total": 0, "files": []}
+    con = sqlite3.connect(str(MATERIAL_DB))
+    con.row_factory = sqlite3.Row
+    try:
+        total = con.execute("SELECT COUNT(*) FROM moldflow_material_files").fetchone()[0]
+        rows = con.execute(
+            "SELECT file_name, relative_path, source_kind, vendor, version_tag, extension, "
+            "size_bytes, sha256, modified_utc FROM moldflow_material_files "
+            "ORDER BY source_kind, file_name LIMIT ?", (limit,)
+        ).fetchall()
+        return {"ok": True, "database": str(MATERIAL_DB), "total": total,
+                "files": [dict(row) for row in rows]}
+    finally:
+        con.close()
 
 
 def _load_golden_case_snapshot() -> dict:
@@ -374,6 +395,13 @@ class CaeStudioHandler(BaseHTTPRequestHandler):
             return
         if parsed.path == "/api/materials":
             self._json(200, {"presets": MATERIAL_PRESETS})
+            return
+        if parsed.path == "/api/material-inventory":
+            try:
+                limit = int(parse_qs(parsed.query).get("limit", ["100"])[0])
+                self._json(200, _load_material_inventory(limit))
+            except Exception as exc:
+                self._json(500, {"error": str(exc)})
             return
         if parsed.path == "/api/solver-landscape":
             try:

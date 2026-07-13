@@ -209,6 +209,34 @@ def build_records(files: Iterable[pathlib.Path], install_root: pathlib.Path) -> 
     return records
 
 
+def load_manifest(manifest_path: pathlib.Path, limit: int | None = None) -> list[MaterialFile]:
+    """Load a metadata-only JSON manifest produced on the Moldflow host."""
+    payload = json.loads(manifest_path.read_text(encoding="utf-8-sig"))
+    items = payload.get("files", payload) if isinstance(payload, dict) else payload
+    if not isinstance(items, list):
+        raise ValueError("manifest must contain a JSON array or a 'files' array")
+    now = datetime.now(timezone.utc).isoformat()
+    records: list[MaterialFile] = []
+    for item in items[:limit] if limit is not None else items:
+        source_path = str(item["source_path"])
+        file_name = str(item.get("file_name") or pathlib.PureWindowsPath(source_path).name)
+        vendor, version = parse_vendor_version(file_name)
+        records.append(MaterialFile(
+            source_path=source_path,
+            relative_path=str(item.get("relative_path", source_path)),
+            file_name=file_name,
+            source_kind=str(item.get("source_kind", "external")),
+            vendor=str(item.get("vendor", vendor)),
+            version_tag=str(item.get("version_tag", version)),
+            extension=str(item.get("extension", pathlib.PureWindowsPath(file_name).suffix.lstrip("."))).lower(),
+            size_bytes=int(item.get("size_bytes", 0)),
+            sha256=str(item.get("sha256", "")),
+            modified_utc=str(item.get("modified_utc", "")),
+            imported_utc=str(item.get("imported_utc", now)),
+        ))
+    return records
+
+
 def init_sqlite(db_path: pathlib.Path) -> sqlite3.Connection:
     db_path.parent.mkdir(parents=True, exist_ok=True)
     con = sqlite3.connect(str(db_path))
@@ -318,6 +346,7 @@ def sync_turso(records: list[MaterialFile], dry_run: bool = False) -> str:
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--install-root", default=str(DEFAULT_INSTALL_ROOT))
+    ap.add_argument("--manifest", help="metadata-only JSON manifest from a remote Moldflow host")
     ap.add_argument("--db", default=str(DEFAULT_DB))
     ap.add_argument("--limit", type=int, default=None)
     ap.add_argument("--sync-turso", action="store_true")
@@ -326,12 +355,16 @@ def main() -> int:
 
     install_root = pathlib.Path(args.install_root)
     db_path = pathlib.Path(args.db)
-    if not install_root.exists():
+    if not args.manifest and not install_root.exists():
         raise SystemExit(f"install root not found: {install_root}")
-
-    files = scan_files(install_root, limit=args.limit)
-    log(f"scan_count={len(files)} install_root={install_root}")
-    records = build_records(files, install_root)
+    if args.manifest:
+        manifest = pathlib.Path(args.manifest)
+        records = load_manifest(manifest, limit=args.limit)
+        log(f"manifest_count={len(records)} manifest={manifest}")
+    else:
+        files = scan_files(install_root, limit=args.limit)
+        log(f"scan_count={len(files)} install_root={install_root}")
+        records = build_records(files, install_root)
 
     if args.dry_run:
         for r in records[:10]:
