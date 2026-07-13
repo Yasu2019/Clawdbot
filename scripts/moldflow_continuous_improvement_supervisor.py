@@ -27,7 +27,6 @@ WORKSPACE = ROOT / "data" / "workspace"
 STATUS = WORKSPACE / "moldflow_continuous_improvement_status.json"
 HISTORY = WORKSPACE / "moldflow_continuous_improvement_history.jsonl"
 CAE_LOG = ROOT / "data" / "cae_te_workspace" / "results" / "cae_te_log.json"
-PARAMS = ROOT / "data" / "cae_te_workspace" / "jobs" / "moldflow_studio" / "moldflow_real_compare_pp_plate_20260713_params.json"
 
 
 def load_json(path: Path, default):
@@ -46,17 +45,34 @@ def parse_time(value: str | None):
         return None
 
 
-def latest_reference_trial() -> dict:
+def latest_reference_trial(cfg: dict) -> dict:
     doc = load_json(CAE_LOG, {})
     trials = doc.get("trials", []) if isinstance(doc, dict) else []
-    matches = [t for t in trials if t.get("id") == "moldflow_real_compare_pp_plate_20260713"]
-    return matches[-1] if matches else {}
+    prefixes = tuple(str(x) for x in cfg.get("trial_id_prefixes", []))
+    matches = [t for t in trials if str(t.get("id", "")).startswith(prefixes)]
+    # cae_te_log stores newest trials first today, but ordering is not part of
+    # its schema. Select by timestamp instead of relying on list position.
+    return max(matches, key=lambda t: str(t.get("timestamp", ""))) if matches else {}
+
+
+def observed_defects(trial: dict) -> dict:
+    """Return trial defects enriched with alpha evidence from its run artifact."""
+    defects = dict(trial.get("defects_detected") or {})
+    nonphysical = defects.get("nonphysical") or {}
+    if nonphysical.get("alpha_max") is not None:
+        defects["alpha_max"] = nonphysical["alpha_max"]
+        return defects
+    run_dir_raw = trial.get("run_dir")
+    if run_dir_raw:
+        kpi = load_json(Path(str(run_dir_raw)) / "vof_fill_kpis.json", {})
+        if kpi.get("alpha_max") is not None:
+            defects["alpha_max"] = kpi["alpha_max"]
+    return defects
 
 
 def decide(trial: dict, cfg: dict) -> dict:
-    defects = trial.get("defects_detected") or {}
-    nonphysical = defects.get("nonphysical") or {}
-    alpha = nonphysical.get("alpha_max")
+    defects = observed_defects(trial)
+    alpha = defects.get("alpha_max")
     fill = defects.get("fill_fraction_pct")
     hard = cfg["hard_gates"]
     if alpha is None or float(alpha) > float(hard["alpha_polymer_max"]):
@@ -71,7 +87,7 @@ def decide(trial: dict, cfg: dict) -> dict:
             "priority": "P1",
             "capability": "complete_fill",
             "decision_rule": "IF bounded fill < 99% THEN calibrate inlet/end-time before adding downstream physics BECAUSE pressure and thermal KPIs are not comparable on a short shot.",
-            "next_experiment": "Calibrate inlet flow and end time against the 0.9 s commercial reference.",
+            "next_experiment": "Calibrate gate flow and vent topology against the 0.9 s commercial reference without permitting polymer loss.",
         }
     return {
         "priority": "P2",
@@ -101,7 +117,8 @@ def main() -> int:
         return 0
     now = datetime.now(timezone.utc)
     previous = load_json(STATUS, {})
-    trial = latest_reference_trial()
+    trial = latest_reference_trial(cfg)
+    observed = observed_defects(trial)
     action = decide(trial, cfg)
     allowed, reason = trial_allowed(cfg, previous, now)
     record = {
@@ -110,15 +127,16 @@ def main() -> int:
         "mode": "execute_one_trial" if args.execute_trial else "observe_plan",
         "reference_trial": trial.get("id"),
         "reference_verdict": trial.get("verdict"),
-        "observed": trial.get("defects_detected") or {},
+        "observed": observed,
         "action": action,
         "trial_allowed": allowed,
         "trial_gate_reason": reason,
         "automatic_production_promotion": False,
     }
-    if args.execute_trial and allowed and PARAMS.exists():
+    params = ROOT / str(cfg.get("trial_params_file", ""))
+    if args.execute_trial and allowed and params.exists():
         trial_id = "moldflow_ci_" + now.strftime("%Y%m%d_%H%M%S")
-        cmd = [sys.executable, str(ROOT / "scripts" / "cae_te_remote_trial.py"), "--category", "resin_fill_cad", "--trial-id", trial_id, "--params-file", str(PARAMS)]
+        cmd = [sys.executable, str(ROOT / "scripts" / "cae_te_remote_trial.py"), "--category", "resin_fill_cad", "--trial-id", trial_id, "--params-file", str(params)]
         result = subprocess.run(cmd, cwd=ROOT, timeout=1800, capture_output=True, text=True)
         record["executed_trial_id"] = trial_id
         record["trial_returncode"] = result.returncode

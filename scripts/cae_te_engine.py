@@ -2886,9 +2886,9 @@ def _extract_cool_warpage_kpis(run_dir: Path, params: dict) -> dict:
 
 
 def _extract_vof_fill_kpis(run_dir: Path) -> dict:
-    """Fill fraction and first time fill threshold is reached (alpha mean >= 0.8)."""
+    """Fill fraction and first near-complete time (mean alpha >= 0.98)."""
     alpha_name = "alpha.polymer"
-    times: list[float] = []
+    time_dirs: list[tuple[float, Path]] = []
     for child in run_dir.iterdir():
         if not child.is_dir():
             continue
@@ -2897,26 +2897,34 @@ def _extract_vof_fill_kpis(run_dir: Path) -> dict:
         except ValueError:
             continue
         if (child / alpha_name).exists():
-            times.append(t)
-    times.sort()
-    if not times:
+            time_dirs.append((t, child))
+    time_dirs.sort(key=lambda item: item[0])
+    if not time_dirs:
         return {}
     fill_time = None
     latest_frac = 0.0
-    for t in times:
-        frac = _parse_alpha_volume_fraction(run_dir / f"{t:g}" / alpha_name)
+    for t, time_dir in time_dirs:
+        # Preserve exact OpenFOAM names; :g can round 1.096174 to 1.09617.
+        # The rounded path does not exist and previously produced a false zero KPI.
+        frac = _parse_alpha_volume_fraction(time_dir / alpha_name)
         latest_frac = max(latest_frac, frac)
-        if fill_time is None and frac >= 0.80:
+        if fill_time is None and frac >= 0.98:
             fill_time = t
     out = {
         "fill_fraction": round(latest_frac, 4),
         "fill_fraction_pct": round(latest_frac * 100.0, 2),
-        "fill_complete": bool(fill_time is not None or latest_frac >= 0.85),
+        "fill_complete": bool(fill_time is not None or latest_frac >= 0.98),
     }
     if fill_time is not None:
         out["fill_time_s"] = float(fill_time)
     else:
-        out["fill_time_s"] = float(times[-1])
+        out["fill_time_s"] = float(time_dirs[-1][0])
+    # Persist the boundedness evidence used by the continuous supervisor.
+    try:
+        _, amax = _parse_scalar_field_stats(time_dirs[-1][1] / alpha_name)
+        out["alpha_max"] = round(float(amax), 4)
+    except Exception:
+        pass
     try:
         artifact = run_dir / "vof_fill_kpis.json"
         artifact.write_text(json.dumps(out, ensure_ascii=False, indent=2), encoding="utf-8")

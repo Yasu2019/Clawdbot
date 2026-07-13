@@ -370,7 +370,8 @@ def tag_openfoam_log(text: str) -> list[str]:
         tags.add("foam_bc_issue")
     if "Cannot find patchField" in t or "Unknown patchField type" in t:
         tags.add("foam_bc_type_issue")
-    if "Floating point exception" in t:
+    # Startup trap-enablement is informational, not a solver crash.
+    if re.search(r"(?im)^(?!.*\btrapping\b).*Floating point exception", t):
         tags.add("foam_fpe")
     if "Segmentation fault" in t:
         tags.add("foam_segfault")

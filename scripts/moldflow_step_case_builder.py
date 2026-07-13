@@ -101,6 +101,7 @@ def blockmesh_dict_text(
     nx: int = 50,
     ny: int | None = None,
     gate_width_mm: float | None = None,
+    vent_layout: str = "full_far_edge",
 ) -> str:
     """Three-segment inlet patches (inlet1/2/3) on ymin face, outlet on xmax.
 
@@ -119,6 +120,18 @@ def blockmesh_dict_text(
     ny1 = max(1, int(round(total_ny * y1 / ly)))
     ny2 = max(1, int(round(total_ny * (y2 - y1) / ly)))
     ny3 = max(1, total_ny - ny1 - ny2)
+    if vent_layout == "corner_far_edge":
+        outlet_faces = "            (1 9 11 3)\n            (5 13 15 7)"
+        extra_wall_faces = "            (3 11 13 5)\n"
+    elif vent_layout == "full_far_edge":
+        outlet_faces = (
+            "            (1 9 11 3)\n"
+            "            (3 11 13 5)\n"
+            "            (5 13 15 7)"
+        )
+        extra_wall_faces = ""
+    else:
+        raise ValueError(f"unsupported vent_layout: {vent_layout}")
     return f"""/*--------------------------------*- C++ -*----------------------------------*\\
 | Moldflow Phase 7: blockMesh from STEP bbox (auto-generated)                   |
 \\*---------------------------------------------------------------------------*/
@@ -194,9 +207,7 @@ boundary
         type patch;
         faces
         (
-            (1 9 11 3)
-            (3 11 13 5)
-            (5 13 15 7)
+{outlet_faces}
         );
     }}
     walls
@@ -204,7 +215,7 @@ boundary
         type wall;
         faces
         (
-            (0 1 9 8)
+{extra_wall_faces}            (0 1 9 8)
             (6 7 15 14)
         );
     }}
@@ -361,6 +372,38 @@ def apply_runtime_options(run_dir: Path, params: dict[str, Any]) -> None:
         path.write_text(text, encoding="utf-8")
 
 
+def apply_vented_outlet_options(run_dir: Path, params: dict[str, Any]) -> None:
+    """Use a consistent pressure vent that lets air and finally polymer leave."""
+    if not params.get("vented_outlet"):
+        return
+
+    def replace_outlet(path: Path, body: str) -> None:
+        if not path.exists():
+            return
+        text = path.read_text(encoding="utf-8", errors="replace")
+        text, count = re.subn(
+            r"(\n\s*outlet\s*\{)[^}]*(\})",
+            rf"\1\n{body}    \2",
+            text,
+            count=1,
+        )
+        if count != 1:
+            raise ValueError(f"outlet boundary not found in {path}")
+        path.write_text(text, encoding="utf-8")
+
+    replace_outlet(
+        run_dir / "0" / "U",
+        "        type            pressureInletOutletVelocity;\n"
+        "        value           uniform (0 0 0);\n",
+    )
+    replace_outlet(
+        run_dir / "0" / "alpha.polymer",
+        "        type            inletOutlet;\n"
+        "        inletValue      uniform 0;\n"
+        "        value           uniform 0;\n",
+    )
+
+
 def normalize_generated_initial_fields(run_dir: Path, params: dict[str, Any]) -> None:
     """Reset mesh-size-specific template alpha fields for generated CAD meshes."""
     if str(params.get("physics_category", "")) != "resin_fill_cool":
@@ -434,8 +477,17 @@ def build_case(
         ny_raw = params.get("mesh_ny")
         ny = int(ny_raw) if ny_raw is not None else None
         gate_width = params.get("gate_width_mm")
+        vent_layout = str(params.get("vent_layout", "full_far_edge"))
         (run_dir / "system" / "blockMeshDict").write_text(
-            blockmesh_dict_text(lx, ly, lz, nx=nx, ny=ny, gate_width_mm=gate_width),
+            blockmesh_dict_text(
+                lx,
+                ly,
+                lz,
+                nx=nx,
+                ny=ny,
+                gate_width_mm=gate_width,
+                vent_layout=vent_layout,
+            ),
             encoding="utf-8",
         )
 
@@ -450,6 +502,7 @@ def build_case(
     closed_cavity_mod.patch_closed_cavity_on_build(run_dir, spec, params)
     apply_vof_stability_options(run_dir, params)
     apply_runtime_options(run_dir, params)
+    apply_vented_outlet_options(run_dir, params)
 
     manifest = {
         "phase": 7,

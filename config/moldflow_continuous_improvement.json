@@ -4,6 +4,11 @@
   "interval_minutes": 30,
   "minimum_trial_cooldown_hours": 6,
   "max_trials_per_day": 4,
+  "trial_id_prefixes": [
+    "moldflow_real_compare_pp_plate_20260713",
+    "moldflow_ci_p0_alpha_"
+  ],
+  "trial_params_file": "data/cae_te_workspace/jobs/moldflow_studio/moldflow_ci_p0_alpha_candidate6_params.json",
   "reference": {
     "geometry_mm": [100, 60, 2],
     "material": "PP",
