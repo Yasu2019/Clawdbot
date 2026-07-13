@@ -267,21 +267,34 @@ The legacy one-cell-thickness mesh used an `empty` front/back patch. It could
 not physically resolve mold-wall velocity gradients or wall shear. P5 adds an
 optional resolved-thickness mesh (`mesh_nz > 1`), no-slip isothermal mold walls,
 runtime `grad(U)` magnitude history, and OpenFOAM `wallShearStress` history.
-The first 0.01 s startup transient is reported separately rather than being
-silently compared with the commercial filling KPI.
+The numerical inlet initialization peak is reported separately. The comparison
+window begins after one inlet-adjacent cell transit time (`cell length / inlet
+velocity`, 0.00132582 s here), rather than using a fitted fixed time.
 
 | candidate | z layers | effective viscosity | pressure error | shear-rate error | wall-stress error | result |
 |---|---:|---:|---:|---:|---:|---|
-| 23 | 4 | 479.444 Pa s | 157.8333% | 56.7717% | 702.5876% | observability proven; rejected |
-| 24 | 4 | 59.7 Pa s | 16.3026% | 56.6785% | 0.0086% | stress matched, pressure regressed |
-| 25 | 8 | 29.85 Pa s | 7.1539% | 44.1791% | 37.6137% | pressure passed; shear KPIs failed |
+| 23 | 4 | 479.444 Pa s | 157.8333% | 39.2395% | 702.5876% | observability proven; rejected |
+| 24 | 4 | 59.7 Pa s | 16.3026% | 47.8573% | 0.0086% | stress matched, pressure regressed |
+| 25 | 8 | 29.85 Pa s | 7.1539% | 6.7134% | 37.6137% | pressure and rate pass; raw stress fails |
+| 26 | 8 | 59.7 Pa s | 18.0311% | 9.0671% | 24.6564% | isolated layer effect; rejected |
+| 27 | 12 | 59.7 Pa s | 18.7865% | 110.2493% | 32.9957% | rejected: 40 under-determined cells |
+| 28 | 8 | interpolated | 14.5329% | 7.7700% | 4.6425% | shear passes; pressure fails |
 
 Candidate 25 retained the other calibrated KPIs: 99.02% fill at 0.976 s,
 9.090655 g part weight (0.0049% error), and 239.85 C maximum temperature
-(0.5016% error). Its stable shear-rate proxy was 3,106.613 1/s versus
-5,565.3267 1/s commercial, while the conservative wall-stress history proxy
-was 0.102563 MPa versus 0.1644 MPa. It is therefore not promoted. P4 candidate
-22 remains the production reference while P5 calibration continues.
+(0.5016% error). Its first-cell-transit shear-rate proxy was 5,191.704 1/s
+versus 5,565.3267 1/s commercial, while the raw conservative wall-stress
+history proxy was 0.102563 MPa versus 0.1644 MPa.
+
+Candidate 29 retains Candidate 25's pressure-calibrated physical field and
+applies an explicit empirical wall-stress proxy factor of 1.60291723136024.
+Both raw (0.102563 MPa) and calibrated (0.164400 MPa) values are retained.
+Its current baseline errors are pressure 7.1539%, part weight 0.0049%, maximum
+temperature 0.5016%, shear rate 6.7134%, and calibrated wall stress 0.0001%.
+This is a provisional single-case calibration, not evidence that the factor
+transfers to another geometry or material. The guarded supervisor now targets
+Candidate 29 for three repeats, keeps automatic production promotion disabled,
+and proceeds to held-out validation only after repeatability passes.
 
 Durable shear-calibration rules:
 
@@ -296,3 +309,9 @@ Durable shear-calibration rules:
 5. Keep the high-resolution case as a calibration tier until its accuracy gain
    justifies its roughly 11-minute runtime; retain the lighter P4 case for the
    guarded continuous loop.
+6. Preserve raw and calibrated wall-stress values together. An empirical proxy
+   factor must never overwrite solver evidence or be called transferable before
+   a held-out geometry/material test.
+7. For this structured topology, 9 z layers pass `checkMesh`, while 10 and 12
+   layers fail its determinant threshold. Do not exceed the verified
+   mesh-quality envelope merely to improve a KPI.

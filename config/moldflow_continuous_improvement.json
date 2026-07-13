@@ -10,10 +10,12 @@
     "moldflow_ci_p1_fill_",
     "moldflow_ci_p2_pressure_",
     "moldflow_ci_p3_weight_",
-    "moldflow_ci_p4_temperature_"
+    "moldflow_ci_p4_temperature_",
+    "moldflow_ci_p5_shear_"
   ],
-  "promotion_trial_prefix": "moldflow_ci_p4_temperature_candidate22",
-  "trial_params_file": "data/cae_te_workspace/jobs/moldflow_studio/moldflow_ci_p4_temperature_candidate22_params.json",
+  "promotion_trial_prefix": "moldflow_ci_p5_shear_candidate29",
+  "trial_params_file": "data/cae_te_workspace/jobs/moldflow_studio/moldflow_ci_p5_shear_candidate29_params.json",
+  "trial_timeout_seconds": 1800,
   "reference": {
     "geometry_mm": [100, 60, 2],
     "material": "PP",
@@ -35,7 +37,9 @@
   "calibration_tolerances": {
     "max_injection_pressure_absolute_error_pct": 10.0,
     "part_weight_absolute_error_pct": 5.0,
-    "max_bulk_temperature_absolute_error_pct": 5.0
+    "max_bulk_temperature_absolute_error_pct": 5.0,
+    "max_shear_rate_absolute_error_pct": 10.0,
+    "max_wall_shear_stress_absolute_error_pct": 10.0
   },
   "promotion": {
     "require_all_hard_gates": true,

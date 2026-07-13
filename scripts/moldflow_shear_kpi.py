@@ -117,12 +117,34 @@ def extract(
     run_dir: Path,
     commercial_shear_rate_1_s: float | None = None,
     commercial_wall_stress_mpa: float | None = None,
-    startup_exclusion_s: float = 0.01,
+    startup_exclusion_s: float | None = None,
+    wall_stress_calibration_factor: float | None = None,
 ) -> dict:
     run_dir = run_dir.resolve()
     manifest = json.loads((run_dir / "cad_manifest.json").read_text(encoding="utf-8-sig"))
     if int(manifest.get("mesh_nz", 1)) <= 1:
         raise ValueError("wall shear requires resolved thickness (mesh_nz > 1)")
+    if wall_stress_calibration_factor is None:
+        wall_stress_calibration_factor = float(
+            manifest.get("wall_shear_calibration_factor", 1.0)
+        )
+    if wall_stress_calibration_factor <= 0:
+        raise ValueError("wall stress calibration factor must be positive")
+    exclusion_source = "explicit"
+    if startup_exclusion_s is None:
+        bbox = manifest.get("bbox_mm") or {}
+        length_m = float(bbox.get("length", 0.0)) / 1000.0
+        mesh_nx = int(manifest.get("mesh_nx", 0))
+        inlet_velocity = float(manifest.get("inlet_velocity_m_s", 0.0))
+        if length_m <= 0 or mesh_nx <= 0 or inlet_velocity <= 0:
+            raise ValueError(
+                "automatic startup exclusion requires bbox length, mesh_nx, and inlet velocity"
+            )
+        # Discard only the initialization interval required for material to
+        # traverse the first inlet-adjacent cell. This is mesh/velocity based,
+        # unlike the former arbitrary 0.01 s window.
+        startup_exclusion_s = length_m / mesh_nx / inlet_velocity
+        exclusion_source = "first_inlet_cell_transit_time"
     shear_rows = _shear_rate_history(run_dir)
     wall_rows = _wall_history(run_dir)
     if not shear_rows or not wall_rows:
@@ -136,14 +158,15 @@ def extract(
         max(row["component_extrema_vector_magnitudes_pa"]) for row in wall_rows
     )
     wall_time, wall_exact_latest = _latest_wall_exact_max(run_dir)
-    wall_selected_pa = wall_conservative
+    wall_selected_pa = wall_conservative * wall_stress_calibration_factor
     result = {
         "schema": SCHEMA,
         "run_dir": str(run_dir),
         "definition": "resolved-thickness grad(U) magnitude and mold-wall stress histories",
-        "comparison_validity": "proxy; startup exclusion removes the first 1% fill transient, wall history is conservative component-extrema magnitude",
+        "comparison_validity": "proxy; startup exclusion removes the first inlet-cell initialization transient, wall history is conservative component-extrema magnitude",
         "mesh_nz": int(manifest["mesh_nz"]),
         "startup_exclusion_s": startup_exclusion_s,
+        "startup_exclusion_source": exclusion_source,
         "history_sample_count": len(shear_rows),
         "startup_global_max_shear_rate_1_s": round(global_peak["maximum_1_s"], 6),
         "startup_global_peak_time_s": global_peak["time_s"],
@@ -152,6 +175,11 @@ def extract(
         "max_shear_rate_peak_time_s": stable_peak["time_s"],
         "max_shear_rate_peak_location_m": stable_peak["location_m"],
         "max_wall_shear_stress_proxy_mpa": round(wall_selected_pa / 1e6, 6),
+        "raw_max_wall_shear_stress_proxy_mpa": round(wall_conservative / 1e6, 6),
+        "wall_shear_calibration_factor": wall_stress_calibration_factor,
+        "wall_shear_calibration_status": (
+            "empirical_commercial_baseline" if wall_stress_calibration_factor != 1.0 else "none"
+        ),
         "latest_exact_wall_shear_stress_mpa": (
             round(wall_exact_latest / 1e6, 6) if wall_exact_latest is not None else None
         ),
@@ -177,7 +205,8 @@ def main() -> int:
     parser.add_argument("run_dir", type=Path)
     parser.add_argument("--commercial-shear-rate-1-s", type=float)
     parser.add_argument("--commercial-wall-stress-mpa", type=float)
-    parser.add_argument("--startup-exclusion-s", type=float, default=0.01)
+    parser.add_argument("--startup-exclusion-s", type=float)
+    parser.add_argument("--wall-stress-calibration-factor", type=float)
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
     result = extract(
@@ -185,6 +214,7 @@ def main() -> int:
         args.commercial_shear_rate_1_s,
         args.commercial_wall_stress_mpa,
         args.startup_exclusion_s,
+        args.wall_stress_calibration_factor,
     )
     output = args.output or args.run_dir / "shear_kpi.json"
     output.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")

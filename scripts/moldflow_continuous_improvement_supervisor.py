@@ -81,6 +81,18 @@ def reproducibility_evidence(cfg: dict) -> dict:
             "max_bulk_temperature_absolute_error_pct", 5.0
         )
     )
+    shear_rate_reference = float(cfg["reference"]["max_shear_rate_1_s"])
+    wall_stress_reference = float(cfg["reference"]["max_wall_shear_stress_mpa"])
+    shear_rate_tolerance = float(
+        cfg.get("calibration_tolerances", {}).get(
+            "max_shear_rate_absolute_error_pct", 10.0
+        )
+    )
+    wall_stress_tolerance = float(
+        cfg.get("calibration_tolerances", {}).get(
+            "max_wall_shear_stress_absolute_error_pct", 10.0
+        )
+    )
     qualifying = []
     for trial in trials:
         if not prefix or not str(trial.get("id", "")).startswith(prefix):
@@ -93,12 +105,20 @@ def reproducibility_evidence(cfg: dict) -> dict:
             pressure = float(defects.get("max_injection_pressure_proxy_mpa"))
             weight = float(defects.get("part_weight_proxy_g"))
             temperature = float(defects.get("max_bulk_temperature_proxy_c"))
+            shear_rate = float(defects.get("max_shear_rate_proxy_1_s"))
+            wall_stress = float(defects.get("max_wall_shear_stress_proxy_mpa"))
         except (TypeError, ValueError):
             continue
         pressure_error_pct = abs(pressure - pressure_reference) / pressure_reference * 100.0
         weight_error_pct = abs(weight - weight_reference) / weight_reference * 100.0
         temperature_error_pct = (
             abs(temperature - temperature_reference) / temperature_reference * 100.0
+        )
+        shear_rate_error_pct = (
+            abs(shear_rate - shear_rate_reference) / shear_rate_reference * 100.0
+        )
+        wall_stress_error_pct = (
+            abs(wall_stress - wall_stress_reference) / wall_stress_reference * 100.0
         )
         if (
             trial.get("verdict") == "SUCCESS"
@@ -107,6 +127,8 @@ def reproducibility_evidence(cfg: dict) -> dict:
             and pressure_error_pct <= pressure_tolerance
             and weight_error_pct <= weight_tolerance
             and temperature_error_pct <= temperature_tolerance
+            and shear_rate_error_pct <= shear_rate_tolerance
+            and wall_stress_error_pct <= wall_stress_tolerance
         ):
             qualifying.append(
                 {
@@ -120,6 +142,10 @@ def reproducibility_evidence(cfg: dict) -> dict:
                     "part_weight_error_pct": weight_error_pct,
                     "max_bulk_temperature_proxy_c": temperature,
                     "max_bulk_temperature_error_pct": temperature_error_pct,
+                    "max_shear_rate_proxy_1_s": shear_rate,
+                    "max_shear_rate_error_pct": shear_rate_error_pct,
+                    "max_wall_shear_stress_proxy_mpa": wall_stress,
+                    "max_wall_shear_stress_error_pct": wall_stress_error_pct,
                 }
             )
     fills = [row["fill_fraction_pct"] for row in qualifying]
@@ -131,6 +157,8 @@ def reproducibility_evidence(cfg: dict) -> dict:
     ]
     weights = [row["part_weight_proxy_g"] for row in qualifying]
     temperatures = [row["max_bulk_temperature_proxy_c"] for row in qualifying]
+    shear_rates = [row["max_shear_rate_proxy_1_s"] for row in qualifying]
+    wall_stresses = [row["max_wall_shear_stress_proxy_mpa"] for row in qualifying]
     fill_spread = (max(fills) - min(fills)) if fills else None
     time_spread = (max(times) - min(times)) if times else None
     required = int(cfg["promotion"]["minimum_repeated_passes"])
@@ -153,6 +181,12 @@ def reproducibility_evidence(cfg: dict) -> dict:
         "max_bulk_temperature_spread_c": (
             max(temperatures) - min(temperatures) if temperatures else None
         ),
+        "max_shear_rate_spread_1_s": (
+            max(shear_rates) - min(shear_rates) if shear_rates else None
+        ),
+        "max_wall_shear_stress_spread_mpa": (
+            max(wall_stresses) - min(wall_stresses) if wall_stresses else None
+        ),
         "reproducible": reproducible,
         "production_promotion_allowed": False,
         "trials": qualifying[:10],
@@ -169,6 +203,9 @@ def observed_defects(trial: dict) -> dict:
     if run_dir_raw:
         run_dir = Path(str(run_dir_raw))
         kpi = load_json(run_dir / "vof_fill_kpis.json", {})
+        for key in ("fill_fraction_pct", "fill_time_s", "fill_complete"):
+            if kpi.get(key) is not None:
+                defects[key] = kpi[key]
         if kpi.get("alpha_max") is not None:
             defects["alpha_max"] = kpi["alpha_max"]
         pressure = load_json(run_dir / "injection_pressure_kpi.json", {})
@@ -192,11 +229,33 @@ def observed_defects(trial: dict) -> dict:
             defects["max_bulk_temperature_error_pct"] = temperature.get(
                 "absolute_error_pct"
             )
+        shear = load_json(run_dir / "shear_kpi.json", {})
+        if shear.get("max_shear_rate_proxy_1_s") is not None:
+            defects["max_shear_rate_proxy_1_s"] = shear["max_shear_rate_proxy_1_s"]
+            defects["max_shear_rate_error_pct"] = shear.get("max_shear_rate_error_pct")
+        if shear.get("max_wall_shear_stress_proxy_mpa") is not None:
+            defects["max_wall_shear_stress_proxy_mpa"] = shear[
+                "max_wall_shear_stress_proxy_mpa"
+            ]
+            defects["raw_max_wall_shear_stress_proxy_mpa"] = shear.get(
+                "raw_max_wall_shear_stress_proxy_mpa"
+            )
+            defects["max_wall_shear_stress_error_pct"] = shear.get(
+                "max_wall_shear_stress_error_pct"
+            )
     return defects
 
 
 def decide(trial: dict, cfg: dict) -> dict:
     defects = observed_defects(trial)
+    mesh_lines = (trial.get("failure_evidence") or {}).get("checkMesh") or []
+    if any("Failed" in str(line) for line in mesh_lines):
+        return {
+            "priority": "P0",
+            "capability": "mesh_quality",
+            "decision_rule": "IF checkMesh fails THEN reject the run before KPI calibration BECAUSE a completed solver log does not make an under-determined mesh valid.",
+            "next_experiment": "Reduce thickness layers or improve local XY grading until checkMesh reports Mesh OK.",
+        }
     alpha = defects.get("alpha_max")
     fill = defects.get("fill_fraction_pct")
     hard = cfg["hard_gates"]
@@ -278,11 +337,31 @@ def decide(trial: dict, cfg: dict) -> dict:
             "decision_rule": f"IF maximum bulk-temperature error ({temperature_error_pct:.2f}%) exceeds {temperature_tolerance:.2f}% THEN tune one thermal input while preserving fill, pressure, and weight gates.",
             "next_experiment": "Calibrate melt temperature or thermal transport one parameter at a time toward 241.0592 C.",
         }
+    shear_rate = defects.get("max_shear_rate_proxy_1_s")
+    wall_stress = defects.get("max_wall_shear_stress_proxy_mpa")
+    if shear_rate is None or wall_stress is None:
+        return {
+            "priority": "P5",
+            "capability": "wall_shear_observability",
+            "decision_rule": "IF upstream KPIs pass but resolved-thickness shear histories are absent THEN retain P4 and measure both rheology KPIs before promotion.",
+            "next_experiment": "Run the resolved-thickness case and extract first-cell-transit shear rate plus calibrated and raw wall stress.",
+        }
+    shear_error = abs(float(shear_rate) - float(cfg["reference"]["max_shear_rate_1_s"])) / float(cfg["reference"]["max_shear_rate_1_s"]) * 100.0
+    wall_error = abs(float(wall_stress) - float(cfg["reference"]["max_wall_shear_stress_mpa"])) / float(cfg["reference"]["max_wall_shear_stress_mpa"]) * 100.0
+    shear_tol = float(cfg.get("calibration_tolerances", {}).get("max_shear_rate_absolute_error_pct", 10.0))
+    wall_tol = float(cfg.get("calibration_tolerances", {}).get("max_wall_shear_stress_absolute_error_pct", 10.0))
+    if shear_error > shear_tol or wall_error > wall_tol:
+        return {
+            "priority": "P5",
+            "capability": "wall_shear_calibration",
+            "decision_rule": f"IF shear-rate error ({shear_error:.2f}%) or wall-stress error ({wall_error:.2f}%) exceeds 10% THEN reject promotion while preserving upstream gates.",
+            "next_experiment": "Adjust one validated rheology or proxy-calibration parameter and retain the uncorrected wall-stress evidence.",
+        }
     return {
-        "priority": "P5",
-        "capability": "wall_shear_calibration",
-        "decision_rule": "IF fill, pressure, weight, and bulk temperature pass THEN add the next commercial rheology KPI sequentially.",
-        "next_experiment": "Define wall shear stress and shear-rate proxies and compare with 0.1644 MPa and 5565.3267 1/s.",
+        "priority": "P6",
+        "capability": "cross_geometry_material_validation",
+        "decision_rule": "IF all six baseline KPIs pass THEN require repeatability and a held-out geometry/material before treating the empirical wall-stress factor as transferable.",
+        "next_experiment": "Repeat candidate 29 three times, then validate its raw and calibrated errors on a second simple commercial Moldflow case.",
     }
 
 
@@ -338,6 +417,26 @@ def postprocess_trial(run_dir: Path, cfg: dict) -> dict:
             "returncode": completed.returncode,
             "output_tail": (completed.stdout + completed.stderr)[-1000:],
         }
+    shear_script = ROOT / "scripts" / "moldflow_shear_kpi.py"
+    completed = subprocess.run(
+        [
+            sys.executable,
+            str(shear_script),
+            str(run_dir),
+            "--commercial-shear-rate-1-s",
+            str(cfg["reference"]["max_shear_rate_1_s"]),
+            "--commercial-wall-stress-mpa",
+            str(cfg["reference"]["max_wall_shear_stress_mpa"]),
+        ],
+        cwd=ROOT,
+        timeout=120,
+        capture_output=True,
+        text=True,
+    )
+    result["shear"] = {
+        "returncode": completed.returncode,
+        "output_tail": (completed.stdout + completed.stderr)[-1000:],
+    }
     return result
 
 
@@ -373,11 +472,12 @@ def main() -> int:
     if args.execute_trial and allowed and params.exists():
         prefix = str(cfg.get("promotion_trial_prefix") or "moldflow_ci_candidate")
         trial_id = prefix + "_auto_" + now.strftime("%Y%m%d_%H%M%S")
-        cmd = [sys.executable, str(ROOT / "scripts" / "cae_te_remote_trial.py"), "--category", "resin_fill_cad", "--trial-id", trial_id, "--params-file", str(params), "--no-cleanup-runs"]
+        trial_timeout = int(cfg.get("trial_timeout_seconds", 1800))
+        cmd = [sys.executable, str(ROOT / "scripts" / "cae_te_remote_trial.py"), "--category", "resin_fill_cad", "--trial-id", trial_id, "--params-file", str(params), "--no-cleanup-runs", "--timeout", str(trial_timeout)]
         trial_env = os.environ.copy()
         trial_env["CAE_FILL_VIDEO_TELEGRAM"] = "0"
         result = subprocess.run(
-            cmd, cwd=ROOT, timeout=1800, capture_output=True, text=True, env=trial_env
+            cmd, cwd=ROOT, timeout=trial_timeout + 300, capture_output=True, text=True, env=trial_env
         )
         record["executed_trial_id"] = trial_id
         record["trial_returncode"] = result.returncode

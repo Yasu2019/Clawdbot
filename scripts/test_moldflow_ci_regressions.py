@@ -38,6 +38,58 @@ boundaryField
 
 
 class MoldflowCiRegressionTests(unittest.TestCase):
+    def test_shear_kpi_derives_first_cell_transit_exclusion(self):
+        with tempfile.TemporaryDirectory() as td:
+            run = Path(td)
+            (run / "postProcessing" / "shearRateMinMax" / "0").mkdir(parents=True)
+            (run / "postProcessing" / "moldWallShearStress" / "0").mkdir(parents=True)
+            (run / "cad_manifest.json").write_text(
+                json.dumps(
+                    {
+                        "mesh_nz": 8,
+                        "mesh_nx": 50,
+                        "inlet_velocity_m_s": 1.0,
+                        "bbox_mm": {"length": 100.0},
+                    }
+                ),
+                encoding="utf-8",
+            )
+            (run / "postProcessing" / "shearRateMinMax" / "0" / "fieldMinMax.dat").write_text(
+                "0.001 shearRateProxy 0 (0 0 0) 20000 (0 0 0)\n"
+                "0.002 shearRateProxy 0 (0 0 0) 5000 (0 0 0)\n",
+                encoding="utf-8",
+            )
+            (run / "postProcessing" / "moldWallShearStress" / "0" / "wallShearStress.dat").write_text(
+                "0.002 frontAndBack (-100000 0 0) (100000 0 0)\n",
+                encoding="utf-8",
+            )
+            result = shear_kpi.extract(run, 5000, 0.1)
+            self.assertAlmostEqual(0.002, result["startup_exclusion_s"])
+            self.assertEqual("first_inlet_cell_transit_time", result["startup_exclusion_source"])
+            self.assertEqual(5000, result["max_shear_rate_proxy_1_s"])
+
+    def test_shear_kpi_preserves_raw_wall_stress_when_calibrated(self):
+        with tempfile.TemporaryDirectory() as td:
+            run = Path(td)
+            (run / "postProcessing" / "shearRateMinMax" / "0").mkdir(parents=True)
+            (run / "postProcessing" / "moldWallShearStress" / "0").mkdir(parents=True)
+            (run / "cad_manifest.json").write_text(
+                json.dumps({"mesh_nz": 4}), encoding="utf-8"
+            )
+            (run / "postProcessing" / "shearRateMinMax" / "0" / "fieldMinMax.dat").write_text(
+                "0.01 shearRateProxy 0 (0 0 0) 5000 (0 0 0)\n", encoding="utf-8"
+            )
+            (run / "postProcessing" / "moldWallShearStress" / "0" / "wallShearStress.dat").write_text(
+                "0.01 frontAndBack (-100000 0 0) (100000 0 0)\n", encoding="utf-8"
+            )
+            result = shear_kpi.extract(
+                run, 5000, 0.16, startup_exclusion_s=0.01,
+                wall_stress_calibration_factor=1.6,
+            )
+            self.assertEqual(0.1, result["raw_max_wall_shear_stress_proxy_mpa"])
+            self.assertEqual(0.16, result["max_wall_shear_stress_proxy_mpa"])
+            self.assertEqual("empirical_commercial_baseline", result["wall_shear_calibration_status"])
+
     def test_shear_kpi_excludes_startup_transient_and_requires_3d(self):
         with tempfile.TemporaryDirectory() as td:
             run = Path(td)
@@ -354,6 +406,8 @@ class MoldflowCiRegressionTests(unittest.TestCase):
                         "max_injection_pressure_proxy_mpa": 11.0,
                         "part_weight_proxy_g": 9.0911,
                         "max_bulk_temperature_proxy_c": 240.0,
+                        "max_shear_rate_proxy_1_s": 5500.0,
+                        "max_wall_shear_stress_proxy_mpa": 0.164,
                         "nonphysical": {"alpha_max": 1.0},
                     },
                 }
@@ -371,11 +425,15 @@ class MoldflowCiRegressionTests(unittest.TestCase):
                 "max_injection_pressure_mpa": 10.8794,
                 "part_weight_g": 9.0911,
                 "max_bulk_temperature_c": 241.0592,
+                "max_shear_rate_1_s": 5565.3267,
+                "max_wall_shear_stress_mpa": 0.1644,
             },
             "calibration_tolerances": {
                 "max_injection_pressure_absolute_error_pct": 10.0,
                 "part_weight_absolute_error_pct": 5.0,
                 "max_bulk_temperature_absolute_error_pct": 5.0,
+                "max_shear_rate_absolute_error_pct": 10.0,
+                "max_wall_shear_stress_absolute_error_pct": 10.0,
             },
         }
         old_log = supervisor.CAE_LOG

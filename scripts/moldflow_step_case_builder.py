@@ -929,7 +929,12 @@ def build_case(
         "bbox_source": bbox_source,
         "mesh_mode": mesh_mode,
         "mesh_info": mesh_info,
+        "mesh_nx": int(params.get("mesh_nx", 50)),
         "mesh_nz": int(params.get("mesh_nz", 1)),
+        "inlet_velocity_m_s": float(params.get("inlet_velocity", 1.0)),
+        "wall_shear_calibration_factor": float(
+            params.get("wall_shear_calibration_factor", 1.0)
+        ),
         "step_path": str(step_path) if step_path else None,
         "gate_spec_path": str(gate_spec_path),
         "physics_category": params.get("physics_category", "resin_fill_vof"),

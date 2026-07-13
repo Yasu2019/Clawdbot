@@ -33,6 +33,11 @@ def main() -> int:
     parser.add_argument("--timeout", type=int, default=600)
     parser.add_argument("--host", default="", help="Host label for log entry (k10/lavie)")
     parser.add_argument("--no-append-log", action="store_true", help="Do not write cae_te_log.json")
+    parser.add_argument(
+        "--no-cleanup-runs",
+        action="store_true",
+        help="Do not prune old data/cae_te_workspace/runs directories before this trial",
+    )
     parser.add_argument("--skip-resource-check", action="store_true")
     parser.add_argument("--output", default="", help="Write trial JSON to this file")
     parser.add_argument(
@@ -44,6 +49,8 @@ def main() -> int:
 
     if args.workspace:
         os.environ["CAE_TE_WORKSPACE"] = str(Path(args.workspace).resolve())
+    if args.no_cleanup_runs:
+        os.environ["CAE_SKIP_RUN_CLEANUP"] = "1"
 
     if args.capture_paraview_only:
         import cae_te_paraview_capture as pvc
@@ -80,6 +87,10 @@ def main() -> int:
     ) or phys.startswith("resin_fill"):
         os.environ["CAE_PARAVIEW_TELEGRAM"] = "0"
         os.environ["CAE_PARAVIEW_CAPTURE"] = "0"
+        # Calibration trials retain scalar histories and fields; rendering a
+        # video here adds cost and Windows multiprocessing can re-parse this
+        # runner's CLI arguments. Callers may explicitly opt back in.
+        os.environ.setdefault("CAE_FILL_VIDEO_TELEGRAM", "0")
 
     import cae_te_engine as engine
 
