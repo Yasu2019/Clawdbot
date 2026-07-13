@@ -32,6 +32,14 @@ Automatic creation of the PP test SDY was attempted twice: once through SSH and 
 
 This narrows the remaining problem to a visible Synergy dialog or a Moldflow 2010 import option that requires one interactive confirmation. On the next attempt, watch the Dynabook screen while the one-shot task runs, capture the dialog text, and answer only that dialog. After an SDY exists, verify `05_export_study_logs.vbs`, then run one controlled analysis. Keep `agent.json` at `dry_run=true` until that SDY and log export pass.
 
+### Root cause confirmed later on 2026-07-13
+
+Read-only window enumeration and the Windows Application event log confirmed the blocker. Synergy opens the retired Autodesk URL `https://www.autodesk.com/products/moldflow/overview` in its embedded Internet Explorer control. A modal `Internet Explorer_TridentDlgFrame` titled `スクリプト エラー` disables the Synergy main window before `CreateObject("synergy.Synergy")` returns. One COM-launched instance also recorded an `MFC80U.DLL` access violation (`0xc0000005`). The license server, STEP import, and analysis were not reached.
+
+Automatic script-error suppression did not affect the embedded control. A class/PID-restricted close helper was prototyped, but Windows' interactive desktop boundary prevented reliable unattended execution, so it was not installed as a persistent GUI automation path. The safe next action is one manual close of the obsolete Web script-error dialog after Synergy starts; then rerun the COM diagnostic before creating the SDY.
+
+The permanent `MoldflowRemoteAgentV12` task was restored and simplified to start `.venv\Scripts\python.exe -m agent.api --config config\agent.json` directly at `mec21` logon. Final verification: port 8766 listening, health `ok=true`, `dry_run=true`, Synergy process count 0.
+
 ## Recovery rules
 
 - Never put tokens, private keys, or passwords into Markdown or `.gitignore`; `.gitignore` contains patterns, not secrets.
