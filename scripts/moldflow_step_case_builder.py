@@ -102,6 +102,7 @@ def blockmesh_dict_text(
     ny: int | None = None,
     gate_width_mm: float | None = None,
     vent_layout: str = "full_far_edge",
+    nz: int = 1,
 ) -> str:
     """Three-segment inlet patches (inlet1/2/3) on ymin face, outlet on xmax.
 
@@ -120,6 +121,8 @@ def blockmesh_dict_text(
     ny1 = max(1, int(round(total_ny * y1 / ly)))
     ny2 = max(1, int(round(total_ny * (y2 - y1) / ly)))
     ny3 = max(1, total_ny - ny1 - ny2)
+    nz = max(1, min(int(nz), 20))
+    thickness_patch_type = "wall" if nz > 1 else "empty"
     if vent_layout == "corner_far_edge":
         outlet_faces = "            (1 9 11 3)\n            (5 13 15 7)"
         extra_wall_faces = "            (3 11 13 5)\n"
@@ -167,9 +170,9 @@ vertices
 
 blocks
 (
-    hex (0 1 3 2 8 9 11 10) ({nx} {ny1} 1) simpleGrading (1 1 1)
-    hex (2 3 5 4 10 11 13 12) ({nx} {ny2} 1) simpleGrading (1 1 1)
-    hex (4 5 7 6 12 13 15 14) ({nx} {ny3} 1) simpleGrading (1 1 1)
+    hex (0 1 3 2 8 9 11 10) ({nx} {ny1} {nz}) simpleGrading (1 1 1)
+    hex (2 3 5 4 10 11 13 12) ({nx} {ny2} {nz}) simpleGrading (1 1 1)
+    hex (4 5 7 6 12 13 15 14) ({nx} {ny3} {nz}) simpleGrading (1 1 1)
 );
 
 edges
@@ -221,7 +224,7 @@ boundary
     }}
     frontAndBack
     {{
-        type empty;
+        type {thickness_patch_type};
         faces
         (
             (0 1 3 2)
@@ -248,6 +251,7 @@ def blockmesh_independent_vent_dict_text(
     ny: int | None = None,
     gate_width_mm: float = 4.0,
     vent_width_mm: float = 2.0,
+    nz: int = 1,
 ) -> str:
     """Five y-segments: narrow corner vents independent of center gate width."""
     gate_w = max(0.2, min(float(gate_width_mm), ly * 0.70))
@@ -270,6 +274,8 @@ def blockmesh_independent_vent_dict_text(
         idx = max(range(5), key=lambda i: widths[i] / counts[i])
         counts[idx] += 1
 
+    nz = max(1, min(int(nz), 20))
+    thickness_patch_type = "wall" if nz > 1 else "empty"
     vertices = []
     for z in (0.0, lz):
         for y in ys:
@@ -287,7 +293,7 @@ def blockmesh_independent_vent_dict_text(
         t0, t1, t2, t3 = b0 + 12, b1 + 12, b2 + 12, b3 + 12
         blocks.append(
             f"    hex ({b0} {b1} {b2} {b3} {t0} {t1} {t2} {t3}) "
-            f"({nx} {counts[i]} 1) simpleGrading (1 1 1)"
+            f"({nx} {counts[i]} {nz}) simpleGrading (1 1 1)"
         )
         inlet_group = 0 if i < 2 else 1 if i == 2 else 2
         inlet_faces[inlet_group].append(f"            ({b0} {b3} {t3} {t0})")
@@ -369,7 +375,7 @@ boundary
     }}
     frontAndBack
     {{
-        type empty;
+        type {thickness_patch_type};
         faces
         (
 {chr(10).join(bottom_faces)}
@@ -547,8 +553,8 @@ def apply_runtime_options(run_dir: Path, params: dict[str, Any]) -> None:
 
 
 def apply_thermal_history_function_objects(run_dir: Path, params: dict[str, Any]) -> None:
-    """Record lightweight temperature histories without retaining every field."""
-    if not params.get("record_thermal_history"):
+    """Record lightweight thermal/rheology histories without full-field retention."""
+    if not (params.get("record_thermal_history") or params.get("record_shear_history")):
         return
     block = r'''
 
@@ -587,6 +593,60 @@ functions
     }
 }
 '''
+    if params.get("record_shear_history"):
+        shear = r'''
+
+    gradVelocity
+    {
+        type              grad;
+        libs              (fieldFunctionObjects);
+        field             U;
+        result            gradU;
+        executeControl    timeStep;
+        executeInterval   1;
+        writeControl      none;
+    }
+
+    shearRateMagnitude
+    {
+        type              mag;
+        libs              (fieldFunctionObjects);
+        field             gradU;
+        result            shearRateProxy;
+        executeControl    timeStep;
+        executeInterval   1;
+        writeControl      none;
+    }
+
+    shearRateMinMax
+    {
+        type              fieldMinMax;
+        libs              (fieldFunctionObjects);
+        fields            (shearRateProxy);
+        mode              magnitude;
+        location          true;
+        executeControl    timeStep;
+        executeInterval   1;
+        writeControl      timeStep;
+        writeInterval     1;
+        writeToFile       true;
+        log               false;
+    }
+
+    moldWallShearStress
+    {
+        type              wallShearStress;
+        libs              (fieldFunctionObjects);
+        patches           (frontAndBack);
+        executeControl    timeStep;
+        executeInterval   1;
+        writeControl      timeStep;
+        writeInterval     1;
+        writeToFile       true;
+        log               false;
+    }
+'''
+        block = block.rsplit("\n}", 1)[0] + shear + "\n}\n"
     for path in (run_dir / "system" / "controlDict", run_dir / "system" / "controlDict.ascii"):
         if not path.exists():
             continue
@@ -670,8 +730,8 @@ def apply_compressible_closed_cavity_options(
             raise ValueError(f"outlet boundary not found in {path}")
         path.write_text(text, encoding="utf-8")
 
-    # With g=(0 0 0), p_rgh=p.  Keeping the template's p_rgh=0 while p is
-    # atmospheric creates an inconsistent compressible initial state.
+    # With g=(0 0 0), p_rgh=p. Keeping p_rgh=0 while p is atmospheric
+    # creates an inconsistent compressible initial state.
     for field_name in ("p", "p_rgh"):
         path = run_dir / "0" / field_name
         if not path.exists():
@@ -692,6 +752,54 @@ def apply_compressible_closed_cavity_options(
         )
         path.write_text(text, encoding="utf-8")
 
+
+def apply_resolved_thickness_boundaries(run_dir: Path, params: dict[str, Any]) -> None:
+    """Turn the former 2-D empty faces into physical mold walls for nz > 1."""
+    nz = int(params.get("mesh_nz", 1))
+    if nz <= 1:
+        return
+    if nz > 20:
+        raise ValueError("mesh_nz must be <= 20")
+    mold_temperature = float(params.get("T_mold", 323.0))
+    initial_pressure = float(params.get("initial_cavity_pressure_pa", 101325.0))
+    bodies = {
+        "U": "        type            noSlip;\n",
+        "alpha.polymer": "        type            zeroGradient;\n",
+        "p": (
+            "        type            calculated;\n"
+            f"        value           uniform {initial_pressure:g};\n"
+        ),
+        "p_rgh": (
+            "        type            fixedFluxPressure;\n"
+            f"        value           uniform {initial_pressure:g};\n"
+        ),
+        "T": (
+            "        type            fixedValue;\n"
+            f"        value           uniform {mold_temperature:g};\n"
+        ),
+        "T.air": (
+            "        type            fixedValue;\n"
+            f"        value           uniform {mold_temperature:g};\n"
+        ),
+        "T.polymer": (
+            "        type            fixedValue;\n"
+            f"        value           uniform {mold_temperature:g};\n"
+        ),
+    }
+    for field_name, body in bodies.items():
+        path = run_dir / "0" / field_name
+        if not path.exists():
+            continue
+        text = path.read_text(encoding="utf-8", errors="replace")
+        text, count = re.subn(
+            r"(\n\s*frontAndBack\s*\{)[^}]*(\})",
+            rf"\1\n{body}    \2",
+            text,
+            count=1,
+        )
+        if count != 1:
+            raise ValueError(f"frontAndBack boundary not found in {path}")
+        path.write_text(text, encoding="utf-8")
 
 def normalize_generated_initial_fields(run_dir: Path, params: dict[str, Any]) -> None:
     """Reset mesh-size-specific template alpha fields for generated CAD meshes."""
@@ -771,6 +879,7 @@ def build_case(
         gate_width = params.get("gate_width_mm")
         vent_layout = str(params.get("vent_layout", "full_far_edge"))
         vent_width = params.get("vent_width_mm")
+        nz = int(params.get("mesh_nz", 1))
         if vent_width is not None:
             blockmesh_text = blockmesh_independent_vent_dict_text(
                 lx,
@@ -780,6 +889,7 @@ def build_case(
                 ny=ny,
                 gate_width_mm=float(gate_width if gate_width is not None else 4.0),
                 vent_width_mm=float(vent_width),
+                nz=nz,
             )
         else:
             blockmesh_text = blockmesh_dict_text(
@@ -790,6 +900,7 @@ def build_case(
                 ny=ny,
                 gate_width_mm=gate_width,
                 vent_layout=vent_layout,
+                nz=nz,
             )
         (run_dir / "system" / "blockMeshDict").write_text(
             blockmesh_text,
@@ -810,6 +921,7 @@ def build_case(
     apply_thermal_history_function_objects(run_dir, params)
     apply_vented_outlet_options(run_dir, params)
     apply_compressible_closed_cavity_options(run_dir, params)
+    apply_resolved_thickness_boundaries(run_dir, params)
 
     manifest = {
         "phase": 7,
@@ -817,6 +929,7 @@ def build_case(
         "bbox_source": bbox_source,
         "mesh_mode": mesh_mode,
         "mesh_info": mesh_info,
+        "mesh_nz": int(params.get("mesh_nz", 1)),
         "step_path": str(step_path) if step_path else None,
         "gate_spec_path": str(gate_spec_path),
         "physics_category": params.get("physics_category", "resin_fill_vof"),

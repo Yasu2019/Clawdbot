@@ -260,3 +260,39 @@ Durable thermal-calibration rules:
    later mesh/thickness improvements can revise the definition transparently.
 4. Apply cooldown to both automatic and manually launched reference trials to
    prevent duplicate solver runs.
+
+## P5 wall-shear and shear-rate observability (candidates 23-25)
+
+The legacy one-cell-thickness mesh used an `empty` front/back patch. It could
+not physically resolve mold-wall velocity gradients or wall shear. P5 adds an
+optional resolved-thickness mesh (`mesh_nz > 1`), no-slip isothermal mold walls,
+runtime `grad(U)` magnitude history, and OpenFOAM `wallShearStress` history.
+The first 0.01 s startup transient is reported separately rather than being
+silently compared with the commercial filling KPI.
+
+| candidate | z layers | effective viscosity | pressure error | shear-rate error | wall-stress error | result |
+|---|---:|---:|---:|---:|---:|---|
+| 23 | 4 | 479.444 Pa s | 157.8333% | 56.7717% | 702.5876% | observability proven; rejected |
+| 24 | 4 | 59.7 Pa s | 16.3026% | 56.6785% | 0.0086% | stress matched, pressure regressed |
+| 25 | 8 | 29.85 Pa s | 7.1539% | 44.1791% | 37.6137% | pressure passed; shear KPIs failed |
+
+Candidate 25 retained the other calibrated KPIs: 99.02% fill at 0.976 s,
+9.090655 g part weight (0.0049% error), and 239.85 C maximum temperature
+(0.5016% error). Its stable shear-rate proxy was 3,106.613 1/s versus
+5,565.3267 1/s commercial, while the conservative wall-stress history proxy
+was 0.102563 MPa versus 0.1644 MPa. It is therefore not promoted. P4 candidate
+22 remains the production reference while P5 calibration continues.
+
+Durable shear-calibration rules:
+
+1. A one-cell `empty` thickness is not evidence for a mold-wall KPI; use
+   resolved thickness and physical wall boundary conditions.
+2. Preserve startup maxima separately. Do not tune against a numerical inlet
+   impulse when the commercial KPI represents stable filling.
+3. Change mesh resolution and viscosity one at a time. Candidate 25 changed
+   both and is useful as a bound, not as causal calibration evidence.
+4. Match wall stress, shear rate, and pressure simultaneously; matching one by
+   viscosity alone is not a valid promotion.
+5. Keep the high-resolution case as a calibration tier until its accuracy gain
+   justifies its roughly 11-minute runtime; retain the lighter P4 case for the
+   guarded continuous loop.

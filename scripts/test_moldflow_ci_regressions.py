@@ -20,6 +20,7 @@ import moldflow_continuous_improvement_supervisor as supervisor
 import moldflow_injection_pressure_kpi as pressure_kpi
 import moldflow_part_weight_kpi as weight_kpi
 import moldflow_bulk_temperature_kpi as temperature_kpi
+import moldflow_shear_kpi as shear_kpi
 
 
 ALPHA_FIELD = """FoamFile { object alpha.polymer; }
@@ -37,6 +38,53 @@ boundaryField
 
 
 class MoldflowCiRegressionTests(unittest.TestCase):
+    def test_shear_kpi_excludes_startup_transient_and_requires_3d(self):
+        with tempfile.TemporaryDirectory() as td:
+            run = Path(td)
+            (run / "postProcessing" / "shearRateMinMax" / "0").mkdir(parents=True)
+            (run / "postProcessing" / "moldWallShearStress" / "0").mkdir(parents=True)
+            (run / "cad_manifest.json").write_text(
+                json.dumps({"mesh_nz": 4}), encoding="utf-8"
+            )
+            (run / "postProcessing" / "shearRateMinMax" / "0" / "fieldMinMax.dat").write_text(
+                "0.001 shearRateProxy 0 (0 0 0) 20000 (0 0 0)\n"
+                "0.01 shearRateProxy 0 (0 0 0) 5000 (0 0 0)\n",
+                encoding="utf-8",
+            )
+            (run / "postProcessing" / "moldWallShearStress" / "0" / "wallShearStress.dat").write_text(
+                "0.01 frontAndBack (-100000 0 0) (100000 0 0)\n",
+                encoding="utf-8",
+            )
+            result = shear_kpi.extract(run, 5000, 0.1, startup_exclusion_s=0.01)
+            self.assertEqual(20000, result["startup_global_max_shear_rate_1_s"])
+            self.assertEqual(5000, result["max_shear_rate_proxy_1_s"])
+            self.assertEqual(0.1, result["max_wall_shear_stress_proxy_mpa"])
+            self.assertEqual(0.0, result["max_shear_rate_error_pct"])
+
+    def test_resolved_thickness_mesh_uses_wall_patch_and_multiple_cells(self):
+        text = builder.blockmesh_dict_text(100, 60, 2, nx=50, ny=30, nz=4)
+        self.assertEqual(3, len(re.findall(r"hex .*\(50\s+\d+\s+4\)", text)))
+        front = text.split("frontAndBack", 1)[1]
+        self.assertIn("type wall;", front)
+        legacy = builder.blockmesh_dict_text(100, 60, 2, nx=50, ny=30)
+        self.assertIn("type empty;", legacy.split("frontAndBack", 1)[1])
+
+    def test_resolved_thickness_fields_replace_empty_boundaries(self):
+        with tempfile.TemporaryDirectory() as td:
+            run = Path(td)
+            (run / "0").mkdir()
+            for name in ("U", "alpha.polymer", "p", "p_rgh", "T"):
+                (run / "0" / name).write_text(
+                    "boundaryField\n{\nfrontAndBack\n{\ntype empty;\n}\n}", encoding="utf-8"
+                )
+            builder.apply_resolved_thickness_boundaries(
+                run, {"mesh_nz": 4, "T_mold": 323}
+            )
+            self.assertIn("noSlip", (run / "0" / "U").read_text())
+            self.assertIn("zeroGradient", (run / "0" / "alpha.polymer").read_text())
+            self.assertIn("fixedValue", (run / "0" / "T").read_text())
+            self.assertNotIn("type empty", (run / "0" / "p_rgh").read_text())
+
     def test_manual_reference_trial_enforces_automatic_cooldown(self):
         now = supervisor.datetime.now(supervisor.timezone.utc)
         local_timestamp = now.astimezone().replace(tzinfo=None).isoformat()
@@ -104,6 +152,24 @@ class MoldflowCiRegressionTests(unittest.TestCase):
             self.assertIn("operation         weightedVolAverage;", text)
             self.assertIn("weightField       alpha.polymer;", text)
             self.assertNotIn("writeFields       true;", text)
+
+    def test_shear_history_chains_gradient_magnitude_and_wall_stress(self):
+        with tempfile.TemporaryDirectory() as td:
+            run = Path(td)
+            (run / "system").mkdir()
+            (run / "system" / "controlDict").write_text(
+                "application compressibleInterFoam;\n// ************************************************************************* //",
+                encoding="utf-8",
+            )
+            builder.apply_thermal_history_function_objects(
+                run, {"record_thermal_history": True, "record_shear_history": True}
+            )
+            text = (run / "system" / "controlDict").read_text(encoding="utf-8")
+            self.assertIn("type              grad;", text)
+            self.assertIn("field             gradU;", text)
+            self.assertIn("fields            (shearRateProxy);", text)
+            self.assertIn("type              wallShearStress;", text)
+            self.assertIn("patches           (frontAndBack);", text)
 
     def test_automatic_trial_id_stays_inside_promotion_prefix(self):
         cfg = {"promotion_trial_prefix": "moldflow_ci_p3_weight_candidate21"}
