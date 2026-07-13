@@ -292,6 +292,25 @@ def create_app(cfg: AgentConfig) -> FastAPI:
         write_audit(cfg.log_dir, "run_current_test_analysis", payload)
         return payload
 
+    @app.post("/automation/save-current-study-copy")
+    def save_current_study_copy(name: str, x_api_token: str | None = Header(default=None)):
+        auth(x_api_token)
+        if not name or any(ch in name for ch in '\\/:*?"<>|'):
+            raise HTTPException(status_code=400, detail="Invalid study name")
+        log_path = cfg.workspace_root / "automation" / "save_current_study_copy.log"
+        log_path.unlink(missing_ok=True)
+        script = VBS_DIR / "13_save_current_study_as.vbs"
+        result = run_process(
+            [r"C:\Windows\System32\cscript.exe", "//nologo", str(script), name, str(log_path)],
+            VBS_DIR,
+            cfg.timeouts_seconds.gui,
+            False,
+        )
+        payload = result.to_dict()
+        payload["operation_log"] = log_path.read_text(encoding="utf-8", errors="replace") if log_path.exists() else ""
+        write_audit(cfg.log_dir, "save_current_study_copy", payload)
+        return payload
+
     @app.post("/jobs/run")
     def submit_run(req: StudyRequest, x_api_token: str | None = Header(default=None)):
         auth(x_api_token)
