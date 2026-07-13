@@ -52,6 +52,20 @@ After the obsolete Web script errors were manually dismissed, a COM probe execut
 
 The current-study analysis and mesh log export calls also returned success. No log files were produced because the study has not yet been meshed or analyzed; this is expected. `dry_run=true` remains in force for analysis jobs.
 
+### First controlled mesh and solver attempt
+
+The imported STL was meshed through the official `StudyDoc.MeshNow(False)` API. Moldflow created a Dual Domain mesh with 1,120 nodes and 2,236 triangles; maximum aspect ratio was 4.0089 and the mesh log reports successful completion. Moldflow saved the meshed study as `pp_plate_100x60x2_study.sdy` (238,948 bytes).
+
+A Fill check and one explicitly authorized Fill solve were then submitted using `AnalyzeNow2`. `flow.exe` ran and exited, but the analysis log stops immediately after `Reading input data...`; no successful completion or result files were produced. Therefore this run is recorded as **submitted but failed/incomplete**, not as a successful reference analysis. The most likely missing prerequisite is a study setup item such as an injection location, but that remains to be proven before another solver run.
+
+- Meshed study: `G:\MoldflowRemote\workspace\projects\pp_plate_reference_20260713\pp_plate_100x60x2_study.sdy`
+- Mesh log: `G:\MoldflowRemote\workspace\results\pp_plate_fusion.log.mesh.log`
+- Incomplete analysis log: `G:\MoldflowRemote\workspace\results\pp_plate_fusion.log`
+- Local mesh-log copy: `D:\Clawdbot_Docker_20260125\data\workspace\pp_plate_fusion.mesh.log`
+- Local analysis-log copy: `D:\Clawdbot_Docker_20260125\data\workspace\pp_plate_fusion.analysis.log`
+
+An API-only injection-location experiment was stopped after read-only mesh-node lookup proved excessively slow through the 2010 COM interface. No gate was saved and the study timestamp remained unchanged. Synergy PID 19340 remained responsive; there was no remaining `flow.exe` or `cscript.exe` process after cleanup.
+
 ## Recovery rules
 
 - Never put tokens, private keys, or passwords into Markdown or `.gitignore`; `.gitignore` contains patterns, not secrets.

@@ -241,6 +241,57 @@ def create_app(cfg: AgentConfig) -> FastAPI:
         write_audit(cfg.log_dir, "export_current_test_logs", payload)
         return payload
 
+    @app.post("/automation/mesh-current-test-study")
+    def mesh_current_test_study(x_api_token: str | None = Header(default=None)):
+        auth(x_api_token)
+        log_path = cfg.workspace_root / "automation" / "mesh_current_study.log"
+        log_path.unlink(missing_ok=True)
+        script = VBS_DIR / "10_mesh_current_study.vbs"
+        result = run_process(
+            [r"C:\Windows\System32\cscript.exe", "//nologo", str(script), str(log_path)],
+            VBS_DIR,
+            cfg.timeouts_seconds.gui,
+            False,
+        )
+        payload = result.to_dict()
+        payload["operation_log"] = log_path.read_text(encoding="utf-8", errors="replace") if log_path.exists() else ""
+        write_audit(cfg.log_dir, "mesh_current_test_study", payload)
+        return payload
+
+    @app.post("/automation/check-current-test-analysis")
+    def check_current_test_analysis(x_api_token: str | None = Header(default=None)):
+        auth(x_api_token)
+        log_path = cfg.workspace_root / "automation" / "check_current_analysis.log"
+        log_path.unlink(missing_ok=True)
+        script = VBS_DIR / "11_check_current_analysis.vbs"
+        result = run_process(
+            [r"C:\Windows\System32\cscript.exe", "//nologo", str(script), str(log_path)],
+            VBS_DIR,
+            cfg.timeouts_seconds.short,
+            False,
+        )
+        payload = result.to_dict()
+        payload["operation_log"] = log_path.read_text(encoding="utf-8", errors="replace") if log_path.exists() else ""
+        write_audit(cfg.log_dir, "check_current_test_analysis", payload)
+        return payload
+
+    @app.post("/automation/run-current-test-analysis")
+    def run_current_test_analysis(x_api_token: str | None = Header(default=None)):
+        auth(x_api_token)
+        log_path = cfg.workspace_root / "automation" / "run_current_analysis.log"
+        log_path.unlink(missing_ok=True)
+        script = VBS_DIR / "12_run_current_analysis.vbs"
+        result = run_process(
+            [r"C:\Windows\System32\cscript.exe", "//nologo", str(script), str(log_path)],
+            VBS_DIR,
+            cfg.timeouts_seconds.short,
+            False,
+        )
+        payload = result.to_dict()
+        payload["operation_log"] = log_path.read_text(encoding="utf-8", errors="replace") if log_path.exists() else ""
+        write_audit(cfg.log_dir, "run_current_test_analysis", payload)
+        return payload
+
     @app.post("/jobs/run")
     def submit_run(req: StudyRequest, x_api_token: str | None = Header(default=None)):
         auth(x_api_token)
