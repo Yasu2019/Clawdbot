@@ -132,6 +132,7 @@
      - 検証結果（定量的に）
      - 教訓（Lessons Learned）
   3. 修正が反復発生し得る種類の場合、**再発防止策**（監視追加、自動テスト、ルール追加等）を明記する。
+  4. **Obsidian** に人間可読ミラーを書く（`data/state/Obsidian Vault/60_PC_Logs/`）。QC工程表・FMEA・FTA/5Why・Fishbone/ロジカルツリー・対策を含む完全ノート。stub-only 禁止。詳細: `.cursor/rules/obsidian_incident_recording.mdc`
 - 記録を残さずに修正だけ行うことは禁止する。
 
 ## 9. 一時ファイル衛生規則 (Temp File Hygiene Rule)
@@ -390,6 +391,64 @@ bd close <id>         # Complete work
 - NEVER say "ready to push when you are" - YOU must push
 - If push fails, resolve and retry until it succeeds
 <!-- END BEADS INTEGRATION -->
+
+## Local-LLM Transferable Know-How Rule
+
+Important work MUST leave durable, structured knowledge that a smaller local
+LLM can retrieve and apply without access to private chain-of-thought. Record
+concise decision rationale and reproducible evidence, not hidden or verbatim
+internal reasoning.
+
+### When this rule applies
+
+- A diagnosis finds a root cause or rules out a plausible cause.
+- A test produces a useful success, failure, benchmark, or calibration result.
+- A workflow needs more than one attempt or contains a non-obvious ordering.
+- An external source changes the implementation or evaluation method.
+- A user correction reveals missing domain knowledge.
+- A reusable command, API call, safety constraint, or recovery procedure is found.
+
+### Mandatory learning record schema
+
+Every applicable record MUST include:
+
+1. `Goal` -- the concrete outcome being pursued.
+2. `Context` -- machine, software/version, paths, inputs, and constraints.
+3. `Observed facts` -- logs, measurements, return values, and source links.
+4. `Hypotheses` -- explicitly labeled; never mix inference with fact.
+5. `Decision rule` -- an `IF / THEN / BECAUSE` rule usable by a smaller model.
+6. `Procedure` -- ordered, executable steps with preconditions.
+7. `Verification` -- exact pass/fail criteria and expected artifacts.
+8. `Failure signatures` -- error text, bad KPI ranges, and likely causes.
+9. `Recovery / rollback` -- how to return to a known-good state.
+10. `Scope limits` -- what was not proven and must not be claimed.
+11. `Next experiment` -- the smallest test that reduces the main uncertainty.
+12. `Provenance` -- date, source paths/URLs, commit, and issue/memory IDs.
+
+### Recording rules
+
+- Prefer compact tables, numbered procedures, exact commands, and numeric
+  thresholds over narrative summaries.
+- Preserve raw evidence separately from interpretation. Do not silently rewrite
+  failures as successes.
+- Record negative results and abandoned approaches when they prevent repetition.
+- Use stable names, absolute or repository-relative paths, units, software
+  versions, and timestamps.
+- Never store passwords, API tokens, private keys, cookies, or personal secrets.
+- Store durable project rules in the relevant `docs/` handover/runbook, track
+  follow-up work in Beads, and curate high-value cross-session knowledge into
+  ByteRover. Use the CAE learning-memory sync for normalized solver runs.
+- Before starting a similar task, retrieve the relevant record and state which
+  rule is being reused. After the task, update the record with new evidence.
+
+### CAE / Moldflow specialization
+
+For every CAE comparison, also record geometry dimensions, mesh statistics,
+material identity/model, gate count and exact coordinate or node, process
+conditions, solver/version, convergence/boundedness evidence, result file paths,
+and a KPI table against the commercial reference. A CAE proxy MUST NOT be called
+validated unless it passes physical bounds, completion, reproducibility, and the
+declared error tolerances against the reference.
 
 ## Incident & Failure Management Rule (RCA Protocol)
 If any job fails, a past instruction is missed, a code failure occurs, or the user points out a quality incident, the AI MUST immediately:
