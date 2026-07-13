@@ -1,0 +1,142 @@
+# -*- coding: utf-8 -*-
+"""Safe 24/365 supervisor for Moldflow-class capability improvement.
+
+This supervisor observes evidence, ranks the next smallest experiment, and
+writes durable status. It never edits solver code or promotes a candidate to
+production. Trials are delegated to the existing CAE harness only when
+explicitly requested and permitted by cooldown/budget gates.
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import subprocess
+import sys
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
+ROOT = Path(__file__).resolve().parents[1]
+CONFIG = ROOT / "config" / "moldflow_continuous_improvement.json"
+WORKSPACE = ROOT / "data" / "workspace"
+STATUS = WORKSPACE / "moldflow_continuous_improvement_status.json"
+HISTORY = WORKSPACE / "moldflow_continuous_improvement_history.jsonl"
+CAE_LOG = ROOT / "data" / "cae_te_workspace" / "results" / "cae_te_log.json"
+PARAMS = ROOT / "data" / "cae_te_workspace" / "jobs" / "moldflow_studio" / "moldflow_real_compare_pp_plate_20260713_params.json"
+
+
+def load_json(path: Path, default):
+    try:
+        return json.loads(path.read_text(encoding="utf-8-sig"))
+    except Exception:
+        return default
+
+
+def parse_time(value: str | None):
+    if not value:
+        return None
+    try:
+        return datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+
+
+def latest_reference_trial() -> dict:
+    doc = load_json(CAE_LOG, {})
+    trials = doc.get("trials", []) if isinstance(doc, dict) else []
+    matches = [t for t in trials if t.get("id") == "moldflow_real_compare_pp_plate_20260713"]
+    return matches[-1] if matches else {}
+
+
+def decide(trial: dict, cfg: dict) -> dict:
+    defects = trial.get("defects_detected") or {}
+    nonphysical = defects.get("nonphysical") or {}
+    alpha = nonphysical.get("alpha_max")
+    fill = defects.get("fill_fraction_pct")
+    hard = cfg["hard_gates"]
+    if alpha is None or float(alpha) > float(hard["alpha_polymer_max"]):
+        return {
+            "priority": "P0",
+            "capability": "bounded_vof_fill",
+            "decision_rule": "IF alpha.polymer > 1.05 THEN reject the run and stabilize VOF before material calibration BECAUSE phase fraction is nonphysical.",
+            "next_experiment": "Reduce adaptive time step and interface Courant limit; enable bounded-alpha safeguards; run one fixed reference trial.",
+        }
+    if fill is None or float(fill) < float(hard["fill_fraction_min_pct"]):
+        return {
+            "priority": "P1",
+            "capability": "complete_fill",
+            "decision_rule": "IF bounded fill < 99% THEN calibrate inlet/end-time before adding downstream physics BECAUSE pressure and thermal KPIs are not comparable on a short shot.",
+            "next_experiment": "Calibrate inlet flow and end time against the 0.9 s commercial reference.",
+        }
+    return {
+        "priority": "P2",
+        "capability": "commercial_kpi_calibration",
+        "decision_rule": "IF fill is bounded and complete THEN add and calibrate one commercial KPI at a time BECAUSE coupled tuning obscures causality.",
+        "next_experiment": "Add injection-pressure extraction and compare it with 10.8794 MPa.",
+    }
+
+
+def trial_allowed(cfg: dict, previous: dict, now: datetime) -> tuple[bool, str]:
+    last = parse_time(previous.get("last_trial_at"))
+    if last and now - last < timedelta(hours=float(cfg["minimum_trial_cooldown_hours"])):
+        return False, "cooldown"
+    day = now.date().isoformat()
+    if previous.get("trial_day") == day and int(previous.get("trials_today", 0)) >= int(cfg["max_trials_per_day"]):
+        return False, "daily_budget"
+    return True, "allowed"
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--execute-trial", action="store_true")
+    args = parser.parse_args()
+    cfg = load_json(CONFIG, {})
+    if not cfg.get("enabled"):
+        print("[SKIP] disabled")
+        return 0
+    now = datetime.now(timezone.utc)
+    previous = load_json(STATUS, {})
+    trial = latest_reference_trial()
+    action = decide(trial, cfg)
+    allowed, reason = trial_allowed(cfg, previous, now)
+    record = {
+        "schema": cfg["schema"],
+        "checked_at": now.isoformat(),
+        "mode": "execute_one_trial" if args.execute_trial else "observe_plan",
+        "reference_trial": trial.get("id"),
+        "reference_verdict": trial.get("verdict"),
+        "observed": trial.get("defects_detected") or {},
+        "action": action,
+        "trial_allowed": allowed,
+        "trial_gate_reason": reason,
+        "automatic_production_promotion": False,
+    }
+    if args.execute_trial and allowed and PARAMS.exists():
+        trial_id = "moldflow_ci_" + now.strftime("%Y%m%d_%H%M%S")
+        cmd = [sys.executable, str(ROOT / "scripts" / "cae_te_remote_trial.py"), "--category", "resin_fill_cad", "--trial-id", trial_id, "--params-file", str(PARAMS)]
+        result = subprocess.run(cmd, cwd=ROOT, timeout=1800, capture_output=True, text=True)
+        record["executed_trial_id"] = trial_id
+        record["trial_returncode"] = result.returncode
+        record["trial_output_tail"] = (result.stdout + result.stderr)[-4000:]
+        record["last_trial_at"] = now.isoformat()
+        day = now.date().isoformat()
+        record["trial_day"] = day
+        record["trials_today"] = int(previous.get("trials_today", 0)) + 1 if previous.get("trial_day") == day else 1
+    else:
+        record["last_trial_at"] = previous.get("last_trial_at")
+        record["trial_day"] = previous.get("trial_day")
+        record["trials_today"] = previous.get("trials_today", 0)
+    STATUS.write_text(json.dumps(record, ensure_ascii=False, indent=2), encoding="utf-8")
+    with HISTORY.open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps(record, ensure_ascii=False) + "\n")
+    print(json.dumps(record, ensure_ascii=False, indent=2))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

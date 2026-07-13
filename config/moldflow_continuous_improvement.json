@@ -1,0 +1,31 @@
+{
+  "schema": "clawstack.moldflow_continuous_improvement.v1",
+  "enabled": true,
+  "interval_minutes": 30,
+  "minimum_trial_cooldown_hours": 6,
+  "max_trials_per_day": 4,
+  "reference": {
+    "geometry_mm": [100, 60, 2],
+    "material": "PP",
+    "gate_count": 1,
+    "fill_time_s": 0.9,
+    "part_weight_g": 9.0911,
+    "max_injection_pressure_mpa": 10.8794,
+    "max_bulk_temperature_c": 241.0592,
+    "max_wall_shear_stress_mpa": 0.1644,
+    "max_shear_rate_1_s": 5565.3267
+  },
+  "hard_gates": {
+    "fill_fraction_min_pct": 99.0,
+    "alpha_polymer_min": 0.0,
+    "alpha_polymer_max": 1.05,
+    "mass_balance_error_max_pct": 2.0,
+    "reproducibility_spread_max_pct": 5.0
+  },
+  "promotion": {
+    "require_all_hard_gates": true,
+    "require_no_regression": true,
+    "minimum_repeated_passes": 3,
+    "automatic_production_promotion": false
+  }
+}
