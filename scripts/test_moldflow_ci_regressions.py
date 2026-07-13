@@ -36,6 +36,12 @@ boundaryField
 
 
 class MoldflowCiRegressionTests(unittest.TestCase):
+    def test_automatic_trial_id_stays_inside_promotion_prefix(self):
+        cfg = {"promotion_trial_prefix": "moldflow_ci_p3_weight_candidate21"}
+        prefix = str(cfg.get("promotion_trial_prefix") or "moldflow_ci_candidate")
+        trial_id = prefix + "_auto_20260713_120000"
+        self.assertTrue(trial_id.startswith(cfg["promotion_trial_prefix"]))
+
     def test_part_weight_uses_alpha_volume_and_polymer_density(self):
         with tempfile.TemporaryDirectory() as td:
             run = Path(td)

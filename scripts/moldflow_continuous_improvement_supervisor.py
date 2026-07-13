@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import subprocess
 import sys
 from datetime import datetime, timedelta, timezone
@@ -245,6 +246,38 @@ def trial_allowed(cfg: dict, previous: dict, now: datetime) -> tuple[bool, str]:
     return True, "allowed"
 
 
+def postprocess_trial(run_dir: Path, cfg: dict) -> dict:
+    """Create comparable KPI artifacts for an executed trial."""
+    result: dict = {}
+    commands = [
+        (
+            "injection_pressure",
+            ROOT / "scripts" / "moldflow_injection_pressure_kpi.py",
+            "--commercial-reference-mpa",
+            cfg["reference"]["max_injection_pressure_mpa"],
+        ),
+        (
+            "part_weight",
+            ROOT / "scripts" / "moldflow_part_weight_kpi.py",
+            "--commercial-reference-g",
+            cfg["reference"]["part_weight_g"],
+        ),
+    ]
+    for name, script, flag, reference in commands:
+        completed = subprocess.run(
+            [sys.executable, str(script), str(run_dir), flag, str(reference)],
+            cwd=ROOT,
+            timeout=120,
+            capture_output=True,
+            text=True,
+        )
+        result[name] = {
+            "returncode": completed.returncode,
+            "output_tail": (completed.stdout + completed.stderr)[-1000:],
+        }
+    return result
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--execute-trial", action="store_true")
@@ -275,12 +308,20 @@ def main() -> int:
     }
     params = ROOT / str(cfg.get("trial_params_file", ""))
     if args.execute_trial and allowed and params.exists():
-        trial_id = "moldflow_ci_" + now.strftime("%Y%m%d_%H%M%S")
-        cmd = [sys.executable, str(ROOT / "scripts" / "cae_te_remote_trial.py"), "--category", "resin_fill_cad", "--trial-id", trial_id, "--params-file", str(params)]
-        result = subprocess.run(cmd, cwd=ROOT, timeout=1800, capture_output=True, text=True)
+        prefix = str(cfg.get("promotion_trial_prefix") or "moldflow_ci_candidate")
+        trial_id = prefix + "_auto_" + now.strftime("%Y%m%d_%H%M%S")
+        cmd = [sys.executable, str(ROOT / "scripts" / "cae_te_remote_trial.py"), "--category", "resin_fill_cad", "--trial-id", trial_id, "--params-file", str(params), "--no-cleanup-runs"]
+        trial_env = os.environ.copy()
+        trial_env["CAE_FILL_VIDEO_TELEGRAM"] = "0"
+        result = subprocess.run(
+            cmd, cwd=ROOT, timeout=1800, capture_output=True, text=True, env=trial_env
+        )
         record["executed_trial_id"] = trial_id
         record["trial_returncode"] = result.returncode
         record["trial_output_tail"] = (result.stdout + result.stderr)[-4000:]
+        run_dir = ROOT / "data" / "cae_te_workspace" / "runs" / trial_id
+        if result.returncode == 0 and run_dir.exists():
+            record["postprocess"] = postprocess_trial(run_dir, cfg)
         record["last_trial_at"] = now.isoformat()
         day = now.date().isoformat()
         record["trial_day"] = day
