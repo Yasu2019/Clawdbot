@@ -40,6 +40,18 @@ Automatic script-error suppression did not affect the embedded control. A class/
 
 The permanent `MoldflowRemoteAgentV12` task was restored and simplified to start `.venv\Scripts\python.exe -m agent.api --config config\agent.json` directly at `mec21` logon. Final verification: port 8766 listening, health `ok=true`, `dry_run=true`, Synergy process count 0.
 
+### Controlled PP study completed
+
+After the obsolete Web script errors were manually dismissed, a COM probe executed from the Agent's own session completed in 1.58 seconds. Direct STEP translation returned `IMPORT_FAILED`, but it still created the isolated project and SDY. A dimensionally identical 100 x 60 x 2 mm STL was then imported into that SDY through the official `ImportFile2` API and saved successfully.
+
+- Project: `G:\MoldflowRemote\workspace\projects\pp_plate_reference_20260713\pp_plate_reference.mpi`
+- Study: `G:\MoldflowRemote\workspace\projects\pp_plate_reference_20260713\pp_plate_fusion.sdy`
+- SDY size after import/save: 160,399 bytes
+- Source STL: `G:\MoldflowRemote\workspace\incoming\pp_plate_100x60x2.stl`
+- COM/import/save log: `G:\MoldflowRemote\workspace\automation\import_current_study.log`
+
+The current-study analysis and mesh log export calls also returned success. No log files were produced because the study has not yet been meshed or analyzed; this is expected. `dry_run=true` remains in force for analysis jobs.
+
 ## Recovery rules
 
 - Never put tokens, private keys, or passwords into Markdown or `.gitignore`; `.gitignore` contains patterns, not secrets.

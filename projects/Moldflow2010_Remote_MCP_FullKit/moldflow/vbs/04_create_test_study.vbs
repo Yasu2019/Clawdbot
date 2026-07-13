@@ -21,9 +21,13 @@ If Not ok Then WScript.Echo "NEW_STUDY_FAILED" : WScript.Quit 4
 Set opts = synergy.ImportOptions()
 opts.MeshType = "Fusion"
 opts.Units = "mm"
-opts.UseMDL = True
-opts.MDLSurfaces = True
-opts.MDLMesh = False
+If LCase(fso.GetExtensionName(sourceFile)) = "stl" Then
+  opts.UseMDL = False
+Else
+  opts.UseMDL = True
+  opts.MDLSurfaces = True
+  opts.MDLMesh = False
+End If
 ok = synergy.ImportFile2(sourceFile, opts, False, False)
 If Not ok Then WScript.Echo "IMPORT_FAILED" : WScript.Quit 5
 synergy.StudyDoc().Save
