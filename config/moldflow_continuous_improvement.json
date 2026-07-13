@@ -9,10 +9,11 @@
     "moldflow_ci_p0_alpha_",
     "moldflow_ci_p1_fill_",
     "moldflow_ci_p2_pressure_",
-    "moldflow_ci_p3_weight_"
+    "moldflow_ci_p3_weight_",
+    "moldflow_ci_p4_temperature_"
   ],
-  "promotion_trial_prefix": "moldflow_ci_p3_weight_candidate21",
-  "trial_params_file": "data/cae_te_workspace/jobs/moldflow_studio/moldflow_ci_p3_weight_candidate21_params.json",
+  "promotion_trial_prefix": "moldflow_ci_p4_temperature_candidate22",
+  "trial_params_file": "data/cae_te_workspace/jobs/moldflow_studio/moldflow_ci_p4_temperature_candidate22_params.json",
   "reference": {
     "geometry_mm": [100, 60, 2],
     "material": "PP",
@@ -33,7 +34,8 @@
   },
   "calibration_tolerances": {
     "max_injection_pressure_absolute_error_pct": 10.0,
-    "part_weight_absolute_error_pct": 5.0
+    "part_weight_absolute_error_pct": 5.0,
+    "max_bulk_temperature_absolute_error_pct": 5.0
   },
   "promotion": {
     "require_all_hard_gates": true,

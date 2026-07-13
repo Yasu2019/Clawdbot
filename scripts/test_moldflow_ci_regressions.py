@@ -19,6 +19,7 @@ import moldflow_step_case_builder as builder
 import moldflow_continuous_improvement_supervisor as supervisor
 import moldflow_injection_pressure_kpi as pressure_kpi
 import moldflow_part_weight_kpi as weight_kpi
+import moldflow_bulk_temperature_kpi as temperature_kpi
 
 
 ALPHA_FIELD = """FoamFile { object alpha.polymer; }
@@ -36,6 +37,74 @@ boundaryField
 
 
 class MoldflowCiRegressionTests(unittest.TestCase):
+    def test_manual_reference_trial_enforces_automatic_cooldown(self):
+        now = supervisor.datetime.now(supervisor.timezone.utc)
+        local_timestamp = now.astimezone().replace(tzinfo=None).isoformat()
+        allowed, reason = supervisor.trial_allowed(
+            {"minimum_trial_cooldown_hours": 6, "max_trials_per_day": 4},
+            {"trials_today": 0},
+            now,
+            {"timestamp": local_timestamp},
+        )
+        self.assertFalse(allowed)
+        self.assertEqual("cooldown", reason)
+
+    def test_bulk_temperature_uses_polymer_cells_and_alpha_weighted_mean(self):
+        with tempfile.TemporaryDirectory() as td:
+            run = Path(td)
+            (run / "1").mkdir()
+            (run / "1" / "alpha.polymer").write_text(
+                "internalField nonuniform List<scalar> 3(1 0.5 0.1);", encoding="utf-8"
+            )
+            (run / "1" / "T").write_text(
+                "internalField nonuniform List<scalar> 3(500 400 900);", encoding="utf-8"
+            )
+            result = temperature_kpi.extract(run, 226.85)
+            self.assertEqual(226.85, result["maximum_bulk_temperature_proxy_c"])
+            self.assertLess(result["latest_alpha_weighted_mean_temperature_c"], 226.85)
+            self.assertEqual("latest polymer-dominant cell maximum", result["kpi_source"])
+
+    def test_bulk_temperature_parses_actual_field_minmax_layout(self):
+        with tempfile.TemporaryDirectory() as td:
+            run = Path(td)
+            (run / "1").mkdir(parents=True)
+            (run / "postProcessing" / "thermalFieldMinMax" / "0").mkdir(parents=True)
+            (run / "postProcessing" / "polymerBulkTemperature" / "0").mkdir(parents=True)
+            (run / "1" / "alpha.polymer").write_text(
+                "internalField nonuniform List<scalar> 2(1 1);", encoding="utf-8"
+            )
+            (run / "1" / "T").write_text(
+                "internalField nonuniform List<scalar> 2(400 410);", encoding="utf-8"
+            )
+            (run / "postProcessing" / "thermalFieldMinMax" / "0" / "fieldMinMax.dat").write_text(
+                "# Time field min location(min) max location(max)\n0.1 T 323 (0 0 0) 513 (0 0 0)\n",
+                encoding="utf-8",
+            )
+            (run / "postProcessing" / "polymerBulkTemperature" / "0" / "volFieldValue.dat").write_text(
+                "# Time weightedVolAverage(T)\n0.1 450\n", encoding="utf-8"
+            )
+            result = temperature_kpi.extract(run, 239.85)
+            self.assertEqual(239.85, result["history_max_temperature_c"])
+            self.assertEqual(176.85, result["history_peak_alpha_weighted_bulk_temperature_c"])
+            self.assertEqual(1, result["history_sample_count"])
+
+    def test_thermal_history_function_objects_are_lightweight_and_alpha_weighted(self):
+        with tempfile.TemporaryDirectory() as td:
+            run = Path(td)
+            (run / "system").mkdir()
+            (run / "system" / "controlDict").write_text(
+                "application compressibleInterFoam;\n// ************************************************************************* //",
+                encoding="utf-8",
+            )
+            builder.apply_thermal_history_function_objects(
+                run, {"record_thermal_history": True}
+            )
+            text = (run / "system" / "controlDict").read_text(encoding="utf-8")
+            self.assertIn("type              fieldMinMax;", text)
+            self.assertIn("operation         weightedVolAverage;", text)
+            self.assertIn("weightField       alpha.polymer;", text)
+            self.assertNotIn("writeFields       true;", text)
+
     def test_automatic_trial_id_stays_inside_promotion_prefix(self):
         cfg = {"promotion_trial_prefix": "moldflow_ci_p3_weight_candidate21"}
         prefix = str(cfg.get("promotion_trial_prefix") or "moldflow_ci_candidate")
@@ -218,6 +287,7 @@ class MoldflowCiRegressionTests(unittest.TestCase):
                         "fill_time_s": 0.97,
                         "max_injection_pressure_proxy_mpa": 11.0,
                         "part_weight_proxy_g": 9.0911,
+                        "max_bulk_temperature_proxy_c": 240.0,
                         "nonphysical": {"alpha_max": 1.0},
                     },
                 }
@@ -234,10 +304,12 @@ class MoldflowCiRegressionTests(unittest.TestCase):
             "reference": {
                 "max_injection_pressure_mpa": 10.8794,
                 "part_weight_g": 9.0911,
+                "max_bulk_temperature_c": 241.0592,
             },
             "calibration_tolerances": {
                 "max_injection_pressure_absolute_error_pct": 10.0,
                 "part_weight_absolute_error_pct": 5.0,
+                "max_bulk_temperature_absolute_error_pct": 5.0,
             },
         }
         old_log = supervisor.CAE_LOG

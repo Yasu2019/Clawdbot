@@ -227,3 +227,36 @@ Durable weight-calibration rules:
    density; retain the calibration provenance.
 4. Recheck pressure and fill after density changes, even when the mass formula
    itself is deterministic.
+
+## P4 maximum bulk-temperature calibration (candidate 22)
+
+The two retained final fields underreported the commercial maximum because the
+temperature peak occurs during filling. Candidate 22 therefore added two
+lightweight OpenFOAM runtime histories without retaining every full field:
+
+- `fieldMinMax(T)` every time step;
+- `weightedVolAverage(T)` using `alpha.polymer` as the weight field.
+
+The actual history contained 5,196 samples. Results were:
+
+- history maximum temperature: 239.85 C;
+- commercial maximum bulk temperature: 241.0592 C;
+- difference: -1.2092 C, or 0.5016%;
+- final polymer-cell maximum alone: 204.131 C;
+- peak alpha-weighted whole-cavity temperature: 219.8552 C.
+
+The 239.85 C history maximum is used as the one-cell-thickness bulk-temperature
+proxy. Candidate 22 was repeated three times; fill, time, alpha, pressure,
+weight, and maximum-temperature values were identical, with zero observed
+spread. The next sequential calibration is wall shear stress and shear rate.
+
+Durable thermal-calibration rules:
+
+1. Preserve the time history for a history-defined commercial KPI; a final
+   field is not a valid substitute.
+2. Store reduced scalar histories rather than thousands of full fields during
+   continuous operation.
+3. Record both the selected comparison proxy and alternative diagnostics so
+   later mesh/thickness improvements can revise the definition transparently.
+4. Apply cooldown to both automatic and manually launched reference trials to
+   prevent duplicate solver runs.

@@ -546,6 +546,59 @@ def apply_runtime_options(run_dir: Path, params: dict[str, Any]) -> None:
         path.write_text(text, encoding="utf-8")
 
 
+def apply_thermal_history_function_objects(run_dir: Path, params: dict[str, Any]) -> None:
+    """Record lightweight temperature histories without retaining every field."""
+    if not params.get("record_thermal_history"):
+        return
+    block = r'''
+
+functions
+{
+    thermalFieldMinMax
+    {
+        type              fieldMinMax;
+        libs              (fieldFunctionObjects);
+        fields            (T);
+        mode              magnitude;
+        location          true;
+        executeControl    timeStep;
+        executeInterval   1;
+        writeControl      timeStep;
+        writeInterval     1;
+        writeToFile       true;
+        log               false;
+    }
+
+    polymerBulkTemperature
+    {
+        type              volFieldValue;
+        libs              (fieldFunctionObjects);
+        fields            (T);
+        operation         weightedVolAverage;
+        weightField       alpha.polymer;
+        regionType        all;
+        executeControl    timeStep;
+        executeInterval   1;
+        writeControl      timeStep;
+        writeInterval     1;
+        writeFields       false;
+        writeToFile       true;
+        log               false;
+    }
+}
+'''
+    for path in (run_dir / "system" / "controlDict", run_dir / "system" / "controlDict.ascii"):
+        if not path.exists():
+            continue
+        text = path.read_text(encoding="utf-8", errors="replace")
+        if re.search(r"(?m)^\s*functions\s*$", text):
+            raise ValueError(f"functions dictionary already exists in {path}")
+        marker = "// ************************************************************************* //"
+        if marker not in text:
+            raise ValueError(f"controlDict footer not found in {path}")
+        path.write_text(text.replace(marker, block + "\n" + marker, 1), encoding="utf-8")
+
+
 def apply_vented_outlet_options(run_dir: Path, params: dict[str, Any]) -> None:
     """Use a consistent pressure vent that lets air and finally polymer leave."""
     if not params.get("vented_outlet"):
@@ -754,6 +807,7 @@ def build_case(
     closed_cavity_mod.patch_closed_cavity_on_build(run_dir, spec, params)
     apply_vof_stability_options(run_dir, params)
     apply_runtime_options(run_dir, params)
+    apply_thermal_history_function_objects(run_dir, params)
     apply_vented_outlet_options(run_dir, params)
     apply_compressible_closed_cavity_options(run_dir, params)
 

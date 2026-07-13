@@ -41,7 +41,10 @@ def parse_time(value: str | None):
     if not value:
         return None
     try:
-        return datetime.fromisoformat(value.replace("Z", "+00:00"))
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        if parsed.tzinfo is None:
+            parsed = parsed.replace(tzinfo=datetime.now().astimezone().tzinfo)
+        return parsed
     except ValueError:
         return None
 
@@ -72,6 +75,12 @@ def reproducibility_evidence(cfg: dict) -> dict:
     weight_tolerance = float(
         cfg.get("calibration_tolerances", {}).get("part_weight_absolute_error_pct", 5.0)
     )
+    temperature_reference = float(cfg["reference"]["max_bulk_temperature_c"])
+    temperature_tolerance = float(
+        cfg.get("calibration_tolerances", {}).get(
+            "max_bulk_temperature_absolute_error_pct", 5.0
+        )
+    )
     qualifying = []
     for trial in trials:
         if not prefix or not str(trial.get("id", "")).startswith(prefix):
@@ -83,16 +92,21 @@ def reproducibility_evidence(cfg: dict) -> dict:
             fill_time = float(defects.get("fill_time_s"))
             pressure = float(defects.get("max_injection_pressure_proxy_mpa"))
             weight = float(defects.get("part_weight_proxy_g"))
+            temperature = float(defects.get("max_bulk_temperature_proxy_c"))
         except (TypeError, ValueError):
             continue
         pressure_error_pct = abs(pressure - pressure_reference) / pressure_reference * 100.0
         weight_error_pct = abs(weight - weight_reference) / weight_reference * 100.0
+        temperature_error_pct = (
+            abs(temperature - temperature_reference) / temperature_reference * 100.0
+        )
         if (
             trial.get("verdict") == "SUCCESS"
             and fill >= float(hard["fill_fraction_min_pct"])
             and float(hard["alpha_polymer_min"]) <= alpha <= float(hard["alpha_polymer_max"])
             and pressure_error_pct <= pressure_tolerance
             and weight_error_pct <= weight_tolerance
+            and temperature_error_pct <= temperature_tolerance
         ):
             qualifying.append(
                 {
@@ -104,6 +118,8 @@ def reproducibility_evidence(cfg: dict) -> dict:
                     "max_injection_pressure_error_pct": pressure_error_pct,
                     "part_weight_proxy_g": weight,
                     "part_weight_error_pct": weight_error_pct,
+                    "max_bulk_temperature_proxy_c": temperature,
+                    "max_bulk_temperature_error_pct": temperature_error_pct,
                 }
             )
     fills = [row["fill_fraction_pct"] for row in qualifying]
@@ -114,6 +130,7 @@ def reproducibility_evidence(cfg: dict) -> dict:
         if row.get("max_injection_pressure_proxy_mpa") is not None
     ]
     weights = [row["part_weight_proxy_g"] for row in qualifying]
+    temperatures = [row["max_bulk_temperature_proxy_c"] for row in qualifying]
     fill_spread = (max(fills) - min(fills)) if fills else None
     time_spread = (max(times) - min(times)) if times else None
     required = int(cfg["promotion"]["minimum_repeated_passes"])
@@ -133,6 +150,9 @@ def reproducibility_evidence(cfg: dict) -> dict:
             max(pressures) - min(pressures) if pressures else None
         ),
         "part_weight_spread_g": max(weights) - min(weights) if weights else None,
+        "max_bulk_temperature_spread_c": (
+            max(temperatures) - min(temperatures) if temperatures else None
+        ),
         "reproducible": reproducible,
         "production_promotion_allowed": False,
         "trials": qualifying[:10],
@@ -164,6 +184,14 @@ def observed_defects(trial: dict) -> dict:
         if weight.get("part_weight_proxy_g") is not None:
             defects["part_weight_proxy_g"] = weight["part_weight_proxy_g"]
             defects["part_weight_error_pct"] = weight.get("absolute_error_pct")
+        temperature = load_json(run_dir / "bulk_temperature_kpi.json", {})
+        if temperature.get("maximum_bulk_temperature_proxy_c") is not None:
+            defects["max_bulk_temperature_proxy_c"] = temperature[
+                "maximum_bulk_temperature_proxy_c"
+            ]
+            defects["max_bulk_temperature_error_pct"] = temperature.get(
+                "absolute_error_pct"
+            )
     return defects
 
 
@@ -228,16 +256,45 @@ def decide(trial: dict, cfg: dict) -> dict:
             "decision_rule": f"IF part-weight error ({weight_error_pct:.2f}%) exceeds {weight_tolerance:.2f}% THEN calibrate polymer melt density while preserving fill and pressure gates BECAUSE density directly maps filled volume to mass.",
             "next_experiment": "Set the measured effective melt density near 765.07 kg/m3, rerun once, and reject it if pressure or fill regresses.",
         }
+    temperature = defects.get("max_bulk_temperature_proxy_c")
+    if temperature is None:
+        return {
+            "priority": "P4",
+            "capability": "bulk_temperature_observability",
+            "decision_rule": "IF fill, pressure, and weight pass but temperature history is absent THEN record runtime extrema before tuning BECAUSE final temperature misses the fill-history maximum.",
+            "next_experiment": "Record fieldMinMax(T) and alpha-weighted bulk temperature every step, then compare with 241.0592 C.",
+        }
+    temperature_reference = float(cfg["reference"]["max_bulk_temperature_c"])
+    temperature_error_pct = abs(float(temperature) - temperature_reference) / temperature_reference * 100.0
+    temperature_tolerance = float(
+        cfg.get("calibration_tolerances", {}).get(
+            "max_bulk_temperature_absolute_error_pct", 5.0
+        )
+    )
+    if temperature_error_pct > temperature_tolerance:
+        return {
+            "priority": "P4",
+            "capability": "bulk_temperature_calibration",
+            "decision_rule": f"IF maximum bulk-temperature error ({temperature_error_pct:.2f}%) exceeds {temperature_tolerance:.2f}% THEN tune one thermal input while preserving fill, pressure, and weight gates.",
+            "next_experiment": "Calibrate melt temperature or thermal transport one parameter at a time toward 241.0592 C.",
+        }
     return {
-        "priority": "P4",
-        "capability": "bulk_temperature_calibration",
-        "decision_rule": "IF fill, pressure, and part weight pass THEN calibrate the next commercial thermal KPI one at a time.",
-        "next_experiment": "Define and extract maximum bulk temperature and compare it with 241.0592 C.",
+        "priority": "P5",
+        "capability": "wall_shear_calibration",
+        "decision_rule": "IF fill, pressure, weight, and bulk temperature pass THEN add the next commercial rheology KPI sequentially.",
+        "next_experiment": "Define wall shear stress and shear-rate proxies and compare with 0.1644 MPa and 5565.3267 1/s.",
     }
 
 
-def trial_allowed(cfg: dict, previous: dict, now: datetime) -> tuple[bool, str]:
-    last = parse_time(previous.get("last_trial_at"))
+def trial_allowed(
+    cfg: dict, previous: dict, now: datetime, latest_trial: dict | None = None
+) -> tuple[bool, str]:
+    candidates = [
+        parse_time(previous.get("last_trial_at")),
+        parse_time((latest_trial or {}).get("timestamp")),
+    ]
+    known = [value for value in candidates if value is not None]
+    last = max(known) if known else None
     if last and now - last < timedelta(hours=float(cfg["minimum_trial_cooldown_hours"])):
         return False, "cooldown"
     day = now.date().isoformat()
@@ -261,6 +318,12 @@ def postprocess_trial(run_dir: Path, cfg: dict) -> dict:
             ROOT / "scripts" / "moldflow_part_weight_kpi.py",
             "--commercial-reference-g",
             cfg["reference"]["part_weight_g"],
+        ),
+        (
+            "bulk_temperature",
+            ROOT / "scripts" / "moldflow_bulk_temperature_kpi.py",
+            "--commercial-reference-c",
+            cfg["reference"]["max_bulk_temperature_c"],
         ),
     ]
     for name, script, flag, reference in commands:
@@ -292,7 +355,7 @@ def main() -> int:
     observed = observed_defects(trial)
     reproducibility = reproducibility_evidence(cfg)
     action = decide(trial, cfg)
-    allowed, reason = trial_allowed(cfg, previous, now)
+    allowed, reason = trial_allowed(cfg, previous, now, trial)
     record = {
         "schema": cfg["schema"],
         "checked_at": now.isoformat(),
