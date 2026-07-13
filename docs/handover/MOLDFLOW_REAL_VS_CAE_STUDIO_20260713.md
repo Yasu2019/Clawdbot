@@ -130,3 +130,38 @@ Official implementation references used for the alpha-control audit:
 - OpenFOAM alpha controls document `nAlphaCorr`, `nAlphaSubCycles`, and
   `MULESCorr`:
   https://api.openfoam.com/2406/src_2finiteVolume_2cfdTools_2general_2include_2alphaControls_8H.html
+
+## P1 completion: compressible trapped-air model
+
+| Trial | Change | Result | Fill | Time | Alpha max |
+|---|---|---|---:|---:|---:|
+| candidate 10 | 4 mm gate, two 2 mm vents | short shot | 57.75% | 1.038929 s | 1.0 |
+| candidate 11 | vents reduced to 0.2 mm | timeout at 15 min | 42.42% at 0.680789 s | partial | 1.0 |
+| candidate 12 | compressible air, closed cavity | thermal failure after fill | 100% | 0.993358 s | 1.0 |
+| candidate 13 | stop before air-phase singularity | final log 98.28%; stored 97.73% | 97.73% | 0.969604 s | 1.0 |
+| candidate 14 | synchronized 5 ms output | success | 98.27% | 0.975 s | 1.0 |
+| candidate 15 | inlet velocity 1.510 m/s | success | 98.92% | 0.970 s | 1.0 |
+| candidate 16 | inlet velocity 1.512 m/s | success | 99.05% | 0.970 s | 1.0 |
+| candidate 16 repeat 2 | identical | success | 99.05% | 0.970 s | 1.0 |
+| candidate 16 repeat 3 | identical | success | 99.05% | 0.970 s | 1.0 |
+
+Candidate 16 passes the continuous-improvement hard gates three times with
+zero KPI spread. Its stored fill time is 0.970 s; the final solver time is
+0.976923 s, within 0.008% of the real Moldflow reference near 0.977 s. Final
+temperature is also deterministic at 323.058--477.337 K. This promotes the
+improvement program from P1 complete-fill work to P2 commercial KPI
+calibration. It does not authorize automatic production promotion.
+
+Durable rules from this stage:
+
+1. Incompressible air plus a closed cavity is mathematically inconsistent for
+   prescribed injection. A compressible gas phase is required when the cavity
+   has no physical vent.
+2. Continuing until alpha is exactly one removes the gas phase and makes the
+   two-phase thermal solve singular. Stop at the validated near-complete fill
+   threshold before the gas volume reaches zero.
+3. Solver logs and stored fields are different evidence. Synchronize output in
+   physical time (`adjustableRunTime`) before using the field as a promotion KPI.
+4. A candidate is not reproducible merely because it succeeded once. Candidate
+   16 required three identical hard-gate passes and the supervisor now records
+   their spread explicitly.

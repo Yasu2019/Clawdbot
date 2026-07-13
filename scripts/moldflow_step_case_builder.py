@@ -240,6 +240,148 @@ mergePatchPairs
 """
 
 
+def blockmesh_independent_vent_dict_text(
+    lx: float,
+    ly: float,
+    lz: float,
+    nx: int = 50,
+    ny: int | None = None,
+    gate_width_mm: float = 4.0,
+    vent_width_mm: float = 2.0,
+) -> str:
+    """Five y-segments: narrow corner vents independent of center gate width."""
+    gate_w = max(0.2, min(float(gate_width_mm), ly * 0.70))
+    vent_w = max(0.1, min(float(vent_width_mm), (ly - gate_w) * 0.20))
+    gate_y1 = (ly - gate_w) * 0.5
+    gate_y2 = gate_y1 + gate_w
+    if vent_w >= gate_y1:
+        raise ValueError("vent_width_mm overlaps the center gate segment")
+    ys = [0.0, vent_w, gate_y1, gate_y2, ly - vent_w, ly]
+    widths = [ys[i + 1] - ys[i] for i in range(5)]
+    total_ny = int(ny) if ny is not None else max(5, int(round(nx * ly / max(lx, 0.001))))
+    total_ny = max(5, min(total_ny, 100))
+    counts = [max(1, int(round(total_ny * width / ly))) for width in widths]
+    while sum(counts) > total_ny:
+        idx = max(range(5), key=lambda i: counts[i] if counts[i] > 1 else -1)
+        if counts[idx] <= 1:
+            break
+        counts[idx] -= 1
+    while sum(counts) < total_ny:
+        idx = max(range(5), key=lambda i: widths[i] / counts[i])
+        counts[idx] += 1
+
+    vertices = []
+    for z in (0.0, lz):
+        for y in ys:
+            vertices.append(f"    (0 {y:g} {z:g})")
+            vertices.append(f"    ({lx:g} {y:g} {z:g})")
+
+    blocks = []
+    inlet_faces = [[], [], []]
+    outlet_faces = []
+    far_wall_faces = []
+    bottom_faces = []
+    top_faces = []
+    for i in range(5):
+        b0, b1, b2, b3 = 2 * i, 2 * i + 1, 2 * i + 3, 2 * i + 2
+        t0, t1, t2, t3 = b0 + 12, b1 + 12, b2 + 12, b3 + 12
+        blocks.append(
+            f"    hex ({b0} {b1} {b2} {b3} {t0} {t1} {t2} {t3}) "
+            f"({nx} {counts[i]} 1) simpleGrading (1 1 1)"
+        )
+        inlet_group = 0 if i < 2 else 1 if i == 2 else 2
+        inlet_faces[inlet_group].append(f"            ({b0} {b3} {t3} {t0})")
+        far_face = f"            ({b1} {t1} {t2} {b2})"
+        (outlet_faces if i in (0, 4) else far_wall_faces).append(far_face)
+        bottom_faces.append(f"            ({b0} {b1} {b2} {b3})")
+        top_faces.append(f"            ({t0} {t3} {t2} {t1})")
+
+    lower_wall = "            (0 1 13 12)"
+    upper_wall = "            (10 22 23 11)"
+    return f"""/*--------------------------------*- C++ -*----------------------------------*\\
+| Moldflow five-segment gate and corner-vent mesh                             |
+\\*---------------------------------------------------------------------------*/
+FoamFile
+{{
+    version 2.0;
+    format ascii;
+    class dictionary;
+    object blockMeshDict;
+}}
+
+convertToMeters 0.001;
+
+vertices
+(
+{chr(10).join(vertices)}
+);
+
+blocks
+(
+{chr(10).join(blocks)}
+);
+
+edges ();
+
+boundary
+(
+    inlet1
+    {{
+        type patch;
+        faces
+        (
+{chr(10).join(inlet_faces[0])}
+        );
+    }}
+    inlet2
+    {{
+        type patch;
+        faces
+        (
+{chr(10).join(inlet_faces[1])}
+        );
+    }}
+    inlet3
+    {{
+        type patch;
+        faces
+        (
+{chr(10).join(inlet_faces[2])}
+        );
+    }}
+    outlet
+    {{
+        type patch;
+        faces
+        (
+{chr(10).join(outlet_faces)}
+        );
+    }}
+    walls
+    {{
+        type wall;
+        faces
+        (
+{chr(10).join(far_wall_faces)}
+{lower_wall}
+{upper_wall}
+        );
+    }}
+    frontAndBack
+    {{
+        type empty;
+        faces
+        (
+{chr(10).join(bottom_faces)}
+{chr(10).join(top_faces)}
+        );
+    }}
+);
+
+mergePatchPairs ();
+"""
+
+
 def ensure_sample_step() -> Path:
     SAMPLES.mkdir(parents=True, exist_ok=True)
     if DEFAULT_STEP.exists():
@@ -369,6 +511,38 @@ def apply_runtime_options(run_dir: Path, params: dict[str, Any]) -> None:
         text, count = re.subn(r"endTime\s+[0-9.eE+-]+;", replacement, text, count=1)
         if count != 1:
             raise ValueError(f"endTime entry not found in {path}")
+        raw_write_interval = params.get("write_interval_steps")
+        if raw_write_interval is not None:
+            write_interval = int(raw_write_interval)
+            if not 1 <= write_interval <= 100000:
+                raise ValueError("write_interval_steps must be between 1 and 100000")
+            text, count = re.subn(
+                r"writeInterval\s+[0-9]+;",
+                f"writeInterval   {write_interval};",
+                text,
+                count=1,
+            )
+            if count != 1:
+                raise ValueError(f"writeInterval entry not found in {path}")
+        raw_write_interval_s = params.get("write_interval_s")
+        if raw_write_interval_s is not None:
+            write_interval_s = float(raw_write_interval_s)
+            if not 1e-6 <= write_interval_s <= end_time:
+                raise ValueError("write_interval_s must be positive and <= analysis_end_time_s")
+            text, control_count = re.subn(
+                r"writeControl\s+\w+;",
+                "writeControl    adjustableRunTime;",
+                text,
+                count=1,
+            )
+            text, interval_count = re.subn(
+                r"writeInterval\s+[0-9.eE+-]+;",
+                f"writeInterval   {write_interval_s:g};",
+                text,
+                count=1,
+            )
+            if control_count != 1 or interval_count != 1:
+                raise ValueError(f"write controls not found in {path}")
         path.write_text(text, encoding="utf-8")
 
 
@@ -404,9 +578,47 @@ def apply_vented_outlet_options(run_dir: Path, params: dict[str, Any]) -> None:
     )
 
 
+def apply_compressible_closed_cavity_options(
+    run_dir: Path, params: dict[str, Any]
+) -> None:
+    """Close the cavity while allowing the compressible air phase to pressurize."""
+    if not params.get("compressible_closed_cavity"):
+        return
+
+    replacements = {
+        "U": "        type            noSlip;\n",
+        "alpha.polymer": "        type            zeroGradient;\n",
+        "p": (
+            "        type            calculated;\n"
+            "        value           uniform 101325;\n"
+        ),
+        "p_rgh": (
+            "        type            fixedFluxPressure;\n"
+            "        value           uniform 0;\n"
+        ),
+    }
+    for field_name, body in replacements.items():
+        path = run_dir / "0" / field_name
+        if not path.exists():
+            continue
+        text = path.read_text(encoding="utf-8", errors="replace")
+        text, count = re.subn(
+            r"(\n\s*outlet\s*\{)[^}]*(\})",
+            rf"\1\n{body}    \2",
+            text,
+            count=1,
+        )
+        if count != 1:
+            raise ValueError(f"outlet boundary not found in {path}")
+        path.write_text(text, encoding="utf-8")
+
+
 def normalize_generated_initial_fields(run_dir: Path, params: dict[str, Any]) -> None:
     """Reset mesh-size-specific template alpha fields for generated CAD meshes."""
-    if str(params.get("physics_category", "")) != "resin_fill_cool":
+    if (
+        str(params.get("physics_category", "")) != "resin_fill_cool"
+        and not params.get("reset_initial_alpha")
+    ):
         return
     alpha_path = run_dir / "0" / "alpha.polymer"
     if not alpha_path.exists():
@@ -478,8 +690,19 @@ def build_case(
         ny = int(ny_raw) if ny_raw is not None else None
         gate_width = params.get("gate_width_mm")
         vent_layout = str(params.get("vent_layout", "full_far_edge"))
-        (run_dir / "system" / "blockMeshDict").write_text(
-            blockmesh_dict_text(
+        vent_width = params.get("vent_width_mm")
+        if vent_width is not None:
+            blockmesh_text = blockmesh_independent_vent_dict_text(
+                lx,
+                ly,
+                lz,
+                nx=nx,
+                ny=ny,
+                gate_width_mm=float(gate_width if gate_width is not None else 4.0),
+                vent_width_mm=float(vent_width),
+            )
+        else:
+            blockmesh_text = blockmesh_dict_text(
                 lx,
                 ly,
                 lz,
@@ -487,7 +710,9 @@ def build_case(
                 ny=ny,
                 gate_width_mm=gate_width,
                 vent_layout=vent_layout,
-            ),
+            )
+        (run_dir / "system" / "blockMeshDict").write_text(
+            blockmesh_text,
             encoding="utf-8",
         )
 
@@ -503,6 +728,7 @@ def build_case(
     apply_vof_stability_options(run_dir, params)
     apply_runtime_options(run_dir, params)
     apply_vented_outlet_options(run_dir, params)
+    apply_compressible_closed_cavity_options(run_dir, params)
 
     manifest = {
         "phase": 7,

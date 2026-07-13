@@ -6,9 +6,11 @@
   "max_trials_per_day": 4,
   "trial_id_prefixes": [
     "moldflow_real_compare_pp_plate_20260713",
-    "moldflow_ci_p0_alpha_"
+    "moldflow_ci_p0_alpha_",
+    "moldflow_ci_p1_fill_"
   ],
-  "trial_params_file": "data/cae_te_workspace/jobs/moldflow_studio/moldflow_ci_p0_alpha_candidate6_params.json",
+  "promotion_trial_prefix": "moldflow_ci_p1_fill_candidate16",
+  "trial_params_file": "data/cae_te_workspace/jobs/moldflow_studio/moldflow_ci_p1_fill_candidate16_params.json",
   "reference": {
     "geometry_mm": [100, 60, 2],
     "material": "PP",

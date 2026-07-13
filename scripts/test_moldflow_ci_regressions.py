@@ -4,6 +4,7 @@
 import sys
 import tempfile
 import unittest
+import re
 from pathlib import Path
 
 if hasattr(sys.stdout, "reconfigure"):
@@ -14,6 +15,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import cae_self_growth_gates as gates
 import cae_te_engine as engine
 import moldflow_step_case_builder as builder
+import moldflow_continuous_improvement_supervisor as supervisor
 
 
 ALPHA_FIELD = """FoamFile { object alpha.polymer; }
@@ -63,6 +65,60 @@ class MoldflowCiRegressionTests(unittest.TestCase):
         self.assertIn("(3 11 13 5)", full_outlet)
         self.assertNotIn("(3 11 13 5)", corner_outlet)
         self.assertIn("(3 11 13 5)", corner_walls)
+
+    def test_independent_gate_and_corner_vent_mesh(self):
+        text = builder.blockmesh_independent_vent_dict_text(
+            100, 60, 2, nx=50, ny=30, gate_width_mm=4, vent_width_mm=2
+        )
+        blocks = re.findall(
+            r"hex\s*\([^)]*\)\s*\(50\s+(\d+)\s+1\)", text
+        )
+        self.assertEqual(5, len(blocks))
+        self.assertEqual(30, sum(int(value) for value in blocks))
+        outlet = text.split("outlet", 1)[1].split("walls", 1)[0]
+        self.assertEqual(2, outlet.count("(" ) - 1)
+        self.assertIn("(0 2 0)", text)
+        self.assertIn("(0 28 0)", text)
+        self.assertIn("(0 32 0)", text)
+        self.assertIn("(0 58 0)", text)
+
+    def test_reproducibility_requires_three_hard_gate_passes(self):
+        trials = []
+        for index in range(3):
+            trials.append(
+                {
+                    "id": f"candidate16_repeat{index}",
+                    "verdict": "SUCCESS",
+                    "defects_detected": {
+                        "fill_fraction_pct": 99.05,
+                        "fill_time_s": 0.97,
+                        "nonphysical": {"alpha_max": 1.0},
+                    },
+                }
+            )
+        cfg = {
+            "promotion_trial_prefix": "candidate16_",
+            "hard_gates": {
+                "fill_fraction_min_pct": 99.0,
+                "alpha_polymer_min": 0.0,
+                "alpha_polymer_max": 1.05,
+                "reproducibility_spread_max_pct": 5.0,
+            },
+            "promotion": {"minimum_repeated_passes": 3},
+        }
+        old_log = supervisor.CAE_LOG
+        try:
+            with tempfile.TemporaryDirectory() as temp:
+                supervisor.CAE_LOG = Path(temp) / "cae_te_log.json"
+                supervisor.CAE_LOG.write_text(
+                    __import__("json").dumps({"trials": trials}), encoding="utf-8"
+                )
+                evidence = supervisor.reproducibility_evidence(cfg)
+        finally:
+            supervisor.CAE_LOG = old_log
+        self.assertTrue(evidence["reproducible"])
+        self.assertEqual(3, evidence["qualifying_passes"])
+        self.assertEqual(0.0, evidence["fill_spread_percentage_points"])
 
 if __name__ == "__main__":
     unittest.main()

@@ -55,6 +55,59 @@ def latest_reference_trial(cfg: dict) -> dict:
     return max(matches, key=lambda t: str(t.get("timestamp", ""))) if matches else {}
 
 
+def reproducibility_evidence(cfg: dict) -> dict:
+    """Count deterministic hard-gate passes for the configured promotion candidate."""
+    doc = load_json(CAE_LOG, {})
+    trials = doc.get("trials", []) if isinstance(doc, dict) else []
+    prefix = str(cfg.get("promotion_trial_prefix", ""))
+    hard = cfg["hard_gates"]
+    qualifying = []
+    for trial in trials:
+        if not prefix or not str(trial.get("id", "")).startswith(prefix):
+            continue
+        defects = observed_defects(trial)
+        try:
+            fill = float(defects.get("fill_fraction_pct"))
+            alpha = float(defects.get("alpha_max"))
+            fill_time = float(defects.get("fill_time_s"))
+        except (TypeError, ValueError):
+            continue
+        if (
+            trial.get("verdict") == "SUCCESS"
+            and fill >= float(hard["fill_fraction_min_pct"])
+            and float(hard["alpha_polymer_min"]) <= alpha <= float(hard["alpha_polymer_max"])
+        ):
+            qualifying.append(
+                {
+                    "id": trial.get("id"),
+                    "fill_fraction_pct": fill,
+                    "fill_time_s": fill_time,
+                    "alpha_max": alpha,
+                }
+            )
+    fills = [row["fill_fraction_pct"] for row in qualifying]
+    times = [row["fill_time_s"] for row in qualifying]
+    fill_spread = (max(fills) - min(fills)) if fills else None
+    time_spread = (max(times) - min(times)) if times else None
+    required = int(cfg["promotion"]["minimum_repeated_passes"])
+    max_spread = float(hard["reproducibility_spread_max_pct"])
+    reproducible = bool(
+        len(qualifying) >= required
+        and fill_spread is not None
+        and fill_spread <= max_spread
+    )
+    return {
+        "candidate_prefix": prefix,
+        "qualifying_passes": len(qualifying),
+        "required_passes": required,
+        "fill_spread_percentage_points": fill_spread,
+        "fill_time_spread_s": time_spread,
+        "reproducible": reproducible,
+        "production_promotion_allowed": False,
+        "trials": qualifying[:10],
+    }
+
+
 def observed_defects(trial: dict) -> dict:
     """Return trial defects enriched with alpha evidence from its run artifact."""
     defects = dict(trial.get("defects_detected") or {})
@@ -119,6 +172,7 @@ def main() -> int:
     previous = load_json(STATUS, {})
     trial = latest_reference_trial(cfg)
     observed = observed_defects(trial)
+    reproducibility = reproducibility_evidence(cfg)
     action = decide(trial, cfg)
     allowed, reason = trial_allowed(cfg, previous, now)
     record = {
@@ -132,6 +186,7 @@ def main() -> int:
         "trial_allowed": allowed,
         "trial_gate_reason": reason,
         "automatic_production_promotion": False,
+        "promotion_evidence": reproducibility,
     }
     params = ROOT / str(cfg.get("trial_params_file", ""))
     if args.execute_trial and allowed and params.exists():
