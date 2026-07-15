@@ -2318,3 +2318,31 @@ Goal: press_* trial --> NORMAL TERMINATION + KPI
 | **Lessons / Prevention** | Probe availability with dependency-free bounded methods. Never equate a locally prepared package with remote readiness. Keep analysis disabled until real 32-bit Synergy COM validation passes. Web search was unnecessary because private-host state and local dependency evidence were decisive. |
 
 ---
+
+# INC-148: Windows PID liveness bug allowed concurrent Gmail backfills and token races
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-07-12 JST |
+| **Detection** | Repeated Gmail 401 and connection-aborted warnings led to process inspection. Two `run_priority_gmail_backfill.py` instances were active while `email_search_ops.lock` named a different, already-dead PID. |
+| **Impact** | Independent workers could access one Gmail mailbox concurrently, overwrite shared token/status JSON, retain stale access tokens, increase 401/429/network-disconnect risk, and leave one worker running without owning the DB-operation lock. Existing Gmail messages and the SQLite DB were preserved. |
+| **Root Cause (5 Why)** | **Why1**: Gmail access became intermittent because multiple long-running clients shared one mailbox and token file. **Why2**: A later backfill removed a lock held by a live earlier process. **Why3**: Windows liveness used `os.kill(pid, 0)`, which was treated as a portable existence test. **Why4**: Windows requires a native process-handle check for this use. **Why5**: Tests covered stale/corrupt locks but not live Windows owners, ownership-safe release, or concurrent token refresh. |
+| **Fix** | `email_db_lock.py` now uses Windows `OpenProcess`, supports dedicated lock paths, and only removes a lock when its exact owner payload still matches. `email_search_index.py` now writes JSON via temporary file plus `os.replace`, serializes token refresh with a dedicated lock, and adopts a token refreshed by another worker instead of refreshing again. |
+| **Verification** | Ten focused tests passed. The unlocked orphan PID 6048 was stopped; a single logical backfill was restarted under a parent/child Python launcher pair with lock owner PID 35796. Gmail `users/me/profile` read-only request succeeded with 284047 messages. |
+| **Lessons Learned** | Cross-platform PID probes are correctness and safety primitives. A DB lock does not protect token state if stale detection can delete a live owner's lock. |
+| **Prevention** | Test Windows live/dead PID behavior, owner-only release, atomic JSON replacement, and bounded token refresh. Keep one logical Gmail backfill plus the incremental daemon; avoid independently launching duplicate full backfills. |
+
+---
+
+# INC-149: Dynabook Moldflow MCP could confirm mesh but not the existing injection gate
+
+| Field | Detail |
+|---|---|
+| **Date / Detection** | 2026-07-16 JST. The read-only MCP inspector confirmed the active Fusion mesh, but returned `GATE_INSPECTION_SUPPORTED=false` after the user had set a gate in Synergy. |
+| **Impact** | Gate placement could not initially be independently verified through MCP. No study, mesh, gate, material, or analysis state was changed. |
+| **Root Cause (5 Why)** | **Why1**: the inspector had no gate getter. **Why2**: Moldflow 2010 exposes injection locations as NDBC records and has no direct API getter. **Why3**: guessing an unverified COM member was intentionally prohibited. **Why4**: the Autodesk-supported UDM-export workaround had not yet been implemented. **Why5**: the first bridge version covered mesh summary only. Replacing the Python file also did not replace the already-listening PID 14208. |
+| **Fix** | Extended `moldflow_inspect_active_study` to export the active model to a temporary UDM, parse NDBC types 40000/40002/40003, map gate node IDs to coordinates, and delete the UDM. Replaced only the verified port-8765 owner. |
+| **Verification** | `py_compile`, five unit tests, and `git diff --check` passed. Remote SHA-256 matched. Live MCP returned `READ_ONLY=true`, mesh `Completed`, 3,635 nodes, 7,278 triangles, one gate at node 2 and (-50.0000007451, 2.7391463518, 23.8075219095), cleanup error 0, no analysis, and no new Study. |
+| **Lessons / Prevention** | Use the documented UDM/NDBC route, never an invented getter. Verify the live response after deployment; file-hash equality alone does not prove the running server was replaced. |
+
+---

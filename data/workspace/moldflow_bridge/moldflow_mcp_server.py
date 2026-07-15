@@ -24,7 +24,7 @@ from typing import Any
 from mcp.server.fastmcp import FastMCP
 from mcp.server.transport_security import TransportSecuritySettings
 
-BRIDGE_VERSION = "0.2.0"
+BRIDGE_VERSION = "0.2.1"
 PROG_IDS = ("synergy.Synergy", "Synergy.Synergy", "synergy.Synergy.2010")
 ROOT = Path(__file__).resolve().parent
 PROBE_SCRIPT = ROOT / "check_synergy_com.vbs"
@@ -159,6 +159,164 @@ def moldflow_inspect_state(bitness: int = 32, timeout_sec: int = 30) -> str:
         return json.dumps({"ok": False, "error": f"missing {cscript}"})
     result = _run([str(cscript), "//nologo", str(STATE_INSPECT_SCRIPT)], timeout_sec)
     result["bitness"] = bitness
+    result["analysis_started"] = False
+    result["study_created"] = False
+    return json.dumps(result, ensure_ascii=False, indent=2)
+
+
+@mcp.tool()
+def moldflow_inspect_active_study(timeout_sec: int = 180) -> str:
+    """Read active-study mesh and gate data without modifying the study."""
+    vbs = r'''Option Explicit
+Dim Synergy, StudyDoc, Ent, Coord, DiagnosisManager, Summary, Project
+Dim FS, TempFolder, UdmPath, UdmFile, Line, Words
+Dim GateNodeIDs(), GateCount, GateType, GateNodeID, I, Found
+
+On Error Resume Next
+Set Synergy = CreateObject("synergy.Synergy")
+If Err.Number <> 0 Then
+    WScript.Echo "ERROR=CREATEOBJECT_FAILED:" & Err.Number & ":" & Err.Description
+    WScript.Quit 2
+End If
+
+Err.Clear
+Set StudyDoc = Synergy.StudyDoc()
+If Err.Number <> 0 Or StudyDoc Is Nothing Then
+    WScript.Echo "ERROR=NO_ACTIVE_STUDY:" & Err.Number & ":" & Err.Description
+    WScript.Quit 3
+End If
+
+WScript.Echo "READ_ONLY=true"
+Err.Clear
+WScript.Echo "STUDY_NAME=" & CStr(StudyDoc.StudyName)
+WScript.Echo "STUDY_NAME_ERROR=" & CStr(Err.Number)
+Err.Clear
+WScript.Echo "MESH_TYPE=" & CStr(StudyDoc.MeshType)
+WScript.Echo "MESH_TYPE_ERROR=" & CStr(Err.Number)
+Err.Clear
+WScript.Echo "MOLDING_PROCESS=" & CStr(StudyDoc.MoldingProcess)
+WScript.Echo "MOLDING_PROCESS_ERROR=" & CStr(Err.Number)
+Err.Clear
+WScript.Echo "ANALYSIS_SEQUENCE=" & CStr(StudyDoc.AnalysisSequence)
+WScript.Echo "ANALYSIS_SEQUENCE_ERROR=" & CStr(Err.Number)
+Err.Clear
+WScript.Echo "NUMBER_OF_ANALYSES=" & CStr(StudyDoc.NumberOfAnalyses)
+WScript.Echo "NUMBER_OF_ANALYSES_ERROR=" & CStr(Err.Number)
+Err.Clear
+WScript.Echo "MESH_STATUS=" & CStr(StudyDoc.MeshStatus())
+WScript.Echo "MESH_STATUS_ERROR=" & CStr(Err.Number)
+
+Err.Clear
+Set Ent = StudyDoc.GetFirstNode()
+If Not Ent Is Nothing Then
+    WScript.Echo "FIRST_NODE_ID=" & CStr(StudyDoc.GetEntityID(Ent))
+    Set Coord = StudyDoc.GetNodeCoord(Ent)
+    If Not Coord Is Nothing Then
+        WScript.Echo "FIRST_NODE_X=" & CStr(Coord.X)
+        WScript.Echo "FIRST_NODE_Y=" & CStr(Coord.Y)
+        WScript.Echo "FIRST_NODE_Z=" & CStr(Coord.Z)
+    End If
+End If
+WScript.Echo "FIRST_NODE_ERROR=" & CStr(Err.Number)
+
+Err.Clear
+Set DiagnosisManager = Synergy.DiagnosisManager()
+Set Summary = DiagnosisManager.GetMeshSummary(False)
+If Err.Number <> 0 Or Summary Is Nothing Then
+    WScript.Echo "MESH_SUMMARY_ERROR=" & CStr(Err.Number) & ":" & Err.Description
+Else
+    WScript.Echo "NODE_COUNT=" & CStr(Summary.NodesCount)
+    WScript.Echo "TRI_COUNT=" & CStr(Summary.TrianglesCount)
+    WScript.Echo "TET_COUNT=" & CStr(Summary.TetrasCount)
+    WScript.Echo "BEAM_COUNT=" & CStr(Summary.BeamsCount)
+    WScript.Echo "CONNECTIVITY_REGIONS=" & CStr(Summary.ConnectivityRegions)
+    WScript.Echo "MESH_VOLUME=" & CStr(Summary.MeshVolume)
+    WScript.Echo "RUNNER_VOLUME=" & CStr(Summary.RunnerVolume)
+    WScript.Echo "MIN_ASPECT_RATIO=" & CStr(Summary.MinAspectRatio)
+    WScript.Echo "MAX_ASPECT_RATIO=" & CStr(Summary.MaxAspectRatio)
+    WScript.Echo "AVE_ASPECT_RATIO=" & CStr(Summary.AveAspectRatio)
+    WScript.Echo "FREE_EDGES=" & CStr(Summary.FreeEdges)
+    WScript.Echo "MANIFOLD_EDGES=" & CStr(Summary.ManifoldEdges)
+    WScript.Echo "NONMANIFOLD_EDGES=" & CStr(Summary.NonManifoldEdges)
+    WScript.Echo "UNORIENTED=" & CStr(Summary.Unoriented)
+    WScript.Echo "INTERSECTION_ELEMENTS=" & CStr(Summary.IntersectionElements)
+    WScript.Echo "OVERLAP_ELEMENTS=" & CStr(Summary.OverlapElements)
+    WScript.Echo "ZERO_TRIANGLES=" & CStr(Summary.ZeroTriangles)
+    WScript.Echo "ZERO_BEAMS=" & CStr(Summary.ZeroBeams)
+End If
+
+' Moldflow has no direct API getter for NDBC data. Autodesk's documented
+' workaround is a read-only UDM export followed by parsing NDBC records.
+GateCount = 0
+Set FS = CreateObject("Scripting.FileSystemObject")
+Set TempFolder = FS.GetSpecialFolder(2)
+UdmPath = TempFolder.Path & "\moldflow_mcp_gate_" & _
+    Replace(Replace(Replace(CStr(Now), "/", ""), ":", ""), " ", "_") & ".udm"
+
+Err.Clear
+Set Project = Synergy.Project()
+Project.ExportModel UdmPath
+If Err.Number <> 0 Or Not FS.FileExists(UdmPath) Then
+    WScript.Echo "GATE_EXPORT_ERROR=" & CStr(Err.Number) & ":" & Err.Description
+Else
+    Err.Clear
+    Set UdmFile = FS.OpenTextFile(UdmPath, 1, False)
+    Do While Not UdmFile.AtEndOfStream
+        Line = UdmFile.ReadLine
+        If InStr(Line, "NDBC{") > 0 And Left(Trim(Line), 2) <> "//" Then
+            Words = Split(Trim(Replace(Replace(Line, "{", " "), "}", " ")))
+            If UBound(Words) >= 8 Then
+                GateType = CLng(Words(6))
+                If GateType = 40000 Or GateType = 40002 Or GateType = 40003 Then
+                    GateNodeID = CLng(Words(8))
+                    ReDim Preserve GateNodeIDs(GateCount)
+                    GateNodeIDs(GateCount) = GateNodeID
+                    GateCount = GateCount + 1
+                End If
+            End If
+        End If
+    Loop
+    UdmFile.Close
+End If
+
+If FS.FileExists(UdmPath) Then
+    Err.Clear
+    FS.DeleteFile UdmPath, True
+    WScript.Echo "GATE_TEMP_CLEANUP_ERROR=" & CStr(Err.Number)
+End If
+
+WScript.Echo "GATE_INSPECTION_SUPPORTED=true"
+WScript.Echo "GATE_COUNT=" & CStr(GateCount)
+For I = 0 To GateCount - 1
+    GateNodeID = GateNodeIDs(I)
+    WScript.Echo "GATE_" & CStr(I + 1) & "_NODE_ID=" & CStr(GateNodeID)
+    Found = False
+    Set Ent = StudyDoc.GetFirstNode()
+    Do While Not Ent Is Nothing And Not Found
+        If CLng(StudyDoc.GetEntityID(Ent)) = GateNodeID Then
+            Set Coord = StudyDoc.GetNodeCoord(Ent)
+            If Not Coord Is Nothing Then
+                WScript.Echo "GATE_" & CStr(I + 1) & "_X=" & CStr(Coord.X)
+                WScript.Echo "GATE_" & CStr(I + 1) & "_Y=" & CStr(Coord.Y)
+                WScript.Echo "GATE_" & CStr(I + 1) & "_Z=" & CStr(Coord.Z)
+            End If
+            Found = True
+        Else
+            Set Ent = StudyDoc.GetNextNode(Ent)
+        End If
+    Loop
+    WScript.Echo "GATE_" & CStr(I + 1) & "_COORD_FOUND=" & CStr(Found)
+Next
+'''
+    result = _run_vbs_code(vbs, timeout_sec=max(10, min(int(timeout_sec), 180)))
+    parsed: dict[str, Any] = {}
+    for line in str(result.get("stdout") or "").splitlines():
+        if "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        parsed[key.strip().lower()] = value.strip()
+    result["study"] = parsed
+    result["read_only"] = True
     result["analysis_started"] = False
     result["study_created"] = False
     return json.dumps(result, ensure_ascii=False, indent=2)
