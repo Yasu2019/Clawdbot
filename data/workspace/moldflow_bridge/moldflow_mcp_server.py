@@ -24,7 +24,7 @@ from typing import Any
 from mcp.server.fastmcp import FastMCP
 from mcp.server.transport_security import TransportSecuritySettings
 
-BRIDGE_VERSION = "0.2.1"
+BRIDGE_VERSION = "0.3.0"
 PROG_IDS = ("synergy.Synergy", "Synergy.Synergy", "synergy.Synergy.2010")
 ROOT = Path(__file__).resolve().parent
 PROBE_SCRIPT = ROOT / "check_synergy_com.vbs"
@@ -319,6 +319,112 @@ Next
     result["read_only"] = True
     result["analysis_started"] = False
     result["study_created"] = False
+    return json.dumps(result, ensure_ascii=False, indent=2)
+
+
+@mcp.tool()
+def moldflow_autofix_active_study_copy(
+    expected_study_name: str = "moldflow_study.sdy", timeout_sec: int = 180
+) -> str:
+    """Duplicate the expected active study, AutoFix only the copy, and save it."""
+    if not _write_operations_enabled():
+        return _write_operation_blocked()
+    expected = str(expected_study_name or "").strip()
+    if not expected or any(char in expected for char in ('"', "\r", "\n")):
+        return json.dumps(
+            {"ok": False, "error": "expected_study_name is invalid"},
+            ensure_ascii=False,
+            indent=2,
+        )
+    expected_base = re.sub(r"(?i)\.sdy$", "", expected)
+    vbs = f'''Option Explicit
+Dim Synergy, Project, StudyDoc, MeshEditor, BeforeNames, Name, NewName
+Dim DuplicateOK, OpenOK, RemovedCount, SaveOK, OriginalName
+
+On Error Resume Next
+Set Synergy = CreateObject("synergy.Synergy")
+If Err.Number <> 0 Then
+    WScript.Echo "ERROR=CREATEOBJECT_FAILED:" & Err.Number & ":" & Err.Description
+    WScript.Quit 2
+End If
+
+Set StudyDoc = Synergy.StudyDoc()
+If StudyDoc Is Nothing Then
+    WScript.Echo "ERROR=NO_ACTIVE_STUDY"
+    WScript.Quit 3
+End If
+OriginalName = CStr(StudyDoc.StudyName)
+WScript.Echo "ORIGINAL_STUDY=" & OriginalName
+If LCase(Replace(OriginalName, ".sdy", "")) <> LCase("{expected_base}") Then
+    WScript.Echo "ERROR=ACTIVE_STUDY_MISMATCH:expected={expected}:actual=" & OriginalName
+    WScript.Quit 4
+End If
+
+Set Project = Synergy.Project()
+Set BeforeNames = CreateObject("Scripting.Dictionary")
+Name = Project.GetFirstStudyName()
+Do While Name <> ""
+    BeforeNames.Add LCase(CStr(Name)), True
+    Name = Project.GetNextStudyName(Name)
+Loop
+
+Err.Clear
+DuplicateOK = Project.DuplicateStudyByName2("{expected_base}", True)
+WScript.Echo "DUPLICATE_OK=" & CStr(DuplicateOK)
+WScript.Echo "DUPLICATE_ERROR=" & CStr(Err.Number) & ":" & Err.Description
+If Not DuplicateOK Or Err.Number <> 0 Then WScript.Quit 5
+
+NewName = ""
+Name = Project.GetFirstStudyName()
+Do While Name <> ""
+    If Not BeforeNames.Exists(LCase(CStr(Name))) Then NewName = CStr(Name)
+    Name = Project.GetNextStudyName(Name)
+Loop
+If NewName = "" Then
+    WScript.Echo "ERROR=DUPLICATE_NAME_NOT_FOUND"
+    WScript.Quit 6
+End If
+WScript.Echo "COPY_STUDY=" & NewName
+
+Err.Clear
+OpenOK = Project.OpenItemByName(NewName, "Study")
+WScript.Echo "COPY_OPEN_OK=" & CStr(OpenOK)
+WScript.Echo "COPY_OPEN_ERROR=" & CStr(Err.Number) & ":" & Err.Description
+If Not OpenOK Or Err.Number <> 0 Then WScript.Quit 7
+
+Set StudyDoc = Synergy.StudyDoc()
+WScript.Echo "ACTIVE_AFTER_OPEN=" & CStr(StudyDoc.StudyName)
+If LCase(Replace(CStr(StudyDoc.StudyName), ".sdy", "")) <> LCase(NewName) Then
+    WScript.Echo "ERROR=COPY_NOT_ACTIVE"
+    WScript.Quit 8
+End If
+
+Set MeshEditor = Synergy.MeshEditor()
+Err.Clear
+RemovedCount = MeshEditor.AutoFix()
+WScript.Echo "AUTOFIX_REMOVED=" & CStr(RemovedCount)
+WScript.Echo "AUTOFIX_ERROR=" & CStr(Err.Number) & ":" & Err.Description
+If Err.Number <> 0 Then WScript.Quit 9
+
+Err.Clear
+SaveOK = StudyDoc.Save()
+WScript.Echo "COPY_SAVE_OK=" & CStr(SaveOK)
+WScript.Echo "COPY_SAVE_ERROR=" & CStr(Err.Number) & ":" & Err.Description
+If Not SaveOK Or Err.Number <> 0 Then WScript.Quit 10
+
+WScript.Echo "ORIGINAL_MODIFIED=false"
+WScript.Echo "ANALYSIS_STARTED=false"
+'''
+    result = _run_vbs_code(vbs, timeout_sec=max(30, min(int(timeout_sec), 300)))
+    parsed: dict[str, Any] = {}
+    for line in str(result.get("stdout") or "").splitlines():
+        if "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        parsed[key.strip().lower()] = value.strip()
+    result["operation"] = parsed
+    result["copy_only"] = True
+    result["analysis_started"] = False
     return json.dumps(result, ensure_ascii=False, indent=2)
 
 

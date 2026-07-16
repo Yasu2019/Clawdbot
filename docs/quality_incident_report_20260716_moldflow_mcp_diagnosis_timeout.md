@@ -127,3 +127,32 @@ No paywall, login bypass, bulk download, or restricted source was used.
 
 Implement and run one copy-only `MeshEditor.AutoFix()` trial against a newly
 duplicated `moldflow_study`, with no analysis and with the original preserved.
+
+## First copy-only trial result
+
+The first trial was executed after explicit user approval.
+
+- Original active study verification passed: `moldflow_study.sdy`.
+- `DuplicateStudyByName2` succeeded.
+- New project item: `Moldflow_study (copy 2)`.
+- The new copy opened successfully.
+- `StudyDoc.StudyName` represented the same copy as
+  `moldflow_study_(copy_2).sdy`.
+- The fail-closed copy identity comparison rejected the formatting difference
+  and exited with code 8 before calling `MeshEditor.AutoFix()`.
+- No analysis was started.
+- No AutoFix or save operation was performed by the trial.
+
+### Root cause
+
+Project item names preserve spaces and display parentheses, while SDY filenames
+normalize those characters to underscores. The first implementation compared
+only case and the `.sdy` extension.
+
+### Countermeasure requiring confirmation
+
+Normalize both names by removing `.sdy` and all non-alphanumeric characters
+before comparison. Accept the copy only when the normalized values are exactly
+equal and the copy name was absent from the pre-duplication study list. Then
+retry `AutoFix()` once on the already-created copy, without creating another
+duplicate.

@@ -78,6 +78,7 @@ class MoldflowMcpContractTests(unittest.TestCase):
             "moldflow_probe_com",
             "moldflow_inspect_state",
             "moldflow_inspect_active_study",
+            "moldflow_autofix_active_study_copy",
             "moldflow_inspect_members",
             "moldflow_readiness_gate",
             "moldflow_new_study",
