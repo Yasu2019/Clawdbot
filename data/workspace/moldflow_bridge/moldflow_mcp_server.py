@@ -324,7 +324,9 @@ Next
 
 @mcp.tool()
 def moldflow_autofix_active_study_copy(
-    expected_study_name: str = "moldflow_study.sdy", timeout_sec: int = 180
+    expected_study_name: str = "moldflow_study.sdy",
+    reuse_active_copy: bool = False,
+    timeout_sec: int = 180,
 ) -> str:
     """Duplicate the expected active study, AutoFix only the copy, and save it."""
     if not _write_operations_enabled():
@@ -337,9 +339,23 @@ def moldflow_autofix_active_study_copy(
             indent=2,
         )
     expected_base = re.sub(r"(?i)\.sdy$", "", expected)
+    expected_canonical = re.sub(r"[^a-z0-9]", "", expected_base.lower())
+    reuse_vbs = "True" if reuse_active_copy else "False"
     vbs = f'''Option Explicit
 Dim Synergy, Project, StudyDoc, MeshEditor, BeforeNames, Name, NewName
 Dim DuplicateOK, OpenOK, RemovedCount, SaveOK, OriginalName
+Dim ReuseActiveCopy
+
+Function CanonicalName(Value)
+    Dim Regex
+    Set Regex = New RegExp
+    Regex.Global = True
+    Regex.IgnoreCase = True
+    Regex.Pattern = "[^a-z0-9]"
+    CanonicalName = LCase(Regex.Replace(Replace(CStr(Value), ".sdy", ""), ""))
+End Function
+
+ReuseActiveCopy = {reuse_vbs}
 
 On Error Resume Next
 Set Synergy = CreateObject("synergy.Synergy")
@@ -355,12 +371,16 @@ If StudyDoc Is Nothing Then
 End If
 OriginalName = CStr(StudyDoc.StudyName)
 WScript.Echo "ORIGINAL_STUDY=" & OriginalName
-If LCase(Replace(OriginalName, ".sdy", "")) <> LCase("{expected_base}") Then
+If CanonicalName(OriginalName) <> "{expected_canonical}" Then
     WScript.Echo "ERROR=ACTIVE_STUDY_MISMATCH:expected={expected}:actual=" & OriginalName
     WScript.Quit 4
 End If
 
 Set Project = Synergy.Project()
+If ReuseActiveCopy Then
+    NewName = OriginalName
+    WScript.Echo "REUSED_ACTIVE_COPY=true"
+Else
 Set BeforeNames = CreateObject("Scripting.Dictionary")
 Name = Project.GetFirstStudyName()
 Do While Name <> ""
@@ -394,9 +414,10 @@ If Not OpenOK Or Err.Number <> 0 Then WScript.Quit 7
 
 Set StudyDoc = Synergy.StudyDoc()
 WScript.Echo "ACTIVE_AFTER_OPEN=" & CStr(StudyDoc.StudyName)
-If LCase(Replace(CStr(StudyDoc.StudyName), ".sdy", "")) <> LCase(NewName) Then
+If CanonicalName(CStr(StudyDoc.StudyName)) <> CanonicalName(NewName) Then
     WScript.Echo "ERROR=COPY_NOT_ACTIVE"
     WScript.Quit 8
+End If
 End If
 
 Set MeshEditor = Synergy.MeshEditor()
@@ -412,7 +433,7 @@ WScript.Echo "COPY_SAVE_OK=" & CStr(SaveOK)
 WScript.Echo "COPY_SAVE_ERROR=" & CStr(Err.Number) & ":" & Err.Description
 If Not SaveOK Or Err.Number <> 0 Then WScript.Quit 10
 
-WScript.Echo "ORIGINAL_MODIFIED=false"
+WScript.Echo "TARGET_COPY_MODIFIED=true"
 WScript.Echo "ANALYSIS_STARTED=false"
 '''
     result = _run_vbs_code(vbs, timeout_sec=max(30, min(int(timeout_sec), 300)))

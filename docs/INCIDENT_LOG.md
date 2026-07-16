@@ -2346,3 +2346,16 @@ Goal: press_* trial --> NORMAL TERMINATION + KPI
 | **Lessons / Prevention** | Use the documented UDM/NDBC route, never an invented getter. Verify the live response after deployment; file-hash equality alone does not prove the running server was replaced. |
 
 ---
+
+# INC-150: Moldflow copy-only AutoFix initially rejected the correct duplicate name
+
+| Field | Detail |
+|---|---|
+| **Date / Detection** | 2026-07-16 JST. The first copy-only AutoFix trial duplicated and opened `Moldflow_study (copy 2)`, but failed closed because `StudyDoc.StudyName` returned `moldflow_study_(copy_2).sdy`. |
+| **Impact** | The first repair call did not run. The original and duplicate meshes were unchanged during the failed trial. |
+| **Root Cause (5 Why)** | Project item names retain spaces and parentheses, while SDY filenames normalize them to underscores. The identity gate compared only case and the `.sdy` suffix. The API behavior was not captured by the initial contract test. |
+| **Fix** | Canonicalized both names by removing `.sdy` and all non-alphanumeric characters. Added an explicit `reuse_active_copy` path so the existing duplicate could be repaired without creating another copy. |
+| **Verification** | Five local tests passed. Remote SHA-256 matched. The retry verified `moldflow_study_(copy_2).sdy`, executed `MeshEditor.AutoFix()` once, returned 580 removed overlaps/intersections, and saved successfully. `analysis_started=false`. |
+| **Lessons / Prevention** | Treat project display names and SDY filenames as separate representations. All write tools must verify canonical identity and fail before mutation on mismatch. Remaining mesh quality is not proven because post-repair `GetMeshSummary` still timed out. |
+
+---

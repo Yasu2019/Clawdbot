@@ -156,3 +156,18 @@ before comparison. Accept the copy only when the normalized values are exactly
 equal and the copy name was absent from the pre-duplication study list. Then
 retry `AutoFix()` once on the already-created copy, without creating another
 duplicate.
+
+## Approved retry result
+
+- The user approved the canonical-name fix and retry.
+- The active target was verified as `moldflow_study_(copy_2).sdy`.
+- No additional study was duplicated.
+- `MeshEditor.AutoFix()` completed in about 73 seconds.
+- Return value: `580` overlaps/intersections removed.
+- `StudyDoc.Save()` returned `True`.
+- Analysis was not started.
+- A post-repair `GetMeshSummary(False)` check still exceeded 180 seconds.
+
+The repair call and save are proven. The remaining overlap/intersection count is
+not proven through MCP and must be checked independently in the Moldflow Mesh
+Statistics UI before analysis.
