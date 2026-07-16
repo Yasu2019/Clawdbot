@@ -524,26 +524,37 @@ If (StudyDoc is Nothing) Then
 End If
 
 Set ImportOpts = Synergy.ImportOptions()
-StudyDoc.AddFile "{vbs_cad_path}", ImportOpts
-
-' Trigger Mesh Generation
-Set MeshGenerator = Synergy.MeshGenerator()
-If Not (MeshGenerator is Nothing) Then
-    ' Global mesh edge length setting (if method exists, otherwise default is used)
-    On Error Resume Next
-    MeshGenerator.SetGlobalEdgeLength {mesh_size_mm}
-    On Error GoTo 0
-    
-    WScript.Echo "Meshing in progress..."
-    MeshGenerator.Generate
-Else
-    WScript.Echo "MeshGenerator object not available, skipping auto-mesh."
+If Not StudyDoc.AddFile("{vbs_cad_path}", ImportOpts) Then
+    WScript.Echo "[NG] STL import failed."
+    WScript.Quit 2
 End If
 
-StudyDoc.Save
-WScript.Echo "[OK] Study created and meshed successfully."
+' Configure the documented Moldflow 2010 mesh generator, then mesh through
+' StudyDoc.MeshNow(False) so the completion dialog is suppressed.
+Set MeshGenerator = Synergy.MeshGenerator()
+If Not (MeshGenerator is Nothing) Then
+    MeshGenerator.EdgeLength = {mesh_size_mm}
+    MeshGenerator.MergeTolerance = 0.1
+    MeshGenerator.Match = True
+    MeshGenerator.Smoothing = True
+    MeshGenerator.ElementReduction = False
+    MeshGenerator.SurfaceOptimization = True
+    MeshGenerator.PostMeshActions = True
+    MeshGenerator.RemeshAll = False
+    MeshGenerator.UseActiveLayer = False
+    MeshGenerator.SaveOptions
+    WScript.Echo "MESH_STARTED=true"
+    StudyDoc.MeshNow False
+Else
+    WScript.Echo "[NG] MeshGenerator object not available."
+    WScript.Quit 3
+End If
+
+WScript.Echo "MESH_STATUS=" & CStr(StudyDoc.MeshStatus())
+WScript.Echo "SAVE_OK=" & CStr(StudyDoc.Save())
+WScript.Echo "ANALYSIS_STARTED=false"
 '''
-    res = _run_vbs_code(vbs, timeout_sec=90)
+    res = _run_vbs_code(vbs, timeout_sec=300)
     sdy_file = work_dir / f"{study_name}.sdy"
     res["study_path"] = str(sdy_file)
     res["study_exists"] = sdy_file.exists()
