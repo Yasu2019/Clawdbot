@@ -24,7 +24,7 @@ from typing import Any
 from mcp.server.fastmcp import FastMCP
 from mcp.server.transport_security import TransportSecuritySettings
 
-BRIDGE_VERSION = "0.3.0"
+BRIDGE_VERSION = "0.4.0"
 PROG_IDS = ("synergy.Synergy", "Synergy.Synergy", "synergy.Synergy.2010")
 ROOT = Path(__file__).resolve().parent
 PROBE_SCRIPT = ROOT / "check_synergy_com.vbs"
@@ -81,8 +81,12 @@ def _cscript_path(bitness: int = 32) -> Path:
     return windows / folder / "cscript.exe"
 
 
-def _run_vbs_code(vbs_code: str, timeout_sec: int = 45) -> dict[str, Any]:
+def _run_vbs_code(
+    vbs_code: str, timeout_sec: int = 45, bitness: int = 32
+) -> dict[str, Any]:
     """Write temporary VBScript code and run it via 32-bit cscript.exe."""
+    if bitness not in (32, 64):
+        return {"ok": False, "error": "bitness must be 32 or 64"}
     temp_parent = DEFAULT_WORK_ROOT / "temp"
     temp_parent.mkdir(parents=True, exist_ok=True)
     try:
@@ -90,7 +94,7 @@ def _run_vbs_code(vbs_code: str, timeout_sec: int = 45) -> dict[str, Any]:
             temp_vbs = Path(temp_dir) / "macro.vbs"
             # Moldflow 2010 cscript requires an ANSI-compatible script.
             temp_vbs.write_text(vbs_code, encoding="mbcs")
-            cscript = _cscript_path(32)
+            cscript = _cscript_path(bitness)
             result = _run([str(cscript), "//nologo", str(temp_vbs)], timeout_sec)
             stderr = str(result.get("stderr") or "")
             if "Microsoft VBScript" in stderr:
@@ -446,6 +450,188 @@ WScript.Echo "ANALYSIS_STARTED=false"
     result["operation"] = parsed
     result["copy_only"] = True
     result["analysis_started"] = False
+    return json.dumps(result, ensure_ascii=False, indent=2)
+
+
+@mcp.tool()
+def moldflow_mesh_active_study_copy(
+    expected_study_name: str,
+    mesh_size_mm: float = 3.0,
+    timeout_sec: int = 300,
+) -> str:
+    """Generate a Fusion mesh only when the expected copy is active."""
+    if not _write_operations_enabled():
+        return _write_operation_blocked()
+    expected = str(expected_study_name or "").strip()
+    if not expected or any(char in expected for char in ('"', "\r", "\n")):
+        return json.dumps({"ok": False, "error": "expected_study_name is invalid"})
+    try:
+        mesh_size = float(mesh_size_mm)
+    except (TypeError, ValueError):
+        return json.dumps({"ok": False, "error": "mesh_size_mm must be numeric"})
+    if not 0.01 <= mesh_size <= 1000.0:
+        return json.dumps({"ok": False, "error": "mesh_size_mm must be between 0.01 and 1000"})
+    expected_base = re.sub(r"(?i)\.sdy$", "", expected)
+    expected_canonical = re.sub(r"[^a-z0-9]", "", expected_base.lower())
+    vbs = f'''Option Explicit
+Dim Synergy, StudyDoc, MeshGenerator, Ent, NodeCount, TriCount, SaveOK, Attempt
+
+Function CanonicalName(Value)
+    Dim Regex
+    Set Regex = New RegExp
+    Regex.Global = True
+    Regex.IgnoreCase = True
+    Regex.Pattern = "[^a-z0-9]"
+    CanonicalName = LCase(Regex.Replace(Replace(CStr(Value), ".sdy", ""), ""))
+End Function
+
+On Error Resume Next
+Set Synergy = GetObject(, "synergy.Synergy")
+If Synergy Is Nothing Then
+    For Attempt = 1 To 3
+        Err.Clear
+        Set Synergy = CreateObject("synergy.Synergy")
+        If Not Synergy Is Nothing Then Exit For
+        WScript.Sleep 2000
+    Next
+End If
+If Synergy Is Nothing Then WScript.Echo "ERROR=CREATEOBJECT_FAILED_AFTER_3_ATTEMPTS:" & Err.Number & ":" & Err.Description: WScript.Quit 2
+Set StudyDoc = Synergy.StudyDoc()
+If StudyDoc Is Nothing Then WScript.Echo "ERROR=NO_ACTIVE_STUDY": WScript.Quit 3
+WScript.Echo "ACTIVE_STUDY=" & CStr(StudyDoc.StudyName)
+If CanonicalName(StudyDoc.StudyName) <> "{expected_canonical}" Then
+    WScript.Echo "ERROR=ACTIVE_STUDY_MISMATCH:expected={expected}:actual=" & CStr(StudyDoc.StudyName)
+    WScript.Quit 4
+End If
+
+Set MeshGenerator = Synergy.MeshGenerator()
+If MeshGenerator Is Nothing Then WScript.Echo "ERROR=MESH_GENERATOR_UNAVAILABLE": WScript.Quit 5
+MeshGenerator.EdgeLength = {mesh_size}
+MeshGenerator.MergeTolerance = 0.1
+MeshGenerator.Match = True
+MeshGenerator.Smoothing = True
+MeshGenerator.ElementReduction = False
+MeshGenerator.SurfaceOptimization = True
+MeshGenerator.PostMeshActions = True
+MeshGenerator.RemeshAll = False
+MeshGenerator.UseActiveLayer = False
+MeshGenerator.SaveOptions
+If Err.Number <> 0 Then WScript.Echo "ERROR=MESH_OPTIONS:" & Err.Number & ":" & Err.Description: WScript.Quit 6
+
+Err.Clear
+StudyDoc.MeshNow False
+WScript.Echo "MESH_NOW_ERROR=" & CStr(Err.Number) & ":" & Err.Description
+If Err.Number <> 0 Then WScript.Quit 7
+
+NodeCount = 0
+Set Ent = StudyDoc.GetFirstNode()
+Do While Not Ent Is Nothing
+    NodeCount = NodeCount + 1
+    Set Ent = StudyDoc.GetNextNode(Ent)
+Loop
+TriCount = 0
+Set Ent = StudyDoc.GetFirstTriangle()
+Do While Not Ent Is Nothing
+    TriCount = TriCount + 1
+    Set Ent = StudyDoc.GetNextTriangle(Ent)
+Loop
+WScript.Echo "MESH_STATUS=" & CStr(StudyDoc.MeshStatus())
+WScript.Echo "NODE_COUNT=" & CStr(NodeCount)
+WScript.Echo "TRI_COUNT=" & CStr(TriCount)
+If NodeCount = 0 Or TriCount = 0 Then WScript.Echo "ERROR=EMPTY_MESH": WScript.Quit 8
+SaveOK = StudyDoc.Save()
+WScript.Echo "SAVE_OK=" & CStr(SaveOK)
+If Not SaveOK Then WScript.Quit 9
+WScript.Echo "TARGET_COPY_MODIFIED=true"
+WScript.Echo "ANALYSIS_STARTED=false"
+'''
+    result = _run_vbs_code(
+        vbs,
+        timeout_sec=max(30, min(int(timeout_sec), 300)),
+        bitness=64,
+    )
+    result["copy_only"] = True
+    result["analysis_started"] = False
+    result["mesh_size_mm"] = mesh_size
+    return json.dumps(result, ensure_ascii=False, indent=2)
+
+
+@mcp.tool()
+def moldflow_set_gate_active_study_copy(
+    expected_study_name: str,
+    injection_node_id: int,
+    timeout_sec: int = 60,
+) -> str:
+    """Create one injection-location NDBC on an explicit node of the active copy."""
+    if not _write_operations_enabled():
+        return _write_operation_blocked()
+    expected = str(expected_study_name or "").strip()
+    if not expected or any(char in expected for char in ('"', "\r", "\n")):
+        return json.dumps({"ok": False, "error": "expected_study_name is invalid"})
+    try:
+        node_id = int(injection_node_id)
+    except (TypeError, ValueError):
+        return json.dumps({"ok": False, "error": "injection_node_id must be an integer"})
+    if node_id <= 0:
+        return json.dumps({"ok": False, "error": "injection_node_id must be positive"})
+    expected_base = re.sub(r"(?i)\.sdy$", "", expected)
+    expected_canonical = re.sub(r"[^a-z0-9]", "", expected_base.lower())
+    vbs = f'''Option Explicit
+Dim Synergy, StudyDoc, SelectList, Node, NormalVector, BoundaryConditions, Inject, SaveOK, Attempt
+
+Function CanonicalName(Value)
+    Dim Regex
+    Set Regex = New RegExp
+    Regex.Global = True
+    Regex.IgnoreCase = True
+    Regex.Pattern = "[^a-z0-9]"
+    CanonicalName = LCase(Regex.Replace(Replace(CStr(Value), ".sdy", ""), ""))
+End Function
+
+On Error Resume Next
+Set Synergy = GetObject(, "synergy.Synergy")
+If Synergy Is Nothing Then
+    For Attempt = 1 To 3
+        Err.Clear
+        Set Synergy = CreateObject("synergy.Synergy")
+        If Not Synergy Is Nothing Then Exit For
+        WScript.Sleep 2000
+    Next
+End If
+If Synergy Is Nothing Then WScript.Echo "ERROR=CREATEOBJECT_FAILED_AFTER_3_ATTEMPTS:" & Err.Number & ":" & Err.Description: WScript.Quit 2
+Set StudyDoc = Synergy.StudyDoc()
+If StudyDoc Is Nothing Then WScript.Echo "ERROR=NO_ACTIVE_STUDY": WScript.Quit 3
+WScript.Echo "ACTIVE_STUDY=" & CStr(StudyDoc.StudyName)
+If CanonicalName(StudyDoc.StudyName) <> "{expected_canonical}" Then
+    WScript.Echo "ERROR=ACTIVE_STUDY_MISMATCH:expected={expected}:actual=" & CStr(StudyDoc.StudyName)
+    WScript.Quit 4
+End If
+If CStr(StudyDoc.MeshStatus()) = "Failed" Then WScript.Echo "ERROR=MESH_NOT_READY": WScript.Quit 5
+
+Set SelectList = StudyDoc.CreateEntityList()
+SelectList.Add "N{node_id}"
+If SelectList.Size = 0 Then WScript.Echo "ERROR=NODE_NOT_FOUND:N{node_id}": WScript.Quit 6
+Set Node = SelectList.Entity(0)
+Set NormalVector = Synergy.CreateVector()
+NormalVector.SetXYZ 0, 0, 1
+Set BoundaryConditions = Synergy.BoundaryConditions()
+Set Inject = BoundaryConditions.CreateNDBC(Node, NormalVector, 40000, Nothing)
+If Inject Is Nothing Or Err.Number <> 0 Then WScript.Echo "ERROR=GATE_CREATE_FAILED:" & Err.Number & ":" & Err.Description: WScript.Quit 7
+SaveOK = StudyDoc.Save()
+WScript.Echo "SAVE_OK=" & CStr(SaveOK)
+If Not SaveOK Then WScript.Quit 8
+WScript.Echo "GATE_NODE_ID={node_id}"
+WScript.Echo "TARGET_COPY_MODIFIED=true"
+WScript.Echo "ANALYSIS_STARTED=false"
+'''
+    result = _run_vbs_code(
+        vbs,
+        timeout_sec=max(30, min(int(timeout_sec), 120)),
+        bitness=64,
+    )
+    result["copy_only"] = True
+    result["analysis_started"] = False
+    result["injection_node_id"] = node_id
     return json.dumps(result, ensure_ascii=False, indent=2)
 
 

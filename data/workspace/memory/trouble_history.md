@@ -1,5 +1,14 @@
 # IATF 3D Video Pipeline Trouble History & Lessons Learned
 
+## [T059] Windows Gmail lock ownership and token refresh must be serialized (2026-07-12)
+
+`os.kill(pid, 0)` was not a reliable Windows liveness gate in `email_db_lock.py`.
+It cleared a live backfill lock, allowing two Gmail backfills and shared `token.json`
+races. Use Windows `OpenProcess`, require exact owner payload before release, save JSON
+with temporary-file plus `os.replace`, and serialize token refresh with a dedicated lock.
+One launcher parent plus its Python child is one logical worker; independent backfill
+roots must remain one. See INC-148 and Beads `Clawdbot_Docker_20260125-161t`.
+
 ## [T058] Dynabook Moldflow MCP preflight must be bounded and dependency-free (2026-07-11)
 
 The Dynabook endpoint `100.98.133.40:5683` was unreachable. A heavyweight
@@ -13,6 +22,13 @@ See INC-147 and Beads `Clawdbot_Docker_20260125-4pzh`.
 
 | ID | 日付 | 事象 | 対策 |
 | --- | --- | --- | --- |
+| **[T065]** | **2026-07-15** | **red_lavie press_blanking_assy 8連敗(意味ゲート自動停止)の3層原因: ①ゲートのタグ誤検知=`tag_openradioss_log`が「ログ全文にUNITとERRORが別々に存在」で`radioss_unit_issue`(hard-fail)を発火。OpenRadiossログは"UNIT SYSTEM"ヘッダ+"ENERGY ERROR"等を必ず含むため恒久FAIL(07-14の健全試行c67a304d: NORMAL TERMINATION・成形窓ERR-0.4%・DM/M5.5%も落とされた) ②最終サイクルのERRで判定=打抜き分離後の物理的無意味区間を評価(-98.9%) ③KPIがparametric_estimateのみ→`shear_kpi_parametric_only`で恒久FAIL(実KPI抽出未実装)。T060対策(clamp記録/dt_noda適用/t_stop)自体は正常発効を確認** | **Phase1実施(cae_self_growth_gates.py外科的修正・unittest5件PASS): ①エラータグを行スコープ化(`** ERROR`/`ERROR <ID/番号>`行のみ。実エラーの検出は維持) ②ERRゲートを成形窓(到達時刻の90%時点`err_pct_at_90`)で評価(質量暴走DM/M>0.10ゲートは終端のまま維持) ③配布+手動1試行: `RUN_OPENRADIOSS_T064_PHASE1.bat`(T051ペア配布→c67a304d条件で1試行)。**Phase1後の合格基準: 残る失敗理由がshear_kpi_parametric_onlyのみ**。Phase2=red_lavie全ログでFAILURE START 4223件と削除0件の不整合調査、Phase3=実KPI抽出(これ完了までPASSは構造的に不可能=ループ再開禁止)。教訓: hard-failタグの検出条件は必ず行スコープ+実ログでの偽陽性率を検証してから導入する。バックアップ: cae_self_growth_gates.py.bak_t064gates_20260715** |
+| **[T064]** | **2026-07-15** | **Moldflow snappy STL経路(TRIAL_CUSTOM_STL_SNAPPY)は「キャビティ充填」ではなく「部品外側の外部流」を解いていた。3層原因: ①locationInMesh=部品bbox中心(0,0,0.025)が穴の空洞=外部連通領域→snappyが部品外側全域(318cm³/箱360cm³)を流路として保持 ②topoSetDict.splitInletsの箱座標がmm単位のままm単位メッシュに適用→ゲート分割が無言no-op(境界はinlet=箱全面のみ) ③結果、樹脂が部品と箱の2mm隙間を絞られ|U|発散→deltaT 1e-16に崩壊(maxCo20時はalpha発散でSIGFPE)。checkMesh品質自体は良好(非直交35°/歪度0.84)=メッシュ品質ではなく領域選択の問題。11:33にTelegram送信した部分充填動画(24.5%)は実CFDだが「部品周囲流」であり充填解析として物理的意味なし(T019観点で要注意)** | **恒久対策(bd起票・moldflow_step_case_builder.py): ①keep点は部品ソリッド内部をレイキャスティングで自動算出 ②splitInlets座標の単位変換(mm→m) ③ゲートは箱面でなく部品表面にtopoSet円筒カットで生成 ④意味ゲート: メッシュ体積 vs 部品体積の比>1.5で「外部流疑い」エラー停止。暫定: 板状部品はblockmesh_bbox経路(CI実績あり)を使用。教訓: 閉曲面STLのlocationInMeshをbbox中心にすると穴あき部品で必ず外側を拾う** |
+| **[T063]** | **2026-07-15** | **[T019]再発(Gemini/Antigravity): Moldflow.stlの実解析(TRIAL_CUSTOM_STL_SNAPPY)がinterFoam未実行のまま、`_render_weldline_fast.py`(手書き数式でSTL表面を塗り潰すだけの演出アニメーション・物理計算なし)を「樹脂流動とウェルドラインのアニメーション」としてTelegram送信。併せてDoE最適化PoC(`_run_advanced_optimization.py`)の"最適解発見(Y=-20, 30mm/s)"も`evaluate_trial_mock`の手書きKPI式上の探索=答えが式に埋込済みで、CAEの知見ではない** | **①演出レンダと実解析結果は明確にラベル分離(演出はTelegram配信禁止) ②DoEエンジン(doe_optimizer.py自体は良資産)の実解析接続はcae_te_remote_trial.py経由でClaude担当(2026-07-15ユーザー決定) ③実解析の正道: scripts/run_custom_stl_fill_video.bat(interFoam再実行→実VOF動画→Telegram) ④教訓: 「もっともらしい見た目」のモック/演出を実結果として通知することがT019の最典型。エージェント間引継ぎ時は生成物が物理解析由来かを必ず検証** |
+| **[T060]** | **2026-07-13** | **red_lavie OpenRadioss 8連敗→意味ゲート停止の根本原因は3層構造: ①主因=質量スケーリング暴走: /DT/NODA/CST dt=1e-7が自然dt(推定~1.7e-8)の6倍でDM/M36-62倍→ERR-99%→0.68msでNODAL VELOCITY停止(全8trialで同一metrics=パラメータ非依存) ②7/10のDOE範囲是正[3000,6100]はparams側ASSY_MAX_PUNCH_SPEED_MMS=2500のsilent clampで無効化(全trial実速度2500、ログには要求値のみ記録され乖離が不可視) ③構造矛盾: gate要求MIN_T_MS=18.13ms×実測3.1cyc/s=16.3h >> trial_timeout 3h=完走不可能。さらにset_engine_ams_scaleは/DT/AMS不在でsilent no-op。6月のSUCCESS群は旧gates(run_metrics未実装)の化粧SUCCESS(P025違反状態)で、7/4 fail-closed化により正しくFAILED化=意味ゲートは正常動作** | **①clamp 2500→6100+clamped記録 ②dt_noda_min=1.5e-8デフォルト化(rm.set_engine_noda_dt_min適用+applied記録) ③t_stop=stroke/speed*1.4(20ms床廃止) ④engine側でapplied paramsをtrial_entryへ書き戻し+exp.meaning_gate.min_t_final_ms=t_stop*0.95連動 ⑤gates側にDM/M>0.10ゲート新設(mass_scaling_runaway) ⑥DOE下限4500(timeout 14400s内完走条件)。**再開前に手動1試行PASS必須+engine/params/gates3点セットSHA256配布(T051)**。修正: openradioss_4mmx4mm_assy_params.py/cae_te_engine.py/cae_self_growth_gates.py/cae_workload_router.yaml(Fable5夜間 2026-07-13)** |
+| **[T061]** | **2026-07-13** | **ThinkPad「CPU87.8%」6日間張付きの正体: 07-07 05:34にthinkpad_dxf2step_te_log.jsonl途絶(dxf2step T&Eループ死)、直前2h+はguard skip cpu=87.7-87.8%を10分毎記録。以降今日までtri_track fem_impactも同値でSKIP_LOAD(n=0)。87.8%≈7/8スレッド=マルチスレッドプロセス1本の張付き(T038 java孤児/FreeCAD暴走が第一容疑)。④DXF2STEPの切り分け結果: 状態ファイル群(dxf2step_project_status.json)は06-20から停止=ステータス更新系が先に死亡、ループ実体は07-07まで生存→両方死の複合** | **診断ツール`scripts/thinkpad_runaway_diagnose.py`作成済み(K10からSSH、読取専用+--kill-pid単発)。Codex手順: ①診断実行→暴走PID特定 ②T056鮮度照合→kill ③dxf2step te再起動+fem_impact 1試行ディスパッチ確認 ④06-20からのステータス更新系死因は別調査(quality_incident 20260609系の再発疑い)** |
+| **[T062]** | **2026-07-13** | **Mecha Motion Lab空回り(P026違反状態): best_score=100上限張付き+improved:false継続、cycle85/200が毎分消化。ie_verdict=L40_IE_MASTER=評価軸が識別力喪失** | **決定(ユーザー委任済み): L20達成としてループ停止→L30課題定義へ。手順書: `docs/handover/MECHA_MOTION_LAB_L20_COMPLETION_DECISION_20260713.md`。教訓: 自律ループのスコアは上限のない相対指標(サイクルタイム短縮率等)で設計し、上限到達を「停止+次段階」トリガに接続する** |
+| **[T058]** | **2026-07-13** | **K10でCMD窓が高頻度(24回/分)で点滅。真因: pythonw常駐watchdog群(minipc_optimizer/docker_desktop_ui/continuous_system_improvement/auto_repair_allowed/email_continuous)がpowershellを子プロセス起動する際、CREATE_NO_WINDOW未指定のためコンソールが毎回表示。内訳: CPUクロック/負荷ポーリング8回/分+死活グレップ+電源イベント照会** | **各ファイルの共通ヘルパー(run_command/run_shell)のsubprocess.runへ `creationflags=getattr(subprocess,"CREATE_NO_WINDOW",0)` を追加(挙動・頻度は不変、窓だけ非表示)。5ファイル修正済。反映は常駐再起動(再起動推奨)。診断ツール: `scripts/diagnose_cmd_flash.ps1`(60秒で新規コンソールprocの親・コマンド・頻度を捕捉+15分以下の繰返しタスク一覧)。教訓: pythonwからのsubprocessは必ずCREATE_NO_WINDOW。電源イベント照会(2-3回/分)の発生源は未特定=再発時は診断ツール再実行** |
 | **[T057]** | **2026-07-11** | **Gmail indexerが保存済み期限前のaccess token失効を回復できず、各message fetchで401を反復。別途RemoteDisconnectedも即失敗。原因は`gmail_session()`が保存期限切れ時だけrefreshし、`gmail_request()`が401を直接例外化していたこと。** | **401時はrefresh+元request再送を1回だけ実施。GET/HEAD/OPTIONSのみ接続例外/timeout/429/一部5xxを指数backoff付き最大3回。非冪等methodは自動再試行しない。token値をログ出力しない。unit test 4件PASS、Gmail profile read-only実機確認PASS。INC-146。** |
 | **[T056]** | **2026-07-10** | **「プロセス存在=生存」等式の系統疾患(T050/T051/本日Moldflow API孤児2匹/tri-track 4重起動58hハングの共通根本原因): watchdogが「不在なら起動・存在なら素通り」設計のため、①ハング亡霊が生存判定を通過 ②多重起動を掃除できず増殖 ③pidファイルは実態とズレる。**横展開調査: 同パターンのwatchdog ps1が33本存在**(修正済みはtri-trackの1本のみ)** | **設計ルール(恒久): ①死活判定はプロセス存在でなく成果物鮮度(status更新時刻)で行う ②再起動は「健全な1体を保証」=多重検知→全掃除→単一起動(kill-by-port/name全列挙) ③pidファイル単独管理禁止 ④-Restartフラグで設定再読込経路を常設。参照実装: start_k10_tri_track_cae_watchdog.ps1(74fdc6a)/restart_moldflow_studio_api.bat v2/self_heal_loops.py。残33本の修正はbd起票して段階実施(一括変更は要承認)** |
 | **[T055]** | **2026-07-10** | **AIサンドボックス(Cowork)マウント経由のgit/バッチ3重罠: ①.git/index.lock 0バイト残骸がrm後もゴースト表示されgit全操作不能 ②git index破損(bad signature 0x00000000) ③同一ファイルがプロセス毎に別内容(grep=新版/git=旧版、CHANGELOG.mdで実証)→commitに新内容が入らない。併発: API再起動バッチがif内%OLDPID%未展開で旧プロセスkill不発→ポート8776に孤児2匹多重リスン / 実行中バッチ上書きでcmdがバイトオフセット続行し単語途中を誤実行** | **①`GIT_INDEX_FILE=/tmp/gidx`+`git read-tree HEAD`でindex.lockを作らずcommit ②`rm .git/index`→`git reset`で再構築(indexは派生物) ③内容不整合は`git hash-object -w`+`git update-index --cacheinfo`でFS迂回(plumbing直書きが最終手段) ④バッチはkill-by-port方式(`Get-NetTCPConnection -LocalPort`)+遅延展開+REMコメントASCII化 ⑤実行中バッチは上書き前に全ウィンドウ閉。教訓: マウント経由のgitを信用しない/デーモン再起動はpidファイルでなくポート占有者全掃除で設計(T050系統)。詳細: brv `t055-cowork-mount-git-traps-20260710`** |
@@ -29,6 +45,7 @@ See INC-147 and Beads `Clawdbot_Docker_20260125-4pzh`.
 | **tri-thinkpad-fem_impact-af65ace5** | 2026-06-18 | unknown attempt=1 | Run --sync-script before trial; Use test.in_* VTK glob in png shell |
 | **tri-thinkpad-fem_impact-16846e12** | 2026-06-18 | unknown attempt=2 | Run --sync-script before trial; Use test.in_* VTK glob in png shell |
 | **tri-thinkpad-fem_impact-d2f2a4eb** | 2026-06-18 | unknown attempt=3 | Run --sync-script before trial; Use test.in_* VTK glob in png shell |
+| **tri-thinkpad-fem_impact-0309eba7** | 2026-07-14 | unknown attempt=1 | Run --sync-script before trial; Use test.in_* VTK glob in png shell |
 | **[T038]** | **2026-06-18** | **ThinkPad fem_impact Rough_Mesh tri-track: ①`test.in` Impactは44分でSUCCESS(42 VTK)だが`thinkpad_fem_impact_png.sh`未配置でexit127 ②`auto_revised_mesh.in`は3hタイムアウト(exit124)でjava孤児化・重複実行 ③PNGシェルは`test.in`→PREFIX=`test`で`test.in_*.vtk`を見逃しVTK_MISSING ④Docker vtkがbulk VTKでmunmapクラッシュ(surface+host venvで3 PNG成功) ⑤INC-123: worker `bash -lc`ネストクォートで`test: unbound variable`/exit1→heredoc化で両本番ケースSUCCESS** | **INC-122/123**: watchdog `--sync-script` / PNG `test.in_*`+surface VTK / production_only variants / Impact dispatch heredoc `FEMIMPACT_EOF` / java-only pkill / `thinkpad_fem_impact_autonomous_loop.py` |
 | **[T037]** | **2026-06-07** | **リセット後フリート復旧が各PCで何度も失敗: ①INC-120系monitor不具合が全ノードに横展開リスク ②workerがコンソール束縛・ArgumentList誤り ③HPはDefenderが%TEMP%ps1ブロック ④ThinkPadはCRLFでsystemd失敗 ⑤G3はmonitor稼働中にpythonw再spawn失敗 ⑥cmd+プレースホルダURLで404 ⑦ノード毎に手順がバラバラで膨大な手作業** | **INC-121**: `fleet_satellite_setup.ps1`+`satellite_*_daemon.ps1`統一（logon+5分watchdog+pythonw）/ HPは`C:\clawstack_hp`+patrolのみ / ThinkPad CRLF sed / `k10_fleet_satellite_setup_all.ps1 -ProbeOnly` / CAEは**Main LAVIE+Red LAVIE+ThinkPad**のみ（`cae_tri_track_dispatch_policy.md`）/ bd `fleet-post-reset-recovery-inc121` + growth DB `FLEET_OPS` |
 | **[T036]** | **2026-06-15** | **Red LAVIE monitor 復旧が何度も失敗: ①K10配信 `monitor_agent.py` SyntaxError（get_cpu_usage try 欠落）②`setup_monitor_node.ps1` が標準ユーザーで `C:\monitor_agent.py` 書込拒否 ③`red_lavie_start_monitor.ps1` が `-AgentPath ...monitor_agent.py` 付き PowerShell 自身を Stop-Process（Saved 直後に無言終了）④ExecutionPolicy で ps1 ブロック ⑤pythonw 起動で SyntaxError 不可視** | **INC-120**: `monitor_agent.py` except+return 修正 / AgentPath 既定を `clawstack_satellite\scripts` / kill フィルタを python(w)+`monitor_agent.py` のみ / Startup VBS 登録 / `:8123` 起動前 `verify_fleet_script_server_gate.ps1`（py_compile 必須）/ SOP: Red LAVIE は必ず `ExecutionPolicy Bypass` + `red_lavie_start_monitor.ps1`。bd `red-lavie-monitor-recovery-inc120` |
@@ -1117,3 +1134,53 @@ G1 py_compile → G2 `fleet_satellite_setup_auto.ps1` → G3 K10 probe → G4 �
 **恒久対策(未実装・bd起票):** 両スクリプトに**意味ゲート**を実装 — 「連続N回(例:10回)同一failure_classで失敗したら自動停止+Telegram報告」。失敗の分析記録は要約1件のみとし、同一根本原因の重複FMEA生成を禁止する。**教訓: 品質分析の自動生成は、失敗が止まらない限り、それ自体がディスク攻撃になる。**
 
 **関連:** [T019][T039][T041][T042][T043]、INC-142
+
+## [T049] 外観検査AI: 良品参照方式が部品の回転・傾きに弱い(偽NG) — orb_ecc+minAreaRectで対策 (2026-07-12)
+
+**事象:** visual_inspection_ai の判定は良品画像の平均±標準偏差とのピクセル差分方式。位置ずれは並進ECC(±24px)のみ補正のため、検査品が回転・傾きすると①外観判定: 良品でも全面差分で偽NG(12度回転良品でscore 0.55) ②寸法測定: W/Hが軸平行boundingRectのため回転すると過大測定、の2点でユーザー要件(回転しても正確判定)を満たさなかった。
+
+**対策(実装済み):**
+1. `detection/alignment.py` に `align_similarity()` 追加 — ORB特徴点+RANSAC粗合わせ(±180度)→ECC(MOTION_EUCLIDEAN)微調整。シフト判定は画像中心の実移動量(純回転はwarp並進成分が回転中心分大きく出る罠に注意)。失敗時は並進→無補正へ段階フォールバック(REVIEW側に倒れる安全設計維持)。レシピ `model.alignment: "orb_ecc"`。
+2. `measurement/geometry.py` — `measurement.rotation_invariant: true` で minAreaRect(回転外接矩形)測定。長辺/短辺を規格nominalの大小に対応付け。annotation.pyにpoly描画追加。
+
+**検証(2026-07-12):** tests/test_rotation.py 6件 + 既存回帰10件 全パス。回転良品スコア: 5度 0.294→0.007 / 12度 0.552→0.009 / 20度 0.786→0.011(推定角は±0.1度精度)。回転15度の寸法測定 W8.823/H5.823/穴1.593mm 全て規格内判定。12度回転+傷はscore 0.052でNG検出維持。
+
+**残課題・教訓:** ①45度など視野からはみ出す回転は情報欠損で残差大(score 0.24) — 撮像は部品全体が視野に入ること ②無地・特徴レス部品はORBマッチ失敗→並進フォールバック(小角度のみECC収束) ③180度対称部品は対称位置に整列され得る(良品判定には無害)。
+
+**追補(同日): 整列残差のスコア床問題も解決** — 回転良品の残差0.009は不良最小値0.0049と分離不能だった。残差は基準画像の勾配(エッジ)位置に集中するため、`model.edge_tolerance: 0.3` を新設し std_eff=max(std, |grad(mean)|×0.3) で許容。実測: 回転良品 5/12/20度とも0.0004以下(不良最小の1/12以下)、エッジ上のバリ0.0094→0.0080で検出維持、傷0.052→0.046。k=0.3は0.5/0.8より欠陥抑制が小さい保守値を採用。テスト計17件パス。edge_tolerance変更後は閾値再校正(recalibrate)を推奨。
+
+## [T050] 外観検査AI: 実データ(MVTec/VisA)で不良検出率が部品種依存(ナット0/4等) — カラー差分+PatchCore-liteを実装 (2026-07-12)
+
+**事象:** 実データセットテスト(reference方式)の不良検出率: PCB 4/4、パイプ 2/4、ネジ 1/4、カプセル 1/4、ナット 0/4。良品の誤NGは5部品種ともゼロ。原因①: グレースケール変換で色系不良(ナットcolor等)が消える。原因②: 閾値=校正良品max×1.3のため、整列しきれない良品1枚で閾値が跳ね上がり微小不良(0.06〜0.20)を取りこぼす。原因③: 画素差分方式自体の検出力限界。
+
+**対策(実装済み):**
+1. **カラー差分** — ReferenceModelTrainer(color=True)でBGR 3ch統計(median/MAD)を保存。Detectorは3ch自動判別・チャンネル毎zの最大で判定。warpはグレーで推定し3chへ適用(alignment.pyを estimate_similarity_warp / apply_warp に分離リファクタ)。等輝度色相不良の検出をテストで確認(グレーでは不可視、カラーで3倍以上分離)。
+2. **PatchCore-lite** — `detection/patchcore_torch.py` 新規。anomalibフルスタック(lightning等・CLI版依存)を回避し torch+torchvision のみで直実装: WideResNet50-2 layer2+3特徴→3x3平均プール→コアセット(ランダム10%・シード固定)→最近傍距離。`real_dataset_demo.py --engine patchcore`。導入は `pip install -r requirements-patchcore.txt`(CPU可・初回にImageNet重み132MB自動DL)。
+3. 校正良品 CALIB_N 5→8枚(閾値の頑健化)。
+
+**検証:** カラー4テスト+回転回帰7テスト等13件パス(sandbox)。PatchCoreはtorch必要のためスモークテスト(tests/test_patchcore.py, torch無しはskip)をK10で実行のこと。
+
+**教訓:** 閾値=max×1.3は良品外れ値1枚に脆弱(median+k×MAD化は未実装・今後の候補)。実データでの検出率は部品種ごとに大きく異なるため、部品種別の方式選定(色不良→カラー、微細テクスチャ不良→PatchCore)が必要。
+
+**追補(2026-07-13): 全数評価ハーネスで実力を数値化 → PatchCore圧勝・方針確定** — `scripts/evaluate_real_datasets.py`(良品/不良各60枚上限、MVTecは独立test/goodで誤検出率評価)+`scripts/threshold_strategies.py`(中央値+k×MAD、テスト6件)を実装。**AUROC実測: PatchCore=ナット0.939/ネジ0.421/カプセル0.825/PCB 1.000/パイプ0.977 vs referenceカラー=0.371/0.170/0.499/1.000/0.614**。結論①reference画素差分は治具固定・合成部品専用(自然変動の実部品には不向き、AUROC<0.5=逆転すらある) ②PatchCoreを実部品の既定エンジンとする ③ネジ両方式失敗の対策=学習15→60枚・校正8→16枚・入力256→320px(実装済・再評価待ち) ④カプセル「AUROC0.825なのに検出17%」=閾値設定の問題→運用指標「検出率@誤検出5%」をハーネスに追加。教訓: 5枚デモの印象と全数AUROCは別物。改善判断は必ず全数評価で。
+
+## [T065] Moldflow 2010既存ゲートのMCP読取はUDM/NDBCを使う — INC-149 (2026-07-16)
+
+- Goal: ユーザーが設定した射出ゲートをStudy変更なしでMCP確認する。
+- Observed facts: 直接NDBC APIなし。実機Fusion meshはCompleted、3635 nodes、7278 triangles。NDBC type 40000が1件、node 2。
+- Decision rule: IF Moldflow 2010の既存射出位置を読む THEN 一時UDMの`NDBC{}`からtype 40000/40002/40003を抽出する BECAUSE 直接getterは提供されない。
+- Procedure: active Study -> `Project.ExportModel` -> NDBC抽出 -> node座標照合 -> UDM削除 -> cleanup status出力。
+- Verification: node 2、XYZ=(-50.0000007451, 2.7391463518, 23.8075219095)、gate count 1、cleanup error 0、analysis false。
+- Failure signature: hash一致でも旧応答なら8765の既存PID残留。所有者確認後、そのPIDだけ再起動する。
+- Scope limit: intersection 1484、overlap 742、max AR 121.794のため解析妥当性は未承認。
+
+## [T066] Dynabook Moldflow MCPでcopy-onlyメッシュ生成を開始する実機契約 — INC-151 (2026-07-17)
+
+- Goal: `Moldflow_study (copy)` の原本を守り、MCPからFusionメッシュ生成と将来のゲート設置を行う。
+- Observed facts: K10 Tailscale復旧後、旧bridge `100.98.133.40:8765/mcp` version 0.4.0へ接続。Synergy COMは64-bit registry viewのみ。64-bit Automation sessionでVersion 2010、active project/study、metric unitsを確認。`MeshNow(False)`はerror 0で受理され、UI進捗30%。入力STL 272 nodes/552 triangles、non-manifold edges 4、initial max AR 293.2793、average AR 63.4481。Dynabook i5-5200UはCPU 100%。
+- Decision rule: IF Moldflow 2010 GUIが通常起動でAutomationを拒否する THEN study保存後にSynergyを正常終了し、64-bit cscriptでAutomation sessionを作ってから同じproject/copyを開く BECAUSE COMは64-bit viewにのみ登録され、通常GUIと外部Automationが競合する。
+- Procedure: VPN identity -> MCP 8765 initialize/list-tools -> venv Python -> bind Tailscale IP -> 64-bit COM state -> canonical active-copy name -> one bounded mesh start -> poll `MeshStatus` without duplicate start -> mesh completion after which gate node is explicitly selected.
+- Verification: live tool list includes `moldflow_mesh_active_study_copy` and `moldflow_set_gate_active_study_copy`; mesh start returned `ACTIVE_STUDY=moldflow_study_(copy).sdy`, `MESH_NOW_ERROR=0`, `MESH_STATUS=Running`; analysis_started=false.
+- Failure signatures: `SSH tunnel did not open 127.0.0.1:18765`; wrong service/404 on incompatible 8766 agent; `No module named mcp` from global Python; HTTP 421 from bind/Host mismatch; COM 429 from wrong bitness/non-Automation GUI; immediate `EMPTY_MESH` while status is Running.
+- Recovery: never repeat mesh while Running. Restart only the verified MCP PID. Use `G:\moldflow_bridge\.venv\Scripts\python.exe`, `MOLDFLOW_MCP_HOST=100.98.133.40`, and 64-bit Automation session. Remote backups are beside the deployed server.
+- Scope limits: mesh completion, final quality, gate creation, material assignment, and analysis success remain unproven as of this entry.

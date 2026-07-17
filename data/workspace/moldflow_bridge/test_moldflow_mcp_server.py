@@ -79,6 +79,8 @@ class MoldflowMcpContractTests(unittest.TestCase):
             "moldflow_inspect_state",
             "moldflow_inspect_active_study",
             "moldflow_autofix_active_study_copy",
+            "moldflow_mesh_active_study_copy",
+            "moldflow_set_gate_active_study_copy",
             "moldflow_inspect_members",
             "moldflow_readiness_gate",
             "moldflow_new_study",
@@ -94,6 +96,16 @@ class MoldflowMcpContractTests(unittest.TestCase):
         server = _load_server()
         result = server.moldflow_new_study("blocked", "blocked", "missing.step")
         self.assertIn("write operations are disabled", result)
+
+    def test_new_copy_tools_are_fail_closed_by_default(self):
+        server = _load_server()
+        self.assertIn("write operations are disabled", server.moldflow_mesh_active_study_copy("copy.sdy"))
+        self.assertIn("write operations are disabled", server.moldflow_set_gate_active_study_copy("copy.sdy", 1))
+
+    def test_vbs_runner_rejects_invalid_bitness(self):
+        server = _load_server()
+        result = server._run_vbs_code("WScript.Quit 0", bitness=16)
+        self.assertEqual(result["error"], "bitness must be 32 or 64")
 
 
 if __name__ == "__main__":
