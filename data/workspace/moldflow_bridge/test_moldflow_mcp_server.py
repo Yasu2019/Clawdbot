@@ -80,6 +80,7 @@ class MoldflowMcpContractTests(unittest.TestCase):
             "moldflow_inspect_active_study",
             "moldflow_autofix_active_study_copy",
             "moldflow_mesh_active_study_copy",
+            "moldflow_find_gate_candidate_active_study_copy",
             "moldflow_set_gate_active_study_copy",
             "moldflow_inspect_members",
             "moldflow_readiness_gate",
@@ -101,6 +102,11 @@ class MoldflowMcpContractTests(unittest.TestCase):
         server = _load_server()
         self.assertIn("write operations are disabled", server.moldflow_mesh_active_study_copy("copy.sdy"))
         self.assertIn("write operations are disabled", server.moldflow_set_gate_active_study_copy("copy.sdy", 1))
+
+    def test_gate_candidate_rejects_invalid_study_name(self):
+        server = _load_server()
+        result = server.moldflow_find_gate_candidate_active_study_copy('bad"name')
+        self.assertIn("expected_study_name is invalid", result)
 
     def test_vbs_runner_rejects_invalid_bitness(self):
         server = _load_server()

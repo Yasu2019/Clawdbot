@@ -24,7 +24,7 @@ from typing import Any
 from mcp.server.fastmcp import FastMCP
 from mcp.server.transport_security import TransportSecuritySettings
 
-BRIDGE_VERSION = "0.4.0"
+BRIDGE_VERSION = "0.5.0"
 PROG_IDS = ("synergy.Synergy", "Synergy.Synergy", "synergy.Synergy.2010")
 ROOT = Path(__file__).resolve().parent
 PROBE_SCRIPT = ROOT / "check_synergy_com.vbs"
@@ -347,7 +347,7 @@ def moldflow_autofix_active_study_copy(
     reuse_vbs = "True" if reuse_active_copy else "False"
     vbs = f'''Option Explicit
 Dim Synergy, Project, StudyDoc, MeshEditor, BeforeNames, Name, NewName
-Dim DuplicateOK, OpenOK, RemovedCount, SaveOK, OriginalName
+Dim DuplicateOK, OpenOK, RemovedCount, SaveOK, OriginalName, SourceName
 Dim ReuseActiveCopy
 
 Function CanonicalName(Value)
@@ -386,17 +386,24 @@ If ReuseActiveCopy Then
     WScript.Echo "REUSED_ACTIVE_COPY=true"
 Else
 Set BeforeNames = CreateObject("Scripting.Dictionary")
+SourceName = ""
 Name = Project.GetFirstStudyName()
 Do While Name <> ""
     BeforeNames.Add LCase(CStr(Name)), True
+    If CanonicalName(Name) = "{expected_canonical}" Then SourceName = CStr(Name)
     Name = Project.GetNextStudyName(Name)
 Loop
+WScript.Echo "SOURCE_DISPLAY_NAME=" & SourceName
+If SourceName = "" Then
+    WScript.Echo "ERROR=SOURCE_DISPLAY_NAME_NOT_FOUND"
+    WScript.Quit 5
+End If
 
 Err.Clear
-DuplicateOK = Project.DuplicateStudyByName2("{expected_base}", True)
+DuplicateOK = Project.DuplicateStudyByName2(SourceName, True)
 WScript.Echo "DUPLICATE_OK=" & CStr(DuplicateOK)
 WScript.Echo "DUPLICATE_ERROR=" & CStr(Err.Number) & ":" & Err.Description
-If Not DuplicateOK Or Err.Number <> 0 Then WScript.Quit 5
+If Not DuplicateOK Or Err.Number <> 0 Then WScript.Quit 6
 
 NewName = ""
 Name = Project.GetFirstStudyName()
@@ -406,7 +413,7 @@ Do While Name <> ""
 Loop
 If NewName = "" Then
     WScript.Echo "ERROR=DUPLICATE_NAME_NOT_FOUND"
-    WScript.Quit 6
+    WScript.Quit 7
 End If
 WScript.Echo "COPY_STUDY=" & NewName
 
@@ -414,13 +421,13 @@ Err.Clear
 OpenOK = Project.OpenItemByName(NewName, "Study")
 WScript.Echo "COPY_OPEN_OK=" & CStr(OpenOK)
 WScript.Echo "COPY_OPEN_ERROR=" & CStr(Err.Number) & ":" & Err.Description
-If Not OpenOK Or Err.Number <> 0 Then WScript.Quit 7
+If Not OpenOK Or Err.Number <> 0 Then WScript.Quit 8
 
 Set StudyDoc = Synergy.StudyDoc()
 WScript.Echo "ACTIVE_AFTER_OPEN=" & CStr(StudyDoc.StudyName)
 If CanonicalName(CStr(StudyDoc.StudyName)) <> CanonicalName(NewName) Then
     WScript.Echo "ERROR=COPY_NOT_ACTIVE"
-    WScript.Quit 8
+    WScript.Quit 9
 End If
 End If
 
@@ -429,18 +436,22 @@ Err.Clear
 RemovedCount = MeshEditor.AutoFix()
 WScript.Echo "AUTOFIX_REMOVED=" & CStr(RemovedCount)
 WScript.Echo "AUTOFIX_ERROR=" & CStr(Err.Number) & ":" & Err.Description
-If Err.Number <> 0 Then WScript.Quit 9
+If Err.Number <> 0 Then WScript.Quit 10
 
 Err.Clear
 SaveOK = StudyDoc.Save()
 WScript.Echo "COPY_SAVE_OK=" & CStr(SaveOK)
 WScript.Echo "COPY_SAVE_ERROR=" & CStr(Err.Number) & ":" & Err.Description
-If Not SaveOK Or Err.Number <> 0 Then WScript.Quit 10
+If Not SaveOK Or Err.Number <> 0 Then WScript.Quit 11
 
 WScript.Echo "TARGET_COPY_MODIFIED=true"
 WScript.Echo "ANALYSIS_STARTED=false"
 '''
-    result = _run_vbs_code(vbs, timeout_sec=max(30, min(int(timeout_sec), 300)))
+    result = _run_vbs_code(
+        vbs,
+        timeout_sec=max(30, min(int(timeout_sec), 300)),
+        bitness=64,
+    )
     parsed: dict[str, Any] = {}
     for line in str(result.get("stdout") or "").splitlines():
         if "=" not in line:
@@ -449,6 +460,149 @@ WScript.Echo "ANALYSIS_STARTED=false"
         parsed[key.strip().lower()] = value.strip()
     result["operation"] = parsed
     result["copy_only"] = True
+    result["analysis_started"] = False
+    return json.dumps(result, ensure_ascii=False, indent=2)
+
+
+@mcp.tool()
+def moldflow_find_gate_candidate_active_study_copy(
+    expected_study_name: str,
+    use_bbox_center: bool = True,
+    target_x_mm: float = 0.0,
+    target_y_mm: float = 0.0,
+    target_z_mm: float = 0.0,
+    timeout_sec: int = 120,
+) -> str:
+    """Find the mesh node nearest a target point without modifying the study."""
+    expected = str(expected_study_name or "").strip()
+    if not expected or any(char in expected for char in ('"', "\r", "\n")):
+        return json.dumps({"ok": False, "error": "expected_study_name is invalid"})
+    expected_base = re.sub(r"(?i)\.sdy$", "", expected)
+    expected_canonical = re.sub(r"[^a-z0-9]", "", expected_base.lower())
+    bbox_flag = "True" if use_bbox_center else "False"
+    try:
+        target_x = float(target_x_mm)
+        target_y = float(target_y_mm)
+        target_z = float(target_z_mm)
+    except (TypeError, ValueError):
+        return json.dumps({"ok": False, "error": "target coordinates must be numeric"})
+    vbs = f'''Option Explicit
+Dim Synergy, StudyDoc, Ent, Coord, NodeID, BestNodeID, NodeCount
+Dim MinX, MinY, MinZ, MaxX, MaxY, MaxZ, TX, TY, TZ, DX, DY, DZ, D2, BestD2
+Dim FirstNode, UseBBoxCenter, Attempt
+
+Function CanonicalName(Value)
+    Dim Regex
+    Set Regex = New RegExp
+    Regex.Global = True
+    Regex.IgnoreCase = True
+    Regex.Pattern = "[^a-z0-9]"
+    CanonicalName = LCase(Regex.Replace(Replace(CStr(Value), ".sdy", ""), ""))
+End Function
+
+On Error Resume Next
+Set Synergy = GetObject(, "synergy.Synergy")
+If Synergy Is Nothing Then
+    For Attempt = 1 To 3
+        Err.Clear
+        Set Synergy = CreateObject("synergy.Synergy")
+        If Not Synergy Is Nothing Then Exit For
+        WScript.Sleep 2000
+    Next
+End If
+If Synergy Is Nothing Then WScript.Echo "ERROR=CREATEOBJECT_FAILED": WScript.Quit 2
+Set StudyDoc = Synergy.StudyDoc()
+If StudyDoc Is Nothing Then WScript.Echo "ERROR=NO_ACTIVE_STUDY": WScript.Quit 3
+WScript.Echo "ACTIVE_STUDY=" & CStr(StudyDoc.StudyName)
+If CanonicalName(StudyDoc.StudyName) <> "{expected_canonical}" Then
+    WScript.Echo "ERROR=ACTIVE_STUDY_MISMATCH:expected={expected}:actual=" & CStr(StudyDoc.StudyName)
+    WScript.Quit 4
+End If
+If CStr(StudyDoc.MeshStatus()) <> "Completed" Then WScript.Echo "ERROR=MESH_NOT_COMPLETED": WScript.Quit 5
+
+FirstNode = True
+NodeCount = 0
+Set Ent = StudyDoc.GetFirstNode()
+Do While Not Ent Is Nothing
+    Set Coord = StudyDoc.GetNodeCoord(Ent)
+    If Not Coord Is Nothing Then
+        If FirstNode Then
+            MinX = Coord.X: MaxX = Coord.X
+            MinY = Coord.Y: MaxY = Coord.Y
+            MinZ = Coord.Z: MaxZ = Coord.Z
+            FirstNode = False
+        Else
+            If Coord.X < MinX Then MinX = Coord.X
+            If Coord.X > MaxX Then MaxX = Coord.X
+            If Coord.Y < MinY Then MinY = Coord.Y
+            If Coord.Y > MaxY Then MaxY = Coord.Y
+            If Coord.Z < MinZ Then MinZ = Coord.Z
+            If Coord.Z > MaxZ Then MaxZ = Coord.Z
+        End If
+        NodeCount = NodeCount + 1
+    End If
+    Set Ent = StudyDoc.GetNextNode(Ent)
+Loop
+If NodeCount = 0 Then WScript.Echo "ERROR=EMPTY_MESH": WScript.Quit 6
+
+UseBBoxCenter = {bbox_flag}
+If UseBBoxCenter Then
+    TX = (MinX + MaxX) / 2
+    TY = (MinY + MaxY) / 2
+    TZ = (MinZ + MaxZ) / 2
+Else
+    TX = {target_x:.15g}
+    TY = {target_y:.15g}
+    TZ = {target_z:.15g}
+End If
+
+BestNodeID = 0
+Set Ent = StudyDoc.GetFirstNode()
+Do While Not Ent Is Nothing
+    Set Coord = StudyDoc.GetNodeCoord(Ent)
+    If Not Coord Is Nothing Then
+        DX = Coord.X - TX: DY = Coord.Y - TY: DZ = Coord.Z - TZ
+        D2 = DX * DX + DY * DY + DZ * DZ
+        If BestNodeID = 0 Or D2 < BestD2 Then
+            BestD2 = D2
+            BestNodeID = StudyDoc.GetEntityID(Ent)
+            NodeID = BestNodeID
+        End If
+    End If
+    Set Ent = StudyDoc.GetNextNode(Ent)
+Loop
+
+Set Ent = StudyDoc.GetFirstNode()
+Do While Not Ent Is Nothing
+    If CLng(StudyDoc.GetEntityID(Ent)) = CLng(BestNodeID) Then
+        Set Coord = StudyDoc.GetNodeCoord(Ent)
+        Exit Do
+    End If
+    Set Ent = StudyDoc.GetNextNode(Ent)
+Loop
+WScript.Echo "READ_ONLY=true"
+WScript.Echo "NODE_COUNT=" & CStr(NodeCount)
+WScript.Echo "BBOX_MIN=" & CStr(MinX) & "," & CStr(MinY) & "," & CStr(MinZ)
+WScript.Echo "BBOX_MAX=" & CStr(MaxX) & "," & CStr(MaxY) & "," & CStr(MaxZ)
+WScript.Echo "TARGET=" & CStr(TX) & "," & CStr(TY) & "," & CStr(TZ)
+WScript.Echo "CANDIDATE_NODE_ID=" & CStr(BestNodeID)
+WScript.Echo "CANDIDATE_COORD=" & CStr(Coord.X) & "," & CStr(Coord.Y) & "," & CStr(Coord.Z)
+WScript.Echo "DISTANCE_SQUARED=" & CStr(BestD2)
+WScript.Echo "ANALYSIS_STARTED=false"
+'''
+    result = _run_vbs_code(
+        vbs,
+        timeout_sec=max(30, min(int(timeout_sec), 180)),
+        bitness=64,
+    )
+    parsed: dict[str, Any] = {}
+    for line in str(result.get("stdout") or "").splitlines():
+        if "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        parsed[key.strip().lower()] = value.strip()
+    result["candidate"] = parsed
+    result["read_only"] = True
     result["analysis_started"] = False
     return json.dumps(result, ensure_ascii=False, indent=2)
 
