@@ -89,8 +89,8 @@ def main() -> int:
         )
         fixer.repair(joincomp=True, remove_smallest_components=False)
         repaired = trimesh.Trimesh(
-            vertices=np.asarray(fixer.v, dtype=np.float64),
-            faces=np.asarray(fixer.f, dtype=np.int64),
+            vertices=np.asarray(fixer.points, dtype=np.float64),
+            faces=np.asarray(fixer.faces, dtype=np.int64),
             process=False,
         )
         trimesh.repair.fix_normals(repaired, multibody=True)
