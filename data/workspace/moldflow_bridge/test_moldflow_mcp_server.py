@@ -78,6 +78,7 @@ class MoldflowMcpContractTests(unittest.TestCase):
             "moldflow_probe_com",
             "moldflow_inspect_state",
             "moldflow_inspect_active_study",
+            "moldflow_save_as_active_study_copy",
             "moldflow_autofix_active_study_copy",
             "moldflow_mesh_active_study_copy",
             "moldflow_find_gate_candidate_active_study_copy",
@@ -100,6 +101,10 @@ class MoldflowMcpContractTests(unittest.TestCase):
 
     def test_new_copy_tools_are_fail_closed_by_default(self):
         server = _load_server()
+        self.assertIn(
+            "write operations are disabled",
+            server.moldflow_save_as_active_study_copy("source.sdy", "copy.sdy"),
+        )
         self.assertIn("write operations are disabled", server.moldflow_mesh_active_study_copy("copy.sdy"))
         self.assertIn("write operations are disabled", server.moldflow_set_gate_active_study_copy("copy.sdy", 1))
 

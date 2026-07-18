@@ -24,7 +24,7 @@ from typing import Any
 from mcp.server.fastmcp import FastMCP
 from mcp.server.transport_security import TransportSecuritySettings
 
-BRIDGE_VERSION = "0.5.0"
+BRIDGE_VERSION = "0.5.1"
 PROG_IDS = ("synergy.Synergy", "Synergy.Synergy", "synergy.Synergy.2010")
 ROOT = Path(__file__).resolve().parent
 PROBE_SCRIPT = ROOT / "check_synergy_com.vbs"
@@ -323,6 +323,113 @@ Next
     result["read_only"] = True
     result["analysis_started"] = False
     result["study_created"] = False
+    return json.dumps(result, ensure_ascii=False, indent=2)
+
+
+@mcp.tool()
+def moldflow_save_as_active_study_copy(
+    expected_study_name: str,
+    new_study_name: str,
+    timeout_sec: int = 120,
+) -> str:
+    """Save the expected active study under a new name without starting analysis."""
+    if not _write_operations_enabled():
+        return _write_operation_blocked()
+    expected = str(expected_study_name or "").strip()
+    target = str(new_study_name or "").strip()
+    if (
+        not expected
+        or not target
+        or any(char in expected + target for char in ('"', "\r", "\n"))
+    ):
+        return json.dumps(
+            {"ok": False, "error": "study name is invalid"},
+            ensure_ascii=False,
+            indent=2,
+        )
+    expected_base = re.sub(r"(?i)\.sdy$", "", expected)
+    target_base = re.sub(r"(?i)\.sdy$", "", target)
+    expected_canonical = re.sub(r"[^a-z0-9]", "", expected_base.lower())
+    target_canonical = re.sub(r"[^a-z0-9]", "", target_base.lower())
+    if expected_canonical == target_canonical:
+        return json.dumps(
+            {"ok": False, "error": "new_study_name must differ from active study"},
+            ensure_ascii=False,
+            indent=2,
+        )
+    vbs = f'''Option Explicit
+Dim Synergy, StudyDoc, SaveOK, Attempt, ActiveName
+
+Function CanonicalName(Value)
+    Dim Regex
+    Set Regex = New RegExp
+    Regex.Global = True
+    Regex.IgnoreCase = True
+    Regex.Pattern = "[^a-z0-9]"
+    CanonicalName = LCase(Regex.Replace(Replace(CStr(Value), ".sdy", ""), ""))
+End Function
+
+On Error Resume Next
+For Attempt = 1 To 3
+    Err.Clear
+    Set Synergy = GetObject(, "synergy.Synergy")
+    If Err.Number = 0 And Not Synergy Is Nothing Then Exit For
+    Err.Clear
+    Set Synergy = CreateObject("synergy.Synergy")
+    If Err.Number = 0 And Not Synergy Is Nothing Then Exit For
+    WScript.Sleep 1000
+Next
+If Synergy Is Nothing Then
+    WScript.Echo "ERROR=SYNERGY_ATTACH_FAILED:" & Err.Number & ":" & Err.Description
+    WScript.Quit 2
+End If
+
+Set StudyDoc = Synergy.StudyDoc()
+If StudyDoc Is Nothing Then
+    WScript.Echo "ERROR=NO_ACTIVE_STUDY"
+    WScript.Quit 3
+End If
+ActiveName = CStr(StudyDoc.StudyName)
+WScript.Echo "ORIGINAL_STUDY=" & ActiveName
+If CanonicalName(ActiveName) <> "{expected_canonical}" Then
+    WScript.Echo "ERROR=ACTIVE_STUDY_MISMATCH:expected={expected}:actual=" & ActiveName
+    WScript.Quit 4
+End If
+
+Err.Clear
+SaveOK = StudyDoc.SaveAs("{target_base}")
+WScript.Echo "SAVE_AS_OK=" & CStr(SaveOK)
+WScript.Echo "SAVE_AS_ERROR=" & CStr(Err.Number) & ":" & Err.Description
+If Not SaveOK Or Err.Number <> 0 Then WScript.Quit 5
+
+Set StudyDoc = Synergy.StudyDoc()
+If StudyDoc Is Nothing Then
+    WScript.Echo "ERROR=NO_ACTIVE_STUDY_AFTER_SAVE_AS"
+    WScript.Quit 6
+End If
+ActiveName = CStr(StudyDoc.StudyName)
+WScript.Echo "ACTIVE_AFTER_SAVE_AS=" & ActiveName
+If CanonicalName(ActiveName) <> "{target_canonical}" Then
+    WScript.Echo "ERROR=SAVE_AS_NAME_MISMATCH:expected={target_base}:actual=" & ActiveName
+    WScript.Quit 7
+End If
+WScript.Echo "COPY_CREATED=true"
+WScript.Echo "ANALYSIS_STARTED=false"
+'''
+    result = _run_vbs_code(
+        vbs,
+        timeout_sec=max(30, min(int(timeout_sec), 300)),
+        bitness=64,
+    )
+    parsed: dict[str, Any] = {}
+    for line in str(result.get("stdout") or "").splitlines():
+        if "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        parsed[key.strip().lower()] = value.strip()
+    result["operation"] = parsed
+    result["copy_only"] = True
+    result["analysis_started"] = False
     return json.dumps(result, ensure_ascii=False, indent=2)
 
 
