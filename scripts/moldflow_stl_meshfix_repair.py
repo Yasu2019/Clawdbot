@@ -85,8 +85,9 @@ def main() -> int:
         fixer = pymeshfix.MeshFix(
             np.asarray(original.vertices, dtype=np.float64),
             np.asarray(original.faces, dtype=np.int32),
+            verbose=False,
         )
-        fixer.repair(verbose=False, joincomp=True, remove_smallest_components=False)
+        fixer.repair(joincomp=True, remove_smallest_components=False)
         repaired = trimesh.Trimesh(
             vertices=np.asarray(fixer.v, dtype=np.float64),
             faces=np.asarray(fixer.f, dtype=np.int64),
