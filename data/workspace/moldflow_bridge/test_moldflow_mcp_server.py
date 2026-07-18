@@ -78,6 +78,7 @@ class MoldflowMcpContractTests(unittest.TestCase):
             "moldflow_probe_com",
             "moldflow_inspect_state",
             "moldflow_inspect_active_study",
+            "moldflow_open_study_by_name",
             "moldflow_save_as_active_study_copy",
             "moldflow_autofix_active_study_copy",
             "moldflow_mesh_active_study_copy",
@@ -130,6 +131,11 @@ class MoldflowMcpContractTests(unittest.TestCase):
     def test_active_study_tools_do_not_use_unreliable_getobject(self):
         source = SERVER.read_text(encoding="utf-8")
         self.assertNotIn('GetObject(, "synergy.Synergy")', source)
+
+    def test_running_mesh_inspection_skips_export_model(self):
+        source = SERVER.read_text(encoding="utf-8")
+        self.assertIn('GATE_INSPECTION_SKIPPED=mesh_in_progress', source)
+        self.assertIn('If MeshStatusValue = "Running" Or MeshStatusValue = "Pending" Then', source)
 
 
 if __name__ == "__main__":

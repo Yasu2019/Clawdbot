@@ -24,7 +24,7 @@ from typing import Any
 from mcp.server.fastmcp import FastMCP
 from mcp.server.transport_security import TransportSecuritySettings
 
-BRIDGE_VERSION = "0.5.3"
+BRIDGE_VERSION = "0.5.4"
 PROG_IDS = ("synergy.Synergy", "Synergy.Synergy", "synergy.Synergy.2010")
 ROOT = Path(__file__).resolve().parent
 PROBE_SCRIPT = ROOT / "check_synergy_com.vbs"
@@ -174,7 +174,7 @@ def moldflow_inspect_active_study(timeout_sec: int = 180) -> str:
     vbs = r'''Option Explicit
 Dim Synergy, StudyDoc, Ent, Coord, DiagnosisManager, Summary, Project
 Dim FS, TempFolder, UdmPath, UdmFile, Line, Words
-Dim GateNodeIDs(), GateCount, GateType, GateNodeID, I, Found
+Dim GateNodeIDs(), GateCount, GateType, GateNodeID, I, Found, MeshStatusValue
 
 On Error Resume Next
 Set Synergy = CreateObject("synergy.Synergy")
@@ -207,7 +207,8 @@ Err.Clear
 WScript.Echo "NUMBER_OF_ANALYSES=" & CStr(StudyDoc.NumberOfAnalyses)
 WScript.Echo "NUMBER_OF_ANALYSES_ERROR=" & CStr(Err.Number)
 Err.Clear
-WScript.Echo "MESH_STATUS=" & CStr(StudyDoc.MeshStatus())
+MeshStatusValue = CStr(StudyDoc.MeshStatus())
+WScript.Echo "MESH_STATUS=" & MeshStatusValue
 WScript.Echo "MESH_STATUS_ERROR=" & CStr(Err.Number)
 
 Err.Clear
@@ -252,6 +253,11 @@ End If
 ' Moldflow has no direct API getter for NDBC data. Autodesk's documented
 ' workaround is a read-only UDM export followed by parsing NDBC records.
 GateCount = 0
+If MeshStatusValue = "Running" Or MeshStatusValue = "Pending" Then
+    WScript.Echo "GATE_INSPECTION_SUPPORTED=false"
+    WScript.Echo "GATE_INSPECTION_SKIPPED=mesh_in_progress"
+    WScript.Echo "GATE_COUNT=0"
+Else
 Set FS = CreateObject("Scripting.FileSystemObject")
 Set TempFolder = FS.GetSpecialFolder(2)
 UdmPath = TempFolder.Path & "\moldflow_mcp_gate_" & _
@@ -311,6 +317,7 @@ For I = 0 To GateCount - 1
     Loop
     WScript.Echo "GATE_" & CStr(I + 1) & "_COORD_FOUND=" & CStr(Found)
 Next
+End If
 '''
     result = _run_vbs_code(
         vbs,
@@ -327,6 +334,61 @@ Next
     result["read_only"] = True
     result["analysis_started"] = False
     result["study_created"] = False
+    return json.dumps(result, ensure_ascii=False, indent=2)
+
+
+@mcp.tool()
+def moldflow_open_study_by_name(study_name: str, timeout_sec: int = 60) -> str:
+    """Open an existing study by exact display name without modifying it."""
+    if not _write_operations_enabled():
+        return _write_operation_blocked()
+    target = str(study_name or "").strip()
+    if not target or any(char in target for char in ('"', "\r", "\n")):
+        return json.dumps({"ok": False, "error": "study_name is invalid"})
+    target_base = re.sub(r"(?i)\.sdy$", "", target)
+    target_canonical = re.sub(r"[^a-z0-9]", "", target_base.lower())
+    vbs = f'''Option Explicit
+Dim Synergy, Project, StudyDoc, Name, DisplayName, OpenOK
+
+Function CanonicalName(Value)
+    Dim Regex
+    Set Regex = New RegExp
+    Regex.Global = True
+    Regex.IgnoreCase = True
+    Regex.Pattern = "[^a-z0-9]"
+    CanonicalName = LCase(Regex.Replace(Replace(CStr(Value), ".sdy", ""), ""))
+End Function
+
+On Error Resume Next
+Err.Clear
+Set Synergy = CreateObject("synergy.Synergy")
+If Err.Number <> 0 Then WScript.Echo "ERROR=CREATEOBJECT_FAILED:" & Err.Number & ":" & Err.Description: WScript.Quit 2
+Set Project = Synergy.Project()
+If Project Is Nothing Then WScript.Echo "ERROR=NO_PROJECT": WScript.Quit 3
+
+DisplayName = ""
+Name = Project.GetFirstStudyName()
+Do While Name <> ""
+    If CanonicalName(Name) = "{target_canonical}" Then DisplayName = CStr(Name)
+    Name = Project.GetNextStudyName(Name)
+Loop
+If DisplayName = "" Then WScript.Echo "ERROR=STUDY_NOT_FOUND:{target}": WScript.Quit 4
+
+Err.Clear
+OpenOK = Project.OpenItemByName(DisplayName, "Study")
+WScript.Echo "OPEN_OK=" & CStr(OpenOK)
+WScript.Echo "OPEN_ERROR=" & CStr(Err.Number) & ":" & Err.Description
+If Not OpenOK Or Err.Number <> 0 Then WScript.Quit 5
+Set StudyDoc = Synergy.StudyDoc()
+If StudyDoc Is Nothing Then WScript.Echo "ERROR=NO_ACTIVE_STUDY_AFTER_OPEN": WScript.Quit 6
+WScript.Echo "ACTIVE_STUDY=" & CStr(StudyDoc.StudyName)
+If CanonicalName(StudyDoc.StudyName) <> "{target_canonical}" Then WScript.Echo "ERROR=ACTIVE_STUDY_MISMATCH": WScript.Quit 7
+WScript.Echo "STUDY_MODIFIED=false"
+WScript.Echo "ANALYSIS_STARTED=false"
+'''
+    result = _run_vbs_code(vbs, timeout_sec=max(30, min(int(timeout_sec), 120)), bitness=64)
+    result["study_modified"] = False
+    result["analysis_started"] = False
     return json.dumps(result, ensure_ascii=False, indent=2)
 
 
