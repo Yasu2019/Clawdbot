@@ -113,6 +113,11 @@ class MoldflowMcpContractTests(unittest.TestCase):
         result = server._run_vbs_code("WScript.Quit 0", bitness=16)
         self.assertEqual(result["error"], "bitness must be 32 or 64")
 
+    def test_new_study_uses_moldflow_2010_importfile2_contract(self):
+        source = SERVER.read_text(encoding="utf-8")
+        self.assertIn("Synergy.ImportFile2", source)
+        self.assertNotIn("StudyDoc.AddFile", source)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -864,7 +864,10 @@ If (StudyDoc is Nothing) Then
 End If
 
 Set ImportOpts = Synergy.ImportOptions()
-If Not StudyDoc.AddFile("{vbs_cad_path}", ImportOpts) Then
+ImportOpts.MeshType = "Fusion"
+ImportOpts.Units = "mm"
+ImportOpts.UseMDL = False
+If Not Synergy.ImportFile2("{vbs_cad_path}", ImportOpts, False, False) Then
     WScript.Echo "[NG] STL import failed."
     WScript.Quit 2
 End If
@@ -894,7 +897,7 @@ WScript.Echo "MESH_STATUS=" & CStr(StudyDoc.MeshStatus())
 WScript.Echo "SAVE_OK=" & CStr(StudyDoc.Save())
 WScript.Echo "ANALYSIS_STARTED=false"
 '''
-    res = _run_vbs_code(vbs, timeout_sec=300)
+    res = _run_vbs_code(vbs, timeout_sec=300, bitness=64)
     sdy_file = work_dir / f"{study_name}.sdy"
     res["study_path"] = str(sdy_file)
     res["study_exists"] = sdy_file.exists()
