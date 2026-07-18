@@ -18,7 +18,6 @@ from datetime import datetime
 from pathlib import Path
 
 import numpy as np
-import pymeshfix
 import trimesh
 
 
@@ -31,6 +30,12 @@ def sha256(path: Path) -> str:
 
 
 def mesh_metrics(mesh: trimesh.Trimesh) -> dict:
+    if len(mesh.vertices) == 0 or len(mesh.faces) == 0:
+        return {
+            "vertices": int(len(mesh.vertices)),
+            "faces": int(len(mesh.faces)),
+            "empty": True,
+        }
     bounds = np.asarray(mesh.bounds, dtype=float)
     extents = np.asarray(mesh.extents, dtype=float)
     return {
@@ -44,6 +49,7 @@ def mesh_metrics(mesh: trimesh.Trimesh) -> dict:
         "extents_mm": extents.tolist(),
         "area_mm2": float(mesh.area),
         "volume_mm3": float(abs(mesh.volume)),
+        "empty": False,
     }
 
 
@@ -82,22 +88,21 @@ def main() -> int:
 
     with tempfile.TemporaryDirectory(prefix="moldflow_meshfix_", dir=str(output.parent)) as temp_dir:
         temp_output = Path(temp_dir) / output.name
-        fixer = pymeshfix.MeshFix(
-            np.asarray(original.vertices, dtype=np.float64),
-            np.asarray(original.faces, dtype=np.int32),
-            verbose=False,
-        )
-        fixer.repair(joincomp=True, remove_smallest_components=False)
-        repaired = trimesh.Trimesh(
-            vertices=np.asarray(fixer.points, dtype=np.float64),
-            faces=np.asarray(fixer.faces, dtype=np.int64),
-            process=False,
-        )
+        repaired = original.copy()
+        repaired.update_faces(repaired.nondegenerate_faces())
+        repaired.update_faces(repaired.unique_faces())
+        repaired.remove_unreferenced_vertices()
+        repaired.merge_vertices()
+        repaired.update_faces(repaired.nondegenerate_faces())
+        repaired.update_faces(repaired.unique_faces())
+        repaired.remove_unreferenced_vertices()
         trimesh.repair.fix_normals(repaired, multibody=True)
+        after = mesh_metrics(repaired)
+        if after.get("empty"):
+            raise RuntimeError("conservative repair produced an empty mesh")
         repaired.export(temp_output, file_type="stl")
         shutil.move(str(temp_output), str(output))
 
-    after = mesh_metrics(repaired)
     extent_drift = relative_extent_drift(before, after)
     max_extent_drift = max(extent_drift)
     accepted = (
@@ -124,6 +129,7 @@ def main() -> int:
             "single_component": after["components"] == 1,
             "extent_drift_lte": args.max_extent_drift,
         },
+        "repair_method": "conservative_no_hole_fill_no_component_join",
         "moldflow_imported": False,
         "analysis_started": False,
     }
