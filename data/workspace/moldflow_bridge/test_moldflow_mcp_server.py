@@ -123,6 +123,10 @@ class MoldflowMcpContractTests(unittest.TestCase):
         self.assertIn("Synergy.ImportFile2", source)
         self.assertNotIn("StudyDoc.AddFile", source)
 
+    def test_save_as_uses_proven_synergy_createobject_contract(self):
+        source = SERVER.read_text(encoding="utf-8")
+        self.assertIn('Set Synergy = CreateObject("synergy.Synergy")', source)
+
 
 if __name__ == "__main__":
     unittest.main()

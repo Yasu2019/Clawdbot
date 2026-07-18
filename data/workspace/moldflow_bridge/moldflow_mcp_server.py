@@ -24,7 +24,7 @@ from typing import Any
 from mcp.server.fastmcp import FastMCP
 from mcp.server.transport_security import TransportSecuritySettings
 
-BRIDGE_VERSION = "0.5.1"
+BRIDGE_VERSION = "0.5.2"
 PROG_IDS = ("synergy.Synergy", "Synergy.Synergy", "synergy.Synergy.2010")
 ROOT = Path(__file__).resolve().parent
 PROBE_SCRIPT = ROOT / "check_synergy_com.vbs"
@@ -358,7 +358,7 @@ def moldflow_save_as_active_study_copy(
             indent=2,
         )
     vbs = f'''Option Explicit
-Dim Synergy, StudyDoc, SaveOK, Attempt, ActiveName
+Dim Synergy, StudyDoc, SaveOK, ActiveName
 
 Function CanonicalName(Value)
     Dim Regex
@@ -370,16 +370,9 @@ Function CanonicalName(Value)
 End Function
 
 On Error Resume Next
-For Attempt = 1 To 3
-    Err.Clear
-    Set Synergy = GetObject(, "synergy.Synergy")
-    If Err.Number = 0 And Not Synergy Is Nothing Then Exit For
-    Err.Clear
-    Set Synergy = CreateObject("synergy.Synergy")
-    If Err.Number = 0 And Not Synergy Is Nothing Then Exit For
-    WScript.Sleep 1000
-Next
-If Synergy Is Nothing Then
+Err.Clear
+Set Synergy = CreateObject("synergy.Synergy")
+If Err.Number <> 0 Then
     WScript.Echo "ERROR=SYNERGY_ATTACH_FAILED:" & Err.Number & ":" & Err.Description
     WScript.Quit 2
 End If
