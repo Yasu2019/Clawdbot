@@ -127,6 +127,10 @@ class MoldflowMcpContractTests(unittest.TestCase):
         source = SERVER.read_text(encoding="utf-8")
         self.assertIn('Set Synergy = CreateObject("synergy.Synergy")', source)
 
+    def test_active_study_tools_do_not_use_unreliable_getobject(self):
+        source = SERVER.read_text(encoding="utf-8")
+        self.assertNotIn('GetObject(, "synergy.Synergy")', source)
+
 
 if __name__ == "__main__":
     unittest.main()

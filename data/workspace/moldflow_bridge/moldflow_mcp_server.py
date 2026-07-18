@@ -24,7 +24,7 @@ from typing import Any
 from mcp.server.fastmcp import FastMCP
 from mcp.server.transport_security import TransportSecuritySettings
 
-BRIDGE_VERSION = "0.5.2"
+BRIDGE_VERSION = "0.5.3"
 PROG_IDS = ("synergy.Synergy", "Synergy.Synergy", "synergy.Synergy.2010")
 ROOT = Path(__file__).resolve().parent
 PROBE_SCRIPT = ROOT / "check_synergy_com.vbs"
@@ -312,7 +312,11 @@ For I = 0 To GateCount - 1
     WScript.Echo "GATE_" & CStr(I + 1) & "_COORD_FOUND=" & CStr(Found)
 Next
 '''
-    result = _run_vbs_code(vbs, timeout_sec=max(10, min(int(timeout_sec), 180)))
+    result = _run_vbs_code(
+        vbs,
+        timeout_sec=max(10, min(int(timeout_sec), 180)),
+        bitness=64,
+    )
     parsed: dict[str, Any] = {}
     for line in str(result.get("stdout") or "").splitlines():
         if "=" not in line:
@@ -601,16 +605,9 @@ Function CanonicalName(Value)
 End Function
 
 On Error Resume Next
-Set Synergy = GetObject(, "synergy.Synergy")
-If Synergy Is Nothing Then
-    For Attempt = 1 To 3
-        Err.Clear
-        Set Synergy = CreateObject("synergy.Synergy")
-        If Not Synergy Is Nothing Then Exit For
-        WScript.Sleep 2000
-    Next
-End If
-If Synergy Is Nothing Then WScript.Echo "ERROR=CREATEOBJECT_FAILED": WScript.Quit 2
+Err.Clear
+Set Synergy = CreateObject("synergy.Synergy")
+If Err.Number <> 0 Then WScript.Echo "ERROR=CREATEOBJECT_FAILED:" & Err.Number & ":" & Err.Description: WScript.Quit 2
 Set StudyDoc = Synergy.StudyDoc()
 If StudyDoc Is Nothing Then WScript.Echo "ERROR=NO_ACTIVE_STUDY": WScript.Quit 3
 WScript.Echo "ACTIVE_STUDY=" & CStr(StudyDoc.StudyName)
@@ -740,16 +737,9 @@ Function CanonicalName(Value)
 End Function
 
 On Error Resume Next
-Set Synergy = GetObject(, "synergy.Synergy")
-If Synergy Is Nothing Then
-    For Attempt = 1 To 3
-        Err.Clear
-        Set Synergy = CreateObject("synergy.Synergy")
-        If Not Synergy Is Nothing Then Exit For
-        WScript.Sleep 2000
-    Next
-End If
-If Synergy Is Nothing Then WScript.Echo "ERROR=CREATEOBJECT_FAILED_AFTER_3_ATTEMPTS:" & Err.Number & ":" & Err.Description: WScript.Quit 2
+Err.Clear
+Set Synergy = CreateObject("synergy.Synergy")
+If Err.Number <> 0 Then WScript.Echo "ERROR=CREATEOBJECT_FAILED:" & Err.Number & ":" & Err.Description: WScript.Quit 2
 Set StudyDoc = Synergy.StudyDoc()
 If StudyDoc Is Nothing Then WScript.Echo "ERROR=NO_ACTIVE_STUDY": WScript.Quit 3
 WScript.Echo "ACTIVE_STUDY=" & CStr(StudyDoc.StudyName)
@@ -843,16 +833,9 @@ Function CanonicalName(Value)
 End Function
 
 On Error Resume Next
-Set Synergy = GetObject(, "synergy.Synergy")
-If Synergy Is Nothing Then
-    For Attempt = 1 To 3
-        Err.Clear
-        Set Synergy = CreateObject("synergy.Synergy")
-        If Not Synergy Is Nothing Then Exit For
-        WScript.Sleep 2000
-    Next
-End If
-If Synergy Is Nothing Then WScript.Echo "ERROR=CREATEOBJECT_FAILED_AFTER_3_ATTEMPTS:" & Err.Number & ":" & Err.Description: WScript.Quit 2
+Err.Clear
+Set Synergy = CreateObject("synergy.Synergy")
+If Err.Number <> 0 Then WScript.Echo "ERROR=CREATEOBJECT_FAILED:" & Err.Number & ":" & Err.Description: WScript.Quit 2
 Set StudyDoc = Synergy.StudyDoc()
 If StudyDoc Is Nothing Then WScript.Echo "ERROR=NO_ACTIVE_STUDY": WScript.Quit 3
 WScript.Echo "ACTIVE_STUDY=" & CStr(StudyDoc.StudyName)
