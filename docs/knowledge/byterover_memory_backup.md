@@ -305,3 +305,17 @@ GitHub backup method for repo Yasu2019/Clawdbot (2026-05-29). Use dated backup b
 
 - none
 
+## 2026-07-19 07:28:29 +09:00
+
+**Curate status:** failed
+
+**Reason:** brv curate failed
+
+**Context**
+
+Dynabook Moldflow MCP 2026-07-19: 64-bit COM and same interactive Windows session are required. Use SaveAs copy-only writes. Never call Project.ExportModel while MeshStatus is Pending or Running because it can stall synmesh. AutoFix execution is not acceptance: removed 174 elements, but intersections 1201->1052, overlaps 595->529, unoriented 96->95, MeshStatus remained Failed, therefore gate and analysis must remain blocked.
+
+**Source files**
+
+- docs/knowledge/dynabook_moldflow_mcp_mesh_autofix_20260719.md
+

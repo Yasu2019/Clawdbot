@@ -2374,3 +2374,14 @@ Goal: press_* trial --> NORMAL TERMINATION + KPI
 | **Web knowledge** | Autodesk official documentation confirmed third-party meshes can be imported via UNV/BDF/PAT and still require Moldflow compliance checks. This informs the future external-remesh benchmark but did not alter the live in-progress mesh. |
 
 ---
+## INC-152: Dynabook Moldflow MCP mesh contention and AutoFix quality gate
+
+| Field | Detail |
+|---|---|
+| Date / Detection | 2026-07-17 to 2026-07-19 JST. MCP mesh stayed Running for more than two hours; later AutoFix completed but quality remained failed. |
+| Impact | Gate placement and Fill analysis could not safely proceed. Original `moldflow_study_3` remained protected. |
+| Root Cause (5 Why) | Inspection exported the active UDM while `synmesh` was running; this introduced file contention. Remote MCP restarts could also detach COM from the visible Synergy session. AutoFix reduced defects but could not repair the heavily intersecting mesh. |
+| Fix | Bridge 0.5.4 skips `ExportModel` while mesh is Pending/Running; active tools use 64-bit COM; exact-name SaveAs copies and fail-closed quality checks were added. |
+| Verification | Copy SaveAs succeeded. AutoFix removed 174 elements. Intersections improved 1201->1052, overlaps 595->529, unoriented 96->95, but `MeshStatus=Failed`; analysis was not started. |
+| Lessons | Operation success and engineering acceptance are separate. `AUTOFIX_REMOVED` is not a PASS criterion. MCP and Synergy must share the interactive Windows session. |
+| Prevention | Follow `docs/knowledge/dynabook_moldflow_mcp_mesh_autofix_20260719.md`; re-import repaired STL into a fresh Fusion study and prohibit live export during mesh. |

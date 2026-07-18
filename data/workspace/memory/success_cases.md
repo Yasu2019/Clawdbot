@@ -68,3 +68,10 @@
 - 解決: copy名一致・write gate・64-bit cscript・3回限定COM retryを持つ `moldflow_mesh_active_study_copy` と明示node限定の `moldflow_set_gate_active_study_copy` を実装・配備した。
 - 証拠: 7 tests PASS、remote SHA一致、live MCP tool list確認、Version 2010/active project/study確認、3.0 mm mesh start error 0、UI進捗30%、analysis false。
 - 再利用: IF Moldflow 2010 MCP書込み THEN VPN/service/interpreter/bind/COM/session/study identityを順にゲートし、`Running`を成功途中状態としてpollする。完了前に再実行しない。
+# Dynabook Moldflow MCP AutoFix execution with fail-closed quality gate (2026-07-19)
+
+1. **Problem**: automate Moldflow 2010 mesh repair while preserving the original study.
+2. **Key action**: use 64-bit COM in the visible Windows session, SaveAs a copy, run `MeshEditor.AutoFix()`, save, and quantitatively reinspect.
+3. **Result**: AutoFix removed 174 elements; intersections 1201->1052 and overlaps 595->529. Mesh still failed, so gate and analysis were correctly blocked.
+4. **Reusable rule**: never export the model while mesh status is Pending/Running, and never accept AutoFix from its removed-count alone.
+5. **Evidence**: `docs/knowledge/dynabook_moldflow_mcp_mesh_autofix_20260719.md`, INC-152, Beads `Clawdbot_Docker_20260125-h8dx`.
