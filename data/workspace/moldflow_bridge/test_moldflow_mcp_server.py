@@ -86,6 +86,8 @@ class MoldflowMcpContractTests(unittest.TestCase):
             "moldflow_set_gate_active_study_copy",
             "moldflow_inspect_members",
             "moldflow_readiness_gate",
+            "moldflow_create_study_checkpoint",
+            "moldflow_import_cad_checkpoint",
             "moldflow_new_study",
             "moldflow_configure_study",
             "moldflow_start_analysis",
@@ -108,6 +110,14 @@ class MoldflowMcpContractTests(unittest.TestCase):
         )
         self.assertIn("write operations are disabled", server.moldflow_mesh_active_study_copy("copy.sdy"))
         self.assertIn("write operations are disabled", server.moldflow_set_gate_active_study_copy("copy.sdy", 1))
+        self.assertIn(
+            "write operations are disabled",
+            server.moldflow_create_study_checkpoint("scratch", "study"),
+        )
+        self.assertIn(
+            "write operations are disabled",
+            server.moldflow_import_cad_checkpoint("study.sdy", "missing.stl"),
+        )
 
     def test_gate_candidate_rejects_invalid_study_name(self):
         server = _load_server()
@@ -136,6 +146,32 @@ class MoldflowMcpContractTests(unittest.TestCase):
         source = SERVER.read_text(encoding="utf-8")
         self.assertIn('GATE_INSPECTION_SKIPPED=mesh_in_progress', source)
         self.assertIn('If MeshStatusValue = "Running" Or MeshStatusValue = "Pending" Then', source)
+
+    def test_checkpointed_mesh_saves_before_launch_and_accepts_running(self):
+        source = SERVER.read_text(encoding="utf-8")
+        tool_start = source.index("def moldflow_mesh_active_study_copy")
+        pre_save = source.index('WScript.Echo "PRE_MESH_SAVE_OK="', tool_start)
+        launch = source.index("StudyDoc.MeshNow False", pre_save)
+        running = source.index('WScript.Echo "MESH_STARTED=true"', launch)
+        empty = source.index('WScript.Echo "ERROR=EMPTY_MESH"', running)
+        self.assertLess(pre_save, launch)
+        self.assertLess(launch, running)
+        self.assertLess(running, empty)
+
+    def test_checkpoint_tools_require_identity_and_save(self):
+        source = SERVER.read_text(encoding="utf-8")
+        self.assertIn("CHECKPOINT=study_created_and_saved", source)
+        self.assertIn("CHECKPOINT=cad_imported_and_saved", source)
+        self.assertIn("ERROR=ACTIVE_STUDY_MISMATCH", source)
+
+    def test_gate_setter_resolves_node_by_entity_id(self):
+        source = SERVER.read_text(encoding="utf-8")
+        start = source.index("def moldflow_set_gate_active_study_copy")
+        end = source.index("def moldflow_inspect_members", start)
+        tool_source = source[start:end]
+        self.assertIn("StudyDoc.GetFirstNode()", tool_source)
+        self.assertIn("StudyDoc.GetEntityID(Ent)", tool_source)
+        self.assertNotIn("CreateEntityList", tool_source)
 
 
 if __name__ == "__main__":

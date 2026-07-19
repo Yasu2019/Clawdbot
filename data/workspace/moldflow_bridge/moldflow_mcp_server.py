@@ -24,7 +24,7 @@ from typing import Any
 from mcp.server.fastmcp import FastMCP
 from mcp.server.transport_security import TransportSecuritySettings
 
-BRIDGE_VERSION = "0.5.4"
+BRIDGE_VERSION = "0.6.0"
 PROG_IDS = ("synergy.Synergy", "Synergy.Synergy", "synergy.Synergy.2010")
 ROOT = Path(__file__).resolve().parent
 PROBE_SCRIPT = ROOT / "check_synergy_com.vbs"
@@ -825,9 +825,22 @@ MeshGenerator.SaveOptions
 If Err.Number <> 0 Then WScript.Echo "ERROR=MESH_OPTIONS:" & Err.Number & ":" & Err.Description: WScript.Quit 6
 
 Err.Clear
+SaveOK = StudyDoc.Save()
+WScript.Echo "PRE_MESH_SAVE_OK=" & CStr(SaveOK)
+WScript.Echo "PRE_MESH_SAVE_ERROR=" & CStr(Err.Number) & ":" & Err.Description
+If Not SaveOK Or Err.Number <> 0 Then WScript.Quit 7
+
+Err.Clear
 StudyDoc.MeshNow False
 WScript.Echo "MESH_NOW_ERROR=" & CStr(Err.Number) & ":" & Err.Description
-If Err.Number <> 0 Then WScript.Quit 7
+If Err.Number <> 0 Then WScript.Quit 8
+WScript.Echo "MESH_STATUS=" & CStr(StudyDoc.MeshStatus())
+If CStr(StudyDoc.MeshStatus()) = "Running" Or CStr(StudyDoc.MeshStatus()) = "Pending" Then
+    WScript.Echo "MESH_STARTED=true"
+    WScript.Echo "CHECKPOINT=mesh_launched_from_saved_study"
+    WScript.Echo "ANALYSIS_STARTED=false"
+    WScript.Quit 0
+End If
 
 NodeCount = 0
 Set Ent = StudyDoc.GetFirstNode()
@@ -841,13 +854,12 @@ Do While Not Ent Is Nothing
     TriCount = TriCount + 1
     Set Ent = StudyDoc.GetNextTriangle(Ent)
 Loop
-WScript.Echo "MESH_STATUS=" & CStr(StudyDoc.MeshStatus())
 WScript.Echo "NODE_COUNT=" & CStr(NodeCount)
 WScript.Echo "TRI_COUNT=" & CStr(TriCount)
-If NodeCount = 0 Or TriCount = 0 Then WScript.Echo "ERROR=EMPTY_MESH": WScript.Quit 8
+If NodeCount = 0 Or TriCount = 0 Then WScript.Echo "ERROR=EMPTY_MESH": WScript.Quit 9
 SaveOK = StudyDoc.Save()
 WScript.Echo "SAVE_OK=" & CStr(SaveOK)
-If Not SaveOK Then WScript.Quit 9
+If Not SaveOK Then WScript.Quit 10
 WScript.Echo "TARGET_COPY_MODIFIED=true"
 WScript.Echo "ANALYSIS_STARTED=false"
 '''
@@ -866,7 +878,7 @@ WScript.Echo "ANALYSIS_STARTED=false"
 def moldflow_set_gate_active_study_copy(
     expected_study_name: str,
     injection_node_id: int,
-    timeout_sec: int = 60,
+    timeout_sec: int = 180,
 ) -> str:
     """Create one injection-location NDBC on an explicit node of the active copy."""
     if not _write_operations_enabled():
@@ -883,7 +895,7 @@ def moldflow_set_gate_active_study_copy(
     expected_base = re.sub(r"(?i)\.sdy$", "", expected)
     expected_canonical = re.sub(r"[^a-z0-9]", "", expected_base.lower())
     vbs = f'''Option Explicit
-Dim Synergy, StudyDoc, SelectList, Node, NormalVector, BoundaryConditions, Inject, SaveOK, Attempt
+Dim Synergy, StudyDoc, Node, Ent, Found, NormalVector, BoundaryConditions, Inject, SaveOK, Attempt
 
 Function CanonicalName(Value)
     Dim Regex
@@ -907,10 +919,17 @@ If CanonicalName(StudyDoc.StudyName) <> "{expected_canonical}" Then
 End If
 If CStr(StudyDoc.MeshStatus()) = "Failed" Then WScript.Echo "ERROR=MESH_NOT_READY": WScript.Quit 5
 
-Set SelectList = StudyDoc.CreateEntityList()
-SelectList.Add "N{node_id}"
-If SelectList.Size = 0 Then WScript.Echo "ERROR=NODE_NOT_FOUND:N{node_id}": WScript.Quit 6
-Set Node = SelectList.Entity(0)
+Found = False
+Set Ent = StudyDoc.GetFirstNode()
+Do While Not Ent Is Nothing And Not Found
+    If CLng(StudyDoc.GetEntityID(Ent)) = CLng({node_id}) Then
+        Set Node = Ent
+        Found = True
+    Else
+        Set Ent = StudyDoc.GetNextNode(Ent)
+    End If
+Loop
+If Not Found Then WScript.Echo "ERROR=NODE_NOT_FOUND:N{node_id}": WScript.Quit 6
 Set NormalVector = Synergy.CreateVector()
 NormalVector.SetXYZ 0, 0, 1
 Set BoundaryConditions = Synergy.BoundaryConditions()
@@ -925,7 +944,7 @@ WScript.Echo "ANALYSIS_STARTED=false"
 '''
     result = _run_vbs_code(
         vbs,
-        timeout_sec=max(30, min(int(timeout_sec), 120)),
+        timeout_sec=max(30, min(int(timeout_sec), 300)),
         bitness=64,
     )
     result["copy_only"] = True
@@ -970,6 +989,115 @@ def moldflow_readiness_gate() -> str:
         ensure_ascii=False,
         indent=2,
     )
+
+
+@mcp.tool()
+def moldflow_create_study_checkpoint(
+    project_name: str, study_name: str, timeout_sec: int = 120
+) -> str:
+    """Create and save an empty scratch study before CAD import or meshing."""
+    if not _write_operations_enabled():
+        return _write_operation_blocked()
+    project = str(project_name or "").strip()
+    study = re.sub(r"(?i)\.sdy$", "", str(study_name or "").strip())
+    if (not project or not study or
+            any(char in project + study for char in ('"', "\r", "\n", "\\", "/"))):
+        return json.dumps({"ok": False, "error": "project_name or study_name is invalid"})
+    work_dir = DEFAULT_WORK_ROOT / project
+    work_dir.mkdir(parents=True, exist_ok=True)
+    vbs_work_dir = str(work_dir).replace("\\", "\\\\")
+    vbs = f'''Option Explicit
+Dim Synergy, Project, StudyDoc, SaveOK
+On Error Resume Next
+Set Synergy = CreateObject("synergy.Synergy")
+If Err.Number <> 0 Then WScript.Echo "ERROR=CREATEOBJECT_FAILED:" & Err.Number & ":" & Err.Description: WScript.Quit 2
+Err.Clear
+Synergy.NewProject "{project}", "{vbs_work_dir}"
+If Err.Number <> 0 Then WScript.Echo "ERROR=NEW_PROJECT_FAILED:" & Err.Number & ":" & Err.Description: WScript.Quit 3
+Set Project = Synergy.Project()
+If Project Is Nothing Then WScript.Echo "ERROR=NO_PROJECT": WScript.Quit 4
+Err.Clear
+Project.NewStudy "{study}"
+If Err.Number <> 0 Then WScript.Echo "ERROR=NEW_STUDY_FAILED:" & Err.Number & ":" & Err.Description: WScript.Quit 5
+Set StudyDoc = Synergy.StudyDoc()
+If StudyDoc Is Nothing Then WScript.Echo "ERROR=NO_ACTIVE_STUDY": WScript.Quit 6
+Err.Clear
+SaveOK = StudyDoc.Save()
+WScript.Echo "SAVE_OK=" & CStr(SaveOK)
+WScript.Echo "SAVE_ERROR=" & CStr(Err.Number) & ":" & Err.Description
+If Not SaveOK Or Err.Number <> 0 Then WScript.Quit 7
+WScript.Echo "ACTIVE_STUDY=" & CStr(StudyDoc.StudyName)
+WScript.Echo "CHECKPOINT=study_created_and_saved"
+WScript.Echo "ANALYSIS_STARTED=false"
+'''
+    result = _run_vbs_code(vbs, timeout_sec=max(30, min(int(timeout_sec), 180)), bitness=64)
+    result["checkpoint"] = "study_created_and_saved"
+    result["project_dir"] = str(work_dir)
+    result["analysis_started"] = False
+    return json.dumps(result, ensure_ascii=False, indent=2)
+
+
+@mcp.tool()
+def moldflow_import_cad_checkpoint(
+    expected_study_name: str,
+    cad_path: str,
+    mesh_type: str = "Fusion",
+    timeout_sec: int = 300,
+) -> str:
+    """Import CAD into the expected active scratch study and save before meshing."""
+    if not _write_operations_enabled():
+        return _write_operation_blocked()
+    expected = str(expected_study_name or "").strip()
+    cad = Path(str(cad_path or "").strip())
+    requested_mesh = str(mesh_type or "Fusion").strip()
+    if not expected or any(char in expected for char in ('"', "\r", "\n")):
+        return json.dumps({"ok": False, "error": "expected_study_name is invalid"})
+    if requested_mesh not in {"Fusion", "Midplane", "3D"}:
+        return json.dumps({"ok": False, "error": "mesh_type must be Fusion, Midplane, or 3D"})
+    if not cad.is_file():
+        return json.dumps({"ok": False, "error": f"CAD file not found: {cad}"})
+    expected_base = re.sub(r"(?i)\.sdy$", "", expected)
+    expected_canonical = re.sub(r"[^a-z0-9]", "", expected_base.lower())
+    vbs_cad = str(cad).replace("\\", "\\\\").replace('"', '""')
+    vbs = f'''Option Explicit
+Dim Synergy, StudyDoc, ImportOpts, ImportOK, SaveOK
+Function CanonicalName(Value)
+    Dim Regex
+    Set Regex = New RegExp
+    Regex.Global = True
+    Regex.IgnoreCase = True
+    Regex.Pattern = "[^a-z0-9]"
+    CanonicalName = LCase(Regex.Replace(Replace(CStr(Value), ".sdy", ""), ""))
+End Function
+On Error Resume Next
+Set Synergy = CreateObject("synergy.Synergy")
+If Err.Number <> 0 Then WScript.Echo "ERROR=CREATEOBJECT_FAILED:" & Err.Number & ":" & Err.Description: WScript.Quit 2
+Set StudyDoc = Synergy.StudyDoc()
+If StudyDoc Is Nothing Then WScript.Echo "ERROR=NO_ACTIVE_STUDY": WScript.Quit 3
+WScript.Echo "ACTIVE_STUDY=" & CStr(StudyDoc.StudyName)
+If CanonicalName(StudyDoc.StudyName) <> "{expected_canonical}" Then WScript.Echo "ERROR=ACTIVE_STUDY_MISMATCH": WScript.Quit 4
+Set ImportOpts = Synergy.ImportOptions()
+ImportOpts.MeshType = "{requested_mesh}"
+ImportOpts.Units = "mm"
+ImportOpts.UseMDL = False
+Err.Clear
+ImportOK = Synergy.ImportFile2("{vbs_cad}", ImportOpts, False, False)
+WScript.Echo "IMPORT_OK=" & CStr(ImportOK)
+WScript.Echo "IMPORT_ERROR=" & CStr(Err.Number) & ":" & Err.Description
+If Not ImportOK Or Err.Number <> 0 Then WScript.Quit 5
+Err.Clear
+SaveOK = StudyDoc.Save()
+WScript.Echo "SAVE_OK=" & CStr(SaveOK)
+WScript.Echo "SAVE_ERROR=" & CStr(Err.Number) & ":" & Err.Description
+If Not SaveOK Or Err.Number <> 0 Then WScript.Quit 6
+WScript.Echo "CHECKPOINT=cad_imported_and_saved"
+WScript.Echo "ANALYSIS_STARTED=false"
+'''
+    result = _run_vbs_code(vbs, timeout_sec=max(30, min(int(timeout_sec), 300)), bitness=64)
+    result["checkpoint"] = "cad_imported_and_saved"
+    result["cad_path"] = str(cad)
+    result["analysis_started"] = False
+    return json.dumps(result, ensure_ascii=False, indent=2)
 
 
 @mcp.tool()
