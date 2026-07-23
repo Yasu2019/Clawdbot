@@ -1,0 +1,11 @@
+2026-07-20 Cowork(サンドボックス)から .beads/issues.jsonl へ直接追記済み(bd CLI不在のため)。
+Windows側でdolt DBへ反映するには次を実行:
+  bd import .beads/issues.jsonl   （または bd sync / dolt側の取り込み手順）
+追記ID:
+  issue : Clawdbot_Docker_20260125-l30w1 / -l30w2 / -l30w3 / -l30w4
+  memory: rl-2026-07-20-eval-train-init-parity
+          rl-2026-07-20-rewardhack-needs-discriminating-signal
+          rl-2026-07-20-single-dispatcher-no-stale-launcher
+          ps-2026-07-20-powershell-from-python-use-ps1-file
+          qa-2026-07-20-enforce-ai-visual-confirmation
+出典: docs/incidents/quality_incident_report_20260720_mecha_l30_render_parity_rogue_gpu.md
