@@ -94,19 +94,47 @@ def main():
                     "travel": round(travel, 4),
                     "contact_L": round(feet[0], 3), "contact_R": round(feet[1], 3)})
 
+    # What open-loop replay CAN and CANNOT tell us:
+    #  - CANNOT validate balance. A top-heavy biped tracking any reference with
+    #    no feedback topples inside one step; that is precisely what RL learns to
+    #    fix, so first_fall_sec is informational, never a pass/fail.
+    #  - CAN expose a kinematically dead reference. The frozen-ankle / tiny-knee
+    #    walk.json (T067) kept BOTH feet planted for the entire 20 s window
+    #    (mean_contact_all ~0.98) because the joints never lifted a foot. A
+    #    reference with a real swing structure shows the feet leaving the ground
+    #    across the full trace even as the body falls.
+    # The authoritative retarget-health signal is the JOINT AMPLITUDE of the
+    # reference JSON (knee/ankle peak-to-peak), reported here alongside.
+    mcl_all = sum(x["contact_L"] for x in log) / len(log)
+    mcr_all = sum(x["contact_R"] for x in log) / len(log)
+    ref_health = None
+    if args.ref_json and os.path.exists(args.ref_json):
+        import numpy as np
+        fr = np.array(json.load(open(args.ref_json, encoding="utf-8"))["frames"])
+        deg = lambda i: round(float(np.degrees(fr[:, i].max() - fr[:, i].min())), 1)
+        ref_health = {"knee_L_p2p_deg": deg(1), "knee_R_p2p_deg": deg(4),
+                      "ankle_L_p2p_deg": deg(2), "ankle_R_p2p_deg": deg(5)}
+    # Kinematic pass criterion: knees and ankles actually move (a walk needs
+    # knee flexion for foot clearance). Thresholds are deliberately loose.
+    kin_ok = ref_health is not None and \
+        min(ref_health["knee_L_p2p_deg"], ref_health["knee_R_p2p_deg"]) > 15 and \
+        min(ref_health["ankle_L_p2p_deg"], ref_health["ankle_R_p2p_deg"]) > 5
     final = log[-1]
-    res = {"schema": "clawstack.reference_gait_check.v1",
+    res = {"schema": "clawstack.reference_gait_check.v2",
            "stand_z": round(stand_z, 4), "seconds": args.seconds,
            "gait_period": V50.GAIT_PERIOD, "target_vx": V50.TARGET_VX,
-           "survived": first_fall is None, "first_fail_sec": first_fall,
+           "open_loop_first_fall_sec": first_fall,
+           "open_loop_note": "open-loop topple is expected and does NOT indict the "
+                             "reference; balance is learned by RL",
            "final_travel_m": final["travel"], "final_z": final["z"],
-           "final_upright": final["upright"],
-           "mean_contact_L": round(sum(x["contact_L"] for x in log) / len(log), 3),
-           "mean_contact_R": round(sum(x["contact_R"] for x in log) / len(log), 3),
-           "verdict": ("reference gait is a viable base: RL only has to correct it"
-                       if first_fall is None else
-                       "REFERENCE GAIT ITSELF FAILS: fix body/gains/reference "
-                       "before tuning any reward")}
+           "mean_contact_L_all": round(mcl_all, 3), "mean_contact_R_all": round(mcr_all, 3),
+           "reference_joint_health": ref_health,
+           "kinematic_ok": kin_ok,
+           "verdict": ("reference is kinematically viable (knees/ankles move enough "
+                       "for a real swing); proceed to RL"
+                       if kin_ok else
+                       "reference is kinematically DEAD (knees/ankles barely move) -- "
+                       "no gait to learn from; fix the retarget first (T067)")}
     with open(os.path.join(out, "reference_gait_check.json"), "w", encoding="utf-8") as f:
         json.dump({"result": res, "trace": log}, f, indent=2)
     print("RESULT:", json.dumps(res, ensure_ascii=False), flush=True)

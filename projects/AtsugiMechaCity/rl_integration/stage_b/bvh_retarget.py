@@ -127,6 +127,35 @@ def sagittal_angle(vec, fwd, up):
     return math.atan2(f, -u)   # 真下(-up)基準、前方成分で+
 
 
+def signed_sagittal_between(a_seg, b_seg, fwd, up):
+    """矢状面内で a から b への符号付き角度(rad)。atan2(cross,dot) で分岐なし。
+
+    2026-07-24 T067修正: 旧 series_ankle は sagittal_angle(b)-sagittal_angle(a)
+    という二つの atan2 の差を取っていたため、各項が独立に ±π へ折り返し、
+    足首系列が min -185° まで飛んで DC が -92° になっていた(足首が可動域上限
+    +20° に張り付いて凍結)。角度差は必ずこの分岐フリー版で計算する。"""
+    out = []
+    for a, b in zip(a_seg, b_seg):
+        af, au = float(np.dot(a, fwd)), float(np.dot(a, up))
+        bf, bu = float(np.dot(b, fwd)), float(np.dot(b, up))
+        out.append(math.atan2(af * bu - au * bf, af * bf + au * bu))
+    return np.array(out)
+
+
+def fit_amplitude(x, lo, hi, target_frac=0.8):
+    """中央値でセンタリングし、90パーセンタイル振幅が可動域の target_frac に
+    収まるよう頑健スケールしてからクリップする(時相を保ちつつ飽和を防ぐ)。
+
+    足首のように生の振幅(この mocap では p2p 178°)が可動域(±20°)を大きく
+    超える系列で、rail-to-rail の矩形波化を避けるために使う。"""
+    c = x - np.median(x)
+    amp = np.percentile(np.abs(c), 90)
+    half = min(abs(lo), abs(hi))
+    if amp > 1e-6:
+        c = c * (target_frac * half / amp)
+    return np.clip(c, lo, hi)
+
+
 def find_joint(joints, *cands):
     names = {j.name.lower(): j.name for j in joints}
     for c in cands:
@@ -199,13 +228,11 @@ def main():
         return np.array(out)
 
     def series_ankle(side):
+        # 足の背屈/底屈 = すねベクトルと足ベクトルの矢状面内符号付き角度。
+        # 分岐フリー(signed_sagittal_between)で計算し、中立(≈直角)は後段の
+        # fit_amplitude が中央値センタリングで自動除去する。
         sh = seg(f"leg_{side}", f"foot_{side}"); ft = seg(f"foot_{side}", f"toe_{side}")
-        out = []
-        for a, b in zip(sh, ft):
-            # 足の背屈/底屈: すね軸に対する足ベクトルの矢状面角から直角(中立)を引く
-            aa = sagittal_angle(b, fwd, up) - sagittal_angle(a, fwd, up)
-            out.append(aa - math.pi / 2)
-        return np.array(out)
+        return signed_sagittal_between(sh, ft, fwd, up)
 
     def series_shoulder(side):
         return np.array([sagittal_angle(v, fwd, up) for v in seg(f"arm_{side}", f"forearm_{side}")])
@@ -241,7 +268,13 @@ def main():
 
     # 位相リサンプル + V50符号/可動域へマップ
     #  - V50 hip: 正=脚が+Y(後方)へ。前方(fwd)+の人間角 → 符号反転
-    #  - V50 knee: 屈曲=正、上限0.17と狭いのでスケールせずクリップ(タイミング情報を優先)
+    #  - V50 knee (range -30°..+10°): 屈曲の大可動側は「負」。人間の屈曲角(acos,
+    #    常に≥0)を正のままクリップすると +10° 上限に張り付き p2p 9° に潰れる
+    #    (T067 の膝振幅バグ)。符号反転して -30° 側へ写すと p2p ≈ 29°、遊脚で
+    #    足が持ち上がる。屈曲ピークは -30° でフラットトップにクリップ=接地
+    #    クリアランスに有利なのでスケールはしない。
+    #  - V50 ankle (range ±20°): 生振幅は p2p 178° と可動域を大きく超えるため、
+    #    fit_amplitude で中央値センタリング+頑健スケールしてから写す(凍結防止)。
     def resample(x):
         ph = np.linspace(0, period - 1, args.phase_samples)
         return np.interp(ph, np.arange(period), x[cyc])
@@ -250,9 +283,13 @@ def main():
         lo, hi = LIMITS[key]
         return np.clip(x, lo, hi)
 
+    def ankle_map(x):
+        lo, hi = LIMITS["ankle"]
+        return fit_amplitude(resample(x), lo, hi, target_frac=0.75)
+
     table = np.stack([
-        clip(-resample(hip_l), "hip"), clip(resample(knee_l), "knee"), clip(-resample(ank_l), "ankle"),
-        clip(-resample(hip_r), "hip"), clip(resample(knee_r), "knee"), clip(-resample(ank_r), "ankle"),
+        clip(-resample(hip_l), "hip"), clip(-resample(knee_l), "knee"), ankle_map(ank_l),
+        clip(-resample(hip_r), "hip"), clip(-resample(knee_r), "knee"), ankle_map(ank_r),
         clip(-resample(sh_l), "shoulder"), clip(-resample(el_l), "elbow"),
         np.zeros(args.phase_samples),
         clip(-resample(sh_r), "shoulder"), clip(-resample(el_r), "elbow"),
