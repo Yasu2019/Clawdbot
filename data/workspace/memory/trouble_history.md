@@ -1264,3 +1264,10 @@ G1 py_compile → G2 `fleet_satellite_setup_auto.ps1` → G3 K10 probe → G4 �
 - **trainer**(`train_v50_walk_rsl.py`): `--height-scan/--scan-ahead/--stair-height/--resume-surgery`。**weight surgery**=blind(obs189)ckptを200netへ移植: 共有tensorはverbatim、第1層のみ既存列コピー+新規scan11列ゼロ埋め、normalizer統計もprefix継承 → **移植直後の行動がblindとbit一致(max action diff 0.0)**を検証。よって完成した平地歩行から出発しscanの使い方だけを学習。
 - 段高カリキュラム: stage1(昇段0.05m, surgery from flat walker) → stage2(0.10m, 通常resume) → 降段、の順。**各段 verify_policy 再ロード検証必須**(学習ログ不信=T068)。
 - 参考文献・ライブラリは bd `y75t` と本セッションログ参照。
+
+### [斜面決着] slope03 修正版で登坂 survival ~1.0・目視確認済み (2026-07-24)
+
+- slope02 の回帰(0.49→0.04)は「一度に変えすぎ」が原因(batch半減+DR過剰)。**変えて害だった2点(batch, gain DR)だけ戻した** slope03: full batch 4096、DR穏当(質量±10%/gain±5%/16群)、cmd[0.12,0.28]、平地ckptから転移、1500iter。
+- **verify_policy フレッシュ再ロード(T068)**: survival @0.18=**1.0** / @0.20=0.996 / @0.25=0.996、climb_ratio 1.28-1.36、on_track 1.0=幅内で完全登坂。slope01(0.40-0.49)を大幅更新。
+- **目視確認(新グローバルルール初適用)**: render_walk_rsl.py で t=0.8/4.8/7.9s を Read。胴体直立(登坂前傾)・**両腕は肩に連結し腕振り正常(分離なし)**・脚交互・ランプ上を上昇。fell=false, min_upright 0.949, 支持相 single0.69/double0.27/flight0.04。
+- VERIFIED ckpt: `known_good/walk_rsl_slope8deg_20260724_survival1.0_VERIFIED.pt`。bd `z15v` クローズ。
