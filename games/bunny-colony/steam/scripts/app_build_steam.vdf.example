@@ -1,0 +1,13 @@
+"appbuild"
+{
+  "appid" "APP_ID"
+  "desc" "Bunny Colony 1.0.0 Windows"
+  "buildoutput" "STEAM_CONTENT_ROOT\\output"
+  "contentroot" "STEAM_CONTENT_ROOT"
+  "setlive" ""
+  "preview" "1"
+  "depots"
+  {
+    "DEPOT_ID" "depot_build_steam.vdf"
+  }
+}

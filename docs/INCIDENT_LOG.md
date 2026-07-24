@@ -2385,3 +2385,87 @@ Goal: press_* trial --> NORMAL TERMINATION + KPI
 | Verification | Copy SaveAs succeeded. AutoFix removed 174 elements. Intersections improved 1201->1052, overlaps 595->529, unoriented 96->95, but `MeshStatus=Failed`; analysis was not started. |
 | Lessons | Operation success and engineering acceptance are separate. `AUTOFIX_REMOVED` is not a PASS criterion. MCP and Synergy must share the interactive Windows session. |
 | Prevention | Follow `docs/knowledge/dynabook_moldflow_mcp_mesh_autofix_20260719.md`; re-import repaired STL into a fresh Fusion study and prohibit live export during mesh. |
+
+---
+
+## INC-153: Bunny Colony Electron dependency install exceeded the bounded timeout
+
+| Field | Detail |
+|---|---|
+| Date / Detection | 2026-07-24 JST. The first `npm install` for `games/bunny-colony` exceeded the explicit 120-second command timeout. |
+| Impact | The dependency installation and Windows packaging gate were incomplete. No existing application, Docker service, or source ZIP was modified. The timed-out npm child remained alive until explicitly terminated. |
+| Root Cause (5 Why) | (1) The install did not return within 120 seconds. (2) Electron/electron-builder have a comparatively large dependency and binary download graph. (3) `npm ping` measured 15.897 seconds even though the registry and cache were valid. (4) A single fixed timeout was used without separating metadata install from Electron binary acquisition. (5) The preflight checked Node/npm versions but did not measure registry latency or cache coverage before selecting the timeout. |
+| Fix / containment | Identified the exact generated process by command line and terminated only PID 73520. Existing Node services were protected. Verified the npm cache successfully (1,025 entries, about 252 MB of valid content). |
+| Verification | PID 73520 no longer existed after termination. `npm ping` returned PONG in 15.897 seconds. `npm cache verify` completed successfully. No lockfile was produced, so packaging remains unverified. |
+| Lessons | Large desktop runtimes need a bounded but latency-informed dependency phase. A shell timeout does not guarantee its child process is gone on Windows; process identity must be checked and cleaned up. |
+| Prevention | Retry once with explicit npm fetch timeouts/retries and a longer monitored ceiling, then fall back to an installation-free browser build if dependency acquisition still fails. Record progress and never kill unrelated Node processes. |
+| Web knowledge | Not used. Registry reachability and local process/cache evidence were sufficient to choose the next bounded experiment; no unknown npm error signature was present. |
+
+---
+
+## INC-154: Initial Bunny Colony desktop toolchain audit reported 10 development vulnerabilities
+
+| Field | Detail |
+|---|---|
+| Date / Detection | 2026-07-24 JST. After the successful bounded retry, `npm audit` exited 1 with 9 high and 1 critical advisory. |
+| Impact | Windows packaging was held before execution. Game rule tests still passed 5/5. No vulnerable runtime npm dependency is declared or packaged, but Electron 35.7.5 itself is below npm's offered fixed major. |
+| Root Cause (5 Why) | (1) Audit failed because the pinned starter versions resolved vulnerable transitive build packages. (2) `electron-builder` 26.0.12 pulled affected tar/cache/rebuild tooling. (3) Electron was pinned to an older supported line rather than the current fixed line. (4) Versions were selected before lockfile generation and advisory resolution. (5) The security gate correctly ran after install, preventing packaging from promoting an unreviewed toolchain. |
+| Containment | Packaging was not started. `npm audit --omit=dev` and `npm ls --omit=dev --depth=0` proved zero production npm dependencies and zero production audit findings. |
+| Proposed fix | Update exact dev pins to the official npm current versions reported on 2026-07-24: Electron 43.2.0 and electron-builder 26.15.3; reinstall once; rerun full audit, tests, and packaging. |
+| Verification | Current state: 5/5 tests pass; production audit has zero findings; full development audit has 10 findings. Fix is not yet applied. |
+| Lessons / Prevention | Resolve and audit the lockfile before the first distributable build. Distinguish build-only dependencies from shipped application code, while still updating the embedded Electron runtime. |
+| Web knowledge | No general web search was needed. Official npm registry metadata (`npm view`) and npm audit were the authoritative primary sources. |
+
+---
+
+## INC-155: Bunny Colony packaged app inherited ELECTRON_RUN_AS_NODE and exited as Node
+
+| Field | Detail |
+|---|---|
+| Date / Detection | 2026-07-24 JST. The first 5-second launch probe found the packaged process had exited. A development launch with logging reproduced the same exit and captured the stack trace. |
+| Impact | Runtime launch verification was held. The Windows package itself was generated successfully, but GUI readiness was not yet proven. |
+| Root Cause (5 Why) | (1) `app.setName` failed because `app` was undefined. (2) Electron was executing the entry point in Node mode. (3) The host environment contains `ELECTRON_RUN_AS_NODE=1`. (4) The child inherited that host-wide development variable. (5) The launch harness did not sanitize Electron-specific variables before simulating an end-user/Steam launch. |
+| Evidence | Environment inspection returned `ELECTRON_RUN_AS_NODE 1`. Logged failure: `TypeError: Cannot read properties of undefined (reading 'setName')`, followed by `Node.js v24.18.0`. |
+| Proposed fix | Do not change the machine-wide setting. Remove `ELECTRON_RUN_AS_NODE` only inside the validation shell before spawning the packaged executable, verify a responsive `Bunny Colony` window for 5 seconds, then terminate only processes whose executable path matches the isolated build. |
+| Verification | Not yet run with the sanitized child environment. Game source, 5/5 rule tests, packaging, and dependency audit remain passing. |
+| Lessons / Prevention | Desktop launch harnesses must control Electron-specific environment variables. A generated artifact and a started PID are not sufficient; require window title and responsiveness. |
+| Web knowledge | Not used. The exact environment variable and runtime stack trace directly prove the cause; external search would not reduce the remaining uncertainty. |
+
+---
+
+## INC-156: Host pagefile exhaustion interrupted Bunny Colony artifact inspection
+
+| Field | Detail |
+|---|---|
+| Date / Detection | 2026-07-24 JST. After the portable EXE build succeeded, a read-only tool/icon/artifact inspection caused PowerShell to terminate with HRESULT `0x800705AF` and “The paging file is too small for this operation to complete.” |
+| Impact | The already-generated portable artifact was preserved, but icon generation, final hash verification, and repository closeout were held to avoid destabilizing existing services. |
+| Root Cause (5 Why) | (1) PowerShell could not start the required thread/assembly operation. (2) Windows commit/pagefile capacity was exhausted. (3) Process inventory showed `vmmemWSL` about 9.5 GB, Memory Compression about 4.0 GB, a Code process about 3.3 GB, Windows Terminal about 2.0 GB, plus many WSL and development processes. (4) These workloads pre-existed and are outside the game task's safe cleanup scope. (5) The build preflight checked tool versions but not host commit headroom before Electron packaging and inspection. |
+| Containment | Stopped further builds and did not terminate WSL, Docker, editors, or unrelated services. No `docker compose` command was used. |
+| Verification | `npm run build` had already exited 0 and reported creation of `release/BunnyColony-1.0.0-Windows-x64.exe`. Subsequent PowerShell/CIM checks failed to start threads; `tasklist` succeeded and provided memory evidence. Final SHA-256 remains pending. |
+| Lessons / Prevention | Check free virtual/commit memory before large desktop packaging. Treat pagefile exhaustion as a host gate, not an application defect. Never “fix” it by stopping protected Docker/WSL workloads without explicit user authority. |
+| Proposed recovery | User frees memory or explicitly authorizes a bounded target. Then rerun only icon/tool detection, final packaging if the icon changes, hash verification, and closeout. |
+| Web knowledge | Not used. The HRESULT, Windows error text, and live process inventory directly identify resource exhaustion; external search would not improve containment. |
+
+### INC-153 to INC-156 final verification
+
+- The bounded dependency retry completed in about one minute and generated the lockfile.
+- Electron and electron-builder were updated to 43.2.0 and 26.15.3; the full npm audit returned zero vulnerabilities.
+- Rule tests passed 5/5 on the final build.
+- With `ELECTRON_RUN_AS_NODE` removed only from the validation child environment, both unpacked and portable builds displayed one responsive `Bunny Colony` window.
+- After the user closed Docker Desktop, free physical memory recovered to 17,566 MB and free virtual memory to 27,014 MB.
+- The dedicated SVG icon build completed without the default-icon warning.
+- Portable artifact: 89,602,232 bytes; SHA-256 `AA7305AA52F1DE1F599FECAC098F6DFA3B6A83913255185085CD5935006482CD`.
+
+---
+
+## INC-157: ByteRover curation could not reach local Ollama after Docker shutdown
+
+| Field | Detail |
+|---|---|
+| Date / Detection | 2026-07-24 JST. Post-build `brv curate` exhausted four retries with `ECONNREFUSED 127.0.0.1:11434`. |
+| Impact | Game source, tests, package, release manifest, and local success-case record are complete. ByteRover curation and Qdrant self-growth synchronization remain pending. |
+| Root Cause (5 Why) | (1) ByteRover could not connect to its configured LLM provider. (2) The provider endpoint is local Ollama on port 11434. (3) Docker Desktop had been intentionally stopped to recover from INC-156 pagefile exhaustion. (4) The memory capture step was attempted before restoring that external dependency. (5) Closeout sequencing did not model Docker as both a memory consumer during packaging and a required provider for post-build knowledge capture. |
+| Containment | No cloud fallback, API key, or unapproved provider was used. Durable lessons were already written to `success_cases.md` and the incident reports. |
+| Recovery | After Docker/Ollama is restored, verify port 11434, rerun the same bounded ByteRover curate command once, then write the RL self-growth record to Qdrant. |
+| Verification | Pending external dependency restoration. |
+| Web knowledge | Not used; the exact refused localhost endpoint and the intentional Docker shutdown prove the dependency state. |

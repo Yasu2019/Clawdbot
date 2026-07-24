@@ -1,0 +1,42 @@
+{
+  "name": "bunny-colony",
+  "version": "1.0.0",
+  "description": "A cozy strategy game about growing a rabbit colony and surviving seven moonlit nights.",
+  "author": "Yasu",
+  "license": "MIT",
+  "private": true,
+  "main": "electron/main.cjs",
+  "type": "module",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron .",
+    "test": "node --test tests/*.test.mjs",
+    "build": "npm test && electron-builder --win portable --x64",
+    "build:dir": "npm test && electron-builder --dir --win --x64"
+  },
+  "devDependencies": {
+    "electron": "43.2.0",
+    "electron-builder": "26.15.3"
+  },
+  "build": {
+    "appId": "com.yasu.bunnycolony",
+    "productName": "Bunny Colony",
+    "artifactName": "BunnyColony-${version}-Windows-${arch}.${ext}",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "index.html",
+      "styles.css",
+      "src/**/*",
+      "electron/**/*",
+      "LICENSE.txt"
+    ],
+    "win": {
+      "target": "portable"
+    },
+    "portable": {
+      "artifactName": "BunnyColony-${version}-Windows-${arch}.exe"
+    }
+  }
+}

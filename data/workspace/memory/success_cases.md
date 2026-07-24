@@ -15,6 +15,64 @@
 
 ---
 
+## [S016] OF box-shell Telegram VOF = STL surface + iso only (2026-07-22)
+- 問題: Telegram 充填アニメが平板に見え、ユーザーが繰り返し却下。bbox は 100x60x50 なのに意味が伝わらない。
+- 診断: (1) 壁面 `alpha` 塗り / `threshold(alpha)` は薄肉シェルを「薄い板」に見せる (2) side/front/top 正対カメラは奥行きを潰す (3) 送信前にフレーム目視していなかった。
+- 解決: `Moldflow.stl` 表面に `alpha.polymer` を sample して着色。カメラは iso（高さが分かる視点）のみ。t=0 静止画を先に送る。side/front/top・壁面塗り・体積閾値 GIF は送らない。
+- 証拠: ユーザーが REFERENCE still + `CORRECTED ... camera=iso` を OK。ローカル `data/workspace/moldflow_bridge/of_vof_anim_stl_20260722/`。bd key `of-vof-telegram-box-shell-stl-fill`。
+- 再利用: IF 箱シェル VOF を Telegram する THEN STL表面着色 + iso + 送信前フレーム目視。IF 平板に見える THEN カメラ/描画モードを疑い、メタデータだけで箱と断言しない。K10自動配信の OpenFOAM ParaView Telegram は無効（`CAE_OPENFOAM_PARAVIEW_TELEGRAM` 既定0）。原因はカメラではなく `blockmesh_bbox` の別STEPが多い。
+
+## [S012] No4 Fast Fill + Cool (circuits) SUCCESS; Warp HARD_BLOCKED 200052 (2026-07-20)
+- 問題: AnalysisSequence の Fast Fill / Cool / Warp 段を自動化し、Fill+Pack(`Flow`) 以降を SUCCESS 証拠付きで閉じる必要があった。
+- 診断: COM 受理は Fill/Fast Fill/Flow/Cool のみ。strip に冷却回路ゼロ。`model_4_cooling.sdy` はチャンネル0で Fill 起動。`runstudy` は cwd=親必須。`warp.exe` は Flow `.op2` があっても ERROR 200052（interface 未設定）。
+- 解決: Fast Fill は SaveAs+COM+MCP runstudy。Cool は tutorial `cpu_base` をコピーし `cool.exe`（124 circuits）。Warp は当時 GUI 必要と誤判断（後続 S013 で CLI `-interface` で解消）。
+- 証拠: Fast Fill `mf_fc_fastfill_20260720_120214~2.*` (~105s)。Cool `mf_cool_cpubase_20260720_123230.oc1/.c2p` cycle 24.7s。正典 `docs/knowledge/moldflow_analysis_sequence_probe_20260720.md`。MCP 0.8.4。
+- 再利用: IF Fast Fill THEN COM `Fast Fill`+runstudy cwd=parent。IF Cool tutorial THEN cpu_base+`cool.exe`。Warp は S013 参照。
+
+## [S015] MF vs OF scorecard + v2 rheology/U calibration (2026-07-21)
+
+- 症状: 同一箱型φ2でも OF が MF Fill に近づかない / 比較不能
+- 解決: 粗メッシュ2.5万で充填到達(v1 α≈99.9%@0.80s)。scorecard で fill_time -25% を検知し U=10.55 + powerLaw n=0.275 + rho=900 の v2 を投入
+- 根拠: `docs/knowledge/mf_of_compare_improve_box_phi2_20260721.md` / `mf_of_scorecard_box_phi2_20260720.json`
+- 再利用: IF velocity-BC で OF fill_time が MF より速い THEN U*=(t_of/t_mf)。圧力不足は粘度(powerLaw/Cross)を上げる。等価主張禁止
+- 未解決: v2 完了後の圧力KPI・熱連成
+
+## [S014] MF→OF handoff for box φ2 gate (PROXY_GAP) (2026-07-20)
+
+- 症状: 同一STL・φ2ゲートなのに Lavie OpenFOAM が Moldflow Fill に近づかない / 比較不能
+- 解決: Dynabook Fill KPI（fill_time=1.077s, V, gate area）から U≈14.21 m/s・endTime≈1.24s・maxGlobalCells=150k の handoff を生成し engine/tri-track に接続
+- 根拠: `docs/knowledge/mf_vs_of_box_phi2_comparison_20260720.md` / `mf_to_of_handoff_box_xplus_d2_20260720.json`
+- 再利用: IF MF fill_time + cavity volume + gate area known THEN `scripts/mf_to_of_handoff.py` → `apply_mf_to_of_handoff` / tri-track overwrite。SUCCESS は fill_complete 必須。等価主張禁止 (PROXY_*)
+- 未解決: Lavie 再実行（IP不通）・圧力合わせ用 Cross-WLF は次段
+
+## [S013] Strip Cool + Warp CLI -interface SUCCESS (No4 xu6i, 2026-07-20)
+- 問題: strip Cool が 0ch HARD_BLOCK、Warp が ERROR 200052 で No4 が閉じられない。
+- 診断: CreateBeamsByPoints 単独だと inlet がパート節点/中間節点に乗り 701870。CreateNDBC は EntList 渡しが正。`warp.exe -help` に `-interface filePrefix` があり、200052 は GUI 必須ではなくフラグ欠落。
+- 解決: `Modeler.CreateNodeByXYZ` → Channel 40480 beams → `CreateNDBC(EntList,40020)` → `cool.exe`。Warp は Flow の `~N.op2` を `-interface <prefix>` で指定。
+- 証拠: Cool `mf_strip_cool_v12_20260720.oc1/.c2p` (8 circuits, cycle 35s)。Warp `mf_fc_warp_v2_20260720~W.ow3` (180KB) + `~W.lsp` (1MB); 3 study 再現。`STRIP_COOL_SUCCESS_20260720.md` / `WARP_SUCCESS_INTERFACE_CLI_20260720.md`。
+- 再利用: IF strip Cool THEN CreateNodeByXYZ+40480+CreateNDBC(EntList)+cool.exe cwd=parent。IF Warp after Flow THEN `warp.exe -mes raw -output <base>~W -interface <flow>~N <sdy>` cwd=parent。COM Warp 文字列は引き続き不可。
+
+## [S011] Face-center gate Fill COMPLETED + progressive PNG Telegram (2026-07-20)
+- 問題: 角ゲート N2 のままではユーザー要求の +X 面中央ゲートとならない。Fill 完了後も Telegram へ初期/中期/最終の充填進行 PNG が届かず、ExportImage や SetMaxValue では失敗または同一画像になる。
+- 診断: MF2010 では旧 NDBC 削除が不安定→UDM strip で GATE_COUNT=0 にしてから N1154 を打つと gate_count=1。Fill plot は GUI 読込後 GetMaxValue>0 が必要。ExportImage=438。SaveAnimation GIF 24f + Pillow 10/50/100% が唯一の進行差分経路。MCP/Synergy は session 1 (`schtasks /IT`)。
+- 解決: study `mf_fc_strip_out_study_(copy).sdy` に N1154 @(50.0,2.09,27.70); Fill COMPLETED; bridge 0.8.3 の `moldflow_export_fill_stages` + host `moldflow_fill_png_telegram.py` / runner `--stage fill_png_telegram`。
+- 証拠: GATE_COUNT=1; STATUS_CODE=1 elapsed 141.16s fill_frac~1.077; Telegram message_id 16781/16782/16783; evidence `runner_results/20260720_082610/stage_fill_png_telegram.json`。正典: `docs/knowledge/dynabook_moldflow_end_to_end_runbook_20260720.md`。
+- 再利用: IF 面中央ゲート THEN UDM strip→N1154 (gate_count=1)。IF 進行 PNG THEN SaveAnimation→Pillow→sendPhoto (ExportImage禁止)。IF COM THEN `/IT` session1 + MCP>=0.8.3。詳細 bd remember `dynabook-moldflow-facecenter-fill-png-20260720`。
+
+## [S010] Moldflow configure on SaveAs copy + MachineFinder IT fail-closed (2026-07-20)
+- 問題: bridge 配線後も study copy への `material_id=1007` configure 実証と MachineFinder の interactive 再probe、UI用 label-join が残っていた。
+- 診断: フォルダ xcopy コピーは mesh/node 喪失で N2 欠落。MachineFinder は `schtasks /IT` でも err=424 (Object required)。`select_machine` は COM ハングし得る。
+- 解決: 同一 project で SaveAs コピー→lean Select+Save VBS を `/IT` 実行。MachineFinder は fail-closed で process-condition + `*.30007.udb` 目録に固定。CAE Studio `_join_synergy_materials_to_file_catalog` + `/api/material-label-join`。configure は label scan 上限と skip_gate 時 Save 継続。
+- 証拠: `configure_min.log` に Selected material ID 1007 / SAVE_OK=True; `probe_machine_IT.log` に MachineFinder_err=424 + FALLBACK; catalog total=13; unit tests 5 PASS; copy=`...gatefill_matcfg_20260720.sdy`。
+- 再利用: IF configure 試験 THEN SaveAs copy (同 project)。IF MachineFinder 424/timeout THEN 機種COMを諦め process params。IF UI表示 THEN label-join のみ (catalog≠property DB)。
+
+## [S009] Moldflow material/machine bridge wired on Dynabook MCP (2026-07-19)
+- 問題: 材料/成形機は SQLite UDB 目録のみで、解析は Synergy 内蔵 DB。ジョブから材料 id 選択と機種経路が未配線だった。
+- 診断: Fill SUCCESS 実績は domain 21000 + FieldDescription + material id 1007。`*.30007.udb` は 26(K10 SQLite)/13(Dynabook install) のファイル目録。MachineFinder COM は probe が timeout=COM弱。
+- 解決: MCP 0.7.0 で `configure_study(material_id|mfg+trade + process params)`、`list_machine_catalog`、`probe_machine_com`、`select_machine`(fail-closed)。CAE Studio `/api/machine-inventory`。runner/docs。
+- 証拠: Dynabook `bridge_version=0.7.0` tools=23; catalog ok total=13; unit test 4 PASS; probe timeout→process-condition fallback 確定。
+- 再利用: IF Fill 材料指定 THEN Synergy domain 21000 + material_id 優先。IF 機種 COM timeout THEN UDB 目録+clamp/pressure プロセス条件。UDB を物性DBと言わない。
+
 ## [S001] Moldflow充填が「板のまま」→3層の根本原因を実物検証で特定 (2026-07-15, Fable5)
 - 問題: カスタムSTLの充填動画依頼後もTelegramには100x60x2板の動画のみ。
 - 診断: ①run_dirの時系列ディレクトリ有無→ソルバー未実行と確定 ②ログのdeltaT数列→1e-16に崩壊=発散 ③checkMeshでメッシュ体積318cm³ vs 部品体積42cm³→「部品の外側」を解いていたと数値で確定。保持点(0,0,0.025)が中空部だった。
@@ -75,3 +133,10 @@
 3. **Result**: AutoFix removed 174 elements; intersections 1201->1052 and overlaps 595->529. Mesh still failed, so gate and analysis were correctly blocked.
 4. **Reusable rule**: never export the model while mesh status is Pending/Running, and never accept AutoFix from its removed-count alone.
 5. **Evidence**: `docs/knowledge/dynabook_moldflow_mcp_mesh_autofix_20260719.md`, INC-152, Beads `Clawdbot_Docker_20260125-h8dx`.
+
+## [S017] Steam向けElectronゲームを安全な段階ゲートで完成 (2026-07-24, Codex)
+- 問題: 2つの入力ZIPはPhaser試作とUnityタイトル部品だけで、Steam提出可能な完成ゲームではなかった。初回npm取得、依存監査、Electron起動、ホストメモリでも個別障害が発生した。
+- 診断: npm registry PONG 15.897秒、監査10件、`ELECTRON_RUN_AS_NODE=1`、`vmmemWSL`約9.5GBと各原因を事実で分離した。ゲームロジック不良とホスト/ツールチェーン不良を混在させなかった。
+- 解決: 新規 `games/bunny-colony/` に限定し、Electron 43.2.0 + Canvasで7日制コロニー戦略ゲームを実装。依存を更新し、子プロセスだけ環境変数を除去し、Docker停止後に専用SVGアイコン付きPortable EXEを1回再生成した。
+- 証拠: ルールテスト5/5、npm audit 0、unpacked/portableの応答ウィンドウ確認、89,602,232 bytes、SHA-256 `AA7305AA52F1DE1F599FECAC098F6DFA3B6A83913255185085CD5935006482CD`。INC-153～156、Beads `Clawdbot_Docker_20260125-6emb`。
+- 再利用: IF Electron配布を作る THEN 依存取得を監視し、完全監査、`ELECTRON_RUN_AS_NODE`、空きcommit memory、GUI応答、正確なプロセス清掃、SHA-256の順にゲートする。BECAUSE ビルド成功だけでは配布可能性を証明できない。

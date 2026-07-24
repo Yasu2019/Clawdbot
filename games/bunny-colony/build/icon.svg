@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="night" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1b3428"/>
+      <stop offset="1" stop-color="#38533b"/>
+    </linearGradient>
+    <linearGradient id="moon" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff4c9"/>
+      <stop offset="1" stop-color="#e9b968"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="1024" rx="220" fill="url(#night)"/>
+  <circle cx="512" cy="492" r="342" fill="url(#moon)"/>
+  <path d="M376 408C330 296 338 190 390 170c58-22 107 92 111 226M648 408c46-112 38-218-14-238-58-22-107 92-111 226"
+        fill="#f7ead5" stroke="#293d31" stroke-width="30" stroke-linecap="round"/>
+  <ellipse cx="512" cy="585" rx="238" ry="228" fill="#f7ead5" stroke="#293d31" stroke-width="30"/>
+  <ellipse cx="422" cy="555" rx="25" ry="34" fill="#24362c"/>
+  <ellipse cx="602" cy="555" rx="25" ry="34" fill="#24362c"/>
+  <path d="M512 616c-26 0-45 16-45 34 0 19 19 34 45 34s45-15 45-34c0-18-19-34-45-34z" fill="#d78679"/>
+  <path d="M512 684v50m0 0c-34 0-56-13-68-35m68 35c34 0 56-13 68-35"
+        fill="none" stroke="#293d31" stroke-width="22" stroke-linecap="round"/>
+  <path d="M248 836c142-93 386-93 528 0" fill="none" stroke="#72965d" stroke-width="76" stroke-linecap="round"/>
+</svg>
