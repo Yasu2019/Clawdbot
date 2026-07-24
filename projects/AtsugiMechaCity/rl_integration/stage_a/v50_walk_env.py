@@ -121,12 +121,18 @@ def _default_cfg():
             "forward_progress":   1.0,
             "feet_air_time":      2.0,     # C1: the anti-freeze term
             "single_foot_contact": 1.0,    # C1: the anti-hop term (2404.19173)
-            "pose_prior":         0.3,     # gait reference is a prior, not the goal
+            "pose_prior":         0.8,     # 2026-07-25: 0.3 was too weak -> the gait
+                                           # drifted from the (symmetric, anti-phase)
+                                           # human reference into an asymmetric limit
+                                           # cycle. Strong imitation keeps it natural.
             # naturalness / symmetry
-            "gait_symmetry":     -1.0,     # L/R residual asymmetry (fixes the limp)
-            "foot_clearance":     1.0,     # swing foot near target height (fixes over/under lift)
+            "gait_symmetry":     -1.5,     # L/R residual asymmetry (fixes the limp)
+            "foot_clearance":    -3.0,     # PENALTY on (clearance-target)^2: pulls the
+                                           # 24 cm paw AND the 4 cm shuffle to ~10 cm
+                                           # (the old exp reward had zero gradient above
+                                           # target, so it never corrected the over-lift)
             "contact_symmetry":  -0.5,     # equal L/R stance time
-            "action_jerk":       -0.005,   # 2nd action difference -> smoothness
+            "action_jerk":       -0.008,   # 2nd action difference -> smoothness
             # posture / stability
             "lin_vel_z":         -2.0,
             "ang_vel_xy":        -0.05,
@@ -652,18 +658,21 @@ class V50WalkEnv:
         return pen
 
     def _r_foot_clearance(self):
-        """Reward the SWING foot near a natural height above the local ground.
+        """PENALISE the swing foot's deviation from a natural height (~10 cm).
 
         Measured gait lifted one foot 24 cm and the other 4 cm; a human walk
-        clears ~8-12 cm on both. Gaussian around the target penalises both the
-        shuffle (too low) and the paw (too high). Only the airborne foot counts."""
+        clears ~8-12 cm on both. A squared penalty has gradient everywhere, so it
+        actively pulls BOTH the 24 cm paw down and the 4 cm shuffle up (the old
+        exp() reward flatlined above the target and never corrected the paw).
+        Only the airborne foot counts; capped so a stumble spike can't dominate."""
         ground = self.foot_stand_z + V50.terrain_dz(
             self.foot_pos[:, :, V50.FWD_AXIS].reshape(-1), self.cfg["terrain"],
             self.stair_h).reshape(self.num_envs, 2)
         clearance = self.foot_pos[:, :, 2] - ground
         swing = (~self.contacts).float()
         tgt = self.cfg["foot_clearance_target"]
-        return (swing * torch.exp(-((clearance - tgt) / 0.05) ** 2)).sum(dim=1) * self._moving()
+        dev = ((clearance - tgt) ** 2).clamp(max=0.09)     # cap at (0.30 m dev)^2
+        return (swing * dev).sum(dim=1) * self._moving()
 
     def _r_contact_symmetry(self):
         """Penalise unequal L/R stance time -- a limp keeps one foot planted
