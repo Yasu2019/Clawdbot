@@ -32,6 +32,8 @@
 - **UIレイアウトの無断変更（→ PROMISES.md P022）**: `iatf_system/app/views/` および `data/workspace/apps/` は必ずPlan提示・ユーザー承認後のみ変更可
 
 ## Critical Constraints
+- **🤖 3Dメカ目視確認は絶対（グローバルルール / 2026-07-24 ユーザー指示）**: RL歩行・動作学習・リギング等、3Dメカロボットの学習/評価/レンダ結果を報告・合格判定する前に、**必ずフレーム画像を目視**し、胴体-腕-脚の連結・姿勢・接地に異常が無いことを自分の目で確認する。survival等の**数値だけで合格としない**（立ち止まりが高survivalに化ける/腕分離等の物理破綻は数値に出ない）。レンダは `render_walk_rsl.py`(v2) 等でPNGを出し `Read` で確認。徹底管理: Beads(`bd remember`)・Byterover queue・Obsidian Vault(`FailureKnowledge/`)・auto-memory に記録済み。
+- **大容量データはF:ドライブへ**: データセット・学習成果物・動画・アーカイブ等(目安100MB超)は `F:\clawstack_data\` 配下に保存する。D:は容量逼迫のためコード・設定・小サイズ状態ファイルのみ(2026-07-12 ユーザー指示)
 - Docker build は **必ずキャッシュ使用**。`--no-cache` は事前説明なしに禁止
 - `clawstack_v2/data` は Junction Point。削除前にジャンクション確認必須
 - OpenClaw Gateway token: `yasu-fresh-token-2026-02-01`
