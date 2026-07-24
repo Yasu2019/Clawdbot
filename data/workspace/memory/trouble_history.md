@@ -1208,3 +1208,50 @@ G1 py_compile → G2 `fleet_satellite_setup_auto.ps1` → G3 K10 probe → G4 �
 - Failure signature: status.json の travel が伸びているのに upright が最終的に 0.0、かつ両足 contact が常時 1.0。
 - Scope limit: 「参照が開ループで転倒する」こと自体は mocap 再生では正常(RLが補正するのが前提)。異常なのは **遊脚相が一度も無いこと**と**足首凍結・hip位相141 deg**という再ターゲット欠陥。RLが学習不能であることは証明していない。
 - 関連: bd `Clawdbot_Docker_20260125-776g`、新規 `stage_a/v50_walk_env.py` / `stage_a/train_v50_walk_rsl.py`。
+
+### [T067追補] bvh_retarget の膝符号・足首折り返しバグを修正 (2026-07-24)
+
+- 原因(生系列を MJCF 可動域に対してダンプして確定):
+  - **膝符号反転**: MJCF膝可動域は -30°..+10°、大可動側は「負」。人間の屈曲角(acos, 常に≥0, 生値0..67°)を `clip(+knee, -0.52, 0.17)` で写したため +10°上限に飽和し p2p 9°に潰れていた。`clip(-knee)` に反転 → -30°側を使い p2p 27.6/28.4°。屈曲ピークは -30°でフラットトップ=接地クリアランスに有利なのでスケールせず。
+  - **足首 atan2 分岐折り返し**: 旧 `series_ankle` は `sagittal_angle(足)-sagittal_angle(すね)` と二つの atan2 の差を取り、各項が独立に ±π 折り返し → 系列が min -185°/DC -92° で +20°上限に凍結(p2p 0.00)。分岐フリーの `signed_sagittal_between(a,b)=atan2(af·bu-au·bf, af·bf+au·bu)` に置換 + `fit_amplitude`(中央値センタリング+90%tile頑健スケールを可動域0.75へ)で写す → p2p 22.5/30.6°、ゼロ中心。生足首 p2p は 178° と可動域±20°を大きく超えるため素のクリップは矩形波化する。
+- **hip は変更せず**: 当初「位相141°」と警告したが、これは半周期でなくクリップ全長の半分でロールした測定アーティファクト。実 L-R オフセットは ~166° で mocap として正常。
+- 検証: `check_reference_gait.py` を v2 化。開ループ再生はどの参照でも1歩で転倒する(バランスはRLが学習)ため first_fall は情報のみ。合否は参照JSON自身の関節振幅。OLD walk.json=kinematic_ok:false(knee7.6/ankle0.0/足接地0.96) → NEW=true(knee27.6/ankle30.6/足接地0.60)。旧参照は `walk.json.bak_frozen_ankle_20260724` に退避。
+- commit: `de300439f6`。bd `Clawdbot_Docker_20260125-bpqh` クローズ。
+
+### [T067決着] 修正参照+接地報酬trainerでフルラン成功 (2026-07-24)
+
+- 2500iter/4096envs フルラン EVAL(deterministic, push有効下): **survival_rate=0.817, clean_travel_m=2.373m/8s, vx=0.305(目標0.331の92%), single_contact_frac=0.732(交互歩行成立), mean_air_time=0.065s**。stochastic も survival 0.777/travel 2.401m とほぼ同等=探索ノイズ依存でない実力。
+- 学習推移: ep_len 1.36→15.07s, return -4.2→+44.3, fall_rate(訓練中push有) 1.0→0.53, single_contact 0.37→0.69, 転倒モード low(沈み込み) ~0.09 へ低下。
+- 7日間の walks_then_falls<->stand_freeze 停滞(survival~0)を完全突破。決定要因は2つ: ①bvh_retarget の膝符号/足首折り返し修正(参照に遊脚相が生まれた) ②接地報酬(feet_air_time/single_foot_contact)+time_out正処理+obs正規化(rsl_rl)。
+- ckpt退避: `C:/v50_work/autonomy/known_good/walk_rsl_20260724_survival0.82_travel2.37.pt`。trainer=`stage_a/train_v50_walk_rsl.py`。
+- 残課題: v2互換レンダラ(rsl_rl ckpt: obs189/hidden[512,256,128]+normalizer, 旧render_walk.pyはobs46で非互換)による動画確認 / 地形カリキュラム / 他スキル展開。bd `qnfe` クローズ。
+
+### [T067目視検証] rsl_rl方策の歩行を動画で確認 (2026-07-24)
+
+- `stage_a/render_walk_rsl.py` 新規。旧 `render_walk.py` は v1 ActorCritic(obs46)専用で v2 ckpt(rsl_rl形式・actor 189→512・hidden[512,256,128]+EmpiricalNormalization)と非互換。**正規化器を通さずに生観測を入れると「歩けない」偽陰性になる**ため、必ず `OnPolicyRunner.load` 経由で policy と obs_normalizer を復元する。
+- シーンは `V50WalkEnv` にカメラ設定(`cfg["camera"]`)を追加して再利用。レンダ側で別XMLを作らない(INC-141 罠#8)。
+- クリーン連続ロールアウト(`--no-dr --no-reset`, 8s, deterministic): **fell=false(一度も転倒せず)・travel 2.427m・vx 0.303(目標0.331の92%)・min_upright 0.918・min_z 0.394(stand_z 0.428から3.4cm低下のみ)**。支持相 **single 0.693 / double 0.255 / flight 0.052** = 人間の歩行比に近く、跳躍(flight大)や這い(single≒0)を数値で否定。接地遷移46回/8s。
+- フレーム目視(t=1s/5s/7.9s): 胴体直立・脚交互・腕振りを確認。最終フレームでも歩行継続。
+- **罠**: 1envレンダは domain randomization が単一サンプルになるため、不利な質量/ゲインを引くと 2.04s で転倒し実力を過小評価する(初回レンダで実際に発生)。デモ・検証時は `--no-dr` を付ける。また mp4 書き出しは stdout をパイプすると ffmpeg サブプロセスのハンドルが壊れる(Windows OSError 9)ため別プロセスで書く。
+- 成果物: `C:/v50_work/walk_rsl_clean/` (PNG81枚 + walk.mp4)、`known_good/walk_rsl_20260724_walk_check.json`。bd `purw` クローズ。
+
+### [T068] 学習時 evaluate() の数字は信用しない — フレッシュenv再ロード検証を必須化 (2026-07-24)
+
+- 事象: 斜面(slope_up 8°)カリキュラムの学習末尾で `evaluate()` が **survival_rate 0.814** を出力。しかし**同じrunが直前に保存したckptを再ロードすると 0.069**。
+- 独立3経路で確認: (a)自作verify 0.066 (b)trainer自身の `evaluate()` を保存ckptで再実行 0.069 (c)DR抽選を変えて3回 0.069/0.111/0.245。**学習時の0.814は再現しない**。
+- 切り分け: **平地ckptは再現する**(報告0.817 → 再実行0.897 → フレッシュenv検証 0.988/0.990)。よって save/load は健全。**slope ckpt自体も平地では survival 0.88** で無傷。つまり壊れていたのは方策ではなく「測定」。
+- 判明した実力(再現可能な値): 斜面は**登坂自体は本物**(生存個体の獲得高度÷斜面期待高度 = 1.08〜1.15、横ドリフト0.195m、全生存個体がランプ上)だが、速度依存が強く cmd0.18→survival 0.404 / cmd0.25→0.256 / cmd0.331→0.07〜0.25。
+- 罠の本質: `evaluate()` は**学習に使ったenvインスタンスで一度だけ**測るので偽陽性を出しうる。さらに指令速度を `target_vx`(=訓練指令域[0.15,0.35]の**上端**)に固定するため、実用速度での能力を過小評価もする。
+- 恒久対策: `stage_a/verify_policy.py` を新設。**必ずckptをフレッシュenvへ再ロード**し、①複数指令速度のスイープ ②`climb_ratio`(実獲得高度÷地形が与える高度)を報告する。climb_ratio が無いと「幅1.6mのランプから横に外れて平地を歩いただけ」の個体が survival 満点で紛れ込むのを検出できない。
+- 教訓: **学習ログの最終行を成果として報告しない。** 保存物から再現した値だけを報告する。
+
+### [T069] blind locomotion は斜面を登れるが階段は登れない — 外受容が必須 (2026-07-24)
+
+- 検証(`verify_policy.py`, フレッシュ再ロード, stairs, 14s, cmd 0.10/0.15/0.20):
+  - **travel_m が全速度で 0.556-0.558m の一定値** = 平地助走(TERRAIN_FLAT_RUNUP=0.6m)の端、第1段の直前で停止。指令速度を上げても進まない。
+  - height_gained 0.068m(段高0.10mの第1段に片足乗る程度)で以降上がらない。
+  - survival 0.88-0.95 と高いが「転ばず立ち止まっているだけ」。学習曲線も it1000で return頭打ち(14.2→13.2)、vx 0.08へ低下、失敗の主因 `low` 0.55(段を越えられず高さ判定に落ちる)。
+- **climb_ratio の罠**: stairs で 3.5-4.6 と>1に見えるが、助走境界では terrain_offers≈0.015m と極小のためこれで割った見かけ値。**真の指標は travel_m が助走長で頭打ちすること**。verify_policy の climb_ratio は連続地形(斜面)専用と解釈する。
+- 根本原因: 観測(`v50_walk_env` obs 189dim)に**地形高さ情報が無い**。段差は衝突するまで知覚できず、足を先に上げられない。連続地形(斜面)は接地・重力・速度だけで適応できるが、離散段差は不可能。これは既知の一般則(blind policyは連続地形、離散障害は exteroception 必須)。
+- 対策(bd 起票済み): legged_gym流の足元 height-scan(例 11x11グリッド)を obs に追加。地形高は privileged critic obs としても供給。段高カリキュラム 0.03→0.10m 併用。
+- 教訓: **survival だけ見ると「成功」に見える失敗がある**(立ち止まりも転倒しなければ survival 高)。travel と climb を必ず併読する。
