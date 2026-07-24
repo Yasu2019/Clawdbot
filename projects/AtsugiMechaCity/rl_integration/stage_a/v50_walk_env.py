@@ -490,7 +490,8 @@ class V50WalkEnv:
         c = self.cfg
         upright = (-self.grav[:, 2]).clamp(0.0, 1.0)
         self.upright = upright
-        expect_z = self.stand_z + V50.terrain_dz(self.pos[:, V50.FWD_AXIS], c["terrain"])
+        expect_z = self.stand_z + V50.terrain_dz(self.pos[:, V50.FWD_AXIS],
+                                                  c["terrain"], self.stair_h)
         # Kept separate so the supervisor can see WHICH failure mode dominates:
         # tipping over, sinking/diving, or dragging a limb (the crawl hack).
         self.term_tilt = upright < c["term_upright"]
@@ -566,7 +567,7 @@ class V50WalkEnv:
 
     def _r_base_height(self):
         tgt = self.cfg["base_height_target"] + V50.terrain_dz(
-            self.pos[:, V50.FWD_AXIS], self.cfg["terrain"])
+            self.pos[:, V50.FWD_AXIS], self.cfg["terrain"], self.stair_h)
         return (self.pos[:, 2] - tgt) ** 2
 
     def _r_action_rate(self):
