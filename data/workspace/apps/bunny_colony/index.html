@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bunny Colony | Clawstack Portal</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: "Yu Gothic UI", "Hiragino Kaku Gothic ProN", system-ui, sans-serif;
+      --ink: #14231b;
+      --cream: #fff2ce;
+      --leaf: #93bd7a;
+      --gold: #eab464;
+      --muted: #aab9ad;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--cream);
+      background:
+        radial-gradient(circle at 82% 12%, rgba(234,180,100,.25), transparent 22rem),
+        linear-gradient(145deg, #12251b, #243d2b 58%, #18261e);
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: .22;
+      background-image: radial-gradient(circle, #dceacb 1px, transparent 1px);
+      background-size: 38px 38px;
+      mask-image: linear-gradient(to bottom, black, transparent 72%);
+    }
+    .shell { position: relative; width: min(1120px, 92vw); margin: 0 auto; padding: 38px 0 64px; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 52px; }
+    .back { color: var(--cream); text-decoration: none; font-weight: 700; }
+    .status { padding: 7px 12px; border: 1px solid rgba(147,189,122,.45); border-radius: 999px; color: var(--leaf); font-size: 12px; letter-spacing: .08em; }
+    .hero { display: grid; grid-template-columns: 1.15fr .85fr; gap: 54px; align-items: center; }
+    .eyebrow { margin: 0 0 14px; color: var(--gold); font-size: 12px; font-weight: 900; letter-spacing: .2em; }
+    h1 { margin: 0; font: 800 clamp(58px, 9vw, 112px)/.78 Georgia, serif; letter-spacing: -.07em; }
+    h1 span { color: var(--leaf); }
+    .lead { max-width: 620px; margin: 30px 0; color: #d4ded3; font-size: 18px; line-height: 1.8; }
+    .actions { display: flex; flex-wrap: wrap; gap: 12px; }
+    button, .button {
+      padding: 13px 19px;
+      border: 1px solid rgba(255,255,255,.15);
+      border-radius: 11px;
+      color: var(--cream);
+      background: rgba(255,255,255,.07);
+      font: inherit;
+      font-weight: 800;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .primary { border-color: #c98e40; color: var(--ink); background: var(--gold); }
+    .moon {
+      display: grid;
+      place-items: center;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background: radial-gradient(circle at 38% 30%, #fff8d9, #e9b968 70%);
+      box-shadow: 0 0 90px rgba(234,180,100,.24);
+    }
+    .rabbit { position: relative; width: 50%; aspect-ratio: .86; margin-top: 15%; border-radius: 48% 48% 44% 44%; background: #f7ead5; box-shadow: inset 0 -14px 0 rgba(78,60,44,.08); }
+    .rabbit::before, .rabbit::after { content: ""; position: absolute; top: -48%; width: 25%; height: 66%; border-radius: 50% 50% 40% 40%; background: #f7ead5; }
+    .rabbit::before { left: 17%; transform: rotate(-8deg); }
+    .rabbit::after { right: 17%; transform: rotate(8deg); }
+    .face { position: absolute; inset: 36% 0 auto; text-align: center; color: #24362c; font-size: clamp(30px, 5vw, 54px); letter-spacing: .35em; transform: translateX(.18em); }
+    .details { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 58px; }
+    .panel { padding: 22px; border: 1px solid rgba(255,255,255,.1); border-radius: 18px; background: rgba(8,20,13,.5); backdrop-filter: blur(9px); }
+    .panel h2 { margin: 0 0 10px; color: var(--leaf); font-size: 16px; }
+    .panel p, .panel li { margin: 0; color: var(--muted); line-height: 1.65; font-size: 14px; }
+    .panel ul { margin: 0; padding-left: 18px; }
+    code { color: #ffe1a6; overflow-wrap: anywhere; }
+    .release { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr auto; gap: 20px; align-items: center; }
+    #copyState { min-height: 1.2em; margin-top: 8px; color: var(--leaf); font-size: 12px; }
+    @media (max-width: 780px) {
+      .hero { grid-template-columns: 1fr; }
+      .moon { width: min(390px, 86vw); margin: 0 auto; }
+      .details { grid-template-columns: 1fr; }
+      .release { grid-column: auto; grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <nav class="topbar">
+      <a class="back" href="../../portal.html">← Master Portal</a>
+      <span class="status">RELEASE 1.0.0 · VERIFIED</span>
+    </nav>
+
+    <section class="hero">
+      <div>
+        <p class="eyebrow">COZY COLONY STRATEGY</p>
+        <h1>Bunny<br><span>Colony</span></h1>
+        <p class="lead">畑と木こり場を育て、仲間を増やし、見張り台でキツネから守る。7つの月夜を越える、約10分の短編コロニー戦略ゲームです。</p>
+        <div class="actions">
+          <button class="primary" id="copyPath">Windows版のパスをコピー</button>
+          <button id="copySource">ソースフォルダをコピー</button>
+        </div>
+        <p id="copyState" aria-live="polite"></p>
+      </div>
+      <div class="moon" aria-label="Bunny Colony rabbit emblem">
+        <div class="rabbit"><div class="face">••</div></div>
+      </div>
+    </section>
+
+    <section class="details">
+      <article class="panel">
+        <h2>遊び方</h2>
+        <ul>
+          <li>1～4キーで建物を選択</li>
+          <li>昼に資源と人口を増やす</li>
+          <li>夜までに防衛力を整える</li>
+        </ul>
+      </article>
+      <article class="panel">
+        <h2>搭載機能</h2>
+        <ul>
+          <li>自動保存・途中再開</li>
+          <li>オフライン動作</li>
+          <li>広告・外部送信なし</li>
+        </ul>
+      </article>
+      <article class="panel">
+        <h2>品質ゲート</h2>
+        <ul>
+          <li>ルールテスト 5/5</li>
+          <li>npm audit 0件</li>
+          <li>Portable起動確認済み</li>
+        </ul>
+      </article>
+      <article class="panel release">
+        <div>
+          <h2>Windows Portable版</h2>
+          <p><code id="exePath">D:\Clawdbot_Docker_20260125\games\bunny-colony\release\BunnyColony-1.0.0-Windows-x64.exe</code></p>
+          <p>85.45 MiB · SHA-256 <code>AA7305AA52F1DE1F599FECAC098F6DFA3B6A83913255185085CD5935006482CD</code></p>
+        </div>
+        <button id="copyHash">SHA-256をコピー</button>
+      </article>
+    </section>
+  </main>
+  <script>
+    const executablePath = document.getElementById("exePath").textContent;
+    const sourcePath = "D:\\Clawdbot_Docker_20260125\\games\\bunny-colony";
+    const releaseHash = "AA7305AA52F1DE1F599FECAC098F6DFA3B6A83913255185085CD5935006482CD";
+    const copyState = document.getElementById("copyState");
+
+    async function copyText(value, message) {
+      try {
+        await navigator.clipboard.writeText(value);
+        copyState.textContent = message;
+      } catch {
+        copyState.textContent = "コピーできませんでした。表示された文字列を選択してください。";
+      }
+    }
+
+    document.getElementById("copyPath").addEventListener("click", () => copyText(executablePath, "Windows版のパスをコピーしました。"));
+    document.getElementById("copySource").addEventListener("click", () => copyText(sourcePath, "ソースフォルダのパスをコピーしました。"));
+    document.getElementById("copyHash").addEventListener("click", () => copyText(releaseHash, "SHA-256をコピーしました。"));
+  </script>
+</body>
+</html>
