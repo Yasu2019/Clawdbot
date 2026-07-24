@@ -1294,3 +1294,11 @@ G1 py_compile → G2 `fleet_satellite_setup_auto.ps1` → G3 K10 probe → G4 �
 - **目視(グローバルルール)**: t=150/400フレーム。上段台の縁から階段へ、上体直立で制御降段、両脚が段を交互に降り、両腕は肩に連結し腕振り。崩落・転落でない。
 - VERIFIED ckpt: `known_good/walk_rsl_descent_h05_20260725_survival0.9_VERIFIED.pt`。
 - **マイルストーン: 階段 昇段0.05m ✅ + 降段0.05m ✅ 両方成立**(いずれも verify+目視済)。
+
+### [自然歩容] 対称augmentation+報酬で関節対称化・足高は残課題 (2026-07-25)
+
+- 測定した跛行(hip 24/43度・足上げ4/24cm・anti-phase 0.13)に対し、rsl_rl mirror augmentation + gait_symmetry/foot_clearance(2乗ペナルティ-3.0)/contact_symmetry/action_jerk報酬 + pose_prior 0.3→0.8で平地再学習(v2/v2b, 計~2800iter)。
+- **成果**: hip/knee 関節がほぼ対称(33/33, 29/24度)、支持相 0.63/0.37=人間的、anti-phase 0.13→(v2)0.59/(v2b)0.33、目視で自然な直立歩行(腕振り・脚交互・破綻なし)。
+- **残課題**: 足クリアランスが左右非対称のまま(片足~4cm/片足~25cm)で優位脚が run毎に左右入替。=**方策は対称化できても歩容リミットサイクルが自発的に片側へ崩れる**(既知の難問)。foot_clearanceの「目標(10cm)からの偏差」ペナルティでは足高の左右差を直接縛れていない。survivalは0.99→0.72に低下(自然性制約のトレードオフ)。
+- 次の直接手(未実装): ①|foot_clearance_L - foot_clearance_R| を直接ペナルティ ②位相ロック対称クリアランス(左足φ=右足φ+0.5) ③rsl_rl use_mirror_loss。
+- ckpt: `known_good/walk_rsl_symmetric_20260725_hipknee_sym.pt`。bd `7c9a`。
