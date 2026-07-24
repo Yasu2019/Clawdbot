@@ -1271,3 +1271,12 @@ G1 py_compile → G2 `fleet_satellite_setup_auto.ps1` → G3 K10 probe → G4 �
 - **verify_policy フレッシュ再ロード(T068)**: survival @0.18=**1.0** / @0.20=0.996 / @0.25=0.996、climb_ratio 1.28-1.36、on_track 1.0=幅内で完全登坂。slope01(0.40-0.49)を大幅更新。
 - **目視確認(新グローバルルール初適用)**: render_walk_rsl.py で t=0.8/4.8/7.9s を Read。胴体直立(登坂前傾)・**両腕は肩に連結し腕振り正常(分離なし)**・脚交互・ランプ上を上昇。fell=false, min_upright 0.949, 支持相 single0.69/double0.27/flight0.04。
 - VERIFIED ckpt: `known_good/walk_rsl_slope8deg_20260724_survival1.0_VERIFIED.pt`。bd `z15v` クローズ。
+
+### [T069解決] 外受容(height-scan)で階段昇段が成立 (2026-07-24)
+
+- stairs 0.05m段、height-scan有効、平地歩行から weight surgery 移植、1500iter/2048envs。
+- **目視確認(グローバルルール)**: render_walk_rsl.py(--height-scan --stair-height 0.05)で t=140/300ステップを Read。ロボットは段の上で直立、**両腕は肩に連結し腕振り(分離なし)**、脚交互で段を上昇。fell=false, min_upright 0.945, 支持相 single0.72/double0.26/flight0.02。
+- **verify_policy フレッシュ再ロード(T068)**: survival @0.12=0.818/@0.15=0.906/@0.20=0.844、travel 2.07-2.39m(**速度で変動=立ち止まりでない**)、height_gained 0.335-0.39m(0.05m段で約7段登坂)、on_track 1.0。
+- blind(T069)は travel 0.556m一定・height 0.068m(1段)で停止だった。**height-scan が根本解決**。
+- VERIFIED ckpt: `known_good/walk_rsl_stairs_h05_20260724_survival0.9_VERIFIED.pt`。
+- 残: 段高0.10mへ引き上げ(stage2)、降段(descent_h05が4096envs並列学習中)。
