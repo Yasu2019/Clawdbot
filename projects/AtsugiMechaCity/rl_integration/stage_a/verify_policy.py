@@ -108,6 +108,9 @@ def main():
     ap.add_argument("--out", default=None)
     ap.add_argument("--push", type=float, default=0.0)
     ap.add_argument("--dr", action="store_true", help="enable domain randomization")
+    ap.add_argument("--height-scan", action="store_true",
+                    help="required when the checkpoint was trained with the scan (obs 200)")
+    ap.add_argument("--stair-height", type=float, default=None)
     args = ap.parse_args()
     out = args.out or os.path.join(os.environ.get("TEMP", "."), "verify_policy")
     os.makedirs(out, exist_ok=True)
@@ -117,6 +120,10 @@ def main():
     if not args.dr:
         cfg["dr_mass_scale"] = [1.0, 1.0]
         cfg["dr_kp_scale"] = [1.0, 1.0]
+    if args.height_scan:
+        cfg["height_scan"] = {}
+    if args.stair_height is not None:
+        cfg["stair_height"] = args.stair_height
     env = V50WalkEnv(args.n_envs, out, cfg=cfg, ref_json=args.ref_json)
     policy, norm = load_policy(env, args.ckpt, out)
 

@@ -35,6 +35,10 @@ def main():
     ap.add_argument("--seconds", type=float, default=8.0)
     ap.add_argument("--ref-json", default=None)
     ap.add_argument("--terrain", default="none")
+    ap.add_argument("--height-scan", action="store_true",
+                    help="required when the checkpoint was trained with the scan "
+                         "(obs 200) -- otherwise the obs dims mismatch")
+    ap.add_argument("--stair-height", type=float, default=None)
     ap.add_argument("--cmd-vx", type=float, default=None,
                     help="commanded forward speed (default: reference clip speed)")
     ap.add_argument("--every", type=int, default=5, help="save a frame every N control steps")
@@ -57,6 +61,10 @@ def main():
            "episode_length_s": max(args.seconds * 2, 20.0),
            "camera": {"res": (960, 540), "pos": (3.0, 0.5, 0.6),
                       "lookat": (0.0, 0.0, 0.0), "fov": 40}}
+    if args.height_scan:
+        cfg["height_scan"] = {}
+    if args.stair_height is not None:
+        cfg["stair_height"] = args.stair_height
     if args.no_push:
         cfg["push_vel"] = 0.0
     if args.no_dr:
