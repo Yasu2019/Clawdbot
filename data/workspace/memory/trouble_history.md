@@ -1255,3 +1255,12 @@ G1 py_compile → G2 `fleet_satellite_setup_auto.ps1` → G3 K10 probe → G4 �
 - 根本原因: 観測(`v50_walk_env` obs 189dim)に**地形高さ情報が無い**。段差は衝突するまで知覚できず、足を先に上げられない。連続地形(斜面)は接地・重力・速度だけで適応できるが、離散段差は不可能。これは既知の一般則(blind policyは連続地形、離散障害は exteroception 必須)。
 - 対策(bd 起票済み): legged_gym流の足元 height-scan(例 11x11グリッド)を obs に追加。地形高は privileged critic obs としても供給。段高カリキュラム 0.03→0.10m 併用。
 - 教訓: **survival だけ見ると「成功」に見える失敗がある**(立ち止まりも転倒しなければ survival 高)。travel と climb を必ず併読する。
+
+### [T069解決着手] 階段昇降のための外受容(height-scan)実装 (2026-07-24)
+
+- 世界の文献調査（perceptive locomotion）に基づき、blindで不可だった階段に前方地形高さスキャンを追加。
+- **terrain**(`train_v50_walk_tracking.py`): `terrain_dz/terrain_xml/build_model_xml` に `stair_h` 引数(段高カリキュラム、既定は現行定数=v1/実行中run不変)。新地形 `stairs_down`=床plane(無限)より下へ掘れないので **上段台(高さ h*N)からスタートし床まで降りる**。解析照合で stairs/stairs_down/非既定段高すべて terrain_dz が geom と 0/60 誤り・worst 0.0000m。
+- **env**(`v50_walk_env.py`): `height_scan` cfg で前方K点(既定0.0〜1.0m/11点)ルックアヘッドを **obs末尾に連結**(履歴に折り込まない=移植を綺麗にするため)。値=`terrain_dz(ahead)-terrain_dz(here)`(flat=0規約, 昇段+/降段-)。terrain解析なのでレイキャスト不要・厳密。降段は spawn を `terrain_dz(0)=h*N` 持ち上げて台上着地、`stand_z` は terrain非依存に保ち `expect_z=stand_z+terrain_dz(y)` の二重計上を回避。obs 189→200。
+- **trainer**(`train_v50_walk_rsl.py`): `--height-scan/--scan-ahead/--stair-height/--resume-surgery`。**weight surgery**=blind(obs189)ckptを200netへ移植: 共有tensorはverbatim、第1層のみ既存列コピー+新規scan11列ゼロ埋め、normalizer統計もprefix継承 → **移植直後の行動がblindとbit一致(max action diff 0.0)**を検証。よって完成した平地歩行から出発しscanの使い方だけを学習。
+- 段高カリキュラム: stage1(昇段0.05m, surgery from flat walker) → stage2(0.10m, 通常resume) → 降段、の順。**各段 verify_policy 再ロード検証必須**(学習ログ不信=T068)。
+- 参考文献・ライブラリは bd `y75t` と本セッションログ参照。
