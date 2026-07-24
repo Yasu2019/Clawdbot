@@ -88,6 +88,13 @@ def _default_cfg():
         # --- domain randomization ---
         "dr_friction": [0.8, 1.6],
         "dr_mass_scale": [0.9, 1.1],
+        "dr_kp_scale": [0.9, 1.1],
+        # How many distinct dynamics samples exist across the whole batch.
+        # genesis rejects a per-env mass tensor, so envs are split into this many
+        # bands. 8 bands over 4096 envs is very little diversity -- a policy can
+        # specialise to them, which is one reason the slope run looked robust in
+        # its own env and was not (T068). Raise for terrain work.
+        "dr_groups": 8,
         "push_interval_s": 5.0,
         "push_vel": 0.35,                  # m/s lateral kick
         # --- reward scales (per second; multiplied by control dt internally,
@@ -239,7 +246,7 @@ class V50WalkEnv:
 
     # ------------------------------------------------------------------ setup
 
-    def _randomize_dynamics(self, groups=8):
+    def _randomize_dynamics(self, groups=None):
         """Grouped domain randomization of link mass and PD gains.
 
         genesis 1.2.1 rejects a per-env (N, n_links) mass tensor — `inertial_mass`
@@ -249,6 +256,8 @@ class V50WalkEnv:
 
         Geom friction is baked into the MJCF at build time and is not randomized.
         """
+        groups = groups if groups is not None else self.cfg.get("dr_groups", 8)
+        groups = max(1, min(groups, self.num_envs))
         self.dr_groups = groups
         mlo, mhi = self.cfg["dr_mass_scale"]
         klo, khi = self.cfg.get("dr_kp_scale", [0.9, 1.1])

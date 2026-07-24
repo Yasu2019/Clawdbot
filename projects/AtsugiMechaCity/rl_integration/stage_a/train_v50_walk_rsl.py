@@ -28,7 +28,11 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import torch
 
 import train_v50_walk_tracking as V50
-from v50_walk_env import V50WalkEnv
+from v50_walk_env import V50WalkEnv, _default_cfg
+
+
+def _default_cmd_vx():
+    return _default_cfg()["cmd_vx"]
 
 
 def train_cfg(args):
@@ -110,7 +114,7 @@ class StatusWriter:
         return payload
 
 
-def evaluate(env, policy, normalizer, seconds=8.0):
+def evaluate(env, policy, normalizer, seconds=8.0, cmd_vx=None):
     """Deterministic + stochastic evaluation, reported as UPRIGHT travel.
 
     Why this differs from the v1 eval, which reported bare displacement:
@@ -125,9 +129,12 @@ def evaluate(env, policy, normalizer, seconds=8.0):
     upright for the whole window, and `survival_rate` reports how many did.
     A policy that dives scores clean_travel 0.0 no matter how far it slides.
     """
-    res = {"target_vx": env.target_vx, "window_s": seconds,
-           "note": "clean_travel_m counts only envs that never fell; "
-                   "travel_m_8s is raw displacement and includes topple slide"}
+    cmd_vx = env.target_vx if cmd_vx is None else cmd_vx
+    res = {"target_vx": env.target_vx, "eval_cmd_vx": round(cmd_vx, 3), "window_s": seconds,
+           "note": "clean_travel_m counts only envs that never fell; travel_m_8s is raw "
+                   "displacement and includes topple slide. These numbers come from the "
+                   "env this policy TRAINED in -- confirm with verify_policy.py on a "
+                   "fresh reload before reporting them (T068)."}
     steps = int(seconds / env.dt)
     # inference_mode (not no_grad): rsl_rl collects rollouts under inference_mode,
     # so env buffers are already inference tensors and in-place writes to them
@@ -135,7 +142,7 @@ def evaluate(env, policy, normalizer, seconds=8.0):
     with torch.inference_mode():
         for mode in ("deterministic", "stochastic"):
             env.reset()
-            env.commands[:, 0] = env.target_vx
+            env.commands[:, 0] = cmd_vx
             env.commands[:, 1] = 0.0
             obs = env.obs_buf
             x0 = (V50.FWD_SIGN * env.robot.get_qpos()[:, V50.FWD_AXIS]).clone()
@@ -183,6 +190,17 @@ def main():
     ap.add_argument("--episode-length-s", type=float, default=20.0)
     ap.add_argument("--no-push", action="store_true")
     ap.add_argument("--tensorboard", action="store_true")
+    # Terrain work needs a slower command range and more dynamics diversity than
+    # flat ground: the 8 deg slope policy trained on [0.15,0.35] only held up at
+    # ~0.18 m/s, and 8 DR bands let it specialise (T068).
+    ap.add_argument("--cmd-vx-min", type=float, default=None)
+    ap.add_argument("--cmd-vx-max", type=float, default=None)
+    ap.add_argument("--dr-groups", type=int, default=None)
+    ap.add_argument("--dr-mass", default=None, help="lo,hi mass scale")
+    ap.add_argument("--dr-kp", default=None, help="lo,hi PD gain scale")
+    ap.add_argument("--eval-vx", type=float, default=None,
+                    help="speed used by the built-in eval (default: reference clip "
+                         "speed, which is the TOP of the training range)")
     args = ap.parse_args()
     os.makedirs(args.out, exist_ok=True)
 
@@ -191,6 +209,15 @@ def main():
     cfg = {"terrain": args.terrain, "episode_length_s": args.episode_length_s}
     if args.no_push:
         cfg["push_vel"] = 0.0
+    if args.cmd_vx_min is not None or args.cmd_vx_max is not None:
+        lo, hi = _default_cmd_vx()
+        cfg["cmd_vx"] = [args.cmd_vx_min if args.cmd_vx_min is not None else lo,
+                         args.cmd_vx_max if args.cmd_vx_max is not None else hi]
+    if args.dr_groups is not None:
+        cfg["dr_groups"] = args.dr_groups
+    for key, val in (("dr_mass_scale", args.dr_mass), ("dr_kp_scale", args.dr_kp)):
+        if val:
+            cfg[key] = [float(v) for v in val.split(",")]
     env = V50WalkEnv(args.n_envs, args.out, cfg=cfg, ref_json=args.ref_json)
     print(f"ENV ready: obs={env.num_obs} act={env.num_actions} stand_z={env.stand_z:.4f} "
           f"target_vx={env.target_vx} gait_period={env.gait_period}", flush=True)
@@ -231,7 +258,7 @@ def main():
     normalizer = runner.obs_normalizer if getattr(runner, "empirical_normalization", False) else None
     if normalizer is not None:
         normalizer.eval()
-    ev = evaluate(env, policy, normalizer)
+    ev = evaluate(env, policy, normalizer, cmd_vx=args.eval_vx)
     with open(os.path.join(args.out, "eval.json"), "w", encoding="utf-8") as f:
         json.dump(ev, f, indent=2)
     print("EVAL:", json.dumps(ev), flush=True)
