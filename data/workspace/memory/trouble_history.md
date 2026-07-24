@@ -1286,3 +1286,11 @@ G1 py_compile → G2 `fleet_satellite_setup_auto.ps1` → G3 K10 probe → G4 �
 - **段高0.10m昇段(stairs_h10)は失敗**: verify(フレッシュ再ロード) travel 0.58m一定(助走0.6mの端で停止)・height_gained 0.064m(0.10m段を1段も越えず)・目視でも階段下で片足だけ乗せて立ち止まり。原因=0.05→0.10の2倍ジャンプが大きすぎ『hesitation局所解』(文献既知: challenging terrainで動くのを躊躇し立ち止まる方が安全に報酬を得る)。構造は正常(腕連結・姿勢OK)。対策=中間段0.07mを挿入(0.05mからresume)。
 - **descent terrain_dz stair_h バグ修正の効果が劇的**: 修正前 descent_h05 は ep 0.02s・fall_by_low 1.0・return -2.25 で1500iter全く学習せず(初手で誤って転倒判定)。修正後 descent_h05b は it250で return 27.7・ep 10.5s・fall 0.35(low 0.10)・single_contact 0.69=正常に降段歩行を学習中。**この即転倒バグは目視(ep 0.02s)で気づいた**=グローバル目視ルールの有効性を実証。
 - 教訓: terrain_dz を呼ぶ全箇所で stair_h を渡す(fall判定/base_height報酬/height_scan/spawn)。1箇所でも欠けると段高非既定の地形で沈黙の破綻。カリキュラムの段高ジャンプは2倍が上限の目安、間に中間段を置く。
+
+### [階段降段成立] 0.05m 降段が verify+目視で確定 (2026-07-25)
+
+- descent_h05b(stair_h terrain_dz バグ修正後・平地からsurgery移植・1500iter): return 33.6 peak, fall 0.16-0.28, single_contact 0.77。
+- **verify(フレッシュ再ロード)**: survival @0.12=0.852/@0.15=0.949/@0.20=0.922、travel 2.67-3.15m(速度で変動)、**height_gained -0.29〜-0.36m(負値=約6-7段の降段)**、on_track ~1.0。
+- **目視(グローバルルール)**: t=150/400フレーム。上段台の縁から階段へ、上体直立で制御降段、両脚が段を交互に降り、両腕は肩に連結し腕振り。崩落・転落でない。
+- VERIFIED ckpt: `known_good/walk_rsl_descent_h05_20260725_survival0.9_VERIFIED.pt`。
+- **マイルストーン: 階段 昇段0.05m ✅ + 降段0.05m ✅ 両方成立**(いずれも verify+目視済)。
