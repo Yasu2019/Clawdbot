@@ -28,7 +28,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import torch
 
 import train_v50_walk_tracking as V50
-from v50_walk_env import V50WalkEnv, _default_cfg
+from v50_walk_env import V50WalkEnv, _default_cfg, symmetry_augmentation
 
 
 def _default_cmd_vx():
@@ -107,6 +107,12 @@ def train_cfg(args):
             "use_clipped_value_loss": True,
             "value_loss_coef": 1.0,
             "normalize_advantage_per_mini_batch": False,
+            "symmetry_cfg": ({
+                "use_data_augmentation": True,
+                "use_mirror_loss": False,
+                "data_augmentation_func": symmetry_augmentation,
+                "mirror_loss_coeff": 0.0,
+            } if getattr(args, "symmetry", False) else None),
         },
         "policy": {
             "class_name": "ActorCritic",
@@ -264,6 +270,9 @@ def main():
                          "default 0.0,0.1,...,1.0")
     ap.add_argument("--stair-height", type=float, default=None,
                     help="override step height (m) for the stair curriculum")
+    ap.add_argument("--symmetry", action="store_true",
+                    help="enable rsl_rl left/right mirror data augmentation for a "
+                         "symmetric, non-limping gait")
     ap.add_argument("--resume-surgery", action="store_true",
                     help="load a smaller-obs checkpoint (e.g. the blind flat/slope "
                          "policy) into this larger height-scan network: existing "

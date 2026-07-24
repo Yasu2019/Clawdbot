@@ -111,6 +111,10 @@ def _default_cfg():
         "tracking_sigma": 0.03,            # C6: tight enough that standing pays ~0.1
         "base_height_target": None,        # filled from settled stand height
         "feet_air_time_target": 0.35,      # s; ~half of GAIT_PERIOD
+        # --- naturalness (2026-07-24): measured gait was asymmetric (right leg
+        #     swung 2x the left, foot lifted 24 cm vs 4 cm, L/R anti-phase 0.13).
+        #     These terms target a symmetric, human-like walk. See _r_* below.
+        "foot_clearance_target": 0.10,     # m; swing-foot height over stance (human ~8-12 cm)
         "reward_scales": {
             "tracking_lin_vel":   2.0,
             "tracking_ang_vel":   0.5,
@@ -118,6 +122,12 @@ def _default_cfg():
             "feet_air_time":      2.0,     # C1: the anti-freeze term
             "single_foot_contact": 1.0,    # C1: the anti-hop term (2404.19173)
             "pose_prior":         0.3,     # gait reference is a prior, not the goal
+            # naturalness / symmetry
+            "gait_symmetry":     -1.0,     # L/R residual asymmetry (fixes the limp)
+            "foot_clearance":     1.0,     # swing foot near target height (fixes over/under lift)
+            "contact_symmetry":  -0.5,     # equal L/R stance time
+            "action_jerk":       -0.005,   # 2nd action difference -> smoothness
+            # posture / stability
             "lin_vel_z":         -2.0,
             "ang_vel_xy":        -0.05,
             "orientation":       -5.0,
@@ -217,6 +227,26 @@ class V50WalkEnv:
         self.stand_z = float(self.robot.get_qpos()[:, 2].mean()) - self.spawn_dz
         if c["base_height_target"] is None:
             c["base_height_target"] = self.stand_z
+        # Planted-foot height on flat ground, used as the 0 reference for the
+        # foot-clearance reward (terrain-independent, like stand_z).
+        self.foot_stand_z = float(
+            self.robot.get_links_pos()[:, self.foot_local, 2].mean()) - self.spawn_dz
+
+        # L/R symmetry index maps (sagittal joints swap L<->R with no sign change;
+        # roll/lateral joints swap AND flip sign). Used by the symmetry reward and
+        # the rsl_rl mirror augmentation.
+        d = {n: i for i, n in enumerate(DOF_NAMES)}
+        self.sym_pairs_same = [(d["hip_L"], d["hip_R"]), (d["knee_L"], d["knee_R"]),
+                               (d["ankle_L"], d["ankle_R"]),
+                               (d["shoulder_L"], d["shoulder_R"]), (d["elbow_L"], d["elbow_R"]),
+                               (d["wrist_L"], d["wrist_R"])]
+        self.sym_pairs_flip = [(d["hip_L_roll"], d["hip_R_roll"]),
+                               (d["ankle_L_roll"], d["ankle_R_roll"])]
+        # DOF mirror: swap L<->R, flip sign on the 4 lateral roll joints. Used by
+        # both the action mirror and the observation mirror for rsl_rl symmetry.
+        self.dof_perm = torch.tensor([3, 4, 5, 0, 1, 2, 9, 10, 11, 6, 7, 8, 14, 15, 12, 13],
+                                     device=self.device, dtype=torch.long)
+        self.dof_sign = torch.tensor([1.] * 12 + [-1.] * 4, device=self.device)
 
         self._randomize_dynamics()
 
@@ -227,7 +257,9 @@ class V50WalkEnv:
         self.commands = z(N, 2)                            # [vx, wz]
         self.actions = z(N, N_DOF)
         self.last_actions = z(N, N_DOF)
+        self.last2_actions = z(N, N_DOF)                   # for action-jerk (smoothness)
         self.last_dof_vel = z(N, N_DOF)
+        self.contact_ema = z(N, 2) + 0.5                   # L/R stance-time balance
         self.lin_vel = z(N, 3)
         self.ang_vel = z(N, 3)
         self.prev_pos = z(N, 3)
@@ -365,9 +397,11 @@ class V50WalkEnv:
         self.ang_vel[idx] = 0.0
         self.actions[idx] = 0.0
         self.last_actions[idx] = 0.0
+        self.last2_actions[idx] = 0.0
         self.last_dof_vel[idx] = 0.0
         self.foot_air_time[idx] = 0.0
         self.last_contact[idx] = True
+        self.contact_ema[idx] = 0.5
         self.obs_history[idx] = 0.0
         self._resample_commands(idx)
 
@@ -408,6 +442,7 @@ class V50WalkEnv:
         self.pos = pos
 
         foot_pos = self.robot.get_links_pos()[:, self.foot_local]
+        self.foot_pos = foot_pos                          # (N,2,3) world; for clearance
         self.foot_vel = (foot_pos - self.prev_foot_pos) / self.dt
         self.prev_foot_pos = foot_pos.clone()
 
@@ -421,11 +456,14 @@ class V50WalkEnv:
                                          torch.zeros_like(self.foot_air_time),
                                          self.foot_air_time)
         self.last_contact = self.contacts
+        # running L/R stance balance (a limp keeps one foot down more than the other)
+        self.contact_ema = 0.98 * self.contact_ema + 0.02 * self.contacts.float()
 
         self._push_robots()
         self._check_termination()
         rew = self._compute_reward()
 
+        self.last2_actions = self.last_actions.clone()
         self.last_actions = self.actions.clone()
         self.last_dof_vel = self.dof_vel.clone()
 
@@ -594,6 +632,92 @@ class V50WalkEnv:
     def _r_termination(self):
         return self.terminated.float()
 
+    # ---- naturalness / symmetry (2026-07-24) ----
+
+    def _r_gait_symmetry(self):
+        """Penalise asymmetric deviation from the (anti-phase) reference gait.
+
+        The reference already has the two legs half a cycle apart, so a naturally
+        symmetric policy deviates from it symmetrically: the left-leg residual
+        should match the right-leg residual (sagittal joints, no sign change), and
+        the roll residuals should be equal and opposite. A limp -- one leg working
+        far more than the other, which is exactly what was measured (hip 43 vs
+        24 deg) -- shows up as a large residual difference here."""
+        res = self.dof_pos - self.ref
+        pen = res.new_zeros(self.num_envs)
+        for l, r in self.sym_pairs_same:
+            pen = pen + (res[:, l] - res[:, r]).abs()
+        for l, r in self.sym_pairs_flip:
+            pen = pen + (res[:, l] + res[:, r]).abs()
+        return pen
+
+    def _r_foot_clearance(self):
+        """Reward the SWING foot near a natural height above the local ground.
+
+        Measured gait lifted one foot 24 cm and the other 4 cm; a human walk
+        clears ~8-12 cm on both. Gaussian around the target penalises both the
+        shuffle (too low) and the paw (too high). Only the airborne foot counts."""
+        ground = self.foot_stand_z + V50.terrain_dz(
+            self.foot_pos[:, :, V50.FWD_AXIS].reshape(-1), self.cfg["terrain"],
+            self.stair_h).reshape(self.num_envs, 2)
+        clearance = self.foot_pos[:, :, 2] - ground
+        swing = (~self.contacts).float()
+        tgt = self.cfg["foot_clearance_target"]
+        return (swing * torch.exp(-((clearance - tgt) / 0.05) ** 2)).sum(dim=1) * self._moving()
+
+    def _r_contact_symmetry(self):
+        """Penalise unequal L/R stance time -- a limp keeps one foot planted
+        longer. Zero for a balanced gait (each foot down ~half the time)."""
+        return (self.contact_ema[:, 0] - self.contact_ema[:, 1]).abs()
+
+    def _r_action_jerk(self):
+        """Second difference of the action = jerk. Small jerk -> smooth, natural
+        motion instead of twitchy corrections."""
+        return ((self.actions - 2 * self.last_actions + self.last2_actions) ** 2).sum(dim=1)
+
+    # ---- left/right mirror for rsl_rl symmetry augmentation ----
+
+    def mirror_action(self, a):
+        """Sagittal-plane mirror of an action vector (swap legs/arms, flip rolls)."""
+        return a[:, self.dof_perm] * self.dof_sign
+
+    def _mirror_single(self, f):
+        """Mirror one 63-dim observation frame across the sagittal (Y-Z) plane.
+
+        Vector rules under x->-x: polar vectors flip x (grav, lin_vel), the axial
+        angular velocity flips y,z; the yaw command flips; the gait phase shifts
+        half a cycle (sin,cos -> -sin,-cos); contacts swap; joint blocks use the
+        DOF mirror. Getting any sign wrong would teach a wrong symmetry, so
+        symmetry_selftest() checks mirror(mirror(x))==x before training.
+        """
+        o = f.clone()
+        o[:, 0:3] = f[:, 0:3] * torch.tensor([1., -1., -1.], device=f.device)   # ang_vel (axial)
+        o[:, 3:6] = f[:, 3:6] * torch.tensor([-1., 1., 1.], device=f.device)     # gravity (polar)
+        o[:, 6:9] = f[:, 6:9] * torch.tensor([-1., 1., 1.], device=f.device)     # lin_vel (polar)
+        o[:, 9:11] = f[:, 9:11] * torch.tensor([1., -1.], device=f.device)       # cmd [vx, wz]
+        o[:, 11:27] = f[:, 11:27][:, self.dof_perm] * self.dof_sign              # dof_pos - ref
+        o[:, 27:43] = f[:, 27:43][:, self.dof_perm] * self.dof_sign              # dof_vel
+        o[:, 43:59] = f[:, 43:59][:, self.dof_perm] * self.dof_sign              # actions
+        o[:, 59:61] = f[:, 59:61] * -1.0                                         # phase (sin,cos)
+        o[:, 61:63] = f[:, [62, 61]]                                             # contacts swap
+        return o
+
+    def mirror_obs(self, obs):
+        """Mirror the full observation (each history frame; scan is x-symmetric)."""
+        H, S = self.cfg["obs_history"], self.num_single_obs
+        parts = [self._mirror_single(obs[:, i * S:(i + 1) * S]) for i in range(H)]
+        if self.num_scan:
+            parts.append(obs[:, H * S:])          # terrain is extruded along x -> unchanged
+        return torch.cat(parts, dim=1)
+
+    def symmetry_selftest(self):
+        """mirror(mirror(x)) must be the identity, or a sign is wrong."""
+        o = torch.randn(8, self.num_obs, device=self.device)
+        a = torch.randn(8, N_DOF, device=self.device)
+        eo = (self.mirror_obs(self.mirror_obs(o)) - o).abs().max().item()
+        ea = (self.mirror_action(self.mirror_action(a)) - a).abs().max().item()
+        return eo, ea
+
     # ----------------------------------------------------------- observations
 
     def _compute_obs(self):
@@ -642,3 +766,15 @@ class V50WalkEnv:
         ahead = V50.terrain_dz(y_ahead.reshape(-1), self.cfg["terrain"],
                                self.stair_h).reshape(self.num_envs, self.num_scan)
         return ((ahead - here.unsqueeze(1)) * self.scan_scale).clamp(-5.0, 5.0)
+
+
+def symmetry_augmentation(obs=None, actions=None, env=None, obs_type="policy"):
+    """rsl_rl data_augmentation_func: return [original ; mirrored], doubling batch.
+
+    Enables a left/right-symmetric gait by training on every transition and its
+    sagittal-plane mirror. env.mirror_obs / mirror_action carry the layout.
+    """
+    e = env.unwrapped if hasattr(env, "unwrapped") else env
+    aug_obs = torch.cat([obs, e.mirror_obs(obs)], dim=0) if obs is not None else None
+    aug_act = torch.cat([actions, e.mirror_action(actions)], dim=0) if actions is not None else None
+    return aug_obs, aug_act
