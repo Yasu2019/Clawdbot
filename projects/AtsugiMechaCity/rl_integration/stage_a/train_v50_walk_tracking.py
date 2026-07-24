@@ -53,6 +53,15 @@ FWD_AXIS = 1            # 0=x, 1=y
 # Blender V50 also faces -Y (front camera sits at -Y). Forward = -Y.
 FWD_SIGN = -1.0
 ACTION_SCALE = 0.35
+# 2026-07-22 姿勢アンチ前傾(.bak_posture_20260722): dive_hack対策→freeze対策の次段。
+# 残存失敗=「前傾ランジで1.7-1.85m歩くが4-6秒で転倒」。Genesis公式Go2例にある
+# base_height/lin_vel_z 罰則がこの実装に欠けていた。過度な傾き/胴体沈み/上下動のみを
+# デッドバンド付きで罰則化(自然な歩容・良い静止は無罰=freeze再誘発しない)。
+TILT_DEADBAND = 0.07   # grav_x^2+grav_y^2(≈sin^2傾き)。約15degまで無罰、超過分のみ罰則
+W_TILT = 1.0           # 過度な傾き(前傾/横倒れ)罰則の重み
+HEIGHT_DEADBAND = 0.08 # 胴体がstand_zからこの[m]以上沈んだ分のみ罰則
+W_LOW = 20.0           # 胴体沈み罰則の重み
+W_VZ = 0.5             # 鉛直速度(上下動/ダイブ)罰則の重み
 EP_LEN = 400            # 8 s
 OBS_DIM = 46          # B-1: +8 (4 roll pose-err + 4 roll vel)
 ACT_DIM = 16          # B-1: +4 roll DOFs
@@ -63,6 +72,38 @@ TERRAIN_STAIR_H = 0.10      # 段高(人間比0.17より低いカリキュラム
 TERRAIN_STAIR_D = 0.30      # 段奥行
 TERRAIN_SLOPE_DEG = 8.0
 TERRAIN_FLAT_RUNUP = 0.6    # 平地助走(m)。前方=-Y
+# 斜面板の寸法。terrain_xml と terrain_dz の両方がこれを使う(二重管理禁止:
+# 片方だけ変えると地面の実高さと期待高さが静かにズレる → 下記T067補注)。
+TERRAIN_SLOPE_HALF = 1.5    # 斜面板の半長(斜面に沿った長さの半分)
+TERRAIN_SLOPE_THICK = 0.05  # 斜面板の半厚。ロボットは板の「上面」に立つ
+
+
+# --- (a)質量再配分 2026-07-10 ユーザー承認 (HANDOVER_QUEUE5 §4.6 処方a) ---
+# 実測47%トップヘビー(torso 112/238kg)が fall-and-crawl の根本原因仮説。
+# シム専用: torso x0.7 / 脚系 x1.4 → 総質量238.0kg厳密保存・胴比33%へ(重心低下)。
+# diaginertia も同倍率(同一形状仮定 I∝m)。正解基準XML(artifacts/)は不変更。
+# 不足なら次段 0.6/1.6 を人間承認のうえ適用。報酬・ゲートは一切変更しない。
+MASS_REDIST = {
+    "torso": 0.7,
+    "upper_leg_L": 1.4, "lower_leg_L": 1.4, "foot_L": 1.4,
+    "upper_leg_R": 1.4, "lower_leg_R": 1.4, "foot_R": 1.4,
+}
+
+
+def apply_mass_redistribution(xml: str) -> str:
+    """body毎のinertial mass/diaginertiaをMASS_REDIST倍率でスケール(純関数)。"""
+    def _redist(m):
+        blk = m.group(0)
+        f = MASS_REDIST.get(m.group(1))
+        if not f:
+            return blk
+        def _scale(mm):
+            vals = " ".join(str(round(float(v) * f, 6)) for v in mm.group(2).split())
+            return f'{mm.group(1)}"{vals}"'
+        blk = re.sub(r'(mass=)"([^"]+)"', _scale, blk, count=1)
+        blk = re.sub(r'(diaginertia=)"([^"]+)"', _scale, blk, count=1)
+        return blk
+    return re.sub(r'<body name="([^"]+)"[^>]*>\s*<inertial[^/]*/>', _redist, xml)
 
 
 def terrain_xml(terrain):
@@ -83,11 +124,11 @@ def terrain_xml(terrain):
                  f'pos="0 {top_y:.3f} {-0.92 + h*10 - h/2:.3f}" friction="1.2 0.01 0.001"/>')
     elif terrain in ("slope_up", "slope_down"):
         th = _m.radians(TERRAIN_SLOPE_DEG)
-        half = 1.5
+        half = TERRAIN_SLOPE_HALF
         sign = 1.0 if terrain == "slope_up" else -1.0
         yc = -(TERRAIN_FLAT_RUNUP + half * _m.cos(th))
         zc = -0.92 + sign * half * _m.sin(th)
-        g.append(f'<geom name="slope" type="box" size="0.8 {half} 0.05" '
+        g.append(f'<geom name="slope" type="box" size="0.8 {half} {TERRAIN_SLOPE_THICK}" '
                  f'pos="0 {yc:.3f} {zc:.3f}" euler="{-sign * TERRAIN_SLOPE_DEG} 0 0" '
                  f'friction="1.2 0.01 0.001"/>')
     else:
@@ -97,16 +138,34 @@ def terrain_xml(terrain):
 
 def terrain_dz(y, terrain):
     """前方位置y(tensor)における期待地面上昇量。転倒判定の基準補正に必須
-    (これを怠ると登った時点でfallen誤判定 — spec U6の必読事項)。"""
+    (これを怠ると登った時点でfallen誤判定 — spec U6の必読事項)。
+
+    2026-07-24 T067補注 — 実ジオメトリとの解析照合で2つの系統誤差を修正:
+      ①階段の1段ズレ: 旧 `floor(prog/D)*H` は段0の上に立っている間 dz=0 を返して
+        いたが、段0の天面は既に床から H だけ高い。36点中30点で 0.100m ちょうど
+        過小報告していた。正しくは `floor(prog/D)+1` 段ぶん。
+      ②斜面板厚の無視: 旧式は板の「中心線」高さを返していたが、ロボットが立つのは
+        「上面」で、これは中心線より thick/cos(θ)=0.051m 高い。全点で 0.051m 過小。
+    影響: expect_z が低く出るため転倒判定が鈍るだけでなく、base_height 報酬が
+    「正しく段上に立っている姿勢」を"高すぎる"と減点し、**登坂そのものを罰して**
+    いた。地形学習を始める前に必ず直す必要があった。
+    """
     import math as _m
     if terrain in (None, "", "none"):
         return torch.zeros_like(y)
     prog = (-y - TERRAIN_FLAT_RUNUP).clamp(min=0.0)
+    on_terrain = (prog > 0).to(y.dtype)          # 平地助走の上では常に0
     if terrain == "stairs":
-        steps = (prog / TERRAIN_STAIR_D).floor().clamp(0, 10)
-        return steps * TERRAIN_STAIR_H
+        # 段i の上 = 床から H*(i+1)。天面高なので +1 段。
+        # clamp(0,10) は最上段(=stair_top の踊り場 1.00m)と一致する。
+        steps = ((prog / TERRAIN_STAIR_D).floor() + 1.0).clamp(0, 10)
+        return on_terrain * steps * TERRAIN_STAIR_H
+    th = _m.radians(TERRAIN_SLOPE_DEG)
     sign = 1.0 if terrain == "slope_up" else -1.0
-    return sign * _m.tan(_m.radians(TERRAIN_SLOPE_DEG)) * prog.clamp(max=3.0)
+    # 斜面の水平方向の実効長(板長×cosθ)。板を越えた先は外挿しない。
+    span = 2.0 * TERRAIN_SLOPE_HALF * _m.cos(th)
+    rise = sign * _m.tan(th) * prog.clamp(max=span)
+    return on_terrain * (rise + TERRAIN_SLOPE_THICK / _m.cos(th))
 
 
 # Stage B: retargeted real-mocap reference (set via load_reference / --ref-json).
@@ -204,6 +263,7 @@ def build_model_xml(terrain="none"):
     含む処理: actuator除去(罠#1) / 足を前方向き+かかと(罠#6) / 接地面を四角形化(v3) /
     hip・ankle roll注入(B-1) / 地形(U6)。"""
     xml = open(MJCF_SRC, encoding="utf-8").read()
+    xml = apply_mass_redistribution(xml)  # (a)質量再配分 2026-07-10
     xml = re.sub(r"<actuator>.*?</actuator>", "", xml, flags=re.S)
     xml = xml.replace('fromto="0 0 0 0.15 0 -0.05"',
                       'fromto="0 0.06 -0.05 0 -0.15 -0.05"')
@@ -336,7 +396,12 @@ class Env:
         # trap #7 (reward hacking, run7 visual check): ungated velocity reward let
         # the policy dive forward and CRAWL for speed. Velocity/travel only pay
         # while upright (x upright^2), and falling costs more (-5, tighter tilt cut).
-        gate = upright ** 2
+        # 2026-07-19 walk_cycle01 dive_hack再発 (supervisor escalation: "reward
+        # gating may be insufficient"): upright**2 は前傾ダイブ中(upright~0.7)でも
+        # ~0.5の部分報酬を残し、初速ダイブ+滑走で travel を稼げてしまう。
+        # ハードゲート化: upright>0.85 からのみ立ち上がり、0.85未満は速度/前進
+        # 報酬ゼロ。姿勢報酬(r_pose)・直立報酬(r_up)は連続のまま維持。
+        gate = ((upright - 0.85) / 0.15).clamp(0.0, 1.0) ** 2
         # run10: plateau-shaped velocity reward peaking AT the target pace.
         # History: linear->sprint 0.4 & fall at 2s (run8); hard cap->freeze at
         # 0.05 (run9). A peak at 0.25 penalizes both idling and overspeed while
@@ -347,16 +412,33 @@ class Env:
         x_expect = self.x0 + self.steps.float() * dt_ctrl * TARGET_VX
         r_travel = torch.exp(-2.0 * (FWD_SIGN * pos[:, FWD_AXIS] - x_expect) ** 2) * gate
         r_up = upright
+        # 2026-07-21 anti-freeze(.bak_antifreeze_20260721): dive_hack対策の強ゲート+転倒-10で
+        # 今度は「立ち止まれば安全に稼げる」freeze局所解に収束(7/21: fell=false・upright0.94・
+        # travel0.6→0.2mへregression)。exp系のr_vel/r_travelは静止時に勾配が弱く/消える一方、
+        # 定数0.25+0.5*r_upが静止の無償収入(~0.725/step)を保証していた。対策:
+        #  ①静止の無償収入を削減(定数0.25→0.1, r_up重み0.5→0.3)
+        #  ②線形の前進報酬 r_prog を追加: 前進速度に比例(0..目標で0..1)、静止=0。
+        #     upright>0.85ゲート共有=ダイブ(upright<0.85)には出ない→dive再誘発しない。
+        r_prog = gate * (fwd_v.clamp(min=0.0, max=TARGET_VX) / TARGET_VX)
         pen_act = (action ** 2).mean(dim=1)
         pen_ang = (ang ** 2).sum(dim=1)
-        reward = 0.8 * r_pose + 1.5 * r_vel + 1.0 * r_travel + 0.5 * r_up + 0.25 \
-                 - 0.01 * pen_act - 0.02 * pen_ang
+        # 2026-07-22 姿勢アンチ前傾: デッドバンド付きで「過度な傾き/沈み/上下動」のみ罰則。
+        # 自然な歩行(小さな傾き・一定高・小さな上下動)は各penがゼロ→前進報酬r_progを損なわない。
+        # 前傾転倒(大傾き+沈み+下向き速度)でのみ強く効く=freezeへ退行させずに直立歩行へ誘導。
+        pen_tilt = (grav[:, 0] ** 2 + grav[:, 1] ** 2 - TILT_DEADBAND).clamp(min=0.0)
+        pen_low = (self.stand_z - pos[:, 2] - HEIGHT_DEADBAND).clamp(min=0.0) ** 2
+        pen_vz = vel[:, 2] ** 2
+        reward = 0.8 * r_pose + 1.5 * r_vel + 1.0 * r_travel + 0.8 * r_prog + 0.3 * r_up + 0.1 \
+                 - 0.01 * pen_act - 0.02 * pen_ang \
+                 - W_TILT * pen_tilt - W_LOW * pen_low - W_VZ * pen_vz
 
         expected_z = self.stand_z + terrain_dz(pos[:, FWD_AXIS], self.terrain)
-        fallen = (pos[:, 2] < expected_z - 0.25) | (upright < 0.65)
+        # 2026-07-19 dive_hack対策: 転倒カット 0.65→0.75(ダイブ軌道の早期打切り)、
+        # ペナルティ -5→-10(初速ダイブの割引報酬合計を確実に負にする)。
+        fallen = (pos[:, 2] < expected_z - 0.25) | (upright < 0.75)
         timeout = self.steps >= EP_LEN
         done = fallen | timeout
-        reward = torch.where(fallen, reward - 5.0, reward)
+        reward = torch.where(fallen, reward - 10.0, reward)
 
         idx = torch.nonzero(done).squeeze(-1)
         metrics = {"vx": (FWD_SIGN * vel[:, FWD_AXIS]).mean().item(), "up": upright.mean().item(),
