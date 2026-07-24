@@ -241,7 +241,7 @@ def main():
     ap.add_argument("--init-noise-std", type=float, default=1.0)
     ap.add_argument("--ref-json", default=None)
     ap.add_argument("--terrain", default="none",
-                    choices=["none", "stairs", "slope_up", "slope_down"])
+                    choices=["none", "stairs", "stairs_down", "slope_up", "slope_down"])
     ap.add_argument("--episode-length-s", type=float, default=20.0)
     ap.add_argument("--no-push", action="store_true")
     ap.add_argument("--tensorboard", action="store_true")

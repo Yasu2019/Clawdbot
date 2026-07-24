@@ -511,7 +511,7 @@ def main():
     ap.add_argument("--ref-json", default=None)
     # U6: 地形カリキュラム
     ap.add_argument("--terrain", default="none",
-                    choices=["none", "stairs", "slope_up", "slope_down"])
+                    choices=["none", "stairs", "stairs_down", "slope_up", "slope_down"])
     args = ap.parse_args()
     os.makedirs(args.out, exist_ok=True)
     if args.ref_json:
