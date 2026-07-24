@@ -1280,3 +1280,9 @@ G1 py_compile → G2 `fleet_satellite_setup_auto.ps1` → G3 K10 probe → G4 �
 - blind(T069)は travel 0.556m一定・height 0.068m(1段)で停止だった。**height-scan が根本解決**。
 - VERIFIED ckpt: `known_good/walk_rsl_stairs_h05_20260724_survival0.9_VERIFIED.pt`。
 - 残: 段高0.10mへ引き上げ(stage2)、降段(descent_h05が4096envs並列学習中)。
+
+### [T069追記] 段高0.10m一気ジャンプ失敗+descent修正で学習回復 (2026-07-24)
+
+- **段高0.10m昇段(stairs_h10)は失敗**: verify(フレッシュ再ロード) travel 0.58m一定(助走0.6mの端で停止)・height_gained 0.064m(0.10m段を1段も越えず)・目視でも階段下で片足だけ乗せて立ち止まり。原因=0.05→0.10の2倍ジャンプが大きすぎ『hesitation局所解』(文献既知: challenging terrainで動くのを躊躇し立ち止まる方が安全に報酬を得る)。構造は正常(腕連結・姿勢OK)。対策=中間段0.07mを挿入(0.05mからresume)。
+- **descent terrain_dz stair_h バグ修正の効果が劇的**: 修正前 descent_h05 は ep 0.02s・fall_by_low 1.0・return -2.25 で1500iter全く学習せず(初手で誤って転倒判定)。修正後 descent_h05b は it250で return 27.7・ep 10.5s・fall 0.35(low 0.10)・single_contact 0.69=正常に降段歩行を学習中。**この即転倒バグは目視(ep 0.02s)で気づいた**=グローバル目視ルールの有効性を実証。
+- 教訓: terrain_dz を呼ぶ全箇所で stair_h を渡す(fall判定/base_height報酬/height_scan/spawn)。1箇所でも欠けると段高非既定の地形で沈黙の破綻。カリキュラムの段高ジャンプは2倍が上限の目安、間に中間段を置く。
