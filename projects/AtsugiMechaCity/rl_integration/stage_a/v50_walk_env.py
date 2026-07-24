@@ -83,6 +83,8 @@ def _default_cfg():
         "term_height_drop": 0.45,
         # --- observation ---
         "obs_history": 3,
+        # --- rendering (None = headless training; renderer supplies a dict) ---
+        "camera": None,
         # --- domain randomization ---
         "dr_friction": [0.8, 1.6],
         "dr_mass_scale": [0.9, 1.1],
@@ -152,6 +154,18 @@ class V50WalkEnv:
         self.scene = gs.Scene(show_viewer=False,
                               sim_options=gs.options.SimOptions(dt=c["dt_sim"], substeps=2))
         self.robot = self.scene.add_entity(gs.morphs.MJCF(file=xml_path))
+        # Optional tracking camera for rollout rendering. It MUST be added before
+        # scene.build(), and it lives here rather than in a separate renderer so
+        # the video is produced by the exact env that was trained (INC-141 trap
+        # #8: a duplicated render-side XML silently diverged from the trainer and
+        # made the walk check structurally unable to pass).
+        self.camera = None
+        if c.get("camera"):
+            cc = c["camera"]
+            self.camera = self.scene.add_camera(
+                res=tuple(cc.get("res", (960, 540))), pos=tuple(cc.get("pos", (3.0, 0.5, 0.6))),
+                lookat=tuple(cc.get("lookat", (0.0, 0.0, 0.0))), fov=cc.get("fov", 40),
+                GUI=False)
         self.scene.build(n_envs=num_envs)
 
         self.dof_idx = [self.robot.get_joint(n).dof_idx_local for n in DOF_NAMES]
