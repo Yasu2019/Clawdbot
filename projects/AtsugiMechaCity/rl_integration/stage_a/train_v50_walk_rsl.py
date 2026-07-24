@@ -35,6 +35,61 @@ def _default_cmd_vx():
     return _default_cfg()["cmd_vx"]
 
 
+def load_with_surgery(runner, ckpt_path, num_scan):
+    """Load a smaller-obs (blind) checkpoint into this larger height-scan network.
+
+    The scan columns were appended at the END of the observation, so the source
+    input weights map onto the first (num_obs - num_scan) columns of the new
+    first layer unchanged; the new scan columns are left at their (small random)
+    init and the policy starts behaving identically to the blind source. The
+    observation normalizer's running mean/var are copied for the shared prefix
+    and left at 0/1 for the new scan dims. Everything except the first actor and
+    critic layers and the two normalizers is shape-identical and copied verbatim.
+    """
+    import torch as _t
+    sd = _t.load(ckpt_path, map_location="cpu", weights_only=False)
+    model = runner.alg.policy.state_dict()
+    src = sd["model_state_dict"]
+    copied, surgical = 0, []
+    for k, v in model.items():
+        if k not in src:
+            continue
+        sv = src[k]
+        if sv.shape == v.shape:
+            model[k] = sv.clone()
+            copied += 1
+        elif v.dim() == 2 and sv.dim() == 2 and v.shape[0] == sv.shape[0] \
+                and v.shape[1] == sv.shape[1] + num_scan:
+            w = v.clone()
+            w[:, :sv.shape[1]] = sv                     # copy blind input columns
+            w[:, sv.shape[1]:] = 0.0                    # zero the new scan columns
+            model[k] = w                                # -> starts identical to blind
+            surgical.append(k)
+        else:
+            print(f"[surgery] skip {k}: {tuple(sv.shape)} -> {tuple(v.shape)}", flush=True)
+    runner.alg.policy.load_state_dict(model)
+
+    def graft_norm(dst_norm, src_state):
+        if dst_norm is None or src_state is None:
+            return
+        dsd = dst_norm.state_dict()
+        for key in ("_mean", "_var", "_std"):
+            if key in dsd and key in src_state:
+                n = src_state[key].numel()
+                dsd[key].view(-1)[:n] = src_state[key].view(-1)
+        if "count" in dsd and "count" in src_state:
+            dsd["count"].copy_(src_state["count"])
+        dst_norm.load_state_dict(dsd)
+
+    if getattr(runner, "empirical_normalization", False):
+        graft_norm(runner.obs_normalizer, sd.get("obs_norm_state_dict"))
+        graft_norm(getattr(runner, "privileged_obs_normalizer", None),
+                   sd.get("privileged_obs_norm_state_dict"))
+    print(f"[surgery] {ckpt_path}: copied {copied} tensors verbatim, "
+          f"grafted {len(surgical)} input layers (+{num_scan} scan cols zero-carried): "
+          f"{surgical}", flush=True)
+
+
 def train_cfg(args):
     return {
         "algorithm": {
@@ -201,6 +256,19 @@ def main():
     ap.add_argument("--eval-vx", type=float, default=None,
                     help="speed used by the built-in eval (default: reference clip "
                          "speed, which is the TOP of the training range)")
+    # Exteroception: forward terrain height scan (needed for stairs, T069).
+    ap.add_argument("--height-scan", action="store_true",
+                    help="append a forward terrain height scan to the observation")
+    ap.add_argument("--scan-ahead", default=None,
+                    help="comma list of forward look-ahead distances (m); "
+                         "default 0.0,0.1,...,1.0")
+    ap.add_argument("--stair-height", type=float, default=None,
+                    help="override step height (m) for the stair curriculum")
+    ap.add_argument("--resume-surgery", action="store_true",
+                    help="load a smaller-obs checkpoint (e.g. the blind flat/slope "
+                         "policy) into this larger height-scan network: existing "
+                         "input weights are copied, the new scan columns start at "
+                         "zero, so the policy begins identical to the source.")
     args = ap.parse_args()
     os.makedirs(args.out, exist_ok=True)
 
@@ -218,6 +286,13 @@ def main():
     for key, val in (("dr_mass_scale", args.dr_mass), ("dr_kp_scale", args.dr_kp)):
         if val:
             cfg[key] = [float(v) for v in val.split(",")]
+    if args.stair_height is not None:
+        cfg["stair_height"] = args.stair_height
+    if args.height_scan:
+        hs = {}
+        if args.scan_ahead:
+            hs["ahead"] = [float(v) for v in args.scan_ahead.split(",")]
+        cfg["height_scan"] = hs
     env = V50WalkEnv(args.n_envs, args.out, cfg=cfg, ref_json=args.ref_json)
     print(f"ENV ready: obs={env.num_obs} act={env.num_actions} stand_z={env.stand_z:.4f} "
           f"target_vx={env.target_vx} gait_period={env.gait_period}", flush=True)
@@ -232,7 +307,9 @@ def main():
     if not args.tensorboard:
         runner.disable_logs = True
         runner.logger_type = "tensorboard"   # save() reads it even when muted
-    if args.resume:
+    if args.resume and args.resume_surgery:
+        load_with_surgery(runner, args.resume, env.num_scan)
+    elif args.resume:
         runner.load(args.resume)
 
     status = StatusWriter(env, args.out, args.iterations)

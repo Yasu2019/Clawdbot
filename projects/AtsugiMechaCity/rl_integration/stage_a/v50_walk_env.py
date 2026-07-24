@@ -68,6 +68,15 @@ def _default_cfg():
         "action_scale": V50.ACTION_SCALE,
         "episode_length_s": 20.0,          # was 8 s; walking needs a longer horizon
         "terrain": "none",
+        "stair_height": None,              # override TERRAIN_STAIR_H for the step curriculum
+        # --- exteroception: forward terrain height scan (stairs need it; blind
+        #     policies cannot climb discrete steps -- T069). The terrain here is
+        #     extruded along x and its height is analytic (terrain_dz), so the
+        #     scan is exact and needs no raycast. K forward look-ahead points
+        #     ahead of the base; each value is how much higher the ground is at
+        #     that point than under the base (legged_gym convention: flat = 0).
+        #     None disables it (obs stays 189, flat/slope checkpoints load as-is).
+        "height_scan": None,               # e.g. {"ahead": [0.0..1.0], "scale": 5.0}
         # --- command (target base velocity) ---
         "cmd_vx": [0.15, 0.35],            # resampled uniformly per episode
         "cmd_wz": [-0.2, 0.2],
@@ -151,10 +160,11 @@ class V50WalkEnv:
         self.max_episode_length = int(c["episode_length_s"] / self.dt)
         self.step_dt = self.dt
 
+        self.stair_h = c.get("stair_height")
         os.makedirs(out_dir, exist_ok=True)
         xml_path = os.path.join(out_dir, "v50_mecha_noact.xml")
         with open(xml_path, "w", encoding="utf-8") as f:
-            f.write(V50.build_model_xml(c["terrain"]))
+            f.write(V50.build_model_xml(c["terrain"], self.stair_h))
 
         gs.init(backend=gs.gpu, logging_level="warning")
         self.gs = gs
@@ -191,11 +201,20 @@ class V50WalkEnv:
         self.body_global = [names.index(n) + ls for n in names
                             if n not in ("world", "foot_L", "foot_R")]
 
+        # Spawn height offset: stairs_down starts on an elevated platform
+        # (terrain_dz at the spawn is h*N). Lift the spawn so the robot settles
+        # ONTO the platform instead of interpenetrating it. Ascent/slope/flat
+        # spawn on the flat run-up where terrain_dz(0)=0, so this is a no-op there.
+        self.spawn_dz = float(V50.terrain_dz(torch.zeros(1), c["terrain"], self.stair_h)[0])
         self.qpos0 = self.robot.get_qpos().clone()
+        self.qpos0[:, 2] += self.spawn_dz
         self.default_dof_pos = torch.zeros(N_DOF, device=self.device)   # MJCF neutral
+        self.robot.set_qpos(self.qpos0, zero_velocity=True)
         for _ in range(300):                              # settle to contact equilibrium
             self.scene.step()
-        self.stand_z = float(self.robot.get_qpos()[:, 2].mean())
+        # stand_z is the flat-ground reference height, terrain-independent, so
+        # expect_z = stand_z + terrain_dz(y) is not double-counted on the platform.
+        self.stand_z = float(self.robot.get_qpos()[:, 2].mean()) - self.spawn_dz
         if c["base_height_target"] is None:
             c["base_height_target"] = self.stand_z
 
@@ -237,7 +256,20 @@ class V50WalkEnv:
         self.metric_hist = collections.deque(maxlen=200)
 
         self.num_single_obs = 3 + 3 + 3 + 2 + N_DOF * 3 + 2 + 2
-        self.num_obs = self.num_single_obs * c["obs_history"]
+        # Forward terrain height scan, appended AFTER the history stack (not folded
+        # into it) so a flat/slope checkpoint's first-layer weights map onto the
+        # first num_single_obs*history columns unchanged and the new scan columns
+        # can be zero-initialised (see train_v50_walk_rsl --resume-surgery).
+        hs = c.get("height_scan")
+        if hs is not None:                     # {} means "scan on, use defaults"
+            ahead = hs.get("ahead", [round(0.1 * i, 3) for i in range(11)])  # 0.0..1.0 m
+            self.scan_ahead = torch.tensor(ahead, device=dev)
+            self.scan_scale = hs.get("scale", 5.0)
+            self.num_scan = self.scan_ahead.numel()
+        else:
+            self.scan_ahead = None
+            self.num_scan = 0
+        self.num_obs = self.num_single_obs * c["obs_history"] + self.num_scan
         self.obs_history = torch.zeros(N, c["obs_history"], self.num_single_obs, device=dev)
         self.num_privileged_obs = None
 
@@ -587,5 +619,25 @@ class V50WalkEnv:
         ], dim=1)
         self.obs_history = torch.cat(
             [self.obs_history[:, 1:], single.unsqueeze(1)], dim=1)
-        self.obs_buf = self.obs_history.reshape(self.num_envs, -1)
+        obs = self.obs_history.reshape(self.num_envs, -1)
+        if self.num_scan:
+            obs = torch.cat([obs, self._height_scan()], dim=1)
+        self.obs_buf = obs
         self.extras["observations"] = {}
+
+    def _height_scan(self):
+        """Forward terrain height ahead of the base, in the flat=0 convention.
+
+        terrain is extruded along x and terrain_dz(y) is analytic, so the scan is
+        exact: for each look-ahead distance d ahead of the base, the value is how
+        much higher the ground there is than under the base right now. Positive =
+        a step up coming, negative = a drop coming -- the signal a blind policy
+        lacked (T069). Descent produces negative values automatically.
+        """
+        y = self.pos[:, V50.FWD_AXIS]                     # (N,)
+        here = V50.terrain_dz(y, self.cfg["terrain"], self.stair_h)
+        # look-ahead points: forward is FWD_SIGN along the y axis
+        y_ahead = y.unsqueeze(1) + V50.FWD_SIGN * self.scan_ahead.unsqueeze(0)   # (N,K)
+        ahead = V50.terrain_dz(y_ahead.reshape(-1), self.cfg["terrain"],
+                               self.stair_h).reshape(self.num_envs, self.num_scan)
+        return ((ahead - here.unsqueeze(1)) * self.scan_scale).clamp(-5.0, 5.0)

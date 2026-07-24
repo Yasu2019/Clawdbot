@@ -106,22 +106,49 @@ def apply_mass_redistribution(xml: str) -> str:
     return re.sub(r'<body name="([^"]+)"[^>]*>\s*<inertial[^/]*/>', _redist, xml)
 
 
-def terrain_xml(terrain):
-    """worldbodyに挿入する地形geom文字列。noneは空。"""
+TERRAIN_STAIR_N = 10        # 段数(昇降とも)
+FLOOR_TOP = -0.92           # 床plane天面z(モデル固有)
+
+
+def terrain_xml(terrain, stair_h=None):
+    """worldbodyに挿入する地形geom文字列。noneは空。
+
+    stair_h: 段高の実行時上書き(段高カリキュラム用)。None=既定 TERRAIN_STAIR_H。
+    stairs_down: 昇りと違い床plane(無限)より下へは掘れないので、助走+スポーンを
+      h*N だけ持ち上げた台の上から始め、そこから床まで降りる(env が spawn を
+      terrain_dz(0) 分だけ持ち上げる。二重管理禁止=高さの真は terrain_dz)。"""
     import math as _m
     if terrain in (None, "", "none"):
         return ""
+    h = TERRAIN_STAIR_H if stair_h is None else stair_h
+    d = TERRAIN_STAIR_D
+    N = TERRAIN_STAIR_N
     g = []
     if terrain == "stairs":
-        h, d = TERRAIN_STAIR_H, TERRAIN_STAIR_D
-        for i in range(10):
+        for i in range(N):
             yc = -(TERRAIN_FLAT_RUNUP + d * i + d / 2)
-            zc = -0.92 + h * (i + 0.5)
+            zc = FLOOR_TOP + h * (i + 0.5)
             g.append(f'<geom name="stair_{i}" type="box" size="0.8 {d/2:.3f} {h/2:.3f}" '
                      f'pos="0 {yc:.3f} {zc:.3f}" friction="1.2 0.01 0.001"/>')
-        top_y = -(TERRAIN_FLAT_RUNUP + d * 10 + 1.0)
-        g.append(f'<geom name="stair_top" type="box" size="0.8 1.0 {h/2:.3f}" '
-                 f'pos="0 {top_y:.3f} {-0.92 + h*10 - h/2:.3f}" friction="1.2 0.01 0.001"/>')
+        top_y = -(TERRAIN_FLAT_RUNUP + d * N + 1.0)
+        g.append(f'<geom name="stair_top" type="box" size="0.8 1.0 {h*N/2:.3f}" '
+                 f'pos="0 {top_y:.3f} {FLOOR_TOP + h*N/2:.3f}" friction="1.2 0.01 0.001"/>')
+    elif terrain == "stairs_down":
+        top = FLOOR_TOP + h * N              # 上段台(スポーン+助走)の天面
+        # 上段台: 助走域を覆う厚い箱(天面=top)。前方=-Y、助走は 0..-runup。
+        plat_far, plat_near = 2.0, -TERRAIN_FLAT_RUNUP
+        plat_hy = (plat_far - plat_near) / 2
+        plat_yc = (plat_far + plat_near) / 2
+        g.append(f'<geom name="stair_plat" type="box" size="0.8 {plat_hy:.3f} 1.0" '
+                 f'pos="0 {plat_yc:.3f} {top - 1.0:.3f}" friction="1.2 0.01 0.001"/>')
+        for i in range(N):
+            yc = -(TERRAIN_FLAT_RUNUP + d * i + d / 2)
+            top_face = top - h * (i + 1)      # 段0=top-h, 段N-1=床
+            g.append(f'<geom name="stair_d_{i}" type="box" size="0.8 {d/2:.3f} {h/2:.3f}" '
+                     f'pos="0 {yc:.3f} {top_face - h/2:.3f}" friction="1.2 0.01 0.001"/>')
+        bot_y = -(TERRAIN_FLAT_RUNUP + d * N + 1.0)
+        g.append(f'<geom name="stair_bot" type="box" size="0.8 1.0 0.05" '
+                 f'pos="0 {bot_y:.3f} {FLOOR_TOP - 0.05:.3f}" friction="1.2 0.01 0.001"/>')
     elif terrain in ("slope_up", "slope_down"):
         th = _m.radians(TERRAIN_SLOPE_DEG)
         half = TERRAIN_SLOPE_HALF
@@ -136,9 +163,9 @@ def terrain_xml(terrain):
     return "".join(g)
 
 
-def terrain_dz(y, terrain):
-    """前方位置y(tensor)における期待地面上昇量。転倒判定の基準補正に必須
-    (これを怠ると登った時点でfallen誤判定 — spec U6の必読事項)。
+def terrain_dz(y, terrain, stair_h=None):
+    """前方位置y(tensor)における期待地面上昇量(床天面 -0.92 基準)。転倒判定と
+    base_height 報酬・height-scan の唯一の高さ源。stair_h で段高を上書き可。
 
     2026-07-24 T067補注 — 実ジオメトリとの解析照合で2つの系統誤差を修正:
       ①階段の1段ズレ: 旧 `floor(prog/D)*H` は段0の上に立っている間 dz=0 を返して
@@ -153,13 +180,20 @@ def terrain_dz(y, terrain):
     import math as _m
     if terrain in (None, "", "none"):
         return torch.zeros_like(y)
+    h = TERRAIN_STAIR_H if stair_h is None else stair_h
+    N = TERRAIN_STAIR_N
     prog = (-y - TERRAIN_FLAT_RUNUP).clamp(min=0.0)
     on_terrain = (prog > 0).to(y.dtype)          # 平地助走の上では常に0
     if terrain == "stairs":
         # 段i の上 = 床から H*(i+1)。天面高なので +1 段。
-        # clamp(0,10) は最上段(=stair_top の踊り場 1.00m)と一致する。
-        steps = ((prog / TERRAIN_STAIR_D).floor() + 1.0).clamp(0, 10)
-        return on_terrain * steps * TERRAIN_STAIR_H
+        # clamp は最上段(=stair_top の踊り場 h*N)と一致する。
+        steps = ((prog / TERRAIN_STAIR_D).floor() + 1.0).clamp(0, N)
+        return on_terrain * steps * h
+    if terrain == "stairs_down":
+        # 助走(上段台)は一律 h*N。そこから段ごとに h ずつ床(0)まで降りる。
+        step = (prog / TERRAIN_STAIR_D).floor().clamp(0, N - 1)
+        descended = torch.where(on_terrain.bool(), (step + 1.0) * h, torch.zeros_like(y))
+        return (h * N - descended).clamp(min=0.0)
     th = _m.radians(TERRAIN_SLOPE_DEG)
     sign = 1.0 if terrain == "slope_up" else -1.0
     # 斜面の水平方向の実効長(板長×cosθ)。板を越えた先は外挿しない。
@@ -255,7 +289,7 @@ def quat_gravity(quat):
     return torch.stack([gx, gy, gz], dim=1)
 
 
-def build_model_xml(terrain="none"):
+def build_model_xml(terrain="none", stair_h=None):
     """V50 MJCF -> 学習/評価共通のシムモデルXML。
     **唯一の正**: render_walk.py も必ずこれを使う。二重管理禁止
     (INC-141 罠#8: レンダー側の複製XMLがB-1のroll注入を持たず、レンダーチェックが
@@ -282,7 +316,7 @@ def build_model_xml(terrain="none"):
     xml = re.sub(r'(<joint name="ankle_(L|R)"[^/]*/>)',
                  r'\1<joint name="ankle_\2_roll" type="hinge" axis="0 1 0" pos="0 0 0" '
                  r'limited="true" range="-15.0 15.0" damping="3" stiffness="0"/>', xml)
-    xml = xml.replace("</worldbody>", terrain_xml(terrain) + "</worldbody>")
+    xml = xml.replace("</worldbody>", terrain_xml(terrain, stair_h) + "</worldbody>")
     return xml
 
 
