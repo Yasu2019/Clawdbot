@@ -1331,3 +1331,12 @@ G1 py_compile → G2 `fleet_satellite_setup_auto.ps1` → G3 K10 probe → G4 �
 - **残課題**: 足クリアランスが左右非対称のまま(片足~4cm/片足~25cm)で優位脚が run毎に左右入替。=**方策は対称化できても歩容リミットサイクルが自発的に片側へ崩れる**(既知の難問)。foot_clearanceの「目標(10cm)からの偏差」ペナルティでは足高の左右差を直接縛れていない。survivalは0.99→0.72に低下(自然性制約のトレードオフ)。
 - 次の直接手(未実装): ①|foot_clearance_L - foot_clearance_R| を直接ペナルティ ②位相ロック対称クリアランス(左足φ=右足φ+0.5) ③rsl_rl use_mirror_loss。
 - ckpt: `known_good/walk_rsl_symmetric_20260725_hipknee_sym.pt`。bd `7c9a`。
+
+### [自然歩容・根本原因] 参照モーション自体が非対称だった (2026-07-25)
+
+- v1-v3 で対称性augmentation+多数の報酬を投入しても足上げ左右差が残った真因: **参照モーション `walk.json`(100STYLE Neutral_FW由来)自体が左右非対称**。hip_L 23.0度 vs hip_R 18.6度、ankle_L 30.6 vs ankle_R 22.5度、`|L(t)-R(t+T/2)|`=hip5.3/ankle8.6度(0が完全対称)。人間mocapは本来左右非対称。
+- `pose_prior`(重み0.8)がこの非対称参照を模倣する一方、私の対称性報酬(gait_symmetry/foot_lift_symmetry等)がそれを打ち消そうとする**綱引き**になっていた。だから4回再学習しても足上げが均等化しなかった。
+- **修正**: 参照を対称化。canonical=0.5*(L(t)+R(t+T/2))、L(t)=canonical、R(t)=canonical(t+T/2)。矢状面関節は左右で符号反転しないので純粋な半周期シフト。`walk_sym.json` 生成、sym残差0.000度・L/R振幅完全一致(hip18.7/18.7, knee26.6/26.6, ankle26.0/26.0)。
+- v4: walk_sym.json + --symmetry + 全対称性報酬 + pose_prior0.8 で再学習。参照とペナルティが同方向を向くので綱引き解消。
+- 教訓: 模倣学習で「自然/対称」を求めるなら**参照モーション自体の性質を先に検証**する。人間mocapは対称ではない。
+- 追加報酬 `foot_lift_symmetry`(EMA足上げ高さの|L-R|直接ペナルティ, -8.0): v3で25→16cmに改善(commit 402115208b)。参照対称化と併用。
