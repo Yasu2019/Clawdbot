@@ -1,0 +1,10 @@
+{
+  "case_label": "4mmx4mm_ASSY",
+  "spm": 80.0,
+  "press_stroke_mm": 80.0,
+  "punch_target_mm": 2.0,
+  "stripper_target_mm": 0.19,
+  "clearance_pct": 8.0,
+  "friction_mu": 0.1,
+  "dt_noda_min": 8e-9
+}
