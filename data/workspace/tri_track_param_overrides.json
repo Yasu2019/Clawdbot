@@ -1,0 +1,22 @@
+{
+  "openfoam": {
+    "overrides": {
+      "inlet_velocity": 6.51
+    },
+    "applied_at": "2026-07-25T20:30:00+09:00",
+    "applied_by": "INC-161 verification",
+    "note": "Was 1.0 m/s from meaning_gate_auto_improver on 2026-07-19. The MFALIGN box shell (41.33 cm3 cavity) cannot fill within analysis_end_time_s at 1.0 m/s, so every trial short-shot. 6.51 m/s is the gate velocity of the proven case moldflow-union-xplus-d2-mfalign-v3-20260723, reproduced at 99.48 percent fill in repro-mfalign-v3b-20260725.",
+    "previous": {
+      "inlet_velocity": 1.0,
+      "applied_at": "2026-07-19T14:29:16+09:00",
+      "applied_by": "meaning_gate_auto_improver"
+    }
+  },
+  "openradioss": {
+    "overrides": {
+      "punch_speed_mms": 2000.0
+    },
+    "applied_at": "2026-07-20T05:59:27+09:00",
+    "applied_by": "meaning_gate_auto_improver"
+  }
+}
