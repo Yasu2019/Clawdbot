@@ -276,6 +276,10 @@ def main():
     ap.add_argument("--symmetric-body", action="store_true",
                     help="mirror the left body onto the right (sim-only) so the "
                          "robot is L/R symmetric -- required for a symmetric gait")
+    ap.add_argument("--no-naturalness", action="store_true",
+                    help="zero the flat-gait naturalness/symmetry rewards "
+                         "(foot_clearance/foot_lift_symmetry/gait_symmetry/...) for "
+                         "terrain training, where variable foot lift is required")
     ap.add_argument("--resume-surgery", action="store_true",
                     help="load a smaller-obs checkpoint (e.g. the blind flat/slope "
                          "policy) into this larger height-scan network: existing "
@@ -302,6 +306,8 @@ def main():
         cfg["stair_height"] = args.stair_height
     if args.symmetric_body:
         cfg["symmetric_body"] = True
+    if args.no_naturalness:
+        cfg["no_naturalness"] = True
     if args.height_scan:
         hs = {}
         if args.scan_ahead:

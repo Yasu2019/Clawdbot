@@ -166,6 +166,14 @@ class V50WalkEnv:
             self.cfg.update(cfg)
             self.cfg["reward_scales"] = rs
         c = self.cfg
+        # The naturalness/symmetry terms were tuned for FLAT gait. On terrain the
+        # feet must lift by variable amounts to clear/descend steps, so penalising
+        # foot-lift height and its L/R difference fights the task. Zero them for
+        # terrain training (the flat natural-gait policy is already adopted).
+        if c.get("no_naturalness"):
+            for k in ("gait_symmetry", "foot_clearance", "foot_lift_symmetry",
+                      "contact_symmetry", "action_jerk"):
+                c["reward_scales"][k] = 0.0
         self.device = torch.device(device)
         self.num_envs = num_envs
         self.num_actions = N_DOF
