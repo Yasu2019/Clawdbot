@@ -2,6 +2,7 @@
 """Headless VTK -> PNG / MP4 for Impact FEM (vtk + matplotlib, mesh connectivity preserved)."""
 from __future__ import annotations
 
+import argparse
 import re
 import sys
 from pathlib import Path
@@ -27,6 +28,37 @@ FIELD_SPECS = [
     (["displacement_magnitude", "Displacement"], "displacement", "Displacement"),
     (["PEEQ_cell", "PEEQ"], "peeq", "PEEQ"),
 ]
+IMPACT_CAMERA_PRESETS = ("iso", "top", "side", "front")
+
+
+def _ensure_xyz(pts: np.ndarray) -> np.ndarray:
+    pts = np.asarray(pts, dtype=float)
+    if pts.ndim != 2 or pts.shape[0] == 0:
+        raise ValueError("empty point array")
+    if pts.shape[1] >= 3:
+        return pts[:, :3]
+    if pts.shape[1] == 2:
+        return np.column_stack([pts[:, 0], pts[:, 1], np.zeros(pts.shape[0])])
+    raise ValueError(f"unsupported point shape: {pts.shape}")
+
+
+def project_view(pts3: np.ndarray, preset: str) -> tuple[np.ndarray, tuple[str, str]]:
+    """Orthographic projection for FEM Impact animation presets."""
+    preset = str(preset or "top").strip().lower()
+    x, y, z = pts3[:, 0], pts3[:, 1], pts3[:, 2]
+    if preset == "top":
+        return np.column_stack([x, y]), ("X", "Y")
+    if preset == "side":
+        return np.column_stack([x, z]), ("X", "Z")
+    if preset == "front":
+        return np.column_stack([y, z]), ("Y", "Z")
+    if preset == "iso":
+        # Rotate the XY footprint as well as exposing Z.  Mixing only X/Z
+        # leaves a thin plate looking almost identical to the top view.
+        u = (x - y) * 0.8660254037844386
+        v = (x + y) * 0.5 - z
+        return np.column_stack([u, v]), ("U", "V")
+    return np.column_stack([x, y]), ("X", "Y")
 
 
 def load_vtk(path: Path):
@@ -89,8 +121,7 @@ def _surface_mesh(ds, vtk, vtk_to_numpy, field_names: list[str]) -> tuple[np.nda
         return None
 
     pts = vtk_to_numpy(poly.GetPoints().GetData())
-    if pts.shape[1] > 2:
-        pts = pts[:, :2]
+    pts = _ensure_xyz(pts)
 
     polys = _extract_triangle_polys(poly)
     if polys.size == 0:
@@ -152,9 +183,13 @@ def render_mesh_frame(
     vmax: float | None = None,
     xlim: tuple[float, float] | None = None,
     ylim: tuple[float, float] | None = None,
+    camera_preset: str = "top",
+    axis_labels: tuple[str, str] | None = None,
 ) -> bool:
     """Draw Impact surface using VTK triangle connectivity (no Delaunay retriangulation)."""
-    verts = pts[polys]
+    pts2 = project_view(_ensure_xyz(pts), camera_preset)[0]
+    verts = pts2[polys]
+    xlab, ylab = axis_labels or project_view(_ensure_xyz(pts), camera_preset)[1]
     fig, ax = plt.subplots(figsize=(12, 9), dpi=100)
     norm = plt.Normalize(vmin=vmin, vmax=vmax)
     coll = PolyCollection(
@@ -174,16 +209,23 @@ def render_mesh_frame(
     else:
         ax.autoscale()
     fig.colorbar(cm.ScalarMappable(norm=norm, cmap="viridis"), ax=ax, label=title)
-    ax.set_title(f"{vtk_name} / {field_name}")
-    ax.set_xlabel("X")
-    ax.set_ylabel("Y")
+    ax.set_title(f"{vtk_name} / {field_name} [{camera_preset}]")
+    ax.set_xlabel(xlab)
+    ax.set_ylabel(ylab)
     out_png.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out_png, bbox_inches="tight")
     plt.close(fig)
     return True
 
 
-def render_png(vtk_path: Path, out_png: Path, field_names: list[str], title: str) -> bool:
+def render_png(
+    vtk_path: Path,
+    out_png: Path,
+    field_names: list[str],
+    title: str,
+    *,
+    camera_preset: str = "top",
+) -> bool:
     ds, vtk, vtk_to_numpy = load_vtk(vtk_path)
     mesh = _surface_mesh(ds, vtk, vtk_to_numpy, field_names)
     if mesh is None:
@@ -200,6 +242,7 @@ def render_png(vtk_path: Path, out_png: Path, field_names: list[str], title: str
         vtk_name=vtk_path.name,
         vmin=float(np.nanmin(face_vals)),
         vmax=float(np.nanmax(face_vals)),
+        camera_preset=camera_preset,
     )
     if ok:
         print(f"[impact-vtk-png] {out_png}", flush=True)
@@ -214,6 +257,7 @@ def build_impact_mp4(
     field_names: list[str] | None = None,
     fps: int = 4,
     max_frames: int = 24,
+    camera_preset: str = "top",
 ) -> tuple[Path | None, Path | None, dict[str, Any]]:
     """Build FEM Impact MP4 with fixed axes + global color scale (prevents model collapse in video)."""
     import shutil
@@ -221,7 +265,12 @@ def build_impact_mp4(
 
     field_names = field_names or VON_MISES_FIELDS
     vtks = list_impact_surface_vtks(run_dir, max_frames=max_frames)
-    meta: dict[str, Any] = {"vtk_count": len(vtks), "frames_ok": 0, "frames_failed": 0}
+    meta: dict[str, Any] = {
+        "vtk_count": len(vtks),
+        "frames_ok": 0,
+        "frames_failed": 0,
+        "camera_preset": camera_preset,
+    }
     if len(vtks) < 2:
         meta["error"] = "need_at_least_2_surface_vtks"
         return None, None, meta
@@ -243,10 +292,11 @@ def build_impact_mp4(
             pts, polys, face_vals, name = mesh
             meshes.append((vtk_path, pts, polys, face_vals, name))
             all_vals.extend(face_vals.tolist())
-            xmins.append(float(np.min(pts[:, 0])))
-            xmaxs.append(float(np.max(pts[:, 0])))
-            ymins.append(float(np.min(pts[:, 1])))
-            ymaxs.append(float(np.max(pts[:, 1])))
+            pts2 = project_view(_ensure_xyz(pts), camera_preset)[0]
+            xmins.append(float(np.min(pts2[:, 0])))
+            xmaxs.append(float(np.max(pts2[:, 0])))
+            ymins.append(float(np.min(pts2[:, 1])))
+            ymaxs.append(float(np.max(pts2[:, 1])))
         except Exception as exc:
             meta["frames_failed"] += 1
             print(f"[impact-vtk-mp4] skip {vtk_path.name}: {exc}", flush=True)
@@ -268,6 +318,7 @@ def build_impact_mp4(
         shutil.rmtree(frame_dir, ignore_errors=True)
     frame_dir.mkdir(parents=True, exist_ok=True)
 
+    axis_labels = project_view(_ensure_xyz(meshes[0][1]), camera_preset)[1]
     frames: list[Path] = []
     for i, (vtk_path, pts, polys, face_vals, name) in enumerate(meshes):
         fp = frame_dir / f"frame_{i:04d}.png"
@@ -283,6 +334,8 @@ def build_impact_mp4(
             vmax=vmax,
             xlim=xlim,
             ylim=ylim,
+            camera_preset=camera_preset,
+            axis_labels=axis_labels,
         )
         if ok:
             frames.append(fp)
@@ -346,17 +399,19 @@ def build_impact_mp4(
 
 
 def main() -> int:
-    if len(sys.argv) < 2:
-        print("usage: python impact_vtk_to_png.py <file.vtk> [out_dir]", file=sys.stderr)
-        return 2
-    vtk_path = Path(sys.argv[1]).resolve()
-    out_dir = Path(sys.argv[2]).resolve() if len(sys.argv) > 2 else vtk_path.parent
+    parser = argparse.ArgumentParser()
+    parser.add_argument("vtk_path", type=Path)
+    parser.add_argument("out_dir", nargs="?", type=Path)
+    parser.add_argument("--camera", choices=IMPACT_CAMERA_PRESETS, default="top")
+    args = parser.parse_args()
+    vtk_path = args.vtk_path.resolve()
+    out_dir = args.out_dir.resolve() if args.out_dir else vtk_path.parent
     specs = FIELD_SPECS
     made = 0
     for fields, suffix, label in specs:
         out = out_dir / f"{vtk_path.stem}_{suffix}.png"
         try:
-            if render_png(vtk_path, out, fields, label):
+            if render_png(vtk_path, out, fields, label, camera_preset=args.camera):
                 made += 1
         except Exception as exc:
             print(f"[warn] {suffix}: {exc}", flush=True)

@@ -97,7 +97,14 @@ def fetch_and_render(remote_vtk: str, trial_id: str, stage: int) -> Path:
     if proc.returncode != 0:
         raise RuntimeError((proc.stderr or "SCP failed")[-300:])
     render = subprocess.run(
-        [sys.executable, str(RENDERER), str(local_vtk), str(out_dir)],
+        [
+            sys.executable,
+            str(RENDERER),
+            str(local_vtk),
+            str(out_dir),
+            "--camera",
+            "iso",
+        ],
         capture_output=True,
         text=True,
         encoding="utf-8",
@@ -119,6 +126,12 @@ def main() -> int:
     parser.add_argument("--input", required=True)
     parser.add_argument("--end-time", required=True, type=float)
     parser.add_argument("--poll-seconds", type=max_int, default=30)
+    parser.add_argument(
+        "--wait-start-seconds",
+        type=int,
+        default=0,
+        help="Wait this long for a queued solver to start before sending the 0%% notice.",
+    )
     args = parser.parse_args()
 
     state_path = STATE_DIR / f"{args.trial_id}.json"
@@ -126,21 +139,24 @@ def main() -> int:
     sent = {int(x) for x in state.get("sent", [])}
     state.update({"case_dir": args.case_dir, "input": args.input, "end_time": args.end_time})
 
-    if 0 not in sent:
-        caption = (
-            "[FEM Impact 解析開始]\n"
-            f"job={args.trial_id}\n"
-            f"input={args.input}\n進捗=0% (初期)"
-        )
-        if send_telegram_text(caption):
-            sent.add(0)
-            state["sent"] = sorted(sent)
-            write_state(state_path, state)
-
     missing_after_exit = 0
+    seen_running = False
+    wait_deadline = time.monotonic() + max(0, args.wait_start_seconds)
     while any(stage not in sent for stage in STAGES):
         try:
             running, vtk, simulation_time = remote_snapshot(args.case_dir, args.input)
+            if running:
+                seen_running = True
+            if 0 not in sent and (running or args.wait_start_seconds <= 0):
+                caption = (
+                    "[FEM Impact 解析開始]\n"
+                    f"job={args.trial_id}\n"
+                    f"input={args.input}\n進捗=0% (初期)"
+                )
+                if send_telegram_text(caption):
+                    sent.add(0)
+                    state["sent"] = sorted(sent)
+                    write_state(state_path, state)
             state.update(
                 {
                     "running": running,
@@ -165,7 +181,16 @@ def main() -> int:
                     state["sent"] = sorted(sent)
                     state[f"stage_{stage}_vtk"] = vtk
                     write_state(state_path, state)
-            missing_after_exit = 0 if running else missing_after_exit + 1
+            if not seen_running and args.wait_start_seconds > 0:
+                state["queued_waiting_for_solver"] = True
+                missing_after_exit = 0
+                if time.monotonic() >= wait_deadline:
+                    state["last_error"] = "queued solver did not start before wait deadline"
+                    write_state(state_path, state)
+                    break
+            else:
+                state["queued_waiting_for_solver"] = False
+                missing_after_exit = 0 if running else missing_after_exit + 1
             write_state(state_path, state)
             if not running and missing_after_exit >= 3:
                 break

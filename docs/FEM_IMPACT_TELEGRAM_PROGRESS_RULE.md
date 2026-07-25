@@ -1,7 +1,7 @@
 # FEM Impact Telegram Progress Rule
 
-Updated: 2026-07-25 JST  
-Beads: `Clawdbot_Docker_20260125-vdf0`
+Updated: 2026-07-26 JST
+Beads: `Clawdbot_Docker_20260125-vdf0`, `Clawdbot_Docker_20260125-tryd`
 
 ## Goal
 
@@ -36,7 +36,9 @@ monitor reads this state and must not resend a completed stage.
 2. Poll ThinkPad every 30 seconds for the latest matching surface VTK.
 3. Calculate `100 * vtk_time / end_time`.
 4. At the first observation at or above each 5% milestone from 5% through 95%,
-   copy that VTK to K10, render a Von Mises PNG, and send it once.
+   copy that VTK to K10, render a Von Mises PNG with the `iso` oblique camera,
+   and send it once. The oblique projection rotates the XY footprint and exposes
+   Z so that thin plates are visibly different from the top view.
 5. Persist state under `data/workspace/fem_impact_progress/<trial_id>.json`.
 6. Never stop, signal, or renice the solver from the progress monitor.
 
