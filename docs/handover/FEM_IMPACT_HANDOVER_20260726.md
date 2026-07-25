@@ -132,3 +132,42 @@ start=2026-07-26 03:37:13 JST
 - 旧ジョブが30%で終わった問題は、画像角度の問題とは別である。
 - `0.002 / 0.0063 = 31.746%`で、利用可能な最終VTKが0.002だった。
 - 新規解析開始の許可を得るまでは、HOLDを勝手に解除しない。
+
+## 9. SPM80指定条件による再計算（2026-07-26 06:51 JST）
+
+ユーザーから既存FEMの停止許可を得たため、旧
+`test_practical_forming.in`ソルバーを停止した。K10で重複起動していた
+`k10_tri_track_cae_orchestrator.py --continuous`も2系統停止した。
+DXF→3D処理は停止していない。
+
+旧VTK/PNGを参照しない次の隔離ケースで再計算を開始した。
+
+```text
+trial=spm80-p2-s019-20260726-0655
+case=/home/yasu/clawstack_satellite/impact_bundle/AUTO_FIX_ORIENTATION_20250804/Impact/fresh_runs/spm80-p2-s019-20260726-0655
+input=SPM80_punch2_stripper019.in
+solver_pid=2181208
+progress_monitor_pid=10136
+```
+
+拘束条件:
+
+```text
+SPM=80
+cycle=0.75 s
+stroke=80 mm
+crank_radius=40 mm
+simulated_interval=last 2.00 mm before bottom dead center
+analysis_end=0.037905984 s
+punch_final_z=-2.000000 mm
+stripper_final_z=-0.190000 mm
+```
+
+パンチ運動は単純クランク調和運動として、
+`acos(1 - 2/40) / (2*pi*80/60)`から解析区間を算出した。
+パンチとストリッパーには9点の時間–位置テーブルを与え、最終移動量を
+指定値へ厳密一致させた。
+
+開始確認時点で旧成果物は0件、ソルバーは稼働中、入力・材料・要素・制御の
+読込みは正常に進行している。Telegram監視は0%通知済みで、以後は新規VTKを
+基準に5%刻みの斜視画像を送信する。
