@@ -8,6 +8,7 @@ from __future__ import annotations
 import json
 import os
 import random
+import re
 import subprocess
 import sys
 import threading
@@ -33,6 +34,7 @@ FEM_VARIANT_INDEX = WORKSPACE / "thinkpad_fem_impact_variant_index.json"
 PNG_SHELL_LOCAL = ROOT / "scripts" / "thinkpad_fem_impact_png.sh"
 RENDER_SCRIPT_LOCAL = ROOT / "scripts" / "impact_vtk_to_png.py"
 QC_SCRIPT_LOCAL = ROOT / "scripts" / "impact_vtk_quality_gate.py"
+FEM_PROGRESS_SCRIPT = ROOT / "scripts" / "fem_impact_progress_telegram.py"
 
 if str(ROOT / "scripts") not in sys.path:
     sys.path.insert(0, str(ROOT / "scripts"))
@@ -74,6 +76,18 @@ def write_status(payload: dict[str, Any]) -> None:
     DASHBOARD_STATUS.write_text(text, encoding="utf-8")
 
 
+def _apply_llm_overrides(override_key: str, params: dict[str, Any]) -> dict[str, Any]:
+    """meaning_gate_auto_improver が適用したパラメータ修正を反映 (P025改訂 2026-07-18)."""
+    try:
+        data = json.loads((WORKSPACE / "tri_track_param_overrides.json").read_text(encoding="utf-8"))
+        overrides = (data.get(override_key) or {}).get("overrides") or {}
+        for k, v in overrides.items():
+            params[k] = v
+    except Exception:
+        pass
+    return params
+
+
 def random_or_params(tri: dict[str, Any]) -> dict[str, Any]:
     ranges = (tri.get("openradioss") or {}).get("param_ranges") or {}
     out: dict[str, Any] = {"case_label": str((tri.get("openradioss") or {}).get("case_label") or "4mmx4mm")}
@@ -81,7 +95,7 @@ def random_or_params(tri: dict[str, Any]) -> dict[str, Any]:
         if isinstance(bounds, (list, tuple)) and len(bounds) == 2:
             lo, hi = float(bounds[0]), float(bounds[1])
             out[key] = round(random.uniform(lo, hi), 4)
-    return out
+    return _apply_llm_overrides("openradioss", out)
 
 
 def _maybe_cae_paraview_video_delivery(
@@ -311,6 +325,15 @@ def run_thinkpad_impact(tri: dict[str, Any], dry_run: bool, timeout: int) -> dic
     qc_max_bbox = float(qc_limits["max_bbox_diag"])
     qc_max_coord = float(qc_limits["max_coordinate_abs"])
     qc_max_disp = float(qc_limits["max_displacement_abs"])
+    cpu_affinity = str(fem.get("cpu_affinity") or "").strip()
+    nice_level = max(0, min(19, int(fem.get("nice_level") or 0)))
+    java_prefix = ""
+    if cpu_affinity:
+        if not all(part.isdigit() or part in {",", "-"} for part in cpu_affinity):
+            raise ValueError(f"invalid fem_impact cpu_affinity: {cpu_affinity!r}")
+        java_prefix += f"taskset -c {cpu_affinity} "
+    if nice_level:
+        java_prefix += f"nice -n {nice_level} "
     remote_bundle = str(
         fem.get("remote_bundle_root")
         or "/home/yasu/clawstack_satellite/impact_bundle/AUTO_FIX_ORIENTATION_20250804"
@@ -333,7 +356,10 @@ def run_thinkpad_impact(tri: dict[str, Any], dry_run: bool, timeout: int) -> dic
             "verdict": "DRY_RUN",
             "variant": variant,
             "job_timeout_sec": job_timeout,
-            "command_preview": f"java run.Impact {case_dir}/{inp} (Impact FEM, not OpenRadioss)",
+            "command_preview": (
+                f"{java_prefix}java -Xmx4096m -Xss2m -cp .:doc:bin "
+                f"run.Impact {case_dir}/{inp} (Impact FEM, not OpenRadioss)"
+            ),
         }
 
     if not dry_run:
@@ -352,7 +378,9 @@ def run_thinkpad_impact(tri: dict[str, Any], dry_run: bool, timeout: int) -> dic
         f'cd "$IMPACT_HOME"\n'
         f"if [ ! -f bin/run/Impact.class ]; then ant -q compile; fi\n"
         f'if [ ! -f "$CASE_DIR/$INP" ]; then echo "FEM_IMPACT_INPUT_MISSING=$CASE_DIR/$INP"; exit 7; fi\n'
-        f'pkill -f "java.*run.Impact.*$CASE_DIR/$INP" 2>/dev/null || true\n'
+        # One FEM slot per ThinkPad. Any run.Impact process visible here is an
+        # orphan from a previous timed-out/restarted controller.
+        f'pkill -f "java.*[r]un.Impact" 2>/dev/null || true\n'
         f"sleep 1\n"
         f"latest_vtk() {{\n"
         f'  VTK="$(ls -1 "$CASE_DIR/${{INP}}"_surface_*.vtk 2>/dev/null | sort -V | tail -1 || true)"\n'
@@ -387,7 +415,7 @@ def run_thinkpad_impact(tri: dict[str, Any], dry_run: bool, timeout: int) -> dic
             f"fi\n"
         )
     impact_script += (
-        f'java -Xmx4096m -Xss2m -cp .:doc:bin run.Impact "$CASE_DIR/$INP"\n'
+        f'{java_prefix}java -Xmx4096m -Xss2m -cp .:doc:bin run.Impact "$CASE_DIR/$INP"\n'
         f"run_qc\n"
         f'bash {png_shell} "$CASE_DIR" "$INP"\n'
     )
@@ -402,6 +430,46 @@ def run_thinkpad_impact(tri: dict[str, Any], dry_run: bool, timeout: int) -> dic
         "payload": {"command": run_cmd},
         "report": {"mode": "sync"},
     }
+    end_time = float(variant.get("end_time") or fem.get("progress_end_time") or 0.0)
+    if end_time <= 0:
+        try:
+            inp_text = subprocess.run(
+                [
+                    "ssh",
+                    "-i",
+                    str(sjp.load_node("thinkpad").get("ssh_key_path") or Path.home() / ".ssh" / "id_ed25519"),
+                    f"{sjp.load_node('thinkpad').get('ssh_user') or 'yasu'}@{sjp.load_node('thinkpad').get('ssh_host')}",
+                    f"sed -n '1,30p' '{case_dir}/{inp}'",
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                timeout=30,
+            ).stdout
+            match = re.search(r"run\s+from\s+\S+\s+to\s+([0-9.eE+-]+)", inp_text, re.IGNORECASE)
+            end_time = float(match.group(1)) if match else 0.0
+        except Exception:
+            end_time = 0.0
+    if end_time > 0:
+        subprocess.Popen(
+            [
+                sys.executable,
+                str(FEM_PROGRESS_SCRIPT),
+                "--trial-id",
+                trial_id,
+                "--case-dir",
+                case_dir,
+                "--input",
+                inp,
+                "--end-time",
+                str(end_time),
+            ],
+            cwd=str(ROOT),
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+        )
     result = sjp.dispatch_job(base_url, token, job, job_timeout)
     stdout = result.get("stdout_tail") or ""
 
@@ -546,10 +614,10 @@ def _sleep_for_track(
 
 def _notify_meaning_gate_stop(track: str, streak: int, threshold: int) -> None:
     msg = (
-        f"⛔ tri-track meaning gate: {track} を自動停止しました\n"
-        f"実行トライアル連続失敗 {streak} 回 (しきい値 {threshold})。\n"
+        f"⏸️ tri-track meaning gate: {track} を一時停止(連続失敗 {streak}/{threshold})\n"
         f"T019/P026: 無進化の再試行によるリソース空回りを防止。\n"
-        f"復旧: デッキ/KPIを修正後にオーケストレータ再起動。"
+        f"🤖 P025-R1: Auto-Improverが10分以内にローカルLLMで原因分析→パラメータ修正→自動再開します。\n"
+        f"(ローカルで改善しない場合は deepseek-v4-pro へ自動昇格。ユーザー対応は不要です)"
     )
     try:
         import cae_telegram_video_notify as tg
@@ -628,7 +696,14 @@ def track_loop(
             track_state["last"]["fail_streak"] = fail_streak
             # T019/P026 meaning gate: 実行トライアルの連続失敗がしきい値到達でトラック自動停止
             # (SKIP_OFFLINE等のpreflightスキップはカウント外)
-            meaning_gate_max = int(tri.get("meaning_gate_max_fail_streak") or 0)
+            track_cfg = tri.get("fem_impact") or {} if name == "fem_impact_thinkpad" else {}
+            meaning_gate_max = int(
+                track_cfg.get(
+                    "meaning_gate_max_fail_streak",
+                    tri.get("meaning_gate_max_fail_streak") or 0,
+                )
+                or 0
+            )
             if meaning_gate_max > 0 and fail_streak >= meaning_gate_max:
                 track_state["meaning_gate"] = {
                     "stopped": True,
@@ -706,7 +781,7 @@ def run_parallel_session(
                 )
             except Exception:
                 cycle_n = 0
-        params = of_params.build_openfoam_cad_params(cycle_n + 1)
+        params = _apply_llm_overrides("openfoam", of_params.build_openfoam_cad_params(cycle_n + 1))
         return run_satellite_trial_gated(
             "openfoam_lavie",
             node=str(of_cfg.get("host") or "lavie"),
