@@ -106,6 +106,59 @@ def apply_mass_redistribution(xml: str) -> str:
     return re.sub(r'<body name="([^"]+)"[^>]*>\s*<inertial[^/]*/>', _redist, xml)
 
 
+def apply_body_symmetrization(xml: str) -> str:
+    """Sim-only: force the body perfectly L/R symmetric by mirroring the LEFT
+    side onto the right (canonical artifacts/ XML unchanged).
+
+    2026-07-25 root cause: the mecha MJCF is not mirror-symmetric — torso offset
+    +0.013 in x, upper_arm -0.531 vs +0.490, hand heights -0.370 vs -0.325, legs
+    -0.213 vs +0.207. On an asymmetric BODY no policy/reward/reference can make a
+    symmetric gait (v1-v4 all failed to equalise the foot lift). This mirrors the
+    left subtree's geometry onto the right: body pos (xR=-xL, yz copied from L),
+    geom pos/fromto x-coords, and the inertial COM — so the two sides are exact
+    mirror images. Joint axes are left as-is (both about +X) so the anti-phase
+    gait reference convention is preserved. Applied BEFORE the foot/roll rewrites,
+    which are themselves symmetric.
+    """
+    import xml.etree.ElementTree as ET
+    import copy
+    root = ET.fromstring(xml)
+    torso = root.find(".//body[@name='torso']")
+    if torso is None:
+        return xml
+    tp = torso.get("pos").split()
+    torso.set("pos", f"0.0 {tp[1]} {tp[2]}")            # centre torso in x
+
+    def neg_x(elem, attr, stride):
+        v = elem.get(attr)
+        if v is None:
+            return
+        p = v.split()
+        for i in range(0, len(p), stride):
+            p[i] = str(round(-float(p[i]), 6))
+        elem.set(attr, " ".join(p))
+
+    def mirror(elem):
+        for e in elem.iter():
+            neg_x(e, "pos", 3)                          # x of pos (index 0)
+            neg_x(e, "fromto", 3)                       # x of both fromto points
+            nm = e.get("name")
+            if nm:
+                e.set("name", nm.replace("_L", "_R"))
+        return elem
+
+    for l in list(torso):                              # direct children only
+        nm = l.get("name") or ""
+        if nm.endswith("_L"):
+            r = torso.find(f"body[@name='{nm[:-2]}_R']")
+            if r is not None:
+                mirrored = mirror(copy.deepcopy(l))
+                idx = list(torso).index(r)
+                torso.remove(r)
+                torso.insert(idx, mirrored)
+    return ET.tostring(root, encoding="unicode")
+
+
 TERRAIN_STAIR_N = 10        # 段数(昇降とも)
 FLOOR_TOP = -0.92           # 床plane天面z(モデル固有)
 
@@ -289,7 +342,7 @@ def quat_gravity(quat):
     return torch.stack([gx, gy, gz], dim=1)
 
 
-def build_model_xml(terrain="none", stair_h=None):
+def build_model_xml(terrain="none", stair_h=None, symmetric_body=False):
     """V50 MJCF -> 学習/評価共通のシムモデルXML。
     **唯一の正**: render_walk.py も必ずこれを使う。二重管理禁止
     (INC-141 罠#8: レンダー側の複製XMLがB-1のroll注入を持たず、レンダーチェックが
@@ -316,6 +369,8 @@ def build_model_xml(terrain="none", stair_h=None):
     xml = re.sub(r'(<joint name="ankle_(L|R)"[^/]*/>)',
                  r'\1<joint name="ankle_\2_roll" type="hinge" axis="0 1 0" pos="0 0 0" '
                  r'limited="true" range="-15.0 15.0" damping="3" stiffness="0"/>', xml)
+    if symmetric_body:                                 # after foot/roll rewrites (both symmetric)
+        xml = apply_body_symmetrization(xml)
     xml = xml.replace("</worldbody>", terrain_xml(terrain, stair_h) + "</worldbody>")
     return xml
 

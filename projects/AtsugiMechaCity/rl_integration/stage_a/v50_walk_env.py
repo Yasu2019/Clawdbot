@@ -180,10 +180,11 @@ class V50WalkEnv:
         self.step_dt = self.dt
 
         self.stair_h = c.get("stair_height")
+        self.symmetric_body = c.get("symmetric_body", False)
         os.makedirs(out_dir, exist_ok=True)
         xml_path = os.path.join(out_dir, "v50_mecha_noact.xml")
         with open(xml_path, "w", encoding="utf-8") as f:
-            f.write(V50.build_model_xml(c["terrain"], self.stair_h))
+            f.write(V50.build_model_xml(c["terrain"], self.stair_h, self.symmetric_body))
 
         gs.init(backend=gs.gpu, logging_level="warning")
         self.gs = gs

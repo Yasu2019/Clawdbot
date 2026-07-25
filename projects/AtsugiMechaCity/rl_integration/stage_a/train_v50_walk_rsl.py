@@ -270,6 +270,10 @@ def main():
                          "default 0.0,0.1,...,1.0")
     ap.add_argument("--stair-height", type=float, default=None,
                     help="override step height (m) for the stair curriculum")
+    ap.add_argument("--symmetric-body", action="store_true",
+                    help="mirror the left body onto the right (sim-only) so the
+"
+                         "robot is L/R symmetric -- required for a symmetric gait")
     ap.add_argument("--symmetry", action="store_true",
                     help="enable rsl_rl left/right mirror data augmentation for a "
                          "symmetric, non-limping gait")
@@ -297,6 +301,8 @@ def main():
             cfg[key] = [float(v) for v in val.split(",")]
     if args.stair_height is not None:
         cfg["stair_height"] = args.stair_height
+    if args.symmetric_body:
+        cfg["symmetric_body"] = True
     if args.height_scan:
         hs = {}
         if args.scan_ahead:
