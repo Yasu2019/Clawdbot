@@ -1,5 +1,15 @@
 # IATF 3D Video Pipeline Trouble History & Lessons Learned
 
+## [T070] OpenRadioss Lab 4mm action exited before dispatch (2026-07-25)
+
+`POST /api/actions/launch-urgent-assy` returned HTTP 202, but the child process
+exited before Red LAVIE dispatch because the API's system Python 3.10 did not
+have `httpx`. Removing the direct import exposed the same transitive import in
+`k10_satellite_dispatch.py`. Use stdlib `urllib`, run the complete pipeline
+import smoke under the exact API interpreter, and treat HTTP 202 only as queue
+acceptance. Solver start requires child/dispatch evidence. See INC-158 and
+Beads `Clawdbot_Docker_20260125-de46`.
+
 ## [T059] Windows Gmail lock ownership and token refresh must be serialized (2026-07-12)
 
 `os.kill(pid, 0)` was not a reliable Windows liveness gate in `email_db_lock.py`.

@@ -16,8 +16,6 @@ if hasattr(sys.stdout, "reconfigure"):
     except Exception:
         pass
 
-import httpx
-
 ROOT = Path(__file__).resolve().parents[1]
 REGISTRY_DIR = ROOT / "data" / "workspace"
 JOB_LOG = REGISTRY_DIR / "satellite_job_log.jsonl"
@@ -104,29 +102,73 @@ def build_job(args: argparse.Namespace) -> dict[str, Any]:
 
 
 def dispatch_job(base_url: str, token: str, job: dict[str, Any], timeout: int) -> dict[str, Any]:
+    import urllib.request
+    import urllib.error
+    import socket
+    import http.client
+
+    class KeepAliveHTTPConnection(http.client.HTTPConnection):
+        def connect(self):
+            super().connect()
+            self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+            try:
+                self.sock.ioctl(socket.SIO_KEEPALIVE_VALS, (1, 60000, 10000))
+            except Exception:
+                pass
+
+    class KeepAliveHTTPHandler(urllib.request.HTTPHandler):
+        def http_open(self, req):
+            return self.do_open(KeepAliveHTTPConnection, req)
+
+    opener = urllib.request.build_opener(KeepAliveHTTPHandler)
+    urllib.request.install_opener(opener)
+
     headers = {"X-Satellite-Token": token, "Content-Type": "application/json"}
     job_timeout = int(job.get("timeout_sec") or timeout) + 30
-    response = httpx.post(
+    
+    req = urllib.request.Request(
         f"{base_url}/jobs",
-        json=job,
+        data=json.dumps(job).encode('utf-8'),
         headers=headers,
-        timeout=job_timeout,
+        method="POST"
     )
+    
     try:
-        body = response.json()
-    except json.JSONDecodeError:
-        body = {"status": "error", "error": response.text[:500], "exit_code": 1}
-    body["_http_status"] = response.status_code
+        with urllib.request.urlopen(req, timeout=job_timeout) as response:
+            body_bytes = response.read()
+            try:
+                body = json.loads(body_bytes.decode('utf-8'))
+            except json.JSONDecodeError:
+                body = {"status": "error", "error": body_bytes.decode('utf-8')[:500], "exit_code": 1}
+            body["_http_status"] = response.status
+    except urllib.error.HTTPError as e:
+        body_bytes = e.read()
+        try:
+            body = json.loads(body_bytes.decode('utf-8'))
+        except Exception:
+            body = {"status": "error", "error": str(e), "exit_code": 1}
+        body["_http_status"] = e.code
+    except Exception as e:
+        body = {"status": "error", "error": str(e), "exit_code": 1}
+        body["_http_status"] = 500
+        
     return body
 
 
 def probe_worker(base_url: str, token: str = "") -> tuple[bool, str]:
+    import urllib.error
+    import urllib.request
+
     headers = {"X-Satellite-Token": token} if token else {}
     try:
-        health = httpx.get(f"{base_url}/healthz", headers=headers, timeout=8)
-        if health.status_code != 200:
-            return False, f"healthz {health.status_code}"
-        return True, health.text[:120]
+        request = urllib.request.Request(f"{base_url}/healthz", headers=headers)
+        with urllib.request.urlopen(request, timeout=8) as response:
+            body = response.read().decode("utf-8", errors="replace")
+            if response.status != 200:
+                return False, f"healthz {response.status}"
+            return True, body[:120]
+    except urllib.error.HTTPError as exc:
+        return False, f"healthz {exc.code}"
     except Exception as exc:
         return False, str(exc)
 

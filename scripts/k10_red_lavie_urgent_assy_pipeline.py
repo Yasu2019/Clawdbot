@@ -10,6 +10,7 @@ import time
 import uuid
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from urllib.request import urlopen
 
 if hasattr(sys.stdout, "reconfigure"):
     try:
@@ -26,7 +27,6 @@ JST = timezone(timedelta(hours=9))
 if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
 
-import httpx
 import k10_satellite_dispatch as sjp
 
 PING_CMD = 'cmd /c "echo PING_OK"'
@@ -90,6 +90,17 @@ def dispatch_shell(token: str, command: str, timeout: int, job_id: str = "") -> 
     return sjp.dispatch_job(base, token, job, timeout)
 
 
+def read_worker_cpu_percent(timeout_sec: int = 8) -> float | None:
+    """Read Red LAVIE CPU without requiring third-party HTTP packages."""
+    try:
+        with urlopen("http://100.99.145.3:8111/metrics", timeout=timeout_sec) as response:
+            payload = json.loads(response.read().decode("utf-8", errors="replace"))
+        value = payload.get("cpu_usage_percent")
+        return float(value) if value is not None else None
+    except Exception:
+        return None
+
+
 def run_py(script: str, *args: str, timeout: int = 3600) -> tuple[int, str]:
     cmd = [sys.executable, str(SCRIPTS / script), *args]
     proc = subprocess.run(
@@ -110,12 +121,7 @@ def wait_for_worker(token: str, max_wait_sec: int, poll_sec: int) -> bool:
     n = 0
     while time.time() < deadline:
         n += 1
-        cpu = None
-        try:
-            r = httpx.get("http://100.99.145.3:8111/metrics", timeout=8)
-            cpu = r.json().get("cpu_usage_percent")
-        except Exception:
-            pass
+        cpu = read_worker_cpu_percent()
         print(f"[wait] attempt={n} cpu={cpu} ping...", flush=True)
         if worker_ping(token):
             print("[OK] worker accepts jobs", flush=True)

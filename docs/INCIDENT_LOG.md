@@ -2469,3 +2469,16 @@ Goal: press_* trial --> NORMAL TERMINATION + KPI
 | Recovery | After Docker/Ollama is restored, verify port 11434, rerun the same bounded ByteRover curate command once, then write the RL self-growth record to Qdrant. |
 | Verification | Pending external dependency restoration. |
 | Web knowledge | Not used; the exact refused localhost endpoint and the intentional Docker shutdown prove the dependency state. |
+
+## INC-158: OpenRadioss Lab urgent 4mm analysis exited before dispatch
+
+- **Date / detection:** 2026-07-25 JST; reproduced from `POST /api/actions/launch-urgent-assy`.
+- **Impact:** The portal returned HTTP 202, but the child process exited immediately and no Red LAVIE analysis was submitted.
+- **Failure signature:** `ModuleNotFoundError: No module named 'httpx'` in the urgent pipeline, followed by the same error through `k10_satellite_dispatch.py`.
+- **Root cause (5 Why):** (1) Analysis did not start because the urgent pipeline could not import. (2) The API uses system Python 3.10 without `httpx`. (3) Removing the direct import did not suffice because the downstream dispatcher imported it at module load. (4) HTTP 202 represented thread creation, not child startup. (5) Tests did not import the complete pipeline with the exact service interpreter.
+- **Correction:** Replaced simple health/metrics HTTP with stdlib `urllib`; added a pipeline regression test.
+- **Files:** `scripts/k10_red_lavie_urgent_assy_pipeline.py`, `scripts/k10_satellite_dispatch.py`, `scripts/test_openradioss_lab_api.py`.
+- **Verification:** `py_compile` PASS; unit tests 3/3 PASS; live Red LAVIE `/healthz` PASS; corrected action reached bounded worker polling.
+- **Prevention:** API actions require exact-interpreter import smoke and child-start evidence. HTTP 202 alone is not workload-start proof.
+- **Web knowledge:** Not used; local traceback and interpreter reproduction fully identify the failure.
+- **Rollback:** Restore `dc05788255` from `backup/openradioss-4mm-pre-fix-20260725`.
