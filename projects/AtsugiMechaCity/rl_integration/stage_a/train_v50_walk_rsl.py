@@ -273,6 +273,9 @@ def main():
     ap.add_argument("--symmetry", action="store_true",
                     help="enable rsl_rl left/right mirror data augmentation for a "
                          "symmetric, non-limping gait")
+    ap.add_argument("--symmetric-body", action="store_true",
+                    help="mirror the left body onto the right (sim-only) so the "
+                         "robot is L/R symmetric -- required for a symmetric gait")
     ap.add_argument("--resume-surgery", action="store_true",
                     help="load a smaller-obs checkpoint (e.g. the blind flat/slope "
                          "policy) into this larger height-scan network: existing "
@@ -297,6 +300,8 @@ def main():
             cfg[key] = [float(v) for v in val.split(",")]
     if args.stair_height is not None:
         cfg["stair_height"] = args.stair_height
+    if args.symmetric_body:
+        cfg["symmetric_body"] = True
     if args.height_scan:
         hs = {}
         if args.scan_ahead:
