@@ -131,6 +131,9 @@ def _default_cfg():
                                            # 24 cm paw AND the 4 cm shuffle to ~10 cm
                                            # (the old exp reward had zero gradient above
                                            # target, so it never corrected the over-lift)
+            "foot_lift_symmetry": -8.0,    # 2026-07-25: direct |lift_L - lift_R| penalty.
+                                           # Joint symmetry alone left one foot at 25 cm
+                                           # and the other at 4 cm; this equalises them.
             "contact_symmetry":  -0.5,     # equal L/R stance time
             "action_jerk":       -0.008,   # 2nd action difference -> smoothness
             # posture / stability
@@ -266,6 +269,10 @@ class V50WalkEnv:
         self.last2_actions = z(N, N_DOF)                   # for action-jerk (smoothness)
         self.last_dof_vel = z(N, N_DOF)
         self.contact_ema = z(N, 2) + 0.5                   # L/R stance-time balance
+        # EMA of each foot's SWING clearance -> its habitual lift height. The L/R
+        # difference is the foot-lift asymmetry the joint-symmetry terms could not
+        # remove (one foot pawed 25 cm, the other shuffled 4 cm). Penalised directly.
+        self.foot_swing_clear_ema = z(N, 2) + self.cfg["foot_clearance_target"]
         self.lin_vel = z(N, 3)
         self.ang_vel = z(N, 3)
         self.prev_pos = z(N, 3)
@@ -408,6 +415,7 @@ class V50WalkEnv:
         self.foot_air_time[idx] = 0.0
         self.last_contact[idx] = True
         self.contact_ema[idx] = 0.5
+        self.foot_swing_clear_ema[idx] = self.cfg["foot_clearance_target"]
         self.obs_history[idx] = 0.0
         self._resample_commands(idx)
 
@@ -464,6 +472,15 @@ class V50WalkEnv:
         self.last_contact = self.contacts
         # running L/R stance balance (a limp keeps one foot down more than the other)
         self.contact_ema = 0.98 * self.contact_ema + 0.02 * self.contacts.float()
+        # per-foot clearance and its swing-only EMA (habitual lift height per foot)
+        ground = self.foot_stand_z + V50.terrain_dz(
+            self.foot_pos[:, :, V50.FWD_AXIS].reshape(-1), self.cfg["terrain"],
+            self.stair_h).reshape(self.num_envs, 2)
+        self.foot_clearance = self.foot_pos[:, :, 2] - ground
+        swing = (~self.contacts)
+        self.foot_swing_clear_ema = torch.where(
+            swing, 0.97 * self.foot_swing_clear_ema + 0.03 * self.foot_clearance,
+            self.foot_swing_clear_ema)
 
         self._push_robots()
         self._check_termination()
@@ -665,14 +682,20 @@ class V50WalkEnv:
         actively pulls BOTH the 24 cm paw down and the 4 cm shuffle up (the old
         exp() reward flatlined above the target and never corrected the paw).
         Only the airborne foot counts; capped so a stumble spike can't dominate."""
-        ground = self.foot_stand_z + V50.terrain_dz(
-            self.foot_pos[:, :, V50.FWD_AXIS].reshape(-1), self.cfg["terrain"],
-            self.stair_h).reshape(self.num_envs, 2)
-        clearance = self.foot_pos[:, :, 2] - ground
         swing = (~self.contacts).float()
         tgt = self.cfg["foot_clearance_target"]
-        dev = ((clearance - tgt) ** 2).clamp(max=0.09)     # cap at (0.30 m dev)^2
+        dev = ((self.foot_clearance - tgt) ** 2).clamp(max=0.09)   # cap at (0.30 m)^2
         return (swing * dev).sum(dim=1) * self._moving()
+
+    def _r_foot_lift_symmetry(self):
+        """Directly penalise the L/R difference in habitual swing-foot lift.
+
+        The joint-symmetry + augmentation terms balanced hip/knee but the gait
+        limit-cycle still pawed one foot 25 cm and shuffled the other 4 cm. The
+        per-foot swing-clearance EMA captures each foot's typical lift, and this
+        term drives |left - right| to zero -- the direct fix for the residual."""
+        return (self.foot_swing_clear_ema[:, 0]
+                - self.foot_swing_clear_ema[:, 1]).abs() * self._moving()
 
     def _r_contact_symmetry(self):
         """Penalise unequal L/R stance time -- a limp keeps one foot planted
