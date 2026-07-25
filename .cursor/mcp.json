@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "dynabook-moldflow": {
+      "url": "http://100.98.133.40:8765/mcp"
+    },
+    "ue-mcp-safe": {
+      "command": "D:/Clawdbot_Docker_20260125/ZIP_Group/extracted_ue_mcp/ue_mcp_full_stack/.venv/Scripts/python.exe",
+      "args": [
+        "D:/Clawdbot_Docker_20260125/ZIP_Group/extracted_ue_mcp/ue_mcp_full_stack/mcp_server/src/ue_mcp_server.py",
+        "--project",
+        "D:/Clawdbot_Docker_20260125/projects/AtsugiMechaCity"
+      ],
+      "env": {
+        "UE_MCP_ALLOW_WRITE": "0",
+        "UE_RC_URL": "http://127.0.0.1:30010",
+        "UE_RC_ALLOW_MODIFY": "1"
+      }
+    }
+  }
+}

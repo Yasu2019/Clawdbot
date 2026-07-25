@@ -15,6 +15,13 @@
 
 ---
 
+## [S017] Moldflow COM 429 の真因はGUIモーダル — セッション1のウィンドウ状態で特定 (2026-07-25)
+- 問題: Dynabook の Moldflow MCP ブリッジ(0.8.5)は正常起動し28ツールが応答するのに、アクティブstudy系が全て `CREATEOBJECT_FAILED:429`。`probe_com` は30秒×2回タイムアウト後、約150秒でようやく成功し `Version : (unavailable)`。
+- 診断: 先行知見(INC-151/152)のビット数・セッション不一致仮説を先に潰した（0.8.5は該当ツールを全て `bitness=64` で実行、MCPもSynergyも SessionId=1）。SSHはセッション0でウィンドウ列挙できないため `schtasks /IT` でセッション1に入り込み、`EnumWindows`+`IsWindowEnabled` とスクリーンショットを取得。メインウィンドウ `enabled=False`、`Internet Explorer_TridentDlgFrame` の「スクリプト エラー」が可視。閉じるとハンドルが `3805930`→`1644694` に変化し、再生成ループと確定。
+- 解決: GUI操作での解除を断念し、`schtasks /IT` で Synergy を強制再起動（新PID 3884）→ 同セッションでブリッジ再起動。`.cursor/mcp.json` に `dynabook-moldflow` → `http://100.98.133.40:8765/mcp` を登録（ブリッジの `MOLDFLOW_MCP_HOST=100.98.133.40` によりHost検証を通過）。
+- 証拠: `probe_com` 32/64bit 両方成功・`Version : 2010`、`inspect_state` `ok:true`/`metric_units_ok:true`、読み取り一式 117秒→36秒。画像 `docs/evidence/inc159/synergy_blocked_script_error_20260725.png`(異常) と `docs/evidence/inc159/synergy_recovered_20260725.png`(復旧)。INC-159 / T071 / bd `Clawdbot_Docker_20260125-v7di`。
+- 再利用: IF Moldflow COM が429 THEN 先にセッション1で `IsWindowEnabled` を見る（COM再登録やビット数変更に進まない）。IF 閉じた後にダイアログのハンドルが変わる THEN 再試行せずアプリ再起動。**`SendMessage(SC_CLOSE)` と `SendKeys` は固まったモーダルに対して無限ブロックするので使用禁止、`PostMessage` のみ**。対話タスクの待ちは120秒以上を見込む。
+
 ## [S016] OF box-shell Telegram VOF = STL surface + iso only (2026-07-22)
 - 問題: Telegram 充填アニメが平板に見え、ユーザーが繰り返し却下。bbox は 100x60x50 なのに意味が伝わらない。
 - 診断: (1) 壁面 `alpha` 塗り / `threshold(alpha)` は薄肉シェルを「薄い板」に見せる (2) side/front/top 正対カメラは奥行きを潰す (3) 送信前にフレーム目視していなかった。

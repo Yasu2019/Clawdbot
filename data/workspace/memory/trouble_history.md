@@ -1,5 +1,16 @@
 # IATF 3D Video Pipeline Trouble History & Lessons Learned
 
+## [T071] Dynabook Moldflow COM 429 means a stuck Synergy modal, not a bridge fault (2026-07-25)
+
+Every active-study MCP tool returned ActiveX 429 while the bridge itself was healthy.
+Session-1 window enumeration showed the Synergy main window `enabled=False` behind a
+`Internet Explorer_TridentDlgFrame` dialog titled `スクリプト エラー`, and closing it
+produced a new dialog handle, proving a regenerating error source. `SendMessage(SC_CLOSE)`
+and `SendKeys('{ENTER}')` both hung inside that modal loop and had to be killed; use
+`PostMessage` only. Diagnose the GUI modal state from inside the interactive session
+before blaming COM registration, bitness, or the MCP process. Recovery is an application
+restart. See INC-159 and Beads `Clawdbot_Docker_20260125-v7di`.
+
 ## [T070] OpenRadioss Lab 4mm action exited before dispatch (2026-07-25)
 
 `POST /api/actions/launch-urgent-assy` returned HTTP 202, but the child process
