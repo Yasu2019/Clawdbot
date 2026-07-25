@@ -2508,3 +2508,19 @@ Raised by the user asking whether `box_study_3` had a mesh in progress. Forensic
 - **Post-fix evidence:** no `synergy.exe` APPCRASH after 10:24:28. Once a single healthy GUI instance was running, `CreateObject` attached to it and both 32-bit and 64-bit probes returned `Version : 2010`.
 - **Mesh-loss check (negative):** `box_study_3` belongs to project `FE100436` at `C:\mf\wfe`, not to `Warp`. `box_study_3.sdy` is 191,781 bytes written at 10:54:25, while sibling studies in the same project are 4 KB to 27 KB; AMI also wrote `#name#.sdy` close-out copies at 10:54:46-47. The Synergy restart happened at 10:58:26, about four minutes later, and no `synmesh`/`runstudy`/`cscript` process existed at the pre-restart check or afterwards. The save was most likely completed when the hung `SendKeys` helper was killed at ~10:52 and the queued ENTER reached the modal. Mesh content itself is not yet numerically verified.
 - **Added prevention:** treat a 429 as "exactly one healthy message-pumping Synergy must exist in session 1" and never retry `CreateObject` against a wedged GUI, because each retry spawns another crashing instance.
+
+---
+
+## INC-160: OpenRadioss 4mm ASSY completed physically but was rejected by four false gates
+
+- **Date / detection:** 2026-07-25 JST; a new K10 fallback run reached `NORMAL TERMINATION`, but the first assessment returned `FAILED`.
+- **Impact:** Valid 4mm x 4mm blanking runs could never be promoted despite solver completion, bounded mass addition, and generated VTK geometry.
+- **Root cause (5 Why):** (1) The run was rejected because failure tags and energy checks fired. (2) `MAY BE TOO HIGH` warnings were matched as `IS TOO HIGH`, and a normal `TIME-STEP` heading was treated as an error. (3) the 90%-of-final-time energy sample fell after material fracture, where element deletion makes ERR unsuitable as a forming-stability KPI. (4) `FAILURE START` events were counted as deleted elements although the solver reported zero deleted elements. (5) the saved cycle-table `.out` format was not parsed, so offline re-assessment lost final time and mass evidence.
+- **Correction:** Made velocity/time-step tags line-specific; added cycle-table parsing; evaluates energy at or before 99% of the first material-failure time; separates material failure initiation from actual element deletion; returns `worker_busy` immediately instead of silently queueing satellite jobs.
+- **Files:** `scripts/cae_self_growth_gates.py`, `scripts/cae_te_engine.py`, `scripts/lavie_job_worker.py`, `scripts/test_openradioss_blanking_gate_regression.py`, `scripts/test_lavie_job_worker_busy.py`.
+- **Quantitative verification:** trial `k10-press_blanking_assy-4mmx4mm-20260725-1221`; 70,000 cycles; `t_final=0.560 ms`; `NORMAL_TSTOP`; hard velocity errors=0; actual deleted elements=0; pre-fracture ERR=-0.7%; pre-fracture DM/M=5.509%; final DM/M=8.856% (<10%); VTK=3; geometry KPI extraction `PART_ID=1`; corrected verdict=`SUCCESS`. Regression tests 5/5 pass.
+- **FMEA:** false warning tag S=8/O=8/D=4, RPN=256; post-fracture energy sample S=8/O=10/D=4, RPN=320; hidden worker queue S=7/O=7/D=6, RPN=294. Countermeasures reduce occurrence/detection by exact matching, physical-window evidence, and HTTP 409 busy response.
+- **Prevention rule:** For cutting simulations, IF topology-changing failure has started, THEN evaluate forming energy before the failure boundary and track failure initiation separately from deleted elements, BECAUSE post-fracture energy and failure-event counts are not equivalent to pre-fracture stability or deletion count.
+- **Rollback:** backup branch `backup/openradioss-4mm-pre-fix-20260725`, commit `dc05788255`.
+- **Web knowledge:** Not used. Local solver logs, VTK artifacts, and deterministic regression tests were sufficient.
+- **Tracking:** Beads `Clawdbot_Docker_20260125-de46`; trouble history `[T072]`.

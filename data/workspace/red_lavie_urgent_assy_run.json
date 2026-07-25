@@ -1,0 +1,25 @@
+{
+  "phase": "done",
+  "ok": true,
+  "verdict": "SUCCESS",
+  "trial_id": "k10-press_blanking_assy-4mmx4mm-20260725-1221",
+  "host": "k10",
+  "fallback_reason": "red_lavie_worker_busy",
+  "termination": "NORMAL_TSTOP",
+  "cycles": 70000,
+  "t_final_ms": 0.56,
+  "forming_window_err_pct": -0.7,
+  "forming_window_dm_m": 0.05509,
+  "last_dm_m": 0.088558,
+  "velocity_high_count": 0,
+  "total_deleted_elements": 0,
+  "failure_start_count": 26341,
+  "vtk_count": 3,
+  "kpi_source": "geometry_vtk:PART_ID=1",
+  "geometry_kpis": {
+    "theta1_deg": 90.0,
+    "theta2_deg": 145.0975043840744
+  },
+  "run_dir": "D:\\Clawdbot_Docker_20260125\\data\\cae_te_workspace\\runs\\k10-press_blanking_assy-4mmx4mm-20260725-1221",
+  "updated_at": "2026-07-25T13:35:00+09:00"
+}

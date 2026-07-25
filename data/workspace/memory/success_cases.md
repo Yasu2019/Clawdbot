@@ -15,6 +15,13 @@
 
 ---
 
+## [S018] OpenRadioss 4mm ASSYを物理窓で正しくSUCCESS判定 (2026-07-25)
+- 問題: 4mm x 4mm打抜き解析がNORMAL TERMINATIONしても、警告文字列・破断後ERR・FAILURE START数の誤解釈で恒久FAILEDになった。
+- 診断: 新規K10実行を70,000 cycleまで監視。実エラー0、破断開始0.49868ms、破断前ERR=-0.7%、最終DM/M=8.856%、実削除要素0、VTK 3個を確認し、判定器の4つの偽陽性を生ログと分離した。
+- 解決: velocity/time-stepを行スコープ化し、cycle-tableを解析し、最初の破断時刻の99%以前でERRを評価し、FAILURE STARTと実削除要素を分離。ワーカーはbusy時に即409を返す。
+- 証拠: `k10-press_blanking_assy-4mmx4mm-20260725-1221` はNORMAL_TSTOP、t_final=0.560ms、PART_ID=1形状KPI抽出、修正版ゲートSUCCESS。回帰テスト5/5 PASS。INC-160 / T072 / bd `Clawdbot_Docker_20260125-de46`。
+- 再利用: IF 切断解析で破断後ERRが急落する THEN 最初の破断より前の安定窓を評価する。IF FAILURE STARTが多い THEN 実削除要素数と混同せず、材料破断開始として別KPIにする。
+
 ## [S017] Moldflow COM 429 の真因はGUIモーダル — セッション1のウィンドウ状態で特定 (2026-07-25)
 - 問題: Dynabook の Moldflow MCP ブリッジ(0.8.5)は正常起動し28ツールが応答するのに、アクティブstudy系が全て `CREATEOBJECT_FAILED:429`。`probe_com` は30秒×2回タイムアウト後、約150秒でようやく成功し `Version : (unavailable)`。
 - 診断: 先行知見(INC-151/152)のビット数・セッション不一致仮説を先に潰した（0.8.5は該当ツールを全て `bitness=64` で実行、MCPもSynergyも SessionId=1）。SSHはセッション0でウィンドウ列挙できないため `schtasks /IT` でセッション1に入り込み、`EnumWindows`+`IsWindowEnabled` とスクリーンショットを取得。メインウィンドウ `enabled=False`、`Internet Explorer_TridentDlgFrame` の「スクリプト エラー」が可視。閉じるとハンドルが `3805930`→`1644694` に変化し、再生成ループと確定。

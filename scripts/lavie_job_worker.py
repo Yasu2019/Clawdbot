@@ -7,6 +7,7 @@ import json
 import os
 import re
 import secrets
+import shlex
 import subprocess
 import sys
 import threading
@@ -220,6 +221,11 @@ def run_docker(payload: dict[str, Any], work_dir: Path, timeout_sec: int) -> dic
         raise ValueError("docker payload.image required")
     if not command:
         raise ValueError("docker payload.command required")
+    # T050/T060追補(2026-07-13 Fable5): subprocess timeoutはdocker runクライアントしか
+    # 殺せずコンテナが孤児化し--rmも発動しない(LAVIE RAM99.5%飢餓の第一容疑)。
+    # コンテナ内 `timeout -k` で自己終了させる(subprocessタイムアウトより60秒早く)。
+    inner_timeout = max(60, int(timeout_sec) - 60)
+    wrapped_command = f"timeout -k 30 {inner_timeout} sh -c {shlex.quote(command)}"
     docker_cmd = [
         "docker",
         "run",
@@ -231,7 +237,7 @@ def run_docker(payload: dict[str, Any], work_dir: Path, timeout_sec: int) -> dic
         image,
         "sh",
         "-lc",
-        command,
+        wrapped_command,
     ]
     proc = subprocess.run(
         docker_cmd,
@@ -572,8 +578,13 @@ def make_handler(state: WorkerState):
             except json.JSONDecodeError as exc:
                 self._send_json(400, {"error": f"invalid json: {exc}"})
                 return
-            with state.lock:
+            if not state.lock.acquire(blocking=False):
+                self._send_json(409, {"status": "busy", "error": "worker_busy"})
+                return
+            try:
                 result = execute_job(job, state.jobs_root, state)
+            finally:
+                state.lock.release()
             code = 200 if result.get("status") in {"ok"} else 500
             self._send_json(code, result)
 
