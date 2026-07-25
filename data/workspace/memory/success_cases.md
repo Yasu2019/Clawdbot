@@ -15,6 +15,34 @@
 
 ---
 
+## [S019] Lavie 樹脂充填 snappyHexMesh 経路を実績ケースのテンプレート化で成立させた (2026-07-25)
+- 問題: `openfoam_lavie` トラックが8連続 ERROR で meaning gate 停止。修正しても症状が
+  `mesh_mode 未対応` → `pyvista が STEP を読めない` → `STL の中に CARTESIAN_POINT が無い` と
+  次々に別のエラーへ移り、最後は `returncode 0` なのに充填29%で FAILED になった。
+- 診断: Lavie の**実行主体**が `C:\lavie_usb_pack`（K10と別コピー・11日前）だと突き止め、
+  以後は「リポジトリのファイル」ではなく「実行ファイルのハッシュ」で検証した。ジオメトリは
+  `forbid_plate_geometry=True` なのに `pp_plate` へ暗黙代替されていた。同梱STLは552三角形・
+  非多様体・21.40cm3 で、KPI が使う `cavity_volume_m3`(41.33cm3) の半分だった。決定打は
+  **`snappyhexmesh` 分岐に成功実行の記録が1件も無い**ことで、mm前提と bbox中心の
+  `locationInMesh`（=中空内部で、樹脂が流れる2mm肉厚ではない）が未検証のまま残っていた。
+  最後の29%は `_inject_parameters_openfoam` が `pack_end_time`(0.32s) で controlDict の
+  `endTime` を上書きし `analysis_end_time_s`(1.24s) を見ないためで、solver は正常終了に見える。
+- 解決: 定数を推測し直すのをやめ、実績ケース `moldflow-union-xplus-d2-mfalign-v3-20260723` の
+  dict 21個を Lavie から回収して
+  `data/cae_te_workspace/experiments/openfoam/mfalign_snappy_v001` にテンプレート化し、
+  `build_mfalign_snappy_case` で実体化する方式へ置換。併せて (a) 制約フラグ下の代替は raise、
+  (b) `stl_bbox_mm`/`geometry_bbox_mm` で binary/ASCII STL を判別、(c) snappy への STEP は明示 raise、
+  (d) `_openfoam_mesh_steps` に `surfaceFeatureExtract→blockMesh→snappyHexMesh -overwrite→topoSet→createPatch -overwrite`、
+  (e) 実績 STL を正規サンプルへ昇格、(f) 充填ホライズンを `pack_end_time` にも設定。
+- 証拠: `repro-mfalign-v3b-20260725` が SUCCESS / `RESULT: PASS`。fill 99.48%、fill_time 0.90s
+  （実績帯 0.808-1.347s 内）、`fill_complete=true`、最終 Phase-1 volume fraction 0.995763、
+  `End` @ Time 1.24006、2630s、checkMesh 非直交 Max 36.2/Avg 2.57。実績 alpha 0.9963 に対しては
+  -0.05pp なので「等価」とは言わない。INC-161 / T073 / bd `Clawdbot_Docker_20260125-6t03`。
+- 再利用: IF あるコード経路に成功実行の記録が無い THEN その定数は未検証として扱い、実績成果物を
+  逐語コピーしてテンプレート化する（生成ロジックを書き直さない）。IF リモートで直したのに
+  症状が変わらない THEN 実行主体のパスとハッシュを先に確認する。IF solver が `returncode 0` で
+  KPI だけ足りない THEN 打ち切り時刻（endTime の上書き）を疑う。
+
 ## [S018] OpenRadioss 4mm ASSYを物理窓で正しくSUCCESS判定 (2026-07-25)
 - 問題: 4mm x 4mm打抜き解析がNORMAL TERMINATIONしても、警告文字列・破断後ERR・FAILURE START数の誤解釈で恒久FAILEDになった。
 - 診断: 新規K10実行を70,000 cycleまで監視。実エラー0、破断開始0.49868ms、破断前ERR=-0.7%、最終DM/M=8.856%、実削除要素0、VTK 3個を確認し、判定器の4つの偽陽性を生ログと分離した。

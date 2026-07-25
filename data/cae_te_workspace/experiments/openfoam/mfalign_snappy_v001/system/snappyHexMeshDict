@@ -1,0 +1,46 @@
+FoamFile { version 2.0; format ascii; class dictionary; object snappyHexMeshDict; }
+castellatedMesh true; snap true; addLayers false;
+geometry {
+    Moldflow.stl { type triSurfaceMesh; name moldflow; }
+}
+castellatedMeshControls {
+    maxLocalCells 80000;
+    maxGlobalCells 120000;
+    minRefinementCells 10;
+    maxLoadUnbalance 0.10;
+    nCellsBetweenLevels 1;
+    features
+    (
+        { file "Moldflow.eMesh"; level 2; }
+    );
+    refinementSurfaces {
+        moldflow { level (1 2); }
+    }
+    resolveFeatureAngle 30;
+    refinementRegions {
+        moldflow { mode distance; levels ((0.004 2)); }
+    }
+    locationInMesh (0.0492 0.0003 0.0253); // inside +X wall and offset from background-grid planes
+    allowFreeStandingZoneFaces true;
+}
+snapControls {
+    nSmoothPatch 3; tolerance 2.0; nSolveIter 30; nRelaxIter 5; nFeatureSnapIter 10;
+    implicitFeatureSnap false;
+    explicitFeatureSnap true;
+    multiRegionFeatureSnap false;
+}
+addLayersControls { relativeSizes true; layers { moldflow { nSurfaceLayers 1; } } expansionRatio 1.0; finalLayerThickness 0.3; minThickness 0.1; nGrow 0; }
+meshQualityControls { maxNonOrtho 65; maxBoundarySkewness 20; maxInternalSkewness 4; maxConcave 80;
+    minVol 1e-13;
+    minTetQuality 1e-30;
+    minArea -1;
+    minTwist 0.05;
+    minTriangleTwist -1;
+    minDeterminant 0.001;
+    minFaceWeight 0.05;
+    minVolRatio 0.01;
+    triangleTwist false;
+    errorReduction 0.75;
+    nSmoothScale 4;
+}
+mergeTolerance 1e-6;

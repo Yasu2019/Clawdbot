@@ -12,6 +12,7 @@ if hasattr(sys.stdout, "reconfigure"):
 import json
 import re
 import shutil
+import struct
 from pathlib import Path
 from typing import Any
 
@@ -29,7 +30,9 @@ import os
 ROOT = Path(__file__).resolve().parents[1]
 WORKSPACE = Path(os.environ.get("CAE_TE_WORKSPACE", str(ROOT / "data" / "cae_te_workspace")))
 SAMPLES = WORKSPACE / "samples" / "moldflow"
-DEFAULT_STEP = SAMPLES / "cavity_plate_100x10x2.step"
+DEFAULT_STEP = SAMPLES / "pp_plate/pp_plate_100x60x2.step"
+
+MFALIGN_SNAPPY_TEMPLATE = WORKSPACE / "experiments" / "openfoam" / "mfalign_snappy_v001"
 
 PHYSICS_TEMPLATES = {
     "resin_fill_vof": WORKSPACE / "experiments" / "openfoam" / "resin_fill_v003",
@@ -72,6 +75,54 @@ def step_bbox_mm(step_path: Path) -> dict[str, float]:
         "width": max(max(ys) - min(ys), 1e-3),
         "height": max(max(zs) - min(zs), 1e-3),
     }
+
+
+def stl_bbox_mm(stl_path: Path) -> dict[str, float]:
+    """Parse axis-aligned bbox from a binary or ASCII STL. Units assumed mm."""
+    data = stl_path.read_bytes()
+    xs: list[float] = []
+    ys: list[float] = []
+    zs: list[float] = []
+    n_tri = struct.unpack("<I", data[80:84])[0] if len(data) >= 84 else 0
+    if n_tri and len(data) == 84 + 50 * n_tri:
+        for i in range(n_tri):
+            base = 84 + 50 * i + 12  # skip the facet normal
+            v = struct.unpack("<9f", data[base:base + 36])
+            xs.extend(v[0::3])
+            ys.extend(v[1::3])
+            zs.extend(v[2::3])
+    else:
+        for m in re.finditer(
+            r"vertex\s+(\S+)\s+(\S+)\s+(\S+)",
+            data.decode("utf-8", errors="replace"),
+            flags=re.IGNORECASE,
+        ):
+            try:
+                xs.append(float(m.group(1)))
+                ys.append(float(m.group(2)))
+                zs.append(float(m.group(3)))
+            except ValueError:
+                continue
+    if not xs:
+        raise ValueError(f"No vertices found in STL: {stl_path}")
+    return {
+        "xmin": min(xs),
+        "xmax": max(xs),
+        "ymin": min(ys),
+        "ymax": max(ys),
+        "zmin": min(zs),
+        "zmax": max(zs),
+        "length": max(max(xs) - min(xs), 1e-3),
+        "width": max(max(ys) - min(ys), 1e-3),
+        "height": max(max(zs) - min(zs), 1e-3),
+    }
+
+
+def geometry_bbox_mm(path: Path) -> dict[str, float]:
+    """Bbox for a STEP or STL geometry file."""
+    if path.suffix.lower() == ".stl":
+        return stl_bbox_mm(path)
+    return step_bbox_mm(path)
 
 
 def bbox_from_spec(spec: dict[str, Any]) -> dict[str, float]:
@@ -396,7 +447,7 @@ def ensure_sample_step() -> Path:
     step = f"""ISO-10303-21;
 HEADER;
 FILE_DESCRIPTION(('Moldflow sample cavity plate'),'2;1');
-FILE_NAME('cavity_plate_100x10x2.step','2026-06-01',('Clawstack'),(''),
+FILE_NAME('pp_plate/pp_plate_100x60x2.step','2026-06-01',('Clawstack'),(''),
   'Open CASCADE STEP processor','Open CASCADE','');
 ENDSEC;
 DATA;
@@ -416,6 +467,14 @@ END-ISO-10303-21;
 
 
 def resolve_physics_template(params: dict[str, Any]) -> Path:
+    # snappyHexMesh cases carry the gate/vent/moldflow patch set, which only the
+    # MFALIGN template provides.
+    if resolve_mesh_mode(params) == "snappyhexmesh":
+        if not MFALIGN_SNAPPY_TEMPLATE.exists():
+            raise RuntimeError(
+                f"snappyhexmesh requires the MFALIGN template at {MFALIGN_SNAPPY_TEMPLATE}"
+            )
+        return MFALIGN_SNAPPY_TEMPLATE
     key = str(params.get("physics_category", "resin_fill_vof"))
     path = PHYSICS_TEMPLATES.get(key)
     if path and path.exists():
@@ -431,12 +490,12 @@ def validate_build(
 ) -> dict[str, Any]:
     spec = gate_spec_mod.load_gate_spec(gate_spec_path)
     issues = gate_spec_mod.validate_gate_spec(
-        spec, require_patch_names=["inlet1", "inlet2", "inlet3", "outlet", "walls"]
+        spec, require_patch_names=required_patch_names(params)
     )
     if issues:
         raise ValueError("gate_spec invalid: " + "; ".join(issues))
     if step_path and step_path.exists():
-        bbox = step_bbox_mm(step_path)
+        bbox = geometry_bbox_mm(step_path)
     else:
         bbox = bbox_from_spec(spec)
     return {"bbox_mm": bbox, "gate_spec": spec, "template": str(template_dir)}
@@ -444,9 +503,36 @@ def validate_build(
 
 def resolve_mesh_mode(params: dict[str, Any]) -> str:
     mode = str(params.get("mesh_mode", "blockmesh_bbox")).lower().strip()
-    if mode not in ("blockmesh_bbox", "gmsh_volume"):
-        raise ValueError(f"mesh_mode must be blockmesh_bbox or gmsh_volume, got: {mode}")
+    if mode not in ("blockmesh_bbox", "gmsh_volume", "snappyhexmesh"):
+        raise ValueError(f"mesh_mode must be blockmesh_bbox, gmsh_volume, or snappyhexmesh, got: {mode}")
     return mode
+
+
+def required_patch_names(params: dict[str, Any]) -> list[str] | None:
+    """snappy cases carve gate/vent out of the moldflow surface via topoSet."""
+    if resolve_mesh_mode(params) == "snappyhexmesh":
+        return None
+    return ["inlet1", "inlet2", "inlet3", "outlet", "walls"]
+
+
+def resolve_surface_stl(step_path: Path | None, params: dict[str, Any]) -> Path:
+    """snappyHexMesh needs a triangulated surface; pyvista cannot read STEP."""
+    candidates: list[Path] = []
+    raw = params.get("stl_path")
+    if raw:
+        p = Path(str(raw))
+        candidates.append(p)
+        if not p.is_absolute():
+            candidates.append(Path.cwd() / p)
+    if step_path is not None:
+        candidates.append(step_path)
+    for cand in candidates:
+        if cand.suffix.lower() == ".stl" and cand.exists():
+            return cand
+    raise ValueError(
+        "snappyhexmesh requires an existing .stl surface (pyvista cannot read STEP): "
+        f"stl_path={params.get('stl_path')!r}, step_path={step_path}"
+    )
 
 
 def apply_vof_stability_options(run_dir: Path, params: dict[str, Any]) -> None:
@@ -504,6 +590,9 @@ def apply_vof_stability_options(run_dir: Path, params: dict[str, Any]) -> None:
 def apply_runtime_options(run_dir: Path, params: dict[str, Any]) -> None:
     """Apply a per-case analysis horizon without modifying shared templates."""
     raw_end_time = params.get("analysis_end_time_s")
+    if raw_end_time is None and params.get("mf_fill_time_s"):
+        margin = float(params.get("fill_end_time_margin", 1.15))
+        raw_end_time = float(params["mf_fill_time_s"]) * margin
     if raw_end_time is None:
         return
     end_time = float(raw_end_time)
@@ -821,6 +910,210 @@ def normalize_generated_initial_fields(run_dir: Path, params: dict[str, Any]) ->
     alpha_path.write_text(text, encoding="utf-8")
 
 
+REFERENCE_GEOMETRY_MM = (100.0, 60.0, 50.0)
+REFERENCE_GEOMETRY_TOL = 0.01
+
+
+def resolve_geometry_scale_to_m(bbox_raw: dict[str, float], params: dict[str, Any]) -> float:
+    """Factor converting the surface file's units to metres."""
+    units = str(params.get("geometry_units", "auto")).lower().strip()
+    if units in ("m", "metre", "meter"):
+        return 1.0
+    if units in ("mm", "millimetre", "millimeter"):
+        return 0.001
+    if units != "auto":
+        raise ValueError(f"geometry_units must be m, mm, or auto, got: {units}")
+    span = max(bbox_raw["length"], bbox_raw["width"], bbox_raw["height"])
+    return 1.0 if span <= 1.0 else 0.001
+
+
+def build_mfalign_snappy_case(
+    run_dir: Path,
+    template_dir: Path,
+    step_path: Path | None,
+    gate_spec_path: Path,
+    spec: dict[str, Any],
+    params: dict[str, Any],
+) -> dict[str, Any]:
+    """Instantiate the proven MFALIGN closed-cavity case for a triangulated surface.
+
+    The template carries hand-tuned values (locationInMesh inside the 2 mm shell
+    wall, topoSet gate/vent cylinders) that are only valid for the reference
+    geometry, so a differing surface must supply them explicitly.
+    """
+    surface_stl = resolve_surface_stl(step_path, params)
+    bbox_raw = stl_bbox_mm(surface_stl)
+    scale = resolve_geometry_scale_to_m(bbox_raw, params)
+    bbox_m = {k: v * scale for k, v in bbox_raw.items()}
+    bbox = {k: v * 1000.0 for k, v in bbox_m.items()}
+
+    dims_mm = (bbox["length"], bbox["width"], bbox["height"])
+    matches_reference = all(
+        abs(got - ref) <= REFERENCE_GEOMETRY_TOL * ref
+        for got, ref in zip(dims_mm, REFERENCE_GEOMETRY_MM)
+    )
+    location = params.get("location_in_mesh_m")
+    if location is None and not matches_reference:
+        raise ValueError(
+            "location_in_mesh_m is required for a non-reference geometry "
+            f"(bbox {dims_mm[0]:.1f}x{dims_mm[1]:.1f}x{dims_mm[2]:.1f} mm vs reference "
+            f"{REFERENCE_GEOMETRY_MM[0]:.0f}x{REFERENCE_GEOMETRY_MM[1]:.0f}x"
+            f"{REFERENCE_GEOMETRY_MM[2]:.0f} mm); the template value sits inside the "
+            "reference shell wall and would select the wrong volume"
+        )
+
+    if run_dir.exists():
+        shutil.rmtree(run_dir, ignore_errors=True)
+    shutil.copytree(template_dir, run_dir)
+
+    tri_dir = run_dir / "constant" / "triSurface"
+    tri_dir.mkdir(parents=True, exist_ok=True)
+    stl_target = tri_dir / "Moldflow.stl"
+    if scale == 1.0:
+        shutil.copy2(surface_stl, stl_target)
+    else:
+        import pyvista as pv
+
+        mesh = pv.read(surface_stl)
+        mesh.points *= scale
+        mesh.save(stl_target)
+
+    margin = float(params.get("background_margin_m", 0.002))
+    x_min, x_max = bbox_m["xmin"] - margin, bbox_m["xmax"] + margin
+    y_min, y_max = bbox_m["ymin"] - margin, bbox_m["ymax"] + margin
+    z_min, z_max = bbox_m["zmin"] - margin, bbox_m["zmax"] + margin
+    nx = int(params.get("mesh_nx", 18))
+    ny = int(params.get("mesh_ny", 12))
+    nz = int(params.get("mesh_nz", 12))
+    (run_dir / "system" / "blockMeshDict").write_text(
+        "FoamFile { version 2.0; format ascii; class dictionary; object blockMeshDict; }\n"
+        "convertToMeters 1;\n"
+        "vertices (\n"
+        f"    ({x_min} {y_min} {z_min}) ({x_max} {y_min} {z_min})"
+        f" ({x_max} {y_max} {z_min}) ({x_min} {y_max} {z_min})\n"
+        f"    ({x_min} {y_min} {z_max}) ({x_max} {y_min} {z_max})"
+        f" ({x_max} {y_max} {z_max}) ({x_min} {y_max} {z_max})\n"
+        ");\n"
+        f"blocks ( hex (0 1 2 3 4 5 6 7) ({nx} {ny} {nz}) simpleGrading (1 1 1) );\n"
+        "edges ();\n"
+        "boundary (\n"
+        "    inlet { type patch; faces ((0 4 7 3)); }\n"
+        "    outlet { type patch; faces ((1 2 6 5)); }\n"
+        "    walls { type wall; faces ((0 1 5 4) (3 7 6 2) (0 3 2 1) (4 5 6 7)); }\n"
+        ");\n"
+        "mergePatchPairs ();\n",
+        encoding="utf-8",
+    )
+
+    snappy_path = run_dir / "system" / "snappyHexMeshDict"
+    snappy = snappy_path.read_text(encoding="utf-8")
+    snappy = re.sub(
+        r"maxLocalCells\s+\d+;",
+        f"maxLocalCells {int(params.get('max_local_cells', 80000))};",
+        snappy,
+    )
+    snappy = re.sub(
+        r"maxGlobalCells\s+\d+;",
+        f"maxGlobalCells {int(params.get('max_global_cells', 120000))};",
+        snappy,
+    )
+    location_source = "template_reference"
+    if location is not None:
+        lx, ly, lz = (float(v) for v in location)
+        snappy = re.sub(
+            r"locationInMesh\s+\([^)]*\);",
+            f"locationInMesh ({lx} {ly} {lz});",
+            snappy,
+        )
+        location_source = "params"
+    snappy_path.write_text(snappy, encoding="utf-8")
+    location_used = re.search(r"locationInMesh\s+\(([^)]*)\)", snappy)
+
+    u_path = run_dir / "0" / "U"
+    inlet_velocity = float(params.get("inlet_velocity", 6.51))
+    u_text = re.sub(
+        r"(gate\s*\{\s*type fixedValue; value uniform )\([^)]*\)",
+        rf"\g<1>(-{inlet_velocity} 0 0)",
+        u_path.read_text(encoding="utf-8"),
+    )
+    u_path.write_text(u_text, encoding="utf-8")
+
+    cd_path = run_dir / "system" / "controlDict"
+    cd = cd_path.read_text(encoding="utf-8")
+    end_time = params.get("analysis_end_time_s")
+    if end_time is not None:
+        cd = re.sub(r"endTime\s+[0-9.eE+-]+;", f"endTime         {float(end_time)};", cd, count=1)
+    write_interval = params.get("write_interval_s")
+    if write_interval is not None:
+        cd = re.sub(
+            r"writeInterval\s+[0-9.eE+-]+;",
+            f"writeInterval   {float(write_interval)};",
+            cd,
+            count=1,
+        )
+    cd_path.write_text(cd, encoding="utf-8")
+
+    tp_path = run_dir / "constant" / "transportProperties"
+    tp = tp_path.read_text(encoding="utf-8")
+    for key, param_key in (
+        ("k", "power_law_k"),
+        ("n", "power_law_n"),
+        ("nuMax", "power_law_nuMax"),
+        ("nuMin", "power_law_nuMin"),
+    ):
+        val = params.get(param_key)
+        if val is not None:
+            tp = re.sub(
+                rf"^(\s*{key}\s+\[[^\]]*\]\s+)[0-9.eE+-]+;",
+                rf"\g<1>{float(val)};",
+                tp,
+                count=1,
+                flags=re.MULTILINE,
+            )
+    rho = params.get("polymer_density_kg_m3")
+    if rho is not None:
+        tp = re.sub(
+            r"^(\s*rho\s+\[[^\]]*\]\s+)[0-9.eE+-]+;",
+            rf"\g<1>{float(rho)};",
+            tp,
+            count=1,
+            flags=re.MULTILINE,
+        )
+    tp_path.write_text(tp, encoding="utf-8")
+
+    manifest = {
+        "phase": 7,
+        "bbox_mm": bbox,
+        "bbox_source": "stl",
+        "mesh_mode": "snappyhexmesh",
+        "mesh_info": {
+            "template": "mfalign_snappy_v001",
+            "surface_stl": str(surface_stl),
+            "surface_units_scale_to_m": scale,
+            "background_block": [nx, ny, nz],
+            "background_margin_m": margin,
+            "location_in_mesh": location_used.group(1) if location_used else None,
+            "location_in_mesh_source": location_source,
+            "matches_reference_geometry": matches_reference,
+        },
+        "mesh_nx": nx,
+        "mesh_nz": nz,
+        "inlet_velocity_m_s": inlet_velocity,
+        "step_path": str(surface_stl),
+        "gate_spec_path": str(gate_spec_path),
+        "physics_category": params.get("physics_category", "resin_fill_vof"),
+        "template_dir": str(template_dir),
+        "patches": {"gates": ["gate"], "vents": ["vent"], "walls": ["moldflow"]},
+    }
+    (run_dir / "cad_manifest.json").write_text(
+        json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+    (run_dir / "gate_spec.resolved.json").write_text(
+        json.dumps(spec, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+    return manifest
+
+
 def build_case(
     run_dir: Path,
     template_dir: Path,
@@ -830,14 +1123,22 @@ def build_case(
 ) -> dict[str, Any]:
     spec = gate_spec_mod.load_gate_spec(gate_spec_path)
     issues = gate_spec_mod.validate_gate_spec(
-        spec, require_patch_names=["inlet1", "inlet2", "inlet3", "outlet", "walls"]
+        spec, require_patch_names=required_patch_names(params)
     )
     if issues:
         raise ValueError("gate_spec invalid: " + "; ".join(issues))
 
-    if step_path and step_path.exists():
-        bbox = step_bbox_mm(step_path)
-        bbox_source = "step"
+    if resolve_mesh_mode(params) == "snappyhexmesh":
+        return build_mfalign_snappy_case(
+            run_dir, template_dir, step_path, gate_spec_path, spec, params
+        )
+
+    if params.get("_manifest_bbox_mm"):
+        bbox = params["_manifest_bbox_mm"]
+        bbox_source = "manifest"
+    elif step_path and step_path.exists():
+        bbox = geometry_bbox_mm(step_path)
+        bbox_source = "stl" if step_path.suffix.lower() == ".stl" else "step"
     else:
         bbox = bbox_from_spec(spec)
         bbox_source = "gate_spec.bbox_mm"

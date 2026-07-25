@@ -1,0 +1,37 @@
+FoamFile { version 2.0; format ascii; class dictionary; object topoSetDict; }
+// T064: ゲート/ベントを部品表面(moldflowパッチ境界面のみ)に円筒カットで生成 (単位=メートル)
+actions
+(
+    {
+        name    gateFaces;
+        type    faceSet;
+        action  new;
+        source  cylinderToFace;
+        point1  (0.0495 0.0 0.025);
+        point2  (0.0510 0.0 0.025);
+        radius  0.001;
+    }
+    {
+        name    gateFaces;
+        type    faceSet;
+        action  subset;
+        source  patchToFace;
+        patch   moldflow;
+    }
+    {
+        name    ventFaces;
+        type    faceSet;
+        action  new;
+        source  cylinderToFace;
+        point1  (-0.0510 0.0 0.025);
+        point2  (-0.0495 0.0 0.025);
+        radius  0.004;
+    }
+    {
+        name    ventFaces;
+        type    faceSet;
+        action  subset;
+        source  patchToFace;
+        patch   moldflow;
+    }
+);

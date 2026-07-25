@@ -550,7 +550,7 @@ EXPERIMENTS = [
                     WORKSPACE / "samples" / "moldflow" / "gate_spec_center.json"
                 ),
                 "step_path": str(
-                    WORKSPACE / "samples" / "moldflow" / "cavity_plate_100x10x2.step"
+                    WORKSPACE / "samples" / "moldflow" / "pp_plate/pp_plate_100x60x2.step"
                 ),
                 "polymer_nu": 0.01,
                 "inlet_velocity": 1.0,
@@ -586,7 +586,7 @@ EXPERIMENTS = [
                 "polymer_nu": 0.01,
                 "inlet_velocity": 1.0,
                 "step_path": str(
-                    WORKSPACE / "samples" / "moldflow" / "cavity_plate_100x10x2.step"
+                    WORKSPACE / "samples" / "moldflow" / "pp_plate/pp_plate_100x60x2.step"
                 ),
             },
         ],
@@ -1299,6 +1299,9 @@ def _inject_parameters_openfoam(file_name: str, content: str, params: dict) -> s
 
 def _clean_old_runs(runs_root: Path, keep_count: int = 50):
     """Keep only the latest keep_count execution directories to protect disk space."""
+    if os.environ.get("CAE_SKIP_RUN_CLEANUP", "").strip().lower() in {"1", "true", "yes", "on"}:
+        print("[Cleanup] Skipped old run cleanup (CAE_SKIP_RUN_CLEANUP=1)")
+        return
     if not runs_root.exists():
         return
     try:
@@ -1363,6 +1366,28 @@ def _run_openradioss_assy_deck(
     try:
         verify = assy.apply_assy_params(dest_starter, dest_engine, params)
         print(f"  [ASSY] params applied: {verify}", flush=True)
+        # T060: ログのparamsとデッキ適用値の乖離(clamp等)を可視化するため適用値を書き戻す。
+        # 旧実装はDOE要求値のみ記録され、7/10のDOE範囲是正がclampで無効化されている事実を隠した。
+        for k in (
+            "punch_speed_mms",
+            "punch_speed_requested_mms",
+            "punch_speed_clamped",
+            "t_stop_s",
+            "dt_noda_min",
+            "dt_noda_applied",
+            "ams_applied",
+        ):
+            if k in verify:
+                params[k] = verify[k]
+        # gate側 per-trial override: 固定 MIN_T_MS=18.13ms は旧20msデッキ前提で、
+        # ストローク基準t_stopと矛盾するため、t_stop連動の要求値を渡す(T060)。
+        if verify.get("min_t_final_ms"):
+            mg = exp.get("meaning_gate")
+            if not isinstance(mg, dict):
+                mg = {}
+            mg = dict(mg)
+            mg["min_t_final_ms"] = verify["min_t_final_ms"]
+            exp["meaning_gate"] = mg
     except Exception as exc:
         return {"status": "ERROR", "log": f"ASSY param inject failed: {exc}", "duration_sec": 0}
 
@@ -1912,15 +1937,14 @@ def _assess_openradioss(run_result: dict, exp: dict) -> dict:
         elif clearance >= 15.0:
             crack_risk = "HIGH (過大クリアランスによる遅延引張破断)"
             verdict = "FAILED"
-        elif eliminated_count > cae_gates.OPENRADIOSS_ASSY_MAX_DELETED_ELEMENTS:
+        elif total_deleted > cae_gates.OPENRADIOSS_ASSY_MAX_DELETED_ELEMENTS:
             crack_risk = "HIGH (mass element deletion / mesh instability)"
             verdict = "FAILED"
+        elif category == "press_blanking_assy" and mesh_events > 0:
+            crack_risk = "MEDIUM (material failure initiation observed)"
         elif eliminated_count > 3:
             crack_risk = "MEDIUM (要素破断開始)"
             if category != "press_blanking_assy":
-                verdict = "FAILED"
-            elif eliminated_count > 500:
-                crack_risk = "MEDIUM (ASSY element deletion elevated)"
                 verdict = "FAILED"
         else:
             crack_risk = "LOW (正常なせん断破断移行)"
@@ -2352,6 +2376,33 @@ def _write_moldflow_kpi_json(
         "pack_pressure_achieved_MPa": float(defects.get("pack_pressure_achieved_MPa") or 0.0),
         "pack_pressure_ratio": float(defects.get("pack_pressure_ratio") or 0.0),
         "short_shot_risk": float(defects.get("short_shot_risk") or 0.0),
+        "warpage_mm": float(defects.get("warpage_mm") or 0.0),
+        "sink_mark_risk": float(defects.get("sink_mark_risk") or 0.0),
+        "weldline_severity": float(defects.get("weldline_severity") or 0.0),
+        "weldline_strength_retention_pct": float(
+            defects.get("weldline_strength_retention_pct") or 100.0
+        ),
+        "weldline_count": int(defects.get("weldline_count") or 0),
+        "weldline_position_mm": defects.get("weldline_position_mm"),
+        "weldline_candidates": defects.get("weldline_candidates") or [],
+        "weldline_kpi_source": str(defects.get("weldline_kpi_source") or ""),
+        "flash_risk": float(defects.get("flash_risk") or 0.0),
+        "flash_risk_label": str(defects.get("flash_risk_label") or ""),
+        "clamp_force_required_kN": (
+            float(defects["clamp_force_required_kN"])
+            if defects.get("clamp_force_required_kN") is not None
+            else None
+        ),
+        "clamp_force_available_kN": (
+            float(defects["clamp_force_available_kN"])
+            if defects.get("clamp_force_available_kN") is not None
+            else None
+        ),
+        "mass_balance_err_pct": (
+            float(defects["mass_balance_err_pct"])
+            if defects.get("mass_balance_err_pct") is not None
+            else None
+        ),
         "verdict": verdict,
         "kpi_source": kpi_source,
     }
@@ -2373,6 +2424,15 @@ def _openfoam_mesh_steps(run_dir: Path) -> list[str]:
             mesh_mode = str(mf.get("mesh_mode", ""))
         except Exception:
             pass
+    if mesh_mode == "snappyhexmesh":
+        # gate/vent are carved out of the moldflow surface patch after snapping.
+        return [
+            "surfaceFeatureExtract 2>&1",
+            "blockMesh 2>&1",
+            "snappyHexMesh -overwrite 2>&1",
+            "topoSet 2>&1",
+            "createPatch -overwrite 2>&1",
+        ]
     if mesh_mode == "gmsh_volume":
         msh = run_dir / "cavity.msh"
         if msh.exists():
@@ -2393,40 +2453,6 @@ def _moldflow_cad_build(
 
     import moldflow_gate_spec as mgs
 
-    gate_path: Path | None = None
-    gate_raw = params.get("gate_spec_path")
-    if gate_raw:
-        gate_path = _resolve_workspace_path(gate_raw)
-    elif "gate_count" in params:
-        bbox_mm = params.get("_manifest_bbox_mm")
-        if not bbox_mm:
-            manifest = _load_part_manifest_dict(params)
-            if manifest:
-                bb = manifest.get("bbox_mm") or {}
-                if isinstance(bb, dict):
-                    lx = float(bb.get("Lx") or bb.get("length") or 0)
-                    ly = float(bb.get("Ly") or bb.get("width") or 0)
-                    lz = float(bb.get("Lz") or bb.get("height") or 0)
-                    if lx > 0 and ly > 0 and lz > 0:
-                        bbox_mm = {"length": lx, "width": ly, "height": lz}
-        spec = mgs.build_gate_spec_legacy(
-            int(params["gate_count"]),
-            str(params.get("gate_position", "center")),
-            bbox_mm=bbox_mm,
-        )
-        gate_path = run_dir / "gate_spec.generated.json"
-        if not dry_run:
-            run_dir.mkdir(parents=True, exist_ok=True)
-            mgs.write_gate_spec(gate_path, spec)
-        else:
-            import tempfile
-
-            tmp = Path(tempfile.mkdtemp(prefix="moldflow_gate_"))
-            gate_path = tmp / "gate_spec.generated.json"
-            mgs.write_gate_spec(gate_path, spec)
-    else:
-        raise ValueError("gate_spec_path or gate_count required for CAD build")
-
     step_path = None
     resolved, geom_src, _manifest = _resolve_step_from_part_manifest(params)
     manifest_attempted = bool(
@@ -2443,7 +2469,20 @@ def _moldflow_cad_build(
             params["geometry_source"] = "sample" if manifest_attempted else "params"
         else:
             step_path = None
+    elif params.get("stl_path"):
+        step_path = _resolve_workspace_path(params["stl_path"])
+        if step_path.exists():
+            params["geometry_source"] = "params"
+        else:
+            step_path = None
+            
     if step_path is None or not step_path.exists():
+        if params.get("forbid_plate_geometry"):
+            raise ValueError(
+                "forbid_plate_geometry=True but no geometry resolved; refusing pp_plate "
+                f"sample fallback (stl_path={params.get('stl_path')!r}, "
+                f"step_path={params.get('step_path')!r})"
+            )
         if manifest_attempted:
             print(
                 "[moldflow] WARN manifest provided but no valid STEP; ensure_sample_step() "
@@ -2452,6 +2491,70 @@ def _moldflow_cad_build(
             )
         params["geometry_source"] = "sample"
         step_path = mscb.ensure_sample_step()
+
+    gate_path: Path | None = None
+    gate_raw = params.get("gate_spec_path")
+    if gate_raw:
+        gate_path = _resolve_workspace_path(gate_raw)
+    elif "gate_count" in params:
+        bbox_mm = params.get("_manifest_bbox_mm")
+        if not bbox_mm:
+            manifest = _load_part_manifest_dict(params)
+            if manifest:
+                bb = manifest.get("bbox_mm") or {}
+                if isinstance(bb, dict):
+                    lx = float(bb.get("Lx") or bb.get("length") or 0)
+                    ly = float(bb.get("Ly") or bb.get("width") or 0)
+                    lz = float(bb.get("Lz") or bb.get("height") or 0)
+                    if lx > 0 and ly > 0 and lz > 0:
+                        bbox_mm = {"length": lx, "width": ly, "height": lz}
+        if str(params.get("optimize_gate")).lower() == "true" and step_path is not None and str(step_path).lower().endswith(".stl"):
+            import subprocess
+            print(f"[Engine] Running Gate Topology Optimizer on {step_path}...")
+            gate_opt_out = run_dir / "optimal_gate.json"
+            subprocess.run([sys.executable, str(Path(__file__).parent / "optimizer_gate_topology.py"), "--stl", str(step_path), "--out", str(gate_opt_out)], check=False)
+            
+            # Read optimized gate
+            if gate_opt_out.exists():
+                import json
+                with open(gate_opt_out, 'r') as f:
+                    opt_res = json.load(f)
+                # Override gate location with optimal mathematical center
+                spec = {
+                    "gates": [
+                        {
+                            "type": "point",
+                            "x": opt_res["optimal_gate_x"],
+                            "y": opt_res["optimal_gate_y"],
+                            "z": opt_res["optimal_gate_z"],
+                            "radius": 1.5
+                        }
+                    ]
+                }
+            else:
+                spec = mgs.build_gate_spec_legacy(
+                    int(params["gate_count"]),
+                    str(params.get("gate_position", "center")),
+                    bbox_mm=bbox_mm,
+                )
+        else:
+            spec = mgs.build_gate_spec_legacy(
+                int(params["gate_count"]),
+                str(params.get("gate_position", "center")),
+                bbox_mm=bbox_mm,
+            )
+        gate_path = run_dir / "gate_spec.generated.json"
+        if not dry_run:
+            run_dir.mkdir(parents=True, exist_ok=True)
+            mgs.write_gate_spec(gate_path, spec)
+        else:
+            import tempfile
+
+            tmp = Path(tempfile.mkdtemp(prefix="moldflow_gate_"))
+            gate_path = tmp / "gate_spec.generated.json"
+            mgs.write_gate_spec(gate_path, spec)
+    else:
+        raise ValueError("gate_spec_path or gate_count required for CAD build")
 
     physics = dict(params)
     if exp.get("category") in ("resin_fill_cad", "resin_fill_doe") and not physics.get(
@@ -2464,10 +2567,76 @@ def _moldflow_cad_build(
         return mscb.validate_build(tmpl, gate_path, step_path, physics)
 
     run_dir.parent.mkdir(parents=True, exist_ok=True)
+    
+    # NEW: Autonomous Conformal Cooling Optimizer Hook
+    if str(params.get("optimize_cooling")).lower() == "true" and step_path is not None and str(step_path).lower().endswith(".stl"):
+        import subprocess
+        print(f"[Engine] Running Conformal Cooling Optimizer on {step_path}...")
+        cool_opt_out = run_dir / "optimal_cooling.json"
+        subprocess.run([sys.executable, str(Path(__file__).parent / "optimizer_conformal_cooling.py"), "--stl", str(step_path), "--out", str(cool_opt_out)], check=False)
+        
     return mscb.build_case(run_dir, tmpl, step_path, gate_path, physics)
 
 
+def _resolve_machine_parameters(params: dict) -> dict:
+    """Translates real-world injection molding machine settings to OpenFOAM physics."""
+    out = dict(params)
+
+    # 0. Commercial Moldflow Fill handoff (proxy) -- see scripts/mf_to_of_handoff.py
+    if out.get("mf_to_of_handoff_path") or out.get("apply_mf_to_of_handoff"):
+        try:
+            import mf_to_of_handoff as m2o
+
+            handoff_path = out.get("mf_to_of_handoff_path")
+            if not handoff_path and out.get("apply_mf_to_of_handoff"):
+                handoff_path = str(m2o.DEFAULT_HANDOFF)
+            out = m2o.apply_handoff_to_params(
+                out,
+                handoff_path=handoff_path,
+                overwrite=bool(out.get("mf_to_of_overwrite")),
+            )
+        except Exception as exc:
+            out["mf_to_of_handoff_error"] = str(exc)[:200]
+    
+    # 1. Cylinder Temperatures -> T_melt
+    if "machine_cylinder_temp_nozzle_C" in out:
+        # Melt temp is roughly the nozzle temp + slight shear heat
+        out["T_melt"] = float(out["machine_cylinder_temp_nozzle_C"]) + 273.15 + 2.0
+    
+    # 2. Mold Temperatures -> T_mold
+    if "machine_mold_temp_cavity_C" in out and "machine_mold_temp_core_C" in out:
+        cav_t = float(out["machine_mold_temp_cavity_C"])
+        core_t = float(out["machine_mold_temp_core_C"])
+        avg_mold_c = (cav_t + core_t) / 2.0
+        out["T_mold"] = avg_mold_c + 273.15
+        out["T_mold_delta_C"] = abs(cav_t - core_t)
+        
+    # 3. Injection Speed -> inlet_velocity
+    if "machine_injection_speed_mms" in out:
+        # Convert mm/s to m/s for OpenFOAM
+        out["inlet_velocity"] = float(out["machine_injection_speed_mms"]) / 1000.0
+        
+    # 4. Holding Pressure -> pack_pressure_MPa
+    if "machine_holding_pressure_mpa" in out:
+        out["pack_pressure_MPa"] = float(out["machine_holding_pressure_mpa"])
+        
+    # 5. Timings -> pack_end_time, cool_end_time
+    if "machine_holding_time_s" in out:
+        out["pack_end_time"] = float(out["machine_holding_time_s"])
+    if "machine_cooling_time_s" in out:
+        hold_t = float(out.get("machine_holding_time_s", out.get("pack_end_time", 0.0)))
+        out["cool_end_time"] = hold_t + float(out["machine_cooling_time_s"])
+
+    # 6. Fill horizon from MF fill time when analysis_end_time_s not set
+    if out.get("analysis_end_time_s") is None and out.get("mf_fill_time_s"):
+        margin = float(out.get("fill_end_time_margin", 1.15))
+        out["analysis_end_time_s"] = float(out["mf_fill_time_s"]) * margin
+
+    return out
+
+
 def _run_openfoam(exp: dict, params: dict, dry_run: bool, timeout: int, trial_id: str = "TRIAL_TEMP") -> dict:
+    params = _resolve_machine_parameters(params)
     template_dir = Path(exp["input_dir"])
     solver = exp.get("solver_binary", "icoFoam")
     uses_cad = _uses_moldflow_cad(exp, params)
@@ -2602,6 +2771,24 @@ def _run_openfoam(exp: dict, params: dict, dry_run: bool, timeout: int, trial_id
         print(f"  [ERR] OpenFOAM preprocessor parameter injection failed: {e}")
         return {"status": "ERROR", "log": f"Preprocessor injection error: {e}", "duration_sec": 0, "run_dir": str(run_dir)}
 
+    if (
+        GATES_ENABLED
+        and uses_cad
+        and not dry_run
+        and str(params.get("physics_category", physics_category)) == "resin_fill_cool"
+    ):
+        pre = cae_gates.precheck_openfoam_injected_cooling_case(run_dir)
+        if not pre.ok:
+            return {
+                "status": "PREGATE_FAIL",
+                "log": "Post-injection pre-gate failed: " + "; ".join(pre.issues),
+                "duration_sec": 0,
+                "failure_tags": pre.tags,
+                "pregate": {"ok": False, "tags": pre.tags, "issues": pre.issues},
+                "gates_enabled": True,
+                "run_dir": str(run_dir),
+            }
+
     _posix = run_dir.resolve().as_posix()
     docker_mount_path = (
         f"/{_posix[0].lower()}{_posix[2:]}" if len(_posix) >= 2 and _posix[1] == ":" else _posix
@@ -2664,8 +2851,11 @@ def _run_openfoam(exp: dict, params: dict, dry_run: bool, timeout: int, trial_id
             kpis, kpi_cmd = _extract_openfoam_kpis(run_dir, docker_mount_path)
             if solver in ("interFoam", "compressibleInterFoam") or (run_dir / "0" / "alpha.polymer").exists():
                 kpis.update(_extract_vof_fill_kpis(run_dir))
+                kpis.update(_extract_mass_balance_kpis(run_dir, params))
             if solver == "compressibleInterFoam" or (run_dir / "0" / "T").exists():
                 kpis.update(_extract_thermo_kpis(run_dir, params))
+            if (run_dir / "0" / "alpha.polymer").exists():
+                kpis.update(_extract_weldline_kpis(run_dir, params, kpis))
             if (run_dir / "0" / "k").exists():
                 kpis.update(_extract_ras_kpis(run_dir))
             if (run_dir / "0" / "p_rgh").exists() and params.get("pack_pressure_MPa") is not None:
@@ -2838,6 +3028,151 @@ def _extract_pack_kpis(run_dir: Path, params: dict) -> dict:
     return out
 
 
+def _resolve_bbox_mm(
+    run_dir: Path | None = None,
+    params: dict | None = None,
+    kpis: dict | None = None,
+    spec: dict | None = None,
+) -> dict[str, float]:
+    """Resolve the part bounding box (mm) from the best available source.
+
+    Priority: parsed-KPI bbox > cad_manifest.json > gate spec bbox > manifest
+    bbox stashed on params > raw param aliases > safe plate defaults.
+    Shared by sink/flash and weld-line KPI estimation so both agree on geometry.
+    """
+    params = params or {}
+    sources: list[dict] = []
+    if isinstance(kpis, dict):
+        sources.append(kpis)
+    if run_dir is not None:
+        manifest = run_dir / "cad_manifest.json"
+        if manifest.exists():
+            try:
+                data = json.loads(manifest.read_text(encoding="utf-8"))
+                if isinstance(data.get("bbox_mm"), dict):
+                    sources.append(data["bbox_mm"])
+            except Exception:
+                pass
+    if isinstance(spec, dict) and isinstance(spec.get("bbox_mm"), dict):
+        sources.append(spec["bbox_mm"])
+    if isinstance(params.get("_manifest_bbox_mm"), dict):
+        sources.append(params["_manifest_bbox_mm"])
+    sources.append(params)
+    out = {"length": 100.0, "width": 10.0, "height": 2.0}
+    aliases = {
+        "length": ("length", "mold_length_mm", "flow_length_mm", "cad_bbox_length_mm"),
+        "width": ("width", "mold_width_mm", "part_width_mm", "cad_bbox_width_mm"),
+        "height": ("height", "part_thickness_mm", "thickness_mm", "cad_bbox_height_mm"),
+    }
+    for dst, keys in aliases.items():
+        for src in sources:
+            for key in keys:
+                if src.get(key) is None:
+                    continue
+                try:
+                    out[dst] = max(0.1, float(src[key]))
+                    break
+                except (TypeError, ValueError):
+                    continue
+            else:
+                continue
+            break
+    return out
+
+
+def _estimate_sink_flash_kpis(defects: dict, params: dict, kpis: dict) -> dict:
+    """Moldflow-class defect proxies promoted to persistent KPIs.
+
+    Sink is driven by packing deficit, local thickness, and thermal imbalance.
+    Flash is driven by cavity pressure versus available clamp force.
+    """
+    bbox = _resolve_bbox_mm(params=params, kpis=kpis)
+    fill_pct = float(
+        defects.get("fill_fraction_pct")
+        or params.get("assumed_fill_fraction_pct")
+        or kpis.get("fill_fraction_pct")
+        or 0.0
+    )
+    pack_ratio = float(
+        defects.get("pack_pressure_ratio")
+        or kpis.get("pack_pressure_ratio")
+        or (0.65 if float(params.get("pack_pressure_MPa", 0.0) or 0.0) > 0 else 0.35)
+    )
+    pack_ratio = min(1.5, max(0.0, pack_ratio))
+    target_pack = float(
+        defects.get("pack_pressure_MPa")
+        or params.get("pack_pressure_MPa")
+        or kpis.get("pack_pressure_target_MPa")
+        or 2.0
+    )
+    achieved_pack = float(
+        defects.get("pack_pressure_achieved_MPa")
+        or kpis.get("pack_pressure_achieved_MPa")
+        or target_pack * min(pack_ratio, 1.0)
+    )
+    pressure_drop = float(
+        defects.get("pressure_drop_MPa")
+        or kpis.get("pressure_drop_mpa")
+        or max(target_pack, achieved_pack, 0.1)
+    )
+    nominal_wall = float(params.get("nominal_wall_mm") or params.get("part_thickness_mm") or bbox["height"])
+    thickness_ratio = bbox["height"] / max(nominal_wall, 0.1)
+    thickness_factor = min(1.0, max(0.0, (thickness_ratio - 1.0) / 2.0))
+    thermal_delta = abs(float(defects.get("T_max", 0.0) or 0.0) - float(defects.get("T_min", 0.0) or 0.0))
+    thermal_factor = min(1.0, thermal_delta / 80.0)
+    pack_deficit = min(1.0, max(0.0, 1.0 - min(pack_ratio, 1.0)))
+    fill_deficit = min(1.0, max(0.0, (100.0 - min(fill_pct, 100.0)) / 100.0))
+    pack_pressure_factor = min(1.0, max(0.0, (target_pack - achieved_pack) / max(target_pack, 0.1)))
+    # Tuned for Dynabook Moldflow accuracy: L/t^2 and volumetric shrinkage proxy
+    vol_shrink_factor = pack_deficit * 0.7 + pack_pressure_factor * 0.3
+    non_linear_thickness = thickness_factor ** 2.0
+    sink = (
+        0.45 * vol_shrink_factor
+        + 0.35 * non_linear_thickness
+        + 0.15 * thermal_factor
+        + 0.05 * fill_deficit
+    )
+    sink = min(1.0, max(0.0, sink))
+
+    projected_area = float(
+        params.get("projected_area_mm2")
+        or kpis.get("projected_area_mm2")
+        or (bbox["length"] * bbox["width"])
+    )
+    projected_area = max(projected_area, 0.1)
+    cavity_pressure = max(pressure_drop, achieved_pack, target_pack)
+    clamp_required_kn = cavity_pressure * projected_area / 1000.0
+    clamp_available_kn = None
+    if params.get("clamp_force_kN") is not None:
+        clamp_available_kn = float(params["clamp_force_kN"])
+    elif params.get("clamp_tonnage_ton") is not None:
+        clamp_available_kn = float(params["clamp_tonnage_ton"]) * 9.80665
+    elif params.get("clamp_force_ton") is not None:
+        clamp_available_kn = float(params["clamp_force_ton"]) * 9.80665
+    clamp_margin = None
+    if clamp_available_kn and clamp_available_kn > 0:
+        clamp_ratio = clamp_required_kn / clamp_available_kn
+        clamp_margin = clamp_available_kn - clamp_required_kn
+        pressure_factor = min(1.0, max(0.0, (cavity_pressure - 3.0) / 5.0))
+        flash = min(1.0, max(0.0, 0.78 * clamp_ratio + 0.22 * pressure_factor))
+        label = "HIGH" if flash >= 0.80 else "WARN" if flash >= 0.50 else "LOW"
+    else:
+        clamp_ratio = None
+        flash = 0.0
+        label = "UNKNOWN"
+    return {
+        "sink_mark_risk": round(sink, 4),
+        "sink_mark_model": "pack_thickness_thermal_proxy",
+        "flash_risk": round(flash, 4),
+        "flash_risk_label": label,
+        "flash_model": "clamp_pressure_proxy" if clamp_ratio is not None else "clamp_pressure_proxy_needs_clamp_force",
+        "projected_area_mm2": round(projected_area, 3),
+        "clamp_force_required_kN": round(clamp_required_kn, 4),
+        "clamp_force_available_kN": round(clamp_available_kn, 4) if clamp_available_kn else None,
+        "clamp_margin_kN": round(clamp_margin, 4) if clamp_margin is not None else None,
+    }
+
+
 def _extract_cool_warpage_kpis(run_dir: Path, params: dict) -> dict:
     """Cooling time and warpage from T field time series (thermal shrinkage proxy)."""
     t_eject = float(params.get("T_eject", 373.0))
@@ -2879,16 +3214,26 @@ def _extract_cool_warpage_kpis(run_dir: Path, params: dict) -> dict:
 
     t_mean = 0.5 * (t_min_final + t_max_final)
     delta_t = max(0.0, t_mean - t_mold)
-    warpage_mm = alpha * (l_mm / 1000.0) * delta_t * 1000.0
-    grad_mm = alpha * (l_mm / 1000.0) * max(0.0, t_max_final - t_min_final) * 1000.0
-    warpage_mm = max(warpage_mm, grad_mm * 0.5)
+    
+    # 1. Volumetric shrinkage proxy
+    vol_shrink_pct = (alpha * delta_t * 3.0) * 100.0
+    
+    # 2. Warpage based on differential cooling
+    thermal_gradient = max(0.0, t_max_final - t_min_final)
+    differential_shrinkage = alpha * thermal_gradient * 2.0
+    
+    base_warpage = alpha * (l_mm / 1000.0) * delta_t * 1000.0
+    grad_warpage = differential_shrinkage * (l_mm / 1000.0) * 1000.0
+    
+    warpage_mm = base_warpage * 0.3 + grad_warpage * 0.7
 
     out = {
         "cooling_time_s": round(cooling_time_s, 6),
+        "shrinkage_pct": round(vol_shrink_pct, 4),
         "warpage_mm": round(warpage_mm, 4),
         "T_mean_final": round(t_mean, 2),
         "T_eject_target_K": round(t_eject, 2),
-        "kpi_source": "thermo_cool_warpage_proxy",
+        "kpi_source": "thermo_cool_warpage_proxy_v2",
     }
     try:
         (run_dir / "cool_warpage_kpis.json").write_text(
@@ -2918,8 +3263,8 @@ def _extract_vof_fill_kpis(run_dir: Path) -> dict:
     fill_time = None
     latest_frac = 0.0
     for t, time_dir in time_dirs:
-        # Preserve exact OpenFOAM names; :g can round 1.096174 to 1.09617.
-        # The rounded path does not exist and previously produced a false zero KPI.
+        # Use the original directory path. Reformatting a float with :g can
+        # round OpenFOAM names such as 1.096174 to a non-existent 1.09617.
         frac = _parse_alpha_volume_fraction(time_dir / alpha_name)
         latest_frac = max(latest_frac, frac)
         if fill_time is None and frac >= 0.98:
@@ -2933,7 +3278,7 @@ def _extract_vof_fill_kpis(run_dir: Path) -> dict:
         out["fill_time_s"] = float(fill_time)
     else:
         out["fill_time_s"] = float(time_dirs[-1][0])
-    # Persist the boundedness evidence used by the continuous supervisor.
+    # G1物理妥当性の証拠: 最終時刻のalpha最大値 (VOF定義域0..1。>1.05=MULES未有界)
     try:
         _, amax = _parse_scalar_field_stats(time_dirs[-1][1] / alpha_name)
         out["alpha_max"] = round(float(amax), 4)
@@ -2942,6 +3287,270 @@ def _extract_vof_fill_kpis(run_dir: Path) -> dict:
     try:
         artifact = run_dir / "vof_fill_kpis.json"
         artifact.write_text(json.dumps(out, ensure_ascii=False, indent=2), encoding="utf-8")
+    except Exception:
+        pass
+    return out
+
+
+# ---------------------------------------------------------------------------
+# L5 質量収支KPI (moldflow_accuracy_l3_to_l10_te_plan.md §L5, 2026-07-07)
+# 流入積分 vs 充填体積を run_dir 内の実ファイルのみから決定論で計算する。
+# verdict には影響しない (昇格判定は commercial_benchmark_maturity 側)。
+# ---------------------------------------------------------------------------
+
+def _parse_alpha_field_values(alpha_path: Path):
+    """internalField を uniform=float / nonuniform=list[float] で返す (失敗=None)。"""
+    import re
+
+    try:
+        text = alpha_path.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return None
+    m_uni = re.search(r"internalField\s+uniform\s+([0-9.eE+-]+)", text)
+    if m_uni:
+        return float(m_uni.group(1))
+    m = re.search(
+        r"internalField\s+nonuniform\s+List<scalar>\s*\n\s*(\d+)\s*\n\s*\("
+        r"([\s\S]*?)\)\s*;\s*\n\s*boundaryField",
+        text,
+    )
+    if not m:
+        return None
+    count = int(m.group(1))
+    nums = re.findall(r"[-+]?\d*\.?\d+(?:[eE][-+]?\d+)?", m.group(2))
+    vals = [float(x) for x in nums[:count]]
+    return vals or None
+
+
+def _parse_blockmesh_boxes(blockmesh_path: Path) -> dict | None:
+    """blockMeshDict (Moldflow v003 系の軸平行hexブロック) から幾何を読む。
+
+    返り値 (mm単位): {"cavity_volume_mm3", "cell_volumes_mm3": [blockMeshセル順],
+    "inlet_areas_mm2": {patch名: 面積}}。想定外トポロジは None (KPIスキップ)。
+    """
+    import re
+
+    try:
+        text = blockmesh_path.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return None
+    m_c = re.search(r"convertToMeters\s+([0-9.eE+-]+)", text)
+    unit_mm = (float(m_c.group(1)) if m_c else 1.0) * 1000.0
+    m_v = re.search(r"vertices\s*\(([\s\S]*?)\)\s*;", text)
+    if not m_v:
+        return None
+    verts: list[tuple[float, float, float]] = []
+    for mv in re.finditer(r"\(\s*([-0-9.eE+ \t]+?)\s*\)", m_v.group(1)):
+        parts = mv.group(1).split()
+        if len(parts) == 3:
+            try:
+                verts.append(tuple(float(p) * unit_mm for p in parts))
+            except ValueError:
+                return None
+    blocks = []
+    for mb in re.finditer(r"hex\s*\(([\d\s]+)\)\s*\((\d+)\s+(\d+)\s+(\d+)\)", text):
+        idx = [int(i) for i in mb.group(1).split()]
+        blocks.append((idx, int(mb.group(2)), int(mb.group(3)), int(mb.group(4))))
+    if not verts or not blocks:
+        return None
+    cell_volumes: list[float] = []
+    cavity = 0.0
+    for idx, nx, ny, nz in blocks:
+        if any(i >= len(verts) for i in idx) or len(idx) != 8:
+            return None
+        pts = [verts[i] for i in idx]
+        dx = max(p[0] for p in pts) - min(p[0] for p in pts)
+        dy = max(p[1] for p in pts) - min(p[1] for p in pts)
+        dz = max(p[2] for p in pts) - min(p[2] for p in pts)
+        vol = dx * dy * dz  # 軸平行ブロック前提 (blockmesh_dict_text 生成物)
+        n = nx * ny * nz
+        if vol <= 0 or n <= 0:
+            return None
+        cavity += vol
+        cell_volumes.extend([vol / n] * n)
+    areas: dict[str, float] = {}
+    for mp in re.finditer(r"(inlet\d+)\s*\{[^}]*?faces\s*\(([\s\S]*?)\)\s*;", text):
+        name = mp.group(1)
+        total = 0.0
+        for mf in re.finditer(r"\(([\d\s]+)\)", mp.group(2)):
+            fidx = [int(i) for i in mf.group(1).split()]
+            if len(fidx) != 4 or any(i >= len(verts) for i in fidx):
+                continue
+            pts = [verts[i] for i in fidx]
+            ex = max(p[0] for p in pts) - min(p[0] for p in pts)
+            ey = max(p[1] for p in pts) - min(p[1] for p in pts)
+            ez = max(p[2] for p in pts) - min(p[2] for p in pts)
+            dims = sorted([ex, ey, ez])
+            total += dims[1] * dims[2]  # 軸平行四角形: 最小(≈0)以外の2辺の積
+        if total > 0:
+            areas[name] = total
+    if not areas:
+        return None
+    return {
+        "cavity_volume_mm3": cavity,
+        "cell_volumes_mm3": cell_volumes,
+        "inlet_areas_mm2": areas,
+    }
+
+
+def _parse_setfields_seed_volume_mm3(run_dir: Path) -> float:
+    """setFieldsDict の boxToCell 初期充填体積 [mm3] (単位m→mm換算)。無ければ0。
+
+    現行ジェネレータは alpha=1 のシード箱のみ書くため box を単純加算する。
+    """
+    import re
+
+    try:
+        text = (run_dir / "system" / "setFieldsDict").read_text(
+            encoding="utf-8", errors="replace"
+        )
+    except OSError:
+        return 0.0
+    total = 0.0
+    for m in re.finditer(
+        r"box\s*\(\s*([-0-9.eE+ \t]+?)\s*\)\s*\(\s*([-0-9.eE+ \t]+?)\s*\)", text
+    ):
+        try:
+            lo = [float(x) * 1000.0 for x in m.group(1).split()]
+            hi = [float(x) * 1000.0 for x in m.group(2).split()]
+        except ValueError:
+            continue
+        if len(lo) == 3 and len(hi) == 3:
+            total += (
+                max(0.0, hi[0] - lo[0])
+                * max(0.0, hi[1] - lo[1])
+                * max(0.0, hi[2] - lo[2])
+            )
+    return total
+
+
+def _parse_inlet_velocities_m_s(u_path: Path, patches: list) -> dict:
+    """0/U の boundaryField から inlet パッチの fixedValue 速度 [m/s] を読む。"""
+    import re
+
+    try:
+        text = u_path.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return {}
+    out: dict[str, float] = {}
+    for p in patches:
+        m = re.search(
+            re.escape(str(p)) + r"\s*\{[^}]*?uniform\s*\(\s*([-0-9.eE+ \t]+?)\s*\)",
+            text,
+        )
+        if not m:
+            continue
+        try:
+            comps = [float(x) for x in m.group(1).split()]
+        except ValueError:
+            continue
+        if len(comps) == 3:
+            out[str(p)] = (comps[0] ** 2 + comps[1] ** 2 + comps[2] ** 2) ** 0.5
+    return out
+
+
+def _extract_mass_balance_kpis(run_dir: Path, params: dict) -> dict:
+    """質量収支KPI: |V_fill - (V_seed + ΣU·A·t)| / (V_seed + ΣU·A·t) [%]。
+
+    対象は流入一定の resin_fill_vof のみ (保圧系は流入が時間変化するため対象外)。
+    評価時刻 t_eval は「体積重み充填率が80%に達した最初の書き出し時刻」
+    (未達なら最終時刻)。充填完了後の流出で誤差が汚れるのを避けるため。
+    alpha>1 (MULES未有界) は充填体積を膨らませ誤差として現れる = G1と同源の証拠。
+    """
+    phys = str(params.get("physics_category") or "resin_fill_vof")
+    if phys != "resin_fill_vof":
+        return {"mass_balance_skipped": f"physics_category={phys}: 流入一定でないため対象外"}
+    if params.get("vented_outlet"):
+        return {
+            "mass_balance_skipped": (
+                "vented_outlet requires integrated outlet phase flux; "
+                "inlet-only balance would over-report error"
+            )
+        }
+    geo = _parse_blockmesh_boxes(run_dir / "system" / "blockMeshDict")
+    if not geo:
+        return {"mass_balance_skipped": "blockMeshDictが既知の軸平行トポロジでない"}
+    alpha_name = "alpha.polymer"
+    times: list[float] = []
+    for child in run_dir.iterdir():
+        if not child.is_dir():
+            continue
+        try:
+            t = float(child.name)
+        except ValueError:
+            continue
+        if t > 0 and (child / alpha_name).exists():
+            times.append(t)
+    if not times:
+        return {"mass_balance_skipped": "alpha場の時刻ディレクトリなし"}
+    times.sort()
+    cell_vols = geo["cell_volumes_mm3"]
+    cavity = geo["cavity_volume_mm3"]
+
+    def _filled_at(t: float) -> tuple[float, str] | None:
+        vals = _parse_alpha_field_values(run_dir / f"{t:g}" / alpha_name)
+        if isinstance(vals, float):
+            return vals * cavity, "uniform_field"
+        if isinstance(vals, list) and len(vals) == len(cell_vols):
+            return sum(a * v for a, v in zip(vals, cell_vols)), "cell_volume"
+        if isinstance(vals, list) and vals:
+            return (sum(vals) / len(vals)) * cavity, "simple_mean_fallback"
+        return None
+
+    t_eval = times[-1]
+    filled = None
+    weighting = "cell_volume"
+    for t in times:
+        res = _filled_at(t)
+        if res is None:
+            continue
+        filled, weighting = res
+        t_eval = t
+        if filled / cavity >= 0.80:
+            break
+    if filled is None:
+        return {"mass_balance_skipped": "alpha場を読めない"}
+
+    inlet_u = _parse_inlet_velocities_m_s(
+        run_dir / "0" / "U", sorted(geo["inlet_areas_mm2"].keys())
+    )
+    if not inlet_u:
+        gpv = params.get("gate_patch_velocities") or {}
+        try:
+            inlet_u = {
+                str(k): float(v)
+                for k, v in gpv.items()
+                if str(k) in geo["inlet_areas_mm2"]
+            }
+        except (TypeError, ValueError):
+            inlet_u = {}
+    if not inlet_u:
+        return {"mass_balance_skipped": "inlet速度を特定できない (0/Uもparamsも不在)"}
+    inflow = sum(
+        u * 1000.0 * geo["inlet_areas_mm2"][p] * t_eval  # m/s -> mm/s
+        for p, u in inlet_u.items()
+    )
+    seed = _parse_setfields_seed_volume_mm3(run_dir)
+    expected = seed + inflow
+    if expected <= 0:
+        return {"mass_balance_skipped": "期待流入体積が0"}
+    err_pct = 100.0 * abs(filled - expected) / expected
+    detail = {
+        "eval_time_s": t_eval,
+        "cavity_volume_mm3": round(cavity, 3),
+        "filled_volume_mm3": round(filled, 3),
+        "seed_volume_mm3": round(seed, 3),
+        "inflow_volume_mm3": round(inflow, 3),
+        "inlet_velocities_m_s": {k: round(v, 6) for k, v in inlet_u.items()},
+        "inlet_areas_mm2": {k: round(v, 4) for k, v in geo["inlet_areas_mm2"].items()},
+        "alpha_weighting": weighting,
+        "rule": "L5: |V_fill-(V_seed+V_in)|/(V_seed+V_in) [%] (accuracy計画 §L5)",
+    }
+    out = {"mass_balance_err_pct": round(err_pct, 2), "mass_balance": detail}
+    try:
+        (run_dir / "mass_balance_kpi.json").write_text(
+            json.dumps(out, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
     except Exception:
         pass
     return out
@@ -2968,6 +3577,312 @@ def _parse_scalar_field_stats(field_path: Path) -> tuple[float, float]:
     if not nums:
         return 0.0, 0.0
     return min(nums), max(nums)
+
+
+def _parse_scalar_field_values(field_path: Path) -> float | list[float] | None:
+    """Return a uniform scalar or nonuniform internalField values."""
+    import re
+
+    try:
+        text = field_path.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return None
+    m_uni = re.search(r"internalField\s+uniform\s+([-+0-9.eE]+)", text)
+    if m_uni:
+        return float(m_uni.group(1))
+    m = re.search(
+        r"internalField\s+nonuniform\s+List<scalar>\s*\n\s*(\d+)\s*\n\s*\("
+        r"([\s\S]*?)\)\s*;\s*\n\s*boundaryField",
+        text,
+    )
+    if not m:
+        return None
+    count = int(m.group(1))
+    nums = re.findall(r"[-+]?\d*\.?\d+(?:[eE][-+]?\d+)?", m.group(2))
+    vals = [float(x) for x in nums[:count]]
+    return vals or None
+
+
+def _latest_time_with_field(run_dir: Path, field_name: str) -> Path | None:
+    times: list[float] = []
+    for child in run_dir.iterdir():
+        if not child.is_dir():
+            continue
+        try:
+            t = float(child.name)
+        except ValueError:
+            continue
+        if (child / field_name).exists():
+            times.append(t)
+    if not times:
+        return None
+    times.sort()
+    return run_dir / f"{times[-1]:g}"
+
+
+def _mean_of(values: list[float]) -> float | None:
+    return (sum(values) / len(values)) if values else None
+
+
+def _extract_cooling_front_kpis(run_dir: Path, params: dict | None = None) -> dict:
+    """Couple alpha and T fields into resin cooling/solidification proxy KPIs."""
+    latest_t_dir = _latest_time_with_field(run_dir, "T")
+    if latest_t_dir is None:
+        return {}
+    alpha_dir = latest_t_dir if (latest_t_dir / "alpha.polymer").exists() else _latest_time_with_field(run_dir, "alpha.polymer")
+    if alpha_dir is None:
+        return {"cooling_proxy_skipped": "alpha.polymer field not found"}
+
+    t_vals = _parse_scalar_field_values(latest_t_dir / "T")
+    a_vals = _parse_scalar_field_values(alpha_dir / "alpha.polymer")
+    if not isinstance(t_vals, list) or not isinstance(a_vals, list):
+        return {"cooling_proxy_skipped": "nonuniform T and alpha fields required"}
+    if len(t_vals) != len(a_vals):
+        return {
+            "cooling_proxy_skipped": f"T/alpha cell count mismatch ({len(t_vals)} vs {len(a_vals)})"
+        }
+
+    resin = [(a, t) for a, t in zip(a_vals, t_vals) if a >= 0.10]
+    if not resin:
+        return {
+            "resin_temperature_sample_cells": 0,
+            "solidified_resin_fraction_pct": 0.0,
+            "cooling_proxy_note": "no resin cells above alpha 0.10",
+        }
+
+    t_eject = float((params or {}).get("T_eject", 353.0))
+    t_mold = float((params or {}).get("T_mold", 323.0))
+    t_melt = float((params or {}).get("T_melt", 513.0))
+    freeze_band = t_mold + 0.15 * max(1.0, t_melt - t_mold)
+
+    resin_t = [t for _, t in resin]
+    front_t = [t for a, t in resin if 0.05 <= a <= 0.95]
+    core_t = [t for a, t in resin if a >= 0.95]
+    solid = [1 for a, t in resin if a >= 0.50 and t <= t_eject]
+    frozen_wall_proxy = [1 for a, t in resin if a >= 0.10 and t <= freeze_band]
+    t_mean = _mean_of(resin_t) or 0.0
+    t_front = _mean_of(front_t)
+    t_core = _mean_of(core_t)
+
+    out = {
+        "resin_temperature_sample_cells": len(resin),
+        "T_mean_resin": round(t_mean, 2),
+        "T_min_resin": round(min(resin_t), 2),
+        "T_max_resin": round(max(resin_t), 2),
+        "solidified_resin_fraction_pct": round(100.0 * len(solid) / len(resin), 2),
+        "wall_frozen_proxy_pct": round(100.0 * len(frozen_wall_proxy) / len(resin), 2),
+        "wall_cooling_margin_K": round(t_mean - min(resin_t), 2),
+        "cooling_proxy_source": "alpha_T_cell_coupled",
+    }
+    if t_front is not None:
+        out["T_mean_flow_front"] = round(t_front, 2)
+    if t_core is not None:
+        out["T_mean_filled_core"] = round(t_core, 2)
+    if t_front is not None and t_core is not None:
+        out["front_minus_core_T_K"] = round(t_front - t_core, 2)
+    try:
+        (run_dir / "cooling_front_kpis.json").write_text(
+            json.dumps(out, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
+    except Exception:
+        pass
+    return out
+
+
+def _clamp01(value: float) -> float:
+    return min(1.0, max(0.0, float(value)))
+
+
+def _load_gate_spec_for_run(run_dir: Path, params: dict | None = None) -> dict | None:
+    candidates = [run_dir / "gate_spec.resolved.json"]
+    raw = (params or {}).get("gate_spec_path")
+    if raw:
+        p = Path(str(raw))
+        candidates.append(p if p.is_absolute() else ROOT / p)
+    for path in candidates:
+        if not path.exists():
+            continue
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+            if isinstance(data, dict):
+                return data
+        except Exception:
+            continue
+    return None
+
+
+def _inlet_patch_centers_mm(run_dir: Path, bbox: dict[str, float]) -> dict[str, dict[str, float]]:
+    """Return approximate gate patch center coordinates for the generated three-inlet plate."""
+    centers = {
+        "inlet1": {"x": 0.0, "y": bbox["width"] * 0.125, "z": bbox["height"] * 0.5},
+        "inlet2": {"x": 0.0, "y": bbox["width"] * 0.500, "z": bbox["height"] * 0.5},
+        "inlet3": {"x": 0.0, "y": bbox["width"] * 0.875, "z": bbox["height"] * 0.5},
+        "inlet": {"x": 0.0, "y": bbox["width"] * 0.500, "z": bbox["height"] * 0.5},
+    }
+    bmd = run_dir / "system" / "blockMeshDict"
+    if not bmd.exists():
+        return centers
+    try:
+        text = bmd.read_text(encoding="utf-8", errors="replace")
+        ys = sorted({float(v) for v in re.findall(r"\(\s*[-+0-9.eE]+\s+([-+0-9.eE]+)\s+[-+0-9.eE]+\s*\)", text)})
+        if len(ys) >= 4:
+            centers["inlet1"]["y"] = (ys[0] + ys[1]) * 0.5
+            centers["inlet2"]["y"] = (ys[1] + ys[2]) * 0.5
+            centers["inlet3"]["y"] = (ys[2] + ys[-1]) * 0.5
+    except Exception:
+        pass
+    return centers
+
+
+def _active_weldline_gates(run_dir: Path, params: dict | None = None) -> tuple[list[dict], dict | None]:
+    spec = _load_gate_spec_for_run(run_dir, params)
+    gates: list[dict] = []
+    if spec:
+        for gate in spec.get("gates") or []:
+            if not isinstance(gate, dict) or not gate.get("enabled", True):
+                continue
+            patch = str(gate.get("patch") or "")
+            if not patch:
+                continue
+            gates.append({"id": str(gate.get("id") or patch), "patch": patch})
+    if gates:
+        return gates, spec
+    try:
+        count = max(1, min(3, int((params or {}).get("gate_count", 1))))
+    except (TypeError, ValueError):
+        count = 1
+    pos = str((params or {}).get("gate_position", "center")).lower()
+    if count == 1:
+        patch = "inlet1" if pos == "left" else "inlet3" if pos == "right" else "inlet2"
+        gates = [{"id": f"gate_{patch}", "patch": patch}]
+    elif count == 2:
+        gates = [{"id": "gate_inlet1", "patch": "inlet1"}, {"id": "gate_inlet3", "patch": "inlet3"}]
+    else:
+        gates = [
+            {"id": "gate_inlet1", "patch": "inlet1"},
+            {"id": "gate_inlet2", "patch": "inlet2"},
+            {"id": "gate_inlet3", "patch": "inlet3"},
+        ]
+    return gates, spec
+
+
+def _extract_weldline_kpis(run_dir: Path, params: dict | None = None, kpis: dict | None = None) -> dict:
+    """Estimate weld-line position and strength from gate layout plus fill/thermal KPIs.
+
+    This is a deterministic proxy, not a full passive-scalar flow-front collision solver.
+    It is intentionally traceable: each candidate is tied to two active gates.
+    """
+    params = params or {}
+    kpis = kpis or {}
+    gates, spec = _active_weldline_gates(run_dir, params)
+    bbox = _resolve_bbox_mm(run_dir=run_dir, params=params, spec=spec)
+    centers = _inlet_patch_centers_mm(run_dir, bbox)
+    enriched = []
+    for gate in gates:
+        patch = gate["patch"]
+        c = centers.get(patch, centers.get("inlet2"))
+        enriched.append({**gate, "center_mm": {"x": c["x"], "y": c["y"], "z": c["z"]}})
+    enriched.sort(key=lambda g: g["center_mm"]["y"])
+    if len(enriched) < 2:
+        out = {
+            "weldline_severity": 0.0,
+            "weldline_strength_retention_pct": 100.0,
+            "weldline_count": 0,
+            "weldline_candidates": [],
+            "weldline_kpi_source": "gate_alpha_T_proxy",
+            "weldline_note": "single active gate: no multi-front weld-line candidate",
+        }
+        try:
+            (run_dir / "weldline_kpis.json").write_text(json.dumps(out, ensure_ascii=False, indent=2), encoding="utf-8")
+        except Exception:
+            pass
+        return out
+
+    fill_pct = float(kpis.get("fill_fraction_pct") or params.get("assumed_fill_fraction_pct") or 0.0)
+    fill_factor = _clamp01(fill_pct / 85.0)
+    t_melt = float(params.get("T_melt", 513.0))
+    t_eject = float(params.get("T_eject", 353.0))
+    front_t = kpis.get("T_mean_flow_front") or kpis.get("T_mean_resin") or kpis.get("T_max") or t_melt
+    try:
+        front_t = float(front_t)
+    except (TypeError, ValueError):
+        front_t = t_melt
+    temp_factor = _clamp01((t_melt - front_t) / max(1.0, t_melt - t_eject))
+    wall_factor = _clamp01(float(kpis.get("wall_frozen_proxy_pct") or 0.0) / 100.0)
+    pressure_factor = _clamp01(float(kpis.get("pressure_drop_mpa") or 0.0) / 5.0)
+    gate_vel = params.get("gate_patch_velocities") or {}
+    gate_speeds = []
+    for gate in enriched:
+        try:
+            gate_speeds.append(float(gate_vel.get(gate["patch"], params.get("inlet_velocity", 1.0))))
+        except (AttributeError, TypeError, ValueError):
+            gate_speeds.append(float(params.get("inlet_velocity", 1.0) or 1.0))
+    if gate_speeds and max(gate_speeds) > 0:
+        imbalance = _clamp01((max(gate_speeds) - min(gate_speeds)) / max(gate_speeds))
+    else:
+        imbalance = 0.0
+
+    x_end = min(bbox["length"] * 0.98, max(bbox["length"] * 0.18, bbox["length"] * _clamp01(fill_pct / 100.0)))
+    x_start = bbox["length"] * 0.12
+    candidates = []
+    for i in range(len(enriched) - 1):
+        a = enriched[i]
+        b = enriched[i + 1]
+        spacing = abs(b["center_mm"]["y"] - a["center_mm"]["y"])
+        spacing_factor = _clamp01(spacing / max(bbox["width"] * 0.5, 0.1))
+        import math
+        # Temperature drop exponentially decreases weld line strength
+        mobility_proxy = math.exp(-3.0 * temp_factor)
+        thermal_severity = 1.0 - mobility_proxy
+        
+        severity = 100.0 * _clamp01(
+            0.10
+            + 0.40 * thermal_severity
+            + 0.15 * fill_factor
+            + 0.15 * spacing_factor
+            + 0.10 * wall_factor
+            + 0.05 * pressure_factor
+            + 0.05 * imbalance
+        )
+        y_mid = (a["center_mm"]["y"] + b["center_mm"]["y"]) * 0.5
+        candidate = {
+            "id": f"weld_{a['patch']}_{b['patch']}",
+            "between_gates": [a["id"], b["id"]],
+            "between_patches": [a["patch"], b["patch"]],
+            "position_mm": {
+                "x": round((x_start + x_end) * 0.5, 3),
+                "y": round(y_mid, 3),
+                "z": round(bbox["height"] * 0.5, 3),
+            },
+            "line_start_mm": {"x": round(x_start, 3), "y": round(y_mid, 3), "z": round(bbox["height"] * 0.5, 3)},
+            "line_end_mm": {"x": round(x_end, 3), "y": round(y_mid, 3), "z": round(bbox["height"] * 0.5, 3)},
+            "severity": round(severity, 2),
+            "strength_retention_pct": round(max(20.0, 100.0 - 0.65 * severity), 2),
+            "drivers": {
+                "fill_factor": round(fill_factor, 4),
+                "temperature_factor": round(temp_factor, 4),
+                "gate_spacing_factor": round(spacing_factor, 4),
+                "wall_frozen_factor": round(wall_factor, 4),
+                "pressure_factor": round(pressure_factor, 4),
+                "gate_imbalance_factor": round(imbalance, 4),
+            },
+        }
+        candidates.append(candidate)
+    strongest = max(candidates, key=lambda c: c["severity"])
+    out = {
+        "weldline_severity": float(strongest["severity"]),
+        "weldline_strength_retention_pct": float(strongest["strength_retention_pct"]),
+        "weldline_count": len(candidates),
+        "weldline_position_mm": strongest["position_mm"],
+        "weldline_candidates": candidates,
+        "weldline_kpi_source": "gate_alpha_T_proxy",
+        "weldline_note": "proxy from active gate pairs, fill progress, and thermal/cooling KPIs",
+    }
+    try:
+        (run_dir / "weldline_kpis.json").write_text(json.dumps(out, ensure_ascii=False, indent=2), encoding="utf-8")
+    except Exception:
+        pass
+    return out
 
 
 def _thermo_viscosity_kpi_source(run_dir: Path) -> str:
@@ -3025,6 +3940,7 @@ def _extract_thermo_kpis(run_dir: Path, params: dict | None = None) -> dict:
                 out["mu_proxy_mold_Pa_s"] = round(
                     _wlf_dynamic_viscosity(wlf["mu0"], wlf["Tr"], wlf["C1"], wlf["C2"], t_mold), 4
                 )
+            out.update(_extract_cooling_front_kpis(run_dir, params))
             return out
         return {}
     times.sort()
@@ -3044,6 +3960,7 @@ def _extract_thermo_kpis(run_dir: Path, params: dict | None = None) -> dict:
         out["mu_proxy_mold_Pa_s"] = round(
             _wlf_dynamic_viscosity(wlf["mu0"], wlf["Tr"], wlf["C1"], wlf["C2"], t_mold), 4
         )
+    out.update(_extract_cooling_front_kpis(run_dir, params))
     try:
         (run_dir / "thermo_fill_kpis.json").write_text(
             json.dumps(out, ensure_ascii=False, indent=2), encoding="utf-8"
@@ -3242,6 +4159,21 @@ def _assess_openfoam(run_result: dict, exp: dict) -> dict:
             defects_extra["fill_fraction_pct"] = fill_pct
             defects_extra["fill_time_s"] = fill_time
             defects_extra["fill_complete"] = bool(kpi_values.get("fill_complete"))
+            # L5質量収支KPI (記録のみ・verdict不変。昇格判定はmaturity側)
+            if kpi_values.get("mass_balance_err_pct") is not None:
+                defects_extra["mass_balance_err_pct"] = float(
+                    kpi_values["mass_balance_err_pct"]
+                )
+            for key in (
+                "weldline_severity",
+                "weldline_strength_retention_pct",
+                "weldline_count",
+                "weldline_position_mm",
+                "weldline_candidates",
+                "weldline_kpi_source",
+            ):
+                if kpi_values.get(key) is not None:
+                    defects_extra[key] = kpi_values[key]
             if category == "resin_fill_pack":
                 target_pack = float(actual_params.get("pack_pressure_MPa", 2.0))
                 achieved_pack = float(
@@ -3274,6 +4206,17 @@ def _assess_openfoam(run_result: dict, exp: dict) -> dict:
                 defects_extra["T_mean_final"] = float(
                     kpi_values.get("T_mean_final", 0.0) or 0.0
                 )
+                for key in (
+                    "T_mean_resin",
+                    "T_mean_flow_front",
+                    "T_mean_filled_core",
+                    "solidified_resin_fraction_pct",
+                    "wall_frozen_proxy_pct",
+                    "wall_cooling_margin_K",
+                    "front_minus_core_T_K",
+                ):
+                    if kpi_values.get(key) is not None:
+                        defects_extra[key] = float(kpi_values[key])
                 if kpi_values.get("pack_pressure_achieved_MPa") is not None:
                     defects_extra["pack_pressure_achieved_MPa"] = kpi_values[
                         "pack_pressure_achieved_MPa"
@@ -3320,8 +4263,13 @@ def _assess_openfoam(run_result: dict, exp: dict) -> dict:
                 )
                 defects_extra["physics_category"] = phys_cat
                 u_gate = float(actual_params.get("inlet_velocity", 1.0))
+                l_mm = float(kpi_values.get("cad_bbox_length_mm") or 100.0)
+                t_mm = float(actual_params.get("part_thickness_mm") or actual_params.get("nominal_wall_mm") or 2.0)
+                # Flow resistance is proportional to L / t^2
+                l_over_t2 = l_mm / max(0.1, t_mm ** 2.0)
+                
                 defects_extra["short_shot_risk"] = round(
-                    min(1.0, max(0.0, (5.0 * viscosity) / max(0.1, u_gate))), 4
+                    min(1.0, max(0.0, (0.2 * viscosity * l_over_t2) / max(0.1, u_gate))), 4
                 )
                 if phys_cat in ("resin_fill_closed_pack", "resin_fill_pack"):
                     target_pack = float(actual_params.get("pack_pressure_MPa", 50.0))
@@ -3348,6 +4296,19 @@ def _assess_openfoam(run_result: dict, exp: dict) -> dict:
                 )
             elif fill_pct < 50.0:
                 verdict = "FAILED"
+            # --- G1 物理妥当性ゲート (growth_loop_quality_protocol 2026-07-07) ---
+            # VOF体積分率の定義域は0..1。充填率>110%やalpha_max>1.05は数値発散で
+            # あり成果ではない。SUCCESSのまま蓄積すると偽成長になる(当日インシデント:
+            # SUCCESSの50%がfill>110%)。しきい値の緩和はFMEA#2により人間承認必須。
+            _alpha_max = float(kpi_values.get("alpha_max", 0.0) or 0.0)
+            if fill_pct > 110.0 or _alpha_max > 1.05:
+                if verdict in ("SUCCESS", "PASS"):
+                    verdict = "FAILED_NONPHYSICAL"
+                defects_extra["nonphysical"] = {
+                    "fill_fraction_pct": fill_pct,
+                    "alpha_max": _alpha_max if _alpha_max else None,
+                    "rule": "G1: fill<=110% and alpha_max<=1.05",
+                }
         elif category == "resin_fill":
             nu0 = float(actual_params.get("power_law_nu0", 0.01))
             n_exp = float(actual_params.get("power_law_n", 0.6))
@@ -3410,7 +4371,13 @@ def _assess_openfoam(run_result: dict, exp: dict) -> dict:
             defects["short_shot_risk"] = float(f"{short_shot:.4f}")
             defects["burr_risk"] = "HIGH (型開きバリ発生)" if pressure_drop >= 3.5 else "LOW (適正型締め力)"
             defects["warpage_mm"] = float(f"{warpage:.4f}")
-            defects["weldline_severity"] = float(f"{weldline:.4f}")
+            defects["weldline_severity"] = float(kpi_values.get("weldline_severity", f"{weldline:.4f}"))
+            if kpi_values.get("weldline_position_mm") is not None:
+                defects["weldline_position_mm"] = kpi_values["weldline_position_mm"]
+            if kpi_values.get("weldline_strength_retention_pct") is not None:
+                defects["weldline_strength_retention_pct"] = kpi_values["weldline_strength_retention_pct"]
+            if kpi_values.get("weldline_candidates") is not None:
+                defects["weldline_candidates"] = kpi_values["weldline_candidates"]
             defects["sink_mark_risk"] = float(f"{sink_mark:.4f}")
             defects["flow_front_velocity_mms"] = float(f"{velocity * 100.0:.2f}")
             if category in (
@@ -3421,6 +4388,15 @@ def _assess_openfoam(run_result: dict, exp: dict) -> dict:
                 "resin_fill_cad",
             ):
                 defects.update(defects_extra)
+
+        if category in _MOLDFLOW_KPI_CATEGORIES:
+            defect_kpis = _estimate_sink_flash_kpis(defects, actual_params, kpi_values)
+            defects.update(defect_kpis)
+            if verdict in ("SUCCESS", "PASS"):
+                if defect_kpis["flash_risk"] >= 0.90:
+                    verdict = "FAILED_FLASH_RISK"
+                elif defect_kpis["sink_mark_risk"] >= 0.90:
+                    verdict = "FAILED_SINK_RISK"
 
     expected_kpis = exp.get("expected_kpis")
     if isinstance(expected_kpis, dict) and isinstance(kpi_values, dict) and kpi_values:

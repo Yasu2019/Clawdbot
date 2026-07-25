@@ -1,5 +1,19 @@
 # IATF 3D Video Pipeline Trouble History & Lessons Learned
 
+## [T073] Lavie 樹脂充填トラック停止の真因は5層重なっていた / MFALIGN v3 再現成功 (2026-07-25)
+
+meaning gate の「8連続 ERROR」は1個の欠陥ではなく5層だった。(1) Lavie は
+`C:\lavie_usb_pack` という別コピーから実行しており11日前の版だった。(2) STL 不在時に
+`forbid_plate_geometry=True` を無視して `pp_plate` へ暗黙フォールバックしていた。
+(3) bbox 抽出が STEP 専用で STL を読めなかった。(4) `snappyhexmesh` 分岐は一度も成功実行が
+無く、mm 前提と bbox 中心 `locationInMesh`（=中空内部）という未検証定数を持っていた。
+(5) 修正後の初回再現は `pack_end_time`(0.32s) が `analysis_end_time_s`(1.24s) を上書きし、
+`returncode 0` / `End` のまま 29% で打ち切られた。**未実行のコード経路の定数は「未検証」
+として扱い、実績成果物からテンプレート化して再構成する**のが唯一確実だった。実績ケース
+`moldflow-union-xplus-d2-mfalign-v3-20260723` の全 dict を
+`experiments/openfoam/mfalign_snappy_v001` として取り込み、`repro-mfalign-v3b-20260725` が
+fill 99.48% / 0.90s / SUCCESS で再現。INC-161、Beads `Clawdbot_Docker_20260125-6t03`。
+
 ## [T071] Dynabook Moldflow COM 429 means a stuck Synergy modal, not a bridge fault (2026-07-25)
 
 Every active-study MCP tool returned ActiveX 429 while the bridge itself was healthy.

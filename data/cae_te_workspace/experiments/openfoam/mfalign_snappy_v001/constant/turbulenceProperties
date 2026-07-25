@@ -1,0 +1,17 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| Laminar VOF proxy (Phase 2); turbulence added in later roadmap phase       |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    arch        "LSB;label=32;scalar=64";
+    class       dictionary;
+    location    "constant";
+    object      turbulenceProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+simulationType  laminar;
+
+// ************************************************************************* //
