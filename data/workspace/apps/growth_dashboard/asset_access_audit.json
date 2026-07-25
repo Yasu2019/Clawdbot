@@ -1,0 +1,738 @@
+{
+  "schema": "clawstack.growth_dashboard_asset_access_audit.v1",
+  "updated_at": "2026-07-25T23:22:30+09:00",
+  "catalog_updated_at": "2026-06-20",
+  "total_assets": 77,
+  "available_assets": 77,
+  "missing_assets": 0,
+  "data_sources": [
+    {
+      "name": "growth_stats.json",
+      "exists": true,
+      "updated_at": "2026-07-25T23:08:13+09:00",
+      "age_hours": 0.2,
+      "stale_over_48h": false
+    },
+    {
+      "name": "commercial_benchmark_maturity_latest.json",
+      "exists": true,
+      "updated_at": "2026-07-25T23:05:49+09:00",
+      "age_hours": 0.3,
+      "stale_over_48h": false
+    },
+    {
+      "name": "iatf_video_qa_status.json",
+      "exists": true,
+      "updated_at": "2026-07-25T23:18:53+09:00",
+      "age_hours": 0.1,
+      "stale_over_48h": false
+    },
+    {
+      "name": "material_source_inventory.json",
+      "exists": true,
+      "updated_at": "2026-07-25T22:25:30+09:00",
+      "age_hours": 1.0,
+      "stale_over_48h": false
+    },
+    {
+      "name": "iatf_youtube_summary.json",
+      "exists": true,
+      "updated_at": "2026-07-25T23:00:23+09:00",
+      "age_hours": 0.4,
+      "stale_over_48h": false
+    },
+    {
+      "name": "fleet_diagnostics_status.json",
+      "exists": true,
+      "updated_at": "2026-06-18T06:03:24+09:00",
+      "age_hours": 905.3,
+      "stale_over_48h": true
+    },
+    {
+      "name": "fleet_idle_dispatch_status.json",
+      "exists": true,
+      "updated_at": "2026-07-25T23:21:22+09:00",
+      "age_hours": 0.0,
+      "stale_over_48h": false
+    },
+    {
+      "name": "fleet_node_workload_snapshot.json",
+      "exists": true,
+      "updated_at": "2026-07-25T23:21:32+09:00",
+      "age_hours": 0.0,
+      "stale_over_48h": false
+    },
+    {
+      "name": "k10_tri_track_cae_status.json",
+      "exists": true,
+      "updated_at": "2026-07-25T21:53:41+09:00",
+      "age_hours": 1.5,
+      "stale_over_48h": false
+    },
+    {
+      "name": "distributed_scheduler_status.json",
+      "exists": true,
+      "updated_at": "2026-07-12T09:19:40+09:00",
+      "age_hours": 326.0,
+      "stale_over_48h": true
+    },
+    {
+      "name": "knowledge_history.json",
+      "exists": true,
+      "updated_at": "2026-07-25T23:00:16+09:00",
+      "age_hours": 0.4,
+      "stale_over_48h": false
+    },
+    {
+      "name": "autonomous_improvements.json",
+      "exists": true,
+      "updated_at": "2026-07-25T23:17:16+09:00",
+      "age_hours": 0.1,
+      "stale_over_48h": false
+    },
+    {
+      "name": "becky_pipeline_status.json",
+      "exists": true,
+      "updated_at": "2026-07-25T11:34:51+09:00",
+      "age_hours": 11.8,
+      "stale_over_48h": false
+    },
+    {
+      "name": "content_publishing_catalog.json",
+      "exists": true,
+      "updated_at": "2026-06-20T12:26:11+09:00",
+      "age_hours": 850.9,
+      "stale_over_48h": true
+    },
+    {
+      "name": "dxf2step_project_status.json",
+      "exists": true,
+      "updated_at": "2026-07-25T23:20:28+09:00",
+      "age_hours": 0.0,
+      "stale_over_48h": false
+    },
+    {
+      "name": "robot_l20_autonomous_status.json",
+      "exists": true,
+      "updated_at": "2026-07-25T23:21:40+09:00",
+      "age_hours": 0.0,
+      "stale_over_48h": false
+    },
+    {
+      "name": "trend_content_status.json",
+      "exists": true,
+      "updated_at": "2026-07-22T23:19:57+09:00",
+      "age_hours": 72.0,
+      "stale_over_48h": true
+    },
+    {
+      "name": "content_approval_queue.json",
+      "exists": true,
+      "updated_at": "2026-07-22T23:19:57+09:00",
+      "age_hours": 72.0,
+      "stale_over_48h": true
+    }
+  ],
+  "stale_data_sources": 5,
+  "rows": [
+    {
+      "category": "document",
+      "label": "トラブル履歴",
+      "source": "D:\\Clawdbot_Docker_20260125\\docs\\INCIDENT_LOG.md",
+      "url": "downloads/incident_log.md",
+      "exists": true,
+      "source_updated_at": "2026-07-25T23:22:07+09:00"
+    },
+    {
+      "category": "document",
+      "label": "ThinkPadスリープ障害レポート",
+      "source": "D:\\Clawdbot_Docker_20260125\\docs\\incidents\\quality_incident_report_20260615_thinkpad_sleep_outage.md",
+      "url": "downloads/thinkpad_sleep_outage_20260615.md",
+      "exists": true,
+      "source_updated_at": "2026-06-15T14:47:35+09:00"
+    },
+    {
+      "category": "document",
+      "label": "LAVIE BIOS切断レポート",
+      "source": "D:\\Clawdbot_Docker_20260125\\docs\\incidents\\quality_incident_report_20260609_lavie_bios_disconnect.md",
+      "url": "downloads/lavie_bios_disconnect_20260609.md",
+      "exists": true,
+      "source_updated_at": "2026-06-09T23:09:17+09:00"
+    },
+    {
+      "category": "document",
+      "label": "3D恋愛シミュレーション企画書",
+      "source": "D:\\Local_AI_GameDev_Master\\07_GameDesign\\ときメモ風3D恋愛シミュレーション企画書.md",
+      "url": "downloads/tokimemo_3d_gdd.md",
+      "exists": true,
+      "source_updated_at": "2026-07-25T20:29:40+09:00"
+    },
+    {
+      "category": "document",
+      "label": "トキメキ心理演出DB",
+      "source": "D:\\Local_AI_GameDev_Master\\07_GameDesign\\romantic_tropes_db.json",
+      "url": "downloads/romantic_tropes_db.json",
+      "exists": true,
+      "source_updated_at": "2026-07-25T20:46:46+09:00"
+    },
+    {
+      "category": "document",
+      "label": "Unity MCP統合ガイド",
+      "source": "D:\\Local_AI_GameDev_Master\\13_UnityMCP\\README_UnityMCP邨ｱ蜷・md",
+      "url": "downloads/unity_mcp_integration.md",
+      "exists": true,
+      "source_updated_at": "2026-07-25T04:10:20+09:00"
+    },
+    {
+      "category": "document",
+      "label": "UE5×Unity6ハイブリッド仕様",
+      "source": "D:\\Local_AI_GameDev_Master\\00_StartHere\\UE5_Unity_Hybrid_Architecture.md",
+      "url": "downloads/ue5_unity_hybrid_architecture.md",
+      "exists": true,
+      "source_updated_at": "2026-07-25T20:29:27+09:00"
+    },
+    {
+      "category": "article_asset",
+      "owner_id": "CP-001",
+      "label": "cp-001_book_draft.html",
+      "url": "cp-001_book_draft.html",
+      "exists": true,
+      "source_updated_at": "2026-07-13T09:54:57+09:00"
+    },
+    {
+      "category": "article_asset",
+      "owner_id": "CP-001",
+      "label": "cp-001_book_draft.md",
+      "url": "cp-001_book_draft.md",
+      "exists": true,
+      "source_updated_at": "2026-07-13T09:54:52+09:00"
+    },
+    {
+      "category": "article_asset",
+      "owner_id": "CP-002",
+      "label": "cp-002_book_draft.html",
+      "url": "cp-002_book_draft.html",
+      "exists": true,
+      "source_updated_at": "2026-06-15T13:05:57+09:00"
+    },
+    {
+      "category": "article_asset",
+      "owner_id": "CP-002",
+      "label": "cp-002_book_draft.md",
+      "url": "cp-002_book_draft.md",
+      "exists": true,
+      "source_updated_at": "2026-06-15T13:05:57+09:00"
+    },
+    {
+      "category": "article_asset",
+      "owner_id": "CP-003",
+      "label": "cp-003_book_draft.html",
+      "url": "cp-003_book_draft.html",
+      "exists": true,
+      "source_updated_at": "2026-06-15T13:06:33+09:00"
+    },
+    {
+      "category": "article_asset",
+      "owner_id": "CP-003",
+      "label": "cp-003_book_draft.md",
+      "url": "cp-003_book_draft.md",
+      "exists": true,
+      "source_updated_at": "2026-06-15T13:06:33+09:00"
+    },
+    {
+      "category": "article_asset",
+      "owner_id": "CP-004",
+      "label": "cp-004_book_draft.html",
+      "url": "cp-004_book_draft.html",
+      "exists": true,
+      "source_updated_at": "2026-07-13T09:55:25+09:00"
+    },
+    {
+      "category": "article_asset",
+      "owner_id": "CP-004",
+      "label": "cp-004_book_draft.md",
+      "url": "cp-004_book_draft.md",
+      "exists": true,
+      "source_updated_at": "2026-07-13T09:55:19+09:00"
+    },
+    {
+      "category": "article_asset",
+      "owner_id": "CP-005",
+      "label": "cp-005_book_draft.html",
+      "url": "cp-005_book_draft.html",
+      "exists": true,
+      "source_updated_at": "2026-06-15T13:08:56+09:00"
+    },
+    {
+      "category": "article_asset",
+      "owner_id": "CP-005",
+      "label": "cp-005_book_draft.md",
+      "url": "cp-005_book_draft.md",
+      "exists": true,
+      "source_updated_at": "2026-06-15T13:08:56+09:00"
+    },
+    {
+      "category": "article_asset",
+      "owner_id": "CP-006",
+      "label": "cp-006_book_draft.html",
+      "url": "cp-006_book_draft.html",
+      "exists": true,
+      "source_updated_at": "2026-06-15T13:10:03+09:00"
+    },
+    {
+      "category": "article_asset",
+      "owner_id": "CP-006",
+      "label": "cp-006_book_draft.md",
+      "url": "cp-006_book_draft.md",
+      "exists": true,
+      "source_updated_at": "2026-06-15T13:10:03+09:00"
+    },
+    {
+      "category": "article_asset",
+      "owner_id": "CP-007",
+      "label": "cp-007_book_draft.html",
+      "url": "cp-007_book_draft.html",
+      "exists": true,
+      "source_updated_at": "2026-06-15T13:56:24+09:00"
+    },
+    {
+      "category": "article_asset",
+      "owner_id": "CP-007",
+      "label": "cp-007_book_draft.md",
+      "url": "cp-007_book_draft.md",
+      "exists": true,
+      "source_updated_at": "2026-06-15T13:56:24+09:00"
+    },
+    {
+      "category": "article_asset",
+      "owner_id": "CP-008",
+      "label": "cp-008_book_draft.html",
+      "url": "cp-008_book_draft.html",
+      "exists": true,
+      "source_updated_at": "2026-07-13T09:55:11+09:00"
+    },
+    {
+      "category": "article_asset",
+      "owner_id": "CP-008",
+      "label": "cp-008_book_draft.md",
+      "url": "cp-008_book_draft.md",
+      "exists": true,
+      "source_updated_at": "2026-07-13T09:55:06+09:00"
+    },
+    {
+      "category": "article_asset",
+      "owner_id": "CP-009",
+      "label": "cp-009_book_draft.html",
+      "url": "cp-009_book_draft.html",
+      "exists": true,
+      "source_updated_at": "2026-06-15T13:13:51+09:00"
+    },
+    {
+      "category": "article_asset",
+      "owner_id": "CP-009",
+      "label": "cp-009_book_draft.md",
+      "url": "cp-009_book_draft.md",
+      "exists": true,
+      "source_updated_at": "2026-06-15T13:13:51+09:00"
+    },
+    {
+      "category": "article_asset",
+      "owner_id": "CP-010",
+      "label": "cp-010_book_draft.html",
+      "url": "cp-010_book_draft.html",
+      "exists": true,
+      "source_updated_at": "2026-06-15T13:14:41+09:00"
+    },
+    {
+      "category": "article_asset",
+      "owner_id": "CP-010",
+      "label": "cp-010_book_draft.md",
+      "url": "cp-010_book_draft.md",
+      "exists": true,
+      "source_updated_at": "2026-06-15T13:14:41+09:00"
+    },
+    {
+      "category": "article_asset",
+      "owner_id": "CP-011",
+      "label": "cp-011_book_draft.html",
+      "url": "cp-011_book_draft.html",
+      "exists": true,
+      "source_updated_at": "2026-06-15T13:16:24+09:00"
+    },
+    {
+      "category": "article_asset",
+      "owner_id": "CP-011",
+      "label": "cp-011_book_draft.md",
+      "url": "cp-011_book_draft.md",
+      "exists": true,
+      "source_updated_at": "2026-06-15T13:16:24+09:00"
+    },
+    {
+      "category": "article_asset",
+      "owner_id": "CP-012",
+      "label": "cp-012_book_draft.html",
+      "url": "cp-012_book_draft.html",
+      "exists": true,
+      "source_updated_at": "2026-06-15T13:17:06+09:00"
+    },
+    {
+      "category": "article_asset",
+      "owner_id": "CP-012",
+      "label": "cp-012_book_draft.md",
+      "url": "cp-012_book_draft.md",
+      "exists": true,
+      "source_updated_at": "2026-06-15T13:17:06+09:00"
+    },
+    {
+      "category": "article_asset",
+      "owner_id": "CP-013",
+      "label": "cp-013_book_draft.html",
+      "url": "cp-013_book_draft.html",
+      "exists": true,
+      "source_updated_at": "2026-06-15T14:03:24+09:00"
+    },
+    {
+      "category": "article_asset",
+      "owner_id": "CP-013",
+      "label": "cp-013_book_draft.md",
+      "url": "cp-013_book_draft.md",
+      "exists": true,
+      "source_updated_at": "2026-06-15T14:03:24+09:00"
+    },
+    {
+      "category": "article_asset",
+      "owner_id": "CP-014",
+      "label": "cp-014_book_draft.html",
+      "url": "cp-014_book_draft.html",
+      "exists": true,
+      "source_updated_at": "2026-06-15T14:09:06+09:00"
+    },
+    {
+      "category": "article_asset",
+      "owner_id": "CP-014",
+      "label": "cp-014_book_draft.md",
+      "url": "cp-014_book_draft.md",
+      "exists": true,
+      "source_updated_at": "2026-06-15T14:09:06+09:00"
+    },
+    {
+      "category": "article_asset",
+      "owner_id": "CP-015",
+      "label": "cp-015_book_draft.html",
+      "url": "cp-015_book_draft.html",
+      "exists": true,
+      "source_updated_at": "2026-06-15T14:15:11+09:00"
+    },
+    {
+      "category": "article_asset",
+      "owner_id": "CP-015",
+      "label": "cp-015_book_draft.md",
+      "url": "cp-015_book_draft.md",
+      "exists": true,
+      "source_updated_at": "2026-06-15T14:15:11+09:00"
+    },
+    {
+      "category": "article_asset",
+      "owner_id": "CP-016",
+      "label": "README.md",
+      "url": "publishing/iatf_audit_sheets/README.md",
+      "exists": true,
+      "source_updated_at": "2026-07-25T07:25:48+09:00"
+    },
+    {
+      "category": "article_asset",
+      "owner_id": "CP-016",
+      "label": "USAGE_guide.md",
+      "url": "publishing/iatf_audit_sheets/USAGE_guide.md",
+      "exists": true,
+      "source_updated_at": "2026-07-25T07:25:48+09:00"
+    },
+    {
+      "category": "article_asset",
+      "owner_id": "CP-016",
+      "label": "01_system_audit_checklist.md",
+      "url": "publishing/iatf_audit_sheets/01_system_audit_checklist.md",
+      "exists": true,
+      "source_updated_at": "2026-07-25T07:25:48+09:00"
+    },
+    {
+      "category": "article_asset",
+      "owner_id": "CP-016",
+      "label": "02_manufacturing_process_audit_checklist.md",
+      "url": "publishing/iatf_audit_sheets/02_manufacturing_process_audit_checklist.md",
+      "exists": true,
+      "source_updated_at": "2026-07-25T07:25:48+09:00"
+    },
+    {
+      "category": "article_asset",
+      "owner_id": "CP-016",
+      "label": "03_product_audit_checklist.md",
+      "url": "publishing/iatf_audit_sheets/03_product_audit_checklist.md",
+      "exists": true,
+      "source_updated_at": "2026-07-25T07:25:48+09:00"
+    },
+    {
+      "category": "article_asset",
+      "owner_id": "CP-016",
+      "label": "04_corrective_action_worksheet.md",
+      "url": "publishing/iatf_audit_sheets/04_corrective_action_worksheet.md",
+      "exists": true,
+      "source_updated_at": "2026-07-25T07:25:48+09:00"
+    },
+    {
+      "category": "article_asset",
+      "owner_id": "CP-017",
+      "label": "prepomax_2d_bending_book_draft.html",
+      "url": "prepomax_2d_bending_book_draft.html",
+      "exists": true,
+      "source_updated_at": "2026-06-15T10:56:39+09:00"
+    },
+    {
+      "category": "article_asset",
+      "owner_id": "CP-017",
+      "label": "prepomax_2d_bending_book_draft.md",
+      "url": "prepomax_2d_bending_book_draft.md",
+      "exists": true,
+      "source_updated_at": "2026-06-15T10:56:39+09:00"
+    },
+    {
+      "category": "article_asset",
+      "owner_id": "CP-018",
+      "label": "cp-018_book_draft.html",
+      "url": "cp-018_book_draft.html",
+      "exists": true,
+      "source_updated_at": "2026-06-20T12:26:11+09:00"
+    },
+    {
+      "category": "article_asset",
+      "owner_id": "CP-018",
+      "label": "cp-018_book_draft.md",
+      "url": "cp-018_book_draft.md",
+      "exists": true,
+      "source_updated_at": "2026-06-20T12:26:11+09:00"
+    },
+    {
+      "category": "article_asset",
+      "owner_id": "CP-018",
+      "label": "kindle_unlimited_page.md",
+      "url": "publishing/cp018_robot_training/kindle_unlimited_page.md",
+      "exists": true,
+      "source_updated_at": "2026-06-20T12:26:11+09:00"
+    },
+    {
+      "category": "article_asset",
+      "owner_id": "CP-018",
+      "label": "note_page.md",
+      "url": "publishing/cp018_robot_training/note_page.md",
+      "exists": true,
+      "source_updated_at": "2026-06-20T12:26:11+09:00"
+    },
+    {
+      "category": "article_asset",
+      "owner_id": "CP-018",
+      "label": "booth_page.md",
+      "url": "publishing/cp018_robot_training/booth_page.md",
+      "exists": true,
+      "source_updated_at": "2026-06-20T12:26:11+09:00"
+    },
+    {
+      "category": "article_asset",
+      "owner_id": "CP-018",
+      "label": "README.md",
+      "url": "publishing/cp018_robot_training/README.md",
+      "exists": true,
+      "source_updated_at": "2026-06-20T12:26:11+09:00"
+    },
+    {
+      "category": "article_asset",
+      "owner_id": "CP-018",
+      "label": "robot_learning_swarm_demo.html",
+      "url": "robot_learning_swarm_demo.html",
+      "exists": true,
+      "source_updated_at": "2026-07-25T11:34:51+09:00"
+    },
+    {
+      "category": "article_asset",
+      "owner_id": "CP-018",
+      "label": "material_source_inventory.json",
+      "url": "material_source_inventory.json",
+      "exists": true,
+      "source_updated_at": "2026-07-25T22:25:30+09:00"
+    },
+    {
+      "category": "article_asset",
+      "owner_id": "CP-018",
+      "label": "robotics_gait_knowledge_report.md",
+      "url": "../motion_lab/assets/web_sourced/robotics_gait_knowledge/robotics_gait_knowledge_report.md",
+      "exists": true,
+      "source_updated_at": "2026-06-20T12:04:17+09:00"
+    },
+    {
+      "category": "article_asset",
+      "owner_id": "CP-018",
+      "label": "robotics_gait_knowledge.db",
+      "url": "../motion_lab/assets/web_sourced/robotics_gait_knowledge/robotics_gait_knowledge.db",
+      "exists": true,
+      "source_updated_at": "2026-07-25T11:34:51+09:00"
+    },
+    {
+      "category": "article",
+      "owner_id": "tc-002",
+      "label": "tc-002_draft.md",
+      "url": "tc-002_draft.md",
+      "exists": true,
+      "source_updated_at": "2026-07-22T23:19:57+09:00"
+    },
+    {
+      "category": "article",
+      "owner_id": "tc-001",
+      "label": "tc-001_draft.md",
+      "url": "tc-001_draft.md",
+      "exists": true,
+      "source_updated_at": "2026-07-22T23:17:59+09:00"
+    },
+    {
+      "category": "application",
+      "owner_id": "app-fortune-001",
+      "label": "absolute_oracle_fortune.html",
+      "url": "absolute_oracle_fortune.html",
+      "exists": true,
+      "source_updated_at": "2026-07-22T23:11:18+09:00"
+    },
+    {
+      "category": "article",
+      "owner_id": "tc-001",
+      "label": "tc-001_draft.html",
+      "url": "tc-001_draft.html",
+      "exists": true,
+      "source_updated_at": "2026-07-22T23:17:59+09:00"
+    },
+    {
+      "category": "course_&_video",
+      "owner_id": "tc-002",
+      "label": "tc-002_draft.html",
+      "url": "tc-002_draft.html",
+      "exists": true,
+      "source_updated_at": "2026-07-22T23:19:57+09:00"
+    },
+    {
+      "category": "application",
+      "label": "複数ロボット学習ビューア",
+      "url": "robot_learning_swarm_demo.html",
+      "exists": true,
+      "source_updated_at": "2026-07-25T11:34:51+09:00"
+    },
+    {
+      "category": "application",
+      "label": "工場ワークセルモック",
+      "url": "factory_workcell_mock.html",
+      "exists": true,
+      "source_updated_at": "2026-07-25T07:25:48+09:00"
+    },
+    {
+      "category": "application",
+      "label": "絶対占い統合アプリ",
+      "url": "absolute_oracle_fortune.html",
+      "exists": true,
+      "source_updated_at": "2026-07-22T23:11:18+09:00"
+    },
+    {
+      "category": "application",
+      "label": "Local AI GameDev Launcher",
+      "url": "local_ai_gamedev_launcher.html",
+      "exists": true,
+      "source_updated_at": "2026-07-25T23:14:36+09:00"
+    },
+    {
+      "category": "application",
+      "label": "CETOL 3D公差解析",
+      "url": "../cetol6sigma/index.html",
+      "exists": true,
+      "source_updated_at": "2026-07-25T11:34:51+09:00"
+    },
+    {
+      "category": "video",
+      "label": "ポカヨケ",
+      "url": "/iatf_videos/IATF 16949 内部監査資料_ 箇条10.2.4ポカヨケ/IATF 16949 内部監査資料_ 箇条10.2.4ポカヨケ_slide_reviewed.mp4",
+      "exists": true,
+      "source_updated_at": "2026-06-18T23:48:09+09:00"
+    },
+    {
+      "category": "video",
+      "label": "9.1.1.2_工程管理と工程能力",
+      "url": "/iatf_videos/IATF 16949 内部監査資料_ 箇条7.1.5.1.1_9.1.1.2_工程管理と工程能力/IATF 16949 内部監査資料_ 箇条7.1.5.1.1_9.1.1.2_工程管理と工程能力_slide_reviewed.mp4",
+      "exists": true,
+      "source_updated_at": "2026-05-06T19:11:29+09:00"
+    },
+    {
+      "category": "video",
+      "label": "校正_検証の記録_7.3.1認識_補足",
+      "url": "/iatf_videos/IATF 16949 内部監査資料_ 箇条7.1.5.2.1_校正_検証の記録_7.3.1認識_補足/IATF 16949 内部監査資料_ 箇条7.1.5.2.1_校正_検証の記録_7.3.1認識_補足_slide_reviewed.mp4",
+      "exists": true,
+      "source_updated_at": "2026-05-10T23:49:50+09:00"
+    },
+    {
+      "category": "video",
+      "label": "標準作業-作業者指示書及び目視標準",
+      "url": "/iatf_videos/IATF 16949 内部監査資料_ 箇条8.5.1.2標準作業-作業者指示書及び目視標準/IATF 16949 内部監査資料_ 箇条8.5.1.2標準作業-作業者指示書及び目視標準_slide_reviewed.mp4",
+      "exists": true,
+      "source_updated_at": "2026-05-06T11:58:42+09:00"
+    },
+    {
+      "category": "video",
+      "label": "作業の段取り設定検証_箇条8.5.1.4シャットダウン後の検証",
+      "url": "/iatf_videos/IATF 16949 内部監査資料_ 箇条8.5.1.3作業の段取り設定検証_箇条8.5.1.4シャットダウン後の検証/IATF 16949 内部監査資料_ 箇条8.5.1.3作業の段取り設定検証_箇条8.5.1.4シャットダウン後の検証_slide_reviewed.mp4",
+      "exists": true,
+      "source_updated_at": "2026-05-10T23:02:13+09:00"
+    },
+    {
+      "category": "video",
+      "label": "生産治工具並びに製造_試験_検査の治工具及び設備の運用管理",
+      "url": "/iatf_videos/IATF 16949 内部監査資料_ 箇条8.5.1.6生産治工具並びに製造_試験_検査の治工具及び設備の運用管理/IATF 16949 内部監査資料_ 箇条8.5.1.6生産治工具並びに製造_試験_検査の治工具及び設備の運用管理_slide_reviewed.mp4",
+      "exists": true,
+      "source_updated_at": "2026-05-06T12:12:42+09:00"
+    },
+    {
+      "category": "video",
+      "label": "IATF 16949 内部監査資料_箇条 8.6 製品のリリース（製品の検査や最終リリース）IATF 16949  Final inspection",
+      "url": "/iatf_videos/IATF 16949 内部監査資料_箇条 8.6 製品のリリース（製品の検査や最終リリース）IATF 16949  Final inspection/IATF 16949 内部監査資料_箇条 8.6 製品のリリース（製品の検査や最終リリース）IATF 16949  Final inspection_slide_reviewed.mp4",
+      "exists": true,
+      "source_updated_at": "2026-05-06T12:24:22+09:00"
+    },
+    {
+      "category": "video",
+      "label": "改善_IATF 16949 Production performance",
+      "url": "/iatf_videos/IATF 16949 内部監査資料_箇条10 改善_IATF 16949  Production performance/IATF 16949 内部監査資料_箇条10 改善_IATF 16949  Production performance_slide_reviewed.mp4",
+      "exists": true,
+      "source_updated_at": "2026-05-11T10:49:13+09:00"
+    },
+    {
+      "category": "video",
+      "label": "ポカヨケ",
+      "url": "/iatf_videos/IATF 16949 内部監査資料_箇条10.2.4_ポカヨケ/IATF 16949 内部監査資料_箇条10.2.4_ポカヨケ_slide_reviewed.mp4",
+      "exists": true,
+      "source_updated_at": "2026-05-06T18:21:02+09:00"
+    },
+    {
+      "category": "video",
+      "label": "Material receipt",
+      "url": "/iatf_videos/IATF 16949 内部監査資料_箇条10改善ATF 16949_Material receipt/IATF 16949 内部監査資料_箇条10改善ATF 16949_Material receipt_slide_reviewed.mp4",
+      "exists": true,
+      "source_updated_at": "2026-06-13T07:34:12+09:00"
+    },
+    {
+      "category": "video",
+      "label": "6.1リスク及び機会への取り組み",
+      "url": "/iatf_videos/IATF 16949 内部監査資料_箇条4.4.1品質マネジメントシステム及びそのプロセス_箇条6.1リスク及び機会への取り組み/IATF 16949 内部監査資料_箇条4.4.1品質マネジメントシステム及びそのプロセス_箇条6.1リスク及び機会への取り組み_slide_reviewed.mp4",
+      "exists": true,
+      "source_updated_at": "2026-05-11T05:36:24+09:00"
+    },
+    {
+      "category": "video",
+      "label": "IATF 16949 内部監査資料_箇条6.2品質目標及びそれを達成するための計画策定",
+      "url": "/iatf_videos/IATF 16949 内部監査資料_箇条6.2品質目標及びそれを達成するための計画策定/IATF 16949 内部監査資料_箇条6.2品質目標及びそれを達成するための計画策定_slide_reviewed.mp4",
+      "exists": true,
+      "source_updated_at": "2026-05-11T06:28:23+09:00"
+    }
+  ]
+}

@@ -1,0 +1,2182 @@
+{
+  "schema": "clawstack.dxf2step_dashboard_status.v1",
+  "updated_at": "2026-07-25T23:20:28.467830+09:00",
+  "excel_url": "/apps/growth_dashboard/dxf2step_part_trial_status_latest.xlsx",
+  "excel_download_label": "部品トライ一覧 Excel (全シート)",
+  "reference_thickness_mm": 10.0,
+  "projects": [
+    {
+      "id": "380D_busbar",
+      "label": "380D金型（NT3621-P50 順送型）",
+      "total_parts": 109,
+      "done_parts": 87,
+      "failed_parts": 19,
+      "untried_parts": 0,
+      "progress_text": "87/109 図面 済",
+      "reference_thickness_mm": 10.0,
+      "parts": [
+        {
+          "name": "D1",
+          "status": "成功",
+          "trial_id": "tp-dxf-22de8bbb",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-06-26T02:18:49.509719+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/D1.dxf",
+          "assets": {
+            "dxf": "/dxf/D1.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-22de8bbb/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-22de8bbb/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-22de8bbb/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-22de8bbb/combined_views.png"
+          }
+        },
+        {
+          "name": "D11",
+          "status": "成功",
+          "trial_id": "tp-dxf-ca1d8cd7",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-06-14T06:08:50.922445+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/D11.dxf",
+          "assets": {
+            "dxf": "/dxf/D11.dxf",
+            "step": null,
+            "fcstd": null,
+            "telegram_preview": null,
+            "layer_preview": null
+          }
+        },
+        {
+          "name": "D12",
+          "status": "成功",
+          "trial_id": "tp-dxf-6a8d46db",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-06-26T04:28:46.388238+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/D12.dxf",
+          "assets": {
+            "dxf": "/dxf/D12.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-6a8d46db/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-6a8d46db/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-6a8d46db/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-6a8d46db/combined_views.png"
+          }
+        },
+        {
+          "name": "D13",
+          "status": "成功",
+          "trial_id": "tp-dxf-75447f9f",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-06-26T05:28:06.840772+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/D13.dxf",
+          "assets": {
+            "dxf": "/dxf/D13.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-75447f9f/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-75447f9f/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-75447f9f/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-75447f9f/combined_views.png"
+          }
+        },
+        {
+          "name": "D14",
+          "status": "成功",
+          "trial_id": "tp-dxf-27dbc193",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-06-26T06:27:14.800130+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/D14.dxf",
+          "assets": {
+            "dxf": "/dxf/D14.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-27dbc193/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-27dbc193/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-27dbc193/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-27dbc193/combined_views.png"
+          }
+        },
+        {
+          "name": "D15",
+          "status": "形状NG",
+          "trial_id": "tp-dxf-f5872a1d",
+          "thickness_mm": 15.0,
+          "last_trial_at": "2026-07-02T10:17:24.151865+09:00",
+          "verdict": "GEOMETRY_NG",
+          "note": "",
+          "local_dxf": "dxf/D15.dxf",
+          "assets": {
+            "dxf": "/dxf/D15.dxf",
+            "step": null,
+            "fcstd": null,
+            "telegram_preview": null,
+            "layer_preview": null
+          }
+        },
+        {
+          "name": "D16_17",
+          "status": "形状NG",
+          "trial_id": "tp-dxf-44433628",
+          "thickness_mm": 15.0,
+          "last_trial_at": "2026-07-02T11:12:40.452875+09:00",
+          "verdict": "GEOMETRY_NG",
+          "note": "",
+          "local_dxf": "dxf/D16_17.dxf",
+          "assets": {
+            "dxf": "/dxf/D16_17.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-44433628/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-44433628/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-44433628/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-44433628/combined_views.png"
+          }
+        },
+        {
+          "name": "D18",
+          "status": "形状NG",
+          "trial_id": "tp-dxf-8540c3a2",
+          "thickness_mm": 15.0,
+          "last_trial_at": "2026-07-02T12:07:24.764945+09:00",
+          "verdict": "GEOMETRY_NG",
+          "note": "",
+          "local_dxf": "dxf/D18.dxf",
+          "assets": {
+            "dxf": "/dxf/D18.dxf",
+            "step": null,
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-8540c3a2/2.FCStd",
+            "telegram_preview": null,
+            "layer_preview": null
+          }
+        },
+        {
+          "name": "D19",
+          "status": "成功",
+          "trial_id": "tp-dxf-b08a2059",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-06-26T10:26:05.328109+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/D19.dxf",
+          "assets": {
+            "dxf": "/dxf/D19.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-b08a2059/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-b08a2059/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-b08a2059/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-b08a2059/combined_views.png"
+          }
+        },
+        {
+          "name": "D2",
+          "status": "成功",
+          "trial_id": "tp-dxf-fdcc0395",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-06-26T17:57:33.074628+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/D2.dxf",
+          "assets": {
+            "dxf": "/dxf/D2.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-fdcc0395/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-fdcc0395/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-fdcc0395/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-fdcc0395/combined_views.png"
+          }
+        },
+        {
+          "name": "D20",
+          "status": "成功",
+          "trial_id": "tp-dxf-6aa691e2",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-07-02T14:39:40.670754+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/D20.dxf",
+          "assets": {
+            "dxf": "/dxf/D20.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-6aa691e2/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-6aa691e2/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-6aa691e2/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-6aa691e2/combined_views.png"
+          }
+        },
+        {
+          "name": "D21",
+          "status": "成功",
+          "trial_id": "tp-dxf-703b9f57",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-07-02T15:35:10.588764+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/D21.dxf",
+          "assets": {
+            "dxf": "/dxf/D21.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-703b9f57/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-703b9f57/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-703b9f57/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-703b9f57/combined_views.png"
+          }
+        },
+        {
+          "name": "D22",
+          "status": "成功",
+          "trial_id": "tp-dxf-34722cfd",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-06-26T21:15:55.129850+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/D22.dxf",
+          "assets": {
+            "dxf": "/dxf/D22.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-34722cfd/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-34722cfd/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-34722cfd/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-34722cfd/combined_views.png"
+          }
+        },
+        {
+          "name": "D23",
+          "status": "成功",
+          "trial_id": "tp-dxf-7311c9f4",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-06-26T22:22:07.348107+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/D23.dxf",
+          "assets": {
+            "dxf": "/dxf/D23.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-7311c9f4/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-7311c9f4/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-7311c9f4/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-7311c9f4/combined_views.png"
+          }
+        },
+        {
+          "name": "D24",
+          "status": "成功",
+          "trial_id": "tp-dxf-7e4acff8",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-06-26T23:24:25.552937+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/D24.dxf",
+          "assets": {
+            "dxf": "/dxf/D24.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-7e4acff8/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-7e4acff8/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-7e4acff8/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-7e4acff8/combined_views.png"
+          }
+        },
+        {
+          "name": "D25",
+          "status": "成功",
+          "trial_id": "tp-dxf-af755388",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-06-27T00:29:42.688435+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/D25.dxf",
+          "assets": {
+            "dxf": "/dxf/D25.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-af755388/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-af755388/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-af755388/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-af755388/combined_views.png"
+          }
+        },
+        {
+          "name": "D26",
+          "status": "成功",
+          "trial_id": "tp-dxf-3dda3f2c",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-06-27T01:32:01.698881+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/D26.dxf",
+          "assets": {
+            "dxf": "/dxf/D26.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-3dda3f2c/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-3dda3f2c/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-3dda3f2c/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-3dda3f2c/combined_views.png"
+          }
+        },
+        {
+          "name": "D27",
+          "status": "成功",
+          "trial_id": "tp-dxf-13538754",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-06-27T02:34:18.542819+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/D27.dxf",
+          "assets": {
+            "dxf": "/dxf/D27.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-13538754/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-13538754/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-13538754/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-13538754/combined_views.png"
+          }
+        },
+        {
+          "name": "D28",
+          "status": "成功",
+          "trial_id": "tp-dxf-080a87c4",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-06-27T03:35:16.282742+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/D28.dxf",
+          "assets": {
+            "dxf": "/dxf/D28.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-080a87c4/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-080a87c4/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-080a87c4/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-080a87c4/combined_views.png"
+          }
+        },
+        {
+          "name": "D29",
+          "status": "成功",
+          "trial_id": "tp-dxf-0313272b",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-06-27T04:35:34.852807+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/D29.dxf",
+          "assets": {
+            "dxf": "/dxf/D29.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-0313272b/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-0313272b/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-0313272b/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-0313272b/combined_views.png"
+          }
+        },
+        {
+          "name": "D3",
+          "status": "成功",
+          "trial_id": "tp-dxf-f0835050",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-06-27T05:37:47.100113+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/D3.dxf",
+          "assets": {
+            "dxf": "/dxf/D3.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-f0835050/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-f0835050/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-f0835050/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-f0835050/combined_views.png"
+          }
+        },
+        {
+          "name": "D30",
+          "status": "成功",
+          "trial_id": "tp-dxf-b348ab19",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-06-27T06:40:21.421975+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/D30.dxf",
+          "assets": {
+            "dxf": "/dxf/D30.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-b348ab19/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-b348ab19/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-b348ab19/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-b348ab19/combined_views.png"
+          }
+        },
+        {
+          "name": "D31",
+          "status": "成功",
+          "trial_id": "tp-dxf-1b82db36",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-07-03T07:48:12.591197+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/D31.dxf",
+          "assets": {
+            "dxf": "/dxf/D31.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-1b82db36/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-1b82db36/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-1b82db36/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-1b82db36/combined_views.png"
+          }
+        },
+        {
+          "name": "D32",
+          "status": "成功",
+          "trial_id": "tp-dxf-4a8960e7",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-06-27T08:41:54.948174+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/D32.dxf",
+          "assets": {
+            "dxf": "/dxf/D32.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-4a8960e7/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-4a8960e7/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-4a8960e7/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-4a8960e7/combined_views.png"
+          }
+        },
+        {
+          "name": "D33",
+          "status": "一部成功",
+          "trial_id": "tp-dxf-aa5be4e8",
+          "thickness_mm": 15.0,
+          "last_trial_at": "2026-07-03T10:00:41.767216+09:00",
+          "verdict": "PARTIAL",
+          "note": "",
+          "local_dxf": "dxf/D33.dxf",
+          "assets": {
+            "dxf": "/dxf/D33.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-aa5be4e8/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-aa5be4e8/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-aa5be4e8/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-aa5be4e8/combined_views.png"
+          }
+        },
+        {
+          "name": "D34",
+          "status": "成功",
+          "trial_id": "tp-dxf-488cbf2c",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-07-03T10:34:04.109047+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/D34.dxf",
+          "assets": {
+            "dxf": "/dxf/D34.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-488cbf2c/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-488cbf2c/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-488cbf2c/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-488cbf2c/combined_views.png"
+          }
+        },
+        {
+          "name": "D35",
+          "status": "成功",
+          "trial_id": "tp-dxf-6c0b8205",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-07-03T11:29:21.475659+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/D35.dxf",
+          "assets": {
+            "dxf": "/dxf/D35.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-6c0b8205/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-6c0b8205/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-6c0b8205/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-6c0b8205/combined_views.png"
+          }
+        },
+        {
+          "name": "D36",
+          "status": "成功",
+          "trial_id": "tp-dxf-5928c7c9",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-06-28T09:30:22.529066+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/D36.dxf",
+          "assets": {
+            "dxf": "/dxf/D36.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-5928c7c9/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-5928c7c9/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-5928c7c9/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-5928c7c9/combined_views.png"
+          }
+        },
+        {
+          "name": "D37",
+          "status": "形状NG",
+          "trial_id": "tp-dxf-5d5e0281",
+          "thickness_mm": 15.0,
+          "last_trial_at": "2026-07-03T13:40:01.954684+09:00",
+          "verdict": "GEOMETRY_NG",
+          "note": "",
+          "local_dxf": "dxf/D37.dxf",
+          "assets": {
+            "dxf": "/dxf/D37.dxf",
+            "step": null,
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-5d5e0281/1.FCStd",
+            "telegram_preview": null,
+            "layer_preview": null
+          }
+        },
+        {
+          "name": "D38",
+          "status": "形状NG",
+          "trial_id": "tp-dxf-58701f6a",
+          "thickness_mm": 15.0,
+          "last_trial_at": "2026-07-03T14:34:30.693083+09:00",
+          "verdict": "GEOMETRY_NG",
+          "note": "",
+          "local_dxf": "dxf/D38.dxf",
+          "assets": {
+            "dxf": "/dxf/D38.dxf",
+            "step": null,
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-58701f6a/1.FCStd",
+            "telegram_preview": null,
+            "layer_preview": null
+          }
+        },
+        {
+          "name": "D4",
+          "status": "一部成功",
+          "trial_id": "tp-dxf-c1bd15ce",
+          "thickness_mm": 15.0,
+          "last_trial_at": "2026-07-03T15:29:49.209092+09:00",
+          "verdict": "PARTIAL",
+          "note": "",
+          "local_dxf": "dxf/D4.dxf",
+          "assets": {
+            "dxf": "/dxf/D4.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-c1bd15ce/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-c1bd15ce/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-c1bd15ce/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-c1bd15ce/combined_views.png"
+          }
+        },
+        {
+          "name": "D5",
+          "status": "成功",
+          "trial_id": "tp-dxf-9983c430",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-06-28T19:21:18.657487+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/D5.dxf",
+          "assets": {
+            "dxf": "/dxf/D5.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-9983c430/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-9983c430/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-9983c430/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-9983c430/combined_views.png"
+          }
+        },
+        {
+          "name": "D6",
+          "status": "成功",
+          "trial_id": "tp-dxf-6082775c",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-06-28T20:22:36.646455+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/D6.dxf",
+          "assets": {
+            "dxf": "/dxf/D6.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-6082775c/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-6082775c/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-6082775c/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-6082775c/combined_views.png"
+          }
+        },
+        {
+          "name": "D7",
+          "status": "成功",
+          "trial_id": "tp-dxf-f163182a",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-06-28T21:23:16.570368+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/D7.dxf",
+          "assets": {
+            "dxf": "/dxf/D7.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-f163182a/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-f163182a/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-f163182a/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-f163182a/combined_views.png"
+          }
+        },
+        {
+          "name": "D8",
+          "status": "成功",
+          "trial_id": "tp-dxf-f121210e",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-06-28T22:23:49.322393+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/D8.dxf",
+          "assets": {
+            "dxf": "/dxf/D8.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-f121210e/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-f121210e/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-f121210e/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-f121210e/combined_views.png"
+          }
+        },
+        {
+          "name": "D9",
+          "status": "成功",
+          "trial_id": "tp-dxf-4fa6471e",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-06-28T23:25:11.381682+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/D9.dxf",
+          "assets": {
+            "dxf": "/dxf/D9.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-4fa6471e/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-4fa6471e/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-4fa6471e/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-4fa6471e/combined_views.png"
+          }
+        },
+        {
+          "name": "P1",
+          "status": "成功",
+          "trial_id": "tp-dxf-60605e9d",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-06-29T00:27:21.822823+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/P1.dxf",
+          "assets": {
+            "dxf": "/dxf/P1.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-60605e9d/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-60605e9d/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-60605e9d/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-60605e9d/combined_views.png"
+          }
+        },
+        {
+          "name": "P10",
+          "status": "成功",
+          "trial_id": "tp-dxf-8a092e2d",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-06-29T01:26:56.452498+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/P10.dxf",
+          "assets": {
+            "dxf": "/dxf/P10.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-8a092e2d/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-8a092e2d/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-8a092e2d/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-8a092e2d/combined_views.png"
+          }
+        },
+        {
+          "name": "P11",
+          "status": "成功",
+          "trial_id": "tp-dxf-afa59316",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-06-29T02:27:18.500832+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/P11.dxf",
+          "assets": {
+            "dxf": "/dxf/P11.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-afa59316/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-afa59316/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-afa59316/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-afa59316/combined_views.png"
+          }
+        },
+        {
+          "name": "P12",
+          "status": "失敗",
+          "trial_id": "tp-dxf-0f3638b0",
+          "thickness_mm": 15.0,
+          "last_trial_at": "2026-07-03T23:48:20.797217+09:00",
+          "verdict": "FAILED",
+          "note": "",
+          "local_dxf": "dxf/P12.dxf",
+          "assets": {
+            "dxf": "/dxf/P12.dxf",
+            "step": null,
+            "fcstd": null,
+            "telegram_preview": null,
+            "layer_preview": null
+          }
+        },
+        {
+          "name": "P13",
+          "status": "成功",
+          "trial_id": "tp-dxf-fd8871af",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-06-29T04:25:50.074461+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/P13.dxf",
+          "assets": {
+            "dxf": "/dxf/P13.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-fd8871af/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-fd8871af/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-fd8871af/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-fd8871af/combined_views.png"
+          }
+        },
+        {
+          "name": "P14",
+          "status": "成功",
+          "trial_id": "tp-dxf-92ce832b",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-06-29T05:25:57.677629+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/P14.dxf",
+          "assets": {
+            "dxf": "/dxf/P14.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-92ce832b/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-92ce832b/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-92ce832b/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-92ce832b/combined_views.png"
+          }
+        },
+        {
+          "name": "P15",
+          "status": "成功",
+          "trial_id": "tp-dxf-c5402068",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-06-29T06:37:55.518472+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/P15.dxf",
+          "assets": {
+            "dxf": "/dxf/P15.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-c5402068/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-c5402068/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-c5402068/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-c5402068/combined_views.png"
+          }
+        },
+        {
+          "name": "P16",
+          "status": "失敗",
+          "trial_id": "tp-dxf-d8ecd39c",
+          "thickness_mm": 15.0,
+          "last_trial_at": "2026-07-04T03:35:17.068921+09:00",
+          "verdict": "FAILED",
+          "note": "",
+          "local_dxf": "dxf/P16.dxf",
+          "assets": {
+            "dxf": "/dxf/P16.dxf",
+            "step": null,
+            "fcstd": null,
+            "telegram_preview": null,
+            "layer_preview": null
+          }
+        },
+        {
+          "name": "P17",
+          "status": "成功",
+          "trial_id": "tp-dxf-f4d262c2",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-06-29T08:34:21.780446+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/P17.dxf",
+          "assets": {
+            "dxf": "/dxf/P17.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-f4d262c2/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-f4d262c2/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-f4d262c2/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-f4d262c2/combined_views.png"
+          }
+        },
+        {
+          "name": "P18",
+          "status": "失敗",
+          "trial_id": "tp-dxf-7884d87a",
+          "thickness_mm": 15.0,
+          "last_trial_at": "2026-07-04T05:23:15.523376+09:00",
+          "verdict": "FAILED",
+          "note": "",
+          "local_dxf": "dxf/P18.dxf",
+          "assets": {
+            "dxf": "/dxf/P18.dxf",
+            "step": null,
+            "fcstd": null,
+            "telegram_preview": null,
+            "layer_preview": null
+          }
+        },
+        {
+          "name": "P19",
+          "status": "失敗",
+          "trial_id": "tp-dxf-447bb875",
+          "thickness_mm": 15.0,
+          "last_trial_at": "2026-07-04T06:17:19.393553+09:00",
+          "verdict": "FAILED",
+          "note": "",
+          "local_dxf": "dxf/P19.dxf",
+          "assets": {
+            "dxf": "/dxf/P19.dxf",
+            "step": null,
+            "fcstd": null,
+            "telegram_preview": null,
+            "layer_preview": null
+          }
+        },
+        {
+          "name": "P2",
+          "status": "成功",
+          "trial_id": "tp-dxf-c9b9a567",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-06-29T11:31:08.809289+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/P2.dxf",
+          "assets": {
+            "dxf": "/dxf/P2.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-c9b9a567/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-c9b9a567/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-c9b9a567/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-c9b9a567/combined_views.png"
+          }
+        },
+        {
+          "name": "P20",
+          "status": "成功",
+          "trial_id": "tp-dxf-5db23d99",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-06-29T12:31:11.481196+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/P20.dxf",
+          "assets": {
+            "dxf": "/dxf/P20.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-5db23d99/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-5db23d99/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-5db23d99/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-5db23d99/combined_views.png"
+          }
+        },
+        {
+          "name": "P21",
+          "status": "成功",
+          "trial_id": "tp-dxf-4e6ea129",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-06-29T13:43:30.519770+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/P21.dxf",
+          "assets": {
+            "dxf": "/dxf/P21.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-4e6ea129/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-4e6ea129/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-4e6ea129/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-4e6ea129/combined_views.png"
+          }
+        },
+        {
+          "name": "P22",
+          "status": "成功",
+          "trial_id": "tp-dxf-726a2c46",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-06-29T14:44:35.398514+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/P22.dxf",
+          "assets": {
+            "dxf": "/dxf/P22.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-726a2c46/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-726a2c46/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-726a2c46/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-726a2c46/combined_views.png"
+          }
+        },
+        {
+          "name": "P23",
+          "status": "失敗",
+          "trial_id": "tp-dxf-17c04e06",
+          "thickness_mm": 15.0,
+          "last_trial_at": "2026-07-04T10:47:35.508384+09:00",
+          "verdict": "FAILED",
+          "note": "",
+          "local_dxf": "dxf/P23.dxf",
+          "assets": {
+            "dxf": "/dxf/P23.dxf",
+            "step": null,
+            "fcstd": null,
+            "telegram_preview": null,
+            "layer_preview": null
+          }
+        },
+        {
+          "name": "P24",
+          "status": "失敗",
+          "trial_id": "tp-dxf-81aba807",
+          "thickness_mm": 15.0,
+          "last_trial_at": "2026-07-04T11:41:35.016315+09:00",
+          "verdict": "FAILED",
+          "note": "",
+          "local_dxf": "dxf/P24.dxf",
+          "assets": {
+            "dxf": "/dxf/P24.dxf",
+            "step": null,
+            "fcstd": null,
+            "telegram_preview": null,
+            "layer_preview": null
+          }
+        },
+        {
+          "name": "P25",
+          "status": "成功",
+          "trial_id": "tp-dxf-204e660d",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-06-29T17:41:41.340556+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/P25.dxf",
+          "assets": {
+            "dxf": "/dxf/P25.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-204e660d/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-204e660d/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-204e660d/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-204e660d/combined_views.png"
+          }
+        },
+        {
+          "name": "P26",
+          "status": "失敗",
+          "trial_id": "tp-dxf-bf9b4a99",
+          "thickness_mm": 15.0,
+          "last_trial_at": "2026-07-04T13:29:28.246767+09:00",
+          "verdict": "FAILED",
+          "note": "",
+          "local_dxf": "dxf/P26.dxf",
+          "assets": {
+            "dxf": "/dxf/P26.dxf",
+            "step": null,
+            "fcstd": null,
+            "telegram_preview": null,
+            "layer_preview": null
+          }
+        },
+        {
+          "name": "P27",
+          "status": "失敗",
+          "trial_id": "tp-dxf-af9e2d29",
+          "thickness_mm": 15.0,
+          "last_trial_at": "2026-07-04T14:33:37.272705+09:00",
+          "verdict": "FAILED",
+          "note": "",
+          "local_dxf": "dxf/P27.dxf",
+          "assets": {
+            "dxf": "/dxf/P27.dxf",
+            "step": null,
+            "fcstd": null,
+            "telegram_preview": null,
+            "layer_preview": null
+          }
+        },
+        {
+          "name": "P28",
+          "status": "失敗",
+          "trial_id": "tp-dxf-5fbeb688",
+          "thickness_mm": 15.0,
+          "last_trial_at": "2026-07-04T15:38:33.309802+09:00",
+          "verdict": "FAILED",
+          "note": "",
+          "local_dxf": "dxf/P28.dxf",
+          "assets": {
+            "dxf": "/dxf/P28.dxf",
+            "step": null,
+            "fcstd": null,
+            "telegram_preview": null,
+            "layer_preview": null
+          }
+        },
+        {
+          "name": "P29",
+          "status": "成功",
+          "trial_id": "tp-dxf-d60be385",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-06-29T21:35:38.565088+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/P29.dxf",
+          "assets": {
+            "dxf": "/dxf/P29.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-d60be385/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-d60be385/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-d60be385/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-d60be385/combined_views.png"
+          }
+        },
+        {
+          "name": "P3",
+          "status": "成功",
+          "trial_id": "tp-dxf-df51ea07",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-06-29T22:35:35.487261+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/P3.dxf",
+          "assets": {
+            "dxf": "/dxf/P3.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-df51ea07/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-df51ea07/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-df51ea07/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-df51ea07/combined_views.png"
+          }
+        },
+        {
+          "name": "P30",
+          "status": "失敗",
+          "trial_id": "tp-dxf-aab5aad1",
+          "thickness_mm": 15.0,
+          "last_trial_at": "2026-07-04T18:20:53.371694+09:00",
+          "verdict": "FAILED",
+          "note": "",
+          "local_dxf": "dxf/P30.dxf",
+          "assets": {
+            "dxf": "/dxf/P30.dxf",
+            "step": null,
+            "fcstd": null,
+            "telegram_preview": null,
+            "layer_preview": null
+          }
+        },
+        {
+          "name": "P31",
+          "status": "成功",
+          "trial_id": "tp-dxf-15514a78",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-06-30T00:37:01.280708+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/P31.dxf",
+          "assets": {
+            "dxf": "/dxf/P31.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-15514a78/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-15514a78/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-15514a78/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-15514a78/combined_views.png"
+          }
+        },
+        {
+          "name": "P32",
+          "status": "成功",
+          "trial_id": "tp-dxf-ef007308",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-06-30T01:36:39.144778+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/P32.dxf",
+          "assets": {
+            "dxf": "/dxf/P32.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-ef007308/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-ef007308/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-ef007308/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-ef007308/combined_views.png"
+          }
+        },
+        {
+          "name": "P33",
+          "status": "成功",
+          "trial_id": "tp-dxf-3b1db994",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-06-30T02:36:27.465786+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/P33.dxf",
+          "assets": {
+            "dxf": "/dxf/P33.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-3b1db994/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-3b1db994/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-3b1db994/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-3b1db994/combined_views.png"
+          }
+        },
+        {
+          "name": "P34",
+          "status": "成功",
+          "trial_id": "tp-dxf-2587c50b",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-06-30T03:35:48.031398+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/P34.dxf",
+          "assets": {
+            "dxf": "/dxf/P34.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-2587c50b/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-2587c50b/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-2587c50b/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-2587c50b/combined_views.png"
+          }
+        },
+        {
+          "name": "P35_36",
+          "status": "成功",
+          "trial_id": "tp-dxf-634f165c",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-06-30T04:34:51.201057+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/P35_36.dxf",
+          "assets": {
+            "dxf": "/dxf/P35_36.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-634f165c/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-634f165c/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-634f165c/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-634f165c/combined_views.png"
+          }
+        },
+        {
+          "name": "P37",
+          "status": "成功",
+          "trial_id": "tp-dxf-c86a74f0",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-06-30T05:32:55.978661+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/P37.dxf",
+          "assets": {
+            "dxf": "/dxf/P37.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-c86a74f0/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-c86a74f0/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-c86a74f0/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-c86a74f0/combined_views.png"
+          }
+        },
+        {
+          "name": "P38",
+          "status": "成功",
+          "trial_id": "tp-dxf-4a4fb032",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-06-30T06:28:41.299024+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/P38.dxf",
+          "assets": {
+            "dxf": "/dxf/P38.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-4a4fb032/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-4a4fb032/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-4a4fb032/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-4a4fb032/combined_views.png"
+          }
+        },
+        {
+          "name": "P39",
+          "status": "成功",
+          "trial_id": "tp-dxf-8f2e2600",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-06-19T19:39:51.649348+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/P39.dxf",
+          "assets": {
+            "dxf": "/dxf/P39.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-8f2e2600/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-8f2e2600/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-8f2e2600/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-8f2e2600/combined_views.png"
+          }
+        },
+        {
+          "name": "P4",
+          "status": "成功",
+          "trial_id": "tp-dxf-47e7468b",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-06-30T08:20:29.280045+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/P4.dxf",
+          "assets": {
+            "dxf": "/dxf/P4.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-47e7468b/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-47e7468b/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-47e7468b/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-47e7468b/combined_views.png"
+          }
+        },
+        {
+          "name": "P40",
+          "status": "成功",
+          "trial_id": "tp-dxf-8c23560d",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-06-22T23:53:36.430015+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/P40.dxf",
+          "assets": {
+            "dxf": "/dxf/P40.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-8c23560d/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-8c23560d/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-8c23560d/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-8c23560d/combined_views.png"
+          }
+        },
+        {
+          "name": "P41_42",
+          "status": "成功",
+          "trial_id": "tp-dxf-95e06e26",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-06-19T19:45:48.263986+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/P41_42.dxf",
+          "assets": {
+            "dxf": "/dxf/P41_42.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-95e06e26/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-95e06e26/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-95e06e26/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-95e06e26/combined_views.png"
+          }
+        },
+        {
+          "name": "P43",
+          "status": "成功",
+          "trial_id": "tp-dxf-a82347b7",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-06-30T11:04:25.730590+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/P43.dxf",
+          "assets": {
+            "dxf": "/dxf/P43.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-a82347b7/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-a82347b7/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-a82347b7/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-a82347b7/combined_views.png"
+          }
+        },
+        {
+          "name": "P44",
+          "status": "成功",
+          "trial_id": "tp-dxf-75f17907",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-07-05T06:56:13.645798+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/P44.dxf",
+          "assets": {
+            "dxf": "/dxf/P44.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-75f17907/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-75f17907/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-75f17907/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-75f17907/combined_views.png"
+          }
+        },
+        {
+          "name": "P45",
+          "status": "成功",
+          "trial_id": "tp-dxf-e6b04907",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-06-19T03:36:29.193720+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/P45.dxf",
+          "assets": {
+            "dxf": "/dxf/P45.dxf",
+            "step": null,
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-e6b04907/1.FCStd",
+            "telegram_preview": null,
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-e6b04907/1_views.png"
+          }
+        },
+        {
+          "name": "P46",
+          "status": "成功",
+          "trial_id": "tp-dxf-84e8a149",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-06-23T00:06:13.636555+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/P46.dxf",
+          "assets": {
+            "dxf": "/dxf/P46.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-84e8a149/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-84e8a149/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-84e8a149/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-84e8a149/combined_views.png"
+          }
+        },
+        {
+          "name": "P47",
+          "status": "成功",
+          "trial_id": "tp-dxf-98eee763",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-06-30T14:43:47.851620+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/P47.dxf",
+          "assets": {
+            "dxf": "/dxf/P47.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-98eee763/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-98eee763/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-98eee763/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-98eee763/combined_views.png"
+          }
+        },
+        {
+          "name": "P5",
+          "status": "成功",
+          "trial_id": "tp-dxf-79eeed6c",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-06-30T15:51:07.504435+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/P5.dxf",
+          "assets": {
+            "dxf": "/dxf/P5.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-79eeed6c/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-79eeed6c/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-79eeed6c/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-79eeed6c/combined_views.png"
+          }
+        },
+        {
+          "name": "P6",
+          "status": "成功",
+          "trial_id": "tp-dxf-05d72c9a",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-06-30T16:46:49.194479+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/P6.dxf",
+          "assets": {
+            "dxf": "/dxf/P6.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-05d72c9a/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-05d72c9a/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-05d72c9a/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-05d72c9a/combined_views.png"
+          }
+        },
+        {
+          "name": "P7",
+          "status": "成功",
+          "trial_id": "tp-dxf-980d773f",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-06-30T17:42:36.346992+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/P7.dxf",
+          "assets": {
+            "dxf": "/dxf/P7.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-980d773f/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-980d773f/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-980d773f/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-980d773f/combined_views.png"
+          }
+        },
+        {
+          "name": "P8",
+          "status": "成功",
+          "trial_id": "tp-dxf-fcf0e246",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-06-30T18:49:53.265451+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/P8.dxf",
+          "assets": {
+            "dxf": "/dxf/P8.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-fcf0e246/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-fcf0e246/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-fcf0e246/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-fcf0e246/combined_views.png"
+          }
+        },
+        {
+          "name": "P9",
+          "status": "成功",
+          "trial_id": "tp-dxf-fb65513d",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-06-30T19:46:00.109820+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/P9.dxf",
+          "assets": {
+            "dxf": "/dxf/P9.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-fb65513d/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-fb65513d/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-fb65513d/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-fb65513d/combined_views.png"
+          }
+        },
+        {
+          "name": "S1",
+          "status": "成功",
+          "trial_id": "tp-dxf-79b9775a",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-06-30T20:41:49.572841+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/S1.dxf",
+          "assets": {
+            "dxf": "/dxf/S1.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-79b9775a/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-79b9775a/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-79b9775a/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-79b9775a/combined_views.png"
+          }
+        },
+        {
+          "name": "S11",
+          "status": "成功",
+          "trial_id": "tp-dxf-0c0bdc1b",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-07-06T15:33:51.218809+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/S11.dxf",
+          "assets": {
+            "dxf": "/dxf/S11.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-0c0bdc1b/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-0c0bdc1b/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-0c0bdc1b/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-0c0bdc1b/combined_views.png"
+          }
+        },
+        {
+          "name": "S12",
+          "status": "失敗",
+          "trial_id": "tp-dxf-e0eae1b8",
+          "thickness_mm": 15.0,
+          "last_trial_at": "2026-07-06T17:01:30.874291+09:00",
+          "verdict": "FAILED",
+          "note": "",
+          "local_dxf": "dxf/S12.dxf",
+          "assets": {
+            "dxf": "/dxf/S12.dxf",
+            "step": null,
+            "fcstd": null,
+            "telegram_preview": null,
+            "layer_preview": null
+          }
+        },
+        {
+          "name": "S13",
+          "status": "成功",
+          "trial_id": "tp-dxf-aae9f460",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-06-19T16:27:00.527923+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/S13.dxf",
+          "assets": {
+            "dxf": "/dxf/S13.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-aae9f460/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-aae9f460/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-aae9f460/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-aae9f460/combined_views.png"
+          }
+        },
+        {
+          "name": "S14",
+          "status": "成功",
+          "trial_id": "tp-dxf-7cd5b37b",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-06-19T17:24:58.482131+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/S14.dxf",
+          "assets": {
+            "dxf": "/dxf/S14.dxf",
+            "step": null,
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-7cd5b37b/1.FCStd",
+            "telegram_preview": null,
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-7cd5b37b/1_views.png"
+          }
+        },
+        {
+          "name": "S15_16",
+          "status": "失敗",
+          "trial_id": "tp-dxf-17e5f621",
+          "thickness_mm": 15.0,
+          "last_trial_at": "2026-07-06T19:43:50.256410+09:00",
+          "verdict": "FAILED",
+          "note": "",
+          "local_dxf": "dxf/S15_16.dxf",
+          "assets": {
+            "dxf": "/dxf/S15_16.dxf",
+            "step": null,
+            "fcstd": null,
+            "telegram_preview": null,
+            "layer_preview": null
+          }
+        },
+        {
+          "name": "S17",
+          "status": "成功",
+          "trial_id": "tp-dxf-db8c6201",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-06-19T19:19:32.843271+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/S17.dxf",
+          "assets": {
+            "dxf": "/dxf/S17.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-db8c6201/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-db8c6201/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-db8c6201/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-db8c6201/combined_views.png"
+          }
+        },
+        {
+          "name": "S18_19",
+          "status": "成功",
+          "trial_id": "tp-dxf-46e602c0",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-07-06T21:09:08.617579+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/S18_19.dxf",
+          "assets": {
+            "dxf": "/dxf/S18_19.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-46e602c0/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-46e602c0/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-46e602c0/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-46e602c0/combined_views.png"
+          }
+        },
+        {
+          "name": "S2",
+          "status": "成功",
+          "trial_id": "tp-dxf-1b9e89bb",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-07-06T22:04:04.487856+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/S2.dxf",
+          "assets": {
+            "dxf": "/dxf/S2.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-1b9e89bb/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-1b9e89bb/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-1b9e89bb/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-1b9e89bb/combined_views.png"
+          }
+        },
+        {
+          "name": "S20",
+          "status": "成功",
+          "trial_id": "tp-dxf-700e8860",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-07-06T23:10:16.020028+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/S20.dxf",
+          "assets": {
+            "dxf": "/dxf/S20.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-700e8860/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-700e8860/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-700e8860/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-700e8860/combined_views.png"
+          }
+        },
+        {
+          "name": "S21",
+          "status": "成功",
+          "trial_id": "tp-dxf-0daa80d7",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-07-07T00:20:43.759927+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/S21.dxf",
+          "assets": {
+            "dxf": "/dxf/S21.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-0daa80d7/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-0daa80d7/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-0daa80d7/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-0daa80d7/combined_views.png"
+          }
+        },
+        {
+          "name": "S22",
+          "status": "失敗",
+          "trial_id": "tp-dxf-a295fefd",
+          "thickness_mm": 15.0,
+          "last_trial_at": "2026-07-07T01:47:13.375889+09:00",
+          "verdict": "FAILED",
+          "note": "",
+          "local_dxf": "dxf/S22.dxf",
+          "assets": {
+            "dxf": "/dxf/S22.dxf",
+            "step": null,
+            "fcstd": null,
+            "telegram_preview": null,
+            "layer_preview": null
+          }
+        },
+        {
+          "name": "S23",
+          "status": "成功",
+          "trial_id": "tp-dxf-32a7f457",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-07-13T23:28:19.132802+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/S23.dxf",
+          "assets": {
+            "dxf": "/dxf/S23.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-32a7f457/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-32a7f457/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-32a7f457/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-32a7f457/combined_views.png"
+          }
+        },
+        {
+          "name": "S24",
+          "status": "一部成功",
+          "trial_id": "tp-dxf-9358838b",
+          "thickness_mm": 15.0,
+          "last_trial_at": "2026-07-14T01:12:32.990566+09:00",
+          "verdict": "PARTIAL",
+          "note": "",
+          "local_dxf": "dxf/S24.dxf",
+          "assets": {
+            "dxf": "/dxf/S24.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-9358838b/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-9358838b/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-9358838b/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-9358838b/combined_views.png"
+          }
+        },
+        {
+          "name": "S25",
+          "status": "成功",
+          "trial_id": "tp-dxf-0f9cdf7c",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-07-14T01:46:07.155109+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/S25.dxf",
+          "assets": {
+            "dxf": "/dxf/S25.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-0f9cdf7c/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-0f9cdf7c/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-0f9cdf7c/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-0f9cdf7c/combined_views.png"
+          }
+        },
+        {
+          "name": "S26",
+          "status": "成功",
+          "trial_id": "tp-dxf-af6e54fb",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-07-14T02:42:16.353228+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/S26.dxf",
+          "assets": {
+            "dxf": "/dxf/S26.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-af6e54fb/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-af6e54fb/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-af6e54fb/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-af6e54fb/combined_views.png"
+          }
+        },
+        {
+          "name": "S27",
+          "status": "失敗",
+          "trial_id": "tp-dxf-dd10789d",
+          "thickness_mm": 15.0,
+          "last_trial_at": "2026-07-14T04:19:28.450835+09:00",
+          "verdict": "FAILED",
+          "note": "",
+          "local_dxf": "dxf/S27.dxf",
+          "assets": {
+            "dxf": "/dxf/S27.dxf",
+            "step": null,
+            "fcstd": null,
+            "telegram_preview": null,
+            "layer_preview": null
+          }
+        },
+        {
+          "name": "S28",
+          "status": "成功",
+          "trial_id": "tp-dxf-b3cf6ae6",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-07-14T04:52:43.751912+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/S28.dxf",
+          "assets": {
+            "dxf": "/dxf/S28.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-b3cf6ae6/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-b3cf6ae6/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-b3cf6ae6/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-b3cf6ae6/combined_views.png"
+          }
+        },
+        {
+          "name": "S29",
+          "status": "成功",
+          "trial_id": "tp-dxf-b9947529",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-06-23T01:34:49.393039+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/S29.dxf",
+          "assets": {
+            "dxf": "/dxf/S29.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-b9947529/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-b9947529/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-b9947529/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-b9947529/combined_views.png"
+          }
+        },
+        {
+          "name": "S3",
+          "status": "成功",
+          "trial_id": "tp-dxf-e25aa8fa",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-06-20T15:50:50.655518+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/S3.dxf",
+          "assets": {
+            "dxf": "/dxf/S3.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-e25aa8fa/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-e25aa8fa/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-e25aa8fa/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-e25aa8fa/combined_views.png"
+          }
+        },
+        {
+          "name": "S30",
+          "status": "成功",
+          "trial_id": "tp-dxf-87ea2e1c",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-07-25T21:09:42.367372+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/S30.dxf",
+          "assets": {
+            "dxf": "/dxf/S30.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-87ea2e1c/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-87ea2e1c/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-87ea2e1c/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-87ea2e1c/combined_views.png"
+          }
+        },
+        {
+          "name": "S4",
+          "status": "成功",
+          "trial_id": "tp-dxf-d0d9799f",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-07-25T21:17:05.015978+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/S4.dxf",
+          "assets": {
+            "dxf": "/dxf/S4.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-d0d9799f/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-d0d9799f/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-d0d9799f/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-d0d9799f/combined_views.png"
+          }
+        },
+        {
+          "name": "S5",
+          "status": "成功",
+          "trial_id": "tp-dxf-bf285407",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-06-20T20:46:52.718921+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/S5.dxf",
+          "assets": {
+            "dxf": "/dxf/S5.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-bf285407/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-bf285407/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-bf285407/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-bf285407/combined_views.png"
+          }
+        },
+        {
+          "name": "S6",
+          "status": "成功",
+          "trial_id": "tp-dxf-9b7f21d6",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-06-23T01:39:53.484284+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/S6.dxf",
+          "assets": {
+            "dxf": "/dxf/S6.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-9b7f21d6/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-9b7f21d6/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-9b7f21d6/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-9b7f21d6/combined_views.png"
+          }
+        },
+        {
+          "name": "S7",
+          "status": "成功",
+          "trial_id": "tp-dxf-6188db50",
+          "thickness_mm": 12.0,
+          "last_trial_at": "2026-06-23T01:41:53.207208+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/S7.dxf",
+          "assets": {
+            "dxf": "/dxf/S7.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-6188db50/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-6188db50/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-6188db50/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-6188db50/combined_views.png"
+          }
+        },
+        {
+          "name": "S8",
+          "status": "成功",
+          "trial_id": "tp-dxf-9839f556",
+          "thickness_mm": 15.0,
+          "last_trial_at": "2026-06-23T01:43:44.773275+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/S8.dxf",
+          "assets": {
+            "dxf": "/dxf/S8.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-9839f556/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-9839f556/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-9839f556/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-9839f556/combined_views.png"
+          }
+        },
+        {
+          "name": "S9",
+          "status": "成功",
+          "trial_id": "tp-dxf-0a06d4c5",
+          "thickness_mm": 5.0,
+          "last_trial_at": "2026-06-23T01:45:47.026193+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/S9.dxf",
+          "assets": {
+            "dxf": "/dxf/S9.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-0a06d4c5/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-0a06d4c5/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-0a06d4c5/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-0a06d4c5/combined_views.png"
+          }
+        },
+        {
+          "name": "【380-3】☆NT3621-P50_PM9ECB_Busbar順送型_2個取り_増面型No3【25-007】組立図",
+          "status": "成功",
+          "trial_id": "tp-dxf-0430c2ca",
+          "thickness_mm": 15.0,
+          "last_trial_at": "2026-06-27T20:45:45.558997+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "dxf/【380-3】☆NT3621-P50_PM9ECB_Busbar順送型_2個取り_増面型No3【25-007】組立図.dxf",
+          "assets": {
+            "dxf": "/dxf/【380-3】☆NT3621-P50_PM9ECB_Busbar順送型_2個取り_増面型No3【25-007】組立図.dxf",
+            "step": "/thinkpad_dxf2step_history/tp-dxf-0430c2ca/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-0430c2ca/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-0430c2ca/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-0430c2ca/combined_views.png"
+          }
+        }
+      ]
+    },
+    {
+      "id": "demo_samples",
+      "label": "デモ・検証用サンプル",
+      "total_parts": 5,
+      "done_parts": 5,
+      "failed_parts": 0,
+      "untried_parts": 0,
+      "progress_text": "5/5 図面 済",
+      "reference_thickness_mm": 10.0,
+      "parts": [
+        {
+          "name": "bracket",
+          "status": "成功",
+          "trial_id": "tp-dxf-191c1750",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-06-20T22:09:05.801837+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "data/workspace/apps/dxf2step/jobs/trial_20260524_085958_bracket_d4220f/input/bracket_design.dxf",
+          "assets": {
+            "dxf": null,
+            "step": "/thinkpad_dxf2step_history/tp-dxf-191c1750/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-191c1750/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-191c1750/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-191c1750/combined_views.png"
+          }
+        },
+        {
+          "name": "heatsink",
+          "status": "成功",
+          "trial_id": "tp-dxf-af27aa3a",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-07-02T01:26:37.648564+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "data/workspace/apps/dxf2step/jobs/trial_20260524_090004_heatsink_cf4ed7/input/heatsink_design.dxf",
+          "assets": {
+            "dxf": null,
+            "step": "/thinkpad_dxf2step_history/tp-dxf-af27aa3a/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-af27aa3a/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-af27aa3a/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-af27aa3a/combined_views.png"
+          }
+        },
+        {
+          "name": "enclosure",
+          "status": "成功",
+          "trial_id": "tp-dxf-f3b50b60",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-07-02T02:25:08.025504+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "data/workspace/apps/dxf2step/jobs/trial_20260524_090011_enclosure_87b48a/input/enclosure_design.dxf",
+          "assets": {
+            "dxf": null,
+            "step": "/thinkpad_dxf2step_history/tp-dxf-f3b50b60/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-f3b50b60/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-f3b50b60/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-f3b50b60/combined_views.png"
+          }
+        },
+        {
+          "name": "bent_plate",
+          "status": "成功",
+          "trial_id": "tp-dxf-25b83a90",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-07-02T03:21:39.218889+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "data/workspace/apps/dxf2step/jobs/trial_20260524_090016_bent_plate_a86cd4/input/bent_plate_design.dxf",
+          "assets": {
+            "dxf": null,
+            "step": "/thinkpad_dxf2step_history/tp-dxf-25b83a90/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-25b83a90/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-25b83a90/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-25b83a90/combined_views.png"
+          }
+        },
+        {
+          "name": "box_bending",
+          "status": "成功",
+          "trial_id": "tp-dxf-a39a967e",
+          "thickness_mm": 10.0,
+          "last_trial_at": "2026-07-02T04:18:47.297040+09:00",
+          "verdict": "SUCCESS",
+          "note": "",
+          "local_dxf": "data/workspace/apps/dxf2step/jobs/trial_20260524_090022_box_bending_29ad58/input/box_bending_design.dxf",
+          "assets": {
+            "dxf": null,
+            "step": "/thinkpad_dxf2step_history/tp-dxf-a39a967e/combined.step",
+            "fcstd": "/thinkpad_dxf2step_history/tp-dxf-a39a967e/combined.FCStd",
+            "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-a39a967e/combined_views.png",
+            "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-a39a967e/combined_views.png"
+          }
+        }
+      ]
+    }
+  ],
+  "recent_trials": [
+    {
+      "name": "S9",
+      "status": "成功",
+      "trial_id": "tp-dxf-50c9123e",
+      "thickness_mm": 15.0,
+      "last_trial_at": "2026-07-25T21:47:42.666276+09:00",
+      "verdict": "SUCCESS",
+      "note": "",
+      "local_dxf": "dxf/S9.dxf",
+      "assets": {
+        "dxf": "/dxf/S9.dxf",
+        "step": "/thinkpad_dxf2step_history/tp-dxf-0a06d4c5/combined.step",
+        "fcstd": "/thinkpad_dxf2step_history/tp-dxf-0a06d4c5/combined.FCStd",
+        "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-0a06d4c5/combined_views.png",
+        "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-0a06d4c5/combined_views.png"
+      }
+    },
+    {
+      "name": "S9",
+      "status": "成功",
+      "trial_id": "tp-dxf-e1c42dd0",
+      "thickness_mm": 12.0,
+      "last_trial_at": "2026-07-25T21:46:37.959191+09:00",
+      "verdict": "SUCCESS",
+      "note": "",
+      "local_dxf": "dxf/S9.dxf",
+      "assets": {
+        "dxf": "/dxf/S9.dxf",
+        "step": "/thinkpad_dxf2step_history/tp-dxf-0a06d4c5/combined.step",
+        "fcstd": "/thinkpad_dxf2step_history/tp-dxf-0a06d4c5/combined.FCStd",
+        "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-0a06d4c5/combined_views.png",
+        "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-0a06d4c5/combined_views.png"
+      }
+    },
+    {
+      "name": "S9",
+      "status": "成功",
+      "trial_id": "tp-dxf-a5489e45",
+      "thickness_mm": 10.0,
+      "last_trial_at": "2026-07-25T21:45:32.967544+09:00",
+      "verdict": "SUCCESS",
+      "note": "",
+      "local_dxf": "dxf/S9.dxf",
+      "assets": {
+        "dxf": "/dxf/S9.dxf",
+        "step": "/thinkpad_dxf2step_history/tp-dxf-0a06d4c5/combined.step",
+        "fcstd": "/thinkpad_dxf2step_history/tp-dxf-0a06d4c5/combined.FCStd",
+        "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-0a06d4c5/combined_views.png",
+        "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-0a06d4c5/combined_views.png"
+      }
+    },
+    {
+      "name": "S9",
+      "status": "成功",
+      "trial_id": "tp-dxf-1fab5a77",
+      "thickness_mm": 8.0,
+      "last_trial_at": "2026-07-25T21:44:28.397364+09:00",
+      "verdict": "SUCCESS",
+      "note": "",
+      "local_dxf": "dxf/S9.dxf",
+      "assets": {
+        "dxf": "/dxf/S9.dxf",
+        "step": "/thinkpad_dxf2step_history/tp-dxf-0a06d4c5/combined.step",
+        "fcstd": "/thinkpad_dxf2step_history/tp-dxf-0a06d4c5/combined.FCStd",
+        "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-0a06d4c5/combined_views.png",
+        "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-0a06d4c5/combined_views.png"
+      }
+    },
+    {
+      "name": "S9",
+      "status": "成功",
+      "trial_id": "tp-dxf-90ea241f",
+      "thickness_mm": 5.0,
+      "last_trial_at": "2026-07-25T21:43:23.898651+09:00",
+      "verdict": "SUCCESS",
+      "note": "",
+      "local_dxf": "dxf/S9.dxf",
+      "assets": {
+        "dxf": "/dxf/S9.dxf",
+        "step": "/thinkpad_dxf2step_history/tp-dxf-0a06d4c5/combined.step",
+        "fcstd": "/thinkpad_dxf2step_history/tp-dxf-0a06d4c5/combined.FCStd",
+        "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-0a06d4c5/combined_views.png",
+        "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-0a06d4c5/combined_views.png"
+      }
+    },
+    {
+      "name": "S8",
+      "status": "成功",
+      "trial_id": "tp-dxf-53a34907",
+      "thickness_mm": 15.0,
+      "last_trial_at": "2026-07-25T21:42:20.390543+09:00",
+      "verdict": "SUCCESS",
+      "note": "",
+      "local_dxf": "dxf/S8.dxf",
+      "assets": {
+        "dxf": "/dxf/S8.dxf",
+        "step": "/thinkpad_dxf2step_history/tp-dxf-9839f556/combined.step",
+        "fcstd": "/thinkpad_dxf2step_history/tp-dxf-9839f556/combined.FCStd",
+        "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-9839f556/combined_views.png",
+        "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-9839f556/combined_views.png"
+      }
+    },
+    {
+      "name": "S8",
+      "status": "成功",
+      "trial_id": "tp-dxf-f3b04bff",
+      "thickness_mm": 12.0,
+      "last_trial_at": "2026-07-25T21:41:18.037715+09:00",
+      "verdict": "SUCCESS",
+      "note": "",
+      "local_dxf": "dxf/S8.dxf",
+      "assets": {
+        "dxf": "/dxf/S8.dxf",
+        "step": "/thinkpad_dxf2step_history/tp-dxf-9839f556/combined.step",
+        "fcstd": "/thinkpad_dxf2step_history/tp-dxf-9839f556/combined.FCStd",
+        "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-9839f556/combined_views.png",
+        "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-9839f556/combined_views.png"
+      }
+    },
+    {
+      "name": "S8",
+      "status": "成功",
+      "trial_id": "tp-dxf-e9d35698",
+      "thickness_mm": 10.0,
+      "last_trial_at": "2026-07-25T21:40:16.064451+09:00",
+      "verdict": "SUCCESS",
+      "note": "",
+      "local_dxf": "dxf/S8.dxf",
+      "assets": {
+        "dxf": "/dxf/S8.dxf",
+        "step": "/thinkpad_dxf2step_history/tp-dxf-9839f556/combined.step",
+        "fcstd": "/thinkpad_dxf2step_history/tp-dxf-9839f556/combined.FCStd",
+        "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-9839f556/combined_views.png",
+        "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-9839f556/combined_views.png"
+      }
+    },
+    {
+      "name": "S8",
+      "status": "成功",
+      "trial_id": "tp-dxf-3170985d",
+      "thickness_mm": 8.0,
+      "last_trial_at": "2026-07-25T21:39:13.790469+09:00",
+      "verdict": "SUCCESS",
+      "note": "",
+      "local_dxf": "dxf/S8.dxf",
+      "assets": {
+        "dxf": "/dxf/S8.dxf",
+        "step": "/thinkpad_dxf2step_history/tp-dxf-9839f556/combined.step",
+        "fcstd": "/thinkpad_dxf2step_history/tp-dxf-9839f556/combined.FCStd",
+        "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-9839f556/combined_views.png",
+        "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-9839f556/combined_views.png"
+      }
+    },
+    {
+      "name": "S8",
+      "status": "成功",
+      "trial_id": "tp-dxf-4ce646cd",
+      "thickness_mm": 5.0,
+      "last_trial_at": "2026-07-25T21:38:10.608104+09:00",
+      "verdict": "SUCCESS",
+      "note": "",
+      "local_dxf": "dxf/S8.dxf",
+      "assets": {
+        "dxf": "/dxf/S8.dxf",
+        "step": "/thinkpad_dxf2step_history/tp-dxf-9839f556/combined.step",
+        "fcstd": "/thinkpad_dxf2step_history/tp-dxf-9839f556/combined.FCStd",
+        "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-9839f556/combined_views.png",
+        "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-9839f556/combined_views.png"
+      }
+    },
+    {
+      "name": "S7",
+      "status": "成功",
+      "trial_id": "tp-dxf-8843f380",
+      "thickness_mm": 15.0,
+      "last_trial_at": "2026-07-25T21:37:09.100199+09:00",
+      "verdict": "SUCCESS",
+      "note": "",
+      "local_dxf": "dxf/S7.dxf",
+      "assets": {
+        "dxf": "/dxf/S7.dxf",
+        "step": "/thinkpad_dxf2step_history/tp-dxf-6188db50/combined.step",
+        "fcstd": "/thinkpad_dxf2step_history/tp-dxf-6188db50/combined.FCStd",
+        "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-6188db50/combined_views.png",
+        "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-6188db50/combined_views.png"
+      }
+    },
+    {
+      "name": "S7",
+      "status": "成功",
+      "trial_id": "tp-dxf-df88695d",
+      "thickness_mm": 12.0,
+      "last_trial_at": "2026-07-25T21:36:06.879550+09:00",
+      "verdict": "SUCCESS",
+      "note": "",
+      "local_dxf": "dxf/S7.dxf",
+      "assets": {
+        "dxf": "/dxf/S7.dxf",
+        "step": "/thinkpad_dxf2step_history/tp-dxf-6188db50/combined.step",
+        "fcstd": "/thinkpad_dxf2step_history/tp-dxf-6188db50/combined.FCStd",
+        "telegram_preview": "/thinkpad_dxf2step_history/tp-dxf-6188db50/combined_views.png",
+        "layer_preview": "/thinkpad_dxf2step_history/tp-dxf-6188db50/combined_views.png"
+      }
+    }
+  ],
+  "totals": {
+    "all_parts": 114,
+    "tried_parts": 114,
+    "archive_trials": 200
+  }
+}

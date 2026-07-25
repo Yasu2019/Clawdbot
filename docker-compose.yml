@@ -109,6 +109,14 @@ services:
     user: root
     entrypoint: [ /bin/bash, /home/node/.openclaw/entrypoint.sh ]
     command: [ openclaw, gateway, --port, "18789", --bind, lan, --verbose, --allow-unconfigured ]
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "-T", "5", "http://localhost:18789/healthz"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+    labels:
+      - "autoheal=true"
 
   # ============================================================
   # 2. SHARED INFRASTRUCTURE (From clawstack_v2)
@@ -240,6 +248,14 @@ services:
       - ${HOST_DOCKER_SOCKET:-/var/run/docker.sock}:/var/run/docker.sock
     user: root
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "-T", "5", "http://localhost:5678/healthz"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    labels:
+      - "autoheal=true"
 
   nodered:
     image: nodered/node-red:latest
@@ -431,6 +447,7 @@ services:
       - "127.0.0.1:8088:80"
     volumes:
       - ./data/workspace:/usr/share/nginx/html
+      - ./data/iatf_videos:/usr/share/nginx/html/iatf_videos:ro
       - ./protocols:/usr/share/nginx/html/protocols:ro
       - ./ops:/usr/share/nginx/html/ops:ro
     restart: unless-stopped
@@ -1124,6 +1141,7 @@ services:
     volumes:
       - ./data/workspace:/app/workspace:rw
       - ./data/workspace/knowledge_vault:/app/knowledge_vault:rw
+      - ./.beads:/app/beads:ro
     ports:
       - "127.0.0.1:3333:3333"
     restart: unless-stopped
@@ -1186,6 +1204,22 @@ services:
     volumes:
       - ./data/workspace/apps/tts_router/outputs:/usr/share/nginx/html/audio:ro
       - ./data/workspace/apps/tts_router/portal/apps/tts_hub:/usr/share/nginx/html/tts_hub:ro
+    restart: unless-stopped
+
+  # ============================================================
+  # 31. AUTOHEAL — unhealthy コンテナの自動再起動
+  # (Docker標準restart policyはunhealthy時に再起動しないため併用)
+  # ============================================================
+  autoheal:
+    image: willfarrell/autoheal:latest
+    container_name: clawstack-autoheal
+    environment:
+      - AUTOHEAL_CONTAINER_LABEL=autoheal
+      - AUTOHEAL_INTERVAL=30
+      - AUTOHEAL_START_PERIOD=60
+      - AUTOHEAL_DEFAULT_STOP_TIMEOUT=10
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
     restart: unless-stopped
 
 

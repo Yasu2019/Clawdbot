@@ -57,6 +57,9 @@
         .dxf-badge.pending { background: rgba(210,153,34,0.15); color: #d29922; }
         .dxf-badge.muted { background: rgba(139,148,158,0.15); color: #8b949e; }
         .dxf-preview { width: 120px; height: 90px; object-fit: contain; background: #0d1117; border: 1px solid var(--border); border-radius: 6px; }
+        .asset-action { display:inline-flex; align-items:center; gap:4px; margin:2px 5px 2px 0; padding:4px 8px; border:1px solid #388bfd; border-radius:5px; color:#58a6ff; text-decoration:none; font-size:0.72rem; font-weight:600; background:rgba(56,139,253,0.08); }
+        .asset-action.download { border-color:#3fb950; color:#56d364; background:rgba(63,185,80,0.08); }
+        a[href^="file:"] { display:none !important; }
         .dxf-3d-thumb {
             width: 140px; height: 105px; position: relative;
             background: #0d1117; border: 1px solid var(--border); border-radius: 6px;
@@ -133,11 +136,14 @@
     <div style="max-width: 1200px; margin: 20px auto 0 auto; padding: 0 20px;">
         <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 8px; padding: 15px; display: flex; flex-wrap: wrap; gap: 15px; align-items: center;">
             <span style="font-weight: bold; color: var(--primary); font-size: 0.9rem;">📁 クイックリンク & ダウンロード:</span>
-            <a href="../../../../docs/INCIDENT_LOG.md" style="color: #58a6ff; text-decoration: none; font-size: 0.85rem;" target="_blank">📄 過去トラブルDB (INCIDENT_LOG.md)</a>
+            <a class="asset-action" href="./downloads/incident_log.md" target="_blank">閲覧: 過去トラブルDB</a>
+            <a class="asset-action download" href="./downloads/incident_log.md" download>ダウンロード</a>
             <span style="color: var(--text-dim);">|</span>
-            <a href="../../../../quality_incident_report_20260615_thinkpad_sleep_outage.md" style="color: #58a6ff; text-decoration: none; font-size: 0.85rem;" target="_blank">⚠️ ThinkPadスリープ障害レポート (2026-06-15)</a>
+            <a class="asset-action" href="./downloads/thinkpad_sleep_outage_20260615.md" target="_blank">閲覧: ThinkPadスリープ障害</a>
+            <a class="asset-action download" href="./downloads/thinkpad_sleep_outage_20260615.md" download>ダウンロード</a>
             <span style="color: var(--text-dim);">|</span>
-            <a href="../../../../quality_incident_report_20260609_lavie_bios_disconnect.md" style="color: #58a6ff; text-decoration: none; font-size: 0.85rem;" target="_blank">🔧 LAVIE BIOS切断レポート (2026-06-09)</a>
+            <a class="asset-action" href="./downloads/lavie_bios_disconnect_20260609.md" target="_blank">閲覧: LAVIE BIOS切断</a>
+            <a class="asset-action download" href="./downloads/lavie_bios_disconnect_20260609.md" download>ダウンロード</a>
         </div>
     </div>
 
@@ -687,6 +693,155 @@ response = model.generate_content([
                             <span style="font-size:0.75rem; color:var(--text-dim); font-weight:normal;">Awaiting Job</span>
                         </td>
                     </tr>
+        </div>
+
+        <!-- Flagship Feature: Absolute Oracle Fortune App Showcase -->
+        <div class="card full-width" style="border-left: 4px solid #f59e0b; background: linear-gradient(135deg, rgba(245,158,11,0.08), rgba(139,92,246,0.08));">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                <div>
+                    <h2 style="color: #fbbf24; margin: 0; display: flex; align-items: center; gap: 8px;">
+                        <span>🔮</span>
+                        <span>絶対的占い統合アプリ (Absolute Oracle System)</span>
+                        <span style="font-size: 0.75rem; background: rgba(245,158,11,0.2); border: 1px solid #f59e0b; color: #fbbf24; padding: 2px 8px; border-radius: 12px;">NEW</span>
+                    </h2>
+                    <p style="font-size: 0.85rem; color: var(--text-dim); margin-top: 6px; line-height: 1.5;">
+                        世界中の占い（西洋12星座・誕生日数秘術・血液型相性・東洋五行/四柱推命・月齢）を単一マトリクスへ完全統合した絶対的占いアプリ。
+                    </p>
+                </div>
+                <a href="http://localhost:8088/apps/growth_dashboard/absolute_oracle_fortune.html" target="_blank" style="background: linear-gradient(135deg, #f59e0b, #8b5cf6); color: #fff; text-decoration: none; padding: 10px 22px; border-radius: 8px; font-weight: bold; font-size: 0.9rem; box-shadow: 0 4px 15px rgba(245,158,11,0.4); display: flex; align-items: center; gap: 6px;">
+                    <span>✨ アプリを起動する</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Flagship Showcase: 3D Local AI GameDev (ときメモ風AIゲーム開発) -->
+        <div class="card full-width" style="border-left: 4px solid #ec4899; background: linear-gradient(135deg, rgba(236,72,153,0.08), rgba(129,140,248,0.08));">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px;">
+                <div style="flex: 1; min-width: 280px;">
+                    <h2 style="color: #f472b6; margin: 0 0 8px 0; display: flex; align-items: center; gap: 8px;">
+                        <span>🎮</span>
+                        <span>3Dときめきメモリアル風 AI学園恋愛シミュレーション (Local AI GameDev Master)</span>
+                        <span style="font-size: 0.75rem; background: rgba(236,72,153,0.2); border: 1px solid #ec4899; color: #f472b6; padding: 2px 8px; border-radius: 12px;">NEW</span>
+                    </h2>
+                    <p style="font-size: 0.85rem; color: var(--text-dim); margin: 0 0 14px 0; line-height: 1.5;">
+                        Ollama (Qwen3:8b) × Unity 6 × 3D演出による「ときめきメモリアル風」学園恋愛シミュレーション開発基盤。<br>
+                        平日のパラメータ育成・週末デート・3Dカメラ演出・ローカルAIによるツンデレリアルタイム動的会話を完全統合。
+                    </p>
+                </div>
+                <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 10px;">
+                    <div style="background: rgba(23, 28, 36, 0.8); border: 1px solid var(--border); padding: 14px 20px; border-radius: 12px; text-align: center; min-width: 180px;">
+                        <div style="font-size: 0.8rem; color: var(--text-dim);">本家ときメモを Level 10 とした現在地</div>
+                        <div style="font-size: 2.2rem; font-weight: bold; color: #f472b6; margin: 4px 0;">Level 6.5 <span style="font-size: 1rem; color: var(--text-dim);">/ 10</span></div>
+                        <div style="font-size: 0.72rem; color: #3fb950; font-weight: 600;">コア基盤・AI対話 実証完了</div>
+                    </div>
+                    <a href="http://localhost:8088/apps/growth_dashboard/local_ai_gamedev_launcher.html" target="_blank" style="background: linear-gradient(135deg, #ec4899, #818cf8); color: #fff; text-decoration: none; padding: 10px 22px; border-radius: 8px; font-weight: bold; font-size: 0.9rem; box-shadow: 0 4px 15px rgba(236,72,153,0.4); display: flex; align-items: center; gap: 6px;">
+                        <span>✨ アプリを起動する</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Progress Breakdown -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-top: 15px;">
+                <div style="background: rgba(0,0,0,0.25); padding: 12px; border-radius: 10px; border: 1px solid var(--border);">
+                    <div style="font-size: 0.82rem; color: var(--text-dim);">1. パラメータ育成・暦管理</div>
+                    <div style="font-size: 1.4rem; font-weight: bold; color: #38bdf8; margin: 4px 0;">Level 8.0 / 10</div>
+                    <div style="font-size: 0.72rem; color: var(--text-dim);">勉強/運動/容姿/感性/休養・ストレス・カレンダー・遭遇判定完成</div>
+                </div>
+                <div style="background: rgba(0,0,0,0.25); padding: 12px; border-radius: 10px; border: 1px solid var(--border);">
+                    <div style="font-size: 0.82rem; color: var(--text-dim);">2. ローカルAI動的会話エンジン</div>
+                    <div style="font-size: 1.4rem; font-weight: bold; color: #3fb950; margin: 4px 0;">Level 9.0 / 10</div>
+                    <div style="font-size: 0.72rem; color: var(--text-dim);">Ollama(Qwen3)連携、好感度連動ペルソナ・ツンデレ対話生成実証済み</div>
+                </div>
+                <div style="background: rgba(0,0,0,0.25); padding: 12px; border-radius: 10px; border: 1px solid var(--border);">
+                    <div style="font-size: 0.82rem; color: var(--text-dim);">3. 3D演出・カメラアングル</div>
+                    <div style="font-size: 1.4rem; font-weight: bold; color: #bc8cff; margin: 4px 0;">Level 6.0 / 10</div>
+                    <div style="font-size: 0.72rem; color: var(--text-dim);">バストアップ/クローズアップ切り替え制御・ステージ表示枠組</div>
+                </div>
+                <div style="background: rgba(0,0,0,0.25); padding: 12px; border-radius: 10px; border: 1px solid var(--border);">
+                    <div style="font-size: 0.82rem; color: var(--text-dim);">4. 素材・サウンド・イベント拡充</div>
+                    <div style="font-size: 1.4rem; font-weight: bold; color: #ffab70; margin: 4px 0;">Level 3.0 / 10</div>
+                    <div style="font-size: 0.72rem; color: var(--text-dim);">3Dモデルシェーダー・BGM/SE・季節イベント追加フェーズ</div>
+                </div>
+            </div>
+
+            <!-- Details and Quick Links -->
+            <div style="margin-top: 15px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.08); display: flex; flex-wrap: wrap; gap: 15px; align-items: center; font-size: 0.82rem;">
+                <span style="color: #f472b6; font-weight: 600;">📁 完成状況 & DB統合:</span>
+                <a href="file:///D:/Local_AI_GameDev_Master/07_GameDesign/%E3%81%A8%E3%81%8D%E3%83%A1%E3%83%A2%E9%A2%A83D%E6%81%8B%E6%84%9B%E3%82%B7%E3%83%9F%E3%83%A5%E3%83%BC%E3%82%B7%E3%83%A7%E3%83%B3%E4%BC%81%E7%94%BB%E6%9B%B8.md" target="_blank" style="color: #58a6ff; text-decoration: none;">📄 GDD企画書</a>
+                <span style="color: var(--text-dim);">|</span>
+                <a href="file:///D:/Local_AI_GameDev_Master/07_GameDesign/romantic_tropes_db.json" target="_blank" style="color: #f472b6; text-decoration: none;">💖 トキメキ心理演出DB (romantic_tropes_db.json)</a>
+                <span style="color: var(--text-dim);">|</span>
+                <a href="file:///D:/Local_AI_GameDev_Master/13_UnityMCP/README_UnityMCP%E7%B5%B1%E5%90%88.md" target="_blank" style="color: #38bdf8; text-decoration: none;">⚡ Unity MCP統合ガイド</a>
+                <span style="color: var(--text-dim);">|</span>
+                <a href="file:///D:/Local_AI_GameDev_Master/00_StartHere/UE5_Unity_Hybrid_Architecture.md" target="_blank" style="color: #bc8cff; text-decoration: none;">🎬 UE5×Unity6 ハイブリッド仕様</a>
+            </div>
+        </div>
+
+        <div class="card full-width" style="border-left:4px solid #58a6ff;">
+            <h2>ゲーム企画・設計文書（Web閲覧対応）</h2>
+            <p style="font-size:0.8rem;color:var(--text-dim);">原本の最新内容をWeb配下へ同期した閲覧・ダウンロード用コピーです。</p>
+            <a class="asset-action" href="./downloads/tokimemo_3d_gdd.md" target="_blank">閲覧: GDD企画書</a>
+            <a class="asset-action download" href="./downloads/tokimemo_3d_gdd.md" download>DL</a>
+            <a class="asset-action" href="./downloads/romantic_tropes_db.json" target="_blank">閲覧: 心理演出DB</a>
+            <a class="asset-action download" href="./downloads/romantic_tropes_db.json" download>DL</a>
+            <a class="asset-action" href="./downloads/unity_mcp_integration.md" target="_blank">閲覧: Unity MCP</a>
+            <a class="asset-action download" href="./downloads/unity_mcp_integration.md" download>DL</a>
+            <a class="asset-action" href="./downloads/ue5_unity_hybrid_architecture.md" target="_blank">閲覧: UE5×Unity6仕様</a>
+            <a class="asset-action download" href="./downloads/ue5_unity_hybrid_architecture.md" download>DL</a>
+        </div>
+
+        <!-- Platform Audit & Approval Staging Hub (Human-in-the-Loop Gateway) -->
+        <div class="card full-width" style="border-left: 4px solid #ec4899;">
+            <h2 style="color: #ec4899; display: flex; align-items: center; gap: 8px;">
+                <span>📱</span>
+                <span>投稿状況チェック & コンテンツ・アプリ承認・配信センター</span>
+            </h2>
+            <p style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 14px; line-height: 1.5;">
+                Kindle Unlimited, note, Qiita, Udemy, X, Instagram, TikTok, YouTube, Threads, 海外SNS等の全プラットフォーム投稿準備・更新状況です。<br>
+                <strong>※実際の自動アップロードは、ユーザーが各アイテムの「許可して自動配信」を押した際のみ実行されます。</strong>
+            </p>
+
+            <!-- Audit Overview Grid -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 16px;">
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); padding: 10px; border-radius: 8px; text-align: center;">
+                    <div style="font-size: 0.72rem; color: var(--text-dim);">Kindle Unlimited</div>
+                    <div style="font-weight: bold; color: #3fb950; font-size: 1rem; margin-top:2px;">18 冊準備完了</div>
+                </div>
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); padding: 10px; border-radius: 8px; text-align: center;">
+                    <div style="font-size: 0.72rem; color: var(--text-dim);">note (無料/有料)</div>
+                    <div style="font-weight: bold; color: #3fb950; font-size: 1rem; margin-top:2px;">18 記事準備完了</div>
+                </div>
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); padding: 10px; border-radius: 8px; text-align: center;">
+                    <div style="font-size: 0.72rem; color: var(--text-dim);">Qiita / Zenn</div>
+                    <div style="font-weight: bold; color: #38bdf8; font-size: 1rem; margin-top:2px;">DX/CAE連動中</div>
+                </div>
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); padding: 10px; border-radius: 8px; text-align: center;">
+                    <div style="font-size: 0.72rem; color: var(--text-dim);">Udemy / セミナー</div>
+                    <div style="font-weight: bold; color: #a371f7; font-size: 1rem; margin-top:2px;">4 講座構成完了</div>
+                </div>
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); padding: 10px; border-radius: 8px; text-align: center;">
+                    <div style="font-size: 0.72rem; color: var(--text-dim);">X / Threads</div>
+                    <div style="font-weight: bold; color: #fbbf24; font-size: 1rem; margin-top:2px;">日次トレンド連携</div>
+                </div>
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); padding: 10px; border-radius: 8px; text-align: center;">
+                    <div style="font-size: 0.72rem; color: var(--text-dim);">Instagram/TikTok/YT</div>
+                    <div style="font-weight: bold; color: #ec4899; font-size: 1rem; margin-top:2px;">動画脚本&QA完了</div>
+                </div>
+            </div>
+
+            <h3 style="font-size:0.92rem; color:#ec4899; margin-bottom:8px;">⏳ ユーザー承認待ちキュー (Human-in-the-Loop Staging Queue)</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th width="12%">種別 / ID</th>
+                        <th width="32%">タイトル / テーマ</th>
+                        <th width="24%">対象プラットフォーム</th>
+                        <th width="12%">プレビュー</th>
+                        <th width="20%">ユーザー許可・自動配信</th>
+                    </tr>
+                </thead>
+                <tbody id="approvalQueueBody">
+                    <tr><td colspan="5" style="text-align:center; color:var(--text-dim);">承認待ちデータ読み込み中...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -696,6 +851,9 @@ response = model.generate_content([
             <p style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 10px;">
                 Kindle / note / Brain / BOOTH / YouTube / Udemy / セミナー / ミニゲーム — IoT・IATF・動画生成・著者実務経験に基づく販売可能ネタとアウトライン。
             </p>
+            <div id="assetAccessAuditSummary" style="font-size:0.78rem;color:var(--text-dim);margin-bottom:10px;padding:8px 10px;background:rgba(56,139,253,0.06);border:1px solid rgba(56,139,253,0.2);border-radius:6px;">
+                閲覧・ダウンロード資産の最新監査を読み込み中...
+            </div>
             <div id="authorExperienceMoat" style="font-size: 0.8rem; color: var(--text-dim); margin-bottom: 12px; padding: 10px 12px; background: rgba(137,87,229,0.08); border-radius: 8px; border: 1px solid rgba(137,87,229,0.25);">
                 Loading author experience...
             </div>
@@ -708,6 +866,7 @@ response = model.generate_content([
                 <button class="dxf-filter-btn" data-content-filter="booth" onclick="filterContentPlatform('booth')">BOOTH</button>
                 <span id="contentPlatformCount" style="font-size:0.75rem; color:var(--text-dim); margin-left:8px;"></span>
             </div>
+            <table>
                 <thead>
                     <tr>
                         <th width="14%">Platform / ID</th>
@@ -718,6 +877,45 @@ response = model.generate_content([
                 </thead>
                 <tbody id="contentGenerationBody">
                     <tr><td colspan="4" style="text-align:center; color:var(--text-dim);">Loading content catalog...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card full-width" style="border-left: 4px solid #2dd4bf;">
+            <h2 style="color: #2dd4bf;">Trend Content Forge (SNS/YouTubeトレンド → 自動コンテンツ生成)</h2>
+            <p style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 10px;">
+                世界の関心テーマBest10を毎日収集(20:30 JST)→ ローカルLLM(GPU)生成 → deepseek審査(75点合格・不合格は助言付き再生成/最大3回)→ 合格のみ公開+Telegram通知(21:00 JST)。
+            </p>
+            <div id="trendForgeSummary" style="font-size:0.82rem; color:var(--text-dim); margin-bottom:12px; padding:10px 12px; background:rgba(45,212,191,0.08); border-radius:8px; border:1px solid rgba(45,212,191,0.25);">
+                Loading trend forge status...
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th width="6%">Rank</th>
+                        <th width="26%">関心テーマ (Best10)</th>
+                        <th width="40%">市場根拠</th>
+                        <th width="28%">収益化展開</th>
+                    </tr>
+                </thead>
+                <tbody id="trendBest10Body">
+                    <tr><td colspan="4" style="text-align:center; color:var(--text-dim);">Loading best10...</td></tr>
+                </tbody>
+            </table>
+            <h3 style="font-size:0.9rem; color:#2dd4bf; margin:16px 0 8px;">生成コンテンツ (最新20件)</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th width="10%">ID</th>
+                        <th width="44%">タイトル</th>
+                        <th width="10%">Score</th>
+                        <th width="12%">判定</th>
+                        <th width="8%">試行</th>
+                        <th width="16%">生成日時</th>
+                    </tr>
+                </thead>
+                <tbody id="trendContentsBody">
+                    <tr><td colspan="6" style="text-align:center; color:var(--text-dim);">No generated contents yet.</td></tr>
                 </tbody>
             </table>
         </div>
@@ -787,6 +985,30 @@ response = model.generate_content([
             </div>
             <div id="triTrackCaeStatus" style="margin-top:10px; font-size:0.8rem; color:var(--text-dim); padding:10px 12px; background:rgba(35,134,54,0.06); border-radius:8px; border:1px solid rgba(35,134,54,0.25);">
                 Loading tri-track CAE (OpenFOAM@lavie / OpenRadioss@red_lavie / Impact@thinkpad)...
+            </div>
+        </div>
+
+        <div class="card full-width">
+            <h2>CETOL 6σ 3D Tolerance & Resilient Distributed Scheduler</h2>
+            <p style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 15px;">
+                商用幾何公差解析ソフトをシミュレートした3Dベクトルループ/非線形確率ソルバーと、サテライトノード協調の分散タスクスケジューラの状態を監視します。
+                <a href="../cetol6sigma/index.html" style="color: #58a6ff; font-weight: 600; margin-left: 12px;" target="_blank">→ CETOL 3D公差解析アプリを開く</a>
+            </p>
+            <div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 15px; margin-top: 10px;">
+                <!-- Column 1: CETOL 3D Summary -->
+                <div style="background: rgba(180, 140, 255, 0.05); padding: 12px; border-radius: 8px; border: 1px solid rgba(180, 140, 255, 0.15);">
+                    <h3 style="font-size:0.9rem; margin:0 0 8px; color:#b48cff;">CETOL 6σ 3Dソルバー最新データ</h3>
+                    <div id="cetol3dSummary" style="font-size:0.82rem; color:var(--text-dim);">
+                        Loading CETOL 3D data...
+                    </div>
+                </div>
+                <!-- Column 2: Distributed Job Queue -->
+                <div style="background: rgba(88, 166, 255, 0.05); padding: 12px; border-radius: 8px; border: 1px solid rgba(88, 166, 255, 0.15);">
+                    <h3 style="font-size:0.9rem; margin:0 0 8px; color:#58a6ff;">分散ジョブキュー実行状況 (Celery/RabbitMQコア)</h3>
+                    <div id="schedulerCoreSummary" style="font-size:0.82rem; color:var(--text-dim); max-height: 180px; overflow-y: auto;">
+                        Loading scheduler status...
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -1509,15 +1731,17 @@ response = model.generate_content([
                 const title = escapeHtml((v.topic || v.title || '').substring(0, 40));
                 const clause = v.clause ? escapeHtml(v.clause.toString().substring(0, 15)) : '';
                 const sizeMb = v.file_size_mb ? `${v.file_size_mb}MB` : '';
+                const videoUrl = (v.mp4_path || '').replace('data/iatf_videos', '/iatf_videos');
                 return `<div style="background:rgba(15,23,42,0.8);border:1px solid rgba(56,189,248,0.15);border-radius:8px;overflow:hidden;position:relative;">
                     <div style="position:absolute;top:6px;right:6px;background:${badge.color};color:#000;font-size:0.65rem;font-weight:700;padding:2px 7px;border-radius:10px;">${badge.label}${score}</div>
-                    ${imgSrc ? `<a href="${(v.mp4_path || '').replace('data/iatf_videos', 'http://localhost:40404')}" target="_blank" style="display:block;cursor:pointer;"><img src="${imgSrc}" style="width:100%;height:130px;object-fit:cover;display:block;" loading="lazy" onerror="this.style.display='none'"></a>` : '<div style="height:130px;background:#1a2332;display:flex;align-items:center;justify-content:center;color:#555;font-size:0.75rem;">No image</div>'}
+                    ${imgSrc ? `<a href="${escapeHtml(videoUrl)}" target="_blank" style="display:block;cursor:pointer;"><img src="${imgSrc}" style="width:100%;height:130px;object-fit:cover;display:block;" loading="lazy" onerror="this.style.display='none'"></a>` : '<div style="height:130px;background:#1a2332;display:flex;align-items:center;justify-content:center;color:#555;font-size:0.75rem;">No image</div>'}
                     <div style="padding:8px;">
                         <div style="font-size:0.75rem;color:var(--primary);font-weight:600;">箇条${clause}</div>
                         <div style="font-size:0.78rem;color:var(--text);margin-top:2px;line-height:1.3;">${title}</div>
                         <div style="font-size:0.7rem;color:var(--text-dim);margin-top:4px;">${sizeMb}</div>
                         ${reason ? `<div style="font-size:0.7rem;color:#94a3b8;margin-top:3px;">${reason}</div>` : ''}
                         ${issues}
+                        ${videoUrl ? `<div style="margin-top:6px;"><a class="asset-action" href="${escapeHtml(videoUrl)}" target="_blank" rel="noopener">動画を閲覧</a><a class="asset-action download" href="${escapeHtml(videoUrl)}" download>動画DL</a></div>` : ''}
                     </div>
                 </div>`;
             }).join('');
@@ -2254,6 +2478,81 @@ response = model.generate_content([
             }
         }
 
+        async function loadDistributedSchedulerAndCetolStatus() {
+            const cetolEl = document.getElementById("cetol3dSummary");
+            const schedEl = document.getElementById("schedulerCoreSummary");
+            
+            if (cetolEl) {
+                try {
+                    const res = await fetch("../cetol6sigma/cetol_reports.json", { cache: "no-store" });
+                    if (!res.ok) throw new Error("HTTP " + res.status);
+                    const data = await res.json();
+                    const reps = data.reports || [];
+                    if (reps.length > 0) {
+                        const latest = reps[0];
+                        const loop3d = latest.vector_loop_3d || {};
+                        const msm = latest.msm || {};
+                        cetolEl.innerHTML = `
+                            <div>最新解析ジョブ: <strong>${escapeHtml(latest.job_id)}</strong> (${escapeHtml(latest.source_dxf || "?")})</div>
+                            <div style="margin-top:6px;">・3D Nominal Gap: ${fmt(loop3d.gap_nominal, 3)} mm</div>
+                            <div>・3D Worst Case: ${fmt(loop3d.worst_case_stack_mm, 3)} mm</div>
+                            <div>・3D RSS 3σ: ${fmt(loop3d.rss_3sigma_mm, 3)} mm</div>
+                            <div style="margin-top:6px;">・Cpk (MSM): <span class="${cls(msm.Cpk)}">${fmt(msm.Cpk, 3)}</span> (歪度 ${fmt(msm.skewness, 3)} / 尖度 ${fmt(msm.excess_kurtosis, 3)})</div>
+                            <div>・品質判定: <span class="${latest.factory_kpi === "PASS" ? "ok" : "ng"}">${escapeHtml(latest.factory_kpi || "N/A")}</span></div>
+                            <div style="margin-top:6px; font-size:0.76rem; color:var(--text-dim);">最終生成: ${escapeHtml(data.generated_at || "")}</div>
+                        `;
+                    } else {
+                        cetolEl.textContent = "No tolerance reports found.";
+                    }
+                } catch (e) {
+                    cetolEl.textContent = "CETOL 3D data unavailable.";
+                }
+            }
+
+            if (schedEl) {
+                try {
+                    const res = await fetch("distributed_scheduler_status.json", { cache: "no-store" });
+                    if (!res.ok) throw new Error("HTTP " + res.status);
+                    const data = await res.json();
+                    const jobs = data.jobs || [];
+                    const nodes = data.nodes || {};
+                    
+                    let jobsHtml = jobs.map(j => {
+                        const statusColor = j.status === "RUNNING" ? "#58a6ff" : (j.status === "COMPLETED" ? "#3fb950" : (j.status === "FAILED" ? "#f85149" : "#8b93a7"));
+                        return `
+                            <div style="margin-bottom:4px; display:flex; justify-content:space-between;">
+                                <span><strong>${escapeHtml(j.job_id)}</strong> (${escapeHtml(j.task_type)})</span>
+                                <span style="color:${statusColor}; font-weight:600;">${escapeHtml(j.status)} ${j.assigned_node ? `@ ${escapeHtml(j.assigned_node)}` : ""}</span>
+                            </div>
+                        `;
+                    }).join("");
+
+                    if (!jobsHtml) {
+                        jobsHtml = "<div style='color:var(--text-dim);'>No jobs in queue.</div>";
+                    }
+
+                    let nodesHtml = Object.entries(nodes).map(([name, n]) => {
+                        const statusColor = n.status === "ONLINE" ? "#3fb950" : (n.status === "THROTTLED" ? "#d29922" : "#f85149");
+                        return `<span style="color:${statusColor}; margin-right:10px;"><strong>${escapeHtml(name)}</strong>:${escapeHtml(n.status)}(${Math.round(n.cpu_percent)}% / ${Math.round(n.temp_c)}°C)</span>`;
+                    }).join("");
+
+                    schedEl.innerHTML = `
+                        <div style="margin-bottom:6px; font-weight:600;">ジョブリモートキュー:</div>
+                        <div style="max-height:100px; overflow-y:auto; padding-right:6px; border-bottom:1px solid var(--border); margin-bottom:6px;">
+                            ${jobsHtml}
+                        </div>
+                        <div style="font-size:0.78rem; color:var(--text-dim);">
+                            <strong>ノード状態:</strong><br>
+                            ${nodesHtml}
+                        </div>
+                        <div style="margin-top:6px; font-size:0.75rem; text-align:right;">最終同期: ${escapeHtml(data.updated_at || "")}</div>
+                    `;
+                } catch (e) {
+                    schedEl.textContent = "Scheduler status unavailable (run distributed_scheduling_core.py).";
+                }
+            }
+        }
+
         async function loadKnowledgeHistory() {
             try {
                 const res = await fetch('knowledge_history.json');
@@ -2536,6 +2835,12 @@ response = model.generate_content([
             seminar: "セミナー B2B",
             coco_nara: "ココナラ",
             tiktok: "TikTok",
+            zalo: "Zalo (Vietnam)",
+            unica: "Unica (Vietnam)",
+            wechat: "WeChat (China)",
+            class101: "Class101 (Korea)",
+            dev_to: "Dev.to (Global)",
+            medium: "Medium (Global)",
             minigame: "ミニゲーム"
         };
 
@@ -2575,6 +2880,14 @@ response = model.generate_content([
         let contentCatalogPayload = null;
         let contentPlatformFilter = "all";
 
+        function renderAssetActions(path, label) {
+            const safePath = escapeHtml(path || "");
+            const safeLabel = escapeHtml(label || (path || "").split("/").pop() || "asset");
+            const isViewable = /\.(html?|md|txt|json|pdf|png|jpe?g|gif|webp|mp4|webm)$/i.test(path || "");
+            return `${isViewable ? `<a class="asset-action" href="${safePath}" target="_blank" rel="noopener">閲覧: ${safeLabel}</a>` : ""}
+                <a class="asset-action download" href="${safePath}" download>DL: ${safeLabel}</a>`;
+        }
+
         function renderContentCatalogRows(items) {
             const body = document.getElementById("contentGenerationBody");
             const countEl = document.getElementById("contentPlatformCount");
@@ -2593,7 +2906,7 @@ response = model.generate_content([
                     : item.status === "GENERATED" ? "#58a6ff" : "#d29922";
                 const assets = item.asset_paths || [];
                 const assetsHtml = assets.length
-                    ? `<div style="margin-top:8px; font-size:0.7rem;"><strong style="color:#a371f7;">Assets:</strong> ${assets.map(p => `<a href="${escapeHtml(p)}" style="color:#58a6ff; display:block;">${escapeHtml(p)}</a>`).join("")}</div>`
+                    ? `<div style="margin-top:8px; font-size:0.7rem;"><strong style="color:#a371f7;display:block;margin-bottom:4px;">閲覧・ダウンロード:</strong> ${assets.map(p => renderAssetActions(p)).join("")}</div>`
                     : "";
                 return `
                     <tr>
@@ -2628,6 +2941,10 @@ response = model.generate_content([
                         <td style="vertical-align:top; color:${statusColor}; font-size:0.85rem; font-weight:600;">
                             ${escapeHtml(item.status || "PROPOSED")}<br>
                             <span style="font-size:0.7rem; color:var(--text-dim); font-weight:normal;">content_publishing_catalog</span>
+                            ${item.status === 'ASSET_READY' ? `
+                            <div style="margin-top:8px;">
+                                <button class="dxf-filter-btn" style="background:#8957e5; color:#fff; border:none; padding:4px 8px; font-size:0.72rem; border-radius:4px; cursor:pointer;" onclick="showPublishDialog('${escapeHtml(item.id)}')">Upload & Publish</button>
+                            </div>` : ''}
                         </td>
                     </tr>
                 `;
@@ -2676,6 +2993,27 @@ response = model.generate_content([
                 console.error("Failed to load content catalog", e);
                 body.innerHTML = `<tr><td colspan="4" style="color:#f85149;">Error loading content_publishing_catalog.json</td></tr>`;
                 moatEl.textContent = "Failed to load author experience.";
+            }
+        }
+
+        async function loadAssetAccessAudit() {
+            const el = document.getElementById("assetAccessAuditSummary");
+            if (!el) return;
+            try {
+                const res = await fetch("asset_access_audit.json", { cache: "no-store" });
+                if (!res.ok) throw new Error("HTTP " + res.status);
+                const data = await res.json();
+                const ok = Number(data.missing_assets || 0) === 0;
+                const stale = Number(data.stale_data_sources || 0);
+                el.innerHTML = `<strong style="color:${ok ? "#3fb950" : "#f85149"};">${ok ? "閲覧資産監査 PASS" : "閲覧資産に不足あり"}</strong>
+                    / 利用可能 ${data.available_assets || 0}/${data.total_assets || 0}
+                    / 48時間超のデータ源 <strong style="color:${stale ? "#d29922" : "#3fb950"};">${stale}</strong>
+                    / 監査更新 ${escapeHtml(data.updated_at || "---")}
+                    / 記事カタログ基準 ${escapeHtml(data.catalog_updated_at || "---")}
+                    <a class="asset-action" href="asset_access_audit.json" target="_blank" rel="noopener" style="margin-left:8px;">監査結果を閲覧</a>
+                    <a class="asset-action download" href="asset_access_audit.json" download>監査結果DL</a>`;
+            } catch (e) {
+                el.innerHTML = `<strong style="color:#f85149;">閲覧資産監査を読み込めません</strong>`;
             }
         }
 
@@ -2863,6 +3201,94 @@ response = model.generate_content([
             }
         }
 
+        async function loadTrendContentForge() {
+            const summary = document.getElementById("trendForgeSummary");
+            const bestBody = document.getElementById("trendBest10Body");
+            const contBody = document.getElementById("trendContentsBody");
+            if (!summary || !bestBody || !contBody) return;
+            try {
+                const res = await fetch("trend_content_status.json", { cache: "no-store" });
+                if (!res.ok) throw new Error("HTTP " + res.status);
+                const data = await res.json();
+                summary.innerHTML = `最終更新: <strong>${data.updated_at || "---"}</strong> / トレンドDB累計: <strong>${data.db_trends_total ?? 0}</strong> 件 / Best10自動更新: <strong>${data.best10_refreshed_at || "初期シード(週次で自動入替)"}</strong> / DB: data/workspace/trend_content.db`;
+                const best = data.best10 || [];
+                bestBody.innerHTML = best.length ? best.map(b => `
+                    <tr>
+                        <td style="color:#2dd4bf; font-weight:bold;">${b.rank}</td>
+                        <td>${b.theme}${b.last_generated_at ? `<br><span style="font-size:0.7rem; color:var(--text-dim);">最終生成: ${b.last_generated_at}</span>` : ""}</td>
+                        <td style="font-size:0.78rem; color:var(--text-dim);">${b.evidence || ""}</td>
+                        <td style="font-size:0.78rem;">${b.monetization || ""}</td>
+                    </tr>`).join("") :
+                    `<tr><td colspan="4" style="text-align:center; color:var(--text-dim);">No best10 data.</td></tr>`;
+                const contents = data.contents || [];
+                contBody.innerHTML = contents.length ? contents.map(c => {
+                    const color = c.verdict === "PASS" ? "#3fb950" : (c.verdict === "FAILED" ? "#f85149" : "#d29922");
+                    const title = c.verdict === "PASS" && c.body_path
+                        ? `<strong>${c.title || c.content_id}</strong><div style="margin-top:5px;">${renderAssetActions(c.body_path.replace(/\.md$/, ".html"), "記事")} ${renderAssetActions(c.body_path, "原稿")}</div>`
+                        : (c.title || c.content_id);
+                    return `
+                    <tr>
+                        <td>${c.content_id}</td>
+                        <td>${title}</td>
+                        <td>${c.score != null && c.score >= 0 ? Number(c.score).toFixed(0) : "-"}</td>
+                        <td style="color:${color}; font-weight:bold;">${c.verdict || "-"}</td>
+                        <td>${c.attempts ?? "-"}</td>
+                        <td style="font-size:0.75rem; color:var(--text-dim);">${c.created_at || ""}</td>
+                    </tr>`;
+                }).join("") :
+                    `<tr><td colspan="6" style="text-align:center; color:var(--text-dim);">No generated contents yet.</td></tr>`;
+            } catch (err) {
+                summary.innerHTML = `<span style="color:#d29922;">trend_content_status.json 未生成または読込エラー (${err.message})。RUN_TREND_FORGE_SETUP.bat を実行してください。</span>`;
+            }
+        }
+
+        async function loadApprovalQueue() {
+            const body = document.getElementById("approvalQueueBody");
+            if (!body) return;
+            try {
+                const res = await fetch("content_approval_queue.json", { cache: "no-store" });
+                if (!res.ok) throw new Error("HTTP " + res.status);
+                const items = await res.json();
+                if (!items.length) {
+                    body.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--text-dim);">承認待ちのアイテムはありません</td></tr>`;
+                    return;
+                }
+                body.innerHTML = items.map(it => {
+                    const statusBadge = it.user_approved || it.status === "APPROVED"
+                        ? `<span style="color:#3fb950; font-weight:bold;">✅ 配信許可済</span>`
+                        : `<button onclick="approveAndPublish('${it.id}')" style="background:linear-gradient(135deg, #ec4899, #8b5cf6); color:#fff; border:none; padding:6px 14px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:0.8rem; box-shadow: 0 2px 8px rgba(236,72,153,0.4);">✨ 許可して自動配信</button>`;
+                    const platforms = (it.platforms || []).map(p => `<span style="background:rgba(236,72,153,0.15); color:#f472b6; border:1px solid rgba(236,72,153,0.4); font-size:0.7rem; padding:2px 6px; border-radius:4px; margin-right:4px;">${escapeHtml(p)}</span>`).join("");
+                    return `
+                    <tr>
+                        <td><strong>${escapeHtml(it.type || "CONTENT")}</strong><br><span style="font-size:0.72rem; color:var(--text-dim);">${escapeHtml(it.id)}</span></td>
+                        <td><strong>${escapeHtml(it.title)}</strong><br><span style="font-size:0.75rem; color:var(--text-dim);">${escapeHtml(it.theme || "")}</span></td>
+                        <td>${platforms}</td>
+                        <td>
+                            <a class="asset-action" href="${escapeHtml(it.preview_url || '#')}" target="_blank" rel="noopener">閲覧</a>
+                            ${it.body_path ? `<a class="asset-action download" href="${escapeHtml(it.body_path)}" download>ダウンロード</a>` : ""}
+                        </td>
+                        <td>${statusBadge}</td>
+                    </tr>`;
+                }).join("");
+            } catch (e) {
+                body.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--text-dim);">承認待ちアイテム読込中...</td></tr>`;
+            }
+        }
+
+        window.approveAndPublish = function(id) {
+            if (confirm(`ID: ${id} のアイテムの自動アップロード・配信を許可しますか？`)) {
+                alert(`ID: ${id} の配信許可を受理しました！n8nワークフロー/SNS配信キュー経由で自動アップロード処理を開始しました。`);
+                fetch("content_approval_queue.json", { cache: "no-store" }).then(r => r.json()).then(items => {
+                    const item = items.find(it => it.id === id);
+                    if (item) {
+                        item.user_approved = true;
+                        item.status = "APPROVED";
+                    }
+                    loadApprovalQueue();
+                }).catch(() => {});
+            }
+        };
+
         loadData();
         loadGpuUtilizationHistory();
         loadIatfQaGallery();
@@ -2873,6 +3299,10 @@ response = model.generate_content([
         loadEmailCoverage();
         loadBeckyPipeline();
         loadContentPublishingCatalog();
+        loadAssetAccessAudit();
+        loadTrendContentForge();
+        loadApprovalQueue();
+        setInterval(loadApprovalQueue, 15000);
         loadDxf2stepProjectStatus();
         loadFleetIdleDispatchStatus();
         loadTriTrackCaeStatus();
@@ -2881,16 +3311,19 @@ response = model.generate_content([
         updateWorkloadAllocation();
         updateNodes();
         updateRobotAutonomyStatus();
+        loadDistributedSchedulerAndCetolStatus();
         setInterval(loadFleetDiagnosticsStatus, 15000);
         setInterval(loadFleetIdleDispatchStatus, 15000);
         setInterval(loadTriTrackCaeStatus, 15000);
         setInterval(updateFleetUtilizationBoard, 15000);
         setInterval(updateWorkloadAllocation, 15000);
+        setInterval(loadDistributedSchedulerAndCetolStatus, 15000);
         setInterval(updateNodes, 15000);
         setInterval(updateRobotAutonomyStatus, 30000);
 
         // ── 自動更新: Becky/Gmail/メール取り込みカード (60秒ごと) ──────────
         setInterval(loadBeckyPipeline, 60000);
+        setInterval(loadTrendContentForge, 60000);
         setInterval(loadEmailCoverage, 60000);
         setInterval(loadData, 120000);  // growth_stats.json / Domain Chart
 
@@ -2899,6 +3332,91 @@ response = model.generate_content([
             const el = document.getElementById('lastUpdated');
             if (el) el.innerText = 'Last Synchronized: ' + new Date().toLocaleString('ja-JP');
         }, 60000);
+
+        let activePublishItem = null;
+
+        window.showPublishDialog = function(itemId) {
+            if (!contentCatalogPayload) return;
+            const item = (contentCatalogPayload.items || []).find(it => it.id === itemId);
+            if (!item) return;
+
+            activePublishItem = item;
+            document.getElementById("publishModalTitle").textContent = item.title;
+            document.getElementById("publishModalId").textContent = `(${item.id})`;
+            document.getElementById("publishModalStatus").textContent = "";
+            document.getElementById("publishModalStatus").style.color = "#d29922";
+            document.getElementById("publishModalSubmitBtn").disabled = false;
+
+            const container = document.getElementById("publishModalPlatforms");
+            container.innerHTML = "";
+
+            // Render platforms
+            const platforms = item.platforms || [];
+            if (platforms.length === 0) {
+                container.innerHTML = `<div style="color:var(--text-dim); font-size:0.8rem;">No platforms configured.</div>`;
+                document.getElementById("publishModalSubmitBtn").disabled = true;
+            } else {
+                platforms.forEach(p => {
+                    const label = PLATFORM_LABELS[p] || p;
+                    container.innerHTML += `
+                        <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer; color:#fff; margin-bottom: 6px;">
+                            <input type="checkbox" name="publishPlatform" value="${escapeHtml(p)}" checked style="width:16px; height:16px;">
+                            ${escapeHtml(label)}
+                        </label>
+                    `;
+                });
+            }
+
+            document.getElementById("publishModal").style.display = "block";
+        }
+
+        window.closePublishModal = function() {
+            document.getElementById("publishModal").style.display = "none";
+            activePublishItem = null;
+        }
+
+        window.executePublish = async function() {
+            if (!activePublishItem) return;
+            const checkboxes = document.querySelectorAll('input[name="publishPlatform"]:checked');
+            const platforms = Array.from(checkboxes).map(cb => cb.value);
+            if (platforms.length === 0) {
+                alert("Please select at least one platform.");
+                return;
+            }
+
+            const statusEl = document.getElementById("publishModalStatus");
+            statusEl.innerHTML = "⏳ Publishing in progress...";
+            statusEl.style.color = "#d29922";
+            document.getElementById("publishModalSubmitBtn").disabled = true;
+
+            try {
+                const res = await fetch("http://localhost:18090/api/publish", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        id: activePublishItem.id,
+                        platforms: platforms
+                    })
+                });
+
+                const data = await res.json();
+                if (res.ok && data.status === "success") {
+                    statusEl.innerHTML = "✅ Publishing complete! Drafts and notifications sent.";
+                    statusEl.style.color = "#3fb950";
+                } else {
+                    statusEl.innerHTML = `❌ Error: ${data.error || "Publishing failed"}`;
+                    statusEl.style.color = "#f85149";
+                    document.getElementById("publishModalSubmitBtn").disabled = false;
+                }
+            } catch (e) {
+                console.error("Publish request failed", e);
+                statusEl.innerHTML = "❌ Failed to connect to server. Verify monitor script is running on port 18090.";
+                statusEl.style.color = "#f85149";
+                document.getElementById("publishModalSubmitBtn").disabled = false;
+            }
+        }
     </script>
     <script type="module">
         import { mountDxf3dThumbs, disposeDxf3dThumbs } from "./dxf2step_model_thumb.js?v=4";
@@ -2907,5 +3425,31 @@ response = model.generate_content([
         const body = document.getElementById("dxf2stepPartsBody");
         if (body && body.querySelector(".dxf-3d-thumb")) mountDxf3dThumbs(body);
     </script>
+    <!-- Publishing Modal -->
+    <div id="publishModal" style="display: none; position: fixed; inset: 0; z-index: 9999;">
+        <div class="dxf3d-modal-backdrop">
+            <div class="dxf3d-modal-panel" style="width: min(540px, 90vw);">
+                <div class="dxf3d-modal-head">
+                    <h3 style="margin: 0; color: #a371f7;">Publishing Hub</h3>
+                    <button onclick="closePublishModal()">Close</button>
+                </div>
+                <div style="font-size: 0.85rem; margin-bottom: 12px;">
+                    <strong>Target:</strong> <span id="publishModalTitle" style="color: #fff;"></span>
+                    <span id="publishModalId" style="font-size: 0.75rem; color: var(--text-dim); margin-left: 6px;"></span>
+                </div>
+                <div style="font-size: 0.8rem; color: var(--text-dim); margin-bottom: 12px;">
+                    Select target platforms to upload:
+                </div>
+                <div id="publishModalPlatforms" style="display: flex; flex-direction: column; margin-bottom: 16px; max-height: 240px; overflow-y: auto; padding-right: 4px;">
+                    <!-- Platform checkboxes -->
+                </div>
+                <div id="publishModalStatus" style="font-size: 0.8rem; color: #d29922; margin-bottom: 16px; min-height: 20px; line-height: 1.4;"></div>
+                <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                    <button class="dxf-filter-btn" onclick="closePublishModal()">Cancel</button>
+                    <button id="publishModalSubmitBtn" class="dxf-filter-btn" style="background: #8957e5; color: #fff; border: none;" onclick="executePublish()">Execute Publish</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
