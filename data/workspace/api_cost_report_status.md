@@ -1,6 +1,6 @@
 # API Cost Report
 
-- Generated: 2026-06-19T14:39:42+09:00
+- Generated: 2026-07-26T05:07:01+09:00
 - USD/JPY used for optional USD conversion: 155.0
 - Rule: unknown billing must stay unknown; this report does not invent yen cost.
 - Known variable spend: 0.0000 JPY

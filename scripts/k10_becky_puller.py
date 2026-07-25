@@ -21,7 +21,7 @@ from datetime import datetime
 VIVOBOOK_URL      = "http://100.65.182.27:8200"
 # Paperless が監視する consume ディレクトリに直接書き込む
 PAPERLESS_EML_DIR = r"D:\Clawdbot_Docker_20260125\clawstack_v2\data\paperless\consume\email\becky_vivobook"
-K10_B64_DIR       = r"D:\tmp\becky_attachments"          # .b64 → ローカル保存
+K10_B64_DIR       = r"F:\tmp\becky_attachments"          # .b64 → ローカル保存
 DB_PATH          = os.path.join(os.path.dirname(os.path.abspath(__file__)), "becky_pull_history.db")
 INTER_FILE_SLEEP = 0.2   # 秒 (K10 受信サーバーへの流量制御)
 CONNECT_TIMEOUT  = 600   # /list は 302,351件スキャンで時間がかかる (旧 60s → 10分)

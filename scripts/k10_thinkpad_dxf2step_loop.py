@@ -404,6 +404,20 @@ def run_cycle(
         save_json(STATUS_PATH, {"updated_at": now_iso(), "running": True, "last_cycle": cycle})
         return cycle
 
+    # This loop is strictly single-slot. If a previous controller timed out or
+    # restarted, reap only its orphaned DXF2STEP/FreeCAD workers before launch.
+    orphan_cleanup = tp_ssh.run_ssh(
+        (
+            "N=$(pgrep -fc '[d]xf2step_worker.py|[f]reecadcmd.*clawstack_satellite/dxf2step/jobs' || true); "
+            "pkill -f '[d]xf2step_worker.py' 2>/dev/null || true; "
+            "pkill -f '[f]reecadcmd.*clawstack_satellite/dxf2step/jobs' 2>/dev/null || true; "
+            "echo DXF2STEP_ORPHANS_REAPED=$N"
+        ),
+        timeout=30,
+        registry=reg,
+    )
+    cycle["orphan_cleanup"] = (orphan_cleanup.stdout or "").strip()
+
     tp_ssh.run_ssh(f"mkdir -p {remote_job}/input {remote_output}", timeout=60, registry=reg)
     if not scp_to_thinkpad(local_dxf, remote_input, reg):
         cycle["decision"] = "skip_scp_failed"
@@ -577,6 +591,13 @@ def daemon_loop(poll_seconds: int) -> None:
     cfg = load_json(CONFIG_PATH, {})
     poll = int(cfg.get("poll_seconds") or poll_seconds)
     threshold = _meaning_gate_threshold(cfg)
+    if threshold <= 0:
+        status = load_json(STATUS_PATH, {})
+        status.pop("meaning_gate", None)
+        if status.get("last_verdict") == "STOPPED_MEANING_GATE":
+            status.pop("last_verdict", None)
+        status.update({"updated_at": now_iso(), "running": True, "poll_seconds": poll})
+        save_json(STATUS_PATH, status)
     print(f"[thinkpad_dxf2step] daemon poll={poll}s meaning_gate_max_fail_streak={threshold}", flush=True)
     while True:
         try:

@@ -58,6 +58,7 @@ EMAIL_BLACKLIST_HUB_STATUS = WORKSPACE / "email_blacklist_hub_status.json"
 EMAIL_FILTER_PATH = WORKSPACE / "email_rag_sender_filters.json"
 EMAIL_SEARCH_API_LOG = WORKSPACE / "email_search_api.log"
 MAINTENANCE_MODE_PATH = WORKSPACE / "maintenance_mode.json"
+FLEET_IDLE_DISPATCH_STATUS = WORKSPACE / "apps" / "growth_dashboard" / "fleet_idle_dispatch_status.json"
 
 
 START_EMAIL_WATCHDOG = ROOT / "scripts" / "start_email_continuous_watchdog.ps1"
@@ -66,6 +67,7 @@ START_CLAUDIAN_WATCHDOG = ROOT / "scripts" / "start_claudian_watchdog.ps1"
 START_MINIPC_OPTIMIZER_WATCHDOG = ROOT / "scripts" / "start_minipc_optimizer_watchdog.ps1"
 START_EMAIL_BLACKLIST_HUB = ROOT / "scripts" / "start_email_blacklist_hub_api.ps1"
 START_EMAIL_SEARCH_API = ROOT / "scripts" / "start_email_search_api.ps1"
+START_FLEET_IDLE_DISPATCH = ROOT / "scripts" / "start_k10_fleet_idle_dispatch.ps1"
 LEARNING_HEALTH_URLS = [
     "http://localhost:8110/health",
     "http://127.0.0.1:8110/health",
@@ -166,6 +168,8 @@ def run_shell(command: list[str], timeout_seconds: int = 300) -> dict[str, Any]:
             encoding="utf-8",
             errors="replace",
             timeout=timeout_seconds,
+            # CMD窓の点滅防止(2026-07-13): CREATE_NO_WINDOW(Windows以外は0)
+            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
         )
         return {
             "command": " ".join(command),
@@ -531,6 +535,7 @@ def summarize() -> tuple[list[dict[str, Any]], list[dict[str, Any]], dict[str, A
     docker_ui_watchdog = read_json(DOCKER_DESKTOP_UI_WATCHDOG_STATUS, {})
     claudian_watchdog = read_json(CLAUDIAN_WATCHDOG_STATUS, {})
     minipc_optimizer_watchdog = read_json(MINIPC_OPTIMIZER_WATCHDOG_STATUS, {})
+    fleet_idle_dispatch = read_json(FLEET_IDLE_DISPATCH_STATUS, {})
     email_blacklist_hub = read_json(EMAIL_BLACKLIST_HUB_STATUS, {})
     email_policy = read_json(EMAIL_POLICY_PATH, {})
     outbound_guard = read_json(OUTBOUND_GUARD_STATUS_PATH, {})
@@ -713,6 +718,13 @@ def summarize() -> tuple[list[dict[str, Any]], list[dict[str, Any]], dict[str, A
         strengths.append({"key": "minipc_optimizer_watchdog", "title": "Mini PC optimizer watchdog is active", "detail": f"stage={minipc_stage} age={minipc_age} minutes"})
     else:
         weaknesses.append({"key": "minipc_optimizer_watchdog", "severity": "medium", "title": "Mini PC optimizer watchdog is stale or missing", "detail": f"state={minipc_state} stage={minipc_stage or 'unknown'} ageMinutes={minipc_age}"})
+
+    fleet_ok, fleet_age, fleet_state = status_health(fleet_idle_dispatch, ["updated_at"], 20)
+    fleet_process_alive = process_exists("k10_fleet_idle_dispatch.py")
+    if fleet_ok and fleet_process_alive and fleet_idle_dispatch.get("running"):
+        strengths.append({"key": "fleet_idle_dispatch", "title": "Fleet idle dispatch scheduler is active", "detail": f"updated {fleet_age} minutes ago"})
+    else:
+        weaknesses.append({"key": "fleet_idle_dispatch", "severity": "medium", "title": "Fleet idle dispatch scheduler is stale or missing", "detail": f"state={fleet_state} processAlive={fleet_process_alive} ageMinutes={fleet_age}"})
 
     blacklist_ok, blacklist_age, blacklist_state = status_health(email_blacklist_hub, ["updatedAt"], 180)
     blacklist_process_alive = process_exists("email_blacklist_hub_api.py")
@@ -909,6 +921,8 @@ def planned_actions(weaknesses: list[dict[str, Any]]) -> list[dict[str, str]]:
         actions.append({"key": "start_claudian_watchdog", "reason": "Claudian watchdog is missing or stale"})
     if "minipc_optimizer_watchdog" in weakness_keys:
         actions.append({"key": "start_minipc_optimizer_watchdog", "reason": "Mini PC optimizer watchdog is missing or stale"})
+    if "fleet_idle_dispatch" in weakness_keys:
+        actions.append({"key": "start_fleet_idle_dispatch", "reason": "Fleet idle dispatch scheduler is missing or stale"})
     if "email_blacklist_hub" in weakness_keys:
         actions.append({"key": "start_email_blacklist_hub", "reason": "Email blacklist hub API is offline or stale"})
     if "email_search_api" in weakness_keys:
@@ -978,6 +992,17 @@ def execute_action(action_key: str) -> dict[str, Any]:
                 "Bypass",
                 "-File",
                 str(START_MINIPC_OPTIMIZER_WATCHDOG),
+            ]
+        )
+    if action_key == "start_fleet_idle_dispatch":
+        return start_detached(
+            [
+                "powershell",
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                str(START_FLEET_IDLE_DISPATCH),
             ]
         )
     if action_key == "start_email_blacklist_hub":

@@ -34,7 +34,16 @@ function Stop-TelegramBridgeProcesses {
 }
 
 if (-not $env:TELEGRAM_FAST_MODEL) {
-  $env:TELEGRAM_FAST_MODEL = "qwen3-nothink:latest"
+  $env:TELEGRAM_FAST_MODEL = "google/gemini-2.5-flash"
+}
+if (-not $env:TELEGRAM_LOCAL_MODEL) {
+  $env:TELEGRAM_LOCAL_MODEL = "qwen3:14b"
+}
+if (-not $env:TELEGRAM_CODER_MODEL) {
+  $env:TELEGRAM_CODER_MODEL = "qwen2.5-coder:14b"
+}
+if (-not $env:TELEGRAM_LOCAL_TIMEOUT_MS) {
+  $env:TELEGRAM_LOCAL_TIMEOUT_MS = "120000"
 }
 if (-not $env:TELEGRAM_FAST_API_BASE) {
   $env:TELEGRAM_FAST_API_BASE = "http://127.0.0.1:4001/v1"

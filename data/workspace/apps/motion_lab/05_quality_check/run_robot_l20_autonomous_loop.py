@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any
 
 from run_robot_l20_motion_trials import DASHBOARD, run_trials, write_html, write_report, OUT_JSON
+import robot_l20_growth_db as growth_db
 
 
 ROOT = Path(__file__).resolve().parents[5]
@@ -79,7 +80,15 @@ def notify_improvement(payload: dict[str, Any], cycle: int) -> bool:
     return bool(send_telegram_text(text))
 
 
-def run_loop(cycles: int, sleep_sec: float, count: int, refine_top: int, seed_base: int, notify: bool) -> dict[str, Any]:
+def run_loop(
+    cycles: int,
+    sleep_sec: float,
+    count: int,
+    refine_top: int,
+    seed_base: int,
+    batch_number: int,
+    notify: bool,
+) -> dict[str, Any]:
     best = load_best()
     final_status: dict[str, Any] = {}
     for cycle in range(1, cycles + 1):
@@ -97,21 +106,51 @@ def run_loop(cycles: int, sleep_sec: float, count: int, refine_top: int, seed_ba
 
         record = {
             "cycle": cycle,
+            "batch_number": batch_number,
             "started_at": started_at,
             "finished_at": datetime.now(timezone.utc).isoformat(),
             "seed_base": cycle_seed,
             "best_score": payload["best_score"],
             "best_verdict": payload["best_verdict"],
+            "ie_verdict": payload.get("best_trial", {}).get("ie_verdict"),
             "l20_candidate_count": payload["l20_candidate_count"],
             "task_floor": task_floor(payload),
             "improved": improved,
         }
         append_history(record)
+        try:
+            growth_db.persist_cycle(batch_number, record, payload)
+            if improved:
+                growth_db.persist_improvement(batch_number, cycle, payload)
+        except Exception:
+            pass
+        try:
+            from export_workstudy_therblig import build_export
+            from run_factory_workcell_sim import run_rollout
+
+            export_path = DASHBOARD / "workstudy_therblig_export.json"
+            export_path.write_text(
+                json.dumps(build_export(payload), ensure_ascii=False, indent=2),
+                encoding="utf-8",
+            )
+            skill = float(payload.get("best_trial", {}).get("metrics", {}).get("effective_therblig_ratio", 0.75))
+            workcell = run_rollout(seed=cycle_seed, skill=skill)
+            (DASHBOARD / "factory_workcell_rollout.json").write_text(
+                json.dumps(workcell, ensure_ascii=False, indent=2),
+                encoding="utf-8",
+            )
+            import update_factory_robotics_status as factory_status
+
+            factory_status.main()
+        except Exception:
+            pass
         notified = notify_improvement(payload, cycle) if notify and improved else False
         final_status = {
             "schema": "clawstack.robot_l20_autonomous_loop.v1",
             "state": "running" if cycle < cycles else "completed",
             "updated_at": record["finished_at"],
+            "batch_number": batch_number,
+            "seed_base": seed_base,
             "cycles_requested": cycles,
             "cycles_completed": cycle,
             "sleep_sec": sleep_sec,
@@ -132,12 +171,19 @@ def run_loop(cycles: int, sleep_sec: float, count: int, refine_top: int, seed_ba
                 "best": str(BEST_PATH),
                 "trial_status": str(OUT_JSON),
                 "trial_html": str(DASHBOARD / "robot_l20_motion_trials.html"),
+                "knowledge_db": str(growth_db.KNOWLEDGE_DB),
+                "universal_growth_db": str(growth_db.DB_FILE),
+                "knowledge_manifest": str(growth_db.MANIFEST_PATH),
             },
             "safety_note": "Bounded proxy loop only. It does not edit robot model geometry or deploy to real hardware.",
         }
         write_status(final_status)
         if cycle < cycles and sleep_sec > 0:
             time.sleep(sleep_sec)
+    try:
+        growth_db.persist_batch_complete(batch_number, final_status, seed_base)
+    except Exception:
+        pass
     return final_status
 
 
@@ -148,6 +194,7 @@ def main() -> int:
     parser.add_argument("--count", type=int, default=96)
     parser.add_argument("--refine-top", type=int, default=12)
     parser.add_argument("--seed-base", type=int, default=20260620)
+    parser.add_argument("--batch-number", type=int, default=1)
     parser.add_argument("--notify", action="store_true")
     args = parser.parse_args()
 
@@ -160,6 +207,7 @@ def main() -> int:
         count=count,
         refine_top=refine_top,
         seed_base=args.seed_base,
+        batch_number=max(1, args.batch_number),
         notify=args.notify,
     )
     print(json.dumps(status, ensure_ascii=False, indent=2))

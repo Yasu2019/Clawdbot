@@ -524,7 +524,7 @@ def main() -> None:
 
         had_error = bool(index_result.get("timedOut") or index_result.get("returncode") not in (0, None))
         if had_error:
-            if index_result.get("skippedLocked"):
+            if index_summary.get("skippedLocked"):
                 status["stage"] = "idle"
                 status["lastError"] = ""
                 status["updatedAt"] = now_jst_text()

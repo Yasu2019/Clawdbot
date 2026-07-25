@@ -203,8 +203,28 @@ def dispatch_shell(command: str, *, job_id: str, timeout_sec: int) -> dict[str, 
     return sjp.dispatch_job(base_url, token, job, timeout_sec)
 
 
-def impact_run_command(*, impact_home: str, case_dir: str, input_name: str) -> str:
+def impact_run_command(
+    *,
+    impact_home: str,
+    case_dir: str,
+    input_name: str,
+    qc_limits: dict[str, float | int] | None = None,
+) -> str:
+    from impact_vtk_quality_gate import DEFAULT_QC_LIMITS
+
+    lim = qc_limits or dict(DEFAULT_QC_LIMITS)
     lib_path = f"{impact_home}/lib_j3d/linux_amd64:{impact_home}/lib"
+    qc_cmd = (
+        f'VTK_QC=$(ls -1 "$CASE_DIR/${{INP}}"_surface_*.vtk 2>/dev/null | sort -V | tail -1 || true); '
+        f'if [ -z "$VTK_QC" ]; then echo FEM_IMPACT_QC_VERDICT=FAILED_MESH_EXPLOSION; '
+        f'echo FEM_IMPACT_QC_REASONS=vtk_missing; exit 20; fi; '
+        f'echo FEM_IMPACT_QC_VTK=$VTK_QC; '
+        f'python3 {QC_SCRIPT_REMOTE} "$VTK_QC" '
+        f'--max-bbox-diag {float(lim["max_bbox_diag"]):g} '
+        f'--max-coordinate-abs {float(lim["max_coordinate_abs"]):g} '
+        f'--max-displacement-abs {float(lim["max_displacement_abs"]):g} '
+        f'--min-points {int(lim["min_points"])}'
+    )
     return (
         "bash -lc "
         f"'set -euo pipefail; "
@@ -221,6 +241,7 @@ def impact_run_command(*, impact_home: str, case_dir: str, input_name: str) -> s
         f"rm -f \"$CASE_DIR/${{INP}}\"_*.vtk \"$CASE_DIR/${{INP}}\"_*.vtu 2>/dev/null || true; "
         f"cd \"$IMPACT_HOME\"; "
         f"java -Xmx4096m -Xss2m -cp .:doc:bin run.Impact \"$CASE_DIR/$INP\"; "
+        f"{qc_cmd}; "
         f"VTK_COUNT=$(ls -1 \"$CASE_DIR/${{INP}}\"_*.vtk 2>/dev/null | wc -l); "
         f"PNG_COUNT=$(ls -1 \"$CASE_DIR/${{INP}}\"*.png 2>/dev/null | wc -l); "
         f"echo FEM_IMPACT_VTK_COUNT=$VTK_COUNT; "
@@ -244,6 +265,13 @@ def parse_counts(stdout: str) -> tuple[int, int]:
     return vtk, png
 
 
+def exit_code_ok(exit_code: Any) -> bool:
+    """True when worker exit code is exactly 0 (not falsy-or-1)."""
+    if exit_code is None:
+        return False
+    return int(exit_code) == 0
+
+
 def run_case(
     *,
     remote_bundle: str,
@@ -252,10 +280,19 @@ def run_case(
     timeout_sec: int,
     dry_run: bool,
     render_png: bool,
+    fem_cfg: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
+    from impact_vtk_quality_gate import limits_from_fem_cfg, parse_qc_stdout
+
     impact_home = f"{remote_bundle}/Impact"
     case_dir = f"{impact_home}/{case_subdir}".replace("\\", "/")
-    cmd = impact_run_command(impact_home=impact_home, case_dir=case_dir, input_name=input_name)
+    qc_limits = limits_from_fem_cfg(fem_cfg or load_yaml_fem())
+    cmd = impact_run_command(
+        impact_home=impact_home,
+        case_dir=case_dir,
+        input_name=input_name,
+        qc_limits=qc_limits,
+    )
     if dry_run:
         out = {
             "ok": True,
@@ -274,7 +311,14 @@ def run_case(
     stdout = result.get("stdout_tail") or ""
     stderr = result.get("stderr_tail") or ""
     vtk_count, png_count = parse_counts(stdout)
-    ok = result.get("status") == "ok" and int(result.get("exit_code") or 1) == 0 and vtk_count > 0
+    qc = parse_qc_stdout(stdout)
+    qc_ok = qc.get("verdict") == "PASS" and "FAILED_MESH_EXPLOSION" not in stdout
+    ok = (
+        result.get("status") == "ok"
+        and exit_code_ok(result.get("exit_code"))
+        and vtk_count > 0
+        and qc_ok
+    )
     png_step: dict[str, Any] | None = None
     if ok and render_png:
         png_cmd = paraview_png_command(
@@ -285,13 +329,14 @@ def run_case(
         _, png_count = parse_counts(png_stdout)
         png_step = {
             "ok": png_result.get("status") == "ok"
-            and int(png_result.get("exit_code") or 1) == 0
+            and exit_code_ok(png_result.get("exit_code"))
             and png_count > 0,
             "png_count": png_count,
             "stdout_tail": png_stdout[-1500:],
             "stderr_tail": (png_result.get("stderr_tail") or "")[-800:],
         }
         ok = ok and bool(png_step and png_step.get("ok"))
+    verdict = "SUCCESS" if ok else ("FAILED_MESH_EXPLOSION" if not qc_ok else "FAILED")
     return {
         "ok": ok,
         "case_dir": case_dir,
@@ -299,11 +344,12 @@ def run_case(
         "vtk_count": vtk_count,
         "png_count": png_count,
         "png_step": png_step,
+        "qc": qc,
         "exit_code": result.get("exit_code"),
         "worker_status": result.get("status"),
         "stdout_tail": stdout[-2500:],
         "stderr_tail": stderr[-1500:],
-        "verdict": "SUCCESS" if ok else "FAILED",
+        "verdict": verdict,
     }
 
 
@@ -366,7 +412,7 @@ def main() -> int:
             _, png_count = parse_counts(stdout)
             out["steps"]["png_only"] = {
                 "ok": png_result.get("status") == "ok"
-                and int(png_result.get("exit_code") or 1) == 0
+                and exit_code_ok(png_result.get("exit_code"))
                 and png_count > 0,
                 "case_dir": case_dir,
                 "png_count": png_count,

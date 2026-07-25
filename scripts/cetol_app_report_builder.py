@@ -53,6 +53,25 @@ def analyze_manifest(manifest_path: Path) -> dict | None:
     except Exception as exc:
         print(f"[skip] {manifest_path.parent.name}: analysis failed ({exc})")
         return None
+
+    # Solve 3D Vector Loop
+    loop_res = {}
+    try:
+        loop = tla.tse.VectorLoop3D()
+        loop.add_frame("BasePlate", (0.0, 0.0, 0.0), (0.0, 0.0, 0.0), (0.02, 0.02, 0.03), (0.01, 0.01, 0.01), source="pmi")
+        
+        bbox = manifest.get("bbox_mm") or {"Lx": 100.0, "Ly": 20.0, "Lz": 5.0}
+        lx = float(bbox.get("Lx") or 100.0)
+        ly = float(bbox.get("Ly") or 20.0)
+        lz = float(bbox.get("Lz") or 5.0)
+        
+        loop.add_frame("Bracket", (lx, ly, lz), (0.0, 90.0, 0.0), (0.04, 0.04, 0.05), (0.02, 0.02, 0.02), source="measured")
+        loop.add_frame("PinJoin", (0.0, 0.0, ly), (0.0, 0.0, 0.0), (0.015, 0.015, 0.02), (0.005, 0.005, 0.005), source="assembly_l10")
+        loop.add_frame("GapSensor", (-lx, -ly, -lz - 2.0), (0.0, -90.0, 0.0), (0.03, 0.03, 0.03), (0.01, 0.01, 0.01), source="pmi")
+        loop_res = loop.solve(gap_direction=(0.0, 0.0, 1.0))
+    except Exception as e:
+        print(f"[warn] 3D Vector Loop failed: {e}")
+
     mc = rep.get("monte_carlo") or {}
     msm = rep.get("msm") or {}
     alloc = rep.get("tolerance_allocation") or {}
@@ -83,6 +102,7 @@ def analyze_manifest(manifest_path: Path) -> dict | None:
         "factory_kpi": (rep.get("factory_kpi") or {}).get("verdict")
         if isinstance(rep.get("factory_kpi"), dict)
         else rep.get("factory_kpi"),
+        "vector_loop_3d": loop_res,
     }
 
 

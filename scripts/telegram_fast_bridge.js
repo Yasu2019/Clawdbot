@@ -16,6 +16,10 @@ const {
   fetchInstalledOllamaModels,
   isModelRankingIntent,
 } = require(path.join(__dirname, '..', 'data', 'state', 'model_ranking_helper'));
+const {
+  resolveTelegramLocalModels,
+  isCodingIntent,
+} = require(path.join(__dirname, '..', 'data', 'state', 'telegram_routing_helper'));
 
 const repoRoot = path.resolve(__dirname, '..');
 const stateDir = path.join(repoRoot, 'data', 'state', 'telegram_fast');
@@ -31,6 +35,7 @@ const replyModel = process.env.TELEGRAM_FAST_MODEL || 'google/gemini-2.5-flash';
 const replyApiBase = (process.env.TELEGRAM_FAST_API_BASE || 'http://127.0.0.1:4000/v1').replace(/\/$/, '');
 const replyApiKey = process.env.TELEGRAM_FAST_API_KEY || process.env.OPENAI_API_KEY || 'none';
 const MODEL_TIMEOUT_MS = Number(process.env.TELEGRAM_FAST_TIMEOUT_MS || 45000);
+const LOCAL_TIMEOUT_MS = Number(process.env.TELEGRAM_LOCAL_TIMEOUT_MS || 120000);
 const ALLOWED_TELEGRAM_CHAT_ID = '8173025084';
 // Escalation settings
 const localModel = process.env.TELEGRAM_LOCAL_MODEL || 'qwen3:8b';
@@ -186,10 +191,14 @@ function formatHistoryBlock(history) {
   ];
 }
 
-function buildStackStatusText() {
+function buildStackStatusText(localRouting = null) {
+  const routing = localRouting || resolveTelegramLocalModels(repoRoot, []);
   return [
     'telegram_fast_bridge status',
     `reply_model=${replyModel}`,
+    `local_general=${routing.general}`,
+    `local_coder=${routing.coder}`,
+    `local_ramp=${routing.phase}/${routing.mode} useLocal=${routing.useLocal}`,
     `reply_backend=${usesOpenAiCompatibleRoute(replyModel) ? 'litellm-openai' : 'ollama-generate'}`,
     'router=commands-local_context-aware',
     'task_search=sqlite tasks-context',
@@ -202,7 +211,10 @@ async function getFastReply(text) {
   const trimmed = (text || '').trim();
   if (!trimmed) return 'メッセージを送ってください。';
   if (/^ping$/i.test(trimmed)) return 'pong';
-  if (/^\/status$/i.test(trimmed)) return buildStackStatusText();
+  if (/^\/status$/i.test(trimmed)) {
+    const installedModels = await fetchInstalledOllamaModels(ollamaUrl);
+    return buildStackStatusText(resolveTelegramLocalModels(repoRoot, installedModels));
+  }
   if (/^(おはよう|おはようございます|こんにちは|こんばんは|ありがとう|ありがと)$/i.test(trimmed)) {
     if (/ありがとう/.test(trimmed)) return 'どういたしまして。必要なことがあればそのまま送ってください。';
     return 'おはようございます。今日も確認できます。';
@@ -212,7 +224,7 @@ async function getFastReply(text) {
   }
   if (/^\/models$/i.test(trimmed) || /^\/rankings$/i.test(trimmed) || isModelRankingIntent(trimmed)) {
     const installedModels = await fetchInstalledOllamaModels(ollamaUrl);
-    return `${buildStackStatusText()}\n\n${buildModelRankingText(installedModels)}`;
+    return `${buildStackStatusText(resolveTelegramLocalModels(repoRoot, installedModels))}\n\n${buildModelRankingText(installedModels)}`;
   }
   return null;
 }
@@ -895,7 +907,10 @@ function classifyMessageFast(text) {
   // Extended rag keywords (manufacturing/quality ops not in detectRagCollection)
   if (/(工程\s*(管理|改善|フロー|能力)|設備\s*(保全|故障|異常|点検)|品質\s*(コスト|指標|目標|改善|記録)|作業標準|手順書|WI|QC工程図|初物検査|最終検査|出荷検査|受入検査|サンプリング|抜取り|ロット|トレーサビリティ|4M変更|変更管理)/i.test(t)) return 'rag';
 
-  // ── local-general: Japanese conversational / factual (qwen3:8b) ───
+  // ── coding: local coder model when ramp policy allows ─────────────
+  if (isCodingIntent(t)) return 'coding';
+
+  // ── local-general: Japanese conversational / factual ────────────
   if (t.length <= 60 && /^[ぁ-んァ-ン一-龥々〆〇ー！？。、\s]+$/.test(t)) return 'simple';
   if (/(どうすれば|どうやって|方法|手順|ポイント|コツ|注意点|違い|比較|メリット|デメリット|おすすめ|アドバイス)/.test(t) && t.length < 80) return 'simple';
 
@@ -947,7 +962,8 @@ function needsAgentEscalation(text) {
  * @param {function|null} onProgress
  * @param {boolean|null} thinkOverride  null=auto-detect, true/false=force
  */
-async function callLocalModelDirect(text, onProgress = null, thinkOverride = null, history = []) {
+async function callLocalModelDirect(text, onProgress = null, thinkOverride = null, history = [], modelName = null) {
+  const model = modelName || localModel;
   const think = resolveThink(text, thinkOverride);
   const prompt = think
     ? [
@@ -968,21 +984,22 @@ async function callLocalModelDirect(text, onProgress = null, thinkOverride = nul
     const savedModel = replyModel;
     // Temporarily override replyModel so callOllamaGenerate uses qwen3:8b
     // We call the Ollama endpoint directly instead to avoid model confusion
+    const timeoutMs = LOCAL_TIMEOUT_MS + (think ? 90000 : 0);
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), MODEL_TIMEOUT_MS + (think ? 90000 : 0));
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
     try {
       const res = await fetch(`${ollamaUrl}/api/generate`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         signal: controller.signal,
         body: JSON.stringify({
-          model: localModel,
+          model,
           prompt,
           stream: false,
           think,
           options: {
             temperature: think ? 0.5 : 0.3,
-            num_predict: think ? 800 : 220,
+            num_predict: think ? 800 : 320,
             num_ctx: think ? 8192 : 4096,
           },
         }),
@@ -1039,14 +1056,14 @@ async function callAgentEscalation(text, onProgress = null) {
 
 // ── RAG-enhanced reply ────────────────────────────────────────────────────────
 
-async function generateRagReply(text, onProgress = null, thinkOverride = null, history = []) {
+async function generateRagReply(text, onProgress = null, thinkOverride = null, history = [], modelName = null) {
   if (onProgress) await onProgress('知識ベースを検索しています...', Date.now()).catch(() => {});
 
   const hits = await ragSearch(text);
+  const ragModel = modelName || localModel;
 
   if (hits.length === 0) {
-    // RAG found nothing → fall back to qwen3:8b without context
-    return callLocalModelDirect(text, onProgress, thinkOverride, history);
+    return callLocalModelDirect(text, onProgress, thinkOverride, history, ragModel);
   }
 
   const context = hits
@@ -1068,14 +1085,14 @@ async function generateRagReply(text, onProgress = null, thinkOverride = null, h
   ].join('\n');
 
   const controller = new AbortController();
-  const tid = setTimeout(() => controller.abort(), MODEL_TIMEOUT_MS + (think ? 90000 : 0));
+  const tid = setTimeout(() => controller.abort(), LOCAL_TIMEOUT_MS + (think ? 90000 : 0));
   try {
     const res = await fetch(`${ollamaUrl}/api/generate`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       signal: controller.signal,
       body: JSON.stringify({
-        model: localModel,
+        model: ragModel,
         prompt,
         stream: false,
         think,
@@ -1101,21 +1118,56 @@ async function generateRagReply(text, onProgress = null, thinkOverride = null, h
 
 async function generateGeneralReply(text, onProgress = null, thinkOverride = null, history = [], onStream = null, fastMode = false) {
   const tier = await classifyMessage(text);
-  writeEvent('classify', { lastMessage: text, tier, think: thinkOverride, fast: fastMode });
+  const installedModels = await fetchInstalledOllamaModels(ollamaUrl);
+  const localRouting = resolveTelegramLocalModels(repoRoot, installedModels);
+  writeEvent('classify', {
+    lastMessage: text,
+    tier,
+    think: thinkOverride,
+    fast: fastMode,
+    localRouting,
+  });
 
-  // Speed optimization: for fastMode or specific keywords, prefer Cloud (Gemini)
   const isUrgent = /(緊急|至急|トラブル|故障|停止|火災|事故|怪我|危険)/.test(text);
   const useFastCloud = fastMode || isUrgent;
 
-  if (!useFastCloud) {
+  if (!useFastCloud && localRouting.useLocal) {
     switch (tier) {
+      case 'coding': {
+        const r = await callLocalModelDirect(text, onProgress, thinkOverride, history, localRouting.coder);
+        if (r) return r;
+        break;
+      }
       case 'simple': {
-        const r = await callLocalModelDirect(text, onProgress, false);
+        const r = await callLocalModelDirect(text, onProgress, false, history, localRouting.general);
         if (r) return r;
         break;
       }
       case 'rag': {
-        const r = await generateRagReply(text, onProgress, thinkOverride);
+        const r = await generateRagReply(text, onProgress, thinkOverride, history, localRouting.general);
+        if (r) return r;
+        break;
+      }
+      case 'agent': {
+        const r = await callAgentEscalation(text, onProgress);
+        if (r) return r;
+        break;
+      }
+      case 'gemini': {
+        const r = await callLocalModelDirect(text, onProgress, thinkOverride, history, localRouting.general);
+        if (r) return r;
+        break;
+      }
+    }
+  } else if (!useFastCloud) {
+    switch (tier) {
+      case 'simple': {
+        const r = await callLocalModelDirect(text, onProgress, false, history);
+        if (r) return r;
+        break;
+      }
+      case 'rag': {
+        const r = await generateRagReply(text, onProgress, thinkOverride, history);
         if (r) return r;
         break;
       }
@@ -1130,7 +1182,8 @@ async function generateGeneralReply(text, onProgress = null, thinkOverride = nul
   // Final tier: Cloud model (Gemini 2.5 Flash)
   // Also handles thinkOverride=true by first trying local with thinking
   if (thinkOverride === true && tier !== 'agent' && !fastMode) {
-    const r = await callLocalModelDirect(text, onProgress, true, history);
+    const thinkModel = localRouting.useLocal ? localRouting.general : localModel;
+    const r = await callLocalModelDirect(text, onProgress, true, history, thinkModel);
     if (r) return r;
   }
 
@@ -1400,6 +1453,7 @@ async function main() {
         const history = loadHistory(chatId);
 
         let reply = await getFastReply(cleanText);
+        let streamUpdater = null;
         if (reply === null) {
           const routeName = classifyRoute(cleanText);
 
@@ -1414,7 +1468,6 @@ async function main() {
 
           // Initial typing status/ACK
           let progressMessageId = 0;
-          let streamUpdater = null;
 
           if (routeName === 'general' || fastMode) {
             // Instant cloud route or simple general

@@ -71,7 +71,7 @@ model_list:
       api_key: ollama
   - model_name: codex
     litellm_params:
-      model: ollama/qwen3:8b
+      model: ollama/qwen3:14b
       api_base: http://ollama:11434
       api_key: ollama
   - model_name: ollama
@@ -159,6 +159,23 @@ model_list:
   - model_name: local_fast
     litellm_params:
       model: ollama/qwen3:8b
+      api_base: http://ollama:11434
+      api_key: ollama
+  # GPU Phase1 (2026-06-24): RTX 5060 Ti -- heavier local tier for summaries / IATF / security_lock
+  - model_name: local_fast_14b
+    litellm_params:
+      model: ollama/qwen3:14b
+      api_base: http://ollama:11434
+      api_key: ollama
+  - model_name: local_coder_14b
+    litellm_params:
+      model: ollama/qwen2.5-coder:14b
+      api_base: http://ollama:11434
+      api_key: ollama
+  # GPU Phase1 (2026-06-25): RTX 5060 Ti 16GB -- 32B Q3 fits when GPU is free
+  - model_name: local_coder_32b
+    litellm_params:
+      model: ollama/qwen2.5-coder:32b-instruct-q3_K_M
       api_base: http://ollama:11434
       api_key: ollama
 

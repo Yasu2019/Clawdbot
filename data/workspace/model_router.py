@@ -90,10 +90,40 @@ if _ROUTING_CONFIG:
     if "default" in _ROUTING_CONFIG:
         LITELLM_MODEL_MAP["cloud_heavy"] = _ROUTING_CONFIG["default"]
         LITELLM_MODEL_MAP["cloud_medium"] = _ROUTING_CONFIG["default"]
-    if "fast" in _ROUTING_CONFIG:
-        LITELLM_MODEL_MAP["local_light"] = _ROUTING_CONFIG["fast"]
-        LITELLM_MODEL_MAP["local_codex"] = _ROUTING_CONFIG["fast"]
+    if "local_light" in _ROUTING_CONFIG:
+        LITELLM_MODEL_MAP["local_light"] = _ROUTING_CONFIG["local_light"]
+    if "local_quality" in _ROUTING_CONFIG:
+        LITELLM_MODEL_MAP["local_quality"] = _ROUTING_CONFIG["local_quality"]
+    if "local_codex" in _ROUTING_CONFIG:
+        LITELLM_MODEL_MAP["local_codex"] = _ROUTING_CONFIG["local_codex"]
+    elif "local_coder" in _ROUTING_CONFIG:
+        LITELLM_MODEL_MAP["local_codex"] = _ROUTING_CONFIG["local_coder"]
+    elif "coding_fast" in _ROUTING_CONFIG:
+        LITELLM_MODEL_MAP["local_codex"] = _ROUTING_CONFIG["coding_fast"]
+    if "security_lock" in _ROUTING_CONFIG:
+        LITELLM_MODEL_MAP["security_lock"] = _ROUTING_CONFIG["security_lock"]
+    elif "local_light" in _ROUTING_CONFIG:
+        LITELLM_MODEL_MAP["security_lock"] = _ROUTING_CONFIG["local_light"]
 # ───────────────────────────────────────────────────────────────────────────
+
+# GPU load threshold: local tiers fall back to cloud when GPU utilization exceeds this
+GPU_LOAD_THRESHOLD = 80.0
+
+
+def get_gpu_utilization() -> float | None:
+    """Returns primary GPU utilization % (0-100), or None if nvidia-smi unavailable."""
+    try:
+        import subprocess
+        r = subprocess.run(
+            ["nvidia-smi", "--query-gpu=utilization.gpu", "--format=csv,noheader,nounits"],
+            capture_output=True, text=True, timeout=3,
+        )
+        if r.returncode == 0:
+            return float(r.stdout.strip().split("\n")[0])
+    except Exception:
+        pass
+    return None
+
 
 # Routing Rules (Order matters: first match wins)
 _ROUTING_RULES: list[tuple[ModelTier, list[str], str]] = [
@@ -179,54 +209,73 @@ class RouteResult:
     use_plan_mode: bool
     matched_keywords: list[str]
     security_flag: bool
-    requires_consent: bool  # New: indicates if Cloud API usage requires notification
+    requires_consent: bool
+    gpu_utilization: float | None = None
 
 def route_task(task: str) -> RouteResult:
     """Analyzes task description and selects the optimal model."""
     task_lower = task.lower()
-    
-    # Sensitivity check for forced security lock
-    security_matched = []
+    result: RouteResult | None = None
+
+    # 1. Security lock (always local, GPU load ignored)
     for tier, keywords, reason in _ROUTING_RULES:
         if tier == "security_lock":
-            security_matched = [kw for kw in keywords if kw.lower() in task_lower]
-            if security_matched:
-                return RouteResult(
+            matched = [kw for kw in keywords if kw.lower() in task_lower]
+            if matched:
+                result = RouteResult(
                     tier="security_lock",
                     litellm_model=LITELLM_MODEL_MAP["security_lock"],
                     reason=reason,
-                    use_plan_mode=True, 
-                    matched_keywords=security_matched,
+                    use_plan_mode=True,
+                    matched_keywords=matched,
                     security_flag=True,
-                    requires_consent=False
+                    requires_consent=False,
                 )
+                break
 
-    # Standard routing
-    for tier, keywords, reason in _ROUTING_RULES:
-        if tier == "security_lock": continue
-        matched = [kw for kw in keywords if kw.lower() in task_lower]
-        if matched:
-            return RouteResult(
-                tier=tier,
-                litellm_model=LITELLM_MODEL_MAP[tier],
-                reason=reason,
-                use_plan_mode=(tier in ["cloud_heavy", "cloud_batch"]),
-                matched_keywords=matched,
-                security_flag=False,
-                requires_consent=(tier.startswith("cloud"))
-            )
+    # 2. Standard keyword routing
+    if result is None:
+        for tier, keywords, reason in _ROUTING_RULES:
+            if tier == "security_lock":
+                continue
+            matched = [kw for kw in keywords if kw.lower() in task_lower]
+            if matched:
+                result = RouteResult(
+                    tier=tier,
+                    litellm_model=LITELLM_MODEL_MAP[tier],
+                    reason=reason,
+                    use_plan_mode=(tier in ["cloud_heavy", "cloud_batch"]),
+                    matched_keywords=matched,
+                    security_flag=False,
+                    requires_consent=tier.startswith("cloud"),
+                )
+                break
 
-    # Default fallback
-    default_model = _ROUTING_CONFIG.get("default", LITELLM_MODEL_MAP["cloud_medium"])
-    return RouteResult(
-        tier="cloud_medium",
-        litellm_model=default_model,
-        reason="[DEFAULT] 特徴未検知: 汎用バランスのモデルを使用",
-        use_plan_mode=False,
-        matched_keywords=[],
-        security_flag=False,
-        requires_consent=True
-    )
+    # 3. Default fallback
+    if result is None:
+        default_model = _ROUTING_CONFIG.get("default", LITELLM_MODEL_MAP["cloud_medium"])
+        result = RouteResult(
+            tier="cloud_medium",
+            litellm_model=default_model,
+            reason="[DEFAULT] 特徴未検知: 汎用バランスのモデルを使用",
+            use_plan_mode=False,
+            matched_keywords=[],
+            security_flag=False,
+            requires_consent=True,
+        )
+
+    # 4. GPU load check: downgrade local tiers to cloud when GPU is too busy
+    gpu = get_gpu_utilization()
+    result.gpu_utilization = gpu
+    if result.tier.startswith("local_") and not result.security_flag:
+        if gpu is not None and gpu >= GPU_LOAD_THRESHOLD:
+            fallback = _ROUTING_CONFIG.get("default", LITELLM_MODEL_MAP["cloud_medium"])
+            result.reason += f" [GPU {gpu:.0f}%≥{GPU_LOAD_THRESHOLD:.0f}%→CLOUD]"
+            result.tier = "cloud_medium"
+            result.litellm_model = fallback
+            result.requires_consent = True
+
+    return result
 
 def _start_server(host: str = "0.0.0.0", port: int = 18798) -> None:
     try:
@@ -251,8 +300,13 @@ def _start_server(host: str = "0.0.0.0", port: int = 18798) -> None:
             "reason": res.reason,
             "matched": res.matched_keywords,
             "security_lock": res.security_flag,
-            "requires_consent": res.requires_consent
+            "requires_consent": res.requires_consent,
+            "gpu_utilization": res.gpu_utilization,
         }
+
+    @app.get("/gpu")
+    def gpu_endpoint():
+        return {"gpu_utilization": get_gpu_utilization(), "threshold": GPU_LOAD_THRESHOLD}
 
     uvicorn.run(app, host=host, port=port)
 
@@ -286,8 +340,10 @@ def _cli() -> None:
 
     if args.task:
         r = route_task(args.task)
+        gpu_str = f"{r.gpu_utilization:.0f}%" if r.gpu_utilization is not None else "n/a"
         print(f"Decision: {r.tier} ({r.litellm_model})")
         print(f"Reason:   {r.reason}")
+        print(f"GPU:      {gpu_str} (threshold {GPU_LOAD_THRESHOLD:.0f}%)")
         if r.requires_consent:
             print("(!) NOTICE: This task will use CLOUD API. External costs and data sharing may apply.")
         if r.security_flag:

@@ -30,7 +30,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 import httpx  # noqa: E402
 import k10_satellite_dispatch as sjp  # noqa: E402
 
-FILES = ["cae_te_engine.py", "cae_self_growth_gates.py"]
+FILES = ["cae_te_engine.py", "cae_self_growth_gates.py", "openradioss_4mmx4mm_assy_params.py"]
 K10_HTTP = "http://100.119.18.40:8123"  # fleet script server (serves scripts/)
 REGISTRY = ROOT / "data" / "workspace" / "red_lavie_node_registry.json"
 # Candidate install dirs on red_lavie; probed before any change (no guessing, T008).

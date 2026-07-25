@@ -99,6 +99,8 @@ def send_gmail(subject: str, body: str) -> dict[str, Any]:
         encoding="utf-8",
         errors="replace",
         timeout=300,
+        # CMD窓の点滅防止(2026-07-13): CREATE_NO_WINDOW(Windows以外は0)
+        creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
     )
     return {
         "returncode": proc.returncode,
@@ -116,6 +118,8 @@ def run_command(command: list[str], timeout_seconds: int = 60) -> dict[str, Any]
             encoding="utf-8",
             errors="replace",
             timeout=timeout_seconds,
+            # CMD窓の点滅防止(2026-07-13): CREATE_NO_WINDOW(Windows以外は0)
+            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
         )
         return {
             "command": " ".join(command),

@@ -31,6 +31,20 @@ LEFT_HAND_PROXY = [
     "V50_PROXY_Hand_L_Finger_A", "V50_PROXY_Hand_L_Finger_B", "V50_PROXY_Hand_L_Finger_C",
 ]
 RIGHT_HAND_PROXY = ["geometry_0.006"]
+# --- 2026-07-19 arm-fix (gate report HOLD_JOINT_DETACHMENT / INC-140系譜) ---
+# 根本原因: 腕メッシュはアーマチュアに追従しておらず(ゲート実測: 全腕関節で
+# マーカーと胴体/腕メッシュの距離が常時1.1〜1.4m)、腕は静的な置物だった。
+# 対策: 脚と同じ実証済みパターン(剛体メッシュクラスタ+ピボット回転)を腕へ適用。
+# クラスタ名は v50_joint_attachment_gate.py と同一定義(検証側と対で保守すること)。
+LEFT_UPPER_ARM = ["geometry_0.012", "geometry_0.018", "geometry_0.020", "geometry_0.034"]
+LEFT_LOWER_ARM = ["geometry_0.023", "geometry_0.032", "geometry_0.005"]
+RIGHT_UPPER_ARM = ["geometry_0.002", "geometry_0.019", "geometry_0.021", "geometry_0.022"]
+RIGHT_LOWER_ARM = ["geometry_0.024", "geometry_0.033"]
+ARM_SWING_DEG = 12.0        # 肩の矢状面スイング振幅(脚11degと同程度)
+ELBOW_BASE_DEG = 10.0       # 肘の常時屈曲
+ELBOW_BEND_DEG = 15.0       # 肘の追加屈曲振幅
+ELBOW_SIGN = -1.0           # 初回レンダーで屈曲方向が逆なら +1.0 に反転する
+SHOULDER_OVERLAP = 0.03     # Xスナップ時に胴体へ食い込ませる量(見た目の密着)
 HIDDEN_SOURCE_HANDS = LEFT_HAND_PROXY + RIGHT_HAND_PROXY
 ARM_JOINT_MARKERS = {
     "V50_RIG_MARKER_shoulder_L": ("UpperArm_L", "head"),
@@ -121,12 +135,14 @@ def delete_previous_render_connectors():
             bpy.data.objects.remove(obj, do_unlink=True)
 
 
-def create_shoulder_sockets(armature):
+def create_shoulder_sockets(shoulder_pivots):
+    """2026-07-19 arm-fix: ソケットはアーマチュアのbone headでなく、メッシュ由来の
+    肩ピボットに生成する(アーマチュアはメッシュから~1.2m変位しており信用できない)。"""
     delete_previous_render_connectors()
     mat = material("V50_render_shoulder_socket", (0.60, 0.62, 0.64, 1.0))
     created = []
-    for side, bone_name in (("L", "UpperArm_L"), ("R", "UpperArm_R")):
-        point = bone_point(armature, bone_name, "head")
+    for side in ("L", "R"):
+        point = shoulder_pivots.get(side)
         if point is None:
             continue
         bpy.ops.mesh.primitive_uv_sphere_add(segments=32, ring_count=16, radius=1.0, location=point)
@@ -148,9 +164,79 @@ def create_shoulder_sockets(armature):
     return created
 
 
-def create_render_connectors(armature):
-    shoulder_sockets = create_shoulder_sockets(armature)
+def create_render_connectors(shoulder_pivots):
+    shoulder_sockets = create_shoulder_sockets(shoulder_pivots)
     return shoulder_sockets
+
+
+# --- 2026-07-19 arm-fix: メッシュ駆動の腕チェーン ---
+
+def cluster_objs(names):
+    return [bpy.data.objects[n] for n in names if n in bpy.data.objects
+            and bpy.data.objects[n].type == "MESH"]
+
+
+def snap_arm_chains():
+    """腕チェーン全体を胴体外側面へXスナップし、可視ギャップを閉じる(平行移動のみ)。
+    戻り値: side -> 適用した平行移動量(監査用)。"""
+    torso = cluster_objs([n for n in TORSO_NAMES if not n.startswith("V50_RENDER_")])
+    t_lo, t_hi = bounds_for(torso)
+    moved = {}
+    for side, chain in (("L", LEFT_UPPER_ARM + LEFT_LOWER_ARM),
+                        ("R", RIGHT_UPPER_ARM + RIGHT_LOWER_ARM + RIGHT_HAND_PROXY)):
+        objs = cluster_objs(chain)
+        if not objs:
+            moved[side] = 0.0
+            continue
+        a_lo, a_hi = bounds_for(objs)
+        a_cx = (a_lo.x + a_hi.x) * 0.5
+        t_cx = (t_lo.x + t_hi.x) * 0.5
+        if a_cx < t_cx:   # 左腕(-X側): 腕の内側面 a_hi.x を胴体 t_lo.x+overlap へ
+            dx = max((t_lo.x + SHOULDER_OVERLAP) - a_hi.x, 0.0)   # 内側(+X)への移動のみ
+        else:             # 右腕(+X側): 腕の内側面 a_lo.x を胴体 t_hi.x-overlap へ
+            dx = min((t_hi.x - SHOULDER_OVERLAP) - a_lo.x, 0.0)   # 内側(-X)への移動のみ
+        for obj in objs:
+            mw = obj.matrix_world.copy()
+            mw.translation = mw.translation + Vector((dx, 0.0, 0.0))
+            obj.matrix_world = mw
+        moved[side] = round(float(dx), 4)
+    bpy.context.view_layer.update()
+    return moved
+
+
+def arm_pivots():
+    """スナップ後のメッシュ境界から肩/肘/手首ピボットを算出(脚の leg_pivot_y と同思想)。"""
+    pivots = {}
+    for side, upper, lower, hand in (
+        ("L", LEFT_UPPER_ARM, LEFT_LOWER_ARM, LEFT_HAND_PROXY),
+        ("R", RIGHT_UPPER_ARM, RIGHT_LOWER_ARM, RIGHT_HAND_PROXY),
+    ):
+        u = cluster_objs(upper)
+        lo_objs = cluster_objs(lower)
+        if not u or not lo_objs:
+            continue
+        u_lo, u_hi = bounds_for(u)
+        l_lo, l_hi = bounds_for(lo_objs)
+        cx = (u_lo.x + u_hi.x) * 0.5
+        cy = (u_lo.y + u_hi.y) * 0.5
+        pivots[(side, "shoulder")] = Vector((cx, cy, u_hi.z - 0.10 * (u_hi.z - u_lo.z)))
+        pivots[(side, "elbow")] = Vector((cx, (l_lo.y + l_hi.y) * 0.5, (u_lo.z + l_hi.z) * 0.5))
+        h = cluster_objs(hand)
+        if h:
+            h_lo, h_hi = bounds_for(h)
+            wz = (l_lo.z + h_hi.z) * 0.5
+        else:
+            wz = l_lo.z
+        pivots[(side, "wrist")] = Vector((cx, (l_lo.y + l_hi.y) * 0.5, wz))
+    return pivots
+
+
+def set_marker_world(name, point, frame):
+    marker = ensure_marker(name)
+    marker.parent = None
+    marker.matrix_parent_inverse.identity()
+    marker.matrix_world = Matrix.Translation(point)
+    marker.keyframe_insert(data_path="location", frame=frame)
 
 
 def delete_previous_joint_locks():
@@ -344,10 +430,9 @@ def update_arm_joint_markers(armature, frame):
         marker.keyframe_insert(data_path="location", frame=frame)
 
 
-def hand_proxy_offsets(armature):
-    pose_bone = armature.pose.bones.get("Hand_L")
-    if pose_bone is None:
-        return {}
+def hand_proxy_offsets():
+    """2026-07-19 arm-fix: アーマチュア非依存。プロキシ群のクラスタ中心からの相対
+    オフセットのみ保持し、配置はメッシュ由来の手首ピボットに追従させる。"""
     objs = [bpy.data.objects[name] for name in LEFT_HAND_PROXY if bpy.data.objects.get(name)]
     if not objs:
         return {}
@@ -359,12 +444,10 @@ def hand_proxy_offsets(armature):
     return offsets
 
 
-def update_left_hand_proxy(armature, offsets, frame):
-    pose_bone = armature.pose.bones.get("Hand_L")
-    if pose_bone is None:
+def update_left_hand_proxy(wrist_world, offsets, frame):
+    if wrist_world is None:
         return
-    wrist_world = armature.matrix_world @ pose_bone.head
-    target_center = wrist_world + Vector((-0.055, 0.0, -0.025))
+    target_center = wrist_world + Vector((0.0, 0.0, -0.055))
     for name, offset in offsets.items():
         obj = bpy.data.objects.get(name)
         if obj is None:
@@ -395,22 +478,23 @@ def safe_center(names):
     return (lo + hi) * 0.5
 
 
-def update_visible_joint_locks(armature, cores, links, pivots, frame):
+def update_visible_joint_locks(arm_points, cores, links, pivots, frame):
+    """2026-07-19 arm-fix: 腕関節点はアーマチュアでなくメッシュ駆動FKの計算点を使う。"""
     bpy.context.view_layer.update()
     points = {
         "L": {
-            "shoulder": bone_point(armature, "UpperArm_L", "head"),
-            "elbow": bone_point(armature, "LowerArm_L", "head"),
-            "wrist": bone_point(armature, "Hand_L", "head"),
+            "shoulder": arm_points.get(("L", "shoulder")),
+            "elbow": arm_points.get(("L", "elbow")),
+            "wrist": arm_points.get(("L", "wrist")),
             "hand": safe_center(LEFT_HAND_PROXY),
             "hip": pivots["hip_L"],
             "knee": pivots["knee_L"],
             "ankle": pivots["ankle_L"],
         },
         "R": {
-            "shoulder": bone_point(armature, "UpperArm_R", "head"),
-            "elbow": bone_point(armature, "LowerArm_R", "head"),
-            "wrist": bone_point(armature, "Hand_R", "head"),
+            "shoulder": arm_points.get(("R", "shoulder")),
+            "elbow": arm_points.get(("R", "elbow")),
+            "wrist": arm_points.get(("R", "wrist")),
             "hand": safe_center(["geometry_0.006"]),
             "hip": pivots["hip_R"],
             "knee": pivots["knee_R"],
@@ -443,27 +527,36 @@ def update_visible_joint_locks(armature, cores, links, pivots, frame):
             key_transform(obj, frame)
 
 
-def set_torso_motion(torso_bases, frame, frames):
+def set_torso_motion(torso_bases, frame, frames, torso_center):
+    """2026-07-19 arm-fix: 変換行列を返す(腕チェーンが胴体に追従合成するため)。
+    torso_center は rest時に一度だけ算出した固定値を渡す(毎フレーム再計算だと
+    直前フレームの変換が混入してドリフトする)。"""
     phase = (frame - 1) / max(frames - 1, 1)
     bob = 0.040 * (0.5 - 0.5 * math.cos(phase * math.tau * 4.0))
     sway = math.radians(1.8) * math.sin(phase * math.tau * 2.0)
-    torso_center = center_of([name for name in TORSO_NAMES if name in bpy.data.objects])
     transform = Matrix.Translation((0.0, 0.0, bob)) @ rotation_at_pivot(torso_center, sway, "Z")
     for name, base in torso_bases.items():
         obj = bpy.data.objects.get(name)
         if obj:
             obj.matrix_world = transform @ base
+    return transform
 
 
 def animate(frames, candidate, show_joint_locks: bool):
+    # 2026-07-19 arm-fix: アーマチュアは任意(腕はメッシュ駆動FKへ移行)。
     armature = bpy.data.objects.get("V50_Generic_Armature")
-    if armature is None:
-        raise RuntimeError("V50_Generic_Armature not found")
-    render_connectors = create_render_connectors(armature)
+    arm_snap = snap_arm_chains()
+    ap = arm_pivots()
+    shoulder_pivots = {s: ap.get((s, "shoulder")) for s in ("L", "R")}
+    render_connectors = create_render_connectors(shoulder_pivots)
     leg_names = LEFT_UPPER_LEG + LEFT_LOWER_LEG + LEFT_FOOT + RIGHT_UPPER_LEG + RIGHT_LOWER_LEG + RIGHT_FOOT
     leg_bases = base_matrices(leg_names)
     torso_bases = base_matrices(TORSO_NAMES)
-    hand_offsets = hand_proxy_offsets(armature)
+    arm_names = (LEFT_UPPER_ARM + LEFT_LOWER_ARM + RIGHT_UPPER_ARM
+                 + RIGHT_LOWER_ARM + RIGHT_HAND_PROXY)
+    arm_bases = base_matrices(arm_names)
+    torso_center_rest = center_of([n for n in TORSO_NAMES if n in bpy.data.objects])
+    hand_offsets = hand_proxy_offsets()
     lock_cores, lock_links = ({}, {})
     if show_joint_locks:
         lock_cores, lock_links = create_joint_locks()
@@ -499,36 +592,83 @@ def animate(frames, candidate, show_joint_locks: bool):
         foot_r = -5.0 * ankle_scale * max(0.0, math.sin(cycle))
 
         bpy.context.scene.frame_set(frame)
-        set_torso_motion(torso_bases, frame, frames)
+        t_torso = set_torso_motion(torso_bases, frame, frames, torso_center_rest)
         apply_group(LEFT_UPPER_LEG + LEFT_LOWER_LEG + LEFT_FOOT, leg_bases, pivots["hip_L"], swing_l)
         apply_group(LEFT_LOWER_LEG + LEFT_FOOT, leg_bases, pivots["knee_L"], knee_l)
         apply_group(LEFT_FOOT, leg_bases, pivots["ankle_L"], foot_l)
         apply_group(RIGHT_UPPER_LEG + RIGHT_LOWER_LEG + RIGHT_FOOT, leg_bases, pivots["hip_R"], swing_r)
         apply_group(RIGHT_LOWER_LEG + RIGHT_FOOT, leg_bases, pivots["knee_R"], knee_r)
         apply_group(RIGHT_FOOT, leg_bases, pivots["ankle_R"], foot_r)
-        pose_armature(armature, frame, frames, candidate)
-        update_arm_joint_markers(armature, frame)
-        update_left_hand_proxy(armature, hand_offsets, frame)
+
+        # --- 2026-07-19 arm-fix: メッシュ駆動FK(胴体変換に合成、脚と同パターン) ---
+        arm_scale = candidate_value(candidate, "arm_scale", 1.0)
+        swing = math.sin(cycle)
+        arm_points = {}
+        for side, upper, lower, sgn, bend in (
+            ("L", LEFT_UPPER_ARM, LEFT_LOWER_ARM, -1.0,
+             (math.sin(cycle - math.pi / 3.0) + 1.0) * 0.5),
+            ("R", RIGHT_UPPER_ARM, RIGHT_LOWER_ARM, 1.0,
+             1.0 - (math.sin(cycle - math.pi / 3.0) + 1.0) * 0.5),
+        ):
+            p_sh = ap.get((side, "shoulder"))
+            p_el = ap.get((side, "elbow"))
+            p_wr = ap.get((side, "wrist"))
+            if p_sh is None or p_el is None:
+                continue
+            ang_sh = math.radians(sgn * ARM_SWING_DEG * arm_scale) * swing
+            ang_el = math.radians(ELBOW_SIGN * (ELBOW_BASE_DEG + ELBOW_BEND_DEG * bend) * arm_scale)
+            t_sh = t_torso @ rotation_at_pivot(p_sh, ang_sh, "X")
+            t_el = t_sh @ rotation_at_pivot(p_el, ang_el, "X")
+            for name in upper:
+                obj = bpy.data.objects.get(name)
+                if obj and name in arm_bases:
+                    obj.matrix_world = t_sh @ arm_bases[name]
+            for name in lower:
+                obj = bpy.data.objects.get(name)
+                if obj and name in arm_bases:
+                    obj.matrix_world = t_el @ arm_bases[name]
+            arm_points[(side, "shoulder")] = t_torso @ p_sh
+            arm_points[(side, "elbow")] = t_sh @ p_el
+            arm_points[(side, "wrist")] = (t_el @ p_wr) if p_wr is not None else None
+        # 右手メッシュは前腕に剛体追従(手首の追加回転は無し=分離リスク最小)
+        for name in RIGHT_HAND_PROXY:
+            obj = bpy.data.objects.get(name)
+            if obj and name in arm_bases and ("R", "elbow") in arm_points:
+                p_el = ap.get(("R", "elbow"))
+                ang_el = math.radians(ELBOW_SIGN * (ELBOW_BASE_DEG + ELBOW_BEND_DEG
+                          * (1.0 - (math.sin(cycle - math.pi / 3.0) + 1.0) * 0.5)) * arm_scale)
+                t_sh = t_torso @ rotation_at_pivot(ap[("R", "shoulder")],
+                        math.radians(1.0 * ARM_SWING_DEG * arm_scale) * swing, "X")
+                obj.matrix_world = (t_sh @ rotation_at_pivot(p_el, ang_el, "X")) @ arm_bases[name]
+
+        # ゲート用マーカーはメッシュ由来FK点に配置(アーマチュア非依存)
+        for (side, joint), point in arm_points.items():
+            if point is not None:
+                set_marker_world(f"V50_RIG_MARKER_{joint}_{side}", point, frame)
+        if armature is not None:
+            pose_armature(armature, frame, frames, candidate)
+        update_left_hand_proxy(arm_points.get(("L", "wrist")), hand_offsets, frame)
         if show_joint_locks:
-            update_visible_joint_locks(armature, lock_cores, lock_links, pivots, frame)
+            update_visible_joint_locks(arm_points, lock_cores, lock_links, pivots, frame)
         bpy.context.view_layer.update()
 
         lock_names = [obj.name for obj in list(lock_cores.values()) + list(lock_links.values())] if show_joint_locks else []
-        for name in set(leg_names + TORSO_NAMES + HIDDEN_SOURCE_HANDS + lock_names + render_connectors):
+        for name in set(leg_names + TORSO_NAMES + arm_names + HIDDEN_SOURCE_HANDS + lock_names + render_connectors):
             obj = bpy.data.objects.get(name)
             if obj:
                 obj.keyframe_insert(data_path="location", frame=frame)
                 obj.keyframe_insert(data_path="rotation_euler", frame=frame)
                 obj.keyframe_insert(data_path="scale", frame=frame)
-        for bone in armature.pose.bones:
-            bone.keyframe_insert(data_path="rotation_euler", frame=frame)
+        if armature is not None:
+            for bone in armature.pose.bones:
+                bone.keyframe_insert(data_path="rotation_euler", frame=frame)
         lo, hi = bounds_for(all_mesh_objects())
         frame_audits.append({
             "frame": frame,
             "bounds_min": [round(float(lo[i]), 6) for i in range(3)],
             "bounds_max": [round(float(hi[i]), 6) for i in range(3)],
         })
-    return frame_audits, render_connectors
+    return frame_audits, render_connectors, arm_snap
 
 
 def encode_mp4(out_dir, frames_dir, fps):
@@ -554,7 +694,7 @@ def main():
     bpy.ops.wm.open_mainfile(filepath=str(Path(args.blend)))
     hidden = hide_diagnostics()
     frames_dir = setup_camera(out_dir, args.frames, args.fps)
-    frame_audits, render_connectors = animate(args.frames, candidate, args.show_joint_locks)
+    frame_audits, render_connectors, arm_snap = animate(args.frames, candidate, args.show_joint_locks)
     bpy.ops.wm.save_as_mainfile(filepath=str(out_dir / "v50_final_walk_preview.blend"))
     bpy.ops.render.render(animation=True)
     mp4, ffmpeg_returncode = encode_mp4(out_dir, frames_dir, args.fps)
@@ -569,7 +709,8 @@ def main():
         "ffmpeg_returncode": ffmpeg_returncode,
         "hidden_diagnostics": hidden,
         "render_connectors": render_connectors,
-        "method": "candidate-scaled rigid-object leg pivots plus existing armature arms",
+        "method": "candidate-scaled rigid-object pivots for legs AND arms (mesh-driven FK, arm-fix 2026-07-19)",
+        "arm_snap_dx": arm_snap,
         "candidate": candidate,
         "frame_audits": frame_audits,
     }

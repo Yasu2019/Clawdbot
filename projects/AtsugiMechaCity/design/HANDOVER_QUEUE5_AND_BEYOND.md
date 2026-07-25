@@ -29,6 +29,7 @@ bd issue: `Clawdbot_Docker_20260125-6li`(キュー⑤) / 前提知識ゼロで�
 2. `mecha_rig_manifest.schema.yaml` — 機体別YAMLスキーマ(ハードコード全廃)
 3. `manifests/v50.yaml` — マニフェスト第1号(全数値INC-140実測)
 4. `skill_acquisition_pipeline.md` — ユーザー依頼→Web先生データ→学習→登録の9ステージ設計(S5ライセンス/S9検収は人間必須)
+5. `goto_target_skill_design.md` — **Unity Cube追跡学習のGenesis移植設計(2026-07-07)**。タスクロジック実装済み+単体テスト23件PASS: `rl_integration/goto_target/goto_target_task.py`。T045(Cube消失)/罠#6(座標系)/罠#7(報酬ハック)対策を組込済。**着手はwalkゲート通過後**(Tier1ルール)。Codex向け残作業は同書§8
 
 **設計の核となる決定3つ**(変更するなら全体を読み直すこと):
 - 全機体同一の29DOFレイアウト+ロックマスク → 異形状30機体が同一行動空間で混在バッチ可能
@@ -83,6 +84,16 @@ bd issue: `Clawdbot_Docker_20260125-6li`(キュー⑤) / 前提知識ゼロで�
 3. `skill_requests.json` — walk/run/stairs_climbが投入待ち。walkが習得でき次第、U5が自動で次を流す
 4. 全実装の仕様と進捗: `design/skill_pipeline_implementation_spec.md`(U0〜U8全PASS済み)
 5. 罠#8(レンダーXML複製)が2026-07-05に根治済み — tier1c cycle2以降の判定のみが「本物」。それ以前の全サイクルのfell=trueはフォールバック強制値なので比較に使わないこと
+
+## 4.7 処方(a)質量再配分 適用済み (2026-07-10 ユーザー承認)
+
+- §4.6処方(a)を実装: `build_model_xml`に`apply_mass_redistribution`追加(train_v50_walk_tracking.py)
+- **torso x0.7(112→78.4kg) / 脚系 x1.4(84→117.6kg) = 総質量238.0kg厳密保存・胴比47%→33%**
+- diaginertiaも同倍率(I∝m同一形状仮定)。正解基準XML(artifacts/)は不変更。報酬・ゲート不変
+- 検証: XML well-formed / 質量保存assert / B-1 roll注入・罠#6足向き書換の無傷を確認
+- 再投入: skill_requests `req_1783231803`(歩く)をretargeted化(T054復旧2点セット) → u7/U5が自動ディスパッチ
+- **不足時の次段: 0.6/1.6(要人間承認)。それでも不可なら処方(b)PDゲイン2〜3倍へ**
+- バックアップ: `train_v50_walk_tracking.py.bak_massredist`
 
 ## 4.5 API燃費の運用ルール(2026-07-03 ユーザー承認・全AI遵守)
 

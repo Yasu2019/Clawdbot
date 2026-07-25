@@ -533,8 +533,10 @@ def main() -> int:
     conn = sqlite3.connect(DB_PATH)
     init_db(conn)
     current_source_ids = [source["id"] for source in DIRECT_FREE_SOURCES]
-    placeholders = ",".join("?" for _ in current_source_ids)
-    conn.execute(f"DELETE FROM sources WHERE id NOT IN ({placeholders})", current_source_ids)
+    preserved_user_ids = ["most_sandin_textbook", "funai_therblig_column_8286"]
+    all_preserved = current_source_ids + preserved_user_ids
+    placeholders = ",".join("?" for _ in all_preserved)
+    conn.execute(f"DELETE FROM sources WHERE id NOT IN ({placeholders})", all_preserved)
     downloaded = []
     failed = []
     for source in DIRECT_FREE_SOURCES:

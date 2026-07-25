@@ -159,6 +159,12 @@ NOISE_SENDER_PATTERNS = (
     r"(?i)\bnewsletter@",
 )
 HARD_NOISE_SENDER_SUBSTRINGS = (
+    # P016精度修正 2026-07-18: 自動配信アドレスは無条件でタスク化しない
+    "do-not-reply",
+    "do_not_reply",
+    "donotreply",
+    "no-reply@",
+    "noreply@",
     "news@service.muumuu-domain.com",
     "muumuu-domain.com",
     "bizcon@onamae.com",
@@ -745,11 +751,11 @@ def summarize_request(text: str) -> str:
 
 
 def infer_reply_status(record: EmailRecord, body_summary: str) -> str:
+    # P016精度修正 2026-07-18: 「Re:で始まる=回答済み」ルールを廃止。
+    # 実際の回答有無は email_tasks_recalc.py のスレッド突合(自分の返信実在確認)で判定する。
     subject = normalize_space(record.subject)
     haystack = normalize_space(f"{subject}\n{body_summary}")
     if any(keyword in haystack for keyword in REPLY_DONE_KEYWORDS):
-        return STATUS_REPLIED
-    if subject.lower().startswith(("re:", "fw:", "fwd:")):
         return STATUS_REPLIED
     if "未回答" in haystack or "未返信" in haystack:
         return STATUS_OPEN
@@ -795,6 +801,19 @@ def extract_task_record(record: EmailRecord) -> Optional[TaskRecord]:
         due_date = extract_due_date(source, base_dt)
         if due_date:
             break
+    # P016精度修正 2026-07-18: 納期の健全性ゲート
+    if due_date:
+        try:
+            _due = datetime.strptime(due_date[:10], "%Y-%m-%d").date()
+            _req = base_dt.astimezone().date()
+            if _due < _req:
+                due_date = ""  # 納期が依頼日より過去 = 誤抽出
+            elif _due == _req:
+                _combined = normalize_space(f"{record.subject}\n{body_summary}")
+                if not re.search(r"(本日|今日)中?|中に|までに|まで|期限|締切|〆切|至急|大至急", _combined):
+                    due_date = ""  # 当日納期は明示表現がある場合のみ
+        except Exception:
+            pass
     reply_status = infer_reply_status(record, body_summary)
     info_only_body = any(re.search(pattern, body_summary) for pattern in INFORMATION_ONLY_PATTERNS)
     request_signal_body = any(re.search(pattern, body_summary) for pattern in REQUEST_SIGNAL_PATTERNS)
@@ -837,9 +856,11 @@ def extract_task_record(record: EmailRecord) -> Optional[TaskRecord]:
         request_body=body_summary,
         status=infer_status(reply_status, due_date),
         reply_status=reply_status,
-        replier=normalize_space(record.sender) if reply_status == STATUS_REPLIED else "",
+        # P016精度修正 2026-07-18: 依頼メール送信者をreplierに入れる誤り・処理日をreply_dateに
+        # 入れる誤りを廃止。回答者/回答日は email_tasks_recalc.py のスレッド突合のみが記録する。
+        replier="",
         reply_summary=body_summary if reply_status == STATUS_REPLIED else "",
-        reply_date=datetime.now().strftime("%Y-%m-%d") if reply_status == STATUS_REPLIED else "",
+        reply_date="",
         evidence=json.dumps(
             {
                 "message_id_header": record.message_id_header,

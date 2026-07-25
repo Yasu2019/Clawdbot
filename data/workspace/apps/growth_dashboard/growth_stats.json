@@ -1,338 +1,315 @@
 {
-  "updated_at": "2026-06-25T18:02:10.506898",
+  "updated_at": "2026-07-26T07:00:23.554278",
   "domain_stats": {
-    "3D_ANIMATION": 369,
-    "CAD": 132,
+    "3D_ANIMATION": 805,
+    "CAD": 556,
     "CAE_FEM_IMPACT": 1,
-    "CAE_MATERIAL": 3326,
+    "CAE_MATERIAL": 3813,
     "DATASET": 3,
-    "DXF2STEP": 17,
-    "ENGINEERING_THEORY": 275,
+    "DXF2STEP": 19,
+    "EMBODIED_ROBOTICS": 39480,
+    "ENGINEERING_THEORY": 724,
     "FLEET_OPS": 1,
-    "GEOMETRY_AI": 127,
+    "GEOMETRY_AI": 578,
     "GMAIL_READING": 900,
     "IATF_AUDITING_YT": 349,
-    "IE": 457,
-    "MUSIC": 123,
+    "IE": 869,
+    "MUSIC": 532,
     "MUSIC_THEORY": 190,
-    "NORTH_STAR": 80,
+    "NORTH_STAR": 219,
     "PROGRESSIVE_DIE": 2,
-    "QUALITY": 152,
+    "QUALITY": 569,
     "RESIN_FLOW": 1,
+    "ROBOTICS": 1,
     "SCRIBD_DOCUMENT": 4181,
-    "TERMINOLOGY": 151,
+    "TERMINOLOGY": 516,
     "TEST": 1,
-    "TOLERANCE_ANALYSIS": 48
+    "TOLERANCE_ANALYSIS": 48,
+    "IATF": 3
   },
   "history": [
     {
-      "day": "2026-05-26",
-      "count": 236
+      "day": "2026-06-26",
+      "count": 444
     },
     {
-      "day": "2026-05-27",
-      "count": 239
+      "day": "2026-06-27",
+      "count": 1559
     },
     {
-      "day": "2026-05-28",
-      "count": 285
+      "day": "2026-06-28",
+      "count": 1512
     },
     {
-      "day": "2026-05-29",
-      "count": 103
+      "day": "2026-06-29",
+      "count": 1520
     },
     {
-      "day": "2026-05-30",
-      "count": 43
+      "day": "2026-06-30",
+      "count": 1519
     },
     {
-      "day": "2026-05-31",
-      "count": 71
+      "day": "2026-07-01",
+      "count": 1413
     },
     {
-      "day": "2026-06-01",
-      "count": 183
+      "day": "2026-07-02",
+      "count": 1154
     },
     {
-      "day": "2026-06-02",
-      "count": 722
+      "day": "2026-07-03",
+      "count": 1510
     },
     {
-      "day": "2026-06-03",
-      "count": 296
+      "day": "2026-07-04",
+      "count": 1465
     },
     {
-      "day": "2026-06-04",
-      "count": 559
+      "day": "2026-07-05",
+      "count": 1163
     },
     {
-      "day": "2026-06-05",
-      "count": 718
+      "day": "2026-07-06",
+      "count": 1221
     },
     {
-      "day": "2026-06-06",
-      "count": 968
+      "day": "2026-07-07",
+      "count": 1337
     },
     {
-      "day": "2026-06-07",
-      "count": 933
+      "day": "2026-07-08",
+      "count": 1500
     },
     {
-      "day": "2026-06-08",
-      "count": 816
+      "day": "2026-07-09",
+      "count": 1502
     },
     {
-      "day": "2026-06-09",
-      "count": 307
+      "day": "2026-07-10",
+      "count": 1528
     },
     {
-      "day": "2026-06-10",
-      "count": 303
+      "day": "2026-07-11",
+      "count": 1552
     },
     {
-      "day": "2026-06-11",
-      "count": 294
+      "day": "2026-07-12",
+      "count": 1552
     },
     {
-      "day": "2026-06-12",
-      "count": 204
+      "day": "2026-07-13",
+      "count": 1587
     },
     {
-      "day": "2026-06-13",
-      "count": 335
+      "day": "2026-07-14",
+      "count": 1549
     },
     {
-      "day": "2026-06-14",
-      "count": 253
+      "day": "2026-07-15",
+      "count": 1557
     },
     {
-      "day": "2026-06-15",
-      "count": 589
+      "day": "2026-07-16",
+      "count": 1460
     },
     {
-      "day": "2026-06-16",
-      "count": 41
+      "day": "2026-07-17",
+      "count": 1544
     },
     {
-      "day": "2026-06-17",
-      "count": 50
+      "day": "2026-07-18",
+      "count": 1561
     },
     {
-      "day": "2026-06-18",
-      "count": 752
+      "day": "2026-07-19",
+      "count": 1550
     },
     {
-      "day": "2026-06-19",
-      "count": 177
+      "day": "2026-07-20",
+      "count": 1561
     },
     {
-      "day": "2026-06-20",
-      "count": 1
+      "day": "2026-07-21",
+      "count": 1562
     },
     {
-      "day": "2026-06-22",
-      "count": 52
+      "day": "2026-07-22",
+      "count": 1561
     },
     {
-      "day": "2026-06-23",
-      "count": 7
+      "day": "2026-07-23",
+      "count": 1570
     },
     {
-      "day": "2026-06-24",
-      "count": 13
+      "day": "2026-07-24",
+      "count": 1539
     },
     {
-      "day": "2026-06-25",
-      "count": 36
+      "day": "2026-07-25",
+      "count": 1426
     }
   ],
   "email_history": [
     {
-      "day": "2026-05-25",
-      "gmail": 95,
+      "day": "2026-07-05",
+      "gmail": 1,
       "eml": 0
     },
     {
-      "day": "2026-05-26",
-      "gmail": 86,
+      "day": "2026-07-06",
+      "gmail": 10,
       "eml": 0
     },
     {
-      "day": "2026-05-27",
-      "gmail": 97,
+      "day": "2026-07-08",
+      "gmail": 4,
       "eml": 0
     },
     {
-      "day": "2026-05-28",
+      "day": "2026-07-09",
+      "gmail": 4,
+      "eml": 0
+    },
+    {
+      "day": "2026-07-10",
+      "gmail": 17,
+      "eml": 0
+    },
+    {
+      "day": "2026-07-11",
+      "gmail": 3,
+      "eml": 0
+    },
+    {
+      "day": "2026-07-15",
       "gmail": 94,
       "eml": 0
     },
     {
-      "day": "2026-05-29",
-      "gmail": 58,
+      "day": "2026-07-16",
+      "gmail": 95,
       "eml": 0
     },
     {
-      "day": "2026-05-30",
-      "gmail": 603,
+      "day": "2026-07-17",
+      "gmail": 210,
       "eml": 0
-    },
-    {
-      "day": "2026-06-01",
-      "gmail": 27,
-      "eml": 0
-    },
-    {
-      "day": "2026-06-02",
-      "gmail": 14,
-      "eml": 0
-    },
-    {
-      "day": "2026-06-03",
-      "gmail": 27,
-      "eml": 0
-    },
-    {
-      "day": "2026-06-04",
-      "gmail": 8,
-      "eml": 0
-    },
-    {
-      "day": "2026-06-05",
-      "gmail": 5,
-      "eml": 0
-    },
-    {
-      "day": "2026-06-06",
-      "gmail": 134,
-      "eml": 1424
-    },
-    {
-      "day": "2026-06-07",
-      "gmail": 11,
-      "eml": 0
-    },
-    {
-      "day": "2026-06-08",
-      "gmail": 249,
-      "eml": 0
-    },
-    {
-      "day": "2026-06-09",
-      "gmail": 4400,
-      "eml": 0
-    },
-    {
-      "day": "2026-06-10",
-      "gmail": 5,
-      "eml": 0
-    },
-    {
-      "day": "2026-06-11",
-      "gmail": 333,
-      "eml": 0
-    },
-    {
-      "day": "2026-06-13",
-      "gmail": 2,
-      "eml": 0
-    },
-    {
-      "day": "2026-06-14",
-      "gmail": 2,
-      "eml": 0
-    },
-    {
-      "day": "2026-06-16",
-      "gmail": 14,
-      "eml": 0
-    },
-    {
-      "day": "2026-06-17",
-      "gmail": 6,
-      "eml": 0
-    },
-    {
-      "day": "2026-06-18",
-      "gmail": 100,
-      "eml": 0
-    },
-    {
-      "day": "2026-06-19",
-      "gmail": 163,
-      "eml": 0
-    },
-    {
-      "day": "2026-06-20",
-      "gmail": 5,
-      "eml": 0
-    },
-    {
-      "day": "2026-06-25",
-      "gmail": 0,
-      "eml": 824
     }
   ],
   "recent_know_how": [
     {
-      "domain": "SCRIBD_DOCUMENT",
-      "challenge": "761047626-MANITOU-LOC-E18-E20AC.pdf (Part 12/12)",
-      "know_how": "The text provides a detailed schematic and wiring diagram for a variator (controller) system, including components such as the drive motor, pump motor, speed controller, and various electrical components like fuses, contactors, and diodes. It also includes multilingual labels for components, indicating that the system is designed for international use. The schematic includes connectors, switches, and sensors for controlling and monitoring the system's operation. The document appears to be a technical manual or wiring diagram for a specific industrial or automotive application, possibly related to electric vehicles or heavy machinery.",
-      "timestamp": "2026-06-22 13:27:51"
+      "domain": "CAE_MATERIAL",
+      "challenge": "【Dynabook自動収集】How Hongrita’s Smart Injection Molding Factory Achieves Tighter Tolerances and Shorter Cycle Times - EIN News",
+      "know_how": "window.WIZ_global_data = {\"AfY8Hf\":false,\"Dftppe\":\"%.@.]\",\"DpimGf\":false,\"EP1ykd\":[\"/_/*\",\"/_/SubscribewithgoogleClientU...",
+      "timestamp": "2026-07-26 06:59:10"
     },
     {
-      "domain": "SCRIBD_DOCUMENT",
-      "challenge": "761047626-MANITOU-LOC-E18-E20AC.pdf (Part 11/12)",
-      "know_how": "The text chunk provides a technical reference guide for electrical components and wiring harnesses in a vehicle, primarily in French, with English, German, and Spanish translations. It includes terminology for various electrical systems such as motor harnesses, sensor harnesses, fuses (F2, F3), connectors (C1, J1, J2), contactors (CL, CP), and components like the variator (VA), solenoid valve (EV), and key switch (S3). It also includes a wiring diagram schematic for the variator plate, detailing connections for power lines, control circuits, and signals (e.g., ACCEL, COUPURE FH, 0 V, + B, – B). The document likely serves as a technical manual for automotive electrical systems, aiding in installation, troubleshooting, and maintenance by providing multilingual terminology and a schematic layout of the electrical connections.",
-      "timestamp": "2026-06-22 13:27:14"
+      "domain": "CAE_MATERIAL",
+      "challenge": "【Dynabook自動収集】Rubber Molding Simulation Cuts Production Costs - PlasticsToday",
+      "know_how": "window.WIZ_global_data = {\"AfY8Hf\":false,\"Dftppe\":\"%.@.]\",\"DpimGf\":false,\"EP1ykd\":[\"/_/*\",\"/_/SubscribewithgoogleClientU...",
+      "timestamp": "2026-07-26 06:58:46"
     },
     {
-      "domain": "SCRIBD_DOCUMENT",
-      "challenge": "761047626-MANITOU-LOC-E18-E20AC.pdf (Part 10/12)",
-      "know_how": "The text chunk provides a detailed list of components and their corresponding translations, likely from a technical manual or parts catalog. It includes part numbers, quantities, descriptions, and multilingual labels for electrical components such as buttons, switches, fuses, nuts, screws, and wiring harnesses. Key learnings include the importance of multilingual documentation for international maintenance, the standardization of component labeling, and the necessity of precise part numbering for equipment repair and assembly. The document emphasizes the use of specific terminology for electrical systems, such as 'PLATINE ELECTRIQUE' for electrical panels and 'CABLAGE' for wiring diagrams, which are critical for ensuring correct installation and troubleshooting.",
-      "timestamp": "2026-06-22 13:26:05"
+      "domain": "CAE_MATERIAL",
+      "challenge": "【Dynabook自動収集】Elimination of halo gloss transition surface defects on injection-molded parts - Nature",
+      "know_how": "window.WIZ_global_data = {\"AfY8Hf\":false,\"Dftppe\":\"%.@.]\",\"DpimGf\":false,\"EP1ykd\":[\"/_/*\",\"/_/SubscribewithgoogleClientU...",
+      "timestamp": "2026-07-26 06:58:38"
     },
     {
-      "domain": "SCRIBD_DOCUMENT",
-      "challenge": "761047626-MANITOU-LOC-E18-E20AC.pdf (Part 9/12)",
-      "know_how": "The text provides a detailed inventory of mechanical and hydraulic components used in industrial or automotive systems, including parts like crown wheel, bearings, driving pinion, screws, hydraulic units, pump motors, solenoid valves, and control systems. It includes part numbers, quantities, and multilingual descriptions, indicating a technical manual or parts list for equipment maintenance or assembly. Key principles involve standardization of terminology across languages, systematic part numbering, and the integration of mechanical and hydraulic systems for precise control and operation.",
-      "timestamp": "2026-06-22 13:25:05"
+      "domain": "CAE_MATERIAL",
+      "challenge": "【Dynabook自動収集】Autodesk announces updates to AI expansion - develop3d",
+      "know_how": "window.WIZ_global_data = {\"AfY8Hf\":false,\"Dftppe\":\"%.@.]\",\"DpimGf\":false,\"EP1ykd\":[\"/_/*\",\"/_/SubscribewithgoogleClientU...",
+      "timestamp": "2026-07-26 06:58:26"
     },
     {
-      "domain": "SCRIBD_DOCUMENT",
-      "challenge": "761047626-MANITOU-LOC-E18-E20AC.pdf (Part 8/12)",
-      "know_how": "The text chunk contains a technical parts list for a drive motor and gear box assembly, with multilingual annotations (French, English, German, Spanish). Key elements include:\n\n1. **Component Inventory**: Detailed list of parts such as drive motors, bearings, seals, gears, and fasteners with part numbers and quantities.\n\n2. **Multilingual Technical Documentation**: Annotations in four languages provide cross-referencing for international manufacturing and maintenance.\n\n3. **Assembly Instructions**: The structure suggests a systematic approach to assembly, with part numbers and quantities indicating the need for precise part identification and organization.\n\n4. **Maintenance and Repair**: The inclusion of seals, bearings, and fasteners indicates the importance of these components in maintaining mechanical efficiency and preventing wear.\n\n5. **Engineering Standards**: The use of standardized part numbering and quantities reflects adherence to engineering best practices for manufacturing and quality control.\n\n6. **Cross-Referencing**: The presence of multiple language annotations and part numbers allows for accurate identification of components across different regions and industries.",
-      "timestamp": "2026-06-22 13:24:12"
+      "domain": "CAE_MATERIAL",
+      "challenge": "【Dynabook自動収集】How Autodesk is expanding AI across Design and Manufacturing - Autodesk News",
+      "know_how": "window.WIZ_global_data = {\"AfY8Hf\":false,\"Dftppe\":\"%.@.]\",\"DpimGf\":false,\"EP1ykd\":[\"/_/*\",\"/_/SubscribewithgoogleClientU...",
+      "timestamp": "2026-07-26 06:58:16"
     },
     {
-      "domain": "SCRIBD_DOCUMENT",
-      "challenge": "761047626-MANITOU-LOC-E18-E20AC.pdf (Part 7/12)",
-      "know_how": "This text chunk appears to be a technical parts list for automotive or industrial equipment, containing part numbers, quantities, descriptions in multiple languages (French, German, Spanish), and assembly instructions. It includes information about chassis components, steering systems, and various fasteners. The document provides detailed part specifications for items like chassis fixe, polyurethane wheels, motor harnesses, and steering arm covers. It also includes options for different wheel types and additional components for support and sealing. The structure suggests it's a parts catalog or repair manual for a specific vehicle or machinery model.",
-      "timestamp": "2026-06-22 13:22:59"
+      "domain": "CAE_MATERIAL",
+      "challenge": "【Dynabook自動収集】How flexibility and agility are reshaping mold flow control in thin to medium slab casting - ABB",
+      "know_how": "window.WIZ_global_data = {\"AfY8Hf\":false,\"Dftppe\":\"%.@.]\",\"DpimGf\":false,\"EP1ykd\":[\"/_/*\",\"/_/SubscribewithgoogleClientU...",
+      "timestamp": "2026-07-26 06:58:05"
     },
     {
-      "domain": "SCRIBD_DOCUMENT",
-      "challenge": "761047626-MANITOU-LOC-E18-E20AC.pdf (Part 6/12)",
-      "know_how": "This text chunk contains a comprehensive parts list and technical terminology for a mechanical system, likely a vehicle or machinery component. It includes: 1) A detailed inventory of components with part numbers, quantities, and multiple language descriptions (French, English, German, Spanish), 2) Technical terms related to mechanical systems such as bearings, bushings, springs, and levers, 3) Specific components like stabilizing wheels, torsion bars, and pivot mechanisms, 4) Assembly information through part numbering and quantity specifications, 5) Internationalization of technical documentation through multilingual labeling. The document serves as a technical reference for maintenance, repair, and assembly of complex mechanical systems, emphasizing precision in component identification and international compatibility.",
-      "timestamp": "2026-06-22 13:22:00"
+      "domain": "IATF",
+      "challenge": "【Dynabook自動収集】Rulemaker status: BYD joins elite IATF body to help shape international EV rules - CarNewsChina.com",
+      "know_how": "window.WIZ_global_data = {\"AfY8Hf\":false,\"Dftppe\":\"%.@.]\",\"DpimGf\":false,\"EP1ykd\":[\"/_/*\",\"/_/SubscribewithgoogleClientU...",
+      "timestamp": "2026-07-26 06:57:54"
     },
     {
-      "domain": "SCRIBD_DOCUMENT",
-      "challenge": "761047626-MANITOU-LOC-E18-E20AC.pdf (Part 5/12)",
-      "know_how": "The text chunk provides a detailed inventory list of components for a vehicle or machinery system, including part numbers, quantities, and multilingual descriptions (French, German, Spanish). Key insights include: 1) The system involves electrical components like connectors (female/male), battery covers, and a key switch for battery access. 2) There are multiple battery options (180 A/h and 250 A/h at 24V) and associated wiring components (battery connectors, cable clamps). 3) The system includes mechanical parts such as screws, nuts, spacers, and support brackets for structural assembly. 4) Two versions of the system are described: one with a built-in charger and another with a simple roller configuration, suggesting modularity or customization options. 5) The presence of multiple language translations (French, German, Spanish) indicates the system is likely used in international contexts or multilingual environments. The document emphasizes precise part identification for assembly or maintenance.",
-      "timestamp": "2026-06-22 13:20:56"
+      "domain": "IATF",
+      "challenge": "【Dynabook自動収集】ISO 9001 in 2026: What’s Changing—and How AS9100 (IA9100), IATF 16949, NIST & CMMC Fit Together - Quality Magazine",
+      "know_how": "window.WIZ_global_data = {\"AfY8Hf\":false,\"Dftppe\":\"%.@.]\",\"DpimGf\":false,\"EP1ykd\":[\"/_/*\",\"/_/SubscribewithgoogleClientU...",
+      "timestamp": "2026-07-26 06:57:42"
     },
     {
-      "domain": "SCRIBD_DOCUMENT",
-      "challenge": "761047626-MANITOU-LOC-E18-E20AC.pdf (Part 4/12)",
-      "know_how": "The text chunk provides detailed specifications of a forklift or similar industrial vehicle, including measurements such as distances between axes, turning radius, wheel dimensions, and weight. It outlines performance metrics like translation and lifting speeds, maximum gradient, and storage aisle width. Technical details about the power system, including motor types (24V ABM AC and HALDEX), battery capacity, and energy consumption are included. Additionally, it mentions acoustic pressure levels and references to identification plates for model specifics. The data is presented in multiple languages (French, English, German, Spanish), indicating a multilingual technical manual or spec sheet.",
-      "timestamp": "2026-06-22 13:19:47"
+      "domain": "IATF",
+      "challenge": "【Dynabook自動収集】IATF 16949 News: 2025 Rules and 2026 Changes - Smithers",
+      "know_how": "window.WIZ_global_data = {\"AfY8Hf\":false,\"Dftppe\":\"%.@.]\",\"DpimGf\":false,\"EP1ykd\":[\"/_/*\",\"/_/SubscribewithgoogleClientU...",
+      "timestamp": "2026-07-26 06:57:26"
     },
     {
-      "domain": "SCRIBD_DOCUMENT",
-      "challenge": "761047626-MANITOU-LOC-E18-E20AC.pdf (Part 3/12)",
-      "know_how": "The text chunk provides detailed specifications for two models of a forklift or similar industrial equipment (EP18AC and EP20AC), including load capacities, dimensions, and operational parameters. Key insights include: 1) Nominal load capacities of 1800 kg and 2000 kg for the respective models. 2) Standard fork lengths (800-950-1150 mm) and widths (540-680 mm) with specific internal widths (190-330 mm). 3) Fork dimensions (175 x 45 mm) and ground clearance (85/210 mm). 4) Overall dimensions, including length (1739 mm), chassis dimensions (680 mm), and height (845/970 mm). 5) The equipment meets acoustic pressure standards of less than 65 dB(A), indicating noise control compliance. These specifications are essential for understanding the operational capabilities, design, and safety compliance of the equipment.",
-      "timestamp": "2026-06-22 13:18:53"
+      "domain": "EMBODIED_ROBOTICS",
+      "challenge": "ROBOT_L20 batch 203 cycle 56",
+      "know_how": "{\"ie_verdict\": \"L40_IE_MASTER\", \"task_floor\": 90.9, \"corrections\": []}",
+      "timestamp": "2026-07-25 19:58:24"
+    },
+    {
+      "domain": "EMBODIED_ROBOTICS",
+      "challenge": "ROBOT_L20 batch 203 cycle 55",
+      "know_how": "{\"ie_verdict\": \"L40_IE_MASTER\", \"task_floor\": 92.1, \"corrections\": []}",
+      "timestamp": "2026-07-25 19:57:22"
+    },
+    {
+      "domain": "EMBODIED_ROBOTICS",
+      "challenge": "ROBOT_L20 batch 203 cycle 54",
+      "know_how": "{\"ie_verdict\": \"L40_IE_MASTER\", \"task_floor\": 90.9, \"corrections\": []}",
+      "timestamp": "2026-07-25 19:56:21"
+    },
+    {
+      "domain": "EMBODIED_ROBOTICS",
+      "challenge": "ROBOT_L20 batch 203 cycle 53",
+      "know_how": "{\"ie_verdict\": \"L40_IE_MASTER\", \"task_floor\": 91.0, \"corrections\": []}",
+      "timestamp": "2026-07-25 19:55:20"
+    },
+    {
+      "domain": "EMBODIED_ROBOTICS",
+      "challenge": "ROBOT_L20 batch 203 cycle 52",
+      "know_how": "{\"ie_verdict\": \"L40_IE_MASTER\", \"task_floor\": 90.4, \"corrections\": []}",
+      "timestamp": "2026-07-25 19:54:19"
+    },
+    {
+      "domain": "GEOMETRY_AI",
+      "challenge": "Algorithm Test: Reconstruct 3D volume from 2-view DXF projection.",
+      "know_how": "Learned optimal strategy for Algorithm Test: Reconstruct 3D volume from 2-view DXF projection. using local-first inference.",
+      "timestamp": "2026-07-25 19:54:14"
+    },
+    {
+      "domain": "EMBODIED_ROBOTICS",
+      "challenge": "ROBOT_L20 batch 203 cycle 51",
+      "know_how": "{\"ie_verdict\": \"L40_IE_MASTER\", \"task_floor\": 91.5, \"corrections\": []}",
+      "timestamp": "2026-07-25 19:53:18"
+    },
+    {
+      "domain": "EMBODIED_ROBOTICS",
+      "challenge": "ROBOT_L20 batch 203 cycle 50",
+      "know_how": "{\"ie_verdict\": \"L40_IE_MASTER\", \"task_floor\": 91.7, \"corrections\": []}",
+      "timestamp": "2026-07-25 19:52:17"
+    },
+    {
+      "domain": "EMBODIED_ROBOTICS",
+      "challenge": "ROBOT_L20 batch 203 cycle 49",
+      "know_how": "{\"ie_verdict\": \"L40_IE_MASTER\", \"task_floor\": 91.0, \"corrections\": []}",
+      "timestamp": "2026-07-25 19:51:14"
+    },
+    {
+      "domain": "EMBODIED_ROBOTICS",
+      "challenge": "ROBOT_L20 batch 203 cycle 48",
+      "know_how": "{\"ie_verdict\": \"L40_IE_MASTER\", \"task_floor\": 90.5, \"corrections\": []}",
+      "timestamp": "2026-07-25 19:50:09"
     }
   ],
   "commercial_benchmark_l10": {
@@ -371,14 +348,24 @@
     ],
     "evidence_snapshot": {
       "resin": {
-        "trials": 89,
-        "success": 87,
-        "failed": 2,
+        "trials": 462,
+        "success": 400,
+        "failed": 62,
+        "dry_run": 0,
+        "success_rate_pct": 86.6,
         "has_real_residuals": false,
         "has_vof_fill_kpi": true,
         "categories": [
-          "resin_fill_vof"
-        ]
+          "resin_fill_cad"
+        ],
+        "last_trial_at": "2026-07-23T17:02:43.040953",
+        "evidence_age_hours": 59.94023063527777,
+        "fill_kpi_samples": 100,
+        "fill_kpi_nonphysical_pct": 99.0,
+        "fill_kpi_physical": false,
+        "golden_last3_pass": false,
+        "golden_mass_balance_ok": false,
+        "golden_records": 3
       },
       "openradioss": {
         "total": 187,
@@ -386,7 +373,18 @@
         "failed": 169,
         "best_tstop": true,
         "best_t_ms": 30.15,
-        "doe_running": true
+        "doe_running": false,
+        "progress_age_hours": 1373.161476064523,
+        "progress_stale": true,
+        "te_trials": 1,
+        "te_success": 0,
+        "tri_track": {
+          "n": 1,
+          "last_verdict": "ERROR",
+          "last_at": "2026-07-26T04:58:20+09:00",
+          "fail_streak": 0,
+          "active": true
+        }
       },
       "tolerance": {
         "total": 48,
@@ -394,9 +392,9 @@
         "has_kpi": true
       },
       "dxf2step": {
-        "total": 596,
-        "success": 548,
-        "success_rate_pct": 91.9,
+        "total": 1680,
+        "success": 984,
+        "success_rate_pct": 58.6,
         "fcstd_jobs": 9,
         "step_jobs": 9,
         "parametric_jobs": 0,
@@ -409,20 +407,32 @@
       "growth_db_ok": true,
       "gdt_overlay": true,
       "dashboard_or_progress": true,
+      "cae_te_log_readable": true,
+      "viai": {
+        "project": true,
+        "champion": true,
+        "registry": true,
+        "demo_data": true,
+        "calibrated": true,
+        "web_ui": true,
+        "portal_linked": false,
+        "inspections": 34,
+        "reviews": 14
+      },
       "video": {
         "mp4_counts": {
           "iatf": 90,
-          "cae_viz": 7,
-          "projects": 52,
-          "other": 11,
-          "total": 160
+          "cae_viz": 1383,
+          "projects": 1922,
+          "other": 31,
+          "total": 3426
         },
         "has_generative_api": false,
         "has_prompt_studio": true,
         "iatf_design_ok": true,
         "iatf_pdca_ok": true,
         "iatf_light_loop_ok": true,
-        "animation_domain_events": 369,
+        "animation_domain_events": 805,
         "dashboard_ok": true,
         "iatf_youtube_export": true,
         "visual_qa_pass_artifact": false,
@@ -576,153 +586,6 @@
           }
         ],
         "avg_level": 3.3
-      },
-      {
-        "product_id": "MOLDFLOW",
-        "product_label": "樹脂充填解析",
-        "reference": "Autodesk Moldflow / 同等商用",
-        "clawstack_stack": "OpenFOAM resin_flow_v001 + CAE T&E",
-        "categories": [
-          {
-            "id": "accuracy",
-            "label": "精度",
-            "description": "Correlation to measurement / golden cases / energy-mass balance",
-            "current_level": 4,
-            "current_label": "L4",
-            "current_stage": "OpenFOAM場から圧力/流速抽出",
-            "l10_target": "L10: Moldflow級精度+工場KPI証明",
-            "levels": [
-              "未実施",
-              "試行ログのみ",
-              "ソルバ完走（収束）",
-              "代理KPI式（粘度・流速）",
-              "OpenFOAM場から圧力/流速抽出",
-              "質量収支・充填率の定量",
-              "試作金型との相関1件",
-              "ゴールデンケース複数",
-              "現場採用・再現性",
-              "自動校正ループ",
-              "L10: Moldflow級精度+工場KPI証明"
-            ],
-            "progress_pct": 40.0
-          },
-          {
-            "id": "model_size",
-            "label": "モデルサイズ",
-            "description": "Mesh scale, part complexity, assembly size handled",
-            "current_level": 3,
-            "current_label": "L3",
-            "current_stage": "ランナー+ゲート3",
-            "l10_target": "L10: 量産金型フルモデル",
-            "levels": [
-              "未実施",
-              "単純ブロック",
-              "1キャビティ矩形",
-              "ランナー+ゲート3",
-              "実部品STEPキャビティ",
-              "100万セル級",
-              "多キャビティ",
-              "大型部品+冷却路",
-              "フル金型アセンブリ",
-              "クラウド並列",
-              "L10: 量産金型フルモデル"
-            ],
-            "progress_pct": 30.0
-          },
-          {
-            "id": "functionality",
-            "label": "機能",
-            "description": "Physics models, solvers, phases (fill/pack/cool), contact, GD&T engines",
-            "current_level": 2,
-            "current_label": "L2",
-            "current_stage": "定常 icoFoam",
-            "l10_target": "L10: 全工程デジタルツイン",
-            "levels": [
-              "未実施",
-              "blockMeshのみ",
-              "定常 icoFoam",
-              "非ニュートン粘度",
-              "VOF充填",
-              "保圧・冷却",
-              "繊維配向・収縮",
-              "多材料",
-              "ゲート最適化",
-              "Moldflow連携",
-              "L10: 全工程デジタルツイン"
-            ],
-            "progress_pct": 20.0
-          },
-          {
-            "id": "evaluable_items",
-            "label": "評価可能項目",
-            "description": "Defects/KPIs the workflow can quantify (short shot, weldline, stack-up, etc.)",
-            "current_level": 3,
-            "current_label": "L3",
-            "current_stage": "ショート/反り/ウェルド/ヒケ（式）",
-            "l10_target": "L10: Moldflow同等の評価セット",
-            "levels": [
-              "なし",
-              "収束のみ",
-              "圧力損失・流速",
-              "ショート/反り/ウェルド/ヒケ（式）",
-              "場ベース欠陥指標",
-              "充填時間・バランス",
-              "冷却歪み",
-              "金型温度",
-              "コスト/サイクル",
-              "QMS連携",
-              "L10: Moldflow同等の評価セット"
-            ],
-            "progress_pct": 30.0
-          },
-          {
-            "id": "operability",
-            "label": "操作性",
-            "description": "UX, automation, visualization, animation, editability",
-            "current_level": 4,
-            "current_label": "L4",
-            "current_stage": "Telegram可視化",
-            "l10_target": "L10: 1クリック現場運用",
-            "levels": [
-              "手動のみ",
-              "Dockerバッチ",
-              "T&E自動+ログ",
-              "ダッシュボード",
-              "Telegram可視化",
-              "パラメータ掃引",
-              "FreeCAD連携",
-              "アニメーション",
-              "現場オペレータUI",
-              "音声/ポータル統合",
-              "L10: 1クリック現場運用"
-            ],
-            "progress_pct": 40.0
-          },
-          {
-            "id": "integration",
-            "label": "連携",
-            "description": "CAD/STEP/DB/QMS/dashboard pipeline",
-            "current_level": 3,
-            "current_label": "L3",
-            "current_stage": "カリキュラムKPI",
-            "l10_target": "L10: 工場OS組込",
-            "levels": [
-              "孤立",
-              "cae_te_log",
-              "universal_growth.db",
-              "カリキュラムKPI",
-              "DXF/STEPパイプ",
-              "QMS/不良リンク",
-              "n8n",
-              "Paperless根拠",
-              "Turso同期",
-              "全Hub統合",
-              "L10: 工場OS組込"
-            ],
-            "progress_pct": 30.0
-          }
-        ],
-        "avg_level": 3.2
       },
       {
         "product_id": "DXF2STEP_FREECAD",
@@ -916,6 +779,300 @@
         ],
         "avg_level": 3.2,
         "track": "video"
+      },
+      {
+        "product_id": "MOLDFLOW",
+        "product_label": "樹脂充填解析",
+        "reference": "Autodesk Moldflow / 同等商用",
+        "clawstack_stack": "OpenFOAM resin_flow_v001 + CAE T&E",
+        "categories": [
+          {
+            "id": "accuracy",
+            "label": "精度",
+            "description": "Correlation to measurement / golden cases / energy-mass balance",
+            "current_level": 3,
+            "current_label": "L3",
+            "current_stage": "代理KPI式（粘度・流速）",
+            "l10_target": "L10: Moldflow級精度+工場KPI証明",
+            "levels": [
+              "未実施",
+              "試行ログのみ",
+              "ソルバ完走（収束）",
+              "代理KPI式（粘度・流速）",
+              "OpenFOAM場から圧力/流速抽出",
+              "質量収支・充填率の定量",
+              "試作金型との相関1件",
+              "ゴールデンケース複数",
+              "現場採用・再現性",
+              "自動校正ループ",
+              "L10: Moldflow級精度+工場KPI証明"
+            ],
+            "progress_pct": 30.0
+          },
+          {
+            "id": "model_size",
+            "label": "モデルサイズ",
+            "description": "Mesh scale, part complexity, assembly size handled",
+            "current_level": 3,
+            "current_label": "L3",
+            "current_stage": "ランナー+ゲート3",
+            "l10_target": "L10: 量産金型フルモデル",
+            "levels": [
+              "未実施",
+              "単純ブロック",
+              "1キャビティ矩形",
+              "ランナー+ゲート3",
+              "実部品STEPキャビティ",
+              "100万セル級",
+              "多キャビティ",
+              "大型部品+冷却路",
+              "フル金型アセンブリ",
+              "クラウド並列",
+              "L10: 量産金型フルモデル"
+            ],
+            "progress_pct": 30.0
+          },
+          {
+            "id": "functionality",
+            "label": "機能",
+            "description": "Physics models, solvers, phases (fill/pack/cool), contact, GD&T engines",
+            "current_level": 2,
+            "current_label": "L2",
+            "current_stage": "定常 icoFoam",
+            "l10_target": "L10: 全工程デジタルツイン",
+            "levels": [
+              "未実施",
+              "blockMeshのみ",
+              "定常 icoFoam",
+              "非ニュートン粘度",
+              "VOF充填",
+              "保圧・冷却",
+              "繊維配向・収縮",
+              "多材料",
+              "ゲート最適化",
+              "Moldflow連携",
+              "L10: 全工程デジタルツイン"
+            ],
+            "progress_pct": 20.0
+          },
+          {
+            "id": "evaluable_items",
+            "label": "評価可能項目",
+            "description": "Defects/KPIs the workflow can quantify (short shot, weldline, stack-up, etc.)",
+            "current_level": 3,
+            "current_label": "L3",
+            "current_stage": "ショート/反り/ウェルド/ヒケ（式）",
+            "l10_target": "L10: Moldflow同等の評価セット",
+            "levels": [
+              "なし",
+              "収束のみ",
+              "圧力損失・流速",
+              "ショート/反り/ウェルド/ヒケ（式）",
+              "場ベース欠陥指標",
+              "充填時間・バランス",
+              "冷却歪み",
+              "金型温度",
+              "コスト/サイクル",
+              "QMS連携",
+              "L10: Moldflow同等の評価セット"
+            ],
+            "progress_pct": 30.0
+          },
+          {
+            "id": "operability",
+            "label": "操作性",
+            "description": "UX, automation, visualization, animation, editability",
+            "current_level": 4,
+            "current_label": "L4",
+            "current_stage": "Telegram可視化",
+            "l10_target": "L10: 1クリック現場運用",
+            "levels": [
+              "手動のみ",
+              "Dockerバッチ",
+              "T&E自動+ログ",
+              "ダッシュボード",
+              "Telegram可視化",
+              "パラメータ掃引",
+              "FreeCAD連携",
+              "アニメーション",
+              "現場オペレータUI",
+              "音声/ポータル統合",
+              "L10: 1クリック現場運用"
+            ],
+            "progress_pct": 40.0
+          },
+          {
+            "id": "integration",
+            "label": "連携",
+            "description": "CAD/STEP/DB/QMS/dashboard pipeline",
+            "current_level": 3,
+            "current_label": "L3",
+            "current_stage": "カリキュラムKPI",
+            "l10_target": "L10: 工場OS組込",
+            "levels": [
+              "孤立",
+              "cae_te_log",
+              "universal_growth.db",
+              "カリキュラムKPI",
+              "DXF/STEPパイプ",
+              "QMS/不良リンク",
+              "n8n",
+              "Paperless根拠",
+              "Turso同期",
+              "全Hub統合",
+              "L10: 工場OS組込"
+            ],
+            "progress_pct": 30.0
+          }
+        ],
+        "avg_level": 3.0
+      },
+      {
+        "product_id": "VISUAL_INSPECTION_AI",
+        "product_label": "ローカル外観検査・寸法測定AI",
+        "reference": "Keyence IM/IV / Cognex VisionPro / MVTec HALCON 級",
+        "clawstack_stack": "visual_inspection_ai (ECC位置合わせ+異常検出, FastAPI, Champion/Challenger)",
+        "categories": [
+          {
+            "id": "accuracy",
+            "label": "精度",
+            "description": "Correlation to measurement / golden cases / energy-mass balance",
+            "current_level": 3,
+            "current_label": "L3",
+            "current_stage": "校正済み閾値でOK/NG/REVIEW分離(固定テスト)",
+            "l10_target": "L10: Keyence/Cognex級精度+工程能力証明",
+            "levels": [
+              "未実施",
+              "合成デモ画像で動作確認のみ",
+              "チャンピオンモデル学習済み(合成)",
+              "校正済み閾値でOK/NG/REVIEW分離(固定テスト)",
+              "運用ループで判定実績蓄積(REVIEW確定含む)",
+              "実部品画像で再校正・誤検出率定量",
+              "実測(顕微鏡/CMM)との相関1件",
+              "複数部品種で再現性",
+              "現場採用・歩留り改善実証",
+              "自動再学習・ドリフト監視",
+              "L10: Keyence/Cognex級精度+工程能力証明"
+            ],
+            "progress_pct": 30.0
+          },
+          {
+            "id": "model_size",
+            "label": "モデルサイズ",
+            "description": "Mesh scale, part complexity, assembly size handled",
+            "current_level": 2,
+            "current_label": "L2",
+            "current_stage": "合成デモ一式(良/傷/打痕/バリ/シミ)",
+            "l10_target": "L10: 量産全ライン適用規模",
+            "levels": [
+              "未実施",
+              "単一部品・合成画像",
+              "合成デモ一式(良/傷/打痕/バリ/シミ)",
+              "実部品1種の実画像",
+              "複数部品種",
+              "高解像度・複数視点",
+              "ライン全数レベルの画像量",
+              "複数ライン",
+              "工場横断",
+              "多拠点",
+              "L10: 量産全ライン適用規模"
+            ],
+            "progress_pct": 20.0
+          },
+          {
+            "id": "functionality",
+            "label": "機能",
+            "description": "Physics models, solvers, phases (fill/pack/cool), contact, GD&T engines",
+            "current_level": 3,
+            "current_label": "L3",
+            "current_stage": "Champion/Challenger運用",
+            "l10_target": "L10: 商用検査装置同等の機能セット",
+            "levels": [
+              "未実施",
+              "画像アップロード判定のみ",
+              "位置合わせ(ECC)+異常検出",
+              "Champion/Challenger運用",
+              "寸法測定",
+              "欠陥種別分類",
+              "再学習パイプライン",
+              "撮像ガイド/光学系推奨",
+              "インライン接続(PLC/トリガ)",
+              "エッジ展開",
+              "L10: 商用検査装置同等の機能セット"
+            ],
+            "progress_pct": 30.0
+          },
+          {
+            "id": "evaluable_items",
+            "label": "評価可能項目",
+            "description": "Defects/KPIs the workflow can quantify (short shot, weldline, stack-up, etc.)",
+            "current_level": 3,
+            "current_label": "L3",
+            "current_stage": "傷/打痕/バリ/シミ別候補",
+            "l10_target": "L10: 商用検査装置同等の評価セット",
+            "levels": [
+              "なし",
+              "OK/NG二値",
+              "OK/NG/REVIEW三値",
+              "傷/打痕/バリ/シミ別候補",
+              "寸法・幾何量",
+              "欠陥サイズ・位置定量",
+              "傾向管理(SPC)",
+              "歩留り/工程能力指数",
+              "トレーサビリティ紐付け",
+              "QMS帳票自動生成",
+              "L10: 商用検査装置同等の評価セット"
+            ],
+            "progress_pct": 30.0
+          },
+          {
+            "id": "operability",
+            "label": "操作性",
+            "description": "UX, automation, visualization, animation, editability",
+            "current_level": 3,
+            "current_label": "L3",
+            "current_stage": "Web UI(閲覧・確定)",
+            "l10_target": "L10: 1クリック現場運用",
+            "levels": [
+              "手動スクリプトのみ",
+              "セットアップスクリプト",
+              "ワンコマンド起動(run_demo)",
+              "Web UI(閲覧・確定)",
+              "ポータル統合",
+              "レシピ編集UI",
+              "権限/監査ログ",
+              "現場オペレータUI",
+              "多言語/教育モード",
+              "音声・自動レポート",
+              "L10: 1クリック現場運用"
+            ],
+            "progress_pct": 30.0
+          },
+          {
+            "id": "integration",
+            "label": "連携",
+            "description": "CAD/STEP/DB/QMS/dashboard pipeline",
+            "current_level": 2,
+            "current_label": "L2",
+            "current_stage": "モデルレジストリ(Champion/Challenger)",
+            "l10_target": "L10: 工場OS組込",
+            "levels": [
+              "孤立",
+              "プロジェクト内SQLite",
+              "モデルレジストリ(Champion/Challenger)",
+              "ポータルリンク",
+              "universal_growth.db連携",
+              "QMS/不良データリンク",
+              "n8n自動化",
+              "Paperless根拠添付",
+              "Turso同期",
+              "全Hub統合",
+              "L10: 工場OS組込"
+            ],
+            "progress_pct": 20.0
+          }
+        ],
+        "avg_level": 2.7
       },
       {
         "product_id": "CETOL6SIGMA",
@@ -1123,10 +1280,10 @@
       "CAE VOF/OpenRadioss MP4s are scientific visualization, not cinematic gen-AI (separate track).",
       "Document/RAG ingest (3D_ANIMATION domain) does not raise video L levels."
     ],
-    "assessed_at": "2026-06-24T07:34:30.986532"
+    "assessed_at": "2026-07-26T04:59:07.787440"
   },
   "ai_video_generation_l10": {
-    "assessed_at": "2026-06-24T07:34:30.986532",
+    "assessed_at": "2026-07-26T04:59:07.787440",
     "updated_note": "L0-L10 vs commercial generative video (OpenAI Sora/Image-to-Video, ByteDance Seedance 2, Runway Gen-3/4, Kling). L10 = photoreal text/image-to-video, long coherent motion, character consistency, production API at scale. Clawstack levels are capped by measured pipeline evidence (honest assessment).",
     "commercial_l10_reference": [
       "OpenAI Sora / Image-to-Video (Image 2.0 class)",
@@ -1143,17 +1300,17 @@
     "evidence_snapshot": {
       "mp4_counts": {
         "iatf": 90,
-        "cae_viz": 7,
-        "projects": 52,
-        "other": 11,
-        "total": 160
+        "cae_viz": 1383,
+        "projects": 1922,
+        "other": 31,
+        "total": 3426
       },
       "has_generative_api": false,
       "has_prompt_studio": true,
       "iatf_design_ok": true,
       "iatf_pdca_ok": true,
       "iatf_light_loop_ok": true,
-      "animation_domain_events": 369,
+      "animation_domain_events": 805,
       "dashboard_ok": true,
       "iatf_youtube_export": true,
       "visual_qa_pass_artifact": false,

@@ -1,4 +1,4 @@
-# Motion Learning Playbook v1 — Stage A の10ラン(run1-10)から抽出した判断決定表。
+# Motion Learning Playbook v6 (2026-07-21) — Stage A の10ラン(run1-10)から抽出した判断決定表。
 # ローカルLLM/ルールエンジンはこの表の範囲でのみ自律判断する。表に無い状況は人間へエスカレーション。
 # 教訓の出典: data/workspace/memory/trouble_history.md [T047] 罠#1〜#7
 
@@ -14,14 +14,36 @@ rules:                       # 上から順に最初に一致したものを適�
     when: "travel >= 1.5 and not fell"
     action: {type: success}
 
-  - name: dive_hack          # 罠#7: 数値は良いが転倒して這っている
+  # v4 (2026-07-19 ユーザー承認・P025-R1整合): dive_hack を即エスカレーションから
+  # 自動再学習へ。cycle01のダイブ対策として報酬側をハードゲート化済み
+  # (train_v50_walk_tracking.py: gate=((upright-0.85)/0.15)^2, fall cut 0.75, pen -10)。
+  # ダイブ方策のチェックポイント継承は有害なのでフレッシュ+高探索で再学習。
+  # 安全弁は不変更: max_cycles 6 / 2連続無改善で従来通りエスカレーション。
+  # v5 (2026-07-20 Fable5・ユーザー包括承認の範囲): cycle3で「実歩行6秒+終盤転倒」
+  # (travel+1.63m・目視で歩行確認済み)がdive_hackと誤判定されフレッシュ破棄された。
+  # first_fall_sec(render_walk.py新出力)で「歩いてから転ぶ」と「即ダイブ」を判別。
+  # 歩けている方策は破棄せず継承して磨く(entropy低め・長め)。
+  # 旧supervisorはfirst_fall_sec未知→eval失敗→次のdive_hackへ自然フォールバック(後方互換)。
+  - name: walks_then_falls   # 実歩行後の転倒 → 継承して安定化
+    when: "travel >= 1.0 and fell and first_fall_sec >= 3.0"
+    action: {type: retrain, resume: latest, entropy: 0.001, init_log_std: -1.1, iterations: 2500}
+
+  - name: dive_hack          # 罠#7: 数値は良いが転倒して這っている(即転倒系)
     when: "travel >= 1.0 and fell"
-    action: {type: escalate, reason: "travel is fall-and-crawl; reward gating may be insufficient"}
+    action: {type: retrain, resume: best_walker, entropy: 0.002, init_log_std: -0.9, iterations: 2000}
 
   # v3 (2026-07-05 ユーザー承認): tier1bの教訓=「ノイズ収束後のチェックポイントを
   # 継承すると探索が死んだ保守の谷に沈む」(travel 0.067→0.028→0.028)。
   # 停滞系はフレッシュ+高探索+長時間へ。sprint/partial(良い挙動が出ている)のみ
   # latest継続だが、探索を殺さないinit_log_std(-1.1以上)を維持する。
+  # v6 (2026-07-21 anti-freeze): dive_hack対策の強ゲートで今度は「転ばないが歩かない」
+  # freeze局所解に収束(7/21: fell=false・upright0.94・travel0.6→0.2mへregression、best1.70m)。
+  # 報酬側もanti-freeze化済(train: r_prog線形前進報酬+静止無償収入削減)。playbook側は
+  # 「upright維持だが travel<0.8」を早期に検知し、best_walker(cycle3=1.63m)から高探索で揺さぶる。
+  - name: stand_freeze       # 立つが歩かない → best_walkerから高探索で脱出
+    when: "not fell and travel < 0.8 and first_fall_sec >= 3.0"
+    action: {type: retrain, resume: best_walker, entropy: 0.004, init_log_std: -0.7, iterations: 3000}
+
   - name: conservative_freeze  # 安全静止に収束 → フレッシュ・高探索でやり直し
     when: "vx < 0.10 and not fell"
     action: {type: retrain, resume: best_walker, entropy: 0.003, init_log_std: -0.8, iterations: 3000}
@@ -40,7 +62,7 @@ rules:                       # 上から順に最初に一致したものを適�
 
 limits:
   max_cycles_per_skill: 6            # これを超えたら人間へエスカレーション(無限ループ禁止)
-  max_consecutive_no_improve: 2      # travelが2サイクル連続で改善しなければエスカレーション
+  max_consecutive_no_improve: 3      # v6: 2→3。anti-freeze報酬+高探索に脱出の猶予を与える(escalate-restart往復抑制)
 
 escalation:
   file: escalation.md                # 出力先(サイクルディレクトリ内)
@@ -50,4 +72,7 @@ known_good_checkpoints:
   # v3: 空=フレッシュ学習。教訓: ノイズ収束後(init_log_std<-1.2で焼き締めた)
   # チェックポイントをbest_walkerに登録してはならない — 探索が死んでいる。
   # 登録してよいのは「歩行が成立し(travel>1m)かつ探索が生きている」もののみ。
-  best_walker: ""
+  # v5 (2026-07-20): walk_auto cycle3 = travel+1.63m実歩行(目視確認済)・
+  # entropy0.002/ils-0.9学習中の方策=探索生存。登録基準を満たす初のckpt。
+  # 上書き防止のためknown_good/へ退避したコピーを参照(cycleディレクトリは再利用される)。
+  best_walker: C:\v50_work\autonomy\known_good\walk_20260720_cycle03_travel1.63.pt

@@ -62,6 +62,39 @@ DEFAULT_TASK_MOTION_THRESHOLDS = {
     "collision_rate": 0.08,
 }
 
+IE_REFERENCE_PATH = (
+    Path(__file__).resolve().parents[1]
+    / "assets"
+    / "user_provided"
+    / "ie_motion_knowledge"
+    / "therblig_most_reference.json"
+)
+
+DEFAULT_THERBLIG_MOST_THRESHOLDS = {
+    "therblig_label_coverage_pct": 85.0,
+    "effective_therblig_ratio": 0.62,
+    "non_effective_therblig_share": 0.38,
+    "nva_time_ratio": 0.28,
+    "ecrs_improvement_pct": 8.0,
+    "most_sequence_valid": 1.0,
+    "most_index_error_pct": 12.0,
+    "most_cycle_efficiency_pct": 82.0,
+    "workstudy_export_ready": 1.0,
+    "parallel_therblig_rollout_count": 16,
+    "therblig_score_floor": 72.0,
+    "household_therblig_task_floor": 75.0,
+    "factory_most_task_floor": 78.0,
+}
+
+
+def load_therblig_most_reference() -> dict[str, Any]:
+    if not IE_REFERENCE_PATH.exists():
+        return {}
+    try:
+        return json.loads(IE_REFERENCE_PATH.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+
 
 def load_algorithm_rules(db_path: Path = DEFAULT_DB) -> list[dict[str, Any]]:
     if not db_path.exists():
@@ -360,6 +393,215 @@ def evaluate_robot_learning_metrics(metrics: dict[str, Any], thresholds: dict[st
     }
 
 
+def _therblig_level_verdict(score: int, high_count: int, metrics: dict[str, Any], limits: dict[str, float]) -> str:
+    """Map IE motion mastery score to L31-L40 gate labels."""
+    efficiency = _finite_number(metrics.get("most_cycle_efficiency_pct"))
+    ecrs = _finite_number(metrics.get("ecrs_improvement_pct"))
+    l40 = (
+        score >= 90
+        and high_count == 0
+        and efficiency is not None
+        and efficiency >= limits["most_cycle_efficiency_pct"] + 10.0
+        and ecrs is not None
+        and ecrs >= limits["ecrs_improvement_pct"] + 7.0
+    )
+    if l40:
+        return "L40_IE_MASTER"
+    if score >= 88 and high_count == 0:
+        return "L39_FACTORY_MOST"
+    if score >= 84 and high_count <= 1:
+        return "L38_HOUSEHOLD_THERBLIG"
+    if score >= 80 and high_count <= 1:
+        return "L37_MULTI_ROBOT_IE"
+    if score >= 76:
+        return "L36_WORKSTUDY_BRIDGE"
+    if score >= 72:
+        return "L35_STANDARD_TIME"
+    if score >= 68:
+        return "L34_MOST_SEQUENCE"
+    if score >= 64:
+        return "L33_ECRS"
+    if score >= 58:
+        return "L32_EFFECTIVE_RATIO"
+    if score >= 50:
+        return "L31_RECOGNITION"
+    return "HOLD"
+
+
+def evaluate_therblig_most_metrics(metrics: dict[str, Any], thresholds: dict[str, float] | None = None) -> dict[str, Any]:
+    """Score L31-L40 IE motion mastery: Therblig decomposition + MOST standard time.
+
+    Uses therblig_most_reference.json (Funai therblig column + Sandin MOST textbook metadata).
+    """
+    limits = dict(DEFAULT_THERBLIG_MOST_THRESHOLDS)
+    if thresholds:
+        limits.update(thresholds)
+
+    reference = load_therblig_most_reference()
+    violations: list[dict[str, Any]] = []
+    corrections: list[str] = []
+
+    def below(metric: str, rule_id: str, severity: str, message: str) -> None:
+        value = _finite_number(metrics.get(metric))
+        if value is not None and value < limits[metric]:
+            violations.append(
+                {
+                    "rule_id": rule_id,
+                    "severity": severity,
+                    "metric": metric,
+                    "value": value,
+                    "limit": limits[metric],
+                }
+            )
+            corrections.append(message)
+
+    def above(metric: str, rule_id: str, severity: str, message: str) -> None:
+        value = _finite_number(metrics.get(metric))
+        if value is not None and value > limits[metric]:
+            violations.append(
+                {
+                    "rule_id": rule_id,
+                    "severity": severity,
+                    "metric": metric,
+                    "value": value,
+                    "limit": limits[metric],
+                }
+            )
+            corrections.append(message)
+
+    below(
+        "therblig_label_coverage_pct",
+        "therblig_recognition_gate",
+        "high",
+        "Decompose each task into 18 therblig elements before scoring; label reach/grasp/move/use phases explicitly.",
+    )
+    below(
+        "effective_therblig_ratio",
+        "effective_therblig_ratio_gate",
+        "high",
+        "Reduce Search, Select, Hold, and Avoidable Delay; raise value-adding Reach/Grasp/Move/Use share.",
+    )
+    above(
+        "non_effective_therblig_share",
+        "effective_therblig_ratio_gate",
+        "medium",
+        "Apply ECRS Eliminate to Search/Select and fixture pre-positioning to cut non-effective therbligs.",
+    )
+    above(
+        "nva_time_ratio",
+        "ecrs_waste_reduction_gate",
+        "medium",
+        "Cut non-value-added time with bin organization, tool pre-position, and motion path rearrangement.",
+    )
+    below(
+        "ecrs_improvement_pct",
+        "ecrs_waste_reduction_gate",
+        "medium",
+        "Record before/after therblig counts and apply ECRS Eliminate/Combine/Rearrange/Simplify.",
+    )
+
+    most_valid = _finite_number(metrics.get("most_sequence_valid"))
+    if most_valid is not None and most_valid < limits["most_sequence_valid"]:
+        violations.append(
+            {
+                "rule_id": "most_sequence_encoding_gate",
+                "severity": "high",
+                "metric": "most_sequence_valid",
+                "value": most_valid,
+                "limit": limits["most_sequence_valid"],
+            }
+        )
+        corrections.append("Encode factory pick/place as MOST General Move: reach-grasp-move-position-release.")
+
+    above(
+        "most_index_error_pct",
+        "most_sequence_encoding_gate",
+        "medium",
+        "Tune MOST indices against Sandin sequence method; reduce index error before standard-time gate.",
+    )
+    below(
+        "most_cycle_efficiency_pct",
+        "most_standard_time_gate",
+        "high",
+        "Compare rollout cycle time to MOST standard time; improve until efficiency meets L35+ gate.",
+    )
+
+    export_ready = _finite_number(metrics.get("workstudy_export_ready"))
+    if export_ready is not None and export_ready < limits["workstudy_export_ready"]:
+        violations.append(
+            {
+                "rule_id": "workstudy_ai_bridge_gate",
+                "severity": "medium",
+                "metric": "workstudy_export_ready",
+                "value": export_ready,
+                "limit": limits["workstudy_export_ready"],
+            }
+        )
+        corrections.append("Export therblig timeline + MOST TMU summary for WorkStudy AI (port 7870) review.")
+
+    parallel = _finite_number(metrics.get("parallel_therblig_rollout_count"))
+    if parallel is not None and parallel < limits["parallel_therblig_rollout_count"]:
+        below(
+            "parallel_therblig_rollout_count",
+            "therblig_recognition_gate",
+            "low",
+            "Run therblig scoring on at least 16 parallel robot rollouts before L37 promotion.",
+        )
+
+    therblig_scores = metrics.get("therblig_task_scores") or {}
+    if isinstance(therblig_scores, dict):
+        household_scores = [
+            float(v) for k, v in therblig_scores.items() if k in {"door", "sit_stand", "stairs"} and _finite_number(v) is not None
+        ]
+        if household_scores and min(household_scores) < limits["household_therblig_task_floor"]:
+            violations.append(
+                {
+                    "rule_id": "household_task_curriculum",
+                    "severity": "medium",
+                    "metric": "household_therblig_task_floor",
+                    "value": min(household_scores),
+                    "limit": limits["household_therblig_task_floor"],
+                }
+            )
+            corrections.append("Improve household therblig decomposition on door/chair/stair tasks.")
+
+        factory_score = _finite_number(therblig_scores.get("factory_pick"))
+        if factory_score is not None and factory_score < limits["factory_most_task_floor"]:
+            violations.append(
+                {
+                    "rule_id": "factory_task_curriculum",
+                    "severity": "high",
+                    "metric": "factory_most_task_floor",
+                    "value": factory_score,
+                    "limit": limits["factory_most_task_floor"],
+                }
+            )
+            corrections.append("Factory pick must pass MOST + therblig floor before L39 promotion.")
+
+    score = 100
+    for item in violations:
+        if item["severity"] == "high":
+            score -= 16
+        elif item["severity"] == "medium":
+            score -= 9
+        else:
+            score -= 4
+    score = max(0, score)
+    high_count = sum(1 for v in violations if v["severity"] == "high")
+    verdict = _therblig_level_verdict(score, high_count, metrics, limits)
+
+    return {
+        "score": score,
+        "verdict": verdict,
+        "violations": violations,
+        "corrections": list(dict.fromkeys(corrections)),
+        "rules_loaded": load_algorithm_rules(),
+        "thresholds": limits,
+        "reference_loaded": bool(reference),
+        "level_gates": reference.get("level_gates", {}),
+    }
+
+
 def evaluate_task_motion_metrics(metrics: dict[str, Any], thresholds: dict[str, float] | None = None) -> dict[str, Any]:
     """Score L11-L20 natural task motion readiness.
 
@@ -520,7 +762,7 @@ def evaluate_task_motion_metrics(metrics: dict[str, Any], thresholds: dict[str, 
     else:
         verdict = "HOLD"
 
-    return {
+    result: dict[str, Any] = {
         "score": score,
         "verdict": verdict,
         "violations": violations,
@@ -529,12 +771,37 @@ def evaluate_task_motion_metrics(metrics: dict[str, Any], thresholds: dict[str, 
         "thresholds": limits,
     }
 
+    therblig_keys = (
+        "therblig_label_coverage_pct",
+        "effective_therblig_ratio",
+        "non_effective_therblig_share",
+        "nva_time_ratio",
+        "ecrs_improvement_pct",
+        "most_sequence_valid",
+        "most_index_error_pct",
+        "most_cycle_efficiency_pct",
+        "workstudy_export_ready",
+        "parallel_therblig_rollout_count",
+        "therblig_task_scores",
+    )
+    if any(key in metrics for key in therblig_keys):
+        ie = evaluate_therblig_most_metrics(metrics)
+        result["therblig_most"] = ie
+        result["ie_verdict"] = ie["verdict"]
+        if ie["verdict"].startswith("L3") or ie["verdict"].startswith("L4"):
+            result["combined_verdict"] = ie["verdict"]
+        else:
+            result["combined_verdict"] = verdict
+
+    return result
+
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Robotics-informed gait QA for generated 3D motion.")
     parser.add_argument("--metrics-json", help="Path to measured gait metrics JSON.")
     parser.add_argument("--robot-learning-json", help="Path to embodied robot-learning readiness metrics JSON.")
     parser.add_argument("--task-motion-json", help="Path to L20 natural task motion metrics JSON.")
+    parser.add_argument("--therblig-most-json", help="Path to L31-L40 therblig/MOST metrics JSON.")
     parser.add_argument("--print-rules", action="store_true", help="Print DB-backed algorithm rules.")
     args = parser.parse_args()
 
@@ -549,8 +816,12 @@ def main() -> int:
         metrics = json.loads(Path(args.task_motion_json).read_text(encoding="utf-8"))
         print(json.dumps(evaluate_task_motion_metrics(metrics), ensure_ascii=False, indent=2))
         return 0
+    if args.therblig_most_json:
+        metrics = json.loads(Path(args.therblig_most_json).read_text(encoding="utf-8"))
+        print(json.dumps(evaluate_therblig_most_metrics(metrics), ensure_ascii=False, indent=2))
+        return 0
     if not args.metrics_json:
-        parser.error("--metrics-json, --robot-learning-json, or --task-motion-json is required unless --print-rules is used")
+        parser.error("--metrics-json, --robot-learning-json, --task-motion-json, or --therblig-most-json is required unless --print-rules is used")
     metrics = json.loads(Path(args.metrics_json).read_text(encoding="utf-8"))
     print(json.dumps(evaluate_gait_metrics(metrics), ensure_ascii=False, indent=2))
     return 0

@@ -60,6 +60,17 @@ def monte_carlo_stack(
         elif d.distribution == "triangular":
             # T-iy63/L5: symmetric triangular, half-width = tolerance
             x = rng.triangular(d.mean - d.tolerance, d.mean, d.mean + d.tolerance, n)
+        elif d.distribution == "weibull":
+            k = 3.0
+            c_9973 = ((-math.log(0.00135))**(1.0/k)) - ((-math.log(0.99865))**(1.0/k))
+            lam = (2.0 * d.tolerance) / c_9973 if c_9973 > 0 else 1.0
+            w = rng.weibull(k, n)
+            x_shift = (d.mean - d.tolerance) - lam * ((-math.log(0.99865))**(1.0/k))
+            x = x_shift + lam * w
+        elif d.distribution == "beta":
+            alpha, beta_val = 2.0, 5.0
+            b = rng.beta(alpha, beta_val, n)
+            x = (d.mean - d.tolerance) + 2.0 * d.tolerance * b
         else:
             x = rng.normal(d.mean, sigma, n)
         contributions[d.name] = x
@@ -111,6 +122,26 @@ def _dist_sigma_skew_exkurt(d: StackDimension) -> tuple[float, float, float]:
         return t / math.sqrt(3.0), 0.0, -1.2
     if dist == "triangular":
         return t / math.sqrt(6.0), 0.0, -0.6
+    if dist == "weibull":
+        k = 3.0
+        g1 = math.gamma(1.0 + 1.0 / k)
+        g2 = math.gamma(1.0 + 2.0 / k)
+        g3 = math.gamma(1.0 + 3.0 / k)
+        g4 = math.gamma(1.0 + 4.0 / k)
+        c_9973 = ((-math.log(0.00135))**(1.0/k)) - ((-math.log(0.99865))**(1.0/k))
+        lam = (2.0 * t) / c_9973 if c_9973 > 0 else 1.0
+        sigma = lam * math.sqrt(max(0.0, g2 - g1*g1))
+        skew = (g3 - 3.0*g1*g2 + 2.0*(g1**3)) / max(1e-12, (g2 - g1*g1)**1.5)
+        exkurt = (g4 - 4.0*g1*g3 + 6.0*(g1**2)*g2 - 3.0*(g1**4)) / max(1e-12, (g2 - g1*g1)**2) - 3.0
+        return sigma, skew, exkurt
+    if dist == "beta":
+        alpha, beta_val = 2.0, 5.0
+        ab = alpha + beta_val
+        var_0 = (alpha * beta_val) / ((ab ** 2) * (ab + 1.0))
+        sigma = 2.0 * t * math.sqrt(var_0)
+        skew = (2.0 * (beta_val - alpha) * math.sqrt(ab + 1.0)) / ((ab + 2.0) * math.sqrt(alpha * beta_val))
+        exkurt = (6.0 * (((alpha - beta_val)**2) * (ab + 1.0) - alpha * beta_val * (ab + 2.0))) / (alpha * beta_val * (ab + 2.0) * (ab + 3.0))
+        return sigma, skew, exkurt
     return t / 6.0, 0.0, 0.0
 
 
@@ -348,3 +379,174 @@ def analyze_stack_from_manifest_dict(
     out["gdt_dims"] = [r for r in rows if str(r.get("source", "")).startswith("gdt")]
     out["maturity_level"] = pgc.detect_maturity_level(manifest, include_gdt=include_gdt)
     return out
+
+
+class VectorLoop3D:
+    """3D Vector Loop tolerance stackup analysis solver using kinematic chains.
+    
+    Models mechanical assembly loop as:
+        T_total = T_1 * T_2 * ... * T_m = I
+    where each joint/part coordinate frame transformation T_i is perturbed
+    by independent 3D translational (Tx, Ty, Tz) and rotational (Rx, Ry, Rz)
+    tolerances.
+    """
+    def __init__(self) -> None:
+        self.frames: list[dict[str, Any]] = []
+
+    def add_frame(
+        self,
+        name: str,
+        nominal_translation: tuple[float, float, float],
+        nominal_rotation_deg: tuple[float, float, float],
+        translation_tolerance: tuple[float, float, float] = (0.0, 0.0, 0.0),
+        rotation_tolerance_deg: tuple[float, float, float] = (0.0, 0.0, 0.0),
+        source: str = "synthetic"
+    ) -> None:
+        """Add a perturbed coordinate transformation frame to the loop."""
+        self.frames.append({
+            "name": name,
+            "t_nom": nominal_translation,
+            "r_nom": nominal_rotation_deg,
+            "t_tol": translation_tolerance,
+            "r_tol": rotation_tolerance_deg,
+            "source": source
+        })
+
+    def solve(
+        self,
+        gap_direction: tuple[float, float, float] = (0.0, 0.0, 1.0)
+    ) -> dict[str, Any]:
+        """Solves the 3D loop for the specified gap direction vector.
+        
+        Computes 3D gap mean, RSS 3-sigma, Worst Case limits, and 
+        individual dimension sensitivity contributions.
+        """
+        # Nominal total transformation
+        T_total = np.eye(4)
+        for f in self.frames:
+            T_total = T_total @ self._make_t(f["t_nom"], f["r_nom"])
+            
+        gap_nom = T_total[:3, 3]
+        gap_val = float(np.dot(gap_nom, gap_direction))
+        
+        # We perturb each parameter (Tx, Ty, Tz, Rx, Ry, Rz for each frame)
+        # to calculate sensitivities numerically.
+        eps = 1e-5
+        sensitivities: dict[str, dict[str, float]] = {}
+        total_rss_var = 0.0
+        wc_sum = 0.0
+        
+        dim_details: list[dict[str, Any]] = []
+        
+        for idx, f in enumerate(self.frames):
+            t_nom = list(f["t_nom"])
+            r_nom = list(f["r_nom"])
+            t_tol = f["t_tol"]
+            r_tol = f["r_tol"]
+            
+            # 3 translations
+            for i, name_t in enumerate(["Tx", "Ty", "Tz"]):
+                tol = t_tol[i]
+                if tol <= 0:
+                    continue
+                # Perturb
+                t_nom[i] += eps
+                T_p = self._eval_chain(idx, t_nom, r_nom)
+                g_p = T_p[:3, 3]
+                val_p = float(np.dot(g_p, gap_direction))
+                sens = (val_p - gap_val) / eps
+                t_nom[i] -= eps # revert
+                
+                var = (sens * (tol / 6.0)) ** 2
+                total_rss_var += var
+                wc_sum += abs(sens) * tol
+                
+                dim_name = f"{f['name']}_{name_t}"
+                sensitivities[dim_name] = {
+                    "sensitivity": round(sens, 4),
+                    "tolerance": tol,
+                    "var": var
+                }
+                dim_details.append({
+                    "name": dim_name,
+                    "mean": f["t_nom"][i],
+                    "tolerance": tol,
+                    "coef": sens,
+                    "source": f["source"]
+                })
+                
+            # 3 rotations
+            for i, name_r in enumerate(["Rx", "Ry", "Rz"]):
+                tol_deg = r_tol[i]
+                if tol_deg <= 0:
+                    continue
+                tol_rad = np.radians(tol_deg)
+                # Perturb
+                r_nom[i] += np.degrees(eps)
+                T_p = self._eval_chain(idx, t_nom, r_nom)
+                g_p = T_p[:3, 3]
+                val_p = float(np.dot(g_p, gap_direction))
+                sens = (val_p - gap_val) / eps # sensitivity with respect to rad
+                r_nom[i] -= np.degrees(eps) # revert
+                
+                var = (sens * (tol_rad / 6.0)) ** 2
+                total_rss_var += var
+                wc_sum += abs(sens) * tol_rad
+                
+                dim_name = f"{f['name']}_{name_r}"
+                sensitivities[dim_name] = {
+                    "sensitivity": round(sens, 4),
+                    "tolerance": tol_deg,
+                    "var": var
+                }
+                dim_details.append({
+                    "name": dim_name,
+                    "mean": f["r_nom"][i],
+                    "tolerance": tol_deg,
+                    "coef": sens,
+                    "source": f["source"]
+                })
+                
+        # Calculate contributions
+        denom = total_rss_var if total_rss_var > 0 else 1.0
+        sensitivity_contrib = {}
+        for name, data in sensitivities.items():
+            sensitivity_contrib[name] = {
+                "sigma_mm": round(math.sqrt(data["var"]), 6),
+                "contribution": round(data["var"] / denom, 4)
+            }
+            
+        return {
+            "gap_nominal": gap_val,
+            "worst_case_stack_mm": wc_sum,
+            "rss_3sigma_mm": 3.0 * math.sqrt(total_rss_var),
+            "sensitivity": sensitivity_contrib,
+            "dimensions": dim_details
+        }
+
+    def _eval_chain(self, perturbed_idx: int, t_pert: list[float], r_pert: list[float]) -> np.ndarray:
+        T = np.eye(4)
+        for idx, f in enumerate(self.frames):
+            if idx == perturbed_idx:
+                T = T @ self._make_t(tuple(t_pert), tuple(r_pert))
+            else:
+                T = T @ self._make_t(f["t_nom"], f["r_nom"])
+        return T
+
+    def _make_t(self, translation: tuple[float, float, float], rotation_deg: tuple[float, float, float]) -> np.ndarray:
+        tx, ty, tz = translation
+        rx, ry, rz = np.radians(rotation_deg)
+        Rx = np.array([[1.0, 0.0, 0.0],
+                       [0.0, math.cos(rx), -math.sin(rx)],
+                       [0.0, math.sin(rx), math.cos(rx)]])
+        Ry = np.array([[math.cos(ry), 0.0, math.sin(ry)],
+                       [0.0, 1.0, 0.0],
+                       [-math.sin(ry), 0.0, math.cos(ry)]])
+        Rz = np.array([[math.cos(rz), -math.sin(rz), 0.0],
+                       [math.sin(rz), math.cos(rz), 0.0],
+                       [0.0, 0.0, 1.0]])
+        R = Rz @ Ry @ Rx
+        T = np.eye(4)
+        T[:3, :3] = R
+        T[:3, 3] = [tx, ty, tz]
+        return T

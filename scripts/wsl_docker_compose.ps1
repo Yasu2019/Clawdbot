@@ -4,8 +4,5 @@ param(
     [string[]]$Args
 )
 
-$ErrorActionPreference = "Stop"
-$distro = "Ubuntu"
-
-& wsl -d $distro -- docker compose @Args
+& (Join-Path $PSScriptRoot "clawstack_compose.ps1") @Args
 exit $LASTEXITCODE

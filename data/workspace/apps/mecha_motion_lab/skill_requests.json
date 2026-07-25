@@ -1,43 +1,91 @@
 {
-  "schema": "clawstack.skill_requests.v1",
+  "schema": "clawstack.skill_requests.v2",
   "requests": [
     {
-      "id": "req_1783231231",
-      "text": "階段を登る",
-      "status": "retargeted",
-      "created_at": "2026-07-05T15:00:31",
-      "notes": null,
+      "id": "req_l30_martial_001",
+      "category": "martial",
+      "text": "柔道の背負い投げ（攻撃側が投げ、受け側が受け身を取る）",
+      "status": "learned",
+      "created_at": "2026-07-14T22:49:00",
       "interpretation": {
-        "skill_name": "stairs_climb",
-        "taxonomy": "locomotion",
-        "required_tier": 1,
-        "needs_terrain": "stairs",
-        "search_keywords": [
-          "stairs climb"
-        ],
-        "source": "fallback_dictionary",
-        "llm_error": "TimeoutError"
-      },
-      "interpreted_at": "2026-07-05T15:01:53",
-      "reference": {
-        "bvh": "C:\\v50_work\\datasets\\100style\\100STYLE\\Neutral\\Neutral_FW.bvh",
-        "registry_note": "walk参照+U6地形(stairs)で学習",
-        "license": "CC-BY-4.0 100STYLE (decision on file)"
-      },
-      "reference_at": "2026-07-05T15:11:25",
-      "ref_path": "C:\\v50_work\\refs\\stairs_climb.json",
-      "ref_stats": {
-        "period_sec": 1.3,
-        "clip_vx_mps": 0.331
-      },
-      "retargeted_at": "2026-07-05T15:29:50"
+        "skill_name": "judo_shoulder_throw",
+        "taxonomy": "martial_arts",
+        "required_tier": 2,
+        "robots_required": 2,
+        "roles": {
+          "alpha": "tori(投げ手)",
+          "beta": "uke(受け手)"
+        },
+        "reference_motion": "judo_ippon_seoi_nage",
+        "notes": "投げ動作と受け身を同時学習。衝撃力制御が安全ゲート条件。"
+      }
     },
     {
-      "id": "req_1783231803",
-      "text": "歩く",
-      "status": "retargeted",
-      "created_at": "2026-07-05T15:10:03",
-      "notes": null,
+      "id": "req_l30_martial_002",
+      "category": "martial",
+      "text": "テイクダウン防御（タックルをかわして相手のバランスを崩す）",
+      "status": "learned",
+      "created_at": "2026-07-14T22:49:00",
+      "interpretation": {
+        "skill_name": "takedown_defense",
+        "taxonomy": "martial_arts",
+        "required_tier": 2,
+        "robots_required": 2,
+        "roles": {
+          "alpha": "ディフェンダー",
+          "beta": "アタッカー"
+        },
+        "notes": "重心コントロールと足払い回避の学習が主目的。"
+      }
+    },
+    {
+      "id": "req_l30_care_001",
+      "category": "care",
+      "text": "車椅子から立位への移乗介助（介護者が安全に患者を立ち上がらせる）",
+      "status": "learned",
+      "created_at": "2026-07-14T22:49:00",
+      "interpretation": {
+        "skill_name": "wheelchair_to_stand_transfer",
+        "taxonomy": "caregiving",
+        "required_tier": 2,
+        "robots_required": 2,
+        "roles": {
+          "gamma": "caregiver(介護者)",
+          "delta": "patient(患者役)"
+        },
+        "reference_motion": "standing_transfer_assist",
+        "gate": {
+          "safe_support_rate": 0.85,
+          "transfer_completion_rate": 0.8,
+          "fall_zero_consecutive": 5
+        },
+        "notes": "患者役ロボットは不規則な重心移動を発生させ介護者の汎化を促す。"
+      }
+    },
+    {
+      "id": "req_l30_care_002",
+      "category": "care",
+      "text": "歩行並走支援（転倒しそうな患者を横で支えながら歩く）",
+      "status": "learned",
+      "created_at": "2026-07-14T22:49:00",
+      "interpretation": {
+        "skill_name": "walking_side_support",
+        "taxonomy": "caregiving",
+        "required_tier": 2,
+        "robots_required": 2,
+        "roles": {
+          "gamma": "caregiver(介護者)",
+          "delta": "patient(患者役)"
+        },
+        "notes": "患者役がランダムによろめく動作を挿入。介護者はリアルタイムに支持力を調整。"
+      }
+    },
+    {
+      "id": "req_walk_v2_1784462105",
+      "category": "locomotion",
+      "text": "歩行（dive_hack対策の報酬ゲート強化版 train_v50_walk_tracking.py で再学習。playbook v4適用。2026-07-19 Fable5+ユーザー承認）",
+      "status": "escalated",
+      "created_at": "2026-07-19T20:55:05",
       "interpretation": {
         "skill_name": "walk",
         "taxonomy": "locomotion",
@@ -46,64 +94,59 @@
         "search_keywords": [
           "walk"
         ],
-        "source": "fallback_dictionary",
-        "llm_error": "TimeoutError"
+        "source": "fallback_dictionary"
       },
-      "interpreted_at": "2026-07-05T15:11:25",
+      "interpreted_at": "2026-07-19T20:55:08",
       "reference": {
         "bvh": "C:\\v50_work\\datasets\\100style\\100STYLE\\Neutral\\Neutral_FW.bvh",
         "registry_note": "neutral forward walk",
         "license": "CC-BY-4.0 100STYLE (decision on file)"
       },
-      "reference_at": "2026-07-05T15:11:25",
+      "reference_at": "2026-07-19T20:55:08",
       "ref_path": "C:\\v50_work\\refs\\walk.json",
       "ref_stats": {
         "period_sec": 1.3,
         "clip_vx_mps": 0.331
       },
-      "retargeted_at": "2026-07-05T15:29:54"
-    },
-    {
-      "id": "req_1783232734",
-      "text": "(U3テスト) ライセンスゲート検証用",
-      "status": "rejected",
-      "created_at": "2026-07-05T15:25:34",
-      "notes": null,
-      "gate_decision": {
-        "action": "reject",
-        "by": "cleanup",
-        "note": "",
-        "at": "2026-07-05T15:29:01"
+      "retargeted_at": "2026-07-19T20:55:19",
+      "training": {
+        "supervisor_skill": "walk_auto",
+        "started_at": "2026-07-19T21:35:26",
+        "result_at": "2026-07-21T08:21:31"
       }
     },
     {
-      "id": "req_1783243012",
-      "text": "走る",
-      "status": "retargeted",
-      "created_at": "2026-07-05T18:16:52",
-      "notes": null,
-      "interpreted_at": "2026-07-05T18:19:34",
-      "reference_at": "2026-07-05T18:19:35",
-      "retargeted_at": "2026-07-05T18:19:37",
+      "id": "req_walk_v3_1784510187",
+      "category": "locomotion",
+      "text": "歩行v3(2026-07-20 Fable5・ユーザー包括承認の自走改善): レンダー初期状態パリティ修正+first_fall_sec判別+playbook v5(walks_then_falls継承ルール・best_walker=cycle3実歩行ckpt退避コピー)適用。現ラン(v4/フレッシュ)終了後にu5が自動配車する後継ラン。",
+      "status": "escalated",
+      "created_at": "2026-07-20T10:16:27",
       "interpretation": {
-        "skill_name": "run",
+        "skill_name": "walk",
         "taxonomy": "locomotion",
         "required_tier": 1,
         "needs_terrain": null,
         "search_keywords": [
-          "run"
+          "walk"
         ],
         "source": "fallback_dictionary"
       },
       "reference": {
-        "bvh": "C:\\v50_work\\datasets\\100style\\100STYLE\\Neutral\\Neutral_FR.bvh",
-        "registry_note": "neutral forward run",
+        "bvh": "C:\\v50_work\\datasets\\100style\\100STYLE\\Neutral\\Neutral_FW.bvh",
+        "registry_note": "neutral forward walk",
         "license": "CC-BY-4.0 100STYLE (decision on file)"
       },
-      "ref_path": "C:\\v50_work\\refs\\run.json",
+      "ref_path": "C:\\v50_work\\refs\\walk.json",
       "ref_stats": {
-        "period_sec": 0.7667,
-        "clip_vx_mps": 1.2792
+        "period_sec": 1.3,
+        "clip_vx_mps": 0.331
+      },
+      "retargeted_at": "2026-07-20T10:16:27",
+      "restart_note": "2026-07-22T22:37:13 requeued by restart: apply n_envs4096+posture (u5 redispatch)",
+      "training": {
+        "supervisor_skill": "walk_auto",
+        "started_at": "2026-07-22T22:37:32",
+        "result_at": "2026-07-23T13:54:49"
       }
     }
   ]

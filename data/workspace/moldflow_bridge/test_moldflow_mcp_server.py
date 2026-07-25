@@ -93,9 +93,25 @@ class MoldflowMcpContractTests(unittest.TestCase):
             "moldflow_start_analysis",
             "moldflow_analysis_status",
             "moldflow_export_results",
+            "moldflow_export_fill_stages",
+            "moldflow_fetch_file_base64",
             "moldflow_export_materials",
         }
         self.assertTrue(expected.issubset(set(server.mcp.tool_names)))
+
+    def test_fill_stages_defaults_and_parser(self):
+        server = _load_server()
+        stages = server._default_fill_stages()
+        self.assertEqual([s["key"] for s in stages], ["initial", "mid", "final"])
+        self.assertAlmostEqual(stages[0]["fraction"], 0.10)
+        self.assertAlmostEqual(stages[1]["fraction"], 0.50)
+        self.assertAlmostEqual(stages[2]["fraction"], 1.00)
+        parsed = server._parse_fill_stages_json(
+            '[{"key":"initial","fraction":0.1,"label_ja":"初期"}]'
+        )
+        self.assertEqual(parsed[0]["key"], "initial")
+        with self.assertRaises(ValueError):
+            server._parse_fill_stages_json('[{"key":"bad!","fraction":0.1}]')
 
     def test_write_tools_are_fail_closed_by_default(self):
         server = _load_server()

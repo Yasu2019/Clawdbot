@@ -1,34 +1,98 @@
 {
   "schema": "clawstack.harvest_learned_queries.v1",
-  "updated_at": "2026-06-19T12:27:13.139579+09:00",
+  "updated_at": "2026-07-26T07:00:43.301880+09:00",
   "min_score": 40.0,
   "scored_total": 5000,
   "domains": {
     "general": {
       "high_score_materials": [
         {
-          "id": 1396,
-          "title": "A distributed MQTT message broker based on Erlang/OTP. Built for high quality & Industrial use cases. The VerneMQ mission is active & the project maintained. Thank you for your support!",
+          "id": 209203,
+          "title": "一键生成产品营销与泛内容短视频，AI批量自动剪辑，高颜值跨平台桌面端工具 One click generation of product marketing and general content short videos, AI batch automatic cliping, beautiful cross platform desktop tool",
           "source": "github",
-          "status": "downloaded",
+          "status": "downloaded_existing",
           "domain_id": "general",
-          "query": "manufacturing quality",
+          "query": "tooling general",
           "score": 68.0,
           "reasons": [
             "downloaded",
             "local_file",
             "size_ok",
             "preferred_source",
-            "github_stars=3590"
+            "github_stars=4983"
           ]
         },
         {
-          "id": 5285,
-          "title": "Review on Investigation and Optimization of Blanking Process using FEM and DOE technique to Analyze the Influence of Process Parameters on the Burr Height",
+          "id": 208422,
+          "title": "一键生成产品营销与泛内容短视频，AI批量自动剪辑，高颜值跨平台桌面端工具 One click generation of product marketing and general content short videos, AI batch automatic cliping, beautiful cross platform desktop tool",
+          "source": "github",
+          "status": "downloaded_existing",
+          "domain_id": "general",
+          "query": "tooling general",
+          "score": 68.0,
+          "reasons": [
+            "downloaded",
+            "local_file",
+            "size_ok",
+            "preferred_source",
+            "github_stars=4983"
+          ]
+        },
+        {
+          "id": 206724,
+          "title": "一键生成产品营销与泛内容短视频，AI批量自动剪辑，高颜值跨平台桌面端工具 One click generation of product marketing and general content short videos, AI batch automatic cliping, beautiful cross platform desktop tool",
+          "source": "github",
+          "status": "downloaded_existing",
+          "domain_id": "general",
+          "query": "tooling general",
+          "score": 68.0,
+          "reasons": [
+            "downloaded",
+            "local_file",
+            "size_ok",
+            "preferred_source",
+            "github_stars=4977"
+          ]
+        },
+        {
+          "id": 205979,
+          "title": "一键生成产品营销与泛内容短视频，AI批量自动剪辑，高颜值跨平台桌面端工具 One click generation of product marketing and general content short videos, AI batch automatic cliping, beautiful cross platform desktop tool",
+          "source": "github",
+          "status": "downloaded_existing",
+          "domain_id": "general",
+          "query": "tooling general",
+          "score": 68.0,
+          "reasons": [
+            "downloaded",
+            "local_file",
+            "size_ok",
+            "preferred_source",
+            "github_stars=4973"
+          ]
+        },
+        {
+          "id": 205285,
+          "title": "一键生成产品营销与泛内容短视频，AI批量自动剪辑，高颜值跨平台桌面端工具 One click generation of product marketing and general content short videos, AI batch automatic cliping, beautiful cross platform desktop tool",
+          "source": "github",
+          "status": "downloaded_existing",
+          "domain_id": "general",
+          "query": "tooling general",
+          "score": 68.0,
+          "reasons": [
+            "downloaded",
+            "local_file",
+            "size_ok",
+            "preferred_source",
+            "github_stars=4968"
+          ]
+        },
+        {
+          "id": 209677,
+          "title": "Design and simulation of mechanical press for testing of coining tools with nanostructured coatings",
           "source": "zenodo",
           "status": "downloaded_existing",
           "domain_id": "general",
-          "query": "blanking simulation",
+          "query": "press forming FEA",
           "score": 66.0,
           "reasons": [
             "downloaded",
@@ -38,12 +102,12 @@
           ]
         },
         {
-          "id": 5286,
-          "title": "THE RESEARCH AND IMPLEMENTATION OF PASSENGER CAR'S TRANSPORTATION PLANNING PROBLEM",
+          "id": 209678,
+          "title": "STUDY ON REAL-TIME FINITE ELEMENT ANALYSIS SIMULATION AS A VISUALIZATION AND INTERACTION TOOL FOR SHEET METAL FORMING PROCESSES",
           "source": "zenodo",
           "status": "downloaded_existing",
           "domain_id": "general",
-          "query": "blanking simulation",
+          "query": "press forming FEA",
           "score": 66.0,
           "reasons": [
             "downloaded",
@@ -53,12 +117,12 @@
           ]
         },
         {
-          "id": 5289,
-          "title": "Variations of autonomic arousal mediate the reportability of mind blanking occurrences",
+          "id": 209679,
+          "title": "METAL FORMING PROCESS SIMULATION BY FEA SOFTWARE",
           "source": "zenodo",
           "status": "downloaded_existing",
           "domain_id": "general",
-          "query": "blanking simulation",
+          "query": "press forming FEA",
           "score": 66.0,
           "reasons": [
             "downloaded",
@@ -68,57 +132,12 @@
           ]
         },
         {
-          "id": 5278,
-          "title": "Why Machine Learning Integrated Patient Flow Simulation?",
-          "source": "arxiv",
-          "status": "downloaded",
-          "domain_id": "general",
-          "query": "blanking simulation",
-          "score": 66.0,
-          "reasons": [
-            "downloaded",
-            "pdf",
-            "size_ok",
-            "preferred_source"
-          ]
-        },
-        {
-          "id": 5279,
-          "title": "Modelling and simulating retail management practices: a first approach",
-          "source": "arxiv",
-          "status": "downloaded",
-          "domain_id": "general",
-          "query": "blanking simulation",
-          "score": 66.0,
-          "reasons": [
-            "downloaded",
-            "pdf",
-            "size_ok",
-            "preferred_source"
-          ]
-        },
-        {
-          "id": 5277,
-          "title": "Simulating Customer Experience and Word Of Mouth in Retail - A Case Study",
-          "source": "arxiv",
-          "status": "downloaded",
-          "domain_id": "general",
-          "query": "blanking simulation",
-          "score": 66.0,
-          "reasons": [
-            "downloaded",
-            "pdf",
-            "size_ok",
-            "preferred_source"
-          ]
-        },
-        {
-          "id": 5246,
-          "title": "ORIENTATION, DISPERSION AND LENGTH REDUCTION OF FIBRES IN LONG GLASS FIBRE REINFORCED INJECTION MOULDING",
+          "id": 209680,
+          "title": "Design Optimization and Analysis of Progressive Press  Tool for Cabinet Plate",
           "source": "zenodo",
           "status": "downloaded_existing",
           "domain_id": "general",
-          "query": "moldflow",
+          "query": "press forming FEA",
           "score": 66.0,
           "reasons": [
             "downloaded",
@@ -128,27 +147,12 @@
           ]
         },
         {
-          "id": 5249,
-          "title": "Design and Analysis of Plastic Injection Parts by Using Moldflow",
+          "id": 209681,
+          "title": "Design, Finite Element Analysis, and Structural Optimisation of a 100-Tonne C-Frame Hydraulic Press Using ANSYS and Topology Optimisation",
           "source": "zenodo",
           "status": "downloaded_existing",
           "domain_id": "general",
-          "query": "moldflow",
-          "score": 66.0,
-          "reasons": [
-            "downloaded",
-            "pdf",
-            "size_ok",
-            "preferred_source"
-          ]
-        },
-        {
-          "id": 5250,
-          "title": "INJECTION MOULDING PROCESS OPTIMIZATION OF CITRUS WASTE BIOCOMPOSITES BY SIMULATIONS AND TAGUCHI DOE",
-          "source": "zenodo",
-          "status": "downloaded_existing",
-          "domain_id": "general",
-          "query": "moldflow",
+          "query": "press forming FEA",
           "score": 66.0,
           "reasons": [
             "downloaded",
@@ -161,429 +165,172 @@
       "winning_queries": [
         {
           "domain_id": "general",
+          "query": "press forming FEA",
+          "hits": 191,
+          "downloaded": 105,
+          "score_sum": 6685.0,
+          "max_score": 66.0,
+          "examples": [
+            "Project-Based Learning for the Design of Progressive Dies Supporting Tools",
+            "Circular and square cups drawing and ironing of Ti alloy sheets by incremental press forming method",
+            "Design and simulation of mechanical press for testing of coining tools with nanostructured coatings"
+          ],
+          "avg_score": 35.0,
+          "yield": 0.55
+        },
+        {
+          "domain_id": "general",
           "query": "injection molding simulation",
-          "hits": 292,
-          "downloaded": 91,
-          "score_sum": 5772.0,
+          "hits": 270,
+          "downloaded": 111,
+          "score_sum": 7001.35,
           "max_score": 66.0,
           "examples": [
             "Open source injection molding simulation. A solver for OpenFOAM.",
             "Parameters required in DEM simulation.",
             "3D-printed Laryngeal Injection Task Trainer (LITT<b>)</b> Data Set.xlsx"
           ],
-          "avg_score": 19.77,
-          "yield": 0.312
-        },
-        {
-          "domain_id": "general",
-          "query": "progressive die",
-          "hits": 288,
-          "downloaded": 86,
-          "score_sum": 5495.0,
-          "max_score": 66.0,
-          "examples": [
-            "A plain language summary of the SAPPHIRE clinical trial of apitegromab in children and young adults with spinal muscular",
-            "Finite Element Simulation Dataset for DTCAE Process",
-            "Table 1_Case Report: Malignant transformation of deep infiltrating endometriosis: a report of two cases and literature r"
-          ],
-          "avg_score": 19.08,
-          "yield": 0.299
-        },
-        {
-          "domain_id": "general",
-          "query": "press forming FEA",
-          "hits": 196,
-          "downloaded": 78,
-          "score_sum": 4943.0,
-          "max_score": 66.0,
-          "examples": [
-            "STUDY ON REAL-TIME FINITE ELEMENT ANALYSIS SIMULATION AS A VISUALIZATION AND INTERACTION TOOL FOR SHEET METAL FORMING PR",
-            "Design and simulation of mechanical press for testing of coining tools with nanostructured coatings",
-            "METAL FORMING PROCESS SIMULATION BY FEA SOFTWARE"
-          ],
-          "avg_score": 25.22,
-          "yield": 0.398
+          "avg_score": 25.93,
+          "yield": 0.411
         },
         {
           "domain_id": "general",
           "query": "plastic mold general",
-          "hits": 236,
-          "downloaded": 73,
-          "score_sum": 4685.0,
+          "hits": 273,
+          "downloaded": 104,
+          "score_sum": 6649.0,
           "max_score": 66.0,
           "examples": [
             "Data used in the experiment.",
             "Nanopore PCR-cDNA sequencing of Aspergillus flavus AF36 (NRRL 18543)",
             "Data Sheet 1_Development and characterization of sustainable active films incorporated with free and microencapsulated t"
           ],
-          "avg_score": 19.85,
-          "yield": 0.309
+          "avg_score": 24.36,
+          "yield": 0.381
         },
         {
           "domain_id": "general",
           "query": "thermoplastic injection general",
-          "hits": 212,
-          "downloaded": 67,
-          "score_sum": 4327.0,
+          "hits": 235,
+          "downloaded": 96,
+          "score_sum": 6161.0,
           "max_score": 66.0,
           "examples": [
             "A comparative study between PETG and PLA for 3D Printing through thermal, chemical and mechanical characterization",
-            "FORM CLOSURE CREATED BY INJECTION OVERMOLDING OF THERMOPLASTIC AIRCRAFT COMPONENTS – A CHALLENGING APPROACH",
+            "The Potential of Cassava Starch as Binder in Injection Molding of 316L Stainless Steel Powder for Biomedical Application",
             "FORM CLOSURE CREATED BY INJECTION OVERMOLDING OF THERMOPLASTIC AIRCRAFT COMPONENTS – A CHALLENGING APPROACH"
           ],
-          "avg_score": 20.41,
-          "yield": 0.316
-        },
-        {
-          "domain_id": "general",
-          "query": "surface defect detection",
-          "hits": 236,
-          "downloaded": 52,
-          "score_sum": 3423.0,
-          "max_score": 66.0,
-          "examples": [
-            "m-abbasi-m/Car-Gear-Surface-Defect-Detection",
-            "缺陷检测文献记录",
-            "📈 目前最大的工业缺陷检测数据库及论文集 Constantly summarizing open source dataset and critical papers in the field of surface defect resea"
-          ],
-          "avg_score": 14.5,
-          "yield": 0.22
-        },
-        {
-          "domain_id": "general",
-          "query": "プレス成形 有限要素法",
-          "hits": 5,
-          "downloaded": 5,
-          "score_sum": 305.0,
-          "max_score": 61.0,
-          "examples": [
-            "燃料電池用金属セパレータの強度設計手法",
-            "冷間プレス成形角形鋼管柱の局部座屈による耐力劣化挙動の解析モデル",
-            "局部座屈と破断をともなう冷間プレス成形角形鋼管柱の塑性変形能力"
-          ],
-          "avg_score": 61.0,
-          "yield": 1.0
+          "avg_score": 26.22,
+          "yield": 0.409
         },
         {
           "domain_id": "general",
           "query": "strip layout general",
-          "hits": 105,
-          "downloaded": 41,
-          "score_sum": 2588.0,
+          "hits": 207,
+          "downloaded": 90,
+          "score_sum": 5678.0,
           "max_score": 66.0,
           "examples": [
             "#!bash # # bash completion support for core Git. # # Copyright (C) 2006,2007 Shawn O. Pearce <spearce@spearce.org> # Con",
-            "Oral-Facial-Digital Syndrome Type II (Mohr Syndrome) in Palestine",
-            "Designing strip intercropping systems"
+            "Inference Applied to Geography, with Special Reference to Ocean Currents and the Arctic Regions",
+            "Late Antiquity animal remains of the military settlement near Barkach village (Pleven Region, CN Bulgaria)"
           ],
-          "avg_score": 24.65,
-          "yield": 0.39
+          "avg_score": 27.43,
+          "yield": 0.435
         },
         {
           "domain_id": "general",
-          "query": "表面粗さ 切削加工",
-          "hits": 9,
-          "downloaded": 8,
-          "score_sum": 488.0,
-          "max_score": 61.0,
+          "query": "surface defect detection",
+          "hits": 330,
+          "downloaded": 98,
+          "score_sum": 6330.0,
+          "max_score": 66.0,
           "examples": [
-            "耐熱金属材料における疲労強度と加工面性状との関係",
-            "低周波振動切削を用いたチタン合金のドライ加工による仕上げ面形状の予測",
-            "マイクロレンズアレイ金型の超精密切削加工(第1報)"
+            "m-abbasi-m/Car-Gear-Surface-Defect-Detection",
+            "ybli/yolo-wood-surface-defect-detection",
+            "ybli/yolo-train-wheel-surface-defect-detection"
           ],
-          "avg_score": 54.22,
-          "yield": 0.889
+          "avg_score": 19.18,
+          "yield": 0.297
         },
         {
           "domain_id": "general",
-          "query": "応力集中 疲労破壊",
-          "hits": 1,
-          "downloaded": 1,
-          "score_sum": 61.0,
-          "max_score": 61.0,
+          "query": "progressive die",
+          "hits": 271,
+          "downloaded": 91,
+          "score_sum": 5831.0,
+          "max_score": 66.0,
           "examples": [
-            "溶接構造物の疲労破壊と疲労強度因子(1)"
+            "The impact of liver resection on survival outcomes of hepatocellular carcinoma patients with extrahepatic metastases: A ",
+            "RNAseq Analyses Identify Tumor Necrosis Factor-Mediated Inflammation as a Major Abnormality in ALS Spinal Cord.",
+            "Conditioned Medium from Cells Overexpressing TDP-43 Alters the Metabolome of Recipient Cells"
           ],
-          "avg_score": 61.0,
-          "yield": 1.0
+          "avg_score": 21.52,
+          "yield": 0.336
+        },
+        {
+          "domain_id": "general",
+          "query": "blanking simulation",
+          "hits": 298,
+          "downloaded": 86,
+          "score_sum": 5455.0,
+          "max_score": 66.0,
+          "examples": [
+            "Data and supporting information to paper entitled \"Thermal Transport in SiC with Intrinsic Defects and Mg Transmutation ",
+            "Table 2_Cycloastragenol improves tolerance to acute hypoxic exhaustive exercise stress in mice: integrated network pharm",
+            "Table 1_Cycloastragenol improves tolerance to acute hypoxic exhaustive exercise stress in mice: integrated network pharm"
+          ],
+          "avg_score": 18.31,
+          "yield": 0.289
+        },
+        {
+          "domain_id": "general",
+          "query": "moldflow",
+          "hits": 235,
+          "downloaded": 73,
+          "score_sum": 4664.0,
+          "max_score": 66.0,
+          "examples": [
+            "Python interface for Autodesk Moldflow",
+            "Temperature Effect on Bonding Quality of Polyether-ether-ketone Composites during Injection Over-Molding",
+            ""
+          ],
+          "avg_score": 19.85,
+          "yield": 0.311
+        },
+        {
+          "domain_id": "general",
+          "query": "tooling general",
+          "hits": 158,
+          "downloaded": 53,
+          "score_sum": 3408.0,
+          "max_score": 68.0,
+          "examples": [
+            "一键生成产品营销与泛内容短视频，AI批量自动剪辑，高颜值跨平台桌面端工具 One click generation of product marketing and general content short videos, AI batc",
+            "A general purpose HTTP reverse proxy and forwarding tool. Now written in Go!",
+            "<p>Output results during testing.</p>"
+          ],
+          "avg_score": 21.57,
+          "yield": 0.335
         }
       ],
       "prioritized_queries": [
-        "injection molding simulation",
-        "progressive die",
         "press forming FEA",
+        "injection molding simulation",
         "plastic mold general",
         "thermoplastic injection general",
-        "surface defect detection",
-        "プレス成形 有限要素法",
         "strip layout general",
-        "progressive die general"
-      ]
-    },
-    "iatf_audit_video": {
-      "high_score_materials": [
-        {
-          "id": 2302,
-          "title": "Autonomous Supplier Quality Ecosystem Using Blockchain and Federated AI for IATF Compliance in Automotive Manufacturing",
-          "source": "zenodo",
-          "status": "downloaded_existing",
-          "domain_id": "iatf_audit_video",
-          "query": "process audit automotive supplier quality",
-          "score": 99.0,
-          "reasons": [
-            "downloaded",
-            "pdf",
-            "size_ok",
-            "north_star",
-            "domain_terms=3",
-            "query_terms=3"
-          ]
-        },
-        {
-          "id": 2303,
-          "title": "Autonomous Supplier Quality Ecosystem Using Blockchain and Federated AI for IATF Compliance in Automotive Manufacturing",
-          "source": "zenodo",
-          "status": "downloaded_existing",
-          "domain_id": "iatf_audit_video",
-          "query": "process audit automotive supplier quality",
-          "score": 99.0,
-          "reasons": [
-            "downloaded",
-            "pdf",
-            "size_ok",
-            "north_star",
-            "domain_terms=3",
-            "query_terms=3"
-          ]
-        },
-        {
-          "id": 2274,
-          "title": "Autonomous Supplier Quality Ecosystem Using Blockchain and Federated AI for IATF Compliance in Automotive Manufacturing",
-          "source": "zenodo",
-          "status": "downloaded_existing",
-          "domain_id": "iatf_audit_video",
-          "query": "IATF 16949 internal audit training",
-          "score": 99.0,
-          "reasons": [
-            "downloaded",
-            "pdf",
-            "size_ok",
-            "north_star",
-            "domain_terms=3",
-            "query_terms=3"
-          ]
-        },
-        {
-          "id": 2276,
-          "title": "Lean Management in Correlation with the IATF 16949:2016 Automotive Standard: What Impact on Automotive Companies' Performance?",
-          "source": "zenodo",
-          "status": "downloaded_existing",
-          "domain_id": "iatf_audit_video",
-          "query": "IATF 16949 internal audit training",
-          "score": 99.0,
-          "reasons": [
-            "downloaded",
-            "pdf",
-            "size_ok",
-            "north_star",
-            "domain_terms=3",
-            "query_terms=3"
-          ]
-        },
-        {
-          "id": 2273,
-          "title": "Autonomous Supplier Quality Ecosystem Using Blockchain and Federated AI for IATF Compliance in Automotive Manufacturing",
-          "source": "zenodo",
-          "status": "downloaded_existing",
-          "domain_id": "iatf_audit_video",
-          "query": "IATF 16949 internal audit training",
-          "score": 99.0,
-          "reasons": [
-            "downloaded",
-            "pdf",
-            "size_ok",
-            "north_star",
-            "domain_terms=3",
-            "query_terms=3"
-          ]
-        },
-        {
-          "id": 1235,
-          "title": "Autonomous Supplier Quality Ecosystem Using Blockchain and Federated AI for IATF Compliance in Automotive Manufacturing",
-          "source": "zenodo",
-          "status": "downloaded_existing",
-          "domain_id": "iatf_audit_video",
-          "query": "process audit automotive supplier quality",
-          "score": 99.0,
-          "reasons": [
-            "downloaded",
-            "pdf",
-            "size_ok",
-            "north_star",
-            "domain_terms=3",
-            "query_terms=3"
-          ]
-        },
-        {
-          "id": 1236,
-          "title": "Autonomous Supplier Quality Ecosystem Using Blockchain and Federated AI for IATF Compliance in Automotive Manufacturing",
-          "source": "zenodo",
-          "status": "downloaded_existing",
-          "domain_id": "iatf_audit_video",
-          "query": "process audit automotive supplier quality",
-          "score": 99.0,
-          "reasons": [
-            "downloaded",
-            "pdf",
-            "size_ok",
-            "north_star",
-            "domain_terms=3",
-            "query_terms=3"
-          ]
-        },
-        {
-          "id": 1166,
-          "title": "Lean Management in Correlation with the IATF 16949:2016 Automotive Standard: What Impact on Automotive Companies' Performance?",
-          "source": "zenodo",
-          "status": "downloaded",
-          "domain_id": "iatf_audit_video",
-          "query": "IATF 16949 internal audit training",
-          "score": 99.0,
-          "reasons": [
-            "downloaded",
-            "pdf",
-            "size_ok",
-            "north_star",
-            "domain_terms=3",
-            "query_terms=3"
-          ]
-        },
-        {
-          "id": 1164,
-          "title": "Autonomous Supplier Quality Ecosystem Using Blockchain and Federated AI for IATF Compliance in Automotive Manufacturing",
-          "source": "zenodo",
-          "status": "downloaded",
-          "domain_id": "iatf_audit_video",
-          "query": "IATF 16949 internal audit training",
-          "score": 99.0,
-          "reasons": [
-            "downloaded",
-            "pdf",
-            "size_ok",
-            "north_star",
-            "domain_terms=3",
-            "query_terms=3"
-          ]
-        },
-        {
-          "id": 1163,
-          "title": "Autonomous Supplier Quality Ecosystem Using Blockchain and Federated AI for IATF Compliance in Automotive Manufacturing",
-          "source": "zenodo",
-          "status": "downloaded",
-          "domain_id": "iatf_audit_video",
-          "query": "IATF 16949 internal audit training",
-          "score": 99.0,
-          "reasons": [
-            "downloaded",
-            "pdf",
-            "size_ok",
-            "north_star",
-            "domain_terms=3",
-            "query_terms=3"
-          ]
-        }
-      ],
-      "winning_queries": [
-        {
-          "domain_id": "iatf_audit_video",
-          "query": "automotive quality management audit checklist",
-          "hits": 42,
-          "downloaded": 21,
-          "score_sum": 2407.0,
-          "max_score": 95.0,
-          "examples": [
-            "PRIMENA KPI ZA UNAPREĐENJE UPRAVLJANJA NABAVKOM U AUTOMOBILSKOJ INDUSTRIJI",
-            "Reverse logistics of waste tires in Brazil: a proposal for collaborative monitoring",
-            "DEVELOPING A STRUCTURED DUE DILIGENCE METHODOLOGY FOR AUDIT FIRMS: A RISK-BASED PERSPECTIVE"
-          ],
-          "avg_score": 57.31,
-          "yield": 0.5
-        },
-        {
-          "domain_id": "iatf_audit_video",
-          "query": "process audit automotive supplier quality",
-          "hits": 47,
-          "downloaded": 21,
-          "score_sum": 2564.0,
-          "max_score": 99.0,
-          "examples": [
-            "Autonomous Supplier Quality Ecosystem Using Blockchain and Federated AI for IATF Compliance in Automotive Manufacturing",
-            "Autonomous Supplier Quality Ecosystem Using Blockchain and Federated AI for IATF Compliance in Automotive Manufacturing",
-            "The impact of supplier partnerships on quality of information sharing, commitment, trust and supply chain performance in"
-          ],
-          "avg_score": 54.55,
-          "yield": 0.447
-        },
-        {
-          "domain_id": "iatf_audit_video",
-          "query": "IATF 16949 internal audit training",
-          "hits": 37,
-          "downloaded": 16,
-          "score_sum": 2105.0,
-          "max_score": 99.0,
-          "examples": [
-            "Autonomous Supplier Quality Ecosystem Using Blockchain and Federated AI for IATF Compliance in Automotive Manufacturing",
-            "STATISTICAL CONTROL OF PRODUCTION PROCESSES, ANALYSIS  OF THE MEASUREMENT SYSTEM",
-            "Lean Management in Correlation with the IATF 16949:2016 Automotive Standard: What Impact on Automotive Companies' Perfor"
-          ],
-          "avg_score": 56.89,
-          "yield": 0.432
-        },
-        {
-          "domain_id": "iatf_audit_video",
-          "query": "ISO 9001 IATF audit process manufacturing",
-          "hits": 18,
-          "downloaded": 8,
-          "score_sum": 880.0,
-          "max_score": 88.0,
-          "examples": [
-            "Gestión de Calidad de la Escuela de Nivel Medio Superior ENMS de León",
-            "PEOPLE INVOLVEMENT IN THE IMPLEMENTATION OF ISO 9001  IN DEPED TANAUAN CITY, PHILIPPINES",
-            "Relationship between ISO 9001 Certification and the Number of NonConformities Identified during System Audits in Selecte"
-          ],
-          "avg_score": 48.89,
-          "yield": 0.444
-        },
-        {
-          "domain_id": "iatf_audit_video",
-          "query": "IATF requirement clauses education",
-          "hits": 18,
-          "downloaded": 8,
-          "score_sum": 842.0,
-          "max_score": 93.0,
-          "examples": [
-            "Ochrona konsumenta przed klauzulami nieuczciwymi w postępowaniu nakazowym w świetle orzecznictwa Trybunału Sprawiedliwoś",
-            "The impact of safety protocols implemented to seafarers arriving in Manila",
-            "The Implications of IATF Protocols to the Employees Job Performance on Selected Jollibee Branches in Dasmariñas City"
-          ],
-          "avg_score": 46.78,
-          "yield": 0.444
-        }
-      ],
-      "prioritized_queries": [
-        "automotive quality management audit checklist",
-        "process audit automotive supplier quality",
-        "IATF 16949 internal audit training",
-        "ISO 9001 IATF audit process manufacturing",
-        "IATF requirement clauses education",
-        "internal audit iatf audit video",
-        "compliance audit iatf audit video"
+        "surface defect detection",
+        "progressive die",
+        "blanking simulation",
+        "mould general",
+        "tooling general"
       ]
     },
     "photoreal_3d_video": {
       "high_score_materials": [
         {
-          "id": 2244,
+          "id": 209746,
           "title": "One algebra for all : Geometric Algebra methods for neurosymbolic XR scene authoring, animation and neural rendering",
           "source": "zenodo",
           "status": "downloaded_existing",
@@ -600,7 +347,7 @@
           ]
         },
         {
-          "id": 2247,
+          "id": 209750,
           "title": "A REVIEW OF FACIAL RIGGING TECHNIQUES IN 3D CHARACTER ANIMATION: FROM MUSCLE MODELS TO NEURAL APPROACHES",
           "source": "zenodo",
           "status": "downloaded_existing",
@@ -617,41 +364,7 @@
           ]
         },
         {
-          "id": 1089,
-          "title": "Novel View Synthesis with Gaussian Splatting: Impact on Photogrammetry Model Accuracy and Resolution",
-          "source": "zenodo",
-          "status": "downloaded",
-          "domain_id": "photoreal_3d_video",
-          "query": "gaussian splatting character scene",
-          "score": 95.0,
-          "reasons": [
-            "downloaded",
-            "pdf",
-            "size_ok",
-            "north_star",
-            "domain_terms=2",
-            "query_terms=3"
-          ]
-        },
-        {
-          "id": 1088,
-          "title": "Enhancing Gaussian Splatting SLAM with Feature-based Tracking",
-          "source": "zenodo",
-          "status": "downloaded",
-          "domain_id": "photoreal_3d_video",
-          "query": "gaussian splatting character scene",
-          "score": 95.0,
-          "reasons": [
-            "downloaded",
-            "pdf",
-            "size_ok",
-            "north_star",
-            "domain_terms=2",
-            "query_terms=3"
-          ]
-        },
-        {
-          "id": 1074,
+          "id": 208681,
           "title": "A REVIEW OF FACIAL RIGGING TECHNIQUES IN 3D CHARACTER ANIMATION: FROM MUSCLE MODELS TO NEURAL APPROACHES",
           "source": "zenodo",
           "status": "downloaded_existing",
@@ -668,10 +381,10 @@
           ]
         },
         {
-          "id": 1071,
+          "id": 208677,
           "title": "One algebra for all : Geometric Algebra methods for neurosymbolic XR scene authoring, animation and neural rendering",
           "source": "zenodo",
-          "status": "downloaded",
+          "status": "downloaded_existing",
           "domain_id": "photoreal_3d_video",
           "query": "neural rendering 3D character animation",
           "score": 95.0,
@@ -685,70 +398,104 @@
           ]
         },
         {
-          "id": 2245,
-          "title": "Rendering Revolution: GPU Acceleration and AI Integration in Blue Sky Studios' Ice Age Films",
+          "id": 207519,
+          "title": "One algebra for all : Geometric Algebra methods for neurosymbolic XR scene authoring, animation and neural rendering",
           "source": "zenodo",
           "status": "downloaded_existing",
           "domain_id": "photoreal_3d_video",
           "query": "neural rendering 3D character animation",
-          "score": 91.0,
+          "score": 95.0,
           "reasons": [
             "downloaded",
             "pdf",
             "size_ok",
             "north_star",
-            "domain_terms=1",
+            "domain_terms=2",
             "query_terms=3"
           ]
         },
         {
-          "id": 2243,
-          "title": "One-to-All Animation: Alignment-Free Character Animation and Image Pose Transfer",
-          "source": "arxiv",
-          "status": "downloaded",
-          "domain_id": "photoreal_3d_video",
-          "query": "neural rendering 3D character animation",
-          "score": 91.0,
-          "reasons": [
-            "downloaded",
-            "pdf",
-            "size_ok",
-            "north_star",
-            "domain_terms=1",
-            "query_terms=3"
-          ]
-        },
-        {
-          "id": 2241,
-          "title": "Generative AI for Character Animation: A Comprehensive Survey of Techniques, Applications, and Future Directions",
-          "source": "arxiv",
-          "status": "downloaded",
-          "domain_id": "photoreal_3d_video",
-          "query": "neural rendering 3D character animation",
-          "score": 91.0,
-          "reasons": [
-            "downloaded",
-            "pdf",
-            "size_ok",
-            "north_star",
-            "domain_terms=1",
-            "query_terms=3"
-          ]
-        },
-        {
-          "id": 1072,
-          "title": "Rendering Revolution: GPU Acceleration and AI Integration in Blue Sky Studios' Ice Age Films",
+          "id": 207523,
+          "title": "A REVIEW OF FACIAL RIGGING TECHNIQUES IN 3D CHARACTER ANIMATION: FROM MUSCLE MODELS TO NEURAL APPROACHES",
           "source": "zenodo",
-          "status": "downloaded",
+          "status": "downloaded_existing",
           "domain_id": "photoreal_3d_video",
           "query": "neural rendering 3D character animation",
-          "score": 91.0,
+          "score": 95.0,
           "reasons": [
             "downloaded",
             "pdf",
             "size_ok",
             "north_star",
-            "domain_terms=1",
+            "domain_terms=2",
+            "query_terms=3"
+          ]
+        },
+        {
+          "id": 205939,
+          "title": "One algebra for all : Geometric Algebra methods for neurosymbolic XR scene authoring, animation and neural rendering",
+          "source": "zenodo",
+          "status": "downloaded_existing",
+          "domain_id": "photoreal_3d_video",
+          "query": "neural rendering 3D character animation",
+          "score": 95.0,
+          "reasons": [
+            "downloaded",
+            "pdf",
+            "size_ok",
+            "north_star",
+            "domain_terms=2",
+            "query_terms=3"
+          ]
+        },
+        {
+          "id": 205943,
+          "title": "A REVIEW OF FACIAL RIGGING TECHNIQUES IN 3D CHARACTER ANIMATION: FROM MUSCLE MODELS TO NEURAL APPROACHES",
+          "source": "zenodo",
+          "status": "downloaded_existing",
+          "domain_id": "photoreal_3d_video",
+          "query": "neural rendering 3D character animation",
+          "score": 95.0,
+          "reasons": [
+            "downloaded",
+            "pdf",
+            "size_ok",
+            "north_star",
+            "domain_terms=2",
+            "query_terms=3"
+          ]
+        },
+        {
+          "id": 204959,
+          "title": "One algebra for all : Geometric Algebra methods for neurosymbolic XR scene authoring, animation and neural rendering",
+          "source": "zenodo",
+          "status": "downloaded_existing",
+          "domain_id": "photoreal_3d_video",
+          "query": "neural rendering 3D character animation",
+          "score": 95.0,
+          "reasons": [
+            "downloaded",
+            "pdf",
+            "size_ok",
+            "north_star",
+            "domain_terms=2",
+            "query_terms=3"
+          ]
+        },
+        {
+          "id": 204963,
+          "title": "A REVIEW OF FACIAL RIGGING TECHNIQUES IN 3D CHARACTER ANIMATION: FROM MUSCLE MODELS TO NEURAL APPROACHES",
+          "source": "zenodo",
+          "status": "downloaded_existing",
+          "domain_id": "photoreal_3d_video",
+          "query": "neural rendering 3D character animation",
+          "score": 95.0,
+          "reasons": [
+            "downloaded",
+            "pdf",
+            "size_ok",
+            "north_star",
+            "domain_terms=2",
             "query_terms=3"
           ]
         }
@@ -756,157 +503,79 @@
       "winning_queries": [
         {
           "domain_id": "photoreal_3d_video",
-          "query": "cinematic 3D render character background",
-          "hits": 41,
-          "downloaded": 20,
-          "score_sum": 2098.0,
-          "max_score": 88.0,
-          "examples": [
-            "†Eridanomyrma unipetropolitana sp. nov. (Hymenoptera, Formicidae) from late Eocene Baltic amber",
-            "Análise de desempenho de render farm baseada em loki render",
-            "La metropoli come soggetto o dell'identità sottratta: frammenti e coincidenze in «Manhattan Transfer»"
-          ],
-          "avg_score": 51.17,
-          "yield": 0.488
-        },
-        {
-          "domain_id": "photoreal_3d_video",
           "query": "neural rendering 3D character animation",
-          "hits": 43,
-          "downloaded": 17,
-          "score_sum": 2125.0,
+          "hits": 125,
+          "downloaded": 65,
+          "score_sum": 7030.0,
           "max_score": 95.0,
           "examples": [
             "One algebra for all : Geometric Algebra methods for neurosymbolic XR scene authoring, animation and neural rendering",
             "Rendering Revolution: GPU Acceleration and AI Integration in Blue Sky Studios' Ice Age Films",
             "A study on AI generated animated videos"
           ],
-          "avg_score": 49.42,
-          "yield": 0.395
+          "avg_score": 56.24,
+          "yield": 0.52
         },
         {
           "domain_id": "photoreal_3d_video",
-          "query": "neural rendering dataset",
-          "hits": 44,
-          "downloaded": 14,
-          "score_sum": 1724.0,
+          "query": "cinematic 3D render character background",
+          "hits": 100,
+          "downloaded": 60,
+          "score_sum": 5736.0,
           "max_score": 88.0,
           "examples": [
-            "Movie Scripts",
-            "Disney Volumetric Cloud Data",
-            "Datasets used to train Generative Query Networks (GQNs) in the ‘Neural Scene Representation and Rendering’ paper."
+            "†Eridanomyrma unipetropolitana sp. nov. (Hymenoptera, Formicidae) from late Eocene Baltic amber",
+            "Análise de desempenho de render farm baseada em loki render",
+            "La metropoli come soggetto o dell'identità sottratta: frammenti e coincidenze in «Manhattan Transfer»"
           ],
-          "avg_score": 39.18,
-          "yield": 0.318
-        },
-        {
-          "domain_id": "photoreal_3d_video",
-          "query": "diffusion model 3D scene video",
-          "hits": 20,
-          "downloaded": 8,
-          "score_sum": 766.85,
-          "max_score": 82.0,
-          "examples": [
-            "[SIGGRAPH-ASIA 2025] Official implementation of \"VideoFrom3D: 3D Scene Video Generation via Complementary Image and Vide",
-            "[CVPR 2025 Highlight] VideoScene: Distilling Video Diffusion Model to Generate 3D Scenes in One Step",
-            "Neural Radiance Fields-Comprehensive Survey"
-          ],
-          "avg_score": 38.34,
-          "yield": 0.4
-        },
-        {
-          "domain_id": "photoreal_3d_video",
-          "query": "photorealistic 3D animation pipeline",
-          "hits": 18,
-          "downloaded": 6,
-          "score_sum": 626.0,
-          "max_score": 78.0,
-          "examples": [
-            "Autonomous Underwater Navigation and Optical Mapping in Unknown Natural Environments",
-            "A sketch-based system for modeling 3D objects: Applications to taxonomy",
-            "Balancing Photorealism and Transparency: A FAIR Approach to 3D Digitisation for Cultural Heritage documentation and diss"
-          ],
-          "avg_score": 34.78,
-          "yield": 0.333
-        },
-        {
-          "domain_id": "photoreal_3d_video",
-          "query": "3D human rendering",
-          "hits": 2,
-          "downloaded": 1,
-          "score_sum": 75.0,
-          "max_score": 60.0,
-          "examples": [
-            "Kidney Stone  Axial CT Imaging Colorized MixedData",
-            "SOMASet"
-          ],
-          "avg_score": 37.5,
-          "yield": 0.5
-        },
-        {
-          "domain_id": "photoreal_3d_video",
-          "query": "gaussian splatting character scene",
-          "hits": 16,
-          "downloaded": 3,
-          "score_sum": 649.0,
-          "max_score": 95.0,
-          "examples": [
-            "A physics-based character controller navigating a Gaussian splat scene using SparkJS, Three.js, and Rapier.",
-            "PEGASET",
-            "Novel View Synthesis with Gaussian Splatting: Impact on Photogrammetry Model Accuracy and Resolution"
-          ],
-          "avg_score": 40.56,
-          "yield": 0.188
+          "avg_score": 57.36,
+          "yield": 0.6
         },
         {
           "domain_id": "photoreal_3d_video",
           "query": "fabric",
-          "hits": 3,
-          "downloaded": 0,
-          "score_sum": 36.0,
-          "max_score": 12.0,
+          "hits": 105,
+          "downloaded": 24,
+          "score_sum": 2736.0,
+          "max_score": 80.0,
           "examples": [
-            "AmbientCG Wood095",
-            "AmbientCG Rock064",
-            "AmbientCG Gravel043"
+            "AmbientCG PavingStones151",
+            "AmbientCG Asphalt033",
+            "AmbientCG Tiles141"
           ],
-          "avg_score": 12.0,
-          "yield": 0.0
+          "avg_score": 26.06,
+          "yield": 0.229
         },
         {
           "domain_id": "photoreal_3d_video",
           "query": "metal",
-          "hits": 3,
-          "downloaded": 0,
-          "score_sum": 36.0,
-          "max_score": 12.0,
+          "hits": 105,
+          "downloaded": 17,
+          "score_sum": 2381.0,
+          "max_score": 80.0,
           "examples": [
-            "AmbientCG Wood095",
-            "AmbientCG Rock064",
-            "AmbientCG Gravel043"
+            "AmbientCG PavingStones151",
+            "AmbientCG Asphalt033",
+            "AmbientCG Tiles141"
           ],
-          "avg_score": 12.0,
-          "yield": 0.0
+          "avg_score": 22.68,
+          "yield": 0.162
         }
       ],
       "prioritized_queries": [
-        "cinematic 3D render character background",
         "neural rendering 3D character animation",
-        "neural rendering dataset",
-        "diffusion model 3D scene video",
-        "photorealistic 3D animation pipeline",
-        "3D human rendering",
-        "gaussian splatting character scene",
+        "cinematic 3D render character background",
         "fabric",
-        "cinematic render character manufacturing",
+        "metal",
         "neural rendering character manufacturing",
-        "neural rendering manufacturing"
+        "cinematic render character manufacturing",
+        "fabric manufacturing"
       ]
     },
     "rigging_animation_3d": {
       "high_score_materials": [
         {
-          "id": 2102,
+          "id": 209717,
           "title": "Blender software. Rigging & Animation of 3D Human Model",
           "source": "zenodo",
           "status": "downloaded_existing",
@@ -923,10 +592,10 @@
           ]
         },
         {
-          "id": 962,
+          "id": 208387,
           "title": "Blender software. Rigging & Animation of 3D Human Model",
           "source": "zenodo",
-          "status": "downloaded",
+          "status": "downloaded_existing",
           "domain_id": "rigging_animation_3d",
           "query": "mecha robot auto rigging blender",
           "score": 99.0,
@@ -940,58 +609,92 @@
           ]
         },
         {
-          "id": 1038,
+          "id": 207232,
           "title": "Blender software. Rigging & Animation of 3D Human Model",
           "source": "zenodo",
           "status": "downloaded_existing",
           "domain_id": "rigging_animation_3d",
-          "query": "quadruped animal rigging animation",
-          "score": 96.0,
+          "query": "mecha robot auto rigging blender",
+          "score": 99.0,
           "reasons": [
             "downloaded",
             "pdf",
             "size_ok",
             "north_star",
             "domain_terms=3",
-            "query_terms=2"
+            "query_terms=3"
           ]
         },
         {
-          "id": 1036,
-          "title": "A REVIEW OF FACIAL RIGGING TECHNIQUES IN 3D CHARACTER ANIMATION: FROM MUSCLE MODELS TO NEURAL APPROACHES",
+          "id": 205905,
+          "title": "Blender software. Rigging & Animation of 3D Human Model",
           "source": "zenodo",
           "status": "downloaded_existing",
           "domain_id": "rigging_animation_3d",
-          "query": "quadruped animal rigging animation",
-          "score": 92.0,
+          "query": "mecha robot auto rigging blender",
+          "score": 99.0,
           "reasons": [
             "downloaded",
             "pdf",
             "size_ok",
             "north_star",
-            "domain_terms=2",
-            "query_terms=2"
+            "domain_terms=3",
+            "query_terms=3"
           ]
         },
         {
-          "id": 1033,
-          "title": "Analysis of Design Principles and Requirements for Procedural Rigging of Bipeds and Quadrupeds Characters with Custom Manipulators for Animation",
+          "id": 204835,
+          "title": "Blender software. Rigging & Animation of 3D Human Model",
+          "source": "zenodo",
+          "status": "downloaded_existing",
+          "domain_id": "rigging_animation_3d",
+          "query": "mecha robot auto rigging blender",
+          "score": 99.0,
+          "reasons": [
+            "downloaded",
+            "pdf",
+            "size_ok",
+            "north_star",
+            "domain_terms=3",
+            "query_terms=3"
+          ]
+        },
+        {
+          "id": 208381,
+          "title": "APOLLO Blender: A Robotics Library for Visualization and Animation in Blender",
           "source": "arxiv",
           "status": "downloaded",
           "domain_id": "rigging_animation_3d",
-          "query": "quadruped animal rigging animation",
-          "score": 92.0,
+          "query": "mecha robot auto rigging blender",
+          "score": 95.0,
           "reasons": [
             "downloaded",
             "pdf",
             "size_ok",
             "north_star",
             "domain_terms=2",
-            "query_terms=2"
+            "query_terms=3"
           ]
         },
         {
-          "id": 2103,
+          "id": 207231,
+          "title": "APOLLO Blender: A Robotics Library for Visualization and Animation in Blender",
+          "source": "arxiv",
+          "status": "downloaded",
+          "domain_id": "rigging_animation_3d",
+          "query": "mecha robot auto rigging blender",
+          "score": 95.0,
+          "reasons": [
+            "downloaded",
+            "pdf",
+            "size_ok",
+            "north_star",
+            "domain_terms=2",
+            "query_terms=3"
+          ]
+        },
+        {
+          "id": 209718,
           "title": "3. Blender software. Editor Type",
           "source": "zenodo",
           "status": "downloaded_existing",
@@ -1008,7 +711,7 @@
           ]
         },
         {
-          "id": 2104,
+          "id": 209719,
           "title": "BLENDER TUTORIAL. CREATING LOFT CUT SIMILAR LIKE SOLIDWORKS 3D CAD SYSTEM + KEYS FOR ROUND SELF MESH",
           "source": "zenodo",
           "status": "downloaded_existing",
@@ -1025,7 +728,7 @@
           ]
         },
         {
-          "id": 2106,
+          "id": 209721,
           "title": "BLENDER TUTORIAL. CREATING DOOR HANDLE WITH USING 90° EXTRUDE",
           "source": "zenodo",
           "status": "downloaded_existing",
@@ -1040,315 +743,84 @@
             "domain_terms=1",
             "query_terms=3"
           ]
-        },
-        {
-          "id": 983,
-          "title": "3. Blender software. Editor Type",
-          "source": "zenodo",
-          "status": "downloaded_existing",
-          "domain_id": "rigging_animation_3d",
-          "query": "hair cloth simulation blender open source",
-          "score": 91.0,
-          "reasons": [
-            "downloaded",
-            "pdf",
-            "size_ok",
-            "north_star",
-            "domain_terms=1",
-            "query_terms=3"
-          ]
-        },
-        {
-          "id": 984,
-          "title": "BLENDER TUTORIAL. CREATING LOFT CUT SIMILAR LIKE SOLIDWORKS 3D CAD SYSTEM + KEYS FOR ROUND SELF MESH",
-          "source": "zenodo",
-          "status": "downloaded_existing",
-          "domain_id": "rigging_animation_3d",
-          "query": "hair cloth simulation blender open source",
-          "score": 91.0,
-          "reasons": [
-            "downloaded",
-            "pdf",
-            "size_ok",
-            "north_star",
-            "domain_terms=1",
-            "query_terms=3"
-          ]
         }
       ],
       "winning_queries": [
         {
           "domain_id": "rigging_animation_3d",
+          "query": "character rigging inverse kinematics",
+          "hits": 126,
+          "downloaded": 70,
+          "score_sum": 6669.25,
+          "max_score": 89.0,
+          "examples": [
+            "Control Rig asset makes it easy to set up a character for inverse kinematic using the Animation Rigging package.",
+            "A rigged Unity character controller with inverse kinematics built using the Animation Rigging Package, that works with O",
+            "ARCHITECTURAL DESIGN AND COMPUTATIONAL COMPLEXITY OF KEYFRAME-BASED AUTOMATION MODULES IN 2D ANIMATION"
+          ],
+          "avg_score": 52.93,
+          "yield": 0.556
+        },
+        {
+          "domain_id": "rigging_animation_3d",
           "query": "mecha robot auto rigging blender",
-          "hits": 28,
-          "downloaded": 16,
-          "score_sum": 1708.0,
+          "hits": 69,
+          "downloaded": 40,
+          "score_sum": 4265.0,
           "max_score": 99.0,
           "examples": [
             "Blender software. Rigging & Animation of 3D Human Model",
             "3. Blender software. Editor Type",
             "BLENDER TUTORIAL. CREATING LOFT CUT SIMILAR LIKE SOLIDWORKS 3D CAD SYSTEM + KEYS FOR ROUND SELF MESH"
           ],
-          "avg_score": 61.0,
-          "yield": 0.571
-        },
-        {
-          "domain_id": "rigging_animation_3d",
-          "query": "character rigging inverse kinematics",
-          "hits": 20,
-          "downloaded": 10,
-          "score_sum": 1011.0,
-          "max_score": 89.0,
-          "examples": [
-            "Control Rig asset makes it easy to set up a character for inverse kinematic using the Animation Rigging package.",
-            "A rigged Unity character controller with inverse kinematics built using the Animation Rigging Package, that works with O",
-            "Developing application techniques of kinematics and simulation model for InMoov robot"
-          ],
-          "avg_score": 50.55,
-          "yield": 0.5
-        },
-        {
-          "domain_id": "rigging_animation_3d",
-          "query": "hair cloth simulation blender open source",
-          "hits": 18,
-          "downloaded": 8,
-          "score_sum": 918.0,
-          "max_score": 91.0,
-          "examples": [
-            "Blank flag",
-            "3. Blender software. Editor Type",
-            "BLENDER TUTORIAL. CREATING LOFT CUT SIMILAR LIKE SOLIDWORKS 3D CAD SYSTEM + KEYS FOR ROUND SELF MESH"
-          ],
-          "avg_score": 51.0,
-          "yield": 0.444
-        },
-        {
-          "domain_id": "rigging_animation_3d",
-          "query": "quadruped animal rigging animation",
-          "hits": 18,
-          "downloaded": 8,
-          "score_sum": 904.0,
-          "max_score": 96.0,
-          "examples": [
-            "Julio Cesar. Character",
-            "Combined 2D animation in television series",
-            "Automatic Generation of Dynamic Skin Deformation for Animated Characters"
-          ],
-          "avg_score": 50.22,
-          "yield": 0.444
-        },
-        {
-          "domain_id": "rigging_animation_3d",
-          "query": "garment cloth physics simulation",
-          "hits": 18,
-          "downloaded": 8,
-          "score_sum": 826.0,
-          "max_score": 85.0,
-          "examples": [
-            "ALMA WP7 Folding",
-            "Virtual Try-On System",
-            "A Study on Comfort Properties of Handloom Fabric using Cotton and Bamboo Yarn"
-          ],
-          "avg_score": 45.89,
-          "yield": 0.444
-        },
-        {
-          "domain_id": "rigging_animation_3d",
-          "query": "human pose dataset",
-          "hits": 44,
-          "downloaded": 15,
-          "score_sum": 1397.0,
-          "max_score": 80.0,
-          "examples": [
-            "\"Human Segmentation MADS Dataset",
-            "Human Segmentation Dataset - Supervise.ly",
-            "Voxel51/MPII_Human_Pose_Dataset"
-          ],
-          "avg_score": 31.75,
-          "yield": 0.341
-        },
-        {
-          "domain_id": "rigging_animation_3d",
-          "query": "mechanical robot rigging tutorial",
-          "hits": 18,
-          "downloaded": 7,
-          "score_sum": 745.0,
-          "max_score": 89.0,
-          "examples": [
-            "SeAMKedu/sebot: SeBOT initial release",
-            "Modelling, Simulation and Control of Robotic  Hand using Virtual Prototyping Technology",
-            "Practical Approaches for Robot Dynamic Model Implementation for Control and Simulation Purposes"
-          ],
-          "avg_score": 41.39,
-          "yield": 0.389
-        },
-        {
-          "domain_id": "rigging_animation_3d",
-          "query": "motion capture animation",
-          "hits": 43,
-          "downloaded": 12,
-          "score_sum": 1455.0,
-          "max_score": 87.0,
-          "examples": [
-            "Robot-Assisted Animation Motion Capture Dataset",
-            "AImove: Human Motion Capture Benchmark",
-            "Unity humanoid animations converted from the Carnegie Mellon University Motion Capture Database"
-          ],
-          "avg_score": 33.84,
-          "yield": 0.279
+          "avg_score": 61.81,
+          "yield": 0.58
         },
         {
           "domain_id": "rigging_animation_3d",
           "query": "fabric",
-          "hits": 3,
-          "downloaded": 0,
-          "score_sum": 36.0,
-          "max_score": 12.0,
+          "hits": 100,
+          "downloaded": 24,
+          "score_sum": 2676.0,
+          "max_score": 80.0,
           "examples": [
-            "AmbientCG Wood095",
-            "AmbientCG Rock064",
-            "AmbientCG Gravel043"
+            "AmbientCG PavingStones151",
+            "AmbientCG Asphalt033",
+            "AmbientCG Tiles141"
           ],
-          "avg_score": 12.0,
-          "yield": 0.0
+          "avg_score": 26.76,
+          "yield": 0.24
         },
         {
           "domain_id": "rigging_animation_3d",
           "query": "metal",
-          "hits": 3,
-          "downloaded": 0,
-          "score_sum": 36.0,
-          "max_score": 12.0,
+          "hits": 100,
+          "downloaded": 18,
+          "score_sum": 2358.0,
+          "max_score": 80.0,
           "examples": [
-            "AmbientCG Wood095",
-            "AmbientCG Rock064",
-            "AmbientCG Gravel043"
+            "AmbientCG PavingStones151",
+            "AmbientCG Asphalt033",
+            "AmbientCG Tiles141"
           ],
-          "avg_score": 12.0,
-          "yield": 0.0
+          "avg_score": 23.58,
+          "yield": 0.18
         }
       ],
       "prioritized_queries": [
-        "shape fidelity metrics image conditioned 3D generation chamfer silhouette",
-        "TripoSR Unique3D CRM image to 3D robot hard surface comparison",
-        "PartCrafter HoloPart robot mesh segmentation reference image fidelity",
-        "robot CAD-like mesh retopology from generated 3D model",
-        "hard surface character rigging non deforming armor plates",
-        "CLIP silhouette score image to 3D reconstruction evaluation",
-        "3D generated mesh silhouette consistency reference image evaluation",
-        "mecha model auto rigging separate armor parts Blender",
-        "Blender rigid body robot armature hard surface rigging",
-        "robot mesh segmentation for mechanical rigging",
-        "single image 3D reconstruction hard surface robot parts segmentation",
-        "image to 3D hard surface robot reference fidelity",
-        "mecha robot auto rigging blender",
         "character rigging inverse kinematics",
-        "hair cloth simulation blender open source",
-        "quadruped animal rigging animation",
-        "garment cloth physics simulation",
-        "human pose dataset",
-        "mechanical robot rigging tutorial",
-        "motion capture animation",
+        "mecha robot auto rigging blender",
+        "fabric",
+        "metal",
         "skeletal animation rigging animation 3d",
         "inverse kinematics rigging animation 3d",
-        "hair cloth simulation manufacturing"
-      ],
-      "manual_candidate_queries": [
-        {
-          "query": "image to 3D hard surface robot reference fidelity",
-          "reason": "Needed after mecha rig v1/v2: rig works partly, but reference robot shape fidelity is NG; search for hard-surface image-to-3D segmentation, silhouette fidelity, and rigid armor rigging know-how.",
-          "added_at": "2026-06-19T11:58:00.563814+09:00",
-          "source": "codex_mecha_rig_feedback_20260619"
-        },
-        {
-          "query": "single image 3D reconstruction hard surface robot parts segmentation",
-          "reason": "Needed after mecha rig v1/v2: rig works partly, but reference robot shape fidelity is NG; search for hard-surface image-to-3D segmentation, silhouette fidelity, and rigid armor rigging know-how.",
-          "added_at": "2026-06-19T11:58:00.563814+09:00",
-          "source": "codex_mecha_rig_feedback_20260619"
-        },
-        {
-          "query": "robot mesh segmentation for mechanical rigging",
-          "reason": "Needed after mecha rig v1/v2: rig works partly, but reference robot shape fidelity is NG; search for hard-surface image-to-3D segmentation, silhouette fidelity, and rigid armor rigging know-how.",
-          "added_at": "2026-06-19T11:58:00.563814+09:00",
-          "source": "codex_mecha_rig_feedback_20260619"
-        },
-        {
-          "query": "Blender rigid body robot armature hard surface rigging",
-          "reason": "Needed after mecha rig v1/v2: rig works partly, but reference robot shape fidelity is NG; search for hard-surface image-to-3D segmentation, silhouette fidelity, and rigid armor rigging know-how.",
-          "added_at": "2026-06-19T11:58:00.563814+09:00",
-          "source": "codex_mecha_rig_feedback_20260619"
-        },
-        {
-          "query": "mecha model auto rigging separate armor parts Blender",
-          "reason": "Needed after mecha rig v1/v2: rig works partly, but reference robot shape fidelity is NG; search for hard-surface image-to-3D segmentation, silhouette fidelity, and rigid armor rigging know-how.",
-          "added_at": "2026-06-19T11:58:00.563814+09:00",
-          "source": "codex_mecha_rig_feedback_20260619"
-        },
-        {
-          "query": "3D generated mesh silhouette consistency reference image evaluation",
-          "reason": "Needed after mecha rig v1/v2: rig works partly, but reference robot shape fidelity is NG; search for hard-surface image-to-3D segmentation, silhouette fidelity, and rigid armor rigging know-how.",
-          "added_at": "2026-06-19T11:58:00.563814+09:00",
-          "source": "codex_mecha_rig_feedback_20260619"
-        },
-        {
-          "query": "CLIP silhouette score image to 3D reconstruction evaluation",
-          "reason": "Needed after mecha rig v1/v2: rig works partly, but reference robot shape fidelity is NG; search for hard-surface image-to-3D segmentation, silhouette fidelity, and rigid armor rigging know-how.",
-          "added_at": "2026-06-19T11:58:00.563814+09:00",
-          "source": "codex_mecha_rig_feedback_20260619"
-        },
-        {
-          "query": "hard surface character rigging non deforming armor plates",
-          "reason": "Needed after mecha rig v1/v2: rig works partly, but reference robot shape fidelity is NG; search for hard-surface image-to-3D segmentation, silhouette fidelity, and rigid armor rigging know-how.",
-          "added_at": "2026-06-19T11:58:00.563814+09:00",
-          "source": "codex_mecha_rig_feedback_20260619"
-        },
-        {
-          "query": "robot CAD-like mesh retopology from generated 3D model",
-          "reason": "Needed after mecha rig v1/v2: rig works partly, but reference robot shape fidelity is NG; search for hard-surface image-to-3D segmentation, silhouette fidelity, and rigid armor rigging know-how.",
-          "added_at": "2026-06-19T11:58:00.563814+09:00",
-          "source": "codex_mecha_rig_feedback_20260619"
-        },
-        {
-          "query": "PartCrafter HoloPart robot mesh segmentation reference image fidelity",
-          "reason": "Needed after mecha rig v1/v2: rig works partly, but reference robot shape fidelity is NG; search for hard-surface image-to-3D segmentation, silhouette fidelity, and rigid armor rigging know-how.",
-          "added_at": "2026-06-19T11:58:00.563814+09:00",
-          "source": "codex_mecha_rig_feedback_20260619"
-        },
-        {
-          "query": "TripoSR Unique3D CRM image to 3D robot hard surface comparison",
-          "reason": "Needed after mecha rig v1/v2: rig works partly, but reference robot shape fidelity is NG; search for hard-surface image-to-3D segmentation, silhouette fidelity, and rigid armor rigging know-how.",
-          "added_at": "2026-06-19T11:58:00.563814+09:00",
-          "source": "codex_mecha_rig_feedback_20260619"
-        },
-        {
-          "query": "shape fidelity metrics image conditioned 3D generation chamfer silhouette",
-          "reason": "Needed after mecha rig v1/v2: rig works partly, but reference robot shape fidelity is NG; search for hard-surface image-to-3D segmentation, silhouette fidelity, and rigid armor rigging know-how.",
-          "added_at": "2026-06-19T11:58:00.563814+09:00",
-          "source": "codex_mecha_rig_feedback_20260619"
-        }
+        "fabric manufacturing"
       ]
     },
     "cetol_tolerance": {
       "high_score_materials": [
         {
-          "id": 941,
-          "title": "STATISTICAL MODELING OF DIMENSIONAL VARIATION USING MONTE CARLO  SIMULATION IN A CAD/CAM/CNC MANUFACTURING PROCESS",
-          "source": "zenodo",
-          "status": "downloaded",
-          "domain_id": "cetol_tolerance",
-          "query": "statistical tolerance analysis manufacturing",
-          "score": 97.0,
-          "reasons": [
-            "downloaded",
-            "pdf",
-            "size_ok",
-            "north_star",
-            "domain_terms=4",
-            "query_terms=1"
-          ]
-        },
-        {
-          "id": 2046,
+          "id": 209257,
           "title": "Tolerance Analysis and Assembly Performance Enhancement in 3D Printed Mechanical Components",
           "source": "zenodo",
           "status": "downloaded_existing",
@@ -1365,7 +837,7 @@
           ]
         },
         {
-          "id": 2021,
+          "id": 209186,
           "title": "The Use of Monte Carlo Simulation Technique to Support Investment Decisions",
           "source": "zenodo",
           "status": "downloaded_existing",
@@ -1382,7 +854,7 @@
           ]
         },
         {
-          "id": 2015,
+          "id": 209178,
           "title": "A Multilevel Monte Carlo Asymptotic-Preserving Particle Method for Kinetic Equations in the Diffusion Limit",
           "source": "arxiv",
           "status": "downloaded",
@@ -1399,7 +871,7 @@
           ]
         },
         {
-          "id": 2016,
+          "id": 209180,
           "title": "Metropolis Methods for Quantum Monte Carlo Simulations",
           "source": "arxiv",
           "status": "downloaded",
@@ -1416,7 +888,7 @@
           ]
         },
         {
-          "id": 2017,
+          "id": 209181,
           "title": "Monte Carlo event generators for high energy particle physics event simulation",
           "source": "arxiv",
           "status": "downloaded",
@@ -1433,9 +905,43 @@
           ]
         },
         {
-          "id": 883,
+          "id": 208267,
+          "title": "Tolerance Analysis and Assembly Performance Enhancement in 3D Printed Mechanical Components",
+          "source": "zenodo",
+          "status": "downloaded_existing",
+          "domain_id": "cetol_tolerance",
+          "query": "tolerance stack up analysis 3D assembly",
+          "score": 95.0,
+          "reasons": [
+            "downloaded",
+            "pdf",
+            "size_ok",
+            "north_star",
+            "domain_terms=2",
+            "query_terms=3"
+          ]
+        },
+        {
+          "id": 208247,
           "title": "The Use of Monte Carlo Simulation Technique to Support Investment Decisions",
           "source": "zenodo",
+          "status": "downloaded_existing",
+          "domain_id": "cetol_tolerance",
+          "query": "GD&T variation analysis Monte Carlo",
+          "score": 95.0,
+          "reasons": [
+            "downloaded",
+            "pdf",
+            "size_ok",
+            "north_star",
+            "domain_terms=2",
+            "query_terms=3"
+          ]
+        },
+        {
+          "id": 208242,
+          "title": "Metropolis Methods for Quantum Monte Carlo Simulations",
+          "source": "arxiv",
           "status": "downloaded",
           "domain_id": "cetol_tolerance",
           "query": "GD&T variation analysis Monte Carlo",
@@ -1450,7 +956,7 @@
           ]
         },
         {
-          "id": 879,
+          "id": 208243,
           "title": "Monte Carlo event generators for high energy particle physics event simulation",
           "source": "arxiv",
           "status": "downloaded",
@@ -1467,25 +973,8 @@
           ]
         },
         {
-          "id": 877,
+          "id": 208241,
           "title": "A Multilevel Monte Carlo Asymptotic-Preserving Particle Method for Kinetic Equations in the Diffusion Limit",
-          "source": "arxiv",
-          "status": "downloaded",
-          "domain_id": "cetol_tolerance",
-          "query": "GD&T variation analysis Monte Carlo",
-          "score": 95.0,
-          "reasons": [
-            "downloaded",
-            "pdf",
-            "size_ok",
-            "north_star",
-            "domain_terms=2",
-            "query_terms=3"
-          ]
-        },
-        {
-          "id": 878,
-          "title": "Metropolis Methods for Quantum Monte Carlo Simulations",
           "source": "arxiv",
           "status": "downloaded",
           "domain_id": "cetol_tolerance",
@@ -1505,145 +994,79 @@
         {
           "domain_id": "cetol_tolerance",
           "query": "GD&T variation analysis Monte Carlo",
-          "hits": 46,
-          "downloaded": 21,
-          "score_sum": 2479.0,
+          "hits": 97,
+          "downloaded": 52,
+          "score_sum": 5613.0,
           "max_score": 95.0,
           "examples": [
-            "Monte Carlo C++ analysis tools",
             "OP7 — Non-Equilibrium Survival Theory of  Constructibility",
-            "Capped Accumulated Return Call Valuation with Flexible Return"
+            "Capped Accumulated Return Call Valuation with Flexible Return",
+            "Measurement of the bound-state beta decay of 205Tl(81+): analysis scripts and figures"
           ],
-          "avg_score": 53.89,
-          "yield": 0.457
+          "avg_score": 57.87,
+          "yield": 0.536
         },
         {
           "domain_id": "cetol_tolerance",
           "query": "tolerance stack up analysis 3D assembly",
-          "hits": 46,
-          "downloaded": 19,
-          "score_sum": 2353.0,
+          "hits": 97,
+          "downloaded": 48,
+          "score_sum": 5369.0,
           "max_score": 95.0,
           "examples": [
             "Tolerance Analysis and Assembly Performance Enhancement in 3D Printed Mechanical Components",
             "Data from: Ellipsoid segmentation model for analyzing light-attenuated 3D confocal image stacks of fluorescent multi-cel",
             "Object-oriented representation of electro-mechanical assemblies using UML"
           ],
-          "avg_score": 51.15,
-          "yield": 0.413
-        },
-        {
-          "domain_id": "cetol_tolerance",
-          "query": "manufacturing quality inspection",
-          "hits": 44,
-          "downloaded": 17,
-          "score_sum": 1562.05,
-          "max_score": 82.0,
-          "examples": [
-            "casting product image data for quality inspection",
-            "Manufacturing Defects",
-            "Real-time defect detection using Edge AI for smart manufacturing"
-          ],
-          "avg_score": 35.5,
-          "yield": 0.386
+          "avg_score": 55.35,
+          "yield": 0.495
         },
         {
           "domain_id": "cetol_tolerance",
           "query": "assembly variation analysis open source",
-          "hits": 20,
-          "downloaded": 8,
-          "score_sum": 876.0,
+          "hits": 29,
+          "downloaded": 12,
+          "score_sum": 1290.0,
           "max_score": 84.0,
           "examples": [
             "Divergence in host specificity and genetics among populations of Aphelinus certus",
             "Dataset supporting Figure 4: Metabolism",
-            "Architect a Heterogeneous Data Platform Across Clusters, Regions, and Clouds"
+            "#001 - Daytime - Normal"
           ],
-          "avg_score": 43.8,
-          "yield": 0.4
+          "avg_score": 44.48,
+          "yield": 0.414
         },
         {
           "domain_id": "cetol_tolerance",
           "query": "dimensional tolerance analysis software",
-          "hits": 23,
-          "downloaded": 8,
-          "score_sum": 990.0,
+          "hits": 33,
+          "downloaded": 11,
+          "score_sum": 1349.0,
           "max_score": 92.0,
           "examples": [
             "Analysis of Peanut Leaf Proteome",
             "Application of Random Forest Approach to QSAR Prediction of Aquatic Toxicity",
             "Workbench for the Reduction of Detailed Chemical Kinetic\nMechanisms Based on Directed Relation Graph and Its Deduced Met"
           ],
-          "avg_score": 43.04,
-          "yield": 0.348
-        },
-        {
-          "domain_id": "cetol_tolerance",
-          "query": "statistical tolerance analysis manufacturing",
-          "hits": 23,
-          "downloaded": 8,
-          "score_sum": 917.0,
-          "max_score": 97.0,
-          "examples": [
-            "Reliability  Under .",
-            "DH parameters.",
-            "Actuation Mechanism."
-          ],
-          "avg_score": 39.87,
-          "yield": 0.348
+          "avg_score": 40.88,
+          "yield": 0.333
         }
       ],
       "prioritized_queries": [
         "GD&T variation analysis Monte Carlo",
         "tolerance stack up analysis 3D assembly",
-        "manufacturing quality inspection",
         "assembly variation analysis open source",
         "dimensional tolerance analysis software",
-        "statistical tolerance analysis manufacturing",
         "variation monte carlo manufacturing",
         "stack-up cetol tolerance",
         "variation analysis cetol tolerance",
-        "manufacturing quality inspection manufacturing"
+        "assembly variation open manufacturing"
       ]
     },
     "dxf_fcstd_freecad": {
       "high_score_materials": [
         {
-          "id": 1900,
-          "title": "Extrusion of chromatin loops by a composite loop extrusion factor",
-          "source": "arxiv",
-          "status": "downloaded",
-          "domain_id": "dxf_fcstd_freecad",
-          "query": "FreeCAD DXF import extrusion FCStd",
-          "score": 94.0,
-          "reasons": [
-            "downloaded",
-            "pdf",
-            "size_ok",
-            "north_star",
-            "domain_terms=1",
-            "query_terms=4"
-          ]
-        },
-        {
-          "id": 1901,
-          "title": "Flexible and Generic Framework for Complex Nuclear Medicine Scanners using FreeCAD/GDML Workbench",
-          "source": "arxiv",
-          "status": "downloaded",
-          "domain_id": "dxf_fcstd_freecad",
-          "query": "FreeCAD DXF import extrusion FCStd",
-          "score": 94.0,
-          "reasons": [
-            "downloaded",
-            "pdf",
-            "size_ok",
-            "north_star",
-            "domain_terms=1",
-            "query_terms=4"
-          ]
-        },
-        {
-          "id": 1902,
+          "id": 209115,
           "title": "Extrusion without a motor: a new take on the loop extrusion model of genome organization",
           "source": "arxiv",
           "status": "downloaded",
@@ -1660,24 +1083,7 @@
           ]
         },
         {
-          "id": 787,
-          "title": "Extrusion without a motor: a new take on the loop extrusion model of genome organization",
-          "source": "arxiv",
-          "status": "downloaded",
-          "domain_id": "dxf_fcstd_freecad",
-          "query": "FreeCAD DXF import extrusion FCStd",
-          "score": 94.0,
-          "reasons": [
-            "downloaded",
-            "pdf",
-            "size_ok",
-            "north_star",
-            "domain_terms=1",
-            "query_terms=4"
-          ]
-        },
-        {
-          "id": 785,
+          "id": 209113,
           "title": "Extrusion of chromatin loops by a composite loop extrusion factor",
           "source": "arxiv",
           "status": "downloaded",
@@ -1694,7 +1100,7 @@
           ]
         },
         {
-          "id": 786,
+          "id": 209114,
           "title": "Flexible and Generic Framework for Complex Nuclear Medicine Scanners using FreeCAD/GDML Workbench",
           "source": "arxiv",
           "status": "downloaded",
@@ -1711,71 +1117,122 @@
           ]
         },
         {
-          "id": 803,
-          "title": "Seek-CAD: A Self-refined Generative Modeling for 3D Parametric CAD Using Local Inference via DeepSeek",
+          "id": 208170,
+          "title": "Flexible and Generic Framework for Complex Nuclear Medicine Scanners using FreeCAD/GDML Workbench",
           "source": "arxiv",
           "status": "downloaded",
           "domain_id": "dxf_fcstd_freecad",
-          "query": "2D DXF 3D modeling open source CAD",
-          "score": 92.0,
+          "query": "FreeCAD DXF import extrusion FCStd",
+          "score": 94.0,
           "reasons": [
             "downloaded",
             "pdf",
             "size_ok",
             "north_star",
-            "domain_terms=2",
-            "query_terms=2"
+            "domain_terms=1",
+            "query_terms=4"
           ]
         },
         {
-          "id": 1921,
-          "title": "Parametric CAD modeling for open source scientific hardware: Comparing OpenSCAD and FreeCAD Python scripts",
-          "source": "semantic_scholar",
+          "id": 208171,
+          "title": "Extrusion without a motor: a new take on the loop extrusion model of genome organization",
+          "source": "arxiv",
           "status": "downloaded",
-          "domain_id": "dxf_fcstd_freecad",
-          "query": "FreeCAD parametric modeling tutorial",
-          "score": 91.0,
-          "reasons": [
-            "downloaded",
-            "pdf",
-            "size_ok",
-            "north_star",
-            "domain_terms=3",
-            "query_terms=2"
-          ]
-        },
-        {
-          "id": 1918,
-          "title": "Parametric CAD modeling for open source scientific hardware: Comparing OpenSCAD and FreeCAD Python scripts.",
-          "source": "europe_pmc",
-          "status": "downloaded",
-          "domain_id": "dxf_fcstd_freecad",
-          "query": "FreeCAD parametric modeling tutorial",
-          "score": 91.0,
-          "reasons": [
-            "downloaded",
-            "pdf",
-            "size_ok",
-            "north_star",
-            "domain_terms=3",
-            "query_terms=2"
-          ]
-        },
-        {
-          "id": 1905,
-          "title": "Acessibilidade profissional com software livre",
-          "source": "zenodo",
-          "status": "downloaded_existing",
           "domain_id": "dxf_fcstd_freecad",
           "query": "FreeCAD DXF import extrusion FCStd",
-          "score": 90.0,
+          "score": 94.0,
           "reasons": [
             "downloaded",
             "pdf",
             "size_ok",
             "north_star",
-            "query_terms=4",
-            "preferred_source"
+            "domain_terms=1",
+            "query_terms=4"
+          ]
+        },
+        {
+          "id": 208169,
+          "title": "Extrusion of chromatin loops by a composite loop extrusion factor",
+          "source": "arxiv",
+          "status": "downloaded",
+          "domain_id": "dxf_fcstd_freecad",
+          "query": "FreeCAD DXF import extrusion FCStd",
+          "score": 94.0,
+          "reasons": [
+            "downloaded",
+            "pdf",
+            "size_ok",
+            "north_star",
+            "domain_terms=1",
+            "query_terms=4"
+          ]
+        },
+        {
+          "id": 206665,
+          "title": "Extrusion without a motor: a new take on the loop extrusion model of genome organization",
+          "source": "arxiv",
+          "status": "downloaded",
+          "domain_id": "dxf_fcstd_freecad",
+          "query": "FreeCAD DXF import extrusion FCStd",
+          "score": 94.0,
+          "reasons": [
+            "downloaded",
+            "pdf",
+            "size_ok",
+            "north_star",
+            "domain_terms=1",
+            "query_terms=4"
+          ]
+        },
+        {
+          "id": 206663,
+          "title": "Extrusion of chromatin loops by a composite loop extrusion factor",
+          "source": "arxiv",
+          "status": "downloaded",
+          "domain_id": "dxf_fcstd_freecad",
+          "query": "FreeCAD DXF import extrusion FCStd",
+          "score": 94.0,
+          "reasons": [
+            "downloaded",
+            "pdf",
+            "size_ok",
+            "north_star",
+            "domain_terms=1",
+            "query_terms=4"
+          ]
+        },
+        {
+          "id": 206664,
+          "title": "Flexible and Generic Framework for Complex Nuclear Medicine Scanners using FreeCAD/GDML Workbench",
+          "source": "arxiv",
+          "status": "downloaded",
+          "domain_id": "dxf_fcstd_freecad",
+          "query": "FreeCAD DXF import extrusion FCStd",
+          "score": 94.0,
+          "reasons": [
+            "downloaded",
+            "pdf",
+            "size_ok",
+            "north_star",
+            "domain_terms=1",
+            "query_terms=4"
+          ]
+        },
+        {
+          "id": 205722,
+          "title": "Extrusion without a motor: a new take on the loop extrusion model of genome organization",
+          "source": "arxiv",
+          "status": "downloaded",
+          "domain_id": "dxf_fcstd_freecad",
+          "query": "FreeCAD DXF import extrusion FCStd",
+          "score": 94.0,
+          "reasons": [
+            "downloaded",
+            "pdf",
+            "size_ok",
+            "north_star",
+            "domain_terms=1",
+            "query_terms=4"
           ]
         }
       ],
@@ -1783,230 +1240,320 @@
         {
           "domain_id": "dxf_fcstd_freecad",
           "query": "FreeCAD DXF import extrusion FCStd",
-          "hits": 26,
-          "downloaded": 16,
-          "score_sum": 1648.0,
+          "hits": 52,
+          "downloaded": 32,
+          "score_sum": 3328.0,
           "max_score": 94.0,
           "examples": [
             "mirte-robot/mirte-frame: 0.2.0",
             "Codes for \"Building on-chip cytoskeletal circuits via branched microtubule networks\"",
             "Acessibilidade profissional com software livre"
           ],
-          "avg_score": 63.38,
+          "avg_score": 64.0,
           "yield": 0.615
         },
         {
           "domain_id": "dxf_fcstd_freecad",
-          "query": "DXF STEP conversion open source",
-          "hits": 41,
-          "downloaded": 21,
-          "score_sum": 2011.0,
-          "max_score": 84.0,
-          "examples": [
-            "bruker2nifti",
-            "mini-project-1",
-            "#001 - Daytime - Normal"
-          ],
-          "avg_score": 49.05,
-          "yield": 0.512
-        },
-        {
-          "domain_id": "dxf_fcstd_freecad",
           "query": "FreeCAD parametric modeling tutorial",
-          "hits": 42,
-          "downloaded": 19,
-          "score_sum": 2055.0,
+          "hits": 61,
+          "downloaded": 36,
+          "score_sum": 3522.0,
           "max_score": 91.0,
           "examples": [
             "Diffuse Optical Tomography and Fluorescence Simulation",
             "Autodesk Fusion",
             "Natural Language Based CAD Design Automation Using Large Language Models"
           ],
-          "avg_score": 48.93,
-          "yield": 0.452
-        },
-        {
-          "domain_id": "dxf_fcstd_freecad",
-          "query": "DXF to 3D FreeCAD parametric",
-          "hits": 18,
-          "downloaded": 7,
-          "score_sum": 849.0,
-          "max_score": 87.0,
-          "examples": [
-            "CAD file and chromatographic data for determination of diclofenac in wastewater using a 3D printed immunosorbent device",
-            "g4cad - A freecad workbench for converting CAD files to gdml",
-            "mirte-robot/mirte-frame: 0.2.0"
-          ],
-          "avg_score": 47.17,
-          "yield": 0.389
+          "avg_score": 57.74,
+          "yield": 0.59
         },
         {
           "domain_id": "dxf_fcstd_freecad",
           "query": "2D DXF 3D modeling open source CAD",
           "hits": 20,
-          "downloaded": 8,
-          "score_sum": 896.0,
+          "downloaded": 13,
+          "score_sum": 1201.0,
           "max_score": 92.0,
           "examples": [
             "Open-Source CAD and 2D Drawings for a UV-Vis Spectrophotometer.zip",
             "<b>Open-Source CAD and 3D/2D Drawings for a UV-Vis Spectrophotometer</b>",
-            "Evaluating Gaussian Process Metamodels and Sequential Designs for Noisy Level Set Estimation - Supplementary Material"
+            "Automated 3D Visualization from 2D Images using Computer Vision and Web-Based Rendering"
           ],
-          "avg_score": 44.8,
-          "yield": 0.4
+          "avg_score": 60.05,
+          "yield": 0.65
+        },
+        {
+          "domain_id": "dxf_fcstd_freecad",
+          "query": "DXF to 3D FreeCAD parametric",
+          "hits": 15,
+          "downloaded": 9,
+          "score_sum": 908.0,
+          "max_score": 87.0,
+          "examples": [
+            "Diffuse Optical Tomography and Fluorescence Simulation",
+            "mirte-robot/mirte-frame: 0.2.0",
+            "Detector design for HL-LHC in FreeCAD using python scripts"
+          ],
+          "avg_score": 60.53,
+          "yield": 0.6
         }
       ],
       "prioritized_queries": [
         "FreeCAD DXF import extrusion FCStd",
-        "DXF STEP conversion open source",
         "FreeCAD parametric modeling tutorial",
-        "DXF to 3D FreeCAD parametric",
         "2D DXF 3D modeling open source CAD",
+        "DXF to 3D FreeCAD parametric",
         "open source CAD dxf fcstd freecad",
         "parametric CAD dxf fcstd freecad",
-        "dxf step conversion manufacturing"
+        "dxf modeling open manufacturing"
+      ]
+    },
+    "iatf_audit_video": {
+      "high_score_materials": [
+        {
+          "id": 209052,
+          "title": "Autonomous Supplier Quality Ecosystem Using Blockchain and Federated AI for IATF Compliance in Automotive Manufacturing",
+          "source": "zenodo",
+          "status": "downloaded_existing",
+          "domain_id": "iatf_audit_video",
+          "query": "IATF 16949 internal audit training",
+          "score": 99.0,
+          "reasons": [
+            "downloaded",
+            "pdf",
+            "size_ok",
+            "north_star",
+            "domain_terms=3",
+            "query_terms=3"
+          ]
+        },
+        {
+          "id": 209053,
+          "title": "Autonomous Supplier Quality Ecosystem Using Blockchain and Federated AI for IATF Compliance in Automotive Manufacturing",
+          "source": "zenodo",
+          "status": "downloaded_existing",
+          "domain_id": "iatf_audit_video",
+          "query": "IATF 16949 internal audit training",
+          "score": 99.0,
+          "reasons": [
+            "downloaded",
+            "pdf",
+            "size_ok",
+            "north_star",
+            "domain_terms=3",
+            "query_terms=3"
+          ]
+        },
+        {
+          "id": 209055,
+          "title": "Lean Management in Correlation with the IATF 16949:2016 Automotive Standard: What Impact on Automotive Companies' Performance?",
+          "source": "zenodo",
+          "status": "downloaded_existing",
+          "domain_id": "iatf_audit_video",
+          "query": "IATF 16949 internal audit training",
+          "score": 99.0,
+          "reasons": [
+            "downloaded",
+            "pdf",
+            "size_ok",
+            "north_star",
+            "domain_terms=3",
+            "query_terms=3"
+          ]
+        },
+        {
+          "id": 207621,
+          "title": "Autonomous Supplier Quality Ecosystem Using Blockchain and Federated AI for IATF Compliance in Automotive Manufacturing",
+          "source": "zenodo",
+          "status": "downloaded_existing",
+          "domain_id": "iatf_audit_video",
+          "query": "IATF 16949 internal audit training",
+          "score": 99.0,
+          "reasons": [
+            "downloaded",
+            "pdf",
+            "size_ok",
+            "north_star",
+            "domain_terms=3",
+            "query_terms=3"
+          ]
+        },
+        {
+          "id": 207622,
+          "title": "Autonomous Supplier Quality Ecosystem Using Blockchain and Federated AI for IATF Compliance in Automotive Manufacturing",
+          "source": "zenodo",
+          "status": "downloaded_existing",
+          "domain_id": "iatf_audit_video",
+          "query": "IATF 16949 internal audit training",
+          "score": 99.0,
+          "reasons": [
+            "downloaded",
+            "pdf",
+            "size_ok",
+            "north_star",
+            "domain_terms=3",
+            "query_terms=3"
+          ]
+        },
+        {
+          "id": 207624,
+          "title": "Lean Management in Correlation with the IATF 16949:2016 Automotive Standard: What Impact on Automotive Companies' Performance?",
+          "source": "zenodo",
+          "status": "downloaded_existing",
+          "domain_id": "iatf_audit_video",
+          "query": "IATF 16949 internal audit training",
+          "score": 99.0,
+          "reasons": [
+            "downloaded",
+            "pdf",
+            "size_ok",
+            "north_star",
+            "domain_terms=3",
+            "query_terms=3"
+          ]
+        },
+        {
+          "id": 206098,
+          "title": "Autonomous Supplier Quality Ecosystem Using Blockchain and Federated AI for IATF Compliance in Automotive Manufacturing",
+          "source": "zenodo",
+          "status": "downloaded_existing",
+          "domain_id": "iatf_audit_video",
+          "query": "IATF 16949 internal audit training",
+          "score": 99.0,
+          "reasons": [
+            "downloaded",
+            "pdf",
+            "size_ok",
+            "north_star",
+            "domain_terms=3",
+            "query_terms=3"
+          ]
+        },
+        {
+          "id": 206099,
+          "title": "Autonomous Supplier Quality Ecosystem Using Blockchain and Federated AI for IATF Compliance in Automotive Manufacturing",
+          "source": "zenodo",
+          "status": "downloaded_existing",
+          "domain_id": "iatf_audit_video",
+          "query": "IATF 16949 internal audit training",
+          "score": 99.0,
+          "reasons": [
+            "downloaded",
+            "pdf",
+            "size_ok",
+            "north_star",
+            "domain_terms=3",
+            "query_terms=3"
+          ]
+        },
+        {
+          "id": 206101,
+          "title": "Lean Management in Correlation with the IATF 16949:2016 Automotive Standard: What Impact on Automotive Companies' Performance?",
+          "source": "zenodo",
+          "status": "downloaded_existing",
+          "domain_id": "iatf_audit_video",
+          "query": "IATF 16949 internal audit training",
+          "score": 99.0,
+          "reasons": [
+            "downloaded",
+            "pdf",
+            "size_ok",
+            "north_star",
+            "domain_terms=3",
+            "query_terms=3"
+          ]
+        },
+        {
+          "id": 205122,
+          "title": "Autonomous Supplier Quality Ecosystem Using Blockchain and Federated AI for IATF Compliance in Automotive Manufacturing",
+          "source": "zenodo",
+          "status": "downloaded_existing",
+          "domain_id": "iatf_audit_video",
+          "query": "IATF 16949 internal audit training",
+          "score": 99.0,
+          "reasons": [
+            "downloaded",
+            "pdf",
+            "size_ok",
+            "north_star",
+            "domain_terms=3",
+            "query_terms=3"
+          ]
+        }
+      ],
+      "winning_queries": [
+        {
+          "domain_id": "iatf_audit_video",
+          "query": "compliance audit iatf audit video",
+          "hits": 70,
+          "downloaded": 36,
+          "score_sum": 3880.0,
+          "max_score": 96.0,
+          "examples": [
+            "Autonomous Supplier Quality Ecosystem Using Blockchain and Federated AI for IATF Compliance in Automotive Manufacturing",
+            "Autonomous Supplier Quality Ecosystem Using Blockchain and Federated AI for IATF Compliance in Automotive Manufacturing",
+            "Audit quality of financial and compliance audits conducted by the corporate government sector of the Commission on Audit"
+          ],
+          "avg_score": 55.43,
+          "yield": 0.514
+        },
+        {
+          "domain_id": "iatf_audit_video",
+          "query": "IATF 16949 internal audit training",
+          "hits": 66,
+          "downloaded": 32,
+          "score_sum": 3938.0,
+          "max_score": 99.0,
+          "examples": [
+            "Autonomous Supplier Quality Ecosystem Using Blockchain and Federated AI for IATF Compliance in Automotive Manufacturing",
+            "Autonomous Supplier Quality Ecosystem Using Blockchain and Federated AI for IATF Compliance in Automotive Manufacturing",
+            "STATISTICAL CONTROL OF PRODUCTION PROCESSES, ANALYSIS  OF THE MEASUREMENT SYSTEM"
+          ],
+          "avg_score": 59.67,
+          "yield": 0.485
+        },
+        {
+          "domain_id": "iatf_audit_video",
+          "query": "automotive quality management audit checklist",
+          "hits": 43,
+          "downloaded": 24,
+          "score_sum": 2611.0,
+          "max_score": 95.0,
+          "examples": [
+            "PRIMENA KPI ZA UNAPREĐENJE UPRAVLJANJA NABAVKOM U AUTOMOBILSKOJ INDUSTRIJI",
+            "Reverse logistics of waste tires in Brazil: a proposal for collaborative monitoring",
+            "DEVELOPING A STRUCTURED DUE DILIGENCE METHODOLOGY FOR AUDIT FIRMS: A RISK-BASED PERSPECTIVE"
+          ],
+          "avg_score": 60.72,
+          "yield": 0.558
+        },
+        {
+          "domain_id": "iatf_audit_video",
+          "query": "internal audit iatf audit video",
+          "hits": 35,
+          "downloaded": 18,
+          "score_sum": 1840.0,
+          "max_score": 88.0,
+          "examples": [
+            "A Knowledge Graph-Based Security Auditing Approach",
+            "Internal audit: waker, slaper of dromer?",
+            "Revision of the ISO/IEC 17025 standard"
+          ],
+          "avg_score": 52.57,
+          "yield": 0.514
+        }
+      ],
+      "prioritized_queries": [
+        "compliance audit iatf audit video",
+        "IATF 16949 internal audit training",
+        "automotive quality management audit checklist",
+        "internal audit iatf audit video"
       ]
     },
     "press_progressive_die": {
       "high_score_materials": [
         {
-          "id": 1826,
-          "title": "STUDY ON REAL-TIME FINITE ELEMENT ANALYSIS SIMULATION AS A VISUALIZATION AND INTERACTION TOOL FOR SHEET METAL FORMING PROCESSES",
-          "source": "zenodo",
-          "status": "downloaded_existing",
-          "domain_id": "press_progressive_die",
-          "query": "press bending FEA sheet metal",
-          "score": 102.0,
-          "reasons": [
-            "downloaded",
-            "pdf",
-            "size_ok",
-            "north_star",
-            "domain_terms=3",
-            "query_terms=4"
-          ]
-        },
-        {
-          "id": 722,
-          "title": "STUDY ON REAL-TIME FINITE ELEMENT ANALYSIS SIMULATION AS A VISUALIZATION AND INTERACTION TOOL FOR SHEET METAL FORMING PROCESSES",
-          "source": "zenodo",
-          "status": "downloaded_existing",
-          "domain_id": "press_progressive_die",
-          "query": "press bending FEA sheet metal",
-          "score": 102.0,
-          "reasons": [
-            "downloaded",
-            "pdf",
-            "size_ok",
-            "north_star",
-            "domain_terms=3",
-            "query_terms=4"
-          ]
-        },
-        {
-          "id": 1825,
-          "title": "Design and Fabrication of Sheet Metal Bender and Cutter",
-          "source": "zenodo",
-          "status": "downloaded_existing",
-          "domain_id": "press_progressive_die",
-          "query": "press bending FEA sheet metal",
-          "score": 98.0,
-          "reasons": [
-            "downloaded",
-            "pdf",
-            "size_ok",
-            "north_star",
-            "domain_terms=2",
-            "query_terms=4"
-          ]
-        },
-        {
-          "id": 1827,
-          "title": "Determination of Natural Frequency Values In Bending Sheet Metals Using Finite Element Method",
-          "source": "zenodo",
-          "status": "downloaded_existing",
-          "domain_id": "press_progressive_die",
-          "query": "press bending FEA sheet metal",
-          "score": 98.0,
-          "reasons": [
-            "downloaded",
-            "pdf",
-            "size_ok",
-            "north_star",
-            "domain_terms=2",
-            "query_terms=4"
-          ]
-        },
-        {
-          "id": 723,
-          "title": "Determination of Natural Frequency Values In Bending Sheet Metals Using Finite Element Method",
-          "source": "zenodo",
-          "status": "downloaded",
-          "domain_id": "press_progressive_die",
-          "query": "press bending FEA sheet metal",
-          "score": 98.0,
-          "reasons": [
-            "downloaded",
-            "pdf",
-            "size_ok",
-            "north_star",
-            "domain_terms=2",
-            "query_terms=4"
-          ]
-        },
-        {
-          "id": 721,
-          "title": "Design and Fabrication of Sheet Metal Bender and Cutter",
-          "source": "zenodo",
-          "status": "downloaded",
-          "domain_id": "press_progressive_die",
-          "query": "press bending FEA sheet metal",
-          "score": 98.0,
-          "reasons": [
-            "downloaded",
-            "pdf",
-            "size_ok",
-            "north_star",
-            "domain_terms=2",
-            "query_terms=4"
-          ]
-        },
-        {
-          "id": 1819,
-          "title": "Energy-Consistent Neural Networks with Fenchel-Young Loss for Physics-Guided Energy Prediction in Sheet Metal Forming Under Small-Data Conditions.",
-          "source": "europe_pmc",
-          "status": "downloaded",
-          "domain_id": "press_progressive_die",
-          "query": "press bending FEA sheet metal",
-          "score": 97.0,
-          "reasons": [
-            "downloaded",
-            "pdf",
-            "size_ok",
-            "north_star",
-            "domain_terms=3",
-            "query_terms=4"
-          ]
-        },
-        {
-          "id": 1818,
-          "title": "Polymer additive manufacturing tools for sheet metal forming: a combined simulation and experimental study.",
-          "source": "europe_pmc",
-          "status": "downloaded",
-          "domain_id": "press_progressive_die",
-          "query": "press bending FEA sheet metal",
-          "score": 97.0,
-          "reasons": [
-            "downloaded",
-            "pdf",
-            "size_ok",
-            "north_star",
-            "domain_terms=3",
-            "query_terms=4"
-          ]
-        },
-        {
-          "id": 1857,
+          "id": 208158,
           "title": "Validation of numerical simulations by digital scanning of 3D sheet metal objects",
           "source": "zenodo",
           "status": "downloaded_existing",
@@ -2023,7 +1570,7 @@
           ]
         },
         {
-          "id": 1860,
+          "id": 208161,
           "title": "Experimental and FE analysis on spring-back of copper/aluminum layers sheet for a L-die bending process",
           "source": "zenodo",
           "status": "downloaded_existing",
@@ -2038,136 +1585,217 @@
             "domain_terms=2",
             "query_terms=3"
           ]
+        },
+        {
+          "id": 208162,
+          "title": "Prediction of Springback in the Air Bending Process Using a Kriging Metamodel",
+          "source": "zenodo",
+          "status": "downloaded_existing",
+          "domain_id": "press_progressive_die",
+          "query": "sheet metal springback finite element",
+          "score": 95.0,
+          "reasons": [
+            "downloaded",
+            "pdf",
+            "size_ok",
+            "north_star",
+            "domain_terms=2",
+            "query_terms=3"
+          ]
+        },
+        {
+          "id": 208129,
+          "title": "Politisches Symposium 2024: Progressive Sicherheit und die Reform des Modells Deutschland",
+          "source": "zenodo",
+          "status": "downloaded_existing",
+          "domain_id": "press_progressive_die",
+          "query": "progressive die press progressive die",
+          "score": 95.0,
+          "reasons": [
+            "downloaded",
+            "pdf",
+            "size_ok",
+            "north_star",
+            "domain_terms=2",
+            "query_terms=3"
+          ]
+        },
+        {
+          "id": 208104,
+          "title": "Progressive Press Tool for Cabinet Plate",
+          "source": "zenodo",
+          "status": "downloaded_existing",
+          "domain_id": "press_progressive_die",
+          "query": "strip layout press progressive die",
+          "score": 95.0,
+          "reasons": [
+            "downloaded",
+            "pdf",
+            "size_ok",
+            "north_star",
+            "domain_terms=2",
+            "query_terms=3"
+          ]
+        },
+        {
+          "id": 208105,
+          "title": "Politisches Symposium 2024: Progressive Sicherheit und die Reform des Modells Deutschland",
+          "source": "zenodo",
+          "status": "downloaded_existing",
+          "domain_id": "press_progressive_die",
+          "query": "strip layout press progressive die",
+          "score": 95.0,
+          "reasons": [
+            "downloaded",
+            "pdf",
+            "size_ok",
+            "north_star",
+            "domain_terms=2",
+            "query_terms=3"
+          ]
+        },
+        {
+          "id": 208101,
+          "title": "Design Optimization and Analysis of Progressive Press  Tool for Cabinet Plate",
+          "source": "zenodo",
+          "status": "downloaded_existing",
+          "domain_id": "press_progressive_die",
+          "query": "strip layout press progressive die",
+          "score": 95.0,
+          "reasons": [
+            "downloaded",
+            "pdf",
+            "size_ok",
+            "north_star",
+            "domain_terms=2",
+            "query_terms=3"
+          ]
+        },
+        {
+          "id": 207944,
+          "title": "Design Optimization and Analysis of Progressive Press  Tool for Cabinet Plate",
+          "source": "zenodo",
+          "status": "downloaded_existing",
+          "domain_id": "press_progressive_die",
+          "query": "strip layout press progressive die",
+          "score": 95.0,
+          "reasons": [
+            "downloaded",
+            "pdf",
+            "size_ok",
+            "north_star",
+            "domain_terms=2",
+            "query_terms=3"
+          ]
+        },
+        {
+          "id": 207947,
+          "title": "Progressive Press Tool for Cabinet Plate",
+          "source": "zenodo",
+          "status": "downloaded_existing",
+          "domain_id": "press_progressive_die",
+          "query": "strip layout press progressive die",
+          "score": 95.0,
+          "reasons": [
+            "downloaded",
+            "pdf",
+            "size_ok",
+            "north_star",
+            "domain_terms=2",
+            "query_terms=3"
+          ]
+        },
+        {
+          "id": 207948,
+          "title": "Politisches Symposium 2024: Progressive Sicherheit und die Reform des Modells Deutschland",
+          "source": "zenodo",
+          "status": "downloaded_existing",
+          "domain_id": "press_progressive_die",
+          "query": "strip layout press progressive die",
+          "score": 95.0,
+          "reasons": [
+            "downloaded",
+            "pdf",
+            "size_ok",
+            "north_star",
+            "domain_terms=2",
+            "query_terms=3"
+          ]
         }
       ],
       "winning_queries": [
         {
           "domain_id": "press_progressive_die",
-          "query": "press bending FEA sheet metal",
-          "hits": 39,
-          "downloaded": 18,
-          "score_sum": 2415.0,
-          "max_score": 102.0,
+          "query": "strip layout press progressive die",
+          "hits": 66,
+          "downloaded": 35,
+          "score_sum": 3965.0,
+          "max_score": 95.0,
           "examples": [
-            "Design of a Dual Operating Mode Sheet Folding Machine",
-            "Design and Fabrication of Sheet Metal Bender and Cutter",
-            "STUDY ON REAL-TIME FINITE ELEMENT ANALYSIS SIMULATION AS A VISUALIZATION AND INTERACTION TOOL FOR SHEET METAL FORMING PR"
+            "A Review on Design of Progressive Tool Dies",
+            "Progressive Press Tool for Cabinet Plate",
+            "Politisches Symposium 2024: Progressive Sicherheit und die Reform des Modells Deutschland"
           ],
-          "avg_score": 61.92,
-          "yield": 0.462
+          "avg_score": 60.08,
+          "yield": 0.53
         },
         {
           "domain_id": "press_progressive_die",
           "query": "progressive die strip layout design",
-          "hits": 50,
-          "downloaded": 21,
-          "score_sum": 2565.0,
+          "hits": 81,
+          "downloaded": 39,
+          "score_sum": 4425.0,
           "max_score": 92.0,
           "examples": [
             "Design Optimization and Analysis of Progressive Press  Tool for Cabinet Plate",
             "Revolutionizing Legacy Web Applications: The Critical Role of Responsive Design in Modernization Efforts",
             "Line Efficiency through In-Line Layout Design"
           ],
-          "avg_score": 51.3,
-          "yield": 0.42
+          "avg_score": 54.63,
+          "yield": 0.481
+        },
+        {
+          "domain_id": "press_progressive_die",
+          "query": "progressive die press progressive die",
+          "hits": 29,
+          "downloaded": 13,
+          "score_sum": 1550.0,
+          "max_score": 95.0,
+          "examples": [
+            "Finite Element Simulation Dataset for DTCAE Process",
+            "Politisches Symposium 2024: Progressive Sicherheit und die Reform des Modells Deutschland",
+            "The Indispensables:  Our truly essential workers"
+          ],
+          "avg_score": 53.45,
+          "yield": 0.448
         },
         {
           "domain_id": "press_progressive_die",
           "query": "sheet metal springback finite element",
-          "hits": 53,
-          "downloaded": 18,
-          "score_sum": 2771.0,
+          "hits": 29,
+          "downloaded": 11,
+          "score_sum": 1524.0,
           "max_score": 95.0,
           "examples": [
             "Springback data from stamping and simulating the forming of advanced high strength steel",
             "Validation of numerical simulations by digital scanning of 3D sheet metal objects",
             "Incremental Sheet Metal Forming - TINY Dataset"
           ],
-          "avg_score": 52.28,
-          "yield": 0.34
-        },
-        {
-          "domain_id": "press_progressive_die",
-          "query": "progressive tool design stamping",
-          "hits": 18,
-          "downloaded": 8,
-          "score_sum": 940.0,
-          "max_score": 92.0,
-          "examples": [
-            "A Review on Design of Progressive Tool Dies",
-            "Implementation of Value Engineering for Production Process Efficiency in Metal Stamping Industry",
-            "Design and Development of Inspection Test Rig  with Stamping"
-          ],
-          "avg_score": 52.22,
-          "yield": 0.444
-        },
-        {
-          "domain_id": "press_progressive_die",
-          "query": "sheet metal deep drawing simulation",
-          "hits": 19,
-          "downloaded": 8,
-          "score_sum": 946.0,
-          "max_score": 88.0,
-          "examples": [
-            "Prediction of Plastic Instability in Sheet Metals During Forming Processes Using the Loss of Ellipticity Approach",
-            "Improving the technology for manufacturing hollow cylindrical parts for vehicles by refining technological estimation de",
-            "On Model Based Adaption of Deep Drawing Processes to Increase Process Stability and Resource Efficiency"
-          ],
-          "avg_score": 49.79,
-          "yield": 0.421
-        },
-        {
-          "domain_id": "press_progressive_die",
-          "query": "blanking simulation OpenRadioss",
-          "hits": 16,
-          "downloaded": 7,
-          "score_sum": 799.0,
-          "max_score": 88.0,
-          "examples": [
-            "Review on Investigation and Optimization of Blanking Process using FEM and DOE technique to Analyze the Influence of Pro",
-            "SANDBOX – for material modelling of Dry Sand with OpenRadioss and python",
-            "THE RESEARCH AND IMPLEMENTATION OF PASSENGER CAR'S TRANSPORTATION PLANNING PROBLEM"
-          ],
-          "avg_score": 49.94,
-          "yield": 0.438
+          "avg_score": 52.55,
+          "yield": 0.379
         }
       ],
       "prioritized_queries": [
-        "press bending FEA sheet metal",
-        "progressive die strip layout design",
-        "sheet metal springback finite element",
-        "progressive tool design stamping",
-        "sheet metal deep drawing simulation",
-        "blanking simulation OpenRadioss",
-        "forming press progressive die",
-        "press brake press progressive die",
-        "progressive die press progressive die",
         "strip layout press progressive die",
-        "spring back press progressive die",
-        "elastic recovery press progressive die"
+        "progressive die strip layout design",
+        "progressive die press progressive die",
+        "sheet metal springback finite element"
       ]
     },
     "moldflow_injection_mold_design": {
       "high_score_materials": [
         {
-          "id": 630,
-          "title": "Uncertainty Analysis of Experimental Parameters for Reducing Warpage in Injection Molding",
-          "source": "arxiv",
-          "status": "downloaded",
-          "domain_id": "moldflow_injection_mold_design",
-          "query": "injection molding fill pack warpage",
-          "score": 102.0,
-          "reasons": [
-            "downloaded",
-            "pdf",
-            "size_ok",
-            "north_star",
-            "domain_terms=3",
-            "query_terms=5"
-          ]
-        },
-        {
-          "id": 1793,
+          "id": 207991,
           "title": "A Study on Thin Cooling Layers Between the Cooling Channel and Cavity in the Injection Molding Process for Mold Temperature Control to Enhance Weld Line Flexural Strength in Plastic Products.",
           "source": "europe_pmc",
           "status": "downloaded",
@@ -2184,126 +1812,143 @@
           ]
         },
         {
-          "id": 1746,
-          "title": "Effect of Cooling Channel Diameters on Warpage in Plastic Injection Molds: A Comparative Analysis",
-          "source": "zenodo",
-          "status": "downloaded_existing",
-          "domain_id": "moldflow_injection_mold_design",
-          "query": "injection molding fill pack warpage",
-          "score": 98.0,
-          "reasons": [
-            "downloaded",
-            "pdf",
-            "size_ok",
-            "north_star",
-            "domain_terms=2",
-            "query_terms=5"
-          ]
-        },
-        {
-          "id": 1747,
-          "title": "Design and Analysis of Plastic Injection Parts by Using Moldflow",
-          "source": "zenodo",
-          "status": "downloaded_existing",
-          "domain_id": "moldflow_injection_mold_design",
-          "query": "injection molding fill pack warpage",
-          "score": 98.0,
-          "reasons": [
-            "downloaded",
-            "pdf",
-            "size_ok",
-            "north_star",
-            "domain_terms=2",
-            "query_terms=5"
-          ]
-        },
-        {
-          "id": 1748,
-          "title": "MODELING AND MATERIAL DATA ISSUES OF INJECTION MOLDING SIMULATION",
-          "source": "zenodo",
-          "status": "downloaded_existing",
-          "domain_id": "moldflow_injection_mold_design",
-          "query": "injection molding fill pack warpage",
-          "score": 98.0,
-          "reasons": [
-            "downloaded",
-            "pdf",
-            "size_ok",
-            "north_star",
-            "domain_terms=2",
-            "query_terms=5"
-          ]
-        },
-        {
-          "id": 631,
-          "title": "Effect of Cooling Channel Diameters on Warpage in Plastic Injection Molds: A Comparative Analysis",
-          "source": "zenodo",
-          "status": "downloaded",
-          "domain_id": "moldflow_injection_mold_design",
-          "query": "injection molding fill pack warpage",
-          "score": 98.0,
-          "reasons": [
-            "downloaded",
-            "pdf",
-            "size_ok",
-            "north_star",
-            "domain_terms=2",
-            "query_terms=5"
-          ]
-        },
-        {
-          "id": 632,
-          "title": "Design and Analysis of Plastic Injection Parts by Using Moldflow",
-          "source": "zenodo",
-          "status": "downloaded_existing",
-          "domain_id": "moldflow_injection_mold_design",
-          "query": "injection molding fill pack warpage",
-          "score": 98.0,
-          "reasons": [
-            "downloaded",
-            "pdf",
-            "size_ok",
-            "north_star",
-            "domain_terms=2",
-            "query_terms=5"
-          ]
-        },
-        {
-          "id": 633,
-          "title": "MODELING AND MATERIAL DATA ISSUES OF INJECTION MOLDING SIMULATION",
-          "source": "zenodo",
-          "status": "downloaded_existing",
-          "domain_id": "moldflow_injection_mold_design",
-          "query": "injection molding fill pack warpage",
-          "score": 98.0,
-          "reasons": [
-            "downloaded",
-            "pdf",
-            "size_ok",
-            "north_star",
-            "domain_terms=2",
-            "query_terms=5"
-          ]
-        },
-        {
-          "id": 1743,
-          "title": "Comparative Study on Injection Molding and Performance of Glass Fiber-Reinforced PET and PA6 Thermoplastic Insulators.",
+          "id": 207877,
+          "title": "A Study on Thin Cooling Layers Between the Cooling Channel and Cavity in the Injection Molding Process for Mold Temperature Control to Enhance Weld Line Flexural Strength in Plastic Products.",
           "source": "europe_pmc",
           "status": "downloaded",
           "domain_id": "moldflow_injection_mold_design",
-          "query": "injection molding fill pack warpage",
-          "score": 97.0,
+          "query": "plastic injection mold cavity design",
+          "score": 98.0,
           "reasons": [
             "downloaded",
             "pdf",
             "size_ok",
             "north_star",
-            "domain_terms=3",
-            "query_terms=5"
+            "domain_terms=4",
+            "query_terms=3"
           ]
         },
         {
-          "id": 1802,
+          "id": 206046,
+          "title": "A Study on Thin Cooling Layers Between the Cooling Channel and Cavity in the Injection Molding Process for Mold Temperature Control to Enhance Weld Line Flexural Strength in Plastic Products.",
+          "source": "europe_pmc",
+          "status": "downloaded",
+          "domain_id": "moldflow_injection_mold_design",
+          "query": "plastic injection mold cavity design",
+          "score": 98.0,
+          "reasons": [
+            "downloaded",
+            "pdf",
+            "size_ok",
+            "north_star",
+            "domain_terms=4",
+            "query_terms=3"
+          ]
+        },
+        {
+          "id": 208003,
+          "title": "PLASTIC INJECTION MOLD DESIGN FOR AN AUTOMOTIVE COMPONENT 'AIR VENT BEZEL' THROUGH MOLD FLOW ANALYSIS FOR DESIGN ENHANCEMENT",
+          "source": "zenodo",
+          "status": "downloaded_existing",
+          "domain_id": "moldflow_injection_mold_design",
+          "query": "plastic injection mold cavity design",
+          "score": 95.0,
+          "reasons": [
+            "downloaded",
+            "pdf",
+            "size_ok",
+            "north_star",
+            "domain_terms=2",
+            "query_terms=3"
+          ]
+        },
+        {
+          "id": 208005,
+          "title": "Design and Optimization of an Injection Mold for Automotive Air Duct Head Using Advanced CAE Tools",
+          "source": "zenodo",
+          "status": "downloaded_existing",
+          "domain_id": "moldflow_injection_mold_design",
+          "query": "plastic injection mold cavity design",
+          "score": 95.0,
+          "reasons": [
+            "downloaded",
+            "pdf",
+            "size_ok",
+            "north_star",
+            "domain_terms=2",
+            "query_terms=3"
+          ]
+        },
+        {
+          "id": 208001,
+          "title": "Inverse Design Based on Nonlinear Thermoelastic Material Models Applied to Injection Molding",
+          "source": "arxiv",
+          "status": "downloaded",
+          "domain_id": "moldflow_injection_mold_design",
+          "query": "plastic injection mold cavity design",
+          "score": 95.0,
+          "reasons": [
+            "downloaded",
+            "pdf",
+            "size_ok",
+            "north_star",
+            "domain_terms=2",
+            "query_terms=3"
+          ]
+        },
+        {
+          "id": 208000,
+          "title": "Enhancing Complex Injection Mold Design Validation Using Multicombined RV Environments",
+          "source": "arxiv",
+          "status": "downloaded",
+          "domain_id": "moldflow_injection_mold_design",
+          "query": "plastic injection mold cavity design",
+          "score": 95.0,
+          "reasons": [
+            "downloaded",
+            "pdf",
+            "size_ok",
+            "north_star",
+            "domain_terms=2",
+            "query_terms=3"
+          ]
+        },
+        {
+          "id": 207976,
+          "title": "PLASTIC INJECTION MOLD DESIGN FOR AN AUTOMOTIVE COMPONENT 'AIR VENT BEZEL' THROUGH MOLD FLOW ANALYSIS FOR DESIGN ENHANCEMENT",
+          "source": "zenodo",
+          "status": "downloaded_existing",
+          "domain_id": "moldflow_injection_mold_design",
+          "query": "mold flow analysis gate runner cooling",
+          "score": 95.0,
+          "reasons": [
+            "downloaded",
+            "pdf",
+            "size_ok",
+            "north_star",
+            "domain_terms=2",
+            "query_terms=3"
+          ]
+        },
+        {
+          "id": 207977,
+          "title": "Design and Optimization of an Injection Mold for Automotive Air Duct Head Using Advanced CAE Tools",
+          "source": "zenodo",
+          "status": "downloaded_existing",
+          "domain_id": "moldflow_injection_mold_design",
+          "query": "mold flow analysis gate runner cooling",
+          "score": 95.0,
+          "reasons": [
+            "downloaded",
+            "pdf",
+            "size_ok",
+            "north_star",
+            "domain_terms=2",
+            "query_terms=3"
+          ]
+        },
+        {
+          "id": 207894,
           "title": "PLASTIC INJECTION MOLD DESIGN FOR AN AUTOMOTIVE COMPONENT 'AIR VENT BEZEL' THROUGH MOLD FLOW ANALYSIS FOR DESIGN ENHANCEMENT",
           "source": "zenodo",
           "status": "downloaded_existing",
@@ -2323,397 +1968,75 @@
       "winning_queries": [
         {
           "domain_id": "moldflow_injection_mold_design",
-          "query": "injection molding fill pack warpage",
-          "hits": 38,
-          "downloaded": 16,
-          "score_sum": 2265.0,
-          "max_score": 102.0,
-          "examples": [
-            "Effect of Cooling Channel Diameters on Warpage in Plastic Injection Molds: A Comparative Analysis",
-            "Design and Analysis of Plastic Injection Parts by Using Moldflow",
-            "MODELING AND MATERIAL DATA ISSUES OF INJECTION MOLDING SIMULATION"
-          ],
-          "avg_score": 59.61,
-          "yield": 0.421
-        },
-        {
-          "domain_id": "moldflow_injection_mold_design",
           "query": "mold flow analysis gate runner cooling",
-          "hits": 44,
-          "downloaded": 18,
-          "score_sum": 2315.0,
+          "hits": 77,
+          "downloaded": 36,
+          "score_sum": 4361.0,
           "max_score": 95.0,
           "examples": [
             "Optimization of Toilet Brush Cup Mold Using  Autodesk Mold Flow Advisor",
             "PLASTIC INJECTION MOLD DESIGN FOR AN AUTOMOTIVE COMPONENT 'AIR VENT BEZEL' THROUGH MOLD FLOW ANALYSIS FOR DESIGN ENHANCE",
             "Design and Optimization of an Injection Mold for Automotive Air Duct Head Using Advanced CAE Tools"
           ],
-          "avg_score": 52.61,
-          "yield": 0.409
+          "avg_score": 56.64,
+          "yield": 0.468
         },
         {
           "domain_id": "moldflow_injection_mold_design",
           "query": "plastic injection mold cavity design",
-          "hits": 50,
-          "downloaded": 18,
-          "score_sum": 2473.0,
+          "hits": 97,
+          "downloaded": 37,
+          "score_sum": 4910.0,
           "max_score": 98.0,
           "examples": [
             "Simulation of an Injection Process Using a CAE Tool: Assessment of Operational Conditions and Mold Design on the Process",
             "PLASTIC INJECTION MOLD DESIGN FOR AN AUTOMOTIVE COMPONENT 'AIR VENT BEZEL' THROUGH MOLD FLOW ANALYSIS FOR DESIGN ENHANCE",
             "INTEGRAL ANALYSIS OF INJECTION MOULD WITH HOT RUNNERS FOR GATE"
           ],
-          "avg_score": 49.46,
-          "yield": 0.36
+          "avg_score": 50.62,
+          "yield": 0.381
         },
         {
           "domain_id": "moldflow_injection_mold_design",
           "query": "open source mold filling simulation",
-          "hits": 18,
-          "downloaded": 8,
-          "score_sum": 850.0,
+          "hits": 23,
+          "downloaded": 13,
+          "score_sum": 1238.0,
           "max_score": 89.0,
           "examples": [
-            "RETRACTED: Design and construction of a permanent mold using finite element software",
-            "Simulation of Parts Production Using Biodegradable Materials",
+            "OPTICAL PERMEABILITY MESUREMENTS OF NCF: INFLUENCE OF MATERIALPROPERTIES ON THE 2D PREFORM PERMEABILITY",
+            "SIMULATION OF MOLD FILLING IN RESIN TRANSFER MOLDING CONSIDERING THE LOCAL FIBER ARCHITECTURE AFTER THE PREFORMING PROCE",
             "A MINIMALIST SENSOR SYSTEM FOR MOLD FILLING"
           ],
-          "avg_score": 47.22,
-          "yield": 0.444
+          "avg_score": 53.83,
+          "yield": 0.565
         },
         {
           "domain_id": "moldflow_injection_mold_design",
           "query": "injection mold design CAD automation",
-          "hits": 18,
-          "downloaded": 7,
-          "score_sum": 863.0,
+          "hits": 25,
+          "downloaded": 12,
+          "score_sum": 1322.0,
           "max_score": 92.0,
           "examples": [
-            "Automated Mould Cooling Technique for Improving Product Quality in an Injection Moulding System",
-            "PLASTIC INJECTION MOLD DESIGN FOR AN AUTOMOTIVE COMPONENT 'AIR VENT BEZEL' THROUGH MOLD FLOW ANALYSIS FOR DESIGN ENHANCE",
+            "Automatic Generated Injection Mold - Tests",
+            "USE OF SENSORS AND SIMULATIONS TO MOVE TOWARDS AUTOMATION OF THE RESIN TRANSFER MOLDING PROCESS",
             "Design and Optimization of an Injection Mold for Automotive Air Duct Head Using Advanced CAE Tools"
           ],
-          "avg_score": 47.94,
-          "yield": 0.389
-        },
-        {
-          "domain_id": "moldflow_injection_mold_design",
-          "query": "mold base design parametric",
-          "hits": 18,
-          "downloaded": 7,
-          "score_sum": 761.0,
-          "max_score": 89.0,
-          "examples": [
-            "Text-fig. 5. Thoracic structure, articulating and coaptative devices of H. minor (a, d, f–g), P. paradoxissimus gracilis",
-            "Impact of building envelope design parameters on diurnal building anthropogenic heat emission",
-            "PLASTIC INJECTION MOLD DESIGN FOR AN AUTOMOTIVE COMPONENT 'AIR VENT BEZEL' THROUGH MOLD FLOW ANALYSIS FOR DESIGN ENHANCE"
-          ],
-          "avg_score": 42.28,
-          "yield": 0.389
+          "avg_score": 52.88,
+          "yield": 0.48
         }
       ],
       "prioritized_queries": [
-        "injection molding fill pack warpage",
         "mold flow analysis gate runner cooling",
         "plastic injection mold cavity design",
         "open source mold filling simulation",
         "injection mold design CAD automation",
-        "mold base design parametric",
-        "thermoplastic injection moldflow injection mold design",
-        "plastic mold moldflow injection mold design",
         "mould moldflow injection mold design",
-        "tooling moldflow injection mold design"
+        "tooling moldflow injection mold design",
+        "thermoplastic injection moldflow injection mold design",
+        "plastic mold moldflow injection mold design"
       ]
     }
-  },
-  "urgent_search_policy": {
-    "enabled": true,
-    "trigger": "When a user or agent identifies a high-priority knowledge gap, add only the needed search words and run a bounded immediate scout instead of waiting for the scheduled harvest.",
-    "scope": "Use focused queries for the current bottleneck; do not run unlimited broad crawling.",
-    "limits": {
-      "max_queries_per_urgent_run": 12,
-      "max_results_per_query": 20,
-      "timeout_minutes": 30,
-      "download_mode": "metadata_first_then_direct_free_only"
-    },
-    "safety": [
-      "Use legal and terms-compliant access only.",
-      "Do not bypass paywalls, login gates, DRM, robots restrictions, or rate limits.",
-      "Classify each source as direct_free, free_registration, paid_or_subscription, manual_review, or no_go.",
-      "Download only direct_free sources with clear permission; queue all unclear sources for manual review.",
-      "Keep raw facts, inferred usefulness, and implementation recommendations separate."
-    ]
-  },
-  "new_site_discovery_policy": {
-    "enabled": true,
-    "intent": "Actively discover useful public websites beyond the currently registered source list, especially for CAE, Moldflow-class resin flow, tolerance/CETOL, OpenRadioss press forming, visual inspection AI, and hard-surface 3D/mecha rigging.",
-    "preferred_source_types": [
-      "official project documentation",
-      "university and lab pages",
-      "open benchmark datasets",
-      "arXiv or institutional repositories",
-      "conference/workshop pages",
-      "GitHub repositories with active maintenance",
-      "vendor technical blogs with public examples",
-      "standards-adjacent public guidance pages"
-    ],
-    "candidate_handling": {
-      "new_site_default_status": "manual_review",
-      "promote_to_registered_when": "license/access is clear, relevance is high, and at least one successful metadata or direct_free acquisition is recorded",
-      "record_required_fields": [
-        "source_url",
-        "title",
-        "publisher_or_site",
-        "access_date",
-        "license_or_cost_label",
-        "domain_tags",
-        "local_path_or_queue_id",
-        "hash_if_downloaded"
-      ]
-    }
-  },
-  "immediate_search_queue": [
-    {
-      "query": "hard surface robot image to 3D reference fidelity benchmark",
-      "domain_id": "rigging_animation_3d",
-      "priority": 1,
-      "reason": "Urgent mecha pipeline gap: reference shape fidelity before mechanical rigging.",
-      "mode": "immediate_bounded_scout",
-      "download_mode": "metadata_first_then_direct_free_only",
-      "status": "queued"
-    },
-    {
-      "query": "robot mesh part segmentation mechanical rigging dataset",
-      "domain_id": "rigging_animation_3d",
-      "priority": 2,
-      "reason": "Urgent mecha pipeline gap: reference shape fidelity before mechanical rigging.",
-      "mode": "immediate_bounded_scout",
-      "download_mode": "metadata_first_then_direct_free_only",
-      "status": "queued"
-    },
-    {
-      "query": "mecha hard surface auto rigging separate armor parts",
-      "domain_id": "rigging_animation_3d",
-      "priority": 3,
-      "reason": "Urgent mecha pipeline gap: reference shape fidelity before mechanical rigging.",
-      "mode": "immediate_bounded_scout",
-      "download_mode": "metadata_first_then_direct_free_only",
-      "status": "queued"
-    },
-    {
-      "query": "single image to 3D robot silhouette consistency metric",
-      "domain_id": "rigging_animation_3d",
-      "priority": 4,
-      "reason": "Urgent mecha pipeline gap: reference shape fidelity before mechanical rigging.",
-      "mode": "immediate_bounded_scout",
-      "download_mode": "metadata_first_then_direct_free_only",
-      "status": "queued"
-    },
-    {
-      "query": "3D generation reference fidelity chamfer silhouette CLIP score",
-      "domain_id": "rigging_animation_3d",
-      "priority": 5,
-      "reason": "Urgent mecha pipeline gap: reference shape fidelity before mechanical rigging.",
-      "mode": "immediate_bounded_scout",
-      "download_mode": "metadata_first_then_direct_free_only",
-      "status": "queued"
-    },
-    {
-      "query": "CAD like robot mesh retopology generated 3D model",
-      "domain_id": "rigging_animation_3d",
-      "priority": 6,
-      "reason": "Urgent mecha pipeline gap: reference shape fidelity before mechanical rigging.",
-      "mode": "immediate_bounded_scout",
-      "download_mode": "metadata_first_then_direct_free_only",
-      "status": "queued"
-    },
-    {
-      "query": "non deforming armor plate rigging Blender armature",
-      "domain_id": "rigging_animation_3d",
-      "priority": 7,
-      "reason": "Urgent mecha pipeline gap: reference shape fidelity before mechanical rigging.",
-      "mode": "immediate_bounded_scout",
-      "download_mode": "metadata_first_then_direct_free_only",
-      "status": "queued"
-    },
-    {
-      "query": "image conditioned 3D reconstruction hard surface object parts",
-      "domain_id": "rigging_animation_3d",
-      "priority": 8,
-      "reason": "Urgent mecha pipeline gap: reference shape fidelity before mechanical rigging.",
-      "mode": "immediate_bounded_scout",
-      "download_mode": "metadata_first_then_direct_free_only",
-      "status": "queued"
-    }
-  ],
-  "new_site_discovery_seed_queries": [
-    {
-      "query": "site:edu hard surface robot 3D reconstruction segmentation",
-      "domain_id": "rigging_animation_3d",
-      "priority": 1,
-      "goal": "Discover new legal/public source websites beyond the current registered list.",
-      "status": "seeded"
-    },
-    {
-      "query": "site:ac.jp robot 3D reconstruction segmentation rigging",
-      "domain_id": "rigging_animation_3d",
-      "priority": 2,
-      "goal": "Discover new legal/public source websites beyond the current registered list.",
-      "status": "seeded"
-    },
-    {
-      "query": "site:github.com robot mesh segmentation rigging hard surface",
-      "domain_id": "rigging_animation_3d",
-      "priority": 3,
-      "goal": "Discover new legal/public source websites beyond the current registered list.",
-      "status": "seeded"
-    },
-    {
-      "query": "site:arxiv.org image to 3D hard surface object reconstruction",
-      "domain_id": "rigging_animation_3d",
-      "priority": 4,
-      "goal": "Discover new legal/public source websites beyond the current registered list.",
-      "status": "seeded"
-    },
-    {
-      "query": "site:openaccess.thecvf.com 3D reconstruction part segmentation robot",
-      "domain_id": "rigging_animation_3d",
-      "priority": 5,
-      "goal": "Discover new legal/public source websites beyond the current registered list.",
-      "status": "seeded"
-    },
-    {
-      "query": "site:paperswithcode.com image to 3D reconstruction benchmark hard surface",
-      "domain_id": "rigging_animation_3d",
-      "priority": 6,
-      "goal": "Discover new legal/public source websites beyond the current registered list.",
-      "status": "seeded"
-    },
-    {
-      "query": "site:blenderartists.org hard surface robot rigging separate parts",
-      "domain_id": "rigging_animation_3d",
-      "priority": 7,
-      "goal": "Discover new legal/public source websites beyond the current registered list.",
-      "status": "seeded"
-    },
-    {
-      "query": "site:docs.blender.org armature parent rigid mesh objects robot rig",
-      "domain_id": "rigging_animation_3d",
-      "priority": 8,
-      "goal": "Discover new legal/public source websites beyond the current registered list.",
-      "status": "seeded"
-    }
-  ],
-  "new_site_discovery_candidates": [
-    {
-      "source_url": "https://arxiv.org/html/2506.05573v1",
-      "title": "PartCrafter: Structured 3D Mesh Generation via Compositional Latent Diffusion Transformers",
-      "publisher_or_site": "arXiv",
-      "access_date": "2026-06-19",
-      "license_or_cost_label": "direct_free_metadata",
-      "domain_tags": [
-        "image_to_3d",
-        "part_segmentation",
-        "mecha_reference_fidelity"
-      ],
-      "usefulness": "Primary reference for part-aware single-image 3D generation; compare against current Kaggle PartCrafter behavior and artifacts.",
-      "status": "manual_review"
-    },
-    {
-      "source_url": "https://github.com/VAST-AI-Research/HoloPart",
-      "title": "HoloPart: Generative 3D Part Amodal Segmentation",
-      "publisher_or_site": "GitHub",
-      "access_date": "2026-06-19",
-      "license_or_cost_label": "manual_review",
-      "domain_tags": [
-        "part_segmentation",
-        "mesh_completion",
-        "robot_parts"
-      ],
-      "usefulness": "Potential fallback or comparison path for complete semantic parts when PartCrafter shape fidelity is low.",
-      "status": "manual_review"
-    },
-    {
-      "source_url": "https://openreview.net/forum?id=2VsBJwefDC",
-      "title": "HoloPart: Generative 3D Part Amodal Segmentation",
-      "publisher_or_site": "OpenReview",
-      "access_date": "2026-06-19",
-      "license_or_cost_label": "direct_free_metadata",
-      "domain_tags": [
-        "part_segmentation",
-        "robot_example",
-        "amodal_completion"
-      ],
-      "usefulness": "Paper metadata and claims mention robot examples; useful for judging segmentation completeness.",
-      "status": "manual_review"
-    },
-    {
-      "source_url": "https://segeval.cs.princeton.edu/",
-      "title": "A Benchmark for 3D Mesh Segmentation",
-      "publisher_or_site": "Princeton Shape Benchmark / segeval",
-      "access_date": "2026-06-19",
-      "license_or_cost_label": "manual_review",
-      "domain_tags": [
-        "mesh_segmentation_benchmark",
-        "part_metrics",
-        "evaluation"
-      ],
-      "usefulness": "Provides quantitative segmentation evaluation concepts for deciding whether generated robot parts are mechanically meaningful.",
-      "status": "manual_review"
-    },
-    {
-      "source_url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC4281271/",
-      "title": "Multiview stereo and silhouette fusion via minimizing generalized reprojection error",
-      "publisher_or_site": "PubMed Central",
-      "access_date": "2026-06-19",
-      "license_or_cost_label": "direct_free",
-      "domain_tags": [
-        "silhouette_consistency",
-        "3d_reconstruction_metrics",
-        "shape_fidelity"
-      ],
-      "usefulness": "Useful background for a silhouette-based fidelity gate before rigging.",
-      "status": "candidate"
-    },
-    {
-      "source_url": "https://blenderartists.org/t/how-to-rig-character-with-separate-geo-for-limbs/1514095",
-      "title": "How to Rig Character with Separate Geo for Limbs?",
-      "publisher_or_site": "Blender Artists",
-      "access_date": "2026-06-19",
-      "license_or_cost_label": "direct_free_metadata",
-      "domain_tags": [
-        "mechanical_rigging",
-        "separate_mesh_parts",
-        "hard_surface"
-      ],
-      "usefulness": "Practical confirmation that mechanical rigs should often use separate mesh objects parented to bones instead of soft weights.",
-      "status": "candidate"
-    },
-    {
-      "source_url": "https://blender.stackexchange.com/questions/221830/how-would-i-combine-hard-surfaces-and-soft-surfaces-for-rigging-a-robot",
-      "title": "How would I combine hard surfaces and soft surfaces for rigging a robot?",
-      "publisher_or_site": "Blender StackExchange",
-      "access_date": "2026-06-19",
-      "license_or_cost_label": "direct_free_metadata",
-      "domain_tags": [
-        "robot_rigging",
-        "hard_surface",
-        "vertex_groups"
-      ],
-      "usefulness": "Practical rigging notes for mixed hard/soft robot components; useful for avoiding arm collapse artifacts.",
-      "status": "candidate"
-    }
-  ],
-  "last_immediate_search_run": {
-    "ran_at": "2026-06-19T12:27:13.139579+09:00",
-    "reason": "User approved urgent targeted searches and broader new-site discovery for the current mecha reference-fidelity/rigging bottleneck.",
-    "queries_run": [
-      "hard surface robot image to 3D reference fidelity benchmark mesh segmentation mechanical rigging",
-      "image to 3D reconstruction hard surface object part segmentation silhouette consistency metric",
-      "robot mesh segmentation mechanical rigging hard surface Blender separate parts",
-      "PartCrafter HoloPart image to 3D part segmentation robot mesh"
-    ],
-    "candidate_count_added_or_seen": 7,
-    "verdict": "ADOPT_PARTIAL: keep metadata-first candidates; use direct-free material only after license/access check."
   }
 }

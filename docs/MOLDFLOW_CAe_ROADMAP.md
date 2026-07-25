@@ -315,3 +315,20 @@ python scripts/cae_te_paraview_capture.py --trial-id moldflow-p2-vof-003 --send-
 - `clawstack_v2/docs/knowledge/Moldflow_Knowledge.md`
 - `docs/SATELLITE_CAE_ONE_SHOT_RUNBOOK.md`
 - Engine: `scripts/cae_te_engine.py`, gates: `scripts/cae_self_growth_gates.py`
+
+## Solver landscape decision (2026-07-08)
+
+Commercial resin-flow solvers exist and should be treated as benchmark and
+correlation references, not as evidence that this OpenFOAM proxy is already
+equivalent.
+
+- Autodesk Moldflow: injection/compression molding, cooling, warpage, material/process insights.
+- Moldex3D: true-3D molding flow, weldline, short-shot, air-trap, thermal/warpage scope.
+- SIGMASOFT Virtual Molding: full-mold thermal-cycle and process optimization scope.
+- OpenFOAM: open CFD toolbox used here as an internal proxy requiring our own mesh, material, boundary-condition, KPI, and validation layer.
+
+Canonical source map: `data/workspace/moldflow_solver_landscape.json`.
+
+Immediate rule: generated `resin_fill_cool` demos should use the safe thermal
+proxy path (`bounded_alpha=true`, `viscosity_model=const`) until the WLF thermo
+path has a separate benchmark.

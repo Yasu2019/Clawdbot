@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-19T18:55:46.478213+09:00",
+  "generatedAt": "2026-07-14T20:57:40.475065+09:00",
   "runtime": {
     "mode": "local-first",
     "roles": {
@@ -170,36 +170,38 @@
     "registered_local_models": []
   },
   "telegram": {
-    "reply_model": "qwen3-nothink:latest",
-    "reply_model_installed": true,
+    "reply_model": "google/gemini-2.5-flash",
+    "reply_model_installed": false,
     "state": "idle",
-    "pid": 24152,
-    "updatedAt": "2026-06-19T09:55:37.959Z",
+    "pid": 14464,
+    "updatedAt": "2026-07-14T11:57:25.485Z",
     "lastChatId": "8173025084"
   },
   "ollama": {
     "models": [
+      "moondream:latest",
+      "qwen2.5-coder:32b-instruct-q3_K_M",
+      "qwen2.5-coder:14b",
       "nomic-embed-text:latest",
       "qwen3:14b",
       "qwen3-nothink:latest",
       "qwen3:8b"
     ],
-    "count": 4
+    "count": 7
   },
   "recentActivity": {
-    "files_scanned": 3,
+    "files_scanned": 4,
     "ollama_errors": 0,
-    "fallback_provider_calls": 10,
+    "fallback_provider_calls": 4,
     "providers_seen": [
+      "openclaw",
       "openai",
-      "google",
-      "ollama"
+      "google"
     ],
     "models_seen": [
+      "delivery-mirror",
       "opencode-go/deepseek-v4-flash",
-      "opencode-go-research",
-      "gemini-2.5-flash",
-      "qwen3:8b"
+      "gemini-2.5-flash"
     ],
     "latest_error": null
   },

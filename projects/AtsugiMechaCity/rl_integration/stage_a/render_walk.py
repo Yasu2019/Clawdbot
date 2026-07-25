@@ -42,13 +42,27 @@ ac.load_state_dict(torch.load(CKPT, weights_only=True))
 print("policy:", CKPT)
 
 qpos0 = robot.get_qpos().clone()
-stand_z = 0.44
-phase = torch.zeros(1, device="cuda")
-prev_pos = qpos0[:, :3].clone(); prev_quat = qpos0[:, 3:7].clone()
+# 2026-07-20 初期状態パリティ修正(.bak_initparity_20260720):
+# 旧実装は stand_z=0.44 ハードコード + 棒立ち(全関節0)開始で、訓練環境
+# (Env.reset: 参照歩容へ関節スナップ + 実測settle stand_z)と分布が異なり、
+# 方策が未経験の状態から開始→即後方転倒していた(walk_auto cycle1/2で実証)。
+# 訓練Env.__init__/reset()と同一手順に揃える。判定式・スキーマは不変更。
+idx0 = torch.arange(1, device="cuda")
+for _ in range(300):                     # settle: 接地平衡で実測stand_z(訓練と同一)
+    sc.step()
+stand_z = float(robot.get_qpos()[:, 2].mean())
+print(f"stand_z(settled)={stand_z:.3f} (was hardcoded 0.44)")
+phase = torch.zeros(1, device="cuda")    # phase=0は訓練開始分布(random)内の決定的代表点
+robot.set_qpos(qpos0[idx0], envs_idx=idx0, zero_velocity=True)
+robot.set_dofs_position(T.gait_reference(phase), dofs_idx_local=dof_idx,
+                        envs_idx=idx0, zero_velocity=True)
+qp_init = robot.get_qpos()
+prev_pos = qp_init[:, :3].clone(); prev_quat = qp_init[:, 3:7].clone()
 lin_vel = torch.zeros(1, 3, device="cuda"); ang_vel = torch.zeros(1, 3, device="cuda")
 steps = torch.zeros(1, device="cuda")
-x0 = T.FWD_SIGN * qpos0[:, T.FWD_AXIS]
+x0 = T.FWD_SIGN * qp_init[:, T.FWD_AXIS]
 min_z, min_upright = 10.0, 1.0
+first_fall_step = None   # 2026-07-20: 「歩行後の転倒」と「即転倒(ダイブ)」の判別用
 
 
 def obs():
@@ -84,6 +98,9 @@ with torch.no_grad():
         min_upright = min(min_upright, float((-grav[0, 2]).clamp(0, 1)))
         dz = float(T.terrain_dz(qp[:, T.FWD_AXIS], TERRAIN)[0])
         min_z = min(min_z, float(qp[0, 2]) - dz)   # 地形期待高さ差し引きの実効高
+        if first_fall_step is None and \
+           ((float(qp[0, 2]) - dz < stand_z - 0.20) or (min_upright < 0.5)):
+            first_fall_step = step + 1
         o = obs()
         if step % 24 == 0 or step == STEPS - 1:
             y = qp[0, 1].item()
@@ -95,6 +112,9 @@ with torch.no_grad():
 travel = float(T.FWD_SIGN * (qp[0, T.FWD_AXIS] - qpos0[0, T.FWD_AXIS]))
 fell = (min_z < stand_z - 0.20) or (min_upright < 0.5)
 check = {"schema": "clawstack.walk_check.v1", "ckpt": CKPT, "terrain": TERRAIN,
+         "stand_z_settled": round(stand_z, 3), "init": "ref_pose_snap_parity_20260720",
+         "first_fall_sec": (round(first_fall_step * T.DT_SIM * T.DECIMATION, 2)
+                            if first_fall_step is not None else None),
          "final_travel": round(travel, 3), "fell": fell,
          "min_z": round(min_z, 3), "min_upright": round(min_upright, 3),
          "steps": STEPS, "seconds": STEPS * T.DT_SIM * T.DECIMATION}

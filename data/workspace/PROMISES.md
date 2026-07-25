@@ -9,6 +9,8 @@
 | ID | 約束内容 | ステータス |
 |----|---------|----------|
 | **P025** | **意味のある自己成長のみ（T019）:** あらゆる活動の前に「物理の真実」「カテゴリ/ソルバ整合」「北極星KPI」「無意味な繰り返しでないか」を確認する。1秒1秒が最終目標に寄与しているかを問う。**最終目標:** ユーザー提供のプレス部品3Dモデルから、**Moldflow級キャビティ充填**・**Cetol 6 Sigma級公差**・**OpenRadioss曲げ/打ち抜き**を正しく実行し、**順送金型開発**を完遂できること。`resin_flow`（薄管icoFoam）で充填を代替しない。Telegramは2D \|U\|ではなくVOF 3D充填MP4等、North Starに直結する成果のみ。詳細: `docs/cae_north_star_and_meaning_gate_protocol.md` / `trouble_history.md` [T019] / Beads `cae-north-star-t019`。 | ✅ 有効（2026-06-02 定着） |
+| **P025-R1** | **意味ゲート停止時の自動改善（2026-07-18 ユーザー指示による改訂）:** 意味ゲート停止時の「人間承認待ち」を廃止し、**AI自動改善サイクル**に置換: ①失敗証拠収集 → ②ローカルLLM(qwen3:14b)が原因分析+ホワイトリスト内パラメータ修正 → ③2回連続で改善なしなら deepseek-v4-pro へ自動昇格 → ④適用+自動再開。Telegram通知は非ブロッキング。**物理ゲート・FAKE_GROWTH監査・P026進化ゲートは無変更**（合否判定は物理のまま。LLMは修正考案のみ）。適用上限: トラック毎24hに5回。実装: `scripts/meaning_gate_auto_improver.py` / ledger: `meaning_gate_auto_improver_ledger.jsonl` / タスク: `Clawstack_MeaningGate_AutoImprover` (10分毎)。 | ✅ 有効（2026-07-18） |
+| **P026** | **試行ごとの進化必須（全Job）:** OpenFOAM・OpenRadioss・FEM Impact・DXF2STEPループ含む**すべてのCAE試行**で、同一トラックの直前試行と比べ**パラメータまたはKPIに可測の変化**がなければ SUCCESS 禁止（`FAILED_NO_EVOLUTION`）。FEM のキャッシュ再利用のみ SUCCESS 禁止。Moldflow は `fill_complete` 必須。VOF アニメは iso/top/side 複数角度。実装: `scripts/cae_trial_evolution_gate.py` / `.cursor/rules/cae_trial_evolution_mandatory.mdc` / bd `cae-trial-evolution-mandatory-p026`。 | ✅ 有効（2026-06-27 定着） |
 
 ---
 

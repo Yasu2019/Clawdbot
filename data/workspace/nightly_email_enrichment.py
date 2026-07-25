@@ -31,7 +31,7 @@ OLLAMA_HOST = "ollama:11434"
 QDRANT_HOST = "qdrant:6333"
 INFINITY_URL = "http://localhost:7997/embeddings" # Mapped to host
 
-DEFAULT_MODEL = "qwen3:8b" # Faster for CPU nightly batches
+DEFAULT_MODEL = "qwen2.5:14b" # High-accuracy 14B model for RTX 5060 Ti 16GB
 EMBED_MODEL = "mixedbread-ai/mxbai-embed-large-v1"
 COLLECTION = "email_analysis_enriched"
 

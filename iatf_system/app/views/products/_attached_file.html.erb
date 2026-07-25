@@ -9,9 +9,9 @@
           <!-- ダウンロードの前にパスワードの確認へリダイレクト -->
           
 <!--
-          <td><%= link_to image_tag(icon),             product_verify_password_product_path(id: image.record.id, blob_id: image.blob.id), class: 'infoicon', data: { toggle: 'tooltip' }, title: image.blob.filename %></td>
+          <td><%= link_to image_tag(asset_path(icon)),             product_verify_password_product_path(id: image.record.id, blob_id: image.blob.id), class: 'infoicon', data: { toggle: 'tooltip' }, title: image.blob.filename %></td>
 -->
-          <td><%= link_to image_tag(asset_path(icon)), product_verify_password_product_path(id: image.record.id, blob_id: image.blob.id), class: 'infoicon', data: { toggle: 'tooltip' }, title: image.blob.filename %></td>
+          <td><%= link_to image_tag(icon), product_verify_password_product_path(id: image.record.id, blob_id: image.blob.id), class: 'infoicon', data: { toggle: 'tooltip' }, title: image.blob.filename %></td>
 
         <% else %>
           <td><%= "  " %></td>

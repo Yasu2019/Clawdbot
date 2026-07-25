@@ -1,4 +1,6 @@
 $ErrorActionPreference = "Stop"
+. (Join-Path $PSScriptRoot "startup_orchestrator_guard.ps1")
+if (Test-ClawdbotOrchestratorMode) { Write-OrchestratorSkipMessage "install_paperless_rag_watchdog_startup"; exit 0 }
 
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $startupDir = Join-Path $env:APPDATA "Microsoft\Windows\Start Menu\Programs\Startup"

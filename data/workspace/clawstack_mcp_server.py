@@ -383,6 +383,80 @@ def email_tasks(
         return f"[ERROR] email_tasks failed: {e}"
 
 
+@mcp.tool()
+def beads_search(
+    query: str,
+    limit: int = 5,
+) -> str:
+    """
+    Search the Beads database (issues.jsonl) for tasks, bugs, or memories matching the query keywords.
+    Use this when the user asks about specific tasks, issue IDs (like V50, INC-132), or project memories.
+    
+    Args:
+        query: Keywords or issue IDs to search for.
+        limit: Maximum number of results to return.
+    """
+    # Primary: flat file copy of issues.jsonl inside the workspace volume (accessible in mcp-bridge)
+    db_path = "/app/workspace/.beads_issues.jsonl"
+    if not os.path.exists(db_path):
+        db_path = "/app/beads/issues.jsonl"  # direct Docker volume mount (after compose recreate)
+    if not os.path.exists(db_path):
+        db_path = "/app/workspace/.beads/issues.jsonl"
+    if not os.path.exists(db_path):
+        db_path = "/workspace/.beads/issues.jsonl"
+    if not os.path.exists(db_path):
+        db_path = "/home/node/clawd/.beads/issues.jsonl"
+        if not os.path.exists(db_path):
+            return f"[ERROR] Beads database not found (tried /app/workspace/.beads_issues.jsonl, /app/beads, /app/workspace/.beads, /workspace/.beads, /home/node/clawd/.beads)"
+            
+    limit = min(max(int(limit), 1), 20)
+    keywords = [k.lower() for k in query.split() if k]
+    if not keywords:
+        return "No query keywords provided."
+        
+    results = []
+    try:
+        with open(db_path, "r", encoding="utf-8") as f:
+            for line in f:
+                if not line.strip():
+                    continue
+                try:
+                    item = json.loads(line)
+                    text_to_search = " ".join([
+                        str(item.get("id", "")),
+                        str(item.get("title", "")),
+                        str(item.get("description", "")),
+                        str(item.get("notes", "")),
+                        str(item.get("status", ""))
+                    ]).lower()
+                    
+                    if all(k in text_to_search for k in keywords):
+                        results.append(item)
+                except Exception:
+                    continue
+    except Exception as e:
+        return f"[ERROR] Failed to read Beads database: {e}"
+        
+    if not results:
+        return f"No issues or memories found matching keywords: {query}"
+        
+    results = results[:limit]
+    
+    lines = [f"## Beads Database Search Results for '{query}' ({len(results)} items found):\n"]
+    for idx, item in enumerate(results, 1):
+        lines.append(f"### [{idx}] ID: {item.get('id')} | Type: {item.get('_type')} | Status: {item.get('status')}")
+        lines.append(f"**Title**: {item.get('title')}")
+        if item.get('description'):
+            lines.append(f"**Description**: {item.get('description')}")
+        if item.get('notes'):
+            lines.append(f"**Notes**: {item.get('notes')}")
+        if item.get('close_reason'):
+            lines.append(f"**Close Reason**: {item.get('close_reason')}")
+        lines.append("")
+        
+    return "\n".join(lines)
+
+
 if __name__ == "__main__":
     port = int(os.getenv("MCP_PORT", "9876"))
     print(f"[clawstack-mcp] Starting streamable-http on 0.0.0.0:{port}", flush=True)

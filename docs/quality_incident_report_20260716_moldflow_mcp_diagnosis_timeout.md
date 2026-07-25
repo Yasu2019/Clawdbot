@@ -171,3 +171,24 @@ duplicate.
 The repair call and save are proven. The remaining overlap/intersection count is
 not proven through MCP and must be checked independently in the Moldflow Mesh
 Statistics UI before analysis.
+
+## Visual quality gate result
+
+The user visually inspected `Moldflow_study (copy 2)` and reported a hole in the
+mesh after AutoFix.
+
+- The COM operation succeeded technically, but the repaired geometry failed the
+  physical/visual quality gate.
+- `AUTOFIX_REMOVED=580` must not be interpreted as a successful mesh repair.
+- AutoFix likely removed intersecting/overlapping triangles without restoring a
+  closed surface.
+- `Moldflow_study (copy 2)` is prohibited as an analysis input.
+- The original `moldflow_study` was not the AutoFix target and remains the
+  rollback source.
+
+### Revised decision rule
+
+IF `MeshEditor.AutoFix()` reports removed elements, THEN require an independent
+closed-surface or visual hole check before declaring success, BECAUSE defect
+removal can create missing surface triangles. Never start Fill, Pack, Cool, or
+Warp on an AutoFix copy with visible holes.

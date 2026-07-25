@@ -1,56 +1,17 @@
 # Storage Cleanup Candidates
 
-- Updated: 2026-06-13T04:22:43.973835+09:00
-- Candidates: 143
-- Total size: 30.94 GB
+- Updated: 2026-06-21T06:45:29.201022+09:00
+- Candidates: 11
+- Total size: 3.18 GB
 
-- `vscode-stable-user-x64` | temp | 0.131 GB | 69 days | archive_delete
-- `DiagOutputDir` | temp | 0.046 GB | 69 days | archive_delete
-- `gkinstall34032641` | temp | 0.011 GB | 69 days | archive_delete
-- `46dcb86e-2ab6-423c-8373-56623616013f.tmp.js` | temp | 0.003 GB | 69 days | archive_delete
-- `node-compile-cache` | temp | 0.002 GB | 69 days | archive_delete
-- `023842f8-0bdc-47fb-b692-5ba736ab4dc7.tmp.ico` | temp | 0.0 GB | 69 days | archive_delete
-- `062e109b-5073-4099-b666-c2ce8c386b35.tmp.ico` | temp | 0.0 GB | 69 days | archive_delete
-- `087b81a9-5717-4af3-9e86-97af13f266ea.tmp.ico` | temp | 0.0 GB | 69 days | archive_delete
-- `0c07b771-2f33-429c-b039-ee990632f57e.tmp.ico` | temp | 0.0 GB | 69 days | archive_delete
-- `21afd9f2-ff73-4985-a58e-5be08f98ac49.tmp.ico` | temp | 0.0 GB | 69 days | archive_delete
-- `309c10da-8db8-440f-a1ae-ef44635250a1.tmp.ico` | temp | 0.0 GB | 69 days | archive_delete
-- `328a0246-e079-436d-9dc5-b9aad745a7c8.tmp.ico` | temp | 0.0 GB | 69 days | archive_delete
-- `58a69112-d739-4864-aded-91fd7fe77e05.tmp.ico` | temp | 0.0 GB | 69 days | archive_delete
-- `5bf24542-67a4-4b82-8a9d-de17e09e550a.tmp.ico` | temp | 0.0 GB | 69 days | archive_delete
-- `5e444c93-be41-4208-ad16-47f74ef0bb0c.tmp.ico` | temp | 0.0 GB | 69 days | archive_delete
-- `680cce17-c290-4d93-acba-c41724f5d744.tmp.ico` | temp | 0.0 GB | 69 days | archive_delete
-- `6c4b4ea1-a845-4379-841c-864f3644bb55.tmp.ico` | temp | 0.0 GB | 69 days | archive_delete
-- `6fa3c353-805b-4a54-9eb2-57c3018ef916.tmp.ico` | temp | 0.0 GB | 69 days | archive_delete
-- `7014f493-4013-4aad-b0bb-fe840fbe7780.tmp.ico` | temp | 0.0 GB | 69 days | archive_delete
-- `7075a980-66c0-4438-bc24-4f6d3b5dbdbb.tmp.ico` | temp | 0.0 GB | 69 days | archive_delete
-- `75ba4437-a6cf-4ee2-b00e-58e9e2d4d17b.tmp.ico` | temp | 0.0 GB | 69 days | archive_delete
-- `7eba74fd-2926-4aa4-af86-081481a35091.tmp.ico` | temp | 0.0 GB | 69 days | archive_delete
-- `82e43fae-76d1-4a9d-b696-1cef74214527.tmp.ico` | temp | 0.0 GB | 69 days | archive_delete
-- `9930e66c-78e2-48dc-ad3f-89f2566224c3.tmp.ico` | temp | 0.0 GB | 69 days | archive_delete
-- `a8f283ea-7d39-405e-b8a8-1a27309ff204.tmp.ico` | temp | 0.0 GB | 69 days | archive_delete
-- `aca1134a-122b-4dcc-9a83-47da5efa3c2c.tmp.ico` | temp | 0.0 GB | 69 days | archive_delete
-- `c873ec2f-bb48-41b0-bbf8-a38ff9987ee1.tmp.ico` | temp | 0.0 GB | 69 days | archive_delete
-- `cf5666fd-a305-4c22-ad97-9e2c202e9760.tmp.ico` | temp | 0.0 GB | 69 days | archive_delete
-- `d21a7be9-4439-414f-87d2-d02ed0fef45a.tmp.ico` | temp | 0.0 GB | 69 days | archive_delete
-- `db5200b1-de63-4157-a0d3-5ac443e7ee0c.tmp.ico` | temp | 0.0 GB | 69 days | archive_delete
-- `e7cb5c4b-a03f-45bc-ad12-9253c80e8ad8.tmp.ico` | temp | 0.0 GB | 69 days | archive_delete
-- `ecb9990f-f9f9-4782-be2a-d696137fd35f.tmp.ico` | temp | 0.0 GB | 69 days | archive_delete
-- `ecf26c71-ea9e-4b1b-828a-14d38b8613e3.tmp.ico` | temp | 0.0 GB | 69 days | archive_delete
-- `f74a091f-093a-4a20-b0b3-35b4f1001e76.tmp.ico` | temp | 0.0 GB | 69 days | archive_delete
-- `fa935871-ed4c-4a54-95e2-faba164c4e39.tmp.ico` | temp | 0.0 GB | 69 days | archive_delete
-- `claude` | temp | 0.0 GB | 69 days | archive_delete
-- `gitkraken` | temp | 0.0 GB | 69 days | archive_delete
-- `system-commandline-sentinel-files` | temp | 0.0 GB | 69 days | archive_delete
-- `ruby-lsp` | temp | 0.0 GB | 69 days | archive_delete
-- `reek` | temp | 0.0 GB | 69 days | archive_delete
-- `rubocop` | temp | 0.0 GB | 69 days | archive_delete
-- `ruby` | temp | 0.0 GB | 69 days | archive_delete
-- `Setup Log 2026-04-01 #001.txt` | temp | 0.002 GB | 68 days | archive_delete
-- `test_part.dxf` | temp | 0.0 GB | 68 days | archive_delete
-- `exthost-a98f38.cpuprofile` | temp | 0.0 GB | 68 days | archive_delete
-- `test_part.stp` | temp | 0.0 GB | 68 days | archive_delete
-- `cookies.txt` | temp | 0.0 GB | 68 days | archive_delete
-- `pdie_jid.txt` | temp | 0.0 GB | 68 days | archive_delete
-- `pdie_jobid.txt` | temp | 0.0 GB | 68 days | archive_delete
-- `jid.txt` | temp | 0.0 GB | 68 days | archive_delete
+- `email_db_integrity_ckr9glle` | temp | 0.602 GB | 71 days | archive_delete
+- `email_db_integrity_ygqtbo0l` | temp | 0.602 GB | 71 days | archive_delete
+- `node-compile-cache` | temp | 0.001 GB | 71 days | archive_delete
+- `unleash-repo-schema-v1-codeium-language-server.json` | temp | 0.0 GB | 71 days | archive_delete
+- `RtmpSivTXN` | temp | 0.0 GB | 71 days | archive_delete
+- `claude` | temp | 0.0 GB | 71 days | archive_delete
+- `cv_debug.log` | temp | 0.0 GB | 71 days | archive_delete
+- `.ses` | temp | 0.0 GB | 71 days | archive_delete
+- `Rscript6a88117ed3c5` | temp | 0.0 GB | 71 days | archive_delete
+- `Rscript6cb8117ed3d5` | temp | 0.0 GB | 71 days | archive_delete
+- `20260601` | relief_archive | 1.973 GB | 19 days | archive

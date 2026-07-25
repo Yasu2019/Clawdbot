@@ -1,4 +1,6 @@
 $ErrorActionPreference = "Stop"
+. (Join-Path $PSScriptRoot "startup_orchestrator_guard.ps1")
+if (Test-ClawdbotOrchestratorMode) { Write-OrchestratorSkipMessage "install_continuous_system_improvement_startup"; exit 0 }
 
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $taskNameLogon = "ClawdbotContinuousSystemImprovementLogon"

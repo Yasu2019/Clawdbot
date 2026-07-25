@@ -2,6 +2,7 @@
 # SECRETS & API KEYS (絶対に除外)
 # ============================================================
 .env
+.env.*
 clawstack_v2/secrets/
 data/state/credentials/
 data/state/devices/
@@ -19,6 +20,10 @@ data/state/claude.json
 data/state/claude_config/
 .claude/settings.local.json
 .brv/
+backups/
+**/auth_state.json
+**/credentials*.json
+**/inspect_*.json
 
 # ============================================================
 # RUNTIME DATA (大容量・動的データ、Git管理不要)
@@ -142,12 +147,37 @@ data/workspace/apps/**/venv/
 temp_*/
 tmp_*/
 .tmp_*/
+.tmp/
+shannon_test_target/
+temp_production/
+vnccs_comfyui_clawstack_pro/ComfyUI_app/
+ZIP_Group/molmo-motion/
+services/comfyui/custom_nodes/
 
 # Large Archives
 *.zip
 *.tar.gz
 *.7z
 *.rar
+
+# Heavy Service & Data Directories
+services/comfyui/
+services/asset_fetcher/
+services/plateau_fetcher/
+services/rv6_img2img/
+services/ai_image_gen/models/
+services/ai_image_gen/outputs/
+tools/
+udx/
+ue5-mcp-pack/
+vnccs_comfyui_clawstack_pro/
+
+# CAD & Data Folders
+【*】*
+完全成功_*
+本厚木/
+納入仕様書/
+製造工程設計計画/
 
 # Python cache
 **/__pycache__/
@@ -165,3 +195,4 @@ services/ai_image_gen/outputs/
 .dolt/
 *.db
 .beads-credential-key
+node_modules

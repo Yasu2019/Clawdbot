@@ -1,7 +1,7 @@
 {
   "schema": "clawstack.robot_l20_motion_trials.v1",
-  "generated_at": "2026-06-20T07:41:45.647477+00:00",
-  "seed_base": 20328223,
+  "generated_at": "2026-07-18T20:36:49.464212+00:00",
+  "seed_base": 51203623,
   "baseline_count": 128,
   "refine_top": 16,
   "target_level": "L20",
@@ -9,7 +9,7 @@
   "trials_run": 166,
   "best_score": 100,
   "best_verdict": "L20_CANDIDATE",
-  "l20_candidate_count": 40,
+  "l20_candidate_count": 41,
   "tasks": [
     "walk",
     "door",
@@ -23,21 +23,38 @@
     "metrics": {
       "motion_naturalness_mean": 0.96,
       "task_success_rate": 0.98,
-      "walk_arm_leg_phase_error_deg": 4.09,
-      "walk_foot_sliding_m": 0.0049,
-      "door_hand_target_error_m": 0.0179,
-      "door_torso_twist_deg": 11.17,
-      "sit_knee_hip_sync_error": 0.069,
-      "sit_com_support_margin_m": 0.045,
-      "stair_foot_clearance_m": 0.0939,
-      "factory_pick_hand_target_error_m": 0.015,
+      "walk_arm_leg_phase_error_deg": 3.78,
+      "walk_foot_sliding_m": 0.0034,
+      "door_hand_target_error_m": 0.0152,
+      "door_torso_twist_deg": 11.73,
+      "sit_knee_hip_sync_error": 0.061,
+      "sit_com_support_margin_m": 0.0354,
+      "stair_foot_clearance_m": 0.0887,
+      "factory_pick_hand_target_error_m": 0.0145,
       "factory_pick_clearance_m": 0.075,
-      "jerk_norm": 0.175,
-      "collision_rate": 0.011,
+      "jerk_norm": 0.181,
+      "collision_rate": 0.018,
+      "therblig_label_coverage_pct": 99.0,
+      "effective_therblig_ratio": 0.91,
+      "non_effective_therblig_share": 0.099,
+      "nva_time_ratio": 0.099,
+      "ecrs_improvement_pct": 28.0,
+      "most_sequence_valid": 1.0,
+      "most_index_error_pct": 4.0,
+      "most_cycle_efficiency_pct": 98.0,
+      "workstudy_export_ready": 1.0,
+      "parallel_therblig_rollout_count": 66,
+      "therblig_task_scores": {
+        "walk": 97.7,
+        "door": 93.5,
+        "sit_stand": 94.5,
+        "stairs": 100.0,
+        "factory_pick": 100.0
+      },
       "task_scores": {
-        "walk": 92.6,
-        "door": 92.5,
-        "sit_stand": 96.9,
+        "walk": 93.7,
+        "door": 93.6,
+        "sit_stand": 96.5,
         "stairs": 100.0,
         "factory_pick": 100.0
       }
@@ -45,7 +62,284 @@
     "score": 100,
     "verdict": "L20_CANDIDATE",
     "violations": [],
-    "corrections": []
+    "corrections": [],
+    "ie_verdict": "L40_IE_MASTER",
+    "therblig_most": {
+      "score": 100,
+      "verdict": "L40_IE_MASTER",
+      "violations": [],
+      "corrections": [],
+      "rules_loaded": [
+        {
+          "id": "effective_therblig_ratio_gate",
+          "priority": 1,
+          "metric": "effective_therblig_ratio",
+          "rule": "Value-adding therbligs (Reach, Grasp, Move, Use, Assemble, Release) should dominate non-effective waste.",
+          "motion_use": "Penalize Search, Select, Hold, Avoidable Delay in robot factory and household tasks.",
+          "source_ids": [
+            "funai_therblig_column_8286"
+          ]
+        },
+        {
+          "id": "factory_task_curriculum",
+          "priority": 1,
+          "metric": "cycle_success_safety_and_alignment",
+          "rule": "Factory robot policies must track task success together with safety-zone, collision, force, alignment, and cycle-time constraints.",
+          "motion_use": "Add separate factory reward terms for fixture alignment, part handling, safety-zone avoidance, and failed-grasp recovery.",
+          "source_ids": [
+            "ros_industrial_home",
+            "ros_industrial_training_docs"
+          ]
+        },
+        {
+          "id": "foot_contact_lock",
+          "priority": 1,
+          "metric": "stance_foot_world_velocity",
+          "rule": "When a foot is in stance phase, world-space foot translation should be near zero unless intentional slip is authored.",
+          "motion_use": "Lock planted foot, solve pelvis/knee with IK, and release at toe-off.",
+          "source_ids": [
+            "pmc_heel_contact_toe_off",
+            "durus_dynamic_efficient_bipedal_locomotion"
+          ]
+        },
+        {
+          "id": "household_task_curriculum",
+          "priority": 1,
+          "metric": "task_success_by_curriculum_stage",
+          "rule": "Household autonomy should progress from approach and posture tasks to long-horizon object-state tasks.",
+          "motion_use": "Score simple robot tasks as walk -> reach -> open/close -> sit/stand -> multi-step kitchen or care assistance.",
+          "source_ids": [
+            "behavior_1k_project",
+            "behavior_1k_pmlr",
+            "robocasa_project"
+          ]
+        },
+        {
+          "id": "ik_continuity_gate",
+          "priority": 1,
+          "metric": "joint_angle_delta",
+          "rule": "IK corrections must preserve temporal continuity; knee/ankle/hip jumps are worse than mild pose error.",
+          "motion_use": "Use bounded per-frame joint deltas and smooth correction weights across contact phases.",
+          "source_ids": [
+            "rss_multicontact_feasibility",
+            "mit_littledog_dynamic_ik"
+          ]
+        },
+        {
+          "id": "most_sequence_encoding_gate",
+          "priority": 1,
+          "metric": "most_sequence_valid",
+          "rule": "Factory manipulation tasks must map to valid MOST General Move / Hand Move sequences with TMU totals.",
+          "motion_use": "Encode pick/place as reach-grasp-move-position-release; compare indices to Sandin sequence method.",
+          "source_ids": [
+            "most_sandin_textbook"
+          ]
+        },
+        {
+          "id": "most_standard_time_gate",
+          "priority": 1,
+          "metric": "most_cycle_efficiency_pct",
+          "rule": "Rollout cycle time should approach MOST-derived standard time before L39/L40 promotion.",
+          "motion_use": "Use standard-time ratio as a curriculum gate alongside task success and collision safety.",
+          "source_ids": [
+            "most_sandin_textbook"
+          ]
+        },
+        {
+          "id": "sim_to_edge_deployment_gate",
+          "priority": 1,
+          "metric": "edge_policy_safety_readiness",
+          "rule": "Real robot deployment requires a restricted edge controller, emergency stop, speed/force limits, and simulator-to-hardware validation.",
+          "motion_use": "Convert learned behaviors into Raspberry Pi/ROS 2/microcontroller profiles only after offline replay and safety gates pass.",
+          "source_ids": [
+            "micro_ros_overview",
+            "raspberry_pi_ai_kit"
+          ]
+        },
+        {
+          "id": "support_polygon_gate",
+          "priority": 1,
+          "metric": "projected_com_inside_support_polygon",
+          "rule": "During stance or double support, projected CoM should remain within the support polygon plus a small visual tolerance.",
+          "motion_use": "Reject or correct frames where the character appears to tip despite planted feet.",
+          "source_ids": [
+            "mit_underactuated_humanoids",
+            "sardain_bessonnet_cop_zmp",
+            "dekker_zmp_stable_biped"
+          ]
+        },
+        {
+          "id": "therblig_recognition_gate",
+          "priority": 1,
+          "metric": "therblig_label_coverage_pct",
+          "rule": "Decompose each robot task rollout into the 18 therblig elements before scoring cycle efficiency.",
+          "motion_use": "Label reach/grasp/move/use phases on door, pick, and walk tasks; block promotion when coverage is low.",
+          "source_ids": [
+            "funai_therblig_column_8286",
+            "most_sandin_textbook"
+          ]
+        },
+        {
+          "id": "vectorized_experience_collection",
+          "priority": 1,
+          "metric": "parallel_rollout_count",
+          "rule": "Many robots/environments should collect short rollouts in parallel, while only selected episodes are rendered for human review.",
+          "motion_use": "Train headless at scale, then export score, success/NG, collision, energy, and GIF/GLB evidence for dashboard inspection.",
+          "source_ids": [
+            "isaac_lab_robot_learning_docs",
+            "unity_ml_agents_docs"
+          ]
+        },
+        {
+          "id": "ecrs_waste_reduction_gate",
+          "priority": 2,
+          "metric": "ecrs_improvement_pct",
+          "rule": "Apply ECRS: Eliminate search/select, Combine hold+position, Rearrange pre-position, Simplify tool use.",
+          "motion_use": "Suggest fixture layout, bin organization, and pre-positioning before RL fine-tuning.",
+          "source_ids": [
+            "funai_therblig_column_8286"
+          ]
+        },
+        {
+          "id": "heel_toe_phase",
+          "priority": 2,
+          "metric": "heel_strike_toe_off_timing",
+          "rule": "A walking step reads more naturally when heel contact, flat support, and toe-off phases are distinguishable.",
+          "motion_use": "Add keyframe markers or foot roll constraints around contact transitions.",
+          "source_ids": [
+            "pmc_heel_contact_toe_off"
+          ]
+        },
+        {
+          "id": "root_com_smoothing",
+          "priority": 2,
+          "metric": "root_speed_variation",
+          "rule": "Root/CoM path should be smooth and coherent with step cadence; abrupt root speed changes break walking weight.",
+          "motion_use": "Low-pass smooth pelvis/root travel and keep stride distance consistent with footfall timing.",
+          "source_ids": [
+            "kajita_preview_control_zmp",
+            "pmc_omnidirectional_walking_generator"
+          ]
+        },
+        {
+          "id": "swing_foot_clearance",
+          "priority": 2,
+          "metric": "swing_foot_clearance",
+          "rule": "Swing foot should clear the ground enough to avoid visual scraping but not float excessively.",
+          "motion_use": "Clamp swing arc to model scale and terrain height.",
+          "source_ids": [
+            "auxiliary_zmp_walking_generator",
+            "mit_littledog_dynamic_ik"
+          ]
+        },
+        {
+          "id": "workstudy_ai_bridge_gate",
+          "priority": 2,
+          "metric": "workstudy_export_ready",
+          "rule": "Therblig counts, NVA ratio, and MOST sequence summary must export for WorkStudy AI review.",
+          "motion_use": "Emit JSON/Excel-compatible therblig timeline for human IE verification on port 7870.",
+          "source_ids": [
+            "funai_therblig_column_8286",
+            "most_sandin_textbook"
+          ]
+        }
+      ],
+      "thresholds": {
+        "therblig_label_coverage_pct": 85.0,
+        "effective_therblig_ratio": 0.62,
+        "non_effective_therblig_share": 0.38,
+        "nva_time_ratio": 0.28,
+        "ecrs_improvement_pct": 8.0,
+        "most_sequence_valid": 1.0,
+        "most_index_error_pct": 12.0,
+        "most_cycle_efficiency_pct": 82.0,
+        "workstudy_export_ready": 1.0,
+        "parallel_therblig_rollout_count": 16,
+        "therblig_score_floor": 72.0,
+        "household_therblig_task_floor": 75.0,
+        "factory_most_task_floor": 78.0
+      },
+      "reference_loaded": true,
+      "level_gates": {
+        "L31": {
+          "label": "Therblig recognition",
+          "description": "Identify 18 therblig elements in robot/human motion decomposition.",
+          "required_metrics": {
+            "therblig_label_coverage_pct": 0.85
+          }
+        },
+        "L32": {
+          "label": "Effective vs non-effective ratio",
+          "description": "Raise effective therblig share; penalize Search/Select/Hold waste.",
+          "required_metrics": {
+            "effective_therblig_ratio": 0.62,
+            "non_effective_therblig_share": 0.38
+          }
+        },
+        "L33": {
+          "label": "ECRS waste reduction",
+          "description": "Apply Eliminate/Combine/Rearrange/Simplify to robot task scripts.",
+          "required_metrics": {
+            "ecrs_improvement_pct": 8.0,
+            "nva_time_ratio": 0.28
+          }
+        },
+        "L34": {
+          "label": "MOST sequence encoding",
+          "description": "Encode factory/household tasks as MOST sequences with valid TMU totals.",
+          "required_metrics": {
+            "most_sequence_valid": 1.0,
+            "most_index_error_pct": 12.0
+          }
+        },
+        "L35": {
+          "label": "Standard time benchmark",
+          "description": "Compare rollout cycle time to MOST-derived standard time.",
+          "required_metrics": {
+            "most_cycle_efficiency_pct": 82.0
+          }
+        },
+        "L36": {
+          "label": "WorkStudy AI bridge",
+          "description": "Export therblig/MOST evidence compatible with WorkStudy AI review.",
+          "required_metrics": {
+            "workstudy_export_ready": 1.0
+          }
+        },
+        "L37": {
+          "label": "Multi-robot therblig curriculum",
+          "description": "16-64 parallel robots with per-rollout therblig scoring.",
+          "required_metrics": {
+            "parallel_therblig_rollout_count": 16,
+            "therblig_score_floor": 72.0
+          }
+        },
+        "L38": {
+          "label": "Household therblig tasks",
+          "description": "Door/chair/kitchen motions decomposed and scored by therblig.",
+          "required_metrics": {
+            "household_therblig_task_floor": 75.0
+          }
+        },
+        "L39": {
+          "label": "Factory MOST benchmark",
+          "description": "Pick/place/inspect with MOST standard-time and safety-zone gates.",
+          "required_metrics": {
+            "factory_most_task_floor": 78.0,
+            "most_cycle_efficiency_pct": 88.0
+          }
+        },
+        "L40": {
+          "label": "Continuous IE optimization",
+          "description": "Measured cycle-time gains with therblig/MOST feedback loop.",
+          "required_metrics": {
+            "most_cycle_efficiency_pct": 92.0,
+            "ecrs_improvement_pct": 15.0
+          }
+        }
+      }
+    },
+    "combined_verdict": "L40_IE_MASTER"
   },
   "top_trials": [
     {
@@ -54,21 +348,38 @@
       "metrics": {
         "motion_naturalness_mean": 0.96,
         "task_success_rate": 0.98,
-        "walk_arm_leg_phase_error_deg": 4.09,
-        "walk_foot_sliding_m": 0.0049,
-        "door_hand_target_error_m": 0.0179,
-        "door_torso_twist_deg": 11.17,
-        "sit_knee_hip_sync_error": 0.069,
-        "sit_com_support_margin_m": 0.045,
-        "stair_foot_clearance_m": 0.0939,
-        "factory_pick_hand_target_error_m": 0.015,
+        "walk_arm_leg_phase_error_deg": 3.78,
+        "walk_foot_sliding_m": 0.0034,
+        "door_hand_target_error_m": 0.0152,
+        "door_torso_twist_deg": 11.73,
+        "sit_knee_hip_sync_error": 0.061,
+        "sit_com_support_margin_m": 0.0354,
+        "stair_foot_clearance_m": 0.0887,
+        "factory_pick_hand_target_error_m": 0.0145,
         "factory_pick_clearance_m": 0.075,
-        "jerk_norm": 0.175,
-        "collision_rate": 0.011,
+        "jerk_norm": 0.181,
+        "collision_rate": 0.018,
+        "therblig_label_coverage_pct": 99.0,
+        "effective_therblig_ratio": 0.91,
+        "non_effective_therblig_share": 0.099,
+        "nva_time_ratio": 0.099,
+        "ecrs_improvement_pct": 28.0,
+        "most_sequence_valid": 1.0,
+        "most_index_error_pct": 4.0,
+        "most_cycle_efficiency_pct": 98.0,
+        "workstudy_export_ready": 1.0,
+        "parallel_therblig_rollout_count": 66,
+        "therblig_task_scores": {
+          "walk": 97.7,
+          "door": 93.5,
+          "sit_stand": 94.5,
+          "stairs": 100.0,
+          "factory_pick": 100.0
+        },
         "task_scores": {
-          "walk": 92.6,
-          "door": 92.5,
-          "sit_stand": 96.9,
+          "walk": 93.7,
+          "door": 93.6,
+          "sit_stand": 96.5,
           "stairs": 100.0,
           "factory_pick": 100.0
         }
@@ -76,7 +387,284 @@
       "score": 100,
       "verdict": "L20_CANDIDATE",
       "violations": [],
-      "corrections": []
+      "corrections": [],
+      "ie_verdict": "L40_IE_MASTER",
+      "therblig_most": {
+        "score": 100,
+        "verdict": "L40_IE_MASTER",
+        "violations": [],
+        "corrections": [],
+        "rules_loaded": [
+          {
+            "id": "effective_therblig_ratio_gate",
+            "priority": 1,
+            "metric": "effective_therblig_ratio",
+            "rule": "Value-adding therbligs (Reach, Grasp, Move, Use, Assemble, Release) should dominate non-effective waste.",
+            "motion_use": "Penalize Search, Select, Hold, Avoidable Delay in robot factory and household tasks.",
+            "source_ids": [
+              "funai_therblig_column_8286"
+            ]
+          },
+          {
+            "id": "factory_task_curriculum",
+            "priority": 1,
+            "metric": "cycle_success_safety_and_alignment",
+            "rule": "Factory robot policies must track task success together with safety-zone, collision, force, alignment, and cycle-time constraints.",
+            "motion_use": "Add separate factory reward terms for fixture alignment, part handling, safety-zone avoidance, and failed-grasp recovery.",
+            "source_ids": [
+              "ros_industrial_home",
+              "ros_industrial_training_docs"
+            ]
+          },
+          {
+            "id": "foot_contact_lock",
+            "priority": 1,
+            "metric": "stance_foot_world_velocity",
+            "rule": "When a foot is in stance phase, world-space foot translation should be near zero unless intentional slip is authored.",
+            "motion_use": "Lock planted foot, solve pelvis/knee with IK, and release at toe-off.",
+            "source_ids": [
+              "pmc_heel_contact_toe_off",
+              "durus_dynamic_efficient_bipedal_locomotion"
+            ]
+          },
+          {
+            "id": "household_task_curriculum",
+            "priority": 1,
+            "metric": "task_success_by_curriculum_stage",
+            "rule": "Household autonomy should progress from approach and posture tasks to long-horizon object-state tasks.",
+            "motion_use": "Score simple robot tasks as walk -> reach -> open/close -> sit/stand -> multi-step kitchen or care assistance.",
+            "source_ids": [
+              "behavior_1k_project",
+              "behavior_1k_pmlr",
+              "robocasa_project"
+            ]
+          },
+          {
+            "id": "ik_continuity_gate",
+            "priority": 1,
+            "metric": "joint_angle_delta",
+            "rule": "IK corrections must preserve temporal continuity; knee/ankle/hip jumps are worse than mild pose error.",
+            "motion_use": "Use bounded per-frame joint deltas and smooth correction weights across contact phases.",
+            "source_ids": [
+              "rss_multicontact_feasibility",
+              "mit_littledog_dynamic_ik"
+            ]
+          },
+          {
+            "id": "most_sequence_encoding_gate",
+            "priority": 1,
+            "metric": "most_sequence_valid",
+            "rule": "Factory manipulation tasks must map to valid MOST General Move / Hand Move sequences with TMU totals.",
+            "motion_use": "Encode pick/place as reach-grasp-move-position-release; compare indices to Sandin sequence method.",
+            "source_ids": [
+              "most_sandin_textbook"
+            ]
+          },
+          {
+            "id": "most_standard_time_gate",
+            "priority": 1,
+            "metric": "most_cycle_efficiency_pct",
+            "rule": "Rollout cycle time should approach MOST-derived standard time before L39/L40 promotion.",
+            "motion_use": "Use standard-time ratio as a curriculum gate alongside task success and collision safety.",
+            "source_ids": [
+              "most_sandin_textbook"
+            ]
+          },
+          {
+            "id": "sim_to_edge_deployment_gate",
+            "priority": 1,
+            "metric": "edge_policy_safety_readiness",
+            "rule": "Real robot deployment requires a restricted edge controller, emergency stop, speed/force limits, and simulator-to-hardware validation.",
+            "motion_use": "Convert learned behaviors into Raspberry Pi/ROS 2/microcontroller profiles only after offline replay and safety gates pass.",
+            "source_ids": [
+              "micro_ros_overview",
+              "raspberry_pi_ai_kit"
+            ]
+          },
+          {
+            "id": "support_polygon_gate",
+            "priority": 1,
+            "metric": "projected_com_inside_support_polygon",
+            "rule": "During stance or double support, projected CoM should remain within the support polygon plus a small visual tolerance.",
+            "motion_use": "Reject or correct frames where the character appears to tip despite planted feet.",
+            "source_ids": [
+              "mit_underactuated_humanoids",
+              "sardain_bessonnet_cop_zmp",
+              "dekker_zmp_stable_biped"
+            ]
+          },
+          {
+            "id": "therblig_recognition_gate",
+            "priority": 1,
+            "metric": "therblig_label_coverage_pct",
+            "rule": "Decompose each robot task rollout into the 18 therblig elements before scoring cycle efficiency.",
+            "motion_use": "Label reach/grasp/move/use phases on door, pick, and walk tasks; block promotion when coverage is low.",
+            "source_ids": [
+              "funai_therblig_column_8286",
+              "most_sandin_textbook"
+            ]
+          },
+          {
+            "id": "vectorized_experience_collection",
+            "priority": 1,
+            "metric": "parallel_rollout_count",
+            "rule": "Many robots/environments should collect short rollouts in parallel, while only selected episodes are rendered for human review.",
+            "motion_use": "Train headless at scale, then export score, success/NG, collision, energy, and GIF/GLB evidence for dashboard inspection.",
+            "source_ids": [
+              "isaac_lab_robot_learning_docs",
+              "unity_ml_agents_docs"
+            ]
+          },
+          {
+            "id": "ecrs_waste_reduction_gate",
+            "priority": 2,
+            "metric": "ecrs_improvement_pct",
+            "rule": "Apply ECRS: Eliminate search/select, Combine hold+position, Rearrange pre-position, Simplify tool use.",
+            "motion_use": "Suggest fixture layout, bin organization, and pre-positioning before RL fine-tuning.",
+            "source_ids": [
+              "funai_therblig_column_8286"
+            ]
+          },
+          {
+            "id": "heel_toe_phase",
+            "priority": 2,
+            "metric": "heel_strike_toe_off_timing",
+            "rule": "A walking step reads more naturally when heel contact, flat support, and toe-off phases are distinguishable.",
+            "motion_use": "Add keyframe markers or foot roll constraints around contact transitions.",
+            "source_ids": [
+              "pmc_heel_contact_toe_off"
+            ]
+          },
+          {
+            "id": "root_com_smoothing",
+            "priority": 2,
+            "metric": "root_speed_variation",
+            "rule": "Root/CoM path should be smooth and coherent with step cadence; abrupt root speed changes break walking weight.",
+            "motion_use": "Low-pass smooth pelvis/root travel and keep stride distance consistent with footfall timing.",
+            "source_ids": [
+              "kajita_preview_control_zmp",
+              "pmc_omnidirectional_walking_generator"
+            ]
+          },
+          {
+            "id": "swing_foot_clearance",
+            "priority": 2,
+            "metric": "swing_foot_clearance",
+            "rule": "Swing foot should clear the ground enough to avoid visual scraping but not float excessively.",
+            "motion_use": "Clamp swing arc to model scale and terrain height.",
+            "source_ids": [
+              "auxiliary_zmp_walking_generator",
+              "mit_littledog_dynamic_ik"
+            ]
+          },
+          {
+            "id": "workstudy_ai_bridge_gate",
+            "priority": 2,
+            "metric": "workstudy_export_ready",
+            "rule": "Therblig counts, NVA ratio, and MOST sequence summary must export for WorkStudy AI review.",
+            "motion_use": "Emit JSON/Excel-compatible therblig timeline for human IE verification on port 7870.",
+            "source_ids": [
+              "funai_therblig_column_8286",
+              "most_sandin_textbook"
+            ]
+          }
+        ],
+        "thresholds": {
+          "therblig_label_coverage_pct": 85.0,
+          "effective_therblig_ratio": 0.62,
+          "non_effective_therblig_share": 0.38,
+          "nva_time_ratio": 0.28,
+          "ecrs_improvement_pct": 8.0,
+          "most_sequence_valid": 1.0,
+          "most_index_error_pct": 12.0,
+          "most_cycle_efficiency_pct": 82.0,
+          "workstudy_export_ready": 1.0,
+          "parallel_therblig_rollout_count": 16,
+          "therblig_score_floor": 72.0,
+          "household_therblig_task_floor": 75.0,
+          "factory_most_task_floor": 78.0
+        },
+        "reference_loaded": true,
+        "level_gates": {
+          "L31": {
+            "label": "Therblig recognition",
+            "description": "Identify 18 therblig elements in robot/human motion decomposition.",
+            "required_metrics": {
+              "therblig_label_coverage_pct": 0.85
+            }
+          },
+          "L32": {
+            "label": "Effective vs non-effective ratio",
+            "description": "Raise effective therblig share; penalize Search/Select/Hold waste.",
+            "required_metrics": {
+              "effective_therblig_ratio": 0.62,
+              "non_effective_therblig_share": 0.38
+            }
+          },
+          "L33": {
+            "label": "ECRS waste reduction",
+            "description": "Apply Eliminate/Combine/Rearrange/Simplify to robot task scripts.",
+            "required_metrics": {
+              "ecrs_improvement_pct": 8.0,
+              "nva_time_ratio": 0.28
+            }
+          },
+          "L34": {
+            "label": "MOST sequence encoding",
+            "description": "Encode factory/household tasks as MOST sequences with valid TMU totals.",
+            "required_metrics": {
+              "most_sequence_valid": 1.0,
+              "most_index_error_pct": 12.0
+            }
+          },
+          "L35": {
+            "label": "Standard time benchmark",
+            "description": "Compare rollout cycle time to MOST-derived standard time.",
+            "required_metrics": {
+              "most_cycle_efficiency_pct": 82.0
+            }
+          },
+          "L36": {
+            "label": "WorkStudy AI bridge",
+            "description": "Export therblig/MOST evidence compatible with WorkStudy AI review.",
+            "required_metrics": {
+              "workstudy_export_ready": 1.0
+            }
+          },
+          "L37": {
+            "label": "Multi-robot therblig curriculum",
+            "description": "16-64 parallel robots with per-rollout therblig scoring.",
+            "required_metrics": {
+              "parallel_therblig_rollout_count": 16,
+              "therblig_score_floor": 72.0
+            }
+          },
+          "L38": {
+            "label": "Household therblig tasks",
+            "description": "Door/chair/kitchen motions decomposed and scored by therblig.",
+            "required_metrics": {
+              "household_therblig_task_floor": 75.0
+            }
+          },
+          "L39": {
+            "label": "Factory MOST benchmark",
+            "description": "Pick/place/inspect with MOST standard-time and safety-zone gates.",
+            "required_metrics": {
+              "factory_most_task_floor": 78.0,
+              "most_cycle_efficiency_pct": 88.0
+            }
+          },
+          "L40": {
+            "label": "Continuous IE optimization",
+            "description": "Measured cycle-time gains with therblig/MOST feedback loop.",
+            "required_metrics": {
+              "most_cycle_efficiency_pct": 92.0,
+              "ecrs_improvement_pct": 15.0
+            }
+          }
+        }
+      },
+      "combined_verdict": "L40_IE_MASTER"
     },
     {
       "trial_id": "l20-walk-b-01",
@@ -84,21 +672,38 @@
       "metrics": {
         "motion_naturalness_mean": 0.96,
         "task_success_rate": 0.98,
-        "walk_arm_leg_phase_error_deg": 4.09,
-        "walk_foot_sliding_m": 0.0049,
-        "door_hand_target_error_m": 0.0179,
-        "door_torso_twist_deg": 11.17,
-        "sit_knee_hip_sync_error": 0.069,
-        "sit_com_support_margin_m": 0.045,
-        "stair_foot_clearance_m": 0.0939,
-        "factory_pick_hand_target_error_m": 0.015,
+        "walk_arm_leg_phase_error_deg": 3.78,
+        "walk_foot_sliding_m": 0.0034,
+        "door_hand_target_error_m": 0.0152,
+        "door_torso_twist_deg": 11.73,
+        "sit_knee_hip_sync_error": 0.061,
+        "sit_com_support_margin_m": 0.0354,
+        "stair_foot_clearance_m": 0.0887,
+        "factory_pick_hand_target_error_m": 0.0145,
         "factory_pick_clearance_m": 0.075,
-        "jerk_norm": 0.175,
-        "collision_rate": 0.011,
+        "jerk_norm": 0.181,
+        "collision_rate": 0.018,
+        "therblig_label_coverage_pct": 99.0,
+        "effective_therblig_ratio": 0.91,
+        "non_effective_therblig_share": 0.099,
+        "nva_time_ratio": 0.099,
+        "ecrs_improvement_pct": 28.0,
+        "most_sequence_valid": 1.0,
+        "most_index_error_pct": 4.0,
+        "most_cycle_efficiency_pct": 98.0,
+        "workstudy_export_ready": 1.0,
+        "parallel_therblig_rollout_count": 66,
+        "therblig_task_scores": {
+          "walk": 97.7,
+          "door": 93.5,
+          "sit_stand": 94.5,
+          "stairs": 100.0,
+          "factory_pick": 100.0
+        },
         "task_scores": {
-          "walk": 92.6,
-          "door": 92.5,
-          "sit_stand": 96.9,
+          "walk": 93.7,
+          "door": 93.6,
+          "sit_stand": 96.5,
           "stairs": 100.0,
           "factory_pick": 100.0
         }
@@ -106,29 +711,323 @@
       "score": 100,
       "verdict": "L20_CANDIDATE",
       "violations": [],
-      "corrections": []
+      "corrections": [],
+      "ie_verdict": "L40_IE_MASTER",
+      "therblig_most": {
+        "score": 100,
+        "verdict": "L40_IE_MASTER",
+        "violations": [],
+        "corrections": [],
+        "rules_loaded": [
+          {
+            "id": "effective_therblig_ratio_gate",
+            "priority": 1,
+            "metric": "effective_therblig_ratio",
+            "rule": "Value-adding therbligs (Reach, Grasp, Move, Use, Assemble, Release) should dominate non-effective waste.",
+            "motion_use": "Penalize Search, Select, Hold, Avoidable Delay in robot factory and household tasks.",
+            "source_ids": [
+              "funai_therblig_column_8286"
+            ]
+          },
+          {
+            "id": "factory_task_curriculum",
+            "priority": 1,
+            "metric": "cycle_success_safety_and_alignment",
+            "rule": "Factory robot policies must track task success together with safety-zone, collision, force, alignment, and cycle-time constraints.",
+            "motion_use": "Add separate factory reward terms for fixture alignment, part handling, safety-zone avoidance, and failed-grasp recovery.",
+            "source_ids": [
+              "ros_industrial_home",
+              "ros_industrial_training_docs"
+            ]
+          },
+          {
+            "id": "foot_contact_lock",
+            "priority": 1,
+            "metric": "stance_foot_world_velocity",
+            "rule": "When a foot is in stance phase, world-space foot translation should be near zero unless intentional slip is authored.",
+            "motion_use": "Lock planted foot, solve pelvis/knee with IK, and release at toe-off.",
+            "source_ids": [
+              "pmc_heel_contact_toe_off",
+              "durus_dynamic_efficient_bipedal_locomotion"
+            ]
+          },
+          {
+            "id": "household_task_curriculum",
+            "priority": 1,
+            "metric": "task_success_by_curriculum_stage",
+            "rule": "Household autonomy should progress from approach and posture tasks to long-horizon object-state tasks.",
+            "motion_use": "Score simple robot tasks as walk -> reach -> open/close -> sit/stand -> multi-step kitchen or care assistance.",
+            "source_ids": [
+              "behavior_1k_project",
+              "behavior_1k_pmlr",
+              "robocasa_project"
+            ]
+          },
+          {
+            "id": "ik_continuity_gate",
+            "priority": 1,
+            "metric": "joint_angle_delta",
+            "rule": "IK corrections must preserve temporal continuity; knee/ankle/hip jumps are worse than mild pose error.",
+            "motion_use": "Use bounded per-frame joint deltas and smooth correction weights across contact phases.",
+            "source_ids": [
+              "rss_multicontact_feasibility",
+              "mit_littledog_dynamic_ik"
+            ]
+          },
+          {
+            "id": "most_sequence_encoding_gate",
+            "priority": 1,
+            "metric": "most_sequence_valid",
+            "rule": "Factory manipulation tasks must map to valid MOST General Move / Hand Move sequences with TMU totals.",
+            "motion_use": "Encode pick/place as reach-grasp-move-position-release; compare indices to Sandin sequence method.",
+            "source_ids": [
+              "most_sandin_textbook"
+            ]
+          },
+          {
+            "id": "most_standard_time_gate",
+            "priority": 1,
+            "metric": "most_cycle_efficiency_pct",
+            "rule": "Rollout cycle time should approach MOST-derived standard time before L39/L40 promotion.",
+            "motion_use": "Use standard-time ratio as a curriculum gate alongside task success and collision safety.",
+            "source_ids": [
+              "most_sandin_textbook"
+            ]
+          },
+          {
+            "id": "sim_to_edge_deployment_gate",
+            "priority": 1,
+            "metric": "edge_policy_safety_readiness",
+            "rule": "Real robot deployment requires a restricted edge controller, emergency stop, speed/force limits, and simulator-to-hardware validation.",
+            "motion_use": "Convert learned behaviors into Raspberry Pi/ROS 2/microcontroller profiles only after offline replay and safety gates pass.",
+            "source_ids": [
+              "micro_ros_overview",
+              "raspberry_pi_ai_kit"
+            ]
+          },
+          {
+            "id": "support_polygon_gate",
+            "priority": 1,
+            "metric": "projected_com_inside_support_polygon",
+            "rule": "During stance or double support, projected CoM should remain within the support polygon plus a small visual tolerance.",
+            "motion_use": "Reject or correct frames where the character appears to tip despite planted feet.",
+            "source_ids": [
+              "mit_underactuated_humanoids",
+              "sardain_bessonnet_cop_zmp",
+              "dekker_zmp_stable_biped"
+            ]
+          },
+          {
+            "id": "therblig_recognition_gate",
+            "priority": 1,
+            "metric": "therblig_label_coverage_pct",
+            "rule": "Decompose each robot task rollout into the 18 therblig elements before scoring cycle efficiency.",
+            "motion_use": "Label reach/grasp/move/use phases on door, pick, and walk tasks; block promotion when coverage is low.",
+            "source_ids": [
+              "funai_therblig_column_8286",
+              "most_sandin_textbook"
+            ]
+          },
+          {
+            "id": "vectorized_experience_collection",
+            "priority": 1,
+            "metric": "parallel_rollout_count",
+            "rule": "Many robots/environments should collect short rollouts in parallel, while only selected episodes are rendered for human review.",
+            "motion_use": "Train headless at scale, then export score, success/NG, collision, energy, and GIF/GLB evidence for dashboard inspection.",
+            "source_ids": [
+              "isaac_lab_robot_learning_docs",
+              "unity_ml_agents_docs"
+            ]
+          },
+          {
+            "id": "ecrs_waste_reduction_gate",
+            "priority": 2,
+            "metric": "ecrs_improvement_pct",
+            "rule": "Apply ECRS: Eliminate search/select, Combine hold+position, Rearrange pre-position, Simplify tool use.",
+            "motion_use": "Suggest fixture layout, bin organization, and pre-positioning before RL fine-tuning.",
+            "source_ids": [
+              "funai_therblig_column_8286"
+            ]
+          },
+          {
+            "id": "heel_toe_phase",
+            "priority": 2,
+            "metric": "heel_strike_toe_off_timing",
+            "rule": "A walking step reads more naturally when heel contact, flat support, and toe-off phases are distinguishable.",
+            "motion_use": "Add keyframe markers or foot roll constraints around contact transitions.",
+            "source_ids": [
+              "pmc_heel_contact_toe_off"
+            ]
+          },
+          {
+            "id": "root_com_smoothing",
+            "priority": 2,
+            "metric": "root_speed_variation",
+            "rule": "Root/CoM path should be smooth and coherent with step cadence; abrupt root speed changes break walking weight.",
+            "motion_use": "Low-pass smooth pelvis/root travel and keep stride distance consistent with footfall timing.",
+            "source_ids": [
+              "kajita_preview_control_zmp",
+              "pmc_omnidirectional_walking_generator"
+            ]
+          },
+          {
+            "id": "swing_foot_clearance",
+            "priority": 2,
+            "metric": "swing_foot_clearance",
+            "rule": "Swing foot should clear the ground enough to avoid visual scraping but not float excessively.",
+            "motion_use": "Clamp swing arc to model scale and terrain height.",
+            "source_ids": [
+              "auxiliary_zmp_walking_generator",
+              "mit_littledog_dynamic_ik"
+            ]
+          },
+          {
+            "id": "workstudy_ai_bridge_gate",
+            "priority": 2,
+            "metric": "workstudy_export_ready",
+            "rule": "Therblig counts, NVA ratio, and MOST sequence summary must export for WorkStudy AI review.",
+            "motion_use": "Emit JSON/Excel-compatible therblig timeline for human IE verification on port 7870.",
+            "source_ids": [
+              "funai_therblig_column_8286",
+              "most_sandin_textbook"
+            ]
+          }
+        ],
+        "thresholds": {
+          "therblig_label_coverage_pct": 85.0,
+          "effective_therblig_ratio": 0.62,
+          "non_effective_therblig_share": 0.38,
+          "nva_time_ratio": 0.28,
+          "ecrs_improvement_pct": 8.0,
+          "most_sequence_valid": 1.0,
+          "most_index_error_pct": 12.0,
+          "most_cycle_efficiency_pct": 82.0,
+          "workstudy_export_ready": 1.0,
+          "parallel_therblig_rollout_count": 16,
+          "therblig_score_floor": 72.0,
+          "household_therblig_task_floor": 75.0,
+          "factory_most_task_floor": 78.0
+        },
+        "reference_loaded": true,
+        "level_gates": {
+          "L31": {
+            "label": "Therblig recognition",
+            "description": "Identify 18 therblig elements in robot/human motion decomposition.",
+            "required_metrics": {
+              "therblig_label_coverage_pct": 0.85
+            }
+          },
+          "L32": {
+            "label": "Effective vs non-effective ratio",
+            "description": "Raise effective therblig share; penalize Search/Select/Hold waste.",
+            "required_metrics": {
+              "effective_therblig_ratio": 0.62,
+              "non_effective_therblig_share": 0.38
+            }
+          },
+          "L33": {
+            "label": "ECRS waste reduction",
+            "description": "Apply Eliminate/Combine/Rearrange/Simplify to robot task scripts.",
+            "required_metrics": {
+              "ecrs_improvement_pct": 8.0,
+              "nva_time_ratio": 0.28
+            }
+          },
+          "L34": {
+            "label": "MOST sequence encoding",
+            "description": "Encode factory/household tasks as MOST sequences with valid TMU totals.",
+            "required_metrics": {
+              "most_sequence_valid": 1.0,
+              "most_index_error_pct": 12.0
+            }
+          },
+          "L35": {
+            "label": "Standard time benchmark",
+            "description": "Compare rollout cycle time to MOST-derived standard time.",
+            "required_metrics": {
+              "most_cycle_efficiency_pct": 82.0
+            }
+          },
+          "L36": {
+            "label": "WorkStudy AI bridge",
+            "description": "Export therblig/MOST evidence compatible with WorkStudy AI review.",
+            "required_metrics": {
+              "workstudy_export_ready": 1.0
+            }
+          },
+          "L37": {
+            "label": "Multi-robot therblig curriculum",
+            "description": "16-64 parallel robots with per-rollout therblig scoring.",
+            "required_metrics": {
+              "parallel_therblig_rollout_count": 16,
+              "therblig_score_floor": 72.0
+            }
+          },
+          "L38": {
+            "label": "Household therblig tasks",
+            "description": "Door/chair/kitchen motions decomposed and scored by therblig.",
+            "required_metrics": {
+              "household_therblig_task_floor": 75.0
+            }
+          },
+          "L39": {
+            "label": "Factory MOST benchmark",
+            "description": "Pick/place/inspect with MOST standard-time and safety-zone gates.",
+            "required_metrics": {
+              "factory_most_task_floor": 78.0,
+              "most_cycle_efficiency_pct": 88.0
+            }
+          },
+          "L40": {
+            "label": "Continuous IE optimization",
+            "description": "Measured cycle-time gains with therblig/MOST feedback loop.",
+            "required_metrics": {
+              "most_cycle_efficiency_pct": 92.0,
+              "ecrs_improvement_pct": 15.0
+            }
+          }
+        }
+      },
+      "combined_verdict": "L40_IE_MASTER"
     },
     {
-      "trial_id": "l20-refine-b-04",
+      "trial_id": "l20-refine-b-15",
       "strategy": "whole_body_smoothing_contact_replay",
       "metrics": {
         "motion_naturalness_mean": 0.96,
         "task_success_rate": 0.98,
-        "walk_arm_leg_phase_error_deg": 5.03,
-        "walk_foot_sliding_m": 0.007,
-        "door_hand_target_error_m": 0.0228,
-        "door_torso_twist_deg": 12.29,
-        "sit_knee_hip_sync_error": 0.067,
-        "sit_com_support_margin_m": 0.0351,
-        "stair_foot_clearance_m": 0.0896,
-        "factory_pick_hand_target_error_m": 0.0175,
+        "walk_arm_leg_phase_error_deg": 5.46,
+        "walk_foot_sliding_m": 0.0044,
+        "door_hand_target_error_m": 0.0223,
+        "door_torso_twist_deg": 11.26,
+        "sit_knee_hip_sync_error": 0.072,
+        "sit_com_support_margin_m": 0.0307,
+        "stair_foot_clearance_m": 0.095,
+        "factory_pick_hand_target_error_m": 0.015,
         "factory_pick_clearance_m": 0.075,
-        "jerk_norm": 0.152,
-        "collision_rate": 0.011,
+        "jerk_norm": 0.188,
+        "collision_rate": 0.02,
+        "therblig_label_coverage_pct": 99.0,
+        "effective_therblig_ratio": 0.892,
+        "non_effective_therblig_share": 0.118,
+        "nva_time_ratio": 0.118,
+        "ecrs_improvement_pct": 27.5,
+        "most_sequence_valid": 1.0,
+        "most_index_error_pct": 4.5,
+        "most_cycle_efficiency_pct": 98.0,
+        "workstudy_export_ready": 1.0,
+        "parallel_therblig_rollout_count": 58,
+        "therblig_task_scores": {
+          "walk": 89.5,
+          "door": 87.3,
+          "sit_stand": 89.1,
+          "stairs": 100.0,
+          "factory_pick": 100.0
+        },
         "task_scores": {
-          "walk": 90.5,
-          "door": 90.4,
-          "sit_stand": 95.6,
+          "walk": 91.1,
+          "door": 90.6,
+          "sit_stand": 94.1,
           "stairs": 100.0,
           "factory_pick": 100.0
         }
@@ -136,7 +1035,284 @@
       "score": 100,
       "verdict": "L20_CANDIDATE",
       "violations": [],
-      "corrections": []
+      "corrections": [],
+      "ie_verdict": "L40_IE_MASTER",
+      "therblig_most": {
+        "score": 100,
+        "verdict": "L40_IE_MASTER",
+        "violations": [],
+        "corrections": [],
+        "rules_loaded": [
+          {
+            "id": "effective_therblig_ratio_gate",
+            "priority": 1,
+            "metric": "effective_therblig_ratio",
+            "rule": "Value-adding therbligs (Reach, Grasp, Move, Use, Assemble, Release) should dominate non-effective waste.",
+            "motion_use": "Penalize Search, Select, Hold, Avoidable Delay in robot factory and household tasks.",
+            "source_ids": [
+              "funai_therblig_column_8286"
+            ]
+          },
+          {
+            "id": "factory_task_curriculum",
+            "priority": 1,
+            "metric": "cycle_success_safety_and_alignment",
+            "rule": "Factory robot policies must track task success together with safety-zone, collision, force, alignment, and cycle-time constraints.",
+            "motion_use": "Add separate factory reward terms for fixture alignment, part handling, safety-zone avoidance, and failed-grasp recovery.",
+            "source_ids": [
+              "ros_industrial_home",
+              "ros_industrial_training_docs"
+            ]
+          },
+          {
+            "id": "foot_contact_lock",
+            "priority": 1,
+            "metric": "stance_foot_world_velocity",
+            "rule": "When a foot is in stance phase, world-space foot translation should be near zero unless intentional slip is authored.",
+            "motion_use": "Lock planted foot, solve pelvis/knee with IK, and release at toe-off.",
+            "source_ids": [
+              "pmc_heel_contact_toe_off",
+              "durus_dynamic_efficient_bipedal_locomotion"
+            ]
+          },
+          {
+            "id": "household_task_curriculum",
+            "priority": 1,
+            "metric": "task_success_by_curriculum_stage",
+            "rule": "Household autonomy should progress from approach and posture tasks to long-horizon object-state tasks.",
+            "motion_use": "Score simple robot tasks as walk -> reach -> open/close -> sit/stand -> multi-step kitchen or care assistance.",
+            "source_ids": [
+              "behavior_1k_project",
+              "behavior_1k_pmlr",
+              "robocasa_project"
+            ]
+          },
+          {
+            "id": "ik_continuity_gate",
+            "priority": 1,
+            "metric": "joint_angle_delta",
+            "rule": "IK corrections must preserve temporal continuity; knee/ankle/hip jumps are worse than mild pose error.",
+            "motion_use": "Use bounded per-frame joint deltas and smooth correction weights across contact phases.",
+            "source_ids": [
+              "rss_multicontact_feasibility",
+              "mit_littledog_dynamic_ik"
+            ]
+          },
+          {
+            "id": "most_sequence_encoding_gate",
+            "priority": 1,
+            "metric": "most_sequence_valid",
+            "rule": "Factory manipulation tasks must map to valid MOST General Move / Hand Move sequences with TMU totals.",
+            "motion_use": "Encode pick/place as reach-grasp-move-position-release; compare indices to Sandin sequence method.",
+            "source_ids": [
+              "most_sandin_textbook"
+            ]
+          },
+          {
+            "id": "most_standard_time_gate",
+            "priority": 1,
+            "metric": "most_cycle_efficiency_pct",
+            "rule": "Rollout cycle time should approach MOST-derived standard time before L39/L40 promotion.",
+            "motion_use": "Use standard-time ratio as a curriculum gate alongside task success and collision safety.",
+            "source_ids": [
+              "most_sandin_textbook"
+            ]
+          },
+          {
+            "id": "sim_to_edge_deployment_gate",
+            "priority": 1,
+            "metric": "edge_policy_safety_readiness",
+            "rule": "Real robot deployment requires a restricted edge controller, emergency stop, speed/force limits, and simulator-to-hardware validation.",
+            "motion_use": "Convert learned behaviors into Raspberry Pi/ROS 2/microcontroller profiles only after offline replay and safety gates pass.",
+            "source_ids": [
+              "micro_ros_overview",
+              "raspberry_pi_ai_kit"
+            ]
+          },
+          {
+            "id": "support_polygon_gate",
+            "priority": 1,
+            "metric": "projected_com_inside_support_polygon",
+            "rule": "During stance or double support, projected CoM should remain within the support polygon plus a small visual tolerance.",
+            "motion_use": "Reject or correct frames where the character appears to tip despite planted feet.",
+            "source_ids": [
+              "mit_underactuated_humanoids",
+              "sardain_bessonnet_cop_zmp",
+              "dekker_zmp_stable_biped"
+            ]
+          },
+          {
+            "id": "therblig_recognition_gate",
+            "priority": 1,
+            "metric": "therblig_label_coverage_pct",
+            "rule": "Decompose each robot task rollout into the 18 therblig elements before scoring cycle efficiency.",
+            "motion_use": "Label reach/grasp/move/use phases on door, pick, and walk tasks; block promotion when coverage is low.",
+            "source_ids": [
+              "funai_therblig_column_8286",
+              "most_sandin_textbook"
+            ]
+          },
+          {
+            "id": "vectorized_experience_collection",
+            "priority": 1,
+            "metric": "parallel_rollout_count",
+            "rule": "Many robots/environments should collect short rollouts in parallel, while only selected episodes are rendered for human review.",
+            "motion_use": "Train headless at scale, then export score, success/NG, collision, energy, and GIF/GLB evidence for dashboard inspection.",
+            "source_ids": [
+              "isaac_lab_robot_learning_docs",
+              "unity_ml_agents_docs"
+            ]
+          },
+          {
+            "id": "ecrs_waste_reduction_gate",
+            "priority": 2,
+            "metric": "ecrs_improvement_pct",
+            "rule": "Apply ECRS: Eliminate search/select, Combine hold+position, Rearrange pre-position, Simplify tool use.",
+            "motion_use": "Suggest fixture layout, bin organization, and pre-positioning before RL fine-tuning.",
+            "source_ids": [
+              "funai_therblig_column_8286"
+            ]
+          },
+          {
+            "id": "heel_toe_phase",
+            "priority": 2,
+            "metric": "heel_strike_toe_off_timing",
+            "rule": "A walking step reads more naturally when heel contact, flat support, and toe-off phases are distinguishable.",
+            "motion_use": "Add keyframe markers or foot roll constraints around contact transitions.",
+            "source_ids": [
+              "pmc_heel_contact_toe_off"
+            ]
+          },
+          {
+            "id": "root_com_smoothing",
+            "priority": 2,
+            "metric": "root_speed_variation",
+            "rule": "Root/CoM path should be smooth and coherent with step cadence; abrupt root speed changes break walking weight.",
+            "motion_use": "Low-pass smooth pelvis/root travel and keep stride distance consistent with footfall timing.",
+            "source_ids": [
+              "kajita_preview_control_zmp",
+              "pmc_omnidirectional_walking_generator"
+            ]
+          },
+          {
+            "id": "swing_foot_clearance",
+            "priority": 2,
+            "metric": "swing_foot_clearance",
+            "rule": "Swing foot should clear the ground enough to avoid visual scraping but not float excessively.",
+            "motion_use": "Clamp swing arc to model scale and terrain height.",
+            "source_ids": [
+              "auxiliary_zmp_walking_generator",
+              "mit_littledog_dynamic_ik"
+            ]
+          },
+          {
+            "id": "workstudy_ai_bridge_gate",
+            "priority": 2,
+            "metric": "workstudy_export_ready",
+            "rule": "Therblig counts, NVA ratio, and MOST sequence summary must export for WorkStudy AI review.",
+            "motion_use": "Emit JSON/Excel-compatible therblig timeline for human IE verification on port 7870.",
+            "source_ids": [
+              "funai_therblig_column_8286",
+              "most_sandin_textbook"
+            ]
+          }
+        ],
+        "thresholds": {
+          "therblig_label_coverage_pct": 85.0,
+          "effective_therblig_ratio": 0.62,
+          "non_effective_therblig_share": 0.38,
+          "nva_time_ratio": 0.28,
+          "ecrs_improvement_pct": 8.0,
+          "most_sequence_valid": 1.0,
+          "most_index_error_pct": 12.0,
+          "most_cycle_efficiency_pct": 82.0,
+          "workstudy_export_ready": 1.0,
+          "parallel_therblig_rollout_count": 16,
+          "therblig_score_floor": 72.0,
+          "household_therblig_task_floor": 75.0,
+          "factory_most_task_floor": 78.0
+        },
+        "reference_loaded": true,
+        "level_gates": {
+          "L31": {
+            "label": "Therblig recognition",
+            "description": "Identify 18 therblig elements in robot/human motion decomposition.",
+            "required_metrics": {
+              "therblig_label_coverage_pct": 0.85
+            }
+          },
+          "L32": {
+            "label": "Effective vs non-effective ratio",
+            "description": "Raise effective therblig share; penalize Search/Select/Hold waste.",
+            "required_metrics": {
+              "effective_therblig_ratio": 0.62,
+              "non_effective_therblig_share": 0.38
+            }
+          },
+          "L33": {
+            "label": "ECRS waste reduction",
+            "description": "Apply Eliminate/Combine/Rearrange/Simplify to robot task scripts.",
+            "required_metrics": {
+              "ecrs_improvement_pct": 8.0,
+              "nva_time_ratio": 0.28
+            }
+          },
+          "L34": {
+            "label": "MOST sequence encoding",
+            "description": "Encode factory/household tasks as MOST sequences with valid TMU totals.",
+            "required_metrics": {
+              "most_sequence_valid": 1.0,
+              "most_index_error_pct": 12.0
+            }
+          },
+          "L35": {
+            "label": "Standard time benchmark",
+            "description": "Compare rollout cycle time to MOST-derived standard time.",
+            "required_metrics": {
+              "most_cycle_efficiency_pct": 82.0
+            }
+          },
+          "L36": {
+            "label": "WorkStudy AI bridge",
+            "description": "Export therblig/MOST evidence compatible with WorkStudy AI review.",
+            "required_metrics": {
+              "workstudy_export_ready": 1.0
+            }
+          },
+          "L37": {
+            "label": "Multi-robot therblig curriculum",
+            "description": "16-64 parallel robots with per-rollout therblig scoring.",
+            "required_metrics": {
+              "parallel_therblig_rollout_count": 16,
+              "therblig_score_floor": 72.0
+            }
+          },
+          "L38": {
+            "label": "Household therblig tasks",
+            "description": "Door/chair/kitchen motions decomposed and scored by therblig.",
+            "required_metrics": {
+              "household_therblig_task_floor": 75.0
+            }
+          },
+          "L39": {
+            "label": "Factory MOST benchmark",
+            "description": "Pick/place/inspect with MOST standard-time and safety-zone gates.",
+            "required_metrics": {
+              "factory_most_task_floor": 78.0,
+              "most_cycle_efficiency_pct": 88.0
+            }
+          },
+          "L40": {
+            "label": "Continuous IE optimization",
+            "description": "Measured cycle-time gains with therblig/MOST feedback loop.",
+            "required_metrics": {
+              "most_cycle_efficiency_pct": 92.0,
+              "ecrs_improvement_pct": 15.0
+            }
+          }
+        }
+      },
+      "combined_verdict": "L40_IE_MASTER"
     },
     {
       "trial_id": "l20-refine-b-09",
@@ -144,21 +1320,38 @@
       "metrics": {
         "motion_naturalness_mean": 0.96,
         "task_success_rate": 0.98,
-        "walk_arm_leg_phase_error_deg": 5.36,
-        "walk_foot_sliding_m": 0.0071,
-        "door_hand_target_error_m": 0.02,
-        "door_torso_twist_deg": 11.02,
-        "sit_knee_hip_sync_error": 0.092,
-        "sit_com_support_margin_m": 0.0321,
-        "stair_foot_clearance_m": 0.085,
-        "factory_pick_hand_target_error_m": 0.0158,
+        "walk_arm_leg_phase_error_deg": 4.94,
+        "walk_foot_sliding_m": 0.0076,
+        "door_hand_target_error_m": 0.0195,
+        "door_torso_twist_deg": 10.46,
+        "sit_knee_hip_sync_error": 0.071,
+        "sit_com_support_margin_m": 0.045,
+        "stair_foot_clearance_m": 0.0866,
+        "factory_pick_hand_target_error_m": 0.0178,
         "factory_pick_clearance_m": 0.075,
-        "jerk_norm": 0.181,
-        "collision_rate": 0.016,
+        "jerk_norm": 0.169,
+        "collision_rate": 0.012,
+        "therblig_label_coverage_pct": 99.0,
+        "effective_therblig_ratio": 0.93,
+        "non_effective_therblig_share": 0.087,
+        "nva_time_ratio": 0.087,
+        "ecrs_improvement_pct": 28.0,
+        "most_sequence_valid": 1.0,
+        "most_index_error_pct": 4.6,
+        "most_cycle_efficiency_pct": 98.0,
+        "workstudy_export_ready": 1.0,
+        "parallel_therblig_rollout_count": 62,
+        "therblig_task_scores": {
+          "walk": 89.1,
+          "door": 94.8,
+          "sit_stand": 94.1,
+          "stairs": 100.0,
+          "factory_pick": 100.0
+        },
         "task_scores": {
-          "walk": 90.0,
-          "door": 91.6,
-          "sit_stand": 91.3,
+          "walk": 90.4,
+          "door": 91.8,
+          "sit_stand": 96.5,
           "stairs": 100.0,
           "factory_pick": 100.0
         }
@@ -166,29 +1359,323 @@
       "score": 100,
       "verdict": "L20_CANDIDATE",
       "violations": [],
-      "corrections": []
+      "corrections": [],
+      "ie_verdict": "L40_IE_MASTER",
+      "therblig_most": {
+        "score": 100,
+        "verdict": "L40_IE_MASTER",
+        "violations": [],
+        "corrections": [],
+        "rules_loaded": [
+          {
+            "id": "effective_therblig_ratio_gate",
+            "priority": 1,
+            "metric": "effective_therblig_ratio",
+            "rule": "Value-adding therbligs (Reach, Grasp, Move, Use, Assemble, Release) should dominate non-effective waste.",
+            "motion_use": "Penalize Search, Select, Hold, Avoidable Delay in robot factory and household tasks.",
+            "source_ids": [
+              "funai_therblig_column_8286"
+            ]
+          },
+          {
+            "id": "factory_task_curriculum",
+            "priority": 1,
+            "metric": "cycle_success_safety_and_alignment",
+            "rule": "Factory robot policies must track task success together with safety-zone, collision, force, alignment, and cycle-time constraints.",
+            "motion_use": "Add separate factory reward terms for fixture alignment, part handling, safety-zone avoidance, and failed-grasp recovery.",
+            "source_ids": [
+              "ros_industrial_home",
+              "ros_industrial_training_docs"
+            ]
+          },
+          {
+            "id": "foot_contact_lock",
+            "priority": 1,
+            "metric": "stance_foot_world_velocity",
+            "rule": "When a foot is in stance phase, world-space foot translation should be near zero unless intentional slip is authored.",
+            "motion_use": "Lock planted foot, solve pelvis/knee with IK, and release at toe-off.",
+            "source_ids": [
+              "pmc_heel_contact_toe_off",
+              "durus_dynamic_efficient_bipedal_locomotion"
+            ]
+          },
+          {
+            "id": "household_task_curriculum",
+            "priority": 1,
+            "metric": "task_success_by_curriculum_stage",
+            "rule": "Household autonomy should progress from approach and posture tasks to long-horizon object-state tasks.",
+            "motion_use": "Score simple robot tasks as walk -> reach -> open/close -> sit/stand -> multi-step kitchen or care assistance.",
+            "source_ids": [
+              "behavior_1k_project",
+              "behavior_1k_pmlr",
+              "robocasa_project"
+            ]
+          },
+          {
+            "id": "ik_continuity_gate",
+            "priority": 1,
+            "metric": "joint_angle_delta",
+            "rule": "IK corrections must preserve temporal continuity; knee/ankle/hip jumps are worse than mild pose error.",
+            "motion_use": "Use bounded per-frame joint deltas and smooth correction weights across contact phases.",
+            "source_ids": [
+              "rss_multicontact_feasibility",
+              "mit_littledog_dynamic_ik"
+            ]
+          },
+          {
+            "id": "most_sequence_encoding_gate",
+            "priority": 1,
+            "metric": "most_sequence_valid",
+            "rule": "Factory manipulation tasks must map to valid MOST General Move / Hand Move sequences with TMU totals.",
+            "motion_use": "Encode pick/place as reach-grasp-move-position-release; compare indices to Sandin sequence method.",
+            "source_ids": [
+              "most_sandin_textbook"
+            ]
+          },
+          {
+            "id": "most_standard_time_gate",
+            "priority": 1,
+            "metric": "most_cycle_efficiency_pct",
+            "rule": "Rollout cycle time should approach MOST-derived standard time before L39/L40 promotion.",
+            "motion_use": "Use standard-time ratio as a curriculum gate alongside task success and collision safety.",
+            "source_ids": [
+              "most_sandin_textbook"
+            ]
+          },
+          {
+            "id": "sim_to_edge_deployment_gate",
+            "priority": 1,
+            "metric": "edge_policy_safety_readiness",
+            "rule": "Real robot deployment requires a restricted edge controller, emergency stop, speed/force limits, and simulator-to-hardware validation.",
+            "motion_use": "Convert learned behaviors into Raspberry Pi/ROS 2/microcontroller profiles only after offline replay and safety gates pass.",
+            "source_ids": [
+              "micro_ros_overview",
+              "raspberry_pi_ai_kit"
+            ]
+          },
+          {
+            "id": "support_polygon_gate",
+            "priority": 1,
+            "metric": "projected_com_inside_support_polygon",
+            "rule": "During stance or double support, projected CoM should remain within the support polygon plus a small visual tolerance.",
+            "motion_use": "Reject or correct frames where the character appears to tip despite planted feet.",
+            "source_ids": [
+              "mit_underactuated_humanoids",
+              "sardain_bessonnet_cop_zmp",
+              "dekker_zmp_stable_biped"
+            ]
+          },
+          {
+            "id": "therblig_recognition_gate",
+            "priority": 1,
+            "metric": "therblig_label_coverage_pct",
+            "rule": "Decompose each robot task rollout into the 18 therblig elements before scoring cycle efficiency.",
+            "motion_use": "Label reach/grasp/move/use phases on door, pick, and walk tasks; block promotion when coverage is low.",
+            "source_ids": [
+              "funai_therblig_column_8286",
+              "most_sandin_textbook"
+            ]
+          },
+          {
+            "id": "vectorized_experience_collection",
+            "priority": 1,
+            "metric": "parallel_rollout_count",
+            "rule": "Many robots/environments should collect short rollouts in parallel, while only selected episodes are rendered for human review.",
+            "motion_use": "Train headless at scale, then export score, success/NG, collision, energy, and GIF/GLB evidence for dashboard inspection.",
+            "source_ids": [
+              "isaac_lab_robot_learning_docs",
+              "unity_ml_agents_docs"
+            ]
+          },
+          {
+            "id": "ecrs_waste_reduction_gate",
+            "priority": 2,
+            "metric": "ecrs_improvement_pct",
+            "rule": "Apply ECRS: Eliminate search/select, Combine hold+position, Rearrange pre-position, Simplify tool use.",
+            "motion_use": "Suggest fixture layout, bin organization, and pre-positioning before RL fine-tuning.",
+            "source_ids": [
+              "funai_therblig_column_8286"
+            ]
+          },
+          {
+            "id": "heel_toe_phase",
+            "priority": 2,
+            "metric": "heel_strike_toe_off_timing",
+            "rule": "A walking step reads more naturally when heel contact, flat support, and toe-off phases are distinguishable.",
+            "motion_use": "Add keyframe markers or foot roll constraints around contact transitions.",
+            "source_ids": [
+              "pmc_heel_contact_toe_off"
+            ]
+          },
+          {
+            "id": "root_com_smoothing",
+            "priority": 2,
+            "metric": "root_speed_variation",
+            "rule": "Root/CoM path should be smooth and coherent with step cadence; abrupt root speed changes break walking weight.",
+            "motion_use": "Low-pass smooth pelvis/root travel and keep stride distance consistent with footfall timing.",
+            "source_ids": [
+              "kajita_preview_control_zmp",
+              "pmc_omnidirectional_walking_generator"
+            ]
+          },
+          {
+            "id": "swing_foot_clearance",
+            "priority": 2,
+            "metric": "swing_foot_clearance",
+            "rule": "Swing foot should clear the ground enough to avoid visual scraping but not float excessively.",
+            "motion_use": "Clamp swing arc to model scale and terrain height.",
+            "source_ids": [
+              "auxiliary_zmp_walking_generator",
+              "mit_littledog_dynamic_ik"
+            ]
+          },
+          {
+            "id": "workstudy_ai_bridge_gate",
+            "priority": 2,
+            "metric": "workstudy_export_ready",
+            "rule": "Therblig counts, NVA ratio, and MOST sequence summary must export for WorkStudy AI review.",
+            "motion_use": "Emit JSON/Excel-compatible therblig timeline for human IE verification on port 7870.",
+            "source_ids": [
+              "funai_therblig_column_8286",
+              "most_sandin_textbook"
+            ]
+          }
+        ],
+        "thresholds": {
+          "therblig_label_coverage_pct": 85.0,
+          "effective_therblig_ratio": 0.62,
+          "non_effective_therblig_share": 0.38,
+          "nva_time_ratio": 0.28,
+          "ecrs_improvement_pct": 8.0,
+          "most_sequence_valid": 1.0,
+          "most_index_error_pct": 12.0,
+          "most_cycle_efficiency_pct": 82.0,
+          "workstudy_export_ready": 1.0,
+          "parallel_therblig_rollout_count": 16,
+          "therblig_score_floor": 72.0,
+          "household_therblig_task_floor": 75.0,
+          "factory_most_task_floor": 78.0
+        },
+        "reference_loaded": true,
+        "level_gates": {
+          "L31": {
+            "label": "Therblig recognition",
+            "description": "Identify 18 therblig elements in robot/human motion decomposition.",
+            "required_metrics": {
+              "therblig_label_coverage_pct": 0.85
+            }
+          },
+          "L32": {
+            "label": "Effective vs non-effective ratio",
+            "description": "Raise effective therblig share; penalize Search/Select/Hold waste.",
+            "required_metrics": {
+              "effective_therblig_ratio": 0.62,
+              "non_effective_therblig_share": 0.38
+            }
+          },
+          "L33": {
+            "label": "ECRS waste reduction",
+            "description": "Apply Eliminate/Combine/Rearrange/Simplify to robot task scripts.",
+            "required_metrics": {
+              "ecrs_improvement_pct": 8.0,
+              "nva_time_ratio": 0.28
+            }
+          },
+          "L34": {
+            "label": "MOST sequence encoding",
+            "description": "Encode factory/household tasks as MOST sequences with valid TMU totals.",
+            "required_metrics": {
+              "most_sequence_valid": 1.0,
+              "most_index_error_pct": 12.0
+            }
+          },
+          "L35": {
+            "label": "Standard time benchmark",
+            "description": "Compare rollout cycle time to MOST-derived standard time.",
+            "required_metrics": {
+              "most_cycle_efficiency_pct": 82.0
+            }
+          },
+          "L36": {
+            "label": "WorkStudy AI bridge",
+            "description": "Export therblig/MOST evidence compatible with WorkStudy AI review.",
+            "required_metrics": {
+              "workstudy_export_ready": 1.0
+            }
+          },
+          "L37": {
+            "label": "Multi-robot therblig curriculum",
+            "description": "16-64 parallel robots with per-rollout therblig scoring.",
+            "required_metrics": {
+              "parallel_therblig_rollout_count": 16,
+              "therblig_score_floor": 72.0
+            }
+          },
+          "L38": {
+            "label": "Household therblig tasks",
+            "description": "Door/chair/kitchen motions decomposed and scored by therblig.",
+            "required_metrics": {
+              "household_therblig_task_floor": 75.0
+            }
+          },
+          "L39": {
+            "label": "Factory MOST benchmark",
+            "description": "Pick/place/inspect with MOST standard-time and safety-zone gates.",
+            "required_metrics": {
+              "factory_most_task_floor": 78.0,
+              "most_cycle_efficiency_pct": 88.0
+            }
+          },
+          "L40": {
+            "label": "Continuous IE optimization",
+            "description": "Measured cycle-time gains with therblig/MOST feedback loop.",
+            "required_metrics": {
+              "most_cycle_efficiency_pct": 92.0,
+              "ecrs_improvement_pct": 15.0
+            }
+          }
+        }
+      },
+      "combined_verdict": "L40_IE_MASTER"
     },
     {
-      "trial_id": "l20-refine-b-05",
-      "strategy": "whole_body_smoothing_contact_replay",
+      "trial_id": "l20-walk-b-03",
+      "strategy": "walk_targeted_smoothing",
       "metrics": {
         "motion_naturalness_mean": 0.96,
         "task_success_rate": 0.98,
-        "walk_arm_leg_phase_error_deg": 5.77,
-        "walk_foot_sliding_m": 0.0062,
-        "door_hand_target_error_m": 0.0184,
-        "door_torso_twist_deg": 9.32,
-        "sit_knee_hip_sync_error": 0.078,
-        "sit_com_support_margin_m": 0.0415,
-        "stair_foot_clearance_m": 0.0897,
-        "factory_pick_hand_target_error_m": 0.0185,
+        "walk_arm_leg_phase_error_deg": 4.94,
+        "walk_foot_sliding_m": 0.0076,
+        "door_hand_target_error_m": 0.0195,
+        "door_torso_twist_deg": 10.46,
+        "sit_knee_hip_sync_error": 0.071,
+        "sit_com_support_margin_m": 0.045,
+        "stair_foot_clearance_m": 0.0866,
+        "factory_pick_hand_target_error_m": 0.0178,
         "factory_pick_clearance_m": 0.075,
-        "jerk_norm": 0.166,
-        "collision_rate": 0.014,
+        "jerk_norm": 0.169,
+        "collision_rate": 0.012,
+        "therblig_label_coverage_pct": 99.0,
+        "effective_therblig_ratio": 0.93,
+        "non_effective_therblig_share": 0.087,
+        "nva_time_ratio": 0.087,
+        "ecrs_improvement_pct": 28.0,
+        "most_sequence_valid": 1.0,
+        "most_index_error_pct": 4.6,
+        "most_cycle_efficiency_pct": 98.0,
+        "workstudy_export_ready": 1.0,
+        "parallel_therblig_rollout_count": 62,
+        "therblig_task_scores": {
+          "walk": 89.1,
+          "door": 94.8,
+          "sit_stand": 94.1,
+          "stairs": 100.0,
+          "factory_pick": 100.0
+        },
         "task_scores": {
-          "walk": 89.9,
-          "door": 92.3,
-          "sit_stand": 94.9,
+          "walk": 90.4,
+          "door": 91.8,
+          "sit_stand": 96.5,
           "stairs": 100.0,
           "factory_pick": 100.0
         }
@@ -196,37 +1683,608 @@
       "score": 100,
       "verdict": "L20_CANDIDATE",
       "violations": [],
-      "corrections": []
+      "corrections": [],
+      "ie_verdict": "L40_IE_MASTER",
+      "therblig_most": {
+        "score": 100,
+        "verdict": "L40_IE_MASTER",
+        "violations": [],
+        "corrections": [],
+        "rules_loaded": [
+          {
+            "id": "effective_therblig_ratio_gate",
+            "priority": 1,
+            "metric": "effective_therblig_ratio",
+            "rule": "Value-adding therbligs (Reach, Grasp, Move, Use, Assemble, Release) should dominate non-effective waste.",
+            "motion_use": "Penalize Search, Select, Hold, Avoidable Delay in robot factory and household tasks.",
+            "source_ids": [
+              "funai_therblig_column_8286"
+            ]
+          },
+          {
+            "id": "factory_task_curriculum",
+            "priority": 1,
+            "metric": "cycle_success_safety_and_alignment",
+            "rule": "Factory robot policies must track task success together with safety-zone, collision, force, alignment, and cycle-time constraints.",
+            "motion_use": "Add separate factory reward terms for fixture alignment, part handling, safety-zone avoidance, and failed-grasp recovery.",
+            "source_ids": [
+              "ros_industrial_home",
+              "ros_industrial_training_docs"
+            ]
+          },
+          {
+            "id": "foot_contact_lock",
+            "priority": 1,
+            "metric": "stance_foot_world_velocity",
+            "rule": "When a foot is in stance phase, world-space foot translation should be near zero unless intentional slip is authored.",
+            "motion_use": "Lock planted foot, solve pelvis/knee with IK, and release at toe-off.",
+            "source_ids": [
+              "pmc_heel_contact_toe_off",
+              "durus_dynamic_efficient_bipedal_locomotion"
+            ]
+          },
+          {
+            "id": "household_task_curriculum",
+            "priority": 1,
+            "metric": "task_success_by_curriculum_stage",
+            "rule": "Household autonomy should progress from approach and posture tasks to long-horizon object-state tasks.",
+            "motion_use": "Score simple robot tasks as walk -> reach -> open/close -> sit/stand -> multi-step kitchen or care assistance.",
+            "source_ids": [
+              "behavior_1k_project",
+              "behavior_1k_pmlr",
+              "robocasa_project"
+            ]
+          },
+          {
+            "id": "ik_continuity_gate",
+            "priority": 1,
+            "metric": "joint_angle_delta",
+            "rule": "IK corrections must preserve temporal continuity; knee/ankle/hip jumps are worse than mild pose error.",
+            "motion_use": "Use bounded per-frame joint deltas and smooth correction weights across contact phases.",
+            "source_ids": [
+              "rss_multicontact_feasibility",
+              "mit_littledog_dynamic_ik"
+            ]
+          },
+          {
+            "id": "most_sequence_encoding_gate",
+            "priority": 1,
+            "metric": "most_sequence_valid",
+            "rule": "Factory manipulation tasks must map to valid MOST General Move / Hand Move sequences with TMU totals.",
+            "motion_use": "Encode pick/place as reach-grasp-move-position-release; compare indices to Sandin sequence method.",
+            "source_ids": [
+              "most_sandin_textbook"
+            ]
+          },
+          {
+            "id": "most_standard_time_gate",
+            "priority": 1,
+            "metric": "most_cycle_efficiency_pct",
+            "rule": "Rollout cycle time should approach MOST-derived standard time before L39/L40 promotion.",
+            "motion_use": "Use standard-time ratio as a curriculum gate alongside task success and collision safety.",
+            "source_ids": [
+              "most_sandin_textbook"
+            ]
+          },
+          {
+            "id": "sim_to_edge_deployment_gate",
+            "priority": 1,
+            "metric": "edge_policy_safety_readiness",
+            "rule": "Real robot deployment requires a restricted edge controller, emergency stop, speed/force limits, and simulator-to-hardware validation.",
+            "motion_use": "Convert learned behaviors into Raspberry Pi/ROS 2/microcontroller profiles only after offline replay and safety gates pass.",
+            "source_ids": [
+              "micro_ros_overview",
+              "raspberry_pi_ai_kit"
+            ]
+          },
+          {
+            "id": "support_polygon_gate",
+            "priority": 1,
+            "metric": "projected_com_inside_support_polygon",
+            "rule": "During stance or double support, projected CoM should remain within the support polygon plus a small visual tolerance.",
+            "motion_use": "Reject or correct frames where the character appears to tip despite planted feet.",
+            "source_ids": [
+              "mit_underactuated_humanoids",
+              "sardain_bessonnet_cop_zmp",
+              "dekker_zmp_stable_biped"
+            ]
+          },
+          {
+            "id": "therblig_recognition_gate",
+            "priority": 1,
+            "metric": "therblig_label_coverage_pct",
+            "rule": "Decompose each robot task rollout into the 18 therblig elements before scoring cycle efficiency.",
+            "motion_use": "Label reach/grasp/move/use phases on door, pick, and walk tasks; block promotion when coverage is low.",
+            "source_ids": [
+              "funai_therblig_column_8286",
+              "most_sandin_textbook"
+            ]
+          },
+          {
+            "id": "vectorized_experience_collection",
+            "priority": 1,
+            "metric": "parallel_rollout_count",
+            "rule": "Many robots/environments should collect short rollouts in parallel, while only selected episodes are rendered for human review.",
+            "motion_use": "Train headless at scale, then export score, success/NG, collision, energy, and GIF/GLB evidence for dashboard inspection.",
+            "source_ids": [
+              "isaac_lab_robot_learning_docs",
+              "unity_ml_agents_docs"
+            ]
+          },
+          {
+            "id": "ecrs_waste_reduction_gate",
+            "priority": 2,
+            "metric": "ecrs_improvement_pct",
+            "rule": "Apply ECRS: Eliminate search/select, Combine hold+position, Rearrange pre-position, Simplify tool use.",
+            "motion_use": "Suggest fixture layout, bin organization, and pre-positioning before RL fine-tuning.",
+            "source_ids": [
+              "funai_therblig_column_8286"
+            ]
+          },
+          {
+            "id": "heel_toe_phase",
+            "priority": 2,
+            "metric": "heel_strike_toe_off_timing",
+            "rule": "A walking step reads more naturally when heel contact, flat support, and toe-off phases are distinguishable.",
+            "motion_use": "Add keyframe markers or foot roll constraints around contact transitions.",
+            "source_ids": [
+              "pmc_heel_contact_toe_off"
+            ]
+          },
+          {
+            "id": "root_com_smoothing",
+            "priority": 2,
+            "metric": "root_speed_variation",
+            "rule": "Root/CoM path should be smooth and coherent with step cadence; abrupt root speed changes break walking weight.",
+            "motion_use": "Low-pass smooth pelvis/root travel and keep stride distance consistent with footfall timing.",
+            "source_ids": [
+              "kajita_preview_control_zmp",
+              "pmc_omnidirectional_walking_generator"
+            ]
+          },
+          {
+            "id": "swing_foot_clearance",
+            "priority": 2,
+            "metric": "swing_foot_clearance",
+            "rule": "Swing foot should clear the ground enough to avoid visual scraping but not float excessively.",
+            "motion_use": "Clamp swing arc to model scale and terrain height.",
+            "source_ids": [
+              "auxiliary_zmp_walking_generator",
+              "mit_littledog_dynamic_ik"
+            ]
+          },
+          {
+            "id": "workstudy_ai_bridge_gate",
+            "priority": 2,
+            "metric": "workstudy_export_ready",
+            "rule": "Therblig counts, NVA ratio, and MOST sequence summary must export for WorkStudy AI review.",
+            "motion_use": "Emit JSON/Excel-compatible therblig timeline for human IE verification on port 7870.",
+            "source_ids": [
+              "funai_therblig_column_8286",
+              "most_sandin_textbook"
+            ]
+          }
+        ],
+        "thresholds": {
+          "therblig_label_coverage_pct": 85.0,
+          "effective_therblig_ratio": 0.62,
+          "non_effective_therblig_share": 0.38,
+          "nva_time_ratio": 0.28,
+          "ecrs_improvement_pct": 8.0,
+          "most_sequence_valid": 1.0,
+          "most_index_error_pct": 12.0,
+          "most_cycle_efficiency_pct": 82.0,
+          "workstudy_export_ready": 1.0,
+          "parallel_therblig_rollout_count": 16,
+          "therblig_score_floor": 72.0,
+          "household_therblig_task_floor": 75.0,
+          "factory_most_task_floor": 78.0
+        },
+        "reference_loaded": true,
+        "level_gates": {
+          "L31": {
+            "label": "Therblig recognition",
+            "description": "Identify 18 therblig elements in robot/human motion decomposition.",
+            "required_metrics": {
+              "therblig_label_coverage_pct": 0.85
+            }
+          },
+          "L32": {
+            "label": "Effective vs non-effective ratio",
+            "description": "Raise effective therblig share; penalize Search/Select/Hold waste.",
+            "required_metrics": {
+              "effective_therblig_ratio": 0.62,
+              "non_effective_therblig_share": 0.38
+            }
+          },
+          "L33": {
+            "label": "ECRS waste reduction",
+            "description": "Apply Eliminate/Combine/Rearrange/Simplify to robot task scripts.",
+            "required_metrics": {
+              "ecrs_improvement_pct": 8.0,
+              "nva_time_ratio": 0.28
+            }
+          },
+          "L34": {
+            "label": "MOST sequence encoding",
+            "description": "Encode factory/household tasks as MOST sequences with valid TMU totals.",
+            "required_metrics": {
+              "most_sequence_valid": 1.0,
+              "most_index_error_pct": 12.0
+            }
+          },
+          "L35": {
+            "label": "Standard time benchmark",
+            "description": "Compare rollout cycle time to MOST-derived standard time.",
+            "required_metrics": {
+              "most_cycle_efficiency_pct": 82.0
+            }
+          },
+          "L36": {
+            "label": "WorkStudy AI bridge",
+            "description": "Export therblig/MOST evidence compatible with WorkStudy AI review.",
+            "required_metrics": {
+              "workstudy_export_ready": 1.0
+            }
+          },
+          "L37": {
+            "label": "Multi-robot therblig curriculum",
+            "description": "16-64 parallel robots with per-rollout therblig scoring.",
+            "required_metrics": {
+              "parallel_therblig_rollout_count": 16,
+              "therblig_score_floor": 72.0
+            }
+          },
+          "L38": {
+            "label": "Household therblig tasks",
+            "description": "Door/chair/kitchen motions decomposed and scored by therblig.",
+            "required_metrics": {
+              "household_therblig_task_floor": 75.0
+            }
+          },
+          "L39": {
+            "label": "Factory MOST benchmark",
+            "description": "Pick/place/inspect with MOST standard-time and safety-zone gates.",
+            "required_metrics": {
+              "factory_most_task_floor": 78.0,
+              "most_cycle_efficiency_pct": 88.0
+            }
+          },
+          "L40": {
+            "label": "Continuous IE optimization",
+            "description": "Measured cycle-time gains with therblig/MOST feedback loop.",
+            "required_metrics": {
+              "most_cycle_efficiency_pct": 92.0,
+              "ecrs_improvement_pct": 15.0
+            }
+          }
+        }
+      },
+      "combined_verdict": "L40_IE_MASTER"
     },
     {
-      "trial_id": "l20-refine-b-07",
+      "trial_id": "l20-refine-b-10",
       "strategy": "whole_body_smoothing_contact_replay",
       "metrics": {
         "motion_naturalness_mean": 0.96,
         "task_success_rate": 0.98,
-        "walk_arm_leg_phase_error_deg": 6.06,
-        "walk_foot_sliding_m": 0.0052,
-        "door_hand_target_error_m": 0.0223,
-        "door_torso_twist_deg": 11.62,
-        "sit_knee_hip_sync_error": 0.069,
-        "sit_com_support_margin_m": 0.0422,
-        "stair_foot_clearance_m": 0.0875,
-        "factory_pick_hand_target_error_m": 0.022,
+        "walk_arm_leg_phase_error_deg": 5.97,
+        "walk_foot_sliding_m": 0.0058,
+        "door_hand_target_error_m": 0.0186,
+        "door_torso_twist_deg": 12.17,
+        "sit_knee_hip_sync_error": 0.079,
+        "sit_com_support_margin_m": 0.0371,
+        "stair_foot_clearance_m": 0.0884,
+        "factory_pick_hand_target_error_m": 0.0149,
         "factory_pick_clearance_m": 0.075,
-        "jerk_norm": 0.188,
+        "jerk_norm": 0.178,
         "collision_rate": 0.016,
-        "task_scores": {
-          "walk": 89.9,
-          "door": 90.6,
-          "sit_stand": 96.4,
+        "therblig_label_coverage_pct": 99.0,
+        "effective_therblig_ratio": 0.893,
+        "non_effective_therblig_share": 0.118,
+        "nva_time_ratio": 0.118,
+        "ecrs_improvement_pct": 26.7,
+        "most_sequence_valid": 1.0,
+        "most_index_error_pct": 5.0,
+        "most_cycle_efficiency_pct": 98.0,
+        "workstudy_export_ready": 1.0,
+        "parallel_therblig_rollout_count": 63,
+        "therblig_task_scores": {
+          "walk": 85.9,
+          "door": 87.8,
+          "sit_stand": 87.9,
           "stairs": 100.0,
-          "factory_pick": 98.4
+          "factory_pick": 100.0
+        },
+        "task_scores": {
+          "walk": 89.8,
+          "door": 92.2,
+          "sit_stand": 94.1,
+          "stairs": 100.0,
+          "factory_pick": 100.0
         }
       },
       "score": 100,
       "verdict": "L20_CANDIDATE",
       "violations": [],
-      "corrections": []
+      "corrections": [],
+      "ie_verdict": "L40_IE_MASTER",
+      "therblig_most": {
+        "score": 100,
+        "verdict": "L40_IE_MASTER",
+        "violations": [],
+        "corrections": [],
+        "rules_loaded": [
+          {
+            "id": "effective_therblig_ratio_gate",
+            "priority": 1,
+            "metric": "effective_therblig_ratio",
+            "rule": "Value-adding therbligs (Reach, Grasp, Move, Use, Assemble, Release) should dominate non-effective waste.",
+            "motion_use": "Penalize Search, Select, Hold, Avoidable Delay in robot factory and household tasks.",
+            "source_ids": [
+              "funai_therblig_column_8286"
+            ]
+          },
+          {
+            "id": "factory_task_curriculum",
+            "priority": 1,
+            "metric": "cycle_success_safety_and_alignment",
+            "rule": "Factory robot policies must track task success together with safety-zone, collision, force, alignment, and cycle-time constraints.",
+            "motion_use": "Add separate factory reward terms for fixture alignment, part handling, safety-zone avoidance, and failed-grasp recovery.",
+            "source_ids": [
+              "ros_industrial_home",
+              "ros_industrial_training_docs"
+            ]
+          },
+          {
+            "id": "foot_contact_lock",
+            "priority": 1,
+            "metric": "stance_foot_world_velocity",
+            "rule": "When a foot is in stance phase, world-space foot translation should be near zero unless intentional slip is authored.",
+            "motion_use": "Lock planted foot, solve pelvis/knee with IK, and release at toe-off.",
+            "source_ids": [
+              "pmc_heel_contact_toe_off",
+              "durus_dynamic_efficient_bipedal_locomotion"
+            ]
+          },
+          {
+            "id": "household_task_curriculum",
+            "priority": 1,
+            "metric": "task_success_by_curriculum_stage",
+            "rule": "Household autonomy should progress from approach and posture tasks to long-horizon object-state tasks.",
+            "motion_use": "Score simple robot tasks as walk -> reach -> open/close -> sit/stand -> multi-step kitchen or care assistance.",
+            "source_ids": [
+              "behavior_1k_project",
+              "behavior_1k_pmlr",
+              "robocasa_project"
+            ]
+          },
+          {
+            "id": "ik_continuity_gate",
+            "priority": 1,
+            "metric": "joint_angle_delta",
+            "rule": "IK corrections must preserve temporal continuity; knee/ankle/hip jumps are worse than mild pose error.",
+            "motion_use": "Use bounded per-frame joint deltas and smooth correction weights across contact phases.",
+            "source_ids": [
+              "rss_multicontact_feasibility",
+              "mit_littledog_dynamic_ik"
+            ]
+          },
+          {
+            "id": "most_sequence_encoding_gate",
+            "priority": 1,
+            "metric": "most_sequence_valid",
+            "rule": "Factory manipulation tasks must map to valid MOST General Move / Hand Move sequences with TMU totals.",
+            "motion_use": "Encode pick/place as reach-grasp-move-position-release; compare indices to Sandin sequence method.",
+            "source_ids": [
+              "most_sandin_textbook"
+            ]
+          },
+          {
+            "id": "most_standard_time_gate",
+            "priority": 1,
+            "metric": "most_cycle_efficiency_pct",
+            "rule": "Rollout cycle time should approach MOST-derived standard time before L39/L40 promotion.",
+            "motion_use": "Use standard-time ratio as a curriculum gate alongside task success and collision safety.",
+            "source_ids": [
+              "most_sandin_textbook"
+            ]
+          },
+          {
+            "id": "sim_to_edge_deployment_gate",
+            "priority": 1,
+            "metric": "edge_policy_safety_readiness",
+            "rule": "Real robot deployment requires a restricted edge controller, emergency stop, speed/force limits, and simulator-to-hardware validation.",
+            "motion_use": "Convert learned behaviors into Raspberry Pi/ROS 2/microcontroller profiles only after offline replay and safety gates pass.",
+            "source_ids": [
+              "micro_ros_overview",
+              "raspberry_pi_ai_kit"
+            ]
+          },
+          {
+            "id": "support_polygon_gate",
+            "priority": 1,
+            "metric": "projected_com_inside_support_polygon",
+            "rule": "During stance or double support, projected CoM should remain within the support polygon plus a small visual tolerance.",
+            "motion_use": "Reject or correct frames where the character appears to tip despite planted feet.",
+            "source_ids": [
+              "mit_underactuated_humanoids",
+              "sardain_bessonnet_cop_zmp",
+              "dekker_zmp_stable_biped"
+            ]
+          },
+          {
+            "id": "therblig_recognition_gate",
+            "priority": 1,
+            "metric": "therblig_label_coverage_pct",
+            "rule": "Decompose each robot task rollout into the 18 therblig elements before scoring cycle efficiency.",
+            "motion_use": "Label reach/grasp/move/use phases on door, pick, and walk tasks; block promotion when coverage is low.",
+            "source_ids": [
+              "funai_therblig_column_8286",
+              "most_sandin_textbook"
+            ]
+          },
+          {
+            "id": "vectorized_experience_collection",
+            "priority": 1,
+            "metric": "parallel_rollout_count",
+            "rule": "Many robots/environments should collect short rollouts in parallel, while only selected episodes are rendered for human review.",
+            "motion_use": "Train headless at scale, then export score, success/NG, collision, energy, and GIF/GLB evidence for dashboard inspection.",
+            "source_ids": [
+              "isaac_lab_robot_learning_docs",
+              "unity_ml_agents_docs"
+            ]
+          },
+          {
+            "id": "ecrs_waste_reduction_gate",
+            "priority": 2,
+            "metric": "ecrs_improvement_pct",
+            "rule": "Apply ECRS: Eliminate search/select, Combine hold+position, Rearrange pre-position, Simplify tool use.",
+            "motion_use": "Suggest fixture layout, bin organization, and pre-positioning before RL fine-tuning.",
+            "source_ids": [
+              "funai_therblig_column_8286"
+            ]
+          },
+          {
+            "id": "heel_toe_phase",
+            "priority": 2,
+            "metric": "heel_strike_toe_off_timing",
+            "rule": "A walking step reads more naturally when heel contact, flat support, and toe-off phases are distinguishable.",
+            "motion_use": "Add keyframe markers or foot roll constraints around contact transitions.",
+            "source_ids": [
+              "pmc_heel_contact_toe_off"
+            ]
+          },
+          {
+            "id": "root_com_smoothing",
+            "priority": 2,
+            "metric": "root_speed_variation",
+            "rule": "Root/CoM path should be smooth and coherent with step cadence; abrupt root speed changes break walking weight.",
+            "motion_use": "Low-pass smooth pelvis/root travel and keep stride distance consistent with footfall timing.",
+            "source_ids": [
+              "kajita_preview_control_zmp",
+              "pmc_omnidirectional_walking_generator"
+            ]
+          },
+          {
+            "id": "swing_foot_clearance",
+            "priority": 2,
+            "metric": "swing_foot_clearance",
+            "rule": "Swing foot should clear the ground enough to avoid visual scraping but not float excessively.",
+            "motion_use": "Clamp swing arc to model scale and terrain height.",
+            "source_ids": [
+              "auxiliary_zmp_walking_generator",
+              "mit_littledog_dynamic_ik"
+            ]
+          },
+          {
+            "id": "workstudy_ai_bridge_gate",
+            "priority": 2,
+            "metric": "workstudy_export_ready",
+            "rule": "Therblig counts, NVA ratio, and MOST sequence summary must export for WorkStudy AI review.",
+            "motion_use": "Emit JSON/Excel-compatible therblig timeline for human IE verification on port 7870.",
+            "source_ids": [
+              "funai_therblig_column_8286",
+              "most_sandin_textbook"
+            ]
+          }
+        ],
+        "thresholds": {
+          "therblig_label_coverage_pct": 85.0,
+          "effective_therblig_ratio": 0.62,
+          "non_effective_therblig_share": 0.38,
+          "nva_time_ratio": 0.28,
+          "ecrs_improvement_pct": 8.0,
+          "most_sequence_valid": 1.0,
+          "most_index_error_pct": 12.0,
+          "most_cycle_efficiency_pct": 82.0,
+          "workstudy_export_ready": 1.0,
+          "parallel_therblig_rollout_count": 16,
+          "therblig_score_floor": 72.0,
+          "household_therblig_task_floor": 75.0,
+          "factory_most_task_floor": 78.0
+        },
+        "reference_loaded": true,
+        "level_gates": {
+          "L31": {
+            "label": "Therblig recognition",
+            "description": "Identify 18 therblig elements in robot/human motion decomposition.",
+            "required_metrics": {
+              "therblig_label_coverage_pct": 0.85
+            }
+          },
+          "L32": {
+            "label": "Effective vs non-effective ratio",
+            "description": "Raise effective therblig share; penalize Search/Select/Hold waste.",
+            "required_metrics": {
+              "effective_therblig_ratio": 0.62,
+              "non_effective_therblig_share": 0.38
+            }
+          },
+          "L33": {
+            "label": "ECRS waste reduction",
+            "description": "Apply Eliminate/Combine/Rearrange/Simplify to robot task scripts.",
+            "required_metrics": {
+              "ecrs_improvement_pct": 8.0,
+              "nva_time_ratio": 0.28
+            }
+          },
+          "L34": {
+            "label": "MOST sequence encoding",
+            "description": "Encode factory/household tasks as MOST sequences with valid TMU totals.",
+            "required_metrics": {
+              "most_sequence_valid": 1.0,
+              "most_index_error_pct": 12.0
+            }
+          },
+          "L35": {
+            "label": "Standard time benchmark",
+            "description": "Compare rollout cycle time to MOST-derived standard time.",
+            "required_metrics": {
+              "most_cycle_efficiency_pct": 82.0
+            }
+          },
+          "L36": {
+            "label": "WorkStudy AI bridge",
+            "description": "Export therblig/MOST evidence compatible with WorkStudy AI review.",
+            "required_metrics": {
+              "workstudy_export_ready": 1.0
+            }
+          },
+          "L37": {
+            "label": "Multi-robot therblig curriculum",
+            "description": "16-64 parallel robots with per-rollout therblig scoring.",
+            "required_metrics": {
+              "parallel_therblig_rollout_count": 16,
+              "therblig_score_floor": 72.0
+            }
+          },
+          "L38": {
+            "label": "Household therblig tasks",
+            "description": "Door/chair/kitchen motions decomposed and scored by therblig.",
+            "required_metrics": {
+              "household_therblig_task_floor": 75.0
+            }
+          },
+          "L39": {
+            "label": "Factory MOST benchmark",
+            "description": "Pick/place/inspect with MOST standard-time and safety-zone gates.",
+            "required_metrics": {
+              "factory_most_task_floor": 78.0,
+              "most_cycle_efficiency_pct": 88.0
+            }
+          },
+          "L40": {
+            "label": "Continuous IE optimization",
+            "description": "Measured cycle-time gains with therblig/MOST feedback loop.",
+            "required_metrics": {
+              "most_cycle_efficiency_pct": 92.0,
+              "ecrs_improvement_pct": 15.0
+            }
+          }
+        }
+      },
+      "combined_verdict": "L40_IE_MASTER"
     },
     {
       "trial_id": "l20-refine-b-02",
@@ -234,20 +2292,37 @@
       "metrics": {
         "motion_naturalness_mean": 0.96,
         "task_success_rate": 0.98,
-        "walk_arm_leg_phase_error_deg": 4.57,
-        "walk_foot_sliding_m": 0.0052,
-        "door_hand_target_error_m": 0.0247,
-        "door_torso_twist_deg": 8.87,
-        "sit_knee_hip_sync_error": 0.068,
-        "sit_com_support_margin_m": 0.04,
-        "stair_foot_clearance_m": 0.0895,
-        "factory_pick_hand_target_error_m": 0.0162,
+        "walk_arm_leg_phase_error_deg": 5.89,
+        "walk_foot_sliding_m": 0.0063,
+        "door_hand_target_error_m": 0.0197,
+        "door_torso_twist_deg": 9.61,
+        "sit_knee_hip_sync_error": 0.073,
+        "sit_com_support_margin_m": 0.045,
+        "stair_foot_clearance_m": 0.0852,
+        "factory_pick_hand_target_error_m": 0.0147,
         "factory_pick_clearance_m": 0.075,
-        "jerk_norm": 0.167,
-        "collision_rate": 0.017,
+        "jerk_norm": 0.164,
+        "collision_rate": 0.016,
+        "therblig_label_coverage_pct": 99.0,
+        "effective_therblig_ratio": 0.938,
+        "non_effective_therblig_share": 0.088,
+        "nva_time_ratio": 0.088,
+        "ecrs_improvement_pct": 28.0,
+        "most_sequence_valid": 1.0,
+        "most_index_error_pct": 4.0,
+        "most_cycle_efficiency_pct": 98.0,
+        "workstudy_export_ready": 1.0,
+        "parallel_therblig_rollout_count": 59,
+        "therblig_task_scores": {
+          "walk": 88.0,
+          "door": 97.2,
+          "sit_stand": 93.8,
+          "stairs": 100.0,
+          "factory_pick": 100.0
+        },
         "task_scores": {
-          "walk": 91.9,
-          "door": 89.6,
+          "walk": 89.7,
+          "door": 91.7,
           "sit_stand": 96.2,
           "stairs": 100.0,
           "factory_pick": 100.0
@@ -256,37 +2331,608 @@
       "score": 100,
       "verdict": "L20_CANDIDATE",
       "violations": [],
-      "corrections": []
+      "corrections": [],
+      "ie_verdict": "L40_IE_MASTER",
+      "therblig_most": {
+        "score": 100,
+        "verdict": "L40_IE_MASTER",
+        "violations": [],
+        "corrections": [],
+        "rules_loaded": [
+          {
+            "id": "effective_therblig_ratio_gate",
+            "priority": 1,
+            "metric": "effective_therblig_ratio",
+            "rule": "Value-adding therbligs (Reach, Grasp, Move, Use, Assemble, Release) should dominate non-effective waste.",
+            "motion_use": "Penalize Search, Select, Hold, Avoidable Delay in robot factory and household tasks.",
+            "source_ids": [
+              "funai_therblig_column_8286"
+            ]
+          },
+          {
+            "id": "factory_task_curriculum",
+            "priority": 1,
+            "metric": "cycle_success_safety_and_alignment",
+            "rule": "Factory robot policies must track task success together with safety-zone, collision, force, alignment, and cycle-time constraints.",
+            "motion_use": "Add separate factory reward terms for fixture alignment, part handling, safety-zone avoidance, and failed-grasp recovery.",
+            "source_ids": [
+              "ros_industrial_home",
+              "ros_industrial_training_docs"
+            ]
+          },
+          {
+            "id": "foot_contact_lock",
+            "priority": 1,
+            "metric": "stance_foot_world_velocity",
+            "rule": "When a foot is in stance phase, world-space foot translation should be near zero unless intentional slip is authored.",
+            "motion_use": "Lock planted foot, solve pelvis/knee with IK, and release at toe-off.",
+            "source_ids": [
+              "pmc_heel_contact_toe_off",
+              "durus_dynamic_efficient_bipedal_locomotion"
+            ]
+          },
+          {
+            "id": "household_task_curriculum",
+            "priority": 1,
+            "metric": "task_success_by_curriculum_stage",
+            "rule": "Household autonomy should progress from approach and posture tasks to long-horizon object-state tasks.",
+            "motion_use": "Score simple robot tasks as walk -> reach -> open/close -> sit/stand -> multi-step kitchen or care assistance.",
+            "source_ids": [
+              "behavior_1k_project",
+              "behavior_1k_pmlr",
+              "robocasa_project"
+            ]
+          },
+          {
+            "id": "ik_continuity_gate",
+            "priority": 1,
+            "metric": "joint_angle_delta",
+            "rule": "IK corrections must preserve temporal continuity; knee/ankle/hip jumps are worse than mild pose error.",
+            "motion_use": "Use bounded per-frame joint deltas and smooth correction weights across contact phases.",
+            "source_ids": [
+              "rss_multicontact_feasibility",
+              "mit_littledog_dynamic_ik"
+            ]
+          },
+          {
+            "id": "most_sequence_encoding_gate",
+            "priority": 1,
+            "metric": "most_sequence_valid",
+            "rule": "Factory manipulation tasks must map to valid MOST General Move / Hand Move sequences with TMU totals.",
+            "motion_use": "Encode pick/place as reach-grasp-move-position-release; compare indices to Sandin sequence method.",
+            "source_ids": [
+              "most_sandin_textbook"
+            ]
+          },
+          {
+            "id": "most_standard_time_gate",
+            "priority": 1,
+            "metric": "most_cycle_efficiency_pct",
+            "rule": "Rollout cycle time should approach MOST-derived standard time before L39/L40 promotion.",
+            "motion_use": "Use standard-time ratio as a curriculum gate alongside task success and collision safety.",
+            "source_ids": [
+              "most_sandin_textbook"
+            ]
+          },
+          {
+            "id": "sim_to_edge_deployment_gate",
+            "priority": 1,
+            "metric": "edge_policy_safety_readiness",
+            "rule": "Real robot deployment requires a restricted edge controller, emergency stop, speed/force limits, and simulator-to-hardware validation.",
+            "motion_use": "Convert learned behaviors into Raspberry Pi/ROS 2/microcontroller profiles only after offline replay and safety gates pass.",
+            "source_ids": [
+              "micro_ros_overview",
+              "raspberry_pi_ai_kit"
+            ]
+          },
+          {
+            "id": "support_polygon_gate",
+            "priority": 1,
+            "metric": "projected_com_inside_support_polygon",
+            "rule": "During stance or double support, projected CoM should remain within the support polygon plus a small visual tolerance.",
+            "motion_use": "Reject or correct frames where the character appears to tip despite planted feet.",
+            "source_ids": [
+              "mit_underactuated_humanoids",
+              "sardain_bessonnet_cop_zmp",
+              "dekker_zmp_stable_biped"
+            ]
+          },
+          {
+            "id": "therblig_recognition_gate",
+            "priority": 1,
+            "metric": "therblig_label_coverage_pct",
+            "rule": "Decompose each robot task rollout into the 18 therblig elements before scoring cycle efficiency.",
+            "motion_use": "Label reach/grasp/move/use phases on door, pick, and walk tasks; block promotion when coverage is low.",
+            "source_ids": [
+              "funai_therblig_column_8286",
+              "most_sandin_textbook"
+            ]
+          },
+          {
+            "id": "vectorized_experience_collection",
+            "priority": 1,
+            "metric": "parallel_rollout_count",
+            "rule": "Many robots/environments should collect short rollouts in parallel, while only selected episodes are rendered for human review.",
+            "motion_use": "Train headless at scale, then export score, success/NG, collision, energy, and GIF/GLB evidence for dashboard inspection.",
+            "source_ids": [
+              "isaac_lab_robot_learning_docs",
+              "unity_ml_agents_docs"
+            ]
+          },
+          {
+            "id": "ecrs_waste_reduction_gate",
+            "priority": 2,
+            "metric": "ecrs_improvement_pct",
+            "rule": "Apply ECRS: Eliminate search/select, Combine hold+position, Rearrange pre-position, Simplify tool use.",
+            "motion_use": "Suggest fixture layout, bin organization, and pre-positioning before RL fine-tuning.",
+            "source_ids": [
+              "funai_therblig_column_8286"
+            ]
+          },
+          {
+            "id": "heel_toe_phase",
+            "priority": 2,
+            "metric": "heel_strike_toe_off_timing",
+            "rule": "A walking step reads more naturally when heel contact, flat support, and toe-off phases are distinguishable.",
+            "motion_use": "Add keyframe markers or foot roll constraints around contact transitions.",
+            "source_ids": [
+              "pmc_heel_contact_toe_off"
+            ]
+          },
+          {
+            "id": "root_com_smoothing",
+            "priority": 2,
+            "metric": "root_speed_variation",
+            "rule": "Root/CoM path should be smooth and coherent with step cadence; abrupt root speed changes break walking weight.",
+            "motion_use": "Low-pass smooth pelvis/root travel and keep stride distance consistent with footfall timing.",
+            "source_ids": [
+              "kajita_preview_control_zmp",
+              "pmc_omnidirectional_walking_generator"
+            ]
+          },
+          {
+            "id": "swing_foot_clearance",
+            "priority": 2,
+            "metric": "swing_foot_clearance",
+            "rule": "Swing foot should clear the ground enough to avoid visual scraping but not float excessively.",
+            "motion_use": "Clamp swing arc to model scale and terrain height.",
+            "source_ids": [
+              "auxiliary_zmp_walking_generator",
+              "mit_littledog_dynamic_ik"
+            ]
+          },
+          {
+            "id": "workstudy_ai_bridge_gate",
+            "priority": 2,
+            "metric": "workstudy_export_ready",
+            "rule": "Therblig counts, NVA ratio, and MOST sequence summary must export for WorkStudy AI review.",
+            "motion_use": "Emit JSON/Excel-compatible therblig timeline for human IE verification on port 7870.",
+            "source_ids": [
+              "funai_therblig_column_8286",
+              "most_sandin_textbook"
+            ]
+          }
+        ],
+        "thresholds": {
+          "therblig_label_coverage_pct": 85.0,
+          "effective_therblig_ratio": 0.62,
+          "non_effective_therblig_share": 0.38,
+          "nva_time_ratio": 0.28,
+          "ecrs_improvement_pct": 8.0,
+          "most_sequence_valid": 1.0,
+          "most_index_error_pct": 12.0,
+          "most_cycle_efficiency_pct": 82.0,
+          "workstudy_export_ready": 1.0,
+          "parallel_therblig_rollout_count": 16,
+          "therblig_score_floor": 72.0,
+          "household_therblig_task_floor": 75.0,
+          "factory_most_task_floor": 78.0
+        },
+        "reference_loaded": true,
+        "level_gates": {
+          "L31": {
+            "label": "Therblig recognition",
+            "description": "Identify 18 therblig elements in robot/human motion decomposition.",
+            "required_metrics": {
+              "therblig_label_coverage_pct": 0.85
+            }
+          },
+          "L32": {
+            "label": "Effective vs non-effective ratio",
+            "description": "Raise effective therblig share; penalize Search/Select/Hold waste.",
+            "required_metrics": {
+              "effective_therblig_ratio": 0.62,
+              "non_effective_therblig_share": 0.38
+            }
+          },
+          "L33": {
+            "label": "ECRS waste reduction",
+            "description": "Apply Eliminate/Combine/Rearrange/Simplify to robot task scripts.",
+            "required_metrics": {
+              "ecrs_improvement_pct": 8.0,
+              "nva_time_ratio": 0.28
+            }
+          },
+          "L34": {
+            "label": "MOST sequence encoding",
+            "description": "Encode factory/household tasks as MOST sequences with valid TMU totals.",
+            "required_metrics": {
+              "most_sequence_valid": 1.0,
+              "most_index_error_pct": 12.0
+            }
+          },
+          "L35": {
+            "label": "Standard time benchmark",
+            "description": "Compare rollout cycle time to MOST-derived standard time.",
+            "required_metrics": {
+              "most_cycle_efficiency_pct": 82.0
+            }
+          },
+          "L36": {
+            "label": "WorkStudy AI bridge",
+            "description": "Export therblig/MOST evidence compatible with WorkStudy AI review.",
+            "required_metrics": {
+              "workstudy_export_ready": 1.0
+            }
+          },
+          "L37": {
+            "label": "Multi-robot therblig curriculum",
+            "description": "16-64 parallel robots with per-rollout therblig scoring.",
+            "required_metrics": {
+              "parallel_therblig_rollout_count": 16,
+              "therblig_score_floor": 72.0
+            }
+          },
+          "L38": {
+            "label": "Household therblig tasks",
+            "description": "Door/chair/kitchen motions decomposed and scored by therblig.",
+            "required_metrics": {
+              "household_therblig_task_floor": 75.0
+            }
+          },
+          "L39": {
+            "label": "Factory MOST benchmark",
+            "description": "Pick/place/inspect with MOST standard-time and safety-zone gates.",
+            "required_metrics": {
+              "factory_most_task_floor": 78.0,
+              "most_cycle_efficiency_pct": 88.0
+            }
+          },
+          "L40": {
+            "label": "Continuous IE optimization",
+            "description": "Measured cycle-time gains with therblig/MOST feedback loop.",
+            "required_metrics": {
+              "most_cycle_efficiency_pct": 92.0,
+              "ecrs_improvement_pct": 15.0
+            }
+          }
+        }
+      },
+      "combined_verdict": "L40_IE_MASTER"
     },
     {
-      "trial_id": "l20-refine-b-10",
+      "trial_id": "l20-refine-b-11",
       "strategy": "whole_body_smoothing_contact_replay",
       "metrics": {
         "motion_naturalness_mean": 0.96,
         "task_success_rate": 0.98,
-        "walk_arm_leg_phase_error_deg": 5.73,
-        "walk_foot_sliding_m": 0.0071,
-        "door_hand_target_error_m": 0.0199,
-        "door_torso_twist_deg": 10.98,
-        "sit_knee_hip_sync_error": 0.068,
-        "sit_com_support_margin_m": 0.0369,
-        "stair_foot_clearance_m": 0.0887,
-        "factory_pick_hand_target_error_m": 0.0222,
+        "walk_arm_leg_phase_error_deg": 6.44,
+        "walk_foot_sliding_m": 0.0051,
+        "door_hand_target_error_m": 0.0225,
+        "door_torso_twist_deg": 10.19,
+        "sit_knee_hip_sync_error": 0.079,
+        "sit_com_support_margin_m": 0.0348,
+        "stair_foot_clearance_m": 0.0892,
+        "factory_pick_hand_target_error_m": 0.0157,
         "factory_pick_clearance_m": 0.075,
-        "jerk_norm": 0.176,
-        "collision_rate": 0.012,
-        "task_scores": {
-          "walk": 89.6,
-          "door": 91.6,
-          "sit_stand": 95.7,
+        "jerk_norm": 0.16,
+        "collision_rate": 0.011,
+        "therblig_label_coverage_pct": 99.0,
+        "effective_therblig_ratio": 0.903,
+        "non_effective_therblig_share": 0.106,
+        "nva_time_ratio": 0.106,
+        "ecrs_improvement_pct": 27.3,
+        "most_sequence_valid": 1.0,
+        "most_index_error_pct": 5.5,
+        "most_cycle_efficiency_pct": 98.0,
+        "workstudy_export_ready": 1.0,
+        "parallel_therblig_rollout_count": 61,
+        "therblig_task_scores": {
+          "walk": 86.4,
+          "door": 91.4,
+          "sit_stand": 88.5,
           "stairs": 100.0,
-          "factory_pick": 98.3
+          "factory_pick": 100.0
+        },
+        "task_scores": {
+          "walk": 89.5,
+          "door": 90.5,
+          "sit_stand": 93.7,
+          "stairs": 100.0,
+          "factory_pick": 100.0
         }
       },
       "score": 100,
       "verdict": "L20_CANDIDATE",
       "violations": [],
-      "corrections": []
+      "corrections": [],
+      "ie_verdict": "L40_IE_MASTER",
+      "therblig_most": {
+        "score": 100,
+        "verdict": "L40_IE_MASTER",
+        "violations": [],
+        "corrections": [],
+        "rules_loaded": [
+          {
+            "id": "effective_therblig_ratio_gate",
+            "priority": 1,
+            "metric": "effective_therblig_ratio",
+            "rule": "Value-adding therbligs (Reach, Grasp, Move, Use, Assemble, Release) should dominate non-effective waste.",
+            "motion_use": "Penalize Search, Select, Hold, Avoidable Delay in robot factory and household tasks.",
+            "source_ids": [
+              "funai_therblig_column_8286"
+            ]
+          },
+          {
+            "id": "factory_task_curriculum",
+            "priority": 1,
+            "metric": "cycle_success_safety_and_alignment",
+            "rule": "Factory robot policies must track task success together with safety-zone, collision, force, alignment, and cycle-time constraints.",
+            "motion_use": "Add separate factory reward terms for fixture alignment, part handling, safety-zone avoidance, and failed-grasp recovery.",
+            "source_ids": [
+              "ros_industrial_home",
+              "ros_industrial_training_docs"
+            ]
+          },
+          {
+            "id": "foot_contact_lock",
+            "priority": 1,
+            "metric": "stance_foot_world_velocity",
+            "rule": "When a foot is in stance phase, world-space foot translation should be near zero unless intentional slip is authored.",
+            "motion_use": "Lock planted foot, solve pelvis/knee with IK, and release at toe-off.",
+            "source_ids": [
+              "pmc_heel_contact_toe_off",
+              "durus_dynamic_efficient_bipedal_locomotion"
+            ]
+          },
+          {
+            "id": "household_task_curriculum",
+            "priority": 1,
+            "metric": "task_success_by_curriculum_stage",
+            "rule": "Household autonomy should progress from approach and posture tasks to long-horizon object-state tasks.",
+            "motion_use": "Score simple robot tasks as walk -> reach -> open/close -> sit/stand -> multi-step kitchen or care assistance.",
+            "source_ids": [
+              "behavior_1k_project",
+              "behavior_1k_pmlr",
+              "robocasa_project"
+            ]
+          },
+          {
+            "id": "ik_continuity_gate",
+            "priority": 1,
+            "metric": "joint_angle_delta",
+            "rule": "IK corrections must preserve temporal continuity; knee/ankle/hip jumps are worse than mild pose error.",
+            "motion_use": "Use bounded per-frame joint deltas and smooth correction weights across contact phases.",
+            "source_ids": [
+              "rss_multicontact_feasibility",
+              "mit_littledog_dynamic_ik"
+            ]
+          },
+          {
+            "id": "most_sequence_encoding_gate",
+            "priority": 1,
+            "metric": "most_sequence_valid",
+            "rule": "Factory manipulation tasks must map to valid MOST General Move / Hand Move sequences with TMU totals.",
+            "motion_use": "Encode pick/place as reach-grasp-move-position-release; compare indices to Sandin sequence method.",
+            "source_ids": [
+              "most_sandin_textbook"
+            ]
+          },
+          {
+            "id": "most_standard_time_gate",
+            "priority": 1,
+            "metric": "most_cycle_efficiency_pct",
+            "rule": "Rollout cycle time should approach MOST-derived standard time before L39/L40 promotion.",
+            "motion_use": "Use standard-time ratio as a curriculum gate alongside task success and collision safety.",
+            "source_ids": [
+              "most_sandin_textbook"
+            ]
+          },
+          {
+            "id": "sim_to_edge_deployment_gate",
+            "priority": 1,
+            "metric": "edge_policy_safety_readiness",
+            "rule": "Real robot deployment requires a restricted edge controller, emergency stop, speed/force limits, and simulator-to-hardware validation.",
+            "motion_use": "Convert learned behaviors into Raspberry Pi/ROS 2/microcontroller profiles only after offline replay and safety gates pass.",
+            "source_ids": [
+              "micro_ros_overview",
+              "raspberry_pi_ai_kit"
+            ]
+          },
+          {
+            "id": "support_polygon_gate",
+            "priority": 1,
+            "metric": "projected_com_inside_support_polygon",
+            "rule": "During stance or double support, projected CoM should remain within the support polygon plus a small visual tolerance.",
+            "motion_use": "Reject or correct frames where the character appears to tip despite planted feet.",
+            "source_ids": [
+              "mit_underactuated_humanoids",
+              "sardain_bessonnet_cop_zmp",
+              "dekker_zmp_stable_biped"
+            ]
+          },
+          {
+            "id": "therblig_recognition_gate",
+            "priority": 1,
+            "metric": "therblig_label_coverage_pct",
+            "rule": "Decompose each robot task rollout into the 18 therblig elements before scoring cycle efficiency.",
+            "motion_use": "Label reach/grasp/move/use phases on door, pick, and walk tasks; block promotion when coverage is low.",
+            "source_ids": [
+              "funai_therblig_column_8286",
+              "most_sandin_textbook"
+            ]
+          },
+          {
+            "id": "vectorized_experience_collection",
+            "priority": 1,
+            "metric": "parallel_rollout_count",
+            "rule": "Many robots/environments should collect short rollouts in parallel, while only selected episodes are rendered for human review.",
+            "motion_use": "Train headless at scale, then export score, success/NG, collision, energy, and GIF/GLB evidence for dashboard inspection.",
+            "source_ids": [
+              "isaac_lab_robot_learning_docs",
+              "unity_ml_agents_docs"
+            ]
+          },
+          {
+            "id": "ecrs_waste_reduction_gate",
+            "priority": 2,
+            "metric": "ecrs_improvement_pct",
+            "rule": "Apply ECRS: Eliminate search/select, Combine hold+position, Rearrange pre-position, Simplify tool use.",
+            "motion_use": "Suggest fixture layout, bin organization, and pre-positioning before RL fine-tuning.",
+            "source_ids": [
+              "funai_therblig_column_8286"
+            ]
+          },
+          {
+            "id": "heel_toe_phase",
+            "priority": 2,
+            "metric": "heel_strike_toe_off_timing",
+            "rule": "A walking step reads more naturally when heel contact, flat support, and toe-off phases are distinguishable.",
+            "motion_use": "Add keyframe markers or foot roll constraints around contact transitions.",
+            "source_ids": [
+              "pmc_heel_contact_toe_off"
+            ]
+          },
+          {
+            "id": "root_com_smoothing",
+            "priority": 2,
+            "metric": "root_speed_variation",
+            "rule": "Root/CoM path should be smooth and coherent with step cadence; abrupt root speed changes break walking weight.",
+            "motion_use": "Low-pass smooth pelvis/root travel and keep stride distance consistent with footfall timing.",
+            "source_ids": [
+              "kajita_preview_control_zmp",
+              "pmc_omnidirectional_walking_generator"
+            ]
+          },
+          {
+            "id": "swing_foot_clearance",
+            "priority": 2,
+            "metric": "swing_foot_clearance",
+            "rule": "Swing foot should clear the ground enough to avoid visual scraping but not float excessively.",
+            "motion_use": "Clamp swing arc to model scale and terrain height.",
+            "source_ids": [
+              "auxiliary_zmp_walking_generator",
+              "mit_littledog_dynamic_ik"
+            ]
+          },
+          {
+            "id": "workstudy_ai_bridge_gate",
+            "priority": 2,
+            "metric": "workstudy_export_ready",
+            "rule": "Therblig counts, NVA ratio, and MOST sequence summary must export for WorkStudy AI review.",
+            "motion_use": "Emit JSON/Excel-compatible therblig timeline for human IE verification on port 7870.",
+            "source_ids": [
+              "funai_therblig_column_8286",
+              "most_sandin_textbook"
+            ]
+          }
+        ],
+        "thresholds": {
+          "therblig_label_coverage_pct": 85.0,
+          "effective_therblig_ratio": 0.62,
+          "non_effective_therblig_share": 0.38,
+          "nva_time_ratio": 0.28,
+          "ecrs_improvement_pct": 8.0,
+          "most_sequence_valid": 1.0,
+          "most_index_error_pct": 12.0,
+          "most_cycle_efficiency_pct": 82.0,
+          "workstudy_export_ready": 1.0,
+          "parallel_therblig_rollout_count": 16,
+          "therblig_score_floor": 72.0,
+          "household_therblig_task_floor": 75.0,
+          "factory_most_task_floor": 78.0
+        },
+        "reference_loaded": true,
+        "level_gates": {
+          "L31": {
+            "label": "Therblig recognition",
+            "description": "Identify 18 therblig elements in robot/human motion decomposition.",
+            "required_metrics": {
+              "therblig_label_coverage_pct": 0.85
+            }
+          },
+          "L32": {
+            "label": "Effective vs non-effective ratio",
+            "description": "Raise effective therblig share; penalize Search/Select/Hold waste.",
+            "required_metrics": {
+              "effective_therblig_ratio": 0.62,
+              "non_effective_therblig_share": 0.38
+            }
+          },
+          "L33": {
+            "label": "ECRS waste reduction",
+            "description": "Apply Eliminate/Combine/Rearrange/Simplify to robot task scripts.",
+            "required_metrics": {
+              "ecrs_improvement_pct": 8.0,
+              "nva_time_ratio": 0.28
+            }
+          },
+          "L34": {
+            "label": "MOST sequence encoding",
+            "description": "Encode factory/household tasks as MOST sequences with valid TMU totals.",
+            "required_metrics": {
+              "most_sequence_valid": 1.0,
+              "most_index_error_pct": 12.0
+            }
+          },
+          "L35": {
+            "label": "Standard time benchmark",
+            "description": "Compare rollout cycle time to MOST-derived standard time.",
+            "required_metrics": {
+              "most_cycle_efficiency_pct": 82.0
+            }
+          },
+          "L36": {
+            "label": "WorkStudy AI bridge",
+            "description": "Export therblig/MOST evidence compatible with WorkStudy AI review.",
+            "required_metrics": {
+              "workstudy_export_ready": 1.0
+            }
+          },
+          "L37": {
+            "label": "Multi-robot therblig curriculum",
+            "description": "16-64 parallel robots with per-rollout therblig scoring.",
+            "required_metrics": {
+              "parallel_therblig_rollout_count": 16,
+              "therblig_score_floor": 72.0
+            }
+          },
+          "L38": {
+            "label": "Household therblig tasks",
+            "description": "Door/chair/kitchen motions decomposed and scored by therblig.",
+            "required_metrics": {
+              "household_therblig_task_floor": 75.0
+            }
+          },
+          "L39": {
+            "label": "Factory MOST benchmark",
+            "description": "Pick/place/inspect with MOST standard-time and safety-zone gates.",
+            "required_metrics": {
+              "factory_most_task_floor": 78.0,
+              "most_cycle_efficiency_pct": 88.0
+            }
+          },
+          "L40": {
+            "label": "Continuous IE optimization",
+            "description": "Measured cycle-time gains with therblig/MOST feedback loop.",
+            "required_metrics": {
+              "most_cycle_efficiency_pct": 92.0,
+              "ecrs_improvement_pct": 15.0
+            }
+          }
+        }
+      },
+      "combined_verdict": "L40_IE_MASTER"
     }
   ],
   "next_actions": [
@@ -298,6 +2944,6 @@
   "score_summary": {
     "max": 100,
     "min": 0,
-    "mean": 30.51
+    "mean": 31.69
   }
 }

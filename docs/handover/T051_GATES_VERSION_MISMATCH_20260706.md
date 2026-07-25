@@ -81,5 +81,12 @@ S1 (`tp-dxf-963a5926`→`af3eda2b`) の QC04c 偽FAILは3つの実装漏れの�
 - 2試行のパラメータ: clearance 10.7% / 11.7%, punch_speed 2039 / 2475 mm/s, μ 0.107 / 0.095
 - engineログに `NODAL VELOCITY IS TOO HIGH FOR INTERFACE 1` あり → 再開後、KPI評価が正常化したら
   punch_speed 低め側の探索を優先する余地あり
+  - **⚠ 撤回(2026-07-07 Fable5調査):** 上記「低め優先」は逆効果と判明。ペア配布後の正常評価5試行
+    (04:33〜09:59, punch_speed 1851〜2709mm/s)は**全件 t≈0.95〜1.04msで NODAL VELOCITY 停止**
+    (ERR≈-99.5%, failure_start≈31k〜33k, DM/M 36→59)。一方7/1のSUCCESS 2件は4602/6096mm/s。
+    低速はイベント時間が伸び、蓄積した付加質量/接触不安定がt≈1msで爆発する前に工程が終わらない。
+    **探索はpunch_speed≥3000mm/s側を優先**し、低速域はデッキ対策(質量スケーリング目標DT見直し=
+    初期DM/M 3600%は異常、INTERFACE 1接触剛性/ギャップ、破断基準)とセットで扱うこと。
+    詳細: HANDOVER_MASTER_INDEX §7.5.1 / CHANGELOG 2026-07-07
 - red_lavie 温度ガード(76°C)による SKIP_LOAD が 03:00-03:04 に発生。T050の電源プラン修正後の
   クロック1792MHz常用で温度余裕が減っている可能性 → 再開後の温度推移を監視

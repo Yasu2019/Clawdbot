@@ -235,9 +235,13 @@
           <strong id="generation">1</strong>
           <span>generation</span>
         </div>
+        <div class="metric">
+          <strong id="ieVerdict">--</strong>
+          <span>IE level (L31-L40)</span>
+        </div>
       </div>
-      <div class="legend">
-        The robots use the current L20 trial idea: contralateral arms, stance foot lock, swing-leg knee flexion, ankle cue, door reach phases, sit/stand CoM support, stair clearance, and factory pick clearance. This is still visual/proxy motion, not final physics RL.
+      <div class="legend" id="trialEvidence">
+        Loading L20 trial evidence...
       </div>
       <div class="robot-list" id="robotList"></div>
     </aside>
@@ -254,6 +258,10 @@
     const successCount = document.getElementById('successCount');
     const bestScore = document.getElementById('bestScore');
     const generationEl = document.getElementById('generation');
+    const ieVerdictEl = document.getElementById('ieVerdict');
+    const trialEvidenceEl = document.getElementById('trialEvidence');
+
+    let trialEvidence = null;
 
     let robots = [];
     let paused = false;
@@ -279,6 +287,39 @@
     function rand(seed) {
       const x = Math.sin(seed * 999.13) * 10000;
       return x - Math.floor(x);
+    }
+
+    function applyTrialEvidence(data) {
+      if (!data || !data.best_trial) return;
+      trialEvidence = data;
+      const best = data.best_trial;
+      const ie = best.ie_verdict || (best.therblig_most && best.therblig_most.verdict) || '--';
+      ieVerdictEl.textContent = ie;
+      const factory = best.metrics && best.metrics.therblig_task_scores
+        ? best.metrics.therblig_task_scores.factory_pick
+        : '--';
+      trialEvidenceEl.innerHTML = [
+        'Evidence from <code>robot_l20_motion_trial_status.json</code>:',
+        ` best=${data.best_score} ${data.best_verdict}, IE=${ie}, factory_pick=${factory}.`,
+        ' <a href="./workstudy_therblig_export.json" target="_blank">WorkStudy export</a>',
+        ' | <a href="./factory_robotics_learning_status.json" target="_blank">Factory track</a>.',
+        ' Visual/proxy motion only; not final physics RL.'
+      ].join('');
+      if (typeof factory === 'number' && factory >= 78) {
+        robots.forEach((robot) => {
+          if (robot.task.name === 'factory pick') robot.skill = Math.min(0.95, robot.skill + 0.08);
+        });
+      }
+    }
+
+    async function loadTrialEvidence() {
+      try {
+        const response = await fetch('./robot_l20_motion_trial_status.json', { cache: 'no-store' });
+        if (!response.ok) throw new Error(String(response.status));
+        applyTrialEvidence(await response.json());
+      } catch (error) {
+        trialEvidenceEl.textContent = 'Trial evidence unavailable. Run robot L20 motion trials to populate scores.';
+      }
     }
 
     function initRobots() {
@@ -365,6 +406,18 @@
         ctx.fillRect(w - 63, h - 69, 6, 28);
         ctx.fillRect(w - 35, h - 69, 6, 28);
       } else if (task.name === 'factory pick') {
+        ctx.fillStyle = 'rgba(201, 79, 79, 0.18)';
+        ctx.fillRect(18, h - 118, 42, 28);
+        ctx.strokeStyle = '#c94f4f';
+        ctx.setLineDash([4, 3]);
+        ctx.strokeRect(18, h - 118, 42, 28);
+        ctx.setLineDash([]);
+        ctx.fillStyle = 'rgba(201, 79, 79, 0.12)';
+        ctx.fillRect(52, h - 88, 28, 36);
+        ctx.strokeStyle = '#c94f4f';
+        ctx.setLineDash([4, 3]);
+        ctx.strokeRect(52, h - 88, 28, 36);
+        ctx.setLineDash([]);
         ctx.fillStyle = 'rgba(220, 140, 60, 0.16)';
         ctx.fillRect(w - 95, h - 132, 70, 84);
         ctx.strokeStyle = '#d8913b';
@@ -494,8 +547,21 @@
         const taskBonus = progress > 0.72 ? 26 : progress * 24;
         const stability = robot.skill * 44 * gaitQuality;
         robot.energy = 18 + Math.abs(Math.sin(robot.phase)) * 8;
-        robot.collisions = Math.max(0, Math.floor((0.85 - robot.skill) * 4 - progress * 1.8));
-        robot.score = Math.round(stability + taskBonus - robot.collisions * 5 - robot.energy * 0.15);
+        let collisions = Math.max(0, Math.floor((0.85 - robot.skill) * 4 - progress * 1.8));
+        let safetyPenalty = 0;
+        if (robot.task.name === 'factory pick') {
+          const inHumanZone = progress > 0.18 && progress < 0.42;
+          const inForkliftZone = progress > 0.38 && progress < 0.58;
+          if ((inHumanZone || inForkliftZone) && robot.skill < 0.72) {
+            safetyPenalty = inHumanZone && inForkliftZone ? 18 : 10;
+            collisions += 1;
+            robot.safetyViolation = true;
+          } else {
+            robot.safetyViolation = false;
+          }
+        }
+        robot.collisions = collisions;
+        robot.score = Math.round(stability + taskBonus - collisions * 5 - robot.energy * 0.15 - safetyPenalty);
         robot.success = robot.score > 52 && progress > 0.62;
         robot.progress = progress;
       });
@@ -553,6 +619,7 @@
             <div class="bar"><div class="fill" style="width:${pct}%;background:${color}"></div></div>
             <div class="details"><span>score ${robot.score}</span><span>${robot.success ? 'PASS' : 'TRAIN'}</span></div>
             <div class="details"><span>collisions ${robot.collisions}</span><span>energy ${robot.energy.toFixed(1)}</span></div>
+            ${robot.safetyViolation ? '<div class="details"><span style="color:var(--bad)">safety zone violation</span></div>' : ''}
           </div>`;
       }).join('');
     }
@@ -586,6 +653,7 @@
 
     resizeCanvas();
     initRobots();
+    loadTrialEvidence();
     requestAnimationFrame(tick);
   </script>
 </body>

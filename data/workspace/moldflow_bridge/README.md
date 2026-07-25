@@ -50,11 +50,28 @@ powershell -ExecutionPolicy Bypass -File .\install_dynabook_mcp.ps1
 powershell -ExecutionPolicy Bypass -File G:\moldflow_bridge\start_moldflow_mcp.ps1 -Hidden
 ```
 
+非管理者worker経由の事前導入では `-SkipFirewall` を使える。K10から8765へ到達しない
+場合は、後で管理者PowerShellから同じinstallerを `-SkipFirewall` なしで一度実行する。
+
 既定endpointは `http://100.98.133.40:8765/mcp`。Windows FirewallはK10の
-Tailscale IP `100.119.18.40` だけを許可する。公開ツールは以下のread-only診断のみ。
+Tailscale IP `100.119.18.40` だけを許可する。
+
+**材料/成形機ブリッジ (v0.7):** 詳細は
+`docs/knowledge/moldflow_material_machine_bridge_20260719.md`。
+要点: 熱可塑性は Synergy domain **21000**（`moldflow_export_materials` /
+`moldflow_configure_study` の `material_id` または manufacturer+trade_name）。
+`*.30007.udb` はファイル目録のみ（`moldflow_list_machine_catalog` /
+CAE Studio `/api/machine-inventory`）。MachineFinder が弱い場合は
+configure の process-condition パラメータを使う。
+
+公開ツールは以下のread-only診断のみ（初期段階の記載。現行は write ゲート付き操作ツールも追加済み）。
+FastMCPのDNS rebinding保護は有効のまま、Host/OriginもDynabookのTailscale endpoint
+とlocalhostだけを許可する。
 
 - `moldflow_bridge_status`
 - `moldflow_probe_com` (32/64bit、最大60秒)
+- `moldflow_inspect_state` (read-only COM object/state inspection)
+- `moldflow_inspect_members` (read-only COM type information inspection)
 - `moldflow_readiness_gate`
 
 K10またはDynabook自身からMCPプロトコルを確認する。

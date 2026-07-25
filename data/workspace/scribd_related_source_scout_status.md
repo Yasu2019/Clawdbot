@@ -1,8 +1,8 @@
 # Scribd Related Source Scout
 
-- Updated: 2026-06-19T04:00:03+09:00
+- Updated: 2026-07-26T04:00:07+09:00
 - Mode: search_url_inventory
-- Download inventory count: 71
+- Download inventory count: 77
 - Candidate count: 17
 
 ## Safety Policy
@@ -52,8 +52,8 @@
 - score=15 domain=moldflow_self_solver size=4545 name=02_theory_map_injection_molding_JA.md
 - score=12 domain=cetol_tolerance size=219327 name=264186820-DIMENSIONAL-TOLERANCE-ANALYSIS.pdf
 - score=12 domain=cetol_tolerance size=2904 name=03_tolerance_analysis_CETOL_JA.md
-- score=10 domain=moldflow_self_solver size=6863019 name=425392239-Introduction-to-Injection-Mold-Design.pdf
 - score=10 domain=moldflow_self_solver size=971043 name=637778273-Validation-phase-and-simulation-injection-moulding.pdf
+- score=10 domain=moldflow_self_solver size=6863019 name=425392239-Introduction-to-Injection-Mold-Design.pdf
 - score=5 domain=moldflow_self_solver size=5231937 name=619802022-Mold.pdf
 - score=5 domain=moldflow_self_solver size=1331440 name=271010398-Brochura-moldex3d.pdf
 - score=5 domain=moldflow_self_solver size=6555518 name=341942038-Moldex3D-Approved.pdf
@@ -65,12 +65,12 @@
 - score=5 domain=moldflow_self_solver size=1525228 name=707074209-Isogeometric-AnalysisAn-Overview-and-Computer.pdf
 - score=4 domain=cetol_tolerance size=4570 name=956695269-CETOL-Interview-Questions-Answers.pdf
 - score=3 domain=iatf_audit_training size=6473692 name=631198540-2014-Work-Area-Traffic-Control-Handbook-WATCH.pdf
-- score=0 domain=unknown size=4385783 name=412513437-bmfcic361p.pdf
-- score=0 domain=unknown size=2837445 name=425290518-Sistemas-de-Gobierno-Diseno-de-Un-Autopiloto-Para-Una-Embarcacion-de-Pequena-Eslora-maricha.pdf
-- score=0 domain=unknown size=2155235 name=388891762-diseno-y-construccion-de-velero.pdf
-- score=0 domain=unknown size=3795130 name=954295358-1-s2-0-S1359835X1730204X-main.pdf
-- score=0 domain=unknown size=337720 name=357945150-24215-s12-01-b-ghs-sds-english-visijet-m2-cast-visijet-m3-cast.pdf
-- score=0 domain=unknown size=231444 name=58479665-Queuing-Theory.pdf
+- score=0 domain=unknown size=4499278 name=627122722-Manual-de-estudios-de-la-naturaleza-Aves.pdf
+- score=0 domain=unknown size=3068486 name=449237466-F-14-Handbook-en-es.pdf
+- score=0 domain=unknown size=4338697 name=761047626-MANITOU-LOC-E18-E20AC.pdf
+- score=0 domain=unknown size=2774252 name=1047972983-PRF-Software.pdf
+- score=0 domain=unknown size=2494931 name=791292193-CAB-Software.pdf
+- score=0 domain=unknown size=6396338 name=845342098-BPI-Software.pdf
 
 ## Candidate Links
 

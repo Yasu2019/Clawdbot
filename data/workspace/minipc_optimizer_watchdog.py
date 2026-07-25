@@ -66,6 +66,9 @@ def run_command(command: list[str], timeout_seconds: int = 120) -> dict[str, Any
             encoding="utf-8",
             errors="replace",
             timeout=timeout_seconds,
+            # CMD窓の点滅防止(2026-07-13): pythonw常駐からpowershell起動時に
+            # コンソールを出さない。Windows以外では属性が無いため0。
+            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
         )
         return {
             "command": " ".join(command),

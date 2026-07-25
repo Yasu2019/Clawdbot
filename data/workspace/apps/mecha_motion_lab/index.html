@@ -2,122 +2,689 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<title>Mecha Motion Lab — 自律モーション学習</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mecha Motion Lab — L30 四体協調学習</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
-  :root { --bg:#020617; --primary:#38bdf8; --card:rgba(15,23,42,.7); --text:#f8fafc; --muted:#94a3b8; --ok:#34d399; --warn:#fbbf24; --bad:#f87171; }
-  body { background:var(--bg); color:var(--text); font-family:"Segoe UI",sans-serif; margin:0; padding:32px; }
-  h1 { font-size:1.5rem; margin:0 0 4px; } .sub { color:var(--muted); font-size:.9rem; margin-bottom:24px; }
-  .panel { background:var(--card); border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:20px 24px; max-width:960px; margin-bottom:20px; }
-  .kv { display:grid; grid-template-columns:180px 1fr; gap:6px 16px; font-size:.95rem; }
-  .kv b { color:var(--muted); font-weight:500; }
-  .state { display:inline-block; padding:2px 12px; border-radius:999px; font-weight:600; }
-  .state.running,.state.training,.state.checking { background:rgba(56,189,248,.15); color:var(--primary); }
-  .state.learned { background:rgba(52,211,153,.15); color:var(--ok); }
-  .state.escalated { background:rgba(248,113,113,.15); color:var(--bad); }
-  table { width:100%; border-collapse:collapse; font-size:.85rem; }
-  th,td { text-align:left; padding:6px 10px; border-bottom:1px solid rgba(255,255,255,.06); }
-  th { color:var(--muted); font-weight:500; }
-  .muted { color:var(--muted); } code { color:var(--primary); }
+  :root {
+    --bg:       #050a14;
+    --bg2:      #080f1e;
+    --card:     rgba(10,18,36,.88);
+    --card2:    rgba(14,24,50,.72);
+    --border:   rgba(255,255,255,.07);
+    --border2:  rgba(255,255,255,.14);
+    --text:     #e8f0fc;
+    --muted:    #6b7fa3;
+    --ok:       #22d98c;
+    --warn:     #f5a623;
+    --bad:      #f0506e;
+    --c-martial:  #f0506e;
+    --c-care:     #22d98c;
+    --c-artistic: #f5a623;
+    --c-rhythmic: #c084fc;
+    --blue:     #4da6ff;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { background: var(--bg); color: var(--text); font-family: 'Inter','Segoe UI',sans-serif; min-height: 100vh; overflow-x: hidden; }
+
+  /* animated grid */
+  body::before {
+    content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
+    background-image: linear-gradient(rgba(77,166,255,.025) 1px,transparent 1px),
+                      linear-gradient(90deg,rgba(77,166,255,.025) 1px,transparent 1px);
+    background-size: 52px 52px;
+    animation: gridPan 35s linear infinite;
+  }
+  @keyframes gridPan { from{background-position:0 0} to{background-position:52px 52px} }
+
+  /* floating orbs */
+  body::after {
+    content:''; position:fixed; pointer-events:none; z-index:0;
+    width:600px; height:600px; border-radius:50%;
+    background: radial-gradient(circle, rgba(77,166,255,.05) 0%, transparent 70%);
+    top:-200px; right:-200px;
+    animation: orbFloat 20s ease-in-out infinite;
+  }
+  @keyframes orbFloat { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-40px,40px)} }
+
+  /* ── HEADER ── */
+  header {
+    position:relative; z-index:10;
+    background: linear-gradient(135deg,#0d1828 0%,#060e1c 60%,#050a14 100%);
+    border-bottom:1px solid var(--border2);
+    padding:24px 40px 20px;
+    display:flex; align-items:center; gap:18px;
+  }
+  .logo { font-size:2rem; filter:drop-shadow(0 0 14px rgba(77,166,255,.55)); }
+  .header-text h1 { font-size:1.5rem; font-weight:900; letter-spacing:-.03em; }
+  .header-text .sub { font-size:.8rem; color:var(--muted); margin-top:5px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .phase-badge {
+    display:inline-flex; align-items:center; gap:6px;
+    padding:3px 12px; border-radius:999px;
+    background:rgba(77,166,255,.13); border:1px solid rgba(77,166,255,.32);
+    color:var(--blue); font-size:.72rem; font-weight:700; letter-spacing:.07em; text-transform:uppercase;
+  }
+  .phase-badge::before { content:''; width:7px; height:7px; border-radius:50%; background:var(--blue); box-shadow:0 0 8px var(--blue); animation:pulse 2s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(.75)} }
+
+  /* ── LAYOUT ── */
+  main { position:relative; z-index:1; padding:28px 40px; max-width:1400px; margin:0 auto; }
+  .section-title {
+    font-size:.7rem; font-weight:700; letter-spacing:.15em; text-transform:uppercase;
+    color:var(--muted); margin-bottom:14px; display:flex; align-items:center; gap:10px;
+  }
+  .section-title::after { content:''; flex:1; height:1px; background:var(--border2); }
+
+  /* ── SCENARIO GRID: 2×2 ── */
+  .scenario-grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:28px; }
+  @media(max-width:900px){ .scenario-grid{grid-template-columns:1fr} }
+
+  /* ── SCENARIO CARD ── */
+  .scenario-card {
+    background:var(--card); border:1px solid var(--border); border-radius:20px;
+    overflow:hidden; transition:border-color .3s,transform .3s,box-shadow .3s; position:relative;
+  }
+  .scenario-card:hover { transform:translateY(-3px); border-color:var(--border2); box-shadow:0 12px 40px rgba(0,0,0,.35); }
+
+  .scenario-card.martial  { --accent:var(--c-martial);  --grad:linear-gradient(135deg,#f0506e,#b03050); }
+  .scenario-card.care     { --accent:var(--c-care);     --grad:linear-gradient(135deg,#22d98c,#0fa86a); }
+  .scenario-card.artistic { --accent:var(--c-artistic); --grad:linear-gradient(135deg,#f5a623,#c07a10); }
+  .scenario-card.rhythmic { --accent:var(--c-rhythmic); --grad:linear-gradient(135deg,#c084fc,#7c3aed); }
+
+  .scenario-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:var(--grad); }
+
+  .card-header {
+    padding:18px 22px 14px; display:flex; align-items:flex-start; gap:12px;
+    border-bottom:1px solid var(--border);
+    background:linear-gradient(135deg,rgba(255,255,255,.03) 0%,transparent 100%);
+  }
+  .card-icon {
+    width:48px; height:48px; border-radius:13px; background:var(--grad);
+    display:flex; align-items:center; justify-content:center; font-size:1.5rem; flex-shrink:0;
+    box-shadow:0 4px 18px rgba(0,0,0,.4);
+  }
+  .card-title { font-size:1.05rem; font-weight:700; }
+  .card-subtitle { font-size:.76rem; color:var(--muted); margin-top:3px; line-height:1.45; }
+  .card-status {
+    margin-left:auto; flex-shrink:0;
+    display:inline-flex; align-items:center; gap:5px;
+    padding:3px 10px; border-radius:999px; font-size:.69rem; font-weight:700; letter-spacing:.04em; text-transform:uppercase;
+  }
+  .card-status.idle     { background:rgba(107,127,163,.12); border:1px solid rgba(107,127,163,.25); color:var(--muted); }
+  .card-status.training { background:rgba(77,166,255,.13);  border:1px solid rgba(77,166,255,.3);  color:var(--blue); }
+  .card-status.learned  { background:rgba(34,217,140,.13);  border:1px solid rgba(34,217,140,.3);  color:var(--ok); }
+  .card-status.error    { background:rgba(240,80,110,.13);  border:1px solid rgba(240,80,110,.3);  color:var(--bad); }
+  .card-status::before  { content:''; width:6px; height:6px; border-radius:50%; background:currentColor; animation:pulse 2s infinite; }
+
+  /* ── ROBOT PAIR ── */
+  .robot-pair { display:grid; grid-template-columns:1fr 1fr; gap:1px; background:var(--border); }
+  .robot-slot { padding:14px 18px; background:var(--card2); position:relative; }
+  .robot-slot:first-child { border-radius:0 0 0 20px; }
+  .robot-slot:last-child  { border-radius:0 0 20px 0; }
+
+  .robot-label { font-size:.65rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:8px; display:flex; align-items:center; gap:6px; }
+  .robot-label .dot { width:7px; height:7px; border-radius:50%; background:var(--accent); box-shadow:0 0 8px var(--accent); }
+  .robot-avatar { font-size:2.1rem; text-align:center; margin-bottom:7px; animation:robotFloat 3s ease-in-out infinite; }
+  .robot-slot:last-child .robot-avatar { animation-delay:-1.5s; }
+  @keyframes robotFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
+
+  .metric-row { display:flex; flex-direction:column; gap:4px; font-size:.8rem; }
+  .metric-item { display:flex; justify-content:space-between; align-items:center; padding:3px 0; border-bottom:1px solid var(--border); }
+  .metric-item:last-child { border-bottom:none; }
+  .metric-key { color:var(--muted); font-size:.74rem; }
+  .metric-val { font-family:'JetBrains Mono',monospace; font-size:.76rem; font-weight:600; }
+  .metric-val.good { color:var(--ok); }
+  .metric-val.warn { color:var(--warn); }
+  .metric-val.bad  { color:var(--bad); }
+  .metric-val.neut { color:var(--text); }
+
+  .progress-wrap { margin-top:8px; }
+  .progress-label { display:flex; justify-content:space-between; font-size:.68rem; color:var(--muted); margin-bottom:3px; }
+  .progress-bar { height:3px; border-radius:99px; background:rgba(255,255,255,.07); overflow:hidden; }
+  .progress-fill { height:100%; border-radius:99px; background:var(--grad); transition:width 1.2s ease; }
+
+  /* ── SKILL LIBRARY ── */
+  .skills-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:9px; margin-bottom:28px; }
+  .skill-chip {
+    background:var(--card); border:1px solid var(--border); border-radius:12px;
+    padding:11px 14px; display:flex; align-items:center; gap:9px;
+    cursor:pointer; transition:all .2s; position:relative; overflow:hidden;
+  }
+  .skill-chip:hover { border-color:var(--border2); background:var(--card2); transform:translateY(-1px); }
+  .skill-chip .chip-icon { font-size:1.25rem; flex-shrink:0; }
+  .skill-chip .chip-text { font-size:.8rem; font-weight:600; }
+  .skill-chip .chip-sub  { font-size:.67rem; color:var(--muted); margin-top:1px; }
+  .skill-chip .chip-badge { margin-left:auto; flex-shrink:0; padding:2px 7px; border-radius:99px; font-size:.63rem; font-weight:700; }
+  .skill-chip.unlocked .chip-badge { background:rgba(34,217,140,.15); color:var(--ok); }
+  .skill-chip.pending  .chip-badge { background:rgba(77,166,255,.13);  color:var(--blue); }
+  .skill-chip.locked   .chip-badge { background:rgba(107,127,163,.08); color:var(--muted); }
+
+  /* ── REQUEST FORM ── */
+  .request-panel {
+    background:var(--card); border:1px solid var(--border); border-radius:20px;
+    padding:22px 26px; margin-bottom:22px; position:relative; overflow:hidden;
+  }
+  .request-panel::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:2px;
+    background:linear-gradient(90deg,var(--c-martial),var(--c-artistic),var(--c-rhythmic),var(--c-care));
+  }
+  .request-panel h2 { font-size:.95rem; font-weight:700; margin-bottom:5px; }
+  .request-panel p  { font-size:.79rem; color:var(--muted); margin-bottom:14px; }
+  .form-row { display:flex; gap:9px; flex-wrap:wrap; }
+  .form-row input, .form-row select {
+    padding:10px 14px; border-radius:11px; border:1px solid var(--border2);
+    background:rgba(0,0,0,.3); color:var(--text); font-family:'Inter',sans-serif; font-size:.87rem; outline:none;
+    transition:border-color .2s;
+  }
+  .form-row input { flex:1; min-width:240px; }
+  .form-row input:focus { border-color:rgba(77,166,255,.5); }
+  .btn-primary {
+    padding:10px 20px; border-radius:11px; border:none;
+    background:linear-gradient(135deg,#4da6ff,#7b4dff);
+    color:#fff; font-family:'Inter',sans-serif; font-size:.87rem; font-weight:700;
+    cursor:pointer; transition:opacity .2s,transform .15s; white-space:nowrap;
+  }
+  .btn-primary:hover { opacity:.85; transform:translateY(-1px); }
+  #reqMsg { font-size:.77rem; margin-top:7px; min-height:16px; }
+
+  /* ── TABLE ── */
+  .table-wrap { background:var(--card); border:1px solid var(--border); border-radius:16px; overflow:hidden; margin-bottom:28px; }
+  table { width:100%; border-collapse:collapse; font-size:.81rem; }
+  th { padding:9px 15px; text-align:left; font-size:.67rem; font-weight:600; letter-spacing:.09em; text-transform:uppercase; color:var(--muted); background:rgba(255,255,255,.02); border-bottom:1px solid var(--border); }
+  td { padding:9px 15px; border-bottom:1px solid var(--border); vertical-align:middle; }
+  tr:last-child td { border-bottom:none; }
+  tr:hover td { background:rgba(255,255,255,.018); }
+  .spill { display:inline-block; padding:2px 9px; border-radius:99px; font-size:.67rem; font-weight:700; }
+  .spill.training   { background:rgba(77,166,255,.13); color:var(--blue); }
+  .spill.learned    { background:rgba(34,217,140,.13); color:var(--ok); }
+  .spill.escalated  { background:rgba(240,80,110,.13); color:var(--bad); }
+  .spill.retargeted { background:rgba(245,166,35,.13); color:var(--warn); }
+  .spill.rejected   { background:rgba(107,127,163,.08); color:var(--muted); }
+  .spill.pending    { background:rgba(155,109,255,.13); color:#c084fc; }
+
+  /* ── HISTORY ── */
+  .history-panel { background:var(--card); border:1px solid var(--border); border-radius:20px; padding:22px 26px; margin-bottom:22px; }
+  .history-panel h2 { font-size:.95rem; font-weight:700; margin-bottom:14px; }
+
+  /* ── GATE INFO ── */
+  .gate-strip {
+    display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:12px; margin-bottom:28px;
+  }
+  .gate-card {
+    border-radius:13px; padding:14px 18px; border:1px solid;
+    font-size:.79rem;
+  }
+  .gate-card.martial  { background:rgba(240,80,110,.06);  border-color:rgba(240,80,110,.22);  }
+  .gate-card.care     { background:rgba(34,217,140,.06);  border-color:rgba(34,217,140,.22);  }
+  .gate-card.artistic { background:rgba(245,166,35,.06);  border-color:rgba(245,166,35,.22);  }
+  .gate-card.rhythmic { background:rgba(192,132,252,.06); border-color:rgba(192,132,252,.22); }
+  .gate-card h4 { font-size:.78rem; font-weight:700; margin-bottom:6px; }
+  .gate-card.martial  h4 { color:var(--c-martial); }
+  .gate-card.care     h4 { color:var(--c-care); }
+  .gate-card.artistic h4 { color:var(--c-artistic); }
+  .gate-card.rhythmic h4 { color:var(--c-rhythmic); }
+  .gate-card ul { list-style:none; display:flex; flex-direction:column; gap:3px; color:var(--muted); }
+  .gate-card ul li::before { content:'▸ '; font-size:.65rem; }
+
+  /* ── SHIMMER ── */
+  @keyframes shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
+  .shimmer { background:linear-gradient(90deg,transparent 25%,rgba(255,255,255,.05) 50%,transparent 75%); background-size:200% 100%; animation:shimmer 1.5s infinite; border-radius:5px; height:13px; margin:3px 0; }
+
+  footer { padding:14px 40px; border-top:1px solid var(--border); font-size:.73rem; color:var(--muted); display:flex; justify-content:space-between; align-items:center; position:relative; z-index:1; }
 </style>
 </head>
 <body>
-<h1>🦿 Mecha Motion Lab — 自律モーション学習ループ</h1>
-<p class="sub">Genesis GPU上でロボットがモーションを自律学習。判断はプレイブック(決定表)+ローカルLLM、行き詰まりは人間へエスカレーション。
-基盤: <code>projects/AtsugiMechaCity/rl_integration/autonomy/</code></p>
 
-<div class="panel" style="border-color: rgba(52,211,153,.4)">
-  <h3 style="margin-top:0">🎓 覚えてほしい動作をリクエスト</h3>
-  <form id="reqForm" style="display:flex; gap:10px;">
-    <input id="reqText" type="text" placeholder="例: 斜面を登る / 階段を降りる / 箱を持ち上げる / 介助で人を支える"
-           style="flex:1; padding:10px 14px; border-radius:10px; border:1px solid rgba(255,255,255,.15); background:rgba(0,0,0,.25); color:var(--text); font-size:.95rem;">
-    <button type="submit" style="padding:10px 22px; border-radius:10px; border:none; background:linear-gradient(135deg,#34d399,#38bdf8); color:#04121f; font-weight:700; cursor:pointer;">依頼する</button>
-  </form>
-  <div id="reqMsg" class="muted" style="margin-top:8px; font-size:.85rem;"></div>
-  <table style="margin-top:12px"><thead><tr><th>依頼</th><th>状態</th><th>受付日時</th></tr></thead>
-    <tbody id="reqList"><tr><td colspan="3" class="muted">—</td></tr></tbody></table>
-  <p class="muted" style="font-size:.8rem; margin-bottom:0">依頼はスキル獲得パイプライン(解釈→お手本探索→ライセンス確認[人間]→学習→検収[人間])のキューに入ります。地形が必要な動作(階段・斜面)は仮想環境の地形生成も自動計画されます。</p>
-</div>
+<header>
+  <div class="logo">🦿</div>
+  <div class="header-text">
+    <h1>Mecha Motion Lab</h1>
+    <div class="sub">
+      <span class="phase-badge">L30 — 四シナリオ協調学習</span>
+      <span>Genesis World + Isaac Lab 3.0 GPU並列シミュレーション</span>
+      <span id="clockDisplay" style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:.73rem"></span>
+    </div>
+  </div>
+</header>
 
-<div class="panel">
-  <h3 style="margin-top:0">現在の学習状態</h3>
-  <div class="kv" id="kv"><b>状態</b><span id="st" class="state">読込中…</span></div>
-</div>
+<main>
 
-<div class="panel">
-  <h3 style="margin-top:0">PDCAサイクル履歴</h3>
-  <table><thead><tr><th>#</th><th>前進[m/8s]</th><th>転倒</th><th>vx[m/s]</th><th>適用ルール</th><th>ローカルLLMノート</th></tr></thead>
-  <tbody id="hist"><tr><td colspan="6" class="muted">supervisor_status.json 待ち</td></tr></tbody></table>
-</div>
+  <!-- ── GATE INFO STRIP ── -->
+  <p class="section-title">評価ゲート一覧（上限なし相対指標）</p>
+  <div class="gate-strip">
+    <div class="gate-card martial">
+      <h4>🥋 格闘技 — Alpha vs Beta</h4>
+      <ul>
+        <li>Alpha 有効打率 &gt; 40%</li>
+        <li>Beta 受け身成功率 &gt; 60%</li>
+        <li>両者バランス保持 &gt; 5.0s</li>
+        <li>衝撃力ピーク &lt; 500N</li>
+      </ul>
+    </div>
+    <div class="gate-card care">
+      <h4>🤝 介護 — Gamma × Delta</h4>
+      <ul>
+        <li>安全支持率 &gt; 85%</li>
+        <li>移乗完了率 &gt; 80%</li>
+        <li>転倒ゼロ連続 ≥ 5回</li>
+        <li>接触力ピーク &lt; 200N</li>
+      </ul>
+    </div>
+    <div class="gate-card artistic">
+      <h4>🤸 機械体操 — Epsilon + Zeta</h4>
+      <ul>
+        <li>宙返り着地GRF &lt; 10 × 体重</li>
+        <li>3技連続達成率 &gt; 70%</li>
+        <li>FIG D-score &gt; 3.0</li>
+        <li>FIG E-score &gt; 7.0</li>
+      </ul>
+    </div>
+    <div class="gate-card rhythmic">
+      <h4>🎀 新体操 — Eta + Theta</h4>
+      <ul>
+        <li>手具投捕球成功率 &gt; 80%</li>
+        <li>跳躍高度 &gt; 0.5m</li>
+        <li>FIG D-score &gt; 2.5</li>
+        <li>FIG A-score &gt; 7.0</li>
+      </ul>
+    </div>
+  </div>
 
-<div class="panel muted" style="font-size:.85rem">
-  習得ゲート: 前進≥1.5m/8s かつ 転倒なし(walk_check.jsonの機械判定=目視チェックの自動化) ·
-  エスカレーション時はTelegram通知+escalation.md生成 · スキル待ち行列と獲得パイプライン設計:
-  <code>design/skill_acquisition_pipeline.md</code>
-</div>
+  <!-- ── REQUEST FORM ── -->
+  <div class="request-panel">
+    <h2>🎮 新スキルをリクエスト</h2>
+    <p>覚えさせたい動作を入力。シナリオを選んで送信してください。</p>
+    <div class="form-row">
+      <select id="reqCategory">
+        <option value="martial">🥋 格闘技</option>
+        <option value="care">🤝 介護</option>
+        <option value="artistic">🤸 機械体操</option>
+        <option value="rhythmic">🎀 新体操</option>
+      </select>
+      <input id="reqText" type="text"
+        placeholder="例: 背負い投げ / 車椅子移乗介助 / バック転 / リボンの8の字">
+      <button class="btn-primary" onclick="submitRequest()">依頼する</button>
+    </div>
+    <div id="reqMsg" class="muted"></div>
+  </div>
+
+  <!-- ── SCENARIO CARDS 2×2 ── -->
+  <p class="section-title">アクティブシナリオ</p>
+  <div class="scenario-grid">
+
+    <!-- MARTIAL -->
+    <div class="scenario-card martial">
+      <div class="card-header">
+        <div class="card-icon">🥋</div>
+        <div>
+          <div class="card-title">格闘技シナリオ</div>
+          <div class="card-subtitle">柔道・レスリング・組技。ALMI 敵対的協調学習。Isaac Lab 3.0 (Newton)</div>
+        </div>
+        <span class="card-status idle" id="martialStatus">準備中</span>
+      </div>
+      <div class="robot-pair">
+        <div class="robot-slot">
+          <div class="robot-label"><span class="dot"></span>Alpha — 攻撃側 (tori)</div>
+          <div class="robot-avatar">🤖</div>
+          <div class="metric-row" id="martialAlphaMetrics"><div class="shimmer" style="width:100%"></div><div class="shimmer" style="width:80%"></div></div>
+          <div class="progress-wrap">
+            <div class="progress-label"><span>習熟度</span><span id="martialAlphaPct">—</span></div>
+            <div class="progress-bar"><div class="progress-fill" id="martialAlphaBar" style="width:0%"></div></div>
+          </div>
+        </div>
+        <div class="robot-slot">
+          <div class="robot-label"><span class="dot"></span>Beta — 受け側 (uke)</div>
+          <div class="robot-avatar">🤖</div>
+          <div class="metric-row" id="martialBetaMetrics"><div class="shimmer" style="width:100%"></div><div class="shimmer" style="width:75%"></div></div>
+          <div class="progress-wrap">
+            <div class="progress-label"><span>習熟度</span><span id="martialBetaPct">—</span></div>
+            <div class="progress-bar"><div class="progress-fill" id="martialBetaBar" style="width:0%"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARE -->
+    <div class="scenario-card care">
+      <div class="card-header">
+        <div class="card-icon">🤝</div>
+        <div>
+          <div class="card-title">介護シナリオ</div>
+          <div class="card-subtitle">移乗介助・転倒防止・歩行支援。ボディメカニクス7原則準拠。Genesis World</div>
+        </div>
+        <span class="card-status idle" id="careStatus">準備中</span>
+      </div>
+      <div class="robot-pair">
+        <div class="robot-slot">
+          <div class="robot-label"><span class="dot"></span>Gamma — 介護者</div>
+          <div class="robot-avatar">🦾</div>
+          <div class="metric-row" id="careGammaMetrics"><div class="shimmer" style="width:100%"></div><div class="shimmer" style="width:80%"></div></div>
+          <div class="progress-wrap">
+            <div class="progress-label"><span>習熟度</span><span id="careGammaPct">—</span></div>
+            <div class="progress-bar"><div class="progress-fill" id="careGammaBar" style="width:0%"></div></div>
+          </div>
+        </div>
+        <div class="robot-slot">
+          <div class="robot-label"><span class="dot"></span>Delta — 患者役</div>
+          <div class="robot-avatar">🦿</div>
+          <div class="metric-row" id="careDeltaMetrics"><div class="shimmer" style="width:100%"></div><div class="shimmer" style="width:75%"></div></div>
+          <div class="progress-wrap">
+            <div class="progress-label"><span>習熟度</span><span id="careDeltaPct">—</span></div>
+            <div class="progress-bar"><div class="progress-fill" id="careDeltaBar" style="width:0%"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ARTISTIC GYMNASTICS -->
+    <div class="scenario-card artistic">
+      <div class="card-header">
+        <div class="card-icon">🤸</div>
+        <div>
+          <div class="card-title">機械体操シナリオ</div>
+          <div class="card-subtitle">床運動・跳馬・鉄棒。A2CF補助力カリキュラム。World-Gymnast VLM採点。Isaac Lab 3.0</div>
+        </div>
+        <span class="card-status idle" id="artisticStatus">準備中</span>
+      </div>
+      <div class="robot-pair">
+        <div class="robot-slot">
+          <div class="robot-label"><span class="dot"></span>Epsilon — 演技者</div>
+          <div class="robot-avatar">🤸</div>
+          <div class="metric-row" id="artisticEpsilonMetrics"><div class="shimmer" style="width:100%"></div><div class="shimmer" style="width:80%"></div></div>
+          <div class="progress-wrap">
+            <div class="progress-label"><span>習熟度</span><span id="artisticEpsilonPct">—</span></div>
+            <div class="progress-bar"><div class="progress-fill" id="artisticEpsilonBar" style="width:0%"></div></div>
+          </div>
+        </div>
+        <div class="robot-slot">
+          <div class="robot-label"><span class="dot"></span>Zeta — スポッター / 同期</div>
+          <div class="robot-avatar">🤖</div>
+          <div class="metric-row" id="artisticZetaMetrics"><div class="shimmer" style="width:100%"></div><div class="shimmer" style="width:75%"></div></div>
+          <div class="progress-wrap">
+            <div class="progress-label"><span>習熟度</span><span id="artisticZetaPct">—</span></div>
+            <div class="progress-bar"><div class="progress-fill" id="artisticZetaBar" style="width:0%"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RHYTHMIC GYMNASTICS -->
+    <div class="scenario-card rhythmic">
+      <div class="card-header">
+        <div class="card-icon">🎀</div>
+        <div>
+          <div class="card-title">新体操シナリオ</div>
+          <div class="card-subtitle">リボン・ボール・フープ・クラブ・縄。Fourier MP + FIG JSS自動採点。Genesis World</div>
+        </div>
+        <span class="card-status idle" id="rhythmicStatus">準備中</span>
+      </div>
+      <div class="robot-pair">
+        <div class="robot-slot">
+          <div class="robot-label"><span class="dot"></span>Eta — 演技者</div>
+          <div class="robot-avatar">🩰</div>
+          <div class="metric-row" id="rhythmicEtaMetrics"><div class="shimmer" style="width:100%"></div><div class="shimmer" style="width:80%"></div></div>
+          <div class="progress-wrap">
+            <div class="progress-label"><span>習熟度</span><span id="rhythmicEtaPct">—</span></div>
+            <div class="progress-bar"><div class="progress-fill" id="rhythmicEtaBar" style="width:0%"></div></div>
+          </div>
+        </div>
+        <div class="robot-slot">
+          <div class="robot-label"><span class="dot"></span>Theta — 手具渡し / ペア</div>
+          <div class="robot-avatar">🤖</div>
+          <div class="metric-row" id="rhythmicThetaMetrics"><div class="shimmer" style="width:100%"></div><div class="shimmer" style="width:75%"></div></div>
+          <div class="progress-wrap">
+            <div class="progress-label"><span>習熟度</span><span id="rhythmicThetaPct">—</span></div>
+            <div class="progress-bar"><div class="progress-fill" id="rhythmicThetaBar" style="width:0%"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /scenario-grid -->
+
+  <!-- ── SKILL LIBRARY ── -->
+  <p class="section-title">スキルライブラリ</p>
+  <div class="skills-grid" id="skillsGrid"></div>
+
+  <!-- ── PDCA HISTORY ── -->
+  <div class="history-panel">
+    <h2>📈 PDCAサイクル履歴 <span id="spark" style="margin-left:8px;vertical-align:middle"></span></h2>
+    <div class="table-wrap" style="margin-bottom:0">
+      <table>
+        <thead><tr><th>#</th><th>シナリオ</th><th>サイクル</th><th>Robot A</th><th>Robot B</th><th>結果</th><th>ノート</th></tr></thead>
+        <tbody id="hist"><tr><td colspan="7" style="color:var(--muted);text-align:center;padding:24px">supervisor_status.json を待機中…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── REQUEST LOG ── -->
+  <p class="section-title">スキルリクエスト履歴</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>シナリオ</th><th>依頼内容</th><th>状態</th><th>受付日時</th><th>操作</th></tr></thead>
+      <tbody id="reqList"><tr><td colspan="5" style="color:var(--muted);text-align:center;padding:24px">—</td></tr></tbody>
+    </table>
+  </div>
+
+</main>
+
+<footer>
+  <span>🦿 Mecha Motion Lab L30 — 格闘技 / 介護 / 機械体操 / 新体操 | Genesis World + Isaac Lab 3.0</span>
+  <span id="footerStatus">読込中…</span>
+</footer>
 
 <script>
+/* ── CLOCK ── */
+function updateClock(){
+  document.getElementById('clockDisplay').textContent =
+    new Date().toLocaleString('ja-JP',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+setInterval(updateClock,1000); updateClock();
+
+/* ── SKILL LIBRARY DATA ── */
+const SKILLS = [
+  // 格闘技
+  {cat:'martial', icon:'🤼', name:'テイクダウン防御', sub:'タックル回避+カウンター',  status:'pending'},
+  {cat:'martial', icon:'🥋', name:'背負い投げ',       sub:'柔道系投げ技',             status:'locked'},
+  {cat:'martial', icon:'🤸', name:'受け身 (Ukemi)',   sub:'着地衝撃力分散',           status:'pending'},
+  {cat:'martial', icon:'💪', name:'グラップル制御',   sub:'全身コンタクト制御',       status:'locked'},
+  // 介護
+  {cat:'care',    icon:'🧑‍🦽', name:'移乗介助',       sub:'車椅子→立位サポート',      status:'pending'},
+  {cat:'care',    icon:'🚶', name:'歩行並走支援',     sub:'転倒予防バランスアシスト', status:'pending'},
+  {cat:'care',    icon:'🛡️', name:'転倒防止介入',     sub:'前傾検知→即時支持',        status:'locked'},
+  {cat:'care',    icon:'🤲', name:'起立補助',         sub:'床→立位の重心誘導',        status:'locked'},
+  // 機械体操
+  {cat:'artistic', icon:'🔄', name:'後方宙返り',       sub:'角運動量制御+着地',        status:'pending'},
+  {cat:'artistic', icon:'🤸', name:'床運動連続技',     sub:'3技連続フロア',            status:'locked'},
+  {cat:'artistic', icon:'🏅', name:'跳馬 (Vault)',     sub:'助走→踏切→飛越',          status:'locked'},
+  {cat:'artistic', icon:'🎯', name:'鉄棒 大車輪',      sub:'離手→空中→再把握',        status:'locked'},
+  // 新体操
+  {cat:'rhythmic', icon:'🎀', name:'リボン8の字',      sub:'軟体制御波形維持',         status:'pending'},
+  {cat:'rhythmic', icon:'⚽', name:'ボール投捕球',     sub:'放物線予測+キャッチ',      status:'pending'},
+  {cat:'rhythmic', icon:'🔵', name:'フープ回転操作',   sub:'スピン+投上げ',            status:'locked'},
+  {cat:'rhythmic', icon:'🏒', name:'クラブ両手操作',   sub:'交差+クロスキャッチ',      status:'locked'},
+];
+
+const CAT_COLOR = {
+  martial:'var(--c-martial)', care:'var(--c-care)',
+  artistic:'var(--c-artistic)', rhythmic:'var(--c-rhythmic)'
+};
+function renderSkills(){
+  document.getElementById('skillsGrid').innerHTML = SKILLS.map(s=>`
+    <div class="skill-chip ${s.status}">
+      <span class="chip-icon">${s.icon}</span>
+      <div>
+        <div class="chip-text" style="color:${CAT_COLOR[s.cat]}">${s.name}</div>
+        <div class="chip-sub">${s.sub}</div>
+      </div>
+      <span class="chip-badge">${s.status==='unlocked'?'習得':s.status==='pending'?'学習中':'未解放'}</span>
+    </div>`).join('');
+}
+renderSkills();
+
+/* ── API ── */
 const API = 'http://127.0.0.1:8118';
-document.getElementById('reqForm').addEventListener('submit', async (e)=>{
-  e.preventDefault();
-  const t = document.getElementById('reqText').value.trim();
-  if(!t) return;
-  const msg = document.getElementById('reqMsg');
-  try{
-    const r = await fetch(API+'/requests', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({text:t})});
-    const j = await r.json();
-    msg.textContent = j.ok ? `受付けました: ${j.request.id}` : '受付エラー';
-    document.getElementById('reqText').value = '';
-    loadRequests();
-  }catch(err){
-    msg.textContent = '受付APIに接続できません(skill_request_api.py 127.0.0.1:8118 が未起動の可能性)';
+let lastGood=null, failCount=0;
+
+function metricHtml(label,value,cls){
+  return `<div class="metric-item"><span class="metric-key">${label}</span><span class="metric-val ${cls}">${value}</span></div>`;
+}
+function setCardStatus(id,state){
+  const el=document.getElementById(id); if(!el) return;
+  el.className='card-status';
+  const map={training:['training','学習中'], learned:['learned','習得済'], error:['error','エラー']};
+  const [c,t]=map[state]||['idle','準備中'];
+  el.classList.add(c); el.textContent=t;
+}
+function renderRobotMetrics(panelId,barId,pctId,robot){
+  const panel=document.getElementById(panelId); if(!panel) return;
+  if(!robot){ panel.innerHTML=metricHtml('状態','待機中','neut'); return; }
+  let html='';
+  if(robot.score    !=null) html+=metricHtml('スコア',       robot.score.toFixed(1),              robot.score>50?'good':robot.score>20?'warn':'bad');
+  if(robot.fell     !=null) html+=metricHtml('転倒',         robot.fell?'あり❌':'なし✅',          robot.fell?'bad':'good');
+  if(robot.hit_rate !=null) html+=metricHtml('有効打率',     (robot.hit_rate*100).toFixed(1)+'%', robot.hit_rate>0.4?'good':'warn');
+  if(robot.safe_rate!=null) html+=metricHtml('安全支持率',   (robot.safe_rate*100).toFixed(1)+'%',robot.safe_rate>0.8?'good':'warn');
+  if(robot.d_score  !=null) html+=metricHtml('D-score',      robot.d_score.toFixed(2),            robot.d_score>3?'good':robot.d_score>1.5?'warn':'bad');
+  if(robot.e_score  !=null) html+=metricHtml('E-score',      robot.e_score.toFixed(2),            robot.e_score>7?'good':robot.e_score>5?'warn':'bad');
+  if(robot.a_score  !=null) html+=metricHtml('A-score',      robot.a_score.toFixed(2),            robot.a_score>7?'good':robot.a_score>5?'warn':'bad');
+  if(robot.catch_rate!=null)html+=metricHtml('投捕球成功率', (robot.catch_rate*100).toFixed(1)+'%',robot.catch_rate>0.8?'good':'warn');
+  panel.innerHTML = html||metricHtml('データ','待機中','neut');
+  const pct=robot.score!=null?Math.min(100,Math.max(0,robot.score)):0;
+  const barEl=document.getElementById(barId); const pctEl=document.getElementById(pctId);
+  if(barEl) barEl.style.width=pct+'%';
+  if(pctEl) pctEl.textContent=pct.toFixed(0)+'%';
+}
+
+function spark(vals,color){
+  if(!vals||vals.length<2) return '';
+  const w=160,h=28;
+  const max=Math.max(...vals)*1.1||1;
+  const y=v=>h-2-(v/max)*(h-5);
+  const pts=vals.map((v,i)=>`${(i/(vals.length-1))*w},${y(v).toFixed(1)}`).join(' ');
+  return `<svg width="${w}" height="${h}" style="vertical-align:middle">
+    <polyline points="${pts}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round"/>
+    <circle cx="${w}" cy="${y(vals.at(-1)).toFixed(1)}" r="3" fill="${color}"/>
+  </svg>`;
+}
+
+const SCENARIO_LABEL={martial:'🥋 格闘技', care:'🤝 介護', artistic:'🤸 機械体操', rhythmic:'🎀 新体操'};
+
+function render(s,fetchNote){
+  const scenarios=['martial','care','artistic','rhythmic'];
+  scenarios.forEach(sc=>{
+    const d=s[sc]||{};
+    setCardStatus(sc+'Status', d.state||'idle');
+  });
+  // per-robot
+  renderRobotMetrics('martialAlphaMetrics',  'martialAlphaBar',    'martialAlphaPct',    s.martial?.robots?.alpha);
+  renderRobotMetrics('martialBetaMetrics',   'martialBetaBar',     'martialBetaPct',     s.martial?.robots?.beta);
+  renderRobotMetrics('careGammaMetrics',     'careGammaBar',       'careGammaPct',       s.care?.robots?.gamma);
+  renderRobotMetrics('careDeltaMetrics',     'careDeltaBar',       'careDeltaPct',       s.care?.robots?.delta);
+  renderRobotMetrics('artisticEpsilonMetrics','artisticEpsilonBar','artisticEpsilonPct', s.artistic?.robots?.epsilon);
+  renderRobotMetrics('artisticZetaMetrics',  'artisticZetaBar',    'artisticZetaPct',    s.artistic?.robots?.zeta);
+  renderRobotMetrics('rhythmicEtaMetrics',   'rhythmicEtaBar',     'rhythmicEtaPct',     s.rhythmic?.robots?.eta);
+  renderRobotMetrics('rhythmicThetaMetrics', 'rhythmicThetaBar',   'rhythmicThetaPct',   s.rhythmic?.robots?.theta);
+  // sparklines
+  const colors={martial:'var(--c-martial)',care:'var(--c-care)',artistic:'var(--c-artistic)',rhythmic:'var(--c-rhythmic)'};
+  let sparkHtml='';
+  scenarios.forEach(sc=>{
+    const vals=(s.history||[]).filter(h=>h.scenario===sc).map(h=>h.score_a||0);
+    if(vals.length>1) sparkHtml+=spark(vals,colors[sc])+`<span style="color:var(--muted);font-size:.68rem;margin:0 8px">${SCENARIO_LABEL[sc]}</span>`;
+  });
+  document.getElementById('spark').innerHTML=sparkHtml;
+  // history table
+  const hist=document.getElementById('hist');
+  if(s.history&&s.history.length){
+    hist.innerHTML=s.history.slice().reverse().map((h,i)=>{
+      const gC=h.gate_pass?'good':'bad', gT=h.gate_pass?'✅ PASS':'❌ FAIL';
+      return `<tr>
+        <td style="color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:.73rem">${(s.history.length-i).toString().padStart(2,'0')}</td>
+        <td>${SCENARIO_LABEL[h.scenario]||h.scenario}</td>
+        <td style="font-family:'JetBrains Mono',monospace">${h.cycle??'-'}</td>
+        <td><span class="metric-val ${gC}">${h.score_a?.toFixed(1)??'-'}</span></td>
+        <td><span class="metric-val ${gC}">${h.score_b?.toFixed(1)??'-'}</span></td>
+        <td><span class="metric-val ${gC}">${gT}</span></td>
+        <td style="color:var(--muted);font-size:.75rem">${h.note||''}</td>
+      </tr>`;
+    }).join('');
+  } else {
+    hist.innerHTML=`<tr><td colspan="7" style="color:var(--muted);text-align:center;padding:24px">学習サイクル開始を待機中</td></tr>`;
   }
-});
-async function gate(id, act){
-  try{
-    await fetch(`${API}/requests/${id}/${act}`, {method:'POST', headers:{'Content-Type':'application/json'}, body:'{"by":"dashboard"}'});
-    loadRequests();
-  }catch(e){ document.getElementById('reqMsg').textContent = 'ゲート操作失敗(API未起動?)'; }
+  const note=fetchNote?` — ⚠ ${fetchNote}`:'';
+  document.getElementById('footerStatus').textContent=`最終更新: ${s.updated_at||'-'}${note}`;
 }
-async function loadRequests(){
-  try{
-    const r = await fetch(API+'/requests?t='+Date.now());
-    const d = await r.json();
-    const tb = document.getElementById('reqList');
-    if(d.requests && d.requests.length){
-      tb.innerHTML = d.requests.slice().reverse().map(q=>{
-        const gate = q.status==='license_pending'
-          ? ` <button onclick="gate('${q.id}','approve')" style="padding:2px 10px;border-radius:6px;border:none;background:#34d399;color:#04121f;cursor:pointer">承認</button>
-              <button onclick="gate('${q.id}','reject')" style="padding:2px 10px;border-radius:6px;border:none;background:#f87171;color:#04121f;cursor:pointer">却下</button>` : '';
-        return `<tr><td>${q.text}</td><td>${q.status}${gate}</td><td class="muted">${q.created_at}</td></tr>`;
-      }).join('');
-    }
-  }catch(e){ /* API未起動時は静かに */ }
-}
-loadRequests(); setInterval(loadRequests, 30000);
 
 async function load(){
   try{
-    const r = await fetch('supervisor_status.json?t='+Date.now());
-    const s = await r.json();
-    const kv = document.getElementById('kv');
-    kv.innerHTML = `
-      <b>状態</b><span class="state ${s.state}">${s.state}</span>
-      <b>スキル</b><span>${s.skill}</span>
-      <b>サイクル</b><span>${s.cycle}</span>
-      <b>最終更新</b><span>${s.updated_at||'-'}</span>
-      <b>直近メトリクス</b><span>${s.last_metrics?`travel ${s.last_metrics.travel}m / vx ${s.last_metrics.vx} / 転倒 ${s.last_metrics.fell?'あり':'なし'}`:'-'}</span>
-      ${s.escalation_reason?`<b>エスカレーション</b><span style="color:var(--bad)">${s.escalation_reason}</span>`:''}`;
-    const hist = document.getElementById('hist');
-    if(s.history && s.history.length){
-      hist.innerHTML = s.history.map(h=>`<tr><td>${h.cycle}</td><td>${h.metrics.travel}</td>
-        <td>${h.metrics.fell?'❌':'✅'}</td><td>${h.metrics.vx}</td><td>${h.rule}</td>
-        <td class="muted">${h.llm_note||''}</td></tr>`).join('');
-    }
+    const r=await fetch('supervisor_status.json?t='+Date.now());
+    const s=await r.json(); failCount=0; lastGood={s,at:Date.now()}; render(s,null);
   }catch(e){
-    document.getElementById('st').textContent = '未稼働(supervisor未起動)';
+    failCount++;
+    if(lastGood) render(lastGood.s,`読込失敗${failCount}回 — ${new Date(lastGood.at).toLocaleTimeString()}時点の値`);
   }
 }
-load(); setInterval(load, 30000);
+load(); setInterval(load,20000);
+
+/* ── REQUESTS ── */
+async function loadRequests(){
+  const tb=document.getElementById('reqList');
+  const tryRender=(reqs,readonly)=>{
+    if(!reqs||!reqs.length){ tb.innerHTML='<tr><td colspan="5" style="color:var(--muted);text-align:center;padding:24px">—</td></tr>'; return; }
+    tb.innerHTML=reqs.slice().reverse().map(q=>{
+      const sc=SCENARIO_LABEL[q.category]||'—';
+      const pill=`<span class="spill ${q.status}">${q.status}</span>`;
+      const btns=(!readonly&&q.status==='license_pending')
+        ?`<button onclick="gate('${q.id}','approve')" style="padding:2px 10px;border-radius:6px;border:none;background:var(--ok);color:#04121f;cursor:pointer;font-weight:700;margin-right:4px">承認</button>
+          <button onclick="gate('${q.id}','reject')"  style="padding:2px 10px;border-radius:6px;border:none;background:var(--bad);color:#fff;cursor:pointer;font-weight:700">却下</button>`:'—';
+      return `<tr>
+        <td style="white-space:nowrap">${sc}</td>
+        <td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${q.text}</td>
+        <td>${pill}</td>
+        <td style="color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:.73rem">${q.created_at}</td>
+        <td>${btns}</td>
+      </tr>`;
+    }).join('');
+  };
+  try{
+    const r=await fetch(API+'/requests?t='+Date.now());
+    const d=await r.json(); tryRender(d.requests,false);
+  }catch{
+    try{
+      const r2=await fetch('skill_requests.json?t='+Date.now());
+      const d2=await r2.json(); tryRender(d2.requests,true);
+      document.getElementById('reqMsg').textContent='受付API(8118)未接続 — skill_requests.jsonのスナップショット表示';
+    }catch{ /* silent */ }
+  }
+}
+loadRequests(); setInterval(loadRequests,30000);
+
+async function submitRequest(){
+  const text=document.getElementById('reqText').value.trim();
+  const cat=document.getElementById('reqCategory').value;
+  const msg=document.getElementById('reqMsg');
+  if(!text){ msg.textContent='テキストを入力してください'; return; }
+  msg.style.color='var(--muted)'; msg.textContent='送信中…';
+  try{
+    const r=await fetch(API+'/requests',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,category:cat})});
+    const j=await r.json();
+    msg.style.color='var(--ok)';
+    msg.textContent=j.ok?`✅ 受付完了: ${j.request?.id}`:'受付エラー';
+    document.getElementById('reqText').value=''; loadRequests();
+  }catch{
+    msg.style.color='var(--warn)';
+    msg.textContent='受付API(8118)未接続 — skill_requests.jsonに直接追記してください';
+  }
+}
+document.getElementById('reqText').addEventListener('keydown',e=>{ if(e.key==='Enter') submitRequest(); });
+
+async function gate(id,act){
+  try{
+    await fetch(`${API}/requests/${id}/${act}`,{method:'POST',headers:{'Content-Type':'application/json'},body:'{"by":"dashboard"}'});
+    loadRequests();
+  }catch{ document.getElementById('reqMsg').textContent='ゲート操作失敗(API未起動?)'; }
+}
 </script>
 </body>
 </html>

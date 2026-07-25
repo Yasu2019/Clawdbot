@@ -1,7 +1,9 @@
 {
     "schema":  "clawstack.robot_l20_autonomous_launcher.v1",
-    "started_at":  "2026-06-20T04:02:19.4129897Z",
-    "pid":  19316,
+    "started_at":  "2026-07-25T19:02:23.8028252Z",
+    "pid":  36760,
+    "batch_number":  203,
+    "seed_base":  60824438,
     "cycles":  200,
     "sleep_sec":  60,
     "count":  128,

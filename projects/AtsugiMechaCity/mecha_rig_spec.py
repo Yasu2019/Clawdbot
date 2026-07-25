@@ -69,6 +69,7 @@ VALID_JOINT_TYPES = {"hinge", "revolute", "ball", "fixed"}
 #                     when a leg lifts) -- needs a driver_bone + influence; NOT
 #                     auto-detected (the hard case), left for the user to set.
 VALID_PART_TYPES = {"structural", "armor_fixed", "armor_follower"}
+VALID_BONES = set(BONE_PARENT) | {"Root"}
 
 
 def _infer_part_type(bone: str, size_norm: list[float] | tuple, source: str) -> str:
@@ -106,7 +107,11 @@ def build_rig_spec(
         name = str(seg.get("mesh") or seg.get("name") or "?")
         centroid = seg.get("centroid_norm") or [0, 0, 0]
         size = seg.get("size_norm") or [0, 0, 0]
-        a = mrc.classify_with_overrides(name, centroid, size, overrides)
+        semantic_bone = str(seg.get("semantic") or "").strip()
+        if semantic_bone in VALID_BONES:
+            a = mrc.Assignment(semantic_bone, 1.0, "inventory_semantic", "override")
+        else:
+            a = mrc.classify_with_overrides(name, centroid, size, overrides)
         flagged = a.source == "heuristic" and (
             a.confidence < mrc.DEFAULT_CONFIDENCE_FLOOR or mrc._size_implausible(a.bone, size)
         )

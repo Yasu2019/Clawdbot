@@ -1,14 +1,12 @@
 {
-  "updated_at": "2026-06-28T04:20:00",
-  "status_note": "Becky全件Pull中 (puller稼働) | Gmail IMAP DL 稼働中 (10,031件 / ~14分で完了)",
+  "updated_at": "2026-07-13T09:55:59",
+  "status_note": "Becky puller 停止中 | Paperless 0件",
   "transfer": {
     "b64_received": 18896,
-    "b64_mb": 8200,
-    "bmf_backup": 16138,
-    "bmf_vivobook_total": 18620,
-    "bmf_remaining": 2482,
     "b64_vivobook_total": 283731,
     "b64_pull_pct": 6.7,
+    "bmf_backup": 16138,
+    "bmf_vivobook_total": 18620,
     "date_range": "2013-06 ~ 2026-06",
     "blocked_dangerous": 3,
     "emails_with_attachments": 13118,
@@ -16,20 +14,26 @@
     "skipped_dup": 4013
   },
   "consume": {
-    "email_bodies_eml": 16138,
+    "email_bodies_eml": 17377,
     "email_bodies_total": 18620,
-    "email_bodies_pct": 86.7,
+    "email_bodies_pct": 93.3,
     "attachments_decoded": 13259,
-    "attachments_consume_pending": 13118
+    "attachments_consume_pending": 12490
   },
   "paperless": {
     "docs_before": 321,
-    "docs_after": 13891,
-    "docs_added": 13570,
-    "consume_pending": 13118,
-    "processing_speed_per_hr": 0,
+    "docs_after": 0,
+    "docs_added": 0,
+    "consume_pending": 71543,
     "task_workers": 4,
-    "eml_convert_speed_per_min": 228
+    "celery_status": "unknown"
+  },
+  "turso": {
+    "total": 28540,
+    "becky": 16107,
+    "gmail": 10026,
+    "other": 2407,
+    "status": "done"
   },
   "gmail_pipeline": {
     "status": "running",
@@ -87,7 +91,7 @@
     "wal_protection": "stop_grace_period_60s",
     "shutdown_hook": "registered",
     "active_pids": {
-      "b64_puller_all": 10332,
+      "b64_puller_all": "stopped",
       "auto_pipeline_watcher": 36112
     }
   }

@@ -42,26 +42,63 @@ LAVIE_FILL_CATEGORIES = frozenset(
 UPLOAD_PORT = 5689
 
 
-def lavie_run_dir(trial_id: str, cfg: dict[str, Any] | None = None) -> str:
+def satellite_run_vol(node: str, cfg: dict[str, Any] | None = None) -> str:
+    """Per-node CAE workspace root (Windows path)."""
     cfg = cfg or router.load_config()
-    ws = (cfg.get("cae_workspace_sync") or {}).get(
-        "lavie_work_dir", "E:/clawstack_satellite/data/work/cae_te_workspace"
-    )
-    return f"{ws}\\runs\\{trial_id}".replace("/", "\\")
+    try:
+        reg = sjp.load_node(node)
+        ws = str(reg.get("cae_workspace") or "").strip()
+        if ws:
+            return ws.replace("/", "\\")
+    except Exception:
+        pass
+    if node == "lavie":
+        ws = (cfg.get("cae_workspace_sync") or {}).get(
+            "lavie_work_dir", "E:/clawstack_satellite/data/work/cae_te_workspace"
+        )
+        return str(ws).replace("/", "\\")
+    return r"C:\clawstack_satellite\data\work\cae_te_workspace"
 
 
-def normalize_lavie_run_dir(run_dir: str, trial_id: str, cfg: dict[str, Any] | None = None) -> str:
-    """Accept /e/... or E:\\... from trial_entry; return Windows path on LAVIE."""
+def satellite_zip_staging(node: str, cfg: dict[str, Any] | None = None) -> str:
+    return f"{satellite_run_vol(node, cfg)}\\tmp_fill_zip"
+
+
+def lavie_run_dir(trial_id: str, cfg: dict[str, Any] | None = None) -> str:
+    ws = satellite_run_vol("lavie", cfg)
+    return f"{ws}\\runs\\{trial_id}"
+
+
+def satellite_run_dir(node: str, trial_id: str, cfg: dict[str, Any] | None = None) -> str:
+    ws = satellite_run_vol(node, cfg)
+    return f"{ws}\\runs\\{trial_id}"
+
+
+def normalize_satellite_run_dir(
+    node: str,
+    run_dir: str,
+    trial_id: str,
+    cfg: dict[str, Any] | None = None,
+) -> str:
+    """Accept /c/... /e/... or C:\\... from trial_entry; return Windows path on satellite."""
     if not run_dir:
-        return lavie_run_dir(trial_id, cfg)
+        return satellite_run_dir(node, trial_id, cfg)
     rd = run_dir.strip().replace("/", "\\")
-    if rd.lower().startswith("\\e\\"):
+    if rd.lower().startswith("\\c\\"):
+        rd = "C:" + rd[2:]
+    elif rd.lower().startswith("\\e\\"):
         rd = "E:" + rd[2:]
     elif len(rd) >= 2 and rd[1] == ":":
         pass
+    elif rd.lower().startswith("c\\"):
+        rd = "C:" + rd[1:]
     elif rd.lower().startswith("e\\"):
         rd = "E:" + rd[1:]
     return rd
+
+
+def normalize_lavie_run_dir(run_dir: str, trial_id: str, cfg: dict[str, Any] | None = None) -> str:
+    return normalize_satellite_run_dir("lavie", run_dir, trial_id, cfg)
 
 
 def probe_lavie_worker(cfg: dict[str, Any] | None = None) -> tuple[bool, str]:
@@ -104,6 +141,20 @@ def satellite_bridge_ip(cfg: dict[str, Any], node: str) -> str:
     return str((cfg.get(node) or {}).get("ip") or "")
 
 
+def _is_windows_zip_path(zip_path: str) -> bool:
+    p = (zip_path or "").strip().replace("/", "\\")
+    return len(p) >= 2 and p[1] == ":"
+
+
+def _powershell_put_zip_cmd(zip_path_win: str, upload_url: str) -> str:
+    win = zip_path_win.replace("/", "\\")
+    return (
+        f'powershell -NoProfile -Command "'
+        f"Invoke-WebRequest -Uri '{upload_url}' -Method Put -InFile '{win}'; "
+        f'Write-Output UPLOAD_OK"'
+    )
+
+
 def pull_zip_from_satellite(
     node_ip: str,
     trial_id: str,
@@ -139,7 +190,9 @@ def pull_zip_from_satellite(
     thread.start()
     try:
         upload_url = f"http://{k10_ip}:{UPLOAD_PORT}/{zip_name}"
-        if zip_host_path.startswith("/tmp/"):
+        if _is_windows_zip_path(zip_host_path):
+            ok, out = bridge_cmd(node_ip, _powershell_put_zip_cmd(zip_host_path, upload_url), timeout)
+        elif zip_host_path.startswith("/tmp/"):
             curl_sh = f"bash -lc 'curl -sS -T {zip_host_path} -X PUT {upload_url} && echo UPLOAD_OK'"
             ok, out = bridge_cmd(node_ip, curl_sh, timeout)
         else:
@@ -159,6 +212,38 @@ def pull_zip_from_satellite(
         server.shutdown()
 
 
+def _windows_zip_cmd(ws: str, trial_id: str, run_dir: str, *, vtk_only: bool = False) -> str:
+    zip_name = f"{trial_id}.zip"
+    zdir = f"{ws}\\tmp_fill_zip"
+    src = run_dir or f"{ws}\\runs\\{trial_id}"
+    if vtk_only:
+        return (
+            f"powershell -NoProfile -Command \""
+            f"$z='{zdir}'; New-Item -ItemType Directory -Force -Path $z | Out-Null; "
+            f"$out=Join-Path $z '{zip_name}'; $src='{src}'; "
+            f"if (-not (Test-Path $src)) {{ Write-Output 'SRC_MISSING'; exit 4 }}; "
+            f"if (Test-Path $out) {{ Remove-Item $out -Force }}; "
+            f"$vtks = @(Get-ChildItem -Path $src -Filter *.vtk -File -ErrorAction SilentlyContinue); "
+            f"if ($vtks.Count -eq 0) {{ $vtks = @(Get-ChildItem -Path $src -Filter *.vtk -Recurse -File -ErrorAction SilentlyContinue | Select-Object -First 200) }}; "
+            f"if ($vtks.Count -eq 0) {{ Write-Output 'VTK_MISSING'; exit 5 }}; "
+            f"Push-Location $src; tar -a -cf $out $($vtks | ForEach-Object {{ $_.Name }}); Pop-Location; "
+            f"if (Test-Path $out) {{ Write-Output 'ZIP_DONE' }} else {{ Write-Output 'ZIP_FAIL' }}\""
+        )
+    return (
+        f"powershell -NoProfile -Command \""
+        f"$z='{zdir}'; New-Item -ItemType Directory -Force -Path $z | Out-Null; "
+        f"$out=Join-Path $z '{zip_name}'; $src='{src}'; "
+        f"if (-not (Test-Path $src)) {{ Write-Output 'SRC_MISSING'; exit 4 }}; "
+        f"if (Test-Path $out) {{ Remove-Item $out -Force }}; "
+        f"tar -a -cf $out -C $src .; "
+        f"if (Test-Path $out) {{ Write-Output 'ZIP_DONE' }} else {{ Write-Output 'ZIP_FAIL' }}\""
+    )
+
+
+def _windows_tar_zip_cmd(ws: str, trial_id: str, run_dir: str) -> str:
+    return _windows_zip_cmd(ws, trial_id, run_dir, vtk_only=False)
+
+
 def zip_run_on_node(
     node: str,
     trial_id: str,
@@ -166,32 +251,82 @@ def zip_run_on_node(
     cfg: dict[str, Any] | None = None,
     *,
     timeout: int = 600,
-) -> bool:
+    vtk_only: bool = False,
+) -> tuple[bool, str]:
+    """Zip trial run on satellite; return (ok, zip_path_on_node)."""
     cfg = cfg or router.load_config()
-    ip = satellite_bridge_ip(cfg, node)
-    if not ip:
-        return False
     zip_name = f"{trial_id}.zip"
-    zip_sh = (
-        f"docker run --rm -v {LAVIE_RUN_VOL}:/runs -v {LAVIE_TEMP_VOL}:/out alpine "
-        f"sh -c \"apk add -q zip >/dev/null 2>&1; rm -f /out/{zip_name}; "
-        f"cd /runs && zip -r -q /out/{zip_name} {trial_id} && echo ZIP_DONE\""
-    )
-    ok, out = bridge_cmd(ip, zip_sh, timeout)
-    if ok and "ZIP_DONE" in out:
-        return True
-    ws_unix = "/e/clawstack_satellite/data/work/cae_te_workspace/runs"
-    bash_zip = (
-        f"bash -lc 'mkdir -p /tmp/lavie_fill_zip && rm -f /tmp/lavie_fill_zip/{zip_name} && "
-        f"cd {ws_unix} && zip -r -q /tmp/lavie_fill_zip/{zip_name} {trial_id} && echo ZIP_DONE'"
-    )
-    r = sync.dispatch_shell(node, bash_zip, timeout, sjp.load_token())
+    ws = satellite_run_vol(node, cfg)
+    rd = normalize_satellite_run_dir(node, run_dir, trial_id, cfg)
+    win_zip = f"{satellite_zip_staging(node, cfg)}\\{zip_name}"
+    zip_cmd = _windows_zip_cmd(ws, trial_id, rd, vtk_only=vtk_only)
+
+    if node == "red_lavie" or ws.upper().startswith("C:"):
+        ip = satellite_bridge_ip(cfg, node)
+        if ip:
+            ok_b, out_b = bridge_cmd(ip, zip_cmd, timeout)
+            if ok_b and "ZIP_DONE" in out_b:
+                return True, win_zip
+            if ok_b and "VTK_MISSING" in out_b:
+                print(f"[zip] {node} no vtk in {rd}", flush=True)
+                return False, ""
+        r = sync.dispatch_shell(node, zip_cmd, timeout, sjp.load_token())
+        out = (r.get("stdout_tail") or "") + (r.get("stderr_tail") or "")
+        ok = r.get("status") == "ok" and "ZIP_DONE" in out
+        if not ok:
+            print(f"[zip] {node} vtk_only={vtk_only} fail: {out[-300:]}", flush=True)
+        return ok, win_zip if ok else ""
+
+    ip = satellite_bridge_ip(cfg, node)
+    if ip and not vtk_only:
+        zip_sh = (
+            f"docker run --rm -v {LAVIE_RUN_VOL}:/runs -v {LAVIE_TEMP_VOL}:/out alpine "
+            f"sh -c \"apk add -q zip >/dev/null 2>&1; rm -f /out/{zip_name}; "
+            f"cd /runs && zip -r -q /out/{zip_name} {trial_id} && echo ZIP_DONE\""
+        )
+        ok, out = bridge_cmd(ip, zip_sh, timeout)
+        if ok and "ZIP_DONE" in out:
+            return True, f"{LAVIE_TEMP_VOL}/{zip_name}"
+
+    if ip and vtk_only:
+        zip_sh = (
+            f"docker run --rm -v {LAVIE_RUN_VOL}:/runs -v {LAVIE_TEMP_VOL}:/out alpine "
+            f"sh -c \"apk add -q zip >/dev/null 2>&1; rm -f /out/{zip_name}; "
+            f"cd /runs/{trial_id} && zip -q /out/{zip_name} *.vtk 2>/dev/null || "
+            f"find . -maxdepth 2 -name '*.vtk' | head -200 | zip -q /out/{zip_name} -@; "
+            f"test -s /out/{zip_name} && echo ZIP_DONE\""
+        )
+        ok, out = bridge_cmd(ip, zip_sh, timeout)
+        if ok and "ZIP_DONE" in out:
+            return True, f"{LAVIE_TEMP_VOL}/{zip_name}"
+
+    r = sync.dispatch_shell(node, zip_cmd, timeout, sjp.load_token())
     out2 = (r.get("stdout_tail") or "") + (r.get("stderr_tail") or "")
-    return r.get("status") == "ok" and "ZIP_DONE" in out2
+    if r.get("status") == "ok" and "ZIP_DONE" in out2:
+        return True, win_zip
+
+    if vtk_only:
+        bash_zip = (
+            f"bash -lc 'mkdir -p /tmp/lavie_fill_zip && rm -f /tmp/lavie_fill_zip/{zip_name} && "
+            f"cd \"{rd.replace(chr(92), '/')}\" && "
+            f"find . -maxdepth 2 -name \"*.vtk\" | head -200 | zip -q /tmp/lavie_fill_zip/{zip_name} -@ && "
+            f"test -s /tmp/lavie_fill_zip/{zip_name} && echo ZIP_DONE'"
+        )
+    else:
+        ws_unix = "/e/clawstack_satellite/data/work/cae_te_workspace/runs"
+        bash_zip = (
+            f"bash -lc 'mkdir -p /tmp/lavie_fill_zip && rm -f /tmp/lavie_fill_zip/{zip_name} && "
+            f"cd {ws_unix} && zip -r -q /tmp/lavie_fill_zip/{zip_name} {trial_id} && echo ZIP_DONE'"
+        )
+    r2 = sync.dispatch_shell(node, bash_zip, timeout, sjp.load_token())
+    out3 = (r2.get("stdout_tail") or "") + (r2.get("stderr_tail") or "")
+    ok3 = r2.get("status") == "ok" and "ZIP_DONE" in out3
+    return ok3, f"/tmp/lavie_fill_zip/{zip_name}" if ok3 else ""
 
 
 def zip_run_on_lavie(trial_id: str, lavie_run_dir: str, *, timeout: int = 600) -> bool:
-    return zip_run_on_node("lavie", trial_id, lavie_run_dir, timeout=timeout)
+    ok, _ = zip_run_on_node("lavie", trial_id, lavie_run_dir, timeout=timeout)
+    return ok
 
 
 def pull_zip_via_worker(
@@ -228,9 +363,12 @@ def pull_zip_via_worker(
     thread.start()
     try:
         upload_url = f"http://{k10_ip}:{UPLOAD_PORT}/{zip_name}"
-        put_cmd = (
-            f"bash -lc 'curl -sS -T {zip_path_on_node} -X PUT {upload_url} && echo UPLOAD_OK'"
-        )
+        if _is_windows_zip_path(zip_path_on_node):
+            put_cmd = _powershell_put_zip_cmd(zip_path_on_node, upload_url)
+        else:
+            put_cmd = (
+                f"bash -lc 'curl -sS -T {zip_path_on_node} -X PUT {upload_url} && echo UPLOAD_OK'"
+            )
         r = sync.dispatch_shell(node, put_cmd, timeout, sjp.load_token())
         out = (r.get("stdout_tail") or "") + (r.get("stderr_tail") or "")
         if "UPLOAD_OK" not in out:
@@ -241,14 +379,30 @@ def pull_zip_via_worker(
         server.shutdown()
 
 
-def pull_zip_from_lavie(trial_id: str, *, timeout: int = 900) -> Path | None:
+def pull_zip_from_lavie(
+    trial_id: str,
+    *,
+    timeout: int = 900,
+    zip_on_node: str = "",
+) -> Path | None:
     """LAVIE PUT zip to K10 upload server; return local zip path."""
     cfg = router.load_config()
     ip = lavie_bridge_ip(cfg)
-    zpath = pull_zip_from_satellite(ip, trial_id, timeout=timeout)
-    if zpath:
-        return zpath
     zip_name = f"{trial_id}.zip"
+    candidates: list[str] = []
+    if zip_on_node:
+        candidates.append(zip_on_node)
+    candidates.extend(
+        [
+            f"{LAVIE_TEMP_VOL}/{zip_name}",
+            f"{satellite_zip_staging('lavie', cfg)}\\{zip_name}",
+            f"/tmp/lavie_fill_zip/{zip_name}",
+        ]
+    )
+    for cand in candidates:
+        zpath = pull_zip_from_satellite(ip, trial_id, zip_host_path=cand, timeout=timeout)
+        if zpath:
+            return zpath
     return pull_zip_via_worker("lavie", trial_id, f"/tmp/lavie_fill_zip/{zip_name}", timeout=timeout)
 
 
@@ -285,10 +439,11 @@ def send_fill_video_via_k10_pull(
         return {"ok": False, "error": f"lavie_worker_offline: {detail}"}
 
     rd = normalize_lavie_run_dir(run_dir, trial_id, cfg) if run_dir else lavie_run_dir(trial_id, cfg)
-    if not zip_run_on_lavie(trial_id, rd):
+    ok_zip, zip_on_node = zip_run_on_node("lavie", trial_id, rd, cfg)
+    if not ok_zip:
         return {"ok": False, "error": "lavie_zip_failed"}
 
-    zpath = pull_zip_from_lavie(trial_id)
+    zpath = pull_zip_from_lavie(trial_id, zip_on_node=zip_on_node)
     if not zpath or not zpath.exists():
         return {"ok": False, "error": "k10_pull_failed"}
 

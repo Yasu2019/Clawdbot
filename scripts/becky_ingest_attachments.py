@@ -25,10 +25,14 @@ from email.header import decode_header
 from email.utils import parsedate_to_datetime
 from pathlib import Path
 
-sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
 
-BACKUP_DIR   = Path(r"D:\tmp\becky_backup")
-MANIFEST     = Path(r"D:\tmp\becky_attachments\manifest.jsonl")
+BACKUP_DIR   = Path(r"F:\tmp\becky_backup")
+MANIFEST     = Path(r"F:\tmp\becky_attachments\manifest.jsonl")
 CONSUME_DIR  = Path(r"D:\Clawdbot_Docker_20260125\clawstack_v2\data\paperless\consume\becky_attachments")
 
 WHITELIST_EXT = {
@@ -221,7 +225,7 @@ def main():
         print("[ABORT] No manifest data — run transfer first")
         sys.exit(1)
 
-    bmf_files = sorted(BACKUP_DIR.glob("*.bmf"))
+    bmf_files = sorted(BACKUP_DIR.rglob("*.bmf"))
     print(f"[INFO] {len(bmf_files)} .bmf files in backup")
     print()
 

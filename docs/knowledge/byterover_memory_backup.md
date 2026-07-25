@@ -319,3 +319,23 @@ Dynabook Moldflow MCP 2026-07-19: 64-bit COM and same interactive Windows sessio
 
 - docs/knowledge/dynabook_moldflow_mcp_mesh_autofix_20260719.md
 
+## 2026-07-20 08:45:00 +09:00
+
+**Curate status:** failed (queued)
+
+**Reason:** brv curate context exceeded (15629 tokens > 4096)
+
+**Context**
+
+Dynabook MF2010 SUCCESS path: MCP 0.8.3 @ 100.98.133.40:8765, schtasks /IT session 1, face-center gate N1154 GATE_COUNT=1, Fill COMPLETED with artifacts, progressive PNG via SaveAnimation GIF -> Pillow 10/50/100% -> Telegram. Local-LLM canonical runbook + S011 + bd remember key dynabook-moldflow-facecenter-fill-png-20260720.
+
+**Fallback**
+
+- Manual durable card: `.brv/context-tree/cae/dynabook_moldflow_facecenter_fill_png_20260720.md`
+- Queue id: `brv-20260720-facecenter-fill-png`
+
+**Source files**
+
+- docs/knowledge/dynabook_moldflow_end_to_end_runbook_20260720.md
+- .brv/context-tree/cae/dynabook_moldflow_facecenter_fill_png_20260720.md
+

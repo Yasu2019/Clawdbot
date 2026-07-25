@@ -8,6 +8,10 @@
 **毎タスク前:** 物理の真実・カテゴリ/ソルバ整合・KPI・無意味繰り返しでないか・記憶への還元（bd/ByteRover）を確認。  
 **必読:** `trouble_history.md` **[T019]** · `docs/cae_north_star_and_meaning_gate_protocol.md` · PROMISES **P025** · `bd remember --key cae-north-star-t019`
 
+**コーディング品質 (2026-07-15 Yasu指示・全エージェント共通):** 実装・デバッグ作業の前に
+`docs/LOCAL_LLM_CODING_PLAYBOOK.md`（思考の型8原則）と `data/workspace/memory/success_cases.md`
+（解決実例集）を読むこと。**難問を解決したら success_cases.md に所定の5項目型で1エントリ追記する**（義務）。
+
 ## 1. 外部依存の監視プロトコル (External Dependency Monitoring)
 
 ### 1-1. Ollama ダウンロード監視
@@ -449,6 +453,27 @@ conditions, solver/version, convergence/boundedness evidence, result file paths,
 and a KPI table against the commercial reference. A CAE proxy MUST NOT be called
 validated unless it passes physical bounds, completion, reproducibility, and the
 declared error tolerances against the reference.
+
+## Stale / Legacy Task Confirmation Rule
+
+Before starting a new user-requested task, inspect the same machine, worker,
+queue, scheduled task, watchdog, and relevant process family for older work.
+
+- If an older task is explicitly part of the current user instruction, manage it
+  within that instruction.
+- If an older task is outside the current instruction, do not stop, kill, delete,
+  supersede, overwrite, or reuse it automatically.
+- Report the exact old task, owner/source if known, current state, resource impact,
+  and the proposed cleanup target to the user. Wait for explicit confirmation.
+- Only after confirmation, stop and remove the approved old task, verify that the
+  exact target is gone and unrelated work remains intact, then start the new task.
+- If the old task creates an immediate safety, thermal, data-corruption, or
+  security hazard, take only the minimum reversible containment action, preserve
+  evidence, and notify the user immediately. Permanent deletion still requires
+  confirmation unless the user already authorized it.
+- Record the decision and cleanup evidence in Beads and the relevant durable
+  Obsidian/memory Markdown (`.md`) file. Never treat age alone as deletion
+  authorization.
 
 ## Incident & Failure Management Rule (RCA Protocol)
 If any job fails, a past instruction is missed, a code failure occurs, or the user points out a quality incident, the AI MUST immediately:

@@ -57,7 +57,7 @@ Start-Process -FilePath "powershell.exe" -ArgumentList @(
     "-File", $workerScript,
     "-InstallRoot", $InstallRoot,
     "-RepoRoot", $RepoRoot
-) -WindowStyle Normal
+) -WindowStyle Hidden
 
 Start-Sleep -Seconds 3
 try {
@@ -66,7 +66,7 @@ try {
         Write-Host "[OK] Job worker healthz: $($health.Content)"
     }
 } catch {
-    Write-Host "[!!] Worker not ready yet. Check the new PowerShell window."
+    Write-Host "[!!] Worker not ready yet. Check task logs."
 }
 
 Write-Host "[OK] LAVIE restart complete (boost + docker + worker)"

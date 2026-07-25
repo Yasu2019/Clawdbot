@@ -1,29 +1,33 @@
 {
   "schema": "clawstack.robot_l20_autonomous_loop.v1",
-  "state": "completed",
-  "updated_at": "2026-06-20T07:41:56.326719+00:00",
+  "state": "running",
+  "updated_at": "2026-07-25T22:00:51.199910+00:00",
+  "batch_number": 203,
+  "seed_base": 60824438,
   "cycles_requested": 200,
-  "cycles_completed": 200,
-  "sleep_sec": 0.0,
+  "cycles_completed": 176,
+  "sleep_sec": 60.0,
   "count": 128,
   "refine_top": 16,
   "last_cycle": {
-    "cycle": 200,
-    "started_at": "2026-06-20T07:41:56.275326+00:00",
-    "finished_at": "2026-06-20T07:41:56.326719+00:00",
-    "seed_base": 20462420,
+    "cycle": 176,
+    "batch_number": 203,
+    "started_at": "2026-07-25T22:00:49.985745+00:00",
+    "finished_at": "2026-07-25T22:00:51.199910+00:00",
+    "seed_base": 61002022,
     "best_score": 100,
     "best_verdict": "L20_CANDIDATE",
-    "l20_candidate_count": 40,
-    "task_floor": 90.6,
+    "ie_verdict": "L40_IE_MASTER",
+    "l20_candidate_count": 39,
+    "task_floor": 91.0,
     "improved": false
   },
   "best_summary": {
     "best_score": 100,
     "best_verdict": "L20_CANDIDATE",
-    "l20_candidate_count": 40,
-    "task_floor": 92.5,
-    "seed_base": 20328223
+    "l20_candidate_count": 41,
+    "task_floor": 93.6,
+    "seed_base": 51203623
   },
   "telegram_notified": false,
   "outputs": {
@@ -31,7 +35,10 @@
     "history": "D:\\Clawdbot_Docker_20260125\\data\\workspace\\apps\\growth_dashboard\\robot_l20_autonomous_history.jsonl",
     "best": "D:\\Clawdbot_Docker_20260125\\data\\workspace\\apps\\growth_dashboard\\robot_l20_autonomous_best.json",
     "trial_status": "D:\\Clawdbot_Docker_20260125\\data\\workspace\\apps\\growth_dashboard\\robot_l20_motion_trial_status.json",
-    "trial_html": "D:\\Clawdbot_Docker_20260125\\data\\workspace\\apps\\growth_dashboard\\robot_l20_motion_trials.html"
+    "trial_html": "D:\\Clawdbot_Docker_20260125\\data\\workspace\\apps\\growth_dashboard\\robot_l20_motion_trials.html",
+    "knowledge_db": "D:\\Clawdbot_Docker_20260125\\data\\workspace\\robot_l20_knowledge.db",
+    "universal_growth_db": "D:\\Clawdbot_Docker_20260125\\data\\workspace\\universal_growth.db",
+    "knowledge_manifest": "D:\\Clawdbot_Docker_20260125\\data\\workspace\\apps\\growth_dashboard\\robot_l20_knowledge_manifest.json"
   },
   "safety_note": "Bounded proxy loop only. It does not edit robot model geometry or deploy to real hardware."
 }

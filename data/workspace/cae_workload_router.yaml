@@ -25,6 +25,7 @@ cae_compute_policy:
         - progressive_strip_layout
     thinkpad:
       tailscale_ip: "100.66.63.9"
+      ssh_user: "mec21"
       solver_family: fem_impact_dxf2step
       categories:
         - fem_impact
@@ -50,7 +51,7 @@ lavie:
   bridge_path: /webhook/exec_bridge
   max_ram_percent: 80
   max_cpu_percent: 85
-  max_temp_c: 78
+  max_temp_c: 96
   monitor_agent_port: 8111
   job_worker_port: 5682
   job_worker_path: /healthz
@@ -136,7 +137,7 @@ parallel_mode:
 tri_track_parallel:
   enabled: true
   poll_interval_sec: 60
-  trial_timeout_sec: 10800
+  trial_timeout_sec: 18000  # 2026-07-13 T060: dt_noda=8.0e-9化で1trial≈3-4.5h完走のための枠拡張
   # T019/P026: 実行トライアルがこの回数連続失敗したらトラック自動停止+Telegram通知 (0=無効)
   meaning_gate_max_fail_streak: 8
   # K10 load guard: skip dead satellites fast; backoff on errors; breathe between successes.
@@ -155,7 +156,7 @@ tri_track_parallel:
     case_label: 4mmx4mm_ASSY
     param_ranges:
       clearance_pct: [4.0, 12.0]
-      punch_speed_mms: [1500.0, 2800.0]
+      punch_speed_mms: [4500.0, 6100.0]  # 2026-07-13 T060: 7/10是正[3000,6100]はparams側clamp(2500)で無効化されていた(全trial実速度2500)。clamp是正(→6100)+dt_noda 1.5e-8化に伴い、trial_timeout 14400s内に完走可能な下限4500へ(t_stop=stroke/speed*1.4基準)。旧コメントの「[1500,2800]=発散ゾーン」因果は誤り: 発散主因はDM/M36-62倍の質量スケーリング暴走(速度非依存、8連敗全trialで同一metrics)
       friction_mu: [0.08, 0.12]
     quality_gate:
       max_bbox_diag: 80
@@ -165,7 +166,12 @@ tri_track_parallel:
     host: thinkpad
     # T038/INC-122: production_only skips unbenchmarked long cases unless bench_schedule fires.
     production_only: true
-    poll_interval_sec: 180
+    # Keep one FEM slot continuously productive beside the single DXF2STEP slot.
+    # A new trial is held only by the shared ThinkPad CPU/RAM/temperature guard.
+    poll_interval_sec: 15
+    meaning_gate_max_fail_streak: 0
+    cpu_affinity: "0-5"
+    nice_level: 5
     skip_if_png_count: 3
     reuse_vtk_for_png: true
     quality_gate:
@@ -176,7 +182,7 @@ tri_track_parallel:
     bench_schedule:
       enabled: true
       every_n_cycles: 24
-      only_when_thinkpad_idle: true
+      only_when_thinkpad_idle: false
       variants:
         - subdir: Rough_Mesh
           input: auto_revised_mesh.in
@@ -309,9 +315,11 @@ thinkpad:
   dxf2step_jobs_root: /home/yasu/clawstack_satellite/dxf2step/jobs
   profile: medium_worker
   job_transport: worker
-  max_ram_percent: 75
-  max_cpu_percent: 80
-  max_temp_c: 75
+  # 1:1 concurrent policy: FEM Impact (taskset 0-5, nice 5) + one DXF2STEP job.
+  # New jobs pause at these limits and resume automatically after recovery.
+  max_ram_percent: 85
+  max_cpu_percent: 85
+  max_temp_c: 80
   no_docker: false
   cae_dry_run_only: false
   dxf2step_loop: scripts/k10_thinkpad_dxf2step_loop.py

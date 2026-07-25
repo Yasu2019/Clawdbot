@@ -7,6 +7,16 @@ param(
     [switch]$SkipScheduledTasks
 )
 
+Write-Host "Forcefully stopping existing job worker processes on Red LAVIE..."
+Get-CimInstance Win32_Process -ErrorAction SilentlyContinue |
+    Where-Object {
+        $_.CommandLine -and
+        ($_.CommandLine -match '[\\/]lavie_job_worker\.py') -and
+        ($_.Name -match '^(python|pythonw)\.exe$')
+    } |
+    ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
+Start-Sleep -Seconds 2
+
 $setup = Join-Path $PSScriptRoot "fleet_satellite_setup.ps1"
 if (-not (Test-Path $setup)) {
     Invoke-WebRequest "$K10/fleet_satellite_setup.ps1" -OutFile $setup -UseBasicParsing

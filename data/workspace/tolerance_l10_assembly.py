@@ -32,9 +32,9 @@ def progressive_die_station_dims(manifest: dict[str, Any]) -> list[tse.StackDime
     sheet_tol = min(0.05, max(0.01, sheet * 0.005))
     return [
         tse.StackDimension("station1_blanking_set", 0.0, 0.012, 1.0, source="assembly_l10"),
-        tse.StackDimension("station2_bending_set", 0.0, 0.015, 1.0, source="assembly_l10"),
+        tse.StackDimension("station2_bending_set", 0.0, 0.015, 1.0, distribution="weibull", source="assembly_l10"),
         tse.StackDimension("station3_trim_set", 0.0, 0.010, -1.0, source="assembly_l10"),
-        tse.StackDimension("strip_thickness_var", 0.0, sheet_tol, 1.0, source="assembly_l10"),
+        tse.StackDimension("strip_thickness_var", 0.0, sheet_tol, 1.0, distribution="beta", source="assembly_l10"),
         tse.StackDimension("guide_play", 0.0, 0.008, 1.0, source="assembly_l10"),
     ]
 

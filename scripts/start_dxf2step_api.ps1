@@ -52,7 +52,7 @@ if (Test-Dxf2StepHealth) {
     Write-Host "[OK] DXF2STEP API already online: $healthUrl"
 } else {
     Write-Host "[start] Launching dxf2step_api on port $Port..."
-    Start-Process -FilePath "python" -ArgumentList @($apiScript) -WorkingDirectory (Split-Path $apiScript) -WindowStyle Minimized
+    Start-Process -FilePath "python" -ArgumentList @($apiScript) -WorkingDirectory (Split-Path $apiScript) -WindowStyle Hidden
     $deadline = (Get-Date).AddSeconds(30)
     $ok = $false
     while ((Get-Date) -lt $deadline) {

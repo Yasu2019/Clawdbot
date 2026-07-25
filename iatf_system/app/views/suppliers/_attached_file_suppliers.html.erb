@@ -10,7 +10,7 @@
                   class: "inline-flex items-center justify-center rounded border border-slate-200 bg-white p-1 hover:bg-slate-50",
                   data: { toggle: "tooltip" },
                   title: image.blob.filename.to_s do %>
-        <%= image_tag(asset_path(icon), class: "h-6 w-6", alt: image.blob.filename.to_s) %>
+        <%= image_tag(icon, class: "h-6 w-6", alt: image.blob.filename.to_s) %>
       <% end %>
     <% end %>
   </div>

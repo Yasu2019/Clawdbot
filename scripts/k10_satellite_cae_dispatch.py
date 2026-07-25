@@ -32,11 +32,26 @@ import cae_workload_router as router
 import k10_satellite_dispatch as sjp
 
 
+def _load_te_log_raw(te_log_path: Path) -> dict[str, Any]:
+    raw = te_log_path.read_text(encoding="utf-8-sig")
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError:
+        decoder = json.JSONDecoder()
+        obj, _idx = decoder.raw_decode(raw.lstrip())
+        if isinstance(obj, dict):
+            return obj
+        raise
+
+
 def merge_trial_into_log(trial_entry: dict[str, Any]) -> None:
     te_log_path = TE_LOG
     te_log_path.parent.mkdir(parents=True, exist_ok=True)
     if te_log_path.exists():
-        te_log = json.loads(te_log_path.read_text(encoding="utf-8-sig"))
+        try:
+            te_log = _load_te_log_raw(te_log_path)
+        except Exception:
+            te_log = {"trials": [], "summary": {}}
     else:
         te_log = {"trials": [], "summary": {}}
 
@@ -64,7 +79,7 @@ def merge_trial_into_log(trial_entry: dict[str, Any]) -> None:
             if attempt >= 7:
                 raise
             time.sleep(0.3 + attempt * 0.1)
-            te_log = json.loads(te_log_path.read_text(encoding="utf-8-sig"))
+            te_log = _load_te_log_raw(te_log_path)
             te_log["trials"].insert(0, trial_entry)
             te_log["trials"] = te_log["trials"][:500]
             tmp.write_text(json.dumps(te_log, ensure_ascii=False, indent=2), encoding="utf-8")

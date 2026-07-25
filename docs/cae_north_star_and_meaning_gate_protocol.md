@@ -22,6 +22,18 @@ Every second of automation must move one of these pillars forward. Activity that
 
 ## 2. Meaning Gate (mandatory before any CAE / fleet / Telegram / loop work)
 
+### 2.1 Moldflow video visual gate (mandatory, fail-closed)
+
+Before sending any Moldflow/OpenFOAM fill animation to Telegram, the sender MUST:
+
+1. Extract representative start, middle, and end frames from the candidate video.
+2. Run the local visual checker first (no cloud/API call by default).
+3. Confirm the frames show the canonical 3-D cavity geometry, the configured gate, and monotonic VOF resin-fill progression.
+4. Match the video manifest/case hash to the approved STL and run.
+5. Suppress delivery when the local check fails, is ambiguous, or the manifest/hash is missing. A cloud/API visual check is an optional fallback only and never overrides a failed geometry/hash check.
+
+Legacy flat-plate, 2-D `|U|`, stale-queue, or otherwise unproven videos MUST NOT be sent.
+
 Answer **in writing** (plan, handover, or issue comment) before starting or continuing:
 
 1. **Physical truth:** What phenomenon are we modeling (e.g. closed-cavity VOF fill vs thin-duct icoFoam)?
@@ -65,6 +77,9 @@ Answer **in writing** (plan, handover, or issue comment) before starting or cont
 - Running T&E loops on a category that does not match the stated user goal
 - Telegram / dashboard outputs that look busy but do not measure North Star KPIs
 - Repeating FAILED trials without changing hypothesis (category, params, or code)
+- **SUCCESS without per-trial evolution** (identical params+KPI fingerprint vs prior trial on same track) -- see **P026**
+- **FEM Impact cache-only SUCCESS** (`SKIP_RECOMPUTE` / reused VTK) without KPI delta
+- **Moldflow VOF SUCCESS** when `fill_complete=false` (short shot)
 - Treating "loop is running" as success without fill %, pack ratio, shear zone, or tolerance evidence
 - Skipping `trouble_history.md` **[T019]** and this doc when touching CAE, LAVIE, K10 fleet, or moldflow
 

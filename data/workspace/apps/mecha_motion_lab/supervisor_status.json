@@ -1,30 +1,10 @@
 {
   "schema": "clawstack.motion_learning_supervisor.v1",
-  "skill": "walk_tier1c",
+  "skill": "walk_auto",
   "state": "training",
-  "cycle": 2,
-  "history": [
-    {
-      "cycle": 1,
-      "metrics": {
-        "vx": 0.129,
-        "eval_travel": 0.153,
-        "travel": 0.153,
-        "fell": true,
-        "min_upright": 0.0
-      },
-      "rule": "default_stall",
-      "llm_note": null
-    }
-  ],
+  "cycle": 1,
+  "history": [],
   "playbook_version": "v1",
-  "current_dir": "C:\\v50_work\\autonomy\\walk_tier1c_cycle02",
-  "updated_at": "2026-07-05T16:11:37",
-  "last_metrics": {
-    "vx": 0.129,
-    "eval_travel": 0.153,
-    "travel": 0.153,
-    "fell": true,
-    "min_upright": 0.0
-  }
+  "current_dir": "C:\\v50_work\\autonomy\\walk_auto_cycle01",
+  "updated_at": "2026-07-26T06:06:59"
 }

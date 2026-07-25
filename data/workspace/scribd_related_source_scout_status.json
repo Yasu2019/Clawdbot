@@ -1,6 +1,6 @@
 {
   "schema": "clawstack.scribd_related_source_scout.v1",
-  "updated_at": "2026-06-19T04:00:03+09:00",
+  "updated_at": "2026-07-26T04:00:07+09:00",
   "mode": "search_url_inventory",
   "safety_policy": {
     "no_bypass": true,
@@ -318,6 +318,25 @@
       }
     },
     {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\637778273-Validation-phase-and-simulation-injection-moulding.pdf",
+      "name": "637778273-Validation-phase-and-simulation-injection-moulding.pdf",
+      "extension": ".pdf",
+      "size_bytes": 971043,
+      "modified_at": "2026-06-19T04:46:11+09:00",
+      "sha1": "5fbd805e12e74c786c17a97d68ca330ac1b6e557",
+      "domain": "moldflow_self_solver",
+      "score": 10,
+      "scores": {
+        "moldflow_self_solver": 10
+      },
+      "matched_terms": {
+        "moldflow_self_solver": [
+          "injection",
+          "simulation"
+        ]
+      }
+    },
+    {
       "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\425392239-Introduction-to-Injection-Mold-Design.pdf",
       "name": "425392239-Introduction-to-Injection-Mold-Design.pdf",
       "extension": ".pdf",
@@ -337,25 +356,6 @@
         ],
         "press_progressive_die": [
           "design"
-        ]
-      }
-    },
-    {
-      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\637778273-Validation-phase-and-simulation-injection-moulding.pdf",
-      "name": "637778273-Validation-phase-and-simulation-injection-moulding.pdf",
-      "extension": ".pdf",
-      "size_bytes": 971043,
-      "modified_at": "2026-06-14T23:00:59+09:00",
-      "sha1": "5fbd805e12e74c786c17a97d68ca330ac1b6e557",
-      "domain": "moldflow_self_solver",
-      "score": 10,
-      "scores": {
-        "moldflow_self_solver": 10
-      },
-      "matched_terms": {
-        "moldflow_self_solver": [
-          "injection",
-          "simulation"
         ]
       }
     },
@@ -594,6 +594,174 @@
       }
     },
     {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\627122722-Manual-de-estudios-de-la-naturaleza-Aves.pdf",
+      "name": "627122722-Manual-de-estudios-de-la-naturaleza-Aves.pdf",
+      "extension": ".pdf",
+      "size_bytes": 4499278,
+      "modified_at": "2026-06-22T21:40:41+09:00",
+      "sha1": "b67d39db71f32a3d11ba7f6109c2dd76bd0f210e",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\449237466-F-14-Handbook-en-es.pdf",
+      "name": "449237466-F-14-Handbook-en-es.pdf",
+      "extension": ".pdf",
+      "size_bytes": 3068486,
+      "modified_at": "2026-06-22T21:38:28+09:00",
+      "sha1": "26d01d88fec045ac3d17d124af323a15c65c13f0",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\761047626-MANITOU-LOC-E18-E20AC.pdf",
+      "name": "761047626-MANITOU-LOC-E18-E20AC.pdf",
+      "extension": ".pdf",
+      "size_bytes": 4338697,
+      "modified_at": "2026-06-22T21:37:50+09:00",
+      "sha1": "c22e0dfba095e865f8895fb79aa6d743e1cf4454",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\1047972983-PRF-Software.pdf",
+      "name": "1047972983-PRF-Software.pdf",
+      "extension": ".pdf",
+      "size_bytes": 2774252,
+      "modified_at": "2026-06-22T04:30:51+09:00",
+      "sha1": "b9278ee9a9065b1248bc6793cf662bb84e89de41",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\791292193-CAB-Software.pdf",
+      "name": "791292193-CAB-Software.pdf",
+      "extension": ".pdf",
+      "size_bytes": 2494931,
+      "modified_at": "2026-06-22T04:30:05+09:00",
+      "sha1": "1d937ca70d63032a7d83ce2756e7c677075f0ce2",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\845342098-BPI-Software.pdf",
+      "name": "845342098-BPI-Software.pdf",
+      "extension": ".pdf",
+      "size_bytes": 6396338,
+      "modified_at": "2026-06-22T04:29:27+09:00",
+      "sha1": "dbaeb12a8d523b0d143906213231735b13360ddb",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\714970142-Whats-New.pdf",
+      "name": "714970142-Whats-New.pdf",
+      "extension": ".pdf",
+      "size_bytes": 94874,
+      "modified_at": "2026-06-22T04:28:40+09:00",
+      "sha1": "904b47a3a9684b48ee981ef85022e5866813f80b",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\369616874-Instalar-MagmaSoft.pdf",
+      "name": "369616874-Instalar-MagmaSoft.pdf",
+      "extension": ".pdf",
+      "size_bytes": 816280,
+      "modified_at": "2026-06-22T04:27:59+09:00",
+      "sha1": "f787ed44901c6aaef1447d1c03134e955cd09377",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\784878780-Attachment.pdf",
+      "name": "784878780-Attachment.pdf",
+      "extension": ".pdf",
+      "size_bytes": 3680459,
+      "modified_at": "2026-06-22T02:24:48+09:00",
+      "sha1": "6492ffdad0e9c56538a2cecf7f59fcbbebd2b2f9",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\245813253-digimat-4-5-1-brochure.pdf",
+      "name": "245813253-digimat-4-5-1-brochure.pdf",
+      "extension": ".pdf",
+      "size_bytes": 2915913,
+      "modified_at": "2026-06-22T02:24:00+09:00",
+      "sha1": "6f26684307b5ce77c4cd6a2af1baf44f619f8b28",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\653291655-CAD-15-5-2018-631-642.pdf",
+      "name": "653291655-CAD-15-5-2018-631-642.pdf",
+      "extension": ".pdf",
+      "size_bytes": 569654,
+      "modified_at": "2026-06-20T04:25:49+09:00",
+      "sha1": "9ffaa87f8ba2dcaa1c39fc76dd02f3cecf881513",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\702768003-Split-Document-7.pdf",
+      "name": "702768003-Split-Document-7.pdf",
+      "extension": ".pdf",
+      "size_bytes": 3741987,
+      "modified_at": "2026-06-19T04:48:23+09:00",
+      "sha1": "cc0161bf5a12d470c2f2140e6d50b6e7d17c7dff",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\374154449-F5-Gtm-Concepts-Guide-v11.pdf",
+      "name": "374154449-F5-Gtm-Concepts-Guide-v11.pdf",
+      "extension": ".pdf",
+      "size_bytes": 1028195,
+      "modified_at": "2026-06-19T04:47:33+09:00",
+      "sha1": "799c00058d42032a088d37464c6fb75804e34d87",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
+      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\374115372-Gtm-Guide-922.pdf",
+      "name": "374115372-Gtm-Guide-922.pdf",
+      "extension": ".pdf",
+      "size_bytes": 1608727,
+      "modified_at": "2026-06-19T04:46:50+09:00",
+      "sha1": "344374a121cc2c3fbacf334acae6175ad855f3a5",
+      "domain": "unknown",
+      "score": 0,
+      "scores": {},
+      "matched_terms": {}
+    },
+    {
       "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\412513437-bmfcic361p.pdf",
       "name": "412513437-bmfcic361p.pdf",
       "extension": ".pdf",
@@ -672,42 +840,6 @@
       "size_bytes": 81657,
       "modified_at": "2026-06-17T23:00:44+09:00",
       "sha1": "9126ee8a1ab97b18e33c70794b953d5f3365382d",
-      "domain": "unknown",
-      "score": 0,
-      "scores": {},
-      "matched_terms": {}
-    },
-    {
-      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\714970142-Whats-New.pdf",
-      "name": "714970142-Whats-New.pdf",
-      "extension": ".pdf",
-      "size_bytes": 94874,
-      "modified_at": "2026-06-17T21:02:25+09:00",
-      "sha1": "904b47a3a9684b48ee981ef85022e5866813f80b",
-      "domain": "unknown",
-      "score": 0,
-      "scores": {},
-      "matched_terms": {}
-    },
-    {
-      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\784878780-Attachment.pdf",
-      "name": "784878780-Attachment.pdf",
-      "extension": ".pdf",
-      "size_bytes": 3680459,
-      "modified_at": "2026-06-17T21:01:33+09:00",
-      "sha1": "6492ffdad0e9c56538a2cecf7f59fcbbebd2b2f9",
-      "domain": "unknown",
-      "score": 0,
-      "scores": {},
-      "matched_terms": {}
-    },
-    {
-      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\245813253-digimat-4-5-1-brochure.pdf",
-      "name": "245813253-digimat-4-5-1-brochure.pdf",
-      "extension": ".pdf",
-      "size_bytes": 2915913,
-      "modified_at": "2026-06-17T21:00:49+09:00",
-      "sha1": "6f26684307b5ce77c4cd6a2af1baf44f619f8b28",
       "domain": "unknown",
       "score": 0,
       "scores": {},
@@ -804,54 +936,6 @@
       "size_bytes": 2610460,
       "modified_at": "2026-06-15T02:00:46+09:00",
       "sha1": "561a126493ae14c125f138c5ed58929adce48a76",
-      "domain": "unknown",
-      "score": 0,
-      "scores": {},
-      "matched_terms": {}
-    },
-    {
-      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\1047972983-PRF-Software.pdf",
-      "name": "1047972983-PRF-Software.pdf",
-      "extension": ".pdf",
-      "size_bytes": 2774252,
-      "modified_at": "2026-06-14T21:03:28+09:00",
-      "sha1": "b9278ee9a9065b1248bc6793cf662bb84e89de41",
-      "domain": "unknown",
-      "score": 0,
-      "scores": {},
-      "matched_terms": {}
-    },
-    {
-      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\791292193-CAB-Software.pdf",
-      "name": "791292193-CAB-Software.pdf",
-      "extension": ".pdf",
-      "size_bytes": 2494931,
-      "modified_at": "2026-06-14T21:02:49+09:00",
-      "sha1": "1d937ca70d63032a7d83ce2756e7c677075f0ce2",
-      "domain": "unknown",
-      "score": 0,
-      "scores": {},
-      "matched_terms": {}
-    },
-    {
-      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\845342098-BPI-Software.pdf",
-      "name": "845342098-BPI-Software.pdf",
-      "extension": ".pdf",
-      "size_bytes": 6396338,
-      "modified_at": "2026-06-14T21:01:34+09:00",
-      "sha1": "dbaeb12a8d523b0d143906213231735b13360ddb",
-      "domain": "unknown",
-      "score": 0,
-      "scores": {},
-      "matched_terms": {}
-    },
-    {
-      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\369616874-Instalar-MagmaSoft.pdf",
-      "name": "369616874-Instalar-MagmaSoft.pdf",
-      "extension": ".pdf",
-      "size_bytes": 816280,
-      "modified_at": "2026-06-14T21:00:47+09:00",
-      "sha1": "f787ed44901c6aaef1447d1c03134e955cd09377",
       "domain": "unknown",
       "score": 0,
       "scores": {},
@@ -1020,18 +1104,6 @@
       "size_bytes": 219327,
       "modified_at": "2026-06-06T02:02:45+09:00",
       "sha1": "acb159f174a1f814ff2c2fa3cd2c3d411aa23142",
-      "domain": "unknown",
-      "score": 0,
-      "scores": {},
-      "matched_terms": {}
-    },
-    {
-      "path": "D:\\Clawdbot_Docker_20260125\\data\\scribd_downloads\\653291655-CAD-15-5-2018-631-642.pdf",
-      "name": "653291655-CAD-15-5-2018-631-642.pdf",
-      "extension": ".pdf",
-      "size_bytes": 569654,
-      "modified_at": "2026-06-06T02:02:10+09:00",
-      "sha1": "9ffaa87f8ba2dcaa1c39fc76dd02f3cecf881513",
       "domain": "unknown",
       "score": 0,
       "scores": {},

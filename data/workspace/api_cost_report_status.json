@@ -1,8 +1,8 @@
 {
   "policy_id": "P009",
   "status": "active",
-  "generated_at_jst": "2026-06-19T14:39:42+09:00",
-  "generated_at_utc": "2026-06-19T05:39:42+00:00",
+  "generated_at_jst": "2026-07-26T05:07:01+09:00",
+  "generated_at_utc": "2026-07-25T20:07:01+00:00",
   "usd_jpy": 155.0,
   "providers": [
     {

@@ -53,6 +53,100 @@ MATERIAL_PRESETS = {
 }
 
 
+def _norm_label(value: str) -> str:
+    """Normalize manufacturer/vendor labels for UI join only (not property equality)."""
+    text = re.sub(r"[^a-z0-9]+", " ", str(value or "").strip().lower())
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def _join_synergy_materials_to_file_catalog(
+    synergy_materials: list,
+    catalog_files: list | None = None,
+    limit: int = 200,
+) -> dict:
+    """Label-join Synergy export rows to SQLite/UDB file catalog for UI display.
+
+    Synergy remains the property authority. Catalog matches are filename/vendor hints only.
+    """
+    limit = max(1, min(int(limit), 2000))
+    if catalog_files is None:
+        inv = _load_material_inventory(1000)
+        catalog_files = list(inv.get("files") or [])
+    catalog_index: list[dict] = []
+    for row in catalog_files:
+        file_name = str(row.get("file_name") or "")
+        vendor = str(row.get("vendor") or "")
+        stem = re.sub(r"(?i)\.\d+\.udb$", "", file_name)
+        stem = re.sub(r"(?i)\.udb$", "", stem)
+        catalog_index.append(
+            {
+                "file_name": file_name,
+                "vendor": vendor,
+                "relative_path": row.get("relative_path"),
+                "source_kind": row.get("source_kind"),
+                "norm_vendor": _norm_label(vendor),
+                "norm_stem": _norm_label(stem),
+            }
+        )
+
+    joined: list[dict] = []
+    matched = 0
+    for raw in list(synergy_materials or [])[:limit]:
+        if not isinstance(raw, dict):
+            continue
+        mfg = str(raw.get("manufacturer") or "")
+        trade = str(raw.get("trade_name") or "")
+        family = str(raw.get("family") or "")
+        mid = raw.get("id")
+        norm_mfg = _norm_label(mfg)
+        hits = []
+        if norm_mfg:
+            for cat in catalog_index:
+                nv = cat["norm_vendor"]
+                ns = cat["norm_stem"]
+                if not nv and not ns:
+                    continue
+                if (
+                    norm_mfg == nv
+                    or norm_mfg == ns
+                    or (nv and (nv in norm_mfg or norm_mfg in nv))
+                    or (ns and (ns in norm_mfg or norm_mfg in ns))
+                ):
+                    hits.append(
+                        {
+                            "file_name": cat["file_name"],
+                            "vendor": cat["vendor"],
+                            "relative_path": cat["relative_path"],
+                            "source_kind": cat["source_kind"],
+                        }
+                    )
+                    if len(hits) >= 5:
+                        break
+        if hits:
+            matched += 1
+        joined.append(
+            {
+                "id": mid,
+                "manufacturer": mfg,
+                "trade_name": trade,
+                "family": family,
+                "catalog_matches": hits,
+                "catalog_match_count": len(hits),
+            }
+        )
+    return {
+        "ok": True,
+        "joined": joined,
+        "returned": len(joined),
+        "matched": matched,
+        "catalog_files_considered": len(catalog_index),
+        "note": (
+            "UI label-join only. Synergy System domain 21000 is the material property authority; "
+            "SQLite/UDB rows are file-catalog hints and must not be treated as a property database."
+        ),
+    }
+
+
 def _load_material_inventory(limit: int = 100) -> dict:
     limit = max(1, min(limit, 1000))
     if not MATERIAL_DB.exists():
@@ -66,8 +160,58 @@ def _load_material_inventory(limit: int = 100) -> dict:
             "size_bytes, sha256, modified_utc FROM moldflow_material_files "
             "ORDER BY source_kind, file_name LIMIT ?", (limit,)
         ).fetchall()
-        return {"ok": True, "database": str(MATERIAL_DB), "total": total,
-                "files": [dict(row) for row in rows]}
+        return {
+            "ok": True,
+            "database": str(MATERIAL_DB),
+            "total": total,
+            "files": [dict(row) for row in rows],
+            "note": (
+                "File catalog index only. Analysis materials come from Synergy System DB "
+                "domain 21000 via moldflow_export_materials / moldflow_configure_study."
+            ),
+        }
+    finally:
+        con.close()
+
+
+def _load_machine_inventory(limit: int = 200) -> dict:
+    """List *.30007.udb machine files from SQLite (inventory only, not property DB)."""
+    limit = max(1, min(int(limit), 1000))
+    note = (
+        "Machine UDB filename inventory only. Do not treat as Synergy property database. "
+        "Prefer moldflow_probe_machine_com + process-condition params on configure_study."
+    )
+    if not MATERIAL_DB.exists():
+        return {
+            "ok": True,
+            "database": str(MATERIAL_DB),
+            "domain_tag": "30007",
+            "total": 0,
+            "machines": [],
+            "note": note,
+        }
+    con = sqlite3.connect(str(MATERIAL_DB))
+    con.row_factory = sqlite3.Row
+    try:
+        total = con.execute(
+            "SELECT COUNT(*) FROM moldflow_material_files WHERE file_name LIKE '%.30007.udb'"
+        ).fetchone()[0]
+        rows = con.execute(
+            "SELECT file_name, relative_path, source_kind, vendor, version_tag, extension, "
+            "size_bytes, sha256, modified_utc FROM moldflow_material_files "
+            "WHERE file_name LIKE '%.30007.udb' "
+            "ORDER BY vendor, file_name LIMIT ?",
+            (limit,),
+        ).fetchall()
+        return {
+            "ok": True,
+            "database": str(MATERIAL_DB),
+            "domain_tag": "30007",
+            "total": int(total),
+            "returned": len(rows),
+            "machines": [dict(row) for row in rows],
+            "note": note,
+        }
     finally:
         con.close()
 
@@ -403,6 +547,34 @@ class CaeStudioHandler(BaseHTTPRequestHandler):
             except Exception as exc:
                 self._json(500, {"error": str(exc)})
             return
+        if parsed.path == "/api/material-label-join":
+            try:
+                qs = parse_qs(parsed.query)
+                limit = int(qs.get("limit", ["200"])[0])
+                synergy_q = (qs.get("synergy_json", [""])[0] or "").strip()
+                materials: list = []
+                if synergy_q:
+                    synergy_path = Path(synergy_q)
+                    if not synergy_path.is_absolute():
+                        synergy_path = (ROOT / synergy_path).resolve()
+                    materials = json.loads(synergy_path.read_text(encoding="utf-8"))
+                    if not isinstance(materials, list):
+                        self._json(400, {"error": "synergy_json must be a JSON array"})
+                        return
+                self._json(
+                    200,
+                    _join_synergy_materials_to_file_catalog(materials, limit=limit),
+                )
+            except Exception as exc:
+                self._json(500, {"error": str(exc)})
+            return
+        if parsed.path == "/api/machine-inventory":
+            try:
+                limit = int(parse_qs(parsed.query).get("limit", ["200"])[0])
+                self._json(200, _load_machine_inventory(limit))
+            except Exception as exc:
+                self._json(500, {"error": str(exc)})
+            return
         if parsed.path == "/api/solver-landscape":
             try:
                 self._json(200, _load_solver_landscape_snapshot())
@@ -456,6 +628,23 @@ class CaeStudioHandler(BaseHTTPRequestHandler):
             payload = json.loads(body.decode("utf-8"))
         except json.JSONDecodeError:
             self._json(400, {"error": "invalid json"})
+            return
+        if parsed.path == "/api/material-label-join":
+            try:
+                materials = payload.get("materials")
+                if materials is None:
+                    self._json(400, {"error": "materials array required"})
+                    return
+                if not isinstance(materials, list):
+                    self._json(400, {"error": "materials must be a JSON array"})
+                    return
+                limit = int(payload.get("limit") or 200)
+                self._json(
+                    200,
+                    _join_synergy_materials_to_file_catalog(materials, limit=limit),
+                )
+            except Exception as exc:
+                self._json(500, {"error": str(exc)})
             return
         if parsed.path == "/api/gate-advice":
             try:

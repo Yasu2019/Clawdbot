@@ -1,4 +1,6 @@
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot "startup_orchestrator_guard.ps1")
+if (Test-ClawdbotOrchestratorMode) { Write-OrchestratorSkipMessage "install_c_drive_relief_guard_startup"; exit 0 }
 
 $startupDir = Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs\Startup'
 $cmdPath = Join-Path $startupDir 'ClawdbotCDriveReliefGuard.cmd'

@@ -22,6 +22,7 @@ RENDERER = os.path.join(STAGE_A, "render_walk.py")
 PY = sys.executable
 WORK = r"C:\v50_work\autonomy"
 PORTAL_STATUS = r"D:\Clawdbot_Docker_20260125\data\workspace\apps\mecha_motion_lab\supervisor_status.json"
+PORTAL_ESCALATIONS = r"D:\Clawdbot_Docker_20260125\data\workspace\apps\mecha_motion_lab\escalations"
 LITELLM = "http://localhost:4001/v1/chat/completions"
 
 
@@ -91,7 +92,9 @@ def telegram(text):
         for line in open(r"D:\Clawdbot_Docker_20260125\.env", encoding="utf-8", errors="ignore"):
             if line.startswith("TELEGRAM_"):
                 k, _, v = line.partition("=")
-                env[k.strip()] = v.strip()
+                # .envの値は引用符付き — 剥がさないとURLに"が混入し404で通知が消える
+                # (2026-07-12 telegram_demoで実証・修正)
+                env[k.strip()] = v.strip().strip('"').strip("'")
         body = json.dumps({"chat_id": env["TELEGRAM_CHAT_ID"], "text": text[:3800]}).encode()
         req = urllib.request.Request(
             f"https://api.telegram.org/bot{env['TELEGRAM_BOT_TOKEN']}/sendMessage",
@@ -119,9 +122,17 @@ def llm_note(metrics, rule_name):
         return None
 
 
+# 2026-07-22 GPU使用率対策(.bak_nenvs_20260722): 実測でGPU util16%/VRAM 1000MiB of 16GB/
+# 電力34W of 180W=大幅に遊休。n_envs=512はRTX5060Ti(16GB)に対し小さすぎた。並列環境数を
+# 増やすとGPU使用率とスループットが上がり、1iterのサンプル数増→学習が速く安定。VRAMは
+# 512envで約1000MiB(≒base700+約0.6MiB/env)なので4096でも約3-4GBで安全。環境変数 MECHA_N_ENVS
+# で調整可(2048/4096/8192)。T067(GPU lost)配慮で既定は中庸の4096。
+N_ENVS = os.environ.get("MECHA_N_ENVS", "4096")
+
+
 def run_training(cycle_dir, cfg, resume_path):
     args = [PY, TRAINER, "--iterations", str(cfg.get("iterations", 800)),
-            "--n-envs", "512", "--out", cycle_dir,
+            "--n-envs", N_ENVS, "--out", cycle_dir,
             "--entropy", str(cfg.get("entropy", 0.001)),
             "--init-log-std", str(cfg.get("init_log_std", -1.2))]
     if cfg.get("ref_json"):
@@ -131,8 +142,17 @@ def run_training(cycle_dir, cfg, resume_path):
     if resume_path:
         args += ["--resume", resume_path]
     print("TRAIN:", " ".join(args), flush=True)
-    return subprocess.run(args, cwd=STAGE_A, capture_output=True, text=True,
-                          encoding="utf-8", errors="replace").returncode
+    r = subprocess.run(args, cwd=STAGE_A, capture_output=True, text=True,
+                       encoding="utf-8", errors="replace")
+    # T066対応 2026-07-19: 失敗原因の材料を必ず残す(rc=1だけでは診断不能だった)
+    try:
+        with open(os.path.join(cycle_dir, "train_stdout.log"), "w", encoding="utf-8") as f:
+            f.write(r.stdout or "")
+        with open(os.path.join(cycle_dir, "train_stderr.log"), "w", encoding="utf-8") as f:
+            f.write(r.stderr or "")
+    except Exception:
+        pass
+    return r.returncode
 
 
 def run_render_check(cycle_dir, ref_json=None, terrain=None):
@@ -160,6 +180,10 @@ def gather_metrics(cycle_dir, check):
         m["travel"] = check.get("final_travel", 0.0)
         m["fell"] = bool(check.get("fell", True))
         m["min_upright"] = check.get("min_upright", 0.0)
+        # 2026-07-20: 転倒時刻(秒)。無転倒はNone→9999扱い。旧walk_checkに
+        # フィールドが無い場合は0.0(=即転倒側の保守的解釈)
+        ffs = check.get("first_fall_sec", 0.0)
+        m["first_fall_sec"] = 9999.0 if ffs is None else float(ffs)
     else:  # レンダー不能時は保守的に扱う(成功判定はしない)
         m["travel"] = m["eval_travel"]
         m["fell"] = True
@@ -168,7 +192,8 @@ def gather_metrics(cycle_dir, check):
 
 
 def pick_rule(pb, m):
-    scope = {"travel": m["travel"], "vx": m["vx"], "fell": m["fell"], "true": True}
+    scope = {"travel": m["travel"], "vx": m["vx"], "fell": m["fell"], "true": True,
+             "first_fall_sec": m.get("first_fall_sec", 0.0)}
     for rule in pb["rules"]:
         try:
             if eval(rule["when"], {"__builtins__": {}}, scope):  # playbookは信頼済み設定ファイル
@@ -184,6 +209,13 @@ def escalate(state, reason, cycle_dir):
            f"artifacts={cycle_dir}\n人間の判断が必要です。")
     with open(os.path.join(cycle_dir, "escalation.md"), "w", encoding="utf-8") as f:
         f.write(msg)
+    try:  # リポジトリ側にも複製(C:\v50_work消失・上書き対策 — 2026-07-11 run_auto理由不明の再発防止)
+        os.makedirs(PORTAL_ESCALATIONS, exist_ok=True)
+        fname = f"{state['skill']}_cycle{state['cycle']:02d}_{time.strftime('%Y%m%d_%H%M%S')}.md"
+        with open(os.path.join(PORTAL_ESCALATIONS, fname), "w", encoding="utf-8") as f:
+            f.write(msg)
+    except Exception as e:
+        print("escalation copy skip:", e)
     telegram(msg)
     state["state"] = "escalated"
     state["escalation_reason"] = reason
@@ -226,7 +258,13 @@ def main():
 
         rc = run_training(cycle_dir, cfg, resume)
         if rc != 0 or not os.path.exists(os.path.join(cycle_dir, "eval.json")):
-            escalate(state, f"training process failed rc={rc}", cycle_dir)
+            err_tail = ""
+            try:
+                with open(os.path.join(cycle_dir, "train_stderr.log"), encoding="utf-8") as f:
+                    err_tail = f.read()[-500:]
+            except Exception:
+                pass
+            escalate(state, f"training process failed rc={rc}\nstderr_tail: {err_tail}", cycle_dir)
             return 2
 
         state["state"] = "checking"

@@ -23,6 +23,108 @@ if hasattr(sys.stdout, "reconfigure"):
 FLOAT_RE = re.compile(r"[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[Ee][-+]?\d+)?")
 DISPLACEMENT_FIELDS = {"displacement_magnitude", "displacement", "Displacement"}
 
+DEFAULT_QC_LIMITS: dict[str, float | int] = {
+    "max_bbox_diag": 200.0,
+    "max_coordinate_abs": 200.0,
+    "max_displacement_abs": 100.0,
+    "min_points": 10,
+}
+
+
+def limits_from_fem_cfg(fem_cfg: dict[str, Any] | None) -> dict[str, float | int]:
+    """Panel-scale defaults (mm bbox ~10); override via cae_workload_router fem_impact.quality_gate."""
+    qc = (fem_cfg or {}).get("quality_gate") or {}
+    return {
+        "max_bbox_diag": float(qc.get("max_bbox_diag") or DEFAULT_QC_LIMITS["max_bbox_diag"]),
+        "max_coordinate_abs": float(qc.get("max_coordinate_abs") or DEFAULT_QC_LIMITS["max_coordinate_abs"]),
+        "max_displacement_abs": float(
+            qc.get("max_displacement_abs") or DEFAULT_QC_LIMITS["max_displacement_abs"]
+        ),
+        "min_points": int(qc.get("min_points") or DEFAULT_QC_LIMITS["min_points"]),
+    }
+
+
+def limits_from_router_cfg(cfg: dict[str, Any] | None) -> dict[str, float | int]:
+    fem = ((cfg or {}).get("tri_track_parallel") or {}).get("fem_impact") or {}
+    return limits_from_fem_cfg(fem)
+
+
+def latest_surface_vtk(case_dir: Path, input_name: str = "test.in") -> Path | None:
+    case_dir = case_dir.resolve()
+    stem = input_name[:-3] if input_name.endswith(".in") else input_name
+    candidates = sorted(case_dir.glob(f"{input_name}_surface_*.vtk"))
+    if not candidates:
+        candidates = sorted(case_dir.glob(f"{stem}_surface_*.vtk"))
+    if not candidates:
+        vol = sorted(p for p in case_dir.glob(f"{input_name}_*.vtk") if "surface" not in p.name)
+        if not vol:
+            vol = sorted(p for p in case_dir.glob(f"{stem}_*.vtk") if "surface" not in p.name)
+        candidates = vol
+    return candidates[-1] if candidates else None
+
+
+def qc_vtk_path(vtk_path: Path, limits: dict[str, float | int] | None = None) -> dict[str, Any]:
+    lim = limits or dict(DEFAULT_QC_LIMITS)
+    meta = scan_legacy_vtk(vtk_path.resolve())
+    ns = argparse.Namespace(
+        max_bbox_diag=float(lim["max_bbox_diag"]),
+        max_coordinate_abs=float(lim["max_coordinate_abs"]),
+        max_displacement_abs=float(lim["max_displacement_abs"]),
+        min_points=int(lim["min_points"]),
+    )
+    return evaluate(meta, ns)
+
+
+def qc_case_dir(
+    case_dir: Path,
+    input_name: str = "test.in",
+    limits: dict[str, float | int] | None = None,
+) -> dict[str, Any]:
+    vtk = latest_surface_vtk(case_dir, input_name)
+    if vtk is None:
+        return {
+            "verdict": "FAILED_MESH_EXPLOSION",
+            "reasons": ["vtk_missing"],
+            "metrics": {"case_dir": str(case_dir), "input": input_name},
+        }
+    result = qc_vtk_path(vtk, limits)
+    result["metrics"] = dict(result.get("metrics") or {})
+    result["metrics"]["qc_vtk"] = str(vtk)
+    return result
+
+
+def parse_qc_stdout(stdout: str) -> dict[str, Any]:
+    """Parse FEM_IMPACT_QC_* lines emitted by this script's non-json CLI mode."""
+    out: dict[str, Any] = {"verdict": "", "reasons": [], "metrics": {}}
+    for line in (stdout or "").splitlines():
+        if line.startswith("FEM_IMPACT_QC_VERDICT="):
+            out["verdict"] = line.split("=", 1)[1].strip()
+        elif line.startswith("FEM_IMPACT_QC_REASONS="):
+            raw = line.split("=", 1)[1].strip()
+            out["reasons"] = [r for r in raw.split(",") if r]
+        elif line.startswith("FEM_IMPACT_QC_BBOX_DIAG="):
+            try:
+                out["metrics"]["bbox_diag"] = float(line.split("=", 1)[1].strip())
+            except ValueError:
+                pass
+        elif line.startswith("FEM_IMPACT_QC_COORD_ABS_MAX="):
+            try:
+                out["metrics"]["coord_abs_max"] = float(line.split("=", 1)[1].strip())
+            except ValueError:
+                pass
+        elif line.startswith("FEM_IMPACT_QC_DISPLACEMENT_ABS_MAX="):
+            raw = line.split("=", 1)[1].strip()
+            if raw:
+                try:
+                    out["metrics"]["displacement_abs_max"] = float(raw)
+                except ValueError:
+                    pass
+        elif line.startswith("FEM_IMPACT_QC_VTK="):
+            out["metrics"]["qc_vtk"] = line.split("=", 1)[1].strip()
+    if not out["verdict"]:
+        out["verdict"] = "FAILED_MESH_EXPLOSION" if "FAILED_MESH_EXPLOSION" in stdout else ""
+    return out
+
 
 def _floats(line: str) -> list[float]:
     out: list[float] = []
@@ -128,10 +230,10 @@ def evaluate(meta: dict[str, Any], args: argparse.Namespace) -> dict[str, Any]:
 def main() -> int:
     parser = argparse.ArgumentParser(description="Impact VTK mesh explosion QC gate")
     parser.add_argument("vtk_path")
-    parser.add_argument("--max-bbox-diag", type=float, default=100000.0)
-    parser.add_argument("--max-coordinate-abs", type=float, default=100000.0)
-    parser.add_argument("--max-displacement-abs", type=float, default=100000.0)
-    parser.add_argument("--min-points", type=int, default=10)
+    parser.add_argument("--max-bbox-diag", type=float, default=float(DEFAULT_QC_LIMITS["max_bbox_diag"]))
+    parser.add_argument("--max-coordinate-abs", type=float, default=float(DEFAULT_QC_LIMITS["max_coordinate_abs"]))
+    parser.add_argument("--max-displacement-abs", type=float, default=float(DEFAULT_QC_LIMITS["max_displacement_abs"]))
+    parser.add_argument("--min-points", type=int, default=int(DEFAULT_QC_LIMITS["min_points"]))
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
 
