@@ -33,7 +33,7 @@ if str(WORKSPACE) not in sys.path:
 from thinkpad_ssh_common import read_registry, run_ssh, ssh_target
 from notify_image import send_telegram, send_telegram_text
 
-STAGES = (25, 50, 75)
+STAGES = tuple(range(5, 100, 5))
 VTK_TIME_RE = re.compile(r"_surface_([0-9]+(?:\.[0-9]+)?)\.vtk$")
 
 

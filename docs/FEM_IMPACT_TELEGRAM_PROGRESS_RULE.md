@@ -5,8 +5,9 @@ Beads: `Clawdbot_Docker_20260125-vdf0`
 
 ## Goal
 
-Notify Telegram once at FEM Impact analysis start and once at 25%, 50%, and
-75%, without stopping or slowing the solver.
+Notify Telegram once at FEM Impact analysis start and once at every 5% from
+5% through 95%, without stopping or slowing the solver. The existing final
+delivery remains responsible for 100%.
 
 ## Context and observed facts
 
@@ -34,8 +35,8 @@ monitor reads this state and must not resend a completed stage.
 1. Send the 0% start message once.
 2. Poll ThinkPad every 30 seconds for the latest matching surface VTK.
 3. Calculate `100 * vtk_time / end_time`.
-4. At the first observation at or above 25%, 50%, or 75%, copy that VTK to K10,
-   render a Von Mises PNG, and send it once.
+4. At the first observation at or above each 5% milestone from 5% through 95%,
+   copy that VTK to K10, render a Von Mises PNG, and send it once.
 5. Persist state under `data/workspace/fem_impact_progress/<trial_id>.json`.
 6. Never stop, signal, or renice the solver from the progress monitor.
 
@@ -43,7 +44,7 @@ monitor reads this state and must not resend a completed stage.
 
 - Python compilation passes for both scripts.
 - The active-run state shows `sent: [0]`, `running: true`, and no error.
-- Pass for later stages: state contains each of `25`, `50`, and `75` once and
+- Pass for later stages: state contains each of `5`, `10`, ... `95` once and
   the corresponding `stage_<percent>_vtk` path.
 
 ## Failure signatures and recovery
