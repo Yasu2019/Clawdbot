@@ -11,6 +11,14 @@ and `SendKeys('{ENTER}')` both hung inside that modal loop and had to be killed;
 before blaming COM registration, bitness, or the MCP process. Recovery is an application
 restart. See INC-159 and Beads `Clawdbot_Docker_20260125-v7di`.
 
+**訂正(同日追記):** モーダルは症状で、真因はもう一段深い。48時間で `synergy.exe` が41回クラッシュ
+しており、全て同一シグネチャ（`MFC80U.DLL` 8.0.50727.6229 / `0xc0000005` / offset `0x6c372`）。
+クラッシュしたPID群はGUIのPID 6688と別で、`CreateObject("synergy.Synergy")` が起動した短命の
+COMサーバインスタンスだった。GUIがモーダルで固まる → COM要求ごとに別インスタンスが起動 →
+即クラッシュ → 429、という連鎖。**429を見たらリトライしない**（リトライのたびに落ちる
+インスタンスが増える）。セッション1に「メッセージポンプが生きているSynergyがちょうど1つ」
+存在することを先に保証する。復旧後はクラッシュゼロ。
+
 ## [T070] OpenRadioss Lab 4mm action exited before dispatch (2026-07-25)
 
 `POST /api/actions/launch-urgent-assy` returned HTTP 202, but the child process

@@ -2497,3 +2497,14 @@ Goal: press_* trial --> NORMAL TERMINATION + KPI
 - **Web knowledge:** Not used. Local window enumeration, handle-change evidence, and screenshots identified the modal owner conclusively.
 - **Scope limits:** Not proven this session -- opening a project through MCP. Synergy restarted with no project loaded, so `moldflow_open_study_by_name` correctly returns `NO_PROJECT`. The deployed bridge has no standalone open-project tool, and `Synergy.OpenProject` is annotated in the source as hanging on 2010.
 - **Tracking:** Beads `Clawdbot_Docker_20260125-v7di`; trouble history `[T071]`.
+
+### INC-159 correction: the modal was a symptom of chronic synergy.exe crashes
+
+Raised by the user asking whether `box_study_3` had a mesh in progress. Forensics changed the root cause.
+
+- **Deeper root cause:** Windows Application log holds 41 `synergy.exe` APPCRASH events in 48 hours with an identical signature -- application 9.3.4.0, faulting module `MFC80U.DLL` 8.0.50727.6229, exception `0xc0000005`, exception offset `0x6c372`. Seven of them fall between 10:19:02 and 10:24:28, exactly while `moldflow_probe_com` and `moldflow_inspect_active_study` were being called.
+- **Decisive evidence:** the crashing PIDs (`0x1c60`=7264, `0x305c`=12380, `0x4a44`=19012, `0x49fc`=18940) are all different from the GUI Synergy PID 6688, which survived the whole period. The crashers were therefore short-lived out-of-process COM servers spawned by `CreateObject("synergy.Synergy")`, not the visible application.
+- **Corrected chain:** the GUI instance was wedged in a modal and stopped serving COM -> each `CreateObject` launched an additional `synergy.exe` -> that instance crashed at `MFC80U+0x6c372` -> the caller saw ActiveX 429 or a 30-150 s stall. The script-error dialog was the visible symptom, not the origin.
+- **Post-fix evidence:** no `synergy.exe` APPCRASH after 10:24:28. Once a single healthy GUI instance was running, `CreateObject` attached to it and both 32-bit and 64-bit probes returned `Version : 2010`.
+- **Mesh-loss check (negative):** `box_study_3` belongs to project `FE100436` at `C:\mf\wfe`, not to `Warp`. `box_study_3.sdy` is 191,781 bytes written at 10:54:25, while sibling studies in the same project are 4 KB to 27 KB; AMI also wrote `#name#.sdy` close-out copies at 10:54:46-47. The Synergy restart happened at 10:58:26, about four minutes later, and no `synmesh`/`runstudy`/`cscript` process existed at the pre-restart check or afterwards. The save was most likely completed when the hung `SendKeys` helper was killed at ~10:52 and the queued ENTER reached the modal. Mesh content itself is not yet numerically verified.
+- **Added prevention:** treat a 429 as "exactly one healthy message-pumping Synergy must exist in session 1" and never retry `CreateObject` against a wedged GUI, because each retry spawns another crashing instance.
