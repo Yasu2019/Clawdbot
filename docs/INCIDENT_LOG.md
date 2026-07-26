@@ -2625,3 +2625,59 @@ Raised by the user asking whether `box_study_3` had a mesh in progress. Forensic
   IATF index refresh child to complete; verified all resulting JSON/video links.
 - Prevention: inspect argument handling before invoking `--help` on legacy
   operational scripts.
+
+---
+
+## INC-166: ByteRover pre-work query hung after session expiration
+
+- **Date / detection:** 2026-07-26 JST; bounded pre-work query timed out after
+  69 seconds.
+- **Impact:** Unity integration paused briefly. No application, Blender, Unity,
+  download, or RL-training process was stopped.
+- **Root cause:** `brv status` reported `Account: Session expired`; the CLI query
+  did not fail fast and left its own query and agent child alive after timeout.
+- **Correction:** Stopped only the two exact child PIDs identified by command
+  line. Preserved the ByteRover daemon and unrelated Node/Python processes.
+- **Verification:** The exact query children are absent. Existing services and
+  RL training remain untouched.
+- **Prevention:** Check `brv status`, bound every query, never kill Node by image
+  name, and use local durable records as the authentication fail-safe.
+- **Detailed RCA:** `docs/quality_incident_report_20260726_byterover_session_expired.md`
+- **Web knowledge:** Not used; local authentication status was authoritative.
+
+---
+
+## INC-167: Unity installer retry exceeded the outer harness timeout
+
+- **Date / detection:** 2026-07-26 JST; first F-drive resume command returned
+  after the 50-second outer allowance.
+- **Impact:** The harness timed out, while its curl child continued briefly.
+  No data was lost and no unrelated process was affected.
+- **Root cause:** `--max-time 35` was combined with `--retry 1`, so the
+  per-attempt limit plus retry could exceed the outer command allowance.
+- **Correction:** Preserved the Range-resumable partial. The child exited
+  naturally at 578,831,355 / 4,031,619,680 bytes (14.36%).
+- **Prevention plan:** Use retry 0, 25-second chunks, 40-second outer timeout,
+  byte-growth checks, and a three-no-growth stop gate. Verify exact size and
+  Authenticode signature before install.
+- **Detailed RCA:** `docs/quality_incident_report_20260726_unity_download_outer_timeout.md`
+- **Web knowledge:** No new search; local timing and byte-growth evidence were
+  sufficient.
+
+---
+
+## INC-168: Unity download observer used an unsafe regex and raced status writes
+
+- **Date / detection:** 2026-07-26 JST; progress-only monitoring commands.
+- **Impact:** Two observer reads failed: a Windows path was parsed as a regex
+  containing invalid `\C`, and one JSON read coincided with `Set-Content`.
+  The download harness remained alive and byte growth continued.
+- **Root cause:** Observer code used `-match` for a literal Windows path and read
+  a status file without tolerating the writer's short exclusive lock.
+- **Correction:** Monitored the known PID directly, used a fixed installer path,
+  and retried JSON reads up to five times with 300 ms spacing.
+- **Verification:** Monitoring then observed uninterrupted progress from 26.33%
+  to 100%; final size and signature gates passed.
+- **Prevention:** Use PID equality or literal comparison for Windows paths;
+  retry reads of runtime status files because writers may briefly lock them.
+- **Web knowledge:** Not used; local errors and byte growth proved both defects.

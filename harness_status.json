@@ -1,29 +1,14 @@
-{
-  "last_updated": "2026-04-09T07:56:05+09:00",
-  "status": "success",
-  "protocols": {
-    "mempalace": {
-      "strategy": "idea_transplant",
-      "status": "active",
-      "taxonomy": {
-        "hall": "initialized",
-        "wing": "initialized",
-        "diary": "initialized"
-      }
-    },
-    "gitlens": {
-      "strategy": "convention_adoption",
-      "status": "active"
-    },
-    "r_install": {
-      "status": "success",
-      "location": "D:\\R",
-      "version": "4.5.3"
-    },
-    "secret_cleanup": {
-      "status": "success",
-      "action": "redacted_tracked_files"
-    }
-  },
-  "current_task": "completed"
+﻿{
+    "task":  "Unity 6000.0.73f1 installer download for commercial heroine integration",
+    "state":  "verified_complete",
+    "path":  "F:\\UnityInstallers\\6000.0.73f1\\UnitySetup64-6000.0.73f1.exe",
+    "bytes":  4031619680,
+    "expected_bytes":  4031619680,
+    "percent":  100,
+    "no_growth_count":  0,
+    "detail":  "Exact size and Unity Technologies Authenticode signature verified.",
+    "signature_valid":  true,
+    "signer":  "CN=Unity Technologies SF, O=Unity Technologies SF, L=San Francisco, S=California, C=US, SERIALNUMBER=3183233, OID.2.5.4.15=Private Organization, OID.1.3.6.1.4.1.311.60.2.1.2=California, OID.1.3.6.1.4.1.311.60.2.1.3=US",
+    "unrelated_rl_training_preserved":  true,
+    "updated_at":  "2026-07-26T12:26:42.2900977+09:00"
 }

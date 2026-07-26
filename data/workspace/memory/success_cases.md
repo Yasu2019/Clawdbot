@@ -15,6 +15,13 @@
 
 ---
 
+## [S020] Dynabook Moldflow synmesh を正規 COM ルートで起動し Completed (2026-07-26)
+- 問題: `MeshNow(False)` は error 0 でも `synmesh.exe` が立たず Pending のまま。GUI は遅く、開始成功と遅延が区別しづらい。Design Link 不在で STL 新規メッシュも不可。
+- 診断: 成功時の親プロセスは必ず `amijm.exe`。失敗例はシード無し/Failed Midplane。正規経路は Session1 Synergy + 64bit `cscript` `/IT` + `CreateObject` + `OpenItemByName` + `MeshGenerator` + `MeshNow`。
+- 解決: 既存の別ジョブ synmesh を停止後、同ルートで `mf_fc_strip_out_study (copy)` に MeshNow。シード sample nodes/tris>=20 を確認してから実行。
+- 証拠: synmesh CMD `-output mf_fc_strip_out_study~4Mesh mf_fc_strip_out_study_(copy).udm`；`MESH_STATUS_FINAL=Completed` / SUCCESS（`agent_mesh_start.log`）。正典 `docs/knowledge/dynabook_moldflow_synmesh_canonical_route_20260726.md`。bd key `moldflow-synmesh-canonical-route`。T076 / S020。
+- 再利用: IF Dynabook でメッシュ THEN 正規ルート以外を発明しない。IF MeshNow=0 でも synmesh 不在 THEN 未成功。IF GUI が遅くても synmesh が対象 UDM で生きていれば開始成功とみなして待つ。
+
 ## [S019] Lavie 樹脂充填 snappyHexMesh 経路を実績ケースのテンプレート化で成立させた (2026-07-25)
 - 問題: `openfoam_lavie` トラックが8連続 ERROR で meaning gate 停止。修正しても症状が
   `mesh_mode 未対応` → `pyvista が STEP を読めない` → `STL の中に CARTESIAN_POINT が無い` と
@@ -199,3 +206,18 @@
 - **解決:** `matrix_basis`の開始フレームからの局所回転差を、両骨格のレスト軸間で変換してベイク。元リグ・メッシュ・アクションを出力前に削除。
 - **証拠:** Idle 251、Walking 42、Talking 151フレーム。GLB/FBX再読込で3アクション・19ボーン・8材質、`PASS_MIXAMO3_RETARGET`。
 - **再利用:** IF異なるレスト姿勢間でリターゲットする THEN 最初のアニメーションフレームを基準に局所回転差だけを移す。BECAUSE 絶対ポーズは親回転とソース骨格固有の初期姿勢を重複適用する。
+## [S021] Resumed and verified a 4 GB Unity installer safely (2026-07-26, Codex)
+
+- **Problem:** The D-drive download was partial and a retry could outlive the
+  outer harness timeout.
+- **Diagnosis:** F: had about 1.63 TB free; HTTP Range continuation produced
+  measurable growth. The timeout defect was a 35-second attempt plus one retry.
+- **Solution:** Preserve the original, copy the partial to F:, run 25-second curl
+  chunks with retry disabled, persist progress, and stop after three no-growth
+  chunks.
+- **Evidence:** Final size 4,031,619,680 bytes; zero no-growth chunks;
+  Authenticode `Valid`; signer `Unity Technologies SF`; state
+  `verified_complete`.
+- **Reuse:** IF downloading a large signed installer, THEN separate the resumable
+  worker from its observer and require exact size plus vendor signature before
+  execution.
