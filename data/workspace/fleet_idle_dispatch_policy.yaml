@@ -73,10 +73,15 @@ nodes:
     enabled: true
     registry_id: lavie_i3
     transport: job_worker
-    jobs_per_cycle: 1
+    # Core i3 is a light fleet-supervision helper. K10 dispatches two bounded
+    # checks per cycle and records every returned result centrally.
+    jobs_per_cycle: 2
     job_sequence:
       - health_snapshot
       - monitor_local_probe
+      - fleet_endpoint_audit
+      - job_history_audit
+      - workspace_capacity_audit
       - fleet_self_probe
 
 excluded_node_ids:
