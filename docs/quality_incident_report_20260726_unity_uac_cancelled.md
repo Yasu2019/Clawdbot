@@ -36,14 +36,22 @@ The wrapper now catches a cancelled elevation and records
 Windows UAC `Yes`. Keep `/D=F:\Unity\Hub\Editor\6000.0.73f1` as the final
 argument and retain all version, executable, and signature gates.
 
+The user approved the retry. Installation then completed with exit code 0.
+Independent verification found
+`F:\Unity\Hub\Editor\6000.0.73f1\Editor\Unity.exe`, product version
+`6000.0.73f1_a166abc3bf0e`, Authenticode status `Valid`, and signer
+`Unity Technologies SF`. The final harness state is
+`install_verified_complete`.
+
 Decision rule: IF a Windows installer requires elevation, THEN silent mode still
 requires explicit UAC approval, BECAUSE `/S` suppresses installer UI but cannot
 bypass the OS security boundary.
 
 ## Verification / rollback / web decision
 
-Verification: F-drive target absent; no Unity executable created; wrapper exited.
-Rollback is unnecessary because no installation files were written. No web
-search was needed for the cancellation diagnosis; the local exception and
-`consent.exe` lifecycle were authoritative. Official Unity documentation was
-used separately to confirm `/S` and final `/D=PATH` syntax.
+Initial containment verification found the F-drive target absent. Final retry
+verification passed executable, version, signature, and exit-code gates. The
+original C-drive 6000.3.6f1 Hub metadata remains present. Rollback, if requested,
+is the Unity uninstaller under the new F-drive installation; it was not run.
+No web search was needed for cancellation diagnosis; official Unity
+documentation confirmed `/S` and final `/D=PATH` syntax.

@@ -2701,3 +2701,7 @@ Raised by the user asking whether `box_study_3` had a mesh in progress. Forensic
 - **Detailed RCA:** `docs/quality_incident_report_20260726_unity_uac_cancelled.md`
 - **Web knowledge:** Local exception and UAC process were sufficient for RCA;
   official Unity documentation confirmed installer switches.
+- **Final result:** After explicit UAC approval, retry completed with exit code
+  0. `Editor\Unity.exe` reports `6000.0.73f1_a166abc3bf0e`; Authenticode is
+  `Valid` for `Unity Technologies SF`; final state is
+  `install_verified_complete`.

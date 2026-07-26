@@ -24,3 +24,14 @@ The wrapper now records `install_blocked_uac_cancelled`. Retry only when the use
 is ready to approve UAC. Keep `/D` last and verify exit code, executable,
 6000.0.73f1 version, and Unity Technologies signature. No rollback is required
 because no files were installed.
+
+## Final retry result
+
+The user approved UAC. Installation completed with exit code 0 at
+`F:\Unity\Hub\Editor\6000.0.73f1`. Independent verification passed:
+
+- Unity executable present
+- Product version `6000.0.73f1_a166abc3bf0e`
+- Authenticode `Valid`
+- Signer `Unity Technologies SF`
+- Existing C-drive 6000.3.6f1 Hub metadata preserved

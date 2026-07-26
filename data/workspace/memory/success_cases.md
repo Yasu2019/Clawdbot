@@ -221,3 +221,17 @@
 - **Reuse:** IF downloading a large signed installer, THEN separate the resumable
   worker from its observer and require exact size plus vendor signature before
   execution.
+## [S022] Installed Unity side-by-side through an explicit UAC gate (2026-07-26, Codex)
+
+- **Problem:** Silent Unity installation was cancelled at Windows UAC and left a
+  stale `installing` status.
+- **Diagnosis:** `/S` suppresses installer UI but cannot bypass elevation;
+  `consent.exe` and the localized Start-Process exception proved cancellation.
+- **Solution:** Catch launch failure, keep the target-exists gate, notify the
+  user, and retry only after explicit UAC approval with `/D` as the final
+  argument.
+- **Evidence:** Exit code 0; Unity product version
+  `6000.0.73f1_a166abc3bf0e`; Authenticode `Valid`; signer
+  `Unity Technologies SF`; existing C-drive metadata preserved.
+- **Reuse:** IF a silent Windows installer requires elevation, THEN treat UAC as
+  an explicit human gate and never equate `/S` with authorization.
