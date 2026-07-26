@@ -2705,3 +2705,25 @@ Raised by the user asking whether `box_study_3` had a mesh in progress. Forensic
   0. `Editor\Unity.exe` reports `6000.0.73f1_a166abc3bf0e`; Authenticode is
   `Valid` for `Unity Technologies SF`; final state is
   `install_verified_complete`.
+
+---
+
+## INC-170: Unity heroine import was blocked by omitted built-in modules
+
+- **Date / detection:** 2026-07-26 JST; first real Unity 6000.0.73f1 batch
+  compile/import.
+- **Impact:** Compilation returned 1 before the importer executed; no Animator
+  controller or prefab was generated. Existing scenes remained untouched.
+- **Root cause:** `Packages/manifest.json` omitted the Physics and Video built-in
+  modules while existing scripts use `CharacterController`, `VideoPlayer`, and
+  `VideoClip`.
+- **Evidence:** Five CS1069 errors point to `UnityEngine.PhysicsModule` and
+  `UnityEngine.VideoModule`; zero errors reference the new heroine scripts.
+- **Proposed correction:** Back up the manifest, add only
+  `com.unity.modules.physics` and `com.unity.modules.video` at `1.0.0`, then
+  repeat the same batch gate.
+- **Prevention:** Compile the whole project before attributing a failure to a new
+  asset; keep required built-in modules as explicit direct dependencies.
+- **Detailed RCA:** `docs/quality_incident_report_20260726_unity_missing_builtin_modules.md`
+- **Web knowledge:** Official Unity built-in package and project-manifest
+  documentation confirmed the compiler-prescribed correction.

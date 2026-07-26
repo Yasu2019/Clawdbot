@@ -1,14 +1,18 @@
-﻿{
-    "task":  "Install Unity 6000.0.73f1 side-by-side on F drive",
-    "state":  "install_verified_complete",
-    "installer_path":  "F:\\UnityInstallers\\6000.0.73f1\\UnitySetup64-6000.0.73f1.exe",
-    "install_root":  "F:\\Unity\\Hub\\Editor\\6000.0.73f1",
-    "detail":  "Side-by-side Unity installation passed exit-code, executable, version, and signature gates.",
-    "installer_exit_code":  0,
-    "editor_path":  "F:\\Unity\\Hub\\Editor\\6000.0.73f1\\Editor\\Unity.exe",
-    "editor_version":  "6000.0.73f1_a166abc3bf0e",
-    "editor_signature_valid":  true,
-    "editor_signer":  "CN=Unity Technologies SF, O=Unity Technologies SF, L=San Francisco, S=California, C=US, SERIALNUMBER=3183233, OID.2.5.4.15=Private Organization, OID.1.3.6.1.4.1.311.60.2.1.2=California, OID.1.3.6.1.4.1.311.60.2.1.3=US",
-    "protected_existing_unity":  "C:\\Program Files\\Unity\\Hub\\Editor\\6000.3.6f1",
-    "updated_at":  "2026-07-26T14:43:50.1532481+09:00"
+{
+  "task": "Import commercial heroine and Mixamo actions into Unity 6000.0.73f1",
+  "state": "blocked_compile_missing_builtin_modules",
+  "project": "D:\\Local_AI_GameDev_Master\\02_UnityProject",
+  "unity_version": "6000.0.73f1 (a166abc3bf0e)",
+  "unity_exit_code": 1,
+  "compiler_error_count": 5,
+  "missing_dependencies": [
+    "com.unity.modules.physics",
+    "com.unity.modules.video"
+  ],
+  "commercial_heroine_error_count": 0,
+  "controller_exists": false,
+  "prefab_exists": false,
+  "log": "D:\\Clawdbot_Docker_20260125\\logs\\unity_commercial_heroine_import_20260726.log",
+  "next_action": "Back up manifest, add the two built-in dependencies at 1.0.0, and rerun after user confirmation.",
+  "updated_at": "2026-07-26T21:06:30+09:00"
 }
