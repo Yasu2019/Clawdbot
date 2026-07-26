@@ -2603,6 +2603,20 @@ Raised by the user asking whether `box_study_3` had a mesh in progress. Forensic
 - **Prevention:** IF Blender starts with `use_empty=True`, THEN create a World before accessing it. IF validating glTF topology after reimport, THEN do not equate seam-split boundaries with source holes.
 - **Rollback:** Use backup branch `backup/heroine-v21-pre-commercial-20260726` at commit `df94149be2`; v1-v21 outputs remain unchanged.
 - **Web knowledge:** Not used; Blender execution traces and controlled BLEND/GLB/FBX comparisons were sufficient.
+
+---
+
+## INC-165: Initial Mixamo retarget double-applied parent transforms and exported source actions
+
+- **Date / detection:** 2026-07-26 JST; visual QA of Idle/Walking/Talking previews and glTF exporter warnings.
+- **Impact:** Initial previews showed forward "zombie" arms, crossed legs, and the imported Mixamo character. The first GLB also attempted to export stale `mixamorig:*` actions.
+- **Root cause:** Armature-space pose matrices already contained parent transforms, but the first mapper applied each matrix delta independently to every target bone. The source rig was removed after preview instead of before it, and its action retained a user. Mixamo's fixed T-pose-to-animation offset was also applied to the A-pose target.
+- **Correction:** Transfer each bone's local `matrix_basis`; convert it between source and target rest axes; subtract the source animation's first-frame basis; remove imported meshes, rigs, and source actions before preview/export.
+- **Files:** `vnccs_comfyui_clawstack_pro/scripts/retarget_mixamo_to_commercial_v23.py`; animation inspection and validation scripts in the same directory.
+- **Verification:** Idle, Walking, and Talking previews visually passed. Independent GLB/FBX reimport retained 3 named actions, 19 bones, and 8 materials; gate `PASS_MIXAMO3_RETARGET`.
+- **Prevention:** IF retargeting different rest poses, THEN transfer local rotation deltas relative to the first animation frame, BECAUSE absolute pose matrices duplicate parent motion and carry source rest offsets. Remove source datablocks before any target preview/export.
+- **Rollback:** Original commercial v23 BLEND/GLB/FBX remain unchanged under `commercial_v23`.
+- **Web knowledge:** Not used; source FBX skeleton inspection, exporter logs, and rendered-frame evidence were authoritative.
 ## 2026-07-25 — Freshness script `--help` started self-healing
 
 - Report: `docs/quality_incident_report_20260725_dashboard_freshness_help_side_effect.md`
