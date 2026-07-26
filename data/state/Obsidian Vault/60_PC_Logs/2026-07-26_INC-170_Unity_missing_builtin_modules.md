@@ -45,6 +45,8 @@ Rollback restores the timestamped manifest backup. Library is disposable cache.
 
 ## Scope / provenance
 
-The correction is proposed but not yet executed. Source:
+The correction was executed: both modules registered, whole-project compilation
+passed, 715 assets imported, controller/prefab generated, and Unity exited 0.
+Source:
 `logs/unity_commercial_heroine_import_20260726.log`, INC-170, Beads
 `Clawdbot_Docker_20260125-4gia`, 2026-07-26 JST.

@@ -2750,3 +2750,11 @@ Raised by the user asking whether `box_study_3` had a mesh in progress. Forensic
 - **Detailed RCA:** `docs/quality_incident_report_20260726_unity_validator_api_and_humanoid_warnings.md`
 - **Web knowledge:** Official Unity 6000 API documentation changed the clip
   callback countermeasure and confirmed the missing public properties.
+- **Final correction result (2026-07-27):** Clip configuration moved to
+  `OnPreprocessAnimation`; explicit 19-bone Humanoid mapping and translation DOF
+  were applied; FBX force-reimported. Serialized errors/warnings are empty.
+  Unity API validation passed Avatar Human/Valid, three clip loops, three states,
+  two parameters, and prefab components; batch exit 0.
+- **Cleanup trial:** The first exact-backup move command failed at PowerShell
+  parse time before any operation. A simplified destination-variable retry moved
+  only the backup and its meta outside Assets; final Unity validation passed.

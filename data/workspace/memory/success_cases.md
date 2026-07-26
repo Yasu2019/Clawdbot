@@ -235,3 +235,21 @@
   `Unity Technologies SF`; existing C-drive metadata preserved.
 - **Reuse:** IF a silent Windows installer requires elevation, THEN treat UAC as
   an explicit human gate and never equate `/S` with authorization.
+## [S023] Unity Humanoid import passed a warning-zero commercial gate (2026-07-27, Codex)
+
+- **Problem:** Automatic Humanoid mapping discarded animated spine, neck, and
+  shoulder rotations; loop settings remained absent; an initial validator used
+  unavailable ModelImporter APIs.
+- **Diagnosis:** FBX meta showed Chest mapped as human Spine, intermediate bones
+  unmapped, translation DOF off, custom clips empty, and retarget warnings.
+  Unity documentation requires first-import clips to be populated in
+  OnPreprocessAnimation.
+- **Solution:** Configure clips in OnPreprocessAnimation; explicitly map 19
+  Humanoid bones; enable translation DOF; force synchronous FBX reimport; use
+  public Unity APIs plus a separate serialized-meta warning gate.
+- **Evidence:** Unity exit 0; Avatar Human/Valid; 3 clips with correct loops;
+  warning/error fields empty; 19 mappings; Animator states and prefab components
+  valid; final validation PASS.
+- **Reuse:** IF a postprocessor changes existing model import behavior, THEN
+  force reimport and verify both Unity runtime objects and serialized meta,
+  BECAUSE recompiling the postprocessor alone does not update an existing FBX.

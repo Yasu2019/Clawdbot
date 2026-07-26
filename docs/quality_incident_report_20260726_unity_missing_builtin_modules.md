@@ -80,7 +80,9 @@ Rollback for the proposed change is the timestamped manifest backup plus the
 existing ProjectVersion backup
 `ProjectVersion.txt.bak_20260726_205720`. Library is regenerable cache.
 
-Scope limit: adding the dependencies has not yet been executed or verified.
+Final result: the two dependencies were added after backup. Unity registered both
+built-in modules, compiled with zero errors, imported 715 assets, generated the
+controller and prefab, and exited 0. The later full quality gate also passed.
 
 ## Web knowledge
 

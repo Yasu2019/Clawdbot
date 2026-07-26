@@ -1,15 +1,25 @@
 {
   "task": "Commercial heroine Unity import and quality validation",
-  "state": "blocked_validator_api_and_humanoid_warnings",
-  "primary_import_exit_code": 0,
-  "primary_compile_error_count": 0,
+  "state": "verified_complete",
+  "unity_version": "6000.0.73f1 (a166abc3bf0e)",
+  "final_exit_code": 0,
+  "compile_error_count": 0,
+  "avatar_human": true,
+  "avatar_valid": true,
+  "custom_clip_count": 3,
+  "clips": {
+    "Idle": {"seconds": 8.333, "loop": true},
+    "Talking": {"seconds": 5.0, "loop": false},
+    "Walking": {"seconds": 1.367, "loop": true}
+  },
+  "translation_dof": true,
+  "humanoid_mapping_count": 19,
+  "import_errors_empty": true,
+  "import_warnings_empty": true,
+  "animator_states": ["Idle", "Talking", "Walking"],
+  "animator_parameters": ["Speed", "IsTalking"],
   "controller_exists": true,
   "prefab_exists": true,
-  "validator_exit_code": 1,
-  "validator_compile_error_count": 5,
-  "fbx_custom_clip_count": 0,
-  "fbx_import_warning_present": true,
-  "translation_dof": false,
-  "next_action": "After confirmation, use documented APIs, OnPreprocessAnimation, explicit Humanoid mapping, translation DOF, force reimport, and rerun gates.",
-  "updated_at": "2026-07-26T21:51:30+09:00"
+  "final_log": "D:\\Clawdbot_Docker_20260125\\logs\\unity_commercial_heroine_final_validation_20260727.log",
+  "updated_at": "2026-07-27T05:50:00+09:00"
 }

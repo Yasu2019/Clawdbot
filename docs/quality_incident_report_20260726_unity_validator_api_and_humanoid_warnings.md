@@ -68,7 +68,26 @@ artifacts exist and the approved manifest fix passed. Rollback:
 - ProjectVersion: `ProjectVersion.txt.bak_20260726_205720`
 - new validator: delete the new C# plus generated `.meta`
 
-The proposed Humanoid/loop correction has not yet been executed.
+The correction was executed on 2026-07-27. The FBX was explicitly reimported
+with `ForceUpdate | ForceSynchronousImport`; relying on a postprocessor script
+change alone did not reimport the existing FBX. The final result is:
+
+- Unity compile and executeMethod exit 0.
+- Avatar `isHuman=True`, `isValid=True`.
+- Three custom clips: Idle 8.333 s looping, Talking 5.000 s non-looping,
+  Walking 1.367 s looping.
+- Translation DOF enabled.
+- 19 explicit Humanoid mappings, including Spine, Chest, Neck, and shoulders.
+- Serialized import errors and warnings both empty.
+- Controller states Idle/Talking/Walking and parameters Speed/IsTalking valid.
+- Prefab Animator, controller assignment, disabled root motion, and
+  `CommercialHeroineMotionController` valid.
+
+The first attempt to move an Assets-local backup failed at command parse time
+because of an extra semicolon in a result-expression parenthesis. No file
+operation ran. The retry computed destination variables first and moved only the
+exact backup plus its generated meta outside Assets. Final validation passed
+after the AssetDatabase cleanup.
 
 ## Web knowledge
 

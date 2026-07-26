@@ -38,3 +38,19 @@ Unity exit 0.
 Rollback uses manifest backup `manifest.json.bak_20260726_214511`,
 ProjectVersion backup `ProjectVersion.txt.bak_20260726_205720`, and deletion of
 the newly added validator plus meta.
+
+## Final verification (2026-07-27)
+
+- Unity exit 0; validation PASS after AssetDatabase cleanup.
+- Avatar Human and Valid.
+- Idle 8.333 s loop, Talking 5.000 s non-loop, Walking 1.367 s loop.
+- Three custom clips; translation DOF enabled.
+- Nineteen mappings, including Spine/Chest/Neck/shoulders.
+- FBX serialized errors and warnings empty.
+- Controller states Idle/Talking/Walking and parameters Speed/IsTalking valid.
+- Prefab controller assignment, root-motion off, and motion component valid.
+
+The existing FBX required explicit synchronous force reimport. A script change
+alone did not update its meta. The first backup move command had a parse-only
+parenthesis typo and made no file changes; the simplified exact-path retry moved
+the backup and meta outside Assets.
