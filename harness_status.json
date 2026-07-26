@@ -1,18 +1,15 @@
 {
-  "task": "Import commercial heroine and Mixamo actions into Unity 6000.0.73f1",
-  "state": "blocked_compile_missing_builtin_modules",
-  "project": "D:\\Local_AI_GameDev_Master\\02_UnityProject",
-  "unity_version": "6000.0.73f1 (a166abc3bf0e)",
-  "unity_exit_code": 1,
-  "compiler_error_count": 5,
-  "missing_dependencies": [
-    "com.unity.modules.physics",
-    "com.unity.modules.video"
-  ],
-  "commercial_heroine_error_count": 0,
-  "controller_exists": false,
-  "prefab_exists": false,
-  "log": "D:\\Clawdbot_Docker_20260125\\logs\\unity_commercial_heroine_import_20260726.log",
-  "next_action": "Back up manifest, add the two built-in dependencies at 1.0.0, and rerun after user confirmation.",
-  "updated_at": "2026-07-26T21:06:30+09:00"
+  "task": "Commercial heroine Unity import and quality validation",
+  "state": "blocked_validator_api_and_humanoid_warnings",
+  "primary_import_exit_code": 0,
+  "primary_compile_error_count": 0,
+  "controller_exists": true,
+  "prefab_exists": true,
+  "validator_exit_code": 1,
+  "validator_compile_error_count": 5,
+  "fbx_custom_clip_count": 0,
+  "fbx_import_warning_present": true,
+  "translation_dof": false,
+  "next_action": "After confirmation, use documented APIs, OnPreprocessAnimation, explicit Humanoid mapping, translation DOF, force reimport, and rerun gates.",
+  "updated_at": "2026-07-26T21:51:30+09:00"
 }

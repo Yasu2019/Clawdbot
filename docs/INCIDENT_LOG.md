@@ -2727,3 +2727,26 @@ Raised by the user asking whether `box_study_3` had a mesh in progress. Forensic
 - **Detailed RCA:** `docs/quality_incident_report_20260726_unity_missing_builtin_modules.md`
 - **Web knowledge:** Official Unity built-in package and project-manifest
   documentation confirmed the compiler-prescribed correction.
+- **Final correction result:** Added only Physics and Video `1.0.0` after backup.
+  Unity compiled without errors, imported 715 assets, generated the controller
+  and prefab, logged importer success, and exited 0.
+
+---
+
+## INC-171: Extra Unity validator used unavailable APIs and exposed retarget warnings
+
+- **Date / detection:** 2026-07-26 JST; post-import commercial quality gate.
+- **Impact:** Primary import succeeded, but the extra validator compilation
+  returned 1. Generated controller/prefab remain intact.
+- **Root cause:** The validator assumed two serialized warning/error fields were
+  public ModelImporter APIs. Separately, loop settings were configured in the
+  wrong preprocessing callback, and automatic Humanoid mapping left animated
+  Spine/Neck/Shoulder transforms unmapped.
+- **Proposed correction:** Use documented APIs only; inspect warnings through
+  read-only FBX meta; configure clips in `OnPreprocessAnimation`; set explicit
+  Humanoid mapping and translation DOF; reimport and revalidate.
+- **Prevention:** Verify API members against the exact Unity version and keep a
+  fail-closed rendered/import warning gate for commercial character assets.
+- **Detailed RCA:** `docs/quality_incident_report_20260726_unity_validator_api_and_humanoid_warnings.md`
+- **Web knowledge:** Official Unity 6000 API documentation changed the clip
+  callback countermeasure and confirmed the missing public properties.
