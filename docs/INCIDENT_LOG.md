@@ -2589,6 +2589,20 @@ Raised by the user asking whether `box_study_3` had a mesh in progress. Forensic
 - **Verification:** Python compilation passed. Three deterministic regression tests passed: single-layer suppression, SHA-256 image dedupe, and fallback-send-once plus Job-ID replay suppression. The DXF loop was restarted while the remote DXF worker count was zero.
 - **Prevention:** A Telegram report is an idempotent delivery keyed by Job ID and archive. One-layer trials send one 3D representation; repeated bytes are never sent twice in one report.
 - **Web knowledge:** Not used; local send control flow and job logs proved the failure modes.
+
+---
+
+## INC-164: Commercial heroine v22 render initialization failed and GLB topology QA produced a false failure
+
+- **Date / detection:** 2026-07-26 JST; detected during the first Blender 5.1 background build and independent GLB/FBX reimport gate.
+- **Impact:** The first v22 run stopped before rendering because an empty factory scene had no World. The first reimport gate then incorrectly failed the valid GLB because glTF material/normal seam vertex splitting appears as BMesh boundaries after import.
+- **Root cause (5 Why):** (1) `scene.world.color` raised on `None`. (2) `read_factory_settings(use_empty=True)` does not guarantee a World. (3) the renderer assumed a normal interactive startup scene. Separately, GLB reimport showed boundary edges because glTF splits vertices at material and normal seams; the same closed source mesh and FBX reimport both had zero boundary/non-manifold edges.
+- **Correction:** Create `CommercialCharacterWorld` when absent. Keep source BLEND and FBX as authoritative closed-topology gates; validate GLB by successful import, mesh, armature, materials, 19 bones, and 19 vertex groups.
+- **Files:** `vnccs_comfyui_clawstack_pro/scripts/build_commercial_anime_character.py`; `vnccs_comfyui_clawstack_pro/scripts/validate_commercial_character.py`.
+- **Verification:** v23 generated 21,452 triangles, 8 PBR materials, 19 bones/groups, zero source boundary and non-manifold edges. Independent reimport returned `PASS_COMMERCIAL_STYLIZED`.
+- **Prevention:** IF Blender starts with `use_empty=True`, THEN create a World before accessing it. IF validating glTF topology after reimport, THEN do not equate seam-split boundaries with source holes.
+- **Rollback:** Use backup branch `backup/heroine-v21-pre-commercial-20260726` at commit `df94149be2`; v1-v21 outputs remain unchanged.
+- **Web knowledge:** Not used; Blender execution traces and controlled BLEND/GLB/FBX comparisons were sufficient.
 ## 2026-07-25 — Freshness script `--help` started self-healing
 
 - Report: `docs/quality_incident_report_20260725_dashboard_freshness_help_side_effect.md`
