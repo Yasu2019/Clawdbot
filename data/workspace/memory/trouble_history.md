@@ -1,5 +1,15 @@
 # IATF 3D Video Pipeline Trouble History & Lessons Learned
 
+## [T077] 階段降段0.10mフル 頑健性検証成立(verify+目視) + resume中クラッシュの根因 (2026-07-26)
+
+**マイルストーン**: descent_h10(段高0.10mフル降段, --no-naturalness, height-scan)をit1000→resume。verify_policy.py フレッシュ再ロード(14s窓, cmd_vx 0.10/0.15/0.20/0.25): survival_rate 0.861-0.893(全速度域で0.86超, 従来の昇段0.10m頑健性0.667-0.79より高い)、travel 2.86-3.51m、height_gained -0.70〜-0.88m(降段のため負値=正常)。目視(render_walk_rsl.py, t=0/150/350/699): 台上端で直立開始→階段上で両足が交互に異なる段へ接地する自然な降段動作→階段を降り切り平地へ移行し直立継続。腕は肩に連結し歩行に合わせて自然に振れ、分離・転倒・立ち止まりなし。VERIFIED ckpt: `known_good/walk_rsl_descent_h10_20260726_survival0.86_VERIFIED.pt`。
+
+**resume中クラッシュの根因**: it150/800地点で`RuntimeError: bad allocation`(GPU/torch ELU forward中)。原因はGPU VRAM圧迫— 学習再開時、他のDockerコンテナ(comfyui, rv6-img2img, ai_image_gen, gemma4-eval)がGPUを共有利用しており、nvidia-smiでは`[Insufficient Permissions]`(WSL2/Docker越しの集計)として現れ空き容量を圧迫していた。加えてクラッシュ後もgenesis_venv子プロセスが残留しVRAMを解放しなかった(taskkillで解消)。対策: n-envsを6144→4096(stairs_h10_robustと同じ実績値)に落として再開し、残り650iterを完走。教訓: GPU占有ジョブの再開前に`nvidia-smi --query-compute-apps`で他プロセス(特にWSL2/Docker GPU利用)を確認し、n_envsに安全マージンを持たせる。latest.ptは25iter毎保存のため、クラッシュしても直前チェックポイントから再開可能(データロスなし)。
+
+## [T076] Dynabook MeshNow=0 でも synmesh 未起動なら未成功 / 正規ルート必須 (2026-07-26)
+
+`StudyDoc.MeshNow(False)` が error 0 でも `synmesh.exe` が立たず Pending 固定になることがある（シード無し・Failed Midplane・Design Link 不在での空スタディ）。成功時は親が必ず `amijm` で、CMD に対象 `.udm` が出る。正規ルートは Session1 Synergy + amijm + 64bit cscript `/IT` + `CreateObject` + Open + MeshGenerator + MeshNow。Dynabook (i5-5200U) の GUI 遅延だけでは失敗としない。2026-07-26 に `mf_fc_strip_out_study (copy)` で synmesh 起動→Completed を実証。正典: `docs/knowledge/dynabook_moldflow_synmesh_canonical_route_20260726.md` / Cursor rule `moldflow_synmesh_canonical_route` / bd `moldflow-synmesh-canonical-route` / S020。
+
 ## [T075] DXF2STEP Telegram通知はJob ID単位で冪等にする (2026-07-25)
 
 1レイヤーでもcombined viewとlayer viewを両方送り、比較パネル生成失敗時は
