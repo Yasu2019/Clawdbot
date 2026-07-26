@@ -2681,3 +2681,23 @@ Raised by the user asking whether `box_study_3` had a mesh in progress. Forensic
 - **Prevention:** Use PID equality or literal comparison for Windows paths;
   retry reads of runtime status files because writers may briefly lock them.
 - **Web knowledge:** Not used; local errors and byte growth proved both defects.
+
+---
+
+## INC-169: Unity installation was cancelled at the Windows UAC gate
+
+- **Date / detection:** 2026-07-26 JST; installer launch at 12:52.
+- **Impact:** Installation did not start. F-drive target remained absent and
+  existing Unity data remained unchanged.
+- **Root cause:** The signed Unity installer requested elevation through
+  `consent.exe`; approval was not granted. Silent `/S` does not bypass UAC.
+  The wrapper also lacked an exception handler, leaving stale `installing` state.
+- **Correction:** Added start-exception handling and the explicit state
+  `install_blocked_uac_cancelled`.
+- **Verification:** No target directory or Unity executable exists. Retry remains
+  fail-closed if the target appears.
+- **Prevention:** Notify the user before launch and retry only when the visible
+  UAC prompt can be approved.
+- **Detailed RCA:** `docs/quality_incident_report_20260726_unity_uac_cancelled.md`
+- **Web knowledge:** Local exception and UAC process were sufficient for RCA;
+  official Unity documentation confirmed installer switches.
