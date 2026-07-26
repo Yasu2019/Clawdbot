@@ -2758,3 +2758,27 @@ Raised by the user asking whether `box_study_3` had a mesh in progress. Forensic
 - **Cleanup trial:** The first exact-backup move command failed at PowerShell
   parse time before any operation. A simplified destination-variable retry moved
   only the backup and its meta outside Assets; final Unity validation passed.
+
+---
+
+## INC-172: EditMode Animator evaluation did not apply the Humanoid walking pose
+
+- **Date / detection:** 2026-07-27 JST; first isolated validation-scene gate.
+- **Impact:** The new scene was created, but the first validation process exited
+  1 after the state machine entered Walking. No existing scene or Build Settings
+  was changed.
+- **Root cause:** `Animator.Update()` advanced the controller state in EditMode,
+  but it was not a reliable proof that a Humanoid clip had applied its pose to
+  the mapped bone transforms.
+- **Correction:** Retained Animator state checks and sampled the imported Walking
+  clip at 0.00 and 0.45 seconds with Unity Editor `AnimationMode`, with sampling
+  and mode cleanup protected by `try/finally`.
+- **Verification:** Unity 6000.0.73f1 exited 0. Sequence
+  Idle > Walking > Talking > Idle passed; LeftFoot rotation changed 34.5734
+  degrees and position changed 0.379801 m. Build Settings still has zero scenes.
+- **Prevention:** Separate controller-state verification from pose-content
+  verification; use deterministic clip sampling for EditMode Humanoid gates and
+  always stop `AnimationMode` in `finally`.
+- **Detailed RCA:** `docs/quality_incident_report_20260727_unity_editmode_humanoid_sampling.md`
+- **Web knowledge:** Not used. The local state result, failed bone delta, and
+  successful deterministic sampling isolated and resolved the evaluation defect.

@@ -253,3 +253,18 @@
 - **Reuse:** IF a postprocessor changes existing model import behavior, THEN
   force reimport and verify both Unity runtime objects and serialized meta,
   BECAUSE recompiling the postprocessor alone does not update an existing FBX.
+
+## [S024] Unity EditMode Humanoid motion was proven by deterministic clip sampling (2026-07-27, Codex)
+
+- **Problem:** Animator state routing reached Walking, but `Animator.Update()` in
+  EditMode did not produce a reliable LeftFoot pose delta.
+- **Diagnosis:** The clip, valid Humanoid Avatar, mapping, and controller state
+  all passed independently; only the EditMode measurement path failed.
+- **Solution:** Keep state-transition checks, then use
+  `AnimationMode.SampleAnimationClip` at 0.00 and 0.45 seconds with cleanup in
+  `try/finally`.
+- **Evidence:** Unity exit 0; Idle > Walking > Talking > Idle; LeftFoot rotation
+  delta 34.5734 degrees and position delta 0.379801 m; Build Settings unchanged.
+- **Reuse:** IF an EditMode Humanoid gate must prove motion, THEN test controller
+  routing and deterministic pose sampling separately, BECAUSE state advancement
+  alone does not prove animation-curve application.

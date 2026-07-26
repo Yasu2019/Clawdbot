@@ -1,6 +1,6 @@
 {
-  "task": "Commercial heroine Unity import and quality validation",
-  "state": "verified_complete",
+  "task": "Commercial heroine isolated Unity scene validation",
+  "state": "scene_validation_verified_complete",
   "unity_version": "6000.0.73f1 (a166abc3bf0e)",
   "final_exit_code": 0,
   "compile_error_count": 0,
@@ -20,6 +20,13 @@
   "animator_parameters": ["Speed", "IsTalking"],
   "controller_exists": true,
   "prefab_exists": true,
+  "validation_scene": "D:\\Local_AI_GameDev_Master\\02_UnityProject\\Assets\\Scenes\\CommercialHeroineValidation.unity",
+  "state_sequence": ["Idle", "Walking", "Talking", "Idle"],
+  "walking_left_foot_rotation_delta_degrees": 34.5734,
+  "walking_left_foot_position_delta_meters": 0.379801,
+  "build_settings_scene_count": 0,
+  "scene_validation_exit_code": 0,
+  "scene_validation_log": "D:\\Clawdbot_Docker_20260125\\logs\\unity_commercial_heroine_scene_validation_v2_20260727.log",
   "final_log": "D:\\Clawdbot_Docker_20260125\\logs\\unity_commercial_heroine_final_validation_20260727.log",
-  "updated_at": "2026-07-27T05:50:00+09:00"
+  "updated_at": "2026-07-27T06:40:00+09:00"
 }
