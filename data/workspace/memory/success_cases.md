@@ -268,3 +268,18 @@
 - **Reuse:** IF an EditMode Humanoid gate must prove motion, THEN test controller
   routing and deterministic pose sampling separately, BECAUSE state advancement
   alone does not prove animation-curve application.
+
+## [S025] Unity commercial heroine passed a packaged Player gate before game integration (2026-07-27, Codex)
+
+- **Problem:** Editor validation did not cover coroutine compilation, Player
+  linker dependencies, or headless Humanoid pose updates.
+- **Diagnosis:** CS1626 identified invalid iterator structure; UnityLinker proved
+  NUnit leaked from tests; a real Player proved state routing but zero pose under
+  Null graphics culling.
+- **Solution:** Use explicit coroutine gates, separate runtime and Editor-test
+  asmdefs, and set `AlwaysAnimate` only in the isolated smoke scene.
+- **Evidence:** Build warnings/errors 0/0; Player exit 0; sequence
+  Idle>Walking>Talking>Idle; LeftFoot 10.3514 degrees / 0.510514 m; EditMode
+  tests 4/4; production scene integration PASS with Build Settings unchanged.
+- **Reuse:** IF a Unity character is Player-ready, THEN require a packaged
+  Player JSON+exit-code+bone-motion gate before production-scene integration.

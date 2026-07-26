@@ -2782,3 +2782,30 @@ Raised by the user asking whether `box_study_3` had a mesh in progress. Forensic
 - **Detailed RCA:** `docs/quality_incident_report_20260727_unity_editmode_humanoid_sampling.md`
 - **Web knowledge:** Not used. The local state result, failed bone delta, and
   successful deterministic sampling isolated and resolved the evaluation defect.
+
+---
+
+## INC-173: Unity Player smoke build exposed coroutine, test-assembly, and headless-pose gates
+
+- **Date / detection:** 2026-07-27 JST; first standalone commercial-heroine
+  Player build and runtime smoke test.
+- **Impact:** Three intermediate builds/runs failed closed. No production scene
+  was integrated until the standalone Player passed.
+- **Root causes:** A coroutine placed `yield` inside a `try/catch` block
+  (CS1626); EditMode tests lacked an assembly boundary and leaked NUnit into the
+  Player linker; the first test asmdef could not reference predefined
+  `Assembly-CSharp`; and Null graphics culled Humanoid pose updates.
+- **Correction:** Replaced exception-driven coroutine flow with explicit
+  pass/fail gates; created `LocalAIGame.Runtime` and Editor-only test assemblies;
+  set only the smoke-scene Animator to `AlwaysAnimate`.
+- **Verification:** Standalone Windows Player exit 0; sequence
+  Idle > Walking > Talking > Idle; LeftFoot changed 10.3514 degrees and
+  0.510514 m. Player build warnings/errors 0/0. EditMode tests 4/4 passed.
+  Production scene integration exited 0 and Build Settings remained empty.
+- **Prevention:** Require a real packaged-Player gate before scene integration;
+  isolate tests from runtime assemblies; use explicit evidence JSON and nonzero
+  failures; configure headless animation evaluation independently from the
+  production Prefab.
+- **Detailed RCA:** `docs/quality_incident_report_20260727_unity_player_smoke_and_integration.md`
+- **Web knowledge:** Not used. Compiler, linker, Player, and Unity logs contained
+  exact local failure signatures and each countermeasure was verified directly.

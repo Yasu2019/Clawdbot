@@ -1,6 +1,6 @@
 {
-  "task": "Commercial heroine isolated Unity scene validation",
-  "state": "scene_validation_verified_complete",
+  "task": "Commercial heroine Player smoke and staged game integration",
+  "state": "player_smoke_and_game_integration_verified_complete",
   "unity_version": "6000.0.73f1 (a166abc3bf0e)",
   "final_exit_code": 0,
   "compile_error_count": 0,
@@ -27,6 +27,21 @@
   "build_settings_scene_count": 0,
   "scene_validation_exit_code": 0,
   "scene_validation_log": "D:\\Clawdbot_Docker_20260125\\logs\\unity_commercial_heroine_scene_validation_v2_20260727.log",
+  "player_build_path": "F:\\UnityBuilds\\CommercialHeroineSmoke\\CommercialHeroineSmoke.exe",
+  "player_build_sha256": "08254FCDB980126E23125FE61FBCF3605F91D406F38F2BE26233B2A2033EBC57",
+  "player_build_warnings": 0,
+  "player_build_errors": 0,
+  "player_smoke_exit_code": 0,
+  "player_smoke_state": "PASS",
+  "player_smoke_sequence": ["Idle", "Walking", "Talking", "Idle"],
+  "player_left_foot_rotation_delta_degrees": 10.3514,
+  "player_left_foot_position_delta_meters": 0.510514,
+  "production_scene": "D:\\Local_AI_GameDev_Master\\02_UnityProject\\Assets\\Scenes\\TokimekiCommercialGame.unity",
+  "production_scene_sha256": "5FA9BF96B53B7FF4A571AC74A49E139BA46A853762BC5E5672052187B6D08315",
+  "production_integration_exit_code": 0,
+  "editmode_tests_total": 4,
+  "editmode_tests_passed": 4,
+  "editmode_tests_failed": 0,
   "final_log": "D:\\Clawdbot_Docker_20260125\\logs\\unity_commercial_heroine_final_validation_20260727.log",
-  "updated_at": "2026-07-27T06:40:00+09:00"
+  "updated_at": "2026-07-27T08:35:00+09:00"
 }
