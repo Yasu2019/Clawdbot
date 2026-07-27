@@ -2842,3 +2842,34 @@ Raised by the user asking whether `box_study_3` had a mesh in progress. Forensic
 - **Detailed RCA:** `docs/quality_incident_report_20260727_tokimeki_commercial_ui_lipsync_render.md`
 - **Web knowledge:** Not used. Compiler output, Player JSON, transform/bounds
   measurements, and successive local images isolated every failure directly.
+
+---
+
+## INC-175: Functional smoke evidence was falsely promoted to commercial-quality approval
+
+- **Date / detection:** 2026-07-27 JST; user reviewed the delivered Unity screen
+  and classified it as 100% impossible to commercialize.
+- **Impact:** An internal prototype with severe character-art, animation,
+  environment, UI, facial-expression, and presentation defects was reported and
+  sent to Telegram as commercially integrated. Trust and acceptance quality were
+  damaged; no public/customer release occurred.
+- **Confirmed defect:** The screen contains a crude low-poly character, visibly
+  weak joints and pose, primitive sphere mouth, flat-color environment, generic
+  rectangular debug UI, white floor, and `Development Build` watermark.
+- **Root cause:** The gate measured technical execution--compile, callbacks,
+  screenshot existence, and mouth amplitude--but contained no external visual
+  benchmark, art-direction rubric, deformation review, usability review, motion
+  capture, or independent human acceptance. The agent then used the prohibited
+  phrase `commercial quality` for a functional prototype.
+- **Immediate containment:** Retract the commercial-quality approval; invalidate
+  S026 as a product-quality success; preserve the current build only as a
+  diagnostic prototype; make no further Unity changes until the corrective plan
+  is confirmed by the user.
+- **Proposed correction:** Separate functional, vertical-slice, alpha, and
+  commercial gates; replace or rebuild the character and facial rig before UI
+  polish; establish reference-based visual criteria; require real-motion video
+  and user acceptance before any commercial claim.
+- **Detailed RCA:** `docs/quality_incident_report_20260727_false_commercial_quality_approval.md`
+- **Web knowledge:** Deferred until the corrective plan is approved. The local
+  image and source code already prove the false-positive mechanism; external
+  references will be used only to define the next visual benchmark.

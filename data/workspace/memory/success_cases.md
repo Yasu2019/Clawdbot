@@ -286,6 +286,10 @@
 
 ## [S026] Tokimeki production UI and fallback lip sync passed a real-screen Player gate (2026-07-27, Codex)
 
+> **INVALIDATED by INC-175:** This entry proves only a functional render smoke.
+> It must not be used as evidence of commercial visual quality. The user's
+> direct review rejected the screen as 100% impossible to commercialize.
+
 - **Problem:** The commercial heroine had no BlendShapes or Jaw bone, while
   hidden/batch-mode capture returned a black image and early layouts contained
   camera, mouth-scale, overlap, and ground-edge defects.
