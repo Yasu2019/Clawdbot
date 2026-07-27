@@ -53,3 +53,15 @@ IF 顔変形ターゲットがない THEN 方式を明示した代替のみを�
 - バックアップ:
   `D:\Local_AI_GameDev_Master\_unity_project_backups\02_UnityProject_20260727_ui_lipsync`
 - Manifestバックアップ: `Packages\manifest.json.bak_20260727_ui_render`
+
+## Telegram現状動画送信
+
+- ユーザー承認: 2026-07-27、既存通知ジョブを維持して並行送信する方針に明示承認。
+- 既存ジョブ: Telegram Fast Bridge、OpenRadioss時間通知、FEM Impact通知を
+  停止・変更・再利用せず維持。
+- 動画: `logs/tokimeki_commercial_progress_20260727.mp4`
+- 内容表示: 最終合格レンダーを動画化したプレビューであり、プレイ録画とは表示しない。
+- 形式: H.264/AAC、1280x720、30 fps、8.0秒、448,898 bytes。
+- SHA-256:
+  `63A1053D9607FD61C9FA6E11FA110E1922D6F8883939696F82CADF056230B545`
+- Telegram結果: `ok=true`、`message_id=18333`、video file_idあり。
