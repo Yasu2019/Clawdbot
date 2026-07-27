@@ -1,5 +1,37 @@
 # IATF 3D Video Pipeline Trouble History & Lessons Learned
 
+## [T079] 階段昇段(stairs_up)は survival_rate だけでは「足踏み」を合格にしてしまう — height_gained_m必読 (2026-07-27)
+
+**発端**: ユーザーがTelegramで階段昇段の動画を見て「歩行ではなく足踏みに近い」と指摘。これを受けて
+`walk_rsl_stairs_h10_robust`(このセッションでcorridor学習のwarm-start元として"ascent-capable"、
+survival 0.667-0.79と扱っていたcheckpoint)を`render_walk_rsl.py`で初めて目視確認したところ、
+階段の最初の段の縁で1.5秒以上ほぼ同一位置に留まり脚だけ動かした後に転倒。実際の昇段は皆無だった。
+
+**根本原因**: `verify_policy.py`/`evaluate()`は`survival_rate`(転倒しなかった割合)と
+`height_gained_m`(実際に稼いだ高さ)を両方出力するが、`survival_rate`だけを見て
+`height_gained_m`を確認していなかった。段差の縁で足踏みし続ければ「転倒しない」ので
+survival_rateは高く出るが、height_gainedはほぼ0のまま——**「立ち止まりが高survivalに化ける」**の
+昇段版。さらに悪いことに、降段(stairs_down)・上り斜面(slope_up)は`render_walk_rsl.py`で
+必ず目視確認していたが、昇段だけは一度も目視せず数値のみで判断していた(グローバルルール
+「3Dメカ目視確認は絶対」の部分的違反)。
+
+**実測比較**(全て`verify_policy.py`フレッシュ再ロード、cmd_vx全域):
+| 地形 | survival_rate | height_gained_m | 判定 |
+|---|---|---|---|
+| stairs(昇段, corridor_stairs_up診断) | 0.02-0.223 | **0.032-0.063**(1段=0.10mにも未達) | 足踏み、偽陽性 |
+| stairs_down(降段) | 0.33-0.62 | -0.68〜-0.86(全10段-1.0mにほぼ到達) | 本物 |
+| slope_up(上り斜面) | 0.63-0.69 | 0.30-0.38(全斜面0.42mの7-9割) | 本物 |
+
+**訂正**: このプロジェクトのどのcheckpoint(stairs_h10, stairs_h10_robust含む)も
+階段昇段0.10mを実際に達成したことは一度もない。corridor学習で昇段だけsurvival0.0だったのは
+「9セグメントに希釈された学習露出」のせいではなく、そもそも参照していた"ascent-capable"
+warm-start自体が階段を登れていなかったため。
+
+**恒久対策**: 地形踏破系のタスクでは`survival_rate`と`height_gained_m`(またはそれに相当する
+進捗指標)を**必ずセットで**確認する。地形の種類を問わず(階段・斜面・その他)、新しい
+checkpointを「capable」と扱う前に必ず`render_walk_rsl.py`で目視確認してから次の判断に使う
+——他の地形は目視したから大丈夫、という部分適用は禁止。
+
 ## [T077] 階段降段0.10mフル 頑健性検証成立(verify+目視) + resume中クラッシュの根因 (2026-07-26)
 
 **マイルストーン**: descent_h10(段高0.10mフル降段, --no-naturalness, height-scan)をit1000→resume。verify_policy.py フレッシュ再ロード(14s窓, cmd_vx 0.10/0.15/0.20/0.25): survival_rate 0.861-0.893(全速度域で0.86超, 従来の昇段0.10m頑健性0.667-0.79より高い)、travel 2.86-3.51m、height_gained -0.70〜-0.88m(降段のため負値=正常)。目視(render_walk_rsl.py, t=0/150/350/699): 台上端で直立開始→階段上で両足が交互に異なる段へ接地する自然な降段動作→階段を降り切り平地へ移行し直立継続。腕は肩に連結し歩行に合わせて自然に振れ、分離・転倒・立ち止まりなし。VERIFIED ckpt: `known_good/walk_rsl_descent_h10_20260726_survival0.86_VERIFIED.pt`。
