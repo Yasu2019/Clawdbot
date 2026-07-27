@@ -2809,3 +2809,36 @@ Raised by the user asking whether `box_study_3` had a mesh in progress. Forensic
 - **Detailed RCA:** `docs/quality_incident_report_20260727_unity_player_smoke_and_integration.md`
 - **Web knowledge:** Not used. Compiler, linker, Player, and Unity logs contained
   exact local failure signatures and each countermeasure was verified directly.
+
+---
+
+## INC-174: Tokimeki commercial presentation integration exposed capture, counter, framing, and mouth-space defects
+
+- **Date / detection:** 2026-07-27 JST; staged UI/lip-sync integration and
+  visual review of packaged Windows Player captures.
+- **Impact:** Five intermediate attempts failed closed or failed visual review.
+  The production scene was not declared complete until the sixth render passed.
+- **Root causes:** The screenshot module was absent from the manifest; hidden or
+  batch-mode D3D capture produced a black frame; the dialogue callback omitted
+  the automation counter; camera bounds accidentally included the procedural
+  mouth; the mouth inherited the FBX head scale; and early UI/ground placement
+  obstructed the face or exposed a white edge.
+- **Correction:** Backed up the manifest and added only
+  `com.unity.modules.screencapture`; captured from a normal windowed Player;
+  counted the real dialogue callback; framed only original skinned-mesh bounds;
+  updated the mouth in world space during `LateUpdate`; repositioned the stats
+  UI and enlarged the ground.
+- **Verification:** Unity build PASS with warnings/errors 0/0; EditMode tests
+  4/4; Player exit 0; two automated interactions; Study selected; Japanese
+  dialogue nonempty; lip peak 0.9817447; screenshot 113,191 bytes and visually
+  approved. Build Settings remains empty and the production scene contains no
+  render-smoke runner.
+- **Known limit:** The source mesh has zero BlendShapes and no Jaw bone.
+  `ProceduralHeadMouth` is a visually verified fallback, not phoneme-accurate
+  audio-driven facial animation.
+- **Prevention:** Fail closed on black/small captures and missing interaction
+  evidence; keep validation runners out of production scenes; derive framing
+  from original renderers only; label fallback capability honestly.
+- **Detailed RCA:** `docs/quality_incident_report_20260727_tokimeki_commercial_ui_lipsync_render.md`
+- **Web knowledge:** Not used. Compiler output, Player JSON, transform/bounds
+  measurements, and successive local images isolated every failure directly.

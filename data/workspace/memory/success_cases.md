@@ -283,3 +283,22 @@
   tests 4/4; production scene integration PASS with Build Settings unchanged.
 - **Reuse:** IF a Unity character is Player-ready, THEN require a packaged
   Player JSON+exit-code+bone-motion gate before production-scene integration.
+
+## [S026] Tokimeki production UI and fallback lip sync passed a real-screen Player gate (2026-07-27, Codex)
+
+- **Problem:** The commercial heroine had no BlendShapes or Jaw bone, while
+  hidden/batch-mode capture returned a black image and early layouts contained
+  camera, mouth-scale, overlap, and ground-edge defects.
+- **Diagnosis:** Unity API measured one skinned renderer, zero BlendShapes,
+  Head present and Jaw absent. Successive real images separated capture,
+  transform-space, camera-bounds, and UI-layout failures.
+- **Solution:** Integrated dialogue and five schedule actions into production
+  UGUI; added an explicitly labelled world-space Head-following procedural mouth;
+  isolated the render runner in a separate scene; captured a visible Player.
+- **Evidence:** Build warnings/errors 0/0, EditMode 4/4, Player exit 0,
+  interactions 2, Study selected, lip peak 0.9817447, and a visually approved
+  113,191-byte PNG. Production Build Settings stayed empty.
+- **Reuse:** IF a character lacks facial deformation targets, THEN use a clearly
+  labelled world-space fallback and require a visible packaged-Player image
+  gate. BECAUSE a state flag or hidden capture cannot prove facial alignment or
+  presentation quality.
