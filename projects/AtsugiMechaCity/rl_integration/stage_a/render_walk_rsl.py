@@ -39,6 +39,9 @@ def main():
                     help="required when the checkpoint was trained with the scan "
                          "(obs 200) -- otherwise the obs dims mismatch")
     ap.add_argument("--stair-height", type=float, default=None)
+    ap.add_argument("--corridor-fixed-start", action="store_true",
+                    help="terrain=corridor only: always spawn at segment 0, "
+                         "offset 0 for a deterministic full-course render")
     ap.add_argument("--cmd-vx", type=float, default=None,
                     help="commanded forward speed (default: reference clip speed)")
     ap.add_argument("--every", type=int, default=5, help="save a frame every N control steps")
@@ -65,6 +68,8 @@ def main():
         cfg["height_scan"] = {}
     if args.stair_height is not None:
         cfg["stair_height"] = args.stair_height
+    if args.corridor_fixed_start:
+        cfg["corridor_fixed_start"] = True
     if args.no_push:
         cfg["push_vel"] = 0.0
     if args.no_dr:

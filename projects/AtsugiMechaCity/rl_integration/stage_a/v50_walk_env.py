@@ -249,6 +249,46 @@ class V50WalkEnv:
         self.foot_stand_z = float(
             self.robot.get_links_pos()[:, self.foot_local, 2].mean()) - self.spawn_dz
 
+        # Phase2 U7: corridor terrain has a per-env randomized spawn segment
+        # instead of the single global spawn_dz used by legacy single-terrain
+        # runs (reset_idx branches on self.corridor is not None). corridor_bounds
+        # holds each segment's cumulative end-progress (searchsorted target);
+        # corridor_is_flat is the per-segment naturalness mask (1=flat -> apply
+        # the naturalness/symmetry reward terms, 0=stairs/slope -> suppress them,
+        # replacing the old whole-run no_naturalness flag for corridor training
+        # only; legacy single-terrain runs are unaffected).
+        self.corridor = (V50._corridor_layout(self.stair_h, c["terrain"])
+                        if c["terrain"] in V50.CORRIDOR_VARIANTS else None)
+        if self.corridor is not None:
+            self.corridor_bounds = torch.tensor([s["prog1"] for s in self.corridor],
+                                                device=self.device)
+            self.corridor_is_flat = torch.tensor([1.0 if s["kind"] == "flat" else 0.0
+                                                  for s in self.corridor], device=self.device)
+            self.corridor_prog0 = torch.tensor([s["prog0"] for s in self.corridor],
+                                               device=self.device)
+            self.corridor_length = torch.tensor([s["length"] for s in self.corridor],
+                                                device=self.device)
+            self.corridor_total_len = float(self.corridor[-1]["prog1"])
+            # Startup self-check (Phase2 risk #7): mask must read 1 on known-flat
+            # progress and 0 on known-terrain progress, at the midpoint of every
+            # segment. expect_flat is derived directly from each segment's own
+            # "kind" string (ground truth), NOT from corridor_is_flat itself, so
+            # this actually catches a sign inversion in the tensor construction
+            # above -- which would resurrect exactly the "naturalness fights the
+            # terrain task" bug the static no_naturalness flag was built to avoid.
+            test_prog = torch.tensor([(s["prog0"] + s["prog1"]) / 2 for s in self.corridor],
+                                     device=self.device)
+            expect_flat = torch.tensor([1.0 if s["kind"] == "flat" else 0.0
+                                        for s in self.corridor], device=self.device)
+            got_idx = torch.searchsorted(self.corridor_bounds,
+                                         test_prog.clamp(max=self.corridor_total_len - 1e-4))
+            got_flat = self.corridor_is_flat[got_idx.clamp(max=len(self.corridor) - 1)]
+            assert torch.equal(got_flat, expect_flat), (
+                f"corridor naturalness-mask self-check FAILED: expected "
+                f"{expect_flat.tolist()}, got {got_flat.tolist()} at segment "
+                f"midpoints {test_prog.tolist()} -- CORRIDOR_SEGMENTS or the mask "
+                f"sign was edited inconsistently")
+
         # L/R symmetry index maps (sagittal joints swap L<->R with no sign change;
         # roll/lateral joints swap AND flip sign). Used by the symmetry reward and
         # the rsl_rl mirror augmentation.
@@ -400,10 +440,51 @@ class V50WalkEnv:
         self.commands[idx, 0] = torch.where(zero, torch.zeros_like(vx), vx)
         self.commands[idx, 1] = torch.where(zero, torch.zeros_like(wz), wz)
 
+    def _sample_corridor_spawn(self, idx):
+        """Phase2 U7: per-env randomized (world_y, height-offset) inside the
+        corridor. Segment index is sampled UNIFORMLY (not uniform-over-length),
+        so the two 3m stairs segments don't drown out the shorter transitions --
+        every env-group eventually samples every segment, giving the joint
+        multi-terrain exposure that avoids catastrophic forgetting across
+        terrains within a single run. Local offset is uniform over
+        [-0.3, length+0.3] (clamped at the corridor ends) so boundary crossings
+        get proportionate exposure too."""
+        n = idx.numel()
+        if self.cfg.get("corridor_fixed_start"):
+            # Deterministic segment-0/offset-0 spawn for full-course verification
+            # renders (--corridor-fixed-start) instead of the randomized training
+            # spawn below.
+            prog = torch.zeros(n, device=self.device)
+        else:
+            # T078 diagnostic: corridor_spawn_max_segment restricts random spawn to
+            # segment indices <= this value (default: all segments). Set to 0 to
+            # always spawn in the first flat approach only, matching the legacy
+            # single-terrain "stairs" trainer's fixed y=0 start -- isolates whether
+            # random mid-obstacle spawns (vs. the naturalness mask) are the cause
+            # of the hesitation local optimum seen with full random spawn.
+            n_seg = len(self.corridor)
+            max_seg = self.cfg.get("corridor_spawn_max_segment", n_seg - 1)
+            n_usable = min(max_seg, n_seg - 1) + 1
+            seg_i = torch.randint(0, n_usable, (n,), device=self.device)
+            prog0 = self.corridor_prog0[seg_i]
+            length = self.corridor_length[seg_i]
+            local = torch.empty(n, device=self.device).uniform_(0.0, 1.0) * (length + 0.6) - 0.3
+            prog = (prog0 + local).clamp(min=0.0, max=self.corridor_total_len - 1e-4)
+        y0 = -prog
+        z0 = V50.terrain_dz(y0, self.cfg["terrain"], self.stair_h)
+        return y0, z0
+
     def reset_idx(self, idx):
         if idx.numel() == 0:
             return
-        self.robot.set_qpos(self.qpos0[idx], envs_idx=idx, zero_velocity=True)
+        if self.corridor is not None:
+            y0, z0 = self._sample_corridor_spawn(idx)
+            q = self.qpos0[idx].clone()
+            q[:, V50.FWD_AXIS] = y0
+            q[:, 2] = q[:, 2] + z0
+            self.robot.set_qpos(q, envs_idx=idx, zero_velocity=True)
+        else:
+            self.robot.set_qpos(self.qpos0[idx], envs_idx=idx, zero_velocity=True)
         self.phase[idx] = torch.rand(idx.numel(), device=self.device)
         ref = V50.gait_reference(self.phase[idx])
         self.robot.set_dofs_position(ref, dofs_idx_local=self.dof_idx, envs_idx=idx,
@@ -573,11 +654,33 @@ class V50WalkEnv:
 
     # ---------------------------------------------------------------- rewards
 
+    # Phase2 U7: on corridor terrain these 5 terms are masked per-env/per-step by
+    # _naturalness_mask() instead of the whole-run no_naturalness flag (which
+    # remains unchanged for legacy single-terrain runs) -- a single policy must
+    # be natural on the flat segments AND unconstrained on stairs/slope within
+    # the same training run.
+    NATURALNESS_TERMS = frozenset({"gait_symmetry", "foot_clearance",
+                                   "foot_lift_symmetry", "contact_symmetry",
+                                   "action_jerk"})
+
+    def _naturalness_mask(self):
+        """1.0 while the env's current forward position is on a flat corridor
+        segment (apply naturalness/symmetry rewards), 0.0 on stairs/slope
+        (suppress them, same intent as no_naturalness but per-env/per-step)."""
+        prog = (-self.pos[:, V50.FWD_AXIS]).clamp(min=0.0,
+                                                    max=self.corridor_total_len - 1e-4)
+        seg_idx = torch.searchsorted(self.corridor_bounds, prog, right=False)
+        seg_idx = seg_idx.clamp(max=len(self.corridor) - 1)
+        return self.corridor_is_flat[seg_idx]
+
     def _compute_reward(self):
         rew = torch.zeros(self.num_envs, device=self.device)
         terms = {}
+        mask = self._naturalness_mask() if self.corridor is not None else None
         for name, scale in self.reward_scales.items():
             v = getattr(self, f"_r_{name}")() * scale
+            if mask is not None and name in self.NATURALNESS_TERMS:
+                v = v * mask
             terms[name] = v
             self.episode_sums[name] += v
             rew += v

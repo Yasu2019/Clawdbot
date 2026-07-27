@@ -247,7 +247,8 @@ def main():
     ap.add_argument("--init-noise-std", type=float, default=1.0)
     ap.add_argument("--ref-json", default=None)
     ap.add_argument("--terrain", default="none",
-                    choices=["none", "stairs", "stairs_down", "slope_up", "slope_down"])
+                    choices=["none", "stairs", "stairs_down", "slope_up", "slope_down",
+                             "corridor", "corridor_stairs_up"])
     ap.add_argument("--episode-length-s", type=float, default=20.0)
     ap.add_argument("--no-push", action="store_true")
     ap.add_argument("--tensorboard", action="store_true")
@@ -270,6 +271,16 @@ def main():
                          "default 0.0,0.1,...,1.0")
     ap.add_argument("--stair-height", type=float, default=None,
                     help="override step height (m) for the stair curriculum")
+    ap.add_argument("--corridor-fixed-start", action="store_true",
+                    help="terrain=corridor only: always spawn at segment 0, "
+                         "offset 0 instead of a randomized segment/offset -- for "
+                         "deterministic full-course verification renders")
+    ap.add_argument("--corridor-spawn-max-segment", type=int, default=None,
+                    help="terrain=corridor* only: restrict randomized spawn to "
+                         "segment indices <= this value (default: all segments). "
+                         "0 = only spawn in the first flat approach, matching the "
+                         "legacy single-terrain trainer's fixed start (T078 "
+                         "diagnostic for the hesitation local optimum)")
     ap.add_argument("--symmetry", action="store_true",
                     help="enable rsl_rl left/right mirror data augmentation for a "
                          "symmetric, non-limping gait")
@@ -286,6 +297,11 @@ def main():
                          "input weights are copied, the new scan columns start at "
                          "zero, so the policy begins identical to the source.")
     args = ap.parse_args()
+    if args.terrain in ("corridor", "corridor_stairs_up") and not args.height_scan:
+        print(f"WARNING: --terrain {args.terrain} without --height-scan would train a "
+              "blind policy that simply fails the stairs segments (T069) -- "
+              "forcing --height-scan on.", flush=True)
+        args.height_scan = True
     os.makedirs(args.out, exist_ok=True)
 
     from rsl_rl.runners import OnPolicyRunner
@@ -304,6 +320,10 @@ def main():
             cfg[key] = [float(v) for v in val.split(",")]
     if args.stair_height is not None:
         cfg["stair_height"] = args.stair_height
+    if args.corridor_fixed_start:
+        cfg["corridor_fixed_start"] = True
+    if args.corridor_spawn_max_segment is not None:
+        cfg["corridor_spawn_max_segment"] = args.corridor_spawn_max_segment
     if args.symmetric_body:
         cfg["symmetric_body"] = True
     if args.no_naturalness:

@@ -110,6 +110,76 @@ TERRAIN_STAIR_N = 10        # 段数(昇降とも)
 FLOOR_TOP = -0.92           # 床plane天面z(モデル固有)
 
 
+# ---- Phase2: マルチ地形単一方策 corridor(U7) ----
+# 1本の共有MJCFに 平地->昇段h10->平地->下り斜面->平地->上り斜面->平地->降段h10->平地
+# を連結。段の奥行d・段数Nはstair_h非依存(段高hのみ上書き対象)なのでセグメント長は定数。
+CORRIDOR_STAIR_LEN = TERRAIN_STAIR_D * TERRAIN_STAIR_N   # 3.0m
+CORRIDOR_SLOPE_LEN = 2.0 * TERRAIN_SLOPE_HALF * math.cos(math.radians(TERRAIN_SLOPE_DEG))  # ~2.971m
+CORRIDOR_SEGMENTS = [
+    ("flat", 2.0),
+    ("stairs_up", CORRIDOR_STAIR_LEN),
+    ("flat", 1.2),
+    ("slope_down", CORRIDOR_SLOPE_LEN),
+    ("flat", 1.2),
+    ("slope_up", CORRIDOR_SLOPE_LEN),
+    ("flat", 1.2),
+    ("stairs_down", CORRIDOR_STAIR_LEN),
+    ("flat", 2.0),
+]
+# 2026-07-27 T078: フルcorridorで階段昇段(stairs_up)区間だけ生存率0.0が1000iter
+# 追加しても不動 -- 目視確認で「段差手前で5秒超静止し続ける、ためらい局所解」
+# (T069既知パターン)と判明。平地+昇段のみの簡易コースで問題を切り分けて先に
+# 解決するための縮小版(同じ_corridor_layout/terrain_xml/terrain_dz機構を再利用、
+# セグメント表だけ差し替え)。
+CORRIDOR_SEGMENTS_STAIRS_UP_ONLY = [
+    ("flat", 2.0),
+    ("stairs_up", CORRIDOR_STAIR_LEN),
+    ("flat", 2.0),
+]
+CORRIDOR_VARIANTS = {
+    "corridor": CORRIDOR_SEGMENTS,
+    "corridor_stairs_up": CORRIDOR_SEGMENTS_STAIRS_UP_ONLY,
+}
+
+
+def _corridor_layout(stair_h=None, terrain="corridor"):
+    """CORRIDOR_VARIANTS[terrain]を走査し、各セグメントの累積(prog0,prog1,z0,z1)を
+    返す。terrain_xml/terrain_dz のcorridor系分岐が共に**この関数だけ**を高さの
+    真として参照する(T067の「XMLと期待高さの二重管理で片方だけズレる」再発防止 —
+    別々に計算し直す限りいつか必ずズレるので、両分岐は同じリストを読むだけにする)。
+
+    継続性(前セグメントのz1=次セグメントのz0)は z を巡回変数として引き継ぐ実装
+    そのものにより構造的に保証される(実行時assertは不要)。ただしslope区間内部
+    には単体slope_up/slope_down(terrain_dz)と同じ既知の+thick/cos(th)定数オフセット
+    (板の中心線でなく上面に立つ分の~5cm補正、T067)が残る。これは現行検証済みの
+    単体slope方策にも同様に内在する挙動であり、corridor特有の新規バグではない。"""
+    h = TERRAIN_STAIR_H if stair_h is None else stair_h
+    N = TERRAIN_STAIR_N
+    th = math.radians(TERRAIN_SLOPE_DEG)
+    slope_rise = math.tan(th) * CORRIDOR_SLOPE_LEN
+    segs = []
+    prog, z = 0.0, 0.0
+    for kind, length in CORRIDOR_VARIANTS[terrain]:
+        prog0, z0 = prog, z
+        if kind == "flat":
+            z1 = z0
+        elif kind == "stairs_up":
+            z1 = z0 + h * N
+        elif kind == "stairs_down":
+            z1 = z0 - h * N
+        elif kind == "slope_up":
+            z1 = z0 + slope_rise
+        elif kind == "slope_down":
+            z1 = z0 - slope_rise
+        else:
+            raise ValueError(f"unknown corridor segment kind: {kind}")
+        prog1 = prog0 + length
+        segs.append({"kind": kind, "prog0": prog0, "prog1": prog1,
+                     "z0": z0, "z1": z1, "length": length})
+        prog, z = prog1, z1
+    return segs
+
+
 def terrain_xml(terrain, stair_h=None):
     """worldbodyに挿入する地形geom文字列。noneは空。
 
@@ -158,6 +228,43 @@ def terrain_xml(terrain, stair_h=None):
         g.append(f'<geom name="slope" type="box" size="0.8 {half} {TERRAIN_SLOPE_THICK}" '
                  f'pos="0 {yc:.3f} {zc:.3f}" euler="{-sign * TERRAIN_SLOPE_DEG} 0 0" '
                  f'friction="1.2 0.01 0.001"/>')
+    elif terrain in CORRIDOR_VARIANTS:
+        # Phase2 U7: 各セグメントを _corridor_layout() のみを高さの真として敷設。
+        # 個々のgeom式は既存stairs/stairs_down/slope_*分岐と同一の物理式を
+        # z0/z1オフセット付きで再利用する(新規物理は導入しない)。
+        segs = _corridor_layout(stair_h, terrain)
+        th = _m.radians(TERRAIN_SLOPE_DEG)
+        for i, seg in enumerate(segs):
+            prog0, prog1 = seg["prog0"], seg["prog1"]
+            z0, z1 = seg["z0"], seg["z1"]
+            kind = seg["kind"]
+            if kind == "flat":
+                if abs(z0) < 1e-6:
+                    continue   # 床plane(z=0)がそのまま覆う区間はgeom不要
+                yc = -((prog0 + prog1) / 2)
+                hy = (prog1 - prog0) / 2
+                g.append(f'<geom name="cseg_{i}_flat" type="box" size="0.8 {hy:.3f} 0.05" '
+                         f'pos="0 {yc:.3f} {FLOOR_TOP + z0 - 0.05:.3f}" '
+                         f'friction="1.2 0.01 0.001"/>')
+            elif kind in ("stairs_up", "stairs_down"):
+                sign = 1.0 if kind == "stairs_up" else -1.0
+                for j in range(N):
+                    yc = -(prog0 + d * j + d / 2)
+                    step_top = z0 + sign * h * (j + 1)
+                    zc = FLOOR_TOP + step_top - h / 2
+                    g.append(f'<geom name="cseg_{i}_step_{j}" type="box" '
+                             f'size="0.8 {d/2:.3f} {h/2:.3f}" pos="0 {yc:.3f} {zc:.3f}" '
+                             f'friction="1.2 0.01 0.001"/>')
+            elif kind in ("slope_up", "slope_down"):
+                sign = 1.0 if kind == "slope_up" else -1.0
+                half = TERRAIN_SLOPE_HALF
+                yc = -((prog0 + prog1) / 2)
+                zc = FLOOR_TOP + (z0 + z1) / 2
+                g.append(f'<geom name="cseg_{i}_slope" type="box" '
+                         f'size="0.8 {half} {TERRAIN_SLOPE_THICK}" pos="0 {yc:.3f} {zc:.3f}" '
+                         f'euler="{-sign * TERRAIN_SLOPE_DEG} 0 0" friction="1.2 0.01 0.001"/>')
+            else:
+                raise ValueError(f"unknown corridor segment kind: {kind}")
     else:
         raise ValueError(f"unknown terrain: {terrain}")
     return "".join(g)
@@ -180,6 +287,8 @@ def terrain_dz(y, terrain, stair_h=None):
     import math as _m
     if terrain in (None, "", "none"):
         return torch.zeros_like(y)
+    if terrain in CORRIDOR_VARIANTS:
+        return _corridor_dz(y, stair_h, terrain)
     h = TERRAIN_STAIR_H if stair_h is None else stair_h
     N = TERRAIN_STAIR_N
     prog = (-y - TERRAIN_FLAT_RUNUP).clamp(min=0.0)
@@ -200,6 +309,48 @@ def terrain_dz(y, terrain, stair_h=None):
     span = 2.0 * TERRAIN_SLOPE_HALF * _m.cos(th)
     rise = sign * _m.tan(th) * prog.clamp(max=span)
     return on_terrain * (rise + TERRAIN_SLOPE_THICK / _m.cos(th))
+
+
+def _corridor_dz(y, stair_h=None, terrain="corridor"):
+    """terrain_dz(..., terrain, ...) for any corridor variant in CORRIDOR_VARIANTS.
+    _corridor_layout() の各セグメントに既存stairs/stairs_down/slope_*の式を
+    z0オフセット付きでそのまま適用する(物理式は再利用のみ、新規導入なし)。
+    segs は terrain_xml(terrain,...) と完全同一の _corridor_layout(stair_h, terrain)
+    呼び出しなのでジオメトリと期待高さは構造的に一致。"""
+    segs = _corridor_layout(stair_h, terrain)
+    h = TERRAIN_STAIR_H if stair_h is None else stair_h
+    N = TERRAIN_STAIR_N
+    d = TERRAIN_STAIR_D
+    th = math.radians(TERRAIN_SLOPE_DEG)
+    total_len = segs[-1]["prog1"]
+    prog = (-y).clamp(min=0.0, max=total_len - 1e-4)
+    out = torch.zeros_like(y)
+    for seg in segs:
+        prog0, prog1 = seg["prog0"], seg["prog1"]
+        z0 = seg["z0"]
+        kind = seg["kind"]
+        local = (prog - prog0).clamp(min=0.0)
+        m = (prog >= prog0) & (prog < prog1)
+        if kind == "flat":
+            val = torch.full_like(y, z0)
+        elif kind == "stairs_up":
+            steps = ((local / d).floor() + 1.0).clamp(0, N)
+            val = z0 + steps * h
+        elif kind == "stairs_down":
+            step = (local / d).floor().clamp(0, N - 1)
+            val = z0 - (step + 1.0) * h
+        elif kind in ("slope_up", "slope_down"):
+            sign = 1.0 if kind == "slope_up" else -1.0
+            length = seg["length"]
+            rise = sign * math.tan(th) * local.clamp(max=length)
+            val = z0 + rise + TERRAIN_SLOPE_THICK / math.cos(th)
+        else:
+            raise ValueError(f"unknown corridor segment kind: {kind}")
+        out = torch.where(m, val, out)
+    # 最終セグメント終端以降(prog>=total_len、height-scanの先読みが末端を超えた場合)
+    # は末端の高さを保持する(clampで既にprog<total_lenに収めているため通常到達しない
+    # が、falls-through防止の明示ガードとして残す)。
+    return out
 
 
 # Stage B: retargeted real-mocap reference (set via load_reference / --ref-json).

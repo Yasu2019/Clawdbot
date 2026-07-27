@@ -111,6 +111,9 @@ def main():
     ap.add_argument("--height-scan", action="store_true",
                     help="required when the checkpoint was trained with the scan (obs 200)")
     ap.add_argument("--stair-height", type=float, default=None)
+    ap.add_argument("--corridor-fixed-start", action="store_true",
+                    help="terrain=corridor only: always spawn at segment 0, "
+                         "offset 0 for a deterministic full-course check")
     args = ap.parse_args()
     out = args.out or os.path.join(os.environ.get("TEMP", "."), "verify_policy")
     os.makedirs(out, exist_ok=True)
@@ -124,6 +127,8 @@ def main():
         cfg["height_scan"] = {}
     if args.stair_height is not None:
         cfg["stair_height"] = args.stair_height
+    if args.corridor_fixed_start:
+        cfg["corridor_fixed_start"] = True
     env = V50WalkEnv(args.n_envs, out, cfg=cfg, ref_json=args.ref_json)
     policy, norm = load_policy(env, args.ckpt, out)
 
