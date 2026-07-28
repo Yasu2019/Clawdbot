@@ -9,7 +9,9 @@
 2. `data/workspace/PROMISES.md` — **P025** ほか最重要制約
 3. `projects/AtsugiMechaCity/design/HANDOVER_QUEUE5_AND_BEYOND.md` — メカRLの現在地・復帰手順（§4.6）
 
-> **直近セッション差分**: `docs/handover/FABLE5_FINAL_SESSION_HANDOVER_20260707.md`（2026-07-07 Fable5最終日 — 未完アクション6件・bd起票リスト・新規ルール2本の入口）
+> **直近セッション差分**: `docs/handover/MECHA_STAIRS_CLIMB_CORRIDOR_HANDOVER_20260727.md`（2026-07-27 corridor Phase2完了4/5地形 + T079訂正=階段昇段は実は一度も未達成だった + climb_progress報酬追加で再学習中）  
+> （直前）`docs/handover/LAVIE_OF_C_WORKER_AND_FILL_TELEGRAM_QUARTERBOX_20260728.md`（2026-07-28 Lavie C: worker :5683 / OF SUCCESS / Telegram 1/4-box viz fix）  
+> （参考・Fable5最終日）`docs/handover/FABLE5_FINAL_SESSION_HANDOVER_20260707.md`
 
 タスク一覧の単一情報源は **bd**（`bd prime` → `bd ready`）。Markdown TODOの複製は禁止。
 
