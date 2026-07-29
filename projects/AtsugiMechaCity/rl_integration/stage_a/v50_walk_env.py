@@ -118,6 +118,18 @@ def _default_cfg():
         "reward_scales": {
             "tracking_lin_vel":   2.0,
             "tracking_ang_vel":   0.5,
+            "com_lateral_track":  2.0,     # Rule 1 (docs/mecha_biomechanics_reward_design_rules.md):
+                                           # LIPM-style lateral CoM-over-stance-foot tracking.
+                                           # Diagnosed 2026-07-27: torso lateral (X) position
+                                           # drifts monotonically during single-limb support
+                                           # instead of oscillating over the stance foot the way
+                                           # humans do -- `orientation` only penalises general
+                                           # tilt, it doesn't reward deliberately shifting weight
+                                           # over the support leg. Applies to ALL terrain (not
+                                           # stairs-specific); measured double_support_frac was
+                                           # 3-4x the human ~20% baseline across every checkpoint
+                                           # this session, consistent with the policy avoiding
+                                           # single-limb support because it can't balance over it.
             "forward_progress":   1.0,
             "feet_air_time":      2.0,     # C1: the anti-freeze term
             "single_foot_contact": 1.0,    # C1: the anti-hop term (2404.19173)
@@ -734,6 +746,26 @@ class V50WalkEnv:
 
     def _r_tracking_ang_vel(self):
         err = (self.commands[:, 1] - self.ang_vel[:, 2]) ** 2
+        return torch.exp(-err / self.cfg["tracking_sigma"])
+
+    def _r_com_lateral_track(self):
+        """Rule 1 (docs/mecha_biomechanics_reward_design_rules.md): reward the
+        torso's lateral (X) position sitting over the current support foot's
+        lateral position, LIPM-style (support_x damped by lateral velocity --
+        the same structure as p_com_hat = p_zmp + (z/g)*kp*(v_cmd-v), with
+        v_cmd_lateral=0 since we never want net lateral drift, only
+        oscillation over whichever foot is planted). During double support,
+        support_x is the midpoint of both feet (no lateral choice to make);
+        during single support, it's that one foot's position -- this is
+        exactly the case the diagnosis (2026-07-27) found unaddressed."""
+        foot_x = self.foot_pos[:, :, 0]
+        contact_f = self.contacts.float()
+        n_contact = contact_f.sum(dim=1).clamp(min=1.0)
+        support_x = (foot_x * contact_f).sum(dim=1) / n_contact
+        z = self.pos[:, 2].clamp(min=0.1)
+        k_p = 0.3
+        target_x = support_x - (z / 9.81) * k_p * self.lin_vel[:, 0]
+        err = (self.pos[:, 0] - target_x) ** 2
         return torch.exp(-err / self.cfg["tracking_sigma"])
 
     def _r_forward_progress(self):
