@@ -69,6 +69,31 @@ def _r_climb_progress(self):
 - Sources: PMC9432737(階段昇段関節位相)/ arXiv:2105.08328(sim-to-real階段踏破)/
   Effects of Prior Knowledge for Stair Climbing(ICARM 2024)
 
+## 追記(同日深夜、PC再起動後の続き)
+
+`climb_progress`単体(scale 1500)では2回の再学習(異なるwarm-start)を試しても
+「階段の縁で完全静止」局所解を脱せなかった。**T079b: 明示的な停滞ペナルティ
+`climb_stagnation`を追加**(stall_steps*dt、stairs/slope_up限定でゲート、scale -8.0)、
+`climb_progress`もscale 1500→3000へ引き上げ。
+
+結果: 「完全静止」局所解は解消(目視確認済み)。方策は**階段の縁で前足を段の上に乗せ
+体全体で段差へ飛び込むように挑戦する**明確に異なる行動を獲得。ただし急ぎすぎて
+(vx実測0.77-0.88m/s、指令0.25m/sを大幅超過)t=1.2-1.3s前後で転倒する新パターンに収束。
+1000→1500→2500(累計)→5000iterまで延長したが、量的微増(final_travel 1.43→1.65m)の
+みで質的ブレークスルー(生存・完全昇段)には至らず。**プラトー状態**と判断しこのセッションでは
+一旦保留。
+
+チェックポイント: `C:\v50_work\autonomy\walk_rsl_stairs_climbrew_v2\latest.pt`(5000iter、未VERIFIED)
+コマンド系列: `walk_rsl_stairs_climbrew_fresh`(750iter、resume-surgery元)→
+`walk_rsl_stairs_climbrew_v2`(climb_stagnation追加後、1000→2500→5000iter)
+
+**次回セッション優先候補**(beads `o2iv`に詳細記載):
+1. 明示的な速度上限ペナルティ(急行動0.8m/s級を抑制する具体的拘束) — 未着手・最優先
+2. `climb_progress`/`climb_stagnation`スケールの再チューニング(現状が強すぎ/弱すぎのどちらかを再検証)
+3. 階段専用参照歩容(mocapベース、既存`--ref-json`機構経由) — 文献上最も効果的だが実装コスト大
+4. reverse curriculum(段の途中スポーンで探索の壁を迂回)
+5. さらなる長期学習は収穫逓減の兆候ありのため優先度低
+
 ## 現在進行中の状態(2026-07-27夜、このセッション終了時点)
 
 **学習実行中**: `climb_progress`報酬を使った昇段再学習。
