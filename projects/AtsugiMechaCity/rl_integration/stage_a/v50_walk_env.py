@@ -133,6 +133,9 @@ def _default_cfg():
             "forward_progress":   1.0,
             "feet_air_time":      2.0,     # C1: the anti-freeze term
             "single_foot_contact": 1.0,    # C1: the anti-hop term (2404.19173)
+            "double_support_ratio": -10.0, # Rule 2: EMA-based penalty once
+                                           # double_support_frac exceeds the
+                                           # human ~0.20 baseline (see _r_*).
             "climb_progress":    3000.0,   # T079: feet_air_time/single_foot_contact are
                                            # gated on the COMMANDED speed (_moving()), not
                                            # actual displacement, so a policy can farm both
@@ -356,6 +359,8 @@ class V50WalkEnv:
         self.last2_actions = z(N, N_DOF)                   # for action-jerk (smoothness)
         self.last_dof_vel = z(N, N_DOF)
         self.contact_ema = z(N, 2) + 0.5                   # L/R stance-time balance
+        self.double_support_ema = z(N) + 0.5   # Rule 2: fraction of recent steps
+                                                # with both feet down (human target ~0.20)
         # EMA of each foot's SWING clearance -> its habitual lift height. The L/R
         # difference is the foot-lift asymmetry the joint-symmetry terms could not
         # remove (one foot pawed 25 cm, the other shuffled 4 cm). Penalised directly.
@@ -551,6 +556,7 @@ class V50WalkEnv:
         self.foot_air_time[idx] = 0.0
         self.last_contact[idx] = True
         self.contact_ema[idx] = 0.5
+        self.double_support_ema[idx] = 0.5
         self.foot_swing_clear_ema[idx] = self.cfg["foot_clearance_target"]
         self.obs_history[idx] = 0.0
         self._resample_commands(idx)
@@ -710,6 +716,21 @@ class V50WalkEnv:
                                    "foot_lift_symmetry", "contact_symmetry",
                                    "action_jerk"})
 
+    # Rule 3 (docs/mecha_biomechanics_reward_design_rules.md, "Reward Fusion"):
+    # progress/speed rewards only count for their full value once the robot is
+    # actually stable -- otherwise a policy can farm progress by rushing and
+    # falling (diagnosed 2026-07-27: vx measured 0.77-0.88 m/s against a
+    # 0.25 m/s command, immediate falls). Multiplicative, not additive, so it
+    # can't be offset by other terms the way an extra penalty could be.
+    PROGRESS_TERMS = frozenset({"forward_progress", "climb_progress"})
+
+    def _stability_factor(self):
+        """[0,1] stability signal reusing the same tilt measure as
+        _r_orientation, but as a decaying multiplier instead of an unbounded
+        penalty -- 1.0 when upright, ->0 as the body tips over."""
+        tilt_sq = (self.grav[:, :2] ** 2).sum(dim=1)
+        return torch.exp(-tilt_sq / 0.05)
+
     def _naturalness_mask(self):
         """1.0 while the env's current forward position is on a flat corridor
         segment (apply naturalness/symmetry rewards), 0.0 on stairs/slope
@@ -724,10 +745,13 @@ class V50WalkEnv:
         rew = torch.zeros(self.num_envs, device=self.device)
         terms = {}
         mask = self._naturalness_mask() if self.corridor is not None else None
+        stability = self._stability_factor()
         for name, scale in self.reward_scales.items():
             v = getattr(self, f"_r_{name}")() * scale
             if mask is not None and name in self.NATURALNESS_TERMS:
                 v = v * mask
+            if name in self.PROGRESS_TERMS:
+                v = v * stability
             terms[name] = v
             self.episode_sums[name] += v
             rew += v
@@ -817,6 +841,19 @@ class V50WalkEnv:
         zero feet down = flight/hop; exactly one = a stride."""
         n = self.contacts.float().sum(dim=1)
         return (n == 1).float() * self._moving()
+
+    def _r_double_support_ratio(self):
+        """Rule 2 (docs/mecha_biomechanics_reward_design_rules.md): human gait
+        spends only ~20% of the cycle in double support (both feet down),
+        ~80% in single support -- every checkpoint measured this session
+        (2026-07-27) showed double_support_frac 0.54-0.92, 3-4x too high,
+        consistent with avoiding single-limb support because it can't
+        balance over it (see com_lateral_track). EMA-smoothed so a single
+        double-support step (e.g. right after landing) isn't punished --
+        only a sustained excess above the human ~0.20 baseline is."""
+        is_double = (self.contacts.float().sum(dim=1) == 2).float()
+        self.double_support_ema = 0.98 * self.double_support_ema + 0.02 * is_double
+        return -(self.double_support_ema - 0.20).clamp(min=0.0) ** 2
 
     def _r_pose_prior(self):
         """Reference-gait tracking, gated on a walk command. Zero-command envs
