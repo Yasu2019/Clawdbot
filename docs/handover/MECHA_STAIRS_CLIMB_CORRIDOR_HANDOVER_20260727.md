@@ -94,6 +94,34 @@ def _r_climb_progress(self):
 4. reverse curriculum(段の途中スポーンで探索の壁を迂回)
 5. さらなる長期学習は収穫逓減の兆候ありのため優先度低
 
+## 追記(さらに後、Rule1-3実装と学習継続の結果)
+
+Rule1(CoM追従, com_lateral_track)・Rule2(double_support_ratio)・Rule3(Reward Fusion的
+stability gating)を全て実装し`walk_rsl_stairs_climbrew_v3`→`v4`として学習継続。
+
+**Rule1単体(v3, +1500iter)**: 胴体の左右位置トレースで診断した「単調な横ドリフト」が
+「支持脚切替と連動した振動」に変化(理論通りの改善を確認)。ただし登坂成功には未到達。
+
+**Rule1+2+3統合(v4, +2000iter)**: **明確な改善を確認**——
+`double_support_frac`0.294(人間基準0.20に肉薄、改善前0.54-0.92)、
+`min_upright`0.637(改善前0.19-0.31から倍増)。目視でも直立姿勢を維持したまま
+第1段へ足を乗せる、より人間らしい挙動に変化。
+
+**その後(v4を+2500iter延長、累計4500iter相当)**: **悪化**(`double_support_frac`0.716、
+`min_upright`0.231、目視も「飛び込み」姿勢に後退)。RL学習(PPO)は単調に改善しないため
+起きうる現象だが、**2000iter時点の良好なcheckpointをknown_good等へ保存せずに追加学習を
+継続してしまい、latest.pt上書きで戻れなくなった**(自身の反省点、
+`feedback_checkpoint_snapshot_before_continue.md`に記録済み)。
+
+**次回セッションへの申し送り**:
+1. 現在の`latest.pt`(4500iter相当)から再開する場合、**まず現状をコピー保存してから**
+   学習を続けること
+2. 定期的なcheckpointスナップショット機構(例: 500iterごとに`_it{N}.pt`保存)を
+   `train_v50_walk_rsl.py`に追加することを検討(現状は`latest.pt`のみで巻き戻し不可)
+3. biomechanics rules(Rule1-3)自体の有効性は2000iter時点で実証済み——報酬設計手法として
+   有効、次は学習の安定継続とcheckpoint管理体制の方が優先課題
+4. Rule4(腕振り逆位相)・Rule5(GRF制限)は上記が片付いてから
+
 **追記(同日深夜、ユーザーからの「バランス制御はできているか」という質問を受けて)**:
 実測診断の結果、片脚支持中に胴体が支持脚の上へ意図的に移動する挙動(重心シフト)が
 できておらず、単調な横ドリフトになっていることが判明。これを受けて人間工学・生体力学の
