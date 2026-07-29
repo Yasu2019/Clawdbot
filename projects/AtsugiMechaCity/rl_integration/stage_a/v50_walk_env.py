@@ -121,6 +121,33 @@ def _default_cfg():
             "forward_progress":   1.0,
             "feet_air_time":      2.0,     # C1: the anti-freeze term
             "single_foot_contact": 1.0,    # C1: the anti-hop term (2404.19173)
+            "climb_progress":    3000.0,   # T079: feet_air_time/single_foot_contact are
+                                           # gated on the COMMANDED speed (_moving()), not
+                                           # actual displacement, so a policy can farm both
+                                           # by stepping in place at the base of a stair
+                                           # forever. This term only pays for NEW
+                                           # best-height-vs-spawn on terrain_dz, so marching
+                                           # in place yields exactly 0 forever -- matches
+                                           # the "height-based gating" fix reported in the
+                                           # stair-climbing RL literature (T079 web research).
+                                           # 0 on flat ground (terrain_dz constant), so this
+                                           # is a no-op for existing flat/slope/descent runs.
+                                           # Unlike the rate-like terms above, this reward
+                                           # is an ABSOLUTE height delta, not normalized per
+                                           # dt -- since every scale here gets multiplied by
+                                           # self.dt (see below), a full 1.0m stair climb
+                                           # only pays out scale*dt*1.0 total across the
+                                           # WHOLE episode regardless of how many steps it
+                                           # takes, so this weight needs to be ~1000x a
+                                           # normal rate-term's to make a full climb worth
+                                           # a comparable total to the existing terms
+                                           # (2026-07-27: raised 1500->3000 after 2 straight
+                                           # retrains showed no visible climb behavior change).
+            "climb_stagnation":  -8.0,     # T079b: explicit stick alongside climb_progress's
+                                           # carrot -- penalizes stall_steps*dt (seconds since
+                                           # last height gain, clamped 10s) while commanded to
+                                           # move. Gated to stairs/slope_up ONLY (see
+                                           # _r_climb_stagnation) so descent/flat are unaffected.
             "pose_prior":         0.8,     # 2026-07-25: 0.3 was too weak -> the gait
                                            # drifted from the (symmetric, anti-phase)
                                            # human reference into an asymmetric limit
@@ -330,6 +357,8 @@ class V50WalkEnv:
         self.air_prev = z(N, 2)
         self.last_contact = torch.zeros(N, 2, dtype=torch.bool, device=dev)
         self.x0 = z(N)
+        self.best_height = z(N)      # T079: climb-progress baseline, see reset_idx
+        self.stall_steps = torch.zeros(N, device=dev)  # T079b: steps since last height gain
         self.push_counter = torch.zeros(N, device=dev, dtype=torch.long)
         self.push_interval = max(1, int(c["push_interval_s"] / self.dt))
 
@@ -492,6 +521,12 @@ class V50WalkEnv:
         qpos = self.robot.get_qpos()
         self.episode_length_buf[idx] = 0
         self.x0[idx] = V50.FWD_SIGN * qpos[idx, V50.FWD_AXIS]
+        # T079: climb-progress baseline = terrain height AT SPAWN, so the reward
+        # only pays for height gained DURING this episode, not for wherever a
+        # corridor reset happened to drop the env (e.g. mid-slope).
+        self.best_height[idx] = V50.terrain_dz(qpos[idx, V50.FWD_AXIS],
+                                               self.cfg["terrain"], self.stair_h)
+        self.stall_steps[idx] = 0.0
         self.prev_pos[idx] = qpos[idx, :3]
         self.prev_quat[idx] = qpos[idx, 3:7]
         self.prev_foot_pos[idx] = self.robot.get_links_pos()[idx][:, self.foot_local]
@@ -706,6 +741,36 @@ class V50WalkEnv:
         flat at standstill, which is what let the freeze basin persist (C4)."""
         cmd = self.commands[:, 0].clamp(min=1e-3)
         return (self._fwd_vel().clamp(min=0.0) / cmd).clamp(max=1.0) * self._moving()
+
+    def _r_climb_progress(self):
+        """T079: reward NEW best-height-vs-spawn on terrain_dz. Unlike
+        forward_progress/feet_air_time/single_foot_contact (all gated on the
+        COMMANDED speed, not actual displacement), this term is 0 forever for
+        a policy that steps in place without ever gaining height -- it can
+        only be farmed by genuinely climbing. 0 on flat ground since
+        terrain_dz is constant there (dz - best_height == 0 once settled).
+        Also updates stall_steps (see _r_climb_stagnation) as a side effect --
+        this is the only place best_height is touched, so it's the single
+        correct place to detect "no new gain this step" too."""
+        dz = V50.terrain_dz(self.pos[:, V50.FWD_AXIS], self.cfg["terrain"], self.stair_h)
+        gain = (dz - self.best_height).clamp(min=0.0)
+        improved = gain > 1e-4
+        self.best_height = torch.maximum(self.best_height, dz)
+        self.stall_steps = torch.where(improved, torch.zeros_like(self.stall_steps),
+                                       self.stall_steps + 1)
+        return gain
+
+    def _r_climb_stagnation(self):
+        """T079b (stick alongside climb_progress's carrot): explicit penalty
+        for going too long without a height gain while commanded to move.
+        Gated to ascent-type terrain ONLY (stairs/slope_up) so it can never
+        fire on descent (dz decreasing is correct there, not stagnation) or
+        on flat ground (no height to gain in the first place, and the
+        already-existing stand_still term covers that case)."""
+        if self.cfg["terrain"] not in ("stairs", "slope_up"):
+            return torch.zeros(self.num_envs, device=self.device)
+        stall_s = (self.stall_steps * self.dt).clamp(max=10.0)
+        return stall_s * self._moving()
 
     def _r_feet_air_time(self):
         """legged_gym's anti-freeze term: pay for SWING duration, once per
