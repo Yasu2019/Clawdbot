@@ -88,6 +88,11 @@ and Docker Desktop were stopped normally for the approved WSL maintenance.
   was removed afterward; Ubuntu is allowed to stop when idle.
 - Docker Desktop remains the persistent desktop engine and returned 74
   containers.
+- After the 14:05 storage check returned healthy and removed the dispatch
+  block, the existing supervisor automatically restarted the prior CAE
+  orchestrator command as PIDs 33812/4184. The maintenance did not start a new
+  job manually and did not stop this resumed process. It runs the current
+  orchestrator containing the storage preflight gate.
 - A task-created incomplete VHD remains quarantined at
   `F:\WSL\Ubuntu-Active\INCOMPLETE-DO-NOT-USE.vhdx`. Automatic deletion was
   rejected by the execution policy, so it is not used or registered. It is the
