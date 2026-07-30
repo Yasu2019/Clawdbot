@@ -13,7 +13,16 @@
   "hunyuan_output": "vnccs_comfyui_clawstack_pro/ComfyUI_app/output/3d/quality_rebuild_20260730/original_adult_heroine_hunyuan_v2_4096_00001_.glb",
   "successor_output": "vnccs_comfyui_clawstack_pro/ComfyUI_app/output/3d/quality_rebuild_20260730/clean_rigged_v3/clean_heroine_v3_rigged.fbx",
   "video": "vnccs_comfyui_clawstack_pro/ComfyUI_app/output/3d/quality_rebuild_20260730/clean_rigged_v3/clean_heroine_v3_motion.mp4",
-  "quality_gate": "PASS_STYLIZED_GEOMETRY_RIG_MOTION_LOCAL; UNITY_NOT_RUN",
+  "quality_gate": "PASS_STYLIZED_GEOMETRY_RIG_MOTION_UNITY_IMPORT",
   "visual_scope": "Clean stylized character. Not photorealistic or high-end organic sculpt.",
-  "server_state": "stopped_after_generation"
+  "server_state": "stopped_after_generation",
+  "unity_report": "harness_status_clean_heroine_v3_unity.json",
+  "unity_version": "6000.0.73f1",
+  "unity_result": {
+    "transforms": 59,
+    "renderers": 35,
+    "animation_clips": 1,
+    "longest_clip_seconds": 2.9583335,
+    "missing_required_bones": 0
+  }
 }

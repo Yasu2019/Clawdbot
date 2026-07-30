@@ -3,7 +3,7 @@
 - 日時: 2026-07-30 JST
 - Beads: `Clawdbot_Docker_20260125-hc0l`
 - 承認範囲: 本生成タスク内の修正・再試行を最大50回まで承認済み
-- 実施済み: 再試行11回
+- 実施済み: 再試行14回
 
 ## 現在の採用成果
 
@@ -19,6 +19,9 @@
 | 基準画像 | `D:\Clawdbot_Docker_20260125\vnccs_comfyui_clawstack_pro\ComfyUI_app\output\3d\quality_rebuild_20260730\clean_rigged_v3\clean_heroine_v3_frame_001.png` |
 | 生成レポート | `D:\Clawdbot_Docker_20260125\vnccs_comfyui_clawstack_pro\ComfyUI_app\output\3d\quality_rebuild_20260730\clean_rigged_v3\clean_heroine_v3_report.json` |
 | 再生成スクリプト | `D:\Clawdbot_Docker_20260125\vnccs_comfyui_clawstack_pro\scripts\build_clean_rigged_heroine_v3.py` |
+| Unity検証JSON | `D:\Clawdbot_Docker_20260125\harness_status_clean_heroine_v3_unity.json` |
+| Unity配置FBX | `D:\Local_AI_GameDev_Master\02_UnityProject\Assets\Characters\CleanHeroineV3\clean_heroine_v3_rigged.fbx` |
+| Unity検証ソース控え | `D:\Clawdbot_Docker_20260125\scripts\unity\CleanHeroineV3Validator.cs` |
 
 ## 検証結果
 
@@ -28,7 +31,14 @@
 - 合格: パーツ分離、四肢追従、スカート固定、貫通・扇状伸長なし
 - 品質区分: クリーンなスタイライズド3D
 - 未達: 写実またはハイエンド有機スカルプ相当ではない
-- Unityインポート: 未実施。既存Unity資産保護のため、本セッションではFBX生成まで。
+- Unity 6000.0.73f1インポート: PASS
+  - Transform: 59
+  - Renderer: 35
+  - AnimationClip: 1
+  - 最長クリップ: 2.958秒
+  - 必須17ボーン欠落: 0
+- Unity変更は新規FBX、生成されたmeta、新規検証スクリプトだけ。既存v23、
+  Prefab、Controller、Scenes、manifest、Build Settingsは未変更。
 
 ## 不採用結果と判断
 
@@ -49,8 +59,7 @@ Hunyuan3D v2.1の4096潜在解像度出力は、正面形状は改善したが�
 
 ## 次の安全な作業
 
-1. 新規バージョンフォルダーへFBXを複製し、Unity 6000.0.73f1でインポートする。
-2. 既存Prefab、Controller、manifest、Build Settingsは変更しない。
-3. Unity上で72フレームの動作とマテリアルを確認する。
-4. 人物の造形品質をさらに上げる場合は、正面1枚ではなく正面・側面・背面の
+1. 必要なら新規PrefabとControllerを `CleanHeroineV3` 配下だけに作成する。
+2. Unity上で実時間再生画面を撮影し、Blender動画と比較する。
+3. 人物の造形品質をさらに上げる場合は、正面1枚ではなく正面・側面・背面の
    3面図を入力にし、衣装別メッシュ生成または手動リトポロジーを行う。

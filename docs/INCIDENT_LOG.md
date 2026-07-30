@@ -2932,15 +2932,23 @@ Raised by the user asking whether `box_study_3` had a mesh in progress. Forensic
   image-format enum.
 - **Verification:** Blend/FBX/GLB exports succeeded; five key frames were
   visually inspected; MP4 is H.264, 720x900, 24 fps, 72 frames, 3.0 seconds;
-  no skirt stretching or detached limbs were observed.
+  no skirt stretching or detached limbs were observed. Unity 6000.0.73f1
+  imported 59 transforms, 35 renderers, one 2.958-second clip, and all 17
+  required bones.
+- **Unity retries:** The first batch run failed because Package Manager IPC
+  could not connect in 30 seconds. `-noUpm` bypassed that IPC but correctly
+  exposed that the existing project needs `com.unity.ugui`, so no manifest or
+  existing source was changed. A normal retry after package/license
+  initialization compiled the project and passed the isolated validator.
 - **Scope limit:** This is a clean stylized model, not photorealistic or a
-  high-end organic sculpt. Unity import has not yet been run.
+  high-end organic sculpt. No new production Prefab or Build Settings entry was
+  created.
 - **Files:** `vnccs_comfyui_clawstack_pro/scripts/build_textured_rigged_heroine_v2.py`,
   `vnccs_comfyui_clawstack_pro/scripts/build_clean_rigged_heroine_v3.py`,
   `docs/HANDOVER_3D_HEROINE_20260730.md`
 - **Prevention:** IF garments must deform independently, THEN require separate
   garment topology or multi-view retopology before rigging, BECAUSE coordinate
   weights cannot separate fused coincident surfaces.
-- **Web knowledge:** Not used. Local duplicate-face diagnostics, weight counts,
-  and rendered deformation provided direct evidence and a bounded local
-  corrective route.
+- **Web knowledge:** A bounded official Unity manual lookup confirmed that
+  `-noUpm` disables Package Manager. It changed only the diagnostic retry; local
+  compiler evidence proved that the final validation must use normal UPM startup.
