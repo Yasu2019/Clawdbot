@@ -13,20 +13,38 @@ if ($activeCae) {
     exit 3
 }
 
-$active = (& wsl -d Ubuntu -u root -- systemctl is-active docker-native 2>&1 | Out-String).Trim()
-if ($active -ne "active") {
-    Write-Output "Deferred: docker-native is not active."
-    exit 4
-}
+$keepalive = Start-Process -FilePath "wsl.exe" `
+    -ArgumentList @("-d", "Ubuntu", "-u", "root", "--", "sleep", "300") `
+    -WindowStyle Hidden -PassThru
+try {
+    $ready = $false
+    for ($attempt = 0; $attempt -lt 36; $attempt++) {
+        & wsl -d Ubuntu -u root -- test -S /var/run/docker-native.sock
+        if ($LASTEXITCODE -eq 0) {
+            $ready = $true
+            break
+        }
+        Start-Sleep -Seconds 5
+    }
+    if (-not $ready) {
+        Write-Output "Deferred: docker-native socket was not ready within three minutes."
+        exit 4
+    }
 
-& wsl -d Ubuntu -u root -- docker -H $socket builder prune -f `
-    --filter "until=${OlderThanHours}h" --keep-storage "${KeepStorageGB}GB"
-if ($LASTEXITCODE -ne 0) {
-    throw "Native Docker build-cache prune failed."
+    & wsl -d Ubuntu -u root -- docker -H $socket builder prune -f `
+        --filter "until=${OlderThanHours}h" --keep-storage "${KeepStorageGB}GB"
+    if ($LASTEXITCODE -ne 0) {
+        throw "Native Docker build-cache prune failed."
+    }
+    & wsl -d Ubuntu -u root -- docker -H $socket image prune -f `
+        --filter "until=${OlderThanHours}h"
+    if ($LASTEXITCODE -ne 0) {
+        throw "Native Docker dangling-image prune failed."
+    }
 }
-& wsl -d Ubuntu -u root -- docker -H $socket image prune -f `
-    --filter "until=${OlderThanHours}h"
-if ($LASTEXITCODE -ne 0) {
-    throw "Native Docker dangling-image prune failed."
+finally {
+    if ($keepalive -and -not $keepalive.HasExited) {
+        Stop-Process -Id $keepalive.Id
+    }
 }
 Write-Output "Safe GC complete; volumes and containers were not pruned."
