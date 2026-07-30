@@ -9,6 +9,7 @@ import json
 import os
 import random
 import re
+import socket
 import subprocess
 import sys
 import threading
@@ -48,6 +49,21 @@ import k10_satellite_dispatch as sjp
 import yaml
 
 _stop = threading.Event()
+_singleton_socket: socket.socket | None = None
+ORCHESTRATOR_SINGLETON_PORT = 47653
+
+
+def acquire_singleton() -> bool:
+    global _singleton_socket
+    guard = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try:
+        guard.bind(("127.0.0.1", ORCHESTRATOR_SINGLETON_PORT))
+        guard.listen(1)
+    except OSError:
+        guard.close()
+        return False
+    _singleton_socket = guard
+    return True
 
 
 def now_iso() -> str:
@@ -371,6 +387,7 @@ def run_thinkpad_impact(tri: dict[str, Any], dry_run: bool, timeout: int) -> dic
     # Heredoc avoids nested bash -lc quoting bugs under worker shell=True (INC-122).
     impact_script = (
         f"set -euo pipefail\n"
+        f"JOB_EPOCH=$(date +%s)\n"
         f"IMPACT_HOME={impact_home}\n"
         f"CASE_DIR={case_dir}\n"
         f"INP={inp}\n"
@@ -378,9 +395,9 @@ def run_thinkpad_impact(tri: dict[str, Any], dry_run: bool, timeout: int) -> dic
         f'cd "$IMPACT_HOME"\n'
         f"if [ ! -f bin/run/Impact.class ]; then ant -q compile; fi\n"
         f'if [ ! -f "$CASE_DIR/$INP" ]; then echo "FEM_IMPACT_INPUT_MISSING=$CASE_DIR/$INP"; exit 7; fi\n'
-        # One FEM slot per ThinkPad. Any run.Impact process visible here is an
-        # orphan from a previous timed-out/restarted controller.
-        f'pkill -f "java.*[r]un.Impact" 2>/dev/null || true\n'
+        # Never kill another FEM model. Clean up only a stale process for this
+        # exact case/input before starting its replacement.
+        f'pkill -f "java.*[r]un.Impact.*$CASE_DIR/$INP" 2>/dev/null || true\n'
         f"sleep 1\n"
         f"latest_vtk() {{\n"
         f'  VTK="$(ls -1 "$CASE_DIR/${{INP}}"_surface_*.vtk 2>/dev/null | sort -V | tail -1 || true)"\n'
@@ -397,8 +414,8 @@ def run_thinkpad_impact(tri: dict[str, Any], dry_run: bool, timeout: int) -> dic
     if reuse_vtk:
         impact_script += (
             # T049: set -euo pipefail下で対象0件だとls exit2が代入文に伝播し無言即死する。|| true必須
-            f'VTK_N=$(ls -1 "$CASE_DIR/{inp}"_*.vtk 2>/dev/null | wc -l || true)\n'
-            f'PNG_N=$(ls -1 "$CASE_DIR/{inp}"*.png 2>/dev/null | wc -l || true)\n'
+            f'VTK_N=$(find "$CASE_DIR" -maxdepth 1 -type f -name "{inp}_*.vtk" -newermt "@$JOB_EPOCH" 2>/dev/null | wc -l || true)\n'
+            f'PNG_N=$(find "$CASE_DIR" -maxdepth 1 -type f -name "{inp}*.png" -newermt "@$JOB_EPOCH" 2>/dev/null | wc -l || true)\n'
             f'if [ "$PNG_N" -ge {skip_png_n} ]; then\n'
             f"  run_qc\n"
             f"  echo FEM_IMPACT_SKIP_RECOMPUTE=png_exists\n"
@@ -452,6 +469,7 @@ def run_thinkpad_impact(tri: dict[str, Any], dry_run: bool, timeout: int) -> dic
         except Exception:
             end_time = 0.0
     if end_time > 0:
+        progress_not_before = max(0.0, time.time() - 2.0)
         subprocess.Popen(
             [
                 sys.executable,
@@ -464,6 +482,10 @@ def run_thinkpad_impact(tri: dict[str, Any], dry_run: bool, timeout: int) -> dic
                 inp,
                 "--end-time",
                 str(end_time),
+                "--not-before-epoch",
+                str(progress_not_before),
+                "--wait-start-seconds",
+                "600",
             ],
             cwd=str(ROOT),
             stdout=subprocess.DEVNULL,
@@ -883,6 +905,13 @@ def main() -> int:
     parser.add_argument("--no-sync-impact", action="store_true")
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
+    if not acquire_singleton():
+        print(
+            f"[singleton] another tri-track orchestrator owns "
+            f"127.0.0.1:{ORCHESTRATOR_SINGLETON_PORT}",
+            flush=True,
+        )
+        return 3
     timeout = int(args.timeout) if args.timeout is not None else _default_trial_timeout()
 
     continuous = args.continuous and not args.once
