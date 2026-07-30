@@ -36,32 +36,50 @@ def world_bounds(objects):
     return minimum, maximum
 
 
+def normalize_character_scale(meshes):
+    minimum, maximum = world_bounds(meshes)
+    source_height = maximum.z - minimum.z
+    if source_height <= 0:
+        return 1.0
+    factor = 1.75 / source_height
+    roots = [obj for obj in bpy.context.scene.objects if obj.parent is None]
+    for obj in roots:
+        obj.scale *= factor
+    bpy.context.view_layer.update()
+    return factor
+
+
 def setup_scene(minimum, maximum):
     scene = bpy.context.scene
-    scene.render.engine = "BLENDER_EEVEE_NEXT"
+    scene.render.engine = "BLENDER_EEVEE"
     scene.render.resolution_x = 720
     scene.render.resolution_y = 900
     scene.render.resolution_percentage = 100
     scene.render.image_settings.file_format = "PNG"
     scene.render.film_transparent = False
     scene.view_settings.look = "AgX - Medium High Contrast"
+    if scene.world is None:
+        scene.world = bpy.data.worlds.new("CandidateQAWorld")
     scene.world.color = (0.018, 0.022, 0.032)
 
     center = (minimum + maximum) * 0.5
     height = max(0.1, maximum.z - minimum.z)
     width = max(maximum.x - minimum.x, maximum.y - minimum.y)
-    distance = max(height * 1.45, width * 2.4)
+    distance = max(height * 2.2, width * 3.0)
 
-    bpy.ops.object.camera_add(location=(center.x + distance * 0.48, center.y - distance, center.z + height * 0.04))
+    bpy.ops.object.camera_add(location=(center.x, center.y - distance, center.z + height * 0.02))
     camera = bpy.context.object
-    camera.data.lens = 62
+    camera.data.type = "ORTHO"
+    camera.data.ortho_scale = max(height * 1.14, width * 1.35)
+    camera.data.clip_start = max(0.001, height * 0.01)
+    camera.data.clip_end = height * 100
     point_at(camera, center + Vector((0, 0, height * 0.02)))
     scene.camera = camera
 
     for name, location, energy, size in (
-        ("Key", center + Vector((height * 1.4, -height * 1.5, height * 1.8)), 1150, height * 1.5),
-        ("Fill", center + Vector((-height * 1.5, -height * 0.7, height * 0.8)), 700, height * 1.2),
-        ("Rim", center + Vector((0, height * 1.2, height * 1.6)), 950, height),
+        ("Key", center + Vector((height * 1.4, -height * 1.5, height * 1.8)), 700, height * 1.5),
+        ("Fill", center + Vector((-height * 1.5, -height * 0.7, height * 0.8)), 350, height * 1.2),
+        ("Rim", center + Vector((0, height * 1.2, height * 1.6)), 550, height),
     ):
         data = bpy.data.lights.new(name, "AREA")
         data.energy = energy
@@ -93,6 +111,7 @@ def inspect_candidate(path, output_dir, index):
     if not meshes:
         return {"file": str(path), "error": "no_mesh"}
 
+    scale_factor = normalize_character_scale(meshes)
     minimum, maximum = world_bounds(meshes)
     setup_scene(minimum, maximum)
     scene = bpy.context.scene
@@ -124,6 +143,7 @@ def inspect_candidate(path, output_dir, index):
         "bones": sum(len(rig.data.bones) for rig in rigs),
         "actions": len(actions),
         "materials": len(material_names),
+        "qa_scale_factor": scale_factor,
         "bounds": {
             "minimum": list(minimum),
             "maximum": list(maximum),

@@ -58,3 +58,21 @@
 ## Web検索判断
 
 - 不要。ローカルBlenderが有効enumをエラーに明示し、既存成功コードも正解を示している。
+
+## 自律再試行記録
+
+### Trial 1
+
+- `BLENDER_EEVEE` への修正後、最小preflightは `EEVEE_PREFLIGHT_OK`。
+- 候補レンダー本体は `scene.world is None` により停止。
+- エラー: `AttributeError: 'NoneType' object has no attribute 'color'`。
+- 原因: factory empty sceneではWorldが存在しない場合がある。
+- 対策: 既存成功コードと同様に `bpy.data.worlds.new()` で明示作成してから色を設定する。
+
+### Trial 2
+
+- 3候補すべてPNGとJSONを生成。
+- 目視結果: 不合格。モデルが画面中央に極小表示され、白飛びして品質判定不能。
+- 観測: FBX bounds heightは約0.0166～0.0175 Blender unit。
+- 原因: 実寸が約1.7cmのまま、近接クリップ・光量・カメラ構図を組んだ。
+- 対策: 一時QAシーン内のrootだけを身長1.75mへ正規化し、正投影カメラと縮小光量で再レンダーする。元FBXは保存しない。

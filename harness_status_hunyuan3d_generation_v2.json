@@ -1,0 +1,19 @@
+{
+  "task": "original_adult_heroine_hunyuan_v2_4096",
+  "status": "completed_with_stylized_successor",
+  "prompt_id": "3e4cfd74-b52e-4dbc-aa9b-f133bf1ae8dc",
+  "server": "127.0.0.1:8291",
+  "seed": 20260730,
+  "latent_resolution": 4096,
+  "octree_resolution": 384,
+  "steps": 40,
+  "source_image": "original_adult_heroine_front_v1.png",
+  "workflow": "vnccs_comfyui_clawstack_pro/comfyui/workflows/official/original_adult_heroine_hunyuan_v2_4096_api.json",
+  "output_prefix": "3d/quality_rebuild_20260730/original_adult_heroine_hunyuan_v2_4096",
+  "hunyuan_output": "vnccs_comfyui_clawstack_pro/ComfyUI_app/output/3d/quality_rebuild_20260730/original_adult_heroine_hunyuan_v2_4096_00001_.glb",
+  "successor_output": "vnccs_comfyui_clawstack_pro/ComfyUI_app/output/3d/quality_rebuild_20260730/clean_rigged_v3/clean_heroine_v3_rigged.fbx",
+  "video": "vnccs_comfyui_clawstack_pro/ComfyUI_app/output/3d/quality_rebuild_20260730/clean_rigged_v3/clean_heroine_v3_motion.mp4",
+  "quality_gate": "PASS_STYLIZED_GEOMETRY_RIG_MOTION_LOCAL; UNITY_NOT_RUN",
+  "visual_scope": "Clean stylized character. Not photorealistic or high-end organic sculpt.",
+  "server_state": "stopped_after_generation"
+}

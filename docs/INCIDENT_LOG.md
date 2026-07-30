@@ -2873,3 +2873,74 @@ Raised by the user asking whether `box_study_3` had a mesh in progress. Forensic
 - **Web knowledge:** Deferred until the corrective plan is approved. The local
   image and source code already prove the false-positive mechanism; external
   references will be used only to define the next visual benchmark.
+
+---
+
+## INC-176: Meshy API credential was embedded in source code
+
+- **Date / detection:** 2026-07-28 JST; detected during read-only adoption review
+  before starting photorealistic character generation.
+- **Impact:** A Meshy API credential was present as a Python string literal and
+  may have been exposed to anyone or any process with source access. No API
+  request was executed during this task and no new cost was incurred.
+- **Root cause (5 Why):** A demo integration needed authentication; the credential
+  was placed directly in the module; the implementation stayed mocked and never
+  received a secrets review; no automated secret scan blocked the file; later
+  discovery printed the source while evaluating reuse.
+- **Immediate containment:** The literal was removed without invoking the API.
+  `MESHY_API_KEY` must now be supplied through the process environment and the
+  function fails closed when it is absent. The credential value is intentionally
+  omitted from all incident records.
+- **Correction:** Revoke and rotate the exposed credential in the Meshy account,
+  configure the replacement only through an approved secret store/environment,
+  and run a repository-history secret scan before enabling the integration.
+- **Verification:** Source no longer assigns a literal credential; the submission
+  path raises `RuntimeError` when `MESHY_API_KEY` is absent. External revocation
+  remains pending explicit account-owner action.
+- **Files:** `clawstack_v2/apps/iatf_video_factory/pipeline/meshy_asset_generator.py`
+- **Lessons learned:** Never treat demo or commented-out network code as exempt
+  from credential controls. Review authentication storage before reading or
+  reusing any external-service integration.
+- **Web knowledge:** Not used. The security defect and safe local containment were
+  proven entirely from source inspection; external research would not change the
+  need to revoke the credential.
+
+---
+
+## INC-177: Single-view Hunyuan character topology failed the motion-quality gate
+
+- **Date / detection:** 2026-07-30 JST; detected by Blender mesh validation and
+  direct visual review of rest and posed renders.
+- **Impact:** The 4096-latent Hunyuan3D v2.1 output could not be promoted as the
+  rigged delivery. Clothing, skirt, and legs were fused; three duplicate faces
+  were detected; projected texture stretched at silhouettes; leg weights pulled
+  the skirt into fan-shaped spikes.
+- **Root cause (5 Why):** A single front image supplied no side/back topology;
+  image-to-3D produced one fused surface; deterministic coordinate weights could
+  not distinguish coincident skirt and leg vertices; front projection mapped
+  background/edge pixels onto grazing faces; therefore pose correction alone
+  could not recover independent garment behavior.
+- **Trials:** Trial 4 exported but warned that the mesh was invalid and produced
+  skirt spikes. Trial 5 narrowed projection normals, fixed skirt shell vertices
+  to Hips, added shoulder weights, and validated the mesh, but the fused source
+  still failed visual review. Trials 6-11 built a clean separated successor,
+  fixed Blender 5.1 Action/World/FFMPEG compatibility, rendered 72 PNG frames,
+  and encoded externally with FFmpeg.
+- **Correction:** Preserve the neural output as evidence and generate a
+  non-destructive 34-part stylized successor with 19 bones and rigid per-part
+  weights. Use external FFmpeg because this Blender build exposes no FFMPEG
+  image-format enum.
+- **Verification:** Blend/FBX/GLB exports succeeded; five key frames were
+  visually inspected; MP4 is H.264, 720x900, 24 fps, 72 frames, 3.0 seconds;
+  no skirt stretching or detached limbs were observed.
+- **Scope limit:** This is a clean stylized model, not photorealistic or a
+  high-end organic sculpt. Unity import has not yet been run.
+- **Files:** `vnccs_comfyui_clawstack_pro/scripts/build_textured_rigged_heroine_v2.py`,
+  `vnccs_comfyui_clawstack_pro/scripts/build_clean_rigged_heroine_v3.py`,
+  `docs/HANDOVER_3D_HEROINE_20260730.md`
+- **Prevention:** IF garments must deform independently, THEN require separate
+  garment topology or multi-view retopology before rigging, BECAUSE coordinate
+  weights cannot separate fused coincident surfaces.
+- **Web knowledge:** Not used. Local duplicate-face diagnostics, weight counts,
+  and rendered deformation provided direct evidence and a bounded local
+  corrective route.

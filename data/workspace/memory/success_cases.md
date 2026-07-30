@@ -306,3 +306,19 @@
   labelled world-space fallback and require a visible packaged-Player image
   gate. BECAUSE a state flag or hidden capture cannot prove facial alignment or
   presentation quality.
+
+## [S027] Fused single-view mesh was replaced by a motion-safe separated character (2026-07-30, Codex)
+
+- **Problem:** A 4096-latent Hunyuan3D character looked recognizable at rest but
+  fused skirt, legs, and clothing produced invalid faces and fan-shaped motion.
+- **Diagnosis:** Blender reported duplicate faces; visual pose review showed
+  texture stretching and skirt vertices split between both thigh bones.
+- **Solution:** Preserve the neural mesh, then build a separate 34-part
+  stylized successor with 19 bones, rigid part weights, five-frame visual QA,
+  and a 72-frame render.
+- **Evidence:** Blend/FBX/GLB exports succeeded; H.264 output is 720x900,
+  24 fps, 72 frames, 3.0 seconds; inspected frames show no detached parts or
+  skirt spikes.
+- **Reuse:** IF a single-view generated mesh fuses independently moving
+  garments and limbs, THEN stop weight-only iteration and rebuild separate
+  topology, BECAUSE rig weights cannot recover missing geometric separation.
