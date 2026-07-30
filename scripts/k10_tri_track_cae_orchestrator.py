@@ -35,6 +35,7 @@ PNG_SHELL_LOCAL = ROOT / "scripts" / "thinkpad_fem_impact_png.sh"
 RENDER_SCRIPT_LOCAL = ROOT / "scripts" / "impact_vtk_to_png.py"
 QC_SCRIPT_LOCAL = ROOT / "scripts" / "impact_vtk_quality_gate.py"
 FEM_PROGRESS_SCRIPT = ROOT / "scripts" / "fem_impact_progress_telegram.py"
+STORAGE_BLOCK_PATH = ROOT / "data" / "state" / "wsl_storage_guard" / "CAE_DISPATCH_BLOCKED.json"
 
 if str(ROOT / "scripts") not in sys.path:
     sys.path.insert(0, str(ROOT / "scripts"))
@@ -559,6 +560,17 @@ def _track_poll_seconds(tri: dict[str, Any], track_key: str, track_cfg: dict[str
     return max(0, int(tri.get("poll_interval_sec") or 60))
 
 
+def _storage_dispatch_gate() -> tuple[bool, str]:
+    """Block only new dispatches while the host storage guard is active."""
+    if not STORAGE_BLOCK_PATH.exists():
+        return True, "storage guard clear"
+    try:
+        gate = json.loads(STORAGE_BLOCK_PATH.read_text(encoding="utf-8"))
+        return False, str(gate.get("reason") or "host storage capacity is critical")
+    except Exception as exc:
+        return False, f"storage guard marker is unreadable: {exc}"
+
+
 def _preflight_satellite(
     node_id: str,
     tri: dict[str, Any],
@@ -649,6 +661,21 @@ def track_loop(
     last_verdict = "OK"
 
     while not _stop.is_set():
+        storage_ok, storage_detail = _storage_dispatch_gate()
+        if not dry_run and not storage_ok:
+            track_state["last"] = {
+                "at": now_iso(),
+                "verdict": "SKIP_STORAGE",
+                "error": storage_detail[:300],
+                "fail_streak": fail_streak,
+            }
+            append_log({"track": name, "skip": "SKIP_STORAGE", "detail": storage_detail})
+            write_status(state)
+            if not continuous:
+                break
+            time.sleep(max(poll_seconds, 60))
+            continue
+
         if node_id and not dry_run:
             may_dispatch, pre_verdict, detail = _preflight_satellite(
                 node_id,
