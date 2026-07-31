@@ -1,0 +1,13 @@
+{
+    "status": "PASS",
+    "message": "GPU render and bone motion completed.",
+    "unityVersion": "6000.0.73f1",
+    "graphicsDevice": "NVIDIA GeForce RTX 5060 Ti",
+    "graphicsApi": "Direct3D11",
+    "headDeltaMeters": 0.0,
+    "handDeltaMeters": 0.0015009116614237428,
+    "footDeltaMeters": 0.00006856827531009912,
+    "headRotationDeltaDegrees": 0.0,
+    "handRotationDeltaDegrees": 24.39006233215332,
+    "footRotationDeltaDegrees": 0.7143601179122925
+}
