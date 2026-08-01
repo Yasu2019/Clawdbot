@@ -59,3 +59,17 @@ back generated artifacts; source CSVs and r32 remain intact.
 - Backup: `94f11b33ee5bd8b502276287a447905b76d0cb70`
 - Script: `scripts/mf_csv_to_openfoam_field_pack.py`
 - Output: `data/workspace/moldflow_bridge/mf_minusx_copy_results_20260801/openfoam_field_pack_v1/`
+
+## Resolution (2026-08-02)
+
+The n8n execution record `5519` proved the exact error:
+`/bin/sh: cmd: not found`. The webhook and Execute Command node were healthy;
+the caller sent Windows commands to a Linux n8n container. The n8n container
+also has no C-drive mount, so changing `cmd` to `sh` alone cannot retrieve r32.
+
+`read_run_r32.py` now dispatches POSIX reads through LAVIE worker `:5683`,
+whose container mounts `/c`. When that worker is legitimately busy, it uses the
+healthy n8n bridge only to run the same read command inside
+`lavie-sjp-worker-c`. Verification returned `R32_ACCESS_OK`, `exists YES`, all
+time directories from 0 through 1.2, and `constant/` plus `system/` while the
+unrelated solver container remained running.
