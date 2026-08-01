@@ -3,6 +3,7 @@
   "inlet_velocity": 12.0,
   "inlet_velocity_xyz": [-12.0, 0.0, 0.0],
   "gate_inflow_direction": [-1.0, 0.0, 0.0],
+  "gate_count": 1,
   "pack_pressure_MPa": 17.6064,
   "T_melt": 516.78,
   "T_mold": 313.15,
@@ -12,5 +13,5 @@
   "thermal_shrink_alpha": 0.00008,
   "mold_length_mm": 100.0,
   "accuracy_band_label": "PROXY_GAP",
-  "mf_cooling_target_status": "PENDING_MF_COOL"
+  "mf_cooling_target_status": "MF_COOL_SUCCESS_35S"
 }

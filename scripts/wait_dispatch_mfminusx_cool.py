@@ -23,7 +23,7 @@ import k10_satellite_dispatch as sjp
 
 PARAMS = ROOT / "data/workspace/moldflow_bridge/mf_of_multiphysics_campaign/lavie_mfminusx_cool_urgent01_params.json"
 STATUS = ROOT / "data/workspace/moldflow_bridge/mf_of_multiphysics_campaign/cool_dispatch_status.json"
-TRIAL_ID = "lavie-mfminusx-cool-20260802-urgent01"
+TRIAL_ID = "lavie-mfminusx-cool-20260802-urgent02"
 MAX_ATTEMPTS = 240
 SLEEP_SECONDS = 30
 
@@ -56,6 +56,9 @@ def main() -> int:
         save("completed" if trial.get("verdict") == "SUCCESS" else "finished_non_success", attempt, {
             "worker_status": worker.get("status"), "verdict": trial.get("verdict"),
             "error": trial.get("error"), "run_dir": trial.get("run_dir"),
+            "log_snippet": trial.get("log_snippet"),
+            "stdout_tail": worker.get("stdout_tail"),
+            "stderr_tail": worker.get("stderr_tail"),
         })
         dispatch.merge_trial_into_log(trial)
         dispatch.append_cae_log({"source": "wait_dispatch_mfminusx_cool", "trial_entry": trial})
