@@ -1,0 +1,16 @@
+{
+  "physics_category": "resin_fill_cool",
+  "inlet_velocity": 12.0,
+  "inlet_velocity_xyz": [-12.0, 0.0, 0.0],
+  "gate_inflow_direction": [-1.0, 0.0, 0.0],
+  "pack_pressure_MPa": 17.6064,
+  "T_melt": 516.78,
+  "T_mold": 313.15,
+  "T_eject": 373.15,
+  "cool_end_time": 35.0,
+  "cooling_start_time_s": 1.07,
+  "thermal_shrink_alpha": 0.00008,
+  "mold_length_mm": 100.0,
+  "accuracy_band_label": "PROXY_GAP",
+  "mf_cooling_target_status": "PENDING_MF_COOL"
+}

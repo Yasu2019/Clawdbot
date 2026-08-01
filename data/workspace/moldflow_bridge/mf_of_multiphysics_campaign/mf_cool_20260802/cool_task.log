@@ -1,0 +1,134 @@
+START=2026/08/02  4:39:25.11 
+Copyright Autodesk, Inc. All rights reserved.
+(C)2009 
+Portions of this software are covered by U.S. Patent Numbers 5,287,408 and 6,096,088.
+
+
+Cool Analysis
+
+
+Version: ami2010-main  (Build 09034-001)
+         64-bit build
+
+Analysis running on host: DESKTOP-UOVCG4T
+        Operating System: Windows Vista 
+          Processor type: GenuineIntel Intel64 Family 6 Model 61 Stepping 4 ~2195 MHz
+    Number of Processors: 4
+   Total Physical Memory: 16295 MBytes
+
+
+Analysis commenced at        Sun Aug 02 04:39:25 2026
+Executed: Sun Aug 02 04:39:30 2026
+   Mesh Type                                          = Dual Domain
+   Number of nodes                                    =        1792 
+   Number of beam elements                            =           8             
+   Number of triangular elements                      =        3552
+   Number of tetrahedral elements                     =           0
+ 
+Reading nodal data...
+Reading beam element data...
+Reading triangular element data...
+Analysis is using stored mesh match and thickness data
+Match data was computed using the maximal-sphere algorithm
+   Method of calculating geometrical influence        = Ideal 
+ 
+   Cool analysis type                                 = Manual
+ 
+   Total number of part elements                      =        3552
+   Total number of mold elements                      =         356
+   Total number of circuit elements                   =           8
+   Co-ordinates of part extremity:
+                        X             Y             Z
+      Maximum          0.05000 m      0.03000 m      0.05000 m
+      Minimum         -0.05000 m     -0.03000 m     -0.00000 m
+      Orientation      0.15000 m      0.09000 m      0.10000 m
+   Co-ordinates of mold extremity:
+                         X             Y             Z
+      Center            0.00000 m      0.00000 m      0.02500 m
+      Right corner      0.53000 m      0.53000 m      0.55500 m
+      Left  corner     -0.53000 m     -0.53000 m     -0.50500 m
+
+   Using mesh aggregation
+
+
+   Total Mbytes required for Cool analysis            =    21.07 
+   Total Mbytes available for Cool analysis           = 376732.31 
+
+Now beginning the task: Input part model 
+Current time is:  Sun Aug 02 04:39:34 2026 
+
+Now beginning the task: Input mold model 
+Current time is:  Sun Aug 02 04:39:34 2026 
+Performing cooling network analysis
+
+
++---------+-------------+-----------------------+--------------+-------------+ 
+| Inlet   |Flowrate     |    Reynolds No.       |Press. drop   | Pumping     |
+| node    |in/out       |       range           |   over       | power over  |
+|         |             |                       |  circuit     |  circuit    |
+|         |  (m^3/sec)  |                       |     (Pa)     |     (W)     |
++---------+-------------+-----------------------+--------------+-------------+ 
+|    2699 |     0.00    |    10000.0 -  10000.0 |   1431.5093  |       0.081 |
++---------+-------------+-----------------------+--------------+-------------+ 
+
+Now beginning the task: Boundary Integration  
+Current time is:  Sun Aug 02 04:39:34 2026 
+
+Now beginning the task: Solution of equilibrium TMP field 
+Current time is:  Sun Aug 02 04:39:40 2026 
++----------+----------+----------+----------+----------+----------+----------+
+|          |          |          |          |          |          |          |
+|External  |Cycle time|Avg temp  |Avg temp  |Dif temp  |Dif temp  |Circ temp |
+|iteration |   (s)    |iteration |deviation |iteration |deviation |residual  |
++----------+----------+----------+----------+----------+----------+----------+
+|         1|    35.000|        17| 25.000015|         0|  0.000000|  1.000000| 
+|         1|    35.000|        14| 17.940588|         0|  0.000000|  1.000000| 
+|         1|    35.000|        12|  9.569001|         0|  0.000000|  1.000000| 
+|         1|    35.000|        17|  8.597864|         0|  0.000000|  1.000000| 
+|         1|    35.000|        17|  2.167494|         0|  0.000000|  1.000000| 
+|         1|    35.000|         2|  1.136238|         0|  0.000000|  1.000000| 
+|         1|    35.000|         1|  0.028187|         0|  0.000000|  1.000000| 
+|         1|    35.000|         3|  0.013530|         0|  0.000000|  1.000000| 
++----------+----------+----------+----------+----------+----------+----------+
+|         2|    35.000|         4|  0.108788|         0|  0.000000|  1.000000| 
+|         2|    35.000|         0|  0.002248|         0|  0.000000|  1.000000| 
+|         2|    35.000|         0|  0.002055|         0|  0.000000|  1.000000| 
++----------+----------+----------+----------+----------+----------+----------+
+|         3|    35.000|         3|  0.005945|         0|  0.000000|  0.000250| 
+|         3|    35.000|         0|  0.001479|         0|  0.000000|  0.000250| 
+|         3|    35.000|         0|  0.001388|         0|  0.000000|  0.000250| 
++----------+----------+----------+----------+----------+----------+----------+
++----------+----------+----------+----------+----------+----------+----------+
+
+Coolant Temperatures 
+
+Inlet       Coolant temp. Coolant temp. rise
+node          range         over circuit    
+
+  2699   298.1 - 298.2          0.1 K(d)  
+ 
+ Final circuit temperature residual: 0.00000E+00
+ 
+
+Opened the results interface file  mf_minusx_cool_20260802.c2p
+
+
+
+ Summary of Cavity Temperature Results
+
+ =====================================
+Part surface temperature   - maximum                 = 364.9521 K
+Part surface temperature   - minimum                 = 326.1938 K
+Part surface temperature   - average                 = 342.2514 K
+Cavity surface temperature - maximum                 = 362.3577 K
+Cavity surface temperature - minimum                 = 321.4091 K
+Cavity surface temperature - average                 = 338.3401 K
+Average mold exterior temperature                    = 303.8029 K
+Cycle time                                           =  35.0000 s
+ 
+Execution time
+   Analysis commenced at        Sun Aug 02 04:39:25 2026
+   Analysis completed at        Sun Aug 02 04:39:45 2026
+   CPU time used                        8.81 s
+EXIT=0 
+END=2026/08/02  4:39:46.07 
