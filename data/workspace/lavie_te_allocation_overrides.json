@@ -1,0 +1,89 @@
+{
+  "active_categories": [
+    "resin_fill_cad",
+    "press_blanking",
+    "press_bending"
+  ],
+  "exclude_categories": [
+    "resin_flow",
+    "resin_flow_opt",
+    "press_crushing",
+    "press_blanking_stripper"
+  ],
+  "param_overrides": {
+    "resin_fill_cad": {
+      "polymer_nu": [
+        0.005,
+        0.02
+      ],
+      "inlet_velocity": [
+        0.6,
+        1.15
+      ],
+      "pack_pressure_MPa": [
+        5.0,
+        25.0
+      ],
+      "pack_inlet_velocity": [
+        0.03,
+        0.1
+      ]
+    },
+    "press_blanking": {
+      "clearance_pct": [
+        3.0,
+        8.0
+      ],
+      "punch_speed_mms": [
+        4000.0,
+        7000.0
+      ]
+    },
+    "press_bending": {
+      "bend_angle_deg": [
+        75.0,
+        105.0
+      ]
+    }
+  },
+  "mf_to_of_handoff": {
+    "path": "data/workspace/moldflow_bridge/mf_to_of_handoff_warp_v2_eval_20260730.json",
+    "enabled": true,
+    "stl_path": "data/cae_te_workspace/samples/moldflow/box_shell_phi20/Moldflow.stl",
+    "geometry_family": "box_shell_100x60x50_bottom_phi20",
+    "viz_policy": "volume_isosurface_alpha_0.5",
+    "forbid_stl_fill_time_contour": true,
+    "forbid_plate_geometry": true,
+    "lavie_case": "C:/clawstack_satellite/data/work/jobs/moldflow-union-xplus-d2-mfalign-v3-20260723",
+    "dynabook_paths_registry": "data/workspace/moldflow_bridge/dynabook_g_moldflow_paths.json",
+    "mf_study_ref": "G:/moldflow_bridge/work/results/mf_nodal_trans_20260729/warp_v2_proj/mf_fc_warp_v2_20260720_(copy).sdy",
+    "mf_study_ref_prev_strip": "G:/moldflow_bridge/work/CLAW_MF_AUTOREPAIR_20260719_02/mf_fc_strip_out_study_(copy).sdy",
+    "mf_of_gate_match_study": "G:/moldflow_bridge/work/CLAW_MF_OFGATE_MATCH_20260724/mf_of_xplus_phi2_gate_match_20260724.sdy",
+    "opt_in": "enabled=true forces MFALIGN box+phi20 from Dynabook G: proven studies (not pp_plate / not DXF2STEP plate)",
+    "note": "Active MF calibration: INC-183 corrected Pa-to-MPa error; pressure trial power_law_k=10.576058 from MF EOF 13.784831 MPa vs r32 0.06517 MPa. Verification required; PROXY_GAP.",
+    "mf_eval_fields_pack": "data/workspace/moldflow_bridge/mf_all_results_20260730/mf_eval_fields_of_pack_20260731.json",
+    "mf_all_results_pack": "data/workspace/moldflow_bridge/mf_all_results_20260730/mf_all_results_of_pack_20260731.json",
+    "mf_of_calibration_db": "data/workspace/moldflow_bridge/mf_of_calibration.sqlite",
+    "mf_of_calibration_ingest": "python scripts/mf_of_calibration_ingest.py --study mf_fc_warp_v2_20260720",
+    "bd": "Clawdbot_Docker_20260125-627j",
+    "updated_at": "2026-08-01T06:38:13+09:00",
+    "mf_to_of_overwrite": false,
+    "inlet_velocity_locked": false,
+    "mf_minusx_copy_pack": "D:/Clawdbot_Docker_20260125/data/workspace/moldflow_bridge/mf_minusx_copy_results_20260801/mf_minusx_copy_of_pack_20260801.json",
+    "mf_of_calibration_study": "mf_fc_warp_v2_20260720_(copy)_minusX"
+  },
+  "material_profile": {
+    "id": "north_star_multi_pillar_v001",
+    "label": "Moldflow cavity VOF + OpenRadioss press (north star evolution)",
+    "note": "resin_flow retired; press cats enabled when harvest evidence >= 20"
+  },
+  "reason": "North star evolution: moldflow records=21203, press records=21931; multi-pillar TE for breakthrough",
+  "updated_at": "2026-08-02T16:32:27.999222+09:00",
+  "allocation_source": "D:\\Clawdbot_Docker_20260125\\data\\workspace\\k10_growth_allocation.json",
+  "north_star_evolution": {
+    "updated_at": "2026-08-02T16:32:27.999222+09:00",
+    "moldflow_total": 21203,
+    "press_total": 21931,
+    "multi_pillar": true
+  }
+}

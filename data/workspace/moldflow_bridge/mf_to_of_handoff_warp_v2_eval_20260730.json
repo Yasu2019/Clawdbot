@@ -1,0 +1,417 @@
+{
+  "schema_version": 1,
+  "label": "mf_fc_warp_v2_eval_20260730",
+  "sequence_id": "Flow|Warp",
+  "of_target_category": "resin_fill_cad",
+  "mf_study_ref": "G:/moldflow_bridge/work/results/mf_nodal_trans_20260729/warp_v2_proj/mf_fc_warp_v2_20260720_(copy).sdy",
+  "mf_study_ref_prev": "G:/moldflow_bridge/work/results/mf_nodal_trans_20260729/warp_v2_proj/mf_fc_warp_v2_20260720.sdy",
+  "mf_artifact_out": "G:/moldflow_bridge/work/CLAW_MF_AUTOREPAIR_20260719_02/mf_fc_strip_out_study_(copy)~1.out",
+  "geometry": {
+    "family": "box_shell_100x60x50_bottom2mm",
+    "bbox_mm": {
+      "xmin": -50,
+      "xmax": 50,
+      "ymin": -30,
+      "ymax": 30,
+      "zmin": 0,
+      "zmax": 50
+    },
+    "cavity_volume_m3": 4.1330997e-05,
+    "cavity_volume_mm3": 41330.997,
+    "lavie_signed_volume_mm3": 41341.731758,
+    "volume_match_note": "MF midplane study volume ~ Lavie Boolean-union STL signed volume (within 0.03%)"
+  },
+  "gate": {
+    "count": 1,
+    "intent": "plus_X_face_center_phi2mm",
+    "target_xyz_mm": [
+      50.0,
+      0.0,
+      25.0
+    ],
+    "xyz_mm": [
+      50.0,
+      2.092415,
+      27.69535
+    ],
+    "mf_node_id": 1154,
+    "distance_to_target_mm": 3.412,
+    "diameter_mm": 2.0,
+    "area_m2": 2.7e-06,
+    "area_note": "Lavie mesh gate patch area (20 faces); equiv diameter ~1.854 mm",
+    "of_position_m": [
+      0.05,
+      0.0,
+      0.025
+    ],
+    "of_position_label": "center",
+    "mf_cone_orientation_observed": "Z_minus",
+    "inflow_direction_mf_observed": [
+      0.0,
+      0.0,
+      -1.0
+    ],
+    "mf_cone_observed_at": "2026-07-31T23:42:00+09:00",
+    "orientation_conflict_note": "2026-07-24 CreateNDBC note said normal (0,0,1); user visual 2026-07-31: cone points -Z on warp_v2. Prefer user observation for UI. Midplane NDBC normal is often thickness, while OF entry from +X face uses -X into cavity.",
+    "of_face_match_warning": "Gate node is on +X (x~50). Applying U=(0,0,-U) on +X patch is tangential and wrong for cavity entry.",
+    "inflow_direction": [
+      -1.0,
+      0.0,
+      0.0
+    ],
+    "of_inflow_active": [
+      -1.0,
+      0.0,
+      0.0
+    ],
+    "of_inflow_active_note": "User 2026-08-01: gate inflow locked to minus-X into cavity from +X face (MF+OF).",
+    "mf_create_ndbc_normal_xyz": [
+      -1.0,
+      0.0,
+      0.0
+    ],
+    "mf_create_ndbc_note": "CreateNDBC default (-1,0,0). User rematched 2026-08-01 on mf_fc_warp_v2_20260720_(copy) and restarted analysis.",
+    "mf_user_rematch_at": "2026-08-01T02:54:00+09:00",
+    "mf_user_rematch_study": "mf_fc_warp_v2_20260720_(copy)",
+    "mf_user_rematch_gate": "minus_X_into_cavity"
+  },
+  "material": {
+    "material_id": 1007,
+    "domain": 21000,
+    "label": "Generic PP : Generic Default"
+  },
+  "process": {
+    "melt_temp_c": 243.62587890625,
+    "mold_temp_c": 40.0,
+    "fill_time_s": 1.0477837,
+    "note": "2026-08-01 minus-X copy Play Macro Eval+AllResults ingested"
+  },
+  "mf_kpis": {
+    "fill_time_s": 1.0477837,
+    "fill_fraction_pct": 98.465088,
+    "fill_complete": false,
+    "peak_injection_pressure_MPa": 17.379422,
+    "deflection_absmax_mm": 0.812297129916888,
+    "shear_rate_plot_max": 4249.69580078125,
+    "volumetric_shrinkage_plot_max_pct": 17.5384750366211,
+    "velocity_plot_max": 155.363094806671,
+    "mesh_nodes": 6588,
+    "status": "Flow|Warp results visible; MeshStatus Failed flag but plots OK via FindPlotByName2/DsID",
+    "kpi_pack": "D:/Clawdbot_Docker_20260125/data/workspace/moldflow_bridge/mf_all_results_20260730/mf_eval_kpi_pack_20260730.json",
+    "nodal_field_available": true,
+    "minus_x_copy_out_extract": {
+      "fill_time_s": 1.0477837,
+      "fill_fraction_pct": 98.465088,
+      "peak_injection_pressure_MPa": 17.379422,
+      "progress_rows": 27,
+      "last_row": {
+        "t_s": 1.0477837,
+        "fill_pct": 98.465088,
+        "p_pa": 17379422.0,
+        "other3": 49762.504,
+        "vol_m3": 4.0879633e-05,
+        "other5": 7.0056148
+      },
+      "gate_node": 1154,
+      "cavity_volume_m3": 4.1330997e-05,
+      "warp_out_bytes": 896,
+      "flow_out_bytes": 7648,
+      "source": "mf_fc_warp_v2_20260720_(copy)~1.out / ~3.out",
+      "extracted_at": "2026-08-01T03:23:27.610998+09:00"
+    },
+    "minus_x_copy_prev_kpis": {
+      "fill_time_s": 1.06967902183533,
+      "peak_injection_pressure_MPa": 17.606368
+    }
+  },
+  "of_prior_trial": {
+    "trial_id": "TRIAL_MOLDFLOW_UNION_XPLUS_D2_20260719",
+    "job_path_lavie": "C:/clawstack_satellite/data/work/jobs/moldflow-union-xplus-d2-20260719",
+    "cells": 681768,
+    "endTime_s": 15.0,
+    "reached_time_s": 0.526,
+    "fill_complete": false,
+    "failure": "wall-clock / disk limits; incomplete fill",
+    "likely_root_cause": "inlet_velocity ~0.6-1.15 m/s vs MF-derived ~14.2 m/s; endTime 15s vs MF fill 1.08s; mesh ~682k too heavy for Lavie timeout"
+  },
+  "of_target": {
+    "category": "resin_fill_cad",
+    "physics_category": "resin_fill_vof",
+    "inlet_velocity": 12.0,
+    "analysis_end_time_s": 1.230131,
+    "fill_end_time_margin": 1.15,
+    "polymer_nu": 0.05,
+    "polymer_rho_kg_m3": 895.029,
+    "transportModel": "powerLaw",
+    "power_law_n": 0.275,
+    "power_law_k": 10.576058,
+    "power_law_k_prev": 0.05,
+    "power_law_k_rationale": "INC-183 20260802: r32 p max at MF EOF was 65170 Pa = 0.06517 MPa, not 65.17 MPa. First-order fixed-U scale: 0.05 * (MF EOF 13.784831 / OF 0.06517) = 10.576058. Verification trial required; PROXY_GAP.",
+    "pressure_end_of_fill_MPa": 13.784831,
+    "of_r32_pressure_at_eof_Pa": 65170.0,
+    "of_r32_pressure_at_eof_MPa": 0.06517,
+    "pressure_unit_correction": "Pa / 1e6 = MPa; legacy 65.24 MPa proxy was actually approximately 65.24 kPa",
+    "power_law_nuMax": 50.0,
+    "power_law_nuMin": 0.0001,
+    "pack_pressure_MPa": 17.6064,
+    "T_melt": 516.78,
+    "T_mold": 313.15,
+    "mesh_mode": "snappyhexmesh",
+    "max_global_cells": 120000,
+    "cells_target": 25000,
+    "write_interval_s": 0.05,
+    "gate_width_mm": 2.0,
+    "calibration_note": "2026-08-01 minus-X copy out-extract: fill=1.0478s P=17.3794 MPa; CSV Play Macro pending for nodal fields. PROXY_GAP.",
+    "mf_eval_incorporated_at": "2026-07-30T21:38:42+09:00",
+    "mf_fill_time_s": 1.06967902183533,
+    "mf_eval_fields_pack": "D:/Clawdbot_Docker_20260125/data/workspace/moldflow_bridge/mf_all_results_20260730/mf_eval_fields_of_pack_20260731.json",
+    "mf_eval_fields_at": "2026-07-31T10:28:54+09:00",
+    "mf_all_results_pack": "D:/Clawdbot_Docker_20260125/data/workspace/moldflow_bridge/mf_all_results_20260730/mf_all_results_of_pack_20260731.json",
+    "mf_all_results_at": "2026-07-31T15:45:41+09:00",
+    "pressure_vp_switchover_MPa": 17.6064,
+    "mf_density_fill": 0.895029235839844,
+    "density_unit_note": "MF g/cm3 * 1000 -> OF kg/m3",
+    "mf_viscosity_absmax_Pa_s": 1000000.0,
+    "viscosity_nu_forbidden": true,
+    "viscosity_note": "Do not set OF polymer_nu from MF viscosity absmax; use powerLaw/Cross proxy",
+    "inlet_velocity_prev_mfalign_v3": 6.51,
+    "inlet_velocity_rationale": "P026 20260801 minus-X copy: MF fill~1.048s P~17.38MPa; raise U 10.5->12.0 toward fill_complete (prior 88% short-shot). PROXY_GAP.",
+    "inlet_velocity_prev_p026_u9": 9.0,
+    "mf_gate_cone_direction_observed": [
+      0.0,
+      0.0,
+      -1.0
+    ],
+    "gate_inflow_direction": [
+      -1.0,
+      0.0,
+      0.0
+    ],
+    "gate_orientation_pending": false,
+    "gate_orientation_decided_at": "2026-08-01T02:35:00+09:00",
+    "gate_orientation_decision": "minus_X_into_cavity_from_plus_X_face",
+    "gate_orientation_pending_note": "User chose minus-X; OF U = (-|U|, 0, 0). MF UI cone Z-minus not used for OF BC.",
+    "minus_x_copy_feedback_at": "2026-08-01T03:23:27.610998+09:00",
+    "inlet_velocity_prev_p026_u105": 10.5,
+    "accuracy_band": "PROXY_GAP",
+    "mf_study_label": "mf_fc_warp_v2_20260720_(copy)_minusX",
+    "mf_density_unit": "g_cm3_converted",
+    "mf_viscosity_nu_forbidden": true,
+    "mf_minusx_copy_pack": "D:/Clawdbot_Docker_20260125/data/workspace/moldflow_bridge/mf_minusx_copy_results_20260801/mf_minusx_copy_of_pack_20260801.json",
+    "mf_minusx_copy_at": "2026-08-01T06:38:13+09:00",
+    "mf_calibration_study": "mf_fc_warp_v2_20260720_(copy)_minusX"
+  },
+  "of_v1_observed": {
+    "cells": 24928,
+    "fill_time_s_approx": 0.804,
+    "fill_fraction_pct": 99.95,
+    "inlet_velocity": 14.21,
+    "transport": "Newtonian nu=0.01 rho=1200",
+    "label": "PROXY_GAP"
+  },
+  "of_v2_observed": {
+    "cells": 24928,
+    "fill_time_s": 0.665122,
+    "fill_fraction_pct": 99.976,
+    "fill_complete": true,
+    "inlet_velocity": 10.55,
+    "peak_pressure_MPa_proxy": 0.06524,
+    "peak_pressure_unit_correction": "INC-183: legacy value divided Pa by 1e3 and mislabeled kPa as MPa; corrected with Pa/1e6",
+    "transport": "powerLaw n=0.275 k=0.05 rho=900",
+    "label": "PROXY_GAP",
+    "case": "moldflow-union-xplus-d2-mfalign-v2-20260720"
+  },
+  "accuracy_band": {
+    "label": "PROXY_GAP",
+    "fill_time_rel_tol": 0.25,
+    "fill_fraction_min_pct": 99.0,
+    "pressure_rel_tol": 0.5,
+    "note": "Until dual-run calibration passes bands, never claim MOLDFLOW_EQUIVALENT (T019/P025)"
+  },
+  "weldline_proxy": {
+    "accuracy_band": "PROXY_GAP",
+    "never_claim": "MOLDFLOW_EQUIVALENT",
+    "script": "scripts/mf_of_weldline_proxy.py",
+    "pack": "data/workspace/moldflow_bridge/mf_minusx_copy_results_20260801/mf_of_weldline_proxy_20260801.json",
+    "mf_source": "fill_time_ridge_proxy",
+    "mf_note": "DsID 1722/1732 unavailable_on_study; late-fill ridges only",
+    "of_note": "weldline_kpis.json or alpha fill-arrival with constant/C; location only"
+  },
+  "provenance": {
+    "date": "2026-07-30",
+    "mf_host": "DESKTOP-UOVCG4T",
+    "sources": [
+      "D:/Clawdbot_Docker_20260125/data/workspace/moldflow_bridge/mf_all_results_20260730/fill_time.csv",
+      "D:/Clawdbot_Docker_20260125/data/workspace/moldflow_bridge/mf_all_results_20260730/summary_extrema.csv",
+      "D:/Clawdbot_Docker_20260125/data/workspace/moldflow_bridge/mf_all_results_20260730/mf_eval_kpi_pack_20260730.json",
+      "docs/knowledge/MF_SYNERGY_DUAL_INSTANCE_COM_GATE_20260730.md",
+      "D:/Clawdbot_Docker_20260125/data/workspace/moldflow_bridge/mf_all_results_20260730/mf_fc_warp_v2_20260720_warp_all_nodes.csv",
+      "D:/Clawdbot_Docker_20260125/data/workspace/moldflow_bridge/mf_all_results_20260730/mf_nodal_trans_warpquery_summary.json"
+    ],
+    "bd_keys": [
+      "mf-com-export-stable-indp-20260730",
+      "mf-synergy-dual-instance-com-gate",
+      "cae-north-star-t019",
+      "mf-warpquery-csv-20260731"
+    ]
+  },
+  "of_pack_target": {
+    "category": "resin_fill_pack",
+    "from_fill_trial": "mfalign_v3",
+    "pack_pressure_MPa": 17.6064,
+    "pack_pressure_kinematic_m2_s2": 19797.2222,
+    "polymer_rho_kg_m3": 900.0,
+    "packing_time_s": 2.1594,
+    "analysis_end_time_s": 3.3895,
+    "fill_end_time_s": 1.230131,
+    "inlet_velocity_fill": 6.51,
+    "gate_bc_pack": {
+      "U": "pressureInletOutletVelocity",
+      "p_rgh": "fixedValue pack_pressure (kinematic if case uses m2/s2)"
+    },
+    "success_criteria": {
+      "fill_complete": true,
+      "pack_pressure_ratio_min": 0.5,
+      "sink_label_target": "LOW",
+      "never_claim": "MOLDFLOW_EQUIVALENT"
+    },
+    "evolution_vs_v3": "Add pack/hold phase after fill for sink KPI (P026)",
+    "mf_fpo": {
+      "pack_complete": true,
+      "packing_time_s": 2.1594,
+      "peak_pressure_MPa": 17.8175,
+      "pvt_model": "2-domain modified Tait material pvT"
+    },
+    "bd": "Clawdbot_Docker_20260125-vqer",
+    "created_at": "2026-07-23T22:43:08+09:00",
+    "mf_eval_source": "D:/Clawdbot_Docker_20260125/data/workspace/moldflow_bridge/mf_all_results_20260730/mf_eval_kpi_pack_20260730.json"
+  },
+  "updated_at_pack_handoff": "2026-07-23T22:43:08+09:00",
+  "of_pack_observed": {
+    "ok": true,
+    "case": "C:\\clawstack_satellite\\data\\work\\jobs\\moldflow-union-xplus-d2-mfalign-pack-v1-20260723",
+    "trial": "mfalign_pack_v1",
+    "t_end": 3.4,
+    "times_n": 47,
+    "fill_fraction_pct": 99.7341,
+    "fill_complete": true,
+    "pack_complete": true,
+    "pack_phase_complete": true,
+    "peak_pressure_MPa": 22.8852,
+    "pack_pressure_MPa": 17.825,
+    "pack_pressure_ratio_vs_target": 1.0004,
+    "peak_pressure_mode": "kinematic_p_times_rho",
+    "alpha_min": 0.0,
+    "alpha_max": 24928.0,
+    "alpha_vol_last": 0.997341,
+    "bd": "Clawdbot_Docker_20260125-vqer"
+  },
+  "warp_target": {
+    "deflection_absmax_mm": 0.812297129916888,
+    "component_abs_max_mm": 0.609896262176335,
+    "components_mm": {
+      "X": {
+        "min": -0.574279634747654,
+        "max": 0.609896262176335
+      },
+      "Y": {
+        "min": -0.381813413696364,
+        "max": 0.380984129151329
+      },
+      "Z": {
+        "min": -0.404384918510914,
+        "max": 0.229251789278351
+      }
+    },
+    "source": "WarpQueryNode DsID6250 full nodal CSV 2026-07-31",
+    "nodal_field_available": true,
+    "n_nodes": 6588,
+    "csv": "D:\\Clawdbot_Docker_20260125\\data\\workspace\\moldflow_bridge\\mf_all_results_20260730\\mf_fc_warp_v2_20260720_warp_all_nodes.csv",
+    "csv_phase5": "D:\\Clawdbot_Docker_20260125\\data\\workspace\\moldflow_bridge\\of_box_warp_phase5_20260728\\mf_nodal_trans.csv",
+    "warpquery_summary": "D:\\Clawdbot_Docker_20260125\\data\\workspace\\moldflow_bridge\\mf_all_results_20260730\\mf_nodal_trans_warpquery_summary.json",
+    "phase5_dir": "D:\\Clawdbot_Docker_20260125\\data\\workspace\\moldflow_bridge\\of_box_warp_phase5_20260728",
+    "never_claim": "MOLDFLOW_EQUIVALENT",
+    "accuracy_band": "PROXY_GAP"
+  },
+  "eval_fields_local": {
+    "dir": "D:/Clawdbot_Docker_20260125/data/workspace/moldflow_bridge/mf_all_results_20260730",
+    "files": [
+      "air_traps_smoke.csv",
+      "fill_time.csv",
+      "fill_time_smoke.csv",
+      "freeze_time.csv",
+      "freeze_time_smoke.csv",
+      "manifest.csv",
+      "manifest_scalar.csv",
+      "manifest_smoke.csv",
+      "mf_nodal_trans_PARTIAL_56461.csv",
+      "mf_nodal_trans_QUARANTINE_velocity_not_warp.csv",
+      "nodes_xyz.csv",
+      "pressure.csv",
+      "pressure_smoke.csv",
+      "shear_rate_smoke.csv",
+      "summary_extrema.csv",
+      "temperature.csv",
+      "temperature_smoke.csv",
+      "velocity.csv",
+      "velocity_smoke.csv",
+      "volumetric_shrinkage_smoke.csv"
+    ]
+  },
+  "updated_at_mf_eval_20260730": "2026-07-30T21:38:42+09:00",
+  "updated_at_warpquery_20260731": "2026-07-31T03:56:08+09:00",
+  "eval_fields_pack_20260731": {
+    "path": "D:/Clawdbot_Docker_20260125/data/workspace/moldflow_bridge/mf_all_results_20260730/mf_eval_fields_of_pack_20260731.json",
+    "fields_present": [
+      "air_traps",
+      "fill_time",
+      "freeze_time",
+      "pressure",
+      "shear_rate",
+      "temperature",
+      "velocity",
+      "volumetric_shrinkage"
+    ]
+  },
+  "all_results_pack_20260731": {
+    "path": "D:/Clawdbot_Docker_20260125/data/workspace/moldflow_bridge/mf_all_results_20260730/mf_all_results_of_pack_20260731.json",
+    "new_fields": [
+      "density_fill",
+      "density_last",
+      "melt_flow_direction_warp",
+      "polymer_fill_region",
+      "pressure_vp_switchover",
+      "shear_rate_maximum",
+      "temperature_at_flow_front",
+      "temperature_for_warp",
+      "viscosity",
+      "volumetric_shrinkage_warp"
+    ],
+    "eval_fields": [
+      "air_traps",
+      "fill_time",
+      "freeze_time",
+      "pressure",
+      "shear_rate",
+      "temperature",
+      "velocity",
+      "volumetric_shrinkage",
+      "warp_all_nodes"
+    ],
+    "accuracy_band": "PROXY_GAP"
+  },
+  "of_target_history": [
+    {
+      "at": "2026-07-31T17:20:00+09:00",
+      "inlet_velocity": 9.0,
+      "from": 6.51,
+      "reason": "P026 U-step short-shot recovery"
+    }
+  ],
+  "minusx_copy_csv_campaign": {
+    "local_root": "D:/Clawdbot_Docker_20260125/data/workspace/moldflow_bridge/mf_minusx_copy_results_20260801",
+    "db_study": "mf_fc_warp_v2_20260720_(copy)_minusX",
+    "fields_n": 19,
+    "distinct_from": "mf_all_results_20260730 pre-rematch"
+  }
+}
