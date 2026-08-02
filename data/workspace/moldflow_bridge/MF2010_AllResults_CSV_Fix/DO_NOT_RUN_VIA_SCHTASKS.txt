@@ -1,0 +1,5 @@
+DO NOT run these scripts via schtasks /IT, SSH cscript, or Explorer double-click.
+
+Use Synergy 2010 Play Macro only (same rule as S023 WarpQuery / EvalFields success).
+MF2010 cannot select among Synergy COM instances from outside.
+Bind must be inline SAInstance -> GetObject -> CreateObject (NOT Function BindSynergy).
