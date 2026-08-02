@@ -51,7 +51,8 @@ def scorecard(mf: dict[str, Any], of: dict[str, Any], band: dict[str, Any]) -> d
     mf_ft = mf.get("fill_time_s")
     of_ft = of.get("fill_time_s")
     if mf_ft and of_ft:
-        rel = abs(_rel(float(of_ft), float(mf_ft)) or 99)
+        rel_value = _rel(float(of_ft), float(mf_ft))
+        rel = abs(rel_value) if rel_value is not None else math.inf
         add("fill_time_s", float(mf_ft), float(of_ft), rel <= fill_tol, f"tol=+/-{fill_tol:.0%}")
     else:
         add("fill_time_s", mf_ft, of_ft, False, "missing")
@@ -75,9 +76,9 @@ def scorecard(mf: dict[str, Any], of: dict[str, Any], band: dict[str, Any]) -> d
     mf_p = mf.get("pressure_end_of_fill_MPa", mf.get("peak_injection_pressure_MPa"))
     of_p = of.get("peak_pressure_MPa")
     if mf_p is not None and of_p is not None:
-        # pressure band looser until Cross-WLF calibrated
         p_tol = float(band.get("pressure_rel_tol", 0.5))
-        rel = abs(_rel(float(of_p), float(mf_p)) or 99)
+        rel_value = _rel(float(of_p), float(mf_p))
+        rel = abs(rel_value) if rel_value is not None else math.inf
         add(pressure_kpi, float(mf_p), float(of_p), rel <= p_tol, f"tol=+/-{p_tol:.0%}")
     else:
         add(pressure_kpi, mf_p, of_p, None, "OF pressure not yet extracted")
