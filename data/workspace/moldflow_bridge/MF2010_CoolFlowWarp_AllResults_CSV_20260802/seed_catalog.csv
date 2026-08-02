@@ -1,0 +1,454 @@
+safe,dsid,kind_hint,indp_policy,priority,already_have,notes
+orientation_at_core,1030,tensor,last,high,0,full_catalog;ELDT;Orientation at core
+orientation_at_skin,1040,tensor,last,high,0,full_catalog;ELDT;Orientation at skin
+orientation_at_top_skin,1045,tensor,last,high,0,full_catalog;ELDT;Orientation at top skin
+orientation_at_bottom_skin,1050,tensor,last,high,0,full_catalog;ELDT;Orientation at bottom skin
+orientation_at_skin_fast_fill,1051,tensor,last,high,0,full_catalog;ELDT;Orientation at skin (fast fill)
+shear_rate_bulk,1120,scalar,fill_and_last,high,0,full_catalog;ELDT;Shear rate; bulk
+shear_stress_bulk,1125,scalar,fill_and_last,high,0,full_catalog;ELDT;Shear stress; bulk
+pressure,1180,scalar,fill,have,1,already_have_csv
+pressure_drop,1185,scalar,fill_and_last,high,0,reprobe_full_catalog
+pressure_end_of_fill,1190,scalar,last,high,0,reprobe_full_catalog
+hold_pressure,1195,scalar,last,high,0,reprobe_full_catalog
+frozen_pressure,1197,scalar,fill,high,0,full_catalog;ELDT;Frozen pressure
+bulk_temperature_eof,1220,scalar,last,high,0,reprobe_full_catalog
+frozen_layer_eof,1230,scalar,last,high,0,reprobe_full_catalog
+stress_end_of_pack,1303,scalar,last,high,0,full_catalog;ELDT;Stress. End of pack
+average_velocity,1420,vector,fill,high,0,reprobe_full_catalog
+volumetric_shrinkage_ejection,1440,scalar,last,high,0,reprobe_full_catalog
+sink_marks_depth,1444,scalar,last,high,0,reprobe_full_catalog
+flow_rate_beams,1450,scalar,last,high,0,full_catalog;ELDT;Flow rate; beams
+bulk_temperature_eldt,1460,scalar,fill_and_last,high,0,reprobe_full_catalog
+bulk_temperature_elemental,1465,scalar,fill_and_last,high,0,full_catalog;ELDT;Bulk temperature; elemental
+bulk_temperature_nodal,1467,scalar,fill_and_last,high,0,reprobe_full_catalog
+shear_stress_at_wall,1470,scalar,fill,high,0,reprobe_full_catalog
+volumetric_shrinkage,1480,scalar,last,have,1,already_have_csv
+frozen_layer_fraction,1490,scalar,fill_and_last,high,0,reprobe_full_catalog
+sink_marks_index,1510,scalar,last,high,0,reprobe_full_catalog
+time_to_ejection_temp,1520,scalar,last,high,0,reprobe_full_catalog
+temperature_for_warp,1539,scalar,last,high,0,full_catalog;NDDT;Temperature for warp analysis
+temperature,1540,scalar,fill,have,1,already_have_csv
+temperature,1545,scalar,fill,have,1,already_have_csv
+temperature_nodal,1547,scalar,fill,high,0,full_catalog;NDDT;Temperature; nodal
+velocity_eldt,1555,vector,fill,high,0,reprobe_full_catalog
+polymer_skin_fraction,1575,scalar,last,high,0,full_catalog;ELDT;Polymer skin fraction
+polymer_skin_half_gap_thickness_top,1580,scalar,last,high,0,full_catalog;ELDT;Polymer skin; half gap thickness (top)
+shear_rate,1584,scalar,fill,have,1,already_have_csv
+shear_rate_eldt,1585,scalar,fill,high,0,reprobe_full_catalog
+polymer_skin_half_gap_thickness_bottom,1590,scalar,last,high,0,full_catalog;ELDT;Polymer skin; half gap thickness (bottom
+viscosity,1595,scalar,fill,high,0,full_catalog;NDDT;Viscosity
+shear_rate_maximum,1597,scalar,fill,high,0,full_catalog;NDDT;Shear rate; maximum
+density,1600,scalar,fill_and_last,high,0,full_catalog;NDDT;Density
+polymer_skin_fraction_at_end_of_process,1605,scalar,last,high,0,full_catalog;ELDT;Polymer skin fraction at end of process
+polymer_thickness_at_end_of_process,1608,scalar,last,high,0,full_catalog;ELDT;Polymer thickness at end of process
+fill_time,1610,scalar,last,have,1,already_have_csv
+unfilled_cavity,1611,scalar,last,high,0,reprobe_full_catalog
+volumetric_shrinkage,1620,scalar,last,have,1,already_have_csv
+volumetric_shrinkage_warp,1621,scalar,last,high,0,full_catalog;NDDT;Volumetric shrinkage for warp analysis
+air_traps,1622,scalar,last,have,1,already_have_csv
+air_traps_with_vents,1623,scalar,last,high,0,reprobe_full_catalog
+freeze_time,1630,scalar,last,have,1,already_have_csv
+polymer_fill_region,1649,scalar,last,high,0,full_catalog;NDDT;Polymer fill region
+thickness_fraction_polymer_b,1655,scalar,last,high,0,full_catalog;ELDT;Thickness fraction; polymer B
+thickness_fraction_of_polymer_b_at_end_of_proces,1665,scalar,last,high,0,full_catalog;ELDT;Thickness fraction of polymer B at end o
+distribution_of_polymer_a_and_b,1675,scalar,last,high,0,full_catalog;ELDT;Distribution of polymer A and B
+distribution_of_polymer_a_red_b_blue_laminated,1685,scalar,last,high,0,full_catalog;ELDT;Distribution of polymer A (red) & B (blu
+distribution_of_polymer_a_and_b_at_end_of_proces,1690,scalar,last,high,0,full_catalog;ELDT;Distribution of polymer A and B at end o
+weld_lines,1722,scalar,last,high,0,reprobe_full_catalog
+weld_meld_lines,1732,scalar,last,high,0,reprobe_full_catalog
+melt_flow_direction_warp,1745,vector,last,high,0,full_catalog;NDDT;Melt flow direction for warp analysis
+velocity,1750,vector,fill,have,1,already_have_csv
+pressure_vp_switchover,1760,scalar,last,high,0,full_catalog;NDDT;Pressure at V/P switchover
+temperature_at_flow_front,1770,scalar,last,high,0,full_catalog;NDDT;Temperature at flow front
+temperature_end_of_fill,1771,scalar,last,high,0,reprobe_full_catalog
+real_thickness_cavity,1802,scalar,last,high,0,full_catalog;ELDT;Real thickness; cavity
+stress_normal_to_the_core,1803,scalar,last,high,0,full_catalog;NDDT;Stress normal to the core
+von_mises_stress_core,1810,scalar,last,high,0,full_catalog;ELDT;Von Mises Stress; core
+maximum_von_mises_stress,1811,scalar,last,high,0,full_catalog;ELDT;Maximum Von Mises Stress
+residual_stress_tensor,1814,tensor,last,high,0,full_catalog;ELDT;Residual stress tensor
+best_gate_location,2050,scalar,last,high,0,full_catalog;NDDT;Best gate location
+volume_change,2920,scalar,last,high,0,full_catalog;ELDT;Volume Change
+shear_modulus_g12,3030,scalar,fill,high,0,full_catalog;ELDT;Shear modulus (G12)
+shear_modulus_g23,3032,scalar,fill,high,0,full_catalog;ELDT;Shear modulus (G23)
+shear_modulus_g13,3034,scalar,fill,high,0,full_catalog;ELDT;Shear modulus (G13)
+angle_of_first_principal_stress_in_elemental_coo,3052,scalar,last,high,0,full_catalog;ELDT;Angle of first principal stress in eleme
+in_cavity_residual_stress_in_first_principal_dir,3060,scalar,last,high,0,full_catalog;ELDT;In-cavity residual stress in first princ
+in_cavity_residual_stress_in_second_principal_di,3062,scalar,last,high,0,full_catalog;ELDT;In-cavity residual stress in second prin
+temperature_difference_from_mold_walls,3064,scalar,fill,high,0,full_catalog;ELDT;Temperature difference from mold walls
+average_temperature_from_mold_walls,3065,scalar,fill,high,0,full_catalog;ELDT;Average temperature from mold walls
+parallel_shrinkage_strain_model,3080,scalar,last,high,0,full_catalog;ELDT;Parallel shrinkage (strain model)
+perpendicular_shrinkage_strain_model,3085,scalar,last,high,0,full_catalog;ELDT;Perpendicular shrinkage (strain model)
+orientation_effect,3095,tensor,last,high,0,full_catalog;ELDT;Orientation effect
+tensile_modulus_in_first_principal_direction_3d,3110,scalar,last,high,0,full_catalog;ELDT;Tensile modulus in first principal direc
+tensile_modulus_in_second_principal_direction_3d,3112,scalar,last,high,0,full_catalog;ELDT;Tensile modulus in second principal dire
+tensile_modulus_in_third_principal_direction_3d,3114,scalar,last,high,0,full_catalog;ELDT;Tensile modulus in third principal direc
+poisson_s_ratio_v12_3d_fiber,3120,scalar,last,high,0,full_catalog;ELDT;Poisson's ratio (v12) (3D fiber)
+poisson_s_ratio_v23_3d_fiber,3122,scalar,last,high,0,full_catalog;ELDT;Poisson's ratio (v23) (3D fiber)
+poisson_s_ratio_v13_3d_fiber,3124,scalar,last,high,0,full_catalog;ELDT;Poisson's ratio (v13) (3D fiber)
+shear_modulus_g12_3d_fiber,3130,scalar,fill,high,0,full_catalog;ELDT;Shear modulus (G12) (3D fiber)
+shear_modulus_g23_3d_fiber,3132,scalar,fill,high,0,full_catalog;ELDT;Shear modulus (G23) (3D fiber)
+shear_modulus_g13_3d_fiber,3134,scalar,fill,high,0,full_catalog;ELDT;Shear modulus (G13) (3D fiber)
+linear_thermal_expansion_coefficient_in_first_pr,3140,scalar,last,high,0,full_catalog;ELDT;Linear thermal expansion coefficient in 
+linear_thermal_expansion_coefficient_in_second_p,3142,scalar,last,high,0,full_catalog;ELDT;Linear thermal expansion coefficient in 
+linear_thermal_expansion_coefficient_in_third_pr,3144,scalar,last,high,0,full_catalog;ELDT;Linear thermal expansion coefficient in 
+initial_stress_tensor,3150,tensor,last,high,0,reprobe_full_catalog
+fiber_orientation_avg,4000,tensor,last,high,0,reprobe_full_catalog
+fiber_orientation_tensor_eigenvector,4008,tensor,last,high,0,full_catalog;ELDT;Fiber orientation tensor eigenvector
+fiber_orientation_tensor_on_elements,4009,tensor,last,high,0,full_catalog;ELDT;Fiber orientation tensor on elements
+fiber_orientation_tensor,4010,tensor,last,high,0,full_catalog;ELDT;Fiber orientation tensor
+fiber_orientation_tensor_restart,4011,tensor,last,high,0,full_catalog;ELDT;Fiber orientation tensor (restart)
+fiber_orientation_tensor_restart,4012,tensor,last,high,0,full_catalog;NDDT;Fiber orientation tensor (restart)
+tensile_modulus_in_first_principal_direction_fib,4020,scalar,last,high,0,full_catalog;ELDT;Tensile modulus in first principal direc
+fiber_orientation_tensor,4021,tensor,last,high,0,reprobe_full_catalog
+tensile_modulus_in_second_principal_direction_fi,4030,scalar,last,high,0,full_catalog;ELDT;Tensile modulus in second principal dire
+shear_modulus_fiber,4040,scalar,fill,high,0,full_catalog;ELDT;Shear modulus (fiber)
+poisson_s_ratio_fiber,4050,scalar,last,high,0,full_catalog;ELDT;Poisson's ratio (fiber)
+linear_thermal_expansion_coefficient_in_first_pr,4060,scalar,last,high,0,full_catalog;ELDT;Linear thermal expansion coefficient in 
+linear_thermal_expansion_coefficient_in_second_p,4065,scalar,last,high,0,full_catalog;ELDT;Linear thermal expansion coefficient in 
+circuit_pressure_nodal,5010,scalar,fill,high,0,full_catalog;NDDT;Circuit pressure; nodal
+circuit_pressure,5011,scalar,fill,high,0,full_catalog;ELDT;Circuit pressure
+circuit_coolant_temperature,5021,scalar,fill,high,0,full_catalog;ELDT;Circuit coolant temperature
+circuit_flow_rate,5030,scalar,last,high,0,full_catalog;ELDT;Circuit flow rate
+circuit_metal_temperature,5050,scalar,fill,high,0,full_catalog;ELDT;Circuit metal temperature
+temperature_mold_top,5110,scalar,fill,high,0,full_catalog;ELDT;Temperature; mold (top)
+temperature_mold,5111,scalar,fill,high,0,full_catalog;ELDT;Temperature; mold
+temperature_part,5112,scalar,fill,high,0,full_catalog;ELDT;Temperature; part
+temperature_part_top,5113,scalar,fill,high,0,full_catalog;ELDT;Temperature; part (top)
+temperature_part_bottom,5114,scalar,fill,high,0,full_catalog;ELDT;Temperature; part (bottom)
+temperature_at_surface_cold_runner,5120,scalar,fill,high,0,full_catalog;ELDT;Temperature at surface; cold runner
+temperature_at_surface_hot_runner,5130,scalar,fill,high,0,full_catalog;ELDT;Temperature at surface; hot runner
+time_to_reach_ejection_temperature_part,5140,scalar,last,high,0,full_catalog;ELDT;Time to reach ejection temperature; part
+time_to_reach_ejection_temperature_cold_runner,5150,scalar,last,high,0,full_catalog;ELDT;Time to reach ejection temperature; cold
+temperature_mold_bottom,5160,scalar,fill,high,0,full_catalog;ELDT;Temperature; mold (bottom)
+temperature_difference_part,5170,scalar,fill,high,0,full_catalog;ELDT;Temperature difference; part
+temperature_maximum_part,5180,scalar,fill,high,0,full_catalog;ELDT;Temperature; maximum; part
+temperature_maximum_cold_runner,5190,scalar,fill,high,0,full_catalog;ELDT;Temperature; maximum; cold runner
+average_temperature_part,5200,scalar,fill,high,0,full_catalog;ELDT;Average temperature; part
+average_temperature_cold_runner,5210,scalar,fill,high,0,full_catalog;ELDT;Average temperature; cold runner
+maximum_temperature_position_part,5220,scalar,fill,high,0,full_catalog;ELDT;Maximum temperature position; part
+frozen_layer_percentage_part_top,5230,scalar,fill_and_last,high,0,full_catalog;ELDT;Frozen layer percentage; part (top)
+frozen_layer_percentage_part_bottom,5235,scalar,fill_and_last,high,0,full_catalog;ELDT;Frozen layer percentage; part (bottom)
+temperature_profile_part,5240,scalar,fill,high,0,full_catalog;ELDT;Temperature profile; part
+temperature_profile_cold_runner,5250,scalar,fill,high,0,full_catalog;ELDT;Temperature profile; cold runner
+temperature_profile_hot_runner,5260,scalar,fill,high,0,full_catalog;ELDT;Temperature profile; hot runner
+percentage_frozen_layer_cold_runner,5270,scalar,fill_and_last,high,0,full_catalog;ELDT;Percentage frozen layer; cold runner
+mold_melt_temperature_difference_top_part,5280,scalar,fill,high,0,full_catalog;ELDT;Mold-melt temperature difference (Top); 
+mold_melt_temperature_difference_bottom_part,5290,scalar,fill,high,0,full_catalog;ELDT;Mold-melt temperature difference (Bottom
+temperature_mold_boundary,5510,scalar,fill,high,0,full_catalog;ELDT;Temperature; mold boundary
+temperature_insert_top,5520,scalar,fill,high,0,full_catalog;ELDT;Temperature; insert (top)
+temperature_insert_bottom,5530,scalar,fill,high,0,full_catalog;ELDT;Temperature; insert (bottom)
+temperature_difference_insert,5540,scalar,fill,high,0,full_catalog;ELDT;Temperature difference; insert
+temperature_parting_plane_top,5550,scalar,fill,high,0,full_catalog;ELDT;Temperature; parting plane (top)
+temperature_parting_plane_bottom,5560,scalar,fill,high,0,full_catalog;ELDT;Temperature; parting plane (bottom)
+temperature_difference_parting_plane,5570,scalar,fill,high,0,full_catalog;ELDT;Temperature difference; parting plane
+temperature_part,5600,scalar,fill,high,0,full_catalog;NDDT;Temperature; part
+temperature_part_insert,5605,scalar,fill,high,0,full_catalog;NDDT;Temperature; part insert
+time_to_reach_ejection_temperature_part,5610,scalar,last,high,0,full_catalog;NDDT;Time to reach ejection temperature; part
+percentage_frozen_layer,5620,scalar,fill_and_last,high,0,full_catalog;NDDT;Percentage frozen layer
+mold_melt_temperature_difference,5635,scalar,fill,high,0,full_catalog;NDDT;Mold-melt temperature difference
+temperature_cold_runner,5640,scalar,fill,high,0,full_catalog;ELDT;Temperature; cold runner
+time_to_reach_ejection_temperature_cold_runner,5650,scalar,last,high,0,full_catalog;ELDT;Time to reach ejection temperature; cold
+temperature_hot_runner,5660,scalar,fill,high,0,full_catalog;ELDT;Temperature; hot runner
+temperature_residual_part,5670,scalar,fill,high,0,full_catalog;ELDT;Temperature residual; part
+temperature_residual_inserts,5680,scalar,fill,high,0,full_catalog;ELDT;Temperature residual; inserts
+temperature_residual_exterior_shell,5690,scalar,fill,high,0,full_catalog;ELDT;Temperature residual; exterior shell
+temperature_core,5701,scalar,fill,high,0,full_catalog;NDDT;Temperature; core
+temperature_mold,5702,scalar,fill,high,0,full_catalog;NDDT;Temperature mold
+change_in_refractive_index_after_warpage,6160,scalar,last,high,0,full_catalog;ELDT;Change in refractive index after Warpage
+deflection_all_effects,6250,vector,last,high,0,force_export_all; warp_component
+deflection_diff_cooling,6252,scalar,last,high,0,force_export_all; warp_component
+deflection_diff_shrinkage,6254,scalar,last,high,0,force_export_all; warp_component
+deflection_orientation,6256,tensor,last,high,0,force_export_all; warp_component
+deflection_corner,6258,scalar,last,high,0,force_export_all; warp_component
+deflection_large_warp,6260,scalar,last,high,0,force_export_all; warp_component
+mode_shape_differential_shrinkage,6274,scalar,last,high,0,full_catalog;NDDT;Mode shape; differential shrinkage
+mode_shape_orientation_effects,6276,tensor,last,high,0,full_catalog;NDDT;Mode shape; orientation effects
+stress_tensor_warp,6300,tensor,last,high,0,full_catalog;ELDT;Stress tensor (warp)
+stress_in_first_principal_direction_warp,6301,scalar,last,high,0,full_catalog;ELDT;Stress in first principal direction (war
+stress_in_second_principal_direction_warp,6302,scalar,last,high,0,full_catalog;ELDT;Stress in second principal direction (wa
+maximum_shear_stress_warp,6303,scalar,fill,high,0,full_catalog;ELDT;Maximum shear stress (warp)
+stress_mises_hencky_warp,6304,scalar,last,high,0,full_catalog;ELDT;Stress; Mises-Hencky (warp)
+stress_tensor_warp,6310,tensor,last,high,0,full_catalog;ELDT;Stress tensor (warp)
+strain_tensor_warp,6311,tensor,last,high,0,full_catalog;ELDT;Strain tensor (warp)
+maximum_shear_stress_warp,6313,scalar,fill,high,0,full_catalog;ELDT;Maximum shear stress (warp)
+stress_mises_hencky_warp,6314,scalar,last,high,0,full_catalog;ELDT;Stress; Mises-Hencky (warp)
+strain_tensor_warp,6350,tensor,last,high,0,full_catalog;ELDT;Strain tensor (warp)
+strain_in_first_principal_direction_warp,6351,scalar,last,high,0,full_catalog;ELDT;Strain in first principal direction (war
+strain_in_second_principal_direction_warp,6352,scalar,last,high,0,full_catalog;ELDT;Strain in second principal direction (wa
+isotropic_shrinkage,6400,scalar,last,high,0,full_catalog;ELDT;Isotropic shrinkage
+anisotropic_shrinkage,6402,scalar,last,high,0,full_catalog;ELDT;Anisotropic shrinkage
+material_orientation,6406,tensor,last,high,0,full_catalog;ELDT;Material orientation
+parallel_shrinkage_before_warpage,6410,scalar,last,high,0,full_catalog;ELDT;Parallel shrinkage; before warpage
+perpendicular_shrinkage_before_warpage,6412,scalar,last,high,0,full_catalog;ELDT;Perpendicular shrinkage; before warpage
+deflection_small_deflection_stress_x_component_y,6520,scalar,last,high,0,force_export_all; warp_component
+deflection_large_deflection_stress_x_component_y,6530,scalar,last,high,0,force_export_all; warp_component
+stress_tensor,6600,tensor,last,high,0,full_catalog;ELDT;Stress tensor
+stress_in_first_principal_direction_stress,6601,scalar,last,high,0,full_catalog;ELDT;Stress in first principal direction (str
+stress_in_second_principal_direction_stress,6602,scalar,last,high,0,full_catalog;ELDT;Stress in second principal direction (st
+maximum_shear_stress_stress,6603,scalar,fill,high,0,full_catalog;ELDT;Maximum shear stress (stress)
+stress_mises_hencky_stress,6604,scalar,last,high,0,full_catalog;ELDT;Stress; Mises-Hencky (stress)
+stress_tensor_stress,6605,tensor,last,high,0,full_catalog;ELDT;Stress tensor (stress)
+maximum_shear_stress_stress,6606,scalar,fill,high,0,full_catalog;ELDT;Maximum shear stress (stress)
+stress_mises_hencky_stress,6607,scalar,last,high,0,full_catalog;ELDT;Stress; Mises-Hencky (stress)
+strain_tensor_stress,6608,tensor,last,high,0,full_catalog;ELDT;Strain tensor (stress)
+residual_stress_nodal,6610,tensor,last,high,0,reprobe_full_catalog
+residual_stress_warp,6611,tensor,last,high,0,reprobe_full_catalog
+strain_in_first_principal_direction_stress,6651,scalar,last,high,0,full_catalog;ELDT;Strain in first principal direction (str
+strain_in_second_principal_direction_stress,6652,scalar,last,high,0,full_catalog;ELDT;Strain in second principal direction (st
+nodal_force,6700,scalar,last,high,0,full_catalog;NDDT;Nodal force
+maximum_pressure_difference,6750,scalar,fill,high,0,full_catalog;ELDT;Maximum pressure difference
+deflection_small_deflection_wire_sweep_x_compone,6760,scalar,last,high,0,force_export_all; warp_component
+deflection_large_deflection_wire_sweep_x_compone,6761,scalar,last,high,0,force_export_all; warp_component
+stress_in_first_principal_direction_wire_sweep,6762,scalar,last,high,0,full_catalog;ELDT;Stress in first principal direction (wir
+stress_in_second_principal_direction_wire_sweep,6763,scalar,last,high,0,full_catalog;ELDT;Stress in second principal direction (wi
+maximum_shear_stress_wire_sweep,6764,scalar,fill,high,0,full_catalog;ELDT;Maximum shear stress (wire sweep)
+stress_mises_hencky_wire_sweep,6765,scalar,last,high,0,full_catalog;ELDT;Stress; Mises-Hencky (wire sweep)
+deflection_small_deflection_paddle_shift_x_compo,6770,scalar,last,high,0,force_export_all; warp_component
+deflection_large_deflection_paddle_shift_x_compo,6771,scalar,last,high,0,force_export_all; warp_component
+stress_in_first_principal_direction_paddle_shift,6772,scalar,last,high,0,full_catalog;ELDT;Stress in first principal direction (pad
+stress_in_second_principal_direction_paddle_shif,6773,scalar,last,high,0,full_catalog;ELDT;Stress in second principal direction (pa
+maximum_shear_stress_paddle_shift,6774,scalar,fill,high,0,full_catalog;ELDT;Maximum shear stress (paddle shift)
+stress_mises_hencky_paddle_shift,6775,scalar,last,high,0,full_catalog;ELDT;Stress; Mises-Hencky (paddle shift)
+deflection_paddle_shift_x_component_y_component,6777,scalar,last,high,0,force_export_all; warp_component
+deflection_in_plane_wire_sweep,6790,scalar,last,high,0,force_export_all; warp_component
+axial_stress_wire_sweep,6800,scalar,last,high,0,full_catalog;ELDT;Axial stress (wire sweep)
+shear_stress_wire_sweep,6802,scalar,fill,high,0,full_catalog;ELDT;Shear stress (wire sweep)
+shear_strain_wire_sweep,6806,scalar,fill,high,0,full_catalog;ELDT;Shear strain (wire sweep)
+axial_stress_1_paddle_shift,6810,scalar,last,high,0,full_catalog;ELDT;Axial stress 1 (paddle shift)
+axial_stress_2_paddle_shift,6812,scalar,last,high,0,full_catalog;ELDT;Axial stress 2 (paddle shift)
+shear_stress_paddle_shift,6814,scalar,fill,high,0,full_catalog;ELDT;Shear stress (paddle shift)
+shear_strain_paddle_shift,6820,scalar,fill,high,0,full_catalog;ELDT;Shear strain (paddle shift)
+shear_rate_bulk,7020,scalar,fill_and_last,high,0,full_catalog;NDDT;Shear rate; bulk
+conversion,7030,scalar,last,high,0,full_catalog;ELDT;Conversion
+conversion_at_node,7040,scalar,last,high,0,full_catalog;NDDT;Conversion at node
+shear_stress_at_wall,7050,scalar,fill,high,0,full_catalog;NDDT;Shear stress at wall
+bulk_conversion_node,7060,scalar,last,high,0,full_catalog;NDDT;Bulk conversion (node)
+bulk_conversion,7065,scalar,last,high,0,full_catalog;ELDT;Bulk conversion
+thickness_of_polymer_skin,7080,scalar,last,high,0,full_catalog;NDDT;Thickness of polymer skin
+bulk_temperature_at_end_of_fill,7090,scalar,last,high,0,full_catalog;NDDT;Bulk temperature at end of fill
+bulk_conversion_at_end_of_process,7100,scalar,last,high,0,full_catalog;NDDT;Bulk conversion at end of process
+nodal_force_wire_sweep_or_paddle_shift,7140,scalar,last,high,0,full_catalog;NDDT;Nodal force (wire sweep or paddle shift)
+pressure_difference_maximum_paddle_shift,7190,scalar,fill,high,0,full_catalog;ELDT;Pressure difference; maximum (paddle shi
+pressure_difference_paddle_shift,7200,scalar,fill,high,0,full_catalog;ELDT;Pressure difference (paddle shift)
+pressure_at_node_core_shift,7210,scalar,fill,high,0,full_catalog;NDDT;Pressure at node; core shift
+mat_orientation,7500,tensor,last,high,0,full_catalog;ELDT;Mat orientation
+bubble_pressure_final,7810,scalar,fill,high,0,full_catalog;ELDT;Bubble pressure; final
+bubble_pressure,7830,scalar,fill,high,0,full_catalog;ELDT;Bubble pressure
+vent_region_pressure,7850,scalar,fill,high,0,full_catalog;NDDT;Vent region pressure
+bulk_temperature_at_end_of_fill_doe,8101,scalar,last,high,0,full_catalog;ELDT;Bulk temperature at end of fill (DOE)
+volumetric_shrinkage_at_ejection_doe,8102,scalar,last,high,0,full_catalog;ELDT;Volumetric shrinkage at ejection (DOE)
+fill_time_doe,8201,scalar,last,high,0,full_catalog;NDDT;Fill time (DOE)
+pressure_at_end_of_fill_doe,8202,scalar,last,high,0,full_catalog;NDDT;Pressure at end of fill (DOE)
+shrinkage_check_plot,9010,scalar,last,high,0,full_catalog;ELDT;Shrinkage check plot
+x_component_of_shrinkage,9050,scalar,last,high,0,full_catalog;ELDT;X component of shrinkage
+error_in_x_component_of_shrinkage,9060,scalar,last,high,0,full_catalog;ELDT;Error in X component of shrinkage
+y_component_of_shrinkage,9070,scalar,last,high,0,full_catalog;ELDT;Y component of shrinkage
+error_in_y_component_of_shrinkage,9080,scalar,last,high,0,full_catalog;ELDT;Error in Y component of shrinkage
+z_component_of_shrinkage,9090,scalar,last,high,0,full_catalog;ELDT;Z component of shrinkage
+error_in_z_component_of_shrinkage,9100,scalar,last,high,0,full_catalog;ELDT;Error in Z component of shrinkage
+average_linear_shrinkage,9110,scalar,last,high,0,full_catalog;ELDT;Average linear shrinkage
+error_in_average_linear_shrinkage,9120,scalar,last,high,0,full_catalog;ELDT;Error in average linear shrinkage
+parallel_shrinkage,9130,scalar,last,high,0,full_catalog;ELDT;Parallel shrinkage
+perpendicular_shrinkage,9140,scalar,last,high,0,full_catalog;ELDT;Perpendicular shrinkage
+pressure_mpi2_0,10000,scalar,fill,high,0,full_catalog;NDDT;Pressure (MPI2.0)
+fill_time_mpi2_0,10001,scalar,last,high,0,full_catalog;NDDT;Fill Time (MPI2.0)
+velocity_x_direction_mpi2_0,10002,vector,fill,high,0,full_catalog;NDDT;Velocity X Direction (MPI2.0)
+velocity_y_direction_mpi2_0,10003,vector,fill,high,0,full_catalog;NDDT;Velocity Y Direction (MPI2.0)
+velocity_z_direction_mpi2_0,10004,vector,fill,high,0,full_catalog;NDDT;Velocity Z Direction (MPI2.0)
+temperature_mpi2_0,10005,scalar,fill,high,0,full_catalog;NDDT;Temperature (MPI2.0)
+shear_rate_mpi2_0,10006,scalar,fill,high,0,full_catalog;NDDT;Shear Rate (MPI2.0)
+viscosity_mpi2_0,10007,scalar,fill,high,0,full_catalog;NDDT;Viscosity (MPI2.0)
+density_mpi2_0,10008,scalar,fill_and_last,high,0,full_catalog;NDDT;Density (MPI2.0)
+volumetric_shinkage_mpi2_0,10009,scalar,last,high,0,full_catalog;NDDT;Volumetric Shinkage (MPI2.0)
+freeze_time_mpi2_0,10010,scalar,last,high,0,full_catalog;NDDT;Freeze time (MPI2.0)
+cooling_temperature_mpi2_0,10011,scalar,fill,high,0,full_catalog;NDDT;Cooling temperature (MPI2.0)
+cooling_freeze_time_mpi2_0,10012,scalar,last,high,0,full_catalog;NDDT;Cooling freeze time (MPI2.0)
+cooling_frozen_layer_mpi2_0,10013,scalar,fill_and_last,high,0,full_catalog;NDDT;Cooling frozen layer (MPI2.0)
+pressure_mpi2_0,10050,scalar,fill,high,0,full_catalog;NDDT;Pressure (MPI2.0)
+temperature_mpi2_0,10051,scalar,fill,high,0,full_catalog;NDDT;Temperature (MPI2.0)
+fill_time_mpi2_0,10052,scalar,last,high,0,full_catalog;NDDT;Fill Time (MPI2.0)
+instantaneous_temperature_mpi2_0,10053,scalar,fill,high,0,full_catalog;NDDT;Instantaneous Temperature (MPI2.0)
+pressure_drop_mpi2_0,10056,scalar,fill,high,0,full_catalog;NDDT;Pressure drop (MPI2.0)
+pressure_at_v_p_switch_over_mpi2_0,10057,scalar,fill,high,0,full_catalog;NDDT;Pressure at V/P switch-over (MPI2.0)
+air_trap_mpi2_0,10059,scalar,last,high,0,full_catalog;NDDT;Air Trap (MPI2.0)
+weld_line_mpi2_0,10060,scalar,last,high,0,full_catalog;NDDT;Weld Line (MPI2.0)
+maximum_shear_rate_mpi2_0,10100,scalar,fill,high,0,full_catalog;ELDT;Maximum Shear Rate (MPI2.0)
+maximum_shear_stress_mpi2_0,10101,scalar,fill,high,0,full_catalog;ELDT;Maximum Shear Stress (MPI2.0)
+equivalent_viscosity_mpi2_0,10103,scalar,fill,high,0,full_catalog;ELDT;Equivalent Viscosity (MPI2.0)
+frozen_mpi2_0,10104,scalar,fill,high,0,full_catalog;ELDT;% Frozen (MPI2.0)
+bulk_shear_rate_mpi2_0,10107,scalar,fill_and_last,high,0,full_catalog;ELDT;Bulk Shear Rate (MPI2.0)
+polymer_mpi2_0,10108,scalar,last,high,0,full_catalog;ELDT;% Polymer (MPI2.0)
+shear_rate_mpi2_0,10109,scalar,fill,high,0,full_catalog;ELDT;Shear rate (MPI2.0)
+shear_stress_mpi2_0,10110,scalar,fill,high,0,full_catalog;ELDT;Shear stress (MPI2.0)
+top_frozen_mpi2_0,10111,scalar,fill,high,0,full_catalog;ELDT;Top Frozen % (MPI2.0)
+bottom_frozen_mpi2_0,10112,scalar,fill,high,0,full_catalog;ELDT;Bottom Frozen % (MPI2.0)
+velocity_asymmetry_mpi2_0,10113,vector,fill,high,0,full_catalog;ELDT;Velocity Asymmetry (MPI2.0)
+temperature_asymmetry_mpi2_0,10114,scalar,fill,high,0,full_catalog;ELDT;Temperature Asymmetry (MPI2.0)
+average_temperature_mpi2_0,10115,scalar,fill,high,0,full_catalog;ELDT;Average Temperature (MPI2.0)
+centerline_temperature_mpi2_0,10116,scalar,fill,high,0,full_catalog;ELDT;Centerline Temperature (MPI2.0)
+average_cure_level_mpi2_0,10117,scalar,last,high,0,full_catalog;ELDT;Average Cure Level (MPI2.0)
+cure_layer_thickness_mpi2_0,10119,scalar,last,high,0,full_catalog;ELDT;Cure Layer Thickness (MPI2.0)
+max_hold_pressure_mpi2_0,10120,scalar,fill,high,0,full_catalog;NDDT;Max hold pressure (MPI2.0)
+volumetric_shrinkage_mpi2_0,10122,scalar,last,high,0,full_catalog;ELDT;Volumetric Shrinkage (MPI2.0)
+bottom_temperature_mpi2_0,10123,scalar,fill,high,0,full_catalog;ELDT;Bottom Temperature (MPI2.0)
+top_temperature_mpi2_0,10124,scalar,fill,high,0,full_catalog;ELDT;Top Temperature (MPI2.0)
+temperature_difference_mpi2_0,10125,scalar,fill,high,0,full_catalog;ELDT;Temperature Difference (MPI2.0)
+average_temperature_mpi2_0,10126,scalar,fill,high,0,full_catalog;ELDT;Average Temperature (MPI2.0)
+maximum_temperature_mpi2_0,10127,scalar,fill,high,0,full_catalog;ELDT;Maximum Temperature (MPI2.0)
+peak_tempetature_position_mpi2_0,10128,scalar,last,high,0,full_catalog;ELDT;Peak Tempetature Position(MPI2.0)
+cooling_top_frozen_mpi2_0,10129,scalar,fill,high,0,full_catalog;ELDT;Cooling top frozen %(MPI2.0)
+cooling_bottom_frozen_mpi2_0,10130,scalar,fill,high,0,full_catalog;ELDT;Cooling bottom frozen %(MPI2.0)
+time_to_freeze_mpi2_0,10131,scalar,last,high,0,full_catalog;ELDT;Time to Freeze (MPI2.0)
+flow_rate_mpi2_0,10134,scalar,last,high,0,full_catalog;ELDT;Flow Rate (MPI2.0)
+circuit_pressure_mpi2_0,10135,scalar,fill,high,0,full_catalog;ELDT;Circuit pressure (MPI2.0)
+coolant_temperature_mpi2_0,10136,scalar,fill,high,0,full_catalog;ELDT;Coolant Temperature (MPI2.0)
+apparent_density_mpi2_0,10137,scalar,fill_and_last,high,0,full_catalog;ELDT;Apparent Density (MPI2.0)
+mold_bottom_temperature_mpi2_0,10139,scalar,fill,high,0,full_catalog;ELDT;Mold Bottom Temperature (MPI2.0)
+mold_top_temperature_mpi2_0,10140,scalar,fill,high,0,full_catalog;ELDT;Mold Top Temperature (MPI2.0)
+mold_temperature_difference_mpi2_0,10141,scalar,fill,high,0,full_catalog;ELDT;Mold Temperature Difference (MPI2.0)
+bulk_shear_stress_mpi2_0,10143,scalar,fill_and_last,high,0,full_catalog;ELDT;Bulk Shear Stress (MPI2.0)
+shear_rate_time_series_mpi2_0,10200,scalar,fill,high,0,full_catalog;ELDT;Shear rate - time series (MPI2.0)
+shear_stress_time_series_mpi2_0,10201,scalar,fill,high,0,full_catalog;ELDT;Shear stress - time series (MPI2.0)
+part_thickness_time_series_mpi2_0,10202,scalar,last,high,0,full_catalog;ELDT;Part thickness - time series (MPI2.0)
+average_temperature_time_series_mpi2_0,10203,scalar,fill,high,0,full_catalog;ELDT;Average temperature - time series (MPI2.
+element_viscosity_time_series_mpi2_0,10205,scalar,fill,high,0,full_catalog;ELDT;Element viscosity - time series (MPI2.0)
+average_cure_rate_time_series_mpi2_0,10206,scalar,last,high,0,full_catalog;ELDT;Average cure rate - time series (MPI2.0)
+average_velocity_time_series_mpi2_0,10207,vector,fill,high,0,full_catalog;ELDT;Average velocity - time series (MPI2.0)
+pressure_time_series_mpi2_0,10208,scalar,fill,high,0,full_catalog;NDDT;Pressure - time series (MPI2.0)
+temperature_time_series_mpi2_0,10210,scalar,fill,high,0,full_catalog;NDDT;Temperature - time series (MPI2.0)
+frozen_time_series_mpi2_0,10211,scalar,fill,high,0,full_catalog;ELDT;% Frozen - time series (MPI2.0)
+viscosity_time_series_mpi2_0,10212,scalar,fill,high,0,full_catalog;ELDT;Viscosity - time series (MPI2.0)
+frozen_cavity_time_series_mpi2_0,10216,scalar,fill,high,0,full_catalog;ELDT;Frozen cavity - time series (MPI2.0)
+flow_front_xsa_time_series_mpi2_0,10219,scalar,last,high,0,full_catalog;ELDT;Flow front XSA - time series (MPI2.0)
+velocity_grid_point_time_series_mpi2_0,10300,vector,fill,high,0,full_catalog;ELDT;Velocity grid point - time series (MPI2.
+shear_rate_grid_point_mpi2_0,10301,scalar,fill,high,0,full_catalog;ELDT;Shear Rate - Grid Point (MPI2.0)
+viscosity_grid_point_mpi2_0,10302,scalar,fill,high,0,full_catalog;ELDT;Viscosity - Grid Point (MPI2.0)
+temperature_grid_point_mpi2_0,10303,scalar,fill,high,0,full_catalog;ELDT;Temperature - Grid Point (MPI2.0)
+temperature_element_grid_point_mpi2_0,10304,scalar,fill,high,0,full_catalog;ELDT;Temperature Element - Grid Point (MPI2.0
+cool_temperature_3d_mpi2_0,10350,scalar,fill,high,0,full_catalog;NDDT;Cool Temperature - 3D (MPI2.0)
+cool_freeze_time_3d_mpi2_0,10351,scalar,last,high,0,full_catalog;NDDT;Cool freeze time - 3D (MPI2.0)
+cool_frozen_layer_3d_mpi2_0,10352,scalar,fill_and_last,high,0,full_catalog;NDDT;Cool Frozen Layer - 3D (MPI2.0)
+feed_system_shear_rate_3d_mpi2_0,10354,scalar,fill,high,0,full_catalog;NDDT;Feed System Shear Rate - 3D (MPI2.0)
+feed_system_velocity_3d_mpi2_0,10355,vector,fill,high,0,full_catalog;NDDT;Feed system velocity - 3D (MPI2.0)
+feed_system_volumetric_shrinkage_3d_mpi2_0,10356,scalar,last,high,0,full_catalog;NDDT;Feed system volumetric shrinkage - 3D (M
+feed_system_viscosity_3d_mpi2_0,10357,scalar,fill,high,0,full_catalog;NDDT;Feed System Viscosity - 3D (MPI2.0)
+feed_system_viscosity_2_3d_mpi2_0,10358,scalar,fill,high,0,full_catalog;NDDT;Feed System Viscosity 2 - 3D (MPI2.0)
+feed_system_temperature_3d_mpi2_0,10359,scalar,fill,high,0,full_catalog;NDDT;Feed System Temperature - 3D (MPI2.0)
+feed_system_pressure_3d_mpi2_0,10360,scalar,fill,high,0,full_catalog;NDDT;Feed system pressure - 3D (MPI2.0)
+feed_system_fill_time_3d_mpi2_0,10361,scalar,last,high,0,full_catalog;NDDT;Feed system fill time - 3D (MPI2.0)
+velocity,10362,vector,fill,have,1,already_have_csv
+bulk_velocity,10363,vector,fill_and_last,high,0,full_catalog;NDDT;Bulk Velocity
+pressure_3d_mpi2_0,10400,scalar,fill,high,0,full_catalog;NDDT;Pressure - 3D (MPI2.0)
+temperature_3d_mpi2_0,10401,scalar,fill,high,0,full_catalog;NDDT;Temperature - 3D (MPI2.0)
+x_velocity_3d_mpi2_0,10402,vector,fill,high,0,full_catalog;NDDT;X Velocity - 3D (MPI2.0)
+y_velocity_3d_mpi2_0,10403,vector,fill,high,0,full_catalog;NDDT;Y Velocity - 3D (MPI2.0)
+z_velocity_3d_mpi2_0,10404,vector,fill,high,0,full_catalog;NDDT;Z Velocity - 3D (MPI2.0)
+shear_rate_3d_mpi2_0,10405,scalar,fill,high,0,full_catalog;NDDT;Shear rate - 3D (MPI2.0)
+viscosity_3d_mpi2_0,10406,scalar,fill,high,0,full_catalog;NDDT;Viscosity - 3D (MPI2.0)
+fill_time_3d_mpi2_0,10407,scalar,last,high,0,full_catalog;NDDT;Fill time - 3D (MPI2.0)
+volumetric_shrinkage_3d_mpi2_0,10408,scalar,last,high,0,full_catalog;NDDT;Volumetric shrinkage - 3D (MPI2.0)
+density_3d_mpi2_0,10409,scalar,fill_and_last,high,0,full_catalog;NDDT;Density - 3D (MPI2.0)
+freeze_time_3d_mpi2_0,10410,scalar,last,high,0,full_catalog;NDDT;Freeze time - 3D (MPI2.0)
+isotropic_shrinkage_mpi2_0,10500,scalar,last,high,0,full_catalog;ELDT;Isotropic Shrinkage (MPI2.0)
+anisotropic_shrinkage_mpi2_0,10501,scalar,last,high,0,full_catalog;ELDT;Anisotropic Shrinkage (MPI2.0)
+material_orientation_mpi2_0,10503,tensor,last,high,0,full_catalog;ELDT;Material Orientation (MPI2.0)
+warpage_mpi2_0,10556,scalar,last,high,0,full_catalog;NDDT;Warpage (MPI2.0)
+deflection_x_y_z_mpi2_0,10557,scalar,last,high,0,force_export_all; warp_component
+cooling_warpage_mpi2_0,10566,scalar,last,high,0,full_catalog;NDDT;Cooling: warpage (MPI2.0)
+cooling_deflection_x_y_z_mpi2_0,10567,scalar,last,high,0,force_export_all; warp_component
+shrinkage_x_displacement_mpi2_0,10570,scalar,last,high,0,full_catalog;NDDT;Shrinkage: X displacement (MPI2.0)
+shrinkage_y_displacement_mpi2_0,10571,scalar,last,high,0,full_catalog;NDDT;Shrinkage: Y displacement (MPI2.0)
+shrinkage_z_displacement_mpi2_0,10572,scalar,last,high,0,full_catalog;NDDT;Shrinkage: Z displacement (MPI2.0)
+shrinkage_x_rotation_mpi2_0,10573,scalar,last,high,0,full_catalog;NDDT;Shrinkage: X Rotation (MPI2.0)
+shrinkage_y_rotation_mpi2_0,10574,scalar,last,high,0,full_catalog;NDDT;Shrinkage: Y Rotation (MPI2.0)
+shrinkage_z_rotation_mpi2_0,10575,scalar,last,high,0,full_catalog;NDDT;Shrinkage: Z Rotation (MPI2.0)
+shrinkage_warpage_mpi2_0,10576,scalar,last,high,0,full_catalog;NDDT;Shrinkage: Warpage (MPI2.0)
+shrinkage_deflection_x_y_z_mpi2_0,10577,scalar,last,high,0,force_export_all; warp_component
+orientation_x_displacement_mpi2_0,10580,tensor,last,high,0,full_catalog;NDDT;Orientation: X displacement (MPI2.0)
+orientation_y_displacement_mpi2_0,10581,tensor,last,high,0,full_catalog;NDDT;Orientation: Y displacement (MPI2.0)
+orientation_z_displacement_mpi2_0,10582,tensor,last,high,0,full_catalog;NDDT;Orientation: Z displacement (MPI2.0)
+orientation_x_rotation_mpi2_0,10583,tensor,last,high,0,full_catalog;NDDT;Orientation: X Rotation (MPI2.0)
+orientation_y_rotation_mpi2_0,10584,tensor,last,high,0,full_catalog;NDDT;Orientation: Y Rotation (MPI2.0)
+orientation_z_rotation_mpi2_0,10585,tensor,last,high,0,full_catalog;NDDT;Orientation: Z Rotation (MPI2.0)
+orientation_warpage_mpi2_0,10586,tensor,last,high,0,full_catalog;NDDT;Orientation: Warpage (MPI2.0)
+orientation_deflection_x_y_z_mpi2_0,10587,tensor,last,high,0,force_export_all; warp_component
+orientation_at_core_overmolding,11030,tensor,last,high,0,full_catalog;ELDT;Orientation at core (overmolding)
+orientation_at_skin_overmolding,11040,tensor,last,high,0,full_catalog;ELDT;Orientation at skin (overmolding)
+orientation_at_top_skin_overmolding,11045,tensor,last,high,0,full_catalog;ELDT;Orientation at top skin (overmolding)
+orientation_at_bottom_skin_overmolding,11050,tensor,last,high,0,full_catalog;ELDT;Orientation at bottom skin (overmolding)
+shear_rate_bulk_overmolding,11120,scalar,fill_and_last,high,0,full_catalog;ELDT;Shear rate; bulk (overmolding)
+pressure_overmolding,11180,scalar,fill,high,0,full_catalog;NDDT;Pressure (overmolding)
+pressure_at_end_of_fill_overmolding,11190,scalar,last,high,0,full_catalog;NDDT;Pressure at end of fill (overmolding)
+hold_pressure_overmolding,11195,scalar,fill,high,0,full_catalog;NDDT;Hold pressure (overmolding)
+frozen_pressure_overmolding,11197,scalar,fill,high,0,full_catalog;ELDT;Frozen pressure (overmolding)
+bulk_temperature_at_end_of_fill_overmolding,11220,scalar,last,high,0,full_catalog;ELDT;Bulk temperature at end of fill (overmol
+frozen_layer_fraction_at_end_of_fill_overmolding,11230,scalar,last,high,0,full_catalog;ELDT;Frozen layer fraction at end of fill (ov
+average_fiber_orientation_overmolding,11400,tensor,last,high,0,full_catalog;ELDT;Average fiber orientation (overmolding)
+fiber_orientation_tensor_overmolding,11402,tensor,last,high,0,full_catalog;ELDT;Fiber orientation tensor (overmolding)
+fiber_orientation_tensor_restart_overmolding,11404,tensor,last,high,0,full_catalog;ELDT;Fiber orientation tensor (restart) (over
+tensile_modulus_in_first_principal_direction_fib,11406,scalar,last,high,0,full_catalog;ELDT;Tensile modulus in first principal direc
+tensile_modulus_in_second_principal_direction_fi,11408,scalar,last,high,0,full_catalog;ELDT;Tensile modulus in second principal dire
+shear_modulus_fiber_overmolding,11410,scalar,fill,high,0,full_catalog;ELDT;Shear modulus (fiber) (overmolding)
+poisson_s_ratio_fiber_overmolding,11412,scalar,last,high,0,full_catalog;ELDT;Poisson's ratio (fiber) (overmolding)
+linear_thermal_expansion_coefficient_in_first_pr,11414,scalar,last,high,0,full_catalog;ELDT;Linear thermal expansion coefficient in 
+linear_thermal_expansion_coefficient_in_second_p,11416,scalar,last,high,0,full_catalog;ELDT;Linear thermal expansion coefficient in 
+average_velocity_overmolding,11420,vector,fill,high,0,full_catalog;ELDT;Average velocity (overmolding)
+volumetric_shrinkage_at_ejection_overmolding,11440,scalar,last,high,0,full_catalog;ELDT;Volumetric shrinkage at ejection (overmo
+sink_marks_depth_overmolding,11444,scalar,last,high,0,full_catalog;ELDT;Sink marks; depth (overmolding)
+flow_rate_beams_overmolding,11450,scalar,last,high,0,full_catalog;ELDT;Flow rate; beams (overmolding)
+bulk_temperature_overmolding,11460,scalar,fill_and_last,high,0,full_catalog;ELDT;Bulk temperature (overmolding)
+shear_stress_at_wall_overmolding,11470,scalar,fill,high,0,full_catalog;ELDT;Shear stress at wall (overmolding)
+volumetric_shrinkage_overmolding,11480,scalar,last,high,0,full_catalog;ELDT;Volumetric shrinkage (overmolding)
+frozen_layer_fraction_overmolding,11490,scalar,fill_and_last,high,0,full_catalog;ELDT;Frozen layer fraction (overmolding)
+sink_marks_index_overmolding,11510,scalar,last,high,0,full_catalog;ELDT;Sink marks; index (overmolding)
+time_to_reach_ejection_temperature_overmolding,11520,scalar,last,high,0,full_catalog;ELDT;Time to reach ejection temperature (over
+temperature_3d_overmolding_for_warp_analysis,11539,scalar,fill,high,0,full_catalog;NDDT;Temperature (3D overmolding) for warp an
+temperature_overmolding,11540,scalar,fill,high,0,full_catalog;NDDT;Temperature (overmolding)
+temperature_overmolding,11545,scalar,fill,high,0,full_catalog;ELDT;Temperature (overmolding)
+velocity_overmolding,11555,vector,fill,high,0,full_catalog;ELDT;Velocity (overmolding)
+shear_rate_overmolding,11584,scalar,fill,high,0,full_catalog;NDDT;Shear rate (overmolding)
+shear_rate_overmolding,11585,scalar,fill,high,0,full_catalog;ELDT;Shear rate (overmolding)
+viscosity_overmolding,11595,scalar,fill,high,0,full_catalog;NDDT;Viscosity (overmolding)
+shear_rate_maximum_overmolding,11597,scalar,fill,high,0,full_catalog;NDDT;Shear rate; maximum (overmolding)
+density_overmolding,11600,scalar,fill_and_last,high,0,full_catalog;NDDT;Density (overmolding)
+fill_time_overmolding,11610,scalar,last,high,0,full_catalog;NDDT;Fill time (overmolding)
+unfilled_cavity_overmolding,11611,scalar,last,high,0,full_catalog;NDDT;Unfilled cavity (overmolding)
+volumetric_shrinkage_overmolding,11620,scalar,last,high,0,full_catalog;NDDT;Volumetric shrinkage (overmolding)
+volumetric_shrinkage_3d_overmolding_for_warp_ana,11621,scalar,last,high,0,full_catalog;NDDT;Volumetric shrinkage (3D overmolding) fo
+air_traps_overmolding,11622,scalar,last,high,0,full_catalog;NDDT;Air traps (overmolding)
+freeze_time_overmolding,11630,scalar,last,high,0,full_catalog;NDDT;Freeze time (overmolding)
+polymer_fill_region_overmolding,11649,scalar,last,high,0,full_catalog;NDDT;Polymer fill region (overmolding)
+weld_lines_overmolding,11722,scalar,last,high,0,full_catalog;NDDT;Weld lines (overmolding)
+weld_and_meld_lines_overmolding,11732,scalar,last,high,0,full_catalog;NDDT;Weld and meld lines (overmolding)
+melt_flow_direction_3d_overmolding_for_warp_anal,11745,scalar,last,high,0,full_catalog;NDDT;Melt flow direction (3D overmolding) for
+velocity_overmolding,11750,vector,fill,high,0,full_catalog;NDDT;Velocity (overmolding)
+pressure_at_v_p_switchover_overmolding,11760,scalar,last,high,0,full_catalog;NDDT;Pressure at V/P switchover (overmolding)
+temperature_at_flow_front_overmolding,11770,scalar,fill,high,0,full_catalog;NDDT;Temperature at flow front (overmolding)
+tensile_modulus_in_first_principal_direction_fib,11910,scalar,last,high,0,full_catalog;ELDT;Tensile modulus in first principal direc
+tensile_modulus_in_second_principal_direction_fi,11912,scalar,last,high,0,full_catalog;ELDT;Tensile modulus in second principal dire
+tensile_modulus_in_third_principal_direction_fib,11914,scalar,last,high,0,full_catalog;ELDT;Tensile modulus in third principal direc
+poisson_s_ratio_v12_fiber_overmolding,11920,scalar,last,high,0,full_catalog;ELDT;Poisson's ratio (v12) (fiber) (overmoldi
+fiber_orientation_tensor_overmolding,11921,tensor,last,high,0,full_catalog;NDDT;Fiber orientation tensor (overmolding)
+poisson_s_ratio_v23_fiber_overmolding,11922,scalar,last,high,0,full_catalog;ELDT;Poisson's ratio (v23) (fiber) (overmoldi
+poisson_s_ratio_v13_fiber_overmolding,11924,scalar,last,high,0,full_catalog;ELDT;Poisson's ratio (v13) (fiber) (overmoldi
+shear_modulus_g12_fiber_overmolding,11930,scalar,fill,high,0,full_catalog;ELDT;Shear modulus (G12) (fiber) (overmolding
+shear_modulus_g23_fiber_overmolding,11932,scalar,fill,high,0,full_catalog;ELDT;Shear modulus (G23) (fiber) (overmolding
+shear_modulus_g13_fiber_overmolding,11934,scalar,fill,high,0,full_catalog;ELDT;Shear modulus (G13) (fiber) (overmolding
+linear_thermal_expansion_coefficient_in_first_pr,11940,scalar,last,high,0,full_catalog;ELDT;Linear thermal expansion coefficient in 
+linear_thermal_expansion_coefficient_in_second_p,11942,scalar,last,high,0,full_catalog;ELDT;Linear thermal expansion coefficient in 
+linear_thermal_expansion_coefficient_in_third_pr,11944,scalar,last,high,0,full_catalog;ELDT;Linear thermal expansion coefficient in 
+fiber_orientation_tensor_eigenvector_overmolding,11945,tensor,last,high,0,full_catalog;ELDT;Fiber orientation tensor eigenvector (ov
+fiber_orientation_tensor_on_elements_overmolding,11946,tensor,last,high,0,full_catalog;ELDT;Fiber orientation tensor on elements (ov
+stress_3d_overmolding_for_warp_analysis,11947,scalar,last,high,0,full_catalog;NDDT;Stress (3D overmolding) for warp analysi
+shear_modulus_g12_overmolding,13030,scalar,fill,high,0,full_catalog;ELDT;Shear modulus (G12) (overmolding)
+shear_modulus_g23_overmolding,13032,scalar,fill,high,0,full_catalog;ELDT;Shear modulus (G23) (overmolding)
+shear_modulus_g13_overmolding,13034,scalar,fill,high,0,full_catalog;ELDT;Shear modulus (G13) (overmolding)
+angle_of_first_principal_stress_in_elemental_coo,13052,scalar,last,high,0,full_catalog;ELDT;Angle of first principal stress in eleme
+in_cavity_residual_stress_in_first_principal_dir,13060,scalar,last,high,0,full_catalog;ELDT;In-cavity residual stress in first princ
+in_cavity_residual_stress_in_second_principal_di,13062,scalar,last,high,0,full_catalog;ELDT;In-cavity residual stress in second prin
+temperature_difference_from_mold_walls_overmoldi,13064,scalar,fill,high,0,full_catalog;ELDT;Temperature difference from mold walls (
+average_temperature_from_mold_walls_overmolding,13065,scalar,fill,high,0,full_catalog;ELDT;Average temperature from mold walls (ove
+parallel_shrinkage_overmolding,13080,scalar,last,high,0,full_catalog;ELDT;Parallel shrinkage (overmolding)
+perpendicular_shrinkage_overmolding,13085,scalar,last,high,0,full_catalog;ELDT;Perpendicular shrinkage (overmolding)
+orientation_effect_overmolding,13095,tensor,last,high,0,full_catalog;ELDT;Orientation effect (overmolding)
+initial_stress_tensor_3d_overmolding,13150,tensor,last,high,0,full_catalog;ELDT;Initial stress tensor (3D overmolding)
