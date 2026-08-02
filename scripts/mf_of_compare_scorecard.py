@@ -91,6 +91,17 @@ def scorecard(mf: dict[str, Any], of: dict[str, Any], band: dict[str, Any]) -> d
         "MF midplane tris vs OF 3D cells (not apples-to-apples)",
     )
 
+    repeat_min = max(1, int(band.get("independent_repeat_runs_min", 1)))
+    if repeat_min > 1:
+        repeat_runs = int(of.get("independent_repeat_runs") or 0)
+        add(
+            "independent_repeat_runs",
+            float(repeat_min),
+            float(repeat_runs),
+            repeat_runs >= repeat_min,
+            f"min={repeat_min}",
+        )
+
     mf_w = mf.get("weldline_count")
     of_w = of.get("weldline_count")
     if mf_w is not None or of_w is not None:
@@ -103,6 +114,8 @@ def scorecard(mf: dict[str, Any], of: dict[str, Any], band: dict[str, Any]) -> d
         )
 
     mandatory = {"fill_time_s", "fill_fraction_pct", pressure_kpi}
+    if repeat_min > 1:
+        mandatory.add("independent_repeat_runs")
     mandatory_rows = [row for row in rows if row["kpi"] in mandatory]
     # Never promote on fill alone. Every mandatory KPI must be present and pass.
     label = (
@@ -170,6 +183,7 @@ def main() -> int:
     ap.add_argument("--of-peak-p-mpa", type=float, default=-1.0)
     ap.add_argument("--current-u", type=float, default=14.21)
     ap.add_argument("--power-law-k", type=float, default=-1.0)
+    ap.add_argument("--repeat-runs", type=int, default=1)
     ap.add_argument("--write", default="", help="Write scorecard JSON path")
     args = ap.parse_args()
 
@@ -189,6 +203,7 @@ def main() -> int:
             "cells": args.of_cells,
             "peak_pressure_MPa": None if args.of_peak_p_mpa < 0 else args.of_peak_p_mpa,
             "inlet_velocity": args.current_u,
+            "independent_repeat_runs": args.repeat_runs,
             "transport": "Newtonian nu=0.01 rho=1200",
         }
 
