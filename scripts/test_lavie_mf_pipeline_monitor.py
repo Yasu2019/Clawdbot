@@ -31,6 +31,15 @@ class PipelineMonitorTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             self.assertEqual("waiting_pressure_repeat", evaluate(Path(tmp))["phase"])
 
+    def test_worker_busy_is_reported_as_thermo_wait(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            write(root, "data/state/lavie_mf_pipeline_monitor/thermo_fill_dispatch_status.json",
+                  {"state": "waiting_worker_busy", "attempt": 7})
+            result = evaluate(root)
+            self.assertEqual("waiting_thermo_worker", result["phase"])
+            self.assertEqual(7, result["thermo_fill_dispatch"]["attempt"])
+
     def test_atomic_write_retries_transient_windows_lock(self):
         with tempfile.TemporaryDirectory() as tmp:
             target = Path(tmp) / "status.json"

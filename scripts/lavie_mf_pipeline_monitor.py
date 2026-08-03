@@ -23,6 +23,7 @@ def evaluate(root: Path) -> dict:
     repeat = read_json(root / "data/workspace/moldflow_bridge/inc183_lavie_wait_status.json")
     tri = read_json(root / "data/workspace/apps/growth_dashboard/k10_tri_track_cae_status.json")
     old = read_json(root / "data/workspace/moldflow_bridge/mf_of_multiphysics_campaign/cool_dispatch_status.json")
+    thermo = read_json(root / "data/state/lavie_mf_pipeline_monitor/thermo_fill_dispatch_status.json")
     repeat_ok = repeat.get("state") == "submitted_or_completed" and repeat.get("returncode") == 0
     old_forbidden = old.get("state") == "cancelled_by_user_sequence_change"
     phase = "waiting_pressure_repeat"
@@ -31,6 +32,12 @@ def evaluate(root: Path) -> dict:
         phase, action = "ready_for_thermo_fill", "validate_and_dispatch_two_stage_thermo_fill"
     elif repeat_ok:
         phase, action = "manual_review", "review_cooling_dispatch_provenance"
+    if thermo.get("state") == "waiting_worker_busy":
+        phase, action = "waiting_thermo_worker", "wait_for_lavie_then_run_thermo_fill"
+    elif thermo.get("state") == "submitted_or_completed":
+        phase, action = "thermo_fill_completed", "verify_thermo_fields_then_build_cooling_restart"
+    elif thermo.get("state") == "failed":
+        phase, action = "thermo_fill_failed", "run_rca_before_retry"
     lavie = ((tri.get("tracks") or {}).get("openfoam_lavie") or {})
     return {
         "schema": "lavie.mf_pipeline_monitor.v1",
@@ -44,6 +51,9 @@ def evaluate(root: Path) -> dict:
         "cooling": {"old_continuous_35s_dispatch_forbidden": old_forbidden,
                     "old_state": old.get("state"),
                     "required_workflow": "thermo_fill_then_closed_gate_cooling_restart"},
+        "thermo_fill_dispatch": {"state": thermo.get("state"), "attempt": thermo.get("attempt"),
+                                 "updated_at": thermo.get("updated_at"),
+                                 "trial_id": thermo.get("trial_id")},
         "guards": {"observation_only": True, "does_not_stop_tri_track": True,
                    "does_not_dispatch_unvalidated_cooling": True, "bounded_monitor": True},
     }
