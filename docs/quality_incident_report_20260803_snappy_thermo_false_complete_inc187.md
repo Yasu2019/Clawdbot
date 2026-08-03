@@ -1,0 +1,79 @@
+# INC-187 - snappy thermo case omitted physics files and waiter reported false completion
+
+## Scope and evidence
+
+| Item | Fact |
+|---|---|
+| Detected | 2026-08-03 18:54 JST, trial `lavie-mfminusx-thermo-fill-20260803` |
+| Solver evidence | OpenFOAM v2512: `cannot find file "/workspace/constant/thermophysicalProperties"` |
+| Result | verdict `FAILED`, return code 1, fill 0.01%, duration 99.87 s |
+| Reporting defect | dispatch process returned 0 and the waiter wrote `submitted_or_completed`; monitor then displayed `thermo_fill_completed` |
+| Accuracy | `PROXY_GAP`; no Moldflow equivalence claim |
+
+## 5 Why
+
+1. The thermal solver stopped because `constant/thermophysicalProperties` was absent.
+2. It was absent because the snappy builder always copied the non-thermal MFALIGN template.
+3. `physics_category=resin_fill_cool` selected the solver but did not overlay its thermal dictionaries and initial fields.
+4. The generated-case contract was not tested for the combination `snappyhexmesh + resin_fill_cool`.
+5. The failure appeared complete because the waiter trusted the dispatcher process code instead of `trial_entry.verdict`.
+
+## FTA / fishbone summary
+
+- Case generation: physics category and mesh template selection were coupled incorrectly.
+- Validation: fixture coverage omitted the thermo/snappy combination; deployed LAVIE code did not enforce the current post-generation gate.
+- Observation: worker transport success and CAE calculation success were represented by one return code.
+- Operations: monitor mapped an ambiguous state name directly to completion.
+
+## FMEA
+
+| Failure mode | Effect | Existing detection | Countermeasure |
+|---|---|---|---|
+| Missing thermal dictionary | Solver stops before time step 1 | OpenFOAM fatal log | Overlay required thermo files; fail closed if source is incomplete |
+| Wrong boundary schema | Field read failure or invalid physics | Generated-file test | Generate `T` and `p` with MFALIGN `gate/vent/moldflow` patches |
+| False completion | Cooling restart may start from invalid fill | Manual log inspection | Parse `trial_entry.verdict`; only SUCCESS/DRY_RUN is completion |
+| Stale remote code | Local test passes but LAVIE repeats defect | Hash/version comparison | Verify deployed file hashes before retry |
+
+## Correction and prevention
+
+- `scripts/moldflow_step_case_builder.py`: for `resin_fill_cool` and
+  `resin_fill_thermo`, overlay the three thermophysical dictionaries, thermal
+  solver dictionaries, and MFALIGN-compatible `0/T` and `0/p`.
+- `scripts/k10_lavie_wait_dispatch_inc187_thermo.py`: decode the JSON result and
+  treat any verdict other than SUCCESS/DRY_RUN as failure.
+- Tests cover thermal overlay, non-thermal non-regression, and transport-success /
+  CAE-failure separation.
+- Retry must use a new trial ID and may start only after deployed hashes and the
+  generated-case contract pass. The failed run directory remains evidence.
+
+## Verification
+
+- `python -m unittest scripts.test_moldflow_snappy_thermo_overlay scripts.test_k10_lavie_wait_dispatch_inc187_thermo scripts.test_cae_worker_contract -v`: 7/7 PASS.
+- `python -m py_compile ...`: PASS.
+- Real LAVIE rerun and Moldflow KPI comparison remain pending; therefore this is
+  a code-path correction, not solver validation.
+
+## Decision rule
+
+IF mesh mode is snappy and physics is thermal, THEN require all thermal
+dictionaries plus `T/p` fields in the final generated case and verify the remote
+hash before dispatch, BECAUSE solver selection alone does not populate physics
+files. IF dispatcher transport succeeds, THEN still read the CAE verdict,
+BECAUSE process return code 0 only proves that the response was collected.
+
+## Web knowledge decision
+
+No web search was used. The exact missing path, local template contents, and
+branch logic reproduce the fault deterministically; public sources cannot reveal
+this private deployment mismatch.
+
+## Rollback and next experiment
+
+- Backup: remote branch `backup/inc187-before-thermo-overlay-20260803`, commit
+  `49e1b837fd`.
+- Rollback: restore the four INC-187 code/test files from that backup; do not
+  delete the failed run.
+- Next: deploy verified code, generate a fresh `r2` case, run thermo fill, require
+  nonzero time advancement and valid temperature/phase/pressure fields, then
+  build the closed-gate cooling restart.
+

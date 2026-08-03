@@ -927,6 +927,56 @@ def resolve_geometry_scale_to_m(bbox_raw: dict[str, float], params: dict[str, An
     return 1.0 if span <= 1.0 else 0.001
 
 
+def overlay_snappy_thermo_physics(run_dir: Path, params: dict[str, Any]) -> None:
+    """Overlay thermo dictionaries without replacing proven snappy mesh/patch fields."""
+    physics = str(params.get("physics_category", "resin_fill_vof"))
+    if physics not in ("resin_fill_cool", "resin_fill_thermo"):
+        return
+    source = PHYSICS_TEMPLATES[physics]
+    required = (
+        "constant/thermophysicalProperties",
+        "constant/thermophysicalProperties.air",
+        "constant/thermophysicalProperties.polymer",
+        "system/controlDict",
+        "system/controlDict.ascii",
+        "system/fvSchemes",
+        "system/fvSchemes.ascii",
+        "system/fvSolution",
+        "system/fvSolution.ascii",
+    )
+    missing = [rel for rel in required if not (source / rel).is_file()]
+    if missing:
+        raise ValueError("thermo overlay source missing: " + ", ".join(missing))
+    for rel in required:
+        destination = run_dir / rel
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(source / rel, destination)
+
+    (run_dir / "0").mkdir(parents=True, exist_ok=True)
+    (run_dir / "0" / "T").write_text(
+        "FoamFile { version 2.0; format ascii; class volScalarField; object T; }\n"
+        "dimensions [0 0 0 1 0 0 0];\n"
+        "internalField uniform T_MOLD_PLACEHOLDER;\n"
+        "boundaryField\n{\n"
+        "    gate { type fixedValue; value uniform T_MELT_PLACEHOLDER; }\n"
+        "    vent { type inletOutlet; inletValue uniform T_MOLD_PLACEHOLDER; value uniform T_MOLD_PLACEHOLDER; }\n"
+        "    moldflow { type fixedValue; value uniform T_MOLD_PLACEHOLDER; }\n"
+        "}\n",
+        encoding="utf-8",
+    )
+    (run_dir / "0" / "p").write_text(
+        "FoamFile { version 2.0; format ascii; class volScalarField; object p; }\n"
+        "dimensions [1 -1 -2 0 0 0 0];\n"
+        "internalField uniform 101325;\n"
+        "boundaryField\n{\n"
+        "    gate { type calculated; value uniform 101325; }\n"
+        "    vent { type fixedValue; value uniform 101325; }\n"
+        "    moldflow { type calculated; value uniform 101325; }\n"
+        "}\n",
+        encoding="utf-8",
+    )
+
+
 def build_mfalign_snappy_case(
     run_dir: Path,
     template_dir: Path,
@@ -965,6 +1015,7 @@ def build_mfalign_snappy_case(
     if run_dir.exists():
         shutil.rmtree(run_dir, ignore_errors=True)
     shutil.copytree(template_dir, run_dir)
+    overlay_snappy_thermo_physics(run_dir, params)
 
     tri_dir = run_dir / "constant" / "triSurface"
     tri_dir.mkdir(parents=True, exist_ok=True)
