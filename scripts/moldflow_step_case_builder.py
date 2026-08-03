@@ -1031,9 +1031,16 @@ def build_mfalign_snappy_case(
 
     u_path = run_dir / "0" / "U"
     inlet_velocity = float(params.get("inlet_velocity", 6.51))
+    # Prefer MF-aligned gate_inflow_direction / inlet_velocity_xyz; legacy default -X.
+    try:
+        import moldflow_gate_spec as _gate_spec
+
+        u_triple = _gate_spec.inlet_velocity_triple(params, speed=inlet_velocity)
+    except Exception:
+        u_triple = f"(-{inlet_velocity} 0 0)"
     u_text = re.sub(
         r"(gate\s*\{\s*type fixedValue; value uniform )\([^)]*\)",
-        rf"\g<1>(-{inlet_velocity} 0 0)",
+        rf"\g<1>{u_triple}",
         u_path.read_text(encoding="utf-8"),
     )
     u_path.write_text(u_text, encoding="utf-8")
