@@ -47,7 +47,9 @@ LAVIEの版一致をtrial前条件にしていなかった。
 
 `moldflow_step_case_builder.py`へ熱物性/solver辞書とT/pのoverlayを追加。
 待機処理はJSON内`trial_entry.verdict`を解析しFAILEDを完了扱いしない。
-7試験とpy_compileはPASS。バックアップは
+再試行準備の初回でbusy応答にもverdict ERRORが付く境界条件を検出したため、
+worker_busyをsolver verdictより先に分類する対策も追加した。solverは未起動。
+回帰試験とpy_compileはPASS。バックアップは
 `backup/inc187-before-thermo-overlay-20260803` / `49e1b837fd`。
 失敗runは証拠として保存し、再試行は新しいr2 IDのみ使用する。
 
@@ -56,4 +58,3 @@ LAVIEの版一致をtrial前条件にしていなかった。
 対策はコード経路の再発防止まで。熱充填・閉ゲート冷却・Moldflowとの温度、
 充填、圧力、ウェルド、反り、ヒケ一致は未検証であり、等価性を主張しない。
 次はLAVIE hash一致、最終case precheck、r2実計算の順で確認する。
-

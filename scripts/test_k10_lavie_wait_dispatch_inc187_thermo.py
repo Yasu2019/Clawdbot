@@ -7,7 +7,7 @@ if hasattr(sys.stdout, "reconfigure"):
 import json
 import unittest
 
-from scripts.k10_lavie_wait_dispatch_inc187_thermo import parse_trial_verdict
+from scripts.k10_lavie_wait_dispatch_inc187_thermo import classify_dispatch, parse_trial_verdict
 
 
 class ThermoWaiterVerdictTests(unittest.TestCase):
@@ -18,6 +18,14 @@ class ThermoWaiterVerdictTests(unittest.TestCase):
     def test_success_is_read(self):
         output = json.dumps({"trial_entry": {"verdict": "SUCCESS"}})
         self.assertEqual("SUCCESS", parse_trial_verdict(output))
+
+    def test_worker_busy_error_remains_identifiable(self):
+        output = json.dumps(
+            {"trial_entry": {"verdict": "ERROR", "error": "worker_busy"}}
+        )
+        self.assertEqual("ERROR", parse_trial_verdict(output))
+        self.assertIn("worker_busy", output)
+        self.assertEqual(("waiting_worker_busy", "ERROR"), classify_dispatch(1, output))
 
 
 if __name__ == "__main__":

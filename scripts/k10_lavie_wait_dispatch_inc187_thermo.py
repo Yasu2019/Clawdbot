@@ -13,9 +13,9 @@ from datetime import datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-PARAMS = ROOT / "data/workspace/moldflow_bridge/mf_minusx_copy_results_20260801/lavie-mfminusx-thermo-fill-20260803_params.json"
+PARAMS = ROOT / "data/workspace/moldflow_bridge/mf_minusx_copy_results_20260801/lavie-mfminusx-thermo-fill-r2-20260803_params.json"
 STATUS = ROOT / "data/state/lavie_mf_pipeline_monitor/thermo_fill_dispatch_status.json"
-TRIAL_ID = "lavie-mfminusx-thermo-fill-20260803"
+TRIAL_ID = "lavie-mfminusx-thermo-fill-r2-20260803"
 MAX_ATTEMPTS = 720
 SLEEP_SECONDS = 30
 
@@ -28,6 +28,14 @@ def parse_trial_verdict(output: str) -> str:
     except json.JSONDecodeError:
         return ""
     return str((bundle.get("trial_entry") or {}).get("verdict") or "")
+
+def classify_dispatch(returncode: int, output: str) -> tuple[str, str]:
+    verdict = parse_trial_verdict(output)
+    if "worker_busy" in output:
+        return "waiting_worker_busy", verdict
+    if returncode == 0 and verdict in ("SUCCESS", "DRY_RUN"):
+        return "submitted_or_completed", verdict
+    return "failed", verdict
 
 def save(state: str, attempt: int, **detail: object) -> None:
     payload = {"updated_at": datetime.now().astimezone().isoformat(), "state": state,
@@ -51,8 +59,12 @@ def main() -> int:
         save("dispatching", attempt)
         result = subprocess.run(command, cwd=str(ROOT), text=True, capture_output=True)
         output = (result.stdout or "") + (result.stderr or "")
-        verdict = parse_trial_verdict(output)
-        if result.returncode == 0 and verdict in ("SUCCESS", "DRY_RUN"):
+        classification, verdict = classify_dispatch(result.returncode, output)
+        if classification == "waiting_worker_busy":
+            save("waiting_worker_busy", attempt, output_tail=output[-1500:])
+            time.sleep(SLEEP_SECONDS)
+            continue
+        if classification == "submitted_or_completed":
             save("submitted_or_completed", attempt, returncode=0, verdict=verdict,
                  output_tail=output[-6000:])
             return 0
@@ -60,11 +72,8 @@ def main() -> int:
             save("failed", attempt, returncode=result.returncode, verdict=verdict,
                  output_tail=output[-6000:])
             return 1
-        if "worker_busy" not in output:
-            save("failed", attempt, returncode=result.returncode, output_tail=output[-6000:])
-            return result.returncode or 1
-        save("waiting_worker_busy", attempt, output_tail=output[-1500:])
-        time.sleep(SLEEP_SECONDS)
+        save("failed", attempt, returncode=result.returncode, output_tail=output[-6000:])
+        return result.returncode or 1
     save("timed_out", MAX_ATTEMPTS)
     return 1
 

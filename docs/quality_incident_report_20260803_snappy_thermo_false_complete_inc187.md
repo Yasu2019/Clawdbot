@@ -43,6 +43,10 @@
   treat any verdict other than SUCCESS/DRY_RUN as failure.
 - Tests cover thermal overlay, non-thermal non-regression, and transport-success /
   CAE-failure separation.
+- Retry attempt 1 exposed a second transport edge: a busy response also carries
+  nested verdict `ERROR`. The waiter now classifies `worker_busy` before verdict
+  failure, so normal contention remains a bounded wait rather than a false job
+  failure. No solver was started by that attempt.
 - Retry must use a new trial ID and may start only after deployed hashes and the
   generated-case contract pass. The failed run directory remains evidence.
 
@@ -76,4 +80,3 @@ this private deployment mismatch.
 - Next: deploy verified code, generate a fresh `r2` case, run thermo fill, require
   nonzero time advancement and valid temperature/phase/pressure fields, then
   build the closed-gate cooling restart.
-
