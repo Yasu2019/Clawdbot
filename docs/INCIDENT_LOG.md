@@ -741,3 +741,14 @@ un_command_with_heartbeat wrapper that utilizes subprocess.Popen to update the h
 | **Lessons Learned** | Governance and research tasks (Scout) are as critical as connectivity tasks (Telegram Bridge) for long-term agent autonomy. |
 | **Prevention** | Audit the balanced startup script whenever a new critical governance or watchdog service is introduced. |
 $entry
+
+## INC-186: LAVIE minus-X dedicated pipeline monitor missing (2026-08-03)
+
+| Field | Detail |
+|---|---|
+| Detection | User asked whether progress was monitored; audit found tri-track active but no minus-X cooling monitor. |
+| Impact | r35 completed at 11:09 JST, but thermo-fill/cooling progression was delayed; no data loss. |
+| Root cause | The one-shot r35 waiter had no durable next-phase state, and general activity was conflated with campaign monitoring. |
+| Fix | Added bounded, locked, atomic-status campaign monitoring and forbade the obsolete 35 s path. |
+| Verification | Unit tests, live heartbeat, PID/lock verification, `PROXY_GAP` retained. |
+| Prevention | Require fresh campaign status and a live PID before reporting dedicated monitoring. |
