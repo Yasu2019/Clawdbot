@@ -80,3 +80,14 @@ this private deployment mismatch.
 - Next: deploy verified code, generate a fresh `r2` case, run thermo fill, require
   nonzero time advancement and valid temperature/phase/pressure fields, then
   build the closed-gate cooling restart.
+
+## r2 follow-up and r3 recovery
+
+- r2 acquired the worker at 21:29 JST but failed closed before solver launch:
+  the LAVIE repo did not contain the `resin_fill_v007` thermo source template.
+- Before r3, all nine required source files were copied to LAVIE through temporary
+  names, SHA-256 verified, and atomically promoted; any pre-existing target was
+  preserved as `*.inc187_pre_r3_20260803`.
+- r3 uses the new ID `lavie-mfminusx-thermo-fill-r3-20260803`. Its bounded waiter
+  started at 23:26 JST and correctly reports `waiting_worker_busy`; it does not
+  stop or supersede tri-track.

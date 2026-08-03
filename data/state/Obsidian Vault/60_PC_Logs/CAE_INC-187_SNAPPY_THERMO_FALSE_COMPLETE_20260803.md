@@ -58,3 +58,11 @@ worker_busyをsolver verdictより先に分類する対策も追加した。solv
 対策はコード経路の再発防止まで。熱充填・閉ゲート冷却・Moldflowとの温度、
 充填、圧力、ウェルド、反り、ヒケ一致は未検証であり、等価性を主張しない。
 次はLAVIE hash一致、最終case precheck、r2実計算の順で確認する。
+
+## r3再投入
+
+r2はworker取得後、LAVIE repo側の`resin_fill_v007`元テンプレート欠落を
+fail-closedで検出し、solverを起動せず終了した。9ファイルを仮名取得、SHA-256
+照合、既存ファイルの`*.inc187_pre_r3_20260803`退避後に配置した。新ID
+`lavie-mfminusx-thermo-fill-r3-20260803`を23:26 JSTに投入し、既存tri-trackを
+維持したまま30秒間隔のbounded waitへ移行した。

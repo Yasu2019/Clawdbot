@@ -13,9 +13,9 @@ from datetime import datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-PARAMS = ROOT / "data/workspace/moldflow_bridge/mf_minusx_copy_results_20260801/lavie-mfminusx-thermo-fill-r2-20260803_params.json"
+PARAMS = ROOT / "data/workspace/moldflow_bridge/mf_minusx_copy_results_20260801/lavie-mfminusx-thermo-fill-r3-20260803_params.json"
 STATUS = ROOT / "data/state/lavie_mf_pipeline_monitor/thermo_fill_dispatch_status.json"
-TRIAL_ID = "lavie-mfminusx-thermo-fill-r2-20260803"
+TRIAL_ID = "lavie-mfminusx-thermo-fill-r3-20260803"
 MAX_ATTEMPTS = 720
 SLEEP_SECONDS = 30
 
