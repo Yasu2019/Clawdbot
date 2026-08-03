@@ -752,3 +752,5 @@ $entry
 | Fix | Added bounded, locked, atomic-status campaign monitoring and forbade the obsolete 35 s path. |
 | Verification | Unit tests, live heartbeat, PID/lock verification, `PROXY_GAP` retained. |
 | Prevention | Require fresh campaign status and a live PID before reporting dedicated monitoring. |
+
+Follow-up verification: at 17:58 JST the monitor hit transient Windows `WinError 5` during atomic replace and exited. The fix adds eight bounded retries with incremental 0.1 s backoff and a regression test; the thermo-fill waiter was unaffected.

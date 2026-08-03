@@ -16,5 +16,6 @@ r35 completed at 11:09 JST, but its one-shot waiter ended and no dedicated state
 - Require a live PID and fresh status before reporting active monitoring.
 - Remain observation-only until thermo parameters pass their physical gate.
 - Unit tests must prevent advancement without successful r35 and keep `PROXY_GAP`.
+- Live failure at 17:58 JST showed Windows `os.replace` can transiently return `WinError 5`; atomic writes now retry eight times with bounded backoff.
 
 Scope: this corrects monitoring continuity only; it does not validate cooling or defect accuracy.

@@ -5,8 +5,9 @@ if hasattr(sys.stdout, "reconfigure"):
 import json
 import tempfile
 import unittest
+from unittest import mock
 from pathlib import Path
-from scripts.lavie_mf_pipeline_monitor import evaluate
+from scripts.lavie_mf_pipeline_monitor import atomic_write, evaluate
 
 def write(root: Path, relative: str, value: dict) -> None:
     path = root / relative; path.parent.mkdir(parents=True, exist_ok=True)
@@ -29,5 +30,20 @@ class PipelineMonitorTests(unittest.TestCase):
     def test_missing_repeat_never_advances(self):
         with tempfile.TemporaryDirectory() as tmp:
             self.assertEqual("waiting_pressure_repeat", evaluate(Path(tmp))["phase"])
+
+    def test_atomic_write_retries_transient_windows_lock(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp) / "status.json"
+            real_replace = __import__("os").replace
+            calls = {"count": 0}
+            def transient_replace(source, destination):
+                calls["count"] += 1
+                if calls["count"] == 1:
+                    raise PermissionError("transient lock")
+                return real_replace(source, destination)
+            with mock.patch("scripts.lavie_mf_pipeline_monitor.os.replace", side_effect=transient_replace):
+                atomic_write(target, {"ok": True})
+            self.assertTrue(json.loads(target.read_text(encoding="utf-8"))["ok"])
+            self.assertEqual(2, calls["count"])
 
 if __name__ == "__main__": unittest.main()
