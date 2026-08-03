@@ -52,7 +52,7 @@
 
 ## Verification
 
-- `python -m unittest scripts.test_moldflow_snappy_thermo_overlay scripts.test_k10_lavie_wait_dispatch_inc187_thermo scripts.test_cae_worker_contract -v`: 7/7 PASS.
+- `python -m unittest scripts.test_moldflow_snappy_thermo_overlay scripts.test_k10_lavie_wait_dispatch_inc187_thermo scripts.test_cae_worker_contract -v`: 9/9 PASS.
 - `python -m py_compile ...`: PASS.
 - Real LAVIE rerun and Moldflow KPI comparison remain pending; therefore this is
   a code-path correction, not solver validation.
