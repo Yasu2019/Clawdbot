@@ -66,3 +66,12 @@ fail-closedで検出し、solverを起動せず終了した。9ファイルを�
 照合、既存ファイルの`*.inc187_pre_r3_20260803`退避後に配置した。新ID
 `lavie-mfminusx-thermo-fill-r3-20260803`を23:26 JSTに投入し、既存tri-trackを
 維持したまま30秒間隔のbounded waitへ移行した。
+
+### 夜間継続 r4
+
+r3は00:02 JSTにworkerを取得したが、C: repoではなくE: workspaceを参照する
+配備境界の不一致をfail-closedで検出した。solverは未起動。E: workspaceへ同じ
+9ファイルをSHA-256検証付きで同期し、新ID
+`lavie-mfminusx-thermo-fill-r4-20260804`へ継続した。待機PID 21996、30秒間隔、
+900回上限。06:00 JSTまで画面点灯を要求せずシステムsleepだけを抑止する
+外付けguard PID 42320も稼働し、1分ごとにJSON heartbeatを残す。

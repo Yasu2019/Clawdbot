@@ -91,3 +91,19 @@ this private deployment mismatch.
 - r3 uses the new ID `lavie-mfminusx-thermo-fill-r3-20260803`. Its bounded waiter
   started at 23:26 JST and correctly reports `waiting_worker_busy`; it does not
   stop or supersede tri-track.
+
+## Overnight continuation: r3 to r4
+
+- r3 acquired the worker at 00:02 JST and failed closed before solver launch.
+  The files had been synchronized to `C:/lavie_usb_pack/data/...`, while the
+  worker exports `CAE_TE_WORKSPACE=/e/clawstack_satellite/data/work/...`.
+- The same nine files were therefore synchronized to the E: workspace with
+  temporary downloads, SHA-256 checks, and recoverable
+  `*.inc187_pre_r4_20260804` backups.
+- A fresh ID `lavie-mfminusx-thermo-fill-r4-20260804` was started at 00:08 JST.
+  Its waiter PID is 21996, retry interval 30 s, maximum 900 attempts (7.5 h).
+- System sleep is inhibited, without forcing the display on, until 06:00 JST by
+  `scripts/keep_awake_until_0600_inc187.ps1`. PID 42320 and a one-minute status
+  heartbeat verify the guard. The first guard start exposed signed hexadecimal
+  conversion in PowerShell; explicit UInt32 decimal flags corrected it before
+  the active guard was established.
