@@ -754,3 +754,5 @@ $entry
 | Prevention | Require fresh campaign status and a live PID before reporting dedicated monitoring. |
 
 Follow-up verification: at 17:58 JST the monitor hit transient Windows `WinError 5` during atomic replace and exited. The fix adds eight bounded retries with incremental 0.1 s backoff and a regression test; the thermo-fill waiter was unaffected.
+
+Git backup verification: push attempt 1 for `6428ad11c9` failed with HTTP 503 and remote remained at `7f32f11b8a`; attempt 2 succeeded and advanced `origin/main` to `6428ad11c9`. The subsequent phase-reporting fix `de56ebf9ff` pushed successfully on its first attempt.
