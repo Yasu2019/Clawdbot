@@ -55,6 +55,29 @@ class SnappyThermoOverlayTests(unittest.TestCase):
                         run, {"physics_category": "resin_fill_cool"}
                     )
 
+    def test_time_output_updates_runtime_and_ascii_restore_source(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            run = Path(tmp)
+            system = run / "system"
+            system.mkdir()
+            originals = {
+                "controlDict": "endTime 30;\nwriteControl timeStep;\nwriteInterval 1;\n",
+                "controlDict.ascii": (
+                    "endTime COOL_END_TIME_PLACEHOLDER;\n"
+                    "writeControl timeStep;\nwriteInterval 1;\n"
+                ),
+            }
+            for name, original in originals.items():
+                (system / name).write_text(original, encoding="utf-8")
+            builder.apply_mfalign_control_overrides(
+                run, {"analysis_end_time_s": 1.230131, "write_interval_s": 0.05}
+            )
+            for name in ("controlDict", "controlDict.ascii"):
+                text = (system / name).read_text(encoding="utf-8")
+                self.assertIn("writeControl    adjustableRunTime;", text)
+                self.assertIn("writeInterval   0.05;", text)
+                self.assertIn("endTime         1.230131;", text)
+
 
 if __name__ == "__main__":
     unittest.main()

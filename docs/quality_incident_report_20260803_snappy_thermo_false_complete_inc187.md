@@ -107,3 +107,20 @@ this private deployment mismatch.
   heartbeat verify the guard. The first guard start exposed signed hexadecimal
   conversion in PowerShell; explicit UInt32 decimal flags corrected it before
   the active guard was established.
+
+## r5-r8 recovery and first real execution
+
+- The actual worker environment was proven inside `lavie-sjp-worker-c` as
+  `CAE_TE_WORKSPACE=/c/clawstack_satellite/data/work/cae_te_workspace`.
+  r5 synchronized and verified the nine thermo files there, then exposed a stale
+  `cae_self_growth_gates.py`; that module was backed up and hash-verified after sync.
+- r6 passed case generation/precheck and reached OpenFOAM, which rejected
+  `writeControl timeStep` with fractional `writeInterval=0.05`.
+- The builder now updates both `controlDict` and `controlDict.ascii`, selects
+  `adjustableRunTime`, and has a regression test. r7 then exposed that the source
+  `endTime` is a placeholder rather than numeric; replacement now accepts either
+  form and remains semicolon-bounded.
+- Ten regression/contract tests pass. r8
+  `lavie-mfminusx-thermo-fill-r8-20260804` was accepted at 12:01 JST and launched
+  OpenFOAM container `jovial_bassi`. Initial evidence shows active snappy mesh
+  generation; solver time advancement and KPI validation remain pending.

@@ -75,3 +75,13 @@ r3は00:02 JSTにworkerを取得したが、C: repoではなくE: workspaceを�
 `lavie-mfminusx-thermo-fill-r4-20260804`へ継続した。待機PID 21996、30秒間隔、
 900回上限。06:00 JSTまで画面点灯を要求せずシステムsleepだけを抑止する
 外付けguard PID 42320も稼働し、1分ごとにJSON heartbeatを残す。
+
+### r5-r8修復と実行開始
+
+worker内部の環境値から実参照先を`/c/clawstack_satellite/data/work/...`と確定。
+r5で熱テンプレート9件、r6前にcooling precheck moduleをhash検証付き同期した。
+r6はOpenFOAM起動まで進んだが、timeStep制御に小数writeIntervalを指定したため
+v2512が拒否。runtime/ascii両controlDictをadjustableRunTimeへ揃える修正を実装。
+r7でendTime placeholderも検出し、セミコロン境界の安全な置換へ修正した。
+10試験PASS。r8は12:01 JSTに受理され、container `jovial_bassi`でsnappy mesh
+生成を開始した。物理時間進展とKPIは未確認のためPROXY_GAPを維持する。

@@ -977,6 +977,47 @@ def overlay_snappy_thermo_physics(run_dir: Path, params: dict[str, Any]) -> None
     )
 
 
+def apply_mfalign_control_overrides(run_dir: Path, params: dict[str, Any]) -> None:
+    """Apply time controls consistently to runtime and restore-source dictionaries."""
+    for cd_path in (
+        run_dir / "system" / "controlDict",
+        run_dir / "system" / "controlDict.ascii",
+    ):
+        if not cd_path.is_file():
+            continue
+        cd = cd_path.read_text(encoding="utf-8")
+        end_time = params.get("analysis_end_time_s")
+        if end_time is not None:
+            cd, count = re.subn(
+                r"endTime\s+[^;]+;",
+                f"endTime         {float(end_time)};",
+                cd,
+                count=1,
+            )
+            if count != 1:
+                raise ValueError(f"endTime entry not found in {cd_path}")
+        write_interval = params.get("write_interval_s")
+        if write_interval is not None:
+            interval = float(write_interval)
+            if interval <= 0:
+                raise ValueError("write_interval_s must be positive")
+            cd, control_count = re.subn(
+                r"writeControl\s+\w+;",
+                "writeControl    adjustableRunTime;",
+                cd,
+                count=1,
+            )
+            cd, interval_count = re.subn(
+                r"writeInterval\s+[0-9.eE+-]+;",
+                f"writeInterval   {interval:g};",
+                cd,
+                count=1,
+            )
+            if control_count != 1 or interval_count != 1:
+                raise ValueError(f"write controls not found in {cd_path}")
+        cd_path.write_text(cd, encoding="utf-8")
+
+
 def build_mfalign_snappy_case(
     run_dir: Path,
     template_dir: Path,
@@ -1096,20 +1137,7 @@ def build_mfalign_snappy_case(
     )
     u_path.write_text(u_text, encoding="utf-8")
 
-    cd_path = run_dir / "system" / "controlDict"
-    cd = cd_path.read_text(encoding="utf-8")
-    end_time = params.get("analysis_end_time_s")
-    if end_time is not None:
-        cd = re.sub(r"endTime\s+[0-9.eE+-]+;", f"endTime         {float(end_time)};", cd, count=1)
-    write_interval = params.get("write_interval_s")
-    if write_interval is not None:
-        cd = re.sub(
-            r"writeInterval\s+[0-9.eE+-]+;",
-            f"writeInterval   {float(write_interval)};",
-            cd,
-            count=1,
-        )
-    cd_path.write_text(cd, encoding="utf-8")
+    apply_mfalign_control_overrides(run_dir, params)
 
     tp_path = run_dir / "constant" / "transportProperties"
     tp = tp_path.read_text(encoding="utf-8")
