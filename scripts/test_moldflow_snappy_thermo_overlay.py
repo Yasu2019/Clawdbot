@@ -28,13 +28,24 @@ class SnappyThermoOverlayTests(unittest.TestCase):
                 "system/fvSolution", "system/fvSolution.ascii",
             ):
                 path = source / rel; path.parent.mkdir(parents=True, exist_ok=True)
-                path.write_text(rel, encoding="utf-8")
+                if path.name.startswith("controlDict"):
+                    path.write_text("deltaT 1e-5;\nmaxCo 0.3;\nmaxAlphaCo 0.3;", encoding="utf-8")
+                else:
+                    path.write_text(rel, encoding="utf-8")
             run.mkdir()
             with mock.patch.dict(builder.PHYSICS_TEMPLATES, {"resin_fill_cool": source}):
                 builder.overlay_snappy_thermo_physics(run, {"physics_category": "resin_fill_cool"})
             self.assertTrue((run / "constant/thermophysicalProperties").is_file())
             self.assertIn("gate {", (run / "0/T").read_text(encoding="utf-8"))
             self.assertIn("moldflow {", (run / "0/p").read_text(encoding="utf-8"))
+            self.assertFalse((run / "constant/fvOptions").exists())
+            for name in ("controlDict", "controlDict.ascii"):
+                control = (run / "system" / name).read_text(encoding="utf-8")
+                self.assertIn("maxCo           0.02;", control)
+                self.assertIn("maxAlphaCo      0.05;", control)
+                self.assertIn("deltaT          1e-06;", control)
+            for name in ("fvSolution", "fvSolution.ascii"):
+                self.assertIn("T       0.1;", (run / "system" / name).read_text(encoding="utf-8"))
 
     def test_non_thermo_case_is_untouched(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -53,6 +64,35 @@ class SnappyThermoOverlayTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, "thermo overlay source missing"):
                     builder.overlay_snappy_thermo_physics(
                         run, {"physics_category": "resin_fill_cool"}
+                    )
+
+    def test_invalid_temperature_relaxation_fails_closed(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = root / "source"
+            run = root / "run"
+            for rel in (
+                "constant/thermophysicalProperties", "constant/thermophysicalProperties.air",
+                "constant/thermophysicalProperties.polymer", "system/controlDict",
+                "system/controlDict.ascii", "system/fvSchemes", "system/fvSchemes.ascii",
+                "system/fvSolution", "system/fvSolution.ascii",
+            ):
+                path = source / rel
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text(
+                    "deltaT 1e-5;\nmaxCo 0.3;\nmaxAlphaCo 0.3;"
+                    if path.name.startswith("controlDict") else rel,
+                    encoding="utf-8",
+                )
+            run.mkdir()
+            with mock.patch.dict(builder.PHYSICS_TEMPLATES, {"resin_fill_cool": source}):
+                with self.assertRaisesRegex(ValueError, "temperature_relaxation"):
+                    builder.overlay_snappy_thermo_physics(
+                        run,
+                        {
+                            "physics_category": "resin_fill_cool",
+                            "temperature_relaxation": 0,
+                        },
                     )
 
     def test_time_output_updates_runtime_and_ascii_restore_source(self):

@@ -239,6 +239,20 @@ def precheck_openfoam_injected_cooling_case(case_dir: Path) -> PreGateResult:
             tags.append("precheck_thermo_mu_out_of_demo_range")
             issues.append(f"polymer mu={mu:g} Pa*s is outside safe generated-demo range (0, 100]")
 
+    solution_text = _read_text_if_exists(case_dir / "system" / "fvSolution")
+    relaxation_match = re.search(
+        r"\brelaxationFactors\b[\s\S]*?\bequations\b[\s\S]*?\bT\s+([-+0-9.eE]+)\s*;",
+        solution_text,
+    )
+    if not relaxation_match:
+        tags.append("precheck_missing_temperature_relaxation")
+        issues.append("system/fvSolution must define an equation relaxation factor for T")
+    else:
+        relaxation = float(relaxation_match.group(1))
+        if not 0.0 < relaxation <= 1.0:
+            tags.append("precheck_invalid_temperature_relaxation")
+            issues.append(f"temperature relaxation factor invalid: T={relaxation:g}")
+
     expected_cells = _blockmesh_cell_count(case_dir)
     alpha_cells = _nonuniform_field_size(case_dir / "0" / "alpha.polymer")
     if alpha_cells is not None and expected_cells is not None and alpha_cells != expected_cells:

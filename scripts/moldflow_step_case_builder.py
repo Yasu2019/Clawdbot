@@ -952,6 +952,61 @@ def overlay_snappy_thermo_physics(run_dir: Path, params: dict[str, Any]) -> None
         destination.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(source / rel, destination)
 
+    thermal_max_co = float(params.get("thermal_max_co", 0.02))
+    if not 0.0 < thermal_max_co <= 0.5:
+        raise ValueError("thermal_max_co must be in (0, 0.5]")
+    thermal_max_alpha_co = float(params.get("thermal_max_alpha_co", 0.05))
+    if not 0.0 < thermal_max_alpha_co <= 0.5:
+        raise ValueError("thermal_max_alpha_co must be in (0, 0.5]")
+    thermal_initial_delta_t = float(params.get("thermal_initial_delta_t_s", 1e-6))
+    if not 0.0 < thermal_initial_delta_t <= 1e-4:
+        raise ValueError("thermal_initial_delta_t_s must be in (0, 1e-4]")
+    for control_name in ("controlDict", "controlDict.ascii"):
+        control_path = run_dir / "system" / control_name
+        control = control_path.read_text(encoding="utf-8", errors="replace")
+        control, count = re.subn(
+            r"maxCo\s+[0-9.eE+-]+;",
+            f"maxCo           {thermal_max_co:g};",
+            control,
+            count=1,
+        )
+        if count != 1:
+            raise ValueError(f"maxCo entry not found in {control_path}")
+        control, alpha_count = re.subn(
+            r"maxAlphaCo\s+[0-9.eE+-]+;",
+            f"maxAlphaCo      {thermal_max_alpha_co:g};",
+            control,
+            count=1,
+        )
+        control, delta_count = re.subn(
+            r"deltaT\s+[0-9.eE+-]+;",
+            f"deltaT          {thermal_initial_delta_t:g};",
+            control,
+            count=1,
+        )
+        if alpha_count != 1 or delta_count != 1:
+            raise ValueError(f"thermal time controls not found in {control_path}")
+        control_path.write_text(control, encoding="utf-8")
+
+    temperature_relaxation = float(params.get("temperature_relaxation", 0.1))
+    if not 0.0 < temperature_relaxation <= 1.0:
+        raise ValueError("temperature_relaxation must be in (0, 1]")
+    for solution_name in ("fvSolution", "fvSolution.ascii"):
+        solution_path = run_dir / "system" / solution_name
+        solution = solution_path.read_text(encoding="utf-8", errors="replace")
+        if re.search(r"\brelaxationFactors\b", solution):
+            raise ValueError(f"unexpected existing relaxationFactors in {solution_path}")
+        solution += (
+            "\nrelaxationFactors\n"
+            "{\n"
+            "    equations\n"
+            "    {\n"
+            f"        T       {temperature_relaxation:g};\n"
+            "    }\n"
+            "}\n"
+        )
+        solution_path.write_text(solution, encoding="utf-8")
+
     (run_dir / "0").mkdir(parents=True, exist_ok=True)
     (run_dir / "0" / "T").write_text(
         "FoamFile { version 2.0; format ascii; class volScalarField; object T; }\n"

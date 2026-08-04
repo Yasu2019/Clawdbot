@@ -124,3 +124,23 @@ this private deployment mismatch.
   `lavie-mfminusx-thermo-fill-r8-20260804` was accepted at 12:01 JST and launched
   OpenFOAM container `jovial_bassi`. Initial evidence shows active snappy mesh
   generation; solver time advancement and KPI validation remain pending.
+
+## r8-r11 temperature-equation recovery
+
+| Trial | Observed fact | Decision |
+|---|---|---|
+| r8 | Initial `0/T` was bounded at 313.15-516.78 K, but the first energy solve passed `T0=-27.905 K` into enthalpy-to-temperature inversion and aborted | Treat as a first-step energy overshoot, not an initialization defect |
+| r9 | The new gate stopped the case before solver because the builder was deployed outside the actual `/repo/scripts` import path | Preserve the stopped run; deploy only after runtime import-path proof |
+| r10 | `limitTemperature` aborted with `twoPhaseMixtureThermo::he(): Not implemented` | Do not use this fvOption with v2512 `compressibleInterFoam` two-phase mixture thermo |
+| r11 | Fresh ID uses equation-level `T=0.1` relaxation, initial deltaT `1e-6 s`, maxCo `0.02`, maxAlphaCo `0.05` | Require nonzero time advance and bounded temperature before promotion |
+
+The r10 failure demonstrates that availability of an fvOption in OpenFOAM does
+not prove compatibility with every thermo class. The generated-case gate now
+requires explicit temperature equation relaxation rather than the incompatible
+limiter. Both runtime-import files were backed up, deployed to `/repo/scripts`,
+and SHA-256 matched before r11. Eleven focused regression/contract tests pass.
+
+Decision rule: IF a numerical guard calls a thermo accessor that is not
+implemented by `twoPhaseMixtureThermo`, THEN remove that guard and stabilize the
+equation/time step itself, BECAUSE a fatal guard cannot protect the solution.
+The r8-r11 runs remain `PROXY_GAP`; none proves Moldflow-equivalent accuracy.
