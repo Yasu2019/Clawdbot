@@ -190,6 +190,8 @@ data/iatf_videos/
 data/state/litellm_config.yaml
 data/cae_te_workspace/
 services/ai_image_gen/outputs/
+services/comfyui_fullkit/logs/
+services/comfyui_fullkit/scripts/__pycache__/
 
 # Beads / Dolt files (added by bd init)
 .dolt/

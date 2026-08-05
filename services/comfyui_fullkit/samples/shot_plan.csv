@@ -1,0 +1,3 @@
+﻿shot_id,start_sec,duration_sec,type,prompt,input_image,seed,status
+001,0,5,T2V,"A futuristic factory exterior at dawn",,1001,planned
+002,5,5,I2V,"Camera slowly pushes toward the original mecha",mecha_ref.png,1002,planned

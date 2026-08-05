@@ -1,0 +1,10 @@
+コマンドプロンプトでZIP展開先へ移動し、次を実行してください。
+
+python scripts\download_official_workflows.py
+
+取得される公式ワークフロー:
+- video_wan2_2_5B_ti2v.json
+- video_hunyuan_video_1.5_720p_i2v.json
+- video_hunyuan_video_1.5_720p_t2v.json
+
+ComfyUI本体を最新版へ更新してから読み込んでください。

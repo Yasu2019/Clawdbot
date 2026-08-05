@@ -3,82 +3,665 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3Dときめきメモリアル風 AI学園恋愛シミュレーション | ポータル</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Outfit:wght@600;700&display=swap" rel="stylesheet">
+    <title>Clawstack V2 - Engineering Master Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Outfit:wght@600;700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bg: #0b0f19;
-            --card: rgba(22, 27, 34, 0.9);
-            --primary: #f472b6;
-            --accent: #38bdf8;
-            --text: #f8fafc;
-            --muted: #94a3b8;
-            --border: rgba(244, 114, 182, 0.3);
-        }
-        body {
-            background: var(--bg);
+        :root { --bg: #020617; --primary: #38bdf8; --card: rgba(15, 23, 42, 0.7); --text: #f8fafc; --muted: #94a3b8; }
+        body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; padding: 40px; }
+        .header { text-align: center; margin-bottom: 60px; position: relative; }
+        .header h1 { font-family: 'Outfit'; font-size: 3rem; margin-bottom: 10px; background: linear-gradient(135deg, #fff, var(--primary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .domain-section { margin-bottom: 50px; max-width: 1400px; margin-left: auto; margin-right: auto; }
+        .domain-header { font-family: 'Outfit'; font-size: 1.2rem; text-transform: uppercase; color: var(--primary); border-bottom: 1px solid rgba(56, 189, 248, 0.2); padding-bottom: 10px; margin-bottom: 20px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+        .card { background: var(--card); border: 1px solid rgba(255, 255, 255, 0.08); padding: 25px; border-radius: 20px; text-decoration: none; color: inherit; backdrop-filter: blur(10px); transition: 0.3s; }
+        .card:hover { transform: translateY(-5px); border-color: var(--primary); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .card h3 { margin: 0 0 10px 0; font-size: 1.3rem; }
+        .card p { color: var(--muted); font-size: 0.95rem; line-height: 1.5; }
+        .card.featured { border-color: rgba(56, 189, 248, 0.4); background: rgba(15, 23, 42, 0.9); }
+
+        /* API Quota Risk Widget (toggleable, floating) */
+        .api-risk-toggle {
+            position: fixed;
+            right: 18px;
+            bottom: 18px;
+            z-index: 9999;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: rgba(15, 23, 42, 0.84);
             color: var(--text);
-            font-family: 'Inter', sans-serif;
-            margin: 0;
-            padding: 40px 20px;
-            display: flex;
-            justify-content: center;
+            border-radius: 999px;
+            padding: 10px 12px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 10px 24px rgba(2, 6, 23, 0.35);
+            user-select: none;
         }
-        .container {
-            max-width: 900px;
-            width: 100%;
+
+        .api-risk-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 999px;
+            background: rgba(148, 163, 184, 0.6);
+            box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.14);
         }
-        header {
-            text-align: center;
-            margin-bottom: 32px;
+
+        .api-risk-dot.ok { background: rgba(16, 185, 129, 0.95); box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.16); }
+        .api-risk-dot.warning { background: rgba(245, 158, 11, 0.95); box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.18); }
+        .api-risk-dot.critical { background: rgba(239, 68, 68, 0.98); box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.18); }
+
+        .api-risk-panel {
+            position: fixed;
+            right: 18px;
+            bottom: 64px;
+            z-index: 9999;
+            width: min(420px, calc(100vw - 36px));
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: rgba(15, 23, 42, 0.92);
+            border-radius: 18px;
+            padding: 12px 12px 10px;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 16px 40px rgba(2, 6, 23, 0.45);
         }
-        h1 {
-            font-family: 'Outfit', sans-serif;
-            font-size: 2.2rem;
-            margin: 0 0 10px 0;
-            background: linear-gradient(135deg, #fff, var(--primary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+        .api-risk-panel[hidden] { display: none; }
+        .api-risk-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 6px 6px 10px; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 8px; }
+        .api-risk-title { font-size: 0.95rem; font-weight: 700; letter-spacing: -0.01em; }
+        .api-risk-sub { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
+        .api-risk-actions { display: inline-flex; gap: 8px; }
+        .api-risk-btn { border: 1px solid rgba(255,255,255,0.10); background: rgba(255,255,255,0.06); color: var(--text); border-radius: 12px; padding: 7px 10px; font-size: 0.78rem; cursor: pointer; }
+        .api-risk-list { display: flex; flex-direction: column; gap: 8px; padding: 4px 4px 2px; max-height: 300px; overflow: auto; }
+        .api-risk-row { display: grid; grid-template-columns: 14px 1fr auto; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.03); }
+        .api-risk-row small { color: var(--muted); display: block; margin-top: 2px; font-size: 0.76rem; line-height: 1.25; }
+        .api-risk-badge { font-size: 0.72rem; padding: 4px 8px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.10); color: var(--muted); background: rgba(148, 163, 184, 0.10); text-transform: uppercase; letter-spacing: 0.04em; }
+        .api-risk-badge.warning { color: #fbbf24; background: rgba(245, 158, 11, 0.16); border-color: rgba(245, 158, 11, 0.20); }
+        .api-risk-badge.critical { color: #fca5a5; background: rgba(239, 68, 68, 0.14); border-color: rgba(239, 68, 68, 0.22); }
+
+        /* Place the widget near the portal header (top-right) */
+        .header .api-risk-toggle {
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: auto;
         }
-        .app-card {
-            background: var(--card);
-            border: 2px solid var(--primary);
+        .header .api-risk-panel {
+            position: absolute;
+            right: 0;
+            top: 52px;
+            bottom: auto;
+        }
+
+        .bench-panel {
+            max-width: 1400px;
+            margin: 0 auto 40px;
+            padding: 22px 24px;
             border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 12px 40px rgba(244, 114, 182, 0.25);
-            text-align: center;
+            border: 1px solid rgba(56, 189, 248, 0.25);
+            background: var(--card);
         }
-        .btn-launch {
-            display: inline-block;
-            background: linear-gradient(135deg, var(--primary), #818cf8);
-            color: #fff;
-            font-weight: 700;
-            font-size: 1.1rem;
-            padding: 14px 32px;
-            border-radius: 12px;
-            text-decoration: none;
-            box-shadow: 0 6px 20px rgba(244, 114, 182, 0.4);
-            margin: 10px;
-            transition: 0.2s;
-        }
-        .btn-launch:hover { transform: translateY(-2px); filter: brightness(1.1); }
+        .bench-panel h2 { font-family: 'Outfit'; font-size: 1.15rem; color: var(--primary); margin: 0 0 8px; text-transform: uppercase; letter-spacing: 0.06em; }
+        .bench-note { color: var(--muted); font-size: 0.82rem; line-height: 1.5; margin-bottom: 16px; }
+        .bench-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+        .bench-table th { text-align: center; color: var(--primary); padding: 8px 6px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .bench-table th.prod { text-align: left; min-width: 140px; }
+        .bench-table td { padding: 8px 6px; border-bottom: 1px solid rgba(255,255,255,0.06); text-align: center; }
+        .bench-table td.prod { text-align: left; font-weight: 600; }
+        .bench-table small { display: block; color: var(--muted); font-weight: 400; font-size: 0.72rem; margin-top: 2px; }
+        .bench-lv { display: inline-block; min-width: 34px; padding: 3px 7px; border-radius: 8px; font-weight: 700; font-size: 0.72rem; }
+        .bench-link { margin-top: 12px; font-size: 0.82rem; }
+        .bench-link a { color: var(--primary); }
+
+        .ramp-panel { max-width: 1400px; margin: 0 auto 40px; padding: 22px 24px; border-radius: 20px; border: 1px solid rgba(16, 185, 129, 0.35); background: var(--card); }
+        .ramp-panel h2 { font-family: 'Outfit'; font-size: 1.15rem; color: #34d399; margin: 0 0 8px; text-transform: uppercase; letter-spacing: 0.06em; }
+        .ramp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; margin-top: 14px; }
+        .ramp-card { border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 14px; cursor: pointer; transition: 0.2s; background: rgba(0,0,0,0.15); }
+        .ramp-card:hover { border-color: #34d399; }
+        .ramp-card.active { border-color: #34d399; box-shadow: 0 0 0 1px rgba(52,211,153,0.35); background: rgba(52,211,153,0.08); }
+        .ramp-card h4 { margin: 0 0 6px; font-size: 0.95rem; }
+        .ramp-card p { margin: 0; font-size: 0.78rem; color: var(--muted); line-height: 1.45; }
+        .ramp-meta { font-size: 0.8rem; color: var(--muted); margin: 10px 0 0; }
+        .ramp-actions { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+        .ramp-btn { border: 1px solid rgba(52,211,153,0.4); background: rgba(52,211,153,0.15); color: #ecfdf5; border-radius: 10px; padding: 9px 16px; font-weight: 600; cursor: pointer; font-size: 0.85rem; }
+        .ramp-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .ramp-status { font-size: 0.82rem; color: #a7f3d0; }
+        .ramp-status.err { color: #fca5a5; }
+        .ramp-usage { margin-top: 10px; font-size: 0.8rem; color: var(--muted); }
+
+        .sat-panel { max-width: 1400px; margin: 0 auto 40px; padding: 22px 24px; border-radius: 20px; border: 1px solid rgba(251, 191, 36, 0.35); background: var(--card); }
+        .sat-panel h2 { font-family: 'Outfit'; font-size: 1.15rem; color: #fbbf24; margin: 0 0 8px; text-transform: uppercase; letter-spacing: 0.06em; }
+        .sat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin-top: 14px; }
+        .sat-card { border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 14px; background: rgba(0,0,0,0.15); }
+        .sat-card h4 { margin: 0 0 6px; font-size: 0.9rem; }
+        .sat-card p { margin: 0; font-size: 0.78rem; color: var(--muted); line-height: 1.45; }
+        .sat-badge { display: inline-block; padding: 3px 8px; border-radius: 999px; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; }
+        .sat-badge.ok { background: rgba(16,185,129,0.2); color: #6ee7b7; }
+        .sat-badge.warning { background: rgba(245,158,11,0.2); color: #fcd34d; }
+        .sat-badge.critical { background: rgba(239,68,68,0.2); color: #fca5a5; }
+        .sat-trials { margin-top: 12px; font-size: 0.78rem; color: var(--muted); }
+        .sat-trials code { color: #e2e8f0; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>🎮 3Dモデル主人公 動画付きAI学園恋愛シミュレーション</h1>
-            <p style="color: var(--muted);">Local AI GameDev Master 統合ポータル</p>
-        </header>
-
-        <div class="app-card">
-            <h2>3Dモデル主人公 ＆ シネマ動画演出ゲーム</h2>
-            <p>Mixamo 3D骨組みアバター ＆ 商用基準シネマ動画演出（.mp4）を搭載した恋愛シミュレーションゲームです。</p>
-            <div style="margin-top: 24px;">
-                <a href="apps/growth_dashboard/3d_protagonist_game.html" class="btn-launch">✨ 3D主人公 動画付きゲームを起動する</a>
-                <a href="apps/growth_dashboard/local_ai_gamedev_launcher.html" class="btn-launch" style="background: linear-gradient(135deg, var(--accent), #818cf8);">🎛️ 2D/3D切替ランチャーを起動する</a>
-            </div>
+    <div class="header">
+        <h1>Clawstack V2.1</h1>
+        <p>Canonical Engineering Control Surface</p>
+        <div style="margin-top: 30px;">
+            <a href="http://localhost:3101" style="background: linear-gradient(135deg, #38bdf8, #818cf8); color: white; padding: 12px 24px; border-radius: 12px; text-decoration: none; font-weight: 600; font-size: 0.9rem; box-shadow: 0 4px 15px rgba(56, 189, 248, 0.4);">🚀 Try Next-Gen Portal (Beta)</a>
         </div>
+
+        <!-- Toggleable API quota risk widget (reads api_cost_report_status.json) -->
+        <button id="apiRiskToggle" class="api-risk-toggle" type="button" aria-label="API quota risk widget toggle">
+            <span id="apiRiskDot" class="api-risk-dot"></span>
+            <span id="apiRiskToggleText" style="font-weight:700; font-size:0.82rem;">API</span>
+        </button>
+        <section id="apiRiskPanel" class="api-risk-panel" hidden>
+            <div class="api-risk-head">
+                <div>
+                    <div class="api-risk-title">API枠危険度</div>
+                    <div id="apiRiskMeta" class="api-risk-sub">loading...</div>
+                </div>
+                <div class="api-risk-actions">
+                    <button id="apiRiskRefresh" class="api-risk-btn" type="button">refresh</button>
+                    <button id="apiRiskHide" class="api-risk-btn" type="button">hide</button>
+                </div>
+            </div>
+            <div id="apiRiskList" class="api-risk-list"></div>
+        </section>
     </div>
+
+
+    <section class="ramp-panel" id="localRampPortal">
+        <h2>Local LLM Ramp (Phase 0 - 3)</h2>
+        <p class="bench-note" id="rampPortalNote">Cloud cost hedge: choose how much traffic goes to local Ollama. Phase 0 = observe only.</p>
+        <div class="ramp-usage" id="rampUsageLine">Local usage (7d): loading...</div>
+        <div class="ramp-grid" id="rampPhaseGrid"></div>
+        <div class="ramp-actions">
+            <button type="button" class="ramp-btn" id="rampSaveBtn">Apply selected phase</button>
+            <span class="ramp-status" id="rampSaveStatus"></span>
+        </div>
+        <p class="bench-link"><a href="apps/growth_dashboard/index.html">Model usage trend (detail)</a></p>
+    </section>
+
+    <section class="bench-panel" id="commercialBenchmarkPortal">
+        <h2>Commercial Engineering Maturity (L0 - L10)</h2>
+        <p class="bench-note" id="benchPortalNote">CAE · CAD · Video vs Moldflow / Cetol / Sora-Seedance2 class. Loading...</p>
+        <div id="benchPortalTable"></div>
+        <p class="bench-link"><a href="apps/growth_dashboard/index.html">Full detail on Intelligence Evolution dashboard</a></p>
+    </section>
+
+    <section class="sat-panel" id="satelliteCaeLivePortal">
+        <h2>Satellite CAE Live (K10 / LAVIE)</h2>
+        <p class="bench-note" id="satPortalNote">SJP-2/3: OpenRadioss@K10 + OpenFOAM@LAVIE + gap jobs (Cetol/DXF). Loading...</p>
+        <div style="margin-bottom:8px"><span id="satOverallBadge" class="sat-badge">...</span></div>
+        <div class="sat-grid" id="satPortalGrid"></div>
+        <div class="sat-trials" id="satTrialList"></div>
+        <p class="bench-link">Runbook: <code>docs/SATELLITE_CAE_ONE_SHOT_RUNBOOK.md</code> (repo)</p>
+    </section>
+
+    <section class="bench-panel" id="caeNorthStarPortal">
+        <h2>CAE North Star (T019 / P025 / P026)</h2>
+        <p class="bench-note" id="nsPortalNote">Moldflow-class fill + Cetol-class tolerance + OpenRadioss bend/blank -> progressive die. Loading...</p>
+        <div class="sat-grid" id="nsPortalGrid"></div>
+        <p class="bench-link">
+            <a href="apps/moldflow_cae_studio/index.html">Moldflow CAE Studio</a>
+            · <a href="apps/growth_dashboard/index.html">Intelligence Evolution</a>
+            · <a href="portal_cae_north_star_status.json">status JSON</a>
+        </p>
+    </section>
+
+    <section class="domain-section">
+        <h2 class="domain-header">Main Entry Points</h2>
+        <div class="grid">
+            <a href="http://127.0.0.1:18789" class="card featured"><h3>OpenClaw Chat</h3><p>Main conversational interface for task delegation.</p></a>
+            <a href="apps/email_blacklist_hub/index.html" class="card featured"><h3>Email Blacklist Hub</h3><p>RAG の除外リスト（ブラックリスト）を管理・更新します。</p></a>
+            <a href="apps/creative_studio/index.html" class="card featured"><h3>Creative Studio</h3><p>Unified Anime, Manga & Video production engine.</p></a>
+            <a href="apps/knowledge_hub/index.html" class="card featured"><h3>Knowledge Hub</h3><p>AI-augmented brain & local note vault.</p></a>
+            <a href="obsidian://open?path=D:%5CClawdbot_Docker_20260125%5Cdata%5Cstate%5CObsidian%20Vault" class="card featured"><h3>Obsidian Vault</h3><p>Open the local Clawstack knowledge vault. Search for Fleet Operations to view the 7-node operations hub.</p></a>
+            <a href="http://localhost:8766/index.html" class="card featured" style="border-color: var(--accent);"><h3>⚡ Local NOVA Agent Loop</h3><p>Ollama/SLM 自律ワークフロー。機密情報ガード付きローカルエージェント。</p></a>
+            <a href="http://localhost:8768/index.html" class="card featured" style="border-color: #818cf8;"><h3>⚡ Designer AGI Control Center</h3><p>OpenClaw + Blender MCP。自律3D設計・レンダリング・動画生成エンジン。</p></a>
+        </div>
+    </section>
+
+    <section class="domain-section">
+        <h2 class="domain-header">1. Operations & Systems</h2>
+        <div class="grid">
+            <a href="apps/operations_toolbox/index.html" class="card featured"><h3>Ops Toolbox</h3><p>Maintenance, cleanup, and status checks.</p></a>
+            <a href="http://localhost:5679" class="card"><h3>n8n Automation</h3><p>Visual workflow engine and API orchestrator.</p></a>
+            <a href="ops/security/clearwing/README.md" class="card"><h3>Clearwing Defense</h3><p>Local security scanning.</p></a>
+        </div>
+    </section>
+
+    <section class="domain-section">
+        <h2 class="domain-header">3. Geometry & 3D Workbench</h2>
+        <div class="grid">
+            <a href="apps/3d_fab_forge/index.html" class="card featured"><h3>3D Fab-Forge</h3><p>Ender-3 KE Control & Marketplace Intel.</p></a>
+            <a href="apps/three_d_workbench/index.html" class="card"><h3>3D Workbench</h3><p>CAD/Blender asset library and task launcher.</p></a>
+            <a href="apps/gdt_overlay_studio/index.html" class="card"><h3>GD&T Overlay</h3><p>3D datum and tolerance visualization.</p></a>
+            <a href="apps/ue5_mcp_control/portal_card/ue5_mcp_card.html" class="card featured"><h3>⚡ UE5 MCP Backend</h3><p>AI専用高品質レンダ/可視化バックエンド。デジタルツイン・映画級動画生成。</p></a>
+        </div>
+    </section>
+
+    <section class="domain-section">
+        <h2 class="domain-header">4. Simulation & Engineering</h2>
+        <div class="grid">
+            <a href="apps/mecha_motion_lab/index.html" class="card featured" style="border-color: #34d399;"><h3>🦿 Mecha Motion Lab</h3><p>3Dメカの自律モーション学習(Genesis GPU)。プレイブック+ローカルLLMでPDCAを自走、行き詰まりのみ人間へエスカレーション。</p></a>
+            <a href="apps/circuit_sim_hub/index.html" class="card featured"><h3>Circuit Simulation Hub</h3><p>ngspice & LTspice integration. Filter and circuit analysis.</p></a>
+            <a href="http://localhost:1881" target="_blank" rel="noopener" class="card featured"><h3>⚡ IoT Circuit Lab</h3><p>LTspice → Wokwi → Node-RED の3段構えで現場IoT試作を安全に検証。ADCしきい値・MQTT・異常判定。</p></a>
+            <a href="../clawstack_v2/addons/iot_circuit_lab/docs/02_workflow_ltspice_to_wokwi_to_nodered.md" class="card"><h3>IoT Lab 手順書</h3><p>LTspice CSV出力 → ADC換算 → Wokwi ESP32 → Node-RED 正規化の全ワークフロー。</p></a>
+            <a href="http://localhost:8096" target="_blank" rel="noopener" class="card featured"><h3>⚡ Julia Numerical Worker</h3><p>高度な数値計算・最適化計算・シミュレーション用バックエンド。</p></a>
+            <a href="apps/growth_dashboard/index.html" class="card featured"><h3>Intelligence Evolution</h3><p>Commercial Engineering L0-L10 (CAE / CAD / Video) + fleet / growth metrics. Single entry for growth_dashboard.</p></a>
+            <a href="apps/moldflow_cae_studio/index.html" class="card featured" style="border-color: #0ea5e9;"><h3>Moldflow CAE Studio</h3><p>MFALIGN minus-X: fill PROXY_OK (~99.5%). Pressure/weld/sink/warp still PROXY_GAP. Labels: PROXY_* only. STEP / gate / process / overlays + job export.</p></a>
+            <a href="apps/fem_impact/index.html" class="card featured" style="border-color: #a78bfa;"><h3>🛡️ Impact FEM Lab</h3><p>ThinkPad衛星の衝撃FEM (fem_impact@thinkpad)。デプロイ/自律ループ/160µm DOE/Tri-Trackの実ステータス直読み。</p></a>
+            <a href="apps/openradioss_lab/index.html" class="card featured" style="border-color: #fb923c;"><h3>💥 OpenRadioss Lab</h3><p>プレス打ち抜き ASSY (press_blanking_assy@red_lavie) 運用コンソール。KPI・PDCA・P026進化・ノード/Urgent・Improver。操作API :8777。</p></a>
+            <a href="http://127.0.0.1:18010" class="card featured" style="border-color: #22c55e;"><h3>Visual Inspection AI</h3><p>画像検査・寸法測定(OK/NG/REVIEW+Champion/Challenger)+サンプル(判定/ヒートマップ)。常時起動: ログオン時自動(タスクスケジューラ VisualInspectionAI_API)。手動: projects\visual_inspection_ai\windows\start_api.ps1 (port 18010)</p></a>
+        </div>
+    </section>
+
+    <section class="domain-section">
+        <h2 class="domain-header">5. Data Ingestion & RAG</h2>
+        <div class="grid">
+            <a href="apps/ingestion_rag_control_center/index.html" class="card featured"><h3>Ingestion / RAG Hub</h3><p>Monitor health of Gmail and RAG sync.</p></a>
+            <a href="apps/para_router/index.html" class="card featured"><h3>⚡ PARA Knowledge Hub</h3><p>Autonomous project & knowledge organization using the PARA methodology.</p></a>
+            <a href="http://localhost:8000" class="card"><h3>Paperless NGX</h3><p>Document OCR and indexing store.</p></a>
+        </div>
+    </section>
+
+    <section class="domain-section">
+        <h2 class="domain-header">6. Agent Governance & QA</h2>
+        <div class="grid">
+            <a href="apps/workspace_agents/index.html" class="card featured"><h3>Workspace Agents Hub</h3><p>Production safety guards (SQL/HITL) and QA analysis.</p></a>
+            <a href="protocols/claude_context/index.html" class="card featured"><h3>Claude Context Hub</h3><p>Codebase search & Agent coordination (Milvus + Ollama).</p></a>
+            <a href="apps/iatf_db_manager/index.html" class="card"><h3>IATF DB Manager</h3><p>Document classification & confidence-based ingestion.</p></a>
+            <a href="apps/taco_dashboard/index.html" class="card"><h3>TACO++ Optimizer</h3><p>Log compression & Context aware optimization.</p></a>
+            <a href="apps/secure_audit/index.html" class="card"><h3>Security Audit Hub</h3><p>Isolation evidence & Security checklists.</p></a>
+            <a href="apps/opencode_go_intel/portal_card/index.html" class="card featured"><h3>⚡ OpenCode GO Intel Hub</h3><p>外部情報収集・有益性判定・採用候補化を行う自律型インテリジェンス・レイヤー。</p></a>
+            <a href="apps/tool_attention/index.html" class="card featured"><h3>⚡ Tool Attention Dashboard</h3><p>ツールの動的選択・異常検知・学習型ルーティング状況を可視化する自律制御パネル。</p></a>
+            <a href="apps/agent_skills_registry/portal_card/agent_skills_card.html" class="card featured"><h3>⚡ Agent Skills Registry</h3><p>Taskに応じた専門知識（IATF/FEM/3D）をオンデマンドでエージェントに供給する自律知識管理レイヤー。</p></a>
+        </div>
+    </section>
+
+    <section class="domain-section">
+        <h2 class="domain-header">7. Content Factory</h2>
+        <div class="grid">
+            <a href="apps/bunny_colony/index.html" class="card featured" style="border-color: #eab464;"><h3>🐇 Bunny Colony</h3><p>7つの夜を越える短編コロニー戦略ゲーム。Windows Portable版・自動保存・Steam公開パッケージ。</p></a>
+            <a href="apps/pub_hub/index.html" class="card featured"><h3>Kindle Pub-Hub</h3><p>AI drafting & Kindle eBook publishing.</p></a>
+            <a href="apps/audio_lab/index.html" class="card featured"><h3>Audio Lab</h3><p>Sonic Engineering & AI Music production.</p></a>
+            <a href="apps/harmony_hub/index.html" class="card"><h3>Harmony Hub</h3><p>Music theory & chord progression utilities.</p></a>
+            <a href="apps/topview_video_agent/index.html" class="card featured"><h3>Topview Agent</h3><p>AI-driven QA & IATF educational video production.</p></a>
+            <a href="http://localhost:8188" class="card"><h3>Raw ComfyUI</h3><p>Direct access to the Visual Lab engine.</p></a>
+            <a href="http://localhost:7861" class="card"><h3>Raw SD-WebUI</h3><p>Stable Diffusion expert interface.</p></a>
+            <a href="apps/meshy_studio/index.html" class="card featured"><h3>⚡ Meshy 3D Studio</h3><p>IATF動画向け3D素材生成。Text-to-3D プロキシ経由で安全にアセット作成。</p></a>
+            <a href="http://localhost:18082/tts_hub/index.html" class="card featured"><h3>⚡ TTS Honki Hub</h3><p>用途別TTSルーティング基盤。現場アラートからIATF教育ナレーションまで、最適な声を自動選択。</p></a>
+            <a href="apps/ai_output_master/index.html" class="card featured"><h3>⚡ AI Output Master</h3><p>一般論を120点の現場回答へ。三歩法・説得の三角形・QA/IATF 特化テンプレート Hub。</p></a>
+            <a href="apps/vnccs_pose_studio/portal/apps/vnccs_pose_studio/index.html" class="card featured"><h3>⚡ VNCCS Pose Studio Pro</h3><p>ComfyUI 連携。ポーズ・光源・構図をDOE条件として管理・自動生成するプロフェッショナル・スタジオ。</p></a>
+            <a href="apps/google_vids_education/portal_card/google_vids_education_card.html" class="card featured"><h3>⚡ Google Vids Education Hub</h3><p>Google Vids × OpenClaw。現場ナレッジからの教材動画（IATF/不具合事例）自動生成支援システム。</p></a>
+            <a href="apps/ai_image_gen/index.html" class="card featured"><h3>⚡ Local OpenVINO AI Gen</h3><p>Intel i9 CPU 専従・低遅延画像生成。厚木メカシティ・コンセプトアート・高画質リファレンスを15秒で出力。</p></a>
+            <a href="apps/corpus2skill/index.html" class="card featured"><h3>🌳 Corpus2Skill Explorer</h3><p>IATF・図面・QC工程表を構造探索する次世代RAG。超リアルデータ対応版。</p></a>
+            <a href="http://localhost:8188" class="card featured"><h3>⚡ ComfyUI img2img 強化</h3><p>Blenderレンダフレームをdreamshaper_8でimg2img強化。denoise=0.35で構図維持のままリアリティUP。<br><small>起動: services/comfyui/ (CPU版・GPU版と8188排他) | スクリプト: pipeline/comfyui_upscaler.py</small></p></a>
+            <a href="http://localhost:8188" class="card featured" style="border-color: #22c55e;"><h3>⚡ ComfyUI FullKit (RTX 5060 Ti GPU)</h3><p>SDXL画像 + Wan2.2 TI2V 5B動画をGPU実行。モデルはF:に集約(extra_model_paths経由)。8188はDocker CPU版と排他。<br><small>起動: python services/comfyui_fullkit/scripts/start_comfyui_gpu.py | 診断: scripts/doctor.py | 手順: docs/00_CLAWSTACK_FUSION.md</small></p></a>
+            <a href="file:///D:/Clawdbot_Docker_20260125/services/asset_fetcher/polyhaven_fetch.py" class="card featured"><h3>⚡ Poly Haven / ambientCG</h3><p>CC0ライセンス HDRI・PBRテクスチャを自動取得。Blender世界照明とマテリアルをワンコマンドで更新。<br><small>python polyhaven_fetch.py --type all | python ambientcg_fetch.py</small></p></a>
+            <a href="file:///D:/Clawdbot_Docker_20260125/services/plateau_fetcher/plateau_fetch.py" class="card featured"><h3>⚡ PLATEAU 3D都市モデル</h3><p>国土交通省PLATEAUのCityGML/FBXを自動取得。UE5 + PLATEAU SDK でLumen都市レンダが可能。<br><small>python plateau_fetch.py --city nagoya | UE5_IMPORT_README.md</small></p></a>
+        </div>
+    </section>
+    <section class="domain-section">
+        <h2 class="domain-header">8. Creative AI & Avatars</h2>
+        <div class="grid">
+            <a href="apps/creative_ai_lab/index.html" class="card featured"><h3>⚡ Creative AI Lab</h3><p>Adobe/Canva/Blender/AI動画モデルの評価ダッシュボード。プロンプト管理と性能比較。</p></a>
+            <a href="apps/ai3d_animation_lab/index.html" class="card featured"><h3>⚡ 3D AI Animation Lab</h3><p>台本から映画級3Dアニメを自律生成。Blender連携・ストーリーボード管理。 [Phase: SANDBOX]</p></a>
+            <a href="apps/ai3d_animation_lab/index.html" class="card"><h3>Motion Quality Reports</h3><p>足滑り・関節破綻・台本一致率を自動検出し、品質ゲートを管理します。</p></a>
+            <a href="apps/ai3d_animation_lab/index.html" class="card"><h3>Asset & License Registry</h3><p>3Dモデル・モーション・テクスチャのライセンス安全性を一元管理。</p></a>
+            <a href="apps/creative_ai_lab/index.html#benchmark" class="card"><h3>Video Model Benchmark</h3><p>HappyHorse/Seedance/Sora/Veo 等の最新生成モデル比較表。</p></a>
+        </div>
+    </section>
+    <section class="domain-section">
+        <h2 class="domain-header">9. AI Infrastructure & Performance</h2>
+        <div class="grid">
+            <a href="infrastructure/fullspeed/portal_cards/mtp_dashboard_card.html" class="card featured"><h3>⚡ MTP FullSpeed Dashboard</h3><p>llama.cpp / OpenVINO / MTP の推論パフォーマンスをリアルタイム監視。高負荷タスクの動的ルーティング管理。</p></a>
+            <a href="infrastructure/fullspeed/benchmark/README.md" class="card"><h3>Performance Benchmarks</h3><p>Ollama vs llama.cpp vs Speculative Decoding の性能比較レポートと推奨設定。</p></a>
+            <a href="infrastructure/fullspeed/README.md" class="card"><h3>Optimization Guide</h3><p>Intel i9-13900HK のポテンシャルを最大化するためのスレッド配分・量子化戦略。</p></a>
+        </div>
+    </section>
+
+    <script>
+        (function() {
+            const STORAGE_KEY = "clawstack_api_risk_widget_open";
+            const REFRESH_MS = 5 * 60 * 1000;
+
+            const elToggle = document.getElementById("apiRiskToggle");
+            const elToggleText = document.getElementById("apiRiskToggleText");
+            const elDot = document.getElementById("apiRiskDot");
+            const elPanel = document.getElementById("apiRiskPanel");
+            const elList = document.getElementById("apiRiskList");
+            const elMeta = document.getElementById("apiRiskMeta");
+            const elRefresh = document.getElementById("apiRiskRefresh");
+            const elHide = document.getElementById("apiRiskHide");
+
+            function setOpen(open) {
+                try { localStorage.setItem(STORAGE_KEY, open ? "1" : "0"); } catch (e) {}
+                elPanel.hidden = !open;
+            }
+            function getOpen() {
+                try { return localStorage.getItem(STORAGE_KEY) === "1"; } catch (e) { return false; }
+            }
+            function setOverallStatus(status) {
+                elDot.classList.remove("ok", "warning", "critical");
+                if (status) elDot.classList.add(status);
+                if (status === "critical") elToggleText.textContent = "API CRIT";
+                else if (status === "warning") elToggleText.textContent = "API WARN";
+                else if (status === "ok") elToggleText.textContent = "API OK";
+                else elToggleText.textContent = "API";
+            }
+            function firstNonOkStatus(providers) {
+                let hasWarning = false;
+                for (const p of providers) {
+                    const s = p?.usage_quota?.status;
+                    if (s === "critical") return "critical";
+                    if (s === "warning") hasWarning = true;
+                }
+                return hasWarning ? "warning" : "ok";
+            }
+            function fmtQuota(p) {
+                const q = p.usage_quota;
+                if (!q) return "quota: n/a";
+                const unit = q.unit || "";
+                const usage = (q.usage ?? "?");
+                const limit = (q.limit ?? "?");
+                const remaining = (q.remaining ?? "?");
+                const resetIn = q.resetIn ? (" | reset: " + q.resetIn) : "";
+                return `quota: ${usage}/${limit} (rem ${remaining}) ${unit}${resetIn}`;
+            }
+            function escapeHtml(s) {
+                return String(s ?? "").replace(/[&<>"']/g, (c) => ({
+                    "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;"
+                }[c]));
+            }
+            function renderList(providers) {
+                const rows = (providers || []).map(p => ({
+                    provider: p.provider || p.id || "unknown",
+                    status: p?.usage_quota?.status || "n/a",
+                    line1: (p?.usage_quota?.name ? p.usage_quota.name : (p?.billing_status ? `billing: ${p.billing_status}` : "usage_quota")),
+                    line2: fmtQuota(p),
+                }));
+
+                if (rows.length === 0) {
+                    elList.innerHTML = "<div style=\"color: var(--muted); padding: 10px 8px; font-size: 0.88rem;\">no provider data</div>";
+                    return;
+                }
+
+                elList.innerHTML = rows.map(r => `
+                    <div class="api-risk-row">
+                        <span class="api-risk-dot ${r.status === "n/a" ? "" : r.status}"></span>
+                        <div>
+                            <div style="font-weight:700; font-size:0.9rem;">${escapeHtml(r.provider)}</div>
+                            <small>${escapeHtml(r.line1)}<br>${escapeHtml(r.line2)}</small>
+                        </div>
+                        <span class="api-risk-badge ${r.status === "n/a" ? "" : r.status}">${escapeHtml(r.status)}</span>
+                    </div>
+                `).join("");
+            }
+            async function refresh() {
+                try {
+                    const url = "api_cost_report_status.json?t=" + Date.now();
+                    const res = await fetch(url, { cache: "no-store" });
+                    if (!res.ok) throw new Error("fetch_failed");
+                    const data = await res.json();
+                    const providers = Array.isArray(data.providers) ? data.providers : [];
+
+                    setOverallStatus(firstNonOkStatus(providers));
+                    const ts = data.generated_at_jst || data.generated_at_utc || "";
+                    elMeta.textContent = ts ? ("updated: " + ts) : "updated";
+                    renderList(providers);
+                } catch (e) {
+                    setOverallStatus(null);
+                    elMeta.textContent = "updated: failed to load api_cost_report_status.json";
+                    elList.innerHTML = "<div style=\"color: var(--muted); padding: 10px 8px; font-size: 0.88rem;\">failed to load</div>";
+                }
+            }
+
+            elToggle.addEventListener("click", function() { setOpen(elPanel.hidden); });
+            elHide.addEventListener("click", function() { setOpen(false); });
+            elRefresh.addEventListener("click", function() { refresh(); });
+
+            setOpen(getOpen());
+            refresh();
+            setInterval(refresh, REFRESH_MS);
+        })();
+
+        (function loadLocalRampPortal() {
+            const API = "http://127.0.0.1:18097/api/local-ramp-policy";
+            const grid = document.getElementById("rampPhaseGrid");
+            const statusEl = document.getElementById("rampSaveStatus");
+            const usageEl = document.getElementById("rampUsageLine");
+            let selectedPhase = "phase0";
+            let policyData = null;
+
+            function esc(s) {
+                return String(s || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+            }
+
+            function renderCards() {
+                const phases = (policyData && policyData.phases) || [];
+                const current = (policyData && policyData.phase) || "phase0";
+                selectedPhase = current;
+                grid.innerHTML = phases.map(p => {
+                    const active = p.id === current ? " active" : "";
+                    const scope = p.scope || {};
+                    const scopeTxt = Object.keys(scope).filter(k => scope[k]).join(", ") || "none";
+                    return `<div class="ramp-card${active}" data-phase="${esc(p.id)}" role="button" tabindex="0">
+                        <h4>${esc(p.label)} <span style="color:#34d399;font-size:0.75rem">target ${p.local_target_pct}% local</span></h4>
+                        <p>${esc(p.summary)}</p>
+                        <p style="margin-top:8px;font-size:0.72rem;color:#64748b">scope: ${esc(scopeTxt)}</p>
+                    </div>`;
+                }).join("");
+                grid.querySelectorAll(".ramp-card").forEach(card => {
+                    card.addEventListener("click", function() {
+                        grid.querySelectorAll(".ramp-card").forEach(c => c.classList.remove("active"));
+                        card.classList.add("active");
+                        selectedPhase = card.getAttribute("data-phase");
+                    });
+                });
+            }
+
+            async function loadPolicy() {
+                statusEl.textContent = "";
+                statusEl.className = "ramp-status";
+                try {
+                    let res = await fetch(API + "?t=" + Date.now(), { cache: "no-store" });
+                    if (!res.ok) {
+                        res = await fetch("local_ramp_policy.json?t=" + Date.now(), { cache: "no-store" });
+                        if (!res.ok) throw new Error("policy_missing");
+                        const state = await res.json();
+                        const defRes = await fetch("local_ramp_policy.default.json?t=" + Date.now(), { cache: "no-store" });
+                        const defs = defRes.ok ? await defRes.json() : { phases: {} };
+                        const pd = (defs.phases || {})[state.phase || "phase0"] || {};
+                        policyData = {
+                            phase: state.phase || "phase0",
+                            mode: state.mode || pd.mode,
+                            phases: Object.keys(defs.phases || {}).map(id => ({ id, ...(defs.phases[id]) })),
+                            updated_at_jst: state.updated_at_jst,
+                        };
+                        statusEl.textContent = "read-only (start growth daemon or: python data/workspace/growth_dashboard_api.py)";
+                        statusEl.className = "ramp-status";
+                    } else {
+                        policyData = await res.json();
+                        statusEl.textContent = policyData.updated_at_jst
+                            ? ("active since " + policyData.updated_at_jst)
+                            : "";
+                    }
+                    renderCards();
+                } catch (e) {
+                    statusEl.textContent = "failed to load policy";
+                    statusEl.className = "ramp-status err";
+                }
+            }
+
+            async function loadUsage() {
+                try {
+                    const res = await fetch("apps/growth_dashboard/growth_stats.json?t=" + Date.now(), { cache: "no-store" });
+                    if (!res.ok) throw new Error("no stats");
+                    const data = await res.json();
+                    const mu = data.model_usage_weekly || {};
+                    const local = (mu.families_ranked || []).find(f => f.family === "Local / Ollama");
+                    const n = local ? local.count : 0;
+                    const total = mu.total_events || 0;
+                    const pct = total ? ((100 * n) / total).toFixed(1) : "0";
+                    const target = (policyData && policyData.local_target_pct) || 0;
+                    usageEl.textContent = "Local usage (7d): " + n + " / " + total + " (" + pct + "%) | phase target: " + target + "%";
+                } catch (e) {
+                    usageEl.textContent = "Local usage (7d): unavailable";
+                }
+            }
+
+            document.getElementById("rampSaveBtn").addEventListener("click", async function() {
+                statusEl.textContent = "saving...";
+                statusEl.className = "ramp-status";
+                try {
+                    const res = await fetch(API, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ phase: selectedPhase, updated_by: "portal" }),
+                    });
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.error || "save_failed");
+                    policyData = data.policy || policyData;
+                    renderCards();
+                    statusEl.textContent = "saved (" + selectedPhase + ")";
+                    statusEl.className = "ramp-status";
+                    loadUsage();
+                } catch (e) {
+                    statusEl.textContent = "save failed - run: python data/workspace/growth_dashboard_api.py";
+                    statusEl.className = "ramp-status err";
+                }
+            });
+
+            loadPolicy().then(loadUsage);
+            setInterval(function() { loadPolicy(); loadUsage(); }, 5 * 60 * 1000);
+        })();
+
+        (function loadCommercialBenchmark() {
+            const note = document.getElementById("benchPortalNote");
+            const host = document.getElementById("benchPortalTable");
+            function levelColor(lv) {
+                const pct = Math.min(10, Math.max(0, lv)) / 10;
+                return "hsl(" + Math.round(120 * pct) + ", 65%, 45%)";
+            }
+            function esc(s) {
+                return String(s || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+            }
+            async function refreshBench() {
+                try {
+                    const res = await fetch("apps/growth_dashboard/growth_stats.json?t=" + Date.now(), { cache: "no-store" });
+                    if (!res.ok) throw new Error("fetch_failed");
+                    const data = await res.json();
+                    const bench = data.commercial_benchmark_l10 || {};
+                    note.textContent = bench.updated_note || "L0-L10 vs commercial targets (evidence-based).";
+                    const matrix = bench.matrix || [];
+                    const cats = bench.category_defs || [];
+                    if (!matrix.length) {
+                        host.innerHTML = "<p style=\"color:var(--muted);\">No data yet.</p>";
+                        return;
+                    }
+                    const headers = cats.length
+                        ? cats.map(c => "<th>" + esc(c.label || c.id) + "</th>").join("")
+                        : (matrix[0].categories || []).map(c => "<th>" + esc(c.label || c.id) + "</th>").join("");
+                    const rows = matrix.map(prod => {
+                        const cells = (prod.categories || []).map(cat => {
+                            const lv = cat.current_level || 0;
+                            const col = levelColor(lv);
+                            return "<td><span class=\"bench-lv\" style=\"background:" + col + "33;color:" + col + ";border:1px solid " + col + "88\" title=\"" + esc(cat.current_stage) + "\">L" + lv + "</span></td>";
+                        }).join("");
+                        return "<tr><td class=\"prod\">" + esc(prod.product_label) + "<small>" + esc(prod.reference) + "</small></td>" + cells + "</tr>";
+                    }).join("");
+                    host.innerHTML = "<table class=\"bench-table\"><thead><tr><th class=\"prod\">Product</th>" + headers + "</tr></thead><tbody>" + rows + "</tbody></table>";
+                } catch (e) {
+                    note.textContent = "Failed to load benchmark (run growth daemon to refresh growth_stats.json).";
+                    host.innerHTML = "";
+                }
+            }
+            refreshBench();
+            setInterval(refreshBench, 5 * 60 * 1000);
+        })();
+
+        (function loadSatelliteCaeLive() {
+            const note = document.getElementById("satPortalNote");
+            const grid = document.getElementById("satPortalGrid");
+            const badge = document.getElementById("satOverallBadge");
+            const trials = document.getElementById("satTrialList");
+            function esc(s) {
+                return String(s || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+            }
+            function badgeClass(v) {
+                if (v === "ok") return "ok";
+                if (v === "warning") return "warning";
+                return "critical";
+            }
+            async function refreshSat() {
+                try {
+                    const res = await fetch("satellite_cae_live_status.json?t=" + Date.now(), { cache: "no-store" });
+                    if (!res.ok) throw new Error("missing");
+                    const d = await res.json();
+                    const overall = d.overall || "warning";
+                    badge.textContent = overall;
+                    badge.className = "sat-badge " + badgeClass(overall);
+                    note.textContent = "updated: " + (d.updated_at || "?") + (d.issues && d.issues.length ? " | " + d.issues.join("; ") : "");
+                    const lavie = d.lavie || {};
+                    const k10 = d.k10 || {};
+                    const route = d.routing || {};
+                    const summary = d.cae_te_log_summary || {};
+                    grid.innerHTML = [
+                        { t: "LAVIE worker", v: lavie.online ? "online" : "offline", d: lavie.probe || "" },
+                        { t: "LAVIE n8n", v: lavie.n8n_online ? "online" : "offline", d: lavie.n8n_probe || "" },
+                        { t: "K10 CAE busy", v: k10.cae_busy ? "yes" : "no", d: k10.busy_reason || "" },
+                        { t: "resin_flow route", v: (route.resin_flow || {}).host || "?", d: (route.resin_flow || {}).reason || "" },
+                        { t: "press_blanking route", v: (route.press_blanking || {}).host || "?", d: (route.press_blanking || {}).reason || "" },
+                        { t: "SJP-3 gap jobs", v: (d.sjp3 && d.sjp3.enabled) ? (d.sjp3.gap_jobs || []).join(", ") : "off", d: "K10 only" },
+                        { t: "cae_te_log", v: (summary.total_trials || 0) + " trials", d: "success " + (summary.success_rate_pct || 0) + "%" },
+                    ].map(c => `<div class="sat-card"><h4>${esc(c.t)}</h4><p><strong>${esc(c.v)}</strong><br>${esc(c.d)}</p></div>`).join("");
+                    const latest = (d.latest_trials || []).map(t => `${esc(t.id)} ${esc(t.category)} ${esc(t.verdict)} @${esc(t.host)}`).join(" | ");
+                    const hosts = d.recent_trials_by_host || {};
+                    trials.innerHTML = "Latest: <code>" + (latest || "none") + "</code><br>Recent by host: <code>" + esc(JSON.stringify(hosts)) + "</code>";
+                } catch (e) {
+                    note.textContent = "Run: python scripts/update_satellite_cae_live_status.py";
+                    grid.innerHTML = "";
+                    trials.innerHTML = "";
+                    badge.textContent = "n/a";
+                    badge.className = "sat-badge warning";
+                }
+            }
+            refreshSat();
+            setInterval(refreshSat, 60 * 1000);
+        })();
+
+        (function loadCaeNorthStar() {
+            const note = document.getElementById("nsPortalNote");
+            const grid = document.getElementById("nsPortalGrid");
+            if (!note || !grid) return;
+            function esc(s) {
+                return String(s || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+            }
+            async function refreshNs() {
+                try {
+                    const res = await fetch("portal_cae_north_star_status.json?t=" + Date.now(), { cache: "no-store" });
+                    if (!res.ok) throw new Error("missing");
+                    const d = await res.json();
+                    const t = d.latest_trial || {};
+                    const k = d.multi_kpi || {};
+                    const i = d.improve_123 || {};
+                    note.textContent = "updated: " + (d.updated_at || "?") + " | " + (d.label_policy || "");
+                    grid.innerHTML = [
+                        { t: "Latest trial", v: (t.fill_label || "?") + " fill " + (t.fill_pct != null ? t.fill_pct + "%" : "?"), d: (t.id || "") + " @" + (t.host || "") },
+                        { t: "Geometry", v: d.geometry_lock || "?", d: "locked until multi-KPI bands move" },
+                        { t: "Pressure", v: k.pressure || "?", d: "pack trial " + (i.pack_trial || "") },
+                        { t: "Weld / Sink / Warp", v: "see multi_kpi", d: "weld: " + (k.weld || "?") + " | sink: " + (k.sink || "?") + " | warp: " + (k.warp || "?") },
+                        { t: "Rheology", v: "power_law_k=" + (i.power_law_k != null ? i.power_law_k : "?"), d: i.status_doc || "" },
+                    ].map(c => `<div class="sat-card"><h4>${esc(c.t)}</h4><p><strong>${esc(c.v)}</strong><br>${esc(c.d)}</p></div>`).join("");
+                } catch (e) {
+                    note.textContent = "Missing portal_cae_north_star_status.json";
+                    grid.innerHTML = "";
+                }
+            }
+            refreshNs();
+            setInterval(refreshNs, 5 * 60 * 1000);
+        })();
+    </script>
 </body>
 </html>

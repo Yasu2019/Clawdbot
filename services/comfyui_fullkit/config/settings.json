@@ -1,0 +1,9 @@
+{
+  "comfyui_root": "D:/Clawdbot_Docker_20260125/vnccs_comfyui_clawstack_pro/ComfyUI_app",
+  "comfyui_python": "D:/Clawdbot_Docker_20260125/vnccs_comfyui_clawstack_pro/.venv_hunyuan3d/Scripts/python.exe",
+  "model_store_root": "F:/clawstack_data/comfyui_models",
+  "download_chunk_mb": 8,
+  "request_timeout_sec": 60,
+  "api_url": "http://127.0.0.1:8188",
+  "download_hash_log": "logs/download_hashes.json"
+}

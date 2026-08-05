@@ -1,0 +1,3 @@
+This kit contains original helper scripts released for the user without warranty.
+Official workflow JSON files retain their upstream project licensing and attribution.
+Model files are not redistributed. Review each model repository license before commercial use.

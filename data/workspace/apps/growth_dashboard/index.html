@@ -136,6 +136,8 @@
     <div style="max-width: 1200px; margin: 20px auto 0 auto; padding: 0 20px;">
         <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 8px; padding: 15px; display: flex; flex-wrap: wrap; gap: 15px; align-items: center;">
             <span style="font-weight: bold; color: var(--primary); font-size: 0.9rem;">📁 クイックリンク & ダウンロード:</span>
+            <a class="asset-action" href="http://localhost:8085" target="_blank" style="border-color:#06b6d4; color:#38bdf8; background:rgba(6,182,212,0.12);">🔬 起動: Cu/Ni/Sn めっき・リフロー 3D統合解析 (Port 8085)</a>
+            <span style="color: var(--text-dim);">|</span>
             <a class="asset-action" href="./downloads/incident_log.md" target="_blank">閲覧: 過去トラブルDB</a>
             <a class="asset-action download" href="./downloads/incident_log.md" download>ダウンロード</a>
             <span style="color: var(--text-dim);">|</span>
@@ -148,6 +150,22 @@
     </div>
 
     <div class="container">
+        <div class="card full-width" style="border-left: 4px solid #06b6d4; background: rgba(6,182,212,0.05);">
+            <h2 style="color: #38bdf8;">🔩 Cu/Ni/Sn PPES WP めっきムラ調査 (2026/8)</h2>
+            <p style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 12px;">
+                PPES WP端子のSnめっき後まだら模様について、電析物理モデル(Butler-Volmer/Levich/Faraday)とコイル短冊実測DXFに基づき根本原因を特定。
+                <strong>推定原因:</strong> めっき前の銅条コイル(幅39.000mm)上で、頭部がコイルエッジからわずか1.07mmに位置するためエッジ電流集中が発生し、
+                頭部のみNi・Sn厚みが局所的に厚く析出(頭部×1.98/ブレード×0.71)。厚み差がSn薄膜干渉色として肉眼で「まだら」に見える。
+                <strong>結論:</strong> 根本原因は「めっき」側(発生場所を決定)、リフローは「重症度」側(目立ち方を左右するが単体では面内差を生まない)。
+            </p>
+            <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+                <a class="asset-action" href="http://localhost:8085" target="_blank" style="border-color:#06b6d4; color:#38bdf8; background:rgba(6,182,212,0.12);">🔬 Web版シミュレータを開く (Port 8085)</a>
+                <a class="asset-action" href="./downloads/Cu_Ni_Sn_Simulator_Report.pptx" target="_blank">閲覧: PowerPointレポート(21スライド)</a>
+                <a class="asset-action download" href="./downloads/Cu_Ni_Sn_Simulator_Report.pptx" download>ダウンロード</a>
+                <span style="color: var(--text-dim); font-size: 0.75rem;">動画: D:\projects\cu_ni_sn_reflow_sim\ および Downloads\Cu_Ni_Sn_Simulator_Videos_PPES_WP\</span>
+            </div>
+        </div>
+
         <div class="card">
             <h2>Domain Distribution</h2>
             <canvas id="domainChart"></canvas>
@@ -306,6 +324,14 @@
                     </tr>
                 </thead>
                 <tbody id="femScoreBody">
+                    <tr>
+                        <td class="prod" style="color:#38bdf8;">
+                            🔬 Cu/Ni/Sn めっき・リフロー 3D統合マルチフィジックス解析
+                            <small>Phase-Field法 ＋ 3D WebGL (Three.js) ＋ Kirkendall Void 成長確率モデル</small>
+                        </td>
+                        <td><span class="bench-lv" style="background:rgba(16,185,129,0.2); color:#10b981; border:1px solid #10b981;">L10 (商業水準)</span><br><small>2D FIB SIM像 / 3D WebGL 表面粗さ(Ra/Rz) ヒートマップ</small></td>
+                        <td><span class="bench-lv" style="background:rgba(6,182,212,0.2); color:#06b6d4; border:1px solid #06b6d4;">ACTIVE / READY</span><br><small><a href="http://localhost:8085" target="_blank" style="color:#38bdf8; font-weight:bold;">http://localhost:8085</a> にて常時稼働・連動中</small></td>
+                    </tr>
                     <!-- Rendered by JS -->
                 </tbody>
             </table>
@@ -1036,22 +1062,32 @@ response = model.generate_content([
         <div class="card full-width">
             <h2>Web Material Source Inventory (Web資料の取得元別件数)</h2>
             <p style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 15px;">
-                Daily collected or scouted source counts are separated into acquired materials and candidate sources, so paid/registration sources are not mixed into downloaded evidence.
+                Web資料を「DB登録済み」「本文ファイル取得済み」「メタデータのみ」「DB未登録候補」に分けて集計しています。
+                <strong>メタデータのみの資料もDBと全文検索インデックスには登録済み</strong>であり、DBへの取り込み漏れではありません。
+                「DB未登録」は、監視・調査候補として見つかったものの、まだDBへ登録していない情報源だけを示します。
             </p>
+            <ul style="font-size:0.82rem; color:var(--text-dim); margin:0 0 15px 20px; line-height:1.6;">
+                <li><strong style="color:#58a6ff;">DB登録済み</strong>：タイトル、URL、取得元などがDBに保存され、検索できる資料数。</li>
+                <li><strong style="color:#3fb950;">本文取得済み</strong>：PDF、JSON、データセットなどのローカルファイルも保存済みの資料数。</li>
+                <li><strong style="color:#a371f7;">メタデータのみ</strong>：DB検索は可能だが、本文ファイルはまだ取得していない資料数。</li>
+                <li><strong style="color:#d29922;">DB未登録</strong>：候補として発見済みだが、DBへまだ登録していない情報源・資料数。</li>
+            </ul>
             <div id="materialSourceSummary" style="font-weight: bold; margin-bottom: 15px; color: #fff;">Loading source inventory...</div>
             <table class="history-table">
                 <thead>
                     <tr>
-                        <th width="24%">Source</th>
-                        <th width="12%">Acquired</th>
-                        <th width="12%">Candidates</th>
-                        <th width="14%">Status</th>
-                        <th width="20%">Latest / Evidence</th>
-                        <th width="18%">Examples / Note</th>
+                        <th width="18%">取得元</th>
+                        <th width="10%">DB登録済み</th>
+                        <th width="9%">本文取得済み</th>
+                        <th width="10%">メタデータのみ</th>
+                        <th width="9%">DB未登録</th>
+                        <th width="10%">状態</th>
+                        <th width="17%">最新日時 / 証跡</th>
+                        <th width="17%">例 / 備考</th>
                     </tr>
                 </thead>
                 <tbody id="materialSourceInventoryBody">
-                    <tr><td colspan="6" style="text-align:center; color:var(--text-dim);">Loading source inventory...</td></tr>
+                    <tr><td colspan="8" style="text-align:center; color:var(--text-dim);">Loading source inventory...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -1264,6 +1300,44 @@ response = model.generate_content([
                                 <span style="font-size:0.75rem; color:var(--text-dim);">・<strong>時間的整合性 (Temporal Consistency):</strong> 背景や服のテクスチャのフリッカー（ちらつき）が発生しやすく、Luma等のような破綻のない空間維持には及ばない。<br>
                                 ・<strong>物理演算と光の反射:</strong> ネイティブな物理理解がないため、Seedance 2.0のような高度な照明や反射は、Blender側で厳密に作り込んでControlNetで強く縛らない限り実現困難。<br>
                                 ・<strong>長尺・マルチショット:</strong> コンテキストウィンドウの制限上、シームレスな長尺生成やカメラワークの大幅な変更には複雑なワークフローが必要。</span>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div style="font-weight:600; font-size:1.05rem;">ComfyUI FullKit (GPU)</div>
+                            <div style="font-size:0.8rem; color:var(--text-dim);">SDXL 1.0 + Wan2.2 TI2V 5B / RTX 5060 Ti 16GB</div>
+                        </td>
+                        <td>
+                            <div style="font-size: 0.85rem; color: #8b949e;">
+                                <strong>Seedance 2.0</strong> (ByteDance)<br>
+                                <strong>Luma Dream Machine</strong><br>
+                                <strong>Runway Gen-3 Alpha</strong>
+                            </div>
+                        </td>
+                        <td>
+                            <div style="background: rgba(63, 185, 80, 0.1); border: 1px solid #3fb950; padding: 5px 12px; border-radius: 8px; display: inline-block; color: #3fb950; font-weight:600; text-align: center; font-size: 0.95rem;">画像 ✅ 疎通確認済<br><span style="font-size:0.7rem; color:#8b949e;">動画スコアはWan2.2導入・目視後に採点</span></div>
+                        </td>
+                        <td>
+                            <div class="know-how">
+                                <span style="color:#3fb950; font-weight:bold;">【疎通実績 (2026-08-06 実測・目視確認済)】</span><br>
+                                <span style="font-size:0.75rem; color:var(--text-dim);">・SDXL 1.0 (6.46GB / SHA256記録済) で 1024x1024 / 25steps / dpmpp_2m karras を生成成功。生成PNGを目視し、構図・照明・人物・機械に破綻なしを確認。<br>
+                                ・生成中のGPU実測: <strong>utilization 95〜96% / VRAM 13.9GB</strong>（CPUフォールバックなし）。出力: <code>ComfyUI_app/output/FullKit_SDXL_00001_.png</code><br>
+                                ・Wan2.2 TI2V 5B(動画)は未導入。導入後に動画品質を目視評価してスコアを確定する。</span><br>
+                                <br>
+                                <span style="color:#3fb950; font-weight:bold;">【構成 (2026-08-06 融合・実測値)】</span><br>
+                                <span style="font-size:0.75rem; color:var(--text-dim);">・ComfyUI 0.26.0 / Device: cuda:0 NVIDIA GeForce RTX 5060 Ti / Total VRAM 16311 MB / pytorch 2.8.0+cu128<br>
+                                ・本体は既存 <code>vnccs_comfyui_clawstack_pro/ComfyUI_app</code> を再利用（新規導入なし）。制御は <code>services/comfyui_fullkit/</code><br>
+                                ・モデル実体は <code>F:/clawstack_data/comfyui_models</code> に集約し <code>extra_model_paths.yaml</code> 経由で参照（D:容量を消費しない）</span><br>
+                                <br>
+                                <span style="color:#58a6ff; font-weight:bold;">【強み (Pros)】</span><br>
+                                <span style="font-size:0.75rem; color:var(--text-dim);">・従来のCPU-only Docker ComfyUIに対しGPU実行。SDXL 1024x1024 と Wan2.2 TI2V 5B（T2V/I2V兼用）を単一GPUで運用可能。<br>
+                                ・完全ローカル・追加コストゼロ。SHA256記録付きの公式配布元ダウンロード管理。</span><br>
+                                <br>
+                                <span style="color:#f85149; font-weight:bold;">【制約・運用ルール】</span><br>
+                                <span style="font-size:0.75rem; color:var(--text-dim);">・<strong>ポート8188は排他:</strong> Docker CPU版(<code>services/comfyui</code>)と同時起動すると無言でCPU実行になる。起動スクリプトが占有チェックで拒否する。<br>
+                                ・<strong>16GB VRAM制約:</strong> Wan2.2は 640x384 / 81frames / 16-20steps から開始し、安定後に832x480へ。不足時は 解像度→フレーム数→steps の順に下げる。<br>
+                                ・<strong>長尺は分割前提:</strong> 3〜5秒ショットを絵コンテCSVで管理し、FFmpeg/DaVinciで連結（10分 ≒ 5秒×120ショット）。</span>
                             </div>
                         </td>
                     </tr>
@@ -1785,13 +1859,15 @@ response = model.generate_content([
                 const data = await response.json();
                 const rows = Array.isArray(data.rows) ? data.rows : [];
                 summary.innerHTML = `
-                    Acquired materials: <span style="color:#3fb950;">${data.total_acquired_count || 0}</span>
-                    / Candidate sources: <span style="color:#d29922;">${data.total_candidate_count || 0}</span>
+                    DB登録済み: <span style="color:#58a6ff;">${data.total_db_registered_count || 0}</span>
+                    / 本文取得済み: <span style="color:#3fb950;">${data.total_acquired_count || 0}</span>
+                    / メタデータのみ: <span style="color:#a371f7;">${data.total_metadata_only_count || 0}</span>
+                    / DB未登録: <span style="color:#d29922;">${data.total_candidate_count || 0}</span>
                     / Gemini解読待ち: <span style="color:#38bdf8; font-weight:700;">${data.gemini_decoding_wait_count || 0} 件</span>
                     <span class="timestamp" style="margin-left:10px;">Updated: ${escapeHtml(data.updated_at || 'unknown')}</span>
                 `;
                 if (rows.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--text-dim);">No source inventory available.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:var(--text-dim);">No source inventory available.</td></tr>';
                     return;
                 }
                 const statusColor = {
@@ -1807,7 +1883,9 @@ response = model.generate_content([
                     return `
                         <tr>
                             <td><strong>${escapeHtml(row.source)}</strong><br><span class="timestamp">${escapeHtml(row.category || '')}</span></td>
+                            <td style="font-size:1.2rem; font-weight:bold; color:#58a6ff;">${row.db_registered_count || 0}</td>
                             <td style="font-size:1.2rem; font-weight:bold; color:#3fb950;">${row.acquired_count || 0}</td>
+                            <td style="font-size:1.2rem; font-weight:bold; color:#a371f7;">${row.metadata_only_count || 0}</td>
                             <td style="font-size:1.2rem; font-weight:bold; color:#d29922;">${row.candidate_count || 0}</td>
                             <td><span class="status-badge" style="background:rgba(255,255,255,0.06); color:${color}; border-color:${color};">${escapeHtml(row.status || 'unknown')}</span></td>
                             <td><span class="timestamp">${escapeHtml(row.latest_at || 'no local file date')}</span><br>${escapeHtml(row.evidence || '')}</td>
@@ -1818,7 +1896,7 @@ response = model.generate_content([
             } catch (error) {
                 console.error('Error loading material source inventory:', error);
                 summary.innerHTML = '<span style="color:#f85149;">Failed to load source inventory.</span>';
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#f85149;">Failed to load material_source_inventory.json.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:#f85149;">Failed to load material_source_inventory.json.</td></tr>';
             }
         }
 
