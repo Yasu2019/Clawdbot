@@ -26,6 +26,8 @@ def main()->int:
     p=argparse.ArgumentParser()
     p.add_argument('--port',type=int,default=default_port)
     p.add_argument('--listen',default='127.0.0.1')
+    # OS・他GPUジョブ用に空けておくVRAM(GB)。comfy_aimdo の simple_vram_headroom に渡る。
+    p.add_argument('--reserve-vram',type=float,default=CFG.get('reserve_vram_gb'))
     a=p.parse_args()
 
     comfy=Path(CFG['comfyui_root'])
@@ -41,6 +43,8 @@ def main()->int:
         return 4
 
     cmd=[str(py),'main.py','--listen',a.listen,'--port',str(a.port)]
+    if a.reserve_vram:
+        cmd+=['--reserve-vram',str(a.reserve_vram)]
     print('起動:',' '.join(cmd))
     print('作業ディレクトリ:',comfy)
     print(f'UI: http://{a.listen}:{a.port}')

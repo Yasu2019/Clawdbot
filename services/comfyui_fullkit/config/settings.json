@@ -2,6 +2,8 @@
   "comfyui_root": "D:/Clawdbot_Docker_20260125/vnccs_comfyui_clawstack_pro/ComfyUI_app",
   "comfyui_python": "D:/Clawdbot_Docker_20260125/vnccs_comfyui_clawstack_pro/.venv_hunyuan3d/Scripts/python.exe",
   "model_store_root": "F:/clawstack_data/comfyui_models",
+  "reserve_vram_gb": 1.5,
+  "est_vram_mb": 14000,
   "download_chunk_mb": 8,
   "request_timeout_sec": 60,
   "api_url": "http://127.0.0.1:8188",

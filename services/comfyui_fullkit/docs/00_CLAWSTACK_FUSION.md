@@ -16,14 +16,57 @@ Clawstackには**既にGPU実行可能なComfyUI本体**があるため、本体
 | モデル参照 | 直置き | `ComfyUI_app/extra_model_paths.yaml` で追加参照（既存modelsは無改変） |
 | 起動 | `run_nvidia_gpu.bat` | `scripts/start_comfyui_gpu.py`（8188占有チェック付き） |
 
-## 絶対ルール：8188はひとつだけ
+## ポート方針（2026-08-06 改訂：排他ルールを廃止）
 
-`services/comfyui`（**Docker CPU-only**）と本キットが起動するネイティブGPU版は**同じ 127.0.0.1:8188**を使う。
-両方立てると、API側は成功しているのに**無言でCPU実行**になり、生成が数十倍遅くなる。
+当初は GPU版 と Docker CPU版 が同じ 8188 を奪い合っていたため「排他運用」にしていたが、
+人間が覚えるルールは事故るので**物理的に衝突しない構成へ変更**した。
 
-- `start_comfyui_gpu.py` は起動前に8188を検査し、使用中なら**起動を拒否**する
-- 迷ったら `python scripts/doctor.py` の「ポート排他」節を見る
-- Docker側を止める: `docker compose -f services/comfyui/docker-compose.yml down`
+| 実体 | ホスト側ポート | 位置づけ |
+|---|---|---|
+| **ネイティブGPU版**（本キットが起動） | **8188** | **正**。既存コードの `COMFYUI_URL` 既定値がここを指す |
+| Docker CPU版 (`services/comfyui`) | **18188** | 非常用フォールバック。GPUが落ちた時だけ使う |
+
+`start_comfyui_gpu.py` の8188占有チェックは安全弁として残してある（GPU版の二重起動防止）。
+
+## GPU調停（RL学習・FEM との共存）
+
+RTX 5060 Ti は GeForce系のため **MIG非対応**で、16GBのVRAMを論理分割できない。
+同時実行は必ずどちらかがOOMする（`trouble_history`: RL学習resume中の `RuntimeError: bad allocation`）。
+そこで **`scripts/gpu_arbiter.py` によるリース方式の時分割**で調停する。
+
+```
+python scripts/gpu_arbiter.py status                # 現在の保持者とVRAM
+python scripts/gpu_arbiter.py acquire --owner rl_train --priority 0 --ttl 21600 --nonpreemptible
+python scripts/gpu_arbiter.py release --owner rl_train
+python scripts/gpu_arbiter.py reap                  # 死んだ保持者のリース回収
+```
+
+| 用途 | priority | 横取り |
+|---|---|---|
+| RL学習 / CAEソルバ（長時間・中断＝損失） | 0 | 不可（`--nonpreemptible`） |
+| ComfyUI 生成 | 10 | 可 |
+| バッチレンダ | 20 | 可 |
+
+**ComfyUIの譲り方（実測に基づく二段構え）**
+
+1. `POST /free {"unload_models":true,"free_memory":true}` を送る
+2. VRAMが戻るまで最大180秒待つ
+3. 戻らなければ**プロセスを終了**して確実に解放する
+
+**実測（2026-08-06 K10）**
+
+| 条件 | 結果 |
+|---|---|
+| `--reserve-vram 1.5` 起動 → 生成直後に `/free` | **t+6秒で解放**（空き 9231 → 15855 MiB） |
+| `--reserve-vram` なし起動 → アイドル時に `/free` | 60秒以内に戻らず。その後（数分内）に解放を確認 |
+| プロセス終了 (`taskkill /F`) | **即時に全解放**（空き 16050 MiB） |
+
+つまり `/free` は通常数秒で効くが、**常に速いとは限らない**。`comfy_aimdo` が
+`vrambuf_create` で確保したVRAMバッファの解放タイミングに依存するため、
+待ち時間だけに賭けず**プロセス終了のフォールバックを必ず持つ**設計にしてある。
+
+**予防策**: `--reserve-vram <GB>` で他ジョブ用の空きを常時確保できる（`comfy_aimdo` の
+`simple_vram_headroom` に渡る）。`config/settings.json` の `reserve_vram_gb` が既定値。
 
 ## 既存Clawstack連携（今回コード改変なし）
 

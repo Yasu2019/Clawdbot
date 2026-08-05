@@ -11,6 +11,14 @@ CFG=json.loads((ROOT/'config/settings.json').read_text(encoding='utf-8'))
 # 同じ COMFYUI_URL 環境変数を優先する。
 API_URL=os.getenv('COMFYUI_URL', CFG['api_url'])
 
+# GPU時分割調停(scripts/gpu_arbiter.py)。単一GPUをRL学習/CAEと共有するため、
+# 生成中だけリースを保持する。arbiterが無い環境でも動くよう任意依存にしてある。
+sys.path.insert(0, str(ROOT.parents[1]/'scripts'))
+try:
+    import gpu_arbiter
+except Exception:
+    gpu_arbiter=None
+
 def post_json(url:str,obj:dict)->dict:
     data=json.dumps(obj).encode('utf-8')
     req=urllib.request.Request(url,data=data,headers={'Content-Type':'application/json'})
@@ -26,7 +34,33 @@ def main()->int:
     p.add_argument('--negative',default='low quality, blurry, distorted, text, watermark')
     p.add_argument('--seed',type=int,default=123456789)
     p.add_argument('--timeout',type=int,default=900,help='完了待ちの上限秒。超えたら異常終了する')
+    p.add_argument('--lease-wait',type=float,default=0.0,help='GPUリース取得の待ち秒数')
+    p.add_argument('--no-lease',action='store_true',help='GPUリースを取らずに実行する')
     a=p.parse_args()
+
+    lease_owner=None
+    if gpu_arbiter and not a.no_lease:
+        ok,holder=gpu_arbiter.acquire(
+            'comfyui', priority=gpu_arbiter.PRIORITY_INTERACTIVE,
+            est_vram_mb=int(CFG.get('est_vram_mb',14000)),
+            ttl_sec=a.timeout+300, wait_sec=a.lease_wait,
+            yield_url=base_free_url(), pid=0, note='comfy_api_client')
+        if not ok:
+            print(f"GPUリースを取得できません。現保持者={holder.get('owner') if holder else '不明'} "
+                  f"期限={holder.get('expires_at') if holder else '-'}")
+            print('待つ場合は --lease-wait 600 を付けてください。')
+            return 6
+        lease_owner='comfyui'
+    try:
+        return _run(a)
+    finally:
+        if lease_owner:
+            gpu_arbiter.release(lease_owner)
+
+def base_free_url()->str:
+    return API_URL.rstrip('/')+'/free'
+
+def _run(a)->int:
     wf=json.loads(Path(a.workflow).read_text(encoding='utf-8'))
     wf['6']['inputs']['text']=a.prompt
     wf['7']['inputs']['text']=a.negative
