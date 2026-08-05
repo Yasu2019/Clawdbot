@@ -218,6 +218,11 @@ def main() -> int:
     parser.add_argument("--trial-id", default="")
     parser.add_argument("--node", default="", help="Satellite node override when routed to a satellite")
     parser.add_argument("--host", default="", choices=["", "k10", "lavie", "red_lavie"], help="Force host")
+    parser.add_argument(
+        "--fidelity-mode",
+        default="",
+        help="Optional fidelity ladder: quick|shell_proxy|coarse_3d|thermo_3d (extends existing params)",
+    )
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--timeout", type=int, default=600)
     parser.add_argument("--no-merge-log", action="store_true")
@@ -229,6 +234,19 @@ def main() -> int:
         params = json.loads(Path(args.params_file).read_text(encoding="utf-8-sig"))
     elif args.params_json:
         params = json.loads(args.params_json)
+    if args.fidelity_mode:
+        if params is None:
+            params = {}
+        params["fidelity_mode"] = args.fidelity_mode
+    if params and params.get("fidelity_mode"):
+        import cae_fidelity_mode as cfm
+
+        params = cfm.apply_fidelity_mode(params)
+        print(
+            f"[cae-dispatch] fidelity_mode={params.get('fidelity_mode')} "
+            f"mesh_mode={params.get('mesh_mode')} physics={params.get('physics_category')} "
+            f"label={params.get('accuracy_band_label')}"
+        )
 
     cfg = router.load_config()
     if args.host:

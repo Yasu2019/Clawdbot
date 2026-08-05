@@ -1262,6 +1262,14 @@ def build_case(
     gate_spec_path: Path,
     params: dict[str, Any],
 ) -> dict[str, Any]:
+    # Optional fidelity ladder (extends mesh_mode/physics; never removes modes).
+    try:
+        import cae_fidelity_mode as _cfm
+
+        params.update(_cfm.apply_fidelity_mode(params))
+    except Exception:
+        pass
+
     spec = gate_spec_mod.load_gate_spec(gate_spec_path)
     issues = gate_spec_mod.validate_gate_spec(
         spec, require_patch_names=required_patch_names(params)
