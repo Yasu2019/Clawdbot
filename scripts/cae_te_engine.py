@@ -39,6 +39,7 @@ import datetime
 import subprocess
 import argparse
 import shutil
+import shlex
 import tempfile
 import threading
 import math
@@ -2810,6 +2811,12 @@ def _run_openfoam(exp: dict, params: dict, dry_run: bool, timeout: int, trial_id
         shell_parts.append(restore_ascii)
     shell_parts.append(f"{solver} 2>&1")
     shell_cmd = " && ".join(shell_parts)
+    # T050/INC-187: subprocess timeout only kills the docker client and can leave
+    # compressibleInterFoam orphans (r12 great_gates). Bound the whole case inside
+    # the container so --rm still cleans up when the wall clock expires.
+    bounded_shell_cmd = (
+        f"timeout -k 30 {int(timeout)} bash -lc {shlex.quote(shell_cmd)}"
+    )
     cmd = [
         _docker_exe(),
         "run",
@@ -2820,7 +2827,7 @@ def _run_openfoam(exp: dict, params: dict, dry_run: bool, timeout: int, trial_id
         OPENFOAM_IMAGE,
         "bash",
         "-c",
-        shell_cmd,
+        bounded_shell_cmd,
     ]
 
     if dry_run:
@@ -3784,13 +3791,48 @@ def _extract_weldline_kpis(run_dir: Path, params: dict | None = None, kpis: dict
         enriched.append({**gate, "center_mm": {"x": c["x"], "y": c["y"], "z": c["z"]}})
     enriched.sort(key=lambda g: g["center_mm"]["y"])
     if len(enriched) < 2:
+        # Single gate: try alpha fill-arrival ridges (needs constant/C); else empty PROXY.
+        try:
+            scripts_dir = Path(__file__).resolve().parent
+            if str(scripts_dir) not in sys.path:
+                sys.path.insert(0, str(scripts_dir))
+            import mf_of_weldline_proxy as _weld_proxy  # type: ignore
+
+            ridge = _weld_proxy.of_weld_from_alpha_fill_arrival(run_dir)
+            if int(ridge.get("weldline_count") or 0) > 0:
+                cands = ridge.get("candidates") or []
+                strongest = max(cands, key=lambda c: float(c.get("severity") or 0.0))
+                out = {
+                    "weldline_severity": float(strongest.get("severity") or 0.0),
+                    "weldline_strength_retention_pct": float(
+                        strongest.get("strength_retention_pct") or 100.0
+                    ),
+                    "weldline_count": int(ridge.get("weldline_count") or 0),
+                    "weldline_position_mm": strongest.get("position_mm"),
+                    "weldline_candidates": cands,
+                    "weldline_kpi_source": "of_alpha_fill_arrival",
+                    "weldline_note": ridge.get("note")
+                    or "single-gate alpha fill-arrival ridge PROXY",
+                }
+                try:
+                    (run_dir / "weldline_kpis.json").write_text(
+                        json.dumps(out, ensure_ascii=False, indent=2), encoding="utf-8"
+                    )
+                except Exception:
+                    pass
+                return out
+        except Exception:
+            pass
         out = {
             "weldline_severity": 0.0,
             "weldline_strength_retention_pct": 100.0,
             "weldline_count": 0,
             "weldline_candidates": [],
             "weldline_kpi_source": "gate_alpha_T_proxy",
-            "weldline_note": "single active gate: no multi-front weld-line candidate",
+            "weldline_note": (
+                "single active gate: no multi-front geometric weld; "
+                "alpha fill-arrival needs constant/C or use mf_of_weldline_proxy.py"
+            ),
         }
         try:
             (run_dir / "weldline_kpis.json").write_text(json.dumps(out, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -4052,6 +4094,19 @@ def _extract_openfoam_kpis(run_dir: Path, docker_mount_path: str) -> tuple[dict,
     return kpis, " ".join(cmd)
 
 
+def _is_thermal_startup_smoke(params: dict | None) -> bool:
+    """Bounded thermo startup must not be failed solely for incomplete cavity fill."""
+    data = params or {}
+    if bool(data.get("thermal_startup_smoke")):
+        return True
+    try:
+        end_t = float(data.get("analysis_end_time_s") or data.get("cool_end_time") or 0.0)
+    except (TypeError, ValueError):
+        end_t = 0.0
+    purpose = str(data.get("trial_purpose") or "").lower()
+    return 0.0 < end_t <= 0.0015 and "startup" in purpose
+
+
 def _assess_openfoam(run_result: dict, exp: dict) -> dict:
     log = run_result.get("log", "")
     status = run_result.get("status", "ERROR")
@@ -4059,6 +4114,7 @@ def _assess_openfoam(run_result: dict, exp: dict) -> dict:
     actual_params = run_result.get("params", {})
     kpi_payload = run_result.get("kpi") if isinstance(run_result.get("kpi"), dict) else {}
     kpi_values = kpi_payload.get("values") if isinstance(kpi_payload.get("values"), dict) else {}
+    thermal_startup_smoke = _is_thermal_startup_smoke(actual_params)
 
     if status == "PREGATE_FAIL":
         return {
@@ -4248,10 +4304,26 @@ def _assess_openfoam(run_result: dict, exp: dict) -> dict:
                 category in ("resin_fill_vof", "resin_fill_cad")
                 and fill_pct < 50.0
             ):
-                verdict = "FAILED"
+                if thermal_startup_smoke and verdict == "SUCCESS":
+                    defects_extra["thermal_startup_smoke"] = True
+                    defects_extra["fill_fraction_gate_skipped"] = True
+                    if kpi_values.get("T_min") is not None:
+                        defects_extra["T_min"] = float(kpi_values["T_min"])
+                    if kpi_values.get("T_max") is not None:
+                        defects_extra["T_max"] = float(kpi_values["T_max"])
+                else:
+                    verdict = "FAILED"
             elif category in ("resin_fill_vof", "resin_fill_cad", "resin_fill_doe") and verdict == "SUCCESS":
                 if not defects_extra.get("fill_complete"):
-                    verdict = "FAILED_SHORT_SHOT"
+                    if thermal_startup_smoke:
+                        defects_extra["thermal_startup_smoke"] = True
+                        defects_extra["fill_complete_gate_skipped"] = True
+                        if kpi_values.get("T_min") is not None:
+                            defects_extra["T_min"] = float(kpi_values["T_min"])
+                        if kpi_values.get("T_max") is not None:
+                            defects_extra["T_max"] = float(kpi_values["T_max"])
+                    else:
+                        verdict = "FAILED_SHORT_SHOT"
             elif category == "resin_fill_doe" and fill_pct < 25.0:
                 verdict = "FAILED"
             elif category in ("resin_fill_cad", "resin_fill_doe"):
@@ -4309,6 +4381,32 @@ def _assess_openfoam(run_result: dict, exp: dict) -> dict:
                     "alpha_max": _alpha_max if _alpha_max else None,
                     "rule": "G1: fill<=110% and alpha_max<=1.05",
                 }
+            # INC-187: thermo smoke may End without FOAM FATAL while T collapses
+            # (r16 wrote 5e-05 with T_min~25 K). Fail-closed on absolute bounds.
+            _phys = str(actual_params.get("physics_category") or "")
+            _t_min = kpi_values.get("T_min", defects_extra.get("T_min"))
+            _t_max = kpi_values.get("T_max", defects_extra.get("T_max"))
+            if (
+                thermal_startup_smoke
+                or _phys in ("resin_fill_cool", "resin_fill_thermo")
+            ) and _t_min is not None and _t_max is not None:
+                try:
+                    _t_min_f = float(_t_min)
+                    _t_max_f = float(_t_max)
+                except (TypeError, ValueError):
+                    _t_min_f = None
+                    _t_max_f = None
+                if _t_min_f is not None and _t_max_f is not None:
+                    defects_extra["T_min"] = _t_min_f
+                    defects_extra["T_max"] = _t_max_f
+                    if not (250.0 <= _t_min_f <= _t_max_f <= 600.0):
+                        if verdict in ("SUCCESS", "PASS", "UNKNOWN"):
+                            verdict = "FAILED_NONPHYSICAL"
+                        defects_extra["nonphysical_temperature"] = {
+                            "T_min": _t_min_f,
+                            "T_max": _t_max_f,
+                            "rule": "G1T: 250K <= T_min <= T_max <= 600K",
+                        }
         elif category == "resin_fill":
             nu0 = float(actual_params.get("power_law_nu0", 0.01))
             n_exp = float(actual_params.get("power_law_n", 0.6))

@@ -1,0 +1,14 @@
+# CAE overnight terminal watch (do not regress)
+
+When the user authorizes overnight / unattended CAE continuation:
+
+1. Start the solver/dispatch process.
+2. Start the autopromote/monitor process for gated next steps.
+3. **Also start** `scripts/inc187_terminal_state_watchdog.py` watching the active trial IDs and monitor status JSON.
+4. Prefer also starting `scripts/inc187_autonomous_supervisor.py` when the user grants an N-iteration unattended budget.
+5. Do **not** end the work turn after "dispatch started" without a living watchdog that can Telegram on `SUCCESS` / `FAILED` / `TIMEOUT` / `FAILED_NONPHYSICAL`.
+6. On terminal failure: no blind retry; RCA + fresh trial ID; keep `PROXY_GAP`. Never resume a run whose latest T is outside 250..600 K.
+
+## Decision rule
+
+IF an unattended CAE job is running, THEN a K10-side watchdog must be alive and alerting on terminal ledger/monitor states within one poll interval, BECAUSE agent chat turns can end while the job is still running and silent failure must not reach the user first.
