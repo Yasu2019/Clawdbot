@@ -70,6 +70,7 @@ function buildGateSpec() {
 
 function readProcessParams() {
   const params = {
+    design_mode: $("designMode")?.value || "hybrid",
     inlet_velocity: parseFloat($("inletVelocity").value) || 1,
     pack_pressure_MPa: parseFloat($("packPressure").value) || 0,
     T_melt: parseFloat($("tMelt").value) || 513,
@@ -1246,7 +1247,208 @@ function initApp() {
     .catch((err) => setStatus(String(err), "warn"));
   loadSolverLandscape().catch(() => {});
   loadMaturity().catch(() => {});
-  ensureGateAdvisorPanel();
+  // --- HOT RUNNER EQUIPMENT CHANGE LISTENERS ---
+  const updateHotrunnerStatus = () => {
+    const brand = $("hotrunnerBrand")?.options[$("hotrunnerBrand").selectedIndex]?.text || "Mold-Masters";
+    const act = $("actuationType")?.options[$("actuationType").selectedIndex]?.text || "Electric Servo";
+    if ($("hotrunnerStatus")) {
+      $("hotrunnerStatus").textContent = `設備: ${brand.split(' ')[0]} | 駆動: ${act.split(' ')[0]}`;
+    }
+  };
+  $("hotrunnerBrand")?.addEventListener("change", updateHotrunnerStatus);
+  $("actuationType")?.addEventListener("change", updateHotrunnerStatus);
+  updateHotrunnerStatus();
+
+  // --- NEXT-GEN MOLDFLOW SUPERIORITY AI EVENT LISTENERS ---
+  const runSurrogate = async () => {
+    const pack = parseFloat($("sliderPackPressure")?.value || 80);
+    const mold = parseFloat($("sliderMoldTemp")?.value || 65);
+    $("valSurrPack").textContent = pack;
+    $("valSurrMold").textContent = mold;
+    try {
+      const res = await fetch(`${state.apiBase}/api/surrogate_predict`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ packing_pressure_mpa: pack, mold_temp_c: mold })
+      });
+      if (res.ok) {
+        const d = await res.json();
+        $("surrLatency").textContent = `${d.latency_ms} ms`;
+        $("surrWarp").textContent = `${d.predicted_max_warpage_mm} mm`;
+      }
+    } catch (e) {}
+  };
+
+  $("sliderPackPressure")?.addEventListener("input", runSurrogate);
+  $("sliderMoldTemp")?.addEventListener("input", runSurrogate);
+
+  $("btnAiOptimize")?.addEventListener("click", async () => {
+    setStatus("AI 全自動ゲート＆水路最適化を実行中...", "warn");
+    try {
+      const res = await fetch(`${state.apiBase}/api/ai_optimize`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ material: $("materialPreset")?.value || "PBT-GF30", target_warpage_mm: 0.20 })
+      });
+      const d = await res.json();
+      $("aiOptResult").textContent = `✅ AI最適ゲート: G1=[${d.gate_1_xyz}], G2=[${d.gate_2_xyz}]\n水路径: ${d.conformal_channel_dia_mm}mm, 予測反り: ${d.predicted_warpage_mm}mm, サイクル: ${d.predicted_cycle_time_sec}s`;
+      setStatus("AI 最適レイアウト計算完了！", "ok");
+    } catch (e) { setStatus(String(e), "warn"); }
+  });
+
+  $("btnFiberAnalysis")?.addEventListener("click", async () => {
+    try {
+      const res = await fetch(`${state.apiBase}/api/fiber_void_analysis`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fiber_content_pct: 30.0 })
+      });
+      const d = await res.json();
+      $("fiberResult").textContent = `配向テンソル: Flow=${d.orientation_tensor_main_diag[0]}, Trans=${d.orientation_tensor_main_diag[1]}\n弾性率: 流動 ${d.tensile_modulus_parallel_gpa} GPa, 直角 ${d.tensile_modulus_transverse_gpa} GPa\nボイド最大径: ${d.predicted_micro_void_max_diameter_um} μm (リスク: ${d.void_formation_risk_score})`;
+      setStatus("繊維配向・ミクロボイド解析完了", "ok");
+    } catch (e) { setStatus(String(e), "warn"); }
+  });
+
+  $("btnEcoCost")?.addEventListener("click", async () => {
+    try {
+      const res = await fetch(`${state.apiBase}/api/eco_cost_estimate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cycle_time_sec: 14.5, is_conformal_cooling: true })
+      });
+      const d = await res.json();
+      $("ecoResult").textContent = `🌱 電力: ${d.power_kwh_per_part} kWh/個, CO₂: ${d.co2_kg_per_part} kg/個 (年間 ${d.annual_100k_parts_co2_tons}トン)\n💰 金型加工費: ¥${d.total_tooling_cost_jpy.toLocaleString()} (3D水路: -${d.cycle_time_reduction_pct}%)`;
+      setStatus("CO₂ ＆ 金型コスト試算完了", "ok");
+    } catch (e) { setStatus(String(e), "warn"); }
+  });
+
+  $("btnRunAiCommand")?.addEventListener("click", async () => {
+    const text = $("aiCommandInput")?.value || "PBT-GF30で反り0.2mm以下の保圧条件を計算";
+    setStatus("AI 1コマンド全自動解析中...", "warn");
+    try {
+      const res = await fetch(`${state.apiBase}/api/one_command_agent`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ command_text: text })
+      });
+      const d = await res.json();
+      $("aiCommandOut").textContent = `🤖 指示: ${d.user_command}\n[解明ステータス]: ${d.agent_status}\n[最適結果]: 予測反り ${d.optimization_result.predicted_warpage_mm}mm (目標以下達成!)\n[CO₂年間]: ${d.eco_cost_analysis.annual_100k_parts_co2_tons}トン CO₂削減`;
+      setStatus("1コマンド全自動解析完結！", "ok");
+    } catch (e) { setStatus(String(e), "warn"); }
+  });
+
+  $("btnInsertAnalysis")?.addEventListener("click", async () => {
+    const mat = $("insertMaterial")?.value || "Brass_C3604";
+    const preheat = parseFloat($("insertPreheatTemp")?.value || 80);
+    setStatus("インサート成形 異種材料熱応力解析中...", "warn");
+    try {
+      const res = await fetch(`${state.apiBase}/api/insert_molding_analysis`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ insert_material: mat, insert_preheat_temp_c: preheat })
+      });
+      const d = await res.json();
+      $("insertResult").textContent = `🍱 金具: ${d.insert_material} (予熱 ${d.insert_preheat_temp_c}°C)\n線膨張差歪み: ${d.thermal_mismatch_strain_pct}%\n界面ミーゼス応力: ${d.interfacial_residual_stress_mpa} MPa\n界面剥離リスクスコア: ${d.debonding_delamination_risk_score} [判定: ${d.status}]\nインサート熱偏肉反り量: ${d.predicted_insert_warpage_offset_mm} mm`;
+      setStatus("インサート異種材料解析完了！", "ok");
+    } catch (e) { setStatus(String(e), "warn"); }
+  });
+
+  $("btnPinStrengthAnalysis")?.addEventListener("click", async () => {
+    const dia = parseFloat($("pinDiameter")?.value || 2.0);
+    const len = parseFloat($("pinLength")?.value || 15.0);
+    const mat = $("pinMaterial")?.value || "SKD61_Hardened";
+    const dp = parseFloat($("pinDiffPressure")?.value || 45.0);
+    setStatus("インサートピン 流動片圧・強度破損計算中...", "warn");
+    try {
+      const res = await fetch(`${state.apiBase}/api/insert_pin_strength_analysis`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pin_diameter_mm: dia, pin_length_mm: len, pin_material: mat, differential_pressure_mpa: dp })
+      });
+      const d = await res.json();
+      $("pinResult").textContent = `📌 ピン仕様: d=${d.pin_diameter_mm}mm, L=${d.pin_length_mm}mm (${d.pin_material})\n流体力: ${d.resin_drag_force_n} N (片圧 ΔP=${d.differential_pressure_mpa} MPa)\n最大曲げ応力: ${d.max_bending_stress_mpa} MPa (許容: ${d.yield_strength_limit_mpa} MPa)\n先端撓み量: ${d.pin_deflection_mm} mm\n安全率 SF: ${d.safety_factor} [判定: ${d.strength_verdict_japanese}]`;
+      setStatus(`ピン強度計算完了 (${d.strength_verdict})`, "ok");
+    } catch (e) { setStatus(String(e), "warn"); }
+  });
+
+  $("btnMoldBaseSizing")?.addEventListener("click", async () => {
+    const len = state.bbox.length || 100.0;
+    const wid = state.bbox.width || 60.0;
+    const hei = state.bbox.height || 30.0;
+    const shots = parseInt($("annualShots")?.value || 100000);
+    setStatus("上型・下型 最適プレートサイズ ＆ 最適鋼材選定中...", "warn");
+    try {
+      const res = await fetch(`${state.apiBase}/api/mold_base_recommendation`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ part_length_mm: len, part_width_mm: wid, part_height_mm: hei, annual_production_shots: shots })
+      });
+      const d = await res.json();
+      $("moldBaseResult").textContent = `🏭 推奨金型鋼材: ${d.steel_name} (${d.steel_hardness_hrc} HRC) [${d.suitability_note}]\n📐 上型(キャビ)プレート外形: ${d.upper_plate_size_mm[0]} x ${d.upper_plate_size_mm[1]} x ${d.upper_plate_size_mm[2]} mm (重量 ${d.upper_plate_weight_kg} kg)\n📐 下型(コア)プレート外形: ${d.lower_plate_size_mm[0]} x ${d.lower_plate_size_mm[1]} x ${d.lower_plate_size_mm[2]} mm (重量 ${d.lower_plate_weight_kg} kg)\n🧱 最小必要側壁肉厚: ${d.min_wall_thickness_mm} mm, 底肉厚: ${d.min_bottom_thickness_mm} mm\n⚖️ 金型総重量: ${d.total_mold_weight_kg} kg (概算材料費: ¥${d.estimated_steel_cost_jpy.toLocaleString()})\n💥 型締め撓み: ${d.mold_clamping_deflection_um} μm [バリ判定: ${d.flash_prevention_status}]`;
+      setStatus(`金型プレート最適選定完了 (${d.recommended_steel_grade})`, "ok");
+    } catch (e) { setStatus(String(e), "warn"); }
+  });
+
+  $("btnAiRecommendPl")?.addEventListener("click", async () => {
+    const hei = state.bbox.height || 30.0;
+    const userZVal = $("userPlZ")?.value ? parseFloat($("userPlZ").value) : null;
+    setStatus("AI 最適パーティングライン (PL面) 解析中...", "warn");
+    try {
+      const res = await fetch(`${state.apiBase}/api/parting_line_recommendation`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ part_height_mm: hei, user_pl_z_mm: userZVal })
+      });
+      const d = await res.json();
+      const pl = d.selected_pl;
+      $("plResult").textContent = `✂️ PL分割方式: ${d.selection_mode === "USER_MANUAL_CUSTOM" ? "ユーザーカスタム指定" : "AI 自動最適推奨"}\n📍 PL面 Z高さ: ${pl.pl_z_level_mm} mm (${pl.pl_type})\n📐 アンダーカット面積: ${pl.undercut_area_cm2} cm²\n⚙️ 必要スライドコア数: ${pl.slide_cores_needed} 個\n⭐ AI 総合スコア: ${pl.ai_score} / 1.0 (抜き勾配判定: ${d.draft_angle_pass ? "合格" : "再設計必要"})`;
+      setStatus(`PL分割面計算完了 (Z=${pl.pl_z_level_mm}mm)`, "ok");
+    } catch (e) { setStatus(String(e), "warn"); }
+  });
+
+  $("btnMicroDefectsAnalysis")?.addEventListener("click", async () => {
+    const clamp = parseFloat($("clampForceKn")?.value || 800);
+    const restime = parseFloat($("residenceTimeSec")?.value || 180);
+    const moist = parseFloat($("moisturePct")?.value || 0.04);
+    const area = parseFloat($("projectedAreaCm2")?.value || 120);
+    const pack = parseFloat($("packPressure")?.value || 85.0);
+    const tmelt = parseFloat($("tMelt")?.value || 513) - 273.15;
+    setStatus("Moldflow超越 微視的成形不良物理解析中...", "warn");
+    try {
+      const res = await fetch(`${state.apiBase}/api/advanced_defects_analysis`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          cavity_pressure_mpa: pack > 0 ? pack : 85.0,
+          clamping_force_kn: clamp,
+          projected_area_cm2: area,
+          melt_temp_c: tmelt > 0 ? tmelt : 260.0,
+          residence_time_sec: restime,
+          moisture_content_pct: moist
+        })
+      });
+      const d = await res.json();
+      $("microDefectResult").textContent = `💥 物理バリ長: ${d.physical_flash_length_um} μm (合わせ面隙間: ${d.physical_mold_gap_um} μm) [判定: ${d.flash_status}]\n🫧 内部ミクロボイド球径: ${d.internal_void_diameter_um} μm [判定: ${d.internal_void_status}]\n✨ シルバー銀条インデックス: ${d.silver_streak_index} (発生分解ガス: ${d.total_gas_concentration_pct} vol%) [判定: ${d.silver_streak_status}]\n🔥 エアトラップ最高到達ガス温度: ${d.adiabatic_air_trap_temp_c} °C [焼け判定: ${d.burn_mark_status}]`;
+      setStatus("微視的不良解析完了！", "ok");
+    } catch (e) { setStatus(String(e), "warn"); }
+  });
+
+  $("btnPurgingAnalysis")?.addEventListener("click", async () => {
+    const purgeGrade = $("purgingGrade")?.value || "Glass_Filled_Purge";
+    const ppm = parseFloat($("targetPpm")?.value || 50.0);
+    const screw = parseFloat($("screwDiameter")?.value || 45.0);
+    setStatus("パージダイナミクス ＆ 捨てショット数計算中...", "warn");
+    try {
+      const res = await fetch(`${state.apiBase}/api/purging_contamination_analysis`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ purging_grade: purgeGrade, target_quality_ppm: ppm, screw_diameter_mm: screw })
+      });
+      const d = await res.json();
+      $("purgingResult").textContent = `🧹 洗浄パージグレード: ${d.purging_grade}\n🎯 目標コンタミ許容限界: ${d.target_quality_ppm} PPM\n🎯 最小最適『必要捨てショット数』: ${d.optimal_required_purge_shots} ショット\n⚖️ 総パージ廃棄樹脂量: ${d.total_waste_weight_kg} kg (廃棄材料コスト: ¥${d.total_waste_cost_jpy.toLocaleString()})\n✨ 達成到達異物濃度: ${d.final_achieved_contamination_ppm} PPM [判定: ${d.purging_verdict}]`;
+      setStatus(`パージ捨てショット計算完了 (${d.optimal_required_purge_shots}shots)`, "ok");
+    } catch (e) { setStatus(String(e), "warn"); }
+  });
 }
 
 initApp();

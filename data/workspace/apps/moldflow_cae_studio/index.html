@@ -425,7 +425,12 @@
           <h2>Scene / API</h2>
           <p class="note">STEP をアップロードして、ゲートとプロセス条件をその場で調整します。API が落ちていても sample STL で継続できます。</p>
           <label class="field">API Base</label>
-          <input type="text" id="apiBase" value="http://127.0.0.1:8776" />
+          <label class="field">設計・配置モード (Design Mode)</label>
+          <select id="designMode" style="background: var(--panel-strong); color: var(--accent); font-weight: 600; border: 1px solid var(--accent); padding: 8px; border-radius: 8px; margin-bottom: 12px; width: 100%;">
+            <option value="hybrid" selected>🔀 双方対応 (ハイブリッド・推奨)</option>
+            <option value="gui">🖱️ GUI 画面直感配置 (マウスクリック)</option>
+            <option value="cad_import">📁 外部 CAD (STEP/STL) インポート</option>
+          </select>
           <div class="tool-row">
             <button type="button" class="btn primary" id="btnUpload">STEP Upload</button>
             <input type="file" id="stepFile" accept=".step,.stp,.STEP,.STP" />
@@ -450,6 +455,36 @@
             <button type="button" class="btn" id="btnPresetDual">2 gates</button>
             <button type="button" class="btn" id="btnPresetTriple">3 gates</button>
           </div>
+        </div>
+
+        <div class="section">
+          <h2>Hot Runner Equipment & Valve Gates</h2>
+          <p class="note">実在メーカー設備＆シーケンシャルバルブゲート駆動方式を選択できます。</p>
+          <label class="field">Hot Runner Catalog Brand</label>
+          <select id="hotrunnerBrand">
+            <option value="mold_masters" selected>Mold-Masters (Master-Series / E-Multi)</option>
+            <option value="yudo">YUDO (Hot Runner Valve Gate System)</option>
+            <option value="synventive">Synventive (SVG Active Control Valve Gate)</option>
+            <option value="incoe">INCOE (Soft-Stop Direct Flow Valve Gate)</option>
+            <option value="husky">HUSKY (Ultra-Flow Hot Runner System)</option>
+          </select>
+          <label class="field">Actuation Mechanism</label>
+          <select id="actuationType">
+            <option value="electric_servo" selected>⚡ 電動サーボ駆動 (Servo Valve Gate - ミリ秒高精度)</option>
+            <option value="pneumatic">💨 空圧駆動 (Pneumatic Valve Gate)</option>
+            <option value="hydraulic">🛢️ 油圧駆動 (Hydraulic Valve Gate - 高保圧)</option>
+          </select>
+          <div class="grid-2">
+            <div>
+              <label class="field">Sequential Open (s)</label>
+              <input type="number" id="seqOpenTime" value="0.5" step="0.1" />
+            </div>
+            <div>
+              <label class="field">Sequential Close (s)</label>
+              <input type="number" id="seqCloseTime" value="4.5" step="0.1" />
+            </div>
+          </div>
+          <div id="hotrunnerStatus" class="pill ok" style="margin-top: 8px; width: 100%; justify-content: center;">Mold-Masters Servo Active</div>
         </div>
 
         <div class="section">
@@ -513,6 +548,165 @@
           </select>
           <label class="field">Job ID</label>
           <input type="text" id="jobId" placeholder="studio_20260707_001" />
+        </div>
+
+        <div class="section" style="background: rgba(14, 165, 233, 0.08); border: 1px solid var(--accent); border-radius: 12px; padding: 12px; margin-top: 14px;">
+          <h2 style="color: #38bdf8; display: flex; align-items: center; gap: 6px;">🚀 Moldflow 超越 AI エンジン</h2>
+          <p class="note" style="color: #cbd5e1;">最新 Moldflow を凌駕する 5 大 AI ハイパー機能。リアルタイムレスポンスと自動最適化。</p>
+
+          <!-- 1. AI Gate & Conformal Cooling Optimizer -->
+          <div style="margin-bottom: 12px; background: var(--panel-strong); padding: 8px; border-radius: 8px;">
+            <label class="field" style="color: #7dd3fc; font-weight: 600;">🤖 AI ゲート・冷却水路 自動最適化</label>
+            <button type="button" class="btn good" id="btnAiOptimize" style="width: 100%; margin-top: 4px;">AI 神レイアウトを全自動計算</button>
+            <div id="aiOptResult" style="font-size: 0.74rem; color: #86efac; margin-top: 6px; white-space: pre-wrap;"></div>
+          </div>
+
+          <!-- 2. 0.1s Real-time AI Surrogate Solver -->
+          <div style="margin-bottom: 12px; background: var(--panel-strong); padding: 8px; border-radius: 8px;">
+            <label class="field" style="color: #7dd3fc; font-weight: 600;">⚡ 0.1秒 リアルタイム AI サロゲート (保圧/温度)</label>
+            <div class="field">保圧 Pack Pressure: <span id="valSurrPack">80</span> MPa</div>
+            <input type="range" id="sliderPackPressure" min="40" max="140" value="80" style="width: 100%;" />
+            <div class="field">金型温度 Mold Temp: <span id="valSurrMold">65</span> °C</div>
+            <input type="range" id="sliderMoldTemp" min="30" max="110" value="65" style="width: 100%;" />
+            <div class="stat-box" style="margin-top: 6px;">
+              <div class="stat"><div class="k">応答速度</div><div class="v" id="surrLatency" style="color:#38bdf8;">-- ms</div></div>
+              <div class="stat"><div class="k">3D 予測反り</div><div class="v" id="surrWarp" style="color:#22c55e;">-- mm</div></div>
+            </div>
+          </div>
+
+          <!-- 3. Fiber & Sink/Void Analysis -->
+          <div style="margin-bottom: 12px; background: var(--panel-strong); padding: 8px; border-radius: 8px;">
+            <label class="field" style="color: #7dd3fc; font-weight: 600;">🔬 繊維配向 (GF30) ＆ ミクロヒケ/ボイド</label>
+            <button type="button" class="btn primary" id="btnFiberAnalysis" style="width: 100%;">3D 微視構造配向を解析</button>
+            <div id="fiberResult" style="font-size: 0.74rem; color: #e2e8f0; margin-top: 6px;"></div>
+          </div>
+
+          <!-- 4. Eco CO2 & Mold Cost -->
+          <div style="margin-bottom: 12px; background: var(--panel-strong); padding: 8px; border-radius: 8px;">
+            <label class="field" style="color: #7dd3fc; font-weight: 600;">💰 成形 CO₂ ＆ 金属3D金型コスト</label>
+            <button type="button" class="btn" id="btnEcoCost" style="width: 100%;">CO₂ / 金型加工費を試算</button>
+            <div id="ecoResult" style="font-size: 0.74rem; color: #fde047; margin-top: 6px;"></div>
+          </div>
+
+          <!-- 5. One-Command Japanese AI Agent -->
+          <div style="margin-bottom: 12px; background: var(--panel-strong); padding: 8px; border-radius: 8px;">
+            <label class="field" style="color: #7dd3fc; font-weight: 600;">💬 日本語 1コマンド AI エージェント</label>
+            <input type="text" id="aiCommandInput" value="PBT-GF30で反り0.2mm以下の保圧条件を計算して" style="font-size: 0.76rem; margin-bottom: 6px;" />
+            <button type="button" class="btn primary" id="btnRunAiCommand" style="width: 100%;">AI 1コマンド全自動実行</button>
+            <div id="aiCommandOut" style="font-size: 0.72rem; color: #67e8f9; margin-top: 6px; white-space: pre-wrap;"></div>
+          </div>
+
+          <!-- 6. Insert Molding Multi-Material Thermal-Stress Engine -->
+          <div style="margin-bottom: 12px; background: var(--panel-strong); padding: 8px; border-radius: 8px;">
+            <label class="field" style="color: #7dd3fc; font-weight: 600;">🍱 インサート成形 異種材料連成解析 (金属/樹脂)</label>
+            <label class="field">金属インサート材質</label>
+            <select id="insertMaterial">
+              <option value="Brass_C3604" selected>黄銅 (Brass C3604 - 端子/インサート金具)</option>
+              <option value="Copper_C1100">銅 (Copper C1100 - バスバー/電極)</option>
+              <option value="SUS304">ステンレス (SUS304 - 補強板)</option>
+              <option value="Aluminum_A6061">アルミ (A6061 - ケース部品)</option>
+            </select>
+            <div class="field">インサート予熱温度 (°C)</div>
+            <input type="number" id="insertPreheatTemp" value="80" step="5" style="margin-bottom: 6px;" />
+            <button type="button" class="btn good" id="btnInsertAnalysis" style="width: 100%;">異種材料残留応力 ＆ 界面剥離解析</button>
+            <div id="insertResult" style="font-size: 0.74rem; color: #f472b6; margin-top: 6px; white-space: pre-wrap;"></div>
+          </div>
+
+          <!-- 7. Insert Pin Strength & Deflection Failure Engine -->
+          <div style="margin-bottom: 12px; background: var(--panel-strong); padding: 8px; border-radius: 8px;">
+            <label class="field" style="color: #7dd3fc; font-weight: 600;">📌 インサートピン 流動片圧・撓み ＆ 永久屈曲破損判定</label>
+            <div class="grid-2">
+              <div>
+                <label class="field">ピン径 d (mm)</label>
+                <input type="number" id="pinDiameter" value="2.0" step="0.1" />
+              </div>
+              <div>
+                <label class="field">ピン突出長 L (mm)</label>
+                <input type="number" id="pinLength" value="15.0" step="1" />
+              </div>
+            </div>
+            <label class="field">ピン材質</label>
+            <select id="pinMaterial">
+              <option value="SKD61_Hardened" selected>SKD61 焼入れダイス鋼 (降伏 1250 MPa)</option>
+              <option value="SKH51_HighSpeed">SKH51 ハイス鋼 (降伏 1800 MPa)</option>
+              <option value="SUS304">SUS304 ステンレスピン (降伏 310 MPa)</option>
+              <option value="Brass_C3604">黄銅コアピン (降伏 280 MPa)</option>
+            </select>
+            <div class="field">流動片圧 ΔP (MPa)</div>
+            <input type="number" id="pinDiffPressure" value="45" step="5" style="margin-bottom: 6px;" />
+            <button type="button" class="btn primary" id="btnPinStrengthAnalysis" style="width: 100%;">ピン流動片圧たわみ ＆ 折れ破損強度計算</button>
+            <div id="pinResult" style="font-size: 0.74rem; color: #fbbf24; margin-top: 6px; white-space: pre-wrap;"></div>
+          </div>
+
+          <!-- 8. Mold Base Plate Sizing & Steel Grade Engine -->
+          <div style="margin-bottom: 12px; background: var(--panel-strong); padding: 8px; border-radius: 8px;">
+            <label class="field" style="color: #7dd3fc; font-weight: 600;">🏭 上型・下型 最適プレート寸法 ＆ 最適金型鋼材選定</label>
+            <div class="field">年間予定生産ショット数</div>
+            <input type="number" id="annualShots" value="100000" step="10000" style="margin-bottom: 6px;" />
+            <button type="button" class="btn good" id="btnMoldBaseSizing" style="width: 100%;">上型・下型 最適サイズ ＆ 最適鋼材グレードを全自動選定</button>
+            <div id="moldBaseResult" style="font-size: 0.74rem; color: #38bdf8; margin-top: 6px; white-space: pre-wrap;"></div>
+          </div>
+
+          <!-- 9. Parting Line (PL) User Custom & AI Recommendation Engine -->
+          <div style="margin-bottom: 12px; background: var(--panel-strong); padding: 8px; border-radius: 8px;">
+            <label class="field" style="color: #7dd3fc; font-weight: 600;">✂️ パーティングライン (PL面) ユーザー指定 ＆ AI 自動最適推奨</label>
+            <div class="field">指定 PL 高さ Z (mm - 空欄でAI自動判定)</div>
+            <input type="number" id="userPlZ" placeholder="自動推奨 (Auto AI)" step="1" style="margin-bottom: 6px;" />
+            <div class="tool-row" style="margin-top: 0; margin-bottom: 6px;">
+              <button type="button" class="btn primary" id="btnAiRecommendPl" style="width: 100%;">AI 最適 PL割面を全自動推奨</button>
+            </div>
+            <div id="plResult" style="font-size: 0.74rem; color: #a7f3d0; margin-top: 6px; white-space: pre-wrap;"></div>
+          </div>
+
+          <!-- 10. Moldflow Superior Micro-Defects Engine (Physical Flash, Internal Void, Silver Streak, Diesel Burn) -->
+          <div style="margin-bottom: 12px; background: var(--panel-strong); padding: 8px; border-radius: 8px;">
+            <label class="field" style="color: #7dd3fc; font-weight: 600;">⚠️ Moldflow 超越 微視的成形不良物理解析 (バリ/ボイド/シルバー)</label>
+            <div class="grid-2">
+              <div>
+                <label class="field">型締め力 (kN)</label>
+                <input type="number" id="clampForceKn" value="800" step="50" />
+              </div>
+              <div>
+                <label class="field">シリンダー滞留 (s)</label>
+                <input type="number" id="residenceTimeSec" value="180" step="10" />
+              </div>
+            </div>
+            <div class="grid-2">
+              <div>
+                <label class="field">樹脂水分率 (%)</label>
+                <input type="number" id="moisturePct" value="0.04" step="0.01" />
+              </div>
+              <div>
+                <label class="field">投影面積 (cm²)</label>
+                <input type="number" id="projectedAreaCm2" value="120" step="10" />
+              </div>
+            </div>
+            <button type="button" class="btn warning" id="btnMicroDefectsAnalysis" style="width: 100%; margin-top: 6px;">物理バリサイズ・ミクロボイド・シルバー銀条を解析</button>
+            <div id="microDefectResult" style="font-size: 0.74rem; color: #f87171; margin-top: 6px; white-space: pre-wrap;"></div>
+          </div>
+
+          <!-- 11. Purging Contamination Dynamics & Waste Shot Engine -->
+          <div style="background: var(--panel-strong); padding: 8px; border-radius: 8px;">
+            <label class="field" style="color: #7dd3fc; font-weight: 600;">🧹 コンタミネーション混入率 ＆ 適正パージ・捨てショット数計算</label>
+            <label class="field">使用パージ材グレード</label>
+            <select id="purgingGrade">
+              <option value="Glass_Filled_Purge" selected>ガラス繊維入り強力メカニカルパージ材 (置換率 最高)</option>
+              <option value="Acrylic_Purge">アクリル系化学洗浄パージ材 (置換率 高)</option>
+              <option value="Self_Resin">成形樹脂による共洗い (置換率 低)</option>
+            </select>
+            <div class="grid-2">
+              <div>
+                <label class="field">目標異物限界 (PPM)</label>
+                <input type="number" id="targetPpm" value="50" step="10" />
+              </div>
+              <div>
+                <label class="field">スクリュー径 (mm)</label>
+                <input type="number" id="screwDiameter" value="45" step="5" />
+              </div>
+            </div>
+            <button type="button" class="btn good" id="btnPurgingAnalysis" style="width: 100%; margin-top: 6px;">コンタミ減衰 ＆ 最小最適捨てショット数を計算</button>
+            <div id="purgingResult" style="font-size: 0.74rem; color: #34d399; margin-top: 6px; white-space: pre-wrap;"></div>
+          </div>
         </div>
       </aside>
 

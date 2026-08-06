@@ -664,6 +664,103 @@ class CaeStudioHandler(BaseHTTPRequestHandler):
             self._handle_defect_preview(payload)
         elif parsed.path == "/api/export-job":
             self._handle_export_job(payload)
+        elif parsed.path == "/api/ai_optimize":
+            import cae_nextgen_moldflow_superiority as engine
+            res = engine.optimize_gate_and_cooling_ai(
+                payload.get("material", "PBT-GF30"),
+                payload.get("target_warpage_mm", 0.20)
+            )
+            self._json(200, res)
+        elif parsed.path == "/api/surrogate_predict":
+            import cae_nextgen_moldflow_superiority as engine
+            res = engine.predict_surrogate_realtime_3d(
+                float(payload.get("packing_pressure_mpa", 80.0)),
+                float(payload.get("mold_temp_c", 65.0)),
+                float(payload.get("melt_temp_c", 250.0)),
+                float(payload.get("packing_time_s", 5.0))
+            )
+            self._json(200, res)
+        elif parsed.path == "/api/fiber_void_analysis":
+            import cae_nextgen_moldflow_superiority as engine
+            res = engine.calculate_fiber_orientation_and_voids(
+                float(payload.get("fiber_content_pct", 30.0))
+            )
+            self._json(200, res)
+        elif parsed.path == "/api/eco_cost_estimate":
+            import cae_nextgen_moldflow_superiority as engine
+            res = engine.estimate_eco_co2_and_tooling_cost(
+                float(payload.get("cycle_time_sec", 14.5)),
+                float(payload.get("shot_weight_g", 42.0)),
+                bool(payload.get("is_conformal_cooling", True))
+            )
+            self._json(200, res)
+        elif parsed.path == "/api/one_command_agent":
+            import cae_nextgen_moldflow_superiority as engine
+            res = engine.execute_one_command_ai(
+                payload.get("command_text", "PBT-GF30で反り0.2mm以下の保圧条件を計算")
+            )
+            self._json(200, res)
+        elif parsed.path == "/api/insert_molding_analysis":
+            import cae_nextgen_moldflow_superiority as engine
+            res = engine.analyze_insert_molding_interface(
+                payload.get("insert_material", "Brass_C3604"),
+                payload.get("resin_material", "PBT-GF30"),
+                float(payload.get("insert_preheat_temp_c", 80.0)),
+                float(payload.get("mold_temp_c", 65.0))
+            )
+            self._json(200, res)
+        elif parsed.path == "/api/insert_pin_strength_analysis":
+            import cae_nextgen_moldflow_superiority as engine
+            res = engine.evaluate_insert_pin_strength_and_deflection(
+                float(payload.get("pin_diameter_mm", 2.0)),
+                float(payload.get("pin_length_mm", 15.0)),
+                payload.get("pin_material", "SKD61_Hardened"),
+                float(payload.get("differential_pressure_mpa", 45.0))
+            )
+            self._json(200, res)
+        elif parsed.path == "/api/mold_base_recommendation":
+            import cae_nextgen_moldflow_superiority as engine
+            res = engine.evaluate_optimal_mold_base_size_and_material(
+                float(payload.get("part_length_mm", 100.0)),
+                float(payload.get("part_width_mm", 60.0)),
+                float(payload.get("part_height_mm", 30.0)),
+                float(payload.get("cavity_pressure_mpa", 80.0)),
+                payload.get("resin_type", "PBT-GF30"),
+                int(payload.get("annual_production_shots", 100000))
+            )
+            self._json(200, res)
+        elif parsed.path == "/api/parting_line_recommendation":
+            import cae_nextgen_moldflow_superiority as engine
+            res = engine.recommend_parting_line_ai(
+                float(payload.get("part_height_mm", 30.0)),
+                payload.get("open_direction_xyz", [0.0, 0.0, 1.0]),
+                payload.get("user_pl_z_mm")
+            )
+            self._json(200, res)
+        elif parsed.path == "/api/advanced_defects_analysis":
+            import cae_nextgen_moldflow_superiority as engine
+            res = engine.evaluate_advanced_defects_flash_void_silver(
+                float(payload.get("cavity_pressure_mpa", 85.0)),
+                float(payload.get("clamping_force_kn", 800.0)),
+                float(payload.get("projected_area_cm2", 120.0)),
+                float(payload.get("melt_temp_c", 260.0)),
+                float(payload.get("residence_time_sec", 180.0)),
+                float(payload.get("moisture_content_pct", 0.04)),
+                float(payload.get("nominal_wall_mm", 2.5))
+            )
+            self._json(200, res)
+        elif parsed.path == "/api/purging_contamination_analysis":
+            import cae_nextgen_moldflow_superiority as engine
+            res = engine.evaluate_purging_contamination_and_waste_shots(
+                float(payload.get("screw_diameter_mm", 45.0)),
+                float(payload.get("shot_weight_g", 120.0)),
+                payload.get("old_resin_type", "PA66-Black"),
+                payload.get("new_resin_type", "PBT-GF30-Natural"),
+                payload.get("purging_grade", "Glass_Filled_Purge"),
+                float(payload.get("target_quality_ppm", 50.0)),
+                float(payload.get("resin_price_per_kg_jpy", 1200.0))
+            )
+            self._json(200, res)
         else:
             self._json(404, {"error": "not found"})
 
