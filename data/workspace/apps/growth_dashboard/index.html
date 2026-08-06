@@ -1316,14 +1316,14 @@ response = model.generate_content([
                             </div>
                         </td>
                         <td>
-                            <div style="background: rgba(63, 185, 80, 0.1); border: 1px solid #3fb950; padding: 5px 12px; border-radius: 8px; display: inline-block; color: #3fb950; font-weight:600; text-align: center; font-size: 0.95rem;">画像 ✅ 疎通確認済<br><span style="font-size:0.7rem; color:#8b949e;">動画スコアはWan2.2導入・目視後に採点</span></div>
+                            <div style="background: rgba(63, 185, 80, 0.1); border: 1px solid #3fb950; padding: 5px 12px; border-radius: 8px; display: inline-block; color: #3fb950; font-weight:600; text-align: center; font-size: 1.2rem;">L 6.5 <span style="font-size:0.8rem;">/ 10</span><br><span style="font-size:0.65rem; color:#8b949e;">5フレーム目視確認済 (2026-08-06)</span></div>
                         </td>
                         <td>
                             <div class="know-how">
                                 <span style="color:#3fb950; font-weight:bold;">【疎通実績 (2026-08-06 実測・目視確認済)】</span><br>
-                                <span style="font-size:0.75rem; color:var(--text-dim);">・SDXL 1.0 (6.46GB / SHA256記録済) で 1024x1024 / 25steps / dpmpp_2m karras を生成成功。生成PNGを目視し、構図・照明・人物・機械に破綻なしを確認。<br>
-                                ・生成中のGPU実測: <strong>utilization 95〜96% / VRAM 13.9GB</strong>（CPUフォールバックなし）。出力: <code>ComfyUI_app/output/FullKit_SDXL_00001_.png</code><br>
-                                ・Wan2.2 TI2V 5B(動画)は未導入。導入後に動画品質を目視評価してスコアを確定する。</span><br>
+                                <span style="font-size:0.75rem; color:var(--text-dim);">・<strong>画像 SDXL 1.0</strong> (6.46GB / SHA256記録済): 1024x1024 / 25steps / dpmpp_2m karras。生成PNGを目視し破綻なしを確認。生成中GPU utilization 95〜96% / VRAM 13.9GB。<br>
+                                ・<strong>動画 Wan2.2 TI2V 5B</strong> (9.31GB + umt5 6.27GB + VAE 1.31GB): 640x384 / 81frames / 20steps / 24fps を <strong>271秒</strong>で生成 (サンプリング 3.1秒/step)。出力 <code>output/video/FullKit_Wan22_00001_.mp4</code> (3.375秒)。<br>
+                                ・フレーム 0/20/40/60/80 を抽出して目視: 部品形状の破綻・消失・多重化なし。カメラ移動による背景パララックスが自然に連続。</span><br>
                                 <br>
                                 <span style="color:#3fb950; font-weight:bold;">【構成 (2026-08-06 融合・実測値)】</span><br>
                                 <span style="font-size:0.75rem; color:var(--text-dim);">・ComfyUI 0.26.0 / Device: cuda:0 NVIDIA GeForce RTX 5060 Ti / Total VRAM 16311 MB / pytorch 2.8.0+cu128<br>
@@ -1334,8 +1334,14 @@ response = model.generate_content([
                                 <span style="font-size:0.75rem; color:var(--text-dim);">・従来のCPU-only Docker ComfyUIに対しGPU実行。SDXL 1024x1024 と Wan2.2 TI2V 5B（T2V/I2V兼用）を単一GPUで運用可能。<br>
                                 ・完全ローカル・追加コストゼロ。SHA256記録付きの公式配布元ダウンロード管理。</span><br>
                                 <br>
-                                <span style="color:#f85149; font-weight:bold;">【制約・運用ルール】</span><br>
-                                <span style="font-size:0.75rem; color:var(--text-dim);">・<strong>ポート8188は排他:</strong> Docker CPU版(<code>services/comfyui</code>)と同時起動すると無言でCPU実行になる。起動スクリプトが占有チェックで拒否する。<br>
+                                <span style="color:#f85149; font-weight:bold;">【L6.5の根拠と Level 10 との差】</span><br>
+                                <span style="font-size:0.75rem; color:var(--text-dim);">・時間的整合性はAnimateDiff系(L5.5)より明確に良好。ただし <strong>640x384 / 3.4秒</strong>が16GB VRAMでの実用域で、Seedance/Lumaの解像度・尺・物理表現には届かない。<br>
+                                ・プロンプト忠実度に課題: 「プレス成形部品・検査台」の指示に対し切削加工部品・機械内部の絵になった。用途特化にはI2V(参照画像)かLoRAが要る。<br>
+                                ・音声なし。長尺は3〜5秒ショットの分割生成＋FFmpeg連結が前提。</span><br>
+                                <br>
+                                <span style="color:#f85149; font-weight:bold;">【運用ルール】</span><br>
+                                <span style="font-size:0.75rem; color:var(--text-dim);">・<strong>GPU時分割:</strong> RL学習/CAEと同一GPUを共有するため <code>scripts/gpu_arbiter.py</code> のリースを取得してから実行する。ComfyUIは横取り可(<code>/free</code>で3〜6秒でVRAM解放を実測)、学習側は横取り不可。<br>
+                                ・<strong>ポート:</strong> 8188=GPU版が正。Docker CPU版は18188へ退避済みで衝突しない。<br>
                                 ・<strong>16GB VRAM制約:</strong> Wan2.2は 640x384 / 81frames / 16-20steps から開始し、安定後に832x480へ。不足時は 解像度→フレーム数→steps の順に下げる。<br>
                                 ・<strong>長尺は分割前提:</strong> 3〜5秒ショットを絵コンテCSVで管理し、FFmpeg/DaVinciで連結（10分 ≒ 5秒×120ショット）。</span>
                             </div>
