@@ -1,0 +1,118 @@
+{
+  "schema": "clawstack.mecha_lab_health.v1",
+  "collected_at": "2026-08-08T06:22:19",
+  "health": "running",
+  "health_label": "学習プロセス稼働中",
+  "supervisor": {
+    "skill": "walk_auto",
+    "state": "training",
+    "cycle": 1,
+    "cycles_recorded": 0,
+    "updated_at": "2026-08-08T06:17:14",
+    "hours_since_update": 0.08,
+    "escalation_reason": null,
+    "current_dir": "C:\\v50_work\\autonomy\\walk_auto_cycle01"
+  },
+  "processes": {
+    "alive": true,
+    "count": 2,
+    "items": [
+      {
+        "pid": 31188,
+        "kind": "supervisor"
+      },
+      {
+        "pid": 19536,
+        "kind": "trainer"
+      }
+    ]
+  },
+  "training_progress": {
+    "iteration": 50,
+    "iterations_total": 3000,
+    "mean_reward_per_step": 1.3625,
+    "best_reward_per_step": 1.4007,
+    "upright": 0.958,
+    "vx_mean": -0.058,
+    "n_envs": 2048,
+    "elapsed_sec": 237.2
+  },
+  "gpu": {
+    "available": true,
+    "free_mb": 13421,
+    "total_mb": 16311,
+    "lease_owner": "rl_walk_auto",
+    "lease_expires_at": "2026-08-08T10:17:14+09:00",
+    "lease_priority": 0
+  },
+  "known_good": [
+    {
+      "name": "walk_rsl_corridor_v2_20260727_4of5terrain_VERIFIED.pt",
+      "mb": 6.2,
+      "modified": "2026-07-27 18:28",
+      "verified": true
+    },
+    {
+      "name": "walk_rsl_descent_h10_20260726_survival0.86_VERIFIED.pt",
+      "mb": 6.2,
+      "modified": "2026-07-26 13:37",
+      "verified": true
+    },
+    {
+      "name": "walk_rsl_natural_gait_ADOPTED.pt",
+      "mb": 6.0,
+      "modified": "2026-07-25 21:00",
+      "verified": true
+    },
+    {
+      "name": "walk_rsl_symmetric_20260725_hipknee_sym.pt",
+      "mb": 6.0,
+      "modified": "2026-07-25 08:30",
+      "verified": false
+    },
+    {
+      "name": "walk_rsl_stairs_h10_20260725_survival0.7_VERIFIED.pt",
+      "mb": 6.2,
+      "modified": "2026-07-25 04:59",
+      "verified": true
+    },
+    {
+      "name": "walk_rsl_descent_h05_20260725_survival0.9_VERIFIED.pt",
+      "mb": 6.2,
+      "modified": "2026-07-25 00:33",
+      "verified": true
+    },
+    {
+      "name": "walk_rsl_stairs_h05_20260724_survival0.9_VERIFIED.pt",
+      "mb": 6.2,
+      "modified": "2026-07-24 19:03",
+      "verified": true
+    },
+    {
+      "name": "walk_rsl_slope8deg_20260724_survival1.0_VERIFIED.pt",
+      "mb": 6.0,
+      "modified": "2026-07-24 17:24",
+      "verified": true
+    },
+    {
+      "name": "walk_rsl_slope8deg_20260724_survival0.81.pt",
+      "mb": 6.0,
+      "modified": "2026-07-24 11:51",
+      "verified": false
+    },
+    {
+      "name": "walk_rsl_20260724_survival0.82_travel2.37.pt",
+      "mb": 6.0,
+      "modified": "2026-07-24 07:47",
+      "verified": false
+    },
+    {
+      "name": "walk_20260720_cycle03_travel1.63.pt",
+      "mb": 0.4,
+      "modified": "2026-07-20 10:12",
+      "verified": false
+    }
+  ],
+  "scenario_cards_backed_by_real_data": false,
+  "scenario_cards_note": "martial/care/artistic/rhythmic の指標は 2026-07-14 に撤去されたモック(ml_supervisor.py.RETIRED_T066)が生成していたもの。現行のmotion_learning_supervisor は skill/state/cycle/history のみを出力するため、これらのカードは実データでは埋まらない。"
+}

@@ -15,6 +15,21 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 UNITS = ["u1_interpreter.py", "u2_reference_finder.py",
          "u4_retarget_runner.py", "u5_train_dispatcher.py"]
 STATUS = r"D:\Clawdbot_Docker_20260125\data\workspace\apps\mecha_motion_lab\u7_status.json"
+# ダッシュボード用の実測ヘルス(プロセス生存/GPU/資産)を毎サイクル書き出す。
+# supervisor_status.json だけでは「停止している」が画面に出ないため(2026-08-08)。
+HEALTH = r"D:\Clawdbot_Docker_20260125\scripts\mecha_lab_health.py"
+
+
+def run_health():
+    """失敗しても本体は止めない(補助情報のため)。"""
+    try:
+        r = subprocess.run([sys.executable, HEALTH], capture_output=True, text=True,
+                           encoding="utf-8", errors="replace", timeout=300,
+                           env=dict(os.environ, PYTHONIOENCODING="utf-8"))
+        tail = (r.stdout or "").strip().splitlines()
+        return {"rc": r.returncode, "last": tail[-1] if tail else ""}
+    except Exception as e:
+        return {"rc": -1, "last": f"{type(e).__name__}: {e}"}
 
 
 def run_units():
@@ -55,6 +70,7 @@ def main():
     while True:
         cycles += 1
         results = run_units()
+        results["mecha_lab_health.py"] = run_health()
         write_status(results, cycles)
         for u, r in results.items():
             print(f"[U7 cycle {cycles}] {u}: rc={r['rc']} {r['last']}", flush=True)
