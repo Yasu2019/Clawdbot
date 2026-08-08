@@ -192,8 +192,15 @@ def gather_metrics(cycle_dir, check):
 
 
 def pick_rule(pb, m):
+    # 2026-08-08: eval_travel を playbook から参照できるようにした。
+    # T067「歩行RLの best travel は歩行距離ではなく転倒滑走距離だった」のとおり
+    # travel(=walk_check.final_travel) は滑走を含むため、これだけで判定すると
+    # 「滑っているだけの方策」を walks_then_falls と誤認して継承し続ける。
+    # 実測(2026-08-08 4サイクル): travel 1.36〜1.89m に対し eval_travel 0.08〜0.18m。
     scope = {"travel": m["travel"], "vx": m["vx"], "fell": m["fell"], "true": True,
-             "first_fall_sec": m.get("first_fall_sec", 0.0)}
+             "first_fall_sec": m.get("first_fall_sec", 0.0),
+             "eval_travel": m.get("eval_travel", 0.0),
+             "min_upright": m.get("min_upright", 0.0)}
     for rule in pb["rules"]:
         try:
             if eval(rule["when"], {"__builtins__": {}}, scope):  # playbookは信頼済み設定ファイル
@@ -292,13 +299,18 @@ def main():
 
         # 改善停滞の監視 — v2: 相対15%(v1の固定+0.05mはcycle3の23%改善を
         # 「停滞」と誤判定した)。ベストが小さい/負のうちは絶対+0.05mで判定。
+        # 2026-08-08: 改善判定を eval_travel(決定論評価の前進距離)へ変更。
+        # travel(walk_check.final_travel)は転倒滑走を含むため(T067)、滑って距離が
+        # 伸びただけの回を「改善」と誤認していた。実測4サイクルでは travel 1.36→1.89と
+        # 増えているのに eval_travel は 0.123→0.099 と悪化していた。
+        progress = m.get("eval_travel", m["travel"])
         threshold = best_travel * 1.15 if best_travel > 0.3 else best_travel + 0.05
-        if m["travel"] <= threshold:
+        if progress <= threshold:
             no_improve += 1
         else:
             no_improve = 0
-        if m["travel"] > best_travel:
-            best_travel = m["travel"]
+        if progress > best_travel:
+            best_travel = progress
         if no_improve >= pb["limits"].get("max_consecutive_no_improve", 2):
             escalate(state, f"no improvement for {no_improve} cycles (best={best_travel:.2f}m)", cycle_dir)
             return 2

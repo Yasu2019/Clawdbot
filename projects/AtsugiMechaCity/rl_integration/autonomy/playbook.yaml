@@ -24,8 +24,13 @@ rules:                       # 上から順に最初に一致したものを適�
   # first_fall_sec(render_walk.py新出力)で「歩いてから転ぶ」と「即ダイブ」を判別。
   # 歩けている方策は破棄せず継承して磨く(entropy低め・長め)。
   # 旧supervisorはfirst_fall_sec未知→eval失敗→次のdive_hackへ自然フォールバック(後方互換)。
+  # v7 (2026-08-08): walks_then_falls に eval_travel 条件を追加。
+  # T067「best travel は歩行距離ではなく転倒滑走距離」のとおり travel は滑走を含むため、
+  # travel>=1.0 だけでは「滑っているだけ」を実歩行と誤認して latest を継承し続ける。
+  # 実測(4サイクル): travel 1.36/1.89/1.87/1.56m に対し eval_travel 0.12/0.10/0.18/0.08m。
+  # 決定論評価で前進していない方策は継承対象から外し、下の dive_hack へ落とす。
   - name: walks_then_falls   # 実歩行後の転倒 → 継承して安定化
-    when: "travel >= 1.0 and fell and first_fall_sec >= 3.0"
+    when: "travel >= 1.0 and eval_travel >= 0.5 and fell and first_fall_sec >= 3.0"
     action: {type: retrain, resume: latest, entropy: 0.001, init_log_std: -1.1, iterations: 2500}
 
   - name: dive_hack          # 罠#7: 数値は良いが転倒して這っている(即転倒系)
@@ -75,4 +80,17 @@ known_good_checkpoints:
   # v5 (2026-07-20): walk_auto cycle3 = travel+1.63m実歩行(目視確認済)・
   # entropy0.002/ils-0.9学習中の方策=探索生存。登録基準を満たす初のckpt。
   # 上書き防止のためknown_good/へ退避したコピーを参照(cycleディレクトリは再利用される)。
-  best_walker: C:\v50_work\autonomy\known_good\walk_20260720_cycle03_travel1.63.pt
+  #
+  # v7 (2026-08-08): cycle3 の登録を取り消し、v3の既定(空=フレッシュ)へ戻す。
+  # 根拠は同梱の walk_20260720_cycle03_walk_check.json の実測値:
+  #     final_travel 1.63 / fell true / min_upright 0.0 / min_z -0.804
+  # min_upright=0.0 かつ胴体が地面下0.8mまで沈んでおり、8秒中に完全転倒している。
+  # つまり 1.63m は歩行距離ではなく**転倒滑走距離**(T067)。
+  # 上の登録基準「歩行が成立し(travel>1m)」を travel=滑走込みで判定したための誤登録。
+  # この方策を dive_hack の resume 元にしていたため、滑走挙動を再投入し続けていた。
+  #
+  # 候補: known_good/walk_rsl_20260724_survival0.82_travel2.37.pt は
+  #   deterministic_clean_travel_m 2.373 / survival_rate 0.817 と実測が揃っており有望。
+  #   ただし RSL 系統(train_v50_walk_rsl)で本supervisor(train_v50_walk_tracking)とは
+  #   ネットワーク構成が異なる可能性があるため、ロード互換を確認するまで登録しない。
+  best_walker:

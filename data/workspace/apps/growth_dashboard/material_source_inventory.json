@@ -1,123 +1,43 @@
 {
-  "schema": "clawstack.material_source_inventory.v1",
-  "updated_at": "2026-07-26T05:34:52+09:00",
-  "total_acquired_count": 84379,
-  "total_candidate_count": 133808,
-  "gemini_decoding_wait_count": 7478,
+  "schema": "clawstack.material_source_inventory.v2",
+  "updated_at": "2026-08-08T22:29:36+09:00",
+  "total_db_registered_count": 5813,
+  "total_acquired_count": 10510,
+  "total_metadata_only_count": 3770,
+  "total_candidate_count": 178,
+  "gemini_decoding_wait_count": 2,
   "acquisition_queue": "data/workspace/apps/growth_dashboard/material_acquisition_queue.json",
   "rows": [
-    {
-      "source": "Public API bulk harvest (summary)",
-      "category": "public_api_harvest",
-      "acquired_count": 76130,
-      "candidate_count": 133644,
-      "status": "acquired",
-      "latest_at": "2026-07-26T05:29:36+09:00",
-      "evidence": "data/workspace/public_api_harvest_status.json",
-      "note": "DB: 76130 downloaded, 133644 metadata-only. Last run by_source={\"datacite\": 15, \"europe_pmc\": 11, \"arxiv\": 8, \"zenodo\": 13, \"doaj\": 9}. Per-source detail rows below.",
-      "examples": []
-    },
-    {
-      "source": "Zenodo",
-      "category": "open_research_assets",
-      "acquired_count": 32444,
-      "candidate_count": 1596,
-      "status": "acquired",
-      "latest_at": "2026-07-26T05:34:00+09:00",
-      "evidence": "universal_growth.db/public_api_acquisitions + public_api_harvest_status.json",
-      "note": "DB records: 34040 total, 32444 with local files. Harvest script: public_api_bulk_harvest.py.",
-      "examples": [
-        "†Eridanomyrma unipetropolitana sp. nov. (Hymenoptera, Formicidae) from late Eocene Baltic amber",
-        "Análise de desempenho de render farm baseada em loki render",
-        "La metropoli come soggetto o dell'identità sottratta: frammenti e coincidenze in «Manhattan Transfer",
-        "Joker - Every Frame a Painting",
-        "nicosmo/lensing_visualization: Initial Release Lensing Visualization - v1.0.0"
-      ]
-    },
-    {
-      "source": "arXiv",
-      "category": "open_research_assets",
-      "acquired_count": 18986,
-      "candidate_count": 4,
-      "status": "acquired",
-      "latest_at": "2026-07-26T05:33:55+09:00",
-      "evidence": "universal_growth.db/public_api_acquisitions + public_api_harvest_status.json",
-      "note": "DB records: 18990 total, 18986 with local files. Harvest script: public_api_bulk_harvest.py.",
-      "examples": [
-        "Fine-Tuning Open Video Generators for Cinematic Scene Synthesis: A Small-Data Pipeline with LoRA and",
-        "DreamCinema: Cinematic Transfer with Free Camera and 3D Character",
-        "Multimodal Cinematic Video Synthesis Using Text-to-Image and Audio Generation Models",
-        "One-to-All Animation: Alignment-Free Character Animation and Image Pose Transfer",
-        "EmoFace: Audio-driven Emotional 3D Face Animation"
-      ]
-    },
-    {
-      "source": "Europe PMC",
-      "category": "open_research_assets",
-      "acquired_count": 14513,
-      "candidate_count": 14420,
-      "status": "acquired",
-      "latest_at": "2026-07-26T05:33:36+09:00",
-      "evidence": "universal_growth.db/public_api_acquisitions + public_api_harvest_status.json",
-      "note": "DB records: 28933 total, 14513 with local files. Harvest script: public_api_bulk_harvest.py.",
-      "examples": [
-        "Reexamining the Kuleshov effect: Behavioral and neural evidence from authentic film experiments.",
-        "Psychological Impact and Influence of Animation on Viewer's Visual Attention and Cognition: A System",
-        "At the nexus of ludology and narratology: Advances in reality-based story-driven games.",
-        "Strategies for the Production of Molecular Animations.",
-        "AI-driven audio-to-video generation for dynamic content creation via stable diffusion and CNN-augmen"
-      ]
-    },
-    {
-      "source": "Jstage",
-      "category": "public_api_harvest",
-      "acquired_count": 5302,
-      "candidate_count": 1827,
-      "status": "acquired",
-      "latest_at": "2026-07-26T04:53:19+09:00",
-      "evidence": "universal_growth.db/public_api_acquisitions + public_api_harvest_status.json",
-      "note": "DB records: 7129 total, 5302 with local files. Harvest script: public_api_bulk_harvest.py.",
-      "examples": [
-        "Experimental and Numerical Study on Blanking Process with Negative Clearance",
-        "Numerical Simulation of Blanking Process over a Wide Range of Clearances",
-        "サーボプレススライドを用いた能動的振動制御による打抜き振動の低減",
-        "ねじ駆動サーボプレスの打抜き振動解析と振動抑制のための最適条件予測",
-        "2301 ADINAによる金属板の打抜き加工のシミュレーション(OS23. 次世代CAD/CAM/CAE/CG/CSCW/CAT/C-Control(1),オーガナイズドセッション講演)"
-      ]
-    },
     {
       "source": "Harvest query optimizer (learned)",
       "category": "search_efficiency",
       "acquired_count": 5000,
-      "candidate_count": 55,
+      "candidate_count": 69,
       "status": "active",
-      "latest_at": "2026-07-26T05:29:38.333937+09:00",
+      "latest_at": "2026-08-08T22:22:41.747976+09:00",
       "evidence": "data/workspace/apps/growth_dashboard/harvest_learned_queries.json",
       "note": "Scores downloaded/public API materials; promotes high-yield queries and similar terms first. Domains with learned queries: 8.",
       "examples": [
-        "general: press forming FEA",
-        "general: injection molding simulation",
-        "general: plastic mold general",
-        "general: thermoplastic injection general",
-        "general: strip layout general"
+        "iatf_audit_video: automotive quality management audit checklist",
+        "iatf_audit_video: process audit automotive supplier quality",
+        "iatf_audit_video: internal audit iatf audit video",
+        "iatf_audit_video: IATF requirement clauses education",
+        "iatf_audit_video: IATF 16949 internal audit training"
       ]
     },
     {
-      "source": "GitHub (API harvest)",
-      "category": "code_and_reference",
-      "acquired_count": 2300,
-      "candidate_count": 326,
+      "source": "Public API bulk harvest (summary)",
+      "category": "public_api_harvest",
+      "db_registered_count": 5813,
+      "acquired_count": 2043,
+      "metadata_only_count": 3770,
+      "candidate_count": 0,
       "status": "acquired",
-      "latest_at": "2026-07-26T05:31:11+09:00",
-      "evidence": "universal_growth.db/public_api_acquisitions + public_api_harvest_status.json",
-      "note": "DB records: 2626 total, 2300 with local files. Harvest script: public_api_bulk_harvest.py.",
-      "examples": [
-        "Control Rig asset makes it easy to set up a character for inverse kinematic using the Animation Rigg",
-        "A rigged Unity character controller with inverse kinematics built using the Animation Rigging Packag",
-        "Python interface for Autodesk Moldflow",
-        "缺陷检测文献记录",
-        "📈 目前最大的工业缺陷检测数据库及论文集 Constantly summarizing open source dataset and critical papers in the field of "
-      ]
+      "latest_at": "2026-08-08T22:19:54+09:00",
+      "evidence": "data/workspace/public_api_harvest_status.json",
+      "note": "DB: 2043 downloaded, 3770 metadata-only. Last run by_source={\"europe_pmc\": 15, \"arxiv\": 9, \"zenodo\": 15, \"doaj\": 12, \"jstage\": 12}. Per-source detail rows below.",
+      "examples": [],
+      "_exclude_from_totals": true
     },
     {
       "source": "Kaggle datasets",
@@ -137,54 +57,58 @@
       ]
     },
     {
-      "source": "Materials Project (API harvest)",
-      "category": "materials_database_api",
-      "acquired_count": 1900,
-      "candidate_count": 0,
-      "status": "acquired",
-      "latest_at": "2026-07-26T04:55:38+09:00",
-      "evidence": "universal_growth.db/public_api_acquisitions + public_api_harvest_status.json",
-      "note": "DB records: 1900 total, 1900 with local files. Harvest script: public_api_bulk_harvest.py.",
-      "examples": [
-        "mp_all_cae_presets_20260725_205538",
-        "mp_Tungsten_20260725_205531",
-        "mp_MgAl_lightweight_20260725_205526",
-        "mp_Al2O3_alumina_20260725_205518",
-        "mp_SiC_ceramic_20260725_205514"
-      ]
-    },
-    {
       "source": "Materials Project API",
       "category": "materials_database_api",
-      "acquired_count": 698,
+      "acquired_count": 914,
       "candidate_count": 0,
       "status": "acquired",
-      "latest_at": "2026-07-26T04:55:38+09:00",
+      "latest_at": "2026-08-08T19:47:33+09:00",
       "evidence": "data/cae_downloads/materials_project",
-      "note": "Local JSON records: 698. API key configured for targeted queries.",
+      "note": "Local JSON records: 914. API key configured for targeted queries.",
       "examples": [
-        "mp_all_cae_presets_20260725_205538.json",
-        "mp_Tungsten_20260725_205531.json",
-        "mp_MgAl_lightweight_20260725_205526.json",
-        "mp_Al2O3_alumina_20260725_205518.json",
-        "mp_SiC_ceramic_20260725_205514.json"
+        "mp_all_cae_presets_20260808_114733.json",
+        "mp_Tungsten_20260808_114729.json",
+        "mp_MgAl_lightweight_20260808_114726.json",
+        "mp_Al2O3_alumina_20260808_114721.json",
+        "mp_SiC_ceramic_20260808_114718.json"
       ]
     },
     {
-      "source": "Unpaywall (OA PDF)",
-      "category": "open_research_assets",
-      "acquired_count": 371,
-      "candidate_count": 2175,
+      "source": "Materials Project (API harvest)",
+      "category": "materials_database_api",
+      "db_registered_count": 870,
+      "acquired_count": 870,
+      "metadata_only_count": 0,
+      "candidate_count": 0,
       "status": "acquired",
-      "latest_at": "2026-07-26T04:54:27+09:00",
+      "latest_at": "2026-08-08T21:22:37+09:00",
       "evidence": "universal_growth.db/public_api_acquisitions + public_api_harvest_status.json",
-      "note": "DB records: 2546 total, 371 with local files. Harvest script: public_api_bulk_harvest.py.",
+      "note": "DB records: 870 total, 870 with local files. Harvest script: public_api_bulk_harvest.py.",
       "examples": [
-        "Moldflow-Based Molding Optimization Analysis on Pot Head",
-        "Study on Blanking Force of Fine-Blanking with Negative Clearance and Common Blanking for AISI-1045 t",
-        "Study on Multi-Factor Blanking Parameters for Fine-Blanking with Negative Clearance through Simulati",
-        "Numerical Simulation and Experiment Study on the Blanking Force for AISI-1020 and AISI-1045 Fine-Bla",
-        "Study on the Optimized Blanking Allowance for Fine-Blanking with Negative Clearance through Simulati"
+        "mp_all_cae_presets_20260808_114733",
+        "mp_Tungsten_20260808_114729",
+        "mp_MgAl_lightweight_20260808_114726",
+        "mp_Al2O3_alumina_20260808_114721",
+        "mp_SiC_ceramic_20260808_114718"
+      ]
+    },
+    {
+      "source": "Zenodo",
+      "category": "open_research_assets",
+      "db_registered_count": 477,
+      "acquired_count": 434,
+      "metadata_only_count": 43,
+      "candidate_count": 0,
+      "status": "acquired",
+      "latest_at": "2026-08-08T21:12:45+09:00",
+      "evidence": "universal_growth.db/public_api_acquisitions + public_api_harvest_status.json",
+      "note": "DB records: 477 total, 434 with local files. Harvest script: public_api_bulk_harvest.py.",
+      "examples": [
+        "CHARACTERIZATION OF MECHANICAL AND IN-SITU FRACTURE BEHAVIORS OF REACTION SQUEEZE CAST HYBRID AL MAT",
+        "Application of Zenner Zenner-Frank Phase Field Theory for Simul Simulating Cu Depletion Effect in Is",
+        "Solid-State Joining of Dissimilar Metals: Exploring Friction Stir Welding of Aluminum to Steel.",
+        "SOLID-LIQUID PRESSURE BONDING FOR FABRICATING STEEL/ALUMINUM ALLOY LAMINATED COMPOSITE",
+        "Phase Field Modeling of Ghost Diffusion in Sn-Ag-Cu Solder Joints"
       ]
     },
     {
@@ -205,20 +129,41 @@
       ]
     },
     {
-      "source": "Semantic Scholar",
-      "category": "scholarly_metadata",
-      "acquired_count": 275,
-      "candidate_count": 1937,
+      "source": "Europe PMC",
+      "category": "open_research_assets",
+      "db_registered_count": 446,
+      "acquired_count": 286,
+      "metadata_only_count": 160,
+      "candidate_count": 0,
       "status": "acquired",
-      "latest_at": "2026-07-26T04:40:26+09:00",
+      "latest_at": "2026-08-08T21:12:07+09:00",
       "evidence": "universal_growth.db/public_api_acquisitions + public_api_harvest_status.json",
-      "note": "DB records: 2212 total, 275 with local files. Harvest script: public_api_bulk_harvest.py.",
+      "note": "DB records: 446 total, 286 with local files. Harvest script: public_api_bulk_harvest.py.",
       "examples": [
-        "PLASTIC BLOCK FOR BUILDING CONSTRUCTION MATERIAL",
-        "Fuzzy assessment of process parameter interactions on warpage defect modeling in plastic injection m",
-        "study on the behavior of pulling power and flammability of mold walls mixed with high-density polyet",
-        "Wear resistance of large blocks of non-quenched and tempered pre-hardened plastic mold steel",
-        "Development of a Polymer‐Metal Hybrid Mold for Cold Plastic Deformation of Stainless Steel Thin Part"
+        "Skin-conformal PMN-PT ultrasonic sensor for cuffless blood pressure sensing via eutectic solder inte",
+        "Thermal Fatigue Failure of Micro-Solder Joints in Electronic Packaging Devices: A Review.",
+        "Advanced WBG power semiconductor packaging: nanomaterials and nanotechnologies for high-performance ",
+        "Anand Model and Finite Element Analysis of Sn-0.3Ag-0.7Cu-3Bi Lead-Free Solder Joints in BGA Package",
+        "Study on warpage stress in SiP packages during reflow soldering."
+      ]
+    },
+    {
+      "source": "arXiv",
+      "category": "open_research_assets",
+      "db_registered_count": 249,
+      "acquired_count": 248,
+      "metadata_only_count": 1,
+      "candidate_count": 0,
+      "status": "acquired",
+      "latest_at": "2026-08-08T19:35:51+09:00",
+      "evidence": "universal_growth.db/public_api_acquisitions + public_api_harvest_status.json",
+      "note": "DB records: 249 total, 248 with local files. Harvest script: public_api_bulk_harvest.py.",
+      "examples": [
+        "Overcoming Element Quality Dependence of Finite Elements with Adaptive Extended Stencil FEM (AES-FEM",
+        "Special polarization characteristic features of a three-dimensional terahertz photonic crystal quant",
+        "Spurious resonances for substructured FEM-BEM coupling",
+        "Minimalist Compliance Control",
+        "VAT Compliance Incentives"
       ]
     },
     {
@@ -239,6 +184,25 @@
       ]
     },
     {
+      "source": "Jstage",
+      "category": "public_api_harvest",
+      "db_registered_count": 97,
+      "acquired_count": 77,
+      "metadata_only_count": 20,
+      "candidate_count": 0,
+      "status": "acquired",
+      "latest_at": "2026-07-22T23:24:47+09:00",
+      "evidence": "universal_growth.db/public_api_acquisitions + public_api_harvest_status.json",
+      "note": "DB records: 97 total, 77 with local files. Harvest script: public_api_bulk_harvest.py.",
+      "examples": [
+        "周辺軟化アルミニウム合金板の張出し成形",
+        "406 Mg合金射出成形における不良予測法の検討(機械材料・材料加工IV)",
+        "203 数値シミュレーションを用いた鋳造欠陥予測",
+        "生産性を考慮した射出成形品の最適設計手法",
+        "Influence of Resin Flow State on Aluminum Flake Orientation in a Metallic-Like Resin Product Manufac"
+      ]
+    },
+    {
       "source": "GitHub",
       "category": "code_and_reference",
       "acquired_count": 51,
@@ -256,20 +220,60 @@
       ]
     },
     {
-      "source": "Kaggle (API harvest)",
-      "category": "dataset_platform",
-      "acquired_count": 39,
-      "candidate_count": 1,
+      "source": "Unpaywall (OA PDF)",
+      "category": "open_research_assets",
+      "db_registered_count": 157,
+      "acquired_count": 42,
+      "metadata_only_count": 115,
+      "candidate_count": 0,
       "status": "acquired",
-      "latest_at": "2026-06-13T06:59:56+09:00",
+      "latest_at": "2026-08-08T21:32:30+09:00",
       "evidence": "universal_growth.db/public_api_acquisitions + public_api_harvest_status.json",
-      "note": "DB records: 40 total, 39 with local files. Harvest script: public_api_bulk_harvest.py.",
+      "note": "DB records: 157 total, 42 with local files. Harvest script: public_api_bulk_harvest.py.",
       "examples": [
-        "injection-molding-QA",
-        "plastic_data",
-        "severstal-steel-defect-detection-masks",
-        "Severstal-Steel-Defect-Detection-TFRecord",
-        "surface-defect-detection-dataset"
+        "10.1299/jsmemag.63.500_1242_2",
+        "10.1299/jsmemag.116.1137_526_4",
+        "10.1295/kobunshi.29.744",
+        "10.2493/jjspe1933.25.298_447",
+        "射出プレス成形法による薄肉成形の実現"
+      ]
+    },
+    {
+      "source": "Semantic Scholar",
+      "category": "scholarly_metadata",
+      "db_registered_count": 279,
+      "acquired_count": 39,
+      "metadata_only_count": 240,
+      "candidate_count": 0,
+      "status": "acquired",
+      "latest_at": "2026-08-08T21:12:16+09:00",
+      "evidence": "universal_growth.db/public_api_acquisitions + public_api_harvest_status.json",
+      "note": "DB records: 279 total, 39 with local files. Harvest script: public_api_bulk_harvest.py.",
+      "examples": [
+        "Study on the Addition of Nanoparticles in the Lead-free Solder During Reflow Soldering via Numerical",
+        "Simulation for Cu Atom Diffusion Leading to Fluctuations in Solder Properties and Cu6Sn5 Growth duri",
+        "Manufacture of hourglass-shaped solder joint by induction heating reflow",
+        "Effect of composition and size of Sn based solder on Cu3Sn growth in interfacial reaction",
+        "PHASE-FIELD CRYSTAL SIMULATION ON EVOLU- TION AND GROWTH KINETICS OF KIRKENDALL VOIDS IN INTERFACE A"
+      ]
+    },
+    {
+      "source": "GitHub (API harvest)",
+      "category": "code_and_reference",
+      "db_registered_count": 37,
+      "acquired_count": 33,
+      "metadata_only_count": 4,
+      "candidate_count": 0,
+      "status": "acquired",
+      "latest_at": "2026-07-24T04:13:12+09:00",
+      "evidence": "universal_growth.db/public_api_acquisitions + public_api_harvest_status.json",
+      "note": "DB records: 37 total, 33 with local files. Harvest script: public_api_bulk_harvest.py.",
+      "examples": [
+        "DeepSeek 4 Flash and PRO local inference engine for Metal, CUDA and ROCm",
+        "Cocos2d-x is a suite of open-source, cross-platform, game-development tools utilized by millions of ",
+        "Filament is a real-time physically based rendering engine for Android, iOS, Windows, Linux, macOS, a",
+        "Python interface for Autodesk Moldflow",
+        "############################################################ # +------------------------------------"
       ]
     },
     {
@@ -290,169 +294,37 @@
       ]
     },
     {
-      "source": "openInjMoldSim Paper",
-      "category": "injection_molding_paper",
-      "acquired_count": 1,
+      "source": "Kaggle (API harvest)",
+      "category": "dataset_platform",
+      "db_registered_count": 15,
+      "acquired_count": 14,
+      "metadata_only_count": 1,
       "candidate_count": 0,
       "status": "acquired",
-      "latest_at": "2026-06-09T05:49:12+09:00",
+      "latest_at": "2026-06-11T13:57:55+09:00",
+      "evidence": "universal_growth.db/public_api_acquisitions + public_api_harvest_status.json",
+      "note": "DB records: 15 total, 14 with local files. Harvest script: public_api_bulk_harvest.py.",
+      "examples": [
+        "Kidney Stone  Axial CT Imaging Colorized MixedData",
+        "SOMASet",
+        "Human Segmentation Dataset - Supervise.ly",
+        "AImove: Human Motion Capture Benchmark",
+        "severstal-steel-defect-detection-masks"
+      ]
+    },
+    {
+      "source": "openInjMoldSim Paper",
+      "category": "injection_molding_paper",
+      "acquired_count": 3,
+      "candidate_count": 0,
+      "status": "acquired",
+      "latest_at": "2026-08-04T18:18:55+09:00",
       "evidence": "quality_manufacturing_source_scout_status.json",
       "note": "",
       "examples": [
+        "20260804_091855_openInjMoldSim.md",
+        "20260801_231036_openInjMoldSim.md",
         "fluids-05-02-00084-openInjMoldSim.pdf"
-      ]
-    },
-    {
-      "source": "Crossref",
-      "category": "scholarly_metadata",
-      "acquired_count": 0,
-      "candidate_count": 33336,
-      "status": "metadata",
-      "latest_at": "2026-07-26T05:33:14+09:00",
-      "evidence": "universal_growth.db/public_api_acquisitions + public_api_harvest_status.json",
-      "note": "DB records: 33336 total, 0 with local files. Harvest script: public_api_bulk_harvest.py.",
-      "examples": [
-        "An Overview of Character Education",
-        "An Overview of Character Education",
-        "References",
-        "The Render Process",
-        "Prelims"
-      ]
-    },
-    {
-      "source": "DataCite",
-      "category": "scholarly_metadata",
-      "acquired_count": 0,
-      "candidate_count": 26339,
-      "status": "metadata",
-      "latest_at": "2026-07-26T05:31:48+09:00",
-      "evidence": "universal_growth.db/public_api_acquisitions + public_api_harvest_status.json",
-      "note": "DB records: 26339 total, 0 with local files. Harvest script: public_api_bulk_harvest.py.",
-      "examples": [
-        "Controlled Visual Generation Compass: A Compact Framework for Generative AI Research and System Desi",
-        "Controlled Visual Generation Compass: A Compact Framework for Generative AI Research and System Desi",
-        "Ep. 325: AI Animation: Turning Characters into a Full TV Show",
-        "Offline User interface for Advanced Scientific Research. Different Uses will be added starting today",
-        "Offline User interface for Advanced Scientific Research. Different Uses will be added starting today"
-      ]
-    },
-    {
-      "source": "DOAJ",
-      "category": "open_research_assets",
-      "acquired_count": 0,
-      "candidate_count": 17417,
-      "status": "metadata",
-      "latest_at": "2026-07-26T05:29:35+09:00",
-      "evidence": "universal_growth.db/public_api_acquisitions + public_api_harvest_status.json",
-      "note": "DB records: 17417 total, 0 with local files. Harvest script: public_api_bulk_harvest.py.",
-      "examples": [
-        "Project-Based Learning for the Design of Progressive Dies Supporting Tools",
-        "Circular and square cups drawing and ironing of Ti alloy sheets by incremental press forming method",
-        "The impact of liver resection on survival outcomes of hepatocellular carcinoma patients with extrahe",
-        "RNAseq Analyses Identify Tumor Necrosis Factor-Mediated Inflammation as a Major Abnormality in ALS S",
-        "Conditioned Medium from Cells Overexpressing TDP-43 Alters the Metabolome of Recipient Cells"
-      ]
-    },
-    {
-      "source": "OpenAlex",
-      "category": "scholarly_metadata",
-      "acquired_count": 0,
-      "candidate_count": 14940,
-      "status": "metadata",
-      "latest_at": "2026-07-25T21:09:33+09:00",
-      "evidence": "universal_growth.db/public_api_acquisitions + public_api_harvest_status.json",
-      "note": "DB records: 14940 total, 0 with local files. Harvest script: public_api_bulk_harvest.py.",
-      "examples": [
-        "A finite-element/finite-difference simulation of the injection-molding filling process",
-        "Improving the predictions of injection molding simulation software",
-        "Enhanced Injection Molding Simulation of Advanced Injection Molds",
-        "Review on the performances, foaming and injection molding simulation of natural fiber composites",
-        "Performance and simulation of thermoplastic micro injection molding"
-      ]
-    },
-    {
-      "source": "Figshare",
-      "category": "open_research_assets",
-      "acquired_count": 0,
-      "candidate_count": 10925,
-      "status": "metadata",
-      "latest_at": "2026-07-26T04:53:47+09:00",
-      "evidence": "universal_growth.db/public_api_acquisitions + public_api_harvest_status.json",
-      "note": "DB records: 10925 total, 0 with local files. Harvest script: public_api_bulk_harvest.py.",
-      "examples": [
-        "Data and supporting information to paper entitled \"Thermal Transport in SiC with Intrinsic Defects a",
-        "Table 2_Cycloastragenol improves tolerance to acute hypoxic exhaustive exercise stress in mice: inte",
-        "Table 1_Cycloastragenol improves tolerance to acute hypoxic exhaustive exercise stress in mice: inte",
-        "Supplementary file 2_Cycloastragenol improves tolerance to acute hypoxic exhaustive exercise stress ",
-        "Supplementary file 3_Cycloastragenol improves tolerance to acute hypoxic exhaustive exercise stress "
-      ]
-    },
-    {
-      "source": "AmbientCG (PBR materials)",
-      "category": "3d_assets",
-      "acquired_count": 0,
-      "candidate_count": 4698,
-      "status": "metadata",
-      "latest_at": "2026-07-26T05:34:07+09:00",
-      "evidence": "universal_growth.db/public_api_acquisitions + public_api_harvest_status.json",
-      "note": "DB records: 4698 total, 0 with local files. Harvest script: public_api_bulk_harvest.py.",
-      "examples": [
-        "AmbientCG PavingStones151",
-        "AmbientCG Asphalt033",
-        "AmbientCG Tiles141",
-        "AmbientCG PavingStones151",
-        "AmbientCG Asphalt033"
-      ]
-    },
-    {
-      "source": "Roboflow candidates (API)",
-      "category": "vision_dataset_platform",
-      "acquired_count": 0,
-      "candidate_count": 2260,
-      "status": "candidate",
-      "latest_at": "2026-07-26T04:54:31+09:00",
-      "evidence": "universal_growth.db/public_api_acquisitions + public_api_harvest_status.json",
-      "note": "DB records: 2260 total, 0 with local files. Harvest script: public_api_bulk_harvest.py.",
-      "examples": [
-        "metal surface defect",
-        "NEU surface defect",
-        "Scratch detection",
-        "Metal Defect Detection",
-        "Plastic Defect"
-      ]
-    },
-    {
-      "source": "Hugging Face Datasets",
-      "category": "dataset_platform",
-      "acquired_count": 0,
-      "candidate_count": 1254,
-      "status": "metadata",
-      "latest_at": "2026-07-26T04:50:34+09:00",
-      "evidence": "universal_growth.db/public_api_acquisitions + public_api_harvest_status.json",
-      "note": "DB records: 1254 total, 0 with local files. Harvest script: public_api_bulk_harvest.py.",
-      "examples": [
-        "m-abbasi-m/Car-Gear-Surface-Defect-Detection",
-        "ybli/yolo-wood-surface-defect-detection",
-        "ybli/yolo-train-wheel-surface-defect-detection",
-        "ybli/yolo-neu-det-surface-defect-object-detection",
-        "MSherbinii/mvtec-ad-metal-nut"
-      ]
-    },
-    {
-      "source": "Roboflow (API harvest)",
-      "category": "vision_dataset_platform",
-      "acquired_count": 0,
-      "candidate_count": 189,
-      "status": "metadata",
-      "latest_at": "2026-07-26T04:54:30+09:00",
-      "evidence": "universal_growth.db/public_api_acquisitions + public_api_harvest_status.json",
-      "note": "DB records: 189 total, 0 with local files. Harvest script: public_api_bulk_harvest.py.",
-      "examples": [
-        "Roboflow workspace yasuhiros-workspace-ss88y",
-        "Roboflow workspace yasuhiros-workspace-ss88y",
-        "Roboflow workspace yasuhiros-workspace-ss88y",
-        "Roboflow workspace yasuhiros-workspace-ss88y",
-        "Roboflow workspace yasuhiros-workspace-ss88y"
       ]
     },
     {
@@ -578,6 +450,173 @@
       "note": "Candidate source is tracked; download/registration is still separate.",
       "examples": [
         "Kolektor Surface-Defect Dataset"
+      ]
+    },
+    {
+      "source": "Roboflow candidates (API)",
+      "category": "vision_dataset_platform",
+      "db_registered_count": 12,
+      "acquired_count": 0,
+      "metadata_only_count": 12,
+      "candidate_count": 0,
+      "status": "candidate",
+      "latest_at": "2026-06-11T08:39:44+09:00",
+      "evidence": "universal_growth.db/public_api_acquisitions + public_api_harvest_status.json",
+      "note": "DB records: 12 total, 0 with local files. Harvest script: public_api_bulk_harvest.py.",
+      "examples": [
+        "Welding",
+        "welding defect",
+        "pcb defect",
+        "PCB Defect",
+        "Surface"
+      ]
+    },
+    {
+      "source": "Roboflow (API harvest)",
+      "category": "vision_dataset_platform",
+      "db_registered_count": 1,
+      "acquired_count": 0,
+      "metadata_only_count": 1,
+      "candidate_count": 0,
+      "status": "metadata",
+      "latest_at": "2026-06-11T07:47:52+09:00",
+      "evidence": "universal_growth.db/public_api_acquisitions + public_api_harvest_status.json",
+      "note": "DB records: 1 total, 0 with local files. Harvest script: public_api_bulk_harvest.py.",
+      "examples": [
+        "Roboflow workspace yasuhiros-workspace-ss88y"
+      ]
+    },
+    {
+      "source": "OpenAlex",
+      "category": "scholarly_metadata",
+      "db_registered_count": 477,
+      "acquired_count": 0,
+      "metadata_only_count": 477,
+      "candidate_count": 0,
+      "status": "metadata",
+      "latest_at": "2026-08-08T19:39:31+09:00",
+      "evidence": "universal_growth.db/public_api_acquisitions + public_api_harvest_status.json",
+      "note": "DB records: 477 total, 0 with local files. Harvest script: public_api_bulk_harvest.py.",
+      "examples": [
+        "Sustainable injection moulding: The impact of materials selection and gate location on part warpage ",
+        "Stochastic thermodynamics, fluctuation theorems and molecular machines",
+        "An overview of modern metal additive manufacturing technology",
+        "LOW CYCLE FATIGUE BEHAVIOR OF STEEL PIER BEAM-COLUMN JOINT",
+        "THREE SURFACE CYCLIC PLASTICITY MODEL FOR FEM ANALYSIS OF STEEL BRIDGE PIERS SUBJECTED TO SEISMIC LO"
+      ]
+    },
+    {
+      "source": "Hugging Face Datasets",
+      "category": "dataset_platform",
+      "db_registered_count": 25,
+      "acquired_count": 0,
+      "metadata_only_count": 25,
+      "candidate_count": 0,
+      "status": "metadata",
+      "latest_at": "2026-08-02T16:13:04+09:00",
+      "evidence": "universal_growth.db/public_api_acquisitions + public_api_harvest_status.json",
+      "note": "DB records: 25 total, 0 with local files. Harvest script: public_api_bulk_harvest.py.",
+      "examples": [
+        "meta-llama/Llama-3.2-1B-evals",
+        "open-llm-leaderboard/meta-llama__Meta-Llama-3-70B-Instruct-details",
+        "TcDhl/Meta-LLaMA-65B",
+        "Metalistenia/daniel",
+        "meta-llama/Llama-3.1-70B-Instruct-evals"
+      ]
+    },
+    {
+      "source": "Figshare",
+      "category": "open_research_assets",
+      "db_registered_count": 537,
+      "acquired_count": 0,
+      "metadata_only_count": 537,
+      "candidate_count": 0,
+      "status": "metadata",
+      "latest_at": "2026-08-08T20:36:02+09:00",
+      "evidence": "universal_growth.db/public_api_acquisitions + public_api_harvest_status.json",
+      "note": "DB records: 537 total, 0 with local files. Harvest script: public_api_bulk_harvest.py.",
+      "examples": [
+        "Nano-scale texturing of glass material using fine particle peening and its application for anti-foul",
+        "<p>Antibiotic prophylaxis usage in the study.</p>",
+        "Technical Specification Matrix and Procurement Footprint of Ketalar (Ketamine HCl) Injection USP 500",
+        "<p>Evidence, review indicators, review subjects, and results for urine leakage prevention and manage",
+        "<p>Barriers, facilitators, and action strategies for urinary leakage prevention and management in IC"
+      ]
+    },
+    {
+      "source": "DOAJ",
+      "category": "open_research_assets",
+      "db_registered_count": 237,
+      "acquired_count": 0,
+      "metadata_only_count": 237,
+      "candidate_count": 0,
+      "status": "metadata",
+      "latest_at": "2026-08-08T21:12:17+09:00",
+      "evidence": "universal_growth.db/public_api_acquisitions + public_api_harvest_status.json",
+      "note": "DB records: 237 total, 0 with local files. Harvest script: public_api_bulk_harvest.py.",
+      "examples": [
+        "Simulation for Cu Atom Diffusion Leading to Fluctuations in Solder Properties and Cu<sub>6</sub>Sn<s",
+        "Three-Dimensional Diffusion Model in Sports Dance Video Human Skeleton Detection and Extraction",
+        "DiffLiGS: Diffusion-Guided LiDAR-Enhanced 3D Gaussian Splatting",
+        "Point‐Guided Latent Diffusion Model for Novel View Synthesis in Laparoscopic Liver Surgery",
+        "\n                                                    AI Auditing under Labour Law: Insights from the"
+      ]
+    },
+    {
+      "source": "DataCite",
+      "category": "scholarly_metadata",
+      "db_registered_count": 1353,
+      "acquired_count": 0,
+      "metadata_only_count": 1353,
+      "candidate_count": 0,
+      "status": "metadata",
+      "latest_at": "2026-08-08T21:15:33+09:00",
+      "evidence": "universal_growth.db/public_api_acquisitions + public_api_harvest_status.json",
+      "note": "DB records: 1353 total, 0 with local files. Harvest script: public_api_bulk_harvest.py.",
+      "examples": [
+        "Insulintherapie bei Typ-2-Diabetes: ein Review vom «Wann» übers «Wie» bis zum «Warum»",
+        "Traumatic brain injury in children",
+        "低周波磁界(EMF) 曝露の潜在的な健康影響議論増加における電磁波過敏症 (EHS)の臨床的・社会的様相・2019-2024 年の6 カ年調査:Twitter(X) データに 基づく経時的分析―デジタ",
+        "なぜ遠隔地のビジネスモデルは共鳴するのか?:「薬局+化粧品販売」「精神科+内 科」など標準的事業類型(アーキタイプ)の分析と西日本における独自の医療・ 介護経済圏の発見:心療内科・デイケア事業の分析が",
+        "なぜ遠隔地のビジネスモデルは共鳴するのか?:「薬局+化粧品販売」「精神科+内 科」など標準的事業類型(アーキタイプ)の分析と西日本における独自の医療・ 介護経済圏の発見:心療内科・デイケア事業の分析が"
+      ]
+    },
+    {
+      "source": "Crossref",
+      "category": "scholarly_metadata",
+      "db_registered_count": 532,
+      "acquired_count": 0,
+      "metadata_only_count": 532,
+      "candidate_count": 0,
+      "status": "metadata",
+      "latest_at": "2026-08-08T21:27:26+09:00",
+      "evidence": "universal_growth.db/public_api_acquisitions + public_api_harvest_status.json",
+      "note": "DB records: 532 total, 0 with local files. Harvest script: public_api_bulk_harvest.py.",
+      "examples": [
+        "item",
+        "item",
+        "射出プレス成形法による薄肉成形の実現",
+        "item",
+        "item"
+      ]
+    },
+    {
+      "source": "AmbientCG (PBR materials)",
+      "category": "3d_assets",
+      "db_registered_count": 12,
+      "acquired_count": 0,
+      "metadata_only_count": 12,
+      "candidate_count": 0,
+      "status": "metadata",
+      "latest_at": "2026-08-03T04:19:16+09:00",
+      "evidence": "universal_growth.db/public_api_acquisitions + public_api_harvest_status.json",
+      "note": "DB records: 12 total, 0 with local files. Harvest script: public_api_bulk_harvest.py.",
+      "examples": [
+        "AmbientCG Ground107",
+        "AmbientCG Ground106",
+        "AmbientCG Asphalt033",
+        "AmbientCG PavingStones151",
+        "AmbientCG ScatteredLeaves009"
       ]
     }
   ]

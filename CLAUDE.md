@@ -32,6 +32,15 @@
 - **UIレイアウトの無断変更（→ PROMISES.md P022）**: `iatf_system/app/views/` および `data/workspace/apps/` は必ずPlan提示・ユーザー承認後のみ変更可
 
 ## Critical Constraints
+- **🔍 着手前に蓄積知識を検索する（グローバルルール / 2026-08-08 ユーザー指示）**: 「trouble_history.md を確認」だけでは実際には読まれない。**コマンド実行を作業手順に組み込む**。
+  - `python scripts/search_docs.py "<これから触る対象・症状>"` を実行し、ヒットした過去知見を要約してから着手する（意味検索・`clawstack_docs`）
+  - 日本語キーワードで引く場合: `scripts/build_ja_fts_index.py` が作る `universal_growth_fts_ja.db`（`knowhow_ja` / `pdftext_ja` / `material_ja`、trigramは**3文字以上**）
+  - **実例（このルールが生まれた理由）**: 2026-08-08、T067「歩行RLの best travel は歩行距離ではなく**転倒滑走距離**だった」を読まずに `walk_20260720_cycle03_travel1.63.pt` を resume 元に選び、滑走方策を継承したまま4サイクル空転させた。検索していれば初手で回避できた
+- **📝 文字化け防止は絶対（グローバルルール / 2026-08-08 ユーザー指示）**: MDファイル・DB・ログへの**書き込みと読み込みは必ず encoding を明示**する。
+  - Python: `open(..., encoding="utf-8")` を必ず指定（既定はcp932）。書き込み後は読み戻して `U+FFFD` と化け記号(`縺`/`繧`/`繝`)が無いことを確認する
+  - PowerShell: `Get-Content`/`Set-Content`/`Add-Content` の既定はANSI(cp932)。日本語を扱うなら `-Encoding utf8` 必須。`Out-File` も同様
+  - SQLite/Qdrant: 投入前に `str` が正しくデコード済みか確認し、投入後に1件読み戻して往復検証する
+  - **表示の化けと実ファイルの破損を混同しない**: コンソールが化けても実体は正常なことが多い。`open(f,"rb").read().decode("utf-8")` が通るかで判定し、表示だけを根拠にファイルを"修正"しない
 - **🤖 3Dメカ目視確認は絶対（グローバルルール / 2026-07-24 ユーザー指示）**: RL歩行・動作学習・リギング等、3Dメカロボットの学習/評価/レンダ結果を報告・合格判定する前に、**必ずフレーム画像を目視**し、胴体-腕-脚の連結・姿勢・接地に異常が無いことを自分の目で確認する。survival等の**数値だけで合格としない**（立ち止まりが高survivalに化ける/腕分離等の物理破綻は数値に出ない）。レンダは `render_walk_rsl.py`(v2) 等でPNGを出し `Read` で確認。徹底管理: Beads(`bd remember`)・Byterover queue・Obsidian Vault(`FailureKnowledge/`)・auto-memory に記録済み。
 - **大容量データはF:ドライブへ**: データセット・学習成果物・動画・アーカイブ等(目安100MB超)は `F:\clawstack_data\` 配下に保存する。D:は容量逼迫のためコード・設定・小サイズ状態ファイルのみ(2026-07-12 ユーザー指示)
 - Docker build は **必ずキャッシュ使用**。`--no-cache` は事前説明なしに禁止
