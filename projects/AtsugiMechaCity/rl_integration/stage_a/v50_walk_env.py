@@ -130,7 +130,42 @@ def _default_cfg():
                                            # 3-4x the human ~20% baseline across every checkpoint
                                            # this session, consistent with the policy avoiding
                                            # single-limb support because it can't balance over it.
-            "forward_progress":   1.0,
+            "forward_progress":   3.0,     # 2026-08-02 (T079h): raised 1.0->3.0.
+                                           # walk_rsl_stairs_climbrew_v13/v14 plateaued
+                                           # at a very stable but near-stationary
+                                           # equilibrium (min_upright=0.75, best of the
+                                           # session, but final_travel_m~=0 across two
+                                           # consecutive checkpoints) -- the policy found
+                                           # standing still safer than committing to a
+                                           # stride. This term is already stability-gated
+                                           # (PROGRESS_TERMS x _stability_factor), so
+                                           # strengthening it should push toward actual
+                                           # walking without reopening the T079c
+                                           # "diving" failure mode that came from
+                                           # ungated terms.
+            "velocity_ceiling":   -6.0,    # T079c: continuous brake on the
+                                           # "dive and grab one climb spike
+                                           # before falling" attractor found
+                                           # in walk_rsl_stairs_climbrew_v4
+                                           # (5000-iter log: fall_rate=1.00,
+                                           # vx_mean=0.82 vs cmd 0.25). See
+                                           # _r_velocity_ceiling.
+                                           # 2026-07-30: -30.0 was tried first
+                                           # and destroyed the base gait within
+                                           # 2000 iters (climbrew_v5: visually
+                                           # confirmed arm-flailing + leg-
+                                           # tangling collision-falls at
+                                           # first_fall_sec=0.78, vs the
+                                           # warm-start's normal-looking gait
+                                           # at the same render settings) --
+                                           # too strong a corrective disrupted
+                                           # existing motor control faster than
+                                           # it could relearn. Lowered to
+                                           # roughly the same order of
+                                           # magnitude as the other posture
+                                           # penalties (foot_lift_symmetry=-8,
+                                           # gait_symmetry=-1.5) instead of
+                                           # dominating them.
             "feet_air_time":      2.0,     # C1: the anti-freeze term
             "single_foot_contact": 1.0,    # C1: the anti-hop term (2404.19173)
             "double_support_ratio": -10.0, # Rule 2: EMA-based penalty once
@@ -158,15 +193,44 @@ def _default_cfg():
                                            # a comparable total to the existing terms
                                            # (2026-07-27: raised 1500->3000 after 2 straight
                                            # retrains showed no visible climb behavior change).
-            "climb_stagnation":  -8.0,     # T079b: explicit stick alongside climb_progress's
+            "climb_stagnation": -20.0,     # T079b: explicit stick alongside climb_progress's
                                            # carrot -- penalizes stall_steps*dt (seconds since
                                            # last height gain, clamped 10s) while commanded to
                                            # move. Gated to stairs/slope_up ONLY (see
                                            # _r_climb_stagnation) so descent/flat are unaffected.
-            "pose_prior":         0.8,     # 2026-07-25: 0.3 was too weak -> the gait
+                                           # 2026-07-31/08-01 (T079e): -8.0 was calibrated for
+                                           # the old 0.25 m/s / 1.2s-period flat-derived gait.
+                                           # With the CMU stairs reference's slower cadence
+                                           # (period=1.775s, cmd~0.06m/s) the policy found a new
+                                           # "stand still near the stairs, never fall" optimum
+                                           # (walk_rsl_stairs_climbrew_v9: survival 1.4-2.1%,
+                                           # but height_gained_m=-0.035, frames 0/30/75/80 all
+                                           # nearly identical -- genuine marching-in-place, T079
+                                           # recurrence). Raised 2.5x (not more, per the T079c
+                                           # lesson that overcorrecting a single scale can break
+                                           # the whole gait) to make standing still cost more
+                                           # relative to the now much smaller other reward terms.
+            "pose_prior":         0.4,     # 2026-07-25: 0.3 was too weak -> the gait
                                            # drifted from the (symmetric, anti-phase)
                                            # human reference into an asymmetric limit
                                            # cycle. Strong imitation keeps it natural.
+                                           # 2026-08-01 (T079f): that finding was for the
+                                           # OLD flat-walk 100STYLE reference. On the CMU
+                                           # stairs reference (climbrew_v7/v8/v9/v10), a
+                                           # persistent ~-0.13 to -0.52 backward drift
+                                           # recurred whenever moving()-gated rewards
+                                           # (pose_prior included) were active, and
+                                           # DISAPPEARED only in v9 where moving() was
+                                           # accidentally disabled (pose_prior with it).
+                                           # Circumstantial but consistent across 3
+                                           # different clips/attempts -- lowered back
+                                           # toward the 0.3 baseline (not all the way, to
+                                           # avoid the asymmetric-limit-cycle regression
+                                           # this comment warns about) so RL has more
+                                           # room to find this robot's own balance
+                                           # solution instead of being pulled toward a
+                                           # human joint-angle sequence tuned on a
+                                           # different mass distribution.
             # naturalness / symmetry
             "gait_symmetry":     -1.5,     # L/R residual asymmetry (fixes the limp)
             "foot_clearance":    -3.0,     # PENALTY on (clearance-target)^2: pulls the
@@ -756,13 +820,46 @@ class V50WalkEnv:
             self.episode_sums[name] += v
             rew += v
         self.reward_terms = terms
+        # 2026-08-08: 報酬項ごとの累積を診断用に別途保持する。
+        # episode_sums はリセットも出力もされておらず内訳が見えなかったため、
+        # 「凍結時点でどの項が支配的か」を1回の学習で判定できなかった。
+        # 学習計算には一切影響しない(読み取り専用の集計)。
+        if not hasattr(self, "diag_term_sums"):
+            self.diag_term_sums = {k: 0.0 for k in self.reward_scales}
+            self.diag_steps = 0
+        for name, v in terms.items():
+            self.diag_term_sums[name] += float(v.mean())
+        self.diag_steps += 1
         return rew
+
+    def reward_breakdown(self, reset: bool = True) -> dict:
+        """直近区間の報酬項ごとの平均寄与(1ステップあたり)。診断専用。
+
+        戻り値は {項名: 平均寄与} を絶対値の大きい順に並べた dict。
+        正=報酬、負=罰。合計が return の増減の内訳になる。
+        """
+        if not hasattr(self, "diag_term_sums") or self.diag_steps == 0:
+            return {}
+        out = {k: v / self.diag_steps for k, v in self.diag_term_sums.items()}
+        if reset:
+            self.diag_term_sums = {k: 0.0 for k in self.reward_scales}
+            self.diag_steps = 0
+        return dict(sorted(out.items(), key=lambda kv: -abs(kv[1])))
 
     def _fwd_vel(self):
         return V50.FWD_SIGN * self.lin_vel[:, V50.FWD_AXIS]
 
     def _moving(self):
-        return (self.commands[:, 0].abs() > 0.1).float()
+        # 2026-08-02 (T079g): lowered 0.1->0.03. The stairs CMU reference's
+        # natural pace (~0.06 m/s) is below the old 0.1 gate, which forced
+        # cmd_vx up to [0.12,0.18] (2-3x the reference's calibrated speed)
+        # just to keep _moving()-gated rewards (forward_progress, pose_prior,
+        # climb_stagnation, etc.) active -- creating tension between "must
+        # move at 0.12-0.18" and "imitate a ~0.06 m/s reference". Safe for
+        # existing higher-speed terrains too: this only makes the gate MORE
+        # permissive (true at lower speeds), never less permissive at the
+        # speeds those policies already train at.
+        return (self.commands[:, 0].abs() > 0.03).float()
 
     def _r_tracking_lin_vel(self):
         err = (self.commands[:, 0] - self._fwd_vel()) ** 2
@@ -797,6 +894,25 @@ class V50WalkEnv:
         flat at standstill, which is what let the freeze basin persist (C4)."""
         cmd = self.commands[:, 0].clamp(min=1e-3)
         return (self._fwd_vel().clamp(min=0.0) / cmd).clamp(max=1.0) * self._moving()
+
+    def _r_velocity_ceiling(self):
+        """T079c (2026-07-30): explicit, continuous brake on overspeed.
+        walk_rsl_stairs_climbrew_v4's 5000-iter log shows a fully collapsed
+        "dive" attractor (fall_rate=1.00, vx_mean=0.82 vs cmd 0.25 -- a
+        constant ~3.3x overspeed every iteration) even with Rule 3's
+        stability-gating (PROGRESS_TERMS) active: climb_progress's payout is
+        a rare, lumpy spike (only on a NEW best-height), so a policy that
+        rushes and grabs one partial-height spike before falling can still
+        come out net-positive versus tracking_lin_vel's small, continuous
+        cost. This term is unconditional (not gated on terrain or in
+        PROGRESS_TERMS) and fires every single step the actual speed exceeds
+        a 1.5x-of-commanded ceiling -- unlike climb_progress it cannot be
+        "cashed out" once and ignored; it taxes the entire dive, not just
+        the moment of falling."""
+        cmd = self.commands[:, 0].clamp(min=1e-3)
+        ceiling = cmd * 1.5
+        overspeed = (self._fwd_vel() - ceiling).clamp(min=0.0)
+        return (overspeed ** 2) * self._moving()
 
     def _r_climb_progress(self):
         """T079: reward NEW best-height-vs-spawn on terrain_dz. Unlike
@@ -853,7 +969,13 @@ class V50WalkEnv:
         only a sustained excess above the human ~0.20 baseline is."""
         is_double = (self.contacts.float().sum(dim=1) == 2).float()
         self.double_support_ema = 0.98 * self.double_support_ema + 0.02 * is_double
-        return -(self.double_support_ema - 0.20).clamp(min=0.0) ** 2
+        # 2026-08-08 符号バグ修正: ここで負を返すと係数 -10.0 と二重反転し、
+        # 「両足接地が human baseline を超えるほど報酬が増える」正の項になっていた。
+        # 実測(diag_breakdown): vx が 0.217->0.031 と落ちる過程で本項の寄与が
+        # +0.0144 -> +0.0221 -> +0.0315 と増加し、freeze(立ちっぱなし)の主因だった。
+        # 他の罰項(velocity_ceiling / lin_vel_z 等)と同じく**正の大きさ**を返し、
+        # 符号は係数側に持たせる規約に揃える。
+        return (self.double_support_ema - 0.20).clamp(min=0.0) ** 2
 
     def _r_pose_prior(self):
         """Reference-gait tracking, gated on a walk command. Zero-command envs

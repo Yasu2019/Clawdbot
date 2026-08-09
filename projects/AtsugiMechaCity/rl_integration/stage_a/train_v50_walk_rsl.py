@@ -287,6 +287,10 @@ def main():
     ap.add_argument("--symmetric-body", action="store_true",
                     help="mirror the left body onto the right (sim-only) so the "
                          "robot is L/R symmetric -- required for a symmetric gait")
+    ap.add_argument("--reward-breakdown", type=int, default=0, metavar="N",
+                    help="報酬項の内訳を寄与の大きい順にN項ログ出力する(0=無効)")
+    ap.add_argument("--reward-scale", default=None,
+                    help="報酬係数の上書き。例: velocity_ceiling=0,pose_prior=0.8")
     ap.add_argument("--no-naturalness", action="store_true",
                     help="zero the flat-gait naturalness/symmetry rewards "
                          "(foot_clearance/foot_lift_symmetry/gait_symmetry/...) for "
@@ -328,6 +332,30 @@ def main():
         cfg["symmetric_body"] = True
     if args.no_naturalness:
         cfg["no_naturalness"] = True
+    # 2026-08-08: 報酬係数を対照実験のため上書きできるようにする。
+    # 背景: 未コミットの階段用チューニング(T079c/e/f/g/h)が平地にも効いており、
+    # 特に velocity_ceiling(-6.0) は docstring 通り「地形ゲート無し・無条件」で、
+    # 平地でも速度が cmd*1.5 を超えた瞬間に overspeed^2 の罰を与える。
+    # 一方 forward_progress(3.0) は stability-gated で安定時しか支払われない。
+    # この非対称が freeze(vx 0.003 / single_contact 0.036)の疑い。
+    # 環境ファイルを書き換えずにA/Bできるようにして、推測ではなく実測で判定する。
+    if args.reward_scale:
+        # cfg は引数由来の差分辞書で reward_scales を持たないことがあるため、
+        # 既定値から取り出して上書きする(未知キーは既定値の一覧で検査する)。
+        defaults = _default_cfg()["reward_scales"]
+        scales = dict(cfg.get("reward_scales") or {})
+        for item in args.reward_scale.split(","):
+            if "=" not in item:
+                continue
+            k, v = item.split("=", 1)
+            k, v = k.strip(), float(v)
+            if k not in defaults:
+                print(f"[warn] 未知の報酬項なので無視します: {k}", flush=True)
+                continue
+            before = scales.get(k, defaults[k])
+            print(f"[reward_scale] {k}: {before} -> {v}", flush=True)
+            scales[k] = v
+        cfg["reward_scales"] = scales
     if args.height_scan:
         hs = {}
         if args.scan_ahead:
@@ -368,6 +396,14 @@ def main():
               f"col {p['fall_by_collision']:.2f}) | "
               f"vx {p['vx_mean']:5.3f} | up {p['upright']:4.2f} | "
               f"1foot {p['single_contact_frac']:4.2f} | air {p['mean_air_time']:.3f}", flush=True)
+        # 2026-08-08: 報酬項の内訳を出す。凍結(vx~0だがreturnは上昇)が起きたとき、
+        # どの項が支配的かを1回の学習で特定するため。推測でA/Bを繰り返さない。
+        if args.reward_breakdown:
+            bd = env.reward_breakdown()
+            if bd:
+                top = list(bd.items())[:args.reward_breakdown]
+                print("        REW " + "  ".join(f"{k}={v:+.4f}" for k, v in top),
+                      flush=True)
         runner.save(os.path.join(args.out, "latest.pt"))
 
     runner.save(os.path.join(args.out, "latest.pt"))
