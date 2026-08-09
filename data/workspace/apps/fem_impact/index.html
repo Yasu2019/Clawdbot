@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Impact FEM Lab | ThinkPad Satellite</title>
+<style>
+  :root { --bg:#020617; --primary:#38bdf8; --card:rgba(15,23,42,0.7); --text:#f8fafc; --muted:#94a3b8;
+          --ok:#10b981; --warn:#f59e0b; --bad:#ef4444; }
+  body { background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; margin:0; padding:32px; }
+  a { color:var(--primary); }
+  h1 { font-size:1.8rem; margin:0 0 4px 0; }
+  .sub { color:var(--muted); margin-bottom:28px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:18px; max-width:1200px; }
+  .panel { background:var(--card); border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:20px; }
+  .panel h2 { font-size:1.05rem; margin:0 0 12px 0; color:var(--primary); }
+  .kv { display:flex; justify-content:space-between; gap:12px; padding:4px 0; font-size:0.9rem; border-bottom:1px dashed rgba(255,255,255,0.06); }
+  .kv .k { color:var(--muted); }
+  .badge { display:inline-block; padding:2px 10px; border-radius:999px; font-size:0.8rem; font-weight:600; }
+  .b-ok { background:rgba(16,185,129,0.15); color:var(--ok); }
+  .b-warn { background:rgba(245,158,11,0.15); color:var(--warn); }
+  .b-bad { background:rgba(239,68,68,0.15); color:var(--bad); }
+  details { margin-top:12px; } summary { color:var(--muted); cursor:pointer; font-size:0.85rem; }
+  pre { background:rgba(0,0,0,0.35); padding:12px; border-radius:8px; overflow:auto; font-size:0.75rem; max-height:300px; }
+  .note { color:var(--muted); font-size:0.8rem; margin-top:24px; max-width:1200px; }
+</style>
+</head>
+<body>
+<h1>🛡️ Impact FEM Lab</h1>
+<div class="sub">ThinkPad衛星ノードでの衝撃FEM (fem_impact@thinkpad)。実ステータスJSONの直読み表示 — 演出・モックなし (T019/P025準拠)。 <a href="../../portal.html">← Portal</a></div>
+<div class="grid">
+  <div class="panel" id="p-deploy"><h2>ThinkPad デプロイ状態</h2><div class="body">読み込み中...</div></div>
+  <div class="panel" id="p-auto"><h2>自律ループ (autonomous)</h2><div class="body">読み込み中...</div></div>
+  <div class="panel" id="p-doe"><h2>160µm DOE 状態</h2><div class="body">読み込み中...</div></div>
+  <div class="panel" id="p-track"><h2>Tri-Track ルーティング</h2><div class="body">読み込み中...</div></div>
+</div>
+<div class="note">データ源: thinkpad_fem_impact_deploy_status.json / thinkpad_fem_impact_autonomous_status.json / fem_impact_160um_doe_status.json / k10_tri_track_cae_status.json。ステータスが古い場合は衛星ノードまたはループ停止の可能性があります。</div>
+<script>
+const AGE_WARN_H = 6, AGE_BAD_H = 48;
+function ageBadge(iso){
+  if(!iso) return '<span class="badge b-warn">時刻不明</span>';
+  const h = (Date.now() - new Date(iso).getTime()) / 3600000;
+  if (isNaN(h)) return '<span class="badge b-warn">時刻不明</span>';
+  const t = h < 1 ? Math.round(h*60)+'分前' : h < 48 ? h.toFixed(1)+'時間前' : Math.round(h/24)+'日前';
+  const cls = h < AGE_WARN_H ? 'b-ok' : h < AGE_BAD_H ? 'b-warn' : 'b-bad';
+  return `<span class="badge ${cls}">${t}</span>`;
+}
+function kv(k,v){ return `<div class="kv"><span class="k">${k}</span><span>${v}</span></div>`; }
+function raw(d){ return `<details><summary>raw JSON</summary><pre>${JSON.stringify(d,null,1).replace(/</g,'&lt;')}</pre></details>`; }
+function fail(id,msg){ document.querySelector(id+' .body').innerHTML = `<span class="badge b-bad">取得失敗</span> <span style="color:var(--muted);font-size:0.85rem">${msg}</span>`; }
+async function j(u){ const r = await fetch('../../'+u+'?t='+Date.now(),{cache:'no-store'}); if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); }
+
+j('thinkpad_fem_impact_deploy_status.json').then(d=>{
+  let h = kv('更新', ageBadge(d.updated_at));
+  h += kv('全体', d.ok ? '<span class="badge b-ok">OK</span>' : '<span class="badge b-bad">NG</span>');
+  h += kv('リモートbundle', (d.remote_bundle||'-').split('/').pop());
+  const st = d.steps||{};
+  for(const [k,v] of Object.entries(st)) h += kv('step: '+k, v.ok ? '<span class="badge b-ok">ok</span>' : '<span class="badge b-bad">fail</span>');
+  document.querySelector('#p-deploy .body').innerHTML = h + raw(d);
+}).catch(e=>fail('#p-deploy', e.message));
+
+j('thinkpad_fem_impact_autonomous_status.json').then(d=>{
+  let h = kv('更新', ageBadge(d.updated_at));
+  h += kv('running(自己申告)', d.running ? '<span class="badge b-warn">true — 更新時刻と併せて判断</span>' : '<span class="badge b-bad">false</span>');
+  const s = d.summary||{};
+  h += kv('開始', s.started_at||'-');
+  h += kv('variants', Object.keys(s.variants||{}).length);
+  document.querySelector('#p-auto .body').innerHTML = h + raw(d);
+}).catch(e=>fail('#p-auto', e.message));
+
+j('fem_impact_160um_doe_status.json').then(d=>{
+  let h = kv('更新', ageBadge(d.updated_at||d.at||d.checked_at));
+  for(const k of ['phase','stage','state','verdict','trial_id','done','total'])
+    if(d[k]!==undefined) h += kv(k, typeof d[k]==='object'?JSON.stringify(d[k]):d[k]);
+  document.querySelector('#p-doe .body').innerHTML = h + raw(d);
+}).catch(e=>fail('#p-doe', e.message));
+
+j('k10_tri_track_cae_status.json').then(d=>{
+  let h = kv('更新', ageBadge(d.updated_at));
+  h += kv('policy(fem_impact)', (d.policy||{}).fem_impact||'-');
+  const tr = (d.tracks||{}).fem_impact_thinkpad || (d.tracks||{}).fem_impact;
+  if (tr){
+    h += kv('verdict', (tr.last||{}).verdict||'-');
+    h += kv('fail_streak', tr.fail_streak ?? '-');
+  } else {
+    h += kv('track', '<span class="badge b-warn">tracksに未登場(未実行/別経路)</span>');
+  }
+  document.querySelector('#p-track .body').innerHTML = h + raw(d);
+}).catch(e=>fail('#p-track', e.message));
+</script>
+</body>
+</html>

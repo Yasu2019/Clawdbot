@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpenRadioss Lab | Press Blanking ASSY (red_lavie)</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e14;
+    --bg2: #121820;
+    --card: rgba(18, 28, 40, 0.92);
+    --border: rgba(120, 160, 200, 0.18);
+    --text: #e8eef4;
+    --muted: #8b9aab;
+    --accent: #f97316;
+    --accent2: #38bdf8;
+    --ok: #34d399;
+    --warn: #fbbf24;
+    --bad: #f87171;
+    --mono: "IBM Plex Mono", ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; color: var(--text);
+    font-family: "IBM Plex Sans", system-ui, sans-serif;
+    background:
+      radial-gradient(ellipse 70% 45% at 15% 0%, rgba(249,115,22,0.12), transparent 55%),
+      radial-gradient(ellipse 50% 40% at 90% 20%, rgba(56,189,248,0.08), transparent 50%),
+      var(--bg);
+    min-height: 100vh;
+  }
+  a { color: var(--accent2); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  header {
+    display: flex; justify-content: space-between; align-items: flex-start; gap: 16px;
+    padding: 28px 32px 18px; border-bottom: 1px solid var(--border);
+    background: rgba(10,14,20,0.75); backdrop-filter: blur(10px);
+    position: sticky; top: 0; z-index: 20;
+  }
+  h1 { margin: 0; font-size: 1.65rem; letter-spacing: -0.02em; }
+  .sub { color: var(--muted); font-size: 0.88rem; margin-top: 6px; max-width: 720px; line-height: 1.45; }
+  .hdr-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+  .live { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px;
+          border: 1px solid var(--border); font-size: 0.8rem; color: var(--muted); background: var(--bg2); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--warn); }
+  .dot.ok { background: var(--ok); box-shadow: 0 0 8px rgba(52,211,153,0.6); }
+  .dot.bad { background: var(--bad); }
+  main { max-width: 1400px; margin: 0 auto; padding: 22px 32px 48px; display: grid; gap: 18px; }
+  .alert { display: none; border: 1px solid rgba(248,113,113,0.45); background: rgba(248,113,113,0.08);
+           border-radius: 12px; padding: 14px 16px; }
+  .alert b { color: var(--bad); }
+  .kpi-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; }
+  @media (max-width: 1100px) { .kpi-grid { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 700px) { .kpi-grid { grid-template-columns: repeat(2, 1fr); } header { flex-direction: column; } }
+  .kpi {
+    background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 14px 14px 12px;
+    position: relative; overflow: hidden;
+  }
+  .kpi::before { content: ""; position: absolute; left: 0; top: 0; right: 0; height: 3px; background: var(--accent2); }
+  .kpi.warn::before { background: var(--warn); }
+  .kpi.bad::before { background: var(--bad); }
+  .kpi.ok::before { background: var(--ok); }
+  .kpi .lab { font-size: 0.7rem; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; }
+  .kpi .val { font-size: 1.25rem; font-weight: 700; margin-top: 6px; font-family: var(--mono); word-break: break-all; }
+  .kpi .hint { font-size: 0.75rem; color: var(--muted); margin-top: 4px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 14px; }
+  .panel {
+    background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 16px 18px;
+    min-height: 140px;
+  }
+  .panel h2 { margin: 0 0 12px; font-size: 0.98rem; color: var(--accent); font-weight: 600; }
+  .panel.wide { grid-column: 1 / -1; }
+  .kv { display: flex; justify-content: space-between; gap: 12px; padding: 5px 0;
+        font-size: 0.88rem; border-bottom: 1px dashed rgba(255,255,255,0.06); }
+  .kv .k { color: var(--muted); flex-shrink: 0; }
+  .kv .v { text-align: right; font-family: var(--mono); font-size: 0.82rem; }
+  .badge { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+  .b-ok { background: rgba(52,211,153,0.15); color: var(--ok); }
+  .b-warn { background: rgba(251,191,36,0.15); color: var(--warn); }
+  .b-bad { background: rgba(248,113,113,0.15); color: var(--bad); }
+  .b-mute { background: rgba(139,154,171,0.15); color: var(--muted); }
+  details { margin-top: 10px; }
+  summary { color: var(--muted); cursor: pointer; font-size: 0.8rem; }
+  pre {
+    background: rgba(0,0,0,0.35); padding: 10px; border-radius: 8px; overflow: auto;
+    font-size: 0.72rem; max-height: 220px; font-family: var(--mono);
+  }
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  button, .btn {
+    appearance: none; border: 1px solid var(--border); background: #1a2430; color: var(--text);
+    border-radius: 10px; padding: 8px 12px; font-size: 0.82rem; cursor: pointer;
+    font-family: inherit;
+  }
+  button:hover { border-color: var(--accent2); }
+  button.primary { background: rgba(249,115,22,0.18); border-color: rgba(249,115,22,0.45); color: #fdba74; }
+  button.danger { background: rgba(248,113,113,0.12); border-color: rgba(248,113,113,0.4); color: #fca5a5; }
+  button:disabled { opacity: 0.45; cursor: not-allowed; }
+  .note { color: var(--muted); font-size: 0.78rem; line-height: 1.5; }
+  .toast {
+    position: fixed; right: 18px; bottom: 18px; max-width: 420px; z-index: 50;
+    background: #15202b; border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px;
+    font-size: 0.82rem; display: none; box-shadow: 0 12px 40px rgba(0,0,0,0.45);
+  }
+  .vid-list { display: grid; gap: 6px; max-height: 240px; overflow: auto; }
+  .vid-row { display: flex; justify-content: space-between; gap: 8px; font-size: 0.8rem;
+             padding: 6px 0; border-bottom: 1px dashed rgba(255,255,255,0.05); }
+  .bars { display: flex; gap: 4px; align-items: flex-end; height: 56px; margin-top: 8px; }
+  .bar { flex: 1; background: rgba(56,189,248,0.35); border-radius: 3px 3px 0 0; min-width: 6px; }
+  .bar.fail { background: rgba(248,113,113,0.35); }
+  .bar.ok { background: rgba(52,211,153,0.45); }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>OpenRadioss Lab</h1>
+    <div class="sub">
+      順送金型向けプレス打ち抜き ASSY (<code>press_blanking_assy@red_lavie</code>) の運用コンソール。
+      実ステータス JSON + Lab API。演出・モックなし (T019 / P025 / P026)。
+      <a href="../../portal.html">← Portal</a>
+      · <a href="../cae_te_dashboard/index.html">CAE T&amp;E</a>
+      · <a href="../fem_impact/index.html">Impact FEM</a>
+    </div>
+  </div>
+  <div class="hdr-right">
+    <div class="live"><span class="dot" id="api-dot"></span><span id="api-label">API …</span></div>
+    <div class="live"><span id="clock">--</span></div>
+  </div>
+</header>
+
+<main>
+  <div class="alert" id="gate-alert">
+    <b>意味ゲート停止中</b> — <span id="gate-msg"></span><br>
+    <span class="note">T049: 連敗の自動リセットは禁止。原因是正のうえ人間承認で再開してください。</span>
+  </div>
+
+  <section class="kpi-grid" id="kpi-strip">
+    <div class="kpi"><div class="lab">Tri verdict</div><div class="val" id="k-verdict">-</div><div class="hint" id="k-verdict-h"></div></div>
+    <div class="kpi"><div class="lab">fail_streak</div><div class="val" id="k-streak">-</div><div class="hint">threshold 表示はゲート欄</div></div>
+    <div class="kpi"><div class="lab">PDCA t_final</div><div class="val" id="k-tfinal">-</div><div class="hint">gate ≥ 18.13 ms</div></div>
+    <div class="kpi"><div class="lab">DOE success</div><div class="val" id="k-doe">-</div><div class="hint" id="k-doe-h">progress.json</div></div>
+    <div class="kpi"><div class="lab">Evolution</div><div class="val" id="k-evo">-</div><div class="hint" id="k-evo-h">P026</div></div>
+    <div class="kpi"><div class="lab">Orchestrator</div><div class="val" id="k-orch">-</div><div class="hint">tri-track continuous</div></div>
+  </section>
+
+  <section class="grid">
+    <div class="panel" id="p-track"><h2>Tri-Track (red_lavie)</h2><div class="body">読み込み中...</div></div>
+    <div class="panel" id="p-pdca"><h2>PDCA 最終成功ラン</h2><div class="body">読み込み中...</div></div>
+    <div class="panel" id="p-evo"><h2>Trial Evolution (P026)</h2><div class="body">読み込み中...</div></div>
+    <div class="panel" id="p-ov"><h2>Param Overrides</h2><div class="body">読み込み中...</div></div>
+    <div class="panel" id="p-imp"><h2>Meaning-Gate Improver</h2><div class="body">読み込み中...</div></div>
+    <div class="panel" id="p-heal"><h2>Self-Heal</h2><div class="body">読み込み中...</div></div>
+    <div class="panel" id="p-node"><h2>red_lavie ノード / Install</h2><div class="body">読み込み中...</div></div>
+    <div class="panel" id="p-urgent"><h2>Urgent ASSY</h2><div class="body">読み込み中...</div></div>
+    <div class="panel" id="p-progress"><h2>DOE Progress (DB)</h2><div class="body">読み込み中...</div></div>
+    <div class="panel" id="p-contact"><h2>Contact Diagnose</h2><div class="body">読み込み中...</div></div>
+    <div class="panel" id="p-mat"><h2>Commercial Maturity</h2><div class="body">読み込み中...</div></div>
+    <div class="panel" id="p-vid"><h2>Result Media (openradioss*)</h2><div class="body">読み込み中...</div></div>
+    <div class="panel wide" id="p-ops">
+      <h2>Operator Actions (API :8777)</h2>
+      <div class="note">
+        書き込み系は既存スクリプトを呼ぶだけです。意味ゲートの fail_streak リセットは API でも拒否します。
+        Urgent ASSY は長時間ジョブなので非同期起動します。
+      </div>
+      <div class="actions">
+        <button type="button" id="btn-refresh" class="primary">Refresh progress.json</button>
+        <button type="button" id="btn-improver">Run meaning-gate improver</button>
+        <button type="button" id="btn-urgent" class="primary">Launch urgent ASSY</button>
+        <button type="button" id="btn-urgent-skip">Launch urgent (skip wait)</button>
+        <button type="button" id="btn-reload">Reload all panels</button>
+        <button type="button" id="btn-forbid" class="danger" title="forbidden">Reset fail_streak (forbidden)</button>
+      </div>
+      <div class="note" id="ops-msg" style="margin-top:10px"></div>
+      <details><summary>action log (API)</summary><pre id="action-log">-</pre></details>
+    </div>
+  </section>
+
+  <p class="note">
+    静的データ: <code>../../&lt;status&gt;.json</code> via portal :8088。
+    集約/操作: <code>http://127.0.0.1:8777/api/status</code>。
+    起動: <code>scripts/restart_openradioss_lab_api.bat</code>。
+    bd: <code>Clawdbot_Docker_20260125-ulak</code>
+  </p>
+</main>
+<div class="toast" id="toast"></div>
+
+<script>
+const API = "http://127.0.0.1:8777";
+const AGE_WARN_H = 6, AGE_BAD_H = 48;
+
+function esc(s){ return String(s??"").replace(/[&<>"']/g, c=>({ "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;" }[c])); }
+function ageBadge(iso){
+  if(!iso) return '<span class="badge b-warn">時刻不明</span>';
+  const h = (Date.now() - new Date(iso).getTime()) / 3600000;
+  if (isNaN(h)) return '<span class="badge b-warn">時刻不明</span>';
+  const t = h < 1 ? Math.round(h*60)+"分前" : h < 48 ? h.toFixed(1)+"時間前" : Math.round(h/24)+"日前";
+  const cls = h < AGE_WARN_H ? "b-ok" : h < AGE_BAD_H ? "b-warn" : "b-bad";
+  return `<span class="badge ${cls}">${t}</span>`;
+}
+function kv(k,v){ return `<div class="kv"><span class="k">${esc(k)}</span><span class="v">${v}</span></div>`; }
+function raw(d){ return `<details><summary>raw JSON</summary><pre>${esc(JSON.stringify(d,null,1))}</pre></details>`; }
+function fail(id,msg){ const el=document.querySelector(id+" .body"); if(el) el.innerHTML = `<span class="badge b-bad">取得失敗</span> <span class="note">${esc(msg)}</span>`; }
+function toast(msg, ok){
+  const t=document.getElementById("toast");
+  t.style.display="block";
+  t.style.borderColor = ok===false ? "rgba(248,113,113,0.5)" : "rgba(52,211,153,0.35)";
+  t.textContent = msg;
+  clearTimeout(toast._tm); toast._tm = setTimeout(()=>{ t.style.display="none"; }, 6000);
+}
+function setKpi(id, val, cls, hint){
+  const el=document.getElementById(id); if(!el) return;
+  el.textContent = val;
+  const card = el.closest(".kpi");
+  if(card){ card.classList.remove("ok","warn","bad"); if(cls) card.classList.add(cls); }
+  if(hint!=null){ const h=document.getElementById(id+"-h"); if(h) h.textContent=hint; }
+}
+async function jStatic(u){
+  const r = await fetch("../../"+u+"?t="+Date.now(), {cache:"no-store"});
+  if(!r.ok) throw new Error("HTTP "+r.status+" "+u);
+  return r.json();
+}
+async function api(path, opt){
+  const r = await fetch(API+path, Object.assign({cache:"no-store"}, opt||{}));
+  const text = await r.text();
+  let data; try { data = JSON.parse(text); } catch { data = { ok:false, error:text.slice(0,200) }; }
+  return { http: r.status, data };
+}
+
+function verdictBadge(v){
+  const s = String(v||"-");
+  const cls = /SUCCESS|PASS|NORMAL_TSTOP/i.test(s) ? "b-ok" : /SKIP|WARN/i.test(s) ? "b-warn" : /FAIL|ERROR|NG/i.test(s) ? "b-bad" : "b-mute";
+  return `<span class="badge ${cls}">${esc(s)}</span>`;
+}
+
+async function renderFromBundle(status){
+  const b = status.bundle || {};
+  const kpi = status.kpi || {};
+  const track = ((b.tri_track||{}).tracks||{}).openradioss_red_lavie || {};
+  const last = track.last || {};
+  const gate = track.meaning_gate || {};
+
+  setKpi("k-verdict", kpi.tri_verdict || last.verdict || "-",
+    /SUCCESS/i.test(kpi.tri_verdict||"") ? "ok" : /SKIP/i.test(kpi.tri_verdict||"") ? "warn" : "bad",
+    last.error || "");
+  const streak = kpi.tri_fail_streak ?? track.fail_streak ?? "-";
+  setKpi("k-streak", streak, Number(streak)>=8 ? "bad" : Number(streak)>0 ? "warn" : "ok");
+  const tf = kpi.pdca_t_final_ms;
+  setKpi("k-tfinal", tf!=null ? tf+" ms" : "-", Number(tf)>=18.13 ? "ok" : "warn");
+  setKpi("k-doe", (kpi.progress_success!=null?kpi.progress_success:"-")+" / "+(kpi.progress_total!=null?kpi.progress_total:"-"),
+    "warn", "DB progress may be stale");
+  setKpi("k-evo", kpi.evolution_verdict || "-", /SUCCESS/i.test(kpi.evolution_verdict||"")?"ok":"warn",
+    kpi.evolution_trial||"");
+  setKpi("k-orch", kpi.orchestrator_running ? "RUNNING" : "STOPPED",
+    kpi.orchestrator_running ? "ok" : "bad");
+
+  if (gate.stopped){
+    const al = document.getElementById("gate-alert");
+    al.style.display = "block";
+    document.getElementById("gate-msg").textContent =
+      `連敗 ${gate.fail_streak} (閾値 ${gate.threshold}) @ ${gate.at||""}`;
+  } else {
+    document.getElementById("gate-alert").style.display = "none";
+  }
+
+  // Tri-track
+  {
+    let h = kv("更新", ageBadge((b.tri_track||{}).updated_at));
+    h += kv("policy", esc((b.tri_track||{}).policy?.openradioss || "-"));
+    h += kv("verdict", verdictBadge(last.verdict));
+    h += kv("error", esc(last.error || "-"));
+    h += kv("at", esc(last.at || "-"));
+    h += kv("fail_streak", `<span class="badge ${Number(track.fail_streak)>=8?"b-bad":"b-ok"}">${esc(track.fail_streak)}</span>`);
+    h += kv("n", esc(track.n));
+    h += kv("意味ゲート", gate.stopped ? '<span class="badge b-bad">停止</span>' : '<span class="badge b-ok">稼働可</span>');
+    document.querySelector("#p-track .body").innerHTML = h + raw(track);
+  }
+
+  // PDCA
+  {
+    const d = b.pdca || {};
+    const r = d.result || {};
+    let h = kv("記録", ageBadge(d.at || d._mtime));
+    h += kv("run", "#"+esc(d.run_id||"-"));
+    h += kv("label", esc(d.label||"-"));
+    h += kv("gate", d.gate_passed ? '<span class="badge b-ok">PASS</span>' : '<span class="badge b-bad">FAIL</span>');
+    h += kv("termination", esc(r.termination||"-"));
+    h += kv("t_final", esc(r.t_final_ms??"-")+" ms");
+    const v = d.verify || {};
+    if (v.deck) h += kv("Eps/VC/Inacti", esc(`${v.deck.Eps_eff}/${v.deck.VC}/${v.deck.Inacti}`));
+    document.querySelector("#p-pdca .body").innerHTML = h + raw(d);
+  }
+
+  // Evolution
+  {
+    const e = ((b.evolution||{}).tracks||{}).openradioss_red_lavie || {};
+    let h = kv("更新", ageBadge((b.evolution||{}).updated_at || e.at));
+    h += kv("trial", esc(e.trial_id||"-"));
+    h += kv("verdict", verdictBadge(e.verdict));
+    h += kv("category", esc(e.category||"-"));
+    h += kv("fingerprint", esc(e.fingerprint||"-"));
+    h += kv("kpis", esc(JSON.stringify(e.kpis||{})));
+    document.querySelector("#p-evo .body").innerHTML = h + raw(e);
+  }
+
+  // Overrides
+  {
+    const d = b.overrides || {};
+    const o = (d.openradioss||{}).overrides || {};
+    let h = kv("applied_at", ageBadge((d.openradioss||{}).applied_at));
+    h += kv("applied_by", esc((d.openradioss||{}).applied_by||"-"));
+    for (const [k,v] of Object.entries(o)) h += kv(k, esc(v));
+    if (!Object.keys(o).length) h += kv("overrides", '<span class="badge b-mute">なし</span>');
+    document.querySelector("#p-ov .body").innerHTML = h + raw(d.openradioss||d);
+  }
+
+  // Improver
+  {
+    const d = b.improver || {};
+    let h = kv("at", ageBadge(d.at));
+    h += kv("restarted", d.restarted ? '<span class="badge b-warn">true</span>' : "false");
+    for (const r of (d.results||[])) {
+      if (String(r.track||"").includes("openradioss") || true) {
+        h += kv(r.track||"track", esc(r.action||"-")+(r.error?(" / "+esc(r.error)):"" ));
+      }
+    }
+    document.querySelector("#p-imp .body").innerHTML = h + raw(d);
+  }
+
+  // Self heal
+  {
+    const d = b.self_heal || {};
+    const acts = (d.actions||[]).filter(a => String(a.target||"").includes("openradioss") || String(a.action||"").includes("openradioss"));
+    let h = kv("チェック", ageBadge(d.checked_at || d._mtime));
+    if (!acts.length) h += kv("エスカレーション", '<span class="badge b-ok">なし</span>');
+    for (const a of acts) h += kv(a.action||"action", esc(a.reason||JSON.stringify(a)));
+    document.querySelector("#p-heal .body").innerHTML = h + raw(d);
+  }
+
+  // Node / install
+  {
+    const inst = b.install || {};
+    const reg = b.node_registry || {};
+    const lim = b.limits || {};
+    let h = kv("image", esc(inst.image||"-"));
+    h += kv("node", esc(inst.node||reg.host||"red_lavie"));
+    const steps = inst.steps || {};
+    for (const [k,v] of Object.entries(steps)) {
+      h += kv("step:"+k, v && v.ok ? '<span class="badge b-ok">ok</span>' : '<span class="badge b-bad">ng</span>');
+    }
+    h += kv("job_worker", esc(reg.job_worker_url||"-"));
+    h += kv("monitor", esc(reg.monitor_agent_url||"-"));
+    h += kv("limits pending", esc(JSON.stringify(lim).slice(0,120)));
+    document.querySelector("#p-node .body").innerHTML = h + raw({install:inst, registry:reg});
+  }
+
+  // Urgent
+  {
+    const d = b.urgent || {};
+    let h = kv("更新", ageBadge(d.updated_at || d._mtime));
+    h += kv("phase", verdictBadge(d.phase));
+    h += kv("trial_id", esc(d.trial_id||"-"));
+    h += kv("error", esc(d.error||"-"));
+    h += kv("ok", d.ok===true ? '<span class="badge b-ok">true</span>' : esc(String(d.ok??"-")));
+    document.querySelector("#p-urgent .body").innerHTML = h + raw(d);
+  }
+
+  // Progress + mini bars
+  {
+    const d = b.progress || {};
+    const c = d.counts || {};
+    const term = d.termination_counts || {};
+    let h = kv("更新", ageBadge(d.updated_at_utc || d._mtime));
+    h += kv("total/success/failed", `${esc(c.total_seen)} / ${esc(c.success)} / ${esc(c.failed)}`);
+    const best = d.best_success || {};
+    h += kv("best t_final", esc(best.t_final_ms??"-")+" ms ("+esc(best.termination_type||"-")+")");
+    const vals = Object.entries(term);
+    if (vals.length){
+      const max = Math.max(...vals.map(([,v])=>Number(v)||0), 1);
+      h += `<div class="bars">` + vals.slice(0,10).map(([k,v])=>{
+        const pct = Math.max(8, Math.round(100*(Number(v)||0)/max));
+        const cls = /TSTOP|GATE_PASSED/i.test(k) ? "ok" : /VELOCITY|ERROR/i.test(k) ? "fail" : "";
+        return `<div class="bar ${cls}" style="height:${pct}%" title="${esc(k)}: ${esc(v)}"></div>`;
+      }).join("") + `</div>`;
+      h += `<div class="note">` + vals.map(([k,v])=>`${esc(k)}=${esc(v)}`).join(" · ") + `</div>`;
+    }
+    document.querySelector("#p-progress .body").innerHTML = h + raw({counts:c, last:d.last, best_success:best});
+  }
+
+  // Contact
+  {
+    const d = b.contact || {};
+    let h = kv("mtime", ageBadge(d._mtime));
+    const keys = Object.keys(d).filter(k=>!k.startsWith("_")).slice(0,12);
+    for (const k of keys) {
+      const v = d[k];
+      h += kv(k, esc(typeof v==="object" ? JSON.stringify(v).slice(0,100) : v));
+    }
+    document.querySelector("#p-contact .body").innerHTML = h + raw(d);
+  }
+
+  // Maturity
+  {
+    const ev = status.evidence_openradioss || (b.maturity||{}).evidence_snapshot?.openradioss || {};
+    let h = kv("evidence", ev && Object.keys(ev).length ? "present" : '<span class="badge b-warn">missing/partial</span>');
+    for (const k of ["trials","success","failed","success_rate_pct","doe_running","last_trial_at"]) {
+      if (ev && ev[k]!=null) h += kv(k, esc(ev[k]));
+    }
+    document.querySelector("#p-mat .body").innerHTML = h + raw(ev||{});
+  }
+
+  // Videos
+  {
+    const vids = status.videos || [];
+    let h = kv("件数", esc(vids.length));
+    if (!vids.length) h += `<div class="note">openradioss* メディアが results/images に見つかりません。</div>`;
+    else {
+      h += `<div class="vid-list">` + vids.slice(0,20).map(v=>
+        `<div class="vid-row"><span>${esc(v.rel)}</span><span class="note">${esc(v.mtime)} · ${(v.bytes/1024).toFixed(0)}KB</span></div>`
+      ).join("") + `</div>`;
+    }
+    document.querySelector("#p-vid .body").innerHTML = h;
+  }
+}
+
+async function loadActionLog(){
+  try {
+    const {data} = await api("/api/actions/log");
+    document.getElementById("action-log").textContent = JSON.stringify(data.lines||[], null, 2);
+  } catch(e) {
+    document.getElementById("action-log").textContent = String(e);
+  }
+}
+
+async function refreshAll(){
+  document.getElementById("clock").textContent = new Date().toLocaleString("ja-JP");
+  try {
+    const {http, data} = await api("/api/status");
+    if (http>=200 && http<300 && data.ok) {
+      document.getElementById("api-dot").className = "dot ok";
+      document.getElementById("api-label").textContent = "API 8777 OK · "+(data.at||"");
+      await renderFromBundle(data);
+      await loadActionLog();
+      return;
+    }
+    throw new Error("API status bad");
+  } catch (e) {
+    document.getElementById("api-dot").className = "dot bad";
+    document.getElementById("api-label").textContent = "API offline — static fallback";
+    // static fallback (same as original thin app + extras)
+    try {
+      const [tri, pdca, heal, evo, ov, prog, urg, inst] = await Promise.all([
+        jStatic("k10_tri_track_cae_status.json"),
+        jStatic("openradioss_pdca_status.json"),
+        jStatic("self_heal_status.json"),
+        jStatic("cae_trial_evolution_state.json").catch(()=>({})),
+        jStatic("tri_track_param_overrides.json").catch(()=>({})),
+        jStatic("openradioss_progress.json").catch(()=>({})),
+        jStatic("red_lavie_urgent_assy_run.json").catch(()=>({})),
+        jStatic("red_lavie_openradioss_install_status.json").catch(()=>({})),
+      ]);
+      await renderFromBundle({
+        ok:true, kpi:{}, videos:[],
+        bundle: {
+          tri_track: tri, pdca, self_heal: heal, evolution: evo, overrides: ov,
+          progress: prog, urgent: urg, install: inst, improver:{}, contact:{}, maturity:{},
+          node_registry:{}, limits:{}
+        }
+      });
+    } catch (e2) {
+      fail("#p-track", e2.message);
+    }
+  }
+}
+
+async function postAction(path, body){
+  document.getElementById("ops-msg").textContent = "実行中: "+path;
+  const {http, data} = await api(path, {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify(body||{})
+  });
+  document.getElementById("ops-msg").textContent = `HTTP ${http}: ${JSON.stringify(data).slice(0,280)}`;
+  toast(`API ${path} → ${http}`, http<400);
+  await loadActionLog();
+  if (http<400) setTimeout(refreshAll, 1200);
+  return data;
+}
+
+document.getElementById("btn-refresh").onclick = () => postAction("/api/actions/refresh-progress", {});
+document.getElementById("btn-improver").onclick = () => {
+  if (!confirm("meaning_gate_auto_improver を実行しますか？ (fail_streak はリセットしません)")) return;
+  postAction("/api/actions/run-meaning-improver", {});
+};
+document.getElementById("btn-urgent").onclick = () => {
+  if (!confirm("Urgent ASSY を起動しますか？ (長時間・confirm)")) return;
+  postAction("/api/actions/launch-urgent-assy", {confirm:true});
+};
+document.getElementById("btn-urgent-skip").onclick = () => {
+  if (!confirm("Urgent ASSY (skip-wait) を起動しますか？")) return;
+  postAction("/api/actions/launch-urgent-assy", {confirm:true, skip_wait:true});
+};
+document.getElementById("btn-reload").onclick = () => refreshAll();
+document.getElementById("btn-forbid").onclick = () => postAction("/api/actions/forbidden-reset-gate", {});
+
+refreshAll();
+setInterval(refreshAll, 45000);
+</script>
+</body>
+</html>
