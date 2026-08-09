@@ -11,6 +11,12 @@ import sys
 from pathlib import Path
 from datetime import datetime
 
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 ROOT = Path(r"D:\Clawdbot_Docker_20260125")
 sys.path.insert(0, str(ROOT / "data" / "workspace"))
 import sim_trial_logger as db
@@ -171,12 +177,17 @@ def backfill_run(run_id: int, existing: set[int]) -> None:
     failure_mode = summary.get("failure_mode")
 
     # 成功判定: T≥18.13ms かつ NORMAL_TSTOP
-    if term == "NORMAL_TSTOP" and t_final and t_final >= 18.13:
+    err_final = summary.get("err_final_pct")
+    energy_ok = err_final is not None and float(err_final) > -95.0
+    if term == "NORMAL_TSTOP" and t_final and t_final >= 18.13 and energy_ok:
         status = "success"
     elif term in ("NORMAL_VELOCITY", "ABNORMAL"):
         status = "failed"
     elif term == "NORMAL_TSTOP":
-        status = "success"
+        status = "failed"
+        failure_mode = failure_mode or (
+            f"physical gate failed: T={t_final}ms ERR={err_final}%"
+        )
     else:
         status = "failed"
 

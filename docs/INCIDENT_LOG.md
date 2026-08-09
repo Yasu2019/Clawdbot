@@ -5,6 +5,21 @@
 
 ------
 
+## INC-178: Dual Synergy (empty + study) -- GetObject cannot select COM instance
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-07-30 JST |
+| **Detection** | User: two Synergy apps (no project + `mf_fc_warp_v2`). Agent could not reliably bind the study for nodal CSV export. |
+| **Impact** | MF evaluation-field / warp CSV ingest blocked; risk of writing empty or wrong-plot CSV if empty instance is bound. |
+| **Root Cause (5 Why)** | **Why1**: GetObject did not attach to the study instance. **Why2**: Multiple `synergy.exe` on ROT with no instance picker. **Why3**: Empty window coexisted with open study. **Why4**: Export started without process inventory / StudyName lock. **Why5**: Dual-instance self-judgment gate was not documented. |
+| **Fix / Countermeasure** | Mandatory gate: inventory pid/WS/session; if count>=2 kill empty/low-WS first; GetObject only via Session1 `schtasks /IT`; fail-closed unless `StudyDoc.StudyName` matches expected; never CreateObject while Synergy alive. Gate script `.tmp/_c_synergy_gate.ps1`. |
+| **Files** | `docs/knowledge/MF_SYNERGY_DUAL_INSTANCE_COM_GATE_20260730.md`; `.brv/context-tree/cae/mf_synergy_dual_instance_com_gate_20260730.md`; Obsidian `60_PC_Logs/Moldflow_INC-178_T080_dual_Synergy_COM_gate_20260730.md`; `.tmp/_c_synergy_gate.ps1` |
+| **Verification** | Decision recorded in bd remember `mf-synergy-dual-instance-com-gate`, trouble_history [T080], success_cases [S021], Obsidian full QC/FMEA/FTA note. Runtime re-export still pending single healthy Synergy. |
+| **Prevention** | Preflight dual gate before any Dynabook MF COM write/export. Related T071 (single healthy Synergy / no CreateObject spam). |
+
+------
+
 ## INC-131: DXF2STEP hole-vs-island audit misclassification on D3 busbar (extends INC-130)
 
 | Field | Detail |
@@ -2952,3 +2967,96 @@ Raised by the user asking whether `box_study_3` had a mesh in progress. Forensic
 - **Web knowledge:** A bounded official Unity manual lookup confirmed that
   `-noUpm` disables Package Manager. It changed only the diagnostic retry; local
   compiler evidence proved that the final validation must use normal UPM startup.
+
+## INC-179: LAVIE r32 reader sent Windows commands to Linux exec bridge
+
+| Item | Detail |
+|---|---|
+| Date / detection | 2026-08-01 to 2026-08-02; r32 retrieval returned HTTP 500 while n8n health stayed 200. |
+| Impact | MF-to-OF cell-centre retrieval was blocked. OpenFOAM solver, tri-track, source CSVs, and field pack remained intact. |
+| Root cause (5 Why) | n8n execution 5519 reported `/bin/sh: cmd: not found`. `read_run_r32.py` sent `cmd /c` and PowerShell to a Linux n8n Execute Command node. That container also had no `/c` mount, so it was the wrong execution category and filesystem boundary. |
+| Fix | `data/workspace/moldflow_bridge/mf_minusx_copy_results_20260801/read_run_r32.py`: use authenticated worker `shell` jobs with POSIX paths; if worker is busy, use n8n only to `docker exec lavie-sjp-worker-c sh -lc <read command>`. No service restart. |
+| Verification | Bridge `echo EXEC_BRIDGE_OK`: HTTP 200. Worker-container read: `R32_ACCESS_OK`. Fixed reader: `exists YES`, directories 0..1.2, `constant`, `system`. Existing `tri-lavie-resin_fill_cad-c623f6c7` container remained Up. |
+| Prevention | IF remote executor is Linux THEN prohibit `cmd /c`/PowerShell. IF required files live under C: THEN select a worker/container with `/c` mount. Treat HTTP 500 as execution failure, not health failure; inspect n8n execution data before restart. |
+| Web search | Not used: private n8n execution 5519 provided direct root-cause evidence; public search would not identify local mounts or workflow topology. |
+| Rollback | Revert commit `cdc3545ba5`; no remote files or containers were changed. |
+# INC-180 - Moldflow Cool session-0 false launch (2026-08-02)
+
+- Discovery: copied Cool study produced only `synjmmsg.1268`; no `.oc1/.c2p`.
+- Impact: about two minutes delay; no original or running job changed.
+- Root cause: SSH session 0 cannot establish the Moldflow 2010 interactive
+  job-manager environment; launcher PID was not a solver-success signal.
+- Fix: unique `schtasks /IT` task in active session 1 with ASCII/CRLF CMD.
+- Verification: `.oc1` 887,956 B, `.c2p` 188,150 B, cycle 35.0 s,
+  part T avg 342.2514 K, exit 0. Full RCA:
+  `docs/quality_incident_report_20260802_moldflow_cool_session0.md`.
+- Prevention: require session 1 plus solver-specific artifacts for Moldflow CLI.
+# INC-181 - OF Cool CAD gate contract incomplete (2026-08-02)
+
+- Failure: `gate_spec_path or gate_count required for CAD build` on urgent01.
+- Impact: prebuild only; empty run directory; no solver execution.
+- Fix: urgent02 explicitly supplies `gate_count=1` and preserves minus-X vector;
+  waiting harness now stores full failure evidence.
+- Verification gate: case files + cooling precheck + bounded solver + Cool KPIs.
+
+# INC-182 - Moldflow result IDs mixed NODE/TRI3/1DET associations (2026-08-02)
+
+- Detection: 03 produced 1,818 valid nodes, but typical 3,552-row fields joined
+  30.77% and 40-row circuit fields joined 0%.
+- Impact: OpenFOAM spatial packing was blocked before injection; source data intact.
+- Root cause: the exported `NodeID` integer is dataset-dependent and can identify a
+  node, TRI3 element, or cooling 1DET element.
+- Fix: 04 exports UDM NODE coordinates plus TRI3/1DET centroids and connectivity,
+  with declared-count, COM scale, missing-connectivity, and atomic-output gates.
+- Verification: local MF2010 UDM V4 fixture parsed 1,792/3,552/8 entities with zero
+  missing connectivity. Live study execution must pass its own declared counts.
+- Full RCA: `docs/quality_incident_report_20260802_moldflow_mixed_entity_ids.md`.
+- Web search: not used; local version-specific UDM evidence was definitive.
+# INC-183 - OpenFOAM kPa value mislabeled as MPa (2026-08-02)
+
+- Raw r32 p max near EOF was 65,170 Pa = 0.06517 MPa, not about 65 MPa.
+- The wrong label caused `power_law_k` to be lowered, opposite to evidence.
+- Corrected handoff and added typed conversion/calibration tests; proposed
+  k=10.576058 for a single-variable verification trial only.
+- Full RCA: `docs/quality_incident_report_20260802_of_pressure_unit_inc183.md`.
+- Rollback DB: `mf_of_calibration_pre_inc183_20260802.sqlite`.
+
+# INC-187 - snappy thermo case missing physics files and false completion (2026-08-03)
+
+- Trial `lavie-mfminusx-thermo-fill-20260803` failed in 99.87 s with OpenFOAM
+  v2512 reporting missing `constant/thermophysicalProperties`; fill was 0.01%.
+- Root cause: snappy generation copied the non-thermal MFALIGN template despite
+  `physics_category=resin_fill_cool`; the waiter then trusted dispatcher exit 0
+  instead of the nested CAE verdict `FAILED`.
+- Fix: overlay required thermo dictionaries and MFALIGN `T/p` fields; parse the
+  trial verdict, handle worker busy before verdict failure, and fail closed.
+  Nine focused/contract tests pass.
+- Prevention: remote hash and final generated-case checks are mandatory before a
+  new-ID retry. `PROXY_GAP` remains.
+- Full RCA: `docs/quality_incident_report_20260803_snappy_thermo_false_complete_inc187.md`.
+- Web search: not used because private logs and deterministic local branch logic
+  fully identify the cause.
+
+# INC-188 - Shear blanking mesh explosion and false physical SUCCESS (2026-08-10)
+
+- OpenRadioss run59 reached 20 ms with `NORMAL_TSTOP`, but final energy error was
+  -99.9%; its prior `gate_passed=true` is invalidated.
+- FEM Impact DOE01 x2 timed out; current tri-track fail streaks are 10 and 20.
+- Root cause: termination-only promotion, explicit suppression of extreme
+  post-fracture energy loss, permissive 10% mass gate, and matching DB logic.
+- Correction: final ERR <= -95% and DM/M >5% now fail; DB backfill uses the same
+  physical rule; run59 status is marked invalid.
+- Full RCA: `docs/quality_incident_report_20260810_shear_mesh_explosion_inc188.md`.
+- Web evidence: Altair TYPE7 contact, Results Checking, and Nodal Time Step
+  Control documentation changed the countermeasure.
+### INC-188 follow-up 2026-08-10: fixed-field and formulation repair
+
+- Root causes added: malformed TYPE25 fixed columns, incomplete `/PROP/SOLID`,
+  and TETRA4 elements assigned HA8 `Isolid=14` properties.
+- Verification: Starter warnings 66 -> 6, errors 0; trial J NORMAL TERMINATION
+  at 3e-5 s with ERR=-14.9% and DM/M=4.1804%.
+- Full-duration trial K was rejected at 1.64e-4 s because ERR reached -32.8%.
+  It was not entered as success or PINN training data.
+- Code: `data/workspace/rad_model.py`, gate/backfill scripts, regression tests.
+- Prevention: reconstruct fixed-format cards; verify element/property category;
+  gate full-duration energy, mass, boundedness and separation before promotion.

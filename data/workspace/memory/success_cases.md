@@ -15,6 +15,27 @@
 
 ---
 
+## [S023] MF2010 WarpQueryNode Play Macro で全節点反りCSV成功 (2026-07-31)
+- 問題: `GetVectorData`/studyrlt/`schtasks /IT`+cscript では全節点 Deflection CSV が取れない（ハング、studyrlt不在、StudyDoc無し/424、Automation Unavailable）。
+- 診断: WarpQueryNode API 自体は正しい。失敗主因は MF2010 が複数 Synergy COM を選べないこと＋外付け cscript が誤インスタンスに付くこと。Play Macro 内では公式の `CreateObject` がホストに付く。
+- 解決: Synergy を1つだけ開き `mf_fc_warp_v2_20260720`＋Deflection all effects を確認後、`MF2010_WarpQueryNode_CSV_Fix` の `01_preflight`→`02_export` を **Play Macro** で実行。Bind=SAInstance→GetObject→CreateObject。`.part` 100件フラッシュ。
+- 証拠: 6588節点 fail=0、Total_Deflection absmax=0.812297（COM DsID6250一致）、`Total=√(dX²+dY²+dZ²)` 全行一致。ローカル `mf_all_results_20260730/mf_fc_warp_v2_20260720_warp_all_nodes.csv`、Phase5/handoff `nodal_field_available=true`。
+- 再利用: IF MF2010 全節点反りCSV THEN Play Macro のみ（schtasks禁止）。IF Automation Unavailable THEN 全 synergy 終了→1つ再起動。IF preflight 5ノードOK THEN 同じGUIで02。bd `mf-warpquery-playmacro-csv-s023`。
+
+## [S022] MF COM エクスポート安定化 -- 1 indp + ログ flush + Deflection優先 (2026-07-30)
+- 問題: GetObject 429、GetFirstPlotName 空、MeshStatus=Failed でも UI に結果あり。6フレーム全ノード探索で 1フレーム 10-20 分張り付き。
+- 診断: ShowPlot/FindPlotByName2/DsID では max 取得可。ボトルネックは GetScalarData/GetVectorData。VBS ログ未 flush で偽停滞にも見える。
+- 解決: CreateObject フォールバック（単一 Synergy + StudyName 一致時のみ）。indp はヒューリスティック 1+1。Deflection 6250 を先に。`.tmp/_c_export_scalar_stable.ps1`。
+- 証拠: Fill max=1.069679、Deflection DsID6250 max≈0.81 を COM で確認。bd `mf-com-export-stable-indp-20260730`。
+- 再利用: IF Dynabook で MF ノード CSV THEN 6 indp フルスキャン禁止。IF GetFirstPlotName 空でも UI に結果 THEN FindPlotByName2/DsID。IF GetObject 429 かつ synergy=1 THEN CreateObject+StudyName ロック。
+
+## [S021] Dual Synergy を自己判定ゲートで弾く (2026-07-30)
+- 問題: 空ウィンドウと `mf_fc_warp_v2` の2つが同時起動すると、COM が空側に付くか GetObject 失敗し、エージェントが対象 Study にバインドできない。
+- 診断: `GetObject` は ROT 上の複数 synergy を選べない。WS 小（≲40MB）が空、WS 大（≳100MB）が Study 付きの目安。CreateObject は既存 GUI があるのに空インスタンスを増やす。
+- 解決: 必須ゲート — プロセス棚卸し → 2本以上なら空/低WSを先に落とす → Session1 `/IT` で GetObject のみ → `StudyName` 一致でなければ fail-closed。エクスポート API は従来どおり ShowPlot→GetScalar/VectorData。
+- 証拠: ルール文書化 + bd remember `mf-synergy-dual-instance-com-gate` + gate script `.tmp/_c_synergy_gate.ps1` + ByteRover manual card。正典 `docs/knowledge/MF_SYNERGY_DUAL_INSTANCE_COM_GATE_20260730.md`。T080。
+- 再利用: IF Dynabook で MF COM する前に synergy.exe≥2 THEN エクスポート禁止。IF StudyName 不一致 THEN 空窓を閉じてから再試行（OpenProject は MF2010 でハングリスク）。
+
 ## [S020] Dynabook Moldflow synmesh を正規 COM ルートで起動し Completed (2026-07-26)
 - 問題: `MeshNow(False)` は error 0 でも `synmesh.exe` が立たず Pending のまま。GUI は遅く、開始成功と遅延が区別しづらい。Design Link 不在で STL 新規メッシュも不可。
 - 診断: 成功時の親プロセスは必ず `amijm.exe`。失敗例はシード無し/Failed Midplane。正規経路は Session1 Synergy + 64bit `cscript` `/IT` + `CreateObject` + `OpenItemByName` + `MeshGenerator` + `MeshNow`。
@@ -322,3 +343,87 @@
 - **Reuse:** IF a single-view generated mesh fuses independently moving
   garments and limbs, THEN stop weight-only iteration and rebuild separate
   topology, BECAUSE rig weights cannot recover missing geometric separation.
+
+## [S029] LAVIE r32 retrieval repaired without stopping solver (2026-08-02, Codex)
+
+- Problem: n8n health was 200 but every r32 read returned HTTP 500.
+- Diagnosis: n8n execution 5519 proved `/bin/sh: cmd: not found`; Windows
+  commands were sent to a Linux container that also lacked the C-drive mount.
+- Solution: route POSIX reads through the mounted LAVIE worker and use a
+  read-only `docker exec` into that worker container when its API lock is busy.
+- Evidence: bridge echo HTTP 200, `R32_ACCESS_OK`, `exists YES`, 0..1.2 time
+  directories, `constant/`, and `system/`; the unrelated solver stayed Up.
+- Reuse: IF health is OK but Execute Command returns 500 THEN inspect execution
+  data and mounts before restart. Route by OS and filesystem capability,
+  BECAUSE service liveness does not prove command-family compatibility.
+
+## [S028] Moldflow全節点CSVをOpenFOAM空間field packへ変換 (2026-08-01, Codex)
+
+- **問題:** minus-XのMF field CSVは約6,500 NodeIDを持つ一方、通常の
+  `GetFirstNode/GetNodeCoord` XYZ exportは1,776節点だけで、直接結合率が約27%だった。
+- **診断:** 全6,588点のWarp CSVには変位前座標 `X_before/Y_before/Z_before` があり、
+  既存XYZとの共通1,774点で最大差は2.1007e-6 mm、差>1e-4 mmは0点だった。
+- **解決:** `mf_csv_to_openfoam_field_pack.py` でNodeID結合、mm->m、MPa->Pa、
+  degC->K、g/cm3->kg/m3を出典・SHA-256付きで変換。未確認velocity単位は注入禁止にした。
+- **証拠:** Dynabook原本24/24 CSVがローカルコピーとSHA-256一致。16 field pack生成、
+  全fieldのcoordinate_missing=0、manifest `all_coordinates_joined=true`。
+- **再利用:** IF MF field CSVのNodeIDがStudyDoc XYZより多い THEN 同一study geometryの
+  Warp `X_before/Y_before/Z_before` を共通節点座標差で検証して使用する。THEN OFセル中心への
+  写像前に距離・外挿率ゲートを必須化する。BECAUSE point packはまだsolver fieldではない。
+## [S030] Moldflow Cool requires interactive session 1 and artifact gate (2026-08-02)
+
+- Problem: SSH session-0 `cool.exe` returned immediately with only `synjmmsg`.
+- Diagnosis: launcher PID was not a real solve; unchanged SDY succeeded in `/IT` session 1.
+- Fix: unique SaveAs copy + ASCII/CRLF CMD + `schtasks /IT`; preserve original.
+- Evidence: cycle 35.0 s, `.oc1` 887956 B, `.c2p` 188150 B, EXIT=0.
+- Reuse: IF remote MF2010 solver THEN session 1 `/IT` + stage-specific artifact gate; never accept PID alone.
+## [S031] CAD gate direction does not imply gate topology (2026-08-02)
+
+- Problem: OF Cool CAD build failed before solver with an empty run directory.
+- Diagnosis: minus-X vector existed, but `gate_count`/`gate_spec_path` did not.
+- Fix: pass `gate_count=1`; retain worker stdout/log snippet in status JSON.
+- Evidence: dry-run reproduced exact fail-closed message with zero solver time.
+- Reuse: IF resin_fill_cad THEN require gate topology and direction separately.
+## 2026-08-02 - Moldflow mixed entity geometry export
+
+1. **Problem:** Node-only coordinates joined 30.77% of TRI3 results and 0% of
+   cooling-circuit results.
+2. **Root cause:** Moldflow `Get*Data` IDs are association-dependent NODE, TRI3,
+   or 1DET identifiers despite the generic exported `NodeID` header.
+3. **Solution:** Export a temporary UDM V4; preserve NODE coordinates and derive
+   TRI3/1DET centroids from connectivity. Verify UDM units against a live COM node.
+4. **Verification:** A native MF2010 UDM fixture parsed declared 1,792 NODE,
+   3,552 TRI3, and 8 1DET records with zero missing connectivity; live counts are
+   gated during macro execution.
+5. **Reusable rule:** Never spatially join Moldflow result IDs until the dataset's
+   entity association is explicit; require 100% association-specific geometry join.
+
+## [S032] MF cooling targets isolated from unsafe temperature-delta data (2026-08-03, Codex)
+
+1. **Problem:** The existing OpenFOAM cooling proxy used a 0.5 s horizon and
+   heuristic min/max temperature warpage, while one exported MF temperature
+   difference field clustered near -273.15 and was unsafe for calibration.
+2. **Root cause:** The cooling workflow lacked a unit-aware reference contract;
+   absolute temperatures, temperature differences, verified units, and
+   source-raw comparison fields could otherwise be mixed.
+3. **Solution:** Build `mf_cooling_reference_v1` from explicit association and
+   unit metadata; convert only verified degC->K and MPa->Pa fields; exclude the
+   anomalous delta-temperature field and keep shrink/sink values comparison-only.
+4. **Verification:** 14 tests passed; targets are ejection mean 8.2258 s,
+   p95 8.5390 s, frozen horizon 30.0001 s, coolant mean 298.328 K, and circuit
+   metal mean 300.120 K; strict JSON checks passed.
+5. **Reusable rule:** IF a thermal field is a difference or has unverified units,
+   THEN never apply an absolute-temperature conversion or solver initialization;
+   require explicit unit semantics and a physical-range gate first.
+## 2026-08-10 INC-188 OpenRadioss shear calibration stabilization
+
+1. **Problem:** Shear deck reached TSTOP with mesh explosion/ERR near -100%; later
+   Starter runs silently auto-corrected malformed contact and solid cards.
+2. **Root cause:** TYPE25 was not fixed-column formatted, SOLID cards were
+   incomplete, TETRA4 used HA8 Isolid=14, and DT=1e-7 added 31.089% mass.
+3. **Fix:** Rebuild official TYPE25/SOLID fields, use tetra-compatible Isolid=1,
+   Idel=2/Inacti=5, and calibrate DT against the 5% added-mass gate.
+4. **Verification:** Starter warnings 66 -> 6; trial J NORMAL TERMINATION,
+   T=3e-5 s, ERR=-14.9%, DM/M=4.1804%, 751 cycles, 34.05 s.
+5. **Reuse rule:** Treat short completion only as a calibration milestone. Require
+   full-duration energy/boundedness/separation before DB success or PINN training.

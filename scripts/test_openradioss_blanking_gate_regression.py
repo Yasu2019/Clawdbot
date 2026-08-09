@@ -18,7 +18,7 @@ if str(SCRIPTS) not in sys.path:
 import cae_self_growth_gates as gates
 
 
-HEALTHY_BLANKING_LOG = """
+EXPLODED_BLANKING_LOG = """
 NC= 61250 T= 4.9000E-04 DT= 8.0000E-09 ERR= -0.6% DM/M= 5.5100E-02
 NC= 62000 T= 4.9600E-04 DT= 8.0000E-09 ERR= -0.6% DM/M= 5.5100E-02
 FAILURE START AT TIME: 4.9868E-04
@@ -31,11 +31,11 @@ NORMAL TERMINATION
 
 class OpenRadiossBlankingGateRegressionTest(unittest.TestCase):
     def test_warning_is_not_velocity_hard_failure(self) -> None:
-        self.assertNotIn("radioss_velocity_too_high", gates.tag_openradioss_log(HEALTHY_BLANKING_LOG))
+        self.assertNotIn("radioss_velocity_too_high", gates.tag_openradioss_log(EXPLODED_BLANKING_LOG))
         self.assertNotIn("radioss_time_step_issue", gates.tag_openradioss_log("TIME-STEP\\nDT=8.0E-09"))
 
     def test_energy_is_measured_before_first_failure(self) -> None:
-        metrics = gates.parse_openradioss_run_metrics(HEALTHY_BLANKING_LOG)
+        metrics = gates.parse_openradioss_run_metrics(EXPLODED_BLANKING_LOG)
         self.assertAlmostEqual(metrics["err_pct_pre_failure"], -0.6)
         self.assertAlmostEqual(metrics["first_failure_time_ms"], 0.49868)
 
@@ -53,7 +53,7 @@ class OpenRadiossBlankingGateRegressionTest(unittest.TestCase):
         self.assertAlmostEqual(metrics["last_dm_m"], 0.088558)
         self.assertAlmostEqual(metrics["err_pct_pre_failure"], -0.6)
 
-    def test_completed_run_passes_physics_gate(self) -> None:
+    def test_tstop_with_extreme_energy_loss_and_mass_scaling_fails(self) -> None:
         verdict, defects, reasons = gates.apply_openradioss_meaning_gate(
             verdict="SUCCESS",
             category="press_blanking_assy",
@@ -61,13 +61,14 @@ class OpenRadiossBlankingGateRegressionTest(unittest.TestCase):
                 "assy_deck": True,
                 "meaning_gate": {"min_t_final_ms": 0.532},
             },
-            log_text=HEALTHY_BLANKING_LOG,
-            failure_tags=gates.tag_openradioss_log(HEALTHY_BLANKING_LOG),
+            log_text=EXPLODED_BLANKING_LOG,
+            failure_tags=gates.tag_openradioss_log(EXPLODED_BLANKING_LOG),
             defects={"shear_zone_pct": "37.0%"},
             kpi_values={"theta1_deg": 0.1},
         )
-        self.assertEqual(verdict, "SUCCESS")
-        self.assertEqual(reasons, [])
+        self.assertEqual(verdict, "FAILED_MEANING_GATE")
+        self.assertTrue(any("final_err_pct" in reason for reason in reasons))
+        self.assertTrue(any("mass_scaling_runaway" in reason for reason in reasons))
         self.assertEqual(defects["kpi_source"], "solver_or_geometry")
 
 

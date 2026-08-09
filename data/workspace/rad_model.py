@@ -16,7 +16,14 @@ Usage:
 from __future__ import annotations
 
 import re
+import sys
 from pathlib import Path
+
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
 
 
 def _replace_nth_number(line: str, n: int, new_val: str) -> str:
@@ -67,6 +74,16 @@ def _find_data_line_after_comment(lines: list[str], block_start: int, comment_hi
     return -1
 
 
+def _i10(value: int | str | None = None) -> str:
+    return " " * 10 if value is None else f"{int(value):>10d}"
+
+
+def _f20(value: float | str | None = None) -> str:
+    if value is None:
+        return " " * 20
+    return f"{float(value):>20.12g}"
+
+
 class RadModel:
     """Block-aware OpenRadioss starter deck (.rad) modifier."""
 
@@ -97,6 +114,51 @@ class RadModel:
             if di < 0:
                 raise ValueError(f"Eps_eff data line not found after /FAIL/GENE1/{mat_id}")
             self._lines[di] = _replace_nth_number(self._lines[di], 3, f"{eps_eff:.6g}")
+        return self
+
+    def ensure_prop_solid_titles(self) -> "RadModel":
+        """Insert the mandatory title line when a generated SOLID block omits it."""
+        insertions: list[tuple[int, str]] = []
+        for i, line in enumerate(self._lines[:-1]):
+            match = re.match(r"/PROP/SOLID/(\d+)\b", line.strip())
+            if match and self._lines[i + 1].lstrip().startswith("#"):
+                insertions.append((i + 1, f"Solid_Property_{match.group(1)}"))
+        for index, title in reversed(insertions):
+            self._lines.insert(index, title)
+        return self
+
+    def normalize_prop_solid_cards(self, *, tetra_only: bool = False) -> "RadModel":
+        """Upgrade legacy two-line SOLID data to the documented 2022 cards."""
+        for block_start in reversed(self._find_blocks("/PROP/SOLID/")):
+            first = _find_data_line_after_comment(self._lines, block_start, "Isolid")
+            if first < 0:
+                raise ValueError(f"/PROP/SOLID data missing at line {block_start + 1}")
+            old = self._lines[first].split()
+            if len(old) < 5:
+                raise ValueError(f"legacy /PROP/SOLID data unreadable at line {first + 1}")
+            isolid, ismstr = int(old[0]), int(old[1])
+            if tetra_only:
+                isolid, ismstr = 1, -1
+            dn, qa, hm = float(old[2]), float(old[3]), float(old[4])
+            # Radioss recommends 0 < Dn < 0.15; the legacy generator emitted
+            # 0.5. HA8 uses the compact 222 code for 2x2x2 integration.
+            dn = min(max(dn, 1.0e-6), 0.1)
+            hm = min(max(hm, 1.0e-6), 0.1)
+            self._lines[first] = "".join([
+                _i10(isolid), _i10(ismstr), _i10(0),
+                _i10(0 if tetra_only else -1), _i10(2),
+                _i10(222 if isolid == 14 else 0), _i10(3),
+                _i10(1 if tetra_only else -1), _f20(dn),
+            ])
+            second = first + 1
+            self._lines[second] = "".join([
+                _f20(qa), _f20(0), _f20(hm), _f20(0), _f20(0),
+            ])
+            third = "".join(_f20(0) for _ in range(5))
+            if second + 1 >= len(self._lines) or self._lines[second + 1].startswith("/"):
+                self._lines.insert(second + 1, third)
+            else:
+                self._lines[second + 1] = third
         return self
 
     def set_inter_type25_all(self, inacti: int, vc: float) -> "RadModel":
@@ -165,9 +227,85 @@ class RadModel:
             shape_di = _find_data_line_after_comment(self._lines, i, "Igap0")
             if shape_di >= 0:
                 line = self._lines[shape_di]
-                line = _replace_nth_number(line, 0, str(igap0))
-                line = _replace_nth_number(line, 1, str(ishape))
+                # Card order: Stmin, Stmax, Igap0, Ishape, Edge_angle.
+                # The old implementation changed Stmin/Stmax and left Igap0/
+                # Ishape untouched, which could cap contact stiffness at 2.
+                line = _replace_nth_number(line, 2, str(igap0))
+                line = _replace_nth_number(line, 3, str(ishape))
                 self._lines[shape_di] = line
+        return self
+
+    def normalize_inter_type25_cards(
+        self,
+        *,
+        igap: int = 3,
+        irem_i2: int = 2,
+        idel: int = 2,
+        igap0: int = 0,
+        ishape: int = 2,
+        inacti: int = 5,
+        viss: float = 1.0,
+        gap_scale: float = 1.0,
+        mesh_fraction: float = 0.4,
+        gap_max: float = 1.0e-4,
+    ) -> "RadModel":
+        """Rebuild TYPE25 data cards in the documented 10-column format.
+
+        Older generated decks placed only whitespace-separated values on these
+        lines. Radioss then read values in the wrong columns (INC-188). Values
+        not controlled here are retained from their logical token order.
+        """
+        if inacti not in {-1, 0, 5, 1000}:
+            raise ValueError("TYPE25 Inacti must be -1, 0, 5, or 1000")
+        for i, line in enumerate(self._lines):
+            if not re.match(r"/INTER/TYPE25/\d", line.strip()):
+                continue
+            surf_di = _find_data_line_after_comment(self._lines, i, "surf_ID1")
+            gap_di = _find_data_line_after_comment(self._lines, i, "Gap_max")
+            shape_di = _find_data_line_after_comment(self._lines, i, "Igap0")
+            stfac_di = _find_data_line_after_comment(self._lines, i, "Stfac")
+            flags_di = _find_data_line_after_comment(self._lines, i, "Inacti")
+            fric_di = _find_data_line_after_comment(self._lines, i, "Ifric")
+            required = [surf_di, gap_di, shape_di, stfac_di, flags_di, fric_di]
+            if any(di < 0 for di in required):
+                raise ValueError(f"incomplete /INTER/TYPE25 block at line {i + 1}")
+
+            surf = self._lines[surf_di].split()
+            shape = self._lines[shape_di].split()
+            stfac = self._lines[stfac_di].split()
+            fric = self._lines[fric_di].split()
+            if len(surf) < 7 or len(shape) < 5 or len(stfac) < 4 or len(fric) < 5:
+                raise ValueError(f"unreadable /INTER/TYPE25 block at line {i + 1}")
+
+            # Columns: 1,2,3,blank,5,6,blank,8,9,blank.
+            self._lines[surf_di] = "".join([
+                _i10(surf[0]), _i10(surf[1]), _i10(surf[2]), _i10(),
+                _i10(igap), _i10(irem_i2), _i10(), _i10(idel),
+                _i10(surf[6]), _i10(),
+            ])
+            # grnd_IDs; blank; four 20-character real fields.
+            gap = self._lines[gap_di].split()
+            self._lines[gap_di] = "".join([
+                _i10(gap[0] if gap else 0), _i10(), _f20(gap_scale),
+                _f20(mesh_fraction), _f20(gap_max), _f20(gap_max),
+            ])
+            self._lines[shape_di] = "".join([
+                _f20(shape[0]), _f20(shape[1]), _i10(igap0),
+                _i10(ishape), _f20(shape[4]), _f20(),
+            ])
+            # Stfac, Fric, blank, Tstart, Tstop (each real spans two columns).
+            self._lines[stfac_di] = "".join([
+                _f20(stfac[0]), _f20(stfac[1]), _f20(),
+                _f20(stfac[2]), _f20(stfac[3]),
+            ])
+            self._lines[flags_di] = "".join([
+                _i10(0), _i10(), _i10(0), _i10(inacti), _f20(viss),
+                " " * 40,
+            ])
+            self._lines[fric_di] = "".join([
+                _i10(fric[0]), _i10(fric[1]), _f20(fric[2]), _i10(),
+                _i10(fric[3]), " " * 20, _i10(fric[4]), " " * 20,
+            ])
         return self
 
     def set_inter_type25_idel(self, idel: int = 2) -> "RadModel":

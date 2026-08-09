@@ -550,8 +550,9 @@ OPENRADIOSS_ASSY_MAX_DELETED_ELEMENTS = 8000
 OPENRADIOSS_ASSY_MAX_VELOCITY_WARNINGS = 40
 # T060: 8連敗の主因=質量スケーリング暴走(DM/M 36-62倍)を直接検出するゲート。
 # 健全な explicit 解析は DM/M < 2-5% が目安。10%超は動力学が汚染されているとみなす。
-OPENRADIOSS_ASSY_MAX_DM_M = 0.10
+OPENRADIOSS_ASSY_MAX_DM_M = 0.05
 OPENRADIOSS_ASSY_MIN_ERR_PCT = -85.0
+OPENRADIOSS_ASSY_MIN_FINAL_ERR_PCT = -95.0
 OPENRADIOSS_HARD_FAIL_TAGS = frozenset(
     {
         "radioss_abnormal_termination",
@@ -749,6 +750,15 @@ def apply_openradioss_meaning_gate(
     if is_assy and err_gate_val is not None and float(err_gate_val) < OPENRADIOSS_ASSY_MIN_ERR_PCT:
         reasons.append(
             f"forming_window_err_pct={float(err_gate_val):.1f}<{OPENRADIOSS_ASSY_MIN_ERR_PCT}"
+        )
+    final_err = metrics.get("last_err_pct")
+    if (
+        is_assy
+        and final_err is not None
+        and float(final_err) <= OPENRADIOSS_ASSY_MIN_FINAL_ERR_PCT
+    ):
+        reasons.append(
+            f"final_err_pct={float(final_err):.1f}<={OPENRADIOSS_ASSY_MIN_FINAL_ERR_PCT} (divergence_or_unbounded_erosion)"
         )
     last_dm = metrics.get("last_dm_m")
     if is_assy and last_dm is not None and float(last_dm) > OPENRADIOSS_ASSY_MAX_DM_M:
