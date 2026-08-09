@@ -1,0 +1,27 @@
+{
+  "excludes": [
+    "**/*.mp4",
+    "**/*.mov",
+    "**/*.avi",
+    "**/*.png",
+    "**/*.jpg",
+    "**/*.jpeg",
+    "**/*.pdf",
+    "**/*.safetensors",
+    "**/*.pt",
+    "data/workspace/apps/**/*.json",
+    "data/workspace/obsidian_vault/**",
+    "data/public_api_downloads/**",
+    "data/meshy_assets/**",
+    "data/iatf_videos/**",
+    "backups/**",
+    "dist/**",
+    "ZIP_Group/**",
+    "vnccs_comfyui_clawstack_pro/**",
+    "**/node_modules/**",
+    "**/site-packages/**",
+    "**/__pycache__/**",
+    "**/.venv/**",
+    "graphify-out/**"
+  ]
+}
