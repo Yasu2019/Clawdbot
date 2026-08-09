@@ -673,7 +673,15 @@ def parse_openradioss_run_metrics(log_text: str) -> dict:
                 pass
     if deleted_totals:
         out["total_deleted_elements"] = max(deleted_totals)
-    if "NORMAL TERMINATION" in upper:
+    killed_for_energy = "RUN KILLED: ENERGY ERROR LIMIT REACHED" in upper
+    user_break = "USER BREAK" in upper
+    out["energy_error_kill"] = killed_for_energy
+    out["user_break"] = user_break
+    if killed_for_energy:
+        out["termination"] = "ENERGY_ERROR_KILL"
+    elif user_break:
+        out["termination"] = "USER_BREAK"
+    elif "NORMAL TERMINATION" in upper:
         out["termination"] = (
             "NORMAL_VELOCITY" if out["velocity_high_count"] > 0 else "NORMAL_TSTOP"
         )
@@ -714,6 +722,10 @@ def apply_openradioss_meaning_gate(
         reasons.append("error_termination")
     if metrics.get("termination") == "NORMAL_VELOCITY":
         reasons.append("normal_termination_but_velocity_stop")
+    if metrics.get("termination") == "ENERGY_ERROR_KILL":
+        reasons.append("energy_error_limit_reached")
+    if metrics.get("termination") == "USER_BREAK":
+        reasons.append("user_break_termination")
 
     mesh_events = int(metrics.get("failure_start_count") or 0) + int(
         metrics.get("deleted_element_events") or 0

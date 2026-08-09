@@ -3049,6 +3049,12 @@ Raised by the user asking whether `box_study_3` had a mesh in progress. Forensic
 - Full RCA: `docs/quality_incident_report_20260810_shear_mesh_explosion_inc188.md`.
 - Web evidence: Altair TYPE7 contact, Results Checking, and Nodal Time Step
   Control documentation changed the countermeasure.
+- Follow-up L-Q: coincident SH3N contact skins were replaced by external solid
+  surfaces. Trial M reached 3e-5 s with 0 Starter warnings, ERR about 0% and
+  DM/M=3.1096%. Trial Q with natural nodal stepping held ERR=0%, DM/M=0 but
+  projected about 2.4 h, so it was stopped as a bounded performance failure.
+- The gate now rejects energy-limit kills and USER BREAK text even when the
+  solver reports `NORMAL TERMINATION` and returns exit code 0.
 ### INC-188 follow-up 2026-08-10: fixed-field and formulation repair
 
 - Root causes added: malformed TYPE25 fixed columns, incomplete `/PROP/SOLID`,

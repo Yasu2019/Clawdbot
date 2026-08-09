@@ -116,6 +116,28 @@ class RadModel:
             self._lines[di] = _replace_nth_number(self._lines[di], 3, f"{eps_eff:.6g}")
         return self
 
+    def set_fail_gene1_shear_gate(
+        self, shear: float, ncs: int = 2, mat_id: int = 2
+    ) -> "RadModel":
+        """Require effective-strain and tensorial-shear criteria together."""
+        if shear <= 0.0 or ncs < 2:
+            raise ValueError("shear must be positive and NCS must be at least 2")
+        blocks = self._find_blocks(f"/FAIL/GENE1/{mat_id}")
+        if not blocks:
+            raise ValueError(f"/FAIL/GENE1/{mat_id} not found")
+        for block_start in blocks:
+            shear_line = _find_data_line_after_comment(self._lines, block_start, "Eps_min")
+            ncs_line = _find_data_line_after_comment(self._lines, block_start, "Volfrac")
+            if shear_line < 0 or ncs_line < 0:
+                raise ValueError(f"GENE1 shear/NCS fields missing for material {mat_id}")
+            self._lines[shear_line] = _replace_nth_number(
+                self._lines[shear_line], 1, f"{shear:.6g}"
+            )
+            self._lines[ncs_line] = _replace_nth_number(
+                self._lines[ncs_line], 2, str(ncs)
+            )
+        return self
+
     def ensure_prop_solid_titles(self) -> "RadModel":
         """Insert the mandatory title line when a generated SOLID block omits it."""
         insertions: list[tuple[int, str]] = []
@@ -381,6 +403,82 @@ class RadModel:
         self._lines[insert_at:insert_at] = block
         return self
 
+    def replace_contact_skins_with_solid_external_surfaces(
+        self,
+        surface_to_solid_part: dict[int, int] | None = None,
+        skin_part_ids: set[int] | None = None,
+        shell_prop_ids: set[int] | None = None,
+    ) -> "RadModel":
+        """Use solid exterior faces for contact and remove coincident SH3N skins.
+
+        The legacy blanking generator duplicated each solid boundary with SH3N
+        elements sharing the same nodes. Those shells add stiffness/contact
+        thickness and produced false TYPE25 initial penetrations (INC-188).
+        """
+        mapping = surface_to_solid_part or {300: 1, 400: 2, 500: 3, 600: 4}
+        skins = skin_part_ids or {101, 102, 103, 104}
+        shell_props = shell_prop_ids or {999}
+
+        for index, line in enumerate(self._lines):
+            match = re.match(r"/SURF/PART/(\d+)(?:/\d+)?\b", line.strip())
+            if not match:
+                continue
+            surface_id = int(match.group(1))
+            if surface_id not in mapping:
+                continue
+            self._lines[index] = f"/SURF/PART/EXT/{surface_id}/0"
+            # The first line after the keyword is the mandatory surface title.
+            data_index = index + 2
+            while data_index < len(self._lines):
+                value = self._lines[data_index].strip()
+                if value and not value.startswith("#"):
+                    if value.startswith("/"):
+                        raise ValueError(f"surface {surface_id} has no part data")
+                    self._lines[data_index] = f"{mapping[surface_id]:>10d}"
+                    break
+                data_index += 1
+
+        remove_prefixes = {
+            *(f"/PART/{part_id}" for part_id in skins),
+            *(f"/SH3N/{part_id}" for part_id in skins),
+            *(f"/PROP/SHELL/{prop_id}" for prop_id in shell_props),
+        }
+        kept: list[str] = []
+        index = 0
+        while index < len(self._lines):
+            stripped = self._lines[index].strip()
+            if any(re.match(rf"{re.escape(prefix)}(?:/|$)", stripped) for prefix in remove_prefixes):
+                index += 1
+                while index < len(self._lines):
+                    candidate = self._lines[index].strip()
+                    if candidate.startswith("/") and not candidate.startswith("//"):
+                        break
+                    index += 1
+                continue
+            kept.append(self._lines[index])
+            index += 1
+        self._lines = kept
+
+        # Remove deleted skin part IDs from any /GRNOD/PART group while
+        # preserving its solid-part references and title.
+        index = 0
+        while index < len(self._lines):
+            if not self._lines[index].strip().startswith("/GRNOD/PART/"):
+                index += 1
+                continue
+            data_index = index + 2
+            while data_index < len(self._lines):
+                stripped = self._lines[data_index].strip()
+                if stripped.startswith("/"):
+                    break
+                if stripped and not stripped.startswith("#"):
+                    values = [int(token) for token in stripped.split()]
+                    values = [value for value in values if value not in skins]
+                    self._lines[data_index] = "".join(_i10(value) for value in values)
+                data_index += 1
+            index = data_index
+        return self
+
     def set_inter_type25_secondary_surf(self, surf_id: int) -> "RadModel":
         """Set surf_ID2 (secondary) on all /INTER/TYPE25 blocks."""
         for i, ln in enumerate(self._lines):
@@ -454,6 +552,29 @@ class RadModel:
                 j += 1
             break
         return self
+
+    def set_funct_points(
+        self, func_id: int, points: list[tuple[float, float]]
+    ) -> "RadModel":
+        """Replace a /FUNCT curve with explicit time/value points."""
+        if len(points) < 2 or any(points[i][0] >= points[i + 1][0] for i in range(len(points) - 1)):
+            raise ValueError("function points require at least two strictly increasing times")
+        pattern = re.compile(rf"/FUNCT/{func_id}\b")
+        for block_start, line in enumerate(self._lines):
+            if not pattern.match(line.strip()):
+                continue
+            first_data = _find_data_line_after_comment(self._lines, block_start, "X")
+            if first_data < 0:
+                raise ValueError(f"/FUNCT/{func_id} data not found")
+            block_end = first_data
+            while block_end < len(self._lines):
+                if self._lines[block_end].strip().startswith("/"):
+                    break
+                block_end += 1
+            replacement = [f"{time:>20.12g}{value:>20.12g}" for time, value in points]
+            self._lines[first_data:block_end] = replacement
+            return self
+        raise ValueError(f"/FUNCT/{func_id} not found")
 
     def set_impvel_fscale_y(self, impvel_id: int, fscale: float) -> "RadModel":
         """Set Fscale_y on /IMPVEL/{impvel_id} second data line."""
@@ -553,6 +674,30 @@ def set_engine_noda_dt_min(engine_path: Path, dt_min: str | float) -> None:
     for i, ln in enumerate(lines):
         if ln.strip().startswith("/DT/NODA") and i + 1 < len(lines):
             lines[i + 1] = _replace_nth_number(lines[i + 1], 1, dt_str)
+            break
+    else:
+        raise ValueError(f"/DT/NODA block not found in {engine_path}")
+    text = "\n".join(lines)
+    if crlf:
+        text = text.replace("\n", "\r\n")
+    engine_path.write_bytes(text.encode("utf-8"))
+
+
+def set_engine_nodal_natural(engine_path: Path, scale: float = 0.9) -> None:
+    """Use the natural nodal time step without constant mass scaling.
+
+    OpenRadioss /DT/NODA/CST adds mass to maintain ``dt_min``.  That is unsafe
+    after element rupture because the required added mass can diverge.  The
+    natural form keeps only the stability scale and sets the minimum step to 0.
+    """
+    raw = engine_path.read_bytes()
+    crlf = b"\r\n" in raw
+    lines = raw.decode("utf-8", errors="replace").replace("\r\n", "\n").split("\n")
+    for i, ln in enumerate(lines):
+        if ln.strip().startswith("/DT/NODA") and i + 1 < len(lines):
+            suffix = "/0" if ln.strip().endswith("/0") else ""
+            lines[i] = f"/DT/NODA{suffix}"
+            lines[i + 1] = f"{scale:20.12g}{0.0:20.12g}"
             break
     else:
         raise ValueError(f"/DT/NODA block not found in {engine_path}")

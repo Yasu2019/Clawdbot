@@ -71,6 +71,25 @@ class OpenRadiossBlankingGateRegressionTest(unittest.TestCase):
         self.assertTrue(any("mass_scaling_runaway" in reason for reason in reasons))
         self.assertEqual(defects["kpi_source"], "solver_or_geometry")
 
+    def test_energy_kill_is_not_misclassified_as_normal(self) -> None:
+        log = """
+MESSAGE ID 205 RUN KILLED: ENERGY ERROR LIMIT REACHED
+NORMAL TERMINATION USER BREAK
+"""
+        metrics = gates.parse_openradioss_run_metrics(log)
+        self.assertEqual(metrics["termination"], "ENERGY_ERROR_KILL")
+        verdict, _defects, reasons = gates.apply_openradioss_meaning_gate(
+            verdict="SUCCESS",
+            category="press_blanking_assy",
+            exp={"assy_deck": True},
+            log_text=log,
+            failure_tags=[],
+            defects={},
+            kpi_values={},
+        )
+        self.assertEqual(verdict, "FAILED_MEANING_GATE")
+        self.assertIn("energy_error_limit_reached", reasons)
+
 
 if __name__ == "__main__":
     unittest.main()

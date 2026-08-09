@@ -99,3 +99,31 @@ commercial-equivalent shear surface, burr height or 0.1-second PINN inference.
 Revised rule: a short stable prefix can promote a time-step setting to a longer
 experiment, but cannot promote the analysis or PINN dataset. Full-duration
 energy, bounded geometry and actual slug separation remain mandatory.
+
+## 2026-08-10 geometry/contact and time-step evidence (L-Q)
+
+- The four physical solids were explicitly audited: punch Z=1.2..2.9 mm,
+  material Z=0..0.5 mm, die Z=-0.6..-0.1 mm and stripper Z=0.6..1.1 mm.
+  The solid gaps are therefore 0.7, 0.1 and 0.1 mm; the reported initial
+  penetrations were not solid-body intersections.
+- Parts 101-104 were coincident SH3N skins duplicating every solid boundary.
+  Replacing them with `/SURF/PART/EXT` surfaces removed artificial shell
+  stiffness/contact thickness. Trial M Starter then had 0 errors, 0 warnings
+  and no initial penetration; its 3e-5 s Engine prefix ended normally with
+  ERR about 0% and DM/M=3.1096%.
+- The original punch speed and TSTOP moved the punch only about 0.055 mm after
+  its 0.7 mm approach gap, so historical runs never reached the sheet.
+- Smooth SPM800 displacement reached contact, but trials O/P using continuous
+  `/DT/NODA/CST` suffered rupture cascades, ERR=99.9% and effectively unbounded
+  DM/M. Adding a two-condition GENE1 effective/shear gate delayed but did not
+  remove the instability.
+- Trial Q used `/DT/NODA/0` (natural step): through T=1.73e-4 s it maintained
+  ERR=0.0% and DM/M=0 with DT=2.7439e-9 s. The projected remaining time was
+  about 8656 s, so the owned trial was deliberately stopped as stable but too
+  slow. No unrelated solver process was stopped.
+- The result gate now treats `RUN KILLED: ENERGY ERROR LIMIT REACHED` and
+  `NORMAL TERMINATION USER BREAK` as failures even when the process exits 0.
+
+Revised next experiment: use a bounded/local time-step control or staged restart
+that enforces DM/M <=5%, and calibrate accumulated ductile damage before claiming
+cut completion. Natural stepping is the reference truth run, not the fast path.

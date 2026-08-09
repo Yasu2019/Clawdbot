@@ -15,7 +15,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "data" / "workspace"))
 
-from rad_model import RadModel
+from rad_model import RadModel, set_engine_nodal_natural
 
 
 TYPE25 = """/INTER/TYPE25/1/0
@@ -101,6 +101,63 @@ class Type25FieldMutationTest(unittest.TestCase):
             self.assertEqual(len(lines[3]), 100)
             self.assertEqual(int(lines[3][50:60]), 222)
             self.assertEqual(len(lines[5]), 100)
+
+    def test_contact_skins_are_replaced_by_solid_external_surfaces(self) -> None:
+        source = ("/PROP/SHELL/999\nSkin\n# data\n0\n"
+                  "/PART/101\nPunch_Skin\n# prop mat\n999 1\n"
+                  "/SURF/PART/300/0\nPunch_Skin_Surf\n101\n"
+                  "/SH3N/101\n1 10 11 12\n"
+                  "/GRNOD/PART/501\nAll_Nodes\n1 101\n/END\n")
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "case.rad"
+            path.write_text(source, encoding="utf-8")
+            RadModel(path).replace_contact_skins_with_solid_external_surfaces(
+                {300: 1}, {101}, {999}
+            ).write(path)
+            output = path.read_text(encoding="utf-8")
+            self.assertIn("/SURF/PART/EXT/300/0\nPunch_Skin_Surf\n         1", output)
+            self.assertNotIn("/SH3N/101", output)
+            self.assertNotIn("/PART/101", output)
+            self.assertNotIn("/PROP/SHELL/999", output)
+            self.assertIn("/GRNOD/PART/501\nAll_Nodes\n         1", output)
+            self.assertNotIn("         1       101", output)
+
+    def test_function_points_are_replaced_with_monotonic_curve(self) -> None:
+        source = ("/FUNCT/3\nStripper\n# X Y\n0 0\n1 -1\n"
+                  "/END\n")
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "case.rad"
+            path.write_text(source, encoding="utf-8")
+            RadModel(path).set_funct_points(
+                3, [(0.0, 0.0), (5e-5, -0.2), (5.5e-4, -0.2), (6e-4, 0.0)]
+            ).write(path)
+            output = path.read_text(encoding="utf-8")
+            self.assertIn("              0.0006                   0", output)
+            self.assertNotIn("1 -1", output)
+
+    def test_gene1_requires_effective_and_shear_conditions(self) -> None:
+        source = ("/FAIL/GENE1/2\n"
+                  "# Eps_min Shear fct_IDg12 fct_IDg13 fct_IDe1c\n"
+                  "0.0 0.0 0 0 0\n"
+                  "# Volfrac Pthickfail NCS Temp_max\n"
+                  "0.0 0.0 0 0.0\n/END\n")
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "case.rad"
+            path.write_text(source, encoding="utf-8")
+            RadModel(path).set_fail_gene1_shear_gate(0.30, ncs=2).write(path)
+            lines = path.read_text(encoding="utf-8").splitlines()
+            self.assertEqual(lines[2].split()[:2], ["0.0", "0.3"])
+            self.assertEqual(lines[4].split()[2], "2")
+
+    def test_nodal_natural_removes_constant_mass_scaling(self) -> None:
+        source = "/DT/NODA/CST/0\n                 0.9               4e-8\n/END\n"
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "case_0001.rad"
+            path.write_text(source, encoding="utf-8")
+            set_engine_nodal_natural(path)
+            lines = path.read_text(encoding="utf-8").splitlines()
+            self.assertEqual(lines[0], "/DT/NODA/0")
+            self.assertEqual(lines[1].split(), ["0.9", "0"])
 
 
 if __name__ == "__main__":

@@ -427,3 +427,14 @@
    T=3e-5 s, ERR=-14.9%, DM/M=4.1804%, 751 cycles, 34.05 s.
 5. **Reuse rule:** Treat short completion only as a calibration milestone. Require
    full-duration energy/boundedness/separation before DB success or PINN training.
+
+## 2026-08-10 INC-188 external-solid contact and natural-step reference
+
+1. **Problem:** Initial penetration and catastrophic added mass appeared at cut.
+2. **Root cause:** Coincident SH3N skins duplicated solid boundaries; continuous
+   NODA/CST added unbounded mass following element deletion.
+3. **Fix:** Use `/SURF/PART/EXT`, remove skins, and compare `/DT/NODA/0` truth.
+4. **Verification:** Trial M Starter 0 errors/warnings; Trial Q ERR=0%, DM/M=0
+   through 0.173 ms, but natural DT=2.7439 ns projected about 2.4 h.
+5. **Reuse rule:** IF rupture starts under constant mass scaling, THEN fail at
+   DM/M >5% and compare natural stepping BECAUSE exit 0 is not physical proof.
