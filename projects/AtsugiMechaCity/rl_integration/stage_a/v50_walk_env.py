@@ -331,8 +331,31 @@ class V50WalkEnv:
         # Link 0 of this MJCF is "world" (the floor plane) and it is the OTHER
         # party of every legitimate foot-ground contact. Including it in the
         # body-collision set terminated every episode after one control step.
-        self.body_global = [names.index(n) + ls for n in names
-                            if n not in ("world", "foot_L", "foot_R")]
+        # 2026-08-09: 終了条件を業界標準に合わせた。
+        # 旧実装は world/foot_L/foot_R 以外の**全リンク**(脛・膝・太腿・胴・頭・腕)を
+        # 接触即終了にしていた。実測(contact_report)では終了の100%が下腿
+        # (lower_leg_L 52% / lower_leg_R 48%)で、胴体・頭・腕の接触は皆無だった。
+        # up 0.99 / tilt由来の終了 5% であり「転んでいる」のではなく、歩幅を出した
+        # 瞬間に脛が接地して打ち切られていた(col 0.92)。
+        # 参考: unitree_rl_gym G1(実機ヒューマノイド公式)
+        #   terminate_after_contacts_on = ["pelvis"]
+        #   penalize_contacts_on        = ["hip", "knee"]
+        # 膝・股関節は「罰」であって終了条件ではない。脛も同様に罰へ回す
+        # (collision 報酬項が -2.0 で既に効いている)。
+        # この機体のリンク: torso / upper_leg_{L,R} / lower_leg_{L,R} / foot_{L,R}
+        #                   upper_arm_{L,R} / lower_arm_{L,R} / hand_{L,R}
+        # 部分一致だと "upper_arm" が "arm" ではなく誤って拾われる等の事故が起きるため
+        # 完全一致の集合で指定する。
+        TERMINAL_LINKS = {"torso", "pelvis", "base", "head", "trunk", "body"}
+        self.body_link_names = [n for n in names if n.lower() in TERMINAL_LINKS]
+        if not self.body_link_names:      # 名前が一致しない機体では従来動作へ退避
+            self.body_link_names = [n for n in names
+                                    if n not in ("world", "foot_L", "foot_R")]
+            print("[env] 警告: 終了対象の胴体リンクを名前で特定できず、"
+                  "全リンク終了(旧挙動)にフォールバックしました", flush=True)
+        else:
+            print(f"[env] 終了対象リンク: {self.body_link_names}", flush=True)
+        self.body_global = [names.index(n) + ls for n in self.body_link_names]
 
         # Spawn height offset: stairs_down starts on an elevated platform
         # (terrain_dz at the spawn is h*N). Lift the spawn so the robot settles
@@ -535,9 +558,28 @@ class V50WalkEnv:
         for k, g in enumerate(self.foot_global):
             feet[:, k] = (((la == g) | (lb == g)) & vm).any(dim=1)
         body = torch.zeros(self.num_envs, dtype=torch.bool, device=self.device)
-        for g in self.body_global:
-            body |= (((la == g) | (lb == g)) & vm).any(dim=1)
+        # 2026-08-09: どのリンクが終了を引き起こしているかを実測する。
+        # 転倒の97%が collision だが、body_global は world/foot_L/foot_R 以外の
+        # 全リンク(脛・膝・太腿・胴・頭・腕)を含むため、原因リンクが特定できなかった。
+        # 参考: legged_gym/unitree_rl_gym の標準は
+        #   terminate_after_contacts_on = ["pelvis"] / penalize_contacts_on = ["hip","knee"]
+        # で、膝・股関節は「罰」であって終了条件ではない。
+        if not hasattr(self, "diag_contact_counts"):
+            self.diag_contact_counts = {n: 0 for n in self.link_names}
+        for g, n in zip(self.body_global, self.body_link_names):
+            hit = (((la == g) | (lb == g)) & vm).any(dim=1)
+            body |= hit
+            self.diag_contact_counts[n] += int(hit.sum())
         return feet, body
+
+    def contact_report(self, reset: bool = True) -> dict:
+        """終了を引き起こしたリンク別の接触回数。多い順。診断専用。"""
+        if not hasattr(self, "diag_contact_counts"):
+            return {}
+        out = {k: v for k, v in self.diag_contact_counts.items() if v}
+        if reset:
+            self.diag_contact_counts = {n: 0 for n in self.link_names}
+        return dict(sorted(out.items(), key=lambda kv: -kv[1]))
 
     def _resample_commands(self, idx):
         if idx.numel() == 0:

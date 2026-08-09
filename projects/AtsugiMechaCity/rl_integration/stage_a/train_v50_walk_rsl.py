@@ -404,6 +404,12 @@ def main():
                 top = list(bd.items())[:args.reward_breakdown]
                 print("        REW " + "  ".join(f"{k}={v:+.4f}" for k, v in top),
                       flush=True)
+            cr = env.contact_report() if hasattr(env, "contact_report") else {}
+            if cr:
+                tot = sum(cr.values()) or 1
+                top = list(cr.items())[:6]
+                print("        HIT " + "  ".join(f"{k}={v}({v/tot*100:.0f}%)"
+                                                 for k, v in top), flush=True)
         runner.save(os.path.join(args.out, "latest.pt"))
 
     runner.save(os.path.join(args.out, "latest.pt"))

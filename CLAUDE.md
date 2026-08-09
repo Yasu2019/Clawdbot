@@ -32,6 +32,16 @@
 - **UIレイアウトの無断変更（→ PROMISES.md P022）**: `iatf_system/app/views/` および `data/workspace/apps/` は必ずPlan提示・ユーザー承認後のみ変更可
 
 ## Critical Constraints
+- **🌐 ローカルに知見が無ければ外部を調べる（グローバルルール / 2026-08-10 ユーザー指示）**: 自前の試行錯誤より、公開実装を読む方が速く確実なことがある。
+  - `python scripts/research_gate.py "<対象>"` で判定する。**exit 2 なら外部調査を先に行う**（黙って自前実装に走らない）
+  - 調べる順: ①**公開実装の設定ファイル**（論文より速い）→ ②WebSearch は「ライブラリ名＋設定キー名」で引く（概念語だけで探さない）→ ③一次情報で裏取り
+  - **実例（このルールが生まれた理由）**: 2026-08-10、RL歩行の転倒率100%を数時間デバッグしたが、答えは [unitree_rl_gym G1](https://github.com/unitreerobotics/unitree_rl_gym/blob/main/legged_gym/envs/g1/g1_config.py) に1行で書かれていた（`terminate_after_contacts_on = ["pelvis"]` / `penalize_contacts_on = ["hip","knee"]`）。収集コーパスは humanoid 15件・legged 8件で実質ゼロだった
+  - **収集コーパスを過信しない**: 30万件の実体は一意5,591件で、分野も北極星と噛み合っていない
+- **🗂 発見は1コマンドで全系統に記録する（グローバルルール / 2026-08-10 ユーザー指示）**: 「複数系統に書く」を努力目標にすると必ず抜ける。
+  - `python scripts/record_finding.py --title "..." --what "..." --why "..." --how "..." --evidence "..."`
+  - 記録先は **Beads / Obsidian `obsidian_vault/トラブルシューティング/` / auto-memory** の3系統。3/3 成功を確認する
+  - **実在しない記録先に書かない**: `FailureKnowledge/` は存在しない（実在は `トラブルシューティング/`）。Byterover はコンテナ未稼働、Turso はメール用のみ。復旧したら `record_finding.py` に追加する
+  - graphify は hook が毎回600秒でタイムアウトし `manifest` が更新されない（既知の未解決事項）
 - **🔍 着手前に蓄積知識を検索する（グローバルルール / 2026-08-08 ユーザー指示）**: 「trouble_history.md を確認」だけでは実際には読まれない。**コマンド実行を作業手順に組み込む**。
   - `python scripts/search_docs.py "<これから触る対象・症状>"` を実行し、ヒットした過去知見を要約してから着手する（意味検索・`clawstack_docs`）
   - 日本語キーワードで引く場合: `scripts/build_ja_fts_index.py` が作る `universal_growth_fts_ja.db`（`knowhow_ja` / `pdftext_ja` / `material_ja`、trigramは**3文字以上**）
