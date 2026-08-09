@@ -577,6 +577,7 @@ def parse_openradioss_run_metrics(log_text: str) -> dict:
         "failure_start_count": 0,
         "deleted_element_events": 0,
         "total_deleted_elements": 0,
+        "ruptured_element_count": 0,
         "termination": "UNKNOWN",
     }
     nc_lines = re.findall(
@@ -673,6 +674,9 @@ def parse_openradioss_run_metrics(log_text: str) -> dict:
                 pass
     if deleted_totals:
         out["total_deleted_elements"] = max(deleted_totals)
+    out["ruptured_element_count"] = len(set(re.findall(
+        r"RUPTURE OF SOLID ELEMENT\s*:\s*(\d+)", upper
+    )))
     killed_for_energy = "RUN KILLED: ENERGY ERROR LIMIT REACHED" in upper
     user_break = "USER BREAK" in upper
     out["energy_error_kill"] = killed_for_energy
@@ -731,6 +735,7 @@ def apply_openradioss_meaning_gate(
         metrics.get("deleted_element_events") or 0
     )
     total_deleted = int(metrics.get("total_deleted_elements") or 0)
+    ruptured_elements = int(metrics.get("ruptured_element_count") or 0)
     if total_deleted > 0:
         defects["solver_eliminated_elements"] = total_deleted
     elif mesh_events > 0:
@@ -747,6 +752,19 @@ def apply_openradioss_meaning_gate(
         reasons.append(f"total_deleted_elements={total_deleted}>{max_deleted}")
     elif not is_assy and mesh_events > 3:
         reasons.append(f"mesh_failure_events={mesh_events}")
+    material_elements = int(
+        gate_cfg.get("material_element_count")
+        or exp.get("material_element_count")
+        or 0
+    )
+    if material_elements > 0:
+        rupture_fraction = ruptured_elements / material_elements
+        defects["ruptured_element_fraction"] = rupture_fraction
+        max_ruptured_fraction = float(gate_cfg.get("max_ruptured_fraction", 0.5))
+        if rupture_fraction > max_ruptured_fraction:
+            reasons.append(
+                f"ruptured_element_fraction={rupture_fraction:.6f}>{max_ruptured_fraction:.6f}"
+            )
 
     vel_warn = int(metrics.get("velocity_warning_count") or 0)
     if is_assy and vel_warn > OPENRADIOSS_ASSY_MAX_VELOCITY_WARNINGS:

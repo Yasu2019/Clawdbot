@@ -90,6 +90,26 @@ NORMAL TERMINATION USER BREAK
         self.assertEqual(verdict, "FAILED_MEANING_GATE")
         self.assertIn("energy_error_limit_reached", reasons)
 
+    def test_global_rupture_fraction_fails(self) -> None:
+        log = """
+-- RUPTURE OF SOLID ELEMENT : 10 AT TIME : 2.0E-03
+-- RUPTURE OF SOLID ELEMENT : 11 AT TIME : 2.1E-03
+-- RUPTURE OF SOLID ELEMENT : 12 AT TIME : 2.2E-03
+NORMAL TERMINATION
+"""
+        verdict, defects, reasons = gates.apply_openradioss_meaning_gate(
+            verdict="SUCCESS",
+            category="press_blanking_assy",
+            exp={"assy_deck": True, "material_element_count": 4},
+            log_text=log,
+            failure_tags=[],
+            defects={},
+            kpi_values={},
+        )
+        self.assertEqual(verdict, "FAILED_MEANING_GATE")
+        self.assertAlmostEqual(defects["ruptured_element_fraction"], 0.75)
+        self.assertTrue(any("ruptured_element_fraction" in reason for reason in reasons))
+
 
 if __name__ == "__main__":
     unittest.main()

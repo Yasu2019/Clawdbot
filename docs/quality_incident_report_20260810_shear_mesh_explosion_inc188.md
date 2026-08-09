@@ -127,3 +127,29 @@ energy, bounded geometry and actual slug separation remain mandatory.
 Revised next experiment: use a bounded/local time-step control or staged restart
 that enforces DM/M <=5%, and calibrate accumulated ductile damage before claiming
 cut completion. Natural stepping is the reference truth run, not the fast path.
+
+## 2026-08-10 web knowledge and structured-blank trials (R-S)
+
+- Five bounded sources were ingested into `inc188_web_knowledge`: four official
+  Altair pages and metadata for DOI 10.1115/1.1285909. The ASME full text was
+  classified `paid_or_subscription` and was not downloaded. UTF-8 strict decode,
+  round-trip validation, mojibake-marker rejection and U+FFFD DB checks passed.
+- Official `/FAIL/JOHNSON` documentation identifies plastic-strain failure with
+  linear accumulated damage. No traceable AA1060 damage constants were found;
+  constants from another alloy/example must not be used as calibration.
+- Mesh audit found no tetra quality below 0.1, but the material minimum edge was
+  30.681 micrometers and controlled the 2.7439 ns natural step.
+- Trial R replaced 48,096 material tetrahedra with 8,000 0.1 mm structured
+  bricks. Starter: 0 errors/warnings. Natural prefix: DT=7.7145 ns, ERR=-0.0%,
+  DM/M=0, 3,890 cycles and 33.8 s.
+- Trial S used 2,000 bricks (0.2 mm in-plane, 0.1 mm through thickness).
+  It completed TSTOP=3.7902 ms in 1,553.9 s with no mass scaling or energy kill.
+  However ERR=-84.3% and 1,960/2,000 elements ruptured across nearly the full
+  material bbox. Verdict: FAILED_PHYSICAL_GLOBAL_RUPTURE, screening only.
+- The gate now counts unique `RUPTURE OF SOLID ELEMENT` IDs and fails a configured
+  material rupture fraction above 50%. Trial S is excluded from PINN training.
+
+Decision: structured bricks solve the dominant time-step cost and stop the mesh/
+mass explosion, but GENE1 remains physically uncalibrated. The next solver trial
+is blocked on defensible AA1060 accumulated-damage calibration or measured blanking
+force/fracture data; numerical threshold guessing would create false training data.

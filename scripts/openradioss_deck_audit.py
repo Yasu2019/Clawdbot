@@ -10,6 +10,7 @@ if hasattr(sys.stdout, "reconfigure"):
 
 import argparse
 import json
+import math
 import re
 from pathlib import Path
 
@@ -23,6 +24,7 @@ def audit(path: Path, rupture_log: Path | None = None) -> dict[str, object]:
     part_nodes: dict[int, set[int]] = {}
     element_counts: dict[int, dict[str, int]] = {}
     element_nodes: dict[int, tuple[int, ...]] = {}
+    tetra_by_part: dict[int, list[tuple[int, tuple[int, ...]]]] = {}
     block = ""
     block_id = 0
 
@@ -43,12 +45,15 @@ def audit(path: Path, rupture_log: Path | None = None) -> dict[str, object]:
                 pass
         elif block in {"TETRA4", "BRICK", "SH3N", "SHELL"} and len(tokens) >= 4:
             try:
-                node_ids = {int(v) for v in tokens[1:]}
+                ordered_node_ids = tuple(int(v) for v in tokens[1:])
+                node_ids = set(ordered_node_ids)
                 element_id = int(tokens[0])
             except ValueError:
                 continue
             if block in {"TETRA4", "BRICK"}:
-                element_nodes[element_id] = tuple(node_ids)
+                element_nodes[element_id] = ordered_node_ids
+            if block == "TETRA4" and len(ordered_node_ids) == 4:
+                tetra_by_part.setdefault(block_id, []).append((element_id, ordered_node_ids))
             part_nodes.setdefault(block_id, set()).update(node_ids)
             counts = element_counts.setdefault(block_id, {})
             counts[block] = counts.get(block, 0) + 1
@@ -67,6 +72,45 @@ def audit(path: Path, rupture_log: Path | None = None) -> dict[str, object]:
             "bbox_max_m": maxs,
             "size_m": [maxs[i] - mins[i] for i in range(3)],
         }
+        qualities: list[float] = []
+        min_edges: list[float] = []
+        volumes: list[float] = []
+        worst_id = None
+        worst_quality = float("inf")
+        for element_id, tetra_nodes in tetra_by_part.get(part_id, []):
+            if any(node_id not in nodes for node_id in tetra_nodes):
+                continue
+            p0, p1, p2, p3 = (nodes[node_id] for node_id in tetra_nodes)
+            vectors = tuple(tuple(point[a] - p0[a] for a in range(3)) for point in (p1, p2, p3))
+            cross = (
+                vectors[1][1] * vectors[2][2] - vectors[1][2] * vectors[2][1],
+                vectors[1][2] * vectors[2][0] - vectors[1][0] * vectors[2][2],
+                vectors[1][0] * vectors[2][1] - vectors[1][1] * vectors[2][0],
+            )
+            volume = abs(sum(vectors[0][a] * cross[a] for a in range(3))) / 6.0
+            points = (p0, p1, p2, p3)
+            edge_sq = [
+                sum((points[i][a] - points[j][a]) ** 2 for a in range(3))
+                for i in range(4) for j in range(i + 1, 4)
+            ]
+            edge_sum = sum(edge_sq)
+            quality = 12.0 * (3.0 * volume) ** (2.0 / 3.0) / edge_sum if edge_sum else 0.0
+            qualities.append(quality)
+            min_edges.append(math.sqrt(min(edge_sq)))
+            volumes.append(volume)
+            if quality < worst_quality:
+                worst_quality, worst_id = quality, element_id
+        if qualities:
+            parts[str(part_id)]["tetra_quality"] = {
+                "min_mean_ratio": min(qualities),
+                "mean_mean_ratio": sum(qualities) / len(qualities),
+                "below_0_1": sum(value < 0.1 for value in qualities),
+                "min_edge_m": min(min_edges),
+                "min_volume_m3": min(volumes),
+                "total_volume_m3": sum(volumes),
+                "bbox_fill_ratio": sum(volumes) / math.prod(maxs[i] - mins[i] for i in range(3)),
+                "worst_element_id": worst_id,
+            }
 
     result: dict[str, object] = {"deck": str(path), "node_count": len(nodes), "parts": parts}
     if rupture_log:

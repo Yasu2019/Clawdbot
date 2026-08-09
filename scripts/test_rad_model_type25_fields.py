@@ -159,6 +159,24 @@ class Type25FieldMutationTest(unittest.TestCase):
             self.assertEqual(lines[0], "/DT/NODA/0")
             self.assertEqual(lines[1].split(), ["0.9", "0"])
 
+    def test_tetra_box_is_replaced_by_structured_bricks(self) -> None:
+        source = ("/NODE\n1 0 0 0\n2 1 0 0\n3 1 1 0\n4 0 1 0\n"
+                  "5 0 0 1\n6 1 0 1\n7 1 1 1\n8 0 1 1\n"
+                  "/TETRA4/2\n1 1 2 3 7\n2 1 3 4 7\n3 1 5 6 7\n4 1 6 2 7\n5 1 4 8 7\n"
+                  "/PROP/SOLID/2\nBlank\n# Isolid Ismstr\n1 -1\n"
+                  "/GRNOD/NODE/400\nSkin\n1 2 3 4\n"
+                  "/GRNOD/NODE/500\nPerimeter\n1 2 3 4\n/END\n")
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "case.rad"
+            path.write_text(source, encoding="utf-8")
+            RadModel(path).replace_tetra_box_part_with_structured_bricks(2, 2, 2, 1).write(path)
+            output = path.read_text(encoding="utf-8")
+            self.assertNotIn("/TETRA4/2", output)
+            self.assertIn("/BRICK/2", output)
+            self.assertEqual(len(output.split("/BRICK/2\n", 1)[1].split("/PROP", 1)[0].splitlines()), 4)
+            self.assertEqual(output.split("# Isolid Ismstr\n", 1)[1].split()[0], "14")
+            self.assertNotIn("\n1 2 3 4\n", output)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -479,6 +479,133 @@ class RadModel:
             index = data_index
         return self
 
+    def replace_tetra_box_part_with_structured_bricks(
+        self, part_id: int, nx: int, ny: int, nz: int, prop_id: int | None = None
+    ) -> "RadModel":
+        """Replace a rectangular TETRA4 part by a uniform structured BRICK mesh.
+
+        This is intentionally limited to parts whose existing node cloud fills
+        its axis-aligned bounding box. Contact remains part-exterior based, so
+        the new blank need not share nodes with tools.
+        """
+        if min(nx, ny, nz) < 1:
+            raise ValueError("structured brick divisions must be positive")
+        node_blocks = self._find_blocks("/NODE")
+        tetra_blocks = self._find_blocks(f"/TETRA4/{part_id}")
+        if not node_blocks or not tetra_blocks:
+            raise ValueError(f"NODE or TETRA4/{part_id} block not found")
+
+        old_part_nodes: set[int] = set()
+        max_element_id = 0
+        for block_start in self._find_blocks("/TETRA4"):
+            index = block_start + 1
+            while index < len(self._lines) and not self._lines[index].strip().startswith("/"):
+                tokens = self._lines[index].split()
+                if tokens and not tokens[0].startswith("#"):
+                    try:
+                        max_element_id = max(max_element_id, int(tokens[0]))
+                        if block_start in tetra_blocks:
+                            old_part_nodes.update(int(value) for value in tokens[1:5])
+                    except (ValueError, IndexError):
+                        pass
+                index += 1
+        coordinates: dict[int, tuple[float, float, float]] = {}
+        max_node_id = 0
+        node_start = node_blocks[0]
+        node_end = node_start + 1
+        while node_end < len(self._lines) and not self._lines[node_end].strip().startswith("/"):
+            tokens = self._lines[node_end].split()
+            if len(tokens) >= 4 and not tokens[0].startswith("#"):
+                try:
+                    node_id = int(tokens[0])
+                    coordinates[node_id] = tuple(float(value) for value in tokens[1:4])
+                    max_node_id = max(max_node_id, node_id)
+                except ValueError:
+                    pass
+            node_end += 1
+        old_coords = [coordinates[node_id] for node_id in old_part_nodes if node_id in coordinates]
+        if len(old_coords) != len(old_part_nodes) or not old_coords:
+            raise ValueError(f"part {part_id} node coordinates are incomplete")
+        mins = tuple(min(point[axis] for point in old_coords) for axis in range(3))
+        maxs = tuple(max(point[axis] for point in old_coords) for axis in range(3))
+
+        # Old blank nodes are exclusive after coincident contact skins are removed.
+        retained_node_lines = []
+        for line in self._lines[node_start + 1:node_end]:
+            tokens = line.split()
+            if tokens and tokens[0].isdigit() and int(tokens[0]) in old_part_nodes:
+                continue
+            retained_node_lines.append(line)
+
+        next_node = max_node_id + 1
+        grid: dict[tuple[int, int, int], int] = {}
+        new_node_lines: list[str] = []
+        for k in range(nz + 1):
+            for j in range(ny + 1):
+                for i in range(nx + 1):
+                    node_id = next_node
+                    next_node += 1
+                    grid[(i, j, k)] = node_id
+                    xyz = (
+                        mins[0] + (maxs[0] - mins[0]) * i / nx,
+                        mins[1] + (maxs[1] - mins[1]) * j / ny,
+                        mins[2] + (maxs[2] - mins[2]) * k / nz,
+                    )
+                    new_node_lines.append(f"{node_id:10d}{xyz[0]:20.12g}{xyz[1]:20.12g}{xyz[2]:20.12g}")
+        self._lines[node_start + 1:node_end] = retained_node_lines + new_node_lines
+
+        boundary_nodes = [
+            node_id for (i, j, k), node_id in grid.items()
+            if i in {0, nx} or j in {0, ny} or k in {0, nz}
+        ]
+        perimeter_nodes = [
+            node_id for (i, j, _k), node_id in grid.items()
+            if i in {0, nx} or j in {0, ny}
+        ]
+        for group_id, group_nodes in ((400, boundary_nodes), (500, perimeter_nodes)):
+            group_blocks = self._find_blocks(f"/GRNOD/NODE/{group_id}")
+            if not group_blocks:
+                continue
+            group_start = group_blocks[0]
+            group_end = group_start + 2
+            while group_end < len(self._lines) and not self._lines[group_end].strip().startswith("/"):
+                group_end += 1
+            formatted = [
+                "".join(f"{node_id:10d}" for node_id in group_nodes[offset:offset + 10])
+                for offset in range(0, len(group_nodes), 10)
+            ]
+            self._lines[group_start + 2:group_end] = formatted
+
+        # Re-find after the NODE block length changed, then replace the tetra block.
+        tetra_start = self._find_blocks(f"/TETRA4/{part_id}")[0]
+        tetra_end = tetra_start + 1
+        while tetra_end < len(self._lines) and not self._lines[tetra_end].strip().startswith("/"):
+            tetra_end += 1
+        brick_lines = [f"/BRICK/{part_id}"]
+        next_element = max_element_id + 1
+        for k in range(nz):
+            for j in range(ny):
+                for i in range(nx):
+                    nodes = (
+                        grid[(i, j, k)], grid[(i + 1, j, k)],
+                        grid[(i + 1, j + 1, k)], grid[(i, j + 1, k)],
+                        grid[(i, j, k + 1)], grid[(i + 1, j, k + 1)],
+                        grid[(i + 1, j + 1, k + 1)], grid[(i, j + 1, k + 1)],
+                    )
+                    brick_lines.append(f"{next_element:10d}" + "".join(f"{value:10d}" for value in nodes))
+                    next_element += 1
+        self._lines[tetra_start:tetra_end] = brick_lines
+
+        target_prop = prop_id if prop_id is not None else part_id
+        prop_blocks = self._find_blocks(f"/PROP/SOLID/{target_prop}")
+        if not prop_blocks:
+            raise ValueError(f"PROP/SOLID/{target_prop} not found")
+        data_index = _find_data_line_after_comment(self._lines, prop_blocks[0], "Isolid")
+        if data_index < 0:
+            raise ValueError(f"Isolid field missing for property {target_prop}")
+        self._lines[data_index] = _replace_nth_number(self._lines[data_index], 0, "14")
+        return self
+
     def set_inter_type25_secondary_surf(self, surf_id: int) -> "RadModel":
         """Set surf_ID2 (secondary) on all /INTER/TYPE25 blocks."""
         for i, ln in enumerate(self._lines):

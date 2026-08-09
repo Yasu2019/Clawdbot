@@ -3055,6 +3055,11 @@ Raised by the user asking whether `box_study_3` had a mesh in progress. Forensic
   projected about 2.4 h, so it was stopped as a bounded performance failure.
 - The gate now rejects energy-limit kills and USER BREAK text even when the
   solver reports `NORMAL TERMINATION` and returns exit code 0.
+- Trial R/S structured BRICK follow-up: natural DT improved 2.7439 ns ->
+  7.7145 ns. Trial S completed 3.7902 ms in 1,553.9 s with DM/M=0 and no kill,
+  but ruptured 1,960/2,000 material elements and ERR=-84.3%; physical FAIL.
+- Prevention: count unique rupture IDs and fail configured rupture fraction
+  above 50%. Do not invent AA1060 Johnson-Cook constants or train PINN on S.
 ### INC-188 follow-up 2026-08-10: fixed-field and formulation repair
 
 - Root causes added: malformed TYPE25 fixed columns, incomplete `/PROP/SOLID`,
