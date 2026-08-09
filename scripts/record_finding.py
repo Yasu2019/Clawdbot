@@ -15,7 +15,8 @@
   1. Beads          `bd remember`(全AI共有の一次記録)
   2. Obsidian Vault `data/workspace/obsidian_vault/トラブルシューティング/`
   3. auto-memory    `~/.claude/projects/<proj>/memory/`(Claude Code のセッション跨ぎ記憶)
-  存在しない系統(Byterover/Turso)には書かない。復旧したら本ファイルに追加する。
+  4. ByteRover      `brv curate`(2026-08-10 追加。ローカル利用は無課金・ログイン不要)
+  Turso はメール用途のみのため対象外。graphify は別問題(hookが毎回600秒でタイムアウト)。
 
 文字コード規約(グローバルルール 2026-08-08):
   書き込みは encoding="utf-8" を明示し、書き戻して U+FFFD と化け記号を検証する。
@@ -27,6 +28,7 @@ usage:
 from __future__ import annotations
 
 import argparse
+import os
 import re
 import subprocess
 import sys
@@ -90,6 +92,34 @@ def to_obsidian(title: str, what: str, why: str, how: str, tags: list[str],
     return ok
 
 
+def to_byterover(title: str, body: str) -> bool:
+    """ByteRover CLI(brv) へ記録する。
+
+    2026-08-10 実測:
+      - `brv` 3.10.0 は導入済みで、ローカル利用に**課金もログインも不要**
+        (`brv login` は "optional for local usage" と明記。課金はクラウド同期のみ)。
+      - `brv curate --detach` は成功する(success:true / taskId発行)。
+      - 一方 `brv query` は現状 4096トークンのローカルLLM上限を超えて失敗する
+        (request 23754 tokens exceeds context size 4096)。
+        **書き込みは有効・読み出しは未整備**という状態なので、記録先としてのみ使う。
+    """
+    try:
+        r = subprocess.run(
+            ["brv", "curate", f"{title}: {body}", "--detach", "--format", "json"],
+            cwd=str(REPO), capture_output=True, text=True,
+            encoding="utf-8", errors="replace", timeout=300, shell=(os.name == "nt"))
+        ok = r.returncode == 0 and '"success":true' in (r.stdout or "").replace(" ", "")
+        print(f"  {'✓' if ok else '×'} ByteRover"
+              + ("" if ok else f" ({((r.stdout or '') + (r.stderr or ''))[:100]})"))
+        return ok
+    except FileNotFoundError:
+        print("  - ByteRover (brv 未インストール — スキップ)")
+        return True          # 未導入は失敗扱いにしない
+    except Exception as e:
+        print(f"  × ByteRover ({type(e).__name__}: {e})")
+        return False
+
+
 def to_auto_memory(title: str, what: str, why: str, how: str, tags: list[str]) -> bool:
     name = slug(title, 40).lower().replace("_", "-")
     path = AUTO_MEMORY / f"finding_{slug(title, 40).lower()}.md"
@@ -130,10 +160,11 @@ def main() -> int:
         to_beads(a.title, body),
         to_obsidian(a.title, a.what, a.why, a.how, tags, a.evidence),
         to_auto_memory(a.title, a.what, a.why, a.how, tags),
+        to_byterover(a.title, body),
     ]
     n_ok = sum(results)
-    print(f"\n{n_ok}/3 系統へ記録しました。")
-    if n_ok < 3:
+    print(f"\n{n_ok}/{len(results)} 系統へ記録しました。")
+    if n_ok < len(results):
         print("失敗した系統があります。原因を確認してください(黙って進めない)。")
         return 1
     return 0

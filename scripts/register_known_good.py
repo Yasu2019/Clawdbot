@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import shutil
 import subprocess
 import sys
@@ -32,13 +33,19 @@ from pathlib import Path
 
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")  # P023
 
+PY = r"C:\v50_work\genesis_venv\Scripts\python.exe"
 REPO = Path(r"D:\Clawdbot_Docker_20260125")
 KNOWN_GOOD = Path(r"C:\v50_work\autonomy\known_good")
 LEDGER = KNOWN_GOOD / "registry.json"
 ENV_FILE = REPO / "projects" / "AtsugiMechaCity" / "rl_integration" / "stage_a" / "v50_walk_env.py"
 
-MIN_TRAVEL = 1.0
-MIN_UPRIGHT = 0.5
+# 合否は複数envの実測で判定する(1envは例外個体を引くため使わない)。
+# 閾値は過去実績 T067(survival 0.817 / travel 2.373m / single_contact 0.732)を
+# 下回らない水準に置く。single_contact は「引きずり/両足接地のまま進む」を弾くため必須。
+MIN_SURVIVAL = 0.80
+MIN_TRAVEL = 1.5
+MIN_SINGLE_CONTACT = 0.50
+MIN_ON_TRACK = 0.80
 
 
 def env_fingerprint() -> dict:
@@ -60,12 +67,32 @@ def env_fingerprint() -> dict:
     }
 
 
-def verify(ckpt: Path) -> dict:
-    sys.path.insert(0, str(REPO / "scripts"))
-    import verify_known_good_ckpts as V
-    rec = V.run_one(ckpt, seconds=8)
-    rec["verdict"] = V.verdict(rec)
-    return rec
+def verify(ckpt: Path, n_envs: int = 256, speeds: str = "0.25,0.331") -> dict:
+    """verify_policy.py(複数env・フレッシュリロード)で判定する。
+
+    2026-08-10: 当初は1envレンダ(render_walk_rsl)で判定していたが、
+    実際に成立した方策(256envで survival 0.938〜1.000)を「完全転倒」と誤って
+    拒否した。1envはDRが単一サンプルになるうえ初期位相も1通りで、
+    転ぶ個体を引くと実力を過小評価する(T067の既知の罠)。
+    合否は必ず複数envの survival_rate で判定する。
+    """
+    stage_a = REPO / "projects" / "AtsugiMechaCity" / "rl_integration" / "stage_a"
+    cmd = [PY, str(stage_a / "verify_policy.py"), "--ckpt", str(ckpt),
+           "--ref-json", r"C:\v50_work\refs\walk.json",
+           "--n-envs", str(n_envs), "--seconds", "8", "--speeds", speeds]
+    r = subprocess.run(cmd, cwd=str(stage_a), capture_output=True, text=True,
+                       encoding="utf-8", errors="replace", timeout=3600)
+    m = re.search(r"VERIFY_POLICY:\s*(\{.*\})", r.stdout or "")
+    if not m:
+        return {"status": "no_verify_output", "stderr_tail": (r.stderr or "")[-300:]}
+    data = json.loads(m.group(1))
+    by = data.get("by_speed", [])
+    worst = min(by, key=lambda x: x.get("survival_rate", 0)) if by else {}
+    return {"status": "ok", "by_speed": by, "worst": worst,
+            "survival_rate": worst.get("survival_rate", 0.0),
+            "travel_m": worst.get("travel_m", 0.0),
+            "single_contact_frac": worst.get("single_contact_frac", 0.0),
+            "frac_survivors_on_track": worst.get("frac_survivors_on_track", 0.0)}
 
 
 def main() -> int:
@@ -83,22 +110,28 @@ def main() -> int:
         print(f"チェックポイントがありません: {src}")
         return 3
 
-    print(f"検証中: {src.name}")
+    print(f"検証中: {src.name} (verify_policy 256env)")
     rec = verify(src)
-    travel = rec.get("final_travel_m", rec.get("final_travel", 0.0)) or 0.0
-    upright = rec.get("min_upright", 0.0) or 0.0
-    fell = rec.get("fell", True)
-    print(f"  判定={rec['verdict']} fell={fell} travel={travel} min_upright={upright}")
+    surv = rec.get("survival_rate", 0.0)
+    travel = rec.get("travel_m", 0.0)
+    onefoot = rec.get("single_contact_frac", 0.0)
+    ontrack = rec.get("frac_survivors_on_track", 0.0)
+    for s in rec.get("by_speed", []):
+        print(f"  cmd_vx={s.get('cmd_vx')}: survival={s.get('survival_rate')} "
+              f"travel={s.get('travel_m')}m 単脚={s.get('single_contact_frac')} "
+              f"直進率={s.get('frac_survivors_on_track')}")
 
     reasons = []
     if rec.get("status") != "ok":
-        reasons.append(f"測定に失敗した({rec.get('status')})")
-    if fell:
-        reasons.append("転倒している(fell=true)")
+        reasons.append(f"測定に失敗した({rec.get('status')}) {rec.get('stderr_tail','')[:120]}")
+    if surv < MIN_SURVIVAL:
+        reasons.append(f"生存率が不足(最悪速度で {surv} < {MIN_SURVIVAL})")
     if travel < MIN_TRAVEL:
-        reasons.append(f"前進が不足({travel:.2f} < {MIN_TRAVEL})")
-    if upright < MIN_UPRIGHT:
-        reasons.append(f"姿勢が保てていない(min_upright {upright} < {MIN_UPRIGHT})")
+        reasons.append(f"前進が不足({travel:.2f}m < {MIN_TRAVEL}m)")
+    if onefoot < MIN_SINGLE_CONTACT:
+        reasons.append(f"単脚支持が不足({onefoot} < {MIN_SINGLE_CONTACT} = 引きずり/両足接地の疑い)")
+    if ontrack < MIN_ON_TRACK:
+        reasons.append(f"直進できていない({ontrack} < {MIN_ON_TRACK})")
     if not a.visually_checked:
         reasons.append("フレーム目視の宣言が無い(--visually-checked)")
 
@@ -113,10 +146,7 @@ def main() -> int:
         "name": a.name or src.name,
         "registered_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
         "source": str(src),
-        "measured": {k: rec.get(k) for k in
-                     ("fell", "final_travel_m", "min_upright", "first_fall_sec",
-                      "single_support_frac", "double_support_frac", "flight_frac",
-                      "commanded_vx", "terrain", "obs")},
+        "measured": {"by_speed": rec.get("by_speed"), "worst": rec.get("worst")},
         "environment": env_fingerprint(),
         "visually_checked": True,
         "note": a.note,
