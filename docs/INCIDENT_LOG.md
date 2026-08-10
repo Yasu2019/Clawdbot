@@ -3116,3 +3116,36 @@ Raised by the user asking whether `box_study_3` had a mesh in progress. Forensic
 - Note: `universal_growth.db` has a resident concurrent writer
   (`scripts/north_star_domain_harvest.py`); the harvester now retries the write
   lock rather than failing the run.
+
+### INC-188 root cause 2026-08-11: LAW2 SIG_max0 clamped yield to 10 Pa
+
+- Eighteen trials of geometry, contact, mesh and stripper repairs never helped
+  because `/MAT/LAW2` field 5 `SIG_max0` was `10.0` in all 19 decks.
+- The Starter substitutes the 1e20 default only for an exact zero
+  (`hm_read_mat02_jc.F90:173-174`), and the engine applies
+  `SIGY = MIN(SIGY, SIGMX)` (`m2law.F:290-331`), so the blank ran with a 10 Pa
+  yield ceiling against a 200 MPa yield coefficient - a factor of 2e7.
+- Radioss had reported it all along: the trial T listing prints
+  `SIG-MAX = 10.00000000000` directly under `YIELD COEFFICIENT A = 200000000.0000`.
+  A valid number raises no Starter warning, which is what hid it.
+- Material identity corrected: the part is MR536, an AA5052-H34, not the 1060 the
+  card was labelled. Measured JIS Z 2241 No.5 coupons give yield 196.4 MPa, UTS
+  249.5 MPa, E 67.9 GPa, uniform elongation 6.59%, so the existing a=200 MPa was
+  correct and only the label and SIG_max0 were wrong.
+- Supplied workbook defect: the 0.51 mm stress columns were divided by the 0.40 mm
+  section, giving a non-physical 86.6 GPa modulus. Scaling by 0.40/0.51 brings all
+  six coupons of both thicknesses into agreement within 0.6%.
+- Trial U (`SIG_max0: 10.0 -> 0`, label corrected, nothing else): NORMAL
+  TERMINATION, 491,359 cycles in 1,497 s, DM/M=0, DT=7.7145 ns, Starter 0/0.
+  Rupture fell from 1,946/1,999 (97.3%) to 391/1,999 (19.6%), clearing the 50%
+  rupture gate for the first time.
+- Still failing on energy: final ERR=-74.8%. The loss is NOT erosion. ERR holds at
+  exactly 0.0% for the first 59% of the run, then drops from -0.0% to -38.5% in a
+  single 100-cycle sample at T=2.2364e-3 s and saturates near -72%. The first
+  element failure is at T=2.4417e-3 s, 205 us later.
+- The loss coincides with punch Z=-0.7005 mm, which equals the 0.19 mm initial gap
+  plus the 0.51 mm blank thickness - the instant the punch reaches the blank's
+  lower face. Investigate the punch/die contact there, not `Eps_eff`.
+- Prevention: `rad_model.set_law2_sig_max0` now edits the field through the
+  width-preserving path, and deck generation must reject a non-zero `SIG_max0`
+  below the yield coefficient.
