@@ -1,0 +1,19 @@
+{
+  "name": "mecha-remotion-template",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "studio": "remotion studio src/index.ts",
+    "render": "remotion render src/index.ts Main out/final.mp4"
+  },
+  "dependencies": {
+    "@remotion/cli": "latest",
+    "@remotion/transitions": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "remotion": "latest"
+  },
+  "devDependencies": {
+    "typescript": "latest"
+  }
+}

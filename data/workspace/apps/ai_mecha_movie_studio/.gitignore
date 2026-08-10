@@ -1,0 +1,5 @@
+__pycache__/
+*.pyc
+workspace/*
+!workspace/.keep
+remotion_template/node_modules/

@@ -1,0 +1,21 @@
+{
+  "architecture_policy": {
+    "default": "ask_ai_then_safe_fallback",
+    "never_auto_modify_existing_system": true,
+    "preferred_isolation": "separate_venv_or_service",
+    "vram_policy": "one_heavy_model_at_a_time"
+  },
+  "services": {
+    "ollama": {"url": "http://127.0.0.1:11434", "model": "qwen3:8b"},
+    "comfyui": {"url": "http://127.0.0.1:8188"}
+  },
+  "routes": {
+    "fast_2d_motion": ["SCAIL-2", "ComfyUI"],
+    "precise_3d": ["PartCrafter_or_existing_FBX", "PartField", "SkinTokens", "Puppeteer_or_Mixamo", "BlenderHeadless"],
+    "dialogue": ["VoxCPM2", "Qwen3-TTS", "WhisperX"],
+    "music": ["ACE-Step-1.5", "Suno_optional_cloud"],
+    "foley": ["HunyuanVideo-Foley"],
+    "lip_sync": ["Audio2Face-3D", "MediaPipe", "MuseTalk_or_LatentSync"],
+    "assembly": ["Remotion", "FFmpeg", "RIFE", "Real-ESRGAN"]
+  }
+}

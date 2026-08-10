@@ -1,0 +1,10 @@
+{
+  "architecture": "hybrid",
+  "confidence": 0.92,
+  "rationale": "ComfyUI、Blender、FFmpeg、Node/Remotion、Ollamaなど既存資産は再利用し、CUDA/PyTorch依存が衝突しやすい3D/TTS/Foleyモデルは別venvまたはlocalhostサービスとして隔離する。",
+  "reuse": ["ComfyUI", "Blender", "FFmpeg", "Node/Remotion", "Ollama"],
+  "isolate": ["SkinTokens", "PartCrafter", "VoxCPM/Qwen3-TTS", "HunyuanVideo-Foley"],
+  "risks": ["CUDA依存競合", "16GB VRAMの同時ロード不足", "第三者ライセンス差異"],
+  "next_steps": ["システム検出", "AI判定", "ComfyUI API疎通", "1モジュールずつ段階接続"],
+  "source": "sample_only"
+}

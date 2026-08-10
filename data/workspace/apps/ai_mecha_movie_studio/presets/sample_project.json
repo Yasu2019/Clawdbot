@@ -1,0 +1,26 @@
+{
+  "project_name": "sample_mecha_movie",
+  "duration_sec": 60,
+  "inputs": {
+    "model_3d": "",
+    "character_image": "",
+    "driving_video": "",
+    "dialogue_script": "",
+    "reference_voice": ""
+  },
+  "preferences": {
+    "motion_precision": "auto",
+    "prefer_local": true,
+    "allow_cloud": false,
+    "target_resolution": "1280x720",
+    "target_fps": 30
+  },
+  "pipeline": {
+    "route_decision": "auto",
+    "voice_engine": "auto",
+    "music_engine": "ACE-Step-1.5",
+    "foley_engine": "HunyuanVideo-Foley",
+    "editor": "Remotion",
+    "muxer": "FFmpeg"
+  }
+}

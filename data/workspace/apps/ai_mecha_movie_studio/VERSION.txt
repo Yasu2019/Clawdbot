@@ -1,0 +1,4 @@
+AI MECHA MOVIE STUDIO V3
+Build: 2026-08-10
+Encoding: UTF-8
+Core runtime: Python standard library only
