@@ -22,6 +22,7 @@ if str(WS) not in sys.path:
 import rad_model as rm
 
 WORKPIECE_THICKNESS_MM = 0.5
+STRIPPER_INITIAL_GAP_MM = 0.1
 DEFAULT_STROKE_MM = 2.0
 # 2026-07-13 T060: 旧2500.0はDOE範囲[3000,6100](cae_workload_router.yaml 7/10是正)を
 # 全trialで2500へ silent clamp し、範囲是正を無効化していた(8連敗の一因)。
@@ -101,13 +102,22 @@ def _apply_spm80_motion(starter_path: Path, params: dict) -> dict:
     press_stroke_mm = float(params["press_stroke_mm"])
     punch_target_mm = float(params["punch_target_mm"])
     stripper_target_mm = float(params["stripper_target_mm"])
+    if not 0.0 < stripper_target_mm < STRIPPER_INITIAL_GAP_MM:
+        raise ValueError(
+            "stripper_target_mm must be positive and below the 0.1 mm initial "
+            "gap; use 0.099 mm to close and hold without crushing the blank"
+        )
     punch_points, end_time = _crank_displacement_points(
         spm=spm,
         stroke_mm=press_stroke_mm,
         target_mm=punch_target_mm,
     )
+    # A displacement-controlled stripper closes its initial clearance and then
+    # holds the sheet. Continuing in proportion to the punch crushes the whole
+    # blank (INC-188 Trial S used 0.19 mm against a 0.10 mm initial gap).
+    stripper_limit_m = -stripper_target_mm / 1000.0
     stripper_points = [
-        (time_s, displacement_m * stripper_target_mm / punch_target_mm)
+        (time_s, max(displacement_m, stripper_limit_m))
         for time_s, displacement_m in punch_points
     ]
     text = starter_path.read_text(encoding="utf-8", errors="replace")

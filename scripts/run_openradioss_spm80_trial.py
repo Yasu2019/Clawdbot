@@ -93,6 +93,7 @@ def parse_part_z_displacement(vtk_path: Path, part_id: int) -> dict:
 
 def main() -> int:
     params = json.loads(PARAMS_PATH.read_text(encoding="utf-8"))
+    stripper_target_mm = -float(params["stripper_target_mm"])
     state = {
         "trial_id": TRIAL_ID,
         "phase": "running",
@@ -103,7 +104,7 @@ def main() -> int:
             "spm": 80.0,
             "press_stroke_mm": 80.0,
             "punch_z_mm": -2.0,
-            "stripper_z_mm": -0.19,
+            "stripper_z_mm": stripper_target_mm,
         },
         "_started_monotonic": time.monotonic(),
     }
@@ -139,9 +140,10 @@ def main() -> int:
                 displacement_reasons.append(
                     f"punch_z_mm={punch['z_mean_mm']:.6f} outside -2.00+/-0.01"
                 )
-            if abs(stripper["z_mean_mm"] - (-0.19)) > 0.005:
+            if abs(stripper["z_mean_mm"] - stripper_target_mm) > 0.005:
                 displacement_reasons.append(
-                    f"stripper_z_mm={stripper['z_mean_mm']:.6f} outside -0.190+/-0.005"
+                    f"stripper_z_mm={stripper['z_mean_mm']:.6f} outside "
+                    f"{stripper_target_mm:.3f}+/-0.005"
                 )
         else:
             displacement_reasons.append("missing_vtk")

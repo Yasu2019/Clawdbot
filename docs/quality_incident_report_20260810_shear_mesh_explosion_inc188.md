@@ -153,3 +153,34 @@ Decision: structured bricks solve the dominant time-step cost and stop the mesh/
 mass explosion, but GENE1 remains physically uncalibrated. The next solver trial
 is blocked on defensible AA1060 accumulated-damage calibration or measured blanking
 force/fracture data; numerical threshold guessing would create false training data.
+
+## 2026-08-10 stripper causality trial (T)
+
+- The 0.100 mm initial stripper gap received a 0.190 mm command that continued
+  with the punch: 0.090 mm overtravel, or 18% of the 0.500 mm sheet thickness.
+- Trial T changed only this boundary: close 0.099 mm and hold. It retained the
+  2,000 BRICK blank, old material card and GENE1 to isolate causality.
+- Starter: 0 errors/warnings. Engine: TSTOP=3.7902 ms, 1,508.54 s,
+  DT=7.7145 ns, DM/M=0. Rupture began at 2.2640 ms.
+- Final ERR=-84.7%; 1,946/2,000 elements ruptured (97.3%) across almost the
+  full blank. Verdict: `FAILED_PHYSICAL_GLOBAL_RUPTURE`.
+- Versus S (1,960 ruptures, ERR=-84.3%), only 14 elements improved. Overtravel
+  was a real defect but not the primary global-rupture cause.
+- The production path now rejects `stripper_target_mm >= 0.1` and verifies the
+  configured target rather than hard-coded -0.190 mm.
+- Secondary 1060-H18 screening data (yield 110 MPa, UTS 130 MPa, shear 75 MPa,
+  elongation 4%, E 68 GPa) exposes the A=200 MPa card as untraceable, but does
+  not calibrate failure damage.
+
+IF rupture exceeds 50% or the energy gate fails, THEN exclude the run from PINN
+and validation even when TSTOP, DM/M and process exit are normal. Next requires
+a known AA1060 temper and measured coupon or blanking force-stroke reference.
+
+### Knowledge graph update limitation
+
+`graphify . --update --no-viz` was bounded to 180 s and timed out while scanning
+the very large workspace; it also reported access denied under unrelated
+`projects/visual_inspection_ai/data/pytest_tmp`. No graphify process remained and
+the existing graph was preserved. The INC-188 evidence is durable in Beads,
+Obsidian, local ByteRover context and SQLite; a future Graphify update must use a
+scoped corpus instead of rescanning the repository root.

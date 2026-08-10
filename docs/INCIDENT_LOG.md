@@ -3071,3 +3071,17 @@ Raised by the user asking whether `box_study_3` had a mesh in progress. Forensic
 - Code: `data/workspace/rad_model.py`, gate/backfill scripts, regression tests.
 - Prevention: reconstruct fixed-format cards; verify element/property category;
   gate full-duration energy, mass, boundedness and separation before promotion.
+
+### INC-188 follow-up 2026-08-10: stripper hold and Trial T
+
+- Cause addition: stripper closing travel was confused with punch-following
+  travel; a 0.100 mm gap received 0.190 mm, compressing the 0.500 mm blank 18%.
+- Fix: plateau at closure, reject target >=0.100 mm, and verify the configured
+  target instead of hard-coded -0.190 mm. Five focused tests pass.
+- Trial T: Starter 0 errors/warnings; NORMAL TSTOP 3.7902 ms in 1,508.54 s,
+  DT=7.7145 ns, DM/M=0. Physical FAIL: ERR=-84.7%, rupture 1,946/2,000 (97.3%).
+- Conclusion: overtravel was an amplifier, not the primary cause. Keep T out of
+  PINN; require known-temper material and force-stroke/fracture calibration.
+- Graphify note: root-wide incremental indexing exceeded its bounded 180 s and
+  encountered an unrelated access-denied pytest directory. No process remained;
+  existing graph stayed intact. Future indexing must use a scoped INC-188 corpus.

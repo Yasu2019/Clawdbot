@@ -450,3 +450,14 @@
 5. **Reuse rule:** IF a tetra blank is box-shaped and contact is part-exterior,
    THEN use structured bricks for speed, BUT require localized rupture and
    calibrated damage before promotion.
+
+## 2026-08-10 INC-188 stripper boundary-condition isolation
+
+1. **Problem:** Trial S globally ruptured despite a stable natural time step.
+2. **Root cause:** Stripper overtravel was real, but Trial T proved the
+   uncalibrated material/GENE1 model remained the dominant physical defect.
+3. **Fix:** Hold at 0.099 mm; reject targets >=0.100 mm; verify input target.
+4. **Verification:** Five tests pass. T finished in 1,508.54 s with DM/M=0,
+   but failed honestly at ERR=-84.7% and 1,946/2,000 ruptures.
+5. **Reuse rule:** IF a holder closes a known gap, THEN plateau before the gap
+   and isolate it in one trial; never tune fracture to hide a bad boundary.

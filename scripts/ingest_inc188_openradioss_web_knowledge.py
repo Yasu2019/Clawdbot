@@ -63,6 +63,15 @@ SOURCES = (
         "license": "metadata only; full text not downloaded",
         "lesson": "High-relevance blanking fracture paper. Queue for authorized acquisition; metadata alone cannot supply AA1060 constants.",
     },
+    {
+        "id": "makeitfrom-1060-h18-2020",
+        "title": "1060-H18 Aluminum",
+        "url": "https://www.makeitfrom.com/material-properties/1060-H18-Aluminum",
+        "publisher": "MakeItFrom.com",
+        "access": "direct_free",
+        "license": "publicly accessible secondary material-property summary; copyright MakeItFrom.com",
+        "lesson": "Screening values are E=68 GPa, elongation=4%, shear strength=75 MPa, UTS=130 MPa, yield=110 MPa and density=2.7 g/cm3. These expose the current A=200 MPa card as untraceable for 1060-H18, but do not calibrate failure damage.",
+    },
 )
 
 
@@ -147,7 +156,11 @@ def ingest(db_path: Path) -> dict[str, object]:
         ingest_status = "metadata_only"
         if source["access"] == "direct_free":
             status, final_url, remote_title, description = fetch_metadata(source["url"])
-            ingest_status = "verified_official_metadata"
+            ingest_status = (
+                "verified_official_metadata"
+                if source["id"].startswith("altair")
+                else "verified_public_metadata"
+            )
         payload = json.dumps(
             {"title": source["title"], "remote_title": remote_title,
              "description": description, "lesson": source["lesson"]},
@@ -156,7 +169,9 @@ def ingest(db_path: Path) -> dict[str, object]:
         digest = hashlib.sha256(validate_utf8(payload)).hexdigest()
         values = (
             source["id"], datetime.now(timezone.utc).isoformat(), source["title"],
-            source["url"], final_url, "Altair" if source["id"].startswith("altair") else "ASME",
+            source["url"], final_url, source.get("publisher") or (
+                "Altair" if source["id"].startswith("altair") else "ASME"
+            ),
             source["access"], source["license"], status, description, source["lesson"],
             "fact_and_labeled_recommendation", digest, "utf-8", ingest_status,
         )
