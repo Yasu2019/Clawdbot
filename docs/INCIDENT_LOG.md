@@ -3177,3 +3177,32 @@ Raised by the user asking whether `box_study_3` had a mesh in progress. Forensic
 - Trial V adds `/TFILE/4` at 1e-5 s and restores VISs to 0.05, so that
   `I + K + CONTACT + HOURGLASS` can be checked against EXT-WORK directly instead
   of inferred. Gate redesign should follow that measurement, not precede it.
+
+### INC-188 contact conclusion 2026-08-11: measured, and two hypotheses refuted
+
+- Trial V measurement, final values against EXT-WORK=1.15018 J: INTERNAL 25.3%,
+  KINETIC 0.0%, CONTACT 68.3%, HOURGLASS 0%, PLASTIC WORK 24.0%. Including
+  contact, the balance closes at 93.6%; the remaining ~6% leaves with the 391
+  eroded elements. ERR=-74.7% is definitional, not divergence.
+- Refuted hypothesis 1 - damping. DAMPING CONTACT ENERGY is 0.00019 J (0.0%).
+  VISs 1.0 -> 0.05 changed nothing: rupture stayed at 391/1999 and ERR moved
+  from -74.8% to -74.7%. The VISs suspicion was wrong.
+- Refuted hypothesis 2 - Stfac is simply wrong. ELASTIC CONTACT is 62.8%, which
+  does point at the soft penalty springs, but trial W (Stfac 1e-4 -> 1.0)
+  collapsed the timestep from 7.7145e-9 s to 8.06e-13 s, a factor of 9,574.
+  Finishing would need 1.2e9 cycles, about 962 hours, so the run was stopped.
+  Stfac=1e-4 is a deliberate runtime tradeoff, not an oversight.
+- Geometry measured from the deck: blank 4.0 x 4.0 x 0.5 mm at Z 0.0..0.5;
+  punch bottom at Z=1.2 (a 0.70 mm air gap, which is the first 59% of the run);
+  stripper bottom at Z=0.6; die top at Z=-0.1, leaving the blank floating 0.10 mm
+  above the die. The cut is a single 4.0 mm straight line, not a closed contour.
+- Force-stroke from EXT-WORK and the punch function: peak 1,891 N at 0.133 mm,
+  which is 26% of thickness and matches the 20-40% the literature reports. But
+  the force never returns to zero - it falls to ~320 N at full thickness then
+  climbs again to 1,401 N at 1.30 mm of travel. The slug never separates.
+- Theoretical shear load is 4.0 mm x 0.5 mm x 150-200 MPa = 300-400 N, so the
+  simulated peak is about 5x high and the total work 1.15 J is about 13x the
+  ~0.09 J expected, because the punch keeps pushing an unseparated slug.
+- Next: trial X seats the blank on the die (die nodes shifted +0.10 mm through
+  `rad_model.translate_nodes`, 462 nodes, node sets verified disjoint) so that
+  bending cannot precede shearing, before the failure criterion is touched.

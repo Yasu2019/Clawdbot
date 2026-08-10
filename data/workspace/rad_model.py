@@ -99,6 +99,55 @@ class RadModel:
     def _find_blocks(self, keyword: str) -> list[int]:
         return [i for i, ln in enumerate(self._lines) if ln.strip().startswith(keyword)]
 
+    def translate_nodes(self, node_ids: set[int], dz: float) -> int:
+        """Shift the Z of the given nodes, keeping the 70-column /NODE record intact.
+
+        Record layout is nid[I10] X[F20] Y[F20] Z[F20].
+        """
+        moved = 0
+        in_node_block = False
+        for i, line in enumerate(self._lines):
+            stripped = line.strip()
+            if stripped == "/NODE":
+                in_node_block = True
+                continue
+            if in_node_block:
+                if stripped.startswith("/"):
+                    in_node_block = False
+                    continue
+                if not stripped or stripped.startswith("#"):
+                    continue
+                try:
+                    nid = int(line[0:10])
+                except ValueError:
+                    continue
+                if nid not in node_ids:
+                    continue
+                z = float(line[50:70]) + dz
+                self._lines[i] = line[0:50] + f"{z:>20.12E}"
+                moved += 1
+        return moved
+
+    def element_nodes(self, keyword: str) -> set[int]:
+        """Collect the node IDs referenced by an element block such as /TETRA4/3."""
+        nodes: set[int] = set()
+        for i, line in enumerate(self._lines):
+            if not line.startswith(keyword):
+                continue
+            for j in range(i + 1, len(self._lines)):
+                row = self._lines[j]
+                if row.startswith("/"):
+                    break
+                if not row.strip() or row.startswith("#"):
+                    continue
+                for k in range(10, 90, 10):
+                    try:
+                        nodes.add(int(row[k:k + 10]))
+                    except ValueError:
+                        pass
+            break
+        return nodes
+
     def set_law2_sig_max0(self, sig_max0: float, mat_id: int = 2) -> "RadModel":
         """Set SIG_max0 in /MAT/LAW2/<mat_id>.
 
