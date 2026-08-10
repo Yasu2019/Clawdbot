@@ -1187,6 +1187,50 @@ response = model.generate_content([
             </table>
         </div>
 
+        <!-- AI Mecha Movie Studio (ComfyUI 動画生成オーケストレーター) -->
+        <div class="card full-width" style="border-left: 4px solid #f472b6;">
+            <h2 style="color: #f472b6; display: flex; align-items: center; gap: 8px;">
+                <span>🎬</span>
+                <span>AI Mecha Movie Studio (ComfyUI 動画生成オーケストレーター)</span>
+            </h2>
+            <p style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 14px; line-height: 1.5;">
+                既存環境を書き換えずに検出 → 構成判定 → ComfyUIワークフロー投入まで行います。投入前に <code>/object_info</code> と突合して不足モデルを特定する事前検証付き。
+            </p>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 16px;">
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); padding: 10px; border-radius: 8px; text-align: center;">
+                    <div style="font-size: 0.72rem; color: var(--text-dim);">接続先(正) :8188</div>
+                    <div style="font-weight: bold; color: #3fb950; font-size: 1rem; margin-top:2px;">GPU cuda:0</div>
+                </div>
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); padding: 10px; border-radius: 8px; text-align: center;">
+                    <div style="font-size: 0.72rem; color: var(--text-dim);">フォールバック :18188</div>
+                    <div style="font-weight: bold; color: #d29922; font-size: 1rem; margin-top:2px;">Docker CPU</div>
+                </div>
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); padding: 10px; border-radius: 8px; text-align: center;">
+                    <div style="font-size: 0.72rem; color: var(--text-dim);">Wan2.2 TI2V-5B</div>
+                    <div style="font-weight: bold; color: #3fb950; font-size: 1rem; margin-top:2px;">79秒 / 81frames</div>
+                </div>
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); padding: 10px; border-radius: 8px; text-align: center;">
+                    <div style="font-size: 0.72rem; color: var(--text-dim);">SDXL 1024px</div>
+                    <div style="font-weight: bold; color: #3fb950; font-size: 1rem; margin-top:2px;">11秒 / 20steps</div>
+                </div>
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); padding: 10px; border-radius: 8px; text-align: center;">
+                    <div style="font-size: 0.72rem; color: var(--text-dim);">SCAIL-2</div>
+                    <div style="font-weight: bold; color: #f85149; font-size: 1rem; margin-top:2px;">重み4件不足</div>
+                </div>
+            </div>
+
+            <p style="font-size: 0.8rem; color: var(--text-dim); margin-bottom: 8px;">
+                登録済みワークフロー: <strong style="color:#3fb950;">wan22_t2v</strong>（実行可・実生成/目視確認済み） ／
+                <strong style="color:#3fb950;">sdxl・sd15 疎通</strong>（実行可） ／
+                <strong style="color:#f85149;">scail2</strong>（構造検証済・重み未配置）
+            </p>
+            <a class="asset-action" href="../ai_mecha_movie_studio/portal_card/index.html" target="_blank">詳細・実行方法</a>
+            <a class="asset-action" href="../ai_mecha_movie_studio/docs/CHANGELOG_JA.md" target="_blank">閲覧: 変更履歴</a>
+            <a class="asset-action" href="../ai_mecha_movie_studio/workflows/scail2/README_JA.md" target="_blank">閲覧: SCAIL-2 仕様</a>
+            <a class="asset-action" href="../ai_mecha_movie_studio/workflows/wan22/README_JA.md" target="_blank">閲覧: Wan2.2 仕様</a>
+        </div>
+
         <div class="card full-width" style="border-left: 4px solid #8957e5;">
             <h2 style="color: #8957e5;">Content Generation & Publishing Hub</h2>
             <p style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 10px;">
