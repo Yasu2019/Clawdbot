@@ -19,6 +19,14 @@ def render_reference_views(model_path: Path, output_dir: Path):
     output_dir.mkdir(parents=True, exist_ok=True)
     cmd = [exe, "--background", "--python", str(script), "--", str(model_path), str(output_dir)]
     p = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
-    if p.returncode != 0:
-        raise RuntimeError(p.stderr[-4000:])
-    return str(output_dir)
+
+    # Blenderは --python 内でPython例外が出ても終了コード0を返す。
+    # returncodeだけを見ると「成功したのに出力ゼロ」を見逃すため、実出力で判定する。
+    produced = sorted(output_dir.glob("*.png"))
+    if p.returncode != 0 or not produced:
+        log = (p.stderr or "") + "\n" + (p.stdout or "")
+        detail = log[-4000:].strip() or "(Blenderの出力なし)"
+        raise RuntimeError(
+            f"Blenderレンダに失敗しました (exit={p.returncode}, 出力{len(produced)}件)\n{detail}"
+        )
+    return [str(x) for x in produced]

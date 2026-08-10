@@ -40,6 +40,20 @@ def mesh_bounds():
     return (mins + maxs) / 2, (maxs - mins).length
 
 
+def pick_engine(current):
+    """実際に存在するレンダエンジン名を選ぶ。
+
+    エンジンのenum名はBlenderの版で変わる（4.2系は BLENDER_EEVEE_NEXT、
+    5.1では BLENDER_EEVEE に戻っている）。決め打ちすると
+    TypeError: enum "..." not found で落ちるため、必ず実在候補から選ぶ。
+    """
+    available = bpy.types.RenderSettings.bl_rna.properties["engine"].enum_items.keys()
+    for name in ("BLENDER_EEVEE_NEXT", "BLENDER_EEVEE", "BLENDER_WORKBENCH"):
+        if name in available:
+            return name
+    return current
+
+
 def look_at(cam, target):
     direction = target - cam.location
     cam.rotation_euler = direction.to_track_quat("-Z", "Y").to_euler()
@@ -59,20 +73,34 @@ def main():
     bpy.ops.object.camera_add(location=(0, -size * 1.8, center.z))
     cam = bpy.context.object
     bpy.context.scene.camera = cam
+    # クリップ面をモデル寸法に合わせる。FBXがcm単位だと18m級の機体で size≈1800 になり、
+    # 既定の clip_end=100 では全部クリップされて真っ白（透過のみ）になる。
+    cam.data.clip_start = max(size * 0.001, 0.01)
+    cam.data.clip_end = size * 10.0
 
-    bpy.ops.object.light_add(type="AREA", location=(size, -size, center.z + size))
+    # 照明は SUN + 環境光にする。点光源/エリアライトは照度が距離の二乗で変わるため、
+    # モデルの単位系(m か cm か)で露出が破綻する。SUNは平行光なので距離に依存しない。
+    bpy.ops.object.light_add(type="SUN", location=(size, -size, center.z + size))
     key = bpy.context.object
-    key.data.energy = 1500
-    key.data.shape = "DISK"
-    key.data.size = size
+    key.data.energy = 4.0
+    key.data.angle = math.radians(15)
+    look_at(key, center)
 
-    bpy.ops.object.light_add(type="AREA", location=(-size, -size, center.z + size * 0.5))
+    bpy.ops.object.light_add(type="SUN", location=(-size, -size, center.z + size * 0.5))
     fill = bpy.context.object
-    fill.data.energy = 900
-    fill.data.size = size
+    fill.data.energy = 1.5
+    fill.data.angle = math.radians(30)
+    look_at(fill, center)
+
+    world = bpy.data.worlds.new("ref_world")
+    world.use_nodes = True
+    bg = world.node_tree.nodes["Background"]
+    bg.inputs[0].default_value = (0.35, 0.37, 0.40, 1.0)
+    bg.inputs[1].default_value = 1.0
+    bpy.context.scene.world = world
 
     scene = bpy.context.scene
-    scene.render.engine = "BLENDER_EEVEE_NEXT" if hasattr(bpy.context.scene, "eevee") else scene.render.engine
+    scene.render.engine = pick_engine(scene.render.engine)
     scene.render.resolution_x = 768
     scene.render.resolution_y = 768
     scene.render.resolution_percentage = 100
