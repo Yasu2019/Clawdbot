@@ -3149,3 +3149,31 @@ Raised by the user asking whether `box_study_3` had a mesh in progress. Forensic
 - Prevention: `rad_model.set_law2_sig_max0` now edits the field through the
   width-preserving path, and deck generation must reject a non-zero `SIG_max0`
   below the yield coefficient.
+
+### INC-188 contact diagnosis 2026-08-11: the ERR gate does not fit this model
+
+- The engine listing `*_0001.out` carries the energy breakdown (I-ENERGY,
+  K-ENERGY, EXT-WORK) that no trial had ever been read for.
+- Trial U internal energy is 1.37e-20 until T=2.2364e-3 s: the punch spends the
+  first 59% of the run travelling a 0.70 mm air gap and never touches the blank.
+  The energy error appears at the instant of first contact, not at fracture.
+- `ERR = (I + K - EXT)/EXT` reproduces the reported value exactly: at NC=290,000,
+  (5.853e-6 + 7.131e-6 - 2.939e-5)/2.939e-5 = -55.8%.
+- Altair's own Results Checking FAQ states contact energy is not part of the
+  energy error equation and that "if the simulation has friction and a lot of
+  sliding contact, then the large contact energy and resulting energy error can
+  be considered acceptable". Hourglass energy is excluded too.
+- Blanking is exactly that model: punch, die and stripper all slide on the blank
+  at Fric=0.1. A large negative ERR is structural here, so the INC-188 physical
+  gate built on ERR alone was measuring the wrong quantity - the trial K
+  rejection at ERR=-32.8% should be revisited on that basis.
+- Contact settings also sit far from the documented defaults: VISs=1.0 against a
+  0.05 default, Stfac=1e-4 on die and stripper against a 1.0 default (punch
+  0.05), on top of Istf=4 which is the softest stiffness formulation. The 1e-4
+  values come from `set_inter_type25_contact` defaults in `rad_model.py`.
+- The T01 global time history already carries CONTACT, ELASTIC CONTACT,
+  FRICTIONAL CONTACT, DAMPING CONTACT, HOURGLASS and PLASTIC WORK, but no
+  `/TFILE` was ever requested so only the t=0 record was written.
+- Trial V adds `/TFILE/4` at 1e-5 s and restores VISs to 0.05, so that
+  `I + K + CONTACT + HOURGLASS` can be checked against EXT-WORK directly instead
+  of inferred. Gate redesign should follow that measurement, not precede it.
