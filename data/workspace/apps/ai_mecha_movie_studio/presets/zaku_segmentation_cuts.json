@@ -1,0 +1,35 @@
+{
+  "_comment": "Zaku_Segmentation.fbx(17部品)に膝・肘を作るための切断指定。search_local は『その部品自身のbbox』の正規化座標[0-1]で、探索範囲を指す。モデル全体の座標で指定すると部品の外を指して片側が空になる。位置を直接決めるなら at_local(部品内) か at(モデル全体) を書く。",
+  "_measured": {
+    "part_0": "右脚 Z=0.238 sizeZ=0.383 (股関節~足首が一体)",
+    "part_1": "左脚 Z=0.233 sizeZ=0.396 (股関節~足首が一体)",
+    "part_5": "左腕 X=0.204 sizeX=0.407 (上腕~手が一体)",
+    "part_9": "右腕 X=0.749 sizeX=0.294 (上腕~前腕が一体)"
+  },
+  "cuts": [
+    {
+      "part": "part_0",
+      "axis": "z",
+      "search_local": [0.25, 0.75],
+      "names": ["r_shin", "r_thigh"]
+    },
+    {
+      "part": "part_1",
+      "axis": "z",
+      "search_local": [0.25, 0.75],
+      "names": ["l_shin", "l_thigh"]
+    },
+    {
+      "part": "part_5",
+      "axis": "x",
+      "search_local": [0.25, 0.75],
+      "names": ["l_forearm", "l_upperarm"]
+    },
+    {
+      "part": "part_9",
+      "axis": "x",
+      "search_local": [0.25, 0.75],
+      "names": ["r_upperarm", "r_forearm"]
+    }
+  ]
+}

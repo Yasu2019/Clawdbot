@@ -53,6 +53,29 @@ def render_walk_animation(model_path: Path, motion_path: Path, output_dir: Path,
     return [str(x) for x in produced]
 
 
+def split_parts(model_path: Path, cuts_json: Path, out_fbx: Path, report_json: Path = None):
+    """分割済みFBXの部品を、指定軸の平面でさらに分割する（膝・肘の作成）。"""
+    exe = available()
+    if not exe:
+        raise RuntimeError("blender が見つかりません（PATHにも既知インストール先にもありません）")
+    for p in (Path(model_path), Path(cuts_json)):
+        if not p.exists():
+            raise RuntimeError(f"ファイルが見つかりません: {p}")
+    script = ROOT / "mecha_studio" / "blender" / "split_parts.py"
+    out_fbx = Path(out_fbx)
+    out_fbx.parent.mkdir(parents=True, exist_ok=True)
+    cmd = [exe, "--background", "--python", str(script), "--",
+           str(model_path), str(cuts_json), str(out_fbx)]
+    if report_json:
+        cmd.append(str(report_json))
+    # 出力はFBX1個なので、PNGではなくFBXの実在で成否を見る
+    produced, log = _run(cmd, out_fbx.parent, pattern=out_fbx.name, what="部品分割")
+    for line in log.splitlines():
+        if line.startswith("[split]"):
+            print(line)
+    return str(out_fbx)
+
+
 def render_reference_views(model_path: Path, output_dir: Path):
     exe = available()
     if not exe:
