@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
-import shutil
 import subprocess
 from pathlib import Path
+from ..core.scanner import resolve_tool
 
 
 def available():
-    return shutil.which("ffmpeg")
+    return resolve_tool("ffmpeg")
 
 
 def make_smoke_video(output: Path, seconds: int = 5):

@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
-import json
-import shutil
 import subprocess
 from pathlib import Path
+from ..core.scanner import resolve_tool
 
 
 def available():
-    return shutil.which("npx")
+    return resolve_tool("npx")
 
 
 def render(project_dir: Path, composition="Main", output="out/final.mp4"):

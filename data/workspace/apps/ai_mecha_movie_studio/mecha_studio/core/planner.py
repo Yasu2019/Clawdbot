@@ -7,6 +7,51 @@ from .ollama import chat
 
 REQUIRED_KEYS = {"architecture", "confidence", "rationale", "reuse", "isolate", "risks", "next_steps"}
 
+# reuse候補の名称 → 検出フラグのキー
+MATCH_TERMS = {
+    "comfyui": ("comfyui", "comfy"),
+    "blender": ("blender",),
+    "ffmpeg": ("ffmpeg", "ffprobe"),
+    "node": ("node", "npm", "npx"),
+    "remotion": ("remotion",),
+    "ollama": ("ollama",),
+    "git": ("git",),
+    "python": ("python",),
+}
+
+
+def availability(scan_report):
+    """検出結果を『再利用できると言い切れるか』のフラグへ落とす。"""
+    tools = scan_report.get("tools", {}) or {}
+    dirs = scan_report.get("directories", {}) or {}
+    services = scan_report.get("services", {}) or {}
+    return {
+        # フォルダが無くてもAPIが応答していれば再利用可能とみなす（Docker稼働等）
+        "comfyui": bool(dirs.get("comfyui") or services.get("comfyui_api")),
+        "blender": bool(tools.get("blender")),
+        "ffmpeg": bool(tools.get("ffmpeg")),
+        "node": bool(tools.get("node") or tools.get("npx")),
+        "remotion": bool(dirs.get("remotion") or tools.get("npx")),
+        "ollama": bool(tools.get("ollama") or services.get("ollama_api")),
+        "git": bool(tools.get("git")),
+        "python": bool(tools.get("python") or tools.get("py")),
+        "nvidia_gpu": bool(scan_report.get("gpu")),
+    }
+
+
+def _verify_reuse(items, avail):
+    """AIが挙げた再利用候補を検出結果と突合する。
+    検出済みと確認できたものだけを reuse に残し、残りは未検証として分離する。"""
+    verified, unverified = [], []
+    for item in items or []:
+        text = str(item).lower()
+        keys = [k for k, terms in MATCH_TERMS.items() if any(t in text for t in terms)]
+        if keys and all(avail.get(k) for k in keys):
+            verified.append(item)
+        else:
+            unverified.append(item)
+    return verified, unverified
+
 
 def _extract_json(text: str):
     text = text.strip()
@@ -21,16 +66,15 @@ def _extract_json(text: str):
 
 
 def _fallback(scan_report):
-    dirs = scan_report.get("directories", {})
-    tools = scan_report.get("tools", {})
+    avail = availability(scan_report)
     reuse = []
-    if dirs.get("comfyui"):
+    if avail["comfyui"]:
         reuse.append("ComfyUI")
-    if tools.get("blender"):
+    if avail["blender"]:
         reuse.append("Blender")
-    if tools.get("ffmpeg"):
+    if avail["ffmpeg"]:
         reuse.append("FFmpeg")
-    if tools.get("node") or tools.get("npx"):
+    if avail["node"]:
         reuse.append("Node/Remotion")
     architecture = "hybrid" if reuse else "standalone"
     return {
@@ -85,5 +129,17 @@ def decide(scan_report, base_url: str, model: str):
     except Exception as exc:
         obj = _fallback(scan_report)
         obj["fallback_reason"] = str(exc)
+
+    # AIの回答をそのまま信用せず、検出結果と突合する
+    avail = availability(scan_report)
+    verified, unverified = _verify_reuse(obj.get("reuse", []), avail)
+    obj["reuse"] = verified
+    obj["reuse_unverified"] = unverified
+    obj["detected"] = avail
+    if unverified:
+        obj.setdefault("risks", []).append(
+            "未検出のまま再利用候補に挙がった項目があります: " + ", ".join(str(x) for x in unverified)
+            + "。導入前に実体の有無を確認してください。"
+        )
     obj["generated_at"] = datetime.now().isoformat(timespec="seconds")
     return obj

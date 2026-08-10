@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 import json
+import queue
 import threading
 import tkinter as tk
 from tkinter import ttk, messagebox
@@ -21,7 +22,10 @@ class App(tk.Tk):
         self.geometry("1000x760")
         self.minsize(850, 650)
         self.scan_report = None
+        # ワーカースレッドからのUI更新はキュー経由でメインスレッドへ渡す
+        self._ui_queue = queue.Queue()
         self._build()
+        self.after(100, self._drain_ui_queue)
 
     def _build(self):
         top = ttk.Frame(self, padding=10)
@@ -59,41 +63,73 @@ class App(tk.Tk):
         self.text.pack(fill="both", expand=True, padx=10, pady=10)
         self.log("README_JA.md を先にご確認ください。\n")
 
+    def _drain_ui_queue(self):
+        try:
+            while True:
+                kind, payload = self._ui_queue.get_nowait()
+                if kind == "log":
+                    self.text.insert("end", payload + ("\n" if not payload.endswith("\n") else ""))
+                    self.text.see("end")
+                elif kind == "status":
+                    self.status.config(text=payload)
+        except queue.Empty:
+            pass
+        self.after(100, self._drain_ui_queue)
+
     def log(self, s):
-        self.text.insert("end", s + ("\n" if not s.endswith("\n") else ""))
-        self.text.see("end")
+        self._ui_queue.put(("log", s))
+
+    def set_status(self, s):
+        self._ui_queue.put(("status", s))
 
     def _thread(self, fn):
         threading.Thread(target=fn, daemon=True).start()
 
     def do_scan(self):
+        # ウィジェットの読み取りはメインスレッドで行う（Tkはスレッド安全ではない）
+        roots = [x.strip() for x in self.roots.get().split(";") if x.strip()]
+
         def work():
-            self.status.config(text="システム検出中...")
-            roots = [x.strip() for x in self.roots.get().split(";") if x.strip()]
-            rep = scan(roots)
-            self.scan_report = rep
-            save_json(WORKSPACE / "system_scan.json", rep)
-            self.log(json.dumps(rep, ensure_ascii=False, indent=2))
-            self.status.config(text="検出完了: workspace/system_scan.json")
+            try:
+                self.set_status("システム検出中...")
+                rep = scan(roots)
+                self.scan_report = rep
+                save_json(WORKSPACE / "system_scan.json", rep)
+                self.log(json.dumps(rep, ensure_ascii=False, indent=2))
+                self.set_status("検出完了: workspace/system_scan.json")
+            except Exception as e:
+                self.log("システム検出失敗: " + str(e))
+                self.set_status("システム検出失敗")
         self._thread(work)
 
     def do_plan(self):
+        # ウィジェットの読み取りはメインスレッドで行う（Tkはスレッド安全ではない）
+        base_url = self.ollama_url.get().strip()
+        model = self.ollama_model.get().strip()
+
         def work():
-            if self.scan_report is None:
-                self.scan_report = scan([])
-                save_json(WORKSPACE / "system_scan.json", self.scan_report)
-            self.status.config(text="AIが構成を検討中...")
-            plan = decide(self.scan_report, self.ollama_url.get().strip(), self.ollama_model.get().strip())
-            save_json(WORKSPACE / "integration_plan.json", plan)
-            self.log("\n=== AI ARCHITECTURE PLAN ===\n" + json.dumps(plan, ensure_ascii=False, indent=2))
-            self.status.config(text="判定完了: workspace/integration_plan.json")
+            try:
+                if self.scan_report is None:
+                    self.scan_report = scan([])
+                    save_json(WORKSPACE / "system_scan.json", self.scan_report)
+                self.set_status("AIが構成を検討中...")
+                plan = decide(self.scan_report, base_url, model)
+                save_json(WORKSPACE / "integration_plan.json", plan)
+                self.log("\n=== AI ARCHITECTURE PLAN ===\n" + json.dumps(plan, ensure_ascii=False, indent=2))
+                if plan.get("reuse_unverified"):
+                    self.log("※ 未検出のまま再利用候補に挙がった項目: "
+                             + ", ".join(str(x) for x in plan["reuse_unverified"]))
+                self.set_status("判定完了: workspace/integration_plan.json")
+            except Exception as e:
+                self.log("構成判定失敗: " + str(e))
+                self.set_status("構成判定失敗")
         self._thread(work)
 
     def do_project(self):
         try:
             p = create_sample_project()
             self.log(f"\nサンプルプロジェクトを生成しました: {p}")
-            self.status.config(text=str(p))
+            self.set_status(str(p))
         except Exception as e:
             messagebox.showerror("エラー", str(e))
 
@@ -105,15 +141,17 @@ class App(tk.Tk):
                     p = create_sample_project()
                 rep = run_smoke(p)
                 self.log("\n=== SMOKE TEST ===\n" + json.dumps(rep, ensure_ascii=False, indent=2))
-                self.status.config(text="疎通テスト完了")
+                self.set_status("疎通テスト完了")
             except Exception as e:
                 self.log("疎通テスト失敗: " + str(e))
-                self.status.config(text="疎通テスト失敗")
+                self.set_status("疎通テスト失敗")
         self._thread(work)
 
     def do_comfy(self):
-        ok = comfy_health()
-        self.log(f"ComfyUI API http://127.0.0.1:8188 : {'OK' if ok else '未接続'}")
+        def work():
+            ok = comfy_health()
+            self.log(f"ComfyUI API http://127.0.0.1:8188 : {'OK' if ok else '未接続'}")
+        self._thread(work)
 
 
 def main():

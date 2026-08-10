@@ -1,4 +1,6 @@
-AI MECHA MOVIE STUDIO V3
+AI MECHA MOVIE STUDIO V3.1
 Build: 2026-08-10
+Base: V3 (2026-08-10)
 Encoding: UTF-8
 Core runtime: Python standard library only
+Changelog: docs/CHANGELOG_JA.md
