@@ -134,15 +134,34 @@ def validate_workflow(workflow: dict, base_url=DEFAULT_BASE, timeout=30):
                 continue
             if isinstance(value, list):
                 continue  # 他ノードへのリンク
-            allowed = fields[name][0]
-            if isinstance(allowed, list):
-                if not allowed:
-                    problems.append(f"node {node_id} {cls}.{name}: 選択肢が空です（モデル未配置）: {value!r}")
-                elif value not in allowed:
-                    problems.append(
-                        f"node {node_id} {cls}.{name}: {value!r} は候補にありません（例: {allowed[:3]}）"
-                    )
+            allowed = _allowed_values(fields[name])
+            if allowed is None:
+                continue
+            if not allowed:
+                problems.append(f"node {node_id} {cls}.{name}: 選択肢が空です（モデル/ファイル未配置）: {value!r}")
+            elif value not in allowed:
+                problems.append(
+                    f"node {node_id} {cls}.{name}: {value!r} は候補にありません（例: {allowed[:3]}）"
+                )
     return problems
+
+
+def _allowed_values(spec):
+    """入力仕様から選択肢リストを取り出す。列挙でなければ None。
+
+    ComfyUIには2形式ある:
+      旧: ["a.safetensors", "b.safetensors"] が spec[0] に直接入る
+      新: spec[0] == "COMBO" で、spec[1]["options"] に選択肢が入る
+    新形式を見落とすと、存在しないファイル名を素通りさせてしまう。
+    """
+    head = spec[0]
+    if isinstance(head, list):
+        return head
+    if head == "COMBO":
+        opts = (spec[1] or {}).get("options") if len(spec) > 1 else None
+        if isinstance(opts, list):
+            return opts
+    return None
 
 
 def submit_api_workflow(workflow_path: Path, mapping: dict, base_url=DEFAULT_BASE, timeout=30):

@@ -1,5 +1,51 @@
 # 変更履歴
 
+## V3.3 (2026-08-11)
+
+ComfyUIをGPU実行へ切り替え、登録ワークフローを本番GPU機（ComfyUI 0.26.0）に合わせ直しました。
+
+### 環境側（コード変更ではなく運用の是正）
+
+`8188` を**Docker CPU版が占有し続けていた**ため、これまでの生成はすべてCPUで走っていました。
+`services/comfyui/docker-compose.yml` は2026-08-06に `18188` へ退避済みでしたが、
+**コンテナが再作成されておらず古いポート割り当てのまま5時間以上稼働**していた状態です。
+
+- Docker CPU版を `docker compose up -d` で再作成 → `127.0.0.1:18188`（イメージ再ビルドなし）
+- ネイティブGPU版を 8188 で起動（`services/comfyui_fullkit/scripts/start_comfyui_gpu.py`）
+  → `torch 2.8.0+cu128` / `Device: cuda:0 NVIDIA GeForce RTX 5060 Ti` / `--reserve-vram 1.5`
+
+実測: SDXL 1024x1024 / 20 steps がウォーム **11秒**（CPU版はSD1.5 384x384 / 20 stepsで65秒）。
+
+### `workflows/scail2/scail2_wan_api.json` の作り直し
+
+本番GPU機のComfyUIは 0.26.0 で、**`WanSCAILToVideo` のシグネチャがCPU版(0.24.0)と違いました**。
+
+- 出力が3個→4個（`video_frame_offset` 追加）、必須入力に `video_frame_offset` /
+  `previous_frame_count` が追加、実装も `nodes_wan.py` → `nodes_scail.py` へ移動
+- 本番GPU機には**VideoHelperSuiteが入っていない**ため、`VHS_LoadVideoPath` /
+  `VHS_VideoCombine` 依存を廃止し、コアノード
+  （`LoadVideo` → `GetVideoComponents` / `CreateVideo` → `SaveVideo`）のみで再構成
+
+在庫にあるモデル名へ差し替えた状態で**構造検証は残り2件（clip_vision・pose動画）**まで縮小し、
+16ノードの入力名・リンク・0.26新必須項目がすべて有効であることを確認しました。
+
+### `adapters/comfyui.py`
+
+- **新スキーマのCOMBO選択肢を検証できていなかった**のを修正。ComfyUIには
+  `spec[0]` が直接リストの旧形式と、`spec[0] == "COMBO"` で `spec[1]["options"]` に
+  選択肢が入る新形式があり、新形式を素通りさせていた（`LoadVideo.file` 等を検出できなかった）。
+
+### `scripts/run_comfy_workflow.py`
+
+- `sdxl` プリセットを追加（本番GPU機の在庫 `sd_xl_base_1.0.safetensors`）
+- `scail2` プリセットの `POSE_VIDEO_PATH`（Docker内パス）を `POSE_VIDEO`（`input/` のファイル名）へ変更
+
+### 判明した非互換
+
+在庫の `wan2.2_ti2v_5B_fp16.safetensors` は SCAIL の代用になりません。
+`WanSCAILToVideo` は16チャンネルlatentを生成しますが、TI2V-5Bは `wan2.2_vae` 前提の
+別アーキテクチャでチャンネル数が一致しません。
+
 ## V3.2 (2026-08-11)
 
 ComfyUI連携を「READMEだけ」から「実ワークフローを登録して実際に通せる」状態にしました。

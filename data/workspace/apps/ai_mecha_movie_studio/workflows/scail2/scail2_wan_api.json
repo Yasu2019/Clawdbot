@@ -61,18 +61,18 @@
     }
   },
   "10": {
-    "class_type": "VHS_LoadVideoPath",
+    "class_type": "LoadVideo",
     "inputs": {
-      "video": "{{POSE_VIDEO_PATH}}",
-      "force_rate": 0,
-      "custom_width": 0,
-      "custom_height": 0,
-      "frame_load_cap": "{{LENGTH}}",
-      "skip_first_frames": 0,
-      "select_every_nth": 1
+      "file": "{{POSE_VIDEO}}"
     }
   },
   "11": {
+    "class_type": "GetVideoComponents",
+    "inputs": {
+      "video": ["10", 0]
+    }
+  },
+  "12": {
     "class_type": "WanSCAILToVideo",
     "inputs": {
       "positive": ["6", 0],
@@ -82,15 +82,17 @@
       "height": "{{HEIGHT}}",
       "length": "{{LENGTH}}",
       "batch_size": 1,
+      "pose_video": ["11", 0],
       "pose_strength": "{{POSE_STRENGTH}}",
       "pose_start": 0.0,
       "pose_end": 1.0,
-      "clip_vision_output": ["9", 0],
       "reference_image": ["8", 0],
-      "pose_video": ["10", 0]
+      "clip_vision_output": ["9", 0],
+      "video_frame_offset": 0,
+      "previous_frame_count": 5
     }
   },
-  "12": {
+  "13": {
     "class_type": "KSampler",
     "inputs": {
       "model": ["2", 0],
@@ -99,29 +101,33 @@
       "cfg": "{{CFG}}",
       "sampler_name": "euler",
       "scheduler": "simple",
-      "positive": ["11", 0],
-      "negative": ["11", 1],
-      "latent_image": ["11", 2],
+      "positive": ["12", 0],
+      "negative": ["12", 1],
+      "latent_image": ["12", 2],
       "denoise": 1.0
     }
   },
-  "13": {
+  "14": {
     "class_type": "VAEDecode",
     "inputs": {
-      "samples": ["12", 0],
+      "samples": ["13", 0],
       "vae": ["4", 0]
     }
   },
-  "14": {
-    "class_type": "VHS_VideoCombine",
+  "15": {
+    "class_type": "CreateVideo",
     "inputs": {
-      "images": ["13", 0],
-      "frame_rate": "{{FPS}}",
-      "loop_count": 0,
+      "images": ["14", 0],
+      "fps": "{{FPS}}"
+    }
+  },
+  "16": {
+    "class_type": "SaveVideo",
+    "inputs": {
+      "video": ["15", 0],
       "filename_prefix": "{{FILENAME_PREFIX}}",
-      "format": "video/h264-mp4",
-      "pingpong": false,
-      "save_output": true
+      "format": "mp4",
+      "codec": "h264"
     }
   }
 }
