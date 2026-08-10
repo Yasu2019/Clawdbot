@@ -99,6 +99,33 @@ class RadModel:
     def _find_blocks(self, keyword: str) -> list[int]:
         return [i for i, ln in enumerate(self._lines) if ln.strip().startswith(keyword)]
 
+    def set_law2_sig_max0(self, sig_max0: float, mat_id: int = 2) -> "RadModel":
+        """Set SIG_max0 in /MAT/LAW2/<mat_id>.
+
+        Card 3 is: a[F20] b[F20] n[F20] EPS_p_max[F20] SIG_max0[F20], so SIG_max0 is
+        token index 4. Only an exact zero means "no ceiling": the Starter reads
+        `if (sigm == zero) sigm = ep20`, so any other value clamps the yield stress
+        through `SIGY = MIN(SIGY, SIGMX)` in the engine.
+        """
+        blocks = self._find_blocks(f"/MAT/LAW2/{mat_id}")
+        if not blocks:
+            raise ValueError(f"/MAT/LAW2/{mat_id} not found")
+        for block_start in blocks:
+            di = _find_data_line_after_comment(self._lines, block_start, "EPS_p_max")
+            if di < 0:
+                raise ValueError(f"EPS_p_max data line not found after /MAT/LAW2/{mat_id}")
+            self._lines[di] = _replace_nth_number(self._lines[di], 4, f"{sig_max0:.6g}")
+        return self
+
+    def set_mat_title(self, title: str, keyword: str, mat_id: int = 2) -> "RadModel":
+        """Rewrite the title line that follows /<keyword>/<mat_id>."""
+        blocks = self._find_blocks(f"/{keyword}/{mat_id}")
+        if not blocks:
+            raise ValueError(f"/{keyword}/{mat_id} not found")
+        for block_start in blocks:
+            self._lines[block_start + 1] = title
+        return self
+
     def set_fail_gene1(self, eps_eff: float, mat_id: int = 2) -> "RadModel":
         """Set Eps_eff in /FAIL/GENE1/<mat_id>.
 

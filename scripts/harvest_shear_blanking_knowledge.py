@@ -40,10 +40,14 @@ USER_AGENT = f"Clawstack-CAE-Knowledge/2.0 (bounded research; mailto:{CONTACT})"
 MOJIBAKE_MARKERS = ("\ufffd", "縺", "繧", "繝", "譁", "蜈", "ãƒ", "â€", "Ã¯Â¿Â½")
 
 CATEGORIES = {
+    # The part is MR536, an AA5052 base. The deck's "1060" label is a known defect;
+    # 1060 queries stay only to document why that label was rejected.
     "material_constants": [
+        "AA5052 aluminium Johnson-Cook constitutive parameters flow stress",
+        "5052 aluminium alloy fracture locus stress triaxiality damage",
+        "5052-H32 aluminium sheet tensile temper mechanical properties",
+        "Al-Mg 5052 sheet forming limit ductile fracture criterion",
         "AA1060 aluminum Johnson-Cook constitutive parameters",
-        "commercially pure aluminium 1060 flow stress strain rate",
-        "1060 aluminium sheet tensile temper H18 H14 mechanical properties",
     ],
     "ductile_failure": [
         "ductile fracture criterion metal blanking prediction",
@@ -95,7 +99,26 @@ MAKEITFROM_O = "https://www.makeitfrom.com/material-properties/1060-O-Aluminum"
 MAKEITFROM_H18 = "https://www.makeitfrom.com/material-properties/1060-H18-Aluminum"
 PMC_BLANKING = "https://pmc.ncbi.nlm.nih.gov/articles/PMC11066666/"
 
+MAKEITFROM_5052_O = "https://www.makeitfrom.com/material-properties/5052-O-Aluminum"
+MAKEITFROM_5052_H32 = "https://www.makeitfrom.com/material-properties/5052-H32-Aluminum"
+
 EXTRACTED_CALIBRATION = (
+    # MR536 is an AA5052 base (user-supplied, 2026-08-11). These are the rows that
+    # actually describe the part; the AA1060 rows below are kept as audit trail only.
+    ("AA5052", "O", "elastic", "youngs_modulus", 68e9, "Pa", MAKEITFROM_5052_O, "secondary_screening", 1),
+    ("AA5052", "O", "elastic", "shear_modulus", 26e9, "Pa", MAKEITFROM_5052_O, "secondary_screening", 1),
+    ("AA5052", "O", "elastic", "poisson_ratio", 0.33, "-", MAKEITFROM_5052_O, "secondary_screening", 1),
+    ("AA5052", "O", "strength", "tensile_yield", 79e6, "Pa", MAKEITFROM_5052_O, "secondary_screening", 1),
+    ("AA5052", "O", "strength", "ultimate_tensile", 190e6, "Pa", MAKEITFROM_5052_O, "secondary_screening", 1),
+    ("AA5052", "O", "strength", "shear_strength", 130e6, "Pa", MAKEITFROM_5052_O, "secondary_screening", 1),
+    ("AA5052", "O", "ductility", "elongation_at_break", 0.22, "-", MAKEITFROM_5052_O, "secondary_screening", 0),
+    ("AA5052", "H32", "elastic", "youngs_modulus", 68e9, "Pa", MAKEITFROM_5052_H32, "secondary_screening", 1),
+    ("AA5052", "H32", "elastic", "shear_modulus", 26e9, "Pa", MAKEITFROM_5052_H32, "secondary_screening", 1),
+    ("AA5052", "H32", "elastic", "poisson_ratio", 0.33, "-", MAKEITFROM_5052_H32, "secondary_screening", 1),
+    ("AA5052", "H32", "strength", "tensile_yield", 180e6, "Pa", MAKEITFROM_5052_H32, "secondary_screening", 1),
+    ("AA5052", "H32", "strength", "ultimate_tensile", 230e6, "Pa", MAKEITFROM_5052_H32, "secondary_screening", 1),
+    ("AA5052", "H32", "strength", "shear_strength", 140e6, "Pa", MAKEITFROM_5052_H32, "secondary_screening", 1),
+    ("AA5052", "H32", "ductility", "elongation_at_break", 0.12, "-", MAKEITFROM_5052_H32, "secondary_screening", 0),
     ("AA1060", "O", "elastic", "youngs_modulus", 68e9, "Pa", MAKEITFROM_O, "secondary_screening", 1),
     ("AA1060", "O", "elastic", "shear_modulus", 26e9, "Pa", MAKEITFROM_O, "secondary_screening", 1),
     ("AA1060", "O", "elastic", "poisson_ratio", 0.33, "-", MAKEITFROM_O, "secondary_screening", 1),
@@ -523,12 +546,17 @@ def write_calibration(connection: sqlite3.Connection) -> dict:
             (material, temper, model, parameter, value, unit, "url:" + url, url,
              trace, usable, CALIBRATION_NOTES[usable], now),
         )
-    usable_aa1060 = connection.execute(
+    strength = connection.execute(
         "SELECT COUNT(*) FROM shear_blanking_calibration "
-        "WHERE material='AA1060' AND usable_for_calibration=1 AND model LIKE '%hardening%'"
+        "WHERE material='AA5052' AND usable_for_calibration=1 AND model='strength'"
     ).fetchone()[0]
-    return {"rows": len(EXTRACTED_CALIBRATION),
-            "aa1060_usable_hardening_params": usable_aa1060,
+    hardening = connection.execute(
+        "SELECT COUNT(*) FROM shear_blanking_calibration "
+        "WHERE material='AA5052' AND usable_for_calibration=1 AND model LIKE '%hardening%'"
+    ).fetchone()[0]
+    return {"rows": len(EXTRACTED_CALIBRATION), "target_material": "AA5052 (MR536)",
+            "aa5052_usable_strength_params": strength,
+            "aa5052_usable_hardening_params": hardening,
             "damage_calibration_available": False}
 
 
