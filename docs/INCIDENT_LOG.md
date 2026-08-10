@@ -3085,3 +3085,34 @@ Raised by the user asking whether `box_study_3` had a mesh in progress. Forensic
 - Graphify note: root-wide incremental indexing exceeded its bounded 180 s and
   encountered an unrelated access-denied pytest directory. No process remained;
   existing graph stayed intact. Future indexing must use a scoped INC-188 corpus.
+
+### INC-188 follow-up 2026-08-10: knowledge harvest and calibration gate
+
+- `scripts/harvest_shear_blanking_knowledge.py` harvested 441 sources into
+  `universal_growth.db` (`shear_blanking_sources` + FTS5 trigram) from OpenAlex,
+  Crossref, Europe PMC, arXiv, J-STAGE, GitHub and Altair documentation.
+- Encoding gate PASS: 0 replacement-character rows, 0 SHA256 mismatches across a
+  full re-read of all 441 rows, 64 Japanese rows intact. One Crossref record
+  (`10.15199/24.2018.10.6`) arrived corrupted upstream and was quarantined, never
+  written to the corpus.
+- Encoding lesson: J-STAGE Japanese rendered as garbage on a CP932 console while
+  the bytes were valid UTF-8 (`U+305B U+3093 U+65AD U+52A0 U+5DE5`). Validation is
+  by codepoint only; console appearance is never evidence.
+- Deck defect quantified: `/MAT/LAW2/2` is `sigma = 200 + 150*eps_p^0.20` MPa,
+  which is 1.8x the yield of 1060-H18 (110 MPa) and 9.5x that of 1060-O (21 MPa);
+  flow stress overshoots measured UTS by 2.1x (H18) to 4.4x (O).
+- Criterion defect: `/FAIL/GENE1` `Eps_eff=0.35` is a triaxiality-independent
+  plastic-strain threshold. Harvested literature uses Cockcroft-Latham, MMC or
+  Oyane with a clearance-dependent critical value, so a single fixed strain cannot
+  reproduce the cut edge and drives the observed 97.3% rupture.
+- No AA1060 ductile-damage constants exist in any reachable open-access source;
+  MDPI, ResearchGate and the TU/e file server all return 403 to non-browser
+  clients. Per the RCA prohibition, no other alloy's constants were substituted.
+- Decision: the solver was NOT resumed. `shear_blanking_calibration` records the
+  19 traceable values with `usable_for_calibration` flags and reports
+  `aa1060_usable_hardening_params=0`, so the tooling itself states the blocker.
+- Unblock requires, in order: (1) the real temper of the part, (2) a measured
+  force-stroke or coupon reference for inverse damage identification.
+- Note: `universal_growth.db` has a resident concurrent writer
+  (`scripts/north_star_domain_harvest.py`); the harvester now retries the write
+  lock rather than failing the run.
