@@ -1,5 +1,43 @@
 # 変更履歴
 
+## V3.2 (2026-08-11)
+
+ComfyUI連携を「READMEだけ」から「実ワークフローを登録して実際に通せる」状態にしました。
+
+### 追加
+
+- `workflows/scail2/scail2_wan_api.json` — 稼働中ComfyUI 0.24.0 の `WanSCAILToVideo`
+  実シグネチャに合わせたAPI形式ワークフロー（19トークン）。構造は実機の `/object_info` で検証済み。
+- `workflows/smoke/comfyui_sd15_txt2img_api.json` — GPU不要の疎通確認用SD1.5ワークフロー。
+- `scripts/run_comfy_workflow.py` — 置換 → 事前検証 → 投入 → 完了待ち → 出力回収 を行うCLI。
+  `--preset` で既定値、`--set KEY=VALUE` で上書き、`--check-only` で投入せず検証のみ。
+
+### `adapters/comfyui.py` の変更
+
+- **数値トークンの型を保持**: 文字列全体がちょうど `{{TOKEN}}` の場合、値をそのままの型で埋める。
+  従来は全て文字列化されるため、INT/FLOAT入力（width/steps/cfg等）が型エラーになった。
+- **未置換トークンの検出**: 置換後に `{{...}}` が残っていれば投入前に落とす。
+- **`validate_workflow()`**: 投入前に `/object_info` と突合し、存在しないノード・入力名・
+  候補外の値（＝モデル未配置）を列挙する。
+- **エラー本文の可視化**: ComfyUIはバリデーション失敗を400のJSON本文で返すが、従来は
+  `HTTPError` が素通りして内容が読めなかった。`ComfyError` に要約と生JSONを保持する。
+- **`wait_for_result()` / `collect_outputs()` / `download_output()` / `run_workflow()`**:
+  従来は投入するだけで結果を取得する手段が無かった。`/history` ポーリングで完了を待ち、
+  出力ファイルを `/view` から回収できるようにした。
+
+### 実測（2026-08-11 / ComfyUI 0.24.0 Docker・CPU実行）
+
+- SD1.5疎通: 256x256/6steps=29秒、384x384/20steps=65秒。いずれもPNGを取得して目視確認済み。
+- SCAIL-2: 19トークンの置換とグラフ構造は有効。不足は重み4件
+  （diffusion_models / text_encoders / vae / clip_vision）のみで、事前検証がそれを特定する。
+
+### 既知の制約
+
+- 接続先ComfyUIは `--cpu` 起動（`torch 2.12.0+cpu`）でGPUを使っていない。Wan 14B級の
+  実用生成にはGPU有効化が必要。
+- `POSE_VIDEO_PATH` は**ComfyUIプロセスから見たパス**を渡す必要がある（Docker運用のため
+  Windows側のパスは通らない）。
+
 ## V3.1 (2026-08-10)
 
 V3を実機（Windows 11 / Python 3.10.11 / RTX 5060 Ti 16GB / Ollama qwen3:8b）で動作検証し、
