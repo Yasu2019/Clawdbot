@@ -87,6 +87,59 @@ def extract_block(text: str, start_pat: str) -> str:
     return "\n".join(out)
 
 
+def override_gene1(block: str, eps_pmax: float | None, eps_eff: float | None,
+                   eps_s: float | None, volfrac: float | None) -> str:
+    """/FAIL/GENE1 のしきい値を差し替える。
+
+    カード書式 (hm_cfg_files .../FAIL/fail_gene1.cfg):
+      行A "# fct_IDps  Eps_dot_ps  Eps_max  Eps_eff  Eps_vol"  -> 塑性ひずみ系
+      行B "#  Eps_min  Eps_s  fct_IDg12 fct_IDg13 fct_IDe1c"   -> せん断ひずみ
+      行C "#  Volfrac  Pthickfail  NCS  Temp_max"              -> 固体の削除体積率
+
+    3Dデックは Eps_max=0(無効) で、実効ひずみ Eps_eff と せん断 Eps_s だけを使っていた。
+    実測では塑性ひずみが 2.167 まで達しているのに要素が1つも削除されないため、
+    塑性ひずみ基準(Eps_max)を明示的に有効化できるようにする。
+    """
+    lines = block.splitlines()
+    out = []
+    for i, ln in enumerate(lines):
+        prev = lines[i - 1] if i else ""
+        if "Eps_max" in prev and "Eps_eff" in prev and eps_pmax is not None:
+            # fct_IDps(i10) Eps_dot_ps(f20) Eps_max(f20) Eps_eff(f20) Eps_vol(f20)
+            ln = (f"{i10(0)}{f20(0.0)}{f20(eps_pmax)}"
+                  f"{f20(eps_eff if eps_eff is not None else 0.12)}{f20(0.0)}")
+        elif "Eps_min" in prev and "Eps_s" in prev and eps_s is not None:
+            ln = f"{f20(0.0)}{f20(eps_s)}{i10(0)}{i10(0)}{i10(0)}"
+        elif "Volfrac" in prev and "NCS" in prev and volfrac is not None:
+            ln = f"{f20(volfrac)}{f20(0.0)}{i10(1)}{f20(0.0)}"
+        out.append(ln)
+    return "\n".join(out)
+
+
+def override_law2_epsmax(block: str, eps_p_max: float) -> str:
+    """/MAT/LAW2 の EPS_p_max（材料則に内蔵された塑性ひずみ破断）を差し替える。
+
+    3Dデックは 10.0 で、実質無効になっている。/FAIL/GENE1 側は
+    しきい値を 0.05 まで下げても要素が1つも削除されなかった(962要素が超過しても
+    EROSION_STATUS が全て生存)ため、固体要素で標準的に働く LAW2 内蔵の破断で
+    機構そのものを確認する。
+
+    データ行の書式: a(f20) b(f20) n(f20) EPS_p_max(f20) Xmax(f20)
+    """
+    lines = block.splitlines()
+    out = []
+    for i, ln in enumerate(lines):
+        prev = lines[i - 1] if i else ""
+        if "EPS_p_max" in prev and "Xmax" in prev:
+            toks = ln.split()
+            if len(toks) >= 5:
+                a, b, n = toks[0], toks[1], toks[2]
+                xmax = toks[4]
+                ln = (f"{a:>20}{b:>20}{n:>20}{f20(eps_p_max)}{xmax:>20}")
+        out.append(ln)
+    return "\n".join(out)
+
+
 def load_reference_cards() -> dict[str, str]:
     """材料・破断・パンチ変位曲線を3Dデックから読む。校正の等価性のため改変しない。"""
     if not REF_STARTER.exists():
@@ -215,8 +268,15 @@ def fmt_grnod(gid: int, name: str, nodes: list[int]) -> list[str]:
 
 
 def build(tag: str, shear_elem: float, band: float, coarse: float,
-          clearance: float, tstop: float) -> tuple[Path, Path]:
+          clearance: float, tstop: float, eps_pmax: float | None = None,
+          eps_eff: float | None = None, eps_s: float | None = None,
+          volfrac: float | None = None,
+          law2_eps_p_max: float | None = None) -> tuple[Path, Path]:
     ref = load_reference_cards()
+    if any(v is not None for v in (eps_pmax, eps_eff, eps_s, volfrac)):
+        ref["fail"] = override_gene1(ref["fail"], eps_pmax, eps_eff, eps_s, volfrac)
+    if law2_eps_p_max is not None:
+        ref["mat_blank"] = override_law2_epsmax(ref["mat_blank"], law2_eps_p_max)
     mesh = Mesh2D()
 
     # 切断線の位置。Y+ / Z+ 象限に置く（Altair 推奨）
@@ -406,8 +466,17 @@ def main(argv=None) -> int:
     ap.add_argument("--clearance", type=float, default=DEFAULT_CLEARANCE, help="ダイ隙間[m]")
     ap.add_argument("--tstop", type=float, default=3.2402e-3,
                     help="終了時刻[s] 既定は引き継ぎ§5の推奨値")
+    ap.add_argument("--eps-pmax", type=float, default=None,
+                    help="塑性ひずみ破断しきい値。3Dデックは0(無効)")
+    ap.add_argument("--eps-eff", type=float, default=None, help="実効ひずみしきい値")
+    ap.add_argument("--eps-s", type=float, default=None, help="せん断ひずみしきい値")
+    ap.add_argument("--volfrac", type=float, default=None,
+                    help="固体要素の削除体積率")
+    ap.add_argument("--law2-eps-p-max", type=float, default=None,
+                    help="/MAT/LAW2 の EPS_p_max。3Dデックは10.0(実質無効)")
     a = ap.parse_args(argv)
-    build(a.tag, a.shear_elem, a.band, a.coarse, a.clearance, a.tstop)
+    build(a.tag, a.shear_elem, a.band, a.coarse, a.clearance, a.tstop,
+          a.eps_pmax, a.eps_eff, a.eps_s, a.volfrac, a.law2_eps_p_max)
     return 0
 
 

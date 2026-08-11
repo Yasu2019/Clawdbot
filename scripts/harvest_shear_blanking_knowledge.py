@@ -63,6 +63,32 @@ CATEGORIES = {
         "element deletion adaptive remeshing blanking simulation shear band",
         "sheet metal shearing explicit finite element mesh through thickness",
     ],
+    # --- 2026-08-11 追加。INC-188 の実際の壁に的を絞る ---------------------
+    # 症状: 破断しきい値に達しても切断輪郭の亀裂が板厚を貫通せず、スラグが分離しない。
+    # 3Dでメッシュを8倍にしても輪郭破断は伸びなかった(9.3%->6.7%)。
+    "crack_propagation_failure": [
+        "crack propagation blanking simulation slug separation not achieved",
+        "through thickness crack blanking finite element element erosion",
+        "shear band localization mesh size dependence blanking",
+        "damage localization regularization non-local blanking simulation",
+    ],
+    # 荷重-ストロークから破断パラメータを逆同定する手法。RCA が要求している校正。
+    "inverse_calibration": [
+        "inverse identification ductile damage parameters force displacement blanking",
+        "punch force stroke curve calibration fracture model sheet metal",
+        "parameter identification Johnson-Cook damage shear test optimization",
+    ],
+    # Radioss 固有。GENE1 のしきい値や要素削除の挙動。
+    "radioss_specific": [
+        "Radioss FAIL GENE1 element deletion solid failure criterion",
+        "OpenRadioss blanking shearing tutorial example model",
+        "Radioss 2D plane strain axisymmetric forming simulation",
+    ],
+    # クリアランスの定量的影響。今回まさに真因だった箇所。
+    "clearance_quantitative": [
+        "blanking clearance percentage sheet thickness optimum aluminium",
+        "punch die clearance effect fracture angle burnish ratio",
+    ],
 }
 
 # Directly reachable official documentation (verified 200 before coding in).
