@@ -3241,3 +3241,39 @@ Raised by the user asking whether `box_study_3` had a mesh in progress. Forensic
 - Trial Z therefore changes NCS 2 -> 1 alone, via the new
   `rad_model.set_fail_gene1_ncs`; `set_fail_gene1_shear_gate` keeps its guard
   against lowering NCS rather than having it weakened.
+
+### INC-188 criterion and hardening 2026-08-11: the mesh is now the limit
+
+- Trial Z (NCS 2 -> 1) matched trial Y: 220 ruptures against 218, contour 10.6%
+  against 10.3%. The AND was never the constraint.
+- Why, measured from the animation rather than guessed: of 1,796 surviving
+  material elements the plastic strain peaks at 0.3929, the 5% point is 0.2312
+  and the median is 0.0406. Only 8 elements (0.45%) can ever reach Eps_eff=0.35,
+  so no continuous crack can form and AND versus OR is irrelevant.
+- Trial AA lowers Eps_eff to 0.12 and Eps_s to 0.10, anchored on the measured
+  uniaxial fracture strain 0.0622 scaled by the literature 1.5-3x shear band
+  (0.093-0.187). Contour rupture rose 10.6% -> 29.4% (73 -> 203 elements) while
+  the outer edge stayed put at 33.2% -> 33.4%, so the change was selective.
+  Through-thickness it now grades 34.8% at the die face to 26.1% at the punch
+  face, which is the direction real blanking cracks run.
+- These thresholds are an estimate, not a calibration. They are stored in
+  `shear_blanking_calibration` as `literature_band_estimate` with
+  `usable_for_calibration=0`, separate from the `measured_coupon` rows.
+- Trial AB applies the measured card (a=196.4 MPa, b=524.73 MPa, n=0.7183) and
+  changes almost nothing: contour 29.4% -> 28.7%, peak 854 N -> 852 N. Hardening
+  was not a lever, though the card is now fully traceable to the coupon.
+- Still no separation. Peak load now sits at 196-255% of thickness, i.e. at the
+  end of the stroke, so it is the punch driving an unseparated slug rather than a
+  blanking peak; the cut-phase load of 285-427 N sits below the 525-700 N a
+  7 mm contour would need.
+- The binding constraint is now mesh resolution, and the harvested corpus gives
+  the number. PMC11012880 (adiabatic shear banding in 304SS blanking) reports
+  band widths of 44 um and 21 um, meshes the band region at 10 um against a
+  200 um matrix, and states the very fine mesh is necessary to capture the band.
+  Scaled to this 0.5 mm sheet the band is 1.5-8.5 um, while the elements are
+  100 um - 12 to 67 times too coarse to place even one element across it.
+- Absolute loads remain unreliable regardless: contact carries 86-89% of the
+  external work under Stfac=1e-4, so treat theory comparisons as indicative.
+- Next lever is local refinement of the shear zone to roughly 10-20 um with the
+  matrix left coarse. The explicit timestep scales with element size, so expect
+  6-12 hours per run instead of 25 minutes.
