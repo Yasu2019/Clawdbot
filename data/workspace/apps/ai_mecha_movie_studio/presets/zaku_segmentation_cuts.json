@@ -38,5 +38,12 @@
       "at": 0.271,
       "names": ["r_knee_shin", "r_knee_thigh"]
     }
-  ]
+  ],
+  "_rejected": {
+    "_why": "part_8 を 腰コア/左スカート/右スカート に分けて armor_follower を効かせようとしたが撤回した。実測すると Z下側を切っても左右対称のスカート板にならず、waist_core(X=0.503 幅0.273 の中央部品)と skirt_L/R(X=0.395/0.450 幅0.055 の細い左寄り部品)に分かれた。『part_8 = 腰+左右対称スカート』という前提が誤り。股関節の穴を塞ぐには、まずスカート装甲が実際にどの部品に含まれるかを特定する必要がある。",
+    "cuts": [
+      {"part": "part_8", "axis": "z", "search_local": [0.35, 0.75], "names": ["skirt", "waist_core"]},
+      {"part": "skirt", "axis": "x", "at_local": 0.5, "names": ["skirt_L", "skirt_R"]}
+    ]
+  }
 }

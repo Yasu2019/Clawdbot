@@ -197,6 +197,14 @@ def main():
         bisect(obj, axis_i, pos, keep_positive=False)
         bisect(dup, axis_i, pos, keep_positive=True)
         obj.name, dup.name = n_lo, n_hi
+        # bound_box は依存グラフ更新まで古い値のままになる。連続切断で
+        # 「切った片方の範囲」を読むため、ここで確定させる。
+        bpy.context.view_layer.update()
+
+        # 生成物も検索表へ登録する。こうしないと「切った片方をさらに切る」連続切断ができない
+        # （腰+スカート一体の部品を 腰 / 左スカート / 右スカート へ分けるのに必要）。
+        by_name[n_lo] = obj
+        by_name[n_hi] = dup
 
         v_lo, v_hi = len(obj.data.vertices), len(dup.data.vertices)
         local_pos = (pos - p_lo) / p_span if p_span else 0.0
