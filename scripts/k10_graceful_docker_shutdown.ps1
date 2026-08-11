@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 <#
 .SYNOPSIS
   Windows シャットダウン/再起動時に PostgreSQL を含む Docker コンテナを
@@ -26,35 +26,32 @@ $LogFile    = "C:\ProgramData\Clawstack\stability\docker_shutdown.log"
 if ($Register) {
     New-Item -ItemType Directory -Force -Path (Split-Path $LogFile) | Out-Null
 
-    # EventTrigger: System/1074 (shutdown initiated by user/process)
-    $triggerXml = @"
-<EventTrigger>
-  <Subscription>
-    &lt;QueryList&gt;
-      &lt;Query Id="0" Path="System"&gt;
-        &lt;Select Path="System"&gt;*[System[Provider[@Name='USER32'] and EventID=1074]]&lt;/Select&gt;
-      &lt;/Query&gt;
-    &lt;/QueryList&gt;
-  </Subscription>
-</EventTrigger>
-"@
+    # 管理者権限が要る。無いまま進むと分かりにくい失敗をするので先に落とす。
+    $me = New-Object Security.Principal.WindowsPrincipal(
+        [Security.Principal.WindowsIdentity]::GetCurrent())
+    if (-not $me.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+        Write-Error "[NG] 管理者権限が必要です。管理者の PowerShell で次を実行してください: powershell -ExecutionPolicy Bypass -File `"$ScriptPath`" -Register"
+        exit 1
+    }
+
     $action   = New-ScheduledTaskAction -Execute "powershell.exe" `
         -Argument "-NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$ScriptPath`""
     $settings = New-ScheduledTaskSettingsSet `
         -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries `
         -ExecutionTimeLimit (New-TimeSpan -Minutes 5)
 
-    $task = New-ScheduledTask -Action $action -Settings $settings
-    Register-ScheduledTask -TaskName $TaskName -InputObject $task -Force -RunLevel Highest `
-        -User "SYSTEM" | Out-Null
+    # SYSTEM/最上位権限は Principal としてタスク定義に載せる。
+    # Register-ScheduledTask の -InputObject と -User/-RunLevel は排他のパラメータセットで、
+    # 併用すると AmbiguousParameterSet で失敗する（登録できていなかった原因）。
+    $principal = New-ScheduledTaskPrincipal -UserId "SYSTEM" `
+        -LogonType ServiceAccount -RunLevel Highest
 
-    # EventTrigger は XML で直接セット（PowerShell Cmdlet では設定不可）
-    $sched = New-Object -ComObject Schedule.Service
-    $sched.Connect()
-    $folder = $sched.GetFolder("\")
-    $taskObj = $folder.GetTask($TaskName)
-    $taskDef = $taskObj.Definition
-    $trigger = $taskDef.Triggers.Create(0)  # 0 = TASK_TRIGGER_EVENT
+    # EventTrigger は New-ScheduledTaskTrigger では作れないので CIM で組む。
+    # System/1074 = ユーザーまたはプロセスがシャットダウンを開始した。
+    $trigger = New-CimInstance -ClassName MSFT_TaskEventTrigger `
+        -Namespace Root/Microsoft/Windows/TaskScheduler -ClientOnly
+    $trigger.Enabled = $true
+    $trigger.Delay = "PT3S"
     $trigger.Subscription = @"
 <QueryList>
   <Query Id="0" Path="System">
@@ -62,10 +59,18 @@ if ($Register) {
   </Query>
 </QueryList>
 "@
-    $trigger.Delay = "PT3S"
-    $folder.RegisterTaskDefinition($TaskName, $taskDef, 4, "SYSTEM", $null, 5) | Out-Null
 
-    Write-Host "[OK] Registered: $TaskName (fires on Event ID 1074 = shutdown)"
+    $task = New-ScheduledTask -Action $action -Settings $settings `
+        -Principal $principal -Trigger $trigger
+    Register-ScheduledTask -TaskName $TaskName -InputObject $task -Force | Out-Null
+
+    $check = Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue
+    if ($check) {
+        Write-Host "[OK] Registered: $TaskName (fires on Event ID 1074 = shutdown)"
+    } else {
+        Write-Error "[NG] 登録に失敗しました"
+        exit 1
+    }
     return
 }
 
