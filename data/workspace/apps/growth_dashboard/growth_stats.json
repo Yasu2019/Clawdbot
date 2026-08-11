@@ -1,1450 +1,224 @@
 {
-  "updated_at": "2026-07-26T07:00:23.554278",
+  "updated_at": "2026-08-11T08:18:36.667551",
   "domain_stats": {
-    "3D_ANIMATION": 805,
-    "CAD": 556,
+    "3D_ANIMATION": 1017,
+    "CAD": 789,
     "CAE_FEM_IMPACT": 1,
-    "CAE_MATERIAL": 3813,
-    "DATASET": 3,
+    "CAE_MATERIAL": 4217,
+    "CAE_OPENRADIOSS": 2,
+    "DATASET": 1773,
     "DXF2STEP": 19,
-    "EMBODIED_ROBOTICS": 39480,
-    "ENGINEERING_THEORY": 724,
+    "EMBODIED_ROBOTICS": 50292,
+    "ENGINEERING_THEORY": 989,
     "FLEET_OPS": 1,
-    "GEOMETRY_AI": 578,
+    "GEOMETRY_AI": 794,
     "GMAIL_READING": 900,
     "IATF_AUDITING_YT": 349,
-    "IE": 869,
-    "MUSIC": 532,
+    "IE": 1084,
+    "MATERIALS": 2965,
+    "MUSIC": 764,
     "MUSIC_THEORY": 190,
-    "NORTH_STAR": 219,
+    "NORTH_STAR": 5741,
+    "OPENRADIOSS_BLANKING": 1,
+    "OPENSOURCE": 56,
     "PROGRESSIVE_DIE": 2,
-    "QUALITY": 569,
+    "QUALITY": 819,
+    "RESEARCH": 1858,
     "RESIN_FLOW": 1,
     "ROBOTICS": 1,
     "SCRIBD_DOCUMENT": 4181,
-    "TERMINOLOGY": 516,
+    "TERMINOLOGY": 721,
     "TEST": 1,
     "TOLERANCE_ANALYSIS": 48,
-    "IATF": 3
+    "3D_MATERIAL": 9,
+    "VISION": 13
   },
   "history": [
     {
-      "day": "2026-06-26",
-      "count": 444
-    },
-    {
-      "day": "2026-06-27",
-      "count": 1559
-    },
-    {
-      "day": "2026-06-28",
-      "count": 1512
-    },
-    {
-      "day": "2026-06-29",
-      "count": 1520
-    },
-    {
-      "day": "2026-06-30",
-      "count": 1519
-    },
-    {
-      "day": "2026-07-01",
-      "count": 1413
-    },
-    {
-      "day": "2026-07-02",
-      "count": 1154
-    },
-    {
-      "day": "2026-07-03",
-      "count": 1510
-    },
-    {
-      "day": "2026-07-04",
-      "count": 1465
-    },
-    {
-      "day": "2026-07-05",
-      "count": 1163
-    },
-    {
-      "day": "2026-07-06",
-      "count": 1221
-    },
-    {
-      "day": "2026-07-07",
-      "count": 1337
-    },
-    {
-      "day": "2026-07-08",
-      "count": 1500
-    },
-    {
-      "day": "2026-07-09",
-      "count": 1502
-    },
-    {
-      "day": "2026-07-10",
-      "count": 1528
-    },
-    {
-      "day": "2026-07-11",
-      "count": 1552
-    },
-    {
       "day": "2026-07-12",
-      "count": 1552
-    },
-    {
-      "day": "2026-07-13",
       "count": 1587
     },
     {
+      "day": "2026-07-13",
+      "count": 1624
+    },
+    {
       "day": "2026-07-14",
-      "count": 1549
+      "count": 1577
     },
     {
       "day": "2026-07-15",
-      "count": 1557
+      "count": 1608
     },
     {
       "day": "2026-07-16",
-      "count": 1460
+      "count": 1505
     },
     {
       "day": "2026-07-17",
-      "count": 1544
+      "count": 1590
     },
     {
       "day": "2026-07-18",
-      "count": 1561
+      "count": 1604
     },
     {
       "day": "2026-07-19",
-      "count": 1550
+      "count": 1582
     },
     {
       "day": "2026-07-20",
-      "count": 1561
+      "count": 1616
     },
     {
       "day": "2026-07-21",
-      "count": 1562
+      "count": 1608
     },
     {
       "day": "2026-07-22",
-      "count": 1561
+      "count": 1616
     },
     {
       "day": "2026-07-23",
-      "count": 1570
+      "count": 1675
     },
     {
       "day": "2026-07-24",
-      "count": 1539
+      "count": 1624
     },
     {
       "day": "2026-07-25",
-      "count": 1426
-    }
-  ],
-  "email_history": [
-    {
-      "day": "2026-07-05",
-      "gmail": 1,
-      "eml": 0
+      "count": 1635
     },
     {
-      "day": "2026-07-06",
-      "gmail": 10,
-      "eml": 0
+      "day": "2026-07-26",
+      "count": 1621
     },
     {
-      "day": "2026-07-08",
-      "gmail": 4,
-      "eml": 0
+      "day": "2026-07-27",
+      "count": 1634
     },
     {
-      "day": "2026-07-09",
-      "gmail": 4,
-      "eml": 0
+      "day": "2026-07-28",
+      "count": 1625
     },
     {
-      "day": "2026-07-10",
-      "gmail": 17,
-      "eml": 0
+      "day": "2026-07-29",
+      "count": 1480
     },
     {
-      "day": "2026-07-11",
-      "gmail": 3,
-      "eml": 0
+      "day": "2026-07-30",
+      "count": 609
     },
     {
-      "day": "2026-07-15",
-      "gmail": 94,
-      "eml": 0
+      "day": "2026-07-31",
+      "count": 641
     },
     {
-      "day": "2026-07-16",
-      "gmail": 95,
-      "eml": 0
+      "day": "2026-08-01",
+      "count": 1060
     },
     {
-      "day": "2026-07-17",
-      "gmail": 210,
-      "eml": 0
+      "day": "2026-08-02",
+      "count": 1674
+    },
+    {
+      "day": "2026-08-03",
+      "count": 1666
+    },
+    {
+      "day": "2026-08-04",
+      "count": 1748
+    },
+    {
+      "day": "2026-08-05",
+      "count": 1203
+    },
+    {
+      "day": "2026-08-06",
+      "count": 887
+    },
+    {
+      "day": "2026-08-07",
+      "count": 819
+    },
+    {
+      "day": "2026-08-08",
+      "count": 1346
+    },
+    {
+      "day": "2026-08-09",
+      "count": 1065
+    },
+    {
+      "day": "2026-08-10",
+      "count": 918
+    },
+    {
+      "day": "2026-08-11",
+      "count": 402
     }
   ],
   "recent_know_how": [
     {
-      "domain": "CAE_MATERIAL",
-      "challenge": "【Dynabook自動収集】How Hongrita’s Smart Injection Molding Factory Achieves Tighter Tolerances and Shorter Cycle Times - EIN News",
-      "know_how": "window.WIZ_global_data = {\"AfY8Hf\":false,\"Dftppe\":\"%.@.]\",\"DpimGf\":false,\"EP1ykd\":[\"/_/*\",\"/_/SubscribewithgoogleClientU...",
-      "timestamp": "2026-07-26 06:59:10"
+      "domain": "NORTH_STAR",
+      "challenge": "Reviewed: Characterization of the magnetic fabric of rocks",
+      "know_how": "openalexから取得した資料。原文確認前はメタデータ候補として扱う。",
+      "timestamp": "2026-08-11 08:18:33"
     },
     {
-      "domain": "CAE_MATERIAL",
-      "challenge": "【Dynabook自動収集】Rubber Molding Simulation Cuts Production Costs - PlasticsToday",
-      "know_how": "window.WIZ_global_data = {\"AfY8Hf\":false,\"Dftppe\":\"%.@.]\",\"DpimGf\":false,\"EP1ykd\":[\"/_/*\",\"/_/SubscribewithgoogleClientU...",
-      "timestamp": "2026-07-26 06:58:46"
-    },
-    {
-      "domain": "CAE_MATERIAL",
-      "challenge": "【Dynabook自動収集】Elimination of halo gloss transition surface defects on injection-molded parts - Nature",
-      "know_how": "window.WIZ_global_data = {\"AfY8Hf\":false,\"Dftppe\":\"%.@.]\",\"DpimGf\":false,\"EP1ykd\":[\"/_/*\",\"/_/SubscribewithgoogleClientU...",
-      "timestamp": "2026-07-26 06:58:38"
-    },
-    {
-      "domain": "CAE_MATERIAL",
-      "challenge": "【Dynabook自動収集】Autodesk announces updates to AI expansion - develop3d",
-      "know_how": "window.WIZ_global_data = {\"AfY8Hf\":false,\"Dftppe\":\"%.@.]\",\"DpimGf\":false,\"EP1ykd\":[\"/_/*\",\"/_/SubscribewithgoogleClientU...",
-      "timestamp": "2026-07-26 06:58:26"
-    },
-    {
-      "domain": "CAE_MATERIAL",
-      "challenge": "【Dynabook自動収集】How Autodesk is expanding AI across Design and Manufacturing - Autodesk News",
-      "know_how": "window.WIZ_global_data = {\"AfY8Hf\":false,\"Dftppe\":\"%.@.]\",\"DpimGf\":false,\"EP1ykd\":[\"/_/*\",\"/_/SubscribewithgoogleClientU...",
-      "timestamp": "2026-07-26 06:58:16"
-    },
-    {
-      "domain": "CAE_MATERIAL",
-      "challenge": "【Dynabook自動収集】How flexibility and agility are reshaping mold flow control in thin to medium slab casting - ABB",
-      "know_how": "window.WIZ_global_data = {\"AfY8Hf\":false,\"Dftppe\":\"%.@.]\",\"DpimGf\":false,\"EP1ykd\":[\"/_/*\",\"/_/SubscribewithgoogleClientU...",
-      "timestamp": "2026-07-26 06:58:05"
-    },
-    {
-      "domain": "IATF",
-      "challenge": "【Dynabook自動収集】Rulemaker status: BYD joins elite IATF body to help shape international EV rules - CarNewsChina.com",
-      "know_how": "window.WIZ_global_data = {\"AfY8Hf\":false,\"Dftppe\":\"%.@.]\",\"DpimGf\":false,\"EP1ykd\":[\"/_/*\",\"/_/SubscribewithgoogleClientU...",
-      "timestamp": "2026-07-26 06:57:54"
-    },
-    {
-      "domain": "IATF",
-      "challenge": "【Dynabook自動収集】ISO 9001 in 2026: What’s Changing—and How AS9100 (IA9100), IATF 16949, NIST & CMMC Fit Together - Quality Magazine",
-      "know_how": "window.WIZ_global_data = {\"AfY8Hf\":false,\"Dftppe\":\"%.@.]\",\"DpimGf\":false,\"EP1ykd\":[\"/_/*\",\"/_/SubscribewithgoogleClientU...",
-      "timestamp": "2026-07-26 06:57:42"
-    },
-    {
-      "domain": "IATF",
-      "challenge": "【Dynabook自動収集】IATF 16949 News: 2025 Rules and 2026 Changes - Smithers",
-      "know_how": "window.WIZ_global_data = {\"AfY8Hf\":false,\"Dftppe\":\"%.@.]\",\"DpimGf\":false,\"EP1ykd\":[\"/_/*\",\"/_/SubscribewithgoogleClientU...",
-      "timestamp": "2026-07-26 06:57:26"
-    },
-    {
-      "domain": "EMBODIED_ROBOTICS",
-      "challenge": "ROBOT_L20 batch 203 cycle 56",
-      "know_how": "{\"ie_verdict\": \"L40_IE_MASTER\", \"task_floor\": 90.9, \"corrections\": []}",
-      "timestamp": "2026-07-25 19:58:24"
-    },
-    {
-      "domain": "EMBODIED_ROBOTICS",
-      "challenge": "ROBOT_L20 batch 203 cycle 55",
-      "know_how": "{\"ie_verdict\": \"L40_IE_MASTER\", \"task_floor\": 92.1, \"corrections\": []}",
-      "timestamp": "2026-07-25 19:57:22"
-    },
-    {
-      "domain": "EMBODIED_ROBOTICS",
-      "challenge": "ROBOT_L20 batch 203 cycle 54",
-      "know_how": "{\"ie_verdict\": \"L40_IE_MASTER\", \"task_floor\": 90.9, \"corrections\": []}",
-      "timestamp": "2026-07-25 19:56:21"
-    },
-    {
-      "domain": "EMBODIED_ROBOTICS",
-      "challenge": "ROBOT_L20 batch 203 cycle 53",
-      "know_how": "{\"ie_verdict\": \"L40_IE_MASTER\", \"task_floor\": 91.0, \"corrections\": []}",
-      "timestamp": "2026-07-25 19:55:20"
-    },
-    {
-      "domain": "EMBODIED_ROBOTICS",
-      "challenge": "ROBOT_L20 batch 203 cycle 52",
-      "know_how": "{\"ie_verdict\": \"L40_IE_MASTER\", \"task_floor\": 90.4, \"corrections\": []}",
-      "timestamp": "2026-07-25 19:54:19"
+      "domain": "NORTH_STAR",
+      "challenge": "Reviewed: Nanoparticle Silver Released into Water from Commercially Available Sock Fabrics",
+      "know_how": "openalexから取得した資料。原文確認前はメタデータ候補として扱う。",
+      "timestamp": "2026-08-11 08:18:33"
     },
     {
       "domain": "GEOMETRY_AI",
       "challenge": "Algorithm Test: Reconstruct 3D volume from 2-view DXF projection.",
       "know_how": "Learned optimal strategy for Algorithm Test: Reconstruct 3D volume from 2-view DXF projection. using local-first inference.",
-      "timestamp": "2026-07-25 19:54:14"
+      "timestamp": "2026-08-11 08:15:14"
     },
     {
       "domain": "EMBODIED_ROBOTICS",
-      "challenge": "ROBOT_L20 batch 203 cycle 51",
-      "know_how": "{\"ie_verdict\": \"L40_IE_MASTER\", \"task_floor\": 91.5, \"corrections\": []}",
-      "timestamp": "2026-07-25 19:53:18"
+      "challenge": "ROBOT_L20 batch 256 cycle 200",
+      "know_how": "{\"ie_verdict\": \"L40_IE_MASTER\", \"task_floor\": 90.6, \"corrections\": []}",
+      "timestamp": "2026-08-11 08:11:24"
     },
     {
       "domain": "EMBODIED_ROBOTICS",
-      "challenge": "ROBOT_L20 batch 203 cycle 50",
-      "know_how": "{\"ie_verdict\": \"L40_IE_MASTER\", \"task_floor\": 91.7, \"corrections\": []}",
-      "timestamp": "2026-07-25 19:52:17"
+      "challenge": "ROBOT_L20 batch 256 cycle 199",
+      "know_how": "{\"ie_verdict\": \"L40_IE_MASTER\", \"task_floor\": 90.4, \"corrections\": []}",
+      "timestamp": "2026-08-11 08:10:24"
     },
     {
       "domain": "EMBODIED_ROBOTICS",
-      "challenge": "ROBOT_L20 batch 203 cycle 49",
-      "know_how": "{\"ie_verdict\": \"L40_IE_MASTER\", \"task_floor\": 91.0, \"corrections\": []}",
-      "timestamp": "2026-07-25 19:51:14"
+      "challenge": "ROBOT_L20 batch 256 cycle 198",
+      "know_how": "{\"ie_verdict\": \"L40_IE_MASTER\", \"task_floor\": 89.9, \"corrections\": []}",
+      "timestamp": "2026-08-11 08:09:24"
     },
     {
       "domain": "EMBODIED_ROBOTICS",
-      "challenge": "ROBOT_L20 batch 203 cycle 48",
-      "know_how": "{\"ie_verdict\": \"L40_IE_MASTER\", \"task_floor\": 90.5, \"corrections\": []}",
-      "timestamp": "2026-07-25 19:50:09"
+      "challenge": "ROBOT_L20 batch 256 cycle 197",
+      "know_how": "{\"ie_verdict\": \"L40_IE_MASTER\", \"task_floor\": 89.8, \"corrections\": []}",
+      "timestamp": "2026-08-11 08:08:23"
+    },
+    {
+      "domain": "EMBODIED_ROBOTICS",
+      "challenge": "ROBOT_L20 batch 256 cycle 196",
+      "know_how": "{\"ie_verdict\": \"L40_IE_MASTER\", \"task_floor\": 90.6, \"corrections\": []}",
+      "timestamp": "2026-08-11 08:07:23"
+    },
+    {
+      "domain": "EMBODIED_ROBOTICS",
+      "challenge": "ROBOT_L20 batch 256 cycle 195",
+      "know_how": "{\"ie_verdict\": \"L40_IE_MASTER\", \"task_floor\": 90.1, \"corrections\": []}",
+      "timestamp": "2026-08-11 08:06:23"
+    },
+    {
+      "domain": "EMBODIED_ROBOTICS",
+      "challenge": "ROBOT_L20 batch 256 cycle 194",
+      "know_how": "{\"ie_verdict\": \"L40_IE_MASTER\", \"task_floor\": 91.1, \"corrections\": []}",
+      "timestamp": "2026-08-11 08:05:22"
     }
-  ],
-  "commercial_benchmark_l10": {
-    "updated_note": "L0-L10 vs commercial engineering targets: Moldflow, Cetol 6 sigma, DXF->STEP/FCStd, Sora/Seedance2-class video. Levels capped by measured executable evidence (honest assessment). L10 = commercial parity + factory KPI proof. Document/RAG ingest does not raise L levels.",
-    "category_defs": [
-      {
-        "id": "accuracy",
-        "label": "精度",
-        "description": "Correlation to measurement / golden cases / energy-mass balance"
-      },
-      {
-        "id": "model_size",
-        "label": "モデルサイズ",
-        "description": "Mesh scale, part complexity, assembly size handled"
-      },
-      {
-        "id": "functionality",
-        "label": "機能",
-        "description": "Physics models, solvers, phases (fill/pack/cool), contact, GD&T engines"
-      },
-      {
-        "id": "evaluable_items",
-        "label": "評価可能項目",
-        "description": "Defects/KPIs the workflow can quantify (short shot, weldline, stack-up, etc.)"
-      },
-      {
-        "id": "operability",
-        "label": "操作性",
-        "description": "UX, automation, visualization, animation, editability"
-      },
-      {
-        "id": "integration",
-        "label": "連携",
-        "description": "CAD/STEP/DB/QMS/dashboard pipeline"
-      }
-    ],
-    "evidence_snapshot": {
-      "resin": {
-        "trials": 462,
-        "success": 400,
-        "failed": 62,
-        "dry_run": 0,
-        "success_rate_pct": 86.6,
-        "has_real_residuals": false,
-        "has_vof_fill_kpi": true,
-        "categories": [
-          "resin_fill_cad"
-        ],
-        "last_trial_at": "2026-07-23T17:02:43.040953",
-        "evidence_age_hours": 59.94023063527777,
-        "fill_kpi_samples": 100,
-        "fill_kpi_nonphysical_pct": 99.0,
-        "fill_kpi_physical": false,
-        "golden_last3_pass": false,
-        "golden_mass_balance_ok": false,
-        "golden_records": 3
-      },
-      "openradioss": {
-        "total": 187,
-        "success": 18,
-        "failed": 169,
-        "best_tstop": true,
-        "best_t_ms": 30.15,
-        "doe_running": false,
-        "progress_age_hours": 1373.161476064523,
-        "progress_stale": true,
-        "te_trials": 1,
-        "te_success": 0,
-        "tri_track": {
-          "n": 1,
-          "last_verdict": "ERROR",
-          "last_at": "2026-07-26T04:58:20+09:00",
-          "fail_streak": 0,
-          "active": true
-        }
-      },
-      "tolerance": {
-        "total": 48,
-        "success": 36,
-        "has_kpi": true
-      },
-      "dxf2step": {
-        "total": 1680,
-        "success": 984,
-        "success_rate_pct": 58.6,
-        "fcstd_jobs": 9,
-        "step_jobs": 9,
-        "parametric_jobs": 0,
-        "combined_jobs": 8,
-        "multiview_jobs": 0,
-        "max_layers": 3,
-        "recent_fcstd_pct": 0.0,
-        "has_kpi": true
-      },
-      "growth_db_ok": true,
-      "gdt_overlay": true,
-      "dashboard_or_progress": true,
-      "cae_te_log_readable": true,
-      "viai": {
-        "project": true,
-        "champion": true,
-        "registry": true,
-        "demo_data": true,
-        "calibrated": true,
-        "web_ui": true,
-        "portal_linked": false,
-        "inspections": 34,
-        "reviews": 14
-      },
-      "video": {
-        "mp4_counts": {
-          "iatf": 90,
-          "cae_viz": 1383,
-          "projects": 1922,
-          "other": 31,
-          "total": 3426
-        },
-        "has_generative_api": false,
-        "has_prompt_studio": true,
-        "iatf_design_ok": true,
-        "iatf_pdca_ok": true,
-        "iatf_light_loop_ok": true,
-        "animation_domain_events": 805,
-        "dashboard_ok": true,
-        "iatf_youtube_export": true,
-        "visual_qa_pass_artifact": false,
-        "cae_fill_mp4": true
-      }
-    },
-    "matrix": [
-      {
-        "product_id": "OPENRADIOSS_BLANKING",
-        "product_label": "せん断/順送金型（顕式FEM）",
-        "reference": "LS-DYNA / Radioss-class 商用",
-        "clawstack_stack": "OpenRadioss shear_blanking DOE",
-        "categories": [
-          {
-            "id": "accuracy",
-            "label": "精度",
-            "description": "Correlation to measurement / golden cases / energy-mass balance",
-            "current_level": 3,
-            "current_label": "L3",
-            "current_stage": "ERR<閾値",
-            "l10_target": "L10: 商用FEM同等+証明",
-            "levels": [
-              "未実施",
-              "デッキ実行",
-              "TSTOP到達1件",
-              "ERR<閾値",
-              "せん断域KPI",
-              "クラックリスク",
-              "試作相関",
-              "ゴールデン複数",
-              "現場採用",
-              "自動校正",
-              "L10: 商用FEM同等+証明"
-            ],
-            "progress_pct": 30.0
-          },
-          {
-            "id": "model_size",
-            "label": "モデルサイズ",
-            "description": "Mesh scale, part complexity, assembly size handled",
-            "current_level": 2,
-            "current_label": "L2",
-            "current_stage": "板厚1-3mm",
-            "l10_target": "L10: 量産金型",
-            "levels": [
-              "未実施",
-              "ミニ4mm",
-              "板厚1-3mm",
-              "ストリッパ付",
-              "順送複数工程",
-              "100万要素",
-              "工具フル",
-              "ライン全体",
-              "並列SPMD",
-              "クラウド",
-              "L10: 量産金型"
-            ],
-            "progress_pct": 20.0
-          },
-          {
-            "id": "functionality",
-            "label": "機能",
-            "description": "Physics models, solvers, phases (fill/pack/cool), contact, GD&T engines",
-            "current_level": 4,
-            "current_label": "L4",
-            "current_stage": "速度閾値制御",
-            "l10_target": "L10: 全成形工程",
-            "levels": [
-              "未実施",
-              "starter+engine",
-              "接触/破断",
-              "DOE自動",
-              "速度閾値制御",
-              "stripper力",
-              "異方性",
-              "リクル",
-              "最適化",
-              "クラック予測",
-              "L10: 全成形工程"
-            ],
-            "progress_pct": 40.0
-          },
-          {
-            "id": "evaluable_items",
-            "label": "評価可能項目",
-            "description": "Defects/KPIs the workflow can quantify (short shot, weldline, stack-up, etc.)",
-            "current_level": 3,
-            "current_label": "L3",
-            "current_stage": "VC/Eps_eff",
-            "l10_target": "L10: 試作デジタルツイン",
-            "levels": [
-              "なし",
-              "T/ERR",
-              "終了理由",
-              "VC/Eps_eff",
-              "せん断/破断域",
-              "バリ高さ",
-              "スプリングバック",
-              "力-ストローク",
-              "摩耗",
-              "QMS",
-              "L10: 試作デジタルツイン"
-            ],
-            "progress_pct": 30.0
-          },
-          {
-            "id": "operability",
-            "label": "操作性",
-            "description": "UX, automation, visualization, animation, editability",
-            "current_level": 4,
-            "current_label": "L4",
-            "current_stage": "進捗JSON",
-            "l10_target": "L10: 現場1クリック",
-            "levels": [
-              "手動",
-              "シェル起動",
-              "DOE runner",
-              "DBログ",
-              "進捗JSON",
-              "ダッシュボード",
-              "VTK可視",
-              "Telegram",
-              "ポータル",
-              "無人夜間",
-              "L10: 現場1クリック"
-            ],
-            "progress_pct": 40.0
-          },
-          {
-            "id": "integration",
-            "label": "連携",
-            "description": "CAD/STEP/DB/QMS/dashboard pipeline",
-            "current_level": 4,
-            "current_label": "L4",
-            "current_stage": "DXF/STEP",
-            "l10_target": "L10: 工場OS",
-            "levels": [
-              "孤立",
-              "sim_trial DB",
-              "growth",
-              "rad_model.py",
-              "DXF/STEP",
-              "QMS",
-              "n8n",
-              "Paperless",
-              "Turso",
-              "Hub",
-              "L10: 工場OS"
-            ],
-            "progress_pct": 40.0
-          }
-        ],
-        "avg_level": 3.3
-      },
-      {
-        "product_id": "DXF2STEP_FREECAD",
-        "product_label": "DXF -> STEP / 編集可能FCStd",
-        "reference": "SolidWorks / Fusion / 高機能DXF変換 + FreeCAD パラメトリック",
-        "clawstack_stack": "dxf2step_worker (Sketch/Pad/FCStd) + universal_growth.db",
-        "categories": [
-          {
-            "id": "accuracy",
-            "label": "精度",
-            "description": "Correlation to measurement / golden cases / energy-mass balance",
-            "current_level": 3,
-            "current_label": "L3",
-            "current_stage": "寸法線・注釈フィルタ安定",
-            "l10_target": "L10: 商用CAD変換級+工場証明",
-            "levels": [
-              "未実施",
-              "ジョブログのみ",
-              "STEP出力（単純図面）",
-              "寸法線・注釈フィルタ安定",
-              "輪郭復元・交差解消",
-              "GD&T混入図面で致命エラーなし",
-              "ゴールデンDXF 1件合格",
-              "計測/試作形状と相関",
-              "複数図面タイプで再現",
-              "現場改訂サイクル短縮",
-              "L10: 商用CAD変換級+工場証明"
-            ],
-            "progress_pct": 30.0
-          },
-          {
-            "id": "model_size",
-            "label": "モデルサイズ",
-            "description": "Mesh scale, part complexity, assembly size handled",
-            "current_level": 4,
-            "current_label": "L4",
-            "current_stage": "多視図3D再構成",
-            "l10_target": "L10: 量産図面フルスケール",
-            "levels": [
-              "未実施",
-              "単一レイヤ",
-              "複数レイヤ",
-              "組図 combined STEP",
-              "多視図3D再構成",
-              "アセンブリ配置",
-              "大型組図(100+部品)",
-              "全社図面テンプレ",
-              "クラウド並列変換",
-              "PLM全連携",
-              "L10: 量産図面フルスケール"
-            ],
-            "progress_pct": 40.0
-          },
-          {
-            "id": "functionality",
-            "label": "機能",
-            "description": "Physics models, solvers, phases (fill/pack/cool), contact, GD&T engines",
-            "current_level": 4,
-            "current_label": "L4",
-            "current_stage": "Exclude/編集可能Body",
-            "l10_target": "L10: 商用CAD同等機能",
-            "levels": [
-              "未実施",
-              "STEPのみ",
-              "FCStd出力",
-              "Sketch+Pad履歴付きFCStd",
-              "Exclude/編集可能Body",
-              "組図から部品STEP分割",
-              "PMI/GD&T保持",
-              "アセンブリ拘束",
-              "ECN差分更新",
-              "FreeCADマクロ自動",
-              "L10: 商用CAD同等機能"
-            ],
-            "progress_pct": 40.0
-          },
-          {
-            "id": "evaluable_items",
-            "label": "評価可能項目",
-            "description": "Defects/KPIs the workflow can quantify (short shot, weldline, stack-up, etc.)",
-            "current_level": 3,
-            "current_label": "L3",
-            "current_stage": "STEP/FCStd有無",
-            "l10_target": "L10: 全KPIダッシュボード",
-            "levels": [
-              "なし",
-              "成功/失敗のみ",
-              "レイヤKPI",
-              "STEP/FCStd有無",
-              "注釈除外数",
-              "combined STEP",
-              "失敗根拠タグ",
-              "成功率トレンド",
-              "品質ゲート",
-              "QMS連携",
-              "L10: 全KPIダッシュボード"
-            ],
-            "progress_pct": 30.0
-          },
-          {
-            "id": "operability",
-            "label": "操作性",
-            "description": "UX, automation, visualization, animation, editability",
-            "current_level": 2,
-            "current_label": "L2",
-            "current_stage": "FCStdをユーザー編集",
-            "l10_target": "L10: 1クリック現場運用",
-            "levels": [
-              "手動FreeCAD",
-              "バッチ変換",
-              "FCStdをユーザー編集",
-              "Sketchツリー再編集",
-              "Pad厚み変更",
-              "プレビューPNG",
-              "ポータルから起動",
-              "ドラッグ&ドロップ",
-              "現場オペレータ向けUI",
-              "音声/チャット指示",
-              "L10: 1クリック現場運用"
-            ],
-            "progress_pct": 20.0
-          },
-          {
-            "id": "integration",
-            "label": "連携",
-            "description": "CAD/STEP/DB/QMS/dashboard pipeline",
-            "current_level": 3,
-            "current_label": "L3",
-            "current_stage": "growth_dashboard",
-            "l10_target": "L10: 工場OS組込",
-            "levels": [
-              "孤立",
-              "jobs/成果物",
-              "universal_growth.db",
-              "growth_dashboard",
-              "GEOMETRY_AI前処理",
-              "TOLERANCE_ANALYSIS連携",
-              "QMS/監査",
-              "Paperless",
-              "Turso同期",
-              "n8n",
-              "L10: 工場OS組込"
-            ],
-            "progress_pct": 30.0
-          }
-        ],
-        "avg_level": 3.2
-      },
-      {
-        "product_id": "PROCEDURAL_ENGINE_VIDEO",
-        "product_label": "手続き型動画 (Blender / IATF / CAE可視化)",
-        "reference": "IATF Video Factory, CityCharacterPipeline, moldflow VOF MP4",
-        "clawstack_stack": "Blender+VoiceVox+FFmpeg / OpenFOAM field render",
-        "categories": [
-          {
-            "id": "visual_fidelity",
-            "label": "画質・リアリティ",
-            "current_level": 3,
-            "level_label": "トゥーン/教育品質"
-          },
-          {
-            "id": "motion_coherence",
-            "label": "モーション一貫性",
-            "current_level": 3,
-            "level_label": "リップシンク試作"
-          },
-          {
-            "id": "controllability",
-            "label": "制御性",
-            "current_level": 3,
-            "level_label": "storyboard.json"
-          },
-          {
-            "id": "pipeline_automation",
-            "label": "パイプライン自動化",
-            "current_level": 3,
-            "level_label": "ゲート付き"
-          },
-          {
-            "id": "production_readiness",
-            "label": "量産・QA",
-            "current_level": 3,
-            "level_label": "10本+"
-          },
-          {
-            "id": "integration",
-            "label": "連携",
-            "current_level": 4,
-            "level_label": "YouTube解析"
-          }
-        ],
-        "avg_level": 3.2,
-        "track": "video"
-      },
-      {
-        "product_id": "MOLDFLOW",
-        "product_label": "樹脂充填解析",
-        "reference": "Autodesk Moldflow / 同等商用",
-        "clawstack_stack": "OpenFOAM resin_flow_v001 + CAE T&E",
-        "categories": [
-          {
-            "id": "accuracy",
-            "label": "精度",
-            "description": "Correlation to measurement / golden cases / energy-mass balance",
-            "current_level": 3,
-            "current_label": "L3",
-            "current_stage": "代理KPI式（粘度・流速）",
-            "l10_target": "L10: Moldflow級精度+工場KPI証明",
-            "levels": [
-              "未実施",
-              "試行ログのみ",
-              "ソルバ完走（収束）",
-              "代理KPI式（粘度・流速）",
-              "OpenFOAM場から圧力/流速抽出",
-              "質量収支・充填率の定量",
-              "試作金型との相関1件",
-              "ゴールデンケース複数",
-              "現場採用・再現性",
-              "自動校正ループ",
-              "L10: Moldflow級精度+工場KPI証明"
-            ],
-            "progress_pct": 30.0
-          },
-          {
-            "id": "model_size",
-            "label": "モデルサイズ",
-            "description": "Mesh scale, part complexity, assembly size handled",
-            "current_level": 3,
-            "current_label": "L3",
-            "current_stage": "ランナー+ゲート3",
-            "l10_target": "L10: 量産金型フルモデル",
-            "levels": [
-              "未実施",
-              "単純ブロック",
-              "1キャビティ矩形",
-              "ランナー+ゲート3",
-              "実部品STEPキャビティ",
-              "100万セル級",
-              "多キャビティ",
-              "大型部品+冷却路",
-              "フル金型アセンブリ",
-              "クラウド並列",
-              "L10: 量産金型フルモデル"
-            ],
-            "progress_pct": 30.0
-          },
-          {
-            "id": "functionality",
-            "label": "機能",
-            "description": "Physics models, solvers, phases (fill/pack/cool), contact, GD&T engines",
-            "current_level": 2,
-            "current_label": "L2",
-            "current_stage": "定常 icoFoam",
-            "l10_target": "L10: 全工程デジタルツイン",
-            "levels": [
-              "未実施",
-              "blockMeshのみ",
-              "定常 icoFoam",
-              "非ニュートン粘度",
-              "VOF充填",
-              "保圧・冷却",
-              "繊維配向・収縮",
-              "多材料",
-              "ゲート最適化",
-              "Moldflow連携",
-              "L10: 全工程デジタルツイン"
-            ],
-            "progress_pct": 20.0
-          },
-          {
-            "id": "evaluable_items",
-            "label": "評価可能項目",
-            "description": "Defects/KPIs the workflow can quantify (short shot, weldline, stack-up, etc.)",
-            "current_level": 3,
-            "current_label": "L3",
-            "current_stage": "ショート/反り/ウェルド/ヒケ（式）",
-            "l10_target": "L10: Moldflow同等の評価セット",
-            "levels": [
-              "なし",
-              "収束のみ",
-              "圧力損失・流速",
-              "ショート/反り/ウェルド/ヒケ（式）",
-              "場ベース欠陥指標",
-              "充填時間・バランス",
-              "冷却歪み",
-              "金型温度",
-              "コスト/サイクル",
-              "QMS連携",
-              "L10: Moldflow同等の評価セット"
-            ],
-            "progress_pct": 30.0
-          },
-          {
-            "id": "operability",
-            "label": "操作性",
-            "description": "UX, automation, visualization, animation, editability",
-            "current_level": 4,
-            "current_label": "L4",
-            "current_stage": "Telegram可視化",
-            "l10_target": "L10: 1クリック現場運用",
-            "levels": [
-              "手動のみ",
-              "Dockerバッチ",
-              "T&E自動+ログ",
-              "ダッシュボード",
-              "Telegram可視化",
-              "パラメータ掃引",
-              "FreeCAD連携",
-              "アニメーション",
-              "現場オペレータUI",
-              "音声/ポータル統合",
-              "L10: 1クリック現場運用"
-            ],
-            "progress_pct": 40.0
-          },
-          {
-            "id": "integration",
-            "label": "連携",
-            "description": "CAD/STEP/DB/QMS/dashboard pipeline",
-            "current_level": 3,
-            "current_label": "L3",
-            "current_stage": "カリキュラムKPI",
-            "l10_target": "L10: 工場OS組込",
-            "levels": [
-              "孤立",
-              "cae_te_log",
-              "universal_growth.db",
-              "カリキュラムKPI",
-              "DXF/STEPパイプ",
-              "QMS/不良リンク",
-              "n8n",
-              "Paperless根拠",
-              "Turso同期",
-              "全Hub統合",
-              "L10: 工場OS組込"
-            ],
-            "progress_pct": 30.0
-          }
-        ],
-        "avg_level": 3.0
-      },
-      {
-        "product_id": "VISUAL_INSPECTION_AI",
-        "product_label": "ローカル外観検査・寸法測定AI",
-        "reference": "Keyence IM/IV / Cognex VisionPro / MVTec HALCON 級",
-        "clawstack_stack": "visual_inspection_ai (ECC位置合わせ+異常検出, FastAPI, Champion/Challenger)",
-        "categories": [
-          {
-            "id": "accuracy",
-            "label": "精度",
-            "description": "Correlation to measurement / golden cases / energy-mass balance",
-            "current_level": 3,
-            "current_label": "L3",
-            "current_stage": "校正済み閾値でOK/NG/REVIEW分離(固定テスト)",
-            "l10_target": "L10: Keyence/Cognex級精度+工程能力証明",
-            "levels": [
-              "未実施",
-              "合成デモ画像で動作確認のみ",
-              "チャンピオンモデル学習済み(合成)",
-              "校正済み閾値でOK/NG/REVIEW分離(固定テスト)",
-              "運用ループで判定実績蓄積(REVIEW確定含む)",
-              "実部品画像で再校正・誤検出率定量",
-              "実測(顕微鏡/CMM)との相関1件",
-              "複数部品種で再現性",
-              "現場採用・歩留り改善実証",
-              "自動再学習・ドリフト監視",
-              "L10: Keyence/Cognex級精度+工程能力証明"
-            ],
-            "progress_pct": 30.0
-          },
-          {
-            "id": "model_size",
-            "label": "モデルサイズ",
-            "description": "Mesh scale, part complexity, assembly size handled",
-            "current_level": 2,
-            "current_label": "L2",
-            "current_stage": "合成デモ一式(良/傷/打痕/バリ/シミ)",
-            "l10_target": "L10: 量産全ライン適用規模",
-            "levels": [
-              "未実施",
-              "単一部品・合成画像",
-              "合成デモ一式(良/傷/打痕/バリ/シミ)",
-              "実部品1種の実画像",
-              "複数部品種",
-              "高解像度・複数視点",
-              "ライン全数レベルの画像量",
-              "複数ライン",
-              "工場横断",
-              "多拠点",
-              "L10: 量産全ライン適用規模"
-            ],
-            "progress_pct": 20.0
-          },
-          {
-            "id": "functionality",
-            "label": "機能",
-            "description": "Physics models, solvers, phases (fill/pack/cool), contact, GD&T engines",
-            "current_level": 3,
-            "current_label": "L3",
-            "current_stage": "Champion/Challenger運用",
-            "l10_target": "L10: 商用検査装置同等の機能セット",
-            "levels": [
-              "未実施",
-              "画像アップロード判定のみ",
-              "位置合わせ(ECC)+異常検出",
-              "Champion/Challenger運用",
-              "寸法測定",
-              "欠陥種別分類",
-              "再学習パイプライン",
-              "撮像ガイド/光学系推奨",
-              "インライン接続(PLC/トリガ)",
-              "エッジ展開",
-              "L10: 商用検査装置同等の機能セット"
-            ],
-            "progress_pct": 30.0
-          },
-          {
-            "id": "evaluable_items",
-            "label": "評価可能項目",
-            "description": "Defects/KPIs the workflow can quantify (short shot, weldline, stack-up, etc.)",
-            "current_level": 3,
-            "current_label": "L3",
-            "current_stage": "傷/打痕/バリ/シミ別候補",
-            "l10_target": "L10: 商用検査装置同等の評価セット",
-            "levels": [
-              "なし",
-              "OK/NG二値",
-              "OK/NG/REVIEW三値",
-              "傷/打痕/バリ/シミ別候補",
-              "寸法・幾何量",
-              "欠陥サイズ・位置定量",
-              "傾向管理(SPC)",
-              "歩留り/工程能力指数",
-              "トレーサビリティ紐付け",
-              "QMS帳票自動生成",
-              "L10: 商用検査装置同等の評価セット"
-            ],
-            "progress_pct": 30.0
-          },
-          {
-            "id": "operability",
-            "label": "操作性",
-            "description": "UX, automation, visualization, animation, editability",
-            "current_level": 3,
-            "current_label": "L3",
-            "current_stage": "Web UI(閲覧・確定)",
-            "l10_target": "L10: 1クリック現場運用",
-            "levels": [
-              "手動スクリプトのみ",
-              "セットアップスクリプト",
-              "ワンコマンド起動(run_demo)",
-              "Web UI(閲覧・確定)",
-              "ポータル統合",
-              "レシピ編集UI",
-              "権限/監査ログ",
-              "現場オペレータUI",
-              "多言語/教育モード",
-              "音声・自動レポート",
-              "L10: 1クリック現場運用"
-            ],
-            "progress_pct": 30.0
-          },
-          {
-            "id": "integration",
-            "label": "連携",
-            "description": "CAD/STEP/DB/QMS/dashboard pipeline",
-            "current_level": 2,
-            "current_label": "L2",
-            "current_stage": "モデルレジストリ(Champion/Challenger)",
-            "l10_target": "L10: 工場OS組込",
-            "levels": [
-              "孤立",
-              "プロジェクト内SQLite",
-              "モデルレジストリ(Champion/Challenger)",
-              "ポータルリンク",
-              "universal_growth.db連携",
-              "QMS/不良データリンク",
-              "n8n自動化",
-              "Paperless根拠添付",
-              "Turso同期",
-              "全Hub統合",
-              "L10: 工場OS組込"
-            ],
-            "progress_pct": 20.0
-          }
-        ],
-        "avg_level": 2.7
-      },
-      {
-        "product_id": "CETOL6SIGMA",
-        "product_label": "3D公差解析",
-        "reference": "Sigmetrix Cetol 6σ / 同等商用",
-        "clawstack_stack": "TOLERANCE_ANALYSIS proxy + GD&T Overlay + FreeCAD",
-        "categories": [
-          {
-            "id": "accuracy",
-            "label": "精度",
-            "description": "Correlation to measurement / golden cases / energy-mass balance",
-            "current_level": 2,
-            "current_label": "L2",
-            "current_stage": "1ループ計算",
-            "l10_target": "L10: Cetol6σ同等+工場KPI",
-            "levels": [
-              "未実施",
-              "代理worst-case",
-              "1ループ計算",
-              "FreeCADジオメトリ",
-              "PMI/DATUM読取",
-              "ゴールデン0.05mm",
-              "計測相関",
-              "統計公差",
-              "6σ指標",
-              "現場採用",
-              "L10: Cetol6σ同等+工場KPI"
-            ],
-            "progress_pct": 20.0
-          },
-          {
-            "id": "model_size",
-            "label": "モデルサイズ",
-            "description": "Mesh scale, part complexity, assembly size handled",
-            "current_level": 1,
-            "current_label": "L1",
-            "current_stage": "単一ループ",
-            "l10_target": "L10: 車載級アセンブリ",
-            "levels": [
-              "未実施",
-              "単一ループ",
-              "小アセンブリ",
-              "中アセンブリ",
-              "大アセンブリ",
-              "全工程チェーン",
-              "ソフト/ハード接点",
-              "弾性変形",
-              "熱+公差",
-              "デジタルツイン",
-              "L10: 車載級アセンブリ"
-            ],
-            "progress_pct": 10.0
-          },
-          {
-            "id": "functionality",
-            "label": "機能",
-            "description": "Physics models, solvers, phases (fill/pack/cool), contact, GD&T engines",
-            "current_level": 2,
-            "current_label": "L2",
-            "current_stage": "3D worst-case",
-            "l10_target": "L10: Cetol6σ全機能",
-            "levels": [
-              "未実施",
-              "1Dスタック",
-              "3D worst-case",
-              "位置度/平面度",
-              "アニメーション",
-              "感度解析",
-              "最適化",
-              "統計",
-              "ECN連動",
-              "FreeCADネイティブ",
-              "L10: Cetol6σ全機能"
-            ],
-            "progress_pct": 20.0
-          },
-          {
-            "id": "evaluable_items",
-            "label": "評価可能項目",
-            "description": "Defects/KPIs the workflow can quantify (short shot, weldline, stack-up, etc.)",
-            "current_level": 2,
-            "current_label": "L2",
-            "current_stage": "worst contributor",
-            "l10_target": "L10: 全GD&T項目",
-            "levels": [
-              "なし",
-              "gap mm",
-              "worst contributor",
-              "datum loop",
-              "position/flatness",
-              "shim提案",
-              "コスト影響",
-              "工程能力",
-              "監査証跡",
-              "CAPA連携",
-              "L10: 全GD&T項目"
-            ],
-            "progress_pct": 20.0
-          },
-          {
-            "id": "operability",
-            "label": "操作性",
-            "description": "UX, automation, visualization, animation, editability",
-            "current_level": 2,
-            "current_label": "L2",
-            "current_stage": "ダッシュボード",
-            "l10_target": "L10: Cetol級UX",
-            "levels": [
-              "手動",
-              "スクリプト",
-              "ダッシュボード",
-              "GD&T Overlay UI",
-              "アニメ再生",
-              "ドラッグ編集",
-              "レポートPDF",
-              "現場タブレット",
-              "音声操作",
-              "ポータル統合",
-              "L10: Cetol級UX"
-            ],
-            "progress_pct": 20.0
-          },
-          {
-            "id": "integration",
-            "label": "連携",
-            "description": "CAD/STEP/DB/QMS/dashboard pipeline",
-            "current_level": 3,
-            "current_label": "L3",
-            "current_stage": "DXF2STEP",
-            "l10_target": "L10: PLM一体",
-            "levels": [
-              "孤立",
-              "growth DB",
-              "FCStd/STEP",
-              "DXF2STEP",
-              "QMS監査",
-              "試作データ",
-              "n8n",
-              "ECN",
-              "Turso",
-              "全Hub",
-              "L10: PLM一体"
-            ],
-            "progress_pct": 30.0
-          }
-        ],
-        "avg_level": 2.0
-      },
-      {
-        "product_id": "GENERATIVE_AI_VIDEO",
-        "product_label": "生成AI動画 (Sora / Seedance2 級)",
-        "reference": "OpenAI Sora·Image2Video, Seedance 2, Runway, Kling",
-        "clawstack_stack": "codex_ai_video_studio prompts only (no native gen-API)",
-        "categories": [
-          {
-            "id": "visual_fidelity",
-            "label": "画質・リアリティ",
-            "current_level": 1,
-            "level_label": "プロンプト草案のみ"
-          },
-          {
-            "id": "motion_coherence",
-            "label": "モーション一貫性",
-            "current_level": 1,
-            "level_label": "静止画スライド"
-          },
-          {
-            "id": "controllability",
-            "label": "制御性",
-            "current_level": 2,
-            "level_label": "絵コンテ+プロンプト"
-          },
-          {
-            "id": "pipeline_automation",
-            "label": "パイプライン自動化",
-            "current_level": 2,
-            "level_label": "Remotion/台本自動"
-          },
-          {
-            "id": "production_readiness",
-            "label": "量産・QA",
-            "current_level": 0,
-            "level_label": "未実施"
-          },
-          {
-            "id": "integration",
-            "label": "連携",
-            "current_level": 2,
-            "level_label": "ダッシュボード表示"
-          }
-        ],
-        "avg_level": 1.3,
-        "track": "video"
-      }
-    ],
-    "video_headline": {
-      "overall_vs_sora_seedance": 2.2,
-      "generative_ai_track": 1.3,
-      "procedural_engine_track": 3.2,
-      "verdict": "Overall L2.2 vs commercial gen-AI L10 (Sora/Seedance2). Generative track L1.3; procedural Blender/CAE track L3.2."
-    },
-    "video_gap_summary": [
-      "No native Sora/Seedance/Runway/Kling API integration -- prompt packages only (L1).",
-      "IATF Blender factory produced measurable MP4 volume but Visual QA PASS at scale is unproven.",
-      "CAE VOF/OpenRadioss MP4s are scientific visualization, not cinematic gen-AI (separate track).",
-      "Document/RAG ingest (3D_ANIMATION domain) does not raise video L levels."
-    ],
-    "assessed_at": "2026-07-26T04:59:07.787440"
-  },
-  "ai_video_generation_l10": {
-    "assessed_at": "2026-07-26T04:59:07.787440",
-    "updated_note": "L0-L10 vs commercial generative video (OpenAI Sora/Image-to-Video, ByteDance Seedance 2, Runway Gen-3/4, Kling). L10 = photoreal text/image-to-video, long coherent motion, character consistency, production API at scale. Clawstack levels are capped by measured pipeline evidence (honest assessment).",
-    "commercial_l10_reference": [
-      "OpenAI Sora / Image-to-Video (Image 2.0 class)",
-      "ByteDance Seedance 2",
-      "Runway Gen-3 Alpha / Gen-4",
-      "Kling AI / Pika 2.0"
-    ],
-    "headline": {
-      "overall_vs_sora_seedance": 2.2,
-      "generative_ai_track": 1.3,
-      "procedural_engine_track": 3.2,
-      "verdict": "Overall L2.2 vs commercial gen-AI L10 (Sora/Seedance2). Generative track L1.3; procedural Blender/CAE track L3.2."
-    },
-    "evidence_snapshot": {
-      "mp4_counts": {
-        "iatf": 90,
-        "cae_viz": 1383,
-        "projects": 1922,
-        "other": 31,
-        "total": 3426
-      },
-      "has_generative_api": false,
-      "has_prompt_studio": true,
-      "iatf_design_ok": true,
-      "iatf_pdca_ok": true,
-      "iatf_light_loop_ok": true,
-      "animation_domain_events": 805,
-      "dashboard_ok": true,
-      "iatf_youtube_export": true,
-      "visual_qa_pass_artifact": false,
-      "cae_fill_mp4": true
-    },
-    "category_defs": [
-      {
-        "id": "visual_fidelity",
-        "label": "画質・リアリティ",
-        "description": "Photorealism, lighting, texture, human likeness vs commercial gen-AI"
-      },
-      {
-        "id": "motion_coherence",
-        "label": "モーション一貫性",
-        "description": "Temporal stability, physics plausibility, lip-sync, camera motion"
-      },
-      {
-        "id": "controllability",
-        "label": "制御性",
-        "description": "Text/image prompt control, shot list, style lock, editability"
-      },
-      {
-        "id": "pipeline_automation",
-        "label": "パイプライン自動化",
-        "description": "Script to MP4 without manual steps; gates; fleet dispatch"
-      },
-      {
-        "id": "production_readiness",
-        "label": "量産・QA",
-        "description": "Visual QA PASS rate, Telegram delivery, repeatable factory output"
-      },
-      {
-        "id": "integration",
-        "label": "連携",
-        "description": "Portal, n8n, growth dashboard, RAG, QMS hooks"
-      }
-    ],
-    "matrix": [
-      {
-        "product_id": "GENERATIVE_AI_VIDEO",
-        "product_label": "生成AI動画 (Sora / Seedance2 級)",
-        "reference": "OpenAI Sora·Image2Video, Seedance 2, Runway, Kling",
-        "clawstack_stack": "codex_ai_video_studio prompts only (no native gen-API)",
-        "categories": [
-          {
-            "id": "visual_fidelity",
-            "label": "画質・リアリティ",
-            "current_level": 1,
-            "level_label": "プロンプト草案のみ"
-          },
-          {
-            "id": "motion_coherence",
-            "label": "モーション一貫性",
-            "current_level": 1,
-            "level_label": "静止画スライド"
-          },
-          {
-            "id": "controllability",
-            "label": "制御性",
-            "current_level": 2,
-            "level_label": "絵コンテ+プロンプト"
-          },
-          {
-            "id": "pipeline_automation",
-            "label": "パイプライン自動化",
-            "current_level": 2,
-            "level_label": "Remotion/台本自動"
-          },
-          {
-            "id": "production_readiness",
-            "label": "量産・QA",
-            "current_level": 0,
-            "level_label": "未実施"
-          },
-          {
-            "id": "integration",
-            "label": "連携",
-            "current_level": 2,
-            "level_label": "ダッシュボード表示"
-          }
-        ],
-        "avg_level": 1.3
-      },
-      {
-        "product_id": "PROCEDURAL_ENGINE_VIDEO",
-        "product_label": "手続き型動画 (Blender / IATF / CAE可視化)",
-        "reference": "IATF Video Factory, CityCharacterPipeline, moldflow VOF MP4",
-        "clawstack_stack": "Blender+VoiceVox+FFmpeg / OpenFOAM field render",
-        "categories": [
-          {
-            "id": "visual_fidelity",
-            "label": "画質・リアリティ",
-            "current_level": 3,
-            "level_label": "トゥーン/教育品質"
-          },
-          {
-            "id": "motion_coherence",
-            "label": "モーション一貫性",
-            "current_level": 3,
-            "level_label": "リップシンク試作"
-          },
-          {
-            "id": "controllability",
-            "label": "制御性",
-            "current_level": 3,
-            "level_label": "storyboard.json"
-          },
-          {
-            "id": "pipeline_automation",
-            "label": "パイプライン自動化",
-            "current_level": 3,
-            "level_label": "ゲート付き"
-          },
-          {
-            "id": "production_readiness",
-            "label": "量産・QA",
-            "current_level": 3,
-            "level_label": "10本+"
-          },
-          {
-            "id": "integration",
-            "label": "連携",
-            "current_level": 4,
-            "level_label": "YouTube解析"
-          }
-        ],
-        "avg_level": 3.2
-      }
-    ],
-    "gap_summary": [
-      "No native Sora/Seedance/Runway/Kling API integration -- prompt packages only (L1).",
-      "IATF Blender factory produced measurable MP4 volume but Visual QA PASS at scale is unproven.",
-      "CAE VOF/OpenRadioss MP4s are scientific visualization, not cinematic gen-AI (separate track).",
-      "Document/RAG ingest (3D_ANIMATION domain) does not raise video L levels."
-    ]
-  }
+  ]
 }

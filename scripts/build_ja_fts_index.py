@@ -66,6 +66,28 @@ def ensure_schema(idx: sqlite3.Connection) -> None:
     idx.commit()
 
 
+def reset_search_tables(idx: sqlite3.Connection) -> None:
+    """資料・ノウハウ索引だけを初期化し、PDF本文索引は必ず保存する。"""
+    idx.execute("BEGIN IMMEDIATE")
+    try:
+        idx.execute("DROP TABLE IF EXISTS material_ja")
+        idx.execute("DROP TABLE IF EXISTS knowhow_ja")
+        idx.execute("DELETE FROM build_state WHERE key IN "
+                    "('last_acquisition_id', 'last_growth_id')")
+        idx.commit()
+    except Exception:
+        idx.rollback()
+        raise
+    ensure_schema(idx)
+
+
+def is_indexable_text(value: str) -> bool:
+    """欠損文字または高確度の二重UTF-8化けを含む値を索引から除外する。"""
+    if "\ufffd" in value:
+        return False
+    return not all(mark in value for mark in ("縺", "繧", "繝"))
+
+
 def build_knowhow(main_con: sqlite3.Connection, idx: sqlite3.Connection,
                   min_chars: int) -> int:
     """growth_records.know_how を索引する。中身の薄いスタブは入れない。"""
@@ -117,12 +139,12 @@ def main() -> int:
         print(f"本体DBがありません: {MAIN_DB}")
         return 3
 
-    if a.rebuild and INDEX_DB.exists():
-        INDEX_DB.unlink()
-        print(f"既存索引を削除しました: {INDEX_DB}")
-
     idx = open_index()
     ensure_schema(idx)
+
+    if a.rebuild:
+        reset_search_tables(idx)
+        print("資料・know_how索引を初期化しました（PDF本文索引は保持）")
 
     if a.stats:
         n = idx.execute("SELECT COUNT(*) FROM material_ja").fetchone()[0]
@@ -149,12 +171,14 @@ def main() -> int:
             "ORDER BY acquisition_id LIMIT ?", (last_id, BATCH)).fetchall()
         if not rows:
             break
+        clean_rows = [r for r in rows if is_indexable_text(
+            "\n".join((r["title"] or "", r["domain_tags"] or "", r["source"] or "")))]
         idx.executemany(
             "INSERT INTO material_ja(rowid, title, domain_tags, source) VALUES(?,?,?,?)",
             [(r["acquisition_id"], r["title"] or "", r["domain_tags"] or "",
-              r["source"] or "") for r in rows])
+              r["source"] or "") for r in clean_rows])
         last_id = rows[-1]["acquisition_id"]
-        added += len(rows)
+        added += len(clean_rows)
         set_state(idx, "last_acquisition_id", last_id)
         idx.commit()
         el = time.time() - t0

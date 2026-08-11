@@ -686,7 +686,7 @@
           </div>
 
           <!-- 11. Purging Contamination Dynamics & Waste Shot Engine -->
-          <div style="background: var(--panel-strong); padding: 8px; border-radius: 8px;">
+          <div style="margin-bottom: 12px; background: var(--panel-strong); padding: 8px; border-radius: 8px;">
             <label class="field" style="color: #7dd3fc; font-weight: 600;">🧹 コンタミネーション混入率 ＆ 適正パージ・捨てショット数計算</label>
             <label class="field">使用パージ材グレード</label>
             <select id="purgingGrade">
@@ -706,6 +706,84 @@
             </div>
             <button type="button" class="btn good" id="btnPurgingAnalysis" style="width: 100%; margin-top: 6px;">コンタミ減衰 ＆ 最小最適捨てショット数を計算</button>
             <div id="purgingResult" style="font-size: 0.74rem; color: #34d399; margin-top: 6px; white-space: pre-wrap;"></div>
+          </div>
+
+          <!-- 12. 3D Weldline Trajectory & Joint Strength Loss Engine -->
+          <div style="margin-bottom: 12px; background: var(--panel-strong); padding: 8px; border-radius: 8px;">
+            <label class="field" style="color: #7dd3fc; font-weight: 600;">⚡ ウエルドライン (樹脂融合線) 会合角度 ＆ 強度低下率解析</label>
+            <button type="button" class="btn primary" id="btnWeldlineAnalysis" style="width: 100%;">ウエルド/メルドライン3D融合強度を計算</button>
+            <div id="weldlineResult" style="font-size: 0.74rem; color: #c084fc; margin-top: 6px; white-space: pre-wrap;"></div>
+          </div>
+
+          <!-- 13. Shear Cutting, Punching Ductile Fracture & 4-Zone Morphology Engine -->
+          <div style="margin-bottom: 12px; background: var(--panel-strong); padding: 8px; border-radius: 8px;">
+            <label class="field" style="color: #7dd3fc; font-weight: 600;">✂️ プレス・せん断加工 延性破壊 ＆ 断面破断解析 (ダレ/せん断面/破断面/バリ)</label>
+            <div class="grid-2">
+              <div>
+                <label class="field">板厚 t (mm)</label>
+                <input type="number" id="shearSheetT" value="1.5" step="0.1" />
+              </div>
+              <div>
+                <label class="field">クリアランス c (%)</label>
+                <input type="number" id="shearClearancePct" value="8.0" step="0.5" />
+              </div>
+            </div>
+            <label class="field">被削加工被削材</label>
+            <select id="shearMaterial">
+              <option value="SPCC_Steel" selected>SPCC 冷間圧延鋼板 (UTS 310 MPa)</option>
+              <option value="HighTensile_980">980 MPa 級超ハイテン鋼 (UTS 980 MPa)</option>
+              <option value="SUS304">SUS304 ステンレス鋼板 (UTS 620 MPa)</option>
+              <option value="A5052_Alloy">A5052 アルミ合金板 (UTS 210 MPa)</option>
+              <option value="C1100_Copper">C1100 銅合金端子板 (UTS 240 MPa)</option>
+            </select>
+            <button type="button" class="btn warning" id="btnShearAnalysis" style="width: 100%; margin-top: 6px;">せん断断面4領域 ＆ 最大抜き荷重・バリ計算</button>
+            <div id="shearResult" style="font-size: 0.74rem; color: #fb7185; margin-top: 6px; white-space: pre-wrap;"></div>
+          </div>
+
+          <!-- 14. Gate & Air Vent Location, Type, & Dimensioning Optimization Engine -->
+          <div style="margin-bottom: 12px; background: var(--panel-strong); padding: 8px; border-radius: 8px;">
+            <label class="field" style="color: #7dd3fc; font-weight: 600;">🚪 最適ゲート ＆ エアベント (ガス抜き) 位置・形状・寸法AI</label>
+            <div class="grid-2">
+              <div>
+                <label class="field">壁厚 t (mm)</label>
+                <input type="number" id="gvWallThickness" value="2.0" step="0.1" />
+              </div>
+              <div>
+                <label class="field">成形樹脂</label>
+                <select id="gvResinType">
+                  <option value="PA66_GF30" selected>PA66-GF30 (ベント深さ12μm)</option>
+                  <option value="PP">PP 樹脂 (ベント深さ20μm)</option>
+                  <option value="ABS">ABS 樹脂 (ベント深さ25μm)</option>
+                  <option value="PC">PC 樹脂 (ベント深さ35μm)</option>
+                  <option value="POM">POM 樹脂 (ベント深さ18μm)</option>
+                </select>
+              </div>
+            </div>
+            <button type="button" class="btn primary" id="btnGateVentAnalysis" style="width: 100%; margin-top: 6px;">最適ゲート・エアベント寸法・3D位置算出</button>
+            <div id="gateVentResult" style="font-size: 0.74rem; color: #34d399; margin-top: 6px; white-space: pre-wrap;"></div>
+          </div>
+
+          <!-- 15. Cooling System, Process Window, & Commercial Machine DB Optimization Engine -->
+          <div style="background: var(--panel-strong); padding: 8px; border-radius: 8px;">
+            <label class="field" style="color: #7dd3fc; font-weight: 600;">❄️ 冷却水路 (直線/Conformal 3D) ＆ 実成形機・条件最適化AI</label>
+            <div class="grid-2">
+              <div>
+                <label class="field">キャビティ個数</label>
+                <input type="number" id="cmCavityCount" value="2" min="1" max="16" />
+              </div>
+              <div>
+                <label class="field">成形樹脂</label>
+                <select id="cmResinType">
+                  <option value="PA66_GF30" selected>PA66-GF30 (Tm: 290℃)</option>
+                  <option value="PP">PP 樹脂 (Tm: 230℃)</option>
+                  <option value="ABS">ABS 樹脂 (Tm: 240℃)</option>
+                  <option value="PC">PC 樹脂 (Tm: 300℃)</option>
+                  <option value="POM">POM 樹脂 (Tm: 205℃)</option>
+                </select>
+              </div>
+            </div>
+            <button type="button" class="btn ok" id="btnCoolingMachineAnalysis" style="width: 100%; margin-top: 6px;">最適水路設計 ＆ 実機(住友/日精/FANUC)・成形条件選定</button>
+            <div id="coolingMachineResult" style="font-size: 0.74rem; color: #38bdf8; margin-top: 6px; white-space: pre-wrap;"></div>
           </div>
         </div>
       </aside>

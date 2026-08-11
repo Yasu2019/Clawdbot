@@ -1,19 +1,11 @@
 {
   "schema": "clawstack.content_proposals.v1",
-  "updated_at": "2026-07-26T05:06:56.641356+09:00",
+  "updated_at": "2026-08-11T17:06:56.480479+09:00",
   "scout_digest": "data/workspace/ai_strategy_scout_local_digest.json",
   "host": "K10",
   "load_profile": "light_cpu",
-  "total_candidates": 8,
+  "total_candidates": 7,
   "proposals": [
-    {
-      "hub": "Creative Studio (Video)",
-      "title": "b10121: ui: reduce per-token render cost when streaming (#26053)",
-      "url": "https://github.com/ggml-org/llama.cpp/releases/tag/b10121",
-      "source": "llama.cpp Releases",
-      "score": 40,
-      "action": "watch"
-    },
     {
       "hub": "3D Fab-Forge (CAE)",
       "title": "openfoam-v2606",

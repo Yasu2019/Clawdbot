@@ -5,6 +5,7 @@ if hasattr(sys.stdout, "reconfigure"):
     except Exception:
         pass
 
+import argparse
 import json
 import sqlite3
 from datetime import datetime, timezone, timedelta
@@ -319,8 +320,10 @@ def public_api_db_rows():
             {
                 "source": "Public API bulk harvest (summary)",
                 "category": "public_api_harvest",
+                "db_registered_count": int(downloaded_total or 0) + int(metadata_total or 0),
                 "acquired_count": int(downloaded_total or 0),
-                "candidate_count": int(metadata_total or 0) + len(harvest_status.get("errors") or []),
+                "metadata_only_count": int(metadata_total or 0),
+                "candidate_count": len(harvest_status.get("errors") or []),
                 "status": "acquired" if downloaded_total else "metadata",
                 "latest_at": harvest_status.get("updated_at", ""),
                 "evidence": HARVEST_STATUS_PATH.relative_to(ROOT).as_posix(),
@@ -361,8 +364,10 @@ def public_api_db_rows():
             {
                 "source": label,
                 "category": category,
+                "db_registered_count": int(total or 0),
                 "acquired_count": int(downloaded or 0),
-                "candidate_count": int(metadata_only),
+                "metadata_only_count": int(metadata_only),
+                "candidate_count": 0,
                 "status": status,
                 "latest_at": latest_at or harvest_status.get("updated_at", ""),
                 "evidence": "universal_growth.db/public_api_acquisitions + public_api_harvest_status.json",
@@ -527,9 +532,11 @@ def build_inventory():
         print(f"Failed to calculate Gemini wait count: {exc}")
 
     return {
-        "schema": "clawstack.material_source_inventory.v1",
+        "schema": "clawstack.material_source_inventory.v2",
         "updated_at": now_jst(),
+        "total_db_registered_count": sum(int(row.get("db_registered_count", 0)) for row in countable_rows),
         "total_acquired_count": sum(row["acquired_count"] for row in countable_rows),
+        "total_metadata_only_count": sum(int(row.get("metadata_only_count", 0)) for row in countable_rows),
         "total_candidate_count": sum(row["candidate_count"] for row in countable_rows),
         "gemini_decoding_wait_count": gemini_wait_count,
         "acquisition_queue": QUEUE_PATH.relative_to(ROOT).as_posix(),
@@ -537,10 +544,67 @@ def build_inventory():
     }
 
 
+def build_inventory_fast():
+    """Refresh DB-backed rows without recursively rescanning large file trees."""
+    previous = load_json(OUTPUT_PATH, {})
+    previous_rows = previous.get("rows", []) if isinstance(previous.get("rows"), list) else []
+    retained_rows = [
+        row for row in previous_rows
+        if row.get("source") != "Public API bulk harvest (summary)"
+        and "universal_growth.db/public_api_acquisitions" not in str(row.get("evidence", ""))
+    ]
+    db_rows = public_api_db_rows()
+    rows = retained_rows + db_rows
+    rows.sort(key=lambda row: (row["acquired_count"], row["candidate_count"], row["source"].lower()), reverse=True)
+    countable_rows = [row for row in rows if row.get("source") != "Public API bulk harvest (summary)"]
+
+    gemini_wait_count = previous.get("gemini_decoding_wait_count", 0)
+    try:
+        con = sqlite3.connect(str(GROWTH_DB), timeout=30)
+        processed = {
+            str(row[0])
+            for row in con.execute("SELECT external_id FROM ai_summaries_tracking WHERE external_id IS NOT NULL")
+        }
+        all_downloaded = con.execute(
+            """
+            SELECT id, external_id FROM public_api_acquisitions
+            WHERE status = 'downloaded' AND local_path IS NOT NULL AND local_path != ''
+            """
+        ).fetchall()
+        gemini_wait_count = sum(
+            1 for row in all_downloaded
+            if str(row[0]) not in processed and str(row[1] or "") not in processed
+        )
+        con.close()
+    except Exception as exc:
+        print(f"Failed to calculate Gemini wait count: {exc}")
+
+    return {
+        "schema": "clawstack.material_source_inventory.v2",
+        "updated_at": now_jst(),
+        "total_db_registered_count": sum(int(row.get("db_registered_count", 0)) for row in countable_rows),
+        "total_acquired_count": sum(int(row.get("acquired_count", 0)) for row in countable_rows),
+        "total_metadata_only_count": sum(int(row.get("metadata_only_count", 0)) for row in countable_rows),
+        "total_candidate_count": sum(int(row.get("candidate_count", 0)) for row in countable_rows),
+        "gemini_decoding_wait_count": gemini_wait_count,
+        "acquisition_queue": QUEUE_PATH.relative_to(ROOT).as_posix(),
+        "rows": rows,
+    }
+
+
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--fast-db",
+        action="store_true",
+        help="Refresh DB-backed counts while retaining previously scanned filesystem rows.",
+    )
+    args = parser.parse_args()
     DASHBOARD_DIR.mkdir(parents=True, exist_ok=True)
-    inventory = build_inventory()
-    OUTPUT_PATH.write_text(json.dumps(inventory, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    inventory = build_inventory_fast() if args.fast_db else build_inventory()
+    temp_path = OUTPUT_PATH.with_suffix(".json.tmp")
+    temp_path.write_text(json.dumps(inventory, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    temp_path.replace(OUTPUT_PATH)
     print(f"[OK] wrote {OUTPUT_PATH}")
     print(f"[OK] acquired={inventory['total_acquired_count']} candidates={inventory['total_candidate_count']}")
 

@@ -9,7 +9,9 @@ if hasattr(sys.stdout, "reconfigure"):
         pass
 
 import json
+import os
 import subprocess
+import traceback
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
@@ -51,6 +53,7 @@ ROOT = resolve_repo_root()
 print(f"[auto_repair] Resolved ROOT to: {ROOT}")
 STATUS_PATH = WORKSPACE / "auto_repair_allowed_status.json"
 STATE_PATH = WORKSPACE / "auto_repair_allowed_state.json"
+INSTANCE_LOCK_PATH = WORKSPACE / "auto_repair_allowed.lock"
 EMAIL_RUNTIME = WORKSPACE / "email_rag_ingest_runtime_status.json"
 EMAIL_DAEMON_STATUS = WORKSPACE / "email_continuous_ingest_status.json"
 CAE_SYNC_STATUS = WORKSPACE / "cae_learning_memory_sync_status.json"
@@ -120,7 +123,9 @@ def now_jst_text() -> str:
 
 
 def write_status(payload: dict[str, Any]) -> None:
-    STATUS_PATH.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    tmp = STATUS_PATH.with_suffix(".json.tmp")
+    tmp.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    os.replace(tmp, STATUS_PATH)
 
 
 def read_json(path: Path) -> dict[str, Any]:
@@ -167,7 +172,7 @@ def age_minutes(dt: datetime | None) -> float | None:
     return round((now_jst().astimezone(dt.tzinfo) - dt).total_seconds() / 60.0, 1)
 
 
-def run_command(command: str | list[str], timeout_seconds: int) -> dict[str, Any]:
+def _run_command_legacy(command: str | list[str], timeout_seconds: int) -> dict[str, Any]:
     try:
         shell = isinstance(command, str)
         proc = subprocess.run(
@@ -205,6 +210,89 @@ def run_command(command: str | list[str], timeout_seconds: int) -> dict[str, Any
             "stderr": str(exc),
             "timedOut": False,
         }
+
+
+def run_command(command: str | list[str], timeout_seconds: int) -> dict[str, Any]:
+    """Run a bounded repair command and terminate its complete process tree on timeout."""
+    display_command = command if isinstance(command, str) else " ".join(command)
+    creationflags = getattr(subprocess, "CREATE_NO_WINDOW", 0)
+    if os.name == "nt":
+        creationflags |= getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
+    proc: subprocess.Popen[str] | None = None
+    try:
+        proc = subprocess.Popen(
+            command,
+            shell=isinstance(command, str),
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            creationflags=creationflags,
+        )
+        stdout, stderr = proc.communicate(timeout=timeout_seconds)
+        return {
+            "command": display_command,
+            "returncode": proc.returncode,
+            "stdout": (stdout or "").strip(),
+            "stderr": (stderr or "").strip(),
+            "timedOut": False,
+        }
+    except subprocess.TimeoutExpired:
+        stdout, stderr = "", ""
+        if proc is not None:
+            if os.name == "nt":
+                subprocess.run(
+                    ["taskkill", "/PID", str(proc.pid), "/T", "/F"],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                    timeout=15,
+                    check=False,
+                )
+            else:
+                proc.kill()
+            try:
+                stdout, stderr = proc.communicate(timeout=5)
+            except subprocess.TimeoutExpired:
+                stderr = "process tree did not close its output handles"
+        return {
+            "command": display_command,
+            "returncode": None,
+            "stdout": (stdout or "").strip(),
+            "stderr": (stderr or "").strip(),
+            "timedOut": True,
+            "timeoutSeconds": timeout_seconds,
+            "processTreeTerminated": True,
+        }
+    except Exception as exc:
+        return {
+            "command": display_command,
+            "returncode": 1,
+            "stdout": "",
+            "stderr": str(exc),
+            "timedOut": False,
+        }
+
+
+def acquire_instance_lock():
+    """Hold an OS lock for this run; a stale lock file is harmless."""
+    INSTANCE_LOCK_PATH.parent.mkdir(parents=True, exist_ok=True)
+    handle = INSTANCE_LOCK_PATH.open("a+b")
+    if INSTANCE_LOCK_PATH.stat().st_size == 0:
+        handle.write(b"0")
+        handle.flush()
+    handle.seek(0)
+    try:
+        if os.name == "nt":
+            import msvcrt
+            msvcrt.locking(handle.fileno(), msvcrt.LK_NBLCK, 1)
+        else:
+            import fcntl
+            fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except (OSError, IOError):
+        handle.close()
+        return None
+    return handle
 
 
 def ps_contains(token: str) -> bool:
@@ -760,4 +848,21 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    instance_lock = acquire_instance_lock()
+    if instance_lock is None:
+        print("[auto_repair] another instance is active; skipping overlap")
+        raise SystemExit(0)
+    try:
+        main()
+    except Exception as exc:
+        write_status({
+            "startedAt": now_jst_text(),
+            "finishedAt": now_jst_text(),
+            "step": "failed",
+            "error": str(exc),
+            "traceback": traceback.format_exc(),
+            "requiresEscalation": True,
+        })
+        raise
+    finally:
+        instance_lock.close()

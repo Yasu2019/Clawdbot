@@ -166,6 +166,17 @@ def _default_cfg():
                                            # penalties (foot_lift_symmetry=-8,
                                            # gait_symmetry=-1.5) instead of
                                            # dominating them.
+            "gait_phase_contact": 2.0,     # 2026-08-10: 位相と接地の一致(G1 の contact 相当)。
+                                           # G1 は交互歩行を「位相どおりに接地しているか」で
+                                           # 直接教えており、feet_air_time は 0.0(無効)にしている。
+                                           # 本実装は feet_air_time+single_foot_contact+対称性3項
+                                           # という間接的な代用で組んでおり、単脚支持率が
+                                           # 0.61〜0.67 で頭打ちだった(人間は約0.8)。
+                                           # 位相は既に self.phase として存在し観測にも
+                                           # sin/cos で入っているので、一致報酬を直接与える。
+                                           # 係数は既存の同種項(feet_air_time 2.0 /
+                                           # single_foot_contact 1.0)と同程度に置き、
+                                           # 一項だけが支配しないようにした。
             "feet_air_time":      2.0,     # C1: the anti-freeze term
             "single_foot_contact": 1.0,    # C1: the anti-hop term (2404.19173)
             "double_support_ratio": -10.0, # Rule 2: EMA-based penalty once
@@ -1018,6 +1029,33 @@ class V50WalkEnv:
         # 他の罰項(velocity_ceiling / lin_vel_z 等)と同じく**正の大きさ**を返し、
         # 符号は係数側に持たせる規約に揃える。
         return (self.double_support_ema - 0.20).clamp(min=0.0) ** 2
+
+    def _r_gait_phase_contact(self):
+        """位相と接地状態の一致度。unitree_rl_gym G1 の `_reward_contact` 相当。
+
+        2026-08-10 追加。G1(実機ヒューマノイド公式)は交互歩行を
+        **位相と接地の一致**で直接教えており、feet_air_time は 0.0(無効)にしている:
+            contact            = +0.18
+            feet_swing_height  = -20.0
+            contact_no_vel     = -0.2
+        本実装は feet_air_time(+2.0) と single_foot_contact(+1.0)、
+        対称性3項という間接的な代用で組んでおり、単脚支持率が 0.61〜0.67 で
+        頭打ちだった(人間は約0.8)。位相を既に持っている(self.phase / 観測にも
+        sin,cos で入っている)ので、一致報酬を直接与える。
+
+        左脚は phase、右脚は phase+0.5(逆位相)。位相 < 0.55 を立脚期とし、
+        「立脚期なら接地・遊脚期なら非接地」であるほど高い。
+        """
+        rew = torch.zeros(self.num_envs, device=self.device)
+        for k in range(2):                       # 0=L, 1=R
+            leg_phase = (self.phase + 0.5 * k) % 1.0
+            is_stance = leg_phase < 0.55         # 立脚期であるべきか
+            contact = self.contacts[:, k]
+            rew += (is_stance == contact).float()
+        return rew * 0.5 * self._moving()        # 0〜1に正規化。停止指令時は無償にしない
+
+    # 注: G1 の feet_swing_height(-20.0) 相当は既存の _r_foot_clearance が
+    # 同じことをしている(遊脚のみ・目標高からの二乗偏差)。重複追加はしない。
 
     def _r_pose_prior(self):
         """Reference-gait tracking, gated on a walk command. Zero-command envs

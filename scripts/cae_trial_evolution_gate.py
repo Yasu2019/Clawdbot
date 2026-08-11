@@ -147,6 +147,43 @@ def record_trial(track: str, trial_entry: dict[str, Any], *, fingerprint: str) -
         "at": _now_iso(),
     }
     _save_state(state)
+    # Mirror into MF/OF calibration DB when available (best-effort)
+    try:
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        import mf_of_calibration_db as cdb
+
+        params = _trial_params(trial_entry)
+        kpis = _trial_kpis(trial_entry)
+        with cdb.db_session() as conn:
+            active = cdb.get_active_targets(conn) or {}
+            study_id = active.get("study_id")
+            vs = cdb.score_trial_vs_mf(kpis, active.get("of_targets") or {})
+            cdb.record_of_trial(
+                conn,
+                {
+                    "study_id": study_id,
+                    "trial_id": str(trial_entry.get("id") or trial_entry.get("trial_id")),
+                    "track": track,
+                    "category": trial_entry.get("category"),
+                    "inlet_velocity": params.get("inlet_velocity"),
+                    "pack_pressure_MPa": params.get("pack_pressure_MPa"),
+                    "t_melt": params.get("T_melt"),
+                    "analysis_end_time_s": params.get("analysis_end_time_s")
+                    or params.get("pack_end_time"),
+                    "fill_fraction_pct": kpis.get("fill_fraction_pct"),
+                    "fill_time_s": kpis.get("fill_time_s"),
+                    "fill_complete": kpis.get("fill_complete"),
+                    "fingerprint": fingerprint,
+                    "verdict": trial_entry.get("verdict"),
+                    "params": params,
+                    "kpis": kpis,
+                    "vs_mf": vs,
+                    "created_at": _now_iso(),
+                },
+            )
+            trial_entry["mf_of_calibration_vs"] = vs
+    except Exception:
+        pass
 
 
 def apply_evolution_gate(track: str, result: dict[str, Any]) -> dict[str, Any]:

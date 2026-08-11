@@ -92,6 +92,36 @@ FIDELITY_PRESETS: dict[str, dict[str, Any]] = {
             "thermal_startup_smoke": False,
         },
     },
+    "amr_3d": {
+        "label": "Adaptive Mesh Refinement (AMR) 3D VOF",
+        "description": "High-efficiency 3D fill with dynamic refinement near flow front alpha=0.5.",
+        "accuracy_band_label": "PROXY_GAP",
+        "moldflow_analogy": "Dynamic front refinement (high precision interface / low overall cells)",
+        "params": {
+            "physics_category": "resin_fill_vof",
+            "mesh_mode": "snappyhexmesh",
+            "enable_amr": True,
+            "amr_max_level": 2,
+            "max_global_cells": 80000,
+            "thermal_startup_smoke": False,
+        },
+    },
+    "thermo_pack": {
+        "label": "Thermo 3D + Packing (Tait PVT)",
+        "description": "High-accuracy Thermo VOF with Tait PVT equation of state and packing phase for shrinkage/warpage prediction.",
+        "accuracy_band_label": "PROXY_GAP",
+        "moldflow_analogy": "Fill+Pack+Cool oriented (warpage/sink mark preparation)",
+        "params": {
+            "physics_category": "resin_fill_cool",
+            "enable_packing_phase": True,
+            "use_tait_pvt": True,
+            "mesh_mode": "snappyhexmesh",
+            "max_global_cells": 150000,
+            "mesh_ny": 16,
+            "mesh_nz": 16,
+            "thermal_startup_smoke": False,
+        },
+    },
 }
 
 ALIASES = {
@@ -101,6 +131,10 @@ ALIASES = {
     "hele_shaw": "shell_proxy",
     "coarse": "coarse_3d",
     "thermo": "thermo_3d",
+    "amr": "amr_3d",
+    "pack": "thermo_pack",
+    "packing": "thermo_pack",
+    "pvt": "thermo_pack",
     "default": "thermo_3d",
 }
 

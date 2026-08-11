@@ -28,6 +28,7 @@ def main() -> int:
     parser.add_argument("--trial-id", default="", help="Trial id override")
     parser.add_argument("--params-json", default="", help="JSON object of trial parameters")
     parser.add_argument("--params-file", default="", help="Path to JSON params file")
+    parser.add_argument("--fidelity-mode", default="", help="Fidelity preset (quick, shell_proxy, coarse_3d, thermo_3d)")
     parser.add_argument("--workspace", default="", help="CAE_TE_WORKSPACE override")
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--timeout", type=int, default=600)
@@ -80,6 +81,10 @@ def main() -> int:
         params = json.loads(Path(args.params_file).read_text(encoding="utf-8-sig"))
     elif args.params_json:
         params = json.loads(args.params_json)
+
+    if args.fidelity_mode or (params and "fidelity_mode" in params):
+        import cae_fidelity_mode as fm
+        params = fm.apply_fidelity_mode(params, args.fidelity_mode or None)
 
     phys = str((params or {}).get("physics_category") or "")
     if category in ("resin_flow", "resin_flow_opt") or category.startswith(

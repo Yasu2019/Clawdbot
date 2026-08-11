@@ -53,7 +53,9 @@ lavie:
   max_cpu_percent: 85
   max_temp_c: 96
   monitor_agent_port: 8111
-  job_worker_port: 5682
+  # Current Docker worker on C:. Port 5682 is the retired host worker on the
+  # tiny E: stub and can remain permanently busy after a lost HTTP client.
+  job_worker_port: 5683
   job_worker_path: /healthz
 
 red_lavie:
@@ -112,6 +114,7 @@ lavie_openfoam_categories:
   - resin_fill_cad  # STEP+gate VOF fill (3D alpha video to Telegram; not resin_flow |U|)
   - resin_fill_vof
   - resin_fill
+  - resin_fill_pack  # fill+pack sink/pressure PROXY vs MF (2026-08-01)
 
 moldflow_fill:
   enabled: true
@@ -203,9 +206,10 @@ tri_track_parallel:
     variants:
       - subdir: reqtangle_sample_20250806
         input: test.in
-        enabled: true
+        enabled: false
         max_timeout_sec: 7200
         tier: production
+        hold_reason: "User disabled legacy test.in notifications; use Rough_Mesh practical inputs only (2026-08-02)"
       - subdir: no_solid_reqtangle_sample_20250806
         input: test.in
         enabled: false
@@ -220,10 +224,18 @@ tri_track_parallel:
         hold_reason: "INC-123系メッシュ爆発デッキ (bbox_diag 5.2e7, 2026-06-24 quality_incident参照)。デッキ修正まで無効"
       - subdir: Rough_Mesh
         input: test_practical_doe01.in
-        enabled: true
+        enabled: false
         max_timeout_sec: 7200
         tier: production
-        note: "Phase-2 short: DOE01 stable (SOLID ON, punch vz=-200)"
+        note: "Superseded by test_practical_doe01_x2.in; original 0.0063 run preserved"
+      - subdir: Rough_Mesh
+        input: test_practical_doe01_x2.in
+        enabled: false
+        max_timeout_sec: 14400
+        tier: production
+        end_time: 0.0126
+        note: "DOE01 x2 duration: 0.0063 -> 0.0126 (SOLID ON, punch vz=-200)"
+        hold_reason: "FAILED_MESH_EXPLOSION from t=0.0082; do not rerun until same-stroke half-speed variant is validated"
       - subdir: Rough_Mesh
         input: test_practical_forming.in
         enabled: true

@@ -97,3 +97,51 @@ and Docker Desktop were stopped normally for the approved WSL maintenance.
   `F:\WSL\Ubuntu-Active\INCOMPLETE-DO-NOT-USE.vhdx`. Automatic deletion was
   rejected by the execution policy, so it is not used or registered. It is the
   exact follow-up cleanup target; no unrelated F data may be removed with it.
+
+## 17:55 recurrence containment and DXF gate
+
+- At 17:55 JST, F free space had fallen to 69.64 GB (3.74%). The shared
+  storage guard correctly retained an `emergency` dispatch block.
+- The three 395.28 GB VHDX files were reclassified before cleanup:
+  - `F:\WSL\Ubuntu-20260730\ubuntu-inc177-backup.vhdx` is the registered,
+    active Ubuntu disk and must be preserved.
+  - `F:\WSL\INC177_Rollback_20260730\ext4-original.vhdx` is the user-owned
+    INC-177 rollback copy and is not an automatic cleanup target.
+  - `F:\WSL\Ubuntu-Active\INCOMPLETE-DO-NOT-USE.vhdx` is unregistered,
+    quarantined, and remains the sole proposed deletion target under Bead
+    `Clawdbot_Docker_20260125-x8hf`, pending explicit confirmation.
+- The legacy DXF daemon family started on 2026-07-29 (PIDs 26100/18824) had
+  no live SSH child after job `tp-dxf-32a3b962` finished. Because F was in the
+  emergency range, only that exact daemon family was stopped as reversible
+  containment. Unrelated CAE, Docker, and Windows workers were left intact.
+- `scripts/k10_thinkpad_dxf2step_loop.py` now reads the same
+  `CAE_DISPATCH_BLOCKED.json` marker as the CAE orchestrator before remote
+  metrics, preflight, job creation, or SSH dispatch. A block records
+  `decision=skip_storage` in status and JSONL.
+- The updated daemon was started as PID 29784 (Python child PID 4708). Its
+  first cycle recorded `skip_storage`; therefore no new ThinkPad DXF job was
+  dispatched while the emergency marker was active.
+
+## Approved F recovery completion
+
+- At 21:28 JST, the user explicitly approved recovery using the previously
+  identified cleanup target.
+- Before deletion, the exact resolved path and WSL registrations were checked
+  again. The target was 395.28 GB and did not match either registered disk:
+  Docker Desktop on E or Ubuntu at
+  `F:\WSL\Ubuntu-20260730\ubuntu-inc177-backup.vhdx`.
+- Deleted only:
+  `F:\WSL\Ubuntu-Active\INCOMPLETE-DO-NOT-USE.vhdx`.
+  The file is permanently removed and is not recoverable from Recycle Bin.
+- Preserved and re-enumerated:
+  `F:\WSL\Ubuntu-20260730\ubuntu-inc177-backup.vhdx`,
+  `F:\WSL\INC177_Rollback_20260730\ext4-original.vhdx`, and
+  `F:\WSL\swap.vhdx`.
+- F recovered from 66.36 GB free (3.56%) immediately before deletion to
+  461.62 GB free (24.78%). The storage guard reported `healthy` and removed
+  `CAE_DISPATCH_BLOCKED.json`.
+- Ubuntu and Docker Desktop remained registered and running. Docker verification
+  reported 75 containers, 74 running.
+- Once the shared block cleared, the updated DXF daemon automatically resumed
+  normal dispatch and created `tp-dxf-905c7d1f`, demonstrating both fail-closed
+  behavior during low capacity and automatic recovery afterward.

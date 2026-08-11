@@ -39,10 +39,14 @@ sys.stdout.reconfigure(encoding="utf-8", errors="replace")  # P023
 REPO = Path(r"D:\Clawdbot_Docker_20260125")
 QDRANT = os.getenv("QDRANT_URL", "http://localhost:6333")
 OLLAMA = os.getenv("OLLAMA_URL", "http://localhost:11434")
+INFINITY = os.getenv("INFINITY_URL", "http://localhost:7997").rstrip("/")
+EMBED_BACKEND = os.getenv("EMBED_BACKEND", "auto").lower()
 EMBED_MODEL = os.getenv("EMBED_MODEL", "mxbai-embed-large")  # 1024次元(既存コレクションと同じ)
+INFINITY_MODEL = os.getenv("INFINITY_MODEL", "mixedbread-ai/mxbai-embed-large-v1")
 COLLECTION = os.getenv("DOCS_COLLECTION", "clawstack_docs")
 VECTOR_SIZE = 1024
 MANIFEST = REPO / "data" / "state" / "ingest_repo_docs_manifest.json"
+LOCK_FILE = REPO / "data" / "state" / "ingest_repo_docs.lock"
 NAMESPACE = uuid.UUID("6f1d0c9a-3b2e-4f77-9a10-2c5b8e4d7a01")
 
 # 取り込み対象。生成物だらけのディレクトリは既定では入れない(ノイズになるため)。
@@ -66,7 +70,7 @@ MIN_CHARS = 120          # これ未満のファイルは索引価値が低い
 CHUNK_CHARS = 450
 CHUNK_OVERLAP = 80
 EMBED_TIMEOUT = 300
-EMBED_SUB_BATCH = 16      # 1リクエストあたりのチャンク数(タイムアウト回避)
+EMBED_SUB_BATCH = 32      # Infinityの構成バッチと一致。Ollama fallbackでも上限内
 
 
 # ------------------------------------------------------------------ helpers
@@ -106,6 +110,20 @@ def embed_batch(texts: list[str]) -> list[list[float]]:
     out: list[list[float]] = []
     for i in range(0, len(safe), EMBED_SUB_BATCH):
         part = safe[i:i + EMBED_SUB_BATCH]
+        if EMBED_BACKEND in ("auto", "infinity"):
+            try:
+                d = _post(f"{INFINITY}/embeddings",
+                          {"model": INFINITY_MODEL, "input": part},
+                          timeout=EMBED_TIMEOUT)
+                data = d.get("data") or []
+                vs = [item.get("embedding") for item in data]
+                if len(vs) != len(part) or any(len(v or []) != VECTOR_SIZE for v in vs):
+                    raise RuntimeError(f"Infinity応答の件数・次元が不正: {str(d)[:200]}")
+                out.extend(vs)
+                continue
+            except Exception:
+                if EMBED_BACKEND == "infinity":
+                    raise
         d = _post(f"{OLLAMA}/api/embed",
                   {"model": EMBED_MODEL, "input": part, "options": opts},
                   timeout=EMBED_TIMEOUT)
@@ -118,6 +136,34 @@ def embed_batch(texts: list[str]) -> list[list[float]]:
 
 def sha256_text(s: str) -> str:
     return hashlib.sha256(s.encode("utf-8", "replace")).hexdigest()
+
+
+def text_quality_issue(text: str) -> str | None:
+    """DB投入前に不可逆な欠損と高確度の二重UTF-8化けを検疫する。"""
+    replacement_count = text.count("\ufffd")
+    if replacement_count:
+        return f"U+FFFD={replacement_count}"
+    mojibake_count = sum(text.count(mark) for mark in "縺繧繝")
+    if mojibake_count >= 10:
+        return f"mojibake_markers={mojibake_count}"
+    return None
+
+
+def acquire_singleton_lock():
+    """Windowsで多重取り込みを防止する。戻り値のhandleを終了まで保持する。"""
+    import msvcrt
+    LOCK_FILE.parent.mkdir(parents=True, exist_ok=True)
+    handle = open(LOCK_FILE, "a+b")
+    if handle.tell() == 0:
+        handle.write(b"0")
+        handle.flush()
+    handle.seek(0)
+    try:
+        msvcrt.locking(handle.fileno(), msvcrt.LK_NBLCK, 1)
+    except OSError:
+        handle.close()
+        return None
+    return handle
 
 
 def iter_docs(roots: list[str]) -> list[Path]:
@@ -230,6 +276,11 @@ def main() -> int:
         print(f"マニフェスト記録済みファイル: {len(m.get('files', {}))}")
         return 0
 
+    singleton_lock = acquire_singleton_lock()
+    if singleton_lock is None:
+        print("別の取り込みプロセスが実行中です。多重起動を中止します。")
+        return 4
+
     roots = a.roots if a.roots else DEFAULT_ROOTS + EXTRA_FILES
     files = iter_docs(roots)
     print(f"対象ルート: {roots}")
@@ -238,20 +289,35 @@ def main() -> int:
     man = load_manifest()
     todo: list[tuple[Path, str, str]] = []
     skipped_small = 0
+    quarantined: list[tuple[str, str]] = []
     for p in files:
         try:
-            text = p.read_text(encoding="utf-8", errors="replace")
+            text = p.read_text(encoding="utf-8", errors="strict")
+        except UnicodeDecodeError as e:
+            quarantined.append((str(p.relative_to(REPO)).replace("\\", "/"),
+                                f"invalid_utf8={e}"))
+            continue
         except Exception:
             continue
         if len(text.strip()) < MIN_CHARS:
             skipped_small += 1
             continue
         rel = str(p.relative_to(REPO)).replace("\\", "/")
+        issue = text_quality_issue(text)
+        if issue:
+            quarantined.append((rel, issue))
+            continue
         h = sha256_text(text)
         if not a.force and man["files"].get(rel, {}).get("sha256") == h:
             continue
         todo.append((p, rel, text))
-    print(f"小さすぎて除外: {skipped_small} 件 / 取り込み対象(新規・変更): {len(todo)} 件")
+    # 全件処理では小さい文書を先に確定し、同じCPU時間で完了ファイル数を最大化する。
+    # point IDとマニフェストはファイル単位で冪等なので、順序変更は安全。
+    todo.sort(key=lambda item: (len(item[2]), item[1]))
+    print(f"小さすぎて除外: {skipped_small} 件 / 文字化け検疫: {len(quarantined)} 件 / "
+          f"取り込み対象(新規・変更): {len(todo)} 件")
+    for rel, reason in quarantined[:20]:
+        print(f"  QUARANTINE {rel} ({reason})")
 
     if a.limit:
         todo = todo[:a.limit]

@@ -31,6 +31,28 @@ def load_config() -> dict[str, Any]:
     return yaml.safe_load(CONFIG_PATH.read_text(encoding="utf-8")) or {}
 
 
+def worker_port_contract(cfg: dict[str, Any], node_id: str) -> tuple[bool, str]:
+    """Require router preflight and dispatch registry to select one worker port."""
+    sat = cfg.get(node_id) or {}
+    configured_port = int(sat.get("job_worker_port") or 5680)
+    registry_path = ROOT / "data" / "workspace" / f"{node_id}_node_registry.json"
+    if node_id == "lavie" and not registry_path.exists():
+        registry_path = REGISTRY_PATH
+    if not registry_path.exists():
+        return False, f"{node_id} worker registry missing: {registry_path}"
+    try:
+        registry = json.loads(registry_path.read_text(encoding="utf-8-sig"))
+        registered_port = int(registry.get("job_worker_port") or 5680)
+    except (OSError, ValueError, TypeError, json.JSONDecodeError) as exc:
+        return False, f"{node_id} worker registry unreadable: {exc}"
+    if configured_port != registered_port:
+        return (
+            False,
+            f"{node_id} worker port mismatch: router={configured_port}, registry={registered_port}",
+        )
+    return True, f"{node_id} worker port contract ok: {configured_port}"
+
+
 def host_stats() -> dict[str, float]:
     try:
         import psutil
@@ -69,6 +91,9 @@ def probe_satellite_job_worker(cfg: dict[str, Any], node_id: str) -> tuple[bool,
     sat = cfg.get(node_id) or {}
     if not sat.get("enabled"):
         return False, f"{node_id} disabled in config"
+    contract_ok, contract_detail = worker_port_contract(cfg, node_id)
+    if not contract_ok:
+        return False, contract_detail
     ip = (sat.get("ip") or "").strip()
     if not ip:
         return False, f"{node_id} ip empty"

@@ -18,7 +18,7 @@
 
 The raw CSV identifier header is `NodeID` for results that are actually associated with TRI3 entities. The geometry export contains separate NODE, TRI3, and 1DET ID namespaces; IDs may overlap and therefore cannot be classified by numeric membership alone.
 
-The current `openfoam_multiphysics_field_pack_v1/manifest.json` also contains an invalid Windows-path escape around the Cooling STL path, causing PowerShell `ConvertFrom-Json` to fail. Association evidence remains visible in the raw manifest and generated field directories, but the manifest must be regenerated with a standards-compliant JSON writer before it is authoritative machine input.
+The current `openfoam_multiphysics_field_pack_v1/manifest.json` passes Python standard-library `json.loads`, and its Cooling STL path is valid UTF-8 JSON. The earlier PowerShell `Get-Content | ConvertFrom-Json` failure came through a Windows PowerShell text-decoding path without an explicit UTF-8 read. Python strict parsing is the authoritative gate; PowerShell consumers must use an explicit UTF-8 read.
 
 ## 5 Whys
 
@@ -33,7 +33,7 @@ The current `openfoam_multiphysics_field_pack_v1/manifest.json` also contains an
 - Data semantics: common `NodeID` label hides NODE/TRI3/1DET association.
 - Identifier model: entity namespaces overlap numerically.
 - Interface: benchmark input lacked an explicit `association` property per field.
-- Serialization: Cooling STL path made the existing JSON manifest invalid.
+- Serialization/consumer: Windows PowerShell read UTF-8 JSON without an explicit UTF-8 encoding.
 - Verification: no matrix test covering nodal and elemental reference fields.
 
 ## FMEA
@@ -42,12 +42,12 @@ The current `openfoam_multiphysics_field_pack_v1/manifest.json` also contains an
 |---|---|---:|---:|---|
 | TRI3 field treated as NODE | spatially incorrect loads/reference | 10 | foreign-ID gate | explicit association catalog; never infer from header |
 | overlapping entity IDs joined by number only | silent wrong geometry | 10 | association-aware join count | composite key `(association, entity_id)` |
-| invalid JSON path escape | automation reads partial/stale metadata | 7 | strict JSON parse | regenerate manifest; strict parse test |
+| PowerShell encoding-dependent JSON read | false invalid-manifest diagnosis | 5 | Python strict JSON parse | require explicit UTF-8 in PowerShell consumers |
 | MF reference used as CalculiX load | validation leakage | 10 | manifest policy gate | reference/load directory separation and provenance check |
 
 ## Countermeasure implementation plan
 
-1. Regenerate the multiphysics manifest as strict UTF-8 JSON and verify it with Python `json.load`.
+1. Verify the existing multiphysics manifest with Python `json.load`; require explicit UTF-8 for PowerShell consumers.
 2. Add a field-association catalog using explicit NODE/TRI3/1DET metadata.
 3. Change benchmark summaries to validate composite `(association, entity_id)` keys.
 4. Emit CalculiX geometry from NODE+TRI3 only; keep every MF result in a separate `reference_only` section.
@@ -61,7 +61,7 @@ IF a Moldflow result is imported, THEN its entity association must be obtained f
 ## Verification and rollback
 
 - Pass: all selected fields join 100% in their declared association; strict JSON parse succeeds; no Moldflow reference appears in the CalculiX load section.
-- Fail: any inferred association, foreign composite key, ambiguous overlapping key, invalid JSON, or reference-to-load provenance.
+- Fail: any inferred association, foreign composite key, ambiguous overlapping key, strict JSON parse failure, or reference-to-load provenance.
 - Rollback: delete only the new incomplete `calculix_structural_benchmark_v1` output and revert the new benchmark script. Source exports remain read-only.
 
 ## Scope limits / next experiment

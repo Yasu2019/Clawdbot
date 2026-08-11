@@ -258,8 +258,9 @@ def build_impact_mp4(
     fps: int = 4,
     max_frames: int = 24,
     camera_preset: str = "top",
+    follow_camera: bool = True,
 ) -> tuple[Path | None, Path | None, dict[str, Any]]:
-    """Build FEM Impact MP4 with fixed axes + global color scale (prevents model collapse in video)."""
+    """Build FEM Impact MP4 with shared color scale and close model-following camera."""
     import shutil
     import subprocess
 
@@ -270,6 +271,7 @@ def build_impact_mp4(
         "frames_ok": 0,
         "frames_failed": 0,
         "camera_preset": camera_preset,
+        "camera_mode": "follow_visible_surface" if follow_camera else "global_fixed",
     }
     if len(vtks) < 2:
         meta["error"] = "need_at_least_2_surface_vtks"
@@ -322,6 +324,18 @@ def build_impact_mp4(
     frames: list[Path] = []
     for i, (vtk_path, pts, polys, face_vals, name) in enumerate(meshes):
         fp = frame_dir / f"frame_{i:04d}.png"
+        frame_xlim = xlim
+        frame_ylim = ylim
+        if follow_camera:
+            pts2 = project_view(_ensure_xyz(pts), camera_preset)[0]
+            used_ids = np.unique(polys.reshape(-1))
+            visible = pts2[used_ids]
+            xmin, xmax = float(np.min(visible[:, 0])), float(np.max(visible[:, 0]))
+            ymin, ymax = float(np.min(visible[:, 1])), float(np.max(visible[:, 1]))
+            width = max(xmax - xmin, 1e-6)
+            height = max(ymax - ymin, 1e-6)
+            frame_xlim = (xmin - width * 0.08, xmax + width * 0.08)
+            frame_ylim = (ymin - height * 0.08, ymax + height * 0.08)
         ok = render_mesh_frame(
             pts,
             polys,
@@ -332,8 +346,8 @@ def build_impact_mp4(
             vtk_name=vtk_path.name,
             vmin=vmin,
             vmax=vmax,
-            xlim=xlim,
-            ylim=ylim,
+            xlim=frame_xlim,
+            ylim=frame_ylim,
             camera_preset=camera_preset,
             axis_labels=axis_labels,
         )

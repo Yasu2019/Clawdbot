@@ -77,13 +77,13 @@
     "label": "Moldflow cavity VOF + OpenRadioss press (north star evolution)",
     "note": "resin_flow retired; press cats enabled when harvest evidence >= 20"
   },
-  "reason": "North star evolution: moldflow records=21203, press records=21931; multi-pillar TE for breakthrough",
-  "updated_at": "2026-08-02T16:32:27.999222+09:00",
+  "reason": "North star evolution: moldflow records=161, press records=205; multi-pillar TE for breakthrough",
+  "updated_at": "2026-08-11T03:55:17.119949+09:00",
   "allocation_source": "D:\\Clawdbot_Docker_20260125\\data\\workspace\\k10_growth_allocation.json",
   "north_star_evolution": {
-    "updated_at": "2026-08-02T16:32:27.999222+09:00",
-    "moldflow_total": 21203,
-    "press_total": 21931,
+    "updated_at": "2026-08-11T03:55:17.111922+09:00",
+    "moldflow_total": 161,
+    "press_total": 205,
     "multi_pillar": true
   }
 }

@@ -1,5 +1,22 @@
 # IATF 3D Video Pipeline Trouble History & Lessons Learned
 
+## [T079i] 階段昇段: 実モーション参照+バグ修正6件で歩容は劇的改善も、昇段自体は未達成のまま安定した局所最適解に収束 (2026-07-31〜08-02)
+
+**発端**: T079での「足踏み偽陽性」判明後、ユーザーから「人間の基本動作モーションを学習し直すほうがよいのでは？世界中のWebによい資料はないのか」との指摘。実際、v4〜v9の全学習は平地流用のsin波歩容(`_sin_gait`)を階段でも使い回しており、階段特有の深い膝上げ・重心移動の手本を一度も与えていなかった。
+
+**実施した調査・修正(すべて恒久的、コードベースに定着済み)**:
+1. **CMU Motion Captureデータベース**からSubject 143 Trial 17("Walk Up Stairs And Over")を採用。オープンループ検証(`check_reference_gait.py`)で複数候補(Subject 83/111/13)と比較し、一貫して前進する唯一の候補として選定。
+2. **`bvh_retarget.py`の関節可動域飽和バグ**: 股関節・膝の`fit_amplitude()`が非対称可動域(膝: -30°/+10°)で単一スケール(`min(|lo|,|hi|)`基準)を使っており、階段昇段の深い膝屈曲が64サンプル中31サンプル(ほぼ半周期)で可動域下限に張り付いていた。正負を独立スケールする方式に修正(knee p2p 18°→35-38°に回復)。
+3. **`cmd_vx`と`_moving()`報酬ゲート閾値(0.1)の不整合**: `--ref-json`で参照モーションを読み込んでも`cmd_vx`はデフォルト[0.15,0.35]固定のままで、階段参照の遅いペース(0.06m/s)と噛み合わず、`forward_progress`/`pose_prior`/`climb_stagnation`等の"歩行"報酬群が実質無効化されていた(v7/v8で暴走・後退の一因)。`cmd_vx`を参照ペースに合わせ、後に`_moving()`閾値自体も0.1→0.03に下げて根本解消。
+4. **参照モーションの腕姿勢によるリセット時後方バイアス(最重要発見)**: ゼロ行動でのリセット直後速度を測定したところ、5試行すべてで一貫して後方速度(-0.004〜-0.023)。腕(肩+21-25°/肘-45-46°、常に前方に抱え込む姿勢)をニュートラル化すると前進速度(+0.010〜+0.022)に反転することを実証。これがv7-v11で見られた後方ドリフトの直接の物理的原因だった。
+
+**結果**: 上記修正の連鎖で歩容品質は劇的に改善(自然な立ち姿勢、自然なストライド、腕の異常な振り回し・後方滑走は解消、`min_upright`最高0.75)。しかし**climb_stagnation強化・pose_prior軽減・moving閾値/cmd_vx整合・forward_progress強化の計6種の異なる報酬調整すべてが、同じ安定した局所最適解(vx≈-0.03〜-0.06、survival_rate 0%、自然だが実質的に前進しない)に収束**。これは単純な報酬スケール調整では突破できない構造的な壁の可能性が高く、次のアプローチ(段差そのものを乗り越える専用カリキュラム、参照モーションのroot速度成分の活用、等)の検討が必要。
+
+**恒久対策/再利用可能な知見**:
+- 新しい参照モーション(`--ref-json`)を使う際は、必ず(a)`--cmd-vx-min/max`を参照の`clip_vx_mps`に合わせる、(b)ゼロ行動でのリセット直後速度をチェックして物理的バイアスがないか確認する、の2点を先に行う。
+- `bvh_retarget.py`で非対称可動域の関節(膝・肘)を扱う際は`fit_amplitude`の正負独立スケール版を使う(`joint_map`関数)。
+- 良好なcheckpointは即座に`known_good/`へ退避する([[feedback-checkpoint-snapshot-before-continue]]参照)。
+
 ## [T079] 階段昇段(stairs_up)は survival_rate だけでは「足踏み」を合格にしてしまう — height_gained_m必読 (2026-07-27)
 
 **発端**: ユーザーがTelegramで階段昇段の動画を見て「歩行ではなく足踏みに近い」と指摘。これを受けて
@@ -73,6 +90,19 @@ meaning gate の「8連続 ERROR」は1個の欠陥ではなく5層だった。(
 `moldflow-union-xplus-d2-mfalign-v3-20260723` の全 dict を
 `experiments/openfoam/mfalign_snappy_v001` として取り込み、`repro-mfalign-v3b-20260725` が
 fill 99.48% / 0.90s / SUCCESS で再現。INC-161、Beads `Clawdbot_Docker_20260125-6t03`。
+
+## [T080] Dual Synergy (empty + study) — GetObject cannot pick COM instance (2026-07-30)
+
+User visible: two Synergy windows (no project + `mf_fc_warp_v2`). Agent export/GetObject
+could bind the empty instance or fail 429/NO_GETOBJECT even with a healthy study GUI.
+**Root:** Windows ROT `GetObject(, "synergy.Synergy")` has no instance selector; CreateObject/
+Dispatch while Synergy is alive often creates/binds empty. **Countermeasure (self-judgment):**
+inventory pid/WS/session → if count≥2 kill empty/low-WS first → GetObject only via Session1
+`schtasks /IT` → fail-closed unless `StudyDoc.StudyName` matches expected → never CreateObject
+while Synergy exists. Doc: `docs/knowledge/MF_SYNERGY_DUAL_INSTANCE_COM_GATE_20260730.md`.
+Gate script: `.tmp/_c_synergy_gate.ps1`. bd `mf-synergy-dual-instance-com-gate` / issue `Clawdbot_Docker_20260125-u5st`.
+INC-178. Obsidian `60_PC_Logs/Moldflow_INC-178_T080_dual_Synergy_COM_gate_20260730.md`.
+brv card `cae/mf_synergy_dual_instance_com_gate_20260730.md`. Related T071 (single healthy Synergy).
 
 ## [T071] Dynabook Moldflow COM 429 means a stuck Synergy modal, not a bridge fault (2026-07-25)
 
@@ -1421,3 +1451,43 @@ G1 py_compile → G2 `fleet_satellite_setup_auto.ps1` → G3 K10 probe → G4 �
 - 0.07m中間から転移した stairs_h10b(段高0.10m=フル)。verify(フレッシュ再ロード16s): survival @0.10=0.662/@0.13=0.703/@0.16=0.707、travel 1.80-1.92m(速度で変動)、**height_gained 0.48-0.53m=約5段登坂**(0.10m段)。目視: 上体直立で0.10m段を制御登坂・腕連結・崩れなし。0.05m(survival0.9)より頑健性は落ちるが、フル段高で確実に登る。
 - カリキュラム 0.05→0.07→0.10 の段階転移が有効(0.05→0.10直行は1段停止で失敗していた)。
 - VERIFIED ckpt: known_good/walk_rsl_stairs_h10_20260725_survival0.7_VERIFIED.pt。
+### [T081] Moldflow Get*Data ID is dataset-dependent (2026-08-02)
+
+- Fact: 1,818 NODE coordinates joined only 30.77% of 3,552-row elemental fields;
+  four 40-row Cool circuit fields joined 0%.
+- Root cause: the integer array exported as `NodeID` can represent NODE, TRI3, or
+  1DET according to the result dataset.
+- Rule: IF a Moldflow result is spatially packed, THEN join it to an explicitly
+  identified association geometry, BECAUSE ID equality across entity classes is
+  not a valid coordinate mapping.
+- Recovery: use `04_export_entity_geometry.vbs`, require UDM count/connectivity and
+  COM unit-scale gates, and keep accuracy as `PROXY_GAP`.
+### [T082] OpenFOAM pressure fields are Pa; never label Pa/1000 as MPa (2026-08-02)
+
+- Fact: r32 EOF p=65,170 Pa=0.06517 MPa; MF EOF=13.784831 MPa.
+- Root cause: a 65.24 kPa proxy was stored as 65.24 MPa, reversing k calibration.
+- Rule: IF an OF pressure is compared in MPa, THEN divide raw Pa by 1e6 and retain
+  the raw Pa evidence, BECAUSE dividing by 1e3 produces kPa.
+- Recovery: typed conversion test, bounded k proposal, identical verification run,
+  and `PROXY_GAP` until comparison gates pass.
+
+### [T083] Dedicated CAE campaign monitoring needs its own live state (2026-08-03)
+
+- Symptom: r35 finished, but only general tri-track monitoring remained; thermo-fill/cooling progression was not monitored.
+- Root cause: a one-shot completion waiter was mistaken for a persistent campaign state machine.
+- Rule: IF reporting a CAE campaign as monitored THEN require a fresh campaign-specific harness status plus a live PID, BECAUSE generic fleet activity does not prove next-stage progression.
+- Countermeasure: `scripts/lavie_mf_pipeline_monitor.py`; exclusive lock, 30 s atomic heartbeat, bounded lifetime, obsolete 35 s path forbidden, `PROXY_GAP` retained.
+
+### [T084] Transport success is not CAE success; thermo/snappy needs a final-case contract (2026-08-03)
+
+- Fact: `lavie-mfminusx-thermo-fill-20260803` returned a collected worker response
+  but its nested verdict was `FAILED`; OpenFOAM lacked
+  `constant/thermophysicalProperties` and advanced no physical time.
+- Root cause: the snappy builder copied a non-thermal template regardless of
+  `physics_category`, while the waiter treated dispatcher exit 0 as completion.
+- Rule: IF `mesh_mode=snappyhexmesh` and physics is thermal, THEN validate the
+  final generated thermo files and remote code hash before dispatch. IF a worker
+  response is received, THEN classify success only from `trial_entry.verdict`,
+  BECAUSE transport completion is not solver completion.
+- Recovery: preserve the failed run, deploy the overlay and verdict parser, use a
+  new trial ID, and retain `PROXY_GAP` until physical/KPI gates pass.

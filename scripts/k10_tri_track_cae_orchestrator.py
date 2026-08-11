@@ -49,6 +49,8 @@ import k10_satellite_dispatch as sjp
 import yaml
 
 _stop = threading.Event()
+_status_lock = threading.Lock()
+INSTANCE_LOCK_PATH = WORKSPACE / "k10_tri_track_cae_orchestrator.lock"
 
 
 def now_iso() -> str:
@@ -72,9 +74,56 @@ def write_status(payload: dict[str, Any]) -> None:
     payload = dict(payload)
     payload["updated_at"] = now_iso()
     text = json.dumps(payload, ensure_ascii=False, indent=2) + "\n"
-    STATUS_PATH.write_text(text, encoding="utf-8")
-    DASHBOARD_STATUS.parent.mkdir(parents=True, exist_ok=True)
-    DASHBOARD_STATUS.write_text(text, encoding="utf-8")
+    with _status_lock:
+        STATUS_PATH.write_text(text, encoding="utf-8")
+        DASHBOARD_STATUS.parent.mkdir(parents=True, exist_ok=True)
+        DASHBOARD_STATUS.write_text(text, encoding="utf-8")
+
+
+def acquire_instance_lock():
+    """Prevent two continuous orchestrators from dispatching duplicate CAE trials."""
+    handle = INSTANCE_LOCK_PATH.open("a+b")
+    if INSTANCE_LOCK_PATH.stat().st_size == 0:
+        handle.write(b"0")
+        handle.flush()
+    handle.seek(0)
+    try:
+        if os.name == "nt":
+            import msvcrt
+            msvcrt.locking(handle.fileno(), msvcrt.LK_NBLCK, 1)
+        else:
+            import fcntl
+            fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except (OSError, IOError):
+        handle.close()
+        return None
+    return handle
+
+
+def _load_existing_tracks() -> dict[str, Any]:
+    """Keep counters and proven successes across a safe orchestrator restart."""
+    tracks: dict[str, Any] = {}
+    try:
+        previous = json.loads(STATUS_PATH.read_text(encoding="utf-8"))
+        tracks = dict(previous.get("tracks") or {})
+    except Exception:
+        pass
+    try:
+        evolution = json.loads(evolution_gate.STATE_PATH.read_text(encoding="utf-8"))
+        for name, record in (evolution.get("tracks") or {}).items():
+            if str(record.get("verdict") or "") != "SUCCESS":
+                continue
+            state = tracks.setdefault(name, {"n": 0, "last": None, "fail_streak": 0})
+            state["last_success"] = {
+                "at": record.get("at"),
+                "trial_id": record.get("trial_id"),
+                "verdict": "SUCCESS",
+                "fingerprint": record.get("fingerprint"),
+                "kpis": record.get("kpis") or {},
+            }
+    except Exception:
+        pass
+    return tracks
 
 
 def _apply_llm_overrides(override_key: str, params: dict[str, Any]) -> dict[str, Any]:
@@ -188,6 +237,27 @@ def run_satellite_trial(
     )
     trial_entry = bundle["trial_entry"]
     trial_entry.setdefault("host", node)
+    # Preserve dispatch identity even when the synchronous worker call times out.
+    # Without these fields every transport error collapses to the same empty
+    # evolution fingerprint and the orchestrator can blindly submit duplicates.
+    trial_entry.setdefault("id", trial_id)
+    trial_entry.setdefault("trial_id", trial_id)
+    trial_entry.setdefault("category", category)
+    trial_entry.setdefault("params", dict(params or {}))
+    worker_result = trial_entry.get("worker_result") or {}
+    worker_error = str(trial_entry.get("error") or worker_result.get("error") or "").strip().lower()
+    if worker_result.get("status") == "busy" or worker_error == "worker_busy":
+        # A healthy single-slot worker uses HTTP 409/busy for backpressure.
+        # It is not an analysis failure and must never advance the meaning gate.
+        trial_entry["verdict"] = "SKIP_BUSY"
+        trial_entry["error"] = "worker_busy"
+    elif worker_error == "timed out" or "timed out" in worker_error or "timeout" in worker_error:
+        # A transport timeout is not solver evidence.  The remote process may
+        # still be running, so fail closed and require result reconciliation;
+        # never count it as a physics/meaning-gate failure or submit a new job.
+        trial_entry["verdict"] = "HOLD_REMOTE_RESULT_UNKNOWN"
+        trial_entry["transport_state"] = "unknown_in_flight"
+        trial_entry["reconcile_required"] = True
     cfg = router.load_config()
     _maybe_cae_paraview_video_delivery(
         trial_entry,
@@ -713,12 +783,35 @@ def track_loop(
             }
             append_log({"track": name, "result": result})
             write_status(state)
+            if verdict == "HOLD_REMOTE_RESULT_UNKNOWN":
+                track_state["remote_result_hold"] = {
+                    "stopped": True,
+                    "at": now_iso(),
+                    "trial_id": result.get("trial_id"),
+                    "reason": "transport timeout; reconcile remote job before retry",
+                }
+                track_state["last"]["verdict"] = verdict
+                append_log({
+                    "track": name,
+                    "remote_result_hold": True,
+                    "trial_id": result.get("trial_id"),
+                })
+                write_status(state)
+                break
             if verdict in ("ERROR", "FAILED", "FAILED_MESH_EXPLOSION", "FAILED_NO_EVOLUTION", "FAILED_SHORT_SHOT", "FAILED_MEANING_GATE", "FAILED_INPUT_MISSING"):
                 fail_streak += 1
                 last_verdict = "ERROR" if verdict == "ERROR" else verdict
             else:
                 fail_streak = 0
                 last_verdict = "OK"
+                if verdict == "SUCCESS":
+                    trial_entry = result.get("trial_entry") or {}
+                    track_state["last_success"] = {
+                        "at": now_iso(),
+                        "trial_id": result.get("trial_id"),
+                        "verdict": "SUCCESS",
+                        "kpis": trial_entry.get("defects_detected") or {},
+                    }
             track_state["fail_streak"] = fail_streak
             track_state["last"]["fail_streak"] = fail_streak
             # T019/P026 meaning gate: 実行トライアルの連続失敗がしきい値到達でトラック自動停止
@@ -791,7 +884,7 @@ def run_parallel_session(
             "openradioss": f"{or_cfg.get('category')}@{or_cfg.get('host')}",
             "fem_impact": f"fem_impact@{tri.get('fem_impact', {}).get('host')}",
         },
-        "tracks": {},
+        "tracks": _load_existing_tracks(),
     }
     write_status(state)
 
@@ -950,4 +1043,11 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    instance_lock = acquire_instance_lock()
+    if instance_lock is None:
+        print("[tri-track] another orchestrator instance is active; refusing duplicate dispatch", flush=True)
+        raise SystemExit(0)
+    try:
+        raise SystemExit(main())
+    finally:
+        instance_lock.close()

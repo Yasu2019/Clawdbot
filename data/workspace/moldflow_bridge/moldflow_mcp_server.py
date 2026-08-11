@@ -36,6 +36,7 @@ DEFAULT_WORK_ROOT = Path(os.environ.get("MOLDFLOW_WORK_ROOT", r"G:\moldflow_brid
 # Thermoplastic System DB domain (NOT 20030 thermoset). Machines use UDB domain tag 30007.
 MOLDFLOW_THERMOPLASTIC_DOMAIN = 21000
 MOLDFLOW_MACHINE_DOMAIN_TAG = "30007"
+MAX_COMMAND_TIMEOUT_SECONDS = 1800
 # MF2010 Midplane COM-accepted AnalysisSequence strings (Dynabook probe 2026-07-20).
 # UI label "Fill + Pack" maps to COM string "Flow" (not "Fill+Pack").
 MOLDFLOW_COM_ACCEPTED_SEQUENCES: tuple[str, ...] = ("Fill", "Fast Fill", "Flow", "Cool")
@@ -136,7 +137,7 @@ def _run(command: list[str], timeout_sec: int = 30) -> dict[str, Any]:
             text=True,
             encoding="utf-8",
             errors="replace",
-            timeout=max(1, min(int(timeout_sec), 300)),
+            timeout=max(1, min(int(timeout_sec), MAX_COMMAND_TIMEOUT_SECONDS)),
             check=False,
         )
         return {
@@ -991,6 +992,96 @@ WScript.Echo "ANALYSIS_STARTED=false"
 
 
 @mcp.tool()
+def moldflow_mesh_study_path(
+    study_path: str,
+    mesh_size_mm: float = 2.0,
+    timeout_sec: int = 900,
+) -> str:
+    """Open an explicitly saved study and generate its Fusion mesh in one COM call."""
+    if not _write_operations_enabled():
+        return _write_operation_blocked()
+    sdy = Path(str(study_path or "").strip())
+    if not sdy.is_file():
+        return json.dumps({"ok": False, "error": f"study file not found: {sdy}"})
+    try:
+        mesh_size = float(mesh_size_mm)
+    except (TypeError, ValueError):
+        return json.dumps({"ok": False, "error": "mesh_size_mm must be numeric"})
+    if not 0.01 <= mesh_size <= 1000.0:
+        return json.dumps({"ok": False, "error": "mesh_size_mm must be between 0.01 and 1000"})
+    project_file = next(sdy.parent.glob("*.mpi"), None)
+    if not project_file:
+        return json.dumps({"ok": False, "error": f"project file (.mpi) not found in: {sdy.parent}"})
+    vbs_project = str(project_file).replace("\\", "\\\\").replace('"', '""')
+    study_name = _vbs_escape(sdy.stem)
+    vbs = f'''Option Explicit
+Dim Synergy, Project, StudyDoc, MeshGenerator, Ent, NodeCount, TriCount, SaveOK
+On Error Resume Next
+Set Synergy = CreateObject("synergy.Synergy")
+If Err.Number <> 0 Then WScript.Echo "ERROR=CREATEOBJECT_FAILED:" & Err.Number & ":" & Err.Description: WScript.Quit 2
+Err.Clear
+Synergy.OpenProject "{vbs_project}"
+If Err.Number <> 0 Then WScript.Echo "ERROR=OPEN_PROJECT_FAILED:" & Err.Number & ":" & Err.Description: WScript.Quit 3
+Set Project = Synergy.Project()
+If Project Is Nothing Then WScript.Echo "ERROR=NO_PROJECT": WScript.Quit 4
+Err.Clear
+Project.OpenItemByName "{study_name}", "Study"
+If Err.Number <> 0 Then WScript.Echo "ERROR=OPEN_STUDY_FAILED:" & Err.Number & ":" & Err.Description: WScript.Quit 5
+Set StudyDoc = Synergy.StudyDoc()
+If StudyDoc Is Nothing Then WScript.Echo "ERROR=NO_ACTIVE_STUDY": WScript.Quit 6
+Set MeshGenerator = Synergy.MeshGenerator()
+If MeshGenerator Is Nothing Then WScript.Echo "ERROR=MESH_GENERATOR_UNAVAILABLE": WScript.Quit 7
+MeshGenerator.EdgeLength = {mesh_size}
+MeshGenerator.MergeTolerance = 0.1
+MeshGenerator.Match = True
+MeshGenerator.Smoothing = True
+MeshGenerator.ElementReduction = False
+MeshGenerator.SurfaceOptimization = True
+MeshGenerator.PostMeshActions = True
+MeshGenerator.RemeshAll = False
+MeshGenerator.UseActiveLayer = False
+MeshGenerator.SaveOptions
+Err.Clear
+StudyDoc.MeshNow False
+WScript.Echo "MESH_NOW_ERROR=" & CStr(Err.Number) & ":" & Err.Description
+If Err.Number <> 0 Then WScript.Quit 8
+WScript.Echo "MESH_STATUS=" & CStr(StudyDoc.MeshStatus())
+NodeCount = 0
+Set Ent = StudyDoc.GetFirstNode()
+Do While Not Ent Is Nothing
+    NodeCount = NodeCount + 1
+    Set Ent = StudyDoc.GetNextNode(Ent)
+Loop
+TriCount = 0
+Set Ent = StudyDoc.GetFirstTriangle()
+Do While Not Ent Is Nothing
+    TriCount = TriCount + 1
+    Set Ent = StudyDoc.GetNextTriangle(Ent)
+Loop
+WScript.Echo "NODE_COUNT=" & CStr(NodeCount)
+WScript.Echo "TRI_COUNT=" & CStr(TriCount)
+If NodeCount = 0 Or TriCount = 0 Then WScript.Echo "ERROR=EMPTY_MESH": WScript.Quit 9
+Err.Clear
+SaveOK = StudyDoc.Save()
+WScript.Echo "SAVE_OK=" & CStr(SaveOK)
+WScript.Echo "SAVE_ERROR=" & CStr(Err.Number) & ":" & Err.Description
+If Not SaveOK Or Err.Number <> 0 Then WScript.Quit 10
+WScript.Echo "CHECKPOINT=mesh_generated_and_saved"
+WScript.Echo "ANALYSIS_STARTED=false"
+'''
+    result = _run_vbs_code(
+        vbs,
+        timeout_sec=max(30, min(int(timeout_sec), MAX_COMMAND_TIMEOUT_SECONDS)),
+        bitness=64,
+    )
+    result["checkpoint"] = "mesh_generated_and_saved"
+    result["study_path"] = str(sdy)
+    result["mesh_size_mm"] = mesh_size
+    result["analysis_started"] = False
+    return json.dumps(result, ensure_ascii=False, indent=2)
+
+
+@mcp.tool()
 def moldflow_mesh_active_study_copy(
     expected_study_name: str,
     mesh_size_mm: float = 3.0,
@@ -1319,6 +1410,75 @@ WScript.Echo "ANALYSIS_STARTED=false"
 '''
     result = _run_vbs_code(vbs, timeout_sec=max(30, min(int(timeout_sec), 300)), bitness=64)
     result["checkpoint"] = "cad_imported_and_saved"
+    result["cad_path"] = str(cad)
+    result["analysis_started"] = False
+    return json.dumps(result, ensure_ascii=False, indent=2)
+
+
+@mcp.tool()
+def moldflow_new_study_import_checkpoint(
+    project_name: str,
+    study_name: str,
+    cad_path: str,
+    mesh_type: str = "Fusion",
+    timeout_sec: int = 300,
+) -> str:
+    """Create a new study, import CAD and save it without starting mesh generation."""
+    if not _write_operations_enabled():
+        return _write_operation_blocked()
+    project = str(project_name or "").strip()
+    study = re.sub(r"(?i)\.sdy$", "", str(study_name or "").strip())
+    cad = Path(str(cad_path or "").strip())
+    requested_mesh = str(mesh_type or "Fusion").strip()
+    if (not project or not study or
+            any(char in project + study for char in ('"', "\r", "\n", "\\", "/"))):
+        return json.dumps({"ok": False, "error": "project_name or study_name is invalid"})
+    if requested_mesh not in {"Fusion", "Midplane", "3D"}:
+        return json.dumps({"ok": False, "error": "mesh_type must be Fusion, Midplane, or 3D"})
+    if not cad.is_file():
+        return json.dumps({"ok": False, "error": f"CAD file not found: {cad}"})
+    work_dir = DEFAULT_WORK_ROOT / project
+    work_dir.mkdir(parents=True, exist_ok=True)
+    vbs_work_dir = str(work_dir).replace("\\", "\\\\")
+    vbs_cad = str(cad).replace("\\", "\\\\").replace('"', '""')
+    vbs = f'''Option Explicit
+Dim Synergy, Project, StudyDoc, ImportOpts, ImportOK, SaveOK
+On Error Resume Next
+Set Synergy = CreateObject("synergy.Synergy")
+If Err.Number <> 0 Then WScript.Echo "ERROR=CREATEOBJECT_FAILED:" & Err.Number & ":" & Err.Description: WScript.Quit 2
+Err.Clear
+Synergy.NewProject "{project}", "{vbs_work_dir}"
+If Err.Number <> 0 Then WScript.Echo "ERROR=NEW_PROJECT_FAILED:" & Err.Number & ":" & Err.Description: WScript.Quit 3
+Set Project = Synergy.Project()
+If Project Is Nothing Then WScript.Echo "ERROR=NO_PROJECT": WScript.Quit 4
+Err.Clear
+Project.NewStudy "{study}"
+If Err.Number <> 0 Then WScript.Echo "ERROR=NEW_STUDY_FAILED:" & Err.Number & ":" & Err.Description: WScript.Quit 5
+Set StudyDoc = Synergy.StudyDoc()
+If StudyDoc Is Nothing Then WScript.Echo "ERROR=NO_ACTIVE_STUDY": WScript.Quit 6
+Set ImportOpts = Synergy.ImportOptions()
+ImportOpts.MeshType = "{requested_mesh}"
+ImportOpts.Units = "mm"
+ImportOpts.UseMDL = False
+Err.Clear
+ImportOK = Synergy.ImportFile2("{vbs_cad}", ImportOpts, False, False)
+WScript.Echo "IMPORT_OK=" & CStr(ImportOK)
+WScript.Echo "IMPORT_ERROR=" & CStr(Err.Number) & ":" & Err.Description
+If Not ImportOK Or Err.Number <> 0 Then WScript.Quit 7
+Err.Clear
+SaveOK = StudyDoc.Save()
+WScript.Echo "SAVE_OK=" & CStr(SaveOK)
+WScript.Echo "SAVE_ERROR=" & CStr(Err.Number) & ":" & Err.Description
+If Not SaveOK Or Err.Number <> 0 Then WScript.Quit 8
+WScript.Echo "ACTIVE_STUDY=" & CStr(StudyDoc.StudyName)
+WScript.Echo "CHECKPOINT=cad_imported_and_saved_before_mesh"
+WScript.Echo "ANALYSIS_STARTED=false"
+'''
+    result = _run_vbs_code(
+        vbs, timeout_sec=max(30, min(int(timeout_sec), 300)), bitness=64
+    )
+    result["checkpoint"] = "cad_imported_and_saved_before_mesh"
+    result["project_dir"] = str(work_dir)
     result["cad_path"] = str(cad)
     result["analysis_started"] = False
     return json.dumps(result, ensure_ascii=False, indent=2)

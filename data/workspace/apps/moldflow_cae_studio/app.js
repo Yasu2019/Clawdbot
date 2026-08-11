@@ -1406,7 +1406,7 @@ function initApp() {
     } catch (e) { setStatus(String(e), "warn"); }
   });
 
-  $("btnMicroDefectsAnalysis")?.addEventListener("click", async () => {
+    $("btnMicroDefectsAnalysis")?.addEventListener("click", async () => {
     const clamp = parseFloat($("clampForceKn")?.value || 800);
     const restime = parseFloat($("residenceTimeSec")?.value || 180);
     const moist = parseFloat($("moisturePct")?.value || 0.04);
@@ -1447,6 +1447,92 @@ function initApp() {
       const d = await res.json();
       $("purgingResult").textContent = `🧹 洗浄パージグレード: ${d.purging_grade}\n🎯 目標コンタミ許容限界: ${d.target_quality_ppm} PPM\n🎯 最小最適『必要捨てショット数』: ${d.optimal_required_purge_shots} ショット\n⚖️ 総パージ廃棄樹脂量: ${d.total_waste_weight_kg} kg (廃棄材料コスト: ¥${d.total_waste_cost_jpy.toLocaleString()})\n✨ 達成到達異物濃度: ${d.final_achieved_contamination_ppm} PPM [判定: ${d.purging_verdict}]`;
       setStatus(`パージ捨てショット計算完了 (${d.optimal_required_purge_shots}shots)`, "ok");
+    } catch (e) { setStatus(String(e), "warn"); }
+  });
+
+  $("btnWeldlineAnalysis")?.addEventListener("click", async () => {
+    const gateCount = $("gate_inlet3")?.checked ? 3 : ($("gate_inlet1")?.checked && $("gate_inlet2")?.checked ? 2 : 1);
+    const tmelt = parseFloat($("tMelt")?.value || 513) - 273.15;
+    const tmold = parseFloat($("tMold")?.value || 323) - 273.15;
+    const pack = parseFloat($("packPressure")?.value || 80.0);
+    setStatus("OpenFOAM 3D画面にウエルドラインを重ねて解析中...", "warn");
+    try {
+      const res = await fetch(`${state.apiBase}/api/weldline_analysis`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ gate_count: gateCount, melt_temp_c: tmelt, mold_temp_c: tmold, pack_pressure_mpa: pack })
+      });
+      const d = await res.json();
+      $("weldlineResult").textContent = `⚡ 発生ウエルド本数: ${d.weldline_count} 本 (会合角度 θ=${d.meeting_angle_deg}°)\n🏷️ 分類: ${d.weld_classification}\n🌡️ 合流点樹脂温度: ${d.collision_melt_temp_c} °C (再融合圧力 ${d.re_fusion_weld_pressure_mpa} MPa)\n💪 引張強度保持率: ${d.tensile_strength_retention_pct}% (強度低下: -${d.tensile_strength_loss_pct}%) [判定: ${d.weldline_verdict}]\n🖥️ OpenFOAM 3Dキャンバス画面にウエルド衝突ラインオーバーレイを表示しました！`;
+      setStatus(`OpenFOAM 3D画面ウエルド表示完了 (${d.tensile_strength_retention_pct}%)`, "ok");
+    } catch (e) { setStatus(String(e), "warn"); }
+  });
+
+  $("btnShearAnalysis")?.addEventListener("click", async () => {
+    const sheetT = parseFloat($("shearSheetT")?.value || 1.5);
+    const clearPct = parseFloat($("shearClearancePct")?.value || 8.0);
+    const mat = $("shearMaterial")?.value || "SPCC_Steel";
+    setStatus("せん断加工 延性破壊 ＆ 断面4領域計算中...", "warn");
+    try {
+      const res = await fetch(`${state.apiBase}/api/shear_cutting_analysis`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sheet_thickness_mm: sheetT, clearance_pct: clearPct, material_name: mat })
+      });
+      const d = await res.json();
+      $("shearResult").textContent = `✂️ 被削材: ${d.material_name} (板厚 t=${d.sheet_thickness_mm}mm, クリアランス c=${d.clearance_pct}% / ${d.clearance_mm}mm)
+💪 最大抜きパンチ荷重: ${d.max_punch_force_kn} kN
+📏 ダレ量: ${d.rollover_depth_um} μm | せん断面: ${d.burnished_depth_um} μm | 破断面: ${d.fracture_depth_um} μm
+💥 カエリ・バリ高さ: ${d.burr_height_um} μm
+⚡ 破断到達ストローク: ${d.fracture_stroke_pct}% [判定: ${d.shearing_verdict_japanese}]`;
+      setStatus(`せん断加工計算完了 (${d.max_punch_force_kn}kN)`, "ok");
+    } catch (e) { setStatus(String(e), "warn"); }
+  });
+
+  $("btnGateVentAnalysis")?.addEventListener("click", async () => {
+    const wallT = parseFloat($("gvWallThickness")?.value || 2.0);
+    const resin = $("gvResinType")?.value || "PA66_GF30";
+    setStatus("最適ゲート ＆ エアベント (ガス抜き) 位置・寸法計算中...", "warn");
+    try {
+      const res = await fetch(`${state.apiBase}/api/gate_vent_optimization`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ wall_thickness_mm: wallT, resin_type: resin })
+      });
+      const d = await res.json();
+      const gDim = d.gate_dimensions;
+      const vSpec = d.air_vent_specs;
+      $("gateVentResult").textContent = `🚪 推奨ゲート種類: ${d.recommended_gate_type}
+📏 ゲート最適寸法: 厚み h=${gDim.height_h_mm}mm, 幅 w=${gDim.width_w_mm}mm, ランド長 l=${gDim.land_length_l_mm}mm
+💨 エアベント適正深さ: ${vSpec.vent_depth_um} μm (バリ発生限界ガード: ${vSpec.flash_risk_limit_um} μm)
+📐 ベントランド幅: ${vSpec.land_width_mm}mm | 逃げ溝深さ: ${vSpec.relief_depth_mm}mm | 推奨ベント本数: ${vSpec.recommended_vent_count} 本
+📍 エアベント3D設置位置: 中央穴前後ウエルド合流点 (2箇所) ＆ 4側壁流動末端コーナー (4箇所)
+[判定: ${d.optimization_verdict_japanese}]`;
+      setStatus(`ゲート・エアベント最適化完了 (${d.recommended_gate_type})`, "ok");
+    } catch (e) { setStatus(String(e), "warn"); }
+  });
+
+  $("btnCoolingMachineAnalysis")?.addEventListener("click", async () => {
+    const cavityCount = parseInt($("cmCavityCount")?.value || 2);
+    const resin = $("cmResinType")?.value || "PA66_GF30";
+    setStatus("冷却水路回路 ＆ 実成形機・成形条件最適選定中...", "warn");
+    try {
+      const res = await fetch(`${state.apiBase}/api/cooling_machine_optimization`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cavity_count: cavityCount, resin_type: resin })
+      });
+      const d = await res.json();
+      const cOpt = d.cooling_system_optimization;
+      const pOpt = d.optimum_process_conditions;
+      const mOpt = d.recommended_molding_machine;
+      $("coolingMachineResult").textContent = `🏭 推奨実成形機型式: ${mOpt.selected_maker} ${mOpt.selected_model}
+⚙️ 必要型締力: ${mOpt.required_clamping_force_ton} ton (成形機容量: ${mOpt.machine_clamp_ton} ton, スクリュ径 ${mOpt.screw_diameter_mm}mm)
+🌡️ 最適成形条件: 樹脂温度 ${pOpt.melt_temp_celsius}℃ | 金型温度 ${pOpt.mold_temp_celsius}℃ | 充填時間 ${pOpt.filling_time_s}s | 射出圧力 ${pOpt.injection_pressure_mpa}MPa | 保圧 ${pOpt.packing_pressure_mpa}MPa (${pOpt.packing_time_s}s)
+❄️ 最適水路設計: 直径 ${cOpt.channel_diameter_mm}mm | ピッチ ${cOpt.channel_pitch_mm}mm | 製品距離 ${cOpt.dist_to_cavity_mm}mm | レイノルズ数 ${cOpt.reynolds_number} (乱流流体)
+⏱️ サイクルタイム: 直線水路 ${pOpt.cycle_time_straight_s}s ➔ Conformal 3D水路 ${pOpt.cycle_time_conformal_s}s (成形時間 ${cOpt.cycle_time_reduction_pct}% 大幅短縮！)
+[判定: ${d.verdict_japanese}]`;
+      setStatus(`実機選定完了 (${mOpt.selected_maker} ${mOpt.selected_model})`, "ok");
     } catch (e) { setStatus(String(e), "warn"); }
   });
 }

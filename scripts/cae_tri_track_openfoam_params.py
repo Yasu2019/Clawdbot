@@ -105,6 +105,103 @@ def _mf_handoff_enabled(overrides: dict[str, Any] | None = None) -> bool:
     return bool(_mf_handoff_cfg(overrides).get("enabled"))
 
 
+_MF_PACK_DIR = WORKSPACE / "moldflow_bridge" / "mf_all_results_20260730"
+_MF_EVAL_PACK = _MF_PACK_DIR / "mf_eval_fields_of_pack_20260731.json"
+_MF_ALL_PACK = _MF_PACK_DIR / "mf_all_results_of_pack_20260731.json"
+_MF_PACK_OVERLAY_KEYS = (
+    "mf_fill_time_s",
+    "analysis_end_time_s",
+    "pack_pressure_MPa",
+    "T_melt",
+    "polymer_rho_kg_m3",
+    "pressure_vp_switchover_MPa",
+    "gate_inflow_direction",
+    "inlet_velocity_xyz",
+)
+
+
+def _overlay_mf_pack_of_targets(params: dict[str, Any]) -> dict[str, Any]:
+    """Refresh pack P / fill time / T_melt / density from calibration DB, then pack JSONs.
+
+    Order: mf_of_calibration.sqlite active targets -> mf_all_results pack -> eval pack.
+    Keeps PROXY_GAP. Never applies MF viscosity absmax as polymer_nu.
+    """
+    out = dict(params)
+    targets: dict[str, Any] = {}
+
+    # 1) Calibration DB (preferred source of truth after ingest)
+    try:
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        import mf_of_calibration_db as cdb
+
+        with cdb.db_session() as conn:
+            db_overlay = cdb.of_params_from_active_targets(conn)
+        if db_overlay:
+            for key, val in db_overlay.items():
+                if val is not None:
+                    # Do not clobber locked inlet_velocity unless overwrite allowed
+                    if key == "inlet_velocity" and out.get("inlet_velocity_locked"):
+                        continue
+                    if key == "inlet_velocity" and out.get("mf_to_of_overwrite") is False:
+                        continue
+                    targets[key] = val
+            out["mf_pack_overlay_source"] = db_overlay.get("mf_calibration_db") or "mf_of_calibration.sqlite"
+            out["mf_calibration_version"] = db_overlay.get("mf_calibration_version")
+    except Exception as exc:
+        out["mf_calibration_db_error"] = str(exc)[:160]
+
+    # 2) Pack JSON fallback / fill gaps
+    for pack_path in (_MF_EVAL_PACK, _MF_ALL_PACK):
+        if not pack_path.is_file():
+            continue
+        try:
+            pack = json.loads(pack_path.read_text(encoding="utf-8-sig"))
+        except Exception:
+            continue
+        ot = pack.get("of_targets") or {}
+        if isinstance(ot, dict) and ot:
+            for k, v in ot.items():
+                if targets.get(k) is None and v is not None:
+                    targets[k] = v
+            if not out.get("mf_pack_overlay_source"):
+                out["mf_pack_overlay_source"] = str(pack_path).replace("\\", "/")
+    if not targets:
+        return out
+    for key in _MF_PACK_OVERLAY_KEYS:
+        if targets.get(key) is not None:
+            out[key] = targets[key]
+    # Pass through calibration metadata keys
+    for key in (
+        "mf_calibration_db",
+        "mf_calibration_study",
+        "mf_calibration_version",
+        "mf_calibration_target_id",
+        "polymer_density_kg_m3",
+        "mf_viscosity_nu_forbidden",
+        "mf_viscosity_absmax_Pa_s",
+        "accuracy_band",
+    ):
+        if targets.get(key) is not None:
+            out[key] = targets[key]
+    if targets.get("polymer_rho_kg_m3") is not None and out.get("polymer_density_kg_m3") is None:
+        try:
+            sys.path.insert(0, str(Path(__file__).resolve().parent))
+            import mf_to_of_handoff as m2o
+
+            out["polymer_density_kg_m3"] = round(
+                m2o.mf_density_to_kg_m3(float(targets["polymer_rho_kg_m3"])), 3
+            )
+        except Exception:
+            out["polymer_density_kg_m3"] = float(targets["polymer_rho_kg_m3"])
+    if targets.get("viscosity_nu_forbidden") or targets.get("mf_viscosity_absmax_Pa_s") or targets.get("mf_viscosity_nu_forbidden"):
+        out["mf_viscosity_nu_forbidden"] = True
+        if targets.get("mf_viscosity_absmax_Pa_s") is not None:
+            out["mf_viscosity_absmax_Pa_s"] = float(targets["mf_viscosity_absmax_Pa_s"])
+    out["mf_to_of_proxy_label"] = "PROXY_GAP"
+    out["accuracy_band_label"] = "PROXY_GAP"
+    return out
+
+
 def _apply_mf_handoff(params: dict[str, Any], overrides: dict[str, Any] | None = None) -> dict[str, Any]:
     """Apply Dynabook Moldflow Fill KPI handoff when requested or allocation-enabled.
 
@@ -151,7 +248,8 @@ def _apply_mf_handoff(params: dict[str, Any], overrides: dict[str, Any] | None =
             merged["forbid_stl_fill_time_contour"] = True
         if cfg.get("lavie_case"):
             merged["lavie_mfalign_case"] = cfg["lavie_case"]
-        return merged
+        # Latest pack JSONs win for pack P / fill / T / density (2026-07-31).
+        return _overlay_mf_pack_of_targets(merged)
     except Exception as exc:
         params = dict(params)
         params["mf_to_of_handoff_error"] = str(exc)[:160]

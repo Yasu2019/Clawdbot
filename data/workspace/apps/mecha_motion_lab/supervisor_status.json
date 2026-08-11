@@ -1,10 +1,72 @@
 {
   "schema": "clawstack.motion_learning_supervisor.v1",
   "skill": "walk_auto",
-  "state": "training",
-  "cycle": 1,
-  "history": [],
+  "state": "stopped_by_watchdog",
+  "cycle": 5,
+  "history": [
+    {
+      "cycle": 1,
+      "metrics": {
+        "vx": 0.125,
+        "eval_travel": 0.123,
+        "travel": 1.357,
+        "fell": true,
+        "min_upright": 0.0,
+        "first_fall_sec": 3.78
+      },
+      "rule": "walks_then_falls",
+      "llm_note": null
+    },
+    {
+      "cycle": 2,
+      "metrics": {
+        "vx": 0.182,
+        "eval_travel": 0.099,
+        "travel": 1.887,
+        "fell": true,
+        "min_upright": 0.0,
+        "first_fall_sec": 3.32
+      },
+      "rule": "walks_then_falls",
+      "llm_note": null
+    },
+    {
+      "cycle": 3,
+      "metrics": {
+        "vx": 0.288,
+        "eval_travel": 0.184,
+        "travel": 1.866,
+        "fell": true,
+        "min_upright": 0.0,
+        "first_fall_sec": 2.0
+      },
+      "rule": "dive_hack",
+      "llm_note": null
+    },
+    {
+      "cycle": 4,
+      "metrics": {
+        "vx": 0.112,
+        "eval_travel": 0.081,
+        "travel": 1.556,
+        "fell": true,
+        "min_upright": 0.0,
+        "first_fall_sec": 3.16
+      },
+      "rule": "walks_then_falls",
+      "llm_note": null
+    }
+  ],
   "playbook_version": "v1",
-  "current_dir": "C:\\v50_work\\autonomy\\walk_auto_cycle01",
-  "updated_at": "2026-07-26T06:06:59"
+  "current_dir": "C:\\v50_work\\autonomy\\walk_auto_cycle05",
+  "updated_at": "2026-08-08T18:25:35",
+  "last_metrics": {
+    "vx": 0.112,
+    "eval_travel": 0.081,
+    "travel": 1.556,
+    "fell": true,
+    "min_upright": 0.0,
+    "first_fall_sec": 3.16
+  },
+  "stopped_reason": "stagnant_walk_watchdog: last 3 cycles min_upright=[0.0, 0.0, 0.0] (all < 0.02)"
 }

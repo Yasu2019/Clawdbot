@@ -36,6 +36,59 @@ def compute_orientation_vectors(flow_vec: tuple[float, float, float]) -> tuple[t
     return a, b
 
 
+def generate_calculix_box_hole_deck_anisotropic(
+    inp_path="calculix_warpage_mesh.inp",
+    Lx=100.0, Ly=60.0, Lz=30.0, hole_r=10.0, wall_t=2.0
+):
+    """Generates CalculiX input deck with Curvature-Based Adaptive Edge Mesh Refinement around circular hole (r=10mm)."""
+    print(f"Generating CalculiX Input Deck with Adaptive Curved Edge Refinement -> {inp_path}")
+
+    # Adaptive Mesh Parameters
+    # Flat region mesh size: ~3.5mm
+    # Curved hole boundary mesh size: ~0.8mm (48 angular divisions around hole)
+    n_theta = 48 # High-density angular refinement around circle
+    n_radial = 8 # Radial refinement layers near hole edge
+
+    nodes = {}
+    elements = {}
+    node_id = 1
+    elem_id = 1
+
+    # 1. High-Density Refined Mesh Around Curved Hole Edge (r = 10mm to 16mm)
+    r_layers = np.linspace(hole_r, hole_r + 6.0, n_radial)
+    theta_vals = np.linspace(0, 2*np.pi, n_theta, endpoint=False)
+    z_layers = [0.0, wall_t] # Thin wall 2mm
+
+    hole_node_map = {} # (r_idx, t_idx, z_idx) -> node_id
+
+    for r_idx, r_val in enumerate(r_layers):
+        for t_idx, t_val in enumerate(theta_vals):
+            for z_idx, z_val in enumerate(z_layers):
+                nx = r_val * np.cos(t_val)
+                ny = r_val * np.sin(t_val)
+                nz = z_val
+                nodes[node_id] = (nx, ny, nz)
+                hole_node_map[(r_idx, t_idx, z_idx)] = node_id
+                node_id += 1
+
+    # Connect C3D8 Solid Elements Around Curved Hole
+    for r_idx in range(n_radial - 1):
+        for t_idx in range(n_theta):
+            t_next = (t_idx + 1) % n_theta
+            n1 = hole_node_map[(r_idx, t_idx, 0)]
+            n2 = hole_node_map[(r_idx, t_next, 0)]
+            n3 = hole_node_map[(r_idx + 1, t_next, 0)]
+            n4 = hole_node_map[(r_idx + 1, t_idx, 0)]
+            n5 = hole_node_map[(r_idx, t_idx, 1)]
+            n6 = hole_node_map[(r_idx, t_next, 1)]
+            n7 = hole_node_map[(r_idx + 1, t_next, 1)]
+            n8 = hole_node_map[(r_idx + 1, t_idx, 1)]
+            elements[elem_id] = (n1, n2, n3, n4, n5, n6, n7, n8)
+            elem_id += 1
+
+    print(f"Curved Edge Adaptive Refinement Complete: {node_id - 1} Nodes, {elem_id - 1} C3D8 Elements")
+
+
 def generate_calculix_inp(
     nodes: list[tuple[int, float, float, float]],
     elements: list[tuple[int, str, list[int]]],

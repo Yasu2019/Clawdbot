@@ -14,9 +14,15 @@
   },
   "openradioss": {
     "overrides": {
-      "punch_speed_mms": 2000.0
+      "punch_speed_mms": 5000.0
     },
-    "applied_at": "2026-07-20T05:59:27+09:00",
-    "applied_by": "meaning_gate_auto_improver"
+    "applied_at": "2026-08-01T18:45:00+09:00",
+    "applied_by": "INC-160 proven 4mmx4mm baseline restoration",
+    "note": "2000 mm/s contradicted the configured 4500-6100 mm/s production range and lengthened remote runs. Restored the quantitatively proven 2026-07-25 SUCCESS baseline speed of 5000 mm/s.",
+    "previous": {
+      "punch_speed_mms": 2000.0,
+      "applied_at": "2026-07-20T05:59:27+09:00",
+      "applied_by": "meaning_gate_auto_improver"
+    }
   }
 }

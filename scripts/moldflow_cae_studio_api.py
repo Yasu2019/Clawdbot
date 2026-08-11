@@ -761,6 +761,62 @@ class CaeStudioHandler(BaseHTTPRequestHandler):
                 float(payload.get("resin_price_per_kg_jpy", 1200.0))
             )
             self._json(200, res)
+        elif parsed.path == "/api/weldline_analysis":
+            import cae_nextgen_moldflow_superiority as engine
+            res = engine.analyze_weldline_location_and_strength(
+                int(payload.get("gate_count", 2)),
+                float(payload.get("melt_temp_c", 260.0)),
+                float(payload.get("mold_temp_c", 65.0)),
+                float(payload.get("pack_pressure_mpa", 80.0)),
+                bool(payload.get("has_center_hole", True))
+            )
+            self._json(200, res)
+        elif parsed.path == "/api/shear_cutting_analysis":
+            import cae_nextgen_moldflow_superiority as engine
+            res = engine.evaluate_shear_cutting_pin_mechanics(
+                float(payload.get("sheet_thickness_mm", 1.5)),
+                float(payload.get("clearance_pct", 8.0)),
+                payload.get("material_name", "SPCC_Steel"),
+                float(payload.get("punch_diameter_mm", 12.0)),
+                float(payload.get("punch_radius_um", 15.0))
+            )
+            self._json(200, res)
+        elif parsed.path == "/api/gate_vent_optimization":
+            import cae_nextgen_moldflow_superiority as engine
+            res = engine.evaluate_gate_and_air_vent_optimization(
+                float(payload.get("part_length_mm", 100.0)),
+                float(payload.get("part_width_mm", 60.0)),
+                float(payload.get("part_height_mm", 30.0)),
+                float(payload.get("wall_thickness_mm", 2.0)),
+                payload.get("resin_type", "PA66_GF30"),
+                bool(payload.get("appearance_critical", True)),
+                float(payload.get("target_fill_time_s", 1.2))
+            )
+            self._json(200, res)
+        elif parsed.path == "/api/cooling_machine_optimization":
+            import cae_nextgen_moldflow_superiority as engine
+            res = engine.evaluate_cooling_and_machine_process_optimization(
+                float(payload.get("part_length_mm", 100.0)),
+                float(payload.get("part_width_mm", 60.0)),
+                float(payload.get("part_height_mm", 30.0)),
+                float(payload.get("wall_thickness_mm", 2.0)),
+                payload.get("resin_type", "PA66_GF30"),
+                int(payload.get("cavity_count", 2))
+            )
+            self._json(200, res)
+        elif parsed.path == "/api/openfoam_moldflow_suite":
+            import cae_openfoam_moldflow_suite as suite
+            res = suite.evaluate_openfoam_moldflow_physics_suite(
+                float(payload.get("part_length_mm", 100.0)),
+                float(payload.get("part_width_mm", 60.0)),
+                float(payload.get("part_height_mm", 30.0)),
+                float(payload.get("wall_thickness_mm", 2.0)),
+                payload.get("resin_type", "PA66_GF30"),
+                float(payload.get("shear_rate_s1", 5000.0)),
+                float(payload.get("melt_temp_celsius", 290.0)),
+                float(payload.get("mold_temp_celsius", 85.0))
+            )
+            self._json(200, res)
         else:
             self._json(404, {"error": "not found"})
 

@@ -27,6 +27,7 @@ LOG_PATH = WORKSPACE / "thinkpad_dxf2step_te_log.jsonl"
 PID_PATH = WORKSPACE / "thinkpad_dxf2step_te.pid"
 ARCHIVE_ROOT = WORKSPACE / "thinkpad_dxf2step_history"
 MANIFEST_PATH = ARCHIVE_ROOT / "manifest.json"
+STORAGE_BLOCK_PATH = ROOT / "data" / "state" / "wsl_storage_guard" / "CAE_DISPATCH_BLOCKED.json"
 JST = timezone(timedelta(hours=9))
 
 if str(ROOT / "scripts") not in sys.path:
@@ -60,6 +61,19 @@ def append_log(entry: dict[str, Any]) -> None:
     LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
     with LOG_PATH.open("a", encoding="utf-8") as handle:
         handle.write(json.dumps(entry, ensure_ascii=False) + "\n")
+
+
+def load_storage_gate() -> tuple[bool, str, dict[str, Any]]:
+    """Block only new DXF dispatches while the shared host storage gate is active."""
+    if not STORAGE_BLOCK_PATH.exists():
+        return True, "storage guard clear", {}
+    try:
+        gate = load_json(STORAGE_BLOCK_PATH, {})
+        if not isinstance(gate, dict) or not gate:
+            return False, "storage guard marker is empty or unreadable", {}
+        return False, str(gate.get("reason") or "host storage capacity is critical"), gate
+    except OSError as exc:
+        return False, f"storage guard marker is unreadable: {exc}", {}
 
 
 def load_guard(cfg: dict[str, Any]) -> tuple[bool, list[str], dict[str, Any]]:
@@ -337,6 +351,20 @@ def run_cycle(
     cfg = cfg or load_json(CONFIG_PATH, {})
     state = load_json(STATE_PATH, {"combo_index": 0, "cycle_count": 0})
     reg = tp_ssh.read_registry()
+
+    storage_ok, storage_reason, storage_gate = load_storage_gate()
+    if not storage_ok:
+        cycle = {
+            "schema": "clawstack.thinkpad_dxf2step_cycle.v1",
+            "timestamp": now_iso(),
+            "decision": "skip_storage",
+            "guard_ok": False,
+            "guard_reasons": [storage_reason],
+            "storage_gate": storage_gate,
+        }
+        append_log(cycle)
+        save_json(STATUS_PATH, {"updated_at": now_iso(), "running": True, "last_cycle": cycle})
+        return cycle
 
     guard_ok, guard_reasons, metrics = load_guard(cfg)
     cycle: dict[str, Any] = {

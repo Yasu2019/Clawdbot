@@ -18,7 +18,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 STATUS = ROOT / "data" / "workspace" / "moldflow_bridge" / "inc183_lavie_wait_status.json"
 PARAMS = ROOT / "data" / "workspace" / "moldflow_bridge" / "mf_minusx_copy_results_20260801" / "lavie-mfminusx-rfc-20260801-145637_params.json"
-TRIAL_ID = "lavie-mfminusx-inc183-k18066-20260803"
+TRIAL_ID = "lavie-mfminusx-inc183-k18066-repeat2-20260803"
 MAX_ATTEMPTS = 720
 SLEEP_SECONDS = 30
 

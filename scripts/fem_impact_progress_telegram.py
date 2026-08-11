@@ -32,9 +32,14 @@ if str(WORKSPACE) not in sys.path:
 
 from thinkpad_ssh_common import read_registry, run_ssh, ssh_target
 from notify_image import send_telegram, send_telegram_text
+import cae_workload_router as router
+import impact_vtk_quality_gate as fem_qc
 
 STAGES = tuple(range(5, 100, 5))
 VTK_TIME_RE = re.compile(r"_surface_([0-9]+(?:\.[0-9]+)?)\.vtk$")
+TELEGRAM_ALLOWED_INPUTS = frozenset(
+    {"test_practical_doe01.in", "test_practical_doe01_x2.in", "test_practical_forming.in"}
+)
 
 
 def now_iso() -> str:
@@ -58,23 +63,75 @@ def write_state(path: Path, state: dict) -> None:
     temp.replace(path)
 
 
-def remote_snapshot(case_dir: str, input_name: str) -> tuple[bool, str | None, float | None]:
+def remote_snapshot(
+    case_dir: str,
+    input_name: str,
+    not_before_epoch: int,
+) -> tuple[bool, str | None, float | None, str | None]:
     quoted = case_dir.replace("'", "'\"'\"'")
     inp = input_name.replace("'", "'\"'\"'")
     cmd = (
         f"CASE='{quoted}'; INP='{inp}'; "
         "if pgrep -f \"java.*[r]un.Impact.*$CASE/$INP\" >/dev/null; then echo RUNNING=1; "
         "else echo RUNNING=0; fi; "
-        "ls -1 \"$CASE/${INP}\"_surface_*.vtk 2>/dev/null | sort -V | tail -1 || true"
+        "INP_MTIME=$(stat -c %Y \"$CASE/$INP\" 2>/dev/null || echo 0); "
+        "echo INPUT_MTIME=$INP_MTIME; "
+        f"NOT_BEFORE={int(not_before_epoch)}; "
+        "if [ \"$INP_MTIME\" -gt \"$NOT_BEFORE\" ]; then FRESH_AFTER=$INP_MTIME; "
+        "else FRESH_AFTER=$NOT_BEFORE; fi; "
+        "VTK=$(find \"$CASE\" -maxdepth 1 -type f "
+        "-name \"${INP}_surface_*.vtk\" -newermt \"@$FRESH_AFTER\" 2>/dev/null "
+        "| sort -V | tail -1 || true); "
+        "if [ -n \"$VTK\" ]; then echo VTK=$VTK; echo VTK_MTIME=$(stat -c %Y \"$VTK\"); fi"
     )
     result = run_ssh(cmd, timeout=30)
     if result.returncode != 0:
         raise RuntimeError((result.stderr or "SSH snapshot failed")[-300:])
     lines = [line.strip() for line in (result.stdout or "").splitlines() if line.strip()]
     running = "RUNNING=1" in lines
-    vtk = next((line for line in reversed(lines) if line.endswith(".vtk")), None)
+    vtk = next((line.split("=", 1)[1] for line in lines if line.startswith("VTK=")), None)
+    input_mtime = next((int(line.split("=", 1)[1]) for line in lines if line.startswith("INPUT_MTIME=")), 0)
+    vtk_mtime = next((int(line.split("=", 1)[1]) for line in lines if line.startswith("VTK_MTIME=")), 0)
+    fresh_after = max(int(not_before_epoch), input_mtime)
+    reason = None
+    if vtk and vtk_mtime <= fresh_after:
+        reason = f"stale VTK rejected: vtk_mtime={vtk_mtime} fresh_after={fresh_after}"
+        vtk = None
     match = VTK_TIME_RE.search(vtk or "")
-    return running, vtk, float(match.group(1)) if match else None
+    return running, vtk, float(match.group(1)) if match else None, reason
+
+
+def remote_quality_gate_and_stop(
+    case_dir: str,
+    input_name: str,
+    remote_vtk: str,
+    limits: dict,
+) -> dict:
+    """Run the mesh gate before notification and stop only this solver on explosion."""
+    quoted = case_dir.replace("'", "'\"'\"'")
+    inp = input_name.replace("'", "'\"'\"'")
+    vtk = remote_vtk.replace("'", "'\"'\"'")
+    qc_script = "/home/yasu/clawstack_satellite/scripts/impact_vtk_quality_gate.py"
+    cmd = (
+        f"CASE='{quoted}'; INP='{inp}'; VTK='{vtk}'; "
+        f"QC=$(python3 '{qc_script}' \"$VTK\" "
+        f"--max-bbox-diag {float(limits['max_bbox_diag']):g} "
+        f"--max-coordinate-abs {float(limits['max_coordinate_abs']):g} "
+        f"--max-displacement-abs {float(limits['max_displacement_abs']):g} 2>&1); "
+        "QC_RC=$?; printf '%s\\n' \"$QC\"; echo QC_RC=$QC_RC; "
+        "if printf '%s\\n' \"$QC\" | grep -q 'FEM_IMPACT_QC_VERDICT=FAILED_MESH_EXPLOSION'; then "
+        "pkill -TERM -f \"java.*[r]un.Impact.*$CASE/$INP\" 2>/dev/null || true; sleep 2; "
+        "if pgrep -f \"java.*[r]un.Impact.*$CASE/$INP\" >/dev/null; then "
+        "pkill -KILL -f \"java.*[r]un.Impact.*$CASE/$INP\" 2>/dev/null || true; fi; "
+        "echo FEM_IMPACT_AUTO_STOP=1; else echo FEM_IMPACT_AUTO_STOP=0; fi"
+    )
+    result = run_ssh(cmd, timeout=45)
+    parsed = fem_qc.parse_qc_stdout(result.stdout or "")
+    parsed["auto_stopped"] = "FEM_IMPACT_AUTO_STOP=1" in (result.stdout or "")
+    parsed["command_ok"] = result.returncode == 0
+    if result.returncode != 0:
+        parsed["error"] = (result.stderr or "remote quality gate failed")[-300:]
+    return parsed
 
 
 def fetch_and_render(remote_vtk: str, trial_id: str, stage: int) -> Path:
@@ -126,28 +183,70 @@ def main() -> int:
     parser.add_argument("--input", required=True)
     parser.add_argument("--end-time", required=True, type=float)
     parser.add_argument("--poll-seconds", type=max_int, default=30)
+    parser.add_argument("--not-before-epoch", type=int, default=0)
     parser.add_argument(
         "--wait-start-seconds",
         type=int,
-        default=0,
+        default=300,
         help="Wait this long for a queued solver to start before sending the 0%% notice.",
     )
     args = parser.parse_args()
+    job_not_before = args.not_before_epoch or int(time.time())
 
     state_path = STATE_DIR / f"{args.trial_id}.json"
     state = read_state(state_path, args.trial_id)
+    if args.input not in TELEGRAM_ALLOWED_INPUTS:
+        state.update(
+            {
+                "case_dir": args.case_dir,
+                "input": args.input,
+                "end_time": args.end_time,
+                "notification_blocked": True,
+                "last_error": "input_not_approved_for_telegram",
+            }
+        )
+        write_state(state_path, state)
+        return 0
     sent = {int(x) for x in state.get("sent", [])}
     state.update({"case_dir": args.case_dir, "input": args.input, "end_time": args.end_time})
 
     missing_after_exit = 0
     seen_running = False
+    limits = fem_qc.limits_from_router_cfg(router.load_config())
     wait_deadline = time.monotonic() + max(0, args.wait_start_seconds)
     while any(stage not in sent for stage in STAGES):
         try:
-            running, vtk, simulation_time = remote_snapshot(args.case_dir, args.input)
+            running, vtk, simulation_time, rejection_reason = remote_snapshot(
+                args.case_dir, args.input, job_not_before
+            )
             if running:
                 seen_running = True
-            if 0 not in sent and (running or args.wait_start_seconds <= 0):
+            if vtk:
+                quality = remote_quality_gate_and_stop(
+                    args.case_dir, args.input, vtk, limits
+                )
+                state["quality_gate"] = quality
+                if quality.get("verdict") == "FAILED_MESH_EXPLOSION":
+                    state.update(
+                        {
+                            "running": False,
+                            "latest_vtk": vtk,
+                            "simulation_time": simulation_time,
+                            "mesh_explosion_detected": True,
+                            "auto_stopped": bool(quality.get("auto_stopped")),
+                            "last_error": "FAILED_MESH_EXPLOSION",
+                        }
+                    )
+                    write_state(state_path, state)
+                    reasons = ", ".join(quality.get("reasons") or []) or "quality limit exceeded"
+                    send_telegram_text(
+                        "[FEM Impact メッシュ爆発・自動停止]\n"
+                        f"job={args.trial_id}\ninput={args.input}\n"
+                        f"解析時刻={simulation_time:.6g}/{args.end_time:.6g}\n"
+                        f"原因={reasons}"
+                    )
+                    break
+            if 0 not in sent and running:
                 caption = (
                     "[FEM Impact 解析開始]\n"
                     f"job={args.trial_id}\n"
@@ -162,13 +261,13 @@ def main() -> int:
                     "running": running,
                     "latest_vtk": vtk,
                     "simulation_time": simulation_time,
-                    "last_error": None,
+                    "last_error": rejection_reason,
                 }
             )
             progress = 100.0 * simulation_time / args.end_time if simulation_time is not None else 0.0
             state["progress_percent"] = round(progress, 3)
             for stage in STAGES:
-                if stage in sent or progress < stage or not vtk:
+                if stage in sent or progress < stage or not vtk or not seen_running:
                     continue
                 image = fetch_and_render(vtk, args.trial_id, stage)
                 caption = (

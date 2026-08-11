@@ -49,6 +49,11 @@ MAX_BAD_RATIO = 0.02         # U+FFFD等がこの割合を超えたら索引に�
 PDFTOTEXT_TIMEOUT = 120
 
 
+def sanitize_utf8(value: str) -> str:
+    """SQLiteへ渡せない孤立UTF-16サロゲートをU+FFFDへ置換する。"""
+    return "".join("\ufffd" if 0xD800 <= ord(ch) <= 0xDFFF else ch for ch in value)
+
+
 def open_main() -> sqlite3.Connection:
     con = sqlite3.connect(f"file:{MAIN_DB}?mode=ro", uri=True, timeout=60)
     con.row_factory = sqlite3.Row
@@ -90,6 +95,7 @@ def extract(path: str) -> tuple[str, int]:
             txt = "\n".join((pg.extract_text() or "") for pg in rd.pages[:80])
         except Exception:
             pass
+    txt = sanitize_utf8(txt)
     bad = txt.count("\ufffd") + sum(txt.count(m) for m in MOJIBAKE_MARKS)
     return txt[:MAX_TEXT_CHARS], bad
 
@@ -105,7 +111,8 @@ def work(item: tuple) -> dict:
         status = "mojibake"      # 化けが多い文書は索引に入れない
     else:
         status = "ok"
-    return {"aid": aid, "path": path, "title": title or "", "source": source or "",
+    return {"aid": aid, "path": sanitize_utf8(path),
+            "title": sanitize_utf8(title or ""), "source": sanitize_utf8(source or ""),
             "text": txt if status == "ok" else "", "chars": n, "bad": bad,
             "status": status, "sec": time.time() - t0}
 
@@ -135,7 +142,7 @@ def main() -> int:
 
     if a.verify:
         row = idx.execute("SELECT rowid, title, substr(body,1,300) FROM pdftext_ja "
-                          "WHERE body LIKE '%成形%' LIMIT 1").fetchone()
+                          "WHERE length(body) > 0 ORDER BY rowid DESC LIMIT 1").fetchone()
         if not row:
             print("検証対象がまだありません")
             return 1

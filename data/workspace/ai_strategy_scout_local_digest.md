@@ -1,47 +1,51 @@
 # AI Strategy Scout: Architectural Sentinel Edition
 
-- Generated at: 2026-07-26 05:04:03 JST
+- Generated at: 2026-08-11 17:37:51 JST
 - Mode: local_no_api_cost
 
 ## 🏛️ [DECISION] Architectural Recommendations
 
+### 🔌 ADOPT_INTEGRATE: Audio Lab
+- **Rationale**: Matches 1 new developments in this domain.
+  - Build Low-Latency Multilingual Voice Agents: Open Weights & Full Deployment Control with NVIDIA Magpie TTS
+
 ### 🔌 ADOPT_INTEGRATE: 3D Fab-Forge
-- **Rationale**: Matches 10 new developments in this domain.
-  - b10121: ui: reduce per-token render cost when streaming (#26053)
+- **Rationale**: Matches 9 new developments in this domain.
   - openfoam-v2606
   - https://mfem.org/particles/
+  - https://mfem.org/about/
 
 ---
 
 ## Local LLM / OSS
 
 ### Local LLM
-- v0.26.0 [fresh]
-  Source: vLLM Releases | Published: 2026-07-25T19:39:29+09:00
-  https://github.com/vllm-project/vllm/releases/tag/v0.26.0
-- b10121: ui: reduce per-token render cost when streaming (#26053) [fresh]
-  Source: llama.cpp Releases | Published: 2026-07-25T05:09:46+09:00
-  https://github.com/ggml-org/llama.cpp/releases/tag/b10121
-- Bringing Nunchaku 4-bit Diffusion Inference to Diffusers [fresh]
-  Source: Hugging Face Blog | Published: 2026-07-23T09:00:00+09:00
-  https://huggingface.co/blog/nunchaku-diffusers
-- Ollama: all aboard open models July 9, 2026 Serving 8.9 million developers, Ollama has raised $88M from Benchmark, Theory Ventures, 8VC, Y Combinator, and many incredible angel investors. [reference]
+- b10357 [fresh]
+  Source: llama.cpp Releases | Published: 2026-08-11T14:19:30+09:00
+  https://github.com/ggml-org/llama.cpp/releases/tag/b10357
+- v0.27.0 [fresh]
+  Source: vLLM Releases | Published: 2026-08-11T06:18:11+09:00
+  https://github.com/vllm-project/vllm/releases/tag/v0.27.0
+- Build Low-Latency Multilingual Voice Agents: Open Weights & Full Deployment Control with NVIDIA Magpie TTS [fresh]
+  Source: Hugging Face Blog | Published: 2026-08-11T01:25:36+09:00
+  https://huggingface.co/blog/nvidia/magpie-tts-multilingual-voice-agents
+- Muse Glimmer from Meta Superintelligence Labs is now available August 10, 2026 Meta's Muse Glimmer, the first open model released by Meta Superintelligence Labs, is now available. Muse Glimmer is a 30B multimodal model released under the Apache 2.0 license, designed for local coding agents, and accelerated by Ollama's MLX engine with new native DFlash and image input support. [reference]
   Source: Ollama Blog | Published: n/a
-  https://ollama.com/blog/all-aboard-open-models
+  https://ollama.com/blog/muse-glimmer
 
 ### Productivity OSS
-- twenty/v2.24.0 [fresh]
-  Source: Twenty Releases | Published: 2026-07-26T02:18:40+09:00
-  https://github.com/twentyhq/twenty/releases/tag/twenty%2Fv2.24.0
-- n8n@2.32.5 [fresh]
-  Source: n8n Releases | Published: 2026-07-25T03:08:30+09:00
-  https://github.com/n8n-io/n8n/releases/tag/n8n%402.32.5
-- v0.13.0 [fresh]
-  Source: AppFlowy Releases | Published: 2026-07-24T18:10:22+09:00
-  https://github.com/AppFlowy-IO/AppFlowy/releases/tag/0.13.0
-- v0.95.0 [reference]
-  Source: Docmost Releases | Published: 2026-07-04T22:19:09+09:00
-  https://github.com/docmost/docmost/releases/tag/v0.95.0
+- n8n@2.34.4 [fresh]
+  Source: n8n Releases | Published: 2026-08-11T17:00:24+09:00
+  https://github.com/n8n-io/n8n/releases/tag/n8n%402.34.4
+- twenty/v2.30.0 [fresh]
+  Source: Twenty Releases | Published: 2026-08-10T21:09:36+09:00
+  https://github.com/twentyhq/twenty/releases/tag/twenty%2Fv2.30.0
+- v0.13.1 [fresh]
+  Source: AppFlowy Releases | Published: 2026-08-09T12:50:47+09:00
+  https://github.com/AppFlowy-IO/AppFlowy/releases/tag/0.13.1
+- v1.4.1 [fresh]
+  Source: Plane Releases | Published: 2026-08-07T20:19:28+09:00
+  https://github.com/makeplane/plane/releases/tag/v1.4.1
 
 ## Global Corporate Intel (US)
 
@@ -109,12 +113,12 @@
   https://su2foundation.org/wp-json/
 
 ### OpenRadioss Releases
+- Last stable build on 20260728
+  https://github.com/OpenRadioss/OpenRadioss/releases/tag/latest-20260728
 - Last stable build on 20260615
   https://github.com/OpenRadioss/OpenRadioss/releases/tag/latest-20260615
 - Last stable build on 20260520
   https://github.com/OpenRadioss/OpenRadioss/releases/tag/latest-20260520
-- Last stable build on 20260319
-  https://github.com/OpenRadioss/OpenRadioss/releases/tag/latest-20260319
 
 ### PrePoMax News
 - News – PrePoMax
@@ -127,14 +131,12 @@
   https://prepomax.fs.um.si/wp-json/
 
 ### Code_Aster
-- Code_Aster
+- Home | code_aster
   https://www.code-aster.org/
-- spip.php?rubrique1
-  https://code-aster.org/spip.php?rubrique1
-- https://code-aster.org/
-  https://code-aster.org/
-- https://forum.code-aster.org/
-  https://forum.code-aster.org/
+- en
+  https://code-aster.org/en
+- fr
+  https://code-aster.org/fr
 
 ### CalculiX
 - CALCULIX: A Three-Dimensional Structural Finite Elemente Program

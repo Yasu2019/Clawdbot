@@ -147,12 +147,23 @@ def fit_amplitude(x, lo, hi, target_frac=0.8):
     収まるよう頑健スケールしてからクリップする(時相を保ちつつ飽和を防ぐ)。
 
     足首のように生の振幅(この mocap では p2p 178°)が可動域(±20°)を大きく
-    超える系列で、rail-to-rail の矩形波化を避けるために使う。"""
+    超える系列で、rail-to-rail の矩形波化を避けるために使う。
+
+    2026-07-31 (T079d): 正負を別々にスケールする。knee(-30°/+10°)のような非
+    対称な可動域で単一スケール(min(|lo|,|hi|)基準)を使うと、有効な負側可動域
+    (-30°)を無視して小さい正側(+10°)に合わせて全体を圧縮してしまい、逆に
+    元の hard-clip(今回発見: knee_L が64サンプル中31サンプルで-30°に張り付き)
+    より深い屈曲を潰す事故が起きる。正側の外れ値は hi 基準、負側は lo 基準で
+    独立にスケールし、それぞれの可動域を目一杯使う。"""
     c = x - np.median(x)
-    amp = np.percentile(np.abs(c), 90)
-    half = min(abs(lo), abs(hi))
-    if amp > 1e-6:
-        c = c * (target_frac * half / amp)
+    pos_amp = np.percentile(c[c > 0], 90) if np.any(c > 0) else 0.0
+    neg_amp = np.percentile(-c[c < 0], 90) if np.any(c < 0) else 0.0
+    if pos_amp > 1e-6:
+        scale_pos = target_frac * abs(hi) / pos_amp
+        c = np.where(c > 0, c * scale_pos, c)
+    if neg_amp > 1e-6:
+        scale_neg = target_frac * abs(lo) / neg_amp
+        c = np.where(c < 0, c * scale_neg, c)
     return np.clip(c, lo, hi)
 
 
@@ -175,6 +186,8 @@ def main():
     ap.add_argument("--out", required=True)
     ap.add_argument("--phase-samples", type=int, default=64)
     ap.add_argument("--start-frac", type=float, default=0.3, help="定常区間の開始(クリップ比)")
+    ap.add_argument("--license", default="CC-BY-4.0 100STYLE (Mason et al. 2022)",
+                     help="出典元BVHのライセンス表記(デフォルトは従来の100STYLE用)")
     args = ap.parse_args()
 
     root, joints, frames, dt = parse_bvh(args.bvh)
@@ -271,8 +284,15 @@ def main():
     #  - V50 knee (range -30°..+10°): 屈曲の大可動側は「負」。人間の屈曲角(acos,
     #    常に≥0)を正のままクリップすると +10° 上限に張り付き p2p 9° に潰れる
     #    (T067 の膝振幅バグ)。符号反転して -30° 側へ写すと p2p ≈ 29°、遊脚で
-    #    足が持ち上がる。屈曲ピークは -30° でフラットトップにクリップ=接地
-    #    クリアランスに有利なのでスケールはしない。
+    #    足が持ち上がる。当初(T067)は「屈曲ピークを -30° でフラットトップに
+    #    クリップ=接地クリアランスに有利」としてスケールなしのhard clipを採用。
+    #    2026-07-31 (T079d): 平地歩行(100STYLE、屈曲ピークは短い山1つ)ではこれで
+    #    問題なかったが、階段昇段の実モーション(CMU mocap)を通したところ knee_L
+    #    が64サンプル中31サンプル(ほぼ半周期)で-30°に張り付く事態を発見。短い
+    #    ピークのフラットトップ化とは質的に違う長時間の「固着」で、PD追従時に
+    #    不自然な動き(v7学習: 腕の固定+後方転倒)を誘発した疑いが強い。
+    #    hip/kneeも ankle と同じ fit_amplitude(正負非対称スケール、下記参照)に
+    #    切り替え、山の形を保ったまま可動域全体を使うようにする。
     #  - V50 ankle (range ±20°): 生振幅は p2p 178° と可動域を大きく超えるため、
     #    fit_amplitude で中央値センタリング+頑健スケールしてから写す(凍結防止)。
     def resample(x):
@@ -283,13 +303,17 @@ def main():
         lo, hi = LIMITS[key]
         return np.clip(x, lo, hi)
 
+    def joint_map(x, key):
+        lo, hi = LIMITS[key]
+        return fit_amplitude(-resample(x), lo, hi, target_frac=0.85)
+
     def ankle_map(x):
         lo, hi = LIMITS["ankle"]
         return fit_amplitude(resample(x), lo, hi, target_frac=0.75)
 
     table = np.stack([
-        clip(-resample(hip_l), "hip"), clip(-resample(knee_l), "knee"), ankle_map(ank_l),
-        clip(-resample(hip_r), "hip"), clip(-resample(knee_r), "knee"), ankle_map(ank_r),
+        joint_map(hip_l, "hip"), joint_map(knee_l, "knee"), ankle_map(ank_l),
+        joint_map(hip_r, "hip"), joint_map(knee_r, "knee"), ankle_map(ank_r),
         clip(-resample(sh_l), "shoulder"), clip(-resample(el_l), "elbow"),
         np.zeros(args.phase_samples),
         clip(-resample(sh_r), "shoulder"), clip(-resample(el_r), "elbow"),
@@ -297,7 +321,7 @@ def main():
     ], axis=1)
 
     out = {"schema": "clawstack.v50_ref_motion.retargeted.v1",
-           "source_bvh": args.bvh, "license": "CC-BY-4.0 100STYLE (Mason et al. 2022)",
+           "source_bvh": args.bvh, "license": args.license,
            "dof_order": DOF_NAMES, "phase_samples": args.phase_samples,
            "period_sec": round(period * dt, 4), "clip_vx_mps": round(abs(vx), 4),
            "frames": [[round(float(v), 5) for v in row] for row in table]}

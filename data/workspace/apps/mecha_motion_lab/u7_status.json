@@ -1,6 +1,6 @@
 {
   "schema": "clawstack.u7_queue_daemon.v1",
-  "cycles": 283,
+  "cycles": 248,
   "units": {
     "u1_interpreter.py": {
       "rc": 0,
@@ -17,7 +17,11 @@
     "u5_train_dispatcher.py": {
       "rc": 0,
       "last": "U5 done"
+    },
+    "mecha_lab_health.py": {
+      "rc": 0,
+      "last": "書き出し: D:\\Clawdbot_Docker_20260125\\data\\workspace\\apps\\mecha_motion_lab\\lab_health.json  health=idle (state=stopped_by_watchdog)"
     }
   },
-  "updated_at": "2026-07-26T06:59:19"
+  "updated_at": "2026-08-11T17:55:51"
 }
