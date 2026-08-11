@@ -30,6 +30,13 @@
       "axis": "x",
       "search_local": [0.25, 0.75],
       "names": ["r_upperarm", "r_forearm"]
+    },
+    {
+      "_comment": "右膝シェル。part_0の膝(Z=0.271)と同じ高さで切る。ここを自動探索に任せると部品固有のくびれを拾ってしまい、脚本体の膝とズレる。旧実装はこの部品を40個以上の島に砕いて誤魔化していた。",
+      "part": "part_13",
+      "axis": "z",
+      "at": 0.271,
+      "names": ["r_knee_shin", "r_knee_thigh"]
     }
   ]
 }

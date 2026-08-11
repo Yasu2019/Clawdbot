@@ -1,0 +1,38 @@
+{
+  "_comment": "Zaku_Split.fbx(22部品)用のボーン割り当てオーバーライド。旧 zaku_bone_overrides.json は膝・肘が無い前提だったため no_arm_bend / no_wrist_stretch / no_ankle_split の妥協を含んでいた。split_parts.py で膝・肘を作ったので、それらの妥協を解除している。割り当ては zaku_split_segments.json の実測 centroid_norm / size_norm に基づく。",
+  "model": "zaku_split",
+  "_resolved_compromises": {
+    "no_arm_bend": "part_5 を Chest に逃がしていた -> l_upperarm(UpperArm_L) / l_forearm(LowerArm_L) に分離",
+    "no_wrist_stretch": "part_11(手) を LowerArm_R に含めていた -> r_forearm ができたので part_11 は Hand_R へ",
+    "no_ankle_split": "part_12/15 を LowerLeg に含めていた -> l_shin/r_shin ができたので Foot_L/Foot_R へ",
+    "part_13_40islands": "膝が無いため40島に粉砕していた -> 膝(Z=0.271)で2分割"
+  },
+  "exact": {
+    "part_2":  ["Chest", "upper_pipe_to_chest"],
+    "part_3":  ["Chest", "upper_torso"],
+    "part_4":  ["Chest", "backpack_to_chest"],
+    "part_6":  ["Head", "head_shell"],
+    "part_7":  ["Head", "head_detail"],
+    "part_16": ["MonoEye", "zaku_mono_eye_lens_revolute_yaw"],
+    "part_8":  ["Hips", "waist_and_skirt"],
+    "part_10": ["UpperArm_L", "left_shoulder_shell_to_upper_arm"],
+    "part_14": ["UpperArm_R", "right_shoulder_shell_to_upper_arm"],
+    "part_11": ["Hand_R", "right_hand_now_that_forearm_exists"],
+    "part_12": ["Foot_L", "left_foot_now_that_shin_exists"],
+    "part_15": ["Foot_R", "right_foot_now_that_shin_exists"],
+
+    "l_upperarm": ["UpperArm_L", "split_from_part_5"],
+    "l_forearm":  ["LowerArm_L", "split_from_part_5"],
+    "r_upperarm": ["UpperArm_R", "split_from_part_9"],
+    "r_forearm":  ["LowerArm_R", "split_from_part_9"],
+
+    "l_thigh": ["UpperLeg_L", "split_from_part_1_at_knee"],
+    "l_shin":  ["LowerLeg_L", "split_from_part_1_at_knee"],
+    "r_thigh": ["UpperLeg_R", "split_from_part_0_at_knee"],
+    "r_shin":  ["LowerLeg_R", "split_from_part_0_at_knee"],
+
+    "r_knee_thigh": ["UpperLeg_R", "knee_shell_upper_from_part_13"],
+    "r_knee_shin":  ["LowerLeg_R", "knee_shell_lower_from_part_13"]
+  },
+  "prefix": {}
+}

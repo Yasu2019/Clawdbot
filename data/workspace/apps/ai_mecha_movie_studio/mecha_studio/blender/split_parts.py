@@ -103,7 +103,12 @@ def find_waist(obj, axis_i, lo_w, hi_w, samples=64):
 
 
 def bisect(obj, axis_i, pos, keep_positive):
-    """obj を平面で切り、片側だけ残す。切断面は塞ぐ(use_fill)。"""
+    """obj を平面で切り、片側だけ残す。切断面は塞ぐ。
+
+    bmesh の clear_inner は「法線の負側を消す」、clear_outer は「正側を消す」。
+    つまり正側を残したいときに立てるのは clear_inner。ここを逆にすると、
+    2つの出力の名前が入れ替わる（実際に l_upperarm と l_forearm が逆になった）。
+    """
     normal = [0.0, 0.0, 0.0]
     normal[axis_i] = 1.0
     co = [0.0, 0.0, 0.0]
@@ -119,7 +124,7 @@ def bisect(obj, axis_i, pos, keep_positive):
     geom = list(bm.verts) + list(bm.edges) + list(bm.faces)
     bmesh.ops.bisect_plane(
         bm, geom=geom, plane_co=co_local, plane_no=no_local,
-        clear_inner=not keep_positive, clear_outer=keep_positive, use_snap_center=False,
+        clear_inner=keep_positive, clear_outer=not keep_positive, use_snap_center=False,
     )
     # 切り口を塞ぐ（開いたままだと剛体パーツとして扱いにくい）
     open_edges = [e for e in bm.edges if len(e.link_faces) == 1]
