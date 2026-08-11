@@ -136,6 +136,42 @@ def bisect(obj, axis_i, pos, keep_positive):
     return obj
 
 
+def split_islands(obj, axis_i, groups, gmin, span):
+    """部品を独立した島(loose parts)へ分解し、島の重心位置でグループ分けして改名する。
+
+    この分割形式(MeshyAI系)は1部品が多数の小シェルに砕けている。part_8(スカート)は86島、
+    part_13は40島。平面で切ると各島が中途半端に分断されるだけで「左スカート板」という
+    単位にならない。島単位で扱い、重心の位置でグループへ振り分けるのが正しい。
+
+    groups: [{"name": 接頭辞, "min": 下限, "max": 上限}, ...]  min/maxは正規化座標[0-1]
+    """
+    bpy.ops.object.select_all(action="DESELECT")
+    obj.select_set(True)
+    bpy.context.view_layer.objects.active = obj
+    bpy.ops.mesh.separate(type="LOOSE")
+    islands = [o for o in bpy.context.selected_objects if o.type == "MESH"]
+    bpy.context.view_layer.update()
+
+    counters = {g["name"]: 0 for g in groups}
+    assigned = []
+    for isl in islands:
+        mn, mx = world_bbox([isl])
+        c = (mn + mx) / 2
+        pos = (c[axis_i] - gmin[axis_i]) / span[axis_i] if span[axis_i] else 0.5
+        chosen = None
+        for g in groups:
+            if pos >= g.get("min", -1e9) and pos < g.get("max", 1e9):
+                chosen = g
+                break
+        if chosen is None:
+            chosen = groups[-1]
+        idx = counters[chosen["name"]]
+        counters[chosen["name"]] = idx + 1
+        isl.name = f"{chosen['name']}{idx:03d}"
+        assigned.append((isl.name, len(isl.data.vertices), round(pos, 4)))
+    return islands, counters, assigned
+
+
 def main():
     argv = argv_after()
     if len(argv) < 3:
@@ -163,6 +199,24 @@ def main():
             report["cuts"].append({"part": name, "status": "not_found"})
             continue
         axis_i = AXIS_INDEX[cut.get("axis", "z").lower()]
+
+        if cut.get("mode") == "islands":
+            groups = cut.get("groups") or []
+            if not groups:
+                print(f"[split] SKIP {name}: islandsモードだが groups がありません")
+                report["cuts"].append({"part": name, "status": "no_groups"})
+                continue
+            islands, counters, assigned = split_islands(obj, axis_i, groups, gmin, span)
+            for isl in islands:
+                by_name[isl.name] = isl
+            by_name.pop(name, None)
+            summary = ", ".join(f"{k}*{v}" for k, v in counters.items())
+            print(f"[split] {name} islands axis={cut.get('axis','z')} -> {len(islands)}島 ({summary})")
+            report["cuts"].append({"part": name, "status": "ok", "mode": "islands",
+                                   "axis": cut.get("axis", "z"), "islands": len(islands),
+                                   "groups": counters,
+                                   "assigned": assigned[:200]})
+            continue
 
         # 探索範囲は「部品自身のbbox」を基準にする。モデル全体の正規化座標で指定すると
         # 部品の外を指してしまい、片側が空になる（part_9で実際に起きた）。

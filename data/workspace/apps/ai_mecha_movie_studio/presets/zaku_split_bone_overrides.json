@@ -14,7 +14,6 @@
     "part_6":  ["Head", "head_shell"],
     "part_7":  ["Head", "head_detail"],
     "part_16": ["MonoEye", "zaku_mono_eye_lens_revolute_yaw"],
-    "part_8":  ["Hips", "waist_and_skirt"],
     "part_10": ["UpperArm_L", "left_shoulder_shell_to_upper_arm"],
     "part_14": ["UpperArm_R", "right_shoulder_shell_to_upper_arm"],
     "part_11": ["Hand_R", "right_hand_now_that_forearm_exists"],
@@ -34,5 +33,14 @@
     "r_knee_thigh": ["UpperLeg_R", "knee_shell_upper_from_part_13"],
     "r_knee_shin":  ["LowerLeg_R", "knee_shell_lower_from_part_13"]
   },
-  "prefix": {}
+  "prefix": {
+    "skirt_L_": ["Hips", "skirt_plate_left"],
+    "skirt_C_": ["Hips", "skirt_center_fixed"],
+    "skirt_R_": ["Hips", "skirt_plate_right"]
+  },
+  "_followers_comment": "スカート板を腰に固定したままにすると、股関節を曲げた際に腿がスカートの下から出て穴が開く(レンダ判定ゲートで UpperLeg_L/R がFAIL)。左右の板をそれぞれの腿へ部分追従させて塞ぐ。中央帯(skirt_C_)は腰に固定したまま残す。",
+  "followers": {
+    "skirt_L_": {"driver_bone": "UpperLeg_L", "follow_influence": 0.6},
+    "skirt_R_": {"driver_bone": "UpperLeg_R", "follow_influence": 0.6}
+  }
 }

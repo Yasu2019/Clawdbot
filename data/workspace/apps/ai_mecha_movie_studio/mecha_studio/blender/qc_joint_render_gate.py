@@ -185,6 +185,10 @@ def run(blend_path, out_json=None, images_dir=None, res=DEFAULT_RES,
     for bone in arm.data.bones:
         if bone.parent is None:
             continue
+        # armor_follower 用に生成された Follow_* ボーンは構造関節ではない。
+        # 測っても常に増分0で、関節数だけ膨れて所要時間が跳ね上がる（実測 71秒 -> 401秒）。
+        if bone.name.startswith("Follow_"):
+            continue
         child, parent = bone.name, bone.parent.name
         child_objs = by_bone.get(child, [])
         if not child_objs or not by_bone.get(parent):

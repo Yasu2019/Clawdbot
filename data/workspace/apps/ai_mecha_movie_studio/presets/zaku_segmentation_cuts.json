@@ -37,6 +37,17 @@
       "axis": "z",
       "at": 0.271,
       "names": ["r_knee_shin", "r_knee_thigh"]
+    },
+    {
+      "_comment": "スカート装甲(part_8)。86個の独立した島で構成されており、平面で切ると島が中途半端に分断されるだけ。島単位で重心Xの左右へ振り分け、prefixルールで左右それぞれの腿へ追従(armor_follower)させる。中央帯は腰に固定したまま残す。body中心線はX=0.503。",
+      "part": "part_8",
+      "mode": "islands",
+      "axis": "x",
+      "groups": [
+        {"name": "skirt_L_", "max": 0.468},
+        {"name": "skirt_C_", "min": 0.468, "max": 0.538},
+        {"name": "skirt_R_", "min": 0.538}
+      ]
     }
   ],
   "_rejected": {

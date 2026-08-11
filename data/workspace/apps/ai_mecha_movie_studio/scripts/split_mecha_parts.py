@@ -46,11 +46,14 @@ def main(argv=None):
         print(f"\n部品数: {r['input_parts']} -> {r['output_parts']}")
         ng = [c for c in r["cuts"] if c.get("status") != "ok"]
         for c in r["cuts"]:
-            if c.get("status") == "ok":
+            if c.get("status") != "ok":
+                print(f"  {c['part']:8} {c.get('status')}")
+            elif c.get("mode") == "islands":
+                groups = ", ".join(f"{k}*{v}" for k, v in (c.get("groups") or {}).items())
+                print(f"  {c['part']:8} islands {c['axis']} -> {c['islands']}島 ({groups})")
+            else:
                 res = " / ".join(f"{x['name']}({x['verts']}v)" for x in c["results"])
                 print(f"  {c['part']:8} {c['axis']} at={c['at_normalized']:.3f} -> {res}")
-            else:
-                print(f"  {c['part']:8} {c.get('status')}")
         if ng:
             print(f"\n⚠ 失敗/要確認: {len(ng)} 件")
             return 1
