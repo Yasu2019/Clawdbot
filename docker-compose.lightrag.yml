@@ -34,7 +34,7 @@ networks:
     external: true
   # Qdrant / learning_engine が居るネットワーク（Docker auto-created）
   qdrant_net:
-    name: clawstack-unified_default
+    name: clawstack-unified
     external: true
 
 services:

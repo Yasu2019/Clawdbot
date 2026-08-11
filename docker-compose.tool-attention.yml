@@ -15,7 +15,7 @@ services:
       - anomaly-guard
     restart: unless-stopped
     networks:
-      - clawstack-unified_default
+      - clawstack-unified
 
   lazy-loader:
     build: ./tool_attention/lazy-loader
@@ -26,7 +26,7 @@ services:
       - ./tool_attention/registry:/app/registry:ro
     restart: unless-stopped
     networks:
-      - clawstack-unified_default
+      - clawstack-unified
 
   learning-store:
     build: ./tool_attention/learning
@@ -37,7 +37,7 @@ services:
       - tool_learning_data:/data
     restart: unless-stopped
     networks:
-      - clawstack-unified_default
+      - clawstack-unified
 
   anomaly-guard:
     build: ./tool_attention/anomaly
@@ -46,10 +46,10 @@ services:
       - "127.0.0.1:8193:8093"
     restart: unless-stopped
     networks:
-      - clawstack-unified_default
+      - clawstack-unified
 
 networks:
-  clawstack-unified_default:
+  clawstack-unified:
     external: true
 
 volumes:

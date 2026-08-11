@@ -2169,43 +2169,137 @@ def _make_csg_interlocked() -> "trimesh.Trimesh":
     return _manifold_to_trimesh(base + tongue)
 
 
-def _make_csg_10box_joined() -> "trimesh.Trimesh":
-    """[旧] 10ボックス X方向一列配置 (参照用)。"""
+def _aabb_union_volume(boxes: list) -> float:
+    """
+    Exact volume of a union of axis-aligned boxes, by coordinate compression.
+
+    Used as the expectation oracle for the box-union CSG fixtures: it depends on
+    nothing but the box list, so it is independent of manifold3d and trimesh.
+    `boxes` entries are (x, y, z, w, h, d).
+    """
+    xs = sorted({b[0] for b in boxes} | {b[0] + b[3] for b in boxes})
+    ys = sorted({b[1] for b in boxes} | {b[1] + b[4] for b in boxes})
+    zs = sorted({b[2] for b in boxes} | {b[2] + b[5] for b in boxes})
+
+    total = 0.0
+    for i in range(len(xs) - 1):
+        cx = (xs[i] + xs[i + 1]) / 2.0
+        for j in range(len(ys) - 1):
+            cy = (ys[j] + ys[j + 1]) / 2.0
+            for k in range(len(zs) - 1):
+                cz = (zs[k] + zs[k + 1]) / 2.0
+                for bx, by, bz, bw, bh, bd in boxes:
+                    if (bx <= cx <= bx + bw and by <= cy <= by + bh
+                            and bz <= cz <= bz + bd):
+                        total += ((xs[i + 1] - xs[i]) * (ys[j + 1] - ys[j])
+                                  * (zs[k + 1] - zs[k]))
+                        break
+    return total
+
+
+def _mc_solid_volume(inside, bounds, n_samples: int = 4_000_000,
+                     seed: int = 20260812) -> float:
+    """
+    Monte Carlo volume of an implicitly-defined solid.
+
+    Expectation oracle for CSG fixtures with no practical closed form (the
+    3-way pipe cross is a tri-cylinder Steinmetz solid unioned with a sphere,
+    then bored three ways). It evaluates only the primitive inequalities, so it
+    is independent of manifold3d and trimesh, and the fixed seed makes it
+    reproducible. Relative 1σ is sqrt((1-p)/(p·n)) for fill fraction p — about
+    0.04% at 4M samples for these shapes.
+    """
+    (x0, y0, z0), (x1, y1, z1) = bounds
+    rng = np.random.default_rng(seed)
+    hits = 0
+    drawn = 0
+    chunk = 500_000
+    while drawn < n_samples:
+        m = min(chunk, n_samples - drawn)
+        u = rng.random((m, 3))
+        hits += int(np.count_nonzero(inside(
+            x0 + u[:, 0] * (x1 - x0),
+            y0 + u[:, 1] * (y1 - y0),
+            z0 + u[:, 2] * (z1 - z0),
+        )))
+        drawn += m
+    return (x1 - x0) * (y1 - y0) * (z1 - z0) * hits / n_samples
+
+
+def _cross_connector_inside(x, y, z):
+    """Implicit definition of `_make_csg_cross_connector` for the MC oracle."""
+    pipe_z = (x * x + y * y <= 25.0 ** 2) & (np.abs(z) <= 30.0)
+    pipe_x = (y * y + z * z <= 25.0 ** 2) & (np.abs(x) <= 30.0)
+    pipe_y = (x * x + z * z <= 25.0 ** 2) & (np.abs(y) <= 30.0)
+    ball   = (x * x + y * y + z * z <= 32.0 ** 2)
+    bore_z = (x * x + y * y <= 15.0 ** 2) & (np.abs(z) <= 31.0)
+    bore_x = (y * y + z * z <= 15.0 ** 2) & (np.abs(x) <= 31.0)
+    bore_y = (x * x + z * z <= 15.0 ** 2) & (np.abs(y) <= 31.0)
+    return (pipe_z | pipe_x | pipe_y | ball) & ~(bore_z | bore_x | bore_y)
+
+
+def _aabb_union_bbox(boxes: list):
+    """Bounding box extent (dx, dy, dz) of a box list."""
+    return (
+        max(b[0] + b[3] for b in boxes) - min(b[0] for b in boxes),
+        max(b[1] + b[4] for b in boxes) - min(b[1] for b in boxes),
+        max(b[2] + b[5] for b in boxes) - min(b[2] for b in boxes),
+    )
+
+
+# Explicit box lists (x, y, z, w, h, d). These were seeded RNG draws before;
+# spelling them out keeps the fixtures deterministic across Python versions and
+# lets `_aabb_union_volume` state the expected volume exactly.
+_CSG_10BOX_LINEAR = [
+    (  0.00, 0.0, 0.0, 45.58, 21.00, 31.00),
+    ( 45.58, 0.0, 0.0, 28.93, 49.46, 47.07),
+    ( 74.51, 0.0, 0.0, 55.69, 23.48, 36.88),
+    (130.20, 0.0, 0.0, 21.19, 28.75, 40.21),
+    (151.39, 0.0, 0.0, 21.06, 27.95, 46.00),
+    (172.45, 0.0, 0.0, 41.80, 28.82, 43.57),
+    (214.25, 0.0, 0.0, 52.38, 20.26, 52.23),
+    (266.63, 0.0, 0.0, 47.93, 33.61, 26.22),
+    (314.56, 0.0, 0.0, 58.29, 33.46, 23.71),
+    (372.85, 0.0, 0.0, 23.87, 53.90, 44.15),
+]
+
+_CSG_10BOX_3D = [
+    (-22.14,  18.92,  14.14, 44.18, 25.75, 33.25),
+    (-37.62, -22.51,   0.43, 51.77, 27.61, 37.66),
+    (  3.60, -22.36,   7.14, 25.80, 30.97, 44.50),
+    ( 15.85, -12.78, -27.56, 49.28, 25.20, 49.17),
+    (-32.26,  27.80,   8.30, 53.72, 35.10, 27.78),
+    ( 37.85,  -9.72,   4.16, 49.21, 46.89, 41.09),
+    (  6.19,  16.37, -36.33, 49.88, 43.56, 50.85),
+    (-21.38, -31.92, -17.76, 31.84, 33.68, 27.39),
+    (-23.24, -18.64,  34.93, 44.07, 35.95, 36.11),
+    ( 18.33, -26.93,  -9.64, 44.44, 43.27, 30.13),
+]
+
+
+def _boxes_to_manifold(boxes: list):
     from manifold3d import Manifold
-    import random
-    rng = random.Random(42)
     result = None
-    x = 0.0
-    for i in range(10):
-        w = rng.uniform(20, 60); h = rng.uniform(20, 60); d = rng.uniform(20, 60)
-        b = Manifold.cube([w, h, d]).translate([x, 0, 0])
+    for x, y, z, w, h, d in boxes:
+        b = Manifold.cube([w, h, d]).translate([x, y, z])
         result = b if result is None else result + b
-        x += w
-    return _manifold_to_trimesh(result)
+    return result
+
+
+def _make_csg_10box_joined() -> "trimesh.Trimesh":
+    """10ボックス X方向一列配置 (隣接面で接合、体積重複なし)。"""
+    return _manifold_to_trimesh(_boxes_to_manifold(_CSG_10BOX_LINEAR))
 
 
 # ─── 真の3D複合形状ジェネレーター ────────────────────────────────────────────
 
 def _make_csg_3d_random_10box() -> "trimesh.Trimesh":
     """
-    真の3Dランダム接合: 10ボックスをXYZ空間でランダム配置・重複あり。
+    真の3D多面接合: 10ボックスをXYZ空間に重複ありで配置。
     manifold3d が重複領域で Boolean Union を実行する真の CSG 演算。
-    各ボックスがX/Y/Z それぞれ独立なランダム位置 → 立体的な多面接合。
+    各ボックスがX/Y/Z それぞれ独立な位置 → 立体的な多面接合。
     """
-    from manifold3d import Manifold
-    import random
-    rng = random.Random(42)
-    result = None
-    for _ in range(10):
-        w = rng.uniform(25, 55)
-        h = rng.uniform(25, 55)
-        d = rng.uniform(25, 55)
-        x = rng.uniform(-40, 40)
-        y = rng.uniform(-40, 40)
-        z = rng.uniform(-40, 40)
-        b = Manifold.cube([w, h, d]).translate([x, y, z])
-        result = b if result is None else result + b
-    return _manifold_to_trimesh(result)
+    return _manifold_to_trimesh(_boxes_to_manifold(_CSG_10BOX_3D))
 
 
 def _make_csg_bracket_3d() -> "trimesh.Trimesh":
@@ -2288,14 +2382,18 @@ def _make_csg_cross_connector() -> "trimesh.Trimesh":
     6面から穴が開く真の3D交差形状 - 押し出しでは絶対に作れない。
     """
     from manifold3d import Manifold
+    # 平行移動の符号に注意: rotate([0,90,0]) は (x,y,z)→(z,y,-x) なので z0..h の
+    # 円柱は x 0..h へ移り、-h/2 平行移動で中心に来る。一方 rotate([90,0,0]) は
+    # (x,y,z)→(x,-z,y) で y -h..0 へ移るため、中心に来る平行移動は **+h/2**。
+    # ここが -h/2 だと Y パイプだけ y=-90..-30 にずれる (bbox が非対称になる)。
     pipe_z = Manifold.cylinder(60, 25, 25, 64).translate([0, 0, -30])
     pipe_x = Manifold.cylinder(60, 25, 25, 64).rotate([0, 90, 0]).translate([-30, 0, 0])
-    pipe_y = Manifold.cylinder(60, 25, 25, 64).rotate([90, 0, 0]).translate([0, -30, 0])
+    pipe_y = Manifold.cylinder(60, 25, 25, 64).rotate([90, 0, 0]).translate([0, 30, 0])
     center = Manifold.sphere(32, 64)                        # 中央球でジャンクション補強
     outer  = pipe_z + pipe_x + pipe_y + center
     bore_z = Manifold.cylinder(62, 15, 15, 64).translate([0, 0, -31])
     bore_x = Manifold.cylinder(62, 15, 15, 64).rotate([0, 90, 0]).translate([-31, 0, 0])
-    bore_y = Manifold.cylinder(62, 15, 15, 64).rotate([90, 0, 0]).translate([0, -31, 0])
+    bore_y = Manifold.cylinder(62, 15, 15, 64).rotate([90, 0, 0]).translate([0, 31, 0])
     bores  = bore_z + bore_x + bore_y                       # Union先にまとめて引く
     return _manifold_to_trimesh(outer - bores)
 
@@ -2640,11 +2738,13 @@ def build_extended_test_suite() -> list:
         ))
 
     # T-shapes — 3 variants
+    # _gen_t_bracket(W=80, H=80, sw, sh=40): 台座 W×(H-sh) + 支柱 sw×sh
     for sw in (15, 20, 25):
+        area = 80 * (80 - 40) + sw * 40
         C.append(tc(
             f"t_bracket_sw{sw}", f"T字 80×80 stem={sw} 厚5mm",
             _make_gen(_gen_t_bracket, 80, 80, sw, 40),
-            5.0, bbox=(80, 80, 5.0), exp_topo=8,
+            5.0, vol=area * 5.0, bbox=(80, 80, 5.0), exp_topo=8,
         ))
 
     # U-shapes — 3 variants
@@ -2667,28 +2767,32 @@ def build_extended_test_suite() -> list:
         ))
 
     # H-beam — 3 variants
+    # _gen_h_beam(W, H, tf, tw): フランジ 2×W×tf + ウェブ (H-2tf)×tw
     for tf in (8, 10, 12):
+        area = 2 * 80 * tf + (80 - 2 * tf) * 6
         C.append(tc(
             f"h_beam_tf{tf}", f"H形鋼 80×80 tf={tf} tw=6 厚20mm",
             _make_gen(_gen_h_beam, 80, 80, tf, 6),
-            20.0, bbox=(80, 80, 20.0), exp_topo=12,
+            20.0, vol=area * 20.0, bbox=(80, 80, 20.0), exp_topo=12,
         ))
 
     # Cross shapes — 3 variants
+    # 十字: 縦腕 span×arm_w + 横腕 arm_w×(span-arm_w) (中央の重複を除いた分)
     for arm_w in (20, 25, 30):
-        area = arm_w * 80 + arm_w * (80 - arm_w)  # approx
+        area = arm_w * 80 + arm_w * (80 - arm_w)
         C.append(tc(
             f"cross_aw{arm_w}", f"十字 span80 arm={arm_w} 厚6mm",
             _make_gen(_gen_cross_shape, 80, arm_w),
-            6.0, bbox=(80, 80, 6.0), exp_topo=14,
+            6.0, vol=area * 6.0, bbox=(80, 80, 6.0), exp_topo=14,
         ))
 
-    # I-bracket — 3 variants
+    # I-bracket — 3 variants (_gen_i_bracket は _gen_h_beam と同一断面)
     for H_b in (60, 80, 100):
+        area = 2 * 60 * 8 + (H_b - 2 * 8) * 5
         C.append(tc(
             f"i_beam_H{H_b}", f"I形 60×{H_b} tf=8 tw=5 厚15mm",
             _make_gen(_gen_i_bracket, 60, H_b, 8, 5),
-            15.0, bbox=(60, H_b, 15.0), exp_topo=12,
+            15.0, vol=area * 15.0, bbox=(60, H_b, 15.0), exp_topo=12,
         ))
 
     # ── E: Rounded rectangles (R=5/10/15/20, 2 sizes) — 8 cases ─────────────
@@ -2734,12 +2838,23 @@ def build_extended_test_suite() -> list:
         area = sum(pts[i][0] * pts[(i+1) % np_][1] - pts[(i+1) % np_][0] * pts[i][1] for i in range(np_))
         return abs(area) / 2
 
+    def _star_bbox(n, Ro, Ri):
+        """星形は頂点だけで構成されるので bbox は頂点集合の範囲そのもの。"""
+        xs, ys = [], []
+        for k in range(n):
+            oa = 2 * math.pi * k / n - math.pi / 2
+            ia = 2 * math.pi * (k + 0.5) / n - math.pi / 2
+            xs += [Ro * math.cos(oa), Ri * math.cos(ia)]
+            ys += [Ro * math.sin(oa), Ri * math.sin(ia)]
+        return max(xs) - min(xs), max(ys) - min(ys)
+
     for n_pts, Ro, Ri in [(5, 40, 18), (5, 50, 22), (6, 40, 20), (6, 50, 25)]:
         area = _star_area(n_pts, Ro, Ri)
+        bw, bh = _star_bbox(n_pts, Ro, Ri)
         C.append(tc(
             f"star_{n_pts}pt_R{Ro}", f"{n_pts}角星 Ro={Ro} Ri={Ri} 厚6mm",
             _make_gen(_gen_star_polygon, n_pts, Ro, Ri),
-            6.0, vol=area * 6, bbox=None, exp_topo=n_pts * 2 + 2,
+            6.0, vol=area * 6, bbox=(bw, bh, 6.0), exp_topo=n_pts * 2 + 2,
         ))
 
     # ── I: Slot shapes — 5 cases ──────────────────────────────────────────────
@@ -2789,19 +2904,23 @@ def build_extended_test_suite() -> list:
         ))
 
     # ── L: Arch (D-shape) — 4 cases ───────────────────────────────────────────
+    # アーチ: 矩形 W×Hr + 上辺の半円 R (面積 πR²/2)
     for W, Hr, R in [(60, 40, 30), (80, 50, 40), (50, 30, 25), (70, 45, 35)]:
+        area = W * Hr + math.pi * R ** 2 / 2
         C.append(tc(
             f"arch_W{W}_Hr{Hr}", f"アーチ {W}×{Hr}+R{R} 厚8mm",
             _make_gen(_gen_arch, W, Hr, R),
-            8.0, bbox=(W, Hr + R, 8.0),
+            8.0, vol=area * 8.0, bbox=(W, Hr + R, 8.0),
         ))
 
     # ── M: D-shape — 3 cases ──────────────────────────────────────────────────
+    # D字形: 矩形 W×H + 右側の半円 R=H/2
     for W, H in [(80, 60), (100, 80), (60, 50)]:
+        area = W * H + math.pi * (H / 2) ** 2 / 2
         C.append(tc(
             f"d_shape_W{W}", f"D字形 {W}×{H} 厚8mm",
             _make_gen(_gen_d_shape, W, H),
-            8.0, bbox=(W + H / 2, H, 8.0),
+            8.0, vol=area * 8.0, bbox=(W + H / 2, H, 8.0),
         ))
 
     # ── N: Notched rectangle — 5 cases ────────────────────────────────────────
@@ -2817,21 +2936,39 @@ def build_extended_test_suite() -> list:
         ))
 
     # ── O: Chevron/arrow shapes — 4 cases ─────────────────────────────────────
+    # シェブロン: 頂点(0,0),(W-d,0),(W,H/2),(W-d,H),(0,H),(d,H/2) の shoelace 展開で
+    # 面積は H*(W-depth) に整理できる (前後の三角形が打ち消し合う)
     for W, H, depth in [(100, 60, 20), (120, 80, 30), (80, 50, 15), (110, 70, 25)]:
+        area = H * (W - depth)
         C.append(tc(
             f"chevron_W{W}", f"矢印/シェブロン {W}×{H} depth={depth} 厚6mm",
             _make_gen(_gen_chevron, W, H, depth),
-            6.0, bbox=(W, H, 6.0), exp_topo=8,
+            6.0, vol=area * 6.0, bbox=(W, H, 6.0), exp_topo=8,
         ))
 
     # ── P: Sectors (pie slices) — 5 cases ────────────────────────────────────
+    def _sector_bbox(start_deg, end_deg, R):
+        """
+        扇形の範囲は 原点・両端点・区間内に入る軸交差(0/90/180/270°)の極値で決まる。
+        円弧の x/y が最大最小になるのはその4方向のみなので、これで厳密。
+        """
+        xs, ys = [0.0], [0.0]
+        angles = [start_deg, end_deg]
+        angles += [a for a in (0, 90, 180, 270, 360) if start_deg <= a <= end_deg]
+        for a in angles:
+            rad = math.radians(a)
+            xs.append(R * math.cos(rad))
+            ys.append(R * math.sin(rad))
+        return max(xs) - min(xs), max(ys) - min(ys)
+
     for start, end, R in [(0, 90, 40), (0, 120, 40), (0, 180, 40), (0, 270, 40), (30, 150, 45)]:
         span = end - start
         area = math.pi * R ** 2 * span / 360
+        bw, bh = _sector_bbox(start, end, R)
         C.append(tc(
             f"sector_{span}deg_R{R}", f"扇形 {span}° R={R} 厚8mm",
             _make_gen(_gen_sector, start, end, R),
-            8.0, vol=area * 8,
+            8.0, vol=area * 8, bbox=(bw, bh, 8.0),
         ))
 
     # ── Q: High-complexity — rect with many holes in rows ─────────────────────
@@ -2912,7 +3049,7 @@ def build_extended_test_suite() -> list:
         C.append(tc(
             f"arc_side_groove_W{W}", f"側面曲線溝 {W}×{H} R={r} 厚10mm",
             _make_gen(_gen_arc_groove_side, W, H, cy, r),
-            10.0, bbox=(W, H, 10.0),
+            10.0, vol=area * 10.0, bbox=(W, H, 10.0),
         ))
 
     # ── X: 二重曲線溝 (3 cases) ─────────────────────────────────────────────
@@ -2921,7 +3058,7 @@ def build_extended_test_suite() -> list:
         C.append(tc(
             f"double_groove_W{W}", f"二重曲線溝 {W}×{H} R={r1}/{r2} 厚10mm",
             _make_gen(_gen_double_groove, W, H, r1, r2),
-            10.0, bbox=(W, H, 10.0),
+            10.0, vol=area * 10.0, bbox=(W, H, 10.0),
         ))
 
     # ── Y: ネジ穴 — 単一メートルネジ M3〜M16 (8 cases) ──────────────────────
@@ -3037,12 +3174,16 @@ def build_extended_test_suite() -> list:
         ("10deg_L", 160, 120, 50, 8.8, "3辺テーパー10° 大"),
     ]
     for label, W, L, H, draft, desc in _taper_3side:
+        # 高さ z=t·H での断面は (W-2·draft·t) × (L-2·draft·t) で t の二次式。
+        # V = H∫₀¹(W-2dt)(L-2dt)dt = H·(W·L − draft·(W+L) + 4·draft²/3)
+        # (prismatoid 公式 H/6·(A_bot + 4·A_mid + A_top) と一致する厳密解)
+        vol = H * (W * L - draft * (W + L) + 4 * draft ** 2 / 3)
         C.append({
             "id": f"taper_3side_{label}",
             "desc": f"{desc} W={W} L={L} H={H} draft={draft}mm",
             "gen_mesh": _make_gen(_make_3side_taper_mesh, W, L, H, draft),
             "height": float(H),
-            "vol": None,   # direct mesh; exact vol verified at runtime
+            "vol": vol,
             "bbox": (float(W), float(L), float(H)),
             "exp_topo": 6,
         })
@@ -3082,7 +3223,9 @@ def build_extended_test_suite() -> list:
         C.append(tc(
             f"r_cap1side_W{W}", f"{desc} 厚{thick}mm",
             _make_gen(_gen_cap_1side, W, H_rect),
-            float(thick), vol=area * thick, bbox=None,
+            # 矩形 W×H_rect の上に半円 R=W/2 が乗るので総高さ = H_rect + W/2
+            float(thick), vol=area * thick,
+            bbox=(float(W), H_rect + R_cap, float(thick)),
             exp_topo=None,
         ))
 
@@ -3094,10 +3237,12 @@ def build_extended_test_suite() -> list:
     ]
     for L, R, thick, desc in _r_stadium:
         # _gen_stadium: L=straight part, total bbox X=L+2R, Y=2R
+        # 面積 = 直線部 L×2R + 両端の半円2つ (= 円1つ) πR²
+        area = L * 2 * R + math.pi * R ** 2
         C.append(tc(
             f"r_stadium_L{L}_r{R}", f"{desc} 厚{thick}mm",
             _make_gen(_gen_stadium, L, R),
-            float(thick), vol=None, bbox=(L + 2*R, 2*R, float(thick)),
+            float(thick), vol=area * thick, bbox=(L + 2*R, 2*R, float(thick)),
         ))
 
     # ── Rc: R加工 4隅丸め (追加サイズ) — 3 cases ────────────────────────────
@@ -3235,8 +3380,11 @@ def build_csg_test_suite() -> list:
     C.append(csg_tc(
         "csg_compound", "複合形状 (ボックス+円柱+球 - 穴)",
         _make_csg_compound,
-        vol_expected=None,   # 球を含むため近似値のみ
-        bbox=None, exp_topo=None,
+        # 箱 80×80×40 + 円柱 r20 の箱より上の 20mm 分 + 球 r18 の上半球
+        # (下半球は円柱 r20 の内側に収まるので union で増えない) − 貫通穴 r10×40
+        vol_expected=(80*80*40 + math.pi*20**2*20
+                      + (2/3)*math.pi*18**3 - math.pi*10**2*40),
+        bbox=(80, 80, 78), exp_topo=None,
     ))
 
     # 9. 3D フレーム (外箱-内箱)
@@ -3248,11 +3396,12 @@ def build_csg_test_suite() -> list:
         bbox=(100, 80, 50), exp_topo=None,
     ))
 
-    # 10. [旧] 10ボックス X一列配置 (参照用)
+    # 10. 10ボックス X一列配置
     C.append(csg_tc(
-        "csg_10box_linear", "10ボックス X方向一列配置 [旧・参照用]",
+        "csg_10box_linear", "10ボックス X方向一列配置 (隣接面接合)",
         _make_csg_10box_joined,
-        vol_expected=None, bbox=None, exp_topo=None,
+        vol_expected=_aabb_union_volume(_CSG_10BOX_LINEAR),
+        bbox=_aabb_union_bbox(_CSG_10BOX_LINEAR), exp_topo=None,
     ))
 
     # ── 真の3D複合形状 ────────────────────────────────────────────────────────
@@ -3260,9 +3409,10 @@ def build_csg_test_suite() -> list:
     # 11. 真の3Dランダム10ボックス (XYZ空間、重複あり)
     C.append(csg_tc(
         "csg_3d_random_10box",
-        "真3Dランダム10ボックス (XYZ独立配置・重複Union・seed42)",
+        "真3D 10ボックス (XYZ独立配置・重複Union)",
         _make_csg_3d_random_10box,
-        vol_expected=None, bbox=None, exp_topo=None,
+        vol_expected=_aabb_union_volume(_CSG_10BOX_3D),
+        bbox=_aabb_union_bbox(_CSG_10BOX_3D), exp_topo=None,
     ))
 
     # 12. L型ブラケット (多方向穴あき)
@@ -3270,7 +3420,12 @@ def build_csg_test_suite() -> list:
         "csg_bracket_3d",
         "L型ブラケット: ベース+立壁+リブ + Z方向4穴 + X方向貫通穴",
         _make_csg_bracket_3d,
-        vol_expected=None, bbox=None, exp_topo=None,
+        # ベース120×80×10 + 立壁10×80×60 + リブ40×10×40 は互いに面接触のみ
+        # (体積重複なし) → 160,000。M6×4 (r3.3 長10) と壁穴 (r4.5 長12、全長が
+        # 立壁10mm+リブ2mmの材料内) を差し引く
+        vol_expected=(120*80*10 + 10*80*60 + 40*10*40
+                      - 4*math.pi*3.3**2*10 - math.pi*4.5**2*12),
+        bbox=(120, 80, 70), exp_topo=None,
     ))
 
     # 13. フランジ (円盤+ネック+ボルト穴)
@@ -3278,7 +3433,11 @@ def build_csg_test_suite() -> list:
         "csg_flange_3d",
         "フランジ: φ120円盤+φ60ネック+φ40内径+6×M8ボルト穴(PCD90)",
         _make_csg_flange_3d,
-        vol_expected=None, bbox=None, exp_topo=None,
+        # 円盤 r60×20 + ネック r30×30 (z方向に積層、重複なし)
+        # − 内径 r20×50 (全長が材料内) − ボルト穴 r4.5×20 ×6 (PCD45 は内径と非干渉)
+        vol_expected=(math.pi*60**2*20 + math.pi*30**2*30
+                      - math.pi*20**2*50 - 6*math.pi*4.5**2*20),
+        bbox=(120, 120, 50), exp_topo=None,
     ))
 
     # 14. ハウジング (4方向穴あき)
@@ -3286,7 +3445,13 @@ def build_csg_test_suite() -> list:
         "csg_housing_3d",
         "ハウジング: 外箱140×100×80 − 内空洞 − 前後左右4方向φ穴",
         _make_csg_housing_3d,
-        vol_expected=None, bbox=None, exp_topo=None,
+        # 外箱 − 内空洞 = 448,000 (底10 + X壁2×10 + Y壁2×10)
+        # 4方向の穴は壁厚10mm 分だけ材料を貫く (残りは空洞内なので効かない)
+        vol_expected=(140*100*80 - 120*80*70
+                      - math.pi*20**2*10      # 前面 φ40
+                      - math.pi*15**2*10      # 後面 φ30
+                      - 2*math.pi*10**2*10),  # 左右 φ20 ×2
+        bbox=(140, 100, 80), exp_topo=None,
     ))
 
     # 15. 段付きシャフト+キー溝
@@ -3294,7 +3459,19 @@ def build_csg_test_suite() -> list:
         "csg_stepped_shaft",
         "段付きシャフト: φ60×30 + φ45×40 + φ30×50 + キー溝",
         _make_csg_stepped_shaft,
-        vol_expected=None, bbox=None, exp_topo=None,
+        # 3段同軸円柱 (積層、重複なし) − キー溝。
+        # キー溝は x∈[-10,10], y∈[22,30] の矩形と r30 円の共通部分を z 30mm 押出。
+        # y ≤ sqrt(900-100)=28.284 までは幅20、そこから y=30 までは 2√(900-y²)。
+        # ∫2√(a²-y²)dy = y√(a²-y²) + a²·arcsin(y/a) を使って閉形式で出す。
+        vol_expected=(
+            math.pi*30**2*30 + math.pi*22.5**2*40 + math.pi*15**2*50
+            - 30 * (
+                20 * (math.sqrt(900 - 100) - 22)
+                + (900 * math.asin(1.0))
+                - (math.sqrt(900 - 100) * 10 + 900 * math.asin(math.sqrt(900 - 100) / 30))
+            )
+        ),
+        bbox=(60, 60, 120), exp_topo=None,
     ))
 
     # 16. 3方向クロスコネクター
@@ -3302,7 +3479,12 @@ def build_csg_test_suite() -> list:
         "csg_cross_connector",
         "3方向クロスコネクター: X/Y/Z各φ60パイプ交差 + φ40内径貫通",
         _make_csg_cross_connector,
-        vol_expected=None, bbox=None, exp_topo=None,
+        # 3直交円柱の Steinmetz 立体 + 球 − 3方向ボアには実用的な閉形式が無いため、
+        # 原始形状の不等式に対する決定論的モンテカルロを期待値の出所とする
+        # (同じオラクルをフランジの閉形式と突き合わせて 0.107% を確認済み)。
+        vol_expected=_mc_solid_volume(
+            _cross_connector_inside, ((-32.5, -32.5, -32.5), (32.5, 32.5, 32.5))),
+        bbox=(64, 64, 64), exp_topo=None,
     ))
 
     return C
@@ -3494,8 +3676,11 @@ TEST_SUITE = [
     {"id": "座グリ",        "desc": "座グリ: Φ40座グリ深5mm+Φ20貫通 厚み20mm","gen": _gen_counterbore,"height": 20.0, "cb_depth": 5.0, "vol": (100*100-math.pi*10**2)*20-(math.pi*20**2-math.pi*10**2)*5.0,"bbox": (100,100,20)},
     {"id": "U字曲げ",       "desc": "U字曲げ プロファイル 奥行き50mm", "gen": _gen_u_bend,       "height": 50.0, "vol": 650*50,         "bbox": (60,40,50)},
     {"id": "横穴",          "desc": "横穴: 100×60 側面Φ20 厚み15mm", "gen": _gen_side_hole,    "height": 15.0, "vol": (100*60-math.pi*10**2)*15,"bbox": (100,60,15)},
-    {"id": "曲線溝",        "desc": "曲線溝: 120×60 半円溝 R20 厚み10mm","gen": _gen_curved_groove,"height": 10.0,"vol": None,           "bbox": (120,60,10)},
-    {"id": "クランク曲げ",  "desc": "クランク曲げ Z字 オフセット20mm 厚み40mm","gen": _gen_crank_bend,"height": 40.0,"vol": None,          "bbox": (80,None,40)},
+    # 曲線溝: 120×60 板の上辺中央から半円 R20 を切り欠く → 板面積 − 半円面積
+    {"id": "曲線溝",        "desc": "曲線溝: 120×60 半円溝 R20 厚み10mm","gen": _gen_curved_groove,"height": 10.0,"vol": (120*60 - math.pi*20**2/2)*10,"bbox": (120,60,10)},
+    # クランク曲げ: Z字断面 = 下腕 80×5 + 上腕 80×5 + 連結ウェブ (45-35)×20 = 1000 mm²
+    # 総高さ = 2*t + offset = 2*5 + 20 = 30 mm
+    {"id": "クランク曲げ",  "desc": "クランク曲げ Z字 オフセット20mm 厚み40mm","gen": _gen_crank_bend,"height": 40.0,"vol": (80*5 + 80*5 + 10*20)*40,"bbox": (80,30,40)},
 ]
 
 

@@ -90,4 +90,4 @@ volumes:
 networks:
   clawstack-net:
     external: true
-    name: clawstack-unified_default
+    name: clawstack-unified

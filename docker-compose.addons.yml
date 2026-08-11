@@ -170,5 +170,5 @@ volumes:
 
 networks:
   clawstack:
-    name: clawstack-unified_default
+    name: clawstack-unified
     external: true

@@ -39,5 +39,5 @@ services:
 
 networks:
   clawstack_net:
-    name: clawstack-unified_default
+    name: clawstack-unified
     external: true

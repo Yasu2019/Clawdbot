@@ -14,8 +14,8 @@ services:
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000
     restart: unless-stopped
     networks:
-      - clawstack-unified_default
+      - clawstack-unified
 
 networks:
-  clawstack-unified_default:
+  clawstack-unified:
     external: true
