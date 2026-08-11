@@ -31,6 +31,10 @@ WORK_DIR.mkdir(parents=True, exist_ok=True)
 
 ANTIGRAVITY = "clawstack-unified-antigravity-1"
 DXF23D_PATH = "/work/scripts/dxf23d.py"
+# FreeCAD ships as an extracted AppImage in Antigravity; the console binary is
+# lowercase `freecadcmd` and script arguments must follow `--pass` as key=value
+# (FreeCAD's option parser rejects pass-through tokens starting with `-`).
+FREECAD_CMD = ["/opt/freecad/AppRun", "freecadcmd"]
 GATEWAY_CONTAINER = "clawstack-unified-clawdbot-gateway-1"
 PDF_RPCD_HELPER_PATH = "/work/scripts/rpcd_or_pdf_to_dxf.py"
 OLLAMA_GEN_MODEL = os.getenv("OLLAMA_GEN_MODEL", "qwen3:14b")
@@ -717,7 +721,48 @@ def _loop_bbox(loop):
     return min(xs), min(ys), max(xs), max(ys)
 
 
+# Standard ISO/JIS sheet sizes (mm). A real drawing frame matches one of these;
+# a part outline almost never does. Used to tell 図枠 apart from 部品外形.
+_SHEET_SIZES_MM = [
+    (1189.0, 841.0),   # A0
+    (841.0, 594.0),    # A1
+    (594.0, 420.0),    # A2
+    (420.0, 297.0),    # A3
+    (297.0, 210.0),    # A4
+]
+# Frames are usually drawn inset from the sheet edge (typ. 10–20 mm), so the
+# tolerance has to be loose enough to absorb that inset.
+_SHEET_TOL = 0.10
+
+
+def _looks_like_sheet_frame(w: float, h: float) -> bool:
+    """True when (w, h) matches a standard A0–A4 sheet in either orientation."""
+    for sw, sh in _SHEET_SIZES_MM:
+        for cw, ch in ((sw, sh), (sh, sw)):
+            if abs(w - cw) <= cw * _SHEET_TOL and abs(h - ch) <= ch * _SHEET_TOL:
+                return True
+    return False
+
+
+def _bbox_contains(outer, inner, eps: float = 1e-6) -> bool:
+    return (
+        inner[0] >= outer[0] - eps and inner[1] >= outer[1] - eps
+        and inner[2] <= outer[2] + eps and inner[3] <= outer[3] + eps
+    )
+
+
 def _filter_border_loops(loops):
+    """
+    Drop the drawing sheet frame (図枠) when one is present.
+
+    Only removes the largest loop when it is *positively identified* as a sheet
+    frame — its bbox matches a standard A0–A4 sheet and every other loop sits
+    inside it. Without that evidence the loop is kept, because on a plate part
+    the largest loop IS the outline and deleting it silently produces a solid
+    made of the holes alone (see `_last_border_note` for the UI warning).
+    """
+    _filter_border_loops._last_border_note = None
+
     if len(loops) < 2:
         return loops
 
@@ -746,12 +791,33 @@ def _filter_border_loops(loops):
     ranked.sort(key=lambda item: item["bbox_area"], reverse=True)
     top = ranked[0]
     second_bbox = ranked[1]["bbox_area"] if len(ranked) > 1 else 0.0
-    if (
+    if not (
         top["width_ratio"] >= 0.95
         and top["height_ratio"] >= 0.95
         and top["bbox_area"] >= max(second_bbox * 1.5, 1.0)
     ):
+        return loops
+
+    top_box = boxes[top["idx"]]
+    top_w = top_box[2] - top_box[0]
+    top_h = top_box[3] - top_box[1]
+    others = [b for i, b in enumerate(boxes) if i != top["idx"]]
+
+    if _looks_like_sheet_frame(top_w, top_h) and all(
+        _bbox_contains(top_box, b) for b in others
+    ):
+        _filter_border_loops._last_border_note = (
+            f"図枠と判定した最大輪郭 ({top_w:.1f} × {top_h:.1f} mm) を除外しました。"
+        )
         return [loop for i, loop in enumerate(loops) if i != top["idx"]]
+
+    # Largest loop encloses everything but is not a standard sheet — treat it as
+    # the part outline and keep it. Warn only when it could plausibly be a frame.
+    if all(_bbox_contains(top_box, b) for b in others):
+        _filter_border_loops._last_border_note = (
+            f"最大輪郭 ({top_w:.1f} × {top_h:.1f} mm) を部品外形として使用します。"
+            "図枠だった場合はレイヤーを指定し直してください。"
+        )
     return loops
 
 
@@ -1097,7 +1163,10 @@ def extract_loops(doc, layer: str, gap_tol: float = GAP_TOL_DEFAULT,
     extract_loops._last_auto_gap    = _auto_gap
     extract_loops._last_gap_tol     = gap_tol
 
-    return _filter_border_loops(loops)
+    result = _filter_border_loops(loops)
+    extract_loops._last_border_note = getattr(
+        _filter_border_loops, "_last_border_note", None)
+    return result
 
 
 # ── 3D mesh generation ───────────────────────────────────────────────────────
@@ -3521,7 +3590,7 @@ def ai_mesh_check(checks: list[dict], mesh) -> str:
     return f"Ollamaへの接続に失敗しました ({OLLAMA_CODE_MODEL} / {OLLAMA_GEN_MODEL} が必要)"
 
 
-# ── STEP / IGES input via pythonocc-core ─────────────────────────────────────
+# ── STEP / IGES input via gmsh (bundled OpenCASCADE kernel) ──────────────────
 
 def _gmsh_to_trimesh(linear_deflection: float) -> "trimesh.Trimesh":
     """
@@ -3649,6 +3718,13 @@ def convert_fcstd_via_freecad(loops, height_mm, stem: str = "output"):
     job_id  = uuid.uuid4().hex[:8]
     job_dir = WORK_DIR / job_id
     job_dir.mkdir(parents=True, exist_ok=True)
+    # This container runs as root, Antigravity as uid 1000 — FreeCAD writes the
+    # .fcstd itself, so the job dir has to be writable by both.
+    for path in (WORK_DIR, job_dir):
+        try:
+            os.chmod(path, 0o777)
+        except OSError:
+            pass
 
     json_path  = job_dir / "loops.json"
     fcstd_path = job_dir / f"{stem}.fcstd"
@@ -3661,56 +3737,19 @@ def convert_fcstd_via_freecad(loops, height_mm, stem: str = "output"):
 
     cmd = [
         "docker", "exec", ANTIGRAVITY,
-        "python3", DXF23D_PATH,
-        "--mode",   "fcstd",
-        "--in",     ag_json,
-        "--out",    ag_fcstd,
-        "--height", str(height_mm),
+        *FREECAD_CMD, DXF23D_PATH,
+        "--pass",
+        "mode=fcstd",
+        f"in={ag_json}",
+        f"out={ag_fcstd}",
+        f"height={height_mm}",
     ]
-    result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+    result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
     if result.returncode != 0:
         raise RuntimeError(result.stdout + result.stderr)
     if not fcstd_path.exists():
         raise RuntimeError(".fcstd file was not produced by FreeCAD.")
     return fcstd_path.read_bytes()
-
-
-def convert_step_via_freecad(dxf_bytes, layer, height_mm):
-    """
-    Write DXF to shared /work volume, call docker exec Antigravity
-    to run dxf23d.py, return STEP bytes or raise RuntimeError.
-    """
-    job_id = uuid.uuid4().hex[:8]
-    job_dir = WORK_DIR / job_id
-    job_dir.mkdir(parents=True, exist_ok=True)
-    dxf_path = job_dir / "input.dxf"
-    step_path = job_dir / "output.step"
-
-    dxf_path.write_bytes(dxf_bytes)
-
-    # Paths inside Antigravity (same /work mount)
-    ag_dxf  = f"/work/dxf3d_output/{job_id}/input.dxf"
-    ag_step = f"/work/dxf3d_output/{job_id}/output.step"
-
-    cmd = [
-        "docker", "exec", ANTIGRAVITY,
-        "python3", DXF23D_PATH,
-        ag_dxf, ag_step,
-        "--height", str(height_mm),
-        "--layer", layer or "",
-    ]
-    try:
-        result = subprocess.run(
-            cmd, capture_output=True, text=True, timeout=120
-        )
-        if result.returncode != 0:
-            raise RuntimeError(result.stdout + result.stderr)
-        if not step_path.exists():
-            raise RuntimeError("STEP file not produced.")
-        return step_path.read_bytes()
-    finally:
-        # Keep files around for 1 session; no cleanup here
-        pass
 
 
 def _safe_job_stem(name: str) -> str:
@@ -3805,12 +3844,13 @@ def render_compound_2d_input(
         if detected_thickness is not None:
             sample = chosen_thickness["samples"][0] if chosen_thickness and chosen_thickness.get("samples") else ""
             st.info(
-                f"????: **{detected_thickness:.3f} mm** (`{thickness_source}`)"
-                + (" ??????" if auto_detect_thickness else " ??????")
-                + (f"  \n??: `{sample}`" if sample else "")
+                f"検出板厚: **{detected_thickness:.3f} mm** (`{thickness_source}`)"
+                + (" → 押し出し高さへ自動反映しました"
+                   if auto_detect_thickness else " (参考値・自動反映はOFF)")
+                + (f"  \n根拠: `{sample}`" if sample else "")
             )
         else:
-            st.caption("DXF/PDF ??????????????????")
+            st.caption("DXF/PDF の注記から板厚候補を検出できませんでした。")
 
     with st.spinner("変換後DXFを解析中..."):
         loops = extract_loops(doc, active_layer, gap_tol=gap_tol, auto_clean=auto_clean, max_auto_gap=max_auto_gap)
@@ -4094,7 +4134,7 @@ with st.sidebar:
 
     output_fmt = st.radio(
         "出力フォーマット (DXF押し出し)",
-        ["STL (高速・Pure Python)", "STEP (高精度・FreeCAD)"],
+        ["STL (高速・Pure Python)", "STEP (高精度・gmsh OCC)"],
         index=0,
     )
     want_step = output_fmt.startswith("STEP")
@@ -4176,7 +4216,7 @@ tab_dxf, tab_multi, tab_step, tab_doc2d = st.tabs([
 with tab_step:
     st.markdown(
         "STEP (.step/.stp) または IGES (.igs/.iges) ファイルをアップロードすると、"
-        "**OpenCASCADE (pythonocc-core)** でそのまま3Dメッシュ化します。  \n"
+        "**OpenCASCADE (gmsh 同梱の OCC カーネル)** でそのまま3Dメッシュ化します。  \n"
         "押し出し変換は不要です。"
     )
     uploaded_cad = st.file_uploader(
@@ -4233,11 +4273,11 @@ with tab_step:
 
             except RuntimeError as exc:
                 err_msg = str(exc)
-                if "pythonocc-core" in err_msg:
+                if "gmsh" in err_msg:
                     st.error(
-                        "pythonocc-core が未インストールです。\n\n"
-                        "Dockerfile に `pythonocc-core` を追加してリビルドしてください:\n"
-                        "```\npip install pythonocc-core\n```"
+                        "gmsh が未インストールです。\n\n"
+                        "Dockerfile に `gmsh` を追加してリビルドしてください:\n"
+                        "```\npip install gmsh\n```"
                     )
                 else:
                     st.error(f"変換エラー: {exc}")
@@ -4625,12 +4665,16 @@ with tab_dxf:
         if detected_thickness is not None:
             src = chosen_thickness["samples"][0] if chosen_thickness and chosen_thickness.get("samples") else ""
             st.info(
-                f"????: **{detected_thickness:.3f} mm** (`{thickness_source}`)"
-                + (" ??????" if auto_detect_thickness else " ??????")
-                + (f"  \n??: `{src}`" if src else "")
+                f"検出板厚: **{detected_thickness:.3f} mm** (`{thickness_source}`)"
+                + (" → 押し出し高さへ自動反映しました"
+                   if auto_detect_thickness else " (参考値・自動反映はOFF)")
+                + (f"  \n根拠: `{src}`" if src else "")
             )
         else:
-            st.caption("DXF/PDF ?????????????????????????????????????")
+            st.caption(
+                "DXF/PDF の注記から板厚候補を検出できませんでした。"
+                "サイドバーの押し出し高さを手動で指定してください。"
+            )
 
     st.divider()
 
@@ -4650,6 +4694,10 @@ with tab_dxf:
         if _det_gap is not None:
             msgs.append(f"ギャップ自動検出: **{_det_gap:.3f} mm** → 使用値 **{_used_gap:.3f} mm**")
         st.info("🔧 自動クリーン: " + "　|　".join(msgs))
+
+    _border_note = getattr(extract_loops, "_last_border_note", None)
+    if _border_note:
+        st.warning("🖼 " + _border_note)
 
     if not loops:
         # Provide actionable diagnosis
