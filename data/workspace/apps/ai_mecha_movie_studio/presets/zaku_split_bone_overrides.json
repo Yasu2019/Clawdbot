@@ -40,7 +40,8 @@
   },
   "_followers_comment": "スカート板を腰に固定したままにすると、股関節を曲げた際に腿がスカートの下から出て穴が開く(レンダ判定ゲートで UpperLeg_L/R がFAIL)。左右の板をそれぞれの腿へ部分追従させて塞ぐ。中央帯(skirt_C_)は腰に固定したまま残す。",
   "followers": {
-    "skirt_L_": {"driver_bone": "UpperLeg_L", "follow_influence": 0.6},
-    "skirt_R_": {"driver_bone": "UpperLeg_R", "follow_influence": 0.6}
+    "skirt_L_": {"driver_bone": "UpperLeg_L", "follow_influence": 0.85},
+    "skirt_R_": {"driver_bone": "UpperLeg_R", "follow_influence": 0.85}
   }
 }
+

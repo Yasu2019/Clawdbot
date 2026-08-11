@@ -179,7 +179,9 @@ def main():
     in_fbx, cuts_json, out_fbx = Path(argv[0]), Path(argv[1]), Path(argv[2])
     report_path = Path(argv[3]) if len(argv) > 3 else None
 
-    cfg = json.loads(cuts_json.read_text(encoding="utf-8"))
+    # utf-8-sig にする。人が編集する設定ファイルは、PowerShell の Set-Content -Encoding utf8 等で
+    # BOM付きになることがあり、素の utf-8 で読むと「Unexpected UTF-8 BOM」で落ちる（実際に踏んだ）。
+    cfg = json.loads(cuts_json.read_text(encoding="utf-8-sig"))
 
     bpy.ops.wm.read_factory_settings(use_empty=True)
     bpy.ops.import_scene.fbx(filepath=str(in_fbx))
