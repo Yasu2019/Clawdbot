@@ -5,16 +5,13 @@ name: clawstack-unified
 # docker-compose.addons.yml は networks.clawstack.name でこのネットワークを external: true で参照していたが
 # 本ファイルに統合済みのため addons.yml は不要。
 #
-# ⚠ 旧網 clawstack-unified_default の移行が未完 (bd -do2f):
-#   `name: clawstack-unified` を後付けしたため、旧デフォルト網 clawstack-unified_default が
-#   「project ラベルは自分のものだが設定上の名前と違う網」になり、compose up が毎回これを
-#   削除しようとする。接続中コンテナがあるので削除は失敗し、続けてネットワーク再作成に
-#   フォールバックして `incorrect label com.docker.compose.network` まで連鎖する。
-#   → `docker compose up -d <svc>` が使えない。単体起動は docker run/start で代替する。
-#   compose の判定はネットワーク名ではなく **ラベル** で行われるため、旧網を external 宣言
-#   しても削除は止まらない (実測済み)。恒久解消には旧網の削除が必要で、そのためには
-#   旧網に残る他サブプロジェクトのコンテナ (corpus2skill ×3 / meshy・auto-lp・image2-qa ×3)
-#   を作り直す必要がある。参照側の *.yml は既に clawstack-unified へ更新済み。
+# 旧網 clawstack-unified_default は 2026-08-12 に廃止済み (bd -do2f)。
+#   `name: clawstack-unified` を後付けしたまま移行していなかったため網が分断し、
+#   compose が旧網を毎回削除しようとして `docker compose up -d <svc>` が失敗していた。
+#   全コンテナを本網へ付け替えて旧網を削除し、参照側 *.yml も本網名に統一した。
+#   ⚠ 同種の付け替えを行う場合の注意: `docker network disconnect` は **公開ポートの
+#   ホスト転送を失効させる**。ポート公開しているコンテナは付け替え後に必ず再起動する
+#   (17/17 ポートが 000 になり、再起動で全復旧した実績あり)。
 networks:
   default:
     name: clawstack-unified
