@@ -259,6 +259,26 @@ class RadModel:
                 self._lines[second + 1] = third
         return self
 
+    def set_fail_gene1_ncs(self, ncs: int, mat_id: int = 2) -> "RadModel":
+        """Set NCS alone in /FAIL/GENE1/<mat_id>.
+
+        NCS is how many of the specified criteria an element must reach before it is
+        deleted, so NCS equal to the criteria count is an AND and 1 is an OR.
+        `set_fail_gene1_shear_gate` deliberately refuses to lower it; this is the
+        separate path for when the AND is the thing under test.
+        """
+        if ncs < 1:
+            raise ValueError("NCS must be at least 1")
+        blocks = self._find_blocks(f"/FAIL/GENE1/{mat_id}")
+        if not blocks:
+            raise ValueError(f"/FAIL/GENE1/{mat_id} not found")
+        for block_start in blocks:
+            di = _find_data_line_after_comment(self._lines, block_start, "Volfrac")
+            if di < 0:
+                raise ValueError(f"NCS field not found for material {mat_id}")
+            self._lines[di] = _replace_nth_number(self._lines[di], 2, str(ncs))
+        return self
+
     def set_inter_type25_all(self, inacti: int, vc: float) -> "RadModel":
         """Set Inacti and VISs in every /INTER/TYPE25/{n} block.
 

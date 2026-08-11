@@ -3206,3 +3206,38 @@ Raised by the user asking whether `box_study_3` had a mesh in progress. Forensic
 - Next: trial X seats the blank on the die (die nodes shifted +0.10 mm through
   `rad_model.translate_nodes`, 462 nodes, node sets verified disjoint) so that
   bending cannot precede shearing, before the failure criterion is touched.
+
+### INC-188 second root cause 2026-08-11: the blank was tearing at its clamps
+
+- Trial X (blank seated on the die) matched trial V almost exactly - rupture
+  391/1999 both, ERR -75.1% against -74.7%. The 0.10 mm die gap was irrelevant
+  because `/IMPVEL/12` fixes the blank perimeter in Z, so it could never sag.
+- Mapping where rupture occurs settles the geometry question: in trial X, 82.6%
+  of the outer-edge elements failed against 8.3% on the cut contour, and 80.3%
+  of all ruptures sat on the outer edge. The blank was tearing at its clamps,
+  not shearing at the tool.
+- `/GRNOD/NODE/500` holds all 480 perimeter nodes, full thickness, all four
+  edges, and `/IMPVEL/10,11,12` fix them in X, Y and Z. 264 of those 480 sit over
+  the die opening with nothing under them, and 49 top-face nodes lie directly
+  under the punch, so the punch was pressing on nodes that cannot move. That also
+  explains the 62.8% elastic contact energy.
+- Correction of an earlier note in this log: the cut is NOT a straight 4 mm line.
+  Sampling every element shows die and stripper share one irregular footprint and
+  the punch is its complement, so the die opening is real and the contour is an
+  S-curve. The straight-line reading came from sampling only the punch nodes at
+  exactly its minimum Z.
+- Trial Y constrains Z only on the 216 perimeter nodes actually supported by the
+  die (`/GRNOD/NODE/600`, nearest die element within 0.25 mm), leaving X and Y on
+  all 480 for in-plane continuity. Outer-edge rupture fell from 82.6% to 33.2%
+  and the cut contour's share of ruptures rose from 14.6% to 32.6%.
+- Remaining gap: the cut contour still only reaches 10.3% rupture, far from a
+  through-thickness crack, so the slug still does not separate.
+- The failure criterion is the next lever and it is doubly restrictive.
+  `Eps_eff=0.35` is 5.6x and `Eps_s=0.30` is 4.8x the measured uniaxial fracture
+  strain of 0.0622, against a literature-plausible 1.5-3x band of 0.093-0.187,
+  and `NCS=2` requires BOTH to be met. NCS=2 was itself added earlier in this
+  incident to suppress runaway deletion - which was the 10 Pa material bug - so
+  it is a workaround whose cause is now gone.
+- Trial Z therefore changes NCS 2 -> 1 alone, via the new
+  `rad_model.set_fail_gene1_ncs`; `set_fail_gene1_shear_gate` keeps its guard
+  against lowering NCS rather than having it weakened.
