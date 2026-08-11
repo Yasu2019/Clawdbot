@@ -493,3 +493,56 @@ If any job fails, a past instruction is missed, a code failure occurs, or the us
 4. Explicitly define countermeasures and strict rules to prevent recurrence.
 5. Record the rule in the relevant core files (like Beads, Byterover, or this MD file).
 6. Always confirm the countermeasure implementation plan with the user before resuming execution.
+
+## Global Result Truth Gate (MANDATORY -- ALL ENGINEERING AND AI APPS)
+
+This rule applies to every current and future application, including but not
+limited to resin molding, CETOL/6-Sigma-style tolerance analysis, DXF-to-3D,
+AI visual inspection, OpenRadioss, FEM Impact, and Sn/Ni plating composition
+analysis. It also applies to dashboards, reports, videos, recommendations,
+autonomous learning loops, and AI-generated summaries derived from those apps.
+
+### Non-negotiable reporting rule
+
+- A process exit code, generated artifact, plausible image, KPI presence, AI
+  critique, or model confidence is evidence of execution only. None of these is
+  evidence that the engineering conclusion is correct.
+- Never label a result `SUCCESS`, `validated`, `accurate`, `production-ready`,
+  `commercial-quality`, `proved`, `fully matched`, or equivalent unless the
+  result passes the independent truth gates defined in
+  `docs/global_result_truth_gate.md`.
+- AI systems must not approve their own outputs. The producer and validator must
+  be independent methods, implementations, datasets, or reviewers. A second
+  prompt to the same model is not independent validation.
+- If any required gate is missing, stale, out of bounds, internally
+  inconsistent, or unsupported, the externally visible status must be
+  `UNVALIDATED`, `HOLD`, `FAILED_PHYSICS`, `FAILED_NUMERICS`, or
+  `INSUFFICIENT_EVIDENCE`; never silently downgrade the check and report success.
+- Preserve raw outputs and failed runs. Reports must separate measured facts,
+  calculated results, assumptions, inferred interpretations, and recommendations.
+- Every user-facing result must state scope, inputs, units, software/model
+  version, validation evidence, uncertainty/limitations, and artifact provenance.
+
+### Mandatory gates before a user-facing engineering conclusion
+
+1. **Execution integrity:** correct input/version, complete run, no hidden
+   fallback, stale cache, parser error, timeout, or partial-output substitution.
+2. **Domain validity:** conservation/bounds/dimensional checks and
+   domain-specific impossibility checks are passed.
+3. **Numerical/statistical validity:** convergence, mesh/sample sufficiency,
+   conditioning, leakage/bias checks, and sensitivity are acceptable.
+4. **Reference validity:** compare against an analytical case, trusted solver,
+   calibrated specimen, drawing/measurement, labeled holdout set, or certified
+   reference with declared tolerances.
+5. **Reproducibility:** repeat from clean inputs; stochastic apps use fixed seeds
+   plus repeated-run dispersion where applicable.
+6. **Independent review:** a separate gate or human/domain review confirms that
+   evidence supports the exact wording of the claim.
+7. **Traceability:** store the immutable input hashes, configuration, logs,
+   outputs, gate verdict, limitations, and validator identity/time.
+
+The shared machine-readable preflight is
+`scripts/global_result_truth_gate.py`. App-specific gates may be stricter but
+must never bypass or weaken this global gate. Existing applications are
+grandfathered only for continued internal operation; their historical outputs
+remain `UNVALIDATED` until rechecked under this rule.
