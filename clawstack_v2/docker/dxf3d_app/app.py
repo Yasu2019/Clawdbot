@@ -1299,7 +1299,88 @@ def _group_polys_to_bodies(polys: list) -> list:
     return bodies
 
 
-def loops_to_mesh(loops, height_mm, axis: str = 'Z'):
+def _nesting_depths(geoms: list) -> list:
+    """How many other polygons enclose each polygon (None entries score 0)."""
+    depths = []
+    for i, geom in enumerate(geoms):
+        depth = 0
+        if geom is not None:
+            for j, other in enumerate(geoms):
+                if i == j or other is None:
+                    continue
+                try:
+                    if other.contains(geom):
+                        depth += 1
+                except Exception:
+                    pass
+        depths.append(depth)
+    return depths
+
+
+def _seat_indices(geoms: list, depths: list) -> list:
+    """
+    Indices of counterbore (座グリ) seats.
+
+    A single extrusion height cannot express a counterbore, so the intent has to
+    be read from the nesting depth of the contours:
+
+        depth 0  outer part profile
+        depth 1  hole
+        depth 2  hole inside a hole  →  its depth-1 parent is a counterbore seat,
+                                       the depth-2 child is the through hole
+    """
+    seats = []
+    for i, geom in enumerate(geoms):
+        if geom is None or depths[i] != 1:
+            continue
+        for j, child in enumerate(geoms):
+            if i == j or child is None or depths[j] != 2:
+                continue
+            try:
+                if geom.contains(child):
+                    seats.append(i)
+                    break
+            except Exception:
+                pass
+    return seats
+
+
+def detect_counterbore_polys(polys: list) -> list:
+    """Counterbore seat indices among already-validated Shapely polygons."""
+    return _seat_indices(polys, _nesting_depths(polys))
+
+
+def split_counterbore_loops(loops: list):
+    """
+    Loop-level counterpart of `detect_counterbore_polys`, for the STEP path.
+
+    Returns (base_loops, seat_loops) so both exporters classify identically.
+    """
+    geoms = []
+    for loop in loops:
+        try:
+            poly = Polygon(loop)
+            if not poly.is_valid:
+                poly = poly.buffer(0)
+            ok = (poly.geom_type == "Polygon" and poly.is_valid and poly.area > TOL)
+            geoms.append(poly if ok else None)
+        except Exception:
+            geoms.append(None)
+
+    seats = set(_seat_indices(geoms, _nesting_depths(geoms)))
+    base = [lp for i, lp in enumerate(loops) if i not in seats]
+    seat_loops = [loops[i] for i in sorted(seats)]
+    return base, seat_loops
+
+
+def _pocket_mesh(profile, depth_mm: float, top_z: float):
+    """Prism to subtract from the top face down to `top_z - depth_mm`."""
+    pocket = trimesh.creation.extrude_polygon(profile, depth_mm)
+    pocket.apply_translation([0.0, 0.0, top_z - depth_mm])
+    return pocket
+
+
+def loops_to_mesh(loops, height_mm, axis: str = 'Z', counterbore_depth_mm=None):
     """
     Convert closed 2D loops to an extruded 3D trimesh.
 
@@ -1309,6 +1390,8 @@ def loops_to_mesh(loops, height_mm, axis: str = 'Z'):
     - Direction: extrusion direction can be X, Y, or Z
     - Hole grouping: each inner loop is subtracted from its enclosing outer shell
     - Invalid polygon repair: buffer(0) is tried before discarding
+    - Counterbore: with `counterbore_depth_mm` set, a hole enclosing another hole
+      becomes a seat of that depth instead of a second through hole
 
     Returns
     -------
@@ -1318,6 +1401,17 @@ def loops_to_mesh(loops, height_mm, axis: str = 'Z'):
     if not polys:
         return None, 0
 
+    cb_polys = []
+    if counterbore_depth_mm and counterbore_depth_mm > 0:
+        cb_idx = detect_counterbore_polys(polys)
+        if cb_idx:
+            depth = min(float(counterbore_depth_mm), height_mm)
+            cb_polys = [polys[i] for i in cb_idx]
+            # The seat must stay solid while the through hole is still cut, so
+            # the seat ring is removed from the 2D profile set and re-applied
+            # as a 3D pocket afterwards.
+            polys = [p for i, p in enumerate(polys) if i not in set(cb_idx)]
+
     bodies = _group_polys_to_bodies(polys)
     if not bodies:
         return None, 0
@@ -1326,7 +1420,6 @@ def loops_to_mesh(loops, height_mm, axis: str = 'Z'):
     for profile in bodies:
         try:
             m = trimesh.creation.extrude_polygon(profile, height_mm)
-            m = _apply_axis_transform(m, axis)
             meshes.append(m)
         except Exception as exc:
             # Log per-body failure but continue with others
@@ -1335,11 +1428,21 @@ def loops_to_mesh(loops, height_mm, axis: str = 'Z'):
     if not meshes:
         return None, 0
 
-    if len(meshes) == 1:
-        return meshes[0], 1
+    combined = meshes[0] if len(meshes) == 1 else trimesh.util.concatenate(meshes)
+    n_bodies = len(meshes)
 
-    combined = trimesh.util.concatenate(meshes)
-    return combined, len(meshes)
+    for profile in cb_polys:
+        try:
+            cut = combined.difference(
+                _pocket_mesh(profile, depth, height_mm), engine="manifold")
+            if cut is not None and not cut.is_empty and cut.volume > 0:
+                combined = cut
+        except Exception:
+            # Keep the through-hole result rather than losing the whole mesh
+            pass
+
+    combined = _apply_axis_transform(combined, axis)
+    return combined, n_bodies
 
 
 def mesh_to_plotly(mesh):
@@ -1987,11 +2090,17 @@ def _make_csg_t_3d() -> "trimesh.Trimesh":
 
 
 def _make_csg_stair_3d() -> "trimesh.Trimesh":
-    """3ボックス 階段状 3D接合 (各段 50×50×30、X/Z方向にオフセット)。"""
+    """
+    3ボックス 階段状 3D接合 (各段 50×50×30)。
+
+    X方向オフセットは段の幅(50)より小さい40にしてある。50だと各段が稜線
+    だけで接触する非多様体になり、体積は正しいまま watertight にならない
+    (euler_number=4)。40なら上の段が下の段の上面に乗り、面で接合される。
+    """
     from manifold3d import Manifold
     b1 = Manifold.cube([50, 50, 30])
-    b2 = Manifold.cube([50, 50, 30]).translate([50, 0, 30])
-    b3 = Manifold.cube([50, 50, 30]).translate([100, 0, 60])
+    b2 = Manifold.cube([50, 50, 30]).translate([40, 0, 30])
+    b3 = Manifold.cube([50, 50, 30]).translate([80, 0, 60])
     return _manifold_to_trimesh(b1 + b2 + b3)
 
 
@@ -3079,10 +3188,10 @@ def build_csg_test_suite() -> list:
 
     # 3. 階段 (3ボックス)
     C.append(csg_tc(
-        "csg_stair_3d", "3ボックス 階段状3D (各段50×50×30)",
+        "csg_stair_3d", "3ボックス 階段状3D (各段50×50×30、X送り40)",
         _make_csg_stair_3d,
-        vol_expected=3 * 50*50*30,   # 225,000 mm³
-        bbox=(150, 50, 90), exp_topo=None,
+        vol_expected=3 * 50*50*30,   # 225,000 mm³ (面接触なので重複体積なし)
+        bbox=(130, 50, 90), exp_topo=None,
     ))
 
     # 4. 3D十字 (5ボックス)
@@ -3380,7 +3489,9 @@ TEST_SUITE = [
     {"id": "u_shape",       "desc": "U字形状 内側除去 厚み5mm",       "gen": _gen_u_shape,      "height": 5.0,  "vol": 5000*5,         "bbox": (100,80,5)},
     {"id": "arc_rect",      "desc": "角丸矩形 R10コーナー 厚み5mm",   "gen": _gen_arc_rect,     "height": 5.0,  "vol": (100*60-(4-math.pi)*100)*5,"bbox": (100,60,5)},
     {"id": "縦穴",          "desc": "縦穴: 100×100 Φ40 貫通 厚み20mm","gen": _gen_plate_hole,   "height": 20.0, "vol": (100*100-math.pi*20**2)*20,"bbox": (100,100,20)},
-    {"id": "座グリ",        "desc": "座グリ: Φ40cap+Φ20through 厚み20mm","gen": _gen_counterbore,"height": 20.0, "vol": (100*100-math.pi*20**2)*20,"bbox": (100,100,20)},
+    # 座グリは単一押し出しでは表現できないため cb_depth を与えて 2.5D 化する。
+    # 期待体積 = 板 − Φ20貫通 − (Φ40−Φ20)リング×座グリ深さ
+    {"id": "座グリ",        "desc": "座グリ: Φ40座グリ深5mm+Φ20貫通 厚み20mm","gen": _gen_counterbore,"height": 20.0, "cb_depth": 5.0, "vol": (100*100-math.pi*10**2)*20-(math.pi*20**2-math.pi*10**2)*5.0,"bbox": (100,100,20)},
     {"id": "U字曲げ",       "desc": "U字曲げ プロファイル 奥行き50mm", "gen": _gen_u_bend,       "height": 50.0, "vol": 650*50,         "bbox": (60,40,50)},
     {"id": "横穴",          "desc": "横穴: 100×60 側面Φ20 厚み15mm", "gen": _gen_side_hole,    "height": 15.0, "vol": (100*60-math.pi*10**2)*15,"bbox": (100,60,15)},
     {"id": "曲線溝",        "desc": "曲線溝: 120×60 半円溝 R20 厚み10mm","gen": _gen_curved_groove,"height": 10.0,"vol": None,           "bbox": (120,60,10)},
@@ -3401,7 +3512,9 @@ def run_test_suite(suite: list) -> list[dict]:
                 result.update({"ok": False, "score": 0, "error": "輪郭なし", "mesh": None})
                 results.append(result)
                 continue
-            mesh, _ = loops_to_mesh(loops, tc["height"])
+            mesh, _ = loops_to_mesh(
+                loops, tc["height"],
+                counterbore_depth_mm=tc.get("cb_depth"))
             if mesh is None:
                 result.update({"ok": False, "score": 0, "error": "メッシュ生成失敗", "mesh": None})
                 results.append(result)
@@ -3859,7 +3972,9 @@ def render_compound_2d_input(
         return
 
     try:
-        mesh, n_bodies = loops_to_mesh(loops, effective_height_mm, axis="Z")
+        mesh, n_bodies = loops_to_mesh(
+            loops, effective_height_mm, axis="Z",
+            counterbore_depth_mm=counterbore_depth)
     except Exception:
         mesh, n_bodies = None, 0
     if mesh is None:
@@ -3905,7 +4020,8 @@ def render_compound_2d_input(
     col1.download_button("STL をダウンロード", data=stl_buf.getvalue(), file_name=f"{Path(input_name).stem}_h{effective_height_mm:.0f}mm.stl", mime="application/octet-stream", use_container_width=True, key=f"{key_prefix}_stl")
 
     try:
-        step_bytes = loops_to_step_gmsh(loops, effective_height_mm)
+        step_bytes = loops_to_step_gmsh(loops, effective_height_mm,
+                                       counterbore_depth_mm=counterbore_depth)
         col2.download_button("STEP をダウンロード", data=step_bytes, file_name=f"{Path(input_name).stem}_h{effective_height_mm:.0f}mm.step", mime="application/octet-stream", use_container_width=True, key=f"{key_prefix}_step")
     except Exception as exc:
         col2.caption(f"STEP生成失敗: {exc}")
@@ -3919,17 +4035,31 @@ def render_compound_2d_input(
 
 # ── STEP export via gmsh OCC ─────────────────────────────────────────────────
 
-def loops_to_step_gmsh(loops: list, height_mm: float) -> bytes:
+def loops_to_step_gmsh(loops: list, height_mm: float,
+                       counterbore_depth_mm=None) -> bytes:
     """
     Convert 2D closed loops to STEP bytes via gmsh OpenCASCADE kernel.
     Largest loop = outer solid body. Inner loops = holes (subtracted automatically
     by addPlaneSurface with multiple curve loops).
+
+    With `counterbore_depth_mm` set, a hole enclosing another hole becomes a seat
+    pocket of that depth (cut as a 3D boolean) instead of a second through hole,
+    matching `loops_to_mesh` so STL and STEP describe the same part.
+
     Returns raw STEP file bytes.
     """
     import gmsh
     import tempfile
     import os as _os
     from shapely.geometry import Polygon as _P
+
+    seat_loops: list = []
+    seat_depth = 0.0
+    if counterbore_depth_mm and counterbore_depth_mm > 0:
+        base_loops, seat_loops = split_counterbore_loops(loops)
+        if seat_loops:
+            loops = base_loops
+            seat_depth = min(float(counterbore_depth_mm), float(height_mm))
 
     with tempfile.TemporaryDirectory() as tmpdir:
         out_path = _os.path.join(tmpdir, "out.step")
@@ -3981,7 +4111,35 @@ def loops_to_step_gmsh(loops: list, height_mm: float) -> bytes:
                 raise RuntimeError("有効な輪郭が見つかりませんでした。")
 
             surf = gmsh.model.occ.addPlaneSurface(wire_tags)
-            gmsh.model.occ.extrude([(2, surf)], 0.0, 0.0, float(height_mm))
+            extruded = gmsh.model.occ.extrude(
+                [(2, surf)], 0.0, 0.0, float(height_mm))
+            body_ents = [(d, t) for d, t in extruded if d == 3]
+
+            # Counterbore seats: solid discs sunk from the top face downwards.
+            # The through hole is already cut in the body, so the overlapping cut
+            # leaves exactly the seat ring.
+            pocket_ents = []
+            for lp in seat_loops:
+                lp = _sanitize_loop(lp)
+                if len(lp) < 3:
+                    continue
+                z0 = float(height_mm) - seat_depth
+                pts = [gmsh.model.occ.addPoint(float(x), float(y), z0)
+                       for x, y in lp]
+                n = len(pts)
+                lns = [gmsh.model.occ.addLine(pts[i], pts[(i + 1) % n])
+                       for i in range(n)]
+                pocket_surf = gmsh.model.occ.addPlaneSurface(
+                    [gmsh.model.occ.addCurveLoop(lns)])
+                pocket = gmsh.model.occ.extrude(
+                    [(2, pocket_surf)], 0.0, 0.0, seat_depth)
+                pocket_ents.extend([(d, t) for d, t in pocket if d == 3])
+
+            if pocket_ents and body_ents:
+                gmsh.model.occ.synchronize()
+                gmsh.model.occ.cut(body_ents, pocket_ents,
+                                   removeObject=True, removeTool=True)
+
             gmsh.model.occ.synchronize()
             gmsh.write(out_path)
 
@@ -4181,6 +4339,15 @@ with st.sidebar:
         index=0,
         horizontal=True,
         help="DXF内の extrusion ベクトルから自動判定します。誤検出時に手動で上書きできます。",
+    )
+    counterbore_depth = st.number_input(
+        "座グリ深さ (mm、0=貫通扱い)",
+        min_value=0.0, max_value=500.0, value=0.0, step=0.5,
+        help=(
+            "穴の中に更に小さい穴がある輪郭 (座グリ) を、貫通穴ではなく"
+            "この深さのザラい座面として立体化します。\n"
+            "0 のままなら従来どおり両方を貫通穴として扱います。"
+        ),
     )
 
     st.divider()
@@ -4722,13 +4889,31 @@ st.success(
     + (f"  (外形: 1、穴: {len(loops)-1})" if len(loops) > 1 else "")
 )
 
+_, _seat_loops = split_counterbore_loops(loops)
+if _seat_loops:
+    if counterbore_depth > 0:
+        st.info(
+            f"🕳 座グリ形状を **{len(_seat_loops)}** 箇所検出 → 深さ "
+            f"**{min(counterbore_depth, effective_height_mm):.2f} mm** の座面として"
+            "STL / STEP 両方に反映します。"
+        )
+    else:
+        st.warning(
+            f"🕳 穴の中に穴がある形状 (座グリ) を **{len(_seat_loops)}** 箇所検出しました。"
+            "サイドバーの「座グリ深さ」が 0 のため、両方を貫通穴として扱います"
+            "（同心の貫通穴になるため、STEPソリッドが不正になる場合があります）。"
+        )
+
 # ── Generate 3D mesh ──────────────────────────────────────────────────────────
 with st.spinner("3Dメッシュを生成中..."):
-    mesh, n_bodies = loops_to_mesh(loops, effective_height_mm, axis=detected_axis)
+    mesh, n_bodies = loops_to_mesh(
+        loops, effective_height_mm, axis=detected_axis,
+        counterbore_depth_mm=counterbore_depth)
 precomputed_step_bytes = None
 if mesh is None:
     try:
-        precomputed_step_bytes = loops_to_step_gmsh(loops, effective_height_mm)
+        precomputed_step_bytes = loops_to_step_gmsh(loops, effective_height_mm,
+                                       counterbore_depth_mm=counterbore_depth)
         mesh = load_step_to_mesh(precomputed_step_bytes, linear_deflection=0.2)
         n_bodies = 1
         st.info("STL用メッシュ生成は失敗しましたが、STEPからプレビュー用メッシュを再構成しました。")
@@ -4808,7 +4993,9 @@ with dl_col2:
     if want_step:
         with st.spinner("gmsh OCC でSTEP変換中…"):
             try:
-                step_bytes = precomputed_step_bytes or loops_to_step_gmsh(loops, effective_height_mm)
+                step_bytes = precomputed_step_bytes or loops_to_step_gmsh(
+                    loops, effective_height_mm,
+                    counterbore_depth_mm=counterbore_depth)
                 st.download_button(
                     label="⬇️ STEP をダウンロード",
                     data=step_bytes,
