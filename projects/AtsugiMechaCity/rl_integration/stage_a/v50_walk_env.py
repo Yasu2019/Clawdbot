@@ -204,7 +204,7 @@ def _default_cfg():
                                            # a comparable total to the existing terms
                                            # (2026-07-27: raised 1500->3000 after 2 straight
                                            # retrains showed no visible climb behavior change).
-            "climb_stagnation": -20.0,     # T079b: explicit stick alongside climb_progress's
+            "climb_stagnation":  -2.0,     # T079b: explicit stick alongside climb_progress's
                                            # carrot -- penalizes stall_steps*dt (seconds since
                                            # last height gain, clamped 10s) while commanded to
                                            # move. Gated to stairs/slope_up ONLY (see
@@ -221,6 +221,21 @@ def _default_cfg():
                                            # lesson that overcorrecting a single scale can break
                                            # the whole gait) to make standing still cost more
                                            # relative to the now much smaller other reward terms.
+                                           # 2026-08-12 (T079j): 20.0 -> 2.0. The freeze that
+                                           # justified the 2.5x raise was caused by the
+                                           # double_support_ratio SIGN BUG (dc100d184c), not by
+                                           # this term being too weak -- so the raise was
+                                           # correcting a symptom of a different bug. With the
+                                           # sign fixed, --reward-breakdown showed this term
+                                           # dominating at -0.244/step vs -0.070 for the next
+                                           # (3.5x). Worse, it scales with stall_steps (clamped
+                                           # 10s), so the penalty GROWS the longer an env
+                                           # survives without climbing -- for a policy that has
+                                           # not learned to climb yet that is a "terminate early
+                                           # to stop the bleeding" incentive (observed: fall_rate
+                                           # 1.00, ep 1.13s). Note the successful 2026-08-10 flat
+                                           # run never exercised this term at all (terrain-gated
+                                           # to stairs/slope_up), so -20.0 was never validated.
             "pose_prior":         0.4,     # 2026-07-25: 0.3 was too weak -> the gait
                                            # drifted from the (symmetric, anti-phase)
                                            # human reference into an asymmetric limit
