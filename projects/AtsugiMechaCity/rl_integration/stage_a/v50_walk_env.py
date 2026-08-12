@@ -279,6 +279,10 @@ def _default_cfg():
             "feet_slip":         -0.2,
             "collision":         -2.0,
             "stand_still":       -0.5,
+            "dof_pos_limits":    -5.0,     # T079L: G1 と同値。可動域端の手前(soft 0.9)から
+                                           # 罰を立て、肩/肘が端まで振れて解が発散するのを
+                                           # 防ぐ。v19 の 5000iter 版で両腕分離を目視確認した
+                                           # ことによる追加(_r_dof_pos_limits 参照)。
             "alive":              7.5,     # T079k: unitree_rl_gym G1 の alive=0.15 相当。
                                            # G1 は dt=0.02 で「係数をそのまま毎ステップ加算」
                                            # する規約だが、当実装は全係数に self.dt を
@@ -351,6 +355,13 @@ class V50WalkEnv:
         self.scene.build(n_envs=num_envs)
 
         self.dof_idx = [self.robot.get_joint(n).dof_idx_local for n in DOF_NAMES]
+        # T079L: 可動域端の罰(_r_dof_pos_limits)用。MJCFの range をそのまま使い、
+        # G1 の soft_dof_pos_limit=0.9 と同様に「端の手前」から罰が立つよう内側へ寄せる。
+        _lo, _hi = self.robot.get_dofs_limit(dofs_idx_local=self.dof_idx)
+        _mid, _half = (_hi + _lo) * 0.5, (_hi - _lo) * 0.5
+        _soft = c.get("soft_dof_pos_limit", 0.9)
+        self.dof_limit_lo = _mid - _half * _soft
+        self.dof_limit_hi = _mid + _half * _soft
         self.robot.set_dofs_kp(torch.tensor(V50.KP, device=self.device), self.dof_idx)
         self.robot.set_dofs_kv(torch.tensor(V50.KV, device=self.device), self.dof_idx)
 
@@ -1122,6 +1133,23 @@ class V50WalkEnv:
 
     def _r_termination(self):
         return self.terminated.float()
+
+    def _r_dof_pos_limits(self):
+        """2026-08-13 (T079L): 可動域端を超えた分の合計(正の大きさ、符号は係数側)。
+
+        unitree_rl_gym / legged_gym の _reward_dof_pos_limits と同一の式。
+        当実装には対応する項が無く、G1 は -5.0 を与えていた。
+
+        導入理由: v19 を 2000->5000iter 追加学習したところ、学習側の数値は
+        改善し続けた(return 3.75->7.44, ep 2.70->3.09s)のに、目視で
+        **両腕が胴体から分離**する物理破綻が出た(frame 55)。腕の姿勢を
+        縛るのは pose_prior(0.4)だけで弱く、肩(±100deg)/肘(-120..+10deg)が
+        端まで振れて解が不安定化したとみられる。数値に出ない破綻であり、
+        CLAUDE.md の「腕分離等の物理破綻は数値に出ない」に該当する。
+        """
+        below = (self.dof_pos - self.dof_limit_lo).clamp(max=0.0).abs()
+        above = (self.dof_pos - self.dof_limit_hi).clamp(min=0.0)
+        return (below + above).sum(dim=1)
 
     def _r_alive(self):
         """2026-08-12 (T079k): 生存しているだけで毎ステップ入る正の報酬。
