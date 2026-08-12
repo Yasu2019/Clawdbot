@@ -279,6 +279,12 @@ def _default_cfg():
             "feet_slip":         -0.2,
             "collision":         -2.0,
             "stand_still":       -0.5,
+            "alive":              7.5,     # T079k: unitree_rl_gym G1 の alive=0.15 相当。
+                                           # G1 は dt=0.02 で「係数をそのまま毎ステップ加算」
+                                           # する規約だが、当実装は全係数に self.dt を
+                                           # 掛ける規約なので、同じ実効値にするには
+                                           # 0.15/0.02 = 7.5 を指定する必要がある。
+                                           # (実効 7.5*0.02 = 0.15/step で G1 と一致)
             "termination":     -100.0,
         },
     }
@@ -1116,6 +1122,25 @@ class V50WalkEnv:
 
     def _r_termination(self):
         return self.terminated.float()
+
+    def _r_alive(self):
+        """2026-08-12 (T079k): 生存しているだけで毎ステップ入る正の報酬。
+
+        unitree_rl_gym の G1 (動作実績のある公開ヒューマノイド設定) は
+        `alive = 0.15` を持つが、当実装には対応する項が無く、生存に関わる
+        のは `termination = -100.0`(転倒時の一発罰)だけだった。
+
+        一発罰だけだと「早く終わらせた方が損失が小さい」状況が作れてしまう。
+        実際 climb_stagnation を -20.0 にしていた時は、罰が stall 秒数に比例して
+        増えるため、まだ登れない方策にとって早期終了が最適になっていた
+        (fall_rate 1.00 / ep 1.13s)。alive があれば「生き続けること自体」に
+        継続的な価値がつき、この構造が壊れる。
+
+        なお本項は G1 同様に無条件(_moving() ゲート無し)。止まっていても
+        生存には価値がある、という位置づけ。立ち止まりの抑制は
+        stand_still / forward_progress 側の役割。
+        """
+        return torch.ones(self.num_envs, device=self.device)
 
     # ---- naturalness / symmetry (2026-07-24) ----
 
