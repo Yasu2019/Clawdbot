@@ -46,6 +46,7 @@ DEFAULT_COARSE = 100.0e-6
 DEFAULT_CLEARANCE = 40.0e-6      # 板厚の約7.8%。隙間ゼロだと剪断帯が立たない(2DAで実証)
 DEFAULT_SLICE = 20.0e-6          # X方向のスライス厚（1要素）
 TOOL_GAP = 5.0e-6                # 工具と板の初期すきま。初期貫入エラーを避ける
+DEFAULT_GAP_MAX = 15.0e-6        # 接触ギャップ上限。TOOL_GAP < これ < DEFAULT_CLEARANCE
 
 I10 = "{:>10d}"
 F20 = "{:>20.10g}"
@@ -101,7 +102,24 @@ def load_reference_cards() -> dict[str, str]:
         "funct_punch": extract_block(txt, r"^/FUNCT/1\b"),
         "prop1": extract_block(txt, r"^/PROP/SOLID/1\b"),
         "prop2": extract_block(txt, r"^/PROP/SOLID/2\b"),
+        "inter1": extract_block(txt, r"^/INTER/TYPE25/1\b"),
+        "inter2": extract_block(txt, r"^/INTER/TYPE25/2\b"),
+        "inter3": extract_block(txt, r"^/INTER/TYPE25/3\b"),
     }
+
+
+def remap_type25(block: str, iid: int, label: str, surf1: int, surf2: int,
+                 gap_max: float) -> str:
+    """参照デッキ(AC)の TYPE25 をスライスの面IDとギャップに読み替える。
+
+    AC のカラム幅は不規則だが実績があるため、書式は触らず値だけ差し替える。
+    """
+    lines = block.splitlines()
+    lines[0] = f"/INTER/TYPE25/{iid}/0"
+    lines[1] = label
+    lines[3] = f"{i10(surf1)}{i10(surf2)}" + lines[3][20:]
+    lines[5] = lines[5][:-40] + f20(gap_max) + f20(gap_max)
+    return "\n".join(lines)
 
 
 def graded_axis(center, half_lo, half_hi, fine, band, coarse) -> list[float]:
@@ -190,7 +208,7 @@ def fmt_grnod(gid, name, nodes) -> list[str]:
 
 
 def build(tag, shear_elem, band, coarse, clearance, tstop, slice_dx,
-          eps_pmax, eps_eff, eps_s, volfrac):
+          eps_pmax, eps_eff, eps_s, volfrac, gap_max):
     ref = load_reference_cards()
     if any(v is not None for v in (eps_pmax, eps_eff, eps_s, volfrac)):
         ref["fail"] = override_gene1(ref["fail"], eps_pmax, eps_eff, eps_s, volfrac)
@@ -286,28 +304,15 @@ def build(tag, shear_elem, band, coarse, clearance, tstop, slice_dx,
         L.append(f"{f20(1.0)}{f20(1.0)}{f20(0.0)}{f20(1.0e30)}")
         imp += 1
 
-    # 3D なので TYPE7 が使える（2Dでは非対応だった）
-    for iid, sec, mst, label in ((1, 200, 100, "Blank_to_Punch"),
-                                 (2, 200, 300, "Blank_to_Die"),
-                                 (3, 200, 400, "Blank_to_Stripper")):
-        L.append(f"/INTER/TYPE7/{iid}")
-        L.append(label)
-        L.append("# grnod_id   surf_id      Istf                Igap   Multimp      Ibag      Idel     Icurv")
-        L.append(f"{i10(sec)}{i10(mst)}{i10(0)}{'':>10}{i10(0)}{i10(0)}{i10(0)}{i10(0)}{i10(0)}")
-        L.append("#          Gap_scale             Gap_max")
-        L.append(f"{f20(0.0)}{f20(0.0)}")
-        L.append("#              STMIN               STMAX")
-        L.append(f"{f20(0.0)}{f20(0.0)}")
-        L.append("#       N1        N2")
-        L.append(f"{i10(0)}{i10(0)}")
-        L.append("#              STFAC                FRIC              GAPmin              Tstart               Tstop")
-        L.append(f"{f20(1.0)}{f20(0.1)}{f20(0.0)}{f20(0.0)}{f20(1.0e30)}")
-        L.append("#      IBC                        INACTI               VIS_S               VIS_F              BUMULT")
-        # INACTI=5: 初期貫入をギャップ縮小で解消する。パンチを板面に接して置いているため
-        # INACTI=0 のままだと "SECONDARY NODE IS ON THE MAIN SURFACE" で268件のエラーになる。
-        L.append(f"{'':>7}{0}{0}{0}{'':>20}{i10(5)}{f20(0.0)}{f20(0.0)}{f20(0.0)}")
-        L.append("#    Ifric    Ifiltr               Xfreq     Iform")
-        L.append(f"{i10(0)}{i10(0)}{f20(0.0)}{i10(0)}")
+    # TYPE7 は使わない。ソリッド要素は板厚を持たないため Igap=0/Gap=0 だと
+    # 接触ギャップが 0 のまま活性化せず、パンチが板をすり抜ける(S1で実証:
+    # 塑性ひずみ 0.0 / VonMises 12.6Pa / パンチ 0.678mm 貫通・板は不動)。
+    # 破断 2042 件の実績がある AC の TYPE25 (Istf=4 Igap=3 %mesh_size=0.4
+    # Idel=2 Stfac=0.05) をそのまま使う。Idel=2 は削除要素を接触から除く。
+    for iid, s1, s2, label in ((1, 100, 200, "Punch_Material_Contact"),
+                               (2, 300, 200, "Die_Material_Contact"),
+                               (3, 400, 200, "Stripper_Material_Contact")):
+        L.append(remap_type25(ref[f"inter{iid}"], iid, label, s1, s2, gap_max))
 
     L.append("/END")
 
@@ -326,6 +331,8 @@ def build(tag, shear_elem, band, coarse, clearance, tstop, slice_dx,
         print(f"[slice]   part {pid}: {len(eids)}")
     print(f"[slice] せん断帯 {shear_elem*1e6:.1f}um / 隙間 {clearance*1e6:.1f}um "
           f"/ スライス厚 {slice_dx*1e6:.1f}um / tstop {tstop:g}")
+    print(f"[slice] 接触 TYPE25 x3 / Gap_max {gap_max*1e6:.1f}um "
+          f"(工具すきま {TOOL_GAP*1e6:.1f}um < Gap_max < 隙間 {clearance*1e6:.1f}um)")
     print(f"[slice] starter -> {starter}")
     return starter, engine
 
@@ -343,9 +350,12 @@ def main(argv=None) -> int:
     ap.add_argument("--eps-eff", type=float, default=None)
     ap.add_argument("--eps-s", type=float, default=None)
     ap.add_argument("--volfrac", type=float, default=None)
+    # 工具すきま(5um)より大きく、ダイ隙間(40um)より小さく取る。40um にすると
+    # 隙間をまたいでダイと板が接触してしまい、初期貫入の再来になる。
+    ap.add_argument("--gap-max", type=float, default=DEFAULT_GAP_MAX, dest="gap_max")
     a = ap.parse_args(argv)
     build(a.tag, a.shear_elem, a.band, a.coarse, a.clearance, a.tstop, a.slice_dx,
-          a.eps_pmax, a.eps_eff, a.eps_s, a.volfrac)
+          a.eps_pmax, a.eps_eff, a.eps_s, a.volfrac, a.gap_max)
     return 0
 
 
