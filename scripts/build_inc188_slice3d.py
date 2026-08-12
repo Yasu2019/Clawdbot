@@ -47,6 +47,8 @@ DEFAULT_CLEARANCE = 40.0e-6      # 板厚の約7.8%。隙間ゼロだと剪断�
 DEFAULT_SLICE = 20.0e-6          # X方向のスライス厚（1要素）
 TOOL_GAP = 5.0e-6                # 工具と板の初期すきま。初期貫入エラーを避ける
 DEFAULT_GAP_MAX = 15.0e-6        # 接触ギャップ上限。TOOL_GAP < これ < DEFAULT_CLEARANCE
+DEFAULT_STFAC = 1.0              # 接触剛性係数。AC の 0.05 は 10um メッシュには柔らかすぎた
+DEFAULT_NSTEP = 10               # 破断応力を落とすサイクル数。Altair 既定値。0 は爆発する
 
 I10 = "{:>10d}"
 F20 = "{:>20.10g}"
@@ -77,7 +79,7 @@ def extract_block(text: str, start_pat: str) -> str:
     return "\n".join(out)
 
 
-def override_gene1(block: str, eps_pmax, eps_eff, eps_s, volfrac) -> str:
+def override_gene1(block: str, eps_pmax, eps_eff, eps_s, volfrac, nstep=None) -> str:
     lines = block.splitlines()
     out = []
     for i, ln in enumerate(lines):
@@ -89,6 +91,12 @@ def override_gene1(block: str, eps_pmax, eps_eff, eps_s, volfrac) -> str:
             ln = f"{f20(0.0)}{f20(eps_s)}{i10(0)}{i10(0)}{i10(0)}"
         elif "Volfrac" in prev and "NCS" in prev and volfrac is not None:
             ln = f"{f20(volfrac)}{f20(0.0)}{i10(1)}{f20(0.0)}"
+        # Nstep: 破断要素の応力を Nstep サイクルかけて落としてから削除する。
+        # 0 だと 1 サイクルで解放され、自由になった節点が速度スパイクを受けて
+        # 連鎖破断 -> メッシュ爆発になる(S3 で実証: 板厚 0.51mm が 43mm に膨張)。
+        # Altair 公式ドキュメントの既定は 10。参照デッキ AC は 0 のままだった。
+        elif "Nstep" in prev and "Ismooth" in prev and nstep is not None:
+            ln = f"{i10(0)}{i10(0)}{f20(0.0)}{i10(nstep)}{i10(0)}{i10(0)}{f20(0.0)}"
         out.append(ln)
     return "\n".join(out)
 
@@ -109,8 +117,8 @@ def load_reference_cards() -> dict[str, str]:
 
 
 def remap_type25(block: str, iid: int, label: str, surf1: int, surf2: int,
-                 gap_max: float) -> str:
-    """参照デッキ(AC)の TYPE25 をスライスの面IDとギャップに読み替える。
+                 gap_max: float, stfac: float) -> str:
+    """参照デッキ(AC)の TYPE25 をスライスの面ID・ギャップ・剛性に読み替える。
 
     AC のカラム幅は不規則だが実績があるため、書式は触らず値だけ差し替える。
     """
@@ -119,6 +127,7 @@ def remap_type25(block: str, iid: int, label: str, surf1: int, surf2: int,
     lines[1] = label
     lines[3] = f"{i10(surf1)}{i10(surf2)}" + lines[3][20:]
     lines[5] = lines[5][:-40] + f20(gap_max) + f20(gap_max)
+    lines[9] = f20(stfac) + lines[9][20:]
     return "\n".join(lines)
 
 
@@ -208,10 +217,10 @@ def fmt_grnod(gid, name, nodes) -> list[str]:
 
 
 def build(tag, shear_elem, band, coarse, clearance, tstop, slice_dx,
-          eps_pmax, eps_eff, eps_s, volfrac, gap_max):
+          eps_pmax, eps_eff, eps_s, volfrac, gap_max, stfac, nstep):
     ref = load_reference_cards()
-    if any(v is not None for v in (eps_pmax, eps_eff, eps_s, volfrac)):
-        ref["fail"] = override_gene1(ref["fail"], eps_pmax, eps_eff, eps_s, volfrac)
+    if any(v is not None for v in (eps_pmax, eps_eff, eps_s, volfrac, nstep)):
+        ref["fail"] = override_gene1(ref["fail"], eps_pmax, eps_eff, eps_s, volfrac, nstep)
 
     mesh = MeshSlice(slice_dx)
     y_cut = BLANK_HALF_WIDTH
@@ -272,6 +281,11 @@ def build(tag, shear_elem, band, coarse, clearance, tstop, slice_dx,
     L.extend(fmt_grnod(400, "Stripper_Nodes", strip["all"]))
     # 平面ひずみ条件: 全節点のX変位を止める。X方向1要素なので両面拘束と等価。
     L.extend(fmt_grnod(900, "All_X_Constrained", list(mesh.nodes.keys())))
+    # y=0 はスラグ中心の対称面。ここを Y 自由にすると板が片持ち梁になり、
+    # ダイ端を支点に回転してせん断ではなく曲げで切れる(S3で実証: スラグが
+    # 90度倒れて飛んだ)。対称拘束を入れて初めて打ち抜きのせん断になる。
+    sym = [n for n in blank["all"] if abs(mesh.nodes[n][1]) < 1.0e-12]
+    L.extend(fmt_grnod(500, "Blank_Symmetry_Y", sym))
 
     for sid, pid in ((1, 1), (2, 2), (3, 3), (4, 4)):
         L.append(f"/SURF/PART/EXT/{sid}00/0")
@@ -295,7 +309,8 @@ def build(tag, shear_elem, band, coarse, clearance, tstop, slice_dx,
     imp = 2
     for gid, d, name in ((900, "X", "PlaneStrain_X"), (100, "Y", "Punch_Y"),
                          (300, "Y", "Die_Y"), (300, "Z", "Die_Z"),
-                         (400, "Y", "Strip_Y"), (400, "Z", "Strip_Z")):
+                         (400, "Y", "Strip_Y"), (400, "Z", "Strip_Z"),
+                         (500, "Y", "Blank_Symmetry_Y")):
         L.append(f"/IMPVEL/{imp}")
         L.append(name)
         L.append("#   Funct_ID    Dir   Skew_ID   Sens_ID   Gnod_ID     Icoor    Iframe")
@@ -312,7 +327,7 @@ def build(tag, shear_elem, band, coarse, clearance, tstop, slice_dx,
     for iid, s1, s2, label in ((1, 100, 200, "Punch_Material_Contact"),
                                (2, 300, 200, "Die_Material_Contact"),
                                (3, 400, 200, "Stripper_Material_Contact")):
-        L.append(remap_type25(ref[f"inter{iid}"], iid, label, s1, s2, gap_max))
+        L.append(remap_type25(ref[f"inter{iid}"], iid, label, s1, s2, gap_max, stfac))
 
     L.append("/END")
 
@@ -353,9 +368,15 @@ def main(argv=None) -> int:
     # 工具すきま(5um)より大きく、ダイ隙間(40um)より小さく取る。40um にすると
     # 隙間をまたいでダイと板が接触してしまい、初期貫入の再来になる。
     ap.add_argument("--gap-max", type=float, default=DEFAULT_GAP_MAX, dest="gap_max")
+    # AC の 0.05 は 10um せん断帯には柔らかすぎた。S2 実測(t=0.42ms)で
+    # CONTACT=3.21e-7J > EXT_WORK=2.41e-7J、PLASTIC_WORK=5.9e-11J と、
+    # 投入仕事がほぼ全て接触の弾性エネルギーに流れた。逆算した接触応力は
+    # 10.5MPa で降伏 196MPa の 1/19、降伏には 27um の貫入が要る計算になる。
+    ap.add_argument("--stfac", type=float, default=DEFAULT_STFAC)
+    ap.add_argument("--nstep", type=int, default=DEFAULT_NSTEP)
     a = ap.parse_args(argv)
     build(a.tag, a.shear_elem, a.band, a.coarse, a.clearance, a.tstop, a.slice_dx,
-          a.eps_pmax, a.eps_eff, a.eps_s, a.volfrac, a.gap_max)
+          a.eps_pmax, a.eps_eff, a.eps_s, a.volfrac, a.gap_max, a.stfac, a.nstep)
     return 0
 
 
