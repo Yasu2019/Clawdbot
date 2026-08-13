@@ -130,6 +130,11 @@ def _default_cfg():
                                            # 3-4x the human ~20% baseline across every checkpoint
                                            # this session, consistent with the policy avoiding
                                            # single-limb support because it can't balance over it.
+            "com_over_lead_foot": 2.0,     # T079q: 段に乗せた前足の上へ体重を移す。
+                                           # com_lateral_track と同格(2.0)に置く。
+                                           # 実測で「片足82.4% / 両足0.4%」で詰まり、
+                                           # 跨ぎ時の胴体が前足より中央値57cm後方に
+                                           # あることを確認して追加(_r_* 参照)。
             "forward_progress":   3.0,     # 2026-08-02 (T079h): raised 1.0->3.0.
                                            # walk_rsl_stairs_climbrew_v13/v14 plateaued
                                            # at a very stable but near-stationary
@@ -975,6 +980,49 @@ class V50WalkEnv:
         target_x = support_x - (z / 9.81) * k_p * self.lin_vel[:, 0]
         err = (self.pos[:, 0] - target_x) ** 2
         return torch.exp(-err / self.cfg["tracking_sigma"])
+
+    def _r_com_over_lead_foot(self):
+        """2026-08-13 (T079q): 段に乗せた前足の上へ体重を移し替えることを報酬する。
+
+        階段昇段は「前足を段に乗せる」だけでは進めない。その足の上へ重心を
+        移さないと、後ろ足を引き上げる支持が作れない。実測(diag_straddle /
+        diag_foreaft, v23 ckpt, 256envs):
+
+            片足が1段目に乗った割合   : 82.4 %
+            両足が1段目に揃った割合   :  0.4 %   <- ここで詰まる
+            跨ぎ時の胴体の前後位置    : 中央値 -0.5675 m (前足より57cm後方)
+            胴体が前足より後方の割合  : 64.1 %
+            跨ぎ時の胴体z             : 0.258 m (立位 0.428 m)
+            終了時 upright 0.895 / 胴体z 0.055 m (倒れずに潰れている)
+
+        既存の com_lateral_track は X(左右)専用で、進行方向 Y の前後重心移動を
+        扱う項は一つも無かった。本項がその空白を埋める。
+
+        設計:
+        - 支持足のうち **地形が高い方**(= 段に乗っている足)を目標とする。
+          平地では左右の dz が等しく、その場合は接地足の中点になるので
+          既存の平地挙動を壊さない。
+        - com_lateral_track と同じ LIPM 形(速度で目標を減衰)と同じ
+          exp(-err/tracking_sigma) 形にし、係数側で符号を持たせる規約に従う。
+        - 空中(接地ゼロ)では 0 を返し、勾配を作らない。
+        """
+        fy = self.foot_pos[:, :, V50.FWD_AXIS]
+        dz = V50.terrain_dz(fy.reshape(-1), self.cfg["terrain"], self.stair_h
+                            ).reshape(self.num_envs, 2)
+        contact = self.contacts
+        any_contact = contact.any(dim=1)
+        # 接地足のうち地形が高い方を選ぶ(非接地は候補から外す)
+        cand = torch.where(contact, dz, torch.full_like(dz, -1e9))
+        lead = cand.argmax(dim=1)
+        lead_y = fy.gather(1, lead.unsqueeze(1)).squeeze(1)
+        z = self.pos[:, 2].clamp(min=0.1)
+        k_p = 0.3
+        v_fwd = self._fwd_vel()
+        # 前足の真上を目標に、進行速度ぶんだけ前へ置く(LIPM)
+        target_fwd = (V50.FWD_SIGN * lead_y) + (z / 9.81) * k_p * v_fwd
+        pos_fwd = V50.FWD_SIGN * self.pos[:, V50.FWD_AXIS]
+        err = (pos_fwd - target_fwd) ** 2
+        return torch.exp(-err / self.cfg["tracking_sigma"]) * any_contact.float()
 
     def _r_forward_progress(self):
         """Linear, non-vanishing gradient out of v=0. exp() rewards alone are
