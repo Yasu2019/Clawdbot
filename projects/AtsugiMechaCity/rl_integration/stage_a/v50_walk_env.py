@@ -108,6 +108,10 @@ def _default_cfg():
         "push_vel": 0.35,                  # m/s lateral kick
         # --- reward scales (per second; multiplied by control dt internally,
         #     Genesis/legged_gym convention) ---
+        "com_fwd_half_width": 0.30,        # m; _r_com_over_lead_foot の Cauchy 半値幅。
+                                           # 前後の重心誤差は実測 0.5-0.8m と大きく、
+                                           # tracking_sigma(0.03, 左右の数cm向け)では
+                                           # 項が飽和して勾配が消える(T079q)。
         "tracking_sigma": 0.03,            # C6: tight enough that standing pays ~0.1
         "base_height_target": None,        # filled from settled stand height
         "feet_air_time_target": 0.35,      # s; ~half of GAIT_PERIOD
@@ -1002,8 +1006,18 @@ class V50WalkEnv:
         - 支持足のうち **地形が高い方**(= 段に乗っている足)を目標とする。
           平地では左右の dz が等しく、その場合は接地足の中点になるので
           既存の平地挙動を壊さない。
-        - com_lateral_track と同じ LIPM 形(速度で目標を減衰)と同じ
-          exp(-err/tracking_sigma) 形にし、係数側で符号を持たせる規約に従う。
+        - LIPM 形(速度で目標を減衰)は com_lateral_track と同じ。
+        - **形は exp ではなく Cauchy 形にする**。当初 com_lateral_track と同じ
+          exp(-err^2/tracking_sigma) を流用したが、tracking_sigma=0.03 は
+          左右方向の数cm誤差向けの値で、前後方向の実測誤差 0.57m では
+
+              exp(-0.5675^2/0.03) = 2.2e-05   (最大値の 0.002%)
+              勾配                = 8.2e-04   (実質ゼロ)
+
+          となり項が完全に死んでいた(v24 の報酬内訳で上位7位にも入らなかった)。
+          これは `_r_forward_progress` の docstring が既に警告している
+          「exp() rewards alone are flat ... let the freeze basin persist (C4)」
+          と同じ罠。1/(1+(e/0.3)^2) なら 0.57m でも 0.217 を保ち勾配が残る。
         - 空中(接地ゼロ)では 0 を返し、勾配を作らない。
         """
         fy = self.foot_pos[:, :, V50.FWD_AXIS]
@@ -1022,7 +1036,9 @@ class V50WalkEnv:
         target_fwd = (V50.FWD_SIGN * lead_y) + (z / 9.81) * k_p * v_fwd
         pos_fwd = V50.FWD_SIGN * self.pos[:, V50.FWD_AXIS]
         err = (pos_fwd - target_fwd) ** 2
-        return torch.exp(-err / self.cfg["tracking_sigma"]) * any_contact.float()
+        # Cauchy 形: 半値幅 0.3m。実測誤差 0.5-0.8m でも勾配が残る(上記参照)。
+        half = self.cfg["com_fwd_half_width"]
+        return (1.0 / (1.0 + err / (half * half))) * any_contact.float()
 
     def _r_forward_progress(self):
         """Linear, non-vanishing gradient out of v=0. exp() rewards alone are
