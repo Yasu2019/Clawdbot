@@ -65,6 +65,8 @@
 
 | 資産 | 所在 |
 |---|---|
+| **現在地(INC-188)** | `docs/handover/INC188_S5_SLICE3D_AND_TOOL_MAPPING_HANDOVER_20260813.md`（**2026-08-13 最新**: S5でslice3D打ち抜き成立=破断51要素で板厚貫通 / PPTX・図面・STEPから工具4種を確定 / 出典不明の物理値を混入させた先行報告の訂正表つき） |
+| 前提(材料・棄却仮説) | `docs/handover/INC188_SHEAR_BLANKING_HANDOVER_20260811.md`（MR536=AA5052-H34の実測校正・SIG_max0=10Pa真因・棄却済み仮説6件） |
 | エンジン操作 | `docker exec clawstack-unified-openradioss-1 bash -c "bash /work/start_engine.sh <N>"` / `kill_engine.sh`（kill -9必須） |
 | チューニング記録 | `data/workspace/openradioss_10h_tuning_report.md` / `openradioss_10h_tuning/` |
 | 衛星ノード運用 | `docs/SATELLITE_CAE_ONE_SHOT_RUNBOOK.md` / `docs/LAVIE_K10_INTEGRATION.md` |
