@@ -169,6 +169,14 @@ def mesh_group(tags: list[int], elem_mm: float, *, fuse: bool, add_slug: bool,
     etags, enodes = gmsh.model.mesh.getElementsByType(4)
     tets = np.array(enodes, dtype=np.int64).reshape(-1, 4)
     gmsh.finalize()
+
+    # remove(recursive=False) は削除したソリッドの面・辺をモデルに残すので、
+    # generate(3) がそれらを 2D メッシュし、四面体に属さない孤立節点が出る。
+    # 放置すると全節点の 58% が孤立し、GRNOD(=境界条件の対象)まで汚染され、
+    # かつ質量ゼロの自由節点が毎サイクル時間積分されて計算時間を空費する。
+    # 四面体が実際に参照する節点だけを残す。
+    used = {int(v) for v in tets.reshape(-1)}
+    coord = {k: v for k, v in coord.items() if k in used}
     return coord, tets
 
 
