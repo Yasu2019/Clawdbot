@@ -31,10 +31,22 @@ N_SAGITTAL = 12
 # PD gains per DOF (v50_amp_config.yaml). MJCF <actuator> is stripped at load:
 # Genesis imports MJCF position actuators as non-PD-reducible act_gain/act_bias that
 # FIGHT control_dofs_position (probe finding, 2026-07-03); explicit kp/kv instead.
-KP = [400., 300., 200., 400., 300., 200., 200., 150., 80., 200., 150., 80.,
-      400., 200., 400., 200.]
-KV = [40., 30., 20., 40., 30., 20., 20., 15., 8., 20., 15., 8.,
-      40., 20., 40., 20.]
+# 2026-08-14 (T079r): 質量を 238kg -> 60kg にしたのに合わせて再スケールする。
+#
+#   旧機体の問題: 総質量 238kg / 膝KP 300 で KP/質量 = 1.26。
+#   実績のある unitree_rl_gym G1 は 35kg / 膝KP 150 で KP/質量 = 4.29。
+#   3.4倍ゲインが足りず、単脚支持の重力トルク(モーメント腕0.10mで233N*m)を
+#   PDが釣り合わせるには 44.6deg の偏差が要るが、膝の可動域は 40deg しかない。
+#   結果、膝が限界まで折れて自重を支えられず、**平地でゼロ行動でも1.5秒で
+#   胴体zが0.055mまで潰れていた**(diag_collapse で実測)。
+#
+#   KP: G1 の KP/質量比 4.29 に合わせる -> 膝 4.29*60 = 257。旧比を保ち一律 x0.857。
+#   KV: 減衰比 zeta ∝ KV/sqrt(KP*m) を保存する。
+#       m x0.2521, KP x0.857 -> sqrt(KP*m) は x0.4648 なので KV も x0.465。
+KP = [343., 257., 171., 343., 257., 171., 171., 129., 69., 171., 129., 69.,
+      343., 171., 343., 171.]
+KV = [18.6, 14.0,  9.3, 18.6, 14.0,  9.3,  9.3,  7.0, 3.7,  9.3,  7.0, 3.7,
+      18.6,  9.3, 18.6,  9.3]
 DT_SIM = 0.002
 DECIMATION = 10         # control at 50 Hz
 # run3 (INC-141): 0.8 m/s was kinematically unreachable for the 11-deg sin gait
@@ -83,10 +95,33 @@ TERRAIN_SLOPE_THICK = 0.05  # 斜面板の半厚。ロボットは板の「上�
 # シム専用: torso x0.7 / 脚系 x1.4 → 総質量238.0kg厳密保存・胴比33%へ(重心低下)。
 # diaginertia も同倍率(同一形状仮定 I∝m)。正解基準XML(artifacts/)は不変更。
 # 不足なら次段 0.6/1.6 を人間承認のうえ適用。報酬・ゲートは一切変更しない。
+# 2026-08-14 (T079r): 総質量を 238kg -> 60kg へ落とす(倍率 0.2521)。
+#
+#   実測した密度が非物理的だった(カプセル体積から算出):
+#       upper_leg  8470 kg/m3   <- 鉄鋼 7850 を超える
+#       lower_leg 10032 kg/m3   <- 鉛 11340 に迫る
+#   上の x1.4 再配分(トップヘビー対策)が、元から重い脚をさらに重くしていた。
+#
+#   実在ヒューマノイドとの比較(リンク全長 1.40m 相当の機体):
+#       Unitree G1   1.27m /  35kg / 27.6 kg-per-m
+#       Unitree H1   1.80m /  47kg / 26.1
+#       Honda ASIMO  1.30m /  54kg / 41.5
+#       BD Atlas     1.50m /  89kg / 59.3
+#       当機体(旧)   1.40m / 238kg / 170.0   <- 3〜6倍重い
+#   ASIMO 相当の保守的な値として 60kg(43 kg-per-m)を採る。
+#   新密度は upper_leg 2135 / lower_leg 2529 kg/m3 とアルミ相当に収まる。
+#
+#   重心を下げる意図(x0.7 / x1.4 の比)はそのまま保ち、全体へ 0.2521 を掛ける。
+#   腕は従来 MASS_REDIST に無く等倍だったため、明示的に 0.2521 を与える。
+_MASS_SCALE = 0.2521          # 238.0 kg -> 60.0 kg
 MASS_REDIST = {
-    "torso": 0.7,
-    "upper_leg_L": 1.4, "lower_leg_L": 1.4, "foot_L": 1.4,
-    "upper_leg_R": 1.4, "lower_leg_R": 1.4, "foot_R": 1.4,
+    "torso": 0.7 * _MASS_SCALE,
+    "upper_leg_L": 1.4 * _MASS_SCALE, "lower_leg_L": 1.4 * _MASS_SCALE,
+    "foot_L": 1.4 * _MASS_SCALE,
+    "upper_leg_R": 1.4 * _MASS_SCALE, "lower_leg_R": 1.4 * _MASS_SCALE,
+    "foot_R": 1.4 * _MASS_SCALE,
+    "upper_arm_L": _MASS_SCALE, "lower_arm_L": _MASS_SCALE, "hand_L": _MASS_SCALE,
+    "upper_arm_R": _MASS_SCALE, "lower_arm_R": _MASS_SCALE, "hand_R": _MASS_SCALE,
 }
 
 
