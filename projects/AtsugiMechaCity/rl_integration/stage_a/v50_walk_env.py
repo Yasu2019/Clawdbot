@@ -842,8 +842,10 @@ class V50WalkEnv:
         c = self.cfg
         upright = (-self.grav[:, 2]).clamp(0.0, 1.0)
         self.upright = upright
-        expect_z = self.stand_z + V50.terrain_dz(self.pos[:, V50.FWD_AXIS],
-                                                  c["terrain"], self.stair_h)
+        # T079p: 胴体yではなく「支持足の下の面」を基準にする(_support_terrain_dz 参照)。
+        # 階段では胴体が支持脚より前に出るため、胴体基準だと未踏の段の高さで
+        # 判定され、正常に歩いていても term_low が早期発火していた。
+        expect_z = self.stand_z + self._support_terrain_dz()
         # Kept separate so the supervisor can see WHICH failure mode dominates:
         # tipping over, sinking/diving, or dragging a limb (the crawl hack).
         self.term_tilt = upright < c["term_upright"]
@@ -1105,9 +1107,41 @@ class V50WalkEnv:
     def _r_orientation(self):
         return (self.grav[:, :2] ** 2).sum(dim=1)
 
+    def _support_terrain_dz(self):
+        """2026-08-13 (T079p): ロボットが実際に立っている面の地形高さ。
+
+        従来は胴体のy位置で terrain_dz を引いていたが、階段では**胴体が支持脚より
+        前に出る**ため、足がまだ下の段にいるのに「上の段の高さにいるべき」と
+        評価されていた。実測(diag_termlow):
+
+            t     前進    胴体z  dz(胴体)  dz(支持足)  終了までの余裕
+            2.60  0.688   0.415   0.100     0.000       0.337
+            3.00  1.151   0.223   0.200     0.000       0.045  -> 直後に終了
+
+        dz(胴体) だけが上がり、支持足は平地(0.000)のまま。基準高さが実体と
+        乖離し、term_low の閾値だけが上がって早期終了していた。base_height 罰
+        (-30.0)も同じ基準で、実測 -0.098/step(alive +0.15 に匹敵)に達していた。
+
+        物理的に正しい基準は「支持足の下の面」。接地している足の terrain_dz の
+        最大値を使う(両足とも空中なら直近の値を保持)。平地では terrain_dz が
+        恒等的に 0 なので既存挙動と完全に一致する。
+        """
+        fy = self.foot_pos[:, :, V50.FWD_AXIS].reshape(-1)
+        dz_feet = V50.terrain_dz(fy, self.cfg["terrain"], self.stair_h
+                                 ).reshape(self.num_envs, 2)
+        contact = self.contacts
+        # 接地足のみを候補にし、非接地側は -inf にして max から除外する
+        masked = torch.where(contact, dz_feet, torch.full_like(dz_feet, -1e9))
+        best = masked.max(dim=1).values
+        airborne = ~contact.any(dim=1)
+        if not hasattr(self, "_last_support_dz"):
+            self._last_support_dz = torch.zeros(self.num_envs, device=self.device)
+        best = torch.where(airborne, self._last_support_dz, best)
+        self._last_support_dz = best.detach()
+        return best
+
     def _r_base_height(self):
-        tgt = self.cfg["base_height_target"] + V50.terrain_dz(
-            self.pos[:, V50.FWD_AXIS], self.cfg["terrain"], self.stair_h)
+        tgt = self.cfg["base_height_target"] + self._support_terrain_dz()
         return (self.pos[:, 2] - tgt) ** 2
 
     def _r_action_rate(self):
