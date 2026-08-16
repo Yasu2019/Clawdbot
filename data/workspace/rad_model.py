@@ -889,13 +889,28 @@ def set_engine_dt_min(engine_path: Path, dt_min: str | float) -> None:
 
 
 def set_engine_noda_dt_min(engine_path: Path, dt_min: str | float) -> None:
-    """Set minimum timestep (2nd number) on the data line after /DT/NODA/..."""
+    """Set minimum timestep (2nd number) on the data line after /DT/NODA/...
+
+    Altair 公式ドキュメント(2021.help.altair.com /DT/NODA)によれば、この
+    dt_min フィールドは Keyword3(CST1/CST2/SET)が指定されていないと
+    無視される("Keyword3が指定されない場合は不使用")。/DT/NODA/0 のように
+    Keyword3 を素通しした既存デックへ値だけ書き込んでも質量スケーリングは
+    発動しない。2026-08-16、INC188_S_NFでこの無効フロアのまま "修正済み"と
+    誤認したままDTが1.9e-12まで再崩壊するまで発覚しなかった。Keyword3 が
+    無指定の場合は CST2(改良版・既定)を補って書き込む。
+    """
     raw = engine_path.read_bytes()
     crlf = b"\r\n" in raw
     lines = raw.decode("utf-8", errors="replace").replace("\r\n", "\n").split("\n")
     dt_str = f"{dt_min}" if isinstance(dt_min, str) else f"{dt_min:.6E}"
     for i, ln in enumerate(lines):
-        if ln.strip().startswith("/DT/NODA") and i + 1 < len(lines):
+        s = ln.strip()
+        if s.startswith("/DT/NODA") and i + 1 < len(lines):
+            parts = s.split("/")  # ['', 'DT', 'NODA', Keyword3?, Iflag?]
+            if len(parts) <= 3 or parts[3] == "" or parts[3] in ("0", "1"):
+                # Keyword3 が未指定(旧仕様の /DT/NODA/0 等)。CST2を補う。
+                iflag = parts[3] if len(parts) > 3 and parts[3] in ("0", "1") else "0"
+                lines[i] = "/DT/NODA/CST2/" + iflag
             lines[i + 1] = _replace_nth_number(lines[i + 1], 1, dt_str)
             break
     else:
