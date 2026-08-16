@@ -291,6 +291,9 @@ def main():
                     help="報酬項の内訳を寄与の大きい順にN項ログ出力する(0=無効)")
     ap.add_argument("--reward-scale", default=None,
                     help="報酬係数の上書き。例: velocity_ceiling=0,pose_prior=0.8")
+    ap.add_argument("--push-curriculum-frac", type=float, default=0.0, metavar="F",
+                    help="push_vel を 0 から設定値まで、学習全体の F 割の区間で線形に"
+                         "上げる(0=無効, 例 0.3 なら最初の30%%で最終強度に達し以後維持)")
     ap.add_argument("--no-naturalness", action="store_true",
                     help="zero the flat-gait naturalness/symmetry rewards "
                          "(foot_clearance/foot_lift_symmetry/gait_symmetry/...) for "
@@ -385,7 +388,23 @@ def main():
     # stays live for the supervisor and the dashboard.
     CHUNK = 25
     done = 0
+    # 2026-08-17 (T079u): push強度のカリキュラム。
+    # 外乱下 survival が 0.143(v30)/0.227(v32) と低いまま、6000iter 回しても
+    # 1000iter 以降は横ばいだった。いきなり最終強度の外乱を与えると、方策が
+    # 「外乱に耐える」より先に「歩く」を壊されて学習が進まない可能性がある。
+    # push_vel は毎ステップ cfg から読まれるので、チャンク境界で書き換えれば
+    # そのままカリキュラムになる(env の再生成は不要)。
+    push_final = env.cfg["push_vel"]
+    if args.push_curriculum_frac > 0.0:
+        ramp_iters = max(1, int(args.iterations * args.push_curriculum_frac))
+        print(f"[curriculum] push_vel 0.0 -> {push_final} over {ramp_iters} iters "
+              f"({args.push_curriculum_frac:.0%} of run), then held", flush=True)
+    else:
+        ramp_iters = 0
     while done < args.iterations:
+        if ramp_iters:
+            frac = min(1.0, done / ramp_iters)
+            env.cfg["push_vel"] = push_final * frac
         n = min(CHUNK, args.iterations - done)
         runner.learn(num_learning_iterations=n, init_at_random_ep_len=(done == 0))
         done += n
