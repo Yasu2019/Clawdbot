@@ -84,8 +84,15 @@ def override_gene1(block: str, eps_pmax, eps_eff, eps_s, volfrac, nstep=None) ->
     out = []
     for i, ln in enumerate(lines):
         prev = lines[i - 1] if i else ""
-        if "Eps_max" in prev and "Eps_eff" in prev and eps_pmax is not None:
-            ln = (f"{i10(0)}{f20(0.0)}{f20(eps_pmax)}"
+        if "Eps_max" in prev and "Eps_eff" in prev and (eps_pmax is not None or eps_eff is not None):
+            # バグ修正(2026-08-17): 旧条件は eps_pmax is not None のみを見ていたため、
+            # --eps-eff だけを指定して --eps-pmax を渡さないと行全体がスキップされ、
+            # 参照デック(INC188AC)の元値 Eps_eff=0.12 が黙って残っていた(C13で発覚:
+            # Eps_s=1.3のみ反映されEps_effは意図の1でなく0.12のまま→破断開始3.9%と
+            # 異常に早い結果になった)。eps_pmax/eps_effのどちらか一方だけでも
+            # 独立に上書きできるようにする。
+            ln = (f"{i10(0)}{f20(0.0)}"
+                  f"{f20(eps_pmax if eps_pmax is not None else 0.0)}"
                   f"{f20(eps_eff if eps_eff is not None else 0.12)}{f20(0.0)}")
         elif "Eps_min" in prev and "Eps_s" in prev and eps_s is not None:
             ln = f"{f20(0.0)}{f20(eps_s)}{i10(0)}{i10(0)}{i10(0)}"
