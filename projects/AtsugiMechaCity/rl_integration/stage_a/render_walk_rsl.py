@@ -126,7 +126,15 @@ def main():
                           "travel": round(travel, 4), "contact_L": int(cL), "contact_R": int(cR)})
 
             if k % args.every == 0 or k == steps - 1:
-                env.camera.set_pose(pos=(3.0, y + 0.5, 0.6), lookat=(0.0, y, 0.0))
+                # 2026-08-17: カメラ高さを機体に追従させる。従来は z を絶対座標で
+                # 固定(pos 0.6 / lookat 0.0)していたため、高低差のある地形では
+                # 機体が画角外に出ていた。実例: stairs_down は高さ +1.0m から始まる
+                # ため胴体が上に切れ、**目視確認ができなかった**(グローバルルール
+                # 「3Dメカ目視確認は絶対」を満たせない)。昇段でも登るほど同じ問題が出る。
+                # 描画専用の変更で、学習・評価の数値には一切影響しない。
+                cam_z = z - 0.43          # 機体の足元付近を基準にする
+                env.camera.set_pose(pos=(3.0, y + 0.5, cam_z + 0.6),
+                                    lookat=(0.0, y, cam_z))
                 rgb = env.camera.render(rgb=True)[0]
                 p = os.path.join(args.out, f"walk_{k:04d}.png")
                 Image.fromarray(rgb).save(p)
