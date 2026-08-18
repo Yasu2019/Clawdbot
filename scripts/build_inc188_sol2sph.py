@@ -56,6 +56,7 @@ from build_inc188_slice3d import (  # noqa: E402
 
 SPH_PROP_ID = 3      # 新規 /PROP/TYPE34
 SPH_PART_ID = 5      # 新規 SPH パート(既存 part 1-4 と衝突しない番号)
+SPH_MAT_ID = 3        # ブランク材料の複製(/FAIL なし)
 NDIR = 2             # 2x2x2 = 8粒子/要素
 
 
@@ -78,6 +79,21 @@ def add_sol2sph(starter_path: Path, ndir: int, shear_elem: float) -> None:
     sol2sph_line = f"{i10(ndir)}{i10(SPH_PART_ID)}{i10(0)}"
     lines.insert(data2 + 1, sol2sph_line)
 
+    # --- ブランク材料(MAT_ID=2)を複製し、/FAIL を外した MAT_ID=3 を作る ---
+    # 2026-08-18 実証済みバグ対策: /FAIL/GENE1/2 は MAT_ID=2 に紐付く。SPH粒子
+    # (/PART/5)がそのままMAT_ID=2を継承すると、変換後の粒子にも同じGENE1が
+    # 効き続け、既に破断しきい値を超えた状態(ひずみ1e20等の異常値)のまま
+    # 毎サイクル"RUPTURE OF SOLID ELEMENT"を再出力し続ける。SPH1実行で実測:
+    # ユニーク要素1,888個が平均58,083回・最大105,559回再出力され、ログが
+    # 38.8GB(1億9661万行)に肥大化した。物理特性は同一・/FAILだけを外した
+    # 別MAT_IDをSPH粒子専用に用意して回避する。
+    mat_start = next(k for k, ln in enumerate(lines) if ln.strip() == "/MAT/LAW2/2")
+    j = mat_start + 1
+    while not lines[j].startswith("/"):
+        j += 1
+    mat_data = lines[mat_start + 2:j]  # タイトル行を除いたデータ行群(物理値そのまま)
+    mat_dup = [f"/MAT/LAW2/{SPH_MAT_ID}", "MR536_H34_AA5052_SPH_no_fail"] + mat_data
+
     # --- /PROP/TYPE34 (SPH) を末尾(/END の直前)に追加 ---
     h = 1.5 * shear_elem / ndir  # Altair 推奨式
     sph_prop = [
@@ -94,11 +110,11 @@ def add_sol2sph(starter_path: Path, ndir: int, shear_elem: float) -> None:
         f"/PART/{SPH_PART_ID}",
         "Sol2SPH_Blank_Part",
         "#    Prop_ID     Mat_ID",
-        f"{i10(SPH_PROP_ID)}{i10(2)}",  # MAT_ID=2 = 既存ブランク材料(AA5052-H34)を継承
+        f"{i10(SPH_PROP_ID)}{i10(SPH_MAT_ID)}",  # /FAIL なしの複製材料
     ]
 
     end_idx = next(k for k, ln in enumerate(lines) if ln.strip() == "/END")
-    lines = lines[:end_idx] + sph_prop + sph_part + lines[end_idx:]
+    lines = lines[:end_idx] + mat_dup + sph_prop + sph_part + lines[end_idx:]
 
     starter_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
