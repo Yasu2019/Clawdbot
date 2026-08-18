@@ -1,0 +1,136 @@
+# -*- coding: utf-8 -*-
+"""INC-188: 破断要素を削除せず SPH 粒子へ変換する(Sol2SPH)。2026-08-18 導入。
+
+## なぜ
+
+GENE1+要素削除(build_inc188_slice3d.py)は E15(Eps_eff=1.5) で以下を起こした:
+19要素は正常に破断削除できたが、t=1.0936-1.1029e-3s の約10us間に3要素が
+近接連鎖破断し、直後に DM/M が 700サイクルで 0.28 -> 2.47e+55 まで指数的に
+発散した(dt_min フロアは崩壊を遅延させるだけで防げなかった)。
+
+Sol2SPH は要素削除の代わりに、破断要素をメッシュ接続を持たない SPH 粒子へ
+転換する。要素接続が壊れることが崩壊の直接原因だったため、これは根拠のある
+対策(Altair公式: https://help.altair.com/hwsolvers/rad/topics/solvers/rad/
+solid_to_sph_option_intro_r.htm)。
+
+## カード仕様の出典(実例デックは非公開のため公式リファレンスの記述に基づく)
+
+/PROP/TYPE14(SOLID) 全22フィールド(公式ドキュメントより):
+  line3: Isolid,Ismstr,Iale,Icpre,Itetra10,Inpts,Itetra4,Iframe,dn (9項目)
+  line4: qa,qb,h,λv,μv (5項目)
+  line5: Δtmin,Vdef_min,Vdef_max,APS_max,COL_min (5項目)
+  line6: Ndir,sphpartID,Icontrol (3項目, Sol2SPH追加分・当プロジェクトで追記)
+
+Sol2SPH の要件(公式): Isolid=1/2/24のみ、Iframe=1/2のみ、Ndir>=1。
+現行デックは Isolid=14・Iframe=1 (既存カード実測)。Iframe=1 は要件を満たすが
+Isolid は 24(HEPH, 物理砂時計制御)へ変更が必要。
+
+/PROP/TYPE34(SPH) (公式ドキュメントより):
+  line3: mp,beta,alpha,alpha_cs,skew_ID,h_1D
+  line4: order,h,xi_stab,hmin,hmax
+  line5: hcst
+  Sol2SPH変換時: mp=0(自動計算), h=1.5*要素寸法/Ndir(推奨式), order=0(既定),
+  xi_stab=0.3(引張不安定対策、公式推奨)
+
+⚠ 実例デック(qa-tests/miniqa, ModelExchange)には Sol2SPH の完成例が
+   見当たらなかった。上記は公式リファレンスの記述からの構築で、実行時の
+   Starter エラー・エコー内容で正しさを検証する(このプロジェクトの方針:
+   生成デックは必ずStarterで検算してから長時間ランに入れる)。
+
+usage:
+  python scripts/build_inc188_sol2sph.py --tag SPH1 --eps-eff 1 --eps-s 1.0
+"""
+from __future__ import annotations
+
+import argparse
+import sys
+from pathlib import Path
+
+sys.stdout.reconfigure(encoding="utf-8", errors="replace")  # P023
+sys.path.insert(0, str(Path(__file__).parent))
+
+from build_inc188_slice3d import (  # noqa: E402
+    build, i10, f20, TRIALS, DEFAULT_SHEAR_ELEM, DEFAULT_BAND, DEFAULT_COARSE,
+    DEFAULT_CLEARANCE, DEFAULT_SLICE, DEFAULT_GAP_MAX, DEFAULT_STFAC, DEFAULT_NSTEP,
+)
+
+SPH_PROP_ID = 3      # 新規 /PROP/TYPE34
+SPH_PART_ID = 5      # 新規 SPH パート(既存 part 1-4 と衝突しない番号)
+NDIR = 2             # 2x2x2 = 8粒子/要素
+
+
+def add_sol2sph(starter_path: Path, ndir: int, shear_elem: float) -> None:
+    text = starter_path.read_text(encoding="utf-8")
+    lines = text.splitlines()
+
+    # --- /PROP/SOLID/2 (ブランク) を Sol2SPH 対応へ書き換える ---
+    i = next(k for k, ln in enumerate(lines) if ln.strip() == "/PROP/SOLID/2")
+    data0 = i + 3  # 0:keyword 1:title 2:comment 3:data line1
+    old = lines[data0]
+    isolid = int(old[0:10])
+    if isolid not in (1, 2, 24):
+        # Isolid=24 (HEPH, 物理砂時計制御) へ変更。Sol2SPH の必須条件。
+        lines[data0] = f"{i10(24)}" + old[10:]
+    iframe_val = int(old[70:80])
+    if iframe_val not in (1, 2):
+        raise ValueError(f"Iframe={iframe_val} は Sol2SPH 非対応(1か2が必要): {old!r}")
+    data2 = data0 + 2  # line3 = Δtmin,Vdef_min,Vdef_max,APS_max,COL_min
+    sol2sph_line = f"{i10(ndir)}{i10(SPH_PART_ID)}{i10(0)}"
+    lines.insert(data2 + 1, sol2sph_line)
+
+    # --- /PROP/TYPE34 (SPH) を末尾(/END の直前)に追加 ---
+    h = 1.5 * shear_elem / ndir  # Altair 推奨式
+    sph_prop = [
+        f"/PROP/TYPE34/{SPH_PROP_ID}",
+        "Sol2SPH_Particles",
+        "#                 Mp                Beta               Alpha            Alpha_cs    Skew_ID    h_1D",
+        f"{f20(0.0)}{f20(0.0)}{f20(0.0)}{f20(0.0)}{i10(0)}{f20(0.0)}",
+        "#     order                   h              Xi_stab                Hmin                Hmax",
+        f"{i10(0)}{f20(h)}{f20(0.3)}{f20(0.0)}{f20(0.0)}",
+        "#               Hcst",
+        f"{f20(0.0)}",
+    ]
+    sph_part = [
+        f"/PART/{SPH_PART_ID}",
+        "Sol2SPH_Blank_Part",
+        "#    Prop_ID     Mat_ID",
+        f"{i10(SPH_PROP_ID)}{i10(2)}",  # MAT_ID=2 = 既存ブランク材料(AA5052-H34)を継承
+    ]
+
+    end_idx = next(k for k, ln in enumerate(lines) if ln.strip() == "/END")
+    lines = lines[:end_idx] + sph_prop + sph_part + lines[end_idx:]
+
+    starter_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--tag", required=True)
+    ap.add_argument("--shear-elem", type=float, default=DEFAULT_SHEAR_ELEM)
+    ap.add_argument("--band", type=float, default=DEFAULT_BAND)
+    ap.add_argument("--coarse", type=float, default=DEFAULT_COARSE)
+    ap.add_argument("--clearance", type=float, default=DEFAULT_CLEARANCE)
+    ap.add_argument("--tstop", type=float, default=0.0015)
+    ap.add_argument("--slice", type=float, default=DEFAULT_SLICE, dest="slice_dx")
+    ap.add_argument("--eps-pmax", type=float, default=None)
+    ap.add_argument("--eps-eff", type=float, default=None)
+    ap.add_argument("--eps-s", type=float, default=None)
+    ap.add_argument("--volfrac", type=float, default=None)
+    ap.add_argument("--gap-max", type=float, default=DEFAULT_GAP_MAX, dest="gap_max")
+    ap.add_argument("--stfac", type=float, default=DEFAULT_STFAC)
+    ap.add_argument("--nstep", type=int, default=DEFAULT_NSTEP)
+    ap.add_argument("--ndir", type=int, default=NDIR)
+    a = ap.parse_args()
+
+    starter, engine = build(a.tag, a.shear_elem, a.band, a.coarse, a.clearance, a.tstop,
+                            a.slice_dx, a.eps_pmax, a.eps_eff, a.eps_s, a.volfrac,
+                            a.gap_max, a.stfac, a.nstep)
+    add_sol2sph(starter, a.ndir, a.shear_elem)
+    print(f"[sol2sph] Isolid->24, Ndir={a.ndir}, sphpartID={SPH_PART_ID}(PROP {SPH_PROP_ID}) を追記")
+    print(f"[sol2sph] h(smoothing length)={1.5*a.shear_elem/a.ndir*1e6:.2f}um")
+    print(f"[sol2sph] starter -> {starter}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
