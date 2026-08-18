@@ -37,6 +37,27 @@ Isolid は 24(HEPH, 物理砂時計制御)へ変更が必要。
    Starter エラー・エコー内容で正しさを検証する(このプロジェクトの方針:
    生成デックは必ずStarterで検算してから長時間ランに入れる)。
 
+## 検証済みの標準構成(SPH2, 2026-08-19) — デフォルト値のまま呼び出せば再現する
+
+Isolid=24 + Ndir/sphpartID/Icontrol=0 の行 + SPH粒子専用MAT_ID複製(/FAILなし)
+の組合せで Starter 0 ERROR/1 WARNING(想定内)、Engine完走・DM/M最大3.28e-14
+(ノイズレベル)・想定域外の粒子0/50,138点(0%)を確認済み。GENE1要素削除方式
+(E15でDM/M暴走)からの根本的な改善として確立している。
+
+## 未検証: 幾何品質トリガー(--vdef-min/--vdef-max/--asp-max/--col-min)
+
+公式ドキュメントには Vdef_min/Vdef_max/ASP_max/COL_min という、GENE1とは
+独立に要素形状の歪みだけでSPH変換を先行発火できるフィールドがあると記載
+されている(要素が壊れきる前に変換できれば SPH1 で見た相当ひずみ1e20の
+異常値カスケードを避けられる可能性)。しかし実例デックが見つからず、
+2026-08-19 に2通りの配置(Icontrol=0のまま値だけ追加/Icontrol=1に変更)を
+Starterで試したが、いずれも "WARNING ID 100213: unsupported field exists
+at the end of line" が出て正しく解釈されている確証が得られなかった。
+これらのCLIオプションは実装してあるが、指定しなければ(デフォルト0のまま)
+上記の検証済み構成のまま生成される。値を指定して使う場合は自己責任で
+Starterのエコー内容を必ず確認すること。正しい書式が判明したら本セクションと
+add_sol2sph()のコメントを更新する。
+
 usage:
   python scripts/build_inc188_sol2sph.py --tag SPH1 --eps-eff 1 --eps-s 1.0
 """
@@ -60,7 +81,9 @@ SPH_MAT_ID = 3        # ブランク材料の複製(/FAIL なし)
 NDIR = 2             # 2x2x2 = 8粒子/要素
 
 
-def add_sol2sph(starter_path: Path, ndir: int, shear_elem: float) -> None:
+def add_sol2sph(starter_path: Path, ndir: int, shear_elem: float,
+                vdef_min: float = 0.0, vdef_max: float = 0.0,
+                asp_max: float = 0.0, col_min: float = 0.0) -> None:
     text = starter_path.read_text(encoding="utf-8")
     lines = text.splitlines()
 
@@ -76,7 +99,21 @@ def add_sol2sph(starter_path: Path, ndir: int, shear_elem: float) -> None:
     if iframe_val not in (1, 2):
         raise ValueError(f"Iframe={iframe_val} は Sol2SPH 非対応(1か2が必要): {old!r}")
     data2 = data0 + 2  # line3 = Δtmin,Vdef_min,Vdef_max,APS_max,COL_min
-    sol2sph_line = f"{i10(ndir)}{i10(SPH_PART_ID)}{i10(0)}"
+    # 2026-08-19 追加: GENE1(材料破壊則)とは独立な幾何品質トリガー。
+    # SPH1で観測した「相当ひずみ1.0e+20」という異常値は、要素形状が完全に
+    # 壊れる(ダイ角のせん断帯で板厚方向に潰れる)までGENE1だけを待っていた
+    # ことが一因。ASP_max(伸び切り)・COL_min(潰れ)を先に効かせ、形状が
+    # 壊れ始めた早い段階でSPH変換する。値は公式ドキュメントに推奨値の
+    # 明記がなく、健全な立方体(縦横比1)に対する経験的な閾値。
+    use_distortion_ctrl = any(v > 0 for v in (vdef_min, vdef_max, asp_max, col_min))
+    if use_distortion_ctrl:
+        lines[data2] = f"{f20(0.0)}{f20(vdef_min)}{f20(vdef_max)}{f20(asp_max)}{f20(col_min)}"
+    # Icontrol: Starterの実測で"SOLID DISTORTION CONTROL FLAG"そのものと判明。
+    # 0のままだとVdef_min/Vdef_max/ASP_max/COL_minは"unsupported field"警告
+    # (WARNING ID 100213)と共に無視される。歪み制御(=このトリガー)を使う
+    # 場合は Icontrol=1 が必須。
+    icontrol = 1 if use_distortion_ctrl else 0
+    sol2sph_line = f"{i10(ndir)}{i10(SPH_PART_ID)}{i10(icontrol)}"
     lines.insert(data2 + 1, sol2sph_line)
 
     # --- ブランク材料(MAT_ID=2)を複製し、/FAIL を外した MAT_ID=3 を作る ---
@@ -136,14 +173,25 @@ def main() -> int:
     ap.add_argument("--stfac", type=float, default=DEFAULT_STFAC)
     ap.add_argument("--nstep", type=int, default=DEFAULT_NSTEP)
     ap.add_argument("--ndir", type=int, default=NDIR)
+    ap.add_argument("--vdef-min", type=float, default=0.0,
+                    help="V/V0 がこれ未満で先行SPH変換(0=無効)。目安0.1")
+    ap.add_argument("--vdef-max", type=float, default=0.0,
+                    help="V/V0 がこれ超で先行SPH変換(0=無効)。目安8.0")
+    ap.add_argument("--asp-max", type=float, default=0.0,
+                    help="最大辺長/最小辺長がこれ超で先行SPH変換(0=無効)。目安5.0")
+    ap.add_argument("--col-min", type=float, default=0.0,
+                    help="最小辺長/最大辺長がこれ未満で先行SPH変換(0=無効)。目安0.12")
     a = ap.parse_args()
 
     starter, engine = build(a.tag, a.shear_elem, a.band, a.coarse, a.clearance, a.tstop,
                             a.slice_dx, a.eps_pmax, a.eps_eff, a.eps_s, a.volfrac,
                             a.gap_max, a.stfac, a.nstep)
-    add_sol2sph(starter, a.ndir, a.shear_elem)
+    add_sol2sph(starter, a.ndir, a.shear_elem, a.vdef_min, a.vdef_max, a.asp_max, a.col_min)
     print(f"[sol2sph] Isolid->24, Ndir={a.ndir}, sphpartID={SPH_PART_ID}(PROP {SPH_PROP_ID}) を追記")
     print(f"[sol2sph] h(smoothing length)={1.5*a.shear_elem/a.ndir*1e6:.2f}um")
+    if any(v > 0 for v in (a.vdef_min, a.vdef_max, a.asp_max, a.col_min)):
+        print(f"[sol2sph] 幾何品質トリガー: Vdef_min={a.vdef_min:g} Vdef_max={a.vdef_max:g} "
+              f"ASP_max={a.asp_max:g} COL_min={a.col_min:g}")
     print(f"[sol2sph] starter -> {starter}")
     return 0
 
