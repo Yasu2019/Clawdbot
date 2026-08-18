@@ -259,7 +259,25 @@ def terrain_xml(terrain, stair_h=None):
         half = TERRAIN_SLOPE_HALF
         sign = 1.0 if terrain == "slope_up" else -1.0
         yc = -(TERRAIN_FLAT_RUNUP + half * _m.cos(th))
-        zc = -0.92 + sign * half * _m.sin(th)
+        # 2026-08-18 (T079v): 旧 `zc = -0.92 + ...` の定数 -0.92 を除去した。
+        #
+        # 傾斜板の上面と terrain_dz(報酬・転倒判定・height_scan が参照する式)が
+        # **一定 -0.920m** ずれており、板が床面より0.92m下に沈んでいた。
+        # 勾配は正しく、定数オフセットだけが食い違っていた(解析的に確認):
+        #
+        #     slope_up   差: -0.870 -0.920 -0.920 -0.920 -0.920
+        #     slope_down 差: -0.920 -0.920 -0.920 -0.920 -0.921
+        #     (先頭の -0.870 は助走境界で terrain_dz が 0 にクランプされる端の効果)
+        #
+        # 症状: slope_down が survival 1.000 という完璧な数値を出しながら、実際には
+        # 斜面を降りていなかった。terrain_offers -0.354m に対し height_gained
+        # +0.059m、climb_ratio -0.167。レンダーの min_z 0.397(立位0.426)でも
+        # 下降しておらず、目視でも平坦面を歩いていた。
+        #
+        # このバグは survival / fall_rate には一切現れない。むしろ「平坦面を歩く
+        # だけ」なので数値は最良になる。**climb_ratio を見て初めて分かる**。
+        # T067 と同型の二重情報源バグ(ジオメトリと計算式が独立)。
+        zc = sign * half * _m.sin(th)
         g.append(f'<geom name="slope" type="box" size="0.8 {half} {TERRAIN_SLOPE_THICK}" '
                  f'pos="0 {yc:.3f} {zc:.3f}" euler="{-sign * TERRAIN_SLOPE_DEG} 0 0" '
                  f'friction="1.2 0.01 0.001"/>')
