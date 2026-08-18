@@ -88,6 +88,10 @@ TERRAIN_FLAT_RUNUP = 0.6    # 平地助走(m)。前方=-Y
 # 片方だけ変えると地面の実高さと期待高さが静かにズレる → 下記T067補注)。
 TERRAIN_SLOPE_HALF = 1.5    # 斜面板の半長(斜面に沿った長さの半分)
 TERRAIN_SLOPE_THICK = 0.05  # 斜面板の半厚。ロボットは板の「上面」に立つ
+# T079x: slope_down を「高台から床面まで降りる」構成にするための持ち上げ量。
+# 斜面の水平長×tanθ = 降下する総高さ。terrain_xml と terrain_dz が**この一つを共有**する。
+SLOPE_DROP = (2.0 * TERRAIN_SLOPE_HALF * math.cos(math.radians(TERRAIN_SLOPE_DEG))
+              * math.tan(math.radians(TERRAIN_SLOPE_DEG)))
 
 
 # --- (a)質量再配分 2026-07-10 ユーザー承認 (HANDOVER_QUEUE5 §4.6 処方a) ---
@@ -259,7 +263,28 @@ def terrain_xml(terrain, stair_h=None):
         half = TERRAIN_SLOPE_HALF
         sign = 1.0 if terrain == "slope_up" else -1.0
         yc = -(TERRAIN_FLAT_RUNUP + half * _m.cos(th))
-        zc = -0.92 + sign * half * _m.sin(th)
+        # 2026-08-19 (T079x): slope_down は「高台から床面まで降りる」構成にする。
+        #
+        # 旧構成は床天面(FLOOR_TOP=-0.92)から始めて下へ降りていたため、歩行面の
+        # 75.8% が床の無限plane(type="plane")より下に潜り、**物理的に到達できな
+        # かった**。機体は床planeの上を歩き続け、斜面を降りられない:
+        #     travel 3.861m / terrain_offers -0.354m / height_gained +0.059m
+        #     climb_ratio -0.167 / min_z 0.397(立位0.426) / 目視でも平坦面
+        # 他の3地形は床より下に潜る区間が 0.0% で、stairs_down は
+        # `top = FLOOR_TOP + h*N` の高台から床面まで降りることでこれを避けている。
+        # slope_down だけがこの規約に従っていなかった。
+        #
+        # SLOPE_DROP ぶん持ち上げ、助走域は stairs_down と同じ厚い箱で覆う。
+        # slope_up は従来どおり床面から登る(lift=0)。
+        lift = SLOPE_DROP if terrain == "slope_down" else 0.0
+        zc = FLOOR_TOP + lift + sign * half * _m.sin(th)
+        if lift:
+            plat_far, plat_near = 2.0, -TERRAIN_FLAT_RUNUP
+            plat_hy = (plat_far - plat_near) / 2
+            plat_yc = (plat_far + plat_near) / 2
+            top = FLOOR_TOP + lift + TERRAIN_SLOPE_THICK / _m.cos(th)
+            g.append(f'<geom name="slope_plat" type="box" size="0.8 {plat_hy:.3f} 1.0" '
+                     f'pos="0 {plat_yc:.3f} {top - 1.0:.3f}" friction="1.2 0.01 0.001"/>')
         g.append(f'<geom name="slope" type="box" size="0.8 {half} {TERRAIN_SLOPE_THICK}" '
                  f'pos="0 {yc:.3f} {zc:.3f}" euler="{-sign * TERRAIN_SLOPE_DEG} 0 0" '
                  f'friction="1.2 0.01 0.001"/>')
@@ -343,7 +368,14 @@ def terrain_dz(y, terrain, stair_h=None):
     # 斜面の水平方向の実効長(板長×cosθ)。板を越えた先は外挿しない。
     span = 2.0 * TERRAIN_SLOPE_HALF * _m.cos(th)
     rise = sign * _m.tan(th) * prog.clamp(max=span)
-    return on_terrain * (rise + TERRAIN_SLOPE_THICK / _m.cos(th))
+    surf = rise + TERRAIN_SLOPE_THICK / _m.cos(th)
+    if terrain == "slope_down":
+        # T079x: 高台から床面へ降りる構成。terrain_xml の lift と同じ SLOPE_DROP を
+        # 共有する(二重管理禁止 -- 片方だけ変えると地面の実高さと期待高さが
+        # 静かにズレる。それがまさに今回の不具合)。助走域(prog=0)も高台なので
+        # on_terrain でゼロに落とさず、常に高さを返す(stairs_down と同じ扱い)。
+        return surf + SLOPE_DROP
+    return on_terrain * surf
 
 
 def _corridor_dz(y, stair_h=None, terrain="corridor"):
