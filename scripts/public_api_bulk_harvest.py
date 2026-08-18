@@ -23,6 +23,7 @@ if hasattr(sys.stdout, "reconfigure"):
         pass
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "scripts"))
 WORKSPACE = ROOT / "data" / "workspace"
 DOWNLOAD_ROOT = ROOT / "data" / "public_api_downloads"
 MANIFEST_JSONL = WORKSPACE / "public_api_acquisitions.jsonl"
@@ -215,7 +216,8 @@ def http_get_json(url: str, headers: dict | None = None, timeout: int = 30) -> d
         headers=headers or {"User-Agent": "ClawstackPublicApiHarvest/1.0"},
     )
     with urllib.request.urlopen(req, timeout=timeout) as resp:
-        return json.loads(resp.read().decode("utf-8", errors="replace"))
+        from local_agent.text_quality import decode_http_text
+        return json.loads(decode_http_text(resp.read(), label="http_get_json"))
 
 
 def download_url(url: str, dest: Path, headers: dict | None = None) -> bool:
@@ -923,7 +925,8 @@ def http_post_json(url: str, body: dict, headers: dict | None = None, timeout: i
         method="POST",
     )
     with urllib.request.urlopen(req, timeout=timeout) as resp:
-        return json.loads(resp.read().decode("utf-8", errors="replace"))
+        from local_agent.text_quality import decode_http_text
+        return json.loads(decode_http_text(resp.read(), label="http_post_json"))
 
 
 def harvest_figshare(con: sqlite3.Connection, query: str) -> int:
@@ -1193,6 +1196,8 @@ def harvest_materials_project(con: sqlite3.Connection) -> int:
                 material_count = len(materials) if isinstance(materials, list) else 0
             elif isinstance(meta, list):
                 material_count = len(meta)
+            if path.stat().st_size == 0 or material_count == 0:
+                continue
             row = {
                 "acquired_at": now_jst(),
                 "source": "materials_project",
