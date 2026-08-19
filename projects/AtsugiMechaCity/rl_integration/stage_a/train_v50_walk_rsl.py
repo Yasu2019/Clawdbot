@@ -293,6 +293,9 @@ def main():
                     help="報酬項の内訳を寄与の大きい順にN項ログ出力する(0=無効)")
     ap.add_argument("--reward-scale", default=None,
                     help="報酬係数の上書き。例: velocity_ceiling=0,pose_prior=0.8")
+    ap.add_argument("--spawn-curriculum-frac", type=float, default=0.0, metavar="F",
+                    help="corridor系のみ: スポーン可能セグメントを先頭のみ->全区間へ、"
+                         "学習全体の F 割の区間で段階的に広げる(0=無効)")
     ap.add_argument("--push-curriculum-frac", type=float, default=0.0, metavar="F",
                     help="push_vel を 0 から設定値まで、学習全体の F 割の区間で線形に"
                          "上げる(0=無効, 例 0.3 なら最初の30%%で最終強度に達し以後維持)")
@@ -403,10 +406,30 @@ def main():
               f"({args.push_curriculum_frac:.0%} of run), then held", flush=True)
     else:
         ramp_iters = 0
+    # 2026-08-20 (T079z): corridor のスポーン地点カリキュラム。
+    #
+    # corridor は各envが**コース上のランダムな地点**からスポーンする(階段の途中や
+    # 斜面の中腹から静止状態で開始)。これが単一地形との本質的な難しさの差だと
+    # 実測で特定した:
+    #     同じ v33 が stairs単体 survival 0.744、段1コース 0.104
+    # 学習の劣化ではなくコース側が難しい。セグメント数を増やすカリキュラム(T079y)は
+    # この主因を外していた。
+    #
+    # corridor_spawn_max_segment(T078で追加済みの診断フラグ)を軸にして、
+    # 先頭セグメントのみ -> 全セグメント へ段階的に広げる。
+    spawn_ramp = 0
+    if args.spawn_curriculum_frac > 0.0 and getattr(env, "corridor", None) is not None:
+        n_seg = len(env.corridor)
+        spawn_ramp = max(1, int(args.iterations * args.spawn_curriculum_frac))
+        print(f"[curriculum] spawn segment 0 -> {n_seg - 1} over {spawn_ramp} iters "
+              f"({args.spawn_curriculum_frac:.0%} of run), then held", flush=True)
     while done < args.iterations:
         if ramp_iters:
             frac = min(1.0, done / ramp_iters)
             env.cfg["push_vel"] = push_final * frac
+        if spawn_ramp:
+            f = min(1.0, done / spawn_ramp)
+            env.cfg["corridor_spawn_max_segment"] = int(round(f * (len(env.corridor) - 1)))
         n = min(CHUNK, args.iterations - done)
         runner.learn(num_learning_iterations=n, init_at_random_ep_len=(done == 0))
         done += n
