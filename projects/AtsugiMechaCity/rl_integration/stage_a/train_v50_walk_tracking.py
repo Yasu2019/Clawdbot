@@ -175,9 +175,25 @@ CORRIDOR_SEGMENTS_STAIRS_UP_ONLY = [
     ("stairs_up", CORRIDOR_STAIR_LEN),
     ("flat", 2.0),
 ]
+# 2026-08-19 (T079y): セグメント数を段階的に増やすカリキュラム用の中間コース。
+#
+# フル corridor をいきなり学習すると、単一地形の専用方策より大きく劣った:
+#     corridor v40 (4000iter, push+DR): survival 0.141 / travel 5.85m(全19.5m)
+#     単一地形 stairs も survival 0.744 -> 0.094 へ退行(破滅的忘却)
+# 到達 5.85m は「平地2.0 + 昇段3.0 + 平地1.2 = 6.2m」のほぼ手前で、昇段は通過
+# できるが**次の遷移点(下り斜面の入口)で止まる**という状態だった。
+#
+# push 強度のカリキュラムが「時間ではなく与える順序の問題」を解いた実績(T079u,
+# 外乱下 survival 0.143 -> 0.744)と同じ発想を、地形の複雑さにも適用する。
+# 各段は前段からの warm-start で積み上げる。CORRIDOR_SEGMENTS の先頭から順に
+# 切り出すので、区間長・接続高さはフルコースと完全に一致する(別表を作らない)。
 CORRIDOR_VARIANTS = {
     "corridor": CORRIDOR_SEGMENTS,
     "corridor_stairs_up": CORRIDOR_SEGMENTS_STAIRS_UP_ONLY,
+    # 段2: 昇段 + 下り斜面まで(平地2.0/昇段/平地1.2/下り斜面/平地2.0)
+    "corridor_c2": CORRIDOR_SEGMENTS[:4] + [("flat", 2.0)],
+    # 段3: 上り斜面まで(+ 平地1.2/上り斜面/平地2.0)
+    "corridor_c3": CORRIDOR_SEGMENTS[:6] + [("flat", 2.0)],
 }
 
 

@@ -246,9 +246,11 @@ def main():
     ap.add_argument("--entropy", type=float, default=0.005)
     ap.add_argument("--init-noise-std", type=float, default=1.0)
     ap.add_argument("--ref-json", default=None)
+    # corridor 系は V50.CORRIDOR_VARIANTS から自動生成する。段階カリキュラム
+    # (T079y)で段を足すたびにここを直す二重管理を避けるため、定義元を単一にする。
     ap.add_argument("--terrain", default="none",
                     choices=["none", "stairs", "stairs_down", "slope_up", "slope_down",
-                             "corridor", "corridor_stairs_up"])
+                             *sorted(V50.CORRIDOR_VARIANTS)])
     ap.add_argument("--episode-length-s", type=float, default=20.0)
     ap.add_argument("--no-push", action="store_true")
     ap.add_argument("--tensorboard", action="store_true")
