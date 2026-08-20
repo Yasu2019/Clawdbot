@@ -23,16 +23,20 @@ ap = argparse.ArgumentParser()
 ap.add_argument("--ckpt", required=True); ap.add_argument("--terrain", required=True)
 ap.add_argument("--label", default=""); ap.add_argument("--n-envs", type=int, default=256)
 ap.add_argument("--cmd-vx", type=float, default=0.27)
+# 2026-08-20: 参照モーションは**学習時と同じ設定**で渡す。常に渡していたため、
+# 参照なしで学習した降段/斜面の方策に階段用の参照を与え、観測が変わって
+# stairs_down が 14.8%(検証済みの travel 3.947m と矛盾)になっていた。
+ap.add_argument("--ref-json", default=None)
 a = ap.parse_args()
 
 L = course_len(a.terrain)
 secs = max(20.0, L / a.cmd_vx * 1.6)          # コース長に応じた窓(踏破に必要な時間の1.6倍)
 REF = (r"D:\Clawdbot_Docker_20260125\projects\AtsugiMechaCity\rl_integration"
        r"\stage_b\refs\v50_ref_stairs_up_cmu143_17_armneutral.json")
-cfg = {"terrain": a.terrain, "episode_length_s": secs, "height_scan": {},
+cfg = {"terrain": a.terrain, "episode_length_s": secs, **({"height_scan": {}} if a.terrain != "none" else {}),   # 平地方策は scan 無し(obs189)
        "cmd_vx": [a.cmd_vx, a.cmd_vx], "cmd_zero_prob": 0.0, "push_vel": 0.35}
 if a.terrain in T.CORRIDOR_VARIANTS: cfg["corridor_fixed_start"] = True
-env = V50WalkEnv(a.n_envs, r"D:\Temp\claude\course", cfg=cfg, ref_json=REF)
+env = V50WalkEnv(a.n_envs, r"D:\Temp\claude\course", cfg=cfg, ref_json=a.ref_json)
 from rsl_rl.runners import OnPolicyRunner
 tc = {"algorithm":{"class_name":"PPO","clip_param":0.2,"desired_kl":0.01,"entropy_coef":0.005,
  "gamma":0.99,"lam":0.95,"learning_rate":1e-3,"max_grad_norm":1.0,"num_learning_epochs":5,
