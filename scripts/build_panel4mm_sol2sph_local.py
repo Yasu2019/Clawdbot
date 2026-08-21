@@ -53,27 +53,46 @@ SPH_PART_ID = 7
 SPH_PROP_ID = 7
 SPH_MAT_ID = 3
 NEAR_PART_ID = 2      # Blank_Near(Sol2SPH適用)
-FAR_PART_ID = 5        # Blank_Far(通常FEM)
+FAR_PART_ID = 5        # Blank_Far(通常FEM、GENE1削除のみ)
 FAR_PROP_ID = 5
+FAR_MAT_ID = 4          # Blank_Far専用: 同一物理特性・低いEps_eff(暴走防止)
 
 
 def build(tag: str, blank_elem: float, tool_elem: float, stroke: float, speed: float,
           gap_max: float, stfac: float, nstep: int, eps_eff: float, eps_s: float,
-          near_thresh: float, ndir: int, retract_frac: float, settle_frac: float):
+          near_thresh: float, ndir: int, retract_frac: float, settle_frac: float,
+          far_eps_eff: float = 0.3, vdef_min: float = 0.0, vdef_max: float = 0.0,
+          asp_max: float = 0.0, col_min: float = 0.0):
     ref_txt = REF_STARTER.read_text(encoding="utf-8", errors="replace")
-    fail_block = extract_block(ref_txt, r"^/FAIL/GENE1/2\b")
-    fail_block = override_gene1(fail_block, nstep)
-    fail_lines = fail_block.splitlines()
-    assert "Eps_eff" in fail_lines[5], fail_lines[5]
-    fail_lines[6] = f"{i10(0)}{f20(0.0)}{f20(0.0)}{f20(eps_eff)}{f20(0.0)}"
-    assert "Eps_s" in fail_lines[7], fail_lines[7]
-    fail_lines[8] = f"{f20(0.0)}{f20(eps_s)}{i10(0)}{i10(0)}{i10(0)}"
-    fail_block = "\n".join(fail_lines)
+
+    def make_fail_block(mat_id: int, eps_eff_v: float, eps_s_v: float) -> str:
+        block = override_gene1(extract_block(ref_txt, r"^/FAIL/GENE1/2\b"), nstep)
+        lines = block.splitlines()
+        lines[0] = f"/FAIL/GENE1/{mat_id}"
+        assert "Eps_eff" in lines[5], lines[5]
+        lines[6] = f"{i10(0)}{f20(0.0)}{f20(0.0)}{f20(eps_eff_v)}{f20(0.0)}"
+        assert "Eps_s" in lines[7], lines[7]
+        lines[8] = f"{f20(0.0)}{f20(eps_s_v)}{i10(0)}{i10(0)}{i10(0)}"
+        return "\n".join(lines)
+
+    # 2026-08-21 実証済みバグ対策: Blank_Near/Farが同一MAT_ID=2・同一Eps_eff=0.85
+    # を共有していたところ、KISTEC比較に無関係な遠方領域(Sol2SPH非適用)で
+    # 高いEps_effのまま連鎖破断が起きSIGSEGVでクラッシュした(P4c実測)。
+    # 遠方専用にFAR_MAT_ID=4・より低いfar_eps_effを割り当て、早期安全側で
+    # 削除させることで暴走を防ぐ。近傍(Sol2SPH保護域)はeps_effのまま維持。
+    fail_near = make_fail_block(2, eps_eff, eps_s)
+    fail_far = make_fail_block(FAR_MAT_ID, far_eps_eff, eps_s)
+
+    mat_blank_block = extract_block(ref_txt, r"^/MAT/LAW2/2\b")
+    mat_far_data = mat_blank_block.splitlines()[2:]
+    mat_far_dup = [f"/MAT/LAW2/{FAR_MAT_ID}", "MR536_H34_AA5052_Far_lowEpsEff"] + mat_far_data
 
     ref = {
-        "mat_blank": extract_block(ref_txt, r"^/MAT/LAW2/2\b"),
+        "mat_blank": mat_blank_block,
+        "mat_far": mat_far_dup,
         "mat_tool": extract_block(ref_txt, r"^/MAT/LAW1/1\b"),
-        "fail": fail_block,
+        "fail": fail_near,
+        "fail_far": fail_far,
         "inter1": extract_block(ref_txt, r"^/INTER/TYPE25/1\b"),
         "inter2": extract_block(ref_txt, r"^/INTER/TYPE25/2\b"),
         "inter3": extract_block(ref_txt, r"^/INTER/TYPE25/3\b"),
@@ -161,7 +180,16 @@ def build(tag: str, blank_elem: float, tool_elem: float, stroke: float, speed: f
 
     L: list[str] = [
         "#RADIOSS STARTER", "/BEGIN", f"PANEL4MM_{tag}",
-        f"{i10(2022)}{i10(0)}",
+        # 2026-08-21 実証済み: radioss2022形式の/PROP/SOLIDは
+        # "deltaT_min(f20) Istrain(i10) Imod(i10)"の3項目(40文字)であり、
+        # Vdef_min/Vdef_max/ASP_max/COL_minは存在しない(OpenRadiossソース
+        # starter/source/properties/solid/hm_read_prop14.F + hm_cfg_files/
+        # config/CFG/radioss2022/PROP/prop_p14_solid.cfg で確認)。これらの
+        # フィールドはradioss2023形式で新設され、5項目(f20×5=100文字)
+        # "deltaT_min vdef_min vdef_max ASP_max COL_min"になる
+        # (radioss2023/PROP/prop_p14_solid.cfgで確認)。幾何品質トリガーを
+        # 使うにはバージョンを2023へ上げる必要がある。
+        f"{i10(2023)}{i10(0)}",
         f"{'kg':>20}{'m':>20}{'s':>20}",
         f"{'kg':>20}{'m':>20}{'s':>20}",
         "/TITLE", f"Panel 4mm ASSY 3D blanking ({tag}) - Sol2SPH local to edges",
@@ -179,13 +207,19 @@ def build(tag: str, blank_elem: float, tool_elem: float, stroke: float, speed: f
     L.append(ref["mat_tool"])
     L.append(ref["mat_blank"])
     L.extend(mat_dup)
+    L.extend(ref["mat_far"])
     L.append(ref["fail"])
+    L.append(ref["fail_far"])
     L.extend(tetra_prop(1, "Tool_Solid"))
     near_prop = tetra_prop(NEAR_PART_ID, "Blank_Solid_Near")
-    # Sol2SPH: Ndir,sphpartID,Icontrol をブランク近傍PROPへ追記。
+    # radioss2023形式で実証確認済みの正しい配置(2026-08-21):
+    #   5行目(index5): deltaT_min, vdef_min, vdef_max, ASP_max, COL_min (f20x5)
+    #   6行目(新規):   Ndir, SPHPART_ID (i10x2のみ。Icontrolはこの行に無い)
     # Isolid=1は既にSol2SPHの要件(1/2/24)を満たすため変更不要(build_inc188と
     # 異なりPANEL4MM系のtetra_propは元からIsolid=1)。
-    near_prop.append(f"{i10(ndir)}{i10(SPH_PART_ID)}{i10(0)}")
+    if any(v > 0 for v in (vdef_min, vdef_max, asp_max, col_min)):
+        near_prop[5] = f"{f20(0.0)}{f20(vdef_min)}{f20(vdef_max)}{f20(asp_max)}{f20(col_min)}"
+    near_prop.append(f"{i10(ndir)}{i10(SPH_PART_ID)}")
     L.extend(near_prop)
     L.extend(tetra_prop(FAR_PROP_ID, "Blank_Solid_Far"))
     h = 1.5 * blank_elem / ndir
@@ -200,7 +234,7 @@ def build(tag: str, blank_elem: float, tool_elem: float, stroke: float, speed: f
 
     part_defs = [(1, "Die", 1, 1), (NEAR_PART_ID, "Blank_Near", NEAR_PART_ID, 2),
                 (3, "Stripper", 1, 1), (4, "Punch", 1, 1),
-                (FAR_PART_ID, "Blank_Far", FAR_PROP_ID, 2),
+                (FAR_PART_ID, "Blank_Far", FAR_PROP_ID, FAR_MAT_ID),
                 (SPH_PART_ID, "Sol2SPH_Blank_Part", SPH_PROP_ID, SPH_MAT_ID)]
     for pid, pname, prop, mat in part_defs:
         L.append(f"/PART/{pid}")
@@ -223,15 +257,32 @@ def build(tag: str, blank_elem: float, tool_elem: float, stroke: float, speed: f
     L.append(f"{i10(NEAR_PART_ID)}")
     L.append(f"{i10(FAR_PART_ID)}")
 
-    L += ["/FUNCT/1", "Punch_Stroke", "#                  X                   Y",
-          f"{f20(0.0)}{f20(0.0)}", f"{f20(t_stop_orig)}{f20(-stroke)}",
-          f"{f20(t_retract_done)}{f20(0.0)}", f"{f20(t_final)}{f20(0.0)}"]
-    strip_close = (1.2 - (1.1 + blank_dz)) * MM - TOOL_GAP
-    L += ["/FUNCT/2", "Stripper_Close", "#                  X                   Y",
-          f"{f20(0.0)}{f20(0.0)}", f"{f20(STRIPPER_CLOSE_T)}{f20(-strip_close)}",
-          f"{f20(t_retract_done)}{f20(0.0)}", f"{f20(t_final)}{f20(0.0)}"]
-    L += ["/FUNCT/3", "Zero", "#                  X                   Y",
-          f"{f20(0.0)}{f20(0.0)}", f"{f20(t_final)}{f20(0.0)}"]
+    # retract_frac=settle_frac=0 の場合、t_stop_orig=t_retract_done=t_final と
+    # なり同一時刻に異なるY値を持つ不正な関数点(重複)ができてしまう。切断のみ
+    # 検証(2026-08-20 ユーザー方針: まず短縮版で健全性を確認してから引き抜き
+    # を追加)ではこの3点構成(引き抜きなし)にフォールバックする。
+    cutting_only = retract_frac <= 0 and settle_frac <= 0
+    if cutting_only:
+        L += ["/FUNCT/1", "Punch_Stroke", "#                  X                   Y",
+              f"{f20(0.0)}{f20(0.0)}", f"{f20(t_stop_orig)}{f20(-stroke)}",
+              f"{f20(t_stop_orig*10)}{f20(-stroke)}"]
+        strip_close = (1.2 - (1.1 + blank_dz)) * MM - TOOL_GAP
+        L += ["/FUNCT/2", "Stripper_Close", "#                  X                   Y",
+              f"{f20(0.0)}{f20(0.0)}", f"{f20(STRIPPER_CLOSE_T)}{f20(-strip_close)}",
+              f"{f20(t_stop_orig*10)}{f20(-strip_close)}"]
+        L += ["/FUNCT/3", "Zero", "#                  X                   Y",
+              f"{f20(0.0)}{f20(0.0)}", f"{f20(t_stop_orig*10)}{f20(0.0)}"]
+        t_final = t_stop_orig
+    else:
+        L += ["/FUNCT/1", "Punch_Stroke", "#                  X                   Y",
+              f"{f20(0.0)}{f20(0.0)}", f"{f20(t_stop_orig)}{f20(-stroke)}",
+              f"{f20(t_retract_done)}{f20(0.0)}", f"{f20(t_final)}{f20(0.0)}"]
+        strip_close = (1.2 - (1.1 + blank_dz)) * MM - TOOL_GAP
+        L += ["/FUNCT/2", "Stripper_Close", "#                  X                   Y",
+              f"{f20(0.0)}{f20(0.0)}", f"{f20(STRIPPER_CLOSE_T)}{f20(-strip_close)}",
+              f"{f20(t_retract_done)}{f20(0.0)}", f"{f20(t_final)}{f20(0.0)}"]
+        L += ["/FUNCT/3", "Zero", "#                  X                   Y",
+              f"{f20(0.0)}{f20(0.0)}", f"{f20(t_final)}{f20(0.0)}"]
 
     for iid, fid, gid, name in ((1, 1, 100, "Punch_Stroke_Z"),
                                 (2, 2, 400, "Stripper_Close_Z")):
@@ -294,9 +345,20 @@ def main() -> int:
     ap.add_argument("--ndir", type=int, default=NDIR)
     ap.add_argument("--retract-frac", type=float, default=1.0)
     ap.add_argument("--settle-frac", type=float, default=2.0)
+    ap.add_argument("--far-eps-eff", type=float, default=0.3,
+                    help="遠方(Sol2SPH非適用)領域専用の安全側Eps_eff")
+    ap.add_argument("--vdef-min", type=float, default=0.0,
+                    help="V/V0がこれ未満で先行SPH変換(radioss2023形式限定,0=無効)")
+    ap.add_argument("--vdef-max", type=float, default=0.0,
+                    help="V/V0がこれ超で先行SPH変換(radioss2023形式限定,0=無効)")
+    ap.add_argument("--asp-max", type=float, default=0.0,
+                    help="最大辺長/最小辺長がこれ超で先行SPH変換(radioss2023形式限定,0=無効)")
+    ap.add_argument("--col-min", type=float, default=0.0,
+                    help="最小辺長/最大辺長がこれ未満で先行SPH変換(radioss2023形式限定,0=無効)")
     a = ap.parse_args()
     build(a.tag, a.blank_elem, a.tool_elem, a.stroke, a.speed, a.gap_max, a.stfac,
-          a.nstep, a.eps_eff, a.eps_s, a.near_thresh, a.ndir, a.retract_frac, a.settle_frac)
+          a.nstep, a.eps_eff, a.eps_s, a.near_thresh, a.ndir, a.retract_frac, a.settle_frac,
+          a.far_eps_eff, a.vdef_min, a.vdef_max, a.asp_max, a.col_min)
     return 0
 
 
