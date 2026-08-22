@@ -317,7 +317,12 @@ def build(tag: str, blank_elem: float, tool_elem: float, stroke: float, speed: f
         f"/RUN/PANEL4MM_{tag}/1", f"{f20(t_final)}", "/DT/NODA/CST2/0",
         f"{f20(0.9)}{f20(DT_MIN)}", "/RFILE/50000", "/TFILE/4", f"{f20(1.0e-6)}",
         "/ANIM/DT", f"{f20(0.0)}{f20(t_final / 60)}",
-        "/ANIM/ELEM/EPSP", "/ANIM/ELEM/VONM", "/ANIM/VECT/DISP", "/END", "",
+        "/ANIM/ELEM/EPSP", "/ANIM/ELEM/VONM",
+        # 2026-08-23: KISTEC実測残留応力(-5.49〜+9.21MPa、負値含む特定方向の
+        # 垂直応力成分)との比較にはVONM(常に正のスカラー)は使えない。
+        # 符号付き応力テンソル成分を出力する。
+        "/ANIM/ELEM/SIGX", "/ANIM/ELEM/SIGY", "/ANIM/ELEM/SIGZ",
+        "/ANIM/VECT/DISP", "/END", "",
     ]), encoding="utf-8")
 
     print(f"\n[deck] 節点 {len(nodes):,}")
