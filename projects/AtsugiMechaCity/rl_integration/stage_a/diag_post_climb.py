@@ -49,17 +49,40 @@ ap.add_argument("--cmd-vx", type=float, default=0.27)
 # 階段用の参照を与えると観測が変わり、検証済みの実測と矛盾する値が出る)。
 ap.add_argument("--ref-json", default=None)
 ap.add_argument("--out", default=None, help="JSON 出力先。既定は出力しない")
+# 既定の窓はコース長に比例する(eval_course_completion_WIP.py と同じ規約)。
+# コース長が違う2条件を比べると窓も一緒に変わるため、窓自体の影響を切り離せない。
+# 明示指定で窓を固定し、幾何の差と窓の差を分離するための対照用フラグ。
+ap.add_argument("--window-s", type=float, default=None,
+                help="評価窓を秒で固定する。既定はコース長から自動計算")
+# DR(質量・PDゲイン)は既定 8 グループで、2048env でも**独立抽選は8回だけ**、
+# 256env が同一の質量/KPを共有する(v50_walk_env.py の _apply_dr)。質量とKPは
+# 階段登坂の成否を決める支配要因なので、8回の抽選が結果全体を動かし、
+# env 数を増やしても実効サンプル数は 8 のまま。同一設定の再実行で完走率が
+# 19.0% <-> 42.2% と振れる原因はこれ。評価では独立抽選数を増やす。
+ap.add_argument("--dr-groups", type=int, default=None,
+                help="DRの独立抽選グループ数。0 で n-envs と同数(env毎に独立)")
+# 再現しない原因の切り分け用。DR を env 毎(2048抽選)にしても振れ幅が縮まらなかったため、
+# 確率的な入力を1つずつ落として、どれが run 単位のばらつきを生んでいるかを実測する。
+ap.add_argument("--no-dr", action="store_true", help="DRを無効化(質量・KPを公称値に固定)")
+ap.add_argument("--no-push", action="store_true", help="外乱pushを無効化")
 a = ap.parse_args()
 
 segs = segments(a.terrain)
 L = segs[-1][2]
-secs = max(20.0, L / a.cmd_vx * 1.6)      # eval_course_completion_WIP.py と同じ窓
+secs = a.window_s if a.window_s is not None else max(20.0, L / a.cmd_vx * 1.6)
 
 cfg = {"terrain": a.terrain, "episode_length_s": secs,
        **({"height_scan": {}} if a.terrain != "none" else {}),
        "cmd_vx": [a.cmd_vx, a.cmd_vx], "cmd_zero_prob": 0.0, "push_vel": 0.35}
 if a.terrain in T.CORRIDOR_VARIANTS:
     cfg["corridor_fixed_start"] = True
+if a.dr_groups is not None:
+    cfg["dr_groups"] = a.n_envs if a.dr_groups == 0 else a.dr_groups
+if a.no_dr:
+    cfg["dr_mass_scale"] = [1.0, 1.0]
+    cfg["dr_kp_scale"] = [1.0, 1.0]
+if a.no_push:
+    cfg["push_vel"] = 0.0
 env = V50WalkEnv(a.n_envs, r"D:\Temp\claude\diag_post_climb", cfg=cfg, ref_json=a.ref_json)
 
 from rsl_rl.runners import OnPolicyRunner

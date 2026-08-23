@@ -194,6 +194,26 @@ CORRIDOR_VARIANTS = {
     "corridor_c2": CORRIDOR_SEGMENTS[:4] + [("flat", 2.0)],
     # 段3: 上り斜面まで(+ 平地1.2/上り斜面/平地2.0)
     "corridor_c3": CORRIDOR_SEGMENTS[:6] + [("flat", 2.0)],
+    # 2026-08-23 (T079ac): **診断専用。学習には使わない。**
+    #
+    # 同一の階段ジオメトリ(段高0.10 x 10段 = 3.0m)なのに、単体 stairs と corridor 系で
+    # 条件付き脱落率が 2.3 倍違うことを実測した(diag_post_climb.py):
+    #     v33 on 単体 stairs          22.6%
+    #     v33 on corridor_stairs_up   56.8%
+    #     v44 on corridor             52.7%
+    # 両方策で同じ差が出るので方策固有ではない。地形の一致は確認済み
+    # (terrain_dz と物理ジオメトリを箱の全域400点で比較し 0/400 不一致)。
+    # 残る差は階段の**手前**の助走長:
+    #     単体 stairs   TERRAIN_FLAT_RUNUP  = 0.6 m
+    #     corridor 系   CORRIDOR_SEGMENTS[0] = 2.0 m
+    #
+    # 助走長だけを変え、それ以外(段高・奥行・段数・後続平地なし)を揃えた対照。
+    # 長さは既存の名前付き定数を参照し、ここに数値を書き下ろさない
+    # (T067「XMLと期待高さの二重管理で片方だけズレる」の再発防止と同じ理由)。
+    "corridor_diag_runup_short": [("flat", TERRAIN_FLAT_RUNUP),
+                                  ("stairs_up", CORRIDOR_STAIR_LEN)],
+    "corridor_diag_runup_long": [("flat", CORRIDOR_SEGMENTS[0][1]),
+                                 ("stairs_up", CORRIDOR_STAIR_LEN)],
 }
 
 
