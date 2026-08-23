@@ -368,11 +368,23 @@ class V50WalkEnv:
         self.camera = None
         if c.get("camera"):
             cc = c["camera"]
+            # near/far の既定は Genesis の既定値そのまま(0.1 / 20.0)。従来の追従
+            # カメラは機体から3m弱なので影響しないが、俯瞰描画では視距離が
+            # 20m を超えて**全てクリップされ空だけが映る**(2026-08-23 実測)。
+            # 遠景を映すときだけ far を明示的に伸ばす。
             self.camera = self.scene.add_camera(
                 res=tuple(cc.get("res", (960, 540))), pos=tuple(cc.get("pos", (3.0, 0.5, 0.6))),
                 lookat=tuple(cc.get("lookat", (0.0, 0.0, 0.0))), fov=cc.get("fov", 40),
+                near=cc.get("near", 0.1), far=cc.get("far", 20.0),
                 GUI=False)
-        self.scene.build(n_envs=num_envs)
+        # 2026-08-23: 俯瞰描画用に env をグリッド配置できるようにする(render_grid.py)。
+        # 既定 (0,0)/None は従来と完全に同一(全 env が同座標に重なる)。
+        # env_spacing は**配置と描画にしか効かない**: get_pos() は env ローカル座標を
+        # 返す(実測確認済み)ため、terrain_dz(y依存の解析式)・終了判定・報酬は不変。
+        # 地形は robot と同じ MJCF の worldbody に入っているので env ごとに複製される。
+        self.scene.build(n_envs=num_envs,
+                         env_spacing=tuple(c.get("env_spacing", (0.0, 0.0))),
+                         n_envs_per_row=c.get("n_envs_per_row"))
 
         self.dof_idx = [self.robot.get_joint(n).dof_idx_local for n in DOF_NAMES]
         # T079L: 可動域端の罰(_r_dof_pos_limits)用。MJCFの range をそのまま使い、
