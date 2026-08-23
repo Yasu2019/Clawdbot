@@ -99,12 +99,14 @@ def main():
 
     steps = int(a.seconds / env.dt)
     C, VX, KN, HIPS, SHO, PITCH, ALIVE = [], [], [], [], [], [], []
+    CLR = []
     for _ in range(steps):
         with torch.no_grad():
             o = norm(obs) if norm is not None else obs
             act = policy.act_inference(o)
         obs, _, rst, _ = env.step(act)
         C.append(env.contacts.clone())
+        CLR.append(env.foot_clearance.clone())
         VX.append((V50.FWD_SIGN * env.lin_vel[:, V50.FWD_AXIS]).clone())
         q = env.robot.get_dofs_position(dofs_idx_local=env.dof_idx)
         KN.append(q[:, [D["knee_L"], D["knee_R"]]].clone())
@@ -117,6 +119,7 @@ def main():
         ALIVE.append((~rst.bool() if rst.dtype != torch.bool else ~rst).clone())
 
     C = torch.stack(C)                       # (T,N,2)
+    CLR = torch.stack(CLR)                   # (T,N,2) 立位足高さからの持ち上げ量[m]
     VX = torch.stack(VX); KN = torch.stack(KN)
     HIPS = torch.stack(HIPS); SHO = torch.stack(SHO); PITCH = torch.stack(PITCH)
     ALIVE = torch.stack(ALIVE)
@@ -127,6 +130,7 @@ def main():
         print("転倒せずに走り切った env が無い。歩容統計を出せない。")
         sys.exit(2)
     C, VX, KN = C[:, keep], VX[:, keep], KN[:, keep]
+    CLR = CLR[:, keep]
     HIPS, SHO, PITCH = HIPS[:, keep], SHO[:, keep], PITCH[:, keep]
 
     nfeet = C.sum(dim=2)                     # (T,N) 0/1/2
@@ -183,6 +187,14 @@ def main():
     arm_ipsi = corr(SHO[:, :, 0], HIPS[:, :, 0])      # 左肩 vs 左股
     sho_range = ((SHO.amax(dim=0) - SHO.amin(dim=0)) * 180 / math.pi).mean().item()
 
+    # 遊脚中の足の持ち上げ量を**直接**測る。膝角からの推論では誤る:
+    # 膝が伸びたままでも股関節主導で足は上がりうる。報酬 foot_clearance は
+    # (clearance - 0.10)^2 を罰する形なので、ここが 10cm 近ければその項は
+    # ほぼ 0 になり、実際 v44 の報酬内訳で 26位以下(|寄与|<0.0006)だった。
+    swing_c = ~C
+    clr_swing = CLR[swing_c]
+    clr_peak = (CLR * swing_c.float()).amax(dim=0).mean().item()
+
     pitch_deg = PITCH * 180.0 / math.pi
     pitch_mean = pitch_deg.mean().item()
     pitch_range = (pitch_deg.amax(dim=0) - pitch_deg.amin(dim=0)).mean().item()
@@ -209,6 +221,8 @@ def main():
     print(f"{'膝の可動範囲':22s} {kn_range:10.1f}°    遊脚ピーク60〜65°を含む振れ")
     print(f"{'膝角(遊脚中,|平均|)':22s} {kn_swing.mean().item():10.1f}°    {HUMAN['knee_swing_deg'][1]}")
     print(f"{'膝角(立脚中,|平均|)':22s} {kn_stance.mean().item():10.1f}°    {HUMAN['knee_stance_deg'][1]}")
+    print(f"{'足クリアランス(遊脚平均)':22s} {clr_swing.mean().item()*100:9.1f}cm   目標10cm(人間8〜12cm)")
+    print(f"{'足クリアランス(遊脚ピーク)':22s} {clr_peak*100:9.1f}cm   -")
     print(f"{'腕振り範囲':22s} {sho_range:10.1f}°    -")
     print(f"{'腕-対側脚 相関':22s} {arm_contra:11.2f}    正なら人間と同じ対側同位相")
     print(f"{'腕-同側脚 相関':22s} {arm_ipsi:11.2f}    負であるべき(対側の裏返し)")

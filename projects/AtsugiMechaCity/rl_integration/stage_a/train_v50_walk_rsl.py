@@ -299,6 +299,11 @@ def main():
     ap.add_argument("--push-curriculum-frac", type=float, default=0.0, metavar="F",
                     help="push_vel を 0 から設定値まで、学習全体の F 割の区間で線形に"
                          "上げる(0=無効, 例 0.3 なら最初の30%%で最終強度に達し以後維持)")
+    ap.add_argument("--clearance-on-terrain", action="store_true",
+                    help="corridor系のみ: foot_clearance を naturalness マスクから"
+                         "免除し、階段・斜面でも足上げ報酬を効かせる。既定では "
+                         "foot_clearance は NATURALNESS_TERMS に含まれるため"
+                         "**階段区間で完全に無効**になっている(2026-08-23 実測)。")
     ap.add_argument("--no-naturalness", action="store_true",
                     help="zero the flat-gait naturalness/symmetry rewards "
                          "(foot_clearance/foot_lift_symmetry/gait_symmetry/...) for "
@@ -340,6 +345,8 @@ def main():
         cfg["symmetric_body"] = True
     if args.no_naturalness:
         cfg["no_naturalness"] = True
+    if args.clearance_on_terrain:
+        cfg["naturalness_always_on"] = ("foot_clearance",)
     # 2026-08-08: 報酬係数を対照実験のため上書きできるようにする。
     # 背景: 未コミットの階段用チューニング(T079c/e/f/g/h)が平地にも効いており、
     # 特に velocity_ceiling(-6.0) は docstring 通り「地形ゲート無し・無条件」で、

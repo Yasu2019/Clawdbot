@@ -336,6 +336,14 @@ class V50WalkEnv:
             for k in ("gait_symmetry", "foot_clearance", "foot_lift_symmetry",
                       "contact_symmetry", "action_jerk"):
                 c["reward_scales"][k] = 0.0
+        # 2026-08-23: corridor の naturalness マスクを**項ごとに免除**できるようにする。
+        #
+        # マスクは NATURALNESS_TERMS を階段・斜面で一律に 0 にするが、その束には
+        # 見た目の項(gait_symmetry 等)と**機能的に必須の項**が混在している。
+        # foot_clearance(遊脚足の持ち上げ)は後者で、階段で切ると足を上げなくなる。
+        # 実測: v44 の階段脱落42%・失敗の77-84%が term_low(沈み込み)・遊脚膝14°
+        # (人間62°)。既定は空なので、指定しない限り従来と完全に同一。
+        self._naturalness_exempt = frozenset(c.get("naturalness_always_on", ()))
         self.device = torch.device(device)
         self.num_envs = num_envs
         self.num_actions = N_DOF
@@ -931,7 +939,8 @@ class V50WalkEnv:
         stability = self._stability_factor()
         for name, scale in self.reward_scales.items():
             v = getattr(self, f"_r_{name}")() * scale
-            if mask is not None and name in self.NATURALNESS_TERMS:
+            if (mask is not None and name in self.NATURALNESS_TERMS
+                    and name not in self._naturalness_exempt):
                 v = v * mask
             if name in self.PROGRESS_TERMS:
                 v = v * stability
