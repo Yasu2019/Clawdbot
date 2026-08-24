@@ -218,7 +218,28 @@ def main():
     print(f"{'歩幅':22s} {stride:9.3f}m    -")
     print(f"{'歩幅/脚長':22s} {stride/leg_len:11.2f}    {HUMAN['stride_per_leg'][1]}")
     print(f"{'フルード数 Fr':22s} {fr:11.4f}    {HUMAN['froude'][1]}")
-    print(f"{'膝の可動範囲':22s} {kn_range:10.1f}°    遊脚ピーク60〜65°を含む振れ")
+    # 関節の振れ幅。全区間の max-min は「毎歩振っている」のか「ゆっくり
+    # ドリフトした」のかを区別できないので、**1周期分の窓ごとの p2p を平均**した
+    # 値を主指標にし、全区間 max-min は参考として併記する。
+    # 歩幅は主に hip の前後スイングで決まる(step ≈ 2*L*sin(θ))ため、周期内振幅が
+    # 小さければ膝や腰ではなく「脚を振っていない」ことが律速になる。
+    def per_cycle_p2p(sig_deg):
+        w = max(2, int(round(period / env.dt))) if period == period else 20
+        T = sig_deg.shape[0]
+        n = T // w
+        if n < 1:
+            return float("nan")
+        x = sig_deg[: n * w].reshape(n, w, sig_deg.shape[1], sig_deg.shape[2])
+        return float((x.amax(dim=1) - x.amin(dim=1)).mean())
+
+    hp_deg = HIPS * 180.0 / math.pi
+    hp_cycle = per_cycle_p2p(hp_deg)
+    hp_range = (hp_deg.amax(dim=0) - hp_deg.amin(dim=0)).mean().item()
+    kn_cycle = per_cycle_p2p(kn_deg)
+    print(f"{'股関節 1周期の振幅':22s} {hp_cycle:10.1f}°    歩行に必要 約50°(屈曲30/伸展20)")
+    print(f"{'股関節 全区間max-min':22s} {hp_range:10.1f}°    (参考。ドリフト込み)")
+    print(f"{'膝 1周期の振幅':22s} {kn_cycle:10.1f}°    遊脚ピーク60〜65°を含む振れ")
+    print(f"{'膝 全区間max-min':22s} {kn_range:10.1f}°    (参考。ドリフト込み)")
     print(f"{'膝角(遊脚中,|平均|)':22s} {kn_swing.mean().item():10.1f}°    {HUMAN['knee_swing_deg'][1]}")
     print(f"{'膝角(立脚中,|平均|)':22s} {kn_stance.mean().item():10.1f}°    {HUMAN['knee_stance_deg'][1]}")
     print(f"{'足クリアランス(遊脚平均)':22s} {clr_swing.mean().item()*100:9.1f}cm   目標10cm(人間8〜12cm)")
