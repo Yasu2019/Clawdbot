@@ -1,0 +1,125 @@
+<?xml version="1.0" ?>
+<mujoco model="V50_Mecha">
+  <compiler angle="degree" coordinate="local" inertiafromgeom="false"/>
+  <option timestep="0.002" integrator="RK4" gravity="0 0 -9.81"/>
+  <default>
+    <geom condim="3" friction="1.0 0.005 0.0001" material="" contype="1" conaffinity="1"/>
+    <motor ctrllimited="true" ctrlrange="-1 1"/>
+  </default>
+  <asset>
+    <texture builtin="gradient" height="100" rgb1="0.3 0.35 0.4" rgb2="0.0 0.0 0.0" type="skybox" width="100"/>
+    <texture builtin="flat" height="1278" mark="cross" markrgb="1 1 1" name="texgeom" random="0.01" rgb1="0.8 0.6 0.4" rgb2="0.8 0.6 0.4" type="cube" width="127"/>
+    <material name="MatGeom" reflectance="0" shininess="0.1" specular="0.5" texrepeat="5 5" texture="texgeom"/>
+  </asset>
+  <worldbody>
+    <geom name="floor" pos="0 0 -0.92" size="20 20 0.1" type="plane" material="MatGeom"/>
+    <light cutoff="100" diffuse="1 1 1" dir="-0 0 -1.3" directional="true" exponent="1" pos="0 0 2.5" specular="0.1 0.1 0.1"/>
+    <body name="torso" pos="0.013 0.0 0.354">
+      <inertial pos="0 0 0" mass="112.0" diaginertia="2.24 2.24 1.68"/>
+      <joint name="root" type="free" pos="0 0 0" limited="false"/>
+      <geom name="torso_geom" type="capsule" fromto="0 0 0.30 0 0 -0.35" size="0.12" material="MatGeom"/>
+      <body name="upper_leg_L" pos="-0.213 0.0 -0.334">
+        <inertial pos="0 0 0" mass="22.400000000000002" diaginertia="0.5076628666666666 0.5076628666666666 0.5076628666666666"/>
+        <joint name="hip_L" type="hinge" axis="1 0 0" pos="0 0 0" limited="true" range="-40.0 40.0" damping="5" stiffness="0"/>
+        <geom name="upper_leg_L_geom" type="capsule" fromto="0 0 0 -0.04 0.0 -0.52" size="0.045" material="MatGeom"/>
+        <body name="lower_leg_L" pos="-0.04 0.0 -0.52">
+          <inertial pos="0 0 0" mass="14.0" diaginertia="0.168555345 0.168555345 0.168555345"/>
+          <joint name="knee_L" type="hinge" axis="1 0 0" pos="0 0 0" limited="true" range="-30.0 10.0" damping="5" stiffness="0"/>
+          <geom name="lower_leg_L_geom" type="capsule" fromto="0 0 0 -0.01 0.0 -0.38" size="0.038" material="MatGeom"/>
+          <body name="foot_L" pos="-0.01 0.0 -0.38">
+            <inertial pos="0 0 0" mass="5.6000000000000005" diaginertia="0.016800000000000002 0.016800000000000002 0.016800000000000002"/>
+            <joint name="ankle_L" type="hinge" axis="1 0 0" pos="0 0 0" limited="true" range="-20.0 20.0" damping="5" stiffness="0"/>
+            <geom name="foot_L_geom" type="capsule" fromto="0 0 0 0.15 0 -0.05" size="0.032" material="MatGeom"/>
+            <geom name="foot_L_contact" type="sphere" size="0.04" pos="0.15 0 -0.08" condim="6" friction="1.5 0.01 0.001"/>
+          </body>
+        </body>
+      </body>
+      <body name="upper_leg_R" pos="0.207 0.0 -0.334">
+        <inertial pos="0 0 0" mass="22.400000000000002" diaginertia="0.5064953786666667 0.5064953786666667 0.5064953786666667"/>
+        <joint name="hip_R" type="hinge" axis="1 0 0" pos="0 0 0" limited="true" range="-40.0 40.0" damping="5" stiffness="0"/>
+        <geom name="upper_leg_R_geom" type="capsule" fromto="0 0 0 0.03 0.0 -0.52" size="0.045" material="MatGeom"/>
+        <body name="lower_leg_R" pos="0.03 0.0 -0.52">
+          <inertial pos="0 0 0" mass="14.0" diaginertia="0.168555345 0.168555345 0.168555345"/>
+          <joint name="knee_R" type="hinge" axis="1 0 0" pos="0 0 0" limited="true" range="-30.0 10.0" damping="5" stiffness="0"/>
+          <geom name="lower_leg_R_geom" type="capsule" fromto="0 0 0 0.01 0.0 -0.38" size="0.038" material="MatGeom"/>
+          <body name="foot_R" pos="0.01 0.0 -0.38">
+            <inertial pos="0 0 0" mass="5.6000000000000005" diaginertia="0.016800000000000002 0.016800000000000002 0.016800000000000002"/>
+            <joint name="ankle_R" type="hinge" axis="1 0 0" pos="0 0 0" limited="true" range="-20.0 20.0" damping="5" stiffness="0"/>
+            <geom name="foot_R_geom" type="capsule" fromto="0 0 0 0.15 0 -0.05" size="0.032" material="MatGeom"/>
+            <geom name="foot_R_contact" type="sphere" size="0.04" pos="0.15 0 -0.08" condim="6" friction="1.5 0.01 0.001"/>
+          </body>
+        </body>
+      </body>
+      <body name="upper_arm_L" pos="-0.531 0.0 0.187">
+        <inertial pos="0 0 0" mass="11.200000000000001" diaginertia="0.11134774933333334 0.11134774933333334 0.11134774933333334"/>
+        <joint name="shoulder_L" type="hinge" axis="1 0 0" pos="0 0 0" limited="true" range="-100.0 100.0" damping="5" stiffness="0"/>
+        <geom name="upper_arm_L_geom" type="capsule" fromto="0 0 0 0.08 0.0 -0.336" size="0.038" material="MatGeom"/>
+        <body name="lower_arm_L" pos="0.08 0.0 -0.336">
+          <inertial pos="0 0 0" mass="7.0" diaginertia="0.08016078583333332 0.08016078583333332 0.08016078583333332"/>
+          <joint name="elbow_L" type="hinge" axis="1 0 0" pos="0 0 0" limited="true" range="-120.0 10.0" damping="5" stiffness="0"/>
+          <geom name="lower_arm_L_geom" type="capsule" fromto="0 0 0 -0.022 0.0 -0.37" size="0.030" material="MatGeom"/>
+          <body name="hand_L" pos="-0.022 0.0 -0.37">
+            <inertial pos="0 0 0" mass="2.8000000000000003" diaginertia="0.0028000000000000004 0.0028000000000000004 0.0028000000000000004"/>
+            <joint name="wrist_L" type="hinge" axis="1 0 0" pos="0 0 0" limited="true" range="-30.0 30.0" damping="5" stiffness="0"/>
+            <geom name="hand_L_geom" type="sphere" size="0.03" pos="0 0 -0.06" material="MatGeom"/>
+          </body>
+        </body>
+      </body>
+      <body name="upper_arm_R" pos="0.49 0.0 0.178">
+        <inertial pos="0 0 0" mass="11.200000000000001" diaginertia="0.11134774933333334 0.11134774933333334 0.11134774933333334"/>
+        <joint name="shoulder_R" type="hinge" axis="1 0 0" pos="0 0 0" limited="true" range="-100.0 100.0" damping="5" stiffness="0"/>
+        <geom name="upper_arm_R_geom" type="capsule" fromto="0 0 0 -0.048 0.0 -0.342" size="0.038" material="MatGeom"/>
+        <body name="lower_arm_R" pos="-0.048 0.0 -0.342">
+          <inertial pos="0 0 0" mass="7.0" diaginertia="0.06199433333333334 0.06199433333333334 0.06199433333333334"/>
+          <joint name="elbow_R" type="hinge" axis="1 0 0" pos="0 0 0" limited="true" range="-120.0 10.0" damping="5" stiffness="0"/>
+          <geom name="lower_arm_R_geom" type="capsule" fromto="0 0 0 0.025 0.0 -0.325" size="0.030" material="MatGeom"/>
+          <body name="hand_R" pos="0.025 0.0 -0.325">
+            <inertial pos="0 0 0" mass="2.8000000000000003" diaginertia="0.0028000000000000004 0.0028000000000000004 0.0028000000000000004"/>
+            <joint name="wrist_R" type="hinge" axis="1 0 0" pos="0 0 0" limited="true" range="-30.0 30.0" damping="5" stiffness="0"/>
+            <geom name="hand_R_geom" type="sphere" size="0.03" pos="0 0 -0.06" material="MatGeom"/>
+          </body>
+        </body>
+      </body>
+    </body>
+  </worldbody>
+  <actuator>
+    <motor name="act_hip_L" joint="hip_L" gear="400"/>
+    <motor name="act_knee_L" joint="knee_L" gear="300"/>
+    <motor name="act_ankle_L" joint="ankle_L" gear="200"/>
+    <motor name="act_hip_R" joint="hip_R" gear="400"/>
+    <motor name="act_knee_R" joint="knee_R" gear="300"/>
+    <motor name="act_ankle_R" joint="ankle_R" gear="200"/>
+    <motor name="act_shoulder_L" joint="shoulder_L" gear="200"/>
+    <motor name="act_elbow_L" joint="elbow_L" gear="150"/>
+    <motor name="act_wrist_L" joint="wrist_L" gear="80"/>
+    <motor name="act_shoulder_R" joint="shoulder_R" gear="200"/>
+    <motor name="act_elbow_R" joint="elbow_R" gear="150"/>
+    <motor name="act_wrist_R" joint="wrist_R" gear="80"/>
+  </actuator>
+  <sensor>
+    <jointpos name="pos_hip_L" joint="hip_L"/>
+    <jointvel name="vel_hip_L" joint="hip_L"/>
+    <jointpos name="pos_knee_L" joint="knee_L"/>
+    <jointvel name="vel_knee_L" joint="knee_L"/>
+    <jointpos name="pos_ankle_L" joint="ankle_L"/>
+    <jointvel name="vel_ankle_L" joint="ankle_L"/>
+    <jointpos name="pos_hip_R" joint="hip_R"/>
+    <jointvel name="vel_hip_R" joint="hip_R"/>
+    <jointpos name="pos_knee_R" joint="knee_R"/>
+    <jointvel name="vel_knee_R" joint="knee_R"/>
+    <jointpos name="pos_ankle_R" joint="ankle_R"/>
+    <jointvel name="vel_ankle_R" joint="ankle_R"/>
+    <jointpos name="pos_shoulder_L" joint="shoulder_L"/>
+    <jointvel name="vel_shoulder_L" joint="shoulder_L"/>
+    <jointpos name="pos_elbow_L" joint="elbow_L"/>
+    <jointvel name="vel_elbow_L" joint="elbow_L"/>
+    <jointpos name="pos_wrist_L" joint="wrist_L"/>
+    <jointvel name="vel_wrist_L" joint="wrist_L"/>
+    <jointpos name="pos_shoulder_R" joint="shoulder_R"/>
+    <jointvel name="vel_shoulder_R" joint="shoulder_R"/>
+    <jointpos name="pos_elbow_R" joint="elbow_R"/>
+    <jointvel name="vel_elbow_R" joint="elbow_R"/>
+    <jointpos name="pos_wrist_R" joint="wrist_R"/>
+    <jointvel name="vel_wrist_R" joint="wrist_R"/>
+  </sensor>
+</mujoco>
