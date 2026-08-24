@@ -14,9 +14,33 @@ import numpy as np
 # V50 DOF順(train_v50_walk_tracking.DOF_NAMES と一致必須)
 DOF_NAMES = ["hip_L","knee_L","ankle_L","hip_R","knee_R","ankle_R",
              "shoulder_L","elbow_L","wrist_L","shoulder_R","elbow_R","wrist_R"]
-# V50関節可動域(MJCF実測: probe7)。mocap角はここへクリップされる。
-LIMITS = {"hip": (-0.7, 0.7), "knee": (-0.52, 0.17), "ankle": (-0.35, 0.35),
-          "shoulder": (-1.75, 1.75), "elbow": (-2.09, 0.17), "wrist": (-0.52, 0.52)}
+# V50関節可動域。mocap角はここへクリップ/圧縮される(fit_amplitude)。
+#
+# 2026-08-24: **MJCF から読む**ように変更した。従来はここに数値を直接持っており
+# (hip ±0.7 / knee -0.52..0.17 / ankle ±0.35 rad)、MJCF の値のコピーになっていた。
+# 膝可動域を -30° -> -65° に広げた際、MJCF だけ変えても参照の膝振幅が -26° の
+# ままになる二重管理バグを踏みかけた(T067「XMLと期待高さの二重管理で片方だけ
+# ズレる」と同じ形)。値の出所は MJCF ひとつに統一する。
+MJCF_SRC = (r"D:\Clawdbot_Docker_20260125\projects\AtsugiMechaCity"
+            r"\rl_integration\artifacts\v50_mecha.xml")
+
+
+def load_limits(mjcf_path=MJCF_SRC):
+    """MJCF の joint range(度)を {関節名接頭辞: (lo, hi)} ラジアンで返す。
+
+    MuJoCo は compiler の angle 既定が degree なので度→ラジアン変換する。
+    左右で同じ値を前提とし、_L 側を代表として読む。"""
+    xml = open(mjcf_path, encoding="utf-8").read()
+    out = {}
+    for key in ("hip", "knee", "ankle", "shoulder", "elbow", "wrist"):
+        m = re.search(rf'<joint name="{key}_L"[^>]*range="([-\d.]+)\s+([-\d.]+)"', xml)
+        if not m:
+            raise RuntimeError(f"{mjcf_path} に joint {key}_L の range が見つからない")
+        out[key] = (math.radians(float(m.group(1))), math.radians(float(m.group(2))))
+    return out
+
+
+LIMITS = load_limits()
 
 
 # ---------- BVH parser + FK ----------
