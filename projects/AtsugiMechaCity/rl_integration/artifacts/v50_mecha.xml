@@ -24,7 +24,7 @@
         <geom name="upper_leg_L_geom" type="capsule" fromto="0 0 0 -0.04 0.0 -0.52" size="0.045" material="MatGeom"/>
         <body name="lower_leg_L" pos="-0.04 0.0 -0.52">
           <inertial pos="0 0 0" mass="14.0" diaginertia="0.168555345 0.168555345 0.168555345"/>
-          <joint name="knee_L" type="hinge" axis="1 0 0" pos="0 0 0" limited="true" range="-65.0 10.0" damping="5" stiffness="0"/>
+          <joint name="knee_L" type="hinge" axis="1 0 0" pos="0 0 0" limited="true" range="-30.0 10.0" damping="5" stiffness="0"/>
           <geom name="lower_leg_L_geom" type="capsule" fromto="0 0 0 -0.01 0.0 -0.38" size="0.038" material="MatGeom"/>
           <body name="foot_L" pos="-0.01 0.0 -0.38">
             <inertial pos="0 0 0" mass="5.6000000000000005" diaginertia="0.016800000000000002 0.016800000000000002 0.016800000000000002"/>
@@ -40,7 +40,7 @@
         <geom name="upper_leg_R_geom" type="capsule" fromto="0 0 0 0.03 0.0 -0.52" size="0.045" material="MatGeom"/>
         <body name="lower_leg_R" pos="0.03 0.0 -0.52">
           <inertial pos="0 0 0" mass="14.0" diaginertia="0.168555345 0.168555345 0.168555345"/>
-          <joint name="knee_R" type="hinge" axis="1 0 0" pos="0 0 0" limited="true" range="-65.0 10.0" damping="5" stiffness="0"/>
+          <joint name="knee_R" type="hinge" axis="1 0 0" pos="0 0 0" limited="true" range="-30.0 10.0" damping="5" stiffness="0"/>
           <geom name="lower_leg_R_geom" type="capsule" fromto="0 0 0 0.01 0.0 -0.38" size="0.038" material="MatGeom"/>
           <body name="foot_R" pos="0.01 0.0 -0.38">
             <inertial pos="0 0 0" mass="5.6000000000000005" diaginertia="0.016800000000000002 0.016800000000000002 0.016800000000000002"/>
