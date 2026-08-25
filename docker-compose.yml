@@ -300,6 +300,7 @@ services:
       - ./clawstack_v2/data/work:/work
     working_dir: /work
     command: [ "bash", "-lc", "sleep infinity" ]
+    restart: unless-stopped
 
   progressive_die_hub:
     build: ./clawstack_v2/docker/progressive_die_hub
