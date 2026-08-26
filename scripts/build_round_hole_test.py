@@ -38,7 +38,9 @@ DEFAULT_GAP_MAX = 15.0e-6
 DEFAULT_STFAC = 1.0
 DEFAULT_NSTEP = 10
 TOOL_DEPTH = 0.3e-3
-TOOL_ELEM = 60.0e-6
+TOOL_ELEM = 20.0e-6              # 材料と同等以下。粗いと円形パンチの階段近似が
+                                  # 材料の細メッシュに対して不均一な接触段差を作り、
+                                  # 局所的な食い込みでdtが崩壊する(RH1で実証)。
 
 I10 = "{:>10d}"
 F20 = "{:>20.10g}"
