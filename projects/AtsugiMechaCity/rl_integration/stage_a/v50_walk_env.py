@@ -1158,7 +1158,17 @@ class V50WalkEnv:
         # +0.0144 -> +0.0221 -> +0.0315 と増加し、freeze(立ちっぱなし)の主因だった。
         # 他の罰項(velocity_ceiling / lin_vel_z 等)と同じく**正の大きさ**を返し、
         # 符号は係数側に持たせる規約に揃える。
-        return (self.double_support_ema - 0.20).clamp(min=0.0) ** 2
+        # 2026-08-26: 片側罰は**反対側に振り切れたとき無防備**になる。
+        # feet_air_time を 2.0->60.0 に上げた v51 で両脚支持が 7.6% まで落ちたが、
+        # clamp(min=0.0) のためこの項は厳密にゼロで、人間の 20% へ引き戻す力が
+        # 報酬系のどこにも無かった(単脚支持90%で歩行でも走行でもない duty factor)。
+        # two_sided=True で下限側も罰する。既定は False = 従来と完全に同一。
+        # この項は過去に符号バグで freeze(立ちっぱなし)を誘発した履歴があるため、
+        # 既定の挙動は変えずフラグで切り替える。
+        dev = self.double_support_ema - 0.20
+        if self.cfg.get("double_support_two_sided"):
+            return dev ** 2
+        return dev.clamp(min=0.0) ** 2
 
     def _r_gait_phase_contact(self):
         """位相と接地状態の一致度。unitree_rl_gym G1 の `_reward_contact` 相当。

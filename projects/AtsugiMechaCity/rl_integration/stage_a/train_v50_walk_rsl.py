@@ -299,6 +299,11 @@ def main():
     ap.add_argument("--push-curriculum-frac", type=float, default=0.0, metavar="F",
                     help="push_vel を 0 から設定値まで、学習全体の F 割の区間で線形に"
                          "上げる(0=無効, 例 0.3 なら最初の30%%で最終強度に達し以後維持)")
+    ap.add_argument("--double-support-two-sided", action="store_true",
+                    help="double_support_ratio を両側罰にする。既定は 20% を"
+                         "**超えたときだけ**罰す片側で、下回っても何も起きないため "
+                         "feet_air_time を強めると duty factor が走行寄りに崩れる"
+                         "(v51 実測: 両脚支持 7.6% / 単脚 90%)。")
     ap.add_argument("--clearance-on-terrain", action="store_true",
                     help="corridor系のみ: foot_clearance を naturalness マスクから"
                          "免除し、階段・斜面でも足上げ報酬を効かせる。既定では "
@@ -347,6 +352,8 @@ def main():
         cfg["no_naturalness"] = True
     if args.clearance_on_terrain:
         cfg["naturalness_always_on"] = ("foot_clearance",)
+    if args.double_support_two_sided:
+        cfg["double_support_two_sided"] = True
     # 2026-08-08: 報酬係数を対照実験のため上書きできるようにする。
     # 背景: 未コミットの階段用チューニング(T079c/e/f/g/h)が平地にも効いており、
     # 特に velocity_ceiling(-6.0) は docstring 通り「地形ゲート無し・無条件」で、
