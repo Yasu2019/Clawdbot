@@ -280,11 +280,20 @@ def build(tag, elem, patch, clearance, tstop, eps_s, eps_eff, nz, punch_speed):
     L.append("#                  X                   Y")
     L.append(f"{f20(0.0)}{f20(0.0)}")
     L.append(f"{f20(1.0)}{f20(0.0)}")
+    # 速度指令は必ず滑らかな立ち上がりにする。瞬間発進は円周全体が同時接触する
+    # 丸穴形状で局所貫入(pinch)を誘発しdtを崩壊させる(過去のMPM調査と同じ教訓、
+    # RH1/RH2で実証済み)。smoothstep(3x^2-2x^3)でramp_time秒かけて立ち上げる。
+    ramp_time = max(tstop * 0.08, 3.0e-6)
+    n_ramp = 12
     L.append("/FUNCT/3")
-    L.append("Punch_Const_Speed")
+    L.append("Punch_Smooth_Ramp")
     L.append("#                  X                   Y")
-    L.append(f"{f20(0.0)}{f20(-punch_speed)}")
-    L.append(f"{f20(1.0)}{f20(-punch_speed)}")
+    for k in range(n_ramp + 1):
+        x = ramp_time * k / n_ramp
+        s = k / n_ramp
+        v = -punch_speed * (3 * s * s - 2 * s * s * s)
+        L.append(f"{f20(x)}{f20(v)}")
+    L.append(f"{f20(tstop * 2)}{f20(-punch_speed)}")
 
     L.append("/IMPVEL/1")
     L.append("Punch_Z")
