@@ -100,6 +100,7 @@ def main():
     steps = int(a.seconds / env.dt)
     C, VX, KN, HIPS, SHO, PITCH, ALIVE = [], [], [], [], [], [], []
     CLR = []
+    FY = []
     for _ in range(steps):
         with torch.no_grad():
             o = norm(obs) if norm is not None else obs
@@ -107,6 +108,10 @@ def main():
         obs, _, rst, _ = env.step(act)
         C.append(env.contacts.clone())
         CLR.append(env.foot_clearance.clone())
+        # 足の前後位置(world)。歩幅は周期検出にも幾何モデルにも依存せず、
+        # 接地の瞬間の両足間隔として直接測れる。接地中の足が world で動いて
+        # いれば滑っており、脚の振りが前進に変換されていない。
+        FY.append((V50.FWD_SIGN * env.foot_pos[:, :, V50.FWD_AXIS]).clone())
         VX.append((V50.FWD_SIGN * env.lin_vel[:, V50.FWD_AXIS]).clone())
         q = env.robot.get_dofs_position(dofs_idx_local=env.dof_idx)
         KN.append(q[:, [D["knee_L"], D["knee_R"]]].clone())
@@ -120,6 +125,7 @@ def main():
 
     C = torch.stack(C)                       # (T,N,2)
     CLR = torch.stack(CLR)                   # (T,N,2) 立位足高さからの持ち上げ量[m]
+    FY = torch.stack(FY)                     # (T,N,2) 足の前後位置(world)[m]
     VX = torch.stack(VX); KN = torch.stack(KN)
     HIPS = torch.stack(HIPS); SHO = torch.stack(SHO); PITCH = torch.stack(PITCH)
     ALIVE = torch.stack(ALIVE)
@@ -131,6 +137,7 @@ def main():
         sys.exit(2)
     C, VX, KN = C[:, keep], VX[:, keep], KN[:, keep]
     CLR = CLR[:, keep]
+    FY = FY[:, keep]
     HIPS, SHO, PITCH = HIPS[:, keep], SHO[:, keep], PITCH[:, keep]
 
     nfeet = C.sum(dim=2)                     # (T,N) 0/1/2
@@ -195,6 +202,36 @@ def main():
     clr_swing = CLR[swing_c]
     clr_peak = (CLR * swing_c.float()).amax(dim=0).mean().item()
 
+    # --- 歩幅を周期検出にも幾何モデルにも依存せず直接測る ---
+    #
+    # (1) 接地の瞬間の両足間隔 = その一歩の踏み出し幅。周期の数え違いに影響されない。
+    # (2) 接地中の足が world で動く量 = 滑り。planted なら 0 のはず。滑っていれば
+    #     脚の振りが前進に変換されていない。
+    # 幾何の粗い見積り(股±15度・脚長0.94mなら1周期0.97m)と実測0.31m/周期の
+    # 食い違いが、(1)小さい歩幅なのか (2)滑りなのか をここで切り分ける。
+    td_any = (C[1:] & ~C[:-1])                       # (T-1,N,2) 各足の接地開始
+    gap = (FY[1:, :, 0] - FY[1:, :, 1]).abs()        # 両足の前後間隔
+    td_mask = td_any.any(dim=2)
+    step_gap = float(gap[td_mask].mean()) if bool(td_mask.any()) else float("nan")
+
+    # 接地の瞬間の膝角。人間は遊脚中期に膝を曲げて地面を避け、**接地直前に伸ばして
+    # 前へリーチする**。ここが曲がったままだと実効脚長が縮み、股関節を振っても
+    # 足が遠くに置けない(股±15度・脚長0.94mなら本来 一歩0.49m 届くはず)。
+    kn_td = kn_deg[1:].abs()[td_any]
+    knee_at_td = float(kn_td.mean()) if bool(td_any.any()) else float("nan")
+
+    # 接地の瞬間の両脚の開き(股関節角の差)。1周期の振幅が大きくても、
+    # 遊脚中に前へ振り出したあと着地前に引き戻していれば、接地時には開いておらず
+    # 一歩は短くなる。振幅と接地時の開きを分けて見る。
+    hp_deg_ = HIPS * 180.0 / math.pi
+    hip_split = (hp_deg_[1:, :, 0] - hp_deg_[1:, :, 1]).abs()
+    hip_split_td = float(hip_split[td_any.any(dim=2)].mean()) if bool(td_any.any()) else float("nan")
+    hip_split_max = float(hip_split.amax(dim=0).mean())
+
+    both_contact = C[1:] & C[:-1]                    # 連続2ステップとも接地
+    dfy = (FY[1:] - FY[:-1]).abs()
+    slip_v = float(dfy[both_contact].mean() / env.dt) if bool(both_contact.any()) else float("nan")
+
     pitch_deg = PITCH * 180.0 / math.pi
     pitch_mean = pitch_deg.mean().item()
     pitch_range = (pitch_deg.amax(dim=0) - pitch_deg.amin(dim=0)).mean().item()
@@ -242,6 +279,12 @@ def main():
     print(f"{'膝 全区間max-min':22s} {kn_range:10.1f}°    (参考。ドリフト込み)")
     print(f"{'膝角(遊脚中,|平均|)':22s} {kn_swing.mean().item():10.1f}°    {HUMAN['knee_swing_deg'][1]}")
     print(f"{'膝角(立脚中,|平均|)':22s} {kn_stance.mean().item():10.1f}°    {HUMAN['knee_stance_deg'][1]}")
+    print(f"{'接地時の両足間隔':22s} {step_gap:10.3f}m    一歩の踏み出し幅(周期検出に非依存)")
+    print(f"{'  同 /脚長':22s} {step_gap/leg_len:10.2f}     人間の一歩 ≈ 0.78(歩幅1.55の半分)")
+    print(f"{'立脚中の足の滑り':22s} {slip_v:10.3f}m/s  planted なら約0。歩行速度に近ければ滑走")
+    print(f"{'接地時の膝屈曲':22s} {knee_at_td:10.1f}°    人間は接地直前に伸ばす(ほぼ0°)")
+    print(f"{'接地時の両脚の開き':22s} {hip_split_td:10.1f}°    一歩0.17mから逆算すると約10.6°")
+    print(f"{'両脚の開き 最大':22s} {hip_split_max:10.1f}°    接地時<<最大なら着地前に引き戻している")
     print(f"{'足クリアランス(遊脚平均)':22s} {clr_swing.mean().item()*100:9.1f}cm   目標10cm(人間8〜12cm)")
     print(f"{'足クリアランス(遊脚ピーク)':22s} {clr_peak*100:9.1f}cm   -")
     print(f"{'腕振り範囲':22s} {sho_range:10.1f}°    -")
