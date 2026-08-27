@@ -332,7 +332,12 @@ def build(tag, elem, patch, clearance, tstop, eps_s, eps_eff, nz, punch_speed):
     engine = TRIALS / f"ROUND_HOLE_{tag}_0001.rad"
     engine.write_text("\n".join([
         f"/RUN/ROUND_HOLE_{tag}/1", f"{f20(tstop)}", "/DT/NODA/0",
-        f"{f20(0.9)}{f20(0.0)}", "/RFILE/50000", "/TFILE/4", f"{f20(1.0e-6)}",
+        f"{f20(0.9)}{f20(0.0)}",
+        # dtが最小許容値を割る要素は削除する。RH1/RH2/RH3Sで見た「dtが
+        # 1e-9から1e-14まで指数収縮して物理時間が凍結する」パターンへの
+        # 安全弁。GENE1の破断基準とは独立した、純粋な数値的頑健性対策。
+        "/DT/BRICK/DEL", f"{f20(0.9)}{f20(1.0e-11)}",
+        "/RFILE/50000", "/TFILE/4", f"{f20(1.0e-6)}",
         "/ANIM/DT", f"{f20(0.0)}{f20(tstop/12)}",
         "/ANIM/ELEM/EPSP", "/ANIM/ELEM/VONM", "/ANIM/VECT/DISP", "/END", "",
     ]), encoding="utf-8")
