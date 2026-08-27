@@ -1,0 +1,20 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ローカル外観検査AI</title><link rel="stylesheet" href="/ui/styles.css"></head>
+<body><header><h1>ローカル外観検査・寸法測定AI</h1><div id="health">接続確認中...</div></header>
+<div id="factBar">FACT 読込中...</div>
+<nav><button data-tab="inspect" class="active">検査</button><button data-tab="samples">サンプル</button><button data-tab="tags">タグ</button><button data-tab="cases">判定事例</button><button data-tab="reviews">要確認</button><button data-tab="models">モデル</button><button data-tab="metrics">集計</button></nav>
+<main>
+<section id="tab-inspect" class="tab active"><h2>画像検査</h2><form id="inspect-form">
+<label>製品 <select name="product_id"><option value="demo_press_part">デモ用金属プレス部品</option></select></label>
+<label>ロット <input name="lot" placeholder="任意"></label><label>設備 <input name="equipment" placeholder="任意"></label>
+<label class="file">画像 <input type="file" name="file" accept="image/*" required></label><button type="submit">検査実行</button></form>
+<div class="notice-box"><h3>⚠️ 3D深さ測定 (Depth [mm]) の高精度運用に関する注意書き</h3><ul><li><b>実測校正:</b> 段差校正ブロック（段差マスタープレート / ブロックゲージ）を用いた <code>z_scale_mm_per_unit</code> の実測補正を実施してください。</li><li><b>光学ハードウェア連携:</b> 照度差ステレオ用マルチドーム照明（3〜4方向切り替え照明）または 3Dラインレーザーセンサ（3D Profilometer）との連携を推奨します（本アルゴリズムはそのまま適用可能です）。</li></ul></div>
+<div id="inspect-message"></div><div id="result" class="result-grid"></div></section>
+
+<section id="tab-samples" class="tab"><h2>デモ・サンプル(判定+ヒートマップ)</h2><p>Telegramデモ(寸法測定/プレス/樹脂/実データセット)の結果を判定画像と異常ヒートマップのセットで表示します。</p><div class="toolbar"><select id="sample-group"><option value="">全グループ</option></select><button id="reload-samples">更新</button></div><div id="samples"></div></section>
+<section id="tab-tags" class="tab"><h2>サンプルタグ</h2><p>登録済みサンプルをタグ(データセット/外観カテゴリ/判定)で横断検索します。タグをクリックすると絞り込み、再クリックで解除します。</p><div class="toolbar"><button id="reload-tags">更新</button><button id="clear-tags" class="secondary">絞り込み解除</button></div><div id="tag-cloud"></div><div id="tag-results"></div></section>
+<section id="tab-cases" class="tab"><h2>外観毎の判定事例</h2><p>外観カテゴリ(不良モード)毎に、OK/REVIEW/NGの判定事例を判定画像+異常ヒートマップ付きで一覧します。</p><div class="toolbar"><select id="case-dataset"><option value="">全データセット</option></select><select id="case-verdict"><option value="">全判定</option><option>OK</option><option>REVIEW</option><option>NG</option></select><button id="reload-cases">更新</button></div><div id="cases"></div></section>
+<section id="tab-reviews" class="tab"><h2>判定に迷ったもの</h2><div class="toolbar"><select id="review-status"><option>PENDING</option><option>REVIEWED</option><option>ALL</option></select><button id="reload-reviews">更新</button><a href="/api/reports/reviews.csv">CSV出力</a></div><div id="reviews"></div></section>
+<section id="tab-models" class="tab"><h2>Champion / Challenger</h2><p>Challengerは自動昇格しません。固定評価と確認後に昇格してください。</p><button id="train-reference">基準モデル候補を作成</button><button id="reload-models">更新</button><div id="models"></div></section>
+<section id="tab-metrics" class="tab"><h2>集計・性能</h2><button id="reload-metrics">更新</button><pre id="metrics"></pre></section>
+</main><script src="/ui/app.js?v=20260827-fact"></script></body></html>

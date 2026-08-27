@@ -15,6 +15,13 @@
 
 ---
 
+## [S033] 5アプリを最新FACTバーに揃え CETOL の沈黙JSを直した (2026-08-27)
+- 問題: CETOL/Moldflow/VIAI(:18010)/FEM/OpenRadioss の画面が古い成功や読込中のままに見えた。CETOLはJSONがあるのにセレクタも出ない。
+- 診断: CETOLは `typeof fmt === "undefined"` + `node --check` Unexpected token else（snap_fit後の重複 shaft_bearing）。他アプリは last_success / fill_complete をヘッダに出していなかった。
+- 解決: 重複else削除。各ページが live JSON を読んで日付つきFACTを出す。Portalカードも同じ文面。商用同等は併記で否定。
+- 証拠: ブラウザ innerText -- CETOL golden PASS 0.512% + reports STALE 30件; OF fill 99.55% complete=1 trial 481b8240; VIAI 検査34/reviews14/Champion=1; FEM last_success 2026-07-31; OR INC-188 丸穴未解決。
+- 再利用: IF 8088アプリの鮮度を疑う THEN 画面のFACTバーを読む（HTTP 200だけでは不足）。IF CETOL読込のまま THEN node --check。bd `app-page-fact-bar-cetol-viai-20260827`。T082 / INC-189。
+
 ## [S023] MF2010 WarpQueryNode Play Macro で全節点反りCSV成功 (2026-07-31)
 - 問題: `GetVectorData`/studyrlt/`schtasks /IT`+cscript では全節点 Deflection CSV が取れない（ハング、studyrlt不在、StudyDoc無し/424、Automation Unavailable）。
 - 診断: WarpQueryNode API 自体は正しい。失敗主因は MF2010 が複数 Synergy COM を選べないこと＋外付け cscript が誤インスタンスに付くこと。Play Macro 内では公式の `CreateObject` がホストに付く。

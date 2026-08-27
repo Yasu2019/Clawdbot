@@ -241,6 +241,18 @@ td.num { font-variant-numeric: tabular-nums; }
   margin-top: 8px;
 }
 #empty { padding: 40px; text-align: center; color: var(--dim); }
+#liveEvidence {
+  margin: 10px 22px 0;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--tx);
+}
+#liveEvidence.warn { border-color: var(--warn); }
+#liveEvidence.ok { border-color: var(--ok); }
 </style>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -258,6 +270,7 @@ td.num { font-variant-numeric: tabular-nums; }
   <select id="partSel" style="margin-left: 16px;"></select>
   <div id="meta"></div>
 </header>
+<div id="liveEvidence">Golden / レポート鮮度を読込中...</div>
 
 <main>
   <div id="empty">cetol_reports.json を読み込んでいます...</div>
@@ -1934,21 +1947,6 @@ function animate() {
     if (connectorGroup) {
       connectorGroup.rotation.y = -0.15 + Math.sin(Date.now() * 0.00015) * 0.1;
     }
-  }
-    // Exact radial rolling bounded by physical clearance gap (0.0875mm)
-    const sc = 3.5;
-    const shaft_d = (currentReportData?.shaft_bearing_params?.shaft_d_mm) || 10.0;
-    const bore_d = (currentReportData?.shaft_bearing_params?.bore_d_mm) || 10.05;
-    const max_clr = (bore_d - shaft_d) / 2 * sc * 0.88; // 88% of physical clearance gap
-    
-    const cycle = Date.now() * 0.003;
-    shaftMesh.position.x = max_clr * Math.cos(cycle);
-    shaftMesh.position.y = max_clr * Math.sin(cycle);
-    shaftMesh.rotation.y += 0.03;
-    
-    if (connectorGroup) {
-      connectorGroup.rotation.y = 0.22 + Math.sin(Date.now() * 0.0002) * 0.15;
-    }
   } else if (connectorMode === "bolt_joint" && plateTop) {
     // Shear vibration bounded strictly within hole radial clearance (1.0mm)
     const cycle = Math.sin(Date.now() * 0.004);
@@ -2767,7 +2765,12 @@ function updateFeaVisualization() {
 }
 
 // Fetch JSON data and initialize dashboard
-fetch("cetol_reports.json?ts=" + Date.now()).then(res => res.json()).then(j => {
+Promise.all([
+  fetch("cetol_reports.json?ts=" + Date.now()).then(res => res.json()),
+  fetch("../../cetol_golden_status.json?ts=" + Date.now(), { cache: "no-store" })
+    .then(res => res.ok ? res.json() : null)
+    .catch(() => null)
+]).then(([j, golden]) => {
 
   DATA = j;
   const reps = j.reports || [];
@@ -2781,6 +2784,19 @@ fetch("cetol_reports.json?ts=" + Date.now()).then(res => res.json()).then(j => {
   const meta = document.getElementById("meta");
   meta.textContent = `生成: ${j.generated_at || "—"} / ${reps.length}件${stale}`;
   if (stale) meta.style.color = "var(--warn)";
+
+  const ev = document.getElementById("liveEvidence");
+  if (ev) {
+    const gAt = golden && (golden.checked_at || golden.at);
+    const gV = golden && golden.verdict;
+    const gErr = golden && golden.max_err_pct;
+    ev.innerHTML = "<strong>FACT</strong> golden " + (gV || "-") + " " + (gAt || "-")
+      + " max_err=" + (gErr != null ? gErr + "%" : "-")
+      + " (g1/g2/g3 1D stack) ／ reports " + (j.generated_at || "-") + " " + reps.length + "件"
+      + (stale ? " STALE" : "")
+      + " ／ 商用Cetol 6 Sigma同等とは書かない";
+    ev.className = (stale || gV !== "PASS") ? "warn" : "ok";
+  }
   
   if (!reps.length) {
     document.getElementById("empty").textContent = "レポート件数が0件です。";
@@ -2800,6 +2816,11 @@ fetch("cetol_reports.json?ts=" + Date.now()).then(res => res.json()).then(j => {
   render(reps[0]);
 }).catch(err => {
   document.getElementById("empty").textContent = `cetol_reports.json を読み込めません (${err.message || err})`;
+  const ev = document.getElementById("liveEvidence");
+  if (ev) {
+    ev.textContent = "レポート JSON を読めません";
+    ev.className = "warn";
+  }
 });
 </script>
 </body>

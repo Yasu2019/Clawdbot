@@ -23,11 +23,13 @@
   details { margin-top:12px; } summary { color:var(--muted); cursor:pointer; font-size:0.85rem; }
   pre { background:rgba(0,0,0,0.35); padding:12px; border-radius:8px; overflow:auto; font-size:0.75rem; max-height:300px; }
   .note { color:var(--muted); font-size:0.8rem; margin-top:24px; max-width:1200px; }
+  #liveEvidence { color:var(--warn); font-size:0.85rem; line-height:1.5; margin:-16px 0 22px; max-width:1200px; }
 </style>
 </head>
 <body>
 <h1>🛡️ Impact FEM Lab</h1>
 <div class="sub">ThinkPad衛星ノードでの衝撃FEM (fem_impact@thinkpad)。実ステータスJSONの直読み表示 — 演出・モックなし (T019/P025準拠)。 <a href="../../portal.html">← Portal</a></div>
+<div id="liveEvidence">Tri-track FACT 読込中...</div>
 <div class="grid">
   <div class="panel" id="p-deploy"><h2>ThinkPad デプロイ状態</h2><div class="body">読み込み中...</div></div>
   <div class="panel" id="p-auto"><h2>自律ループ (autonomous)</h2><div class="body">読み込み中...</div></div>
@@ -82,6 +84,16 @@ j('k10_tri_track_cae_status.json').then(d=>{
   if (tr){
     h += kv('verdict', (tr.last||{}).verdict||'-');
     h += kv('fail_streak', tr.fail_streak ?? '-');
+    const ls = tr.last_success || {};
+    h += kv('last_success', ls.at || '-');
+    h += kv('last_success trial', ls.trial_id || '-');
+    if (ls.kpis) h += kv('last_success KPIs', JSON.stringify(ls.kpis));
+    const ev = document.getElementById('liveEvidence');
+    if (ev) {
+      ev.textContent = 'FACT last_success ' + (ls.at || '-') + ' ' + (ls.trial_id || '')
+        + ' ／ 直近 ' + ((tr.last || {}).verdict || '-') + ' ' + ((tr.last || {}).at || '')
+        + ' ／ 商用衝撃FEM同等とは書かない';
+    }
   } else {
     h += kv('track', '<span class="badge b-warn">tracksに未登場(未実行/別経路)</span>');
   }

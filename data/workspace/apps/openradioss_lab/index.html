@@ -124,6 +124,7 @@
       <a href="../../portal.html">← Portal</a>
       · <a href="../cae_te_dashboard/index.html">CAE T&amp;E</a>
       · <a href="../fem_impact/index.html">Impact FEM</a>
+      <div id="liveEvidence" style="margin-top:8px">FACT 読込中...</div>
     </div>
   </div>
   <div class="hdr-right">
@@ -151,6 +152,7 @@
     <div class="panel" id="p-track"><h2>Tri-Track (red_lavie)</h2><div class="body">読み込み中...</div></div>
     <div class="panel" id="p-pdca"><h2>PDCA 最終成功ラン</h2><div class="body">読み込み中...</div></div>
     <div class="panel" id="p-evo"><h2>Trial Evolution (P026)</h2><div class="body">読み込み中...</div></div>
+    <div class="panel" id="p-inc188"><h2>INC-188 せん断診断（8月以降）</h2><div class="body">読み込み中...</div></div>
     <div class="panel" id="p-ov"><h2>Param Overrides</h2><div class="body">読み込み中...</div></div>
     <div class="panel" id="p-imp"><h2>Meaning-Gate Improver</h2><div class="body">読み込み中...</div></div>
     <div class="panel" id="p-heal"><h2>Self-Heal</h2><div class="body">読み込み中...</div></div>
@@ -275,6 +277,9 @@ async function renderFromBundle(status){
     h += kv("at", esc(last.at || "-"));
     h += kv("fail_streak", `<span class="badge ${Number(track.fail_streak)>=8?"b-bad":"b-ok"}">${esc(track.fail_streak)}</span>`);
     h += kv("n", esc(track.n));
+    const ls = track.last_success || {};
+    h += kv("last_success", esc(ls.at || "-"));
+    h += kv("last_success trial", esc(ls.trial_id || "-"));
     h += kv("意味ゲート", gate.stopped ? '<span class="badge b-bad">停止</span>' : '<span class="badge b-ok">稼働可</span>');
     document.querySelector("#p-track .body").innerHTML = h + raw(track);
   }
@@ -304,6 +309,27 @@ async function renderFromBundle(status){
     h += kv("fingerprint", esc(e.fingerprint||"-"));
     h += kv("kpis", esc(JSON.stringify(e.kpis||{})));
     document.querySelector("#p-evo .body").innerHTML = h + raw(e);
+  }
+
+  try {
+    const inc = await jStatic("openradioss_inc188_status.json");
+    let ih = kv("as_of", esc(inc.as_of || "-"));
+    ih += kv("label", verdictBadge(inc.label));
+    ih += kv("tri-track 最終SUCCESS", esc((inc.tri_track_last_success||{}).at || "-"));
+    ih += kv("成立", esc((inc.established||[]).join(" / ")));
+    ih += kv("未解決", esc((inc.open||[]).join(" / ")));
+    ih += kv("コンテナ計算中", inc.container && inc.container.computing ? "yes" : "no (sleep infinity)");
+    ih += `<div class="note">${esc(inc.forbidden || "")}</div>`;
+    document.querySelector("#p-inc188 .body").innerHTML = ih + raw(inc);
+    const ev = document.getElementById("liveEvidence");
+    if (ev) {
+      ev.textContent = "FACT last_success " + ((inc.tri_track_last_success||{}).at || "-")
+        + " ／ INC-188 " + (inc.label || "-")
+        + " 矩形P1まで / 丸穴φ0.56mm 未解決 / コンテナ非計算"
+        + " ／ 商用せん断完了とは書かない";
+    }
+  } catch (e) {
+    fail("#p-inc188", e.message);
   }
 
   // Overrides

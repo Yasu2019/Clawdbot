@@ -5,6 +5,21 @@
 
 ------
 
+## INC-189: CETOL app page silent JS parse failure hid STALE reports and FACT bar
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026-08-27 JST (recorded 2026-08-28) |
+| **Detection** | User listed `http://localhost:8088/apps/cetol6sigma/index.html` for latest-FACT update. Browser kept "cetol_reports.json を読み込んでいます" while HTTP 200 and 260KB JSON were fine. `typeof fmt` was undefined. |
+| **Impact** | CETOL cockpit looked empty/loading. Golden PASS (2026-08-26 max_err=0.512%) and reports STALE (2026-07-15, 30 jobs) were invisible. Risk of treating demo Cpk cards as current commercial Cetol. |
+| **Root Cause (5 Why)** | **Why1**: FACT/report fetch never ran. **Why2**: Main inline script did not parse. **Why3**: `node --check` Unexpected token else after snap_fit. **Why4**: Duplicate shaft_bearing animation left after a closed if, then `else if bolt_joint`. **Why5**: FACT loader lived at the bottom of a 2000-line script with no independent IIFE. |
+| **Fix** | Remove duplicate shaft block (valid shaft_bearing branch already existed). Add FACT bar fetching `cetol_golden_status.json` + reports age. Same FACT pattern on VIAI :18010, FEM Impact, OpenRadioss header, Portal cards. |
+| **Files** | `data/workspace/apps/cetol6sigma/index.html`; `projects/visual_inspection_ai/ui/{index.html,app.js,styles.css}`; `apps/fem_impact/index.html`; `apps/openradioss_lab/index.html`; `portal.html`; `docs/knowledge/app_page_fact_bar_cetol_viai_20260827.md` |
+| **Verification** | Browser innerText: golden PASS + STALE 30件; Moldflow fill 99.55% complete=1; VIAI 34/14/Champion=1; FEM last_success 2026-07-31; OpenRadioss INC-188 IN_PROGRESS. `node --check` on extracted CETOL script passed. |
+| **Prevention** | After editing giant inline app scripts, extract and `node --check`. Prefer a tiny FACT IIFE beside the bar. Never print commercial Cetol/Moldflow/AOI/shear parity from golden or Cpk cards. bd `app-page-fact-bar-cetol-viai-20260827`. T082 / S033. |
+
+------
+
 ## INC-178: Dual Synergy (empty + study) -- GetObject cannot select COM instance
 
 | Field | Detail |
@@ -3277,3 +3292,111 @@ Raised by the user asking whether `box_study_3` had a mesh in progress. Forensic
 - Next lever is local refinement of the shear zone to roughly 10-20 um with the
   matrix left coarse. The explicit timestep scales with element size, so expect
   6-12 hours per run instead of 25 minutes.
+
+## INC-OPENFOAM-001 — proxy CaseA/CaseB launch wrapper failure (2026-08-18)
+
+- 発生日 / 発見方法: 2026-08-18 JST, Docker container logs immediately after launch.
+- 影響範囲: New proxy containers `76case_proxy_caseA_20260818` and `76case_proxy_caseB_20260818` exited before `blockMesh`; no case fields were overwritten and no solver time step ran.
+- Observed error: `/openfoam/run: line 241: exec: bash -lc if: not found`.
+- Root cause (5Why): (1) container exited before solver; (2) image entrypoint `/openfoam/run` received `bash -lc ...` as an executable argument; (3) Docker command omitted an explicit `/bin/bash` entrypoint; (4) command construction assumed a normal shell entrypoint; (5) image-specific launch contract was not preflight-tested.
+- Countermeasure: retry only with `--entrypoint /bin/bash` and an explicit `-lc` command; first run `command -v blockMesh interFoam` and `foamVersion` before solver stages; preserve the two isolated proxy case directories.
+- Verification target: container remains running through `blockMesh`, `snappyHexMesh`, `topoSet`, and `interFoam`; logs contain `Time =` entries and no entrypoint error. Status remains `PROXY_UNVALIDATED`.
+- Recovery: remove only failed proxy containers by exact name; retain all case directories and logs. Do not touch legacy OpenFOAM containers or artifacts.
+- Scope limits: this incident does not evaluate mesh quality, physical correctness, or convergence because the solver never started.
+
+## INC-OPENFOAM-002 — proxy CaseA/CaseB pressure reference missing (2026-08-18)
+
+- 発生日 / 発見方法: 2026-08-18 JST, both isolated proxy containers after successful mesh generation.
+- 影響範囲: `76case_proxy_caseA_20260818` and `76case_proxy_caseB_20260818`; `interFoam` stopped before the first time step. Mesh output remains preserved.
+- Observed error: `FOAM FATAL IO ERROR ... Unable to set reference cell for field p ... Please supply either pRefCell or pRefPoint` at `system/fvSolution/PIMPLE`.
+- Root cause (5Why): (1) solver exited before Time advancement; (2) PIMPLE pressure reference was absent; (3) template assumed a pressure reference supplied by a boundary condition; (4) the OpenFOAM 2512 compatibility preflight did not inspect PIMPLE reference entries; (5) the image/version-specific dictionary contract was not included in the proxy launch gate.
+- Countermeasure proposal: modify only the two new proxy `fvSolution` files to add `pRefCell 0; pRefValue 0;`, run dictionary preflight, then resume from time 0. Preserve all mesh/log outputs and keep status `PROXY_UNVALIDATED`.
+- Verification target: no pressure-reference fatal error; log reaches `Time =` and records bounded alpha/continuity. A solver timestep is not an accuracy validation.
+- Scope limits: no timestep ran, so no physical or convergence conclusion is available.
+
+## INC-OPENFOAM-003 - dedicated CaseA/CaseB geometry promotion gate failed (2026-08-18)
+
+- Discovery: independent OpenFOAM 2512 `surfaceCheck` on the newly generated dedicated runner and combined surface.
+- Impact: boolean union, mesh generation, and physics stages were correctly held; no solver result was produced.
+- Observed facts: runner surface had 6,872 edges not connected to two faces, 14 edges connected to more than two faces, 28 unconnected parts, and 108 conflicting face labels. Combined surface had 1,847,627 such edges, 110,123 over-connected edges, 29 unconnected parts, and 440,544 conflicting labels. Both surfaces reported non-closed and multiple normal orientations.
+- Root cause (5Why): (1) surfaceCheck failed; (2) generated STL is a concatenation of independent solids rather than a boolean union; (3) cavity STLs are themselves non-watertight; (4) source DXF/STEP conversion did not provide a closed solid; (5) promotion was attempted before an independent CAD/boolean repair stage existed.
+- Countermeasure: keep `promotion_status.json` as HOLD_FAILED_GEOMETRY_GATE; require an independent watertight CAD rebuild/boolean union, repeat surfaceCheck, then mesh and physics gates. Do not downgrade exit code 0 to geometry pass.
+- Verification: logs preserved at `artifacts/76case_dedicated_pipeline_20260818/promotion_logs/`; mesh and solver status are `NOT_RUN` because the geometry gate failed.
+- Scope limits: this incident does not evaluate fill physics, conservation, or convergence.
+
+## INC-OPENFOAM-004 - repaired proxy mesh quality gate failed (2026-08-18)
+
+- Discovery: after 1 mm voxel repair and largest-component filtering, `surfaceCheck` passed but `checkMesh -allGeometry -allTopology` failed.
+- Impact: `snappyHexMesh` generated 184,239 cells, but `interFoam` was held and no fill result was produced.
+- Observed facts: 6 highly skew faces, 2 underdetermined cells, and 9,895 concave cells. `snappyHexMesh` itself exited 0; this is not sufficient evidence of a valid mesh.
+- Root cause (5Why): (1) mesh quality checks failed; (2) the voxelized proxy contains stair-step/concave transitions; (3) the largest-component filter removes disconnected components but does not smooth the main shell; (4) the source geometry remains an assumed proxy rather than a CAD boolean solid; (5) mesh promotion was attempted before a region-aware geometry and quality strategy existed.
+- Countermeasure: keep status `HOLD_FAILED_MESH_QUALITY_GATE`; retain logs and require zero failed `checkMesh` gates before solver execution. Next experiment is region-aware CAD/mesh reconstruction with local smoothing/refinement.
+- Verification: `artifacts/76case_dedicated_pipeline_20260818/openfoam_promotion/case/promotion_mesh_coarse.log`; status recorded in `promotion_status.json`.
+- Scope limits: no conservation, fill-front, or convergence conclusion is available.
+
+## INC-OPENFOAM-005 - snappy snap-tuning still failed mesh gate (2026-08-18)
+
+- Discovery: continued improvement run with Taubin-smoothed proxy and increased snap iterations.
+- Observed facts: 1,705 cells; 2 highly skew faces, 34 underdetermined cells, and 16 concave cells. `snappyHexMesh` exited 0, but `checkMesh` failed 3 categories.
+- Countermeasure: preserve this log and the prior better attempt (0 skew/0 underdetermined/42 concave). Do not select a mesh based on process exit code; require all declared quality checks to pass.
+- Scope limits: no `interFoam`, conservation, fill-front, or convergence conclusion.
+
+## INC-OPENFOAM-006 - resolution and strong-smoothing trials did not pass mesh gate (2026-08-18)
+
+- Discovery: continued trials with higher background resolution and stronger Taubin smoothing.
+- Observed facts: high-resolution trial produced 101,959 cells with 6 skew faces and 1,425 concave cells. Strong-smoothing trial produced 9,105 cells with 213 concave cells.
+- Interpretation: increasing resolution or smoothing strength does not monotonically improve the mesh; the prior default-smoothed trial remains best at 42 concave cells, but still fails.
+- Countermeasure: stop proxy-only parameter escalation and require region-aware CAD/mesh reconstruction before solver execution.
+- Scope limits: no solver, conservation, fill-front, or convergence result is available.
+
+## INC-OPENFOAM-007 - topology-preserving decimation opened the surface (2026-08-18)
+
+- Discovery: 50% decimation experiment on the closed smoothed proxy.
+- Observed facts: output reduced from 794,520 to 397,260 triangles but produced 1 open edge and `is_manifold=false`.
+- Decision: reject the decimated surface before OpenFOAM; preserve the original closed smoothed proxy and logs.
+- Scope limits: no mesh or solver run was attempted with the invalid decimated surface.
+
+## INC-OPENFOAM-008 - region builder gate-spec preflight failure (2026-08-18)
+
+- Discovery: first region-case build rejected an empty gate list before case generation.
+- Root cause: the builder contract requires a non-empty gate list even for a cavity-only mesh gate.
+- Countermeasure: added an explicit `region_gate_proxy` entry and kept the cavity-only scope visible in the manifest.
+- Verification: CaseA and CaseB region cases subsequently built and reached `Mesh OK` with `snap=false`.
+
+## INC-OPENFOAM-009 - region runner branch mesh quality failure (2026-08-18)
+
+- Discovery: scaled assumed runner branches were added to separate CaseA/CaseB regions with two `locationsInMesh` points.
+- Observed facts: CaseA retained 17,994 cells but had 119 concave cells. CaseB retained 16,736 cells but had 4 skew faces and 35 concave cells.
+- Root cause: the straight 8 mm branch intersects the cavity proxy and creates difficult snap transitions; geometry dimensions remain assumptions.
+- Countermeasure: preserve runner-connected meshes and logs, but hold solver execution until branch/cavity transition quality passes.
+
+## INC-OPENFOAM-010 - inlet-patch solver continuity failure (2026-08-18)
+
+- Discovery: CaseB `interFoam` preflight after creating a 56-face `runnerInlet` patch.
+- Observed error: `Continuity error cannot be removed by adjusting the outflow`; specified mass inflow was nonzero and outflow zero.
+- Root cause: mesh topology audit showed two disconnected regions (runner and cavity), so the inlet did not connect to a vented cavity volume.
+- Countermeasure: stop solver execution, preserve `interFoam_runner_inlet.log`, and require one connected region plus a valid vent/outflow before retry.
+
+## INC-OPENFOAM-011 - gate-through runner remains a disconnected mesh region (2026-08-18)
+
+- Discovery: regenerated the assumed runner as a two-segment, gate-through proxy and verified each branch independently with OpenFOAM 2512 `surfaceCheck`.
+- Observed facts: both branches are closed, one connected part, and have no illegal triangles. After snappyHexMesh, CaseA had 24,370 cells and `Mesh OK`; CaseB had 31,480 cells but 456 concave cells. Both cases reported `Number of regions: 2`.
+- Root cause: intersecting closed STL shells are not a boolean union; the runner and cavity remain separate fluid regions even when the centerline crosses the declared gate. CaseA's branch and cavity were 23,624 and 746 cells; CaseB's were 30,428 and 1,052 cells.
+- Countermeasure: do not rerun interFoam. Require an authoritative boolean union or a conformal interface/AMI design with an explicit vent before solver promotion.
+- Scope limits: branch surface topology passed independently, but connected fluid topology, conservation, fill completion, and physical validation remain unproven.
+
+## INC-OPENFOAM-012 - Boolean/hook-up repair retries did not produce a promotion surface (2026-08-18)
+
+- Discovery: authorized bounded retries used Blender 5.1 Boolean Exact and OpenFOAM `surfaceHookUp`/`surfaceAdd` on CaseA.
+- Observed facts: Blender Boolean output retained 6 illegal triangles, 7 edges with more than two faces, and 8 normal zones. Blender duplicate-face cleanup, hole-tolerant mode, transform application, and 0.5 mm voxel remesh all failed `surfaceCheck`. `surfaceHookUp` followed by `surfaceAdd` produced a closed surface but still two unconnected parts (650,830 cavity triangles + 286 runner triangles).
+- Root cause: the supplied STL shells do not provide a reliable volumetric boolean at the gate; surface stitching is not equivalent to a CAD solid union.
+- Countermeasure: stop blind retries. Require a true CAD/STEP boolean union or an explicitly designed conformal fluid interface before meshing and solver execution.
+- Scope limits: no fill animation, conservation result, or validated engineering conclusion is available.
+
+## INC-OPENFOAM-013 - Separate 23-gate cavity fill proxy became numerically unbounded (2026-08-18)
+
+- Discovery: built isolated CaseA/CaseB meshes, mapped 23 approximate gate coordinates into a combined `gate` patch, and added a vent patch.
+- Observed facts: CaseA 902 cells and CaseB 1,052 cells; both one region and `Mesh OK`; gate patch selected 14 and 16 boundary faces respectively. `interFoam` advanced transiently but `alpha.polymer` reached about -0.08 and the run stopped with a GAMG floating-point exception. The stable retry had cumulative continuity about -2.47e-4 (CaseA) and -1.99e-4 (CaseB) by 0.002 s.
+- Root cause: coarse proxy mesh and approximate gate-face aggregation create an unbounded VOF transport state; the result is not a valid fill solution.
+- Countermeasure: preserve logs, classify as `FAILED_NUMERICS`, and do not render or report fill completion. Require refined conformal gate/vent geometry and bounded alpha verification before rerun.
+- Scope limits: no complete filling, mass-conservation pass, or engineering validation is available.
