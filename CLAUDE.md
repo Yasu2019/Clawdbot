@@ -153,3 +153,14 @@ bd close <id>         # Complete work
 - NEVER say "ready to push when you are" - YOU must push
 - If push fails, resolve and retry until it succeeds
 <!-- END BEADS INTEGRATION -->
+
+
+## Moldflow Material Property Database & TCode Extraction Knowledge
+- **Location**: `D:\Clawdbot_Docker_20260125\data\workspace\moldflow_bridge\moldflow_materials.db` (SQLite) & Turso Cloud (`clawstack-knowledge`).
+- **Catalog**: 8,161 commercial polymer grades normalized in `materials_catalog_normalized.json`.
+- **Extraction Protocol**: Do NOT attempt GUI scraping. Solver preflight (`runstudy.exe -c`) generates unencrypted TCode parameters in `~2.out`:
+  - `TCode 1313`: Cross-WLF (n, tau*, D1, D2/Tg, D3, A1, A2)
+  - `TCode 1004`: 2-domain Tait pvT (13 parameters: b1m-b4m, b1s-b4s, b5-b9)
+  - `TCode 4001`: CRIMS shrinkage coefficients (A1-A6)
+  - `TCode 1100, 1200, 1602, 1702`: Cp, k, E1, E2, Nu, G12, CTE
+- **Remote Host**: Dynabook (`100.98.133.40`), SSH key `C:\Users\yasu\.ssh\moldflow_remote_ed25519`.
