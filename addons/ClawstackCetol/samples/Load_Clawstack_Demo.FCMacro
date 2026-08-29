@@ -1,0 +1,33 @@
+# Clawstack CETOL-class demo -- run from FreeCAD: Macro -> Execute
+# Creates DieBase + Strip + Pin with two holes, then you switch to workbench Analyze.
+import os
+import sys
+
+import FreeCAD as App
+
+mod = os.path.join(App.getUserAppDataDir(), "Mod", "ClawstackCetol")
+if os.path.isdir(mod) and mod not in sys.path:
+    sys.path.insert(0, mod)
+
+try:
+    from clawstack_cetol_wb.demo import build_demo
+    build_demo()
+except Exception as exc:
+    import Part
+    doc = App.newDocument("ClawstackCetolDemo")
+    base = Part.makeBox(80, 40, 4)
+    for hx, hy in ((20, 20), (60, 20)):
+        base = base.cut(Part.makeCylinder(3.05, 6, App.Vector(hx, hy, -1), App.Vector(0, 0, 1)))
+    o = doc.addObject("Part::Feature", "DieBase")
+    o.Shape = base
+    strip = Part.makeBox(80, 40, 2)
+    strip.translate(App.Vector(0, 0, 4))
+    for hx, hy in ((20, 20), (60, 20)):
+        strip = strip.cut(Part.makeCylinder(3.10, 4, App.Vector(hx, hy, 3), App.Vector(0, 0, 1)))
+    o2 = doc.addObject("Part::Feature", "Strip")
+    o2.Shape = strip
+    pin = Part.makeCylinder(2.85, 8, App.Vector(20, 20, -1), App.Vector(0, 0, 1))
+    o3 = doc.addObject("Part::Feature", "Pin")
+    o3.Shape = pin
+    doc.recompute()
+    App.Console.PrintError("demo import fallback used: %s\n" % exc)
