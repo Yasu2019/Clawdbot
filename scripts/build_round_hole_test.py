@@ -337,7 +337,9 @@ def build(tag, elem, patch, clearance, tstop, eps_s, eps_eff, nz, punch_speed):
         # 1e-9から1e-14まで指数収縮して物理時間が凍結する」パターンへの
         # 安全弁。GENE1の破断基準とは独立した、純粋な数値的頑健性対策。
         "/DT/BRICK/DEL", f"{f20(0.9)}{f20(1.0e-11)}",
-        "/RFILE/50000", "/TFILE/4", f"{f20(1.0e-6)}",
+        # "/RFILE/50000"は誤り(番号はファイル数上限でサイクル間隔ではない、
+        # 間隔は次行に別途必要。2026-08-30発覚)。番号無し/RFILEの2行形式を使う。
+        "/RFILE", f"{i10(20000)}", "/TFILE/4", f"{f20(1.0e-6)}",
         "/ANIM/DT", f"{f20(0.0)}{f20(tstop/12)}",
         "/ANIM/ELEM/EPSP", "/ANIM/ELEM/VONM", "/ANIM/VECT/DISP", "/END", "",
     ]), encoding="utf-8")

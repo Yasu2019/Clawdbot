@@ -52,6 +52,15 @@ MM = 1.0e-3                          # STEP は mm、デックは m
 
 DEFAULT_BLANK_ELEM = 100.0e-6        # 板厚 0.5mm に対し 5 層
 DEFAULT_TOOL_ELEM = 250.0e-6         # 工具は弾性体。荷重が伝わればよい
+
+# 丸穴局所細分化（2026-08-28 追加）: P1本体(100umメッシュ)へ/DT/BRICK/DELを
+# 適用しても丸穴は貫通しなかった(強制削除は0件=数値不安定性は無し)。
+# 孤立診断モデル(RH4/RH5)は20umメッシュでのみ完全分離を達成しており、
+# 真因は100umメッシュでは丸穴(φ0.56mm)の直径に対し要素数が5-6個しか無く
+# 局所ひずみ集中を解像できていないこと。丸穴周辺だけ20umまで細分化する。
+DEFAULT_ROUND_ELEM = 20.0e-6         # RH4/RH5で完全分離を確認した解像度
+ROUND_REFINE_R = 0.6e-3              # 細分化する半径(HOLE_R=0.28mmに余裕を持たせる)[m]
+ROUND_REFINE_RAMP = 1.0e-3           # 細→粗へ遷移させる距離[m]（急変によるメッシュ破綻回避）
 TOOL_GAP = 5.0e-6                    # 板と工具の初期すきま。初期貫入エラー回避
 DEFAULT_GAP_MAX = 15.0e-6            # TOOL_GAP < Gap_max（slice3d と同じ関係）
 DEFAULT_STFAC = 1.0                  # 接触剛性。AC の 0.05 は細メッシュに柔らかすぎた
@@ -127,11 +136,16 @@ def fmt_grnod(gid: int, name: str, nodes) -> list[str]:
 
 
 def mesh_group(tags: list[int], elem_mm: float, *, fuse: bool, add_slug: bool,
-               dz_mm: float = 0.0):
+               dz_mm: float = 0.0, refine: tuple | None = None):
     """指定 tag だけを別モデルで切り出してメッシュし、節点座標と四面体を返す。
 
     全体を一度にメッシュすると材料の丸穴まわりが PLC エラーで落ちる。
     接触で繋ぐので各部品が非共形でも問題ない。
+
+    refine: (cx_mm, cy_mm, cz_mm, r_fine_mm, elem_fine_mm, ramp_mm) を渡すと、
+    その中心から r_fine_mm 以内を elem_fine_mm、ramp_mm かけて elem_mm へ
+    滑らかに戻す gmsh Ball フィールドを使う(全体を細かくすると要素数が
+    爆発するため丸穴周辺のみ)。座標は STEP の元系(dz_mm 適用前)。
     """
     import gmsh
     gmsh.initialize()
@@ -157,8 +171,23 @@ def mesh_group(tags: list[int], elem_mm: float, *, fuse: bool, add_slug: bool,
         # 1 領域として張られるので放置してよい（メッシュ体積で検証済み）。
         # ここで remove すると "Could not fix wire" でカーネルが落ちる。
 
-    gmsh.option.setNumber("Mesh.MeshSizeMin", elem_mm)
-    gmsh.option.setNumber("Mesh.MeshSizeMax", elem_mm)
+    if refine is not None:
+        cx, cy, cz, r_fine, elem_fine, ramp = refine
+        fid = gmsh.model.mesh.field.add("Ball")
+        gmsh.model.mesh.field.setNumber(fid, "XCenter", cx)
+        gmsh.model.mesh.field.setNumber(fid, "YCenter", cy)
+        gmsh.model.mesh.field.setNumber(fid, "ZCenter", cz)
+        gmsh.model.mesh.field.setNumber(fid, "Radius", r_fine)
+        gmsh.model.mesh.field.setNumber(fid, "VIn", elem_fine)
+        gmsh.model.mesh.field.setNumber(fid, "VOut", elem_mm)
+        gmsh.model.mesh.field.setNumber(fid, "Thickness", ramp)
+        gmsh.model.mesh.field.setAsBackgroundMesh(fid)
+        gmsh.option.setNumber("Mesh.MeshSizeExtendFromBoundary", 0)
+        gmsh.option.setNumber("Mesh.MeshSizeFromPoints", 0)
+        gmsh.option.setNumber("Mesh.MeshSizeFromCurvature", 0)
+    else:
+        gmsh.option.setNumber("Mesh.MeshSizeMin", elem_mm)
+        gmsh.option.setNumber("Mesh.MeshSizeMax", elem_mm)
     gmsh.model.mesh.generate(3)
 
     ntags, ncoord, _ = gmsh.model.mesh.getNodes()
@@ -181,7 +210,8 @@ def mesh_group(tags: list[int], elem_mm: float, *, fuse: bool, add_slug: bool,
 
 
 def build(tag: str, blank_elem: float, tool_elem: float, stroke: float,
-          speed: float, gap_max: float, stfac: float, nstep: int):
+          speed: float, gap_max: float, stfac: float, nstep: int,
+          round_elem: float = DEFAULT_ROUND_ELEM):
     ref_txt = REF_STARTER.read_text(encoding="utf-8", errors="replace")
     ref = {
         "mat_blank": extract_block(ref_txt, r"^/MAT/LAW2/2\b"),
@@ -195,9 +225,11 @@ def build(tag: str, blank_elem: float, tool_elem: float, stroke: float,
     # 材料はダイ上面(0.5mm)へ TOOL_GAP だけ浮かせて置く。元位置 0.6mm から下げる。
     blank_dz = -(0.6 - 0.5 - TOOL_GAP / MM)
 
-    print("[mesh] 材料を融合してメッシュ中...")
+    print("[mesh] 材料を融合してメッシュ中(丸穴周辺 %.0fum に局所細分化)..." % (round_elem * 1e6))
+    refine = (HOLE_CENTER[0], HOLE_CENTER[1], 0.85,
+              ROUND_REFINE_R / MM, round_elem / MM, ROUND_REFINE_RAMP / MM)
     c_blank, t_blank = mesh_group(TAG_BLANK, blank_elem / MM, fuse=True,
-                                  add_slug=True, dz_mm=blank_dz)
+                                  add_slug=True, dz_mm=blank_dz, refine=refine)
     print(f"[mesh]   材料 TET4={len(t_blank):,}")
     groups = [("Blank", 2, c_blank, t_blank)]
     for name, pid, tags in (("Die", 1, TAG_DIE), ("Stripper", 3, TAG_STRIPPER),
@@ -314,7 +346,15 @@ def build(tag: str, blank_elem: float, tool_elem: float, stroke: float,
     engine = TRIALS / f"PANEL4MM_{tag}_0001.rad"
     engine.write_text("\n".join([
         f"/RUN/PANEL4MM_{tag}/1", f"{f20(t_stop)}", "/DT/NODA/0",
-        f"{f20(0.9)}{f20(0.0)}", "/RFILE/50000", "/TFILE/4", f"{f20(1.0e-6)}",
+        f"{f20(0.9)}{f20(0.0)}",
+        # 丸穴周辺を局所細分化すると孤立診断(RH1-RH3S)と同様のdt崩壊リスクが
+        # 出る。GENE1の破断基準とは独立した数値安定化の安全弁として常設する。
+        "/DT/BRICK/DEL", f"{f20(0.9)}{f20(1.0e-11)}",
+        # "/RFILE/50000" は誤り: 番号はサイクル間隔ではなく書き出しファイル数の
+        # 上限で、間隔は次の行に別途必要(2026-08-30発覚。この行が無かったため
+        # P1r/P1r2でリスタートファイルが一度も書かれず、クラッシュ時に全進行を
+        # 喪失した)。番号無し/RFILEの2行形式(ヘッダ+サイクル間隔)を使う。
+        "/RFILE", f"{i10(20000)}", "/TFILE/4", f"{f20(1.0e-6)}",
         "/ANIM/DT", f"{f20(0.0)}{f20(t_stop/40)}",
         "/ANIM/ELEM/EPSP", "/ANIM/ELEM/VONM", "/ANIM/VECT/DISP", "/END", "",
     ]), encoding="utf-8")
@@ -341,9 +381,11 @@ def main() -> int:
     ap.add_argument("--gap-max", type=float, default=DEFAULT_GAP_MAX)
     ap.add_argument("--stfac", type=float, default=DEFAULT_STFAC)
     ap.add_argument("--nstep", type=int, default=DEFAULT_NSTEP)
+    ap.add_argument("--round-elem", type=float, default=DEFAULT_ROUND_ELEM,
+                    help="丸穴周辺の局所細分化サイズ[m]（既定20um、RH4/RH5実績値）")
     a = ap.parse_args()
     build(a.tag, a.blank_elem, a.tool_elem, a.stroke, a.speed,
-          a.gap_max, a.stfac, a.nstep)
+          a.gap_max, a.stfac, a.nstep, a.round_elem)
     return 0
 
 
