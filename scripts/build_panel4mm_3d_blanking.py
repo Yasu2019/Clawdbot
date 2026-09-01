@@ -59,6 +59,10 @@ DEFAULT_TOOL_ELEM = 250.0e-6         # 工具は弾性体。荷重が伝われ�
 # 真因は100umメッシュでは丸穴(φ0.56mm)の直径に対し要素数が5-6個しか無く
 # 局所ひずみ集中を解像できていないこと。丸穴周辺だけ20umまで細分化する。
 DEFAULT_ROUND_ELEM = 20.0e-6         # RH4/RH5で完全分離を確認した解像度
+# GENE1校正値(2026-08-18〜25に確立): 100umメッシュではEps_s=0.5単独が必要。
+# 参照デッキの素の値(Eps_s=0.1, Eps_eff=0.12)を両方有効のまま使うと二重発火する。
+DEFAULT_EPS_S = 0.5
+DEFAULT_EPS_EFF = 100.0              # 実質無効化(Eps_s単独で判定)
 ROUND_REFINE_R = 0.6e-3              # 細分化する半径(HOLE_R=0.28mmに余裕を持たせる)[m]
 ROUND_REFINE_RAMP = 1.0e-3           # 細→粗へ遷移させる距離[m]（急変によるメッシュ破綻回避）
 TOOL_GAP = 5.0e-6                    # 板と工具の初期すきま。初期貫入エラー回避
@@ -89,13 +93,23 @@ def extract_block(txt: str, pattern: str) -> str:
     return "\n".join(lines[start:end])
 
 
-def override_gene1(block: str, nstep: int) -> str:
-    """Nstep だけ差し替える。0 のままだと 1 サイクルで解放され連鎖破断する。"""
+def override_gene1(block: str, nstep: int, eps_s: float, eps_eff: float) -> str:
+    """Nstep / Eps_s / Eps_eff を差し替える。
+
+    2026-09-02発覚: この関数は元々Nstepしか上書きしておらず、P1r/P1r2は
+    参照デッキの未校正値(Eps_s=0.1, Eps_eff=0.12が両方同時有効)のまま
+    走っていた。これは数週間前に特定・修正した「二重発火」バグと同一で、
+    P1_calibrated(バイナリパッチ版)でのみ修正が反映されていた。
+    """
     out = []
     for i, ln in enumerate(block.splitlines()):
         prev = block.splitlines()[i - 1] if i else ""
         if "Nstep" in prev and "Ismooth" in prev:
             ln = f"{i10(0)}{i10(0)}{f20(0.0)}{i10(nstep)}{i10(0)}{i10(0)}{f20(0.0)}"
+        elif "Eps_max" in prev and "Eps_eff" in prev:
+            ln = f"{i10(0)}{f20(0.0)}{f20(0.0)}{f20(eps_eff)}{f20(0.0)}"
+        elif "Eps_min" in prev and "Eps_s" in prev:
+            ln = f"{f20(0.0)}{f20(eps_s)}{i10(0)}{i10(0)}{i10(0)}"
         out.append(ln)
     return "\n".join(out)
 
@@ -211,12 +225,14 @@ def mesh_group(tags: list[int], elem_mm: float, *, fuse: bool, add_slug: bool,
 
 def build(tag: str, blank_elem: float, tool_elem: float, stroke: float,
           speed: float, gap_max: float, stfac: float, nstep: int,
-          round_elem: float = DEFAULT_ROUND_ELEM):
+          round_elem: float = DEFAULT_ROUND_ELEM,
+          eps_s: float = DEFAULT_EPS_S, eps_eff: float = DEFAULT_EPS_EFF):
     ref_txt = REF_STARTER.read_text(encoding="utf-8", errors="replace")
     ref = {
         "mat_blank": extract_block(ref_txt, r"^/MAT/LAW2/2\b"),
         "mat_tool": extract_block(ref_txt, r"^/MAT/LAW1/1\b"),
-        "fail": override_gene1(extract_block(ref_txt, r"^/FAIL/GENE1/2\b"), nstep),
+        "fail": override_gene1(extract_block(ref_txt, r"^/FAIL/GENE1/2\b"),
+                               nstep, eps_s, eps_eff),
         "inter1": extract_block(ref_txt, r"^/INTER/TYPE25/1\b"),
         "inter2": extract_block(ref_txt, r"^/INTER/TYPE25/2\b"),
         "inter3": extract_block(ref_txt, r"^/INTER/TYPE25/3\b"),
@@ -383,9 +399,14 @@ def main() -> int:
     ap.add_argument("--nstep", type=int, default=DEFAULT_NSTEP)
     ap.add_argument("--round-elem", type=float, default=DEFAULT_ROUND_ELEM,
                     help="丸穴周辺の局所細分化サイズ[m]（既定20um、RH4/RH5実績値）")
+    ap.add_argument("--eps-s", type=float, default=DEFAULT_EPS_S,
+                    help="GENE1 Eps_s（既定0.5、100umメッシュ校正値）")
+    ap.add_argument("--eps-eff", type=float, default=DEFAULT_EPS_EFF,
+                    help="GENE1 Eps_eff（既定100=実質無効化。参照デッキ素の0.12のまま"
+                         "使うとEps_sと二重発火する）")
     a = ap.parse_args()
     build(a.tag, a.blank_elem, a.tool_elem, a.stroke, a.speed,
-          a.gap_max, a.stfac, a.nstep, a.round_elem)
+          a.gap_max, a.stfac, a.nstep, a.round_elem, a.eps_s, a.eps_eff)
     return 0
 
 
