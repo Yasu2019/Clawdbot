@@ -1,7 +1,7 @@
 # Gemma4 7PC Honki kit mapped onto Clawstack fleet (ADOPT_PARTIAL INC-117)
 # Canonical kit: protocols/gemma4_7pc_honki/README.md
 schema: clawstack.fleet_7pc_role_map.v1
-updated_at: "2026-06-07"
+updated_at: "2026-09-03"
 
 node_primary_role:
   K10: pc1_president_ai
@@ -10,18 +10,18 @@ node_primary_role:
   thinkpad: pc3_engineering_ai
   G3: pc6_n8n_automation
   dynabook: pc7_backup
-  vivobook: pc7_backup  # ON HOLD — not in active fleet (see node_status)
+  vivobook: pc3_engineering_ai  # OpenFOAM 14; commute-resumable
   LAVIE_CORE_I3: pc7_backup  # Registered satellite node
 
 node_status:
   VIVOBOOK:
-    status: on_hold
-    since: "2026-06-07"
+    status: active_commute_resumable
+    since: "2026-09-03"
     hostname: mhn15
     tailscale_ip: "100.65.182.27"
-    reason: "Weak laptop; disk 97%+. CAE not routed. monitor optional — fleet ops via K10+dynabook."
-    cae_routing: excluded
-    reactivate_when: "Free disk space then optional monitor only; no CAE."
+    reason: "Power/connectivity loss is expected only during commute. WSL OpenFOAM volume had 943GB free (2% used) on 2026-09-03."
+    cae_routing: "OpenFOAM with durable latestTime checkpoints and reconnect resume"
+    reactivate_when: "Automatically on metrics+SSH reconnect; resource/thermal guards remain mandatory."
 
   LAVIE_CORE_I3:
     status: active

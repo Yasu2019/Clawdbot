@@ -1,9 +1,10 @@
-# Central K10 idle dispatch: assign light jobs when CPU/RAM below threshold and temp OK.
-schema: clawstack.fleet_idle_dispatch.v1
-updated_at: "2026-06-15"
+# Central K10 idle dispatch: assign role-matched North Star jobs when idle and cool.
+schema: clawstack.fleet_idle_dispatch.v2
+updated_at: "2026-09-03"
 
 poll_interval_sec: 300
 supersedes_red_lavie_continuous_loop: true
+ownership_status_ttl_sec: 600
 
 idle_thresholds:
   max_cpu_percent: 70
@@ -13,11 +14,10 @@ idle_thresholds:
   block_cpu_limit_at_or_below: 10
 
 daytime_light_only:
-  enabled: true
+  enabled: false
   start_hour: 8
   end_hour: 19
-  node_ids:
-    - vivobook
+  node_ids: []
 
 nodes:
   red_lavie:
@@ -25,49 +25,65 @@ nodes:
     registry_id: red_lavie
     transport: job_worker
     jobs_per_cycle: 2
+    # VT-x still blocks Docker OpenRadioss. Real CETOL/QMS artifacts, not echo probes.
     job_sequence:
-      - health_snapshot
-      - monitor_local_probe
-      - document_parse_probe
-      - rag_index_probe
-      - qms_iatf_probe
-      - web_research_probe
-      - fleet_self_probe
+      - no_idle_stop_probe
+      - cetol_pdf_parse
+      - qms_iatf_extract
 
   dynabook:
     enabled: true
     registry_id: dynabook
     transport: job_worker
-    jobs_per_cycle: 1
-    cae_dry_run_categories:
-      - press_blanking
-      - press_bending
-    shell_job_sequence:
-      - brv_sync_probe
+    jobs_per_cycle: 2
+    # Do not idle-dispatch OpenRadioss dry-run. Case dirs are absent on this
+    # host and the machine's North Star role is Moldflow (G: studies).
+    # Do not CreateObject Synergy (INC-159).
+    cae_dry_run_categories: []
+    job_sequence:
+      - moldflow_g_study_inventory
+      - moldflow_mcp_health
+      - synergy_process_health
+      - workspace_capacity_audit
+      - no_idle_stop_probe
 
   thinkpad:
     enabled: true
     registry_id: thinkpad
     transport: job_worker
     jobs_per_cycle: 1
+    # Dedicated k10_thinkpad_dxf2step_loop.py owns DXF->STEP. Skip idle probes
+    # while that daemon is running (including after D: archive storage exception).
+    skip_when_dxf2step_loop_active: true
+    dxf2step_status_path: thinkpad_dxf2step_te_status.json
     job_sequence:
-      - health_snapshot
-      - monitor_local_probe
-      - qms_iatf_probe
-      - document_parse_probe
-      - fleet_self_probe
+      - no_idle_stop_probe
 
   lavie:
     enabled: true
     registry_id: lavie
     transport: job_worker
     skip_when_cae_loop_active: true
-    cae_status_path: lavie_continuous_te_loop_status.json
+    cae_status_path: lavie_continuous_te_status.json
+    skip_when_tri_track_active: true
+    tri_track_status_path: k10_tri_track_cae_status.json
+    tri_track_key: openfoam_lavie
     jobs_per_cycle: 1
+    # Do not pile CAE or Windows findstr probes. Tri-track owns resin_fill_cad.
     job_sequence:
-      - monitor_local_probe
-      - qms_iatf_probe
-      - fleet_self_probe
+      - openfoam_result_integrity_audit
+      - no_idle_stop_probe
+
+  vivobook:
+    enabled: true
+    registry_id: vivobook
+    transport: ssh
+    jobs_per_cycle: 1
+    # Daytime is bounded/light. At night, useful OpenFOAM result-integrity work
+    # is preferred. Offline nodes remain visible and retry automatically.
+    job_sequence:
+      - openfoam_result_integrity_audit
+      - no_idle_stop_probe
 
   lavie_i3:
     enabled: true
@@ -77,6 +93,7 @@ nodes:
     # checks per cycle and records every returned result centrally.
     jobs_per_cycle: 2
     job_sequence:
+      - no_idle_stop_probe
       - health_snapshot
       - monitor_local_probe
       - fleet_endpoint_audit
@@ -88,12 +105,16 @@ excluded_node_ids:
   - hp_watchdog
   - g3
   - k10
-  - vivobook
 
 k10_local_idle_harvest:
   enabled: true
   min_idle_cycles: 2
   script: scripts/harvest_idle_slice.py
+
+p027_evaluation:
+  enabled: true
+  script: scripts/p027_evaluation_loop.py
+  timeout_sec: 120
 
 email_postprocess_offload:
   enabled: true
