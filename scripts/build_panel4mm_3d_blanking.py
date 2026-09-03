@@ -46,7 +46,14 @@ TAG_DIE = [6, 7]
 TAG_STRIPPER = [8, 9]
 TAG_PUNCH = [10, 11, 12, 13]
 HOLE_CENTER = (185.657, -1882.188)   # 丸穴中心 [mm]
-HOLE_R = 0.28                        # φ0.56
+HOLE_R = 0.28                        # φ0.56 (公称値。パンチ寸法の参照用)
+# 2026-09-03発覚: STEPの実際の穴境界はHOLE_R(280um)よりr≈300umまで外側に
+# ある(実測、31万要素規模で確認)。add_slugのシリンダー半径をHOLE_Rのまま
+# にすると280-300umの薄い環状隙間が生じ、四面体が一切生成されず(丸穴に
+# 材料が存在しないままP1r/P1r2/P1r3を実行していた根本原因)。シリンダーは
+# 実測境界に対し確実に重なる310umを使う(300um境界とのちょうど一致は
+# OCCが非多様体境界として拒否するため、若干の重なりが必須)。
+SLUG_FILL_R = 0.31                   # add_slug専用。HOLE_Rとは別(実測値+余裕)
 
 MM = 1.0e-3                          # STEP は mm、デックは m
 
@@ -173,17 +180,30 @@ def mesh_group(tags: list[int], elem_mm: float, *, fuse: bool, add_slug: bool,
 
     if add_slug:
         # STEP は抜き後の状態で丸穴が空洞。塞がないと丸パンチが切る材料が無い。
+        # SLUG_FILL_R(実測境界+余裕)を使う。HOLE_Rでは薄い隙間が残り
+        # 四面体が生成されない(2026-09-03発覚)。
         gmsh.model.occ.addCylinder(HOLE_CENTER[0], HOLE_CENTER[1], 0.6,
-                                   0, 0, 0.5, HOLE_R)
+                                   0, 0, 0.5, SLUG_FILL_R)
         gmsh.model.occ.synchronize()
     if fuse:
         o = [(3, t) for d, t in gmsh.model.getEntities(3)]
         gmsh.model.occ.fuse(o[:1], o[1:])
         gmsh.model.occ.removeAllDuplicates()
         gmsh.model.occ.synchronize()
-        # fuse は向きの反転した重複ソリッドを残すが、removeAllDuplicates 後は
-        # 1 領域として張られるので放置してよい（メッシュ体積で検証済み）。
-        # ここで remove すると "Could not fix wire" でカーネルが落ちる。
+        # 2026-09-03発覚の重大バグ: 上のコメントは誤りだった。fuse は向きの
+        # 反転した重複ソリッドを残し、removeAllDuplicates 後も実際には
+        # 2エンティティ(体積+X, -X)のまま残る(1領域には統合されない)。
+        # 「メッシュ体積で検証済み」という主張は、丸穴シリンダー追加前の
+        # 5片単独fuseでのみ確認されており、add_slug込みでは未検証だった。
+        # 結果、丸穴シリンダーの体積が交差キャンセルで消え、P1r/P1r2/P1r3
+        # は丸穴に材料が一度も存在しないまま実行されていた。正しい体積
+        # (質量>0)のエンティティだけを残し、反転複製(質量<0)は明示的に
+        # 削除する。recursive=True でのこの削除はクラッシュしないことを
+        # 個別テストで確認済み(旧コメントの「クラッシュする」は誤り)。
+        for d, t in list(gmsh.model.getEntities(3)):
+            if gmsh.model.occ.getMass(d, t) < 0:
+                gmsh.model.occ.remove([(d, t)], recursive=True)
+        gmsh.model.occ.synchronize()
 
     if refine is not None:
         cx, cy, cz, r_fine, elem_fine, ramp = refine
