@@ -1831,3 +1831,11 @@ G1 py_compile → G2 `fleet_satellite_setup_auto.ps1` → G3 K10 probe → G4 �
 # 2026-08-20 | 76Case proxy動画誤送信・過大計算
 
 76Case実解析で、全体STL/ゲートパッチ作成は進んだが、可視化コードが平板proxyを描画し、目視確認なしでTelegram送信した。動画は実形状結果ではない。さらに120万セル・極小タイムステップの長時間計算を先行し、実用性を欠いた。再発防止: 実メッシュbboxと表示形状の一致、ゲートパッチ面数、10時刻以上のalpha出力、`checkMesh`、送信前フレーム目視の全ゲートを必須化。粗い150k～300kセルの実形状スクリーニングを先行する。
+
+## [T085] Mesh OKと時刻ディレクトリはOpenFOAM再開可能性を証明しない (2026-09-08) -- INC-OPENFOAM-035
+
+- Fact: canonical `100x60x50 mm` geometry was loaded as OpenFOAM bbox `100x60x50 m`; vent pressure datum was `0 Pa` while interior pressure was `101325 Pa`.
+- Fact: the first saved checkpoint at `0.05 s` already had `max |U|=1868.71 m/s`; the final crash had `maxCo=275483.11` and `deltaT=8.85e-23 s`.
+- Rule: IF resuming OpenFOAM THEN require bbox/spec unit agreement, pressure-datum consistency, bounded U/T/p/alpha, and monotonic non-stale time identity; `Mesh OK` plus a time directory is insufficient.
+- Recovery: preserve the original, isolate generations, cap at three controlled trials, and validate custom thermo-rheology coupling on a minimal conservation benchmark before returning to the full cavity.
+- Scope: R2 reached `End` only for a `0.01 s` smoke; it was rejected at `Tmax=984.76 K`. No R1-R4 output is validated engineering evidence.
