@@ -143,3 +143,59 @@ Final decision: minimal benchmark **PASS**, full-geometry calculation remains
 **HOLD / FAILED_NUMERICS**. No full calculation is currently running.
 The adopted instrumented solver binary SHA-256 is
 `4E9CADC6CA55C0BD9287ED21571FD67B1D4E412DC2E422052288296B519A59F7`.
+
+## Root-cause decision after R5 localization
+
+### Evidence
+
+- The first temperature-bound event occurs on the first solved step at
+  `1.200192e-7 s` (`502.89297-503.15447 K`), while max Courant is only
+  `1.3280068e-5`. The disturbance therefore precedes Courant collapse.
+- The full case starts with internal `U=(0,0,0)` while the gate instantaneously
+  imposes `U=(0.05,0,0)`. The passing minimal benchmark instead starts with a
+  flux-consistent uniform `U=(0.05,0,0)` and uses slip/adiabatic walls.
+- As R5 evolves, sampled `|U|` reaches about `483.5 m/s` in air-side cells far
+  from the gate, `p_rgh` reaches about `272 kPa`, and the timestep collapses.
+  Mesh quality remains acceptable (max non-orthogonality `52.40`, max skewness
+  `0.622`), so mesh invalidity is not the initiating cause.
+- Tight PBiCGStab temperature solves reached residuals near `1e-13` but did not
+  remove the excursion. Linear solver tolerance is therefore not the root
+  cause.
+- Removing the standalone relaxed Tait-density overwrite did not remove the
+  small-case excursion. It is architecturally unsafe but not sufficient to
+  explain the R5 instability by itself.
+- The custom temperature equation omits the standard compressibleInterFoam
+  pressure-work and kinetic-energy coupling, while Cross-WLF is calculated only
+  as `etaCrossWLF` output and is not conservatively coupled into momentum. The
+  current combined model is therefore not an energy-conservative production
+  formulation.
+
+### Causal conclusion
+
+Primary trigger (high confidence): an impulsive, flux-inconsistent startup of a
+high-density-ratio compressible two-phase cavity produces an artificial pressure
+wave and air-side velocity spike. Secondary amplifier (high confidence): the
+screening temperature equation is not a complete conservative compressible
+energy model, so the pressure/velocity transient appears as repeated temperature
+bound events. Contributing model debt (medium confidence): Tait and Cross-WLF
+fields are not coupled through one consistent pressure-momentum-energy closure.
+Mesh quality and linear solver choice are rejected as primary causes.
+
+### Adopted repair sequence
+
+1. **Hydraulic startup gate:** run the full SI mesh isothermally with constant
+   validated properties, an inlet velocity/alpha ramp, flux-consistent initial
+   U/p fields (prepare with a potential-flow initialization where applicable),
+   and no hard temperature clamp. Require max air velocity, p range, mass
+   balance, and timestep stability before adding thermal physics.
+2. **Thermal gate:** restore conduction with the official
+   compressibleInterFoam energy terms or an explicitly derived enthalpy equation;
+   log energy balance and fail on any bound event instead of accepting clipping.
+3. **Rheology/EOS gate:** couple Cross-WLF viscosity into momentum and Tait
+   density through the same conservative pressure correction. Validate each
+   independently against analytical/material-card data before combining them.
+4. **Full-cavity promotion:** require two clean repetitions, then start a new
+   generation from time zero. Never resume R1-R5 checkpoints.
+
+This ordering changes one physics layer at a time and prevents case-level
+timestep tuning from masking a solver-closure defect.
