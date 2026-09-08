@@ -108,3 +108,38 @@ stopped, disabled, deleted, or reused. The benchmark ran independently on K10.
 Decision: the HOLD is **not released**. The next bounded change must expose and
 count temperature-clipping events and correct the pressure/temperature linear
 solver convergence before two clean repetitions are attempted.
+
+## Conditional release and full-geometry recheck
+
+The solver was instrumented to report every temperature bound event. Removing
+the relaxed Tait `rho` overwrite was tested but did not eliminate the small-case
+temperature excursion, so that inconclusive source change was reverted. Small-
+case p/T solvers used PCG/DIC and PBiCGStab/DILU respectively. The energy bound
+uses a `1e-6 K` comparison tolerance and records an event before applying the
+safety bound.
+
+Two clean independent minimal runs (`r13_pass_a`, `r14_pass_b`) at an interior
+test temperature of `500 K` passed identically:
+
+- normal `End`, no NaN/FATAL, no 200/1000-iteration cap;
+- zero `temperatureBound event` occurrences;
+- final inlet/outlet flux magnitudes both `1.0e-7 m3/s` (0% imbalance);
+- sampled maximum velocity `0.050864123326 m/s` for a `0.05 m/s` inlet;
+- final `T=500 K`, alpha within `[0,1]`, max Courant bounded;
+- timestep increased from `1.200012e-6` to `1.000062645e-5 s`;
+- final U/T/alpha/p_rgh SHA-256 hashes matched between repetitions.
+
+This released only the gate for an isolated full-geometry smoke generation.
+It did not authorize reuse of the corrupted original checkpoints.
+
+Full-geometry `r5_conservative` advanced beyond the former collapse point to
+`Time=0.00029766909 s`, but then failed the promotion gate: 1,293 temperature
+bound events, unbounded pre-correction temperatures around `306-521 K`, and
+`deltaT=3.88652e-8 s` (more than 100x below its maximum). The isolated Docker
+container was stopped; its log SHA-256 is
+`2F278703E1D7D88387562F4792A03B6DA240F70E42331B5A9F8D56A02ADC1D0A`.
+
+Final decision: minimal benchmark **PASS**, full-geometry calculation remains
+**HOLD / FAILED_NUMERICS**. No full calculation is currently running.
+The adopted instrumented solver binary SHA-256 is
+`4E9CADC6CA55C0BD9287ED21571FD67B1D4E412DC2E422052288296B519A59F7`.

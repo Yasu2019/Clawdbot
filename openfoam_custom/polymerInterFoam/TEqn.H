@@ -19,8 +19,20 @@
 
     // Guard the generalized screening case against non-physical thermo
     // inversion while coefficients remain uncalibrated.
-    T.max(313.15);
-    T.min(503.15);
+    const scalar TminBeforeBound = gMin(T.primitiveField());
+    const scalar TmaxBeforeBound = gMax(T.primitiveField());
+    const scalar temperatureBoundTolerance = 1e-6;
+    if
+    (
+        TminBeforeBound < 313.15 - temperatureBoundTolerance
+     || TmaxBeforeBound > 503.15 + temperatureBoundTolerance
+    )
+    {
+        Info<< "temperatureBound event: min=" << TminBeforeBound
+            << " max=" << TmaxBeforeBound << nl;
+        T.max(313.15);
+        T.min(503.15);
+    }
 
     fvOptions.correct(T);
 
