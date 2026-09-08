@@ -21,3 +21,10 @@ def test_mesh_builder_does_not_classify_whole_end_faces_as_ports():
     assert "area - gate_area" in source
     assert "area - vent_area" in source
     assert "occ.addDisk" in source
+
+
+def test_cross_wlf_coupling_is_explicitly_switchable():
+    solver = (ROOT / "openfoam_custom/polymerInterFoam/compressibleInterFoam.C").read_text()
+    momentum = (ROOT / "openfoam_custom/polymerInterFoam/UEqn.H").read_text()
+    assert "coupleCrossWLF" in solver
+    assert "alpha1*etaCrossWLF" in momentum

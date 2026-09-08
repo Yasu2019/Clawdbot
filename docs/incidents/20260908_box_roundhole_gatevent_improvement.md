@@ -32,13 +32,15 @@ as production truth.
 
 The current screening solver has a conservative storage/advection/conduction
 temperature equation, but pressure work and viscous heating remain disabled.
-Cross-WLF is evaluated and written as `etaCrossWLF` but is not yet the
-constitutive viscosity in `divDevRhoReff`. Tait density is evaluated in the
-solver and blended into `rho`, but the phase thermodynamic `rho1/psi1` used by
-the pressure equation is still the constant-property phase closure. Therefore
-thermal, Cross-WLF, Tait, calibration, cooling/shrinkage/warpage, and full-fill
-claims remain blocked until a commercial-grade material card and process data
-are supplied and the constitutive coupling is implemented and validated.
+Cross-WLF is now available as an explicit `coupleCrossWLF` constitutive term in
+the momentum equation and the custom solver rebuild passes. It defaults to
+`false` because the baseline turbulence transport term would otherwise be
+double-counted before calibration. Tait density is evaluated in the solver
+and blended into `rho`, but the phase thermodynamic `rho1/psi1` used by the
+pressure equation is still the constant-property phase closure. Therefore
+thermal, Tait, calibration, cooling/shrinkage/warpage, and full-fill claims
+remain blocked until a commercial-grade material card and process data are
+supplied and the constitutive coupling is enabled and validated.
 
 ## Required inputs before promotion
 
