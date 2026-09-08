@@ -199,3 +199,34 @@ Mesh quality and linear solver choice are rejected as primary causes.
 
 This ordering changes one physics layer at a time and prevents case-level
 timestep tuning from masking a solver-closure defect.
+
+## Improvement trials and geometry-boundary discovery
+
+An explicit `PIMPLE.solveEnergy` switch was added to make the hydraulic gate
+truly isothermal without deleting the energy implementation. With energy off
+and a simultaneous 1 ms U/alpha ramp, full-mesh R6 completed to `0.003 s` with
+no bound event/FATAL, final max Co `0.01233`, and `deltaT=1e-5 s`. This reduced
+the prior `~483.5 m/s` instability, but transient max U remained `1.37 m/s`.
+
+Further A/B results rejected simple ramp tuning:
+
+- assumed rectangular parabolic inlet profile: max U `6.09 m/s` (rejected);
+- 5 ms simultaneous U/alpha ramp: max U `2.29 m/s`;
+- 5 ms U ramp with alpha fixed at one: max U `3.53 m/s`;
+- standard incompressible `interFoam`: normal completion but max U `4.43 m/s`
+  and two pressure solves reached the 200-iteration cap.
+
+The common remaining defect is boundary topology. The canonical specification
+defines two assumed circular gates of diameter `4 mm` at `(x,y,z)=(0,15,25)`
+and `(0,45,25) mm`, but the mesh boundary file assigns **1,126 faces** to one
+`gate` patch. The opposite `vent` similarly has 1,128 faces. These counts and
+the extrema locations show that broad end-face patches, not two 4 mm gates,
+are being driven. Their intersection with no-slip cavity walls creates inlet-
+edge velocity singularities; this explains why temporal and spatial ramp
+variants cannot remove the peak.
+
+Revised priority: rebuild or reclassify the mesh patches so only the two 4 mm
+circles are `gate`, the remainder of the x=0 surface is `cavity_wall`, and the
+vent definition is explicitly audited. Verify patch areas and coordinates
+against the canonical spec before repeating the isothermal hydraulic gate.
+Thermal and rheology/EOS promotion remains blocked until this passes.

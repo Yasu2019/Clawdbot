@@ -1,4 +1,22 @@
 {
+    const Switch solveEnergy
+    (
+        mesh.solutionDict().subDict("PIMPLE").lookupOrDefault<Switch>
+        (
+            "solveEnergy",
+            true
+        )
+    );
+
+    if (!solveEnergy)
+    {
+        Info<< "Energy equation disabled for isothermal hydraulic gate" << nl;
+        T.correctBoundaryConditions();
+        mixture.correctThermo();
+        mixture.correct();
+    }
+    else
+    {
     fvScalarMatrix TEqn
     (
         fvm::ddt(rho, T) + fvm::div(rhoPhi, T) - fvm::Sp(contErr, T)
@@ -38,4 +56,5 @@
 
     mixture.correctThermo();
     mixture.correct();
+    }
 }
