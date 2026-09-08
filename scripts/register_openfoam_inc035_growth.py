@@ -10,8 +10,8 @@ ROOT = Path(__file__).resolve().parents[1]
 ARTIFACT = ROOT / "docs" / "incidents" / "20260908_box_roundhole_polymerinterfoam_resume_hold.md"
 LOCAL_DB = ROOT / "data" / "workspace" / "universal_growth.db"
 DOMAIN = "OpenFOAM polymerInterFoam restart safety"
-CHALLENGE = "Invalid unit scale and pressure datum made all restart checkpoints nonphysical"
-STATUS = "hold_after_three_recovery_trials_inc_openfoam_035"
+CHALLENGE = "Impulsive flux-inconsistent startup and incomplete pressure-energy-rheology closure"
+STATUS = "root_cause_decided_staged_repair_full_geometry_hold"
 
 
 def load_turso_env() -> None:
@@ -29,12 +29,15 @@ def load_turso_env() -> None:
 
 def knowledge() -> str:
     return (
-        "Validate mesh dimensions against the canonical SI specification before launch. "
-        "The failed 100x60x50 mm part was meshed as 100x60x50 m and p_rgh mixed a "
-        "101325 Pa internal datum with a 0 Pa vent. Reject restart checkpoints by field "
-        "and Courant gates, not merely by time-directory presence. R2 exceeded the "
-        "temperature gate; R3/R4 collapsed in timestep near 2.58e-4 s. Full continuation "
-        "is HOLD after three trials; run the minimal SI conservation benchmark first."
+        "Validate SI dimensions and pressure datum before launch. In the repaired full mesh, "
+        "the first temperature excursion occurred at 1.200192e-7 s before Courant growth: "
+        "internal U=0 conflicted with an instantaneous 0.05 m/s gate in a high-density-ratio "
+        "compressible cavity, generating a pressure wave and later air velocity near 483.5 m/s. "
+        "The screening T equation omits pressure-work/kinetic-energy coupling; Cross-WLF is "
+        "not coupled to momentum and Tait is not in one conservative pressure closure. "
+        "Repair sequentially: isothermal ramped hydraulic gate, conservative enthalpy gate, "
+        "independent Cross-WLF/Tait validation and coupling, then two clean full repetitions. "
+        "Never resume R1-R5 checkpoints."
     )
 
 
@@ -45,7 +48,14 @@ def register_local(text: str) -> str:
             (DOMAIN, str(ARTIFACT)),
         ).fetchone()
         if found:
-            return "already_present"
+            conn.execute(
+                """UPDATE growth_records SET challenge=?, status=?, know_how=?, evidence=?, source=?
+                WHERE domain=? AND artifact_path=?""",
+                (CHALLENGE, STATUS, text, "INC-OPENFOAM-035 T085 Beads vq3w.1-.3",
+                 "register_openfoam_inc035_growth", DOMAIN, str(ARTIFACT)),
+            )
+            conn.commit()
+            return "updated"
         conn.execute(
             """INSERT INTO growth_records
             (domain, challenge, status, know_how, artifact_path, difficulty, evidence, source)
@@ -74,7 +84,12 @@ async def register_turso(text: str) -> str:
             [DOMAIN, str(ARTIFACT)],
         )
         if result.rows:
-            return "already_present"
+            await client.execute(
+                """UPDATE growth_records SET challenge=?, status=?, know_how=?
+                WHERE domain=? AND artifact_path=?""",
+                [CHALLENGE, STATUS, text, DOMAIN, str(ARTIFACT)],
+            )
+            return "updated"
         await client.execute(
             """INSERT INTO growth_records
             (domain, challenge, status, know_how, artifact_path)
