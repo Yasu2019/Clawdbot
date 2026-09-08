@@ -99,8 +99,17 @@ int main(int argc, char *argv[])
     volScalarField& p = mixture.p();
     volScalarField& T = mixture.T();
     const volScalarField& rhoAir = mixture.thermo2().rho();
-    const volScalarField& psi1 = mixture.thermo1().psi();
     const volScalarField& psi2 = mixture.thermo2().psi();
+    volScalarField rhoPolymer
+    (
+        IOobject("rhoPolymer", runTime.timeName(), mesh, IOobject::NO_READ, IOobject::NO_WRITE),
+        mixture.thermo1().rho()
+    );
+    volScalarField psiPolymer
+    (
+        IOobject("psiPolymer", runTime.timeName(), mesh, IOobject::NO_READ, IOobject::NO_WRITE),
+        mesh, dimensionedScalar("zero", dimless/dimPressure, 0.0)
+    );
 
     if (!LTS)
     {
@@ -138,10 +147,10 @@ int main(int argc, char *argv[])
             (
                 T[celli], mag(gradU[celli]), p[celli]/1e6
             );
-            const scalar polymerRho = 1.0/polymerThermo.taitSpecificVolume
-            (
-                T[celli], p[celli]/1e6
-            );
+            const scalar polymerRho = polymerThermo.taitDensity(T[celli], p[celli]/1e6);
+            const scalar polymerPsi = polymerThermo.taitPsi(T[celli], p[celli]/1e6);
+            rhoPolymer[celli] = min(max(polymerRho, scalar(100.0)), scalar(2000.0));
+            psiPolymer[celli] = max(polymerPsi, scalar(1e-12));
             const scalar rhoTait = min(max
             (
                 mixture.alpha1()[celli]*polymerRho
@@ -150,7 +159,7 @@ int main(int argc, char *argv[])
             ), scalar(2000.0));
             // Under-relax the EOS update to prevent an initial pressure-matrix
             // singularity while retaining the Tait density contribution.
-            rho[celli] = 0.95*rho[celli] + 0.05*rhoTait;
+            rho[celli] = 0.8*rho[celli] + 0.2*rhoTait;
         }
         etaCrossWLF.correctBoundaryConditions();
 

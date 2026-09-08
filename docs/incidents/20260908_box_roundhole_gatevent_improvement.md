@@ -36,11 +36,11 @@ Cross-WLF is now available as an explicit `coupleCrossWLF` constitutive term in
 the momentum equation and the custom solver rebuild passes. It defaults to
 `false` because the baseline turbulence transport term would otherwise be
 double-counted before calibration. Tait density is evaluated in the solver
-and blended into `rho`, but the phase thermodynamic `rho1/psi1` used by the
-pressure equation is still the constant-property phase closure. Therefore
-thermal, Tait, calibration, cooling/shrinkage/warpage, and full-fill claims
-remain blocked until a commercial-grade material card and process data are
-supplied and the constitutive coupling is enabled and validated.
+and blended into `rho`. The polymer terms in the pressure equation now use
+`rhoPolymer(T,p)` and `psiPolymer=∂rho/∂p`; the generalized thermo library and
+solver rebuild pass. Thermal, calibration, cooling/shrinkage/warpage, and
+full-fill claims remain blocked until the energy/EOS stabilization is
+validated.
 
 ## Required inputs before promotion
 
