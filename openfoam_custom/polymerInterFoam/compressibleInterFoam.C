@@ -108,7 +108,7 @@ int main(int argc, char *argv[])
     volScalarField psiPolymer
     (
         IOobject("psiPolymer", runTime.timeName(), mesh, IOobject::NO_READ, IOobject::NO_WRITE),
-        mesh, dimensionedScalar("zero", dimless/dimPressure, 0.0)
+        mesh, dimensionedScalar("zero", dimDensity/dimPressure, 0.0)
     );
 
     if (!LTS)

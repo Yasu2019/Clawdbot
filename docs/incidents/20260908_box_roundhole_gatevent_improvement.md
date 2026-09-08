@@ -59,3 +59,11 @@ running, but produced repeated temperature-bound events (approximately
 diagnostic containment before spending the remaining compute on an unstable
 screening run. This is evidence that the thermal/Tait coupling still needs
 under-relaxation and conservative EOS work; it is not a physical result.
+
+After adding post-solve thermal relaxation and correcting the Tait
+compressibility dimensions, `virtual_pp_thermal_r3` reached `End` at
+`0.0001 s` (1000 steps). Max velocity was `0.6519 m/s`, max pressure was
+`101614.65 Pa`, and the maximum Courant number was below `2e-4`. Temperature
+bound events remained on every step, with the pre-bound range approximately
+`491.0–503.37 K`; therefore this is a numerical stabilization pass, not yet a
+validated thermal prediction or a full-fill/cooling/warpage result.

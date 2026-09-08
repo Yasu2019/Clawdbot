@@ -17,6 +17,7 @@
     }
     else
     {
+    volScalarField TBeforeSolve(T);
     fvScalarMatrix TEqn
     (
         fvm::ddt(rho, T) + fvm::div(rhoPhi, T) - fvm::Sp(contErr, T)
@@ -34,6 +35,16 @@
     fvOptions.constrain(TEqn);
 
     TEqn.solve();
+
+    const scalar thermalRelaxation
+    (
+        mesh.solutionDict().subDict("PIMPLE").lookupOrDefault<scalar>
+        (
+            "thermalRelaxation",
+            0.1
+        )
+    );
+    T = TBeforeSolve + thermalRelaxation*(T - TBeforeSolve);
 
     // Guard the generalized screening case against non-physical thermo
     // inversion while coefficients remain uncalibrated.
