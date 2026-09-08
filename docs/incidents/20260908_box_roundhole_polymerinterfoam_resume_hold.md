@@ -86,3 +86,25 @@ Only after this passes should the fixed implementation be applied to a new full-
 
 No web search was used. The failure was resolved to local first-party evidence (mesh bounds, canonical spec, source, logs, and controlled A/B trials); external advice would not replace the missing minimal conservation benchmark or material calibration.
 
+## HOLD-release benchmark attempt (2026-09-08)
+
+The user approved proceeding while preserving the pre-existing
+`ClawstackVivobookOpenFOAMResume` watchdog. It remained running and was not
+stopped, disabled, deleted, or reused. The benchmark ran independently on K10.
+
+- Setup R1: `0.02 x 0.002 x 0.001 m`, 160 cells. Solver ended normally at
+  `0.002 s`, but the outlet had not reached flow-through equilibrium, so the
+  mass-balance gate was not evaluable.
+- Candidate R2/R3: `0.001 x 0.002 x 0.001 m`, 80 cells, `0.04 s`. The final
+  inlet/outlet volume flux magnitudes both reached `1.0e-7 m3/s`, velocity
+  reached the imposed `0.05 m/s`, alpha stayed within `[0,1]`, temperature was
+  `503.15 K`, maximum Courant number was approximately `0.010001`, and the
+  timestep grew from `1.200012e-6` to `1.000062645e-5 s` without collapse.
+- Rejection: R3 logged 1,099 linear solves that reached the configured maximum
+  of 1,000 iterations. This is not a clean solver repetition and does not prove
+  the required no-clipping energy behavior. A second acceptance repetition was
+  therefore not run.
+
+Decision: the HOLD is **not released**. The next bounded change must expose and
+count temperature-clipping events and correct the pressure/temperature linear
+solver convergence before two clean repetitions are attempted.
