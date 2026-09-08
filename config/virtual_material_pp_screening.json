@@ -1,6 +1,7 @@
 {
   "schema_version": "1.0",
   "material_id": "virtual_PP_injection_screening_v1",
+  "identity": {"material_id": "virtual_PP_injection_screening_v1", "data_status": "VIRTUAL_SCREENING_ONLY"},
   "truth_status": "VIRTUAL_GENERAL_PRIOR_NOT_A_COMMERCIAL_GRADE",
   "basis": "Representative polypropylene melt values for numerical screening only",
   "units": {"temperature": "K", "pressure": "Pa", "viscosity": "Pa.s", "density": "kg/m3", "cp": "J/(kg.K)", "conductivity": "W/(m.K)"},
@@ -8,6 +9,7 @@
   "thermal": {"rho_reference": 900.0, "cp": 2200.0, "conductivity": 0.22, "wall_heat_transfer_W_m2K": 500.0},
   "cross_wlf": {"D1": 1.0e10, "D2_C": 105.0, "D3_C_MPa": 0.0, "A1": 17.44, "A2_C": 51.6, "tauStar_Pa": 5.0e4, "n": 0.35},
   "tait_two_domain": {"A0": 1.11e-3, "A1p": 6.0e-7, "B0": 2.0e8, "B1p": 0.0, "C": 0.0894, "b": 0.0, "Tref_K": 503.15},
+  "structural": {"youngs_modulus_Pa": 1.2e9, "poisson_ratio": 0.42, "cte_1_K": 1.0e-4},
   "structural_screening": {"youngs_modulus_Pa": 1.2e9, "poisson_ratio": 0.42, "cte_1_K": 1.0e-4, "solidification_temperature_K": 393.15},
   "limitations": ["Do not report as material calibration or production prediction", "Replace with supplier PVT/rheology/thermal card before design release"]
 }
