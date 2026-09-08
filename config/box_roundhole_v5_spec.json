@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "model_id": "box-roundhole-v5",
-  "status": "ASSUMPTIONS_PENDING_CALIBRATION",
+  "status": "VIRTUAL_SCREENING_CARD_PENDING_CALIBRATION",
   "geometry": {
     "type": "open_top_hollow_box_with_centered_bottom_through_hole",
     "outer_dimensions_mm": [100.0, 60.0, 50.0],
@@ -25,18 +25,19 @@
     "vent_coordinates_mm": [[100.0, 15.0, 25.0], [100.0, 45.0, 25.0]],
     "vent_diameter_mm": 2.0,
     "vent_definition_status": "ASSUMED_FROM_PRIOR_CANDIDATE_10_SCREENING",
-    "melt_temperature_C": null,
-    "mold_temperature_C": null,
-    "injection_time_s": null,
-    "packing_pressure_MPa": null,
-    "packing_time_s": null,
-    "cooling_time_s": null
+    "melt_temperature_C": 230.0,
+    "mold_temperature_C": 40.0,
+    "injection_time_s": 0.003,
+    "packing_pressure_MPa": 30.0,
+    "packing_time_s": 0.5,
+    "cooling_time_s": 8.0,
+    "process_data_status": "VIRTUAL_SCREENING_ONLY"
   },
   "material": {
-    "commercial_grade": null,
+    "commercial_grade": "VIRTUAL_PP_SCREENING_NOT_A_GRADE",
     "material_model": "Cross-WLF + two-domain Tait + thermal + elastic",
-    "property_source": null,
-    "calibration_status": "MISSING"
+    "property_source": "config/virtual_material_pp_screening.json",
+    "calibration_status": "VIRTUAL_UNCALIBRATED"
   },
   "solvers": {
     "filling": "OpenFOAM",

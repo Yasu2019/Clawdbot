@@ -47,3 +47,15 @@ supplied and the constitutive coupling is enabled and validated.
 Commercial grade and authoritative Cross-WLF/pvT coefficients with units,
 melt/mold temperatures, injection/packing/cooling schedule, gate pressure or
 flow history, and calibrated elastic/thermal shrinkage properties.
+
+## Virtual-card run
+
+`config/virtual_material_pp_screening.json` is now available as a clearly
+labelled representative PP card. A new case
+`artifacts/box_roundhole_v5/virtual_pp_thermal_r1` was started on the corrected
+mesh with `solveEnergy true`. The first 0.000265 s remained numerically
+running, but produced repeated temperature-bound events (approximately
+307–527 K) and a shrinking adaptive time step. It was stopped as a reversible
+diagnostic containment before spending the remaining compute on an unstable
+screening run. This is evidence that the thermal/Tait coupling still needs
+under-relaxation and conservative EOS work; it is not a physical result.
