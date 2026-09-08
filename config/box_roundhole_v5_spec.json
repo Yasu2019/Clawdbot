@@ -1,0 +1,61 @@
+{
+  "schema_version": "1.0",
+  "model_id": "box-roundhole-v5",
+  "status": "ASSUMPTIONS_PENDING_CALIBRATION",
+  "geometry": {
+    "type": "open_top_hollow_box_with_centered_bottom_through_hole",
+    "outer_dimensions_mm": [100.0, 60.0, 50.0],
+    "nominal_wall_thickness_mm": 2.0,
+    "hole_diameter_mm": 20.0,
+    "hole_axis": "Z",
+    "topology": "open_top_container",
+    "open_top": true,
+    "inner_dimensions_mm": [96.0, 56.0, 48.0],
+    "hole_center_mm": [50.0, 30.0],
+    "geometry_hash": null,
+    "canonical_geometry_file": null
+  },
+  "process": {
+    "gate_count": 2,
+    "gate_coordinates_mm": [[0.0, 15.0, 25.0], [0.0, 45.0, 25.0]],
+    "gate_diameter_mm": 4.0,
+    "gate_definition_status": "ASSUMED_FOR_TWO_FRONT_SCREENING",
+    "vent_definition": "two_circular_vents_on_opposite_x_face",
+    "vent_count": 2,
+    "vent_coordinates_mm": [[100.0, 15.0, 25.0], [100.0, 45.0, 25.0]],
+    "vent_diameter_mm": 2.0,
+    "vent_definition_status": "ASSUMED_FROM_PRIOR_CANDIDATE_10_SCREENING",
+    "melt_temperature_C": null,
+    "mold_temperature_C": null,
+    "injection_time_s": null,
+    "packing_pressure_MPa": null,
+    "packing_time_s": null,
+    "cooling_time_s": null
+  },
+  "material": {
+    "commercial_grade": null,
+    "material_model": "Cross-WLF + two-domain Tait + thermal + elastic",
+    "property_source": null,
+    "calibration_status": "MISSING"
+  },
+  "solvers": {
+    "filling": "OpenFOAM",
+    "structural": "CalculiX",
+    "required_version_evidence": true
+  },
+  "acceptance": {
+    "mass_balance_error_max_percent": 2.0,
+    "minimum_openfoam_cells": 50000,
+    "minimum_calculix_elements": 10000,
+    "minimum_mesh_levels": 3,
+    "maximum_key_kpi_mesh_change_percent": 5.0,
+    "minimum_animation_duration_s": 20.0,
+    "required_phenomena": ["filling", "warpage", "sink", "void", "shrinkage", "weld_line"]
+  },
+  "limitations": [
+    "Geometry dimensions are carried forward from the audited preview and require user confirmation against the intended part.",
+    "Material grade and process conditions are not yet specified; engineering validation is blocked until calibrated inputs exist.",
+    "Two 4 mm gates at x=0 mm and the opposite-face vent are explicit screening assumptions, not confirmed production tooling.",
+    "Sink, void, and weld-line outputs must be labelled risk indicators unless independently validated against measurements or a trusted reference."
+  ]
+}
