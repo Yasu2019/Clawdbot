@@ -1,5 +1,5 @@
 """Render one OpenFOAM field at a time as a spatial 3-D MP4."""
-import argparse, tempfile
+import argparse, re, tempfile
 from pathlib import Path
 import pyvista as pv
 from PIL import Image
@@ -13,7 +13,12 @@ ap.add_argument('--field', default='alpha.polymer')
 ap.add_argument('--title', default='OpenFOAM spatial field')
 args = ap.parse_args()
 vtk_dir, out = args.vtk_dir, args.out
-files = sorted(vtk_dir.glob('case_*.vtm'))
+def snapshot_key(path: Path) -> tuple[int, str]:
+    """Sort VTK snapshots by numeric export index, never lexicographically."""
+    match = re.search(r"case_(\d+)\.vtm$", path.name)
+    return (int(match.group(1)), path.name) if match else (10**18, path.name)
+
+files = sorted(vtk_dir.glob('case_*.vtm'), key=snapshot_key)
 if not files: raise SystemExit('no VTK snapshots')
 frames=[]
 with tempfile.TemporaryDirectory() as td:
