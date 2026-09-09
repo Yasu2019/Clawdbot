@@ -67,6 +67,16 @@ def main() -> int:
     run = subprocess.run(cmd, capture_output=True, text=True)
     (args.quality_out.parent / "quality_evaluator.log").write_text((run.stdout or "") + (run.stderr or ""), encoding="utf-8")
     manifest["quality_evaluator"] = {"returncode": run.returncode, "out": str(args.quality_out.resolve())}
+    ccx = args.quality_out.parent / "calculix_from_pvt"
+    prep = subprocess.run(["python", "scripts/box_roundhole_solver.py", "prepare-calculix",
+                           "--out", str(ccx.resolve()), "--pressure-mpa", "8.5",
+                           "--shrinkage-vtu", str(thermo_out.resolve())], capture_output=True, text=True)
+    ccx_status = {"prepare_returncode": prep.returncode, "out": str(ccx.resolve())}
+    if prep.returncode == 0:
+        run_ccx = subprocess.run(["python", "scripts/box_roundhole_solver.py", "run-calculix", "--out", str(ccx.resolve())], capture_output=True, text=True)
+        audit_ccx = subprocess.run(["python", "scripts/box_roundhole_solver.py", "audit-calculix", "--out", str(ccx.resolve())], capture_output=True, text=True)
+        ccx_status.update({"run_returncode": run_ccx.returncode, "audit_returncode": audit_ccx.returncode})
+    manifest["calculix"] = ccx_status
     manifest["formal_status"] = "SCREENING_ONLY"
     manifest["measured_calibration_required"] = ["PVT", "CTE", "cooling curve", "viscosity/Cross-WLF", "pressure/flow measurement"]
     (args.quality_out.parent / "virtual_e2e_manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
