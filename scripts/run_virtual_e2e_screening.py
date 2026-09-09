@@ -69,6 +69,9 @@ def main() -> int:
     run = subprocess.run(cmd, capture_output=True, text=True)
     (args.quality_out.parent / "quality_evaluator.log").write_text((run.stdout or "") + (run.stderr or ""), encoding="utf-8")
     manifest["quality_evaluator"] = {"returncode": run.returncode, "out": str(args.quality_out.resolve())}
+    void_out = args.quality_out / "void_mechanisms.vtu"
+    void_run = subprocess.run(["python", "scripts/derive_void_mechanisms.py", "--source", str((args.quality_out / f'{args.case}_quality_screening.vtu').resolve()), "--output", str(void_out.resolve())], capture_output=True, text=True)
+    manifest["void_mechanisms"] = {"returncode": void_run.returncode, "output": str(void_out.resolve())}
     ccx = args.quality_out.parent / "calculix_from_pvt"
     prep = subprocess.run(["python", "scripts/box_roundhole_solver.py", "prepare-calculix",
                            "--out", str(ccx.resolve()), "--pressure-mpa", "8.5", "--include-thermal",

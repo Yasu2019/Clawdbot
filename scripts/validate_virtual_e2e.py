@@ -19,7 +19,7 @@ def validate(root: Path) -> dict:
         ccx=m.get('calculix',{})
         for k in ('prepare_returncode','run_returncode','audit_returncode'):
             if ccx.get(k)!=0: errors.append(f'calculix {k} failed')
-    required=['virtual_fields.vtu','virtual_thermo_pvt.vtu','virtual_thermo_pvt.manifest.json','quality/summary.json','calculix_from_pvt/solver_run.json','calculix_from_pvt/result_audit.json']
+    required=['virtual_fields.vtu','virtual_thermo_pvt.vtu','virtual_thermo_pvt.manifest.json','quality/summary.json','quality/void_mechanisms.vtu','quality/void_mechanisms.manifest.json','calculix_from_pvt/solver_run.json','calculix_from_pvt/result_audit.json']
     missing=[x for x in required if not (root/x).is_file()]
     errors.extend('missing '+x for x in missing)
     audit_path=root/'calculix_from_pvt/result_audit.json'
