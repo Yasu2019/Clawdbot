@@ -339,3 +339,56 @@ Dynabook MF2010 SUCCESS path: MCP 0.8.3 @ 100.98.133.40:8765, schtasks /IT sessi
 - docs/knowledge/dynabook_moldflow_end_to_end_runbook_20260720.md
 - .brv/context-tree/cae/dynabook_moldflow_facecenter_fill_png_20260720.md
 
+
+
+## [2026-08-25] Moldflow Material Complete Physical Property Database Ingestion
+- **Milestone**: 8,161 materials catalog normalized; Complete Cross-WLF (n, tau*, D1-D3, A1, A2), 2-domain Modified Tait pvT (13 parameters), Thermal (Cp, k, CTE), and Mechanical (E1, E2, Nu, G12) parameters pipeline established and verified via solver preflight intermediate deck extraction (TCode 1313, 1004, 1100, 1200, 1602, 1702).
+- **Assertion**: Sumitomo Noblen AY564 (ID 53781) verified 100% match against handoff and official Moldflow UI captures (n=0.3328, tau*=10800 Pa, D1=1.22e12 Pa-s, D2=263.15 K, A1=24.728, A2=51.6 K, Cp=2989, k=0.162, E1=1340 MPa).
+- **Persistent Storage**:
+  - SQLite: `D:\Clawdbot_Docker_20260125\data\workspace\moldflow_bridge\moldflow_materials.db`
+  - Cards: `D:\Clawdbot_Docker_20260125\data\workspace\moldflow_bridge\material_cards\`
+  - Catalog: `D:\Clawdbot_Docker_20260125\data\workspace\moldflow_bridge\materials_catalog_normalized.json`
+## 2026-09-08 06:40:31 +09:00
+
+**Curate status:** failed
+
+**Reason:** brv curate failed
+
+**Context**
+
+INC-OPENFOAM-035 / T085: Box-roundhole polymerInterFoam crash RCA. Canonical 100x60x50 mm geometry was meshed as 100x60x50 m; p_rgh also mixed 101325 Pa internal with 0 Pa vent. Every checkpoint was invalid, so latestTime resume is unsafe. SI and pressure-datum fixes improved the smoke case, but R2 exceeded the temperature gate and R3/R4 suffered timestep collapse near 2.58e-4 s. After three trials the full run is HOLD; next step is Beads o9io minimal SI conservation benchmark. CalculiX and Elmer completed normally.
+
+**Source files**
+
+- docs/incidents/20260908_box_roundhole_polymerinterfoam_resume_hold.md
+- openfoam_custom/polymerInterFoam/TEqn.H
+
+## 2026-09-08 10:49:29 +09:00
+
+**Curate status:** failed
+
+**Reason:** brv curate failed
+
+**Context**
+
+INC-OPENFOAM-035 root-cause decision: the primary trigger is impulsive flux-inconsistent startup (internal U=0 versus instantaneous gate U=0.05 m/s) in a high-density-ratio compressible cavity. The first temperature excursion at 1.200192e-7 s precedes Courant collapse; later air velocity is about 483.5 m/s and p_rgh about 272 kPa. The incomplete screening energy closure is a secondary amplifier; Cross-WLF viscosity and Tait density are not conservatively coupled. Adopted repair order: isothermal constant-property full-mesh test with ramped inlet and flux-consistent U/p; conservative enthalpy/energy gate with clipping as FAIL; independent Cross-WLF/Tait validation and conservative coupling; two clean repetitions; new generation only. Never resume R1-R5.
+
+**Source files**
+
+- docs/incidents/20260908_box_roundhole_polymerinterfoam_resume_hold.md
+- openfoam_custom/polymerInterFoam/TEqn.H
+
+## 2026-09-10 00:21:46 +09:00
+
+**Curate status:** timeout
+
+**Reason:** brv curate timed out after 15s
+
+**Context**
+
+2026-09-10: Box round-hole virtual screening r9 passed numerical E2E. Material gas is now card-driven; virtual card uses zero gas and remains unknown pending measured moisture/volatile/TGA. Separate void mechanism fields are retained. Canonical note docs/knowledge/box_roundhole_virtual_screening_void_mechanisms_20260910.md and Obsidian mirror data/state/Obsidian Vault/60_PC_Logs/2026-09-10_INC-VOID_virtual_screening_void_mechanisms.md. Screening-only.
+
+**Source files**
+
+- docs/knowledge/box_roundhole_virtual_screening_void_mechanisms_20260910.md
+
