@@ -25,7 +25,12 @@ def main():
    g.cell_data['virtual_displacement_m']=disp.astype('float32')
    s=g.extract_surface().cell_data_to_point_data(); pts=s.points.copy(); z0=pts[:,2].mean(); # point proxy from surface data
    d=np.asarray(s.point_data['virtual_displacement_m']); s.points[:,2]+=d
-   p=pv.Plotter(off_screen=True,window_size=(1400,800)); p.set_background('white'); p.add_mesh(s,color='lightsteelblue',show_edges=False)
+   s.point_data['displacement_mm']=(d*1000.0).astype('float32')
+   p=pv.Plotter(off_screen=True,window_size=(1400,800)); p.set_background('white')
+   # Make the deformation visible: colored displacement plus undeformed outline.
+   lim=0.2*scale; p.add_mesh(s,scalars='displacement_mm',cmap='coolwarm',clim=(-lim,lim),show_edges=False,
+                              scalar_bar_args={'title':f'Displacement mm ({scale}x)'})
+   p.add_mesh(base.extract_surface(),color='black',style='wireframe',line_width=1,opacity=.22)
    p.view_isometric(); p.camera.zoom(1.2); p.add_text(f'{args.kind} deformation {scale}x | t={it["time"]:.2f} s | virtual displacement | SCREENING ONLY',color='black',font_size=18)
    fn=args.out/f'{args.kind}_{scale}x_{i:03d}.png'; p.screenshot(fn); p.close(); frames.append(fn)
   mp4=args.out/f'box100x60x50_{args.kind}_deformation_{scale}x.mp4'; subprocess.run(['ffmpeg','-y','-loglevel','error','-framerate','4','-i',str(args.out/f'{args.kind}_{scale}x_%03d.png'),'-pix_fmt','yuv420p',str(mp4)],check=True)
