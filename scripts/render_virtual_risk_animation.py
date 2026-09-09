@@ -44,7 +44,21 @@ def main() -> int:
                     xspan=max(float(np.ptp(centers[:,0])),1e-12)
                     vent_distance=np.clip((centers[:,0]-float(centers[:,0].min()))/xspan,0,1)
                     far_end=np.clip((vent_distance-0.60)/0.40,0,1)
-                    candidate=np.clip(0.70*distance_marker*far_end + 0.25*mechanism + 0.10*low_pressure_marker,0,1)
+                    # Geometry-aware terms: round-hole boundary (region 7),
+                    # box corners, and local thickness.  These are explicit
+                    # shape proxies; they do not replace a compressible-air
+                    # or vent-network solve.
+                    region=np.asarray(base.cell_data.get('surface_region_id',np.zeros(base.n_cells)),float)
+                    hole=np.clip(region == 7,0,1).astype(float)
+                    yspan=max(float(np.ptp(centers[:,1])),1e-12)
+                    edge_x=np.minimum(centers[:,0]-centers[:,0].min(),centers[:,0].max()-centers[:,0])
+                    edge_y=np.minimum(centers[:,1]-centers[:,1].min(),centers[:,1].max()-centers[:,1])
+                    corner=np.exp(-edge_x/0.003)*np.exp(-edge_y/0.003)
+                    thick=np.asarray(base.cell_data.get('half_thickness_m_proxy',np.zeros(base.n_cells)),float)
+                    p25,p90=np.percentile(thick,[25,90]) if np.ptp(thick)>0 else (0.0,1.0)
+                    thick_factor=np.clip((thick-p25)/max(p90-p25,1e-12),0,1)
+                    shape_factor=np.clip(0.45*hole+0.35*corner+0.20*thick_factor,0,1)
+                    candidate=np.clip(0.50*distance_marker*far_end + 0.25*shape_factor + 0.15*mechanism + 0.10*low_pressure_marker,0,1)
                 else:
                     pvt=np.asarray(base.cell_data.get('void_pvt_shrink_void_risk',np.zeros(base.n_cells)),float)
                     underpack=np.asarray(base.cell_data.get('void_underpack_risk',np.zeros(base.n_cells)),float)
