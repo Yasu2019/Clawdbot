@@ -8,7 +8,7 @@ from __future__ import annotations
 import argparse,json
 from pathlib import Path
 import numpy as np, pyvista as pv
-from molding_physics_models import cross_wlf_viscosity, pvt_shrink_strain, solidification_fraction, anisotropic_shrink_strain, fiber_orientation_tensor
+from molding_physics_models import cross_wlf_viscosity, pvt_shrink_strain, solidification_fraction, anisotropic_shrink_strain, fiber_orientation_tensor, cooling_step
 
 def main():
  ap=argparse.ArgumentParser(); ap.add_argument('--input',type=Path,required=True); ap.add_argument('--output',type=Path,required=True); ap.add_argument('--card',type=Path,default=Path('config/virtual_material_pp_screening.json')); args=ap.parse_args()
@@ -17,7 +17,8 @@ def main():
  arr=np.asarray(g.cell_data['arrival_time_s'],float); p=np.asarray(g.cell_data['pressure_MPa_calibrated'],float)
  # Virtual melt-to-mold cooling over the arrival/packing history.
  melt=float(card['process']['melt_temperature_K'])-273.15; mold=float(card['process']['mold_temperature_K'])-273.15
- T=melt-(melt-mold)*np.clip(arr/max(float(arr.max()),1e-12),0,1)
+ thermal=card['thermal']; rho_card=float(thermal['rho_reference']); cp_card=float(thermal['cp']); h_card=float(thermal['wall_heat_transfer_W_m2K'])
+ T=np.array([cooling_step(melt,mold,max(float(t),0.0),h_w_m2k=h_card,thickness_m=0.002,rho_kg_m3=rho_card,cp_j_kgk=cp_card) for t in arr])
  shear=np.maximum(1e-3, np.asarray(g.cell_data.get('U',np.zeros((g.n_cells,3))))[:,0] if 'U' in g.cell_data else np.full(g.n_cells,10.0))
  # Cap the virtual rheology for numerical conditioning; the measured card
  # must provide the valid low-temperature branch and solver limits.
