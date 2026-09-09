@@ -70,7 +70,8 @@ def main() -> int:
     ccx = args.quality_out.parent / "calculix_from_pvt"
     prep = subprocess.run(["python", "scripts/box_roundhole_solver.py", "prepare-calculix",
                            "--out", str(ccx.resolve()), "--pressure-mpa", "8.5",
-                           "--shrinkage-vtu", str(thermo_out.resolve())], capture_output=True, text=True)
+                           "--shrinkage-vtu", str(thermo_out.resolve()),
+                           "--pressure-vtu", str(thermo_out.resolve())], capture_output=True, text=True)
     ccx_status = {"prepare_returncode": prep.returncode, "out": str(ccx.resolve())}
     if prep.returncode == 0:
         run_ccx = subprocess.run(["python", "scripts/box_roundhole_solver.py", "run-calculix", "--out", str(ccx.resolve())], capture_output=True, text=True)

@@ -140,6 +140,20 @@ def mean_pvt_shrinkage(vtu: Path) -> float:
     return float(np.mean(values))
 
 
+def mean_pressure_mpa(vtu: Path) -> float:
+    """Read the calibrated-screening pressure field in MPa."""
+    import pyvista as pv
+    grid = pv.read(vtu)
+    name = "pressure_MPa_calibrated"
+    if name not in grid.cell_data:
+        raise ValueError(f"{name} missing: {vtu}")
+    import numpy as np
+    values = np.asarray(grid.cell_data[name], dtype=float)
+    if values.size == 0 or not np.isfinite(values).all():
+        raise ValueError(f"invalid pressure field: {vtu}")
+    return float(np.mean(values))
+
+
 def run_calculix(out: Path) -> dict:
     out = out.resolve()
     manifest_path = out / "solver_manifest.json"
@@ -192,6 +206,8 @@ def main() -> int:
     c.add_argument("--estimated-shrinkage", type=float, default=None)
     c.add_argument("--shrinkage-vtu", type=Path, default=None,
                    help="Use mean pvt_shrink_strain from a theory-path VTU")
+    c.add_argument("--pressure-vtu", type=Path, default=None,
+                   help="Use mean pressure_MPa_calibrated from a screening VTU")
     r = sub.add_parser("run-calculix")
     r.add_argument("--out", type=Path, default=DEFAULT_CCX)
     m = sub.add_parser("map-openfoam")
@@ -206,13 +222,19 @@ def main() -> int:
         return 0 if result["status"] == "READY" else 2
     if args.command == "prepare-calculix":
         shrink = args.estimated_shrinkage
+        pressure = args.pressure_mpa
         source = None
         if args.shrinkage_vtu is not None:
             shrink = mean_pvt_shrinkage(args.shrinkage_vtu)
             source = str(args.shrinkage_vtu.resolve())
-        result = prepare_calculix(args.out, args.pressure_mpa, args.include_thermal, shrink)
+        if args.pressure_vtu is not None:
+            pressure = mean_pressure_mpa(args.pressure_vtu)
+        result = prepare_calculix(args.out, pressure, args.include_thermal, shrink)
         if source:
             result["shrinkage_source_vtu"] = source
+        if args.pressure_vtu is not None:
+            result["pressure_source_vtu"] = str(args.pressure_vtu.resolve())
+        if source or args.pressure_vtu is not None:
             _write(args.out / "solver_manifest.json", result)
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 0
