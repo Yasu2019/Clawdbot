@@ -14,5 +14,7 @@ def test_virtual_thermo_pvt_output_has_finite_fields():
     assert all(name in g.cell_data for name in required)
     for name in required:
         assert np.isfinite(np.asarray(g.cell_data[name])).all()
+    if 'surface_region_id' in g.cell_data:
+        assert len(set(np.asarray(g.cell_data['surface_region_id']).astype(int))) >= 3
     manifest = json.loads(source.with_suffix('.manifest.json').read_text(encoding='utf-8'))
     assert manifest['formal_status'] == 'SCREENING_ONLY'
