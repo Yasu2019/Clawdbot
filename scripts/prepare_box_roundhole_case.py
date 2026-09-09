@@ -12,6 +12,10 @@ from pathlib import Path
 def copy_tree_without_poly_mesh(src: Path, dst: Path) -> None:
     for name in ("0", "system"):
         shutil.copytree(src / name, dst / name)
+    # Cell-centre helper fields are mesh-sized and must be regenerated after
+    # replacing polyMesh; copying them causes a hard field-length mismatch.
+    for helper in ("C", "Cx", "Cy", "Cz"):
+        (dst / "0" / helper).unlink(missing_ok=True)
     (dst / "constant").mkdir(parents=True, exist_ok=True)
     for item in (src / "constant").iterdir():
         if item.name != "polyMesh" and item.is_file():
