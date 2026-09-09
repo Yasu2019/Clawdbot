@@ -13,6 +13,7 @@ def validate(root: Path) -> dict:
         for key in ('thermo_pvt','quality_evaluator','calculix'):
             if key not in m: errors.append(f'{key} missing')
         if m.get('formal_status')!='SCREENING_ONLY': errors.append('formal_status must remain SCREENING_ONLY')
+        if m.get('material_card_preflight',{}).get('data_status') not in (None,'VIRTUAL_SCREENING_ONLY','MEASURED_UNCALIBRATED','CALIBRATED','VALIDATED'): errors.append('invalid material-card status')
         if m.get('thermo_pvt',{}).get('returncode')!=0: errors.append('thermo_pvt failed')
         if m.get('quality_evaluator',{}).get('returncode')!=0: errors.append('quality evaluator failed')
         ccx=m.get('calculix',{})
@@ -21,6 +22,8 @@ def validate(root: Path) -> dict:
     required=['virtual_fields.vtu','virtual_thermo_pvt.vtu','virtual_thermo_pvt.manifest.json','quality/summary.json','calculix_from_pvt/solver_run.json','calculix_from_pvt/result_audit.json']
     missing=[x for x in required if not (root/x).is_file()]
     errors.extend('missing '+x for x in missing)
+    audit_path=root/'calculix_from_pvt/result_audit.json'
+    if audit_path.is_file() and json.loads(audit_path.read_text()).get('status')!='PASS_NUMERICAL_SANITY_UNVALIDATED': errors.append('CalculiX audit not numerically sane')
     result={'schema':'clawstack.virtual_e2e_acceptance.v1','status':'PASS_SCREENING' if not errors else 'FAIL_SCREENING','formal_status':'SCREENING_ONLY','root':str(root.resolve()),'errors':errors}
     (root/'acceptance_gate.json').write_text(json.dumps(result,indent=2)+'\n',encoding='utf-8')
     return result

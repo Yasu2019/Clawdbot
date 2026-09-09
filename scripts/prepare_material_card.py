@@ -22,6 +22,10 @@ def validate(card: dict) -> list[str]:
     status=card.get('identity',{}).get('data_status')
     if status not in {'VIRTUAL_SCREENING_ONLY','MEASURED_UNCALIBRATED','CALIBRATED','VALIDATED'}:
         errors.append('identity.data_status must be an allowed status')
+    for section, keys in {'thermal':['rho_reference','cp','conductivity'],'structural':['youngs_modulus_Pa','cte_1_K']}.items():
+        if section in card:
+            for key in keys:
+                if key in card[section] and float(card[section][key]) <= 0: errors.append(f'{section}.{key} must be positive')
     return errors
 
 def main():
