@@ -56,8 +56,14 @@ def main() -> int:
     ap.add_argument("--case", default="box100x60x50_virtual_material")
     args = ap.parse_args()
     manifest = build_input(args.source.resolve(), args.out.resolve())
+    thermo_out = args.out.with_name("virtual_thermo_pvt.vtu")
+    thermo = subprocess.run(["python", "scripts/apply_virtual_thermo_pvt.py",
+                             "--input", str(args.out.resolve()), "--output", str(thermo_out.resolve())],
+                            capture_output=True, text=True)
+    manifest["thermo_pvt"] = {"returncode": thermo.returncode, "output": str(thermo_out.resolve())}
+    quality_source = thermo_out if thermo.returncode == 0 else args.out
     cmd = ["python", "scripts/evaluate_76case_warp_sink_weld.py",
-           str(args.out.resolve()), "--case", args.case, "--out", str(args.quality_out.resolve())]
+           str(quality_source.resolve()), "--case", args.case, "--out", str(args.quality_out.resolve())]
     run = subprocess.run(cmd, capture_output=True, text=True)
     (args.quality_out.parent / "quality_evaluator.log").write_text((run.stdout or "") + (run.stderr or ""), encoding="utf-8")
     manifest["quality_evaluator"] = {"returncode": run.returncode, "out": str(args.quality_out.resolve())}
