@@ -81,8 +81,11 @@ def main() -> int:
     manifest["formal_status"] = "SCREENING_ONLY"
     manifest["measured_calibration_required"] = ["PVT", "CTE", "cooling curve", "viscosity/Cross-WLF", "pressure/flow measurement"]
     (args.quality_out.parent / "virtual_e2e_manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    gate = subprocess.run(["python", "scripts/validate_virtual_e2e.py", str(args.quality_out.parent.resolve())], capture_output=True, text=True)
+    manifest["acceptance_gate"] = {"returncode": gate.returncode, "status": "PASS_SCREENING" if gate.returncode == 0 else "FAIL_SCREENING"}
+    (args.quality_out.parent / "virtual_e2e_manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(manifest, ensure_ascii=False, indent=2))
-    return run.returncode
+    return 0 if run.returncode == 0 and gate.returncode == 0 else 2
 
 
 if __name__ == "__main__":
