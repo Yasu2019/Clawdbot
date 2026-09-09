@@ -55,3 +55,11 @@ def test_measured_gas_card_activates_material_gas_field(tmp_path):
     manifest = derive(source, tmp_path / 'out.vti', card)
     assert manifest['summary']['material_gas']['max'] > 0.0
     assert 'material_gas' not in manifest['unknown_without_measurements']
+
+
+def test_geometry_constriction_field_is_emitted(tmp_path):
+    source = _grid(tmp_path)
+    manifest = derive(source, tmp_path / 'out.vti')
+    assert 'geometry_constriction' in manifest['summary']
+    output = pv.read(tmp_path / 'out.vti')
+    assert 'void_geometry_constriction_risk' in output.cell_data

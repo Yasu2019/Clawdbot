@@ -16,6 +16,7 @@ MECHANISMS={
  'cold_fill':'low melt temperature or premature solidification during fill',
  'thermal_degradation':'temperature-time exposure above degradation threshold',
  'fiber_density':'fiber orientation/density heterogeneity; requires fiber/material data',
+ 'geometry_constriction':'round-hole, corner, and local-thickness flow-constriction risk',
 }
 
 def derive(source: Path, out: Path, card: Path | None = None) -> dict:
@@ -26,9 +27,17 @@ def derive(source: Path, out: Path, card: Path | None = None) -> dict:
  shrink=np.abs(np.asarray(g.cell_data.get('pvt_shrink_strain',np.zeros(n)),float))
  arrival=np.asarray(g.cell_data.get('arrival_time_s',np.zeros(n)),float)
  weld=np.asarray(g.cell_data.get('weld_risk_proxy',np.zeros(n)),float)
- centers=np.asarray(g.cell_centers().points); x=centers[:,0]
+ centers=np.asarray(g.cell_centers().points); x,y,z=centers.T
  vent_dist=np.minimum(np.abs(x-0.1),np.abs(x-0.0))/0.1
  thick=np.asarray(g.cell_data.get('half_thickness_m_proxy',np.zeros(n)),float)
+ region=np.asarray(g.cell_data.get('surface_region_id',np.zeros(n)),float)
+ edge_x=np.minimum(x-x.min(),x.max()-x)
+ edge_y=np.minimum(y-y.min(),y.max()-y)
+ corner=np.exp(-edge_x/0.003)*np.exp(-edge_y/0.003)
+ hole=(region==7).astype(float)
+ t25,t90=np.percentile(thick,[25,90]) if np.ptp(thick)>0 else (0.0,1.0)
+ thick_factor=np.clip((thick-t25)/max(t90-t25,1e-12),0,1)
+ geometry_constriction=np.clip(0.45*hole+0.35*corner+0.20*thick_factor,0,1)
  card_data = {}
  if card is not None and card.exists():
   card_data = json.loads(card.read_text(encoding='utf-8'))
@@ -54,6 +63,7 @@ def derive(source: Path, out: Path, card: Path | None = None) -> dict:
   'cold_fill':np.clip((180-t)/80,0,1),
   'thermal_degradation':np.clip((t-280)/40,0,1),
   'fiber_density':np.zeros(n),
+  'geometry_constriction':geometry_constriction,
  }
  for k,v in fields.items(): g.cell_data['void_'+k+'_risk']=np.asarray(v,dtype=np.float32)
  out.parent.mkdir(parents=True,exist_ok=True); g.save(out,binary=True)

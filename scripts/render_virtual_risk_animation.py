@@ -63,7 +63,8 @@ def main() -> int:
                     pvt=np.asarray(base.cell_data.get('void_pvt_shrink_void_risk',np.zeros(base.n_cells)),float)
                     underpack=np.asarray(base.cell_data.get('void_underpack_risk',np.zeros(base.n_cells)),float)
                     thick=np.asarray(base.cell_data.get('void_thick_section_risk',np.zeros(base.n_cells)),float)
-                    candidate=np.clip(0.55*pvt + 0.25*underpack + 0.20*thick,0,1)
+                    geometry=np.asarray(base.cell_data.get('void_geometry_constriction_risk',np.zeros(base.n_cells)),float)
+                    candidate=np.clip(0.45*pvt + 0.20*underpack + 0.15*thick + 0.20*geometry,0,1)
                 accumulated=np.maximum(accumulated,candidate)
                 field=accumulated
             elif n=='weld':
