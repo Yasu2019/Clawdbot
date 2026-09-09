@@ -30,8 +30,11 @@ def main():
  cte=float(card['structural']['cte_1_K'])
  shrink=np.array([pvt_shrink_strain(float(t),float(pp),cte_1k=cte,crystallinity=0.0) for t,pp in zip(T,p)])
  orient=fiber_orientation_tensor((1,0,0)); anis=np.array([anisotropic_shrink_strain(float(e),orient) for e in shrink])
- # Two-domain Tait density screening expression (positive, finite).
- rho=900.0/(1.0-0.0894*np.log1p(np.maximum(p,0.0)/200.0)) * (1.0-2.0e-4*(T-230.0))
+ # Two-domain Tait density screening expression using the card parameters.
+ tait=card['tait_two_domain']; rho_ref=1.0/max(float(tait['A0']),1e-12); B_mpa=max(float(tait['B0'])/1e6,1e-6); C=float(tait['C']); b=float(tait['b']); tref=float(tait['Tref_K'])
+ T_k=T+273.15
+ rho=rho_ref/(1.0-C*np.log1p(np.maximum(p,0.0)/B_mpa)) * (1.0-b*(T_k-tref))
+ rho=np.maximum(rho,1e-6)
  for n,v in {'temperature_C_theory':T,'cross_wlf_viscosity_Pa_s':eta,'solidification_fraction':solid,'tait_density_kg_m3':rho,'pvt_shrink_strain':shrink,'shrink_x':anis[:,0],'shrink_y':anis[:,1],'shrink_z':anis[:,2]}.items(): g.cell_data[n]=np.asarray(v,dtype=np.float32)
  args.output.parent.mkdir(parents=True,exist_ok=True); g.save(args.output,binary=True)
  m={'status':'VIRTUAL_THEORY_PATH_COMPLETE','formal_status':'SCREENING_ONLY','material_card':str(args.card.resolve()),'material_id':card['identity']['material_id'],'cells':int(g.n_cells),'fields_added':['temperature_C_theory','cross_wlf_viscosity_Pa_s','tait_density_kg_m3','pvt_shrink_strain','shrink_x','shrink_y','shrink_z'],'summary':{'temperature_C':[float(T.min()),float(T.max())],'viscosity_Pa_s':[float(eta.min()),float(eta.max())],'density_kg_m3':[float(rho.min()),float(rho.max())],'shrink_strain':[float(shrink.min()),float(shrink.max())]},'replace_with_measured':['PVT','Cross-WLF parameters','cooling curve','CTE']}
