@@ -18,7 +18,7 @@ MECHANISMS={
  'fiber_density':'fiber orientation/density heterogeneity; requires fiber/material data',
 }
 
-def derive(source: Path, out: Path) -> dict:
+def derive(source: Path, out: Path, card: Path | None = None) -> dict:
  g=pv.read(source); n=g.n_cells; a=np.asarray(g.cell_data.get('alpha_fill',g.cell_data.get('alpha.polymer')),float)
  p=np.asarray(g.cell_data.get('pressure_MPa_calibrated',np.full(n,1.0)),float)
  t=np.asarray(g.cell_data.get('temperature_C_theory',g.cell_data.get('temperature_C_proxy',np.full(n,200.0))),float)
@@ -29,9 +29,23 @@ def derive(source: Path, out: Path) -> dict:
  centers=np.asarray(g.cell_centers().points); x=centers[:,0]
  vent_dist=np.minimum(np.abs(x-0.1),np.abs(x-0.0))/0.1
  thick=np.asarray(g.cell_data.get('half_thickness_m_proxy',np.zeros(n)),float)
+ card_data = {}
+ if card is not None and card.exists():
+  card_data = json.loads(card.read_text(encoding='utf-8'))
+ gas_cfg = card_data.get('gas_generation', {})
+ moisture = max(float(gas_cfg.get('moisture_ppm', 0.0)), 0.0)
+ volatile = max(float(gas_cfg.get('volatile_mass_fraction', 0.0)), 0.0)
+ degradation_c = float(gas_cfg.get('degradation_temperature_C', 280.0))
+ # The virtual card defaults to zero gas.  When measured card values are
+ # supplied, moisture/volatile loading scales the gas source and temperature
+ # above the degradation threshold activates it.  This is a screening proxy,
+ # not a kinetic gas-generation model.
+ gas_load = np.clip(moisture / 1000.0 + volatile / 0.01, 0.0, 1.0)
+ gas_activation = np.clip((t - degradation_c) / 40.0, 0.0, 1.0)
+ material_gas = np.clip(gas_load * (0.25 + 0.75 * gas_activation) * (0.5 + 0.5 * (1.0 - solid)), 0.0, 1.0)
  fields={
   'air_entrapment':np.clip((1-a)*(.5+.5*vent_dist),0,1),
-  'material_gas':np.zeros(n),
+  'material_gas':material_gas,
   'pvt_shrink_void':np.clip(shrink/0.01*(1-solid)*(1-np.clip(p/30,0,1)),0,1),
   'underpack':np.clip((10-p)/10,0,1),
   'gate_freeze':np.clip(solid*(arrival<0.5),0,1),
@@ -44,8 +58,10 @@ def derive(source: Path, out: Path) -> dict:
  for k,v in fields.items(): g.cell_data['void_'+k+'_risk']=np.asarray(v,dtype=np.float32)
  out.parent.mkdir(parents=True,exist_ok=True); g.save(out,binary=True)
  summary={k:{'mean':float(np.mean(v)),'max':float(np.max(v)),'fraction_over_0_7':float(np.mean(v>=.7)),'status':'SCREENING_ONLY'} for k,v in fields.items()}
- manifest={'schema':'clawstack.void_mechanisms.v1','formal_status':'SCREENING_ONLY','source':str(source.resolve()),'output':str(out.resolve()),'cells':int(n),'mechanisms':MECHANISMS,'summary':summary,'unknown_without_measurements':['material_gas','fiber_density'],'required_measurements':['moisture/volatile content','TGA/degradation curve','PVT','packing pressure','gate freeze time','fiber orientation']}
+ unknown = [] if gas_cfg.get('data_status') == 'MEASURED' else ['material_gas']
+ unknown.append('fiber_density')
+ manifest={'schema':'clawstack.void_mechanisms.v1','formal_status':'SCREENING_ONLY','source':str(source.resolve()),'output':str(out.resolve()),'cells':int(n),'mechanisms':MECHANISMS,'summary':summary,'gas_generation':{'card':str(card.resolve()) if card else None,'moisture_ppm':moisture,'volatile_mass_fraction':volatile,'degradation_temperature_C':degradation_c,'data_status':gas_cfg.get('data_status','UNSPECIFIED')},'unknown_without_measurements':unknown,'required_measurements':['moisture/volatile content','TGA/degradation curve','PVT','packing pressure','gate freeze time','fiber orientation']}
  out.with_suffix('.manifest.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n',encoding='utf-8'); return manifest
 
 if __name__=='__main__':
- ap=argparse.ArgumentParser(); ap.add_argument('--source',type=Path,required=True); ap.add_argument('--output',type=Path,required=True); a=ap.parse_args(); print(json.dumps(derive(a.source.resolve(),a.output.resolve()),ensure_ascii=False,indent=2))
+ ap=argparse.ArgumentParser(); ap.add_argument('--source',type=Path,required=True); ap.add_argument('--output',type=Path,required=True); ap.add_argument('--card',type=Path); a=ap.parse_args(); print(json.dumps(derive(a.source.resolve(),a.output.resolve(),a.card.resolve() if a.card else None),ensure_ascii=False,indent=2))

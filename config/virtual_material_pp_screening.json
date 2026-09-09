@@ -7,6 +7,7 @@
   "units": {"temperature": "K", "pressure": "Pa", "viscosity": "Pa.s", "density": "kg/m3", "cp": "J/(kg.K)", "conductivity": "W/(m.K)"},
   "process": {"melt_temperature_K": 503.15, "mold_temperature_K": 313.15, "injection_time_s": 0.003, "packing_pressure_MPa": 30.0, "packing_time_s": 0.5, "cooling_time_s": 8.0},
   "thermal": {"rho_reference": 900.0, "cp": 2200.0, "conductivity": 0.22, "wall_heat_transfer_W_m2K": 500.0},
+  "gas_generation": {"moisture_ppm": 0.0, "volatile_mass_fraction": 0.0, "degradation_temperature_C": 280.0, "data_status": "VIRTUAL_SCREENING_ONLY"},
   "cross_wlf": {"D1": 1.0e10, "D2_C": 105.0, "D3_C_MPa": 0.0, "A1": 17.44, "A2_C": 51.6, "tauStar_Pa": 5.0e4, "n": 0.35},
   "tait_two_domain": {"A0": 1.11e-3, "A1p": 6.0e-7, "B0": 2.0e8, "B1p": 0.0, "C": 0.0894, "b": 0.0, "Tref_K": 503.15},
   "structural": {"youngs_modulus_Pa": 1.2e9, "poisson_ratio": 0.42, "cte_1_K": 1.0e-4},
