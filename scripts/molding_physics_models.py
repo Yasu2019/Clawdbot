@@ -25,10 +25,17 @@ def thermal_conductivity(temp_c: float, *, k_ref: float = 0.32, slope: float = -
 
 def cooling_step(temp_c: float, mold_temp_c: float, dt_s: float, *, h_w_m2k: float = 450.0,
                  thickness_m: float = 0.002, rho_kg_m3: float = 1150.0,
-                 cp_j_kgk: float = 1800.0) -> float:
+                 cp_j_kgk: float = 1800.0, conductivity_w_mk: float | None = None) -> float:
     """Lumped cooling step with an explicit stability-safe exponential update."""
     if dt_s < 0 or thickness_m <= 0 or rho_kg_m3 <= 0 or cp_j_kgk <= 0: raise ValueError("invalid cooling parameters")
-    tau = rho_kg_m3 * cp_j_kgk * thickness_m / max(1.0e-9, 2.0 * h_w_m2k)
+    if conductivity_w_mk is None:
+        tau = rho_kg_m3 * cp_j_kgk * thickness_m / max(1.0e-9, 2.0 * h_w_m2k)
+    else:
+        if conductivity_w_mk <= 0: raise ValueError("conductivity_w_mk must be positive")
+        # Lumped slab resistance: mold-side convection plus half-thickness
+        # conduction, applied to both faces.
+        resistance = 1.0 / max(1.0e-9, h_w_m2k) + thickness_m / (2.0 * conductivity_w_mk)
+        tau = rho_kg_m3 * cp_j_kgk * thickness_m * resistance / 2.0
     return mold_temp_c + (temp_c - mold_temp_c) * math.exp(-dt_s / tau)
 
 def solidification_fraction(temp_c: float, *, melt_c: float = 260.0, solid_c: float = 180.0) -> float:
