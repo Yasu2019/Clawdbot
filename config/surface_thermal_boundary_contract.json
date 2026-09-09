@@ -1,0 +1,25 @@
+{
+  "schema": "clawstack.surface_thermal_boundary.v1",
+  "required_for_new_3d_models": [
+    "outer_surfaces",
+    "inner_surfaces",
+    "bottom_or_mold_contact_surfaces",
+    "open_edges_or_vents",
+    "holes_or_core_surfaces"
+  ],
+  "fields": [
+    "surface_region_id",
+    "h_surface_W_m2K",
+    "surface_temperature_C",
+    "surface_normal"
+  ],
+  "rule": "Never merge inner and outer thermal boundaries unless the user explicitly approves it.",
+  "default_status": "VIRTUAL_SCREENING_ONLY",
+  "measured_replacements": [
+    "mold-side contact heat transfer",
+    "air-side heat transfer",
+    "core temperature",
+    "cavity temperature",
+    "vent and hole boundary condition"
+  ]
+}
