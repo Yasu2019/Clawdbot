@@ -54,11 +54,13 @@ def main() -> int:
     ap.add_argument("--out", type=Path, required=True)
     ap.add_argument("--quality-out", type=Path, required=True)
     ap.add_argument("--case", default="box100x60x50_virtual_material")
+    ap.add_argument("--card", type=Path, default=Path("config/virtual_material_pp_screening.json"))
     args = ap.parse_args()
     manifest = build_input(args.source.resolve(), args.out.resolve())
     thermo_out = args.out.with_name("virtual_thermo_pvt.vtu")
     thermo = subprocess.run(["python", "scripts/apply_virtual_thermo_pvt.py",
-                             "--input", str(args.out.resolve()), "--output", str(thermo_out.resolve())],
+                             "--input", str(args.out.resolve()), "--output", str(thermo_out.resolve()),
+                             "--card", str(args.card.resolve())],
                             capture_output=True, text=True)
     manifest["thermo_pvt"] = {"returncode": thermo.returncode, "output": str(thermo_out.resolve())}
     quality_source = thermo_out if thermo.returncode == 0 else args.out
