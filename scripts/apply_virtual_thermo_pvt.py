@@ -21,8 +21,9 @@ def main():
  shear=np.maximum(1e-3, np.asarray(g.cell_data.get('U',np.zeros((g.n_cells,3))))[:,0] if 'U' in g.cell_data else np.full(g.n_cells,10.0))
  # Cap the virtual rheology for numerical conditioning; the measured card
  # must provide the valid low-temperature branch and solver limits.
+ w=card['cross_wlf']; eta0=min(1.0e6,float(w['D1'])); tau=float(w['tauStar_Pa']); wn=float(w['n']); ref=float(card['process']['melt_temperature_K'])-273.15; c1=float(w['A1']); c2=float(w['A2_C'])
  def safe_eta(t,s):
-  try: return min(1.0e9,cross_wlf_viscosity(float(t),float(s)))
+  try: return min(1.0e9,cross_wlf_viscosity(float(t),float(s),eta0_pa_s=eta0,tau_pa=tau,n=wn,ref_c=ref,wlf_c1=c1,wlf_c2=c2))
   except OverflowError: return 1.0e9
  eta=np.array([safe_eta(t,s) for t,s in zip(T,shear)])
  solid=np.array([solidification_fraction(float(t)) for t in T])
