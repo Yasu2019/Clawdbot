@@ -69,7 +69,7 @@ def main() -> int:
     manifest["quality_evaluator"] = {"returncode": run.returncode, "out": str(args.quality_out.resolve())}
     ccx = args.quality_out.parent / "calculix_from_pvt"
     prep = subprocess.run(["python", "scripts/box_roundhole_solver.py", "prepare-calculix",
-                           "--out", str(ccx.resolve()), "--pressure-mpa", "8.5",
+                           "--out", str(ccx.resolve()), "--pressure-mpa", "8.5", "--include-thermal",
                            "--shrinkage-vtu", str(thermo_out.resolve()),
                            "--pressure-vtu", str(thermo_out.resolve())], capture_output=True, text=True)
     ccx_status = {"prepare_returncode": prep.returncode, "out": str(ccx.resolve())}
