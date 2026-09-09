@@ -14,7 +14,7 @@ def main() -> int:
     # snapshot so the front motion is not lost by coarse frame decimation.
     selected=[x for x in series if float(x['time']) <= 0.5]
     if selected[-1]['name'] != series[-1]['name']: selected.append(series[-1])
-    base=pv.read(a.quality); names=['warpage','sink','weld','airtrap']
+    base=pv.read(a.quality); names=['warpage','sink','weld','airtrap','void']
     surfaces={n:base.extract_surface() for n in names}
     # Keep camera and scalar range identical across frames.
     for n in names:
@@ -27,7 +27,7 @@ def main() -> int:
             # These are visual, dimensionless screening fields.  Their explicit
             # alpha dependence makes the advancing front visible; they are not
             # calibrated displacement, depth, strength, or void predictions.
-            if n=='airtrap': field=np.clip(1-alpha,0,1)
+            if n in ('airtrap','void'): field=np.clip(1-alpha,0,1)
             elif n=='weld': field=np.clip(4*alpha*(1-alpha)*np.asarray(base.cell_data['weld_risk_proxy']) + 0.15*alpha*(1-alpha),0,1)
             elif n=='sink': field=np.clip(np.asarray(base.cell_data['sink_risk_proxy'])*(0.05+0.95*alpha),0,1)
             else: field=np.clip(np.asarray(base.cell_data['warpage_risk_proxy'])*(0.05+0.95*alpha),0,1)

@@ -6,16 +6,17 @@ from pathlib import Path
 import numpy as np, pyvista as pv
 
 def main():
- ap=argparse.ArgumentParser(); ap.add_argument('--series',type=Path,required=True); ap.add_argument('--quality',type=Path,required=True); ap.add_argument('--out',type=Path,required=True); ap.add_argument('--kind',choices=['warpage','sink'],required=True); args=ap.parse_args()
+ ap=argparse.ArgumentParser(); ap.add_argument('--series',type=Path,required=True); ap.add_argument('--quality',type=Path,required=True); ap.add_argument('--out',type=Path,required=True); ap.add_argument('--kind',choices=['warpage','sink','shrink'],required=True); ap.add_argument('--scales',default='1,10,50,100'); args=ap.parse_args()
  args.out.mkdir(parents=True,exist_ok=True)
  files=json.loads(args.series.read_text())['files']; sel=[x for x in files if float(x['time'])<=.5]
  if sel[-1]['name']!=files[-1]['name']: sel.append(files[-1])
  base=pv.read(args.quality)
- for scale in (1,10,50,100):
+ for scale in [int(x) for x in args.scales.split(',')]:
   frames=[]
   for i,it in enumerate(sel):
    snap=pv.read(args.series.parent/Path(it['name']).stem/'internal.vtu'); alpha=np.asarray(snap.cell_data['alpha.polymer'],float)
    g=base.copy(); risk=np.asarray(g.cell_data['warpage_risk_proxy' if args.kind=='warpage' else 'sink_risk_proxy'],float)
+   if args.kind=='shrink' and 'pvt_shrink_strain' in g.cell_data: risk=np.clip(np.abs(np.asarray(g.cell_data['pvt_shrink_strain'],float))/0.01,0,1)
    dyn=np.clip(risk*(.05+.95*alpha),0,1)
    centers=np.asarray(g.cell_centers().points); xmin,xmax=centers[:,0].min(),centers[:,0].max(); ymin,ymax=centers[:,1].min(),centers[:,1].max()
    xx=(centers[:,0]-(xmin+xmax)/2)/max((xmax-xmin)/2,1e-12); yy=(centers[:,1]-(ymin+ymax)/2)/max((ymax-ymin)/2,1e-12)
