@@ -12,7 +12,9 @@
     "polymer_volume_trace": true,
     "thermal_integral_trace": true,
     "calculix_finished": true,
-    "calculix_results_present": true
+    "calculix_results_present": true,
+    "calculix_displacement_trace": true,
+    "calculix_stress_trace": true
   },
   "openfoam_final_time": "0.001",
   "openfoam_fields": [
@@ -28,7 +30,9 @@
     "polymer_volume_first": 3.600144e-07,
     "polymer_volume_last": 0.0030000003,
     "thermal_min": 20993980.0,
-    "thermal_max": 20993980.0
+    "thermal_max": 20993980.0,
+    "max_displacement": 0.25886563615953206,
+    "max_abs_stress": 1467670.0
   },
   "limitations": [
     "virtual rheology/CTE/PVT coefficients",
