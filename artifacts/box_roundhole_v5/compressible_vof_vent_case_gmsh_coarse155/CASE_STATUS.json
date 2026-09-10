@@ -1,0 +1,14 @@
+{
+  "status": "CASE_BUILT_NOT_RUN",
+  "solver": "compressibleInterFoam",
+  "compressible_phase": "air_perfectGas",
+  "polymer_eos": "rPolynomial_local_tait_equivalent",
+  "polymer_tait": "local_pressure_temperature_dependent_expansion",
+  "exact_nonlinear_tait": false,
+  "measured_pvt": false,
+  "cross_wlf": "parameter_card_written; generalized_newtonian_plugin_pending",
+  "pvt_table": "virtual_2x2_screening_table_written",
+  "thermal_shrink_warpage": "downstream_structural_coupling_pending",
+  "vent_boundary": "pressureInletOutletVelocity + totalPressure",
+  "template": "D:\\Clawdbot_Docker_20260125\\artifacts\\box_roundhole_v5\\polymer_coupled_case_l5"
+}

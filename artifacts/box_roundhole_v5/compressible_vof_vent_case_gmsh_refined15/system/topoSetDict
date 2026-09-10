@@ -1,0 +1,24 @@
+FoamFile { version 2.0; format ascii; class dictionary; object topoSetDict; }
+actions
+(
+    {
+        name gateFaces; type faceSet; action new; source boxToFace;
+        box (-0.000001 0.013 0.023) (0.000001 0.017 0.027);
+    }
+    {
+        name gateFaces; type faceSet; action add; source boxToFace;
+        box (-0.000001 0.043 0.023) (0.000001 0.047 0.027);
+    }
+    {
+        name gateFaces; type faceSet; action subset; source patchToFace;
+        patch cavity_wall;
+    }
+    {
+        name ventFaces; type faceSet; action new; source boxToFace;
+        box (0.099999 -0.000001 -0.000001) (0.100001 0.060001 0.050001);
+    }
+    {
+        name ventFaces; type faceSet; action subset; source patchToFace;
+        patch cavity_wall;
+    }
+);

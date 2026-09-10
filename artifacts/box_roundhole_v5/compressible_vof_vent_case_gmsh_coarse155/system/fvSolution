@@ -1,0 +1,25 @@
+FoamFile { version 2.0; format ascii; class dictionary; object fvSolution; }
+solvers
+{
+    "alpha.polymer.*" { nAlphaCorr 1; nAlphaSubCycles 2; cAlpha 1; }
+    "pcorr.*" { solver GAMG; tolerance 1e-8; relTol 0; smoother GaussSeidel; }
+    p_rgh { solver GAMG; tolerance 1e-7; relTol 0.01; smoother GaussSeidel; }
+    p_rghFinal { $p_rgh; relTol 0; }
+    U { solver smoothSolver; smoother symGaussSeidel; tolerance 1e-7; relTol 0; }
+    T { solver smoothSolver; smoother symGaussSeidel; tolerance 1e-7; relTol 0; }
+    TFinal { $T; relTol 0; }
+}
+PIMPLE
+{
+    pRefCell 0;
+    pRefValue 0;
+    momentumPredictor no;
+    nOuterCorrectors 1;
+    nCorrectors 2;
+    nNonOrthogonalCorrectors 0;
+}
+relaxationFactors
+{
+    fields { p_rgh 0.1; }
+    equations { U 0.3; T 0.3; }
+}

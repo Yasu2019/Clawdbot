@@ -1,0 +1,36 @@
+FoamFile { version 2.0; format ascii; class dictionary; object controlDict; }
+application compressibleInterFoam;
+libs ("libcrossWLFViscosityModel.so");
+startFrom startTime; startTime 0; stopAt endTime; endTime 0.001;
+deltaT 1e-7; adjustTimeStep yes; maxCo 0.02; maxAlphaCo 0.01; maxDeltaT 1e-5;
+writeControl adjustableRunTime; writeInterval 0.001; writeFormat ascii; writePrecision 8;
+runTimeModifiable false;
+
+
+functions
+{
+    totalMass
+    {
+        type            volFieldValue;
+        libs            ("libfieldFunctionObjects.so");
+        fields          (rho);
+        operation       volIntegrate;
+        writeFields     false;
+    }
+    polymerVolume
+    {
+        type            volFieldValue;
+        libs            ("libfieldFunctionObjects.so");
+        fields          (alpha.polymer);
+        operation       volIntegrate;
+        writeFields     false;
+    }
+    thermalIntegral
+    {
+        type            volFieldValue;
+        libs            ("libfieldFunctionObjects.so");
+        fields          (T);
+        operation       volIntegrate;
+        writeFields     false;
+    }
+}

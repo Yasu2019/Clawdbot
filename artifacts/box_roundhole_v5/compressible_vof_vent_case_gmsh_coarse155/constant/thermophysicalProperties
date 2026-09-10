@@ -1,0 +1,28 @@
+FoamFile { version 2.0; format ascii; class dictionary; object thermophysicalProperties; }
+phases (polymer air);
+sigma 0.04;
+pMin 1000;
+FoamFile
+{
+    version 2.0;
+    format ascii;
+    class dictionary;
+    object thermophysicalProperties;
+}
+thermoType
+{
+    type heRhoThermo;
+    mixture pureMixture;
+    transport const;
+    thermo hConst;
+    equationOfState rPolynomial;
+    specie specie;
+    energy sensibleEnthalpy;
+}
+mixture
+{
+    specie { molWeight 100.0; }
+    thermodynamics { Cp 2200; Hf 0; }
+    transport { mu 1000; Pr 20; }
+    equationOfState { C (8.292e-4 5.5556e-7 0 5.5556e-13 0); }
+}

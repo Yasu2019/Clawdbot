@@ -1,0 +1,9 @@
+FoamFile { version 2.0; format ascii; class volScalarField; object T; }
+dimensions [0 0 0 1 0 0 0];
+internalField uniform 508;
+boundaryField
+{
+    gate { type fixedValue; value uniform 508; }
+    vent { type inletOutlet; inletValue uniform 298; value uniform 298; }
+    cavity_wall { type fixedValue; value uniform 313; }
+}

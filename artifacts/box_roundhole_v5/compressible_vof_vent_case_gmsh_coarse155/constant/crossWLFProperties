@@ -1,0 +1,13 @@
+FoamFile { version 2.0; format ascii; class dictionary; object crossWLFProperties; }
+// Virtual screening card.  The current stock solver uses the thermo EOS above;
+// a Cross-WLF generalized-Newtonian transport plug-in consumes these values.
+model crossWLF;
+n 0.35;
+tauStar 5.0e4;
+D1 1.0e10;
+D2 378.15;
+D3 0;
+A1 17.44;
+A2 51.6;
+pressureUnits Pa;
+dataStatus VIRTUAL_SCREENING_ONLY;

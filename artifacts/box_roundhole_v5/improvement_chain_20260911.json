@@ -1,7 +1,7 @@
 {
   "schema": "clawstack.improvement_chain.v1",
   "requested_steps": 50,
-  "executed_steps": 11,
+  "executed_steps": 12,
   "queued_steps": 38,
   "ledger": [
     {
@@ -9,7 +9,7 @@
       "key": "patch_contract",
       "description": "validate gate/vent patch areas and normals",
       "status": "PASS",
-      "timestamp_utc": "2026-09-10T20:31:13.008302+00:00",
+      "timestamp_utc": "2026-09-10T20:46:25.782415+00:00",
       "evidence": "artifacts/box_roundhole_v5/patch_contract_feature_preserving_coarse_20260910.json",
       "evidence_key": "status"
     },
@@ -18,7 +18,7 @@
       "key": "mesh_quality",
       "description": "check cells, volumes, non-orthogonality and skewness",
       "status": "PASS",
-      "timestamp_utc": "2026-09-10T20:31:13.008622+00:00",
+      "timestamp_utc": "2026-09-10T20:46:25.782415+00:00",
       "evidence": "artifacts/box_roundhole_v5/mesh_quality_20260910.json",
       "evidence_key": "status"
     },
@@ -27,7 +27,7 @@
       "key": "cross_wlf_load",
       "description": "confirm custom Cross-WLF model is selected",
       "status": "PASS",
-      "timestamp_utc": "2026-09-10T20:31:13.008622+00:00",
+      "timestamp_utc": "2026-09-10T20:46:25.782415+00:00",
       "evidence": "artifacts/box_roundhole_v5/coupling_audit_20260910.json",
       "evidence_key": "checks.plugin_loaded"
     },
@@ -36,7 +36,7 @@
       "key": "viscosity_output",
       "description": "confirm generalizedNewtonian viscosity field is written",
       "status": "PASS",
-      "timestamp_utc": "2026-09-10T20:31:13.008622+00:00",
+      "timestamp_utc": "2026-09-10T20:46:25.782415+00:00",
       "evidence": "artifacts/box_roundhole_v5/coupling_audit_20260910.json",
       "evidence_key": "checks.viscosity_field_written"
     },
@@ -45,7 +45,7 @@
       "key": "alpha_bounds",
       "description": "confirm VOF alpha remains bounded",
       "status": "PASS",
-      "timestamp_utc": "2026-09-10T20:31:13.008622+00:00",
+      "timestamp_utc": "2026-09-10T20:46:25.782415+00:00",
       "evidence": "artifacts/box_roundhole_v5/coupling_audit_20260910.json",
       "evidence_key": "checks.alpha_bounded"
     },
@@ -54,7 +54,7 @@
       "key": "mass_integral",
       "description": "record rho volume integral",
       "status": "PASS",
-      "timestamp_utc": "2026-09-10T20:31:13.008622+00:00",
+      "timestamp_utc": "2026-09-10T20:46:25.782415+00:00",
       "evidence": "artifacts/box_roundhole_v5/coupling_audit_20260910.json",
       "evidence_key": "checks.mass_integral_trace"
     },
@@ -63,7 +63,7 @@
       "key": "polymer_volume_integral",
       "description": "record polymer volume integral",
       "status": "PASS",
-      "timestamp_utc": "2026-09-10T20:31:13.009956+00:00",
+      "timestamp_utc": "2026-09-10T20:46:25.784592+00:00",
       "evidence": "artifacts/box_roundhole_v5/coupling_audit_20260910.json",
       "evidence_key": "checks.polymer_volume_trace"
     },
@@ -72,7 +72,7 @@
       "key": "thermal_integral",
       "description": "record temperature volume integral",
       "status": "PASS",
-      "timestamp_utc": "2026-09-10T20:31:13.009956+00:00",
+      "timestamp_utc": "2026-09-10T20:46:25.784892+00:00",
       "evidence": "artifacts/box_roundhole_v5/coupling_audit_20260910.json",
       "evidence_key": "checks.thermal_integral_trace"
     },
@@ -81,7 +81,7 @@
       "key": "time_step_convergence",
       "description": "compare half-step integral results",
       "status": "PASS",
-      "timestamp_utc": "2026-09-10T20:31:13.009956+00:00",
+      "timestamp_utc": "2026-09-10T20:46:25.784892+00:00",
       "evidence": "artifacts/box_roundhole_v5/time_step_convergence_20260910.json",
       "evidence_key": "status"
     },
@@ -90,7 +90,7 @@
       "key": "calculix_displacement",
       "description": "extract maximum displacement",
       "status": "PASS",
-      "timestamp_utc": "2026-09-10T20:31:13.009956+00:00",
+      "timestamp_utc": "2026-09-10T20:46:25.785397+00:00",
       "evidence": "artifacts/box_roundhole_v5/coupling_audit_20260910.json",
       "evidence_key": "checks.calculix_displacement_trace"
     },
@@ -99,7 +99,7 @@
       "key": "calculix_stress",
       "description": "extract maximum stress",
       "status": "PASS",
-      "timestamp_utc": "2026-09-10T20:31:13.009956+00:00",
+      "timestamp_utc": "2026-09-10T20:46:25.785397+00:00",
       "evidence": "artifacts/box_roundhole_v5/coupling_audit_20260910.json",
       "evidence_key": "checks.calculix_stress_trace"
     },
@@ -107,18 +107,17 @@
       "sequence": 12,
       "key": "spatial_convergence",
       "description": "compare feature-preserving coarse/refined runs",
-      "status": "BLOCKED",
-      "timestamp_utc": "2026-09-10T20:31:13.010461+00:00",
-      "evidence": "artifacts/box_roundhole_v5/physics_mesh_comparison_feature_preserving_20260911.json",
-      "evidence_key": "status",
-      "reason": "Evidence exists but the check is not a passing result; no claim was promoted."
+      "status": "PASS",
+      "timestamp_utc": "2026-09-10T20:46:25.785397+00:00",
+      "evidence": "artifacts/box_roundhole_v5/physics_mesh_comparison_gmsh_20260911.json",
+      "evidence_key": "status"
     },
     {
       "sequence": 13,
       "key": "patch_contract",
       "description": "validate gate/vent patch areas and normals",
       "status": "QUEUED",
-      "timestamp_utc": "2026-09-10T20:31:13.017303+00:00",
+      "timestamp_utc": "2026-09-10T20:46:25.792513+00:00",
       "reason": "Queued for a later bounded iteration; no legacy task is stopped or overwritten."
     },
     {
@@ -126,7 +125,7 @@
       "key": "mesh_quality",
       "description": "check cells, volumes, non-orthogonality and skewness",
       "status": "QUEUED",
-      "timestamp_utc": "2026-09-10T20:31:13.017851+00:00",
+      "timestamp_utc": "2026-09-10T20:46:25.792513+00:00",
       "reason": "Queued for a later bounded iteration; no legacy task is stopped or overwritten."
     },
     {
@@ -134,7 +133,7 @@
       "key": "cross_wlf_load",
       "description": "confirm custom Cross-WLF model is selected",
       "status": "QUEUED",
-      "timestamp_utc": "2026-09-10T20:31:13.017851+00:00",
+      "timestamp_utc": "2026-09-10T20:46:25.792513+00:00",
       "reason": "Queued for a later bounded iteration; no legacy task is stopped or overwritten."
     },
     {
@@ -142,7 +141,7 @@
       "key": "viscosity_output",
       "description": "confirm generalizedNewtonian viscosity field is written",
       "status": "QUEUED",
-      "timestamp_utc": "2026-09-10T20:31:13.017851+00:00",
+      "timestamp_utc": "2026-09-10T20:46:25.792513+00:00",
       "reason": "Queued for a later bounded iteration; no legacy task is stopped or overwritten."
     },
     {
@@ -150,7 +149,7 @@
       "key": "alpha_bounds",
       "description": "confirm VOF alpha remains bounded",
       "status": "QUEUED",
-      "timestamp_utc": "2026-09-10T20:31:13.017851+00:00",
+      "timestamp_utc": "2026-09-10T20:46:25.792513+00:00",
       "reason": "Queued for a later bounded iteration; no legacy task is stopped or overwritten."
     },
     {
@@ -158,7 +157,7 @@
       "key": "mass_integral",
       "description": "record rho volume integral",
       "status": "QUEUED",
-      "timestamp_utc": "2026-09-10T20:31:13.017851+00:00",
+      "timestamp_utc": "2026-09-10T20:46:25.792513+00:00",
       "reason": "Queued for a later bounded iteration; no legacy task is stopped or overwritten."
     },
     {
@@ -166,7 +165,7 @@
       "key": "polymer_volume_integral",
       "description": "record polymer volume integral",
       "status": "QUEUED",
-      "timestamp_utc": "2026-09-10T20:31:13.017851+00:00",
+      "timestamp_utc": "2026-09-10T20:46:25.792513+00:00",
       "reason": "Queued for a later bounded iteration; no legacy task is stopped or overwritten."
     },
     {
@@ -174,7 +173,7 @@
       "key": "thermal_integral",
       "description": "record temperature volume integral",
       "status": "QUEUED",
-      "timestamp_utc": "2026-09-10T20:31:13.017851+00:00",
+      "timestamp_utc": "2026-09-10T20:46:25.792513+00:00",
       "reason": "Queued for a later bounded iteration; no legacy task is stopped or overwritten."
     },
     {
@@ -182,7 +181,7 @@
       "key": "time_step_convergence",
       "description": "compare half-step integral results",
       "status": "QUEUED",
-      "timestamp_utc": "2026-09-10T20:31:13.017851+00:00",
+      "timestamp_utc": "2026-09-10T20:46:25.792513+00:00",
       "reason": "Queued for a later bounded iteration; no legacy task is stopped or overwritten."
     },
     {
@@ -190,7 +189,7 @@
       "key": "calculix_displacement",
       "description": "extract maximum displacement",
       "status": "QUEUED",
-      "timestamp_utc": "2026-09-10T20:31:13.017851+00:00",
+      "timestamp_utc": "2026-09-10T20:46:25.792513+00:00",
       "reason": "Queued for a later bounded iteration; no legacy task is stopped or overwritten."
     },
     {
@@ -198,7 +197,7 @@
       "key": "calculix_stress",
       "description": "extract maximum stress",
       "status": "QUEUED",
-      "timestamp_utc": "2026-09-10T20:31:13.017851+00:00",
+      "timestamp_utc": "2026-09-10T20:46:25.792513+00:00",
       "reason": "Queued for a later bounded iteration; no legacy task is stopped or overwritten."
     },
     {
@@ -206,7 +205,7 @@
       "key": "spatial_convergence",
       "description": "compare feature-preserving coarse/refined runs",
       "status": "QUEUED",
-      "timestamp_utc": "2026-09-10T20:31:13.017851+00:00",
+      "timestamp_utc": "2026-09-10T20:46:25.792513+00:00",
       "reason": "Queued for a later bounded iteration; no legacy task is stopped or overwritten."
     },
     {
@@ -214,7 +213,7 @@
       "key": "patch_contract",
       "description": "validate gate/vent patch areas and normals",
       "status": "QUEUED",
-      "timestamp_utc": "2026-09-10T20:31:13.017851+00:00",
+      "timestamp_utc": "2026-09-10T20:46:25.792513+00:00",
       "reason": "Queued for a later bounded iteration; no legacy task is stopped or overwritten."
     },
     {
@@ -222,7 +221,7 @@
       "key": "mesh_quality",
       "description": "check cells, volumes, non-orthogonality and skewness",
       "status": "QUEUED",
-      "timestamp_utc": "2026-09-10T20:31:13.017851+00:00",
+      "timestamp_utc": "2026-09-10T20:46:25.792513+00:00",
       "reason": "Queued for a later bounded iteration; no legacy task is stopped or overwritten."
     },
     {
@@ -230,7 +229,7 @@
       "key": "cross_wlf_load",
       "description": "confirm custom Cross-WLF model is selected",
       "status": "QUEUED",
-      "timestamp_utc": "2026-09-10T20:31:13.017851+00:00",
+      "timestamp_utc": "2026-09-10T20:46:25.792513+00:00",
       "reason": "Queued for a later bounded iteration; no legacy task is stopped or overwritten."
     },
     {
@@ -238,7 +237,7 @@
       "key": "viscosity_output",
       "description": "confirm generalizedNewtonian viscosity field is written",
       "status": "QUEUED",
-      "timestamp_utc": "2026-09-10T20:31:13.017851+00:00",
+      "timestamp_utc": "2026-09-10T20:46:25.792513+00:00",
       "reason": "Queued for a later bounded iteration; no legacy task is stopped or overwritten."
     },
     {
@@ -246,7 +245,7 @@
       "key": "alpha_bounds",
       "description": "confirm VOF alpha remains bounded",
       "status": "QUEUED",
-      "timestamp_utc": "2026-09-10T20:31:13.017851+00:00",
+      "timestamp_utc": "2026-09-10T20:46:25.792513+00:00",
       "reason": "Queued for a later bounded iteration; no legacy task is stopped or overwritten."
     },
     {
@@ -254,7 +253,7 @@
       "key": "mass_integral",
       "description": "record rho volume integral",
       "status": "QUEUED",
-      "timestamp_utc": "2026-09-10T20:31:13.017851+00:00",
+      "timestamp_utc": "2026-09-10T20:46:25.792513+00:00",
       "reason": "Queued for a later bounded iteration; no legacy task is stopped or overwritten."
     },
     {
@@ -262,7 +261,7 @@
       "key": "polymer_volume_integral",
       "description": "record polymer volume integral",
       "status": "QUEUED",
-      "timestamp_utc": "2026-09-10T20:31:13.017851+00:00",
+      "timestamp_utc": "2026-09-10T20:46:25.792513+00:00",
       "reason": "Queued for a later bounded iteration; no legacy task is stopped or overwritten."
     },
     {
@@ -270,7 +269,7 @@
       "key": "thermal_integral",
       "description": "record temperature volume integral",
       "status": "QUEUED",
-      "timestamp_utc": "2026-09-10T20:31:13.018515+00:00",
+      "timestamp_utc": "2026-09-10T20:46:25.792513+00:00",
       "reason": "Queued for a later bounded iteration; no legacy task is stopped or overwritten."
     },
     {
@@ -278,7 +277,7 @@
       "key": "time_step_convergence",
       "description": "compare half-step integral results",
       "status": "QUEUED",
-      "timestamp_utc": "2026-09-10T20:31:13.018515+00:00",
+      "timestamp_utc": "2026-09-10T20:46:25.792513+00:00",
       "reason": "Queued for a later bounded iteration; no legacy task is stopped or overwritten."
     },
     {
@@ -286,7 +285,7 @@
       "key": "calculix_displacement",
       "description": "extract maximum displacement",
       "status": "QUEUED",
-      "timestamp_utc": "2026-09-10T20:31:13.018515+00:00",
+      "timestamp_utc": "2026-09-10T20:46:25.792513+00:00",
       "reason": "Queued for a later bounded iteration; no legacy task is stopped or overwritten."
     },
     {
@@ -294,7 +293,7 @@
       "key": "calculix_stress",
       "description": "extract maximum stress",
       "status": "QUEUED",
-      "timestamp_utc": "2026-09-10T20:31:13.018515+00:00",
+      "timestamp_utc": "2026-09-10T20:46:25.792513+00:00",
       "reason": "Queued for a later bounded iteration; no legacy task is stopped or overwritten."
     },
     {
@@ -302,7 +301,7 @@
       "key": "spatial_convergence",
       "description": "compare feature-preserving coarse/refined runs",
       "status": "QUEUED",
-      "timestamp_utc": "2026-09-10T20:31:13.018515+00:00",
+      "timestamp_utc": "2026-09-10T20:46:25.792513+00:00",
       "reason": "Queued for a later bounded iteration; no legacy task is stopped or overwritten."
     },
     {
@@ -310,7 +309,7 @@
       "key": "patch_contract",
       "description": "validate gate/vent patch areas and normals",
       "status": "QUEUED",
-      "timestamp_utc": "2026-09-10T20:31:13.018515+00:00",
+      "timestamp_utc": "2026-09-10T20:46:25.792513+00:00",
       "reason": "Queued for a later bounded iteration; no legacy task is stopped or overwritten."
     },
     {
@@ -318,7 +317,7 @@
       "key": "mesh_quality",
       "description": "check cells, volumes, non-orthogonality and skewness",
       "status": "QUEUED",
-      "timestamp_utc": "2026-09-10T20:31:13.018515+00:00",
+      "timestamp_utc": "2026-09-10T20:46:25.792513+00:00",
       "reason": "Queued for a later bounded iteration; no legacy task is stopped or overwritten."
     },
     {
@@ -326,7 +325,7 @@
       "key": "cross_wlf_load",
       "description": "confirm custom Cross-WLF model is selected",
       "status": "QUEUED",
-      "timestamp_utc": "2026-09-10T20:31:13.018515+00:00",
+      "timestamp_utc": "2026-09-10T20:46:25.792513+00:00",
       "reason": "Queued for a later bounded iteration; no legacy task is stopped or overwritten."
     },
     {
@@ -334,7 +333,7 @@
       "key": "viscosity_output",
       "description": "confirm generalizedNewtonian viscosity field is written",
       "status": "QUEUED",
-      "timestamp_utc": "2026-09-10T20:31:13.018515+00:00",
+      "timestamp_utc": "2026-09-10T20:46:25.792513+00:00",
       "reason": "Queued for a later bounded iteration; no legacy task is stopped or overwritten."
     },
     {
@@ -342,7 +341,7 @@
       "key": "alpha_bounds",
       "description": "confirm VOF alpha remains bounded",
       "status": "QUEUED",
-      "timestamp_utc": "2026-09-10T20:31:13.018515+00:00",
+      "timestamp_utc": "2026-09-10T20:46:25.792513+00:00",
       "reason": "Queued for a later bounded iteration; no legacy task is stopped or overwritten."
     },
     {
@@ -350,7 +349,7 @@
       "key": "mass_integral",
       "description": "record rho volume integral",
       "status": "QUEUED",
-      "timestamp_utc": "2026-09-10T20:31:13.018515+00:00",
+      "timestamp_utc": "2026-09-10T20:46:25.792513+00:00",
       "reason": "Queued for a later bounded iteration; no legacy task is stopped or overwritten."
     },
     {
@@ -358,7 +357,7 @@
       "key": "polymer_volume_integral",
       "description": "record polymer volume integral",
       "status": "QUEUED",
-      "timestamp_utc": "2026-09-10T20:31:13.018515+00:00",
+      "timestamp_utc": "2026-09-10T20:46:25.792513+00:00",
       "reason": "Queued for a later bounded iteration; no legacy task is stopped or overwritten."
     },
     {
@@ -366,7 +365,7 @@
       "key": "thermal_integral",
       "description": "record temperature volume integral",
       "status": "QUEUED",
-      "timestamp_utc": "2026-09-10T20:31:13.018515+00:00",
+      "timestamp_utc": "2026-09-10T20:46:25.792513+00:00",
       "reason": "Queued for a later bounded iteration; no legacy task is stopped or overwritten."
     },
     {
@@ -374,7 +373,7 @@
       "key": "time_step_convergence",
       "description": "compare half-step integral results",
       "status": "QUEUED",
-      "timestamp_utc": "2026-09-10T20:31:13.018515+00:00",
+      "timestamp_utc": "2026-09-10T20:46:25.792513+00:00",
       "reason": "Queued for a later bounded iteration; no legacy task is stopped or overwritten."
     },
     {
@@ -382,7 +381,7 @@
       "key": "calculix_displacement",
       "description": "extract maximum displacement",
       "status": "QUEUED",
-      "timestamp_utc": "2026-09-10T20:31:13.018515+00:00",
+      "timestamp_utc": "2026-09-10T20:46:25.792513+00:00",
       "reason": "Queued for a later bounded iteration; no legacy task is stopped or overwritten."
     },
     {
@@ -390,7 +389,7 @@
       "key": "calculix_stress",
       "description": "extract maximum stress",
       "status": "QUEUED",
-      "timestamp_utc": "2026-09-10T20:31:13.018515+00:00",
+      "timestamp_utc": "2026-09-10T20:46:25.792513+00:00",
       "reason": "Queued for a later bounded iteration; no legacy task is stopped or overwritten."
     },
     {
@@ -398,7 +397,7 @@
       "key": "spatial_convergence",
       "description": "compare feature-preserving coarse/refined runs",
       "status": "QUEUED",
-      "timestamp_utc": "2026-09-10T20:31:13.018515+00:00",
+      "timestamp_utc": "2026-09-10T20:46:25.792513+00:00",
       "reason": "Queued for a later bounded iteration; no legacy task is stopped or overwritten."
     },
     {
@@ -406,7 +405,7 @@
       "key": "patch_contract",
       "description": "validate gate/vent patch areas and normals",
       "status": "QUEUED",
-      "timestamp_utc": "2026-09-10T20:31:13.018515+00:00",
+      "timestamp_utc": "2026-09-10T20:46:25.792513+00:00",
       "reason": "Queued for a later bounded iteration; no legacy task is stopped or overwritten."
     },
     {
@@ -414,7 +413,7 @@
       "key": "mesh_quality",
       "description": "check cells, volumes, non-orthogonality and skewness",
       "status": "QUEUED",
-      "timestamp_utc": "2026-09-10T20:31:13.018515+00:00",
+      "timestamp_utc": "2026-09-10T20:46:25.792513+00:00",
       "reason": "Queued for a later bounded iteration; no legacy task is stopped or overwritten."
     }
   ],

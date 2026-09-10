@@ -22,7 +22,7 @@ def sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
-def build(spec_path: Path, output_dir: Path, mesh_size_mm: float) -> dict:
+def build(spec_path: Path, output_dir: Path, mesh_size_mm: float, surface_mesh_size_mm: float | None = None) -> dict:
     spec = json.loads(spec_path.read_text(encoding="utf-8"))
     geometry = spec["geometry"]
     lx, ly, lz = map(float, geometry["outer_dimensions_mm"])
@@ -109,6 +109,15 @@ def build(spec_path: Path, output_dir: Path, mesh_size_mm: float) -> dict:
             surface_group = gmsh.model.addPhysicalGroup(2, surfaces)
             gmsh.model.setPhysicalName(2, surface_group, "cavity_wall")
         gmsh.write(str(step_path))
+        if surface_mesh_size_mm is not None and surface_mesh_size_mm > 0:
+            # Keep circular gate/vent edge tessellation stable while allowing
+            # the interior tetrahedral resolution to vary between runs.
+            boundary_curves = []
+            for tag in (*gate_surfaces, *vent_surfaces):
+                boundary_curves.extend(gmsh.model.getBoundary([(2, tag)], combined=True, oriented=False))
+            curve_tags = sorted({abs(tag) for dim, tag in boundary_curves if dim == 1})
+            if curve_tags:
+                gmsh.model.mesh.setSize([(1, tag) for tag in curve_tags], surface_mesh_size_mm)
         gmsh.option.setNumber("Mesh.MeshSizeMin", mesh_size_mm * 0.7)
         gmsh.option.setNumber("Mesh.MeshSizeMax", mesh_size_mm)
         gmsh.option.setNumber("Mesh.Algorithm3D", 10)
@@ -137,6 +146,7 @@ def build(spec_path: Path, output_dir: Path, mesh_size_mm: float) -> dict:
         "mesh_file": mesh_path.name,
         "mesh_sha256": sha256(mesh_path),
         "mesh_size_mm": mesh_size_mm,
+        "surface_mesh_size_mm": surface_mesh_size_mm,
         "nodes": len(node_tags),
         "volume_elements": element_count,
         "cad_volume_mm3": actual_volume,
@@ -163,12 +173,13 @@ def main() -> int:
     parser.add_argument("--spec", type=Path, default=Path("config/box_roundhole_v5_spec.json"))
     parser.add_argument("--output", type=Path, default=Path("artifacts/box_roundhole_v5/geometry_l1"))
     parser.add_argument("--mesh-size-mm", type=float, default=2.0)
+    parser.add_argument("--surface-mesh-size-mm", type=float, default=None)
     args = parser.parse_args()
     if args.mesh_size_mm <= 0:
         parser.error("--mesh-size-mm must be positive")
     if args.output.exists():
         raise SystemExit(f"refusing to overwrite existing output: {args.output}")
-    print(json.dumps(build(args.spec, args.output, args.mesh_size_mm), ensure_ascii=False, indent=2))
+    print(json.dumps(build(args.spec, args.output, args.mesh_size_mm, args.surface_mesh_size_mm), ensure_ascii=False, indent=2))
     return 0
 
 

@@ -1,0 +1,5 @@
+FoamFile { version 2.0; format ascii; class dictionary; object taitPolymerProperties; }
+// Virtual screening coefficients; replace with measured PVT before production use.
+rhoRef 900; Tref 508; C 0.0894; B 2.0e8; b0 1.0e-9; b1 0;
+model twoDomainTait;
+couplingStatus THERMO_LIBRARY_HOOK_REQUIRED;

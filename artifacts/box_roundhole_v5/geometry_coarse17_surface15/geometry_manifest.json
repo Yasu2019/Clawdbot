@@ -1,0 +1,48 @@
+{
+  "schema_version": "1.0",
+  "model_id": "box-roundhole-v5",
+  "geometry_definition": {
+    "type": "open_top_hollow_box_with_centered_bottom_through_hole",
+    "outer_dimensions_mm": [
+      100.0,
+      60.0,
+      50.0
+    ],
+    "nominal_wall_thickness_mm": 2.0,
+    "hole_diameter_mm": 20.0,
+    "hole_axis": "Z",
+    "topology": "open_top_container",
+    "open_top": true,
+    "inner_dimensions_mm": [
+      96.0,
+      56.0,
+      48.0
+    ],
+    "hole_center_mm": [
+      50.0,
+      30.0
+    ],
+    "geometry_hash": null,
+    "canonical_geometry_file": null
+  },
+  "step_file": "box_roundhole_v5.step",
+  "step_sha256": "25e00734f454aaf93f4fb1e7af64c5c5a8641f7fea4f0ce134ab31a8d81258e3",
+  "mesh_file": "box_roundhole_v5.msh",
+  "mesh_sha256": "cdc3a340e84516b7d73d3398531ae9fef373c8a51eb16794ba69dbd89564cdae",
+  "mesh_size_mm": 1.7,
+  "surface_mesh_size_mm": 1.5,
+  "nodes": 18010,
+  "volume_elements": 53382,
+  "cad_volume_mm3": 41323.68146928196,
+  "analytic_volume_mm3": 41323.68146928204,
+  "volume_relative_error": 1.936795825306903e-15,
+  "boundary_contract": {
+    "gate_count": 2,
+    "gate_diameter_mm": 4.0,
+    "gate_total_area_mm2": 25.132741228718345,
+    "vent_count": 4,
+    "vent_diameter_mm": 3.0,
+    "vent_total_area_mm2": 28.274333882308138
+  },
+  "status": "GEOMETRY_ONLY_UNVALIDATED"
+}
