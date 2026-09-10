@@ -100,6 +100,26 @@ rhoRef 900; Tref 508; C 0.0894; B 2.0e8; b0 1.0e-9; b1 0;
 model twoDomainTait;
 couplingStatus THERMO_LIBRARY_HOOK_REQUIRED;
 """)
+    write(out / "constant/crossWLFProperties", """FoamFile { version 2.0; format ascii; class dictionary; object crossWLFProperties; }
+// Virtual screening card.  The current stock solver uses the thermo EOS above;
+// a Cross-WLF generalized-Newtonian transport plug-in consumes these values.
+model crossWLF;
+n 0.35;
+tauStar 5.0e4;
+D1 1.0e10;
+D2 378.15;
+D3 0;
+A1 17.44;
+A2 51.6;
+pressureUnits Pa;
+dataStatus VIRTUAL_SCREENING_ONLY;
+""")
+    write(out / "constant/pvtTable.csv", """# T[K],p[Pa],rho[kg/m3] -- virtual screening table
+503.15,101325,900.0
+503.15,30000000,1018.0
+313.15,101325,917.0
+313.15,30000000,1037.0
+""")
     (out / "CASE_STATUS.json").write_text(json.dumps({
         "status": "CASE_BUILT_NOT_RUN", "solver": "compressibleInterFoam",
         "compressible_phase": "air_perfectGas",
@@ -107,6 +127,9 @@ couplingStatus THERMO_LIBRARY_HOOK_REQUIRED;
         "polymer_tait": "local_pressure_temperature_dependent_expansion",
         "exact_nonlinear_tait": False,
         "measured_pvt": False,
+        "cross_wlf": "parameter_card_written; generalized_newtonian_plugin_pending",
+        "pvt_table": "virtual_2x2_screening_table_written",
+        "thermal_shrink_warpage": "downstream_structural_coupling_pending",
         "vent_boundary": "pressureInletOutletVelocity + totalPressure", "template": str(src)
     }, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({"out": str(out), "status": "CASE_BUILT_NOT_RUN",
