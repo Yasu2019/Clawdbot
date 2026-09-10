@@ -17,6 +17,8 @@ ap.add_argument('--youtube', action='store_true',
                 help='Render 16:9 1920x1080 output at 30 fps')
 ap.add_argument('--camera', choices=('iso', 'top_oblique'), default='iso',
                 help='Camera view; top_oblique shows the bottom round hole through the opening')
+ap.add_argument('--camera-zoom', type=float, default=1.02,
+                help='Additional camera zoom for close-up views')
 args = ap.parse_args()
 vtk_dir, out = args.vtk_dir, args.out
 def snapshot_key(path: Path) -> tuple[int, str]:
@@ -40,8 +42,11 @@ with tempfile.TemporaryDirectory() as td:
         if args.camera == 'top_oblique':
             # High oblique view is intentional: the front wall must not hide
             # the open-box bottom and its round hole.
-            pl.camera_position=((0.155,-0.125,0.245),(0.05,0.03,0.004),(0,0,1))
-            pl.camera.zoom(1.02)
+            # More azimuthal rotation exposes the left/right flow paths around
+            # the bottom hole while retaining the elevated view through the
+            # open top.
+            pl.camera_position=((0.185,-0.145,0.315),(0.05,0.03,0.004),(0,0,1))
+            pl.camera.zoom(args.camera_zoom)
         else:
             pl.camera_position='iso'
         pl.add_axes(); png=Path(td)/f'{i:04d}.png'; pl.screenshot(str(png)); pl.close(); frames.append(iio.imread(png))
