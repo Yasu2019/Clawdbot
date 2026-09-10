@@ -19,7 +19,11 @@ ap.add_argument('--camera', choices=('iso', 'top_oblique'), default='iso',
                 help='Camera view; top_oblique shows the bottom round hole through the opening')
 ap.add_argument('--camera-zoom', type=float, default=1.02,
                 help='Additional camera zoom for close-up views')
+ap.add_argument('--playback-scale', type=float, default=1.0,
+                help='Multiply displayed simulation time without changing field data')
 args = ap.parse_args()
+if args.playback_scale <= 0:
+    raise SystemExit('--playback-scale must be positive')
 vtk_dir, out = args.vtk_dir, args.out
 def snapshot_key(path: Path) -> tuple[int, str]:
     """Sort VTK snapshots by numeric export index, never lexicographically."""
@@ -53,5 +57,15 @@ with tempfile.TemporaryDirectory() as td:
     out.parent.mkdir(parents=True, exist_ok=True)
     for j, frame in enumerate(frames): iio.imwrite(Path(td)/f'{j:04d}.png', frame)
     fps = '30' if args.youtube else '2'
-    subprocess.run(['ffmpeg','-y','-loglevel','error','-framerate',fps,'-i',str(Path(td)/'%04d.png'),'-c:v','libx264','-pix_fmt','yuv420p','-movflags','+faststart',str(out)], check=True)
+    ffmpeg_cmd = ['ffmpeg','-y','-loglevel','error','-framerate',fps,
+                  '-i',str(Path(td)/'%04d.png')]
+    if args.playback_scale != 1.0:
+        # Keep the simulation snapshots unchanged; only slow the presentation.
+        ffmpeg_cmd += ['-vf', f'setpts={args.playback_scale:g}*PTS']
+    # Explicit output cadence keeps YouTube renders at 30 fps even when the
+    # presentation time is stretched by playback-scale.
+    if args.youtube:
+        ffmpeg_cmd += ['-r', fps]
+    ffmpeg_cmd += ['-c:v','libx264','-pix_fmt','yuv420p','-movflags','+faststart',str(out)]
+    subprocess.run(ffmpeg_cmd, check=True)
 print(out)

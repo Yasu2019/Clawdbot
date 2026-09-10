@@ -18,6 +18,13 @@
    - Zoomed view centered on the hole region
    - Early snapshots show the advancing alpha front wrapping around the hole; later snapshots show the left/right paths merged into the filled region
 
+## Slower playback resend
+
+- `box100x60x50_youtube_top_oblique_fill_v4_slow3x.mp4`
+- `box100x60x50_youtube_hole_flow_closeup_v2_slow3x.mp4`
+- Same 101 simulation snapshots, presented over 10.1 seconds at 30 fps (3x slower display)
+- Slowing is playback-only; no solver field or time step was altered
+
 ## Rejected intermediate
 
 - v3 was rejected because the more aggressive camera angle hid the bottom hole.
