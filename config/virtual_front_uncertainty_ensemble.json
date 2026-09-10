@@ -1,0 +1,18 @@
+{
+  "gates_mm": [[0, 15, 15], [0, 45, 15], [0, 15, 35], [0, 45, 35]],
+  "vents_mm": [[100, 15, 15], [100, 45, 15], [100, 15, 35], [100, 45, 35]],
+  "injection_speed_m_s_range": [0.015, 0.025],
+  "viscosity_pa_s_range": [55.0, 120.0],
+  "total_vent_area_mm2_range": [20.0, 36.0],
+  "samples": 32,
+  "seed": 20260910,
+  "reference_speed_m_s": 0.02,
+  "reference_viscosity_pa_s": 80.0,
+  "reference_vent_area_mm2": 28.28,
+  "viscosity_exponent": 0.20,
+  "vent_influence_length_mm": 18.0,
+  "vent_relief_gain": 0.18,
+  "max_vent_relief": 0.35,
+  "weld_time_tolerance_s": 0.025,
+  "candidate_threshold": 0.55
+}

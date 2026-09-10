@@ -1,0 +1,46 @@
+{
+  "status": "VIRTUAL_UNCERTAINTY_SCREENING",
+  "samples": 32,
+  "seed": 20260910,
+  "source": "D:\\Clawdbot_Docker_20260125\\artifacts\\box_roundhole_v5\\open_top_shell_vent4_r15_case3\\VTK\\case_0.vtm",
+  "output": "D:\\Clawdbot_Docker_20260125\\artifacts\\box_roundhole_v5\\virtual_front_uncertainty_ensemble\\box100x60x50_weld_probability.vtu",
+  "ranges": {
+    "injection_speed_m_s": [
+      0.015,
+      0.025
+    ],
+    "viscosity_pa_s": [
+      55.0,
+      120.0
+    ],
+    "total_vent_area_mm2": [
+      20.0,
+      36.0
+    ]
+  },
+  "weld_probability": {
+    "threshold": 0.55,
+    "max": 1.0,
+    "mean": 0.027240750390828558,
+    "top_1pct_centroid_mm": [
+      55.099037692709665,
+      31.86658880245336,
+      20.994240761900755
+    ],
+    "top_1pct_bbox_min_mm": [
+      0.250396755291149,
+      0.29931147582829,
+      0.2499082766007632
+    ],
+    "top_1pct_bbox_max_mm": [
+      99.74960424005985,
+      59.72381494939327,
+      49.70079753547907
+    ]
+  },
+  "limitations": [
+    "Virtual vent-relief proxy; no compressible-air pressure PDE.",
+    "No measured Cross-WLF/PVT/thermal calibration.",
+    "Probability is conditional on the stated virtual ranges."
+  ]
+}
