@@ -1,0 +1,27 @@
+{
+  "status": "PASS",
+  "physics_convergence": "SCREENING_PASS",
+  "coarse_volume_scale": 1.0,
+  "coarse_scaled": {
+    "mass_last": 2.8671517e-05,
+    "polymer_volume_last": 2.3140289e-11,
+    "thermal_max": 0.020993236
+  },
+  "refined": {
+    "mass_last": 2.8671517e-05,
+    "polymer_volume_last": 2.3140289e-11,
+    "thermal_max": 0.020993236
+  },
+  "relative_difference": {
+    "mass_last": 0.0,
+    "polymer_volume_last": 0.0,
+    "thermal_max": 0.0
+  },
+  "criterion": "max relative difference < 1e-3",
+  "patch_contract_status": {
+    "coarse": "PASS",
+    "refined": "PASS"
+  },
+  "patch_contract_required": true,
+  "note": "Both runs must use identical SI geometry, injection schedule, BCs and material coefficients before this is a formal mesh-convergence result."
+}

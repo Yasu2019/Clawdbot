@@ -32,7 +32,7 @@ EVIDENCE = {
     "time_step_convergence": ("artifacts/box_roundhole_v5/time_step_convergence_20260910.json", "status"),
     "calculix_displacement": ("artifacts/box_roundhole_v5/coupling_audit_20260910.json", "checks.calculix_displacement_trace"),
     "calculix_stress": ("artifacts/box_roundhole_v5/coupling_audit_20260910.json", "checks.calculix_stress_trace"),
-    "spatial_convergence": ("artifacts/box_roundhole_v5/physics_mesh_comparison_si_20260910.json", "status"),
+    "spatial_convergence": ("artifacts/box_roundhole_v5/physics_mesh_comparison_feature_preserving_20260911.json", "status"),
 }
 
 def lookup(obj, path):
