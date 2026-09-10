@@ -1,0 +1,8 @@
+{
+  "status": "CASE_BUILT_NOT_RUN",
+  "solver": "compressibleInterFoam",
+  "compressible_phase": "air_perfectGas",
+  "polymer_tait": "explicit_parameters_hook_required",
+  "vent_boundary": "pressureInletOutletVelocity + totalPressure",
+  "template": "D:\\Clawdbot_Docker_20260125\\artifacts\\box_roundhole_v5\\polymer_coupled_case_l5"
+}
