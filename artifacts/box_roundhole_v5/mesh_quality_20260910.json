@@ -1,0 +1,11 @@
+{
+  "status": "PASS",
+  "returncode": 0,
+  "cells": 24891.0,
+  "faces": 58014.0,
+  "points": 8232.0,
+  "max_non_orthogonality_deg": 52.403785,
+  "max_skewness": 0.62188105,
+  "negative_volume_cells": null,
+  "closed_boundary": true
+}
