@@ -1,0 +1,80 @@
+{
+  "status": "VIRTUAL_FRONT_ARRIVAL_SCREENING",
+  "calibration": "MEASURED_DATA_NOT_APPLIED",
+  "source": "D:\\Clawdbot_Docker_20260125\\artifacts\\box_roundhole_v5\\open_top_shell_vent4_r15_case3\\VTK\\case_0.vtm",
+  "output": "D:\\Clawdbot_Docker_20260125\\artifacts\\box_roundhole_v5\\virtual_front_arrival_gate_vent_viscosity\\box100x60x50_virtual_front_arrival.vtu",
+  "cells": 67165,
+  "gates_mm": [
+    [
+      0.0,
+      15.0,
+      15.0
+    ],
+    [
+      0.0,
+      45.0,
+      15.0
+    ],
+    [
+      0.0,
+      15.0,
+      35.0
+    ],
+    [
+      0.0,
+      45.0,
+      35.0
+    ]
+  ],
+  "vents_mm": [
+    [
+      100.0,
+      15.0,
+      15.0
+    ],
+    [
+      100.0,
+      45.0,
+      15.0
+    ],
+    [
+      100.0,
+      15.0,
+      35.0
+    ],
+    [
+      100.0,
+      45.0,
+      35.0
+    ]
+  ],
+  "injection_speed_m_s": 0.02,
+  "virtual_viscosity_pa_s": 80.0,
+  "arrival_time_s": {
+    "min": 0.027052158362964658,
+    "max": 4.485474552812379
+  },
+  "weld_candidate": {
+    "criterion": "different-gate neighbours with near-equal arrival time",
+    "max": 0.8940030148695088,
+    "top_1pct_centroid_mm": [
+      62.23659299950056,
+      28.285468598658042,
+      21.88340673247774
+    ],
+    "top_1pct_bbox_min_mm": [
+      0.3055990091525018,
+      0.29931147582829,
+      0.32101981923915446
+    ],
+    "top_1pct_bbox_max_mm": [
+      99.74953904747963,
+      59.72381494939327,
+      49.63749088346958
+    ]
+  },
+  "limitations": [
+    "Virtual viscosity/vent relief law; not measured rheology or vent resistance.",
+    "Candidate location is not weld strength or guaranteed production location."
+  ]
+}
