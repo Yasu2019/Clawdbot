@@ -4,7 +4,10 @@
     "plugin_compiled": true,
     "plugin_loaded": true,
     "openfoam_end": true,
+    "finite_solver_log": true,
     "finite_state_fields_present": true,
+    "viscosity_field_written": true,
+    "alpha_bounded": true,
     "calculix_finished": true,
     "calculix_results_present": true
   },

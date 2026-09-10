@@ -16,11 +16,17 @@ def main() -> int:
     times = [p for p in a.openfoam_case.iterdir() if p.is_dir() and re.fullmatch(r"\d+(?:\.\d+)?", p.name)]
     final = max(times, key=lambda p: float(p.name)) if times else None
     fields = [x for x in ("p", "p_rgh", "T", "rho", "U") if final and (final / x).exists()]
+    viscosity_fields = [p.name for p in final.iterdir()] if final else []
+    alpha_bounds = re.findall(r"Min.*?= ([0-9.eE+-]+).*?Max.*?= ([0-9.eE+-]+)", run)
+    alpha_ok = bool(alpha_bounds) and all(float(lo) >= -1e-8 and float(hi) <= 1.0000001 for lo, hi in alpha_bounds)
     checks = {
         "plugin_compiled": "libcrossWLFViscosityModel.so" in build and "error:" not in build.lower(),
         "plugin_loaded": "Selecting turbulence model type laminar" in run and "crossWLF" in (a.openfoam_case / "constant" / "momentumTransport").read_text(errors="replace"),
         "openfoam_end": re.search(r"\bEnd\s*$", run, re.M) is not None and "FOAM FATAL" not in run,
+        "finite_solver_log": "nan" not in run.lower() and "inf" not in run.lower(),
         "finite_state_fields_present": set(("p", "T", "rho", "U")).issubset(fields),
+        "viscosity_field_written": any(name.startswith("generalizedNewtonian") for name in viscosity_fields),
+        "alpha_bounded": alpha_ok,
         "calculix_finished": "Job finished" in ccx,
         "calculix_results_present": all((a.calculix_case / f"box_roundhole_shrinkage.{ext}").exists() for ext in ("frd", "dat", "sta")),
     }
