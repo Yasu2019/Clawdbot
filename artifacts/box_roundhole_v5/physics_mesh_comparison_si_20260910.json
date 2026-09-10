@@ -18,5 +18,10 @@
     "thermal_max": 3.2486654272921425e-05
   },
   "criterion": "max relative difference < 1e-3",
+  "patch_contract_status": {
+    "coarse": "PASS",
+    "refined": "PASS"
+  },
+  "patch_contract_required": true,
   "note": "Both runs must use identical SI geometry, injection schedule, BCs and material coefficients before this is a formal mesh-convergence result."
 }
