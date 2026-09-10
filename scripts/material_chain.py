@@ -49,6 +49,26 @@ class TaitTwoDomain:
         v_pressure = 1.0 - self.C * math.log((B + p) / (B + self.p_ref))
         return self.C / ((B + p) * v_pressure)
 
+    def density_derivatives(self, pressure_pa: float, temperature_k: float) -> tuple[float, float]:
+        """Return (dρ/dp, dρ/dT) for a consistent Newton update."""
+        rho = self.density(pressure_pa, temperature_k)
+        kappa = self.compressibility_pa_inv(pressure_pa, temperature_k)
+        # The thermal derivative includes the smooth melt/solid blend.  A
+        # centered derivative keeps the implementation consistent at the
+        # transition and is suitable for a tabulated/custom EOS oracle.
+        h = 1.0e-3
+        rp = self.density(pressure_pa, temperature_k + h)
+        rm = self.density(pressure_pa, temperature_k - h)
+        return rho * kappa, (rp - rm) / (2.0 * h)
+
+    def sound_speed_m_s(self, pressure_pa: float, temperature_k: float, *, bulk_modulus_pa: float | None = None) -> float:
+        """Screening acoustic speed from isothermal or supplied bulk modulus."""
+        rho = self.density(pressure_pa, temperature_k)
+        bulk = bulk_modulus_pa if bulk_modulus_pa is not None else 1.0 / self.compressibility_pa_inv(pressure_pa, temperature_k)
+        if bulk <= 0.0:
+            raise ValueError("bulk modulus must be positive")
+        return math.sqrt(bulk / rho)
+
 
 @dataclass(frozen=True)
 class CrossWLF:
@@ -103,10 +123,18 @@ class PVTTable:
         q10, q11 = self.density_kg_m3[ip + 1][it], self.density_kg_m3[ip + 1][it + 1]
         return (1 - wp) * ((1 - wt) * q00 + wt * q01) + wp * ((1 - wt) * q10 + wt * q11)
 
+    def validate(self) -> dict[str, float | bool]:
+        """Return monotonicity and positivity checks for a measured PVT table."""
+        rows_ok = all(all(v > 0.0 for v in row) for row in self.density_kg_m3)
+        temperature_ok = all(all(row[j + 1] <= row[j] for j in range(len(row) - 1)) for row in self.density_kg_m3)
+        pressure_ok = all(all(self.density_kg_m3[i + 1][j] >= self.density_kg_m3[i][j] for i in range(len(self.pressures_pa) - 1)) for j in range(len(self.temperatures_k)))
+        return {"positive": rows_ok, "non_increasing_with_temperature": temperature_ok,
+                "non_decreasing_with_pressure": pressure_ok,
+                "valid": rows_ok and pressure_ok and temperature_ok}
+
 
 def constrained_shrinkage(temperature_k: float, pressure_pa: float, *, t_ref: float, p_ref: float,
                           cte_per_k: float, pv_strain_per_pa: float, solid_fraction: float = 0.0) -> float:
     """Small-strain volumetric-to-linear screening law, bounded for stability."""
     raw = cte_per_k * (temperature_k - t_ref) - pv_strain_per_pa * (pressure_pa - p_ref) - 0.006 * max(0.0, min(1.0, solid_fraction))
     return max(-0.2, min(0.2, raw))
-

@@ -13,6 +13,10 @@ def test_tait_reference_and_pressure_response():
     assert math.isclose(rho0, 900.0, rel_tol=2e-3)
     assert rho1 > rho0
     assert m.compressibility_pa_inv(30.0e6, 503.15) > 0.0
+    drdp, drdt = m.density_derivatives(30.0e6, 503.15)
+    assert drdp > 0.0
+    assert drdt < 0.0
+    assert m.sound_speed_m_s(30.0e6, 503.15) > 0.0
 
 
 def test_cross_wlf_shear_thinning_and_pressure_shift():
@@ -25,6 +29,7 @@ def test_cross_wlf_shear_thinning_and_pressure_shift():
 def test_pvt_table_bilinear_interpolation():
     table = PVTTable((300.0, 500.0), (0.0, 1.0e6), ((1000.0, 900.0), (1100.0, 1000.0)))
     assert math.isclose(table.density(5.0e5, 400.0), 1000.0)
+    assert table.validate()["valid"]
 
 
 def test_shrinkage_is_bounded():

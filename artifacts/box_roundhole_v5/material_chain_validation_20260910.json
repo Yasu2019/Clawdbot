@@ -1,0 +1,36 @@
+{
+  "status": "PASS",
+  "data_status": "VIRTUAL_SCREENING_ONLY",
+  "tait": {
+    "density_kg_m3": [
+      900.9009009009009,
+      912.2579992466467,
+      924.554575095416
+    ],
+    "compressibility_1_Pa": [
+      4.4677365329789794e-10,
+      3.9359569694452933e-10,
+      3.9359569694452933e-10
+    ],
+    "sound_speed_m_s": [
+      1576.2231880639886,
+      1668.8449504831988,
+      1657.7099838689671
+    ]
+  },
+  "cross_wlf": {
+    "viscosity_1_per_s_Pa_s": 22750.2656018075,
+    "viscosity_1000_per_s_Pa_s": 528.0359594486841
+  },
+  "pvt": {
+    "positive": true,
+    "non_increasing_with_temperature": true,
+    "non_decreasing_with_pressure": true,
+    "valid": true
+  },
+  "limitations": [
+    "virtual coefficients",
+    "not a measured material calibration",
+    "custom OpenFOAM Cross-WLF plug-in still required for direct momentum coupling"
+  ]
+}

@@ -8,6 +8,8 @@
   - 単調PVT表の双線形補間
   - 安定化した熱収縮ひずみ
 - `tests/test_material_chain.py`：6 tests passed
+- `scripts/validate_material_chain.py`：PVT単調性、密度、圧縮率、音速、Cross-WLF粘度を検証（PASS）
+- 検証出力：[material_chain_validation_20260910.json](material_chain_validation_20260910.json)
 - `compressibleInterFoam` の熱物性ケースで、圧力・温度依存EOSの短時間実行を再確認
 - ケース生成時に `constant/crossWLFProperties` と `constant/pvtTable.csv` を出力
 
