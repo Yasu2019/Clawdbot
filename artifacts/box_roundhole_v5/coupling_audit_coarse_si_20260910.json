@@ -1,0 +1,41 @@
+{
+  "status": "PASS",
+  "checks": {
+    "plugin_compiled": true,
+    "plugin_loaded": true,
+    "openfoam_end": true,
+    "finite_solver_log": true,
+    "finite_state_fields_present": true,
+    "viscosity_field_written": true,
+    "alpha_bounded": true,
+    "mass_integral_trace": true,
+    "polymer_volume_trace": true,
+    "thermal_integral_trace": true,
+    "calculix_finished": true,
+    "calculix_results_present": true,
+    "calculix_displacement_trace": true,
+    "calculix_stress_trace": true
+  },
+  "openfoam_final_time": "0.001",
+  "openfoam_fields": [
+    "p",
+    "p_rgh",
+    "T",
+    "rho",
+    "U"
+  ],
+  "integrals": {
+    "mass_first": 2.8651901e-05,
+    "mass_last": 3.13582e-05,
+    "polymer_volume_first": 3.6001438e-13,
+    "polymer_volume_last": 2.9999688e-09,
+    "thermal_min": 0.020462098,
+    "thermal_max": 0.020993918,
+    "max_displacement": 0.25886563615953206,
+    "max_abs_stress": 1467670.0
+  },
+  "limitations": [
+    "virtual rheology/CTE/PVT coefficients",
+    "field magnitudes require measured calibration"
+  ]
+}
