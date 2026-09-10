@@ -1,0 +1,10 @@
+{
+  "schema": "box_roundhole_patch_contract.v1",
+  "units": "SI",
+  "source_of_truth": "artifacts/box_roundhole_v5/open_top_shell_vent4_r15_case3",
+  "patches": {
+    "gate": {"area_m2": 2.314035399902782e-05, "normal": [-1.0, 0.0, 0.0], "tolerance": 0.02},
+    "vent": {"area_m2": 2.462769165784649e-05, "normal": [1.0, 0.0, 0.0], "tolerance": 0.02}
+  },
+  "policy": "reject_mismatched_patch_area_before_physics_convergence_claim"
+}

@@ -1,0 +1,77 @@
+{
+  "status": "REVIEW",
+  "patches": {
+    "cavity_wall": {
+      "coarse": {
+        "faces": 14210,
+        "area": 0.03609541836602197,
+        "mean_normal": [
+          -0.0001407457811088976,
+          0.0001407444263869315,
+          0.004363281478982821
+        ]
+      },
+      "refined": {
+        "faces": 45358,
+        "area": 0.04204385008279936,
+        "mean_normal": [
+          0.006570238353038194,
+          -0.00044119397745914475,
+          0.005203051641162523
+        ]
+      },
+      "face_ratio": 3.1919774806474313,
+      "area_ratio": 1.164797417125296
+    },
+    "gate": {
+      "coarse": {
+        "faces": 1126,
+        "area": 0.002999999999999989,
+        "mean_normal": [
+          -1.0,
+          0.0,
+          0.0
+        ]
+      },
+      "refined": {
+        "faces": 30,
+        "area": 2.314035399902782e-05,
+        "mean_normal": [
+          -1.0,
+          -5.444331618449122e-17,
+          -7.684091799381698e-17
+        ]
+      },
+      "face_ratio": 0.02664298401420959,
+      "area_ratio": 0.007713451333009302
+    },
+    "vent": {
+      "coarse": {
+        "faces": 1128,
+        "area": 0.0029999999999999944,
+        "mean_normal": [
+          1.0,
+          4.371834012791758e-34,
+          9.870262083123207e-34
+        ]
+      },
+      "refined": {
+        "faces": 28,
+        "area": 2.462769165784649e-05,
+        "mean_normal": [
+          1.0,
+          0.0,
+          0.0
+        ]
+      },
+      "face_ratio": 0.024822695035460994,
+      "area_ratio": 0.008209230552615512
+    }
+  },
+  "criterion": "area ratio within 2% and identical patch names",
+  "correction_required": {
+    "gate": "coarse mesh currently exposes the complete x=0 face; refined mesh exposes the intended gate opening only",
+    "vent": "coarse mesh currently exposes the complete x=0.1 face; refined mesh exposes the four vent openings only",
+    "action": "do not use the coarse case for mesh convergence until feature-preserving remeshing or an equivalent effective-area mask is applied"
+  }
+}
