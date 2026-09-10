@@ -8,12 +8,17 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--case", type=Path, required=True)
     ap.add_argument("--output", type=Path, required=True)
+    ap.add_argument("--log", type=Path, help="Parse an existing checkMesh log instead of running Docker")
     args = ap.parse_args()
     cmd = ["docker", "run", "--rm", "-v", f"{args.case.resolve()}:/case",
            "opencfd/openfoam-dev:latest", "bash", "-lc",
            "source /usr/lib/openfoam/openfoam2512/etc/bashrc >/dev/null 2>&1; checkMesh -case /case -constant"]
-    proc = subprocess.run(cmd, text=True, capture_output=True)
-    text = proc.stdout + proc.stderr
+    if args.log:
+        proc = subprocess.CompletedProcess(cmd, 0)
+        text = args.log.read_text(errors="replace")
+    else:
+        proc = subprocess.run(cmd, text=True, capture_output=True, timeout=300)
+        text = proc.stdout + proc.stderr
     def num(pattern):
         m = re.search(pattern, text, re.I)
         return float(m.group(1).rstrip(".")) if m else None

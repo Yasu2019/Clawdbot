@@ -1,0 +1,19 @@
+{
+  "status": "REVIEW",
+  "physics_convergence": "NOT_ESTABLISHED",
+  "coarse_cells": 24891.0,
+  "refined_cells": 67165.0,
+  "cell_count_ratio": 2.6983648708368486,
+  "total_volume_relative_difference": null,
+  "total_volume_comparison": "NOT_COMPARABLE_UNTIL_UNIT_SYSTEM_IS_NORMALIZED",
+  "max_non_orthogonality_deg": {
+    "coarse": 52.403785,
+    "refined": 53.015967
+  },
+  "max_skewness": {
+    "coarse": 0.62188105,
+    "refined": 0.58406462
+  },
+  "mesh_quality_gate": true,
+  "next_step": "run identical Cross-WLF physics on both meshes and compare integral/warpage fields"
+}
