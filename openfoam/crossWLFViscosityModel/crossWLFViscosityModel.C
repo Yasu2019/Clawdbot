@@ -55,9 +55,16 @@ tmp<volScalarField> crossWLFViscosityModel::nu
 
     tmp<volScalarField> resultPtr
     (
-        volScalarField::New
+        new volScalarField
         (
-            IOobject::groupName("crossWLF:nu", nu0.group()),
+            IOobject
+            (
+                IOobject::groupName("crossWLF:nu", nu0.group()),
+                nu0.time().timeName(),
+                mesh,
+                IOobject::NO_READ,
+                IOobject::AUTO_WRITE
+            ),
             nu0
         )
     );

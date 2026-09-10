@@ -1,0 +1,23 @@
+{
+  "status": "PASS",
+  "checks": {
+    "plugin_compiled": true,
+    "plugin_loaded": true,
+    "openfoam_end": true,
+    "finite_state_fields_present": true,
+    "calculix_finished": true,
+    "calculix_results_present": true
+  },
+  "openfoam_final_time": "0.001",
+  "openfoam_fields": [
+    "p",
+    "p_rgh",
+    "T",
+    "rho",
+    "U"
+  ],
+  "limitations": [
+    "virtual rheology/CTE/PVT coefficients",
+    "field magnitudes require measured calibration"
+  ]
+}
