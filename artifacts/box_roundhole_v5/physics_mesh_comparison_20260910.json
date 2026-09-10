@@ -1,0 +1,22 @@
+{
+  "status": "REVIEW",
+  "physics_convergence": "NOT_ESTABLISHED",
+  "coarse_volume_scale": 1e-09,
+  "coarse_scaled": {
+    "mass_last": 2.8654191e-05,
+    "polymer_volume_last": 3.0000003000000003e-12,
+    "thermal_max": 0.020993980000000002
+  },
+  "refined": {
+    "mass_last": 2.8671517e-05,
+    "polymer_volume_last": 2.3140289e-11,
+    "thermal_max": 0.020993236
+  },
+  "relative_difference": {
+    "mass_last": 0.0006042931038494337,
+    "polymer_volume_last": 0.8703559709215386,
+    "thermal_max": 3.543998647964079e-05
+  },
+  "criterion": "max relative difference < 1e-3",
+  "note": "Both runs must use identical SI geometry, injection schedule, BCs and material coefficients before this is a formal mesh-convergence result."
+}
