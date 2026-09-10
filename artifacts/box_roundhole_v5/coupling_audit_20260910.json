@@ -8,6 +8,9 @@
     "finite_state_fields_present": true,
     "viscosity_field_written": true,
     "alpha_bounded": true,
+    "mass_integral_trace": true,
+    "polymer_volume_trace": true,
+    "thermal_integral_trace": true,
     "calculix_finished": true,
     "calculix_results_present": true
   },
@@ -19,6 +22,14 @@
     "rho",
     "U"
   ],
+  "integrals": {
+    "mass_first": 28651.492,
+    "mass_last": 28654.191,
+    "polymer_volume_first": 3.600144e-07,
+    "polymer_volume_last": 0.0030000003,
+    "thermal_min": 20993980.0,
+    "thermal_max": 20993980.0
+  },
   "limitations": [
     "virtual rheology/CTE/PVT coefficients",
     "field magnitudes require measured calibration"

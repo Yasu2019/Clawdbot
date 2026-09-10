@@ -19,6 +19,9 @@ def main() -> int:
     viscosity_fields = [p.name for p in final.iterdir()] if final else []
     alpha_bounds = re.findall(r"Min.*?= ([0-9.eE+-]+).*?Max.*?= ([0-9.eE+-]+)", run)
     alpha_ok = bool(alpha_bounds) and all(float(lo) >= -1e-8 and float(hi) <= 1.0000001 for lo, hi in alpha_bounds)
+    mass_trace = [float(x) for x in re.findall(r"volIntegrate\(region0\) of rho = ([0-9.eE+-]+)", run)]
+    polymer_trace = [float(x) for x in re.findall(r"volIntegrate\(region0\) of alpha\.polymer = ([0-9.eE+-]+)", run)]
+    thermal_trace = [float(x) for x in re.findall(r"volIntegrate\(region0\) of T = ([0-9.eE+-]+)", run)]
     checks = {
         "plugin_compiled": "libcrossWLFViscosityModel.so" in build and "error:" not in build.lower(),
         "plugin_loaded": "Selecting turbulence model type laminar" in run and "crossWLF" in (a.openfoam_case / "constant" / "momentumTransport").read_text(errors="replace"),
@@ -27,11 +30,20 @@ def main() -> int:
         "finite_state_fields_present": set(("p", "T", "rho", "U")).issubset(fields),
         "viscosity_field_written": any(name.startswith("generalizedNewtonian") for name in viscosity_fields),
         "alpha_bounded": alpha_ok,
+        "mass_integral_trace": bool(mass_trace),
+        "polymer_volume_trace": bool(polymer_trace),
+        "thermal_integral_trace": bool(thermal_trace),
         "calculix_finished": "Job finished" in ccx,
         "calculix_results_present": all((a.calculix_case / f"box_roundhole_shrinkage.{ext}").exists() for ext in ("frd", "dat", "sta")),
     }
     report = {"status": "PASS" if all(checks.values()) else "FAIL", "checks": checks,
               "openfoam_final_time": final.name if final else None, "openfoam_fields": fields,
+              "integrals": {"mass_first": mass_trace[0] if mass_trace else None,
+                            "mass_last": mass_trace[-1] if mass_trace else None,
+                            "polymer_volume_first": polymer_trace[0] if polymer_trace else None,
+                            "polymer_volume_last": polymer_trace[-1] if polymer_trace else None,
+                            "thermal_min": min(thermal_trace) if thermal_trace else None,
+                            "thermal_max": max(thermal_trace) if thermal_trace else None},
               "limitations": ["virtual rheology/CTE/PVT coefficients", "field magnitudes require measured calibration"]}
     a.output.parent.mkdir(parents=True, exist_ok=True)
     a.output.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")

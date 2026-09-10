@@ -1,0 +1,19 @@
+{
+  "status": "PASS",
+  "reference": {
+    "mass": 28654.191,
+    "polymer_volume": 0.0030000003,
+    "thermal_integral": 20993980.0
+  },
+  "candidate": {
+    "mass": 28654.191,
+    "polymer_volume": 0.0030000003,
+    "thermal_integral": 20993980.0
+  },
+  "relative_difference": {
+    "mass": 0.0,
+    "polymer_volume": 0.0,
+    "thermal_integral": 0.0
+  },
+  "criterion": "max relative difference < 1e-3"
+}
