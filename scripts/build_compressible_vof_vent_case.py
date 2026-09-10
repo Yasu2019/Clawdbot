@@ -21,13 +21,21 @@ def main() -> int:
         shutil.copytree(src / name, out / name, dirs_exist_ok=True)
     for name in ("thermophysicalProperties.air", "thermophysicalProperties.polymer", "transportProperties"):
         shutil.copy2(src / "constant" / name, out / "constant" / name)
+    # OpenFOAM's pressure/temperature-dependent rPolynomial EOS is used as a
+    # local Tait-equivalent expansion around (Tref, pref).  It is evaluated by
+    # the thermo package inside the pressure and energy equations, unlike the
+    # previous rhoConst placeholder.
+    polymer = (out / "constant" / "thermophysicalProperties.polymer").read_text(encoding="utf-8")
+    polymer = polymer.replace("equationOfState rhoConst;", "equationOfState rPolynomial;")
+    polymer = polymer.replace("equationOfState { rho 900; }", "equationOfState { C (8.292e-4 5.5556e-7 0 5.5556e-13 0); }")
+    (out / "constant" / "thermophysicalProperties.polymer").write_text(polymer, encoding="utf-8")
     shutil.copy2(src / "constant" / "g", out / "constant" / "g")
     for name in ("turbulenceProperties", "momentumTransport"):
         if (src / "constant" / name).exists():
             shutil.copy2(src / "constant" / name, out / "constant" / name)
     # OpenCFD 2512 initialises the base psiThermo before the phase-specific
     # thermo objects and therefore also expects this compatibility dictionary.
-    base_thermo = (src / "constant" / "thermophysicalProperties.polymer").read_text(encoding="utf-8")
+    base_thermo = polymer
     write(out / "constant" / "thermophysicalProperties", "FoamFile { version 2.0; format ascii; class dictionary; object thermophysicalProperties; }\nphases (polymer air);\nsigma 0.04;\npMin 1000;\n" + base_thermo)
     write(out / "system/controlDict", f"""FoamFile {{ version 2.0; format ascii; class dictionary; object controlDict; }}
 application compressibleInterFoam;
@@ -94,10 +102,16 @@ couplingStatus THERMO_LIBRARY_HOOK_REQUIRED;
 """)
     (out / "CASE_STATUS.json").write_text(json.dumps({
         "status": "CASE_BUILT_NOT_RUN", "solver": "compressibleInterFoam",
-        "compressible_phase": "air_perfectGas", "polymer_tait": "explicit_parameters_hook_required",
+        "compressible_phase": "air_perfectGas",
+        "polymer_eos": "rPolynomial_local_tait_equivalent",
+        "polymer_tait": "local_pressure_temperature_dependent_expansion",
+        "exact_nonlinear_tait": False,
+        "measured_pvt": False,
         "vent_boundary": "pressureInletOutletVelocity + totalPressure", "template": str(src)
     }, indent=2) + "\n", encoding="utf-8")
-    print(json.dumps({"out": str(out), "status": "CASE_BUILT_NOT_RUN", "solver": "compressibleInterFoam"}, indent=2))
+    print(json.dumps({"out": str(out), "status": "CASE_BUILT_NOT_RUN",
+                      "solver": "compressibleInterFoam",
+                      "polymer_eos": "rPolynomial_local_tait_equivalent"}, indent=2))
     return 0
 
 if __name__ == "__main__":
