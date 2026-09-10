@@ -1,0 +1,90 @@
+{
+  "schema": "clawstack.openfoam.ten_improvements.v1",
+  "requested": 10,
+  "completed": 10,
+  "pass": 8,
+  "review": 2,
+  "gates": [
+    {
+      "sequence": 1,
+      "key": "coarse_patch_contract",
+      "evidence": "artifacts\\box_roundhole_v5\\patch_contract_gmsh_coarse155_20260911.json",
+      "status": "PASS",
+      "timestamp_utc": "2026-09-10T21:40:46.827915+00:00",
+      "field": "status"
+    },
+    {
+      "sequence": 2,
+      "key": "refined_patch_contract",
+      "evidence": "artifacts\\box_roundhole_v5\\patch_contract_gmsh_refined15_20260911.json",
+      "status": "PASS",
+      "timestamp_utc": "2026-09-10T21:40:46.829915+00:00",
+      "field": "status"
+    },
+    {
+      "sequence": 3,
+      "key": "coarse_mesh_quality",
+      "evidence": "artifacts\\box_roundhole_v5\\mesh_quality_gmsh_coarse155_20260911.json",
+      "status": "PASS",
+      "timestamp_utc": "2026-09-10T21:40:46.830914+00:00",
+      "field": "status"
+    },
+    {
+      "sequence": 4,
+      "key": "refined_mesh_quality",
+      "evidence": "artifacts\\box_roundhole_v5\\mesh_quality_gmsh_refined15_20260911.json",
+      "status": "PASS",
+      "timestamp_utc": "2026-09-10T21:40:46.830914+00:00",
+      "field": "status"
+    },
+    {
+      "sequence": 5,
+      "key": "coarse_solver_audit",
+      "evidence": "artifacts\\box_roundhole_v5\\coupling_audit_gmsh_coarse155_20260911.json",
+      "status": "PASS",
+      "timestamp_utc": "2026-09-10T21:40:46.830914+00:00",
+      "field": "status"
+    },
+    {
+      "sequence": 6,
+      "key": "refined_solver_audit",
+      "evidence": "artifacts\\box_roundhole_v5\\coupling_audit_gmsh_refined15_20260911.json",
+      "status": "PASS",
+      "timestamp_utc": "2026-09-10T21:40:46.832218+00:00",
+      "field": "status"
+    },
+    {
+      "sequence": 7,
+      "key": "integral_agreement",
+      "evidence": "artifacts\\box_roundhole_v5\\physics_mesh_comparison_gmsh_20260911.json",
+      "status": "PASS",
+      "timestamp_utc": "2026-09-10T21:40:46.832218+00:00",
+      "field": "relative_difference"
+    },
+    {
+      "sequence": 8,
+      "key": "resolution_separation",
+      "evidence": "artifacts\\box_roundhole_v5\\physics_mesh_comparison_gmsh_20260911.json",
+      "status": "REVIEW",
+      "timestamp_utc": "2026-09-10T21:40:46.833226+00:00",
+      "field": "resolution_separation_ok"
+    },
+    {
+      "sequence": 9,
+      "key": "time_step_convergence",
+      "evidence": "artifacts\\box_roundhole_v5\\time_step_convergence_20260910.json",
+      "status": "PASS",
+      "timestamp_utc": "2026-09-10T21:40:46.833226+00:00",
+      "field": "status"
+    },
+    {
+      "sequence": 10,
+      "key": "formal_spatial_convergence",
+      "evidence": "artifacts\\box_roundhole_v5\\physics_mesh_comparison_gmsh_20260911.json",
+      "status": "REVIEW",
+      "timestamp_utc": "2026-09-10T21:40:46.834228+00:00",
+      "field": "status"
+    }
+  ],
+  "policy": "evidence-backed; no legacy task stopped or overwritten"
+}

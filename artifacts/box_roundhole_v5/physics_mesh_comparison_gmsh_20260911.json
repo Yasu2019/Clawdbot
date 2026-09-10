@@ -1,6 +1,6 @@
 {
-  "status": "PASS",
-  "physics_convergence": "SCREENING_PASS",
+  "status": "REVIEW",
+  "physics_convergence": "NOT_ESTABLISHED",
   "coarse_volume_scale": 1.0,
   "coarse_scaled": {
     "mass_last": 2.8671575e-05,
@@ -29,5 +29,8 @@
   },
   "distinct_meshes_required": true,
   "distinct_meshes": true,
+  "cell_ratio_refined_to_coarse": 1.049567921491413,
+  "minimum_cell_ratio": 1.1,
+  "resolution_separation_ok": false,
   "note": "Both runs must use identical SI geometry, injection schedule, BCs and material coefficients before this is a formal mesh-convergence result."
 }

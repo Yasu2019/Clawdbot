@@ -13,6 +13,8 @@ def main() -> int:
     ap.add_argument("--refined-contract", type=Path, help="patch-contract JSON for the refined run")
     ap.add_argument("--coarse-mesh-quality", type=Path, help="mesh-quality JSON for the coarse run")
     ap.add_argument("--refined-mesh-quality", type=Path, help="mesh-quality JSON for the refined run")
+    ap.add_argument("--min-cell-ratio", type=float, default=1.10,
+                    help="minimum refined/coarse cell-count ratio for screening convergence")
     ap.add_argument("--output", type=Path, required=True)
     a = ap.parse_args()
     c = json.loads(a.coarse.read_text())["integrals"]
@@ -34,10 +36,14 @@ def main() -> int:
             mesh_meta[label] = json.loads(path.read_text(encoding="utf-8"))
     mesh_cells = {k: v.get("cells") for k, v in mesh_meta.items()}
     distinct_meshes = not (len(mesh_cells) == 2 and mesh_cells.get("coarse") == mesh_cells.get("refined"))
+    cell_ratio = None
+    if mesh_cells.get("coarse") and mesh_cells.get("refined"):
+        cell_ratio = max(mesh_cells["coarse"], mesh_cells["refined"]) / min(mesh_cells["coarse"], mesh_cells["refined"])
+    resolution_ok = cell_ratio is None or cell_ratio >= a.min_cell_ratio
     numerical_ok = max(rel.values()) < 1e-3
     report = {
-        "status": "PASS" if numerical_ok and contract_ok and distinct_meshes else ("BLOCKED" if not contract_ok or not distinct_meshes else "REVIEW"),
-        "physics_convergence": "SCREENING_PASS" if numerical_ok and contract_ok and distinct_meshes else "NOT_ESTABLISHED",
+        "status": "PASS" if numerical_ok and contract_ok and distinct_meshes and resolution_ok else ("BLOCKED" if not contract_ok or not distinct_meshes else "REVIEW"),
+        "physics_convergence": "SCREENING_PASS" if numerical_ok and contract_ok and distinct_meshes and resolution_ok else "NOT_ESTABLISHED",
         "coarse_volume_scale": a.coarse_volume_scale,
         "coarse_scaled": {n: c[n] * a.coarse_volume_scale for n in names},
         "refined": {n: f[n] for n in names},
@@ -48,6 +54,9 @@ def main() -> int:
         "mesh_cells": mesh_cells,
         "distinct_meshes_required": bool(mesh_meta),
         "distinct_meshes": distinct_meshes,
+        "cell_ratio_refined_to_coarse": cell_ratio,
+        "minimum_cell_ratio": a.min_cell_ratio,
+        "resolution_separation_ok": resolution_ok,
         "note": "Both runs must use identical SI geometry, injection schedule, BCs and material coefficients before this is a formal mesh-convergence result."}
     a.output.parent.mkdir(parents=True, exist_ok=True)
     a.output.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
