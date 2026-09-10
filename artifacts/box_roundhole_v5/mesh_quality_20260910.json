@@ -6,6 +6,7 @@
   "points": 8232.0,
   "max_non_orthogonality_deg": 52.403785,
   "max_skewness": 0.62188105,
-  "negative_volume_cells": null,
+  "negative_volume_cells": 0,
+  "total_volume": 41326.733,
   "closed_boundary": true
 }

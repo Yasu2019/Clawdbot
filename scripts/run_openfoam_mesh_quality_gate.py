@@ -16,7 +16,7 @@ def main() -> int:
     text = proc.stdout + proc.stderr
     def num(pattern):
         m = re.search(pattern, text, re.I)
-        return float(m.group(1)) if m else None
+        return float(m.group(1).rstrip(".")) if m else None
     report = {
         "status": "PASS" if proc.returncode == 0 and "Failed" not in text else "FAIL",
         "returncode": proc.returncode,
