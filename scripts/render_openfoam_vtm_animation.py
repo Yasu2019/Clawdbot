@@ -13,6 +13,10 @@ ap.add_argument('--field', default='alpha.polymer')
 ap.add_argument('--title', default='OpenFOAM spatial field')
 ap.add_argument('--clip-x-mm', type=float, default=None,
                 help='Keep the x >= value side to expose the internal fill front')
+ap.add_argument('--youtube', action='store_true',
+                help='Render 16:9 1920x1080 output at 30 fps')
+ap.add_argument('--camera', choices=('iso', 'top_oblique'), default='iso',
+                help='Camera view; top_oblique shows the bottom round hole through the opening')
 args = ap.parse_args()
 vtk_dir, out = args.vtk_dir, args.out
 def snapshot_key(path: Path) -> tuple[int, str]:
@@ -28,11 +32,21 @@ with tempfile.TemporaryDirectory() as td:
         mb=pv.read(f); mesh=mb['internal']
         if args.clip_x_mm is not None:
             mesh = mesh.clip(normal='x', origin=(args.clip_x_mm, 0, 0), invert=False)
-        pl=pv.Plotter(off_screen=True, window_size=(960,540)); pl.set_background('white')
+        size = (1920,1080) if args.youtube else (960,540)
+        pl=pv.Plotter(off_screen=True, window_size=size); pl.set_background('white')
         if args.field in mesh.array_names: pl.add_mesh(mesh, scalars=args.field, cmap='turbo', clim=[0,1], opacity=1.0, show_edges=False)
         else: pl.add_mesh(mesh, color='steelblue', show_edges=False)
-        pl.add_text(f'{args.title} | {args.field} | snapshot {f.stem} | PROXY_GAP', font_size=12, color='black'); pl.camera_position='iso'; pl.add_axes(); png=Path(td)/f'{i:04d}.png'; pl.screenshot(str(png)); pl.close(); frames.append(iio.imread(png))
+        pl.add_text(f'{args.title} | {args.field} | snapshot {f.stem} | VIRTUAL SCREENING', font_size=18 if args.youtube else 12, color='black')
+        if args.camera == 'top_oblique':
+            # High oblique view is intentional: the front wall must not hide
+            # the open-box bottom and its round hole.
+            pl.camera_position=((0.155,-0.125,0.245),(0.05,0.03,0.004),(0,0,1))
+            pl.camera.zoom(1.02)
+        else:
+            pl.camera_position='iso'
+        pl.add_axes(); png=Path(td)/f'{i:04d}.png'; pl.screenshot(str(png)); pl.close(); frames.append(iio.imread(png))
     out.parent.mkdir(parents=True, exist_ok=True)
     for j, frame in enumerate(frames): iio.imwrite(Path(td)/f'{j:04d}.png', frame)
-    subprocess.run(['ffmpeg','-y','-loglevel','error','-framerate','2','-i',str(Path(td)/'%04d.png'),'-c:v','libx264','-pix_fmt','yuv420p',str(out)], check=True)
+    fps = '30' if args.youtube else '2'
+    subprocess.run(['ffmpeg','-y','-loglevel','error','-framerate',fps,'-i',str(Path(td)/'%04d.png'),'-c:v','libx264','-pix_fmt','yuv420p','-movflags','+faststart',str(out)], check=True)
 print(out)
