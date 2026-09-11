@@ -1,0 +1,16 @@
+{
+  "status": "REVIEW",
+  "checks": {
+    "coarse_patch_contract": true,
+    "refined_patch_contract": true,
+    "coarse_mesh_quality": true,
+    "refined_mesh_quality": true,
+    "distinct_cell_count": true,
+    "minimum_resolution_ratio": false
+  },
+  "coarse_cells": 63993.0,
+  "refined_cells": 67165.0,
+  "cell_ratio": 1.049567921491413,
+  "minimum_ratio": 1.1,
+  "note": "A pair with insufficient resolution separation is not a formal convergence study."
+}
