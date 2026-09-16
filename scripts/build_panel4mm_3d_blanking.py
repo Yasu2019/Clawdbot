@@ -66,6 +66,36 @@ HOLE_R = 0.28                        # φ0.56 (公称値。パンチ寸法の参
 # 0.45mmで比較テスト)。350umを新しい既定値とする。
 SLUG_FILL_R = 0.35                   # add_slug専用(実測境界300um+50um余裕)
 
+# 2026-09-08追加: INC-188のクラック位置検証(実PDF Crack_発生位置_PM7TCB.pdf)で、
+# 実際のマイクロクラック(x230顕微鏡でのみ視認可能)は丸穴からではなく、
+# トリムパンチ輪郭が丸穴側で折れ曲がる小フィレット(curve497/498、R≈0.48mm、
+# 丸穴中心から約0.94mm)の位置と一致した(P1r5の等価塑性ひずみホットスポットH4:
+# 丸穴中心から1.49mm、トリム刃先から0.033mm)。このフィレットは既存の
+# ROUND_REFINE_R(丸穴周辺100umメッシュ)の外側(r>1.6mm時点で粗メッシュに復帰)
+# にあり、解像されていなかった。ここに局所細分化を追加する。
+TRIM_FILLET_NEAR_HOLE = (185.55, -1881.25)  # H4/実クラック一致箇所 [mm]
+TRIM_FILLET_REFINE_R = 0.25e-3       # 細分化半径[m](フィレット弧+隣接エッジを覆う)
+TRIM_FILLET_REFINE_RAMP = 0.5e-3     # 細→粗への遷移距離[m]
+
+# 2026-09-10追加: 外部レビューで最重要指摘(★)を受けた対照実験(P1r7)。
+# GENE1は要素サイズ正則化を持たないため、「フィレットだけ細分化したら
+# 破断した」は物理的発見ではなく数値的結果(細かくすればどこでも破断する)
+# の可能性を排除できていなかった。H4以外の高ひずみ箇所(H1/H2/H2b/H3/H5、
+# いずれもP1r5でεp=1.5-1.8の代理指標評価)を同じ25umまで細分化し、
+# そこでは破断しないことを確認できて初めて「H4だけが特別」と言える。
+OTHER_HOTSPOTS_MM = {
+    "H1": (183.208, -1880.745),   # 矩形①刃先(別フィレット)
+    "H2": (182.801, -1878.650),   # トリム遠位フィレット(R≈0.54mm)近傍
+    "H2b": (187.056, -1884.107),  # トリム輪郭別位置
+    "H3": (179.857, -1878.233),   # トリム遠位フィレット近傍
+    "H5": (181.092, -1878.245),   # トリム遠位フィレット近傍
+}
+
+# 2026-09-13追加: /FAIL/COCKCROFT併用実験(GENE1精度向上テスト)。
+# C0 = (1/sqrt(3)) * integral_0^0.2887 [196.4+524.73*ep^0.7183] dep
+#    ≈ 53.6 MPa (Swift則を純せん断応力状態と仮定した2点アンカー近似)
+DEFAULT_COCKCROFT_C0 = 53.6e6         # Pa (=53.6MPa)
+
 MM = 1.0e-3                          # STEP は mm、デックは m
 
 DEFAULT_BLANK_ELEM = 100.0e-6        # 板厚 0.5mm に対し 5 層
@@ -83,6 +113,7 @@ DEFAULT_EPS_S = 0.5
 DEFAULT_EPS_EFF = 100.0              # 実質無効化(Eps_s単独で判定)
 ROUND_REFINE_R = 0.6e-3              # 細分化する半径(HOLE_R=0.28mmに余裕を持たせる)[m]
 ROUND_REFINE_RAMP = 1.0e-3           # 細→粗へ遷移させる距離[m]（急変によるメッシュ破綻回避）
+DEFAULT_FILLET_ELEM = 25.0e-6        # トリムフィレット(丸穴側、実クラック一致箇所)の細分化サイズ
 TOOL_GAP = 5.0e-6                    # 板と工具の初期すきま。初期貫入エラー回避
 DEFAULT_GAP_MAX = 15.0e-6            # TOOL_GAP < Gap_max（slice3d と同じ関係）
 DEFAULT_STFAC = 1.0                  # 接触剛性。AC の 0.05 は細メッシュに柔らかすぎた
@@ -168,7 +199,9 @@ def fmt_grnod(gid: int, name: str, nodes) -> list[str]:
 
 
 def mesh_group(tags: list[int], elem_mm: float, *, fuse: bool, add_slug: bool,
-               dz_mm: float = 0.0, refine: tuple | None = None):
+               dz_mm: float = 0.0, refine: tuple | None = None,
+               die_hole_r_mm: float | None = None,
+               z_offsets_mm: dict | None = None):
     """指定 tag だけを別モデルで切り出してメッシュし、節点座標と四面体を返す。
 
     全体を一度にメッシュすると材料の丸穴まわりが PLC エラーで落ちる。
@@ -178,6 +211,19 @@ def mesh_group(tags: list[int], elem_mm: float, *, fuse: bool, add_slug: bool,
     その中心から r_fine_mm 以内を elem_fine_mm、ramp_mm かけて elem_mm へ
     滑らかに戻す gmsh Ball フィールドを使う(全体を細かくすると要素数が
     爆発するため丸穴周辺のみ)。座標は STEP の元系(dz_mm 適用前)。
+
+    die_hole_r_mm: ダイの丸穴半径[mm]を実測値(0.300mm、curve287/321で確認済み)
+    以外の値に変更したい場合に渡す(クリアランス感度検証用、2026-09-13追加)。
+    既存の丸穴(tag=7内、curve287/321、R=0.300mm)を一旦埋めて新半径で
+    再カットする。add_slugと同じ「fuse後に負質量の反転複製を明示削除」
+    パターンを踏襲する(P1r4の偽陽性の教訓)。
+
+    z_offsets_mm: {tag: dz_mm} を渡すと、該当ソリッドだけZ方向に平行移動する
+    (抜き順番入れ替え検証用、2026-09-13追加)。全パンチは同一の
+    /IMPDISP/1ストローク関数を共有し、STEP形状に焼き込まれた各パンチ下端
+    高さの段違い(矩形zmin=1.8mm/トリムzmin=2.4mm/丸zmin=3.0mm)だけで
+    接触順が決まっている。矩形(tag10,11)を+0.6mm・トリム(tag12)を-0.6mm
+    すると、矩形とトリムの接触順が入れ替わる(丸は不変)。
     """
     import gmsh
     gmsh.initialize()
@@ -188,6 +234,44 @@ def mesh_group(tags: list[int], elem_mm: float, *, fuse: bool, add_slug: bool,
         [(3, t) for d, t in gmsh.model.getEntities(3) if t not in tags],
         recursive=False)
     gmsh.model.occ.synchronize()
+
+    if z_offsets_mm:
+        for tag, dz in z_offsets_mm.items():
+            if tag in tags:
+                gmsh.model.occ.translate([(3, tag)], 0, 0, dz)
+        gmsh.model.occ.synchronize()
+
+    if die_hole_r_mm is not None:
+        # 実測ダイ丸穴(R=0.300mm)を埋める(margin込みR=0.32mmで確実に埋める)
+        # → 新半径で再カット。tag=7のみに丸穴があるが、fuse/cutは
+        # 現存する全エンティティに対して行っても他タグとは重ならないため安全。
+        # 0.32mm(margin 20um)では新カット半径との余裕が不足しPLCエラーに
+        # なった(die_hole_r_mm=0.31mm実測で確認、2026-09-13)。SLUG_FILL_R
+        # と同じ0.35mmを採用(0.31/0.35/0.40/0.45mmの比較で単一連結メッシュ
+        # になることを実測済みの安全マージン)。
+        DIE_HOLE_FILL_R = 0.35  # mm
+        fill_tag = gmsh.model.occ.addCylinder(
+            HOLE_CENTER[0], HOLE_CENTER[1], -0.05, 0, 0, 0.6, DIE_HOLE_FILL_R)
+        gmsh.model.occ.synchronize()
+        existing = [(3, t) for d, t in gmsh.model.getEntities(3) if t != fill_tag]
+        gmsh.model.occ.fuse(existing, [(3, fill_tag)])
+        gmsh.model.occ.removeAllDuplicates()
+        gmsh.model.occ.synchronize()
+        for d, t in list(gmsh.model.getEntities(3)):
+            if gmsh.model.occ.getMass(d, t) < 0:
+                gmsh.model.occ.remove([(d, t)], recursive=True)
+        gmsh.model.occ.synchronize()
+        cut_tag = gmsh.model.occ.addCylinder(
+            HOLE_CENTER[0], HOLE_CENTER[1], -0.05, 0, 0, 0.6, die_hole_r_mm)
+        gmsh.model.occ.synchronize()
+        remaining = [(3, t) for d, t in gmsh.model.getEntities(3) if t != cut_tag]
+        gmsh.model.occ.cut(remaining, [(3, cut_tag)])
+        gmsh.model.occ.removeAllDuplicates()
+        gmsh.model.occ.synchronize()
+        for d, t in list(gmsh.model.getEntities(3)):
+            if gmsh.model.occ.getMass(d, t) < 0:
+                gmsh.model.occ.remove([(d, t)], recursive=True)
+        gmsh.model.occ.synchronize()
 
     if add_slug:
         # STEP は抜き後の状態で丸穴が空洞。塞がないと丸パンチが切る材料が無い。
@@ -217,16 +301,28 @@ def mesh_group(tags: list[int], elem_mm: float, *, fuse: bool, add_slug: bool,
         gmsh.model.occ.synchronize()
 
     if refine is not None:
-        cx, cy, cz, r_fine, elem_fine, ramp = refine
-        fid = gmsh.model.mesh.field.add("Ball")
-        gmsh.model.mesh.field.setNumber(fid, "XCenter", cx)
-        gmsh.model.mesh.field.setNumber(fid, "YCenter", cy)
-        gmsh.model.mesh.field.setNumber(fid, "ZCenter", cz)
-        gmsh.model.mesh.field.setNumber(fid, "Radius", r_fine)
-        gmsh.model.mesh.field.setNumber(fid, "VIn", elem_fine)
-        gmsh.model.mesh.field.setNumber(fid, "VOut", elem_mm)
-        gmsh.model.mesh.field.setNumber(fid, "Thickness", ramp)
-        gmsh.model.mesh.field.setAsBackgroundMesh(fid)
+        # 複数箇所を同時に細分化できるよう、単一tupleとtupleのlistの両方を許容する。
+        # 各箇所にBallフィールドを作り、Minフィールドで束ねて背景メッシュとする
+        # (2026-09-08追加: 丸穴周辺だけでなく、実クラック位置と一致したトリム
+        # フィレット(H4, 丸穴側)にも局所細分化を追加するため)。
+        refine_list = [refine] if isinstance(refine[0], (int, float)) else list(refine)
+        ball_ids = []
+        for cx, cy, cz, r_fine, elem_fine, ramp in refine_list:
+            fid = gmsh.model.mesh.field.add("Ball")
+            gmsh.model.mesh.field.setNumber(fid, "XCenter", cx)
+            gmsh.model.mesh.field.setNumber(fid, "YCenter", cy)
+            gmsh.model.mesh.field.setNumber(fid, "ZCenter", cz)
+            gmsh.model.mesh.field.setNumber(fid, "Radius", r_fine)
+            gmsh.model.mesh.field.setNumber(fid, "VIn", elem_fine)
+            gmsh.model.mesh.field.setNumber(fid, "VOut", elem_mm)
+            gmsh.model.mesh.field.setNumber(fid, "Thickness", ramp)
+            ball_ids.append(fid)
+        if len(ball_ids) > 1:
+            mid = gmsh.model.mesh.field.add("Min")
+            gmsh.model.mesh.field.setNumbers(mid, "FieldsList", ball_ids)
+            gmsh.model.mesh.field.setAsBackgroundMesh(mid)
+        else:
+            gmsh.model.mesh.field.setAsBackgroundMesh(ball_ids[0])
         gmsh.option.setNumber("Mesh.MeshSizeExtendFromBoundary", 0)
         gmsh.option.setNumber("Mesh.MeshSizeFromPoints", 0)
         gmsh.option.setNumber("Mesh.MeshSizeFromCurvature", 0)
@@ -257,7 +353,12 @@ def mesh_group(tags: list[int], elem_mm: float, *, fuse: bool, add_slug: bool,
 def build(tag: str, blank_elem: float, tool_elem: float, stroke: float,
           speed: float, gap_max: float, stfac: float, nstep: int,
           round_elem: float = DEFAULT_ROUND_ELEM,
-          eps_s: float = DEFAULT_EPS_S, eps_eff: float = DEFAULT_EPS_EFF):
+          eps_s: float = DEFAULT_EPS_S, eps_eff: float = DEFAULT_EPS_EFF,
+          refine_other_hotspots: bool = False,
+          add_cockcroft: bool = False, cockcroft_c0: float = DEFAULT_COCKCROFT_C0,
+          die_hole_r_mm: float | None = None,
+          swap_rect_trim_order: bool = False,
+          fillet_elem: float = DEFAULT_FILLET_ELEM):
     ref_txt = REF_STARTER.read_text(encoding="utf-8", errors="replace")
     ref = {
         "mat_blank": extract_block(ref_txt, r"^/MAT/LAW2/2\b"),
@@ -268,13 +369,38 @@ def build(tag: str, blank_elem: float, tool_elem: float, stroke: float,
         "inter2": extract_block(ref_txt, r"^/INTER/TYPE25/2\b"),
         "inter3": extract_block(ref_txt, r"^/INTER/TYPE25/3\b"),
     }
+    if add_cockcroft:
+        # 2026-09-13追加: GENE1(せん断ひずみ単独)に加え、三軸度を考慮した
+        # /FAIL/COCKCROFTを併用する(どちらか早い方で要素削除)。C0は
+        # 実測一軸引張SS曲線(MR536_H34、0.51mm厚)の破断点(eta=1/3, ef=0.068)と
+        # GENE1のEps_s=0.5校正値を純せん断(eta=0)の等価塑性ひずみ
+        # ef=0.5/sqrt(3)=0.2887に変換した2点だけのアンカーによる近似値
+        # (Swift硬化則を純せん断応力状態と仮定してsigma1=sigma_vm/sqrt(3)で
+        # 0からef=0.2887まで積分)。本物のMMC/JC同定(複数応力状態の試験)
+        # ではないため、後処理近似の代替であり精度向上の保証はない。
+        ref["fail"] += ("\n/FAIL/COCKCROFT/2\n"
+                        f"{f20(cockcroft_c0)}{f20(1.0)}\n")
 
     # 材料はダイ上面(0.5mm)へ TOOL_GAP だけ浮かせて置く。元位置 0.6mm から下げる。
     blank_dz = -(0.6 - 0.5 - TOOL_GAP / MM)
 
-    print("[mesh] 材料を融合してメッシュ中(丸穴周辺 %.0fum に局所細分化)..." % (round_elem * 1e6))
-    refine = (HOLE_CENTER[0], HOLE_CENTER[1], 0.85,
-              ROUND_REFINE_R / MM, round_elem / MM, ROUND_REFINE_RAMP / MM)
+    extra_note = ""
+    refine = [
+        (HOLE_CENTER[0], HOLE_CENTER[1], 0.85,
+         ROUND_REFINE_R / MM, round_elem / MM, ROUND_REFINE_RAMP / MM),
+        (TRIM_FILLET_NEAR_HOLE[0], TRIM_FILLET_NEAR_HOLE[1], 0.85,
+         TRIM_FILLET_REFINE_R / MM, fillet_elem / MM, TRIM_FILLET_REFINE_RAMP / MM),
+    ]
+    if refine_other_hotspots:
+        # 対照実験(P1r7): レビュー指摘①への回答。H4以外の高ひずみ箇所も
+        # 同じfillet_elemまで細分化し、破断するかどうかを同一条件で比較する。
+        for name, (hx, hy) in OTHER_HOTSPOTS_MM.items():
+            refine.append((hx, hy, 0.85,
+                           TRIM_FILLET_REFINE_R / MM, fillet_elem / MM,
+                           TRIM_FILLET_REFINE_RAMP / MM))
+        extra_note = f" + 対照実験{len(OTHER_HOTSPOTS_MM)}箇所(同{fillet_elem*1e6:.1f}um)"
+    print("[mesh] 材料を融合してメッシュ中(丸穴周辺 %.0fum + トリムフィレット(実クラック一致箇所) %.0fum に局所細分化%s)..."
+          % (round_elem * 1e6, fillet_elem * 1e6, extra_note))
     c_blank, t_blank = mesh_group(TAG_BLANK, blank_elem / MM, fuse=True,
                                   add_slug=True, dz_mm=blank_dz, refine=refine)
     print(f"[mesh]   材料 TET4={len(t_blank):,}")
@@ -282,7 +408,15 @@ def build(tag: str, blank_elem: float, tool_elem: float, stroke: float,
     for name, pid, tags in (("Die", 1, TAG_DIE), ("Stripper", 3, TAG_STRIPPER),
                             ("Punch", 4, TAG_PUNCH)):
         print(f"[mesh] {name} をメッシュ中...")
-        c, t = mesh_group(tags, tool_elem / MM, fuse=False, add_slug=False)
+        dhr = die_hole_r_mm if name == "Die" else None
+        zoff = None
+        if name == "Punch" and swap_rect_trim_order:
+            # 矩形(tag10,11 zmin=1.8mm)とトリム(tag12 zmin=2.4mm)の接触順を
+            # 入れ替える。丸(tag13 zmin=3.0mm)は不変。段差0.6mmを維持したまま
+            # 矩形を+0.6mm(→2.4mm)・トリムを-0.6mm(→1.8mm)平行移動する。
+            zoff = {10: 0.6, 11: 0.6, 12: -0.6}
+        c, t = mesh_group(tags, tool_elem / MM, fuse=False, add_slug=False,
+                          die_hole_r_mm=dhr, z_offsets_mm=zoff)
         print(f"[mesh]   {name} TET4={len(t):,}")
         groups.append((name, pid, c, t))
 
@@ -403,7 +537,13 @@ def build(tag: str, blank_elem: float, tool_elem: float, stroke: float,
         # 喪失した)。番号無し/RFILEの2行形式(ヘッダ+サイクル間隔)を使う。
         "/RFILE", f"{i10(20000)}", "/TFILE/4", f"{f20(1.0e-6)}",
         "/ANIM/DT", f"{f20(0.0)}{f20(t_stop/40)}",
-        "/ANIM/ELEM/EPSP", "/ANIM/ELEM/VONM", "/ANIM/VECT/DISP", "/END", "",
+        "/ANIM/ELEM/EPSP", "/ANIM/ELEM/VONM",
+        # 2026-09-08追加: 応力三軸度・Cockcroft-Latham損傷値の計算に
+        # フル応力テンソルが必要(スカラーVONMだけでは主応力が分からない)。
+        # 正しいキーワードは/ANIM/BRICK/TENS/STRESS(ELEMではなくBRICK、
+        # OpenRadioss eng_anim_brick_tens.cfgで確認済み)。
+        "/ANIM/BRICK/TENS/STRESS",
+        "/ANIM/VECT/DISP", "/END", "",
     ]), encoding="utf-8")
 
     tot_e = sum(len(v) for v in part_elems.values())
@@ -435,9 +575,28 @@ def main() -> int:
     ap.add_argument("--eps-eff", type=float, default=DEFAULT_EPS_EFF,
                     help="GENE1 Eps_eff（既定100=実質無効化。参照デッキ素の0.12のまま"
                          "使うとEps_sと二重発火する）")
+    ap.add_argument("--refine-other-hotspots", action="store_true",
+                    help="P1r7対照実験: H4以外の高ひずみ箇所(H1/H2/H2b/H3/H5)も"
+                         "同じ25umまで細分化する（レビュー指摘①への回答）")
+    ap.add_argument("--add-cockcroft", action="store_true",
+                    help="GENE1に加え/FAIL/COCKCROFTを併用する（三軸度考慮の精度向上テスト）")
+    ap.add_argument("--cockcroft-c0", type=float, default=DEFAULT_COCKCROFT_C0,
+                    help="Cockcroft-Latham破断基準値[Pa]（既定53.6MPa、2点アンカー近似）")
+    ap.add_argument("--die-hole-r", type=float, default=None,
+                    help="丸ダイ穴半径[mm]（実測既定0.300mm=クリアランス20um。"
+                         "クリアランス感度検証用。丸パンチ半径0.280mm固定なので"
+                         "クリアランス[um]=(この値-0.280)*1000）")
+    ap.add_argument("--swap-rect-trim-order", action="store_true",
+                    help="矩形とトリムの接触順を入れ替える（抜き順番検証用。"
+                         "既定は矩形→トリム→丸。有効化するとトリム→矩形→丸）")
+    ap.add_argument("--fillet-elem", type=float, default=DEFAULT_FILLET_ELEM,
+                    help="トリムフィレット(H4)局所細分化サイズ[m]（既定25um。"
+                         "メッシュ収束確認用に50um/12.5um等へ変更可能）")
     a = ap.parse_args()
     build(a.tag, a.blank_elem, a.tool_elem, a.stroke, a.speed,
-          a.gap_max, a.stfac, a.nstep, a.round_elem, a.eps_s, a.eps_eff)
+          a.gap_max, a.stfac, a.nstep, a.round_elem, a.eps_s, a.eps_eff,
+          a.refine_other_hotspots, a.add_cockcroft, a.cockcroft_c0,
+          a.die_hole_r, a.swap_rect_trim_order, a.fillet_elem)
     return 0
 
 
