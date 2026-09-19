@@ -8,7 +8,7 @@ param(
     [string]$EndTime = '0.001',
     [string]$LogName = 'log.preflight',
     [string]$Runner = '/usr/local/sbin/run_openfoam14_box_preflight_guarded_v3.sh',
-    [string]$ManifestPath = (Join-Path (Get-Location) 'wsl_detached_launch.json'),
+    [string]$ManifestPath = '',
     [switch]$ValidateOnly,
     [string]$WorkerConfigBase64 = ''
 )
@@ -16,7 +16,7 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-function Write-LaunchManifest([object]$Record) {
+function Write-LaunchManifest([object]$Record, [switch]$CreateOnly) {
     $parent = Split-Path -Parent $ManifestPath
     if ($parent) { New-Item -ItemType Directory -Force -Path $parent | Out-Null }
     $writeToken = [guid]::NewGuid().ToString('N')
@@ -26,11 +26,14 @@ function Write-LaunchManifest([object]$Record) {
         $json = $Record | ConvertTo-Json -Depth 6
         Set-Content -LiteralPath $temporaryPath -Value $json -Encoding UTF8
         if (Test-Path -LiteralPath $ManifestPath) {
+            if ($CreateOnly) {
+                throw "Refusing to overwrite existing launch manifest: $ManifestPath"
+            }
             [System.IO.File]::Replace($temporaryPath, $ManifestPath, $backupPath)
             if (Test-Path -LiteralPath $backupPath) { Remove-Item -LiteralPath $backupPath -Force }
         }
         else {
-            Move-Item -LiteralPath $temporaryPath -Destination $ManifestPath
+            [System.IO.File]::Move($temporaryPath, $ManifestPath)
         }
     }
     finally {
@@ -327,6 +330,13 @@ if ($LogName -notmatch '^[A-Za-z0-9_.-]+$') {
 if ([string]::IsNullOrWhiteSpace($Runner) -or -not $Runner.StartsWith('/') -or $Runner -match "['`r`n]") {
     throw 'Runner must be a non-empty absolute Linux path without quotes or newlines'
 }
+if ([string]::IsNullOrWhiteSpace($ManifestPath)) {
+    $manifestToken = [guid]::NewGuid().ToString('N')
+    $ManifestPath = Join-Path (Get-Location) ("wsl_detached_launch_{0}_{1}.json" -f $Unit, $manifestToken)
+}
+if (Test-Path -LiteralPath $ManifestPath) {
+    throw "ManifestPath already exists; refusing to overwrite a previous run record: $ManifestPath"
+}
 if ($ValidateOnly) {
     Write-Output 'INPUT_VALIDATION_PASS; no WSL, task, or solver actions performed'
     exit 0
@@ -456,7 +466,7 @@ $record = [ordered]@{
     keepalive_mode = 'Task Scheduler-owned WSL monitor; readiness-gated; runner stop_reason recorded'
     policy = 'new generation only; no stop/kill/restart of older units or tasks'
 }
-Write-LaunchManifest $record
+Write-LaunchManifest $record -CreateOnly
 
 $powerShellExe = Join-Path $PSHOME 'powershell.exe'
 $taskAction = New-ScheduledTaskAction -Execute $powerShellExe -Argument "-NoProfile -NonInteractive -ExecutionPolicy Bypass -File `"$PSCommandPath`" -WorkerConfigBase64 $taskConfigBase64" -WorkingDirectory (Split-Path -Parent $PSCommandPath)

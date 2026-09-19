@@ -115,6 +115,7 @@ def test_launch_arguments_are_validated_before_any_wsl_probe():
         "EndTime must be a finite positive number in seconds",
         "LogName may contain only letters, digits, dot, underscore, and hyphen",
         "Runner must be a non-empty absolute Linux path",
+        "ManifestPath already exists; refusing to overwrite a previous run record",
     ]
     for check in checks:
         assert text.index(check) < first_wsl_probe
@@ -359,6 +360,12 @@ $first.status = 'updated'
 Write-LaunchManifest $first
 $afterSecond = Get-Content -LiteralPath $ManifestPath -Raw | ConvertFrom-Json
 if ($afterSecond.status -ne 'updated') {{ exit 12 }}
+$createBlocked = $false
+$first.status = 'must-not-create-over-existing'
+try {{ Write-LaunchManifest $first -CreateOnly }} catch {{ $createBlocked = $true }}
+if (-not $createBlocked) {{ exit 17 }}
+$afterCreateBlocked = Get-Content -LiteralPath $ManifestPath -Raw | ConvertFrom-Json
+if ($afterCreateBlocked.status -ne 'updated') {{ exit 18 }}
 $writeBlocked = $false
 $lock = [System.IO.File]::Open($ManifestPath, [System.IO.FileMode]::Open, [System.IO.FileAccess]::Read, [System.IO.FileShare]::None)
 try {{
@@ -376,6 +383,25 @@ Write-Output 'ATOMIC_MANIFEST_CREATE_REPLACE_FAILURE_PRESERVES_OLD_PASS'
     result = subprocess.run([powershell, "-NoProfile", "-Command", script], capture_output=True, text=True, check=False)
     assert result.returncode == 0, result.stderr
     assert "ATOMIC_MANIFEST_CREATE_REPLACE_FAILURE_PRESERVES_OLD_PASS" in result.stdout
+
+
+def test_explicit_existing_launch_manifest_is_preserved_before_wsl(tmp_path):
+    powershell = shutil.which("powershell.exe") if os.name == "nt" else shutil.which("pwsh")
+    if not powershell:
+        pytest.skip("PowerShell unavailable; existing-manifest input guard skipped")
+    manifest = tmp_path / "prior-run.json"
+    prior = {"schema": "previous.run.v1", "status": "evidence"}
+    manifest.write_text(json.dumps(prior), encoding="utf-8")
+    args = [
+        powershell, "-NoProfile", "-File", str(LAUNCHER),
+        "-Distro", "Ubuntu-22.04", "-Unit", "new-run",
+        "-CaseDir", "/home/worker/new-case", "-BudgetSeconds", "60",
+        "-Ranks", "2", "-EndTime", "0.001", "-ManifestPath", str(manifest), "-ValidateOnly",
+    ]
+    result = subprocess.run(args, capture_output=True, text=True, check=False)
+    assert result.returncode != 0
+    assert "ManifestPath already exists" in result.stderr
+    assert json.loads(manifest.read_text(encoding="utf-8")) == prior
 
 
 def test_fresh_case_gate_requires_directory_without_prior_run_markers(tmp_path):
