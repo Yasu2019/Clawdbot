@@ -317,13 +317,23 @@ $first.status = 'updated'
 Write-LaunchManifest $first
 $afterSecond = Get-Content -LiteralPath $ManifestPath -Raw | ConvertFrom-Json
 if ($afterSecond.status -ne 'updated') {{ exit 12 }}
+$writeBlocked = $false
+$lock = [System.IO.File]::Open($ManifestPath, [System.IO.FileMode]::Open, [System.IO.FileAccess]::Read, [System.IO.FileShare]::None)
+try {{
+    $first.status = 'must-not-replace'
+    try {{ Write-LaunchManifest $first }} catch {{ $writeBlocked = $true }}
+}}
+finally {{ $lock.Dispose() }}
+if (-not $writeBlocked) {{ exit 14 }}
+$afterBlocked = Get-Content -LiteralPath $ManifestPath -Raw | ConvertFrom-Json
+if ($afterBlocked.status -ne 'updated') {{ exit 15 }}
 $leftovers = @(Get-ChildItem -LiteralPath (Split-Path -Parent $ManifestPath) -Filter 'atomic-launch.json.*.tmp') + @(Get-ChildItem -LiteralPath (Split-Path -Parent $ManifestPath) -Filter 'atomic-launch.json.*.bak')
-if ($leftovers.Count -ne 0) {{ exit 13 }}
-Write-Output 'ATOMIC_MANIFEST_PASS'
+if ($leftovers.Count -ne 0) {{ exit 16 }}
+Write-Output 'ATOMIC_MANIFEST_CREATE_REPLACE_FAILURE_PRESERVES_OLD_PASS'
 """
     result = subprocess.run([powershell, "-NoProfile", "-Command", script], capture_output=True, text=True, check=False)
     assert result.returncode == 0, result.stderr
-    assert "ATOMIC_MANIFEST_PASS" in result.stdout
+    assert "ATOMIC_MANIFEST_CREATE_REPLACE_FAILURE_PRESERVES_OLD_PASS" in result.stdout
 
 
 def test_worker_finalizes_host_manifest_without_real_wsl_or_scheduled_task(tmp_path):
