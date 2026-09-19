@@ -298,6 +298,34 @@ $m.Dispose(); Write-Output 'LOCK_CONTENDED'
             first.communicate(timeout=5)
 
 
+def test_manifest_writer_atomically_creates_and_replaces_json(tmp_path):
+    powershell = shutil.which("powershell.exe") if os.name == "nt" else shutil.which("pwsh")
+    if not powershell:
+        pytest.skip("PowerShell unavailable; manifest writer integration skipped")
+    text = LAUNCHER.read_text(encoding="utf-8")
+    helper = re.search(r"(?ms)^function Write-LaunchManifest\([^\n]*\) \{.*?^\}", text)
+    assert helper
+    manifest = str(tmp_path / "atomic-launch.json").replace("'", "''")
+    script = f"""
+$global:ManifestPath = '{manifest}'
+{helper.group(0)}
+$first = [ordered]@{{ schema = 'test.v1'; status = 'initial' }}
+Write-LaunchManifest $first
+$afterFirst = Get-Content -LiteralPath $ManifestPath -Raw | ConvertFrom-Json
+if ($afterFirst.status -ne 'initial') {{ exit 11 }}
+$first.status = 'updated'
+Write-LaunchManifest $first
+$afterSecond = Get-Content -LiteralPath $ManifestPath -Raw | ConvertFrom-Json
+if ($afterSecond.status -ne 'updated') {{ exit 12 }}
+$leftovers = @(Get-ChildItem -LiteralPath (Split-Path -Parent $ManifestPath) -Filter 'atomic-launch.json.*.tmp') + @(Get-ChildItem -LiteralPath (Split-Path -Parent $ManifestPath) -Filter 'atomic-launch.json.*.bak')
+if ($leftovers.Count -ne 0) {{ exit 13 }}
+Write-Output 'ATOMIC_MANIFEST_PASS'
+"""
+    result = subprocess.run([powershell, "-NoProfile", "-Command", script], capture_output=True, text=True, check=False)
+    assert result.returncode == 0, result.stderr
+    assert "ATOMIC_MANIFEST_PASS" in result.stdout
+
+
 def test_worker_finalizes_host_manifest_without_real_wsl_or_scheduled_task(tmp_path):
     powershell = shutil.which("powershell.exe") if os.name == "nt" else shutil.which("pwsh")
     if not powershell:

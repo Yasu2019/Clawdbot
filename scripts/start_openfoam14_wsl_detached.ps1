@@ -19,7 +19,28 @@ $ErrorActionPreference = 'Stop'
 function Write-LaunchManifest([object]$Record) {
     $parent = Split-Path -Parent $ManifestPath
     if ($parent) { New-Item -ItemType Directory -Force -Path $parent | Out-Null }
-    $Record | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath $ManifestPath -Encoding UTF8
+    $writeToken = [guid]::NewGuid().ToString('N')
+    $temporaryPath = "$ManifestPath.$writeToken.tmp"
+    $backupPath = "$ManifestPath.$writeToken.bak"
+    try {
+        $json = $Record | ConvertTo-Json -Depth 6
+        Set-Content -LiteralPath $temporaryPath -Value $json -Encoding UTF8
+        if (Test-Path -LiteralPath $ManifestPath) {
+            [System.IO.File]::Replace($temporaryPath, $ManifestPath, $backupPath)
+            if (Test-Path -LiteralPath $backupPath) { Remove-Item -LiteralPath $backupPath -Force }
+        }
+        else {
+            Move-Item -LiteralPath $temporaryPath -Destination $ManifestPath
+        }
+    }
+    finally {
+        if (Test-Path -LiteralPath $temporaryPath) {
+            Remove-Item -LiteralPath $temporaryPath -Force
+        }
+        if (Test-Path -LiteralPath $backupPath) {
+            Remove-Item -LiteralPath $backupPath -Force
+        }
+    }
 }
 
 function Remove-OwnedKeepaliveTask([string]$TaskName, [string]$ExpectedWorkerConfigBase64) {
