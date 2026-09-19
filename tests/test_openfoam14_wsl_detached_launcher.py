@@ -5,6 +5,8 @@ import re
 import shlex
 import shutil
 import subprocess
+import time
+import uuid
 from pathlib import Path
 
 import pytest
@@ -247,6 +249,53 @@ def test_process_family_awk_gate_detects_solver_but_ignores_idle_host():
     assert audit("").stdout.strip() == ""
     assert "foamRun" in audit("111 1 R foamRun foamRun -solver compressibleVoF").stdout
     assert "mpirun" in audit("222 1 Sl mpirun.openmpi mpirun -np 2 foamRun").stdout
+
+
+def test_launcher_serializes_preflight_and_dispatch_with_host_mutex():
+    text = LAUNCHER.read_text(encoding="utf-8")
+    lock = text.index("$launchMutex = [System.Threading.Mutex]::new")
+    wsl_probe = text.index("$status = Invoke-WslText")
+    task_registration = text.index("Register-ScheduledTask -TaskName $keepaliveTaskName")
+    solver_dispatch = text.index("$solverDispatch = Invoke-WslText $solverArgs")
+    release = text.index("$launchMutex.ReleaseMutex()")
+    assert lock < wsl_probe < task_registration < solver_dispatch < release
+    assert "Another OpenFOAM launcher is in preflight/dispatch" in text
+
+
+def test_global_mutex_excludes_a_second_powershell_process(tmp_path):
+    powershell = shutil.which("powershell.exe") if os.name == "nt" else shutil.which("pwsh")
+    if not powershell:
+        pytest.skip("PowerShell unavailable; cross-process mutex test skipped")
+    name = f"Global\\ClawstackOpenFoamTest-{uuid.uuid4().hex}"
+    marker = str(tmp_path / "mutex-ready.txt").replace("'", "''")
+    first_script = f"""
+$m = [System.Threading.Mutex]::new($false, '{name}')
+if (-not $m.WaitOne(0)) {{ exit 11 }}
+[IO.File]::WriteAllText('{marker}', 'locked')
+Start-Sleep -Seconds 3
+$m.ReleaseMutex(); $m.Dispose()
+"""
+    second_script = f"""
+$m = [System.Threading.Mutex]::new($false, '{name}')
+$acquired = $m.WaitOne(0)
+if ($acquired) {{ $m.ReleaseMutex(); $m.Dispose(); exit 12 }}
+$m.Dispose(); Write-Output 'LOCK_CONTENDED'
+"""
+    first = subprocess.Popen([powershell, "-NoProfile", "-Command", first_script], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    try:
+        deadline = time.monotonic() + 4
+        while time.monotonic() < deadline and not Path(marker).exists():
+            time.sleep(0.05)
+        assert Path(marker).exists(), "first process did not acquire the named mutex"
+        second = subprocess.run([powershell, "-NoProfile", "-Command", second_script], capture_output=True, text=True, check=False)
+        assert second.returncode == 0, second.stderr
+        assert "LOCK_CONTENDED" in second.stdout
+        _, first_error = first.communicate(timeout=5)
+        assert first.returncode == 0, first_error
+    finally:
+        if first.poll() is None:
+            first.terminate()
+            first.communicate(timeout=5)
 
 
 def test_worker_finalizes_host_manifest_without_real_wsl_or_scheduled_task(tmp_path):

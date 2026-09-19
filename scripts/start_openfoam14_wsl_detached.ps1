@@ -269,6 +269,21 @@ function Invoke-WslText([string[]]$Arguments, [int]$TimeoutSeconds = 20) {
     }
 }
 
+$launchMutex = [System.Threading.Mutex]::new($false, 'Global\Clawstack.OpenFOAM.Launch.v1')
+$launchMutexAcquired = $false
+try {
+    $launchMutexAcquired = $launchMutex.WaitOne([TimeSpan]::FromSeconds(10))
+}
+catch [System.Threading.AbandonedMutexException] {
+    # A previous launcher exited unexpectedly; the abandoned mutex is now ours.
+    $launchMutexAcquired = $true
+}
+if (-not $launchMutexAcquired) {
+    $launchMutex.Dispose()
+    throw 'Another OpenFOAM launcher is in preflight/dispatch; refusing concurrent launch'
+}
+
+try {
 # Never supersede an older unit implicitly.  The caller must choose a new unit
 # and case generation after inspecting an active/failed older generation.
 $status = Invoke-WslText @('-d', $Distro, '-u', 'root', '--', 'systemctl', 'is-active', $Unit)
@@ -412,3 +427,8 @@ $record.solver_dispatch_exit_code = $solverDispatch.ExitCode
 $record.solver_dispatch_output = $solverDispatch.Output
 Write-LaunchManifest $record
 Write-Output ("STARTED unit={0} keepalive_task={1} manifest={2}" -f $Unit, $keepaliveTaskName, $ManifestPath)
+}
+finally {
+    if ($launchMutexAcquired) { $launchMutex.ReleaseMutex() }
+    $launchMutex.Dispose()
+}
