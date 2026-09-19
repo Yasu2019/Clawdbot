@@ -1,6 +1,7 @@
 import json
 import os
 import re
+import shlex
 import shutil
 import subprocess
 from pathlib import Path
@@ -213,3 +214,21 @@ def test_existing_openfoam_process_family_blocks_any_new_unit_generation():
     assert '$4 == "foamRun" || $4 ~ /^mpirun/' in text
     assert "Refusing concurrent OpenFOAM solver launch" in text
     assert audit < registration < dispatch
+
+
+def test_process_family_awk_gate_detects_solver_but_ignores_idle_host():
+    bash = _available_bash()
+    if not bash:
+        pytest.skip("Bash unavailable; process-family runtime check skipped")
+    text = LAUNCHER.read_text(encoding="utf-8")
+    command_match = re.search(r"(?m)^\$solverProcessAuditCommand = '(.*?)'$", text)
+    assert command_match
+    command = command_match.group(1).replace("''", "'")
+
+    def audit(line):
+        script = f"ps() {{ printf '%s\\n' {shlex.quote(line)}; }}\n{command}"
+        return subprocess.run([bash, "-c", script], capture_output=True, text=True, check=False)
+
+    assert audit("").stdout.strip() == ""
+    assert "foamRun" in audit("111 1 R foamRun foamRun -solver compressibleVoF").stdout
+    assert "mpirun" in audit("222 1 Sl mpirun.openmpi mpirun -np 2 foamRun").stdout
