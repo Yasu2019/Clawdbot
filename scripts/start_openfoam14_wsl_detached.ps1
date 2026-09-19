@@ -177,6 +177,18 @@ if ($active -ne 'inactive') {
     throw "Refusing launch because systemd state is ambiguous for '$Unit': '$active'"
 }
 
+# Check the whole OpenFOAM process family, not only the caller's chosen unit
+# name. This prevents a second launcher from overlapping a differently named
+# older generation on the same WSL host.
+$solverProcessAuditCommand = 'set -o pipefail; ps -eo pid=,ppid=,stat=,comm=,args= | awk ''$4 == "foamRun" || $4 ~ /^mpirun/ {print}'''
+$solverProcessAudit = Invoke-WslText @('-d', $Distro, '-u', 'root', '--', 'bash', '-lc', $solverProcessAuditCommand) -TimeoutSeconds 20
+if ($solverProcessAudit.ExitCode -ne 0) {
+    throw "OpenFOAM process-family audit failed (exit $($solverProcessAudit.ExitCode)): $($solverProcessAudit.Output)"
+}
+if (-not [string]::IsNullOrWhiteSpace($solverProcessAudit.Output)) {
+    throw "Refusing concurrent OpenFOAM solver launch; existing process(es): $($solverProcessAudit.Output)"
+}
+
 $solverArgs = @(
     '-d', $Distro, '-u', 'root', '--', 'systemd-run', '--unit', $Unit,
     '--collect', '--no-block',

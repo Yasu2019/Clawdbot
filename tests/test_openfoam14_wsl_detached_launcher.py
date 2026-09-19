@@ -202,3 +202,14 @@ Write-Output 'SCHEDULED_TASK_CLEANUP_MOCK_PASS'
     result = subprocess.run([powershell, "-NoProfile", "-Command", script], capture_output=True, text=True, check=False)
     assert result.returncode == 0, result.stderr
     assert "SCHEDULED_TASK_CLEANUP_MOCK_PASS" in result.stdout
+
+
+def test_existing_openfoam_process_family_blocks_any_new_unit_generation():
+    text = LAUNCHER.read_text(encoding="utf-8")
+    audit = text.index("$solverProcessAudit = Invoke-WslText")
+    registration = text.index("Register-ScheduledTask -TaskName $keepaliveTaskName")
+    dispatch = text.index("$solverDispatch = Invoke-WslText $solverArgs")
+    assert "ps -eo pid=,ppid=,stat=,comm=,args=" in text
+    assert '$4 == "foamRun" || $4 ~ /^mpirun/' in text
+    assert "Refusing concurrent OpenFOAM solver launch" in text
+    assert audit < registration < dispatch
