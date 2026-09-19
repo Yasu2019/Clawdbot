@@ -132,7 +132,7 @@ def test_keepalive_persists_terminal_and_incomplete_run_states():
     ):
         assert f"KEEPALIVE_STATUS:{status}" in text
     assert "$monitorStatus = 'monitor_failed'" in text
-    assert '"stop_reason"' in text
+    assert "data.get('stop_reason')" in text
     assert "KEEPALIVE_STOP_REASON:%s" in text
     assert "$launchRecord.status = 'solver_terminal_non_success'" in text
     assert "manifest_path = [System.IO.Path]::GetFullPath($ManifestPath)" in text
@@ -170,7 +170,8 @@ def test_embedded_keepalive_script_parses_and_classifies_runner_results(tmp_path
 
     function_match = re.search(r"(?ms)^report_terminal_result\(\) \{.*?^\}", template)
     assert function_match
-    case_dir = str(tmp_path).replace("\\", "/")
+    case_dir_for_json = str(tmp_path).replace("\\", "/")
+    case_dir = case_dir_for_json
     if os.name == "nt":
         case_dir = f"/{case_dir[0].lower()}{case_dir[2:]}"
     for stop_reason, expected_status, checkpoint_valid in (
@@ -181,6 +182,8 @@ def test_embedded_keepalive_script_parses_and_classifies_runner_results(tmp_path
         result = (
             {
                 "schema": "clawstack.openfoam.preflight.result.v1",
+                "case_dir": case_dir_for_json,
+                "requested_end_time_s": 0.001,
                 "stop_reason": stop_reason,
                 "solver_exit_code": 0,
                 "checkpoint_valid": checkpoint_valid,
@@ -197,6 +200,32 @@ def test_embedded_keepalive_script_parses_and_classifies_runner_results(tmp_path
         outcome = subprocess.run([bash, "-c", script], capture_output=True, text=True, check=False)
         assert expected_status in outcome.stdout
         assert (outcome.returncode == 0) is (stop_reason is not None)
+
+    invalid_completed_results = (
+        {"solver_exit_code": 1},
+        {"latest_time": "0.0005"},
+        {"case_dir": "/tmp/other-case"},
+        {"latest_time": "not-a-time"},
+    )
+    for invalid_fields in invalid_completed_results:
+        invalid_result = {
+            "schema": "clawstack.openfoam.preflight.result.v1",
+            "case_dir": case_dir_for_json,
+            "requested_end_time_s": 0.001,
+            "stop_reason": "completed",
+            "solver_exit_code": 0,
+            "checkpoint_valid": True,
+            "latest_time": "0.001",
+            "fatal_count": 0,
+            **invalid_fields,
+        }
+        (tmp_path / "preflight_result.json").write_text(json.dumps(invalid_result), encoding="utf-8")
+        script = f"sleep() {{ :; }}\ncase_dir='{case_dir}'\n{function_match.group(0)}\nreport_terminal_result"
+        if os.name == "nt":
+            script = 'python3() { python "$@"; }\n' + script
+        outcome = subprocess.run([bash, "-c", script], capture_output=True, text=True, check=False)
+        assert "KEEPALIVE_STATUS:invalid_terminal_manifest" in outcome.stdout
+        assert outcome.returncode == 4
 
 
 def test_task_cleanup_runtime_mock_preserves_fingerprint_mismatch():

@@ -68,7 +68,48 @@ report_terminal_result() {
     local solver_exit_code checkpoint_valid latest_time fatal_count
     terminal_facts=''
     for attempt in 1 2 3 4 5; do
-        terminal_facts="$(python3 -c 'import json,re,sys; d=json.load(open(sys.argv[1], encoding="utf-8")); s=d.get("stop_reason"); allowed={"completed","budget_timeout","interrupted","floating_point_exception","negative_temperature","incomplete_checkpoint","solver_error"}; rc=d.get("solver_exit_code"); cp=d.get("checkpoint_valid"); lt=d.get("latest_time"); fatal=d.get("fatal_count"); valid=d.get("schema")=="clawstack.openfoam.preflight.result.v1" and isinstance(s,str) and s in allowed and type(rc) is int and type(cp) is bool and isinstance(lt,str) and re.fullmatch(r"[0-9.eE+-]*",lt) and type(fatal) is int; print("\n".join([s,str(rc),str(cp).lower(),lt,str(fatal)])) if valid else sys.exit(2)' "$case_dir/preflight_result.json" 2>/dev/null)" || terminal_facts=''
+        terminal_facts="$(python3 - "$case_dir/preflight_result.json" "$case_dir" <<'PY'
+import json, math, sys
+
+def finite_number(value):
+    if isinstance(value, bool) or not isinstance(value, (int, float, str)):
+        return None
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return None
+    return number if math.isfinite(number) else None
+
+try:
+    with open(sys.argv[1], encoding='utf-8') as stream:
+        data = json.load(stream)
+    reason = data.get('stop_reason')
+    allowed = {'completed', 'budget_timeout', 'interrupted', 'floating_point_exception', 'negative_temperature', 'incomplete_checkpoint', 'solver_error'}
+    exit_code = data.get('solver_exit_code')
+    checkpoint_valid = data.get('checkpoint_valid')
+    latest_time = data.get('latest_time')
+    latest_value = finite_number(latest_time) if latest_time else None
+    requested_end = data.get('requested_end_time_s')
+    target_value = finite_number(requested_end) if type(requested_end) in (int, float) else None
+    fatal_count = data.get('fatal_count')
+    valid = (
+        data.get('schema') == 'clawstack.openfoam.preflight.result.v1'
+        and data.get('case_dir') == sys.argv[2]
+        and isinstance(reason, str) and reason in allowed
+        and type(exit_code) is int and type(checkpoint_valid) is bool
+        and isinstance(latest_time, str)
+        and (latest_time == '' or (latest_value is not None and latest_value >= 0))
+        and target_value is not None and target_value > 0
+        and type(fatal_count) is int and fatal_count >= 0
+        and (reason != 'completed' or (exit_code == 0 and latest_value is not None and latest_value >= target_value - 1e-12))
+    )
+    if not valid:
+        raise ValueError('terminal result failed schema/run/time consistency checks')
+    print('\n'.join([reason, str(exit_code), str(checkpoint_valid).lower(), latest_time, str(fatal_count)]))
+except Exception:
+    sys.exit(2)
+PY
+        2>/dev/null)" || terminal_facts=''
         [[ -n "$terminal_facts" ]] && break
         sleep 1
     done
