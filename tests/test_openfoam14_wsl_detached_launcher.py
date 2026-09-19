@@ -162,3 +162,37 @@ def test_embedded_keepalive_script_parses_and_classifies_runner_results(tmp_path
         outcome = subprocess.run([bash, "-c", script], capture_output=True, text=True, check=False)
         assert expected_status in outcome.stdout
         assert (outcome.returncode == 0) is (stop_reason is not None)
+
+
+def test_task_cleanup_runtime_mock_preserves_fingerprint_mismatch():
+    powershell = shutil.which("powershell.exe") if os.name == "nt" else shutil.which("pwsh")
+    if not powershell:
+        pytest.skip("PowerShell unavailable; scheduled-task mock check skipped")
+
+    text = LAUNCHER.read_text(encoding="utf-8")
+    helper_match = re.search(
+        r"(?ms)^function Remove-OwnedKeepaliveTask\([^\n]*\) \{.*?^\}", text
+    )
+    assert helper_match
+    script = f"""
+$script:Unregistered = 0
+$script:TaskActions = @([pscustomobject]@{{ Arguments = '-WorkerConfigBase64 AbC123+/=' }})
+function Get-ScheduledTask {{ param($TaskName, $TaskPath, $ErrorAction); [pscustomobject]@{{ Actions = $script:TaskActions }} }}
+function Unregister-ScheduledTask {{ param($TaskName, $TaskPath, $Confirm, $ErrorAction); $script:Unregistered++ }}
+{helper_match.group(0)}
+$exact = Remove-OwnedKeepaliveTask -TaskName 'ClawstackOpenFoamKeepalive-unit-aaaaaaaaaaaa' -ExpectedWorkerConfigBase64 'AbC123+/='
+if (-not $exact -or $script:Unregistered -ne 1) {{ exit 11 }}
+$script:TaskActions = @([pscustomobject]@{{ Arguments = '-WorkerConfigBase64 different-token' }})
+$mismatch = Remove-OwnedKeepaliveTask -TaskName 'ClawstackOpenFoamKeepalive-unit-aaaaaaaaaaaa' -ExpectedWorkerConfigBase64 'AbC123+/='
+if ($mismatch -or $script:Unregistered -ne 1) {{ exit 12 }}
+$script:TaskActions = @(
+    [pscustomobject]@{{ Arguments = '-WorkerConfigBase64 AbC123+/=' }},
+    [pscustomobject]@{{ Arguments = '-OtherAction' }}
+)
+$multiple = Remove-OwnedKeepaliveTask -TaskName 'ClawstackOpenFoamKeepalive-unit-aaaaaaaaaaaa' -ExpectedWorkerConfigBase64 'AbC123+/='
+if ($multiple -or $script:Unregistered -ne 1) {{ exit 13 }}
+Write-Output 'SCHEDULED_TASK_CLEANUP_MOCK_PASS'
+"""
+    result = subprocess.run([powershell, "-NoProfile", "-Command", script], capture_output=True, text=True, check=False)
+    assert result.returncode == 0, result.stderr
+    assert "SCHEDULED_TASK_CLEANUP_MOCK_PASS" in result.stdout
