@@ -126,6 +126,9 @@ def test_keepalive_persists_terminal_and_incomplete_run_states():
     assert "keepalive_worker_exit_code" in text
     assert "keepalive_worker_finished_utc" in text
     assert "unit_stopped_without_terminal_result" in text
+    assert "solver_checkpoint_valid" in text
+    assert "solver_latest_time" in text
+    assert "solver_fatal_count" in text
 
 
 def _available_bash():
@@ -157,13 +160,20 @@ def test_embedded_keepalive_script_parses_and_classifies_runner_results(tmp_path
     case_dir = str(tmp_path).replace("\\", "/")
     if os.name == "nt":
         case_dir = f"/{case_dir[0].lower()}{case_dir[2:]}"
-    for stop_reason, expected_status in (
-        ("completed", "solver_completed_target_time"),
-        ("incomplete_checkpoint", "terminal_result_written"),
-        (None, "invalid_terminal_manifest"),
+    for stop_reason, expected_status, checkpoint_valid in (
+        ("completed", "solver_completed_target_time", True),
+        ("incomplete_checkpoint", "terminal_result_written", False),
+        (None, "invalid_terminal_manifest", False),
     ):
         result = (
-            {"schema": "clawstack.openfoam.preflight.result.v1", "stop_reason": stop_reason}
+            {
+                "schema": "clawstack.openfoam.preflight.result.v1",
+                "stop_reason": stop_reason,
+                "solver_exit_code": 0,
+                "checkpoint_valid": checkpoint_valid,
+                "latest_time": "0.001",
+                "fatal_count": 0,
+            }
             if stop_reason
             else {"schema": "invalid"}
         )
@@ -264,7 +274,7 @@ def test_worker_finalizes_host_manifest_without_real_wsl_or_scheduled_task(tmp_p
 $global:TaskActionArguments = '{action_args}'
 function Get-ScheduledTask {{ param($TaskName, $TaskPath, $ErrorAction); [pscustomobject]@{{ Actions = @([pscustomobject]@{{ Arguments = $global:TaskActionArguments }}) }} }}
 function Unregister-ScheduledTask {{ param($TaskName, $TaskPath, $Confirm, $ErrorAction); [IO.File]::WriteAllText('{marker}', 'removed') }}
-function Mock-Wsl {{ Write-Output 'KEEPALIVE_STATUS:solver_completed_target_time'; Write-Output 'KEEPALIVE_STOP_REASON:completed'; $global:LASTEXITCODE = 0 }}
+function Mock-Wsl {{ Write-Output 'KEEPALIVE_STATUS:solver_completed_target_time'; Write-Output 'KEEPALIVE_STOP_REASON:completed'; Write-Output 'KEEPALIVE_SOLVER_EXIT_CODE:0'; Write-Output 'KEEPALIVE_CHECKPOINT_VALID:true'; Write-Output 'KEEPALIVE_LATEST_TIME:0.001'; Write-Output 'KEEPALIVE_FATAL_COUNT:0'; $global:LASTEXITCODE = 0 }}
 Set-Alias -Name 'wsl.exe' -Value Mock-Wsl
 & '{launcher}' -WorkerConfigBase64 '{worker_config}'
 """
@@ -274,5 +284,9 @@ Set-Alias -Name 'wsl.exe' -Value Mock-Wsl
     updated = json.loads(manifest.read_text(encoding="utf-8-sig"))
     assert updated["status"] == "solver_completed_target_time"
     assert updated["solver_stop_reason"] == "completed"
+    assert updated["solver_exit_code"] == 0
+    assert updated["solver_checkpoint_valid"] is True
+    assert updated["solver_latest_time"] == "0.001"
+    assert updated["solver_fatal_count"] == 0
     assert updated["keepalive_worker_status"] == "solver_completed_target_time"
     assert updated["keepalive_worker_exit_code"] == 0

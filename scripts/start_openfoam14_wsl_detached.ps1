@@ -43,13 +43,33 @@ ready='__READY__'
 trap 'rm -f -- "$ready"' EXIT
 printf '%s\n' "$$" > "$ready"
 report_terminal_result() {
-    local stop_reason attempt
-    stop_reason=''
+    local stop_reason attempt terminal_facts
+    local solver_exit_code checkpoint_valid latest_time fatal_count
+    terminal_facts=''
     for attempt in 1 2 3 4 5; do
-        stop_reason="$(python3 -c 'import json,sys; d=json.load(open(sys.argv[1], encoding="utf-8")); s=d.get("stop_reason"); allowed={"completed","budget_timeout","interrupted","floating_point_exception","negative_temperature","incomplete_checkpoint","solver_error"}; valid=d.get("schema")=="clawstack.openfoam.preflight.result.v1" and isinstance(s,str) and s in allowed; print(s) if valid else sys.exit(2)' "$case_dir/preflight_result.json" 2>/dev/null)" || stop_reason=''
-        [[ -n "$stop_reason" ]] && break
+        terminal_facts="$(python3 -c 'import json,re,sys; d=json.load(open(sys.argv[1], encoding="utf-8")); s=d.get("stop_reason"); allowed={"completed","budget_timeout","interrupted","floating_point_exception","negative_temperature","incomplete_checkpoint","solver_error"}; rc=d.get("solver_exit_code"); cp=d.get("checkpoint_valid"); lt=d.get("latest_time"); fatal=d.get("fatal_count"); valid=d.get("schema")=="clawstack.openfoam.preflight.result.v1" and isinstance(s,str) and s in allowed and type(rc) is int and type(cp) is bool and isinstance(lt,str) and re.fullmatch(r"[0-9.eE+-]*",lt) and type(fatal) is int; print("\n".join([s,str(rc),str(cp).lower(),lt,str(fatal)])) if valid else sys.exit(2)' "$case_dir/preflight_result.json" 2>/dev/null)" || terminal_facts=''
+        [[ -n "$terminal_facts" ]] && break
         sleep 1
     done
+    if [[ -z "$terminal_facts" ]]; then
+        printf '%s\n' 'KEEPALIVE_STATUS:invalid_terminal_manifest'
+        return 4
+    fi
+    terminal_facts="${terminal_facts//$'\r'/}"
+    mapfile -t terminal_fields <<< "$terminal_facts"
+    if [[ ${#terminal_fields[@]} -ne 5 ]]; then
+        printf '%s\n' 'KEEPALIVE_STATUS:invalid_terminal_manifest'
+        return 4
+    fi
+    stop_reason="${terminal_fields[0]}"
+    solver_exit_code="${terminal_fields[1]}"
+    checkpoint_valid="${terminal_fields[2]}"
+    latest_time="${terminal_fields[3]}"
+    fatal_count="${terminal_fields[4]}"
+    printf 'KEEPALIVE_SOLVER_EXIT_CODE:%s\n' "$solver_exit_code"
+    printf 'KEEPALIVE_CHECKPOINT_VALID:%s\n' "$checkpoint_valid"
+    printf 'KEEPALIVE_LATEST_TIME:%s\n' "$latest_time"
+    printf 'KEEPALIVE_FATAL_COUNT:%s\n' "$fatal_count"
     if [[ "$stop_reason" == "completed" ]]; then
         printf '%s\n' 'KEEPALIVE_STATUS:solver_completed_target_time'
         printf 'KEEPALIVE_STOP_REASON:%s\n' "$stop_reason"
@@ -119,6 +139,10 @@ if ($WorkerConfigBase64) {
     $workerOutput = ''
     $monitorStatus = 'monitor_failed'
     $solverStopReason = ''
+    $solverExitCode = $null
+    $checkpointValid = $null
+    $solverLatestTime = $null
+    $solverFatalCount = $null
     try {
         $workerScript = New-KeepaliveScript -Unit $worker.unit -CaseDir $worker.case_dir -ReadyPath $worker.ready_path
         $workerScriptBase64 = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($workerScript))
@@ -132,6 +156,10 @@ if ($WorkerConfigBase64) {
         if ($workerOutput -match '(?m)^KEEPALIVE_STOP_REASON:([a-z_]+)\s*$') {
             $solverStopReason = $Matches[1]
         }
+        if ($workerOutput -match '(?m)^KEEPALIVE_SOLVER_EXIT_CODE:(-?\d+)\s*$') { $solverExitCode = [int]$Matches[1] }
+        if ($workerOutput -match '(?m)^KEEPALIVE_CHECKPOINT_VALID:(true|false)\s*$') { $checkpointValid = ($Matches[1] -eq 'true') }
+        if ($workerOutput -match '(?m)^KEEPALIVE_LATEST_TIME:([0-9.eE+-]*)\s*$') { $solverLatestTime = $Matches[1] }
+        if ($workerOutput -match '(?m)^KEEPALIVE_FATAL_COUNT:(\d+)\s*$') { $solverFatalCount = [int]$Matches[1] }
         if (Test-Path -LiteralPath $ManifestPath) {
             $launchRecord = Get-Content -LiteralPath $ManifestPath -Raw | ConvertFrom-Json
             $launchRecord | Add-Member -NotePropertyName keepalive_worker_status -NotePropertyValue $monitorStatus -Force
@@ -139,6 +167,10 @@ if ($WorkerConfigBase64) {
             $launchRecord | Add-Member -NotePropertyName keepalive_worker_finished_utc -NotePropertyValue ((Get-Date).ToUniversalTime().ToString('o')) -Force
             $launchRecord | Add-Member -NotePropertyName keepalive_worker_output -NotePropertyValue $workerOutput.Substring(0, [Math]::Min($workerOutput.Length, 4000)) -Force
             $launchRecord | Add-Member -NotePropertyName solver_stop_reason -NotePropertyValue $solverStopReason -Force
+            $launchRecord | Add-Member -NotePropertyName solver_exit_code -NotePropertyValue $solverExitCode -Force
+            $launchRecord | Add-Member -NotePropertyName solver_checkpoint_valid -NotePropertyValue $checkpointValid -Force
+            $launchRecord | Add-Member -NotePropertyName solver_latest_time -NotePropertyValue $solverLatestTime -Force
+            $launchRecord | Add-Member -NotePropertyName solver_fatal_count -NotePropertyValue $solverFatalCount -Force
             if ($launchRecord.status -eq 'dispatch_accepted') {
                 if ($monitorStatus -eq 'solver_completed_target_time') {
                     $launchRecord.status = 'solver_completed_target_time'
