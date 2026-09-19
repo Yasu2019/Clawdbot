@@ -142,6 +142,26 @@ exit 3
     return $keepaliveTemplate.Replace('__UNIT__', $Unit).Replace('__CASE_DIR__', $CaseDir).Replace('__READY__', $ReadyPath)
 }
 
+function New-CaseArtifactCheckScript([string]$CaseDir) {
+    # This launcher is for a fresh case generation, not implicit resume. Keep
+    # prior preflight evidence intact and require a new case path for new runs.
+    $caseArtifactTemplate = @'
+case_dir='__CASE_DIR__'
+if [[ ! -d "$case_dir" ]]; then
+    printf '%s\n' 'CASE_DIRECTORY_MISSING'
+    exit 72
+fi
+for marker in "$case_dir/preflight_started.json" "$case_dir/preflight_result.json"; do
+    if [[ -e "$marker" ]]; then
+        printf 'CASE_ALREADY_USED:%s\n' "$marker"
+        exit 73
+    fi
+done
+printf '%s\n' 'CASE_ARTIFACTS_CLEAR'
+'@
+    return $caseArtifactTemplate.Replace('__CASE_DIR__', $CaseDir)
+}
+
 if ($WorkerConfigBase64) {
     $worker = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($WorkerConfigBase64)) | ConvertFrom-Json
     if ($worker.schema -ne 'clawstack.openfoam.keepalive_worker.v1' -or
@@ -335,6 +355,12 @@ if ($solverProcessAudit.ExitCode -ne 0) {
 }
 if (-not [string]::IsNullOrWhiteSpace($solverProcessAudit.Output)) {
     throw "Refusing concurrent OpenFOAM solver launch; existing process(es): $($solverProcessAudit.Output)"
+}
+
+$caseArtifactCheckScript = New-CaseArtifactCheckScript -CaseDir $CaseDir
+$caseArtifactAudit = Invoke-WslText @('-d', $Distro, '-u', 'root', '--', 'bash', '-lc', $caseArtifactCheckScript) -TimeoutSeconds 20
+if ($caseArtifactAudit.ExitCode -ne 0 -or $caseArtifactAudit.Output.Trim() -ne 'CASE_ARTIFACTS_CLEAR') {
+    throw "Refusing to reuse an old or missing case generation; preserve its evidence and choose a new CaseDir (exit $($caseArtifactAudit.ExitCode)): $($caseArtifactAudit.Output)"
 }
 
 $solverArgs = @(

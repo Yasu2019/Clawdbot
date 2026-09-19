@@ -336,6 +336,41 @@ Write-Output 'ATOMIC_MANIFEST_CREATE_REPLACE_FAILURE_PRESERVES_OLD_PASS'
     assert "ATOMIC_MANIFEST_CREATE_REPLACE_FAILURE_PRESERVES_OLD_PASS" in result.stdout
 
 
+def test_fresh_case_gate_requires_directory_without_prior_run_markers(tmp_path):
+    bash = _available_bash()
+    if not bash:
+        pytest.skip("Git Bash unavailable; case-generation script runtime check skipped to avoid starting WSL")
+    text = LAUNCHER.read_text(encoding="utf-8")
+    helper = re.search(r"(?ms)^function New-CaseArtifactCheckScript\([^\n]*\) \{.*?^\}", text)
+    assert helper
+    linux_case = str(tmp_path).replace("\\", "/")
+    if os.name == "nt":
+        linux_case = f"/{linux_case[0].lower()}{linux_case[2:]}"
+    ps_helper = helper.group(0)
+    escaped_case = linux_case.replace("'", "''")
+    powershell = shutil.which("powershell.exe") if os.name == "nt" else shutil.which("pwsh")
+    if not powershell:
+        pytest.skip("PowerShell unavailable; case-generation script integration skipped")
+    command = f"{ps_helper}\n$scriptText = New-CaseArtifactCheckScript -CaseDir '{escaped_case}'; [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($scriptText))"
+    generated = subprocess.run([powershell, "-NoProfile", "-Command", command], capture_output=True, text=True, encoding="utf-8", check=False)
+    assert generated.returncode == 0, generated.stderr
+    bash_script = base64.b64decode(generated.stdout.strip()).decode("utf-8")
+    parsed = subprocess.run([bash, "-n"], input=bash_script, capture_output=True, text=True, encoding="utf-8", check=False)
+    assert parsed.returncode == 0, repr(bash_script)
+
+    clear = subprocess.run([bash, "-c", bash_script], capture_output=True, text=True, encoding="utf-8", check=False)
+    assert clear.returncode == 0
+    assert "CASE_ARTIFACTS_CLEAR" in clear.stdout
+    for marker_name in ("preflight_started.json", "preflight_result.json"):
+        marker = tmp_path / marker_name
+        marker.write_text("preserve", encoding="utf-8")
+        blocked = subprocess.run([bash, "-c", bash_script], capture_output=True, text=True, encoding="utf-8", check=False)
+        assert blocked.returncode == 73
+        assert "CASE_ALREADY_USED:" in blocked.stdout
+        assert marker.read_text(encoding="utf-8") == "preserve"
+        marker.unlink()
+
+
 def test_worker_finalizes_host_manifest_without_real_wsl_or_scheduled_task(tmp_path):
     powershell = shutil.which("powershell.exe") if os.name == "nt" else shutil.which("pwsh")
     if not powershell:
