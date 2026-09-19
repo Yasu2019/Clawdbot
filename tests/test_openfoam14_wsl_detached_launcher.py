@@ -1,4 +1,11 @@
+import json
+import os
+import re
+import shutil
+import subprocess
 from pathlib import Path
+
+import pytest
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -113,3 +120,45 @@ def test_keepalive_persists_terminal_and_incomplete_run_states():
     assert "keepalive_worker_exit_code" in text
     assert "keepalive_worker_finished_utc" in text
     assert "unit_stopped_without_terminal_result" in text
+
+
+def _available_bash():
+    if os.name == "nt":
+        git_bash = Path(os.environ.get("ProgramFiles", r"C:\Program Files")) / "Git" / "bin" / "bash.exe"
+        return str(git_bash) if git_bash.is_file() else None
+    return shutil.which("bash")
+
+
+def test_embedded_keepalive_script_parses_and_classifies_runner_results(tmp_path):
+    bash = _available_bash()
+    if not bash:
+        pytest.skip("Bash unavailable; embedded monitor runtime check skipped")
+
+    text = LAUNCHER.read_text(encoding="utf-8")
+    template_match = re.search(r"(?ms)^\$keepaliveTemplate = @'\r?\n(.*?)\r?\n'@", text)
+    assert template_match
+    template = (
+        template_match.group(1)
+        .replace("__UNIT__", "unit-smoke")
+        .replace("__CASE_DIR__", "/tmp/case-smoke")
+        .replace("__READY__", "/tmp/ready-smoke")
+    )
+    parsed = subprocess.run([bash, "-n"], input=template, capture_output=True, text=True, check=False)
+    assert parsed.returncode == 0, parsed.stderr
+
+    function_match = re.search(r"(?ms)^report_terminal_result\(\) \{.*?^\}", template)
+    assert function_match
+    case_dir = str(tmp_path).replace("\\", "/")
+    if os.name == "nt":
+        case_dir = f"/{case_dir[0].lower()}{case_dir[2:]}"
+    for stop_reason, expected_status in (
+        ("completed", "solver_completed_target_time"),
+        ("incomplete_checkpoint", "terminal_result_written"),
+        (None, "invalid_terminal_manifest"),
+    ):
+        result = {"stop_reason": stop_reason} if stop_reason else {"schema": "invalid"}
+        (tmp_path / "preflight_result.json").write_text(json.dumps(result, indent=2), encoding="utf-8")
+        script = f"case_dir='{case_dir}'\n{function_match.group(0)}\nreport_terminal_result"
+        outcome = subprocess.run([bash, "-c", script], capture_output=True, text=True, check=False)
+        assert expected_status in outcome.stdout
+        assert (outcome.returncode == 0) is (stop_reason is not None)
