@@ -56,6 +56,10 @@ def test_keepalive_waits_for_unit_start_and_terminal_manifest():
     assert "preflight_result.json" in text
     assert "keepaliveEncoded" in text
     assert "keepalive_mode" in text
+    assert "keepalive_script_base64" not in text
+    assert "unit = $Unit" in text
+    assert "case_dir = $CaseDir" in text
+    assert "ready_path = $keepaliveReadyPath" in text
 
 
 def test_solver_dispatch_is_gated_on_live_keepalive_readiness():
@@ -137,7 +141,7 @@ def test_embedded_keepalive_script_parses_and_classifies_runner_results(tmp_path
         pytest.skip("Bash unavailable; embedded monitor runtime check skipped")
 
     text = LAUNCHER.read_text(encoding="utf-8")
-    template_match = re.search(r"(?ms)^\$keepaliveTemplate = @'\r?\n(.*?)\r?\n'@", text)
+    template_match = re.search(r"(?ms)^[ \t]*\$keepaliveTemplate = @'\r?\n(.*?)\r?\n[ \t]*'@", text)
     assert template_match
     template = (
         template_match.group(1)
@@ -247,8 +251,10 @@ def test_worker_finalizes_host_manifest_without_real_wsl_or_scheduled_task(tmp_p
         "schema": "clawstack.openfoam.keepalive_worker.v1",
         "distro": "Ubuntu-22.04",
         "task_name": "ClawstackOpenFoamKeepalive-test-unit-012345abcdef",
+        "unit": "test-unit",
+        "case_dir": "/home/test/case",
+        "ready_path": "/tmp/clawstack-openfoam-keepalive-0123456789abcdef0123456789abcdef.ready",
         "manifest_path": str(manifest.resolve()),
-        "keepalive_script_base64": base64.b64encode(b"exit 0").decode("ascii"),
     }
     worker_config = base64.b64encode(json.dumps(worker).encode("utf-8")).decode("ascii")
     action_args = f"-WorkerConfigBase64 {worker_config}"

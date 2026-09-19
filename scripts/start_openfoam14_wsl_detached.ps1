@@ -33,11 +33,83 @@ function Remove-OwnedKeepaliveTask([string]$TaskName, [string]$ExpectedWorkerCon
     return $true
 }
 
+function New-KeepaliveScript([string]$Unit, [string]$CaseDir, [string]$ReadyPath) {
+    # Worker task arguments contain validated scalar values only; shell code
+    # is reconstructed from this fixed template, never accepted from Base64.
+    $keepaliveTemplate = @'
+unit='__UNIT__'
+case_dir='__CASE_DIR__'
+ready='__READY__'
+trap 'rm -f -- "$ready"' EXIT
+printf '%s\n' "$$" > "$ready"
+report_terminal_result() {
+    local stop_reason attempt
+    stop_reason=''
+    for attempt in 1 2 3 4 5; do
+        stop_reason="$(python3 -c 'import json,sys; d=json.load(open(sys.argv[1], encoding="utf-8")); s=d.get("stop_reason"); allowed={"completed","budget_timeout","interrupted","floating_point_exception","negative_temperature","incomplete_checkpoint","solver_error"}; valid=d.get("schema")=="clawstack.openfoam.preflight.result.v1" and isinstance(s,str) and s in allowed; print(s) if valid else sys.exit(2)' "$case_dir/preflight_result.json" 2>/dev/null)" || stop_reason=''
+        [[ -n "$stop_reason" ]] && break
+        sleep 1
+    done
+    if [[ "$stop_reason" == "completed" ]]; then
+        printf '%s\n' 'KEEPALIVE_STATUS:solver_completed_target_time'
+        printf 'KEEPALIVE_STOP_REASON:%s\n' "$stop_reason"
+        return 0
+    elif [[ "$stop_reason" =~ ^[a-z_]+$ ]]; then
+        printf '%s\n' 'KEEPALIVE_STATUS:terminal_result_written'
+        printf 'KEEPALIVE_STOP_REASON:%s\n' "$stop_reason"
+        return 0
+    fi
+    printf '%s\n' 'KEEPALIVE_STATUS:invalid_terminal_manifest'
+    return 4
+}
+if [[ -s "$case_dir/preflight_result.json" ]]; then
+    report_terminal_result
+    exit $?
+fi
+launch_deadline=$(( $(date +%s) + 30 ))
+seen_active=0
+while [[ $(date +%s) -lt $launch_deadline ]]; do
+    if systemctl is-active --quiet "$unit"; then
+        seen_active=1
+        break
+    fi
+    if [[ -s "$case_dir/preflight_result.json" ]]; then
+        report_terminal_result
+        exit $?
+    fi
+    sleep 1
+done
+if [[ $seen_active -ne 1 ]]; then
+    printf '%s\n' 'KEEPALIVE_STATUS:unit_never_active'
+    exit 2
+fi
+while systemctl is-active --quiet "$unit"; do
+    [[ -s "$case_dir/preflight_result.json" ]] && break
+    sleep 15
+done
+result_deadline=$(( $(date +%s) + 30 ))
+while [[ ! -s "$case_dir/preflight_result.json" && $(date +%s) -lt $result_deadline ]]; do
+    sleep 1
+done
+if [[ -s "$case_dir/preflight_result.json" ]]; then
+    report_terminal_result
+    exit $?
+fi
+printf '%s\n' 'KEEPALIVE_STATUS:stopped_without_terminal_result'
+exit 3
+'@
+    return $keepaliveTemplate.Replace('__UNIT__', $Unit).Replace('__CASE_DIR__', $CaseDir).Replace('__READY__', $ReadyPath)
+}
+
 if ($WorkerConfigBase64) {
     $worker = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($WorkerConfigBase64)) | ConvertFrom-Json
     if ($worker.schema -ne 'clawstack.openfoam.keepalive_worker.v1' -or
-        $worker.keepalive_script_base64 -notmatch '^[A-Za-z0-9+/=]+$' -or
-        $worker.task_name -notmatch '^ClawstackOpenFoamKeepalive-[A-Za-z0-9_.@-]+-[a-f0-9]{12}$' -or
+        $worker.unit -notmatch '^[A-Za-z0-9_.@-]+$' -or
+        $worker.task_name -notmatch "^ClawstackOpenFoamKeepalive-$([regex]::Escape($worker.unit))-[a-f0-9]{12}$" -or
+        $worker.distro -notmatch '^[A-Za-z0-9._ -]+$' -or
+        [string]::IsNullOrWhiteSpace($worker.case_dir) -or -not $worker.case_dir.StartsWith('/') -or
+        $worker.case_dir -match "['`r`n]" -or
+        $worker.ready_path -notmatch '^/tmp/clawstack-openfoam-keepalive-[a-f0-9]{32}\.ready$' -or
         [string]::IsNullOrWhiteSpace($worker.manifest_path) -or
         -not [System.IO.Path]::IsPathRooted($worker.manifest_path)) {
         throw 'Invalid scheduled keepalive worker configuration'
@@ -48,7 +120,9 @@ if ($WorkerConfigBase64) {
     $monitorStatus = 'monitor_failed'
     $solverStopReason = ''
     try {
-        $workerCommand = "echo $($worker.keepalive_script_base64) | base64 -d | bash"
+        $workerScript = New-KeepaliveScript -Unit $worker.unit -CaseDir $worker.case_dir -ReadyPath $worker.ready_path
+        $workerScriptBase64 = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($workerScript))
+        $workerCommand = "echo $workerScriptBase64 | base64 -d | bash"
         $workerArguments = @('-d', $worker.distro, '-u', 'root', '--', 'bash', '-lc', "`"$workerCommand`"")
         $workerOutput = (& wsl.exe @workerArguments 2>&1 | Out-String).Trim()
         $workerExitCode = $LASTEXITCODE
@@ -206,76 +280,16 @@ $solverArgs = @(
 $keepaliveToken = [guid]::NewGuid().ToString('N')
 $keepaliveReadyPath = "/tmp/clawstack-openfoam-keepalive-$keepaliveToken.ready"
 $keepaliveTaskName = "ClawstackOpenFoamKeepalive-$Unit-$($keepaliveToken.Substring(0,12))"
-$keepaliveTemplate = @'
-unit='__UNIT__'
-case_dir='__CASE_DIR__'
-ready='__READY__'
-trap 'rm -f -- "$ready"' EXIT
-printf '%s\n' "$$" > "$ready"
-report_terminal_result() {
-    local stop_reason attempt
-    stop_reason=''
-    for attempt in 1 2 3 4 5; do
-        stop_reason="$(python3 -c 'import json,sys; d=json.load(open(sys.argv[1], encoding="utf-8")); s=d.get("stop_reason"); allowed={"completed","budget_timeout","interrupted","floating_point_exception","negative_temperature","incomplete_checkpoint","solver_error"}; valid=d.get("schema")=="clawstack.openfoam.preflight.result.v1" and isinstance(s,str) and s in allowed; print(s) if valid else sys.exit(2)' "$case_dir/preflight_result.json" 2>/dev/null)" || stop_reason=''
-        [[ -n "$stop_reason" ]] && break
-        sleep 1
-    done
-    if [[ "$stop_reason" == "completed" ]]; then
-        printf '%s\n' 'KEEPALIVE_STATUS:solver_completed_target_time'
-        printf 'KEEPALIVE_STOP_REASON:%s\n' "$stop_reason"
-        return 0
-    elif [[ "$stop_reason" =~ ^[a-z_]+$ ]]; then
-        printf '%s\n' 'KEEPALIVE_STATUS:terminal_result_written'
-        printf 'KEEPALIVE_STOP_REASON:%s\n' "$stop_reason"
-        return 0
-    fi
-    printf '%s\n' 'KEEPALIVE_STATUS:invalid_terminal_manifest'
-    return 4
-}
-if [[ -s "$case_dir/preflight_result.json" ]]; then
-    report_terminal_result
-    exit $?
-fi
-launch_deadline=$(( $(date +%s) + 30 ))
-seen_active=0
-while [[ $(date +%s) -lt $launch_deadline ]]; do
-    if systemctl is-active --quiet "$unit"; then
-        seen_active=1
-        break
-    fi
-    if [[ -s "$case_dir/preflight_result.json" ]]; then
-        report_terminal_result
-        exit $?
-    fi
-    sleep 1
-done
-if [[ $seen_active -ne 1 ]]; then
-    printf '%s\n' 'KEEPALIVE_STATUS:unit_never_active'
-    exit 2
-fi
-while systemctl is-active --quiet "$unit"; do
-    [[ -s "$case_dir/preflight_result.json" ]] && break
-    sleep 15
-done
-result_deadline=$(( $(date +%s) + 30 ))
-while [[ ! -s "$case_dir/preflight_result.json" && $(date +%s) -lt $result_deadline ]]; do
-    sleep 1
-done
-if [[ -s "$case_dir/preflight_result.json" ]]; then
-    report_terminal_result
-    exit $?
-fi
-printf '%s\n' 'KEEPALIVE_STATUS:stopped_without_terminal_result'
-exit 3
-'@
-$keepaliveScript = $keepaliveTemplate.Replace('__UNIT__', $Unit).Replace('__CASE_DIR__', $CaseDir).Replace('__READY__', $keepaliveReadyPath)
+$keepaliveScript = New-KeepaliveScript -Unit $Unit -CaseDir $CaseDir -ReadyPath $keepaliveReadyPath
 $keepaliveEncoded = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($keepaliveScript))
 $taskConfig = [ordered]@{
     schema = 'clawstack.openfoam.keepalive_worker.v1'
     distro = $Distro
     task_name = $keepaliveTaskName
+    unit = $Unit
+    case_dir = $CaseDir
+    ready_path = $keepaliveReadyPath
     manifest_path = [System.IO.Path]::GetFullPath($ManifestPath)
-    keepalive_script_base64 = $keepaliveEncoded
 }
 $taskConfigBase64 = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes(($taskConfig | ConvertTo-Json -Compress -Depth 4)))
 $existingTask = Get-ScheduledTask -TaskName $keepaliveTaskName -TaskPath '\' -ErrorAction SilentlyContinue
