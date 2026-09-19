@@ -93,3 +93,23 @@ def test_launch_arguments_are_validated_before_any_wsl_probe():
     assert "if ($ValidateOnly)" in text
     assert "no WSL, task, or solver actions performed" in text
     assert text.index("if ($ValidateOnly)") < first_wsl_probe
+
+
+def test_keepalive_persists_terminal_and_incomplete_run_states():
+    text = LAUNCHER.read_text(encoding="utf-8")
+    for status in (
+        "solver_completed_target_time",
+        "terminal_result_written",
+        "invalid_terminal_manifest",
+        "unit_never_active",
+        "stopped_without_terminal_result",
+    ):
+        assert f"KEEPALIVE_STATUS:{status}" in text
+    assert "$monitorStatus = 'monitor_failed'" in text
+    assert '"stop_reason"' in text
+    assert "KEEPALIVE_STOP_REASON:%s" in text
+    assert "$launchRecord.status = 'solver_terminal_non_success'" in text
+    assert "manifest_path = [System.IO.Path]::GetFullPath($ManifestPath)" in text
+    assert "keepalive_worker_exit_code" in text
+    assert "keepalive_worker_finished_utc" in text
+    assert "unit_stopped_without_terminal_result" in text

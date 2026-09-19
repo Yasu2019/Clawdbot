@@ -16,7 +16,7 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-function Write-LaunchManifest([System.Collections.IDictionary]$Record) {
+function Write-LaunchManifest([object]$Record) {
     $parent = Split-Path -Parent $ManifestPath
     if ($parent) { New-Item -ItemType Directory -Force -Path $parent | Out-Null }
     $Record | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath $ManifestPath -Encoding UTF8
@@ -37,15 +37,56 @@ if ($WorkerConfigBase64) {
     $worker = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($WorkerConfigBase64)) | ConvertFrom-Json
     if ($worker.schema -ne 'clawstack.openfoam.keepalive_worker.v1' -or
         $worker.keepalive_script_base64 -notmatch '^[A-Za-z0-9+/=]+$' -or
-        $worker.task_name -notmatch '^ClawstackOpenFoamKeepalive-[A-Za-z0-9_.@-]+-[a-f0-9]{12}$') {
+        $worker.task_name -notmatch '^ClawstackOpenFoamKeepalive-[A-Za-z0-9_.@-]+-[a-f0-9]{12}$' -or
+        [string]::IsNullOrWhiteSpace($worker.manifest_path) -or
+        -not [System.IO.Path]::IsPathRooted($worker.manifest_path)) {
         throw 'Invalid scheduled keepalive worker configuration'
     }
+    $ManifestPath = $worker.manifest_path
     $workerExitCode = 1
+    $workerOutput = ''
+    $monitorStatus = 'monitor_failed'
+    $solverStopReason = ''
     try {
         $workerCommand = "echo $($worker.keepalive_script_base64) | base64 -d | bash"
         $workerArguments = @('-d', $worker.distro, '-u', 'root', '--', 'bash', '-lc', "`"$workerCommand`"")
-        & wsl.exe @workerArguments
+        $workerOutput = (& wsl.exe @workerArguments 2>&1 | Out-String).Trim()
         $workerExitCode = $LASTEXITCODE
+        if ($workerOutput -match '(?m)^KEEPALIVE_STATUS:([a-z_]+)\s*$') {
+            $monitorStatus = $Matches[1]
+        }
+        if ($workerOutput -match '(?m)^KEEPALIVE_STOP_REASON:([a-z_]+)\s*$') {
+            $solverStopReason = $Matches[1]
+        }
+        if (Test-Path -LiteralPath $ManifestPath) {
+            $launchRecord = Get-Content -LiteralPath $ManifestPath -Raw | ConvertFrom-Json
+            $launchRecord | Add-Member -NotePropertyName keepalive_worker_status -NotePropertyValue $monitorStatus -Force
+            $launchRecord | Add-Member -NotePropertyName keepalive_worker_exit_code -NotePropertyValue $workerExitCode -Force
+            $launchRecord | Add-Member -NotePropertyName keepalive_worker_finished_utc -NotePropertyValue ((Get-Date).ToUniversalTime().ToString('o')) -Force
+            $launchRecord | Add-Member -NotePropertyName keepalive_worker_output -NotePropertyValue $workerOutput.Substring(0, [Math]::Min($workerOutput.Length, 4000)) -Force
+            $launchRecord | Add-Member -NotePropertyName solver_stop_reason -NotePropertyValue $solverStopReason -Force
+            if ($launchRecord.status -eq 'dispatch_accepted') {
+                if ($monitorStatus -eq 'solver_completed_target_time') {
+                    $launchRecord.status = 'solver_completed_target_time'
+                }
+                elseif ($monitorStatus -eq 'terminal_result_written') {
+                    $launchRecord.status = 'solver_terminal_non_success'
+                }
+                elseif ($monitorStatus -eq 'invalid_terminal_manifest') {
+                    $launchRecord.status = 'terminal_manifest_invalid'
+                }
+                elseif ($monitorStatus -eq 'unit_never_active') {
+                    $launchRecord.status = 'unit_never_became_active'
+                }
+                elseif ($monitorStatus -eq 'stopped_without_terminal_result') {
+                    $launchRecord.status = 'unit_stopped_without_terminal_result'
+                }
+                else {
+                    $launchRecord.status = 'keepalive_monitor_failed'
+                }
+            }
+            Write-LaunchManifest $launchRecord
+        }
     }
     finally {
         # Remove only the task whose registered action carries this worker's
@@ -159,6 +200,25 @@ case_dir='__CASE_DIR__'
 ready='__READY__'
 trap 'rm -f -- "$ready"' EXIT
 printf '%s\n' "$$" > "$ready"
+report_terminal_result() {
+    local stop_reason
+    stop_reason="$(sed -nE 's/^[[:space:]]*"stop_reason"[[:space:]]*:[[:space:]]*"([a-z_]+)".*/\1/p' "$case_dir/preflight_result.json" | head -n 1)"
+    if [[ "$stop_reason" == "completed" ]]; then
+        printf '%s\n' 'KEEPALIVE_STATUS:solver_completed_target_time'
+        printf 'KEEPALIVE_STOP_REASON:%s\n' "$stop_reason"
+        return 0
+    elif [[ "$stop_reason" =~ ^[a-z_]+$ ]]; then
+        printf '%s\n' 'KEEPALIVE_STATUS:terminal_result_written'
+        printf 'KEEPALIVE_STOP_REASON:%s\n' "$stop_reason"
+        return 0
+    fi
+    printf '%s\n' 'KEEPALIVE_STATUS:invalid_terminal_manifest'
+    return 4
+}
+if [[ -s "$case_dir/preflight_result.json" ]]; then
+    report_terminal_result
+    exit $?
+fi
 launch_deadline=$(( $(date +%s) + 30 ))
 seen_active=0
 while [[ $(date +%s) -lt $launch_deadline ]]; do
@@ -167,11 +227,13 @@ while [[ $(date +%s) -lt $launch_deadline ]]; do
         break
     fi
     if [[ -s "$case_dir/preflight_result.json" ]]; then
-        exit 0
+        report_terminal_result
+        exit $?
     fi
     sleep 1
 done
 if [[ $seen_active -ne 1 ]]; then
+    printf '%s\n' 'KEEPALIVE_STATUS:unit_never_active'
     exit 2
 fi
 while systemctl is-active --quiet "$unit"; do
@@ -182,6 +244,12 @@ result_deadline=$(( $(date +%s) + 30 ))
 while [[ ! -s "$case_dir/preflight_result.json" && $(date +%s) -lt $result_deadline ]]; do
     sleep 1
 done
+if [[ -s "$case_dir/preflight_result.json" ]]; then
+    report_terminal_result
+    exit $?
+fi
+printf '%s\n' 'KEEPALIVE_STATUS:stopped_without_terminal_result'
+exit 3
 '@
 $keepaliveScript = $keepaliveTemplate.Replace('__UNIT__', $Unit).Replace('__CASE_DIR__', $CaseDir).Replace('__READY__', $keepaliveReadyPath)
 $keepaliveEncoded = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($keepaliveScript))
@@ -189,6 +257,7 @@ $taskConfig = [ordered]@{
     schema = 'clawstack.openfoam.keepalive_worker.v1'
     distro = $Distro
     task_name = $keepaliveTaskName
+    manifest_path = [System.IO.Path]::GetFullPath($ManifestPath)
     keepalive_script_base64 = $keepaliveEncoded
 }
 $taskConfigBase64 = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes(($taskConfig | ConvertTo-Json -Compress -Depth 4)))
@@ -212,7 +281,7 @@ $record = [ordered]@{
     solver_dispatch_method = 'synchronous bounded systemd-run --no-block'
     keepalive_task_name = $keepaliveTaskName
     keepalive_ready_path = $keepaliveReadyPath
-    keepalive_mode = 'Task Scheduler-owned WSL monitor; readiness-gated; bounded launch/finalize grace'
+    keepalive_mode = 'Task Scheduler-owned WSL monitor; readiness-gated; runner stop_reason recorded'
     policy = 'new generation only; no stop/kill/restart of older units or tasks'
 }
 Write-LaunchManifest $record
