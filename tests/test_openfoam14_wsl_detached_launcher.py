@@ -83,6 +83,17 @@ def test_solver_dispatch_is_gated_on_live_keepalive_readiness():
     assert "keepalive_task_start_failed_solver_not_dispatched" in text
 
 
+def test_old_case_artifact_gate_runs_before_task_and_solver_dispatch():
+    text = LAUNCHER.read_text(encoding="utf-8")
+    artifact_gate = text.index("$caseArtifactAudit = Invoke-WslText")
+    task_registration = text.index("Register-ScheduledTask -TaskName $keepaliveTaskName")
+    solver_dispatch = text.index("$solverDispatch = Invoke-WslText $solverArgs")
+    assert artifact_gate < task_registration < solver_dispatch
+    assert "Refusing to reuse an old or missing case generation" in text
+    assert '"$case_dir/preflight_started.json"' in text
+    assert '"$case_dir/preflight_result.json"' in text
+
+
 def test_cleanup_requires_the_exact_random_task_action_fingerprint():
     text = LAUNCHER.read_text(encoding="utf-8")
     cleanup = text[text.index("function Remove-OwnedKeepaliveTask"):text.index("if ($WorkerConfigBase64)")]
