@@ -343,7 +343,6 @@ def test_worker_finalizes_host_manifest_without_real_wsl_or_scheduled_task(tmp_p
 
     manifest = tmp_path / "launch.json"
     cleanup_marker = tmp_path / "task-cleanup.marker"
-    manifest.write_text(json.dumps({"schema": "clawstack.openfoam.wsl_detached_launch.v1", "status": "dispatch_accepted"}), encoding="utf-8")
     worker = {
         "schema": "clawstack.openfoam.keepalive_worker.v1",
         "distro": "Ubuntu-22.04",
@@ -353,6 +352,13 @@ def test_worker_finalizes_host_manifest_without_real_wsl_or_scheduled_task(tmp_p
         "ready_path": "/tmp/clawstack-openfoam-keepalive-0123456789abcdef0123456789abcdef.ready",
         "manifest_path": str(manifest.resolve()),
     }
+    manifest.write_text(json.dumps({
+        "schema": "clawstack.openfoam.wsl_detached_launch.v1",
+        "status": "dispatch_accepted",
+        "keepalive_task_name": worker["task_name"],
+        "unit": worker["unit"],
+        "case_dir": worker["case_dir"],
+    }), encoding="utf-8")
     worker_config = base64.b64encode(json.dumps(worker).encode("utf-8")).decode("ascii")
     action_args = f"-WorkerConfigBase64 {worker_config}"
     launcher = str(LAUNCHER).replace("'", "''")
@@ -377,3 +383,10 @@ Set-Alias -Name 'wsl.exe' -Value Mock-Wsl
     assert updated["solver_fatal_count"] == 0
     assert updated["keepalive_worker_status"] == "solver_completed_target_time"
     assert updated["keepalive_worker_exit_code"] == 0
+
+    unrelated = {"schema": "other.application.v1", "status": "must-remain-unchanged"}
+    manifest.write_text(json.dumps(unrelated), encoding="utf-8")
+    rejected = subprocess.run([powershell, "-NoProfile", "-Command", script], capture_output=True, text=True, check=False)
+    assert rejected.returncode != 0
+    assert "does not belong to this OpenFOAM run" in rejected.stderr
+    assert json.loads(manifest.read_text(encoding="utf-8-sig")) == unrelated

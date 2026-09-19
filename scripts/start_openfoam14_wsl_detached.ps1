@@ -183,6 +183,12 @@ if ($WorkerConfigBase64) {
         if ($workerOutput -match '(?m)^KEEPALIVE_FATAL_COUNT:(\d+)\s*$') { $solverFatalCount = [int]$Matches[1] }
         if (Test-Path -LiteralPath $ManifestPath) {
             $launchRecord = Get-Content -LiteralPath $ManifestPath -Raw | ConvertFrom-Json
+            if ($launchRecord.schema -ne 'clawstack.openfoam.wsl_detached_launch.v1' -or
+                $launchRecord.keepalive_task_name -ne $worker.task_name -or
+                $launchRecord.unit -ne $worker.unit -or
+                $launchRecord.case_dir -ne $worker.case_dir) {
+                throw 'Refusing to update a host manifest that does not belong to this OpenFOAM run'
+            }
             $launchRecord | Add-Member -NotePropertyName keepalive_worker_status -NotePropertyValue $monitorStatus -Force
             $launchRecord | Add-Member -NotePropertyName keepalive_worker_exit_code -NotePropertyValue $workerExitCode -Force
             $launchRecord | Add-Member -NotePropertyName keepalive_worker_finished_utc -NotePropertyValue ((Get-Date).ToUniversalTime().ToString('o')) -Force
