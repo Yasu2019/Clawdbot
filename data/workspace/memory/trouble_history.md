@@ -582,6 +582,14 @@ See INC-147 and Beads `Clawdbot_Docker_20260125-4pzh`.
 
 ---
 
+## [T-CCX-20260912] Actual solver checks are required after mesh read-back
+
+CalculiX 2.16 rejected long .17g coordinates despite meshio round-trip matching.
+Use .12e fields and actual solver smoke. C3D4 free-contraction benchmark matches
+at both requested frames; C3D10 parallel run has a large intermediate error even
+though final frame matches. Never validate only final frame. See
+docs/OPENFOAM_CALCULIX_HANDOFF_20260912.md for current diagnostic state.
+
 ## [T019] 北極星喪失・無意味CAEループ（resin_flow / 2D |U|）(2026-06-02) — 全活動最優先
 
 **事象:** ユーザーはキャビティへの樹脂充填・成形条件調整・3D可視化を求めていたが、LAVIE連続T&Eは `lavie_te_allocation_overrides.json` により **`resin_flow`（矩形ダクト・icoFoam層流）** のみを実行。SUCCESS時に **ParaView 2D |U|** をTelegramへ送り、「忙しく見えるが順送金型・射出成形に無関係」な繰り返しが続いた。エージェントは「動画を送る」要求に引っ張られ、**物理目標とカテゴリ/ソルバの整合**を先に検証しなかった。
@@ -1839,3 +1847,31 @@ G1 py_compile → G2 `fleet_satellite_setup_auto.ps1` → G3 K10 probe → G4 �
 - Rule: IF resuming OpenFOAM THEN require bbox/spec unit agreement, pressure-datum consistency, bounded U/T/p/alpha, and monotonic non-stale time identity; `Mesh OK` plus a time directory is insufficient.
 - Recovery: preserve the original, isolate generations, cap at three controlled trials, and validate custom thermo-rheology coupling on a minimal conservation benchmark before returning to the full cavity.
 - Scope: R2 reached `End` only for a `0.01 s` smoke; it was rejected at `Tmax=984.76 K`. No R1-R4 output is validated engineering evidence.
+## [T083] CLI成功でもpackage import経路が失敗 (2026-09-14)
+
+CCXボイド履歴extractorはCLI実行成功後、pytest collectionで依存module内部の
+absolute importにより失敗。INC-190。新規scriptはCLIとrepo-root package import
+の両方を先に試験する。`sys.path`操作で隠さず、限定readerで依存を切る。
+
+## [T086] Synthetic tetra volume must be derived from its nodes (2026-09-14)
+
+- Symptom: the spatial void-report test was rejected by the intended mesh-association gate.
+- Root cause: element 2's fixture volume was typed as `1/3 mm3`, while its four nodes define `1/6 mm3`.
+- Rule: derive fixture volumes analytically from the exact nodes; never weaken the production tolerance for a bad test.
+- Recovery: correct the fixture only and rerun the related suite (INC-191).
+
+## [T087] Beads remember uses one positional insight plus --key (2026-09-14)
+
+The two-positional-argument form was rejected without writing. Use `bd remember --key KEY "INSIGHT"`, then verify using `bd recall KEY`. This was metadata-only; numerical results were unaffected (INC-192).
+
+## [T088] Spatial reports require the SHA-bound mesh-only source (2026-09-14)
+
+A composite CalculiX cooling deck contains cards outside the mesh-only parser contract and was correctly rejected. Resolve `--mesh` from the batch/source manifest SHA and use the exact `ccx_mesh_bridge_r1/mesh.inp`; do not weaken parsing (INC-193).
+
+## [T089] Conservation and time convergence do not prove diffusion spatial accuracy (2026-09-14)
+
+The C3D4 two-point operator conserved represented mol and passed time-step refinement, but actual-mesh linear manufactured fields showed 44--63% internal-face flux L2 errors due to nonorthogonality. Keep r1 as unvalidated foundation; require linear reconstruction/nonorthogonal correction and a rerun before promotion (INC-194).
+
+## [T090] Red LAVIE WSL lifetime is not owned by systemd or a remote child (2026-09-19)
+
+Red LAVIE r6 stopped after ~16 s with `preflight_started.json` but no terminal result; log only reached `Time=4.4e-06`. Exact trigger is unproven. Do not infer full-fill or resume from this partial state. WSL systemd services do not keep the distro alive, and remote `Start-Process` children may end with their session. Gate solver dispatch on an independently owned, uniquely named interactive Task Scheduler worker and a WSL readiness marker; bound status/dispatch calls and persist their exit data. Preserve existing run generations/tasks; require no-solver live smoke before deployment. Interactive logon required; full Windows power-off recovery is not implemented (INC-195).

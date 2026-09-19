@@ -3400,3 +3400,210 @@ Raised by the user asking whether `box_study_3` had a mesh in progress. Forensic
 - Root cause: coarse proxy mesh and approximate gate-face aggregation create an unbounded VOF transport state; the result is not a valid fill solution.
 - Countermeasure: preserve logs, classify as `FAILED_NUMERICS`, and do not render or report fill completion. Require refined conformal gate/vent geometry and bounded alpha verification before rerun.
 - Scope limits: no complete filling, mass-conservation pass, or engineering validation is available.
+
+## INC-OPENFOAM-014 - myourenji-1 remote wrapper quoting failure (2026-09-06)
+
+- Discovery: first V5 mesh-conversion command was sent through K10 PowerShell, Windows SSH, WSL, Docker, and Bash as one nested inline string.
+- Observed error: local PowerShell rejected Bash `&&` with `The token '&&' is not a valid statement separator in this version.` Exit code 1; Docker/OpenFOAM never started.
+- Impact: no solver data was produced. Only isolated V5 inputs were copied to `C:\Users\81802\clawstack-cae\box-roundhole-v5\mesh_l1`; existing jobs were untouched.
+- Root cause: nested quotes exposed Bash operators to the local PowerShell parser; no parser-boundary preflight existed.
+- Countermeasure: transfer a checked-in `set -euo pipefail` Bash runner, validate it with `bash -n`, invoke it using a single simple remote command, and download all logs before reporting success.
+- Full RCA: `docs/incidents/20260906_myourenji1_remote_openfoam_wrapper_quoting.md`.
+- Scope limits: the failure gives no information about mesh quality or physics.
+
+## INC-OPENFOAM-015 - K10 syntax preflight invoked inaccessible legacy WSL (2026-09-06)
+
+- Observed error: unqualified `bash -n` tried to mount `F:\WSL\Ubuntu-20260730\ubuntu-inc177-backup.vhdx` and returned `E_ACCESSDENIED`.
+- Exit masking: a semicolon-separated SCP then succeeded, so the compound PowerShell command returned 0 although validation failed.
+- Stale-work decision: the legacy VHDX is outside this task and remains untouched; no cleanup target is proposed.
+- Countermeasure: validate inside the target OpenFOAM container, execute steps separately, and require logs plus completion JSON.
+- Full RCA: `docs/incidents/20260906_k10_bash_preflight_wrong_wsl.md`.
+
+## INC-OPENFOAM-016 - myourenji-1 V5 staging omitted controlDict (2026-09-06)
+
+- OpenFOAM 2512 started but `gmshToFoam` stopped with `cannot find file "/case/system/controlDict"`.
+- Remote inventory proved the mesh and runner existed but the `system` directory did not.
+- Root cause: the original parse-time failure prevented the earlier SCP; recovery transferred only the runner and lacked an input-manifest gate.
+- Countermeasure: transfer the missing file separately, verify required paths before container execution, and enforce runner preconditions.
+- Full RCA: `docs/incidents/20260906_myourenji1_openfoam_missing_controldict.md`.
+
+## INC-OPENFOAM-017 - OpenFOAM full checkMesh lacked required dictionaries (2026-09-06)
+
+- `gmshToFoam` and mm-to-m scaling succeeded, but `checkMesh -allGeometry -allTopology` stopped because `system/fvSchemes` was absent.
+- The prerequisite gate covered earlier utilities rather than the union of the full runner's dependencies.
+- Conversion also reported 18,102 undefined faces moved to `defaultFaces`; boundary validity is pending.
+- Countermeasure: add minimal `fvSchemes`/`fvSolution`, require all inputs, require explicit `Mesh OK`, and audit boundary face counts.
+- Full RCA: `docs/incidents/20260906_openfoam_checkmesh_missing_dictionaries.md`.
+
+## INC-OPENFOAM-018 - V5 tetrahedral CFD mesh failed determinant gate (2026-09-06)
+
+- Full `checkMesh` completed on 146,776 tetrahedra. One connected region and all reported checks passed except 484 under-determined cells; minimum determinant was 0.
+- The mesh is retained as structural candidate evidence but rejected for OpenFOAM filling.
+- Official OpenFOAM meshing guidance supports a pure-hex background and quality-controlled hex/split-hex `snappyHexMesh` route.
+- Countermeasure: build a separate isolated snappy CFD mesh; do not relax quality limits or overwrite the tetra baseline.
+- Full RCA: `docs/incidents/20260906_box_roundhole_tet_mesh_quality_hold.md`.
+
+## INC-OPENFOAM-019 - V5 snappy L1 failed strict concave-cell gate (2026-09-06)
+
+- Hex-dominant L1: 87,136 cells, determinant minimum 0.0308, non-orthogonality maximum 31.3 degrees, skewness maximum 0.717, one region, closed wall.
+- Full check failed only on 461 concave cells; 6,648 merged polyhedra are the primary hypothesis.
+- Countermeasure: preserve L1 and run isolated L2 with `mergePatchFaces false`; do not relax thresholds.
+- Full RCA: `docs/incidents/20260906_box_roundhole_snappy_concave_cells.md`.
+
+## INC-OPENFOAM-020 - V5 snappy L2 worsened concavity (2026-09-06)
+
+- Disabling patch-face merging increased concave cells from 461 to 1,457 while cell count stayed 87,136.
+- The face-merging hypothesis is rejected; L2 is preserved and not adopted.
+- Next controlled experiment restores L1 and disables snapping only, with separate geometry-error requirements.
+- Full RCA: `docs/incidents/20260906_box_roundhole_snappy_l2_worse_concavity.md`.
+
+## INC-OPENFOAM-021 - V5 snappy L3 snap-off worsened concavity (2026-09-06)
+
+- Disabling snapping increased concave cells from L1 461 to L3 6,312 while the 6,648 split polyhedra persisted.
+- Snapping is rejected as the primary cause; cut-cell topology is the stronger hypothesis.
+- Countermeasure: generate a body-fitted 2D quad mesh and extrude through the constant Z section to avoid split polyhedra.
+- Full RCA: `docs/incidents/20260906_box_roundhole_snappy_l3_snap_false_worse.md`.
+
+## INC-OPENFOAM-022 - L4 completion writer assumed Python in solver image (2026-09-06)
+
+- Pure-hex L4 passed full `checkMesh`, but the aggregate runner exited 1 because `python3` was unavailable when writing completion JSON.
+- Countermeasure: remove the undeclared interpreter dependency, use POSIX `printf`, and rerun the complete bounded preflight.
+- Full RCA: `docs/incidents/20260906_openfoam_container_missing_python_completion.md`.
+
+## INC-OPENFOAM-023 - myourenji-1 xcopy fill staging failed (2026-09-06)
+
+- Remote Windows `xcopy` returned 1 with undecodable localized output; L4 remained intact and fill did not start.
+- Countermeasure: use explicit WSL `cp -a`, inventory destination, and avoid blind `xcopy` retries.
+- Full RCA: `docs/incidents/20260906_myourenji1_xcopy_fill_stage_failed.md`.
+
+## INC-OPENFOAM-024 - sqlite3 CLI absent for material lookup (2026-09-06)
+
+- K10 had no `sqlite3` executable; the material database was not touched.
+- Countermeasure: use Python standard-library SQLite with `mode=ro`; do not install or write.
+- Full RCA: `docs/incidents/20260906_sqlite_cli_missing_material_lookup.md`.
+
+## INC-OPENFOAM-025 - OpenFOAM 2512 rejected legacy constant model name (2026-09-06)
+
+- `interFoam` stopped before time integration with `Unknown viscosityModel type constant`; installed valid name is `Newtonian`.
+- Countermeasure: change only the selector to `Newtonian`, retain the AY564 effective viscosity, and do not pretend a similarly named power-law model is Cross-WLF.
+- Full RCA: `docs/incidents/20260906_openfoam2512_constant_viscosity_model_name.md`.
+
+## INC-OPENFOAM-026 - OpenFOAM 2512 required turbulenceProperties compatibility file (2026-09-06)
+
+- Newtonian models loaded, then interFoam stopped before time integration because `constant/turbulenceProperties` was absent despite `momentumTransport` being present.
+- Countermeasure: provide consistent laminar declarations in both and require both during preflight.
+- Full RCA: `docs/incidents/20260906_openfoam2512_missing_turbulenceproperties.md`.
+
+## INC-OPENFOAM-027 - Fill smoke monitor false-positive on normal FPE header (2026-09-06)
+
+- interFoam completed 0.005 s with bounded alpha and `End`, but wrapper matched normal `Floating point exception trapping enabled` text and returned failure.
+- Countermeasure: precise event markers plus independent structured audit and tests; preserve original failure/log.
+- Full RCA: `docs/incidents/20260906_fill_smoke_false_positive_fpe_header.md`.
+
+## INC-POWER-001 - Sleep-button powercfg alias unsupported (2026-09-06)
+
+- Both myourenji nodes rejected the `SLEEPBUTTONACTION` alias (AC/DC) with exit 1.
+- Lid, idle sleep, hybrid sleep, and hibernation controls succeeded. No undocumented registry/EC workaround was applied.
+- Full record: `docs/incidents/20260906_powercfg_sleepbutton_alias_unsupported.md`.
+# INC-OPENFOAM-028 — 2026-09-06
+- myourenji-1 `box-roundhole-v5-fill-l4`: OpenMPI saw one slot and rejected bounded `-np 4`; no solver timestep ran.
+- RCA: container slot discovery mismatch. Countermeasure: bounded `--oversubscribe`, retain Docker CPU/RAM limits, then audit `End`, mass balance, and fields.
+# INC-OPENFOAM-029 — 2026-09-06
+- myourenji-1 v2512 solver stopped on all ranks because `fvSolution` omitted pressure reference cell/value. No physical timestep; add `pRefCell 0`, `pRefValue 0`, rerun and audit.
+# INC-OPENFOAM-030 — 2026-09-06
+- myourenji-2 light mesh audit omitted `system/controlDict`; checkMesh stopped before verdict. Stage minimum case dictionary and rerun; no solver work was performed.
+- Follow-up attempt also lacked `system/fvSchemes`; stage the validated minimum dictionary set before rerun.
+# INC-OPENFOAM-031 — 2026-09-06
+- myourenji-1 corrected fill run exited 0 but evidence was lost because `/tmp/fill_l4` was ephemeral. Treat as unaccepted; rerun on persistent Windows-backed mount and collect logs before WSL shutdown.
+# INC-OPENFOAM-032 — 2026-09-06
+- myourenji-1 parallel log reached target Time=2 with no fatal signature but lacked standalone `End`; wrapper exited 255 and skipped reconstruction. Gate improved to accept target time for this bounded case; audit remains required.
+# INC-CALCULIX-001 — 2026-09-06
+- New CalculiX wrapper first run failed before solver start: relative Windows mount parsed as invalid Docker volume name. Fixed by resolving an absolute path; no result generated.
+# INC-CALCULIX-002 — 2026-09-06
+- CalculiX returned 0 but result audit detected max displacement 4.34e13 mm (limit 120 mm). Provisional screen is numerically invalid; no defect claim. Keep sanity gate and calibrate units/material/constraints.
+# INC-OPENFOAM-033 — 2026-09-06
+- myourenji-1 run2 solver reached Time=2.2 and End, but reconstructPar stopped before completion marker (container exit 255). Processor outputs preserved; end-to-end job unaccepted.
+# INC-CALCULIX-003 — 2026-09-06
+- CalculiX l2 returned 0 but displacement audit found 4.34e11 mm > 120 mm. Provisional screen remains numerically invalid; formal claim blocked.
+# INC-CALCULIX-004 — 2026-09-06
+- Thermal-disabled CalculiX l3 at 0.085 MPa still produced 4.339e11 mm displacement. Root is provisional pressure-face/constraint formulation, not thermal magnitude. Require geometry-aware surface sets and reaction balance.
+# INC-CALCULIX-005 - CalculiX l7 NSET syntax rejected (2026-09-06)
+- The supported-face variant listed 20 node IDs on one line; CalculiX 2.16 rejected it (max 16 entries/line), before analysis. Generator now wraps NSET lines; corrected l8 completed and passed numerical sanity only.
+- Full RCA: `docs/incidents/20260906_calculix_l7_nset_syntax.md`.
+
+# INC-CALCULIX-006 - Numeric reader and intermediate thermal verification (2026-09-12)
+- Actual ccx 2.16 rejected .17g coordinates exceeding numeric field length; changed mesh exporter and benchmark builder to .12e. Existing outputs retained.
+- C3D4 hollow-box thermal contraction: both frames match analytic displacements within 7.1e-8 mm. C3D10 four-thread intermediate frame failed at 116.353 mm error although final frame matched; serial diagnostic initiated, cause unproven.
+- Full audit: `data/state/Obsidian Vault/60_PC_Logs/CAE_CALCULIX_COOLING_20260912.md`; handoff: `docs/OPENFOAM_CALCULIX_HANDOFF_20260912.md`.
+- Serial C3D10 trial completed in 99.4 s, both frames match within 8.4e-8 mm, no warnings. Parallel defect root cause still unresolved; final-frame-only promotion prohibited. Related regression suite 38 passed.
+# INC-OPENFOAM-034 - isolated run3 clone missing mesh (2026-09-06)
+- Initial clone failed closed because `constant/polyMesh/boundary` was absent; no solver timestep ran and original case was preserved. Fresh run4 staged the canonical mesh, completed to 2.2 s with End/reconstructPar, but temperature field is still missing. Full RCA: `docs/incidents/20260906_openfoam_run3_missing_mesh.md`.
+
+# INC-OPENFOAM-035 - box-round-hole polymerInterFoam restart rejected (2026-09-08)
+- Original case stopped with SIGFPE at `t=4.1702571`; `maxCo=275483.11` and `deltaT=8.85e-23 s`.
+- Canonical `100x60x50 mm` geometry was represented as `100x60x50 m`, and the vent/interior pressure datum was inconsistent. The first saved checkpoint already had `max |U|=1868.71 m/s`, so no checkpoint was safe to resume.
+- Isolated SI/pressure repair completed a `0.01 s` smoke but reached `Tmax=984.76 K`. Bounded-energy R3 and sigma-zero R4 both suffered local timestep collapse near `8.3e-08 s`; three-attempt limit reached.
+- Full calculation is `FAILED_NUMERICS / HOLD`; CalculiX and Elmer completed results and unrelated tasks remain intact. Next step is a minimal SI conservation benchmark before another cavity run.
+- Full RCA: `docs/incidents/20260908_box_roundhole_polymerinterfoam_resume_hold.md`.
+# INC-190 — CCX void-history extractor package-import failure (2026-09-14)
+
+- 発見: 新規 `test_extract_ccx_void_element_history.py` のpytest収集中。
+- 影響: 3テストが収集不能。CLIで生成済みの一方向履歴/結果は存在するが、
+  package import回帰ゲートを通るまで昇格禁止。既存ソルバー結果への影響なし。
+- 根本原因: extractorが既存`build_ccx_cooling_benchmark`をpackage importしたが、
+  同モジュール内部はトップレベル絶対importを使う。CLIではscriptsがsys.pathに
+  入るため成功し、repo rootからのpytestでは依存importが解決しなかった。
+- 5Why: pytest収集失敗→依存module不明→import方式不一致→CLI経路だけ事前確認→
+  package/CLI二経路を変更前ゲートに含めなかった。
+- 対策計画: extractorに限定した温度履歴readerを実装して依存を除去し、package
+  import、実箱抽出、source hash改ざん、全関連試験を再実行する。Web調査は不要:
+  Python tracebackとローカルsourceで原因が確定し、外部仕様の不明点がない。
+- 合格条件: 新規3試験を収集、関連全試験PASS、実箱履歴SHA不変または差分説明、
+  `git diff --check` PASS。失敗出力はこの記録に保持。
+- 復旧: 新規extractor/result世代のみを不採用にし、既存ボイド局所モデルと
+  `result_r2.json`以前へ戻せる。既存サービス/ジョブは操作しない。
+- 教訓: CLI成功はpackage import成功を保証しない。新規scriptは両経路を試験する。
+- Obsidian: `data/state/Obsidian Vault/60_PC_Logs/CAE_INC-190_20260914.md`
+- 結果: extractor限定の厳格readerへ変更。package/CLI両経路を含む44試験が
+  PASS（8.20s）。実箱再生成は新規r2へ保存し旧r1を保持。INC-190 CLOSED。
+
+# INC-191 — Synthetic tetra volume fixture mismatch (2026-09-14)
+
+- Trigger: the new spatial void-report regression test failed at the batch/mesh association gate.
+- Root cause: the test fixture declared element 2 as `1/3 mm3`; its node coordinates analytically define `1/6 mm3`.
+- Impact: test-only failure. Production meshes, saved solver fields, running workers, and prior artifacts were unchanged.
+- Countermeasure: correct only the fixture value, retain the strict association gate, and rerun the complete related suite.
+- Closure criterion: all related tests pass and the report preserves element ID/location and threshold counts.
+- Result: corrected fixture; 54 related tests passed in 9.76 s. INC-191 CLOSED.
+
+# INC-192 — Beads remember CLI argument mismatch (2026-09-14)
+
+- Trigger: incident-memory registration returned usage error; solver/test command following it still completed.
+- Root cause: used a legacy two-positional-argument form. Current CLI accepts one insight argument and `--key`.
+- Impact: first Beads write did not occur; source, artifacts, tests, and existing Beads entries were unchanged.
+- Countermeasure: retry with `bd remember --key <key> <insight>` and verify through `bd recall`.
+
+# INC-193 — Spatial report invoked with composite CCX deck (2026-09-14)
+
+- Trigger: `spatial_summary_r2.json` generation stopped at strict node-row parsing; a follow-up read also requested a nonexistent `result.json` instead of the existing manifest.
+- Root cause: the command used the composite cooling input as `--mesh`, not the SHA-bound mesh-only input.
+- Impact: no r2 output was created. Existing r1 report, field arrays, solver results, workers, and services were unchanged.
+- Countermeasure: resolve the exact file by the manifest mesh SHA (`ccx_mesh_bridge_r1/mesh.inp`), rerun to a new filename, and verify output SHA/association. Never relax the mesh parser.
+
+# INC-194 — Two-point C3D4 diffusion fails linear-field spatial accuracy (2026-09-14)
+
+- Trigger: manufactured linear concentration fields on the actual 67,165-element mesh.
+- Result: internal-face flux relative L2 errors x/y/z = 0.499/0.634/0.442 despite exact pairwise conservation and stable time-step refinement.
+- Root cause: two-point transmissibility assumes center-to-center orthogonality; actual mean/max nonorthogonality is 24.3/53.0 degrees.
+- Impact: saved diffusion r1 results are numerical screening only and cannot be promoted as spatially verified gas transport. Local no-diffusion results are unaffected.
+- Countermeasure: retain r1 evidence, label the operator as foundation/unvalidated, implement a conservative shared-face linear reconstruction or nonorthogonal correction, then rerun manufactured fields before a physical case.
+
+# INC-195 — Red LAVIE r6 preflight stopped before useful progress; detached launcher safety gate (2026-09-19)
+
+- Trigger: Red LAVIE r6 unit started and stopped after about 16 s; `preflight_started.json` existed, `preflight_result.json` did not, and its log reached only `Time=4.4e-06`. The machine later showed Ubuntu/Docker WSL stopped and no active solver.
+- Confirmed facts: the run did not complete and no verified continuation/checkpoint was produced. Existing r1-r5 generations were preserved. A separate prior staging attempt blocked at `sudo install` and was terminated after confirming its exact two-process ancestry; this was not the r6 solver. Red's unrelated disabled `OpenFOAM_CaseB_StableRetry_Watchdog` was left untouched.
+- Root-cause status: the observed failure is premature worker/WSL lifecycle termination, but the exact trigger for r6 was not proven. Microsoft documents that systemd services do not keep a WSL instance alive, and that a process started remotely can terminate with its remote session. These are architectural risks, not proof of the specific r6 trigger.
+- Countermeasure: replace remote `Start-Process wsl.exe` ownership with a uniquely named, interactive-user Task Scheduler worker; wait for a readiness marker before solver dispatch; use bounded WSL calls and capture `systemd-run --no-block` exit/output; fail closed on ambiguous unit state. The launcher refuses duplicate units and only removes its own unique task.
+- Validation: PowerShell AST parse PASS; targeted launcher tests 19 PASS. Pre-change snapshot committed/pushed on `backups/openfoam-launcher-prechange-20260919`, commit `8060cf0d35`, archive SHA256 `07EF620386BF14367955E4D2A59AAF4A43097FB21B6822485731E69217596C84`.
+- Limitation / closure gate: revised launcher has not been deployed to Red LAVIE and no live Task Scheduler/WSL smoke test has been run. Interactive logon is required; it cannot resume a solver across full Windows power-off. Do not claim autonomous reboot/power-off recovery. First perform a no-solver lifecycle smoke with a new generation and verify manifest, task state, WSL readiness, and cleanup before any expensive run.
+- Sources: Microsoft Learn [systemd support in WSL](https://learn.microsoft.com/en-us/windows/wsl/systemd) and [Start-Process](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.management/start-process?view=powershell-5.1), checked 2026-09-19. No third-party download or software/license changes.

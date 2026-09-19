@@ -15,6 +15,13 @@
 
 ---
 
+## [S034] C3D4要素履歴をIDと解析体積で拘束 (2026-09-14, Codex GPT-5.6-sol)
+- 問題: ボイド履歴アダプタはメッシュ全体SHAだけを確認し、選択要素の不存在・ID入替え・体積違いを検出できず、1要素1気泡では細分で総量が増える設計だった。
+- 診断: 実コードと穴付き箱mesh.inpを読み、選択IDにトポロジー/体積の契約がなく、気泡制御体積とFE要素体積が別物であることを確認した。
+- 解決: C3D4節点/要素パーサー、m/mm単位、解析体積、ID別期待体積照合を追加。代表制御体積を固定し、要素体積との比を統計重みにした。
+- 証拠: 関連30テスト合格。実箱67,165要素、総体積4.1325418114358316e-5m3。実ID1/2/3の体積拘束と仮想ODE実行完了。`artifacts/void_box_mesh_binding_20260914_r1/result_v2.json`。
+- 再利用: IF 物理履歴を要素へ結ぶ THEN mesh SHAだけでなくID存在と解析体積を照合する。IF 局所気泡を全域集計する THEN要素数で数えず、メッシュ体積/代表制御体積の重みを使う。
+
 ## [S033] 5アプリを最新FACTバーに揃え CETOL の沈黙JSを直した (2026-08-27)
 - 問題: CETOL/Moldflow/VIAI(:18010)/FEM/OpenRadioss の画面が古い成功や読込中のままに見えた。CETOLはJSONがあるのにセレクタも出ない。
 - 診断: CETOLは `typeof fmt === "undefined"` + `node --check` Unexpected token else（snap_fit後の重複 shaft_bearing）。他アプリは last_success / fill_complete をヘッダに出していなかった。
@@ -405,6 +412,22 @@
 5. **Reusable rule:** Never spatially join Moldflow result IDs until the dataset's
    entity association is explicit; require 100% association-specific geometry join.
 
+## 2026-09-13 Native solidification activation integration (limited specimen check)
+
+1. **Problem:** Start-of-increment stiffness can create appreciable time-step
+   sensitivity while solidification grows; two completed box runs do not prove convergence.
+2. **Cause:** Frozen old-endpoint activation is a first-order quadrature for
+   smooth varying stiffness. Thermal source resolution and release events are separate errors.
+3. **Change:** Optional seven-constant midpoint native Maxwell UMAT; preserve
+   legacy four/six-constant behavior and binaries. Three-level RMS trend reporter
+   checks shared middle hashes and actual solver increments.
+4. **Verification:** Actual CCX hydrostatic specimen3.75MPa matches analytic
+   integral; native convolution midpoint errors .00552423/.00138214/.000345601MPa
+   at dt .5/.25/.125s.46 targeted Python tests pass. No box accuracy claim.
+5. **Reusable rule:** IF changing integration, THEN test an independent analytic
+   convolution and compare time levels without changing loads/material/geometry;
+   never extrapolate specimen convergence to an uncalibrated full molding model.
+
 ## [S032] MF cooling targets isolated from unsafe temperature-delta data (2026-08-03, Codex)
 
 1. **Problem:** The existing OpenFOAM cooling proxy used a 0.5 s horizon and
@@ -468,3 +491,42 @@
    but failed honestly at ERR=-84.7% and 1,946/2,000 ruptures.
 5. **Reuse rule:** IF a holder closes a known gap, THEN plateau before the gap
    and isolate it in one trial; never tune fracture to hide a bad boundary.
+# [S035] Full-element one-way seeded void field with independent numerical checks (2026-09-14)
+
+The actual 67,165-element C3D4 box mesh completed local bubble histories from a
+same-staged-process CCX temperature/prescribed-load history. Mesh/control-volume
+weighting prevented one-bubble-per-element inflation. RK4 step halving changed the
+final represented void volume by `1.7313e-21 m3`; three selected elements matched
+adaptive Radau at about `1e-13` relative or better. This is a numerical-path success,
+not physical validation or a nucleation/CT defect claim.
+
+# [S036] Seed sensitivity exposes absolute-void uncertainty (2026-09-14)
+
+Full-mesh seed-radius factors 0.5/1/2 were run with initial gas scaled cubically to
+preserve initial ideal-gas pressure. Final represented void-volume ratios were
+0.121/1/8.044. The workflow now reports this dependency instead of presenting the
+single-seed result as a unique prediction. Classical barrier diagnostics remain
+explicitly separate from nucleation-rate prediction; 62 related tests pass.
+
+# [S037] Conservative mesh-weighted dissolved-gas exchange (2026-09-14)
+
+The local bubble batch now exchanges dissolved gas across actual C3D4 shared faces
+while conserving the volume-weighted represented inventory. The 67,165-element box
+completed at two time steps over 111,622 links. This is an implementation/numerical
+milestone only: two-point flux, no-flux exterior, virtual diffusivity, and no spatial
+convergence or fluid-pressure feedback.
+
+Correction: this is only a conservation/time-integration foundation. Actual-mesh
+linear-field flux errors were 44--63%, so spatial validation FAILED (INC-194).
+
+Follow-up: shared-face linear reconstruction (max stencil 8) passes the affine
+manufactured gate at 1e-14 relative L2 and completes full-mesh time-step comparison.
+Mesh-resolution convergence and solved process-pressure coupling remain open.
+
+# [S038] Readiness-gated OpenFOAM WSL launcher (2026-09-19)
+
+- Problem: a Red LAVIE preflight ended early, leaving only a start manifest and no terminal result; restarting or killing older generations automatically would risk losing evidence.
+- Root cause: exact r6 trigger remains unproven; the launcher architecture did not verify an independent WSL lifetime owner before dispatch.
+- Fix: Task Scheduler-owned unique keepalive task, WSL-ready marker gate, bounded WSL probes/dispatch with exit capture, duplicate-unit refusal, and no cleanup of older work.
+- Verification: PowerShell AST parse PASS; 19 targeted launcher tests PASS; pre-change snapshot pushed as `8060cf0d35`.
+- Limitations: not live-smoke-tested on Red LAVIE; requires an interactive logged-in user and does not resume through Windows power-off. No solver result is claimed (INC-195).
