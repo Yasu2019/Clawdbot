@@ -53,7 +53,7 @@ def test_launcher_fails_closed_on_wsl_error_or_non_inactive_unit_state():
 
 def test_keepalive_waits_for_unit_start_and_terminal_manifest():
     text = LAUNCHER.read_text(encoding="utf-8")
-    assert "launch_deadline=$(( $(date +%s) + 30 ))" in text
+    assert "launch_deadline=$(( $(date +%s) + 90 ))" in text
     assert "seen_active=1" in text
     assert "preflight_result.json" in text
     assert "keepaliveEncoded" in text
@@ -72,6 +72,8 @@ def test_solver_dispatch_is_gated_on_live_keepalive_readiness():
     assert start_keepalive < readiness_probe < solver_dispatch
     assert "Keepalive did not become ready; solver was not dispatched" in text
     assert "systemd-run rejected solver dispatch" in text
+    assert "dispatch_outcome_unknown" in text
+    assert "systemd-run dispatch outcome is unknown" in text
     assert "solver_dispatch_exit_code = $solverDispatch.ExitCode" in text
     assert "synchronous bounded systemd-run --no-block" in text
     assert "-LogonType Interactive" in text
@@ -458,6 +460,17 @@ Set-Alias -Name 'wsl.exe' -Value Mock-Wsl
     assert updated["solver_fatal_count"] == 0
     assert updated["keepalive_worker_status"] == "solver_completed_target_time"
     assert updated["keepalive_worker_exit_code"] == 0
+
+    manifest.write_text(json.dumps({
+        "schema": "clawstack.openfoam.wsl_detached_launch.v1",
+        "status": "dispatch_outcome_unknown",
+        "keepalive_task_name": worker["task_name"],
+        "unit": worker["unit"],
+        "case_dir": worker["case_dir"],
+    }), encoding="utf-8")
+    resolved = subprocess.run([powershell, "-NoProfile", "-Command", script], capture_output=True, text=True, check=False)
+    assert resolved.returncode == 0, resolved.stderr
+    assert json.loads(manifest.read_text(encoding="utf-8-sig"))["status"] == "solver_completed_target_time"
 
     unrelated = {"schema": "other.application.v1", "status": "must-remain-unchanged"}
     manifest.write_text(json.dumps(unrelated), encoding="utf-8")

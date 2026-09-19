@@ -148,7 +148,7 @@ if [[ -s "$case_dir/preflight_result.json" ]]; then
     report_terminal_result
     exit $?
 fi
-launch_deadline=$(( $(date +%s) + 30 ))
+launch_deadline=$(( $(date +%s) + 90 ))
 seen_active=0
 while [[ $(date +%s) -lt $launch_deadline ]]; do
     if systemctl is-active --quiet "$unit"; then
@@ -259,7 +259,7 @@ if ($WorkerConfigBase64) {
             $launchRecord | Add-Member -NotePropertyName solver_checkpoint_valid -NotePropertyValue $checkpointValid -Force
             $launchRecord | Add-Member -NotePropertyName solver_latest_time -NotePropertyValue $solverLatestTime -Force
             $launchRecord | Add-Member -NotePropertyName solver_fatal_count -NotePropertyValue $solverFatalCount -Force
-            if ($launchRecord.status -eq 'dispatch_accepted') {
+            if ($launchRecord.status -in @('dispatch_accepted', 'dispatch_outcome_unknown', 'keepalive_ready')) {
                 if ($monitorStatus -eq 'solver_completed_target_time') {
                     $launchRecord.status = 'solver_completed_target_time'
                 }
@@ -508,7 +508,18 @@ Write-LaunchManifest $record
 # systemd-run --no-block returns as soon as systemd accepts the new unit. Use a
 # bounded synchronous WSL call so its exit code is audited instead of assuming
 # that a detached Windows process successfully submitted the unit.
-$solverDispatch = Invoke-WslText $solverArgs -TimeoutSeconds 30
+try {
+    $solverDispatch = Invoke-WslText $solverArgs -TimeoutSeconds 30
+}
+catch {
+    # A client timeout does not prove systemd rejected the request. Preserve
+    # that ambiguity so the independent monitor can determine whether the unit
+    # became active instead of reporting a false dispatch failure.
+    $record.status = 'dispatch_outcome_unknown'
+    $record.solver_dispatch_error = $_.Exception.Message
+    Write-LaunchManifest $record
+    throw "systemd-run dispatch outcome is unknown; keepalive will audit the unit: $($record.solver_dispatch_error)"
+}
 if ($solverDispatch.ExitCode -ne 0) {
     $record.status = 'dispatch_rejected'
     $record.solver_dispatch_exit_code = $solverDispatch.ExitCode
