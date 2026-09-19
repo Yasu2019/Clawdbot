@@ -1,3 +1,4 @@
+import base64
 import json
 import os
 import re
@@ -232,3 +233,40 @@ def test_process_family_awk_gate_detects_solver_but_ignores_idle_host():
     assert audit("").stdout.strip() == ""
     assert "foamRun" in audit("111 1 R foamRun foamRun -solver compressibleVoF").stdout
     assert "mpirun" in audit("222 1 Sl mpirun.openmpi mpirun -np 2 foamRun").stdout
+
+
+def test_worker_finalizes_host_manifest_without_real_wsl_or_scheduled_task(tmp_path):
+    powershell = shutil.which("powershell.exe") if os.name == "nt" else shutil.which("pwsh")
+    if not powershell:
+        pytest.skip("PowerShell unavailable; worker mock integration skipped")
+
+    manifest = tmp_path / "launch.json"
+    cleanup_marker = tmp_path / "task-cleanup.marker"
+    manifest.write_text(json.dumps({"schema": "clawstack.openfoam.wsl_detached_launch.v1", "status": "dispatch_accepted"}), encoding="utf-8")
+    worker = {
+        "schema": "clawstack.openfoam.keepalive_worker.v1",
+        "distro": "Ubuntu-22.04",
+        "task_name": "ClawstackOpenFoamKeepalive-test-unit-012345abcdef",
+        "manifest_path": str(manifest.resolve()),
+        "keepalive_script_base64": base64.b64encode(b"exit 0").decode("ascii"),
+    }
+    worker_config = base64.b64encode(json.dumps(worker).encode("utf-8")).decode("ascii")
+    action_args = f"-WorkerConfigBase64 {worker_config}"
+    launcher = str(LAUNCHER).replace("'", "''")
+    marker = str(cleanup_marker).replace("'", "''")
+    script = f"""
+$global:TaskActionArguments = '{action_args}'
+function Get-ScheduledTask {{ param($TaskName, $TaskPath, $ErrorAction); [pscustomobject]@{{ Actions = @([pscustomobject]@{{ Arguments = $global:TaskActionArguments }}) }} }}
+function Unregister-ScheduledTask {{ param($TaskName, $TaskPath, $Confirm, $ErrorAction); [IO.File]::WriteAllText('{marker}', 'removed') }}
+function Mock-Wsl {{ Write-Output 'KEEPALIVE_STATUS:solver_completed_target_time'; Write-Output 'KEEPALIVE_STOP_REASON:completed'; $global:LASTEXITCODE = 0 }}
+Set-Alias -Name 'wsl.exe' -Value Mock-Wsl
+& '{launcher}' -WorkerConfigBase64 '{worker_config}'
+"""
+    run = subprocess.run([powershell, "-NoProfile", "-Command", script], capture_output=True, text=True, check=False)
+    assert run.returncode == 0, run.stderr
+    assert cleanup_marker.read_text(encoding="utf-8") == "removed"
+    updated = json.loads(manifest.read_text(encoding="utf-8-sig"))
+    assert updated["status"] == "solver_completed_target_time"
+    assert updated["solver_stop_reason"] == "completed"
+    assert updated["keepalive_worker_status"] == "solver_completed_target_time"
+    assert updated["keepalive_worker_exit_code"] == 0
