@@ -95,6 +95,9 @@ try:
     requested_end = data.get('requested_end_time_s')
     target_value = finite_number(requested_end) if type(requested_end) in (int, float) else None
     fatal_count = data.get('fatal_count')
+    checkpoint_fields = data.get('checkpoint_fields')
+    required_fields = {'alpha.polymer', 'T', 'p_rgh', 'U', 'rho'}
+    available_fields = set(checkpoint_fields.split(',')) if isinstance(checkpoint_fields, str) else set()
     valid = (
         data.get('schema') == 'clawstack.openfoam.preflight.result.v1'
         and data.get('case_dir') == sys.argv[2]
@@ -104,7 +107,8 @@ try:
         and (latest_time == '' or (latest_value is not None and latest_value >= 0))
         and target_value is not None and target_value > 0
         and type(fatal_count) is int and fatal_count >= 0
-        and (reason != 'completed' or (exit_code == 0 and latest_value is not None and latest_value >= target_value - 1e-12))
+        and (not checkpoint_valid or required_fields.issubset(available_fields))
+        and (reason != 'completed' or (exit_code == 0 and checkpoint_valid and fatal_count == 0 and required_fields.issubset(available_fields) and latest_value is not None and latest_value >= target_value - 1e-12))
     )
     if not valid:
         raise ValueError('terminal result failed schema/run/time consistency checks')

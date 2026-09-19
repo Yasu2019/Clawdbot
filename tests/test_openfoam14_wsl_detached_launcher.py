@@ -190,6 +190,7 @@ def test_embedded_keepalive_script_parses_and_classifies_runner_results(tmp_path
                 "stop_reason": stop_reason,
                 "solver_exit_code": 0,
                 "checkpoint_valid": checkpoint_valid,
+                "checkpoint_fields": "alpha.polymer,T,p_rgh,U,rho" if checkpoint_valid else "alpha.polymer,T",
                 "latest_time": "0.001",
                 "fatal_count": 0,
             }
@@ -209,6 +210,9 @@ def test_embedded_keepalive_script_parses_and_classifies_runner_results(tmp_path
         {"latest_time": "0.0005"},
         {"case_dir": "/tmp/other-case"},
         {"latest_time": "not-a-time"},
+        {"checkpoint_valid": False},
+        {"fatal_count": 1},
+        {"checkpoint_fields": "alpha.polymer"},
     )
     for invalid_fields in invalid_completed_results:
         invalid_result = {
@@ -218,6 +222,7 @@ def test_embedded_keepalive_script_parses_and_classifies_runner_results(tmp_path
             "stop_reason": "completed",
             "solver_exit_code": 0,
             "checkpoint_valid": True,
+            "checkpoint_fields": "alpha.polymer,T,p_rgh,U,rho",
             "latest_time": "0.001",
             "fatal_count": 0,
             **invalid_fields,
