@@ -396,8 +396,8 @@ PowerShell構文解析PASS、関連17テストPASS。赤LAVIE側にはまだ改�
 - r6 case: `/home/yns-lavie/openfoam_runs/box_roundhole_r17_red_preflight_r6_20260919`
 - 事実: `preflight_started.json`あり、`preflight_result.json`なし。ログは`Time=4.4e-06`までで、unitは約16秒後に停止。現時点のRed LAVIEではUbuntu/Docker WSL停止、foamRun/mpirun非稼働。既存r1-r5は保持。
 - 停止の正確な引き金は未確定。systemd単独ではWSLを生存させず、リモートセッション配下のプロセスもセッション終了で停止し得るため、ホスト側の所有者が必要という設計上の問題として扱う（r6の直接原因と断定しない）。
-- `scripts/start_openfoam14_wsl_detached.ps1`を改訂: 一意名Task Scheduler worker、WSL readiness marker、readiness確認後のみsolver dispatch、20/25/30秒bounded call、dispatch exit/output記録、状態不明時fail-closed。既存unit/タスクを自動停止・上書きしない。
-- 検証: PowerShell AST parse PASS、対象テスト19 PASS。変更前snapshot: branch `backups/openfoam-launcher-prechange-20260919`, commit `8060cf0d35`; archive SHA256 `07EF620386BF14367955E4D2A59AAF4A43097FB21B6822485731E69217596C84`。
+- `scripts/start_openfoam14_wsl_detached.ps1`を改訂: 一意名Task Scheduler worker、WSL readiness marker、readiness確認後のみsolver dispatch、20/25/30秒bounded call、dispatch exit/output記録、状態不明時fail-closed。削除時はランダムworker設定fingerprint一致を確認し、既存unit/タスクを自動停止・上書きしない。全引数をWSL照会前に検証し、`-ValidateOnly`で外部副作用なしに検査できる。
+- 検証: PowerShell AST parse PASS、対象テスト21 PASS。`-ValidateOnly`正常経路とNaN終了時刻拒否を実Windows PowerShellで確認し、WSL/task/solver操作なし。変更前snapshot: branch `backups/openfoam-launcher-prechange-20260919`, commit `8060cf0d35`; archive SHA256 `07EF620386BF14367955E4D2A59AAF4A43097FB21B6822485731E69217596C84`。
 - 未実施: Redへの改訂版配置、Task Scheduler/WSLの実機スモーク、OpenFOAM solver再開。次はsolverを走らせない短いライフサイクル試験を新規caseで行い、タスク状態・WSL readiness・manifest・後片付けを確認する。ログインユーザーのinteractive sessionが前提で、Windows電源OFFをまたぐsolver自動再開は未実装。
 - Beads: `Clawdbot_Docker_20260125-xflk`; memory key `openfoam-red-lavie-keepalive-20260919`; incident `INC-195`。
 - Microsoft一次資料: [WSL systemd](https://learn.microsoft.com/en-us/windows/wsl/systemd), [Start-Process](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.management/start-process?view=powershell-5.1)。

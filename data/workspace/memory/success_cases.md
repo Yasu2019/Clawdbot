@@ -528,5 +528,5 @@ Mesh-resolution convergence and solved process-pressure coupling remain open.
 - Problem: a Red LAVIE preflight ended early, leaving only a start manifest and no terminal result; restarting or killing older generations automatically would risk losing evidence.
 - Root cause: exact r6 trigger remains unproven; the launcher architecture did not verify an independent WSL lifetime owner before dispatch.
 - Fix: Task Scheduler-owned unique keepalive task, WSL-ready marker gate, bounded WSL probes/dispatch with exit capture, duplicate-unit refusal, and no cleanup of older work.
-- Verification: PowerShell AST parse PASS; 19 targeted launcher tests PASS; pre-change snapshot pushed as `8060cf0d35`.
+- Verification: PowerShell AST parse PASS; 21 focused launcher/preflight/checkpoint tests PASS; `-ValidateOnly` valid case and NaN rejection exercised in Windows PowerShell with no WSL/task/solver calls; pre-change snapshot pushed as `8060cf0d35`.
 - Limitations: not live-smoke-tested on Red LAVIE; requires an interactive logged-in user and does not resume through Windows power-off. No solver result is claimed (INC-195).

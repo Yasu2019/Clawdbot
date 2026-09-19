@@ -74,3 +74,22 @@ def test_cleanup_requires_the_exact_random_task_action_fingerprint():
     assert "if (-not $task -or $task.Actions.Count -ne 1) { return $false }" in cleanup
     assert "if (-not $task.Actions[0].Arguments.Contains($expectedArgument)) { return $false }" in cleanup
     assert "Unregister-ScheduledTask" in cleanup
+
+
+def test_launch_arguments_are_validated_before_any_wsl_probe():
+    text = LAUNCHER.read_text(encoding="utf-8")
+    first_wsl_probe = text.index("$status = Invoke-WslText")
+    checks = [
+        "if ([string]::IsNullOrWhiteSpace($Distro))",
+        "CaseDir must be a non-empty absolute Linux path",
+        "BudgetSeconds must be between 1 and 86400",
+        "Ranks must be between 1 and 64",
+        "EndTime must be a finite positive number in seconds",
+        "LogName may contain only letters, digits, dot, underscore, and hyphen",
+        "Runner must be a non-empty absolute Linux path",
+    ]
+    for check in checks:
+        assert text.index(check) < first_wsl_probe
+    assert "if ($ValidateOnly)" in text
+    assert "no WSL, task, or solver actions performed" in text
+    assert text.index("if ($ValidateOnly)") < first_wsl_probe

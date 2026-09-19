@@ -9,6 +9,7 @@ param(
     [string]$LogName = 'log.preflight',
     [string]$Runner = '/usr/local/sbin/run_openfoam14_box_preflight_guarded_v3.sh',
     [string]$ManifestPath = (Join-Path (Get-Location) 'wsl_detached_launch.json'),
+    [switch]$ValidateOnly,
     [string]$WorkerConfigBase64 = ''
 )
 
@@ -54,11 +55,46 @@ if ($WorkerConfigBase64) {
     exit $workerExitCode
 }
 
+# Validate every launcher argument before any WSL call; ValidateOnly exposes
+# this gate to operators without creating a task, case, unit, or solver process.
 if ($Unit -notmatch '^[A-Za-z0-9_.@-]+$') {
     throw "Invalid systemd unit name: '$Unit'"
 }
+if ([string]::IsNullOrWhiteSpace($Distro)) {
+    throw 'Distro is required'
+}
+if ([string]::IsNullOrWhiteSpace($CaseDir) -or -not $CaseDir.StartsWith('/')) {
+    throw 'CaseDir must be a non-empty absolute Linux path'
+}
 if ($CaseDir -match "['`r`n]") {
     throw 'CaseDir must not contain single quotes or newlines'
+}
+if ($BudgetSeconds -lt 1 -or $BudgetSeconds -gt 86400) {
+    throw 'BudgetSeconds must be between 1 and 86400'
+}
+if ($Ranks -lt 1 -or $Ranks -gt 64) {
+    throw 'Ranks must be between 1 and 64'
+}
+$endTimeValue = 0.0
+$validEndTime = [double]::TryParse(
+    $EndTime,
+    [System.Globalization.NumberStyles]::Float,
+    [System.Globalization.CultureInfo]::InvariantCulture,
+    [ref]$endTimeValue
+)
+if (-not $validEndTime -or [double]::IsNaN($endTimeValue) -or
+    [double]::IsInfinity($endTimeValue) -or $endTimeValue -le 0) {
+    throw 'EndTime must be a finite positive number in seconds'
+}
+if ($LogName -notmatch '^[A-Za-z0-9_.-]+$') {
+    throw 'LogName may contain only letters, digits, dot, underscore, and hyphen'
+}
+if ([string]::IsNullOrWhiteSpace($Runner) -or -not $Runner.StartsWith('/') -or $Runner -match "['`r`n]") {
+    throw 'Runner must be a non-empty absolute Linux path without quotes or newlines'
+}
+if ($ValidateOnly) {
+    Write-Output 'INPUT_VALIDATION_PASS; no WSL, task, or solver actions performed'
+    exit 0
 }
 
 function Invoke-WslText([string[]]$Arguments, [int]$TimeoutSeconds = 20) {
