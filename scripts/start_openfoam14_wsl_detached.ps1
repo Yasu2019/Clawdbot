@@ -46,6 +46,27 @@ function Write-LaunchManifest([object]$Record, [switch]$CreateOnly) {
     }
 }
 
+function Invoke-WithLaunchMutex([scriptblock]$Action, [int]$TimeoutSeconds = 120) {
+    $mutex = [System.Threading.Mutex]::new($false, 'Global\Clawstack.OpenFOAM.Launch.v1')
+    $acquired = $false
+    try {
+        try {
+            $acquired = $mutex.WaitOne([TimeSpan]::FromSeconds($TimeoutSeconds))
+        }
+        catch [System.Threading.AbandonedMutexException] {
+            $acquired = $true
+        }
+        if (-not $acquired) {
+            throw "Timed out after ${TimeoutSeconds}s waiting to update the OpenFOAM launch manifest"
+        }
+        & $Action
+    }
+    finally {
+        if ($acquired) { $mutex.ReleaseMutex() }
+        $mutex.Dispose()
+    }
+}
+
 function Remove-OwnedKeepaliveTask([string]$TaskName, [string]$ExpectedWorkerConfigBase64) {
     # A random task name reduces collision risk, but cleanup must also verify
     # the registered action fingerprint before deleting anything by name.
@@ -250,43 +271,45 @@ if ($WorkerConfigBase64) {
         if ($workerOutput -match '(?m)^KEEPALIVE_LATEST_TIME:([0-9.eE+-]*)\s*$') { $solverLatestTime = $Matches[1] }
         if ($workerOutput -match '(?m)^KEEPALIVE_FATAL_COUNT:(\d+)\s*$') { $solverFatalCount = [int]$Matches[1] }
         if (Test-Path -LiteralPath $ManifestPath) {
-            $launchRecord = Get-Content -LiteralPath $ManifestPath -Raw | ConvertFrom-Json
-            if ($launchRecord.schema -ne 'clawstack.openfoam.wsl_detached_launch.v1' -or
-                $launchRecord.keepalive_task_name -ne $worker.task_name -or
-                $launchRecord.unit -ne $worker.unit -or
-                $launchRecord.case_dir -ne $worker.case_dir) {
-                throw 'Refusing to update a host manifest that does not belong to this OpenFOAM run'
+            Invoke-WithLaunchMutex -Action {
+                $launchRecord = Get-Content -LiteralPath $ManifestPath -Raw | ConvertFrom-Json
+                if ($launchRecord.schema -ne 'clawstack.openfoam.wsl_detached_launch.v1' -or
+                    $launchRecord.keepalive_task_name -ne $worker.task_name -or
+                    $launchRecord.unit -ne $worker.unit -or
+                    $launchRecord.case_dir -ne $worker.case_dir) {
+                    throw 'Refusing to update a host manifest that does not belong to this OpenFOAM run'
+                }
+                $launchRecord | Add-Member -NotePropertyName keepalive_worker_status -NotePropertyValue $monitorStatus -Force
+                $launchRecord | Add-Member -NotePropertyName keepalive_worker_exit_code -NotePropertyValue $workerExitCode -Force
+                $launchRecord | Add-Member -NotePropertyName keepalive_worker_finished_utc -NotePropertyValue ((Get-Date).ToUniversalTime().ToString('o')) -Force
+                $launchRecord | Add-Member -NotePropertyName keepalive_worker_output -NotePropertyValue $workerOutput.Substring(0, [Math]::Min($workerOutput.Length, 4000)) -Force
+                $launchRecord | Add-Member -NotePropertyName solver_stop_reason -NotePropertyValue $solverStopReason -Force
+                $launchRecord | Add-Member -NotePropertyName solver_exit_code -NotePropertyValue $solverExitCode -Force
+                $launchRecord | Add-Member -NotePropertyName solver_checkpoint_valid -NotePropertyValue $checkpointValid -Force
+                $launchRecord | Add-Member -NotePropertyName solver_latest_time -NotePropertyValue $solverLatestTime -Force
+                $launchRecord | Add-Member -NotePropertyName solver_fatal_count -NotePropertyValue $solverFatalCount -Force
+                if ($launchRecord.status -in @('dispatch_accepted', 'dispatch_outcome_unknown', 'keepalive_ready')) {
+                    if ($monitorStatus -eq 'solver_completed_target_time') {
+                        $launchRecord.status = 'solver_completed_target_time'
+                    }
+                    elseif ($monitorStatus -eq 'terminal_result_written') {
+                        $launchRecord.status = 'solver_terminal_non_success'
+                    }
+                    elseif ($monitorStatus -eq 'invalid_terminal_manifest') {
+                        $launchRecord.status = 'terminal_manifest_invalid'
+                    }
+                    elseif ($monitorStatus -eq 'unit_never_active') {
+                        $launchRecord.status = 'unit_never_became_active'
+                    }
+                    elseif ($monitorStatus -eq 'stopped_without_terminal_result') {
+                        $launchRecord.status = 'unit_stopped_without_terminal_result'
+                    }
+                    else {
+                        $launchRecord.status = 'keepalive_monitor_failed'
+                    }
+                }
+                Write-LaunchManifest $launchRecord
             }
-            $launchRecord | Add-Member -NotePropertyName keepalive_worker_status -NotePropertyValue $monitorStatus -Force
-            $launchRecord | Add-Member -NotePropertyName keepalive_worker_exit_code -NotePropertyValue $workerExitCode -Force
-            $launchRecord | Add-Member -NotePropertyName keepalive_worker_finished_utc -NotePropertyValue ((Get-Date).ToUniversalTime().ToString('o')) -Force
-            $launchRecord | Add-Member -NotePropertyName keepalive_worker_output -NotePropertyValue $workerOutput.Substring(0, [Math]::Min($workerOutput.Length, 4000)) -Force
-            $launchRecord | Add-Member -NotePropertyName solver_stop_reason -NotePropertyValue $solverStopReason -Force
-            $launchRecord | Add-Member -NotePropertyName solver_exit_code -NotePropertyValue $solverExitCode -Force
-            $launchRecord | Add-Member -NotePropertyName solver_checkpoint_valid -NotePropertyValue $checkpointValid -Force
-            $launchRecord | Add-Member -NotePropertyName solver_latest_time -NotePropertyValue $solverLatestTime -Force
-            $launchRecord | Add-Member -NotePropertyName solver_fatal_count -NotePropertyValue $solverFatalCount -Force
-            if ($launchRecord.status -in @('dispatch_accepted', 'dispatch_outcome_unknown', 'keepalive_ready')) {
-                if ($monitorStatus -eq 'solver_completed_target_time') {
-                    $launchRecord.status = 'solver_completed_target_time'
-                }
-                elseif ($monitorStatus -eq 'terminal_result_written') {
-                    $launchRecord.status = 'solver_terminal_non_success'
-                }
-                elseif ($monitorStatus -eq 'invalid_terminal_manifest') {
-                    $launchRecord.status = 'terminal_manifest_invalid'
-                }
-                elseif ($monitorStatus -eq 'unit_never_active') {
-                    $launchRecord.status = 'unit_never_became_active'
-                }
-                elseif ($monitorStatus -eq 'stopped_without_terminal_result') {
-                    $launchRecord.status = 'unit_stopped_without_terminal_result'
-                }
-                else {
-                    $launchRecord.status = 'keepalive_monitor_failed'
-                }
-            }
-            Write-LaunchManifest $launchRecord
         }
     }
     finally {

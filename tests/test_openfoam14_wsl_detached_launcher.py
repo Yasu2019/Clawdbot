@@ -310,6 +310,18 @@ def test_launcher_serializes_preflight_and_dispatch_with_host_mutex():
     assert "Another OpenFOAM launcher is in preflight/dispatch" in text
 
 
+def test_worker_serializes_manifest_read_modify_write_with_launcher_mutex():
+    text = LAUNCHER.read_text(encoding="utf-8")
+    helper = text.index("function Invoke-WithLaunchMutex")
+    worker_lock = text.index("Invoke-WithLaunchMutex -Action {")
+    worker_read = text.index("$launchRecord = Get-Content -LiteralPath $ManifestPath", worker_lock)
+    worker_write = text.index("Write-LaunchManifest $launchRecord", worker_lock)
+    worker_unlock = text.index("Remove-OwnedKeepaliveTask -TaskName $worker.task_name", worker_write)
+    assert helper < worker_lock < worker_read < worker_write < worker_unlock
+    assert text.count("'Global\\Clawstack.OpenFOAM.Launch.v1'") >= 2
+    assert "Timed out after ${TimeoutSeconds}s waiting to update the OpenFOAM launch manifest" in text
+
+
 def test_global_mutex_excludes_a_second_powershell_process(tmp_path):
     powershell = shutil.which("powershell.exe") if os.name == "nt" else shutil.which("pwsh")
     if not powershell:
