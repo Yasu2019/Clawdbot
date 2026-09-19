@@ -156,9 +156,15 @@ def test_embedded_keepalive_script_parses_and_classifies_runner_results(tmp_path
         ("incomplete_checkpoint", "terminal_result_written"),
         (None, "invalid_terminal_manifest"),
     ):
-        result = {"stop_reason": stop_reason} if stop_reason else {"schema": "invalid"}
+        result = (
+            {"schema": "clawstack.openfoam.preflight.result.v1", "stop_reason": stop_reason}
+            if stop_reason
+            else {"schema": "invalid"}
+        )
         (tmp_path / "preflight_result.json").write_text(json.dumps(result, indent=2), encoding="utf-8")
         script = f"case_dir='{case_dir}'\n{function_match.group(0)}\nreport_terminal_result"
+        if os.name == "nt":
+            script = 'python3() { python "$@"; }\n' + script
         outcome = subprocess.run([bash, "-c", script], capture_output=True, text=True, check=False)
         assert expected_status in outcome.stdout
         assert (outcome.returncode == 0) is (stop_reason is not None)

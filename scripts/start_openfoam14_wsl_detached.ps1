@@ -201,8 +201,13 @@ ready='__READY__'
 trap 'rm -f -- "$ready"' EXIT
 printf '%s\n' "$$" > "$ready"
 report_terminal_result() {
-    local stop_reason
-    stop_reason="$(sed -nE 's/^[[:space:]]*"stop_reason"[[:space:]]*:[[:space:]]*"([a-z_]+)".*/\1/p' "$case_dir/preflight_result.json" | head -n 1)"
+    local stop_reason attempt
+    stop_reason=''
+    for attempt in 1 2 3 4 5; do
+        stop_reason="$(python3 -c 'import json,sys; d=json.load(open(sys.argv[1], encoding="utf-8")); s=d.get("stop_reason"); allowed={"completed","budget_timeout","interrupted","floating_point_exception","negative_temperature","incomplete_checkpoint","solver_error"}; valid=d.get("schema")=="clawstack.openfoam.preflight.result.v1" and isinstance(s,str) and s in allowed; print(s) if valid else sys.exit(2)' "$case_dir/preflight_result.json" 2>/dev/null)" || stop_reason=''
+        [[ -n "$stop_reason" ]] && break
+        sleep 1
+    done
     if [[ "$stop_reason" == "completed" ]]; then
         printf '%s\n' 'KEEPALIVE_STATUS:solver_completed_target_time'
         printf 'KEEPALIVE_STOP_REASON:%s\n' "$stop_reason"
