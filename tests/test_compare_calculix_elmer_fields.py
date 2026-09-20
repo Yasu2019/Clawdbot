@@ -1,3 +1,10 @@
+import sys
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 import importlib.util
 from pathlib import Path
 
@@ -21,7 +28,11 @@ POINTS = np.array(
     dtype=float,
 )
 CELLS = [("tetra", np.array([[0, 1, 2, 3]], dtype=int))]
-IDENTITY = {"geometry_id": "g-1", "mesh_id": "m-1", "history_id": "h-1"}
+IDENTITY = {
+    "geometry_sha256": "a" * 64,
+    "mesh_sha256": "b" * 64,
+    "history_id": "history-1",
+}
 
 
 def _fields(scale=1.0):
@@ -124,7 +135,29 @@ def test_missing_identity_fails_closed(tmp_path):
         M.compare_vtu_files(
             ccx,
             elmer,
-            identity={"geometry_id": "g-1", "mesh_id": "m-1", "history_id": ""},
+            identity={
+                "geometry_sha256": "a" * 64,
+                "mesh_sha256": "b" * 64,
+                "history_id": "",
+            },
+        )
+
+
+def test_non_sha_geometry_identity_fails_closed(tmp_path):
+    ccx = tmp_path / "ccx.vtu"
+    elmer = tmp_path / "elmer.vtu"
+    _write(ccx)
+    _write(elmer)
+
+    with pytest.raises(ValueError, match="geometry_sha256"):
+        M.compare_vtu_files(
+            ccx,
+            elmer,
+            identity={
+                "geometry_sha256": "geometry-name",
+                "mesh_sha256": "b" * 64,
+                "history_id": "history-1",
+            },
         )
 
 
@@ -138,3 +171,20 @@ def test_calibrated_flag_does_not_claim_experimental_validation(tmp_path):
 
     assert report["status"] == "CROSS_SOLVER_NUMERICAL_PASS_CALIBRATED_INPUT"
     assert "not agreement with experiment" in report["limitations"][0]
+
+
+def test_spatial_hash_matches_large_permuted_point_set():
+    rng = np.random.default_rng(20260920)
+    reference = rng.random((5000, 3))
+    permutation = rng.permutation(len(reference))
+    candidate = reference[permutation]
+
+    mapping, metrics = M._one_to_one_match(
+        reference,
+        candidate,
+        absolute_tolerance=1.0e-12,
+        relative_tolerance=1.0e-10,
+    )
+
+    assert np.allclose(candidate[mapping], reference, rtol=0.0, atol=0.0)
+    assert metrics["maximum_match_distance"] == pytest.approx(0.0)

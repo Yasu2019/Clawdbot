@@ -14,6 +14,7 @@ if hasattr(sys.stdout, "reconfigure"):
 
 import argparse
 import json
+import math
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable, Mapping
@@ -241,6 +242,90 @@ def _check_openfoam_history(manifest: Mapping[str, Any], failed: list[str]) -> N
         failed.append("solver.openfoam.minimum_region_alpha_not_full")
 
 
+def _load_json_artifact(
+    value: Any,
+    base_dir: Path,
+    label: str,
+    failed: list[str],
+) -> Mapping[str, Any]:
+    path = _resolve_path(value, base_dir)
+    if path is None or not path.is_file() or path.stat().st_size <= 0:
+        failed.append(f"{label}.evidence_missing_or_empty")
+        return {}
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8-sig"))
+    except (OSError, UnicodeError, json.JSONDecodeError):
+        failed.append(f"{label}.evidence_invalid_json")
+        return {}
+    if not isinstance(payload, Mapping):
+        failed.append(f"{label}.evidence_not_object")
+        return {}
+    return payload
+
+
+def _check_global_convergence(
+    name: str,
+    value: Any,
+    canonical: Mapping[str, str],
+    base_dir: Path,
+    failed: list[str],
+) -> None:
+    """Require evidence-bearing convergence records, never a bare PASS string."""
+
+    label = f"convergence.{name}"
+    record = _as_mapping(value)
+    if not record:
+        failed.append(f"{label}_record_missing")
+        return
+    _check_identity(label, record, canonical, failed)
+    if not _is_pass(record.get("status")):
+        failed.append(f"{label}_not_pass")
+    evidence_value = record.get("evidence")
+    if not _artifact_exists(evidence_value, base_dir):
+        failed.append(f"{label}.evidence_missing_or_empty")
+
+    if name in {"spatial", "temporal"}:
+        sample_count = record.get("sample_count")
+        if type(sample_count) is not int or sample_count < 2:
+            failed.append(f"{label}.sample_count_lt_2")
+    elif name == "conservation":
+        try:
+            relative_error = float(record.get("relative_error"))
+            tolerance = float(record.get("tolerance"))
+        except (TypeError, ValueError):
+            relative_error = math.inf
+            tolerance = -1.0
+        if (
+            not math.isfinite(relative_error)
+            or not math.isfinite(tolerance)
+            or relative_error < 0.0
+            or tolerance < 0.0
+            or relative_error > tolerance
+        ):
+            failed.append(f"{label}.relative_error_exceeds_tolerance")
+    elif name == "cross_solver":
+        solvers = {str(item).strip().lower() for item in record.get("solvers", [])}
+        if not {"calculix", "elmer"}.issubset(solvers):
+            failed.append(f"{label}.calculix_elmer_missing")
+        comparison = _load_json_artifact(evidence_value, base_dir, label, failed)
+        if comparison:
+            if comparison.get("schema") != "clawstack.calculix-elmer.field-comparison.v1":
+                failed.append(f"{label}.schema_invalid")
+            _check_identity(label, comparison, canonical, failed)
+            if not str(comparison.get("status", "")).startswith(
+                "CROSS_SOLVER_NUMERICAL_PASS"
+            ):
+                failed.append(f"{label}.field_comparison_not_pass")
+            if comparison.get("same_geometry_mesh_history") is not True:
+                failed.append(f"{label}.identity_binding_not_proven")
+            if comparison.get("failed_checks"):
+                failed.append(f"{label}.field_comparison_has_failures")
+            fields = _as_mapping(comparison.get("fields"))
+            for field_name in ("displacement", "temperature", "von_mises_stress"):
+                if not _is_pass(_as_mapping(fields.get(field_name)).get("status")):
+                    failed.append(f"{label}.field.{field_name}_not_pass")
+
+
 def _check_phenomenon(
     name: str,
     manifest: Mapping[str, Any],
@@ -337,8 +422,13 @@ def evaluate_bundle(bundle: Mapping[str, Any], base_dir: Path | None = None) -> 
 
     convergence = _as_mapping(bundle.get("convergence"))
     for name in GLOBAL_CONVERGENCE_CHECKS:
-        if not _is_pass(convergence.get(name)):
-            failed.append(f"convergence.{name}_not_pass")
+        _check_global_convergence(
+            name,
+            convergence.get(name),
+            canonical,
+            base,
+            failed,
+        )
 
     phenomenon_values = _as_mapping(bundle.get("phenomena"))
     phenomenon_results: dict[str, dict[str, Any]] = {}

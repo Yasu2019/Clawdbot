@@ -8,6 +8,7 @@ if hasattr(sys.stdout, "reconfigure"):
         pass
 
 import copy
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -103,6 +104,29 @@ class SevenPhenomenaTruthGateTests(unittest.TestCase):
                     for evidence in REQUIRED_EVIDENCE[name]
                 },
             }
+        cross_solver_path = self.base / "convergence/cross_solver.json"
+        cross_solver_path.parent.mkdir(parents=True, exist_ok=True)
+        cross_solver_path.write_text(
+            json.dumps(
+                {
+                    "schema": "clawstack.calculix-elmer.field-comparison.v1",
+                    **self._identity(),
+                    "status": "CROSS_SOLVER_NUMERICAL_PASS_UNCALIBRATED",
+                    "same_geometry_mesh_history": True,
+                    "failed_checks": [],
+                    "fields": {
+                        name: {"status": "PASS"}
+                        for name in (
+                            "displacement",
+                            "temperature",
+                            "von_mises_stress",
+                        )
+                    },
+                }
+            ),
+            encoding="utf-8",
+        )
+        convergence_identity = self._identity()
         return {
             **self._identity(),
             "material": {
@@ -117,10 +141,31 @@ class SevenPhenomenaTruthGateTests(unittest.TestCase):
                 "elmer": self._solver("elmer", ("log", "result")),
             },
             "convergence": {
-                "spatial": "PASS",
-                "temporal": "PASS",
-                "conservation": "PASS",
-                "cross_solver": "PASS",
+                "spatial": {
+                    **convergence_identity,
+                    "status": "PASS",
+                    "sample_count": 3,
+                    "evidence": self._artifact("convergence/spatial.json"),
+                },
+                "temporal": {
+                    **convergence_identity,
+                    "status": "PASS",
+                    "sample_count": 3,
+                    "evidence": self._artifact("convergence/temporal.json"),
+                },
+                "conservation": {
+                    **convergence_identity,
+                    "status": "PASS",
+                    "relative_error": 0.001,
+                    "tolerance": 0.01,
+                    "evidence": self._artifact("convergence/conservation.json"),
+                },
+                "cross_solver": {
+                    **convergence_identity,
+                    "status": "PASS",
+                    "solvers": ["calculix", "elmer"],
+                    "evidence": "convergence/cross_solver.json",
+                },
             },
             "phenomena": phenomena,
             "validation": {},
@@ -189,6 +234,38 @@ class SevenPhenomenaTruthGateTests(unittest.TestCase):
                     f"phenomenon.{phenomenon}.physics_level_{level}_not_production",
                     report["failed_checks"],
                 )
+
+    def test_bare_convergence_pass_strings_are_rejected(self) -> None:
+        bundle = copy.deepcopy(self.bundle)
+        bundle["convergence"] = {
+            name: "PASS"
+            for name in ("spatial", "temporal", "conservation", "cross_solver")
+        }
+        report = evaluate_bundle(bundle, self.base)
+        self.assertEqual(report["verdict"], "HOLD")
+        self.assertIn("convergence.spatial_record_missing", report["failed_checks"])
+        self.assertIn("convergence.cross_solver_record_missing", report["failed_checks"])
+
+    def test_cross_solver_field_failure_is_rejected(self) -> None:
+        bundle = copy.deepcopy(self.bundle)
+        evidence = self.base / bundle["convergence"]["cross_solver"]["evidence"]
+        comparison = json.loads(evidence.read_text(encoding="utf-8"))
+        comparison["status"] = "HOLD"
+        comparison["fields"]["temperature"]["status"] = "HOLD"
+        comparison["failed_checks"] = ["field.temperature.relative_l2_error"]
+        evidence.write_text(json.dumps(comparison), encoding="utf-8")
+
+        report = evaluate_bundle(bundle, self.base)
+
+        self.assertEqual(report["verdict"], "HOLD")
+        self.assertIn(
+            "convergence.cross_solver.field_comparison_not_pass",
+            report["failed_checks"],
+        )
+        self.assertIn(
+            "convergence.cross_solver.field.temperature_not_pass",
+            report["failed_checks"],
+        )
 
 
 if __name__ == "__main__":

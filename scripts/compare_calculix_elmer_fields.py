@@ -18,6 +18,7 @@ if hasattr(sys.stdout, "reconfigure"):
 
 import argparse
 import hashlib
+import itertools
 import json
 import math
 from pathlib import Path
@@ -143,16 +144,35 @@ def _one_to_one_match(
     if tolerance <= 0.0:
         tolerance = np.finfo(float).eps
 
-    # Chunked exhaustive matching avoids a scipy dependency and is deterministic.
+    # A tolerance-sized spatial hash is O(N) for a regular FE mesh and avoids
+    # the prohibitive O(N**2) distance matrix that large product meshes would
+    # otherwise require.  Degenerate/ambiguous coincident nodes fail closed.
+    buckets: dict[tuple[int, int, int], list[int]] = {}
+    for candidate_id, point in enumerate(candidate):
+        key = tuple(int(math.floor(value / tolerance)) for value in point)
+        buckets.setdefault(key, []).append(candidate_id)
     mapping = np.full(len(reference), -1, dtype=np.int64)
     distances = np.empty(len(reference), dtype=float)
     available = np.ones(len(candidate), dtype=bool)
     for index, point in enumerate(reference):
-        candidate_ids = np.flatnonzero(available)
-        delta = candidate[candidate_ids] - point
-        local_distance = np.linalg.norm(delta, axis=1)
+        base_key = tuple(int(math.floor(value / tolerance)) for value in point)
+        candidate_ids: list[int] = []
+        for offset in itertools.product((-1, 0, 1), repeat=3):
+            neighbour_key = tuple(base_key[axis] + offset[axis] for axis in range(3))
+            candidate_ids.extend(
+                candidate_id
+                for candidate_id in buckets.get(neighbour_key, ())
+                if available[candidate_id]
+            )
+        if not candidate_ids:
+            raise ValueError(
+                f"no one-to-one Elmer node within tolerance for CalculiX node {index}: "
+                f"no candidate bucket, tolerance={tolerance:.9g}"
+            )
+        candidate_array = np.asarray(candidate_ids, dtype=np.int64)
+        local_distance = np.linalg.norm(candidate[candidate_array] - point, axis=1)
         nearest_local = int(np.argmin(local_distance))
-        nearest_id = int(candidate_ids[nearest_local])
+        nearest_id = int(candidate_array[nearest_local])
         distance = float(local_distance[nearest_local])
         if distance > tolerance:
             raise ValueError(
@@ -205,10 +225,14 @@ def compare_fields(
 ) -> dict[str, Any]:
     """Compare mapped fields and return a strict evidence manifest."""
 
-    required_identity = ("geometry_id", "mesh_id", "history_id")
+    required_identity = ("geometry_sha256", "mesh_sha256", "history_id")
     missing_identity = [key for key in required_identity if not str(identity.get(key, "")).strip()]
     if missing_identity:
         raise ValueError(f"missing identity values: {missing_identity}")
+    for key in ("geometry_sha256", "mesh_sha256"):
+        value = str(identity[key])
+        if len(value) != 64 or any(character not in "0123456789abcdefABCDEF" for character in value):
+            raise ValueError(f"{key} must be a SHA-256 hexadecimal digest")
     tolerances = {
         "displacement": float(displacement_relative_tolerance),
         "temperature": float(temperature_relative_tolerance),
@@ -292,8 +316,8 @@ def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--calculix-vtu", type=Path, required=True)
     parser.add_argument("--elmer-vtu", type=Path, required=True)
-    parser.add_argument("--geometry-id", required=True)
-    parser.add_argument("--mesh-id", required=True)
+    parser.add_argument("--geometry-sha256", required=True)
+    parser.add_argument("--mesh-sha256", required=True)
     parser.add_argument("--history-id", required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--calculix-coordinates-deformed", action="store_true")
@@ -313,8 +337,8 @@ def main(argv: Iterable[str] | None = None) -> int:
         args.calculix_vtu,
         args.elmer_vtu,
         identity={
-            "geometry_id": args.geometry_id,
-            "mesh_id": args.mesh_id,
+            "geometry_sha256": args.geometry_sha256,
+            "mesh_sha256": args.mesh_sha256,
             "history_id": args.history_id,
         },
         calculix_coordinates_deformed=args.calculix_coordinates_deformed,
