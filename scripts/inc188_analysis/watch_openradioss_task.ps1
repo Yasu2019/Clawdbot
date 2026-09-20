@@ -13,6 +13,8 @@ param(
   [string]$EnvFile   = "D:\Clawdbot_Docker_20260125\.env",
   [string[]]$Tags    = @("P1r13","P1r14","P1r15","P1r16"),
   [int]$StaleSec     = 600,
+  [string]$DiskDrive = "D",
+  [double]$DiskMinGB = 10,
   [switch]$NoTelegram
 )
 
@@ -87,8 +89,21 @@ foreach ($t in $Tags) {
   }
 }
 
+# ---- disk space of the drive the engines write to (a full drive kills engines / corrupts restart files) ----
+$diskState = "OK"; $diskExtra = ""
+try {
+  $freeGB = (Get-PSDrive $DiskDrive).Free / 1GB
+  if ($freeGB -lt $DiskMinGB) { $diskState = "DISK_LOW"; $diskExtra = ($DiskDrive + ": free " + [math]::Round($freeGB,1) + " GB < " + $DiskMinGB + " GB") }
+} catch { $diskState = "OK" }
+$oldDisk = "NONE"
+if ($prev["DISK"]) { $oldDisk = $prev["DISK"].state }
+$newState["DISK"] = @{ state = $diskState; stale = 0 }
+if ($diskState -ne $oldDisk -and -not ($oldDisk -eq "NONE" -and $diskState -eq "OK")) {
+  $alerts += ("DISK: " + $oldDisk + " -> " + $diskState + " " + $diskExtra)
+}
+
 # ---- persist state, then alert ----
-$lines = foreach ($k in $Tags) { $k + "|" + $newState[$k].state + "|" + $newState[$k].stale }
+$lines = foreach ($k in ($Tags + "DISK")) { $k + "|" + $newState[$k].state + "|" + $newState[$k].stale }
 Set-Content -LiteralPath $StateFile -Value $lines -Encoding ASCII
 
 if ($alerts.Count -gt 0) {
