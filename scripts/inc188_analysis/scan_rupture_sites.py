@@ -94,11 +94,7 @@ def main():
                         stack.append(nk)
         comps.append(comp)
 
-    from scipy.spatial import cKDTree
     comps.sort(key=len, reverse=True)
-    main = comps[0]
-    main_pts = [dead[i] for i in main]
-    tree = cKDTree(main_pts)
 
     def summarize(comp):
         xs = [dead[i][0] for i in comp]
@@ -109,33 +105,23 @@ def main():
                 "cx_mm": round(cx, 3), "cy_mm": round(cy, 3),
                 "extent_mm": round(max(max(xs) - min(xs), max(ys) - min(ys)), 3),
                 "nearest": near[0],
-                "dist_hot_mm": round(((near[1][0] - cx) ** 2 + (near[1][1] - cy) ** 2) ** 0.5, 3),
-                "dist_to_cut_network_mm": round(float(min(tree.query([dead[i] for i in comp])[0])), 3)}
+                "dist_hot_mm": round(((near[1][0] - cx) ** 2 + (near[1][1] - cy) ** 2) ** 0.5, 3)}
 
-    main_info = summarize(main)
-    main_info["nearest"] = None      # centroid of the whole cut network is meaningless
-    main_info["dist_hot_mm"] = None
-    sec = [summarize(c) for c in comps[1:]]
-    # 想定外の破断の候補: 本来の切断線から離れ、かつ一定以上の大きさ
-    cand = [x for x in sec if x["dist_to_cut_network_mm"] > 0.3 and (x["n_elems"] >= 100 or x["extent_mm"] >= 1.0)]
-    cand.sort(key=lambda x: -x["vol_mm3"])
-    bins = {"<50": 0, "50-199": 0, ">=200": 0}
-    for x in sec:
-        bins["<50" if x["n_elems"] < 50 else ("50-199" if x["n_elems"] < 200 else ">=200")] += 1
+    regions = sorted((summarize(c) for c in comps), key=lambda x: -x["vol_mm3"])
+    # t=0の形状で見ると、消失要素は打ち抜きの切断線に沿う大きな領域だけにまとまる。
+    # 200要素未満の小領域は切断線から外れた点在の破断で、想定外の場所の候補になる。
+    stray = [x for x in regions if x["n_elems"] < 200]
 
     out = {"label": label, "t_ms": round(t * 1e3, 4), "n_dead": len(dead),
-           "removed_vol_mm3": round(sum(dvol), 6), "cut_network": main_info,
-           "secondary_total_vol_mm3": round(sum(x["vol_mm3"] for x in sec), 6),
-           "secondary_count": len(sec), "secondary_size_bins": bins, "isolated_candidates": cand}
+           "removed_vol_mm3": round(sum(dvol), 6), "n_regions": len(regions),
+           "secondary_count": len(regions) - 1,      # 旧キー互換(最大領域以外の数)
+           "regions": regions, "stray_regions": stray}
     json.dump(out, open(f"rupture_sites_{label}.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
-    print(f"{label}: t={t*1e3:.3f}ms removed={sum(dvol):.4f} mm3 ({len(dead):,} elems, geometry @t=0)")
-    print(f"  cut network: {main_info['n_elems']:,} elems, {main_info['vol_mm3']:.5f} mm3, extent {main_info['extent_mm']:.1f} mm")
-    print(f"  secondary clusters: {len(sec)}  size bins {bins}  total {out['secondary_total_vol_mm3']:.6f} mm3")
-    print(f"  isolated candidates (>0.3mm from cut network & (n>=100 or extent>=1mm)): {len(cand)}")
-    for x in cand[:10]:
-        print(f"    n={x['n_elems']:>6,} vol={x['vol_mm3']:.6f}mm3 at ({x['cx_mm']:.2f},{x['cy_mm']:.2f}) "
-              f"extent {x['extent_mm']:.2f}mm  nearest={x['nearest']} {x['dist_hot_mm']:.2f}mm  "
-              f"from-network {x['dist_to_cut_network_mm']:.2f}mm")
+    print(f"{label}: t={t*1e3:.3f}ms removed={sum(dvol):.4f} mm3 ({len(dead):,} elems, geometry @t=0) "
+          f"regions={len(regions)} stray(<200 elems)={len(stray)}")
+    for x in regions:
+        print(f"    n={x['n_elems']:>7,} vol={x['vol_mm3']:.4f}mm3 extent={x['extent_mm']:.2f}mm "
+              f"at ({x['cx_mm']:.2f},{x['cy_mm']:.2f}) nearest={x['nearest']} {x['dist_hot_mm']:.2f}mm")
 
 
 if __name__ == "__main__":
