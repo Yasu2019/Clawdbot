@@ -24,6 +24,11 @@ RUNS = {
     "P1r10": r"p1r10_vtk",
     "P1r11": r"p1r11_vtk",
     "P1r12": r"p1r12_vtk",
+    # six-order punch study (rect,round,trim / round,rect,trim / trim,round,rect / round,trim,rect)
+    "P1r13": r"p1r13_vtk",
+    "P1r14": r"p1r14_vtk",
+    "P1r15": r"p1r15_vtk",
+    "P1r16": r"p1r16_vtk",
 }
 
 
