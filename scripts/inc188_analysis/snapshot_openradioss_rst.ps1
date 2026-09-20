@@ -23,6 +23,8 @@ param(
 
 $ErrorActionPreference = "Stop"
 function Log([string]$m) { Add-Content -LiteralPath $LogFile -Value ((Get-Date -Format "yyyy-MM-dd HH:mm:ss") + " " + $m) }
+# any error outside the per-tag try/catch used to exit 1 silently; record where and why
+trap { try { Log ("FATAL line " + $_.InvocationInfo.ScriptLineNumber + ": " + $_.Exception.Message.Split("`n")[0]) } catch {}; exit 1 }
 
 $done = @{}
 if (Test-Path -LiteralPath $StateFile) {
