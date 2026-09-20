@@ -10,6 +10,8 @@ if hasattr(sys.stdout, "reconfigure"):
         pass
 
 import json
+import hashlib
+import math
 import re
 import shutil
 import struct
@@ -927,6 +929,567 @@ def resolve_geometry_scale_to_m(bbox_raw: dict[str, float], params: dict[str, An
     return 1.0 if span <= 1.0 else 0.001
 
 
+BOUNDARY_CONTRACT_SCHEMA = "clawstack.arbitrary.boundary.groups.v1"
+BOUNDARY_ARTIFACT_SCHEMA = "clawstack.openfoam.boundary.surface_artifacts.v1"
+BOUNDARY_TOPOLOGY_CHECKS = (
+    "watertight",
+    "manifold",
+    "orientation_consistent",
+    "nonzero_enclosed_volume",
+)
+BOUNDARY_ROLES = ("gate", "vent", "wall", "hole")
+
+
+def _sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _resolve_contract_file(raw_path: Any, *, base_dir: Path | None = None) -> Path:
+    path = Path(str(raw_path)).expanduser()
+    if path.is_absolute():
+        return path.resolve()
+    roots = [base_dir, Path.cwd(), ROOT]
+    candidates = [(root / path).resolve() for root in roots if root is not None]
+    existing = list(dict.fromkeys(candidate for candidate in candidates if candidate.is_file()))
+    if len(existing) > 1:
+        raise ValueError(
+            f"boundary contract reference is ambiguous: {raw_path!r} -> "
+            + ", ".join(str(item) for item in existing)
+        )
+    return existing[0] if existing else candidates[0]
+
+
+def _verified_hashed_reference(
+    contract_path: Path, payload: dict[str, Any], label: str
+) -> dict[str, str]:
+    reference = payload.get(label)
+    if not isinstance(reference, dict):
+        raise ValueError(f"boundary contract {label} reference is missing")
+    raw_path = reference.get("path")
+    expected_hash = str(reference.get("sha256", "")).lower()
+    if not raw_path:
+        raise ValueError(f"boundary contract {label}.path is missing")
+    if not re.fullmatch(r"[0-9a-f]{64}", expected_hash):
+        raise ValueError(f"boundary contract {label}.sha256 is invalid")
+    path = _resolve_contract_file(raw_path, base_dir=contract_path.parent)
+    if not path.is_file():
+        raise ValueError(f"boundary contract {label} file is missing: {path}")
+    actual_hash = _sha256_file(path)
+    if actual_hash != expected_hash:
+        raise ValueError(
+            f"boundary contract {label} sha256 mismatch: expected {expected_hash}, got {actual_hash}"
+        )
+    return {"path": str(path), "sha256": actual_hash}
+
+
+def _contract_units_scale_to_m(
+    contract: dict[str, Any], params: dict[str, Any]
+) -> tuple[str, float]:
+    aliases = {
+        "m": ("m", 1.0),
+        "metre": ("m", 1.0),
+        "meter": ("m", 1.0),
+        "mm": ("mm", 0.001),
+        "millimetre": ("mm", 0.001),
+        "millimeter": ("mm", 0.001),
+    }
+    contract_units = str(contract.get("units", "")).lower().strip()
+    explicit_units = params.get("boundary_contract_units")
+    geometry_units = str(params.get("geometry_units", "auto")).lower().strip()
+    if explicit_units is None and geometry_units != "auto":
+        explicit_units = geometry_units
+    explicit_key = str(explicit_units).lower().strip() if explicit_units is not None else ""
+    if contract_units in aliases:
+        canonical, scale = aliases[contract_units]
+        if explicit_key:
+            if explicit_key not in aliases:
+                raise ValueError(f"unsupported boundary_contract_units: {explicit_units!r}")
+            if aliases[explicit_key][0] != canonical:
+                raise ValueError(
+                    "boundary contract units conflict with explicit geometry units: "
+                    f"contract={contract_units}, explicit={explicit_units}"
+                )
+        return canonical, scale
+    if explicit_key in aliases:
+        return aliases[explicit_key]
+    raise ValueError(
+        "boundary contract units are not metrically defined; set "
+        "boundary_contract_units to 'm' or 'mm'"
+    )
+
+
+def load_boundary_contract(params: dict[str, Any]) -> dict[str, Any] | None:
+    """Load and verify an extractor boundary contract without accepting fallbacks."""
+    raw_contract_path = params.get("boundary_contract_path")
+    if raw_contract_path is None:
+        return None
+    contract_path = _resolve_contract_file(raw_contract_path)
+    if not contract_path.is_file():
+        raise ValueError(f"boundary contract file is missing: {contract_path}")
+    try:
+        contract = json.loads(contract_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ValueError(f"boundary contract is unreadable: {contract_path}: {exc}") from exc
+    if not isinstance(contract, dict):
+        raise ValueError("boundary contract root must be an object")
+    if contract.get("schema") != BOUNDARY_CONTRACT_SCHEMA:
+        raise ValueError(
+            f"boundary contract schema must be {BOUNDARY_CONTRACT_SCHEMA!r}, "
+            f"got {contract.get('schema')!r}"
+        )
+    if contract.get("status") != "PASS":
+        raise ValueError(f"boundary contract status must be PASS, got {contract.get('status')!r}")
+
+    topology = contract.get("surface_topology")
+    topology_checks = topology.get("checks") if isinstance(topology, dict) else None
+    if not isinstance(topology_checks, dict):
+        raise ValueError("boundary contract surface_topology.checks is missing")
+    failed_topology = [name for name in BOUNDARY_TOPOLOGY_CHECKS if topology_checks.get(name) is not True]
+    if failed_topology:
+        raise ValueError("boundary contract topology failed: " + ", ".join(failed_topology))
+    checks = contract.get("checks")
+    if not isinstance(checks, dict) or checks.get("surface_topology") is not True:
+        raise ValueError("boundary contract checks.surface_topology must be true")
+    if checks.get("all_faces_classified_once") is not True:
+        raise ValueError("boundary contract checks.all_faces_classified_once must be true")
+
+    face_count = contract.get("face_count")
+    groups = contract.get("groups")
+    if not isinstance(face_count, int) or face_count <= 0 or not isinstance(groups, dict):
+        raise ValueError("boundary contract face_count/groups are invalid")
+    face_ids: list[int] = []
+    nonempty_groups: set[str] = set()
+    for group_name, raw_ids in groups.items():
+        if not isinstance(group_name, str) or not isinstance(raw_ids, list):
+            raise ValueError("boundary contract groups must map names to face-id lists")
+        if raw_ids:
+            nonempty_groups.add(group_name)
+        if any(not isinstance(face_id, int) for face_id in raw_ids):
+            raise ValueError(f"boundary contract group {group_name!r} has non-integer face ids")
+        face_ids.extend(raw_ids)
+    if len(face_ids) != face_count or len(set(face_ids)) != face_count or set(face_ids) != set(range(face_count)):
+        raise ValueError("boundary contract face groups do not classify every face exactly once")
+
+    roles = contract.get("roles")
+    if not isinstance(roles, dict):
+        raise ValueError("boundary contract roles are missing")
+    role_by_group: dict[str, str] = {}
+    normalized_roles: dict[str, list[str]] = {role: [] for role in BOUNDARY_ROLES}
+    for role, raw_names in roles.items():
+        if role not in BOUNDARY_ROLES:
+            raise ValueError(f"boundary contract contains unsupported role: {role!r}")
+        if not isinstance(raw_names, list) or any(not isinstance(name, str) for name in raw_names):
+            raise ValueError(f"boundary contract role {role!r} must contain group names")
+        for group_name in raw_names:
+            if group_name in role_by_group:
+                raise ValueError(f"boundary contract group has multiple roles: {group_name!r}")
+            if group_name not in groups:
+                raise ValueError(f"boundary contract role references unknown group: {group_name!r}")
+            role_by_group[group_name] = role
+            normalized_roles[role].append(group_name)
+    missing_roles = sorted(nonempty_groups - set(role_by_group))
+    if missing_roles:
+        raise ValueError("boundary contract groups have no role: " + ", ".join(missing_roles))
+    for required_role in ("gate", "vent", "wall"):
+        if not any(groups.get(name) for name in normalized_roles[required_role]):
+            raise ValueError(f"boundary contract has no non-empty {required_role} patch")
+
+    embedded_artifact = contract.get("openfoam_artifacts")
+    if not isinstance(embedded_artifact, dict):
+        raise ValueError("boundary contract openfoam_artifacts is missing")
+    if embedded_artifact.get("schema") != BOUNDARY_ARTIFACT_SCHEMA:
+        raise ValueError(
+            f"boundary artifact schema must be {BOUNDARY_ARTIFACT_SCHEMA!r}, "
+            f"got {embedded_artifact.get('schema')!r}"
+        )
+    if embedded_artifact.get("status") != "PASS":
+        raise ValueError("boundary artifact status must be PASS")
+    artifact_path = contract_path.parent / "openfoam_patch_artifacts.json"
+    if not artifact_path.is_file():
+        raise ValueError(f"boundary patch artifact manifest is missing: {artifact_path}")
+    try:
+        artifact = json.loads(artifact_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ValueError(f"boundary patch artifact manifest is unreadable: {exc}") from exc
+    if artifact != embedded_artifact:
+        raise ValueError("boundary patch artifact manifest differs from the embedded contract artifact")
+
+    raw_patches = artifact.get("patches")
+    if not isinstance(raw_patches, dict) or set(raw_patches) != nonempty_groups:
+        raise ValueError("boundary patch artifacts do not match non-empty contract groups")
+    patches: dict[str, dict[str, Any]] = {}
+    used_patch_names: set[str] = set()
+    for group_name in sorted(raw_patches):
+        patch = raw_patches[group_name]
+        if not isinstance(patch, dict):
+            raise ValueError(f"boundary patch artifact is invalid: {group_name!r}")
+        patch_name = str(patch.get("patch_name", ""))
+        if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", patch_name):
+            raise ValueError(f"boundary patch name is not OpenFOAM-safe: {patch_name!r}")
+        lowered_name = patch_name.lower()
+        if lowered_name in used_patch_names:
+            raise ValueError(f"boundary patch names are not unique: {patch_name!r}")
+        used_patch_names.add(lowered_name)
+        role = role_by_group[group_name]
+        if patch.get("role") != role:
+            raise ValueError(
+                f"boundary patch role mismatch for {group_name!r}: "
+                f"contract={role!r}, artifact={patch.get('role')!r}"
+            )
+        expected_patch_type = "patch" if role in ("gate", "vent") else "wall"
+        if patch.get("openfoam_patch_type") != expected_patch_type:
+            raise ValueError(f"boundary patch type mismatch for {group_name!r}")
+        if patch.get("face_count") != len(groups[group_name]) or len(groups[group_name]) <= 0:
+            raise ValueError(f"boundary patch face count mismatch for {group_name!r}")
+        try:
+            area = float(patch.get("area_model_units2"))
+        except (TypeError, ValueError) as exc:
+            raise ValueError(f"boundary patch area is invalid for {group_name!r}") from exc
+        if not math.isfinite(area) or area <= 0.0:
+            raise ValueError(f"boundary patch area must be positive for {group_name!r}")
+        surface_file = patch.get("surface_file")
+        if not surface_file:
+            raise ValueError(f"boundary patch surface_file is missing for {group_name!r}")
+        surface_path = _resolve_contract_file(surface_file, base_dir=contract_path.parent)
+        if not surface_path.is_file() or surface_path.suffix.lower() != ".stl":
+            raise ValueError(f"boundary patch STL is missing for {group_name!r}: {surface_path}")
+        patches[group_name] = {
+            **patch,
+            "role": role,
+            "source_path": surface_path,
+            "source_sha256": _sha256_file(surface_path),
+        }
+
+    model = _verified_hashed_reference(contract_path, contract, "model")
+    spec_reference = _verified_hashed_reference(contract_path, contract, "spec")
+    canonical_units, scale = _contract_units_scale_to_m(contract, params)
+    return {
+        "path": contract_path,
+        "sha256": _sha256_file(contract_path),
+        "artifact_path": artifact_path.resolve(),
+        "artifact_sha256": _sha256_file(artifact_path),
+        "model": model,
+        "spec": spec_reference,
+        "units": canonical_units,
+        "scale_to_m": scale,
+        "roles": normalized_roles,
+        "patches": patches,
+        "topology": topology,
+    }
+
+
+def _combined_patch_bbox(patches: dict[str, dict[str, Any]]) -> dict[str, float]:
+    boxes = [stl_bbox_mm(Path(patch["source_path"])) for patch in patches.values()]
+    if not boxes:
+        raise ValueError("boundary contract contains no patch STL files")
+    xmin = min(box["xmin"] for box in boxes)
+    xmax = max(box["xmax"] for box in boxes)
+    ymin = min(box["ymin"] for box in boxes)
+    ymax = max(box["ymax"] for box in boxes)
+    zmin = min(box["zmin"] for box in boxes)
+    zmax = max(box["zmax"] for box in boxes)
+    return {
+        "xmin": xmin,
+        "xmax": xmax,
+        "ymin": ymin,
+        "ymax": ymax,
+        "zmin": zmin,
+        "zmax": zmax,
+        "length": max(xmax - xmin, 1e-12),
+        "width": max(ymax - ymin, 1e-12),
+        "height": max(zmax - zmin, 1e-12),
+    }
+
+
+def _copy_scaled_contract_surfaces(
+    tri_dir: Path, patches: dict[str, dict[str, Any]], scale: float
+) -> dict[str, dict[str, Any]]:
+    copied: dict[str, dict[str, Any]] = {}
+    for group_name, patch in patches.items():
+        target = tri_dir / f"{patch['patch_name']}.stl"
+        source = Path(patch["source_path"])
+        if scale == 1.0:
+            shutil.copy2(source, target)
+        else:
+            import pyvista as pv
+
+            mesh = pv.read(source)
+            if mesh.n_points <= 0:
+                raise ValueError(f"boundary patch STL has no points: {source}")
+            mesh.points *= scale
+            mesh.save(target)
+        copied[group_name] = {
+            "group_name": group_name,
+            "patch_name": patch["patch_name"],
+            "role": patch["role"],
+            "openfoam_patch_type": patch["openfoam_patch_type"],
+            "face_count": patch["face_count"],
+            "area_model_units2": patch["area_model_units2"],
+            "source_path": str(source),
+            "source_sha256": patch["source_sha256"],
+            "case_surface_file": str(target.relative_to(tri_dir.parent.parent)).replace("\\", "/"),
+            "case_surface_sha256": _sha256_file(target),
+        }
+    return copied
+
+
+def _contract_snappy_dict(
+    patches: dict[str, dict[str, Any]], params: dict[str, Any], location: tuple[float, float, float]
+) -> str:
+    min_level = int(params.get("surface_refinement_min_level", 1))
+    max_level = int(params.get("surface_refinement_max_level", 2))
+    feature_level = int(params.get("feature_refinement_level", max_level))
+    if not 0 <= min_level <= max_level <= 8 or not 0 <= feature_level <= 8:
+        raise ValueError("boundary contract refinement levels must be between 0 and 8")
+    geometry_lines: list[str] = []
+    feature_lines: list[str] = []
+    refinement_lines: list[str] = []
+    for patch in patches.values():
+        name = patch["patch_name"]
+        patch_type = patch["openfoam_patch_type"]
+        geometry_lines.append(f"    {name}.stl {{ type triSurfaceMesh; name {name}; }}")
+        feature_lines.append(f'        {{ file "{name}.eMesh"; level {feature_level}; }}')
+        refinement_lines.append(
+            f"        {name} {{ level ({min_level} {max_level}); patchInfo {{ type {patch_type}; }} }}"
+        )
+    lx, ly, lz = location
+    return (
+        "FoamFile { version 2.0; format ascii; class dictionary; object snappyHexMeshDict; }\n"
+        "castellatedMesh true; snap true; addLayers false;\n"
+        "geometry\n{\n"
+        + "\n".join(geometry_lines)
+        + "\n}\n"
+        "castellatedMeshControls\n{\n"
+        f"    maxLocalCells {int(params.get('max_local_cells', 80000))};\n"
+        f"    maxGlobalCells {int(params.get('max_global_cells', 120000))};\n"
+        "    minRefinementCells 10;\n"
+        "    maxLoadUnbalance 0.10;\n"
+        "    nCellsBetweenLevels 1;\n"
+        "    features\n    (\n"
+        + "\n".join(feature_lines)
+        + "\n    );\n"
+        "    refinementSurfaces\n    {\n"
+        + "\n".join(refinement_lines)
+        + "\n    }\n"
+        "    resolveFeatureAngle 30;\n"
+        "    refinementRegions {}\n"
+        f"    locationInMesh ({lx:g} {ly:g} {lz:g});\n"
+        "    allowFreeStandingZoneFaces true;\n"
+        "}\n"
+        "snapControls\n{\n"
+        "    nSmoothPatch 3; tolerance 2.0; nSolveIter 30; nRelaxIter 5; nFeatureSnapIter 10;\n"
+        "    implicitFeatureSnap false; explicitFeatureSnap true; multiRegionFeatureSnap false;\n"
+        "}\n"
+        "addLayersControls { relativeSizes true; layers {}; expansionRatio 1.0; "
+        "finalLayerThickness 0.3; minThickness 0.1; nGrow 0; }\n"
+        "meshQualityControls\n{\n"
+        "    maxNonOrtho 65; maxBoundarySkewness 20; maxInternalSkewness 4; maxConcave 80;\n"
+        "    minVol 1e-13; minTetQuality 1e-30; minArea -1; minTwist 0.05;\n"
+        "    minTriangleTwist -1; minDeterminant 0.001; minFaceWeight 0.05;\n"
+        "    minVolRatio 0.01; triangleTwist false; errorReduction 0.75; nSmoothScale 4;\n"
+        "}\n"
+        "mergeTolerance 1e-6;\n"
+    )
+
+
+def _contract_surface_feature_dict(
+    patches: dict[str, dict[str, Any]], params: dict[str, Any]
+) -> str:
+    included_angle = float(params.get("feature_included_angle_deg", 150.0))
+    if not 0.0 < included_angle < 180.0:
+        raise ValueError("feature_included_angle_deg must be between 0 and 180")
+    blocks = []
+    for patch in patches.values():
+        name = patch["patch_name"]
+        blocks.append(
+            f"{name}.stl\n{{\n"
+            "    extractionMethod extractFromSurface;\n"
+            "    extractFromSurfaceCoeffs\n    {\n"
+            f"        includedAngle {included_angle:g};\n"
+            "    }\n"
+            "    writeObj yes;\n"
+            "}"
+        )
+    return (
+        "FoamFile\n{\n"
+        "    version 2.0;\n"
+        "    format ascii;\n"
+        "    class dictionary;\n"
+        "    object surfaceFeatureExtractDict;\n"
+        "}\n\n"
+        + "\n\n".join(blocks)
+        + "\n"
+    )
+
+
+def _write_noop_legacy_patch_dicts(run_dir: Path) -> None:
+    """Keep legacy runner commands harmless when snappy creates final patches."""
+    (run_dir / "system" / "topoSetDict").write_text(
+        "FoamFile { version 2.0; format ascii; class dictionary; object topoSetDict; }\n"
+        "actions ();\n",
+        encoding="utf-8",
+    )
+    (run_dir / "system" / "createPatchDict").write_text(
+        "FoamFile { version 2.0; format ascii; class dictionary; object createPatchDict; }\n"
+        "pointSync false;\npatches ();\n",
+        encoding="utf-8",
+    )
+
+
+def _replace_boundary_field(text: str, entries: list[str], path: Path) -> str:
+    match = re.search(r"\bboundaryField\s*\{", text)
+    if match is None:
+        raise ValueError(f"boundaryField not found in {path}")
+    opening = text.find("{", match.start())
+    depth = 0
+    closing = -1
+    for index in range(opening, len(text)):
+        if text[index] == "{":
+            depth += 1
+        elif text[index] == "}":
+            depth -= 1
+            if depth == 0:
+                closing = index
+                break
+    if closing < 0:
+        raise ValueError(f"boundaryField is unbalanced in {path}")
+    body = "boundaryField\n{\n" + "\n".join(entries) + "\n}"
+    return text[: match.start()] + body + text[closing + 1 :]
+
+
+def _explicit_gate_velocity(params: dict[str, Any], patch_name: str) -> tuple[float, float, float]:
+    patch_settings = params.get("boundary_patch_conditions", {})
+    if patch_settings is None:
+        patch_settings = {}
+    if not isinstance(patch_settings, dict):
+        raise ValueError("boundary_patch_conditions must be an object")
+    settings = patch_settings.get(patch_name, {})
+    if not isinstance(settings, dict):
+        raise ValueError(f"boundary_patch_conditions[{patch_name!r}] must be an object")
+    vector = settings.get("inlet_velocity_xyz", params.get("inlet_velocity_xyz"))
+    if isinstance(vector, (list, tuple)) and len(vector) == 3:
+        try:
+            values = tuple(float(value) for value in vector)
+        except (TypeError, ValueError) as exc:
+            raise ValueError(f"gate velocity vector is invalid for {patch_name!r}") from exc
+        if all(math.isfinite(value) for value in values) and any(abs(value) > 0.0 for value in values):
+            return values  # type: ignore[return-value]
+    speed = settings.get("inlet_velocity", params.get("inlet_velocity"))
+    direction = settings.get("gate_inflow_direction", params.get("gate_inflow_direction"))
+    if speed is not None and isinstance(direction, (list, tuple)) and len(direction) == 3:
+        speed_value = float(speed)
+        direction_values = tuple(float(value) for value in direction)
+        norm = math.sqrt(sum(value * value for value in direction_values))
+        if math.isfinite(speed_value) and speed_value > 0.0 and norm > 1e-12:
+            return tuple(speed_value * value / norm for value in direction_values)  # type: ignore[return-value]
+    raise ValueError(
+        f"explicit inlet_velocity_xyz or inlet_velocity plus gate_inflow_direction is required "
+        f"for contract gate {patch_name!r}"
+    )
+
+
+def _apply_contract_zero_boundaries(
+    run_dir: Path, patches: dict[str, dict[str, Any]], params: dict[str, Any]
+) -> None:
+    ordered = list(patches.values())
+    gate_velocities = {
+        patch["patch_name"]: _explicit_gate_velocity(params, patch["patch_name"])
+        for patch in ordered
+        if patch["role"] == "gate"
+    }
+
+    def entries_for(field_name: str, internal_value: str | None) -> list[str]:
+        entries: list[str] = []
+        for patch in ordered:
+            name = patch["patch_name"]
+            role = patch["role"]
+            if field_name == "U":
+                if role == "gate":
+                    velocity = gate_velocities[name]
+                    body = f"type fixedValue; value uniform ({velocity[0]:g} {velocity[1]:g} {velocity[2]:g});"
+                elif role == "vent":
+                    body = "type pressureInletOutletVelocity; value uniform (0 0 0);"
+                else:
+                    body = "type noSlip;"
+            elif field_name == "alpha.polymer":
+                if role == "gate":
+                    body = "type fixedValue; value uniform 1;"
+                elif role == "vent":
+                    body = "type inletOutlet; inletValue uniform 0; value uniform 0;"
+                else:
+                    body = "type zeroGradient;"
+            elif field_name == "p_rgh":
+                if internal_value is None:
+                    raise ValueError("p_rgh requires a uniform numeric internalField")
+                if role == "vent":
+                    body = f"type totalPressure; p0 uniform {internal_value}; value uniform {internal_value};"
+                else:
+                    body = f"type fixedFluxPressure; value uniform {internal_value};"
+            elif field_name == "p":
+                pressure = params.get("initial_cavity_pressure_pa")
+                if pressure is None:
+                    raise ValueError("initial_cavity_pressure_pa is required for contract p boundaries")
+                pressure_value = float(pressure)
+                if not math.isfinite(pressure_value) or pressure_value <= 0.0:
+                    raise ValueError("initial_cavity_pressure_pa must be positive")
+                body = (
+                    f"type fixedValue; value uniform {pressure_value:g};"
+                    if role == "vent"
+                    else f"type calculated; value uniform {pressure_value:g};"
+                )
+            elif field_name in ("T", "T.air", "T.polymer"):
+                if "T_melt" not in params or "T_mold" not in params:
+                    raise ValueError(f"T_melt and T_mold are required for contract {field_name} boundaries")
+                temperature = float(params["T_melt"] if role == "gate" else params["T_mold"])
+                if not math.isfinite(temperature) or temperature <= 0.0:
+                    raise ValueError(f"temperature is invalid for {name!r}")
+                if role == "vent":
+                    body = f"type inletOutlet; inletValue uniform {temperature:g}; value uniform {temperature:g};"
+                else:
+                    body = f"type fixedValue; value uniform {temperature:g};"
+            else:
+                raise ValueError(f"unsupported contract boundary field: {field_name}")
+            entries.append(f"    {name}\n    {{\n        {body}\n    }}")
+        return entries
+
+    for field_name in ("U", "alpha.polymer", "p_rgh", "p", "T", "T.air", "T.polymer"):
+        path = run_dir / "0" / field_name
+        if not path.is_file():
+            continue
+        text = path.read_text(encoding="utf-8", errors="replace")
+        internal_match = re.search(r"internalField\s+uniform\s+([-+0-9.eE]+)\s*;", text)
+        internal_value = internal_match.group(1) if internal_match else None
+        if field_name == "p":
+            pressure = float(params.get("initial_cavity_pressure_pa", 0.0))
+            if pressure <= 0.0:
+                raise ValueError("initial_cavity_pressure_pa is required for contract p boundaries")
+            text, count = re.subn(
+                r"internalField\s+uniform\s+[^;]+;",
+                f"internalField uniform {pressure:g};",
+                text,
+                count=1,
+            )
+            if count != 1:
+                raise ValueError(f"uniform internalField not found in {path}")
+        elif field_name in ("T", "T.air", "T.polymer"):
+            if "T_mold" not in params:
+                raise ValueError(f"T_mold is required for contract {field_name} internalField")
+            text, count = re.subn(
+                r"internalField\s+uniform\s+[^;]+;",
+                f"internalField uniform {float(params['T_mold']):g};",
+                text,
+                count=1,
+            )
+            if count != 1:
+                raise ValueError(f"uniform internalField not found in {path}")
+        text = _replace_boundary_field(text, entries_for(field_name, internal_value), path)
+        path.write_text(text, encoding="utf-8")
+
+
 def overlay_snappy_thermo_physics(run_dir: Path, params: dict[str, Any]) -> None:
     """Overlay thermo dictionaries without replacing proven snappy mesh/patch fields."""
     physics = str(params.get("physics_category", "resin_fill_vof"))
@@ -1087,9 +1650,15 @@ def build_mfalign_snappy_case(
     wall, topoSet gate/vent cylinders) that are only valid for the reference
     geometry, so a differing surface must supply them explicitly.
     """
-    surface_stl = resolve_surface_stl(step_path, params)
-    bbox_raw = stl_bbox_mm(surface_stl)
-    scale = resolve_geometry_scale_to_m(bbox_raw, params)
+    boundary_contract = load_boundary_contract(params)
+    if boundary_contract is None:
+        surface_stl = resolve_surface_stl(step_path, params)
+        bbox_raw = stl_bbox_mm(surface_stl)
+        scale = resolve_geometry_scale_to_m(bbox_raw, params)
+    else:
+        surface_stl = None
+        bbox_raw = _combined_patch_bbox(boundary_contract["patches"])
+        scale = float(boundary_contract["scale_to_m"])
     bbox_m = {k: v * scale for k, v in bbox_raw.items()}
     bbox = {k: v * 1000.0 for k, v in bbox_m.items()}
 
@@ -1099,6 +1668,11 @@ def build_mfalign_snappy_case(
         for got, ref in zip(dims_mm, REFERENCE_GEOMETRY_MM)
     )
     location = params.get("location_in_mesh_m")
+    if boundary_contract is not None and location is None:
+        raise ValueError(
+            "location_in_mesh_m is required with boundary_contract_path; "
+            "the contract classifies surfaces but does not certify the retained volume"
+        )
     if location is None and not matches_reference:
         raise ValueError(
             "location_in_mesh_m is required for a non-reference geometry "
@@ -1107,6 +1681,14 @@ def build_mfalign_snappy_case(
             f"{REFERENCE_GEOMETRY_MM[2]:.0f} mm); the template value sits inside the "
             "reference shell wall and would select the wrong volume"
         )
+    if location is not None:
+        if not isinstance(location, (list, tuple)) or len(location) != 3:
+            raise ValueError("location_in_mesh_m must contain three coordinates")
+        location_values = tuple(float(value) for value in location)
+        if not all(math.isfinite(value) for value in location_values):
+            raise ValueError("location_in_mesh_m must contain finite coordinates")
+    else:
+        location_values = None
 
     if run_dir.exists():
         shutil.rmtree(run_dir, ignore_errors=True)
@@ -1115,15 +1697,23 @@ def build_mfalign_snappy_case(
 
     tri_dir = run_dir / "constant" / "triSurface"
     tri_dir.mkdir(parents=True, exist_ok=True)
-    stl_target = tri_dir / "Moldflow.stl"
-    if scale == 1.0:
-        shutil.copy2(surface_stl, stl_target)
+    contract_case_patches: dict[str, dict[str, Any]] | None = None
+    if boundary_contract is not None:
+        for existing_surface in tri_dir.glob("*.stl"):
+            existing_surface.unlink()
+        contract_case_patches = _copy_scaled_contract_surfaces(
+            tri_dir, boundary_contract["patches"], scale
+        )
     else:
-        import pyvista as pv
+        stl_target = tri_dir / "Moldflow.stl"
+        if scale == 1.0:
+            shutil.copy2(surface_stl, stl_target)
+        else:
+            import pyvista as pv
 
-        mesh = pv.read(surface_stl)
-        mesh.points *= scale
-        mesh.save(stl_target)
+            mesh = pv.read(surface_stl)
+            mesh.points *= scale
+            mesh.save(stl_target)
 
     margin = float(params.get("background_margin_m", 0.002))
     x_min, x_max = bbox_m["xmin"] - margin, bbox_m["xmax"] + margin
@@ -1153,44 +1743,65 @@ def build_mfalign_snappy_case(
     )
 
     snappy_path = run_dir / "system" / "snappyHexMeshDict"
-    snappy = snappy_path.read_text(encoding="utf-8")
-    snappy = re.sub(
-        r"maxLocalCells\s+\d+;",
-        f"maxLocalCells {int(params.get('max_local_cells', 80000))};",
-        snappy,
-    )
-    snappy = re.sub(
-        r"maxGlobalCells\s+\d+;",
-        f"maxGlobalCells {int(params.get('max_global_cells', 120000))};",
-        snappy,
-    )
     location_source = "template_reference"
-    if location is not None:
-        lx, ly, lz = (float(v) for v in location)
+    if boundary_contract is not None:
+        assert location_values is not None
+        snappy = _contract_snappy_dict(
+            boundary_contract["patches"], params, location_values
+        )
+        (run_dir / "system" / "surfaceFeatureExtractDict").write_text(
+            _contract_surface_feature_dict(boundary_contract["patches"], params),
+            encoding="utf-8",
+        )
+        _write_noop_legacy_patch_dicts(run_dir)
+        location_source = "boundary_contract_params"
+    else:
+        snappy = snappy_path.read_text(encoding="utf-8")
         snappy = re.sub(
-            r"locationInMesh\s+\([^)]*\);",
-            f"locationInMesh ({lx} {ly} {lz});",
+            r"maxLocalCells\s+\d+;",
+            f"maxLocalCells {int(params.get('max_local_cells', 80000))};",
             snappy,
         )
-        location_source = "params"
+        snappy = re.sub(
+            r"maxGlobalCells\s+\d+;",
+            f"maxGlobalCells {int(params.get('max_global_cells', 120000))};",
+            snappy,
+        )
+        if location_values is not None:
+            lx, ly, lz = location_values
+            snappy = re.sub(
+                r"locationInMesh\s+\([^)]*\);",
+                f"locationInMesh ({lx} {ly} {lz});",
+                snappy,
+            )
+            location_source = "params"
     snappy_path.write_text(snappy, encoding="utf-8")
     location_used = re.search(r"locationInMesh\s+\(([^)]*)\)", snappy)
 
     u_path = run_dir / "0" / "U"
-    inlet_velocity = float(params.get("inlet_velocity", 6.51))
-    # Prefer MF-aligned gate_inflow_direction / inlet_velocity_xyz; legacy default -X.
-    try:
-        import moldflow_gate_spec as _gate_spec
+    if boundary_contract is not None:
+        _apply_contract_zero_boundaries(run_dir, boundary_contract["patches"], params)
+        gate_speeds = []
+        for patch in boundary_contract["patches"].values():
+            if patch["role"] == "gate":
+                velocity = _explicit_gate_velocity(params, patch["patch_name"])
+                gate_speeds.append(math.sqrt(sum(component * component for component in velocity)))
+        inlet_velocity = max(gate_speeds)
+    else:
+        inlet_velocity = float(params.get("inlet_velocity", 6.51))
+        # Prefer MF-aligned gate_inflow_direction / inlet_velocity_xyz; legacy default -X.
+        try:
+            import moldflow_gate_spec as _gate_spec
 
-        u_triple = _gate_spec.inlet_velocity_triple(params, speed=inlet_velocity)
-    except Exception:
-        u_triple = f"(-{inlet_velocity} 0 0)"
-    u_text = re.sub(
-        r"(gate\s*\{\s*type fixedValue; value uniform )\([^)]*\)",
-        rf"\g<1>{u_triple}",
-        u_path.read_text(encoding="utf-8"),
-    )
-    u_path.write_text(u_text, encoding="utf-8")
+            u_triple = _gate_spec.inlet_velocity_triple(params, speed=inlet_velocity)
+        except Exception:
+            u_triple = f"(-{inlet_velocity} 0 0)"
+        u_text = re.sub(
+            r"(gate\s*\{\s*type fixedValue; value uniform )\([^)]*\)",
+            rf"\g<1>{u_triple}",
+            u_path.read_text(encoding="utf-8"),
+        )
+        u_path.write_text(u_text, encoding="utf-8")
 
     apply_mfalign_control_overrides(run_dir, params)
 
@@ -1222,14 +1833,52 @@ def build_mfalign_snappy_case(
         )
     tp_path.write_text(tp, encoding="utf-8")
 
+    if boundary_contract is not None:
+        assert contract_case_patches is not None
+        manifest_patches = {
+            f"{role}s": [
+                boundary_contract["patches"][group_name]["patch_name"]
+                for group_name in boundary_contract["roles"][role]
+                if group_name in boundary_contract["patches"]
+            ]
+            for role in BOUNDARY_ROLES
+        }
+        contract_manifest = {
+            "schema": BOUNDARY_CONTRACT_SCHEMA,
+            "status": "PASS",
+            "path": str(boundary_contract["path"]),
+            "sha256": boundary_contract["sha256"],
+            "artifact_path": str(boundary_contract["artifact_path"]),
+            "artifact_sha256": boundary_contract["artifact_sha256"],
+            "model": boundary_contract["model"],
+            "spec": boundary_contract["spec"],
+            "units": boundary_contract["units"],
+            "surface_units_scale_to_m": scale,
+            "topology": boundary_contract["topology"],
+            "roles": boundary_contract["roles"],
+            "patches": contract_case_patches,
+            "legacy_patch_split": "disabled_noop_dictionaries",
+        }
+        surface_manifest: Any = [
+            patch["case_surface_file"] for patch in contract_case_patches.values()
+        ]
+        source_path = boundary_contract["model"]["path"]
+        bbox_source = "boundary_contract_patch_surfaces"
+    else:
+        manifest_patches = {"gates": ["gate"], "vents": ["vent"], "walls": ["moldflow"]}
+        contract_manifest = None
+        surface_manifest = str(surface_stl)
+        source_path = str(surface_stl)
+        bbox_source = "stl"
+
     manifest = {
         "phase": 7,
         "bbox_mm": bbox,
-        "bbox_source": "stl",
+        "bbox_source": bbox_source,
         "mesh_mode": "snappyhexmesh",
         "mesh_info": {
             "template": "mfalign_snappy_v001",
-            "surface_stl": str(surface_stl),
+            "surface_stl": surface_manifest,
             "surface_units_scale_to_m": scale,
             "background_block": [nx, ny, nz],
             "background_margin_m": margin,
@@ -1240,12 +1889,14 @@ def build_mfalign_snappy_case(
         "mesh_nx": nx,
         "mesh_nz": nz,
         "inlet_velocity_m_s": inlet_velocity,
-        "step_path": str(surface_stl),
+        "step_path": source_path,
         "gate_spec_path": str(gate_spec_path),
         "physics_category": params.get("physics_category", "resin_fill_vof"),
         "template_dir": str(template_dir),
-        "patches": {"gates": ["gate"], "vents": ["vent"], "walls": ["moldflow"]},
+        "patches": manifest_patches,
     }
+    if contract_manifest is not None:
+        manifest["boundary_contract"] = contract_manifest
     (run_dir / "cad_manifest.json").write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8"
     )

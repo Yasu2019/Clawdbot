@@ -25,6 +25,11 @@
 - Docker `calculix/ccx:latest` (CalculiX 2.16) で単一C3D4・2段階固有ひずみを実solveし、return code 0、DAT/FRD/STA非空、FRD DISPありを確認した。
 - 第2段階 `E=-0.01` の自由辺長はCalculiX `0.0098994949 m`、Green-Lagrange解析解 `0.0098994949366 m`、軸変位 `-1.005051e-4 m`であり、設定した許容帯をPASSした。
 - 7現象truth gateを追加し、同一geometry/mesh/history ID、実solver証拠、収束性、現象別空間・時系列evidenceをfail-closedで検査できるようにした。
+- BoundaryContractをOpenFOAM case builderへ接続し、モデル/選択spec SHA、全face一意分類、patch STL、面積、role、単位を検査後、snappyHexMesh geometry/features/refinementSurfacesとrole別境界条件を生成するようにした。
+- 実extractorが生成したBoundaryContractからcase builderまでのE2E試験がPASSし、契約未指定の旧経路も互換試験がPASSした。
+- Docker `eperera/elmerfem:latest` (Elmer 8.4) で単一tetraの熱収縮を実solveし、return code 0、`case.result`、VTU、終了マーカ、温度場を確認した。仮想CTE `1e-4/K`、`Delta T=-10 K`の各軸変位は解析解/実測とも `-1e-5 m`。
+- ウエルドラインは単なる中央線/遅延場proxyに加え、actual alpha初到達、internal-face graph、U入射方向、衝突角、T/pを使うpersistent front-collision candidateを実装した。
+- ヒケは変形後表面から剛体移動・回転・一様等方収縮をproper-similarity fitで分離し、局所近傍に対する内向き法線残差をsink depthとして実装した。明示的な内/外面pairがある場合は板厚減少を別フィールドで計算する。
 
 Sources:
 
@@ -67,6 +72,10 @@ Sources:
 - CalculiX固有ひずみPASS条件: C3D4、IP=1、element ID一致、total Green-Lagrange normal strain、stress-free geometry、各step差分。
 - CalculiX実行スモーク: `python scripts/verify_ccx_eigenstrain_smoke.py --output-dir artifacts/ccx_eigenstrain_smoke_root_20260920_1225 --solve --timeout-s 300`。`SOLVED_ANALYTICAL_SMOKE_PASS`。
 - 7現象truth gate単体試験: `python -m pytest tests/test_cae_seven_phenomena_truth_gate.py -q`。`5 passed, 3 subtests passed`。
+- Boundary extractor -> case builder E2E: `python -m pytest tests/test_moldflow_boundary_contract_builder.py -q`。`5 passed`。
+- Elmer実行スモーク: `python scripts/verify_elmer_shrinkage_smoke.py --output artifacts/elmer_shrinkage_smoke_root_20260920_1230 --timeout-s 120`。`NUMERICALLY_COMPLETE_UNCALIBRATED`。
+- ウエルドライン単体試験: 単方向chain 0件、左右合流 180 deg、充填後persistent、初期blob 0件を含む `5 passed`。
+- ヒケ変位場単体試験: 一様収縮でsink 0、剛体移動/回転でsink 0、局所0.20 mm dimpleで0.20 mm、50倍表示で物理量不変、内外面pairの局所板厚減少、FRD最終DISP読込を含む `8 passed`。
 - 本番完了にはactual OpenFOAM full-fill、actual ccx、actual Elmer、収束性、動画目視QAが別途必要。
 
 ## 8. Failure signatures
@@ -77,6 +86,8 @@ Sources:
 - `target_entity` mismatch: nodeとelement IDの混同。
 - `Object of type bool is not JSON serializable` かつ実型が `numpy.bool_`: JSON前の標準型変換漏れ。
 - `WinError 5` at shared pytest cleanup: 共有basetemp競合。個別 `--basetemp` で再実行する。
+- ウエルドライン初期実装で同時到達したゲート初期blobを前騆セルと誤認し得た。根本原因はpredecessor lag=0を許容したこと。対策は「前騆セルは衝突セルより厳密に早く到達」を必須とし、同時初期blob非検出試験を追加した。
+- Elmer初回実行はsolver自体が成功したが、`Mesh DB "." "mesh"` の出力をcase rootのみで探索しHOLDと誤判定した。対策はcase配下のresult/VTUを再帰探索し、相対pathとSHAをmanifestに固定すること。
 
 ## 9. Recovery / rollback
 
@@ -92,6 +103,7 @@ Sources:
 - eigenstrain pathの物理温度はelement CSV監査保持であり、nodal temperatureとの同時適用は未完了。
 - pressure face load、内外面方向、fixture release、Elmer同一履歴solveは本番証拠が未完了。
 - sink、airtrap、weldline、voidの既存多くはproxy/candidate/reduced physicsであり、production defect predictionではない。
+- sinkはsolver変位からのfield-derived計算まで進んだが、任意形状の局所近傍・内外面pair生成と実測校正がない場合はHOLD。ウエルドラインは衝突位置candidateであり強度予測ではない。
 - 実測PVT/Cross-WLF/CTE未校正のため、完走しても `UNCALIBRATED_SCREENING` とする。
 
 ## 11. Next experiment
@@ -100,7 +112,7 @@ Sources:
 2. BoundaryContract patch STLをsnappyHexMesh builderへ接続し、生成後のpatch face数・面積を契約と照合する。
 3. 同一geometry/history IDを要求する7現象truth gateを通し、不足項目を機械的に次の実装対象へする。
 
-進捗: 1と3の実装・単体検証は完了。2のOpenFOAM case builder接続とElmer独立solveを実行中。
+進捗: 1〜3の実装・単体/E2Eスモークは完了。次は実製品メッシュでのsnappy後patch面積照合、同一OpenFOAM履歴のCalculiX/Elmer両方への全体写像、ヒケ/ボイド/エアートラップの直接場検証。
 
 ## 12. Provenance
 
@@ -109,6 +121,8 @@ Sources:
 - Commits: `eb846de579`, `e6b434ec59` (本追記時点の追加実装は未commit)
 - Primary files: `scripts/run_openfoam_production_history.py`, `scripts/cae_multiphysics_contract.py`, `scripts/extract_arbitrary_model_boundaries.py`, `scripts/build_ccx_continuous_reanalysis_deck.py`, `scripts/cae_multiphysics_readiness_gate.py`
 - Added verification: `scripts/verify_ccx_eigenstrain_smoke.py`, `scripts/cae_seven_phenomena_truth_gate.py`
+- Added field derivation: `scripts/derive_weldline_front_collision.py`, `scripts/derive_sink_from_displacement.py`
 - CalculiX evidence: `artifacts/ccx_eigenstrain_smoke_root_20260920_1225/ccx_eigenstrain_smoke_report.json`
+- Elmer evidence: `artifacts/elmer_shrinkage_smoke_root_20260920_1230/elmer_shrinkage_smoke_manifest.json`
 - Graphify: existing graph queried for arbitrary geometry, fill, warpage, shrinkage, sink, void, airtrap, weldline dependencies
 - External references: CalculiX official/manual mirrors listed above
