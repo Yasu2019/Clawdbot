@@ -45,6 +45,29 @@ TAG_BLANK = [1, 2, 3, 4, 5]
 TAG_DIE = [6, 7]
 TAG_STRIPPER = [8, 9]
 TAG_PUNCH = [10, 11, 12, 13]
+
+# 抜き順番の一般化: 各パンチグループの既定zmin[mm](小さいほど先に材料へ接触)。
+# swap_rect_trim_orderは矩形<->トリムの2要素入替専用だが、punch_orderは
+# 矩形・トリム・丸の3!=6通り全ての順序を指定できる(丸も含めて入替可能)。
+PUNCH_GROUP_TAGS = {"rect": (10, 11), "trim": (12,), "round": (13,)}
+PUNCH_BASE_ZMIN_MM = {"rect": 1.8, "trim": 2.4, "round": 3.0}
+PUNCH_ORDER_SLOTS_MM = [1.8, 2.4, 3.0]  # 1番目に接触する位置から順
+
+
+def compute_punch_z_offsets(punch_order: str) -> dict:
+    """"round,trim,rect" のような順列文字列から、各パンチタグのZ方向オフセット
+    {tag: dz_mm} を計算する(z_offsets_mmとしてmesh_group()にそのまま渡せる)。
+    """
+    names = [s.strip() for s in punch_order.split(",")]
+    if sorted(names) != sorted(PUNCH_GROUP_TAGS):
+        raise ValueError(f"punch_order must be a permutation of "
+                          f"{sorted(PUNCH_GROUP_TAGS)}, got: {names}")
+    offsets = {}
+    for slot_zmin, name in zip(PUNCH_ORDER_SLOTS_MM, names):
+        dz = slot_zmin - PUNCH_BASE_ZMIN_MM[name]
+        for tag in PUNCH_GROUP_TAGS[name]:
+            offsets[tag] = dz
+    return offsets
 HOLE_CENTER = (185.657, -1882.188)   # 丸穴中心 [mm]
 HOLE_R = 0.28                        # φ0.56 (公称値。パンチ寸法の参照用)
 # 2026-09-03発覚: STEPの実際の穴境界はHOLE_R(280um)よりr≈300umまで外側に
@@ -358,7 +381,8 @@ def build(tag: str, blank_elem: float, tool_elem: float, stroke: float,
           add_cockcroft: bool = False, cockcroft_c0: float = DEFAULT_COCKCROFT_C0,
           die_hole_r_mm: float | None = None,
           swap_rect_trim_order: bool = False,
-          fillet_elem: float = DEFAULT_FILLET_ELEM):
+          fillet_elem: float = DEFAULT_FILLET_ELEM,
+          punch_order: str | None = None):
     ref_txt = REF_STARTER.read_text(encoding="utf-8", errors="replace")
     ref = {
         "mat_blank": extract_block(ref_txt, r"^/MAT/LAW2/2\b"),
@@ -410,7 +434,11 @@ def build(tag: str, blank_elem: float, tool_elem: float, stroke: float,
         print(f"[mesh] {name} をメッシュ中...")
         dhr = die_hole_r_mm if name == "Die" else None
         zoff = None
-        if name == "Punch" and swap_rect_trim_order:
+        if name == "Punch" and punch_order:
+            # 汎用抜き順番: 矩形・トリム・丸の3!=6通り全てを指定できる
+            # (丸パンチのタイミングも入替可能、swap_rect_trim_orderの上位互換)。
+            zoff = compute_punch_z_offsets(punch_order)
+        elif name == "Punch" and swap_rect_trim_order:
             # 矩形(tag10,11 zmin=1.8mm)とトリム(tag12 zmin=2.4mm)の接触順を
             # 入れ替える。丸(tag13 zmin=3.0mm)は不変。段差0.6mmを維持したまま
             # 矩形を+0.6mm(→2.4mm)・トリムを-0.6mm(→1.8mm)平行移動する。
@@ -588,7 +616,12 @@ def main() -> int:
                          "クリアランス[um]=(この値-0.280)*1000）")
     ap.add_argument("--swap-rect-trim-order", action="store_true",
                     help="矩形とトリムの接触順を入れ替える（抜き順番検証用。"
-                         "既定は矩形→トリム→丸。有効化するとトリム→矩形→丸）")
+                         "既定は矩形→トリム→丸。有効化するとトリム→矩形→丸。"
+                         "--punch-orderが指定された場合はこちらが優先される）")
+    ap.add_argument("--punch-order", type=str, default=None,
+                    help="矩形・トリム・丸の接触順を任意に指定する（カンマ区切り、"
+                         "例: 'round,trim,rect'。3!=6通り全ての順列に対応。"
+                         "swap-rect-trim-orderの上位互換で、指定時はこちらが優先")
     ap.add_argument("--fillet-elem", type=float, default=DEFAULT_FILLET_ELEM,
                     help="トリムフィレット(H4)局所細分化サイズ[m]（既定25um。"
                          "メッシュ収束確認用に50um/12.5um等へ変更可能）")
@@ -596,7 +629,7 @@ def main() -> int:
     build(a.tag, a.blank_elem, a.tool_elem, a.stroke, a.speed,
           a.gap_max, a.stfac, a.nstep, a.round_elem, a.eps_s, a.eps_eff,
           a.refine_other_hotspots, a.add_cockcroft, a.cockcroft_c0,
-          a.die_hole_r, a.swap_rect_trim_order, a.fillet_elem)
+          a.die_hole_r, a.swap_rect_trim_order, a.fillet_elem, a.punch_order)
     return 0
 
 
