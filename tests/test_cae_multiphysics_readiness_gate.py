@@ -1,3 +1,10 @@
+import sys
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 import importlib.util
 import json
 from pathlib import Path
@@ -116,11 +123,27 @@ def test_readiness_gate_accepts_ready_contract_inputs(tmp_path):
     boundary.write_text(
         json.dumps(
             {
-                "selection_mode": "mesh_groups",
-                "roles": {
-                    "gate": {"face_groups": ["gateA"]},
-                    "vent": {"face_groups": ["ventA"]},
-                    "wall": {"face_groups": ["wall"]},
+                "schema": "clawstack.arbitrary.boundary.groups.v1",
+                "status": "PASS",
+                "model": {"sha256": "model-digest"},
+                "spec": {"sha256": "spec-digest"},
+                "surface_topology": {
+                    "checks": {
+                        "watertight": True,
+                        "manifold": True,
+                        "orientation_consistent": True,
+                        "nonzero_enclosed_volume": True,
+                    }
+                },
+                "groups": {"gate_main": [1], "vent_main": [2], "outer_wall": [3, 4]},
+                "roles": {"gate": ["gate_main"], "vent": ["vent_main"], "hole": [], "wall": ["outer_wall"]},
+                "openfoam_artifacts": {
+                    "status": "PASS",
+                    "patches": {
+                        "gate_main": {"surface_file": "gate_main.stl"},
+                        "vent_main": {"surface_file": "vent_main.stl"},
+                        "outer_wall": {"surface_file": "outer_wall.stl"},
+                    },
                 },
             }
         ),
@@ -148,7 +171,20 @@ def test_readiness_gate_accepts_ready_contract_inputs(tmp_path):
     assert report["stages"]["openfoam_to_calculix_elmer_conservative_transfer"]["status"] == "TRANSFER_INPUT_READY"
     assert report["stages"]["calculix_elmer_wait_and_smoke_inputs"]["status"] == "DOWNSTREAM_INPUT_READY"
     assert report["stages"]["video_visual_qa_report_pipeline"]["status"] == "VIDEO_QA_READY"
-    assert report["stages"]["arbitrary_3d_boundary_generalization"]["status"] == "BOUNDARY_GENERALIZED"
+    assert report["stages"]["arbitrary_3d_boundary_generalization"]["status"] == "BOUNDARY_CONTRACT_READY"
+
+
+def test_boundary_gate_rejects_declarative_patch_names_without_geometry_evidence():
+    result = M.check_boundary_generalization({
+        "selection_mode": "mesh_groups",
+        "roles": {
+            "gate": {"face_groups": ["gateA"]},
+            "vent": {"face_groups": ["ventA"]},
+            "wall": {"face_groups": ["wall"]},
+        },
+    })
+    assert result["status"] == "HOLD"
+    assert "not geometry evidence" in result["note"]
 
 
 def test_video_gate_rejects_global_flags_when_individual_video_is_static():

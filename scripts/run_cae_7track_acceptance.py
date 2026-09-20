@@ -1,10 +1,16 @@
 """Run the seven-track CAE regression gate and emit an auditable JSON report."""
 from __future__ import annotations
 
+import sys
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 import argparse
 import json
 import subprocess
-import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -15,6 +21,7 @@ TRACKS = {
         "tests/test_cross_wlf_reference.py",
         "tests/test_cross_wlf_openfoam2512_reference.py",
         "tests/test_molding_physics_models.py",
+        "tests/test_openfoam_production_history_runner.py",
     ],
     "resume_and_failure": [
         "tests/test_summarize_openfoam_log_progress.py",
@@ -25,13 +32,19 @@ TRACKS = {
         "tests/test_openfoam_ccx_history.py",
         "tests/test_coarse_voxel_exact_transfer.py",
         "tests/test_export_elmer_history_case.py",
+        "tests/test_run_multiphysics_coupling_package.py",
     ],
     "six_defects": [
         "tests/test_airtrap_connectivity.py",
         "tests/test_void_bubble_dynamics.py",
         "tests/test_validate_void_full_coupling_gate.py",
+        "tests/test_openfoam_weldline_kpi_wrapper.py",
+        "tests/test_generate_shrinkage_field.py",
     ],
-    "arbitrary_3d": ["tests/test_arbitrary_model_boundaries.py"],
+    "arbitrary_3d": [
+        "tests/test_arbitrary_model_boundaries.py",
+        "tests/test_cae_multiphysics_readiness_gate.py",
+    ],
     "verification": [
         "tests/test_compare_packing_resolution.py",
         "tests/test_ccx_pressure_orientation_benchmark.py",
@@ -80,6 +93,8 @@ def main() -> int:
         "total_tracks": len(results),
         "tracks": results,
         "interpretation": "A PASS proves regression-gate behavior, not measured-material validation or production accuracy.",
+        "claim_level": "CODE_REGRESSION_ONLY",
+        "production_promotion_allowed": False,
     }
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")

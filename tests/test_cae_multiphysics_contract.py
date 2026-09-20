@@ -1,3 +1,11 @@
+import sys
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
+import hashlib
 import importlib.util
 import json
 from pathlib import Path
@@ -43,6 +51,24 @@ def test_snapshot_reads_all_five_fields(tmp_path):
     assert result["cell_count"] == 2 and set(result["fields"]) == {"T", "p", "alpha", "U", "rho"}
 
 
+def test_snapshot_normalizes_alpha_polymer_and_records_actual_source(tmp_path):
+    snap_dir = make_snapshot(tmp_path)
+    (snap_dir / "alpha").rename(snap_dir / "alpha.polymer")
+    result = M.read_openfoam_snapshot(snap_dir)
+    assert np.allclose(result["fields"]["alpha"], [0.2, 1.0])
+    assert result["source_fields"]["alpha"] == "alpha.polymer"
+    assert "alpha.polymer" in result["source_sha256"]
+    assert "alpha" not in result["source_sha256"]
+
+
+def test_snapshot_prefers_alpha_when_both_aliases_exist(tmp_path):
+    snap_dir = make_snapshot(tmp_path)
+    field(snap_dir / "alpha.polymer", "0 0 0 0 0 0 0", "0.9\n0.9")
+    result = M.read_openfoam_snapshot(snap_dir)
+    assert np.allclose(result["fields"]["alpha"], [0.2, 1.0])
+    assert result["source_fields"]["alpha"] == "alpha"
+
+
 def test_history_reads_numeric_times_in_order(tmp_path):
     case = make_case(tmp_path)
     result = M.read_openfoam_history(case)
@@ -50,6 +76,16 @@ def test_history_reads_numeric_times_in_order(tmp_path):
     assert result["time_s"] == [0.0, 0.5]
     assert result["cell_count"] == 2
     assert "0.5/T" in result["source_sha256"]
+
+
+def test_history_accepts_alpha_polymer_and_preserves_source_name(tmp_path):
+    case = make_case(tmp_path)
+    for time_name in ("0", "0.5"):
+        (case / time_name / "alpha").rename(case / time_name / "alpha.polymer")
+    result = M.read_openfoam_history(case)
+    assert result["fields"] == ["T", "p", "alpha", "U", "rho"]
+    assert result["source_fields"]["0.5/alpha"] == "alpha.polymer"
+    assert "0.5/alpha.polymer" in result["source_sha256"]
 
 
 def test_history_rejects_incomplete_time_directory(tmp_path):
@@ -126,20 +162,80 @@ def test_direct_same_mesh_history_preserves_values_without_dense_weights(tmp_pat
     assert np.allclose(package["frames"][1]["values"], [400.0, 410.0])
 
 
+def eigenstrain_history(history):
+    result = M.direct_same_mesh_history(history, "alpha")
+    result["field"] = "eigenstrain"
+    for index, frame in enumerate(result["frames"], start=1):
+        frame["values"] = np.asarray([-1e-3 * index, -2e-3 * index])
+    return result
+
+
+def eigen_reference_state():
+    return {
+        "stress_free_temperature_K": 350.0,
+        "shrinkage_counting": "eigenstrain_only",
+        "eigenstrain_frame_semantics": "total_from_stress_free",
+        "strain_measure": "green_lagrange",
+        "reference_configuration": "stress_free_geometry",
+        "eigenstrain_value_kind": "isotropic_normal_component",
+    }
+
+
 def test_calculix_history_package_requires_matching_conservative_histories(tmp_path):
     case = make_case(tmp_path)
     history = M.read_openfoam_history(case)
     temperature = M.conservative_transfer_history(history, "T", [2.0, 1.0], np.asarray([[2.0, 0.0], [0.0, 1.0]]))
     pressure = M.conservative_transfer_history(history, "p", [2.0, 1.0], np.asarray([[2.0, 0.0], [0.0, 1.0]]))
+    eigenstrain = eigenstrain_history(history)
     package = M.build_calculix_history_package(
         temperature=temperature,
         pressure=pressure,
-        reference_state={"stress_free_temperature_K": 350.0, "shrinkage_counting": "eigenstrain_only"},
+        eigenstrain=eigenstrain,
+        reference_state=eigen_reference_state(),
         constraints={"hold": ["gate"], "release_time_s": 0.5},
     )
     assert package["schema"] == "clawstack.calculix.history.package.v1"
     assert package["status"] == "INPUT_READY"
     assert package["checks"]["shrinkage_double_counting_guard"] == "eigenstrain_only"
+
+
+def test_calculix_history_package_requires_eigenstrain_for_eigenstrain_only(tmp_path):
+    case = make_case(tmp_path)
+    history = M.read_openfoam_history(case)
+    temperature = M.direct_same_mesh_history(history, "T")
+    pressure = M.direct_same_mesh_history(history, "p")
+    with pytest.raises(ValueError, match="eigenstrain history is required"):
+        M.build_calculix_history_package(
+            temperature=temperature,
+            pressure=pressure,
+            reference_state={"stress_free_temperature_K": 350.0, "shrinkage_counting": "eigenstrain_only"},
+        )
+
+
+def test_calculix_history_package_rejects_eigenstrain_for_cte_only(tmp_path):
+    case = make_case(tmp_path)
+    history = M.read_openfoam_history(case)
+    with pytest.raises(ValueError, match="eigenstrain history is forbidden"):
+        M.build_calculix_history_package(
+            temperature=M.direct_same_mesh_history(history, "T"),
+            pressure=M.direct_same_mesh_history(history, "p"),
+            eigenstrain=eigenstrain_history(history),
+            reference_state={"stress_free_temperature_K": 350.0, "shrinkage_counting": "cte_only"},
+        )
+
+
+@pytest.mark.parametrize("metadata_key", ["time_s", "target_count"])
+def test_calculix_history_package_rejects_mismatched_eigenstrain_metadata(tmp_path, metadata_key):
+    history = M.read_openfoam_history(make_case(tmp_path))
+    eigenstrain = eigenstrain_history(history)
+    eigenstrain[metadata_key] = [0.0] if metadata_key == "time_s" else 1
+    with pytest.raises(ValueError, match="share nonempty times|share positive target_count"):
+        M.build_calculix_history_package(
+            temperature=M.direct_same_mesh_history(history, "T"),
+            pressure=M.direct_same_mesh_history(history, "p"),
+            eigenstrain=eigenstrain,
+            reference_state=eigen_reference_state(),
+        )
 
 
 def test_calculix_history_package_rejects_time_mismatch(tmp_path):
@@ -152,7 +248,7 @@ def test_calculix_history_package_rejects_time_mismatch(tmp_path):
         M.build_calculix_history_package(
             temperature=temperature,
             pressure=pressure,
-            reference_state={"stress_free_temperature_K": 350.0, "shrinkage_counting": "eigenstrain_only"},
+            reference_state={"stress_free_temperature_K": 350.0, "shrinkage_counting": "cte_only"},
         )
 
 
@@ -173,37 +269,134 @@ def complete_package(tmp_path):
     return M.build_calculix_history_package(
         temperature=temperature,
         pressure=pressure,
-        reference_state={"stress_free_temperature_K": 350.0, "shrinkage_counting": "eigenstrain_only"},
+        eigenstrain=eigenstrain_history(history),
+        reference_state=eigen_reference_state(),
     )
 
 
-def test_openfoam_run_manifest_gate_requires_real_completion():
-    result = M.validate_openfoam_run_manifest({
+def complete_openfoam_manifest():
+    source_sha256 = {
+        f"{time_name}/{field_name}": hashlib.sha256(f"{time_name}/{field_name}".encode("ascii")).hexdigest()
+        for time_name in ("0", "0.5")
+        for field_name in ("T", "p", "alpha.polymer", "U", "rho")
+    }
+    history_fingerprint = hashlib.sha256(
+        json.dumps(source_sha256, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    ).hexdigest()
+    return {
+        "schema": "clawstack.openfoam.production.history.v1",
         "status": "COMPLETED",
+        "solver": "compressibleVoF",
+        "case_dir": "case",
         "nonisothermal": True,
         "compressible": True,
         "venting": True,
+        "source_kind": "raw_openfoam_solver_history",
+        "synthetic": False,
+        "proxy": False,
         "fields": ["T", "p", "alpha", "U", "rho"],
-        "alpha_min": 0.0,
+        "time_s": [0.0, 0.5],
+        "history_time_count": 2,
+        "alpha_min": 0.99,
         "alpha_max": 1.0,
+        "alpha_mean_final": 0.995,
+        "final_alpha_mean_min": 0.99,
+        "filled_cell_alpha_min": 0.99,
+        "filled_cell_fraction_final": 1.0,
+        "filled_cell_fraction_min": 0.99,
         "mass_balance_relative_error": 1e-5,
-        "energy_balance_relative_error": 1e-5,
-    })
+        "mass_balance_tolerance": 1e-3,
+        "energy_balance_relative_error": 2e-5,
+        "energy_balance_tolerance": 1e-3,
+        "solver_execution_evidence": {
+            "path": "log.compressibleVoF",
+            "sha256": "a" * 64,
+            "returncode": None,
+            "end_marker": True,
+            "fatal_markers": [],
+            "completed": True,
+        },
+        "balance_audit": {
+            "source": "postprocess_integral",
+            "source_path": "balance.json",
+            "source_sha256": "b" * 64,
+            "mass_balance_relative_error": 1e-5,
+            "energy_balance_relative_error": 2e-5,
+        },
+        "mesh_fingerprint_sha256": "c" * 64,
+        "mesh_fingerprint_files": ["points", "faces", "owner", "neighbour", "boundary"],
+        "history_fingerprint_sha256": history_fingerprint,
+        "history_source_sha256": source_sha256,
+    }
+
+
+def test_openfoam_run_manifest_gate_requires_real_completion():
+    result = M.validate_openfoam_run_manifest(complete_openfoam_manifest())
     assert result["status"] == "PASS"
     hold = M.validate_openfoam_run_manifest({"status": "COMPLETED", "fields": ["alpha"]})
     assert hold["status"] == "HOLD"
     assert hold["checks"]["nonisothermal"] is False
 
 
+@pytest.mark.parametrize(
+    ("field_name", "bad_value", "failed_check"),
+    [
+        ("synthetic", True, "not_synthetic"),
+        ("proxy", True, "not_proxy"),
+        ("time_s", [0.5], "raw_multi_time_history"),
+        ("alpha_mean_final", 0.98, "full_fill_alpha_mean"),
+        ("filled_cell_fraction_final", 0.98, "filled_cell_fraction"),
+        ("history_fingerprint_sha256", "d" * 64, "history_fingerprint"),
+        ("mesh_fingerprint_sha256", None, "mesh_fingerprint"),
+    ],
+)
+def test_openfoam_run_manifest_gate_fails_closed_on_missing_authenticity(field_name, bad_value, failed_check):
+    manifest = complete_openfoam_manifest()
+    manifest[field_name] = bad_value
+    result = M.validate_openfoam_run_manifest(manifest)
+    assert result["status"] == "HOLD"
+    assert result["checks"][failed_check] is False
+
+
+def test_openfoam_run_manifest_gate_requires_solver_log_and_solver_balance_source():
+    manifest = complete_openfoam_manifest()
+    manifest["solver_execution_evidence"]["end_marker"] = False
+    manifest["balance_audit"]["source"] = "declared_cli_unverified"
+    result = M.validate_openfoam_run_manifest(manifest)
+    assert result["status"] == "HOLD"
+    assert result["checks"]["solver_log_completion"] is False
+    assert result["checks"]["balance_audit_source"] is False
+
+
 def test_write_calculix_history_deck_outputs_includes(tmp_path):
     package = complete_package(tmp_path)
-    manifest = M.write_calculix_history_deck(tmp_path / "ccx", package, [10, 20])
+    manifest = M.write_calculix_history_deck(
+        tmp_path / "ccx",
+        package,
+        element_ids=[10, 20],
+        element_integration_points={10: 1, 20: 1},
+    )
     assert manifest["status"] == "WRITTEN_NOT_SOLVED"
-    assert (tmp_path / "ccx" / "temperature_0000.inc").read_text().startswith("** OpenFOAM")
-    assert "10, 1.268500000000e+02" in (tmp_path / "ccx" / "temperature_0000.inc").read_text()
+    assert "10,4.000000000000e+02" in (tmp_path / "ccx" / "temperature_element_0000.csv").read_text()
     assert "20,9.000000000000e+04" in (tmp_path / "ccx" / "pressure_0000.csv").read_text()
+    assert "20,-2.000000000000e-03" in (tmp_path / "ccx" / "eigenstrain_0000.csv").read_text()
+    assert manifest["target_entity"] == "element"
+    assert manifest["element_integration_points"] == {"10": 1, "20": 1}
     with pytest.raises(FileExistsError):
-        M.write_calculix_history_deck(tmp_path / "ccx", package, [10, 20])
+        M.write_calculix_history_deck(
+            tmp_path / "ccx",
+            package,
+            element_ids=[10, 20],
+            element_integration_points={10: 1, 20: 1},
+        )
+
+
+def test_write_calculix_history_deck_rejects_ambiguous_eigenstrain_targets(tmp_path):
+    package = complete_package(tmp_path)
+    with pytest.raises(ValueError, match="explicit element_ids"):
+        M.write_calculix_history_deck(tmp_path / "ambiguous", package, [10, 20])
+    with pytest.raises(ValueError, match="element_integration_points"):
+        M.write_calculix_history_deck(tmp_path / "no_ip_map", package, element_ids=[10, 20])
 
 
 def test_elmer_comparison_package_uses_same_history(tmp_path):

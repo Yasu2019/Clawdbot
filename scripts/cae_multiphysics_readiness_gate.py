@@ -6,9 +6,15 @@ without waiting for a long Vivobook OpenFOAM run to finish.
 """
 from __future__ import annotations
 
+import sys
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 import argparse
 import json
-import sys
 from pathlib import Path
 from typing import Any
 
@@ -239,6 +245,38 @@ def check_video_pipeline(video_manifest: dict[str, Any]) -> dict[str, Any]:
 
 
 def check_boundary_generalization(boundary_config: dict[str, Any]) -> dict[str, Any]:
+    if boundary_config.get("schema") == "clawstack.arbitrary.boundary.groups.v1":
+        topology_checks = boundary_config.get("surface_topology", {}).get("checks", {})
+        groups = boundary_config.get("groups", {})
+        roles = boundary_config.get("roles", {})
+        patches = boundary_config.get("openfoam_artifacts", {}).get("patches", {})
+        gate_groups = [name for name in roles.get("gate", ()) if groups.get(name)]
+        vent_groups = [name for name in roles.get("vent", ()) if groups.get(name)]
+        wall_groups = [name for name in roles.get("wall", ()) if groups.get(name)]
+        if not roles:
+            gate_groups = [name for name, ids in groups.items() if name.startswith("gate") and ids]
+            vent_groups = [name for name, ids in groups.items() if name.startswith("vent") and ids]
+            wall_groups = [name for name, ids in groups.items() if name.endswith("wall") and ids]
+        contract_checks = {
+            "extractor_pass": boundary_config.get("status") == "PASS",
+            "watertight": topology_checks.get("watertight") is True,
+            "manifold": topology_checks.get("manifold") is True,
+            "orientation_consistent": topology_checks.get("orientation_consistent") is True,
+            "nonzero_enclosed_volume": topology_checks.get("nonzero_enclosed_volume") is True,
+            "model_fingerprint": bool(boundary_config.get("model", {}).get("sha256")),
+            "spec_fingerprint": bool(boundary_config.get("spec", {}).get("sha256")),
+            "gate_nonempty": bool(gate_groups),
+            "vent_nonempty": bool(vent_groups),
+            "wall_nonempty": bool(wall_groups),
+            "patch_artifacts_complete": all(name in patches for name in gate_groups + vent_groups + wall_groups),
+        }
+        return {
+            "status": _status(all(contract_checks.values()), "BOUNDARY_CONTRACT_READY"),
+            "contract_checks": contract_checks,
+            "groups": {"gate": gate_groups, "vent": vent_groups, "wall": wall_groups},
+            "note": "Patch face count and area still require post-mesh reconciliation before solver promotion.",
+        }
+
     roles = boundary_config.get("roles", {}) if boundary_config else {}
     role_checks = {role: bool(roles.get(role)) for role in REQUIRED_BOUNDARY_ROLES}
     gate = roles.get("gate", {})
@@ -249,9 +287,10 @@ def check_boundary_generalization(boundary_config: dict[str, Any]) -> dict[str, 
         "coordinate_free": boundary_config.get("selection_mode") in {"mesh_groups", "patch_names", "feature_tags"},
     }
     return {
-        "status": _status(all(role_checks.values()) and all(shape_checks.values()), "BOUNDARY_GENERALIZED"),
+        "status": "HOLD",
         "role_checks": role_checks,
         "shape_checks": shape_checks,
+        "note": "A declarative role list is not geometry evidence; provide a validated BoundaryContract manifest.",
     }
 
 
