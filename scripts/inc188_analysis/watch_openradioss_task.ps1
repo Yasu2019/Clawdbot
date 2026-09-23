@@ -51,7 +51,12 @@ $newState = @{}
 $alerts = @()
 
 foreach ($t in $Tags) {
+  # After a restart the engine writes engine_run<tag>_r<N>.log; follow the newest run's log.
   $f = Join-Path $WorkDir ("engine_run" + $t + ".log")
+  $newest = @(Get-ChildItem -LiteralPath $WorkDir -Filter ("engine_run" + $t + "*.log") -ErrorAction SilentlyContinue |
+              Where-Object { $_.Name -match ("^engine_run" + $t + "(_r\d+)?\.log$") } |
+              Sort-Object LastWriteTime -Descending | Select-Object -First 1)
+  if ($newest.Count -gt 0) { $f = $newest[0].FullName }
   $old = $prev[$t]
   $oldState = "NONE"; $oldStale = 0
   if ($old) { $oldState = $old.state; $oldStale = $old.stale }
