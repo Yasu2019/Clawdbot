@@ -15,7 +15,7 @@ param(
   [string]$DestRoot = "F:\clawstack_data\inc188\rst_snapshots",
   [string]$StateFile = "D:\Clawdbot_Docker_20260125\data\workspace\openradioss_rst_snapshot_state.txt",
   [string]$LogFile  = "D:\Clawdbot_Docker_20260125\data\workspace\openradioss_rst_snapshot_log.txt",
-  [string[]]$Tags   = @("P1r13","P1r14","P1r15","P1r16"),
+  [string[]]$Tags   = @("P1r17"),
   [int]$StableSec   = 180,
   [int]$Keep        = 2,
   [double]$MinFreeGB = 40
@@ -34,8 +34,14 @@ if (Test-Path -LiteralPath $StateFile) {
 $driveLetter = $DestRoot.Substring(0,1)
 foreach ($t in $Tags) {
   try {
-    $src = Join-Path $WorkDir ("PANEL4MM_" + $t + "_0001_0001.rst")
-    if (-not (Test-Path -LiteralPath $src)) { continue }
+    # Run N writes PANEL4MM_<tag>_<N:04d>_0001.rst (run 1 = _0001_0001, after a restart _0002_0001 ...).
+    # Snapshot the newest engine run; _0000_ is the starter restart and is never overwritten.
+    $cand = @(Get-ChildItem -LiteralPath $WorkDir -Filter ("PANEL4MM_" + $t + "_*_0001.rst") -ErrorAction SilentlyContinue |
+              Where-Object { $_.Name -match ("^PANEL4MM_" + $t + "_(\d{4})_0001\.rst$") -and $Matches[1] -ne "0000" } |
+              Sort-Object Name -Descending | Select-Object -First 1)
+    if ($cand.Count -eq 0) { continue }
+    $src = $cand[0].FullName
+    $runId = $cand[0].Name.Substring(("PANEL4MM_" + $t + "_").Length, 4)
     $fi = Get-Item -LiteralPath $src
     $age = ((Get-Date) - $fi.LastWriteTime).TotalSeconds
     if ($age -lt $StableSec) { continue }                                  # maybe being written
@@ -47,7 +53,7 @@ foreach ($t in $Tags) {
 
     $dir = Join-Path $DestRoot $t
     New-Item -ItemType Directory -Force -Path $dir | Out-Null
-    $name = "PANEL4MM_" + $t + "_0001_0001_" + $fi.LastWriteTime.ToString("yyyyMMdd_HHmm") + ".rst"
+    $name = "PANEL4MM_" + $t + "_" + $runId + "_0001_" + $fi.LastWriteTime.ToString("yyyyMMdd_HHmm") + ".rst"
     $part = Join-Path $dir ($name + ".part")
     $final = Join-Path $dir $name
     $size0 = $fi.Length

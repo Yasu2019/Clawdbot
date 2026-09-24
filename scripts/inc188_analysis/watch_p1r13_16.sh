@@ -7,7 +7,7 @@ declare -A stalecnt
 POLL=${POLL:-60}
 while true; do
   now=$(date +%s)
-  for t in P1r13 P1r14 P1r15 P1r16; do
+  for t in ${TAGS:-P1r17}; do
     # after a restart the engine writes engine_run<TAG>_r<N>.log: follow the newest log, not the original
     f=$(ls -t "$WORKDIR"/engine_run${t}.log "$WORKDIR"/engine_run${t}_r*.log 2>/dev/null | head -1)
     [ -z "$f" ] && f="$WORKDIR/engine_run${t}.log"

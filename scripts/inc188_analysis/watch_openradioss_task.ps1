@@ -11,11 +11,15 @@ param(
   [string]$StateFile = "D:\Clawdbot_Docker_20260125\data\workspace\openradioss_watch_state.txt",
   [string]$AlarmFile = "D:\Clawdbot_Docker_20260125\data\workspace\ALARM_openradioss_p1r13_16.txt",
   [string]$EnvFile   = "D:\Clawdbot_Docker_20260125\.env",
-  [string[]]$Tags    = @("P1r13","P1r14","P1r15","P1r16"),
+  [string[]]$Tags    = @("P1r17"),   # P1r13-16 finished 2026-09-24; P1r17 = round-punch penetration run (stroke 4mm)
   [int]$StaleSec     = 600,
   [string]$DiskDrive = "D",
   [double]$DiskMinGB = 10,
-  [switch]$NoTelegram
+  [switch]$NoTelegram,
+  [switch]$NoAutoResume,
+  [string]$Container = "clawstack-unified-openradioss-1",
+  [int]$ResumeCooldownMin = 120,
+  [string]$ResumeLogFile = "D:\Clawdbot_Docker_20260125\data\workspace\openradioss_autoresume_state.txt"
 )
 
 $ErrorActionPreference = "Stop"
@@ -44,6 +48,11 @@ if (Test-Path -LiteralPath $StateFile) {
     $p = $ln.Split("|")
     if ($p.Count -ge 3) { $prev[$p[0]] = @{ state = $p[1]; stale = [int]$p[2] } }
   }
+}
+
+$resumeLog = @{}   # lines "TAG|yyyy-MM-dd HH:mm:ss" of the last auto-resume attempt
+if (Test-Path -LiteralPath $ResumeLogFile) {
+  foreach ($ln in Get-Content -LiteralPath $ResumeLogFile) { $p = $ln.Split("|"); if ($p.Count -ge 2) { $resumeLog[$p[0]] = $p[1] } }
 }
 
 $now = Get-Date
@@ -88,6 +97,29 @@ foreach ($t in $Tags) {
     }
   }
 
+  # ---- auto-resume a confirmed STALE engine (2026-09-23: a Windows sign-out killed all 4 and
+  #      nothing restarted them). openradioss_restart_prep.sh refuses if an engine for the tag is
+  #      alive and aborts on a missing/truncated restart file, so calling it is safe. At most one
+  #      attempt per tag per $ResumeCooldownMin so a deck that dies on start cannot loop.
+  if ($state -eq "STALE" -and -not $NoAutoResume) {
+    $last = $null
+    if ($resumeLog[$t]) { $last = [datetime]::ParseExact($resumeLog[$t], "yyyy-MM-dd HH:mm:ss", $null) }
+    if (-not $last -or ($now - $last).TotalMinutes -ge $ResumeCooldownMin) {
+      $resumeLog[$t] = $now.ToString("yyyy-MM-dd HH:mm:ss")
+      $out = ""
+      $eap = $ErrorActionPreference; $ErrorActionPreference = "Continue"   # PS5.1: native stderr must not throw
+      try {
+        $out = (& docker exec $Container bash /work/openradioss_restart_prep.sh $t --go 2>&1 | ForEach-Object { "$_" } | Out-String)
+        if ($LASTEXITCODE -ne 0 -and -not $out) { $out = "docker exec exit " + $LASTEXITCODE }
+      } catch { $out = "docker exec failed: " + $_.Exception.Message }
+      $ErrorActionPreference = $eap
+      $res = ($out -split "`n" | Where-Object { $_ -match "LAUNCHED|REFUSE|ABORT|failed|Error" } | Select-Object -First 2) -join " / "
+      if (-not $res) { $res = ($out.Trim() -split "`n" | Select-Object -Last 1) }
+      $extra = ($extra + " AUTO-RESUME: " + $res.Trim())
+      $alerts += ($t + ": auto-resume attempted: " + $res.Trim())
+    }
+  }
+
   $newState[$t] = @{ state = $state; stale = $stale }
   if ($state -ne $oldState -and -not ($oldState -eq "NONE" -and $state -eq "OK")) {
     $alerts += ($t + ": " + $oldState + " -> " + $state + " " + $extra)
@@ -110,6 +142,9 @@ if ($diskState -ne $oldDisk -and -not ($oldDisk -eq "NONE" -and $diskState -eq "
 # ---- persist state, then alert ----
 $lines = foreach ($k in ($Tags + "DISK")) { $k + "|" + $newState[$k].state + "|" + $newState[$k].stale }
 Set-Content -LiteralPath $StateFile -Value $lines -Encoding ASCII
+if ($resumeLog.Count -gt 0) {
+  Set-Content -LiteralPath $ResumeLogFile -Value ($resumeLog.Keys | ForEach-Object { $_ + "|" + $resumeLog[$_] }) -Encoding ASCII
+}
 
 if ($alerts.Count -gt 0) {
   $stamp = $now.ToString("yyyy-MM-dd HH:mm:ss")
