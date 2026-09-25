@@ -29,6 +29,8 @@ RUNS = {
     "P1r14": r"p1r14_vtk",
     "P1r15": r"p1r15_vtk",
     "P1r16": r"p1r16_vtk",
+    "P1r17": r"p1r17_vtk",   # stroke 4 mm (tstop 0.8 ms), round-hole penetration test
+    "P1r18": r"p1r18_vtk",   # P1r8 + COCKCROFT C0 = 19.1 MPa from the MR536 tensile curve
 }
 
 

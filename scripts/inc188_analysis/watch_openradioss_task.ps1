@@ -11,7 +11,7 @@ param(
   [string]$StateFile = "D:\Clawdbot_Docker_20260125\data\workspace\openradioss_watch_state.txt",
   [string]$AlarmFile = "D:\Clawdbot_Docker_20260125\data\workspace\ALARM_openradioss_p1r13_16.txt",
   [string]$EnvFile   = "D:\Clawdbot_Docker_20260125\.env",
-  [string[]]$Tags    = @("P1r17","P1r18"),   # P1r13-16 finished 2026-09-24; P1r17 = round-punch penetration run (stroke 4mm)
+  [string[]]$Tags    = @("P1r18"),     # P1r13-16 finished 2026-09-24; P1r17 = round-punch penetration run (stroke 4mm)
   [int]$StaleSec     = 600,
   [string]$DiskDrive = "D",
   [double]$DiskMinGB = 10,

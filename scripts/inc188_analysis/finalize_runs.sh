@@ -59,7 +59,7 @@ process() {  # $1=TAG
 
 while true; do
   left=0
-  for tag in P1r13 P1r14 P1r15 P1r16; do
+  for tag in ${TAGS:-P1r13 P1r14 P1r15 P1r16}; do
     [ -f "$VTK/FINALIZED_$tag" ] && continue
     left=$((left+1))
     if finished "$tag"; then process "$tag" || { log "$tag: processing error, will retry next loop"; sleep 300; }; fi
