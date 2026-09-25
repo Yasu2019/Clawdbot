@@ -15,7 +15,7 @@ param(
   [string]$DestRoot = "F:\clawstack_data\inc188\rst_snapshots",
   [string]$StateFile = "D:\Clawdbot_Docker_20260125\data\workspace\openradioss_rst_snapshot_state.txt",
   [string]$LogFile  = "D:\Clawdbot_Docker_20260125\data\workspace\openradioss_rst_snapshot_log.txt",
-  [string[]]$Tags   = @("P1r17"),
+  [string[]]$Tags   = @("P1r17","P1r18"),
   [int]$StableSec   = 180,
   [int]$Keep        = 2,
   [double]$MinFreeGB = 40
