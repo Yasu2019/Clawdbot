@@ -19,6 +19,7 @@ param(
   [switch]$NoAutoResume,
   [string]$Container = "clawstack-unified-openradioss-1",
   [int]$ResumeCooldownMin = 120,
+  [int]$ResumeThreads = 12,   # K10 runs one engine at a time; >12 total threads slows everything (i9-13900HK P-cores)
   [string]$ResumeLogFile = "D:\Clawdbot_Docker_20260125\data\workspace\openradioss_autoresume_state.txt"
 )
 
@@ -109,7 +110,7 @@ foreach ($t in $Tags) {
       $out = ""
       $eap = $ErrorActionPreference; $ErrorActionPreference = "Continue"   # PS5.1: native stderr must not throw
       try {
-        $out = (& docker exec $Container bash /work/openradioss_restart_prep.sh $t --go 2>&1 | ForEach-Object { "$_" } | Out-String)
+        $out = (& docker exec -e ("NT=" + $ResumeThreads) $Container bash /work/openradioss_restart_prep.sh $t --go 2>&1 | ForEach-Object { "$_" } | Out-String)
         if ($LASTEXITCODE -ne 0 -and -not $out) { $out = "docker exec exit " + $LASTEXITCODE }
       } catch { $out = "docker exec failed: " + $_.Exception.Message }
       $ErrorActionPreference = $eap

@@ -75,7 +75,8 @@ case "$first" in "/RUN/${ROOT}/${N}") ;; *) echo "ABORT: unexpected first line i
 LOGNEW="engine_run${TAG}_r${NEXT}.log"
 echo "---- plan ----"
 echo "new deck     : $NEWENG   (copy of $ENG with first line /RUN/${ROOT}/${NEXT})"
-echo "launch       : OMP_NUM_THREADS=4 engine_linux64_gf -i $NEWENG -nt 4 > /work/$LOGNEW 2>&1 &"
+NT="${NT:-4}"   # thread count; override with NT=12 for a single run on K10 (keep total <= 12 there)
+echo "launch       : OMP_NUM_THREADS=$NT engine_linux64_gf -i $NEWENG -nt $NT > /work/$LOGNEW 2>&1 &"
 if [ "$MODE" != "--go" ]; then echo "DRY RUN: nothing written, nothing launched. Add --go to execute."; exit 0; fi
 
 # keep the deck's CRLF style: replace line 1 including its CR, leave every other line byte-for-byte
@@ -84,5 +85,5 @@ sed "1s#.*#/RUN/${ROOT}/${NEXT}$(printf '\r')#" "$ENG" > "$NEWENG" || { echo "AB
 export LD_LIBRARY_PATH=/opt/openradioss/OpenRadioss/extlib/hm_reader/linux64:$LD_LIBRARY_PATH
 export RAD_CFG_PATH=/opt/openradioss/OpenRadioss/hm_cfg_files
 ENGINE_BIN="${ENGINE_BIN:-/opt/openradioss/OpenRadioss/exec/engine_linux64_gf}"   # override only for tests
-OMP_NUM_THREADS=4 nohup "$ENGINE_BIN" -i "$NEWENG" -nt 4 > "/work/$LOGNEW" 2>&1 &
+OMP_NUM_THREADS=$NT nohup "$ENGINE_BIN" -i "$NEWENG" -nt $NT > "/work/$LOGNEW" 2>&1 &
 echo "LAUNCHED (PID $!). Verify NC continues from the restart cycle, not from 0:  tail -3 /work/$LOGNEW"
