@@ -5,7 +5,13 @@ WORKDIR="D:/Clawdbot_Docker_20260125/clawstack_v2/data/work"
 declare -A prev
 declare -A stalecnt
 POLL=${POLL:-60}
+# Single instance: the newest watcher owns the lock file and older ones exit at their next tick.
+# (2026-09-26: 55 orphaned copies had piled up since 09-23, one per re-armed session monitor.)
+LOCK=${LOCK:-"$WORKDIR/.watch_inc188.owner"}
+me="$$-$(date +%s%N)"
+echo "$me" > "$LOCK"
 while true; do
+  [ "$(cat "$LOCK" 2>/dev/null)" = "$me" ] || exit 0
   now=$(date +%s)
   for t in ${TAGS:-P1r17 P1r18}; do
     # after a restart the engine writes engine_run<TAG>_r<N>.log: follow the newest log, not the original

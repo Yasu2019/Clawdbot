@@ -20,7 +20,11 @@ param(
   [string]$Container = "clawstack-unified-openradioss-1",
   [int]$ResumeCooldownMin = 120,
   [int]$ResumeThreads = 12,   # K10 runs one engine at a time; >12 total threads slows everything (i9-13900HK P-cores)
-  [string]$ResumeLogFile = "D:\Clawdbot_Docker_20260125\data\workspace\openradioss_autoresume_state.txt"
+  [string]$ResumeLogFile = "D:\Clawdbot_Docker_20260125\data\workspace\openradioss_autoresume_state.txt",
+  [switch]$NoAutoFinalize,
+  [string]$VtkDir = "F:\clawstack_data\inc188\vtk",
+  [string]$BashExe = "C:\Program Files\Git\bin\bash.exe",
+  [string]$FinalizeScript = "D:/Clawdbot_Docker_20260125/scripts/inc188_analysis/finalize_runs.sh"
 )
 
 $ErrorActionPreference = "Stop"
@@ -118,6 +122,24 @@ foreach ($t in $Tags) {
       if (-not $res) { $res = ($out.Trim() -split "`n" | Select-Object -Last 1) }
       $extra = ($extra + " AUTO-RESUME: " + $res.Trim())
       $alerts += ($t + ": auto-resume attempted: " + $res.Trim())
+    }
+  }
+
+  # ---- auto post-process a finished run (2026-09-26: finalize_runs.sh exited after P1r17 and nothing
+  #      would have processed P1r18). Launched via WMI so it is not a child of this task / any session.
+  #      Skipped when FINALIZED_<tag> exists or a finalize_runs.sh for this tag is already alive.
+  if ($state -eq "NORMAL_TERMINATION" -and -not $NoAutoFinalize) {
+    $done = Join-Path $VtkDir ("FINALIZED_" + $t)
+    if (-not (Test-Path -LiteralPath $done)) {
+      $alive = @(Get-CimInstance Win32_Process -Filter "Name='bash.exe'" |
+                 Where-Object { $_.CommandLine -like ("*finalize_runs.sh*" + $t + "*") })
+      if ($alive.Count -eq 0) {
+        $cmd = '"' + $BashExe + '" -lc "bash ' + $FinalizeScript + ' ' + $t + '"'
+        try {
+          $r = Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{ CommandLine = $cmd }
+          $alerts += ($t + ": auto-finalize launched (pid " + $r.ProcessId + ", rc " + $r.ReturnValue + ")")
+        } catch { $alerts += ($t + ": auto-finalize launch FAILED: " + $_.Exception.Message) }
+      }
     }
   }
 

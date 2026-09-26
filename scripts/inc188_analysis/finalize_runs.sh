@@ -7,7 +7,10 @@
 #   2. extract the 6-hotspot time series      -> F:/clawstack_data/inc188/vtk/timeseries_<TAG>.json
 #   3. whole-sheet erosion scan (t=0 geometry) -> F:/clawstack_data/inc188/vtk/rupture_sites_<TAG>.json
 # Only real solver output is used. Progress: F:/clawstack_data/inc188/finalize_log.txt
+# usage: finalize_runs.sh [TAG ...]   (tags as arguments so the watchdog can see which run a process serves;
+#        TAGS env var still works)
 export MSYS_NO_PATHCONV=1
+[ $# -gt 0 ] && TAGS="$*"
 W="D:/Clawdbot_Docker_20260125/clawstack_v2/data/work"
 VTK="F:/clawstack_data/inc188/vtk"
 LOG="F:/clawstack_data/inc188/finalize_log.txt"
