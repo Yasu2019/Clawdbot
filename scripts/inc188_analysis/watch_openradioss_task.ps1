@@ -29,6 +29,14 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+# Tags can be switched without re-registering the task: one tag per line in this file
+# (written by c0_bisect.sh when it launches the next run). An explicit -Tags on the command line still wins.
+$TagsFile = "D:\Clawdbot_Docker_20260125\data\workspace\openradioss_watch_tags.txt"
+if (-not $PSBoundParameters.ContainsKey("Tags") -and (Test-Path -LiteralPath $TagsFile)) {
+  $ft = @(Get-Content -LiteralPath $TagsFile | ForEach-Object { $_.Trim() } | Where-Object { $_ -match "^[A-Za-z0-9_]+$" })
+  if ($ft.Count -gt 0) { $Tags = $ft }
+}
+
 function Send-Tg([string]$text) {
   if ($NoTelegram) { return }
   try {

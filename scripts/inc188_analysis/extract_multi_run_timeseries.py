@@ -159,4 +159,5 @@ def run_one(run_name, vtk_dir):
 if __name__ == "__main__":
     targets = sys.argv[1:] if len(sys.argv) > 1 else list(RUNS.keys())
     for run_name in targets:
-        run_one(run_name, RUNS[run_name])
+        # unlisted runs follow the finalize_runs.sh layout (<tag lowercased p>_vtk)
+        run_one(run_name, RUNS.get(run_name, run_name.replace("P", "p", 1) + "_vtk"))

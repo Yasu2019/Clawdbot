@@ -16,11 +16,16 @@ VTK="F:/clawstack_data/inc188/vtk"
 LOG="F:/clawstack_data/inc188/finalize_log.txt"
 SCR="D:/Clawdbot_Docker_20260125/scripts/inc188_analysis"
 C=clawstack-unified-openradioss-1
-NFR=41
 mkdir -p "$VTK"
 log() { echo "$(date '+%m-%d %H:%M:%S') $*" >> "$LOG"; }
 
+nframes() {  # $1=TAG -> number of animation frames = tstop/anim_dt + 1, read from the engine deck (41 if unreadable)
+  awk 'p==1{t=$1+0; p=0} a==1{d=$2+0; a=0} /^\/RUN\//{p=1} /^\/ANIM\/DT/{a=1}
+       END{ if (t>0 && d>0) printf "%d\n", int(t/d+0.5)+1; else print 41 }' "$W/PANEL4MM_$1_0001.rad" 2>/dev/null || echo 41
+}
+
 finished() {  # $1=TAG
+  NFR=$(nframes "$1")
   local f; f=$(ls -t "$W"/engine_run$1.log "$W"/engine_run$1_r*.log 2>/dev/null | head -1)
   [ -n "$f" ] && tail -40 "$f" | grep -q "NORMAL TERMINATION" && [ -f "$W/PANEL4MM_$1A0$NFR" ]
 }
