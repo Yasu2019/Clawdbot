@@ -213,6 +213,28 @@ def remap_type25(block: str, iid: int, label: str, surf1: int, surf2: int,
     return "\n".join(lines)
 
 
+def contact_blocks(ref: dict, gap_max: float, stfac: float,
+                   punch_contact_surface: str = "all") -> list[str]:
+    """工具3部品と板の TYPE25 接触3本。面 {n}00 = 部品 n (1=Die, 3=Stripper, 4=Punch)。
+
+    2026-09-28 以前は題名が Punch/Die/Stripper の順にずれて付いていた(接触そのものは
+    3つとも正しく存在)。punch_contact_surface="all" ならパンチ接触だけ板側を
+    /SURF/PART/ALL/201 (build 側で定義) にし、Idel=1 にする。
+    """
+    punch_s2 = 201 if punch_contact_surface == "all" else 200
+    out = []
+    for iid, s1, s2, label in ((1, 100, 200, "Die_Blank_Contact"),
+                               (2, 300, 200, "Stripper_Blank_Contact"),
+                               (3, 400, punch_s2, "Punch_Blank_Contact")):
+        blk = remap_type25(ref[f"inter{iid}"], iid, label, s1, s2, gap_max, stfac)
+        if s2 == 201:
+            ln = blk.splitlines()
+            ln[3] = ln[3][:70] + i10(1) + ln[3][80:]   # Idel=1
+            blk = "\n".join(ln)
+        out.append(blk)
+    return out
+
+
 def fmt_grnod(gid: int, name: str, nodes) -> list[str]:
     out = [f"/GRNOD/NODE/{gid}", name]
     uniq = sorted(set(nodes))
@@ -382,7 +404,8 @@ def build(tag: str, blank_elem: float, tool_elem: float, stroke: float,
           die_hole_r_mm: float | None = None,
           swap_rect_trim_order: bool = False,
           fillet_elem: float = DEFAULT_FILLET_ELEM,
-          punch_order: str | None = None):
+          punch_order: str | None = None,
+          punch_contact_surface: str = "all"):
     ref_txt = REF_STARTER.read_text(encoding="utf-8", errors="replace")
     ref = {
         "mat_blank": extract_block(ref_txt, r"^/MAT/LAW2/2\b"),
@@ -508,6 +531,12 @@ def build(tag: str, blank_elem: float, tool_elem: float, stroke: float,
         L.append(f"/SURF/PART/EXT/{sid}00/0")
         L.append(f"Surf_Part_{pid}")
         L.append(f"{i10(pid)}")
+    # 2026-09-28: EXT は t=0 の外面だけなので、パンチ直下の表層が侵食された時点で接触が消え、
+    # パンチがスラグを素通りしていた(P1r19fc3p5: パンチ体積内の生存要素 0->3,104->8,011->12,158)。
+    # パンチ接触だけ内部面込みの ALL 面にし、Idel=1(面の両側の要素が消えた時だけ面を外す)にする。
+    # 代償: エンジンのRSSが約85MB/分で増える -> watch_openradioss_task.ps1 の MemCap で再起動して抑える。
+    if punch_contact_surface == "all":
+        L += ["/SURF/PART/ALL/201/0", "Surf_Part_2_all_faces", f"{i10(2)}"]
 
     # パンチ: 0 -> -stroke の等速。工具底面が段違いなので接触は自然に時間差になる。
     L += ["/FUNCT/1", "Punch_Stroke",
@@ -543,10 +572,7 @@ def build(tag: str, blank_elem: float, tool_elem: float, stroke: float,
               f"{f20(1.0)}{f20(1.0)}{f20(0.0)}{f20(1.0e30)}"]
         imp += 1
 
-    for iid, s1, s2, label in ((1, 100, 200, "Punch_Blank_Contact"),
-                               (2, 300, 200, "Die_Blank_Contact"),
-                               (3, 400, 200, "Stripper_Blank_Contact")):
-        L.append(remap_type25(ref[f"inter{iid}"], iid, label, s1, s2, gap_max, stfac))
+    L += contact_blocks(ref, gap_max, stfac, punch_contact_surface)
 
     L.append("/END")
 
@@ -625,11 +651,15 @@ def main() -> int:
     ap.add_argument("--fillet-elem", type=float, default=DEFAULT_FILLET_ELEM,
                     help="トリムフィレット(H4)局所細分化サイズ[m]（既定25um。"
                          "メッシュ収束確認用に50um/12.5um等へ変更可能）")
+    ap.add_argument("--punch-contact-surface", choices=("all", "ext"), default="all",
+                    help="パンチ-板接触の板側の面。all=内部面込み(侵食後も接触が続く、既定)、"
+                         "ext=t=0外面のみ(2026-09-27以前の全ランと同じ。表層侵食後にパンチが素通りする)")
     a = ap.parse_args()
     build(a.tag, a.blank_elem, a.tool_elem, a.stroke, a.speed,
           a.gap_max, a.stfac, a.nstep, a.round_elem, a.eps_s, a.eps_eff,
           a.refine_other_hotspots, a.add_cockcroft, a.cockcroft_c0,
-          a.die_hole_r, a.swap_rect_trim_order, a.fillet_elem, a.punch_order)
+          a.die_hole_r, a.swap_rect_trim_order, a.fillet_elem, a.punch_order,
+          a.punch_contact_surface)
     return 0
 
 

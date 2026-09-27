@@ -22,6 +22,13 @@ param(
   [int]$ResumeThreads = 12,   # K10 runs one engine at a time; >12 total threads slows everything (i9-13900HK P-cores)
   [string]$ResumeLogFile = "D:\Clawdbot_Docker_20260125\data\workspace\openradioss_autoresume_state.txt",
   [switch]$NoAutoFinalize,
+  # Memory cap (2026-09-28): with /SURF/PART/ALL in the punch contact the engine RSS grows ~85 MB/min
+  # (25.7 GB after 4.4 h) and starved the MechaRL trainers. A restart from the .rst resets it, so when
+  # RSS > MemCapMB and a restart file was written < MemCapRstAgeMin ago, stop + resume (loses < that).
+  [int]$MemCapMB = 10000,
+  [int]$MemCapRstAgeMin = 6,
+  [switch]$NoMemCap,
+  [string]$MemCapLog = "D:\Clawdbot_Docker_20260125\data\workspace\openradioss_memcap_log.txt",
   [string]$VtkDir = "F:\clawstack_data\inc188\vtk",
   [string]$BashExe = "C:\Program Files\Git\bin\bash.exe",
   [string]$FinalizeScript = "D:/Clawdbot_Docker_20260125/scripts/inc188_analysis/finalize_runs.sh"
@@ -71,6 +78,20 @@ if (Test-Path -LiteralPath $ResumeLogFile) {
 $now = Get-Date
 $newState = @{}
 $alerts = @()
+
+# ---- container itself stopped (2026-09-28 05:40: an external 'docker stop' left it Exited(137);
+#      restart policy does not undo a manual stop and every auto-resume below is a docker exec,
+#      so nothing would ever have recovered it). Start it; the STALE logic then resumes the engine.
+if (-not $NoAutoResume) {
+  $eap = $ErrorActionPreference; $ErrorActionPreference = "Continue"
+  $running = (& docker inspect -f "{{.State.Running}}" $Container 2>$null | Out-String).Trim()
+  if ($LASTEXITCODE -eq 0 -and $running -eq "false") {
+    $st = (& docker inspect -f "{{.State.Status}} exit={{.State.ExitCode}} at={{.State.FinishedAt}}" $Container 2>$null | Out-String).Trim()
+    $out = (& docker start $Container 2>&1 | Out-String).Trim()
+    $alerts += ("CONTAINER was not running (" + $st + ") -> docker start: " + $out + " (rc " + $LASTEXITCODE + ")")
+  }
+  $ErrorActionPreference = $eap
+}
 
 foreach ($t in $Tags) {
   # After a restart the engine writes engine_run<tag>_r<N>.log; follow the newest run's log.
@@ -130,6 +151,33 @@ foreach ($t in $Tags) {
       if (-not $res) { $res = ($out.Trim() -split "`n" | Select-Object -Last 1) }
       $extra = ($extra + " AUTO-RESUME: " + $res.Trim())
       $alerts += ($t + ": auto-resume attempted: " + $res.Trim())
+    }
+  }
+
+  # ---- memory cap: restart a running engine from a fresh restart file when its RSS is too high
+  if ($state -eq "OK" -and -not $NoAutoResume -and -not $NoMemCap) {
+    $eap = $ErrorActionPreference; $ErrorActionPreference = "Continue"
+    $rssLine = (& docker exec $Container bash /work/engine_ctl.sh rss $t 2>$null | Select-Object -First 1)
+    $ErrorActionPreference = $eap
+    $rss = 0
+    if ($rssLine -match "^\d+\s+(\d+)") { $rss = [int]$Matches[1] }
+    if ($rss -gt $MemCapMB) {
+      $rst = @(Get-ChildItem -LiteralPath $WorkDir -Filter ("PANEL4MM_" + $t + "_*_0001.rst") -ErrorAction SilentlyContinue |
+               Where-Object { $_.Name -notmatch "_0000_0001\.rst$" } | Sort-Object LastWriteTime -Descending | Select-Object -First 1)
+      $age = 1e9
+      if ($rst.Count -gt 0) { $age = ($now - $rst[0].LastWriteTime).TotalMinutes }
+      if ($age -lt $MemCapRstAgeMin -and $age -gt 0.5) {
+        $eap = $ErrorActionPreference; $ErrorActionPreference = "Continue"
+        $stopOut = (& docker exec $Container bash /work/engine_ctl.sh stop $t 2>&1 | Out-String).Trim()
+        $out = (& docker exec -e ("NT=" + $ResumeThreads) $Container bash /work/openradioss_restart_prep.sh $t --go 2>&1 | ForEach-Object { "$_" } | Out-String)
+        $ErrorActionPreference = $eap
+        $res = ($out -split "`n" | Where-Object { $_ -match "LAUNCHED|REFUSE|ABORT|failed|Error" } | Select-Object -First 1)
+        $resumeLog[$t] = $now.ToString("yyyy-MM-dd HH:mm:ss")
+        $alerts += ($t + ": MEMCAP RSS " + $rss + " MB > " + $MemCapMB + " -> " + $stopOut + "; resume from " + $rst[0].Name + " (" + [math]::Round($age,1) + " min old): " + "$res".Trim())
+      } else {
+        $extra = ($extra + " memcap: RSS " + $rss + " MB, waiting for a fresh restart file (newest " + [math]::Round($age,1) + " min old)")
+      }
+      Add-Content -LiteralPath $MemCapLog -Encoding ASCII -Value ($now.ToString("yyyy-MM-dd HH:mm:ss") + " " + $t + " RSS " + $rss + " MB > cap " + $MemCapMB + ", newest rst " + [math]::Round($age,1) + " min old -> " + $(if ($age -lt $MemCapRstAgeMin -and $age -gt 0.5) { "RESTART" } else { "wait" }))
     }
   }
 

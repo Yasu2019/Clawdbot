@@ -59,7 +59,7 @@ convert() {  # $1=frame number (3 digits) -> path of the VTK on the host, empty 
 
 stop_engine() {
   [ -n "$DRY" ] && { echo "DRY: would stop engine $CUR"; return; }
-  docker exec $C bash -c 'for p in /proc/[0-9]*; do c=$(tr "\0" " " < $p/cmdline 2>/dev/null); case "$c" in *engine_linux64_gf*"-i PANEL4MM_'"$CUR"'_"*) kill ${p#/proc/} && echo killed ${p#/proc/};; esac; done'
+  docker exec $C bash -c 'for p in /proc/[0-9]*; do c=$(tr "\0" " " < $p/cmdline 2>/dev/null); case "$c" in /opt/openradioss/*engine_linux64_gf*"-i PANEL4MM_'"$CUR"'_"*) kill ${p#/proc/} && echo killed ${p#/proc/};; esac; done'
 }
 
 next_run() {  # uses SEP/NOSEP/N; launches the next C0 or exits
