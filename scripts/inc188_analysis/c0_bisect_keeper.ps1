@@ -2,6 +2,9 @@
 # Restarts detached helper loops after sign-out / crash:
 #   1. c0_bisect_frames.sh  - unless the bisection is DONE, ALARM_c0_bisect.txt exists, or it is running
 #   2. frame_monitor.sh     - unless data\workspace\frame_monitor.disabled exists or it is running
+#   3. engine_mem_log.sh    - unless it is running
+# NOTE: "running" = any bash.exe whose command line contains the script name. Do not test this
+# from a Bash tool call whose own command line contains that name (it counts as running).
 $ws  = "D:\Clawdbot_Docker_20260125\data\workspace"
 $log = Join-Path $ws "c0_bisect_log.txt"
 $bash = "C:\Program Files\Git\bin\bash.exe"
@@ -26,5 +29,10 @@ if ((Test-Path -LiteralPath $state) -and -not ((Get-Content -LiteralPath $state)
 # 2. per-frame round-hole monitor
 if (-not (Test-Path -LiteralPath (Join-Path $ws "frame_monitor.disabled")) -and -not (Test-Alive "frame_monitor.sh")) {
   Start-Detached "frame_monitor.sh" (Join-Path $ws "frame_monitor_log.txt") "frame_monitor.sh"
+}
+
+# 3. engine memory logger (RSS vs simulated time, feeds the memory-cap tuning)
+if (-not (Test-Alive "engine_mem_log.sh")) {
+  Start-Detached "engine_mem_log.sh" (Join-Path $ws "frame_monitor_log.txt") "engine_mem_log.sh"
 }
 exit 0
