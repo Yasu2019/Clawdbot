@@ -262,8 +262,17 @@ if (-not $NoQueue -and (Test-Path -LiteralPath $QueueFile)) {
   }
 }
 
+# ---- forward new lines of the per-frame monitor's alarm file (first separation / punch penetration) ----
+$rhAlarm = Join-Path (Split-Path -Parent $StateFile) "ALARM_round_hole.txt"
+$rhSeen = 0
+if ($prev["RH_ALARM_LINES"]) { $rhSeen = $prev["RH_ALARM_LINES"].stale }
+$rhLines = @()
+if (Test-Path -LiteralPath $rhAlarm) { $rhLines = @(Get-Content -LiteralPath $rhAlarm) }
+if ($rhLines.Count -gt $rhSeen) { foreach ($ln in ($rhLines | Select-Object -Skip $rhSeen)) { $alerts += ("ROUND HOLE: " + $ln) } }
+$newState["RH_ALARM_LINES"] = @{ state = "SEEN"; stale = $rhLines.Count }
+
 # ---- persist state, then alert ----
-$lines = foreach ($k in ($Tags + "DISK")) { $k + "|" + $newState[$k].state + "|" + $newState[$k].stale }
+$lines = foreach ($k in ($Tags + "DISK" + "RH_ALARM_LINES")) { $k + "|" + $newState[$k].state + "|" + $newState[$k].stale }
 Set-Content -LiteralPath $StateFile -Value $lines -Encoding ASCII
 if ($resumeLog.Count -gt 0) {
   Set-Content -LiteralPath $ResumeLogFile -Value ($resumeLog.Keys | ForEach-Object { $_ + "|" + $resumeLog[$_] }) -Encoding ASCII
