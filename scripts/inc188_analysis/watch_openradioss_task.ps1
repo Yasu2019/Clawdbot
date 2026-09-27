@@ -29,6 +29,11 @@ param(
   [int]$MemCapRstAgeMin = 6,
   [switch]$NoMemCap,
   [string]$MemCapLog = "D:\Clawdbot_Docker_20260125\data\workspace\openradioss_memcap_log.txt",
+  # Run queue (2026-09-28): one tag per line; when no starter/engine is alive the head is launched
+  # with chain_P1r19_21.sh (deck PANEL4MM_<tag>_0000/0001.rad must be in WorkDir) and removed.
+  [string]$QueueFile = "D:\Clawdbot_Docker_20260125\data\workspace\openradioss_queue.txt",
+  [double]$QueueMinFreeGB = 8,
+  [switch]$NoQueue,
   [string]$VtkDir = "F:\clawstack_data\inc188\vtk",
   [string]$BashExe = "C:\Program Files\Git\bin\bash.exe",
   [string]$FinalizeScript = "D:/Clawdbot_Docker_20260125/scripts/inc188_analysis/finalize_runs.sh"
@@ -216,6 +221,45 @@ if ($prev["DISK"]) { $oldDisk = $prev["DISK"].state }
 $newState["DISK"] = @{ state = $diskState; stale = 0 }
 if ($diskState -ne $oldDisk -and -not ($oldDisk -eq "NONE" -and $diskState -eq "OK")) {
   $alerts += ("DISK: " + $oldDisk + " -> " + $diskState + " " + $diskExtra)
+}
+
+# ---- run queue: keep the engine slot busy (a finished run must not leave it idle) ----
+if (-not $NoQueue -and (Test-Path -LiteralPath $QueueFile)) {
+  $q = @(Get-Content -LiteralPath $QueueFile | ForEach-Object { $_.Trim() } | Where-Object { $_ -match "^[A-Za-z0-9_]+$" })
+  if ($q.Count -gt 0) {
+    $eap = $ErrorActionPreference; $ErrorActionPreference = "Continue"
+    $anyOut = @(& docker exec $Container bash /work/engine_ctl.sh any 2>$null)
+    $anyRc = $LASTEXITCODE
+    $ErrorActionPreference = $eap
+    if ($anyRc -eq 0 -and $anyOut.Count -eq 0) {
+      $next = $q[0]
+      $deck = Join-Path $WorkDir ("PANEL4MM_" + $next + "_0000.rad")
+      $startedLog = Join-Path $WorkDir ("engine_run" + $next + ".log")
+      $freeGB = (Get-CimInstance Win32_OperatingSystem).FreePhysicalMemory / 1MB
+      if (-not (Test-Path -LiteralPath $deck) -or -not (Test-Path -LiteralPath (Join-Path $WorkDir ("PANEL4MM_" + $next + "_0001.rad")))) {
+        $alerts += ("QUEUE: deck for " + $next + " missing in " + $WorkDir + " -> removed from queue")
+        Set-Content -LiteralPath $QueueFile -Value ($q | Select-Object -Skip 1) -Encoding ASCII
+      } elseif (Test-Path -LiteralPath $startedLog) {
+        $alerts += ("QUEUE: " + $next + " was already started before (" + $startedLog + ") -> removed from queue, not relaunched")
+        Set-Content -LiteralPath $QueueFile -Value ($q | Select-Object -Skip 1) -Encoding ASCII
+      } elseif ($freeGB -lt $QueueMinFreeGB) {
+        Add-Content -LiteralPath $MemCapLog -Encoding ASCII -Value ($now.ToString("yyyy-MM-dd HH:mm:ss") + " QUEUE: " + $next + " waiting, host free RAM " + [math]::Round($freeGB,1) + " GB < " + $QueueMinFreeGB)
+      } else {
+        $eap = $ErrorActionPreference; $ErrorActionPreference = "Continue"
+        $out = (& docker exec -d -e ("TAGS=" + $next) -e ("NT=" + $ResumeThreads) $Container bash /work/chain_P1r19_21.sh 2>&1 | Out-String).Trim()
+        $rc = $LASTEXITCODE
+        $ErrorActionPreference = $eap
+        Set-Content -LiteralPath $QueueFile -Value ($q | Select-Object -Skip 1) -Encoding ASCII
+        if ($rc -eq 0) {
+          $keep = @($Tags | Where-Object { $_ -ne $next } | Select-Object -Last 2) + $next
+          if (-not $PSBoundParameters.ContainsKey("Tags")) { Set-Content -LiteralPath $TagsFile -Value $keep -Encoding ASCII }
+          $alerts += ("QUEUE: launched " + $next + " (nt=" + $ResumeThreads + ", free RAM " + [math]::Round($freeGB,1) + " GB); " + ($q.Count - 1) + " left in queue")
+        } else {
+          $alerts += ("QUEUE: launch of " + $next + " FAILED rc=" + $rc + " " + $out)
+        }
+      }
+    }
+  }
 }
 
 # ---- persist state, then alert ----
