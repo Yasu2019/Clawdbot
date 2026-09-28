@@ -226,7 +226,14 @@ if ($diskState -ne $oldDisk -and -not ($oldDisk -eq "NONE" -and $diskState -eq "
 # ---- run queue: keep the engine slot busy (a finished run must not leave it idle) ----
 if (-not $NoQueue -and (Test-Path -LiteralPath $QueueFile)) {
   $q = @(Get-Content -LiteralPath $QueueFile | ForEach-Object { $_.Trim() } | Where-Object { $_ -match "^[A-Za-z0-9_]+$" })
-  if ($q.Count -gt 0) {
+  # 2026-09-28 15:46: after a WSL shutdown no engine was alive, so the queue launched P1r21 while
+  # P1r20 was only interrupted (resume pending). A watched run whose newest log has neither NORMAL nor
+  # ERROR TERMINATION is unfinished -> leave the slot to its auto-resume.
+  $unfinished = @($Tags | Where-Object { $newState[$_] -and $newState[$_].state -notin @("NORMAL_TERMINATION", "ERROR_TERMINATION", "LOG_MISSING") })
+  if ($q.Count -gt 0 -and $unfinished.Count -gt 0) {
+    Add-Content -LiteralPath $MemCapLog -Encoding ASCII -Value ($now.ToString("yyyy-MM-dd HH:mm:ss") + " QUEUE: " + $q[0] + " held, unfinished watched run(s): " + ($unfinished -join ","))
+  }
+  if ($q.Count -gt 0 -and $unfinished.Count -eq 0) {
     $eap = $ErrorActionPreference; $ErrorActionPreference = "Continue"
     $anyOut = @(& docker exec $Container bash /work/engine_ctl.sh any 2>$null)
     $anyRc = $LASTEXITCODE
