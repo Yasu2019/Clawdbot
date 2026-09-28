@@ -25,7 +25,7 @@ param(
   # Memory cap (2026-09-28): with /SURF/PART/ALL in the punch contact the engine RSS grows ~85 MB/min
   # (25.7 GB after 4.4 h) and starved the MechaRL trainers. A restart from the .rst resets it, so when
   # RSS > MemCapMB and a restart file was written < MemCapRstAgeMin ago, stop + resume (loses < that).
-  [int]$MemCapMB = 10000,
+  [int]$MemCapMB = 8000,
   [int]$MemCapRstAgeMin = 6,
   [switch]$NoMemCap,
   [string]$MemCapLog = "D:\Clawdbot_Docker_20260125\data\workspace\openradioss_memcap_log.txt",
