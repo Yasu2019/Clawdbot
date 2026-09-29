@@ -173,7 +173,13 @@ foreach ($t in $Tags) {
                Where-Object { $_.Name -notmatch "_0000_0001\.rst$" } | Sort-Object LastWriteTime -Descending | Select-Object -First 1)
       $age = 1e9
       if ($rst.Count -gt 0) { $age = ($now - $rst[0].LastWriteTime).TotalMinutes }
+      $mcLock = Join-Path (Split-Path -Parent $StateFile) ".memcap.lock"
+      $lockFresh = (Test-Path -LiteralPath $mcLock) -and (($now - (Get-Item -LiteralPath $mcLock).LastWriteTime).TotalSeconds -lt 180)
+      if ($lockFresh) {
+        $age = 1e9   # engine_mem_log.sh (fast memory cap) is restarting it right now
+      }
       if ($age -lt $MemCapRstAgeMin -and $age -gt 0.5) {
+        Set-Content -LiteralPath $mcLock -Value ($now.ToString("yyyy-MM-dd HH:mm:ss") + " watchdog " + $t) -Encoding ASCII
         $eap = $ErrorActionPreference; $ErrorActionPreference = "Continue"
         $stopOut = (& docker exec $Container bash /work/engine_ctl.sh stop $t 2>&1 | Out-String).Trim()
         $out = (& docker exec -e ("NT=" + $ResumeThreads) $Container bash /work/openradioss_restart_prep.sh $t --go 2>&1 | ForEach-Object { "$_" } | Out-String)
