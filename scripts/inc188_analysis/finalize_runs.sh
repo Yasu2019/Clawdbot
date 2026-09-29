@@ -27,7 +27,9 @@ nframes() {  # $1=TAG -> number of animation frames = tstop/anim_dt + 1, read fr
 finished() {  # $1=TAG
   NFR=$(nframes "$1")
   local f; f=$(ls -t "$W"/engine_run$1.log "$W"/engine_run$1_r*.log 2>/dev/null | head -1)
-  [ -n "$f" ] && tail -40 "$f" | grep -q "NORMAL TERMINATION" && [ -f "$W/PANEL4MM_$1A0$NFR" ]
+  # older runs (e.g. P1r7) have no engine_run log left: fall back to the solver's own _0001.out
+  [ -n "$f" ] || f="$W/PANEL4MM_$1_0001.out"
+  [ -f "$f" ] && tail -60 "$f" | grep -q "NORMAL TERMINATION" && [ -f "$W/PANEL4MM_$1A0$NFR" ]
 }
 
 process() {  # $1=TAG
