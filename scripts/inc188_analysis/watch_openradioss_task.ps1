@@ -34,6 +34,8 @@ param(
   [string]$QueueFile = "D:\Clawdbot_Docker_20260125\data\workspace\openradioss_queue.txt",
   [double]$QueueMinFreeGB = 8,
   [switch]$NoQueue,
+  [switch]$NoResultReport,
+  [string]$PythonExe = "C:\Users\yasu\AppData\Local\Programs\Python\Python310\python.exe",
   [string]$VtkDir = "F:\clawstack_data\inc188\vtk",
   [string]$BashExe = "C:\Program Files\Git\bin\bash.exe",
   [string]$FinalizeScript = "D:/Clawdbot_Docker_20260125/scripts/inc188_analysis/finalize_runs.sh"
@@ -264,6 +266,27 @@ if (-not $NoQueue -and (Test-Path -LiteralPath $QueueFile)) {
         } else {
           $alerts += ("QUEUE: launch of " + $next + " FAILED rc=" + $rc + " " + $out)
         }
+      }
+    }
+  }
+}
+
+# ---- result summary once a watched run is finalized (the user gets the result even when no AI
+#      session is looking; 2026-09-29 a session-side notice arrived 7 h late) ----
+if (-not $NoResultReport) {
+  foreach ($t in $Tags) {
+    $fin = Join-Path $VtkDir ("FINALIZED_" + $t)
+    $rep = Join-Path $VtkDir ("REPORTED_" + $t)
+    if ((Test-Path -LiteralPath $fin) -and -not (Test-Path -LiteralPath $rep)) {
+      $eap = $ErrorActionPreference; $ErrorActionPreference = "Continue"
+      $env:PYTHONIOENCODING = "utf-8"
+      $tbl = (& $PythonExe "D:\Clawdbot_Docker_20260125\scripts\inc188_analysis\compare_runs.py" $t 2>&1 | Where-Object { "$_" -match "^\|" } | Out-String).Trim()
+      $ErrorActionPreference = $eap
+      if ($tbl) {
+        $alerts += ("RESULT " + $t + " (finalized):`n" + $tbl)
+        Set-Content -LiteralPath $rep -Value ($now.ToString("yyyy-MM-dd HH:mm:ss")) -Encoding ASCII
+      } else {
+        Add-Content -LiteralPath $MemCapLog -Encoding ASCII -Value ($now.ToString("yyyy-MM-dd HH:mm:ss") + " RESULT " + $t + ": compare_runs.py produced no table, retry next tick")
       }
     }
   }
