@@ -54,7 +54,9 @@ def summarize(tag):
         out["round_hole"] = {"t_ms": rh.get("t_ms"), "separated": rh.get("separated"),
                              "slug_in_main": rh.get("slug_live_in_main"), "slug_live": live,
                              "attached_pct": round(100.0 * rh.get("slug_live_in_main", 0) / live, 1) if live else None,
-                             "main_min_dist_t0_mm": rh.get("main_min_dist_to_hole_centre_t0_mm")}
+                             "main_min_dist_t0_mm": rh.get("main_min_dist_to_hole_centre_t0_mm"),
+                             "core_separated": rh.get("core_separated"),
+                             "attached_min_r0_mm": rh.get("attached_min_r0_mm")}
     return out
 
 
@@ -89,6 +91,14 @@ def main():
                      f"{'SEPARATED' if rh['separated'] else 'attached'} {rh['attached_pct']}% "
                      f"({rh['slug_in_main']}/{rh['slug_live']}) at {rh['t_ms']} ms")
     print("| round hole (last frame) | " + " | ".join(cells) + " |")
+    cells = []
+    for r in runs:
+        rh = r["round_hole"]
+        cs = None if not rh else rh.get("core_separated")
+        cells.append("-" if cs is None else
+                     ("core SEPARATED" if cs else "core attached")
+                     + (f", attached from r0={rh['attached_min_r0_mm']} mm" if rh.get("attached_min_r0_mm") is not None else ""))
+    print("| round hole core r<0.24 mm | " + " | ".join(cells) + " |")
     missing = [r["tag"] for r in runs if not r["hotspots"] or not r["sheet"] or not r["round_hole"]]
     if missing:
         print(f"\nmissing inputs for: {', '.join(missing)} (run finalize_runs.sh / round_hole_separation.py first)")

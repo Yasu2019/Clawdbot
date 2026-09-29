@@ -62,6 +62,10 @@ while true; do
       if [ "$5" = "True" ] && ! grep -q "$tag SEPARATED" "$ALARM" 2>/dev/null; then
         echo "$(date '+%Y-%m-%d %H:%M:%S') $tag SEPARATED first at f$fr (t=$1 ms)" >> "$ALARM"
       fi
+      core=$(python -c "import json;print(json.load(open(r'$VTK/round_hole_sep_${tag}_f$fr.json')).get('core_separated'))")
+      if [ "$core" = "True" ] && ! grep -q "$tag CORE SEPARATED" "$ALARM" 2>/dev/null; then
+        echo "$(date '+%Y-%m-%d %H:%M:%S') $tag CORE SEPARATED first at f$fr (t=$1 ms): slug core r<0.24 mm detached; $3 rim elements still attached" >> "$ALARM"
+      fi
       if [ -n "$pen" ] && [ "$pen" -gt "$PEN_ALARM" ] && ! grep -q "$tag PENETRATION" "$ALARM" 2>/dev/null; then
         echo "$(date '+%Y-%m-%d %H:%M:%S') $tag PENETRATION: $pen live blank elements inside the round punch at f$fr (contact lost?)" >> "$ALARM"
       fi
