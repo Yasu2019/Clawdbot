@@ -239,7 +239,13 @@ if (-not $NoQueue -and (Test-Path -LiteralPath $QueueFile)) {
   # ERROR TERMINATION is unfinished -> leave the slot to its auto-resume.
   $unfinished = @($Tags | Where-Object { $newState[$_] -and $newState[$_].state -notin @("NORMAL_TERMINATION", "ERROR_TERMINATION", "LOG_MISSING") })
   if ($q.Count -gt 0 -and $unfinished.Count -gt 0) {
-    Add-Content -LiteralPath $MemCapLog -Encoding ASCII -Value ($now.ToString("yyyy-MM-dd HH:mm:ss") + " QUEUE: " + $q[0] + " held, unfinished watched run(s): " + ($unfinished -join ","))
+    # log the hold only while no engine is alive (otherwise it is just the normal running state)
+    $eap = $ErrorActionPreference; $ErrorActionPreference = "Continue"
+    $anyNow = @(& docker exec $Container bash /work/engine_ctl.sh any 2>$null)
+    $ErrorActionPreference = $eap
+    if ($anyNow.Count -eq 0) {
+      Add-Content -LiteralPath $MemCapLog -Encoding ASCII -Value ($now.ToString("yyyy-MM-dd HH:mm:ss") + " QUEUE: " + $q[0] + " held, unfinished watched run(s): " + ($unfinished -join ",") + " (no engine alive - waiting for its auto-resume)")
+    }
   }
   if ($q.Count -gt 0 -and $unfinished.Count -eq 0) {
     $eap = $ErrorActionPreference; $ErrorActionPreference = "Continue"
