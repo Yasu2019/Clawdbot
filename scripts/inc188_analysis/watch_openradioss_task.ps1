@@ -265,6 +265,17 @@ if (-not $NoQueue -and (Test-Path -LiteralPath $QueueFile)) {
         Set-Content -LiteralPath $QueueFile -Value ($q | Select-Object -Skip 1) -Encoding ASCII
       } elseif ($freeGB -lt $QueueMinFreeGB) {
         Add-Content -LiteralPath $MemCapLog -Encoding ASCII -Value ($now.ToString("yyyy-MM-dd HH:mm:ss") + " QUEUE: " + $next + " waiting, host free RAM " + [math]::Round($freeGB,1) + " GB < " + $QueueMinFreeGB)
+        # the engine slot is idle while we wait: alert once after 30 min so a human can free memory
+        $since = [int]($now.ToUniversalTime() - [datetime]'1970-01-01').TotalMinutes
+        if ($prev["QUEUE_RAMWAIT"]) { $since = $prev["QUEUE_RAMWAIT"].stale }
+        $waited = [int]($now.ToUniversalTime() - [datetime]'1970-01-01').TotalMinutes - $since
+        $st = "WAIT"
+        if ($prev["QUEUE_RAMWAIT"]) { $st = $prev["QUEUE_RAMWAIT"].state }
+        if ($waited -ge 30 -and $st -ne "ALERTED") {
+          $alerts += ("QUEUE: " + $next + " has waited " + $waited + " min for host RAM (free " + [math]::Round($freeGB,1) + " GB < " + $QueueMinFreeGB + " GB); the OpenRadioss slot is IDLE")
+          $st = "ALERTED"
+        }
+        $newState["QUEUE_RAMWAIT"] = @{ state = $st; stale = $since }
       } else {
         $eap = $ErrorActionPreference; $ErrorActionPreference = "Continue"
         $out = (& docker exec -d -e ("TAGS=" + $next) -e ("NT=" + $ResumeThreads) $Container bash /work/chain_P1r19_21.sh 2>&1 | Out-String).Trim()
@@ -314,7 +325,7 @@ if ($rhLines.Count -gt $rhSeen) { foreach ($ln in ($rhLines | Select-Object -Ski
 $newState["RH_ALARM_LINES"] = @{ state = "SEEN"; stale = $rhLines.Count }
 
 # ---- persist state, then alert ----
-$lines = foreach ($k in ($Tags + "DISK" + "RH_ALARM_LINES")) { $k + "|" + $newState[$k].state + "|" + $newState[$k].stale }
+$lines = foreach ($k in (@($Tags) + "DISK" + "RH_ALARM_LINES" + @($newState.Keys | Where-Object { $_ -eq "QUEUE_RAMWAIT" }))) { $k + "|" + $newState[$k].state + "|" + $newState[$k].stale }
 Set-Content -LiteralPath $StateFile -Value $lines -Encoding ASCII
 if ($resumeLog.Count -gt 0) {
   Set-Content -LiteralPath $ResumeLogFile -Value ($resumeLog.Keys | ForEach-Object { $_ + "|" + $resumeLog[$_] }) -Encoding ASCII
