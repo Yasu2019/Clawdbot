@@ -19,7 +19,7 @@ param(
   [switch]$NoAutoResume,
   [string]$Container = "clawstack-unified-openradioss-1",
   [int]$ResumeCooldownMin = 120,
-  [int]$ResumeThreads = 10,   # 2026-10-01: two engines x 10 threads = all 20 logical CPUs (MechaRL paused; was 12 = one engine on the P-cores)
+  [int]$ResumeThreads = 12,   # one engine at a time (2026-10-01: two engines were 30% slower in total)
   [string]$ResumeLogFile = "D:\Clawdbot_Docker_20260125\data\workspace\openradioss_autoresume_state.txt",
   [switch]$NoAutoFinalize,
   # Memory cap (2026-09-28): with /SURF/PART/ALL in the punch contact the engine RSS grows ~85 MB/min
@@ -34,7 +34,7 @@ param(
   [string]$QueueFile = "D:\Clawdbot_Docker_20260125\data\workspace\openradioss_queue.txt",
   [double]$QueueMinFreeGB = 8,
   [switch]$NoQueue,
-  [int]$MaxEngines = 2,
+  [int]$MaxEngines = 1,   # 2026-10-01: 2 engines (12+10 threads) ran at 3.3 cycles/s in total vs 6.1 for one engine alone
   [double]$QueueMinFreeGB2 = 16,   # free RAM needed to start a second engine next to a running one
   [switch]$NoResultReport,
   [string]$PythonExe = "C:\Users\yasu\AppData\Local\Programs\Python\Python310\python.exe",
