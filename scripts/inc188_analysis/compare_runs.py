@@ -33,8 +33,39 @@ def round_hole(tag):
     return load(f"{VTK}/round_hole_sep_{tag}.json")
 
 
+DECK_DIRS = ["D:/Clawdbot_Docker_20260125/clawstack_v2/data/work",
+             "D:/Clawdbot_Docker_20260125/data/workspace/openradioss_inc188_trials"]
+STD_CONTACT_MS = 0.795 / 5.0     # first-punch air gap 0.795 mm at 5 mm/ms
+
+
+def time_offset_ms(tag):
+    """0 for a standard deck; for a fast-approach deck (make_fast_approach.py) the shift that maps its
+    times onto the standard punch motion (contact 0.159 ms -> 0.06 ms, i.e. +0.099 ms)."""
+    for d in DECK_DIRS:
+        p = f"{d}/PANEL4MM_{tag}_0000.rad"
+        try:
+            with open(p, encoding="utf-8", errors="replace") as f:
+                lines = f.read().split("\n")
+        except FileNotFoundError:
+            continue
+        for i, ln in enumerate(lines):
+            if ln.strip() == "Punch_Stroke" and lines[i - 1].startswith("/FUNCT/"):
+                pts = []
+                j = i + 1
+                while not lines[j].startswith("/"):
+                    if not lines[j].startswith("#") and lines[j].strip():
+                        pts.append((float(lines[j][:20]), float(lines[j][20:40])))
+                    j += 1
+                if len(pts) >= 3 and abs(pts[1][0] - 5e-5) < 1e-9:   # fast approach: (5e-5, -0.745 mm)
+                    t1, d1 = pts[1][0] * 1e3, -pts[1][1] * 1e3          # ms, mm
+                    fast_contact = t1 + (0.795 - d1) / 5.0
+                    return round(STD_CONTACT_MS - fast_contact, 4)
+                return 0.0
+    return None
+
+
 def summarize(tag):
-    out = {"tag": tag, "hotspots": {}, "sheet": None, "round_hole": None}
+    out = {"tag": tag, "hotspots": {}, "sheet": None, "round_hole": None, "offset_ms": time_offset_ms(tag)}
     ts = load(f"{VTK}/timeseries_{tag}.json")
     if ts:
         for h in HOTSPOTS:
@@ -74,12 +105,18 @@ def main():
     sep = "|---|" + "---|" * len(tags)
     print(head)
     print(sep)
+    print("| punch motion | " + " | ".join(
+        "-" if r["offset_ms"] is None else ("standard" if r["offset_ms"] == 0 else f"fast approach (+{r['offset_ms']} ms = standard time)")
+        for r in runs) + " |")
     for h in HOTSPOTS:
         cells = []
         for r in runs:
             d = r["hotspots"].get(h)
+            off = r["offset_ms"] or 0.0
+            rt = None if not d else d["rupture_ms"]
             cells.append("-" if not d else
-                         (f"ruptured {d['rupture_ms']} ms" if d["rupture_ms"] is not None else "live")
+                         (("ruptured " + (f"{rt} ms" if not off else f"{rt} ms (std {round(rt + off, 3)} ms)"))
+                          if rt is not None else "live")
                          + f" (max eps {fmt(d['max_eps'])})")
         print(f"| {h} | " + " | ".join(cells) + " |")
     print("| removed volume mm3 | " + " | ".join(fmt(r["sheet"] and r["sheet"]["removed_vol_mm3"]) for r in runs) + " |")
@@ -89,7 +126,8 @@ def main():
         rh = r["round_hole"]
         cells.append("-" if not rh else
                      f"{'SEPARATED' if rh['separated'] else 'attached'} {rh['attached_pct']}% "
-                     f"({rh['slug_in_main']}/{rh['slug_live']}) at {rh['t_ms']} ms")
+                     f"({rh['slug_in_main']}/{rh['slug_live']}) at {rh['t_ms']} ms"
+                     + (f" (std {round(rh['t_ms'] + r['offset_ms'], 3)} ms)" if r.get("offset_ms") else ""))
     print("| round hole (last frame) | " + " | ".join(cells) + " |")
     cells = []
     for r in runs:
