@@ -24,8 +24,12 @@ case "$cmd" in
   rss)
     for p in $(pids); do echo "$p $(awk '/VmRSS/{print int($2/1024)}' /proc/$p/status)"; done ;;
   stop)
+    # SIGKILL, not SIGTERM: on TERM the engine starts rewriting its restart file while exiting, and on
+    # 10-01 08:16 that rewrite was cut short (1.585 GB instead of 1.609 GB) -> the resume read a
+    # truncated file (END OF FILE DURING READING). Callers stop only >= 20 s after a periodic save, so
+    # the restart file on disk is complete and KILL leaves it untouched.
     ps_=$(pids); [ -n "$ps_" ] || { echo "no engine for $tag"; exit 0; }
-    kill $ps_; for i in $(seq 1 60); do [ -z "$(pids)" ] && { echo "stopped $ps_ (TERM, ${i}s)"; exit 0; }; sleep 1; done
-    kill -9 $(pids) 2>/dev/null; sleep 2; [ -z "$(pids)" ] && echo "stopped $ps_ (KILL)" || { echo "FAILED to stop $ps_"; exit 1; } ;;
+    kill -9 $ps_; for i in $(seq 1 30); do [ -z "$(pids)" ] && { echo "stopped $ps_ (KILL, ${i}s)"; exit 0; }; sleep 1; done
+    echo "FAILED to stop $ps_"; exit 1 ;;
   *) echo "unknown command $cmd"; exit 2 ;;
 esac

@@ -26,6 +26,14 @@ function Log([string]$m) { Add-Content -LiteralPath $LogFile -Value ((Get-Date -
 # any error outside the per-tag try/catch used to exit 1 silently; record where and why
 trap { try { Log ("FATAL line " + $_.InvocationInfo.ScriptLineNumber + ": " + $_.Exception.Message.Split("`n")[0]) } catch {}; exit 1 }
 
+# 2026-10-01: follow the runs the watchdog watches (the fixed P1r17/P1r18 default left every later
+# run without snapshots). An explicit -Tags still wins.
+$TagsFile = "D:\Clawdbot_Docker_20260125\data\workspace\openradioss_watch_tags.txt"
+if (-not $PSBoundParameters.ContainsKey("Tags") -and (Test-Path -LiteralPath $TagsFile)) {
+  $ft = @(Get-Content -LiteralPath $TagsFile | ForEach-Object { $_.Trim() } | Where-Object { $_ -match "^[A-Za-z0-9_]+$" })
+  if ($ft.Count -gt 0) { $Tags = $ft }
+}
+
 $done = @{}
 if (Test-Path -LiteralPath $StateFile) {
   foreach ($ln in Get-Content -LiteralPath $StateFile) { $p = $ln.Split("|"); if ($p.Count -ge 2) { $done[$p[0]] = $p[1] } }
@@ -47,6 +55,18 @@ foreach ($t in $Tags) {
     if ($age -lt $StableSec) { continue }                                  # maybe being written
     $stamp = [string]$fi.LastWriteTimeUtc.Ticks
     if ($done[$t] -eq $stamp) { continue }                                 # this generation already saved
+    # never snapshot a truncated file (it would prune the good generations): restart files of one run
+    # differ by < 0.01 %, so compare with the previous run's restart file (2026-10-01: a 1.5 % short one)
+    $prevName = "PANEL4MM_" + $t + "_" + ([int]$runId - 1).ToString("0000") + "_0001.rst"
+    $prevPath = Join-Path $WorkDir $prevName
+    if ([int]$runId -gt 1 -and (Test-Path -LiteralPath $prevPath)) {
+      $pl = (Get-Item -LiteralPath $prevPath).Length
+      if ([math]::Abs($fi.Length - $pl) -gt $pl * 0.002) {
+        if ($done[$t + "_bad"] -ne $stamp) { Log ($t + " SKIP truncated? " + $fi.Name + " " + $fi.Length + " B vs " + $prevName + " " + $pl + " B") }
+        $done[$t + "_bad"] = $stamp
+        continue
+      }
+    }
 
     $free = (Get-PSDrive $driveLetter).Free / 1GB
     if ($free -lt $MinFreeGB) { Log ($t + " SKIP: destination free " + [int]$free + " GB < " + $MinFreeGB + " GB"); continue }

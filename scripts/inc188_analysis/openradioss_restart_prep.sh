@@ -67,6 +67,17 @@ if [ "$ref" -gt 0 ]; then
     echo "ABORT: restart file size is not within 2% of the starter restart file -> likely truncated/corrupt"; exit 5
   fi
 fi
+# 2026-10-01: a restart file cut short by 1.5 % passed the 2 % starter check and the resume died with
+# END OF FILE DURING READING. Restart files of one run differ by < 0.01 %, so also compare with the
+# previous run's restart file (tolerance 0.2 %).
+PREVRST="${ROOT}_$(printf '%04d' $((10#$NNN - 1)))_0001.rst"
+if [ "$((10#$NNN))" -gt 1 ] && [ -f "$PREVRST" ]; then
+  pref=$(stat -c %s "$PREVRST")
+  lo=$((pref*998/1000)); hi=$((pref*1002/1000))
+  if [ "$size" -lt "$lo" ] || [ "$size" -gt "$hi" ]; then
+    echo "ABORT: restart file size $size differs by > 0.2% from the previous run's $PREVRST ($pref B) -> likely truncated"; exit 5
+  fi
+fi
 
 # ---- 4. build the next-run engine deck (first line /RUN/<root>/<NEXT>) ----
 first=$(head -1 "$ENG" | tr -d '\r')      # engine decks are CRLF (written on Windows): strip the CR before comparing

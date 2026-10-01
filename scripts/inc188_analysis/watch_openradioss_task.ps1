@@ -238,6 +238,16 @@ if (-not $NoQueue -and (Test-Path -LiteralPath $QueueFile)) {
   # P1r20 was only interrupted (resume pending). A watched run whose newest log has neither NORMAL nor
   # ERROR TERMINATION is unfinished -> leave the slot to its auto-resume.
   $unfinished = @($Tags | Where-Object { $newState[$_] -and $newState[$_].state -notin @("NORMAL_TERMINATION", "ERROR_TERMINATION", "LOG_MISSING") })
+  # 2026-10-01 08:21: a resume died at start-up (truncated restart file) -> ERROR_TERMINATION -> the queue
+  # immediately launched the next run and the interrupted one was abandoned. Treat a fresh error (newest
+  # log written < 60 min ago) as unfinished so a human or a fixed resume gets the slot first.
+  foreach ($tg in $Tags) {
+    if ($newState[$tg] -and $newState[$tg].state -eq "ERROR_TERMINATION") {
+      $lg = @(Get-ChildItem -LiteralPath $WorkDir -Filter ("engine_run" + $tg + "*.log") -ErrorAction SilentlyContinue |
+              Where-Object { $_.Name -match ("^engine_run" + $tg + "(_r\d+)?\.log$") } | Sort-Object LastWriteTime -Descending | Select-Object -First 1)
+      if ($lg.Count -gt 0 -and ($now - $lg[0].LastWriteTime).TotalMinutes -lt 60) { $unfinished += $tg }
+    }
+  }
   if ($q.Count -gt 0 -and $unfinished.Count -gt 0) {
     # log the hold only while no engine is alive (otherwise it is just the normal running state)
     $eap = $ErrorActionPreference; $ErrorActionPreference = "Continue"
