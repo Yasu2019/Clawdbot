@@ -332,6 +332,29 @@ if (-not $NoResultReport) {
   }
 }
 
+# ---- set summaries: data\workspace\openradioss_report_sets.txt, one set per line "<name>: TAG TAG ...".
+#      When every tag of a set is FINALIZED, send one compare_runs.py table for the whole set
+#      (marker REPORTED_SET_<name> in $VtkDir). 2026-10-03: the six-order re-run ends at night. ----
+$setsFile = Join-Path (Split-Path -Parent $StateFile) "openradioss_report_sets.txt"
+if (-not $NoResultReport -and (Test-Path -LiteralPath $setsFile)) {
+  foreach ($ln in Get-Content -LiteralPath $setsFile) {
+    if ($ln -notmatch "^\s*([A-Za-z0-9_]+)\s*:\s*(.+)$") { continue }
+    $setName = $Matches[1]; $setTags = @($Matches[2].Trim() -split "\s+" | Where-Object { $_ -match "^[A-Za-z0-9_]+$" })
+    $rep = Join-Path $VtkDir ("REPORTED_SET_" + $setName)
+    if ($setTags.Count -eq 0 -or (Test-Path -LiteralPath $rep)) { continue }
+    $missing = @($setTags | Where-Object { -not (Test-Path -LiteralPath (Join-Path $VtkDir ("FINALIZED_" + $_))) })
+    if ($missing.Count -gt 0) { continue }
+    $eap = $ErrorActionPreference; $ErrorActionPreference = "Continue"
+    $env:PYTHONIOENCODING = "utf-8"
+    $tbl = (& $PythonExe "D:\Clawdbot_Docker_20260125\scripts\inc188_analysis\compare_runs.py" @setTags 2>&1 | Where-Object { "$_" -match "^\|" } | Out-String).Trim()
+    $ErrorActionPreference = $eap
+    if ($tbl) {
+      $alerts += ("SET RESULT " + $setName + " (all " + $setTags.Count + " runs finalized):`n" + $tbl)
+      Set-Content -LiteralPath $rep -Value ($now.ToString("yyyy-MM-dd HH:mm:ss")) -Encoding ASCII
+    }
+  }
+}
+
 # ---- forward new lines of the per-frame monitor's alarm file (first separation / punch penetration) ----
 $rhAlarm = Join-Path (Split-Path -Parent $StateFile) "ALARM_round_hole.txt"
 $rhSeen = 0
