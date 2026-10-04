@@ -4,7 +4,7 @@
 # Runs forever (waits while no engine is alive); single instance (lock), kept alive by c0_bisect_keeper.ps1.
 export MSYS_NO_PATHCONV=1
 C=${C:-clawstack-unified-openradioss-1}
-W="D:/Clawdbot_Docker_20260125/clawstack_v2/data/work"
+W=${W:-"D:/Clawdbot_Docker_20260125/clawstack_v2/data/work"}
 OUT=${OUT:-"D:/Clawdbot_Docker_20260125/data/workspace/engine_mem_log.tsv"}
 INTERVAL=${INTERVAL:-60}
 [ -f "$OUT" ] || printf 'time\ttag\trss_mb\thwm_mb\tT_s\n' > "$OUT"
@@ -25,6 +25,19 @@ memcap_fast() {  # $1=tag $2=rss_MB
   [ -n "$rst" ] || return
   age=$((now - $(stat -c %Y "$rst")))
   { [ "$age" -ge 20 ] && [ "$age" -le 120 ]; } || return
+  # 2026-10-04 15:29: a KILL during the restart-file write truncated it (839 MB of 1.55 GB) and the run
+  # sat dead 7.5 h. Only stop when the file is complete: same size as the run's previous restart file
+  # (+-0.2 %, else +-2 % of the starter's) and unchanged over 2 s.
+  local n prev ref sz
+  n=$(echo "$rst" | sed -n 's/.*_\([0-9]\{4\}\)_0001\.rst$/\1/p'); n=$((10#$n))
+  prev=$(printf '%s/PANEL4MM_%s_%04d_0001.rst' "$W" "$1" $((n - 1)))
+  sz=$(stat -c %s "$rst")
+  if [ "$n" -gt 1 ] && [ -f "$prev" ]; then
+    ref=$(stat -c %s "$prev"); [ "$sz" -ge $((ref * 998 / 1000)) ] && [ "$sz" -le $((ref * 1002 / 1000)) ] || return
+  else
+    ref=$(stat -c %s "$W/PANEL4MM_$1_0000_0001.rst" 2>/dev/null || echo 0); [ "$sz" -ge $((ref * 98 / 100)) ] || return
+  fi
+  local before; before=$(stat -c %s:%Y "$rst"); sleep 2; [ "$(stat -c %s:%Y "$rst")" = "$before" ] || return
   if [ -f "$MEMCAP_LOCK" ] && [ $((now - $(stat -c %Y "$MEMCAP_LOCK"))) -lt 180 ]; then return; fi
   echo "$(date '+%Y-%m-%d %H:%M:%S') mem_log $1" > "$MEMCAP_LOCK"
   [ -n "$DRY" ] && { echo "$(date '+%Y-%m-%d %H:%M:%S') $1 RSS $2 MB > cap $CAP_MB, rst ${age}s old -> DRY (would restart)" >> "$MEMCAP_LOG"; return; }

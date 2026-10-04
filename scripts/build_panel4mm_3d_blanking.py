@@ -235,6 +235,30 @@ def contact_blocks(ref: dict, gap_max: float, stfac: float,
     return out
 
 
+# 2026-10-04: 工具の刃先の局所細分化。工具は 250um で一律にメッシュしていたため、
+# 丸パンチ(φ0.56)とダイ穴の刃先は 45° おきの正八角形、H4 のトリムフィレット(R≈0.48)は
+# 2〜3 本の直線になり、多角形の頂点が H4 から 35um の位置にあった(人工的な角)。
+# 刃先の高さ(ダイ上面 z=0.5、ストリッパー下面 z=1.2、各パンチ下端)に Ball を置き、
+# 丸穴・H4・H1・H2 の周りだけ tool_edge_elem まで細かくする。
+TOOL_EDGE_RAMP = 0.5e-3   # 細→粗の遷移距離 [m]
+
+
+def tool_edge_refine(group: str, zoff: dict, edge_elem: float, edge_r: float) -> list:
+    """工具グループ(Die/Stripper/Punch)ごとの Ball 細分化リスト(mm 単位)。"""
+    pts = {"ROUND": HOLE_CENTER, "H4": TRIM_FILLET_NEAR_HOLE,
+           "H1": OTHER_HOTSPOTS_MM["H1"], "H2": OTHER_HOTSPOTS_MM["H2"]}
+    if group == "Die":
+        zs = {k: 0.5 for k in pts}
+    elif group == "Stripper":
+        zs = {k: 1.2 for k in pts}
+    else:   # Punch: 下端の高さ = 既定 zmin + 抜き順番のオフセット(z_offsets はメッシュ前に適用済み)
+        zs = {"ROUND": PUNCH_BASE_ZMIN_MM["round"] + zoff.get(13, 0.0),
+              "H4": PUNCH_BASE_ZMIN_MM["trim"] + zoff.get(12, 0.0),
+              "H2": PUNCH_BASE_ZMIN_MM["trim"] + zoff.get(12, 0.0),
+              "H1": PUNCH_BASE_ZMIN_MM["rect"] + zoff.get(10, 0.0)}
+    return [(x, y, zs[k], edge_r / MM, edge_elem / MM, TOOL_EDGE_RAMP / MM) for k, (x, y) in pts.items()]
+
+
 def fmt_grnod(gid: int, name: str, nodes) -> list[str]:
     out = [f"/GRNOD/NODE/{gid}", name]
     uniq = sorted(set(nodes))
@@ -405,7 +429,8 @@ def build(tag: str, blank_elem: float, tool_elem: float, stroke: float,
           swap_rect_trim_order: bool = False,
           fillet_elem: float = DEFAULT_FILLET_ELEM,
           punch_order: str | None = None,
-          punch_contact_surface: str = "all"):
+          punch_contact_surface: str = "all",
+          tool_edge_elem: float | None = None, tool_edge_r: float = 0.3e-3):
     ref_txt = REF_STARTER.read_text(encoding="utf-8", errors="replace")
     ref = {
         "mat_blank": extract_block(ref_txt, r"^/MAT/LAW2/2\b"),
@@ -466,8 +491,11 @@ def build(tag: str, blank_elem: float, tool_elem: float, stroke: float,
             # 入れ替える。丸(tag13 zmin=3.0mm)は不変。段差0.6mmを維持したまま
             # 矩形を+0.6mm(→2.4mm)・トリムを-0.6mm(→1.8mm)平行移動する。
             zoff = {10: 0.6, 11: 0.6, 12: -0.6}
+        trefine = None
+        if tool_edge_elem:
+            trefine = tool_edge_refine(name, zoff or {}, tool_edge_elem, tool_edge_r)
         c, t = mesh_group(tags, tool_elem / MM, fuse=False, add_slug=False,
-                          die_hole_r_mm=dhr, z_offsets_mm=zoff)
+                          die_hole_r_mm=dhr, z_offsets_mm=zoff, refine=trefine)
         print(f"[mesh]   {name} TET4={len(t):,}")
         groups.append((name, pid, c, t))
 
@@ -654,12 +682,17 @@ def main() -> int:
     ap.add_argument("--punch-contact-surface", choices=("all", "ext"), default="all",
                     help="パンチ-板接触の板側の面。all=内部面込み(侵食後も接触が続く、既定)、"
                          "ext=t=0外面のみ(2026-09-27以前の全ランと同じ。表層侵食後にパンチが素通りする)")
+    ap.add_argument("--tool-edge-elem", type=float, default=None,
+                    help="工具(パンチ・ダイ・ストリッパー)の刃先の局所要素サイズ[m]。丸穴・H4・H1・H2 の"
+                         "刃先の周りだけ細かくする(例 30e-6)。未指定=従来どおり工具全体 --tool-elem")
+    ap.add_argument("--tool-edge-r", type=float, default=0.3e-3,
+                    help="刃先細分化の半径[m](既定 0.3mm、その外側 0.5mm で --tool-elem へ戻す)")
     a = ap.parse_args()
     build(a.tag, a.blank_elem, a.tool_elem, a.stroke, a.speed,
           a.gap_max, a.stfac, a.nstep, a.round_elem, a.eps_s, a.eps_eff,
           a.refine_other_hotspots, a.add_cockcroft, a.cockcroft_c0,
           a.die_hole_r, a.swap_rect_trim_order, a.fillet_elem, a.punch_order,
-          a.punch_contact_surface)
+          a.punch_contact_surface, a.tool_edge_elem, a.tool_edge_r)
     return 0
 
 

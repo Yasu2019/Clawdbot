@@ -118,7 +118,7 @@ if (Test-Path -LiteralPath $CrashFile) {
   }
 }
 
-function Invoke-Resume([string]$tag) {
+function Invoke-ResumeOnce([string]$tag) {
   $o = ""
   $eap2 = $ErrorActionPreference; $ErrorActionPreference = "Continue"
   try {
@@ -126,6 +126,48 @@ function Invoke-Resume([string]$tag) {
   } catch { $o = "docker exec failed: " + $_.Exception.Message }
   $ErrorActionPreference = $eap2
   return $o
+}
+
+# 2026-10-04 15:29: the newest restart file was truncated (a memory-cap KILL during its write) and every
+# resume attempt aborted on it for 7.5 h. If restart_prep refuses the newest run's restart file
+# (truncated / missing), move that run's deck and restart file aside and resume from the previous one.
+function Invoke-Resume([string]$tag) {
+  $o = Invoke-ResumeOnce $tag
+  if ($o -match "ABORT: restart file (size|\S+ missing)") {
+    $decks = @(Get-ChildItem -LiteralPath $WorkDir -Filter ("PANEL4MM_" + $tag + "_00*.rad") -ErrorAction SilentlyContinue |
+               Where-Object { $_.Name -match ("^PANEL4MM_" + $tag + "_(\d{4})\.rad$") -and [int]$Matches[1] -ge 2 } | Sort-Object Name -Descending)
+    if ($decks.Count -gt 0) {
+      $n = $decks[0].Name.Substring(("PANEL4MM_" + $tag + "_").Length, 4)
+      $bad = Join-Path $WorkDir ("corrupt_" + $tag + "_" + $now.ToString("yyyyMMdd_HHmm"))
+      New-Item -ItemType Directory -Force -Path $bad | Out-Null
+      Move-Item -LiteralPath $decks[0].FullName -Destination $bad -Force
+      $r = Join-Path $WorkDir ("PANEL4MM_" + $tag + "_" + $n + "_0001.rst")
+      if (Test-Path -LiteralPath $r) { Move-Item -LiteralPath $r -Destination $bad -Force }
+      $o2 = Invoke-ResumeOnce $tag
+      $o = $o + "`nFALLBACK: run " + $n + " restart file unusable, moved to " + (Split-Path -Leaf $bad) + "; retried from the previous one:`n" + $o2
+    }
+  }
+  return $o
+}
+
+# a restart file is complete only if it is the size of the run's previous one (+-0.2 %, else +-2 % of the
+# starter's) and neither size nor time changes over 2 s (it is not being written right now)
+function Test-RstComplete([string]$tag, $item) {
+  if (-not $item) { return $false }
+  $n = 0
+  if ($item.Name -match "_(\d{4})_0001\.rst$") { $n = [int]$Matches[1] }
+  $prev = Join-Path $WorkDir ("PANEL4MM_" + $tag + "_" + ($n - 1).ToString("0000") + "_0001.rst")
+  $st = Join-Path $WorkDir ("PANEL4MM_" + $tag + "_0000_0001.rst")
+  $ok = $false
+  if ($n -gt 1 -and (Test-Path -LiteralPath $prev)) {
+    $p = (Get-Item -LiteralPath $prev).Length; $ok = [math]::Abs($item.Length - $p) -le $p * 0.002
+  } elseif (Test-Path -LiteralPath $st) {
+    $p = (Get-Item -LiteralPath $st).Length; $ok = [math]::Abs($item.Length - $p) -le $p * 0.02
+  }
+  if (-not $ok) { return $false }
+  Start-Sleep -Seconds 2
+  $again = Get-Item -LiteralPath $item.FullName
+  return ($again.Length -eq $item.Length -and $again.LastWriteTimeUtc -eq $item.LastWriteTimeUtc)
 }
 
 foreach ($t in $Tags) {
@@ -176,7 +218,7 @@ foreach ($t in $Tags) {
     if (-not $lastD -or ($now - $lastD).TotalMinutes -ge 10) {
       $resumeLog[$dk] = $now.ToString("yyyy-MM-dd HH:mm:ss")
       $out = Invoke-Resume $t
-      $res = ($out -split "`n" | Where-Object { $_ -match "LAUNCHED|REFUSE|ABORT|failed|Error" } | Select-Object -First 1)
+      $res = (($out -split "`n" | Where-Object { $_ -match "LAUNCHED|REFUSE|ABORT|FALLBACK|failed|Error" } | Select-Object -First 3) -join " / ")
       $alerts += ($t + ": engine DEAD (" + $extra + ") -> immediate resume: " + "$res".Trim())
     }
   }
@@ -197,17 +239,8 @@ foreach ($t in $Tags) {
         $crash[$t] = @{ log = $logName; T = $crashT; n = $n; status = "GAVE_UP" }
         $alerts += ($t + ": crashed again (" + $logName + ", T=" + $crashT + ", retries " + $n + ") -> GAVE UP, run kept as partial; queue continues")
       } else {
-        $out = Invoke-Resume $t
-        if ($out -match "ABORT: restart file \S+ missing") {
-          # the crashed run died before its first save: retry from the previous run's restart file
-          $nn = $null
-          if ($logName -match "_r(\d+)\.log$") { $nn = [int]$Matches[1] }
-          if ($nn) {
-            $rad = Join-Path $WorkDir ("PANEL4MM_" + $t + "_" + $nn.ToString("0000") + ".rad")
-            if (Test-Path -LiteralPath $rad) { Move-Item -LiteralPath $rad -Destination ($rad + ".crashed_nosave") -Force; $out = Invoke-Resume $t }
-          }
-        }
-        $res = ($out -split "`n" | Where-Object { $_ -match "LAUNCHED|REFUSE|ABORT|failed|Error" } | Select-Object -First 1)
+        $out = Invoke-Resume $t    # falls back to the previous restart file when the newest is unusable
+        $res = (($out -split "`n" | Where-Object { $_ -match "LAUNCHED|REFUSE|ABORT|FALLBACK|failed|Error" } | Select-Object -First 3) -join " / ")
         $stc = "RETRIED"; if ("$res" -notmatch "LAUNCHED") { $stc = "FAILED" }
         $crash[$t] = @{ log = $logName; T = $crashT; n = ($n + 1); status = $stc }
         $alerts += ($t + ": ERROR TERMINATION at T=" + $crashT + " (" + $logName + ") -> auto-retry " + ($n + 1) + ": " + "$res".Trim())
@@ -255,13 +288,16 @@ foreach ($t in $Tags) {
       if ($lockFresh) {
         $age = 1e9   # engine_mem_log.sh (fast memory cap) is restarting it right now
       }
+      if ($age -lt $MemCapRstAgeMin -and $age -gt 0.5 -and -not (Test-RstComplete $t $rst[0])) {
+        $age = 1e9   # newest restart file incomplete (being written / truncated): never KILL now
+      }
       if ($age -lt $MemCapRstAgeMin -and $age -gt 0.5) {
         Set-Content -LiteralPath $mcLock -Value ($now.ToString("yyyy-MM-dd HH:mm:ss") + " watchdog " + $t) -Encoding ASCII
         $eap = $ErrorActionPreference; $ErrorActionPreference = "Continue"
         $stopOut = (& docker exec $Container bash /work/engine_ctl.sh stop $t 2>&1 | Out-String).Trim()
-        $out = (& docker exec -e ("NT=" + $ResumeThreads) $Container bash /work/openradioss_restart_prep.sh $t --go 2>&1 | ForEach-Object { "$_" } | Out-String)
         $ErrorActionPreference = $eap
-        $res = ($out -split "`n" | Where-Object { $_ -match "LAUNCHED|REFUSE|ABORT|failed|Error" } | Select-Object -First 1)
+        $out = Invoke-Resume $t
+        $res = (($out -split "`n" | Where-Object { $_ -match "LAUNCHED|REFUSE|ABORT|FALLBACK|failed|Error" } | Select-Object -First 3) -join " / ")
         $resumeLog[$t] = $now.ToString("yyyy-MM-dd HH:mm:ss")
         $alerts += ($t + ": MEMCAP RSS " + $rss + " MB > " + $MemCapMB + " -> " + $stopOut + "; resume from " + $rst[0].Name + " (" + [math]::Round($age,1) + " min old): " + "$res".Trim())
       } else {
