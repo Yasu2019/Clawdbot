@@ -14,7 +14,8 @@ param(
   [string[]]$Tags    = @("P1r18"),     # P1r13-16 finished 2026-09-24; P1r17 = round-punch penetration run (stroke 4mm)
   [int]$StaleSec     = 600,
   [string]$DiskDrive = "D",
-  [double]$DiskMinGB = 10,
+  [double]$DiskMinGB = 15,   # one restart file is 1.55 GB; deck/anim/TH writes need headroom
+  [string]$RstArchive = "G:\clawstack_data\inc188\rst_archive",
   [switch]$NoTelegram,
   [switch]$NoAutoResume,
   [string]$Container = "clawstack-unified-openradioss-1",
@@ -239,7 +240,31 @@ foreach ($t in $Tags) {
         $crash[$t] = @{ log = $logName; T = $crashT; n = $n; status = "GAVE_UP" }
         $alerts += ($t + ": crashed again (" + $logName + ", T=" + $crashT + ", retries " + $n + ") -> GAVE UP, run kept as partial; queue continues")
       } else {
-        $out = Invoke-Resume $t    # falls back to the previous restart file when the newest is unusable
+        $out = ""
+        # 2026-10-05 05:48: restart file 0006 had the full size but the engine hit END OF FILE while
+        # reading it (written while E: ran full). restart_prep cannot see that, so a crash at T=0 with
+        # that message means: set aside the failed run N and run N-1 (whose restart file is bad) and
+        # resume from run N-2's restart file.
+        $eofRead = ($crashT -eq 0 -and (Select-String -LiteralPath $f -Pattern "END OF FILE DURING READING" -Quiet))
+        if ($eofRead) {
+          $decks = @(Get-ChildItem -LiteralPath $WorkDir -Filter ("PANEL4MM_" + $t + "_00*.rad") -ErrorAction SilentlyContinue |
+                     Where-Object { $_.Name -match ("^PANEL4MM_" + $t + "_(\d{4})\.rad$") -and [int]$Matches[1] -ge 1 } | Sort-Object Name -Descending)
+          if ($decks.Count -ge 3) {
+            $bad = Join-Path $WorkDir ("corrupt_" + $t + "_" + $now.ToString("yyyyMMdd_HHmm"))
+            New-Item -ItemType Directory -Force -Path $bad | Out-Null
+            $moved = @()
+            foreach ($d in $decks[0..1]) {
+              $nn = $d.BaseName.Substring($d.BaseName.Length - 4)
+              foreach ($sfx in (".rad", ".out", "_0001.rst")) {
+                $p = Join-Path $WorkDir ("PANEL4MM_" + $t + "_" + $nn + $sfx)
+                if (Test-Path -LiteralPath $p) { Move-Item -LiteralPath $p -Destination $bad -Force; $moved += (Split-Path -Leaf $p) }
+              }
+            }
+            Move-Item -LiteralPath $f -Destination (Join-Path $bad ($logName -replace "\.log$", "_eof.log")) -Force
+            $out = "FALLBACK: restart file unreadable (END OF FILE), moved " + ($moved -join ",") + " to " + (Split-Path -Leaf $bad) + "`n"
+          }
+        }
+        $out = $out + (Invoke-Resume $t)    # falls back to the previous restart file when the newest is unusable
         $res = (($out -split "`n" | Where-Object { $_ -match "LAUNCHED|REFUSE|ABORT|FALLBACK|failed|Error" } | Select-Object -First 3) -join " / ")
         $stc = "RETRIED"; if ("$res" -notmatch "LAUNCHED") { $stc = "FAILED" }
         $crash[$t] = @{ log = $logName; T = $crashT; n = ($n + 1); status = $stc }
@@ -334,8 +359,32 @@ foreach ($t in $Tags) {
 # ---- disk space of the drive the engines write to (a full drive kills engines / corrupts restart files) ----
 $diskState = "OK"; $diskExtra = ""
 try {
-  $freeGB = (Get-PSDrive $DiskDrive).Free / 1GB
-  if ($freeGB -lt $DiskMinGB) { $diskState = "DISK_LOW"; $diskExtra = ($DiskDrive + ": free " + [math]::Round($freeGB,1) + " GB < " + $DiskMinGB + " GB") }
+  # 2026-10-05 04:20: WorkDir is a junction to E: and only D: was checked -> E: reached 0 bytes, the
+  # resume deck could not be written and P1r26f sat dead 80 min with D: showing 152 GB free.
+  # Measure the drive the junction really points to.
+  $wdItem = Get-Item -LiteralPath $WorkDir
+  $wdReal = $WorkDir
+  if ($wdItem.LinkType -and $wdItem.Target) { $wdReal = @($wdItem.Target)[0] }
+  $drv = $DiskDrive
+  if ($wdReal -match "^([A-Za-z]):") { $drv = $Matches[1] }
+  $freeGB = (Get-PSDrive $drv).Free / 1GB
+  # Below 2x the minimum, move the restart files of finished runs (FINALIZED_<tag>, not being watched)
+  # to the archive drive, one run per tick. Move, never delete.
+  if ($freeGB -lt 2 * $DiskMinGB -and (Test-Path -LiteralPath $RstArchive)) {
+    $fin = @(Get-ChildItem -LiteralPath $VtkDir -Filter "FINALIZED_*" -ErrorAction SilentlyContinue |
+             Sort-Object LastWriteTime | ForEach-Object { $_.Name.Substring(10) } | Where-Object { $Tags -notcontains $_ })
+    foreach ($ft in $fin) {
+      $rf = @(Get-ChildItem -LiteralPath $WorkDir -File -Filter ("PANEL4MM_" + $ft + "_*.rst") -ErrorAction SilentlyContinue)
+      if ($rf.Count -eq 0) { continue }
+      $gb = [math]::Round((($rf | Measure-Object Length -Sum).Sum) / 1GB, 1)
+      try { $rf | Move-Item -Destination $RstArchive -ErrorAction Stop
+            $alerts += ("DISK: " + $drv + ": free " + [math]::Round($freeGB,1) + " GB -> moved " + $rf.Count + " restart files of finished " + $ft + " (" + $gb + " GB) to " + $RstArchive) }
+      catch { $alerts += ("DISK: moving " + $ft + " restart files failed: " + $_.Exception.Message) }
+      $freeGB = (Get-PSDrive $drv).Free / 1GB
+      break
+    }
+  }
+  if ($freeGB -lt $DiskMinGB) { $diskState = "DISK_LOW"; $diskExtra = ($drv + ": free " + [math]::Round($freeGB,1) + " GB < " + $DiskMinGB + " GB (WorkDir " + $wdReal + ")") }
 } catch { $diskState = "OK" }
 $oldDisk = "NONE"
 if ($prev["DISK"]) { $oldDisk = $prev["DISK"].state }
