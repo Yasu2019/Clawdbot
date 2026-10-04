@@ -102,6 +102,32 @@ if (-not $NoAutoResume) {
   $ErrorActionPreference = $eap
 }
 
+# live starters/engines once per tick (DEAD detection, crash retry, queue)
+$eap = $ErrorActionPreference; $ErrorActionPreference = "Continue"
+$aliveLines = @(& docker exec $Container bash /work/engine_ctl.sh any 2>$null)
+$aliveOk = ($LASTEXITCODE -eq 0)
+$ErrorActionPreference = $eap
+$aliveTagsNow = @($aliveLines | ForEach-Object { ("$_".Trim() -split "\s+")[1] } | Where-Object { $_ })
+
+# crash bookkeeping: "tag|log|crashT|retries|status" (status RETRIED / GAVE_UP / FAILED)
+$CrashFile = Join-Path (Split-Path -Parent $StateFile) "openradioss_crash_state.txt"
+$crash = @{}
+if (Test-Path -LiteralPath $CrashFile) {
+  foreach ($ln in Get-Content -LiteralPath $CrashFile) {
+    $p = $ln.Split("|"); if ($p.Count -ge 5) { $crash[$p[0]] = @{ log = $p[1]; T = [double]$p[2]; n = [int]$p[3]; status = $p[4] } }
+  }
+}
+
+function Invoke-Resume([string]$tag) {
+  $o = ""
+  $eap2 = $ErrorActionPreference; $ErrorActionPreference = "Continue"
+  try {
+    $o = (& docker exec -e ("NT=" + $ResumeThreads) $Container bash /work/openradioss_restart_prep.sh $tag --go 2>&1 | ForEach-Object { "$_" } | Out-String)
+  } catch { $o = "docker exec failed: " + $_.Exception.Message }
+  $ErrorActionPreference = $eap2
+  return $o
+}
+
 foreach ($t in $Tags) {
   # After a restart the engine writes engine_run<tag>_r<N>.log; follow the newest run's log.
   $f = Join-Path $WorkDir ("engine_run" + $t + ".log")
@@ -136,6 +162,55 @@ foreach ($t in $Tags) {
       }
       if ($ncLine -match "DM/M=\s*([0-9.]+E[+-][0-9]+)") {
         if ([double]::Parse($Matches[1], [Globalization.CultureInfo]::InvariantCulture) -ne 0) { $state = "MASS_SCALING"; $extra = ("DM/M=" + $Matches[1]) }
+      }
+    }
+  }
+
+  # ---- DEAD: no starter/engine process for the tag, log not terminated and quiet > 90 s.
+  #      2026-10-04: waiting for STALE (2 x 10 min of silence) wasted up to 20 min per death.
+  if ($aliveOk -and $t -notin $aliveTagsNow -and (Test-Path -LiteralPath $f) -and
+      $state -in @("OK", "STALE", "DT_COLLAPSE", "MASS_SCALING") -and $age -gt 90 -and -not $NoAutoResume) {
+    $state = "DEAD"; $extra = ("no engine process, log quiet " + [int]$age + " s")
+    $dk = $t + "#dead"; $lastD = $null
+    if ($resumeLog[$dk]) { $lastD = [datetime]::ParseExact($resumeLog[$dk], "yyyy-MM-dd HH:mm:ss", $null) }
+    if (-not $lastD -or ($now - $lastD).TotalMinutes -ge 10) {
+      $resumeLog[$dk] = $now.ToString("yyyy-MM-dd HH:mm:ss")
+      $out = Invoke-Resume $t
+      $res = ($out -split "`n" | Where-Object { $_ -match "LAUNCHED|REFUSE|ABORT|failed|Error" } | Select-Object -First 1)
+      $alerts += ($t + ": engine DEAD (" + $extra + ") -> immediate resume: " + "$res".Trim())
+    }
+  }
+
+  # ---- ERROR TERMINATION of the newest run (2026-10-04 08:07: P1r25f segmentation violation; the run
+  #      sat unfinished for 2 h 15 min and the slot was idle 64 min). Retry once from the last restart
+  #      file at once; a second crash at the same simulated time (+-2 us) or a 4th crash -> give up,
+  #      so the queue moves on immediately.
+  if ($state -eq "ERROR_TERMINATION" -and $aliveOk -and $t -notin $aliveTagsNow -and -not $NoAutoResume) {
+    $logName = Split-Path -Leaf $f
+    $crashT = 0.0
+    if ($ncLine -match "\sT=\s*([0-9.]+E[+-][0-9]+)") { $crashT = [double]::Parse($Matches[1], [Globalization.CultureInfo]::InvariantCulture) }
+    $rec = $crash[$t]
+    if (-not $rec -or $rec.log -ne $logName) {
+      $n = 0; if ($rec) { $n = $rec.n }
+      $same = ($rec -and $crashT -gt 0 -and $crashT -le ($rec.T + 2e-6))
+      if (($same -and $n -ge 1) -or $n -ge 3) {
+        $crash[$t] = @{ log = $logName; T = $crashT; n = $n; status = "GAVE_UP" }
+        $alerts += ($t + ": crashed again (" + $logName + ", T=" + $crashT + ", retries " + $n + ") -> GAVE UP, run kept as partial; queue continues")
+      } else {
+        $out = Invoke-Resume $t
+        if ($out -match "ABORT: restart file \S+ missing") {
+          # the crashed run died before its first save: retry from the previous run's restart file
+          $nn = $null
+          if ($logName -match "_r(\d+)\.log$") { $nn = [int]$Matches[1] }
+          if ($nn) {
+            $rad = Join-Path $WorkDir ("PANEL4MM_" + $t + "_" + $nn.ToString("0000") + ".rad")
+            if (Test-Path -LiteralPath $rad) { Move-Item -LiteralPath $rad -Destination ($rad + ".crashed_nosave") -Force; $out = Invoke-Resume $t }
+          }
+        }
+        $res = ($out -split "`n" | Where-Object { $_ -match "LAUNCHED|REFUSE|ABORT|failed|Error" } | Select-Object -First 1)
+        $stc = "RETRIED"; if ("$res" -notmatch "LAUNCHED") { $stc = "FAILED" }
+        $crash[$t] = @{ log = $logName; T = $crashT; n = ($n + 1); status = $stc }
+        $alerts += ($t + ": ERROR TERMINATION at T=" + $crashT + " (" + $logName + ") -> auto-retry " + ($n + 1) + ": " + "$res".Trim())
       }
     }
   }
@@ -233,6 +308,11 @@ if ($diskState -ne $oldDisk -and -not ($oldDisk -eq "NONE" -and $diskState -eq "
   $alerts += ("DISK: " + $oldDisk + " -> " + $diskState + " " + $diskExtra)
 }
 
+# ---- persist crash bookkeeping ----
+if ($crash.Count -gt 0) {
+  Set-Content -LiteralPath $CrashFile -Encoding ASCII -Value ($crash.Keys | ForEach-Object { $_ + "|" + $crash[$_].log + "|" + $crash[$_].T.ToString("E6", [Globalization.CultureInfo]::InvariantCulture) + "|" + $crash[$_].n + "|" + $crash[$_].status })
+}
+
 # ---- run queue: keep the engine slots busy (a finished run must not leave a slot idle) ----
 # 2026-10-01: up to $MaxEngines engines at once (user paused MechaRL so INC-188 can run 2 jobs).
 if (-not $NoQueue -and (Test-Path -LiteralPath $QueueFile)) {
@@ -246,14 +326,13 @@ if (-not $NoQueue -and (Test-Path -LiteralPath $QueueFile)) {
   # P1r20 was only interrupted (resume pending). A watched run whose newest log has neither NORMAL nor
   # ERROR TERMINATION is unfinished.
   $unfinished = @($Tags | Where-Object { $newState[$_] -and $newState[$_].state -notin @("NORMAL_TERMINATION", "ERROR_TERMINATION", "LOG_MISSING") })
-  # 2026-10-01 08:21: a resume died at start-up (truncated restart file) -> ERROR_TERMINATION -> the queue
-  # immediately launched the next run and the interrupted one was abandoned. Treat a fresh error (newest
-  # log written < 60 min ago) as unfinished so a human or a fixed resume gets the slot first.
+  # A run whose newest log ended in ERROR TERMINATION stays unfinished until the crash retry above has
+  # either relaunched it (engine alive -> slot busy) or given up (GAVE_UP / FAILED -> finished, move on).
+  # (2026-10-04: replaces the fixed 60-min hold, which only left the slot idle.)
   foreach ($tg in $Tags) {
     if ($newState[$tg] -and $newState[$tg].state -eq "ERROR_TERMINATION") {
-      $lg = @(Get-ChildItem -LiteralPath $WorkDir -Filter ("engine_run" + $tg + "*.log") -ErrorAction SilentlyContinue |
-              Where-Object { $_.Name -match ("^engine_run" + $tg + "(_r\d+)?\.log$") } | Sort-Object LastWriteTime -Descending | Select-Object -First 1)
-      if ($lg.Count -gt 0 -and ($now - $lg[0].LastWriteTime).TotalMinutes -lt 60) { $unfinished += $tg }
+      $cr = $crash[$tg]
+      if (-not $cr -or $cr.status -eq "RETRIED") { $unfinished += $tg }
     }
   }
   # unfinished runs without a live engine are waiting for a resume: they own the next free slot
