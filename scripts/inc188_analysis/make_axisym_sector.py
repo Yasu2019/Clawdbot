@@ -1,4 +1,4 @@
-﻿"""INC-188: quasi-axisymmetric round-hole piercing model (thin hex sector) for mesh convergence.
+"""INC-188: quasi-axisymmetric round-hole piercing model (thin hex sector) for mesh convergence.
 
 The 3D model resolves the round hole (phi0.56, clearance 20 um) with 20-33 um tets. The literature asks
 for 4-8 um in the shear zone and a convergence check in 2D/axisymmetry first. This builds a one-element
@@ -22,12 +22,16 @@ GAP = 5e-6            # tool-blank initial gap (as TOOL_GAP in the 3D builder)
 RP = 0.28 * MM        # punch radius
 RD = 0.30 * MM        # die hole radius (measured, clearance 20 um)
 RS = 0.285 * MM       # stripper hole radius
-R0 = 0.10 * MM        # inner edge of the modelled blank / punch
+R0 = 0.05 * MM        # inner edge of the modelled blank / punch (free: an u_r=0 BC here + wide tools gave -61 % energy error)
 R1 = 1.00 * MM        # outer edge
 TOOL_H = 0.15 * MM    # tool height
 V = 5.0               # punch speed m/s
 STROKE = 0.60 * MM    # punch travel after first contact (> T)
 STEEL = (7800.0, 2.1e11, 0.28)
+# tools span [-TOOL_DTH, DTHETA+TOOL_DTH] deg: with the blank's symmetry faces coplanar to the tool side
+# faces, TYPE25 produced an out-of-plane (Y) punch force and an energy error of -70..-99 % (G10/G5,
+# 2026-10-05). r*4deg = 7 um at R0 keeps every tool node outside the contact gap of those faces.
+TOOL_DTH = 10.0
 
 
 def f20(v):
@@ -56,21 +60,26 @@ def graded(a, b, h_fine, fa, fb, h_max, ratio=1.15):
     return sorted(set(round(v, 12) for v in xs))
 
 
-def build(tag, h, fail, c0, eps_s, stripper, dtheta_deg, out, tstop=None):
+def build(tag, h, fail, c0, eps_s, stripper, dtheta_deg, out, tstop=None, isolid=24, stfac=1.0, pmesh=0.4, gapmax=None, tool_dth=None, inner_bc=True, gap0=None):
+    # initial tool-blank distance must be inside the contact gap (0.4 x element size): with 5 um and
+    # h<=10 um the blank started outside every contact, floated free and hit the die (energy error
+    # -65..-99 %, 2026-10-05). G20 (gap 8 um > 5 um) was fine.
+    global GAP
+    GAP = gap0 if gap0 else min(5e-6, 0.15 * h)
     th = math.radians(dtheta_deg)
     c, s = math.cos(th), math.sin(th)
     nodes = []           # (id, x, y, z)
     nid = [0]
 
-    def node(r, z, k):
+    def node(r, z, a):
         nid[0] += 1
-        a = th * k
         nodes.append((nid[0], r * math.cos(a), r * math.sin(a), z))
         return nid[0]
 
-    def block(rs, zs):
-        """hex block on radial nodes rs x axial nodes zs; returns (bricks, ids[k][i][j])."""
-        ids = [[[node(r, z, k) for z in zs] for r in rs] for k in (0, 1)]
+    def block(rs, zs, a0=0.0, a1=None):
+        """hex block on radial nodes rs x axial nodes zs between angles a0..a1; returns (bricks, ids[k][i][j])."""
+        a1 = th if a1 is None else a1
+        ids = [[[node(r, z, a) for z in zs] for r in rs] for a in (a0, a1)]
         br = []
         for i in range(len(rs) - 1):
             for j in range(len(zs) - 1):
@@ -89,13 +98,14 @@ def build(tag, h, fail, c0, eps_s, stripper, dtheta_deg, out, tstop=None):
     hz_t = max(h, 10e-6)
     zp = graded(GAP + T + GAP, GAP + T + GAP + TOOL_H, hz_t, GAP + T + GAP, GAP + T + GAP + 40e-6, 50e-6)
     rp = graded(R0, RP, hz_t, RP - 40e-6, RP, 50e-6)
-    punch, pid_ = block(rp, zp)
+    ew = math.radians(TOOL_DTH if tool_dth is None else tool_dth)
+    punch, pid_ = block(rp, zp, -ew, th + ew)
     zd = graded(-TOOL_H, 0.0, hz_t, -40e-6, 0.0, 50e-6)
     rd = graded(RD, R1, hz_t, RD, RD + 40e-6, 50e-6)
-    die, did = block(rd, zd)
+    die, did = block(rd, zd, -ew, th + ew)
     zs_ = graded(GAP + T + GAP, GAP + T + GAP + TOOL_H, hz_t, GAP + T + GAP, GAP + T + GAP + 40e-6, 50e-6)
     rs_ = graded(RS, R1, hz_t, RS, RS + 40e-6, 50e-6)
-    strip, sid = block(rs_, zs_)
+    strip, sid = block(rs_, zs_, -ew, th + ew)
 
     def allids(ids):
         return sorted({n for k in ids for col in k for n in col})
@@ -103,15 +113,18 @@ def build(tag, h, fail, c0, eps_s, stripper, dtheta_deg, out, tstop=None):
     def plane(ids, k):
         return sorted({n for col in ids[k] for n in col})
 
-    sym0 = plane(bid, 0)   # punch: IMPVEL X/Y=0 already (BCS on top would be incompatible)
-    sym1 = plane(bid, 1)
+    # inner edge r=R0 stands in for the axis: no radial motion (a free inner face let the slug squeeze
+    # inward like a ring and the punch 'ate' through it, 2026-10-05 G10/G20)
+    inner0 = set(bid[0][0]) if inner_bc else set(); inner1 = set(bid[1][0]) if inner_bc else set()
+    sym0 = [n for n in plane(bid, 0) if n not in inner0]   # punch: IMPVEL X/Y=0 already
+    sym1 = [n for n in plane(bid, 1) if n not in inner1]
     punch_n, die_n, strip_n = allids(pid_), allids(did), allids(sid)
     lines = []
     w = lines.append
     w("#RADIOSS STARTER"); w("/BEGIN"); w(f"AXI_{tag}"); w("      2022         0")
     w("                  kg                   m                   s")
     w("                  kg                   m                   s")
-    w("/TITLE"); w(f"INC-188 round hole quasi-axisymmetric sector {dtheta_deg} deg, h={h*1e6:.1f} um, {fail}")
+    w("/TITLE"); w(f"INC-188 round hole quasi-axisymmetric sector {dtheta_deg} deg, h={h*1e6:.1f} um, gap={GAP*1e6:.3f} um, {fail}")
     w("/ANALY"); w("#    N2D3D             IPARITH"); w("         0                   1")
     w("/NODE")
     for n, x, y, z in nodes:
@@ -153,7 +166,7 @@ def build(tag, h, fail, c0, eps_s, stripper, dtheta_deg, out, tstop=None):
     w("                   0                   0                   0                   0                   0")
     w("                   0                   0                   0                   0                   0")
     w("/PROP/SOLID/2"); w("Blank_Solid"); w("#    Isolid    Ismstr")
-    w("        24         0")
+    w(i10(isolid) + "         0")
     w("                   0                   0                   0                   0                   0")
     w("                   0                   0                   0                   0                   0")
     for p, name, prop, mat in ((1, "Die", 1, 1), (2, "Blank", 2, 2), (3, "Stripper", 1, 1), (4, "Punch", 1, 1)):
@@ -169,6 +182,9 @@ def build(tag, h, fail, c0, eps_s, stripper, dtheta_deg, out, tstop=None):
     grnod(400, "Stripper_Nodes", strip_n)
     grnod(500, "Sym_theta0", sym0)
     grnod(501, "Sym_theta1", sym1)
+    if inner_bc:
+        grnod(502, "Inner_theta0", sorted(inner0))
+        grnod(503, "Inner_theta1", sorted(inner1))
     w("/SKEW/FIX/1"); w("theta1_plane")
     w("#                 OX                  OY                  OZ"); w(f20(0) + f20(0) + f20(0))
     w("#                 X1                  Y1                  Z1"); w(f20(c) + f20(s) + f20(0))
@@ -176,6 +192,9 @@ def build(tag, h, fail, c0, eps_s, stripper, dtheta_deg, out, tstop=None):
     # symmetry: no motion normal to the cut planes (theta=0: global Y; theta=dtheta: local Y of skew 1)
     w("/BCS/1"); w("sym_theta0"); w("#  Tra rot   skew_ID  grnd_ID"); w("   010 000         0       500")
     w("/BCS/2"); w("sym_theta1"); w("#  Tra rot   skew_ID  grnd_ID"); w("   010 000         1       501")
+    if inner_bc:
+      w("/BCS/5"); w("inner_theta0"); w("#  Tra rot   skew_ID  grnd_ID"); w("   110 000         0       502")
+      w("/BCS/6"); w("inner_theta1"); w("#  Tra rot   skew_ID  grnd_ID"); w("   110 000         1       503")
     w("/BCS/3"); w("die_fixed"); w("#  Tra rot   skew_ID  grnd_ID"); w("   111 000         0       300")
     if stripper == "fixed":
         w("/BCS/4"); w("stripper_fixed"); w("#  Tra rot   skew_ID  grnd_ID"); w("   111 000         0       400")
@@ -197,19 +216,19 @@ def build(tag, h, fail, c0, eps_s, stripper, dtheta_deg, out, tstop=None):
         w(f"         3         {d}         0         0       100         0         0")
         w("#             Ascale_x            Fscale_y              Tstart               Tstop")
         w("                   1                   1                   0               1E+30")
-    gap_max = min(15e-6, 0.8 * h + 2e-6)
+    gap_max = gapmax if gapmax else min(15e-6, 0.8 * h + 2e-6)
     for i, (s1, s2, idel, name) in enumerate(((100, 200, 2, "Die_Blank_Contact"),
                                               (300, 200, 2, "Stripper_Blank_Contact"),
                                               (400, 201, 1, "Punch_Blank_Contact")), start=1):
         w(f"/INTER/TYPE25/{i}/0"); w(name)
         w("#  surf_ID1  surf_ID2      Istf      Igap   Irem_i2      Idel     Iedge")
-        w(f"{i10(s1)}{i10(s2)}         4                   3         2         {idel}         0          ")
+        w(f"{i10(s1)}{i10(s2)}         4                   3         2          {i10(idel)}         0          ")
         w("#  grnd_IDs             Gap_scale           %mesh_size              Gap_max_s              Gap_max_m")
-        w(f"         0                             1                 0.4{f20(gap_max)}{f20(gap_max)}")
+        w(f"         0                             1{f20(pmesh)}{f20(gap_max)}{f20(gap_max)}")
         w("#                 Stmin                 Stmax     Igap0    Ishape               Edge_angle")
         w("                   0               1e+30         0         2                 135                    ")
         w("#                 Stfac                  Fric               Tstart                 Tstop")
-        w("                   1                 0.1                                       0               1e+30")
+        w(f20(stfac) + "                 0.1                                       0               1e+30")
         w("#      I_BC     IVIS2    Inacti                  VISs")
         w("         0                   0         5                0.05                                        ")
         w("#     Ifric    Ifiltr                 Xfreq   sens_ID   fric_ID")
@@ -241,8 +260,15 @@ if __name__ == "__main__":
     ap.add_argument("--c0", type=float, default=19.1e6)
     ap.add_argument("--eps-s", type=float, default=0.5)
     ap.add_argument("--stripper", default="fixed", choices=["fixed", "free"])
-    ap.add_argument("--dtheta", type=float, default=2.0)
+    ap.add_argument("--dtheta", type=float, default=5.0)
     ap.add_argument("--tstop", type=float, default=None)
+    ap.add_argument("--isolid", type=int, default=24)
+    ap.add_argument("--stfac", type=float, default=1.0)
+    ap.add_argument("--pmesh", type=float, default=0.4)
+    ap.add_argument("--gapmax", type=float, default=None)
+    ap.add_argument("--tool-dth", type=float, default=None)
+    ap.add_argument("--inner", action="store_true")
+    ap.add_argument("--gap0", type=float, default=None)
     ap.add_argument("--out", default="D:/Clawdbot_Docker_20260125/clawstack_v2/data/work")
     a = ap.parse_args()
-    build(a.tag, a.h_um * 1e-6, a.fail, a.c0, a.eps_s, a.stripper, a.dtheta, a.out, a.tstop)
+    build(a.tag, a.h_um * 1e-6, a.fail, a.c0, a.eps_s, a.stripper, a.dtheta, a.out, a.tstop, a.isolid, a.stfac, a.pmesh, a.gapmax, a.tool_dth, a.inner, a.gap0)
