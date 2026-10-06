@@ -127,9 +127,10 @@ def run_one(run_name, vtk_dir):
         pts, cells, part, ero, eps, vm, tens, t = load(path)
         # 2026-10-06: P1r26f had frames whose cell arrays were shorter than the cell list (written while
         # E: was full / around an engine kill) -> IndexError, finalize retried forever. Skip and log.
-        if min(len(ero), len(eps), len(vm)) < len(cells) or (tens is not None and len(tens) < len(cells)):
-            print(f"  SKIP incomplete frame {os.path.basename(path)}: cells={len(cells)} ero={len(ero)} "
-                  f"eps={len(eps)} vm={len(vm)}")
+        ln = lambda a: 0 if a is None else len(a)   # a block missing entirely comes back as None
+        if min(ln(ero), ln(eps), ln(vm)) < len(cells) or (tens is not None and len(tens) < len(cells)):
+            print(f"  SKIP incomplete frame {os.path.basename(path)}: cells={len(cells)} ero={ln(ero)} "
+                  f"eps={ln(eps)} vm={ln(vm)}")
             continue
         eid = block_eid(path, len(cells))
         eid2idx = {e: i for i, e in enumerate(eid)}
