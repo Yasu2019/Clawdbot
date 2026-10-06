@@ -236,7 +236,10 @@ foreach ($t in $Tags) {
     if (-not $rec -or $rec.log -ne $logName) {
       $n = 0; if ($rec) { $n = $rec.n }
       $same = ($rec -and $crashT -gt 0 -and $crashT -le ($rec.T + 2e-6))
-      if (($same -and $n -ge 1) -or $n -ge 3) {
+      # 2026-10-07: P1r28f crashed at T=0.388, 0.400, 0.419 ms - each retry got further - and the old
+      # "4th crash -> give up" rule stopped it at 82 %. Give up only when a retry made no progress
+      # (same T within 2 us), or after 10 retries.
+      if (($same -and $n -ge 1) -or $n -ge 10) {
         $crash[$t] = @{ log = $logName; T = $crashT; n = $n; status = "GAVE_UP" }
         $alerts += ($t + ": crashed again (" + $logName + ", T=" + $crashT + ", retries " + $n + ") -> GAVE UP, run kept as partial; queue continues")
       } else {
