@@ -195,6 +195,27 @@ foreach ($t in $Tags) {
       $state = "ERROR_TERMINATION"
     } elseif ($joined -match "NORMAL TERMINATION") {
       $state = "NORMAL_TERMINATION"
+      # 2026-10-07: P1r29f blew up (negative volumes, "NODAL VELOCITY IS TOO HIGH FOR INTERFACE") at
+      # T=0.142 of 0.51 ms, the engine still printed NORMAL TERMINATION, and the queue moved on as if it
+      # had finished. A normal end short of the deck's tstop is a crash.
+      $tstopRun = 0.0
+      $engDeck = Join-Path $WorkDir ("PANEL4MM_" + $t + "_0001.rad")
+      if (Test-Path -LiteralPath $engDeck) {
+        $l2 = @(Get-Content -LiteralPath $engDeck -TotalCount 2)
+        if ($l2.Count -ge 2) { [double]::TryParse($l2[1].Trim(), [Globalization.NumberStyles]::Float, [Globalization.CultureInfo]::InvariantCulture, [ref]$tstopRun) | Out-Null }
+      }
+      $tEnd = 0.0
+      $ncEnd = $ncLine
+      if (-not $ncEnd) {   # the end-of-run summary pushes the last NC line out of the 60-line tail
+        $ncEnd = (@(Get-Content -LiteralPath $f -Tail 3000 -ErrorAction SilentlyContinue) | Where-Object { $_ -match "NC=" } | Select-Object -Last 1)
+      }
+      if ($ncEnd -match "\sT=\s*([0-9.]+E[+-][0-9]+)") { $tEnd = [double]::Parse($Matches[1], [Globalization.CultureInfo]::InvariantCulture) }
+      if ($tstopRun -gt 0 -and $tEnd -gt 0 -and $tEnd -lt 0.98 * $tstopRun) {
+        $state = "ERROR_TERMINATION"
+        $extra = ("normal termination at T=" + $tEnd + " < tstop " + $tstopRun + " (early stop)")
+        if ($joined -match "NODAL VELOCITY IS TOO HIGH") { $extra = $extra + ", nodal velocity too high" }
+        $ncLine = $ncEnd   # so the crash bookkeeping below gets the real stop time
+      }
     } elseif ($age -gt $StaleSec) {
       $stale = $oldStale + 1
       if ($stale -ge 2) { $state = "STALE"; $extra = ("age=" + [int]$age + "s") }
