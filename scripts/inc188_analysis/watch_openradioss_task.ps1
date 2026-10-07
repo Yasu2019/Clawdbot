@@ -29,6 +29,7 @@ param(
   [int]$MemCapMB = 8000,
   [int]$MemCapRstAgeMin = 6,
   [switch]$NoMemCap,
+  [double]$MassBlowupRatio = 0.05,   # DM/M above this = a blow-up absorbed by mass scaling
   [string]$MemCapLog = "D:\Clawdbot_Docker_20260125\data\workspace\openradioss_memcap_log.txt",
   # Run queue (2026-09-28): one tag per line; when no starter/engine is alive the head is launched
   # with chain_P1r19_21.sh (deck PANEL4MM_<tag>_0000/0001.rad must be in WorkDir) and removed.
@@ -225,7 +226,11 @@ foreach ($t in $Tags) {
         if ([double]::Parse($Matches[1], [Globalization.CultureInfo]::InvariantCulture) -lt 5e-10) { $state = "DT_COLLAPSE"; $extra = ("DT=" + $Matches[1]) }
       }
       if ($ncLine -match "DM/M=\s*([0-9.]+E[+-][0-9]+)") {
-        if ([double]::Parse($Matches[1], [Globalization.CultureInfo]::InvariantCulture) -ne 0) { $state = "MASS_SCALING"; $extra = ("DM/M=" + $Matches[1]) }
+        $dmm = [double]::Parse($Matches[1], [Globalization.CultureInfo]::InvariantCulture)
+        if ($dmm -ne 0) { $state = "MASS_SCALING"; $extra = ("DM/M=" + $Matches[1]) }
+        # 2026-10-08: a node flew off at 29 km/s in P1r33f and the nodal mass scaling (CST2) absorbed it by
+        # adding 3.96x the model mass (ERR 99.9 %): the run went on, but everything after it is invalid.
+        if ($dmm -gt $MassBlowupRatio) { $state = "MASS_BLOWUP"; $extra = ("DM/M=" + $Matches[1] + " > " + $MassBlowupRatio) }
       }
     }
   }
@@ -243,6 +248,17 @@ foreach ($t in $Tags) {
       $res = (($out -split "`n" | Where-Object { $_ -match "LAUNCHED|REFUSE|ABORT|FALLBACK|failed|Error" } | Select-Object -First 3) -join " / ")
       $alerts += ($t + ": engine DEAD (" + $extra + ") -> immediate resume: " + "$res".Trim())
     }
+  }
+
+  # ---- MASS_BLOWUP: stop the engine and give the run up (a resume would only repeat it); queue moves on
+  if ($state -eq "MASS_BLOWUP" -and $aliveOk -and $t -in $aliveTagsNow -and -not $NoAutoResume) {
+    $eap = $ErrorActionPreference; $ErrorActionPreference = "Continue"
+    $stopOut = (& docker exec $Container bash /work/engine_ctl.sh stop $t 2>&1 | Out-String).Trim()
+    $ErrorActionPreference = $eap
+    $tb = 0.0
+    if ($ncLine -match "\sT=\s*([0-9.]+E[+-][0-9]+)") { $tb = [double]::Parse($Matches[1], [Globalization.CultureInfo]::InvariantCulture) }
+    $crash[$t] = @{ log = (Split-Path -Leaf $f); T = $tb; n = 0; status = "GAVE_UP" }
+    $alerts += ($t + ": MASS BLOW-UP (" + $extra + ") at T=" + $tb + " -> " + $stopOut + "; run given up, results after this time are invalid; queue continues")
   }
 
   # ---- ERROR TERMINATION of the newest run (2026-10-04 08:07: P1r25f segmentation violation; the run
@@ -434,7 +450,7 @@ if (-not $NoQueue -and (Test-Path -LiteralPath $QueueFile)) {
   # 2026-09-28 15:46: after a WSL shutdown no engine was alive, so the queue launched P1r21 while
   # P1r20 was only interrupted (resume pending). A watched run whose newest log has neither NORMAL nor
   # ERROR TERMINATION is unfinished.
-  $unfinished = @($Tags | Where-Object { $newState[$_] -and $newState[$_].state -notin @("NORMAL_TERMINATION", "ERROR_TERMINATION", "LOG_MISSING") })
+  $unfinished = @($Tags | Where-Object { $newState[$_] -and $newState[$_].state -notin @("NORMAL_TERMINATION", "ERROR_TERMINATION", "LOG_MISSING", "MASS_BLOWUP") })
   # A run whose newest log ended in ERROR TERMINATION stays unfinished until the crash retry above has
   # either relaunched it (engine alive -> slot busy) or given up (GAVE_UP / FAILED -> finished, move on).
   # (2026-10-04: replaces the fixed 60-min hold, which only left the slot idle.)
