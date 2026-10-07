@@ -430,6 +430,28 @@ if (-not $NoQueue -and (Test-Path -LiteralPath $QueueFile)) {
       Add-Content -LiteralPath $MemCapLog -Encoding ASCII -Value ($now.ToString("yyyy-MM-dd HH:mm:ss") + " QUEUE: " + $q[0] + " held, unfinished watched run(s) without engine: " + ($needResume -join ",") + " (waiting for auto-resume)")
     }
   }
+  # 2026-10-07: "resume_<tag>" in the queue resumes a run that was given up (GAVE_UP) or left partial,
+  # from its newest restart file, when the slot is free; its crash record is reset and it is watched again.
+  if ($q.Count -gt 0 -and $q[0] -match "^resume_([A-Za-z0-9]+)$" -and $needResume.Count -eq 0 -and $anyRc -eq 0 -and $anyOut.Count -lt $MaxEngines) {
+    $rt = $Matches[1]
+    $freeGB = (Get-CimInstance Win32_OperatingSystem).FreePhysicalMemory / 1MB
+    if ($freeGB -ge $QueueMinFreeGB) {
+      $out = Invoke-Resume $rt
+      $res = (($out -split "`n" | Where-Object { $_ -match "LAUNCHED|REFUSE|ABORT|FALLBACK|failed|Error" } | Select-Object -First 3) -join " / ")
+      Set-Content -LiteralPath $QueueFile -Value ($q | Select-Object -Skip 1) -Encoding ASCII
+      if ("$res" -match "LAUNCHED") {
+        $crash.Remove($rt)
+        # crash file was already written above this block: rewrite it without the resumed run
+        Set-Content -LiteralPath $CrashFile -Encoding ASCII -Value @($crash.Keys | ForEach-Object { $_ + "|" + $crash[$_].log + "|" + $crash[$_].T.ToString("E6", [Globalization.CultureInfo]::InvariantCulture) + "|" + $crash[$_].n + "|" + $crash[$_].status })
+        if (-not $PSBoundParameters.ContainsKey("Tags")) {
+          $keep = @(@($Tags | Where-Object { $_ -ne $rt }) | Select-Object -Last 3) + $rt
+          Set-Content -LiteralPath $TagsFile -Value $keep -Encoding ASCII
+        }
+      }
+      $alerts += ("QUEUE: resume " + $rt + " (free RAM " + [math]::Round($freeGB,1) + " GB): " + "$res".Trim())
+    }
+    $q = @()   # one action per tick
+  }
   if ($q.Count -gt 0 -and $needResume.Count -eq 0 -and $anyRc -eq 0 -and $anyOut.Count -lt $MaxEngines) {
     $next = $q[0]
     $deck = Join-Path $WorkDir ("PANEL4MM_" + $next + "_0000.rad")
