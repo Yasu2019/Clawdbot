@@ -60,7 +60,7 @@ def graded(a, b, h_fine, fa, fb, h_max, ratio=1.15):
     return sorted(set(round(v, 12) for v in xs))
 
 
-def build(tag, h, fail, c0, eps_s, stripper, dtheta_deg, out, tstop=None, isolid=24, stfac=1.0, pmesh=0.4, gapmax=None, tool_dth=None, inner_bc=True, gap0=None, bq=None):
+def build(tag, h, fail, c0, eps_s, stripper, dtheta_deg, out, tstop=None, isolid=24, stfac=1.0, pmesh=0.4, gapmax=None, tool_dth=None, inner_bc=True, gap0=None, bq=None, elreg=None):
     # initial tool-blank distance must be inside the contact gap (0.4 x element size): with 5 um and
     # h<=10 um the blank started outside every contact, floated free and hit the die (energy error
     # -65..-99 %, 2026-10-05). G20 (gap 8 um > 5 um) was fine.
@@ -158,7 +158,10 @@ def build(tag, h, fail, c0, eps_s, stripper, dtheta_deg, out, tstop=None, isolid
         w("#            Volfrac          Pthickfail       NCS                      Temp_max")
         w("                 0.0                 0.0         1                         0.0")
         w("# fct_IDel                     Fscale_el              El_ref")
-        w("         0                         0.0                 0.0")
+        if elreg:   # element-size regularisation: criteria scaled by f(L_el / El_ref) (/FUNCT/9)
+            w("         9          " + f20(1.0) + f20(elreg[0]))
+        else:
+            w("         0                         0.0                 0.0")
     elif fail == "biquad":
         # 2026-10-06: stress-state dependent fracture strain (eps_f at eta = -1/3, 0, 1/3, 1/sqrt3, 2/3),
         # damage D = sum(d eps_p / eps_f(eta)), element deleted at D = 1. radioss2018 card layout.
@@ -217,6 +220,10 @@ def build(tag, h, fail, c0, eps_s, stripper, dtheta_deg, out, tstop=None, isolid
     w("         1         Z         0         0       100         0         0")
     w("#             Ascale_x            Fscale_y              Tstart               Tstop")
     w("                   1                   1                   0               1E+30")
+    if elreg:
+        w("/FUNCT/9"); w("GENE1_element_size_factor"); w("#                  X                   Y")
+        for x, y in elreg[1]:
+            w(f20(x) + f20(y))
     w("/FUNCT/3"); w("Zero"); w("#                  X                   Y"); w(f20(0) + f20(0)); w(f20(1.0) + f20(0))
     for k, d in enumerate(("X", "Y")):
         w(f"/IMPVEL/{2 + k}"); w(f"Punch_{d}")
@@ -277,7 +284,9 @@ if __name__ == "__main__":
     ap.add_argument("--gapmax", type=float, default=None)
     ap.add_argument("--tool-dth", type=float, default=None)
     ap.add_argument("--inner", action="store_true")
+    ap.add_argument("--elreg", default=None, help="El_ref[m];x1:y1,x2:y2,... (GENE1 size factor vs L/El_ref)")
     ap.add_argument("--gap0", type=float, default=None)
     ap.add_argument("--out", default="D:/Clawdbot_Docker_20260125/clawstack_v2/data/work")
     a = ap.parse_args()
-    build(a.tag, a.h_um * 1e-6, a.fail, a.c0, a.eps_s, a.stripper, a.dtheta, a.out, a.tstop, a.isolid, a.stfac, a.pmesh, a.gapmax, a.tool_dth, a.inner, a.gap0, [float(v) for v in a.bq.split(",")])
+    build(a.tag, a.h_um * 1e-6, a.fail, a.c0, a.eps_s, a.stripper, a.dtheta, a.out, a.tstop, a.isolid, a.stfac, a.pmesh, a.gapmax, a.tool_dth, a.inner, a.gap0, [float(v) for v in a.bq.split(",")],
+          None if not a.elreg else (float(a.elreg.split(';')[0]), [tuple(map(float, q.split(':'))) for q in a.elreg.split(';')[1].split(',')]))
