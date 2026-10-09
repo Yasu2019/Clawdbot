@@ -119,7 +119,12 @@ def main():
         png = os.path.join(tmp, f"{i:04d}.png")
         if os.path.exists(png):
             continue
-        t, P, C, part, ero, eps, vm = load(os.path.join(vdir, f"f{fr:03d}.vtk"))
+        try:
+            t, P, C, part, ero, eps, vm = load(os.path.join(vdir, f"f{fr:03d}.vtk"))
+        except Exception as ex:      # truncated frame (P1r26f f012)
+            print(label, fr, "skip unreadable:", ex, flush=True); continue
+        if any(v is None or len(v) < len(C) for v in (part, ero, eps, vm)):
+            print(label, fr, "skip incomplete frame", flush=True); continue   # P1r26f f010/f012 (E: full on 10-05)
         cen = P[C].mean(axis=1)
         d = to_draw(cen[:, :2])
         Pd = np.concatenate([to_draw(P[:, :2]), P[:, 2:3]], 1)
@@ -178,7 +183,12 @@ def main():
         fig.savefig(png); plt.close(fig)
         print(label, fr, f"t={t*1e3:.3f}", flush=True)
     ff = os.environ.get("FFMPEG", "ffmpeg")
-    subprocess.run([ff, "-y", "-loglevel", "error", "-framerate", "4", "-i", os.path.join(tmp, "%04d.png"),
+    import glob, shutil
+    seq = tmp + "_seq"                      # skipped frames leave gaps; ffmpeg needs a contiguous sequence
+    shutil.rmtree(seq, ignore_errors=True); os.makedirs(seq)
+    for k, pth in enumerate(sorted(glob.glob(os.path.join(tmp, "*.png")))):
+        shutil.copy(pth, os.path.join(seq, f"{k:04d}.png"))
+    subprocess.run([ff, "-y", "-loglevel", "error", "-framerate", "4", "-i", os.path.join(seq, "%04d.png"),
                     "-vf", "scale=trunc(iw/2)*2:trunc(ih/2)*2", "-c:v", "libx264", "-pix_fmt", "yuv420p",
                     "-crf", "26", "-movflags", "+faststart", out], check=True)
     print("wrote", out, os.path.getsize(out))
