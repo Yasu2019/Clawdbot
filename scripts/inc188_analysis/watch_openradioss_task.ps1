@@ -405,16 +405,25 @@ try {
   # 2026-10-10: the link is two levels deep (D:\Clawdbot...\work -> D:\ClawstackData\...\work -> E:) and
   # PS 5.1 shows an empty LinkType for it, so the old check stayed on D: while E: filled up (16 h idle).
   # Follow every Target until a real directory is reached.
-  $wdReal = $WorkDir
-  for ($hop = 0; $hop -lt 8; $hop++) {
-    $it = Get-Item -LiteralPath $wdReal -Force
-    $tg = @($it.Target | Where-Object { $_ })
-    if ($tg.Count -eq 0) { break }
-    $nx = $tg[0]
-    if (-not [IO.Path]::IsPathRooted($nx)) { $nx = Join-Path (Split-Path -Parent $wdReal) $nx }
-    if ($nx -eq $wdReal) { break }
-    $wdReal = $nx
+  # Item.Target of the second hop is a stale string (D:\ClawstackData\..., which does not exist), so ask
+  # Windows for the final path of the opened directory instead.
+  if (-not ("FinalPath" -as [type])) {
+    Add-Type -Language CSharp -TypeDefinition @"
+using System; using System.Runtime.InteropServices; using System.Text; using Microsoft.Win32.SafeHandles;
+public static class FinalPath {
+  [DllImport("kernel32.dll", CharSet=CharSet.Unicode, SetLastError=true)]
+  static extern SafeFileHandle CreateFileW(string n, uint a, uint s, IntPtr sa, uint c, uint f, IntPtr t);
+  [DllImport("kernel32.dll", CharSet=CharSet.Unicode, SetLastError=true)]
+  static extern uint GetFinalPathNameByHandleW(SafeFileHandle h, StringBuilder b, uint n, uint f);
+  public static string Get(string p) {
+    using (var h = CreateFileW(p, 0, 7, IntPtr.Zero, 3, 0x02000000, IntPtr.Zero)) {
+      if (h.IsInvalid) return null;
+      var sb = new StringBuilder(1024); GetFinalPathNameByHandleW(h, sb, 1024, 0);
+      var r = sb.ToString(); if (r.StartsWith(@"\\?\")) r = r.Substring(4); return r; } } }
+"@
   }
+  $wdReal = [FinalPath]::Get($WorkDir)
+  if (-not $wdReal) { throw ("cannot resolve the final path of " + $WorkDir) }
   $drv = $DiskDrive
   if ($wdReal -match "^([A-Za-z]):") { $drv = $Matches[1] }
   $freeGB = (Get-PSDrive $drv).Free / 1GB
