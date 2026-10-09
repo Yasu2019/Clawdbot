@@ -402,9 +402,19 @@ try {
   # 2026-10-05 04:20: WorkDir is a junction to E: and only D: was checked -> E: reached 0 bytes, the
   # resume deck could not be written and P1r26f sat dead 80 min with D: showing 152 GB free.
   # Measure the drive the junction really points to.
-  $wdItem = Get-Item -LiteralPath $WorkDir
+  # 2026-10-10: the link is two levels deep (D:\Clawdbot...\work -> D:\ClawstackData\...\work -> E:) and
+  # PS 5.1 shows an empty LinkType for it, so the old check stayed on D: while E: filled up (16 h idle).
+  # Follow every Target until a real directory is reached.
   $wdReal = $WorkDir
-  if ($wdItem.LinkType -and $wdItem.Target) { $wdReal = @($wdItem.Target)[0] }
+  for ($hop = 0; $hop -lt 8; $hop++) {
+    $it = Get-Item -LiteralPath $wdReal -Force
+    $tg = @($it.Target | Where-Object { $_ })
+    if ($tg.Count -eq 0) { break }
+    $nx = $tg[0]
+    if (-not [IO.Path]::IsPathRooted($nx)) { $nx = Join-Path (Split-Path -Parent $wdReal) $nx }
+    if ($nx -eq $wdReal) { break }
+    $wdReal = $nx
+  }
   $drv = $DiskDrive
   if ($wdReal -match "^([A-Za-z]):") { $drv = $Matches[1] }
   $freeGB = (Get-PSDrive $drv).Free / 1GB
@@ -413,19 +423,27 @@ try {
   if ($freeGB -lt 2 * $DiskMinGB -and (Test-Path -LiteralPath $RstArchive)) {
     $fin = @(Get-ChildItem -LiteralPath $VtkDir -Filter "FINALIZED_*" -ErrorAction SilentlyContinue |
              Sort-Object LastWriteTime | ForEach-Object { $_.Name.Substring(10) } | Where-Object { $Tags -notcontains $_ })
+    # 2026-10-10: also runs that were stopped / abandoned (not watched, not queued, no engine): P1r29f and
+    # P1r33f kept 15 GB of restart files on E: because they never got FINALIZED.
+    $queued = @()
+    if (Test-Path -LiteralPath $QueueFile) { $queued = @(Get-Content -LiteralPath $QueueFile | ForEach-Object { ($_.Trim() -replace "^resume_", "") }) }
+    $abandoned = @(Get-ChildItem -LiteralPath $WorkDir -File -Filter "PANEL4MM_*_0001.rst" -ErrorAction SilentlyContinue |
+                   ForEach-Object { if ($_.Name -match "^PANEL4MM_([A-Za-z0-9]+)_\d{4}_0001\.rst$") { $Matches[1] } } | Select-Object -Unique |
+                   Where-Object { $Tags -notcontains $_ -and $queued -notcontains $_ -and $aliveTagsNow -notcontains $_ -and $fin -notcontains $_ })
+    $fin = @($fin) + @($abandoned)
     foreach ($ft in $fin) {
-      $rf = @(Get-ChildItem -LiteralPath $WorkDir -File -Filter ("PANEL4MM_" + $ft + "_*.rst") -ErrorAction SilentlyContinue)
+      $rf = @(Get-ChildItem -LiteralPath $WorkDir -File -Filter ("PANEL4MM_" + $ft + "_*.rst") -ErrorAction SilentlyContinue | Where-Object { $_.Name -match ("^PANEL4MM_" + $ft + "_\d{4}_0001\.rst$") })
       if ($rf.Count -eq 0) { continue }
       $gb = [math]::Round((($rf | Measure-Object Length -Sum).Sum) / 1GB, 1)
       try { $rf | Move-Item -Destination $RstArchive -ErrorAction Stop
-            $alerts += ("DISK: " + $drv + ": free " + [math]::Round($freeGB,1) + " GB -> moved " + $rf.Count + " restart files of finished " + $ft + " (" + $gb + " GB) to " + $RstArchive) }
+            $alerts += ("DISK: " + $drv + ": free " + [math]::Round($freeGB,1) + " GB -> moved " + $rf.Count + " restart files of finished/abandoned " + $ft + " (" + $gb + " GB) to " + $RstArchive) }
       catch { $alerts += ("DISK: moving " + $ft + " restart files failed: " + $_.Exception.Message) }
       $freeGB = (Get-PSDrive $drv).Free / 1GB
       break
     }
   }
   if ($freeGB -lt $DiskMinGB) { $diskState = "DISK_LOW"; $diskExtra = ($drv + ": free " + [math]::Round($freeGB,1) + " GB < " + $DiskMinGB + " GB (WorkDir " + $wdReal + ")") }
-} catch { $diskState = "OK" }
+} catch { $diskState = "CHECK_FAILED"; $diskExtra = $_.Exception.Message }
 $oldDisk = "NONE"
 if ($prev["DISK"]) { $oldDisk = $prev["DISK"].state }
 $newState["DISK"] = @{ state = $diskState; stale = 0 }
@@ -467,6 +485,32 @@ if (-not $NoQueue -and (Test-Path -LiteralPath $QueueFile)) {
       Add-Content -LiteralPath $MemCapLog -Encoding ASCII -Value ($now.ToString("yyyy-MM-dd HH:mm:ss") + " QUEUE: " + $q[0] + " held, unfinished watched run(s) without engine: " + ($needResume -join ",") + " (waiting for auto-resume)")
     }
   }
+  # 2026-10-10: the slot sat idle 16 h - the queue was held by a watched run that "waited for auto-resume"
+  # but could never resume (disk full), and nothing alerted. If the queue has work, no engine is alive and
+  # this lasts 15 min: alert, give the blocking runs up and let the queue continue.
+  $nowMin = [int]($now.ToUniversalTime() - [datetime]'1970-01-01').TotalMinutes
+  if ($q.Count -gt 0 -and $anyRc -eq 0 -and $anyOut.Count -eq 0) {
+    $idleSince = $nowMin; $idleAlert = "NONE"
+    if ($prev["QUEUE_IDLE"]) { $idleSince = $prev["QUEUE_IDLE"].stale; $idleAlert = $prev["QUEUE_IDLE"].state }
+    $idleMin = $nowMin - $idleSince
+    if ($idleMin -ge 15) {
+      if ($needResume.Count -gt 0) {
+        foreach ($tg in $needResume) { $crash[$tg] = @{ log = "blocked"; T = 0.0; n = 0; status = "GAVE_UP" } }
+        Set-Content -LiteralPath $CrashFile -Encoding ASCII -Value @($crash.Keys | ForEach-Object { $_ + "|" + $crash[$_].log + "|" + $crash[$_].T.ToString("E6", [Globalization.CultureInfo]::InvariantCulture) + "|" + $crash[$_].n + "|" + $crash[$_].status })
+        if (-not $PSBoundParameters.ContainsKey("Tags")) {
+          Set-Content -LiteralPath $TagsFile -Value @($Tags | Where-Object { $needResume -notcontains $_ }) -Encoding ASCII
+        }
+        $alerts += ("QUEUE: slot idle " + $idleMin + " min, held by " + ($needResume -join ",") + " that could not resume -> given up (re-queue as resume_<tag> if needed); queue continues")
+        $needResume = @()
+      }
+      if ($idleAlert -ne "ALERTED" -or ($idleMin % 60) -eq 0) {
+        $alerts += ("QUEUE: no engine running for " + $idleMin + " min with " + $q.Count + " run(s) queued (head " + $q[0] + ")")
+        $idleAlert = "ALERTED"
+      }
+    }
+    $newState["QUEUE_IDLE"] = @{ state = $idleAlert; stale = $idleSince }
+  }
+
   # 2026-10-07: "resume_<tag>" in the queue resumes a run that was given up (GAVE_UP) or left partial,
   # from its newest restart file, when the slot is free; its crash record is reset and it is watched again.
   if ($q.Count -gt 0 -and $q[0] -match "^resume_([A-Za-z0-9]+)$" -and $needResume.Count -eq 0 -and $anyRc -eq 0 -and $anyOut.Count -lt $MaxEngines) {
