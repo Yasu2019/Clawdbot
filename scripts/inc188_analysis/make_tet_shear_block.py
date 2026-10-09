@@ -23,7 +23,7 @@ def i10(v):
     return f"{int(v):>10d}"
 
 
-def build(tag, a, eps, lin, out, fx=None):
+def build(tag, a, eps, lin, out, fx=None, bq=None):
     n = max(1, round(B / a))
     h = B / n
     nid = {}
@@ -60,7 +60,13 @@ def build(tag, a, eps, lin, out, fx=None):
           "#                  a                   b                   n           EPS_p_max               Xmax",
           "       1.9640E+08        5.2473E+08              0.7183              10.0                 0"]
     L += ["                 0.0                 0.0                 0.0                 0.0                 0.0"] * 3
-    L += ["/FAIL/GENE1/1",
+    if bq:
+        L += ["/FAIL/BIQUAD/1", "#                 C1                  C2                  C3                  C4                  C5",
+              "".join(f20(v) for v in bq),
+              "#        P_THICKFAIL    M_FLAG    S_FLAG          INST_START            FCT_IDEL              EI_REF",
+              f20(0) + "         0         1" + f20(0) + "          " + (i10(9) + f20(1e-6) if fx else i10(0) + f20(0))]
+    else:
+      L += ["/FAIL/GENE1/1",
           "                 0.0                 0.0                 0.0                 0.0                 0.0",
           "         0                         0.0                 0.0                 0.0                 0.0",
           "         0                   0                   0                 100                   0",
@@ -99,6 +105,8 @@ if __name__ == "__main__":
     ap.add_argument("--eps", type=float, default=0.01)
     ap.add_argument("--elreg-lin", action="store_true")
     ap.add_argument("--fx", default=None, help="x:y,... factor vs L_el/1um")
+    ap.add_argument("--bq", default=None, help="BIQUAD c1..c5 instead of GENE1")
     ap.add_argument("--out", default="D:/Temp/axi")
     a = ap.parse_args()
-    build(a.tag, a.a_um * 1e-6, a.eps, a.elreg_lin, a.out, None if not a.fx else [tuple(map(float, q.split(":"))) for q in a.fx.split(",")])
+    build(a.tag, a.a_um * 1e-6, a.eps, a.elreg_lin, a.out, None if not a.fx else [tuple(map(float, q.split(":"))) for q in a.fx.split(",")],
+          None if not a.bq else [float(v) for v in a.bq.split(",")])
