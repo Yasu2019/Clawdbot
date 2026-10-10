@@ -124,7 +124,11 @@ def run_one(run_name, vtk_dir):
 
     series = {name: [] for name in HOTSPOTS}
     for fi, path in enumerate(files):
-        pts, cells, part, ero, eps, vm, tens, t = load(path)
+        try:
+            pts, cells, part, ero, eps, vm, tens, t = load(path)
+        except (IndexError, ValueError) as ex:   # frame cut off inside POINTS/CELLS (E: full)
+            print(f"  SKIP unreadable frame {os.path.basename(path)}: {ex}")
+            continue
         # 2026-10-06: P1r26f had frames whose cell arrays were shorter than the cell list (written while
         # E: was full / around an engine kill) -> IndexError, finalize retried forever. Skip and log.
         ln = lambda a: 0 if a is None else len(a)   # a block missing entirely comes back as None
