@@ -26,7 +26,7 @@ param(
   # Memory cap (2026-09-28): with /SURF/PART/ALL in the punch contact the engine RSS grows ~85 MB/min
   # (25.7 GB after 4.4 h) and starved the MechaRL trainers. A restart from the .rst resets it, so when
   # RSS > MemCapMB and a restart file was written < MemCapRstAgeMin ago, stop + resume (loses < that).
-  [int]$MemCapMB = 8000,
+  [int]$MemCapMB = 12000,   # 2026-10-12: 8000 -> 12000 (P1r39f starts at ~7.7 GB with the 12 um strip mesh)
   [int]$MemCapRstAgeMin = 6,
   [switch]$NoMemCap,
   [double]$MassBlowupRatio = 0.05,   # DM/M above this = a blow-up absorbed by mass scaling

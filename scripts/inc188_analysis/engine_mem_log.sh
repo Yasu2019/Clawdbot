@@ -13,7 +13,7 @@ INTERVAL=${INTERVAL:-60}
 # newest restart file is 20-120 s old cuts the redone work to under ~1 min. The watchdog keeps its own
 # (slower) memory cap as a fallback; both take data/workspace/.memcap.lock (skip if < 180 s old).
 WS="D:/Clawdbot_Docker_20260125/data/workspace"
-CAP_MB=${CAP_MB:-8000}
+CAP_MB=${CAP_MB:-12000}   # 2026-10-12: 8000 -> 12000 (P1r39f, 1.64 M sheet elements)
 MEMCAP_LOG=${MEMCAP_LOG:-"$WS/openradioss_memcap_log.txt"}
 ALARM_FILE=${ALARM_FILE:-"$WS/ALARM_openradioss_p1r13_16.txt"}
 MEMCAP_LOCK=${MEMCAP_LOCK:-"$WS/.memcap.lock"}

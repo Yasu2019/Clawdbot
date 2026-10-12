@@ -99,6 +99,8 @@ SLUG_FILL_R = 0.35                   # add_slug専用(実測境界300um+50um余�
 TRIM_FILLET_NEAR_HOLE = (185.55, -1881.25)  # H4/実クラック一致箇所 [mm]
 TRIM_FILLET_REFINE_R = 0.25e-3       # 細分化半径[m](フィレット弧+隣接エッジを覆う)
 TRIM_FILLET_REFINE_RAMP = 0.5e-3     # 細→粗への遷移距離[m]
+STRIP_REFINE_R = 0.22e-3             # H4 の帯の細分化: 各 Ball の半径[m](帯の両側 0.22 mm、板厚全体)
+STRIP_REFINE_RAMP = 0.25e-3          # 細→粗への遷移距離[m]
 
 # 2026-09-10追加: 外部レビューで最重要指摘(★)を受けた対照実験(P1r7)。
 # GENE1は要素サイズ正則化を持たないため、「フィレットだけ細分化したら
@@ -430,7 +432,8 @@ def build(tag: str, blank_elem: float, tool_elem: float, stroke: float,
           fillet_elem: float = DEFAULT_FILLET_ELEM,
           punch_order: str | None = None,
           punch_contact_surface: str = "all",
-          tool_edge_elem: float | None = None, tool_edge_r: float = 0.3e-3):
+          tool_edge_elem: float | None = None, tool_edge_r: float = 0.3e-3,
+          strip_elem: float | None = None):
     ref_txt = REF_STARTER.read_text(encoding="utf-8", errors="replace")
     ref = {
         "mat_blank": extract_block(ref_txt, r"^/MAT/LAW2/2\b"),
@@ -471,6 +474,24 @@ def build(tag: str, blank_elem: float, tool_elem: float, stroke: float,
                            TRIM_FILLET_REFINE_R / MM, fillet_elem / MM,
                            TRIM_FILLET_REFINE_RAMP / MM))
         extra_note = f" + 対照実験{len(OTHER_HOTSPOTS_MM)}箇所(同{fillet_elem*1e6:.1f}um)"
+    if strip_elem:
+        # 2026-10-12: real crack path (Crack_発生位置_PM7TCB.pdf): from the trim contour (185.357,-1881.348)
+        # toward the round hole (185.187,-1881.758) and on to the hole edge. P1r38f (25-33 um tets) gave the
+        # strip only ductile damage 0.36; refine the whole strip (trim edge -> hole) to strip_elem.
+        o, tp = np.array([185.357, -1881.348]), np.array([185.187, -1881.758])
+        hole = np.array(HOLE_CENTER)
+        d = (tp - o) / np.linalg.norm(tp - o)
+        L = np.linalg.norm(tp - o)
+        for sv in np.arange(-0.10, L + 0.15, 0.12):
+            px, py = o + d * sv
+            refine.append((px, py, 0.80, STRIP_REFINE_R / MM, strip_elem / MM, STRIP_REFINE_RAMP / MM))
+        # and the part of the hole rim facing the strip
+        hv = (o - hole) / np.linalg.norm(o - hole)
+        for ang in (-0.35, 0.0, 0.35):
+            c, sn = np.cos(ang), np.sin(ang)
+            px, py = hole + 0.30 * np.array([c * hv[0] - sn * hv[1], sn * hv[0] + c * hv[1]])
+            refine.append((px, py, 0.80, STRIP_REFINE_R / MM, strip_elem / MM, STRIP_REFINE_RAMP / MM))
+        extra_note += f" + H4 の帯(実クラック経路) {strip_elem*1e6:.1f}um"
     print("[mesh] 材料を融合してメッシュ中(丸穴周辺 %.0fum + トリムフィレット(実クラック一致箇所) %.0fum に局所細分化%s)..."
           % (round_elem * 1e6, fillet_elem * 1e6, extra_note))
     c_blank, t_blank = mesh_group(TAG_BLANK, blank_elem / MM, fuse=True,
@@ -685,6 +706,8 @@ def main() -> int:
     ap.add_argument("--tool-edge-elem", type=float, default=None,
                     help="工具(パンチ・ダイ・ストリッパー)の刃先の局所要素サイズ[m]。丸穴・H4・H1・H2 の"
                          "刃先の周りだけ細かくする(例 30e-6)。未指定=従来どおり工具全体 --tool-elem")
+    ap.add_argument("--strip-elem", type=float, default=None,
+                    help="H4 の帯(実クラック経路: トリムの縁 -> 丸穴)を細分化する要素サイズ[m] (例 12e-6)")
     ap.add_argument("--tool-edge-r", type=float, default=0.3e-3,
                     help="刃先細分化の半径[m](既定 0.3mm、その外側 0.5mm で --tool-elem へ戻す)")
     a = ap.parse_args()
@@ -692,7 +715,7 @@ def main() -> int:
           a.gap_max, a.stfac, a.nstep, a.round_elem, a.eps_s, a.eps_eff,
           a.refine_other_hotspots, a.add_cockcroft, a.cockcroft_c0,
           a.die_hole_r, a.swap_rect_trim_order, a.fillet_elem, a.punch_order,
-          a.punch_contact_surface, a.tool_edge_elem, a.tool_edge_r)
+          a.punch_contact_surface, a.tool_edge_elem, a.tool_edge_r, a.strip_elem)
     return 0
 
 
