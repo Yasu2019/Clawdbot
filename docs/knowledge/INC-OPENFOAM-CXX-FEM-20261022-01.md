@@ -21,4 +21,8 @@ At 2026-10-22 19:18 JST, the local Windows host reported 47.77 GiB visible RAM a
 - Before stopping any older calculation, identify its recovery mechanism and known-good checkpoint, obtain confirmation for the exact target, then verify unrelated work remains intact.
 - FMEA/FTA/QC process chart/Control Plan are linked to the incident in the local canonical note; numeric risk ratings and acceptance thresholds remain unassessed.
 
+## Latest live resource correction
+
+At 2026-10-22 19:25 JST, Windows host CPU samples were about 67% and available RAM 6.89 GiB. Docker Desktop WSL guest `MemAvailable` had fallen to 0 kB and load average was 92.87 on 20 logical processors. Two existing OpenRadioss processes remained present in uninterruptible wait; the Docker daemon process remained present while the Windows Docker service was stopped/manual. The cause is **UNKNOWN**. No active job, checkpoint, WSL instance or service was stopped or restarted, and no new FEM/build was dispatched. Preserve the existing jobs and hold additional computation until live guest/storage diagnosis and user cleanup decision.
+
 Canonical local evidence: `docs/knowledge/INC-OPENFOAM-CXX-FEM-20261022-01.md`.
