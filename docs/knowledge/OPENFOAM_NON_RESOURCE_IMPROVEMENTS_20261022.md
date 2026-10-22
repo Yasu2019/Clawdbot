@@ -31,3 +31,14 @@ No solver process, task, binary, checkpoint or unrelated work was modified.
 ## Follow-up: exact low-compressibility derivative
 
 A source audit found `boundedTaitState()` imposed `max(taitPsi, 1e-12)` in unclipped cells. That can break the EOS/derivative identity for valid low-compressibility coefficients. It now returns `taitPsi()` exactly unless density clipping is active, where the bounded density is flat and `psi=0`. Added a regression assertion using a positive coefficient producing `psi < 1e-12`. The numeric value is an analytical spot-check only; compiled test remains pending.
+## C++ regression execution — 2026-10-22 17:18 JST
+
+Environment: `opencfd/openfoam-dev:latest`, runtime reported `WM_PROJECT_VERSION=v2512`, `WM_OPTIONS=linux64GccDPInt32Opt`; container was disposable (`--rm`) with `--cpus=0.20`, `--memory=1536m`, `--memory-swap=1536m`. Inputs were bind-mounted read-only then copied into the container temporary directory. Library and test executable output went to `/tmp/of-regression`; the shared working tree was not used as a build directory. The OpenFOAM 2512 generalized-polymer-thermo library and `testThermo` compiled and linked successfully. `tests/Alltest` exited 0:
+
+- Standard Tait derivative/state checks: 9 points, worst relative error `2.37322e-10`.
+- Cooling-rate Tait derivative checks: 18 points, worst relative error `2.63089e-09`.
+- Cross-WLF positivity/shear-thinning, cooling-rate transition continuity/trend, and first-mode cooling bounds/monotonicity: PASS.
+- Invalid-input rejection modes: `invalidN`, `nonFinite`, `invalidVolume`, `invalidPressureVolume`, `invalidCoolingRate`, `negativeAbsolutePressure`, `negativeShearRate`, `invalidCoolingInputs`: all PASS.
+- New un-clipped tiny-psi exact derivative check (`psi < 1e-12`): passed as part of standard executable.
+
+The Ubuntu-Recovered OpenFOAM 14 attempt was not a code failure: its installed tree lacks `/opt/openfoam14/src/OpenFOAM/lnInclude/stringTemplates.C`, so wmake stopped before compilation. No file in that shared tree was modified. The successful v2512 test establishes the generalized thermo library/regression harness only. The full `polymerInterFoam` solver was not built or run; pressure/energy coupling, dynamic mesh, field conservation, restart and molding accuracy remain unverified. At 17:18:04 JST a post-test live check showed existing OpenRadioss PIDs 38422 (`-nt 12`) and 55122 (`-nt 6`) still present in `clawstack-unified-openradioss-1`; the temporary regression container had exited and was auto-removed.
