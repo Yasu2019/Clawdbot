@@ -4,7 +4,7 @@ Linked Beads: `Clawdbot_Docker_20260125-tw5g`. Source: local source inspection a
 
 ## Changes made
 
-- `generalizedPolymerThermo.C`: added guards for non-finite/invalid absolute pressure, temperature, shear rate, Tait denominator and non-finite outputs. Tait pVT uses `log1p` and no longer clips negative absolute pressure to zero. Cross-WLF similarly rejects invalid inputs. Cooling estimate rejects a non-finite output.
+- `generalizedPolymerThermo.C`: removed the artificial `psi >= 1e-12` floor for unclipped Tait states so `psi` remains the derivative of the selected EOS; clipped states still return zero derivative. Added a tiny-`psi` regression case. Added guards for non-finite/invalid absolute pressure, temperature, shear rate, Tait denominator and non-finite outputs. Tait pVT uses `log1p` and no longer clips negative absolute pressure to zero. Cross-WLF similarly rejects invalid inputs. Cooling estimate rejects a non-finite output.
 - `polymerInterFoam/TEqn.H`: added the compressible pressure/kinetic-work structure (`divUp + ddt(rho,K) + div(rhoPhi,K) - contErr*K`) weighted by phase `alpha/Cv`; removed an extra post-solve thermal blend that imposed an undocumented time scale. `fvOptions.correct(T)` now precedes physical-temperature bounds.
 - `generalizedPolymerThermo/tests`: added negative pressure/shear-rate and invalid-cooling failure cases, plus cooling initial/monotonic/bounds checks.
 - README now states the current integration scope and explicitly says the staged 2026-09-08 binary does not validate later source; the cooling model remains a screening estimate.
@@ -28,3 +28,6 @@ Linked ID: `Clawdbot_Docker_20260125-tw5g`; qualitative and unscored.
 - Control Plan: characteristic = solver release/result provenance; method = each source change/build/run; acceptance limits pending validated criteria; reaction = mark unverified and do not use as production result; owner unassigned; effectiveness not established.
 
 No solver process, task, binary, checkpoint or unrelated work was modified.
+## Follow-up: exact low-compressibility derivative
+
+A source audit found `boundedTaitState()` imposed `max(taitPsi, 1e-12)` in unclipped cells. That can break the EOS/derivative identity for valid low-compressibility coefficients. It now returns `taitPsi()` exactly unless density clipping is active, where the bounded density is flat and `psi=0`. Added a regression assertion using a positive coefficient producing `psi < 1e-12`. The numeric value is an analytical spot-check only; compiled test remains pending.
