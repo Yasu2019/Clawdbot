@@ -2,20 +2,20 @@
 
 Date: 2026-10-23 (JST)
 
-## Reproducible environment
+## Pinned runtime
 
-- Upstream: OpenFOAM Foundation 3.0.0 source pack, official MD5 `fefa399a5c0cbe33fbabb65be17ea617`; locally verified SHA-256 `DA710FB00EA87504F99B2FAD26676A58039964E85E5F389DE7D8996049E0182C`.
-- Built with the Trusty 14.04 reference userland and GCC 4.8.4 in an isolated Docker image; runtime network disabled.
-- Base image: `clawstack/openfoam-foundation:3.0.0-trusty-source-20261023`, image ID `sha256:b013b6ada9fb665576fc86cc3f0c1110b0ede07f4f05b8e4f3915dec811a2734`.
-- Resin solver image: `clawstack/openfoam-foundation:3.0.0-trusty-injmold-20261023`, image ID `sha256:7dd9757de2c8859029a748930479616755ab3071c64b75e675b32e58c3fc3458`.
-- Packaged `openInjMoldSim v1.1.1`; executable SHA-256 `198007b370904885e4a50f8f259ccf8c9f9eac64985dd6ccc897553cce3925cb`.
+- OpenFOAM Foundation 3.0.0 source pack, official MD5 `fefa399a5c0cbe33fbabb65be17ea617`; verified SHA-256 `DA710FB00EA87504F99B2FAD26676A58039964E85E5F389DE7D8996049E0182C`.
+- Trusty 14.04 reference userland, GCC 4.8.4, isolated Docker runtime with networking disabled.
+- Base image: `clawstack/openfoam-foundation:3.0.0-trusty-source-20261023-entrypointfix2`; ID `sha256:03df89f2849490a6e93ed95cf838b92d7f569a0422b10a22c3cd2ebae1e6454e`.
+- Resin solver image: `clawstack/openfoam-foundation:3.0.0-trusty-injmold-20261023-fix3`; ID `sha256:b9022b856747ceeaa89f87acb727b5a78fbd4da8f4fcabd3a1f3defc15782538`.
+- Packaged `openInjMoldSim v1.1.1`; binary SHA-256 `198007b370904885e4a50f8f259ccf8c9f9eac64985dd6ccc897553cce3925cb`.
 
-## Verification
+## Compatibility checks
 
-`WM_PROJECT_VERSION` reports `3.0.0`; `blockMesh -help`, `simpleFoam -help`, and `openInjMoldSimFimacAba -help` launch; OpenFOAM identifies itself as `OpenFOAM-3.0.0`; linker checks reported no missing shared libraries. The resin solver source compiled in a disposable build directory against this exact runtime.
+The final entrypoint saves the solver argv, clears positional arguments before sourcing Foundation `etc/bashrc`, and then executes the saved command. This keeps solver switches out of `FOAM_SETTINGS`. The wrapper check observed empty `FOAM_SETTINGS`, `WM_PROJECT_VERSION=3.0.0`, and `blockMesh`, `simpleFoam`, and `openInjMoldSimFimacAba` on PATH. The safe `simpleFoam -help -noFunctionObjects` and custom solver `-help -noFunctionObjects` probes pass. The custom solver's shared libraries resolve when checked through the initialized environment.
 
-Initial full-library build failed because `ptscotch.h` was missing. Installing Trusty package `libptscotch-dev` resolved the dependency, after which the full source-library build and standard executables completed. Preserve these dependency and version checks when reproducing.
+The first full-library build exposed a missing `ptscotch.h`; installing Trusty `libptscotch-dev` resolved it. The current resin solver source compiled against this exact Foundation runtime in a disposable directory from a read-only source mount.
 
-## Scope and recovery boundary
+## Recovery and validation boundary
 
-This validates source compilation and command loading only. No resin case was run. Flow-front accuracy, multi-gate filling, void physics, shrinkage, sink, short shot, weld lines, air traps, thermal/pressure/VOF coupling, moving-mesh gas conservation, and restart/checkpoint behavior remain unvalidated. Before unattended analysis, verify a case-specific native checkpoint, provenance, timestamp, size, known-good checkpoint preservation, and exact resume command. Trusty is obsolete; keep the runtime isolated and network-disabled.
+This verifies source compilation, runtime initialization, command lookup, and shared-library loading only. No resin case was run. Flow-front accuracy, multi-gate filling, void physics, shrinkage, sink, short shot, weld lines, air traps, thermal/pressure/VOF coupling, moving-mesh gas conservation, and restart/checkpoint behavior remain unvalidated. Before unattended analysis, verify a case-specific native checkpoint, provenance, timestamp, size, preservation of a known-good checkpoint, and exact resume command. Trusty is obsolete; keep the runtime isolated and network-disabled.
