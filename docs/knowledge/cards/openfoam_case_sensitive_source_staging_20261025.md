@@ -26,3 +26,5 @@ A source-level caller audit also searched the isolated G3 custom solver-port tre
 Additional focused phenomenon regressions at 01:26 JST passed 49/49 across weld-front collision, air-trap connectivity, sink/shrinkage displacement, weld-line KPI, and void history/report contracts. Combined selected local Python/reference/harness evidence: 114 passed / 1 skipped. These are not solver runtime or physical validation.
 
 Resource check at 01:28-01:29 JST: G3 Windows 4 physical/4 logical CPUs, 15.75 GiB OS-visible / 8.79 GiB available; two-second total CPU samples 26.0%, 25.8%. Separate WSL guest 7.6 GiB total / 7.1 GiB available / 0 swap. Serial stock build remains active. Host and guest memory are reported separately; no product FEM was launched.
+
+Material and cooling regression extension at 01:31 JST: virtual thermo/PVT path, cooling-history initialization, contact resistance, material chain/card preflight, and CalculiX cooling benchmark tests passed 31/31. Selected local resin/material suites now total 145 passed / 1 skipped. Software/reference evidence only; full OF3 solver and experimental validation remain pending.
