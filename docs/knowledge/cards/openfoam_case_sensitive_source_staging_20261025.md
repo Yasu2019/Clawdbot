@@ -14,3 +14,7 @@ The isolated OpenFOAM 3.0.0 stock build on G3 remained active in a serial finite
 ## 2026-10-25 01:05 JST build-retry follow-up
 
 The first complete stock-build attempt reached `oscillatingFixedValue` and exited 2 because four legacy scalar accessors return `autoPtr<DataEntry<scalar>>` members. This was confirmed in the official 3.0.0 source archive (publisher MD5 matched) and no in-tree callers were found. The original archive and failed build tree were preserved. A fresh case-sensitive ext4 extraction removes only those invalid accessors; a corrected serial `nice 10` build retry is active in OpenMPI Pstream compilation. Local reference tests passed 4/4 but do not verify this C++ build or solver runtime. Resin FEM remains undispatched.
+
+## 2026-10-25 01:17 JST build and regression follow-up
+
+Direct SSH to G3 and WSL `OpenFOAM14-G3` confirmed the foreground serial `Allwmake libso` retry active at 01:17 JST, compiling `globalPoints.C`; WSL reported 7.6 GiB total / 7.1 GiB available. No exit marker was present. Six focused local Python/reference suites passed 44/44, covering void mechanism, population transport, nucleation, bubble dynamics, checkpoint audit, and Cross-WLF source bounds. These are not OpenFOAM 3.0.0 C++ build, solver runtime, dynamic-mesh conservation, or physical-accuracy evidence. No resin FEM was dispatched and no native restart point has been verified.
