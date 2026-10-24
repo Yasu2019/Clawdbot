@@ -6,3 +6,7 @@ For Linux OpenFOAM builds, extract the verified original archive directly into a
 ## Follow-up: isolate the missing Flex development header
 
 The case-safe OpenFOAM 3.0.0 build then reached `surfMesh` and stopped with `FlexLexer.h` missing (exit code 2). The `flex` 2.6.4 executable was present, while its `libfl-dev` development package was absent. Installing `libfl-dev` 2.6.4-8build2 and `libfl2` inside the isolated OpenFOAM WSL distro provided the header. A separate single-job, lower-priority incremental build was active at 00:37 JST on 2026-10-25; its result is still pending. This does not establish that the custom resin solver compiles or that molding physics are validated.
+
+## 2026-10-25 00:53 JST follow-up
+
+The isolated OpenFOAM 3.0.0 stock build on G3 remained active in a serial finiteVolume compile; the log tail showed no fatal error. The missing Flex development header repair is therefore progressing, but no full-build exit code is available yet. Focused local source/reference regressions passed 4/4; these do not prove the target C++ build or solver runtime. The custom solver and resin physics remain unverified.
