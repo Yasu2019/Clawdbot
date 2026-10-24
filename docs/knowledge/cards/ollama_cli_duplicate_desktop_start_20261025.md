@@ -1,0 +1,5 @@
+# Check the configured Ollama endpoint before invoking a Windows CLI shim
+
+A Windows `ollama list` status probe unexpectedly started a separate desktop app/server while an existing Docker Ollama service was already running. No model was loaded. The duplicate app consumed several GiB of RAM; after exact process name and start-time checks confirmed the processes came from the current probe, only those newly started idle processes were closed. The pre-existing Docker Ollama and solver containers remained running.
+
+Before local-model status checks, inspect the established endpoint and executable resolution, and avoid creating a duplicate desktop service. If an unexpected process starts, verify its identity, start time, and active-model state before closing only the process created by the probe. Host CPU remained saturated after the duplicate app exited, so that incident did not establish a CPU root cause.

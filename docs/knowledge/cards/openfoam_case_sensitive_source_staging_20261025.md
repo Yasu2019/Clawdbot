@@ -1,0 +1,5 @@
+# OpenFOAM 3.0.0 source staging must preserve case-distinct paths
+
+The OpenFOAM Foundation 3.0.0 source archive contains case-distinct `Scalar.H` and `scalar.H` include links. Extracting it first onto a case-insensitive Windows filesystem can silently lose case-distinct files or symlinks; copying that incomplete tree to Linux does not restore them. In the observed build attempt, the Windows-staged tree lacked `scalar.H`, and the first core build stopped with a missing-header error. Direct extraction of the original archive into Linux ext4 preserved both links and exposed additional case-distinct entries.
+
+For Linux OpenFOAM builds, extract the verified original archive directly into a case-sensitive filesystem and verify the archive-derived file/link manifest and exact-case links before building. A matching hash between an incomplete staging tree and its later copy proves only that the copy matches that tree. The separate OpenFOAM 14 API mismatch remains a different compatibility issue. This observation does not validate the custom resin solver or its physics.
