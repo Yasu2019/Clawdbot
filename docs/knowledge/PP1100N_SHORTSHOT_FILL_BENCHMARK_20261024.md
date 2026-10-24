@@ -1,6 +1,6 @@
 # Advanced-PP 1100 N thin-wall short-shot data connected to code
 
-**Recorded:** 2026-10-24 JST  
+**Recorded:** 2026-10-24 JST
 **Primary source:** Tran Minh The Uyen, Pham Son Minh, Bui Chan Thanh, *Polymers* 17(19), 2658 (2025), DOI [10.3390/polym17192658](https://doi.org/10.3390/polym17192658), [PMC full-text record](https://pmc.ncbi.nlm.nih.gov/articles/PMC12526987/), CC BY 4.0.
 
 ## Data-to-code implementation
