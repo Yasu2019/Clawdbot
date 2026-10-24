@@ -18,3 +18,5 @@ The first complete stock-build attempt reached `oscillatingFixedValue` and exite
 ## 2026-10-25 01:17 JST build and regression follow-up
 
 Direct SSH to G3 and WSL `OpenFOAM14-G3` confirmed the foreground serial `Allwmake libso` retry active at 01:17 JST, compiling `globalPoints.C`; WSL reported 7.6 GiB total / 7.1 GiB available. No exit marker was present. Six focused local Python/reference suites passed 44/44, covering void mechanism, population transport, nucleation, bubble dynamics, checkpoint audit, and Cross-WLF source bounds. These are not OpenFOAM 3.0.0 C++ build, solver runtime, dynamic-mesh conservation, or physical-accuracy evidence. No resin FEM was dispatched and no native restart point has been verified.
+
+The follow-up restart/coupling contract batch (`test_run_void_bidirectional_coupling`, `test_validate_void_full_coupling_gate`, `test_vivobook_checkpoint_generations`, `test_airtrap_compressible`) passed 21 with 1 skipped. Combined focused Python/reference contract evidence is 65 passed / 1 skipped. The coupling tests use fake adapters with `actual_solve=false`; no target solver runtime, physical comparison, or FEM checkpoint was demonstrated.
