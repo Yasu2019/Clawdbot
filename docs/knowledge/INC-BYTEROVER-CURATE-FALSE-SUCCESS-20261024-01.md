@@ -49,3 +49,7 @@ Top event: knowledge synchronization is falsely reported as complete.
 - Acceptance: authenticated status; no timeout/error marker; provider evidence or read-back for remote-complete claim.
 - Reaction: append one deduplicated pending local queue item; defer cloud retry until authorized session/provider is available.
 - Owner: unassigned. Effectiveness: classification tests pass; end-to-end remote write/read-back remains unverified.
+
+## GitHub publication verification (2026-10-24 14:42 JST)
+
+The sanitized card was published together with the related PP data incident on `https://github.com/Yasu2019/Clawdbot/tree/knowledge/pp-shortshot-data-quality-20261024`. Fetched remote head matches commit `61dfe14d9b202c8b57776d80202e6adb6bf757b7`; read-back SHA-256 for this card is `4b83a72f70320b8071b810b5d26be8bf45e0c4b6f502326db6af9ee9855e5123`, equal to local source bytes. ByteRover remote remains pending; local queue is verified.

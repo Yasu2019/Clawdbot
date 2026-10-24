@@ -57,3 +57,7 @@ Only branch A is confirmed.
 ## Knowledge synchronization status (updated 2026-10-24 14:33 JST)
 
 An authorized ByteRover attempt returned CLI exit 0 but stdout reported all four API retries exhausted with `ECONNREFUSED 127.0.0.1:11434`; the then-current wrapper misreported `curated`. No remote write is verified. Related wrapper incident `orca-local-1w8` fixes expired-session and failure-text classification with six passing tests. This PP data card is now `queued_locally` in `D:/Clawdbot_Docker_20260125/data/workspace/byterover_curate_queue.jsonl`; remote sync remains pending. The curated read-only K10 Filesystem MCP snapshot export is independently verified by matching source/export SHA-256.
+
+## GitHub publication verification (2026-10-24 14:42 JST)
+
+Sanitized incident note and linked ByteRover wrapper incident card were published on the isolated branch `https://github.com/Yasu2019/Clawdbot/tree/knowledge/pp-shortshot-data-quality-20261024`. Remote branch head verified by `git ls-remote` and fetched to match commit `61dfe14d9b202c8b57776d80202e6adb6bf757b7`. Read-back Git blob SHA-256: PP data card `9dce0906b5b14d3566800ccd14e4a9921fd88f6d77904e4d1436368e729b0639`; ByteRover sync card `4b83a72f70320b8071b810b5d26be8bf45e0c4b6f502326db6af9ee9855e5123`; both equal local source bytes. Only those two reviewed Markdown cards were committed.
