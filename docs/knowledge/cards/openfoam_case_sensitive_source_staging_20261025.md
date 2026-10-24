@@ -10,3 +10,7 @@ The case-safe OpenFOAM 3.0.0 build then reached `surfMesh` and stopped with `Fle
 ## 2026-10-25 00:53 JST follow-up
 
 The isolated OpenFOAM 3.0.0 stock build on G3 remained active in a serial finiteVolume compile; the log tail showed no fatal error. The missing Flex development header repair is therefore progressing, but no full-build exit code is available yet. Focused local source/reference regressions passed 4/4; these do not prove the target C++ build or solver runtime. The custom solver and resin physics remain unverified.
+
+## 2026-10-25 01:05 JST build-retry follow-up
+
+The first complete stock-build attempt reached `oscillatingFixedValue` and exited 2 because four legacy scalar accessors return `autoPtr<DataEntry<scalar>>` members. This was confirmed in the official 3.0.0 source archive (publisher MD5 matched) and no in-tree callers were found. The original archive and failed build tree were preserved. A fresh case-sensitive ext4 extraction removes only those invalid accessors; a corrected serial `nice 10` build retry is active in OpenMPI Pstream compilation. Local reference tests passed 4/4 but do not verify this C++ build or solver runtime. Resin FEM remains undispatched.
