@@ -29,3 +29,6 @@ The public datasets already curated in the project can test narrow scalar outcom
 ## Dispatch gate
 
 Before any run, refresh compute host identity, solver binary/version, old processes/tasks/queues, CPU interval, installed and available memory, disk space, and checkpoint compatibility. Preserve unrelated FEM jobs. Start with the serial checkpoint smoke; only continue the longer screening run after the native restart test passes. Any new material/thermal solver validation is a separate gate from this `interFoam` VOF case.
+## Stage-1 checkpoint observation
+
+On 2026-10-24, the OpenFOAM.com 2512 `interFoam` binary completed the first isolated serial segment through 0.0001 s. Nonempty `alpha.polymer`, `p_rgh`, and `U` files were written at 0.00005 and 0.0001 s; byte sizes and SHA-256 hashes are kept in the project-local readiness manifest. The log ends with `End`; the wrapper exit code was not captured. This verifies field writing only. Restart from `latestTime` remains unverified and the longer run must wait for a fresh compute-capacity check.
