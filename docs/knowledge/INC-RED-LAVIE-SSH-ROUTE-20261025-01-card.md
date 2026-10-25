@@ -1,0 +1,3 @@
+# Red LAVIE SSH route failure ? 2026-10-25 16:20:11 JST
+
+The configured SSH alias failed name resolution. Direct connection via the registered address reached the known host key, but authentication for the configured account was denied. Independent monitor endpoints returned HTTP 200 and the authenticated job worker health probe succeeded; this proves the host and those application layers are reachable, not that a solver is installed or running. Root cause is UNKNOWN. No credentials, keys, raw logs, or jobs were changed. Operational control: verify SSH exit status and remote hostname before accepting output; keep host, monitor, worker, solver and GUI states distinct.
