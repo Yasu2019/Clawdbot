@@ -1,0 +1,3 @@
+# K10 PowerShell validation launch: verify shell API and child status
+
+On 2026-10-29, two test-launch commands failed before starting pytest: PowerShell parsed an `-or` expression as a `Test-Path` parameter, and this host did not support `Start-Process -PriorityClass`. No solver, task, checkpoint, case, or source was changed. A corrected low-priority validation run printed 104 passed; stderr was empty, but its numeric child exit code was not retained. Before similar runs, validate local PowerShell syntax/parameters, verify the exact process PID and priority, wait on that process, and preserve its numeric exit status. A Python validation pass does not prove a full OpenFOAM build, solver runtime, or physical accuracy. Beads: `orca-local-1wa`.
