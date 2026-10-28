@@ -1,0 +1,3 @@
+# K10 department document import ? verified 2026-10-29
+
+On K10, an authorized incremental scan indexed a 5,289-file source set into the H: SQLite/FTS database. It added 3,183 new paths, skipped 2,104 unchanged rows, and completed with SQLite integrity `ok`, 5,289 metadata/FTS rows, a successful direct FTS probe, zero replacement characters, and no source stat changes. Four office files failed container extraction (`BadZipFile`, 3 `.xlsx` / 1 `.docx`; cause UNKNOWN); 237 scanned PDFs remain OCR-required. Search API health is live, but its stats are stale at 2,106 (2026-10-26); desktop app reload/approval is pending. Existing jobs and originals were preserved.
