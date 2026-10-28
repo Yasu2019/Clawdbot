@@ -1,0 +1,3 @@
+# EVO current-source runtime access hold — 2026-10-28
+
+At 23:18 JST, Tailscale TCP 22/3389 to EVO was reachable but batch SSH authentication was denied. The separate LAN route had TCP 3389 reachable and TCP 22 did not respond within 1.5 seconds. Desktop authentication, worker health, solver processes/tasks and checkpoint state remain unknown. No current-source case was dispatched or resumed; existing work was preserved. Refresh an authorized authenticated route and verify process/task/checkpoint state before further runtime work. No credentials or authentication settings were changed. See canonical incident note and FMEA/FTA/QC/Control Plan drafts in `data/workspace/memory`.
