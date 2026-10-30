@@ -33,3 +33,9 @@ Product tolerance and physical process validation require their own evidence.
 Canonical restricted evidence: project artifacts/futaba_ur300_20261031/study_v1/
 NUMERICAL_VERIFICATION.md, logs, result JSON and versioned checkpoints.
 No raw mail, personal details, tokens or unrelated engineering data in this card.
+
+## Revision2: recommendation withheld after final numerical checks
+
+Observed2026-10-31 JST. A two-stage full-crossed D-optimal campaign was completed, but a fitted minimum failed direct numerical verification. Narrowing the design improved fit without establishing accuracy. Mesh refinement then reversed the sign of residual curvature in a test condition; alternative uncalibrated cyclic assumptions also changed the response. Width-dependent behavior is outside the beam model. A machine-setting recommendation was withheld. The underlying discretization/contact contribution is UNKNOWN.
+
+FMEA/FTA/QC/Control Plan rev3: compare signed curvature, not only unsigned sag; distinguish steady-flow convergence from mesh convergence; test the surrogate against direct FEM and record error in physical output units; retain material/width limitations. These gates prevented an unsupported optimum claim, but did not fix the underlying model accuracy. Preserve checkpoints and unrelated work. No production qualification or approved tolerance is inferred.
