@@ -1,0 +1,7 @@
+# New LAVIE live solver and RAM-source follow-up — 2026-10-31 07:15 JST
+
+Incident: `INC-LAVIE5500U-WSL-SOLVER-MONITOR-GAP-20261031-01`; Beads `Clawdbot_Docker_20260125-4vir`.
+
+Live access succeeded through the supported WSL v3 executable. Two existing jobs were observed: six OpenFOAM ranks and one OpenRadioss engine; owner remains UNKNOWN. Host CPU was 68.22% over 2.024 s / 12 logical processors; LHM `Core (Tctl/Tdie)` was 77.00001 C, and Core Average was unavailable. Host and WSL available memory remain separate. OpenFOAM time 0.24 was synchronized across six ranks; OpenRadioss restart candidate was last written 06:54. Neither case restart was tested. Preserve both jobs; no dispatch or settings changes.
+
+DIMM capacity and SMBIOS installed-memory API both report 16 GiB; Windows-visible RAM is 15.42 GiB, a 608.285-MiB difference. Microsoft documents firmware/device MMIO reservations as a possible reason and warns `Win32_ComputerSystem.TotalPhysicalMemory` can be inaccurate; exact local reservation remains UNKNOWN. Do not infer it from AdapterRAM. The exact LIG07 task remains Disabled under mksea/S4U; reviewed controller hash still matches. Full evidence: `artifacts/new-lavie/live-state-ram-followup-20261031-0715.md`.
