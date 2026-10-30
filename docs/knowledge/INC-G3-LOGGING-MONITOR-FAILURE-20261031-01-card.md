@@ -1,0 +1,3 @@
+﻿# G3 host-monitoring coverage gap — 2026-10-31
+
+Incident: `INC-G3-LOGGING-MONITOR-FAILURE-20261031-01`. Authenticated read-only review found the scheduled broad monitor last ran on 2026-10-06 with result 1; its five-minute watchdog ran on 2026-10-31 06:52 JST with result 1. The latest broad diagnostic JSONL was dated 2026-07-15. Separate WLAN and remote-access telemetry remained current on 2026-10-31, so full host-health coverage is unknown rather than absent. Cause UNKNOWN. Preserve monitor, watchdog and jobs; investigate read-only before any repair. No calculation, task, checkpoint, setting or log changed. See the canonical incident and linked unscored controls.
