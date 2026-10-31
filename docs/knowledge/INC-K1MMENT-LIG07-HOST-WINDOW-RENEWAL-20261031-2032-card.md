@@ -17,3 +17,9 @@ Evidence: host `deployment-receipt.json` SHA-256 `020A1B9E6541803B830B04123CD21C
 
 ## 2026-10-31 22:17 JST — assignment hash transcription correction
 A SHA-256 was mistyped in the first 22:12 follow-up draft. Live reread at 22:17:36 JST confirms assignment SHA-256 `119741F2648F20E67EB0E1880BCDF2933FE8B2DC3A29A3E234FF453100969722` and state SHA-256 `BE036F7D2BA9A5AFF678048EE6AF374A314708B0C9E6B24B4757D79359CD1477`. The 22:12:32 values are corrected above; this correction records the draft error explicitly. No host change followed this hash readback.
+
+## 2026-10-31 22:25 JST — final live process snapshot and canonical links
+
+A fresh New LAVIE health-history record at `2026-10-31T13:25:41.856+00:00` (22:25:41.856 JST), read at 22:26 JST, reported `probe_status=ok`, `process_count=0`, and no truncated process list. The 22:11 sample had shown six OpenFOAM ranks. No solver was stopped in this maintenance; the reason they were absent at 22:25 and whether the run completed were not checked. Do not infer completion from this empty process sample.
+
+Canonical evidence: `docs/knowledge/INC-K1MMENT-LIG07-HOST-WINDOW-RENEWAL-20261031-2032.md`. Host deployment receipt: `artifacts/new-lavie/lig07-host-window-deployment-receipt-20261031-2212.json` (SHA-256 `020A1B9E6541803B830B04123CD21C3D9EB0E1738D5301B276EA5E395206AC31`). Host backup and task XML are under `D:\Clawstack\Lavie5500U-CAE-20261024\checkpoint-history\host-change-authorization-20261031T221208JST`.
