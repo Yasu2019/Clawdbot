@@ -1,0 +1,3 @@
+# Knowledge card — New LAVIE health telemetry readback miss
+
+Incident `INC-K1MMENT-HEALTH-TELEMETRY-READBACK-MISS-20261101-01`: a process/service-only check falsely suggested there was no CPU temperature. The existing PowerShell health collector loads LibreHardwareMonitorLib in-process, so a separate LHM process/service is unnecessary. Live 2026-11-01 05:06 JST sample: Core (Tctl/Tdie) 90.25 °C, 18.36% CPU over 2.016 s across 12 logical processors; `Core Average` unavailable, no fan value, dispatch disabled. Read `health.json` and the newest HealthHistory record, verify timestamp/source and exact sensor name, and never relabel Tctl/Tdie as an average. The 637,833,216-byte installed/visible RAM gap remains unresolved.
