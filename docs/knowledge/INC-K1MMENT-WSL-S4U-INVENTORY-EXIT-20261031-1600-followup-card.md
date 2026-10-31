@@ -1,0 +1,3 @@
+# WSL inventory probe correction — 2026-10-31
+
+An ad-hoc WSL inventory probe used an assumed `Debian` distro label and got `WSL_E_DISTRO_NOT_FOUND`. Live enumeration in the authenticated context showed a differently named registered distro. Re-running the read-only collector with the exact registered name succeeded, wrote a new timestamped output, and found no solver-named processes. This probe mistake did not explain the earlier Task Scheduler failure; that cause remains UNKNOWN. Enumerate the registered distro before direct WSL calls, validate output and exit status, and preserve prior inventory files. Never infer host-offline from a WSL label error. No FEM was dispatched; production permission and RAM reconciliation remain separate gates.
