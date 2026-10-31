@@ -1,0 +1,5 @@
+﻿# K1MMENT power, sleep, lid and locked-console follow-up — 2026-11-01 04:46 JST
+
+Live read-only authenticated SSH to `DESKTOP-K1MMENT` at 04:46:03 JST. Active scheme is `Clawstack AC Maximum Performance` (GUID `3629d2a7-11f5-4b88-ab8c-8dc5aa81b6f8`). Active scheme registry readback: Sleep after AC=0/DC=0 (never); Hibernate after AC=0/DC=108000 seconds (DC=30 h); lid-close action AC=0/DC=0 (Do nothing). `powercfg /a`: S3 available; S0 Modern Standby unavailable. This makes an automatic sleep transition less likely under the present settings but does not prove what happened at a prior lock/black-screen event. WTS at 04:40 still reported console locked and GUI not observed; no unlock attempted. Root cause remains UNKNOWN. No power setting, session, task or job changed. Preserve security and authentication; no auto-login.
+
+The active profile's DC hibernation timeout remains 30 hours; if operated on battery for that duration, hibernation is configured. No change made because host-setting authorization window expired and current user has not renewed it. Detailed host evidence in `artifacts/new-lavie/power-sleep-lock-refresh-20261101T0446JST.md`.
