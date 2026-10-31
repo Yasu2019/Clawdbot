@@ -1,0 +1,9 @@
+# K1 WSL route recurrence — 2026-11-01 07:23 JST
+
+Incident: `INC-K1MMENT-WSL-ROUTE-RECURRENCE-20261101-01`, related to `INC-LAVIE5500U-WSL-PROBE-HANG-OMP-THREAD-20261029-01`.
+
+Authenticated SSH from K10 reached `DESKTOP-K1MMENT` (`100.67.170.15`). At 07:23 JST, bare `wsl.exe` resolved to `C:\Windows\System32\wsl.exe` 10.0.22000.1281; the supported packaged launcher is `C:\Program Files\WSL\wsl.exe` 3.0.3.0. Earlier unqualified list output was malformed over SSH and one nested-quoting attempt failed in PowerShell before a valid guest command; neither establishes guest outage. After consulting the route note, packaged WSL `/bin/true` returned 0 and direct `sha256sum` returned 0.
+
+Four solver binaries matched their existing qualification hashes at 07:21 JST (OpenFOAM foamRun, CalculiX ccx, ElmerSolver, OpenRadioss engine). This proves executable identity only. Health at 07:18 JST reported zero host solver processes and dispatch disabled; guest collector at 07:17 JST reported zero guest processes. The 637,833,216-byte DIMM-to-Windows-visible RAM gap remains UNKNOWN; Core Average and fan sensor remain unavailable. No job, task, checkpoint, solver, or host configuration changed; no calculation was dispatched.
+
+Recurrence prevention: consult the route note before probes, use the absolute packaged WSL path with `--exec`/argument arrays, require a read-only exit-0 sentinel, and classify failed probes as unobserved rather than host/guest offline. Preserve existing work and keep dispatch gated.
