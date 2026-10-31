@@ -1,0 +1,7 @@
+﻿# K1MMENT RAM / thermal / existing batch completion follow-up — 2026-11-01 04:42 JST
+
+Live read-only K10 SSH to `DESKTOP-K1MMENT` at 04:36–04:40 JST. Two Hynix 8-GiB DIMMs (17,179,869,184 B) vs Windows-visible 16,542,035,968 B: 637,833,216-B gap remains unexplained. AMD Radeon `AdapterRAM` reports 512 MiB, numerically consistent with most of the 608.285-MiB gap, leaving 96.285 MiB; this is a candidate explanation, not proof of reserved-memory attribution. Current boot BCD has no memory-limit lines. No BIOS/WSL change; FEM dispatch remains false pending authoritative RAM attribution, per-case budget, thermal/worker gates and separate production authorization.
+
+The pre-existing `OF76_bmA/bmB` S4U Python fill-case batches are now Ready with task result 0; Task Scheduler completion events and logs report rc0 at 04:33 and 04:37 JST. Their A/B `tetconv5` output summaries say `stop_reason=complete`, `fill_end` 0.999844 / 0.999682. These are custom Python batch outputs, not evidence of a standard FEM solver run. Human starter UNKNOWN. Outputs were preserved; no restart or cleanup.
+
+Thermal window 04:18–04:37 JST: LHM Tctl mean 89.86 C, max 97.375 C; separate unmapped ACPI mean 91.70 C; Core Average and fan values unavailable. At 04:40 Tctl was 50.375 C and ACPI 81.05 C; keep these sensors separate. Locked console and GUI not observed; Wi-Fi connected/no-action. Detailed evidence and output hashes: `artifacts/new-lavie/live-ram-worker-thermal-refresh-20261101T0442JST.md`.
