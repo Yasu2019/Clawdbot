@@ -17,3 +17,7 @@ The watcher now recomputes the live checkpoint digest and requires an exact matc
 A second natural post-v2 cycle also completed successfully at 12:01:01 and preserved the paused state. Review found the separate Run task launcher has a mismatched relative script path and no independent dispatch gate; no task or file was changed. A path-only repair could expose an ungated resume command, so any launcher change requires separate approval. Production/dispatch remain disabled; no calculation is authorized.
 
 The separate Run task is Ready but idle. A read-only inventory found its relative resume-script path does not match the only observed file location. The parent resume script can remove a pause marker and start solver ranks, so path correction alone would be unsafe. The exact launcher gate/path change remains pending approval; no task, script, checkpoint, or solver changed.
+
+A third natural post-v2 cycle completed at 12:11:11 and preserved the paused state. A fresh read at 12:12 showed production and dispatch still disabled, no solver process, and a present pause marker. No calculation was authorized or started.
+
+The monitored host sample at 12:12:14 reported 36.94% CPU across all logical processors over about two seconds and 83.75 C from a package-level sensor; average-core and fan values were unavailable. These values do not establish long-term saturation or fan speed.
