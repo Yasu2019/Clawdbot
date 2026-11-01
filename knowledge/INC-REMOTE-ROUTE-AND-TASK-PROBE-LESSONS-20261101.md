@@ -20,3 +20,6 @@ Sanitized follow-up for INC-MYOURENJI1-ROUTE-FLAG-FLUCTUATION-20261101-01 and IN
 ## Status and limits
 
 No tasks, processes, host settings, or solver runs were changed. New FEM dispatch remained held pending ownership/recovery and host RAM reconciliation. The exact cause of the process-query miss, the route outage, the human task starter, and the target sign-in state remain unknown. No FMEA score or formal priority was assigned.
+
+## Resource-measurement correction (2026-11-01 JST)
+A live Windows sample found 16 GiB installed across two DIMMs using Win32_PhysicalMemory, 15.41 GiB visible through Win32_OperatingSystem, 6.53 GiB free, and a 637,833,216-byte installed-to-visible gap of unknown cause. An earlier report mislabeled Win32_ComputerSystem.TotalPhysicalMemory as DIMM-installed capacity; it returned the OS-visible value. Use the direct DIMM inventory for installed RAM, the OS for visible/free memory, and report unresolved gaps without changing BIOS/WSL from the mismatch alone. A material unexplained gap remains a FEM dispatch hold.
