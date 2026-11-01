@@ -9,3 +9,7 @@ Keep the existing job and checkpoints intact. Before any future resume, require 
 ## Sanitized implementation update — 2026-11-01
 
 The automatic watcher path now fails closed unless production policy is enabled, health is fresh and dispatch-enabled, and a time-limited authorization exists for the exact case and checkpoint manifest. The live policy was disabled, and read-only predicate validation rejected the restart. The next scheduled watcher cycle left the case paused; no solver was restarted. Manual invocation of the separate run task remains outside this watcher-only control. This change does not authorize a calculation.
+
+## Sanitized checkpoint-integrity update — 2026-11-01
+
+The watcher now recomputes the live checkpoint digest and requires an exact match to the authorized time and manifest before requesting a restart. A read-only audit confirmed both the current checkpoint and a retained known-good checkpoint still match saved file hashes. Production and dispatch remain disabled; no calculation was restarted. The post-change periodic check is still pending, and direct invocation of the separate run task remains outside this watcher-only control.
