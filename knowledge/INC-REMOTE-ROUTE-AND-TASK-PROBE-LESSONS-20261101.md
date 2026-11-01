@@ -23,3 +23,6 @@ No tasks, processes, host settings, or solver runs were changed. New FEM dispatc
 
 ## Resource-measurement correction (2026-11-01 JST)
 A live Windows sample found 16 GiB installed across two DIMMs using Win32_PhysicalMemory, 15.41 GiB visible through Win32_OperatingSystem, 6.53 GiB free, and a 637,833,216-byte installed-to-visible gap of unknown cause. An earlier report mislabeled Win32_ComputerSystem.TotalPhysicalMemory as DIMM-installed capacity; it returned the OS-visible value. Use the direct DIMM inventory for installed RAM, the OS for visible/free memory, and report unresolved gaps without changing BIOS/WSL from the mismatch alone. A material unexplained gap remains a FEM dispatch hold.
+
+## Shared Beads hook effect (2026-11-01 JST)
+A single-file commit from a dedicated worktree can still run a configured post-commit hook that exports the full Beads issue/memory snapshot into a shared worktree. After each such commit, inspect the hook target's status and hash; never assume the worktree isolates hook writes. Preserve any generated staged data and keep it out of the incident-only commit unless separately reviewed. Here the export was not pushed; the exact prior dataset diff was unknown because no complete pre-commit baseline existed.
