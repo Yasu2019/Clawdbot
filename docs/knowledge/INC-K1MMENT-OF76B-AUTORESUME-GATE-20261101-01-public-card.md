@@ -4,4 +4,8 @@ An enabled periodic/boot watcher can start an OpenFOAM resume task based on solv
 
 During the live review, production and dispatch remained disabled, the pause marker was present, and the next scheduled check left the case paused. No solver was restarted and no task, input, or checkpoint was changed. The exact case owner and authorization remain unconfirmed.
 
-Keep the existing job and checkpoints intact. Before any future resume, require production approval, current host health/resource admission, explicit authorization for that case, and a verified solver-native recovery path. The watcher guard proposal is pending authorization; no change is claimed as deployed.
+Keep the existing job and checkpoints intact. Before any future resume, require production approval, current host health/resource admission, explicit authorization for that case, and a verified solver-native recovery path.
+
+## Sanitized implementation update — 2026-11-01
+
+The automatic watcher path now fails closed unless production policy is enabled, health is fresh and dispatch-enabled, and a time-limited authorization exists for the exact case and checkpoint manifest. The live policy was disabled, and read-only predicate validation rejected the restart. The next scheduled watcher cycle left the case paused; no solver was restarted. Manual invocation of the separate run task remains outside this watcher-only control. This change does not authorize a calculation.
