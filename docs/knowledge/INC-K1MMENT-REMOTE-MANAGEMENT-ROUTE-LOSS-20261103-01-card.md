@@ -6,3 +6,8 @@ Incident `INC-K1MMENT-REMOTE-MANAGEMENT-ROUTE-LOSS-20261103-01`. K10 live Tailsc
 ## Live route follow-up — 2026-11-03 08:08-08:11 JST
 
 K10 Tailscale still showed K1 Online=false, no current address, last seen07:22:21 JST; two bounded pings timed out. K10 Wi-Fi was192.168.3.87/24. Candidate192.168.3.136 is a historical Tailscale endpoint, not verified as K1's current LAN identity; neighbor resolution was incomplete and bounded TCP22/3389/5985 checks failed. Browser list empty, browser access host unavailable, local Chrome minimized; CRD screen/login state not observed. Host power/jobs/worker/solver/checkpoints UNKNOWN. No K1 changes or dispatch. Cause UNKNOWN.
+
+
+## Graphify capture limitation — 2026-11-03 08:12-08:13 JST
+
+Graphify update failed with error28 after a same-volume45.94MB backup was created without free-space validation. Original graph SHA-256 remains unchanged and no node was added; D: free space was2.58MB at08:13:38. Exact same-hash backup cleanup was rejected by policy, so it remains. Local MCP card export and GitHub card sync succeeded; direct MCP retrieval, ByteRover and Turso remain unavailable/pending.
