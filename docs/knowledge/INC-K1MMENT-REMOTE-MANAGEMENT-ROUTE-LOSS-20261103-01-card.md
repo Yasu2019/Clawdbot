@@ -11,3 +11,13 @@ K10 Tailscale still showed K1 Online=false, no current address, last seen07:22:2
 ## Graphify capture limitation — 2026-11-03 08:12-08:13 JST
 
 Graphify update failed with error28 after a same-volume45.94MB backup was created without free-space validation. Original graph SHA-256 remains unchanged and no node was added; D: free space was2.58MB at08:13:38. Exact same-hash backup cleanup was rejected by policy, so it remains. Local MCP card export and GitHub card sync succeeded; direct MCP retrieval, ByteRover and Turso remain unavailable/pending.
+
+
+## Capacity-guard follow-up — 2026-11-03 08:20 JST
+
+Local updater now refuses low-space rewrites before parse/backup, validates capacity for backup+replacement+32MiB reserve and source hash stability, and refuses an existing temp. Script hash `C687F8121F538D17A08F1634A11F5DE2FFA5A627F0B1FC002E82A605A4EEB0D1`. Not run: D: free1,638,400 bytes and prior temp/backup remain. Guard effectiveness and Graphify retrieval unvalidated.
+
+
+## Guard-source hash correction — 2026-11-03 08:25 JST
+
+The local updater now captures the graph hash before parsing and rechecks before backup. Current SHA-256 `D54065EB47FB3ACDD84C5E12A461723334440AE85550BE97790907D80C918872`; prior `C687...` is the previous revision. Not executed; D: free1,495,040 bytes and the earlier temp/backup remain.
