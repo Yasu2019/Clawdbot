@@ -1,0 +1,7 @@
+# Sanitized RAM topology cross-check — 2026-11-02 JST
+
+A direct SMBIOS read found two 8 GiB SO-DIMMs installed and no empty memory slot. Installed capacity is 16 GiB; Windows-visible memory is about 15.42 GiB, a 637,833,216-byte difference. An AMD display-driver registry field reports 512 MiB of video memory, but that field does not prove a fixed UMA reservation. The remaining arithmetic difference is about 101 MB and the root cause remains UNKNOWN.
+
+NEC's standard N1555/CA specification lists DDR4-3200 PC4-25600 SO-DIMM and a 32 GB maximum. NEC's YC model manual says the YC unit is based on N1555/CA but directs users to the exact model specification lookup; the exact YC memory compatibility entry was not verified. A matching module candidate is Kingston KCP432SS8/16 (16 GB, DDR4-3200, non-ECC unbuffered SO-DIMM, 260-pin), but the exact YC model is not confirmed on its compatibility list. Replacing both 8 GB modules could reach 32 GB if the exact variant compatibility is confirmed.
+
+No purchase, opening, module replacement or BIOS change was made. This capacity upgrade would not explain the existing OS-visible gap or authorize FEM dispatch. References: NEC model cross-reference and specification (https://support.nec-lavie.jp/e-manual/m/nx/lv/original/pdf/853_811192_592_a.pdf ; https://www.nec-lavie.jp/navigate/products2/pc/213q/10/lavie/n15/spec/index.html); Kingston module specifications (https://www.kingston.com/jp/memory/search?partId=KCP432SS8%2F16).
