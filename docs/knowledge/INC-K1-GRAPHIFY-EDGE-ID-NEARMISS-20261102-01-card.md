@@ -1,0 +1,3 @@
+# Graphify edge identifier near miss
+
+2026-11-02 15:43-15:44 JST: manual edge used a guessed nonexistent K1 memory node ID. Post-write assertion caught it. Replaced only that edge using the exact existing node ID; seven expected edges verified and `graphify path` returned the memory-sample link. No K1 jobs or host state changed. Prevention: resolve exact node IDs and preflight all edges before atomic graph write. Current graph SHA-256 79F92D989D0477ABD7B394D4C74BBDC2DD0532C3A699B5694313B8214120D3C3; pre-repair graph backup retained.
