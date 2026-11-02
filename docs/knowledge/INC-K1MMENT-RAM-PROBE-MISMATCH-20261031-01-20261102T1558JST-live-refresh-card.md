@@ -10,3 +10,7 @@ Incident: `INC-K1MMENT-RAM-PROBE-MISMATCH-20261031-01`.
 
 16:02 follow-up: local route-classification omission on the first new audit was corrected; no remote change. Fixed exact audit verified two childless agent-owned shells stopped and all four PIDs absent. MemoryCapacityNativeLite was removed from the caller allowlist after repeat timeouts. PageFileStatus/WSL values remain separate; latest thermal gate is Tctl/Tdie mean92.2288C/8 samples, instant91.5C, not Core Average. Capacity gap remains UNKNOWN; dispatch held.
 Graphify: three exact-ID nodes/six links added after a first atomic write aborted on two pre-existing unrelated dangling links (preserved, not repaired). New endpoint validation passed; explain/path retrieval passed. See linked graph evidence.
+
+16:09 JST: host/guest availability and commit measured separately; installed-visible gap remains unresolved. Tctl/Tdie rolling5m mean92.8159C/7 samples, instant93.125C; Core Average/fan unavailable. Dispatch remains held.
+
+16:09 JST Graphify refresh: added exact nodes `k1_ram_resource_status_20261102_1609` and `k1_of76_live_status_20261102_1609` with six validated links; `graphify explain` and path to the dispatch hold passed. Two pre-existing unrelated dangling links remain preserved. Graph SHA-256 `38831e60ef485dd91acadde1cc41e9c5ae90274d11491ea2918b73234e127824`.

@@ -6,3 +6,7 @@ Incident: `INC-K1MMENT-OF76-ACTIVE-TASK-OUTPUT-AUDIT-20261102-01`.
 
 16:02 JST: solver binary paths and all8 qualification/native-proof hashes were read; all proof hashes match pinned values, but proof timestamps remain Oct24?25 and do not prove a fresh production run. OF76_n1/s1 remain Running and progressing: step640/fill0.999 and step460/fill0.989; no verified restart path. PID19700 memory sources now match exactly after a 15:58 discrepancy; PID14580 differs by1,966,080B. Cause unknown. ThermalGate Tctl/Tdie mean92.2288C/8 samples, instant91.5C; dispatch false. Preserve both.
 Graphify: three exact-ID nodes/six links added after a first atomic write aborted on two pre-existing unrelated dangling links (preserved, not repaired). New endpoint validation passed; explain/path retrieval passed. See linked graph evidence.
+
+16:09 JST: both tasks still Running and progressing (step720/fill0.999; step560/fill1.000); no verified restart path. Memory counters agree now, earlier discrepancy cause UNKNOWN. Tctl/Tdie mean92.8159C/7 samples, instant93.125C; dispatch false. Preserve.
+
+16:09 JST Graphify refresh: added exact nodes `k1_ram_resource_status_20261102_1609` and `k1_of76_live_status_20261102_1609` with six validated links; `graphify explain` and path to the dispatch hold passed. Two pre-existing unrelated dangling links remain preserved. Graph SHA-256 `38831e60ef485dd91acadde1cc41e9c5ae90274d11491ea2918b73234e127824`.
