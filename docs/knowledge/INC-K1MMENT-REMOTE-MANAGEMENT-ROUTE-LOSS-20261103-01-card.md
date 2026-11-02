@@ -1,3 +1,8 @@
 # K1 management-route loss — 2026-11-03
 
 Incident `INC-K1MMENT-REMOTE-MANAGEMENT-ROUTE-LOSS-20261103-01`. K10 live Tailscale reads at 07:49:42 and 07:58:39 JST: peer `DESKTOP-K1MMENT` (`100.67.170.15`) remained `Online=false`, `Active=true`, last seen 07:20:00 JST; bounded pings received no reply. At 08:02 JST, K10 also observed a pre-existing SSH process holding a TCP `Established` socket to K1 port 22; its parent was absent and no authenticated command response was verified. It was not reused or closed. This socket is not proof that K1 is live or controllable. Earlier fixed SSH/worker probe around 07:32 timed out. Current host power, LAN/Wi-Fi, Windows sign-in, jobs, solver, checkpoints and GUI state are UNKNOWN. Local browser automation had no browser session and its browser host was unavailable; no remote screen was observed. Cause UNKNOWN. No restart, task/job change or dispatch. Keep the layers separate, preserve prior work, and refresh tasks/checkpoints before recovery or dispatch. Related Beads: `orca-local-odt`; prior console-lock issue `orca-local-f5i`.
+
+
+## Live route follow-up — 2026-11-03 08:08-08:11 JST
+
+K10 Tailscale still showed K1 Online=false, no current address, last seen07:22:21 JST; two bounded pings timed out. K10 Wi-Fi was192.168.3.87/24. Candidate192.168.3.136 is a historical Tailscale endpoint, not verified as K1's current LAN identity; neighbor resolution was incomplete and bounded TCP22/3389/5985 checks failed. Browser list empty, browser access host unavailable, local Chrome minimized; CRD screen/login state not observed. Host power/jobs/worker/solver/checkpoints UNKNOWN. No K1 changes or dispatch. Cause UNKNOWN.
