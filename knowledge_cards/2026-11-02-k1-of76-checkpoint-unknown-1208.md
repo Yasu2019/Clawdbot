@@ -1,0 +1,9 @@
+﻿# K1 OF76_f3A checkpoint/output mapping remains unknown — 12:08 JST
+
+Incident linkage: `INC-K1MMENT-RAM-PROBE-MISMATCH-20261031-01`; existing task preservation and FEM admission hold.
+
+At 2026-11-02 12:08:46.929 JST, authenticated fixed read-only `FillTaskProgressLite` on DESKTOP-K1MMENT reported scheduled task `OF76_f3A` state Running, S4U logon, blank task author; the principal was present as a SID but owner/account was not resolved. No task command arguments were returned. The bounded parser could not resolve the output directory, so no progress log or checkpoint-name inventory was available (`checkpoint_validity=not assessed from filenames/metadata`). It is therefore not verified that this work has a recovery checkpoint or resume path.
+
+The exact expected Python worker identity PID 2196 / name `python` / start time `2026-11-02T02:00:12.1863044+09:00` matched the recorded start within 0.0004 ms. At the sample it showed 35,116 CPU seconds, 24,368,644,096 B Private Bytes and 9,812,746,240 B working set. Private Bytes are not physical RAM use and CPU seconds do not give an interval utilization rate. Owner, parent and executable path were intentionally not queried. Preserve this process/task; no stop, restart, task modification, or new dispatch was performed.
+
+The separate WorkerStatus at 12:07:16.934 JST had dispatch disabled, zero WSL solver processes were observed at 12:07:21.194, and host available RAM was 1,398,358,016 B at that sample. ThermalGate at 12:07:31 accepted the existing trailing-five-minute time-weighted `Core (Tctl/Tdie)` mean (85.870 C / 95 C); this is a different sensor proxy from Core Average. The installed-vs-visible RAM gap remains 637,833,216 B, exact cause UNKNOWN. Keep FEM admission held. Do not call the legacy task checkpointed, resumable, or safe to restart.
