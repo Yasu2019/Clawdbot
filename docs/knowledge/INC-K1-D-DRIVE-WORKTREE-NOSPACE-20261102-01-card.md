@@ -1,3 +1,5 @@
 # D: capacity near miss during knowledge sync
 
 2026-11-02 15:31-15:35 JST: Full Git worktree checkout on D: failed with `No space left on device`. D: was healthy NTFS with 447,229,952 bytes free at 15:33. Failed target directory was absent and no Git processes remained; an empty branch at the base commit remains, not deleted. A pre-existing clean isolated worktree was verified and reused to publish one reviewed K1 incident card; commit `5d274958afc760c177b3eaa6d54639631d0062ed` contains only that card and GitHub remote hash matched. No calculations, user data or existing files were removed. Avoid full checkout until live capacity and required reserve are known; no storage cleanup without exact review and approval.
+## Sync/capacity update 2026-11-02 15:39 JST
+This incident card is in commit be40bee21bd23fc07ddc37af808729ee5950658f; remote hash matched. D: had4,185,755,648B free at15:39:06; increase cause unknown, no cleanup. ByteRover session expired; Turso CLI unavailable. Filesystem MCP direct readback unavailable; exporter file, INDEX and manifest were hash-verified.
