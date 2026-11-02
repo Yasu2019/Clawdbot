@@ -1,0 +1,31 @@
+# K1 checkpoint-audit probe was pinned to a stale worker
+
+Incident ID: `INC-K1MMENT-CHECKPOINT-AUDIT-PROBE-STALE-TARGET-20261102-01`  
+Observed: 2026-11-02 21:21-21:25 JST (Asia/Tokyo)  
+Host/source: K10 authenticated SSH probes to `DESKTOP-K1MMENT`.
+
+## Symptom and evidence
+
+The allowlisted probe named `FillCurrentWorkerCheckpointAudit` is pinned to PID2196, start time 2026-11-02 02:00:12 JST, and source hash `07AEFF6465F2BB128CD92BC1B09892A2BDC1FF158D4810B8B8CF110131232281`. At 21:21, the current OF76_cfA worker was PID18156, started 20:50:05 JST, and `FillWorkers` identified its source as `C:\m76\t\fill_tet_76case.py` with SHA256 `8AC4C87AF59AD13DA1963F53002C816F77B24B9FA22943B4F367B59376D70656`. The probe did not target the active worker and could not establish its checkpoint state.
+
+An attempted read-only call at about 21:22 failed before returning structured evidence: remote PowerShell reported `Invoke-Expression` received a null `InputObject` from stdin. Cause of the empty remote input is UNKNOWN. A local guard against a blank `$remoteScript` did not catch this failure because the local payload was nonempty; therefore it is not claimed as an effective fix for this path. No source/checkpoint findings were returned and the probe was not retried unchanged.
+
+At 21:25, the independent fixed `FillSource` readback succeeded: exact source path, 44,037 bytes, last write 20:26:06 JST, hash `8AC4C87AF59AD13DA1963F53002C816F77B24B9FA22943B4F367B59376D70656`, content not transferred. `WorkerStatus`/`FillWorkers` at 21:21 still showed dispatch disabled, zero native solvers, and the existing custom worker making progress from step520 to step620. PID18156 remained `mksea`, 24 threads; its log updated at21:21:23. `OF76CfATask` at21:18:38 had returned exact `OF76_cfA` Running. All task/process state was preserved.
+
+`RecentPowerShellProcessesLite` at21:25:40 showed one PowerShell PID20556 started21:25:39 with 72,908,800 B working set. Owner and command line were not queried; its attribution is UNKNOWN, no cleanup attempted.
+
+## Cause and action
+
+Confirmed mis-target: the checkpoint audit's label says current worker but its fixed PID/time/source hash belong to an earlier worker. Corrective containment: removed `FillCurrentWorkerCheckpointAudit` from the public caller `ValidateSet` and marked its branch as stale. The fixed code is retained only as historical source, not callable through this allowlist. Helper SHA256 after change: `cf666f85365aeb2cb3b45d95b7f3aafc37bec023fa11eb715dc6def323df452c`. Backup: `scripts/Invoke-K1WslReadOnly.ps1.pre-stale-checkpoint-probe-disable-20261102T2125JST`.
+
+The empty-stdin transport cause remains UNKNOWN. The current worker's checkpoint/restart mechanism remains UNVERIFIED. Do not stop, restart, or dispatch FEM based on this probe. A future audit needs a new exact PID/start/source-hash-bound implementation and successful structured readback before any resumability claim.
+
+## Live worker preservation follow-up — 2026-11-02 21:28-21:29 JST
+
+The corrected `OF76CfATask` probe returned exact task `OF76_cfA` Running at21:28:26. `FillWorkers` at21:28:34 found PID18156 (`DESKTOP-K1MMENT\mksea`), 24 threads, source SHA256 `8AC4C87AF59AD13DA1963F53002C816F77B24B9FA22943B4F367B59376D70656`, progress log updated21:28:13 at step720/fill0.999. CPU time rose 399.1s between21:21:48 and21:28:34 (406.0s wall), about0.98 logical processor average over that interval; this is a process CPU-time delta, distinct from WorkerStatus system CPU11.67% over2.011s/12 logical processors. Private Bytes sources agreed at3,701,587,968 B. Log samples at steps700 and720 show Q=-881 and -517 mm3/s; physical meaning and numerical acceptability are UNASSESSED. WorkerStatus at21:28:46: host available10,128,998,400 B; WSL10GB/12 processors/2GB swap; no native solver; dispatch false; Core (Tctl/Tdie)75.12501 C observation only; Core Average/fan unavailable; Windows cooling policy Active. InstalledMemoryApi at21:29:33 reconfirmed16GiB installed vs16,542,035,968 B Windows-visible (637,833,216 B gap, cause UNKNOWN). No job/process/task change. Checkpoint/restart remains UNVERIFIED.
+
+## Live worker follow-up - 2026-11-02 21:32-21:40 JST
+
+Exact task OF76_n10 is Running as mksea/S4U (registration author blank); process PID 20680 started about 15s after the task's last-run timestamp. Timing is consistent, but direct task-to-process parentage is unverified. The current pinned custom fill-worker source SHA256 8AC4C87AF59AD13DA1963F53002C816F77B24B9FA22943B4F367B59376D70656 has no static checkpoint/restart markers. Two repeated shallow inventories found only log.txt, no immediate subdirectories, and no checkpoint candidate. Recovery is UNVERIFIED; preserve the process and keep new FEM dispatch disabled. Sensor observations: Tctl/Tdie 92.5C at 21:32:59 and 82.875C at 21:38:22; Core Average and fan speed unavailable. One probe call failed because its fixed route-validation allowlist omitted the new probe; adding the entry restored successful route validation. No host mutation occurred.
+
+Helper state at 2026-11-02 21:41 JST: `Invoke-K1WslReadOnly.ps1` now has fixed exact-task metadata for `OF76_n10` and a dynamic metadata-only shallow inventory of active `fill_tet_76case.py` workers, including top-level directory names and bounded file metadata. No task action, settings, solver, process, or output files are modified. One first call failed because the new probe had not yet been added to the fixed WSL route-validation allowlist; the missing exact identifier was added, and subsequent probe calls passed host identity, WSL path/version/distro and result validation. A backup was saved before the current-worker inventory changes at `scripts/Invoke-K1WslReadOnly.ps1.pre-current-worker-checkpoint-inventory-20261102T2136JST`; a pre-verification snapshot is also present. Final SHA256: `7A9570D62CFE8E565A950E869B1FB3BB7FE6D5CE935C930C39F467EA8E68E3F8`.
