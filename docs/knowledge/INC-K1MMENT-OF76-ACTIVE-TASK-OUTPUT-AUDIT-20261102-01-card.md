@@ -9,3 +9,5 @@ Thermal snapshot: 5-minute time-weighted LHM `Core (Tctl/Tdie)` mean 83.53 C, in
 Related incident: `INC-K1MMENT-OF76-ACTIVE-TASK-OUTPUT-AUDIT-20261102-01.md`. Helper `scripts/Invoke-K1WslReadOnly.ps1` added fixed task/output metadata probes; it does not change remote tasks or files.
 ## Follow-up 2026-11-02 15:36-15:38 JST
 Both tasks remain Running and two Python workers advanced logs (N1 step340; B step140). A third output directory now contains fields/history/log/summary files, but completion is unknown. Three exact top-level inventories found no checkpoint-name candidates; search was nonrecursive. PID14580 memory readings differ: WMI Private Bytes3,397,689,344 B vs Get-Process2,404,704,256 B; cause unknown. Thermal gate mean92.56 C/7 samples, instantaneous92.125 C; dispatch remains disabled. Preserve all work; no resume/new FEM authorization.
+
+Memory telemetry follow-up 15:37:56 JST: second FillWorkers sample reproduced PID14580's WMI/Get-Process Private Bytes discrepancy (3,397,689,344 vs2,404,704,256 B); source freshness/cause unknown; retain both values.
