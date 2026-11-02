@@ -14,3 +14,6 @@ Memory telemetry follow-up 15:37:56 JST: second FillWorkers sample reproduced PI
 
 ## Live refresh 2026-11-02 15:41-15:42 JST
 Both tasks remain Running; N1 reached step400/fill0.988 and B step220/fill0.544; completion unknown. Dispatch false, solver filter count0. Three exact top-level output inventories again had no checkpoint-name candidates (nonrecursive). PID14580 memory values now agreed at4,513,550,336B, while prior two samples differed by~0.99GB; cause remains unknown. Thermal gate 5m Tctl/Tdie mean93.00C/8 samples, instant91.75C; Core Average/fan unavailable. Preserve jobs; no new FEM authorization.
+
+## Final live refresh 2026-11-02 15:45 JST
+OF76_n1/s1 remain Running as mksea/S4U; N1 step440/fill0.992, B step260/fill0.643. Dispatch false; standard solver count0. Three exact nonrecursive outputs again had no checkpoint-name candidate. CPU21.73%/12LP, host available9,240,858,624B. Thermal gate Tctl/Tdie 5m mean91.0225C/7 samples, instant93.625C; Core Average/fan unavailable. Current WMI/Get-Process Private Bytes agree, but prior repeated discrepancy remains unexplained. Preserve both tasks; no change/new FEM authorization.
