@@ -11,3 +11,6 @@ Related incident: `INC-K1MMENT-OF76-ACTIVE-TASK-OUTPUT-AUDIT-20261102-01.md`. He
 Both tasks remain Running and two Python workers advanced logs (N1 step340; B step140). A third output directory now contains fields/history/log/summary files, but completion is unknown. Three exact top-level inventories found no checkpoint-name candidates; search was nonrecursive. PID14580 memory readings differ: WMI Private Bytes3,397,689,344 B vs Get-Process2,404,704,256 B; cause unknown. Thermal gate mean92.56 C/7 samples, instantaneous92.125 C; dispatch remains disabled. Preserve all work; no resume/new FEM authorization.
 
 Memory telemetry follow-up 15:37:56 JST: second FillWorkers sample reproduced PID14580's WMI/Get-Process Private Bytes discrepancy (3,397,689,344 vs2,404,704,256 B); source freshness/cause unknown; retain both values.
+
+## Live refresh 2026-11-02 15:41-15:42 JST
+Both tasks remain Running; N1 reached step400/fill0.988 and B step220/fill0.544; completion unknown. Dispatch false, solver filter count0. Three exact top-level output inventories again had no checkpoint-name candidates (nonrecursive). PID14580 memory values now agreed at4,513,550,336B, while prior two samples differed by~0.99GB; cause remains unknown. Thermal gate 5m Tctl/Tdie mean93.00C/8 samples, instant91.75C; Core Average/fan unavailable. Preserve jobs; no new FEM authorization.
