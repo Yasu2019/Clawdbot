@@ -14,3 +14,6 @@ Graphify: three exact-ID nodes/six links added after a first atomic write aborte
 16:09 JST: host/guest availability and commit measured separately; installed-visible gap remains unresolved. Tctl/Tdie rolling5m mean92.8159C/7 samples, instant93.125C; Core Average/fan unavailable. Dispatch remains held.
 
 16:09 JST Graphify refresh: added exact nodes `k1_ram_resource_status_20261102_1609` and `k1_of76_live_status_20261102_1609` with six validated links; `graphify explain` and path to the dispatch hold passed. Two pre-existing unrelated dangling links remain preserved. Graph SHA-256 `38831e60ef485dd91acadde1cc41e9c5ae90274d11491ea2918b73234e127824`.
+
+## Append-only graph correction ? 2026-11-02 16:12 JST
+The two dangling links recorded at16:04/16:09 were accurate then. This timestamp added the exact Beads node `orca-local-lbz`, resolving the existing Myourenji route observation?issue link. One unrelated PowerContinuity dangling link remains. The new Myourenji path was retrieved successfully. Do not rewrite earlier snapshots. Graph SHA-256 `0ff700d20ae6ea5efaeb7c6ff469cc7686e4e40d672f49d6f459206fdbc1e9dc`.
