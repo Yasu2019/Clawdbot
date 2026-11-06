@@ -22,3 +22,10 @@ The earlier BOM requirement was resolved for the option pair by decoding an expl
 Additional cause confirmed: a layer shared with annotations also contains genuine side views. Discarding that layer omitted source retaining reliefs and produced clamp interference. Fastener ownership, source thickness/stack and source-view relief reconstruction expanded the independently verified static subset to 124 components. Both native CAD and reimported STEP checks passed for that subset. Remaining tooling, hardware, source conflicts and full stroke still prevent whole-assembly completion. Never treat this partial result as production approval.
 
 FMEA, FTA, QC process and Control Plan were revised in the canonical note; the detector found the overlaps before source-based remediation and passed after it. Recording alone is not the corrective action.
+
+
+## Follow-up: source topology and placement datums
+
+An original open machining contour had been silently omitted. Explicitly documenting and closing its source endpoint gap restored the intended pocket and removed the associated clamp collisions. The interim alternative mounting-face diagnosis was a hypothesis and is superseded by this validated source-contour cause. A source-wide open-contour screening tool detects the known defect; its search radius does not authorize blanket repairs.
+
+Native source/assembly datums also removed contact errors caused by independently rounded polygon coordinates. The independently verified static subset now contains152 components. Full coverage, source conflicts, remaining hardware and swept stroke still block whole-assembly completion. Original source and failed diagnostic candidates remain preserved. The quality-control documents distinguish implemented controls, measured effectiveness and unresolved scope.
