@@ -13,3 +13,12 @@ At 04:26 JST a limited review subset passed independent FCStd and reimported STE
 FMEA/FTA/QC process chart/Control Plan share this incident ID in the restricted canonical note. Numerical solver runs and unrelated legacy jobs were not stopped, reused or restarted. Future builders must fail closed on missing identity, Boolean exceptions, invalid geometry, unverified exports or incomplete coverage; recording this card does not by itself repair a model.
 
 Canonical restricted evidence: project `docs/knowledge/INC-380D-INTERFERENCE-20261107-01.md`. Beads: `orca-local-g0x`. No passwords, tokens, client configuration or raw engineering files are included.
+
+
+## 2026-11-07 follow-up correction
+
+The earlier BOM requirement was resolved for the option pair by decoding an explicit original assembly revision note and checking individual source drawing identities/quantities. A source drawing register does not establish the physically installed configuration. Separate option configurations are retained.
+
+Additional cause confirmed: a layer shared with annotations also contains genuine side views. Discarding that layer omitted source retaining reliefs and produced clamp interference. Fastener ownership, source thickness/stack and source-view relief reconstruction expanded the independently verified static subset to 124 components. Both native CAD and reimported STEP checks passed for that subset. Remaining tooling, hardware, source conflicts and full stroke still prevent whole-assembly completion. Never treat this partial result as production approval.
+
+FMEA, FTA, QC process and Control Plan were revised in the canonical note; the detector found the overlaps before source-based remediation and passed after it. Recording alone is not the corrective action.
