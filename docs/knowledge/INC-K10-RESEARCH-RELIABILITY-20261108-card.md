@@ -16,3 +16,7 @@ FMEA: output failure, unit misinterpretation and premature collector/watch termi
 This card contains incident-specific sanitized facts only; no credentials, private raw logs, unrelated engineering data or user files are included. It does not authorize restarting jobs, changing security, cleaning storage or retrying numerical failures. Canonical source notes and prior incident history are preserved. ByteRover status at04:15 JST reported expired session and no connected space; remote success is not claimed. GitHub, Turso and MCP receipts are recorded separately after live verification.
 
 Revision at 2026-11-08T04:16:06.358281+09:00: corrected draft observation labels against the live Windows clock before remote publication; initial draft retained in research evidence.
+
+
+## Revision2: multilingual shell transport, 2026-11-08 04:39 JST
+Windows PowerShell native stdin default US-ASCII replaced literal non-ASCII query characters. Two ad hoc title-screen commands failed (schema key, then regex after replacement); original corpus and UTF-8 authored curated files were preserved. UTF-8 file execution and an exact-codepoint Japanese/micro-symbol test passed after command-local encoding selection. This is a separate mechanism from Symbol-font flattening. Updated FMEA/FTA/QC/Control Plan branches and read-back verified Beads comment are in the canonical unit incident. No global shell setting or unrelated job changed. Live hostname NUCBOX_K10 was observed; this does not establish physical hardware identity.
