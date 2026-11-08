@@ -12,3 +12,5 @@ QC draft: refresh live host/guest load, application health and existing work bef
 Control Plan draft: native provenance/input hashes, bounded per-stage execution, checkpoint integrity, finite terminal watcher, explicit residual list; no mate carving/tolerance relaxation to manufacture zero interference. Final engineering/forming qualification remains open. Documenting controls is not proof of correction.
 
 Sharing scope: incident control lessons only; no private emails, drawings, credentials, source CAD or raw logs. ByteRover/Turso tool routes unavailable this turn; bounded deduplicated retry pending configuration, no daemon.
+
+Follow-up 2026-11-08T17:24:10.710937+09:00: a later checkpoint-capable attempt was interrupted by another Docker API500 before calculation start was proven. WSL was observed Stopped; root stillUNKNOWN. Further dispatch held. A review-only package was ZIP/hash and browser verified; no final whole-assembly/FEM success. An ASCII native-pipeline text defect was corrected by explicit UTF8 plus Unicode/browser gates; damaged first draft retained and not delivered.
