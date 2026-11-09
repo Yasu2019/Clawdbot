@@ -1,0 +1,11 @@
+# INC-380D-STRIPPER-CHANNEL-20261110-01
+
+Observed 2026-11-10T06:09:58.784582+09:00 JST. Scope: authorized source-CAD correction and interactive viewer update. Prior incident: INC-380D-HIDDEN-LINE-THROUGH-CUT-20261109-01.
+
+Confirmed failure: source side-elevation material relief was omitted from four stripper plates. Source continuous primitives and independent thickness dimensions constrained the correction; original component poses were retained. Seven previously reported static collisions were resolved, and two source-constrained die instances were admitted. Full admitted-assembly audit179 objects,15,931 bounding relationships and345 relevant native intersections: zero positive-volume overlaps and zero boolean errors. This excludes unassembled candidates/reference hardware and does not establish full-stroke, forming, manufacturing or FEM qualification.
+
+Some native boolean/splitter operations returned empty geometry or raised a void-bounds error. Kernel root cause UNKNOWN; numerical/topology sensitivity is a hypothesis. Recovery retained valid source-defined single-solid BReps with documented small boolean tolerance, independent volume balance and complete mating audit. A dense point diagnostic hit its owned finite CPU bound; unfinished samples were not used as proof. Partial evidence and earlier revisions preserved; no unrelated job stopped, no resource setting increased.
+
+Draft FMEA: omitted side relief -> incorrect material clearance; prevention/source side-profile gate; detection/native geometry and whole admitted-assembly audit; ratings unassessed. FTA: confirmed omitted-relief branch, separate unknown native-kernel branch, unresolved missing/ incompatible-part branches. QC: encoding/linetype -> independent dimensional source gate -> native solid and pose -> mating admission -> full checkpointed pair audit -> hashed mesh -> browser controls. Control Plan: repeat changed-part and full assembly gates each revision; hold unresolved components and expose limits. Geometry gates passed; browser effectiveness evidence is recorded separately.
+
+Canonical restricted evidence is retained in the matching local incident note. Original user template, previous viewer and unrelated work preserved.
