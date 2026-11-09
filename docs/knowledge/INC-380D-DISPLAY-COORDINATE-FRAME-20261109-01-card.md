@@ -1,0 +1,18 @@
+# Mesh replacement must preserve display coordinates
+
+Incident: INC-380D-DISPLAY-COORDINATE-FRAME-20261109-01. Restricted canonical evidence is the matching project note; linked to the prior interactive-delivery and geometry-audit incidents.
+
+Confirmed viewer defect: replacement native CAD meshes retained source coordinates while the animation material used a centered display frame. The shared rigid display transform was omitted during substitution. Correct native CAD Boolean results alone do not verify the rendered material/tool relationship. Source geometry and original user-selected template are preserved.
+
+Correction: apply one explicit rigid display transform to all admitted native shapes, retain raw CAD coordinates separately for metadata, and test rendered bounds against the material frame. Use the exact user-selected layout/control baseline rather than a different catalog/viewer. Unresolved installation parts stay in isolated inspection; old hardware is optional, initially hidden and labeled unqualified. Remove fixed all-group zero-interference/completeness claims. Preserve one strip/two products and retained non-through bridges; material dimensions/deformation remain illustrative, not FEM.
+
+An inherited opacity-state omission was detected in browser testing: hidden groups changed recorded opacity without updating hidden material state. Update materials consistently without enabling unqualified reference groups. Hover picking skips hidden groups and drag events; Y clipping covers outlines as well as solids. Native scene rendering excludes the sidebar and header text is contained. Final browser/visual verification is recorded separately.
+
+FMEA draft: mixed display frames mislead visual fit/motion review; confirmed packaging transform omission. Prevention explicit transform/source metadata; detection render-bound alignment and visual integration tests. Owner=current task agent; S/O/D/RPN unassessed; residual forming/contact qualification open.
+FTA draft: wrong displayed material/tool relationship requires incompatible frames combined with a missing integration gate. Unverified hardware and unresolved installations are separate branches, not verified production components.
+QC draft: exact template/hash → immutable geometry → common render frame → bounds/finite arrays → separate references → controls/transparency/clipping/hover → strip/bridge check → screenshots → final Downloads hash/original preservation.
+Control Plan draft: each delivered revision verifies frame consistency and requested controls, labels qualification scope, and preserves source CAD. Float32 display tolerance is not a manufacturing tolerance. HOLD on mismatch; fix display packaging rather than alter mating solids. Documenting controls alone is not proof of effectiveness.
+
+No private engineering payload, emails, credentials or raw logs included. No native/FEM computation dispatched or legacy process stopped during this format correction. ByteRover/Turso require an available configured route; bounded deduplicated retry only, no daemon.
+
+Final evidence:37 browser acceptance checks passed for exact requested layout, render-frame alignment, visibility/reference exclusion and opt-in, controls/transparency/clipping/edges, mouse/view controls, isolated-part inspection/return, single-strip/two-product retained bridges, original preservation, zero external requests and JS errors. Three screenshots were visually reviewed; tested Downloads artifact/hash verified. Control effectiveness is demonstrated for this display revision. Manufacturing/contact/full-stroke/FEM and reference hardware remain unqualified.
