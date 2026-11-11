@@ -1,0 +1,9 @@
+# INC-380D-STRIP-ZDATUM-20261112-01
+
+Observed2026-11-12 Asia/Tokyo during authorized product-strip CAD review. A prior reference layout used the product file-origin height and an inferred sloping connection to stock. Independent bend-axis/radius correspondences and rail surfaces in a source section established a different stock datum. Corrected rigid product placement and flat connection geometry while preserving original source solids and earlier artifacts. Unrelated running work was untouched; no FEM dispatched.
+
+Controls: distinguish product identity, layout identity and source/revision applicability; corroborate Z datum with multiple independent section features; preserve source volumes; check local bridge/product/frame connectivity; compare native and exported bodies consistently; inspect actual initial rendering and user controls against the current artifact hash. Process operation count and feed-position count differ; an explicitly absent process number is not a missing-tool fault.
+
+FMEA: wrong datum compensated by inferred connection, causing misleading assembly; owner unassigned and ratings unassessed. FTA: source identity OR datum OR inferred intermediate geometry OR stale revision OR rendering failure. QC: live-work preservation -> source pinning -> section correspondence -> rigid placement -> local connectivity -> native/readback -> visible hash-bound QA. Control Plan: hold unsupported forming/current-revision claims and preserve partials on failure. Actual correspondence/native/browser tests validate only their bounded scope; documentation alone is not proof of process capability.
+
+Completed reference products are distinct from unconstructed intermediate forming stages. Static connection does not establish strain, bridge strength, springback or successful pressing. Shared card excludes raw engineering data, dimensions, mail and credentials. Remote synchronization requires readback; local save/queued work is not remote success.
