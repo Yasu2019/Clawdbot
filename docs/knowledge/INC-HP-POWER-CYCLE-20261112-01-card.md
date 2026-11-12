@@ -1,0 +1,11 @@
+# INC-HP-POWER-CYCLE-20261112-01
+
+Observed2026-11-12 Asia/Tokyo after user-reported accidental NewHP power cycle. Initial VPN ping timed out but authenticated SSH subsequently verified the expected host. Separate connectivity layers; failed ping is not proof of powered-off host. Existing numerical launcher had already restarted its owned case. Native log explicitly restored a saved state with matching code and then advanced; two stable-handle checkpoint generations passed CRC/hash/version/code checks. Latest saved checkpoint was preboot; no new postboot checkpoint yet observed. Some preboot work was replayed. Do not promise zero loss, universal recovery, complete campaign or physical validity.
+
+No manual duplicate launch, stop, task/queue/lock/configuration edit, security weakening or resource change. Existing recovery ownership retained. Historical operating-window authorization versus later campaign exception remains unresolved; reconcile before new manual admission without stopping unrelated legacy work.
+
+Diagnostic failure: base Python lacked the solver environment's numpy and a later CPU query masked the failed Python exit. Preserved evidence, used the existing case venv read-only, and required actual expected native payload before claiming recovery. No package install or remote modification. GUI, monitoring and authenticated worker endpoint were not inferred from shell access.
+
+FMEA: interrupted progress, false offline diagnosis, false recovery assurance; ratings unassessed, campaign owner unassigned. FTA: checkpoint integrity OR compatibility OR duplicate admission OR absent actual progress OR misleading diagnostic success; unresolved branches stay hypotheses. QC: prior evidence -> current host identity/routes -> existing process/task ownership -> native restore/progress -> stable saved-state verification -> preserve and record limits. Control Plan: hold new dispatch on unknown recovery/compatibility, preserve known-good generations, require expected diagnostic output and actual numerical progress, distinguish historical task fields from live activity. Scoped verification succeeded; note creation does not prevent a future power action.
+
+Shared card excludes numerical source data, engineering details, raw logs, private mail and credentials. Verified remote synchronization is distinct from local save or queued retry.
