@@ -1,0 +1,9 @@
+# INC-380D-OVERLAP-VISUAL-20261112-01
+
+Observed2026-11-12 Asia/Tokyo while rendering source-preserving per-location CAD overlaps. A valid native intersection and visible-object flag did not guarantee a visible highlight. One graphics launch lost context; alternate supported backend retained it, exact underlying causeUNKNOWN. Later opaque highlight rendered before translucent material/tool passes and was visually hidden. Putting it in the late transparent pass corrected display without changing CAD. Actual per-case canvas pixels prevented accepting the misleading output.
+
+Sparse whole-bounding-box probes can miss thin disconnected intersections; zero hits is not proof of no collision. Native validity, source-inside samples, per-face mesh area and recentered signed volume are separate gates. Refine tessellation only for failing faces while preserving metric limits. During animation show precomputed intersections only at the exact audited state; never carry stale red geometry through uncomputed motion. Distinguish model overlap from physical contact/manufacturing approval.
+
+FMEA: hidden/blank/stale overlap, inadequate sparse probes; ratings unassessed, engineering owner unassigned. FTA: wrong source/state OR boolean OR mesh OR backend OR pass order OR weak visual gate; confirm observed branches only. QC: pin source -> native common -> independent source occupancy -> mesh metrics -> actual labeled pixels -> state-aware motion -> hash-bound images/video. Control Plan: hold failed/empty/invisible cases, preserve originals and failed trials, correct only owned sampler/renderer, verify exact-state/color/artifact outputs. No original model, legacy process, solver setting or resource allocation changed; no FEM ran.
+
+Shared card excludes source geometry, dimensions, engineering inputs, raw logs, mail and credentials. Local save and verified remote readback are separate.
