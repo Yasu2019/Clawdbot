@@ -7,3 +7,7 @@ Two 76Case-derived tetra fill runs completed with a 10 s native checkpoint inter
 This is an exploratory model mismatch, not physical validation or proof against the valve-1 hypothesis. Gate XYZ/orientation and hot-runner transform remain provisional; gate diameter is assumed; cooling layout, cavity-wall temperature, and event-specific pressure profile are not fully represented. Full input hashes, run provenance, and limitations are in the canonical record and local run manifest. Production validation remains open.
 
 Canonical record: `docs/knowledge/INC-380D-SHORTSHOT-20251002-01.md`.
+
+## 2026-11-25 JST — INC-380D-VOLCAP-20261125
+
+A compressible filling solver applied its net-front-volume limit only when a trapped-air model existed. Turning that model off silently increased the volume placed in the cavity. The earlier unvented comparison is withdrawn. The corrected analysis applies the cap for compressible flow in both solver entry points, rejects nonconservative histories before publishing a successful summary, and checks cumulative inlet volume through the run. Replaying the old output reproduces the failure; boxed reference data and a capped diagnostic pass. Use the versioned v3 report for the corrected comparison. Production defect causation and mesh convergence remain unverified. Related record: INC-380D-SHORTSHOT-20251002-01.
