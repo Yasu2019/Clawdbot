@@ -1,0 +1,3 @@
+# INC-ORCA-MIXED-INSTALL-20261125-01
+
+Windows desktop IDE failed immediately after update. Installed launcher and ASAR package came from different releases. Embedded integrity digest disagreed with package header. After preserving profile and link metadata and verifying all backup file hashes, compare installed files with an authenticated official release. Replace only divergent program files with rollback available. Confirm normal shortcut, original workspace and ordered tab IDs, then check actual UI. This restored access in this case. Auto-updater root cause unknown. Running job recovery requires a separate decision.
