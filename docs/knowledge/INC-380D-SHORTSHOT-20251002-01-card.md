@@ -11,3 +11,10 @@ Canonical record: `docs/knowledge/INC-380D-SHORTSHOT-20251002-01.md`.
 ## 2026-11-25 JST — INC-380D-VOLCAP-20261125
 
 A compressible filling solver applied its net-front-volume limit only when a trapped-air model existed. Turning that model off silently increased the volume placed in the cavity. The earlier unvented comparison is withdrawn. The corrected analysis applies the cap for compressible flow in both solver entry points, rejects nonconservative histories before publishing a successful summary, and checks cumulative inlet volume through the run. Replaying the old output reproduces the failure; boxed reference data and a capped diagnostic pass. Use the versioned v3 report for the corrected comparison. Production defect causation and mesh convergence remain unverified. Related record: INC-380D-SHORTSHOT-20251002-01.
+
+
+## 2026-11-25 — INC-76CASE-GATE-20261125 / INC-76CASE-GW-HOLD-20261125
+
+A numerical acceptance gate confused the pressure-solve timestep with the shortened clock interval at a valve-opening event and integrated negative front flux although this front model admits only positive displacement. Measure a step's admitted volume and independently audit placements, gate seeds, overflow and air rejection. Land the pressure solve on each opening time. Preserve failed fields with a terminal failure status understood by the recovery task. Production admission is held.
+
+A separate thermal issue was observed in completed histories and live recovery snapshots. When no front can accept melt, early continuation advances the hold clock before the through-thickness heat update. Qualify late-hold temperatures, frozen layers and unfed-volume histories separately. Thermal correction and independent production validation remain open.
