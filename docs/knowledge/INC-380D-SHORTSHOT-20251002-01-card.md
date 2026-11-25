@@ -18,3 +18,8 @@ A compressible filling solver applied its net-front-volume limit only when a tra
 A numerical acceptance gate confused the pressure-solve timestep with the shortened clock interval at a valve-opening event and integrated negative front flux although this front model admits only positive displacement. Measure a step's admitted volume and independently audit placements, gate seeds, overflow and air rejection. Land the pressure solve on each opening time. Preserve failed fields with a terminal failure status understood by the recovery task. Production admission is held.
 
 A separate thermal issue was observed in completed histories and live recovery snapshots. When no front can accept melt, early continuation advances the hold clock before the through-thickness heat update. Qualify late-hold temperatures, frozen layers and unfed-volume histories separately. Thermal correction and independent production validation remain open.
+
+
+### INC-76CASE-GATE-20261125 / INC-76CASE-GW-HOLD-20261125 — review correction R3
+
+The independent review found that subtracting rejected placement from expected inlet volume allowed creation and loss to pass. Pressure-solve inlet flux, compression and cavity state must supply the reference. Track the two signs of stepwise residual separately. Negative face flux cannot supply a front that never recedes. Record the duration of every heat update when the hydraulic front stops. Historical late-hold results are on hold starting at the first missing update. Existing production histories lack the independent state measurements needed to release the new solver; production issuance remains suspended.
