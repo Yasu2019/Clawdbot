@@ -1,0 +1,3 @@
+# INC-ORCA-SECRETARY-CLI-20261126-01
+
+Desktop bot handoff was blocked before the provider was called. Its executable path pointed at an absent launcher in a former installation. The active runtime used a different installation. Resolve the process ID from the local runtime registration, validate the executable and allowed installation, and use its matching CLI and quota dependencies. A read-only runtime status probe succeeded. Isolated checks passed for routing, acceptance, duplicate suppression and an unavailable launcher. Historical unknown or pending work requires separate reconciliation before replay.
